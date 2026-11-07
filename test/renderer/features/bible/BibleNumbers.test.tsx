@@ -1,3 +1,4 @@
+import {lastLiveCommand} from '@fixtures/renderer/session/liveCommands';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
@@ -114,7 +115,7 @@ describe('quick Bible verse-number defaults', () => {
       const user = userEvent.setup();
       await user.click(book);
       await user.keyboard('{Enter}');
-      expect(test.send.mock.calls.at(-1)?.[0]).toMatchObject({
+      expect(lastLiveCommand(test.send.mock.calls.at(-1)?.[0])).toMatchObject({
         type: 'slide.show',
         slide: {
           position: 1,
@@ -145,7 +146,7 @@ describe('quick Bible verse-number defaults', () => {
     const user = userEvent.setup();
     await user.click(book);
     await user.keyboard('{Enter}');
-    const command = test.send.mock.calls.at(-1)?.[0];
+    const command = lastLiveCommand(test.send.mock.calls.at(-1)?.[0]);
     if (command?.type !== 'slide.show') {
       throw new Error('Missing Bible output');
     }
@@ -174,7 +175,7 @@ describe('quick Bible verse-number defaults', () => {
     expect(test.send).toHaveBeenCalledOnce();
     act(() => revealLiveItem());
     act(() => outputPrevious());
-    expect(test.send.mock.calls.at(-1)?.[0]).toMatchObject({
+    expect(lastLiveCommand(test.send.mock.calls.at(-1)?.[0])).toMatchObject({
       type: 'slide.show',
       slide: {
         itemId: command.slide.itemId,

@@ -1,4 +1,5 @@
 import type {Preferences} from '@core/schema/preferences';
+import type {SingleLiveCommand} from '@core/live/commands';
 import {findSlideHotKey} from '@core/services/slideHotKeys';
 import {parseServiceItemId} from '@core/schema/ids';
 import type {ShowService} from '@core/schema/showService';
@@ -15,9 +16,9 @@ import {
   type SequenceState,
 } from '@core/presentation/navigation';
 import {slideLayerOf} from '@core/presentation/slideLayer';
-import {slidesOutput} from '@core/presentation/slides';
 import {rememberBiblePassage} from '@renderer/session/recentWriter';
-import {sendLive, useLive} from './live';
+import {useLive} from './live';
+import {sendMediaOutput, sendSlideOutput} from './itemOutput';
 import {
   bibleSourceFor,
   isBibleSource,
@@ -92,7 +93,7 @@ export function selectTile(index: number): void {
   useShow.setState({selectedTile: index});
 }
 
-function startServiceItem(itemId: ItemId): void {
+function startServiceItem(itemId: ItemId): SingleLiveCommand | undefined {
   const live = useLive.getState();
   if ((live.lastStartedItemId ?? live.state?.layers.slide?.itemId) === itemId) {
     return;
@@ -105,7 +106,7 @@ function startServiceItem(itemId: ItemId): void {
     return;
   }
   const id = parseServiceItemId(itemId);
-  if (id.ok) sendLive({type: 'item.start', itemId: id.value});
+  return id.ok ? {type: 'item.start', itemId: id.value} : undefined;
 }
 
 /**
@@ -116,8 +117,7 @@ function outputOtherTile(cursor: TileCursor): boolean {
   if (tile?.media === undefined) return false;
   beginOutputRequest();
   useShow.setState({openItemId: cursor.itemId, selectedTile: cursor.index});
-  startServiceItem(cursor.itemId);
-  sendLive({type: 'media.show', media: tile.media});
+  sendMediaOutput(tile.media, startServiceItem(cursor.itemId));
   return true;
 }
 
@@ -175,7 +175,6 @@ export function outputTile(cursor: TileCursor): void {
     liveBibleSource: bibleSourceFor(view, liveItemId),
     requestedBibleSource: source?.id === liveItemId ? null : source,
   });
-  startServiceItem(cursor.itemId);
   if (row?.kind === 'slides') {
     publishSlidesProjection(
       useShow.getState(),
@@ -183,10 +182,10 @@ export function outputTile(cursor: TileCursor): void {
       tilesOf(cursor.itemId),
     );
   }
-  sendLive(
-    row?.kind === 'slides'
-      ? slidesOutput(slide, row.background)
-      : {type: 'slide.show', slide},
+  sendSlideOutput(
+    slide,
+    row?.kind === 'slides' || row?.kind === 'song' ? row.background : undefined,
+    startServiceItem(cursor.itemId),
   );
   const passage =
     source?.passage ?? (row?.kind === 'bible' ? row.bible : undefined);
@@ -216,7 +215,7 @@ async function outputSongTile({
   } catch (error: unknown) {
     window.llp?.log.write({
       level: 'warn',
-      message: 'Could not refresh the song background; kept the current media',
+      message: 'Could not refresh the song background; using its cached choice',
       detail: error instanceof Error ? error.message : String(error),
     });
   }
@@ -232,21 +231,12 @@ async function outputSongTile({
   if (service !== null && service.id === serviceId) applyService(service);
   const slide = slideLayerOf(cursor, tilesOf);
   if (!slide) return;
-  const row =
-    service?.id === serviceId
-      ? useShow.getState().rows.find(row => row.id === cursor.itemId)
-      : undefined;
-  startServiceItem(cursor.itemId);
-  if (row?.kind === 'song' && row.background !== undefined) {
-    const current = useLive.getState().state?.layers.media;
-    if (
-      current?.mediaId !== row.background.mediaId ||
-      current.loop !== row.background.loop
-    ) {
-      sendLive({type: 'media.show', media: row.background});
-    }
-  }
-  sendLive({type: 'slide.show', slide});
+  const row = useShow.getState().rows.find(row => row.id === cursor.itemId);
+  sendSlideOutput(
+    slide,
+    row?.kind === 'song' ? row.background : undefined,
+    startServiceItem(cursor.itemId),
+  );
 }
 
 function outputIfPresent(cursor: TileCursor | null): void {

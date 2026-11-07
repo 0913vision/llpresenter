@@ -1,3 +1,4 @@
+import {lastLiveCommand} from '@fixtures/renderer/session/liveCommands';
 import {act, cleanup} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {bibleVerseTiles} from '@core/bible/bibleTiles';
@@ -145,7 +146,7 @@ describe('Bible verse shortcuts', () => {
     });
     await outputAdjacentBibleVerse('next');
     expect(useShow.getState().bibleSource?.translationName).toBe(true);
-    expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+    expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])).toMatchObject({
       type: 'slide.show',
       slide: {reference: '요한복음 3:19 (개역한글)'},
     });
@@ -173,7 +174,7 @@ describe('Bible verse shortcuts', () => {
     expect(useShow.getState().bibleSource?.passage.ref).toBe(
       '요한복음 3:16-20',
     );
-    expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+    expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])).toMatchObject({
       slide: {label: '3:20'},
     });
   });
@@ -190,7 +191,7 @@ describe('Bible verse shortcuts', () => {
       );
       expect(useShow.getState().bibleSource?.verseNumbers).toBe(verseNumbers);
       expect(fixture.send).toHaveBeenCalledTimes(1);
-      expect(fixture.send.mock.calls[0]?.[0]).toMatchObject({
+      expect(lastLiveCommand(fixture.send.mock.calls[0]?.[0])).toMatchObject({
         type: 'slide.show',
         slide: {
           position: 3,
@@ -215,7 +216,9 @@ describe('Bible verse shortcuts', () => {
       expect(useShow.getState().bibleSource?.passage.ref).toBe(
         '요한복음 3:16-18',
       );
-      expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+      expect(
+        lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]),
+      ).toMatchObject({
         type: 'slide.show',
         slide: {label},
       });
@@ -227,7 +230,7 @@ describe('Bible verse shortcuts', () => {
     await outputAdjacentBibleVerse('next');
     expect(fixture.lookup).not.toHaveBeenCalled();
     expect(useShow.getState().rows).toBe(fixture.rows);
-    expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+    expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])).toMatchObject({
       type: 'slide.show',
       slide: {label: '3:18'},
     });
@@ -238,7 +241,7 @@ describe('Bible verse shortcuts', () => {
     const edit = vi.spyOn(fixture.api.content, 'edit');
     await outputAdjacentBibleVerse('next');
     expect(useShow.getState().rows).toBe(fixture.rows);
-    expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+    expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])).toMatchObject({
       type: 'slide.show',
       slide: {label: '3:19'},
     });
@@ -250,7 +253,7 @@ describe('Bible verse shortcuts', () => {
     expect(useShow.getState().tiles['saved-bible']).toHaveLength(2);
     await outputAdjacentBibleVerse('next');
     expect(useShow.getState().rows).toBe(fixture.rows);
-    expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+    expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])).toMatchObject({
       type: 'slide.show',
       slide: {label: '3:19'},
     });
@@ -263,7 +266,9 @@ describe('Bible verse shortcuts', () => {
       await outputAdjacentBibleVerse(direction);
       const verse = direction === 'previous' ? 15 : 19;
       expect(useShow.getState().bibleSource?.verseNumbers).toBe(false);
-      expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+      expect(
+        lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]),
+      ).toMatchObject({
         type: 'slide.show',
         slide: {
           label: `3:${verse}`,
@@ -302,7 +307,9 @@ describe('Bible verse shortcuts', () => {
       await act(() => outputAdjacentBibleVerse(direction));
       const verse = direction === 'previous' ? 14 : 20;
       expect(fixture.send).toHaveBeenCalledTimes(1);
-      expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+      expect(
+        lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]),
+      ).toMatchObject({
         type: 'slide.show',
         slide: {
           label: `3:${verse}`,

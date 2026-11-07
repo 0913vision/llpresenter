@@ -1,3 +1,4 @@
+import {lastLiveCommand} from '@fixtures/renderer/session/liveCommands';
 import {
   act,
   cleanup,
@@ -162,7 +163,7 @@ describe('BibleQuickField', () => {
     expect(currentRef()).toBe('요한복음 3:16-18');
     fireEvent.keyDown(field, {key: 'Enter'});
 
-    expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+    expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])).toMatchObject({
       type: 'slide.show',
       slide: {itemId: 'bible:sample:요한복음 3:16-18'},
     });
@@ -201,7 +202,7 @@ describe('BibleQuickField', () => {
     fireEvent.keyDown(screen.getByRole('textbox', {name: '끝절'}), {
       key: 'Enter',
     });
-    expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+    expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])).toMatchObject({
       type: 'slide.show',
       slide: {itemId: 'bible:alternate:요한복음 3:16-19'},
     });

@@ -54,6 +54,12 @@ function reduce(state: LiveState, command: LiveCommand): LiveState {
     return {...next, layers: {...layers, slide: command.slide}};
   }
   if (command.type === 'media.show') {
+    if (
+      layers.media?.mediaId === command.media.mediaId &&
+      layers.media.loop === command.media.loop
+    ) {
+      return next;
+    }
     return {
       ...next,
       layers: {...layers, media: {...command.media, startedAt: now}},
@@ -143,12 +149,12 @@ describe('song backgrounds on output', () => {
     sent.length = 0;
     click('two');
     await expectSlide('two');
-    expect(sent.map(command => command.type)).toEqual(['slide.show']);
+    expect(sent.map(command => command.type)).toEqual(['live.batch']);
     expect(store.state.layers.media).toBe(playing);
     expect(store.state.layers.media?.startedAt).toBe(START);
   });
 
-  it('preserves a manually selected background during same-item navigation', async () => {
+  it('preserves a background-only macro choice during same-item navigation', async () => {
     click('one');
     await expectSlide('one');
     sendLive({type: 'media.show', media: {mediaId: 'manual', loop: false}});
@@ -158,31 +164,29 @@ describe('song backgrounds on output', () => {
     outputPrevious();
     outputTile({itemId: 'one', index: 0});
     expect(sent.map(command => command.type)).toEqual([
-      'slide.show',
-      'slide.show',
-      'slide.show',
+      'live.batch',
+      'live.batch',
+      'live.batch',
     ]);
     expect(store.state.layers.media).toBe(playing);
     expect(getService).toHaveBeenCalledTimes(1);
   });
 
   it.each(['none', 'bible', 'quick'])(
-    'keeps the current background for %s',
+    'removes the previous background for a backgroundless %s',
     async itemId => {
       click('one');
       await expectSlide('one');
-      const playing = store.state.layers.media;
       sent.length = 0;
       click(itemId);
       expect(sent).toHaveLength(1);
       expect(store.state.layers.slide?.itemId).toBe(itemId);
-      expect(store.state.layers.media).toBe(playing);
+      expect(store.state.layers.media).toBeNull();
     },
   );
 
-  it('rechecks a deleted file, keeps current media, and shows the row problem', async () => {
+  it('rechecks a deleted background, clears unrelated media, and shows the problem', async () => {
     sendLive({type: 'media.show', media: {mediaId: 'previous', loop: true}});
-    const playing = store.state.layers.media;
     getService.mockResolvedValue({
       ...service,
       revision: 2,
@@ -193,8 +197,8 @@ describe('song backgrounds on output', () => {
     sent.length = 0;
     click('one');
     await expectSlide('one');
-    expect(store.state.layers.media).toBe(playing);
-    expect(sent.map(command => command.type)).toEqual(['slide.show']);
+    expect(store.state.layers.media).toBeNull();
+    expect(sent.map(command => command.type)).toEqual(['live.batch']);
     expect(useShow.getState().rows[0]).toMatchObject({
       problem: 'missing-background',
     });
@@ -276,7 +280,7 @@ describe('song backgrounds on output', () => {
       accept({...emptyLiveState(), version: 11});
       await Promise.resolve();
       click('one', 1);
-      expect(sent.map(command => command.type)).toEqual(['slide.show']);
+      expect(sent.map(command => command.type)).toEqual(['live.batch']);
       expect(getService).not.toHaveBeenCalled();
     } finally {
       stop();
@@ -292,23 +296,22 @@ describe('song backgrounds on output', () => {
     expect(useShow.getState().serviceId).toBe('service');
   });
 
-  it('outputs lyrics over current media when the lookup fails', async () => {
+  it('uses the cached item background when the lookup fails', async () => {
     sendLive({type: 'media.show', media: {mediaId: 'previous', loop: true}});
-    const playing = store.state.layers.media;
     getService.mockRejectedValue(new Error('IPC failed'));
     click('one');
     await expectSlide('one');
-    expect(store.state.layers.media).toBe(playing);
+    expect(store.state.layers.media?.mediaId).toBe('video');
     expect(log).toHaveBeenCalledWith(expect.objectContaining({level: 'warn'}));
   });
 
-  it('bounds a stuck lookup and clears its timer before outputting only lyrics', async () => {
+  it('bounds a stuck lookup and outputs the cached item background', async () => {
     vi.useFakeTimers();
     getService.mockImplementation(() => new Promise(() => undefined));
     click('one');
     await vi.advanceTimersByTimeAsync(2000);
-    expect(sent.map(command => command.type)).toEqual(['slide.show']);
-    expect(store.state.layers.media).toBeNull();
+    expect(sent.map(command => command.type)).toEqual(['live.batch']);
+    expect(store.state.layers.media?.mediaId).toBe('video');
     expect(log).toHaveBeenCalledWith(
       expect.objectContaining({detail: 'Song lookup timed out'}),
     );

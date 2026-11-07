@@ -1,4 +1,8 @@
 import {
+  lastLiveCommand,
+  liveCommands,
+} from '@fixtures/renderer/session/liveCommands';
+import {
   act,
   cleanup,
   fireEvent,
@@ -91,7 +95,7 @@ describe('quick panel integration', () => {
       expect(useShow.getState().bibleSource?.passage.ref).toBe(recent.input);
       fireEvent.keyDown(screen.getByRole('combobox'), {key: 'Enter'});
       expect(fixture.send).toHaveBeenCalledOnce();
-      expect(fixture.send.mock.calls[0]?.[0]).toMatchObject({
+      expect(lastLiveCommand(fixture.send.mock.calls[0]?.[0])).toMatchObject({
         type: 'slide.show',
         slide: {position: 0},
       });
@@ -165,7 +169,9 @@ describe('quick panel integration', () => {
     expect(prop.getAttribute('aria-pressed')).toBe('false');
     fireEvent.click(prop);
     fireEvent.click(timer);
-    expect(fixture.send.mock.calls.map(([command]) => command)).toEqual([
+    expect(
+      fixture.send.mock.calls.flatMap(([command]) => liveCommands(command)),
+    ).toEqual([
       {type: 'prop.set', propId: quickId(103), on: true},
       {type: 'timer.start', timerId: quickId(104)},
     ]);
@@ -177,7 +183,9 @@ describe('quick panel integration', () => {
     fireEvent.click(prop);
     fireEvent.click(timer);
     expect(
-      fixture.send.mock.calls.slice(2).map(([command]) => command),
+      fixture.send.mock.calls
+        .slice(2)
+        .flatMap(([command]) => liveCommands(command)),
     ).toEqual([
       {type: 'prop.set', propId: quickId(103), on: false},
       {type: 'timer.reset', timerId: quickId(104)},

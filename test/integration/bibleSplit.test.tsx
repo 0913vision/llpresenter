@@ -1,4 +1,8 @@
 import {
+  lastLiveCommand,
+  liveCommands,
+} from '@fixtures/renderer/session/liveCommands';
+import {
   act,
   fireEvent,
   render,
@@ -389,7 +393,7 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
         expect(chooser).not.toHaveBeenCalled();
         expect(opened.length).toBeGreaterThan(0);
         expect(opened.every(review => review === false)).toBe(true);
-        expect(f.send.mock.calls.at(-1)?.[0]).toMatchObject({
+        expect(lastLiveCommand(f.send.mock.calls.at(-1)?.[0])).toMatchObject({
           type: 'slide.show',
           slide: {position: 0},
         });
@@ -624,7 +628,7 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
       if (id === null) throw Error('Missing source');
       const before = tilesOf(id).findIndex(tile => tile.label === '3:17');
       act(() => outputTile({itemId: id, index: before}));
-      const command = fixture.send.mock.calls.at(-1)?.[0];
+      const command = lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]);
       if (command?.type !== 'slide.show') throw Error('Missing live slide');
       expect(command.slide.biblePart).toBe(1);
       act(() =>
@@ -674,7 +678,9 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
       expect(fixture.send).not.toHaveBeenCalled();
       if (mode === 'panel') act(() => useShow.setState({openItemId: null}));
       act(() => outputNext());
-      expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+      expect(
+        lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]),
+      ).toMatchObject({
         type: 'slide.show',
         slide: {label: '3:18', biblePart: 1},
       });
@@ -723,7 +729,7 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
     if (id === null) throw Error('Missing source');
     expect(tilesOf(id)[0]?.lines.join('')).toBe(text);
     act(() => outputTile({itemId: id, index: 0}));
-    const command = fixture.send.mock.calls.at(-1)?.[0];
+    const command = lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]);
     expect(parseLiveCommand(command).ok).toBe(true);
     view.unmount();
   });
@@ -803,9 +809,9 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
         fireEvent.click(screen.getByRole('button', {name: '확정'})),
       );
       await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-      const outputs = fixture.send.mock.calls.filter(
-        ([command]) => command.type === 'slide.show',
-      );
+      const outputs = fixture.send.mock.calls
+        .flatMap(([command]) => liveCommands(command))
+        .filter(command => command.type === 'slide.show');
       expect(outputs).toHaveLength(interrupted ? 0 : 1);
       view.unmount();
     },
@@ -862,7 +868,7 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
       expect(screen.queryByRole('dialog')).toBeNull();
       act(() => outputTile({itemId: id, index: 0}));
       const command = fixture.send.mock.calls
-        .map(([command]) => command)
+        .flatMap(([command]) => liveCommands(command))
         .find(command => command.type === 'slide.show');
       expect(command).toMatchObject({
         type: 'slide.show',
@@ -874,7 +880,9 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
           useShow.setState({selectedTile: last});
           showBiblePassage(passage);
         });
-        expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+        expect(
+          lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]),
+        ).toMatchObject({
           type: 'slide.show',
           slide: {position: last, continued: false},
         });

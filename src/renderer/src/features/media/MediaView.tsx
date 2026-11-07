@@ -19,7 +19,8 @@ import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {withinLookupTimeout} from '@renderer/session/showOutput';
 import {USAGE_LABEL, USAGE_UNAVAILABLE} from '@renderer/ui/usageText';
 import {MEDIA_LIMITS} from '@core/schema/mediaList';
-import {sendLive, useLive} from '@renderer/session/live';
+import {useLive} from '@renderer/session/live';
+import {sendMediaOutput} from '@renderer/session/itemOutput';
 import {
   Button,
   MediaTile,
@@ -218,14 +219,11 @@ export function MediaView({
       return;
     }
     try {
-      sendLive({
-        type: 'media.show',
-        media: {
-          mediaId: entry.item.id,
-          loop: mediaLoops(entry.item),
-          itemId: `media:${entry.item.id}`,
-          title: nameOf(entry),
-        },
+      sendMediaOutput({
+        mediaId: entry.item.id,
+        loop: mediaLoops(entry.item),
+        itemId: `media:${entry.item.id}`,
+        title: nameOf(entry),
       });
     } catch (cause: unknown) {
       console.error('Media output failed:', cause);

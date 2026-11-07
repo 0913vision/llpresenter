@@ -1,5 +1,16 @@
 import {describe, expect, it, vi} from 'vitest';
-import {fitFontSize} from '@renderer/rendering/fitText';
+import {fitFontSize, fitTextInFrame} from '@renderer/rendering/fitText';
+
+it('keeps four wrapped rows at theme size until the actual frame overflows', () => {
+  const measure = (size: number) => ({width: size * 8, height: size * 4 * 1.4});
+  expect(fitTextInFrame({size: 84, width: 1000, height: 600}, measure)).toBe(
+    84,
+  );
+  expect(fitTextInFrame({size: 84, width: 1000, height: 300}, measure)).toBe(
+    53,
+  );
+  expect(fitTextInFrame({size: 84, width: 400, height: 600}, measure)).toBe(50);
+});
 
 describe('fitFontSize', () => {
   it('floors a scaled fractional style size and keeps the one-pixel minimum', () => {

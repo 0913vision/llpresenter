@@ -53,6 +53,9 @@ export class ThemeElementView {
   private readonly previewMaxLines: number | undefined;
   private mediaId: string | null = null;
   private mediaStartedAt: number | null = null;
+  private readonly reportMediaError = (): void => {
+    if (this.mediaId !== null) this.gaps.missing('media', this.mediaId);
+  };
 
   constructor(
     readonly element: ThemeElement,
@@ -249,9 +252,7 @@ export class ThemeElementView {
       this.media = new BackgroundLayerView(this.box, {
         ...this.options,
         muted: true,
-        onError: () => {
-          if (this.mediaId !== null) this.gaps.missing('media', this.mediaId);
-        },
+        onError: this.reportMediaError,
       });
     }
     if (
@@ -353,6 +354,7 @@ export class ThemeElementView {
               lines: text.split('\n'),
               continued,
             },
+        frame.transitions !== false,
       );
     }
     this.shownText = text;
@@ -365,6 +367,37 @@ export class ThemeElementView {
 
   ready(): boolean {
     return (this.image?.complete ?? true) && (this.media?.ready() ?? true);
+  }
+
+  /** Retains a matching player's decoder and playback position across themes. */
+  retainMedia(
+    previous: ThemeElementView,
+    layers: LiveLayers,
+    frame: RenderFrame,
+  ): void {
+    if (this.element.kind !== 'background' && this.element.kind !== 'media') {
+      return;
+    }
+    const media = themeElementMedia(this.element.kind, {
+      layers,
+      item: frame.theme?.item ?? null,
+    });
+    if (
+      this.media !== null ||
+      media === null ||
+      previous.media === null ||
+      !previous.media.ready() ||
+      previous.mediaId !== media.mediaId ||
+      previous.mediaStartedAt !== media.startedAt
+    ) {
+      return;
+    }
+    if (!previous.media.moveTo(this.box)) return;
+    this.media = previous.media;
+    this.media.setOnError(this.reportMediaError);
+    previous.media = null;
+    this.mediaId = previous.mediaId;
+    this.mediaStartedAt = previous.mediaStartedAt;
   }
 
   dispose(): void {

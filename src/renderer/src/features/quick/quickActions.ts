@@ -6,6 +6,7 @@ import {
   type QuickItem,
 } from '@core/schema/quick';
 import {sendLive, useLive} from '@renderer/session/live';
+import {sendSlideOutput} from '@renderer/session/itemOutput';
 import {selectTile, useShow} from '@renderer/session/show';
 import {openLibrarySong} from '@renderer/session/showLibrary';
 import {
@@ -91,7 +92,7 @@ export function quickRunner(api: LlpApi, onProblem: (notice: Notice) => void) {
           const itemId = useShow.getState().openItemId;
           if (itemId === null) return;
           const slide = slideLayerOf({itemId, index: 0}, () => song.tiles);
-          if (slide) sendLive({type: 'slide.show', slide});
+          if (slide) sendSlideOutput(slide, song.background);
           return;
         }
         case 'bible': {

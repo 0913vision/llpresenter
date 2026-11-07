@@ -7,11 +7,12 @@ import {OUTPUT_TRANSITIONS} from './transitions';
 import {THEME_LIMITS} from '@core/themes/elementRules';
 
 interface ThemePage {
+  layers: LiveLayers;
+  frame: RenderFrame;
   readonly root: HTMLElement;
   readonly canvas: HTMLElement;
   readonly elements: readonly ThemeElementView[];
   readonly signature: string;
-  readonly themeId: string;
 }
 
 const TICK_MS = 250;
@@ -25,6 +26,7 @@ export class ThemeCompositionView {
   private releaseTimer: ReturnType<typeof setTimeout> | null = null;
   private ticker: ReturnType<typeof setInterval> | null = null;
   private animation: number | null = null;
+  private preparing = false;
   private content: {layers: LiveLayers; frame: RenderFrame} | null = null;
 
   constructor(
@@ -49,12 +51,14 @@ export class ThemeCompositionView {
       return;
     }
     const signature = JSON.stringify([theme.themeId, theme.layout]);
-    if (signature !== this.page?.signature) this.build(signature, frame);
+    const rebuilt = signature !== this.page?.signature;
+    if (rebuilt) this.build(signature, frame, layers);
     if (this.page !== null) {
       this.page.root.style.backgroundColor =
         theme.layout.background ?? theme.emptyColor;
     }
-    this.draw();
+    this.draw(rebuilt);
+    if (rebuilt && this.leaving !== null) this.awaitIncoming(frame);
     const ticks =
       this.page?.elements.some(view =>
         ['clock', 'timer', 'videoTimeLeft'].includes(view.element.kind),
@@ -73,8 +77,12 @@ export class ThemeCompositionView {
     }
   }
 
-  private build(signature: string, frame: RenderFrame): void {
-    this.releaseLeaving();
+  private build(
+    signature: string,
+    frame: RenderFrame,
+    layers: LiveLayers,
+  ): void {
+    this.settle();
     const theme = frame.theme;
     if (theme === undefined) return;
     const old = this.page;
@@ -109,38 +117,58 @@ export class ThemeCompositionView {
       }
     }
     this.page = {
+      layers,
+      frame,
       root: page,
       canvas,
       elements,
       signature,
-      themeId: theme.themeId,
     };
-    this.rescale();
-    if (
-      old !== null &&
-      old.themeId !== theme.themeId &&
-      frame.transitions !== false &&
-      (frame.transitionTimes?.slideMs ?? OUTPUT_TRANSITIONS.slideMs) > 0
-    ) {
+    if (old !== null) {
       this.leaving = old;
-      const duration =
-        frame.transitionTimes?.slideMs ?? OUTPUT_TRANSITIONS.slideMs;
+      this.preparing = true;
       page.style.opacity = '0';
-      page.style.transition = `opacity ${duration}ms linear`;
-      old.root.style.transition = `opacity ${duration}ms linear`;
-      this.animation = requestAnimationFrame(() => {
-        this.animation = null;
-        page.style.opacity = '1';
-        old.root.style.opacity = '0';
-        this.releaseTimer = setTimeout(() => this.releaseLeaving(), duration);
-      });
-    } else if (old !== null) this.disposePage(old);
+      for (const incoming of elements) {
+        for (const previous of old.elements) {
+          incoming.retainMedia(previous, layers, frame);
+        }
+      }
+    }
+    this.rescale();
   }
 
-  private draw(): void {
+  private awaitIncoming(frame: RenderFrame): void {
+    const page = this.page;
+    if (page === null) return;
+    const duration =
+      frame.transitions === false
+        ? 0
+        : (frame.transitionTimes?.slideMs ?? OUTPUT_TRANSITIONS.slideMs);
+    page.root.style.transition = `opacity ${duration}ms linear`;
+    // NOTE(0913vision): A newly inserted page needs its zero-opacity style
+    // committed before rAF; otherwise Chromium paints its first frame opaque.
+    getComputedStyle(page.root).getPropertyValue('opacity');
+    const check = (): void => {
+      this.animation = null;
+      if (!this.ready()) {
+        this.animation = requestAnimationFrame(check);
+        return;
+      }
+      this.preparing = false;
+      page.root.style.opacity = '1';
+      // NOTE(0913vision): The outgoing opaque page stays behind the incoming
+      // one. Fading both pages exposes black at the middle of a dissolve.
+      this.releaseTimer = setTimeout(() => this.releaseLeaving(), duration);
+    };
+    this.animation = requestAnimationFrame(check);
+  }
+
+  private draw(rebuilt = false): void {
     const page = this.page;
     const content = this.content;
     if (page === null || content === null) return;
+    page.layers = content.layers;
+    page.frame = content.frame;
     const video =
       page.elements.find(view => view.element.kind === 'media')?.remaining() ??
       page.elements
@@ -148,7 +176,13 @@ export class ThemeCompositionView {
         ?.remaining();
     for (const view of page.elements) {
       try {
-        view.render(content.layers, content.frame, video);
+        view.render(
+          content.layers,
+          rebuilt || this.leaving !== null
+            ? {...content.frame, transitions: false}
+            : content.frame,
+          video,
+        );
       } catch (error) {
         this.gaps.failed(view.element.id, error);
       }
@@ -189,6 +223,30 @@ export class ThemeCompositionView {
     this.releaseTimer = null;
     if (this.leaving !== null) this.disposePage(this.leaving);
     this.leaving = null;
+    this.preparing = false;
+  }
+
+  private settle(): void {
+    if (
+      this.preparing &&
+      !this.ready() &&
+      this.leaving !== null &&
+      this.page !== null
+    ) {
+      for (const outgoing of this.leaving.elements) {
+        for (const incoming of this.page.elements) {
+          outgoing.retainMedia(
+            incoming,
+            this.leaving.layers,
+            this.leaving.frame,
+          );
+        }
+      }
+      this.disposePage(this.page);
+      this.page = this.leaving;
+      this.leaving = null;
+    }
+    this.releaseLeaving();
   }
 
   private disposePage(page: ThemePage): void {

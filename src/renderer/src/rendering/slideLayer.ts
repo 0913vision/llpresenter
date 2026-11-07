@@ -158,7 +158,7 @@ export class SlideLayerView {
   }
 
   /** Shows the 장 with a dissolve, or clears the layer at once for null. */
-  show(slide: SlideLayer | null): void {
+  show(slide: SlideLayer | null, transitions = true): void {
     if (sameSlide(this.current, slide)) return;
     this.current = slide;
     if (slide === null) {
@@ -169,7 +169,7 @@ export class SlideLayerView {
     const next = this.pages[back];
     writeLines(next.block, slide.lines, slide.continued);
     this.fit(next);
-    this.element.classList.remove(classes.instant);
+    this.element.classList.toggle(classes.instant, !transitions);
     next.element.classList.add(classes.shown);
     this.pages[this.front].element.classList.remove(classes.shown);
     this.front = back;
@@ -272,8 +272,6 @@ export class SlideLayerView {
         size,
         width: element.clientWidth,
         height: element.clientHeight,
-        maxLines: this.style.maxLines,
-        lineHeight: this.style.lineHeight,
       },
       px => {
         setSize(px);

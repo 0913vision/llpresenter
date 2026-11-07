@@ -28,6 +28,12 @@ import {
 } from '@fixtures/renderer/session/sampleService';
 
 const sent: LiveCommand[] = [];
+const slides = () =>
+  sent
+    .flatMap(command =>
+      command.type === 'live.batch' ? command.commands : [command],
+    )
+    .filter(command => command.type === 'slide.show');
 
 function installApi(): void {
   window.llp = mockLlpApi({
@@ -86,7 +92,7 @@ describe('show state', () => {
 
   it('sends slide.show for a tile and shows it selected', () => {
     outputTile({itemId: 'song-morning', index: 1});
-    expect(sent).toEqual([
+    expect(slides()).toEqual([
       {
         type: 'slide.show',
         slide: {
@@ -107,13 +113,13 @@ describe('show state', () => {
   it('sends nothing for a tile that does not exist', () => {
     outputTile({itemId: 'song-morning', index: 99});
     outputTile({itemId: 'missing', index: 0});
-    expect(sent).toHaveLength(0);
+    expect(slides()).toHaveLength(0);
   });
 
   it('outputs the tile after the live one with next', () => {
     setLive('song-morning', 1);
     outputNext();
-    expect(sent[0]).toMatchObject({
+    expect(slides()[0]).toMatchObject({
       slide: {itemId: 'song-morning', position: 2},
     });
   });
@@ -124,7 +130,7 @@ describe('show state', () => {
     sent.length = 0;
     setLive('song-morning', 3);
     outputNext();
-    expect(sent).toHaveLength(0);
+    expect(slides()).toHaveLength(0);
     expect(useShow.getState()).toMatchObject({
       openItemId: 'song-morning',
       selectedTile: 3,
@@ -136,7 +142,7 @@ describe('show state', () => {
     openItem('song-morning');
     setLive('song-morning', 3);
     outputNext();
-    expect(sent.at(-1)).toMatchObject({
+    expect(slides().at(-1)).toMatchObject({
       type: 'slide.show',
       slide: {itemId: 'song-river', position: 0},
     });
@@ -153,7 +159,7 @@ describe('show state', () => {
     openItem('song-river');
     setLive('song-river', 2);
     outputNext();
-    expect(sent.at(-1)).toMatchObject({
+    expect(slides().at(-1)).toMatchObject({
       type: 'slide.show',
       slide: {itemId: 'psalm-23'},
     });
@@ -166,7 +172,7 @@ describe('show state', () => {
     expect(last?.id).toBe('closing');
     setLive('closing', 99);
     outputNext();
-    expect(sent).toHaveLength(0);
+    expect(slides()).toHaveLength(0);
   });
 
   it('still stops after the last tile when 정지 is chosen again', () => {
@@ -175,14 +181,14 @@ describe('show state', () => {
     openItem('song-morning');
     setLive('song-morning', 3);
     outputNext();
-    expect(sent).toHaveLength(0);
+    expect(slides()).toHaveLength(0);
   });
 
   it('outputs the first tile of another open item with next', () => {
     setLive('song-morning', 2);
     openItem('song-river');
     outputNext();
-    expect(sent[0]).toMatchObject({
+    expect(slides()[0]).toMatchObject({
       slide: {itemId: 'song-river', position: 0},
     });
   });
@@ -190,7 +196,7 @@ describe('show state', () => {
   it('outputs the tile before the live one with previous', () => {
     setLive('song-morning', 2);
     outputPrevious();
-    expect(sent[0]).toMatchObject({
+    expect(slides()[0]).toMatchObject({
       slide: {itemId: 'song-morning', position: 1},
     });
   });
@@ -205,7 +211,7 @@ describe('item keys', () => {
       openItemId: 'psalm-23',
       selectedTile: 0,
     });
-    expect(sent).toHaveLength(0);
+    expect(slides()).toHaveLength(0);
   });
 
   it('opens the previous item and stays at the first one', () => {
@@ -215,7 +221,7 @@ describe('item keys', () => {
     openItem('countdown');
     openPreviousItem();
     expect(useShow.getState().openItemId).toBe('countdown');
-    expect(sent).toHaveLength(0);
+    expect(slides()).toHaveLength(0);
   });
 
   it('opens the item of the live 장 after another item was looked at', () => {
@@ -226,7 +232,7 @@ describe('item keys', () => {
       openItemId: 'song-morning',
       selectedTile: 0,
     });
-    expect(sent).toHaveLength(0);
+    expect(slides()).toHaveLength(0);
   });
 });
 
@@ -281,7 +287,7 @@ describe('slide hotkeys', () => {
     openItem('song-morning');
     const result = outputHotKey('KeyA');
     expect(result).toBe(true);
-    expect(sent).toEqual([
+    expect(slides()).toEqual([
       {
         type: 'slide.show',
         slide: {
@@ -303,7 +309,7 @@ describe('slide hotkeys', () => {
     openItem('song-morning');
     const result = outputHotKey('KeyZ');
     expect(result).toBe(false);
-    expect(sent).toHaveLength(0);
+    expect(slides()).toHaveLength(0);
   });
 
   it('uses the open item in view even when another item is live', () => {
@@ -312,7 +318,7 @@ describe('slide hotkeys', () => {
     expect(hasSlideHotKey('KeyA')).toBe(true);
     const result = outputHotKey('KeyA');
     expect(result).toBe(true);
-    expect(sent[0]).toMatchObject({
+    expect(slides()[0]).toMatchObject({
       type: 'slide.show',
       slide: {itemId: 'song-morning', position: 0},
     });
@@ -324,14 +330,14 @@ describe('slide hotkeys', () => {
     expect(hasSlideHotKey('KeyA')).toBe(false);
     const result = outputHotKey('KeyA');
     expect(result).toBe(false);
-    expect(sent).toHaveLength(0);
+    expect(slides()).toHaveLength(0);
   });
 
   it('returns false when no item is open or live', () => {
     useShow.setState({openItemId: null});
     expect(hasSlideHotKey('KeyA')).toBe(false);
     expect(outputHotKey('KeyA')).toBe(false);
-    expect(sent).toHaveLength(0);
+    expect(slides()).toHaveLength(0);
   });
 });
 
@@ -354,12 +360,12 @@ describe('Bible passages', () => {
     setLive(original.id, 1);
 
     outputNext();
-    expect(sent.at(-1)).toMatchObject({
+    expect(slides().at(-1)).toMatchObject({
       type: 'slide.show',
       slide: {itemId: grown.id, position: 3, label: '3:18'},
     });
     outputPrevious();
-    expect(sent.at(-1)).toMatchObject({
+    expect(slides().at(-1)).toMatchObject({
       type: 'slide.show',
       slide: {itemId: grown.id, position: 1, label: '3:16'},
     });
@@ -375,11 +381,7 @@ describe('Bible passages', () => {
     setLive(source.id, 1);
     outputNext();
     outputPrevious();
-    expect(
-      sent.map(command =>
-        command.type === 'slide.show' ? command.slide.position : null,
-      ),
-    ).toEqual([2, 0]);
+    expect(slides().map(command => command.slide.position)).toEqual([2, 0]);
     openItem('other');
     revealLiveItem();
 

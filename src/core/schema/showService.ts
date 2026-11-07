@@ -81,6 +81,7 @@ const showRowSchema = v.pipe(
       kind: v.literal('song'),
       id,
       title: v.string(),
+      theme: v.exactOptional(themeIdSchema),
       problem: v.exactOptional(v.picklist(showRowProblems)),
       background: v.exactOptional(mediaChoiceSchema),
     }),

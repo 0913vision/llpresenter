@@ -201,7 +201,7 @@ export function MediaPreviewPlayer({
           <span className={styles.time}>{durationText(position)}</span>
           {stop === undefined ? null : (
             <span className={styles.left}>
-              {`${durationText(Math.max(0, stop - position))} 남음`}
+              {`-${durationText(Math.ceil(Math.max(0, stop - position)))}`}
             </span>
           )}
         </div>

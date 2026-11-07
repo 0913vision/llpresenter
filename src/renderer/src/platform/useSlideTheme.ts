@@ -5,8 +5,11 @@ import {createScreenId} from '@core/schema/ids';
 import type {ItemRow} from '@core/presentation/model';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 
-export function useSlideTheme(row: ItemRow | undefined) {
-  const enabled = row?.kind === 'slides';
+export function useSlideTheme(
+  row: ItemRow | undefined,
+  source: 'service' | 'external' = 'service',
+) {
+  const enabled = row?.kind === 'slides' || row?.kind === 'song';
   const file = useSettingsDocument(
     enabled ? 'themes' : null,
     '테마',
@@ -17,7 +20,8 @@ export function useSlideTheme(row: ItemRow | undefined) {
     '화면',
     undefined,
   );
-  if (row?.kind !== 'slides') return undefined;
+  if (row?.kind !== 'slides' && row?.kind !== 'song') return undefined;
+  const kind = row.kind === 'slides' ? row.form : row.kind;
   const targets = screens?.value.screens ?? [
     {
       id: createScreenId(STARTER_SCREEN_IDS.main),
@@ -30,8 +34,8 @@ export function useSlideTheme(row: ItemRow | undefined) {
   if (screen === undefined) return undefined;
   const theme = resolveItemTheme({
     file: file?.value,
-    kind: row.form,
-    source: 'service',
+    kind,
+    source,
     ...(row.theme === undefined ? {} : {theme: row.theme}),
     screens: targets,
   });
@@ -43,8 +47,8 @@ export function useSlideTheme(row: ItemRow | undefined) {
     ),
     item: {
       id: row.id,
-      kind: row.form,
-      source: 'service',
+      kind,
+      source,
       title: row.title,
     } as const,
     background: row.background?.mediaId,

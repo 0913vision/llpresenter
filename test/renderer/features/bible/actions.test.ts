@@ -1,3 +1,4 @@
+import {lastLiveCommand} from '@fixtures/renderer/session/liveCommands';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {useLive} from '@renderer/session/live';
@@ -46,7 +47,7 @@ describe('Bible slide source', () => {
     openBiblePassage(passage);
     selectTile(1);
     showBiblePassage(passage);
-    const output = fixture.send.mock.calls.at(-1)?.[0];
+    const output = lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]);
     if (output?.type !== 'slide.show') {
       throw new Error('Missing numbered output');
     }
@@ -65,7 +66,7 @@ describe('Bible slide source', () => {
     );
     expect(fixture.send).toHaveBeenCalledOnce();
     showBiblePassage(passage);
-    expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+    expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])).toMatchObject({
       type: 'slide.show',
       slide: {itemId: plain?.id, position: 1, lines: ['Invented verse 17']},
     });
@@ -76,7 +77,7 @@ describe('Bible slide source', () => {
     window.llp = fixture.api;
     const passageA = panelPassage();
     showBiblePassage(passageA);
-    const sentA = fixture.send.mock.calls.at(-1)?.[0];
+    const sentA = lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]);
     if (sentA?.type !== 'slide.show') throw new Error('Missing output A');
     const live = emptyLiveState();
     useLive.setState({
@@ -95,7 +96,7 @@ describe('Bible slide source', () => {
     openBiblePassage(passageB);
     selectTile(2);
     showBiblePassage(passageB);
-    const sentB = fixture.send.mock.calls.at(-1)?.[0];
+    const sentB = lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]);
     if (sentB?.type !== 'slide.show') throw new Error('Missing output B');
     openBiblePassage({
       ...passageA,
@@ -111,7 +112,7 @@ describe('Bible slide source', () => {
     revealLiveItem();
     expect(useShow.getState().openItemId).toBe(sentB.slide.itemId);
     outputPrevious();
-    expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+    expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])).toMatchObject({
       type: 'slide.show',
       slide: {
         itemId: sentB.slide.itemId,
@@ -178,7 +179,9 @@ describe('Bible slide source', () => {
       expect(shownTiles(useShow.getState())).toBe(sourceA.tiles);
       expect(fixture.send).toHaveBeenCalledOnce();
       outputPrevious();
-      expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+      expect(
+        lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]),
+      ).toMatchObject({
         type: 'slide.show',
         slide: {
           itemId: sourceA.id,
@@ -226,7 +229,7 @@ describe('Bible slide source', () => {
     expect(fixture.send).not.toHaveBeenCalled();
     selectTile(1);
     showBiblePassage(panelPassage());
-    expect(fixture.send).toHaveBeenCalledExactlyOnceWith({
+    expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])).toEqual({
       type: 'slide.show',
       slide: {
         itemId: useShow.getState().openItemId,

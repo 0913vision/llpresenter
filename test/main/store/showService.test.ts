@@ -220,7 +220,12 @@ describe('buildShowService', () => {
       buildShowService({
         service: loadedService([
           {id: itemId(1), song: HYMN_ONE_ID},
-          {id: itemId(2), song: HYMN_ONE_ID, background: override.mediaId},
+          {
+            id: itemId(2),
+            song: HYMN_ONE_ID,
+            background: override.mediaId,
+            theme: itemId(50),
+          },
         ]),
         songs: new Map([
           [HYMN_ONE_ID, loadedSong({...hymnOne(), background: MEDIA_ID})],
@@ -232,7 +237,7 @@ describe('buildShowService', () => {
 
     expect(project().rows).toMatchObject([
       {background: defaultMedia},
-      {background: override},
+      {background: override, theme: itemId(50)},
     ]);
     backgrounds.delete(override.mediaId);
     const missing = project().rows[1];

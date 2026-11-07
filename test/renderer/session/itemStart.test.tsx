@@ -1,3 +1,4 @@
+import {liveCommands} from '@fixtures/renderer/session/liveCommands';
 import {waitFor} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
@@ -46,29 +47,31 @@ function setup(value = service) {
   window.llp = mockLlpApi({
     service: {get: getService},
     live: {
-      send: command => {
-        sent.push(command);
-        const state = useLive.getState().state ?? emptyLiveState();
-        if (command.type === 'slide.show') {
-          useLive.setState({
-            state: {
-              ...state,
-              version: state.version + 1,
-              layers: {...state.layers, slide: command.slide},
-            },
-          });
-        }
-        if (
-          command.type === 'layer.clear' &&
-          ['slide', 'all'].includes(command.target)
-        ) {
-          useLive.setState({
-            state: {
-              ...state,
-              version: state.version + 1,
-              layers: {...state.layers, slide: null},
-            },
-          });
+      send: request => {
+        for (const command of liveCommands(request)) {
+          sent.push(command);
+          const state = useLive.getState().state ?? emptyLiveState();
+          if (command.type === 'slide.show') {
+            useLive.setState({
+              state: {
+                ...state,
+                version: state.version + 1,
+                layers: {...state.layers, slide: command.slide},
+              },
+            });
+          }
+          if (
+            command.type === 'layer.clear' &&
+            ['slide', 'all'].includes(command.target)
+          ) {
+            useLive.setState({
+              state: {
+                ...state,
+                version: state.version + 1,
+                layers: {...state.layers, slide: null},
+              },
+            });
+          }
         }
       },
     },
@@ -103,13 +106,16 @@ describe('starting a service item', () => {
     outputTile({itemId: first, index: 1});
     expect(sent.map(command => command.type)).toEqual([
       'item.start',
+      'layer.clear',
       'slide.show',
       'slide.show',
       'layer.clear',
       'slide.show',
       'item.start',
+      'layer.clear',
       'slide.show',
       'item.start',
+      'layer.clear',
       'slide.show',
     ]);
     expect(sent.filter(command => command.type === 'item.start')).toEqual([
@@ -124,7 +130,10 @@ describe('starting a service item', () => {
     outputTile({itemId: first, index: 99});
     expect(sent).toEqual([]);
     outputTile({itemId: 'quick', index: 0});
-    expect(sent.map(command => command.type)).toEqual(['slide.show']);
+    expect(sent.map(command => command.type)).toEqual([
+      'layer.clear',
+      'slide.show',
+    ]);
   });
 
   it('keeps output working for an untyped projection without sending an invalid start command', () => {
@@ -134,7 +143,10 @@ describe('starting a service item', () => {
       tiles: {legacy: [tile]},
     });
     outputTile({itemId: 'legacy', index: 0});
-    expect(sent.map(command => command.type)).toEqual(['slide.show']);
+    expect(sent.map(command => command.type)).toEqual([
+      'layer.clear',
+      'slide.show',
+    ]);
   });
 
   it('starts before background and lyrics after a successful asynchronous refresh', async () => {
@@ -217,6 +229,7 @@ describe('starting a service item', () => {
     await waitFor(() => expect(getService).toHaveResolvedTimes(1));
     expect(sent.map(command => command.type)).toEqual([
       'item.start',
+      'layer.clear',
       'slide.show',
     ]);
     expect(useLive.getState().startedItemIds.has(first)).toBe(false);

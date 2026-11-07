@@ -1,20 +1,16 @@
 const MIN_FONT_SIZE = 1;
 const LAYOUT_TOLERANCE_PX = 1;
 
-/** Holds the configured line-height budget fixed while measuring smaller text. */
+/** Keeps the theme size unless wrapped text exceeds the actual element frame. */
 export function fitTextInFrame(
   frame: {
     readonly size: number;
     readonly width: number;
     readonly height: number;
-    readonly maxLines: number;
-    readonly lineHeight: number;
   },
   measure: (size: number) => {readonly width: number; readonly height: number},
 ): number {
-  const height =
-    Math.min(frame.height, frame.maxLines * frame.size * frame.lineHeight) +
-    LAYOUT_TOLERANCE_PX;
+  const height = frame.height + LAYOUT_TOLERANCE_PX;
   const width = frame.width + LAYOUT_TOLERANCE_PX;
   return fitFontSize(frame.size, candidate => {
     const measured = measure(candidate);

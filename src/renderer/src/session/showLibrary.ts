@@ -6,7 +6,8 @@ import {biblePartIndex, retainedBibleSelection} from '@core/bible/selection';
 import type {BibleSource} from '@core/bible/source';
 import type {ItemId, SlideTile, TileCursor} from '@core/presentation/model';
 import {slideLayerOf} from '@core/presentation/slideLayer';
-import {sendLive, useLive} from './live';
+import {useLive} from './live';
+import {sendSlideOutput} from './itemOutput';
 import {
   beginOutputRequest,
   isOutputRequestCurrent,
@@ -321,7 +322,7 @@ export function refreshLibrarySong(
   });
 }
 
-/** A failed refresh outputs the current cached tile while retaining live media. */
+/** A failed refresh outputs the cached tile and its own cached background. */
 export async function outputLibraryTile(
   cursor: TileCursor,
   request: number,
@@ -338,7 +339,7 @@ export async function outputLibraryTile(
     api.log.write({
       level: 'warn',
       message:
-        'Could not refresh the library song background; kept the current media',
+        'Could not refresh the library song background; using its cached choice',
       detail: cause instanceof Error ? cause.message : String(cause),
     });
   }
@@ -360,17 +361,5 @@ export async function outputLibraryTile(
   }
   const slide = slideLayerOf(cursor, itemId => tilesForView(latest, itemId));
   if (!slide) return;
-  const background =
-    song?.songId === songId &&
-    song.songRevision === latest.librarySong.songRevision
-      ? latest.librarySong.background
-      : undefined;
-  const media = useLive.getState().state?.layers.media;
-  if (
-    background &&
-    (media?.mediaId !== background.mediaId || media.loop !== background.loop)
-  ) {
-    sendLive({type: 'media.show', media: background});
-  }
-  sendLive({type: 'slide.show', slide});
+  sendSlideOutput(slide, latest.librarySong.background);
 }

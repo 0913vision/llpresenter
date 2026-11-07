@@ -931,8 +931,8 @@ and 59.
 - Right inside the bin: the 미디어 속성 panel with the tabs 미디어 속성 (media
   properties), 정보 (info), 전환 (transition), and 소리 (sound). Above the
   groups: a preview player with a play button, the position ("0:12"), the time
-  left ("0:18 남음"), the media name, the file path, and 파일 위치 열기 (open
-  file location).
+  left ("-0:18"), the media name, the file path, and 파일 위치 열기 (open file
+  location).
 
 ### Properties
 
@@ -954,14 +954,14 @@ and 59.
 ### Behavior
 
 - In 준비, clicking a tile selects it and shows exactly one item's properties
-  inside the bin. Double-clicking outputs it as the background (03). In 진행,
-  clicking a playable tile or pressing Enter on a focused tile outputs it
-  without changing selection or properties (04). LIVE marks what is on output.
-  In both workspaces, right-click 속성… selects the tile and shows its
-  properties without output. These actions follow the October 31 user decision
-  and ProPresenter's click-to-fire and right-click Inspector actions (S4 in 10,
-  pp. 21 and 104). Playing the local preview does not affect output. Changing
-  playlists clears an excluded selection.
+  inside the bin. Double-clicking clears slide text and shows the media alone
+  (03). In 진행, clicking a playable tile or pressing Enter on a focused tile
+  outputs it without changing selection or properties (04). LIVE marks what is
+  on output. In both workspaces, right-click 속성… selects the tile and shows
+  its properties without output. These actions follow the October 31 user
+  decision and ProPresenter's click-to-fire and right-click Inspector actions
+  (S4 in 10, pp. 21 and 104). Playing the local preview does not affect output.
+  Changing playlists clears an excluded selection.
 - The same 가져오기 action in both workspaces opens a file dialog immediately
   for one or more video, image, or audio files, starting in the last import
   folder (02). Cancellation keeps that folder. Supported formats come from the

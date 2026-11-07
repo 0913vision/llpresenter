@@ -25,6 +25,22 @@ function showService() {
   };
 }
 
+it('accepts an optional song theme and rejects malformed theme identities', () => {
+  const value = showService();
+  const row = {kind: 'song', id: 'themed-song', title: 'Theme sample'};
+  expect(
+    parseShowService({
+      ...value,
+      rows: [{...row, theme: '00000000-0000-4000-8000-000000000501'}],
+    }).ok,
+  ).toBe(true);
+  for (const theme of ['bad-id', null, 12]) {
+    expect(parseShowService({...value, rows: [{...row, theme}]}).ok).toBe(
+      false,
+    );
+  }
+});
+
 describe('parseShowService', () => {
   it('checks resolved verse slots and caps source text and reference counts', () => {
     const tile = {

@@ -1,3 +1,4 @@
+import {lastLiveCommand} from '@fixtures/renderer/session/liveCommands';
 import {
   act,
   fireEvent,
@@ -172,7 +173,9 @@ describe('quick editing', () => {
       await act(async () =>
         quickRunner(fixture.api, fixture.problem).run(stored),
       );
-      expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+      expect(
+        lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]),
+      ).toMatchObject({
         type: 'slide.show',
         slide: {
           position: 0,

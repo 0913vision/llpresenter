@@ -297,13 +297,13 @@ each preview follows ProPresenter's rule: it shows what goes out.
   look less smooth than on the output; the content is the same.
 
 - While a background video is live, one thin progress line below the preview
-  shows its position ("0:12") and remaining source time ("0:42 남음") in the
-  caption style. A loop wraps within its duration; a nonlooping video holds at
-  the end. Images and a cleared background show no line. Until duration metadata
-  arrives, show the position with an indeterminate line and omit remaining time.
-  Main samples its existing background timeline twice a second; the renderer
-  displays those samples without another clock, releases its subscription on
-  unmount, and offers no transport buttons or scrubbing (October 31 N2).
+  shows its position ("0:12") and remaining source time ("-0:42") in the caption
+  style. A loop wraps within its duration; a nonlooping video holds at the end.
+  Images and a cleared background show no line. Until duration metadata arrives,
+  show the position with an indeterminate line and omit remaining time. Main
+  samples its existing background timeline twice a second; the renderer displays
+  those samples without another clock, releases its subscription on unmount, and
+  offers no transport buttons or scrubbing (October 31 N2).
 
 ### Clears in the previews
 
@@ -688,14 +688,14 @@ Source: `ShowH`, `Compact`, `Problems`, `Bible` (퀵 실행 list), `ListRow` REA
   copy/relink rules are in 05, "Shared bottom 미디어 bin". There is one 가져오기
   action; it opens immediately in the last import folder (02). The properties
   panel and its properties tab are titled 미디어 속성.
-- In 진행, clicking a playable tile outputs it as the background at once (03)
-  without changing the bin's selection or properties. Enter on a focused tile
-  does the same. LIVE marks the media on output. In both workspaces, the tile's
-  right-click 속성… selects it and shows its properties without output. In 준비,
-  one click selects and shows properties; double-clicking outputs (05). A
-  copying tile cannot output; a missing tile offers 다시 연결 (08). This follows
-  the October 31 user decision and ProPresenter's click-to-fire and right-click
-  Inspector actions (S4 in 10, pp. 21 and 104).
+- In 진행, clicking a playable tile clears slide text and shows that media alone
+  (03) without changing the bin's selection or properties. Enter on a focused
+  tile does the same. LIVE marks the media on output. In both workspaces, the
+  tile's right-click 속성… selects it and shows its properties without output.
+  In 준비, one click selects and shows properties; double-clicking outputs (05).
+  A copying tile cannot output; a missing tile offers 다시 연결 (08). This
+  follows the October 31 user decision and ProPresenter's click-to-fire and
+  right-click Inspector actions (S4 in 10, pp. 21 and 104).
 
 Source: the user's October 26 decision that media lives in one bottom 미디어
 bin. Renewed Vision's
@@ -873,9 +873,10 @@ integration use this contract, with a distinct cancellable ID per lookup.
     preview.
   - Each verse starts a new slide. A long verse splits by Copible 1.6's boundary
     scores and global minimum-slide DP, using the theme's 현재 가사 font, size,
-    box width and height, and 최대 줄 수. The font is measured at its configured
-    size rather than shrunk to avoid splitting. This applies to saved 성경 구절
-    items and the 진행 Bible panel, including next/previous navigation.
+    box width and height, and 성경 분할 줄 수 (`maxLines`). The font is measured
+    at its configured size rather than shrunk to avoid splitting. This applies
+    to saved 성경 구절 items and the 진행 Bible panel, including next/previous
+    navigation.
   - Every non-last part ends with ` (계속)`, two steps smaller on the PowerPoint
     size list. Numbering, when enabled for a multi-verse passage, appears only
     on the first part of each verse and is included in measurement. A single

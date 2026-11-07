@@ -1,3 +1,4 @@
+import {lastLiveCommand} from '@fixtures/renderer/session/liveCommands';
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
@@ -81,7 +82,7 @@ describe('SlideGrid', () => {
     if (!tile) throw new Error('The third tile is missing');
     fireEvent.click(tile);
     expect(sent).toHaveLength(1);
-    expect(sent[0]).toMatchObject({
+    expect(lastLiveCommand(sent[0])).toMatchObject({
       type: 'slide.show',
       slide: {itemId: 'song-morning', position: 2, label: '2절'},
     });

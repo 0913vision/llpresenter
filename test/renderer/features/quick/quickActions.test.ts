@@ -1,3 +1,4 @@
+import {liveCommands} from '@fixtures/renderer/session/liveCommands';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {useLive} from '@renderer/session/live';
@@ -35,19 +36,25 @@ afterEach(() => {
 });
 
 describe('quick execution', () => {
-  it('opens a song and outputs its first slide without a background or service edit', async () => {
+  it('opens a song with its own background and first slide without a service edit', async () => {
     const fixture = quickFixture();
     window.llp = fixture.api;
     const problem = vi.fn();
     await quickRunner(fixture.api, problem).run(quickItem('song'));
     expect(fixture.send).toHaveBeenCalledExactlyOnceWith({
-      type: 'slide.show',
-      slide: {
-        itemId: `library:${quickId(101)}`,
-        position: 0,
-        label: '절 1',
-        lines: ['Invented song'],
-      },
+      type: 'live.batch',
+      commands: [
+        {type: 'media.show', media: fixture.song.background},
+        {
+          type: 'slide.show',
+          slide: {
+            itemId: `library:${quickId(101)}`,
+            position: 0,
+            label: '절 1',
+            lines: ['Invented song'],
+          },
+        },
+      ],
     });
     expect(useShow.getState().librarySong).toEqual(fixture.song);
     expect(fixture.edit).not.toHaveBeenCalled();
@@ -73,13 +80,19 @@ describe('quick execution', () => {
         input: '요한복음 3:16-18',
       });
       expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
-        type: 'slide.show',
-        slide: {
-          position: 0,
-          lines: [
-            `${numbers ? '16 ' : ''}Invented book 43, chapter 3, verse 16`,
-          ],
-        },
+        type: 'live.batch',
+        commands: [
+          {type: 'layer.clear', target: 'media'},
+          {
+            type: 'slide.show',
+            slide: {
+              position: 0,
+              lines: [
+                `${numbers ? '16 ' : ''}Invented book 43, chapter 3, verse 16`,
+              ],
+            },
+          },
+        ],
       });
       await vi.waitFor(() =>
         expect(fixture.document().value.recents[0]?.ref).toBe(
@@ -131,9 +144,9 @@ describe('quick execution', () => {
       song.resolve(fixture.song);
       await pending;
       expect(
-        fixture.send.mock.calls.some(
-          ([command]) => command.type === 'slide.show',
-        ),
+        fixture.send.mock.calls
+          .flatMap(([command]) => liveCommands(command))
+          .some(command => command.type === 'slide.show'),
       ).toBe(false);
       expect(useShow.getState().librarySong).toBeNull();
     },

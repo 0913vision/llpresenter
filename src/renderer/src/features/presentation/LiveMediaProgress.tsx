@@ -41,7 +41,7 @@ export function LiveMediaProgress(): JSX.Element | null {
   const remaining =
     reading.durationSeconds === null
       ? undefined
-      : `${durationText(Math.ceil(Math.max(0, reading.durationSeconds - reading.positionSeconds)))} 남음`;
+      : `-${durationText(Math.ceil(Math.max(0, reading.durationSeconds - reading.positionSeconds)))}`;
   return (
     <div className={styles.progress}>
       <progress

@@ -1,3 +1,4 @@
+import {lastLiveCommand} from '@fixtures/renderer/session/liveCommands';
 import {act, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
@@ -72,7 +73,7 @@ it('hands 환경설정 to the next key at once, and follows a later change', asy
   await waitFor(() => {
     sent.length = 0;
     outputNext();
-    expect(sent.at(-1)).toMatchObject({
+    expect(lastLiveCommand(sent.at(-1))).toMatchObject({
       slide: {itemId: 'song-river', position: 0},
     });
   });

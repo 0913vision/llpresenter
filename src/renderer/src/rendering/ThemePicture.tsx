@@ -60,17 +60,11 @@ function ThemeTextBox({
       target.style.fontSize = `${element.text.size}px`;
       return;
     }
-    const maximumLines =
-      element.kind === 'currentText' || element.kind === 'nextText'
-        ? element.text.maxLines
-        : Infinity;
     const size = fitTextInFrame(
       {
         size: element.text.size,
         width: element.frame.w,
         height: element.frame.h,
-        maxLines: maximumLines,
-        lineHeight: element.text.lineHeight,
       },
       candidate => {
         target.style.fontSize = `${candidate}px`;

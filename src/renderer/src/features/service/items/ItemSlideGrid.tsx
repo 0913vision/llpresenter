@@ -11,6 +11,7 @@ import {useThumbnailScale} from '@renderer/platform/thumbnailScale';
 import {useGridMeasure} from '@renderer/ui/useGridMeasure';
 import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
+import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {NEWER_FILE_REASON} from './ItemArrangement';
 import {OverlayWarning} from './ItemThemeRow';
@@ -38,6 +39,16 @@ export function ItemSlideGrid({
 }): JSX.Element {
   const state = useSyncExternalStore(items.subscribe, items.getSnapshot);
   const rawSlides = useItemSlides(items, editor);
+  const songTheme = useSlideTheme(
+    state.item !== null && isItemOfKind(state.item, 'song')
+      ? {
+          id: state.item.id,
+          kind: 'song',
+          title: state.song?.history.snapshot.song.title ?? '',
+          ...(state.item.theme === undefined ? {} : {theme: state.item.theme}),
+        }
+      : undefined,
+  );
   const bible = state.item !== null && isItemOfKind(state.item, 'bible');
   const projection = useBibleTileProjection({
     itemId: bible ? state.item.id : null,
@@ -92,6 +103,20 @@ export function ItemSlideGrid({
     if (song) openItemSong({items, editor, position: index});
   };
   const canvasFor = (index: number): JSX.Element | undefined => {
+    const songSlide = slides[index];
+    if (songTheme !== undefined && songSlide !== undefined) {
+      return (
+        <SlidePicture
+          {...songTheme}
+          slide={{
+            itemId: state.item?.id ?? 'thumbnail',
+            position: index,
+            label: songSlide.label ?? null,
+            lines: songSlide.text.split('\n'),
+          }}
+        />
+      );
+    }
     const appearance = projection?.appearance;
     const layer =
       projection === null

@@ -208,7 +208,9 @@ describe('theme composition drawing', () => {
       expect(page?.style.backgroundColor).toBe('rgb(101, 67, 33)');
       const override = {...layout, background: '#ABCDEF'};
       view.render(emptyLayers(), frame([], {layout: override}));
-      const overridden = root.querySelector<HTMLElement>('[data-theme-page]');
+      const overridden = [
+        ...root.querySelectorAll<HTMLElement>('[data-theme-page]'),
+      ].at(-1);
       view.render(
         emptyLayers(),
         frame([], {layout: override, emptyColor: '#FF0000'}),
@@ -347,6 +349,7 @@ describe('theme composition drawing', () => {
     vi.advanceTimersByTime(1100);
     expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(1);
     view.render(song, next(3, 0));
+    vi.advanceTimersByTime(32);
     expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(1);
     view.dispose();
   });
@@ -374,6 +377,9 @@ describe('theme composition drawing', () => {
       expect(
         [...root.querySelectorAll('video')].every(video => video.muted),
       ).toBe(true);
+      root
+        .querySelectorAll('video[src]')
+        .forEach(video => video.dispatchEvent(new Event('playing')));
       vi.advanceTimersByTime(16);
     }
     vi.advanceTimersByTime(500);
@@ -381,6 +387,149 @@ describe('theme composition drawing', () => {
     expect(root.querySelectorAll('video')).toHaveLength(2);
     view.dispose();
     expect(root.children).toHaveLength(0);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('keeps the opaque outgoing picture until the new composition can draw, with no child fade from empty', () => {
+    const {root, view} = setup();
+    let ready = true;
+    vi.spyOn(ThemeElementView.prototype, 'ready').mockImplementation(
+      () => ready,
+    );
+    const elements: ThemeElement[] = [
+      {...themeElementBase(), kind: 'currentText'},
+    ];
+    view.render(song, frame(elements));
+    const outgoing = root.querySelector<HTMLElement>('[data-theme-page]');
+    ready = false;
+    view.render(
+      {
+        ...song,
+        slide: {
+          itemId: 'invented',
+          position: 1,
+          label: null,
+          lines: ['Incoming text'],
+        },
+      },
+      frame(elements, {
+        themeId: createThemeId('00000000-0000-4000-8000-000000000502'),
+      }),
+    );
+    const incoming = [
+      ...root.querySelectorAll<HTMLElement>('[data-theme-page]'),
+    ].at(-1);
+    expect(incoming?.style.opacity).toBe('0');
+    expect(incoming?.querySelector(`.${classes.shown}`)?.textContent).toBe(
+      'Incoming text',
+    );
+    expect(
+      incoming?.querySelector(`.${classes.instant} .${classes.shown}`),
+    ).not.toBeNull();
+    vi.advanceTimersByTime(1000);
+    expect(root.contains(outgoing)).toBe(true);
+    expect(outgoing?.style.opacity).not.toBe('0');
+    expect(incoming?.style.opacity).toBe('0');
+    ready = true;
+    vi.advanceTimersByTime(32);
+    expect(incoming?.style.opacity).toBe('1');
+    expect(root.contains(outgoing)).toBe(true);
+    expect(outgoing?.style.opacity).not.toBe('0');
+    vi.advanceTimersByTime(250);
+    expect(root.contains(outgoing)).toBe(false);
+    view.dispose();
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('reuses a retained background decoder and playback position across theme layouts', () => {
+    const {root, view, onError} = setup();
+    const elements: ThemeElement[] = [
+      {...themeElementBase(), kind: 'background', fit: 'fit', radius: 0},
+      {...themeElementBase(31), kind: 'currentText'},
+    ];
+    const layers = {...song, media: {mediaId, loop: true, startedAt: 1000}};
+    view.render(layers, frame(elements));
+    const video = root.querySelector<HTMLVideoElement>('video[src]');
+    if (video === null) throw new Error('Missing background player');
+    video.dispatchEvent(new Event('playing'));
+    video.currentTime = 7;
+    const playCount = vi.mocked(HTMLMediaElement.prototype.play).mock.calls
+      .length;
+    view.render(
+      layers,
+      frame(elements, {
+        themeId: createThemeId('00000000-0000-4000-8000-000000000503'),
+      }),
+    );
+    vi.advanceTimersByTime(250);
+    expect(root.querySelector('video[src]')).toBe(video);
+    expect(root.querySelectorAll('video')).toHaveLength(2);
+    expect(video.currentTime).toBe(7);
+    expect(HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(playCount);
+    const nextMedia = createMediaId('00000000-0000-4000-8000-000000000602');
+    view.render(
+      {...layers, media: {...layers.media, mediaId: nextMedia}},
+      frame(elements, {
+        themeId: createThemeId('00000000-0000-4000-8000-000000000503'),
+      }),
+    );
+    root
+      .querySelector(`video[src*="${nextMedia}"]`)
+      ?.dispatchEvent(new Event('error'));
+    expect(onError).toHaveBeenCalledWith(
+      expect.stringContaining(nextMedia),
+      expect.objectContaining({id: nextMedia}),
+    );
+    view.dispose();
+    expect(video.getAttribute('src')).toBeNull();
+    vi.advanceTimersByTime(1);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
+  it('retains the playing decoder when a slow incoming theme is superseded', () => {
+    const {root, view} = setup();
+    const background: ThemeElement = {
+      ...themeElementBase(),
+      kind: 'background',
+      fit: 'fit',
+      radius: 0,
+    };
+    const layers = {...song, media: {mediaId, loop: true, startedAt: 1000}};
+    view.render(layers, frame([background]));
+    const video = root.querySelector<HTMLVideoElement>('video[src]');
+    if (video === null) throw new Error('Missing player');
+    video.dispatchEvent(new Event('playing'));
+    const plays = vi.mocked(HTMLMediaElement.prototype.play).mock.calls.length;
+    view.render(
+      layers,
+      frame(
+        [
+          background,
+          {
+            ...themeElementBase(32),
+            kind: 'image',
+            mediaId,
+            fit: 'fit',
+            radius: 0,
+          },
+        ],
+        {
+          themeId: createThemeId('00000000-0000-4000-8000-000000000504'),
+        },
+      ),
+    );
+    expect(view.ready()).toBe(false);
+    view.render(
+      layers,
+      frame([background], {
+        themeId: createThemeId('00000000-0000-4000-8000-000000000505'),
+      }),
+    );
+    vi.advanceTimersByTime(250);
+    expect(root.querySelector('video[src]')).toBe(video);
+    expect(HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(plays);
+    expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(1);
+    view.dispose();
     expect(vi.getTimerCount()).toBe(0);
   });
 

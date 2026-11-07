@@ -55,10 +55,12 @@ it('shows the main-owned position below the preview and releases its subscriptio
   });
   expect(line.getAttribute('value')).toBe('12');
   expect(screen.getByText('0:12')).toBeDefined();
-  expect(screen.getByText('0:42 남음')).toBeDefined();
+  expect(screen.getByText('-0:42')).toBeDefined();
   act(() => push({...reading, positionSeconds: 13}));
   expect(screen.getByText('0:13')).toBeDefined();
-  expect(screen.getByText('0:41 남음')).toBeDefined();
+  expect(screen.getByText('-0:41')).toBeDefined();
+  act(() => push({...reading, positionSeconds: 47.2}));
+  expect(screen.getByText('-0:07')).toBeDefined();
   act(() => push(null));
   expect(screen.queryByRole('progressbar')).toBeNull();
   view.unmount();

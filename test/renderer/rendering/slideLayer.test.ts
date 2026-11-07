@@ -321,13 +321,13 @@ describe('SlideLayerView', () => {
       expect(block?.style.fontSize).toBe('84px');
     });
 
-    it('shrinks a 장 with more lines than the maximum until it fits', () => {
+    it('keeps four lyric lines at theme size when the frame fits', () => {
       const {view, shownPage} = setUp();
       view.show({...VERSE, lines: ['하나', '둘', '셋', '넷']});
       const block = shownPage()?.querySelector<HTMLElement>(
         `.${classes.block}`,
       );
-      expect(block?.style.fontSize).toBe('42px');
+      expect(block?.style.fontSize).toBe('84px');
     });
 
     it('scales the style size to the screen', () => {
@@ -356,13 +356,13 @@ describe('SlideLayerView', () => {
       },
     );
 
-    it('refits all original lines when the maximum line count changes', () => {
+    it('does not resize lyrics when the Bible line budget changes', () => {
       const {view, shownPage, shownLines} = setUp();
       view.show({...VERSE, lines: ['One', 'Two', 'Three', 'Four']});
       const page = shownPage();
       expect(
         page?.querySelector<HTMLElement>(`.${classes.block}`)?.style.fontSize,
-      ).toBe('42px');
+      ).toBe('84px');
       view.setStyle({...DEFAULT_TEXT_STYLE, maxLines: 4});
       expect(shownPage()).toBe(page);
       expect(shownLines()).toEqual(['One', 'Two', 'Three', 'Four']);

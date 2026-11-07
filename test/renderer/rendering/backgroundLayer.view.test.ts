@@ -341,6 +341,43 @@ describe('BackgroundLayerView', () => {
     expect(onError).not.toHaveBeenCalled();
   });
 
+  it('holds the outgoing loop frame until the spare produces its first decoded frame', async () => {
+    const clock = installMockClock();
+
+    const {view, videos} = setUp();
+    const [spare, front] = videos;
+    view.show(WARM_LIGHT);
+    front.dispatchEvent(new Event('playing'));
+    await clock.advance(BACKGROUND_DISSOLVE_MS + SPARE_DELAY_MS);
+    let decoded = (): void => {};
+    Object.defineProperty(spare, 'requestVideoFrameCallback', {
+      value: (callback: VideoFrameRequestCallback) => {
+        decoded = () =>
+          callback(0, {
+            width: 1920,
+            height: 1080,
+            mediaTime: 0,
+            presentationTime: 0,
+            expectedDisplayTime: 0,
+            presentedFrames: 1,
+            processingDuration: 0,
+          });
+        return 1;
+      },
+    });
+    Object.defineProperty(spare, 'cancelVideoFrameCallback', {value: vi.fn()});
+    front.dispatchEvent(new Event('ended'));
+    spare.dispatchEvent(new Event('playing'));
+    expect(isShown(front)).toBe(true);
+    expect(isShown(spare)).toBe(false);
+    decoded();
+    expect(isShown(spare)).toBe(true);
+    expect(isShown(front)).toBe(false);
+    view.dispose();
+    await clock.advance(1);
+    expect(vi.getTimerCount()).toBe(0);
+  });
+
   it('stops listening, unloads its videos, and removes itself on dispose', async () => {
     const clock = installMockClock();
     const {parent, view, videos} = setUp();

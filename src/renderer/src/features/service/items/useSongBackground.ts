@@ -169,8 +169,7 @@ export function useSongBackground(onProblem: (notice: Notice) => void) {
         live.commandVersion !== commandVersion ||
         live.state?.layers.slide?.itemId !== itemId ||
         row?.kind !== 'song' ||
-        row.background === undefined ||
-        (mediaId !== null && row.background.mediaId !== mediaId)
+        (mediaId !== null && row.background?.mediaId !== mediaId)
       ) {
         return;
       }
@@ -182,7 +181,9 @@ export function useSongBackground(onProblem: (notice: Notice) => void) {
       ) {
         return;
       }
-      if (
+      if (row.background === undefined) {
+        sendLive({type: 'layer.clear', target: 'media'});
+      } else if (
         playing?.mediaId !== row.background.mediaId ||
         playing.loop !== row.background.loop
       ) {

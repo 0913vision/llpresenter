@@ -12,6 +12,8 @@ import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui/SlideThumbnail';
 import {thumbnailWidth} from '@renderer/ui/thumbnailSize';
 import {isComposing} from '@renderer/ui/ime';
 import type {GroupedSong} from '@core/schema/groupedSong';
+import {SlidePicture} from '@renderer/rendering/SlidePicture';
+import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {linearSlidesOf} from '@core/songs/blockEdits';
 import styles from './SongPanels.module.css';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
@@ -93,6 +95,10 @@ export function VirtualSlides({
   readonly hotKeyReason?: string | undefined;
   readonly canvasFor?: ((index: number) => ReactNode) | undefined;
 }): JSX.Element {
+  const theme = useSlideTheme(
+    {id: 'thumbnail', kind: 'song', title: ''},
+    'external',
+  );
   const [menu, setMenu] = useState<{
     index: number;
     number: number;
@@ -250,7 +256,20 @@ export function VirtualSlides({
                   'none'
                 }
                 text={slide.lines.join('\n')}
-                canvas={canvasFor?.(number - 1)}
+                canvas={
+                  canvasFor?.(number - 1) ??
+                  (theme === undefined ? undefined : (
+                    <SlidePicture
+                      {...theme}
+                      slide={{
+                        itemId: 'thumbnail',
+                        position: number - 1,
+                        label: slide.label ?? null,
+                        lines: slide.lines,
+                      }}
+                    />
+                  ))
+                }
                 selected={start + index === selected}
                 hotKey={'hotKey' in slide ? slide.hotKey : undefined}
               />

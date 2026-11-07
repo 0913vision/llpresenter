@@ -225,12 +225,12 @@ describe('media preview player', () => {
   it('shows the position and the time left', () => {
     const {media} = player(mediaItem(1, {duration: 30}));
     expect(screen.getByText('0:00')).toBeDefined();
-    expect(screen.getByText('0:30 남음')).toBeDefined();
+    expect(screen.getByText('-0:30')).toBeDefined();
     if (media === null) throw new Error('No media element');
     setTime(media, 12);
     fireEvent.timeUpdate(media);
     expect(screen.getByText('0:12')).toBeDefined();
-    expect(screen.getByText('0:18 남음')).toBeDefined();
+    expect(screen.getByText('-0:18')).toBeDefined();
   });
 
   it('shows an image without a play button, and a missing file without playing', () => {

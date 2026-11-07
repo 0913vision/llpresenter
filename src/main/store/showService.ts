@@ -264,6 +264,7 @@ function songRow(
     kind: 'song',
     id,
     title,
+    ...(item.theme === undefined ? {} : {theme: item.theme}),
     ...(problem === undefined ? {} : {problem}),
     ...(background === undefined ? {} : {background}),
   };

@@ -1,3 +1,4 @@
+import {lastLiveCommand} from '@fixtures/renderer/session/liveCommands';
 import {
   act,
   cleanup,
@@ -106,7 +107,7 @@ describe('Bible preview display controls', () => {
     expect(fixture.send).not.toHaveBeenCalled();
     expect(fixture.edit).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', {name: '바로 띄우기'}));
-    expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+    expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])).toMatchObject({
       type: 'slide.show',
       slide: {reference: '요한복음 3:17 (개역한글)'},
     });

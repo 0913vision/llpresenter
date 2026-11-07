@@ -57,6 +57,13 @@ function slide(index: number): HTMLElement {
   return tile;
 }
 
+it('draws song thumbnails with the audience theme font and frame', () => {
+  render(<SlideGrid columns={4} scalePercent={100} />);
+  const text = slide(0).querySelector<HTMLElement>('[style*="font-size"]');
+  expect(text?.style.fontSize).toBe('84px');
+  expect(slide(0).querySelector('svg[viewBox="0 0 1920 1080"]')).not.toBeNull();
+});
+
 it.each([{key: 'ContextMenu'}, {key: 'F10', shiftKey: true}])(
   'opens from $key and edits that slide without output',
   keys => {

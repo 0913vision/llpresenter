@@ -85,19 +85,24 @@ it('refreshes the source and outputs its background before lyrics without item.s
   const {send, showSong} = setup();
   openLibrarySong(song());
   act(() => outputTile({itemId, index: 0}));
-  await waitFor(() => expect(send).toHaveBeenCalledTimes(2));
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(1));
   expect(showSong).toHaveBeenCalledExactlyOnceWith({songId});
   expect(send.mock.calls.map(call => call[0])).toEqual([
-    {type: 'media.show', media: {mediaId, loop: true}},
     {
-      type: 'slide.show',
-      slide: {
-        itemId,
-        position: 0,
-        label: '1절',
-        lines: ['창작한 첫 줄'],
-        next: {label: '후렴', lines: ['창작한 두 번째 줄']},
-      },
+      type: 'live.batch',
+      commands: [
+        {type: 'media.show', media: {mediaId, loop: true}},
+        {
+          type: 'slide.show',
+          slide: {
+            itemId,
+            position: 0,
+            label: '1절',
+            lines: ['창작한 첫 줄'],
+            next: {label: '후렴', lines: ['창작한 두 번째 줄']},
+          },
+        },
+      ],
     },
   ]);
 });
@@ -140,17 +145,23 @@ it('drops a pending library output after another source outputs', async () => {
   finish(song());
   await waitFor(() => expect(showSong).toHaveResolved());
   expect(send).toHaveBeenCalledExactlyOnceWith({
-    type: 'slide.show',
-    slide: {
-      itemId: 'song-morning',
-      position: 0,
-      label: '1절',
-      lines: sampleService.tiles['song-morning']?.[0]?.lines,
-      next: {
-        label: sampleService.tiles['song-morning']?.[1]?.label,
-        lines: sampleService.tiles['song-morning']?.[1]?.lines,
+    type: 'live.batch',
+    commands: [
+      {type: 'layer.clear', target: 'media'},
+      {
+        type: 'slide.show',
+        slide: {
+          itemId: 'song-morning',
+          position: 0,
+          label: '1절',
+          lines: sampleService.tiles['song-morning']?.[0]?.lines,
+          next: {
+            label: sampleService.tiles['song-morning']?.[1]?.label,
+            lines: sampleService.tiles['song-morning']?.[1]?.lines,
+          },
+        },
       },
-    },
+    ],
   });
 });
 
@@ -188,7 +199,7 @@ it('does not output a source whose fresh read confirms deletion', async () => {
 });
 
 it.each(['failure', 'timeout'] as const)(
-  'outputs the latest retained tile and keeps media on lookup %s',
+  'outputs the latest cached tile with its own background on lookup %s',
   async mode => {
     vi.useFakeTimers();
     const {api, send, showSong} = setup();
@@ -222,8 +233,19 @@ it.each(['failure', 'timeout'] as const)(
       await vi.advanceTimersByTimeAsync(1);
     }
     expect(send).toHaveBeenCalledExactlyOnceWith({
-      type: 'slide.show',
-      slide: {itemId, position: 0, label: '후렴', lines: ['갱신된 창작 가사']},
+      type: 'live.batch',
+      commands: [
+        {type: 'media.show', media: {mediaId, loop: true}},
+        {
+          type: 'slide.show',
+          slide: {
+            itemId,
+            position: 0,
+            label: '후렴',
+            lines: ['갱신된 창작 가사'],
+          },
+        },
+      ],
     });
     expect(log).toHaveBeenCalledWith(expect.objectContaining({level: 'warn'}));
     expect(vi.getTimerCount()).toBe(0);
@@ -257,8 +279,14 @@ it.each(['failure', 'timeout'] as const)(
     }
     expect(send).toHaveBeenCalledTimes(1);
     expect(send.mock.calls[0]?.[0]).toMatchObject({
-      type: 'slide.show',
-      slide: {itemId: 'song-morning'},
+      type: 'live.batch',
+      commands: [
+        {type: 'layer.clear', target: 'media'},
+        {
+          type: 'slide.show',
+          slide: {itemId: 'song-morning'},
+        },
+      ],
     });
     expect(vi.getTimerCount()).toBe(0);
   },
@@ -304,8 +332,14 @@ it('uses a newer retained tile without applying an older lookup background', asy
   finish(song());
   await waitFor(() => expect(send).toHaveBeenCalledTimes(1));
   expect(send).toHaveBeenCalledExactlyOnceWith({
-    type: 'slide.show',
-    slide: {itemId, position: 0, label: null, lines: ['최신 창작 가사']},
+    type: 'live.batch',
+    commands: [
+      {type: 'media.show', media: {mediaId, loop: true}},
+      {
+        type: 'slide.show',
+        slide: {itemId, position: 0, label: null, lines: ['최신 창작 가사']},
+      },
+    ],
   });
   expect(useShow.getState().librarySong?.songRevision).toBe(2);
 });

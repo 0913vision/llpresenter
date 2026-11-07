@@ -116,7 +116,7 @@ it('keeps the fill opacity separate from its fitted text', () => {
 });
 
 it.each(['currentText', 'nextText'] as const)(
-  'fits a two-line %s sample to one configured line with the real output fitter',
+  'keeps a two-line %s at theme size while it fits the actual frame',
   kind => {
     const source = element(kind, 3);
     if (source.kind !== 'currentText' && source.kind !== 'nextText') {
@@ -144,7 +144,7 @@ it.each(['currentText', 'nextText'] as const)(
       />,
     );
     const preview = screen.getByText(/Invented first line/);
-    expect(preview.style.fontSize).toBe('50px');
+    expect(preview.style.fontSize).toBe('100px');
     const parent = document.createElement('div');
     const output = new SlideLayerView(parent, {
       ...DEFAULT_TEXT_STYLE,

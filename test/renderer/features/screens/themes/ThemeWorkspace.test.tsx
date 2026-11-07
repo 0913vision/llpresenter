@@ -337,7 +337,7 @@ it('adds and deletes elements with keyboard actions and saves checkbox/text prop
   ).toBe('400');
   expect(
     screen
-      .getByRole('spinbutton', {name: '최대 줄 수'})
+      .getByRole('spinbutton', {name: '성경 분할 줄 수'})
       .getAttribute('aria-valuemax'),
   ).toBe('12');
   const size = screen.getByRole('spinbutton', {name: '크기'});

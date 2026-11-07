@@ -195,9 +195,9 @@ colors), 12.
   vertical position, shadow, and outline (12, "Element properties").
 - Line breaks are exactly as stored. A line wider than the area wraps at word
   boundaries (proposal).
-- If the 슬라이드 has more lines than the element's 최대 줄 수, or the text
-  overflows the area, shrink the font until all lines fit (proposal). Never
-  split the 슬라이드.
+- Keep the theme font size while the wrapped text fits the element frame. Shrink
+  only when its width or height overflows that frame. Never split a lyric slide.
+  The same rule applies to thumbnails and previews.
 - A blank 슬라이드 (no lines) can be the live 슬라이드. It draws nothing in the
   현재 가사 element (proposal).
 - Text sizes are for a 1920 x 1080 screen. Scale them to the screen resolution
@@ -207,9 +207,9 @@ colors), 12.
 - The text area is the element's frame. The lines sit at the top, middle, or
   bottom of the area (세로 위치), each line aligned left, center, or right (가로
   정렬).
-- The area may hold 최대 줄 수 lines at the element's size: the text block may
-  be as tall as 최대 줄 수 × size × 줄 간격, and never taller than the area
-  (proposal).
+- Use the full frame height for text fitting. The stored `maxLines` value
+  controls Bible splitting at the configured theme size (04), not the height
+  budget for lyrics or other text. The theme editor names it 성경 분할 줄 수.
 - Wrapping breaks between words; Hangul words aren't broken inside
   (`word-break: keep-all`, as in the design system's thumbnails). A single word
   wider than the area breaks anywhere (proposal).
@@ -259,10 +259,10 @@ README (states and motion).
 | Way                                                 | Result                                                                   | Source                                          |
 | --------------------------------------------------- | ------------------------------------------------------------------------ | ----------------------------------------------- |
 | Click a 슬라이드 of a song item                     | That item's background (the override, or the song's default background). | `Main` decision "라이브러리와 예배 순서는 따로" |
-| Click a tile in the 진행 media strip                | That media becomes the background at once.                               | `MediaTile` README                              |
-| Double-click a tile in the media view               | That media becomes the background at once.                               | `MediaTile` README                              |
-| 매크로 action "배경 미디어" (background media)      | The set media becomes the background.                                    | `Macros`                                        |
-| Click the 슬라이드 of a media item in the 예배 순서 | That media goes to the media layer (proposal).                           | `ShowH` (예배 전 카운트다운)                    |
+| Click a tile in the 진행 media strip                | Clear slide text and show that media alone, in one transaction.          | `MediaTile` README                              |
+| Double-click a tile in the media view               | Clear slide text and show that media alone, in one transaction.          | `MediaTile` README                              |
+| 매크로 action "배경 미디어" (background media)      | Set the background only; keep the current slide text.                    | `Macros`                                        |
+| Click the 슬라이드 of a media item in the 예배 순서 | Clear slide text and show that media alone, in one transaction.          | `ShowH` (예배 전 카운트다운)                    |
 
 ### Song item background rules
 
@@ -271,9 +271,22 @@ README (states and motion).
 - If it's the same media as the current background, don't restart it. Keep
   playing. When songs with the same background follow each other, the background
   never breaks.
-- If the item has no background, keep the current background (proposal).
-- These never change the background: moving between 슬라이드 in the same item,
-  and 슬라이드 from 퀵 실행 or a Bible passage (proposal).
+- Each item shows its own background. No item background means no background
+  media: only the theme's own background color or picture remains. This applies
+  to songs, slides, Bible passages, library sources, and Quick execution.
+- Publish an item start, its background choice, and the selected slide in one
+  transaction. A failed refresh uses that source's cached background choice,
+  never an unrelated previous item's media.
+- Repeated slides with the same background keep the existing playback time.
+- A background-only macro choice remains while navigating inside the current
+  song item. It is not inherited by the next item, which uses its own
+  background. Selecting no background for a live item removes its background
+  immediately.
+- A theme change keeps the outgoing picture until incoming text and media can
+  draw. Prime the incoming page at zero opacity, dissolve it over the opaque
+  outgoing page, and then release the old page. Do not fade new child layers
+  from empty underneath this whole-page dissolve. A retained background player
+  keeps its decoder and playback position across compositions.
 
 ### Playback
 

@@ -123,9 +123,9 @@ export function ThemeTextProperties({
             />
           )}
         </PropertyRow>
-        {element.kind === 'currentText' || element.kind === 'nextText' ? (
+        {element.kind === 'currentText' ? (
           <ThemeNumber
-            label="최대 줄 수"
+            label="성경 분할 줄 수"
             value={element.text.maxLines}
             min={1}
             max={THEME_LIMITS.maxLines}

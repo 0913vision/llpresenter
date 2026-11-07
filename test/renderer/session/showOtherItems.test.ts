@@ -42,7 +42,11 @@ const sent: LiveCommand[] = [];
 let answer: (value: ShowService) => void = () => undefined;
 
 function types(): string[] {
-  return sent.map(command => command.type);
+  return sent
+    .flatMap(command =>
+      command.type === 'live.batch' ? command.commands : [command],
+    )
+    .map(command => command.type);
 }
 
 beforeEach(() => {
@@ -73,8 +77,10 @@ afterEach(() => {
 describe('outputting the tile of a media item', () => {
   it('puts the media of a media tile on the media layer, not a slide', () => {
     outputTile({itemId: MEDIA_ITEM, index: 0});
-    expect(types()).toEqual(['item.start', 'media.show']);
-    expect(sent[1]).toEqual({
+    expect(types()).toEqual(['item.start', 'layer.clear', 'media.show']);
+    expect(
+      sent[0]?.type === 'live.batch' ? sent[0].commands[2] : undefined,
+    ).toEqual({
       type: 'media.show',
       media: {mediaId: 'countdown-video', loop: true},
     });
@@ -89,9 +95,13 @@ describe('outputting the tile of a media item', () => {
     outputTile({itemId: MEDIA_ITEM, index: 0});
     outputTile({itemId: PLAIN_SONG, index: 0});
     expect(
-      sent.flatMap(command =>
-        command.type === 'item.start' ? [command.itemId] : [],
-      ),
+      sent
+        .flatMap(command =>
+          command.type === 'live.batch' ? command.commands : [command],
+        )
+        .flatMap(command =>
+          command.type === 'item.start' ? [command.itemId] : [],
+        ),
     ).toEqual([PLAIN_SONG, MEDIA_ITEM, PLAIN_SONG]);
   });
   it('drops a song whose lookup is still pending when a media tile goes out', async () => {

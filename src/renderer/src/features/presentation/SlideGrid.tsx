@@ -10,7 +10,7 @@ import {slideMenuEntries} from '@renderer/features/songs/editor/slideMenuEntries
 import {isItemRow} from '@core/presentation/model';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
-import {useSlideTheme} from './useSlideTheme';
+import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {useBibleTileProjection} from '../bible/useBibleProjections';
 import styles from './SlideGrid.module.css';
 
@@ -35,8 +35,21 @@ export function SlideGrid({
   const selectedTile = useShow(view => view.selectedTile);
   const tiles = useShow(shownTiles);
   const row = useShow(view => view.rows.find(value => value.id === openItemId));
+  const librarySong = useShow(view => view.librarySong);
   const theme = useSlideTheme(
-    row !== undefined && isItemRow(row) ? row : undefined,
+    row !== undefined && isItemRow(row)
+      ? row
+      : librarySong === null
+        ? undefined
+        : {
+            id: `library:${librarySong.songId}`,
+            kind: 'song',
+            title: librarySong.title,
+            ...(librarySong.background === undefined
+              ? {}
+              : {background: librarySong.background}),
+          },
+    row === undefined ? 'external' : 'service',
   );
   const bible = useBibleTileProjection({itemId: openItemId});
   const liveIndex = useLiveTileIndex();

@@ -1,3 +1,4 @@
+import {lastLiveCommand} from '@fixtures/renderer/session/liveCommands';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {bibleVerseTiles} from '@core/bible/bibleTiles';
 import {emptyLiveState} from '@core/live/state';
@@ -81,7 +82,7 @@ describe('saved Bible output history', () => {
       {ref: passage.ref, translation: passage.translation},
       {ref: otherPassage.ref, translation: otherPassage.translation},
     ]);
-    expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+    expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])).toMatchObject({
       type: 'slide.show',
       slide: {itemId: saved, position: 0},
     });
@@ -95,7 +96,7 @@ describe('saved Bible output history', () => {
     await vi.waitFor(() => expect(fixture.edit).toHaveBeenCalledTimes(1));
     let outputs = 1;
     for (const direction of ['next', 'previous'] as const) {
-      const slide = fixture.send.mock.calls.at(-1)?.[0];
+      const slide = lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]);
       if (slide?.type !== 'slide.show') throw new Error('Missing saved output');
       const live = emptyLiveState();
       useLive.setState({
@@ -115,7 +116,7 @@ describe('saved Bible output history', () => {
     expect(fixture.document().value.recents).toEqual([
       {ref: passage.ref, translation: passage.translation},
     ]);
-    expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+    expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])).toMatchObject({
       type: 'slide.show',
       slide: {itemId: saved, position: 0},
     });
@@ -144,7 +145,7 @@ describe('saved Bible output history', () => {
     outputTile({itemId: saved, index: 0});
     await Promise.resolve();
     expect(fixture.edit).not.toHaveBeenCalled();
-    expect(fixture.send.mock.calls.at(-1)?.[0]).toMatchObject({
+    expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])).toMatchObject({
       type: 'slide.show',
     });
   });

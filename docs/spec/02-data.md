@@ -106,7 +106,7 @@ Each song is one file. It uses named groups (user decision, 2026-10-27).
 | `schemaVersion`            | Integer                     | Yes      | 1.                                                                                                                                         |
 | `id`                       | String (UUID)               | Yes      | Song ID. A 예배 순서 points to the song with this value.                                                                                   |
 | `title`                    | String                      | Yes      | Title. It can't be empty. Titles are unique in the 라이브러리 (proposal, see 05).                                                          |
-| `background`               | String (media ID) or absent | No       | Default background. If absent, outputting the song doesn't change the background (see 03).                                                 |
+| `background`               | String (media ID) or absent | No       | Default background. If the item has no override and this is absent, show no background media (see 03).                                     |
 | `groups`                   | Nonempty array              | Yes      | Groups in master order. Each slide belongs to exactly one group.                                                                           |
 | `groups[].id`              | String (UUID v4)            | Yes      | Stable group ID, unique within the song. References use IDs, not names or positions.                                                       |
 | `groups[].name`            | String                      | Yes      | Group name, such as 1절 or 후렴. Names may repeat; `""` means unnamed.                                                                     |

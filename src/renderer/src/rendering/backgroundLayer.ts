@@ -107,6 +107,8 @@ function unload(video: HTMLVideoElement): void {
  * starts on the spare and dissolves over the old one.
  */
 export class BackgroundLayerView {
+  private readonly options: Omit<BackgroundLayerOptions, 'onError'>;
+  private onError: BackgroundLayerOptions['onError'];
   private readonly element = document.createElement('div');
   private readonly videos: readonly [HTMLVideoElement, HTMLVideoElement];
   private readonly images: readonly [HTMLImageElement, HTMLImageElement];
@@ -134,10 +136,10 @@ export class BackgroundLayerView {
     ReturnType<typeof setTimeout> | null,
   ] = [null, null];
 
-  constructor(
-    parent: HTMLElement,
-    private readonly options: BackgroundLayerOptions,
-  ) {
+  constructor(parent: HTMLElement, options: BackgroundLayerOptions) {
+    const {onError, ...playback} = options;
+    this.options = playback;
+    this.onError = onError;
     this.element.className = classes.layer;
     this.element.style.setProperty(
       '--background-dissolve',
@@ -161,8 +163,13 @@ export class BackgroundLayerView {
   setSink(sinkId: string): void {
     this.sinkId = sinkId;
     for (const video of this.videos) {
-      applySink(video, sinkId, this.options.onError);
+      applySink(video, sinkId, this.onError);
     }
+  }
+
+  /** Rebinds reports when a retained player changes its owning theme element. */
+  setOnError(onError: BackgroundLayerOptions['onError']): void {
+    this.onError = onError;
   }
 
   /**
@@ -255,6 +262,47 @@ export class BackgroundLayerView {
     );
   }
 
+  /** Moves the playing decoder while leaving its last picture on the old page. */
+  moveTo(parent: HTMLElement): boolean {
+    const picture = this.isImage(this.front)
+      ? this.images[this.front]
+      : this.videos[this.front];
+    const width =
+      picture instanceof HTMLVideoElement
+        ? picture.videoWidth
+        : picture.naturalWidth;
+    const height =
+      picture instanceof HTMLVideoElement
+        ? picture.videoHeight
+        : picture.naturalHeight;
+    if (width > 0 && height > 0) {
+      const snapshot = document.createElement('canvas');
+      snapshot.dataset['mediaSnapshot'] = '';
+      snapshot.width = width;
+      snapshot.height = height;
+      Object.assign(snapshot.style, {
+        position: 'absolute',
+        inset: '0',
+        width: '100%',
+        height: '100%',
+        objectFit: picture.style.objectFit,
+      });
+      try {
+        const context = snapshot.getContext('2d');
+        if (context === null) throw new Error('No media snapshot context');
+        context.drawImage(picture, 0, 0);
+        const outgoing = this.element.parentElement;
+        outgoing?.querySelector('[data-media-snapshot]')?.remove();
+        outgoing?.append(snapshot);
+      } catch (error) {
+        this.onError('could not retain the outgoing media picture', error);
+        return false;
+      }
+    }
+    parent.append(this.element);
+    return true;
+  }
+
   private start(media: MediaLayer): void {
     const to = otherOf(this.front);
     const video = this.videos[to];
@@ -304,7 +352,7 @@ export class BackgroundLayerView {
     this.cancelFrame(index);
     this.clearImage(index);
     this.applyProperties(index, this.current?.properties);
-    applySink(this.videos[index], this.sinkId, this.options.onError);
+    applySink(this.videos[index], this.sinkId, this.onError);
     this.videos[index].src = this.options.mediaUrl(mediaId);
     this.holding[index] = mediaId;
   }
@@ -326,10 +374,7 @@ export class BackgroundLayerView {
         this.isPreview() ||
         properties?.audio !== true;
     } catch (error) {
-      this.options.onError(
-        'could not apply background media properties',
-        error,
-      );
+      this.onError('could not apply background media properties', error);
     }
   }
 
@@ -355,7 +400,6 @@ export class BackgroundLayerView {
           return;
         }
         if (this.isImage(at)) return;
-        this.handlePlaying(at);
         if (!this.holdsCurrent(at)) return;
         if (typeof video.requestVideoFrameCallback === 'function') {
           this.cancelFrame(at);
@@ -365,6 +409,7 @@ export class BackgroundLayerView {
             if (this.holding[at] === source && this.holdsCurrent(at)) {
               this.clearFrameDeadline(at);
               this.decoded[at] = true;
+              this.handlePlaying(at);
             }
           });
           this.frameDeadlines[at] = setTimeout(() => {
@@ -373,8 +418,12 @@ export class BackgroundLayerView {
             if (video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA) return;
             this.cancelFrame(at);
             this.decoded[at] = true;
+            this.handlePlaying(at);
           }, VIDEO_FRAME_DEADLINE_MS);
-        } else this.decoded[at] = true;
+        } else {
+          this.decoded[at] = true;
+          this.handlePlaying(at);
+        }
       };
       const onEnded = (): void => this.handleEnded(at);
       const onError = (): void => this.handleError(at);
@@ -487,7 +536,7 @@ export class BackgroundLayerView {
       message: video.error?.message ?? null,
     };
     this.fail(index);
-    this.options.onError('could not play a background video', detail);
+    this.onError('could not play a background video', detail);
   }
 
   private prepareSpare(): void {
@@ -522,7 +571,7 @@ export class BackgroundLayerView {
       ) {
         return;
       }
-      this.options.onError('could not start a background video', error);
+      this.onError('could not start a background video', error);
       this.fail(index);
     });
   }
@@ -561,7 +610,7 @@ export class BackgroundLayerView {
       },
       onError: () => {
         this.fail(index);
-        this.options.onError('could not load a background media file', {src});
+        this.onError('could not load a background media file', {src});
       },
     });
     this.loopNativelyInPreview();

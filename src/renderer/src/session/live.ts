@@ -73,20 +73,26 @@ export function startLiveSync(): () => void {
 }
 
 export function sendLive(command: LiveCommand): void {
-  useLive.setState(view => ({
-    commandVersion:
-      view.commandVersion + (interruptsSongOutput(command) ? 1 : 0),
-    lastStartedItemId:
-      command.type === 'slide.show'
-        ? command.slide.itemId
-        : command.type === 'item.start'
-          ? command.itemId
-          : view.lastStartedItemId,
-    startedItemIds:
-      command.type === 'item.start'
-        ? rememberItem(view.startedItemIds, command.itemId)
-        : view.startedItemIds,
-  }));
+  const commands = command.type === 'live.batch' ? command.commands : [command];
+  useLive.setState(view => {
+    let {lastStartedItemId, startedItemIds} = view;
+    for (const child of commands) {
+      if (child.type === 'slide.show') lastStartedItemId = child.slide.itemId;
+      if (child.type === 'media.show' && child.media.itemId !== undefined) {
+        lastStartedItemId = child.media.itemId;
+      }
+      if (child.type === 'item.start') {
+        lastStartedItemId = child.itemId;
+        startedItemIds = rememberItem(startedItemIds, child.itemId);
+      }
+    }
+    return {
+      commandVersion:
+        view.commandVersion + (interruptsSongOutput(command) ? 1 : 0),
+      lastStartedItemId,
+      startedItemIds,
+    };
+  });
   window.llp?.live.send(command);
 }
 

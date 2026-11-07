@@ -170,6 +170,29 @@ afterEach(() => {
 });
 
 describe('song background controller', () => {
+  it('removes live media when the refreshed item has no background choice', async () => {
+    const {mount, send, getProjection, projection} = setup();
+    getProjection.mockImplementationOnce(async () => ({
+      ...projection(),
+      rows: projection().rows.map(row => {
+        if (row.kind !== 'song') return row;
+        const {background: _background, ...withoutBackground} = row;
+        return withoutBackground;
+      }),
+    }));
+    const {result, unmount} = mount();
+    await waitFor(() => expect(result.current.view).not.toBeNull());
+    act(() => result.current.choose(null));
+    await waitFor(() => expect(result.current.busy).toBe(false));
+    expect(send).toHaveBeenCalledExactlyOnceWith({
+      type: 'layer.clear',
+      target: 'media',
+    });
+    expect(useLive.getState().state?.layers.slide?.lines).toEqual([
+      'Kept lyrics',
+    ]);
+    unmount();
+  });
   it('loads inherited data, writes an override, and changes only live media', async () => {
     const {mount, send, stops} = setup();
     const {result, unmount} = mount();
