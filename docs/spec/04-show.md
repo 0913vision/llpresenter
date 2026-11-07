@@ -335,6 +335,11 @@ each preview follows ProPresenter's rule: it shows what goes out.
 - Clicking a small preview makes it large and moves the large one to the small
   row, with no transition. The large preview isn't clickable. The app remembers
   which screen was large.
+- The large preview is as wide as the panel, 16:9. When the column is too short
+  for the small row as well, the small row goes first and the panel header gets
+  a screen picker (the three names) instead. Only after that does the large
+  preview shrink, so the 진행 도구 panel keeps its 240 px and nothing scrolls at
+  1920 x 1080 or 1280 x 720. 준비's 미리보기 follows the same rule.
 - The caption under the large preview shows the screen name, the target (모니터
   2, 캡처용 창). It shows no style or layout name, because the 테마 name shows
   on the toolbar button (11).

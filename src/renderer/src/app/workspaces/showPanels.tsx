@@ -2,7 +2,10 @@ import {useState, type ReactNode} from 'react';
 import type {SongId} from '@core/schema/ids';
 import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
 import {ClearRow} from '@renderer/features/presentation/ClearRow';
-import {PreviewPanel} from '@renderer/features/presentation/PreviewPanel';
+import {
+  PreviewHeaderPicker,
+  PreviewPanel,
+} from '@renderer/features/presentation/PreviewPanel';
 import {
   SlidePanelBody,
   SlidePanelMeta,
@@ -72,6 +75,7 @@ function showPanelParts({
     case '미리보기':
       return {
         size: 'fit',
+        meta: <PreviewHeaderPicker />,
         body: <PreviewPanel compact={sizeClass === 'narrow'} />,
       };
     case '진행 도구':

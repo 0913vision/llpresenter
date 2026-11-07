@@ -666,7 +666,9 @@ describe('slides editor', () => {
           within(list).getByText('내용', {selector: 'label'}),
         ).toBeTruthy();
       }
-      expect(screen.getByRole('radio', {name: '청중 화면'})).toBeTruthy();
+      expect(
+        screen.getByRole('button', {name: '무대 화면 크게 보기'}),
+      ).toBeTruthy();
       view.unmount();
       await session.dispose();
     },

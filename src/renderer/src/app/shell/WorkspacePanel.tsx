@@ -12,8 +12,9 @@ export interface PanelParts {
   readonly bare?: ReactNode;
   // NOTE(0913vision): `content` sizes the panel to its content and never
   // shrinks; `fit` sizes it to its content too, but shrinks before `rest` does,
-  // so the picture inside gets smaller instead of the 진행 도구 panel. `rest` takes the height that is left, at least the
-  // height of the 진행 도구. `list` keeps the height of one full row of
+  // so the picture inside gets smaller instead of the 진행 도구 panel. `rest` keeps
+  // the height of the 진행 도구 and never grows or shrinks, so a fold of the
+  // 미디어 panel does not resize it. `list` keeps the height of one full row of
   // 슬라이드 with their 오버레이 clips, and `settings` takes what is left but
   // never less than a few rows, so the panel below the slides is the one that
   // scrolls.

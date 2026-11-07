@@ -8,9 +8,12 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLayers, emptyLiveState, type LiveLayers} from '@core/live/state';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {useLive} from '@renderer/session/live';
-import {showLarge, usePreview} from '@renderer/session/preview';
+import {setTilesHidden, showLarge, usePreview} from '@renderer/session/preview';
 import {openItem, selectTile, useShow} from '@renderer/session/show';
-import {PreviewPanel} from '@renderer/features/presentation/PreviewPanel';
+import {
+  PreviewHeaderPicker,
+  PreviewPanel,
+} from '@renderer/features/presentation/PreviewPanel';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {renderWithScreenSummaries as render} from '@fixtures/renderer/platform/screenSummaries';
 import {ScreenSummariesContext} from '@renderer/platform/ScreenSummaries';
@@ -171,32 +174,30 @@ describe('PreviewPanel layout', () => {
   });
 
   it.each([false, true])(
-    'keeps three fixed slots and one marker across every selection, compact=%s',
+    'shows one big picture and tiles for the other screens only across every selection, compact=%s',
     compact => {
       const send = vi.fn();
       window.llp = mockLlpApi({live: {send}});
       setLayers({}, allOn);
       const {container} = render(<PreviewPanel compact={compact} />);
-      for (const id of [
-        MAIN_SCREEN,
-        STAGE_SCREEN,
-        BROADCAST_SCREEN,
-        MAIN_SCREEN,
-      ]) {
+      const order = [MAIN_SCREEN, STAGE_SCREEN, BROADCAST_SCREEN];
+      expect(screensWithRole(container, 'large')).toEqual([MAIN_SCREEN]);
+      for (const id of [STAGE_SCREEN, BROADCAST_SCREEN, MAIN_SCREEN]) {
         const button = container.querySelector(`[data-preview-slot="${id}"]`);
-        if (!button) throw new Error(`Missing fixed slot: ${id}`);
+        if (!button) throw new Error(`Missing tile: ${id}`);
         fireEvent.click(button);
         expect(
           screen
             .getAllByRole('button')
             .map(slot => slot.dataset['previewSlot']),
-        ).toEqual([MAIN_SCREEN, STAGE_SCREEN, BROADCAST_SCREEN]);
+        ).toEqual(order.filter(other => other !== id));
         expect(screensWithRole(container, 'large')).toEqual([id]);
+        expect(screensWithRole(container, 'small')).toEqual(
+          order.filter(other => other !== id),
+        );
         expect(
           container.querySelectorAll('[data-selected-marker]'),
-        ).toHaveLength(1);
-        expect(button.getAttribute('aria-pressed')).toBe('true');
-        expect(button.querySelector('video, img, [data-screen]')).toBeNull();
+        ).toHaveLength(0);
         expect(created()).toHaveLength(3);
       }
       expect(send).not.toHaveBeenCalled();
@@ -228,9 +229,7 @@ describe('PreviewPanel states', () => {
     const {container} = render(<PreviewPanel compact={false} />);
     const large = itemOf(container, MAIN_SCREEN);
     expect(large.getAttribute('data-state')).toBe('off');
-    expect(
-      screen.getByRole('button', {pressed: true}).getAttribute('aria-label'),
-    ).toBe('청중 화면 크게 보기, 출력 꺼짐');
+    expect(screen.queryByRole('button', {pressed: true})).toBeNull();
     expect(created()[0]?.render).toHaveBeenLastCalledWith(
       expect.objectContaining({slide}),
       expect.anything(),
@@ -349,7 +348,7 @@ describe('PreviewPanel screen list changes', () => {
   }
 
   it.each([16, 50])(
-    'keeps all %i screen slots reachable without replacing their pictures',
+    'keeps all %i screens reachable as tiles without replacing their pictures',
     count => {
       const screens = Array.from({length: count}, (_, index) =>
         summary(
@@ -363,19 +362,27 @@ describe('PreviewPanel screen list changes', () => {
         </ScreenSummariesContext>,
       );
       const last = screens.at(-1);
-      if (last === undefined) throw new Error('Missing final screen fixture');
-      const lastButton = screen.getByRole('button', {
-        name: `${last.toolbarLabel} 크게 보기, 출력 꺼짐`,
-      });
-      const firstButton = screen.getAllByRole('button')[0];
-      if (firstButton === undefined) throw new Error('Missing first slot');
+      const first = screens[0];
+      if (last === undefined || first === undefined) {
+        throw new Error('Missing screen fixtures');
+      }
       const pictures = [...view.container.querySelectorAll('[data-screen]')];
       expect(pictures).toHaveLength(count);
+      expect(screen.getAllByRole('button')).toHaveLength(count - 1);
 
       for (let round = 0; round < 20; round++) {
-        fireEvent.click(lastButton);
-        expect(lastButton.getAttribute('aria-pressed')).toBe('true');
-        fireEvent.click(firstButton);
+        fireEvent.click(
+          screen.getByRole('button', {
+            name: `${last.toolbarLabel} 크게 보기, 출력 꺼짐`,
+          }),
+        );
+        expect(screensWithRole(view.container, 'large')).toEqual([last.id]);
+        fireEvent.click(
+          screen.getByRole('button', {
+            name: `${first.toolbarLabel} 크게 보기, 출력 꺼짐`,
+          }),
+        );
+        expect(screensWithRole(view.container, 'large')).toEqual([first.id]);
       }
 
       expect([...view.container.querySelectorAll('[data-screen]')]).toEqual(
@@ -405,11 +412,8 @@ describe('PreviewPanel screen list changes', () => {
       </ScreenSummariesContext>,
     );
     expect(screen.queryByRole('button', {name: /사용자 캡처/})).toBeNull();
-    expect(
-      screen
-        .getByRole('button', {name: /남은 화면 크게 보기/})
-        .getAttribute('aria-pressed'),
-    ).toBe('true');
+    expect(screensWithRole(view.container, 'large')).toEqual([MAIN_SCREEN]);
+    expect(screensWithRole(view.container, 'small')).toEqual([]);
     view.rerender(
       <ScreenSummariesContext value={[]}>
         <PreviewPanel compact={false} />
@@ -417,5 +421,33 @@ describe('PreviewPanel screen list changes', () => {
     );
 
     expect(screen.queryAllByRole('button')).toHaveLength(0);
+    expect(view.container.querySelectorAll('[data-screen]')).toHaveLength(0);
+  });
+});
+
+describe('PreviewHeaderPicker', () => {
+  it('offers nothing while the tile row shows, and a screen picker once it is hidden', () => {
+    setLayers({}, allOn);
+    const {container} = render(<PreviewHeaderPicker />);
+    expect(screen.queryByRole('radiogroup')).toBeNull();
+    act(() => setTilesHidden(true));
+    const group = screen.getByRole('radiogroup', {name: '미리보기 화면'});
+    expect(
+      Array.from(group.querySelectorAll('[role="radio"]')).map(
+        radio => radio.textContent,
+      ),
+    ).toEqual(['청중 화면', '무대 화면', '방송 화면']);
+    fireEvent.click(screen.getByRole('radio', {name: '무대 화면'}));
+    expect(usePreview.getState().largeScreenId).toBe(STAGE_SCREEN);
+    act(() => setTilesHidden(false));
+    expect(container.querySelector('[role="radiogroup"]')).toBeNull();
+  });
+
+  it('is hidden again once the panel that hid the tiles unmounts', () => {
+    setLayers({}, allOn);
+    const view = render(<PreviewPanel compact={false} />);
+    act(() => setTilesHidden(true));
+    view.unmount();
+    expect(usePreview.getState().tilesHidden).toBe(false);
   });
 });

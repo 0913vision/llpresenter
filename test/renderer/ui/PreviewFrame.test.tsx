@@ -44,10 +44,12 @@ const screens = [main, stage, broadcast];
 
 function Preview({
   sizing = 'fill',
+  tiles = true,
   onBigChange = () => {},
   renderScreen = shown => <span>{`${shown.name} 출력`}</span>,
 }: {
   readonly sizing?: 'fill' | 'content';
+  readonly tiles?: boolean;
   readonly onBigChange?: (id: ScreenName) => void;
   readonly renderScreen?: (shown: PreviewScreen<ScreenName>) => ReactNode;
 }): JSX.Element {
@@ -55,6 +57,7 @@ function Preview({
   return (
     <PreviewFrame
       sizing={sizing}
+      tiles={tiles}
       screens={screens}
       big={big}
       onBigChange={id => {
@@ -87,33 +90,30 @@ describe('PreviewFrame', () => {
       }
     }
     expect(onBigChange).not.toHaveBeenCalled();
-    expect(target.getAttribute('aria-pressed')).toBe('false');
     fireEvent.click(target, {detail: 1, ctrlKey: true});
     expect(onBigChange).toHaveBeenCalledExactlyOnceWith('stage');
   });
 
-  it('shows one picture per screen and a selected marker in the fixed three-slot row', () => {
+  it('shows one big picture and small tiles for the other screens only', () => {
     const {container} = render(<Preview />);
     expect(screen.getByText('청중 화면 출력')).toBeDefined();
     expect(smallNames()).toEqual([
-      '청중 화면 크게 보기',
       '무대 화면 크게 보기, 모니터 3 연결 끊김',
       '방송 화면 크게 보기, 출력 꺼짐',
     ]);
     expect(container.querySelectorAll('[data-screen]')).toHaveLength(3);
-    const selected = screen.getByRole('button', {pressed: true});
-    expect(selected.dataset['previewSlot']).toBe('main');
-    expect(
-      selected.querySelector('[data-selected-marker="main"]'),
-    ).not.toBeNull();
-    expect(selected.textContent).toBe('청중 화면');
-    expect(selected.querySelector('[data-screen]')).toBeNull();
+    const large = container.querySelector('[data-role="large"]');
+    expect(large?.getAttribute('data-screen')).toBe('main');
+    expect(container.querySelectorAll('[data-role="small"]')).toHaveLength(2);
+    expect(screen.queryByRole('button', {pressed: true})).toBeNull();
+    expect(container.querySelector('[data-selected-marker]')).toBeNull();
+    expect(screen.getByText('모니터 2')).toBeDefined();
     expect(screen.getAllByText(/출력$/)).toHaveLength(3);
   });
 
-  it('selects a screen on click and keeps every slot in its original order', async () => {
+  it('swaps a clicked tile with the big picture and keeps the other tile in order', async () => {
     const onBigChange = vi.fn<(id: ScreenName) => void>();
-    render(<Preview onBigChange={onBigChange} />);
+    const {container} = render(<Preview onBigChange={onBigChange} />);
     await userEvent.click(
       screen.getByRole('button', {
         name: '무대 화면 크게 보기, 모니터 3 연결 끊김',
@@ -122,31 +122,58 @@ describe('PreviewFrame', () => {
     expect(onBigChange).toHaveBeenCalledWith('stage');
     expect(smallNames()).toEqual([
       '청중 화면 크게 보기',
-      '무대 화면 크게 보기, 모니터 3 연결 끊김',
       '방송 화면 크게 보기, 출력 꺼짐',
     ]);
     expect(
-      screen.getByRole('button', {pressed: true}).dataset['previewSlot'],
+      container
+        .querySelector('[data-role="large"]')
+        ?.getAttribute('data-screen'),
     ).toBe('stage');
+    expect(screen.getByText('모니터 3')).toBeDefined();
     expect(screen.queryByText('모니터 2')).toBeNull();
     expect(screen.queryByText('NDI')).toBeNull();
   });
 
-  it('keeps all three slots in keyboard order and exposes selection as pressed', async () => {
+  it('keeps the tiles in keyboard order', async () => {
     const user = userEvent.setup();
     render(<Preview />);
     const buttons = screen.getAllByRole('button');
+    expect(buttons).toHaveLength(2);
     await user.tab();
     expect(document.activeElement).toBe(buttons[0]);
     await user.tab();
     expect(document.activeElement).toBe(buttons[1]);
     await user.keyboard('{Enter}');
-    expect(buttons[1]?.getAttribute('aria-pressed')).toBe('true');
-    await user.tab();
-    expect(document.activeElement).toBe(buttons[2]);
-    await user.keyboard(' ');
-    expect(buttons[2]?.getAttribute('aria-pressed')).toBe('true');
-    expect(screen.getAllByRole('button', {pressed: true})).toHaveLength(1);
+    expect(
+      screen
+        .getAllByRole('button')
+        .map(button => button.getAttribute('aria-label')),
+    ).toEqual([
+      '청중 화면 크게 보기',
+      '무대 화면 크게 보기, 모니터 3 연결 끊김',
+    ]);
+  });
+
+  it('shows only the big picture without the tile row', () => {
+    const {container} = render(<Preview tiles={false} />);
+    expect(screen.queryAllByRole('button')).toHaveLength(0);
+    expect(container.querySelectorAll('[data-screen]')).toHaveLength(1);
+    expect(screen.getByText('청중 화면 출력')).toBeDefined();
+  });
+
+  it('draws the caption the owner asks for under the big picture only', () => {
+    render(
+      <PreviewFrame
+        screens={screens}
+        big="stage"
+        onBigChange={() => {}}
+        renderScreen={() => null}
+        caption={shown => <span>{`자막 ${shown.name}`}</span>}
+      />,
+    );
+    expect(screen.getByText('자막 무대 화면')).toBeDefined();
+    expect(screen.queryByText('자막 청중 화면')).toBeNull();
+    expect(screen.queryByText('모니터 3')).toBeNull();
   });
 
   it.each(['fill', 'content'] as const)(

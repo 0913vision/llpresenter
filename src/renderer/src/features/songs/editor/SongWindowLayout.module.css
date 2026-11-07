@@ -19,6 +19,14 @@
   background: var(--bg-panel);
 }
 
+/* NOTE(0913vision): The preview panel fills the sidebar above the save bar, so
+   its height does not depend on its content and the tile row can come back
+   when the window grows. */
+.side > section {
+  flex: 1;
+  min-height: 0;
+}
+
 .saveBar {
   display: flex;
   flex: none;

@@ -16,7 +16,8 @@ import {
   type PreviewRole,
 } from '@renderer/features/songs/editor/songPreviewModel';
 import {Panel, PanelHeader, PanelTitle} from '@renderer/ui/Panel';
-import {SegmentedControl} from '@renderer/ui/SegmentedControl';
+import {PreviewScreenPicker} from '@renderer/ui/PreviewScreenPicker';
+import {RolePreview} from '@renderer/features/songs/editor/RolePreview';
 import {useItemSettings} from '../items/useItemSources';
 import styles from './SlidesEditor.module.css';
 
@@ -199,7 +200,13 @@ export function SlidesPreview({
   readonly projection?: BibleProjection | null;
 }): JSX.Element {
   const [role, setRole] = useState<PreviewRole>('audience');
-  const {appearance} = useSlidesAppearance(api, item, role);
+  const [room, setRoom] = useState(true);
+  const appearances = {
+    audience: useSlidesAppearance(api, item, 'audience').appearance,
+    stage: useSlidesAppearance(api, item, 'stage').appearance,
+    broadcast: useSlidesAppearance(api, item, 'broadcast').appearance,
+  };
+  const appearance = appearances[role];
   const slide = item.slides.slides[selected];
   const {projection: localProjection} = useSlidesVerseProjection(
     api,
@@ -207,6 +214,7 @@ export function SlidesPreview({
     projection === undefined,
   );
   const shown = projection === undefined ? localProjection : projection;
+  const shownProjection = shown;
   const count =
     shown?.tiles.filter(tile => tile.sourceSlideId === slide?.id).length ?? 1;
   const [chosenPart, setChosenPart] = useState({id: slide?.id, index: 0});
@@ -218,31 +226,35 @@ export function SlidesPreview({
     <Panel label="미리보기">
       <PanelHeader>
         <PanelTitle title="미리보기" />
-        <SegmentedControl
-          className={styles.tabs}
-          label="미리보기 화면"
-          options={PREVIEW_ROLES}
-          value={role}
-          onChange={setRole}
-        />
+        {room ? null : (
+          <PreviewScreenPicker
+            screens={PREVIEW_ROLES.map(entry => ({
+              id: entry.value,
+              name: entry.label,
+            }))}
+            big={role}
+            onChange={setRole}
+          />
+        )}
       </PanelHeader>
-      <div className={styles.preview}>
-        <div className={styles.stage}>
+      <RolePreview
+        big={role}
+        onBigChange={setRole}
+        onRoom={setRoom}
+        renderRole={forRole => (
           <SlidesCanvas
             item={item}
             index={selected}
-            appearance={appearance}
-            projection={shown}
+            appearance={appearances[forRole]}
+            projection={shownProjection}
             part={part}
           />
-        </div>
-        {slide === undefined ? (
-          <div className={styles.caption}>
+        )}
+        caption={() =>
+          slide === undefined ? (
             <span className={styles.themeName}>{appearance.themeName}</span>
-          </div>
-        ) : (
-          <>
-            <div className={styles.caption}>
+          ) : (
+            <>
               <span>
                 {'text' in slide ? slide.name : slideBand(slide, media)}
               </span>
@@ -250,29 +262,30 @@ export function SlidesPreview({
                 {selected + 1} / {item.slides.slides.length}
               </span>
               <span className={styles.themeName}>{appearance.themeName}</span>
-            </div>
-            {count <= 1 ? null : (
-              <div className={styles.caption}>
-                <Button
-                  disabled={part === 0}
-                  onClick={() => setChosenPart({id: slide.id, index: part - 1})}
-                >
-                  이전 부분
-                </Button>
-                <span>
-                  {part + 1} / {count}
-                </span>
-                <Button
-                  disabled={part + 1 >= count}
-                  onClick={() => setChosenPart({id: slide.id, index: part + 1})}
-                >
-                  다음 부분
-                </Button>
-              </div>
-            )}
-          </>
+            </>
+          )
+        }
+      >
+        {slide === undefined || count <= 1 ? null : (
+          <div className={styles.caption} data-preview-extra="">
+            <Button
+              disabled={part === 0}
+              onClick={() => setChosenPart({id: slide.id, index: part - 1})}
+            >
+              이전 부분
+            </Button>
+            <span>
+              {part + 1} / {count}
+            </span>
+            <Button
+              disabled={part + 1 >= count}
+              onClick={() => setChosenPart({id: slide.id, index: part + 1})}
+            >
+              다음 부분
+            </Button>
+          </div>
         )}
-      </div>
+      </RolePreview>
     </Panel>
   );
 }

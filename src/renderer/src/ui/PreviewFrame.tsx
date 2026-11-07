@@ -4,7 +4,6 @@ import {Icon, type IconSize} from './Icon';
 import {titleTooltip, useTooltip} from './Tooltip';
 import {useButtonPress} from './press';
 import styles from './PreviewFrame.module.css';
-import {TruncatedText} from './TruncatedText';
 
 const LARGE_ICON_SIZE: IconSize = 14;
 
@@ -32,7 +31,8 @@ export interface PreviewScreen<Id extends string> {
   readonly id: Id;
   /** 청중 화면, 무대 화면, or 방송 화면. */
   readonly name: string;
-  readonly target: PreviewTarget;
+  /** Where it goes out; absent for a picture that goes nowhere, as in 준비. */
+  readonly target?: PreviewTarget | undefined;
   readonly status: PreviewStatus;
   /** Draws the frame in `chroma`, as the capture window of 방송 화면 does. */
   readonly chroma?: boolean | undefined;
@@ -42,7 +42,7 @@ export interface PreviewScreen<Id extends string> {
 }
 
 export interface PreviewFrameProps<Id extends string> {
-  /** The screens in their fixed slot order, including the selected screen. */
+  /** Every screen; the one in `big` is large and the others are small tiles. */
   readonly screens: ReadonlyArray<PreviewScreen<Id>>;
   /** The screen shown large. */
   readonly big: Id;
@@ -50,6 +50,12 @@ export interface PreviewFrameProps<Id extends string> {
   readonly compact?: boolean | undefined;
   /** Content sizing preserves picture geometry inside a scrolling body. */
   readonly sizing?: 'fill' | 'content';
+  /** Shows the row of small tiles. Without it, only the large picture shows. */
+  readonly tiles?: boolean | undefined;
+  /** Drawn over the bottom edge of the large picture, such as a progress bar. */
+  readonly overlay?: ReactNode;
+  /** What the large caption shows instead of the name and the target. */
+  readonly caption?: ((screen: PreviewScreen<Id>) => ReactNode) | undefined;
   /** Selects the large monitoring picture without changing output. */
   readonly onBigChange: (id: Id) => void;
   /** Draws a screen's output, scaled to its frame. */
@@ -97,10 +103,12 @@ function Frame<Id extends string>({
   screen,
   large,
   renderScreen,
+  overlay,
 }: {
   readonly screen: PreviewScreen<Id>;
   readonly large: boolean;
   readonly renderScreen: (screen: PreviewScreen<Id>) => ReactNode;
+  readonly overlay?: ReactNode;
 }): JSX.Element {
   return (
     <div className={styles.surface}>
@@ -112,6 +120,9 @@ function Frame<Id extends string>({
         )}
       >
         <div className={styles.screen}>{renderScreen(screen)}</div>
+        {overlay === undefined || overlay === null ? null : (
+          <div className={styles.overlay}>{overlay}</div>
+        )}
       </div>
     </div>
   );
@@ -145,18 +156,23 @@ function TargetIcon({
 function Caption<Id extends string>({
   screen,
   small,
+  custom,
 }: {
   readonly screen: PreviewScreen<Id>;
   readonly small: boolean;
+  readonly custom?: ((screen: PreviewScreen<Id>) => ReactNode) | undefined;
 }): JSX.Element {
   const warning = screen.status.kind === 'warning';
+  if (!small && custom !== undefined) {
+    return <div className={styles.caption}>{custom(screen)}</div>;
+  }
   return (
     <div className={styles.caption}>
       <span className={styles.name}>{screen.name}</span>
       {screen.indicator === undefined ? null : (
         <PictureIndicator indicator={screen.indicator} />
       )}
-      {small ? null : (
+      {small || screen.target === undefined ? null : (
         <span className={styles.target}>
           <TargetIcon
             target={screen.target}
@@ -199,16 +215,21 @@ interface ScreenCellProps<Id extends string> {
   readonly role: PreviewRole;
   readonly column: number;
   readonly renderScreen: (screen: PreviewScreen<Id>) => ReactNode;
+  readonly caption?: ((screen: PreviewScreen<Id>) => ReactNode) | undefined;
+  readonly overlay?: ReactNode;
   readonly onBigChange: (id: Id) => void;
 }
 
-// NOTE(0913vision): Pictures and slot buttons are persistent siblings. Only
-// grid positions change, so no renderer or playing video is reparented.
+// NOTE(0913vision): A screen's picture stays one element while it moves between
+// the large place and a tile: only its grid place changes, so no renderer or
+// playing video is reparented. A tile's button is a sibling over it.
 function ScreenCell<Id extends string>({
   screen,
   role,
   column,
   renderScreen,
+  caption,
+  overlay,
   onBigChange,
 }: ScreenCellProps<Id>): JSX.Element {
   const {targetProps, tooltip} = useTooltip(
@@ -231,77 +252,76 @@ function ScreenCell<Id extends string>({
         className={large ? styles.main : styles.small}
         style={{gridColumn: large ? '1 / -1' : column}}
       >
-        <Frame screen={screen} large={large} renderScreen={renderScreen} />
-        <Caption screen={screen} small={!large} />
+        <Frame
+          screen={screen}
+          large={large}
+          renderScreen={renderScreen}
+          overlay={large ? overlay : undefined}
+        />
+        <Caption screen={screen} small={!large} custom={caption} />
       </div>
-      <button
-        {...targetProps}
-        {...press}
-        type="button"
-        aria-label={smallPreviewName(screen)}
-        aria-pressed={large}
-        data-preview-slot={screen.id}
-        data-state={stateOf(screen.status)}
-        className={classNames(styles.hit, large && styles.selected)}
-        style={{gridColumn: column}}
-      >
-        {large ? (
-          <>
-            <span
-              className={styles.marker}
-              data-selected-marker={screen.id}
-              aria-hidden="true"
-            >
-              <Icon name="arrow" size={18} className={styles.arrow} />
-            </span>
-            <span className={styles.selectedCaption} aria-hidden="true">
-              <Icon name="check" size={12} />
-              <TruncatedText
-                text={screen.name}
-                className={styles.selectedName}
-              />
-            </span>
-          </>
-        ) : null}
-      </button>
+      {large ? null : (
+        <button
+          {...targetProps}
+          {...press}
+          type="button"
+          aria-label={smallPreviewName(screen)}
+          data-preview-slot={screen.id}
+          data-state={stateOf(screen.status)}
+          className={styles.hit}
+          style={{gridColumn: column}}
+        />
+      )}
       {tooltip}
     </>
   );
 }
 
 /**
- * One large monitoring picture above a fixed row of screen slots. The selected
- * slot shows a marker; each screen's single picture stays mounted across swaps.
+ * One large picture of the chosen screen, and a row of small tiles for the
+ * other screens only. A click on a tile makes it the large one. Each screen's
+ * single picture stays mounted across swaps.
  */
 export function PreviewFrame<Id extends string>({
   screens,
   big,
   compact = false,
   sizing = 'fill',
+  tiles = true,
+  overlay,
+  caption,
   onBigChange,
   renderScreen,
 }: PreviewFrameProps<Id>): JSX.Element {
+  const others = screens.filter(screen => screen.id !== big);
   return (
     <div
       className={classNames(
         styles.monitor,
         compact && styles.compact,
         sizing === 'content' && styles.content,
+        !tiles && styles.single,
       )}
       style={{
-        gridTemplateColumns: `repeat(${Math.max(1, screens.length)}, minmax(var(--size-preview-compact), 1fr))`,
+        gridTemplateColumns: `repeat(${Math.max(1, tiles ? others.length : 1)}, minmax(var(--size-preview-compact), 1fr))`,
       }}
     >
-      {screens.map((screen, index) => (
-        <ScreenCell
-          key={screen.id}
-          screen={screen}
-          role={screen.id === big ? 'large' : 'small'}
-          column={index + 1}
-          renderScreen={renderScreen}
-          onBigChange={onBigChange}
-        />
-      ))}
+      {screens.map(screen => {
+        const isBig = screen.id === big;
+        if (!isBig && !tiles) return null;
+        return (
+          <ScreenCell
+            key={screen.id}
+            screen={screen}
+            role={isBig ? 'large' : 'small'}
+            column={isBig ? 1 : others.indexOf(screen) + 1}
+            renderScreen={renderScreen}
+            caption={caption}
+            overlay={overlay}
+            onBigChange={onBigChange}
+          />
+        );
+      })}
     </div>
   );
 }

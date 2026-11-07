@@ -99,7 +99,9 @@ describe('SongPreviewFrame', () => {
       continued: true,
     });
 
-    await userEvent.click(screen.getByRole('radio', {name: '방송 화면'}));
+    await userEvent.click(
+      screen.getByRole('button', {name: '방송 화면 크게 보기'}),
+    );
     expect(drawing.render.mock.lastCall?.[0].slide?.label).toBe('3:16');
     push({
       ...themes,

@@ -83,10 +83,15 @@ const COMMANDS_WITHOUT_HANDLER: ReadonlySet<string> = new Set([
 
 /** The registry commands with a handler, then one command for each theme, 그래픽, 매크로, 타이머, and 화면. */
 export function allCommands(names: ObjectNames): readonly ShortcutCommand[] {
+  const registry = shortcutCommands.filter(
+    command => !COMMANDS_WITHOUT_HANDLER.has(command.id),
+  );
+  // NOTE(0913vision): A screen named like a group's output command, such as
+  // 청중 화면 in a new install, would list the same name twice; the group's
+  // command stays and the screen's row waits until it has a name of its own.
+  const taken = new Set(registry.map(command => command.name));
   return [
-    ...shortcutCommands.filter(
-      command => !COMMANDS_WITHOUT_HANDLER.has(command.id),
-    ),
+    ...registry,
     ...names.themes.flatMap(item =>
       objectCommand(`theme.${item.id}`, item.name),
     ),
@@ -99,7 +104,9 @@ export function allCommands(names: ObjectNames): readonly ShortcutCommand[] {
       ...objectCommand(`timer.${item.id}.reset`, `${item.name} 처음으로`),
     ]),
     ...names.screens.flatMap(item => [
-      ...objectCommand(`output.screen.${item.id}`, `${item.name} 출력`),
+      ...(taken.has(`${item.name} 출력`)
+        ? []
+        : objectCommand(`output.screen.${item.id}`, `${item.name} 출력`)),
       ...objectCommand(`preview.focus.${item.id}`, `${item.name} 미리보기`),
     ]),
   ];

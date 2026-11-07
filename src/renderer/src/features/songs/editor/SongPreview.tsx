@@ -22,7 +22,8 @@ import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {slideCountOf} from '@core/songs/blockEdits';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {Panel, PanelHeader, PanelTitle} from '@renderer/ui/Panel';
-import {SegmentedControl} from '@renderer/ui/SegmentedControl';
+import {PreviewScreenPicker} from '@renderer/ui/PreviewScreenPicker';
+import {RolePreview} from './RolePreview';
 import {
   PREVIEW_ROLES,
   previewAppearance,
@@ -174,8 +175,9 @@ export function ContentPreviewFrame({
   readonly item?: LiveThemeItem | undefined;
 }): JSX.Element {
   const [role, setRole] = useState<PreviewRole>('audience');
+  const [room, setRoom] = useState(true);
   const documents = usePreviewSettings(settings);
-  const appearance = useMemo(() => {
+  const appearances = useMemo(() => {
     const localItem =
       item ??
       (picture !== null && 'song' in picture
@@ -186,21 +188,28 @@ export function ContentPreviewFrame({
             title: picture.song.title,
           } as const)
         : undefined);
-    return previewAppearance({
-      role,
-      themes: documents.themes,
-      screens: documents.screens,
-      item:
-        localItem === undefined
-          ? undefined
-          : {
-              ...localItem,
-              ...(picture === null
-                ? {}
-                : {slidePosition: picture.position - 1}),
-            },
-    });
-  }, [role, documents.themes, documents.screens, item, picture]);
+    const appearanceOf = (of: PreviewRole) =>
+      previewAppearance({
+        role: of,
+        themes: documents.themes,
+        screens: documents.screens,
+        item:
+          localItem === undefined
+            ? undefined
+            : {
+                ...localItem,
+                ...(picture === null
+                  ? {}
+                  : {slidePosition: picture.position - 1}),
+              },
+      });
+    return {
+      audience: appearanceOf('audience'),
+      stage: appearanceOf('stage'),
+      broadcast: appearanceOf('broadcast'),
+    };
+  }, [documents.themes, documents.screens, item, picture]);
+  const appearance = appearances[role];
   const songPicture =
     picture !== null && 'song' in picture ? picture : undefined;
   const tilePicture =
@@ -277,30 +286,31 @@ export function ContentPreviewFrame({
     <Panel label="미리보기">
       <PanelHeader>
         <PanelTitle title="미리보기" />
-        {picture === null ? null : (
-          <SegmentedControl
-            className={styles.tabs}
-            label="미리보기 화면"
-            options={PREVIEW_ROLES}
-            value={role}
+        {picture === null || room ? null : (
+          <PreviewScreenPicker
+            screens={PREVIEW_ROLES.map(entry => ({
+              id: entry.value,
+              name: entry.label,
+            }))}
+            big={role}
             onChange={setRole}
           />
         )}
       </PanelHeader>
-      <div className={styles.previewBody}>
-        <div className={styles.stage}>
-          {picture === null ? (
+      <RolePreview
+        big={role}
+        onBigChange={setRole}
+        onRoom={setRoom}
+        blank={picture === null}
+        renderRole={shown =>
+          picture === null ? (
             <div className={styles.screen} data-blank="" />
           ) : (
-            <Picture layers={layers} appearance={appearance} />
-          )}
-        </div>
-        {picture === null ? (
-          <div className={styles.caption} aria-hidden="true">
-            &nbsp;
-          </div>
-        ) : (
-          <div className={styles.caption}>
+            <Picture layers={layers} appearance={appearances[shown]} />
+          )
+        }
+        caption={() => (
+          <>
             {color === 'none' ? null : (
               <span
                 className={styles.swatch}
@@ -312,9 +322,9 @@ export function ContentPreviewFrame({
               {position} / {total}
             </span>
             <span className={styles.style}>{appearance.themeName}</span>
-          </div>
+          </>
         )}
-      </div>
+      />
     </Panel>
   );
 }

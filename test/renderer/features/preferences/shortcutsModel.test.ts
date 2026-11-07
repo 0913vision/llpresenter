@@ -53,6 +53,27 @@ const HIDDEN = [
 ];
 
 describe('allCommands', () => {
+  it('lists a screen output once when its name is the name of a group command', () => {
+    const screen = (id: string, name: string) => ({id, name});
+    const commands = allCommands({
+      ...NAMES,
+      screens: [
+        screen('33333333-3333-4333-8333-333333333333', '청중 화면'),
+        screen('44444444-4444-4444-8444-444444444444', '로비 화면'),
+      ],
+    });
+    const names = commands.map(command => command.name);
+
+    expect(names.filter(name => name === '청중 화면 출력')).toHaveLength(1);
+    expect(commands.map(command => command.id)).toContain(
+      'output.screen.44444444-4444-4444-8444-444444444444',
+    );
+    expect(commands.map(command => command.id)).not.toContain(
+      'output.screen.33333333-3333-4333-8333-333333333333',
+    );
+    expect(new Set(names).size).toBe(names.length);
+  });
+
   it('leaves out the commands that no handler runs yet', () => {
     const ids = allCommands(NAMES).map(command => command.id);
 

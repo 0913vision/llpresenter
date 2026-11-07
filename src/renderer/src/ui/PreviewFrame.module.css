@@ -66,6 +66,14 @@
   inset: 0;
 }
 
+.overlay {
+  position: absolute;
+  inset: auto 0 0;
+  padding: var(--space-8) var(--space-8) var(--space-6);
+  background: linear-gradient(transparent, var(--scrim));
+  pointer-events: none;
+}
+
 .caption {
   display: flex;
   flex: none;
@@ -147,47 +155,6 @@
   outline-offset: -1px;
 }
 
-.selected,
-.selected:hover {
-  outline: 2px solid var(--accent);
-  outline-offset: -2px;
-}
-
-.marker {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  aspect-ratio: var(--aspect-output);
-  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
-  background: var(--bg-app);
-  color: var(--accent);
-}
-
-.arrow {
-  transform: rotate(-90deg);
-}
-
-.selectedCaption {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: var(--space-4);
-  width: 100%;
-  height: var(--size-control-sm);
-  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
-  background: var(--bg-sunken);
-  color: var(--accent);
-  font: var(--type-caption);
-  white-space: nowrap;
-}
-
-.selectedName {
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
 .hit:focus-visible {
   outline: 2px solid var(--accent);
   outline-offset: var(--space-focus-preview-cell);
@@ -195,6 +162,11 @@
 
 .compact {
   row-gap: var(--space-8);
+}
+
+.single {
+  grid-template-rows: minmax(0, 1fr);
+  row-gap: 0;
 }
 
 [data-state='off'] .frame {

@@ -38,7 +38,7 @@ describe('song editor right panels', () => {
   it('previews the next slide in deck order and clears it at the end', async () => {
     const {session, store, user, first} = await editorSetup();
     render(<SongPreviewPanel store={store} />);
-    await user.click(screen.getByRole('radio', {name: '무대 화면'}));
+    await user.click(screen.getByRole('button', {name: '무대 화면 크게 보기'}));
     expect(drawing.render.mock.lastCall?.[0].slide?.next).toEqual({
       label: first.song.slides[1]?.label,
       lines: first.song.slides[1]?.lines,
@@ -148,8 +148,10 @@ describe('song editor right panels', () => {
     expect(drawing.create.mock.calls.at(-1)?.[0]).toMatchObject({
       mode: 'preview',
     });
-    await user.click(screen.getByRole('radio', {name: '무대 화면'}));
-    expect(drawing.render.mock.calls.at(-1)?.[1]?.screen?.kind).toBe('stage');
+    await user.click(screen.getByRole('button', {name: '무대 화면 크게 보기'}));
+    expect(
+      new Set(drawing.render.mock.calls.map(call => call[1]?.screen?.kind)),
+    ).toEqual(new Set(['audience', 'stage', 'broadcast']));
     view.unmount();
     expect(fixture.listenerCount()).toBe(before);
     expect(drawing.dispose).toHaveBeenCalled();

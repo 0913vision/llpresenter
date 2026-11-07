@@ -1,0 +1,11 @@
+.body {
+  display: flex;
+  flex: 1 1 auto;
+  flex-direction: column;
+  gap: var(--space-8);
+  box-sizing: border-box;
+  min-height: 0;
+  padding: var(--panel-inset);
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
