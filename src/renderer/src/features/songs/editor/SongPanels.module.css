@@ -11,9 +11,9 @@
   scrollbar-gutter: stable;
 }
 
-/* NOTE(0913vision): The stage is 16:9 at the panel width. When the panel
-   gives it less height, the screen inside shrinks as a whole instead of being
-   cropped. */
+/* NOTE(0913vision): The stage is 16:9 at the panel width, inside the panel
+   inset, and never shrinks: the column gives the panels below it less height
+   instead, so the picture and its caption share the same two edges. */
 .stage {
   flex: none;
   width: 100%;

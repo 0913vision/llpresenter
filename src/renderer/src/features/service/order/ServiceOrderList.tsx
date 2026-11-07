@@ -617,6 +617,7 @@ export function ServiceOrderList({
             <div
               key={group.id}
               data-order-id={group.id}
+              className={table?.sectionClass}
               draggable={editable}
               onDoubleClick={event => {
                 const row =

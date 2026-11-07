@@ -73,4 +73,9 @@ describe('useShowPanels', () => {
 
     expect(version()).toBe(1);
   });
+
+  it('lets the 미리보기 picture shrink before the 진행 도구 panel does', () => {
+    expect(panels().current.partsOf('미리보기').size).toBe('fit');
+    expect(panels().current.partsOf('진행 도구').size).toBe('rest');
+  });
 });

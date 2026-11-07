@@ -10,13 +10,14 @@ export interface PanelParts {
   // NOTE(0913vision): `bare` draws its content without the panel around it,
   // as the 지우기 row does.
   readonly bare?: ReactNode;
-  // NOTE(0913vision): `content` sizes the panel to its content, and it shrinks
-  // before `rest` does. `rest` takes the height that is left, at least the
+  // NOTE(0913vision): `content` sizes the panel to its content and never
+  // shrinks; `fit` sizes it to its content too, but shrinks before `rest` does,
+  // so the picture inside gets smaller instead of the 진행 도구 panel. `rest` takes the height that is left, at least the
   // height of the 진행 도구. `list` keeps the height of one full row of
   // 슬라이드 with their 오버레이 clips, and `settings` takes what is left but
   // never less than a few rows, so the panel below the slides is the one that
   // scrolls.
-  readonly size?: 'content' | 'rest' | 'list' | 'settings';
+  readonly size?: 'content' | 'fit' | 'rest' | 'list' | 'settings';
   readonly header?: ReactNode;
   readonly body?: ReactNode;
   readonly meta?: ReactNode;
@@ -46,6 +47,7 @@ function sizedClass(
   return classNames(
     base,
     size === 'content' && styles.content,
+    size === 'fit' && styles.fit,
     size === 'rest' && styles.rest,
     size === 'list' && styles.list,
     size === 'settings' && styles.settings,

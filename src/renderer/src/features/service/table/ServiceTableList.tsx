@@ -30,6 +30,7 @@ export function ServiceTableList({
     () => ({
       header: <ServiceTableHeader />,
       rowClass: styles.row,
+      sectionClass: styles.section,
       cellsOf: (row, detail) => (
         <ServiceTableCells
           row={row}

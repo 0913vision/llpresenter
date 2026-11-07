@@ -1,16 +1,28 @@
 .heading {
+  position: relative;
   display: inline-flex;
   align-items: center;
   gap: var(--space-8);
   min-width: 0;
   max-width: 100%;
+  margin: var(--space-4) 0;
   padding: 0;
   border: 0;
   background: transparent;
-  margin-bottom: calc(-1 * var(--radius-hairline));
-  border-bottom: var(--space-2) solid var(--text);
   color: var(--text);
   font: var(--type-title);
+}
+
+/* NOTE(0913vision): The title sits and underlines like a panel tab, so every
+   header of the workspace has its title on one baseline. */
+.heading::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: calc(-1 * var(--space-4));
+  left: 0;
+  height: var(--space-2);
+  background: var(--text);
 }
 
 .name {

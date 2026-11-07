@@ -24,7 +24,29 @@
 }
 
 .table .row {
-  height: var(--size-row-double);
+  height: var(--size-table-row);
+  font: var(--type-body-strong);
+}
+
+/* NOTE(0913vision): A section is a compact group header, not a row: a hairline
+   above every section but the first, caption-strong text-2, and 32px. The
+   header is the first child of the section's group; item rows sit in their own
+   wrappers, so this reaches only the header. */
+.section {
+  border-top: 1px solid var(--bg-raised);
+}
+
+.section:first-child {
+  border-top: 0;
+}
+
+.section > [role='group'] > :first-child > [role='option'] {
+  height: var(--size-table-section);
+  min-height: 0;
+  padding-top: 0;
+  padding-bottom: 0;
+  color: var(--text-2);
+  font: var(--type-caption-strong);
 }
 
 /* NOTE(0913vision): The row title and its marks sit after the number and the
@@ -91,8 +113,9 @@
   overflow: hidden;
   padding: 0 var(--space-6);
   border: 0;
+  border-radius: var(--radius-sm);
   background: transparent;
-  color: var(--text);
+  color: var(--text-2);
   font: var(--type-body);
   text-align: left;
   text-overflow: ellipsis;
@@ -101,6 +124,16 @@
 
 button.cell {
   cursor: default;
+}
+
+/* NOTE(0913vision): An empty cell draws nothing until the pointer is over it,
+   then it shows the frame of a field, so the operator sees where to click. */
+button.cell:not([aria-disabled='true']):hover {
+  box-shadow: inset 0 0 0 1px var(--line-control);
+}
+
+.row[aria-selected='true'] .cell {
+  color: var(--text-on-selection);
 }
 
 .dim {
@@ -125,12 +158,7 @@ button.cell {
 }
 
 .memo {
-  color: var(--text-2);
   font-weight: 400;
-}
-
-.header .memo {
-  color: inherit;
 }
 
 .memoField {

@@ -139,15 +139,25 @@ it('marks the 구성 of an item that plays its own order, and not one that follo
   expect(screen.queryByRole('img', {name: '이 예배에서 바꾼 순서'})).toBeNull();
 });
 
-it('shows 기본 for the 구성 and 없음 for the start when the item sets none', () => {
+it('shows 기본 for the 구성 and nothing for the start when the item sets none', () => {
   setup();
 
   expect(screen.getByRole('button', {name: /^구성, /}).textContent).toBe(
     '기본',
   );
   expect(screen.getByRole('button', {name: /^시작할 때, /}).textContent).toBe(
-    '없음',
+    '',
   );
+});
+
+it('opens the menu of an empty 시작할 때 cell, which names 없음 as the checked choice', async () => {
+  setup();
+
+  await userEvent.click(screen.getByRole('button', {name: /^시작할 때, /}));
+
+  expect(
+    screen.getByRole('menuitemradio', {name: '없음', checked: true}),
+  ).toBeDefined();
 });
 
 it('writes the chosen 테마 and 매크로 for this row only', async () => {
@@ -174,7 +184,7 @@ it('keeps both lists closed for a read-only service', async () => {
   expect(submitItemEdit).not.toHaveBeenCalled();
 });
 
-it('shows a still and the name of the video, image, or song default that plays, and 없음 for none', () => {
+it('shows a still and the name of the video, image, or song default that plays, and nothing for none', () => {
   const view = (row: ItemRow, item: ServiceItem = song()) => {
     cleanup();
     setup({row, item});
@@ -199,7 +209,7 @@ it('shows a still and the name of the video, image, or song default that plays, 
   const inherited = view(rowOf({mediaId: fixtureMedia.warm}));
   expect(inherited.textContent).toBe('따뜻한 빛');
   expect(inherited.className).toContain('dim');
-  expect(view(rowOf()).textContent).toBe('없음');
+  expect(view(rowOf()).textContent).toBe('');
   expect(
     screen.getByRole('button', {name: /^배경, /}).querySelector('img'),
   ).toBeNull();

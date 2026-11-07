@@ -9,6 +9,8 @@ export interface ServiceTableParts {
   readonly cellsOf: (row: ItemRow, detail: string | undefined) => ReactNode;
   /** The class of an item row, which sets its height. */
   readonly rowClass: string | undefined;
+  /** The class of a section's box, which sets its header and the line above it. */
+  readonly sectionClass: string | undefined;
   /** The buttons after the last row. */
   readonly footer: ReactNode;
 }

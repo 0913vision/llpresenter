@@ -249,3 +249,26 @@ it('types a memo with spaces and arrow keys without the row taking them', async 
   expect(document.activeElement).toBe(field);
   expect(row.getAttribute('aria-selected')).toBe(selected);
 });
+
+it('gives each section its own box for the head and the line above it', async () => {
+  setup();
+  await screen.findByRole('option', {name: '첫 곡'});
+  act(() =>
+    applyService({
+      id: SERVICE_ID,
+      revision: 2,
+      name: 'Invented service',
+      readOnly: false,
+      rows: [
+        {kind: 'header', id: 'praise', title: '찬양'},
+        {kind: 'song', id: SONG_ITEM, title: '첫 곡'},
+      ],
+      tiles: {},
+      jumpKeys: {},
+    }),
+  );
+  const section = (await screen.findByRole('option', {name: '찬양'})).closest(
+    '[data-order-id="praise"]',
+  );
+  expect(section?.className).not.toBe('');
+});

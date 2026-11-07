@@ -71,7 +71,7 @@ function showPanelParts({
       };
     case '미리보기':
       return {
-        size: 'content',
+        size: 'fit',
         body: <PreviewPanel compact={sizeClass === 'narrow'} />,
       };
     case '진행 도구':

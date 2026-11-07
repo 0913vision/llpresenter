@@ -19,7 +19,7 @@ their editing canvases instead.
 
 ## Anatomy
 
-- The panel body supplies `panel-inset` padding.
+- The panel body supplies `panel-inset` padding. In 준비 the large picture fills the body's width inside it, 16:9, and never shrinks: the panels below it give up height instead (슬라이드 and 항목 설정 shrink to their minimums). In 진행 the picture shrinks first, 16:9 and centered, so the 진행 도구 panel keeps its 240 and the column never scrolls during a service.
 - The large picture spans the row above the three fixed screen slots.
   Vertical gap is `space-12`, or `space-8` in the narrow window form.
   Horizontal slot gap is `space-8`.

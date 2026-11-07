@@ -34,8 +34,8 @@
 
 .columns {
   --tools-min-height: 240px;
-  --slides-min-height: 320px;
-  --settings-min-height: 100px;
+  --slides-min-height: 220px;
+  --settings-min-height: 80px;
   --preview-min-height: 140px;
   flex: 1;
   min-height: 0;
@@ -97,12 +97,25 @@
   border-bottom: 1px solid var(--line);
 }
 
+/* NOTE(0913vision): The title sits and underlines like a panel tab (spec: one
+   title baseline for every header of the workspace). */
 .tab {
+  position: relative;
   display: flex;
   align-items: center;
-  margin-bottom: calc(var(--size-hairline) * -1);
-  border-bottom: 2px solid var(--text);
+  align-self: center;
+  margin: var(--space-4) 0;
   font: var(--type-title);
+}
+
+.tab::after {
+  content: '';
+  position: absolute;
+  right: 0;
+  bottom: calc(-1 * var(--space-4));
+  left: 0;
+  height: var(--space-2);
+  background: var(--text);
 }
 
 .body {
@@ -129,11 +142,16 @@
 }
 
 .content {
+  flex: none;
+}
+
+.fit {
   flex: 0 1 auto;
   min-height: var(--preview-min-height);
 }
 
-.content .body {
+.content .body,
+.fit .body {
   overflow: auto;
 }
 

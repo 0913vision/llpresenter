@@ -232,9 +232,7 @@ export function ServiceTableCells({
       ) : (
         <CellMenu
           label={`시작할 때, ${row.title}`}
-          text={
-            macro?.name ?? (item.macro === undefined ? NONE : MISSING_MACRO)
-          }
+          text={macro?.name ?? (item.macro === undefined ? '' : MISSING_MACRO)}
           dim={macro === undefined}
           width={styles.start}
           reason={reason}
