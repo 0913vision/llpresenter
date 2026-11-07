@@ -74,6 +74,10 @@ export function useSongEditorWindow(
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const [dialog, setDialog] = useState<SongSaveDialog | null>(null);
   const [saving, setSaving] = useState(false);
+  const shown = useRef(dialog);
+  useLayoutEffect(() => {
+    shown.current = dialog;
+  });
   const from = useRef<SongEditorTarget['from']>(undefined);
   const busy = useRef(false);
   const live = useRef(state);
@@ -83,7 +87,10 @@ export function useSongEditorWindow(
 
   const askLeave = (proceed: () => void, cancel?: () => void): void => {
     if (live.current.session?.unsaved === true) {
-      setDialog({kind: 'leave', proceed, cancel});
+      const open = shown.current;
+      if (open?.kind === 'leave') open.cancel?.();
+      shown.current = {kind: 'leave', proceed, cancel};
+      setDialog(shown.current);
     } else proceed();
   };
 

@@ -15,7 +15,10 @@ import {createServiceItemId, createServiceId} from '@core/schema/ids';
 import {parseServiceDocument} from '@core/schema/contentDocuments';
 import {ControlSession} from '@renderer/app/controlSession';
 import {SongEditorWindow} from '@renderer/app/SongEditorWindow';
-import {pendingWritesOf} from '@renderer/platform/pendingWrites';
+import {
+  pendingWritesOf,
+  type DraftOutcome,
+} from '@renderer/platform/pendingWrites';
 import {resetTooltips} from '@fixtures/renderer/ui/tooltipTesting';
 import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {lyrics} from '@fixtures/renderer/features/songs/editor/editorTesting';
@@ -245,5 +248,39 @@ describe('곡 편집 window', () => {
     openWindow({songId: FIRST_ID, focusTitle: true});
     const title = await screen.findByRole('textbox', {name: '곡 제목'});
     await waitFor(() => expect(document.activeElement).toBe(title));
+  });
+
+  it('cancels the close question that a second request replaces', async () => {
+    const opened = await openedWithEdit({songId: FIRST_ID});
+    const first = pendingWritesOf(opened.api).settleDrafts();
+    await screen.findByRole('alertdialog');
+
+    const second = pendingWritesOf(opened.api).settleDrafts();
+
+    expect(await first).toBe('canceled');
+    await userEvent.click(
+      within(await screen.findByRole('alertdialog')).getByRole('button', {
+        name: '취소',
+      }),
+    );
+    expect(await second).toBe('canceled');
+  });
+
+  it('cancels the first close request when two arrive before a render', async () => {
+    const opened = await openedWithEdit({songId: FIRST_ID});
+    const pending = pendingWritesOf(opened.api);
+    const outcomes: Array<Promise<DraftOutcome>> = [];
+
+    act(() => {
+      outcomes.push(pending.settleDrafts(), pending.settleDrafts());
+    });
+
+    await expect(outcomes[0]).resolves.toBe('canceled');
+    await userEvent.click(
+      within(screen.getByRole('alertdialog')).getByRole('button', {
+        name: '취소',
+      }),
+    );
+    await expect(outcomes[1]).resolves.toBe('canceled');
   });
 });
