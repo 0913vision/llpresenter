@@ -21,7 +21,7 @@ function SongEditorWindowBody({
   readonly editor: SongEditorStore;
 }): JSX.Element {
   const notices = useSyncExternalStore(session.subscribe, session.getNotices);
-  const model = useSongEditorWindow(editor, api, session.report);
+  const model = useSongEditorWindow(editor, api, {report: session.report});
   useShortcutSettings(api);
   useEffect(() => watchInputModality(window), []);
   return (

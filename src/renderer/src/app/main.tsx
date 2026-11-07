@@ -41,11 +41,6 @@ const WINDOW_PAGES: Readonly<Record<string, WindowPage>> = {
     prepare: session => session.startEditor(),
     load: async () => (await import('./PreferencesWindow')).PreferencesWindow,
   },
-  song: {
-    title: '곡 편집',
-    prepare: session => session.startEditor('manual'),
-    load: async () => (await import('./SongEditorWindow')).SongEditorWindow,
-  },
   slides: {
     title: '슬라이드 편집',
     load: async () => (await import('./SlidesEditorWindow')).SlidesEditorWindow,
@@ -108,6 +103,7 @@ async function start(container: HTMLElement): Promise<void> {
           });
         });
   const session = new ControlSession(window.llp);
+  session.startEditor('manual');
   const lifecycle: {stopped: boolean; root?: Root} = {stopped: false};
   window.addEventListener(
     'pagehide',

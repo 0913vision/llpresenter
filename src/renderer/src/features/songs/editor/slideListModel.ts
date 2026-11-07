@@ -13,6 +13,7 @@ import {
 import {
   applySlideListCommand,
   createSlideListHistory,
+  recordSlideListSnapshot,
   redoSlideList,
   undoSlideList,
   type SlideListHistory,
@@ -91,7 +92,8 @@ export class SlideListModel<T extends SlideListItem> {
       action,
     );
     if (selection !== present.selection) {
-      this.replace({...this.history, present: {...present, selection}});
+      const {textSelection: removed, ...rest} = present;
+      this.replace({...this.history, present: {...rest, selection}});
     }
   };
 
@@ -102,6 +104,46 @@ export class SlideListModel<T extends SlideListItem> {
       this.options.adapter,
     );
     return result.ok ? {ok: true, value: this.replace(result.value)} : result;
+  };
+
+  /** Text caret changes do not add undo steps or change a slide selection. */
+  readonly selectText = (id: T['id'], start: number, end: number): void => {
+    const present = this.history.present;
+    const textSelection = {id, start, end};
+    if (
+      present.textSelection?.id === id &&
+      present.textSelection.start === start &&
+      present.textSelection.end === end
+    ) {
+      return;
+    }
+    this.replace({...this.history, present: {...present, textSelection}});
+  };
+
+  readonly edit = (
+    snapshot: SlideListSnapshot<T>,
+    coalesce = false,
+  ): CommandResult => {
+    const result = recordSlideListSnapshot(this.history, snapshot, {
+      adapter: this.options.adapter,
+      coalesce,
+    });
+    return result.ok ? {ok: true, value: this.replace(result.value)} : result;
+  };
+
+  /** An accepted catalog rename also changes undo/redo without adding a step. */
+  readonly renameLabel = (from: string, to: string): void => {
+    const rename = (snapshot: SlideListSnapshot<T>): SlideListSnapshot<T> => ({
+      ...snapshot,
+      slides: snapshot.slides.map(slide =>
+        slide.label === from ? {...slide, label: to} : slide,
+      ),
+    });
+    this.replace({
+      present: rename(this.history.present),
+      past: this.history.past.map(rename),
+      future: this.history.future.map(rename),
+    });
   };
 
   /** Returns plain text for the caller's clipboard event, without system clipboard I/O. */
@@ -138,6 +180,14 @@ export class SlideListModel<T extends SlideListItem> {
   };
 
   readonly pasteText = (text: unknown): CommandResult => {
+    const copied = this.options.clipboard.read();
+    if (
+      copied !== null &&
+      typeof text === 'string' &&
+      copied.text.replace(/\r\n?/g, '\n') === text.replace(/\r\n?/g, '\n')
+    ) {
+      return this.paste();
+    }
     const result = slidesFromPlainText(text, this.options.adapter);
     return result.ok
       ? this.command({type: 'paste', slides: result.value})

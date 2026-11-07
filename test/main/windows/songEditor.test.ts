@@ -4,229 +4,95 @@ import {songEditorWindowEndpoints} from '@contracts/ipc/songEditorWindow';
 import {windowEndpoints} from '@contracts/ipc/window';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {registerSongEditorWindow} from '@main/windows/songEditor';
-import type {ControlCloseOptions} from '@main/windows/controlClose';
-import {loadPage} from '@main/windows/page';
 
-const mocks = await vi.hoisted(async () => {
-  const {EventEmitter} = await import('node:events');
-  class MockWindow extends EventEmitter {
-    destroyed = false;
-    readonly webContents = Object.assign(new EventEmitter(), {
-      setAudioMuted: vi.fn(),
-      send: vi.fn(),
-      isDestroyed: () => this.destroyed,
-    });
-    readonly show = vi.fn();
-    readonly focus = vi.fn();
-    readonly restore = vi.fn();
-    readonly maximize = vi.fn();
-    readonly removeMenu = vi.fn();
-    readonly isMinimized = vi.fn(() => true);
-    readonly isMaximized = vi.fn(() => false);
-    readonly getNormalBounds = vi.fn(() => ({
-      x: 100,
-      y: 80,
-      width: 1400,
-      height: 800,
-    }));
-    isDestroyed = () => this.destroyed;
-    destroy = vi.fn(() => {
-      this.destroyed = true;
-      this.webContents.emit('destroyed');
-      this.emit('closed');
-    });
-    constructor(readonly options: unknown) {
-      super();
+const mocks = vi.hoisted(() => {
+  class MockWindow {
+    readonly webContents = {send: vi.fn()};
+    readonly isDestroyed = vi.fn(() => false);
+    constructor() {
       created.push(this);
     }
   }
   const created: MockWindow[] = [];
-  const workArea = {x: 0, y: 0, width: 1920, height: 1080};
-  const createHandshake = () => ({
-    confirmClose: vi.fn<() => Promise<boolean>>().mockResolvedValue(true),
-    dispose: vi.fn(),
-  });
   return {
+    handlers: new Map<string, (event: unknown, value: unknown) => unknown>(),
     MockWindow,
     created,
-    workArea,
-    ipc: {
-      handlers: new Map<string, (event: unknown, value: unknown) => unknown>(),
-      handle(
-        channel: string,
-        handler: (event: unknown, value: unknown) => unknown,
-      ) {
-        this.handlers.set(channel, handler);
-      },
-      removeHandler(channel: string) {
-        this.handlers.delete(channel);
-      },
-    },
-    quit: vi.fn(),
-    closeOptions: new Array<ControlCloseOptions>(),
-    handshakes: new Array<ReturnType<typeof createHandshake>>(),
-    createHandshake,
   };
 });
-
 vi.mock('electron', () => ({
-  app: {quit: mocks.quit},
   BrowserWindow: mocks.MockWindow,
-  ipcMain: mocks.ipc,
-  screen: {
-    getPrimaryDisplay: () => ({
-      workArea: mocks.workArea,
-    }),
-    getDisplayMatching: () => ({
-      workArea: mocks.workArea,
-    }),
+  ipcMain: {
+    handle: (
+      channel: string,
+      handler: (event: unknown, value: unknown) => unknown,
+    ) => mocks.handlers.set(channel, handler),
+    removeHandler: (channel: string) => mocks.handlers.delete(channel),
   },
 }));
-vi.mock('@main/windows/controlClose', () => ({
-  registerControlClose: (options: ControlCloseOptions) => {
-    mocks.closeOptions.push(options);
-    const handshake = mocks.createHandshake();
-    mocks.handshakes.push(handshake);
-    return handshake;
-  },
-}));
-vi.mock('@main/windows/page', () => ({
-  preloadPath: 'preload.js',
-  loadPage: vi.fn(),
-  blockNavigation: vi.fn(),
-}));
-
 const SONG = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
-const OTHER = '7a1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
-
 beforeEach(() => {
-  mocks.quit.mockClear();
-  mocks.handshakes.length = 0;
-  mocks.closeOptions.length = 0;
+  mocks.handlers.clear();
   mocks.created.length = 0;
-  Object.assign(mocks.workArea, {width: 1920, height: 1080});
-  mocks.ipc.handlers.clear();
-  vi.mocked(loadPage).mockClear();
 });
-
 function setup() {
   const control = new BrowserWindow();
-  const config = {songEditorWindow: undefined, setSongEditorWindow: vi.fn()};
+  const mock = mocks.created.at(-1);
+  if (mock === undefined) throw new Error('Missing control');
+  const send = mock.webContents.send;
+  const destroyed = mock.isDestroyed;
   const owner = registerSongEditorWindow({
     control,
-    config,
+    config: {songEditorWindow: undefined, setSongEditorWindow: vi.fn()},
     zoom: {attachControl: vi.fn()},
-    mode: 'normal',
+    mode: 'offscreen',
     log: recordingLogger(),
-    hasSong: id => Promise.resolve(id === SONG || id === OTHER),
+    hasSong: id => Promise.resolve(id === SONG),
   });
   const open = (target: object) =>
-    mocks.ipc.handlers.get(windowEndpoints.openSongEditor.channel)?.(
-      {},
-      target,
-    );
+    mocks.handlers.get(windowEndpoints.openSongEditor.channel)?.({}, target);
   const target = () =>
-    mocks.ipc.handlers.get(songEditorWindowEndpoints.target.channel)?.(
-      {},
-      null,
-    );
-  const last = () => {
-    const win = mocks.created.at(-1);
-    if (win === undefined || mocks.created.length < 2) {
-      throw new Error('Missing song editor window');
-    }
-    return win;
-  };
-  return {control, config, owner, open, target, last};
+    mocks.handlers.get(songEditorWindowEndpoints.target.channel)?.({}, null);
+  return {send, destroyed, owner, open, target};
 }
 
-describe('song editor window', () => {
-  it('opens on a song, answers its target, and refuses a missing song or a bad request', async () => {
-    const {open, target, last, owner} = setup();
+describe('inline song editor requests', () => {
+  it('validates a library request and sends its exact target to the control without creating a window', async () => {
+    const {open, send, target, owner} = setup();
     expect(target()).toBeNull();
+    expect(await open({songId: 'x'})).toMatchObject({ok: false});
     expect(
       await open({songId: '9a1c2a9e-4b7d-4c1a-9e2f-0123456789ab'}),
-    ).toEqual({
-      ok: false,
-      error: {reason: 'no-such-target'},
-    });
-    expect(await open({songId: 'x'})).toEqual({
-      ok: false,
-      error: {reason: 'failed'},
-    });
-    expect(mocks.created).toHaveLength(1);
-
-    expect(await open({songId: SONG, block: 2})).toEqual({
-      ok: true,
-      value: undefined,
-    });
-    expect(target()).toEqual({songId: SONG, block: 2});
-    expect(last().options).toMatchObject({title: '곡 편집', frame: false});
-    expect(loadPage).toHaveBeenCalledWith(
-      last(),
-      {name: 'index', query: {window: 'song'}},
-      expect.anything(),
-    );
-    await owner.dispose();
-  });
-
-  it('moves the open window to the next song and focuses it', async () => {
-    const {open, target, last, owner} = setup();
-    await open({songId: SONG});
-    const win = last();
-    const {send} = win.webContents;
-
-    await open({songId: OTHER});
-
-    expect(mocks.created).toHaveLength(2);
+    ).toMatchObject({ok: false, error: {reason: 'no-such-target'}});
+    expect(await open({songId: SONG, block: 2})).toMatchObject({ok: true});
     expect(send).toHaveBeenCalledWith(
       songEditorWindowEndpoints.retarget.channel,
-      {songId: OTHER},
+      {songId: SONG, block: 2},
     );
-    expect(win.focus).toHaveBeenCalledOnce();
-    expect(target()).toEqual({songId: OTHER});
+    expect(target()).toEqual({songId: SONG, block: 2});
+    expect(mocks.created).toHaveLength(1);
     await owner.dispose();
   });
-
-  it('forgets the target when the window closes and releases its handlers on dispose', async () => {
-    const {open, target, last, owner} = setup();
-    await open({songId: SONG});
-    last().destroy();
-    expect(target()).toBeNull();
-
-    await owner.dispose();
-    expect(mocks.ipc.handlers.size).toBe(0);
-  });
-
-  it('never asks for a minimum size larger than a small work area', async () => {
-    Object.assign(mocks.workArea, {width: 800, height: 560});
-    const {open, last, owner} = setup();
-    await open({songId: SONG});
-
-    expect(last().options).toMatchObject({
-      width: 800,
-      height: 560,
-      minWidth: 800,
-      minHeight: 560,
-    });
+  it('opens item-owned slides even when their library source was deleted and retargets the same control', async () => {
+    const {open, send, owner} = setup();
+    const target = {
+      songId: '9a1c2a9e-4b7d-4c1a-9e2f-0123456789ab',
+      block: 1,
+      from: {serviceId: SONG, itemId: SONG},
+    };
+    expect(await open(target)).toMatchObject({ok: true});
+    expect(await open({songId: SONG})).toMatchObject({ok: true});
+    expect(send).toHaveBeenCalledTimes(2);
+    expect(mocks.created).toHaveLength(1);
     await owner.dispose();
   });
-
-  it('remembers the bounds when it closes through the handshake', async () => {
-    const {open, last, config, owner} = setup();
-    await open({songId: SONG});
-    const win = last();
-
+  it('refuses a destroyed control and releases both handlers on dispose', async () => {
+    const {open, destroyed, send, owner} = setup();
+    destroyed.mockReturnValue(true);
+    expect(await open({songId: SONG})).toMatchObject({ok: false});
+    expect(send).not.toHaveBeenCalled();
     expect(await owner.close()).toBe(true);
-
-    expect(config.setSongEditorWindow).toHaveBeenCalledWith({
-      x: 100,
-      y: 80,
-      width: 1400,
-      height: 800,
-      maximized: false,
-    });
-    expect(win.destroy).toHaveBeenCalledOnce();
     await owner.dispose();
+    expect(mocks.handlers.size).toBe(0);
   });
 });

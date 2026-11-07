@@ -1,23 +1,13 @@
 import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {mkdir, readdir, readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
-import type {ElectronApplication, Page} from 'playwright-core';
+import type {Page} from 'playwright-core';
 import {expect, it} from 'vitest';
 import {parseSong} from '@core/schema/song';
 import {offscreenApp} from './electron-app';
 
 const FIRST = '33000000-0000-4000-8000-000000000001';
 const WAIT = 30_000;
-
-async function songWindow(app: ElectronApplication) {
-  const find = () =>
-    app.windows().find(page => page.url().includes('window=song'));
-  await expect.poll(() => find() !== undefined, {timeout: WAIT}).toBe(true);
-  const page = find();
-  if (page === undefined) throw new Error('Song window not found');
-  await page.getByRole('textbox', {name: '곡 제목'}).waitFor({timeout: WAIT});
-  return page;
-}
 
 /**
  * What a failed save left behind, for the failure message: the editor's visible
@@ -90,14 +80,15 @@ it(
     });
     let page = await app.start();
     await page.getByRole('tab', {name: '준비'}).click();
-    const library = page.getByRole('listbox', {name: '라이브러리'});
+    const library = page.getByRole('listbox', {name: '라이브러리 곡'});
     await expect
       .poll(() => library.getByRole('option').count(), {timeout: WAIT})
       .toBe(1);
     await library.getByRole('option').first().dblclick();
 
-    const editor = await songWindow(app.electron());
+    const editor = page;
     const title = editor.getByRole('textbox', {name: '곡 제목'});
+    await title.waitFor({timeout: WAIT});
     const lyrics = editor.getByRole('textbox', {name: '슬라이드 1 가사'});
     await title.fill('점검 알파 수정');
     await title.press('Enter');
@@ -138,11 +129,14 @@ it(
     page = await app.start();
     await page.getByRole('tab', {name: '준비'}).click();
     const reopened = page
-      .getByRole('listbox', {name: '라이브러리'})
+      .getByRole('listbox', {name: '라이브러리 곡'})
       .getByRole('option');
     await expect.poll(() => reopened.count(), {timeout: WAIT}).toBe(1);
     await reopened.first().dblclick();
-    const reopenedEditor = await songWindow(app.electron());
+    const reopenedEditor = page;
+    await reopenedEditor
+      .getByRole('textbox', {name: '곡 제목'})
+      .waitFor({timeout: WAIT});
     expect(
       await reopenedEditor.getByRole('textbox', {name: '곡 제목'}).inputValue(),
     ).toBe('점검 알파 수정');

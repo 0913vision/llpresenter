@@ -19,6 +19,7 @@ import {deferred} from '@fixtures/renderer/features/tools/quickTesting';
 import type {SongDocument} from '@core/schema/contentDocuments';
 import {ControlSession} from '@renderer/app/controlSession';
 import {usePrepActions} from '@renderer/app/usePrepActions';
+import {InlineSongController} from '@renderer/features/songs/editor/InlineSongController';
 
 const mock = vi.hoisted(() => {
   const state = {hasEditor: true, imported: false, library: false};
@@ -38,6 +39,7 @@ const mock = vi.hoisted(() => {
       getSnapshot: vi.fn(() => ({imported: state.imported, session: null})),
       requestLeave: vi.fn<(action: () => void) => void>(),
       open: vi.fn(),
+      openNew: vi.fn(),
       attach: vi.fn((document: SongDocument) => ({
         history: {snapshot: {song: document.song}},
       })),
@@ -62,7 +64,9 @@ vi.mock('@renderer/app/controlSession', () => ({
       return mock.state.hasEditor ? mock.editor : undefined;
     }
     readonly items = mock.items;
-    readonly startEditor = vi.fn();
+    readonly startEditor = vi.fn(() => {
+      mock.state.hasEditor = true;
+    });
     readonly report = vi.fn();
   },
 }));
@@ -80,6 +84,9 @@ vi.mock('@renderer/session/showLibrary', () => ({
 }));
 vi.mock('@renderer/features/songs/import/TextImportFlow', () => ({
   TextImportFlow: vi.fn(() => null),
+}));
+vi.mock('@renderer/features/songs/editor/InlineSongController', () => ({
+  InlineSongController: vi.fn(() => null),
 }));
 
 function setup(api = mockLlpApi()) {
@@ -108,6 +115,23 @@ beforeEach(() => {
   mock.editor.requestLeave.mockImplementation(() => undefined);
 });
 afterEach(cleanup);
+
+it('follows an accepted editor target in the item preview and slide grid', () => {
+  const {result, onWorkspace} = setup();
+  render(result.current.importSurface);
+  const opened = vi.mocked(InlineSongController).mock.lastCall?.[0].onOpen;
+  const target = {
+    songId: createSongId(mock.songId),
+    block: 2,
+    from: {serviceId: fixtureServiceId, itemId: fixtureItems.arranged},
+  };
+  act(() => opened?.(target));
+  expect(mock.selection.clear).toHaveBeenCalledOnce();
+  expect(mock.openItem).toHaveBeenCalledExactlyOnceWith(fixtureItems.arranged);
+  expect(mock.items.show).toHaveBeenCalledExactlyOnceWith(target.from);
+  expect(mock.items.selectPosition).toHaveBeenCalledExactlyOnceWith(2);
+  expect(onWorkspace).toHaveBeenCalledExactlyOnceWith('prep');
+});
 
 it('opens a non-song service slide in prep at its position after the leave guard', () => {
   const {result, onWorkspace} = setup();
@@ -281,7 +305,7 @@ it.each(['file', 'clipboard'] as const)(
     expect(mock.selection.clear).toHaveBeenCalledOnce();
     act(() => props.onDone());
     expect(result.current.canImport).toBe(true);
-    expect(result.current.importSurface).toBeNull();
+    expect(vi.mocked(TextImportFlow).mock.calls).toHaveLength(1);
   },
 );
 
@@ -317,10 +341,11 @@ it('opens 준비 for a new song only after the leave question is answered', () =
   const {result, onWorkspace} = setup();
   act(() => result.current.newSong());
   expect(onWorkspace).not.toHaveBeenCalled();
-  expect(mock.selection.create).not.toHaveBeenCalled();
+  expect(mock.editor.openNew).not.toHaveBeenCalled();
   act(() => mock.editor.requestLeave.mock.calls[0]?.[0]());
   expect(onWorkspace).toHaveBeenCalledExactlyOnceWith('prep');
-  expect(mock.selection.create).toHaveBeenCalledOnce();
+  expect(mock.editor.openNew).toHaveBeenCalledOnce();
+  expect(mock.selection.create).not.toHaveBeenCalled();
 });
 
 it('opens 준비 for a new song at once when no editor holds a question', () => {
@@ -328,5 +353,6 @@ it('opens 준비 for a new song at once when no editor holds a question', () => 
   const {result, onWorkspace} = setup();
   act(() => result.current.newSong());
   expect(onWorkspace).toHaveBeenCalledExactlyOnceWith('prep');
-  expect(mock.selection.create).toHaveBeenCalledOnce();
+  expect(mock.editor.openNew).toHaveBeenCalledOnce();
+  expect(mock.selection.create).not.toHaveBeenCalled();
 });

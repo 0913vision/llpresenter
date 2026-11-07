@@ -23,6 +23,7 @@ import type {ServiceItemStore} from './serviceItemStore';
 import styles from './SongItemPanel.module.css';
 import {BibleItemPanel} from './BibleItemPanel';
 import {SlidesItemPanel} from '../slides/SlidesItemPanel';
+import {ItemSongSlideGrid} from './ItemSongSlideGrid';
 
 /**
  * The center panel of 준비 for the item selected in the 예배 순서. It shows
@@ -32,10 +33,12 @@ export function ServiceItemPanel({
   items,
   editor,
   sizeClass,
+  onBack,
 }: {
   readonly items: ServiceItemStore;
   readonly editor: SongEditorStore;
   readonly sizeClass: SizeClass;
+  readonly onBack?: (() => void) | undefined;
 }): JSX.Element {
   const serviceId = useShow(view => view.serviceId);
   const itemId = useShow(view => view.openItemId);
@@ -44,7 +47,7 @@ export function ServiceItemPanel({
       serviceId === null || itemId === null ? null : {serviceId, itemId},
     );
   }, [items, serviceId, itemId]);
-  const {item, song, position, service} = useSyncExternalStore(
+  const {item, song, songStatus, position, service} = useSyncExternalStore(
     items.subscribe,
     items.getSnapshot,
   );
@@ -72,7 +75,11 @@ export function ServiceItemPanel({
       </BibleItemPanel>
     );
   }
-  if (item === null || !isItemOfKind(item, 'song') || song === null) {
+  if (
+    item === null ||
+    !isItemOfKind(item, 'song') ||
+    (song === null && songStatus !== 'missing')
+  ) {
     return (
       <OtherItemPanel item={item} sizeClass={sizeClass}>
         <ItemSlideGrid items={items} editor={editor} />
@@ -86,6 +93,7 @@ export function ServiceItemPanel({
       editor={editor}
       item={item}
       session={song}
+      onBack={onBack}
     />
   );
 }
@@ -94,7 +102,8 @@ interface SongItemViewProps {
   readonly items: ServiceItemStore;
   readonly editor: SongEditorStore;
   readonly item: ServiceItemOf<'song'>;
-  readonly session: SongSession;
+  readonly session: SongSession | null;
+  readonly onBack?: (() => void) | undefined;
 }
 
 function SongItemView({
@@ -102,6 +111,7 @@ function SongItemView({
   editor,
   item,
   session,
+  onBack,
 }: SongItemViewProps): JSX.Element {
   const {service} = useSyncExternalStore(items.subscribe, items.getSnapshot);
   const editReason =
@@ -110,7 +120,7 @@ function SongItemView({
     <div className={styles.keys}>
       <Panel label={ITEM_PANEL_LABEL} className={styles.panel}>
         <PanelHeader>
-          <PanelTitle title={session.document.song.title} />
+          <PanelTitle title={session?.document.song.title ?? '없는 곡'} />
           <PanelActions>
             <Button
               icon="edit"
@@ -124,8 +134,32 @@ function SongItemView({
             </Button>
           </PanelActions>
         </PanelHeader>
+        <Button
+          disabled={session === null}
+          title={
+            session === null ? '라이브러리 곡을 찾을 수 없습니다' : undefined
+          }
+          onClick={() => {
+            window.llp?.window
+              .openSongEditor({songId: item.song})
+              .catch((error: unknown) =>
+                console.error('Could not open the source song', error),
+              );
+          }}
+        >
+          {session?.document.song.title ?? '없는 곡'}
+        </Button>
         <PanelBody variant="flush">
-          <ItemSlideGrid items={items} editor={editor} />
+          {service === null ? null : (
+            <ItemSongSlideGrid
+              items={items}
+              editor={editor}
+              item={item}
+              service={service}
+              source={session}
+              onBack={onBack}
+            />
+          )}
         </PanelBody>
         <PanelFooter count={item.slides.length} />
       </Panel>

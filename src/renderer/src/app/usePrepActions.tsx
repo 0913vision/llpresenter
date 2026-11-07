@@ -17,6 +17,8 @@ import type {Workspace} from './shell/Toolbar';
 import type {PrepBinding} from './workspaces/prepPanels';
 import {usePrepSelection} from './usePrepSelection';
 import {noticeTime} from '@renderer/ui/notices';
+import {InlineSongController} from '@renderer/features/songs/editor/InlineSongController';
+import type {SongEditorWindowModel} from '@renderer/features/songs/editor/useSongEditorWindow';
 
 const noEditorSubscription = (): (() => void) => () => undefined;
 
@@ -58,6 +60,7 @@ async function openServiceSong(
 export interface PrepActions {
   readonly prep: PrepBinding | undefined;
   readonly imported: boolean;
+  readonly editingSong: boolean;
   readonly canImport: boolean;
   readonly importText: (source: 'file' | 'clipboard') => void;
   /** 새 곡: opens 준비 and makes a song, as the library's plus does. */
@@ -83,6 +86,7 @@ export function usePrepActions({
   );
   const closeImport = useCallback(() => setImportSource(null), []);
   const prepSelection = usePrepSelection();
+  const editorControls = useRef<SongEditorWindowModel | null>(null);
   const songOpen = useRef(0);
   useEffect(
     () => () => {
@@ -99,6 +103,7 @@ export function usePrepActions({
   };
   const openSong = (songId: SongId, position?: number): void => {
     songOpen.current++;
+    onWorkspace('prep');
     prepSelection.openSong(songId, position);
   };
   const importText = (source: 'file' | 'clipboard'): void => {
@@ -112,8 +117,10 @@ export function usePrepActions({
     // NOTE(0913vision): The question about an unsaved song opens where the
     // command was given; 준비 opens only once it is answered.
     const create = (): void => {
+      session.startEditor('manual');
       onWorkspace('prep');
-      prepSelection.create();
+      prepSelection.clear();
+      session.editor?.openNew();
     };
     if (session.editor === undefined) create();
     else session.editor.requestLeave(create);
@@ -121,6 +128,10 @@ export function usePrepActions({
   const imported = useSyncExternalStore(
     session.editor?.subscribe ?? noEditorSubscription,
     () => session.editor?.getSnapshot().imported ?? false,
+  );
+  const editingSong = useSyncExternalStore(
+    session.editor?.subscribe ?? noEditorSubscription,
+    () => session.editor?.getSnapshot().session != null,
   );
   const onShowInLibrary = (songId: SongId): void => {
     songOpen.current++;
@@ -190,6 +201,8 @@ export function usePrepActions({
             api: session.api,
             editor: session.editor,
             items: session.items,
+            controls: editorControls,
+            onNewSong: newSong,
             selectionRequest: prepSelection.request,
             onSelectionHandled: prepSelection.handled,
             onServiceItemOpen: clearSelection,
@@ -197,25 +210,46 @@ export function usePrepActions({
           }
         : undefined,
     imported: workspace === 'prep' && imported,
+    editingSong: workspace === 'prep' && editingSong,
     canImport: session.api !== undefined && importSource === null,
     importText,
     newSong,
     openSong,
     onShowInLibrary,
     onOpenPrep,
-    importSurface:
-      session.api && session.editor && importSource !== null ? (
-        <TextImportFlow
-          api={session.api}
-          store={session.editor}
-          source={importSource}
-          onDone={closeImport}
-          onEdit={() => {
-            clearSelection();
-            onWorkspace('prep');
-          }}
-          onProblem={session.report}
-        />
-      ) : null,
+    importSurface: (
+      <>
+        {session.api && session.editor ? (
+          <InlineSongController
+            store={session.editor}
+            api={session.api}
+            report={session.report}
+            controls={editorControls}
+            onOpen={target => {
+              prepSelection.clear();
+              if (target.from !== undefined) {
+                openItem(target.from.itemId);
+                session.items?.show(target.from);
+                session.items?.selectPosition(target.block ?? 0);
+              }
+              onWorkspace('prep');
+            }}
+          />
+        ) : null}
+        {session.api && session.editor && importSource !== null ? (
+          <TextImportFlow
+            api={session.api}
+            store={session.editor}
+            source={importSource}
+            onDone={closeImport}
+            onEdit={() => {
+              clearSelection();
+              onWorkspace('prep');
+            }}
+            onProblem={session.report}
+          />
+        ) : null}
+      </>
+    ),
   };
 }

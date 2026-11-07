@@ -62,18 +62,17 @@ feature we lack), Moved, Removed.
   undone asks first in the app's AlertDialog with 삭제 as the confirm button,
   and the question says where the thing is used when other places use it ("이
   곡은 예배 2곳에서 씁니다"). Undoable today: 예배 순서 항목 and 구역 (the 예배
-  순서 history), and slides in the 곡 편집 window (its history until 저장).
-  Asking: 곡, 테마 (always, with where it is used or the default of a kind),
-  매크로, 매크로 모음, 그래픽, 타이머, 메시지 틀, 이름표, 오버레이, 미디어,
-  재생목록, 예배, 템플릿, 화면, and 퀵 실행 항목. Not covered: 단축키 지우기 and
-  재생목록에서 빼기 (a removal that keeps the thing itself) ask nothing and have
-  no undo; the lead decides whether they get an undo.
+  순서 history), and slides in the inline 곡 편집 editor (its history until
+  저장). Asking: 곡, 테마 (always, with where it is used or the default of a
+  kind), 매크로, 매크로 모음, 그래픽, 타이머, 메시지 틀, 이름표, 오버레이,
+  미디어, 재생목록, 예배, 템플릿, 화면, and 퀵 실행 항목. Not covered: 단축키
+  지우기 and 재생목록에서 빼기 (a removal that keeps the thing itself) ask
+  nothing and have no undo; the lead decides whether they get an undo.
 - **Wording:** 이름 바꾸기 everywhere (not 이름 변경). A row that opens a dialog
   or asks for more input ends with "…" as in PP (수정…, 전환 효과…).
-- **Window commands:** A command that opens a window ends with "…" and has one
-  label everywhere it is offered: 곡 편집…, 환경설정…, 화면 설정…. The library
-  menu, the 진행 and 준비 row menus, the slide menus, and the buttons that open
-  the same window use that one label (`windowCommandLabels`).
+- **Editing commands:** 곡 편집… opens the inline editor in 준비. 환경설정… and
+  화면 설정… open their windows. Every entry point uses the same label for the
+  same task (`windowCommandLabels`).
 - **Row actions in a footer:** When a list keeps a row's actions in a bar below
   it (the 단축키 page's 기본값으로 and 지우기), the row's right-click and Menu
   key menu offers the same actions.
@@ -186,23 +185,29 @@ output.
 
 ### 슬라이드 오른쪽 클릭
 
+In 준비's editable song rows and grids, the menu offers 이름표…, 복사, 잘라내기,
+붙여넣기, 복제, 삭제, 실행 취소 and 다시 실행 with the same selection, caret and
+guards as their keys. Right-clicking a selected slide keeps the selection; an
+unselected slide selects itself. The item grid keeps its 오버레이 commands and
+bar handles.
+
 - Where: 진행 and 준비 thumbnail grids (item view and song editor).
 - Opens: Right-click, Menu key, or Shift F10 on a slide.
 - Purpose: Act on this one slide.
 - PP: PP slide right-click (https://www.youtube.com/watch?v=08NRxdDFdHc at
   1:58).
 
-| Group | Row                                                | Does                                                                                                                       | Status |
-| ----- | -------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 1     | 빠른 편집                                          | PP Quick Edit.                                                                                                             | Off    |
-| 1     | 곡 편집…                                           | Opens the 곡 편집 window (05) with this slide selected and scrolled into view, like 곡 편집… on a 예배 순서 song item.     | New    |
-| 2     | 사용 안 함                                         | PP Disable.                                                                                                                | Off    |
-| 3     | 테마 ›, 전환 효과…, 단축키…, 다음 타이머로 넘기기… | PP Themes, Transitions, Hot Key, Go to Next Timer.                                                                         | Off    |
-| 4     | 동작 추가 ›, 미디어 동작 추가…                     | PP slide actions. With actions, PP adds "동작 삭제: <대상>" rows here.                                                     | Off    |
-| 5     | 이름표 ›                                           | 이름표 없음, every 이름표 with its color swatch and current check, then 이름표 관리…. The same list as the 이름표 popover. | Off    |
-| 5     | 슬라이드 이름 ›                                    | PP Label.                                                                                                                  | Off    |
-| 6     | 글자 모양 복사, 글자 모양 붙여넣기                 | PP Copy and Paste Text Style.                                                                                              | Off    |
-| 7     | 잘라내기, 복사, 붙여넣기, 삭제                     | PP clipboard rows.                                                                                                         | Off    |
+| Group | Row                                                | Does                                                                                                                          | Status |
+| ----- | -------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 1     | 빠른 편집                                          | PP Quick Edit.                                                                                                                | Off    |
+| 1     | 곡 편집…                                           | Opens the inline 곡 편집 editor (05) with this slide selected and scrolled into view, like 곡 편집… on a 예배 순서 song item. | New    |
+| 2     | 사용 안 함                                         | PP Disable.                                                                                                                   | Off    |
+| 3     | 테마 ›, 전환 효과…, 단축키…, 다음 타이머로 넘기기… | PP Themes, Transitions, Hot Key, Go to Next Timer.                                                                            | Off    |
+| 4     | 동작 추가 ›, 미디어 동작 추가…                     | PP slide actions. With actions, PP adds "동작 삭제: <대상>" rows here.                                                        | Off    |
+| 5     | 이름표 ›                                           | 이름표 없음, every 이름표 with its color swatch and current check, then 이름표 관리…. The same list as the 이름표 popover.    | Off    |
+| 5     | 슬라이드 이름 ›                                    | PP Label.                                                                                                                     | Off    |
+| 6     | 글자 모양 복사, 글자 모양 붙여넣기                 | PP Copy and Paste Text Style.                                                                                                 | Off    |
+| 7     | 잘라내기, 복사, 붙여넣기, 삭제                     | PP clipboard rows.                                                                                                            | Off    |
 
 - Song grids share one row set (`slideMenuEntries`); the item grid adds only the
   오버레이 rows after it, as 준비's right column does. In 준비, 단축키… opens
@@ -316,6 +321,8 @@ output.
 
 ### 예배 순서 항목 오른쪽 클릭
 
+준비 adds 메모… for supported items, including when the memo column is hidden.
+
 - Where: 예배 순서 list (ServiceOrderList)
 - Opens: Right-click on an item or 구역 row.
 - Purpose: Act on this one item.
@@ -329,7 +336,7 @@ output.
 | ------ | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
 | 1      | 항목 숨기기                            | PP Hide Item.                                                                                                                                                     | Off    |
 | song   | 출력 대상 ›                            | PP Destination.                                                                                                                                                   | Off    |
-| song   | 곡 편집…                               | Opens the song in the 곡 편집 window (05; PP Reflow). Replaces 준비에서 열기 on song items.                                                                       | Moved  |
+| song   | 곡 편집…                               | Opens the song in the inline 곡 편집 editor (05; PP Reflow). Replaces 준비에서 열기 on song items.                                                                | Moved  |
 | other  | 준비에서 열기                          | Items that are not songs, 진행 only (ours).                                                                                                                       | Now    |
 | header | 색 바꾸기                              | 구역 rows only (PP Change Color on a header).                                                                                                                     | Off    |
 | 3      | 복사 (Ctrl C), 붙여넣기 (Ctrl V)       | PP clipboard rows; the Windows build shows the keys at the right.                                                                                                 | Now    |
@@ -396,7 +403,7 @@ replace only this item's slides. Both capture the service and song revisions. �
 | ----- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
 | 1     | 예배 순서에 추가                                                          | Appends the song to the end of the open 예배 순서 at once; the row is disabled with its reason when none is open or it is read-only: newer than PP (B8), no services submenu.                                           | Now    |
 | 2     | 출력 대상 ›                                                               | PP Destination.                                                                                                                                                                                                         | Off    |
-| 3     | 곡 편집…                                                                  | Opens the song in the 곡 편집 window (05; PP Reflow).                                                                                                                                                                   | New    |
+| 3     | 곡 편집…                                                                  | Opens the song in the inline 곡 편집 editor (05; PP Reflow).                                                                                                                                                            | New    |
 | 4     | 복사, 붙여넣기                                                            | PP clipboard rows, with icons (Arrangements video 3:08).                                                                                                                                                                | Off    |
 | 4     | 복제                                                                      | Copies the song (see "복제 by kind"); Ctrl D with the focus on the list.                                                                                                                                                | Now    |
 | 4     | 이름 바꾸기                                                               | No icon, text aligned with the icon rows. Opens a 곡 이름 바꾸기 dialog with the title rule of the 곡 편집 title field (not empty, at most 200 characters, no other song has it); off for a song a newer version wrote. | Now    |
@@ -639,12 +646,12 @@ Which thing a row acts on:
 - Disabled with a reason when there is nothing to do: "되돌릴 편집이 없습니다"
   and "다시 실행할 편집이 없습니다". Where the focused place has no history,
   both rows are disabled with those same reasons.
-- The 곡 편집 window is its own window with no menu bar; its blocks keep Ctrl Z
-  and Ctrl Y (05).
-- 잘라내기, 복사, 붙여넣기, and 모두 선택 are enabled only when a text field had
-  focus (잘라내기 and 복사 also need a selection). Otherwise they are disabled
-  with "글자 입력란에서만 쓸 수 있습니다", or "선택한 글자가 없습니다" for
-  잘라내기 and 복사 with nothing selected.
+- The inline song editor shares 편집 with the control window. Its rows and slide
+  grid own their slide history; text fields keep their text commands.
+- 잘라내기, 복사, 붙여넣기 and 모두 선택 use the focused song slide surface's
+  handlers when it owns those commands. In text fields they retain native
+  editing. Without either owner they are disabled with a reason.
+
 - 복제 and 삭제 are enabled when the focused place has a handler for the command
   (`edit.duplicate`, `edit.delete`), and disabled with "선택한 곳에서는 쓸 수
   없음" otherwise. 복제 has a handler in the lists of "복제 by kind" that are
@@ -668,8 +675,8 @@ Which thing a row acts on:
 | 2     | 환경설정… (Ctrl ,) | Opens or focuses the single 환경설정 window (PP Open Settings, S1). Also in 파일. | `app.preferences` | New    |
 
 - 최소화 and 최대화 have no default keys (10).
-- No list of open windows: the app has one main window, and 곡 편집, 화면 설정,
-  and 환경설정 each open from their own command.
+- No list of open windows: the app has one main window. 화면 설정 and 환경설정
+  open from their own commands; 곡 편집 stays inside 준비.
 
 ### 도움말
 

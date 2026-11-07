@@ -1,5 +1,11 @@
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {useLayoutEffect, useRef, useSyncExternalStore, type JSX} from 'react';
+import {
+  useLayoutEffect,
+  useRef,
+  useSyncExternalStore,
+  type JSX,
+  type ReactNode,
+} from 'react';
 import {Icon} from '@renderer/ui/Icon';
 import {TextField} from '@renderer/ui/TextField';
 import {Tooltip} from '@renderer/ui/Tooltip';
@@ -19,11 +25,15 @@ export function SongHeader({
   session,
   onImportedSave,
   unsaved = false,
+  back,
+  actions,
 }: {
   readonly store: SongEditorStore;
   readonly session: SongSession;
   readonly onImportedSave?: ((id: SongId) => void) | undefined;
   readonly unsaved?: boolean;
+  readonly back?: ReactNode;
+  readonly actions?: ReactNode;
 }): JSX.Element {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const titleFrame = useRef<HTMLDivElement>(null);
@@ -45,7 +55,11 @@ export function SongHeader({
     input.select();
   }, [store, state.titleFocus]);
   return (
-    <header className={styles.header}>
+    <header
+      className={styles.header}
+      data-inline={back !== undefined || undefined}
+    >
+      {back}
       {unsaved ? (
         <Tooltip text="저장하지 않은 변경">
           <span
@@ -54,7 +68,9 @@ export function SongHeader({
             aria-label="저장하지 않은 변경"
           />
         </Tooltip>
-      ) : null}
+      ) : (
+        <span className={styles.unsaved} data-empty aria-hidden="true" />
+      )}
       <div ref={titleFrame} className={styles.title}>
         <TextField
           aria-label="곡 제목"
@@ -88,6 +104,10 @@ export function SongHeader({
           }}
         />
       </div>
+      {actions}
+      {state.imported ? (
+        <ImportedSongActions store={store} onSaved={onImportedSave} />
+      ) : null}
       {state.imported || session.itemSession ? null : (
         <Tooltip text={usageTip}>
           <span
@@ -100,10 +120,9 @@ export function SongHeader({
           </span>
         </Tooltip>
       )}
-      <SongBackground store={store} session={session} busy={state.busy} />
-      {state.imported ? (
-        <ImportedSongActions store={store} onSaved={onImportedSave} />
-      ) : null}
+      {session.itemSession ? null : (
+        <SongBackground store={store} session={session} busy={state.busy} />
+      )}
     </header>
   );
 }

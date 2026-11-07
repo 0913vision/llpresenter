@@ -1,9 +1,12 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {MediaId} from '@core/schema/ids';
 import type {SongSlideSource} from '@core/schema/showService';
-import {type Song} from '@core/schema/song';
+import {type Song, type SongSlide} from '@core/schema/song';
 import type {BlockCommand, BlockSelection} from '@core/songs/blockEdits';
-import {SongHistory} from '@core/songs/songHistory';
+import {SongSlideHistory} from './songSlideHistory';
+import type {SlideListClipboard} from './slideListModel';
+import type {SlideListCommand} from '@core/songs/slideListEdits';
+import type {SlideSelectionAction} from '@core/songs/slideListSelection';
 import {SongTitleDraft} from '@core/songs/songTitle';
 
 import {
@@ -23,19 +26,24 @@ interface SessionOptions {
   /** True while the window's close preflight holds every edit. */
   readonly editingStopped?: () => boolean;
   readonly itemSession?: boolean;
+  readonly clipboard?: SlideListClipboard<SongSlide>;
 }
 
 /** Owns lyric history and drafts, borrowing its private persistence coordinator. */
 export class SongSession {
-  history: SongHistory;
+  history: SongSlideHistory;
   title: SongTitleDraft;
   background: MediaId | undefined;
   private dirty = false;
+  private intent = 0;
+  get slideIntent(): number {
+    return this.intent;
+  }
   private readonly persistence: SongSessionPersistence;
   private backgroundEdited = false;
 
   constructor(private readonly options: SessionOptions) {
-    this.history = new SongHistory(options.document.song);
+    this.history = this.makeHistory(options.document.song);
     this.title = new SongTitleDraft(
       options.document.song.title,
       options.isDuplicateTitle,
@@ -158,8 +166,57 @@ export class SongSession {
     ) {
       return;
     }
+    this.intent++;
     if (current.block !== selection.block) this.endTyping();
     this.history.select(selection);
+    this.options.changed();
+  }
+
+  selectSlides(action: SlideSelectionAction<SongSlide['id']>): void {
+    this.intent++;
+    this.endTyping();
+    this.history.model.select(action);
+    this.options.changed();
+  }
+
+  commandSlides(command: SlideListCommand<SongSlide>): void {
+    this.changeSlides(() => this.history.model.command(command));
+  }
+
+  copySlides(): string | null {
+    const result = this.history.model.copy();
+    return result.ok ? result.value : null;
+  }
+
+  cutSlides(): string | null {
+    let text: string | null = null;
+    this.changeSlides(() => {
+      const result = this.history.model.cut();
+      if (result.ok) text = result.value;
+    });
+    return text;
+  }
+
+  pasteSlides(text?: string): void {
+    this.changeSlides(
+      () =>
+        text === undefined
+          ? this.history.model.paste()
+          : this.history.model.pasteText(text),
+      false,
+    );
+  }
+
+  private changeSlides(change: () => unknown, newIntent = true): void {
+    if (!this.acceptsEdits) return;
+    if (newIntent) this.intent++;
+    this.history.endTyping();
+    const before = this.history.snapshot.song;
+    change();
+    if (before !== this.history.snapshot.song) {
+      this.dirty = true;
+      this.endTyping();
+    }
     this.options.changed();
   }
 
@@ -169,6 +226,7 @@ export class SongSession {
       return false;
     }
     this.dirty = true;
+    this.intent++;
     this.endTyping();
     this.options.changed();
     return true;
@@ -176,6 +234,7 @@ export class SongSession {
 
   edit(command: BlockCommand | 'undo' | 'redo'): void {
     if (!this.acceptsEdits) return;
+    this.intent++;
     const previous = this.history.snapshot.song;
     if (command === 'undo') this.history.undo();
     else if (command === 'redo') this.history.redo();
@@ -196,6 +255,19 @@ export class SongSession {
   }
 
   receive(document: EditorSongDocument): void {
+    if (
+      this.itemSession &&
+      this.clean &&
+      document.revision >= this.document.revision &&
+      document.song.background === this.document.song.background &&
+      JSON.stringify(document.song.slides) ===
+        JSON.stringify(this.document.song.slides)
+    ) {
+      this.persistence.acceptBaseline(document);
+      this.title.accept(document.song.title);
+      this.options.changed();
+      return;
+    }
     this.persistence.receive(document);
   }
 
@@ -204,6 +276,7 @@ export class SongSession {
   }
 
   renamed(from: string, to: string, document?: EditorSongDocument): void {
+    this.intent++;
     const baseline = this.document.song.slides.map(slide =>
       slide.label === from ? {...slide, label: to} : slide,
     );
@@ -308,7 +381,8 @@ export class SongSession {
   }
 
   private installDraft(document: EditorSongDocument): void {
-    this.history = new SongHistory(document.song);
+    this.intent++;
+    this.history = this.makeHistory(document.song);
     this.title = new SongTitleDraft(
       document.song.title,
       this.options.isDuplicateTitle,
@@ -316,5 +390,13 @@ export class SongSession {
     this.background = document.song.background;
     this.backgroundEdited = false;
     this.dirty = false;
+  }
+
+  private makeHistory(song: Song): SongSlideHistory {
+    return new SongSlideHistory(
+      song,
+      this.options.clipboard,
+      this.options.itemSession ? 0 : 1,
+    );
   }
 }

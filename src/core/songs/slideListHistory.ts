@@ -45,12 +45,26 @@ export function applySlideListCommand<T extends SlideListItem>(
 ): Result<SlideListHistory<T>, SlideListError> {
   const result = editSlideList(history.present, command, adapter);
   if (!result.ok) return result;
-  if (result.value === history.present) return {ok: true, value: history};
+  return recordSlideListSnapshot(history, result.value, {adapter});
+}
+
+/** Text edits share structural history; a continuing typing group replaces its present. */
+export function recordSlideListSnapshot<T extends SlideListItem>(
+  history: SlideListHistory<T>,
+  snapshot: SlideListSnapshot<T>,
+  options: {readonly adapter: SlideListAdapter<T>; readonly coalesce?: boolean},
+): Result<SlideListHistory<T>, SlideListError> {
+  if (snapshot === history.present) return {ok: true, value: history};
+  const checked = validateSlideList(snapshot.slides, options.adapter);
+  if (!checked.ok) return checked;
   return {
     ok: true,
     value: {
-      present: result.value,
-      past: [...history.past, history.present].slice(-SLIDE_LIST_HISTORY_LIMIT),
+      present: snapshot,
+      past:
+        options.coalesce && history.past.length > 0
+          ? history.past
+          : [...history.past, history.present].slice(-SLIDE_LIST_HISTORY_LIMIT),
       future: [],
     },
   };

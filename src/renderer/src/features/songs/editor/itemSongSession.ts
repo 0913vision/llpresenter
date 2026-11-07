@@ -11,7 +11,7 @@ import type {Song} from '@core/schema/song';
 type ItemTarget = NonNullable<SongEditorTarget['from']>;
 
 export async function loadItemSong(
-  api: LlpApi,
+  api: Pick<LlpApi, 'services' | 'songs' | 'content'>,
   target: ItemTarget,
   songId: Song['id'],
 ): Promise<SongDocument | null> {
@@ -62,7 +62,7 @@ export function itemSongDocument(
 
 /** Routes the existing row editor's save through the service's revision check. */
 export function itemSongContent(
-  api: LlpApi,
+  api: Pick<LlpApi, 'services' | 'content'>,
   target: ItemTarget,
   songId: Song['id'],
 ): LlpApi['content'] {

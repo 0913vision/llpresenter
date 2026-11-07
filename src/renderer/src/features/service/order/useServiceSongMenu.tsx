@@ -28,6 +28,7 @@ interface SongMenuData {
 export function useServiceSongMenu(
   target: SongMenuTarget | null,
   onProblem: (notice: Notice) => void,
+  beforeSave?: () => Promise<number | null>,
 ) {
   const api = window.llp;
   const revision = useShow(view => view.revision);
@@ -111,6 +112,11 @@ export function useServiceSongMenu(
     writing.current = true;
     setBusy(true);
     try {
+      const serviceRevision =
+        question.save && beforeSave !== undefined
+          ? await beforeSave()
+          : captured.serviceRevision;
+      if (serviceRevision === null) return;
       await pendingWritesOf(api).run({
         write: async () => {
           const result = await api.content.edit({
@@ -119,7 +125,7 @@ export function useServiceSongMenu(
               : 'service.song.reloadFromLibrary',
             serviceId: createServiceId(serviceId),
             itemId: captured.item.id,
-            baseRevision: captured.serviceRevision,
+            baseRevision: serviceRevision,
             songRevision: captured.document.revision,
           });
           if (!result.ok) {

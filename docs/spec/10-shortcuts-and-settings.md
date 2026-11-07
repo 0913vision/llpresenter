@@ -1445,3 +1445,23 @@ proposal's choice applies.
 | 16  | Outline and shadow detail                | The board shows two switches.                                                                                                 | Decided October 28, open decisions entry 26 option (c): outline width and color; shadow blur, distance, angle, opacity, and color.                                                                                                     |
 | 17  | Bible reference options                  | 02 has every, first, and none. ProPresenter has four, including Passage Last.                                                 | Closed (tests-353): 마지막 슬라이드만 (`last`) is added to the passage schema and the slide builder; 환경설정 › 성경 › 새 구절 sets the default of a new passage.                                                                      |
 | 18  | 지금 백업 during a service               | 08 forbids automatic backups during a service, but says nothing about a manual one.                                           | Open. Proposal: 지금 백업 is unavailable while any output is on.                                                                                                                                                                       |
+
+## Song slides inside 준비
+
+Song rows and the right-column editable song grid share one selection and
+clipboard model. Click selects one slide, Shift click/arrows extend a range,
+Ctrl click toggles, Ctrl A selects all and Esc clears. Gap clicks show an
+insertion caret; arrows move it. Ctrl C/X/V copy, cut and paste at the caret,
+otherwise after the last selected slide. Ctrl D duplicates, Delete removes, and
+Ctrl Z/Y undo/redo each operation as one step. The 편집 and row menus use the
+same focused handlers. Native text fields and IME keep their own keys.
+
+In lyrics, Enter inserts a line, Ctrl Enter splits, and Backspace at the
+beginning merges into the preceding slide. Plain-text blank lines split into
+slides. Typing groups until the cursor leaves or one second passes. Ctrl G opens
+the shared 이름표 picker for the current slide selection.
+
+While a song editor is open, its 저장 binding takes precedence over a matching
+진행 workspace binding. The default Ctrl S saves the library song, or applies
+the imported/new draft; Ctrl Shift S opens 다른 이름으로 저장…. Outside text
+fields, Esc clears slide selection or caret first, then returns to the table.

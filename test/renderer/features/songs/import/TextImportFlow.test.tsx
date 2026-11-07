@@ -690,7 +690,7 @@ describe('imported song actions', () => {
     ).toBe('true');
     act(() => f.store.open(f.first));
     expect(screen.getByRole('alertdialog').textContent).toContain(
-      '가져온 곡을 저장하지 않고 닫을까요?',
+      '곡의 변경을 저장할까요?',
     );
     fireEvent.click(screen.getByRole('button', {name: '취소'}));
     expect(f.store.getSnapshot().imported).toBe(true);

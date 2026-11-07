@@ -47,6 +47,36 @@ function fixture() {
 }
 
 describe('imported song editor sessions', () => {
+  it('does not create a library file for a new untouched song, and lets it leave without a question', () => {
+    const f = fixture();
+    f.store.discardImported();
+    f.store.openNew();
+    const leave = vi.fn();
+    f.store.requestLeave(leave);
+    expect(leave).toHaveBeenCalledOnce();
+    expect(f.store.getSnapshot().session).toBeNull();
+    expect(f.store.getSnapshot().discardRequested).toBe(false);
+    expect(f.imports).toHaveLength(0);
+  });
+
+  it('keeps an edited new song on cancel and resumes its requested leave only after saving', async () => {
+    const f = fixture();
+    f.store.discardImported();
+    f.store.openNew();
+    const session = f.store.getSnapshot().session;
+    if (session === null) throw new Error('Missing draft');
+    session.edit({type: 'text', text: 'Unsaved', start: 7, end: 7});
+    const leave = vi.fn();
+    f.store.requestLeave(leave);
+    expect(f.store.getSnapshot().discardRequested).toBe(true);
+    f.store.cancelDiscard();
+    expect(leave).not.toHaveBeenCalled();
+    expect(f.store.getSnapshot().session).toBe(session);
+    f.store.requestLeave(leave);
+    expect(await f.store.saveImported({kind: 'new'})).toBe(true);
+    expect(leave).toHaveBeenCalledOnce();
+    expect(f.imports).toHaveLength(1);
+  });
   it('retains an edited label boundary when migrating an imported section', () => {
     const f = fixture();
     f.store.discardImported();

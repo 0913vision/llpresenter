@@ -7,6 +7,7 @@ import {
   useSyncExternalStore,
   type JSX,
   type KeyboardEvent,
+  type ReactNode,
 } from 'react';
 import {LabelMenu} from './LabelMenu';
 import {SongBlock, type EditorFocus} from './SongBlock';
@@ -21,35 +22,76 @@ import {linearSlidesOf, slideCountOf} from '@core/songs/blockEdits';
 import {PanelFooter} from '@renderer/ui/Panel';
 import {Button} from '@renderer/ui/Button';
 import {useSongBlockWindow} from './useSongBlockWindow';
+import {SongSlideSurface} from './SongSlideSurface';
+import {useSlideTheme} from '@renderer/platform/useSlideTheme';
+import {SlidePicture} from '@renderer/rendering/SlidePicture';
+import {useShow} from '@renderer/session/show';
 
 /** Mount with a window-owned store; unmounting does not discard song history. */
 export function SongEditor({
   store,
   onImportedSave,
   unsaved = false,
+  onBack,
+  actions,
 }: {
   readonly store: SongEditorStore;
   readonly onImportedSave?: ((id: SongId) => void) | undefined;
   /** Shows the dot before the title while edits wait for 저장. */
   readonly unsaved?: boolean;
+  readonly onBack?: (() => void) | undefined;
+  readonly actions?: ReactNode;
 }): JSX.Element {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
+  const serviceName = useShow(view => view.serviceName);
   return (
-    <section aria-label="곡 편집" className={styles.editor}>
+    <section
+      aria-label="곡 편집"
+      className={styles.editor}
+      onKeyDown={event => {
+        if (
+          event.key === 'Escape' &&
+          !(event.target instanceof HTMLTextAreaElement) &&
+          !(event.target instanceof HTMLInputElement)
+        ) {
+          event.preventDefault();
+          event.stopPropagation();
+          onBack?.();
+        }
+      }}
+    >
       {state.session === null ? null : (
         <div key={state.session.document.song.id} className={styles.content}>
           <SongHeader
             store={store}
             session={state.session}
             onImportedSave={onImportedSave}
-            unsaved={unsaved}
+            unsaved={unsaved || state.session.unsaved || state.imported}
+            back={
+              onBack === undefined ? undefined : (
+                <Button className={styles.back} onClick={onBack}>
+                  ‹{' '}
+                  {state.session.itemSession
+                    ? serviceName || '예배 순서'
+                    : '라이브러리'}
+                </Button>
+              )
+            }
+            actions={state.imported ? null : actions}
           />
           <SlideHotKeyControl
             store={store}
             session={state.session}
             busy={state.busy}
           />
-          <SongBlocks store={store} session={state.session} />
+          <SongSlideSurface
+            session={state.session}
+            store={store}
+            className={styles.surface}
+            onBack={onBack}
+          >
+            <SongBlocks store={store} session={state.session} />
+          </SongSlideSurface>
           <PanelFooter
             count={slideCountOf(state.session.history.snapshot.song)}
           />
@@ -68,6 +110,20 @@ function SongBlocks({
 }): JSX.Element {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const {song, selection} = session.history.snapshot;
+  const list = useSyncExternalStore(
+    session.history.model.subscribe,
+    session.history.model.getSnapshot,
+  );
+  const itemRow = useShow(view => {
+    const row = view.rows.find(row => row.id === song.id);
+    return row?.kind === 'song' ? row : undefined;
+  });
+  const theme = useSlideTheme(
+    session.itemSession && itemRow !== undefined
+      ? itemRow
+      : {id: song.id, kind: 'song', title: song.title},
+    session.itemSession ? 'service' : 'external',
+  );
   const previousBlock = useRef(selection.block);
   const focus = useRef<EditorFocus>({
     inputs: [],
@@ -106,7 +162,7 @@ function SongBlocks({
     if (row === null) return;
     const block = Number(row.dataset.editorBlock);
     const input = target instanceof HTMLTextAreaElement;
-    const label = target === row.querySelector('button');
+    const label = target === row.querySelector('button:not([data-slide-gap])');
     if (event.shiftKey ? !label && !(input && session.readOnly) : !input) {
       return;
     }
@@ -123,8 +179,10 @@ function SongBlocks({
   };
   const openMenu = useCallback(
     (anchor: HTMLElement, block: number): void => {
-      if (session.history.snapshot.selection.block !== block) {
-        session.select({block, start: 0, end: 0});
+      const slide = session.history.snapshot.song.slides[block];
+      if (slide === undefined) return;
+      if (!session.history.model.getSnapshot().selection.ids.has(slide.id)) {
+        session.selectSlides({type: 'click', id: slide.id});
       }
       setMenu(current => (current?.anchor === anchor ? null : {anchor, block}));
     },
@@ -150,7 +208,7 @@ function SongBlocks({
       const target =
         owner.requested && owner.target === 'label'
           ? viewport.current?.querySelector<HTMLElement>(
-              `[data-editor-block="${selection.block}"] button`,
+              `[data-editor-block="${selection.block}"] button:not([data-slide-gap])`,
             )
           : input;
       (target ?? input).focus({preventScroll: true});
@@ -190,7 +248,25 @@ function SongBlocks({
               block={block}
               session={session}
               focus={focus}
-              active={selection.block === block}
+              active={list.selection.ids.has(slide.id)}
+              focused={
+                selection.block === block && list.selection.ids.has(slide.id)
+              }
+              caret={list.selection.caret === block}
+              canvas={
+                theme === undefined ? undefined : (
+                  <SlidePicture
+                    {...theme}
+                    background={theme.background ?? session.background}
+                    slide={{
+                      itemId: song.id,
+                      position: block,
+                      lines: slide.lines,
+                      label: slide.label ?? null,
+                    }}
+                  />
+                )
+              }
               locked={state.busy || session.readOnly}
               editable={!session.readOnly}
               color={
@@ -205,6 +281,19 @@ function SongBlocks({
           );
         })}
       </div>
+      <button
+        type="button"
+        className={styles.endGap}
+        data-slide-gap={slides.length}
+        data-caret={list.selection.caret === slides.length}
+        aria-label="마지막 슬라이드 뒤에 삽입"
+        onClick={event => {
+          session.selectSlides({type: 'gap', index: slides.length});
+          event.currentTarget
+            .closest<HTMLElement>('[aria-label="슬라이드 편집 명령"]')
+            ?.focus();
+        }}
+      />
       {menu === null ? null : (
         <LabelMenu
           store={store}

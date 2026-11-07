@@ -79,7 +79,7 @@ afterEach(async () => {
   vi.restoreAllMocks();
 });
 
-it('opens the 곡 편집 window from the library and releases every listener', async () => {
+it('opens the library song inline and releases every listener', async () => {
   const fixture = mountPrep();
   const openWindow = vi
     .spyOn(fixture.api.window, 'openSongEditor')
@@ -91,12 +91,12 @@ it('opens the 곡 편집 window from the library and releases every listener', a
     }),
   );
   await waitFor(() =>
-    expect(openWindow).toHaveBeenCalledWith(
-      expect.objectContaining({songId: fixture.first.song.id}),
-    ),
+    expect(
+      screen.getByRole('textbox', {name: '슬라이드 1 가사'}),
+    ).toBeDefined(),
   );
-  expect(screen.queryByRole('textbox', {name: '슬라이드 1 가사'})).toBeNull();
-  expect(screen.getByRole('listbox', {name: '예배 순서'})).toBeDefined();
+  expect(openWindow).not.toHaveBeenCalled();
+  expect(screen.queryByRole('listbox', {name: '예배 순서'})).toBeNull();
   fireEvent.click(screen.getByRole('tab', {name: '진행'}));
   fireEvent.click(screen.getByRole('tab', {name: '준비'}));
   cleanup();

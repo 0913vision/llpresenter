@@ -1,4 +1,9 @@
-import {useMemo, type ComponentProps, type JSX} from 'react';
+import {useMemo, useState, type ComponentProps, type JSX} from 'react';
+import {isStartItem} from '@core/services/itemFieldChanges';
+import {memoRequest} from '../items/itemPlaybackCommands';
+import {ItemMemoDialog} from './ItemMemoDialog';
+import {menuAvailability} from '@renderer/ui/menuModel';
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useShow} from '@renderer/session/show';
 import type {Notice} from '@renderer/ui/notices';
 import type {ServiceItemStore} from '../items/serviceItemStore';
@@ -25,9 +30,36 @@ export function ServiceTableList({
   const serviceId = useShow(view => view.serviceId);
   const readOnly = useShow(view => view.readOnly);
   const data = useServiceTableData(api, serviceId);
+  const [memo, setMemo] = useState<{
+    serviceId: string;
+    itemId: string;
+    title: string;
+    value: string;
+  } | null>(null);
   const onProblem: (notice: Notice) => void = list.onProblem ?? noProblem;
   const table = useMemo<ServiceTableParts>(
     () => ({
+      menuFor: row => {
+        const item = data.items.get(row.id);
+        if (item === undefined || !isStartItem(item) || serviceId === null) {
+          return [];
+        }
+        return [
+          {
+            kind: 'item',
+            id: 'memo',
+            label: '메모…',
+            ...menuAvailability(readOnly ? NEWER_FILE_REASON : undefined),
+            onSelect: () =>
+              setMemo({
+                serviceId,
+                itemId: item.id,
+                title: row.title,
+                value: item.memo ?? '',
+              }),
+          },
+        ];
+      },
       header: <ServiceTableHeader />,
       rowClass: styles.row,
       sectionClass: styles.section,
@@ -55,6 +87,21 @@ export function ServiceTableList({
   return (
     <div className={styles.table} onKeyDownCapture={handleCellKey}>
       <ServiceOrderList {...list} workspace="prep" table={table} />
+      {memo === null ? null : (
+        <ItemMemoDialog
+          memo={memo.value}
+          title={memo.title}
+          save={value =>
+            items.submitItemEdit(
+              memoRequest(
+                {serviceId: memo.serviceId, itemId: memo.itemId},
+                value,
+              ),
+            )
+          }
+          onClose={() => setMemo(null)}
+        />
+      )}
     </div>
   );
 }

@@ -38,6 +38,7 @@ export class SongEditorStore {
   private busy = false;
   private editingStopped = false;
   private alive = true;
+  private leaveGuard: ((action: () => void) => void) | undefined;
   private operation: Promise<boolean> | undefined;
   private focusSerial = 0;
   private titleFocus = 0;
@@ -73,6 +74,8 @@ export class SongEditorStore {
       library: () => this.catalog.libraryEntries,
       busy: () => this.busy,
       editingStopped: () => this.editingStopped,
+      receive: document =>
+        this.sharedEdits.receive({songId: document.song.id, document}),
       ...(persistence === undefined ? {} : {persistence}),
     });
     this.catalog = new EditorCatalog({
@@ -178,8 +181,18 @@ export class SongEditorStore {
     this.importedDraft.openImported(draft);
   }
 
+  openNew(): void {
+    this.importedDraft.openNew();
+  }
+
+  setLeaveGuard(guard: ((action: () => void) => void) | undefined): void {
+    this.leaveGuard = guard;
+  }
+
   requestLeave(action: () => void): void {
-    this.importedDraft.requestLeave(action);
+    if (this.leaveGuard === undefined) {
+      this.importedDraft.requestLeave(action);
+    } else this.leaveGuard(action);
   }
 
   cancelDiscard(): void {
@@ -208,9 +221,15 @@ export class SongEditorStore {
    * Gives the song's session without opening it in the editor, so a 예배 순서
    * item edits its 구성 through the same writer as the editor.
    */
-  attach(document: SongDocument): SongSession | undefined {
+  attach(
+    document: SongDocument,
+    options: {
+      readonly content?: EditorApi['content'];
+      readonly reload?: () => Promise<SongDocument | null>;
+    } = {},
+  ): SongSession | undefined {
     if (!this.alive) return undefined;
-    const session = this.pool.attach(document);
+    const session = this.pool.attach(document, options.content, options.reload);
     this.publish();
     return session;
   }

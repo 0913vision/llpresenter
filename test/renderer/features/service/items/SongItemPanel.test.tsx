@@ -36,9 +36,15 @@ async function setup(itemId: string = fixtureItems.arranged) {
   const fixture = itemFixture();
   const editor = new SongEditorStore(fixture.api, vi.fn());
   const items = new ServiceItemStore(fixture.api, editor, vi.fn());
+  const back = vi.fn();
   useShow.setState({serviceId: fixtureServiceId, openItemId: itemId});
   const view = render(
-    <ServiceItemPanel items={items} editor={editor} sizeClass="normal" />,
+    <ServiceItemPanel
+      items={items}
+      editor={editor}
+      sizeClass="normal"
+      onBack={back}
+    />,
   );
   onTestFinished(async () => {
     view.unmount();
@@ -56,6 +62,7 @@ async function setup(itemId: string = fixtureItems.arranged) {
     panel,
     openWindow,
     user: userEvent.setup(),
+    back,
   };
 }
 
@@ -72,6 +79,18 @@ function secondThumbnail(panel: HTMLElement): HTMLElement {
 }
 
 describe('service song item panel', () => {
+  it('clears the item grid selection before Escape invokes the guarded back action', async () => {
+    const {panel, user, back} = await setup();
+    await user.click(secondThumbnail(panel));
+    await user.keyboard('{Escape}');
+    expect(within(panel).queryAllByRole('option', {selected: true})).toEqual(
+      [],
+    );
+    expect(back).not.toHaveBeenCalled();
+    await user.keyboard('{Escape}');
+    expect(back).toHaveBeenCalledOnce();
+  });
+
   it('shows the item slides and selects them without editing the library', async () => {
     const {panel, user, items, edits, first} = await setup();
     const tiles = thumbnails(panel);

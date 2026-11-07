@@ -94,8 +94,18 @@ function ControlApp({
       if (next === 'prep') session.startEditor();
       setWorkspace(next);
     };
-    if (workspace === 'screens' && next !== 'screens') themeLeave.leave(go);
-    else go();
+    if (
+      workspace === 'prep' &&
+      next !== 'prep' &&
+      session.editor?.getSnapshot().session
+    ) {
+      session.editor.requestLeave(() => {
+        session.editor?.open(null);
+        go();
+      });
+    } else if (workspace === 'screens' && next !== 'screens') {
+      themeLeave.leave(go);
+    } else go();
   };
   const onMedia = (): void => {
     if (workspace === 'screens') onWorkspace('show');
@@ -109,6 +119,7 @@ function ControlApp({
       onWorkspace,
       onMedia,
       imported: prepActions.imported,
+      editingSong: prepActions.editingSong,
     }),
     {
       id: 'search.focus',

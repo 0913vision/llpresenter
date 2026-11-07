@@ -14,6 +14,7 @@ import {sampleSong} from '@fixtures/core/songs/blockFixtures';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {ServiceTableList} from '@renderer/features/service/table/ServiceTableList';
+import type {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import {useLive} from '@renderer/session/live';
 import {applyService} from '@renderer/session/show';
 
@@ -80,14 +81,13 @@ function setup() {
     },
   });
   window.llp = api;
-  render(
-    <ServiceTableList
-      api={api}
-      items={{submitItemEdit: vi.fn(async () => true)}}
-      onProblem={vi.fn()}
-    />,
+  const submitItemEdit = vi.fn<ServiceItemStore['submitItemEdit']>(
+    async () => true,
   );
-  return {edits};
+  render(
+    <ServiceTableList api={api} items={{submitItemEdit}} onProblem={vi.fn()} />,
+  );
+  return {edits, submitItemEdit};
 }
 
 beforeEach(() => {
@@ -109,6 +109,22 @@ it('draws one row per item under the column names, without the plain count', asy
     expect(screen.getAllByText(name).length).toBeGreaterThan(0);
   }
   expect(row.textContent).not.toContain('슬라이드 0개');
+});
+
+it('edits a captured item memo from its menu even when the column is hidden', async () => {
+  const {submitItemEdit} = setup();
+  const user = userEvent.setup();
+  const row = await screen.findByRole('option', {name: '첫 곡'});
+  await user.pointer({target: row, keys: '[MouseRight]'});
+  await user.click(await screen.findByRole('menuitem', {name: '메모…'}));
+  const field = await screen.findByRole('textbox', {name: '메모'});
+  expect(document.activeElement).toBe(field);
+  await user.clear(field);
+  await user.click(screen.getByRole('button', {name: '저장'}));
+  await waitFor(() => expect(submitItemEdit).toHaveBeenCalledOnce());
+  expect(submitItemEdit.mock.calls[0]?.[0]).toMatchObject({
+    target: {serviceId: SERVICE_ID, itemId: SONG_ITEM},
+  });
 });
 
 it('shows 항목 없음 and keeps the adders for a service with no items', async () => {

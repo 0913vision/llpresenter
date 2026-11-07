@@ -16,6 +16,11 @@
   min-width: var(--size-field-key);
 }
 
+.header[data-inline='true'] .title {
+  flex-basis: 0;
+  min-width: 0;
+}
+
 .used {
   display: inline-flex;
   flex: none;
@@ -36,4 +41,8 @@
   height: var(--space-8);
   border-radius: var(--radius-full);
   background: var(--accent);
+}
+
+.unsaved[data-empty] {
+  background: transparent;
 }

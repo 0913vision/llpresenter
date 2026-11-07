@@ -17,6 +17,7 @@ import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import styles from './SongPanels.module.css';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {slideMenuEntries} from './slideMenuEntries';
+import type {SongSession} from './songSession';
 
 const OVERSCAN_ROWS = 1;
 const INITIAL_ROWS = 2;
@@ -81,6 +82,8 @@ export function VirtualSlides({
   onHotKey,
   hotKeyReason,
   canvasFor,
+  session,
+  decoration,
 }: {
   readonly song: SlideSource | Song;
   readonly numbers: readonly number[];
@@ -93,6 +96,8 @@ export function VirtualSlides({
   readonly onHotKey?: ((index: number) => void) | undefined;
   readonly hotKeyReason?: string | undefined;
   readonly canvasFor?: ((index: number) => ReactNode) | undefined;
+  readonly session?: SongSession;
+  readonly decoration?: ((start: number) => ReactNode) | undefined;
 }): JSX.Element {
   const theme = useSlideTheme(
     {id: 'thumbnail', kind: 'song', title: ''},
@@ -174,6 +179,59 @@ export function VirtualSlides({
     }
   }, [start, end, selected]);
   const navigate = (event: KeyboardEvent<HTMLDivElement>): void => {
+    if (session !== undefined) {
+      if (
+        isComposing(event) ||
+        event.ctrlKey ||
+        event.metaKey ||
+        event.altKey
+      ) {
+        return;
+      }
+      const moves: Readonly<Record<string, number>> = {
+        ArrowLeft: -1,
+        ArrowRight: 1,
+        ArrowUp: -columns,
+        ArrowDown: columns,
+      };
+      if (event.key === 'Home' || event.key === 'End') {
+        const index = event.key === 'Home' ? 0 : numbers.length - 1;
+        const slide = session.history.snapshot.song.slides[index];
+        if (slide === undefined) return;
+        event.preventDefault();
+        event.stopPropagation();
+        session.selectSlides({
+          type: 'click',
+          id: slide.id,
+          shift: event.shiftKey,
+        });
+        focusNext.current = index;
+        const node = viewport.current;
+        if (node !== null) {
+          setScrollTop(
+            reveal(node, index, {columns, stride, inset: measure.inset}),
+          );
+        }
+        return;
+      }
+      const delta = moves[event.key];
+      if (delta === undefined) return;
+      event.preventDefault();
+      event.stopPropagation();
+      session.selectSlides({type: 'arrow', delta, shift: event.shiftKey});
+      focusNext.current = session.selectedOccurrence;
+      const node = viewport.current;
+      if (node !== null) {
+        setScrollTop(
+          reveal(node, session.selectedOccurrence, {
+            columns,
+            stride,
+            inset: measure.inset,
+          }),
+        );
+      }
+      return;
+    }
     if (
       isComposing(event) ||
       event.ctrlKey ||
@@ -215,9 +273,38 @@ export function VirtualSlides({
   return (
     <div
       ref={viewport}
+      data-slide-columns={columns}
       className={styles.viewport}
       onScroll={event => setScrollTop(event.currentTarget.scrollTop)}
       onKeyDownCapture={navigate}
+      onClickCapture={event => {
+        if (session === undefined || !(event.target instanceof Element)) return;
+        const option = event.target.closest<HTMLElement>('[role="option"]');
+        if (option === null) return;
+        const local = [
+          ...event.currentTarget.querySelectorAll('[role="option"]'),
+        ].indexOf(option);
+        const slide = session.history.snapshot.song.slides[start + local];
+        if (slide === undefined) return;
+        event.preventDefault();
+        event.stopPropagation();
+        session.selectSlides({
+          type: 'click',
+          id: slide.id,
+          shift: event.shiftKey,
+          ctrl: event.ctrlKey || event.metaKey,
+        });
+        option.focus({preventScroll: true});
+      }}
+      onDoubleClick={event => {
+        if (session === undefined || !(event.target instanceof Element)) return;
+        const option = event.target.closest<HTMLElement>('[role="option"]');
+        if (option === null) return;
+        const local = [
+          ...event.currentTarget.querySelectorAll('[role="option"]'),
+        ].indexOf(option);
+        if (local >= 0) onEdit?.(start + local);
+      }}
     >
       <div className={styles.spacer} style={windowStyle}>
         <ThumbnailGrid
@@ -235,6 +322,7 @@ export function VirtualSlides({
           }
           onSelect={index => onSelect(start + index)}
           onMenu={(index, anchor) => {
+            if (session !== undefined) return;
             const at = start + index;
             const number = numbers[at];
             if (number !== undefined) setMenu({index: at, number, anchor});
@@ -244,7 +332,9 @@ export function VirtualSlides({
           {numbers.slice(start, end).map((number, index) => {
             const slides = song.slides;
             const slide = slides[number - 1];
-            return slide === undefined ? null : (
+            if (slide === undefined) return null;
+            const own = session?.history.snapshot.song.slides[number - 1];
+            const thumbnail = (
               <SlideThumbnail
                 key={start + index}
                 number={number}
@@ -259,6 +349,7 @@ export function VirtualSlides({
                   (theme === undefined ? undefined : (
                     <SlidePicture
                       {...theme}
+                      background={session?.background}
                       slide={{
                         itemId: 'thumbnail',
                         position: number - 1,
@@ -268,12 +359,66 @@ export function VirtualSlides({
                     />
                   ))
                 }
-                selected={start + index === selected}
+                selected={
+                  session === undefined
+                    ? start + index === selected
+                    : own !== undefined &&
+                      session.history.model
+                        .getSnapshot()
+                        .selection.ids.has(own.id)
+                }
                 hotKey={'hotKey' in slide ? slide.hotKey : undefined}
               />
             );
+            if (session === undefined) return thumbnail;
+            return (
+              <div
+                key={start + index}
+                className={styles.editableTile}
+                data-song-slide={own?.id}
+                data-slide-index={number - 1}
+                draggable={!session.readOnly}
+              >
+                <button
+                  type="button"
+                  data-slide-gap={number - 1}
+                  className={styles.gridGap}
+                  data-caret={
+                    session.history.model.getSnapshot().selection.caret ===
+                    number - 1
+                  }
+                  aria-label={`슬라이드 ${number} 앞에 삽입`}
+                  onClick={event => {
+                    session.selectSlides({type: 'gap', index: number - 1});
+                    event.currentTarget
+                      .closest<HTMLElement>('[aria-label="슬라이드 편집 명령"]')
+                      ?.focus();
+                  }}
+                />
+                {thumbnail}
+              </div>
+            );
           })}
         </ThumbnailGrid>
+        {decoration?.(start)}
+        {session === undefined ? null : (
+          <button
+            type="button"
+            className={styles.lastGap}
+            data-slide-gap={numbers.length}
+            data-caret={
+              session.history.model.getSnapshot().selection.caret ===
+              numbers.length
+            }
+            aria-label="마지막 슬라이드 뒤에 삽입"
+            onClick={event => {
+              session.selectSlides({type: 'gap', index: numbers.length});
+              event.currentTarget
+                .closest<HTMLElement>('[aria-label="슬라이드 편집 명령"]')
+                ?.focus();
+            }}
+          />
+        )}
       </div>
       {menu !== null && numbers[menu.index] === menu.number ? (
         <Menu

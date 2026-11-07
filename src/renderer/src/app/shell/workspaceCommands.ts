@@ -19,6 +19,7 @@ interface WorkspaceActions {
   readonly onWorkspace: (workspace: Workspace) => void;
   readonly onMedia: () => void;
   readonly imported: boolean;
+  readonly editingSong?: boolean;
 }
 
 /** Decided ProPresenter workspace defaults, with imported-save precedence. */
@@ -26,15 +27,17 @@ export function workspaceShortcuts({
   onWorkspace,
   onMedia,
   imported,
+  editingSong = false,
 }: WorkspaceActions): readonly WindowShortcut[] {
   return [
     {
       id: 'workspace.show',
       when: event =>
-        !imported ||
-        !commandBindings('import.save', commandBindingStore.get()).some(
-          binding => matchesBinding(event, binding),
-        ),
+        (!imported && !editingSong) ||
+        !commandBindings(
+          imported ? 'import.save' : 'songWindow.save',
+          commandBindingStore.get(),
+        ).some(binding => matchesBinding(event, binding)),
       run: () => onWorkspace('show'),
     },
     {id: 'workspace.prep', run: () => onWorkspace('prep')},

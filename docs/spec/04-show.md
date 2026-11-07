@@ -253,6 +253,11 @@ source was found.
 
 ### Editing a song that is on output
 
+곡 편집… on a service item or slide switches to 준비 and opens that item's
+inline editor at the clicked slide. A library source opens its library song. An
+unsaved draft asks before switching; cancel keeps it. No song editing window
+opens, and entering the editor never outputs a slide.
+
 If the operator edits the lyrics of a song on output in 준비, the output screens
 don't change until the next 슬라이드 goes out (proposal). The tiles in the
 슬라이드 panel change at once.

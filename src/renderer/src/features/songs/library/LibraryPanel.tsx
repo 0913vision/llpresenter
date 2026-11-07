@@ -43,6 +43,8 @@ export interface LibraryPanelProps {
   readonly api: LibraryApi;
   /** Opens the editor; after creation the host focuses its title field. */
   readonly onOpenSong: (selection: LibrarySelection) => void;
+  readonly onNewSong?: (() => void) | undefined;
+  readonly beforeOpen?: ((open: () => void) => void) | undefined;
   /** The workspace host merges problems into its one notification list. */
   readonly onProblem: (notice: Notice) => void;
   readonly selectionRequest?: LibrarySelectionRequest | undefined;
@@ -54,25 +56,31 @@ export interface LibraryPanelProps {
 export function LibraryPanel({
   api,
   onOpenSong,
+  onNewSong,
+  beforeOpen,
   onProblem,
   selectionRequest,
   onSelectionHandled,
 }: LibraryPanelProps): JSX.Element {
   const library = useLibrary(api, onOpenSong, onProblem);
   const serviceMenu = useLibraryServices(api, onProblem);
+  const open = (id: SongId, position?: number): void => {
+    const proceed = (): void => {
+      library.open(id, position).catch(() => library.report('open'));
+    };
+    if (beforeOpen === undefined) proceed();
+    else beforeOpen(proceed);
+  };
   const selectRequested = useEffectEvent(
     (request: LibrarySelectionRequest): void => {
       if (request.kind === 'clear') {
         library.clearSelection();
       } else if (request.kind === 'create') {
-        library.create().catch(() => library.report('create'));
+        if (onNewSong) onNewSong();
+        else library.create().catch(() => library.report('create'));
       } else {
         library.setQuery('');
-        library
-          .open(request.songId, request.position)
-          .catch((cause: unknown) =>
-            console.error('Requested library selection failed:', cause),
-          );
+        open(request.songId, request.position);
       }
       onSelectionHandled?.(request);
     },
@@ -141,7 +149,8 @@ export function LibraryPanel({
               label="새 곡"
               disabled={library.busy || library.loading}
               onClick={() => {
-                library.create().catch(() => library.report('create'));
+                if (onNewSong) onNewSong();
+                else library.create().catch(() => library.report('create'));
               }}
             />
           </PanelActions>
@@ -173,7 +182,7 @@ export function LibraryPanel({
               rows={library.visible}
               selected={library.selected}
               onSelect={id => {
-                library.open(id).catch(() => library.report('open'));
+                open(id);
               }}
               onContextMenu={(event, id) => {
                 event.preventDefault();
@@ -197,7 +206,7 @@ export function LibraryPanel({
             appendDisabledReason: serviceMenu.disabledReason,
             busy: library.busy || serviceMenu.busy,
             open: () => {
-              library.open(menuSong.id).catch(() => library.report('open'));
+              open(menuSong.id);
             },
             append: () => {
               serviceMenu

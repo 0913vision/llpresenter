@@ -71,7 +71,13 @@ async function switchItemSong(
 export function useSongEditorWindow(
   store: SongEditorStore,
   api: LlpApi,
-  report: (notice: Notice) => void,
+  {
+    report,
+    onOpened,
+  }: {
+    readonly report: (notice: Notice) => void;
+    readonly onOpened?: (target: SongEditorTarget) => void;
+  },
 ) {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const [dialog, setDialog] = useState<SongSaveDialog | null>(null);
@@ -87,10 +93,19 @@ export function useSongEditorWindow(
   const live = useRef(state);
   useLayoutEffect(() => {
     live.current = state;
+    const target = targetSource.current;
+    const id =
+      target?.from === undefined
+        ? target?.songId
+        : createSongId(target.from.itemId);
+    if (target !== null && id !== state.session?.document.song.id) {
+      from.current = undefined;
+      targetSource.current = null;
+    }
   });
 
   const askLeave = (proceed: () => void, cancel?: () => void): void => {
-    if (live.current.session?.unsaved === true) {
+    if (store.getSnapshot().session?.unsaved === true) {
       const open = shown.current;
       if (open?.kind === 'leave') open.cancel?.();
       shown.current = {kind: 'leave', proceed, cancel};
@@ -124,6 +139,9 @@ export function useSongEditorWindow(
         ...(content === undefined ? {} : {content, reload}),
         action: target.action,
       });
+      if (store.getSnapshot().session?.document.song.id === document.song.id) {
+        onOpened?.(target);
+      }
     } catch (error) {
       console.error('Could not open the song', error);
       report(problem('open'));
@@ -142,7 +160,13 @@ export function useSongEditorWindow(
       return;
     }
     askLeave(() => {
-      if (current !== undefined) store.discardEdits(current);
+      if (store.getSnapshot().imported) store.discardImported();
+      else if (
+        current !== undefined &&
+        store.sessionOf(current)?.unsaved === true
+      ) {
+        store.discardEdits(current);
+      }
       openTarget(target).catch(() => undefined);
     });
   };
@@ -194,19 +218,35 @@ export function useSongEditorWindow(
   useLayoutEffect(() => {
     askLeaveLatest.current = askLeave;
   });
+  useEffect(() => {
+    store.setLeaveGuard(action =>
+      askLeaveLatest.current(() => {
+        const current = store.getSnapshot().session;
+        if (store.getSnapshot().imported) store.discardImported();
+        else if (current?.unsaved === true) {
+          store.discardEdits(current.document.song.id);
+        }
+        action();
+      }),
+    );
+    return () => store.setLeaveGuard(undefined);
+  }, [store]);
   useEffect(
     () =>
       pendingWritesOf(api).addDraft(
         () =>
           new Promise<DraftOutcome>(resolve => {
             askLeaveLatest.current(
-              () => resolve('settled'),
+              () => {
+                if (store.getSnapshot().imported) store.discardImported();
+                resolve('settled');
+              },
               () => resolve('canceled'),
             );
           }),
         error => console.error('Could not settle the song edits', error),
       ),
-    [api],
+    [api, store],
   );
 
   const session = state.session;
@@ -227,6 +267,7 @@ export function useSongEditorWindow(
 
   const overwrite = (): Promise<boolean> =>
     guarded(async () => {
+      if (live.current.imported) return store.saveImported({kind: 'new'});
       return (await session?.commit()) === true;
     });
 
@@ -265,14 +306,30 @@ export function useSongEditorWindow(
     setDialog(null);
   };
   const askOverwrite = (): void => {
-    if (session?.unsaved === true) setDialog({kind: 'overwrite'});
+    if (
+      session?.unsaved === true &&
+      session.title.reason === undefined &&
+      !session.readOnly
+    ) {
+      setDialog({kind: 'overwrite'});
+    }
   };
   const askSaveAs = (): void => {
     if (session !== null) setDialog({kind: 'saveAs'});
   };
   useWindowShortcuts([
-    {id: 'songWindow.save', when: () => true, run: askOverwrite},
-    {id: 'songWindow.saveAs', when: () => true, run: askSaveAs},
+    {
+      id: 'songWindow.save',
+      context: 'song',
+      when: () => !state.imported && state.session !== null,
+      run: askOverwrite,
+    },
+    {
+      id: 'songWindow.saveAs',
+      context: 'song',
+      when: () => !state.imported && state.session !== null,
+      run: askSaveAs,
+    },
   ]);
 
   return {

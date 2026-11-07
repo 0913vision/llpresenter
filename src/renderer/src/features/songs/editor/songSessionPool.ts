@@ -3,6 +3,7 @@ import type {SongId} from '@core/schema/ids';
 import {normalizeSongTitle} from '@core/songs/songTitle';
 import type {EditorApi, EditorOperationHost} from './editorContracts';
 import {SongSession} from './songSession';
+import {songSlideClipboardFor} from './songSlideHistory';
 
 /**
  * Live facade checks and readers, without a second editor state or writer.
@@ -13,6 +14,7 @@ export interface SongSessionPoolOptions {
   readonly library: () => readonly LibrarySong[];
   readonly busy: () => boolean;
   readonly editingStopped: () => boolean;
+  readonly receive?: (document: SongDocument) => void;
   /** Whether sessions write on every edit or only when asked. */
   readonly persistence?: 'automatic' | 'manual';
 }
@@ -80,19 +82,23 @@ export class SongSessionPool {
     const existing = this.sessions.get(id);
     if (existing !== undefined) {
       this.touch(id);
-      existing.receive(document);
+      if (this.context.receive === undefined) existing.receive(document);
+      else this.context.receive(document);
       return existing;
     }
     const session = new SongSession({
       document,
+      clipboard: songSlideClipboardFor(this.context.api),
       api: {
         edit: command =>
           (this.writers.get(id) ?? this.context.api.content).edit(command),
       },
       itemSession: content !== undefined,
-      ...(this.context.persistence === undefined
-        ? {}
-        : {persistence: this.context.persistence}),
+      ...(content !== undefined
+        ? {persistence: 'automatic' as const}
+        : this.context.persistence === undefined
+          ? {}
+          : {persistence: this.context.persistence}),
       isDuplicateTitle: value =>
         content === undefined &&
         this.context

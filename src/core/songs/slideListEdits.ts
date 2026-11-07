@@ -34,6 +34,11 @@ export interface SlideListAdapter<T extends SlideListItem> {
 export interface SlideListSnapshot<T extends SlideListItem> {
   readonly slides: readonly T[];
   readonly selection: SlideListSelection<T['id']>;
+  readonly textSelection?: {
+    readonly id: T['id'];
+    readonly start: number;
+    readonly end: number;
+  };
 }
 export interface SlideClipboard<T extends SlideListItem> {
   readonly slides: readonly T[];

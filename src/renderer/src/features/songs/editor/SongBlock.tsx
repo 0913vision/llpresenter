@@ -5,6 +5,7 @@ import {
   type JSX,
   type KeyboardEvent,
   type RefObject,
+  type ReactNode,
 } from 'react';
 import type {LabelColor} from '@core/labels/colors';
 import {LabelTag} from '@renderer/ui/LabelChip';
@@ -32,12 +33,15 @@ interface BlockProps {
   readonly session: SongSession;
   readonly focus: RefObject<EditorFocus>;
   readonly active: boolean;
+  readonly focused?: boolean;
   readonly locked: boolean;
   readonly editable: boolean;
   readonly color: LabelColor;
   readonly expanded: boolean;
   readonly onOpen: (anchor: HTMLElement, block: number) => void;
   readonly top: number;
+  readonly caret?: boolean;
+  readonly canvas?: ReactNode;
 }
 
 /** Keeps untouched blocks out of the typing render path. */
@@ -48,12 +52,15 @@ export const SongBlock = memo(
     session,
     focus,
     active,
+    focused = false,
     locked,
     editable,
     color,
     expanded,
     onOpen,
     top,
+    caret,
+    canvas,
   }: BlockProps): JSX.Element => {
     const labelButtonRef = useRef<HTMLButtonElement | null>(null);
 
@@ -141,84 +148,121 @@ export const SongBlock = memo(
       <div
         className={styles.block}
         data-active={active}
+        data-focused={focused}
         data-editor-block={block}
+        data-song-slide={slide.id}
+        data-slide-index={block}
+        draggable={!locked}
         style={{top}}
-      >
-        <span className={styles.number}>{block + 1}</span>
-        <div className={styles.label}>
-          {
-            <LabelTag
-              buttonRef={labelButtonRef}
-              name={slide.label === '' ? undefined : slide.label}
-              color={color}
-              picker={
-                !editable
-                  ? undefined
-                  : {
-                      expanded,
-                      onOpen: anchor => {
-                        if (!locked) onOpen(anchor, block);
-                      },
-                    }
-              }
-            />
+        onClick={event => {
+          if (
+            event.target instanceof Element &&
+            event.target.closest('textarea, input, button')
+          ) {
+            return;
           }
-        </div>
-        <textarea
-          ref={input => {
-            focus.current.inputs[block] = input;
-          }}
-          aria-label={`슬라이드 ${block + 1} 가사`}
-          className={styles.lyrics}
-          value={slide.lines.join('\n')}
-          rows={Math.max(1, slide.lines.length)}
-          readOnly={locked}
-          wrap="off"
-          spellCheck={false}
-          onFocus={event => {
-            select(event.currentTarget);
-          }}
-          onBlur={() => {
-            focus.current.composing = false;
-            session.endTyping();
-          }}
-          onSelect={event => {
-            if (event.currentTarget === document.activeElement) {
-              select(event.currentTarget);
-            }
-          }}
-          onCompositionStart={() => {
-            focus.current.composing = true;
-          }}
-          onCompositionEnd={() => {
-            focus.current.composing = false;
-          }}
-          onKeyDown={keyDown}
-          onChange={event => {
-            if (locked) return;
-            const input = event.currentTarget;
-            select(input);
-            session.edit({
-              type: 'text',
-              text: input.value,
-              start: input.selectionStart,
-              end: input.selectionEnd,
-            });
-          }}
-          onPaste={event => {
-            if (locked || focus.current.composing) return;
-            const text = event.clipboardData.getData('text/plain');
-            event.preventDefault();
-            if (text === '') return;
-            select(event.currentTarget);
-            focus.current.requested = true;
-            focus.current.target = 'lyrics';
-            session.edit({
-              type: 'paste',
-              text,
-            });
+          session.selectSlides({
+            type: 'click',
+            id: slide.id,
+            shift: event.shiftKey,
+            ctrl: event.ctrlKey || event.metaKey,
+          });
+        }}
+      >
+        <button
+          type="button"
+          className={styles.gap}
+          data-caret={caret}
+          data-slide-gap={block}
+          aria-label={`슬라이드 ${block + 1} 앞에 삽입`}
+          onClick={event => {
+            event.stopPropagation();
+            session.selectSlides({type: 'gap', index: block});
+            event.currentTarget
+              .closest<HTMLElement>('[aria-label="슬라이드 편집 명령"]')
+              ?.focus();
           }}
         />
+        <span className={styles.number}>{block + 1}</span>
+        <div className={styles.thumbnail} data-editor-thumbnail>
+          {canvas}
+        </div>
+        <div className={styles.text}>
+          <div className={styles.label}>
+            {
+              <LabelTag
+                buttonRef={labelButtonRef}
+                name={slide.label === '' ? undefined : slide.label}
+                color={color}
+                picker={
+                  !editable
+                    ? undefined
+                    : {
+                        expanded,
+                        onOpen: anchor => {
+                          if (!locked) onOpen(anchor, block);
+                        },
+                      }
+                }
+              />
+            }
+          </div>
+          <textarea
+            ref={input => {
+              focus.current.inputs[block] = input;
+            }}
+            aria-label={`슬라이드 ${block + 1} 가사`}
+            className={styles.lyrics}
+            value={slide.lines.join('\n')}
+            rows={Math.max(1, slide.lines.length)}
+            readOnly={locked}
+            wrap="off"
+            spellCheck={false}
+            onFocus={event => {
+              select(event.currentTarget);
+            }}
+            onBlur={() => {
+              focus.current.composing = false;
+              session.endTyping();
+            }}
+            onSelect={event => {
+              if (event.currentTarget === document.activeElement) {
+                select(event.currentTarget);
+              }
+            }}
+            onCompositionStart={() => {
+              focus.current.composing = true;
+            }}
+            onCompositionEnd={() => {
+              focus.current.composing = false;
+            }}
+            onKeyDown={keyDown}
+            onChange={event => {
+              if (locked) return;
+              const input = event.currentTarget;
+              select(input);
+              session.edit({
+                type: 'text',
+                text: input.value,
+                start: input.selectionStart,
+                end: input.selectionEnd,
+              });
+            }}
+            onPaste={event => {
+              if (locked || focus.current.composing) return;
+              const text = event.clipboardData.getData('text/plain');
+              event.preventDefault();
+              if (text === '') return;
+              select(event.currentTarget);
+              focus.current.requested = true;
+              focus.current.target = 'lyrics';
+              session.edit({
+                type: 'paste',
+                text,
+              });
+            }}
+          />
+        </div>
       </div>
     );
   },

@@ -18,6 +18,7 @@ import type {EditorLabels, SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';
 import {VirtualSlides} from './VirtualSlides';
 import styles from './SongPanels.module.css';
+import {SongSlideSurface} from './SongSlideSurface';
 
 export interface SongSlideStore {
   readonly subscribe: (listener: () => void) => () => void;
@@ -32,9 +33,11 @@ export interface SongSlideStore {
 export function SongSlidePanel({
   store,
   sizeClass,
+  onBack,
 }: {
   readonly store: SongEditorStore | SongSlideStore;
   readonly sizeClass: SizeClass;
+  readonly onBack?: (() => void) | undefined;
 }): JSX.Element {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const scale = useThumbnailScale(sizeClass);
@@ -60,36 +63,52 @@ export function SongSlidePanel({
         <PanelTitle title="슬라이드" />
       </PanelHeader>
       <PanelBody variant="flush">
-        <VirtualSlides
-          key={song.id}
-          song={song}
-          numbers={numbers}
-          labels={state.labels?.value.labels ?? []}
-          selected={at < 0 ? undefined : at}
-          baseline={defaultThumbnailColumns[sizeClass]}
-          scale={scale}
-          onSelect={select}
-          onEdit={select}
+        <SongSlideSurface
+          session={session}
+          onBack={onBack}
+          store={'requestAction' in store ? store : undefined}
           onHotKey={
             'requestAction' in store
               ? index => {
-                  const number = numbers[index];
-                  if (number === undefined) return;
-                  select(index);
+                  session.selectOccurrence(index);
                   store.requestAction('hot-key');
                 }
               : undefined
           }
-          hotKeyReason={
-            session.blocked
-              ? '저장 오류'
-              : session.readOnly
-                ? NEWER_FILE_REASON
-                : state.busy
-                  ? '작업을 마친 뒤 다시 시도하세요'
-                  : undefined
-          }
-        />
+          className={styles.slideSurface}
+        >
+          <VirtualSlides
+            session={session}
+            key={song.id}
+            song={song}
+            numbers={numbers}
+            labels={state.labels?.value.labels ?? []}
+            selected={at < 0 ? undefined : at}
+            baseline={defaultThumbnailColumns[sizeClass]}
+            scale={scale}
+            onSelect={select}
+            onEdit={select}
+            onHotKey={
+              'requestAction' in store
+                ? index => {
+                    const number = numbers[index];
+                    if (number === undefined) return;
+                    select(index);
+                    store.requestAction('hot-key');
+                  }
+                : undefined
+            }
+            hotKeyReason={
+              session.blocked
+                ? '저장 오류'
+                : session.readOnly
+                  ? NEWER_FILE_REASON
+                  : state.busy
+                    ? '작업을 마친 뒤 다시 시도하세요'
+                    : undefined
+            }
+          />
+        </SongSlideSurface>
       </PanelBody>
       <PanelFooter
         count={numbers.length}

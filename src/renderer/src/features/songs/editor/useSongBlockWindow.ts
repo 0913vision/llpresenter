@@ -45,15 +45,29 @@ export function useSongBlockWindow(
         Number.parseFloat(css.getPropertyValue(name)) || 0;
       const line = Number.parseFloat(getComputedStyle(input).lineHeight);
       if (!Number.isFinite(line) || line <= 0) return;
+      const label = block.querySelector<HTMLElement>(
+        'button:not([data-slide-gap])',
+      );
+      const labelHeight = label?.getBoundingClientRect().height ?? 0;
+      const textGap = px('--space-8');
+      const thumbnail = block.querySelector<HTMLElement>(
+        '[data-editor-thumbnail]',
+      );
+      const thumbnailHeight = thumbnail?.getBoundingClientRect().height ?? 0;
       setMeasure({
         viewport: node.clientHeight,
         line,
-        minimum: px('--size-control-xs'),
+        minimum: Math.max(
+          px('--size-control-xs'),
+          thumbnailHeight - labelHeight - textGap,
+        ),
         inset:
           px('padding-top') +
           px('padding-bottom') +
           px('border-top-width') +
-          px('border-bottom-width'),
+          px('border-bottom-width') +
+          labelHeight +
+          textGap,
       });
     };
     read();

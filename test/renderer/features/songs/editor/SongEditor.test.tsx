@@ -1,4 +1,4 @@
-import {act, fireEvent, screen} from '@testing-library/react';
+import {act, fireEvent, screen, waitFor} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 import {editorSong} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {SongEditor} from '@renderer/features/songs/editor/SongEditor';
@@ -16,6 +16,147 @@ function cursor(input: HTMLTextAreaElement, start: number, end = start): void {
 }
 
 describe('song editor view', () => {
+  it.each(['number', 'thumbnail', 'margin'])(
+    'keeps slide shortcuts active after clicking the row %s from a text field',
+    async place => {
+      const {session, user} = await editorSetup();
+      const row = document.querySelector<HTMLElement>('[data-editor-block]');
+      if (row === null) throw new Error('Missing row');
+      await user.click(lyrics(2));
+      const target =
+        place === 'number'
+          ? row.querySelector(':scope > span')
+          : place === 'thumbnail'
+            ? row.querySelector('[data-editor-thumbnail]')
+            : row;
+      if (!(target instanceof HTMLElement)) throw new Error('Missing target');
+      await user.click(target);
+      expect(document.activeElement).toBe(
+        screen.getByRole('group', {name: '슬라이드 편집 명령'}),
+      );
+      const original = session.history.snapshot.song.slides;
+      await user.keyboard('{Control>}c{/Control}');
+      expect(await navigator.clipboard.readText()).toBe(
+        original[0]?.lines.join('\n'),
+      );
+      await user.keyboard('{Control>}d{/Control}');
+      expect(session.history.snapshot.song.slides).toHaveLength(
+        original.length + 1,
+      );
+      await user.keyboard('{Delete}');
+      expect(session.history.snapshot.song.slides).toEqual(original);
+    },
+  );
+
+  it('queues repeated paste behind an unfinished copy, with independent ids and one undo per paste', async () => {
+    const {session, user} = await editorSetup();
+    const original = session.history.snapshot.song.slides;
+    const row = document.querySelector<HTMLElement>('[data-editor-block]');
+    if (row === null) throw new Error('Missing row');
+    fireEvent.click(row);
+    let finish: (() => void) | undefined;
+    vi.spyOn(navigator.clipboard, 'writeText').mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          finish = resolve;
+        }),
+    );
+    const read = vi
+      .spyOn(navigator.clipboard, 'readText')
+      .mockResolvedValue(original[0]?.lines.join('\n') ?? '');
+    await user.keyboard('{Control>}c{/Control}');
+    const surface = screen.getByRole('group', {name: '슬라이드 편집 명령'});
+    act(() => {
+      fireEvent.keyDown(surface, {key: 'v', code: 'KeyV', ctrlKey: true});
+      fireEvent.keyDown(surface, {key: 'v', code: 'KeyV', ctrlKey: true});
+    });
+    expect(read).not.toHaveBeenCalled();
+    await act(async () => {
+      finish?.();
+    });
+    await waitFor(() =>
+      expect(session.history.snapshot.song.slides).toHaveLength(
+        original.length + 2,
+      ),
+    );
+    const ids = session.history.snapshot.song.slides.map(slide => slide.id);
+    expect(new Set(ids).size).toBe(ids.length);
+    await user.keyboard('{Control>}z{/Control}');
+    expect(session.history.snapshot.song.slides).toHaveLength(
+      original.length + 1,
+    );
+    await user.keyboard('{Control>}z{/Control}');
+    expect(session.history.snapshot.song.slides).toEqual(original);
+  });
+
+  it('cancels a pending system paste when the operator selects another slide', async () => {
+    const {session} = await editorSetup();
+    const rows = [
+      ...document.querySelectorAll<HTMLElement>('[data-editor-block]'),
+    ];
+    if (!rows[0] || !rows[1]) throw new Error('Missing rows');
+    fireEvent.click(rows[0]);
+    const original = session.history.snapshot.song.slides;
+    let finish: ((text: string) => void) | undefined;
+    vi.spyOn(navigator.clipboard, 'readText').mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          finish = resolve;
+        }),
+    );
+    fireEvent.keyDown(screen.getByRole('group', {name: '슬라이드 편집 명령'}), {
+      key: 'v',
+      code: 'KeyV',
+      ctrlKey: true,
+    });
+    await waitFor(() => expect(finish).toBeDefined());
+    fireEvent.click(rows[1]);
+    await act(async () => {
+      finish?.('External slide');
+    });
+    expect(session.history.snapshot.song.slides).toEqual(original);
+    expect(session.selectedOccurrence).toBe(1);
+  });
+  it('selects rows with Shift and Ctrl, then shares duplicate, undo, and gap paste commands', async () => {
+    const {session, user} = await editorSetup();
+    const rows = (): HTMLElement[] => [
+      ...document.querySelectorAll<HTMLElement>('[data-editor-block]'),
+    ];
+    const first = rows()[0];
+    const second = rows()[1];
+    if (!first || !second) throw new Error('Missing rows');
+    fireEvent.click(first);
+    fireEvent.click(second, {shiftKey: true});
+    expect(session.history.model.getSnapshot().selection.ids.size).toBe(2);
+    expect(rows().filter(row => row.dataset.active === 'true')).toHaveLength(2);
+    expect(rows().filter(row => row.dataset.focused === 'true')).toEqual([
+      second,
+    ]);
+    const original = session.history.snapshot.song.slides;
+    await user.keyboard('{Control>}d{/Control}');
+    expect(session.history.snapshot.song.slides).toHaveLength(
+      original.length + 2,
+    );
+    await user.keyboard('{Control>}z{/Control}');
+    expect(session.history.snapshot.song.slides).toEqual(original);
+    fireEvent.click(second, {ctrlKey: true});
+    expect(session.history.model.getSnapshot().selection.ids.size).toBe(1);
+    await user.keyboard('{Control>}c{/Control}');
+    await user.click(
+      screen.getByRole('button', {name: '슬라이드 1 앞에 삽입'}),
+    );
+    expect(session.history.model.getSnapshot().selection.caret).toBe(0);
+    await user.keyboard('{Control>}v{/Control}');
+    expect(session.history.snapshot.song.slides).toHaveLength(
+      original.length + 1,
+    );
+    expect(session.history.snapshot.song.slides[0]?.lines).toEqual(
+      original[0]?.lines,
+    );
+    expect(session.history.snapshot.song.slides[0]?.id).not.toBe(
+      original[0]?.id,
+    );
+  });
   it('passes modified Enter from the title field to window shortcuts', async () => {
     await editorSetup();
     const title = screen.getByRole('textbox', {name: '곡 제목'});

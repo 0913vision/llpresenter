@@ -111,8 +111,10 @@ function slideAt(
  */
 export function OverlayClips({
   control,
+  positionOffset = 0,
 }: {
   readonly control: OverlayControl;
+  readonly positionOffset?: number;
 }): JSX.Element {
   const {editing} = control;
   const layer = useRef<HTMLDivElement>(null);
@@ -144,7 +146,7 @@ export function OverlayClips({
     const observer = new ResizeObserver(update);
     observer.observe(parent);
     return () => observer.disconnect();
-  }, [update, editing.count]);
+  }, [update, editing.count, positionOffset]);
 
   useLayoutEffect(() => {
     const parent = layer.current?.parentElement;
@@ -175,7 +177,7 @@ export function OverlayClips({
       const media = readMediaDrag(event.dataTransfer);
       if (index === undefined || media === undefined) return;
       event.preventDefault();
-      control.dropMedia(index + 1, media);
+      control.dropMedia(index + 1 + positionOffset, media);
     };
     const leave = (): void => setDropAt(null);
     parent.addEventListener('dragover', over);
@@ -186,7 +188,7 @@ export function OverlayClips({
       parent.removeEventListener('drop', drop);
       parent.removeEventListener('dragleave', leave);
     };
-  }, [control, editing.reason]);
+  }, [control, editing.reason, positionOffset]);
 
   const startDrag = (
     event: PointerEvent<HTMLElement>,
@@ -212,7 +214,7 @@ export function OverlayClips({
       overlays: editing.overlays,
       id: drag.id,
       edge: drag.edge,
-      position,
+      position: position + positionOffset,
       total: editing.count,
     });
     if (span !== undefined) setDrag({...drag, span});
@@ -280,16 +282,31 @@ export function OverlayClips({
         />
       )}
       {editing.overlays.flatMap(overlay => {
-        const span: OverlaySpan =
+        const globalSpan: OverlaySpan =
           drag?.id === overlay.id
             ? drag.span
-            : {from: overlay.from, to: Math.min(overlay.to, boxes.length)};
+            : {from: overlay.from, to: overlay.to};
+        if (
+          globalSpan.to <= positionOffset ||
+          globalSpan.from > positionOffset + boxes.length
+        ) {
+          return [];
+        }
+        const span = {
+          from: Math.max(1, globalSpan.from - positionOffset),
+          to: Math.min(boxes.length, globalSpan.to - positionOffset),
+        };
         const label = `${overlay.name}, 슬라이드 ${overlay.from}부터 ${overlay.to}까지`;
         return clipSegments(span, columns).flatMap(segment => {
           const first = boxes[segment.row * columns + segment.firstColumn];
           const last = boxes[segment.row * columns + segment.lastColumn];
           if (first === undefined || last === undefined) return [];
-          const primary = !segment.continuesBefore;
+          const before =
+            segment.continuesBefore || globalSpan.from <= positionOffset;
+          const after =
+            segment.continuesAfter ||
+            globalSpan.to > positionOffset + boxes.length;
+          const primary = segment.row === 0 || !segment.continuesBefore;
           return [
             <div
               key={`${overlay.id}:${segment.row}`}
@@ -319,15 +336,11 @@ export function OverlayClips({
                 }}
                 onKeyDown={event => keyDown(event, overlay.id)}
               >
-                {segment.continuesBefore ? (
-                  <span aria-hidden="true">‹</span>
-                ) : null}
+                {before ? <span aria-hidden="true">‹</span> : null}
                 <span className={styles.barName}>{overlay.name}</span>
-                {segment.continuesAfter ? (
-                  <span aria-hidden="true">›</span>
-                ) : null}
+                {after ? <span aria-hidden="true">›</span> : null}
               </button>
-              {segment.continuesBefore ? null : (
+              {before ? null : (
                 <span
                   className={styles.handle}
                   data-edge="from"
@@ -335,7 +348,7 @@ export function OverlayClips({
                   onPointerDown={event => startDrag(event, overlay.id, 'from')}
                 />
               )}
-              {segment.continuesAfter ? null : (
+              {after ? null : (
                 <span
                   className={styles.handle}
                   data-edge="to"

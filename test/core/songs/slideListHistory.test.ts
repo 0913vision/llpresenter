@@ -5,6 +5,7 @@ import {
   redoSlideList,
   undoSlideList,
   SLIDE_LIST_HISTORY_LIMIT,
+  recordSlideListSnapshot,
 } from '@core/songs/slideListHistory';
 import {
   resultValue,
@@ -14,6 +15,47 @@ import {
 import {selectSlideList} from '@core/songs/slideListSelection';
 
 describe('slide list history', () => {
+  it('records validated text and its caret in structural history, coalescing only after the first step', () => {
+    const {history, adapter} = selectedSlideList();
+    const first = history.present.slides[0];
+    if (!first) throw new Error('Missing slide');
+    const textSelection = {id: first.id, start: 1, end: 1};
+    const typed = {
+      ...history.present,
+      textSelection,
+      slides: history.present.slides.map(slide =>
+        slide.id === first.id ? {...slide, lines: ['A']} : slide,
+      ),
+    };
+    const once = resultValue(
+      recordSlideListSnapshot(history, typed, {adapter, coalesce: true}),
+    );
+    expect(once.past).toHaveLength(1);
+    const twice = resultValue(
+      recordSlideListSnapshot(
+        once,
+        {
+          ...typed,
+          textSelection: {...textSelection, start: 2, end: 2},
+          slides: typed.slides.map(slide =>
+            slide.id === first.id ? {...slide, lines: ['AB']} : slide,
+          ),
+        },
+        {adapter, coalesce: true},
+      ),
+    );
+    expect(twice.past).toHaveLength(1);
+    expect(undoSlideList(twice).present).toEqual(history.present);
+    expect(redoSlideList(undoSlideList(twice)).present).toEqual(twice.present);
+    expect(
+      recordSlideListSnapshot(
+        twice,
+        {...typed, slides: [first, first]},
+        {adapter},
+      ),
+    ).toEqual({ok: false, error: 'invalid'});
+    expect(twice.present.slides[0]?.lines).toEqual(['AB']);
+  });
   it.each([
     {type: 'duplicate'},
     {type: 'delete'},

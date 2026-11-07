@@ -1,10 +1,9 @@
-import {useSyncExternalStore} from 'react';
+import {useSyncExternalStore, type RefObject} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {SongId} from '@core/schema/ids';
-import {
-  ItemPreviewPanel,
-  ItemSettingsPanel,
-} from '@renderer/features/service/items/ItemSidePanels';
+import {ItemPreviewPanel} from '@renderer/features/service/items/ItemSidePanels';
+import type {SongEditorWindowModel} from '@renderer/features/songs/editor/useSongEditorWindow';
+import {InlineSongActions} from './InlineSongActions';
 import {ServiceItemPanel} from '@renderer/features/service/items/SongItemPanel';
 import type {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import {
@@ -25,13 +24,9 @@ import {SERVICE_ORDER, serviceOrderParts} from './serviceOrderPanel';
 const PREP_COLUMNS = [
   ['라이브러리'],
   [SERVICE_ORDER],
-  ['미리보기', '슬라이드', '항목 설정'],
+  ['미리보기', '슬라이드'],
 ] as const;
 
-// NOTE(0913vision): A text import or a new song is a draft with no library
-// file yet, so the 곡 편집 window can't open it. While the editor holds one,
-// 준비 swaps the table for the editor, as before.
-// TODO(0913vision): Remove this layout once the 곡 편집 window opens drafts.
 const PREP_DRAFT_COLUMNS = [
   ['라이브러리'],
   ['편집'],
@@ -40,6 +35,8 @@ const PREP_DRAFT_COLUMNS = [
 
 /** What 준비 works on: the API, the song editor, and the item panels. */
 export interface PrepBinding {
+  readonly controls?: RefObject<SongEditorWindowModel | null>;
+  readonly onNewSong?: (() => void) | undefined;
   readonly onImportedSave?: ((id: SongId) => void) | undefined;
   readonly api: LlpApi;
   readonly editor: SongEditorStore;
@@ -50,22 +47,6 @@ export interface PrepBinding {
   // NOTE(0913vision): Runs before a 예배 순서 item opens in 준비, ahead of the
   // editor, so a pending library selection can't replace the item's view.
   readonly onServiceItemOpen?: (() => void) | undefined;
-}
-
-function openSongWindow(
-  api: LlpApi,
-  target: {readonly songId: SongId; readonly block: number},
-): void {
-  api.window
-    .openSongEditor(target)
-    .then(result => {
-      if (!result.ok) {
-        console.error('Could not open the song editor', result.error.reason);
-      }
-    })
-    .catch((error: unknown) =>
-      console.error('Could not open the song editor', error),
-    );
 }
 
 const noSubscribe = (): (() => void) => () => undefined;
@@ -82,10 +63,12 @@ function libraryParts(
         selectionRequest={prep.selectionRequest}
         onSelectionHandled={prep.onSelectionHandled}
         onProblem={onProblem ?? ignoreProblem}
+        onNewSong={prep.onNewSong}
+        beforeOpen={open => prep.editor.requestLeave(open)}
         onOpenSong={selection =>
-          openSongWindow(prep.api, {
-            songId: selection.document.song.id,
+          prep.editor.open(selection.document, {
             block: selection.position ?? 0,
+            focusTitle: selection.focusTitle,
           })
         }
       />
@@ -97,52 +80,70 @@ function prepPanelParts({
   title,
   prep,
   hasDraft,
+  itemEditor,
   onProblem,
   sizeClass,
 }: {
   readonly title: string;
   readonly prep: PrepBinding | undefined;
   readonly hasDraft: boolean;
+  readonly itemEditor: boolean;
   readonly onProblem: ((notice: Notice) => void) | undefined;
   readonly sizeClass: SizeClass;
 }): PanelParts {
   if (!prep) return {};
+  const back = (): void =>
+    prep.editor.requestLeave(() => prep.editor.open(null));
   if (title === '라이브러리') return libraryParts(prep, onProblem);
   if (title === '편집') {
     return {
-      body: (
-        <SongEditor store={prep.editor} onImportedSave={prep.onImportedSave} />
+      embedded: (
+        <SongEditor
+          store={prep.editor}
+          onImportedSave={prep.onImportedSave}
+          onBack={back}
+          actions={
+            prep.controls === undefined ? null : (
+              <InlineSongActions
+                store={prep.editor}
+                controlsRef={prep.controls}
+                onProblem={onProblem ?? ignoreProblem}
+              />
+            )
+          }
+        />
       ),
     };
   }
   if (title === '미리보기') {
     return {
       size: 'content',
-      embedded: hasDraft ? (
-        <SongPreviewPanel store={prep.editor} />
-      ) : (
-        <ItemPreviewPanel items={prep.items} editor={prep.editor} />
-      ),
-    };
-  }
-  if (title === '항목 설정') {
-    return {
-      size: 'settings',
-      embedded: <ItemSettingsPanel items={prep.items} editor={prep.editor} />,
+      embedded:
+        hasDraft && !itemEditor ? (
+          <SongPreviewPanel store={prep.editor} />
+        ) : (
+          <ItemPreviewPanel items={prep.items} editor={prep.editor} />
+        ),
     };
   }
   if (title === '슬라이드') {
     return {
-      size: 'list',
-      embedded: hasDraft ? (
-        <SongSlidePanel store={prep.editor} sizeClass={sizeClass} />
-      ) : (
-        <ServiceItemPanel
-          items={prep.items}
-          editor={prep.editor}
-          sizeClass={sizeClass}
-        />
-      ),
+      size: 'rest',
+      embedded:
+        hasDraft && !itemEditor ? (
+          <SongSlidePanel
+            store={prep.editor}
+            sizeClass={sizeClass}
+            onBack={back}
+          />
+        ) : (
+          <ServiceItemPanel
+            items={prep.items}
+            editor={prep.editor}
+            sizeClass={sizeClass}
+            onBack={hasDraft ? back : undefined}
+          />
+        ),
     };
   }
   return {};
@@ -169,10 +170,18 @@ export function usePrepPanels({
   readonly onOpenPrep: ((itemId: string) => void) | undefined;
   readonly onShowInLibrary: ((songId: SongId) => void) | undefined;
 }): WorkspacePanels {
-  const hasDraft = useSyncExternalStore(
+  const editorKind = useSyncExternalStore(
     prep?.editor.subscribe ?? noSubscribe,
-    () => Boolean(prep?.editor.getSnapshot().session),
+    () => {
+      const session = prep?.editor.getSnapshot().session;
+      return session == null
+        ? 'table'
+        : session.itemSession
+          ? 'item'
+          : 'library';
+    },
   );
+  const hasDraft = editorKind !== 'table';
   return {
     columns: hasDraft ? PREP_DRAFT_COLUMNS : PREP_COLUMNS,
     partsOf: title =>
@@ -189,6 +198,13 @@ export function usePrepPanels({
                 ? undefined
                 : {api: prep.api, items: prep.items},
           })
-        : prepPanelParts({title, prep, hasDraft, onProblem, sizeClass}),
+        : prepPanelParts({
+            title,
+            prep,
+            hasDraft,
+            itemEditor: editorKind === 'item',
+            onProblem,
+            sizeClass,
+          }),
   };
 }

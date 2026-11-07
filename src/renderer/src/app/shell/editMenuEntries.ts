@@ -77,12 +77,9 @@ function textRow(
 ): MenuItem {
   const field = textField(place);
   const needsSelection = action === 'cut' || action === 'copy';
-  const command =
-    action === 'copy' || action === 'paste' ? `edit.${action}` : undefined;
+  const command = `edit.${action}`;
   const probe =
-    field === null && command !== undefined
-      ? probeCommand(command, place)
-      : ({found: false} as const);
+    field === null ? probeCommand(command, place) : ({found: false} as const);
   const reason = probe.found
     ? probe.reason
     : field === null
@@ -98,7 +95,7 @@ function textRow(
     ...menuAvailability(reason),
     onSelect: afterMenu(() => {
       if (field !== null) edit(field, action);
-      else if (command !== undefined) {
+      else {
         if (place instanceof HTMLElement) place.focus();
         runCommandAt(command, place);
       }

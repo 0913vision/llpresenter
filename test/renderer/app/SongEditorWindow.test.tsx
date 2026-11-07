@@ -47,6 +47,12 @@ beforeEach(() => {
   resetTooltips();
   HTMLElement.prototype.scrollIntoView = vi.fn();
   vi.stubGlobal('ResizeObserver', MockResizeObserver);
+  vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(
+    () => undefined,
+  );
+  vi.spyOn(HTMLMediaElement.prototype, 'load').mockImplementation(
+    () => undefined,
+  );
 });
 
 const SERVICE_ID = createServiceId('30000000-0000-4000-8000-000000000001');
@@ -154,8 +160,9 @@ function openWindow(target: SongEditorTarget | null) {
   const session = new ControlSession(api);
   session.startEditor('manual');
   const view = render(<SongEditorWindow session={session} />);
-  afterEach(() => {
+  afterEach(async () => {
     view.unmount();
+    await session.dispose();
     delete window.llp;
   });
   return {
@@ -185,7 +192,61 @@ afterEach(() => {
 });
 
 describe('곡 편집 window', () => {
-  it('keeps an unsaved item lyric and its undo history through a global label rename', async () => {
+  it('retains the same item history when returning from its editor to the table', async () => {
+    const opened = await openedWithEdit({
+      songId: FIRST_ID,
+      from: {serviceId: SERVICE_ID, itemId: ITEM_ID},
+    });
+    const store = opened.session.editor;
+    const session = store?.getSnapshot().session;
+    if (store === undefined || session == null) throw new Error('Missing item');
+    await act(async () => {
+      expect(await session.flush()).toBe(true);
+    });
+    expect(session.history.canUndo).toBe(true);
+    act(() => store.requestLeave(() => store.open(null)));
+    expect(store.getSnapshot().session).toBeNull();
+    expect(store.sessionOf(createSongId(ITEM_ID))).toBe(session);
+    expect(session.history.canUndo).toBe(true);
+    act(() => session.edit('undo'));
+    expect(session.history.snapshot.song.slides[0]?.lines).toEqual(
+      opened.first.song.slides[0]?.lines,
+    );
+  });
+  it('settles an untouched new song without creating a file or keeping a draft that blocks close', async () => {
+    const opened = openWindow(null);
+    act(() => opened.session.editor?.openNew());
+    expect(opened.session.editor?.getSnapshot().imported).toBe(true);
+    expect(await pendingWritesOf(opened.api).settleDrafts()).toBe('settled');
+    expect(opened.session.editor?.getSnapshot().session).toBeNull();
+    expect(opened.edits).toHaveLength(0);
+    expect(await opened.session.editor?.flush()).toBe(true);
+  });
+
+  it('cancels navigation from an edited new song, then discards it through the single close question', async () => {
+    const opened = openWindow(null);
+    act(() => opened.session.editor?.openNew());
+    fireEvent.change(lyrics(1), {target: {value: 'New unsaved lines'}});
+    const leave = vi.fn();
+    act(() => opened.session.editor?.requestLeave(leave));
+    await userEvent.click(
+      within(await screen.findByRole('alertdialog')).getByRole('button', {
+        name: '취소',
+      }),
+    );
+    expect(leave).not.toHaveBeenCalled();
+    expect(lyrics(1).value).toBe('New unsaved lines');
+    const outcome = pendingWritesOf(opened.api).settleDrafts();
+    await userEvent.click(
+      within(await screen.findByRole('alertdialog')).getByRole('button', {
+        name: '저장 안 함',
+      }),
+    );
+    expect(await outcome).toBe('settled');
+    expect(opened.session.editor?.getSnapshot().session).toBeNull();
+    expect(opened.edits).toHaveLength(0);
+  });
+  it('keeps item lyrics and undo history through a global label rename after saving to the service', async () => {
     const opened = await openedWithEdit({
       songId: FIRST_ID,
       from: {serviceId: SERVICE_ID, itemId: ITEM_ID},
@@ -205,8 +266,8 @@ describe('곡 편집 window', () => {
       lines: ['바꾼 가사'],
       label: '오늘',
     });
-    expect(session.unsaved).toBe(true);
-    expect(session.document.revision).toBe(5);
+    expect(session.unsaved).toBe(false);
+    expect(session.document.revision).toBe(6);
     act(() => {
       session.edit('undo');
     });

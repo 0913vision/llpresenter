@@ -564,79 +564,82 @@ export function ServiceOrderList({
   ): readonly MenuEntry[] => {
     const row = rows.find(value => value.id === target.id);
     if (row === undefined) return [];
-    return serviceOrderMenuEntries({
-      row,
-      editable,
-      editSong:
-        workspace === 'prep'
-          ? {
-              editSong: songMenu.songId
-                ? () => {
-                    if (songMenu.songId) {
-                      openSongEditor(songMenu.songId, target.id);
+    return [
+      ...serviceOrderMenuEntries({
+        row,
+        editable,
+        editSong:
+          workspace === 'prep'
+            ? {
+                editSong: songMenu.songId
+                  ? () => {
+                      if (songMenu.songId) {
+                        openSongEditor(songMenu.songId, target.id);
+                      }
+                      setMenu(null);
                     }
-                    setMenu(null);
-                  }
-                : undefined,
-            }
-          : undefined,
-      song: {
-        save: songMenu.save,
-        reload: songMenu.reload,
-        reason: songMenu.reason,
-        locked: songMenu.locked,
-        showInLibrary:
-          songMenu.songId && onShowInLibrary
+                  : undefined,
+              }
+            : undefined,
+        song: {
+          save: songMenu.save,
+          reload: songMenu.reload,
+          reason: songMenu.reason,
+          locked: songMenu.locked,
+          showInLibrary:
+            songMenu.songId && onShowInLibrary
+              ? () => {
+                  if (songMenu.songId) onShowInLibrary(songMenu.songId);
+                  setMenu(null);
+                }
+              : undefined,
+        },
+        openInPrep:
+          workspace === 'show' && onOpenPrep !== undefined
             ? () => {
-                if (songMenu.songId) onShowInLibrary(songMenu.songId);
+                onOpenPrep(target.id);
                 setMenu(null);
               }
             : undefined,
-      },
-      openInPrep:
-        workspace === 'show' && onOpenPrep !== undefined
-          ? () => {
-              onOpenPrep(target.id);
-              setMenu(null);
-            }
-          : undefined,
-      rename: () => {
-        renameAfterMenu({id: target.id, serviceId: target.serviceId});
-        setMenu(null);
-      },
-      full,
-      clipboard: {
-        copy: () => {
-          editorTask(
-            clipboard.copy(
-              selection.selected.has(target.id)
-                ? selection.selected
-                : new Set([target.id]),
-            ),
+        rename: () => {
+          renameAfterMenu({id: target.id, serviceId: target.serviceId});
+          setMenu(null);
+        },
+        full,
+        clipboard: {
+          copy: () => {
+            editorTask(
+              clipboard.copy(
+                selection.selected.has(target.id)
+                  ? selection.selected
+                  : new Set([target.id]),
+              ),
+            );
+            setMenu(null);
+          },
+          paste: () => {
+            editorTask(clipboard.paste(target.id));
+            setMenu(null);
+          },
+          copyReason:
+            window.llp === undefined || serviceId === null
+              ? '예배 순서 불러오기 불가'
+              : undefined,
+          pasteReason: clipboard.pasteReason,
+        },
+        duplicate: () => {
+          duplicateItem(target.id);
+          setMenu(null);
+        },
+        remove: () => {
+          editing.run((edits, id) =>
+            edits.remove(id, createServiceItemId(target.id)),
           );
           setMenu(null);
         },
-        paste: () => {
-          editorTask(clipboard.paste(target.id));
-          setMenu(null);
-        },
-        copyReason:
-          window.llp === undefined || serviceId === null
-            ? '예배 순서 불러오기 불가'
-            : undefined,
-        pasteReason: clipboard.pasteReason,
-      },
-      duplicate: () => {
-        duplicateItem(target.id);
-        setMenu(null);
-      },
-      remove: () => {
-        editing.run((edits, id) =>
-          edits.remove(id, createServiceItemId(target.id)),
-        );
-        setMenu(null);
-      },
-    });
+      }),
+      ...(table?.menuFor?.(row) ?? []),
+    ];
   };
   return (
     <div

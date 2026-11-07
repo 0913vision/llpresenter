@@ -140,13 +140,18 @@ export function ImportedSongActions({
       {state.discardRequested ? (
         <AlertDialog
           icon="song"
-          title="가져온 곡을 저장하지 않고 닫을까요?"
+          title={`‘${title}’ 곡의 변경을 저장할까요?`}
           onCancel={() => store.cancelDiscard()}
           actions={[
             {
               label: '저장 안 함',
-              primary: true,
               onSelect: () => store.discardImported(),
+            },
+            {
+              label: '저장',
+              primary: true,
+              disabled: unavailable || invalid !== undefined,
+              onSelect: () => editorTask(beginSave()),
             },
           ]}
         />

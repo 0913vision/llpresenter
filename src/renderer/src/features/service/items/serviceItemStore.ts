@@ -78,7 +78,7 @@ export class ServiceItemStore {
   private state = NO_ITEM;
   readonly memoRoomReason = TOO_MANY_DRAFTS;
   constructor(
-    api: ServiceItemStoreApi,
+    readonly api: ServiceItemStoreApi,
     editor: ServiceItemEditor,
     private readonly onProblem: (notice: Notice) => void,
   ) {

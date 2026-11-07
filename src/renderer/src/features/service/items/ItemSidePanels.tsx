@@ -1,6 +1,7 @@
 import {projectedItemOverlays} from '@core/services/songItemOverlays';
 import {useSyncExternalStore, type JSX} from 'react';
 import {isItemOfKind} from '@core/schema/service';
+import {createSongId} from '@core/schema/ids';
 import {
   SongPreviewFrame,
   type SongEditorStore,
@@ -72,6 +73,17 @@ export function ItemPreviewPanel({items, editor}: ItemPanelProps): JSX.Element {
     item !== null && isItemOfKind(item, 'media')
       ? media.document?.value.items.find(file => file.id === item.media)
       : undefined;
+  const privateSong =
+    item !== null && isItemOfKind(item, 'song')
+      ? editor.sessionOf(createSongId(item.id))
+      : undefined;
+  const previewSong =
+    item !== null && isItemOfKind(item, 'song')
+      ? (privateSong?.history.snapshot.song ??
+        (song === null
+          ? undefined
+          : {...song.history.snapshot.song, slides: item.slides}))
+      : undefined;
   const picture =
     item !== null && isItemOfKind(item, 'media')
       ? {
@@ -92,12 +104,15 @@ export function ItemPreviewPanel({items, editor}: ItemPanelProps): JSX.Element {
             position: at + 1,
             total: tiles.length,
           }
-        : item === null || !isItemOfKind(item, 'song') || song === null
+        : item === null ||
+            !isItemOfKind(item, 'song') ||
+            previewSong === undefined
           ? null
           : itemPicture({
-              song: {...song.history.snapshot.song, slides: item.slides},
+              song: previewSong,
               position,
-              background: item.background ?? song.background,
+              background:
+                item.background ?? privateSong?.background ?? song?.background,
             });
   const previewKind =
     item === null
@@ -112,7 +127,7 @@ export function ItemPreviewPanel({items, editor}: ItemPanelProps): JSX.Element {
   const previewTitle =
     item !== null && isItemOfKind(item, 'bible')
       ? item.bible.ref
-      : song?.history.snapshot.song.title;
+      : previewSong?.title;
   if (item !== null && isItemOfKind(item, 'slides')) {
     return (
       <SlidesPreview

@@ -18,6 +18,32 @@ afterEach(() => {
 });
 
 describe('workspace defaults from S1', () => {
+  it('keeps Ctrl S in the inline song editor instead of switching to 진행', () => {
+    const onWorkspace = vi.fn();
+    const save = vi.fn();
+    renderHook(() =>
+      useWindowShortcuts([
+        ...workspaceShortcuts({
+          onWorkspace,
+          onMedia: vi.fn(),
+          imported: false,
+          editingSong: true,
+        }),
+        {id: 'songWindow.save', context: 'song', run: save},
+      ]),
+    );
+    act(() => {
+      window.dispatchEvent(
+        new KeyboardEvent('keydown', {
+          code: 'KeyS',
+          ctrlKey: true,
+          cancelable: true,
+        }),
+      );
+    });
+    expect(save).toHaveBeenCalledOnce();
+    expect(onWorkspace).not.toHaveBeenCalled();
+  });
   it('opens screen settings with Ctrl Alt 1 without changing workspace', () => {
     const openScreens = vi.fn();
     window.llp = mockLlpApi({window: {openScreens}});

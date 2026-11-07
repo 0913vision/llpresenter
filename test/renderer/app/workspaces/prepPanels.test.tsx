@@ -1,4 +1,5 @@
 import {act, renderHook, waitFor} from '@testing-library/react';
+import {isValidElement} from 'react';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {itemFixture} from '@fixtures/renderer/features/service/items/itemFixture';
 import {usePrepPanels} from '@renderer/app/workspaces/prepPanels';
@@ -38,6 +39,35 @@ function setup() {
 }
 
 describe('usePrepPanels', () => {
+  it.each(['library', 'item'])(
+    'guards returning to the table from the inline %s slide grid',
+    source => {
+      const {fixture, editor, result} = setup();
+      act(() =>
+        editor.open(
+          fixture.first,
+          source === 'item' ? {content: fixture.api.content} : {},
+        ),
+      );
+      let proceed: (() => void) | undefined;
+      const leave = vi
+        .spyOn(editor, 'requestLeave')
+        .mockImplementation(action => {
+          proceed = action;
+        });
+      const open = vi.spyOn(editor, 'open');
+      const panel = result.current.partsOf('슬라이드').embedded;
+      if (!isValidElement<{onBack?: () => void}>(panel)) {
+        throw new Error('Missing slide panel');
+      }
+      act(() => panel.props.onBack?.());
+      expect(leave).toHaveBeenCalledOnce();
+      expect(open).not.toHaveBeenCalled();
+      act(() => proceed?.());
+      expect(open).toHaveBeenCalledExactlyOnceWith(null);
+    },
+  );
+
   it('opens a service item, even the one already open, by leaving the editor first', () => {
     const {editor, onServiceItemOpen, result} = setup();
     const requestLeave = vi
@@ -65,7 +95,7 @@ describe('usePrepPanels', () => {
     expect(result.current.columns).toEqual([
       ['라이브러리'],
       [SERVICE_ORDER],
-      ['미리보기', '슬라이드', '항목 설정'],
+      ['미리보기', '슬라이드'],
     ]);
   });
 

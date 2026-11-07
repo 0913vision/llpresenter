@@ -9,6 +9,7 @@ import {importSlides} from '@core/songs/importSlides';
 import {normalizeSongTitle} from '@core/songs/songTitle';
 import type {EditorApi, EditorOperationHost} from './editorContracts';
 import {SongSession} from './songSession';
+import {songSlideClipboardFor} from './songSlideHistory';
 import type {SongSessionPool} from './songSessionPool';
 
 /**
@@ -33,6 +34,7 @@ export class ImportedSongDraft {
   private imported: SongSession | null = null;
   private importedSaved: SongId | null = null;
   private pendingLeave: (() => void) | null = null;
+  private fresh = false;
 
   constructor(private readonly context: ImportedSongDraftOptions) {}
   get session(): SongSession | null {
@@ -47,12 +49,13 @@ export class ImportedSongDraft {
     this.pendingLeave = null;
   }
 
-  openImported(draft: TextImportDraft): void {
+  openImported(draft: TextImportDraft, fresh = false): void {
     if (!this.context.host.alive() || this.context.host.locked()) return;
     if (this.imported !== null) {
-      this.requestLeave(() => this.openImported(draft));
+      this.requestLeave(() => this.openImported(draft, fresh));
       return;
     }
+    this.fresh = fresh;
     const song: Song = {
       format: 'llsong',
       schemaVersion: SONG_SCHEMA_VERSION,
@@ -76,6 +79,7 @@ export class ImportedSongDraft {
     this.context.clearActionRequest();
     this.imported = new SongSession({
       document: checked.value,
+      clipboard: songSlideClipboardFor(this.context.api),
       api: this.context.api.content,
       persistence: 'manual',
       changed: () => this.context.host.publish(),
@@ -86,15 +90,22 @@ export class ImportedSongDraft {
           .some(entry => normalizeSongTitle(entry.title) === title),
       problem: () => this.context.host.problem('가져온 곡 저장 실패'),
     });
-    this.imported.editTitle(draft.title);
+    if (!fresh) this.imported.editTitle(draft.title);
     this.context.focusTitle();
     this.context.host.publish();
+  }
+
+  openNew(): void {
+    this.openImported({title: '새 곡', slides: [{lines: []}]}, true);
   }
 
   requestLeave(action: () => void): void {
     if (!this.context.host.alive() || this.context.host.locked()) return;
     if (this.imported === null) action();
-    else {
+    else if (this.fresh && this.imported.clean) {
+      this.pendingLeave = action;
+      this.discardImported();
+    } else {
       this.pendingLeave = action;
       this.context.host.publish();
     }
@@ -176,8 +187,10 @@ export class ImportedSongDraft {
         session.discard();
         this.imported = null;
         this.importedSaved = null;
+        const continuation = this.pendingLeave;
         this.pendingLeave = null;
         this.context.open(document);
+        continuation?.();
         return true;
       } catch (error) {
         console.error('Imported song save failed', error);

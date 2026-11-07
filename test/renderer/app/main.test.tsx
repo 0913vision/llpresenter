@@ -40,8 +40,7 @@ it('creates a window session outside render and releases its resources on pagehi
     if (!(session instanceof ControlSession)) {
       throw new Error('Missing control session');
     }
-    expect(session.editor).toBeUndefined();
-    session.startEditor();
+    expect(session.editor).toBeDefined();
     expect(fixture.listenerCount()).toBe(4);
     const dispose = vi.spyOn(session, 'dispose');
     await act(async () => {
@@ -54,6 +53,7 @@ it('creates a window session outside render and releases its resources on pagehi
     expect(stops.service).toHaveBeenCalledTimes(1);
     expect(dispose).toHaveBeenCalledTimes(1);
   } finally {
+    window.dispatchEvent(new Event('pagehide'));
     container.remove();
     delete window.llp;
   }
@@ -171,10 +171,7 @@ it('flushes focused property drafts and queued writes in the settings renderer b
   }
 });
 
-it.each([
-  {name: 'song', title: '곡 편집'},
-  {name: 'screens', title: '화면 설정'},
-])(
+it.each([{name: 'screens', title: '화면 설정'}])(
   'starts the $name window page without the application and releases it on pagehide',
   async ({name, title}) => {
     vi.resetModules();
