@@ -140,9 +140,7 @@ describe('MacroGrid', () => {
 
   it('keeps a disabled add slot with its reason and blocks pointer and keyboard creation', async () => {
     const onNew = vi.fn();
-    const view = render(
-      <Grid onNew={onNew} newDisabledReason="저장 중입니다" />,
-    );
+    const view = render(<Grid onNew={onNew} newDisabledReason="저장 중" />);
     const add = screen.getByRole('button', {name: '새 매크로'});
     expect(add.getAttribute('aria-disabled')).toBe('true');
     await userEvent.click(add);
@@ -153,8 +151,8 @@ describe('MacroGrid', () => {
     expect(screen.getByRole('button', {name: '새 매크로'})).toBe(add);
     await userEvent.click(add);
     expect(onNew).toHaveBeenCalledOnce();
-    view.rerender(<Grid onNew={onNew} newDisabledReason="저장 중입니다" />);
-    expect((await hoverForTooltip(add))?.textContent).toBe('저장 중입니다');
+    view.rerender(<Grid onNew={onNew} newDisabledReason="저장 중" />);
+    expect((await hoverForTooltip(add))?.textContent).toBe('저장 중');
   });
 
   it('has no 새 매크로 slot without onNew', () => {

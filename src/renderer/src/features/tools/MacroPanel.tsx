@@ -26,6 +26,7 @@ export function MacroPanel({
     menu,
     palette,
     locked,
+    lockReason,
     newDisabledReason,
     createCollection,
     askDeleteCollection,
@@ -64,6 +65,7 @@ export function MacroPanel({
           onDuplicate={item => menuHandlers(item).duplicate()}
           duplicateReason={macroDuplicateReason({
             locked,
+            lockReason,
             macroCount: macros.length,
           })}
         />
@@ -92,6 +94,7 @@ export function MacroPanel({
             shown: currentCollection,
             macroCount: macros.length,
             locked,
+            lockReason,
           }}
           handlersFor={menuHandlers}
         />

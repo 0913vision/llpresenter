@@ -262,7 +262,7 @@ describe('the service source menu', () => {
     await userEvent.click(screen.getByRole('button', {name: '바꾸기'}));
     await waitFor(() => expect(onProblem).toHaveBeenCalled());
     expect(onProblem.mock.calls[0]?.[0]).toMatchObject({
-      title: '이름을 바꿀 수 없음',
+      title: '이름 바꾸기 실패',
     });
     expect(screen.getByRole('dialog', {name: '이름 바꾸기'})).toBeDefined();
   });

@@ -28,9 +28,9 @@ export function screenAddMenuEntries({
       const unavailable =
         reason ??
         (monitor.hasMainWindow
-          ? '컨트롤 화면에는 출력할 수 없음'
+          ? '제어 화면에는 출력할 수 없습니다'
           : monitor.id === undefined
-            ? '모니터를 지정할 수 없음'
+            ? '모니터를 지정할 수 없습니다'
             : undefined);
       return {
         kind: 'item',

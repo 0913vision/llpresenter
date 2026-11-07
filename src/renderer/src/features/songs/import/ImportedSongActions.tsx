@@ -49,7 +49,7 @@ export function ImportedSongActions({
     state.libraryStatus === 'ready'
       ? undefined
       : state.libraryStatus === 'loading'
-        ? '곡 목록을 불러오는 중입니다'
+        ? '곡 목록 불러오는 중'
         : '곡 목록을 확인할 수 없습니다';
   const unavailable = busy || libraryReason !== undefined;
   const save = async (
@@ -140,7 +140,7 @@ export function ImportedSongActions({
       {state.discardRequested ? (
         <AlertDialog
           icon="song"
-          title="가져온 곡을 저장하지 않았습니다. 버릴까요?"
+          title="가져온 곡을 저장하지 않고 닫을까요?"
           onCancel={() => store.cancelDiscard()}
           actions={[
             {
@@ -161,7 +161,7 @@ export function ImportedSongActions({
               sourceSlideCount(duplicate.song),
               `슬라이드 ${sourceSlideCount(duplicate.song)}개`,
             ),
-            ...(newTitle === null ? [] : [`새 곡 제목: ‘${newTitle}’`]),
+            ...(newTitle === null ? [] : [`새 제목: ‘${newTitle}’`]),
             ...(duplicate.song.updatedAt === undefined
               ? []
               : [

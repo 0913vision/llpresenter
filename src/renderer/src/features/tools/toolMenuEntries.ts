@@ -11,7 +11,7 @@ export function toolMenuReason(
   locked: boolean,
   busy = false,
 ): string | undefined {
-  return locked ? (busy ? '저장 중입니다' : '목록이 잠겨 있습니다') : undefined;
+  return locked ? (busy ? '저장 중' : '지금은 바꿀 수 없습니다') : undefined;
 }
 
 function command(

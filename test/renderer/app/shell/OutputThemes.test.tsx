@@ -71,10 +71,8 @@ async function openOutput() {
   await userEvent.click(screen.getByRole('menuitem', {name: '출력'}));
 }
 async function openThemes() {
-  await userEvent.click(
-    await screen.findByRole('menuitem', {name: /^테마 바꾸기:/}),
-  );
-  await screen.findByRole('menu', {name: /^테마 바꾸기:/});
+  await userEvent.click(await screen.findByRole('menuitem', {name: /^테마:/}));
+  await screen.findByRole('menu', {name: /^테마:/});
 }
 async function openMenu() {
   await openOutput();

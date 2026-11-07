@@ -22,7 +22,7 @@ const states: readonly StateSpec[] = [
 ];
 
 const catalogStates = [
-  {label: 'Pending catalog', reason: '곡 목록을 불러오는 중입니다'},
+  {label: 'Pending catalog', reason: '곡 목록 불러오는 중'},
   {label: 'Unavailable catalog', reason: '곡 목록을 확인할 수 없습니다'},
   {label: 'Known catalog', reason: undefined},
 ];

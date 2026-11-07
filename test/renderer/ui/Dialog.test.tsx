@@ -360,21 +360,21 @@ describe('AlertDialog', () => {
     render(
       <AlertDialog
         icon="history"
-        title="출력 상태 복구"
-        meta={['비정상 종료', '10월 25일 오전 11:26']}
+        title="출력 내용을 복구할까요?"
+        meta={['앱이 갑자기 꺼졌습니다', '10월 25일 오전 11:26']}
         actions={[
           {label: '새로 시작', escape: true, onSelect: onRestart},
           {label: '복구', primary: true, onSelect: onRestore},
         ]}
         list={{
-          label: '복구할 상태',
+          label: '복구할 항목',
           children: (
             <Checkbox aria-label="화면 출력" checked onChange={() => {}} />
           ),
         }}
       />,
     );
-    expect(screen.getByRole('group', {name: '복구할 상태'})).toBeDefined();
+    expect(screen.getByRole('group', {name: '복구할 항목'})).toBeDefined();
     await userEvent.keyboard('{Escape}');
     expect(onRestart).toHaveBeenCalledTimes(1);
     expect(onRestore).not.toHaveBeenCalled();

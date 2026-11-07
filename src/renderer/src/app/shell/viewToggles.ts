@@ -4,7 +4,7 @@ import {sendLive} from '@renderer/session/live';
 import {menuAvailability, type MenuItem} from '@renderer/ui/menuModel';
 
 /** Why 테스트 화면 is off: no screen has its output on. */
-export const NO_SCREEN_ON = '출력이 꺼져 있습니다';
+export const NO_SCREEN_ON = '출력 꺼짐';
 
 /**
  * 보기 › 테스트 화면: shows the 테스트 패턴 on every screen whose output is on,

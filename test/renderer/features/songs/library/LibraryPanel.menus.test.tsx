@@ -84,7 +84,7 @@ describe('library panel', () => {
   });
 
   it.each([
-    {readOnly: false, reason: '열린 예배가 없습니다'},
+    {readOnly: false, reason: '열린 예배 없음'},
     {readOnly: true, reason: '새 버전의 파일이라 바꿀 수 없습니다'},
   ])('disables adding a library song: $reason', async ({readOnly, reason}) => {
     if (readOnly) applyService({...sampleService, readOnly: true});

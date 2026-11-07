@@ -21,12 +21,11 @@ export function LabelDeleteDialog({
     <AlertDialog
       icon="trash"
       title="이름표 삭제"
-      meta={[name, '모든 곡의 이름표 유지']}
+      meta={[name, '곡에 붙은 이름표는 남습니다']}
       onCancel={onClose}
       actions={[
         {
           label: '삭제',
-          title: '공유 목록에서만 삭제하며 곡의 이름표는 유지합니다',
           primary: true,
           disabled: locked,
           onSelect: () =>

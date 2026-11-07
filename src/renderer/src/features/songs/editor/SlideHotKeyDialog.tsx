@@ -35,7 +35,7 @@ export function SlideHotKeyDialog({
       ? SLIDE_HOT_KEY_REASON
       : conflict === undefined
         ? undefined
-        : `슬라이드 ${conflict.slideNumber}에서 쓰는 키입니다`);
+        : `슬라이드 ${conflict.slideNumber}에서 쓰는 단축키입니다`);
   const record = (event: KeyboardEvent<HTMLInputElement>): void => {
     if (composing.current) {
       event.preventDefault();
@@ -53,7 +53,7 @@ export function SlideHotKeyDialog({
   };
   return (
     <Dialog
-      title="슬라이드 바로 가기 키"
+      title="슬라이드 단축키"
       subtitle={{text: `슬라이드 ${slideNumber}`, icon: 'slides'}}
       size="s"
       onCancel={onClose}
@@ -73,7 +73,7 @@ export function SlideHotKeyDialog({
       primary={{
         label: '저장',
         disabled: reason !== undefined || code === value,
-        title: reason ?? (code === value ? '같은 바로 가기 키' : undefined),
+        title: reason ?? (code === value ? '같은 단축키' : undefined),
         onSelect: () => {
           if (reason === undefined && code !== value && onSave(code)) onClose();
         },
@@ -81,7 +81,7 @@ export function SlideHotKeyDialog({
     >
       <TextField
         {...shortcutRecordingProps}
-        aria-label="슬라이드 바로 가기 키"
+        aria-label="슬라이드 단축키"
         value={code?.replace(/^(Key|Digit)/, '') ?? ''}
         placeholder="없음"
         onChange={() => undefined}

@@ -86,11 +86,7 @@ export function SplitEditor(props: SplitEditorProps): JSX.Element {
           onCancel={props.onCancel}
           primary={{label: '확정', disabled: true, onSelect: () => undefined}}
         >
-          <div
-            className={styles.pending}
-            role="status"
-            aria-label="AI 분할 대기"
-          >
+          <div className={styles.pending} role="status" aria-label="AI 준비 중">
             <span className={styles.spinner} />
           </div>
         </Dialog>
@@ -184,7 +180,7 @@ function VerseSplitEditor(
       edit(pressGap(history, j), j);
       setProblem(undefined);
     } catch {
-      setProblem('되돌리기 기록이 가득 참');
+      setProblem('되돌릴 수 있는 횟수를 넘었습니다');
     }
   };
   const cancel = (): void => {
@@ -285,7 +281,9 @@ function VerseSplitEditor(
           label: busy ? '저장 중' : '확정',
           onSelect: confirm,
           disabled: !plan.ok || busy,
-          title: !plan.ok ? '한 슬라이드에 들어가지 않는 구절 있음' : undefined,
+          title: !plan.ok
+            ? '한 슬라이드에 들어가지 않는 구절이 있습니다'
+            : undefined,
         }}
         footerStart={
           problem === undefined ? undefined : (

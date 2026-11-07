@@ -210,7 +210,9 @@ it('edits the shared catalog from preferences while an editor dialog follows it'
 
   await f.user.click(within(page).getByRole('button', {name: '새 절 삭제'}));
   const confirmation = screen.getByRole('alertdialog');
-  expect(within(confirmation).getByText('모든 곡의 이름표 유지')).toBeTruthy();
+  expect(
+    within(confirmation).getByText('곡에 붙은 이름표는 남습니다'),
+  ).toBeTruthy();
   await f.user.click(within(confirmation).getByRole('button', {name: '삭제'}));
   await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
   expect(

@@ -47,13 +47,11 @@ it('shows nothing, then 저장 중 with 다시 시도 off, then 저장할 수 �
     finish(false);
     await Promise.resolve();
   });
-  expect(
-    screen.getByRole('alertdialog', {name: '저장할 수 없음'}),
-  ).toBeTruthy();
+  expect(screen.getByRole('alertdialog', {name: '저장 실패'})).toBeTruthy();
   const retry = screen.getByRole('button', {name: '다시 시도'});
   expect(retry.getAttribute('aria-disabled')).toBeNull();
   expect(document.activeElement).toBe(retry);
-  const force = screen.getByRole('button', {name: '강제로 닫기'});
+  const force = screen.getByRole('button', {name: '닫기'});
   force.click();
   expect(closeAnyway).toHaveBeenCalledOnce();
   expect((await hoverForTooltip(force))?.textContent).toBe(

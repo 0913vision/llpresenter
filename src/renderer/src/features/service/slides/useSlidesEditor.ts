@@ -73,7 +73,7 @@ export function useSlidesEditor(api: LlpApi, report: (notice: Notice) => void) {
         item === undefined ||
         !isItemOfKind(item, 'slides')
       ) {
-        problem('슬라이드를 열 수 없습니다');
+        problem('슬라이드 열기 실패');
         return;
       }
       const loaded = new SlidesDraft(item);

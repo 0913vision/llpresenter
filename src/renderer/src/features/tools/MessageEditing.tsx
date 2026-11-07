@@ -58,7 +58,7 @@ function TemplateDialog({
   const textReason = messageTextReason(text);
   return (
     <Dialog
-      title={editor.kind === 'add' ? '메시지 문구 추가' : '메시지 문구 수정'}
+      title={editor.kind === 'add' ? '메시지 추가' : '메시지 수정'}
       size="s"
       onCancel={onCancel}
       primary={{
@@ -124,7 +124,7 @@ export function MessageEditing({
     onProblem,
     area: {
       key: 'messages',
-      label: '메시지 문구',
+      label: '메시지',
       log: 'Could not edit message templates',
     },
   });
@@ -164,7 +164,7 @@ export function MessageEditing({
   const duplicateReason = locked
     ? toolMenuReason(locked, busy)
     : full
-      ? limitReason('메시지 문구', MAX_MESSAGE_TEMPLATES)
+      ? limitReason('메시지', MAX_MESSAGE_TEMPLATES)
       : undefined;
   useDuplicateShortcut({
     itemAt: event => {
@@ -184,10 +184,10 @@ export function MessageEditing({
       <div className={styles.editingTools}>
         <IconButton
           icon="plus"
-          label="메시지 문구 추가"
+          label="메시지 추가"
           disabled={locked || full}
           title={
-            full ? limitReason('메시지 문구', MAX_MESSAGE_TEMPLATES) : undefined
+            full ? limitReason('메시지', MAX_MESSAGE_TEMPLATES) : undefined
           }
           onClick={() => setEditor({kind: 'add'})}
         />
@@ -225,7 +225,7 @@ export function MessageEditing({
       </div>
       {menu ? (
         <Menu
-          label="메시지 문구"
+          label="메시지"
           anchor={menu.anchor}
           onClose={() => setMenu(null)}
           entries={messageMenuEntries({
@@ -233,7 +233,7 @@ export function MessageEditing({
             edit: () => setEditor({kind: 'edit', item: menu.item}),
             duplicate: () => duplicate(menu.item),
             duplicateReason: full
-              ? limitReason('메시지 문구', MAX_MESSAGE_TEMPLATES)
+              ? limitReason('메시지', MAX_MESSAGE_TEMPLATES)
               : undefined,
             remove: () => setEditor({kind: 'delete', item: menu.item}),
           })}
@@ -242,7 +242,7 @@ export function MessageEditing({
       {editor?.kind === 'delete' ? (
         <AlertDialog
           icon="msg"
-          title={`‘${editor.item.name}’ 메시지 문구을 삭제할까요?`}
+          title={`‘${editor.item.name}’ 메시지를 삭제할까요?`}
           onCancel={() => setEditor(null)}
           actions={[
             {

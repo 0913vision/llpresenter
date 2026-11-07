@@ -69,7 +69,7 @@ export function TimerTab({
   };
   const reason =
     document === null
-      ? '타이머를 불러오고 있습니다'
+      ? '타이머 불러오는 중'
       : document.access !== 'editable'
         ? NEWER_FILE_REASON
         : document.value.timers.length >= MAX_TIMER_DEFINITIONS
@@ -114,7 +114,7 @@ export function TimerTab({
         <AlertDialog
           icon="timer"
           title={`‘${target.name || '이름 없음'}’ 타이머를 삭제할까요?`}
-          meta={['연결된 퀵 실행 항목도 삭제']}
+          meta={['연결된 퀵 실행 항목도 삭제됩니다']}
           onCancel={closeRemoval}
           cancelLabel={removal.busy ? '닫기' : undefined}
           actions={[

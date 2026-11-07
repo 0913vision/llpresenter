@@ -78,7 +78,7 @@ function renameRow(item: MediaItem, actions: MediaTileActions): MenuEntry {
   };
 }
 
-const NO_PLAYBACK_REASON = '이미지에는 재생이 없음';
+const NO_PLAYBACK_REASON = '이미지는 재생할 수 없습니다';
 
 /** A submenu of one choice out of several, checked on the current one. */
 function choiceRow<T extends string>(

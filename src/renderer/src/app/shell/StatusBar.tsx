@@ -21,14 +21,14 @@ export function StatusBar({
       problems.push(`${screen.statusLabel} 창으로 표시 중`);
     }
     if (status.renderer === 'restarting') {
-      problems.push(`${screen.statusLabel} 출력 창을 다시 시작하는 중`);
+      problems.push(`${screen.statusLabel} 출력 창 다시 시작 중`);
     }
     if (status.renderer === 'limited') {
-      problems.push(`${screen.statusLabel} 다시 시작 시도 제한됨`);
+      problems.push(`${screen.statusLabel} 다시 시작 중단`);
     }
     if (status.fpsLow && status.fps !== null) {
       problems.push(
-        `프레임 속도가 낮아지는 중: ${screen.statusLabel} (${Math.round(status.fps)}fps)`,
+        `${screen.statusLabel} 프레임 낮음 (${Math.round(status.fps)}fps)`,
       );
     }
     return problems;

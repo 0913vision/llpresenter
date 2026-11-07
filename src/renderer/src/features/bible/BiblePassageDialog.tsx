@@ -35,7 +35,7 @@ export function BiblePassageDialog({
         disabled: passage === null || !fits(passage),
         title:
           passage !== null && !fits(passage)
-            ? '추가할 수 있는 슬라이드 수를 넘었습니다'
+            ? '슬라이드가 너무 많아 추가할 수 없습니다'
             : undefined,
         onSelect: () => choose(passage),
       }}

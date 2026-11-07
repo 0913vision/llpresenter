@@ -59,9 +59,7 @@ export function ScreenGroupActions({
         disabled={outputReason !== undefined}
         title={
           outputReason ??
-          (on
-            ? `${label} 시스템 화면 모두 끄기`
-            : `${label} 시스템 화면 모두 켜기`)
+          (on ? `${label} 화면 모두 끄기` : `${label} 화면 모두 켜기`)
         }
         onPressedChange={toggle}
       />

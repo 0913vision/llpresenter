@@ -18,8 +18,7 @@ export function StageTab({
   const stageTimerId = useLive(view => view.state?.stageTimerId);
   const stageScreens =
     screens?.value.screens.filter(s => s.kind === 'stage') ?? [];
-  const unavailable =
-    stageScreens.length === 0 ? '무대 화면이 없습니다' : undefined;
+  const unavailable = stageScreens.length === 0 ? '무대 화면 없음' : undefined;
   const timerId = timers?.value.timers.find(t => t.id === stageTimerId)?.id;
   return (
     <div className={styles.root}>
@@ -35,7 +34,7 @@ export function StageTab({
                 disabled={timers === null || unavailable !== undefined}
                 title={
                   unavailable ??
-                  (timers === null ? '타이머를 불러오고 있습니다' : undefined)
+                  (timers === null ? '타이머 불러오는 중' : undefined)
                 }
                 options={[
                   {value: NO_TIMER, label: '없음'},

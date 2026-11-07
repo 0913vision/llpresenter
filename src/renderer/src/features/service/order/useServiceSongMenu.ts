@@ -88,9 +88,9 @@ export function useServiceSongMenu(
   const current =
     data?.target === target && data.revision === revision ? data : null;
   const reason = !api
-    ? '곡 조회 불가'
+    ? '곡을 불러올 수 없습니다'
     : failure?.target === target && failure.revision === revision
-      ? '곡 파일을 찾을 수 없습니다.'
+      ? '곡 파일을 찾을 수 없습니다'
       : !current
         ? '불러오는 중'
         : undefined;

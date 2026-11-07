@@ -98,7 +98,7 @@ describe('PreviewFrame', () => {
     expect(smallNames()).toEqual([
       '청중 화면 크게 보기',
       '무대 화면 크게 보기, 모니터 3 연결 끊김',
-      '방송 화면 크게 보기, 출력이 꺼져 있습니다',
+      '방송 화면 크게 보기, 출력 꺼짐',
     ]);
     expect(container.querySelectorAll('[data-screen]')).toHaveLength(3);
     const selected = screen.getByRole('button', {pressed: true});
@@ -123,7 +123,7 @@ describe('PreviewFrame', () => {
     expect(smallNames()).toEqual([
       '청중 화면 크게 보기',
       '무대 화면 크게 보기, 모니터 3 연결 끊김',
-      '방송 화면 크게 보기, 출력이 꺼져 있습니다',
+      '방송 화면 크게 보기, 출력 꺼짐',
     ]);
     expect(
       screen.getByRole('button', {pressed: true}).dataset['previewSlot'],
@@ -179,7 +179,7 @@ describe('PreviewFrame', () => {
       );
       await userEvent.click(
         screen.getByRole('button', {
-          name: '방송 화면 크게 보기, 출력이 꺼져 있습니다',
+          name: '방송 화면 크게 보기, 출력 꺼짐',
         }),
       );
       expect(lifecycle).toEqual([]);
@@ -204,11 +204,11 @@ describe('PreviewFrame', () => {
     );
     resetTooltips();
     const off = screen.getByRole('button', {
-      name: '방송 화면 크게 보기, 출력이 꺼져 있습니다',
+      name: '방송 화면 크게 보기, 출력 꺼짐',
     });
     expect(off.closest('[data-state]')?.getAttribute('data-state')).toBe('off');
     expect((await hoverForTooltip(off))?.textContent).toBe(
-      '방송 화면 출력이 꺼져 있습니다',
+      '방송 화면 출력 꺼짐',
     );
   });
 });

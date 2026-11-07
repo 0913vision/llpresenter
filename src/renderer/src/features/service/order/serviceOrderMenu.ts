@@ -87,7 +87,7 @@ function openRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {
           ),
         },
         ...songEditRows(input),
-        laterRow('destination', '출력 대상', {submenu: true}),
+        laterRow('destination', '출력할 화면', {submenu: true}),
         ...(openInPrep === undefined
           ? []
           : [

@@ -63,7 +63,7 @@ describe('Bible split editor', () => {
   it('shows only a fixed-height pending body and ignores confirmation until ready', () => {
     const view = setup({pending: true});
     expect(screen.getByRole('dialog').style.height).toBe('640px');
-    expect(screen.getByRole('status', {name: 'AI 분할 대기'})).toBeDefined();
+    expect(screen.getByRole('status', {name: 'AI 준비 중'})).toBeDefined();
     expect(screen.queryByLabelText('나눈 결과')).toBeNull();
     key('Enter');
     key('Space');

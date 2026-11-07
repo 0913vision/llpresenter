@@ -412,11 +412,11 @@ name.
 
 ### Slide hot keys
 
-- The shared thumbnail 슬라이드 menu's 단축키… row opens 슬라이드 바로 가기 키
-  in the song editor. The item view opens that editor at the clicked source
-  slide first. There is no separate hot-key bar. Store an optional physical
-  `KeyA` through `KeyZ` or `Digit0` through `Digit9` in
-  `groups[].slides[].hotKey` (02). No assignment is the default.
+- The shared thumbnail 슬라이드 menu's 단축키… row opens 슬라이드 단축키 in the
+  song editor. The item view opens that editor at the clicked source slide
+  first. There is no separate hot-key bar. Store an optional physical `KeyA`
+  through `KeyZ` or `Digit0` through `Digit9` in `groups[].slides[].hotKey`
+  (02). No assignment is the default.
 - Assign a key to that source slide once, regardless of how many times its group
   occurs in a 구성. Another source slide in the same song cannot use that code.
   The conflict identifies the source slide number in master group order; another

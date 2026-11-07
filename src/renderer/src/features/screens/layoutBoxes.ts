@@ -103,7 +103,7 @@ function targetBoxes(
         screen.method === 'fullscreen'
           ? screen.display === undefined
             ? '모니터 미지정'
-            : '연결 대기'
+            : '연결 끊김'
           : targetByMethod[screen.method],
     }));
 }

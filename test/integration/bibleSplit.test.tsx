@@ -492,10 +492,10 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
       fireEvent.click(screen.getByRole('button', {name: '확정'})),
     );
     expect(screen.getByText('2 / 2')).toBeDefined();
-    expect(screen.getByRole('status', {name: 'AI 분할 대기'})).toBeDefined();
+    expect(screen.getByRole('status', {name: 'AI 준비 중'})).toBeDefined();
     await act(async () => secondReady());
     await waitFor(() =>
-      expect(screen.queryByRole('status', {name: 'AI 분할 대기'})).toBeNull(),
+      expect(screen.queryByRole('status', {name: 'AI 준비 중'})).toBeNull(),
     );
     await act(async () =>
       fireEvent.click(screen.getByRole('button', {name: '확정'})),

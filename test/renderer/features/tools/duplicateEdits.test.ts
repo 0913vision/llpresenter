@@ -66,7 +66,7 @@ function written(edit: ReturnType<typeof apiWith>['edit']): unknown {
   return request.value;
 }
 
-describe('복제 of a 메시지 문구', () => {
+describe('복제 of a 메시지', () => {
   const template = (n: number, name: string) => ({
     id: uuid(1, n),
     name,

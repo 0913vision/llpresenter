@@ -107,7 +107,7 @@ function reservedReason(event: PhysicalKeyPress): string | undefined {
     /^Lang[12]$/.test(code) ||
     (event.isComposing && !/^F[1-7]$/.test(code))
   ) {
-    return '입력기에 쓰는 키';
+    return '한글 입력에 쓰는 키';
   }
   if (
     meta ||
@@ -130,7 +130,7 @@ function reservedReason(event: PhysicalKeyPress): string | undefined {
     return '글자 편집에 쓰는 키';
   }
   if (!ctrl && !alt && !shift && /^(Key[A-Z]|Digit\d|Numpad\d)$/.test(code)) {
-    return '슬라이드 바로 가기에 쓰는 키';
+    return '슬라이드 단축키에 쓰는 키';
   }
   return undefined;
 }

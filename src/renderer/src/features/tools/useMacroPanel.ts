@@ -60,6 +60,7 @@ export interface MacroPanelModel {
   readonly collectionDialog: {kind: 'delete'; item: MacroCollection} | null;
   readonly palette: ReturnType<typeof useMacroPalette.getState>;
   readonly locked: boolean;
+  readonly lockReason: string | undefined;
   readonly newDisabledReason: string | undefined;
   readonly onProblem: ((notice: Notice) => void) | undefined;
   readonly create: () => void;
@@ -483,6 +484,7 @@ export function useMacroPanel({
     collectionDialog,
     palette,
     locked,
+    lockReason: toolMenuReason(locked, busy || collectionEdit.busy),
     onProblem,
     newDisabledReason:
       toolMenuReason(locked, busy || collectionEdit.busy) ??

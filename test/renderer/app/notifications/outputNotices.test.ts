@@ -211,7 +211,7 @@ describe('outputNoticeChanges, restart limit', () => {
     expect(notice).toMatchObject({
       key: 'output-window:main',
       kind: 'warning',
-      title: '청중 화면 출력 창을 다시 띄울 수 없음',
+      title: '청중 화면 출력 창 열기 실패',
       meta: ['빈 화면으로 표시 중'],
     });
     notice.actions?.[0]?.onSelect();
@@ -226,7 +226,7 @@ describe('outputNoticeChanges, restart limit', () => {
     expect(shown(result[0])).toMatchObject({
       key: 'output-window:stage',
       kind: 'info',
-      title: '무대 화면 출력 창 다시 띄움',
+      title: '무대 화면 출력 창 다시 열림',
     });
   });
 

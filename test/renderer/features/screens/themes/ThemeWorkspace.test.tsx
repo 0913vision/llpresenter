@@ -260,7 +260,7 @@ it('says the use of a 테마 cannot be checked instead of showing no use', async
   fireEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
   const question = await screen.findByRole('alertdialog');
   expect(question.textContent).toContain('‘찬양’ 테마를 삭제할까요?');
-  expect(question.textContent).toContain('쓰는 곳을 확인할 수 없습니다');
+  expect(question.textContent).toContain('쓰는 곳 확인 실패');
   expect(question.textContent).not.toContain('쓰는 곳: 예배');
   expect(screen.queryAllByRole('alert')).toEqual([]);
   expect(logged).toHaveBeenCalledTimes(1);
@@ -376,7 +376,7 @@ it('renders the edited background through a screen link and restores retained el
   expect(mainElements?.length).toBeGreaterThan(0);
   expect(stageElements?.length).toBeGreaterThan(0);
   fireEvent.click(screen.getByRole('button', {name: '무대 화면 편집'}));
-  fireEvent.click(screen.getByRole('radio', {name: '청중 화면과 동일'}));
+  fireEvent.click(screen.getByRole('radio', {name: '청중 화면과 같음'}));
   await saveEdits();
   await waitFor(() => {
     expect(value().themes[0]?.screens[STAGE]?.mode).toEqual({
@@ -613,7 +613,7 @@ it('undoes and redoes a change of 방식 with Ctrl+Z and Ctrl+Y, and picking the
   fireEvent.click(screen.getByRole('button', {name: '무대 화면 편집'}));
   const own = screen.getByRole('radio', {name: '직접 배치'});
   expect(own.getAttribute('aria-checked')).toBe('true');
-  fireEvent.click(screen.getByRole('radio', {name: '청중 화면과 동일'}));
+  fireEvent.click(screen.getByRole('radio', {name: '청중 화면과 같음'}));
   expect(saveButton.getAttribute('aria-disabled')).not.toBe('true');
   fireEvent.keyDown(document.body, {key: 'z', code: 'KeyZ', ctrlKey: true});
   await waitFor(() =>
@@ -628,7 +628,7 @@ it('undoes and redoes a change of 방식 with Ctrl+Z and Ctrl+Y, and picking the
   await waitFor(() =>
     expect(
       screen
-        .getByRole('radio', {name: '청중 화면과 동일'})
+        .getByRole('radio', {name: '청중 화면과 같음'})
         .getAttribute('aria-checked'),
     ).toBe('true'),
   );
@@ -652,7 +652,7 @@ it('counts the items that use the theme in the overwrite question and hides a ze
   fireEvent.click(screen.getByRole('button', {name: '저장'}));
   const empty = await screen.findByRole('alertdialog');
   await waitFor(() =>
-    expect(empty.textContent).not.toContain('쓰는 곳을 확인하는 중'),
+    expect(empty.textContent).not.toContain('쓰는 곳 확인 중'),
   );
   expect(empty.textContent).not.toContain('곳에서 씀');
 });

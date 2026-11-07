@@ -9,7 +9,6 @@ import type {AppliedRename, SongEditorStore} from './songEditorStore';
 export const EMPTY_LABEL_NAME_REASON =
   '이름표 이름을 적어야 저장할 수 있습니다';
 export const DUPLICATE_LABEL_NAME_REASON = '같은 이름의 이름표가 있습니다';
-export const LABEL_RENAME_SCOPE = '모든 곡에서 이 이름표의 이름을 바꿉니다';
 
 /** The labels file stores unique, nonblank names without trimming old names. */
 export function labelNameReason(
@@ -80,7 +79,6 @@ function NameDraft({
   return (
     <TextField
       aria-label={`${label.name} 이름`}
-      title={LABEL_RENAME_SCOPE}
       {...draft.field}
       onKeyDown={event => {
         if (isComposing(event)) return;

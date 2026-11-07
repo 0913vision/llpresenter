@@ -24,7 +24,7 @@ function Workspaces(): JSX.Element {
   const [workspace, setWorkspace] = useState<Workspace>('show');
   return (
     <ToolbarTabs
-      label="작업 공간"
+      label="화면 전환"
       tabs={workspaceTabs}
       value={workspace}
       onChange={setWorkspace}
@@ -80,13 +80,13 @@ describe('ToolbarButton', () => {
         <ToolbarButton
           icon="layers"
           label="찬양"
-          aria-label="테마 바꾸기: 찬양"
+          aria-label="테마: 찬양"
           compact={compact}
         />,
       );
-      expect(
-        screen.getByRole('button', {name: '테마 바꾸기: 찬양'}).textContent,
-      ).toBe('찬양');
+      expect(screen.getByRole('button', {name: '테마: 찬양'}).textContent).toBe(
+        '찬양',
+      );
     },
   );
   it('reports the opposite value on each press of a view toggle', async () => {

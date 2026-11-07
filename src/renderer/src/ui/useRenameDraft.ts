@@ -62,7 +62,7 @@ export function useRenameDraft(
     contract.commitsUnchanged !== true;
   const validation =
     contract.validate?.(name) ??
-    (name === '' ? '이름을 입력하세요' : undefined);
+    (name === '' ? '이름을 적어야 저장할 수 있습니다' : undefined);
   const problem = validation ?? failure;
   const close = (): void => {
     const focus = keyboardFocus.current;

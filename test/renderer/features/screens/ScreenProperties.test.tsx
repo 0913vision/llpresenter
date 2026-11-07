@@ -326,7 +326,7 @@ describe('the screen properties', () => {
 
     await waitFor(() =>
       expect(onProblem).toHaveBeenCalledWith(
-        expect.objectContaining({title: '같은 이름의 화면이 있음'}),
+        expect.objectContaining({title: '같은 이름의 화면이 있습니다'}),
       ),
     );
     expect(edits).toHaveLength(1);

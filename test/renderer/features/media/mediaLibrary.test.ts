@@ -112,7 +112,7 @@ describe('media library for the media view', () => {
     await library.importFiles([file], null);
     expect(importFiles).not.toHaveBeenCalled();
     expect(problems).toHaveBeenCalledWith(
-      expect.objectContaining({title: '미디어를 가져올 수 없음'}),
+      expect.objectContaining({title: '미디어 가져오기 실패'}),
     );
     pathForFile
       .mockReturnValueOnce('')
@@ -268,7 +268,7 @@ describe('media library for the media view', () => {
     expect(library.getSnapshot().jobs).toEqual([]);
     expect(problems).toHaveBeenCalledWith(
       expect.objectContaining({
-        title: '미디어를 가져오지 못함',
+        title: '미디어 가져오기 실패',
         meta: ['Invented.mp4', '재생할 수 없는 형식'],
       }),
     );
@@ -302,9 +302,9 @@ describe('media library for the media view', () => {
     await library.cancel(mediaId(9), 'Invented.mp4');
     await library.relink(mediaId(1), 'Invented 1');
     expect(problems.mock.calls.map(([notice]) => notice.title)).toEqual([
-      '미디어를 가져올 수 없음',
-      '복사를 멈출 수 없음',
-      '다시 연결할 수 없음',
+      '미디어 가져오기 실패',
+      '복사 멈추기 실패',
+      '다시 연결 실패',
     ]);
     expect(write).toHaveBeenCalledTimes(3);
     expect(write).toHaveBeenCalledWith(
@@ -349,7 +349,7 @@ describe('media library for the media view', () => {
     const stop = library.start(problems);
     await vi.waitFor(() =>
       expect(problems).toHaveBeenCalledWith(
-        expect.objectContaining({title: '미디어를 불러오지 못함'}),
+        expect.objectContaining({title: '미디어 불러오기 실패'}),
       ),
     );
     stop();
@@ -421,9 +421,9 @@ describe('media library for the media view', () => {
     await library.cancel(mediaId(9), 'Invented.mp4');
     await library.relink(mediaId(1), 'Invented 1');
     expect(problems.mock.calls.map(([notice]) => notice.title)).toEqual([
-      '미디어를 가져올 수 없음',
-      '복사를 멈출 수 없음',
-      '다시 연결할 수 없음',
+      '미디어 가져오기 실패',
+      '복사 멈추기 실패',
+      '다시 연결 실패',
     ]);
     expect(write).toHaveBeenCalledWith(
       expect.objectContaining({detail: 'Invented malformed reply'}),
@@ -480,7 +480,7 @@ describe('media library for the media view', () => {
     edit.mockRejectedValueOnce(new Error('Invented failure'));
     expect(await library.createPlaylist('media')).toBeNull();
     expect(problems.mock.calls.map(([notice]) => notice.title)).toEqual([
-      '재생목록을 만들 수 없음',
+      '재생목록 만들기 실패',
     ]);
   });
 
@@ -516,7 +516,7 @@ describe('media library for the media view', () => {
     });
     expect(await library.renamePlaylist(playlist, 'Newer')).toBe(false);
     expect(problems.mock.calls.map(([notice]) => notice.title)).toEqual([
-      '재생목록 이름을 바꿀 수 없음',
+      '재생목록 이름 바꾸기 실패',
     ]);
     edit.mockResolvedValueOnce({
       ok: false,
@@ -546,7 +546,7 @@ describe('media library for the media view', () => {
     edit.mockRejectedValueOnce(new Error('Invented failure'));
     expect(await library.deletePlaylist(playlist)).toBe(false);
     expect(problems.mock.calls.map(([notice]) => notice.title)).toEqual([
-      '재생목록을 삭제할 수 없음',
+      '재생목록 삭제 실패',
     ]);
   });
 
@@ -585,8 +585,8 @@ describe('media library for the media view', () => {
     await library.removeFromPlaylist(playlist, mediaId(2), 'Invented 2');
     expect(await library.deleteMedia(mediaId(2), 'Invented 2')).toBe(false);
     expect(problems.mock.calls.map(([notice]) => notice.title)).toEqual([
-      '재생목록에서 뺄 수 없음',
-      '미디어를 삭제할 수 없음',
+      '재생목록에서 빼기 실패',
+      '미디어 삭제 실패',
     ]);
   });
 
@@ -614,7 +614,7 @@ describe('media library for the media view', () => {
     });
     await library.updateProps(mediaId(1), {in: 9});
     expect(problems.mock.calls.map(([notice]) => notice.title)).toEqual([
-      '미디어 속성을 바꿀 수 없음',
+      '미디어 속성 저장 실패',
     ]);
   });
 });

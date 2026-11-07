@@ -61,7 +61,6 @@ export {
   LabelColorPicker,
   MacroColorPicker,
   labelColorNames,
-  paletteColorScopes,
   type LabelColorPickerProps,
   type MacroColorPickerProps,
 } from './LabelColorPicker';

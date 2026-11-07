@@ -65,7 +65,7 @@ const problemTips: Readonly<Record<RowProblem, string>> = {
   'missing-bible': '성경 구절 없음',
   'missing-background': '배경 파일을 찾을 수 없습니다',
   'missing-media': '미디어 파일을 찾을 수 없습니다',
-  'unknown-kind': '이번 버전에서는 쓸 수 없는 항목',
+  'unknown-kind': '아직 없는 기능',
   'newer-version': NEWER_FILE_REASON,
   'tile-limit': ARRANGEMENT_LIMIT_REASON,
 };

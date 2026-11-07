@@ -96,7 +96,7 @@ it('still reports a failed copy after the new service replaces the empty state',
   expect(open).toHaveBeenCalledWith({serviceId: ids.created});
   expect(useShow.getState().serviceId).toBe(ids.created);
   expect(onProblem.mock.calls[0]?.[0]).toMatchObject({
-    title: '새 예배에 항목을 가져올 수 없음',
+    title: '항목 가져오기 실패',
   });
   expect(screen.queryByRole('dialog', {name: '새 예배'})).toBeNull();
 });

@@ -43,7 +43,7 @@ it.each([false, true])(
       menuItems(screenEntries(input)).find(
         row => row.id === 'broadcast-settings',
       ),
-    ).toMatchObject({disabled: true, title: '이번 버전에서는 쓸 수 없음'});
+    ).toMatchObject({disabled: true, title: '아직 없는 기능'});
     row?.onSelect?.();
     expect(send).toHaveBeenCalledExactlyOnceWith({
       type: 'live.batch',

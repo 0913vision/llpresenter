@@ -15,7 +15,6 @@ import {CellButton} from './CellButton';
 import styles from './ServiceTable.module.css';
 
 const NONE = '없음';
-const FOLLOWS_SONG = '곡의 배경을 따릅니다';
 
 /** What the background cell shows: the picture and the name that will play. */
 function Shown({
@@ -74,8 +73,7 @@ export function BackgroundCell({
               ? (background?.title ?? backgroundName(media, selectedBackground))
               : backgroundName(media, selectedBackground),
         };
-  const hint = !own && playing !== undefined ? FOLLOWS_SONG : undefined;
-  const {targetProps, tooltip} = useTooltip(titleTooltip(hint));
+  const {targetProps, tooltip} = useTooltip(titleTooltip(undefined));
   if (choose === undefined) {
     return (
       <>
@@ -100,7 +98,6 @@ export function BackgroundCell({
         width={styles.background}
         dim={!own}
         reason={reason}
-        hint={hint}
         expanded={open}
         popup="listbox"
         buttonRef={setButton}

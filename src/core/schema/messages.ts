@@ -81,11 +81,11 @@ const messagesFormat: FileFormat<typeof messagesSchema> = {
   migrations: messagesMigrations,
 };
 
-/** `messages.json`: the 메시지 문구 and styles. */
+/** `messages.json`: the 메시지 and styles. */
 export type MessagesFile = ReadonlyKnown<v.InferOutput<typeof messagesSchema>>;
 
 /**
- * A 메시지 문구. `{blank name}` in `text` marks a blank that the operator
+ * A 메시지. `{blank name}` in `text` marks a blank that the operator
  * fills when sending. `targets` and `duration` are the defaults for sending.
  */
 export type MessageTemplate = MessagesFile['templates'][number];

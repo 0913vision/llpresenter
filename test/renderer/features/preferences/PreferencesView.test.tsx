@@ -655,7 +655,7 @@ describe('PreferencesView', () => {
     );
     await waitFor(() =>
       expect(onProblem).toHaveBeenCalledWith(
-        expect.objectContaining({title: '환경설정을 저장하지 못함'}),
+        expect.objectContaining({title: '환경설정 저장 실패'}),
       ),
     );
 
@@ -739,7 +739,7 @@ describe('PreferencesView', () => {
     );
     await waitFor(() =>
       expect(onProblem).toHaveBeenCalledWith(
-        expect.objectContaining({title: '기본 역본을 저장하지 못함'}),
+        expect.objectContaining({title: '기본 역본 저장 실패'}),
       ),
     );
 

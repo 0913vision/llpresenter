@@ -1,7 +1,7 @@
 import type {MenuItem, MenuSeparator} from './menuModel';
 
 /** The tooltip on a row for a ProPresenter feature the app doesn't have yet. */
-export const NOT_YET = '이번 버전에서는 쓸 수 없음';
+export const NOT_YET = '아직 없는 기능';
 
 export function menuSeparator(id: string): MenuSeparator {
   return {kind: 'separator', id};

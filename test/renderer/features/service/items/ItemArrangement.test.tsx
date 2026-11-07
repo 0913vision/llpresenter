@@ -302,7 +302,7 @@ describe('ItemArrangement with grouped songs', () => {
     await user.click(screen.getByRole('menuitem', {name: '삭제'}));
     const question = await screen.findByRole('alertdialog');
 
-    expect(question.textContent).toContain('쓰는 곳을 확인할 수 없습니다');
+    expect(question.textContent).toContain('쓰는 곳 확인 실패');
     expect(question.textContent).not.toContain('쓰는 곳: 예배');
     act(() => session.renamed('주일용', '합창용'));
     const current = service();

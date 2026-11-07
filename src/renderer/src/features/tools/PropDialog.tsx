@@ -71,7 +71,7 @@ export function PropDialog({
         ? {kind: 'image', media: selectedMedia.id}
         : undefined;
   const prop = content ? {id, name, content, targets} : undefined;
-  const reason = prop ? propReason(prop) : '이미지를 선택하세요';
+  const reason = prop ? propReason(prop) : '이미지를 골라야 저장할 수 있습니다';
   return (
     <Dialog
       title={initial ? '그래픽 수정' : '그래픽 추가'}

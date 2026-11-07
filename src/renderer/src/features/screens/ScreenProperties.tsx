@@ -42,8 +42,8 @@ const LOAD_TITLE = '화면';
 const noScreens: readonly Screen[] = [];
 const READ_ONLY_REASON = NEWER_FILE_REASON;
 const NAME_PROBLEMS = {
-  empty: '이름이 비어 있음',
-  taken: '같은 이름의 화면이 있음',
+  empty: '이름을 적어야 저장할 수 있습니다',
+  taken: '같은 이름의 화면이 있습니다',
 } as const;
 
 const KIND_OPTIONS = [
@@ -187,7 +187,7 @@ function CorrectionRows({
           />
         )}
       </PropertyRow>
-      <PropertyRow label="위치 미세 조정">
+      <PropertyRow label="위치 조정">
         {({controlId}) => (
           <span className={styles.pair}>
             <NumberField

@@ -14,7 +14,7 @@ export type ServiceActionEntries = Readonly<
   Record<'newService' | 'importItems' | 'saveTemplate', MenuItem>
 >;
 
-const NO_SERVICE = '열린 예배가 없습니다';
+const NO_SERVICE = '열린 예배 없음';
 
 /**
  * The service commands at the end of the service picker, and the dialog the

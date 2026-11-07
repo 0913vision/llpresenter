@@ -230,7 +230,7 @@ describe('PreviewPanel states', () => {
     expect(large.getAttribute('data-state')).toBe('off');
     expect(
       screen.getByRole('button', {pressed: true}).getAttribute('aria-label'),
-    ).toBe('청중 화면 크게 보기, 출력이 꺼져 있습니다');
+    ).toBe('청중 화면 크게 보기, 출력 꺼짐');
     expect(created()[0]?.render).toHaveBeenLastCalledWith(
       expect.objectContaining({slide}),
       expect.anything(),
@@ -365,7 +365,7 @@ describe('PreviewPanel screen list changes', () => {
       const last = screens.at(-1);
       if (last === undefined) throw new Error('Missing final screen fixture');
       const lastButton = screen.getByRole('button', {
-        name: `${last.toolbarLabel} 크게 보기, 출력이 꺼져 있습니다`,
+        name: `${last.toolbarLabel} 크게 보기, 출력 꺼짐`,
       });
       const firstButton = screen.getAllByRole('button')[0];
       if (firstButton === undefined) throw new Error('Missing first slot');

@@ -39,7 +39,7 @@ const HELP_MENU = '도움말';
 const OUTPUT_MENU = '출력';
 const FILE_MENU = '파일';
 const VIEW_MENU = '보기';
-const NOT_YET_READ = '환경설정을 불러오고 있습니다';
+const NOT_YET_READ = '환경설정 불러오는 중';
 
 type ImportText = (source: TextImportReadRequest['source']) => void;
 type MenuName =

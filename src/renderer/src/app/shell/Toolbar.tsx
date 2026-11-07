@@ -90,7 +90,7 @@ export function Toolbar({
         tabs={workspaceTabs}
         value={workspace}
         onChange={onWorkspace}
-        label="작업 공간"
+        label="화면 전환"
         compact={compact}
         className={styles.group}
       />

@@ -21,7 +21,7 @@ const SAVE_FAILURE: Notice = {
   key: 'preferences:shortcuts-save',
   kind: 'warning',
   icon: 'warning',
-  title: '단축키를 저장하지 못함',
+  title: '단축키 저장 실패',
   time: '',
 };
 

@@ -103,7 +103,7 @@ it.each([false, true])(
       await screen.findByRole('option', {name: '차량 이동'}),
     );
     expect(
-      renderedToolMenuRows(screen.getByRole('menu', {name: '메시지 문구'})),
+      renderedToolMenuRows(screen.getByRole('menu', {name: '메시지'})),
     ).toEqual(['수정…', '|', '복제', '이름 바꾸기', '|', '삭제']);
     if (locked) {
       for (const row of screen.getAllByRole('menuitem')) {
@@ -153,7 +153,7 @@ it('adds a validated template and selects it without sending', async () => {
   const fixture = setup();
   render(<MessageTab />);
   await screen.findByRole('option', {name: '차량 이동'});
-  fireEvent.click(button('메시지 문구 추가'));
+  fireEvent.click(button('메시지 추가'));
   expect(button('추가').getAttribute('aria-disabled')).toBe('true');
   fill('이름', '  새 안내  ');
   fill('문구', '  ');
@@ -228,7 +228,7 @@ it('keeps an applied addition with a disk warning and prevents duplicate clicks'
   });
   render(<MessageTab onProblem={fixture.problem} />);
   await screen.findByRole('option', {name: '차량 이동'});
-  fireEvent.click(button('메시지 문구 추가'));
+  fireEvent.click(button('메시지 추가'));
   fill('이름', '새 안내');
   fill('문구', '안내석으로 와 주세요');
   fireEvent.click(button('추가'));
@@ -237,7 +237,7 @@ it('keeps an applied addition with a disk warning and prevents duplicate clicks'
   expect(fixture.edit).toHaveBeenCalledOnce();
   expect(fixture.current().value.templates).toHaveLength(2);
   expect(fixture.problem).toHaveBeenCalledExactlyOnceWith(
-    expect.objectContaining({title: '메시지 문구 저장 실패'}),
+    expect.objectContaining({title: '메시지 저장 실패'}),
   );
   expect(await pendingWritesOf(fixture.api).flush()).toBe(true);
 });

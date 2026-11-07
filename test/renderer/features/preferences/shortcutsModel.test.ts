@@ -62,8 +62,8 @@ describe('buildRows', () => {
     const slide = rows.find(row => row.command.id === 'clear.slide');
     const all = rows.find(row => row.command.id === 'clear.all');
 
-    expect(slide?.conflictWith).toBe('모두 지우기 / 복원');
-    expect(all?.conflictWith).toBe('가사 지우기 / 복원');
+    expect(slide?.conflictWith).toBe('모두 지우기');
+    expect(all?.conflictWith).toBe('가사 지우기');
     expect(shortcutCounts(rows)).toEqual({changed: 1, conflict: 2});
   });
 

@@ -21,12 +21,10 @@ it('keeps locked commands visible with a reason while future rows retain their o
   for (const entries of menus) {
     for (const item of menuItems(entries)) {
       expect(item.disabled).toBe(true);
-      expect(item.title).toBe(
-        item.onSelect ? '저장 중입니다' : '이번 버전에서는 쓸 수 없음',
-      );
+      expect(item.title).toBe(item.onSelect ? '저장 중' : '아직 없는 기능');
     }
   }
-  expect(toolMenuReason(true)).toBe('목록이 잠겨 있습니다');
+  expect(toolMenuReason(true)).toBe('지금은 바꿀 수 없습니다');
   expect(toolMenuReason(false, false)).toBeUndefined();
 });
 
@@ -74,11 +72,9 @@ it('turns 복제 on, and gives a full list its own reason after the lock reason'
       disabled: true,
       title: '목록이 가득 찼습니다',
     });
-    expect(copyOf(menu('목록이 가득 찼습니다', '저장 중입니다'))).toMatchObject(
-      {
-        disabled: true,
-        title: '저장 중입니다',
-      },
-    );
+    expect(copyOf(menu('목록이 가득 찼습니다', '저장 중'))).toMatchObject({
+      disabled: true,
+      title: '저장 중',
+    });
   }
 });

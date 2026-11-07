@@ -61,7 +61,7 @@ export function lastOfKind(
 ): string | undefined {
   return screens.filter(screen => screen.kind === target.kind).length > 1
     ? undefined
-    : `마지막 ${KIND_NAMES[target.kind]} 화면은 삭제할 수 없음. 사용 안 함으로 끌 수 있음`;
+    : `마지막 ${KIND_NAMES[target.kind]} 화면은 삭제할 수 없습니다`;
 }
 
 function isDefaultName(kind: Screen['kind'], name: string): boolean {

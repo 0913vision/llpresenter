@@ -85,7 +85,7 @@ describe('the 파일 menu', () => {
           }),
         )
       )?.textContent,
-    ).toBe('열린 예배가 없습니다');
+    ).toBe('열린 예배 없음');
   });
 
   it.each([
@@ -141,7 +141,7 @@ describe('the 파일 menu', () => {
           screen.getByRole('menuitem', {name: /^텍스트 파일/}),
         )
       )?.textContent,
-    ).toBe('이번 버전에서는 쓸 수 없음');
+    ).toBe('아직 없는 기능');
   });
 
   it('imports media into the library once while the request is pending', async () => {
@@ -195,7 +195,7 @@ describe('the 파일 menu', () => {
     await userEvent.click(screen.getByRole('menuitem', {name: '미디어…'}));
     await waitFor(() =>
       expect(onProblem).toHaveBeenCalledWith(
-        expect.objectContaining({title: '미디어를 가져올 수 없음'}),
+        expect.objectContaining({title: '미디어 가져오기 실패'}),
       ),
     );
   });

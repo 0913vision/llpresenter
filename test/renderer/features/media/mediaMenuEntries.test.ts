@@ -79,7 +79,7 @@ it('lists the media tile rows and icons in ProPresenter order', () => {
     ) {
       expect(row).toMatchObject({
         disabled: true,
-        title: '이번 버전에서는 쓸 수 없음',
+        title: '아직 없는 기능',
       });
     }
   }
@@ -262,7 +262,7 @@ it('turns off 맞춤 and 끝나면 for a list a newer version wrote, and 끝나�
   expect(choices(entries, 'scaling').disabled).toBe(false);
   expect(choices(entries, 'end')).toMatchObject({
     disabled: true,
-    title: '이미지에는 재생이 없음',
+    title: '이미지는 재생할 수 없습니다',
   });
 });
 

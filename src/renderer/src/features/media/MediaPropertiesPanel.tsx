@@ -205,7 +205,7 @@ function SoundGroup({shown, disabled, change}: Editing) {
             max={MAX_VOLUME}
             step={1}
             disabled={disabled || !shown.audio}
-            title={shown.audio ? undefined : '소리가 꺼져 있음'}
+            title={shown.audio ? undefined : '소리 꺼짐'}
             value={dragging ?? shown.volume}
             valueText={`${Math.round(dragging ?? shown.volume)}%`}
             onChange={setDragging}
@@ -261,7 +261,7 @@ function MediaInfo({item}: {readonly item: MediaItem}): JSX.Element {
         {item.kind === 'image' ? null : (
           <PropertyValue
             label="길이"
-            value={durationText(item.duration) ?? '알 수 없음'}
+            value={durationText(item.duration) ?? '모름'}
           />
         )}
         <PropertyValue label="크기" value={sizeText(item.size)} />

@@ -359,7 +359,7 @@ describe('media import', () => {
     await ended(reports, 1);
     expect(reports.at(-1)).toMatchObject({
       phase: 'failed',
-      message: '미디어 목록에 넣지 못함',
+      message: '목록 저장 실패',
     });
     expect(await readdir(media)).toEqual([]);
   });

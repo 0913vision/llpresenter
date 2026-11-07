@@ -13,7 +13,7 @@ export function mediaImportFailureNotice(
     key: `media-view:copy:${progress.mediaId}`,
     kind: 'warning',
     icon: 'warning',
-    title: '미디어를 가져오지 못함',
+    title: '미디어 가져오기 실패',
     time: noticeTime(),
     meta: [progress.fileName, progress.message],
   };
@@ -47,7 +47,7 @@ export async function requestMediaImport({
     key: 'media-view:import',
     kind: 'warning',
     icon: 'warning',
-    title: '미디어를 가져올 수 없음',
+    title: '미디어 가져오기 실패',
     time: noticeTime(),
   });
   return null;

@@ -27,12 +27,12 @@ export const COPY_IMPORTED_MEDIA = false;
 export const MAX_IMPORT_JOBS = MEDIA_LIMITS.importBatch;
 
 const UNSUPPORTED = '지원하지 않는 형식';
-const COPY_FAILED = '복사하지 못함';
-const NOT_ADDED = '미디어 목록에 넣지 못함';
+const COPY_FAILED = '복사 실패';
+const NOT_ADDED = '목록 저장 실패';
 
 const CANT_PLAY: Readonly<Record<AnalysisFailureReason, string>> = {
   unsupported: '재생할 수 없는 형식',
-  decode: '손상되어 재생할 수 없는 파일',
+  decode: '손상된 파일',
   network: '읽을 수 없는 파일',
   aborted: '읽을 수 없는 파일',
 };

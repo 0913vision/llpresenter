@@ -42,7 +42,7 @@ export function ThemeMenu({
         ref={button}
         icon="layers"
         label={name}
-        aria-label={`테마 바꾸기: ${name}`}
+        aria-label={`테마: ${name}`}
         title="테마 바꾸기"
         compact={compact}
         menu

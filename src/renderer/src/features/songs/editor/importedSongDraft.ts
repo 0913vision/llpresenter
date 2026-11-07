@@ -110,7 +110,7 @@ export class ImportedSongDraft {
   }
 
   reportImportTargetChanged(): void {
-    this.context.host.problem('중복 곡이 변경되었습니다');
+    this.context.host.problem('같은 곡이 바뀌었습니다');
   }
 
   discardImported(): void {

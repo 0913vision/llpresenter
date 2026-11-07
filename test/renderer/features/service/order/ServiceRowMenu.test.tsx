@@ -284,7 +284,7 @@ it('reports a refused inline rename and keeps the original service', async () =>
   fireEvent.keyDown(field, {key: 'Enter', code: 'Enter'});
   await waitFor(() =>
     expect(onProblem).toHaveBeenCalledWith(
-      expect.objectContaining({title: '이름을 바꿀 수 없음'}),
+      expect.objectContaining({title: '이름 바꾸기 실패'}),
     ),
   );
   expect(screen.getByDisplayValue('저장할 수 없는 이름')).toBe(field);

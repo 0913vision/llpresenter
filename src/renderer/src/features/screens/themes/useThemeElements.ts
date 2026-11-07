@@ -126,7 +126,7 @@ export function useThemeElements(
     });
     const unchanged = guardInteraction();
     if (element === undefined) {
-      report('이미지를 선택해 주세요');
+      report('이미지를 골라야 추가할 수 있습니다');
       return;
     }
     elements(

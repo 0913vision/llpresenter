@@ -66,10 +66,12 @@ function iconOf(screen: Screen): string {
 }
 
 function problemOf(status: ScreenStatus): string | undefined {
-  if (status.placement === 'monitorMissing') return '모니터를 찾을 수 없음';
-  if (status.renderer === 'restarting') return '출력 창을 다시 시작하는 중';
-  if (status.renderer === 'limited') return '다시 시작 한도에 도달함';
-  return status.fpsLow ? '프레임 속도가 낮음' : undefined;
+  if (status.placement === 'monitorMissing') return '모니터를 찾을 수 없습니다';
+  if (status.renderer === 'restarting') return '출력 창 다시 시작 중';
+  if (status.renderer === 'limited') {
+    return '다시 시작을 더는 시도하지 않습니다';
+  }
+  return status.fpsLow ? '프레임 속도가 낮습니다' : undefined;
 }
 
 function healthOf(

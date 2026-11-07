@@ -104,7 +104,7 @@ describe('addScreen', () => {
       }),
     );
     expect(() => addScreen(full, INPUT)).toThrow(
-      '화면은 200개까지 추가할 수 있음',
+      '화면은 200개까지 추가할 수 있습니다',
     );
     expect(full).toHaveLength(MAX_TARGET_SCREENS);
   });

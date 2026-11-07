@@ -34,7 +34,7 @@ describe('showMonitorNumber', () => {
         refreshRate: 0,
       }),
     );
-    expect(root.textContent).toContain('주사율 미확인');
+    expect(root.textContent).toContain('주사율 모름');
     expect(root.textContent).toContain('무대, 창');
   });
 

@@ -18,6 +18,14 @@ import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 import {macroActionChoices} from './macroActionChoices';
 import {MACRO_ACTIONS} from './macroActionCatalog';
 import type {MacroTargetChoice} from './macroTargets';
+import {toolMenuReason} from './toolMenuEntries';
+
+/** The reason a locked list gives; a save in progress says so. */
+export function lockedReason(
+  input: Pick<MacroActionMenuInput, 'lockReason'>,
+): string | undefined {
+  return input.lockReason ?? toolMenuReason(true);
+}
 
 /** What the 동작 rows of the 매크로 menu can ask the panel to do. */
 export interface MacroActionMenuHandlers {
@@ -33,6 +41,8 @@ export interface MacroActionMenuHandlers {
 export interface MacroActionMenuInput {
   readonly item: Macro;
   readonly locked: boolean;
+  /** Why the list is locked: a save in progress or a file that can't change. */
+  readonly lockReason?: string | undefined;
   /** Target names by action kind; undefined while they load. */
   readonly targets:
     | Partial<Readonly<Record<MacroActionKind, readonly MacroTargetChoice[]>>>
@@ -119,8 +129,8 @@ function kindRow(
         ? limitReason('동작', MACRO_FILE_LIMITS.actions)
         : empty
           ? input.targets === undefined
-            ? '대상을 불러오고 있습니다'
-            : '대상이 없습니다'
+            ? '대상 불러오는 중'
+            : '대상 없음'
           : undefined,
     ),
     loadSubmenu: () =>
@@ -145,7 +155,7 @@ function addActionEntries(
       kind: 'item',
       id: 'add-action',
       label: '동작 추가',
-      ...menuAvailability(input.locked ? '매크로 목록 잠김' : undefined),
+      ...menuAvailability(input.locked ? lockedReason(input) : undefined),
       submenu: [
         {
           kind: 'item',
@@ -227,11 +237,7 @@ function editEntries(
       label: `동작 편집: ${macroActionName(action, targets)}`,
       icon: actionIcon(action),
       ...menuAvailability(
-        locked
-          ? '매크로 목록 잠김'
-          : !known
-            ? '이번 버전에서는 쓸 수 없는 동작'
-            : undefined,
+        locked ? lockedReason(input) : !known ? '아직 없는 기능' : undefined,
       ),
       loadSubmenu: known
         ? () => [
@@ -285,7 +291,7 @@ function editEntries(
         id: 'remove-0',
         label: `동작 삭제: ${macroActionName(only, targets)}`,
         icon: actionIcon(only),
-        ...menuAvailability(locked ? '매크로 목록 잠김' : undefined),
+        ...menuAvailability(locked ? lockedReason(input) : undefined),
         onSelect: () => handlers.removeAction(0),
       },
     ];
@@ -298,7 +304,7 @@ function editEntries(
       kind: 'item',
       id: 'remove-actions',
       label: '동작 삭제',
-      ...menuAvailability(locked ? '매크로 목록 잠김' : undefined),
+      ...menuAvailability(locked ? lockedReason(input) : undefined),
       submenu: [
         ...removes,
         menuSeparator('remove-all-separator'),

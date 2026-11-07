@@ -65,14 +65,14 @@ describe('SongSlidePanel with grouped songs', () => {
     act(() => session.selectArrangement('Large'));
     expect(
       screen.getByRole('status', {
-        name: '슬라이드는 10000개까지 사용할 수 있음',
+        name: '슬라이드는 10000개까지 사용할 수 있습니다',
       }),
     ).toBeDefined();
-    expect(screen.getByText('슬라이드가 너무 많음')).toBeDefined();
+    expect(screen.getByText('슬라이드가 너무 많습니다')).toBeDefined();
     act(() => session.selectArrangement(undefined));
     expect(
       screen.queryByRole('status', {
-        name: '슬라이드는 10000개까지 사용할 수 있음',
+        name: '슬라이드는 10000개까지 사용할 수 있습니다',
       }),
     ).toBeNull();
   });

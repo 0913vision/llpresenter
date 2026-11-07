@@ -148,10 +148,7 @@ describe('ServiceOrderList', () => {
     });
     render(<ServiceOrderList />);
     const marks = screen.getAllByRole('img').map(mark => mark.ariaLabel);
-    expect(marks).toEqual([
-      '곡 파일을 찾을 수 없습니다',
-      '이번 버전에서는 쓸 수 없는 항목',
-    ]);
+    expect(marks).toEqual(['곡 파일을 찾을 수 없습니다', '아직 없는 기능']);
     expect(
       within(screen.getByRole('option', {name: /정상/})).queryByRole('img'),
     ).toBeNull();

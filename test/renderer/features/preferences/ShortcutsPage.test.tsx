@@ -67,7 +67,7 @@ function install(
 async function mount(bindings?: Bindings, access?: 'editable' | 'readOnly') {
   install(bindings, access);
   render(<ShortcutsPage onProblem={onProblem} />);
-  await screen.findByRole('option', {name: /가사 지우기 \/ 복원/});
+  await screen.findByRole('option', {name: /가사 지우기/});
 }
 
 function rowOf(name: RegExp | string): HTMLElement {
@@ -111,7 +111,7 @@ describe('ShortcutsPage', () => {
   it('filters by the search text and by the 바꾼 것 and 겹침 counts', async () => {
     await mount({'clear.slide': [{code: 'F1', mods: []}]});
 
-    expect(screen.getByRole('radio', {name: /바꾼 것/}).textContent).toContain(
+    expect(screen.getByRole('radio', {name: /바꿈/}).textContent).toContain(
       '1',
     );
     expect(screen.getByRole('radio', {name: /겹침/}).textContent).toContain(
@@ -135,12 +135,12 @@ describe('ShortcutsPage', () => {
 
     expect(
       within(rowOf(/^가사 지우기/)).getByRole('img', {
-        name: '모두 지우기 / 복원과 겹침',
+        name: '모두 지우기와 겹침',
       }),
     ).toBeTruthy();
     expect(
       within(rowOf(/^모두 지우기/)).getByRole('img', {
-        name: '가사 지우기 / 복원과 겹침',
+        name: '가사 지우기와 겹침',
       }),
     ).toBeTruthy();
   });
@@ -339,7 +339,7 @@ describe('ShortcutsPage', () => {
 
     await waitFor(() =>
       expect(onProblem).toHaveBeenCalledWith(
-        expect.objectContaining({title: '단축키를 저장하지 못함'}),
+        expect.objectContaining({title: '단축키 저장 실패'}),
       ),
     );
   });

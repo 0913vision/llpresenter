@@ -18,14 +18,10 @@ export type TimerConfiguration =
   | {readonly kind: 'clock'};
 
 export const timerDateReason = (date: string): string | undefined =>
-  checkPart(calendarDate, date).ok
-    ? undefined
-    : '날짜는 YYYY-MM-DD로 입력해 주세요';
+  checkPart(calendarDate, date).ok ? undefined : '날짜 형식이 맞지 않습니다';
 
 export const timerTimeReason = (time: string): string | undefined =>
-  checkPart(timeOfDay, time).ok
-    ? undefined
-    : '시각은 00:00부터 23:59까지 입력해 주세요';
+  checkPart(timeOfDay, time).ok ? undefined : '시각 형식이 맞지 않습니다';
 
 export function validTimerConfiguration(timer: TimerConfiguration): boolean {
   switch (timer.kind) {

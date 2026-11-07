@@ -262,7 +262,7 @@ describe('adjacent Bible verses', () => {
             suggestions: [],
             result: {
               ok: false,
-              error: {code: 'translation', message: '역본 조회 실패'},
+              error: {code: 'translation', message: '역본 불러오기 실패'},
             },
           });
       }

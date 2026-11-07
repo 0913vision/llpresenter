@@ -201,9 +201,7 @@ describe('slide-header background control', () => {
     const relink = screen.getByRole('button', {name: '다시 연결'});
     expect(relink.getAttribute('aria-disabled')).toBe('true');
     await user.click(relink);
-    expect((await hoverForTooltip(relink))?.textContent).toBe(
-      '이번 버전에서는 쓸 수 없음',
-    );
+    expect((await hoverForTooltip(relink))?.textContent).toBe('아직 없는 기능');
   });
 
   it('binds the selected item and host callback to the controller', async () => {

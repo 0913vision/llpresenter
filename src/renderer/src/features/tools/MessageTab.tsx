@@ -243,7 +243,7 @@ export function MessageTab({
         onSelect={setSelectedId}
       >
         <ListBox
-          label="메시지 문구"
+          label="메시지"
           workspace="show"
           selected={selected?.id}
           onSelect={setSelectedId}

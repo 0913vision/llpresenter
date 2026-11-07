@@ -72,7 +72,7 @@ afterEach(() => {
 it('shows the confirmed live name even with the menu closed and follows renamed settings', async () => {
   const {file, first, push, view, stop} = setup();
   const button = await screen.findByRole('button', {
-    name: `테마 바꾸기: ${first.name}`,
+    name: `테마: ${first.name}`,
   });
   expect(button.textContent).toBe(first.name);
   expect((await hoverForTooltip(button))?.textContent).toBe('테마 바꾸기');
@@ -91,7 +91,7 @@ it('shows the confirmed live name even with the menu closed and follows renamed 
     ),
   );
   expect(
-    screen.getByRole('button', {name: '테마 바꾸기: Renamed theme'}),
+    screen.getByRole('button', {name: '테마: Renamed theme'}),
   ).toBeTruthy();
   expect(button.textContent).toBe('Renamed theme');
   view.unmount();
@@ -101,7 +101,7 @@ it('shows the confirmed live name even with the menu closed and follows renamed 
 it('lists radio themes followed by a separator and editor, and waits for live acknowledgement', async () => {
   const {file, first, second, live, send, onEdit, user} = setup();
   const button = await screen.findByRole('button', {
-    name: `테마 바꾸기: ${first.name}`,
+    name: `테마: ${first.name}`,
   });
   button.focus();
   await user.keyboard('{ArrowDown}');
@@ -165,7 +165,7 @@ it('keeps a newer pushed revision over a slow initial read and does not invent a
     ),
   );
   await act(async () => finish(settingsDocument('themes', file, 1)));
-  await user.click(screen.getByRole('button', {name: '테마 바꾸기: 없음'}));
+  await user.click(screen.getByRole('button', {name: '테마: 없음'}));
   const rows = screen.getAllByRole('menuitemradio');
   expect(rows).toHaveLength(1);
   expect(rows[0]?.textContent).toBe('Newer theme');

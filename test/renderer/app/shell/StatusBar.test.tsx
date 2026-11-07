@@ -51,7 +51,7 @@ describe('StatusBar', () => {
       '\uBB34\uB300 \uD654\uBA74 \uCC3D\uC73C\uB85C \uD45C\uC2DC \uC911',
     );
     expect(screen.getByRole('status').textContent).toContain(
-      '\uD504\uB808\uC784 \uC18D\uB3C4\uAC00 \uB0AE\uC544\uC9C0\uB294 \uC911: \uBC29\uC1A1 \uC790\uB9C9 (41fps)',
+      '방송 자막 프레임 낮음 (41fps)',
     );
     fixture.statuses = {};
     view.rerender(<StatusBar />);

@@ -235,9 +235,7 @@ export function ScreenList({
                   label={section.label}
                   reason={creationReason}
                   outputReason={
-                    outputsInGroup.length === 0
-                      ? '시스템 화면이 없음'
-                      : undefined
+                    outputsInGroup.length === 0 ? '화면 없음' : undefined
                   }
                   on={outputsInGroup.some(
                     screen => outputs[screen.id] === true,

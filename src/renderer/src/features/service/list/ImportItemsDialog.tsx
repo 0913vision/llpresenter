@@ -12,7 +12,7 @@ import {useSourceActions} from './useSourceActions';
 import {useImportItems} from './useImportItems';
 
 const DIALOG_HEIGHT = 700;
-const MISSING = '예배를 읽을 수 없습니다';
+const MISSING = '예배 읽기 실패';
 const NO_SOURCES = '가져올 템플릿이나 예배가 없습니다';
 
 /**

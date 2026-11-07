@@ -12,10 +12,10 @@ export async function confirmBibleCuts(
   for (let attempt = 0; attempt < 3; attempt++) {
     const document = await api.get({name: 'bibleCuts'});
     if (document.name !== 'bibleCuts' || document.access !== 'editable') {
-      throw new Error('절 나누기 저장 불가');
+      throw new Error('절 나누기 저장 실패');
     }
     const value = saveCuts(document.value, verse.reference, entry);
-    if (value === null) throw new Error('저장 가능한 구절 수를 넘었습니다');
+    if (value === null) throw new Error('구절이 너무 많아 저장할 수 없습니다');
     const result = await api.edit({
       type: 'settings.update',
       name: 'bibleCuts',
@@ -25,5 +25,5 @@ export async function confirmBibleCuts(
     if (result.ok) return;
     if (result.error.reason !== 'stale') throw new Error('절 나누기 저장 실패');
   }
-  throw new Error('다른 창에서 절 나누기가 변경됨');
+  throw new Error('다른 창에서 절 나누기를 바꿨습니다');
 }

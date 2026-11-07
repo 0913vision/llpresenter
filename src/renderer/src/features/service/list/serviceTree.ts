@@ -23,7 +23,7 @@ export interface TreeRow {
 export type TreeSelection = ReadonlySet<ServiceItemId>;
 
 const DEFAULT_ARRANGEMENT = '기본';
-const MISSING_SONG = '곡을 찾을 수 없음';
+const MISSING_SONG = '곡을 찾을 수 없습니다';
 const kindLabels = {
   media: '미디어',
   unknown: '알 수 없는 항목',

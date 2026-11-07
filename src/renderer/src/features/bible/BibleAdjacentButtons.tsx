@@ -90,7 +90,7 @@ export function BibleAdjacentButtons({
           message: 'Could not add an adjacent Bible verse',
           detail: String(cause),
         });
-        setProblem('구절 조회 실패');
+        setProblem('구절 불러오기 실패');
       }
     } finally {
       if (owner.active) {
@@ -107,11 +107,11 @@ export function BibleAdjacentButtons({
         const noVerse =
           edge === direction || (direction === 'previous' && beginning);
         const reason = !api
-          ? '구절 조회 불가'
+          ? '구절을 불러올 수 없습니다'
           : busy
-            ? '구절 조회 중'
+            ? '구절 불러오는 중'
             : noVerse
-              ? '인접한 절 없음'
+              ? '앞뒤 절 없음'
               : problem;
         return (
           <Button

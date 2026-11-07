@@ -11,6 +11,7 @@ import {
   menuSeparator,
 } from '@renderer/ui/menuRows';
 import {
+  lockedReason,
   macroActionEntries,
   type MacroActionMenuHandlers,
   type MacroActionMenuInput,
@@ -84,7 +85,7 @@ function collectionEntries(
       kind: 'item',
       id: 'add-to',
       label: '모음에 추가',
-      ...menuAvailability(locked ? '매크로 목록 잠김' : undefined),
+      ...menuAvailability(locked ? lockedReason(input) : undefined),
       submenu: collectionRows(input, {
         marked: holds,
         choose: handlers.addTo,
@@ -97,7 +98,7 @@ function collectionEntries(
       label: '모음으로 옮기기',
       ...menuAvailability(
         locked
-          ? '매크로 목록 잠김'
+          ? lockedReason(input)
           : shown === undefined
             ? '모든 매크로에서는 옮길 수 없습니다'
             : undefined,
@@ -121,21 +122,21 @@ function appearanceEntries(
       kind: 'item',
       id: 'rename',
       label: '이름 바꾸기',
-      ...menuAvailability(locked ? '매크로 목록 잠김' : undefined),
+      ...menuAvailability(locked ? lockedReason(input) : undefined),
       onSelect: handlers.rename,
     },
     {
       kind: 'item',
       id: 'color',
       label: '색 바꾸기',
-      ...menuAvailability(locked ? '매크로 목록 잠김' : undefined),
+      ...menuAvailability(locked ? lockedReason(input) : undefined),
       onSelect: handlers.changeColor,
     },
     {
       kind: 'item',
       id: 'icon',
       label: '아이콘 바꾸기',
-      ...menuAvailability(locked ? '매크로 목록 잠김' : undefined),
+      ...menuAvailability(locked ? lockedReason(input) : undefined),
       onSelect: handlers.changeIcon,
     },
     {
@@ -144,7 +145,7 @@ function appearanceEntries(
       label: '시작할 때 실행',
       check: 'checkbox',
       checked: item.runOnStartup === true,
-      ...menuAvailability(locked ? '매크로 목록 잠김' : undefined),
+      ...menuAvailability(locked ? lockedReason(input) : undefined),
       onSelect: handlers.toggleStartup,
     },
   ];
@@ -152,9 +153,9 @@ function appearanceEntries(
 
 /** Why 복제 can't run on a 매크로 now, for its menu row and its key. */
 export function macroDuplicateReason(
-  input: Pick<MacroMenuInput, 'locked' | 'macroCount'>,
+  input: Pick<MacroMenuInput, 'locked' | 'lockReason' | 'macroCount'>,
 ): string | undefined {
-  if (input.locked) return '매크로 목록 잠김';
+  if (input.locked) return lockedReason(input);
   return input.macroCount >= MACRO_FILE_LIMITS.macros
     ? limitReason('매크로', MACRO_FILE_LIMITS.macros)
     : undefined;
@@ -183,7 +184,7 @@ function clipboardEntries(
       label: '삭제',
       icon: 'trash',
       danger: true,
-      ...menuAvailability(input.locked ? '매크로 목록 잠김' : undefined),
+      ...menuAvailability(input.locked ? lockedReason(input) : undefined),
       onSelect: handlers.remove,
     },
   ];

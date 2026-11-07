@@ -165,7 +165,7 @@ export function ShortcutsPage({
       id: 'reset',
       label: RESET_LABEL,
       ...menuAvailability(
-        edits.lockedReason ?? (row.changed ? undefined : '바꾼 키가 없음'),
+        edits.lockedReason ?? (row.changed ? undefined : '바꾼 키 없음'),
       ),
       onSelect: () => edits.reset(row.command.id),
     },
@@ -175,7 +175,7 @@ export function ShortcutsPage({
       label: CLEAR_LABEL,
       ...menuAvailability(
         edits.lockedReason ??
-          (row.bindings.length === 0 ? '지울 키가 없음' : undefined),
+          (row.bindings.length === 0 ? '지울 키 없음' : undefined),
       ),
       onSelect: () => edits.record(row.command, null),
     },
@@ -222,7 +222,7 @@ export function ShortcutsPage({
             {value: 'all', label: '전체'},
             {
               value: 'changed',
-              label: '바꾼 것',
+              label: '바꿈',
               count: counts.changed,
             },
             {
@@ -355,7 +355,7 @@ export function ShortcutsPage({
       {confirmingAll ? (
         <AlertDialog
           icon="undo"
-          title="모든 단축키를 기본값으로 되돌립니다"
+          title="모든 단축키를 기본값으로 되돌릴까요?"
           onCancel={() => setConfirmingAll(false)}
           actions={[
             {

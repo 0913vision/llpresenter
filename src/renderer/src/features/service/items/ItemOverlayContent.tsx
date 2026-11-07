@@ -54,7 +54,7 @@ export function ItemOverlayContent({
         title: saving
           ? '저장 중'
           : kind === 'media' && selected === undefined
-            ? '미디어를 선택하세요'
+            ? '미디어를 골라야 적용할 수 있습니다'
             : undefined,
         onSelect: () => {
           const unknown: Record<string, unknown> = {...overlay.content};

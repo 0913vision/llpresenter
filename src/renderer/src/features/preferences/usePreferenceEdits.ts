@@ -14,7 +14,7 @@ const SAVE_FAILURE: Notice = {
   key: 'preferences:save',
   kind: 'warning',
   icon: 'warning',
-  title: '환경설정을 저장하지 못함',
+  title: '환경설정 저장 실패',
   time: '',
 };
 

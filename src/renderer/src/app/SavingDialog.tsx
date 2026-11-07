@@ -4,7 +4,7 @@ import type {CloseFlush, CloseFlushView} from './closeFlush';
 
 const TITLES: Readonly<Record<Exclude<CloseFlushView, 'hidden'>, string>> = {
   saving: '저장 중',
-  failed: '저장할 수 없음',
+  failed: '저장 실패',
 };
 
 /**
@@ -24,7 +24,7 @@ export function SavingDialog({
   if (view === 'hidden') return null;
   const actions: readonly AlertAction[] = [
     {
-      label: '강제로 닫기',
+      label: '닫기',
       onSelect: closeFlush.forceClose,
       title: '저장하지 못한 편집은 사라집니다',
     },

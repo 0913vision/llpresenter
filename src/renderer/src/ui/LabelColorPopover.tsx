@@ -5,7 +5,7 @@ import {colorToHsv, hsvToColor, type HsvColor} from '@core/labels/colorSpace';
 import {Button} from './Button';
 import {Icon} from './Icon';
 import {TextField} from './TextField';
-import {LabelColorPicker, paletteColorScopes} from './LabelColorPicker';
+import {LabelColorPicker} from './LabelColorPicker';
 import {LabelColorArea} from './LabelColorArea';
 import {isComposing} from './ime';
 import {useChoicePopup} from './useChoicePopup';
@@ -134,7 +134,6 @@ function ColorPopover({
       >
         <LabelColorPicker
           label={label}
-          scope={paletteColorScopes.label}
           value={value}
           disabled={disabled}
           onChange={color => {

@@ -52,9 +52,11 @@ export function prepareMessage({
   } catch {
     return {reason: '메시지가 너무 깁니다', text: ''};
   }
-  if (text.trim() === '') return {reason: '메시지 내용이 없습니다', text};
+  if (text.trim() === '') {
+    return {reason: '메시지를 적어야 보낼 수 있습니다', text};
+  }
   const count = targets === 'all' ? screenCount : targets.length;
-  if (count === 0) return {reason: '보낼 화면을 선택하세요', text};
+  if (count === 0) return {reason: '보낼 화면을 골라야 보낼 수 있습니다', text};
   if (count > MAX_TARGET_SCREENS) {
     return {reason: '보낼 화면이 너무 많습니다', text};
   }

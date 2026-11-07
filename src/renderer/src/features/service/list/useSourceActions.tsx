@@ -38,8 +38,8 @@ type SourceActionsApi = Pick<
 
 const OPEN_SERVICE = '열린 예배는 삭제할 수 없습니다';
 const problemTitles = {
-  rename: '이름을 바꿀 수 없음',
-  delete: '삭제할 수 없음',
+  rename: '이름 바꾸기 실패',
+  delete: '삭제 실패',
 } as const;
 
 function kindName(source: NamedSource): string {

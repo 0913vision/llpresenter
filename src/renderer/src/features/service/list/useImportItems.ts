@@ -16,7 +16,7 @@ import {
 const NOTHING: TreeSelection = new Set();
 const NONE_PICKED = '항목을 골라야 가져올 수 있습니다';
 const READ_ONLY = NEWER_FILE_REASON;
-const FAILED = '항목을 가져올 수 없음';
+const FAILED = '항목 가져오기 실패';
 
 /**
  * The state and actions of the 다른 예배에서 가져오기 dialog. The sources are

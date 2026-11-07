@@ -9,7 +9,7 @@ const SAVE_FAILURE: Notice = {
   key: 'preferences:bible-save',
   kind: 'warning',
   icon: 'warning',
-  title: '기본 역본을 저장하지 못함',
+  title: '기본 역본 저장 실패',
   time: '',
 };
 

@@ -13,7 +13,7 @@ import {useNewService} from './useNewService';
 
 const DIALOG_HEIGHT = 700;
 const NAME_NEEDED = '이름을 적어야 만들 수 있습니다';
-const MISSING = '예배를 읽을 수 없습니다';
+const MISSING = '예배 읽기 실패';
 
 /**
  * The 새 예배 dialog: start empty, from a 템플릿, or from a past service. 취소,

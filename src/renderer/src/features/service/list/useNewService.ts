@@ -30,9 +30,9 @@ const DEFAULT_NAME = '새 예배';
 type CreateProblem = 'not-made' | 'not-copied' | 'not-opened';
 
 const problemTitles: Readonly<Record<CreateProblem, string>> = {
-  'not-made': '새 예배를 만들 수 없음',
-  'not-copied': '새 예배에 항목을 가져올 수 없음',
-  'not-opened': '새 예배를 열 수 없음',
+  'not-made': '새 예배 만들기 실패',
+  'not-copied': '항목 가져오기 실패',
+  'not-opened': '새 예배 열기 실패',
 };
 
 type NewServiceApi = Pick<

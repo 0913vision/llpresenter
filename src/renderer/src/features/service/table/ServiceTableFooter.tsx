@@ -18,7 +18,7 @@ import {useServiceOrderEditing} from '../order/useServiceOrderEditing';
 import styles from './ServiceTable.module.css';
 
 const SECTION_NAME = '새 구역';
-const NO_SERVICE_REASON = '열린 예배가 없습니다';
+const NO_SERVICE_REASON = '열린 예배 없음';
 
 /** 항목 and 구역: add a row at the end of the 예배 순서 table. */
 export function ServiceTableFooter({

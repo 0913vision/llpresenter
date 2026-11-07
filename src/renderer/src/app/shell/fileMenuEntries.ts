@@ -39,8 +39,8 @@ function textImportRow(
         : source === 'file' || clipboard === 'ready'
           ? undefined
           : clipboard === 'checking'
-            ? '클립보드 확인 중'
-            : '가져올 클립보드 텍스트가 없습니다',
+            ? '확인 중'
+            : '클립보드에 텍스트가 없습니다',
     ),
     onSelect: () => onImportText?.(source),
   };

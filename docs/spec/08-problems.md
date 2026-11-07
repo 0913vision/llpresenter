@@ -19,8 +19,8 @@ tools). See 01.
 | Output window crashed      | Log file. After 3 crashes in 60 seconds, a warning notification and an amber outline on the preview frame                              | The main process loads the window again; at the limit, the window shows an empty picture and retries after a cool-down | Automatic, or 다시 시도 (try again)                                                       | `docs/TECH.md` process structure, lead rule |
 | Control window crashed     | Nothing on the outputs. After it loads again, an information card                                                                      | The outputs keep their picture                                                                                         | The main process reloads the control window                                               | `docs/TECH.md`                              |
 | App crashed                | 출력 상태 복구 dialog at the next launch                                                                                               | Songs, services, and settings are already saved                                                                        | 복구 (restore) or 새로 시작 (start fresh)                                                 | `Recovery`                                  |
-| Frame rate dropped         | Status bar text ("프레임 속도가 낮아지는 중: 방송 화면 (41fps)")                                                                       | Output continues                                                                                                       | None in the UI. The cause needs a fix in the app.                                         | `StatusBar` README                          |
-| Save failed                | Warning notification "저장할 수 없음" (can't save) (proposal)                                                                          | The content stays in memory                                                                                            | 다시 시도 (try again)                                                                     | 02                                          |
+| Frame rate dropped         | Status bar text ("방송 화면 프레임 낮음 (41fps)")                                                                                      | Output continues                                                                                                       | None in the UI. The cause needs a fix in the app.                                         | `StatusBar` README                          |
+| Save failed                | Warning notification "저장 실패" (save failed) (proposal)                                                                              | The content stays in memory                                                                                            | 다시 시도 (try again)                                                                     | 02                                          |
 | File can't be read         | Warning notification, and a log entry                                                                                                  | The app skips that file and keeps running                                                                              | Fix or remove the file                                                                    | `docs/TECH.md` storage                      |
 | Song of an item is missing | Warning icon on the 예배 순서 row, tooltip "곡을 찾을 수 없습니다" (song not found). The item has no 슬라이드 (proposal).              | Other items                                                                                                            | Fill the item again or delete it                                                          | Proposal                                    |
 
@@ -104,8 +104,8 @@ rehearsal 4 B1).
   (`재생목록  2곳`), in that order; a kind with no use is left out, and the list
   is left out when nothing uses the media. The meta line is
   `파일은 그대로 남음`.
-- If main cannot count the uses, the line reads `쓰는 곳을 확인할 수 없습니다`
-  and 삭제 still works (the same wording as the other where-used questions).
+- If main cannot count the uses, the line reads `쓰는 곳 확인 실패` and 삭제
+  still works (the same wording as the other where-used questions).
 
 ### A use whose media is gone
 
@@ -182,12 +182,12 @@ the quick restarts:
 
 While the limit holds:
 
-- The warning notification "청중 화면 출력 창을 다시 띄울 수 없음" (can't reopen
-  the main screen output window) shows, with the detail "빈 화면으로 표시 중"
-  (showing an empty screen) and the action 다시 시도 (try again). 다시 시도
-  starts an attempt at once; if it dies, the next cool-down follows (proposal).
+- The warning notification "청중 화면 출력 창 열기 실패" (can't reopen the main
+  screen output window) shows, with the detail "빈 화면으로 표시 중" (showing an
+  empty screen) and the action 다시 시도 (try again). 다시 시도 starts an
+  attempt at once; if it dies, the next cool-down follows (proposal).
 - The screen's preview shows the same empty picture as the window (04), and its
-  frame gets the amber outline, with the tooltip "출력 창을 다시 띄울 수 없어 빈
+  frame gets the amber outline, with the tooltip "출력 창을 다시 열 수 없어 빈
   화면으로 표시 중" (output window can't be reopened, showing an empty screen)
   (proposal).
 - Each screen has at most one pending attempt and one attempt in progress. 다시
@@ -196,7 +196,7 @@ While the limit holds:
 - Turning the output off hides the window and stops the attempts. Turning it on
   again starts an attempt at once.
 - When an attempt works, the warning card turns into the information card "본
-  화면 출력 창 다시 띄움" (main screen output window reopened), which closes
+  화면 출력 창 다시 열림" (main screen output window reopened), which closes
   after 6 seconds, the amber outline goes away, and the preview draws the live
   content again (proposal).
 - Each attempt, its result, and the end of the limit are logged.
@@ -232,10 +232,10 @@ editor can change meanwhile.
   (`AlertDialog`, saved icon): title "저장 중", buttons 강제로 닫기 and 다시
   시도 (primary, unavailable while saving). A normal close never shows it.
 - When saving succeeds, the app closes by itself.
-- When saving fails, the title becomes "저장할 수 없음", as for other save
-  failures (02), and the app stays open. 다시 시도 saves again and closes when
-  that succeeds; 강제로 닫기 closes without the unsaved edits, and its tooltip
-  says so: "저장하지 못한 편집은 사라집니다". Edits are never dropped unless the
+- When saving fails, the title becomes "저장 실패", as for other save failures
+  (02), and the app stays open. 다시 시도 saves again and closes when that
+  succeeds; 강제로 닫기 closes without the unsaved edits, and its tooltip says
+  so: "저장하지 못한 편집은 사라집니다". Edits are never dropped unless the
   operator picks 강제로 닫기.
 - When the control window doesn't answer within 5 seconds, the app closes
   without the dialog, because a frozen window can't draw it and must never keep
@@ -267,13 +267,13 @@ At launch, if `recovery\session.lock` still exists, the last exit was a crash
 
 ### The dialog
 
-| Part    | Content                                                                                       |
-| ------- | --------------------------------------------------------------------------------------------- |
-| Icon    | History icon                                                                                  |
-| Title   | "출력 상태 복구" (output state recovery)                                                      |
-| Detail  | "비정상 종료 10월 25일 오전 11:26" (abnormal exit, with the time of the last recovery record) |
-| Group   | "복구할 상태" (states to restore), with three check rows, all checked by default              |
-| Buttons | 새로 시작 (start fresh) and 복구 (restore, primary). There is no cancel button.               |
+| Part    | Content                                                                                                            |
+| ------- | ------------------------------------------------------------------------------------------------------------------ |
+| Icon    | History icon                                                                                                       |
+| Title   | "출력 내용을 복구할까요?" (restore the output?)                                                                    |
+| Detail  | "앱이 갑자기 꺼졌습니다 10월 25일 오전 11:26" (the app closed suddenly, with the time of the last recovery record) |
+| Group   | "복구할 항목" (items to restore), with three check rows, all checked by default                                    |
+| Buttons | 새로 시작 (start fresh) and 복구 (restore, primary). There is no cancel button.                                    |
 
 | Row                                        | Value example                       | Restores                                                                                     |
 | ------------------------------------------ | ----------------------------------- | -------------------------------------------------------------------------------------------- |
@@ -321,7 +321,7 @@ Source: `Recovery`, `AlertDialog` README, `Checkbox` README, `Main` decision
   the preview stays visible. Information cards float without moving the column.
 - Closing a warning card leaves the problem marks on the toolbar and status bar.
   While a screen's warning holds, the menu bar's 출력 menu lists an item for
-  that screen, such as "무대 화면 경고 보기", which reopens its card; with no
+  that screen, such as "무대 화면 문제 보기", which reopens its card; with no
   unresolved warning there is no such item. The status bar stays plain text, and
   the toolbar output button keeps its toggle and its tooltip (lead decision,
   October 26: the StatusBar README allows nothing clickable).

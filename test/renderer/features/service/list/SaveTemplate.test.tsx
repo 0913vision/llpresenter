@@ -279,7 +279,7 @@ describe('지금 예배를 템플릿으로 저장', () => {
     expect(onProblem).toHaveBeenCalledWith(
       expect.objectContaining({
         kind: 'warning',
-        title: '템플릿으로 저장할 수 없음',
+        title: '템플릿 저장 실패',
       }),
     );
   });
@@ -301,7 +301,7 @@ describe('지금 예배를 템플릿으로 저장', () => {
     await waitFor(() => expect(refused.onProblem).toHaveBeenCalled());
     expect(refused.onProblem.mock.calls[0]?.[0]).toMatchObject({
       kind: 'warning',
-      title: '템플릿으로 저장할 수 없음',
+      title: '템플릿 저장 실패',
     });
   });
 
@@ -312,7 +312,7 @@ describe('지금 예배를 템플릿으로 저장', () => {
     await waitFor(() => expect(onProblem).toHaveBeenCalled());
     expect(edits).toEqual([]);
     expect(onProblem.mock.calls[0]?.[0]).toMatchObject({
-      title: '템플릿으로 저장할 수 없음',
+      title: '템플릿 저장 실패',
     });
   });
 
@@ -332,7 +332,7 @@ describe('지금 예배를 템플릿으로 저장', () => {
     await waitFor(() => expect(onProblem).toHaveBeenCalled());
     expect(edits).toHaveLength(2);
     expect(onProblem.mock.calls[0]?.[0]).toMatchObject({
-      title: '기존 템플릿을 지울 수 없음',
+      title: '기존 템플릿 삭제 실패',
     });
   });
 

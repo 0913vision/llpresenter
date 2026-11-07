@@ -3,7 +3,7 @@ import {Button} from '@renderer/ui/Button';
 import type {ThemeModel} from './useThemeEditor';
 import styles from './Themes.module.css';
 
-const NO_EDITS = '변경한 내용 없음';
+const NO_EDITS = '변경 없음';
 
 /** 다른 이름으로 저장… and 저장 above the canvas, as the 테마 draft shows. */
 export function ThemeSaveBar({

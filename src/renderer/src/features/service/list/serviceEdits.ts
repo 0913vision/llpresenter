@@ -33,7 +33,7 @@ export function asServiceId(id: string | null): ServiceId | null {
   return parsed.ok ? parsed.value : null;
 }
 
-/** A warning card from the service dialogs, such as 새 예배를 만들 수 없음. */
+/** A warning card from the service dialogs, such as 새 예배 만들기 실패. */
 export function warningNotice(key: string, title: string): Notice {
   return {key, kind: 'warning', icon: 'warning', title, time: noticeTime()};
 }

@@ -304,9 +304,10 @@ each preview follows ProPresenter's rule: it shows what goes out.
   together. Graphics, messages, and audio keep running. Each screen shows its
   standby theme behind those independent layers (12). Clear undo restores the
   item. After stopping, the button stays bright and pressed with the tooltip
-  항목 복원. Pressing it again restores only that item's content; independent
-  layers keep their current state and playback. Like the other clear keys, new
-  output content invalidates the capture. The command has no default shortcut.
+  항목 되돌리기. Pressing it again restores only that item's content;
+  independent layers keep their current state and playback. Like the other clear
+  keys, new output content invalidates the capture. The command has no default
+  shortcut.
 
 - A clear removes its layer from the previews at the same moment as from the
   outputs, at once (03). The other layers stay. For example, after 가사 (F2) the
@@ -382,7 +383,7 @@ and per-item controls in the owning tool tab (October 31 B16).
   at its end; 반복 doesn't apply. 이전 starts it again from the beginning, 다음
   stops it, and 일시 정지 and 재생 work as for a playlist track. The bottom of
   the tab shows its name and position, and no row of the track list is marked
-  (proposal). A 매크로's 오디오 재생 목록 action plays that playlist from its
+  (proposal). A 매크로's 오디오 재생목록 action plays that playlist from its
   first track, as a playlist track.
 - 이전 (previous) plays the track before the current one; on the first track it
   starts that track again. 다음 (next) plays the next track; on the last track
@@ -929,7 +930,7 @@ integration use this contract, with a distinct cancellable ID per lookup.
   the board, which says the operator checks the preview before showing it; open
   question).
 - If the reference isn't valid, the field shows an error ring with the reason in
-  a tooltip, for example "알아볼 수 없는 구절입니다" (passage not recognized)
+  a tooltip, for example "구절을 찾을 수 없습니다" (passage not recognized)
   (proposal).
 - Bible 슬라이드 go to the lyrics layer. Output from the Bible panel counts as a
   new item and uses the default 테마 of 성경, 말씀, with the 현재 가사 and 성경

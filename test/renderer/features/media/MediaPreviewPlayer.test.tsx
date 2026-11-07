@@ -182,7 +182,7 @@ describe('media preview player', () => {
       expect(
         (await hoverForTooltip(screen.getByRole('button', {name})))
           ?.textContent,
-      ).toBe('파일을 찾을 수 없음');
+      ).toBe('파일 없음');
     },
   );
   it('plays a video in this window from its media URL and pauses it', () => {

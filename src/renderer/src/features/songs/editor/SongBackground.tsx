@@ -63,7 +63,7 @@ export function SongBackground({
     session.readOnly || busy || (state.doc === null && !state.failed);
   if (disabled && anchor !== null) setAnchor(null);
   const reason = session.blocked
-    ? '저장 오류 해결 필요'
+    ? '저장 오류'
     : session.readOnly
       ? NEWER_FILE_REASON
       : busy

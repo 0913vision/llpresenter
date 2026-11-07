@@ -10,7 +10,7 @@ export function songCopyReason(
   busy: boolean,
 ): string | undefined {
   if (song.access === 'readOnly') return NEWER_FILE_REASON;
-  return busy ? '곡 작업 중' : undefined;
+  return busy ? '작업 중' : undefined;
 }
 
 export function libraryMenuEntries({
@@ -40,19 +40,19 @@ export function libraryMenuEntries({
       id: 'add-to',
       label: '예배 순서에 추가',
       ...menuAvailability(
-        appendDisabledReason ?? (busy ? '곡 작업 중' : undefined),
+        appendDisabledReason ?? (busy ? '작업 중' : undefined),
       ),
       onSelect: append,
     },
     menuSeparator('arrangement-separator'),
     laterRow('arrangement', '구성', {submenu: true}),
-    laterRow('destination', '출력 대상', {submenu: true}),
+    laterRow('destination', '출력할 화면', {submenu: true}),
     menuSeparator('edit-separator'),
     {
       kind: 'item',
       id: 'lyrics',
       label: windowCommandLabels.editSong,
-      ...menuAvailability(busy ? '곡 작업 중' : undefined),
+      ...menuAvailability(busy ? '작업 중' : undefined),
       onSelect: open,
     },
     menuSeparator('clipboard-separator'),
@@ -74,7 +74,7 @@ export function libraryMenuEntries({
         song.access === 'readOnly'
           ? NEWER_FILE_REASON
           : busy
-            ? '곡 작업 중'
+            ? '작업 중'
             : undefined,
       ),
       onSelect: rename,
@@ -88,7 +88,7 @@ export function libraryMenuEntries({
         song.access === 'readOnly'
           ? NEWER_FILE_REASON
           : busy
-            ? '곡 작업 중'
+            ? '작업 중'
             : undefined,
       ),
       onSelect: remove,

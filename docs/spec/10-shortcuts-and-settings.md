@@ -444,18 +444,18 @@ The tooltip is one short phrase in the form "(용도)에 쓰는 키" (the key fo
 purpose), like the conflict tooltip "(명령)과 겹침" of the `KeyCap` README
 (approved by the lead, 2026-10-25).
 
-| Keys                                                                               | Reason                                                                   | Tooltip                      |
-| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------ | ---------------------------- |
-| Tab, Shift Tab                                                                     | Keyboard focus moves                                                     | None (step 3)                |
-| Esc                                                                                | Cancels (dialogs, menus, drags, the key field itself)                    | None (step 1)                |
-| Enter alone                                                                        | Primary button in dialogs, activation in lists                           | 확인과 실행에 쓰는 키        |
-| Backspace alone                                                                    | Removes the shortcut in the key field (`TextField` README)               | None (step 2)                |
-| Alt alone, F10 alone                                                               | Focus the menu bar (`MenuBar` README)                                    | 메뉴 막대에 쓰는 키          |
-| Shift F10, the Menu key                                                            | Open the right-click menu (`Menu` README, 07)                            | 오른쪽 클릭 메뉴에 쓰는 키   |
-| Ctrl X, C, V, A                                                                    | Text editing                                                             | 글자 편집에 쓰는 키          |
-| Alt F4, Alt Tab, Ctrl Esc, Ctrl Alt Delete, Windows key combinations, Print Screen | Windows owns them                                                        | Windows가 쓰는 키            |
-| 한/영, 한자, and any key with an empty `code`                                      | Input method keys (S13)                                                  | 입력기에 쓰는 키             |
-| Bare letters and digits                                                            | Source-slide hot keys, set on a particular source slide in its song (05) | 슬라이드 바로 가기에 쓰는 키 |
+| Keys                                                                               | Reason                                                                   | Tooltip                    |
+| ---------------------------------------------------------------------------------- | ------------------------------------------------------------------------ | -------------------------- |
+| Tab, Shift Tab                                                                     | Keyboard focus moves                                                     | None (step 3)              |
+| Esc                                                                                | Cancels (dialogs, menus, drags, the key field itself)                    | None (step 1)              |
+| Enter alone                                                                        | Primary button in dialogs, activation in lists                           | 확인과 실행에 쓰는 키      |
+| Backspace alone                                                                    | Removes the shortcut in the key field (`TextField` README)               | None (step 2)              |
+| Alt alone, F10 alone                                                               | Focus the menu bar (`MenuBar` README)                                    | 메뉴 막대에 쓰는 키        |
+| Shift F10, the Menu key                                                            | Open the right-click menu (`Menu` README, 07)                            | 오른쪽 클릭 메뉴에 쓰는 키 |
+| Ctrl X, C, V, A                                                                    | Text editing                                                             | 글자 편집에 쓰는 키        |
+| Alt F4, Alt Tab, Ctrl Esc, Ctrl Alt Delete, Windows key combinations, Print Screen | Windows owns them                                                        | Windows가 쓰는 키          |
+| 한/영, 한자, and any key with an empty `code`                                      | Input method keys (S13)                                                  | 한글 입력에 쓰는 키        |
+| Bare letters and digits                                                            | Source-slide hot keys, set on a particular source slide in its song (05) | 슬라이드 단축키에 쓰는 키  |
 
 ### Conflicts
 
@@ -578,16 +578,16 @@ workspace. "All" means every workspace of the main window, within the rules of
 
 #### 지우기 (clear)
 
-| Command              | ID                  | Default | ProPresenter                          | Basis and reason                                                                                                                              | Works in                                                                    | Ver. |
-| -------------------- | ------------------- | ------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ---- |
-| 모두 지우기 / 복원   | `clear.all`         | F1      | Clear All, F1                         | Decided, follows ProPresenter (Kept, 03) Toggle restore: user decision, m3-check3 (03).                                                       | All, and the 환경설정 window                                                | 1    |
-| 가사 지우기 / 복원   | `clear.slide`       | F2      | Clear Slide, F2                       | Decided, follows ProPresenter (Kept) Toggle restore: user decision, m3-check3 (03).                                                           | Same                                                                        | 1    |
-| 미디어 지우기 / 복원 | `clear.media`       | F3      | Clear Media, F3                       | Decided, follows ProPresenter (Kept). The 7.5 guide calls it Clear Background (S4 p. 25). Toggle restore: user decision, m3-check3 (03).      | Same                                                                        | 1    |
-| 그래픽 지우기 / 복원 | `clear.prop`        | F4      | Clear Props, F4                       | Decided, follows ProPresenter (Kept) Toggle restore: user decision, m3-check3 (03).                                                           | Same                                                                        | 1    |
-| 오디오 지우기 / 복원 | `clear.audio`       | F5      | Clear Audio, F5                       | Decided, follows ProPresenter (Kept) Toggle restore: user decision, m3-check3 (03).                                                           | Same                                                                        | 1    |
-| 메시지 지우기 / 복원 | `clear.message`     | F6      | Clear Message, F6                     | Decided, follows ProPresenter (Kept). The 7.5 guide had Clear Logo on F6 (S4 p. 25). Toggle restore: user decision, m3-check3 (03).           | Same                                                                        | 1    |
-| 되돌리기             | `clear.undo`        | None    | No clear undo documented in S1 or S21 | Decided, no default key (M2 check 1 row 8). Our optional extension restores the last clear (03); S1 Edit Undo is not evidence for clear undo. | All, except text fields, menus, dialogs, and drags; not the 환경설정 window | 1    |
-| 무대 메시지 지우기   | `stage.hideMessage` | None    | Stage message Hide button (S4 p. 42)  | Decided, no ProPresenter source found (S4 p. 42 shows only a Hide button). Takes the stage message down (04).                                 | All                                                                         | 1    |
+| Command            | ID                  | Default | ProPresenter                          | Basis and reason                                                                                                                              | Works in                                                                    | Ver. |
+| ------------------ | ------------------- | ------- | ------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------- | ---- |
+| 모두 지우기        | `clear.all`         | F1      | Clear All, F1                         | Decided, follows ProPresenter (Kept, 03) Toggle restore: user decision, m3-check3 (03).                                                       | All, and the 환경설정 window                                                | 1    |
+| 가사 지우기        | `clear.slide`       | F2      | Clear Slide, F2                       | Decided, follows ProPresenter (Kept) Toggle restore: user decision, m3-check3 (03).                                                           | Same                                                                        | 1    |
+| 미디어 지우기      | `clear.media`       | F3      | Clear Media, F3                       | Decided, follows ProPresenter (Kept). The 7.5 guide calls it Clear Background (S4 p. 25). Toggle restore: user decision, m3-check3 (03).      | Same                                                                        | 1    |
+| 그래픽 지우기      | `clear.prop`        | F4      | Clear Props, F4                       | Decided, follows ProPresenter (Kept) Toggle restore: user decision, m3-check3 (03).                                                           | Same                                                                        | 1    |
+| 오디오 지우기      | `clear.audio`       | F5      | Clear Audio, F5                       | Decided, follows ProPresenter (Kept) Toggle restore: user decision, m3-check3 (03).                                                           | Same                                                                        | 1    |
+| 메시지 지우기      | `clear.message`     | F6      | Clear Message, F6                     | Decided, follows ProPresenter (Kept). The 7.5 guide had Clear Logo on F6 (S4 p. 25). Toggle restore: user decision, m3-check3 (03).           | Same                                                                        | 1    |
+| 되돌리기           | `clear.undo`        | None    | No clear undo documented in S1 or S21 | Decided, no default key (M2 check 1 row 8). Our optional extension restores the last clear (03); S1 Edit Undo is not evidence for clear undo. | All, except text fields, menus, dialogs, and drags; not the 환경설정 window | 1    |
+| 무대 메시지 지우기 | `stage.hideMessage` | None    | Stage message Hide button (S4 p. 42)  | Decided, no ProPresenter source found (S4 p. 42 shows only a Hide button). Takes the stage message down (04).                                 | All                                                                         | 1    |
 
 - F2 never renames anything, although F2 renames in Windows Explorer. F2 clears
   lyrics here, as in ProPresenter (S1). Renaming uses the right-click menu or a
@@ -733,8 +733,8 @@ workspace. "All" means every workspace of the main window, within the rules of
 | 최소화, 최대화              | `window.minimize`, `window.maximize` | None                | None                                                         | Decided, no ProPresenter source found. The 창 menu items (01). Windows keys (Windows ↓, Windows ↑) already work on the main window.               | Main window                             | 1    |
 | 화면 확대                   | `ui.zoomIn`                          | Ctrl +              | Editor Make Bigger, Ctrl + (text size only)                  | Decided feature (M2 check 1 row 11); our UI zoom, not ProPresenter text size. Increase by 10 percentage points.                                   | All control windows, including 환경설정 | 1    |
 | 화면 축소                   | `ui.zoomOut`                         | Ctrl -              | Editor Make Smaller, Ctrl - (text size only)                 | Decided feature (M2 check 1 row 11); decrease UI zoom by 10 percentage points.                                                                    | All control windows, including 환경설정 | 1    |
-| 화면 확대 초기화            | `ui.zoomReset`                       | Ctrl 0              | Ctrl 0 fits the editor canvas or triggers a stage-only slide | UI zoom reset uses Ctrl 0 alongside Ctrl + and Ctrl - (M2 check 1 follow-up). Our behavior resets UI zoom to 100%; canvas fit has no default key. | All control windows, including 환경설정 | 1    |
-| 화면 배치 초기화            | `ui.resetLayout`                     | None                | No interface layout reset found in S1, S4, or S21            | Proposal (M2 check 1 row 10). 보기 menu command with confirmation; see "UI zoom and layout recovery".                                             | Main window                             | 1    |
+| 화면 확대 기본값            | `ui.zoomReset`                       | Ctrl 0              | Ctrl 0 fits the editor canvas or triggers a stage-only slide | UI zoom reset uses Ctrl 0 alongside Ctrl + and Ctrl - (M2 check 1 follow-up). Our behavior resets UI zoom to 100%; canvas fit has no default key. | All control windows, including 환경설정 | 1    |
+| 화면 배치 기본값            | `ui.resetLayout`                     | None                | No interface layout reset found in S1, S4, or S21            | Proposal (M2 check 1 row 10). 보기 menu command with confirmation; see "UI zoom and layout recovery".                                             | Main window                             | 1    |
 
 - Dialog keys stay fixed: Enter is the primary button and Esc is 취소 (Kept,
   `Dialog` and `AlertDialog` READMEs).
@@ -748,7 +748,7 @@ workspace. "All" means every workspace of the main window, within the rules of
 - 퀵 실행 item keys use `quick.<item ID>` (04).
 - A ProPresenter-style "Show Slide on Stage Display Only" (S1 Ctrl 0) waits
   until the 무대 화면 can show a 슬라이드 that the audience screens don't. It
-  will have no Ctrl 0 default, because 화면 확대 초기화 owns that key.
+  will have no Ctrl 0 default, because 화면 확대 기본값 owns that key.
 
 #### Actions without a command
 
@@ -784,7 +784,7 @@ same place.
 | Ctrl Y, Ctrl Shift Z          | 다시 실행                                                    | Editable lists, 준비 edits, text fields                        |
 | Ctrl 1, Ctrl 2                | 청중 화면 출력, 무대 화면 출력                               | All                                                            |
 | Ctrl Alt 1                    | 화면 설정                                                    | All                                                            |
-| Ctrl 0                        | 화면 확대 초기화 (100%)                                      | All control windows                                            |
+| Ctrl 0                        | 화면 확대 기본값 (100%)                                      | All control windows                                            |
 | Ctrl +, Ctrl -                | 화면 확대, 화면 축소                                         | All control windows; physical aliases listed under "Conflicts" |
 | Ctrl S                        | 진행 (가져온 곡 저장 in the imported song editor)            | All (open question 1)                                          |
 | Ctrl R                        | 준비                                                         | All                                                            |
@@ -830,8 +830,8 @@ same place.
   1. 환경설정: how the app behaves on this computer.
   2. 화면 설정: each screen (monitor, method, stability, correction).
   3. 테마: how content looks on each screen. The fonts of lyrics live here.
-  4. Object properties: each media file, 매크로, 타이머, 메시지 문구, 그래픽,
-     이름표, and Bible passage.
+  4. Object properties: each media file, 매크로, 타이머, 메시지, 그래픽, 이름표,
+     and Bible passage.
   5. Remembered state: column widths, the last tab, and other things the app
      remembers without a settings row (`app.json`).
 - **No single-option controls.** A select with one option is noise (design
@@ -1110,11 +1110,11 @@ Changes apply at once. The defaults apply when the operator creates the object.
 
 | Object            | Row                                    | Control and range                                                                             | Default                    | Stored in                  | Ver.  | Basis                                                                                                                             |
 | ----------------- | -------------------------------------- | --------------------------------------------------------------------------------------------- | -------------------------- | -------------------------- | ----- | --------------------------------------------------------------------------------------------------------------------------------- |
-| 메시지 문구       | 이름 (name)                            | Text; required                                                                                |                            | `templates[].name`         | 1     | Kept (02)                                                                                                                         |
-| 메시지 문구       | 아이콘 (icon)                          | Two icons: msg, user                                                                          | msg                        | `.icon`                    | 1     | Kept (02, `Overlays`)                                                                                                             |
-| 메시지 문구       | 문구 (phrase)                          | Text with `{blank}` marks; required                                                           |                            | `.text`                    | 1     | Kept (02)                                                                                                                         |
-| 메시지 문구       | 기본 보낼 화면 (default targets)       | Chips: 모든 화면, 청중 화면, 무대, 방송 화면                                                  | 모든 화면                  | `.targets`                 | 1     | Kept (02); the default is a proposal                                                                                              |
-| 메시지 문구       | 기본 표시 시간 (default display time)  | Segmented: 계속, 30초, 1분, 2분                                                               | 계속                       | `.duration`                | 1     | Kept (02, `Overlays`); the default is a proposal                                                                                  |
+| 메시지            | 이름 (name)                            | Text; required                                                                                |                            | `templates[].name`         | 1     | Kept (02)                                                                                                                         |
+| 메시지            | 아이콘 (icon)                          | Two icons: msg, user                                                                          | msg                        | `.icon`                    | 1     | Kept (02, `Overlays`)                                                                                                             |
+| 메시지            | 문구 (phrase)                          | Text with `{blank}` marks; required                                                           |                            | `.text`                    | 1     | Kept (02)                                                                                                                         |
+| 메시지            | 기본 보낼 화면 (default targets)       | Chips: 모든 화면, 청중 화면, 무대, 방송 화면                                                  | 모든 화면                  | `.targets`                 | 1     | Kept (02); the default is a proposal                                                                                              |
+| 메시지            | 기본 표시 시간 (default display time)  | Segmented: 계속, 30초, 1분, 2분                                                               | 계속                       | `.duration`                | 1     | Kept (02, `Overlays`); the default is a proposal                                                                                  |
 | 그래픽            | 이름 (name)                            | Text; required                                                                                |                            | `props[].name`             | 1     | Kept (02)                                                                                                                         |
 | 그래픽            | 내용 (content)                         | 이미지 (an image from the media list) or 글자 (text with the text style fields of 02)         | 그림                       | `.content`                 | 1     | Kept (02); the default is a proposal                                                                                              |
 | 그래픽            | 보낼 화면 (targets)                    | Chips: 청중 화면, 무대, 방송 화면                                                             | 청중 화면                  | `.targets`                 | 1     | Kept (02); the default is a proposal                                                                                              |
@@ -1175,7 +1175,7 @@ applies after Windows display scaling. Output windows retain native resolution,
 and preview content keeps its output proportions. Changing zoom doesn't edit
 테마 or the thumbnail percentage.
 
-- The 보기 menu adds 화면 확대, 화면 축소, and 화면 확대 초기화 (Ctrl +, Ctrl -,
+- The 보기 menu adds 화면 확대, 화면 축소, and 화면 확대 기본값 (Ctrl +, Ctrl -,
   Ctrl 0). Commands and the 일반 field share one value. Clamp at 100% and 200%;
   reset sets 100% even if the zoom commands are at their limits. Missing or
   invalid stored values use the default as in 02.
@@ -1184,7 +1184,7 @@ and preview content keeps its output proportions. Changing zoom doesn't edit
   scrolling to reach its controls instead of clipping them. Dialog width/height
   limits use that viewport. Zoom recovery keys still work with a menu or dialog
   open (focus precedence).
-- 보기 > 화면 배치 초기화 (`ui.resetLayout`, no default key) is a proposal
+- 보기 > 화면 배치 기본값 (`ui.resetLayout`, no default key) is a proposal
   pending confirmation (M2 check 1 row 10). Ask "화면 배치를 기본값으로
   되돌릴까요?" with 취소 and 초기화. Esc or 취소 changes nothing. Enter or
   초기화 applies and saves the following reset together:

@@ -31,8 +31,7 @@ import {useTooltip} from '@renderer/ui/Tooltip';
 
 const SONG_ICON_SIZE = 16;
 const NO_RESULT = -1;
-const WORKSPACE_UNAVAILABLE_TIP =
-  '현재 작업 공간에서는 검색 결과를 열 수 없습니다';
+const WORKSPACE_UNAVAILABLE_TIP = '여기서는 검색 결과를 열 수 없습니다';
 
 type ResultKey = 'ArrowDown' | 'ArrowUp';
 
@@ -150,13 +149,13 @@ export function ToolbarSearch({
   const full = useOrderFull();
   const addReason =
     serviceId === null
-      ? '열린 예배가 없습니다'
+      ? '열린 예배 없음'
       : readOnly
         ? NEWER_FILE_REASON
         : full
           ? ORDER_FULL_REASON
           : editing.busy
-            ? '예배를 변경하는 중'
+            ? '예배 바꾸는 중'
             : undefined;
   const addTooltip = useTooltip(addReason ? {text: addReason} : undefined);
   const root = useRef<HTMLDivElement>(null);

@@ -469,7 +469,7 @@ it('lists action kinds in order and opens the theme workspace', async () => {
     '메시지',
     '배경 미디어',
     '오디오',
-    '오디오 재생 목록',
+    '오디오 재생목록',
     '외부 장치 신호',
     '오디오 입력',
     '영상 입력',

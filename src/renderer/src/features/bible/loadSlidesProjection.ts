@@ -95,7 +95,7 @@ export async function loadSlidesProjection(
     ...(item.theme === undefined ? {} : {theme: item.theme}),
   });
   if (projection === null) throw Error('테마에 현재 가사 요소 없음');
-  if (projection.problem !== undefined) throw Error('슬라이드 수가 너무 많음');
+  if (projection.problem !== undefined) throw Error('슬라이드가 너무 많습니다');
   if (projection.parts.some(part => part.problem !== undefined)) {
     throw Error('절 나누기를 측정할 수 없음');
   }

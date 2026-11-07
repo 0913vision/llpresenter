@@ -8,7 +8,7 @@ import {hideStageMessage} from './toolCommands';
 import styles from './StageTab.module.css';
 
 function messageReason(text: string, available: boolean): string | undefined {
-  if (!available) return '무대 화면이 없습니다';
+  if (!available) return '무대 화면 없음';
   if (text.trim() === '') return '메시지를 적어야 보낼 수 있습니다';
   if (text.length > LIVE_STATE_LIMITS.textCharacters) {
     return '메시지가 너무 깁니다';

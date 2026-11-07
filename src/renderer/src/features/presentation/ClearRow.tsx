@@ -18,7 +18,7 @@ function ItemOffButton({compact}: {readonly compact: boolean}): JSX.Element {
   const hasItem = useLive(view => view.state?.themeItem != null);
   const restores = useLive(view => view.state?.canRestoreItem ?? false);
   const active = hasItem || restores;
-  const name = restores ? '항목 복원' : '항목 끄기';
+  const name = restores ? '항목 되돌리기' : '항목 끄기';
   const {targetProps, tooltip} = useTooltip({
     text: name,
     command: 'item.stop',
@@ -56,7 +56,7 @@ function ClearButton({
 }): JSX.Element {
   const active = useSomethingToClear(spec.target);
   const restores = useClearRestores(spec.target);
-  const name = `${spec.label} ${restores ? '복원' : '지우기'}`;
+  const name = `${spec.label} ${restores ? '되돌리기' : '지우기'}`;
   const classes =
     spec.target === 'all' ? `${styles.button} ${styles.all}` : styles.button;
   const {targetProps, tooltip} = useTooltip({

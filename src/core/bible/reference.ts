@@ -88,7 +88,7 @@ export function parseReference(
   const [name = '', chapterText, verseText, endChapterText, endVerseText] =
     parts ?? [];
   if (!parts || !BOOK_NAME.test(name.trim())) {
-    return error('syntax', '알아볼 수 없는 구절입니다');
+    return error('syntax', '구절을 찾을 수 없습니다');
   }
   const chapter = Number(chapterText);
   const verse = verseText === undefined ? null : Number(verseText);
@@ -100,19 +100,19 @@ export function parseReference(
       number => number === null || (Number.isSafeInteger(number) && number > 0),
     )
   ) {
-    return error('syntax', '알아볼 수 없는 구절입니다');
+    return error('syntax', '구절을 찾을 수 없습니다');
   }
   const matches = matchBooks(name);
   const book = matches[0];
   if (book === undefined) {
-    return error('unknownBook', '알아볼 수 없는 성경 책입니다');
+    return error('unknownBook', '성경 책을 찾을 수 없습니다');
   }
   if (matches.length > 1) {
     return {
       ok: false,
       error: {
         code: 'ambiguousBook',
-        message: '성경 책을 선택하세요',
+        message: '성경 책을 골라야 합니다',
         suggestions: matches,
       },
     };
@@ -152,17 +152,17 @@ function planPassage(
   if (!content) return error('missingBook', '이 역본에 없는 책입니다');
   const first = content.chapters[chapter - 1];
   const last = content.chapters[endChapter - 1];
-  if (!first || !last) return error('chapter', '없는 장입니다');
+  if (!first || !last) return error('chapter', '이 역본에 없는 장입니다');
   const startVerse = verse ?? 1;
   const endVerse = reference.endVerse ?? last.verses;
   if (startVerse > first.verses || endVerse > last.verses) {
-    return error('verse', '없는 절입니다');
+    return error('verse', '이 역본에 없는 절입니다');
   }
   if (
     endChapter < chapter ||
     (endChapter === chapter && endVerse < startVerse)
   ) {
-    return error('reversed', '구절 순서가 거꾸로입니다');
+    return error('reversed', '끝 절이 시작 절보다 앞입니다');
   }
   let count = 0;
   const chapters: PlannedChapter[] = [];
@@ -174,7 +174,7 @@ function planPassage(
         : (content.chapters[current - 1]?.verses ?? 0);
     count += end - start + 1;
     if (count > BIBLE_LOOKUP_LIMITS.verses) {
-      return error('verse', '조회할 수 있는 절 수를 넘었습니다');
+      return error('verse', '한 번에 불러올 수 있는 절 수를 넘었습니다');
     }
     chapters.push({chapter: current, start, end});
   }
@@ -194,7 +194,7 @@ export async function resolvePassage(
   for (const {chapter: current, start, end} of chapters) {
     const lines = await translation.readChapter(book.id, current);
     if (lines === null) {
-      return error('translation', '사용할 수 없는 역본입니다');
+      return error('translation', '역본을 사용할 수 없습니다');
     }
     for (let number = start; number <= end; number++) {
       const text = lines[number - 1];

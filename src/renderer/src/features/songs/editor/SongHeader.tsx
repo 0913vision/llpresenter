@@ -66,7 +66,7 @@ export function SongHeader({
           readOnly={session.readOnly || state.busy}
           title={
             session.blocked
-              ? '저장 오류 해결 필요'
+              ? '저장 오류'
               : session.readOnly
                 ? NEWER_FILE_REASON
                 : state.busy

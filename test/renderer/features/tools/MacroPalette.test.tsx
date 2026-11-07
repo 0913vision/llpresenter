@@ -47,7 +47,7 @@ it('filters by search and supports keyboard selection and closing', async () => 
   });
   expect(screen.queryByRole('button', {name: '그래픽'})).toBeNull();
   const group = screen.getByRole('region', {name: '소리'});
-  const row = within(group).getByRole('button', {name: '오디오 재생 목록'});
+  const row = within(group).getByRole('button', {name: '오디오 재생목록'});
   row.focus();
   await userEvent.keyboard('{Enter}');
   expect(choose).toHaveBeenCalledExactlyOnceWith('audioPlaylist');

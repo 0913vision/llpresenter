@@ -215,7 +215,7 @@ describe('the 화면 list', () => {
       ).not.toBeNull(),
     );
     const tooltip = await hoverForTooltip(option('청중 화면'));
-    expect(tooltip?.textContent).toBe('모니터를 찾을 수 없음');
+    expect(tooltip?.textContent).toBe('모니터를 찾을 수 없습니다');
   });
 
   it('follows a status push', async () => {

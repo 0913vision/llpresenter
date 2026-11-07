@@ -46,7 +46,7 @@ function setup(offers: ReadonlyArray<RecoverySummary | Error>) {
 }
 
 const dialog = () =>
-  screen.queryByRole('alertdialog', {name: '출력 상태 복구'});
+  screen.queryByRole('alertdialog', {name: '출력 내용을 복구할까요?'});
 
 beforeEach(() => {
   applyService(null);
@@ -61,7 +61,7 @@ afterEach(async () => {
 
 it('lets F1 clear the screens while the dialog is open', async () => {
   const {send} = setup([sampleOffer()]);
-  await screen.findByRole('alertdialog', {name: '출력 상태 복구'});
+  await screen.findByRole('alertdialog', {name: '출력 내용을 복구할까요?'});
   const empty = emptyLiveState();
   useLive.setState({
     state: {

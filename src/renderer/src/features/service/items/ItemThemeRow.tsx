@@ -77,9 +77,7 @@ export function EditItemTheme(): JSX.Element {
   return (
     <Button
       disabled={navigate === undefined}
-      title={
-        navigate === undefined ? '테마 작업 공간을 열 수 없습니다' : undefined
-      }
+      title={navigate === undefined ? '테마 편집을 열 수 없습니다' : undefined}
       onClick={() => navigate?.('screens')}
     >
       테마 편집…
@@ -93,7 +91,7 @@ export function OverlayWarning({
   readonly missing: readonly string[];
 }): JSX.Element | null {
   if (missing.length === 0) return null;
-  const reason = `오버레이 요소가 없는 화면: ${missing.join(', ')}`;
+  const reason = `${missing.join(', ')} 화면에 오버레이 요소 없음`;
   return (
     <>
       <Tooltip text={reason}>

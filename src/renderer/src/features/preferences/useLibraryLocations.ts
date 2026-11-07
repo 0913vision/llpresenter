@@ -17,7 +17,7 @@ const FOLDER_REFUSALS: Readonly<
   'settings-locked': NEWER_FILE_REASON,
 };
 const BACKUP_FAILED = '백업하지 못함';
-const BACKUP_OUTPUT_ON = '출력 중에는 백업하지 않음';
+const BACKUP_OUTPUT_ON = '출력 중에는 백업 안 함';
 
 function warning(key: string, title: string): Notice {
   return {key, kind: 'warning', icon: 'warning', title, time: noticeTime()};

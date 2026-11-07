@@ -212,12 +212,12 @@ export function BibleReferenceForm(
   };
   const reason = (part: ReferencePart): string | undefined => {
     if (part === 'book' && bookUnavailable) {
-      return '역본에 없는 책';
+      return '이 역본에 없는 책';
     }
     if (part === 'start' && reply?.result.ok === false) {
       return reply.result.error.code === 'omitted'
-        ? '역본에 없는 절'
-        : '구절 조회 실패';
+        ? '이 역본에 없는 절'
+        : '구절 불러오기 실패';
     }
     return fields[part] !== '' || blocked === part
       ? state.errors[part]

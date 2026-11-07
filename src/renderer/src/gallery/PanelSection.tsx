@@ -44,13 +44,13 @@ const usageStates = [
   {
     label: 'Pending usage',
     text: '예배 …',
-    tip: '쓰는 곳을 확인하는 중',
+    tip: '쓰는 곳 확인 중',
     failed: false,
   },
   {
     label: 'Unavailable usage',
     text: '예배 ?',
-    tip: '쓰는 곳을 확인할 수 없습니다',
+    tip: '쓰는 곳 확인 실패',
     failed: true,
   },
   {

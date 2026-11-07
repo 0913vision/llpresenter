@@ -96,7 +96,7 @@ it('shows each sent message time and clears only that message', async () => {
   });
   const {unmount} = render(<MessageTab />);
   await act(async () => undefined);
-  const messages = screen.getByRole('list', {name: '보낸 메시지'});
+  const messages = screen.getByRole('list', {name: '표시 중인 메시지'});
   expect(within(messages).getByText('0:42')).toBeDefined();
   await act(() => clock.advance(1000));
   expect(within(messages).getByText('0:41')).toBeDefined();
@@ -333,7 +333,7 @@ it('keeps the 보내기 row as a direct child of the scrolling tab body, after t
   await ready();
   const row = sendButton().parentElement;
   expect(row?.parentElement).toBe(container);
-  const list = screen.getByRole('listbox', {name: '메시지 문구'});
+  const list = screen.getByRole('listbox', {name: '메시지'});
   const children = [...container.children];
   const listAt = children.findIndex(child => child.contains(list));
   const rowAt = children.findIndex(child => child === row);

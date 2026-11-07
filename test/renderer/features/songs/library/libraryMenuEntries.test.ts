@@ -21,7 +21,7 @@ it('retains specific reasons ahead of busy state and explains busy commands', ()
   for (const id of ['add-to', 'lyrics', 'duplicate', 'rename', 'delete']) {
     expect(busy.find(row => row.id === id)).toMatchObject({
       disabled: true,
-      title: '곡 작업 중',
+      title: '작업 중',
     });
   }
   const protectedRows = menuItems(
@@ -83,7 +83,7 @@ it('adds to the open service with one command and no submenu', () => {
   const add = rows[0];
   for (const row of rows) {
     if (row.kind === 'item' && row.disabled && row.id !== 'add-to') {
-      expect(row.title).toBe('이번 버전에서는 쓸 수 없음');
+      expect(row.title).toBe('아직 없는 기능');
     }
   }
   if (add?.kind !== 'item') throw new Error('Missing command');

@@ -174,7 +174,7 @@ describe('service panel editing', () => {
     await userEvent.hover(screen.getByRole('menuitem', {name: '구성'}));
     expect(await screen.findByRole('tooltip')).toHaveProperty(
       'textContent',
-      '곡 파일을 찾을 수 없습니다.',
+      '곡 파일을 찾을 수 없습니다',
     );
     for (const name of ['구성', '라이브러리에서 보기']) {
       expect(

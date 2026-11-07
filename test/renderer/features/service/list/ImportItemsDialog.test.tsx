@@ -408,7 +408,7 @@ describe('ImportItemsDialog', () => {
     expect(navigate).not.toHaveBeenCalled();
     expect(edits).toHaveLength(2);
     expect(onProblem.mock.calls[1]?.[0]).toMatchObject({
-      title: '항목을 가져올 수 없음',
+      title: '항목 가져오기 실패',
     });
     expect(onClose).not.toHaveBeenCalled();
   });

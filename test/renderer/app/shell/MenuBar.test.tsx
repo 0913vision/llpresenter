@@ -69,7 +69,7 @@ describe('MenuBar', () => {
     expect(outputItem('청중 화면').textContent).toBe('출력 끄기');
     expect(outputItem('무대 화면').textContent).toBe('출력 켜기');
     expect(outputItem('방송 화면').textContent).toBe('출력 켜기');
-    expect(screen.queryByRole('menuitem', {name: /경고 보기/})).toBeNull();
+    expect(screen.queryByRole('menuitem', {name: /문제 보기/})).toBeNull();
   });
 
   it.each([

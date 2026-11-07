@@ -58,11 +58,20 @@ describe('four-field Bible reference validation', () => {
     expect(state.input).toBe('');
   });
 
+  it('tells an invalid value apart from bounds that are still loading', () => {
+    expect(
+      referenceFieldsState({...fields, chapter: '22'}, bounds).errors.chapter,
+    ).toBe('장을 확인해야 합니다');
+    expect(referenceFieldsState(fields, undefined).errors.chapter).toBe(
+      '장 정보 불러오는 중',
+    );
+  });
+
   it('blocks Tab past the last verse but clamps the lookup endpoint', () => {
     expect(referenceFieldsState({...fields, end: '99'}, bounds)).toMatchObject({
       input: '요한복음 3:16-36',
       clampedEnd: 36,
-      errors: {end: '끝절 범위 확인'},
+      errors: {end: '끝절을 확인해야 합니다'},
     });
   });
 

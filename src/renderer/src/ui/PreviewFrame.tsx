@@ -65,7 +65,7 @@ export function previewReason<Id extends string>(
     case 'on':
       return undefined;
     case 'off':
-      return `${screen.name} 출력이 꺼져 있습니다`;
+      return `${screen.name} 출력 꺼짐`;
     case 'warning':
       return status.detail === undefined
         ? status.reason
@@ -83,7 +83,7 @@ export function smallPreviewName<Id extends string>(
     case 'on':
       return name;
     case 'off':
-      return `${name}, 출력이 꺼져 있습니다`;
+      return `${name}, 출력 꺼짐`;
     case 'warning':
       return `${name}, ${status.reason}`;
   }

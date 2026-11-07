@@ -13,15 +13,15 @@ for the full list.
 
 ## Common rules
 
-| Rule           | Requirement                                                                                                                                                                                            | Source                                                           |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------- |
-| Encoding       | Files are UTF-8 JSON without a byte order mark. The chapter-based Bible container has the framing defined under "Bible translations".                                                                  | `Main` song file sample; user decision, 2026-10-26               |
-| Header fields  | Each file's JSON header declares `format` (the file type) and `schemaVersion`. Most formats use version 1; the chapter-based Bible container uses version 2 and the prefix defined below.              | `Main` samples; user decision, 2026-10-26                        |
-| IDs            | Songs, 예배 순서, 템플릿, media, screens, 테마, 메시지 styles, 매크로, collections, 퀵 실행 items, 메시지 문구, 그래픽, 타이머, and 예배 순서 items have a UUID v4 ID in lowercase. Never reuse an ID. | `Main` samples (song and media IDs). The rest is a proposal.     |
-| Unknown fields | When you read a file, keep every unknown field in memory and write it back unchanged. This also applies to nested objects (슬라이드, 구성, items).                                                     | `Main` song file notes, product log 2026-10-24 (room for scores) |
-| Dates          | A service date is local time without a time zone, `YYYY-MM-DDTHH:mm`. Record timestamps such as `updatedAt` are ISO 8601 with a time zone offset (proposal).                                           | `Main` service sample                                            |
-| Paths          | Song and service files never contain file paths. They refer to media by ID only. File paths exist only in the media list.                                                                              | `Main` song file notes                                           |
-| Line endings   | Files use LF line endings (proposal).                                                                                                                                                                  |                                                                  |
+| Rule           | Requirement                                                                                                                                                                                       | Source                                                           |
+| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Encoding       | Files are UTF-8 JSON without a byte order mark. The chapter-based Bible container has the framing defined under "Bible translations".                                                             | `Main` song file sample; user decision, 2026-10-26               |
+| Header fields  | Each file's JSON header declares `format` (the file type) and `schemaVersion`. Most formats use version 1; the chapter-based Bible container uses version 2 and the prefix defined below.         | `Main` samples; user decision, 2026-10-26                        |
+| IDs            | Songs, 예배 순서, 템플릿, media, screens, 테마, 메시지 styles, 매크로, collections, 퀵 실행 items, 메시지, 그래픽, 타이머, and 예배 순서 items have a UUID v4 ID in lowercase. Never reuse an ID. | `Main` samples (song and media IDs). The rest is a proposal.     |
+| Unknown fields | When you read a file, keep every unknown field in memory and write it back unchanged. This also applies to nested objects (슬라이드, 구성, items).                                                | `Main` song file notes, product log 2026-10-24 (room for scores) |
+| Dates          | A service date is local time without a time zone, `YYYY-MM-DDTHH:mm`. Record timestamps such as `updatedAt` are ISO 8601 with a time zone offset (proposal).                                      | `Main` service sample                                            |
+| Paths          | Song and service files never contain file paths. They refer to media by ID only. File paths exist only in the media list.                                                                         | `Main` song file notes                                           |
+| Line endings   | Files use LF line endings (proposal).                                                                                                                                                             |                                                                  |
 
 ## Folder layout (proposal)
 
@@ -210,10 +210,10 @@ A 예배 순서 holds at most 1,000 items (`SERVICE_LIMITS.items`). A long servi
 is about 60 items, so the limit leaves room for a very long one and still bounds
 a file and the whole-list replies. The schema and main both refuse a list past
 it. An add, a 복제, a 구역 copy, and an import past it are refused with "예배
-순서 항목은 1000개까지 추가할 수 있음"; the add controls and 복제 are disabled
-with that reason when the list is full. A 템플릿 has the same limit. No files
-exist before the first release, so this limit and the media name limit need no
-migration.
+순서 항목은 1000개까지 추가할 수 있습니다"; the add controls and 복제 are
+disabled with that reason when the list is full. A 템플릿 has the same limit. No
+files exist before the first release, so this limit and the media name limit
+need no migration.
 
 Each item has exactly one of the kind keys below. Every item has an `id`
 (proposal). When you copy items from another service or from a 템플릿, give them
@@ -339,7 +339,7 @@ breaks, the other areas still work. File names and `format` values (proposal):
 | `themes.json`                         | `llsettings.themes`      | 테마, the 대기 화면, the default 테마 of each kind  |
 | `macros.json`                         | `llsettings.macros`      | 매크로 and collections                              |
 | `quick.json`                          | `llsettings.quick`       | 퀵 실행 items                                       |
-| `messages.json`                       | `llsettings.messages`    | 메시지 문구 and styles                              |
+| `messages.json`                       | `llsettings.messages`    | 메시지 and styles                                   |
 | `props.json`                          | `llsettings.props`       | 그래픽                                              |
 | `timers.json`                         | `llsettings.timers`      | 타이머                                              |
 | `labels.json`                         | `llsettings.labels`      | 이름표 list                                         |
@@ -458,16 +458,16 @@ keeps the applied pair in memory and uses the existing save retry mechanism.
 Renaming a timer row updates its `.name` and the referenced timer's `.name`
 together. Other quick item names remain independent (user decision, October 26).
 
-### 메시지 문구 and styles (`messages.json`)
+### 메시지 and styles (`messages.json`)
 
-| Field          | Type                                        | Meaning                                                                                              | Source                                                 |
-| -------------- | ------------------------------------------- | ---------------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| `templates[]`  | Array                                       | 메시지 문구, for example 차량 이동 (move your car), 영아부 호출 (nursery call), 자리 안내 (seating). | `Overlays` 메시지 tab                                  |
-| `.id`, `.name` | String                                      | ID and name.                                                                                         | `Overlays`                                             |
-| `.icon`        | `"msg"` \| `"user"`                         | List icon.                                                                                           | `Overlays` (차량 이동 uses msg, 영아부 호출 uses user) |
-| `.text`        | String                                      | The sentence. `{blank name}` marks a blank, for example "{차량 번호} 차량 이동 부탁드립니다".        | `Overlays`                                             |
-| `.targets`     | Array of screen IDs, or `"all"`             | Default target screens (proposal). Optional; absent means `"all"` (04).                              | `Overlays` 보낼 화면 (send to)                         |
-| `.duration`    | Seconds, or `null` for 계속 (until cleared) | Default display time (proposal). Optional; absent means `null` (04).                                 | `Overlays` 표시 시간 (display time)                    |
+| Field          | Type                                        | Meaning                                                                                         | Source                                                 |
+| -------------- | ------------------------------------------- | ----------------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| `templates[]`  | Array                                       | 메시지, for example 차량 이동 (move your car), 영아부 호출 (nursery call), 자리 안내 (seating). | `Overlays` 메시지 tab                                  |
+| `.id`, `.name` | String                                      | ID and name.                                                                                    | `Overlays`                                             |
+| `.icon`        | `"msg"` \| `"user"`                         | List icon.                                                                                      | `Overlays` (차량 이동 uses msg, 영아부 호출 uses user) |
+| `.text`        | String                                      | The sentence. `{blank name}` marks a blank, for example "{차량 번호} 차량 이동 부탁드립니다".   | `Overlays`                                             |
+| `.targets`     | Array of screen IDs, or `"all"`             | Default target screens (proposal). Optional; absent means `"all"` (04).                         | `Overlays` 보낼 화면 (send to)                         |
+| `.duration`    | Seconds, or `null` for 계속 (until cleared) | Default display time (proposal). Optional; absent means `null` (04).                            | `Overlays` 표시 시간 (display time)                    |
 
 | Field             | Type                                            | Meaning                                                                                          |
 | ----------------- | ----------------------------------------------- | ------------------------------------------------------------------------------------------------ |
@@ -1003,10 +1003,10 @@ verse is one verse.
 | The end equals the start                     | Read as one verse                                   | 요 3:16-16 and 요 3:16-3:16 become 요 3:16                                                   |
 
 - An invalid reference shows the error ring with the reason in a tooltip (04):
-  "알아볼 수 없는 구절입니다" (passage not recognized) for a form the grammar
+  "구절을 찾을 수 없습니다" (passage not recognized) for a form the grammar
   doesn't accept, "없는 장입니다" (no such chapter) or "없는 절입니다" (no such
-  verse) for an endpoint that doesn't exist, and "구절 순서가 거꾸로입니다" (the
-  passage is reversed) for a reversed range (proposal for the wording).
+  verse) for an endpoint that doesn't exist, and "끝 절이 시작 절보다 앞입니다"
+  (the passage is reversed) for a reversed range (proposal for the wording).
 - The normalized `ref` of a Bible passage object uses the colon form and the
   full Korean book name, after these rules: "요한복음 3", "요한복음 3:16",
   "요한복음 3:16-18", "요한복음 3:16-4:2". The same grammar reads it back.

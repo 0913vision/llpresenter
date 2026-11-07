@@ -54,7 +54,7 @@ export function screenOutputSections(
       {
         kind: 'item',
         id: 'theme',
-        label: `테마 바꾸기: ${liveThemeName(input.themes, input.themeId)}`,
+        label: `테마: ${liveThemeName(input.themes, input.themeId)}`,
         loadSubmenu: () =>
           themeMenuEntries({
             themes: input.themes?.themes ?? [],

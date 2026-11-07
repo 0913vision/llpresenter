@@ -22,7 +22,7 @@ function setup(value?: string, disabledReason?: string) {
   return {
     onSave,
     onClose,
-    field: screen.getByRole('textbox', {name: '슬라이드 바로 가기 키'}),
+    field: screen.getByRole('textbox', {name: '슬라이드 단축키'}),
     save: screen.getByRole('button', {name: '저장'}),
   };
 }

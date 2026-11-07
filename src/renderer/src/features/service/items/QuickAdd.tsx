@@ -18,7 +18,7 @@ import {useOtherSources} from './useOtherSources';
 import {useHeaderRename} from '@renderer/session/headerRename';
 import {rememberBiblePassage} from '@renderer/session/recentWriter';
 
-const NO_SERVICE_REASON = '열린 예배가 없습니다';
+const NO_SERVICE_REASON = '열린 예배 없음';
 
 /** Adds non-song items at the end of the selected service section. */
 export function ServiceQuickAdd({

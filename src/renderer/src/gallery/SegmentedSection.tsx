@@ -40,7 +40,7 @@ const views: ReadonlyArray<SegmentOption<View>> = [
 
 const filters: ReadonlyArray<SegmentOption<Filter>> = [
   {value: 'all', label: '전체'},
-  {value: 'changed', label: '바꾼 것', count: 3},
+  {value: 'changed', label: '바꿈', count: 3},
   {
     value: 'conflict',
     label: '겹침',
@@ -193,7 +193,7 @@ export function SegmentedSection(): JSX.Element {
             )}
           </Stateful>
         </SpecItem>
-        <SpecItem label="바꾼 것 selected">
+        <SpecItem label="바꿈 selected">
           <SegmentedControl
             label="보기"
             options={filters}

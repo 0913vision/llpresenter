@@ -62,7 +62,7 @@ export function SongSlidePanel({
       <PanelHeader>
         <PanelTitle
           title="슬라이드"
-          meta={capped ? '슬라이드가 너무 많음' : undefined}
+          meta={capped ? '슬라이드가 너무 많습니다' : undefined}
         />
         {capped ? (
           <PanelActions>
@@ -99,7 +99,7 @@ export function SongSlidePanel({
           }
           hotKeyReason={
             session.blocked
-              ? '저장 오류 해결 필요'
+              ? '저장 오류'
               : session.readOnly
                 ? NEWER_FILE_REASON
                 : state.busy

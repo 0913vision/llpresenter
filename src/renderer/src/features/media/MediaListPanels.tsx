@@ -160,7 +160,7 @@ function usePlaylistEditing(kind: 'media' | 'audio') {
           title={`‘${doomed.name || UNNAMED_PLAYLIST}’ 재생목록을 삭제할까요?`}
           meta={countedMeta(
             doomed.items.length,
-            `미디어 ${doomed.items.length}개는 모든 미디어에 남음`,
+            `미디어 ${doomed.items.length}개는 모든 미디어에 남습니다`,
           )}
           onCancel={() => setDeleting(null)}
           actions={[

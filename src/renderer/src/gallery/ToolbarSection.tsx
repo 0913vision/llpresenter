@@ -40,7 +40,7 @@ function SingleTab({
 }): JSX.Element {
   return (
     <ToolbarTabs
-      label="작업 공간"
+      label="화면 전환"
       tabs={[tab]}
       value={selected ? tab.value : 'show'}
       compact={compact}
@@ -185,7 +185,7 @@ export function ToolbarSection(): JSX.Element {
           <Stateful<Workspace> initial="show">
             {(value, setValue) => (
               <ToolbarTabs
-                label="작업 공간"
+                label="화면 전환"
                 tabs={[showTab, prepTab, screensTab]}
                 value={value}
                 onChange={setValue}

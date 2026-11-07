@@ -195,7 +195,7 @@ export function MediaPreviewPlayer({
             icon={playing ? 'pause' : 'play'}
             label={playing ? '일시 정지' : '재생'}
             disabled={!playable}
-            title={missing ? '파일을 찾을 수 없음' : undefined}
+            title={missing ? '파일 없음' : undefined}
             onClick={toggle}
           />
           <span className={styles.time}>{durationText(position)}</span>
@@ -215,7 +215,7 @@ export function MediaPreviewPlayer({
           icon="folderopen"
           label="파일 위치 열기"
           disabled={missing}
-          title={missing ? '파일을 찾을 수 없음' : undefined}
+          title={missing ? '파일 없음' : undefined}
           onClick={onReveal}
         />
       </div>

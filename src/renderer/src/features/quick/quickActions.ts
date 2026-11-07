@@ -18,15 +18,15 @@ import {slideLayerOf} from '@core/presentation/slideLayer';
 import {openBiblePassage, showBiblePassage} from '../bible/actions';
 
 export function quickItemUnavailable(item: QuickItem): string | undefined {
-  if (!isKnownQuickItem(item)) return '이번 버전에서는 쓸 수 없는 항목';
-  if (item.kind === 'black') return '검은 화면을 사용할 수 없습니다';
+  if (!isKnownQuickItem(item)) return '아직 없는 기능';
+  if (item.kind === 'black') return '검은 화면을 쓸 수 없습니다';
   if (
     item.kind === 'bible' &&
     (item.ref.split !== 'verse' ||
       item.ref.reference !== 'none' ||
       item.ref.translationName)
   ) {
-    return '이 구절의 표시 설정을 사용할 수 없습니다';
+    return '이 구절은 쓸 수 없습니다';
   }
   return undefined;
 }

@@ -112,7 +112,7 @@ export function BibleDisplayControls({
           message: 'Could not change the Bible preview translation',
           detail: String(cause),
         });
-        setProblem('역본 조회 실패');
+        setProblem('역본 불러오기 실패');
       }
     } finally {
       if (owner.active) {
@@ -122,13 +122,13 @@ export function BibleDisplayControls({
     }
   };
   const reason = !api
-    ? '구절 조회 불가'
+    ? '구절을 불러올 수 없습니다'
     : busy
-      ? '역본 조회 중'
+      ? '역본 불러오는 중'
       : document === null
         ? readFailed
-          ? '역본 정보 조회 실패'
-          : '역본 정보 대기'
+          ? '역본 불러오기 실패'
+          : '역본 불러오는 중'
         : translations.length === 0
           ? '설치된 역본 없음'
           : problem;

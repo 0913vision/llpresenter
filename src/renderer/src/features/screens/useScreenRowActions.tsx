@@ -17,8 +17,8 @@ import {ScreenContextMenu} from './screenMenuEntries';
 import {NOT_YET} from '@renderer/ui/menuRows';
 
 const PROBLEMS: Readonly<Record<ScreenRenameProblem, string>> = {
-  empty: '이름이 비어 있음',
-  taken: '같은 이름의 화면이 있음',
+  empty: '이름을 적어야 저장할 수 있습니다',
+  taken: '같은 이름의 화면이 있습니다',
   missing: '화면을 찾을 수 없음',
 };
 

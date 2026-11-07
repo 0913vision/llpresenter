@@ -31,7 +31,6 @@ const NONE = '없음';
 const DEFAULT_ARRANGEMENT = '기본';
 const DEFAULT_THEME = '기본';
 const MISSING_MACRO = '매크로 없음';
-const DEFAULT_THEME_REASON = '종류의 기본 테마를 따릅니다';
 const NO_MACRO_ID = 'none';
 const DEFAULT_THEME_ID = 'default';
 
@@ -201,7 +200,6 @@ export function ServiceTableCells({
           dim={themeCell.followsDefault}
           width={styles.theme}
           reason={reason}
-          hint={themeCell.followsDefault ? DEFAULT_THEME_REASON : undefined}
           entries={themeEntries({
             item,
             followsDefault: themeCell.followsDefault,

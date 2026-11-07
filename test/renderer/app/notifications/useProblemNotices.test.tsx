@@ -75,7 +75,7 @@ describe('useProblemNotices', () => {
     await waitFor(() =>
       expect(skippedNames()).toEqual(['themes.json', 'a1.llsong']),
     );
-    expect(target.report.mock.lastCall?.[0].title).toBe('파일을 읽을 수 없음');
+    expect(target.report.mock.lastCall?.[0].title).toBe('파일 읽기 실패');
   });
 
   it('counts a file that arrives by push and by the list only once', async () => {
@@ -137,7 +137,7 @@ describe('useProblemNotices', () => {
 
     push(saveFailedProblem('주일 예배', 1));
     expect(result.current).toBe(true);
-    expect(target.report.mock.lastCall?.[0].title).toBe('저장할 수 없음');
+    expect(target.report.mock.lastCall?.[0].title).toBe('저장 실패');
     vi.mocked(waitingSavesCard).mock.lastCall?.[1].retry();
     expect(retrySaves).toHaveBeenCalledOnce();
     push({kind: 'save-recovered'});
@@ -159,7 +159,7 @@ describe('useProblemNotices', () => {
       expect(target.report).toHaveBeenCalledWith(
         expect.objectContaining({
           key: 'backup-failed',
-          title: '백업 위치를 사용할 수 없음',
+          title: '백업 위치를 쓸 수 없습니다',
         }),
       ),
     );

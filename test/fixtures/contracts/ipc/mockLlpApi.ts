@@ -58,7 +58,7 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
           suggestions: [],
           result: {
             ok: false,
-            error: {code: 'translation', message: '사용할 수 없는 역본입니다'},
+            error: {code: 'translation', message: '역본을 사용할 수 없습니다'},
           },
         }),
       ...overrides.bible,

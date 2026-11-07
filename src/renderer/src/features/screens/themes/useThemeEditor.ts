@@ -78,7 +78,7 @@ export function useThemeEditor(
   const elementReason =
     reason ??
     (layout?.mode.kind !== 'own'
-      ? '직접 배치에서만 변경할 수 있음'
+      ? '직접 배치에서만 바꿀 수 있습니다'
       : undefined);
   const selection = useThemeSelection(scope, visibleElements);
   const actions = useThemeElements({target, elementReason}, writes, selection);

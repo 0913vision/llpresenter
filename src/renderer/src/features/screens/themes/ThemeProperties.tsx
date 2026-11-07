@@ -13,6 +13,7 @@ import {
 } from '@renderer/ui/PropertyRow';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';
 import {menuAvailability} from '@renderer/ui/menuModel';
+import {withParticle} from '@renderer/ui/korean';
 import {ColorProperty} from '../ColorProperty';
 import {ThemeElementProperties} from './ThemeElementProperties';
 import {themeSamples} from './ThemeCanvas';
@@ -112,8 +113,8 @@ function ThemeScreenProperties({
       })).ok;
       return {
         value: other.id,
-        label: `${other.name}과 동일`,
-        ...menuAvailability(valid ? undefined : '연결할 수 없는 화면'),
+        label: `${other.name}${withParticle(other.name)} 같음`,
+        ...menuAvailability(valid ? undefined : '연결할 수 없는 화면입니다'),
       };
     });
   return (

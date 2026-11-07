@@ -411,13 +411,13 @@ export function OverlaySection(): JSX.Element {
               <AlertDialog
                 icon="trash"
                 title="이름표 삭제"
-                meta={['1절', '모든 곡의 이름표 유지']}
+                meta={['1절', '곡에 붙은 이름표는 남습니다']}
                 onCancel={close}
                 actions={[
                   {
                     label: '삭제',
                     primary: true,
-                    title: '공유 목록에서만 삭제하며 곡의 이름표는 유지합니다',
+                    title: '1절 삭제',
                     onSelect: close,
                   },
                 ]}
@@ -446,7 +446,7 @@ export function OverlaySection(): JSX.Element {
                 title="‘만복의 근원 하나님’ 곡이 이미 있습니다. 덮어쓸까요?"
                 meta={[
                   '라이브러리 곡 슬라이드 4개, 10월 20일 수정',
-                  '새 곡 제목: ‘만복의 근원 하나님 (2)’',
+                  '새 제목: ‘만복의 근원 하나님 (2)’',
                 ]}
                 onCancel={close}
                 actions={[
@@ -466,7 +466,7 @@ export function OverlaySection(): JSX.Element {
                 title={`‘${LONG_SONG_TITLE}’ 곡이 이미 있습니다. 덮어쓸까요?`}
                 meta={[
                   '라이브러리 곡 슬라이드 4개',
-                  `새 곡 제목: ‘${LONG_SONG_TITLE}${NEW_SONG_SUFFIX}’`,
+                  `새 제목: ‘${LONG_SONG_TITLE}${NEW_SONG_SUFFIX}’`,
                 ]}
                 onCancel={close}
                 actions={[
@@ -483,14 +483,14 @@ export function OverlaySection(): JSX.Element {
             render={close => (
               <AlertDialog
                 icon="history"
-                title="출력 상태 복구"
-                meta={['비정상 종료', '10월 25일 오전 11:26']}
+                title="출력 내용을 복구할까요?"
+                meta={['앱이 갑자기 꺼졌습니다', '10월 25일 오전 11:26']}
                 actions={[
                   {label: '새로 시작', escape: true, onSelect: close},
                   {label: '복구', primary: true, onSelect: close},
                 ]}
                 list={{
-                  label: '복구할 상태',
+                  label: '복구할 항목',
                   children: (
                     <>
                       <CheckRow

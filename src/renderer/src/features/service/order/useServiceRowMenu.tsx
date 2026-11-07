@@ -54,7 +54,7 @@ export function useServiceRowMenu(
       })
       .then(done => {
         if (alive.current && !done) {
-          onProblem(warningNotice('service-row:rename', '이름을 바꿀 수 없음'));
+          onProblem(warningNotice('service-row:rename', '이름 바꾸기 실패'));
         }
         return done;
       })
@@ -78,9 +78,7 @@ export function useServiceRowMenu(
       })
       .then(done => {
         if (!done) {
-          onProblem(
-            warningNotice('service-row:duplicate', '예배를 복제할 수 없음'),
-          );
+          onProblem(warningNotice('service-row:duplicate', '예배 복제 실패'));
         }
       })
       .catch((cause: unknown) => {
@@ -94,7 +92,8 @@ export function useServiceRowMenu(
     renaming?.id !== entry.id
       ? undefined
       : {
-          validate: name => (name.trim() ? undefined : '이름을 입력하세요'),
+          validate: name =>
+            name.trim() ? undefined : '이름을 적어야 저장할 수 있습니다',
           onCommit: name => commit(entry, name),
           onClose: () => setRenaming(null),
         };

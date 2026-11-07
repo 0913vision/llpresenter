@@ -22,7 +22,7 @@ const PROBLEMS = {
   open: '곡 열기 실패',
   missing: '곡을 찾을 수 없습니다',
   saveAs: '다른 이름으로 저장 실패',
-  item: '예배 순서 항목을 새 곡으로 바꾸지 못했습니다',
+  item: '새 곡으로 바꾸기 실패',
 } as const;
 
 /** The question the window asks about unsaved edits. */

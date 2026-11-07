@@ -308,7 +308,7 @@ describe('NewServiceDialog', () => {
       'service.delete',
     ]);
     expect(onProblem.mock.calls[0]?.[0]).toMatchObject({
-      title: '새 예배를 만들 수 없음',
+      title: '새 예배 만들기 실패',
     });
     expect(onClose).not.toHaveBeenCalled();
     expect(createButton().getAttribute('aria-disabled')).toBeNull();
@@ -347,7 +347,7 @@ describe('NewServiceDialog', () => {
     await userEvent.click(createButton());
     await waitFor(() => expect(onClose).toHaveBeenCalled());
     expect(onProblem.mock.calls[0]?.[0]).toMatchObject({
-      title: '새 예배를 열 수 없음',
+      title: '새 예배 열기 실패',
     });
     expect(useShow.getState().serviceId).toBeNull();
   });
@@ -408,7 +408,7 @@ describe('NewServiceDialog', () => {
       'service.delete',
     ]);
     expect(onProblem.mock.calls[0]?.[0]).toMatchObject({
-      title: '새 예배를 만들 수 없음',
+      title: '새 예배 만들기 실패',
     });
     expect(open).not.toHaveBeenCalled();
     expect(onClose).not.toHaveBeenCalled();
@@ -429,7 +429,7 @@ describe('NewServiceDialog', () => {
     expect(open).toHaveBeenCalledWith({serviceId: ids.created});
     expect(useShow.getState().serviceId).toBe(ids.created);
     expect(onProblem.mock.calls[0]?.[0]).toMatchObject({
-      title: '새 예배에 항목을 가져올 수 없음',
+      title: '항목 가져오기 실패',
     });
   });
 
@@ -444,7 +444,7 @@ describe('NewServiceDialog', () => {
       'service.importItems',
     ]);
     expect(onProblem.mock.calls[0]?.[0]).toMatchObject({
-      title: '새 예배를 열 수 없음',
+      title: '새 예배 열기 실패',
     });
   });
 });

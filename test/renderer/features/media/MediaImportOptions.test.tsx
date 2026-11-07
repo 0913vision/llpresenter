@@ -164,7 +164,7 @@ it('keeps one write in flight and reports failure after the menu closes', async 
     });
   });
   expect(onProblem).toHaveBeenCalledWith(
-    expect.objectContaining({title: '미디어 가져오기 설정을 저장하지 못함'}),
+    expect.objectContaining({title: '설정 저장 실패'}),
   );
   expect(
     screen

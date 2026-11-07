@@ -21,11 +21,11 @@ export type PropEdit =
   | {readonly kind: 'delete'; readonly id: Prop['id']};
 
 export function propReason(prop: Prop): string | undefined {
-  if (!prop.name.trim()) return '이름을 입력하세요';
+  if (!prop.name.trim()) return '이름을 적어야 저장할 수 있습니다';
   if (prop.name.trim().length > MAX_NAME) return '이름이 너무 깁니다';
-  if (prop.targets.length === 0) return '화면을 선택하세요';
+  if (prop.targets.length === 0) return '화면을 골라야 저장할 수 있습니다';
   if (prop.content.kind === 'text') {
-    if (!prop.content.text.trim()) return '내용을 입력하세요';
+    if (!prop.content.text.trim()) return '내용을 적어야 저장할 수 있습니다';
     if (prop.content.text.length > MAX_TEXT) return '내용이 너무 깁니다';
   }
   return undefined;

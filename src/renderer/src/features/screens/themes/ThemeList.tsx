@@ -42,9 +42,7 @@ function usedMeta(
       `${USAGE_LABEL}: ${kinds.map(kind => themeKindNames[kind]).join(', ')} 기본`,
     ),
   ];
-  return lines.length === 0
-    ? lines
-    : [...lines, '쓰는 곳은 종류별 기본 테마로 표시됩니다.'];
+  return lines;
 }
 
 export function ThemeList({
@@ -176,7 +174,7 @@ export function ThemeList({
                 {
                   kind: 'item',
                   id: 'default',
-                  label: '기본으로 쓰기',
+                  label: '기본으로 지정',
                   ...available,
                   submenu: themeItemKinds.map(
                     itemKind =>

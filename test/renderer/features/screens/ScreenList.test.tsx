@@ -156,21 +156,21 @@ describe('screen creation and group outputs', () => {
     expect(remove().getAttribute('aria-disabled')).toBe('true');
     await userEvent.hover(remove());
     expect((await screen.findByRole('tooltip')).textContent).toBe(
-      '마지막 청중 화면은 삭제할 수 없음. 사용 안 함으로 끌 수 있음',
+      '마지막 청중 화면은 삭제할 수 없습니다',
     );
     fireEvent.keyDown(screen.getByRole('menu'), {key: 'Escape'});
     fireEvent.contextMenu(screen.getByRole('option', {name: '방송 화면'}));
     expect(rows()).toEqual(expected);
     await userEvent.hover(remove());
     expect((await screen.findByRole('tooltip')).textContent).toBe(
-      '마지막 방송 화면은 삭제할 수 없음. 사용 안 함으로 끌 수 있음',
+      '마지막 방송 화면은 삭제할 수 없습니다',
     );
     fireEvent.keyDown(screen.getByRole('menu'), {key: 'Escape'});
     fireEvent.contextMenu(screen.getByRole('option', {name: '무대 화면'}));
     expect(rows()).toEqual(expected);
     await userEvent.hover(remove());
     expect((await screen.findByRole('tooltip')).textContent).toBe(
-      '마지막 무대 화면은 삭제할 수 없음. 사용 안 함으로 끌 수 있음',
+      '마지막 무대 화면은 삭제할 수 없습니다',
     );
   });
 
@@ -255,8 +255,8 @@ describe('screen creation and group outputs', () => {
   });
 
   it.each([
-    {draft: '', reason: '이름이 비어 있음'},
-    {draft: '방송 화면', reason: '같은 이름의 화면이 있음'},
+    {draft: '', reason: '이름을 적어야 저장할 수 있습니다'},
+    {draft: '방송 화면', reason: '같은 이름의 화면이 있습니다'},
   ])(
     'shows inline draft validation for $reason before committing',
     async ({draft, reason}) => {

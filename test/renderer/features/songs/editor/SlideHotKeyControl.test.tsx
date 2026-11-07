@@ -22,9 +22,7 @@ async function keyMenu(number: number): Promise<HTMLElement> {
 it('assigns the clicked source slide through the shared menu, persistence and undo', async () => {
   const {user, session, documents, first} = await setup();
   act(() => session.selectArrangement('주일용'));
-  expect(
-    screen.queryByRole('button', {name: /슬라이드.*바로 가기 키/}),
-  ).toBeNull();
+  expect(screen.queryByRole('button', {name: /슬라이드.*단축키/})).toBeNull();
   await user.click(await keyMenu(3));
   expect(session.history.snapshot.selection.block).toBe(1);
   expect(
@@ -32,10 +30,10 @@ it('assigns the clicked source slide through the shared menu, persistence and un
       .getAllByRole('option')[2]
       ?.getAttribute('aria-selected'),
   ).toBe('true');
-  fireEvent.keyDown(
-    screen.getByRole('textbox', {name: '슬라이드 바로 가기 키'}),
-    {key: 'ㅊ', code: 'KeyC'},
-  );
+  fireEvent.keyDown(screen.getByRole('textbox', {name: '슬라이드 단축키'}), {
+    key: 'ㅊ',
+    code: 'KeyC',
+  });
   await user.click(screen.getByRole('button', {name: '저장'}));
   await act(() => session.flush());
   const saved = documents.get(first.song.id)?.song;
@@ -57,16 +55,16 @@ it('assigns the clicked source slide through the shared menu, persistence and un
 it('refuses duplicate keys and disables the read-only menu entry', async () => {
   const {user, session, store} = await setup();
   await user.click(await keyMenu(1));
-  fireEvent.keyDown(
-    screen.getByRole('textbox', {name: '슬라이드 바로 가기 키'}),
-    {key: 'a', code: 'KeyA'},
-  );
+  fireEvent.keyDown(screen.getByRole('textbox', {name: '슬라이드 단축키'}), {
+    key: 'a',
+    code: 'KeyA',
+  });
   await user.click(screen.getByRole('button', {name: '저장'}));
   await user.click(await keyMenu(2));
-  fireEvent.keyDown(
-    screen.getByRole('textbox', {name: '슬라이드 바로 가기 키'}),
-    {key: 'a', code: 'KeyA'},
-  );
+  fireEvent.keyDown(screen.getByRole('textbox', {name: '슬라이드 단축키'}), {
+    key: 'a',
+    code: 'KeyA',
+  });
   expect(
     screen.getByRole('button', {name: '저장'}).getAttribute('aria-disabled'),
   ).toBe('true');
@@ -81,10 +79,10 @@ it('refuses duplicate keys and disables the read-only menu entry', async () => {
 it('does not apply a key draft after the source song changes', async () => {
   const {user, session} = await setup();
   await user.click(await keyMenu(1));
-  fireEvent.keyDown(
-    screen.getByRole('textbox', {name: '슬라이드 바로 가기 키'}),
-    {key: 'a', code: 'KeyA'},
-  );
+  fireEvent.keyDown(screen.getByRole('textbox', {name: '슬라이드 단축키'}), {
+    key: 'a',
+    code: 'KeyA',
+  });
   act(() =>
     session.edit({type: 'text', text: 'Updated words', start: 0, end: 0}),
   );

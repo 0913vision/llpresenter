@@ -362,7 +362,7 @@ describe('media list panels', () => {
   });
 
   it.each([
-    ['one item', /Backgrounds/, '미디어 1개는 모든 미디어에 남음'],
+    ['one item', /Backgrounds/, '미디어 1개는 모든 미디어에 남습니다'],
     ['no item', /이름 없는 재생목록/, null],
   ])(
     'tells what stays when a playlist with %s is deleted',
@@ -372,7 +372,7 @@ describe('media list panels', () => {
       fireEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
       const dialog = await screen.findByRole('alertdialog');
       const text = dialog.textContent;
-      if (line === null) expect(text).not.toContain('모든 미디어에 남음');
+      if (line === null) expect(text).not.toContain('모든 미디어에 남습니다');
       else expect(text).toContain(line);
     },
   );

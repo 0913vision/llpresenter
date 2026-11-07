@@ -29,18 +29,8 @@ export const labelColorNames: Readonly<Record<PaletteColor | 'none', string>> =
     none: '없음',
   };
 
-/**
- * What a palette color applies to, said in the tooltip of every swatch, so
- * each place that picks a color from the palette states its reach.
- */
-export const paletteColorScopes = {
-  macro: '이 매크로에 적용',
-  label: '이 이름표를 쓰는 모든 곡에 적용',
-} as const;
-
 interface SwatchProps {
   readonly color: PaletteColor | 'none';
-  readonly scope: string;
   readonly checked: boolean;
   readonly disabled: boolean;
   readonly tabIndex: 0 | -1;
@@ -51,7 +41,6 @@ interface SwatchProps {
 
 function Swatch({
   color,
-  scope,
   checked,
   disabled,
   tabIndex,
@@ -60,7 +49,7 @@ function Swatch({
   onKeyDown,
 }: SwatchProps): JSX.Element {
   const name = labelColorNames[color];
-  const {targetProps, tooltip} = useTooltip({text: name, sub: scope});
+  const {targetProps, tooltip} = useTooltip({text: name});
   const press = useButtonPress<HTMLButtonElement>({
     disabled,
     onPress: onSelect,
@@ -101,8 +90,6 @@ export interface SwatchRowProps<T extends string> {
   readonly onChange: (color: T) => void;
   /** The row name for assistive technology, such as 후렴 색. */
   readonly label: string;
-  /** What the color applies to, shown under the color name in the tooltip. */
-  readonly scope: string;
   /** A visible name before the row, such as 색 in the macro menu. */
   readonly name?: string | undefined;
   /** Draws the row inside a menu, lined up with the menu items. */
@@ -116,7 +103,6 @@ function SwatchRow<T extends PaletteColor | 'none'>({
   value,
   onChange,
   label,
-  scope,
   name,
   inMenu = false,
   disabled = false,
@@ -146,7 +132,6 @@ function SwatchRow<T extends PaletteColor | 'none'>({
         <Swatch
           key={color}
           color={color}
-          scope={scope}
           checked={color === value}
           disabled={disabled}
           tabIndex={roving.tabIndexOf(index)}

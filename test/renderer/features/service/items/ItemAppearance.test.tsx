@@ -206,16 +206,14 @@ it('warns about an overlay without a theme element and clears the warning for a 
   const {user} = await setup();
   await addOverlay(user, 1);
   const warning = await screen.findByRole('img', {
-    name: '오버레이 요소가 없는 화면: 무대 화면',
+    name: '무대 화면 화면에 오버레이 요소 없음',
   });
   expect(warning).toBeDefined();
   expect(screen.getAllByRole('button', {name: '테마 편집…'})).toHaveLength(2);
   await user.click(screen.getByRole('button', {name: '테마'}));
   await user.click(screen.getByRole('menuitemradio', {name: '특송'}));
   await waitFor(() =>
-    expect(
-      screen.queryByRole('img', {name: /오버레이 요소가 없는 화면/}),
-    ).toBeNull(),
+    expect(screen.queryByRole('img', {name: /오버레이 요소 없음/})).toBeNull(),
   );
 });
 
@@ -247,7 +245,7 @@ it('adds from the slide menu to the song end, and edits the range in the popover
   expect(stored()?.overlays?.[1]?.to).toBe(1);
   expect(edits).toHaveLength(before);
   expect((await hoverForTooltip(secondTo))?.textContent).toContain(
-    '다른 오버레이와 슬라이드 범위가 겹칩니다',
+    '다른 오버레이와 겹칩니다',
   );
 });
 

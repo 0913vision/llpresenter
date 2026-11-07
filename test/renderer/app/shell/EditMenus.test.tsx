@@ -142,7 +142,7 @@ describe('the 편집 menu', () => {
     expect(await reasonOf(rowOf(menu, '실행 취소'))).toBe(NOTHING_TO_UNDO);
     expect(await reasonOf(rowOf(menu, '다시 실행'))).toBe(NOTHING_TO_REDO);
     expect(await reasonOf(rowOf(menu, '복사'))).toBe(
-      '글자 입력란에서 쓸 수 있습니다',
+      '글자 입력란에서만 쓸 수 있습니다',
     );
     expect(await reasonOf(rowOf(menu, '텍스트 스타일 복사'))).toBe(NOT_YET);
     expect(isOff(rowOf(menu, '단축키…'))).toBe(false);
@@ -177,14 +177,14 @@ describe('the 편집 menu', () => {
     rerender(
       <>
         <MenuBar title="" />
-        <Duplicates reason="테마는 200개까지 추가할 수 있음" run={run} />
+        <Duplicates reason="테마는 200개까지 추가할 수 있습니다" run={run} />
       </>,
     );
     screen.getByRole('button', {name: 'list'}).focus();
     menu = await openMenu(user, '편집');
     expect(rowOf(menu, '복제').textContent).toBe('복제Ctrl D');
     expect(await reasonOf(rowOf(menu, '복제'))).toBe(
-      '테마는 200개까지 추가할 수 있음',
+      '테마는 200개까지 추가할 수 있습니다',
     );
   });
 

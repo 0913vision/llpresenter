@@ -65,7 +65,7 @@ describe('shared Bible reference form', () => {
         document.getElementById(
           view.book.getAttribute('aria-describedby') ?? '',
         )?.textContent,
-      ).toBe('역본에 없는 책'),
+      ).toBe('이 역본에 없는 책'),
     );
     await view.user.tab();
     expect(view.book.value).toBe('에베소서');
@@ -73,7 +73,7 @@ describe('shared Bible reference form', () => {
     expect(
       document.getElementById(view.book.getAttribute('aria-describedby') ?? '')
         ?.textContent,
-    ).toBe('역본에 없는 책');
+    ).toBe('이 역본에 없는 책');
     expect(view.onPreview).not.toHaveBeenCalled();
     expect(view.onSubmit).not.toHaveBeenCalled();
   });
@@ -162,7 +162,7 @@ describe('shared Bible reference form', () => {
     expect(
       document.getElementById(view.book.getAttribute('aria-describedby') ?? '')
         ?.textContent,
-    ).toBe('역본에 없는 책');
+    ).toBe('이 역본에 없는 책');
     await view.user.click(view.book);
     await view.user.tab();
     expect(document.activeElement).toBe(view.book);
@@ -332,7 +332,7 @@ describe('shared Bible reference form', () => {
       const description = document.getElementById(
         view[part].getAttribute('aria-describedby') ?? '',
       );
-      expect(description?.textContent).toContain('범위 확인');
+      expect(description?.textContent).toContain('확인해야 합니다');
       await view.user.keyboard('{Enter}');
       expect(view.onSubmit).not.toHaveBeenCalled();
     },

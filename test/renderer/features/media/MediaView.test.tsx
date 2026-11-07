@@ -612,7 +612,7 @@ describe('media view', () => {
       '테마1곳',
       '매크로2곳',
     ]);
-    expect(dialog.textContent).toContain('파일은 그대로 남음');
+    expect(dialog.textContent).toContain('파일은 지워지지 않습니다');
   });
 
   it('shows no use line for unused media, and says when the uses cannot be checked', async () => {
@@ -632,7 +632,7 @@ describe('media view', () => {
     fireEvent.contextMenu(await tile('Dawn'));
     fireEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
     dialog = await screen.findByRole('alertdialog');
-    expect(dialog.textContent).toContain('쓰는 곳을 확인할 수 없습니다');
+    expect(dialog.textContent).toContain('쓰는 곳 확인 실패');
     expect(fixture.edit).not.toHaveBeenCalled();
   });
 

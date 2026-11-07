@@ -183,11 +183,11 @@ describe('SourceTree', () => {
         rows={[]}
         selection={new Set()}
         onChange={() => undefined}
-        empty="예배를 읽을 수 없습니다"
+        empty="예배 읽기 실패"
       />,
     );
     expect(screen.getByText('항목 0개')).toBeDefined();
-    expect(screen.getByText('예배를 읽을 수 없습니다')).toBeDefined();
+    expect(screen.getByText('예배 읽기 실패')).toBeDefined();
     expect(screen.queryByRole('checkbox')).toBeNull();
     expect(screen.queryByRole('tree')).toBeNull();
   });

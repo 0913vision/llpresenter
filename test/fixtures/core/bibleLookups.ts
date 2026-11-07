@@ -59,7 +59,7 @@ export function lookupReply(request: BibleLookupRequest): BibleLookupReply {
         }
       : {
           ok: false,
-          error: {code: 'syntax', message: '알아볼 수 없는 구절입니다'},
+          error: {code: 'syntax', message: '구절을 찾을 수 없습니다'},
         },
   });
   if (!parsed.ok) throw new Error('Invalid test lookup reply');

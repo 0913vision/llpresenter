@@ -53,7 +53,7 @@ export function ShortcutField({
     if (!recording.current) return;
     modifiers.current.press(event.code);
     const press = modifiers.current.isInputMethod(event.nativeEvent)
-      ? {kind: 'reject' as const, reason: '입력기에 쓰는 키'}
+      ? {kind: 'reject' as const, reason: '한글 입력에 쓰는 키'}
       : shortcutPress(event.nativeEvent);
     if (press.kind === 'tab') return;
     event.stopPropagation();

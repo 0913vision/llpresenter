@@ -342,7 +342,7 @@ function CollectionPopover({
               target === undefined
                 ? '모든 매크로는 바꿀 수 없습니다'
                 : locked
-                  ? '지금은 모음을 변경할 수 없음'
+                  ? '지금은 모음을 바꿀 수 없습니다'
                   : undefined,
             duplicate: () => {
               if (target) duplicate(target);

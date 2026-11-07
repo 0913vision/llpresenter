@@ -196,7 +196,10 @@ describe('Bible lookup payloads', () => {
   it('returns a reference problem as a valid reply', () => {
     const value = {
       ...reply,
-      result: {ok: false, error: {code: 'verse', message: '없는 절입니다'}},
+      result: {
+        ok: false,
+        error: {code: 'verse', message: '이 역본에 없는 절입니다'},
+      },
     };
     expect(parseBibleLookupReply(parsedRequest(), value)).toEqual({
       ok: true,

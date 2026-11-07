@@ -234,7 +234,7 @@ export function MediaView({
         key: 'media-view:output',
         kind: 'warning',
         icon: 'warning',
-        title: '미디어를 내보내지 못함',
+        title: '미디어 내보내기 실패',
         time: noticeTime(),
       });
     }
@@ -456,9 +456,9 @@ export function MediaView({
           rename={{
             validate: name =>
               name.trim() === ''
-                ? '이름을 입력하세요'
+                ? '이름을 적어야 저장할 수 있습니다'
                 : name.trim().length > MEDIA_LIMITS.name
-                  ? `이름은 ${String(MEDIA_LIMITS.name)}자까지 쓸 수 있음`
+                  ? `이름이 너무 깁니다`
                   : undefined,
             onClose: () => setRenaming(null),
             onCommit: name => library.rename(renaming.id, name),
@@ -471,7 +471,7 @@ export function MediaView({
           title={`‘${deleting.item.name || UNNAMED_MEDIA}’ 미디어를 삭제할까요?`}
           meta={[
             ...(deleting.uses === 'failed' ? [USAGE_UNAVAILABLE] : []),
-            '파일은 그대로 남음',
+            '파일은 지워지지 않습니다',
           ]}
           list={
             deleting.uses === 'failed'

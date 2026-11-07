@@ -16,7 +16,7 @@ export const CONTROL_RELOADED_KEY = 'control-reloaded';
 const UNNAMED_MACRO = '이름 없는 매크로';
 
 /**
- * The 파일을 읽을 수 없음 card for the skipped files, in the order they came:
+ * The 파일 읽기 실패 card for the skipped files, in the order they came:
  * the first name, and how many more there are (spec 08, "File can't be
  * read"). Gives nothing when no file was skipped.
  */
@@ -30,7 +30,7 @@ export function skippedFilesCard(
     key: SKIPPED_FILES_KEY,
     kind: 'warning',
     icon: 'filex',
-    title: '파일을 읽을 수 없음',
+    title: '파일 읽기 실패',
     time,
     meta: [nameWithMore(first, names.length), '건너뜀'],
   };
@@ -52,7 +52,7 @@ export function waitingSavesCard(
     key: WAITING_SAVES_KEY,
     kind: 'warning',
     icon: 'warning',
-    title: '저장할 수 없음',
+    title: '저장 실패',
     time,
     meta: [nameWithMore(name, count)],
     actions: [{icon: 'refresh', label: '다시 시도', onSelect: retry}],
@@ -78,7 +78,7 @@ export function macroDroppedCard(
 }
 
 /**
- * The 백업 위치를 사용할 수 없음 card for a launch backup that failed (spec 08);
+ * The 백업 위치를 쓸 수 없습니다 card for a launch backup that failed (spec 08);
  * the detail names the folder and says nothing was backed up.
  */
 export function backupFailedCard(
@@ -89,9 +89,9 @@ export function backupFailedCard(
     key: BACKUP_FAILED_KEY,
     kind: 'warning',
     icon: 'warning',
-    title: '백업 위치를 사용할 수 없음',
+    title: '백업 위치를 쓸 수 없습니다',
     time,
-    meta: [name, '백업하지 않음'],
+    meta: [name, '백업 안 함'],
   };
 }
 

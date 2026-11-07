@@ -1,4 +1,3 @@
-import {paletteColorScopes} from '@renderer/ui/LabelColorPicker';
 import {act, fireEvent, screen, waitFor, within} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
@@ -172,9 +171,7 @@ describe('song editor label menu', () => {
     const {user, labelEdits, documents, session} = await editorSetup();
     await openManager(user);
     let field = screen.getByRole('textbox', {name: '1절 이름'});
-    expect((await hoverForTooltip(field))?.textContent).toBe(
-      '모든 곡에서 이 이름표의 이름을 바꿉니다',
-    );
+    expect((await hoverForTooltip(field))?.textContent).toBe(undefined);
     vi.useRealTimers();
     await user.clear(field);
     await user.type(field, '새 절{Enter}');
@@ -238,7 +235,7 @@ describe('song editor label menu', () => {
     expect(
       (await hoverForTooltip(within(colors).getByRole('radio', {name: '초록'})))
         ?.textContent,
-    ).toBe(`초록${paletteColorScopes.label}`);
+    ).toBe('초록');
     vi.useRealTimers();
     await user.click(within(colors).getByRole('radio', {name: '초록'}));
     await waitFor(() =>
@@ -296,14 +293,12 @@ describe('song editor label menu', () => {
     const {user, labels, session} = await editorSetup();
     const dialog = await openManager(user);
     const remove = within(dialog).getByRole('button', {name: '1절 삭제'});
-    expect((await hoverForTooltip(remove))?.textContent).toBe(
-      '공유 목록에서만 삭제하며 곡의 이름표는 유지합니다',
-    );
+    expect((await hoverForTooltip(remove))?.textContent).toBe('1절 삭제');
     vi.useRealTimers();
     await user.click(remove);
     const confirmation = screen.getByRole('alertdialog');
     expect(
-      within(confirmation).getByText('모든 곡의 이름표 유지'),
+      within(confirmation).getByText('곡에 붙은 이름표는 남습니다'),
     ).toBeDefined();
     expect(labels().value.labels).toHaveLength(2);
     await user.click(within(confirmation).getByRole('button', {name: '삭제'}));

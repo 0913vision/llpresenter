@@ -30,8 +30,8 @@ interface PendingConflict extends TemplateConflict {
 }
 
 const problemTitles = {
-  'not-saved': '템플릿으로 저장할 수 없음',
-  'not-replaced': '기존 템플릿을 지울 수 없음',
+  'not-saved': '템플릿 저장 실패',
+  'not-replaced': '기존 템플릿 삭제 실패',
 } as const;
 
 type SaveProblem = keyof typeof problemTitles;

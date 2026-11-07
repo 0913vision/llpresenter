@@ -14,7 +14,7 @@ export function outputGroup(
     kind: 'item',
     id: 'output',
     label: on ? '출력 끄기' : '출력 켜기',
-    ...menuAvailability(screens.length === 0 ? '화면이 없습니다' : undefined),
+    ...menuAvailability(screens.length === 0 ? '화면 없음' : undefined),
     onSelect: () => {
       const commands = screens.map(screen => ({
         type: 'output.set' as const,

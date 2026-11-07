@@ -22,7 +22,6 @@ import {editorTask} from './editorTask';
 import type {SongEditorStore} from './songEditorStore';
 import styles from './LabelMenu.module.css';
 
-const DELETE_SCOPE = '공유 목록에서만 삭제하며 곡의 이름표는 유지합니다';
 const EMPTY_LABELS: readonly Label[] = [];
 const LABEL_DRAG = 'application/x-llp-label';
 
@@ -298,7 +297,6 @@ export function LabelManager({
           <IconButton
             icon="trash"
             label={`${label.name} 삭제`}
-            title={DELETE_SCOPE}
             disabled={locked}
             onClick={() =>
               editorTask(

@@ -20,7 +20,7 @@ it('names one skipped file and says it was skipped', () => {
     key: 'file-skipped',
     kind: 'warning',
     icon: 'filex',
-    title: '파일을 읽을 수 없음',
+    title: '파일 읽기 실패',
     time: TIME,
     meta: ['themes.json', '건너뜀'],
   });
@@ -69,7 +69,7 @@ it('says one file cannot be saved, with 다시 시도', () => {
     key: 'save-failed',
     kind: 'warning',
     icon: 'warning',
-    title: '저장할 수 없음',
+    title: '저장 실패',
     time: TIME,
     meta: ['주일 예배'],
   });
@@ -93,9 +93,9 @@ it('warns that the backup location is unavailable, with its folder and what happ
       key: 'backup-failed',
       kind: 'warning',
       icon: 'warning',
-      title: '백업 위치를 사용할 수 없음',
+      title: '백업 위치를 쓸 수 없습니다',
       time: TIME,
-      meta: ['백업', '백업하지 않음'],
+      meta: ['백업', '백업 안 함'],
     },
   );
 });

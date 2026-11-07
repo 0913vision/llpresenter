@@ -118,10 +118,10 @@ it('offers Item Restore after a stop, preserving its pressed state until main ac
       state: {...emptyLiveState(), themeItem: null, canRestoreItem: true},
     }),
   );
-  expect(screen.getByRole('button', {name: '항목 복원'})).toBe(button);
+  expect(screen.getByRole('button', {name: '항목 되돌리기'})).toBe(button);
   expect(button.getAttribute('aria-disabled')).toBe('false');
   expect(button.getAttribute('aria-pressed')).toBe('true');
-  expect((await hoverForTooltip(button))?.textContent).toBe('항목 복원');
+  expect((await hoverForTooltip(button))?.textContent).toBe('항목 되돌리기');
   fireEvent.click(button);
   expect(send).toHaveBeenLastCalledWith({type: 'item.restore'});
   expect(button.getAttribute('aria-pressed')).toBe('true');
@@ -280,10 +280,12 @@ describe('ClearRow', () => {
   it('offers a pressed restore button after its layer has been cleared', async () => {
     useLive.setState({state: {...emptyLiveState(), clearToggles: ['slide']}});
     render(<ClearRow compact={false} />);
-    const button = screen.getByRole('button', {name: '가사 복원'});
+    const button = screen.getByRole('button', {name: '가사 되돌리기'});
     expect(button.getAttribute('aria-disabled')).toBe('false');
     expect(button.getAttribute('aria-pressed')).toBe('true');
-    expect((await hoverForTooltip(button))?.textContent).toBe('가사 복원F2');
+    expect((await hoverForTooltip(button))?.textContent).toBe(
+      '가사 되돌리기F2',
+    );
     fireEvent.click(button);
     expect(sent).toEqual([{type: 'layer.clear.toggle', target: 'slide'}]);
     act(() => setLayers({slide}));

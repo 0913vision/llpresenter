@@ -32,11 +32,11 @@ export function ItemOverlayRange({
     setRangeDraft({from: next.from, to: next.to});
     const failure =
       next.from > next.to
-        ? '끝 슬라이드는 시작 슬라이드보다 앞설 수 없습니다'
+        ? '끝은 시작보다 앞일 수 없습니다'
         : overlayRangesOverlap(
               rows.map(row => (row.id === overlay.id ? next : row)),
             )
-          ? '다른 오버레이와 슬라이드 범위가 겹칩니다'
+          ? '다른 오버레이와 겹칩니다'
           : undefined;
     setRangeReason(failure);
     if (failure === undefined) {

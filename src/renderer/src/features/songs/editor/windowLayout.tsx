@@ -7,7 +7,7 @@ import type {SongEditorStore} from './songEditorStore';
 import type {SongEditorWindowModel} from './useSongEditorWindow';
 import styles from './SongWindowLayout.module.css';
 
-const NO_EDITS = '변경한 내용 없음';
+const NO_EDITS = '변경 없음';
 
 /** The 곡 편집 window's body: lyrics on the left, preview and saving on the right. */
 export function SongWindowLayout({

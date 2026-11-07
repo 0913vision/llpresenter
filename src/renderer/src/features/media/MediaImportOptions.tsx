@@ -39,7 +39,7 @@ export function MediaImportOptions({
         key: 'media:import-options',
         kind: 'warning',
         icon: 'warning',
-        title: '미디어 가져오기 설정을 저장하지 못함',
+        title: '설정 저장 실패',
         time: noticeTime(),
       });
     }

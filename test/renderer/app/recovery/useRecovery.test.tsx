@@ -92,7 +92,7 @@ describe('useRecovery', () => {
     act(() => result.current.restore(['outputs']));
 
     await waitFor(() => expect(result.current.offer).toBeNull());
-    expect(onProblem.mock.lastCall?.[0].title).toBe('출력 상태 복구 실패');
+    expect(onProblem.mock.lastCall?.[0].title).toBe('복구 실패');
   });
 
   it('keeps the offer and warns when the answer cannot be sent', async () => {
@@ -103,7 +103,7 @@ describe('useRecovery', () => {
     act(() => result.current.startFresh());
 
     await waitFor(() => expect(result.current.busy).toBe(false));
-    expect(onProblem.mock.lastCall?.[0].title).toBe('출력 상태 복구 실패');
+    expect(onProblem.mock.lastCall?.[0].title).toBe('복구 실패');
     expect(write.mock.lastCall?.[0].message).toBe(
       'could not answer the recovery offer',
     );
@@ -118,7 +118,7 @@ describe('useRecovery', () => {
     ]);
     await waitFor(() => expect(onProblem).toHaveBeenCalledOnce());
     const notice = onProblem.mock.lastCall?.[0];
-    expect(notice?.title).toBe('복구할 출력 상태를 읽을 수 없음');
+    expect(notice?.title).toBe('복구 항목 읽기 실패');
 
     act(() => notice?.actions?.[0]?.onSelect());
 

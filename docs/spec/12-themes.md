@@ -84,10 +84,10 @@ they have the same limit. A 테마 sets the elements of each screen itself.
   screens it is sent to, and they always draw on top of the 테마 in the order
   그래픽, 메시지. A 테마 can't hide them.
 - A 메시지 sent to several screens draws in each screen's 메시지 style, chosen
-  over ProPresenter's style per 메시지 문구 (user decision, October 28). Each
-  screen picks its style in its 메시지 스타일 row in the 화면 설정 window, not
-  in the 테마, so a 메시지 keeps its look when the item and its 테마 change (06;
-  user decision, November 2).
+  over ProPresenter's style per 메시지 (user decision, October 28). Each screen
+  picks its style in its 메시지 스타일 row in the 화면 설정 window, not in the
+  테마, so a 메시지 keeps its look when the item and its 테마 change (06; user
+  decision, November 2).
 - When an item's content has no element to show it, for example a 곡 item whose
   테마 has no 현재 가사 on the 청중 화면, the item's settings show a warning
   mark with the reason in its tooltip and a 테마 편집… button.
@@ -255,16 +255,16 @@ Saving (user decision, November 1):
   취소. 취소 keeps the window open on the 테마. The 저장 중 dialog of the close
   flush shows only after the answer.
 - The output of the live 테마 changes only after 덮어쓰기. Other 테마 list
-  changes (새 테마, 복제, 이름 바꾸기, 삭제, 기본으로 쓰기) write at once, as
+  changes (새 테마, 복제, 이름 바꾸기, 삭제, 기본으로 지정) write at once, as
   other settings do (06).
 
-The 테마 list row's right-click (list-row rules, 11): 기본으로 쓰기 › (곡, 성경,
+The 테마 list row's right-click (list-row rules, 11): 기본으로 지정 › (곡, 성경,
 미디어, with a check on the kinds that use it) | 복제, 이름 바꾸기 | 삭제. The
 row shows the kinds that use it as small tags. The live 테마's row shows LIVE to
 the left of those tags (user, October 31), because saving it changes the output
 at once. 복제 makes `<name> 복사본` (`복사본 2`, 3, … when taken). 삭제 asks
 first when a kind or an item uses the 테마; its items fall back to their kind's
-default. The 대기 화면 row has no 삭제 and no 기본으로 쓰기.
+default. The 대기 화면 row has no 삭제 and no 기본으로 지정.
 
 ## 오버레이
 
@@ -365,7 +365,7 @@ does (02).
 
 - 03: the layers of an output and the stacking order follow "Drawing a screen".
 - 02: `themes.json` holds the 테마. `messageStyles` live in `messages.json` with
-  the 메시지 문구.
+  the 메시지.
 - 06 and the 화면 설정 workspace: the workspace is 테마 and holds the 테마
   editor. Screens and monitors are in the 화면 설정 window.
 - 07: the 매크로 action 테마 바꾸기 ("테마 바꾸기" above).

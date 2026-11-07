@@ -246,13 +246,13 @@ describe('the reason a 퀵 실행 row cannot be copied', () => {
     const open = {locked: false, full: false, timersFull: false};
     expect(quickCopyReason(timer, open)).toBeUndefined();
     expect(quickCopyReason(timer, {...open, locked: true, full: true})).toBe(
-      '목록이 잠겨 있습니다',
+      '지금은 바꿀 수 없습니다',
     );
     expect(
       quickCopyReason(timer, {...open, full: true, timersFull: true}),
-    ).toBe('퀵 실행 항목은 500개까지 추가할 수 있음');
+    ).toBe('퀵 실행 항목은 500개까지 추가할 수 있습니다');
     expect(quickCopyReason(timer, {...open, timersFull: true})).toBe(
-      '타이머는 500개까지 추가할 수 있음',
+      '타이머는 500개까지 추가할 수 있습니다',
     );
     expect(quickCopyReason(song, {...open, timersFull: true})).toBeUndefined();
   });

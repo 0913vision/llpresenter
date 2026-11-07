@@ -150,7 +150,7 @@ function useResultChooser(
       );
       if (!isCurrent()) return;
       if (song === null) {
-        onProblem(problem('곡을 찾을 수 없음', match.title));
+        onProblem(problem('곡을 찾을 수 없습니다', match.title));
       } else {
         openLibrarySong(song);
       }

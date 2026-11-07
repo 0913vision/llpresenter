@@ -13,14 +13,14 @@ const READ_FAILED_NOTICE: Omit<Notice, 'time' | 'actions'> = {
   key: 'recovery:read',
   kind: 'warning',
   icon: 'history',
-  title: '복구할 출력 상태를 읽을 수 없음',
+  title: '복구 항목 읽기 실패',
 };
 
 const FAILED_NOTICE: Omit<Notice, 'time'> = {
   key: 'recovery',
   kind: 'warning',
   icon: 'history',
-  title: '출력 상태 복구 실패',
+  title: '복구 실패',
 };
 
 function logFailure(

@@ -16,7 +16,7 @@ export const MEDIA_MACRO_ACTIONS = {
   },
   audioPlaylist: {
     kind: 'audioPlaylist',
-    label: '오디오 재생 목록',
+    label: '오디오 재생목록',
     icon: 'wave',
     paletteGroup: '소리',
   },

@@ -55,7 +55,7 @@ const arrivals: readonly Notice[] = [
     key: 'file:song',
     kind: 'warning',
     icon: 'filex',
-    title: '파일을 읽을 수 없음',
+    title: '파일 읽기 실패',
     time: '11:27',
     meta: ['이 세상 험하고', '건너뜀'],
   },
@@ -72,7 +72,7 @@ const arrivals: readonly Notice[] = [
     key: 'save',
     kind: 'warning',
     icon: 'warning',
-    title: '저장할 수 없음',
+    title: '저장 실패',
     time: '11:29',
     actions: [{icon: 'refresh', label: '다시 시도', onSelect: ignore}],
   },
@@ -131,7 +131,7 @@ export function NotificationSection(): JSX.Element {
               key: 'import:target-changed',
               kind: 'warning',
               icon: 'warning',
-              title: '중복 곡이 변경되었습니다',
+              title: '같은 곡이 바뀌었습니다',
               time: '11:29',
             }}
             onClose={ignore}
@@ -145,11 +145,11 @@ export function NotificationSection(): JSX.Element {
               key: 'media:copy',
               kind: 'warning',
               icon: 'warning',
-              title: '미디어를 가져오지 못함',
+              title: '미디어 가져오기 실패',
               time: '11:29',
               meta: [
                 'notice-sample-with-a-long-file-name.webm',
-                '파일을 읽을 수 없음',
+                '파일 읽기 실패',
               ],
             }}
             onClose={ignore}

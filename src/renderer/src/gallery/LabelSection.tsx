@@ -11,11 +11,7 @@ import {
   LabelTag,
   type ArrangementChip,
 } from '../ui/LabelChip';
-import {
-  LabelColorPicker,
-  MacroColorPicker,
-  paletteColorScopes,
-} from '../ui/LabelColorPicker';
+import {LabelColorPicker, MacroColorPicker} from '../ui/LabelColorPicker';
 import styles from './LabelSection.module.css';
 import {
   ignore,
@@ -280,7 +276,6 @@ export function LabelSection(): JSX.Element {
             {(value, setValue) => (
               <LabelColorPicker
                 label="후렴 색"
-                scope={paletteColorScopes.label}
                 value={value}
                 onChange={setValue}
               />
@@ -293,7 +288,6 @@ export function LabelSection(): JSX.Element {
               <MacroColorPicker
                 label="색"
                 name="색"
-                scope={paletteColorScopes.macro}
                 value={value}
                 onChange={setValue}
               />

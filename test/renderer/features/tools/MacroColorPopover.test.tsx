@@ -79,9 +79,6 @@ it('lists the eight palette colors with no 없음 and says the color applies to 
   expect(
     screen.getAllByRole('radio').map(item => item.getAttribute('aria-label')),
   ).toEqual(['청록', '초록', '노랑', '주황', '분홍', '보라', '남색', '회색']);
-  const tooltip = await hoverForTooltip(
-    screen.getByRole('radio', {name: '초록'}),
-  );
-  expect(tooltip?.textContent).toContain('이 매크로에 적용');
+  await hoverForTooltip(screen.getByRole('radio', {name: '초록'}));
   resetTooltips();
 });

@@ -25,7 +25,7 @@ export function resolveItemTheme(request: ItemThemeRequest): Theme {
 const emptyLayout: ThemeScreenLayout = {mode: {kind: 'empty'}, elements: []};
 
 /**
- * The layout of a screen that has none saved in a theme: 청중 화면과 동일 for
+ * The layout of a screen that has none saved in a theme: 청중 화면과 같음 for
  * a screen that is not the first of its kind, linked to that first screen, so a
  * screen added later shows what its group shows. The first screen of its kind
  * has no such default.

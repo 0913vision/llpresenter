@@ -35,7 +35,7 @@ export function outputMenuEntries(
       return {
         kind: 'item',
         id: `warning:${screenId}`,
-        label: `${screens.find(screen => screen.id === screenId)?.statusLabel ?? screenName} 경고 보기`,
+        label: `${screens.find(screen => screen.id === screenId)?.statusLabel ?? screenName} 문제 보기`,
         onSelect: () => input.onShowWarning(screenId),
       };
     },

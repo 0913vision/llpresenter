@@ -20,11 +20,11 @@ const TEXT_KEYS = {
 } as const;
 
 /** Why a text editing row is off when no text field had focus. */
-export const TEXT_FIELD_ONLY = '글자 입력란에서 쓸 수 있습니다';
+export const TEXT_FIELD_ONLY = '글자 입력란에서만 쓸 수 있습니다';
 /** Why 잘라내기 and 복사 are off with nothing selected. */
 export const NO_SELECTION = '선택한 글자가 없습니다';
 /** Why 복제 and 삭제 are off where the focused place does not have them. */
-export const NOT_HERE = '선택한 곳에서는 쓸 수 없음';
+export const NOT_HERE = '여기서는 쓸 수 없습니다';
 
 function textField(
   place: Element | null,

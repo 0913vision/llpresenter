@@ -24,7 +24,7 @@ export function SaveTemplateDialog({
         label: '저장',
         onSelect: () => onSave(trimmed),
         disabled: busy || trimmed === '',
-        title: trimmed === '' ? '이름을 입력하세요' : undefined,
+        title: trimmed === '' ? '이름을 적어야 저장할 수 있습니다' : undefined,
       }}
     >
       <DialogField label="이름">

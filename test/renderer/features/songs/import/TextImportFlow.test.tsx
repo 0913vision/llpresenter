@@ -313,7 +313,7 @@ describe('imported song actions', () => {
     });
     const dialog = await screen.findByRole('alertdialog');
     expect(dialog.textContent).toContain(
-      `새 곡 제목: ‘${f.first.song.title} (2)’`,
+      `새 제목: ‘${f.first.song.title} (2)’`,
     );
     expect(save).not.toHaveBeenCalled();
     expect(f.edits).toHaveLength(0);
@@ -402,7 +402,7 @@ describe('imported song actions', () => {
       ),
     );
     expect(dialog.textContent).toContain(
-      `새 곡 제목: ‘${f.first.song.title} (3)’`,
+      `새 제목: ‘${f.first.song.title} (3)’`,
     );
     fireEvent.click(
       within(dialog).getByRole('button', {name: '새 곡으로 저장'}),
@@ -499,7 +499,7 @@ describe('imported song actions', () => {
       );
       expect(screen.queryByRole('alertdialog')).toBeNull();
       expect(f.problem).toHaveBeenCalledWith(
-        expect.objectContaining({title: '중복 곡이 변경되었습니다'}),
+        expect.objectContaining({title: '같은 곡이 바뀌었습니다'}),
       );
       expect(save).not.toHaveBeenCalled();
       expect(f.store.getSnapshot().imported).toBe(true);
@@ -529,7 +529,7 @@ describe('imported song actions', () => {
     ).toBe('true');
     act(() => f.store.open(f.first));
     expect(screen.getByRole('alertdialog').textContent).toContain(
-      '가져온 곡을 저장하지 않았습니다. 버릴까요?',
+      '가져온 곡을 저장하지 않고 닫을까요?',
     );
     fireEvent.click(screen.getByRole('button', {name: '취소'}));
     expect(f.store.getSnapshot().imported).toBe(true);
@@ -615,7 +615,7 @@ describe('imported song actions', () => {
     });
     const dialog = await screen.findByRole('alertdialog');
     expect(
-      within(dialog).getByText(`새 곡 제목: ‘${f.first.song.title} (2)’`),
+      within(dialog).getByText(`새 제목: ‘${f.first.song.title} (2)’`),
     ).toBeDefined();
     fireEvent.keyDown(dialog, {key: 's', code: 'KeyS', ctrlKey: true});
     expect(save).not.toHaveBeenCalled();
@@ -665,7 +665,7 @@ describe('imported song actions', () => {
     const save = vi.spyOn(f.store, 'saveImported').mockResolvedValue(false);
     render(<ImportedSongActions store={f.store} />);
     fireEvent.click(screen.getByRole('button', {name: '저장'}));
-    await screen.findByText(`새 곡 제목: ‘${f.first.song.title} (2)’`);
+    await screen.findByText(`새 제목: ‘${f.first.song.title} (2)’`);
     act(() =>
       f.pushList(
         f.store
@@ -678,7 +678,7 @@ describe('imported song actions', () => {
       ),
     );
     expect(
-      screen.getByText(`새 곡 제목: ‘${f.first.song.title} (3)’`),
+      screen.getByText(`새 제목: ‘${f.first.song.title} (3)’`),
     ).toBeDefined();
     expect(save).not.toHaveBeenCalled();
     fireEvent.click(screen.getByRole('button', {name: '새 곡으로 저장'}));
@@ -705,7 +705,7 @@ describe('imported song actions', () => {
       await screen.findByRole('alertdialog');
       expect(screen.getByText('슬라이드 2개')).toBeDefined();
       expect(
-        screen.getByText(`새 곡 제목: ‘${f.first.song.title} (2)’`),
+        screen.getByText(`새 제목: ‘${f.first.song.title} (2)’`),
       ).toBeDefined();
       expect(save).not.toHaveBeenCalled();
       if (choice === 'cancel') {

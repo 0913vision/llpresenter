@@ -62,7 +62,7 @@ export function useLibraryServices(
   };
   const disabledReason =
     serviceId === null
-      ? '열린 예배가 없습니다'
+      ? '열린 예배 없음'
       : readOnly
         ? NEWER_FILE_REASON
         : full

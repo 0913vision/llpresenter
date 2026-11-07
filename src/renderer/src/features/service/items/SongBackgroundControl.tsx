@@ -24,8 +24,6 @@ import styles from './SongBackgroundControl.module.css';
 const ICON_SIZE = 14;
 const CHEVRON_SIZE = 12;
 // TODO(0913vision): Enable relinking when P6a implements media.relink.
-const BACKGROUND_SCOPE_REASON =
-  '이 항목에만 적용합니다. 출력 중인 항목이면 배경이 바로 바뀝니다';
 
 function Picture({media}: {readonly media: MediaItem}): JSX.Element {
   const video = useRef<HTMLVideoElement>(null);
@@ -128,13 +126,7 @@ export function SongBackgroundSelect({
         aria-expanded={expanded}
         aria-busy={busy}
         disabled={disabled}
-        title={
-          readOnly
-            ? NEWER_FILE_REASON
-            : busy
-              ? '배경 변경 중'
-              : BACKGROUND_SCOPE_REASON
-        }
+        title={readOnly ? NEWER_FILE_REASON : busy ? '배경 변경 중' : undefined}
         onClick={event => {
           setQuery('');
           setAnchor(anchor === null ? event.currentTarget : null);

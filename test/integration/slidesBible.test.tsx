@@ -285,7 +285,10 @@ function fixture(item: SlidesItem = slidesItem('blank'), longBoth = false) {
           suggestions: [],
           result:
             verses.length === 0
-              ? {ok: false, error: {code: 'syntax', message: '범위 확인'}}
+              ? {
+                  ok: false,
+                  error: {code: 'syntax', message: '장을 확인해야 합니다'},
+                }
               : {
                   ok: true,
                   value: {
@@ -370,7 +373,7 @@ it('inserts the range without review when automatic opening is off', async () =>
     fireEvent.click(screen.getByRole('button', {name: '추가'})),
   );
   await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-  expect(screen.queryByRole('status', {name: 'AI 분할 대기'})).toBeNull();
+  expect(screen.queryByRole('status', {name: 'AI 준비 중'})).toBeNull();
   view.unmount();
 });
 

@@ -104,7 +104,9 @@ it(
     expect(isProcessRunning(child.pid)).toBe(false);
     await app.stop();
     page = await app.start();
-    const recovery = page.getByRole('alertdialog', {name: '출력 상태 복구'});
+    const recovery = page.getByRole('alertdialog', {
+      name: '출력 내용을 복구할까요?',
+    });
     await recovery.getByRole('button', {name: '복구'}).click();
     await expect
       .poll(

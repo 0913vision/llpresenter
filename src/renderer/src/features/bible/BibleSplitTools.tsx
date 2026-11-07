@@ -156,7 +156,7 @@ export function BibleSplitTools({
       icon: 'warning',
       title: failedMeasure
         ? '성경 구절 나누기 실패'
-        : '성경 슬라이드는 10000개까지 표시할 수 있음',
+        : '슬라이드는 10000개까지 만들 수 있습니다',
       time: noticeTime(),
     });
   }, [projection, onProblem]);
@@ -246,7 +246,7 @@ export function BibleSplitTools({
       onCancel={cancel}
       onConfirm={async (verse, cuts) => {
         const api = window.llp;
-        if (api === undefined) throw new Error('절 나누기 저장 불가');
+        if (api === undefined) throw new Error('절 나누기 저장 실패');
         await confirmBibleCuts(api.settings, verse, cuts);
       }}
       onComplete={() => {

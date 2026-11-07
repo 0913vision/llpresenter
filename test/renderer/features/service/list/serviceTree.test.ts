@@ -70,7 +70,7 @@ describe('treeRows', () => {
       ['알 수 없는 항목', 'filex'],
     ]);
     expect(treeRows(templateOrder, new Map())[1]?.label).toBe(
-      '곡을 찾을 수 없음',
+      '곡을 찾을 수 없습니다',
     );
   });
 

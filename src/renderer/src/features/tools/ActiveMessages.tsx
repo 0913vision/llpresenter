@@ -28,7 +28,7 @@ export function ActiveMessages(): JSX.Element | null {
   }, [timed, layer]);
   if (messages.length === 0) return null;
   return (
-    <div role="list" aria-label="보낸 메시지" className={styles.sent}>
+    <div role="list" aria-label="표시 중인 메시지" className={styles.sent}>
       {messages.map(message => (
         <div
           key={message.messageId}

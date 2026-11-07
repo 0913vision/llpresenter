@@ -61,16 +61,13 @@ function showIdentification(
           : '무대, ';
   const refresh =
     details.refreshRate === 0
-      ? '주사율 미확인'
+      ? '주사율 모름'
       : `${Number(details.refreshRate.toFixed(2))} Hz`;
   for (const [tag, text] of [
     ['strong', number],
     ['h1', details.name],
     ['p', `${details.width} × ${details.height}, ${refresh}`],
-    [
-      'p',
-      `${kind}${METHODS[details.method]}${details.method === 'display' ? '' : ' (시스템)'}`,
-    ],
+    ['p', `${kind}${METHODS[details.method]}`],
   ]) {
     const element = document.createElement(tag ?? 'p');
     element.textContent = text ?? '';
