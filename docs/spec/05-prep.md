@@ -82,13 +82,20 @@ have landed.
   thumbnails. Item properties stay in table cells. It has no 순서 편집… action.
   Thumbnail bands show the number and ad name, picture filename, or first line
   of blank text.
-- 슬라이드 편집 is one reusable window. The header edits 이름, 테마, 넘기기
-  (손으로 or every 3, 5, 8, 10, 15, 20, or 30 seconds), and 반복. Each row has a
-  thumbnail in the item's theme. Ad text rows have 이름 and 내용; blank text
-  rows have 글. A picture row has its filename and 바꾸기…. 글 추가 adds a text
-  row; 그림 추가 and 바꾸기 choose pictures from the media list. A structured
-  verse slide shows its read-only Bible reference and stays intact when other
-  item fields are saved.
+- Double-click or Enter on a blank, ad, or sermon slides item opens its editor
+  in 준비's center. Existing 슬라이드 편집 requests use the same editor, with no
+  separate window. The back button shows the service name. Esc in a slide text
+  field selects its row; subsequent presses clear selection and go back. The
+  right column keeps the selected draft's preview and slide grid. Its edit
+  button is hidden while that item's editor is open, including song items.
+- The header edits 이름, 테마, 넘기기 (손으로 or every 3, 5, 8, 10, 15, 20, or
+  30 seconds), and 반복. Its first row uses the song editor's height, padding,
+  and alignment: back, name field, then actions. Theme, advance, and loop sit
+  together on the second row. Each row has a thumbnail in the item's theme. Ad
+  text rows have 이름 and 내용; blank text rows have 글. A picture row has its
+  filename and 바꾸기…. 글 추가 adds a text row; 그림 추가 and 바꾸기 choose
+  pictures from the media list. A structured verse slide shows its read-only
+  Bible reference and stays intact when other item fields are saved.
 - Rows use the song editor's 14px padding, 18px number column, and 16px gaps:
   number, a fixed 112px 16:9 thumbnail, then top-aligned body content. There is
   no kind column. Ad field labels stay on one line. Text uses a two-line
@@ -131,20 +138,28 @@ have landed.
   undo, and redo commands with shortcuts. Text fields keep native text selection
   and clipboard behavior. Ctrl Z and Ctrl Y undo and redo local item edits and
   row commands in one shared, 100-step history, restoring row selection and the
-  caret. Removing rows focuses the insertion gap, including an empty list, so
-  keyboard undo remains available. The preview has 청중 화면, 무대 화면, and
-  방송 화면 tabs and a position caption. Keyboard 저장 preserves the focused
-  control and its selection while editing is disabled, restoring both when the
-  same draft is editable again. Saving ends the current typing group, so
-  continued typing can be undone to the saved text.
-- 저장 writes the draft into its service item through the service edit path. All
-  changes make one undo step in the main window. Closing or opening a different
-  item with unsaved edits asks 저장, 저장 안 함, or 취소, as in the song editor.
-  A refused save keeps the draft open. Saving merges fields changed in the
-  editor into the fresh item, preserving concurrent changes to other fields.
-  Conflicting changes to the same field refuse the save. 취소 invalidates a
-  pending item switch or close even while its save is still running; completing
-  that save does not resume the canceled action or replace a newer confirmation.
+  caret. Removing rows focuses the list command surface, including an empty
+  list, so keyboard undo remains available. The preview has 청중 화면, 무대
+  화면, and 방송 화면 tabs and a position caption. Automatic saves keep typing
+  focus and text selection. Acknowledging a write does not break the current
+  typing undo group.
+- Service item edits save automatically through the service edit path, the same
+  as song items. There is no 저장 button or save/discard question on leaving;
+  only a library song retains explicit 저장. Both local item history and the
+  service's history cover saved changes. Leaving the editor keeps queued writes
+  and the item's undo history alive. Edits made during a write follow it in
+  order, including edits to another item of the same service.
+- Automatic writes merge edited fields into the fresh item, preserving
+  concurrent changes to other fields. Conflicting changes to the same field
+  refuse the write and keep the edits for 다시 시도. The shared retry action
+  retries every item whose automatic save failed. Application close flushes
+  pending writes and refuses to close when they fail, without a draft question.
+- Rows and both right-column grids share the song editor's selection, caret,
+  clipboard, drag, and undo implementation. Table-grid edits save through the
+  same item writer; opening and returning from the editor retains its history.
+- Enter or forward Tab in a song title or slides item name commits the name and
+  puts the caret in the first slide's text field. Empty song text fields have a
+  visible field fill and border, without instructional text.
 
 ### 오버레이 on 슬라이드
 
@@ -409,8 +424,12 @@ name.
   Drag moves it together. These operations use the same 100-step history as
   typing, labels, split and merge. A library retains at least one slide; an item
   may be empty. Read-only decks allow selection and copy.
-- The preview follows selection without output. Esc clears selection or the
-  insertion caret; with neither, Esc outside text fields returns to the table.
+- The preview follows selection without output. Esc in a slide's lyrics, 글,
+  이름, or 내용 field leaves text editing and selects that row, focusing the
+  list command surface without changing its text. The next Esc clears selection
+  or the insertion caret; with neither, Esc returns to the table. Leaving a
+  dirty library song still asks 저장, 저장 안 함, or 취소. IME composition keeps
+  its own Escape behavior.
 - A thumbnail size slider sits in the footer.
 
 Source: `Reflow`, `ImportEdit`, `LabelChip` README, `LabelColorPicker` README,

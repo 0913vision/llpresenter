@@ -12,6 +12,7 @@ import {
   type Slide,
 } from '@core/services/slidesEdits';
 import {slideRowsAdapter} from '@core/services/slideRows';
+import {SlideListClipboard} from '@core/songs/slideListModel';
 
 const slideId = (n: number) =>
   createSlideId(`00000000-0000-4000-8000-${String(n).padStart(12, '0')}`);
@@ -27,6 +28,23 @@ function setup(form: 'blank' | 'ad' = 'blank') {
 }
 
 describe('slide rows in the item draft history', () => {
+  it('shares the same model clipboard across item drafts without duplicating their headers', () => {
+    const clipboard = new SlideListClipboard<Slide>();
+    const item = newSlidesItem('ad', itemId);
+    const source = new SlidesDraft(item, clipboard);
+    const target = new SlidesDraft(
+      {...item, slides: {...item.slides, name: 'Destination'}},
+      clipboard,
+    );
+    expect(source.model.copy().ok).toBe(true);
+    expect(target.model.paste().ok).toBe(true);
+    expect(target.snapshot.item.slides.slides).toHaveLength(2);
+    expect(target.snapshot.item.slides.name).toBe('Destination');
+    target.undo();
+    expect(target.snapshot.item.slides.slides).toHaveLength(1);
+    expect(target.snapshot.item.slides.name).toBe('Destination');
+  });
+
   it.each(['blank', 'ad'] as const)(
     'duplicates a %s selection with fresh IDs and undoes together with item and text edits',
     form => {

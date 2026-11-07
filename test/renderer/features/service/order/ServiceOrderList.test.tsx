@@ -79,6 +79,37 @@ vi.mock('@renderer/ui/Icon', () => ({
 }));
 
 describe('ServiceOrderList', () => {
+  it.each(['blank', 'ad'] as const)(
+    'opens the inline %s editor on double-click and Enter',
+    async form => {
+      const fixture = itemFixture();
+      const item = newSlidesItem(form, fixtureItems.plain);
+      fixture.pushService({
+        ...fixture.service(),
+        service: {...fixture.service().service, order: [item]},
+      });
+      window.llp = fixture.api;
+      const open = vi.spyOn(fixture.api.slidesEditor, 'open');
+      useShow.setState({
+        serviceId: fixtureServiceId,
+        readOnly: false,
+        rows: [{kind: 'slides', form, id: item.id, title: 'Slides'}],
+        tiles: {},
+      });
+      render(<ServiceOrderList workspace="prep" />);
+      const row = screen.getByRole('option', {name: 'Slides'});
+      fireEvent.doubleClick(row);
+      await waitFor(() =>
+        expect(open).toHaveBeenCalledExactlyOnceWith({
+          serviceId: fixtureServiceId,
+          itemId: item.id,
+        }),
+      );
+      fireEvent.keyDown(row, {key: 'Enter', code: 'Enter'});
+      await waitFor(() => expect(open).toHaveBeenCalledTimes(2));
+      expect(sent).toHaveLength(0);
+    },
+  );
   it('renames a slides item in place through its row menu', async () => {
     const fixture = itemFixture();
     const item = newSlidesItem('ad', fixtureItems.plain);

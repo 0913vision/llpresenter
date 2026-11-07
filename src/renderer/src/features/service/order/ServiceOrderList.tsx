@@ -542,16 +542,22 @@ export function ServiceOrderList({
       );
     }
   };
-  const openOrderOfSongRow = (id: string | null): boolean => {
+  const openOrderEditor = (id: string | null): boolean => {
     if (workspace !== 'prep' || id === null || serviceId === null) return false;
-    if (rows.find(row => row.id === id)?.kind !== 'song') return false;
+    const kind = rows.find(row => row.id === id)?.kind;
+    if (kind !== 'song' && kind !== 'slides') return false;
     const api = window.llp;
     if (api !== undefined) {
       editorTask(
-        api.services.get(serviceId).then(document => {
+        api.services.get(serviceId).then(async document => {
           const item = document?.service.order.find(row => row.id === id);
           if (item !== undefined && isItemOfKind(item, 'song')) {
             openSongEditor(item.song, id);
+          } else if (item !== undefined && isItemOfKind(item, 'slides')) {
+            await api.slidesEditor.open({
+              serviceId: createServiceId(serviceId),
+              itemId: item.id,
+            });
           }
         }),
       );
@@ -669,14 +675,14 @@ export function ServiceOrderList({
       }}
       onDoubleClick={event => {
         if (isInTextEntry(event.target)) return;
-        openOrderOfSongRow(serviceOrderRowId(event.target));
+        openOrderEditor(serviceOrderRowId(event.target));
       }}
       onKeyDownCapture={event => {
         if (isInTextEntry(event.target)) return;
         selection.captureKey(event);
         if (event.defaultPrevented) return;
         if (event.key === 'Enter' && !hasModifier(event)) {
-          openOrderOfSongRow(serviceOrderRowId(event.target));
+          openOrderEditor(serviceOrderRowId(event.target));
         }
         if (isContextMenuKey(event)) {
           const id = serviceOrderRowId(event.target);

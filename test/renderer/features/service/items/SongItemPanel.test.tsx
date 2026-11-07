@@ -31,7 +31,7 @@ afterEach(() => {
   resetTooltips();
 });
 
-async function setup(itemId: string = fixtureItems.arranged) {
+async function setup(itemId: string = fixtureItems.arranged, inline = false) {
   HTMLElement.prototype.scrollIntoView = vi.fn();
   const fixture = itemFixture();
   const editor = new SongEditorStore(fixture.api, vi.fn());
@@ -43,7 +43,7 @@ async function setup(itemId: string = fixtureItems.arranged) {
       items={items}
       editor={editor}
       sizeClass="normal"
-      onBack={back}
+      onBack={inline ? back : undefined}
     />,
   );
   onTestFinished(async () => {
@@ -80,7 +80,7 @@ function secondThumbnail(panel: HTMLElement): HTMLElement {
 
 describe('service song item panel', () => {
   it('clears the item grid selection before Escape invokes the guarded back action', async () => {
-    const {panel, user, back} = await setup();
+    const {panel, user, back} = await setup(fixtureItems.arranged, true);
     await user.click(secondThumbnail(panel));
     await user.keyboard('{Escape}');
     expect(within(panel).queryAllByRole('option', {selected: true})).toEqual(
@@ -89,6 +89,13 @@ describe('service song item panel', () => {
     expect(back).not.toHaveBeenCalled();
     await user.keyboard('{Escape}');
     expect(back).toHaveBeenCalledOnce();
+  });
+
+  it('hides the same item edit button while its inline editor is open', async () => {
+    const {panel} = await setup(fixtureItems.arranged, true);
+    expect(
+      within(panel).queryByRole('button', {name: windowCommandLabels.editSong}),
+    ).toBeNull();
   });
 
   it('shows the item slides and selects them without editing the library', async () => {

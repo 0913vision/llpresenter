@@ -15,6 +15,33 @@ import {
 import {selectSlideList} from '@core/songs/slideListSelection';
 
 describe('slide list history', () => {
+  it('undoes item fields and row commands in one history while retaining fields during structural edits', () => {
+    const {adapter, history} = selectedSlideList();
+    const context = {name: 'Invented item', advance: 8};
+    const initial = {...history, present: {...history.present, context}};
+    const renamed = resultValue(
+      recordSlideListSnapshot(
+        initial,
+        {...initial.present, context: {...context, name: 'Renamed item'}},
+        {adapter},
+      ),
+    );
+    const duplicated = resultValue(
+      applySlideListCommand(renamed, {type: 'duplicate'}, adapter),
+    );
+    expect(duplicated.present.context).toEqual({
+      name: 'Renamed item',
+      advance: 8,
+    });
+    expect(undoSlideList(duplicated).present).toBe(renamed.present);
+    expect(undoSlideList(undoSlideList(duplicated)).present).toBe(
+      initial.present,
+    );
+    expect(redoSlideList(undoSlideList(duplicated)).present).toBe(
+      duplicated.present,
+    );
+  });
+
   it('records validated text and its caret in structural history, coalescing only after the first step', () => {
     const {history, adapter} = selectedSlideList();
     const first = history.present.slides[0];

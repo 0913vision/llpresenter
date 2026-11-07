@@ -30,16 +30,17 @@
 .side > section {
   flex: 1;
 }
-.header {
+.back {
+  max-width: var(--size-field-title);
+}
+.settings {
   display: flex;
+  flex: none;
   align-items: center;
   gap: var(--space-14);
+  min-height: var(--size-panel-header);
   padding: var(--space-4) var(--space-14);
   border-bottom: var(--radius-hairline) solid var(--line);
-}
-.header > :first-child {
-  flex: 1;
-  min-width: 0;
 }
 .setting {
   display: flex;
@@ -74,8 +75,18 @@
   outline: none;
 }
 .row[data-selected] {
-  background: var(--bg-raised);
+  background: var(--selection);
   border-left-color: var(--accent);
+}
+.row[data-focused] {
+  box-shadow: var(--ring-field-focus);
+}
+.rowSurface {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  min-height: 0;
+  outline: none;
 }
 .row:focus-visible {
   outline: var(--radius-hairline) solid var(--accent);
@@ -99,7 +110,8 @@
 }
 .gap[data-caret]::after,
 .gap:hover::after,
-.gap:focus-visible::after {
+.gap:focus-visible::after,
+.gap[data-slide-drop]::after {
   background: var(--accent);
 }
 .number {
@@ -109,6 +121,7 @@
   font-variant-numeric: tabular-nums;
 }
 .thumbnail {
+  position: relative;
   height: fit-content;
   aspect-ratio: 16 / 9;
   overflow: hidden;
@@ -220,12 +233,6 @@
   margin-left: auto;
   color: var(--text-3);
 }
-.save {
-  display: flex;
-  justify-content: flex-end;
-  padding: var(--space-10) var(--space-14);
-  border-top: var(--radius-hairline) solid var(--line);
-}
 .canvas {
   position: relative;
   width: 100%;
@@ -233,4 +240,13 @@
 }
 .itemPanel {
   height: 100%;
+}
+
+.layout[data-inline] {
+  display: flex;
+  height: 100%;
+}
+.layout[data-inline] > .left {
+  flex: 1;
+  border: 0;
 }

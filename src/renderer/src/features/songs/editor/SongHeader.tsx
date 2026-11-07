@@ -93,13 +93,20 @@ export function SongHeader({
           invalidReason={session.title.reason}
           onKeyDown={event => {
             if (
-              event.key === 'Enter' &&
+              (event.key === 'Enter' || event.key === 'Tab') &&
               !isComposing(event) &&
               !hasModifier(event)
             ) {
               event.preventDefault();
               event.stopPropagation();
-              if (session.title.reason === undefined) session.endTyping();
+              session.finishTitle();
+              if (session.title.reason === undefined) {
+                session.select({block: 0, start: 0, end: 0});
+                event.currentTarget
+                  .closest('section')
+                  ?.querySelector<HTMLTextAreaElement>('textarea')
+                  ?.focus();
+              }
             }
           }}
         />

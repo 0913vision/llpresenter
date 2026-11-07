@@ -214,6 +214,7 @@ export const SongBlock = memo(
             aria-label={`슬라이드 ${block + 1} 가사`}
             className={styles.lyrics}
             value={slide.lines.join('\n')}
+            data-empty={slide.lines.join('\n') === '' || undefined}
             rows={Math.max(1, slide.lines.length)}
             readOnly={locked}
             wrap="off"

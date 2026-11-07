@@ -97,9 +97,9 @@ function ControlApp({
     if (
       workspace === 'prep' &&
       next !== 'prep' &&
-      session.editor?.getSnapshot().session
+      (session.editor?.getSnapshot().session || prepActions.prep?.slides?.draft)
     ) {
-      session.editor.requestLeave(() => {
+      session.editor?.requestLeave(() => {
         session.editor?.open(null);
         go();
       });

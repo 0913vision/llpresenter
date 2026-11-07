@@ -78,9 +78,10 @@ afterEach(() => {
 });
 
 describe('slides editor window owner', () => {
-  it('validates targets, reuses one offscreen window, and guards closing and disposal', async () => {
+  it('validates targets and retargets the control without creating a window', async () => {
+    const control = new BrowserWindow();
     const owner = registerSlidesEditorWindow({
-      control: new BrowserWindow(),
+      control,
       zoom: {attachControl: vi.fn()},
       mode: 'offscreen',
       log: recordingLogger(),
@@ -95,27 +96,20 @@ describe('slides editor window owner', () => {
     });
     expect(await open(target)).toMatchObject({ok: true});
     expect(await open(target)).toMatchObject({ok: true});
-    expect(mocks.created).toHaveLength(1);
-    expect(mocks.options[0]).toMatchObject({
-      mode: 'offscreen',
-      page: {query: {window: 'slides'}},
-    });
-    expect(mocks.created[0]?.focus).not.toHaveBeenCalled();
-    expect(mocks.created[0]?.webContents.send).toHaveBeenCalledWith(
+    expect(mocks.created).toHaveLength(0);
+    expect(control.webContents.send).toHaveBeenCalledWith(
       slidesEditorEndpoints.retarget.channel,
       target,
     );
-    mocks.confirm.mockResolvedValueOnce(false);
-    expect(await owner.close()).toBe(false);
-    expect(mocks.created[0]?.destroyed).toBe(false);
+    expect(await owner.close()).toBe(true);
     await owner.dispose();
-    expect(mocks.created[0]?.destroyed).toBe(true);
+    expect(control.isDestroyed()).toBe(false);
     expect(mocks.ipc.handlers.size).toBe(0);
     expect(mocks.ipc.listenerCount(slidesEditorEndpoints.saved.channel)).toBe(
       0,
     );
   });
-  it('forwards validated save history only from the editor into the control window', async () => {
+  it('does not echo inline save history back into the same control API', async () => {
     const control = new BrowserWindow();
     const owner = registerSlidesEditorWindow({
       control,
@@ -137,17 +131,17 @@ describe('slides editor window owner', () => {
       order: [],
     };
     const value = {before: service, after: service};
+    vi.mocked(control.webContents.send).mockClear();
+    mocks.ipc.emit(slidesEditorEndpoints.saved.channel, {sender: {}}, value);
+    expect(control.webContents.send).not.toHaveBeenCalled();
     mocks.ipc.emit(
       slidesEditorEndpoints.saved.channel,
       {sender: control.webContents},
       value,
     );
     expect(control.webContents.send).not.toHaveBeenCalled();
-    const sender = mocks.created[0]?.webContents;
-    mocks.ipc.emit(slidesEditorEndpoints.saved.channel, {sender}, value);
-    expect(control.webContents.send).toHaveBeenCalledWith(
-      slidesEditorEndpoints.savedInControl.channel,
-      value,
+    expect(mocks.ipc.listenerCount(slidesEditorEndpoints.saved.channel)).toBe(
+      0,
     );
     await owner.dispose();
   });

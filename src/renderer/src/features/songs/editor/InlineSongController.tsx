@@ -16,12 +16,15 @@ export function InlineSongController({
   report,
   controls: controlsRef,
   onOpen,
+  beforeLeave,
 }: {
   readonly store: SongEditorStore;
   readonly api: LlpApi;
   readonly report: (notice: Notice) => void;
   readonly controls: RefObject<SongEditorWindowModel | null>;
   readonly onOpen: (target: SongEditorTarget) => void;
+  readonly beforeLeave?:
+    ((proceed: () => void, cancel?: () => void) => void) | undefined;
 }): JSX.Element {
   const open = useRef(onOpen);
   useLayoutEffect(() => {
@@ -30,6 +33,7 @@ export function InlineSongController({
   const model = useSongEditorWindow(store, api, {
     report,
     onOpened: target => open.current(target),
+    beforeLeave,
   });
   useLayoutEffect(() => {
     controlsRef.current = model;

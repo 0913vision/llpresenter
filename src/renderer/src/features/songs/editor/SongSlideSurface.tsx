@@ -8,14 +8,14 @@ import {
   type ReactNode,
   type DragEvent,
 } from 'react';
-import {createSongSlideId} from '@core/schema/ids';
-import {SONG_LIMITS} from '@core/schema/song';
+import type {SlideListItem} from '@core/songs/slideListEdits';
+
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {isComposing} from '@renderer/ui/ime';
 import {contextMenuAnchor, isContextMenuKey} from '@renderer/ui/contextMenu';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
-import type {SongSession} from './songSession';
+import type {SlideListSession} from './slideListSession';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useDragClickGuard} from '@renderer/ui/useDragClickGuard';
 import {LabelMenu} from './LabelMenu';
@@ -26,7 +26,7 @@ import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 
 /** Rows and thumbnails dispatch to the same session, including its insertion caret. */
-export function SongSlideSurface({
+export function SongSlideSurface<T extends SlideListItem>({
   session,
   children,
   className,
@@ -35,8 +35,10 @@ export function SongSlideSurface({
   onEdit,
   onHotKey,
   extraMenu,
+  blocked = false,
+  editLabel = windowCommandLabels.editSong,
 }: {
-  readonly session: SongSession;
+  readonly session: SlideListSession<T>;
   readonly children: ReactNode;
   readonly className?: string | undefined;
   readonly onBack?: (() => void) | undefined;
@@ -44,10 +46,13 @@ export function SongSlideSurface({
   readonly onEdit?: ((index: number) => void) | undefined;
   readonly onHotKey?: ((index: number) => void) | undefined;
   readonly extraMenu?: (index: number) => readonly MenuEntry[];
+  readonly blocked?: boolean;
+  readonly editLabel?: string;
 }): JSX.Element {
+  const readOnly = blocked || session.readOnly;
   const view = useSyncExternalStore(
-    session.history.model.subscribe,
-    session.history.model.getSnapshot,
+    session.slideModel.subscribe,
+    session.slideModel.getSnapshot,
   );
   const [menu, setMenu] = useState<MenuAnchor | null>(null);
   const [menuIndex, setMenuIndex] = useState(0);
@@ -71,18 +76,18 @@ export function SongSlideSurface({
     if (cut) surfaceRef.current?.focus({preventScroll: true});
     const text = cut ? session.cutSlides() : session.copySlides();
     if (text !== null) {
-      writeSlideText(session.history.clipboard, text);
+      writeSlideText(session.clipboardOwner, text);
     }
   };
   const paste = (): void => {
-    if (session.readOnly) return;
+    if (readOnly) return;
     surfaceRef.current?.focus({preventScroll: true});
-    const model = session.history.model;
+    const model = session.slideModel;
     const intent = session.slideIntent;
     const current = (): boolean =>
       mounted.current &&
       sessionRef.current === session &&
-      model === session.history.model &&
+      model === session.slideModel &&
       intent === session.slideIntent &&
       !isInTextEntry(document.activeElement) &&
       surfaceRef.current?.contains(document.activeElement) === true;
@@ -90,7 +95,7 @@ export function SongSlideSurface({
       async () => {
         if (!current()) return;
         try {
-          const text = await readSlideText(session.history.clipboard);
+          const text = await readSlideText(session.clipboardOwner);
           if (current()) session.pasteSlides(text);
         } catch (error) {
           console.error('Could not read slide text', error);
@@ -140,23 +145,25 @@ export function SongSlideSurface({
       surfaceRef.current?.focus({preventScroll: true});
     }
   };
-  const editReason = session.readOnly ? NEWER_FILE_REASON : undefined;
+  const editReason = readOnly ? NEWER_FILE_REASON : undefined;
   const selectionReason = selected ? undefined : '선택한 슬라이드가 없습니다';
   const deleteReason =
     editReason ??
     selectionReason ??
-    (!session.itemSession && view.selection.ids.size === view.slides.length
+    (view.slides.length - view.selection.ids.size <
+    session.slideModel.limits.minSlides
       ? '곡에는 슬라이드가 하나 이상 있어야 합니다'
       : undefined);
   const duplicateReason =
     editReason ??
     selectionReason ??
-    (view.slides.length + view.selection.ids.size > SONG_LIMITS.slides
+    (view.slides.length + view.selection.ids.size >
+    session.slideModel.limits.maxSlides
       ? '슬라이드가 너무 많습니다'
       : undefined);
   const pasteReason =
     editReason ??
-    (view.slides.length >= SONG_LIMITS.slides
+    (view.slides.length >= session.slideModel.limits.maxSlides
       ? '슬라이드가 너무 많습니다'
       : undefined);
   useWindowShortcuts([
@@ -262,7 +269,7 @@ export function SongSlideSurface({
           {
             kind: 'item' as const,
             id: 'edit',
-            label: windowCommandLabels.editSong,
+            label: editLabel,
             onSelect: () => onEdit(menuIndex),
           },
         ]),
@@ -327,7 +334,7 @@ export function SongSlideSurface({
       ...menuAvailability(
         !view.canUndo
           ? '실행 취소할 변경이 없습니다'
-          : session.readOnly
+          : readOnly
             ? NEWER_FILE_REASON
             : undefined,
       ),
@@ -341,7 +348,7 @@ export function SongSlideSurface({
       ...menuAvailability(
         !view.canRedo
           ? '다시 실행할 변경이 없습니다'
-          : session.readOnly
+          : readOnly
             ? NEWER_FILE_REASON
             : undefined,
       ),
@@ -356,6 +363,30 @@ export function SongSlideSurface({
       tabIndex={0}
       role="group"
       aria-label="슬라이드 편집 명령"
+      onCopy={event => {
+        if (isInTextEntry(event.target)) return;
+        const text = session.copySlides();
+        if (text === null) return;
+        event.preventDefault();
+        event.stopPropagation();
+        event.clipboardData.setData('text/plain', text);
+      }}
+      onCut={event => {
+        if (readOnly || isInTextEntry(event.target)) return;
+        surfaceRef.current?.focus({preventScroll: true});
+        const text = session.cutSlides();
+        if (text === null) return;
+        event.preventDefault();
+        event.stopPropagation();
+        event.clipboardData.setData('text/plain', text);
+      }}
+      onPaste={event => {
+        if (readOnly || isInTextEntry(event.target)) return;
+        event.preventDefault();
+        event.stopPropagation();
+        surfaceRef.current?.focus({preventScroll: true});
+        session.pasteSlides(event.clipboardData.getData('text/plain'));
+      }}
       onPointerDownCapture={event => {
         dragClick.props.onPointerDownCapture();
         if (event.button === 0) focusList(event.target);
@@ -365,7 +396,30 @@ export function SongSlideSurface({
         if (!event.defaultPrevented) focusList(event.target);
       }}
       onKeyDownCapture={event => {
-        if (!isContextMenuKey(event)) return;
+        if (
+          !event.defaultPrevented &&
+          event.key === 'Escape' &&
+          !isComposing(event) &&
+          !event.ctrlKey &&
+          !event.metaKey &&
+          !event.altKey &&
+          !event.shiftKey &&
+          isInTextEntry(event.target) &&
+          event.target instanceof Element
+        ) {
+          const id =
+            event.target.closest<HTMLElement>('[data-song-slide]')?.dataset
+              .songSlide;
+          const slide = view.slides.find(slide => slide.id === id);
+          if (slide !== undefined) {
+            event.preventDefault();
+            event.stopPropagation();
+            surfaceRef.current?.focus({preventScroll: true});
+            session.selectSlides({type: 'click', id: slide.id});
+            return;
+          }
+        }
+        if (!isContextMenuKey(event) || isInTextEntry(event.target)) return;
         const target =
           event.target instanceof HTMLElement
             ? event.target
@@ -455,14 +509,12 @@ export function SongSlideSurface({
             ? event.target.closest<HTMLElement>('[data-song-slide]')
             : null;
         const id = row?.dataset.songSlide;
+        const slide = view.slides.find(slide => slide.id === id);
         setMenuIndex(
           Number(row?.dataset.slideIndex ?? session.selectedOccurrence),
         );
-        if (
-          id !== undefined &&
-          !view.selection.ids.has(createSongSlideId(id))
-        ) {
-          session.selectSlides({type: 'click', id: createSongSlideId(id)});
+        if (slide !== undefined && !view.selection.ids.has(slide.id)) {
+          session.selectSlides({type: 'click', id: slide.id});
         }
         event.preventDefault();
         event.stopPropagation();
@@ -470,7 +522,7 @@ export function SongSlideSurface({
         setMenu(contextMenuAnchor(event));
       }}
       onDragStart={event => {
-        if (session.readOnly || isInTextEntry(event.target)) {
+        if (readOnly || isInTextEntry(event.target)) {
           event.preventDefault();
           return;
         }
@@ -479,23 +531,24 @@ export function SongSlideSurface({
             ? event.target.closest<HTMLElement>('[data-song-slide]')
             : null;
         const id = row?.dataset.songSlide;
-        if (id === undefined) {
+        const slide = view.slides.find(slide => slide.id === id);
+        if (slide === undefined) {
           event.preventDefault();
           return;
         }
-        if (!view.selection.ids.has(createSongSlideId(id))) {
-          session.selectSlides({type: 'click', id: createSongSlideId(id)});
+        if (!view.selection.ids.has(slide.id)) {
+          session.selectSlides({type: 'click', id: slide.id});
         }
         event.dataTransfer.setData(
           'application/x-llp-song-slide-move',
-          session.document.song.id,
+          session.slideDocumentId,
         );
         event.dataTransfer.effectAllowed = 'move';
         dragClick.markDragged();
       }}
       onDragOver={event => {
         if (
-          !session.readOnly &&
+          !readOnly &&
           event.dataTransfer.types.includes('application/x-llp-song-slide-move')
         ) {
           event.preventDefault();
@@ -510,9 +563,9 @@ export function SongSlideSurface({
       }}
       onDrop={event => {
         if (
-          session.readOnly ||
+          readOnly ||
           event.dataTransfer.getData('application/x-llp-song-slide-move') !==
-            session.document.song.id
+            session.slideDocumentId
         ) {
           return;
         }
@@ -545,7 +598,10 @@ export function SongSlideSurface({
           label="슬라이드"
           anchor={menu}
           entries={entries}
-          onClose={() => setMenu(null)}
+          onClose={() => {
+            setMenu(null);
+            surfaceRef.current?.focus({preventScroll: true});
+          }}
         />
       )}
     </div>

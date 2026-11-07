@@ -31,9 +31,10 @@ export interface SlideListAdapter<T extends SlideListItem> {
   readonly minSlides: number;
   readonly maxSlides: number;
 }
-export interface SlideListSnapshot<T extends SlideListItem> {
+export interface SlideListSnapshot<T extends SlideListItem, Context = unknown> {
   readonly slides: readonly T[];
   readonly selection: SlideListSelection<T['id']>;
+  readonly context?: Context;
   readonly textSelection?: {
     readonly id: T['id'];
     readonly start: number;
@@ -240,13 +241,14 @@ function changedSlides<T extends SlideListItem>(
 }
 
 /** Invalid edits are atomic. A destination for move is a gap in the original list. */
-export function editSlideList<T extends SlideListItem>(
-  snapshot: SlideListSnapshot<T>,
+export function editSlideList<T extends SlideListItem, Context = unknown>(
+  snapshot: SlideListSnapshot<T, Context>,
   command: SlideListCommand<T>,
   adapter: SlideListAdapter<T>,
-): Result<SlideListSnapshot<T>, SlideListError> {
+): Result<SlideListSnapshot<T, Context>, SlideListError> {
   const result = changedSlides(snapshot, command, adapter);
-  if (!result.ok || result.value === snapshot) return result;
+  if (!result.ok) return result;
+  if (result.value === snapshot) return {ok: true, value: snapshot};
   const next = result.value;
   if (
     next.slides.length === snapshot.slides.length &&
@@ -255,7 +257,17 @@ export function editSlideList<T extends SlideListItem>(
     return {ok: true, value: snapshot};
   }
   const checked = validateSlideList(next.slides, adapter);
+  const {context: removed, ...edited} = next;
   return checked.ok
-    ? {ok: true, value: {...next, slides: checked.value}}
+    ? {
+        ok: true,
+        value: {
+          ...edited,
+          ...(snapshot.context === undefined
+            ? {}
+            : {context: snapshot.context}),
+          slides: checked.value,
+        },
+      }
     : checked;
 }

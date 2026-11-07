@@ -2,10 +2,12 @@ import {cleanup, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, expect, it, vi} from 'vitest';
 import {createSlideId} from '@core/schema/ids';
-import {newSlidesItem} from '@core/services/slidesEdits';
+import {newSlidesItem, SlidesDraft} from '@core/services/slidesEdits';
 import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import {SongEditorStore} from '@renderer/features/songs/editor';
 import {SlidesItemPanel} from '@renderer/features/service/slides/SlidesItemPanel';
+import {InlineSlidesPanels} from '@renderer/features/service/slides/InlineSlidesPanels';
+import {SlidesListSession} from '@renderer/features/service/slides/slidesListSession';
 import {
   itemFixture,
   fixtureItems,
@@ -61,7 +63,7 @@ it.each(['blank', 'ad'] as const)(
         openEditor={fixture.api.slidesEditor.open}
       />,
     );
-    expect(screen.getByText('이번 순서')).toBeTruthy();
+    expect(await screen.findByText('이번 순서')).toBeTruthy();
     expect(
       screen.getByRole('option', {
         name: form === 'ad' ? '1 소식 이름' : '1 첫 줄',
@@ -75,6 +77,24 @@ it.each(['blank', 'ad'] as const)(
       itemId: updated.id,
     });
     view.unmount();
+    const session = new SlidesListSession(new SlidesDraft(updated), {
+      locked: () => false,
+      problem: vi.fn(),
+    });
+    const inline = render(
+      <InlineSlidesPanels
+        api={fixture.api}
+        session={session}
+        onBack={vi.fn()}
+      />,
+    );
+    expect(
+      await screen.findByRole('option', {
+        name: form === 'ad' ? '1 소식 이름' : '1 첫 줄',
+      }),
+    ).toBeTruthy();
+    expect(await screen.findByRole('option', {name: '2 a.png'})).toBeTruthy();
+    inline.unmount();
     items.dispose();
     await editor.dispose();
   },

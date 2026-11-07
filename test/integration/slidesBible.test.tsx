@@ -24,7 +24,7 @@ import type {
 import {createServiceId} from '@core/schema/ids';
 import {projectSlides} from '@core/presentation/slides';
 import type {SlidesItem} from '@core/services/slidesEdits';
-import {SlidesEditorWindow} from '@renderer/app/SlidesEditorWindow';
+import {SlidesEditorHarness} from '@fixtures/renderer/features/service/slides/slidesEditorHarness';
 import {ControlSession} from '@renderer/app/controlSession';
 import {ShowShortcuts} from '@renderer/app/workspaces/showPanels';
 import {defaultPreferences} from '@core/schema/preferences';
@@ -353,7 +353,7 @@ it('inserts the range without review when automatic opening is off', async () =>
     bible: {...defaultPreferences.bible, splitEditorAutoOpen: false},
   });
   const session = new ControlSession(f.api);
-  const view = render(<SlidesEditorWindow session={session} />);
+  const view = render(<SlidesEditorHarness session={session} />);
   await screen.findByRole('button', {name: '성경 구절 추가…'});
   fireEvent.click(screen.getByRole('button', {name: '성경 구절 추가…'}));
   await screen.findByRole('dialog', {name: '성경 구절'});
@@ -380,7 +380,7 @@ it('inserts the range without review when automatic opening is off', async () =>
 it('inserts the reviewed range after selection as one undo step, saves references only, and reopens cuts with Ctrl E', async () => {
   const f = fixture(slidesItem('blank'), true);
   const session = new ControlSession(f.api);
-  const view = render(<SlidesEditorWindow session={session} />);
+  const view = render(<SlidesEditorHarness session={session} />);
   try {
     const first = await chooseRange();
     expect(first.textContent).toContain('1 / 2');
@@ -409,7 +409,7 @@ it('inserts the reviewed range after selection as one undo step, saves reference
     expect(verseThumbnail?.closest('svg')?.getAttribute('viewBox')).toBe(
       '0 0 1920 1080',
     );
-    expect(f.content).not.toHaveBeenCalled();
+    await waitFor(() => expect(f.content).toHaveBeenCalledOnce());
     const selected = view.container.querySelector<HTMLElement>(
       '[data-selected=true][data-slide-id]',
     );
@@ -423,7 +423,6 @@ it('inserts the reviewed range after selection as one undo step, saves reference
     });
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     expect(document.activeElement).toBe(selected);
-    fireEvent.click(screen.getByRole('button', {name: '저장'}));
     await waitFor(() => expect(f.content).toHaveBeenCalledOnce());
     const item = f.document().service.order[0];
     if (item === undefined || !isItemOfKind(item, 'slides')) {
@@ -450,7 +449,7 @@ it('inserts the reviewed range after selection as one undo step, saves reference
 it('cancels the pending insertion with Escape and keeps the original draft', async () => {
   const f = fixture();
   const session = new ControlSession(f.api);
-  const view = render(<SlidesEditorWindow session={session} />);
+  const view = render(<SlidesEditorHarness session={session} />);
   try {
     await chooseRange();
     fireEvent.keyDown(document.activeElement ?? document.body, {
@@ -459,9 +458,7 @@ it('cancels the pending insertion with Escape and keeps the original draft', asy
     });
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
     expect(view.container.querySelectorAll('[data-slide-id]')).toHaveLength(3);
-    expect(
-      screen.getByRole('button', {name: '저장'}).getAttribute('aria-disabled'),
-    ).toBe('true');
+    expect(screen.queryByRole('button', {name: '저장'})).toBeNull();
     expect(f.content).not.toHaveBeenCalled();
     expect(f.send).not.toHaveBeenCalled();
   } finally {
@@ -478,7 +475,7 @@ it('discards a late lookup after cancelling the loading window', async () => {
     release = resolve;
   });
   const session = new ControlSession(f.api);
-  const view = render(<SlidesEditorWindow session={session} />);
+  const view = render(<SlidesEditorHarness session={session} />);
   try {
     const loading = await chooseRange(false, () => {
       vi.spyOn(f.api.bible, 'lookup').mockImplementation(async request => {
@@ -526,7 +523,7 @@ it.each([true, false])(
       .mockReturnValue(held);
     const cancel = vi.spyOn(f.api.bible, 'cancelBoundary');
     const session = new ControlSession(f.api);
-    const view = render(<SlidesEditorWindow session={session} />);
+    const view = render(<SlidesEditorHarness session={session} />);
     try {
       await chooseRange(false);
       await waitFor(() => expect(chooser).toHaveBeenCalledOnce());
@@ -557,11 +554,7 @@ it.each([true, false])(
       expect(view.container.querySelectorAll('[data-slide-id]')).toHaveLength(
         3,
       );
-      expect(
-        screen
-          .getByRole('button', {name: '저장'})
-          .getAttribute('aria-disabled'),
-      ).toBe('true');
+      expect(screen.queryByRole('button', {name: '저장'})).toBeNull();
       expect(f.content).not.toHaveBeenCalled();
       expect(f.send).not.toHaveBeenCalled();
     } finally {

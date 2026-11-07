@@ -25,7 +25,9 @@ import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import {Button, Checkbox, PanelFooter, TextField} from '@renderer/ui';
 import {TextArea} from '@renderer/ui/TextArea';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
-import {AlertDialog} from '@renderer/ui/AlertDialog';
+import {useShow} from '@renderer/session/show';
+import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
+import {isInTextEntry} from '@renderer/ui/textEntry';
 import {isComposing} from '@renderer/ui/ime';
 import {useItemMedia} from '../items/useItemSources';
 import {
@@ -35,9 +37,9 @@ import {
   useSlidesAppearance,
 } from './SlidesVisuals';
 import type {SlidesEditorModel} from './useSlidesEditor';
-import {useSlidesSaveFocus} from './useSlidesSaveFocus';
 import {SlideRows} from './SlideRows';
 import styles from './SlidesEditor.module.css';
+import headerStyles from '../../songs/editor/SongHeader.module.css';
 
 const ADVANCES = [3, 5, 8, 10, 15, 20, 30];
 const TEXT_LIMIT = SLIDES_LIMITS.text;
@@ -48,11 +50,19 @@ function SlidesHeader({
   update,
   themes,
   themeName,
+  onCommitName,
+  onBack,
+  serviceName,
+  disabled,
 }: {
   readonly draft: SlidesDraft;
   readonly update: () => void;
   readonly themes: ReturnType<typeof useSlidesAppearance>['themes'];
   readonly themeName: string;
+  readonly onCommitName: () => void;
+  readonly onBack: (() => void) | undefined;
+  readonly serviceName: string;
+  readonly disabled: boolean;
 }): JSX.Element {
   const {item} = draft.snapshot;
   const change = (slides: SlidesItem['slides'], typing?: string): void => {
@@ -60,69 +70,100 @@ function SlidesHeader({
     update();
   };
   return (
-    <header className={styles.header}>
-      <TextField
-        aria-label="이름"
-        variant="title"
-        value={item.slides.name}
-        maxLength={NAME_LIMIT}
-        onChange={name => change({...item.slides, name}, 'item-name')}
-        onBlur={() => draft.endTyping()}
-      />
-      <span className={styles.setting}>
-        <span>테마</span>
-        <SelectMenu
-          aria-label="테마"
-          size="sm"
-          value={item.theme ?? ''}
-          valueText={themeName}
-          options={[
-            {value: '', label: '기본'},
-            ...(themes?.themes ?? []).map(theme => ({
-              value: theme.id,
-              label: theme.name,
-            })),
-          ]}
-          onChange={id => {
-            const next = {...item};
-            const parsed = parsePayload(themeIdSchema, id);
-            if (id === '') delete next.theme;
-            else if (parsed.ok) next.theme = parsed.value;
-            draft.change(next);
-            update();
-          }}
-        />
-      </span>
-      <span className={styles.setting}>
-        <span>넘기기</span>
-        <SelectMenu
-          aria-label="넘기기"
-          size="sm"
-          value={String(item.slides.advance ?? '')}
-          options={[
-            {value: '', label: '손으로'},
-            ...ADVANCES.map(seconds => ({
-              value: String(seconds),
-              label: `${seconds}초마다`,
-            })),
-          ]}
-          onChange={value => {
-            const slides = {...item.slides};
-            if (value === '') delete slides.advance;
-            else slides.advance = Number(value);
-            change(slides);
-          }}
-        />
-      </span>
-      <span className={styles.setting}>
-        <Checkbox
-          aria-label="반복"
-          checked={item.slides.loop ?? false}
-          onChange={loop => change({...item.slides, loop})}
-        />
-        <span>반복</span>
-      </span>
-    </header>
+    <>
+      <header className={headerStyles.header} data-inline="true">
+        {onBack === undefined ? null : (
+          <Button className={styles.back} onClick={onBack}>
+            ‹ {serviceName || '예배 순서'}
+          </Button>
+        )}
+        <span className={headerStyles.unsaved} data-empty aria-hidden="true" />
+        <div className={headerStyles.title}>
+          <TextField
+            aria-label="이름"
+            variant="title"
+            block
+            disabled={disabled}
+            value={item.slides.name}
+            maxLength={NAME_LIMIT}
+            onChange={name => change({...item.slides, name}, 'item-name')}
+            onBlur={() => draft.endTyping()}
+            onKeyDown={event => {
+              if (
+                (event.key === 'Enter' || event.key === 'Tab') &&
+                !event.shiftKey &&
+                !event.ctrlKey &&
+                !event.altKey &&
+                !event.metaKey &&
+                !isComposing(event)
+              ) {
+                event.preventDefault();
+                draft.endTyping();
+                onCommitName();
+              }
+            }}
+          />
+        </div>
+      </header>
+      <div className={styles.settings}>
+        <span className={styles.setting}>
+          <span>테마</span>
+          <SelectMenu
+            aria-label="테마"
+            disabled={disabled}
+            size="sm"
+            value={item.theme ?? ''}
+            valueText={themeName}
+            options={[
+              {value: '', label: '기본'},
+              ...(themes?.themes ?? []).map(theme => ({
+                value: theme.id,
+                label: theme.name,
+              })),
+            ]}
+            onChange={id => {
+              const next = {...item};
+              const parsed = parsePayload(themeIdSchema, id);
+              if (id === '') delete next.theme;
+              else if (parsed.ok) next.theme = parsed.value;
+              draft.change(next);
+              update();
+            }}
+          />
+        </span>
+        <span className={styles.setting}>
+          <span>넘기기</span>
+          <SelectMenu
+            aria-label="넘기기"
+            disabled={disabled}
+            size="sm"
+            value={String(item.slides.advance ?? '')}
+            options={[
+              {value: '', label: '손으로'},
+              ...ADVANCES.map(seconds => ({
+                value: String(seconds),
+                label: `${seconds}초마다`,
+              })),
+            ]}
+            onChange={value => {
+              const slides = {...item.slides};
+              if (value === '') delete slides.advance;
+              else slides.advance = Number(value);
+              change(slides);
+            }}
+          />
+        </span>
+        <span className={styles.setting}>
+          <Checkbox
+            aria-label="반복"
+            disabled={disabled}
+            checked={item.slides.loop ?? false}
+            onChange={loop => change({...item.slides, loop})}
+          />
+          <span>반복</span>
+        </span>
+      </div>
+    </>
   );
 }
 
@@ -206,9 +247,11 @@ function SlideFields({
 export function SlidesEditor({
   api,
   model,
+  onBack,
 }: {
   readonly api: LlpApi;
   readonly model: SlidesEditorModel;
+  readonly onBack?: (() => void) | undefined;
 }): JSX.Element | null {
   const {draft} = model;
   if (draft === null) return null;
@@ -218,6 +261,7 @@ export function SlidesEditor({
       api={api}
       model={model}
       draft={draft}
+      onBack={onBack}
     />
   );
 }
@@ -225,14 +269,25 @@ export function SlidesEditor({
 function SlidesEditorBody({
   api,
   model,
+  onBack,
   draft,
 }: {
   readonly api: LlpApi;
   readonly model: SlidesEditorModel;
+  readonly onBack?: (() => void) | undefined;
   readonly draft: SlidesDraft;
 }): JSX.Element {
   const {item, selected} = draft.snapshot;
-  const {root, save} = useSlidesSaveFocus(model, draft);
+  const serviceName = useShow(view => view.serviceName);
+  const root = useRef<HTMLDivElement>(null);
+  useWindowShortcuts([
+    {
+      id: 'songWindow.save',
+      context: 'song',
+      when: () => !model.stopped,
+      run: () => editorTask(model.flush()),
+    },
+  ]);
   const mediaSource = useItemMedia(api.media);
   const media = mediaSource.document?.value.items ?? [];
   const {appearance, themes} = useSlidesAppearance(api, item);
@@ -294,10 +349,9 @@ function SlidesEditorBody({
   };
   const keyDown = (event: KeyboardEvent): void => {
     if (
+      event.defaultPrevented ||
       isComposing(event) ||
-      model.saving ||
       model.stopped ||
-      model.leave !== null ||
       bibleDialog !== null
     ) {
       return;
@@ -318,14 +372,11 @@ function SlidesEditorBody({
     if (
       event.ctrlKey &&
       !event.altKey &&
-      ['z', 'y', 's'].includes(event.key.toLowerCase())
+      isInTextEntry(event.target) &&
+      ['z', 'y'].includes(event.key.toLowerCase())
     ) {
       event.preventDefault();
       event.stopPropagation();
-      if (event.key.toLowerCase() === 's') {
-        editorTask(save());
-        return;
-      }
       const focusedRow =
         document.activeElement?.closest<HTMLElement>('[data-slide-id]');
       if (event.key.toLowerCase() === 'y' || event.shiftKey) draft.redo();
@@ -340,31 +391,46 @@ function SlidesEditorBody({
     }
   };
   return (
-    <div ref={root} className={styles.layout} onKeyDownCapture={keyDown}>
+    <div
+      ref={root}
+      className={styles.layout}
+      data-inline={onBack !== undefined || undefined}
+      aria-label="슬라이드 편집"
+      onKeyDownCapture={keyDown}
+    >
       <div className={styles.left}>
+        <SlidesHeader
+          draft={draft}
+          disabled={model.stopped || model.session?.readOnly === true}
+          onBack={onBack}
+          serviceName={serviceName}
+          update={update}
+          themes={themes}
+          themeName={appearance.themeName}
+          onCommitName={() =>
+            rowList.current
+              ?.querySelector<HTMLTextAreaElement>('textarea')
+              ?.focus()
+          }
+        />
         <fieldset
           className={styles.editable}
-          disabled={model.saving || model.stopped || model.leave !== null}
-          inert={model.saving || model.stopped || model.leave !== null}
+          disabled={model.stopped || model.session?.readOnly === true}
+          inert={model.stopped || model.session?.readOnly === true}
         >
-          <SlidesHeader
-            draft={draft}
-            update={update}
-            themes={themes}
-            themeName={appearance.themeName}
-          />
           <SlideRows
             draft={draft}
             blocked={
-              model.saving ||
               model.stopped ||
-              model.leave !== null ||
+              model.session?.readOnly === true ||
               bibleDialog !== null ||
               picker !== null
             }
             update={update}
             report={model.problem}
             list={rowList}
+            session={model.session ?? undefined}
+            onBack={onBack}
             renderRow={(slide, index) => (
               <>
                 <span className={styles.number}>{index + 1}</span>
@@ -424,25 +490,17 @@ function SlidesEditorBody({
         </fieldset>
         <PanelFooter count={rows.length} />
       </div>
-      <div className={styles.side}>
-        <SlidesPreview
-          api={api}
-          item={item}
-          selected={at}
-          media={media}
-          projection={projection}
-        />
-        <div className={styles.save}>
-          <Button
-            disabled={!draft.dirty || model.saving || model.stopped}
-            onClick={() => {
-              editorTask(save());
-            }}
-          >
-            저장
-          </Button>
+      {onBack !== undefined ? null : (
+        <div className={styles.side}>
+          <SlidesPreview
+            api={api}
+            item={item}
+            selected={at}
+            media={media}
+            projection={projection}
+          />
         </div>
-      </div>
+      )}
       {bibleDialog === null ? null : (
         <BibleSlidesDialog
           api={api}
@@ -487,28 +545,6 @@ function SlidesEditorBody({
             if (restore) picker.anchor.focus();
             setPicker(null);
           }}
-        />
-      )}
-      {model.leave === null ? null : (
-        <AlertDialog
-          icon="slides"
-          title={`‘${item.slides.name}’의 변경을 저장할까요?`}
-          onCancel={model.cancel}
-          actions={[
-            {
-              label: '저장 안 함',
-              disabled: model.saving,
-              onSelect: model.discard,
-            },
-            {
-              label: '저장',
-              primary: true,
-              disabled: model.saving,
-              onSelect: () => {
-                editorTask(model.saveAndLeave());
-              },
-            },
-          ]}
         />
       )}
     </div>

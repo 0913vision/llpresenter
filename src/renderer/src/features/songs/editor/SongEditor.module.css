@@ -131,6 +131,12 @@
 .lyrics:focus-visible {
   outline: none;
 }
+.lyrics[data-empty] {
+  min-height: var(--size-control-md);
+  border-radius: var(--radius-sm);
+  box-shadow: inset 0 0 0 var(--radius-hairline) var(--line-control);
+  background: var(--bg-control);
+}
 
 .splitButton {
   display: inline-flex;

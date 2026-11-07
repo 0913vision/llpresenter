@@ -1,4 +1,4 @@
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 import {createServiceItemId, createThemeId} from '@core/schema/ids';
 import {
   newSlidesItem,
@@ -48,6 +48,26 @@ describe('merge slides changes', () => {
 });
 
 describe('slides draft', () => {
+  it('starts another shared undo step after a one-second typing pause', () => {
+    const item = newSlidesItem('blank', id);
+    const draft = new SlidesDraft(item);
+    const time = vi.spyOn(Date, 'now');
+    try {
+      time.mockReturnValue(1000);
+      draft.change({...item, slides: {...item.slides, name: 'A'}}, 0, 'name');
+      time.mockReturnValue(1500);
+      draft.change({...item, slides: {...item.slides, name: 'AB'}}, 0, 'name');
+      time.mockReturnValue(2500);
+      draft.change({...item, slides: {...item.slides, name: 'ABC'}}, 0, 'name');
+      draft.undo();
+      expect(draft.snapshot.item.slides.name).toBe('AB');
+      draft.undo();
+      expect(draft.dirty).toBe(false);
+    } finally {
+      time.mockRestore();
+    }
+  });
+
   it('inserts a range after selection as one history step and refuses an over-cap range atomically', () => {
     const item = newSlidesItem('blank', id);
     const draft = new SlidesDraft(item);
@@ -82,11 +102,11 @@ describe('slides draft', () => {
     draft.add(newTextSlide('ad'));
     const second = draft.snapshot.item.slides.slides[1];
     draft.move(1, 0);
-    expect(draft.snapshot.item.slides.slides[0]).toBe(second);
+    expect(draft.snapshot.item.slides.slides[0]).toEqual(second);
     draft.remove(0);
     expect(draft.snapshot.item.slides.slides).toEqual(first.slides.slides);
     draft.undo();
-    expect(draft.snapshot.item.slides.slides[0]).toBe(second);
+    expect(draft.snapshot.item.slides.slides[0]).toEqual(second);
     expect(draft.snapshot.selected).toBe(0);
     draft.redo();
     expect(draft.snapshot.item.slides.slides).toHaveLength(1);

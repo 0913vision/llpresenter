@@ -74,9 +74,12 @@ export function useSongEditorWindow(
   {
     report,
     onOpened,
+    beforeLeave,
   }: {
     readonly report: (notice: Notice) => void;
     readonly onOpened?: (target: SongEditorTarget) => void;
+    readonly beforeLeave?:
+      ((proceed: () => void, cancel?: () => void) => void) | undefined;
   },
 ) {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
@@ -105,12 +108,16 @@ export function useSongEditorWindow(
   });
 
   const askLeave = (proceed: () => void, cancel?: () => void): void => {
-    if (store.getSnapshot().session?.unsaved === true) {
-      const open = shown.current;
-      if (open?.kind === 'leave') open.cancel?.();
-      shown.current = {kind: 'leave', proceed, cancel};
-      setDialog(shown.current);
-    } else proceed();
+    const ask = (): void => {
+      if (store.getSnapshot().session?.unsaved === true) {
+        const open = shown.current;
+        if (open?.kind === 'leave') open.cancel?.();
+        shown.current = {kind: 'leave', proceed, cancel};
+        setDialog(shown.current);
+      } else proceed();
+    };
+    if (beforeLeave === undefined) ask();
+    else beforeLeave(ask, cancel);
   };
 
   const openTarget = async (target: SongEditorTarget): Promise<void> => {

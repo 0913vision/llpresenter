@@ -24,6 +24,7 @@ import styles from './SongItemPanel.module.css';
 import {BibleItemPanel} from './BibleItemPanel';
 import {SlidesItemPanel} from '../slides/SlidesItemPanel';
 import {ItemSongSlideGrid} from './ItemSongSlideGrid';
+import type {SlidesEditorModel} from '../slides/useSlidesEditor';
 
 /**
  * The center panel of 준비 for the item selected in the 예배 순서. It shows
@@ -34,11 +35,13 @@ export function ServiceItemPanel({
   editor,
   sizeClass,
   onBack,
+  slides,
 }: {
   readonly items: ServiceItemStore;
   readonly editor: SongEditorStore;
   readonly sizeClass: SizeClass;
   readonly onBack?: (() => void) | undefined;
+  readonly slides?: SlidesEditorModel | undefined;
 }): JSX.Element {
   const serviceId = useShow(view => view.serviceId);
   const itemId = useShow(view => view.openItemId);
@@ -58,6 +61,7 @@ export function ServiceItemPanel({
         items={items}
         item={item}
         openEditor={window.llp?.slidesEditor.open}
+        controller={slides}
       />
     );
   }
@@ -121,18 +125,20 @@ function SongItemView({
       <Panel label={ITEM_PANEL_LABEL} className={styles.panel}>
         <PanelHeader>
           <PanelTitle title={session?.document.song.title ?? '없는 곡'} />
-          <PanelActions>
-            <Button
-              icon="edit"
-              disabled={editReason !== undefined}
-              title={editReason}
-              onClick={() => {
-                openItemSong({items, editor});
-              }}
-            >
-              {windowCommandLabels.editSong}
-            </Button>
-          </PanelActions>
+          {onBack === undefined ? (
+            <PanelActions>
+              <Button
+                icon="edit"
+                disabled={editReason !== undefined}
+                title={editReason}
+                onClick={() => {
+                  openItemSong({items, editor});
+                }}
+              >
+                {windowCommandLabels.editSong}
+              </Button>
+            </PanelActions>
+          ) : null}
         </PanelHeader>
         <Button
           disabled={session === null}

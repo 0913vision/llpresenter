@@ -17,7 +17,8 @@ import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import styles from './SongPanels.module.css';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {slideMenuEntries} from './slideMenuEntries';
-import type {SongSession} from './songSession';
+import type {SlideListSession} from './slideListSession';
+import type {SlideListItem} from '@core/songs/slideListEdits';
 
 const OVERSCAN_ROWS = 1;
 const INITIAL_ROWS = 2;
@@ -70,7 +71,7 @@ interface SlideSource {
 }
 
 /** Windows by rows; the full logical list remains reachable by keyboard. */
-export function VirtualSlides({
+export function VirtualSlides<T extends SlideListItem>({
   song,
   numbers,
   labels,
@@ -84,6 +85,7 @@ export function VirtualSlides({
   canvasFor,
   session,
   decoration,
+  background,
 }: {
   readonly song: SlideSource | Song;
   readonly numbers: readonly number[];
@@ -96,8 +98,9 @@ export function VirtualSlides({
   readonly onHotKey?: ((index: number) => void) | undefined;
   readonly hotKeyReason?: string | undefined;
   readonly canvasFor?: ((index: number) => ReactNode) | undefined;
-  readonly session?: SongSession;
+  readonly session?: SlideListSession<T>;
   readonly decoration?: ((start: number) => ReactNode) | undefined;
+  readonly background?: string | undefined;
 }): JSX.Element {
   const theme = useSlideTheme(
     {id: 'thumbnail', kind: 'song', title: ''},
@@ -196,7 +199,7 @@ export function VirtualSlides({
       };
       if (event.key === 'Home' || event.key === 'End') {
         const index = event.key === 'Home' ? 0 : numbers.length - 1;
-        const slide = session.history.snapshot.song.slides[index];
+        const slide = session.slideModel.getSnapshot().slides[index];
         if (slide === undefined) return;
         event.preventDefault();
         event.stopPropagation();
@@ -284,7 +287,7 @@ export function VirtualSlides({
         const local = [
           ...event.currentTarget.querySelectorAll('[role="option"]'),
         ].indexOf(option);
-        const slide = session.history.snapshot.song.slides[start + local];
+        const slide = session.slideModel.getSnapshot().slides[start + local];
         if (slide === undefined) return;
         event.preventDefault();
         event.stopPropagation();
@@ -333,7 +336,7 @@ export function VirtualSlides({
             const slides = song.slides;
             const slide = slides[number - 1];
             if (slide === undefined) return null;
-            const own = session?.history.snapshot.song.slides[number - 1];
+            const own = session?.slideModel.getSnapshot().slides[number - 1];
             const thumbnail = (
               <SlideThumbnail
                 key={start + index}
@@ -349,7 +352,7 @@ export function VirtualSlides({
                   (theme === undefined ? undefined : (
                     <SlidePicture
                       {...theme}
-                      background={session?.background}
+                      background={background}
                       slide={{
                         itemId: 'thumbnail',
                         position: number - 1,
@@ -363,9 +366,7 @@ export function VirtualSlides({
                   session === undefined
                     ? start + index === selected
                     : own !== undefined &&
-                      session.history.model
-                        .getSnapshot()
-                        .selection.ids.has(own.id)
+                      session.slideModel.getSnapshot().selection.ids.has(own.id)
                 }
                 hotKey={'hotKey' in slide ? slide.hotKey : undefined}
               />
@@ -384,7 +385,7 @@ export function VirtualSlides({
                   data-slide-gap={number - 1}
                   className={styles.gridGap}
                   data-caret={
-                    session.history.model.getSnapshot().selection.caret ===
+                    session.slideModel.getSnapshot().selection.caret ===
                     number - 1
                   }
                   aria-label={`슬라이드 ${number} 앞에 삽입`}
@@ -407,7 +408,7 @@ export function VirtualSlides({
             className={styles.lastGap}
             data-slide-gap={numbers.length}
             data-caret={
-              session.history.model.getSnapshot().selection.caret ===
+              session.slideModel.getSnapshot().selection.caret ===
               numbers.length
             }
             aria-label="마지막 슬라이드 뒤에 삽입"

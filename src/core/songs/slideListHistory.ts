@@ -11,17 +11,21 @@ import {
 } from './slideListEdits';
 
 export const SLIDE_LIST_HISTORY_LIMIT = 100;
-export interface SlideListHistory<T extends SlideListItem> {
-  readonly present: SlideListSnapshot<T>;
-  readonly past: ReadonlyArray<SlideListSnapshot<T>>;
-  readonly future: ReadonlyArray<SlideListSnapshot<T>>;
+export interface SlideListHistory<T extends SlideListItem, Context = unknown> {
+  readonly present: SlideListSnapshot<T, Context>;
+  readonly past: ReadonlyArray<SlideListSnapshot<T, Context>>;
+  readonly future: ReadonlyArray<SlideListSnapshot<T, Context>>;
 }
 
 /** Loading another revision resets history so undo cannot overwrite it. */
-export function createSlideListHistory<T extends SlideListItem>(
+export function createSlideListHistory<
+  T extends SlideListItem,
+  Context = unknown,
+>(
   slides: readonly T[],
   adapter: SlideListAdapter<T>,
-): Result<SlideListHistory<T>, SlideListError> {
+  context?: Context,
+): Result<SlideListHistory<T, Context>, SlideListError> {
   const result = validateSlideList(slides, adapter);
   return result.ok
     ? {
@@ -30,6 +34,7 @@ export function createSlideListHistory<T extends SlideListItem>(
           present: {
             slides: structuredClone(result.value),
             selection: emptySlideSelection(),
+            ...(context === undefined ? {} : {context}),
           },
           past: [],
           future: [],
@@ -38,22 +43,28 @@ export function createSlideListHistory<T extends SlideListItem>(
     : result;
 }
 
-export function applySlideListCommand<T extends SlideListItem>(
-  history: SlideListHistory<T>,
+export function applySlideListCommand<
+  T extends SlideListItem,
+  Context = unknown,
+>(
+  history: SlideListHistory<T, Context>,
   command: SlideListCommand<T>,
   adapter: SlideListAdapter<T>,
-): Result<SlideListHistory<T>, SlideListError> {
+): Result<SlideListHistory<T, Context>, SlideListError> {
   const result = editSlideList(history.present, command, adapter);
   if (!result.ok) return result;
   return recordSlideListSnapshot(history, result.value, {adapter});
 }
 
 /** Text edits share structural history; a continuing typing group replaces its present. */
-export function recordSlideListSnapshot<T extends SlideListItem>(
-  history: SlideListHistory<T>,
-  snapshot: SlideListSnapshot<T>,
+export function recordSlideListSnapshot<
+  T extends SlideListItem,
+  Context = unknown,
+>(
+  history: SlideListHistory<T, Context>,
+  snapshot: SlideListSnapshot<T, Context>,
   options: {readonly adapter: SlideListAdapter<T>; readonly coalesce?: boolean},
-): Result<SlideListHistory<T>, SlideListError> {
+): Result<SlideListHistory<T, Context>, SlideListError> {
   if (snapshot === history.present) return {ok: true, value: history};
   const checked = validateSlideList(snapshot.slides, options.adapter);
   if (!checked.ok) return checked;
@@ -70,9 +81,9 @@ export function recordSlideListSnapshot<T extends SlideListItem>(
   };
 }
 
-export function undoSlideList<T extends SlideListItem>(
-  history: SlideListHistory<T>,
-): SlideListHistory<T> {
+export function undoSlideList<T extends SlideListItem, Context = unknown>(
+  history: SlideListHistory<T, Context>,
+): SlideListHistory<T, Context> {
   const present = history.past.at(-1);
   return present === undefined
     ? history
@@ -83,9 +94,9 @@ export function undoSlideList<T extends SlideListItem>(
       };
 }
 
-export function redoSlideList<T extends SlideListItem>(
-  history: SlideListHistory<T>,
-): SlideListHistory<T> {
+export function redoSlideList<T extends SlideListItem, Context = unknown>(
+  history: SlideListHistory<T, Context>,
+): SlideListHistory<T, Context> {
   const present = history.future.at(-1);
   return present === undefined
     ? history

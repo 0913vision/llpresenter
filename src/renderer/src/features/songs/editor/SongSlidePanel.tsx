@@ -80,6 +80,7 @@ export function SongSlidePanel({
           <VirtualSlides
             session={session}
             key={song.id}
+            background={session.background}
             song={song}
             numbers={numbers}
             labels={state.labels?.value.labels ?? []}

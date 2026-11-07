@@ -7,22 +7,28 @@ import {SlidesDraft, newSlidesItem} from '@core/services/slidesEdits';
 import {SlideRows} from '@renderer/features/service/slides/SlideRows';
 
 afterEach(cleanup);
-function makeDraft(form: 'ad' | 'blank' = 'blank') {
+function makeDraft(
+  form: 'ad' | 'blank' = 'blank',
+  clipboard?: SlidesDraft['clipboard'],
+) {
   const item = newSlidesItem(
     form,
     createServiceItemId('10000000-0000-4000-8000-000000000001'),
   );
-  return new SlidesDraft({
-    ...item,
-    slides: {
-      ...item.slides,
-      slides: [1, 2, 3, 4].map(n => ({
-        id: createSlideId(`00000000-0000-4000-8000-00000000000${n}`),
-        text: `Line ${n}`,
-        ...(form === 'ad' ? {name: `Ad ${n}`} : {}),
-      })),
+  return new SlidesDraft(
+    {
+      ...item,
+      slides: {
+        ...item.slides,
+        slides: [1, 2, 3, 4].map(n => ({
+          id: createSlideId(`00000000-0000-4000-8000-00000000000${n}`),
+          text: `Line ${n}`,
+          ...(form === 'ad' ? {name: `Ad ${n}`} : {}),
+        })),
+      },
     },
-  });
+    clipboard,
+  );
 }
 function Harness({
   draft,
@@ -68,7 +74,11 @@ function keys(
   key: string,
   options: {ctrlKey?: boolean; shiftKey?: boolean; isComposing?: boolean} = {},
 ) {
-  fireEvent.keyDown(document.activeElement ?? row(0), {key, ...options});
+  fireEvent.keyDown(document.activeElement ?? row(0), {
+    key,
+    code: key.length === 1 ? `Key${key.toUpperCase()}` : key,
+    ...options,
+  });
 }
 function clipboard() {
   const data = new Map<string, string>();
@@ -135,12 +145,12 @@ describe('slide row editing surface', () => {
       const ids = [...source.snapshot.selection.ids];
       fireEvent.cut(row(3), {clipboardData: data});
       expect(rows()).toHaveLength(2);
-      expect(document.activeElement?.getAttribute('data-gap-index')).toBe('1');
+      expect(document.activeElement).toBe(screen.getByRole('group'));
       keys('z', {ctrlKey: true});
       expect(rows()).toHaveLength(4);
       expect([...source.snapshot.selection.ids]).toEqual(ids);
       view.unmount();
-      const target = makeDraft(form);
+      const target = makeDraft(form, source.clipboard);
       render(<Harness draft={target} />);
       fireEvent.click(screen.getByRole('button', {name: '1번째 위치에 삽입'}));
       fireEvent.paste(document.activeElement ?? row(0), {clipboardData: data});
@@ -169,7 +179,7 @@ describe('slide row editing surface', () => {
     keys('a', {ctrlKey: true});
     keys('Delete');
     expect(rows()).toHaveLength(0);
-    expect(document.activeElement?.getAttribute('data-gap-index')).toBe('0');
+    expect(document.activeElement).toBe(screen.getByRole('group'));
     keys('z', {ctrlKey: true});
     expect(rows()).toHaveLength(5);
   });
@@ -182,8 +192,11 @@ describe('slide row editing surface', () => {
     fireEvent.click(row(3), {ctrlKey: true});
     expect(fireEvent.mouseDown(row(1), {button: 0})).toBe(true);
     expect(selected()).toHaveLength(2);
-    fireEvent.dragStart(row(1), {dataTransfer: {setData: vi.fn()}});
-    fireEvent.drop(screen.getByRole('button', {name: '1번째 위치에 삽입'}));
+    const dataTransfer = clipboard();
+    fireEvent.dragStart(row(1), {dataTransfer});
+    fireEvent.drop(screen.getByRole('button', {name: '1번째 위치에 삽입'}), {
+      dataTransfer,
+    });
     expect(draft.snapshot.item.slides.slides.map(slide => slide.id)).toEqual([
       ids[1],
       ids[3],

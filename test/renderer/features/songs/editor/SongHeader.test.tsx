@@ -17,6 +17,19 @@ function title(): HTMLInputElement {
 }
 
 describe('song editor header', () => {
+  it.each(['Enter', 'Tab'])(
+    'commits the title and moves %s into the first slide text',
+    async key => {
+      const {user} = await editorSetup();
+      await user.click(title());
+      fireEvent.change(title(), {target: {value: 'First title'}});
+      await user.keyboard(`{${key}}`);
+      expect(title().value).toBe('First title');
+      expect(document.activeElement).toBe(lyrics());
+      await user.type(lyrics(), 'Next lyric');
+      expect(title().value).toBe('First title');
+    },
+  );
   it('keeps usage unknown until the catalog confirms a real zero', async () => {
     const fixture = editorFixture();
     const entries = await fixture.api.songs.list();

@@ -6,7 +6,11 @@ import {
   useSyncExternalStore,
   type JSX,
 } from 'react';
-import type {SongId} from '@core/schema/ids';
+import {
+  createServiceId,
+  createServiceItemId,
+  type SongId,
+} from '@core/schema/ids';
 import {isItemOfKind} from '@core/schema/service';
 import type {SongSlideSource} from '@core/schema/showService';
 import {TextImportFlow} from '@renderer/features/songs/import/TextImportFlow';
@@ -19,6 +23,7 @@ import {usePrepSelection} from './usePrepSelection';
 import {noticeTime} from '@renderer/ui/notices';
 import {InlineSongController} from '@renderer/features/songs/editor/InlineSongController';
 import type {SongEditorWindowModel} from '@renderer/features/songs/editor/useSongEditorWindow';
+import {useSlidesEditor} from '@renderer/features/service/slides/useSlidesEditor';
 
 const noEditorSubscription = (): (() => void) => () => undefined;
 
@@ -87,6 +92,18 @@ export function usePrepActions({
   const closeImport = useCallback(() => setImportSource(null), []);
   const prepSelection = usePrepSelection();
   const editorControls = useRef<SongEditorWindowModel | null>(null);
+  const slides = useSlidesEditor(session.api, session.report, {
+    beforeOpen: open =>
+      session.editor ? session.editor.requestLeave(open) : open(),
+    positionOf: () => session.items?.getSnapshot().position ?? 0,
+    onOpened: target => {
+      prepSelection.clear();
+      session.editor?.open(null);
+      openItem(target.itemId);
+      session.items?.show(target);
+      onWorkspace('prep');
+    },
+  });
   const songOpen = useRef(0);
   useEffect(
     () => () => {
@@ -186,6 +203,20 @@ export function usePrepActions({
         });
         return;
       }
+      const row = view.rows.find(row => row.id === itemId);
+      if (view.serviceId !== null && row?.kind === 'slides') {
+        session.items?.show({serviceId: view.serviceId, itemId});
+        session.items?.selectPosition(position ?? 0);
+        session.api?.slidesEditor
+          .open({
+            serviceId: createServiceId(view.serviceId),
+            itemId: createServiceItemId(itemId),
+          })
+          .catch((error: unknown) =>
+            console.error('Could not open slides', error),
+          );
+        return;
+      }
       if (position !== undefined && view.serviceId !== null) {
         session.items?.show({serviceId: view.serviceId, itemId});
         session.items?.selectPosition(position);
@@ -202,6 +233,7 @@ export function usePrepActions({
             editor: session.editor,
             items: session.items,
             controls: editorControls,
+            slides,
             onNewSong: newSong,
             selectionRequest: prepSelection.request,
             onSelectionHandled: prepSelection.handled,
@@ -210,7 +242,7 @@ export function usePrepActions({
           }
         : undefined,
     imported: workspace === 'prep' && imported,
-    editingSong: workspace === 'prep' && editingSong,
+    editingSong: workspace === 'prep' && (editingSong || slides.draft !== null),
     canImport: session.api !== undefined && importSource === null,
     importText,
     newSong,
@@ -225,6 +257,7 @@ export function usePrepActions({
             api={session.api}
             report={session.report}
             controls={editorControls}
+            beforeLeave={slides.requestLeave}
             onOpen={target => {
               prepSelection.clear();
               if (target.from !== undefined) {

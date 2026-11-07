@@ -20,6 +20,9 @@ import type {Notice} from '@renderer/ui/notices';
 import type {SizeClass} from '@renderer/ui/sizeClass';
 import type {PanelParts, WorkspacePanels} from '../shell/WorkspacePanel';
 import {SERVICE_ORDER, serviceOrderParts} from './serviceOrderPanel';
+import {SlidesEditor} from '@renderer/features/service/slides/SlidesEditor';
+import {InlineSlidesPanels} from '@renderer/features/service/slides/InlineSlidesPanels';
+import type {SlidesEditorModel} from '@renderer/features/service/slides/useSlidesEditor';
 
 const PREP_COLUMNS = [
   ['라이브러리'],
@@ -36,6 +39,7 @@ const PREP_DRAFT_COLUMNS = [
 /** What 준비 works on: the API, the song editor, and the item panels. */
 export interface PrepBinding {
   readonly controls?: RefObject<SongEditorWindowModel | null>;
+  readonly slides?: SlidesEditorModel;
   readonly onNewSong?: (() => void) | undefined;
   readonly onImportedSave?: ((id: SongId) => void) | undefined;
   readonly api: LlpApi;
@@ -96,6 +100,13 @@ function prepPanelParts({
     prep.editor.requestLeave(() => prep.editor.open(null));
   if (title === '라이브러리') return libraryParts(prep, onProblem);
   if (title === '편집') {
+    if (prep.slides?.draft !== null && prep.slides !== undefined) {
+      return {
+        embedded: (
+          <SlidesEditor api={prep.api} model={prep.slides} onBack={back} />
+        ),
+      };
+    }
     return {
       embedded: (
         <SongEditor
@@ -116,6 +127,19 @@ function prepPanelParts({
     };
   }
   if (title === '미리보기') {
+    if (prep.slides?.session) {
+      return {
+        size: 'content',
+        embedded: (
+          <InlineSlidesPanels
+            api={prep.api}
+            session={prep.slides.session}
+            preview
+            onBack={back}
+          />
+        ),
+      };
+    }
     return {
       size: 'content',
       embedded:
@@ -127,6 +151,18 @@ function prepPanelParts({
     };
   }
   if (title === '슬라이드') {
+    if (prep.slides?.session) {
+      return {
+        size: 'rest',
+        embedded: (
+          <InlineSlidesPanels
+            api={prep.api}
+            session={prep.slides.session}
+            onBack={back}
+          />
+        ),
+      };
+    }
     return {
       size: 'rest',
       embedded:
@@ -140,6 +176,7 @@ function prepPanelParts({
           <ServiceItemPanel
             items={prep.items}
             editor={prep.editor}
+            slides={prep.slides}
             sizeClass={sizeClass}
             onBack={hasDraft ? back : undefined}
           />
@@ -181,7 +218,7 @@ export function usePrepPanels({
           : 'library';
     },
   );
-  const hasDraft = editorKind !== 'table';
+  const hasDraft = editorKind !== 'table' || prep?.slides?.draft != null;
   return {
     columns: hasDraft ? PREP_DRAFT_COLUMNS : PREP_COLUMNS,
     partsOf: title =>

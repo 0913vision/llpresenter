@@ -39,6 +39,15 @@ export class SongSession {
   get slideIntent(): number {
     return this.intent;
   }
+  get slideModel() {
+    return this.history.model;
+  }
+  get clipboardOwner(): object {
+    return this.history.clipboard;
+  }
+  get slideDocumentId(): string {
+    return this.document.song.id;
+  }
   private readonly persistence: SongSessionPersistence;
   private backgroundEdited = false;
 

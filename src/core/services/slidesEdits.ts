@@ -1,12 +1,6 @@
 import {createSlideId, type SlideId} from '../schema/ids';
+import {copySlideList, type SlideListCommand} from '../songs/slideListEdits';
 import {
-  copySlideList,
-  editSlideList,
-  slidesFromPlainText,
-  type SlideListCommand,
-} from '../songs/slideListEdits';
-import {
-  emptySlideSelection,
   selectSlideList,
   slideInsertionIndex,
   type SlideListSelection,
@@ -15,11 +9,12 @@ import {
 import {slideRowsAdapter} from './slideRows';
 import type {ServiceItemOf} from '../schema/service';
 import {SLIDES_LIMITS} from '../schema/service';
+import {SlideListClipboard, SlideListModel} from '../songs/slideListModel';
+import {TYPING_PAUSE_MS} from '../songs/songHistory';
 
 export type SlidesItem = ServiceItemOf<'slides'>;
 export type Slide = SlidesItem['slides']['slides'][number];
 export const SLIDES_LIMIT = SLIDES_LIMITS.slides;
-const HISTORY_LIMIT = 100;
 
 const MERGE_CONFLICT = Symbol('slides-conflict');
 
@@ -118,147 +113,146 @@ interface Snapshot {
   readonly selection: SlideListSelection<SlideId>;
 }
 
-/** A bounded local draft; 저장 commits the whole item as one service edit. */
+type SlidesFields = Omit<SlidesItem, 'slides'> & {
+  readonly slides: Omit<SlidesItem['slides'], 'slides'>;
+};
+
+function fieldsOf(item: SlidesItem): SlidesFields {
+  const {slides: rows, ...slides} = item.slides;
+  return {...item, slides};
+}
+
+function serializedItem(item: SlidesItem): string {
+  const fields = fieldsOf(item);
+  return JSON.stringify({
+    ...fields,
+    slides: {...fields.slides, slides: item.slides.slides},
+  });
+}
+
+/** One adapter to the shared list model, including item fields in the same history. */
 export class SlidesDraft {
-  private readonly past: Snapshot[] = [];
-  private future: Snapshot[] = [];
-  private typing: string | undefined;
+  readonly model: SlideListModel<Slide, SlidesFields>;
+  private readonly snapshots = new WeakMap<object, Snapshot>();
+  private typing: {readonly key: string; readonly time: number} | undefined;
   private saved: string;
   private savedItem: SlidesItem;
-  private current: Snapshot;
+  private lastSelected = 0;
 
-  constructor(item: SlidesItem) {
-    this.current = {item, selected: 0, selection: this.single(item, 0)};
-    this.saved = JSON.stringify(item);
+  constructor(
+    item: SlidesItem,
+    readonly clipboard = new SlideListClipboard<Slide>(),
+  ) {
+    this.saved = serializedItem(item);
     this.savedItem = item;
+    this.model = new SlideListModel({
+      slides: item.slides.slides,
+      adapter: slideRowsAdapter(item.slides.form),
+      clipboard,
+      context: fieldsOf(item),
+    });
+    this.select(0);
   }
 
   get snapshot(): Snapshot {
-    return this.current;
+    const state = this.model.getContent();
+    const cached = this.snapshots.get(state);
+    if (cached !== undefined) return cached;
+    const fields = state.context ?? fieldsOf(this.savedItem);
+    const item = {...fields, slides: {...fields.slides, slides: state.slides}};
+    const focus = state.selection.focus;
+    const selected = Math.max(
+      0,
+      Math.min(
+        state.slides.length - 1,
+        focus?.kind === 'slide'
+          ? state.slides.findIndex(slide => slide.id === focus.id)
+          : (state.selection.caret ?? this.lastSelected),
+      ),
+    );
+    this.lastSelected = selected;
+    const snapshot = {item, selected, selection: state.selection};
+    this.snapshots.set(state, snapshot);
+    return snapshot;
   }
   get dirty(): boolean {
-    return JSON.stringify(this.current.item) !== this.saved;
+    return serializedItem(this.snapshot.item) !== this.saved;
   }
   get base(): SlidesItem {
     return this.savedItem;
   }
-  select(selected: number): void {
-    this.endTyping();
-    this.current = {
-      ...this.current,
-      selected,
-      selection: this.single(this.current.item, selected),
-    };
+  matchesSaved(item: SlidesItem): boolean {
+    return serializedItem(item) === this.saved;
   }
   get canUndo(): boolean {
-    return this.past.length > 0;
+    return this.model.getSnapshot().canUndo;
   }
   get canRedo(): boolean {
-    return this.future.length > 0;
+    return this.model.getSnapshot().canRedo;
+  }
+  select(selected: number): void {
+    const slide = this.model.getSnapshot().slides[selected];
+    this.selectRows(
+      slide === undefined ? {type: 'clear'} : {type: 'click', id: slide.id},
+    );
   }
   selectRows(action: SlideSelectionAction<SlideId>): void {
     this.endTyping();
-    const selection = selectSlideList(
-      this.current.item.slides.slides.map(slide => slide.id),
-      this.current.selection,
-      action,
-    );
-    this.current = {
-      ...this.current,
-      selection,
-      selected: this.focusIndex(selection),
-    };
+    this.model.select(action);
   }
   copyRows() {
     return copySlideList(
-      {
-        slides: this.current.item.slides.slides,
-        selection: this.current.selection,
-      },
-      slideRowsAdapter(this.current.item.slides.form),
+      this.model.getSnapshot(),
+      slideRowsAdapter(this.snapshot.item.slides.form),
     );
   }
   commandRows(command: SlideListCommand<Slide>): boolean {
-    const {item, selection} = this.current;
-    const snapshot = {slides: item.slides.slides, selection};
-    const result = editSlideList(
-      snapshot,
-      command,
-      slideRowsAdapter(item.slides.form),
-    );
-    if (!result.ok) return false;
-    if (result.value === snapshot) return true;
-    this.commit({
-      item: {...item, slides: {...item.slides, slides: result.value.slides}},
-      selected: this.focusIndex(result.value.selection, result.value.slides),
-      selection: result.value.selection,
-    });
-    return true;
+    this.endTyping();
+    return this.model.command(command).ok;
   }
   pasteText(text: unknown): boolean {
-    const result = slidesFromPlainText(
-      text,
-      slideRowsAdapter(this.current.item.slides.form),
-    );
-    return result.ok && this.commandRows({type: 'paste', slides: result.value});
-  }
-  private single(item: SlidesItem, index: number): SlideListSelection<SlideId> {
-    const slide = item.slides.slides[index];
-    return slide === undefined
-      ? emptySlideSelection()
-      : selectSlideList(
-          item.slides.slides.map(slide => slide.id),
-          emptySlideSelection(),
-          {type: 'click', id: slide.id},
-        );
-  }
-  private focusIndex(
-    selection: SlideListSelection<SlideId>,
-    slides = this.current.item.slides.slides,
-  ): number {
-    const focus = selection.focus;
-    return Math.max(
-      0,
-      Math.min(
-        slides.length - 1,
-        focus?.kind === 'slide'
-          ? slides.findIndex(slide => slide.id === focus.id)
-          : (selection.caret ?? this.current.selected),
-      ),
-    );
+    this.endTyping();
+    return this.model.pasteText(text).ok;
   }
   endTyping(): void {
     this.typing = undefined;
   }
   change(
     item: SlidesItem,
-    selected = this.current.selected,
+    selected = this.snapshot.selected,
     typing?: string,
   ): void {
-    this.commit(
+    if (serializedItem(item) === serializedItem(this.snapshot.item)) return;
+    const time = Date.now();
+    const coalesce =
+      typing !== undefined &&
+      this.typing?.key === typing &&
+      time >= this.typing.time &&
+      time - this.typing.time < TYPING_PAUSE_MS;
+    const state = this.model.getSnapshot();
+    const slide = item.slides.slides[selected];
+    const result = this.model.edit(
       {
-        item,
-        selected,
+        ...state,
+        slides: item.slides.slides,
+        context: fieldsOf(item),
         selection:
-          typing !== undefined
-            ? this.current.selection
-            : this.single(item, selected),
+          typing !== undefined || slide === undefined
+            ? state.selection
+            : selectSlideList(
+                item.slides.slides.map(slide => slide.id),
+                state.selection,
+                {type: 'click', id: slide.id},
+              ),
       },
-      typing,
+      coalesce,
     );
-  }
-  private commit(next: Snapshot, typing?: string): void {
-    if (JSON.stringify(next.item) === JSON.stringify(this.current.item)) return;
-    if (typing === undefined || this.typing !== typing) {
-      this.past.push(this.current);
-      if (this.past.length > HISTORY_LIMIT) this.past.shift();
+    if (result.ok) {
+      this.typing = typing === undefined ? undefined : {key: typing, time};
     }
-    this.future = [];
-    this.typing = typing;
-    this.current = next;
   }
   add(slide: Slide): void {
-    const {item} = this.current;
+    const item = this.snapshot.item;
     if (item.slides.slides.length >= SLIDES_LIMIT) return;
     this.change(
       {
@@ -269,7 +263,7 @@ export class SlidesDraft {
     );
   }
   insert(slides: readonly Slide[]): boolean {
-    const {item} = this.current;
+    const item = this.snapshot.item;
     if (
       slides.length === 0 ||
       item.slides.slides.length + slides.length > SLIDES_LIMIT
@@ -278,8 +272,9 @@ export class SlidesDraft {
     }
     const at = slideInsertionIndex(
       item.slides.slides.map(slide => slide.id),
-      this.current.selection,
+      this.snapshot.selection,
     );
+    const before = this.model.getContent();
     this.change(
       {
         ...item,
@@ -294,50 +289,33 @@ export class SlidesDraft {
       },
       at,
     );
-    return true;
+    return this.model.getContent() !== before;
   }
   remove(index: number): void {
-    const {item} = this.current;
-    if (item.slides.slides[index] === undefined) return;
-    const slides = item.slides.slides.filter((_, at) => at !== index);
-    this.change(
-      {...item, slides: {...item.slides, slides}},
-      Math.max(0, Math.min(index, slides.length - 1)),
-    );
+    const slide = this.snapshot.item.slides.slides[index];
+    if (slide === undefined) return;
+    this.selectRows({type: 'click', id: slide.id});
+    this.commandRows({type: 'delete'});
   }
   move(from: number, to: number): void {
-    const {item} = this.current;
-    const slides = [...item.slides.slides];
-    if (
-      from === to ||
-      from < 0 ||
-      from >= slides.length ||
-      to < 0 ||
-      to >= slides.length
-    ) {
-      return;
-    }
-    const [moved] = slides.splice(from, 1);
-    if (moved === undefined) return;
-    slides.splice(to, 0, moved);
-    this.change({...item, slides: {...item.slides, slides}}, to);
+    const rows = this.snapshot.item.slides.slides;
+    if (from === to || to < 0 || to >= rows.length) return;
+    const slide = rows[from];
+    if (slide === undefined) return;
+    this.selectRows({type: 'click', id: slide.id});
+    this.commandRows({type: 'move', index: to > from ? to + 1 : to});
   }
   undo(): void {
     this.endTyping();
-    const previous = this.past.pop();
-    if (previous === undefined) return;
-    this.future.push(this.current);
-    this.current = previous;
+    this.model.undo();
   }
   redo(): void {
     this.endTyping();
-    const next = this.future.pop();
-    if (next === undefined) return;
-    this.past.push(this.current);
-    this.current = next;
+    this.model.redo();
   }
-  markSaved(item: SlidesItem): void {
-    this.saved = JSON.stringify(item);
+  markSaved(item: SlidesItem, endTyping = true): void {
+    if (endTyping) this.endTyping();
+    this.saved = serializedItem(item);
     this.savedItem = item;
   }
 }
