@@ -25,6 +25,13 @@ workspace). See 01.
 - Dragging column widths, remembering them per size class, and shrinking the
   preview when the window is too short follow the design system `Layout`
   document.
+- Every movable panel border has the same 8px pointer target: `row-resize` for
+  stacked panels and `col-resize` for side panels, including the media bin's
+  columns. Save heights and widths per size class when dragging ends. Keep
+  existing panel minimums and fixed clear-control heights. Borders with no
+  available movement show the normal cursor; the collapsed bin does not expose a
+  height handle. Window resizing fits saved heights without replacing the
+  operator's preference.
 
 Source: `Main` decisions "진행 화면은 절충안" and "작업 공간 세 개", product log
 (진행 screen direction).

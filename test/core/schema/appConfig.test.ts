@@ -35,6 +35,17 @@ function parse(json: unknown) {
 }
 
 describe('parseAppConfig', () => {
+  it('round trips remembered panel heights while preserving future row fields', () => {
+    const rows = {'media.bin': 220, 'show.preview': 280, 'future.panel': 7};
+    const loaded = expectSuccess(
+      parse({...fullConfig(), layout: {normal: {rows}}}),
+    );
+    expect(loaded.data.layout?.normal?.rows).toEqual(rows);
+    const serialized = expectSuccess(serializeAppConfig(loaded.data, FILE));
+    expect(
+      expectSuccess(parseAppConfig(serialized, FILE)).data.layout?.normal?.rows,
+    ).toEqual(rows);
+  });
   it('round trips the screen settings window placement', () => {
     const screensWindow = {
       x: -1400,

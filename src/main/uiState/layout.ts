@@ -8,8 +8,16 @@ import type {LayoutChange} from '@core/schema/uiState';
  */
 export function withLayoutChange(
   layout: AppLayout | undefined,
-  {sizeClass, ...fields}: LayoutChange,
+  {sizeClass, rows, ...fields}: LayoutChange,
 ): AppLayout {
   const current = layout ?? {};
-  return {...current, [sizeClass]: {...current[sizeClass], ...fields}};
+  const previous = current[sizeClass];
+  return {
+    ...current,
+    [sizeClass]: {
+      ...previous,
+      ...fields,
+      ...(rows === undefined ? {} : {rows: {...previous?.rows, ...rows}}),
+    },
+  };
 }

@@ -6,28 +6,46 @@
   grid-template-columns: var(--ll-col-left) minmax(0, 1fr) var(--ll-col-right);
   gap: var(--panel-gap);
   padding: 0 var(--panel-gap);
-  min-height: 0;
+  min-height: var(--media-bin-min-height);
   overflow: hidden;
+}
+
+.bin[data-resizable-columns] {
+  grid-template-columns:
+    var(--ll-col-left) var(--panel-gap) minmax(0, 1fr)
+    var(--panel-gap) var(--ll-col-right);
+  column-gap: 0;
 }
 
 .lists {
   display: flex;
   flex-direction: column;
-  gap: var(--panel-gap);
+  gap: 0;
   min-width: 0;
   min-height: 0;
 }
 
-.lists > :first-child {
-  flex: 1;
-  height: auto;
-  min-height: 0;
+.playlist {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(var(--size-panel-header) + var(--size-row));
+  overflow: hidden;
 }
 
-.lists > :last-child {
+.mediaLists {
+  flex: 1;
+}
+
+.audioLists {
   flex: 0 1 auto;
   height: auto;
   max-height: 50%;
+}
+
+.playlist > * {
+  flex: 1;
+  min-height: 0;
+  height: auto;
 }
 
 .collapsed {

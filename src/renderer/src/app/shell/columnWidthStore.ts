@@ -1,4 +1,5 @@
 import type {LayoutChange, UiState} from '@core/schema/uiState';
+import {PANEL_ROW_LIMITS, type PanelRows} from '@core/schema/panelRows';
 import {clamp, COLUMN_RANGES} from './columns';
 import type {ColumnWidths, SizeClass} from '../../ui/sizeClass';
 
@@ -6,12 +7,18 @@ import type {ColumnWidths, SizeClass} from '../../ui/sizeClass';
 export interface ColumnWidthStore {
   load(sizeClass: SizeClass): ColumnWidths | undefined;
   save(sizeClass: SizeClass, widths: ColumnWidths): void;
+  loadRows?(sizeClass: SizeClass): PanelRows | undefined;
+  saveRows?(sizeClass: SizeClass, rows: PanelRows): void;
 }
 
 export function createMemoryColumnWidthStore(): ColumnWidthStore {
   const saved = new Map<SizeClass, ColumnWidths>();
+  const rows = new Map<SizeClass, PanelRows>();
   return {
     load: sizeClass => saved.get(sizeClass),
+    loadRows: sizeClass => rows.get(sizeClass),
+    saveRows: (sizeClass, next) =>
+      rows.set(sizeClass, {...rows.get(sizeClass), ...next}),
     save: (sizeClass, widths) => {
       saved.set(sizeClass, widths);
     },
@@ -31,7 +38,26 @@ export function createIpcColumnWidthStore(
   send: (change: LayoutChange) => void,
 ): ColumnWidthStore {
   const changed = new Map<SizeClass, ColumnWidths>();
+  const rows = new Map<SizeClass, PanelRows>();
   return {
+    loadRows: sizeClass =>
+      rows.get(sizeClass) ?? initial.layout?.[sizeClass]?.rows,
+    saveRows: (sizeClass, next) => {
+      const rounded = Object.fromEntries(
+        Object.entries(next).map(([id, height]) => [
+          id,
+          Math.max(
+            PANEL_ROW_LIMITS.min,
+            Math.min(PANEL_ROW_LIMITS.max, Math.round(height)),
+          ),
+        ]),
+      );
+      rows.set(sizeClass, {
+        ...(rows.get(sizeClass) ?? initial.layout?.[sizeClass]?.rows),
+        ...rounded,
+      });
+      send({sizeClass, rows: rounded});
+    },
     load: sizeClass => {
       const known = changed.get(sizeClass);
       if (known) return known;

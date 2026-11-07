@@ -26,6 +26,16 @@ All values are CSS pixels after Windows display scaling (the same as Electron DI
 
 ## Shared media bin height
 
+Every movable border uses the same 4px gap and an 8px pointer target. Stacked
+panels use `row-resize`, side panels use `col-resize`. Dragging a stacked border
+changes the adjacent flexible panels and preserves any fixed clear row between
+them. Existing minimum heights still apply. If both panels are at their minimum,
+the border has no resize cursor. A collapsed media bin has no height handle.
+Remember panel heights per size class when the drag ends, alongside the column
+widths. Fit them temporarily when the window shrinks, retaining the saved heights
+for a larger window. The media bin's documented initial height is its default;
+an explicit drag can grow it up to the space left by the upper row's minimum.
+
 The October 26 shared-bin decision replaces the former 170px center-column
 strip. The same height allocation applies in 진행 and 준비. The upper editor,
 workspace preview and lists remain mounted and usable above the bin.

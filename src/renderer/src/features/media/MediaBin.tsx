@@ -1,4 +1,7 @@
-import {useLayoutEffect, useRef, type JSX} from 'react';
+import {useLayoutEffect, useRef, type JSX, type ReactNode} from 'react';
+import {ResizeGap} from '@renderer/ui/ResizeGap';
+import {useRowLayout, type RowSizeStore} from '@renderer/ui/useRowLayout';
+import type {SizeClass} from '@renderer/ui/sizeClass';
 import type {Notice} from '@renderer/ui/notices';
 import {Button} from '@renderer/ui/Button';
 import {Icon} from '@renderer/ui/Icon';
@@ -8,6 +11,7 @@ import {MediaView} from './MediaView';
 import {useMediaView} from './MediaViewProvider';
 import {chosenPlaylist, mediaEntries, UNNAMED_PLAYLIST} from './mediaEntries';
 import styles from './MediaBin.module.css';
+const noRowStore: RowSizeStore = {};
 
 /** The shared bottom media bin, without replacing the workspace's editor. */
 export function MediaBin({
@@ -15,13 +19,28 @@ export function MediaBin({
   onProblem,
   open = true,
   onOpenChange,
+  rowStore = noRowStore,
+  sizeClass = 'normal',
+  columnGap,
 }: {
   readonly workspace: 'show' | 'prep';
   readonly onProblem: (notice: Notice) => void;
   readonly open?: boolean;
   readonly onOpenChange?: ((open: boolean) => void) | undefined;
+  readonly rowStore?: RowSizeStore | undefined;
+  readonly sizeClass?: SizeClass | undefined;
+  readonly columnGap?: ((column: 'left' | 'right') => ReactNode) | undefined;
 }): JSX.Element {
   const root = useRef<HTMLElement>(null);
+  const lists = useRef<HTMLDivElement>(null);
+  const rows = useRowLayout({
+    container: lists,
+    store: rowStore,
+    sizeClass,
+    layoutKey: workspace,
+    enabled: open,
+    fill: 'first',
+  });
   const restoreFocus = useRef(false);
   const {view, choice} = useMediaView();
   useLayoutEffect(() => {
@@ -67,11 +86,34 @@ export function MediaBin({
     );
   }
   return (
-    <section ref={root} aria-label="미디어 보관함" className={styles.bin}>
-      <div className={styles.lists}>
-        <MediaListsPanel />
-        <AudioListsPanel />
+    <section
+      ref={root}
+      data-resize-panel="media.bin"
+      data-resizable-columns={columnGap === undefined ? undefined : ''}
+      aria-label="미디어 보관함"
+      className={styles.bin}
+    >
+      <div ref={lists} className={styles.lists}>
+        <div
+          className={`${styles.playlist} ${styles.mediaLists}`}
+          data-resize-panel="media.lists"
+        >
+          <MediaListsPanel />
+        </div>
+        <ResizeGap
+          axis="row"
+          name="media.lists"
+          begin={() => rows.begin(0)}
+          disabled={!rows.canResize(0)}
+        />
+        <div
+          className={`${styles.playlist} ${styles.audioLists}`}
+          data-resize-panel="media.audio"
+        >
+          <AudioListsPanel />
+        </div>
       </div>
+      {columnGap?.('left')}
       <MediaView
         workspace={workspace}
         onProblem={onProblem}
@@ -81,6 +123,7 @@ export function MediaBin({
             : button => change(false, button)
         }
       />
+      {columnGap?.('right')}
       <MediaPropertiesPanel />
     </section>
   );

@@ -4,6 +4,27 @@ import {withLayoutChange} from '@main/uiState/layout';
 const normal = {sizeClass: 'normal'} as const;
 
 describe('withLayoutChange', () => {
+  it('merges one panel height while retaining other panels and unrelated layout fields', () => {
+    const layout = {
+      normal: {
+        left: 280,
+        right: 480,
+        rows: {'media.bin': 200, 'show.preview': 280, future: 7},
+      },
+      wide: {rows: {'media.bin': 300}},
+    };
+    expect(
+      withLayoutChange(layout, {...normal, rows: {'media.bin': 220}}),
+    ).toEqual({
+      normal: {
+        left: 280,
+        right: 480,
+        rows: {'media.bin': 220, 'show.preview': 280, future: 7},
+      },
+      wide: {rows: {'media.bin': 300}},
+    });
+    expect(layout.normal.rows['media.bin']).toBe(200);
+  });
   it('starts a layout, and a size class, from nothing', () => {
     expect(
       withLayoutChange(undefined, {...normal, left: 300, right: 500}),

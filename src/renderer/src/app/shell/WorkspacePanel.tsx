@@ -1,4 +1,5 @@
 import type {JSX, ReactNode} from 'react';
+import type {PanelRowId} from '@core/schema/panelRows';
 import {classNames} from '@renderer/ui/classNames';
 import type {Notice} from '@renderer/ui/notices';
 import styles from './Workspace.module.css';
@@ -55,20 +56,32 @@ function sizedClass(
 export function Panel({
   title,
   parts,
+  rowId,
 }: {
   readonly title: string;
   readonly parts: PanelParts;
+  readonly rowId?: PanelRowId | undefined;
 }): JSX.Element {
   if (parts.embedded) {
     return (
-      <div className={sizedClass(styles.embedded, parts.size)}>
+      <div
+        data-resize-panel={rowId ?? ''}
+        className={sizedClass(styles.embedded, parts.size)}
+      >
         {parts.embedded}
       </div>
     );
   }
-  if (parts.bare) return <div className={styles.bare}>{parts.bare}</div>;
+  if (parts.bare) {
+    return (
+      <div data-resize-panel="" data-resize-fixed className={styles.bare}>
+        {parts.bare}
+      </div>
+    );
+  }
   return (
     <section
+      data-resize-panel={rowId ?? ''}
       className={sizedClass(styles.panel, parts.size)}
       aria-label={title}
     >

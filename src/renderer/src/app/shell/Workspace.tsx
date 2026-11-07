@@ -19,7 +19,10 @@ import type {SizeClass} from '../../ui/sizeClass';
 import type {Workspace as WorkspaceId} from './Toolbar';
 import {useColumnLayout} from './useColumnLayout';
 import type {SidebarCollapse} from './useSidebarCollapse';
-import {logPanelProblem, Panel} from './WorkspacePanel';
+import {logPanelProblem} from './WorkspacePanel';
+import {PanelColumn} from './PanelColumn';
+import {ResizeGap} from '@renderer/ui/ResizeGap';
+import {useRowLayout} from '@renderer/ui/useRowLayout';
 import styles from './Workspace.module.css';
 
 const ignoreProblem = (): void => undefined;
@@ -115,31 +118,38 @@ export function Workspace({
   const {columns} = panels;
   const api = mediaApi ?? prep?.api ?? window.llp;
   const mediaOpen = id !== 'screens' && mediaVisible;
+  const mediaRows = useRowLayout({
+    container: gridRef,
+    store,
+    sizeClass,
+    layoutKey: 'media',
+    enabled: mediaOpen && api !== undefined,
+    fill: 'first',
+  });
   const panelColumns = columns.map((titles, column) => (
     <Fragment key={column}>
       {column === 1 && toggle.collapsed ? <div aria-hidden="true" /> : null}
       {column > 0 && !(column === 1 && toggle.collapsed) ? (
         <ColumnGap column={column === 1 ? 'left' : 'right'} drag={drag} />
       ) : null}
-      <div
-        className={styles.column}
-        style={
-          column === columns.length - 1 && warningHeight > 0
-            ? {paddingTop: `calc(${warningHeight}px + var(--panel-gap))`}
-            : undefined
-        }
-      >
-        {column === 0 && toggle.collapsed ? (
+      {column === 0 && toggle.collapsed ? (
+        <div className={styles.column}>
           <CollapsedSidebar
             claimFocus={toggle.claimFocus}
             onPress={button => toggle.toggle(false, button)}
           />
-        ) : (
-          titles.map(title => (
-            <Panel key={title} title={title} parts={panels.partsOf(title)} />
-          ))
-        )}
-      </div>
+        </div>
+      ) : (
+        <PanelColumn
+          workspace={id}
+          titles={titles}
+          partsOf={panels.partsOf}
+          store={store}
+          sizeClass={sizeClass}
+          draft={columns[1]?.[0] === '편집'}
+          warningHeight={column === columns.length - 1 ? warningHeight : 0}
+        />
+      )}
     </Fragment>
   ));
   // TODO(0913vision): Let the shrink rule ignore the hidden left width while
@@ -158,6 +168,7 @@ export function Workspace({
         <ShowShortcuts onProblem={onProblem ?? logPanelProblem} />
       ) : null}
       <div
+        data-resize-panel="media.upper"
         className={classNames(
           styles.columns,
           toggle.collapsed && styles.leftCollapsed,
@@ -166,12 +177,23 @@ export function Workspace({
       >
         {panelColumns}
       </div>
+      {mediaOpen && api !== undefined ? (
+        <ResizeGap
+          axis="row"
+          name="media.bin"
+          begin={() => mediaRows.begin(0)}
+          disabled={!mediaRows.canResize(0)}
+        />
+      ) : null}
       {id !== 'screens' && api !== undefined ? (
         <MediaBin
           workspace={id}
           open={mediaOpen}
           onOpenChange={onMediaOpenChange}
           onProblem={onProblem ?? ignoreProblem}
+          rowStore={store}
+          sizeClass={sizeClass}
+          columnGap={column => <ColumnGap column={column} drag={drag} />}
         />
       ) : null}
     </main>

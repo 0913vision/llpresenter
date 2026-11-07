@@ -2,6 +2,7 @@ import * as v from 'valibot';
 import type {Result} from '../common/result';
 import {appLayoutSchema, sizeClasses, type AppConfig} from './appConfig';
 import {mediaBrowserSchema} from './mediaBrowser';
+import {panelRowsChangeSchema} from './panelRows';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
 
 /**
@@ -28,6 +29,7 @@ function integerIn({min, max}: IntegerRange) {
 const layoutChangeSchema = v.pipe(
   payloadObject({
     sizeClass: v.picklist(sizeClasses),
+    rows: v.exactOptional(panelRowsChangeSchema),
     leftCollapsed: v.exactOptional(v.boolean()),
     left: integerIn(COLUMN_LIMITS.left),
     right: integerIn(COLUMN_LIMITS.right),
@@ -38,10 +40,11 @@ const layoutChangeSchema = v.pipe(
     'Expected the left and right widths together',
   ),
   v.check(
-    ({left, thumbnailScalePercent, leftCollapsed}) =>
+    ({left, thumbnailScalePercent, leftCollapsed, rows}) =>
       left !== undefined ||
       thumbnailScalePercent !== undefined ||
-      leftCollapsed !== undefined,
+      leftCollapsed !== undefined ||
+      rows !== undefined,
     'Expected column widths, thumbnail scale, or sidebar state',
   ),
 );

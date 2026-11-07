@@ -16,6 +16,7 @@
 .mediaOpen {
   grid-template-rows:
     minmax(var(--workspace-upper-min-height), 1fr)
+    var(--panel-gap)
     clamp(
       var(--media-bin-min-height),
       min(
@@ -24,7 +25,11 @@
       ),
       calc(var(--size-media-strip-tile) * 2)
     );
-  gap: var(--panel-gap);
+  gap: 0;
+}
+
+.mediaOpen > .columns {
+  min-height: var(--workspace-upper-min-height);
 }
 
 .columns {
@@ -47,12 +52,12 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: var(--panel-gap);
+  gap: 0;
 }
 
 .panel {
   flex: 1;
-  min-height: 0;
+  min-height: calc(var(--size-panel-header) + var(--size-row));
   display: flex;
   flex-direction: column;
   border-radius: var(--radius-lg);
@@ -110,10 +115,12 @@
 
 .rest {
   flex: 1 0 var(--tools-min-height);
+  min-height: var(--tools-min-height);
 }
 
 .list {
   flex: 1 0 var(--slides-min-height);
+  min-height: var(--slides-min-height);
 }
 
 .settings {

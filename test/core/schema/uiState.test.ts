@@ -9,6 +9,37 @@ import {
 } from '@core/schema/uiState';
 
 describe('parseLayoutChange', () => {
+  it('accepts bounded panel heights alone and drops unknown row keys', () => {
+    expect(
+      parseLayoutChange({
+        sizeClass: 'normal',
+        rows: {'media.bin': 168, 'show.preview': 32_768, unknown: 5},
+      }),
+    ).toEqual({
+      ok: true,
+      value: {
+        sizeClass: 'normal',
+        rows: {'media.bin': 168, 'show.preview': 32_768},
+      },
+    });
+  });
+
+  it.each([0, -1, 32_769, 168.5, '168', null, NaN, Infinity])(
+    'rejects invalid panel height %j',
+    height => {
+      expect(
+        parseLayoutChange({sizeClass: 'normal', rows: {'media.bin': height}})
+          .ok,
+      ).toBe(false);
+    },
+  );
+
+  it.each([{}, {unknown: 5}, [], null])(
+    'rejects empty or malformed rows %j',
+    rows => {
+      expect(parseLayoutChange({sizeClass: 'normal', rows}).ok).toBe(false);
+    },
+  );
   it('accepts every size class at both ends of the ranges', () => {
     for (const sizeClass of ['narrow', 'normal', 'wide']) {
       for (const [left, right] of [

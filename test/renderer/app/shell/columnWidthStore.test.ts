@@ -188,6 +188,45 @@ describe('loadUiState', () => {
 });
 
 describe('createColumnWidthStore', () => {
+  it('loads panel heights per size class and saves only the changed rounded heights', () => {
+    const setLayout = vi.fn<(change: LayoutChange) => void>();
+    const store = createColumnWidthStore(mockLlpApi({ui: {setLayout}}), {
+      layout: {
+        normal: {
+          left: 300,
+          right: 500,
+          rows: {'media.bin': 220, 'show.preview': 250},
+        },
+        narrow: {rows: {'media.bin': 168}},
+      },
+    });
+    expect(store.loadRows?.('normal')).toEqual({
+      'media.bin': 220,
+      'show.preview': 250,
+    });
+    store.saveRows?.('normal', {'media.bin': 240.4});
+    expect(setLayout).toHaveBeenCalledExactlyOnceWith({
+      sizeClass: 'normal',
+      rows: {'media.bin': 240},
+    });
+    expect(store.loadRows?.('normal')).toEqual({
+      'media.bin': 240,
+      'show.preview': 250,
+    });
+    expect(store.loadRows?.('narrow')).toEqual({'media.bin': 168});
+    expect(store.load('normal')).toEqual({left: 300, right: 500});
+  });
+
+  it('keeps panel heights in memory across saves without the Electron API', () => {
+    const store = createColumnWidthStore(undefined, {});
+    store.saveRows?.('normal', {'media.bin': 220});
+    store.saveRows?.('normal', {'show.preview': 260});
+    expect(store.loadRows?.('normal')).toEqual({
+      'media.bin': 220,
+      'show.preview': 260,
+    });
+    expect(store.loadRows?.('narrow')).toBeUndefined();
+  });
   it('starts from the given state and sends saves through the API', () => {
     const setLayout = vi.fn<(change: LayoutChange) => void>();
     const api = mockLlpApi({

@@ -12,6 +12,7 @@ import {macroCollectionIdSchema, screenIdSchema, serviceIdSchema} from './ids';
 import type {MigrationStep} from './migration';
 import {UI_ZOOM, uiZoomPercentSchema} from './uiZoom';
 import {mediaBrowserSchema} from './mediaBrowser';
+import {panelRowsSchema} from './panelRows';
 import {
   jsonObject,
   nonNegativeNumber,
@@ -20,6 +21,7 @@ import {
 } from './primitives';
 
 const columnLayoutSchema = jsonObject({
+  rows: v.exactOptional(panelRowsSchema),
   leftCollapsed: v.exactOptional(v.boolean()),
   left: v.exactOptional(nonNegativeNumber),
   right: v.exactOptional(nonNegativeNumber),
