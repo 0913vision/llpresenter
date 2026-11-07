@@ -8,6 +8,7 @@ import {
 } from 'react';
 import {PreferencesView} from '@renderer/features/preferences/PreferencesView';
 import {useShortcutSettings} from '@renderer/platform/useShortcutSettings';
+import type {PreferencesRequest} from '@contracts/ipc/window';
 import {IconButton} from '@renderer/ui';
 import {watchInputModality} from '@renderer/ui/inputModality';
 import {NotificationStack} from '@renderer/ui/Notification';
@@ -40,6 +41,11 @@ export function PreferencesWindow({
   useUiZoomKeys();
   const body = useRef<HTMLElement>(null);
   const close = useCallback(() => window.llp?.window.control('close'), []);
+  const ready = useCallback(
+    (request: PreferencesRequest) =>
+      window.llp?.window.preferencesReady(request),
+    [],
+  );
   useCloseKeys(close);
   useInitialListFocus(body);
   useEffect(() => watchInputModality(window), []);
@@ -60,7 +66,11 @@ export function PreferencesWindow({
         </div>
       </header>
       <main ref={body} className={styles.body} aria-label={TITLE}>
-        <PreferencesView onProblem={report} labelStore={session?.editor} />
+        <PreferencesView
+          onProblem={report}
+          labelStore={session?.editor}
+          onReady={ready}
+        />
       </main>
       <NotificationStack
         notices={notices}

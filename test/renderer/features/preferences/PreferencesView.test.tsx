@@ -20,7 +20,7 @@ import {
   defaultPreferences,
   type PreferencesFile,
 } from '@core/schema/preferences';
-import {translationIdSchema} from '@core/schema/ids';
+import {translationIdSchema, themeIdSchema} from '@core/schema/ids';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import type {PreferencePageId} from '@core/schema/preferencePages';
@@ -88,11 +88,67 @@ function install(
     },
     bible: {name: 'bible', value: BIBLE_FILE, revision: 3, access},
   };
+  const extra: readonly SettingsDocument[] = [
+    {
+      name: 'shortcuts',
+      revision: 1,
+      access,
+      value: {format: 'llsettings.shortcuts', schemaVersion: 1, bindings: {}},
+    },
+    {
+      name: 'themes',
+      revision: 1,
+      access,
+      value: {
+        format: 'llsettings.themes',
+        schemaVersion: 1,
+        themes: [],
+        defaults: {},
+        standby: {
+          id: v.parse(themeIdSchema, '00000000-0000-4000-8000-000000000001'),
+          name: 'Standby',
+          screens: {},
+        },
+      },
+    },
+    {
+      name: 'props',
+      revision: 1,
+      access,
+      value: {format: 'llsettings.props', schemaVersion: 1, props: []},
+    },
+    {
+      name: 'macros',
+      revision: 1,
+      access,
+      value: {
+        format: 'llsettings.macros',
+        schemaVersion: 1,
+        macros: [],
+        collections: [],
+      },
+    },
+    {
+      name: 'timers',
+      revision: 1,
+      access,
+      value: {format: 'llsettings.timers', schemaVersion: 1, timers: []},
+    },
+    {
+      name: 'screens',
+      revision: 1,
+      access,
+      value: {format: 'llsettings.screens', schemaVersion: 1, screens: []},
+    },
+  ];
   window.llp = mockLlpApi({
     settings: {
       get: ({name}) => {
         const document =
-          name === 'bible' ? documents.bible : documents.preferences;
+          name === 'bible'
+            ? documents.bible
+            : (extra.find(document => document.name === name) ??
+              documents.preferences);
         return Promise.resolve(document);
       },
       subscribe: listener => {
@@ -120,13 +176,21 @@ function written(): PreferencesFile {
   return request.value;
 }
 
+const originalFonts = Object.getOwnPropertyDescriptor(document, 'fonts');
+
 beforeEach(() => {
+  Object.defineProperty(document, 'fonts', {
+    configurable: true,
+    value: {ready: Promise.resolve()},
+  });
   edit.mockReset();
   edit.mockResolvedValue({ok: true, value: {id: 'preferences', revision: 6}});
   onProblem.mockReset();
 });
 
 afterEach(() => {
+  if (originalFonts === undefined) Reflect.deleteProperty(document, 'fonts');
+  else Object.defineProperty(document, 'fonts', originalFonts);
   cleanup();
   delete window.llp;
 });
@@ -136,6 +200,82 @@ async function openPage(name: string): Promise<void> {
 }
 
 describe('PreferencesView', () => {
+  it.each([
+    'bible',
+    'shortcuts',
+    'themes',
+    'props',
+    'macros',
+    'timers',
+    'screens',
+  ] as const)(
+    'waits for the requested page data when %s is deferred',
+    async name => {
+      const page = name === 'bible' ? 'bible' : 'shortcuts';
+      const request = {requestId: 7, page} as const;
+      install({
+        window: {
+          preferencesPage: async () => page,
+          preferencesRequest: async () => request,
+        },
+      });
+      const api = window.llp;
+      if (api === undefined) throw new Error('Missing API');
+      const get = api.settings.get;
+      const document = await get({name});
+      let release: (value: SettingsDocument) => void = () => undefined;
+      const pending = new Promise<SettingsDocument>(resolve => {
+        release = resolve;
+      });
+      vi.spyOn(api.settings, 'get').mockImplementation(query =>
+        query.name === name ? pending : get(query),
+      );
+      const onReady = vi.fn();
+      render(<PreferencesView onProblem={onProblem} onReady={onReady} />);
+      await screen.findByRole('heading', {
+        name: page === 'bible' ? '성경' : '단축키',
+      });
+      await act(async () => {
+        await new Promise<void>(resolve =>
+          requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+        );
+      });
+      expect(onReady).not.toHaveBeenCalled();
+      await act(async () => release(document));
+      await waitFor(() =>
+        expect(onReady).toHaveBeenCalledExactlyOnceWith(request),
+      );
+    },
+  );
+  it('reports readiness after settings, the requested page, and fonts have drawn', async () => {
+    const onReady = vi.fn();
+    let finishFonts: () => void = () => undefined;
+    const ready = new Promise<void>(resolve => {
+      finishFonts = resolve;
+    });
+    const original = Object.getOwnPropertyDescriptor(document, 'fonts');
+    Object.defineProperty(document, 'fonts', {
+      configurable: true,
+      value: {ready},
+    });
+    try {
+      install({
+        window: {
+          preferencesPage: async () => 'output',
+          preferencesRequest: async () => ({requestId: 1, page: 'output'}),
+        },
+      });
+      render(<PreferencesView onProblem={onProblem} onReady={onReady} />);
+      await screen.findByRole('heading', {name: '출력'});
+      expect(onReady).not.toHaveBeenCalled();
+      await act(async () => finishFonts());
+      await waitFor(() => expect(onReady).toHaveBeenCalledOnce());
+    } finally {
+      cleanup();
+      if (original === undefined) Reflect.deleteProperty(document, 'fonts');
+      else Object.defineProperty(document, 'fonts', original);
+    }
+  });
   it('saves the Bible auto-open setting from the new-passage group', async () => {
     await mount();
     await openPage('성경');

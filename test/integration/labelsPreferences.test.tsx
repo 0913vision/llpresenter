@@ -19,6 +19,84 @@ import {PreferencesWindow} from '@renderer/app/PreferencesWindow';
 import {ControlSession} from '@renderer/app/controlSession';
 import type {EditResult} from '@core/schema/contentEdit';
 import type {PreferencePageId} from '@core/schema/preferencePages';
+import {defaultPreferences} from '@core/schema/preferences';
+import type {SettingsDocument} from '@core/schema/settingsDocuments';
+
+it('waits to reveal requested labels until the editor catalog has loaded them', async () => {
+  const originalFonts = Object.getOwnPropertyDescriptor(document, 'fonts');
+  Object.defineProperty(document, 'fonts', {
+    configurable: true,
+    value: {ready: Promise.resolve()},
+  });
+  onTestFinished(() => {
+    if (originalFonts === undefined) Reflect.deleteProperty(document, 'fonts');
+    else Object.defineProperty(document, 'fonts', originalFonts);
+  });
+  const f = editorFixture();
+  const get = f.api.settings.get;
+  let release: (value: SettingsDocument) => void = () => undefined;
+  const pending = new Promise<SettingsDocument>(resolve => {
+    release = resolve;
+  });
+  vi.spyOn(f.api.settings, 'get').mockImplementation(query => {
+    if (query.name === 'labels') return pending;
+    if (query.name === 'preferences') {
+      return Promise.resolve({
+        name: 'preferences',
+        value: defaultPreferences,
+        revision: 1,
+        access: 'editable',
+      });
+    }
+    if (query.name === 'bible') {
+      return Promise.resolve({
+        name: 'bible',
+        value: {
+          format: 'llsettings.bible',
+          schemaVersion: 1,
+          translations: [],
+          recents: [],
+        },
+        revision: 1,
+        access: 'editable',
+      });
+    }
+    return get(query);
+  });
+  vi.spyOn(f.api.window, 'preferencesPage').mockResolvedValue('labels');
+  vi.spyOn(f.api.window, 'preferencesRequest').mockResolvedValue({
+    requestId: 3,
+    page: 'labels',
+  });
+  window.llp = f.api;
+  const store = new SongEditorStore(f.api, vi.fn());
+  onTestFinished(async () => {
+    cleanup();
+    await store.dispose();
+  });
+  const onReady = vi.fn();
+  render(
+    <PreferencesView
+      labelStore={store}
+      onProblem={vi.fn()}
+      onReady={onReady}
+    />,
+  );
+  await screen.findByRole('heading', {name: '이름표'});
+  await act(async () => {
+    await new Promise<void>(resolve =>
+      requestAnimationFrame(() => requestAnimationFrame(() => resolve())),
+    );
+  });
+  expect(onReady).not.toHaveBeenCalled();
+  await act(async () => release(f.labels()));
+  await waitFor(() =>
+    expect(onReady).toHaveBeenCalledExactlyOnceWith({
+      requestId: 3,
+      page: 'labels',
+    }),
+  );
+});
 
 // NOTE(0913vision): These two catalogs represent separate windows, so their
 // modal shells must not hide each other's document in this jsdom test.

@@ -67,6 +67,37 @@ export function parsePreferencePage(
     : {ok: true, value: page};
 }
 
+export const PREFERENCES_REQUEST_LIMIT = 2_147_483_647;
+export interface PreferencesRequest {
+  readonly requestId: number;
+  readonly page: PreferencePageId;
+}
+
+/** Correlates a rendered preferences page with the request that selected it. */
+export function parsePreferencesRequest(
+  value: unknown,
+): Result<PreferencesRequest, PayloadError> {
+  if (
+    typeof value !== 'object' ||
+    value === null ||
+    !('requestId' in value) ||
+    typeof value.requestId !== 'number' ||
+    !Number.isInteger(value.requestId) ||
+    value.requestId < 0 ||
+    value.requestId > PREFERENCES_REQUEST_LIMIT ||
+    !('page' in value)
+  ) {
+    return {
+      ok: false,
+      error: {field: '', message: 'Expected a preferences request'},
+    };
+  }
+  const page = parsePreferencePage(value.page);
+  return page.ok
+    ? {ok: true, value: {requestId: value.requestId, page: page.value}}
+    : page;
+}
+
 /** What 버전 정보 shows. */
 export interface AppInfo {
   readonly name: string;
@@ -111,6 +142,14 @@ export function parseOnOff(value: unknown): Result<boolean, PayloadError> {
 export const windowEndpoints = {
   openScreens: signal('window:open-screens'),
   openPreferences: signal('window:open-preferences'),
+  preferencesReady: message<PreferencesRequest>(
+    'window:preferences-ready',
+    parsePreferencesRequest,
+  ),
+  preferencesRequest: query<PreferencesRequest>(
+    'window:preferences-request',
+    parsePreferencesRequest,
+  ),
   openPreferencesAt: message<PreferencePageId>(
     'window:open-preferences-at',
     parsePreferencePage,
@@ -158,6 +197,10 @@ export function windowApi(port: IpcPort) {
     openScreens: port.signal(windowEndpoints.openScreens),
     /** Opens or focuses the 환경설정 window. */
     openPreferences: port.signal(windowEndpoints.openPreferences),
+    /** Reveals the preferences window after its content and fonts are drawn. */
+    preferencesReady: port.message(windowEndpoints.preferencesReady),
+    /** Reads the latest page request and its bounded identity. */
+    preferencesRequest: port.query(windowEndpoints.preferencesRequest),
     /** Opens the app's log folder in the file manager. */
     openLogFolder: port.signal(windowEndpoints.openLogFolder),
     /** The text 진단 정보 copies: versions, devices, and recent errors. */

@@ -1,5 +1,5 @@
 import {BrowserWindow} from 'electron';
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {windowEndpoints} from '@contracts/ipc/window';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {loadPage} from '@main/windows/page';
@@ -14,11 +14,15 @@ const mocks = await vi.hoisted(async () => {
   class MockWindow extends EventEmitter {
     destroyed = false;
     readonly webContents = Object.assign(new EventEmitter(), {
+      id: created.length + 1,
+      isLoadingMainFrame: () => false,
       setAudioMuted: vi.fn(),
       send: vi.fn(),
       isDestroyed: () => this.destroyed,
     });
     readonly show = vi.fn();
+    readonly isVisible = vi.fn(() => false);
+    readonly hide = vi.fn();
     readonly focus = vi.fn();
     readonly restore = vi.fn();
     readonly removeMenu = vi.fn();
@@ -37,6 +41,9 @@ const mocks = await vi.hoisted(async () => {
     constructor(readonly options: unknown) {
       super();
       created.push(this);
+    }
+    static getFocusedWindow() {
+      return created[0] ?? null;
     }
   }
   const created: MockWindow[] = [];
@@ -88,6 +95,7 @@ vi.mock('@main/windows/page', () => ({
 const CHANNEL = windowEndpoints.openPreferences.channel;
 
 beforeEach(() => {
+  vi.useFakeTimers();
   mocks.quit.mockClear();
   mocks.handshakes.length = 0;
   mocks.created.length = 0;
@@ -95,6 +103,18 @@ beforeEach(() => {
   mocks.handlers.clear();
   vi.mocked(loadPage).mockClear();
 });
+
+afterEach(() => vi.useRealTimers());
+
+function drawn(win: (typeof mocks.created)[number]) {
+  mocks.ipc.emit(
+    windowEndpoints.preferencesReady.channel,
+    {
+      sender: win.webContents,
+    },
+    mocks.handlers.get(windowEndpoints.preferencesRequest.channel)?.(),
+  );
+}
 
 function setup(mode: 'normal' | 'offscreen' = 'normal') {
   const control = new BrowserWindow();
@@ -140,6 +160,9 @@ describe('환경설정 window', () => {
     const {open, last} = setup();
     open();
     const first = last();
+    drawn(first);
+    first.restore.mockClear();
+    first.focus.mockClear();
     open();
 
     expect(mocks.created).toHaveLength(2);
@@ -193,12 +216,101 @@ describe('환경설정 window', () => {
     expect(last().focus).not.toHaveBeenCalled();
   });
 
-  it('shows the window once its page is ready', () => {
+  it('waits for rendered content and ignores readiness from another window', () => {
     const {open, last} = setup();
     open();
     last().emit('ready-to-show');
-
+    expect(last().show).not.toHaveBeenCalled();
+    mocks.ipc.emit(windowEndpoints.preferencesReady.channel, {
+      sender: {id: -1},
+    });
+    expect(last().show).not.toHaveBeenCalled();
+    drawn(last());
     expect(last().show).toHaveBeenCalledOnce();
+  });
+
+  it('prepares one hidden window after startup and reveals it on request', () => {
+    const {open, last} = setup();
+    expect(mocks.created).toHaveLength(1);
+    vi.advanceTimersByTime(1000);
+    const prepared = last();
+    drawn(prepared);
+    expect(prepared.show).not.toHaveBeenCalled();
+    open();
+    expect(last()).toBe(prepared);
+    expect(prepared.show).toHaveBeenCalledOnce();
+    expect(mocks.created).toHaveLength(2);
+  });
+
+  it('waits for the requested page to draw in a prepared window, including a repeated page', () => {
+    const {last} = setup();
+    vi.advanceTimersByTime(1000);
+    const prepared = last();
+    drawn(prepared);
+    mocks.ipc.emit(windowEndpoints.openPreferencesAt.channel, {}, 'shortcuts');
+    expect(prepared.show).not.toHaveBeenCalled();
+    drawn(prepared);
+    expect(prepared.show).toHaveBeenCalledOnce();
+    mocks.ipc.emit(windowEndpoints.openPreferencesAt.channel, {}, 'shortcuts');
+    expect(prepared.show).toHaveBeenCalledOnce();
+    drawn(prepared);
+    expect(prepared.show).toHaveBeenCalledTimes(2);
+  });
+
+  it('ignores a prepared page readiness signal superseded by a later request', () => {
+    const {last} = setup();
+    vi.advanceTimersByTime(1000);
+    const prepared = last();
+    const stale = mocks.handlers.get(
+      windowEndpoints.preferencesRequest.channel,
+    )?.();
+    mocks.ipc.emit(windowEndpoints.openPreferencesAt.channel, {}, 'shortcuts');
+    mocks.ipc.emit(
+      windowEndpoints.preferencesReady.channel,
+      {sender: prepared.webContents},
+      stale,
+    );
+    expect(prepared.show).not.toHaveBeenCalled();
+    const first = mocks.handlers.get(
+      windowEndpoints.preferencesRequest.channel,
+    )?.();
+    mocks.ipc.emit(windowEndpoints.openPreferencesAt.channel, {}, 'shortcuts');
+    mocks.ipc.emit(
+      windowEndpoints.preferencesReady.channel,
+      {sender: prepared.webContents},
+      first,
+    );
+    expect(prepared.show).not.toHaveBeenCalled();
+    drawn(prepared);
+    expect(prepared.show).toHaveBeenCalledOnce();
+  });
+
+  it('keeps an already visible dialog focusable while another page is settling', () => {
+    const {open, last} = setup();
+    open();
+    drawn(last());
+    last().isVisible.mockReturnValue(true);
+    last().focus.mockClear();
+    mocks.ipc.emit(windowEndpoints.openPreferencesAt.channel, {}, 'shortcuts');
+    expect(last().focus).toHaveBeenCalledOnce();
+    open();
+    expect(last().focus).toHaveBeenCalledTimes(2);
+  });
+
+  it('prepares a fresh window after closing without reusing a stopped write gate', async () => {
+    const {open, last, owner, control} = setup();
+    open();
+    const previous = last();
+    drawn(previous);
+    await owner.close();
+    expect(previous.hide).toHaveBeenCalledBefore(previous.destroy);
+    expect(control.focus).toHaveBeenCalledOnce();
+    vi.advanceTimersByTime(1000);
+    expect(last()).not.toBe(previous);
+    expect(last().show).not.toHaveBeenCalled();
+    await owner.dispose();
+    vi.advanceTimersByTime(2000);
+    expect(mocks.created).toHaveLength(3);
   });
 
   it('reloads its page when the renderer process dies and quits with the control window gone', () => {
@@ -211,6 +323,35 @@ describe('환경설정 window', () => {
     vi.spyOn(control, 'isDestroyed').mockReturnValue(true);
     last().emit('closed');
     expect(mocks.quit).toHaveBeenCalledOnce();
+  });
+
+  it('replays the requested start page after a crash before the first reveal', () => {
+    const {last} = setup();
+    mocks.ipc.emit(windowEndpoints.openPreferencesAt.channel, {}, 'shortcuts');
+    const win = last();
+    const page = mocks.handlers.get(windowEndpoints.preferencesPage.channel);
+    expect(page?.()).toBe('shortcuts');
+    expect(page?.()).toBeNull();
+    const stale = mocks.handlers.get(
+      windowEndpoints.preferencesRequest.channel,
+    )?.();
+    win.webContents.emit('render-process-gone', {}, {reason: 'crashed'});
+    win.webContents.emit('did-start-loading');
+    expect(page?.()).toBe('shortcuts');
+    expect(page?.()).toBeNull();
+    const recovered = mocks.handlers.get(
+      windowEndpoints.preferencesRequest.channel,
+    )?.();
+    expect(recovered).toMatchObject({page: 'shortcuts'});
+    expect(recovered).not.toEqual(stale);
+    mocks.ipc.emit(
+      windowEndpoints.preferencesReady.channel,
+      {sender: win.webContents},
+      stale,
+    );
+    expect(win.show).not.toHaveBeenCalled();
+    drawn(win);
+    expect(win.show).toHaveBeenCalledOnce();
   });
 
   it('closes after the flush handshake, and stays open when it is refused', async () => {

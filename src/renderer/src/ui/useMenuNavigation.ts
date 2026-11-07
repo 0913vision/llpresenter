@@ -15,8 +15,7 @@ import {
   type MenuItem,
 } from './menuModel';
 
-const SUBMENU_OPEN_DELAY_MS = 150;
-const SUBMENU_CLOSE_DELAY_MS = 300;
+const SUBMENU_SHOW_DELAY_MS = 400;
 
 type TimerName = 'open' | 'close';
 
@@ -119,10 +118,7 @@ export function useMenuNavigation({
   useEffect(() => {
     if (renaming) stopTimers();
   }, [renaming]);
-  const pointed = Math.min(
-    pointedState < 0 ? (submenu?.index ?? -1) : pointedState,
-    items.length - 1,
-  );
+  const pointed = Math.min(pointedState, items.length - 1);
 
   const pointTo = (index: number): void => {
     if (index < 0) return;
@@ -158,7 +154,7 @@ export function useMenuNavigation({
     const opens = opensSubmenu(items[index]);
     if (submenu === null) {
       if (opens) {
-        timers.start('open', SUBMENU_OPEN_DELAY_MS, () =>
+        timers.start('open', SUBMENU_SHOW_DELAY_MS, () =>
           openSubmenu(index, false),
         );
       }
@@ -171,7 +167,7 @@ export function useMenuNavigation({
     // NOTE(0913vision): While a submenu is open, the next one waits for the
     // close delay, so a pointer that crosses other items on its way into the
     // open submenu still gets there.
-    timers.start('close', SUBMENU_CLOSE_DELAY_MS, () => {
+    timers.start('close', SUBMENU_SHOW_DELAY_MS, () => {
       setSubmenu(opens ? {index, takesFocus: false} : null);
     });
   };
@@ -184,12 +180,13 @@ export function useMenuNavigation({
     timers.stop('open', 'close');
     hovered.current = null;
     pointing.current = 'keyboard';
+    if (submenu !== null) setPointed(submenu.index);
     setSubmenu(null);
     focusMenu(surface.current);
   };
   const keepSubmenuOpen = (): void => {
     timers.stop('open', 'close');
-    if (submenu !== null) setPointed(submenu.index);
+    setPointed(-1);
   };
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
     const closeChild = submenu === null ? undefined : closeSubmenu;

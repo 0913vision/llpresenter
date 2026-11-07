@@ -1,4 +1,5 @@
-import {useEffect, useState, type JSX} from 'react';
+import {useContext, useEffect, useState, type JSX} from 'react';
+import {LoadReadinessContext} from '@renderer/ui/loadReadiness';
 import type {PreferencePageId} from '@core/schema/preferencePages';
 import {UI_ZOOM} from '@core/schema/uiZoom';
 import {lastBackupText} from '@core/ui/lastBackupText';
@@ -523,16 +524,39 @@ const VERSION_LOADING = '확인 중';
 
 /** 정보: 현재 버전, 문제 해결. */
 export function AboutPage(): JSX.Element {
+  const readiness = useContext(LoadReadinessContext);
   const [version, setVersion] = useState(VERSION_LOADING);
   const [copied, setCopied] = useState<'idle' | 'done' | 'failed'>('idle');
   const [verbose, setVerbose] = useState(false);
   useEffect(() => {
-    window.llp?.window.verboseLogging().then(setVerbose, () => undefined);
-    window.llp?.window.appInfo().then(
-      info => setVersion(info.version),
-      () => setVersion(''),
+    const api = window.llp?.window;
+    if (api === undefined) return undefined;
+    const readyLogging = readiness?.begin();
+    const readyInfo = readiness?.begin();
+    let alive = true;
+    api.verboseLogging().then(
+      value => {
+        if (alive) setVerbose(value);
+        readyLogging?.();
+      },
+      () => readyLogging?.(),
     );
-  }, []);
+    api.appInfo().then(
+      info => {
+        if (alive) setVersion(info.version);
+        readyInfo?.();
+      },
+      () => {
+        if (alive) setVersion('');
+        readyInfo?.();
+      },
+    );
+    return () => {
+      alive = false;
+      readyLogging?.();
+      readyInfo?.();
+    };
+  }, [readiness]);
   const copy = (): void => {
     const api = window.llp;
     if (api === undefined) return;

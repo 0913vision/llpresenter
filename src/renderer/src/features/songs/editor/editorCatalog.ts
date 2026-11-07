@@ -29,6 +29,7 @@ export interface EditorCatalogOptions {
 export class EditorCatalog {
   private stops: ReadonlyArray<() => void> = [];
   private labels: EditorLabels | null = null;
+  private labelsStatus: 'loading' | 'ready' | 'failed' = 'loading';
   private preview: LabelColorPreview | null = null;
   private displayedLabels: EditorLabels | null = null;
   private library: readonly LibrarySong[] = [];
@@ -43,9 +44,12 @@ export class EditorCatalog {
   get libraryEntries(): readonly LibrarySong[] {
     return this.library;
   }
-  getSnapshot(): Pick<EditorState, 'labels' | 'library' | 'libraryStatus'> {
+  getSnapshot(): Pick<EditorState, 'labels' | 'library' | 'libraryStatus'> & {
+    readonly labelsStatus: NonNullable<EditorState['labelsStatus']>;
+  } {
     return {
       labels: this.displayedLabels,
+      labelsStatus: this.labelsStatus,
       library: this.library,
       libraryStatus: this.libraryStatus,
     };
@@ -105,6 +109,9 @@ export class EditorCatalog {
     try {
       this.acceptLabels(await this.context.api.settings.get({name: 'labels'}));
     } catch {
+      if (!this.context.host.alive()) return;
+      this.labelsStatus = 'failed';
+      this.context.host.publish();
       this.context.host.problem('이름표 불러오기 실패', () =>
         this.readLabels(),
       );
@@ -150,6 +157,7 @@ export class EditorCatalog {
       (this.labels === null || document.revision > this.labels.revision)
     ) {
       this.labels = document;
+      this.labelsStatus = 'ready';
       this.preview = null;
       this.publishLabels();
     }

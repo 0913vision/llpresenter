@@ -93,6 +93,8 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
       editText: () => undefined,
       openScreens: () => undefined,
       openPreferences: () => undefined,
+      preferencesReady: () => undefined,
+      preferencesRequest: async () => ({requestId: 0, page: 'general'}),
       openPreferencesAt: () => undefined,
       preferencesPage: () => Promise.resolve(null),
       onPreferencesPage: () => () => undefined,

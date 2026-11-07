@@ -363,6 +363,7 @@ export class SongEditorStore {
           ? null
           : (this.pool.get(this.pool.editorSongId) ?? null)),
       labels: catalog.labels,
+      labelsStatus: catalog.labelsStatus,
       busy: this.locked,
       library: catalog.library,
       libraryStatus: catalog.libraryStatus,

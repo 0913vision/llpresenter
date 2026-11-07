@@ -12,3 +12,9 @@
   flex: 1;
   min-height: 0;
 }
+
+.progress {
+  flex: none;
+  height: calc(var(--space-4) * 2 + 1lh);
+  font: var(--type-caption);
+}

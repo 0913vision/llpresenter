@@ -35,6 +35,8 @@ export interface ControlCloseOptions {
   readonly control: CloseableWindow;
   readonly log: Logger;
   readonly timeoutMs?: number;
+  /** Hides a dialog before its renderer and native window are released. */
+  readonly beforeClose?: () => void;
 }
 
 /** The control window's close handshake, for the quit path and disposal. */
@@ -220,7 +222,9 @@ class ControlCloseHandshake implements ControlClose {
   }
 
   private closeWindow(): void {
-    if (!this.options.control.isDestroyed()) this.options.control.close();
+    if (this.options.control.isDestroyed()) return;
+    this.options.beforeClose?.();
+    this.options.control.close();
   }
 }
 

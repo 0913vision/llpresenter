@@ -114,7 +114,9 @@ describe('MenuSurface', () => {
       key: 'Escape',
     });
     expect(screen.queryByRole('menu', {name: '동작'})).toBeNull();
-    fireEvent.keyDown(parent, {key: 'ArrowUp'});
+    expect(
+      screen.getByRole('menuitem', {name: '동작'}).getAttribute('data-pointed'),
+    ).toBe('true');
     fireEvent.keyDown(parent, {key: 'ArrowRight'});
     expect(build).toHaveBeenCalledTimes(2);
   });

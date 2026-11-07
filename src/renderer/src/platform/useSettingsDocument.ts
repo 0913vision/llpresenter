@@ -1,4 +1,5 @@
-import {useEffect, useLayoutEffect, useRef, useState} from 'react';
+import {useContext, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import {LoadReadinessContext} from '@renderer/ui/loadReadiness';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {
   SettingsDocument,
@@ -48,6 +49,7 @@ export function useApiSettingsDocument<TName extends SettingsName>({
   readonly title: string;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
 }): NamedDocument<TName> | null {
+  const readiness = useContext(LoadReadinessContext);
   const [request, setRequest] = useState({name, api});
   if (request.name !== name || request.api !== api) setRequest({name, api});
   const [loaded, setLoaded] = useState<{
@@ -60,15 +62,18 @@ export function useApiSettingsDocument<TName extends SettingsName>({
   });
   useEffect(() => {
     if (api === undefined || name === null) return undefined;
+    const ready = readiness?.begin();
     let active = true;
     let revision = -1;
     const accept = (next: SettingsDocument): void => {
       if (!active || !isNamed(next, name) || next.revision <= revision) return;
       revision = next.revision;
       setLoaded({request, document: next});
+      ready?.();
     };
     const stop = api.settings.subscribe(accept);
     api.settings.get({name}).then(accept, (cause: unknown) => {
+      ready?.();
       api.log?.write({
         level: 'error',
         message: `Could not load ${name} settings`,
@@ -85,8 +90,9 @@ export function useApiSettingsDocument<TName extends SettingsName>({
     });
     return () => {
       active = false;
+      ready?.();
       stop();
     };
-  }, [name, title, request, api]);
+  }, [name, title, request, api, readiness]);
   return loaded?.request === request ? loaded.document : null;
 }

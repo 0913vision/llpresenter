@@ -851,6 +851,9 @@ same place.
 
 ### 환경설정 window
 
+- Open with the requested page, settings, and fonts already drawn, without
+  exposing a blank frame. After saving on close, hide the window before
+  releasing it and return focus to its opener. A refused save keeps it open.
 - The window and its frame stay as in 06: a separate window titled "환경설정",
   opened from 파일 > 환경설정 or Ctrl ,.
 - Pages, in this order (proposal):

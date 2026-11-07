@@ -12,12 +12,58 @@ import {
   pointAt,
   twoSubmenus,
 } from '@fixtures/renderer/ui/menuTesting';
-const SUBMENU_DELAY_MS = 150;
-const SUBMENU_GRACE_MS = 300;
+const SUBMENU_DELAY_MS = 400;
+const SUBMENU_GRACE_MS = 400;
 
 installMenuTestHooks();
 
 describe('useMenuNavigation', () => {
+  it.each(['ArrowLeft', 'Escape'])(
+    'restores the parent after pointer entry and %s, then supports Right and Down',
+    async key => {
+      render(<Harness entries={twoSubmenus} />);
+      await openMenu();
+      const clock = installMockClock();
+      const parent = screen.getByRole('menuitem', {name: '가져오기'});
+      pointAt(parent);
+      await letTimePass(clock, SUBMENU_DELAY_MS);
+      const child = screen.getByRole('menu', {name: '가져오기'});
+      pointAt(child);
+      fireEvent.keyDown(child, {key});
+      expect(parent.getAttribute('data-pointed')).toBe('true');
+      const root = screen.getByRole('menu', {name: '파일'});
+      expect(document.activeElement).toBe(root);
+      fireEvent.keyDown(root, {key: 'ArrowRight'});
+      expect(screen.getByRole('menu', {name: '가져오기'})).toBeDefined();
+      fireEvent.keyDown(screen.getByRole('menu', {name: '가져오기'}), {key});
+      fireEvent.keyDown(root, {key: 'ArrowDown'});
+      expect(
+        screen
+          .getByRole('menuitem', {name: '내보내기'})
+          .getAttribute('data-pointed'),
+      ).toBe('true');
+    },
+  );
+  it('lights only the hovered row and leaves the expanded parent marked without pointing to it', async () => {
+    render(<Harness entries={twoSubmenus} />);
+    await openMenu();
+    const clock = installMockClock();
+    const parent = screen.getByRole('menuitem', {name: '가져오기'});
+    const next = screen.getByRole('menuitem', {name: '내보내기'});
+    pointAt(parent);
+    await letTimePass(clock, SUBMENU_DELAY_MS);
+    pointAway(parent);
+    expect(pointedName()).toBeNull();
+    expect(parent.getAttribute('aria-expanded')).toBe('true');
+    pointAt(next);
+    expect(next.getAttribute('data-pointed')).toBe('true');
+    expect(parent.getAttribute('data-pointed')).toBe('false');
+    pointAway(next);
+    await letTimePass(clock, SUBMENU_DELAY_MS * 2);
+    expect(pointedName()).toBeNull();
+    expect(parent.getAttribute('aria-expanded')).toBe('true');
+    expect(next.getAttribute('data-pointed')).toBe('false');
+  });
   it('clears pointer pointing on leaving a row for a separator or leaving the menu', async () => {
     render(<Harness />);
     await openMenu();
@@ -57,7 +103,7 @@ describe('useMenuNavigation', () => {
     pointAt(row);
     await letTimePass(clock, SUBMENU_DELAY_MS);
     pointAway(row);
-    expect(row.getAttribute('data-pointed')).toBe('true');
+    expect(row.getAttribute('data-pointed')).toBe('false');
     expect(row.getAttribute('aria-expanded')).toBe('true');
     fireEvent.keyDown(screen.getByRole('menu', {name: '가져오기'}), {
       key: 'Escape',
@@ -218,7 +264,7 @@ describe('useMenuNavigation', () => {
     expect(screen.queryByRole('menu')).toBeNull();
   });
 
-  it('opens a submenu when the pointer rests on its parent for 150ms', async () => {
+  it('opens a submenu when the pointer rests on its parent for 400ms', async () => {
     render(<Harness />);
     await userEvent.click(screen.getByRole('button', {name: '파일'}));
     const clock = installMockClock();

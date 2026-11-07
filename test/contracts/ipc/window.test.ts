@@ -9,7 +9,32 @@ import {
   parseTextEditAction,
   textEditActions,
   windowEndpoints,
+  parsePreferencesRequest,
+  PREFERENCES_REQUEST_LIMIT,
 } from '@contracts/ipc/window';
+
+describe('preferences request identity', () => {
+  it.each([0, PREFERENCES_REQUEST_LIMIT])(
+    'accepts bounded identity %s and a known page',
+    requestId => {
+      expect(
+        parsePreferencesRequest({requestId, page: 'shortcuts', extra: true}),
+      ).toEqual({ok: true, value: {requestId, page: 'shortcuts'}});
+    },
+  );
+  it.each([
+    null,
+    {},
+    {requestId: -1, page: 'general'},
+    {requestId: 1.5, page: 'general'},
+    {requestId: PREFERENCES_REQUEST_LIMIT + 1, page: 'general'},
+    {requestId: Infinity, page: 'general'},
+    {requestId: 0, page: 'unknown'},
+    {requestId: '1', page: 'general'},
+  ])('rejects malformed request %j', value => {
+    expect(parsePreferencesRequest(value).ok).toBe(false);
+  });
+});
 
 describe('window text edit action', () => {
   it.each(textEditActions)('accepts %s', action => {

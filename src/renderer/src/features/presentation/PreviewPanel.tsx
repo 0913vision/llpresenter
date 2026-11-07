@@ -113,7 +113,9 @@ function PreviewPanelFrame({
           renderScreen={renderScreen}
         />
       </div>
-      <LiveMediaProgress />
+      <div className={styles.progress}>
+        <LiveMediaProgress />
+      </div>
     </div>
   );
 }

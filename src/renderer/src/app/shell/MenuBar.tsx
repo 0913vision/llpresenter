@@ -1,5 +1,6 @@
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useMenuShortcuts} from '@renderer/ui/useMenuShortcuts';
+import {MenuWarmup} from '@renderer/ui/MenuWarmup';
 import {useEffect, useState, type JSX} from 'react';
 import type {WindowAction} from '@contracts/ipc/api';
 import type {AppInfo} from '@contracts/ipc/window';
@@ -204,6 +205,7 @@ function FileMenu({
   return (
     <>
       <MenuTrigger label={FILE_MENU} control={control} />
+      <MenuWarmup entries={entries} />
       {anchor ? (
         <Menu
           label={FILE_MENU}

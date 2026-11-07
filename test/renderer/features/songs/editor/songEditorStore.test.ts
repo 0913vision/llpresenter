@@ -9,6 +9,20 @@ import {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {setup} from '@fixtures/renderer/features/songs/editor/songEditorStoreFixture';
 
 describe('song editor persistence', () => {
+  it('publishes a failed label read and recovers when labels arrive later', async () => {
+    const fixture = editorFixture();
+    vi.spyOn(fixture.api.settings, 'get').mockRejectedValueOnce(
+      new Error('Unavailable'),
+    );
+    const store = new SongEditorStore(fixture.api, vi.fn());
+    onTestFinished(() => store.dispose());
+    await vi.waitFor(() =>
+      expect(store.getSnapshot().labelsStatus).toBe('failed'),
+    );
+    fixture.pushSettings(fixture.labels());
+    expect(store.getSnapshot().labelsStatus).toBe('ready');
+    expect(store.getSnapshot().labels).not.toBeNull();
+  });
   it('coalesces pending input, advances revisions, and retains typing history through own pushes', async () => {
     const fixture = editorFixture();
     const write = fixture.api.content.edit;

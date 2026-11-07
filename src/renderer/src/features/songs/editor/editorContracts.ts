@@ -60,6 +60,7 @@ export interface EditorState {
   readonly actionRequest: EditorActionRequest | null;
   readonly session: SongSession | null;
   readonly labels: EditorLabels | null;
+  readonly labelsStatus?: 'loading' | 'ready' | 'failed';
   readonly busy: boolean;
   readonly library: readonly LibrarySong[];
   readonly libraryStatus: 'loading' | 'ready' | 'failed';

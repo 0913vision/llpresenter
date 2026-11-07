@@ -245,6 +245,9 @@ Source: `ShowH` (슬라이드 grid, 9 tiles in 구성 order, background select),
 
 ## Preview panel
 
+The background video progress bar has a reserved row below the previews. Showing
+or hiding it never changes the large preview's size.
+
 ProPresenter's main window has one Preview window at the top right. It shows the
 output of one screen, chosen with the arrow below it (Audience or Stage), and
 the clear buttons sit next to it (ProPresenter 7.5 user guide, pp. 24 to 25).

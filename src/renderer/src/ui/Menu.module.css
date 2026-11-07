@@ -4,6 +4,10 @@
   display: contents;
 }
 
+.warmup {
+  visibility: hidden;
+}
+
 .layer[data-over-modal] {
   --menu-layer: var(--z-popover-over-modal);
 }

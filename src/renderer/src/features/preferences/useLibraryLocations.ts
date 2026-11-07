@@ -1,5 +1,6 @@
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useCallback, useContext, useEffect, useRef, useState} from 'react';
+import {LoadReadinessContext} from '@renderer/ui/loadReadiness';
 import type {
   ChooseLocationFailure,
   LibraryLocationField,
@@ -39,6 +40,7 @@ export interface LibraryLocationsState {
 export function useLibraryLocations(
   onProblem: (notice: Notice) => void,
 ): LibraryLocationsState {
+  const readiness = useContext(LoadReadinessContext);
   const [view, setView] = useState<LocationsView | null>(null);
   const [refusals, setRefusals] = useState<
     Partial<Record<LibraryLocationField, string>>
@@ -50,19 +52,23 @@ export function useLibraryLocations(
   useEffect(() => {
     const api = window.llp;
     if (api === undefined) return undefined;
+    const ready = readiness?.begin();
     let alive = true;
     const accept = (next: LocationsView): void => {
       if (alive) setView(next);
+      ready?.();
     };
     const stop = api.locations.subscribe(accept);
     api.locations.get().then(accept, (error: unknown) => {
       console.error('Could not read the library folders', error);
+      ready?.();
     });
     return () => {
       alive = false;
+      ready?.();
       stop();
     };
-  }, []);
+  }, [readiness]);
   const choose = useCallback((field: LibraryLocationField) => {
     window.llp?.locations
       .choose({field})

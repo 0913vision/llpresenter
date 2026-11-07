@@ -79,10 +79,14 @@ class MockControl extends EventEmitter implements CloseableWindow {
   }
 }
 
-function setup() {
+function setup(beforeClose?: () => void) {
   const control = new MockControl();
   const log = recordingLogger();
-  const closing = registerControlClose({control, log});
+  const closing = registerControlClose({
+    control,
+    log,
+    ...(beforeClose ? {beforeClose} : {}),
+  });
   onTestFinished(() => {
     closing.dispose();
   });
@@ -111,6 +115,21 @@ beforeEach(() => {
 });
 
 describe('control window close handshake', () => {
+  it('hides a dialog only after saving succeeds and before destroying its window', async () => {
+    const beforeClose = vi.fn();
+    const {control, reply} = setup(beforeClose);
+    beforeClose.mockImplementation(() => expect(control.destroyed).toBe(false));
+    control.close();
+    reply(false);
+    await settled();
+    expect(beforeClose).not.toHaveBeenCalled();
+    expect(control.destroyed).toBe(false);
+    control.close();
+    reply(true, CONTROL_ID, 1);
+    await settled();
+    expect(beforeClose).toHaveBeenCalledOnce();
+    expect(control.destroyed).toBe(true);
+  });
   it('ignores another window flush traffic while this handshake is idle', () => {
     const {control, log} = setup();
     electron.ipcMain.emit(appEndpoints.flushDone.channel, OTHER_ID, {});

@@ -9,6 +9,12 @@ feature we lack), Moved, Removed.
 
 ## Shared rules
 
+- **Pointer timing:** While a menu is open, entering another top-level name
+  switches to it immediately. A submenu opens after 400 ms on its parent. Keep
+  an open submenu during that delay while the pointer crosses another row toward
+  it; entering the submenu cancels the pending switch. Only the row under the
+  pointer receives the pointed highlight. Outside the menu, keep the open
+  parent's expanded mark without pointing to another row.
 - **Purpose:** A menu acts on the one thing that was clicked (a 매크로, a
   그래픽, a 슬라이드), or adds one kind of thing. Rows are grouped by what they
   do, in ProPresenter (PP) order. Nothing else goes into a menu: no palettes, no

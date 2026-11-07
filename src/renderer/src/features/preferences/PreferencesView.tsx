@@ -1,4 +1,13 @@
-import {useCallback, useEffect, useRef, useState, type JSX} from 'react';
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type JSX,
+} from 'react';
+import type {PreferencesRequest} from '@contracts/ipc/window';
+import {LoadReadiness, LoadReadinessContext} from '@renderer/ui/loadReadiness';
 import {ListBox, ListRow} from '@renderer/ui';
 import {Properties} from '@renderer/ui/PropertyRow';
 import type {Notice} from '@renderer/ui/notices';
@@ -22,21 +31,50 @@ import type {SongEditorStore} from '../songs/editor/songEditorStore';
 import type {LabelManagerHandle} from '../songs/editor/LabelManager';
 
 const NAV_LABEL = '환경설정 항목';
+const noSubscribe = () => () => undefined;
 
-/** The page list and the open page of the 환경설정 window. */
-export function PreferencesView({
-  onProblem,
-  labelStore,
-}: {
+interface PreferencesViewProps {
   readonly onProblem: (notice: Notice) => void;
   readonly labelStore?: SongEditorStore | undefined;
-}): JSX.Element {
+  readonly onReady?: ((request: PreferencesRequest) => void) | undefined;
+}
+
+/** The page list and the open page of the 환경설정 window. */
+export function PreferencesView(props: PreferencesViewProps): JSX.Element {
+  const [readiness] = useState(() => new LoadReadiness());
+  return (
+    <LoadReadinessContext value={readiness}>
+      <PreferencesContent {...props} readiness={readiness} />
+    </LoadReadinessContext>
+  );
+}
+
+function PreferencesContent({
+  onProblem,
+  labelStore,
+  onReady,
+  readiness,
+}: PreferencesViewProps & {readonly readiness: LoadReadiness}): JSX.Element {
   const [page, setPage] = useState<PreferencePageId>('general');
+  const [started, setStarted] = useState(false);
+  const [pageRequest, setPageRequest] = useState(0);
+  const pending = useSyncExternalStore(
+    readiness.subscribe,
+    readiness.getSnapshot,
+  );
+  const labelsLoaded = useSyncExternalStore(
+    labelStore?.subscribe ?? noSubscribe,
+    () =>
+      labelStore?.getSnapshot().labels !== null ||
+      labelStore.getSnapshot().labelsStatus === 'failed',
+  );
+  const [request, setRequest] = useState<PreferencesRequest | null>(null);
   const currentPage = useRef(page);
   const labelManager = useRef<LabelManagerHandle>(null);
   const requestedPage = useRef<PreferencePageId | null>(null);
   const settling = useRef(false);
   const requestPage = useCallback((next: PreferencePageId): void => {
+    setPageRequest(value => value + 1);
     requestedPage.current = next;
     if (settling.current) return;
     const settle =
@@ -79,26 +117,85 @@ export function PreferencesView({
     const api = window.llp?.window;
     if (api === undefined) return undefined;
     let stopped = false;
+    let pushed = false;
     start.current ??= api.preferencesPage();
     start.current
       .then(first => {
-        if (!stopped && first !== null) requestPage(first);
+        if (stopped) return;
+        if (!pushed && first !== null) requestPage(first);
+        setStarted(true);
       })
-      .catch((error: unknown) =>
+      .catch((error: unknown) => {
+        if (!stopped) setStarted(true);
         window.llp?.log.write({
           level: 'error',
           message: 'Could not read the requested preferences page',
           detail: error instanceof Error ? error.message : String(error),
-        }),
-      );
-    const stop = api.onPreferencesPage(requestPage);
+        });
+      });
+    const stop = api.onPreferencesPage(next => {
+      pushed = true;
+      requestPage(next);
+    });
     return () => {
       stopped = true;
       requestedPage.current = null;
       stop();
     };
   }, [requestPage]);
+  useEffect(() => {
+    const api = window.llp?.window;
+    if (api === undefined || onReady === undefined) return undefined;
+    let active = true;
+    api.preferencesRequest().then(
+      value => {
+        if (active) setRequest(value);
+      },
+      (error: unknown) =>
+        window.llp?.log.write({
+          level: 'error',
+          message: 'Could not read the preferences request identity',
+          detail: error instanceof Error ? error.message : String(error),
+        }),
+    );
+    return () => {
+      active = false;
+    };
+  }, [pageRequest, onReady]);
   const edits = usePreferenceEdits(onProblem);
+  const loaded = pending === 0 && (page !== 'labels' || labelsLoaded);
+  useEffect(() => {
+    if (
+      !started ||
+      !loaded ||
+      onReady === undefined ||
+      request?.page !== page
+    ) {
+      return undefined;
+    }
+    let stopped = false;
+    let frame = 0;
+    const draw = (): void => {
+      if (stopped) return;
+      frame = requestAnimationFrame(() => {
+        frame = requestAnimationFrame(() => {
+          if (!stopped) onReady(request);
+        });
+      });
+    };
+    document.fonts.ready.then(draw, (error: unknown) => {
+      window.llp?.log.write({
+        level: 'error',
+        message: 'Could not prepare preferences fonts',
+        detail: error instanceof Error ? error.message : String(error),
+      });
+      draw();
+    });
+    return () => {
+      stopped = true;
+      cancelAnimationFrame(frame);
+    };
+  }, [started, loaded, onReady, pageRequest, page, request]);
   const bible = useBibleEdits(onProblem);
   const current = preferencePages.find(entry => entry.id === page);
   return (
