@@ -466,6 +466,13 @@ Source: `Overlays` 무대 tab, 12.
 - Number monitors from 1, left to right and top to bottom (proposal: the app
   can't read the Windows display numbers). The monitor that holds the main
   window shows as "컨트롤" (control) in the 화면 설정 display layout.
+- At launch and after monitor changes, if no screen has any saved monitor,
+  assign the first full screen 청중 화면 to the first monitor other than the
+  control window's monitor, and the first full screen 무대 화면 to the next
+  monitor when one is available. Save the assignment silently and update 화면
+  설정 and the output targets immediately. Preserve window, capture and NDI
+  methods. Any saved assignment, even to a disconnected monitor, prevents this
+  automatic assignment; never move an operator-assigned screen.
 - To find a screen's saved monitor, match the operating system display ID first,
   then the monitor name and resolution, and then the position (proposal).
 - When a monitor's resolution or position changes, fit the full screen output

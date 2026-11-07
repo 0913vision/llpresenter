@@ -1,4 +1,6 @@
 import type {SettingsReader} from '@core/schema/settingsReader';
+import type {SettingsEdit} from '@core/schema/settingsDocuments';
+import type {EditResult} from '@core/schema/contentEdit';
 import type {BrowserWindow} from 'electron';
 import {outputEndpoints} from '@contracts/ipc/output';
 import {MONITOR_LIST_MAX} from '@core/schema/monitors';
@@ -27,11 +29,15 @@ import {openNumberWindow} from './numberWindow';
 import {OutputStatusBoard} from './statusBoard';
 import {guardTestPatterns} from './testPatternGuard';
 import {WakeKeeper, keepAwakeWhileOutputsOn} from './wakeLock';
+import {assignInitialMonitors} from './initialMonitors';
 
 /** What the output windows hang on. */
 export interface OutputContext {
   readonly store: LiveStore;
   readonly settings: Promise<SettingsReader | null>;
+  readonly saveScreenSettings?: (
+    edit: SettingsEdit,
+  ) => Promise<EditResult | null>;
   readonly control: BrowserWindow;
   readonly log: Logger;
   /** `offscreen` keeps the output windows off the screen (UI tests). */
@@ -124,6 +130,7 @@ export interface RunningOutputs {
 export function startOutputs({
   store,
   settings,
+  saveScreenSettings,
   control,
   log,
   windowMode,
@@ -160,6 +167,16 @@ export function startOutputs({
     onStatusChange: () => board.refresh(),
   });
   const releaseResync = store.connectScreenSettings(screens);
+  const stopInitialMonitors =
+    saveScreenSettings === undefined
+      ? () => undefined
+      : assignInitialMonitors({
+          settings,
+          displays,
+          controlBounds,
+          save: saveScreenSettings,
+          log,
+        });
   const numbers = new MonitorNumbers({
     monitors: () => displays.monitors,
     avoid: () => outputs.captureAreas(),
@@ -173,6 +190,7 @@ export function startOutputs({
   });
   outputs.start();
   const stops = [
+    stopInitialMonitors,
     releaseResync,
     releaseNumbers,
     guardTestPatterns({control, store, log}),

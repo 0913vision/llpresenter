@@ -302,6 +302,7 @@ function start(): void {
       const outputs = startOutputs({
         store,
         settings: dataStore.settings,
+        saveScreenSettings: dataStore.applySettingsEdit,
         control: win,
         log,
         windowMode,
