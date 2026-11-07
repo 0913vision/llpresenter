@@ -12,6 +12,52 @@ import {MAIN} from '@fixtures/core/overlays';
 import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 
 describe('saved output backend', () => {
+  it('clears stale low FPS for idle health, preserves monitor loss, and measures motion again', async () => {
+    let now = 10000;
+    const clock = vi.spyOn(Date, 'now').mockImplementation(() => now);
+    try {
+      const {store, running} = setup();
+      await loaded();
+      store.dispatch({type: 'output.set', screenId: MAIN, on: true});
+      const status = (): unknown =>
+        mocks.answers.get(outputEndpoints.status.channel)?.();
+      const rate = (): void => {
+        mocks.handlers.get(outputEndpoints.frameRate.channel)?.(
+          {screenId: MAIN, fps: 30},
+          1,
+        );
+      };
+      rate();
+      now += 2100;
+      rate();
+      expect(status()).toMatchObject({[MAIN]: {fps: 30, fpsLow: true}});
+      mocks.handlers.get(outputEndpoints.health.channel)?.({screenId: MAIN}, 1);
+      expect(status()).toMatchObject({
+        [MAIN]: {fps: null, fpsLow: false, renderer: 'running'},
+      });
+      expect(running.frameRates()).toEqual([]);
+      const displays = mocks.displays;
+      if (displays === null) throw new Error('Missing displays');
+      displays.displays = displays.displays.filter(
+        display => display.id !== projector.id,
+      );
+      mocks.handlers.get(outputEndpoints.findMonitors.channel)?.(undefined, 1);
+      mocks.handlers.get(outputEndpoints.health.channel)?.({screenId: MAIN}, 1);
+      expect(status()).toMatchObject({
+        [MAIN]: {placement: 'monitorMissing', fpsLow: false},
+      });
+      rate();
+      now += 2100;
+      rate();
+      expect(status()).toMatchObject({
+        [MAIN]: {placement: 'monitorMissing', fpsLow: true},
+      });
+      mocks.handlers.get(outputEndpoints.health.channel)?.({screenId: ''}, 1);
+      expect(status()).toMatchObject({[MAIN]: {fpsLow: true}});
+    } finally {
+      clock.mockRestore();
+    }
+  });
   it('continues past a throwing stop callback and disposes outputs after on then off', async () => {
     const {store, windows, controlWindow, stop, settings, log} = setup();
     await loaded();

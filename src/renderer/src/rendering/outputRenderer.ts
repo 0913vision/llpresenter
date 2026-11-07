@@ -189,6 +189,24 @@ export class OutputRenderer {
     );
   }
 
+  /** Whether frame-rate sampling has moving content to measure. */
+  moving(): boolean {
+    const animations =
+      typeof this.root.getAnimations === 'function'
+        ? this.root.getAnimations({subtree: true})
+        : [];
+    return (
+      !this.disposed &&
+      (this.fadeFrame !== null ||
+        animations.some(
+          animation => animation.playState === 'running' || animation.pending,
+        ) ||
+        Array.from(this.root.querySelectorAll('video')).some(
+          video => !video.paused && !video.ended,
+        ))
+    );
+  }
+
   private setBackground(background: string | null): void {
     if (background === this.background) return;
     this.background = background;

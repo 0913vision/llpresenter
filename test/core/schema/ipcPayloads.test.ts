@@ -3,6 +3,7 @@ import {
   isFrameRateReport,
   isRendererLogEntry,
   parseFrameRateReport,
+  parseOutputHealthReport,
   parseRendererLogEntry,
   parseFrameReadyReport,
   parseFrameReadyReply,
@@ -11,6 +12,25 @@ import {
   refuseOpenWindow,
 } from '@core/schema/ipcPayloads';
 import {MAIN_SCREEN} from '@fixtures/core/screenIds';
+
+describe('output health', () => {
+  it('accepts a bounded screen id without a fabricated FPS value', () => {
+    expect(parseOutputHealthReport({screenId: MAIN_SCREEN})).toEqual({
+      ok: true,
+      value: {screenId: MAIN_SCREEN},
+    });
+    expect(parseOutputHealthReport({screenId: 'a'.repeat(200)}).ok).toBe(true);
+  });
+  it.each([
+    null,
+    {},
+    {screenId: ''},
+    {screenId: 1},
+    {screenId: 'a'.repeat(201)},
+  ])('rejects malformed health %j', value => {
+    expect(parseOutputHealthReport(value).ok).toBe(false);
+  });
+});
 
 describe('frame readiness', () => {
   it('accepts a current version and boolean acknowledgment', () => {

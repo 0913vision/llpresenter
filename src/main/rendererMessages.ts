@@ -1,5 +1,6 @@
 import {
   parseFrameRateReport,
+  parseOutputHealthReport,
   parseRendererLogEntry,
   type FrameRateReport,
 } from '@core/schema/ipcPayloads';
@@ -137,6 +138,19 @@ function handleScreenRequest({
     }
     act(parsed.value.screenId);
   };
+}
+
+/** Passes a static output's health report on after validation. */
+export function handleOutputHealth(
+  receive: (screenId: string) => void,
+  log: Logger,
+): MessageHandler {
+  return handleScreenRequest({
+    name: 'output health',
+    parse: parseOutputHealthReport,
+    act: receive,
+    log,
+  });
 }
 
 /** Passes 다시 시도 for a screen on. A malformed request is dropped and reported. */

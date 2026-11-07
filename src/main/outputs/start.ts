@@ -15,6 +15,7 @@ import type {Logger} from '../log';
 import type {WindowMode} from '../windows/testWindows';
 import {
   handleFrameRate,
+  handleOutputHealth,
   handleRetryRequest,
   handleShowWindowRequest,
 } from '../rendererMessages';
@@ -209,6 +210,14 @@ export function startOutputs({
       );
     }),
     screens.subscribe(() => board.refresh()),
+    listenToWindows(
+      outputEndpoints.health.channel,
+      handleOutputHealth(screenId => {
+        frameRates.forget(screenId);
+        outputs.frameReported(screenId);
+        board.refresh();
+      }, log),
+    ),
     listenToWindows(
       outputEndpoints.frameRate.channel,
       handleFrameRate(report => {

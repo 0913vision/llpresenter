@@ -102,6 +102,81 @@ function setUp(live: Partial<LlpApi['live']> = {}) {
 }
 
 describe('startOutput', () => {
+  it.each([
+    ['playing', 'pause'],
+    ['transitionrun', 'transitionend'],
+    ['animationstart', 'animationend'],
+  ])(
+    'checks static health without frames, wakes for %s, and stops on %s or disable',
+    async (startEvent, endEvent) => {
+      vi.useFakeTimers({
+        toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'],
+      });
+      const defaults = mockLlpApi();
+      const request = vi.spyOn(globalThis, 'requestAnimationFrame');
+      let moving = false;
+      vi.spyOn(OutputRenderer.prototype, 'moving').mockImplementation(
+        () => moving,
+      );
+      let receive: (state: LiveState) => void = () => {};
+      const reportHealth = vi.fn();
+      const reportFrameRate = vi.fn();
+      const root = document.createElement('div');
+      const current = {...SHOWING, layers: {...SHOWING.layers, media: null}};
+      const api = mockLlpApi({
+        settings: {
+          get: ({name}) =>
+            name === 'screens'
+              ? Promise.resolve(overlaySettings().reader.get(name))
+              : defaults.settings.get({name}),
+        },
+        live: {
+          get: async () => current,
+          subscribe: listener => {
+            receive = listener;
+            return () => {};
+          },
+        },
+        output: {reportHealth, reportFrameRate, reportReady: async () => true},
+      });
+      const stop = startOutput({root, api, screenId: MAIN_SCREEN});
+      try {
+        await Promise.resolve();
+        await pumpReadiness();
+        await pumpReadiness();
+        request.mockClear();
+        reportHealth.mockClear();
+        reportFrameRate.mockClear();
+        vi.advanceTimersByTime(3000);
+        expect(reportHealth).toHaveBeenCalledTimes(3);
+        expect(request).not.toHaveBeenCalled();
+        expect(reportFrameRate).not.toHaveBeenCalled();
+        moving = true;
+        root.dispatchEvent(new Event(startEvent));
+        expect(request).toHaveBeenCalledTimes(1);
+        runFramesFor(1100);
+        expect(reportFrameRate).toHaveBeenCalledWith({
+          screenId: MAIN_SCREEN,
+          fps: 60,
+        });
+        moving = false;
+        root.dispatchEvent(new Event(endEvent));
+        expect(reportHealth).toHaveBeenCalledTimes(4);
+        vi.advanceTimersByTime(1000);
+        expect(reportHealth).toHaveBeenCalledTimes(5);
+        receive({
+          ...current,
+          version: current.version + 1,
+          outputs: {[MAIN_SCREEN]: false},
+        });
+        vi.advanceTimersByTime(5000);
+        expect(reportHealth).toHaveBeenCalledTimes(5);
+      } finally {
+        stop();
+        vi.useRealTimers();
+      }
+    },
+  );
   it('rechecks the same live version without requiring a resize event until main acknowledges visibility', async () => {
     const settings = overlaySettings();
     const defaults = mockLlpApi();

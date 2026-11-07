@@ -5,7 +5,7 @@ import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {OutputRenderer} from '../rendering/outputRenderer';
 import type {LiveState} from '@core/live/state';
 import {ScreenFrames} from '../rendering/screenFrames';
-import {startFrameRateMeter} from './frameRateMeter';
+import {startFrameRateMeter, type FrameRateMeter} from './frameRateMeter';
 import {followLiveState} from './liveFeed';
 
 /** What an output window runs on. */
@@ -20,6 +20,19 @@ export const READY_RECHECK_MS = 100;
 
 /** How often an output that waits to be revealed checks its frame. */
 export const READY_POLL_MS = 16;
+
+const MOTION_EVENTS = [
+  'playing',
+  'pause',
+  'ended',
+  'emptied',
+  'transitionrun',
+  'transitionend',
+  'transitioncancel',
+  'animationstart',
+  'animationend',
+  'animationcancel',
+] as const;
 
 function drawnContent(state: LiveState): string {
   return JSON.stringify([
@@ -59,8 +72,8 @@ function catchUncaughtErrors(report: ErrorReport): () => void {
 
 /**
  * Runs one output window: draws the live state, sends every error to the main
- * log instead of showing it, and reports the frame rate once a second from the
- * time the first live state is drawn (docs/spec/03-output.md).
+ * log instead of showing it, and reports moving frame rates or static health
+ * once a second after the first live state is drawn (docs/spec/03-output.md).
  *
  * @returns A function that stops everything it started.
  */
@@ -100,6 +113,7 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
       });
       hasFrame = true;
       drawCount += 1;
+      meter?.refresh();
     } catch (error) {
       report('could not update the output frame', error);
     }
@@ -112,7 +126,11 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
     onChange: draw,
     onError: report,
   });
-  let stopMeter: (() => void) | null = null;
+  let meter: FrameRateMeter | null = null;
+  const refreshMotion = (): void => meter?.refresh();
+  for (const event of MOTION_EVENTS) {
+    root.addEventListener(event, refreshMotion, true);
+  }
   if (!fontsReady) {
     void document.fonts.ready
       .then(() => {
@@ -192,6 +210,7 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
     paintedFrame = '';
     lastAttempt = -Infinity;
     watchReadiness();
+    meter?.refresh();
   };
   window.addEventListener('resize', resized);
   const raise = (): void => {
@@ -199,13 +218,16 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
   };
   root.addEventListener('pointerdown', raise);
   const reportFrameRates = (): void => {
-    stopMeter ??= startFrameRateMeter({
+    meter ??= startFrameRateMeter({
       onFrame: noteFrame,
+      active: () => revealPending || renderer?.moving() === true,
+      reportIdle: () => api.output.reportHealth({screenId}),
       report: fps => api.output.reportFrameRate({screenId, fps}),
     });
+    meter.refresh();
   };
-  // NOTE(0913vision): The main process takes the first frame rate report as
-  // the sign that the page drew the live state, so the meter starts only
+  // NOTE(0913vision): The main process takes reports as signs of life, so
+  // the meter starts only
   // once the first state is drawn.
   const stopFollowing = followLiveState(
     api.live,
@@ -220,8 +242,8 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
       if (!enabled()) {
         if (readyTimer !== null) clearTimeout(readyTimer);
         readyTimer = null;
-        stopMeter?.();
-        stopMeter = null;
+        meter?.stop();
+        meter = null;
         renderer?.dispose();
         renderer = null;
         hasFrame = false;
@@ -250,7 +272,10 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
     if (readyTimer !== null) clearTimeout(readyTimer);
     window.removeEventListener('resize', resized);
     root.removeEventListener('pointerdown', raise);
-    stopMeter?.();
+    meter?.stop();
+    for (const event of MOTION_EVENTS) {
+      root.removeEventListener(event, refreshMotion, true);
+    }
     stopFollowing();
     frames.dispose();
     renderer?.dispose();

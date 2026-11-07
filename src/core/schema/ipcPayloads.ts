@@ -35,6 +35,21 @@ const frameRateReportSchema = payloadObject({
   ),
 });
 
+const outputHealthReportSchema = payloadObject({
+  screenId: v.pipe(v.string(), v.nonEmpty(), v.maxLength(200)),
+});
+
+/** A static output's sign of life, without a measured frame rate. */
+export type OutputHealthReport = Readonly<
+  v.InferOutput<typeof outputHealthReportSchema>
+>;
+
+export function parseOutputHealthReport(
+  value: unknown,
+): Result<OutputHealthReport, PayloadError> {
+  return parsePayload(outputHealthReportSchema, value);
+}
+
 const frameReadyReportSchema = payloadObject({
   width: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(65_536)),
   height: v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(65_536)),

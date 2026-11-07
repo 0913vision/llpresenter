@@ -579,11 +579,25 @@ empty picture and the main process retries after a cool-down. See 08.
   and transparency. Cached video thumbnails are never substituted for images.
   Theme video countdowns in live previews read main's media progress, without a
   decoder or a separate playback clock.
-- Output windows aim for 60 fps. Each second, they measure their actual frame
-  rate and report it to the main process. The status bar shows the value. If the
-  rate stays more than 10% below the target for 2 seconds, the status turns to a
-  warning. After 2 seconds back at the target, it returns to normal (`StatusBar`
-  README).
+- Output windows aim for 60 fps. While moving, each second they measure their
+  actual frame rate and report it to the main process. Static pictures send
+  health reports without a measured FPS instead. The status bar shows a rate
+  only while it is measured. If the rate stays more than 10% below the target
+  for 2 seconds, the status turns to a warning. After 2 seconds back at the
+  target, it returns to normal (`StatusBar` README).
+
+An enabled output with a static picture checks its health once a second without
+requesting animation frames or inventing a measured FPS. Its FPS is unavailable
+and a previous low-FPS warning is cleared. Frame-rate sampling runs while the
+output prepares its reveal, plays video, runs a transition or JavaScript fade,
+or animates clock/timer text. Discrete clock/timer updates without animation do
+not keep the sampler running between updates. Returning to motion starts a new
+measurement period, excluding idle time. Motion events wake sampling promptly;
+the health check also rechecks motion once a second. Ending motion reports idle
+health at once, so repeated short animations still supply signs of life without
+waiting for a full FPS measurement period. Missing-monitor status is independent
+of these reports. A moving output that stops supplying frames gets no synthetic
+heartbeat, preserving the existing silent-renderer recovery.
 
 Source: `PreviewFrame` README, `Prefs` (미리보기 30fps), `StatusBar` README,
 `docs/TECH.md` performance.

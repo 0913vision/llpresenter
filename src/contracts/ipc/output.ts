@@ -1,10 +1,12 @@
 import {parseFontCatalog, type FontCatalog} from '@core/schema/fontCatalog';
 import {
   parseFrameRateReport,
+  parseOutputHealthReport,
   parseFrameReadyReply,
   parseFrameReadyReport,
   parseRendererLogEntry,
   type FrameRateReport,
+  type OutputHealthReport,
   type FrameReadyReport,
   type RendererLogEntry,
 } from '@core/schema/ipcPayloads';
@@ -21,6 +23,7 @@ import {message, push, query, request, signal, type IpcPort} from './endpoint';
 
 /** The calls about output windows, monitors, fonts, and the log. */
 export const outputEndpoints = {
+  health: message<OutputHealthReport>('output:health', parseOutputHealthReport),
   frameRate: message<FrameRateReport>(
     'output:frame-rate',
     parseFrameRateReport,
@@ -54,6 +57,8 @@ export function outputApi(port: IpcPort) {
   return {
     /** Reports an output window's measured frame rate, once a second. */
     reportFrameRate: port.message(outputEndpoints.frameRate),
+    /** Reports a static output's health without inventing a frame rate. */
+    reportHealth: port.message(outputEndpoints.health),
     /** Reports a drawn frame; false when main did not take it. */
     reportReady: port.request(outputEndpoints.frameReady),
     /**

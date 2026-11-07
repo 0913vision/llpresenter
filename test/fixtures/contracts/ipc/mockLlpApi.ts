@@ -142,6 +142,7 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
     output: {
       reportReady: () => Promise.resolve(false),
       reportFrameRate: () => undefined,
+      reportHealth: () => undefined,
       getStatus: () => Promise.resolve({}),
       subscribeStatus: () => () => undefined,
       retry: () => undefined,

@@ -52,6 +52,25 @@ function setUp({mode}: {mode?: RenderMode} = {}) {
 }
 
 describe('OutputRenderer', () => {
+  it('detects moving videos and CSS animations but leaves a static picture idle', () => {
+    const {parent, renderer} = setUp();
+    expect(renderer.moving()).toBe(false);
+    const root = parent.firstElementChild;
+    if (!(root instanceof HTMLElement)) throw new Error('Missing render root');
+    const getAnimations = vi.fn(() => [{playState: 'running', pending: false}]);
+    Object.defineProperty(root, 'getAnimations', {value: getAnimations});
+    expect(renderer.moving()).toBe(true);
+    getAnimations.mockReturnValue([{playState: 'finished', pending: false}]);
+    expect(renderer.moving()).toBe(false);
+    const video = document.createElement('video');
+    root.append(video);
+    Object.defineProperty(video, 'paused', {configurable: true, value: false});
+    expect(renderer.moving()).toBe(true);
+    Object.defineProperty(video, 'paused', {value: true});
+    expect(renderer.moving()).toBe(false);
+    renderer.dispose();
+    expect(renderer.moving()).toBe(false);
+  });
   it('fades cleared lyrics on the monotonic frame clock and cancels on restore or disposal', () => {
     vi.useFakeTimers();
     try {
@@ -70,6 +89,7 @@ describe('OutputRenderer', () => {
         durationMs: 1200,
       } as const;
       renderer.render(cleared, {...frame, clearEffects: [effect]});
+      expect(renderer.moving()).toBe(true);
       now = 1600;
       vi.advanceTimersByTime(32);
       expect(Number(lyrics?.style.opacity)).toBeCloseTo(0.5);
