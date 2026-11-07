@@ -241,26 +241,15 @@ describe('withPreferenceDefaults', () => {
 });
 
 describe('preferences read boundary', () => {
-  it('defaults media copying off and keeps explicit choices and unknown media fields', () => {
-    expect(
-      expectSuccess(parsePreferencesValue(HEADER)).media.copyOnImport,
-    ).toBe(false);
-    for (const copyOnImport of [true, false]) {
-      const value = {...HEADER, media: {copyOnImport, future: {enabled: true}}};
-      expectRoundTrip(codec, value);
-      expect(expectSuccess(parsePreferencesValue(value)).media).toMatchObject(
-        value.media,
-      );
-    }
-    expect(
-      withPreferenceDefaults(parse({...HEADER, media: {future: 'invented'}})),
-    ).toHaveProperty(
-      'media',
-      expect.objectContaining({copyOnImport: false, future: 'invented'}),
+  it('keeps unknown media fields', () => {
+    const value = {...HEADER, media: {future: {enabled: true}}};
+    expectRoundTrip(codec, value);
+    expect(expectSuccess(parsePreferencesValue(value)).media).toMatchObject(
+      value.media,
     );
     expect(
-      parsePreferencesValue({...HEADER, media: {copyOnImport: 'false'}}).ok,
-    ).toBe(false);
+      withPreferenceDefaults(parse({...HEADER, media: {future: 'invented'}})),
+    ).toHaveProperty('media', expect.objectContaining({future: 'invented'}));
   });
   it('defaults launching with Windows off and keeps an explicit choice and unknown general fields', () => {
     expect(
@@ -334,11 +323,10 @@ describe('audio output choices', () => {
     expect(DEFAULT_AUDIO_DEVICE).toEqual({id: '', label: ''});
   });
 
-  it('keeps both stored choices next to the copy setting and unknown fields', () => {
+  it('keeps both stored choices and unknown fields', () => {
     const value = {
       ...HEADER,
       media: {
-        copyOnImport: true,
         audioOutput: DEVICE,
         previewOutput: {id: '', label: 'Windows 기본 장치'},
         future: 1,

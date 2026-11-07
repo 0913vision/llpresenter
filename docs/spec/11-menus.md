@@ -716,7 +716,6 @@ Which thing a row acts on:
 - 더 보기 tab overflow
 - 성경 구절 추천
 - 이름표 넣기
-- 미디어 가져오기 설정
 - 템플릿 and past-service rows in dialogs
 - 다른 화면 출력
 - 글꼴

@@ -1,5 +1,5 @@
-import {rm, stat} from 'node:fs/promises';
-import {basename, extname} from 'node:path';
+import {realpath, rm, stat} from 'node:fs/promises';
+import {basename, extname, join, relative} from 'node:path';
 import type {MediaId} from '@core/schema/ids';
 import type {
   MediaDocument,
@@ -18,10 +18,8 @@ import type {MediaItemsCommit} from '../store/mediaStore';
 import {copyWithProgress, freePath, type CopyOptions} from './copyFile';
 import type {Analysis, AnalysisRequest, MediaFacts} from './mediaAnalyser';
 import {mediaKindOf, type MediaKind} from './mediaKinds';
+import {realPathInside} from '../windows/insideRoots';
 import {storedPath} from './storedPath';
-
-/** Refer to originals unless copying is enabled (October 27 user decision). */
-export const COPY_IMPORTED_MEDIA = false;
 
 /** The most import jobs that wait or run at once. */
 export const MAX_IMPORT_JOBS = MEDIA_LIMITS.importBatch;
@@ -64,8 +62,6 @@ export interface MediaImporterOptions {
   ) => Promise<void>;
   readonly log: Logger;
   readonly copy?: (options: CopyOptions) => ReturnType<typeof copyWithProgress>;
-  /** Resolved once per admitted request; {@link COPY_IMPORTED_MEDIA} by default. */
-  readonly copyIntoFolder?: boolean | (() => Promise<boolean>);
   /** The 새 미디어 defaults, read once per admitted request like the copy choice. */
   readonly defaults?: () => Promise<MediaDefaults>;
 }
@@ -76,7 +72,6 @@ interface ImportJob {
   readonly kind: MediaKind;
   readonly fileName: string;
   readonly playlist: PlaylistRef | null;
-  readonly copyIntoFolder: boolean;
   readonly defaults: MediaDefaults;
   readonly abort: AbortController;
   /** Stops following the backend's signal once the job ends. */
@@ -160,8 +155,8 @@ function cancelled(job: ImportJob): boolean {
 }
 
 /**
- * Imports media files one at a time: each job references its source or copies
- * into the media folder, analyses it, then joins the media list and the chosen
+ * Imports media files one at a time: each job copies its source into the media
+ * folder (a file already there stays), analyses it, then joins the media list and the chosen
  * playlist with its duration and size. A file Chromium's decoders refuse
  * fails, and its copy is removed. A job can be cancelled while it waits,
  * copies, or is analysed, and disposal cancels all.
@@ -185,7 +180,6 @@ export class MediaImporter {
       return mediaRefusal('not-found', 'Media import is closing');
     }
     if (paths.length === 0) return {ok: true, value: []};
-    const copyIntoFolder = await this.copyPolicy();
     const defaults = await this.defaultsPolicy();
     if (this.isClosing(signal)) {
       return mediaRefusal('not-found', 'Media import is closing');
@@ -200,7 +194,6 @@ export class MediaImporter {
           source: path,
           playlist: request.playlist,
           signal,
-          copyIntoFolder,
           defaults,
         }),
       ),
@@ -241,21 +234,6 @@ export class MediaImporter {
     }
   }
 
-  private async copyPolicy(): Promise<boolean> {
-    try {
-      const policy = this.options.copyIntoFolder;
-      return typeof policy === 'function'
-        ? await policy()
-        : (policy ?? COPY_IMPORTED_MEDIA);
-    } catch (error: unknown) {
-      this.options.log.warn(
-        'could not read media copy preference; using the default',
-        error,
-      );
-      return COPY_IMPORTED_MEDIA;
-    }
-  }
-
   /** Cancels every job and resolves once the running one has stopped. */
   dispose(): Promise<void> {
     this.disposed = true;
@@ -267,13 +245,11 @@ export class MediaImporter {
     source,
     playlist,
     signal,
-    copyIntoFolder,
     defaults,
   }: {
     readonly source: string;
     readonly playlist: PlaylistRef | null;
     readonly signal: AbortSignal;
-    readonly copyIntoFolder: boolean;
     readonly defaults: MediaDefaults;
   }): MediaImportProgress {
     const fileName = basename(source);
@@ -291,7 +267,6 @@ export class MediaImporter {
       kind,
       fileName,
       playlist,
-      copyIntoFolder,
       defaults,
       abort,
       release: () => {
@@ -309,9 +284,7 @@ export class MediaImporter {
     try {
       const outcome = await this.importFile(job, value => {
         percent = value;
-        if (job.copyIntoFolder) {
-          this.options.report(progress(job, 'copying', value));
-        }
+        this.options.report(progress(job, 'copying', value));
       });
       this.options.report(
         outcome.phase === 'failed'
@@ -439,10 +412,15 @@ export class MediaImporter {
     folder: string,
     onPercent: (percent: number) => void,
   ): Promise<Placed> {
-    if (!job.copyIntoFolder) {
-      const {size} = await stat(job.source);
-      onPercent(100);
-      return {ok: true, file: job.source, size, copied: false};
+    // NOTE(0913vision): A file already in the media folder stays where it is.
+    // It is stored by the path it has inside the folder, not by the path it was
+    // chosen through, so a junction or link outside the folder can go away.
+    const inside = await realPathInside(job.source, [folder]);
+    if (inside !== null) {
+      const root = await realpath(folder);
+      const file = join(folder, relative(root, inside));
+      const {size} = await stat(file);
+      return {ok: true, file, size, copied: false};
     }
     const target = await freePath(folder, job.fileName);
     if (target === null) return {ok: false, error: COPY_FAILED};

@@ -623,14 +623,20 @@ export function ServiceOrderList({
                   event.target instanceof Element
                     ? event.target.closest('[data-order-id]')
                     : null;
-                if (editable && row === event.currentTarget) {
+                if (
+                  workspace === 'prep' &&
+                  editable &&
+                  row === event.currentTarget
+                ) {
                   setRenaming(group.id);
                 }
               }}
             >
               {insertBefore === group.id ? <ListInsertLine /> : null}
               <ListGroup
-                value={group.id}
+                // NOTE(0913vision): In 진행 a section is a plain label: no
+                // click, hover, selection, or arrow stop (spec 04).
+                value={workspace === 'prep' ? group.id : undefined}
                 label={group.label}
                 rename={
                   renaming === group.id

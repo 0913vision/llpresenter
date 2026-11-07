@@ -1,6 +1,13 @@
 import {MEDIA_LIMITS} from '@core/schema/mediaList';
 import {getEventListeners} from 'node:events';
-import {mkdir, readdir, readFile, writeFile} from 'node:fs/promises';
+import {
+  mkdir,
+  readdir,
+  readFile,
+  rm,
+  symlink,
+  writeFile,
+} from 'node:fs/promises';
 import {dirname, join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {makeTempDir} from '@fixtures/tempDir';
@@ -78,7 +85,6 @@ async function setup(options: Partial<MediaImporterOptions> = {}) {
     analyse,
     saveThumbnail,
     log,
-    copyIntoFolder: true,
     ...options,
   });
   onTestFinished(() => importer.dispose());
@@ -211,75 +217,45 @@ describe('media import', () => {
     expect(log.messages('warn')).toHaveLength(1);
   });
 
-  it('refers to the file in place when imports do not copy', async () => {
-    const {importer, items, reports, source} = await setup({
-      copyIntoFolder: false,
-    });
-    const audio = await source('Prelude.mp3');
-    await importer.import(filesOf([audio]), signal());
+  it('leaves a file already in the media folder where it is', async () => {
+    const {importer, items, reports, media} = await setup();
+    await mkdir(media, {recursive: true});
+    const inside = join(media, 'Prelude.mp3');
+    await writeFile(inside, 'invented media');
+    await importer.import(filesOf([inside]), signal());
     await ended(reports, 1);
     expect(items).toEqual([
-      {id: uuid(1), name: 'Prelude', kind: 'audio', file: audio, size: 14},
+      {
+        id: uuid(1),
+        name: 'Prelude',
+        kind: 'audio',
+        file: 'Prelude.mp3',
+        size: 14,
+      },
     ]);
+    expect(await readdir(media)).toEqual(['Prelude.mp3']);
     expect(reports.some(report => report.phase === 'copying')).toBe(false);
     expect(reports.at(-1)).toMatchObject({phase: 'complete', percent: 100});
   });
 
-  it('imports the original using the default when the preference read rejects', async () => {
-    const {importer, items, reports, source, log} = await setup({
-      copyIntoFolder: () =>
-        Promise.reject(new Error('Invented preferences read failure')),
-    });
-    const file = await source('Original.mp4');
-    await importer.import(filesOf([file]), signal());
+  it('stores the path inside the media folder for a file chosen through a junction', async () => {
+    const {importer, items, reports, media, root} = await setup();
+    await mkdir(media, {recursive: true});
+    await writeFile(join(media, 'Prelude.mp3'), 'invented media');
+    const junction = join(root, 'Shortcut');
+    await symlink(media, junction, 'junction');
+    await importer.import(filesOf([join(junction, 'Prelude.mp3')]), signal());
     await ended(reports, 1);
-    expect(items[0]?.file).toBe(file);
+    await rm(junction, {recursive: true, force: true});
+    expect(items.map(item => item.file)).toEqual(['Prelude.mp3']);
+    expect(await readdir(media)).toEqual(['Prelude.mp3']);
     expect(reports.at(-1)).toMatchObject({phase: 'complete'});
-    expect(reports.some(report => report.phase === 'copying')).toBe(false);
-    expect(log.messages('warn')).toEqual([
-      'could not read media copy preference; using the default',
-    ]);
-    expect(await readFile(file, 'utf8')).toBe('invented media');
-  });
-
-  it('snapshots one policy per batch while queued jobs keep their admitted policy', async () => {
-    let copying = false;
-    const policy = vi.fn(() => Promise.resolve(copying));
-    const {importer, items, reports, source, media, analyse} = await setup({
-      copyIntoFolder: policy,
-    });
-    let finish: (value: Analysis) => void = () => undefined;
-    analyse.mockImplementationOnce(
-      () =>
-        new Promise(resolve => {
-          finish = resolve;
-        }),
-    );
-    const paths = await Promise.all(
-      ['First.mp4', 'Second.mp4', 'Third.mp4'].map(name => source(name)),
-    );
-    await importer.import(filesOf(paths.slice(0, 2)), signal());
-    await vi.waitFor(() => expect(analyse).toHaveBeenCalledOnce());
-    copying = true;
-    await importer.import(filesOf(paths.slice(2)), signal());
-    finish({kind: 'read', facts: {}});
-    await ended(reports, 3);
-    expect(policy).toHaveBeenCalledTimes(2);
-    expect(items.map(item => item.file)).toEqual([
-      paths[0],
-      paths[1],
-      'Third.mp4',
-    ]);
-    expect(await readdir(media)).toEqual(['Third.mp4']);
-    expect(await readFile(paths[0] ?? '', 'utf8')).toBe('invented media');
   });
 
   it.each(['failure', 'cancellation'] as const)(
-    'keeps an original after analysis %s without copying',
+    'keeps an original and removes its copy after analysis %s',
     async outcome => {
-      const {importer, reports, source, analyse, add} = await setup({
-        copyIntoFolder: false,
-      });
+      const {importer, reports, source, analyse, add, media} = await setup();
       const file = await source('Original.mp4');
       analyse.mockImplementationOnce(async () => {
         if (outcome === 'cancellation') {
@@ -295,6 +271,7 @@ describe('media import', () => {
       await ended(reports, 1);
       expect(add).not.toHaveBeenCalled();
       expect(await readFile(file, 'utf8')).toBe('invented media');
+      expect(await readdir(media)).toEqual([]);
       expect(reports.at(-1)?.phase).toBe(
         outcome === 'cancellation' ? 'cancelled' : 'failed',
       );
@@ -415,31 +392,26 @@ describe('media import', () => {
 });
 
 describe('media import boundaries', () => {
-  it.each([true, false])(
-    'completes and keeps the files when the list applies an item but cannot save it (copy=%s)',
-    async copyIntoFolder => {
-      const {importer, reports, add, media, source} = await setup({
-        copyIntoFolder,
-      });
-      add.mockResolvedValue({
-        ok: false,
-        error: {
-          reason: 'write-failed',
-          message: 'Invented full disk',
-          applied: {id: uuid(1), revision: 2},
-          unchangedFiles: [],
-        },
-      });
-      const original = await source('Kept.png', 'invented');
+  it('completes and keeps the files when the list applies an item but cannot save it', async () => {
+    const {importer, reports, add, media, source} = await setup();
+    add.mockResolvedValue({
+      ok: false,
+      error: {
+        reason: 'write-failed',
+        message: 'Invented full disk',
+        applied: {id: uuid(1), revision: 2},
+        unchangedFiles: [],
+      },
+    });
+    const original = await source('Kept.png', 'invented');
 
-      await importer.import(filesOf([original]), signal());
-      await ended(reports, 1);
+    await importer.import(filesOf([original]), signal());
+    await ended(reports, 1);
 
-      expect(reports.at(-1)).toMatchObject({phase: 'complete'});
-      if (copyIntoFolder) expect(await readdir(media)).toEqual(['Kept.png']);
-      expect(await readFile(original, 'utf8')).toBe('invented');
-    },
-  );
+    expect(reports.at(-1)).toMatchObject({phase: 'complete'});
+    expect(await readdir(media)).toEqual(['Kept.png']);
+    expect(await readFile(original, 'utf8')).toBe('invented');
+  });
 
   it('asks for files at once while another job is still running', async () => {
     let finish: (value: Analysis) => void = () => undefined;

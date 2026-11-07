@@ -48,21 +48,22 @@ Source: `Main` decisions "진행 화면은 절충안" and "작업 공간 세 개
 
 | Row            | Shows                                                                                            | Clicking it                                                                         |
 | -------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
-| Section (구역) | Group name, for example 예배 전 (before service), 찬양 (praise), 말씀 (sermon), 마무리 (closing) | Selects the section as the target for 항목 추가; the 슬라이드 panel stays empty.    |
+| Section (구역) | Group name, for example 예배 전 (before service), 찬양 (praise), 말씀 (sermon), 마무리 (closing) | Nothing: a plain label with no hover or selection (November 7 user decision).       |
 | Song           | Song icon, song title                                                                            | Selects the row and opens the song's 슬라이드 in the 슬라이드 panel, in 구성 order. |
 | Bible passage  | Book icon, passage name, for example 요한복음 3장 16절                                           | Selects the row and opens the passage's 슬라이드 in the 슬라이드 panel.             |
 | Media          | Video icon, media name, for example 예배 전 카운트다운                                           | Selects the row and opens one media tile in the 슬라이드 panel.                     |
 
 - Clicking a row only selects it. The operator outputs by clicking a 슬라이드 in
   the 슬라이드 panel.
-- A 구역 can be empty and remains visible and selectable. The operator can add
-  it with 구역 추가 (new row 새 구역), rename it, or remove it. 항목 추가 adds
-  into the selected section, or the section containing the selected item; with
-  no selection, it appends to the service. See 05.
-- In the list, the up and down arrow keys move between sections and item rows.
-  Home and End go to the first and last row. ← → Space Page Up Page Down still
-  output the next and previous 슬라이드 while the list has focus (10, focus
-  precedence).
+- A 구역 can be empty and remains visible. In 진행 it is only a label: click and
+  double click do nothing, and the arrow keys skip it. In 준비 it is a
+  selectable row that the operator can add with 구역 추가 (new row 새 구역),
+  rename, or remove, and 항목 추가 adds into the selected section, or the
+  section containing the selected item; with no selection, it appends to the
+  service. See 05.
+- In the list, the up and down arrow keys move between item rows. Home and End
+  go to the first and last row. ← → Space Page Up Page Down still output the
+  next and previous 슬라이드 while the list has focus (10, focus precedence).
 - Ctrl ↓ and Ctrl ↑ select the next and previous item that can output and open
   it in the 슬라이드 panel, without outputting (다음 항목, 이전 항목; decided,
   10).

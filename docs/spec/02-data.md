@@ -564,11 +564,6 @@ system.
 
 ### 환경설정 (`preferences.json`)
 
-`media.copyOnImport` is an optional Boolean, default `false` (October 27 user
-decision). Off imports reference the original file in place. On imports copy
-into the configured media folder. Read the choice once when an import request is
-admitted; changing it affects the next request, not jobs already queued.
-
 `general.launchAtLogin` is an optional Boolean, default `false`: the app starts
 when the user signs in to Windows. A change is applied at once to the Windows
 sign-in item (`app.setLoginItemSettings`, main only). At launch Windows is the
@@ -585,8 +580,7 @@ takes all three, an image takes `fit`, and an audio file takes none. `end` and
 `fit` are written to the media item only when they differ from what a media
 without them already does (`loop`, `fill`), and a video always carries `audio`,
 so with the defaults an import is stored as before. Read the choices once when
-an import request is admitted, like `copyOnImport`; media already in the list
-keep their own values.
+an import request is admitted; media already in the list keep their own values.
 
 `output.transition.slide` and `output.transition.media` are optional objects
 with an optional `kind` (`none` or `dissolve`, default `dissolve`) and an
@@ -767,9 +761,8 @@ change this picker preference.
 - One media item can be in several playlists (proposal). Removing it from a
   playlist keeps it in the media list.
 - Thumbnails and durations live in `cache\`. If they're deleted, rebuild them.
-- Importing media references its original file by default. Copying into the
-  media folder is optional through `media.copyOnImport`, default off (October 27
-  user decision; see 05 and 10).
+- Importing media always copies the file into the media folder, except a file
+  already inside it (November 7 user decision; see 05).
 
 ## Bible translations
 

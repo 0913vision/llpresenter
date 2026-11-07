@@ -204,7 +204,7 @@ describe('service panel editing', () => {
   });
 
   it('moves the focused item one place with Alt arrows and leaves sections and ends alone', async () => {
-    const {api, ids} = setup();
+    const {api, ids} = setup('prep');
     const next = screen.getByRole('option', {name: '다음 곡'});
     next.focus();
     fireEvent.keyDown(next, {key: 'ArrowUp', code: 'ArrowUp', altKey: true});
@@ -300,7 +300,7 @@ describe('service panel editing', () => {
   });
 
   it('forgets the focus of a refused move, so a later change does not take it', async () => {
-    const {api, ids} = setup('show', false, {secondSection: true});
+    const {api, ids} = setup('prep', false, {secondSection: true});
     vi.mocked(api.content.edit).mockResolvedValueOnce({
       ok: false,
       error: {reason: 'stale', message: 'changed'},
@@ -343,7 +343,7 @@ describe('service panel editing', () => {
   });
 
   it('drops above the first row from the list top padding', async () => {
-    const {list, ids} = setup();
+    const {list, ids} = setup('prep');
     const header = screen.getByRole('option', {name: '제목'});
     vi.spyOn(header, 'getBoundingClientRect').mockReturnValue(
       new DOMRect(0, 4, 200, 30),

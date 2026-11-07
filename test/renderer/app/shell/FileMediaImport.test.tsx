@@ -225,3 +225,14 @@ it('releases the progress subscription and ignores late progress and import repl
   });
   expect(onProblem).not.toHaveBeenCalled();
 });
+
+it('asks for the file dialog in the same tick as the menu choice', () => {
+  const importMedia = vi.fn(() => new Promise<never>(() => {}));
+  window.llp = mockLlpApi({media: {import: importMedia}});
+  const {result} = renderHook(() => useFileMediaImport(vi.fn()));
+  act(() => result.current.onSelect?.());
+  expect(importMedia).toHaveBeenCalledOnce();
+  expect(importMedia).toHaveBeenCalledWith(
+    expect.objectContaining({source: {kind: 'dialog'}}),
+  );
+});

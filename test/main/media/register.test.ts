@@ -17,10 +17,7 @@ import type {
   MediaBackendPort,
 } from '@main/store/mediaChannels';
 import type {Analysis, AnalysisRequest} from '@main/media/mediaAnalyser';
-import {
-  MediaImporter,
-  type MediaImporterOptions,
-} from '@main/media/mediaImporter';
+import type {MediaImporterOptions} from '@main/media/mediaImporter';
 
 vi.mock('@main/media/mediaImporter', async importOriginal => {
   const actual =
@@ -217,25 +214,13 @@ describe('media backend registration', () => {
     await stop();
   });
 
-  it('reads the current preference for each request, defaults off, and preserves explicit on', async () => {
+  it('copies each import into the media folder', async () => {
     const {port, handlers, reported} = mockPort();
     const store = await mediaStore();
     const add = vi.fn(store.add);
     const file = join(await makeTempDir(), 'Invented.png');
     await writeFile(file, 'invented');
-    let copying = false;
-    const stop = register(
-      port,
-      {...store, add},
-      {
-        settings: Promise.resolve({
-          preferences: () => ({
-            ...defaultPreferences,
-            media: {...defaultPreferences.media, copyOnImport: copying},
-          }),
-        }),
-      },
-    );
+    const stop = register(port, {...store, add});
     await handlers().import(
       {source: {kind: 'files', paths: [file]}, playlist: null},
       new AbortController().signal,
@@ -243,17 +228,7 @@ describe('media backend registration', () => {
     await vi.waitFor(() =>
       expect(reported.at(-1)).toMatchObject({phase: 'complete'}),
     );
-    expect(add.mock.calls[0]?.[0].items[0]?.file).toBe(file);
-    copying = true;
-    reported.length = 0;
-    await handlers().import(
-      {source: {kind: 'files', paths: [file]}, playlist: null},
-      new AbortController().signal,
-    );
-    await vi.waitFor(() =>
-      expect(reported.at(-1)).toMatchObject({phase: 'complete'}),
-    );
-    expect(add.mock.calls[1]?.[0].items[0]?.file).toBe('Invented.png');
+    expect(add.mock.calls[0]?.[0].items[0]?.file).toBe('Invented.png');
     await stop();
   });
   it('remembers the first chosen folder for the next dialog and leaves it on cancellation', async () => {
@@ -335,15 +310,6 @@ describe('media backend registration', () => {
     );
     await stop();
     expect(disconnect).toHaveBeenCalledOnce();
-  });
-
-  it('does not copy imports while the settings are unavailable', async () => {
-    const {port} = mockPort();
-    const stop = register(port, await mediaStore());
-    const copy = vi.mocked(MediaImporter).mock.calls.at(-1)?.[0].copyIntoFolder;
-
-    expect(typeof copy === 'function' ? await copy() : copy).toBe(false);
-    await stop();
   });
 
   it('relinks through a dialog of the item kind on the control window', async () => {

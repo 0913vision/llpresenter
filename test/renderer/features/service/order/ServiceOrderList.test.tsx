@@ -126,14 +126,28 @@ describe('ServiceOrderList', () => {
     expect(sent).toHaveLength(0);
   });
 
-  it('makes sections and items selectable without outputting a section', () => {
+  it('makes items selectable without outputting, and sections do nothing in 진행', () => {
     render(<ServiceOrderList />);
+    expect(screen.queryByRole('option', {name: '찬양'})).toBeNull();
+    const label = screen.getByText('찬양');
+    fireEvent.click(label);
+    fireEvent.doubleClick(label);
+    expect(useShow.getState().openItemId).toBeNull();
+    expect(screen.queryByRole('textbox')).toBeNull();
+    const item = screen.getByRole('option', {name: /아침이 밝아 오네/});
+    fireEvent.click(item);
+    expect(useShow.getState().openItemId).toBe('song-morning');
+    expect(item.getAttribute('aria-selected')).toBe('true');
+    expect(sent).toHaveLength(0);
+  });
+
+  it('keeps sections as selectable rows in 준비', () => {
+    render(<ServiceOrderList workspace="prep" />);
     const section = screen.getByRole('option', {name: '찬양'});
     fireEvent.click(section);
     expect(useShow.getState().openItemId).toBe('praise');
     expect(section.getAttribute('aria-selected')).toBe('true');
     expect(sent).toHaveLength(0);
-    expect(screen.getByRole('option', {name: /아침이 밝아 오네/})).toBeTruthy();
   });
 
   it('explains the problem of a row in its tooltip, and only then', () => {
@@ -258,20 +272,19 @@ describe('ServiceOrderList', () => {
     expect(document.activeElement).toBe(document.body);
   });
 
-  it('moves between rows with the arrow keys, Home, and End', () => {
+  it('moves between item rows with the arrow keys, Home, and End, skipping sections', () => {
     render(<ServiceOrderList />);
     const press = (key: string): void => {
       fireEvent.keyDown(document.activeElement ?? document.body, {key});
     };
     screen.getByRole('option', {name: /아침이 밝아 오네/}).focus();
     for (const [key, id, name] of [
-      ['Home', 'before', '예배 전'],
-      ['ArrowDown', 'countdown', '예배 전 카운트다운'],
-      ['ArrowDown', 'praise', '찬양'],
+      ['Home', 'countdown', '예배 전 카운트다운'],
       ['ArrowDown', 'song-morning', '아침이 밝아 오네'],
-      ['ArrowUp', 'praise', '찬양'],
-      ['Home', 'before', '예배 전'],
-      ['End', 'closing', '마무리'],
+      ['ArrowDown', 'song-river', '맑은 시냇물'],
+      ['ArrowUp', 'song-morning', '아침이 밝아 오네'],
+      ['Home', 'countdown', '예배 전 카운트다운'],
+      ['End', 'psalm-23', '시편 23편 1절부터 6절'],
     ] as const) {
       press(key);
       expect(useShow.getState().openItemId).toBe(id);

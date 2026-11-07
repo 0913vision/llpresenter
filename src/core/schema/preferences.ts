@@ -172,7 +172,6 @@ export const preferencesSchema = jsonObject({
   ),
   media: v.exactOptional(
     jsonObject({
-      copyOnImport: optionalBoolean,
       defaults: v.exactOptional(mediaDefaultsSchema),
       audioOutput: v.exactOptional(audioDeviceSchema),
       previewOutput: v.exactOptional(audioDeviceSchema),
@@ -270,7 +269,6 @@ export const defaultPreferences: Preferences = {
   },
   backup: {auto: true, keep: 30},
   media: {
-    copyOnImport: false,
     defaults: {end: 'loop', fit: 'fill', audio: false},
     audioOutput: DEFAULT_AUDIO_DEVICE,
     previewOutput: DEFAULT_AUDIO_DEVICE,

@@ -52,7 +52,6 @@ import {useMediaImportCompletion, useMediaView} from './MediaViewProvider';
 import {VirtualMediaGrid} from './VirtualMediaGrid';
 import {writeMediaDrag} from './mediaDrag';
 import {useMediaImportAction} from './useMediaImportAction';
-import {MediaImportOptions} from './MediaImportOptions';
 import styles from './MediaView.module.css';
 import {mediaTileMenuEntries, type MediaTileActions} from './mediaMenuEntries';
 
@@ -342,7 +341,6 @@ export function MediaView({
             onChange={() => undefined}
           />
           <PanelActions>
-            <MediaImportOptions onProblem={onProblem} />
             <Button
               icon="upload"
               disabled={importReason !== undefined}

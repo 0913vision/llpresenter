@@ -962,13 +962,16 @@ describe('PreferencesView', () => {
 
     it('saves each default at once under media.defaults and keeps the other media fields', async () => {
       await mount({
-        stored: {...STORED, media: {copyOnImport: true}},
+        stored: {
+          ...STORED,
+          media: {previewOutput: {id: 'kept', label: 'Kept'}},
+        },
       });
       await openPage('미디어');
       await userEvent.click(screen.getByRole('radio', {name: '정지'}));
       await waitFor(() => expect(edit).toHaveBeenCalledOnce());
       expect(written().media).toEqual({
-        copyOnImport: true,
+        previewOutput: {id: 'kept', label: 'Kept'},
         defaults: {end: 'stop'},
       });
       expect(written()).toMatchObject(UNKNOWN_FIELDS);

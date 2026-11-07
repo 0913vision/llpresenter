@@ -37,7 +37,7 @@ describe('service panel editing', () => {
   );
 
   it('renames a header in place with a double click, Enter, Esc, and leaving the field', async () => {
-    const {api, ids, send} = setup();
+    const {api, ids, send} = setup('prep');
     fireEvent.doubleClick(screen.getByText('제목'));
     const field = screen.getByRole('textbox', {name: '제목 이름'});
     expect(document.activeElement).toBe(field);
