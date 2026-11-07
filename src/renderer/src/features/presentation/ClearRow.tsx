@@ -84,6 +84,7 @@ function ClearButton({
 }
 
 function UndoButton({compact}: {readonly compact: boolean}): JSX.Element {
+  const active = useCanUndo();
   const {targetProps, tooltip} = useTooltip({
     text: '되돌리기',
     command: 'clear.undo',
@@ -95,7 +96,11 @@ function UndoButton({compact}: {readonly compact: boolean}): JSX.Element {
         type="button"
         className={`${styles.button} ${styles.undo}`}
         aria-label="되돌리기"
-        onClick={undoClear}
+        aria-disabled={!active}
+        data-state={active ? undefined : 'off'}
+        onClick={() => {
+          if (active) undoClear();
+        }}
       >
         <Icon name="undo" size={compact ? 16 : 18} />
         {compact ? null : <span className={styles.label}>되돌리기</span>}
@@ -105,12 +110,11 @@ function UndoButton({compact}: {readonly compact: boolean}): JSX.Element {
   );
 }
 
-function UndoControls({
-  compact,
-}: {
-  readonly compact: boolean;
-}): JSX.Element | null {
-  if (!useCanUndo()) return null;
+// NOTE(0913vision): 되돌리기 is always in the row, off while there is nothing to
+// bring back, like the buttons that have nothing to clear. Showing it only
+// when it can act made the other buttons shrink and move under the operator's
+// hand (design README, principle 6).
+function UndoControls({compact}: {readonly compact: boolean}): JSX.Element {
   return (
     <>
       <span className={styles.divider} aria-hidden="true" />
@@ -119,7 +123,7 @@ function UndoControls({
   );
 }
 
-/** The 지우기 row, with 되돌리기 shown while a clear can be brought back. */
+/** The 지우기 row; 되돌리기 is off until a clear can be brought back. */
 export function ClearRow({compact}: {readonly compact: boolean}): JSX.Element {
   return (
     <div

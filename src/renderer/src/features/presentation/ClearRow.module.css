@@ -49,6 +49,7 @@
 }
 
 .undo {
+  flex: 1.4;
   background: var(--bg-toolbar-hover);
 }
 
@@ -72,6 +73,7 @@
 
 .label {
   font: var(--type-caption-strong);
+  white-space: nowrap;
 }
 
 .divider {

@@ -17,7 +17,7 @@ The 지우기 (clear) row in the right column of the 진행 (Show) workspace. It
 ## Anatomy
 
 - Row: background `bg-panel`, corner radius `radius-lg`, padding `space-8`, gap between buttons `space-4`. The row is a panel of its own and has no header.
-- Order: 모두 (all), 가사 (lyrics), 미디어 (media), 그래픽 (props), 오디오 (audio), 메시지 (message). When clear undo is enabled, append its divider and 되돌리기.
+- Order: 모두 (all), 가사 (lyrics), 미디어 (media), 그래픽 (props), 오디오 (audio), 메시지 (message). Then its divider and 되돌리기, always: the row never changes its buttons' size or place (principle 6), and 되돌리기 is in its off state (like a button with nothing to clear) until a clear can be brought back. Its label never wraps.
 - Button: height `size-clear-button` (52px), corner radius `radius-md`, name `caption-strong` (16/22/600) under an icon `size-icon-18`, gap `space-4`. Buttons share the row width (flex 1). 모두 is 1.4 times as wide.
 - Icons: 모두 `layers`, 가사 `text`, 미디어 `image`, 그래픽 `prop`, 오디오 `audio`, 메시지 `msg`, 되돌리기 `undo`.
 - Divider: 1×32, `line`, horizontal margin `space-4` (8 together with the gap between buttons).
@@ -51,7 +51,7 @@ Don't use red because a layer is live. Show only whether there is something to c
 - Unmodified Enter and Space press a focused clear button. Modified activation keys pass to their owner without clearing a layer.
 - A click clears that layer at once. Don't show a confirmation dialog. If the operator clicked by mistake, 되돌리기 brings it back.
 - 모두 clears every layer that has something to clear at once. While even one layer is left, 모두 is in the something-to-clear state.
-- 되돌리기 undoes the last 지우기 (including 모두), one step only. After the undo, it has nothing to undo. Render it only when 환경설정 > 진행 > 지우기 되돌리기 단추 보이기 is on; the setting is off by default. The caller owns this setting and omits both the button and its divider when off.
+- 되돌리기 undoes the last 지우기 (including 모두), one step only. After the undo, it has nothing to undo and is off again. It is never removed from the row, so the buttons beside it keep their size and place.
 - Shortcuts: 모두 F1, 가사 F2, 미디어 F3, 그래픽 F4, 오디오 F5, 메시지 F6. F1 to F6 work in every workspace and in the 환경설정 window, wherever the focus is: in a text field, with a menu or a dialog open, and during a drag. Only the key recording field on the 단축키 page takes them while it records. Clear undo has no default shortcut. Ctrl Z is edit undo and never restores cleared output. The tooltip and `aria-keyshortcuts` reflect an explicitly supplied current shortcut; these UI parts display it but do not register key bindings.
 - Give a button with nothing to clear `aria-disabled="true"` and `data-state="off"` instead of `disabled`. It keeps its focus and tooltip, and its shortcut does nothing.
 - Give each button `aria-label="가사 지우기"` and `aria-keyshortcuts="F2"`. The row is `role="group"` (name "지우기").

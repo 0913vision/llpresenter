@@ -144,24 +144,42 @@ afterEach(() => {
 });
 
 describe('ClearRow', () => {
-  it('hides undo and its divider while there is nothing to bring back', () => {
+  it('keeps undo and its divider in the row, off, while there is nothing to bring back', () => {
     installApi();
     setCanUndo(false);
     const state = useLive.getState().state;
     render(<ClearRow compact={false} />);
     const group = screen.getByRole('group', {name: '지우기'});
-    expect(group.querySelectorAll('button')).toHaveLength(7);
-    expect(screen.queryByRole('button', {name: '되돌리기'})).toBeNull();
-    expect(group.querySelector('[aria-hidden="true"]')).toBeNull();
+    expect(group.querySelectorAll('button')).toHaveLength(8);
+    const undo = screen.getByRole('button', {name: '되돌리기'});
+    expect(undo.getAttribute('aria-disabled')).toBe('true');
+    expect(undo.getAttribute('data-state')).toBe('off');
+    expect(group.querySelector('[aria-hidden="true"]')).not.toBeNull();
+    fireEvent.click(undo);
     expect(useLive.getState().state).toBe(state);
     expect(sent).toEqual([]);
   });
 
-  it('stays hidden without preload', () => {
+  it('gives the row the same buttons whether or not a clear can be brought back', () => {
+    installApi();
+    setCanUndo(false);
+    const off = render(<ClearRow compact={false} />);
+    const before = [...off.container.querySelectorAll('button')].map(
+      button => button.className,
+    );
+    act(() => setCanUndo(true));
+    const after = [...off.container.querySelectorAll('button')].map(
+      button => button.className,
+    );
+    expect(after).toEqual(before);
+  });
+
+  it('keeps undo off without preload', () => {
     delete window.llp;
     render(<ClearRow compact={false} />);
-    expect(screen.queryByRole('button', {name: '되돌리기'})).toBeNull();
-    expect(screen.getAllByRole('button')).toHaveLength(7);
+    const undo = screen.getByRole('button', {name: '되돌리기'});
+    expect(undo.getAttribute('aria-disabled')).toBe('true');
+    expect(screen.getAllByRole('button')).toHaveLength(8);
   });
 
   it('shows only undo and its divider while a clear can be brought back', () => {
@@ -244,10 +262,14 @@ describe('ClearRow', () => {
     expect(sent).toEqual([{type: 'clear.undo'}]);
   });
 
-  it('removes the undo button when there is nothing left to bring back', () => {
+  it('turns the undo button off when there is nothing left to bring back', () => {
     renderWithUndo();
     act(() => setCanUndo(false));
-    expect(screen.queryByRole('button', {name: '되돌리기'})).toBeNull();
+    expect(
+      screen
+        .getByRole('button', {name: '되돌리기'})
+        .getAttribute('aria-disabled'),
+    ).toBe('true');
   });
 
   it('redraws only the undo button when canUndo changes', () => {
