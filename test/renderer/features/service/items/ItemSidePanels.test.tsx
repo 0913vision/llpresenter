@@ -173,7 +173,7 @@ describe('service item preview and 항목 설정', () => {
     expect(lastLayers()?.slide?.lines).toEqual(['16 Invented verse 16']);
     act(() => useShow.setState({tiles: {}}));
     expect(within(grid).queryAllByRole('option')).toHaveLength(0);
-    expect(caption()).toBe('미리보기');
+    expect(caption().trim()).toBe('미리보기');
     expect(output).not.toHaveBeenCalled();
   });
 
@@ -194,7 +194,7 @@ describe('service item preview and 항목 설정', () => {
     const {output} = await setupBible();
     expect(caption()).toContain('1 / 3');
     act(() => useShow.setState({serviceId: 'other-service'}));
-    await waitFor(() => expect(caption()).toBe('미리보기'));
+    await waitFor(() => expect(caption().trim()).toBe('미리보기'));
     expect(screen.queryAllByRole('option')).toHaveLength(0);
     expect(output).not.toHaveBeenCalled();
   });

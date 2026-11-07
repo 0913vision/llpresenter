@@ -123,8 +123,14 @@ export function usePrepActions({
   const newSong = (): void => {
     if (session.api === undefined) return;
     songOpen.current++;
-    onWorkspace('prep');
-    session.editor?.requestLeave(() => prepSelection.create());
+    // NOTE(0913vision): The question about an unsaved song opens where the
+    // command was given; 준비 opens only once it is answered.
+    const create = (): void => {
+      onWorkspace('prep');
+      prepSelection.create();
+    };
+    if (session.editor === undefined) create();
+    else session.editor.requestLeave(create);
   };
   const imported = useSyncExternalStore(
     session.editor?.subscribe ?? noEditorSubscription,

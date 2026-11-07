@@ -48,24 +48,29 @@ repository). The table, the 순서 편집 window, the 곡 편집 window, and the
 - The center of 준비 is the 예배 순서 table, one row per item. Clicking a row
   shows that item's preview, 슬라이드, and settings on the right. The 라이브러리
   stays on the left. The song editor is no longer a column of 준비: choosing a
-  라이브러리 song opens the 곡 편집 window.
+  라이브러리 song opens the 곡 편집 window. The 미리보기 keeps one full-width
+  16:9 picture for every item kind: a song, a Bible passage, a 빈 슬라이드,
+  광고, or 설교, and a 영상 or 그림 (its file and name). With no item, or a
+  구역, selected the picture stays empty at the same size, so the panels below
+  it do not move.
 - The columns are 이름, 구성, 슬라이드, 테마, 배경, 시작할 때, and 메모.
-  슬라이드 counts the slides of the order the item plays (the duration for
-  media). A song with its own order (`customOrder`, made in 순서 편집) shows the
-  구성 the order started from, followed by the small changed dot with the
-  tooltip "이 예배에서 바꾼 순서"; the right column's 구성 select and the 순서
-  편집 window's 구성 picker show the same name and dot. Anything that lists the
-  order itself (chips, tiles, the 슬라이드 count) shows the order that plays.
-  Picking a 구성 clears the order and the dot goes. 테마 shows the name of the
-  item's own 테마, or, dimmed, the default of its kind, with the reason in the
-  tooltip. 배경 shows the picture and name, dimmed when the item follows the
-  song's. 테마 and 시작할 때 change in the cell, which opens its list of
-  choices; the other columns are changed on the right or in the windows. A cell
-  with no value (no 배경, no 시작할 때, no 메모) shows nothing, not 없음; it
-  still opens its menu or field on click and shows a frame on hover. Item names
-  read strong, cell values quieter, column names quietest. A 구역 row is a
-  compact group head with a thin line above it (none above the first), and shows
-  only its name. Item rows are 44px high and 구역 rows 32px.
+  슬라이드 counts the slides of the order the item plays; a media item has none,
+  so its cell is empty (its length shows on its tile in the bin). A song with
+  its own order (`customOrder`, made in 순서 편집) shows the 구성 the order
+  started from, followed by the small changed dot with the tooltip "이 예배에서
+  바꾼 순서"; the right column's 구성 select and the 순서 편집 window's 구성
+  picker show the same name and dot. Anything that lists the order itself
+  (chips, tiles, the 슬라이드 count) shows the order that plays. Picking a 구성
+  clears the order and the dot goes. 테마 shows the name of the item's own 테마,
+  or, dimmed, the default of its kind, with the reason in the tooltip. 배경
+  shows the picture and name, dimmed when the item follows the song's. 테마 and
+  시작할 때 change in the cell, which opens its list of choices; the other
+  columns are changed on the right or in the windows. A cell with no value (no
+  배경, no 시작할 때, no 메모) shows nothing, not 없음; it still opens its menu
+  or field on click and shows a frame on hover. Item names read strong, cell
+  values quieter, column names quietest. A 구역 row is a compact group head with
+  a thin line above it (none above the first), and shows only its name. Item
+  rows are 44px high and 구역 rows 32px.
 - 항목 and 구역 at the end of the table add a row after the last one. 항목 opens
   the list of "Quick add" (below).
 - The right column's 슬라이드 panel has 순서 편집…, which opens the 순서 편집

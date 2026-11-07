@@ -226,47 +226,53 @@ export function SlidesPreview({
           onChange={setRole}
         />
       </PanelHeader>
-      {slide === undefined ? null : (
-        <div className={styles.preview}>
-          <div className={styles.stage}>
-            <SlidesCanvas
-              item={item}
-              index={selected}
-              appearance={appearance}
-              projection={shown}
-              part={part}
-            />
-          </div>
+      <div className={styles.preview}>
+        <div className={styles.stage}>
+          <SlidesCanvas
+            item={item}
+            index={selected}
+            appearance={appearance}
+            projection={shown}
+            part={part}
+          />
+        </div>
+        {slide === undefined ? (
           <div className={styles.caption}>
-            <span>
-              {'text' in slide ? slide.name : slideBand(slide, media)}
-            </span>
-            <span>
-              {selected + 1} / {item.slides.slides.length}
-            </span>
             <span className={styles.themeName}>{appearance.themeName}</span>
           </div>
-          {count <= 1 ? null : (
+        ) : (
+          <>
             <div className={styles.caption}>
-              <Button
-                disabled={part === 0}
-                onClick={() => setChosenPart({id: slide.id, index: part - 1})}
-              >
-                이전 부분
-              </Button>
               <span>
-                {part + 1} / {count}
+                {'text' in slide ? slide.name : slideBand(slide, media)}
               </span>
-              <Button
-                disabled={part + 1 >= count}
-                onClick={() => setChosenPart({id: slide.id, index: part + 1})}
-              >
-                다음 부분
-              </Button>
+              <span>
+                {selected + 1} / {item.slides.slides.length}
+              </span>
+              <span className={styles.themeName}>{appearance.themeName}</span>
             </div>
-          )}
-        </div>
-      )}
+            {count <= 1 ? null : (
+              <div className={styles.caption}>
+                <Button
+                  disabled={part === 0}
+                  onClick={() => setChosenPart({id: slide.id, index: part - 1})}
+                >
+                  이전 부분
+                </Button>
+                <span>
+                  {part + 1} / {count}
+                </span>
+                <Button
+                  disabled={part + 1 >= count}
+                  onClick={() => setChosenPart({id: slide.id, index: part + 1})}
+                >
+                  다음 부분
+                </Button>
+              </div>
+            )}
+          </>
+        )}
+      </div>
     </Panel>
   );
 }

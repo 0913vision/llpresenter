@@ -23,7 +23,7 @@ The 예배 순서 of the 준비 (Prep) workspace as a table: one row per item, w
     | Cell | Width token | Content |
     |---|---|---|
     | 구성 | `size-table-arrangement` (96) | The item's 구성 name, 기본 when it uses none. Song items only. |
-    | 슬라이드 | `size-table-slides` (72) | The 슬라이드 count, or the duration of a media item. Tabular numbers. |
+    | 슬라이드 | `size-table-slides` (72) | The 슬라이드 count. Empty for a media item, whose length shows on its tile. Tabular numbers. |
     | 테마 | `size-table-theme` (140) | The 테마 name; `text-3` when the item follows its kind's default, with the reason as a tooltip. No tag word after it. |
     | 배경 | `size-table-background` (168) | A `size-table-thumb` (20) still, then the name of the background that plays. `text-3` when it comes from the song. Empty, with no still, when nothing plays. |
     | 시작할 때 | `size-table-start` (112) | The 매크로 name. Empty when none. |

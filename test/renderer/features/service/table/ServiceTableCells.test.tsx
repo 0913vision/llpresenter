@@ -388,3 +388,21 @@ it('ignores Escape while a save waits, so the field cannot be reopened under an 
   );
   expect(submitItemEdit).toHaveBeenCalledOnce();
 });
+
+it('leaves the 슬라이드 cell of a media item empty, since the length shows on its tile', () => {
+  const {container} = render(
+    <ServiceTableCells
+      row={{kind: 'media', id: ITEM_ID, title: '새벽빛 반복'}}
+      item={{id: ITEM_ID, media: fixtureMedia.dawn}}
+      detail="0:12"
+      themes={themes}
+      macros={macros}
+      media={media}
+      songs={songs}
+      items={{submitItemEdit: vi.fn()}}
+      serviceId={SERVICE_ID}
+      readOnly={false}
+    />,
+  );
+  expect(container.textContent).not.toContain('0:12');
+});

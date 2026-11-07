@@ -26,6 +26,26 @@ afterEach(() => {
 });
 
 describe('SongPreviewFrame', () => {
+  it('keeps a blank stage, with no theme content drawn, when there is nothing to show', async () => {
+    const fixture = editorFixture();
+    const {themes, screens} = editorPreviewFixture();
+    vi.spyOn(fixture.api.settings, 'get').mockImplementation(async ({name}) =>
+      name === 'screens' ? screens : themes,
+    );
+    const {container} = render(
+      <SongPreviewFrame
+        settings={fixture.api.settings}
+        labels={[]}
+        picture={null}
+      />,
+    );
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(container.querySelector('[data-blank]')).not.toBeNull();
+    expect(drawing.render).not.toHaveBeenCalled();
+  });
+
   it('draws the chosen preview screen with the theme mode set for that screen', async () => {
     const fixture = editorFixture();
     const {themes, screens} = editorPreviewFixture();

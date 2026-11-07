@@ -149,6 +149,15 @@ export interface TilePicture {
   readonly total: number;
 }
 
+/** A 영상 or 그림 item: its file shown as the background, with its name below. */
+export interface MediaPicture {
+  readonly itemId: string;
+  readonly mediaId: string;
+  readonly name: string;
+  readonly position: number;
+  readonly total: number;
+}
+
 /**
  * The 준비 미리보기 panel: a local picture with its item's theme,
  * never live layers, or an empty panel without a picture.
@@ -161,7 +170,7 @@ export function ContentPreviewFrame({
 }: {
   readonly settings: LlpApi['settings'];
   readonly labels: readonly Label[];
-  readonly picture: SongPicture | TilePicture | null;
+  readonly picture: SongPicture | TilePicture | MediaPicture | null;
   readonly item?: LiveThemeItem | undefined;
 }): JSX.Element {
   const [role, setRole] = useState<PreviewRole>('audience');
@@ -196,61 +205,70 @@ export function ContentPreviewFrame({
     picture !== null && 'song' in picture ? picture : undefined;
   const tilePicture =
     picture !== null && 'tile' in picture ? picture : undefined;
+  const mediaPicture =
+    picture !== null && 'mediaId' in picture ? picture : undefined;
   const song = songPicture?.song;
   const block = songPicture?.block ?? 0;
   const background = songPicture?.background;
   const nextBlock = songPicture?.nextBlock;
   const layers = useMemo(
     () =>
-      tilePicture !== undefined
+      mediaPicture !== undefined
         ? {
             ...emptyLayers(),
-            slide: {
-              itemId: tilePicture.itemId,
-              position: tilePicture.position - 1,
-              label: tilePicture.tile.label,
-              lines: tilePicture.tile.lines,
-              ...(tilePicture.tile.biblePart === undefined
-                ? {}
-                : {biblePart: tilePicture.tile.biblePart}),
-              ...(tilePicture.tile.continued === undefined
-                ? {}
-                : {continued: tilePicture.tile.continued}),
-              ...(tilePicture.tile.reference === undefined
-                ? {}
-                : {reference: tilePicture.tile.reference}),
-              ...(tilePicture.next === undefined
-                ? {}
-                : {
-                    next: {
-                      label: tilePicture.next.label,
-                      lines: tilePicture.next.lines,
-                    },
-                  }),
+            media: {
+              mediaId: mediaPicture.mediaId,
+              loop: true,
+              startedAt: 0,
+              itemId: mediaPicture.itemId,
             },
           }
-        : song === undefined
-          ? emptyLayers()
-          : selectedPreview(song, {block, background, nextBlock}),
-    [song, block, background, nextBlock, tilePicture],
+        : tilePicture !== undefined
+          ? {
+              ...emptyLayers(),
+              slide: {
+                itemId: tilePicture.itemId,
+                position: tilePicture.position - 1,
+                label: tilePicture.tile.label,
+                lines: tilePicture.tile.lines,
+                ...(tilePicture.tile.biblePart === undefined
+                  ? {}
+                  : {biblePart: tilePicture.tile.biblePart}),
+                ...(tilePicture.tile.continued === undefined
+                  ? {}
+                  : {continued: tilePicture.tile.continued}),
+                ...(tilePicture.tile.reference === undefined
+                  ? {}
+                  : {reference: tilePicture.tile.reference}),
+                ...(tilePicture.next === undefined
+                  ? {}
+                  : {
+                      next: {
+                        label: tilePicture.next.label,
+                        lines: tilePicture.next.lines,
+                      },
+                    }),
+              },
+            }
+          : song === undefined
+            ? emptyLayers()
+            : selectedPreview(song, {block, background, nextBlock}),
+    [song, block, background, nextBlock, tilePicture, mediaPicture],
   );
-  if (picture === null) {
-    return (
-      <Panel label="미리보기">
-        <PanelHeader>
-          <PanelTitle title="미리보기" />
-        </PanelHeader>
-      </Panel>
-    );
-  }
-  const {position, total} = picture;
+  // NOTE(0913vision): With nothing to show (no item, or a 구역 selected) the
+  // panel keeps its full-width stage and the height of its caption, blank (no
+  // theme content is drawn), so the column below does not move
+  // when the selection changes from one item to another.
+  const {position, total} = picture ?? {position: 0, total: 0};
   const addr = song === undefined ? undefined : linearBlockAddress(song, block);
   const labelName =
-    tilePicture !== undefined
-      ? (tilePicture.tile.label ?? undefined)
-      : addr?.groupName === ''
-        ? undefined
-        : addr?.groupName;
+    mediaPicture !== undefined
+      ? mediaPicture.name
+      : tilePicture !== undefined
+        ? (tilePicture.tile.label ?? undefined)
+        : addr?.groupName === ''
+          ? undefined
+          : addr?.groupName;
   const color =
     tilePicture?.tile.labelColor ??
     labels.find(label => label.name === labelName)?.color ??
@@ -259,31 +277,43 @@ export function ContentPreviewFrame({
     <Panel label="미리보기">
       <PanelHeader>
         <PanelTitle title="미리보기" />
-        <SegmentedControl
-          className={styles.tabs}
-          label="미리보기 화면"
-          options={PREVIEW_ROLES}
-          value={role}
-          onChange={setRole}
-        />
+        {picture === null ? null : (
+          <SegmentedControl
+            className={styles.tabs}
+            label="미리보기 화면"
+            options={PREVIEW_ROLES}
+            value={role}
+            onChange={setRole}
+          />
+        )}
       </PanelHeader>
       <div className={styles.previewBody}>
         <div className={styles.stage}>
-          <Picture layers={layers} appearance={appearance} />
-        </div>
-        <div className={styles.caption}>
-          {color === 'none' ? null : (
-            <span
-              className={styles.swatch}
-              style={{background: labelInk(color)['--label-fill']}}
-            />
+          {picture === null ? (
+            <div className={styles.screen} data-blank="" />
+          ) : (
+            <Picture layers={layers} appearance={appearance} />
           )}
-          <span>{labelName}</span>
-          <span>
-            {position} / {total}
-          </span>
-          <span className={styles.style}>{appearance.themeName}</span>
         </div>
+        {picture === null ? (
+          <div className={styles.caption} aria-hidden="true">
+            &nbsp;
+          </div>
+        ) : (
+          <div className={styles.caption}>
+            {color === 'none' ? null : (
+              <span
+                className={styles.swatch}
+                style={{background: labelInk(color)['--label-fill']}}
+              />
+            )}
+            <span>{labelName}</span>
+            <span>
+              {position} / {total}
+            </span>
+            <span className={styles.style}>{appearance.themeName}</span>
+          </div>
+        )}
       </div>
     </Panel>
   );

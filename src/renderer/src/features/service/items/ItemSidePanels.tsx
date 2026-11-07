@@ -62,26 +62,43 @@ export function ItemPreviewPanel({items, editor}: ItemPanelProps): JSX.Element {
   const labels =
     useSyncExternalStore(editor.subscribe, editor.getSnapshot).labels?.value
       .labels ?? [];
-  const picture =
+  const media = useItemMedia(
+    editor.api.media,
     item !== null &&
-    isItemOfKind(item, 'bible') &&
-    tile !== undefined &&
-    at !== undefined
+      (isItemOfKind(item, 'slides') || isItemOfKind(item, 'media')),
+  );
+  const mediaFile =
+    item !== null && isItemOfKind(item, 'media')
+      ? media.document?.value.items.find(file => file.id === item.media)
+      : undefined;
+  const picture =
+    item !== null && isItemOfKind(item, 'media')
       ? {
           itemId: item.id,
-          tile,
-          next: tiles[at + 1],
-          position: at + 1,
-          total: tiles.length,
+          mediaId: item.media,
+          name: mediaFile?.name ?? '미디어 없음',
+          position: 1,
+          total: 1,
         }
-      : item === null || !isItemOfKind(item, 'song') || song === null
-        ? null
-        : itemPicture({
-            song: song.history.snapshot.song,
-            arrangement,
-            position,
-            background: item.background ?? song.background,
-          });
+      : item !== null &&
+          isItemOfKind(item, 'bible') &&
+          tile !== undefined &&
+          at !== undefined
+        ? {
+            itemId: item.id,
+            tile,
+            next: tiles[at + 1],
+            position: at + 1,
+            total: tiles.length,
+          }
+        : item === null || !isItemOfKind(item, 'song') || song === null
+          ? null
+          : itemPicture({
+              song: song.history.snapshot.song,
+              arrangement,
+              position,
+              background: item.background ?? song.background,
+            });
   const previewKind =
     item === null
       ? undefined
@@ -89,15 +106,13 @@ export function ItemPreviewPanel({items, editor}: ItemPanelProps): JSX.Element {
         ? 'song'
         : isItemOfKind(item, 'bible')
           ? 'bible'
-          : undefined;
+          : isItemOfKind(item, 'media')
+            ? 'media'
+            : undefined;
   const previewTitle =
     item !== null && isItemOfKind(item, 'bible')
       ? item.bible.ref
       : song?.history.snapshot.song.title;
-  const media = useItemMedia(
-    editor.api.media,
-    item !== null && isItemOfKind(item, 'slides'),
-  );
   if (item !== null && isItemOfKind(item, 'slides')) {
     return (
       <SlidesPreview

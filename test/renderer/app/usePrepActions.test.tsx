@@ -46,6 +46,7 @@ const mock = vi.hoisted(() => {
     selection: {
       request: undefined,
       openSong: vi.fn(),
+      create: vi.fn(),
       clear: vi.fn(),
       handled: vi.fn(),
     },
@@ -344,4 +345,22 @@ it('disables importing without an API and exposes imported-save precedence only 
   expect(result.current.imported).toBe(false);
   rerender({workspace: 'prep'});
   expect(result.current.imported).toBe(true);
+});
+
+it('opens 준비 for a new song only after the leave question is answered', () => {
+  const {result, onWorkspace} = setup();
+  act(() => result.current.newSong());
+  expect(onWorkspace).not.toHaveBeenCalled();
+  expect(mock.selection.create).not.toHaveBeenCalled();
+  act(() => mock.editor.requestLeave.mock.calls[0]?.[0]());
+  expect(onWorkspace).toHaveBeenCalledExactlyOnceWith('prep');
+  expect(mock.selection.create).toHaveBeenCalledOnce();
+});
+
+it('opens 준비 for a new song at once when no editor holds a question', () => {
+  mock.state.hasEditor = false;
+  const {result, onWorkspace} = setup();
+  act(() => result.current.newSong());
+  expect(onWorkspace).toHaveBeenCalledExactlyOnceWith('prep');
+  expect(mock.selection.create).toHaveBeenCalledOnce();
 });

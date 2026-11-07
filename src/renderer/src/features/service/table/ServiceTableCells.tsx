@@ -40,7 +40,7 @@ type Macro = ReturnType<typeof resolveMacro>;
 export interface ServiceTableCellsProps {
   readonly row: ItemRow;
   readonly item: ServiceItem | undefined;
-  /** The 슬라이드 count of the item, or its duration for media. */
+  /** The 슬라이드 count of the item; media has none, its length shows on its tile. */
   readonly detail: string | undefined;
   readonly themes: ThemesFile | null;
   readonly macros: ReadonlyArray<NonNullable<Macro>>;
@@ -189,7 +189,9 @@ export function ServiceTableCells({
       <span className={classNames(styles.cell, styles.slides)}>
         {item !== undefined && isItemOfKind(item, 'slides')
           ? item.slides.slides.length
-          : (detail ?? '')}
+          : row.kind === 'media'
+            ? ''
+            : (detail ?? '')}
       </span>
       {item === undefined || themeCell === undefined ? (
         <span className={classNames(styles.cell, styles.theme)} />
