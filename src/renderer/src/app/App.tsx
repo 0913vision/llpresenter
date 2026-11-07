@@ -1,5 +1,6 @@
 import {ThemeLeaveGuard} from '@renderer/features/screens/themes/themeLeaveGuard';
 import {AudioShortcuts} from '@renderer/features/tools/AudioShortcuts';
+import {MediaViewProvider} from '@renderer/features/media/MediaViewProvider';
 import {ToolObjectShortcuts} from '@renderer/features/tools/ToolObjectShortcuts';
 import {QuickObjectShortcuts} from '@renderer/features/quick/QuickObjectShortcuts';
 import {usePrepActions} from './usePrepActions';
@@ -24,7 +25,10 @@ import {
   warningScreens,
 } from '@renderer/platform/outputWarnings';
 import {useShow} from '@renderer/session/show';
-import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
+import {
+  PrepItemNavigation,
+  WorkspaceNavigation,
+} from '@renderer/platform/WorkspaceNavigation';
 import {watchInputModality} from '@renderer/ui/inputModality';
 import {NotificationStack} from '@renderer/ui/Notification';
 import {
@@ -135,7 +139,7 @@ function ControlApp({
       : saveFailed || closeView === 'failed'
         ? 'failed'
         : undefined;
-  return (
+  const content = (
     <div className={styles.app} data-size={sizeClass}>
       <ToolObjectShortcuts api={session.api} onProblem={session.report} />
       <QuickObjectShortcuts api={session.api} onProblem={session.report} />
@@ -168,23 +172,21 @@ function ControlApp({
         onProblem={session.report}
         onOpenPrepSong={prepActions.openSong}
       />
-      <WorkspaceNavigation value={onWorkspace}>
-        <Workspace
-          id={workspace}
-          sizeClass={sizeClass}
-          store={columnWidthStore}
-          onShowInLibrary={prepActions.onShowInLibrary}
-          onProblem={session.report}
-          prep={prepActions.prep}
-          onOpenPrep={prepActions.onOpenPrep}
-          warningHeight={warningHeight}
-          mediaVisible={mediaStrip.visible}
-          onMediaOpenChange={mediaStrip.setVisible}
-          mediaApi={session.api}
-          sidebar={sidebar}
-          themeLeave={themeLeave}
-        />
-      </WorkspaceNavigation>
+      <Workspace
+        id={workspace}
+        sizeClass={sizeClass}
+        store={columnWidthStore}
+        onShowInLibrary={prepActions.onShowInLibrary}
+        onProblem={session.report}
+        prep={prepActions.prep}
+        onOpenPrep={prepActions.onOpenPrep}
+        warningHeight={warningHeight}
+        mediaVisible={mediaStrip.visible}
+        onMediaOpenChange={mediaStrip.setVisible}
+        mediaApi={session.api}
+        sidebar={sidebar}
+        themeLeave={themeLeave}
+      />
       <StatusBar standby={recovery.offer !== null} saveState={saveState} />
       {prepActions.importSurface}
       <RecoveryPrompt recovery={recovery} />
@@ -198,5 +200,22 @@ function ControlApp({
         <SavingDialog closeFlush={session.closeFlush} />
       )}
     </div>
+  );
+  return (
+    <WorkspaceNavigation value={onWorkspace}>
+      <PrepItemNavigation value={prepActions.onOpenPrep}>
+        {session.api === undefined ? (
+          content
+        ) : (
+          <MediaViewProvider
+            api={session.api}
+            active={workspace !== 'screens'}
+            onProblem={session.report}
+          >
+            {content}
+          </MediaViewProvider>
+        )}
+      </PrepItemNavigation>
+    </WorkspaceNavigation>
   );
 }

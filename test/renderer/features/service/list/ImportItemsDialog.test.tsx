@@ -18,13 +18,17 @@ import type {
 import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import {createServiceId, createTemplateId} from '@core/schema/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {applyService} from '@renderer/session/show';
+import {applyService, openItem, useShow} from '@renderer/session/show';
 import {sampleService} from '@fixtures/renderer/session/sampleService';
 import {
   hoverForTooltip,
   resetTooltips,
 } from '@fixtures/renderer/ui/tooltipTesting';
 import {ImportItemsDialog} from '@renderer/features/service/list/ImportItemsDialog';
+import {
+  PrepItemNavigation,
+  WorkspaceNavigation,
+} from '@renderer/platform/WorkspaceNavigation';
 import {
   ids,
   librarySongs,
@@ -53,11 +57,13 @@ function setup({
   templates = templateEntries,
   services = [...serviceEntries, current],
   sourceTemplate = templateDocument,
+  handoff = false,
 }: {
   readonly answer?: (edit: ContentEdit) => EditResult | Error;
   readonly templates?: typeof templateEntries;
   readonly services?: readonly ServiceEntry[];
   readonly sourceTemplate?: TemplateDocument;
+  readonly handoff?: boolean;
 } = {}) {
   const edits: ContentEdit[] = [];
   const sent: LiveCommand[] = [];
@@ -90,13 +96,23 @@ function setup({
   });
   const onClose = vi.fn();
   const onProblem = vi.fn();
-  render(<ImportItemsDialog onClose={onClose} onProblem={onProblem} />);
+  const navigate = vi.fn();
+  const onOpenItem = vi.fn();
+  render(
+    <WorkspaceNavigation value={navigate}>
+      <PrepItemNavigation value={handoff ? onOpenItem : undefined}>
+        <ImportItemsDialog onClose={onClose} onProblem={onProblem} />
+      </PrepItemNavigation>
+    </WorkspaceNavigation>,
+  );
   return {
     api: window.llp,
     edits,
     sent,
     onClose,
     onProblem,
+    navigate,
+    onOpenItem,
     pushTemplates: (entries: readonly TemplateEntry[]) =>
       pushTemplates(entries),
   };
@@ -125,6 +141,54 @@ afterEach(() => {
 });
 
 describe('ImportItemsDialog', () => {
+  it.each(['cancel', 'accept'] as const)(
+    'defers the imported selection until the draft guard answers %s',
+    async answer => {
+      const f = setup({handoff: true});
+      const previous = useShow.getState().rows[0]?.id;
+      if (previous === undefined) throw new Error('Missing previous item');
+      openItem(previous);
+      const selectionAtGuard: Array<string | null> = [];
+      const imported = pastDocument.service.order[0]?.id;
+      vi.spyOn(f.api.services, 'get').mockResolvedValue({
+        ...pastDocument,
+        service: {...pastDocument.service, id: currentId},
+      });
+      f.onOpenItem.mockImplementation((itemId: string) => {
+        selectionAtGuard.push(useShow.getState().openItemId);
+        if (answer === 'accept') openItem(itemId);
+      });
+      await userEvent.click(
+        await screen.findByRole('treeitem', {name: titles.first}),
+      );
+      await userEvent.click(importButton());
+      await waitFor(() =>
+        expect(f.onOpenItem).toHaveBeenCalledExactlyOnceWith(imported),
+      );
+      expect(selectionAtGuard).toEqual([previous]);
+      expect(useShow.getState().openItemId).toBe(
+        answer === 'accept' ? imported : previous,
+      );
+    },
+  );
+  it('hands the imported item to the guarded prep editor only after applying', async () => {
+    const f = setup({handoff: true});
+    vi.spyOn(f.api.services, 'get').mockResolvedValue({
+      ...pastDocument,
+      service: {...pastDocument.service, id: currentId},
+    });
+    await userEvent.click(
+      await screen.findByRole('treeitem', {name: titles.first}),
+    );
+    expect(f.onOpenItem).not.toHaveBeenCalled();
+    await userEvent.click(importButton());
+    await waitFor(() =>
+      expect(f.onOpenItem).toHaveBeenCalledExactlyOnceWith(
+        pastDocument.service.order[0]?.id,
+      ),
+    );
+    expect(f.navigate).not.toHaveBeenCalled();
+  });
   it('starts from the first 템플릿 with nothing checked and leaves out the open service', async () => {
     setup();
     expect(
@@ -141,11 +205,20 @@ describe('ImportItemsDialog', () => {
   });
 
   it('appends the checked items to the open service without an output command', async () => {
-    const {edits, sent, onClose, onProblem} = setup();
+    const {api, edits, sent, onClose, onProblem, navigate} = setup();
+    vi.spyOn(api.services, 'get').mockResolvedValue({
+      ...pastDocument,
+      service: {...pastDocument.service, id: currentId},
+    });
+    expect(navigate).not.toHaveBeenCalled();
     await userEvent.click(await screen.findByRole('treeitem', {name: '광고'}));
     await userEvent.click(row(titles.first));
     await userEvent.click(importButton());
     await waitFor(() => expect(onClose).toHaveBeenCalled());
+    expect(navigate).toHaveBeenCalledExactlyOnceWith('prep');
+    expect(useShow.getState().openItemId).toBe(
+      pastDocument.service.order[0]?.id,
+    );
     expect(edits).toEqual([
       {
         type: 'service.importItems',
@@ -319,7 +392,7 @@ describe('ImportItemsDialog', () => {
 
   it('reports a refused or rejected import and keeps the dialog', async () => {
     let attempt = 0;
-    const {edits, onClose, onProblem} = setup({
+    const {edits, onClose, onProblem, navigate} = setup({
       answer: () => {
         attempt++;
         return attempt === 1 ? REFUSED : new Error('Import failed in the test');
@@ -332,6 +405,7 @@ describe('ImportItemsDialog', () => {
     await waitFor(() => expect(onProblem).toHaveBeenCalledTimes(1));
     await userEvent.click(importButton());
     await waitFor(() => expect(onProblem).toHaveBeenCalledTimes(2));
+    expect(navigate).not.toHaveBeenCalled();
     expect(edits).toHaveLength(2);
     expect(onProblem.mock.calls[1]?.[0]).toMatchObject({
       title: '항목을 가져올 수 없음',

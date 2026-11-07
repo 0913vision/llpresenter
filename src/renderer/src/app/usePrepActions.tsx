@@ -117,9 +117,8 @@ export function usePrepActions({
   };
   const importText = (source: 'file' | 'clipboard'): void => {
     if (session.api === undefined || importSource !== null) return;
-    songOpen.current++;
-    onWorkspace('prep');
-    session.editor?.requestLeave(() => setImportSource(source));
+    session.startEditor();
+    setImportSource(source);
   };
   const newSong = (): void => {
     if (session.api === undefined) return;
@@ -221,6 +220,7 @@ export function usePrepActions({
           onDone={closeImport}
           onEdit={() => {
             clearSelection();
+            onWorkspace('prep');
           }}
           onProblem={session.report}
         />

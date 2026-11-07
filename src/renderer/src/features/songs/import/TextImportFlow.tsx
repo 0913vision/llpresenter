@@ -6,9 +6,10 @@ import {
   type JSX,
 } from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {TextImportSource} from '@core/schema/textImport';
+import type {TextImportDraft, TextImportSource} from '@core/schema/textImport';
 import type {Preferences} from '@core/schema/preferences';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {AlertDialog} from '@renderer/ui/AlertDialog';
 import type {SongEditorStore} from '../editor/songEditorStore';
 import {TextImportDialog} from './TextImportDialog';
 
@@ -42,6 +43,14 @@ export function TextImportFlow({
     defaults: Preferences['import']['txt'];
   } | null>(null);
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
+  const [replacement, setReplacement] = useState<TextImportDraft | null>(null);
+  const edit = (draft: TextImportDraft): void => {
+    const previous = store.getSnapshot().session;
+    store.openImported(draft);
+    if (store.getSnapshot().session === previous) return;
+    onEdit();
+    onDone();
+  };
   useEffect(() => {
     let active = true;
     const isActive = (): boolean => active;
@@ -72,19 +81,39 @@ export function TextImportFlow({
     };
   }, [api, source, onDone, onProblem]);
   return input === null ? null : (
-    <TextImportDialog
-      api={api.textImport}
-      source={input.source}
-      defaults={input.defaults}
-      labels={state.labels?.value.labels ?? []}
-      library={state.library}
-      onProblem={onProblem}
-      onDiscard={onDone}
-      onEdit={draft => {
-        store.openImported(draft);
-        onEdit();
-        onDone();
-      }}
-    />
+    <>
+      <TextImportDialog
+        api={api.textImport}
+        source={input.source}
+        defaults={input.defaults}
+        labels={state.labels?.value.labels ?? []}
+        library={state.library}
+        onProblem={onProblem}
+        onDiscard={onDone}
+        onEdit={draft => {
+          if (store.getSnapshot().imported) setReplacement(draft);
+          else edit(draft);
+        }}
+      />
+      {replacement === null ? null : (
+        <AlertDialog
+          icon="song"
+          title="가져온 곡을 저장하지 않았습니다. 버릴까요?"
+          onCancel={() => setReplacement(null)}
+          actions={[
+            {
+              label: '저장 안 함',
+              primary: true,
+              onSelect: () => {
+                if (store.getSnapshot().busy) return;
+                store.discardImported();
+                edit(replacement);
+                setReplacement(null);
+              },
+            },
+          ]}
+        />
+      )}
+    </>
   );
 }

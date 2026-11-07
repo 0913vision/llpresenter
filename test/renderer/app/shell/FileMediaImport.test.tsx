@@ -8,6 +8,67 @@ import {
   useFileMediaImport,
 } from '@renderer/app/shell/useFileMediaImport';
 import type {Notice} from '@renderer/ui/notices';
+import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
+import {MediaViewProvider} from '@renderer/features/media/MediaViewProvider';
+
+it.each(['cancel', 'failed', 'complete'] as const)(
+  'keeps the workspace until media import completes: %s',
+  async outcome => {
+    let finish: (jobs: readonly MediaImportProgress[]) => void = () =>
+      undefined;
+    const listeners = new Set<(job: MediaImportProgress) => void>();
+    const progress = (job: MediaImportProgress): void => {
+      for (const listener of listeners) listener(job);
+    };
+    const importMedia = vi.fn(
+      () =>
+        new Promise<readonly MediaImportProgress[]>(resolve => {
+          finish = resolve;
+        }),
+    );
+    const api = mockLlpApi({
+      media: {
+        import: async () => ({ok: true, value: await importMedia()}),
+        subscribeImports: listener => {
+          listeners.add(listener);
+          return () => {
+            listeners.delete(listener);
+          };
+        },
+      },
+    });
+    window.llp = api;
+    const navigate = vi.fn();
+    const {result} = renderHook(() => useFileMediaImport(vi.fn()), {
+      wrapper: ({children}) => (
+        <WorkspaceNavigation value={navigate}>
+          <MediaViewProvider api={api} onProblem={vi.fn()}>
+            {children}
+          </MediaViewProvider>
+        </WorkspaceNavigation>
+      ),
+    });
+    act(() => result.current.onSelect?.());
+    expect(importMedia).toHaveBeenCalledOnce();
+    expect(navigate).not.toHaveBeenCalled();
+    await act(async () =>
+      finish(
+        outcome === 'cancel' ? [] : [{...failed, phase: 'queued', percent: 0}],
+      ),
+    );
+    expect(navigate).not.toHaveBeenCalled();
+    if (outcome !== 'cancel') {
+      act(() =>
+        progress(
+          outcome === 'complete'
+            ? {...failed, phase: 'complete', percent: 100}
+            : failed,
+        ),
+      );
+    }
+    expect(navigate).toHaveBeenCalledTimes(outcome === 'complete' ? 1 : 0);
+  },
+);
 
 it('explains a missing import connection and a pending import request', async () => {
   delete window.llp;

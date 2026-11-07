@@ -1,7 +1,8 @@
 import {act, renderHook, waitFor} from '@testing-library/react';
 import type {ReactNode} from 'react';
 import {describe, expect, it, vi} from 'vitest';
-import type {MediaDocument} from '@core/schema/mediaEdit';
+import type {MediaDocument, MediaImportProgress} from '@core/schema/mediaEdit';
+import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
 import {
   audioPlaylistId,
   mediaDocument,
@@ -13,6 +14,7 @@ import {
 import {
   MediaViewProvider,
   useMediaView,
+  useMediaImportCompletion,
 } from '@renderer/features/media/MediaViewProvider';
 
 const ITEMS = [
@@ -110,5 +112,99 @@ describe('useMediaView', () => {
     act(() => fixture.pushDocument(mediaDocument(ITEMS, 6)));
 
     expect(result.current.choice).toEqual({kind: 'all'});
+  });
+});
+
+const queued: MediaImportProgress = {
+  mediaId: mediaId(1),
+  fileName: 'Invented.mp4',
+  phase: 'queued',
+  percent: 0,
+};
+const complete: MediaImportProgress = {
+  ...queued,
+  phase: 'complete',
+  percent: 100,
+};
+
+function setupImport() {
+  const fixture = mediaFixture(mediaDocument([]));
+  const navigate = vi.fn();
+  const hook = renderHook(
+    () => ({
+      track: useMediaImportCompletion(),
+      media: useMediaView(),
+    }),
+    {
+      wrapper: ({children}) => (
+        <WorkspaceNavigation value={navigate}>
+          <MediaViewProvider api={fixture.api} onProblem={vi.fn()}>
+            {children}
+          </MediaViewProvider>
+        </WorkspaceNavigation>
+      ),
+    },
+  );
+  return {...fixture, ...hook, navigate};
+}
+
+describe('media import completion', () => {
+  it.each([false, true])(
+    'selects the imported item and navigates only on completion, early push=%s',
+    async early => {
+      const f = setupImport();
+      await waitFor(() =>
+        expect(f.result.current.media.view.document).not.toBeNull(),
+      );
+      if (early) {
+        act(() => {
+          f.pushDocument(mediaDocument([mediaItem(1)], 2));
+          f.pushProgress(complete);
+        });
+      }
+      expect(f.navigate).not.toHaveBeenCalled();
+      act(() => f.result.current.track([queued]));
+      if (!early) {
+        expect(f.navigate).not.toHaveBeenCalled();
+        act(() => {
+          f.pushDocument(mediaDocument([mediaItem(1)], 2));
+          f.pushProgress(complete);
+        });
+      }
+      expect(f.navigate).toHaveBeenCalledExactlyOnceWith('prep');
+      expect(f.result.current.media.selected).toBe(mediaId(1));
+      act(() => f.pushProgress(complete));
+      expect(f.navigate).toHaveBeenCalledOnce();
+    },
+  );
+
+  it.each(['cancel', 'failed', 'cancelled'] as const)(
+    'keeps selection and workspace on %s',
+    async kind => {
+      const f = setupImport();
+      await waitFor(() =>
+        expect(f.result.current.media.view.document).not.toBeNull(),
+      );
+      act(() => f.result.current.track(kind === 'cancel' ? [] : [queued]));
+      if (kind !== 'cancel') {
+        act(() =>
+          f.pushProgress(
+            kind === 'failed'
+              ? {...queued, phase: 'failed', message: 'Invented failure'}
+              : {...queued, phase: 'cancelled'},
+          ),
+        );
+      }
+      expect(f.navigate).not.toHaveBeenCalled();
+      expect(f.result.current.media.selected).toBeNull();
+    },
+  );
+
+  it('ignores a late reply after unmount', () => {
+    const f = setupImport();
+    const track = f.result.current.track;
+    f.unmount();
+    act(() => track([complete]));
+    expect(f.navigate).not.toHaveBeenCalled();
   });
 });

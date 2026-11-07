@@ -27,7 +27,7 @@ export function useImportItems({
   onDone,
 }: {
   readonly onProblem: (notice: Notice) => void;
-  readonly onDone: () => void;
+  readonly onDone: (itemId?: string) => void;
 }) {
   const api = window.llp;
   const currentId = useShow(view => view.serviceId);
@@ -76,6 +76,7 @@ export function useImportItems({
 
   const [busy, setBusy] = useState(false);
   const alive = useRef(true);
+  const isAlive = (): boolean => alive.current;
   useEffect(() => {
     alive.current = true;
     return () => {
@@ -94,6 +95,7 @@ export function useImportItems({
   const importItems = (): void => {
     if (api === undefined || serviceId === null || !canImport) return;
     if (source === null || source.kind === 'empty') return;
+    const previous = new Set(useShow.getState().rows.map(row => row.id));
     setBusy(true);
     api.content
       .edit({
@@ -106,10 +108,33 @@ export function useImportItems({
         logFailure(api, 'Could not import service items', cause);
         return false;
       })
-      .then(done => {
-        if (!alive.current) return;
+      .then(async done => {
+        if (!isAlive()) return;
+        let imported: string | undefined;
+        if (done) {
+          const document = await api.services
+            .get(serviceId)
+            .catch((cause: unknown) => {
+              logFailure(
+                api,
+                'Could not select the imported service item',
+                cause,
+              );
+              return null;
+            });
+          if (!isAlive()) return;
+          const added = document?.service.order.find(
+            item => !previous.has(item.id),
+          );
+          if (
+            added !== undefined &&
+            useShow.getState().serviceId === serviceId
+          ) {
+            imported = added.id;
+          }
+        }
         setBusy(false);
-        if (done) onDone();
+        if (done) onDone(imported);
         else onProblem(warningNotice('import-items:failed', FAILED));
       })
       .catch((cause: unknown) => {

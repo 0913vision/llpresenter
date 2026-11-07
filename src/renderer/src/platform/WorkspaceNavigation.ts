@@ -7,3 +7,8 @@ export type Workspace = 'show' | 'prep' | 'screens';
 export const WorkspaceNavigation = createContext<
   ((workspace: Workspace) => void) | undefined
 >(undefined);
+
+/** Opens a service item in 준비 through the control window's editor guard. */
+export const PrepItemNavigation = createContext<
+  ((itemId: string) => void) | undefined
+>(undefined);

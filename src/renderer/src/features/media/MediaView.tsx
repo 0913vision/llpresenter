@@ -48,7 +48,7 @@ import {
   type ChosenPlaylist,
   type MediaEntry,
 } from './mediaEntries';
-import {useMediaView} from './MediaViewProvider';
+import {useMediaImportCompletion, useMediaView} from './MediaViewProvider';
 import {VirtualMediaGrid} from './VirtualMediaGrid';
 import {writeMediaDrag} from './mediaDrag';
 import {useMediaImportAction} from './useMediaImportAction';
@@ -156,6 +156,7 @@ export function MediaView({
   onCollapse,
 }: MediaViewProps): JSX.Element {
   const {library, view, choice, selected, select: setSelected} = useMediaView();
+  const imported = useMediaImportCompletion();
   const [columns, setColumns] = useState(DEFAULT_MEDIA_COLUMNS);
   const [menu, setMenu] = useState<OpenMenu | null>(null);
   const [deleting, setDeleting] = useState<{
@@ -301,11 +302,12 @@ export function MediaView({
     reason: importReason,
     startImport,
     isPending,
-  } = useMediaImportAction(view.document, files => {
+  } = useMediaImportAction(view.document, async files => {
     const destination = playlist === null ? null : playlistRef(playlist);
-    return files === undefined
+    const jobs = await (files === undefined
       ? library.import(destination)
-      : library.importFiles(files, destination);
+      : library.importFiles(files, destination));
+    imported(jobs ?? [], choice);
   });
   const dragOver = (event: DragEvent<HTMLDivElement>): void => {
     if (!event.dataTransfer.types.includes('Files')) return;

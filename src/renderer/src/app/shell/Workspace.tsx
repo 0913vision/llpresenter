@@ -2,7 +2,10 @@ import type {SongId} from '@core/schema/ids';
 import {Fragment, useCallback, useRef, type JSX} from 'react';
 import {MediaBin} from '@renderer/features/media/MediaBin';
 import type {MediaApi} from '@renderer/features/media/mediaLibrary';
-import {MediaViewProvider} from '@renderer/features/media/MediaViewProvider';
+import {
+  MediaViewProvider,
+  useHasMediaView,
+} from '@renderer/features/media/MediaViewProvider';
 import {classNames} from '@renderer/ui/classNames';
 import type {Notice} from '@renderer/ui/notices';
 import {usePrepPanels, type PrepBinding} from '../workspaces/prepPanels';
@@ -108,6 +111,7 @@ export function Workspace({
     leaveGuard: themeLeave,
   });
   const panels = id === 'show' ? show : id === 'prep' ? prepPanels : screens;
+  const hasMediaView = useHasMediaView();
   const {columns} = panels;
   const api = mediaApi ?? prep?.api ?? window.llp;
   const mediaOpen = id !== 'screens' && mediaVisible;
@@ -172,7 +176,7 @@ export function Workspace({
       ) : null}
     </main>
   );
-  return api === undefined ? (
+  return api === undefined || hasMediaView ? (
     frame
   ) : (
     <MediaViewProvider

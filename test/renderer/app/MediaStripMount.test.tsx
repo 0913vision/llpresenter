@@ -1,9 +1,11 @@
 import {mediaBinToggle} from '@fixtures/renderer/features/media/mediaTesting';
-import {cleanup, render, screen} from '@testing-library/react';
+import {act, cleanup, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import type {UiState} from '@core/schema/uiState';
+import type {MediaImportProgress} from '@core/schema/mediaEdit';
+import {createMediaId} from '@core/schema/ids';
 import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {useLive} from '@renderer/session/live';
@@ -74,4 +76,39 @@ it('unmounts the player panels while retaining summary feeds until leaving the w
   expect(stopMedia).toHaveBeenCalledOnce();
   expect(stopCopies).toHaveBeenCalledOnce();
   expect(send).not.toHaveBeenCalled();
+});
+
+it('finishes an import and opens prep after its media panel is collapsed', async () => {
+  const {api, mount} = setup();
+  const listeners = new Set<(progress: MediaImportProgress) => void>();
+  vi.spyOn(api.media, 'subscribeImports').mockImplementation(listener => {
+    listeners.add(listener);
+    return () => {
+      listeners.delete(listener);
+    };
+  });
+  const queued: MediaImportProgress = {
+    mediaId: createMediaId('00000000-0000-4000-8000-000000000001'),
+    fileName: 'Invented.png',
+    phase: 'queued',
+    percent: 0,
+  };
+  vi.spyOn(api.media, 'import').mockResolvedValue({ok: true, value: [queued]});
+  mount();
+  const button = await screen.findByRole('button', {name: '가져오기'});
+  await waitFor(() => expect(button.getAttribute('aria-disabled')).toBeNull());
+  await userEvent.click(button);
+  expect(
+    document.querySelector('main')?.getAttribute('data-workspace-layout'),
+  ).toBe('show');
+  await userEvent.click(mediaBinToggle());
+  expect(screen.queryByRole('region', {name: '미디어'})).toBeNull();
+  act(() => {
+    for (const listener of listeners) {
+      listener({...queued, phase: 'complete', percent: 100});
+    }
+  });
+  expect(
+    document.querySelector('main')?.getAttribute('data-workspace-layout'),
+  ).toBe('prep');
 });

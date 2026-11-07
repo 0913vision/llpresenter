@@ -1,5 +1,10 @@
-import type {JSX} from 'react';
+import {use, type JSX} from 'react';
+import {
+  PrepItemNavigation,
+  WorkspaceNavigation,
+} from '@renderer/platform/WorkspaceNavigation';
 import {Dialog} from '@renderer/ui/Dialog';
+import {openItem} from '@renderer/session/show';
 import type {Notice} from '@renderer/ui/notices';
 import {SourceList} from './SourceList';
 import {SourceTree} from './SourceTree';
@@ -21,7 +26,20 @@ export function ImportItemsDialog({
   readonly onClose: () => void;
   readonly onProblem: (notice: Notice) => void;
 }): JSX.Element {
-  const state = useImportItems({onProblem, onDone: onClose});
+  const navigate = use(WorkspaceNavigation);
+  const openPrepItem = use(PrepItemNavigation);
+  const state = useImportItems({
+    onProblem,
+    onDone: itemId => {
+      if (itemId !== undefined && openPrepItem !== undefined) {
+        openPrepItem(itemId);
+      } else {
+        if (itemId !== undefined) openItem(itemId);
+        navigate?.('prep');
+      }
+      onClose();
+    },
+  });
   const empty = state.missing
     ? MISSING
     : state.lists.ready && state.source === null

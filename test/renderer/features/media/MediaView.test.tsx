@@ -1,4 +1,5 @@
 import {MEDIA_LIMITS} from '@core/schema/mediaList';
+import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
 import {act, fireEvent, render, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
@@ -54,17 +55,20 @@ function setup(
   workspace: 'show' | 'prep' = 'prep',
 ) {
   const problems = vi.fn();
+  const navigate = vi.fn();
   window.llp = fixture.api;
   onTestFinished(() => {
     delete window.llp;
   });
   render(
-    <MediaViewProvider api={fixture.api} onProblem={problems}>
-      {choice !== undefined && <ChoiceButton choice={choice} />}
-      <MediaView workspace={workspace} onProblem={problems} />
-    </MediaViewProvider>,
+    <WorkspaceNavigation value={navigate}>
+      <MediaViewProvider api={fixture.api} onProblem={problems}>
+        {choice !== undefined && <ChoiceButton choice={choice} />}
+        <MediaView workspace={workspace} onProblem={problems} />
+      </MediaViewProvider>
+    </WorkspaceNavigation>,
   );
-  return {...fixture, problems};
+  return {...fixture, problems, navigate};
 }
 
 async function tile(name: string): Promise<HTMLElement> {
@@ -73,6 +77,53 @@ async function tile(name: string): Promise<HTMLElement> {
 }
 
 describe('media view', () => {
+  it.each(['cancel', 'failed', 'complete'] as const)(
+    'leaves the current workspace until a panel import completes: %s',
+    async outcome => {
+      const f = setup(undefined, undefined, 'show');
+      await tile('Dawn');
+      f.importFiles.mockResolvedValue({
+        ok: true,
+        value:
+          outcome === 'cancel'
+            ? []
+            : [
+                {
+                  mediaId: mediaId(4),
+                  fileName: 'New.mp4',
+                  phase: 'queued',
+                  percent: 0,
+                },
+              ],
+      });
+      await userEvent.click(screen.getByRole('button', {name: '가져오기'}));
+      expect(f.navigate).not.toHaveBeenCalled();
+      if (outcome !== 'cancel') {
+        act(() => {
+          if (outcome === 'complete') {
+            f.pushDocument(mediaDocument([mediaItem(4)], 2));
+          }
+          f.pushProgress(
+            outcome === 'complete'
+              ? {
+                  mediaId: mediaId(4),
+                  fileName: 'New.mp4',
+                  phase: 'complete',
+                  percent: 100,
+                }
+              : {
+                  mediaId: mediaId(4),
+                  fileName: 'New.mp4',
+                  phase: 'failed',
+                  percent: 0,
+                  message: 'Invented failure',
+                },
+          );
+        });
+      }
+      expect(f.navigate).toHaveBeenCalledTimes(outcome === 'complete' ? 1 : 0);
+    },
+  );
   it('uses the audio item menu inside an audio playlist', async () => {
     const fixture = mediaFixture(
       mediaDocument(

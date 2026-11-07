@@ -159,7 +159,9 @@ export class MediaLibrary {
   }
 
   /** 가져오기: the file dialog, then a copy job per chosen file. */
-  import(playlist: MediaImportRequest['playlist']): Promise<void> {
+  import(
+    playlist: MediaImportRequest['playlist'],
+  ): Promise<readonly MediaImportProgress[] | null> {
     return this.importSource({kind: 'dialog'}, playlist);
   }
 
@@ -167,14 +169,14 @@ export class MediaLibrary {
   async importFiles(
     files: readonly File[],
     playlist: MediaImportRequest['playlist'],
-  ): Promise<void> {
+  ): Promise<readonly MediaImportProgress[] | null> {
     const paths = files
       .slice(0, MEDIA_LIMITS.importBatch)
       .map(file => this.api.media.pathForFile(file))
       .filter(path => path !== '');
     if (paths.length === 0) {
       this.onProblem(warning('media-view:import', '미디어를 가져올 수 없음'));
-      return;
+      return null;
     }
     return this.importSource({kind: 'files', paths}, playlist);
   }
@@ -182,16 +184,16 @@ export class MediaLibrary {
   private async importSource(
     source: MediaImportRequest['source'],
     playlist: MediaImportRequest['playlist'],
-  ): Promise<void> {
+  ): Promise<readonly MediaImportProgress[] | null> {
     const result = await requestMediaImport({
       api: this.api,
       source,
       playlist,
       onProblem: notice => this.onProblem(notice),
     });
-    if (result === null) return;
+    if (result === null) return null;
     for (const progress of result) this.follow(progress);
-    if (playlist === null) return;
+    if (playlist === null) return result;
     // NOTE(0913vision): Only jobs that wait or run get a destination, so the
     // map never outgrows the active jobs, which are capped.
     const destinations = new Map(this.view.destinations);
@@ -199,6 +201,7 @@ export class MediaLibrary {
       if (this.active.has(mediaId)) destinations.set(mediaId, playlist.id);
     }
     this.update({destinations});
+    return result;
   }
 
   /**

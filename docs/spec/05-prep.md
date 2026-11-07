@@ -739,6 +739,15 @@ row-menu decision.
 
 ### Starting an import
 
+- Every enabled 파일 > 가져오기 entry and the media panel's 가져오기 starts over
+  the current workspace. A native file picker opens before any workspace change.
+  Canceling preserves the workspace, selection, and unsaved drafts. The app's
+  import dialogs stay over that workspace while choosing options or matching
+  이름표. Only the final successful action opens 준비 and selects the imported
+  item. A refused action keeps its dialog and the current workspace. For text,
+  the final action is 편집, after 이름표 맞추기의 적용. For media, completion
+  means the file has joined the library after analysis; canceling or failing an
+  import never opens 준비. Disabled import formats stay disabled.
 - 파일 > 가져오기 > 텍스트 파일 (text file) opens a file dialog for one `.txt`
   file. The operator imports one file at a time. (Product log version 59
   replaced the "1 / 3" multi-file flow of version 57.)

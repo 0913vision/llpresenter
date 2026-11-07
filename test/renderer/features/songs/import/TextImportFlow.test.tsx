@@ -41,6 +41,99 @@ function deferred<T>() {
 }
 
 describe('text import flow', () => {
+  it.each(['cancel', 'replace'] as const)(
+    'keeps the old draft until replacement is accepted: %s',
+    async choice => {
+      const f = fixture();
+      f.store.openImported({
+        title: 'Existing draft',
+        slides: [{lines: ['Existing text']}],
+      });
+      const previous = f.store.getSnapshot().session;
+      const api = mockLlpApi({
+        ...f.api,
+        textImport: {
+          read: async () => ({
+            ok: true,
+            value: {
+              source: 'file',
+              fileName: 'New.txt',
+              text: 'New invented text',
+            },
+          }),
+          preview: async request => convertTextImport(request),
+        },
+      });
+      const onDone = vi.fn();
+      const onEdit = vi.fn();
+      render(
+        <TextImportFlow
+          api={api}
+          store={f.store}
+          source="file"
+          onDone={onDone}
+          onEdit={onEdit}
+          onProblem={f.problem}
+        />,
+      );
+      await screen.findByText('슬라이드 1');
+      expect(f.store.getSnapshot().session).toBe(previous);
+      fireEvent.click(screen.getByRole('button', {name: '편집'}));
+      const question = screen.getByRole('alertdialog');
+      expect(onEdit).not.toHaveBeenCalled();
+      if (choice === 'cancel') {
+        fireEvent.click(within(question).getByRole('button', {name: '취소'}));
+        expect(f.store.getSnapshot().session).toBe(previous);
+        expect(onDone).not.toHaveBeenCalled();
+        fireEvent.click(screen.getByRole('button', {name: '저장 안 함'}));
+        expect(f.store.getSnapshot().session).toBe(previous);
+        expect(onEdit).not.toHaveBeenCalled();
+      } else {
+        fireEvent.click(
+          within(question).getByRole('button', {name: '저장 안 함'}),
+        );
+        expect(f.store.getSnapshot().session?.title.value).toBe('New');
+        expect(onEdit).toHaveBeenCalledOnce();
+        expect(onDone).toHaveBeenCalledOnce();
+      }
+    },
+  );
+
+  it('keeps the options dialog when applying a draft is refused', async () => {
+    const f = fixture();
+    vi.spyOn(f.store, 'openImported').mockImplementation(() => undefined);
+    const api = mockLlpApi({
+      ...f.api,
+      textImport: {
+        read: async () => ({
+          ok: true,
+          value: {
+            source: 'file',
+            fileName: 'New.txt',
+            text: 'New invented text',
+          },
+        }),
+        preview: async request => convertTextImport(request),
+      },
+    });
+    const onDone = vi.fn();
+    const onEdit = vi.fn();
+    render(
+      <TextImportFlow
+        api={api}
+        store={f.store}
+        source="file"
+        onDone={onDone}
+        onEdit={onEdit}
+        onProblem={f.problem}
+      />,
+    );
+    await screen.findByText('슬라이드 1');
+    fireEvent.click(screen.getByRole('button', {name: '편집'}));
+    expect(onDone).not.toHaveBeenCalled();
+    expect(onEdit).not.toHaveBeenCalled();
+    expect(screen.getByRole('dialog', {name: '텍스트 가져오기'})).toBeTruthy();
+  });
   it('reads once in StrictMode, previews and opens an unsaved editor', async () => {
     const f = fixture();
     const read = vi.fn(async (): Promise<TextImportReadResult> => ({

@@ -7,6 +7,7 @@ import {
 import type {MediaImportProgress} from '@core/schema/mediaEdit';
 import {menuAvailability, type MenuItem} from '@renderer/ui/menuModel';
 import type {Notice} from '@renderer/ui/notices';
+import {useMediaImportCompletion} from '@renderer/features/media/MediaViewProvider';
 
 /**
  * How many failed media ids are remembered to report each failure once. The
@@ -18,6 +19,7 @@ export const REPORTED_FAILURES_LIMIT = 64;
 export function useFileMediaImport(
   onProblem: (notice: Notice) => void,
 ): MenuItem {
+  const imported = useMediaImportCompletion();
   const pending = useRef(false);
   const alive = useRef(true);
   const report = useRef(onProblem);
@@ -59,7 +61,9 @@ export function useFileMediaImport(
       },
     })
       .then(jobs => {
+        if (!alive.current) return;
         for (const progress of jobs ?? []) reportFailure(progress);
+        imported(jobs ?? []);
       })
       .catch((cause: unknown) => {
         console.error('File menu media import failed:', cause);

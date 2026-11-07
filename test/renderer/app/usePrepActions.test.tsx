@@ -61,6 +61,7 @@ vi.mock('@renderer/app/controlSession', () => ({
       return mock.state.hasEditor ? mock.editor : undefined;
     }
     readonly items = mock.items;
+    readonly startEditor = vi.fn();
     readonly report = vi.fn();
   },
 }));
@@ -288,29 +289,45 @@ it.each([false, true])(
   },
 );
 
-it('guards another import and clears the selection only when editing the imported draft', () => {
-  const {result, onWorkspace, session} = setup();
+it.each(['file', 'clipboard'] as const)(
+  'keeps the workspace until the %s import is applied',
+  source => {
+    const {result, onWorkspace, session} = setup();
+    act(() => result.current.importText(source));
+    expect(onWorkspace).not.toHaveBeenCalled();
+    expect(mock.editor.requestLeave).not.toHaveBeenCalled();
+    expect(result.current.canImport).toBe(false);
+    render(result.current.importSurface);
+    const props = vi.mocked(TextImportFlow).mock.calls[0]?.[0];
+    if (!props) throw new Error('Missing import surface');
+    expect(props).toMatchObject({
+      source,
+      api: session.api,
+      store: session.editor,
+    });
+    act(() => result.current.importText('clipboard'));
+    expect(mock.editor.requestLeave).not.toHaveBeenCalled();
+    expect(onWorkspace).not.toHaveBeenCalled();
+    expect(mock.selection.clear).not.toHaveBeenCalled();
+    act(() => props.onEdit());
+    expect(onWorkspace).toHaveBeenCalledExactlyOnceWith('prep');
+    expect(mock.selection.clear).toHaveBeenCalledOnce();
+    act(() => props.onDone());
+    expect(result.current.canImport).toBe(true);
+    expect(result.current.importSurface).toBeNull();
+  },
+);
+
+it('keeps the workspace and selection when an import closes without applying', () => {
+  const {result, onWorkspace} = setup();
   act(() => result.current.importText('file'));
-  expect(onWorkspace).toHaveBeenCalledExactlyOnceWith('prep');
-  expect(result.current.importSurface).toBeNull();
-  act(() => mock.editor.requestLeave.mock.calls[0]?.[0]());
-  expect(result.current.canImport).toBe(false);
   render(result.current.importSurface);
   const props = vi.mocked(TextImportFlow).mock.calls[0]?.[0];
   if (!props) throw new Error('Missing import surface');
-  expect(props).toMatchObject({
-    source: 'file',
-    api: session.api,
-    store: session.editor,
-  });
-  act(() => result.current.importText('clipboard'));
-  expect(mock.editor.requestLeave).toHaveBeenCalledOnce();
-  expect(mock.selection.clear).not.toHaveBeenCalled();
-  act(() => props.onEdit());
-  expect(mock.selection.clear).toHaveBeenCalledOnce();
   act(() => props.onDone());
+  expect(onWorkspace).not.toHaveBeenCalled();
+  expect(mock.selection.clear).not.toHaveBeenCalled();
   expect(result.current.canImport).toBe(true);
-  expect(result.current.importSurface).toBeNull();
 });
 
 it('disables importing without an API and exposes imported-save precedence only in prep', () => {
