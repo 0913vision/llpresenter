@@ -133,11 +133,19 @@ export function TextField({
     if (event.key !== 'Escape' || isComposing(event) || hasModifier(event)) {
       return;
     }
-    event.preventDefault();
     if (value === '') {
+      // NOTE(0913vision): In a dialog, Esc on an empty field belongs to the
+      // dialog; blurring would strand focus on the page behind it.
+      if (
+        event.currentTarget.closest('[role="dialog"], [role="alertdialog"]')
+      ) {
+        return;
+      }
+      event.preventDefault();
       event.currentTarget.blur();
       return;
     }
+    event.preventDefault();
     event.stopPropagation();
     onChange('');
   };

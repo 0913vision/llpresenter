@@ -91,6 +91,25 @@ describe('TextField', () => {
     expect(document.activeElement).not.toBe(searchBox());
   });
 
+  it('leaves Esc on an empty search to the dialog around it, keeping focus', async () => {
+    const onKey = vi.fn();
+    render(
+      <div
+        role="dialog"
+        aria-label="찾기"
+        onKeyDown={event => {
+          onKey(event.key, event.defaultPrevented);
+        }}
+      >
+        <Search initial="" />
+      </div>,
+    );
+    await userEvent.click(searchBox());
+    await userEvent.keyboard('{Escape}');
+    expect(document.activeElement).toBe(searchBox());
+    expect(onKey).toHaveBeenCalledWith('Escape', false);
+  });
+
   it('passes modified Escape without clearing search', () => {
     render(<Search initial="은혜" />);
     const field = searchBox();

@@ -38,7 +38,7 @@ A confirmation dialog that the user must answer, with one question, before movin
 
 | State | Background | Text and icon | Other |
 | --- | --- | --- | --- |
-| Open | Scrim `scrim` + surface `bg-dialog` | | 160ms fade, focus on the primary button |
+| Open | Scrim `scrim` + surface `bg-dialog` | | Same fade and scale as `Dialog` over 160ms, focus on the primary button. Closes at once |
 | Overflowing head | Same surface | Same text | Thin scrollbar; inset focus ring when the region receives keyboard focus; buttons stay visible |
 | Secondary button | `bg-control` | `text` | Hover and pressed `bg-control-hover` (`Button`) |
 | Primary button | `accent-fill` | `text-on-fill` 600 | Hover and pressed `accent-fill-hover` |

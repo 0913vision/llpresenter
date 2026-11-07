@@ -1,4 +1,4 @@
-import type {JSX} from 'react';
+import {useState, type JSX} from 'react';
 import {Button} from '@renderer/ui/Button';
 import {Dialog, DialogField} from '@renderer/ui/Dialog';
 import {DateSelect} from '@renderer/ui/DateSelect';
@@ -37,6 +37,14 @@ export function NewServiceDialog({
 }): JSX.Element {
   const state = useNewService({onProblem, onDone: onClose});
   const actions = useSourceActions({onProblem});
+  // NOTE(0913vision): Open once the lists and the chosen source's items have
+  // answered, so the dialog never draws empty and then fills in.
+  const loaded =
+    state.lists.ready &&
+    (state.document !== null || state.missing || state.source === null);
+  const [opened, setOpened] = useState(false);
+  if (loaded && !opened) setOpened(true);
+  if (!loaded && !opened) return <></>;
   return (
     <>
       <Dialog

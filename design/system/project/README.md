@@ -248,6 +248,14 @@ replaced by a system font.
 - Hover and pressed backgrounds change over 100ms ease-out (`--motion-hover`),
   menus and tooltips fade over 120ms (`--motion-popover`), and dialogs fade over
   160ms (`--motion-dialog`). There is no other motion.
+- One rule for every modal surface (`Dialog`, `AlertDialog`): the scrim fades
+  its backdrop and the surface fades in and scales from 0.97 to 1 over
+  `--motion-dialog`, once, not nested. A modal closes at once, with no motion,
+  so it never leaves a half-drawn frame. It opens only when its data is ready,
+  so it never draws empty and then fills in. Menus and popovers start their
+  `--motion-popover` fade on the first frame, with no delay. Esc on an empty
+  field inside a dialog belongs to the dialog: it closes it and focus returns
+  to what opened it.
 - Notification cards and menu row highlights change at once, with no motion (see
   `Notification` and `Menu`).
 - The output screens have no UI motion. The settings decide the transitions when

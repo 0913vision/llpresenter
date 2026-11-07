@@ -153,6 +153,16 @@ describe('NewServiceDialog', () => {
     ).toContain('10월 25일 일요일');
   });
 
+  it('draws nothing until the lists and the first source have answered, then opens full', async () => {
+    setup();
+    expect(screen.queryByRole('dialog')).toBeNull();
+    const dialog = await screen.findByRole('dialog', {name: '새 예배'});
+    expect(
+      within(dialog).getByRole('treeitem', {name: titles.first}),
+    ).toBeDefined();
+    expect(within(dialog).getByRole('option', {name: /빈 예배/})).toBeDefined();
+  });
+
   it('creates from the 템플릿 with the checked items and opens it without an output command', async () => {
     const {edits, sent, open, onClose, onProblem} = setup();
     await userEvent.click(
@@ -227,7 +237,7 @@ describe('NewServiceDialog', () => {
 
   it('keeps 만들기 unavailable while the name is empty, with the reason', async () => {
     const {edits} = setup();
-    const name = screen.getByRole('textbox', {name: '이름'});
+    const name = await screen.findByRole('textbox', {name: '이름'});
     await screen.findByRole('treeitem', {name: titles.first});
     await userEvent.clear(name);
     await userEvent.type(name, '   ');
@@ -287,7 +297,7 @@ describe('NewServiceDialog', () => {
 
   it('keeps a typed name when the operator picks another source', async () => {
     setup();
-    const name = screen.getByRole('textbox', {name: '이름'});
+    const name = await screen.findByRole('textbox', {name: '이름'});
     await screen.findByRole('treeitem', {name: titles.first});
     await userEvent.clear(name);
     await userEvent.type(name, '추수감사 예배');

@@ -45,7 +45,7 @@ A dialog that closes only when the user finishes or cancels one task. It has a 4
 
 | State | Background | Text and icon | Other |
 | --- | --- | --- | --- |
-| Open | Scrim `scrim` + surface `bg-dialog` | | Scrim and surface fade over 160ms. At once under `prefers-reduced-motion` |
+| Open | Scrim `scrim` + surface `bg-dialog` | | The scrim fades its backdrop and the surface fades in and scales from 0.97 to 1, together over 160ms. A dialog closes at once. At once under `prefers-reduced-motion` |
 | Close, default | Transparent | `text-2` | |
 | Close, hover | `bg-raised` | `text-2` | 100ms ease-out |
 | Close, pressed | `bg-control-hover` | `text` | |
@@ -61,6 +61,8 @@ A dialog that closes only when the user finishes or cancels one task. It has a 4
 - Enter triggers the primary button (when focus isn't in a multiline text field or a list). Esc and the close button do the same as [취소].
 - Modified Enter and Esc pass through without submitting or canceling.
 - A click on the scrim doesn't close the dialog.
+- Esc in an empty text field of a dialog closes the dialog; it doesn't leave the field.
+- A dialog whose body reads data (the lists of 새 예배 and 다른 예배에서 가져오기) opens only after the data has answered, so it never draws empty first.
 - When the dialog closes, return focus to the button or menu item that opened it.
 - In the service-source dialogs, reselecting the current source keeps the operator's item choices, including at a keyboard boundary. A different source starts a fresh selection: all items for 새 예배 and none for 다른 예배에서 가져오기.
 - The 지우기 (clear) shortcuts for 출력 (output) (F1 to F6) work even while a dialog is open, because the operator must be able to clear the screens at once during a service.
