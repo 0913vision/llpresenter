@@ -9,7 +9,7 @@ export type CommandContext =
   | 'song'
   | 'songWindow'
   | 'service'
-  | 'arrangement'
+  | 'chips'
   | 'canvas'
   | 'search';
 export type CommandPriority = 'clear' | 'zoom' | 'normal';
@@ -247,17 +247,17 @@ export const shortcutCommands: readonly ShortcutCommand[] = (
     ],
     ['editor.labelMenu', '이름표 메뉴', '준비 편집', ['song'], ['ctrl KeyG']],
     [
-      'arrangement.moveLeft',
+      'chips.moveLeft',
       '이름표 왼쪽으로',
       '준비 편집',
-      ['arrangement'],
+      ['chips'],
       ['alt ArrowLeft'],
     ],
     [
-      'arrangement.moveRight',
+      'chips.moveRight',
       '이름표 오른쪽으로',
       '준비 편집',
-      ['arrangement'],
+      ['chips'],
       ['alt ArrowRight'],
     ],
     ['list.moveUp', '위로 옮기기', '목록', ['control'], ['alt ArrowUp']],
@@ -267,7 +267,7 @@ export const shortcutCommands: readonly ShortcutCommand[] = (
       'edit.delete',
       '삭제',
       '준비 편집',
-      ['service', 'arrangement', 'canvas'],
+      ['service', 'chips', 'canvas'],
       ['Delete'],
     ],
     ['import.save', '가져온 곡 저장', '준비 편집', ['import'], ['ctrl KeyS']],
@@ -297,14 +297,6 @@ export const shortcutCommands: readonly ShortcutCommand[] = (
       [],
     ],
     ['media.relink', '다시 연결', '준비 편집', ['control'], []],
-    ['arrangement.add', '구성 추가', '준비 편집', ['arrangement'], []],
-    [
-      'arrangement.insertSlide',
-      '이름표 넣기',
-      '준비 편집',
-      ['arrangement'],
-      [],
-    ],
     ['import.pptx', 'PowerPoint 파일 가져오기', '준비 편집', ['control'], []],
     ['stageEditor.fit', '화면에 맞춤', '화면 설정 편집', ['control'], []],
     ['screens.identify', '모니터 번호 표시', '화면 설정 편집', ['control'], []],

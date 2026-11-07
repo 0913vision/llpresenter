@@ -88,7 +88,7 @@ describe('service panel editing', () => {
     expect(send).not.toHaveBeenCalled();
   });
 
-  it('shows the chosen arrangement count in prep and refreshes it with the projection', () => {
+  it('shows the item slide count in prep and refreshes it with the projection', () => {
     const {view, onProblem} = setup('prep');
     expect(screen.getAllByText('슬라이드 0개')).toHaveLength(2);
     act(() =>
@@ -99,7 +99,7 @@ describe('service panel editing', () => {
             {
               label: null,
               labelColor: 'none',
-              lines: ['Repeated arrangement slide'],
+              lines: ['Independent item slide'],
             },
           ],
         },
@@ -161,7 +161,9 @@ describe('service panel editing', () => {
     fireEvent.contextMenu(screen.getByRole('option', {name: '첫 곡'}));
     await waitFor(() => expect(read).toHaveBeenCalledTimes(1));
     fireEvent.contextMenu(screen.getByRole('option', {name: '다음 곡'}));
-    const parent = await screen.findByRole('menuitem', {name: '구성'});
+    const parent = await screen.findByRole('menuitem', {
+      name: '라이브러리에 저장…',
+    });
     await waitFor(() =>
       expect(parent.getAttribute('aria-disabled')).not.toBe('true'),
     );
@@ -169,9 +171,8 @@ describe('service panel editing', () => {
       finish(document);
     });
     expect(parent.getAttribute('aria-disabled')).not.toBe('true');
-    await userEvent.hover(parent);
     expect(
-      await screen.findByRole('menuitemradio', {name: '기본'}),
+      screen.getByRole('menuitem', {name: '라이브러리에서 다시 불러오기'}),
     ).toBeDefined();
   });
 

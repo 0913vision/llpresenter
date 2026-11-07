@@ -1,6 +1,5 @@
-import type {SongGroupId} from '../schema/ids';
 import type {SongSlideSource} from '../schema/showService';
-import type {GroupedSong} from '../schema/groupedSong';
+import type {Song} from '../schema/song';
 import {assignSlideHotKey} from './slideHotKeyEditing';
 import {
   blockSnapshot,
@@ -21,7 +20,7 @@ export class SongHistory {
   private readonly future: BlockSnapshot[] = [];
   private typing: {readonly block: number; readonly time: number} | undefined;
 
-  constructor(song: GroupedSong) {
+  constructor(song: Song) {
     this.value = blockSnapshot(song);
   }
 
@@ -58,82 +57,24 @@ export class SongHistory {
     this.remember();
     this.value = {
       ...this.value,
-      song: {...song, groups: result.value.groups},
+      song: {...song, slides: result.value.slides},
     };
     return true;
-  }
-
-  /** Replaces or adds a named 구성's group order as one undo step; false when nothing changes. */
-  setArrangementGroups(name: string, groups: readonly SongGroupId[]): boolean {
-    const song = this.value.song;
-    const arrangements = song.arrangements;
-    const current = arrangements?.find(item => item.name === name);
-    if (
-      current?.groups.length === groups.length &&
-      current.groups.every((id, index) => id === groups[index])
-    ) {
-      return false;
-    }
-    this.endTyping();
-    this.remember();
-    const updated =
-      current === undefined
-        ? [...(arrangements ?? []), {name, groups: [...groups]}]
-        : (arrangements?.map(item =>
-            item === current ? {...item, groups: [...groups]} : item,
-          ) ?? [{name, groups: [...groups]}]);
-    this.value = {
-      ...this.value,
-      song: {
-        ...song,
-        arrangements: updated,
-      },
-    };
-    return true;
-  }
-
-  changeArrangement(from: string, to: string | undefined): void {
-    const rewrite = (snapshot: BlockSnapshot): BlockSnapshot => {
-      const song = snapshot.song;
-      if (song.arrangements === undefined) {
-        return snapshot;
-      }
-      return {
-        ...snapshot,
-        song: {
-          ...song,
-          arrangements: song.arrangements.flatMap(item =>
-            item.name !== from
-              ? [item]
-              : to === undefined
-                ? []
-                : [{...item, name: to}],
-          ),
-        },
-      };
-    };
-    this.endTyping();
-    this.value = rewrite(this.value);
-    for (const snapshots of [this.past, this.future]) {
-      snapshots.forEach((snapshot, index) => {
-        snapshots[index] = rewrite(snapshot);
-      });
-    }
   }
 
   /** A global rename also updates undo/redo snapshots without adding a step. */
   renameLabel(from: string, to: string): void {
     const rename = (snapshot: BlockSnapshot): BlockSnapshot => {
       const song = snapshot.song;
-      if (!song.groups.some(group => group.name === from)) {
+      if (!song.slides.some(slide => slide.label === from)) {
         return snapshot;
       }
       return {
         ...snapshot,
         song: {
           ...song,
-          groups: song.groups.map(group =>
-            group.name === from ? {...group, name: to} : group,
+          slides: song.slides.map(slide =>
+            slide.label === from ? {...slide, label: to} : slide,
           ),
         },
       };

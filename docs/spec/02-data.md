@@ -5,11 +5,10 @@ app stores. Field names are the names used in the JSON. Fields that appear in
 the source samples keep their names. Fields that the sources don't show are
 marked as proposals.
 
-Terms: 슬라이드 (slide), 예배 순서 (service order), 템플릿 (template), 구성
-(arrangement), 이름표 (label), 라이브러리 (library), 매크로 (macro), 그래픽
-(prop), 메시지 (message), 타이머 (timer), 퀵 실행 (quick launch), 청중 화면
-(main screen), 무대 화면 (stage screen), 방송 화면 (broadcast captions). See 01
-for the full list.
+Terms: 슬라이드 (slide), 예배 순서 (service order), 템플릿 (template), 이름표
+(label), 라이브러리 (library), 매크로 (macro), 그래픽 (prop), 메시지 (message),
+타이머 (timer), 퀵 실행 (quick launch), 청중 화면 (main screen), 무대 화면
+(stage screen), 방송 화면 (broadcast captions). See 01 for the full list.
 
 ## Common rules
 
@@ -67,106 +66,53 @@ on song and service files. The folder names and the rest are proposals.
 
 ## Song file (`.llsong`)
 
-Each song is one file. It uses named groups (user decision, 2026-10-27).
+A song is an ordered deck of independent slides. Repeating a chorus means
+copying its slides with new identities; edits to one copy do not affect another.
+The file shape is replaced without migration; `schemaVersion` remains 1.
 
 ```json
 {
   "format": "llsong",
   "schemaVersion": 1,
-  "id": "00000000-0000-4000-8000-000000000001",
+  "id": "6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab",
   "title": "Invented song",
-  "groups": [
+  "slides": [
     {
-      "id": "00000000-0000-4000-8000-000000000002",
-      "name": "1절",
-      "slides": [{"lines": ["Invented first line"]}]
-    },
-    {
-      "id": "00000000-0000-4000-8000-000000000003",
-      "name": "후렴",
-      "slides": [{"lines": ["Invented second line"]}]
-    }
-  ],
-  "arrangements": [
-    {
-      "name": "주일용",
-      "groups": [
-        "00000000-0000-4000-8000-000000000002",
-        "00000000-0000-4000-8000-000000000003",
-        "00000000-0000-4000-8000-000000000003"
-      ]
+      "id": "00000000-0000-4000-8000-000000000001",
+      "lines": ["Invented lyric"],
+      "label": "후렴",
+      "hotKey": "KeyC"
     }
   ]
 }
 ```
 
-| Field                      | Type                        | Required | Meaning                                                                                                                                    |
-| -------------------------- | --------------------------- | -------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| `format`                   | `"llsong"`                  | Yes      | File type.                                                                                                                                 |
-| `schemaVersion`            | Integer                     | Yes      | 1.                                                                                                                                         |
-| `id`                       | String (UUID)               | Yes      | Song ID. A 예배 순서 points to the song with this value.                                                                                   |
-| `title`                    | String                      | Yes      | Title. It can't be empty. Titles are unique in the 라이브러리 (proposal, see 05).                                                          |
-| `background`               | String (media ID) or absent | No       | Default background. If the item has no override and this is absent, show no background media (see 03).                                     |
-| `groups`                   | Nonempty array              | Yes      | Groups in master order. Each slide belongs to exactly one group.                                                                           |
-| `groups[].id`              | String (UUID v4)            | Yes      | Stable group ID, unique within the song. References use IDs, not names or positions.                                                       |
-| `groups[].name`            | String                      | Yes      | Group name, such as 1절 or 후렴. Names may repeat; `""` means unnamed.                                                                     |
-| `groups[].slides`          | Nonempty array              | Yes      | This group's slides in their source order. Lyrics are stored once, even when a group repeats in a 구성.                                    |
-| `groups[].slides[].lines`  | Array of strings            | Yes      | Exact slide lines. An empty array is a blank slide.                                                                                        |
-| `groups[].slides[].hotKey` | String or absent            | No       | Physical `KeyboardEvent.code`: `KeyA`..`KeyZ` or `Digit0`..`Digit9`. Absent means unassigned. Unique among all source slides in this song. |
-| `arrangements`             | Array                       | No       | Named 구성. If absent, the song has only the default 구성.                                                                                 |
-| `arrangements[].name`      | String                      | Yes      | 구성 name. Unique within the song. "기본" (default) is reserved (proposal).                                                                |
-| `arrangements[].groups`    | Array of group IDs          | Yes      | Group occurrences in playback order. Repeated IDs repeat the whole group. All IDs must exist in this song.                                 |
-| `updatedAt`                | String (ISO 8601)           | No       | Time of the last edit (proposal). The duplicate title dialog uses it ("10월 20일 수정", edited October 20).                                |
+| Field                     | Type                                     | Meaning                                                                             |
+| ------------------------- | ---------------------------------------- | ----------------------------------------------------------------------------------- |
+| `format`, `schemaVersion` | `"llsong"`, positive integer             | Version 1; newer known files stay read-only.                                        |
+| `id`                      | UUID v4                                  | Library song identity.                                                              |
+| `title`                   | Nonblank string                          | Song title.                                                                         |
+| `slides`                  | Array, 1–10,000                          | Slides in playback order.                                                           |
+| `slides[].id`             | UUID v4 (`SongSlideId`)                  | Unique within this deck; stable through moves and lyric edits.                      |
+| `slides[].lines`          | String array                             | Exact lines; an empty array is a blank slide.                                       |
+| `slides[].label`          | Optional trimmed string, 1–64 characters | A catalog name or free name; absence means no 이름표.                               |
+| `slides[].hotKey`         | Optional physical key code               | `KeyA`–`KeyZ` or `Digit0`–`Digit9`, unique within the deck.                         |
+| `background`              | Optional media UUID                      | Default background; absent means no background media when the item has no override. |
+| `updatedAt`               | Optional timestamp                       | Last update.                                                                        |
 
-Rules:
+There are no groups or 구성. Preserve safe unknown fields on songs and slides.
+Catalog names take the color from `labels.json`; free names draw neutral, and
+unlabeled slides have no name. Catalog rename rewrites matching names in library
+songs, service song items, and templates. Catalog deletion leaves slide names.
 
-- Don't store the default 구성. It expands every group once in file order.
-- A 구성 belongs to the song, not to any service. A 예배 순서 item picks a 구성
-  by name.
-- Don't store shared 이름표 colors or legacy label keys in the song file. A
-  source slide's optional hot key belongs in `groups[].slides[].hotKey`.
-- Editing or splitting a slide changes its group's source slides. Every
-  occurrence uses the updated group, without rewriting positional references. A
-  new slide stays in the active group. Deleting the last slide deletes the group
-  and removes its occurrences; keep at least one group and one slide.
-- Moving or renaming a group keeps its ID and all arrangement references.
-  Explicitly splitting a group replaces every occurrence with its parts in
-  order. Backspace merges slides only within one group. At the first slide of
-  any group it does nothing, leaving lyrics, group IDs and all arrangements
-  unchanged. Show the reason in a tooltip: 그룹 경계에서는 슬라이드를 합칠 수
-  없습니다. This applies even when the adjacent groups have the same name.
-  Whole-group references cannot represent every cross-group slide merge. A split
-  or a merge never drops lyrics from an arrangement (lead decision, October 26).
-- For adjacent single-slide groups A and B, cross-boundary Backspace leaves
-  separate arrangements `[A]` and `[B]` unchanged, leaves reversed `[B, A]`
-  unchanged, and leaves repeated `[A, B, A, B]` unchanged. No special-case merge
-  is attempted for the repeated pairs. Within a group C, merging two source
-  slides changes C's source once and every `[C, C]` occurrence uses the
-  resulting slide. It does not remove either occurrence.
-- An empty named arrangement remains stored and plays the default order, as in
-  version 1. A missing arrangement name also falls back to the default.
-- Keep unknown fields on songs, groups, slides and arrangements.
-- A slide hot key identifies that source slide, independently of its group name
-  or palette label. Repeating a group does not create another assignment.
-  Duplicate codes on different source slides, within or across groups, are
-  refused. Do not store null, display characters, modifiers or numpad codes.
-- A grouped 진행 tile carries optional `hotKey` and
-  `sourceSlide: {songId, groupId, slideIndex}`. `slideIndex` is zero-based
-  within that group's source slides, at the projected revision. Assigned tiles
-  require their source identity. All repeated occurrences retain the same
-  identity and key. Resolve a key to the first matching occurrence in the
-  selected arrangement's tile order, with no cycling based on the current/live
-  cursor. If that source is omitted, the key has no target in this projection.
-- `SONG_GROUP_LIMITS` caps a song at 10,000 source slides, 10,000 groups, 1,000
-  named arrangements and 100,000 total stored group occurrences across all
-  arrangements. Reject an oversized file without truncation. Source slides are
-  counted once, not once per arrangement occurrence. Consumers must iterate
-  repeated groups without allocating an unbounded expanded song.
-
-Source: October 27 user decision and Renewed Vision's
-[Using Groups and Arrangements](https://support.renewedvision.com/hc/en-us/articles/360041809973-Using-Groups-and-Arrangements-for-Presentation-Organization),
-checked October 27. The source establishes group tokens and arrangements; the
-JSON shape and rules are this app's contract.
+Output identifies a song slide by `sourceSlide: {songId, slideId}`. Service
+output resolves that identity within the selected item's deck. A copied slide
+gets a new ID. Duplicate/paste clears keys that conflict in the destination;
+split keeps the original key on the first half, and merge keeps the preceding
+slide's identity and key. Reject oversized or duplicate-identity decks whole.
+Text import additionally caps a draft at 5,000 slides, 20,000 lines and
+1,500,000 serialized characters; imported names remain free names unless already
+cataloged.
 
 ## Service file (`.llservice`)
 
@@ -185,7 +131,7 @@ Each 예배 순서 is one file. It holds only items. It doesn't hold screens, �
     {
       "id": "...",
       "song": "6f1c2a9e-...",
-      "arrangement": "주일용",
+      "slides": [{"id": "00000000-0000-4000-8000-000000000001", "lines": []}],
       "background": "3b9d0c52-...",
       "macro": "찬양",
       "memo": ""
@@ -219,27 +165,35 @@ Each item has exactly one of the kind keys below. Every item has an `id`
 (proposal). When you copy items from another service or from a 템플릿, give them
 new item IDs (proposal).
 
-| Kind               | Kind key                     | Other fields                                                | Source                                                                   |
-| ------------------ | ---------------------------- | ----------------------------------------------------------- | ------------------------------------------------------------------------ |
-| Section (구역)     | `header`: name               | None                                                        | User decision, October 26 check; `ShowH` (예배 전, 찬양, 말씀, 마무리)   |
-| Song               | `song`: song ID              | `arrangement`, `customOrder`, `background`, `macro`, `memo` | `Main` sample, `PrepService`                                             |
-| Bible passage      | `bible`: object (see below)  | `macro`, `memo` (proposal)                                  | `AddSongsQuick`, `ShowH`, `Bible`. The format is a proposal.             |
-| 빈 슬라이드 / 광고 | `slides`: object (see below) | `background`, `macro`, `memo`                               | User decision, November 5.                                               |
-| Media              | `media`: media ID            | `macro`, `memo` (proposal)                                  | `AddSongsQuick`, `ShowH` (예배 전 카운트다운). The format is a proposal. |
+| Kind               | Kind key                     | Other fields                            | Source                                                                   |
+| ------------------ | ---------------------------- | --------------------------------------- | ------------------------------------------------------------------------ |
+| Section (구역)     | `header`: name               | None                                    | User decision, October 26 check; `ShowH` (예배 전, 찬양, 말씀, 마무리)   |
+| Song               | `song`: song ID              | `slides`, `background`, `macro`, `memo` | `Main` sample, `PrepService`                                             |
+| Bible passage      | `bible`: object (see below)  | `macro`, `memo` (proposal)              | `AddSongsQuick`, `ShowH`, `Bible`. The format is a proposal.             |
+| 빈 슬라이드 / 광고 | `slides`: object (see below) | `background`, `macro`, `memo`           | User decision, November 5.                                               |
+| Media              | `media`: media ID            | `macro`, `memo` (proposal)              | `AddSongsQuick`, `ShowH` (예배 전 카운트다운). The format is a proposal. |
 
 Keep an item with an unknown kind key unchanged. Show it as a row with a warning
 icon, and don't let the operator output it (proposal).
 
 ### Song item fields
 
-| Field         | Type               | Required | Meaning                                                                                                                                                                                                                                                                                                                                                    |
-| ------------- | ------------------ | -------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `song`        | String (song ID)   | Yes      | The 라이브러리 song.                                                                                                                                                                                                                                                                                                                                       |
-| `arrangement` | String             | No       | The chosen 구성 name. If absent, or if the song has no 구성 with that name, the item uses the default 구성.                                                                                                                                                                                                                                                |
-| `customOrder` | Array of group IDs | No       | This item's slide order for this 예배 only. When present it replaces the chosen 구성 for playing; `arrangement` stays as the 구성 the order started from. Repeated IDs repeat the whole group. An ID the song no longer has is skipped when played and kept in the file. An empty list plays no groups, like an empty named 구성. At most 100,000 entries. |
-| `background`  | String (media ID)  | No       | Background override for this service. If absent, the item uses the song's default background.                                                                                                                                                                                                                                                              |
-| `macro`       | String             | No       | The 매크로 to run when the item starts. Version 1 stores the 매크로 ID.                                                                                                                                                                                                                                                                                    |
-| `memo`        | String             | No       | Memo. Can have several lines.                                                                                                                                                                                                                                                                                                                              |
+| Field                         | Type                       | Required | Meaning                                                                                 |
+| ----------------------------- | -------------------------- | -------- | --------------------------------------------------------------------------------------- |
+| `song`                        | Song UUID                  | Yes      | The library source remembered for explicit transfers.                                   |
+| `slides`                      | Song-slide array, 0–10,000 | Yes      | Independent item deck, copied when added; IDs and hot keys are unique within this item. |
+| `background`, `macro`, `memo` | Existing item field types  | No       | Item settings.                                                                          |
+
+The `song` key distinguishes this kind from a slides item, whose `slides` value
+is an object. `arrangement` and `customOrder` are removed. Editing or importing
+a library song never rewrites item decks. 라이브러리에 저장… copies the item's
+slides into the source song; 라이브러리에서 다시 불러오기 replaces only this
+item's deck. Both ask first and check captured song and service revisions. An
+empty item cannot replace a library song, which requires one slide.
+
+Song-item overlays store `from` and `to` as item slide UUIDs. Output resolves
+their current positions, inclusively, in either order. A missing endpoint leaves
+that stored range inactive. Other item kinds retain numeric ranges.
 
 ### Slides item fields
 
@@ -545,12 +499,12 @@ unknown fields are preserved; stage and prop references continue resolving by ID
 
 ### 이름표 list (`labels.json`)
 
-| Field      | Type                                                                                                     | Meaning                                                                                                                                                               | Source                                                           |
-| ---------- | -------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| `labels[]` | Array                                                                                                    | The 이름표 list, in the order of the 이름표 menu.                                                                                                                     | `Reflow` 이름표 menu                                             |
-| `.name`    | String                                                                                                   | Name. Unique in the list.                                                                                                                                             | `Reflow`                                                         |
-| `.color`   | Six-digit `#RRGGBB`, or `"none"`                                                                         | Color.                                                                                                                                                                | `Reflow` color row, `LabelColorPicker` README                    |
-| `.key`     | A `KeyboardEvent.code` string for one letter or digit key, for example `"KeyC"` or `"Digit1"`, or `null` | Legacy label assignment retained when reading/writing existing settings. It does not assign a source-slide hot key; use `groups[].slides[].hotKey` (S26, October 27). | Earlier product log; superseded by the October 27 user decision. |
+| Field      | Type                                                                                                     | Meaning                                                                                                                                                      | Source                                                           |
+| ---------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------- |
+| `labels[]` | Array                                                                                                    | The 이름표 list, in the order of the 이름표 menu.                                                                                                            | `Reflow` 이름표 menu                                             |
+| `.name`    | String                                                                                                   | Name. Unique in the list.                                                                                                                                    | `Reflow`                                                         |
+| `.color`   | Six-digit `#RRGGBB`, or `"none"`                                                                         | Color.                                                                                                                                                       | `Reflow` color row, `LabelColorPicker` README                    |
+| `.key`     | A `KeyboardEvent.code` string for one letter or digit key, for example `"KeyC"` or `"Digit1"`, or `null` | Legacy label assignment retained when reading/writing existing settings. It does not assign a source-slide hot key; use `slides[].hotKey` (S26, October 27). | Earlier product log; superseded by the October 27 user decision. |
 
 Defaults, in order: 전주 (`#7D8FD6`), 1절 to 4절 (`#5FB8C2`), 프리코러스
 (`#8FBF7A`), 후렴 (`#D6B35F`), 포스트코러스 (`#D68F5F`), 브리지 (`#A99AE0`),

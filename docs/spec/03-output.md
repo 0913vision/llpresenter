@@ -7,11 +7,10 @@ output state. The main process owns the output state (see 01). Every behavior in
 this document is a command that the main process handles.
 
 Terms: 출력 (output), 지우기 (clear), 슬라이드 (slide), 예배 순서 (service
-order), 구성 (arrangement), 이름표 (label), 청중 화면 (main screen), 무대 화면
-(stage screen), 방송 화면 (broadcast captions), 그래픽 (prop), 메시지 (message),
-타이머 (timer), 매크로 (macro), 진행 도구 (show tools), 퀵 실행 (quick launch),
-진행 (Show workspace), 준비 (Prep workspace), 화면 설정 (Screen settings
-workspace).
+order), 이름표 (label), 청중 화면 (main screen), 무대 화면 (stage screen), 방송
+화면 (broadcast captions), 그래픽 (prop), 메시지 (message), 타이머 (timer),
+매크로 (macro), 진행 도구 (show tools), 퀵 실행 (quick launch), 진행 (Show
+workspace), 준비 (Prep workspace), 화면 설정 (Screen settings workspace).
 
 ## Screens and output windows
 
@@ -472,8 +471,9 @@ The live 테마 lays out the 무대 화면 like the other screens (12). The 시�
 
 - The control window sends the next 슬라이드 with the live one, from the
   sequence it already walks, and main checks it like the rest of the command
-  (lead decision, October 26). If the 구성 changes while a 슬라이드 is live, the
-  다음 가사 and 다음 이름표 elements update with the next 슬라이드 sent.
+  (lead decision, October 26). If the item deck changes while a 슬라이드 is
+  live, the 다음 가사 and 다음 이름표 elements update with the next 슬라이드
+  sent.
 
 Source: `Overlays` 무대 tab, 12.
 

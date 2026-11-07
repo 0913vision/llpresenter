@@ -1,6 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import {parseService} from '@core/schema/service';
-import {parseGroupedSong} from '@core/schema/groupedSong';
+import {parseSong} from '@core/schema/song';
 import type {MediaChoice} from '@core/live/state';
 import type {OpenServiceSources} from '@main/store/openServiceFeed';
 import {OpenServiceFeed} from '@main/store/openServiceFeed';
@@ -173,7 +173,7 @@ describe('OpenServiceFeed', () => {
     });
     const backgroundOf = vi.fn<OpenServiceSources['backgroundOf']>(() => check);
     const {feed, content, current, push} = await setUp(backgroundOf);
-    const song = parseGroupedSong(
+    const song = parseSong(
       JSON.stringify({...hymnOne(), background: itemId(90)}),
       'song.llsong',
     );
@@ -181,7 +181,7 @@ describe('OpenServiceFeed', () => {
       JSON.stringify({
         ...current.data,
         name: 'Latest',
-        order: [{id: itemId(1), song: HYMN_ONE_ID}],
+        order: [{slides: [], id: itemId(1), song: HYMN_ONE_ID}],
       }),
       'service.llservice',
     );
@@ -229,15 +229,15 @@ describe('OpenServiceFeed', () => {
 
   it('coalesces refreshes and never publishes a superseded background check', async () => {
     const {content, current, push, report} = await setUp();
-    const song = parseGroupedSong(
+    const song = parseSong(
       JSON.stringify({...hymnOne(), background: itemId(90)}),
       'song.llsong',
     );
     const parsed = parseService(
       JSON.stringify(
         service(SUNDAY_ID, '2026-11-01T11:00', [
-          {id: itemId(1), song: HYMN_ONE_ID},
-          {id: itemId(2), song: HYMN_ONE_ID},
+          {slides: [], id: itemId(1), song: HYMN_ONE_ID},
+          {slides: [], id: itemId(2), song: HYMN_ONE_ID},
         ]),
       ),
       'service.llservice',

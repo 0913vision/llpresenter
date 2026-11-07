@@ -11,8 +11,7 @@ import {
 import {payloadObject, plainObject, type PayloadError} from './payload';
 import {localDateTime} from './primitives';
 import {serviceSchema, templateSchema} from './service';
-import {arrangementNameSchema} from './song';
-import {groupedSongSchema} from './groupedSong';
+import {songSchema} from './song';
 import {songImportDraftSchema, songImportTargetSchema} from './songImport';
 
 /** Why an edit wasn't applied. */
@@ -39,27 +38,30 @@ const songEditSchemas = [
     target: songImportTargetSchema,
   }),
   v.object({type: v.literal('song.create')}),
-  v.object({type: v.literal('song.saveAs'), song: groupedSongSchema}),
+  v.object({type: v.literal('song.saveAs'), song: songSchema}),
   v.object({
     type: v.literal('song.update'),
-    song: groupedSongSchema,
+    song: songSchema,
     baseRevision: revisionSchema,
   }),
   v.object({type: v.literal('song.delete'), songId: songIdSchema}),
-  v.object({
-    type: v.literal('song.arrangement.rename'),
-    songId: songIdSchema,
-    from: arrangementNameSchema,
-    to: arrangementNameSchema,
-  }),
-  v.object({
-    type: v.literal('song.arrangement.delete'),
-    songId: songIdSchema,
-    name: arrangementNameSchema,
-  }),
 ] as const;
 
 const serviceEditSchemas = [
+  v.object({
+    type: v.literal('service.song.saveToLibrary'),
+    serviceId: serviceIdSchema,
+    itemId: serviceItemIdSchema,
+    baseRevision: revisionSchema,
+    songRevision: revisionSchema,
+  }),
+  v.object({
+    type: v.literal('service.song.reloadFromLibrary'),
+    serviceId: serviceIdSchema,
+    itemId: serviceItemIdSchema,
+    baseRevision: revisionSchema,
+    songRevision: revisionSchema,
+  }),
   v.object({
     type: v.literal('service.create'),
     name: v.string(),
@@ -129,11 +131,11 @@ const editResultSchema = v.pipe(
  * items, in their source order and with new ids, to the end of the 예배 순서
  * (`docs/spec/05-prep.md`, "Importing from another service"). `song.saveAs`
  * creates a new library song from a whole song document: main gives it a new
- * id, keeps its groups and arrangements, and leaves the song it came from
+ * id, keeps its slides, and leaves the song it came from
  * unchanged. `*.update` carries the whole document and the
  * revision it was edited from; the other edits change what they name, and the
- * main process rewrites every file they touch, such as the 예배 순서 items that
- * pick a renamed 구성.
+ * main process writes the changed document. Library transfers are explicit;
+ * a song update does not rewrite independent service items.
  */
 export type ContentEdit = ReadonlyKnown<
   v.InferOutput<typeof contentEditSchema>

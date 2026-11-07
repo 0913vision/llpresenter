@@ -211,20 +211,20 @@ export function ArrangementStrip({
   };
   useCommandShortcuts([
     {
-      id: 'arrangement.moveLeft',
-      context: 'arrangement',
+      id: 'chips.moveLeft',
+      context: 'chips',
       when: ownsCommand,
       run: event => runCommand('left', event),
     },
     {
-      id: 'arrangement.moveRight',
-      context: 'arrangement',
+      id: 'chips.moveRight',
+      context: 'chips',
       when: ownsCommand,
       run: event => runCommand('right', event),
     },
     {
       id: 'edit.delete',
-      context: 'arrangement',
+      context: 'chips',
       when: ownsCommand,
       run: event => runCommand('delete', event),
     },
@@ -248,7 +248,7 @@ export function ArrangementStrip({
     <div className={styles.strip}>
       <div
         role="listbox"
-        data-command-context="arrangement"
+        data-command-context="chips"
         aria-label={label}
         aria-orientation="horizontal"
         aria-readonly={readOnly ? true : undefined}

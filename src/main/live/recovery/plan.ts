@@ -12,7 +12,7 @@ import {
   type ServiceItemOf,
 } from '@core/schema/service';
 import type {ServiceId} from '@core/schema/ids';
-import type {GroupedSong} from '@core/schema/groupedSong';
+import type {Song} from '@core/schema/song';
 import {songTiles} from '../../store/showService';
 import {savedScreens, switchableScreens} from '../../outputs/savedScreens';
 
@@ -31,7 +31,7 @@ export interface RecoveryStep {
 export interface RecoveryContent {
   serviceList(): ReadonlyArray<{readonly id: string}>;
   service(id: string): {readonly service: Pick<Service, 'id' | 'order'>} | null;
-  song(id: string): {readonly song: GroupedSong} | null;
+  song(id: string): {readonly song: Song} | null;
 }
 
 /** The current settings and content that a recorded state is checked against. */
@@ -115,7 +115,10 @@ function slideStep(
   const {serviceId, item} = source;
   const song = content.song(item.song)?.song;
   if (song === undefined) return null;
-  const slideCount = songTiles(song, NO_LABEL_COLORS, item).length;
+  const slideCount = songTiles(
+    {...song, slides: item.slides},
+    NO_LABEL_COLORS,
+  ).length;
   if (slide.position >= slideCount) return null;
   const media = state.layers.media;
   const commands: SingleLiveCommand[] = [{type: 'slide.show', slide}];

@@ -11,7 +11,6 @@ import {
 import {LabelMenu} from './LabelMenu';
 import {SongBlock, type EditorFocus} from './SongBlock';
 import {SongHeader} from './SongHeader';
-import {ArrangementRow} from './ArrangementRow';
 import {SlideHotKeyControl} from './SlideHotKeyControl';
 import type {SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';
@@ -20,6 +19,7 @@ import type {SongId} from '@core/schema/ids';
 import {isComposing} from '@renderer/ui/ime';
 import {linearSlidesOf, slideCountOf} from '@core/songs/blockEdits';
 import {PanelFooter} from '@renderer/ui/Panel';
+import {Button} from '@renderer/ui/Button';
 import {useSongBlockWindow} from './useSongBlockWindow';
 
 /** Mount with a window-owned store; unmounting does not discard song history. */
@@ -44,7 +44,6 @@ export function SongEditor({
             onImportedSave={onImportedSave}
             unsaved={unsaved}
           />
-          <ArrangementRow store={store} session={state.session} />
           <SlideHotKeyControl
             store={store}
             session={state.session}
@@ -173,6 +172,14 @@ function SongBlocks({
       onScroll={event => setScrollTop(event.currentTarget.scrollTop)}
       onKeyDown={tab}
     >
+      {slides.length === 0 ? (
+        <Button
+          disabled={state.busy || session.readOnly}
+          onClick={() => session.edit({type: 'insert'})}
+        >
+          슬라이드 추가
+        </Button>
+      ) : null}
       <div className={styles.blockWindow} style={{height: total}}>
         {indices.map(block => {
           const slide = slides[block];

@@ -15,6 +15,24 @@ export interface OverlaySpan {
   readonly to: number;
 }
 
+/** Earlier starts win; later ranges are clipped or omitted without reordering the input. */
+export function normalizeOverlayRanges<T extends OverlaySpan>(
+  overlays: readonly T[],
+): readonly T[] {
+  const kept = new Map<T, T>();
+  let end = 0;
+  for (const overlay of overlays.toSorted((a, b) => a.from - b.from)) {
+    const from = Math.max(overlay.from, end + 1);
+    if (from > overlay.to) continue;
+    kept.set(overlay, from === overlay.from ? overlay : {...overlay, from});
+    end = overlay.to;
+  }
+  return overlays.flatMap(overlay => {
+    const row = kept.get(overlay);
+    return row === undefined ? [] : [row];
+  });
+}
+
 /**
  * Where each position of `before` sits in `after`, matching the nth
  * occurrence of a slide number to the nth occurrence in `after`.
@@ -67,28 +85,14 @@ export function remapOverlayRanges<T extends OverlaySpan>(
   after: readonly number[],
 ): readonly T[] {
   const moved = positionsAfter(before, after);
-  const remapped = overlays.map(overlay => ({
-    overlay,
-    span: remapSpan(overlay, moved),
-  }));
-  const ordered = remapped.toSorted((a, b) => a.span.from - b.span.from);
-  const kept = new Map<T, OverlaySpan>();
-  let end = 0;
-  for (const {overlay, span} of ordered) {
-    const from = Math.max(span.from, end + 1);
-    if (from > span.to) continue;
-    kept.set(overlay, {from, to: span.to});
-    end = span.to;
-  }
-  return overlays.flatMap(overlay => {
-    const span = kept.get(overlay);
-    if (span === undefined) return [];
-    return [
-      span.from === overlay.from && span.to === overlay.to
+  return normalizeOverlayRanges(
+    overlays.map(overlay => {
+      const span = remapSpan(overlay, moved);
+      return span.from === overlay.from && span.to === overlay.to
         ? overlay
-        : {...overlay, ...span},
-    ];
-  });
+        : {...overlay, ...span};
+    }),
+  );
 }
 
 /** The overlay whose inclusive range holds `position` (1-based), if any. */

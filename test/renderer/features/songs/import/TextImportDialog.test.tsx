@@ -651,7 +651,7 @@ describe('text import dialog', () => {
       ).toBe('true');
     },
   );
-  it('previews candidate group boundaries and displays labels only on group start slides', async () => {
+  it('previews section boundaries and displays each slide label', async () => {
     const f = fixture();
     const groupedText =
       '[1절]\nFirst verse line\nSecond verse line\nThird verse line\nFourth verse line\n\n[후렴]\nChorus first line\nChorus second line\nChorus third line\nChorus fourth line';
@@ -673,9 +673,9 @@ describe('text import dialog', () => {
       throw new Error('Missing preview option');
     }
     expect(within(firstOption).getByText('1절')).toBeTruthy();
-    expect(within(secondOption).queryByText('1절')).toBeNull();
+    expect(within(secondOption).getByText('1절')).toBeTruthy();
     expect(within(thirdOption).getByText('후렴')).toBeTruthy();
-    expect(within(fourthOption).queryByText('후렴')).toBeNull();
+    expect(within(fourthOption).getByText('후렴')).toBeTruthy();
     fireEvent.click(screen.getByRole('button', {name: '편집'}));
     expect(f.onEdit).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({

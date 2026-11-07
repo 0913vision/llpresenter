@@ -2,7 +2,6 @@ import type {ServiceDocument} from '@core/schema/contentDocuments';
 import type {MediaId, ThemeId} from '@core/schema/ids';
 import type {ItemOverlay} from '@core/schema/itemOverlays';
 import type {ServiceItem} from '@core/schema/service';
-import {effectiveArrangement} from '@core/services/itemFieldChanges';
 import type {SongSession} from '@renderer/features/songs/editor/songSession';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {
@@ -18,17 +17,12 @@ import {
   type ServiceItemEditor,
   type ItemSongStatus,
 } from './itemSourceFollower';
-import {
-  arrangementRequest,
-  backgroundRequest,
-  startMacroRequest,
-} from './itemPlaybackCommands';
+import {backgroundRequest, startMacroRequest} from './itemPlaybackCommands';
 import {themeRequest, overlayRequest} from './itemAppearanceCommands';
 export type {ServiceItemChange} from '@core/services/itemFieldChanges';
 export {
   isStartItem,
   withStartField,
-  effectiveArrangement,
   type StartItem,
 } from '@core/services/itemFieldChanges';
 export type {ItemTarget} from './itemEditQueue';
@@ -48,7 +42,6 @@ export interface ServiceItemState {
    * The 구성 the item plays: its `arrangement` while the song has a 구성 of
    * that name, else `undefined` for 기본 (spec 02).
    */
-  readonly arrangement: string | undefined;
   /**
    * The selected place in the order the item plays, shared by its chips,
    * thumbnails, and preview. Readers clamp it to the order's length.
@@ -61,7 +54,6 @@ const NO_ITEM: ServiceItemState = {
   item: null,
   song: null,
   songStatus: null,
-  arrangement: undefined,
   position: 0,
   busy: false,
 };
@@ -125,10 +117,6 @@ export class ServiceItemStore {
   /** Submits a captured field request through the single item-write queue. */
   submitItemEdit(request: ItemEditRequest): Promise<boolean> {
     return this.edits.submit(request);
-  }
-  /** Picks the item's arrangement, or 기본 when omitted. */
-  chooseArrangement(name: string | undefined): Promise<boolean> {
-    return this.submitItemEdit(arrangementRequest(this.target, name));
   }
   /** Omitting the theme follows the item's kind default. */
   setTheme(theme: ThemeId | undefined): Promise<boolean> {
@@ -203,7 +191,6 @@ export class ServiceItemStore {
       item,
       song,
       songStatus,
-      arrangement: effectiveArrangement(item, song?.history.snapshot.song),
       position: this.position,
       busy: this.edits.busy,
     };

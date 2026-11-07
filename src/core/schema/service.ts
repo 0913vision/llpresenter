@@ -16,16 +16,14 @@ import {
   serviceIdSchema,
   serviceItemIdSchema,
   slideIdSchema,
-  songGroupIdSchema,
   songIdSchema,
   templateIdSchema,
   themeIdSchema,
   translationIdSchema,
 } from './ids';
-import {SONG_GROUP_LIMITS} from './groupedSong';
-import {itemOverlaysSchema} from './itemOverlays';
+import {itemOverlaysSchema, songItemOverlaysSchema} from './itemOverlays';
 import {LIVE_STATE_LIMITS} from './liveLimits';
-import {SONG_NAME_MAX_LENGTH} from './song';
+import {SONG_NAME_MAX_LENGTH, songSlidesSchema} from './song';
 import type {MigrationStep} from './migration';
 import {
   jsonObject,
@@ -142,14 +140,9 @@ const itemSchemas = {
   header: jsonObject({...itemFields, header: v.string()}),
   song: jsonObject({
     ...itemFields,
+    overlays: v.exactOptional(songItemOverlaysSchema),
     song: songIdSchema,
-    arrangement: v.exactOptional(v.string()),
-    customOrder: v.exactOptional(
-      v.pipe(
-        v.array(songGroupIdSchema),
-        v.maxLength(SONG_GROUP_LIMITS.occurrences),
-      ),
-    ),
+    slides: songSlidesSchema,
     background: v.exactOptional(mediaIdSchema),
     ...startFields,
   }),
@@ -271,7 +264,12 @@ export function serializeTemplate(
  */
 export type ServiceItemOf<TKind extends ServiceItemKind> =
   TKind extends ServiceItemKind
-    ? Extract<ServiceItem, Readonly<Record<TKind, unknown>>>
+    ? TKind extends 'slides'
+      ? Exclude<
+          Extract<ServiceItem, Readonly<Record<TKind, unknown>>>,
+          Readonly<Record<'song', unknown>>
+        >
+      : Extract<ServiceItem, Readonly<Record<TKind, unknown>>>
     : never;
 
 /** Whether an item is of a kind, so its fields can be read with their types. */
@@ -309,5 +307,9 @@ function kindKeysOf(input: unknown): readonly ServiceItemKind[] {
   if (!isRecord(input)) {
     return [];
   }
-  return serviceItemKinds.filter(kind => Object.hasOwn(input, kind));
+  return serviceItemKinds.filter(
+    kind =>
+      Object.hasOwn(input, kind) &&
+      !(kind === 'slides' && Object.hasOwn(input, 'song')),
+  );
 }

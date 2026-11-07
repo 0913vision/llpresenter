@@ -185,7 +185,7 @@ it('edits the shared catalog from preferences while an editor dialog follows it'
   ).toHaveProperty('value', '새 절');
   expect(f.other.getSnapshot().labels?.value.labels[0]?.color).toBe('#8FBF7A');
   expect(
-    f.other.getSnapshot().session?.history.snapshot.song.groups[0]?.name,
+    f.other.getSnapshot().session?.history.snapshot.song.slides[0]?.label,
   ).toBe('새 절');
 
   await f.user.click(within(page).getByRole('button', {name: '새 이름표'}));
@@ -219,7 +219,7 @@ it('edits the shared catalog from preferences while an editor dialog follows it'
     within(dialog).queryByRole('textbox', {name: '새 절 이름'}),
   ).toBeNull();
   expect(
-    f.other.getSnapshot().session?.history.snapshot.song.groups[0]?.name,
+    f.other.getSnapshot().session?.history.snapshot.song.slides[0]?.label,
   ).toBe('새 절');
 
   const otherName = within(dialog).getByRole('textbox', {name: '후렴 이름'});

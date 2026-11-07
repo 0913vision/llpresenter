@@ -32,10 +32,7 @@ function mountPrep() {
     [...fixture.documents.values()].map(({song, access}) => ({
       id: song.id,
       title: song.title,
-      slideCount: song.groups.reduce(
-        (count, group) => count + group.slides.length,
-        0,
-      ),
+      slideCount: song.slides.length,
       usedBy: [],
       access,
     }));

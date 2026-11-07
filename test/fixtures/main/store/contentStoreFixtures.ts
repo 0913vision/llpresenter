@@ -1,9 +1,9 @@
+import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import type {Result} from '@core/common/result';
 import type {ContentEdit} from '@core/schema/contentEdit';
 import type {FileError, LoadedFile} from '@core/schema/fileFormat';
-import {parseGroupedSong} from '@core/schema/groupedSong';
+import {parseSong} from '@core/schema/song';
 import {
-  createSongGroupId,
   serviceIdSchema,
   songIdSchema,
   templateIdSchema,
@@ -74,7 +74,7 @@ export function stored<T>(
 
 /** Builds an invented grouped song document without reading a file. */
 export function songFile(json: object = hymnOne()) {
-  return stored(parseGroupedSong, json, join(locations.songs, 'hymn.llsong'));
+  return stored(parseSong, json, join(locations.songs, 'hymn.llsong'));
 }
 
 /** Builds a neutral service document without reading or writing files. */
@@ -278,11 +278,7 @@ export function importSetup(
 /** A neutral fixture value; declaring it does not read or write files. */
 export const importedDraft = {
   title: 'Invented import',
-  groups: [
-    {
-      id: createSongGroupId('00000000-0000-4000-8000-0000000000a1'),
-      name: 'New label',
-      slides: [{lines: ['Invented line']}],
-    },
+  slides: [
+    {id: fixtureSlideId(1), lines: ['Invented line'], label: 'New label'},
   ],
 };

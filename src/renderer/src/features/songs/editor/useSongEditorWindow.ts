@@ -1,3 +1,5 @@
+import {createSongId} from '@core/schema/ids';
+import {loadItemSong, itemSongContent} from './itemSongSession';
 import {
   useEffect,
   useLayoutEffect,
@@ -8,7 +10,7 @@ import {
 import type {LlpApi} from '@contracts/ipc/api';
 import type {SongId} from '@core/schema/ids';
 import type {SongEditorTarget} from '@core/schema/ipcPayloads';
-import {withServiceItemSong} from '@core/songs/itemOrder';
+import {withServiceItemSong} from '@core/songs/itemSong';
 import {copyTitle} from '@core/songs/songTitle';
 import {
   pendingWritesOf,
@@ -79,6 +81,8 @@ export function useSongEditorWindow(
     shown.current = dialog;
   });
   const from = useRef<SongEditorTarget['from']>(undefined);
+  const targetSource = useRef<SongEditorTarget | null>(null);
+  const openSerial = useRef(0);
   const busy = useRef(false);
   const live = useRef(state);
   useLayoutEffect(() => {
@@ -95,17 +99,29 @@ export function useSongEditorWindow(
   };
 
   const openTarget = async (target: SongEditorTarget): Promise<void> => {
+    const serial = ++openSerial.current;
     try {
-      const document = await api.songs.get(target.songId);
+      const origin = target.from;
+      const reload = () =>
+        origin === undefined
+          ? api.songs.get(target.songId)
+          : loadItemSong(api, origin, target.songId);
+      const document = await reload();
+      if (serial !== openSerial.current) return;
       if (document === null) {
         report(problem('missing'));
         return;
       }
+      let content: LlpApi['content'] | undefined;
+      if (origin !== undefined) {
+        content = itemSongContent(api, origin, target.songId);
+      }
       from.current = target.from;
+      targetSource.current = target;
       store.open(document, {
         ...(target.focusTitle === true ? {focusTitle: true} : {}),
         ...(target.block === undefined ? {} : {block: target.block}),
-        arrangement: target.arrangement,
+        ...(content === undefined ? {} : {content, reload}),
         action: target.action,
       });
     } catch (error) {
@@ -117,7 +133,11 @@ export function useSongEditorWindow(
   const follow = (target: SongEditorTarget | null): void => {
     if (target === null) return;
     const current = live.current.session?.document.song.id;
-    if (current === target.songId) {
+    const key =
+      target.from === undefined
+        ? target.songId
+        : createSongId(target.from.itemId);
+    if (current === key) {
       openTarget(target).catch(() => undefined);
       return;
     }
@@ -147,6 +167,28 @@ export function useSongEditorWindow(
       stop();
     };
   }, [api]);
+
+  useEffect(
+    () =>
+      api.services.subscribe(change => {
+        const target = targetSource.current;
+        const origin = target?.from;
+        if (target === null || origin?.serviceId !== change.serviceId) return;
+        const session = store.sessionOf(createSongId(origin.itemId));
+        if (session === undefined) return;
+        const serial = openSerial.current;
+        loadItemSong(api, origin, target.songId)
+          .then(document => {
+            if (serial !== openSerial.current) return;
+            if (document !== null) store.receiveDocument(document);
+            else session.blocked = true;
+          })
+          .catch((error: unknown) =>
+            console.error('Could not refresh item slides', error),
+          );
+      }),
+    [api, store],
+  );
 
   const askLeaveLatest = useRef(askLeave);
   useLayoutEffect(() => {
@@ -191,6 +233,7 @@ export function useSongEditorWindow(
   const saveAs = (title: string): Promise<boolean> =>
     guarded(async () => {
       if (session === null) return false;
+      if (from.current !== undefined && !(await session.commit())) return false;
       const draft = session.draftSong(title);
       const result = await api.content.edit({type: 'song.saveAs', song: draft});
       if (!result.ok) {
@@ -210,6 +253,9 @@ export function useSongEditorWindow(
         report(problem('item'));
       }
       store.discardEdits(session.document.song.id);
+      from.current = undefined;
+      targetSource.current = null;
+      setDialog(null);
       store.open(created);
       return true;
     });

@@ -1,3 +1,4 @@
+import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {describe, expect, it} from 'vitest';
 import {parseContentEdit, parseEditResult} from '@core/schema/contentEdit';
 
@@ -13,21 +14,8 @@ function song() {
     schemaVersion: 1,
     id: SONG_ID,
     title: '만복의 근원 하나님',
-    groups: [
-      {
-        id: '00000000-0000-4000-8000-000000000101',
-        name: '1절',
-        slides: [{lines: ['Invented contract line']}],
-      },
-    ],
-    arrangements: [
-      {
-        name: '주일용',
-        groups: [
-          '00000000-0000-4000-8000-000000000101',
-          '00000000-0000-4000-8000-000000000101',
-        ],
-      },
+    slides: [
+      {id: fixtureSlideId(1), lines: ['Invented contract line'], label: '1절'},
     ],
   };
 }
@@ -39,7 +27,7 @@ function service() {
     id: SERVICE_ID,
     name: '주일 예배',
     date: '2026-11-01T11:00',
-    order: [{id: ITEM_ID, song: SONG_ID, arrangement: '주일용'}],
+    order: [{id: ITEM_ID, song: SONG_ID, slides: song().slides}],
   };
 }
 
@@ -60,26 +48,18 @@ describe('parseContentEdit', () => {
     expect(parseContentEdit({type: 'saves.retry.invalid'}).ok).toBe(false);
     expect(parseContentEdit({type: null}).ok).toBe(false);
   });
-  it('requires grouped updates and rejects duplicate physical slide hot keys', () => {
+  it('requires slide identities and rejects duplicate slide hot keys', () => {
     const current = song();
-    const {groups: _groups, arrangements: _arrangements, ...header} = current;
     expect(
       parseContentEdit({
         type: 'song.update',
         baseRevision: 1,
-        song: {
-          ...header,
-          schemaVersion: 1,
-          slides: [{lines: ['Invented legacy line']}],
-        },
+        song: {...current, slides: [{lines: ['Missing identity']}]},
       }).ok,
     ).toBe(false);
     const keyed = {
       ...current,
-      groups: current.groups.map(group => ({
-        ...group,
-        slides: [{lines: ['Invented keyed line'], hotKey: 'KeyK'}],
-      })),
+      slides: current.slides.map(slide => ({...slide, hotKey: 'KeyK'})),
     };
     expect(
       parseContentEdit({type: 'song.update', baseRevision: 1, song: keyed}).ok,
@@ -90,13 +70,9 @@ describe('parseContentEdit', () => {
         baseRevision: 1,
         song: {
           ...keyed,
-          groups: [
-            ...keyed.groups,
-            {
-              id: '00000000-0000-4000-8000-000000000102',
-              name: 'Repeated key',
-              slides: [{lines: [], hotKey: 'KeyK'}],
-            },
+          slides: [
+            ...keyed.slides,
+            {id: fixtureSlideId(2), lines: [], hotKey: 'KeyK'},
           ],
         },
       }).ok,
@@ -109,13 +85,22 @@ describe('parseContentEdit', () => {
     [{type: 'song.delete', songId: SONG_ID}],
     [
       {
-        type: 'song.arrangement.rename',
-        songId: SONG_ID,
-        from: '주일용',
-        to: '짧게',
+        type: 'service.song.saveToLibrary',
+        serviceId: SERVICE_ID,
+        itemId: ITEM_ID,
+        baseRevision: 1,
+        songRevision: 2,
       },
     ],
-    [{type: 'song.arrangement.delete', songId: SONG_ID, name: '주일용'}],
+    [
+      {
+        type: 'service.song.reloadFromLibrary',
+        serviceId: SERVICE_ID,
+        itemId: ITEM_ID,
+        baseRevision: 1,
+        songRevision: 2,
+      },
+    ],
     [
       {
         type: 'service.create',
@@ -175,19 +160,19 @@ describe('parseContentEdit', () => {
       'song.title',
     ],
     [
-      'a rename to the default 구성',
-      {
-        type: 'song.arrangement.rename',
-        songId: SONG_ID,
-        from: '주일용',
-        to: '기본',
-      },
-      'to',
+      'a removed arrangement command',
+      {type: 'song.arrangement.delete', songId: SONG_ID, name: 'Old'},
+      'type',
     ],
     [
-      'a delete of the default 구성',
-      {type: 'song.arrangement.delete', songId: SONG_ID, name: '기본'},
-      'name',
+      'a transfer without a song revision',
+      {
+        type: 'service.song.saveToLibrary',
+        serviceId: SERVICE_ID,
+        itemId: ITEM_ID,
+        baseRevision: 1,
+      },
+      'songRevision',
     ],
     [
       'an import with no items',

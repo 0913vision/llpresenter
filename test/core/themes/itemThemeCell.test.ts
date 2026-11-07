@@ -27,7 +27,7 @@ it.each(['blank', 'ad'] as const)(
 );
 
 function songItem(extra: object = {}): ServiceItem {
-  return {id: ITEM_ID, song: SONG_ID, ...extra};
+  return {slides: [], id: ITEM_ID, song: SONG_ID, ...extra};
 }
 
 it('shows the default of the kind, dim, for an item with no theme of its own', () => {

@@ -1,3 +1,4 @@
+import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {mkdir, readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {expect, it} from 'vitest';
@@ -36,12 +37,8 @@ it(
         schemaVersion: 1,
         id: SONG,
         title: '창작 복구 곡',
-        groups: [
-          {
-            id: '0f000000-0000-4000-8000-000000000001',
-            name: '1절',
-            slides: [{lines: ['새로 만든 점검 문장']}],
-          },
+        slides: [
+          {id: fixtureSlideId(1), lines: ['새로 만든 점검 문장'], label: '1절'},
         ],
       }),
       'utf8',
@@ -54,7 +51,19 @@ it(
         id: SERVICE,
         name: '복구 점검 예배',
         date: '2026-01-01T10:00',
-        order: [{id: ITEM, song: SONG}],
+        order: [
+          {
+            slides: [
+              {
+                id: fixtureSlideId(1),
+                lines: ['새로 만든 점검 문장'],
+                label: '1절',
+              },
+            ],
+            id: ITEM,
+            song: SONG,
+          },
+        ],
       }),
       'utf8',
     );

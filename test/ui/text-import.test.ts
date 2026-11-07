@@ -1,7 +1,7 @@
 import {readdir, readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {expect, it, onTestFinished, vi} from 'vitest';
-import {parseGroupedSong} from '../../src/core/schema/groupedSong';
+import {parseSong} from '../../src/core/schema/song';
 import {makeTempDir} from '@fixtures/tempDir';
 import {offscreenApp} from './electron-app';
 
@@ -50,7 +50,7 @@ ${LINE}`,
     await expect.poll(saved, {timeout: WAIT}).toContain(LINE);
     const text = await saved();
     if (text === undefined) throw new Error('Song file was not saved');
-    const parsed = parseGroupedSong(text, 'song');
+    const parsed = parseSong(text, 'song');
     expect(parsed.ok).toBe(true);
     if (parsed.ok) expect(parsed.value.data.title).toBe(TITLE);
   },

@@ -1,3 +1,4 @@
+import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {
   act,
@@ -80,9 +81,29 @@ afterEach(() => {
 
 async function setup(
   themeFile = {...defaults, themes: [...defaults.themes, special]},
+  slideCount = 3,
 ) {
   mockMenuRowHeight();
   const fixture = itemFixture();
+  const document = fixture.service();
+  fixture.pushService({
+    ...document,
+    service: {
+      ...document.service,
+      order: document.service.order.map(row =>
+        row.id === fixtureItems.arranged
+          ? {
+              ...row,
+              slides: Array.from({length: slideCount}, (_, index) => ({
+                id: fixtureSlideId(index + 1),
+                lines: [`Item slide ${index + 1}`],
+              })),
+            }
+          : row,
+      ),
+    },
+  });
+
   const read = fixture.api.settings.get;
   vi.spyOn(fixture.api.settings, 'get').mockImplementation(request => {
     if (request.name === 'themes') {
@@ -223,8 +244,8 @@ it('adds from the slide menu to the song end, and edits the range in the popover
   await addOverlay(user, 2);
   await waitFor(() =>
     expect(stored()?.overlays?.[0]).toMatchObject({
-      from: 2,
-      to: total,
+      from: fixtureSlideId(2),
+      to: fixtureSlideId(total),
       screens: [SCREEN],
       content: {text: ''},
     }),
@@ -233,16 +254,21 @@ it('adds from the slide menu to the song end, and edits the range in the popover
   const to = screen.getByRole('spinbutton', {name: '끝 슬라이드'});
   fireEvent.change(to, {target: {value: '3'}});
   fireEvent.blur(to);
-  await waitFor(() => expect(stored()?.overlays?.[0]?.to).toBe(3));
+  await waitFor(() =>
+    expect(stored()?.overlays?.[0]?.to).toBe(fixtureSlideId(3)),
+  );
   await addOverlay(user, 1);
   await waitFor(() => expect(stored()?.overlays).toHaveLength(2));
-  expect(stored()?.overlays?.[1]).toMatchObject({from: 1, to: 1});
+  expect(stored()?.overlays?.[1]).toMatchObject({
+    from: fixtureSlideId(1),
+    to: fixtureSlideId(1),
+  });
   await user.click(bar('오버레이 2, 슬라이드 1부터 1까지'));
   const before = edits.length;
   const secondTo = screen.getByRole('spinbutton', {name: '끝 슬라이드'});
   fireEvent.change(secondTo, {target: {value: '2'}});
   fireEvent.blur(secondTo);
-  expect(stored()?.overlays?.[1]?.to).toBe(1);
+  expect(stored()?.overlays?.[1]?.to).toBe(fixtureSlideId(1));
   expect(edits).toHaveLength(before);
   expect((await hoverForTooltip(secondTo))?.textContent).toContain(
     '다른 오버레이와 겹칩니다',
@@ -291,8 +317,8 @@ it('puts a dropped media file on a slide as a new overlay, and replaces the medi
   drop(fixtureMedia.dawn, 2);
   await waitFor(() =>
     expect(stored()?.overlays?.[0]).toMatchObject({
-      from: 2,
-      to: total,
+      from: fixtureSlideId(2),
+      to: fixtureSlideId(total),
       content: {media: fixtureMedia.dawn, loop: false, sound: false},
     }),
   );
@@ -304,8 +330,8 @@ it('puts a dropped media file on a slide as a new overlay, and replaces the medi
   drop(fixtureMedia.warm, 3);
   await waitFor(() =>
     expect(stored()?.overlays?.[0]).toMatchObject({
-      from: 2,
-      to: total,
+      from: fixtureSlideId(2),
+      to: fixtureSlideId(total),
       content: {media: fixtureMedia.warm, sound: true},
     }),
   );
@@ -355,7 +381,7 @@ it('stores text or video content and the video loop and sound choices', async ()
 });
 
 it('refuses invalid overlay arrays through the service writer and disables the add item at the cap', async () => {
-  const {items, stored, edits, user} = await setup();
+  const {items, stored, edits, user} = await setup(undefined, 60);
   await act(async () => {
     expect(
       await items.changeOverlays(() => [
@@ -493,7 +519,10 @@ it('draws one bar for each row of slides with › where it runs on, and drags an
   pointer('pointermove', document.body, {clientX: 45, clientY: 100});
   pointer('pointerup', document.body);
   await waitFor(() =>
-    expect(stored()?.overlays?.[0]).toMatchObject({from: 2, to: 3}),
+    expect(stored()?.overlays?.[0]).toMatchObject({
+      from: fixtureSlideId(2),
+      to: fixtureSlideId(3),
+    }),
   );
   expect(document.querySelectorAll('[data-overlay-clip] button')).toHaveLength(
     2,
@@ -505,7 +534,10 @@ it('draws one bar for each row of slides with › where it runs on, and drags an
   pointer('pointermove', document.body, {clientX: 5, clientY: 10});
   pointer('pointerup', document.body);
   await waitFor(() =>
-    expect(stored()?.overlays?.[0]).toMatchObject({from: 1, to: 3}),
+    expect(stored()?.overlays?.[0]).toMatchObject({
+      from: fixtureSlideId(1),
+      to: fixtureSlideId(3),
+    }),
   );
 });
 

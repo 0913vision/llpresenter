@@ -1,4 +1,3 @@
-import {ARRANGEMENT_LIMIT_REASON} from '@core/songs/songArrangements';
 import {createServiceId} from '@core/schema/ids';
 import {isItemOfKind, SLIDES_LIMITS} from '@core/schema/service';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
@@ -25,16 +24,12 @@ import {
 } from '@renderer/ui/contextMenu';
 import {useEffect, useMemo, useRef, useState, type JSX} from 'react';
 import {createServiceItemId, type SongId} from '@core/schema/ids';
-import {parseOrderEditorTarget} from '@core/schema/ipcPayloads';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import {hasModifier} from '@renderer/ui/modifierKeys';
 import {useRowMoveKeys} from '@renderer/ui/reorder';
 import {useMovedRowFocus} from './useMovedRowFocus';
 import {isInTextEntry} from '@renderer/ui/textEntry';
-import {
-  openOrderEditorWindow,
-  openSongEditorWindow,
-} from '../orderEditor/openWindows';
+import {openSongEditorWindow} from '@renderer/features/songs/editor/openWindow';
 import {useHeaderRename} from '@renderer/session/headerRename';
 import {openItem, useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
@@ -67,7 +62,7 @@ const problemTips: Readonly<Record<RowProblem, string>> = {
   'missing-media': '미디어 파일을 찾을 수 없습니다',
   'unknown-kind': '아직 없는 기능',
   'newer-version': NEWER_FILE_REASON,
-  'tile-limit': ARRANGEMENT_LIMIT_REASON,
+  'tile-limit': '슬라이드가 너무 많음',
 };
 
 interface RowGroup {
@@ -469,22 +464,38 @@ export function ServiceOrderList({
     },
   ]);
 
-  const openOrderEditor = (itemId: string): void => {
+  const openSongEditor = (songId: SongId, itemId: string): void => {
     const api = window.llp;
-    const target = parseOrderEditorTarget({serviceId, itemId});
-    if (api === undefined || !target.ok) return;
-    editorTask(openOrderEditorWindow(api, target.value, onProblem));
-  };
-  const openSongEditor = (songId: SongId): void => {
-    const api = window.llp;
-    if (api !== undefined) {
-      editorTask(openSongEditorWindow(api, {songId}, onProblem));
+    if (api !== undefined && serviceId !== null) {
+      editorTask(
+        openSongEditorWindow(
+          api,
+          {
+            songId,
+            from: {
+              serviceId: createServiceId(serviceId),
+              itemId: createServiceItemId(itemId),
+            },
+          },
+          onProblem,
+        ),
+      );
     }
   };
   const openOrderOfSongRow = (id: string | null): boolean => {
-    if (workspace !== 'prep' || id === null) return false;
+    if (workspace !== 'prep' || id === null || serviceId === null) return false;
     if (rows.find(row => row.id === id)?.kind !== 'song') return false;
-    openOrderEditor(id);
+    const api = window.llp;
+    if (api !== undefined) {
+      editorTask(
+        api.services.get(serviceId).then(document => {
+          const item = document?.service.order.find(row => row.id === id);
+          if (item !== undefined && isItemOfKind(item, 'song')) {
+            openSongEditor(item.song, id);
+          }
+        }),
+      );
+    }
     return true;
   };
 
@@ -499,20 +510,19 @@ export function ServiceOrderList({
       editSong:
         workspace === 'prep'
           ? {
-              editOrder: () => {
-                openOrderEditor(target.id);
-                setMenu(null);
-              },
               editSong: songMenu.songId
                 ? () => {
-                    if (songMenu.songId) openSongEditor(songMenu.songId);
+                    if (songMenu.songId) {
+                      openSongEditor(songMenu.songId, target.id);
+                    }
                     setMenu(null);
                   }
                 : undefined,
             }
           : undefined,
       song: {
-        arrangements: songMenu.entries,
+        save: songMenu.save,
+        reload: songMenu.reload,
         reason: songMenu.reason,
         locked: songMenu.locked,
         showInLibrary:
@@ -693,6 +703,7 @@ export function ServiceOrderList({
           entries={menuEntries(menu)}
         />
       ) : null}
+      {songMenu.dialog}
     </div>
   );
 }

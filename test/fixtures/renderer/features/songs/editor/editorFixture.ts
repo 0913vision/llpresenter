@@ -1,6 +1,7 @@
+import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {createSongGroupId, createSongId} from '@core/schema/ids';
-import {sourceSlideCount} from '@core/schema/groupedSong';
+import {createSongId} from '@core/schema/ids';
+import {sourceSlideCount} from '@core/schema/song';
 import type {EditorSongDocument} from '@renderer/features/songs/editor/songSession';
 import {
   parseSongDocument,
@@ -22,19 +23,12 @@ export function editorSong(
   number: number,
   access: 'editable' | 'readOnly' = 'editable',
 ): SongDocument {
-  const grouped = editorGroupedSong(number, access);
-  const [first, second] = grouped.song.groups;
-  if (first === undefined || second === undefined) {
-    throw new Error('Invalid grouped editor fixture');
-  }
+  const deck = editorDeckSong(number, access);
   const parsed = parseSongDocument({
-    ...grouped,
+    ...deck,
     song: {
-      ...grouped.song,
-      groups: [{...first, slides: first.slides.slice(0, 1)}, second],
-      arrangements: [
-        {name: '주일용', groups: [first.id, second.id, second.id]},
-      ],
+      ...deck.song,
+      slides: deck.song.slides.filter((_, index) => index !== 1),
     },
   });
   if (!parsed.ok || parsed.value === null) {
@@ -43,16 +37,10 @@ export function editorSong(
   return parsed.value;
 }
 
-export function editorGroupedSong(
+export function editorDeckSong(
   number: number,
   access: 'editable' | 'readOnly' = 'editable',
 ): EditorSongDocument {
-  const g1Id = createSongGroupId(
-    `11111111-0000-4000-8000-${String(number).padStart(12, '0')}`,
-  );
-  const g2Id = createSongGroupId(
-    `22222222-0000-4000-8000-${String(number).padStart(12, '0')}`,
-  );
   return {
     song: {
       format: 'llsong',
@@ -61,22 +49,15 @@ export function editorGroupedSong(
         `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`,
       ),
       title: `새 노래 ${number}`,
-      groups: [
+      slides: [
         {
-          id: g1Id,
-          name: '1절',
-          slides: [
-            {lines: ['새 아침을 노래해요', '함께 걸어요']},
-            {lines: ['맑은 하늘 바라보며']},
-          ],
+          id: fixtureSlideId(1),
+          lines: ['새 아침을 노래해요', '함께 걸어요'],
+          label: '1절',
         },
-        {
-          id: g2Id,
-          name: '후렴',
-          slides: [{lines: ['빛을 따라가요']}],
-        },
+        {id: fixtureSlideId(2), lines: ['맑은 하늘 바라보며'], label: '1절'},
+        {id: fixtureSlideId(3), lines: ['빛을 따라가요'], label: '후렴'},
       ],
-      arrangements: [{name: '주일용', groups: [g1Id, g2Id, g1Id]}],
     },
     revision: 1,
     access,
@@ -166,45 +147,6 @@ export function editorFixture() {
         edits.push(edit);
         if (edit.type === 'saves.retry') {
           return {ok: true, value: {id: 'saves', revision: null}};
-        }
-        if (
-          edit.type === 'song.arrangement.rename' ||
-          edit.type === 'song.arrangement.delete'
-        ) {
-          const current = documents.get(edit.songId);
-          if (current === undefined) return refuse('not-found');
-          if (current.access === 'readOnly') return refuse('read-only');
-          const from =
-            edit.type === 'song.arrangement.rename' ? edit.from : edit.name;
-          if (!current.song.arrangements?.some(item => item.name === from)) {
-            return refuse('not-found');
-          }
-          if (
-            edit.type === 'song.arrangement.rename' &&
-            current.song.arrangements.some(item => item.name === edit.to)
-          ) {
-            return refuse('invalid');
-          }
-          const parsed = parseSongDocument({
-            ...current,
-            revision: current.revision + 1,
-            song: {
-              ...current.song,
-              arrangements: current.song.arrangements.flatMap(item =>
-                item.name !== from
-                  ? [item]
-                  : edit.type === 'song.arrangement.delete'
-                    ? []
-                    : [{...item, name: edit.to}],
-              ),
-            },
-          });
-          if (!parsed.ok || parsed.value === null) return refuse('invalid');
-          pushSong(parsed.value);
-          return {
-            ok: true,
-            value: {id: edit.songId, revision: parsed.value.revision},
-          };
         }
         if (edit.type === 'song.saveAs') {
           const title = edit.song.title.trim().normalize('NFC');
@@ -307,15 +249,19 @@ export function editorFixture() {
         for (const listener of settings) listener(labels);
         if (edit.type === 'labels.rename') {
           for (const document of documents.values()) {
-            if (!document.song.groups.some(group => group.name === edit.from)) {
+            if (
+              !document.song.slides.some(slide => slide.label === edit.from)
+            ) {
               continue;
             }
             const parsed = parseSongDocument({
               ...document,
               song: {
                 ...document.song,
-                groups: document.song.groups.map(group =>
-                  group.name === edit.from ? {...group, name: edit.to} : group,
+                slides: document.song.slides.map(slide =>
+                  slide.label === edit.from
+                    ? {...slide, label: edit.to}
+                    : slide,
                 ),
               },
               revision: document.revision + 1,

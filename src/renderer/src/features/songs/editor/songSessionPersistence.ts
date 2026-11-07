@@ -1,20 +1,20 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {MediaId} from '@core/schema/ids';
-import type {GroupedSong} from '@core/schema/groupedSong';
+import type {Song} from '@core/schema/song';
 import {TYPING_PAUSE_MS} from '@core/songs/songHistory';
 import {normalizeSongTitle} from '@core/songs/songTitle';
 import {editorTask} from './editorTask';
 
 export interface EditorSongDocument {
-  readonly song: GroupedSong;
+  readonly song: Song;
   readonly revision: number;
   readonly access: 'editable' | 'readOnly';
 }
 
 /** Captures the submitted draft without replacing edits made during its write. */
 export interface SongDraftCapture {
-  readonly song: GroupedSong;
-  readonly draft: GroupedSong;
+  readonly song: Song;
+  readonly draft: Song;
   readonly lyricsDirty: boolean;
   readonly titleDraft: string | undefined;
   readonly background: MediaId | undefined;
@@ -98,6 +98,17 @@ export class SongSessionPersistence {
         this.incoming = document;
       }
     } else this.install(document);
+  }
+
+  /** Accepts a known global rename without replacing local drafts or their history. */
+  acceptBaseline(document: EditorSongDocument): void {
+    this.document = document;
+    if (
+      this.incoming !== undefined &&
+      this.incoming.revision <= document.revision
+    ) {
+      this.incoming = undefined;
+    }
   }
 
   install(document: EditorSongDocument): void {

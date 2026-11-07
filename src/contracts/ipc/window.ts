@@ -1,11 +1,9 @@
 import type {Result} from '@core/common/result';
 import {
   parseOpenWindowResult,
-  parseOrderEditorTarget,
   parseSongEditorTarget,
   refuseOpenWindow,
   type OpenWindowResult,
-  type OrderEditorTarget,
   type SongEditorTarget,
 } from '@core/schema/ipcPayloads';
 import type {PayloadError} from '@core/schema/payload';
@@ -222,14 +220,6 @@ export const windowEndpoints = {
   fullScreen: query<boolean>('window:full-screen', parseOnOff),
   fullScreenChanged: push<boolean>('window:full-screen:changed', parseOnOff),
   editText: message<TextEditAction>('window:edit-text', parseTextEditAction),
-  openOrderEditor: request<OrderEditorTarget, OpenWindowResult>(
-    'window:open-order-editor',
-    {
-      request: parseOrderEditorTarget,
-      reply: parseOpenWindowResult,
-      refuse: refuseOpenWindow,
-    },
-  ),
   openSongEditor: request<SongEditorTarget, OpenWindowResult>(
     'window:open-song-editor',
     {
@@ -285,8 +275,6 @@ export function windowApi(port: IpcPort) {
     onFullScreen: port.subscribe(windowEndpoints.fullScreenChanged),
     /** Runs a text editing action on the focused field of the calling window. */
     editText: port.message(windowEndpoints.editText),
-    /** Opens or retargets the 순서 편집 window on a song item. */
-    openOrderEditor: port.request(windowEndpoints.openOrderEditor),
     /** Opens or retargets the 곡 편집 window on a song. */
     openSongEditor: port.request(windowEndpoints.openSongEditor),
   };

@@ -9,24 +9,12 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, onTestFinished, vi} from 'vitest';
-import type {ServiceDocument} from '@core/schema/contentDocuments';
-import type {GroupedSong} from '@core/schema/groupedSong';
-import {
-  createServiceItemId,
-  createSongGroupId,
-  createSongId,
-  type SongId,
-} from '@core/schema/ids';
-import {emptyLiveState} from '@core/live/state';
+
 import {SongEditorStore} from '@renderer/features/songs/editor';
-import {mockMenuRowHeight} from '@fixtures/renderer/features/songs/editor/editorTesting';
-import {SongSession} from '@renderer/features/songs/editor/songSession';
+
 import {useLive} from '@renderer/session/live';
 import {useShow} from '@renderer/session/show';
-import {
-  hoverForTooltip,
-  resetTooltips,
-} from '@fixtures/renderer/ui/tooltipTesting';
+import {resetTooltips} from '@fixtures/renderer/ui/tooltipTesting';
 import {
   fixtureItems,
   fixtureServiceId,
@@ -34,7 +22,7 @@ import {
   spyOnSongEditorWindow,
 } from '@fixtures/renderer/features/service/items/itemFixture';
 import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
-import {NEWER_FILE_REASON} from '@renderer/features/service/items/ItemArrangement';
+
 import {ServiceItemPanel} from '@renderer/features/service/items/SongItemPanel';
 
 afterEach(() => {
@@ -57,7 +45,7 @@ async function setup(itemId: string = fixtureItems.arranged) {
     items.dispose();
     await editor.dispose();
   });
-  await screen.findByRole('listbox', {name: '구성 순서'});
+  await screen.findByRole('listbox', {name: '슬라이드'});
   await waitFor(() => expect(editor.getSnapshot().labels).not.toBeNull());
   const panel = screen.getByRole('region', {name: '예배 순서 항목'});
   const openWindow = spyOnSongEditorWindow(fixture.api);
@@ -71,360 +59,88 @@ async function setup(itemId: string = fixtureItems.arranged) {
   };
 }
 
-function strip(panel: HTMLElement): HTMLElement {
-  return within(panel).getByRole('listbox', {name: '구성 순서'});
-}
-
-function chips(panel: HTMLElement): string[] {
-  return within(strip(panel))
-    .getAllByRole('option')
-    .map(chip => chip.textContent);
-}
-
-function chip(panel: HTMLElement, index: number): HTMLElement {
-  const found = within(strip(panel)).getAllByRole('option')[index];
-  if (found === undefined) throw new Error(`No chip ${index}`);
-  return found;
-}
-
-function selectedThumbnail(panel: HTMLElement): number {
-  const thumbnails = within(
+function thumbnails(panel: HTMLElement) {
+  return within(
     within(panel).getByRole('listbox', {name: '슬라이드'}),
   ).getAllByRole('option');
-  return thumbnails.findIndex(
-    option => option.getAttribute('aria-selected') === 'true',
-  );
+}
+
+function secondThumbnail(panel: HTMLElement): HTMLElement {
+  const tile = thumbnails(panel)[1];
+  if (tile === undefined) throw new Error('Missing second slide');
+  return tile;
 }
 
 describe('service song item panel', () => {
-  it('shows the named arrangement for selection only and leaves source history untouched', async () => {
-    const {panel, user, items, edits} = await setup();
-    const session = items.getSnapshot().song;
-    const before = session?.history.snapshot.song;
-    expect(strip(panel).getAttribute('aria-readonly')).toBe('true');
-    await user.click(chip(panel, 0));
-    expect(session?.history.snapshot.song).toBe(before);
+  it('shows the item slides and selects them without editing the library', async () => {
+    const {panel, user, items, edits, first} = await setup();
+    const tiles = thumbnails(panel);
+    expect(tiles).toHaveLength(first.song.slides.length);
+    await user.click(secondThumbnail(panel));
+    expect(items.getSnapshot().position).toBe(1);
     expect(edits).toEqual([]);
-  });
-  it('marks a missing named arrangement and follows its restoration without repairing the item', async () => {
-    const {panel, first, pushSong, service, edits} = await setup();
-    const missing = {
-      ...first,
-      revision: first.revision + 1,
-      song: {...first.song, arrangements: []},
-    };
-    act(() => pushSong(missing));
-    const reason = '‘주일용’ 구성이 없어 기본 구성을 사용합니다';
-    expect(within(panel).getByRole('img', {name: reason})).toBeDefined();
+    expect(within(panel).queryByRole('button', {name: '구성'})).toBeNull();
     expect(
-      within(panel)
-        .getByRole('button', {name: '구성'})
-        .getAttribute('aria-description'),
-    ).toBe(reason);
-    expect(chips(panel)).toEqual(['1절', '후렴']);
-    expect(service().service.order[1]).toMatchObject({arrangement: '주일용'});
-    expect(edits).toEqual([]);
-    act(() => pushSong({...first, revision: missing.revision + 1}));
-    expect(within(panel).queryByRole('img', {name: reason})).toBeNull();
-    expect(chips(panel)).toEqual(['1절', '후렴', '후렴']);
-    act(() => pushSong(missing));
-    expect(within(panel).queryByRole('img', {name: reason})).toBeNull();
-    expect(edits).toEqual([]);
+      within(panel).queryByRole('listbox', {name: '구성 순서'}),
+    ).toBeNull();
   });
-
-  it('repairs a missing arrangement only after an explicit choice of 기본', async () => {
-    mockMenuRowHeight();
-    const {panel, first, pushSong, user, service} = await setup();
-    act(() =>
-      pushSong({
-        ...first,
-        revision: first.revision + 1,
-        song: {...first.song, arrangements: []},
-      }),
-    );
-    const before = service().service.order;
-    const choice = within(panel).getByRole('button', {name: '구성'});
-    expect(choice.getAttribute('aria-description')).toBe(
-      '‘주일용’ 구성이 없어 기본 구성을 사용합니다',
-    );
-    await user.click(choice);
-    await user.keyboard('{Escape}');
-    expect(service().service.order).toEqual(before);
-    await user.click(choice);
-    await user.click(screen.getByRole('menuitemradio', {name: '기본'}));
-    await waitFor(() =>
-      expect(choice.getAttribute('aria-description')).toBeNull(),
-    );
-    const repaired = service().service.order[1];
-    expect(repaired).not.toHaveProperty('arrangement');
-    expect(repaired).toMatchObject({memo: '천천히', future: {keep: true}});
-    expect(
-      service().service.order.filter(item => item.id !== fixtureItems.arranged),
-    ).toEqual(before.filter(item => item.id !== fixtureItems.arranged));
-  });
-
-  it('shows the song, the chosen 구성 as chips, and its thumbnails', async () => {
-    const {panel, first} = await setup();
-    expect(within(panel).getByText(first.song.title)).toBeDefined();
-    expect(within(panel).getByText('3개')).toBeDefined();
-    expect(
-      within(panel).getByRole('button', {name: '구성'}).textContent,
-    ).toContain('주일용');
-    expect(chips(panel)).toEqual(['1절', '후렴', '후렴']);
-  });
-
-  it('selects the matching thumbnail with a chip, and a chip with a thumbnail', async () => {
-    const {panel, user, edits} = await setup();
-    await user.click(chip(panel, 2));
-    expect(selectedThumbnail(panel)).toBe(2);
-    await user.keyboard('{Home}');
-    expect(selectedThumbnail(panel)).toBe(0);
-    expect(edits).toEqual([]);
-  });
-
-  it('locks the 구성 choice of a read-only service with the reason', async () => {
-    const {panel, service, pushService} = await setup();
-    act(() => pushService({...service(), revision: 9, access: 'readOnly'}));
-    const choice = within(panel).getByRole('button', {name: '구성'});
-    expect(choice.getAttribute('aria-disabled')).toBe('true');
-    expect((await hoverForTooltip(choice))?.textContent).toBe(
-      NEWER_FILE_REASON,
-    );
-  });
-
-  it('rings the chip of the live position of this item', async () => {
-    const {panel} = await setup();
-    const base = emptyLiveState();
-    act(() =>
-      useLive.setState({
-        state: {
-          ...base,
-          layers: {
-            ...base.layers,
-            slide: {
-              itemId: fixtureItems.arranged,
-              position: 2,
-              label: '후렴',
-              lines: ['빛을 따라가요'],
-            },
-          },
-        },
-      }),
-    );
-    const states = within(strip(panel))
-      .getAllByRole('option')
-      .map(option => option.getAttribute('data-state'));
-    expect(states).toEqual([null, null, 'live']);
-  });
-
-  it('opens the 순서 편집 window on the shown item', async () => {
-    const {panel, user, api} = await setup();
-    const openOrder = vi
-      .spyOn(api.window, 'openOrderEditor')
-      .mockResolvedValue({ok: true, value: undefined});
-
-    await user.click(within(panel).getByRole('button', {name: '순서 편집…'}));
-
-    expect(openOrder).toHaveBeenCalledExactlyOnceWith({
-      serviceId: fixtureServiceId,
-      itemId: fixtureItems.arranged,
-    });
-  });
-
-  it('opens the source song in the 곡 편집 window at the clicked slide', async () => {
+  it('opens the item in the existing editor at the selected slide', async () => {
     const {panel, user, openWindow, first} = await setup();
-    await user.click(chip(panel, 2));
+    await user.click(secondThumbnail(panel));
     await user.click(
       within(panel).getByRole('button', {name: windowCommandLabels.editSong}),
     );
     expect(openWindow).toHaveBeenCalledExactlyOnceWith({
       songId: first.song.id,
       block: 1,
-      arrangement: '주일용',
       from: {serviceId: fixtureServiceId, itemId: fixtureItems.arranged},
     });
   });
-
-  it('counts and opens 곡 편집 by the custom order of the item, not its 구성', async () => {
-    const {panel, user, openWindow, first, service, pushService} =
-      await setup();
-    const last = first.song.groups.at(-1);
-    if (last === undefined) throw new Error('Expected a group');
-    const before = first.song.groups
-      .slice(0, -1)
-      .reduce((total, group) => total + group.slides.length, 0);
-    const document = service();
+  it('keeps item lyrics when the library is edited', async () => {
+    const {panel, first, pushSong} = await setup();
+    const before = thumbnails(panel).map(tile => tile.textContent);
     act(() =>
-      pushService({
-        ...document,
-        revision: document.revision + 1,
-        service: {
-          ...document.service,
-          order: document.service.order.map(item =>
-            item.id === fixtureItems.arranged
-              ? {...item, customOrder: [last.id]}
-              : item,
-          ),
+      pushSong({
+        ...first,
+        revision: first.revision + 1,
+        song: {
+          ...first.song,
+          slides: first.song.slides.map(slide => ({
+            ...slide,
+            lines: ['Changed library'],
+          })),
         },
       }),
     );
-    const grid = within(panel).getByRole('listbox', {name: '슬라이드'});
-    await waitFor(() =>
-      expect(within(grid).getAllByRole('option')).toHaveLength(
-        last.slides.length,
-      ),
-    );
-    await user.click(
-      within(panel).getByRole('button', {name: windowCommandLabels.editSong}),
-    );
-    expect(openWindow).toHaveBeenCalledWith(
-      expect.objectContaining({block: before}),
-    );
+    expect(thumbnails(panel).map(tile => tile.textContent)).toEqual(before);
   });
-
-  it.each([
-    ['새 구성…', 'create-arrangement'],
-    ['이름 바꾸기…', 'rename-arrangement'],
-    ['구성 편집…', 'edit-arrangement'],
-  ])(
-    'opens the source editor for %s without changing the service',
-    async (label, action) => {
-      const {panel, user, openWindow, first, service, edits} = await setup();
-      const before = service();
-      await user.click(chip(panel, 2));
-      await user.click(within(panel).getByRole('button', {name: '구성'}));
-      await user.click(screen.getByRole('menuitem', {name: label}));
-      expect(openWindow).toHaveBeenCalledExactlyOnceWith(
-        expect.objectContaining({songId: first.song.id, block: 1, action}),
-      );
-      expect(service()).toBe(before);
-      expect(edits).toEqual([]);
-    },
-  );
-
-  it('uses the shared slide menu to hand off the clicked repeated slide and its key', async () => {
-    const {panel, user, openWindow, service, edits} = await setup();
-    const grid = within(panel).getByRole('listbox', {name: '슬라이드'});
-    const third = within(grid).getAllByRole('option')[2];
-    if (!third) throw new Error('Missing repeated thumbnail');
-    fireEvent.contextMenu(third);
+  it('hands the clicked slide to the hot key dialog without editing the service', async () => {
+    const {panel, user, openWindow, edits} = await setup();
+    fireEvent.contextMenu(secondThumbnail(panel));
     await user.click(screen.getByRole('menuitem', {name: '단축키…'}));
-    expect(openWindow).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({block: 1, action: 'hot-key'}),
+    expect(openWindow).toHaveBeenCalledWith(
+      expect.objectContaining({
+        block: 1,
+        action: 'hot-key',
+        from: {serviceId: fixtureServiceId, itemId: fixtureItems.arranged},
+      }),
     );
-    expect(service().service.order[1]).toMatchObject({arrangement: '주일용'});
     expect(edits).toEqual([]);
   });
-
-  it('deletes the named arrangement from the source song without opening the window', async () => {
-    const {panel, user, editor, openWindow} = await setup();
-    const remove = vi.spyOn(editor, 'deleteArrangement');
-    await user.click(within(panel).getByRole('button', {name: '구성'}));
-    await user.click(screen.getByRole('menuitem', {name: '삭제'}));
-    expect(remove).not.toHaveBeenCalled();
-    await user.click(
-      within(screen.getByRole('alertdialog')).getByRole('button', {
-        name: '삭제',
+  it('disables editing when the service is read-only', async () => {
+    const {panel, user, pushService, service, openWindow} = await setup();
+    act(() =>
+      pushService({
+        ...service(),
+        revision: service().revision + 1,
+        access: 'readOnly',
       }),
     );
-    expect(openWindow).not.toHaveBeenCalled();
-    expect(remove).toHaveBeenCalledExactlyOnceWith('주일용');
-  });
-
-  it('plays every slide for an empty named group arrangement, shows no chips, and enables library editing', async () => {
-    HTMLElement.prototype.scrollIntoView = vi.fn();
-    const fixture = itemFixture();
-    const g1Id = createSongGroupId('11111111-1111-4111-a111-111111111111');
-    const songId = createSongId('6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab');
-    const groupedSong: GroupedSong = {
-      format: 'llsong',
-      schemaVersion: 1,
-      id: songId,
-      title: '새 그룹 찬양',
-      groups: [
-        {
-          id: g1Id,
-          name: '1절',
-          slides: [{lines: ['은혜로운 찬양']}],
-        },
-      ],
-      arrangements: [{name: '빈 구성', groups: []}],
-    };
-    const document = {
-      song: groupedSong,
-      revision: 1,
-      access: 'editable' as const,
-    };
-    const itemId = createServiceItemId('50000000-0000-4000-8000-000000000099');
-    const currentService = fixture.service();
-    const updatedService: ServiceDocument = {
-      ...currentService,
-      service: {
-        ...currentService.service,
-        order: [
-          {
-            id: itemId,
-            song: document.song.id,
-            arrangement: '빈 구성',
-          },
-        ],
-      },
-    };
-    fixture.pushService(updatedService);
-
-    const editor = new SongEditorStore(fixture.api, vi.fn());
-    const session = new SongSession({
-      document,
-      api: fixture.api.content,
-      changed: () => undefined,
-      problem: () => undefined,
-    });
-    const testEditor = {
-      sessionOf: (id: SongId) =>
-        id === document.song.id ? session : editor.sessionOf(id),
-      showItemSong: (id: SongId | null) => editor.showItemSong(id),
-      attach: (doc: Parameters<typeof editor.attach>[0]) => editor.attach(doc),
-      subscribe: (listener: () => void) => editor.subscribe(listener),
-    };
-
-    const items = new ServiceItemStore(fixture.api, testEditor, vi.fn());
-    useShow.setState({serviceId: fixtureServiceId, openItemId: itemId});
-    items.show({serviceId: fixtureServiceId, itemId});
-    await waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
-
-    const view = render(
-      <ServiceItemPanel items={items} editor={editor} sizeClass="normal" />,
-    );
-    onTestFinished(async () => {
-      view.unmount();
-      items.dispose();
-      await editor.dispose();
-    });
-
-    await screen.findByRole('listbox', {name: '구성 순서'});
-    const panel = screen.getByRole('region', {name: '예배 순서 항목'});
-    expect(within(panel).getByText('1개')).toBeDefined();
-    expect(within(strip(panel)).queryAllByRole('option')).toHaveLength(0);
-
-    const editBtn = within(panel).getByRole('button', {
+    const button = within(panel).getByRole('button', {
       name: windowCommandLabels.editSong,
     });
-    expect(editBtn.getAttribute('aria-disabled')).not.toBe('true');
-    const user = userEvent.setup();
-    const openWindow = spyOnSongEditorWindow(fixture.api);
-    await user.click(editBtn);
-    expect(openWindow).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({songId: groupedSong.id}),
-    );
-  });
-
-  it('shows an empty panel for nothing selected and for other kinds', async () => {
-    await setup();
-    const shownPanel = (): HTMLElement =>
-      screen.getByRole('region', {name: '예배 순서 항목'});
-    act(() => useShow.setState({openItemId: fixtureItems.slot}));
-    expect(within(shownPanel()).queryByRole('listbox')).toBeNull();
-    act(() => useShow.setState({openItemId: null}));
-    expect(within(shownPanel()).queryByRole('listbox')).toBeNull();
+    expect(button.getAttribute('aria-disabled')).toBe('true');
+    await user.click(button);
+    expect(openWindow).not.toHaveBeenCalled();
   });
 });

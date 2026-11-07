@@ -45,7 +45,7 @@ describe('media:uses through registerStore', () => {
     await writeJson(
       join(root, 'Services', 'open.llservice'),
       service(SUNDAY_ID, '2026-11-01T11:00', [
-        {id: itemId(1), song: HYMN_ONE_ID, background: mediaId},
+        {slides: [], id: itemId(1), song: HYMN_ONE_ID, background: mediaId},
         {id: itemId(2), media: mediaId},
       ]),
     );

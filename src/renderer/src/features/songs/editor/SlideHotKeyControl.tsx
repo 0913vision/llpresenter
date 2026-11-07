@@ -1,7 +1,6 @@
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useSyncExternalStore, type JSX} from 'react';
-import {linearBlockAddress} from '@core/songs/blockEdits';
-import {GroupedSlideHotKeyDialog} from './GroupedSlideHotKeyDialog';
+import {SongSlideHotKeyDialog} from './SongSlideHotKeyDialog';
 import type {SongSession} from './songSession';
 import type {SongEditorStore} from './songEditorStore';
 
@@ -21,12 +20,11 @@ export function SlideHotKeyControl({
   );
   const {song, selection} = session.history.snapshot;
   if (actionRequest?.action !== 'hot-key') return null;
-  const address = linearBlockAddress(song, selection.block);
+  const address = song.slides[selection.block];
   if (address === undefined) return null;
   const source = {
     songId: song.id,
-    groupId: address.groupId,
-    slideIndex: address.slideIndex,
+    slideId: address.id,
   };
   const disabledReason = session.blocked
     ? '저장 오류'
@@ -36,15 +34,14 @@ export function SlideHotKeyControl({
         ? '작업을 마친 뒤 다시 시도하세요'
         : undefined;
   return (
-    <GroupedSlideHotKeyDialog
+    <SongSlideHotKeyDialog
       key={actionRequest.serial}
       song={song}
       source={source}
       disabledReason={disabledReason}
       onClose={() => store.requestAction(null)}
       onChange={next => {
-        const slide = next.groups.find(group => group.id === source.groupId)
-          ?.slides[source.slideIndex];
+        const slide = next.slides.find(slide => slide.id === source.slideId);
         return (
           slide !== undefined && session.setSlideHotKey(source, slide.hotKey)
         );

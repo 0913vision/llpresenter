@@ -1,3 +1,4 @@
+import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {act, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
@@ -11,7 +12,6 @@ import {
   createMediaId,
   createServiceId,
   createServiceItemId,
-  createSongGroupId,
   createSongId,
 } from '@core/schema/ids';
 import {isItemOfKind} from '@core/schema/service';
@@ -37,8 +37,8 @@ function setup() {
       name: 'Invented service',
       date: '2026-10-26T09:00',
       order: [
-        {id: itemId, song: songId},
-        {id: otherId, song: songId},
+        {slides: [], id: itemId, song: songId},
+        {slides: [], id: otherId, song: songId},
       ],
     },
     revision: 1,
@@ -51,13 +51,7 @@ function setup() {
       id: songId,
       title: 'Invented song',
       background: defaultId,
-      groups: [
-        {
-          id: createSongGroupId('00000000-0000-4000-8000-000000000101'),
-          name: '',
-          slides: [{lines: ['Invented words']}],
-        },
-      ],
+      slides: [{id: fixtureSlideId(1), lines: ['Invented words']}],
     },
     revision: 1,
     access: 'editable',

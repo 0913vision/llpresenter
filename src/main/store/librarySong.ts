@@ -9,12 +9,12 @@ import {
   parseShowLibrarySongRequest,
   type ShowLibrarySong,
 } from '@core/schema/showLibrarySong';
-import type {GroupedSong} from '@core/schema/groupedSong';
+import type {Song} from '@core/schema/song';
 import type {Logger} from '../log';
 import {jumpKeysOf, projectSongTiles} from './showService';
 
 export interface LibrarySongDocument {
-  readonly song: GroupedSong;
+  readonly song: Song;
   readonly revision: number;
   readonly access: FileAccess;
 }

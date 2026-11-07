@@ -50,7 +50,6 @@ import {
 } from './userData';
 import {createControlWindow} from './windows/control';
 import {announceReloadAfterCrash} from './windows/reloadNotice';
-import {registerOrderEditorWindow} from './windows/orderEditor';
 import {registerSettingsWindow} from './windows/settingsWindow';
 import {registerSongEditorWindow} from './windows/songEditor';
 import {registerSlidesEditorWindow} from './windows/slidesEditor';
@@ -240,7 +239,6 @@ function start(): void {
         mode: windowMode,
         log,
       };
-      const orderEditorWindow = registerOrderEditorWindow(editorWindowContext);
       const songEditorWindow = registerSongEditorWindow({
         ...editorWindowContext,
         hasSong: async id =>
@@ -265,7 +263,6 @@ function start(): void {
       shutdown.confirmWith(
         async () =>
           (await settingsWindow.close()) &&
-          (await orderEditorWindow.close()) &&
           (await slidesEditorWindow.close()) &&
           (await closing.confirmClose()),
       );
@@ -371,10 +368,6 @@ function start(): void {
       shutdown.add({
         name: 'stop the location channels',
         run: stopLocations,
-      });
-      shutdown.add({
-        name: 'stop the order editor window',
-        run: orderEditorWindow.dispose,
       });
       shutdown.add({
         name: 'stop the song editor window',

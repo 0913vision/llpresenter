@@ -44,8 +44,6 @@ export function libraryMenuEntries({
       ),
       onSelect: append,
     },
-    menuSeparator('arrangement-separator'),
-    laterRow('arrangement', '구성', {submenu: true}),
     laterRow('destination', '출력할 화면', {submenu: true}),
     menuSeparator('edit-separator'),
     {

@@ -172,7 +172,6 @@ it('flushes focused property drafts and queued writes in the settings renderer b
 });
 
 it.each([
-  {name: 'order', title: '순서 편집'},
   {name: 'song', title: '곡 편집'},
   {name: 'screens', title: '화면 설정'},
 ])(

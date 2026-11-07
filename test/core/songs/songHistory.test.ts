@@ -1,6 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {createSongGroupId} from '@core/schema/ids';
-import {song, sampleGroupedSong} from '@fixtures/core/songs/blockFixtures';
+import {song} from '@fixtures/core/songs/blockFixtures';
 import {SongHistory} from '@core/songs/songHistory';
 
 describe('song history', () => {
@@ -15,10 +14,10 @@ describe('song history', () => {
     type(history, 'a', 0);
     type(history, 'ab', 999);
     type(history, 'abc', 1999);
-    expect(history.undo().song.groups[0]?.slides[0]?.lines).toEqual(['ab']);
-    expect(history.undo().song.groups[0]?.slides[0]?.lines).toEqual(['first']);
-    expect(history.redo().song.groups[0]?.slides[0]?.lines).toEqual(['ab']);
-    expect(history.redo().song.groups[0]?.slides[0]?.lines).toEqual(['abc']);
+    expect(history.undo().song.slides[0]?.lines).toEqual(['ab']);
+    expect(history.undo().song.slides[0]?.lines).toEqual(['first']);
+    expect(history.redo().song.slides[0]?.lines).toEqual(['ab']);
+    expect(history.redo().song.slides[0]?.lines).toEqual(['abc']);
   });
 
   it('ends grouping on block changes, blur, and a backwards clock', () => {
@@ -31,9 +30,7 @@ describe('song history', () => {
     type(history, 'c', 102);
     type(history, 'd', 99);
     for (const expected of ['c', 'b', 'a', 'first']) {
-      expect(history.undo().song.groups[0]?.slides[0]?.lines).toEqual([
-        expected,
-      ]);
+      expect(history.undo().song.slides[0]?.lines).toEqual([expected]);
     }
   });
 
@@ -59,62 +56,11 @@ describe('song history', () => {
     }
     for (let index = 0; index < 100; index++) first.undo();
     expect(first.canUndo).toBe(false);
-    expect(first.snapshot.song.groups[0]?.slides[0]?.lines).toEqual(['1']);
+    expect(first.snapshot.song.slides[0]?.lines).toEqual(['1']);
     for (let index = 0; index < 100; index++) first.redo();
-    expect(first.snapshot.song.groups[0]?.slides[0]?.lines).toEqual(['101']);
+    expect(first.snapshot.song.slides[0]?.lines).toEqual(['101']);
     expect(first.canRedo).toBe(false);
-    expect(second.snapshot.song.groups[0]?.slides[0]?.lines).toEqual(['other']);
+    expect(second.snapshot.song.slides[0]?.lines).toEqual(['other']);
     expect(second.canUndo).toBe(false);
-  });
-});
-
-describe('grouped song block edits', () => {
-  it('supports undo, redo, and setArrangementGroups on grouped songs', () => {
-    const original = sampleGroupedSong();
-    const history = new SongHistory(original);
-    history.select({block: 0, start: 5, end: 5});
-    const before = history.snapshot;
-    const split = history.apply({type: 'split'});
-    expect(history.undo()).toBe(before);
-    expect(history.redo()).toBe(split);
-
-    // NOTE(0913vision): setArrangementGroups
-    const newGroups = [
-      createSongGroupId('22222222-2222-4222-a222-222222222222'),
-      createSongGroupId('11111111-1111-4111-a111-111111111111'),
-    ];
-    const changed = history.setArrangementGroups('기본순서', newGroups);
-    expect(changed).toBe(true);
-    expect(history.snapshot.song.arrangements?.[0]?.groups).toEqual(newGroups);
-    expect(history.canUndo).toBe(true);
-    history.undo();
-    expect(history.snapshot.song.arrangements?.[0]?.groups).toEqual([
-      '11111111-1111-4111-a111-111111111111',
-      '22222222-2222-4222-a222-222222222222',
-    ]);
-  });
-
-  it('undoes and redoes group splitting restoring original groups and arrangements', () => {
-    const original = sampleGroupedSong();
-    const history = new SongHistory(original);
-    const newG0Id = createSongGroupId('10000000-0000-4000-8000-000000000001');
-    const newG1Id = createSongGroupId('10000000-0000-4000-8000-000000000002');
-
-    history.select({block: 1, start: 0, end: 0});
-    history.apply({type: 'label', name: '2절', ids: [newG0Id, newG1Id]});
-
-    expect(history.snapshot.song.groups).toHaveLength(3);
-    expect(history.snapshot.song.groups[1]?.name).toBe('2절');
-
-    history.undo();
-    expect(history.snapshot.song.groups).toHaveLength(2);
-    expect(history.snapshot.song.groups[0]?.slides).toHaveLength(2);
-    expect(history.snapshot.song.groups[0]?.name).toBe('1절');
-
-    history.redo();
-    expect(history.snapshot.song.groups).toHaveLength(3);
-    expect(history.snapshot.song.groups[0]?.id).toBe(newG0Id);
-    expect(history.snapshot.song.groups[1]?.id).toBe(newG1Id);
-    expect(history.snapshot.song.groups[1]?.name).toBe('2절');
   });
 });

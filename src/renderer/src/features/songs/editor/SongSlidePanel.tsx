@@ -2,7 +2,6 @@ import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useSyncExternalStore, type JSX} from 'react';
 import {
   Panel,
-  PanelActions,
   PanelBody,
   PanelFooter,
   PanelHeader,
@@ -18,8 +17,6 @@ import {defaultThumbnailColumns, type SizeClass} from '@renderer/ui/sizeClass';
 import type {EditorLabels, SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';
 import {VirtualSlides} from './VirtualSlides';
-import {ARRANGEMENT_LIMIT_REASON} from '@core/songs/songArrangements';
-import {StatusDot} from '@renderer/ui/StatusMarks';
 import styles from './SongPanels.module.css';
 
 export interface SongSlideStore {
@@ -52,7 +49,7 @@ export function SongSlidePanel({
     );
   }
   const {song} = session.history.snapshot;
-  const {slides: numbers, capped} = session.arrangementOrder;
+  const numbers = song.slides.map((_, index) => index + 1);
   const at = session.selectedOccurrence;
   const select = (index: number): void => {
     session.selectOccurrence(index);
@@ -60,21 +57,7 @@ export function SongSlidePanel({
   return (
     <Panel label="슬라이드" className={styles.panel}>
       <PanelHeader>
-        <PanelTitle
-          title="슬라이드"
-          meta={capped ? '슬라이드가 너무 많습니다' : undefined}
-        />
-        {capped ? (
-          <PanelActions>
-            <span
-              role="status"
-              aria-label={ARRANGEMENT_LIMIT_REASON}
-              title={ARRANGEMENT_LIMIT_REASON}
-            >
-              <StatusDot tone="warning" />
-            </span>
-          </PanelActions>
-        ) : null}
+        <PanelTitle title="슬라이드" />
       </PanelHeader>
       <PanelBody variant="flush">
         <VirtualSlides

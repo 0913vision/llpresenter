@@ -1,18 +1,19 @@
+import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {setImmediate} from 'node:timers/promises';
 import {describe, expect, it} from 'vitest';
-import {createSongGroupId, createSongId} from '@core/schema/ids';
+import {createSongId} from '@core/schema/ids';
 import {
   LIBRARY_SEARCH_LIMITS,
   parseLibrarySearchResult,
 } from '@core/schema/librarySearch';
-import type {GroupedSong} from '@core/schema/groupedSong';
+import type {Song} from '@core/schema/song';
 import {buildSongSearchIndex, SongSearchIndex} from '@main/search/songIndex';
 
 function song(
   number: number,
   title: string,
   lines: readonly string[] = [],
-): GroupedSong {
+): Song {
   return {
     format: 'llsong',
     schemaVersion: 1,
@@ -20,13 +21,7 @@ function song(
       `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`,
     ),
     title,
-    groups: [
-      {
-        id: createSongGroupId('00000000-0000-4000-8000-000000000101'),
-        name: '',
-        slides: [{lines}],
-      },
-    ],
+    slides: [{id: fixtureSlideId(1), lines}],
   };
 }
 
@@ -119,10 +114,10 @@ describe('SongSearchIndex', () => {
     index.upsert({
       ...first,
       title: 'New title',
-      groups: first.groups.map(group => ({
-        ...group,
-        slides: [{lines: ['Fresh words']}, {lines: []}],
-      })),
+      slides: [
+        {id: fixtureSlideId(1), lines: ['Fresh words']},
+        {id: fixtureSlideId(2), lines: []},
+      ],
     });
     expect(index.search({query: 'old'}).matches).toEqual([]);
     expect(index.search({query: 'fresh words'}).matches[0]).toMatchObject({

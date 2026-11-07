@@ -2,7 +2,7 @@ import {rm, symlink} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {makeTempDir} from '@fixtures/tempDir';
-import {parseGroupedSong} from '@core/schema/groupedSong';
+import {parseSong} from '@core/schema/song';
 import {defaultPreferences} from '@core/schema/preferences';
 import type {Logger} from '@main/log';
 import {openAppConfig} from '@main/store/appConfigFile';
@@ -85,7 +85,7 @@ describe('loadStore', () => {
     await writeJson(
       join(root, 'Services', `${SUNDAY_ID}.llservice`),
       service(SUNDAY_ID, '2026-11-01T11:00', [
-        {id: itemId(1), song: HYMN_ONE_ID},
+        {slides: [], id: itemId(1), song: HYMN_ONE_ID},
       ]),
     );
     await writeJson(join(root, 'Settings', 'labels.json'), {
@@ -166,10 +166,7 @@ describe('loadStore', () => {
 
   it('loads a song from a newer app version read-only', async () => {
     const context = await developmentContext();
-    const grouped = parseGroupedSong(
-      JSON.stringify(hymnOne()),
-      'future.llsong',
-    );
+    const grouped = parseSong(JSON.stringify(hymnOne()), 'future.llsong');
     if (!grouped.ok) throw new Error('Invalid grouped fixture');
     await writeJson(join(dataRoot(context), 'Songs', 'a.llsong'), {
       ...grouped.value.data,

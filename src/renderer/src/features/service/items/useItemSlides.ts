@@ -1,7 +1,5 @@
 import {useMemo, useSyncExternalStore} from 'react';
 import {isItemOfKind} from '@core/schema/service';
-import {linearSlidesOf} from '@core/songs/blockEdits';
-import {playedOrderWithLimit} from '@core/songs/itemOrder';
 import type {MediaId} from '@core/schema/ids';
 import type {LabelColor} from '@core/labels/colors';
 import type {SongEditorStore} from '@renderer/features/songs/editor';
@@ -37,25 +35,17 @@ export function useItemSlides(
         : undefined,
     ),
   );
-  const {item, song, arrangement} = state;
-  const snapshot = song?.history.snapshot;
+  const {item} = state;
   return useMemo(() => {
     if (item === null) return [];
-    if (isItemOfKind(item, 'song') && snapshot !== undefined) {
-      const value = snapshot.song;
-      const slides = linearSlidesOf(value);
-      const played = playedOrderWithLimit(value, {
-        arrangement,
-        customOrder: item.customOrder,
-      });
-      return played.slides.map(number => {
-        const slide = slides[number - 1];
+    if (isItemOfKind(item, 'song')) {
+      return item.slides.map(slide => {
         return {
-          text: slide?.lines.join('\n') ?? '',
-          label: slide?.label,
+          text: slide.lines.join('\n'),
+          label: slide.label,
           color:
             editorState.labels?.value.labels.find(
-              label => label.name === slide?.label,
+              label => label.name === slide.label,
             )?.color ?? 'none',
           media: undefined,
         };
@@ -78,5 +68,5 @@ export function useItemSlides(
       color: 'none',
       media: id,
     }));
-  }, [item, snapshot, arrangement, editorState.labels, media.document, bible]);
+  }, [item, editorState.labels, media.document, bible]);
 }

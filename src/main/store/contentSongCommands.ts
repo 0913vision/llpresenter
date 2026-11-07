@@ -1,32 +1,16 @@
 import {join} from 'node:path';
-import {NO_LABEL_COLOR} from '@core/labels/colors';
 import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import {checkPart} from '@core/schema/fileFormat';
 import {preserveUnknownFields} from '@core/schema/preserveUnknown';
-import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
-import {createSongGroupId, createSongId, type SongId} from '@core/schema/ids';
+import {createSongSlideId, createSongId, type SongId} from '@core/schema/ids';
 import {
-  groupedSongSchema,
+  songSchema,
   SONG_SCHEMA_VERSION,
   sourceSlideCount,
-  type GroupedSong,
-} from '@core/schema/groupedSong';
-import {parseSettingsEdit} from '@core/schema/settingsDocuments';
-import {
-  freeTitle,
-  normalizeSongTitle,
-  withImportGroupIds,
-  withoutArrangement,
-  withRenamedArrangement,
-  type ArrangementPick,
-} from './contentEdits';
-import {importPicks, picksToRewrite, rewritePicks} from './contentPickRewrites';
-import type {
-  ContentCommandContext,
-  ContentHandlers,
-  Written,
-} from './contentCommands';
-import type {StoredDocument} from './documents';
+  type Song,
+} from '@core/schema/song';
+import {freeTitle, normalizeSongTitle} from './contentEdits';
+import type {ContentCommandContext, ContentHandlers} from './contentCommands';
 
 const NEW_SONG_TITLE = '새 곡';
 const SONG_EXTENSION = '.llsong';
@@ -45,10 +29,6 @@ class SongContentCommands {
     'song.saveAs': edit => this.saveSongAs(edit.song),
     'song.update': edit => this.updateSong(edit.song, edit.baseRevision),
     'song.delete': edit => this.deleteSong(edit.songId),
-    'song.arrangement.rename': edit =>
-      this.changeArrangement(edit.songId, edit.from, edit.to),
-    'song.arrangement.delete': edit =>
-      this.changeArrangement(edit.songId, edit.name, null),
   };
 
   private async importSong({
@@ -76,112 +56,35 @@ class SongContentCommands {
       );
     }
     const checked = checkPart(
-      groupedSongSchema,
-      preserveUnknownFields(
-        groupedSongSchema,
-        current?.data,
-        withImportGroupIds(
-          {
-            format: 'llsong',
-            schemaVersion: SONG_SCHEMA_VERSION,
-            id,
-            title,
-            ...(draft.background === undefined
-              ? {}
-              : {background: draft.background}),
-            groups: draft.groups,
-            ...(draft.arrangements === undefined
-              ? {}
-              : {arrangements: draft.arrangements}),
-            updatedAt: this.context.now(),
-          },
-          current?.data,
-        ),
-      ),
+      songSchema,
+      preserveUnknownFields(songSchema, current?.data, {
+        format: 'llsong',
+        schemaVersion: SONG_SCHEMA_VERSION,
+        id,
+        title,
+        slides: draft.slides,
+        ...(draft.background === undefined
+          ? {}
+          : {background: draft.background}),
+        updatedAt: this.context.now(),
+      }),
     );
     if (!checked.ok) {
       return this.context.refuse('invalid', checked.error.message);
     }
-    const song = checked.value;
     const file =
       current?.file ??
       join(this.context.locations.songs, `${id}${SONG_EXTENSION}`);
-    const servicePicks = importPicks(this.context.services, song);
-    const templatePicks = importPicks(this.context.templates, song);
-    const full = this.context.savesFull([
-      file,
-      ...servicePicks.map(pick => pick.document.file),
-      ...templatePicks.map(pick => pick.document.file),
-    ]);
+    const full = this.context.savesFull([file]);
     if (full !== null) return full;
-    const labels = await this.importLabels(song);
-    if (!labels.ok && labels.error.reason !== 'write-failed') return labels;
     const stored =
       current === undefined
-        ? this.context.songs.add(song, file)
-        : this.context.songs.replace(current, song);
-    const services = rewritePicks(this.context.services, servicePicks);
-    const templates = rewritePicks(this.context.templates, templatePicks);
+        ? this.context.songs.add(checked.value, file)
+        : this.context.songs.replace(current, checked.value);
     this.context.announceSong(id);
-    for (const service of services) {
-      this.context.announceService(service.data.id);
-    }
-    for (const template of templates) {
-      this.context.announceTemplate(template.data.id);
-    }
-    const written: Written[] = [];
-    if (!labels.ok && labels.error.reason === 'write-failed') {
-      const {message, unchangedFiles} = labels.error;
-      for (const file of unchangedFiles) {
-        written.push({file, result: {ok: false, error: {file, message}}});
-      }
-    }
-    written.push(await this.context.write(this.context.kinds.song, stored));
-    for (const service of services) {
-      written.push(
-        await this.context.write(this.context.kinds.service, service),
-      );
-    }
-    for (const template of templates) {
-      written.push(
-        await this.context.write(this.context.kinds.template, template),
-      );
-    }
-    return this.context.answer({id, revision: stored.revision}, written);
-  }
-
-  private async importLabels(song: GroupedSong): Promise<EditResult> {
-    const settings = this.context.settings;
-    const current = settings?.get('labels');
-    if (!settings || current?.name !== 'labels') {
-      return this.context.refuse('not-found', 'The label list is unavailable');
-    }
-    const existing = new Set(current.value.labels.map(label => label.name));
-    const names = new Set(
-      song.groups.flatMap(group => (group.name ? [group.name] : [])),
-    );
-    const added = [...names]
-      .filter(name => !existing.has(name))
-      .map(name => ({name, color: NO_LABEL_COLOR, key: null}));
-    if (added.length === 0) {
-      return {ok: true, value: {id: 'labels', revision: current.revision}};
-    }
-    if (
-      current.value.labels.length + added.length >
-      SONG_IMPORT_LIMITS.labels
-    ) {
-      return this.context.refuse('invalid', 'Too many labels after import');
-    }
-    const edit = parseSettingsEdit({
-      type: 'settings.update',
-      name: 'labels',
-      baseRevision: current.revision,
-      value: {...current.value, labels: [...current.value.labels, ...added]},
-    });
-    if (!edit.ok) return this.context.refuse('invalid', edit.error.message);
-    const result = settings.apply(edit.value);
-    await settings.savePending();
-    return result;
+    return this.context.answer({id, revision: stored.revision}, [
+      await this.context.write(this.context.kinds.song, stored),
+    ]);
   }
 
   private async createSong(): Promise<EditResult> {
@@ -189,18 +92,12 @@ class SongContentCommands {
     const titles = new Set(
       this.context.songs.all().map(({data}) => normalizeSongTitle(data.title)),
     );
-    const song: GroupedSong = {
+    const song: Song = {
       format: 'llsong',
       schemaVersion: SONG_SCHEMA_VERSION,
       id,
       title: freeTitle(NEW_SONG_TITLE, titles),
-      groups: [
-        {
-          id: createSongGroupId(this.context.newId()),
-          name: '',
-          slides: [{lines: []}],
-        },
-      ],
+      slides: [{id: createSongSlideId(this.context.newId()), lines: []}],
     };
     const file = join(this.context.locations.songs, `${id}${SONG_EXTENSION}`);
     const full = this.context.savesFull([file]);
@@ -211,7 +108,7 @@ class SongContentCommands {
     return this.context.answer({id, revision: stored.revision}, [written]);
   }
 
-  private async saveSongAs(input: GroupedSong): Promise<EditResult> {
+  private async saveSongAs(input: Song): Promise<EditResult> {
     const title = normalizeSongTitle(input.title);
     if (title === '') {
       return this.context.refuse('invalid', 'The song title must not be blank');
@@ -223,7 +120,7 @@ class SongContentCommands {
       );
     }
     const id = createSongId(this.context.newId());
-    const checked = checkPart(groupedSongSchema, {
+    const checked = checkPart(songSchema, {
       ...input,
       id,
       title,
@@ -241,7 +138,7 @@ class SongContentCommands {
     return this.context.answer({id, revision: stored.revision}, [written]);
   }
 
-  private updateSong(input: GroupedSong, baseRevision: number): EditResult {
+  private updateSong(input: Song, baseRevision: number): EditResult {
     const checked = this.context.checkUpdate(
       this.context.songs.get(input.id),
       baseRevision,
@@ -251,8 +148,8 @@ class SongContentCommands {
       return checked.error;
     }
     const validated = checkPart(
-      groupedSongSchema,
-      preserveUnknownFields(groupedSongSchema, checked.value.data, input),
+      songSchema,
+      preserveUnknownFields(songSchema, checked.value.data, input),
     );
     if (!validated.ok) {
       return this.context.refuse('invalid', validated.error.message);
@@ -272,7 +169,6 @@ class SongContentCommands {
     if (full !== null) return full;
     const {
       background: _background,
-      arrangements: _arrangements,
       updatedAt: _updatedAt,
       ...kept
     } = checked.value.data;
@@ -317,75 +213,6 @@ class SongContentCommands {
     );
     this.context.announceSong(songId);
     return this.context.answer({id: songId, revision: null}, [written]);
-  }
-
-  private async changeArrangement(
-    songId: SongId,
-    from: string,
-    to: string | null,
-  ): Promise<EditResult> {
-    const checked = this.context.checkEditable(this.context.songs.get(songId));
-    if (!checked.ok) {
-      return checked.error;
-    }
-    const song = checked.value.data;
-    if (to !== null && song.arrangements?.some(({name}) => name === to)) {
-      return this.context.refuse(
-        'invalid',
-        `The song already has a 구성 named ${to}`,
-      );
-    }
-    const changed =
-      to === null
-        ? withoutArrangement(song, from)
-        : withRenamedArrangement(song, from, to);
-    if (changed === null) {
-      return this.context.refuse(
-        'not-found',
-        `The song has no 구성 named ${from}`,
-      );
-    }
-    return this.rewriteArrangement(checked.value, changed, {songId, from, to});
-  }
-
-  private async rewriteArrangement(
-    current: StoredDocument<GroupedSong>,
-    changed: GroupedSong,
-    pick: ArrangementPick,
-  ): Promise<EditResult> {
-    const servicePicks = picksToRewrite(this.context.services, pick);
-    const templatePicks = picksToRewrite(this.context.templates, pick);
-    const full = this.context.savesFull([
-      current.file,
-      ...servicePicks.map(({document}) => document.file),
-      ...templatePicks.map(({document}) => document.file),
-    ]);
-    if (full !== null) return full;
-    const stored = this.context.songs.replace(current, changed);
-    const services = rewritePicks(this.context.services, servicePicks);
-    const templates = rewritePicks(this.context.templates, templatePicks);
-    this.context.announceSong(pick.songId);
-    for (const service of services) {
-      this.context.announceService(service.data.id);
-    }
-    for (const template of templates) {
-      this.context.announceTemplate(template.data.id);
-    }
-    const written = [await this.context.write(this.context.kinds.song, stored)];
-    for (const service of services) {
-      written.push(
-        await this.context.write(this.context.kinds.service, service),
-      );
-    }
-    for (const template of templates) {
-      written.push(
-        await this.context.write(this.context.kinds.template, template),
-      );
-    }
-    return this.context.answer(
-      {id: pick.songId, revision: stored.revision},
-      written,
-    );
   }
 
   private hasOtherSongTitled(title: string, songId: string): boolean {

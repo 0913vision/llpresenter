@@ -1,12 +1,10 @@
 import type {LlpApi} from '@contracts/ipc/api';
-import type {MediaId, SongGroupId} from '@core/schema/ids';
+import type {MediaId} from '@core/schema/ids';
 import type {SongSlideSource} from '@core/schema/showService';
-import {DEFAULT_ARRANGEMENT_NAME} from '@core/schema/song';
-import {arrangementGroupIds, type GroupedSong} from '@core/schema/groupedSong';
+import {type Song} from '@core/schema/song';
 import type {BlockCommand, BlockSelection} from '@core/songs/blockEdits';
 import {SongHistory} from '@core/songs/songHistory';
 import {SongTitleDraft} from '@core/songs/songTitle';
-import {editedOrderWithLimit} from '@core/songs/songArrangements';
 
 import {
   SongSessionPersistence,
@@ -24,7 +22,7 @@ interface SessionOptions {
   readonly persistence?: 'automatic' | 'manual';
   /** True while the window's close preflight holds every edit. */
   readonly editingStopped?: () => boolean;
-  readonly backspaceRefused?: (block: number) => void;
+  readonly itemSession?: boolean;
 }
 
 /** Owns lyric history and drafts, borrowing its private persistence coordinator. */
@@ -35,12 +33,6 @@ export class SongSession {
   private dirty = false;
   private readonly persistence: SongSessionPersistence;
   private backgroundEdited = false;
-  private pickedArrangement: string | undefined;
-  private pointedSlide: {order: string | undefined; index: number} | null =
-    null;
-  private readonly backspaceRefusedListeners = new Set<
-    (block: number) => void
-  >();
 
   constructor(private readonly options: SessionOptions) {
     this.history = new SongHistory(options.document.song);
@@ -90,6 +82,10 @@ export class SongSession {
     return this.blocked || this.document.access === 'readOnly';
   }
 
+  get itemSession(): boolean {
+    return this.options.itemSession === true;
+  }
+
   get saving(): boolean {
     return this.persistence.saving;
   }
@@ -107,131 +103,11 @@ export class SongSession {
     );
   }
 
-  get arrangement(): string | undefined {
-    return this.pickedArrangement;
-  }
-
-  get arrangementGroups(): readonly SongGroupId[] {
-    return arrangementGroupIds(this.history.snapshot.song, this.arrangement);
-  }
-
-  get arrangementOrder() {
-    return editedOrderWithLimit(this.history.snapshot.song, this.arrangement);
-  }
-
-  /** The selected occurrence in the active order, or -1 outside that order. */
   get selectedOccurrence(): number {
-    const numbers = this.arrangementOrder.slides;
-    const block = this.history.snapshot.selection.block;
-    const pointed = this.pointedSlide;
-    return pointed !== null &&
-      pointed.order === this.arrangement &&
-      numbers[pointed.index] === block + 1
-      ? pointed.index
-      : numbers.indexOf(block + 1);
+    return this.history.snapshot.selection.block;
   }
-
-  /** Shares thumbnail occurrence selection without adding it to lyric history. */
   selectOccurrence(index: number): void {
-    const number = this.arrangementOrder.slides[index];
-    if (number === undefined) return;
-    this.pointedSlide = {order: this.arrangement, index};
-    const previous = this.history.snapshot.selection;
-    this.select({block: number - 1, start: 0, end: 0});
-    if (this.history.snapshot.selection === previous) this.options.changed();
-  }
-
-  onBackspaceRefused(listener: (block: number) => void): () => void {
-    this.backspaceRefusedListeners.add(listener);
-    return () => {
-      this.backspaceRefusedListeners.delete(listener);
-    };
-  }
-
-  notifyBackspaceRefused(block: number): void {
-    this.options.backspaceRefused?.(block);
-    for (const listener of this.backspaceRefusedListeners) {
-      listener(block);
-    }
-  }
-
-  /** Changes the viewed order and ends typing without moving the lyric cursor. */
-  selectArrangement(name: string | undefined): void {
-    if (name === this.arrangement) return;
-    if (
-      name !== undefined &&
-      !this.history.snapshot.song.arrangements?.some(item => item.name === name)
-    ) {
-      return;
-    }
-    this.endTyping();
-    this.pickedArrangement = name;
-    this.options.changed();
-  }
-
-  /** Creates a discrete undo step and saves it with any pending lyric draft. */
-  createArrangement(requestedName?: string): string | undefined {
-    const name = this.copyArrangement(this.arrangement, requestedName);
-    if (name !== undefined) {
-      this.pickedArrangement = name;
-      this.options.changed();
-    }
-    return name;
-  }
-
-  /**
-   * Adds a numbered 구성 that copies the order of `base` (기본 with
-   * `undefined`) as one undo step, without changing the editor's view.
-   */
-  copyArrangement(
-    base: string | undefined,
-    requestedName?: string,
-  ): string | undefined {
-    if (!this.acceptsEdits) return undefined;
-    const song = this.history.snapshot.song;
-    if (
-      requestedName !== undefined &&
-      (requestedName.trim() === '' ||
-        requestedName === DEFAULT_ARRANGEMENT_NAME ||
-        song.arrangements?.some(item => item.name === requestedName))
-    ) {
-      return undefined;
-    }
-    const names = new Set(song.arrangements?.map(({name}) => name));
-    let number = 1;
-    while (names.has(`구성 ${number}`)) number++;
-    const name = requestedName ?? `구성 ${number}`;
-    const groups = [...arrangementGroupIds(song, base)];
-    this.history.setArrangementGroups(name, groups);
-    this.dirty = true;
-    this.endTyping();
-    this.options.changed();
-    return name;
-  }
-
-  /**
-   * Saves a named 구성's new group order as one undo step.
-   */
-  setArrangementGroups(name: string, groups: readonly SongGroupId[]): boolean {
-    if (!this.acceptsEdits) return false;
-    const song = this.history.snapshot.song;
-    const ids = new Set(song.groups.map(group => group.id));
-    if (!groups.every(id => ids.has(id))) return false;
-    if (!this.history.setArrangementGroups(name, groups)) return false;
-    this.dirty = true;
-    this.endTyping();
-    this.options.changed();
-    return true;
-  }
-
-  private reconcileArrangement(): void {
-    if (
-      !this.history.snapshot.song.arrangements?.some(
-        item => item.name === this.arrangement,
-      )
-    ) {
-      this.pickedArrangement = undefined;
-    }
+    this.select({block: index, start: 0, end: 0});
   }
 
   private get hasChanges(): boolean {
@@ -251,7 +127,7 @@ export class SongSession {
   }
 
   editTitle(value: string): void {
-    if (!this.acceptsEdits) return;
+    if (!this.acceptsEdits || this.itemSession) return;
     this.title.edit(value);
     if (this.hasChanges || this.persistence.saving) this.persistence.schedule();
     else this.persistence.cancelSaveTimer();
@@ -304,12 +180,8 @@ export class SongSession {
     if (command === 'undo') this.history.undo();
     else if (command === 'redo') this.history.redo();
     else {
-      const next = this.history.apply(command);
-      if (next.mergeRefused) {
-        this.notifyBackspaceRefused(next.selection.block);
-      }
+      this.history.apply(command);
     }
-    this.reconcileArrangement();
     if (previous !== this.history.snapshot.song) {
       this.dirty = true;
       if (this.history.inTypingGroup) this.persistence.schedule();
@@ -332,39 +204,33 @@ export class SongSession {
   }
 
   renamed(from: string, to: string, document?: EditorSongDocument): void {
+    const baseline = this.document.song.slides.map(slide =>
+      slide.label === from ? {...slide, label: to} : slide,
+    );
     this.history.renameLabel(from, to);
     if (document !== undefined) {
-      this.acceptGlobalEdit(document);
+      this.acceptGlobalEdit(document, baseline);
     }
     this.options.changed();
   }
 
-  /** Applies main's global rename/delete to every local history snapshot. */
-  arrangementChanged(
-    from: string,
-    to: string | undefined,
-    document?: EditorSongDocument,
+  private acceptGlobalEdit(
+    document: EditorSongDocument,
+    baseline: Song['slides'],
   ): void {
-    this.history.changeArrangement(from, to);
-    if (this.pickedArrangement === from) this.pickedArrangement = to;
-    if (document !== undefined) this.acceptGlobalEdit(document);
-    this.options.changed();
-  }
-
-  private acceptGlobalEdit(document: EditorSongDocument): void {
+    if (document.revision < this.document.revision) return;
     const current = this.history.snapshot.song;
     const sameStructure =
-      JSON.stringify(document.song.groups) === JSON.stringify(current.groups) &&
-      JSON.stringify(document.song.arrangements) ===
-        JSON.stringify(current.arrangements);
+      JSON.stringify(document.song.slides) === JSON.stringify(current.slides);
 
-    if (!sameStructure) {
-      this.install(document);
+    const onlyRenamed =
+      JSON.stringify(document.song.slides) === JSON.stringify(baseline);
+    if (!sameStructure && !onlyRenamed) {
+      this.receive(document);
     } else {
-      this.document = document;
+      this.persistence.acceptBaseline(document);
       this.title.accept(document.song.title);
       if (!this.backgroundEdited) this.background = document.song.background;
-      this.reconcileArrangement();
     }
   }
 
@@ -402,22 +268,15 @@ export class SongSession {
    */
   draftSong(
     title: string = this.title.nextValue,
-    base: GroupedSong = this.document.song,
-  ): GroupedSong {
-    const draft = this.history.snapshot.song;
-    const {
-      background: _oldBackground,
-      arrangements: _oldArrangements,
-      ...baseSong
-    } = base;
+    base: Song = this.document.song,
+  ): Song {
+    const {background: _draftBackground, ...draft} = this.history.snapshot.song;
+    const {background: _oldBackground, ...baseSong} = base;
     return {
       ...baseSong,
       ...draft,
       title,
-      groups: draft.groups,
-      ...(draft.arrangements === undefined
-        ? {}
-        : {arrangements: draft.arrangements}),
+      slides: draft.slides,
       ...(this.background === undefined ? {} : {background: this.background}),
     };
   }
@@ -450,7 +309,6 @@ export class SongSession {
 
   private installDraft(document: EditorSongDocument): void {
     this.history = new SongHistory(document.song);
-    this.reconcileArrangement();
     this.title = new SongTitleDraft(
       document.song.title,
       this.options.isDuplicateTitle,

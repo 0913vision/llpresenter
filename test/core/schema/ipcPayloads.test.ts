@@ -7,8 +7,6 @@ import {
   parseFrameReadyReport,
   parseFrameReadyReply,
   parseOpenWindowResult,
-  parseOrderEditorSlideSize,
-  parseOrderEditorTarget,
   parseSongEditorTarget,
   refuseOpenWindow,
 } from '@core/schema/ipcPayloads';
@@ -125,19 +123,6 @@ describe('editor window targets', () => {
   const ITEM = '00000000-0000-4000-8000-000000000001';
   const SONG = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
 
-  it('accepts an order editor target and drops unknown fields', () => {
-    expect(
-      parseOrderEditorTarget({serviceId: SERVICE, itemId: ITEM, extra: 1}),
-    ).toEqual({ok: true, value: {serviceId: SERVICE, itemId: ITEM}});
-  });
-
-  it.each([null, [], {serviceId: SERVICE}, {serviceId: 'x', itemId: ITEM}])(
-    'refuses the order editor target %j',
-    value => {
-      expect(parseOrderEditorTarget(value).ok).toBe(false);
-    },
-  );
-
   it('accepts a song editor target with and without its options', () => {
     expect(parseSongEditorTarget({songId: SONG})).toEqual({
       ok: true,
@@ -146,7 +131,6 @@ describe('editor window targets', () => {
     const full = {
       songId: SONG,
       block: 2,
-      arrangement: '짧게',
       action: 'hot-key',
       from: {serviceId: SERVICE, itemId: ITEM},
       focusTitle: true,
@@ -159,7 +143,6 @@ describe('editor window targets', () => {
     {songId: SONG, block: -1},
     {songId: SONG, block: 1.5},
     {songId: SONG, action: 'delete-song'},
-    {songId: SONG, arrangement: 3},
     {songId: SONG, from: {serviceId: SERVICE}},
     {songId: SONG, focusTitle: 'yes'},
   ])('refuses the song editor target %j', value => {
@@ -184,15 +167,5 @@ describe('editor window targets', () => {
       ok: false,
       error: {reason: 'failed'},
     });
-  });
-});
-
-describe('parseOrderEditorSlideSize', () => {
-  it.each([1, 240, 4096])('accepts %j', value => {
-    expect(parseOrderEditorSlideSize(value)).toEqual({ok: true, value});
-  });
-
-  it.each([0, -1, 4097, 2.5, Number.NaN, '240', null])('rejects %j', value => {
-    expect(parseOrderEditorSlideSize(value).ok).toBe(false);
   });
 });

@@ -1,29 +1,15 @@
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {
   memo,
-  useCallback,
-  useEffect,
   useRef,
-  useState,
   type JSX,
   type KeyboardEvent,
   type RefObject,
 } from 'react';
-import {createPortal} from 'react-dom';
 import type {LabelColor} from '@core/labels/colors';
-import {Icon} from '@renderer/ui/Icon';
 import {LabelTag} from '@renderer/ui/LabelChip';
 import {isComposing} from '@renderer/ui/ime';
-import {useButtonPress} from '@renderer/ui/press';
-import {layerContainer} from '@renderer/ui/layers';
-import {placeFloating} from '@renderer/ui/floating';
-import {placeTooltip, viewportSize} from '@renderer/ui/placement';
-import tooltipStyles from '@renderer/ui/Tooltip.module.css';
-import {
-  linearBlockAddress,
-  linearSlidesOf,
-  type EditorSlideItem,
-} from '@core/songs/blockEdits';
+import {linearSlidesOf, type EditorSlideItem} from '@core/songs/blockEdits';
 import {adjacentBlock, editorCommand} from './editorKeys';
 import type {SongSession} from './songSession';
 import {
@@ -31,9 +17,6 @@ import {
   NOTHING_TO_UNDO,
 } from '@renderer/platform/problemReasons';
 import styles from './SongEditor.module.css';
-
-export const BACKSPACE_REFUSAL_MESSAGE =
-  '그룹 경계에서는 슬라이드를 합칠 수 없습니다';
 
 export interface EditorFocus {
   inputs: Array<HTMLTextAreaElement | null>;
@@ -55,7 +38,6 @@ interface BlockProps {
   readonly expanded: boolean;
   readonly onOpen: (anchor: HTMLElement, block: number) => void;
   readonly top: number;
-  readonly isGroupStart?: boolean;
 }
 
 /** Keeps untouched blocks out of the typing render path. */
@@ -72,69 +54,8 @@ export const SongBlock = memo(
     expanded,
     onOpen,
     top,
-    isGroupStart: propIsGroupStart,
   }: BlockProps): JSX.Element => {
-    const song = session.history.snapshot.song;
-    const isGroupStart =
-      propIsGroupStart ?? linearBlockAddress(song, block)?.isGroupStart ?? true;
-
-    const [refused, setRefused] = useState(false);
-    const splitButtonRef = useRef<HTMLButtonElement | null>(null);
-    const splitPress = useButtonPress<HTMLButtonElement>({
-      disabled: locked,
-      onPress: event => onOpen(event.currentTarget, block),
-    });
     const labelButtonRef = useRef<HTMLButtonElement | null>(null);
-    const refusalTimer = useRef<ReturnType<typeof setTimeout> | undefined>(
-      undefined,
-    );
-
-    const showRefusal = useCallback((): void => {
-      setRefused(true);
-      clearTimeout(refusalTimer.current);
-      refusalTimer.current = setTimeout(() => {
-        setRefused(false);
-      }, 2000);
-    }, []);
-
-    useEffect(() => {
-      return () => {
-        clearTimeout(refusalTimer.current);
-      };
-    }, []);
-
-    useEffect(() => {
-      return session.onBackspaceRefused(refusedBlock => {
-        if (refusedBlock === block) {
-          showRefusal();
-        }
-      });
-    }, [session, block, showRefusal]);
-
-    const refusalTooltip =
-      refused && typeof document !== 'undefined'
-        ? createPortal(
-            <div
-              role="tooltip"
-              className={tooltipStyles.tooltip}
-              ref={element => {
-                const input = focus.current.inputs[block];
-                if (element !== null && input !== null && input !== undefined) {
-                  placeFloating(element, size =>
-                    placeTooltip(
-                      input.getBoundingClientRect(),
-                      size,
-                      viewportSize(),
-                    ),
-                  );
-                }
-              }}
-            >
-              {BACKSPACE_REFUSAL_MESSAGE}
-            </div>,
-            layerContainer('tooltip'),
-          )
-        : null;
 
     const select = (input: HTMLTextAreaElement): void => {
       if (focus.current.restoring || focus.current.requested) return;
@@ -177,10 +98,7 @@ export const SongBlock = memo(
           if (input === null || input === undefined) return;
           select(input);
           if (id === 'editor.labelMenu') {
-            onOpen(
-              splitButtonRef.current ?? labelButtonRef.current ?? input,
-              block,
-            );
+            onOpen(labelButtonRef.current ?? input, block);
             return;
           }
           focus.current.requested = true;
@@ -228,7 +146,7 @@ export const SongBlock = memo(
       >
         <span className={styles.number}>{block + 1}</span>
         <div className={styles.label}>
-          {isGroupStart ? (
+          {
             <LabelTag
               buttonRef={labelButtonRef}
               name={slide.label === '' ? undefined : slide.label}
@@ -244,18 +162,7 @@ export const SongBlock = memo(
                     }
               }
             />
-          ) : active && editable ? (
-            <button
-              {...splitPress}
-              ref={splitButtonRef}
-              type="button"
-              aria-label="새 그룹"
-              className={styles.splitButton}
-            >
-              <Icon name="plus" size={12} />
-              <span>새 그룹</span>
-            </button>
-          ) : null}
+          }
         </div>
         <textarea
           ref={input => {
@@ -312,7 +219,6 @@ export const SongBlock = memo(
             });
           }}
         />
-        {refusalTooltip}
       </div>
     );
   },

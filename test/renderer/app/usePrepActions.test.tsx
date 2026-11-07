@@ -127,104 +127,69 @@ it('opens a non-song service slide in prep at its position after the leave guard
 
 function setupServiceSong() {
   const fixture = itemFixture();
-  const [first, second] = fixture.first.song.groups;
-  if (first === undefined || second === undefined) {
-    throw new Error('Missing fixture groups');
-  }
   mock.view.serviceId = fixtureServiceId;
   mock.view.rows = [
     {kind: 'song', id: fixtureItems.arranged, title: fixture.first.song.title},
   ];
   mock.view.tiles = {
-    [fixtureItems.arranged]: [first, second, second].map(group => ({
-      label: group.name,
+    [fixtureItems.arranged]: fixture.first.song.slides.map(slide => ({
+      label: slide.label ?? '',
       labelColor: 'none',
-      lines: [],
-      sourceSlide: {
-        songId: fixture.first.song.id,
-        groupId: group.id,
-        slideIndex: 0,
-      },
+      lines: slide.lines,
+      sourceSlide: {songId: fixture.first.song.id, slideId: slide.id},
     })),
   };
-  return {...fixture, ...setup(fixture.api)};
+  const open = vi
+    .spyOn(fixture.api.window, 'openSongEditor')
+    .mockResolvedValue({ok: true, value: undefined});
+  return {...fixture, ...setup(fixture.api), open};
 }
 
-it.each([2, undefined])(
-  'opens a service song in the editor at its source block for position %s',
+it.each([1, undefined])(
+  'opens the item editor at position %s',
   async position => {
-    const {result, first} = setupServiceSong();
+    const {result, first, open} = setupServiceSong();
     act(() => result.current.onOpenPrep(fixtureItems.arranged, position));
-    expect(mock.editor.open).not.toHaveBeenCalled();
+    expect(open).not.toHaveBeenCalled();
     act(() => mock.editor.requestLeave.mock.calls[0]?.[0]());
     await waitFor(() =>
-      expect(mock.editor.open).toHaveBeenLastCalledWith(first, {
-        block: position === undefined ? 0 : 1,
-        arrangement: '주일용',
+      expect(open).toHaveBeenCalledWith({
+        songId: first.song.id,
+        block: position ?? 0,
+        from: {serviceId: fixtureServiceId, itemId: fixtureItems.arranged},
       }),
     );
-    expect(mock.items.selectPosition).not.toHaveBeenCalled();
   },
 );
 
-it('keeps the clicked source when the arrangement changes during lookup', async () => {
-  const {result, api, first} = setupServiceSong();
-  const [firstGroup, secondGroup] = first.song.groups;
-  if (firstGroup === undefined || secondGroup === undefined) {
-    throw new Error('Missing fixture groups');
-  }
-  const changed: SongDocument = {
-    ...first,
-    revision: 2,
-    song: {
-      ...first.song,
-      arrangements: [
-        {
-          name: '주일용',
-          groups: [secondGroup.id, firstGroup.id, firstGroup.id],
-        },
-      ],
-    },
-  };
-  vi.spyOn(api.songs, 'get').mockResolvedValue(changed);
-  act(() => result.current.onOpenPrep(fixtureItems.arranged, 2));
-  act(() => mock.editor.requestLeave.mock.calls[0]?.[0]());
-  await waitFor(() =>
-    expect(mock.editor.open).toHaveBeenLastCalledWith(changed, {
-      block: 1,
-      arrangement: '주일용',
-    }),
-  );
-});
-
-it('selects the source block in the existing unsaved song session', async () => {
-  const {result, first} = setupServiceSong();
-  const [firstGroup, secondGroup] = first.song.groups;
-  if (firstGroup === undefined || secondGroup === undefined) {
-    throw new Error('Missing fixture groups');
-  }
-  mock.editor.attach.mockReturnValueOnce({
-    history: {
-      snapshot: {song: {...first.song, groups: [secondGroup, firstGroup]}},
+it('keeps the source slide identity after an item deck reorder during lookup', async () => {
+  const {result, api, open} = setupServiceSong();
+  const document = await api.services.get(fixtureServiceId);
+  if (document === null) throw new Error('Missing fixture service');
+  vi.spyOn(api.services, 'get').mockResolvedValue({
+    ...document,
+    service: {
+      ...document.service,
+      order: document.service.order.map(item =>
+        'song' in item ? {...item, slides: [...item.slides].reverse()} : item,
+      ),
     },
   });
-  act(() => result.current.onOpenPrep(fixtureItems.arranged, 2));
+  act(() => result.current.onOpenPrep(fixtureItems.arranged, 1));
   act(() => mock.editor.requestLeave.mock.calls[0]?.[0]());
   await waitFor(() =>
-    expect(mock.editor.open).toHaveBeenLastCalledWith(first, {
-      block: 0,
-      arrangement: '주일용',
-    }),
+    expect(open).toHaveBeenCalledWith(expect.objectContaining({block: 0})),
   );
 });
 
 it.each(['item', 'workspace', 'unmount'])(
-  'does not open a delayed song after navigation to %s',
+  'discards a delayed item lookup after navigation to %s',
   async destination => {
-    const {result, api, first, rerender, unmount} = setupServiceSong();
-    const reading = deferred<SongDocument | null>();
-    const get = vi.spyOn(api.songs, 'get').mockReturnValue(reading.promise);
-    act(() => result.current.onOpenPrep(fixtureItems.arranged, 2));
+    const {result, api, open, rerender, unmount} = setupServiceSong();
+    const document = await api.services.get(fixtureServiceId);
+    const reading = deferred<typeof document>();
+    const get = vi.spyOn(api.services, 'get').mockReturnValue(reading.promise);
+    act(() => result.current.onOpenPrep(fixtureItems.arranged, 1));
     act(() => mock.editor.requestLeave.mock.calls[0]?.[0]());
     await waitFor(() => expect(get).toHaveBeenCalled());
     if (destination === 'item') {
@@ -233,31 +198,32 @@ it.each(['item', 'workspace', 'unmount'])(
       rerender({workspace: 'prep'});
       rerender({workspace: 'show'});
     } else unmount();
-    await act(async () => reading.resolve(first));
-    expect(mock.editor.open.mock.calls).toEqual([[null]]);
+    await act(async () => reading.resolve(document));
+    expect(open).not.toHaveBeenCalled();
   },
 );
 
-it('reports a disappeared source slide instead of opening a different block', async () => {
-  const {result, session} = setupServiceSong();
-  const tiles = mock.view.tiles[fixtureItems.arranged];
-  if (tiles === undefined) throw new Error('Missing fixture tiles');
-  mock.view.tiles[fixtureItems.arranged] = tiles.map(tile => ({
-    ...tile,
-    ...(tile.sourceSlide === undefined
-      ? {}
-      : {
-          sourceSlide: {...tile.sourceSlide, slideIndex: 99},
-        }),
-  }));
-  act(() => result.current.onOpenPrep(fixtureItems.arranged, 2));
+it('reports a disappeared slide instead of selecting a different slide', async () => {
+  const {result, api, session, open} = setupServiceSong();
+  const document = await api.services.get(fixtureServiceId);
+  if (document === null) throw new Error('Missing fixture service');
+  vi.spyOn(api.services, 'get').mockResolvedValue({
+    ...document,
+    service: {
+      ...document.service,
+      order: document.service.order.map(item =>
+        'song' in item ? {...item, slides: []} : item,
+      ),
+    },
+  });
+  act(() => result.current.onOpenPrep(fixtureItems.arranged, 1));
   act(() => mock.editor.requestLeave.mock.calls[0]?.[0]());
   await waitFor(() =>
     expect(session.report).toHaveBeenCalledWith(
       expect.objectContaining({title: '곡 열기 실패'}),
     ),
   );
-  expect(mock.editor.open.mock.calls).toEqual([[null]]);
+  expect(open).not.toHaveBeenCalled();
 });
 
 it('opens a library source slide without inventing a service item', () => {

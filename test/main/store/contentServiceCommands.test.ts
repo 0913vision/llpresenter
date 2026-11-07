@@ -53,7 +53,7 @@ describe('ContentStore 예배 순서 and 템플릿 edits', () => {
       serviceFile(SUNDAY_ID, [{id: itemId(1), header: '말씀'}]),
       serviceFile(EVENING_ID, [
         {id: itemId(2), header: '찬양'},
-        {id: itemId(3), song: HYMN_ONE_ID},
+        {slides: [], id: itemId(3), song: HYMN_ONE_ID},
       ]),
     ]);
 
@@ -89,7 +89,7 @@ describe('ContentStore 예배 순서 and 템플릿 edits', () => {
       serviceFile(SUNDAY_ID, full),
       serviceFile(EVENING_ID, [
         {id: itemId(2), header: '찬양'},
-        {id: itemId(3), song: HYMN_ONE_ID},
+        {slides: [], id: itemId(3), song: HYMN_ONE_ID},
       ]),
     ]);
     const edit = (ids: readonly string[]) =>

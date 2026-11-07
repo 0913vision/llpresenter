@@ -8,7 +8,12 @@ import {
   windowTestOptions,
   type WindowMode,
 } from './testWindows';
-import type {Rect} from './orderEditorPlacement';
+interface Rect {
+  readonly x: number;
+  readonly y: number;
+  readonly width: number;
+  readonly height: number;
+}
 
 const BACKGROUND_COLOR = '#0e0e0e';
 

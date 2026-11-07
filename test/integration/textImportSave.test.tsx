@@ -8,7 +8,7 @@ import {
 } from '@testing-library/react';
 import {expect, it, onTestFinished, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {parseGroupedSong} from '@core/schema/groupedSong';
+import {parseSong} from '@core/schema/song';
 import {contentFixture} from './contentFixture';
 import {convertTextImport} from '@core/songs/textImport';
 import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
@@ -95,19 +95,17 @@ it('imports invented text, edits it, and saves a real song document without open
     file.endsWith('.llsong'),
   )?.[1];
   if (text === undefined) throw new Error('Song was not saved');
-  const parsed = parseGroupedSong(text, 'song');
+  const parsed = parseSong(text, 'song');
   expect(parsed.ok).toBe(true);
   if (parsed.ok) {
-    expect(parsed.value.data.groups.map(group => group.name)).toEqual([
+    expect(parsed.value.data.slides.map(slide => slide.label)).toEqual([
       '4절',
       '후렴',
       '직접 입력',
     ]);
-    expect(
-      parsed.value.data.groups.flatMap(group =>
-        group.slides.flatMap(slide => slide.lines),
-      ),
-    ).toContain('An invented line');
+    expect(parsed.value.data.slides.flatMap(slide => slide.lines)).toContain(
+      'An invented line',
+    );
   }
   expect(problem).not.toHaveBeenCalled();
 });

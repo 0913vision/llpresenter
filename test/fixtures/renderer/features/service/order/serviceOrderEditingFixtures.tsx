@@ -1,3 +1,6 @@
+import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
+// NOTE(0913vision): The hooks below apply to each test file that imports this
+// module.
 // NOTE(0913vision): The hooks below apply to each test file that imports this
 // module.
 import {render, screen} from '@testing-library/react';
@@ -7,7 +10,6 @@ import type {ServiceDocument} from '@core/schema/contentDocuments';
 import {
   createServiceId,
   createServiceItemId,
-  createSongGroupId,
   createSongId,
 } from '@core/schema/ids';
 import {SONG_DRAG_MIME} from '@core/schema/songDrag';
@@ -42,8 +44,6 @@ export function setup(
   extra: {
     emptySection?: boolean;
     secondSection?: boolean;
-    namedArrangement?: boolean;
-    arrangement?: string;
     missingSong?: boolean;
     unheaded?: boolean;
   } = {},
@@ -57,16 +57,8 @@ export function setup(
       date: '2026-10-26T09:00',
       order: [
         ...(extra.unheaded ? [] : [{id: headerId, header: '제목'}]),
-        {
-          id: firstId,
-          song: songId,
-          ...(extra.arrangement ? {arrangement: extra.arrangement} : {}),
-        },
-        {
-          id: lastId,
-          song: songId,
-          ...(extra.arrangement ? {arrangement: extra.arrangement} : {}),
-        },
+        {slides: [], id: firstId, song: songId},
+        {slides: [], id: lastId, song: songId},
         ...(extra.secondSection
           ? [{id: secondHeaderId, header: '마무리'}]
           : []),
@@ -111,27 +103,7 @@ export function setup(
                   schemaVersion: 1,
                   id: songId,
                   title: 'Invented song',
-                  arrangements: extra.namedArrangement
-                    ? [
-                        {
-                          name: '짧은 구성',
-                          groups: [
-                            createSongGroupId(
-                              '00000000-0000-4000-8000-000000000101',
-                            ),
-                          ],
-                        },
-                      ]
-                    : [],
-                  groups: [
-                    {
-                      id: createSongGroupId(
-                        '00000000-0000-4000-8000-000000000101',
-                      ),
-                      name: '',
-                      slides: [{lines: []}],
-                    },
-                  ],
+                  slides: [{id: fixtureSlideId(1), lines: []}],
                 },
                 revision: 1,
                 access: 'editable',

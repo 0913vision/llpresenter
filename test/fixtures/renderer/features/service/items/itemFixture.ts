@@ -86,18 +86,22 @@ export function itemFixture() {
       order: [
         {id: fixtureItems.header, header: '찬양'},
         {
+          slides: editor.first.song.slides,
           id: fixtureItems.arranged,
           song: editor.first.song.id,
-          arrangement: '주일용',
           memo: '천천히',
           future: {keep: true},
         },
-        {id: fixtureItems.plain, song: editor.second.song.id},
+        {
+          slides: editor.first.song.slides,
+          id: fixtureItems.plain,
+          song: editor.second.song.id,
+        },
         {id: fixtureItems.slot, header: '헌금 찬양'},
         {
+          slides: editor.first.song.slides,
           id: fixtureItems.lost,
           song: editor.first.song.id,
-          arrangement: '사라진 구성',
         },
       ],
     },

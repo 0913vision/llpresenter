@@ -2,7 +2,6 @@ import type {SongChange, SongDocument} from '@core/schema/contentDocuments';
 import type {SongId} from '@core/schema/ids';
 import type {Label} from '@core/schema/labels';
 import type {SettingsEdit} from '@core/schema/settingsDocuments';
-import {DEFAULT_ARRANGEMENT_NAME} from '@core/schema/song';
 import type {EditorCatalog} from './editorCatalog';
 import type {
   AppliedRename,
@@ -94,63 +93,6 @@ export class EditorSharedEdits {
     );
   }
 
-  renameArrangement(
-    from: string,
-    to: string,
-    onApplied?: RenameApplied,
-  ): Promise<boolean> {
-    return this.editArrangement(from, to, onApplied);
-  }
-
-  deleteArrangement(name: string): Promise<boolean> {
-    return this.editArrangement(name, undefined);
-  }
-
-  private editArrangement(
-    from: string,
-    to: string | undefined,
-    onApplied?: RenameApplied,
-  ): Promise<boolean> {
-    const session =
-      this.context.imported() ??
-      (this.context.pool.editorSongId === null
-        ? undefined
-        : this.context.pool.get(this.context.pool.editorSongId));
-    if (
-      !this.context.host.alive() ||
-      this.context.host.locked() ||
-      session === undefined ||
-      session.readOnly
-    ) {
-      return Promise.resolve(false);
-    }
-    if (
-      !session.history.snapshot.song.arrangements?.some(
-        item => item.name === from,
-      )
-    ) {
-      return Promise.resolve(false);
-    }
-    if (this.context.imported() === session) {
-      if (
-        to !== undefined &&
-        (!to.trim() ||
-          to === DEFAULT_ARRANGEMENT_NAME ||
-          session.history.snapshot.song.arrangements.some(
-            item => item.name === to && item.name !== from,
-          ))
-      ) {
-        return Promise.resolve(false);
-      }
-      session.arrangementChanged(from, to);
-      return Promise.resolve(true);
-    }
-    if (from === to) return Promise.resolve(true);
-    return this.context.host.runOperation(() =>
-      this.writeArrangement(session, {from, to, onApplied}),
-    );
-  }
-
   /**
    * Persists an applied identity without replaying its rename or its reference
    * rewrites.
@@ -159,40 +101,23 @@ export class EditorSharedEdits {
     if (!this.context.host.alive() || this.context.host.locked()) {
       return Promise.resolve(false);
     }
-    if (identity.kind === 'label') {
-      if (
-        this.context.catalog.labelsDocument?.access !== 'editable' ||
-        this.context.catalog.labelsDocument.revision < identity.revision ||
-        !this.context.catalog.labelsDocument.value.labels.some(
-          label => label.name === identity.name,
-        )
-      ) {
-        return Promise.resolve(false);
-      }
-    } else {
-      const session = this.context.pool.get(identity.songId);
-      if (
-        session === undefined ||
-        session.readOnly ||
-        session.document.revision < identity.revision ||
-        !session.history.snapshot.song.arrangements?.some(
-          item => item.name === identity.name,
-        )
-      ) {
-        return Promise.resolve(false);
-      }
+    if (
+      this.context.catalog.labelsDocument?.access !== 'editable' ||
+      this.context.catalog.labelsDocument.revision < identity.revision ||
+      !this.context.catalog.labelsDocument.value.labels.some(
+        label => label.name === identity.name,
+      )
+    ) {
+      return Promise.resolve(false);
     }
+
     return this.context.host.runOperation(async () => {
       try {
         const result = await this.context.api.content.edit({
           type: 'saves.retry',
         });
         if (!result.ok) {
-          this.context.host.problem(
-            identity.kind === 'label'
-              ? '이름표 파일 저장 실패'
-              : '구성 파일 저장 실패',
-          );
+          this.context.host.problem('이름표 파일 저장 실패');
         }
         return result.ok;
       } catch (cause: unknown) {
@@ -217,76 +142,6 @@ export class EditorSharedEdits {
     return this.context.host.runOperation(() =>
       this.writeLabels(edit, onApplied),
     );
-  }
-
-  private async writeArrangement(
-    session: SongSession,
-    {
-      from,
-      to,
-      onApplied,
-    }: {
-      readonly from: string;
-      readonly to: string | undefined;
-      readonly onApplied?: RenameApplied | undefined;
-    },
-  ): Promise<boolean> {
-    try {
-      const saved = await Promise.all(
-        [...this.context.pool.values()].map(item => item.flush()),
-      );
-      if (saved.includes(false)) return false;
-      this.renaming = true;
-      const songId = session.document.song.id;
-      const result = await this.context.api.content.edit(
-        to === undefined
-          ? {type: 'song.arrangement.delete', songId, name: from}
-          : {type: 'song.arrangement.rename', songId, from, to},
-      );
-      if (!result.ok && result.error.reason !== 'write-failed') {
-        this.context.host.problem('구성 변경 실패');
-        return false;
-      }
-      const accepted = await this.acceptArrangement(session, from, to);
-      if (accepted && !result.ok && to !== undefined) {
-        onApplied?.({
-          kind: 'arrangement',
-          name: to,
-          songId,
-          revision: session.document.revision,
-        });
-      }
-      if (!result.ok) this.context.host.problem('구성 파일 저장 실패');
-      return accepted && (to === undefined || result.ok);
-    } catch (error) {
-      console.error('Arrangement edit failed', error);
-      session.blocked = true;
-      this.context.host.problem('구성 변경 실패', () =>
-        this.context.pool.reload(session.document.song.id),
-      );
-      return false;
-    }
-  }
-
-  private async acceptArrangement(
-    session: SongSession,
-    from: string,
-    to: string | undefined,
-  ): Promise<boolean> {
-    const songId = session.document.song.id;
-    const read =
-      this.renamedSongs.get(songId) ??
-      (await this.context.api.songs.get(songId));
-    if (this.context.pool.get(songId) !== session) return false;
-    const pushed = this.renamedSongs.get(songId);
-    const document =
-      pushed !== undefined && (read === null || pushed.revision > read.revision)
-        ? pushed
-        : read;
-    if (document === null) this.context.pool.remove(songId);
-    else session.arrangementChanged(from, to, document);
-    this.renamedSongs.delete(songId);
-    return document !== null;
   }
 
   private async writeLabels(
@@ -339,8 +194,9 @@ export class EditorSharedEdits {
     for (const [id, session] of this.context.pool) {
       const document =
         this.renamedSongs.get(id) ??
-        (session.document.song.groups.some(group => group.name === from)
-          ? await this.context.api.songs.get(id)
+        (session.itemSession ||
+        session.document.song.slides.some(slide => slide.label === from)
+          ? await this.context.pool.read(id)
           : undefined);
       if (document === null) this.context.pool.remove(id);
       else session.renamed(from, to, document);

@@ -1,7 +1,7 @@
 import {fixtureMedia} from '@fixtures/core/mediaList';
 import type {ServiceDocument} from '@core/schema/contentDocuments';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
-import {isItemOfKind} from '@core/schema/service';
+
 import {SongEditorStore} from '@renderer/features/songs/editor';
 import type {Notice} from '@renderer/ui/notices';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
@@ -39,42 +39,25 @@ function revised(
 }
 
 describe('service item store', () => {
-  it('plays 기본 for a 구성 the song lost and keeps its order unchanged', async () => {
-    const {items, edits} = setup();
+  it('keeps the independent item deck when its library song changes', async () => {
+    const {items, first, pushSong, edits} = setup();
     items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
     await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
-    expect(items.getSnapshot().arrangement).toBe('주일용');
-    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.lost});
-    await vi.waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
-    expect(items.getSnapshot().arrangement).toBeUndefined();
-    expect(edits).toEqual([]);
-    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.slot});
-    expect(items.getSnapshot()).toMatchObject({arrangement: undefined});
-  });
-
-  it('chooses a 구성 and 기본 on the item and keeps its other fields', async () => {
-    const {items, service, edits} = setup();
-    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
-    await vi.waitFor(() => expect(items.getSnapshot().item).not.toBeNull());
-    expect(await items.chooseArrangement(undefined)).toBe(true);
-    const item = service().service.order[1];
-    expect(item).toEqual({
-      id: fixtureItems.arranged,
-      song: items.getSnapshot().song?.document.song.id,
-      memo: '천천히',
-      future: {keep: true},
+    const before = items.getSnapshot().item;
+    pushSong({
+      ...first,
+      revision: first.revision + 1,
+      song: {
+        ...first.song,
+        slides: first.song.slides.map(slide => ({
+          ...slide,
+          lines: ['Changed library'],
+        })),
+      },
     });
-    expect(items.getSnapshot().item).toEqual(item);
-    expect(await items.chooseArrangement('주일용')).toBe(true);
-    expect(edits.filter(edit => edit.type === 'service.update')).toHaveLength(
-      2,
-    );
-    const chosen = items.getSnapshot().item;
-    expect(
-      chosen !== null && isItemOfKind(chosen, 'song') && chosen.arrangement,
-    ).toBe('주일용');
+    expect(items.getSnapshot().item).toEqual(before);
+    expect(edits).toEqual([]);
   });
-
   it('waits for a running edit at the close flush and refuses new ones until it resumes', async () => {
     const {api, items, edits} = setup();
     items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
@@ -89,7 +72,7 @@ describe('service item store', () => {
           };
         }),
     );
-    const choosing = items.chooseArrangement(undefined);
+    const choosing = items.setStartMacro(fixtureMacros.praise);
     let flushed = false;
     const writes = pendingWritesOf(api);
     const flushing = writes.flush().then(sent => {
@@ -105,13 +88,13 @@ describe('service item store', () => {
     expect(edits.filter(edit => edit.type === 'service.update')).toHaveLength(
       1,
     );
-    expect(await items.chooseArrangement('주일용')).toBe(false);
+    expect(await items.setStartMacro(fixtureMacros.sermon)).toBe(false);
     expect(edits.filter(edit => edit.type === 'service.update')).toHaveLength(
       1,
     );
     writes.resume();
     expect(items.getSnapshot().busy).toBe(false);
-    expect(await items.chooseArrangement('주일용')).toBe(true);
+    expect(await items.setStartMacro(fixtureMacros.sermon)).toBe(true);
   });
 
   it('saves a memo queued behind a running edit before a close flush succeeds', async () => {
@@ -127,7 +110,7 @@ describe('service item store', () => {
       });
     });
     const target = {serviceId: fixtureServiceId, itemId: fixtureItems.arranged};
-    const choosing = items.chooseArrangement(undefined);
+    const choosing = items.setStartMacro(fixtureMacros.praise);
     const saving = items.setMemo(target, '닫기 전에');
     const flushing = pendingWritesOf(api).flush();
     await vi.waitFor(() => expect(release).toBeDefined());
@@ -154,17 +137,20 @@ describe('service item store', () => {
     const holding = items.setStartMacro(fixtureMacros.sermon);
     await vi.waitFor(() => expect(release).toBeDefined());
     const background = items.setBackground(fixtureMedia.warm);
-    const choosing = items.chooseArrangement(undefined);
+    const choosing = items.setStartMacro(fixtureMacros.praise);
     items.show({serviceId: fixtureServiceId, itemId: fixtureItems.plain});
     release?.();
     expect(await holding).toBe(true);
     expect(await background).toBe(true);
     expect(await choosing).toBe(true);
     expect(service().service.order[1]).toMatchObject({
-      macro: fixtureMacros.sermon,
+      macro: fixtureMacros.praise,
       background: fixtureMedia.warm,
     });
-    expect(service().service.order[1]).not.toHaveProperty('arrangement');
+    expect(service().service.order[1]).toHaveProperty(
+      'macro',
+      fixtureMacros.praise,
+    );
     const other = service().service.order[2];
     expect(other).toHaveProperty('id', fixtureItems.plain);
     for (const field of ['macro', 'background']) {

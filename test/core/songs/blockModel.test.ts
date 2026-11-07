@@ -1,73 +1,29 @@
-import {describe, expect, it} from 'vitest';
-import {sampleGroupedSong} from '@fixtures/core/songs/blockFixtures';
+import {expect, it} from 'vitest';
+import {sampleSong} from '@fixtures/core/songs/blockFixtures';
 import {
-  linearBlockAddress,
+  blockSnapshot,
   linearSlidesOf,
   slideCountOf,
 } from '@core/songs/blockModel';
 
-describe('grouped song block edits', () => {
-  it('indexes linear blocks across groups and detects group starts', () => {
-    const song = sampleGroupedSong();
-    expect(slideCountOf(song)).toBe(3);
-
-    const addr0 = linearBlockAddress(song, 0);
-    expect(addr0).toMatchObject({
-      groupIndex: 0,
-      groupId: '11111111-1111-4111-a111-111111111111',
-      groupName: '1절',
-      slideIndex: 0,
-      isGroupStart: true,
-      slide: {lines: ['first']},
-    });
-
-    const addr1 = linearBlockAddress(song, 1);
-    expect(addr1).toMatchObject({
-      groupIndex: 0,
-      groupId: '11111111-1111-4111-a111-111111111111',
-      groupName: '1절',
-      slideIndex: 1,
-      isGroupStart: false,
-      slide: {lines: ['second']},
-    });
-
-    const addr2 = linearBlockAddress(song, 2);
-    expect(addr2).toMatchObject({
-      groupIndex: 1,
-      groupId: '22222222-2222-4222-a222-222222222222',
-      groupName: '후렴',
-      slideIndex: 0,
-      isGroupStart: true,
-      slide: {lines: ['third']},
-    });
-
-    expect(linearBlockAddress(song, 3)).toBeUndefined();
-  });
-
-  it('linearSlidesOf produces items with labels only on group start', () => {
-    const song = sampleGroupedSong();
-    const slides = linearSlidesOf(song);
-    expect(slides).toEqual([
-      {
-        lines: ['first'],
-        label: '1절',
-        isGroupStart: true,
-        groupId: '11111111-1111-4111-a111-111111111111',
-        slideIndex: 0,
-      },
-      {
-        lines: ['second'],
-        isGroupStart: false,
-        groupId: '11111111-1111-4111-a111-111111111111',
-        slideIndex: 1,
-      },
-      {
-        lines: ['third'],
-        label: '후렴',
-        isGroupStart: true,
-        groupId: '22222222-2222-4222-a222-222222222222',
-        slideIndex: 0,
-      },
-    ]);
+it('shows every slide label, including adjacent identical names', () => {
+  const song = sampleSong();
+  expect(slideCountOf(song)).toBe(3);
+  expect(linearSlidesOf(song)).toBe(song.slides);
+  expect(linearSlidesOf(song).map(slide => slide.label)).toEqual([
+    '1절',
+    '1절',
+    '후렴',
+  ]);
+});
+it('clamps selections to slide text and handles an empty item deck', () => {
+  const song = sampleSong();
+  expect(
+    blockSnapshot(song, {block: 10, start: 50, end: 100}).selection,
+  ).toEqual({block: 2, start: 5, end: 5});
+  expect(blockSnapshot({...song, slides: []}).selection).toEqual({
+    block: 0,
+    start: 0,
+    end: 0,
   });
 });

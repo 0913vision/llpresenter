@@ -31,7 +31,9 @@ describe('ContentStore announcements', () => {
       service: {
         ...sunday.service,
         name: '수정 예배',
-        order: [{id: testId(serviceItemIdSchema, itemId(1)), song: SONG}],
+        order: [
+          {slides: [], id: testId(serviceItemIdSchema, itemId(1)), song: SONG},
+        ],
       },
     });
 

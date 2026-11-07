@@ -38,6 +38,8 @@ export function LabelMenu({
   );
   const labels = document?.value.labels ?? [];
   const [managing, setManaging] = useState(false);
+  const [naming, setNaming] = useState(false);
+  const [name, setName] = useState(selected ?? '');
   const wasManaging = useRef(false);
   const {surface, onKeyDown} = useChoicePopup({
     anchor,
@@ -88,8 +90,29 @@ export function LabelMenu({
               selected,
               choose,
               manage: () => setManaging(true),
+              freeName: () => setNaming(true),
             })}
           />
+          {naming ? (
+            <input
+              aria-label="이름 적기"
+              autoFocus
+              maxLength={64}
+              value={name}
+              onChange={event => setName(event.currentTarget.value)}
+              onKeyDown={event => {
+                event.stopPropagation();
+                if (
+                  event.key === 'Enter' &&
+                  !event.nativeEvent.isComposing &&
+                  name.trim() !== ''
+                ) {
+                  event.preventDefault();
+                  choose(name.trim());
+                } else if (event.key === 'Escape') setNaming(false);
+              }}
+            />
+          ) : null}
         </div>
       </div>
       {managing ? (

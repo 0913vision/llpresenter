@@ -1,6 +1,6 @@
 import type {JSX} from 'react';
 import {passageItem} from '@renderer/features/service/items/quickAddBible';
-import {NEWER_FILE_REASON} from '@renderer/features/service/items/ItemArrangement';
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useShow} from '@renderer/session/show';
 import {Button} from '@renderer/ui/Button';
 import type {Notice} from '@renderer/ui/notices';

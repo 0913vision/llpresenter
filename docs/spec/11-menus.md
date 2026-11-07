@@ -55,19 +55,18 @@ feature we lack), Moved, Removed.
   undone asks first in the app's AlertDialog with 삭제 as the confirm button,
   and the question says where the thing is used when other places use it ("이
   곡은 예배 2곳에서 씁니다"). Undoable today: 예배 순서 항목 and 구역 (the 예배
-  순서 history), and 슬라이드, 그룹, and 구성 순서 in the 곡 편집 window (its
-  history until 저장). Asking: 곡, 테마 (always, with where it is used or the
-  default of a kind), 매크로, 매크로 모음, 그래픽, 타이머, 메시지 틀, 이름표,
-  오버레이, 미디어, 재생목록, 예배, 템플릿, 화면, 퀵 실행 항목, and 구성 (from
-  준비). Not covered: 단축키 지우기 and 재생목록에서 빼기 (a removal that keeps
-  the thing itself) ask nothing and have no undo; the lead decides whether they
-  get an undo.
+  순서 history), and slides in the 곡 편집 window (its history until 저장).
+  Asking: 곡, 테마 (always, with where it is used or the default of a kind),
+  매크로, 매크로 모음, 그래픽, 타이머, 메시지 틀, 이름표, 오버레이, 미디어,
+  재생목록, 예배, 템플릿, 화면, and 퀵 실행 항목. Not covered: 단축키 지우기 and
+  재생목록에서 빼기 (a removal that keeps the thing itself) ask nothing and have
+  no undo; the lead decides whether they get an undo.
 - **Wording:** 이름 바꾸기 everywhere (not 이름 변경). A row that opens a dialog
   or asks for more input ends with "…" as in PP (수정…, 전환 효과…).
 - **Window commands:** A command that opens a window ends with "…" and has one
-  label everywhere it is offered: 곡 편집…, 순서 편집…, 환경설정…, 화면 설정….
-  The library menu, the 진행 and 준비 row menus, the slide menus, and the
-  buttons that open the same window use that one label (`windowCommandLabels`).
+  label everywhere it is offered: 곡 편집…, 환경설정…, 화면 설정…. The library
+  menu, the 진행 and 준비 row menus, the slide menus, and the buttons that open
+  the same window use that one label (`windowCommandLabels`).
 - **Row actions in a footer:** When a list keeps a row's actions in a bar below
   it (the 단축키 page's 기본값으로 and 지우기), the row's right-click and Menu
   key menu offers the same actions.
@@ -77,19 +76,19 @@ feature we lack), Moved, Removed.
   and 곡 다른 이름으로 저장 suggestions, and the 템플릿 saved beside one of the
   same name all follow it (`copyName`; B25 rule 5).
 - **Reordering:** A list the operator can arrange (the 예배 순서, the 퀵 실행
-  list, the 매크로 모음 list, the 이름표 chips, and the 순서 편집 tokens) moves
-  a row by one behavior: a press moves 4 pixels before it becomes a drag, the
-  drop place is drawn as one insertion line (a marker before a chip), Esc puts
-  the row back, and Alt ↑ and Alt ↓ move the focused row by one place (Alt ← and
-  Alt → for chips). Each list keeps its own write (B25 rule 6; 10).
+  list, the 매크로 모음 list, the 이름표 chips) moves a row by one behavior: a
+  press moves 4 pixels before it becomes a drag, the drop place is drawn as one
+  insertion line (a marker before a chip), Esc puts the row back, and Alt ↑ and
+  Alt ↓ move the focused row by one place (Alt ← and Alt → for chips). Each list
+  keeps its own write (B25 rule 6; 10).
 - **Two-row menus:** No separator between the only two rows.
 - **List-row rule:** For a named thing in a list whose PP menu we could not see,
   use the shape PP gives such things (Look preset: Make Live | Duplicate,
   Rename, Delete; playlist: Rename, Save As… | Duplicate, Delete; prop: Edit…, …
   | Duplicate, Rename | Delete): its own command first (수정…, 지금 적용) |
   복제, 이름 바꾸기 | 삭제. No icons. 복제 is a disabled row where we cannot
-  copy yet. A built-in thing that cannot change (기본 구성, 모든 매크로) shows
-  the same rows disabled with the reason in the tooltip.
+  copy yet. A built-in thing that cannot change (모든 매크로) shows the same
+  rows disabled with the reason in the tooltip.
 - **Keyboard:** The Menu keyboard rules stay (arrows, Home, End, Enter, Space,
   Esc, type-ahead, Menu key and Shift F10).
 - **Select lists:** The 34 Select dropdowns keep their options and take the same
@@ -109,20 +108,20 @@ adding one is (the row is disabled with that reason); a locked list gives its
 lock reason first. A copy never holds live state: no running timer or content on
 output.
 
-| Kind            | The copy holds                                                                               | Not copied       | Notes                                                                                                                                         |
-| --------------- | -------------------------------------------------------------------------------------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
-| 메시지          | name, text, icon, targets, duration                                                          |                  |                                                                                                                                               |
-| 그래픽          | content (image or text and its style), target screens                                        | whether it is on |                                                                                                                                               |
-| 타이머          | kind and its time fields (duration, time and date, start value, 0 지나면)                    | the run          | A new timer has its own run and its own live-timer slot.                                                                                      |
-| 퀵 실행 항목    | name and what it opens (song, Bible passage, 그래픽, 매크로, 검은 화면) with the same ref    |                  | A row of a 타이머 gets its own new 타이머 definition (the copy name on both), so the two rows never share one; the 타이머 is copied first.    |
-| 매크로 모음     | name and the same 매크로 (a 매크로 may be in several collections)                            |                  | The 매크로 are not copied.                                                                                                                    |
-| 매크로          | name, icon, color, actions, 시작할 때 실행                                                   |                  | Built earlier.                                                                                                                                |
-| 테마            | all screens' layouts                                                                         |                  | Built earlier.                                                                                                                                |
-| 라이브러리 곡   | title, groups and their slides, 이름표, 구성, default background                             |                  | A new song file; the title takes the copy name against the library's titles.                                                                  |
-| 예배 순서 항목  | its own settings: 테마, 배경, 메모, 시작할 때, 구성, its own order (`customOrder`), 오버레이 | what is live     | One undo step (10, "Focus precedence"). A 구역 copies the whole section with its items, as one step, since moving a header moves its section. |
-| 미디어          | the entry: name, kind, properties (fit, end, sound)                                          | the file         | A second entry on the same file; deleting one keeps the file and the other (08).                                                              |
-| 미디어 재생목록 | name and the same media ids                                                                  | the media        |                                                                                                                                               |
-| 예배 (list row) | the whole 예배 순서 with its items and settings                                              |                  | A new service file named with the copy name; the list keeps the open service open.                                                            |
+| Kind            | The copy holds                                                                            | Not copied       | Notes                                                                                                                                         |
+| --------------- | ----------------------------------------------------------------------------------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |
+| 메시지          | name, text, icon, targets, duration                                                       |                  |                                                                                                                                               |
+| 그래픽          | content (image or text and its style), target screens                                     | whether it is on |                                                                                                                                               |
+| 타이머          | kind and its time fields (duration, time and date, start value, 0 지나면)                 | the run          | A new timer has its own run and its own live-timer slot.                                                                                      |
+| 퀵 실행 항목    | name and what it opens (song, Bible passage, 그래픽, 매크로, 검은 화면) with the same ref |                  | A row of a 타이머 gets its own new 타이머 definition (the copy name on both), so the two rows never share one; the 타이머 is copied first.    |
+| 매크로 모음     | name and the same 매크로 (a 매크로 may be in several collections)                         |                  | The 매크로 are not copied.                                                                                                                    |
+| 매크로          | name, icon, color, actions, 시작할 때 실행                                                |                  | Built earlier.                                                                                                                                |
+| 테마            | all screens' layouts                                                                      |                  | Built earlier.                                                                                                                                |
+| 라이브러리 곡   | title, independent slides, 이름표, default background                                     |                  | A new song file; the title takes the copy name against the library's titles.                                                                  |
+| 예배 순서 항목  | its own settings: slides, 테마, 배경, 메모, 시작할 때, 오버레이                           | what is live     | One undo step (10, "Focus precedence"). A 구역 copies the whole section with its items, as one step, since moving a header moves its section. |
+| 미디어          | the entry: name, kind, properties (fit, end, sound)                                       | the file         | A second entry on the same file; deleting one keeps the file and the other (08).                                                              |
+| 미디어 재생목록 | name and the same media ids                                                               | the media        |                                                                                                                                               |
+| 예배 (list row) | the whole 예배 순서 with its items and settings                                           |                  | A new service file named with the copy name; the list keeps the open service open.                                                            |
 
 ## Menus
 
@@ -198,12 +197,12 @@ output.
 | 6     | 글자 모양 복사, 글자 모양 붙여넣기                 | PP Copy and Paste Text Style.                                                                                              | Off    |
 | 7     | 잘라내기, 복사, 붙여넣기, 삭제                     | PP clipboard rows.                                                                                                         | Off    |
 
-- All three grids share one row set (`slideMenuEntries`); the 순서 편집 window
-  adds only the 오버레이 rows after it, as 준비's right column does. In 준비,
-  단축키… opens the source slide's key recorder in the song editor, opening that
-  editor first from an item. The separate key bar is removed. Unsupported
-  actions remain disabled; read-only sources disable key editing with their
-  reason (October 31 B22).
+- Song grids share one row set (`slideMenuEntries`); the item grid adds only the
+  오버레이 rows after it, as 준비's right column does. In 준비, 단축키… opens
+  the source slide's key recorder in the song editor, opening that editor first
+  from an item. The separate key bar is removed. Unsupported actions remain
+  disabled; read-only sources disable key editing with their reason (October 31
+  B22).
 
 ### 그래픽 오른쪽 클릭
 
@@ -319,25 +318,22 @@ output.
   (https://support.renewedvision.com/hc/en-us/articles/55789101197587). All
   start Hide Item | Add to ›; this app omits the unavailable Add to row.
 
-| Group  | Row                                    | Does                                                                                                                                                                             | Status |
-| ------ | -------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 1      | 항목 숨기기                            | PP Hide Item.                                                                                                                                                                    | Off    |
-| song   | 구성 ›                                 | Song items: the song's 구성 with ✓ on the one this item uses; picking one sets it for this item (PP Arrangement, 3:37 and 4:00). The same choice as the item's 구성 setting row. | New    |
-| song   | 출력 대상 ›                            | PP Destination.                                                                                                                                                                  | Off    |
-| song   | 순서 편집…                             | 준비 only: opens the 순서 편집 window for this item (05).                                                                                                                        |
-| song   | 곡 편집…                               | Opens the song in the 곡 편집 window (05; PP Reflow). Replaces 준비에서 열기 on song items.                                                                                      | Moved  |
-| other  | 준비에서 열기                          | Items that are not songs, 진행 only (ours).                                                                                                                                      | Now    |
-| header | 색 바꾸기                              | 구역 rows only (PP Change Color on a header).                                                                                                                                    | Off    |
-| 3      | 복사 (Ctrl C), 붙여넣기 (Ctrl V)       | PP clipboard rows; the Windows build shows the keys at the right.                                                                                                                | Off    |
-| 3      | 복제 (Ctrl D)                          | Copies the item, or the whole 구역 with its items for a 구역 row, as one undo step (see "복제 by kind"). Ctrl D does the same in 준비 with the focus on the list.                | Now    |
-| 3      | 이름 바꾸기                            | 구역 rows (PP Rename on headers). A song, 성경, or 미디어 item has no name of its own (it shows its source's name), so its row stays disabled as Later.                          | Now    |
-| 3      | 삭제                                   | Removes the item from the service. No icon, as in PP.                                                                                                                            | Now    |
-| song   | 라이브러리에서 보기                    | Selects the song in the 라이브러리 (PP Show in Library).                                                                                                                         | New    |
-| song   | 묶음으로 내보내기…, 이미지로 내보내기… | PP Export as Bundle, Export as Images.                                                                                                                                           | Off    |
+| Group  | Row                                    | Does                                                                                                                                                              | Status |
+| ------ | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
+| 1      | 항목 숨기기                            | PP Hide Item.                                                                                                                                                     | Off    |
+| song   | 출력 대상 ›                            | PP Destination.                                                                                                                                                   | Off    |
+| song   | 곡 편집…                               | Opens the song in the 곡 편집 window (05; PP Reflow). Replaces 준비에서 열기 on song items.                                                                       | Moved  |
+| other  | 준비에서 열기                          | Items that are not songs, 진행 only (ours).                                                                                                                       | Now    |
+| header | 색 바꾸기                              | 구역 rows only (PP Change Color on a header).                                                                                                                     | Off    |
+| 3      | 복사 (Ctrl C), 붙여넣기 (Ctrl V)       | PP clipboard rows; the Windows build shows the keys at the right.                                                                                                 | Off    |
+| 3      | 복제 (Ctrl D)                          | Copies the item, or the whole 구역 with its items for a 구역 row, as one undo step (see "복제 by kind"). Ctrl D does the same in 준비 with the focus on the list. | Now    |
+| 3      | 이름 바꾸기                            | 구역 rows (PP Rename on headers). A song, 성경, or 미디어 item has no name of its own (it shows its source's name), so its row stays disabled as Later.           | Now    |
+| 3      | 삭제                                   | Removes the item from the service. No icon, as in PP.                                                                                                             | Now    |
+| song   | 라이브러리에서 보기                    | Selects the song in the 라이브러리 (PP Show in Library).                                                                                                          | New    |
+| song   | 묶음으로 내보내기…, 이미지로 내보내기… | PP Export as Bundle, Export as Images.                                                                                                                            | Off    |
 
-- Groups: 숨기기 | 구성 and 출력 대상 | 곡 편집… | clipboard and 삭제 |
-  라이브러리와 내보내기. In 준비, 순서 편집… and 곡 편집… follow 구성 › in its
-  group (05, B20).
+- Groups: 숨기기 | 라이브러리에 저장… and 라이브러리에서 다시 불러오기 | 곡
+  편집… | 출력 대상 | clipboard and 삭제 | 라이브러리와 내보내기.
 
 ### 예배 순서 고르기
 
@@ -370,6 +366,11 @@ output.
 | 3     | 복제             | PP Duplicate. A new service file (see "복제 by kind"). | Now    |
 | 3     | 삭제             | Deletes the service (not the open one).                | Now    |
 
+Song items also offer 라이브러리에 저장… and 라이브러리에서 다시 불러오기. The
+former asks to overwrite the source song and shows its usage; the latter asks to
+replace only this item's slides. Both capture the service and song revisions. 곡
+편집… opens the item deck in the existing editor.
+
 ### 라이브러리 곡 오른쪽 클릭
 
 - Where: 준비 > 라이브러리 (LibraryPanel)
@@ -381,7 +382,6 @@ output.
 | Group | Row                                                                       | Does                                                                                                                                                                                                                    | Status |
 | ----- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
 | 1     | 예배 순서에 추가                                                          | Appends the song to the end of the open 예배 순서 at once; the row is disabled with its reason when none is open or it is read-only: newer than PP (B8), no services submenu.                                           | Now    |
-| 2     | 구성 ›                                                                    | PP Arrangement (Arrangements video 3:08): the song's 구성, ✓ on the one it uses. We pick 구성 per 예배 순서 item, so a song-level choice waits.                                                                         | Off    |
 | 2     | 출력 대상 ›                                                               | PP Destination.                                                                                                                                                                                                         | Off    |
 | 3     | 곡 편집…                                                                  | Opens the song in the 곡 편집 window (05; PP Reflow).                                                                                                                                                                   | New    |
 | 4     | 복사, 붙여넣기                                                            | PP clipboard rows, with icons (Arrangements video 3:08).                                                                                                                                                                | Off    |
@@ -393,8 +393,8 @@ output.
 ### 이름표 팝오버
 
 - Where: 준비 editor (LabelMenu)
-- Opens: Click the label tag, 새 그룹, or Ctrl G.
-- Purpose: Pick the 이름표 of a group or open the shared catalog manager.
+- Opens: Click a slide’s label chip or Ctrl G.
+- Purpose: Pick the 이름표 of a slide or open the shared catalog manager.
 - PP: PP slide Group submenu (Arrangements video 0:55 and 1:07): Edit… | Ungroup
   | groups with color swatches | Settings. Colors are set in Settings > Groups,
   not in the menu.
@@ -403,9 +403,11 @@ output.
 | ----- | ------------ | -------------------------------------------------------------------------------------- | ------ |
 | 1     | 이름표 없음  | Removes the 이름표 (PP Ungroup).                                                       | Now    |
 | 2     | <이름표>     | Every 이름표 with its color swatch; ✓ in the left padding on the current one.          | Now    |
+| 3     | 이름 적기…   | Types a free label for this slide.                                                     | Now    |
 | 3     | 이름표 관리… | Opens the shared catalog dialog with editable names, palettes, deletion, and creation. | Now    |
 
-- The picker has no inline creation, disabled 편집… row, or row context menu.
+- 이름 적기… opens an inline free-name field. It changes the slide’s label
+  without creating a shared catalog entry.
 
 ### 이름표 관리
 
@@ -432,36 +434,12 @@ tooltips on these controls. The palette's name is accessible without repeating
 it visibly beside the name field.
 
 새 이름표 at the footer's left adds a uniquely named row and selects its name
-for editing. It does not assign the label to a group. 닫기 is the only footer
+for editing. It does not assign the label to a slide. 닫기 is the only footer
 completion action in the dialog (October 31 B22 user decision). The preferences
 page shares the row controls, save and rename behavior, deletion question and 새
 이름표 action. Its changes appear in open dialogs and song editors at once.
 
 - No 복제: PP groups have no duplicate.
-
-### 구성 고르기
-
-- Where: 준비 song editor and 예배 순서 item (구성 Select)
-- Opens: Click the 구성 select.
-- Purpose: Pick the 구성; make or edit one.
-- PP: PP arrangement popup (Arrangements video 2:11 and 3:11): ✓ Master, other
-  arrangements | New Arrangement…, Edit Arrangements….
-
-| Group | Row          | Does                                                                                   | Status |
-| ----- | ------------ | -------------------------------------------------------------------------------------- | ------ |
-| 1     | 기본         | Alone above a separator (PP Master, 5 hacks video 3:10); ✓ when current.               | Now    |
-| 2     | <구성>       | The song's other 구성; ✓ on the current one.                                           | Now    |
-| 3     | 새 구성…     | Asks for a name (PP shows a small name field with 취소 and 확인).                      | Now    |
-| 3     | 이름 바꾸기… | Renames the selected named 구성. 기본 is disabled with its reason.                     | Now    |
-| 3     | 삭제         | Removes the selected named 구성. 기본 is disabled with its reason.                     | Now    |
-| 4     | 구성 편집…   | Opens the chip editor in the song editor; from an item it opens the song editor first. | Now    |
-
-- The song editor and item use this same dropdown at every choice count. Source
-  management from an item first opens the song editor at the selected source
-  slide; picking a 구성 changes only that service item (October 31 B22).
-
-The separate segment management menu is replaced by the dropdown's management
-rows. The 기본 reason is "기본 구성은 바꿀 수 없습니다".
 
 ### 미디어 오른쪽 클릭
 

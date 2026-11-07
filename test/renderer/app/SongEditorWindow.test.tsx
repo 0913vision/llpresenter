@@ -11,8 +11,16 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {ContentEdit} from '@core/schema/contentEdit';
 import type {SongEditorTarget} from '@core/schema/ipcPayloads';
-import {createServiceItemId, createServiceId} from '@core/schema/ids';
-import {parseServiceDocument} from '@core/schema/contentDocuments';
+import {
+  createServiceItemId,
+  createServiceId,
+  createSongId,
+} from '@core/schema/ids';
+import {
+  parseServiceDocument,
+  type ServiceDocument,
+  type ServiceChange,
+} from '@core/schema/contentDocuments';
 import {ControlSession} from '@renderer/app/controlSession';
 import {SongEditorWindow} from '@renderer/app/SongEditorWindow';
 import {
@@ -47,6 +55,7 @@ const ITEM_ID = createServiceItemId('40000000-0000-4000-8000-000000000001');
 function openWindow(target: SongEditorTarget | null) {
   const fixture = editorFixture();
   const retargets = new Set<(target: SongEditorTarget | null) => void>();
+  const serviceChanges = new Set<(change: ServiceChange) => void>();
   const service = parseServiceDocument({
     service: {
       format: 'llservice',
@@ -54,16 +63,73 @@ function openWindow(target: SongEditorTarget | null) {
       id: SERVICE_ID,
       name: '주일 예배',
       date: '2026-11-01T11:00',
-      order: [{id: ITEM_ID, song: fixture.first.song.id}],
+      order: [
+        {
+          slides: fixture.first.song.slides,
+          id: ITEM_ID,
+          song: fixture.first.song.id,
+        },
+      ],
     },
     revision: 4,
     access: 'editable',
   });
   if (!service.ok || service.value === null) throw new Error('Bad service');
-  const document = service.value;
+  let document: ServiceDocument = service.value;
   const edits: ContentEdit[] = fixture.edits;
   const api: LlpApi = {
     ...fixture.api,
+    settings: {
+      ...fixture.api.settings,
+      edit: async edit => {
+        const result = await fixture.api.settings.edit(edit);
+        if (result.ok && edit.type === 'labels.rename') {
+          document = {
+            ...document,
+            revision: document.revision + 1,
+            service: {
+              ...document.service,
+              order: document.service.order.map(item =>
+                'song' in item
+                  ? {
+                      ...item,
+                      slides: item.slides.map(slide =>
+                        slide.label === edit.from
+                          ? {...slide, label: edit.to}
+                          : slide,
+                      ),
+                    }
+                  : item,
+              ),
+            },
+          };
+          for (const listener of serviceChanges) {
+            listener({serviceId: SERVICE_ID, document});
+          }
+        }
+        return result;
+      },
+    },
+    content: {
+      edit: async command => {
+        if (command.type !== 'service.update') {
+          return fixture.api.content.edit(command);
+        }
+        if (command.baseRevision !== document.revision) {
+          return {
+            ok: false,
+            error: {reason: 'stale', message: 'Changed service'},
+          };
+        }
+        edits.push(command);
+        document = {
+          ...document,
+          service: command.service,
+          revision: document.revision + 1,
+        };
+        return {ok: true, value: {id: SERVICE_ID, revision: document.revision}};
+      },
+    },
     songEditorWindow: {
       target: () => Promise.resolve(target),
       onRetarget: listener => {
@@ -76,6 +142,12 @@ function openWindow(target: SongEditorTarget | null) {
     services: {
       ...fixture.api.services,
       get: () => Promise.resolve(document),
+      subscribe: listener => {
+        serviceChanges.add(listener);
+        return () => {
+          serviceChanges.delete(listener);
+        };
+      },
     },
   };
   window.llp = api;
@@ -91,6 +163,7 @@ function openWindow(target: SongEditorTarget | null) {
     api,
     session,
     edits,
+    service: () => document,
     retarget: (next: SongEditorTarget) =>
       act(() => {
         for (const listener of retargets) listener(next);
@@ -112,6 +185,86 @@ afterEach(() => {
 });
 
 describe('곡 편집 window', () => {
+  it('keeps an unsaved item lyric and its undo history through a global label rename', async () => {
+    const opened = await openedWithEdit({
+      songId: FIRST_ID,
+      from: {serviceId: SERVICE_ID, itemId: ITEM_ID},
+    });
+    const store = opened.session.editor;
+    const session = store?.getSnapshot().session;
+    if (store === undefined || session == null) {
+      throw new Error('Missing item editor');
+    }
+    const readSong = vi.spyOn(opened.api.songs, 'get');
+    await act(async () => {
+      expect(await store.renameLabel('1절', '오늘')).toBe(true);
+    });
+    expect(store.getSnapshot().session).toBe(session);
+    expect(readSong).not.toHaveBeenCalledWith(createSongId(ITEM_ID));
+    expect(session.history.snapshot.song.slides[0]).toMatchObject({
+      lines: ['바꾼 가사'],
+      label: '오늘',
+    });
+    expect(session.unsaved).toBe(true);
+    expect(session.document.revision).toBe(5);
+    act(() => {
+      session.edit('undo');
+    });
+    expect(session.history.snapshot.song.slides[0]).toMatchObject({
+      lines: opened.first.song.slides[0]?.lines,
+      label: '오늘',
+    });
+    act(() => {
+      session.edit('redo');
+    });
+    expect(session.history.snapshot.song.slides[0]).toMatchObject({
+      lines: ['바꾼 가사'],
+      label: '오늘',
+    });
+    await act(async () => {
+      expect(await session.commit()).toBe(true);
+    });
+    expect(opened.service().service.order[0]).toMatchObject({
+      slides: [{lines: ['바꾼 가사'], label: '오늘'}, {}],
+    });
+    expect(opened.documents.get(FIRST_ID)?.song.slides[0]?.lines).toEqual(
+      opened.first.song.slides[0]?.lines,
+    );
+    await act(async () => {
+      expect(await store.renameLabel('오늘', '다음')).toBe(true);
+    });
+    act(() => {
+      session.edit('undo');
+    });
+    expect(session.history.snapshot.song.slides[0]).toMatchObject({
+      lines: opened.first.song.slides[0]?.lines,
+      label: '다음',
+    });
+  });
+
+  it('saves an item lyric only to the service and keeps the library song intact', async () => {
+    const opened = await openedWithEdit({
+      songId: FIRST_ID,
+      from: {serviceId: SERVICE_ID, itemId: ITEM_ID},
+    });
+    expect(screen.getByRole('textbox', {name: '곡 제목'})).toHaveProperty(
+      'readOnly',
+      true,
+    );
+    await userEvent.click(screen.getByRole('button', {name: '저장'}));
+    await userEvent.click(
+      within(await screen.findByRole('alertdialog')).getByRole('button', {
+        name: '저장',
+      }),
+    );
+    await waitFor(() =>
+      expect(opened.edits.map(edit => edit.type)).toEqual(['service.update']),
+    );
+    expect(opened.service().service.order[0]).toMatchObject({
+      slides: [{lines: ['바꾼 가사']}, {}],
+    });
+    expect(opened.documents.get(FIRST_ID)).toEqual(opened.first);
+  });
   it('keeps edits in the window with a dot before the title until 저장 asks and overwrites', async () => {
     const {edits, documents} = await openedWithEdit({songId: FIRST_ID});
     expect(screen.getByRole('img', {name: '저장하지 않은 변경'})).toBeTruthy();
@@ -143,7 +296,7 @@ describe('곡 편집 window', () => {
   });
 
   it('saves under a new name, leaves the original, and switches the item it came from', async () => {
-    const {edits, documents, first} = await openedWithEdit({
+    const {edits, documents, first, retarget, service} = await openedWithEdit({
       songId: FIRST_ID,
       from: {serviceId: SERVICE_ID, itemId: ITEM_ID},
     });
@@ -157,24 +310,57 @@ describe('곡 편집 window', () => {
 
     await waitFor(() =>
       expect(edits.map(edit => edit.type)).toEqual([
+        'service.update',
         'song.saveAs',
         'service.update',
       ]),
     );
     expect(documents.get(FIRST_ID)).toEqual(first);
-    const [saveAs, update] = edits;
+    const [, saveAs, update] = edits;
     expect(saveAs).toMatchObject({
       song: {title: '새 노래 1 복사본'},
     });
     expect(update).toMatchObject({
       type: 'service.update',
-      baseRevision: 4,
+      baseRevision: 5,
     });
     await waitFor(() =>
       expect(
         screen.queryByRole('img', {name: '저장하지 않은 변경'}),
       ).toBeNull(),
     );
+    const item = service().service.order[0];
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    if (
+      item === undefined ||
+      !('song' in item) ||
+      typeof item.song !== 'string'
+    ) {
+      throw new Error('Missing song item');
+    }
+    retarget({
+      songId: createSongId(item.song),
+      from: {serviceId: SERVICE_ID, itemId: ITEM_ID},
+    });
+    await waitFor(() =>
+      expect(screen.getByRole('textbox', {name: '곡 제목'})).toHaveProperty(
+        'readOnly',
+        true,
+      ),
+    );
+    fireEvent.change(lyrics(1), {target: {value: '다시 바꾼 가사'}});
+    await userEvent.click(screen.getByRole('button', {name: '저장'}));
+    await userEvent.click(
+      within(await screen.findByRole('alertdialog')).getByRole('button', {
+        name: '저장',
+      }),
+    );
+    await waitFor(() =>
+      expect(service().service.order[0]).toMatchObject({
+        slides: [{lines: ['다시 바꾼 가사']}, {}],
+      }),
+    );
+    expect(documents.get(FIRST_ID)).toEqual(first);
   });
 
   it('refuses a name another song has before sending anything', async () => {

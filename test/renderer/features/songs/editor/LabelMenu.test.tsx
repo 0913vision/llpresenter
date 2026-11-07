@@ -105,7 +105,16 @@ describe('song editor label menu', () => {
         row =>
           row.getAttribute('role') === 'separator' ? '|' : row.textContent,
       ),
-    ).toEqual(['이름표 없음', '|', '1절', '후렴', '|', '이름표 관리…']);
+    ).toEqual([
+      '이름표 없음',
+      '|',
+      '1절',
+      '후렴',
+      '|',
+      '이름 적기…',
+      '|',
+      '이름표 관리…',
+    ]);
     const row = within(menu).getByRole('menuitemradio', {name: '1절'});
     fireEvent.contextMenu(row);
     fireEvent.keyDown(row, {key: 'F10', shiftKey: true});
@@ -189,9 +198,9 @@ describe('song editor label menu', () => {
       ),
     );
     for (const document of documents.values()) {
-      expect(document.song.groups[0]?.name).toBe('새 절');
+      expect(document.song.slides[0]?.label).toBe('새 절');
     }
-    expect(session.history.snapshot.song.groups[0]?.name).toBe('새 절');
+    expect(session.history.snapshot.song.slides[0]?.label).toBe('새 절');
     field = screen.getByRole('textbox', {name: '새 절 이름'});
     await user.clear(field);
     await user.type(field, '다음 절');
@@ -244,7 +253,7 @@ describe('song editor label menu', () => {
     expect(labels().value.labels[1]?.key).toBe('KeyC');
     await user.click(screen.getByRole('button', {name: '새 이름표'}));
     await waitFor(() => expect(labels().value.labels).toHaveLength(3));
-    expect(session.history.snapshot.song.groups[0]?.name).toBe('1절');
+    expect(session.history.snapshot.song.slides[0]?.label).toBe('1절');
   });
 
   it('saves a dirty name before applying a color with the same click', async () => {
@@ -303,7 +312,7 @@ describe('song editor label menu', () => {
     expect(labels().value.labels).toHaveLength(2);
     await user.click(within(confirmation).getByRole('button', {name: '삭제'}));
     await waitFor(() => expect(labels().value.labels).toHaveLength(1));
-    expect(session.history.snapshot.song.groups[0]?.name).toBe('1절');
+    expect(session.history.snapshot.song.slides[0]?.label).toBe('1절');
     await waitFor(() =>
       expect(screen.getByRole('textbox', {name: '후렴 이름'})).toBe(
         document.activeElement,
@@ -360,7 +369,7 @@ describe('song editor label menu', () => {
         document.body,
     );
     await user.click(screen.getByRole('menuitemradio', {name: '후렴'}));
-    expect(session.history.snapshot.song.groups[0]?.name).toBe('후렴');
+    expect(session.history.snapshot.song.slides[0]?.label).toBe('후렴');
   });
 
   it('chooses and removes a label with keyboard navigation and restores focus', async () => {
@@ -368,12 +377,12 @@ describe('song editor label menu', () => {
     await openMenu(user);
     await user.keyboard('{ArrowDown}{Enter}');
     await act(() => session.flush());
-    expect(session.history.snapshot.song.groups[0]?.name).toBe('후렴');
+    expect(session.history.snapshot.song.slides[0]?.label).toBe('후렴');
     await user.click(
       screen.getAllByRole('button', {name: '후렴'})[0] ?? document.body,
     );
     await user.click(screen.getByRole('menuitemradio', {name: '이름표 없음'}));
-    expect(session.history.snapshot.song.groups[0]?.name).toBe('');
+    expect(session.history.snapshot.song.slides[0]?.label).toBeUndefined();
   });
 
   it('supports Escape and outside focus without taking it back', async () => {
@@ -388,4 +397,17 @@ describe('song editor label menu', () => {
     expect(screen.queryByRole('menu')).toBeNull();
     expect(document.activeElement).toBe(lyrics());
   });
+});
+
+it('assigns a trimmed free name without creating a shared catalog entry', async () => {
+  const {user, session, labels, labelEdits} = await editorSetup();
+  const before = labels();
+  await openMenu(user);
+  await user.click(screen.getByRole('menuitem', {name: '이름 적기…'}));
+  const input = screen.getByRole('textbox', {name: '이름 적기'});
+  await user.clear(input);
+  await user.type(input, '  현장 반복  {Enter}');
+  expect(session.history.snapshot.song.slides[0]?.label).toBe('현장 반복');
+  expect(labels()).toEqual(before);
+  expect(labelEdits).toHaveLength(0);
 });

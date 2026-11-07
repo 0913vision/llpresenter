@@ -49,12 +49,20 @@ export function SongSaveDialogs({
     return (
       <AlertDialog
         icon="song"
-        title={`‘${title}’ 곡을 덮어쓸까요?`}
-        meta={usageMeta(used, '예배')}
+        title={
+          session.itemSession
+            ? `‘${title}’ 항목의 변경을 저장할까요?`
+            : `‘${title}’ 곡을 덮어쓸까요?`
+        }
+        meta={
+          session.itemSession
+            ? ['이번 예배의 슬라이드에 적용됩니다.']
+            : usageMeta(used, '예배')
+        }
         onCancel={model.close}
         actions={[
           {
-            label: '덮어쓰기',
+            label: session.itemSession ? '저장' : '덮어쓰기',
             primary: true,
             disabled: saving,
             onSelect: model.confirmOverwrite,
@@ -66,7 +74,7 @@ export function SongSaveDialogs({
   return (
     <AlertDialog
       icon="song"
-      title={`‘${title}’ 곡의 변경을 저장할까요?`}
+      title={`‘${title}’ ${session.itemSession ? '항목' : '곡'}의 변경을 저장할까요?`}
       onCancel={model.close}
       actions={[
         {

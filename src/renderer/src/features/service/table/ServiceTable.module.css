@@ -13,9 +13,8 @@
       var(--space-10)
   );
   --table-fixed-width: calc(
-    var(--size-table-arrangement) + var(--size-table-slides) +
-      var(--size-table-theme) + var(--size-table-background) +
-      var(--size-table-start)
+    var(--size-table-slides) + var(--size-table-theme) +
+      var(--size-table-background) + var(--size-table-start)
   );
   --table-cells-width: calc(var(--table-fixed-width) + var(--size-table-memo));
 
@@ -68,7 +67,6 @@
   display: grid;
   flex: 1 1 0;
   grid-template-columns:
-    minmax(0, var(--size-table-arrangement))
     minmax(0, var(--size-table-slides))
     minmax(0, var(--size-table-theme))
     minmax(0, var(--size-table-background))
@@ -202,7 +200,6 @@ button.cell:not([aria-disabled='true']):hover {
 
   .grid {
     grid-template-columns:
-      minmax(0, var(--size-table-arrangement))
       minmax(0, var(--size-table-slides))
       minmax(0, var(--size-table-theme))
       minmax(0, var(--size-table-background))

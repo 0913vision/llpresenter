@@ -14,7 +14,7 @@ describe('typing-group autosaves', () => {
     expect(edits).toHaveLength(0);
     await vi.advanceTimersByTimeAsync(1);
     expect(edits).toHaveLength(1);
-    expect(session.document.song.groups[0]?.slides[0]?.lines).toEqual(['abc']);
+    expect(session.document.song.slides[0]?.lines).toEqual(['abc']);
     expect(session.history.inTypingGroup).toBe(false);
     expect(vi.getTimerCount()).toBe(0);
   });
@@ -61,14 +61,12 @@ describe('typing-group autosaves', () => {
     release();
     await vi.advanceTimersByTimeAsync(0);
     expect(edits).toHaveLength(1);
-    expect(session.history.snapshot.song.groups[0]?.slides[0]?.lines).toEqual([
-      'latest',
-    ]);
+    expect(session.history.snapshot.song.slides[0]?.lines).toEqual(['latest']);
     await vi.advanceTimersByTimeAsync(500);
     expect(edits).toHaveLength(2);
     expect(edits[1]).toMatchObject({
       baseRevision: 2,
-      song: {groups: [{slides: [{lines: ['latest']}]}, {}]},
+      song: {slides: [{lines: ['latest']}, {}]},
     });
   });
 
@@ -85,9 +83,7 @@ describe('typing-group autosaves', () => {
     release();
     await vi.advanceTimersByTimeAsync(0);
     expect(edits).toHaveLength(2);
-    expect(session.document.song.groups[0]?.slides[0]?.lines).toEqual([
-      'latest',
-    ]);
+    expect(session.document.song.slides[0]?.lines).toEqual(['latest']);
   });
 
   it('forces pending typing through an in-flight write on shutdown and removes the timer', async () => {
@@ -102,9 +98,7 @@ describe('typing-group autosaves', () => {
     release();
     expect(await closed).toBe(true);
     expect(edits).toHaveLength(2);
-    expect(session.document.song.groups[0]?.slides[0]?.lines).toEqual([
-      'latest',
-    ]);
+    expect(session.document.song.slides[0]?.lines).toEqual(['latest']);
     await vi.advanceTimersByTimeAsync(2000);
     expect(edits).toHaveLength(2);
   });
@@ -126,12 +120,12 @@ describe('typing-group autosaves', () => {
       throw new Error('Invalid fixture');
     }
     pushSong(changed.value);
-    expect(session.history.snapshot.song.groups[0]?.slides[0]?.lines).toEqual([
+    expect(session.history.snapshot.song.slides[0]?.lines).toEqual([
       'local draft',
     ]);
     await vi.advanceTimersByTimeAsync(1000);
     expect(session.blocked).toBe(true);
-    expect(session.history.snapshot.song.groups[0]?.slides[0]?.lines).toEqual([
+    expect(session.history.snapshot.song.slides[0]?.lines).toEqual([
       'local draft',
     ]);
     expect(vi.getTimerCount()).toBe(0);
@@ -176,9 +170,7 @@ describe('typing-group autosaves', () => {
     refuse();
     await vi.advanceTimersByTimeAsync(0);
     expect(session.blocked).toBe(true);
-    expect(session.history.snapshot.song.groups[0]?.slides[0]?.lines).toEqual([
-      'latest',
-    ]);
+    expect(session.history.snapshot.song.slides[0]?.lines).toEqual(['latest']);
     expect(vi.getTimerCount()).toBe(0);
     await vi.advanceTimersByTimeAsync(2000);
     expect(edit).toHaveBeenCalledOnce();

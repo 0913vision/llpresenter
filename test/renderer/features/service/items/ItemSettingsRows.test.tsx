@@ -10,7 +10,7 @@ import {
   resetTooltips,
   hoverForTooltip,
 } from '@fixtures/renderer/ui/tooltipTesting';
-import {NEWER_FILE_REASON} from '@renderer/features/service/items/ItemArrangement';
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {
   fixtureItems,
   fixtureMacros,
@@ -169,7 +169,6 @@ describe('항목 설정 이번 예배 and 메모', () => {
     await waitFor(() =>
       expect(stored(service, 1)).toMatchObject({
         memo: '천천히 부르기',
-        arrangement: '주일용',
         future: {keep: true},
       }),
     );

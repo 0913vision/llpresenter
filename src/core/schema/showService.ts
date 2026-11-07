@@ -10,11 +10,11 @@ import {
   mediaIdSchema,
   slideIdSchema,
   songIdSchema,
-  songGroupIdSchema,
+  songSlideIdSchema,
   translationIdSchema,
   themeIdSchema,
 } from './ids';
-import {nonBlankText, nonNegativeInteger, positiveInteger} from './primitives';
+import {nonBlankText, positiveInteger} from './primitives';
 import {slideHotKeySchema} from './slideHotKey';
 import {liveTextSchema} from './liveLimits';
 import {
@@ -111,11 +111,10 @@ const showRowSchema = v.pipe(
   ]),
 );
 
-/** Source identity within the projected song revision; slideIndex is zero-based. */
+/** Stable identity in the library song or the service item's own deck. */
 export const songSlideSourceSchema = payloadObject({
   songId: songIdSchema,
-  groupId: songGroupIdSchema,
-  slideIndex: nonNegativeInteger,
+  slideId: songSlideIdSchema,
 });
 
 export type SongSlideSource = ReadonlyKnown<

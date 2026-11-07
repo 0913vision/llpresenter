@@ -1,3 +1,4 @@
+import {projectedItemOverlays} from '@core/services/songItemOverlays';
 import {isItemOfKind} from '@core/schema/service';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
@@ -76,7 +77,9 @@ export function registerThemeOutput({
             ...('memo' in entry && typeof entry.memo === 'string'
               ? {memo: entry.memo.slice(0, LIVE_STATE_LIMITS.textCharacters)}
               : {}),
-            ...(entry.overlays === undefined ? {} : {overlays: entry.overlays}),
+            ...(entry.overlays === undefined
+              ? {}
+              : {overlays: projectedItemOverlays(entry)}),
           } satisfies LiveThemeItem;
         },
         onError: error =>

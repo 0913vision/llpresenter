@@ -1,6 +1,5 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {LibrarySong} from '@core/schema/contentDocuments';
-import type {SongId} from '@core/schema/ids';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import type {SongSession} from './songSession';
 
@@ -19,14 +18,11 @@ export type EditorLabels = Extract<SettingsDocument, {name: 'labels'}>;
  * An identity already applied by main. Retry persists it without replaying
  * reference rewrites.
  */
-export type AppliedRename =
-  | {readonly kind: 'label'; readonly name: string; readonly revision: number}
-  | {
-      readonly kind: 'arrangement';
-      readonly name: string;
-      readonly revision: number;
-      readonly songId: SongId;
-    };
+export interface AppliedRename {
+  readonly kind: 'label';
+  readonly name: string;
+  readonly revision: number;
+}
 
 /**
  * Reports an applied identity without deciding its durability or retry
@@ -35,12 +31,7 @@ export type AppliedRename =
 export type RenameApplied = (identity: AppliedRename) => void;
 
 /** The existing editor actions, without executing or scheduling them. */
-export type SongEditorAction =
-  | 'create-arrangement'
-  | 'rename-arrangement'
-  | 'delete-arrangement'
-  | 'edit-arrangement'
-  | 'hot-key';
+export type SongEditorAction = 'hot-key';
 
 /**
  * Captures the selected arrangement and a one-shot action serial; it does
@@ -49,7 +40,6 @@ export type SongEditorAction =
 export interface EditorActionRequest {
   readonly action: SongEditorAction;
   readonly serial: number;
-  readonly arrangement: string | undefined;
 }
 
 /**

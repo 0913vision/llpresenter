@@ -5,7 +5,7 @@ import {
   parseSettingsDocument,
   type LabelRename,
 } from '../../src/core/schema/settingsDocuments';
-import {parseGroupedSong} from '../../src/core/schema/groupedSong';
+import {parseSong} from '../../src/core/schema/song';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {makeTempDir} from '../../test/fixtures/tempDir';
 import {recordingLogger} from '@fixtures/main/displays/testing';
@@ -37,20 +37,22 @@ it.skipIf(process.env['LLP_BENCH'] !== '1')(
       const file = join(locations.songs, `${itemId(index + 1)}.llsong`);
       return {
         ...expectSuccess(
-          parseGroupedSong(
+          parseSong(
             JSON.stringify({
               format: 'llsong',
               schemaVersion: 1,
               id: itemId(index + 1),
               title: `Invented song ${index + 1}`,
-              groups: [
+              slides: [
                 {
                   id: `b0000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
-                  name: 'Before',
-                  slides: [
-                    {lines: ['Invented line']},
-                    {lines: ['Another invented line']},
-                  ],
+                  label: 'Before',
+                  lines: ['Invented line'],
+                },
+                {
+                  id: `c0000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+                  label: 'Before',
+                  lines: ['Another invented line'],
                 },
               ],
             }),

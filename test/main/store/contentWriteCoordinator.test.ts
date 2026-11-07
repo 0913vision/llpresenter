@@ -159,15 +159,11 @@ describe('ContentStore persistence', () => {
     );
   });
 
-  it('keeps failed cross-file writes for a flush to retry, with the newest content', async () => {
+  it('keeps failed writes for a flush to retry, with the newest content', async () => {
     const {store, files} = setUp();
     files.failing = new Set([join(locations.songs, 'hymn.llsong')]);
-    await store.apply({
-      type: 'song.arrangement.rename',
-      songId: SONG,
-      from: '주일용',
-      to: '짧게',
-    });
+    await store.apply(songEdit(store, '첫 제목', 1));
+    await store.flush();
     await store.apply(songEdit(store, '최신 제목', 2));
     files.failing = new Set();
 

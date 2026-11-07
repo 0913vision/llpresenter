@@ -1,3 +1,4 @@
+import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import * as v from 'valibot';
 import {describe, expect, it} from 'vitest';
 import type {Result} from '@core/common/result';
@@ -6,7 +7,6 @@ import type {FileError, LoadedFile} from '@core/schema/fileFormat';
 import type {Label} from '@core/schema/labels';
 import {mediaListSchema} from '@core/schema/mediaList';
 import {parseService, type Service} from '@core/schema/service';
-import {playedOrderWithLimit} from '@core/songs/itemOrder';
 import {DEFAULT_LABELS} from '@main/store/defaults';
 import {
   buildShowService,
@@ -15,15 +15,14 @@ import {
   songTiles,
 } from '@main/store/showService';
 import {
-  HYMN_ONE_GROUPS,
   HYMN_ONE_ID,
   hymnOne,
   itemId,
   service,
   SUNDAY_ID,
 } from '@fixtures/main/store/testFiles';
-import {createSongGroupId, createSongId} from '@core/schema/ids';
-import {parseGroupedSong, type GroupedSong} from '@core/schema/groupedSong';
+
+import {parseSong, type Song} from '@core/schema/song';
 import type {ServicePassages} from '@main/bible/servicePassages';
 import {translationIdSchema} from '@core/schema/ids';
 import {slidesItem, SLIDES_ITEM} from '@fixtures/core/slides';
@@ -44,8 +43,8 @@ function loaded<T>(parsed: Result<LoadedFile<T>, FileError>): LoadedFile<T> {
   return parsed.value;
 }
 
-function loadedSong(json: object): LoadedFile<GroupedSong> {
-  return loaded(parseGroupedSong(JSON.stringify(json), 'song.llsong'));
+function loadedSong(json: object): LoadedFile<Song> {
+  return loaded(parseSong(JSON.stringify(json), 'song.llsong'));
 }
 
 function loadedService(
@@ -219,8 +218,13 @@ describe('buildShowService', () => {
     const project = () =>
       buildShowService({
         service: loadedService([
-          {id: itemId(1), song: HYMN_ONE_ID},
           {
+            slides: loadedSong(hymnOne()).data.slides,
+            id: itemId(1),
+            song: HYMN_ONE_ID,
+          },
+          {
+            slides: loadedSong(hymnOne()).data.slides,
             id: itemId(2),
             song: HYMN_ONE_ID,
             background: override.mediaId,
@@ -247,7 +251,13 @@ describe('buildShowService', () => {
 
   it('marks an unavailable default without removing the lyrics', () => {
     const show = buildShowService({
-      service: loadedService([{id: itemId(1), song: HYMN_ONE_ID}]),
+      service: loadedService([
+        {
+          slides: loadedSong(hymnOne()).data.slides,
+          id: itemId(1),
+          song: HYMN_ONE_ID,
+        },
+      ]),
       songs: new Map([
         [HYMN_ONE_ID, loadedSong({...hymnOne(), background: MEDIA_ID})],
       ]),
@@ -262,7 +272,11 @@ describe('buildShowService', () => {
   it('makes a row for each item with the item id', () => {
     const show = build([
       {id: itemId(1), header: '찬양'},
-      {id: itemId(2), song: HYMN_ONE_ID},
+      {
+        slides: loadedSong(hymnOne()).data.slides,
+        id: itemId(2),
+        song: HYMN_ONE_ID,
+      },
       {id: itemId(3), header: '찬양'},
       {
         id: itemId(4),
@@ -277,7 +291,11 @@ describe('buildShowService', () => {
       },
       {id: itemId(5), media: MEDIA_ID},
       {id: itemId(7), scripture: {page: 3}},
-      {id: itemId(8), song: MISSING_SONG_ID},
+      {
+        slides: loadedSong(hymnOne()).data.slides,
+        id: itemId(8),
+        song: MISSING_SONG_ID,
+      },
     ]);
 
     expect(show).toMatchObject({
@@ -295,12 +313,21 @@ describe('buildShowService', () => {
       {kind: 'unknown', id: itemId(7), title: '', problem: 'unknown-kind'},
       {kind: 'song', id: itemId(8), title: '', problem: 'missing-song'},
     ]);
-    expect(Object.keys(show.tiles)).toEqual([itemId(2)]);
+    expect(Object.keys(show.tiles)).toEqual([itemId(2), itemId(8)]);
   });
 
   it('shows files from a newer app version as read-only', () => {
     const show = buildShowService({
-      service: loadedService([{id: itemId(1), song: HYMN_ONE_ID}], 99),
+      service: loadedService(
+        [
+          {
+            slides: loadedSong(hymnOne()).data.slides,
+            id: itemId(1),
+            song: HYMN_ONE_ID,
+          },
+        ],
+        99,
+      ),
       songs: new Map([
         [HYMN_ONE_ID, loadedSong({...hymnOne(), schemaVersion: 99})],
       ]),
@@ -321,14 +348,20 @@ describe('buildShowService', () => {
   });
 
   it('gives a song the tiles of its default order with 이름표 colors', () => {
-    const show = build([{id: itemId(1), song: HYMN_ONE_ID}]);
+    const show = build([
+      {
+        slides: loadedSong(hymnOne()).data.slides,
+        id: itemId(1),
+        song: HYMN_ONE_ID,
+      },
+    ]);
 
     expect(show.tiles[itemId(1)]).toMatchObject([
       {
         label: '1절',
         labelColor: '#5FB8C2',
         lines: ['만복의 근원 하나님', '온 백성 찬송 드리고'],
-        sourceSlide: {groupId: HYMN_ONE_GROUPS[0], slideIndex: 0},
+        sourceSlide: {slideId: fixtureSlideId(1)},
       },
       {
         label: '후렴',
@@ -341,7 +374,13 @@ describe('buildShowService', () => {
 
   it('gives a 이름표 that is not in the list no color', () => {
     const show = build(
-      [{id: itemId(1), song: HYMN_ONE_ID}],
+      [
+        {
+          slides: loadedSong(hymnOne()).data.slides,
+          id: itemId(1),
+          song: HYMN_ONE_ID,
+        },
+      ],
       [{name: '1절', color: '#D07A8A', key: null}],
     );
 
@@ -366,324 +405,95 @@ describe('buildShowService', () => {
     expect(show.jumpKeys).toEqual({Digit1: '1절', KeyC: '후렴'});
   });
 
-  it('projects grouped song slides with sourceSlide, label, and hotKey', () => {
-    const gSongId = createSongId('20000000-0000-4000-8000-000000000001');
-    const g1Id = createSongGroupId('a0000000-0000-4000-8000-000000000001');
-    const g2Id = createSongGroupId('a0000000-0000-4000-8000-000000000002');
-    const groupedSong: GroupedSong = {
-      format: 'llsong',
-      schemaVersion: 1,
-      id: gSongId,
-      title: 'Grouped Song 1',
-      groups: [
+  it('reads the item deck even after the library changes or disappears', () => {
+    const deck = loadedSong(hymnOne()).data.slides.map(slide => ({
+      ...slide,
+      lines: ['Item lyric'],
+    }));
+    const source = loadedService([
+      {id: itemId(1), song: HYMN_ONE_ID, slides: deck},
+    ]);
+    for (const songs of [
+      new Map([[HYMN_ONE_ID, loadedSong(hymnOne())]]),
+      new Map<string, LoadedFile<Song>>(),
+    ]) {
+      const show = buildShowService({
+        service: source,
+        songs,
+        labels: [],
+        revision: 1,
+      });
+      expect(show.tiles[itemId(1)]?.map(tile => tile.lines)).toEqual(
+        deck.map(slide => slide.lines),
+      );
+      expect(show.tiles[itemId(1)]?.[0]?.sourceSlide).toEqual({
+        songId: HYMN_ONE_ID,
+        slideId: deck[0]?.id,
+      });
+    }
+  });
+  it('keeps repeated labels and distinct slide hot keys without grouping', () => {
+    const song = loadedSong(hymnOne()).data;
+    const deck = {
+      ...song,
+      slides: [
         {
-          id: g1Id,
-          name: '1절',
-          slides: [
-            {lines: ['1절 첫 줄'], hotKey: 'KeyA'},
-            {lines: ['1절 둘째 줄']},
-          ],
+          id: fixtureSlideId(1),
+          label: '후렴',
+          lines: ['First'],
+          hotKey: 'KeyA',
         },
         {
-          id: g2Id,
-          name: '후렴',
-          slides: [{lines: ['후렴 줄'], hotKey: 'KeyC'}],
+          id: fixtureSlideId(2),
+          label: '후렴',
+          lines: ['Second'],
+          hotKey: 'KeyB',
         },
+        {id: fixtureSlideId(3), lines: ['No label']},
       ],
     };
-
-    const show = buildShowService({
-      service: loadedService([{id: itemId(1), song: gSongId}]),
-      songs: new Map([
-        [
-          gSongId,
-          {
-            format: 'llsong',
-            schemaVersion: 1,
-            access: 'editable',
-            data: groupedSong,
-          },
-        ],
-      ]),
-      labels: [
-        {name: '1절', color: '#5FB8C2', key: null},
-        {name: '후렴', color: '#D6B35F', key: null},
-      ],
-      revision: 1,
-    });
-
-    expect(show.tiles[itemId(1)]).toEqual([
+    expect(songTiles(deck, new Map([['후렴', '#5FB8C2']]))).toEqual([
       {
-        label: '1절',
+        label: '후렴',
         labelColor: '#5FB8C2',
-        lines: ['1절 첫 줄'],
-        sourceSlide: {
-          songId: gSongId,
-          groupId: g1Id,
-          slideIndex: 0,
-        },
+        lines: ['First'],
         hotKey: 'KeyA',
-      },
-      {
-        label: '1절',
-        labelColor: '#5FB8C2',
-        lines: ['1절 둘째 줄'],
-        sourceSlide: {
-          songId: gSongId,
-          groupId: g1Id,
-          slideIndex: 1,
-        },
+        sourceSlide: {songId: song.id, slideId: fixtureSlideId(1)},
       },
       {
         label: '후렴',
-        labelColor: '#D6B35F',
-        lines: ['후렴 줄'],
-        sourceSlide: {
-          songId: gSongId,
-          groupId: g2Id,
-          slideIndex: 0,
-        },
-        hotKey: 'KeyC',
+        labelColor: '#5FB8C2',
+        lines: ['Second'],
+        hotKey: 'KeyB',
+        sourceSlide: {songId: song.id, slideId: fixtureSlideId(2)},
       },
-    ]);
-  });
-
-  it('projects grouped song with named arrangement and repeated groups', () => {
-    const gSongId = createSongId('20000000-0000-4000-8000-000000000002');
-    const g1Id = createSongGroupId('b0000000-0000-4000-8000-000000000001');
-    const g2Id = createSongGroupId('b0000000-0000-4000-8000-000000000002');
-    const groupedSong: GroupedSong = {
-      format: 'llsong',
-      schemaVersion: 1,
-      id: gSongId,
-      title: 'Repeated Groups',
-      groups: [
-        {id: g1Id, name: '1절', slides: [{lines: ['1절']}]},
-        {id: g2Id, name: '후렴', slides: [{lines: ['후렴']}]},
-      ],
-      arrangements: [{name: '반복구성', groups: [g1Id, g2Id, g1Id]}],
-    };
-
-    const show = buildShowService({
-      service: loadedService([
-        {id: itemId(1), song: gSongId, arrangement: '반복구성'},
-      ]),
-      songs: new Map([
-        [
-          gSongId,
-          {
-            format: 'llsong',
-            schemaVersion: 1,
-            access: 'editable',
-            data: groupedSong,
-          },
-        ],
-      ]),
-      labels: [{name: '1절', color: '#5FB8C2', key: null}],
-      revision: 1,
-    });
-
-    const tiles = show.tiles[itemId(1)] ?? [];
-    expect(tiles).toHaveLength(3);
-    expect(tiles.map(t => t.label)).toEqual(['1절', '후렴', '1절']);
-    expect(tiles[0]?.sourceSlide).toEqual({
-      songId: gSongId,
-      groupId: g1Id,
-      slideIndex: 0,
-    });
-    expect(tiles[2]?.sourceSlide).toEqual({
-      songId: gSongId,
-      groupId: g1Id,
-      slideIndex: 0,
-    });
-  });
-
-  it('gives unnamed group label: null and labelColor: none', () => {
-    const gSongId = createSongId('20000000-0000-4000-8000-000000000003');
-    const g1Id = createSongGroupId('c0000000-0000-4000-8000-000000000001');
-    const groupedSong: GroupedSong = {
-      format: 'llsong',
-      schemaVersion: 1,
-      id: gSongId,
-      title: 'Unnamed Group',
-      groups: [{id: g1Id, name: '', slides: [{lines: ['가사']}]}],
-    };
-
-    const show = buildShowService({
-      service: loadedService([{id: itemId(1), song: gSongId}]),
-      songs: new Map([
-        [
-          gSongId,
-          {
-            format: 'llsong',
-            schemaVersion: 1,
-            access: 'editable',
-            data: groupedSong,
-          },
-        ],
-      ]),
-      labels: [],
-      revision: 1,
-    });
-
-    expect(show.tiles[itemId(1)]).toEqual([
       {
         label: null,
         labelColor: 'none',
-        lines: ['가사'],
-        sourceSlide: {
-          songId: gSongId,
-          groupId: g1Id,
-          slideIndex: 0,
-        },
+        lines: ['No label'],
+        sourceSlide: {songId: song.id, slideId: fixtureSlideId(3)},
       },
     ]);
   });
-
-  it('accepts exactly 10,000 tiles for grouped songs without flagging capped', () => {
-    const gSongId = createSongId('20000000-0000-4000-8000-000000000004');
-    const g1Id = createSongGroupId('d0000000-0000-4000-8000-000000000001');
-    const slides = Array.from({length: 100}, (_, index) => ({
-      lines: [`Slide ${index + 1}`],
-    }));
-    const repeatedGroups = Array.from({length: 100}, () => g1Id);
-    const maxSong: GroupedSong = {
-      format: 'llsong',
-      schemaVersion: 1,
-      id: gSongId,
-      title: 'Max Grouped Song',
-      groups: [{id: g1Id, name: '반복절', slides}],
-      arrangements: [{name: '한계구성', groups: repeatedGroups}],
-    };
-
-    const projected = projectSongTiles(maxSong, new Map(), {
-      arrangement: '한계구성',
-    });
-    expect(projected.capped).toBe(false);
-    expect(projected.tiles).toHaveLength(10_000);
-
-    const show = buildShowService({
-      service: loadedService([
-        {id: itemId(1), song: gSongId, arrangement: '한계구성'},
-      ]),
-      songs: new Map([
-        [
-          gSongId,
-          {
-            format: 'llsong',
-            schemaVersion: 1,
-            access: 'editable',
-            data: maxSong,
-          },
-        ],
-      ]),
-      labels: [],
-      revision: 1,
-    });
-
-    expect(show.rows[0]).not.toHaveProperty('problem');
-    expect(show.tiles[itemId(1)]).toHaveLength(10_000);
-  });
-
-  it('stops iteration and marks row tile-limit when tile expansion exceeds limit (10,001 tiles)', () => {
-    const gSongId = createSongId('20000000-0000-4000-8000-000000000005');
-    const g1Id = createSongGroupId('d0000000-0000-4000-8000-000000000002');
-    const slides = Array.from({length: 100}, (_, index) => ({
-      lines: [`Slide ${index + 1}`],
-    }));
-    const repeatedGroups = Array.from({length: 101}, () => g1Id);
-    const hugeSong: GroupedSong = {
-      format: 'llsong',
-      schemaVersion: 1,
-      id: gSongId,
-      title: 'Huge Grouped Song',
-      groups: [{id: g1Id, name: '반복절', slides}],
-      arrangements: [{name: '초과구성', groups: repeatedGroups}],
-    };
-
-    const projected = projectSongTiles(hugeSong, new Map(), {
-      arrangement: '초과구성',
-    });
-    expect(projected.capped).toBe(true);
-    expect(projected.tiles).toEqual([]);
-
-    const show = buildShowService({
-      service: loadedService([
-        {id: itemId(1), song: gSongId, arrangement: '초과구성'},
-      ]),
-      songs: new Map([
-        [
-          gSongId,
-          {
-            format: 'llsong',
-            schemaVersion: 1,
-            access: 'editable',
-            data: hugeSong,
-          },
-        ],
-      ]),
-      labels: [],
-      revision: 1,
-    });
-
-    expect(show.rows[0]).toMatchObject({
-      kind: 'song',
-      id: itemId(1),
-      problem: 'tile-limit',
-    });
-    expect(show.tiles[itemId(1)]).toEqual([]);
-
-    expect(songTiles(hugeSong, new Map(), {arrangement: '초과구성'})).toEqual(
-      [],
+  it('projects an empty item and bounds the projection without partial output', () => {
+    const song = loadedSong(hymnOne()).data;
+    const slides = Array.from(
+      {length: SHOW_SERVICE_LIMITS.tiles},
+      (_, index) => ({id: fixtureSlideId(index), lines: []}),
     );
-    expect(SHOW_SERVICE_LIMITS.tiles).toBe(10_000);
-  });
-});
-
-describe('projectSongTiles custom order', () => {
-  const verse = createSongGroupId('d0000000-0000-4000-8000-0000000000a1');
-  const chorus = createSongGroupId('d0000000-0000-4000-8000-0000000000a2');
-  const song: GroupedSong = {
-    format: 'llsong',
-    schemaVersion: 1,
-    id: createSongId('20000000-0000-4000-8000-0000000000a1'),
-    title: 'Order Song',
-    groups: [
-      {id: verse, name: '1절', slides: [{lines: ['verse']}]},
-      {id: chorus, name: '후렴', slides: [{lines: ['chorus']}]},
-    ],
-    arrangements: [{name: 'short', groups: [verse]}],
-  };
-  const linesOf = (play: Parameters<typeof songTiles>[2]): string[] =>
-    songTiles(song, new Map(), play).map(tile => tile.lines.join(''));
-
-  it('plays the custom order instead of the named 구성', () => {
+    expect(projectSongTiles({...song, slides: []}, new Map())).toEqual({
+      tiles: [],
+      capped: false,
+    });
+    expect(projectSongTiles({...song, slides}, new Map()).tiles).toHaveLength(
+      10_000,
+    );
     expect(
-      linesOf({arrangement: 'short', customOrder: [chorus, verse, chorus]}),
-    ).toEqual(['chorus', 'verse', 'chorus']);
-  });
-
-  it('skips a group the song no longer has and plays an empty order as empty', () => {
-    const gone = createSongGroupId('d0000000-0000-4000-8000-0000000000a9');
-    expect(linesOf({customOrder: [gone, verse]})).toEqual(['verse']);
-    expect(linesOf({customOrder: []})).toEqual([]);
-  });
-
-  it('plays an empty 구성 as all groups, as the 슬라이드 list does', () => {
-    const empty: GroupedSong = {
-      ...song,
-      arrangements: [{name: 'empty', groups: []}],
-    };
-    const play = {arrangement: 'empty'};
-
-    expect(
-      songTiles(empty, new Map(), play).map(tile => tile.lines.join('')),
-    ).toEqual(['verse', 'chorus']);
-    expect(playedOrderWithLimit(empty, play).slides).toEqual([1, 2]);
-  });
-
-  it('keeps playing the named 구성 when there is no custom order', () => {
-    expect(linesOf({arrangement: 'short'})).toEqual(['verse']);
+      projectSongTiles(
+        {...song, slides: [...slides, {id: fixtureSlideId(10001), lines: []}]},
+        new Map(),
+      ),
+    ).toEqual({tiles: [], capped: true});
   });
 });
 

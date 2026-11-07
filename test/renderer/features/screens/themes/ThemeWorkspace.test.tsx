@@ -556,6 +556,7 @@ function servicesWithSongItems(count: number): Partial<LlpApi['services']> {
       name: '예배',
       date: '2026-11-01T11:00',
       order: Array.from({length: count}, (_, index) => ({
+        slides: [],
         id: itemId(index + 100),
         song: itemId(index + 200),
       })),

@@ -21,13 +21,12 @@ async function keyMenu(number: number): Promise<HTMLElement> {
 
 it('assigns the clicked source slide through the shared menu, persistence and undo', async () => {
   const {user, session, documents, first} = await setup();
-  act(() => session.selectArrangement('주일용'));
   expect(screen.queryByRole('button', {name: /슬라이드.*단축키/})).toBeNull();
-  await user.click(await keyMenu(3));
+  await user.click(await keyMenu(2));
   expect(session.history.snapshot.selection.block).toBe(1);
   expect(
     within(screen.getByRole('listbox', {name: '슬라이드'}))
-      .getAllByRole('option')[2]
+      .getAllByRole('option')[1]
       ?.getAttribute('aria-selected'),
   ).toBe('true');
   fireEvent.keyDown(screen.getByRole('textbox', {name: '슬라이드 단축키'}), {
@@ -37,19 +36,14 @@ it('assigns the clicked source slide through the shared menu, persistence and un
   await user.click(screen.getByRole('button', {name: '저장'}));
   await act(() => session.flush());
   const saved = documents.get(first.song.id)?.song;
-  expect(saved?.groups[0]?.slides[0]?.hotKey).toBeUndefined();
-  expect(saved?.groups[1]?.slides[0]?.hotKey).toBe('KeyC');
-  expect(saved?.arrangements).toEqual(first.song.arrangements);
+  expect(saved?.slides[0]?.hotKey).toBeUndefined();
+  expect(saved?.slides[1]?.hotKey).toBe('KeyC');
   act(() => session.edit('undo'));
   await act(() => session.flush());
-  expect(
-    documents.get(first.song.id)?.song.groups[1]?.slides[0]?.hotKey,
-  ).toBeUndefined();
+  expect(documents.get(first.song.id)?.song.slides[1]?.hotKey).toBeUndefined();
   act(() => session.edit('redo'));
   await act(() => session.flush());
-  expect(documents.get(first.song.id)?.song.groups[1]?.slides[0]?.hotKey).toBe(
-    'KeyC',
-  );
+  expect(documents.get(first.song.id)?.song.slides[1]?.hotKey).toBe('KeyC');
 });
 
 it('refuses duplicate keys and disables the read-only menu entry', async () => {
@@ -68,9 +62,7 @@ it('refuses duplicate keys and disables the read-only menu entry', async () => {
   expect(
     screen.getByRole('button', {name: '저장'}).getAttribute('aria-disabled'),
   ).toBe('true');
-  expect(
-    session.history.snapshot.song.groups[1]?.slides[0]?.hotKey,
-  ).toBeUndefined();
+  expect(session.history.snapshot.song.slides[1]?.hotKey).toBeUndefined();
   await user.keyboard('{Escape}');
   act(() => store.open(editorSong(5, 'readOnly')));
   expect((await keyMenu(1)).getAttribute('aria-disabled')).toBe('true');
@@ -90,8 +82,6 @@ it('does not apply a key draft after the source song changes', async () => {
     screen.getByRole('button', {name: '저장'}).getAttribute('aria-disabled'),
   ).toBe('true');
   await user.click(screen.getByRole('button', {name: '저장'}));
-  expect(
-    session.history.snapshot.song.groups[0]?.slides[0]?.hotKey,
-  ).toBeUndefined();
+  expect(session.history.snapshot.song.slides[0]?.hotKey).toBeUndefined();
   expect(screen.getByRole('dialog')).toBeDefined();
 });

@@ -1,3 +1,4 @@
+import {projectedItemOverlays} from '@core/services/songItemOverlays';
 import {useSyncExternalStore, type JSX} from 'react';
 import {isItemOfKind} from '@core/schema/service';
 import {
@@ -12,7 +13,7 @@ import {
   PropertyGroup,
   PropertyValue,
 } from '@renderer/ui/PropertyRow';
-import {NEWER_FILE_REASON} from './ItemArrangement';
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {ItemBackgroundRow, ItemMemo, ItemStartRow} from './ItemSettingsRows';
 import {
   isStartItem,
@@ -41,7 +42,7 @@ interface ItemPanelProps {
 
 /** The selected place of the 준비 item, drawn locally; never the output. */
 export function ItemPreviewPanel({items, editor}: ItemPanelProps): JSX.Element {
-  const {service, item, song, arrangement, position} = useSyncExternalStore(
+  const {service, item, song, position} = useSyncExternalStore(
     items.subscribe,
     items.getSnapshot,
   );
@@ -94,8 +95,7 @@ export function ItemPreviewPanel({items, editor}: ItemPanelProps): JSX.Element {
         : item === null || !isItemOfKind(item, 'song') || song === null
           ? null
           : itemPicture({
-              song: song.history.snapshot.song,
-              arrangement,
+              song: {...song.history.snapshot.song, slides: item.slides},
               position,
               background: item.background ?? song.background,
             });
@@ -135,6 +135,7 @@ export function ItemPreviewPanel({items, editor}: ItemPanelProps): JSX.Element {
         item !== null && previewKind !== undefined
           ? {
               ...item,
+              overlays: projectedItemOverlays(item),
               kind: previewKind,
               source: 'service',
               ...(previewTitle === undefined ? {} : {title: previewTitle}),

@@ -25,6 +25,11 @@ const MAX_SESSIONS = 20;
  */
 export class SongSessionPool {
   private readonly sessions = new Map<SongId, SongSession>();
+  private readonly writers = new Map<SongId, EditorApi['content']>();
+  private readonly reloaders = new Map<
+    SongId,
+    () => Promise<SongDocument | null>
+  >();
   private active: SongId | null = null;
   private itemSong: SongId | null = null;
 
@@ -50,6 +55,8 @@ export class SongSessionPool {
   }
   clear(): void {
     this.sessions.clear();
+    this.writers.clear();
+    this.reloaders.clear();
   }
   flushAll(): Promise<boolean[]> {
     return Promise.all(
@@ -62,8 +69,14 @@ export class SongSessionPool {
     );
   }
 
-  attach(document: SongDocument): SongSession {
+  attach(
+    document: SongDocument,
+    content?: EditorApi['content'],
+    reload?: () => Promise<SongDocument | null>,
+  ): SongSession {
     const id = document.song.id;
+    if (content !== undefined) this.writers.set(id, content);
+    if (reload !== undefined) this.reloaders.set(id, reload);
     const existing = this.sessions.get(id);
     if (existing !== undefined) {
       this.touch(id);
@@ -72,11 +85,16 @@ export class SongSessionPool {
     }
     const session = new SongSession({
       document,
-      api: this.context.api.content,
+      api: {
+        edit: command =>
+          (this.writers.get(id) ?? this.context.api.content).edit(command),
+      },
+      itemSession: content !== undefined,
       ...(this.context.persistence === undefined
         ? {}
         : {persistence: this.context.persistence}),
       isDuplicateTitle: value =>
+        content === undefined &&
         this.context
           .library()
           .some(
@@ -118,13 +136,20 @@ export class SongSessionPool {
       ) {
         session.discard();
         this.sessions.delete(id);
+        this.writers.delete(id);
+        this.reloaders.delete(id);
       }
     }
   }
 
+  read(id: SongId): Promise<SongDocument | null> {
+    const loader = this.reloaders.get(id);
+    return loader === undefined ? this.context.api.songs.get(id) : loader();
+  }
+
   async reload(id: SongId): Promise<void> {
     try {
-      const document = await this.context.api.songs.get(id);
+      const document = await this.read(id);
       if (!this.context.host.alive()) return;
       if (document === null) this.remove(id);
       else this.sessions.get(id)?.install(document);
@@ -136,6 +161,8 @@ export class SongSessionPool {
   remove(id: SongId): void {
     this.sessions.get(id)?.discard();
     this.sessions.delete(id);
+    this.writers.delete(id);
+    this.reloaders.delete(id);
     if (this.active === id) this.active = null;
     this.context.host.publish();
   }

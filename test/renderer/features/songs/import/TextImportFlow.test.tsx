@@ -1,3 +1,4 @@
+import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {StrictMode} from 'react';
 import {
   act,
@@ -418,22 +419,14 @@ describe('imported song actions', () => {
     });
     const session = f.store.getSnapshot().session;
     if (session === null) throw new Error('No imported session');
-    const group = session.history.snapshot.song.groups[0];
-    if (group === undefined) throw new Error('Missing group');
     session.install({
       ...session.document,
       song: {
         ...session.document.song,
-        groups: [group],
-        arrangements: [
-          {
-            name: 'Large',
-            groups: Array.from(
-              {length: SONG_IMPORT_LIMITS.picks + 1},
-              () => group.id,
-            ),
-          },
-        ],
+        slides: Array.from(
+          {length: SONG_IMPORT_LIMITS.slides + 1},
+          (_, at) => ({id: fixtureSlideId(at + 1), lines: ['Draft']}),
+        ),
       },
     });
     const edit = vi.spyOn(f.api.content, 'edit');
@@ -443,7 +436,7 @@ describe('imported song actions', () => {
       expect(button.getAttribute('aria-disabled')).toBe('true'),
     );
     expect((await hoverForTooltip(button))?.textContent).toBe(
-      limitReason('구성 순서', SONG_IMPORT_LIMITS.picks),
+      limitReason('슬라이드', SONG_IMPORT_LIMITS.slides),
     );
     fireEvent.click(button);
     expect(edit).not.toHaveBeenCalled();

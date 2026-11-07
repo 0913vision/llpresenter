@@ -10,7 +10,7 @@ import {Button} from '@renderer/ui/Button';
 import {Menu} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import {BibleQuickAdd} from '../items/BibleQuickAdd';
-import {NEWER_FILE_REASON} from '../items/ItemArrangement';
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {passageItem, type PassageDefaults} from '../items/quickAddBible';
 import {otherItemEntries} from '../items/quickAddItems';
 import {useOtherSources} from '../items/useOtherSources';

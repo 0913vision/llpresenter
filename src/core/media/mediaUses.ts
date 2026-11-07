@@ -1,5 +1,5 @@
 import type {MediaId} from '../schema/ids';
-import type {GroupedSong} from '../schema/groupedSong';
+import type {Song} from '../schema/song';
 import type {MediaList} from '../schema/mediaList';
 import type {MediaUses} from '../schema/mediaUses';
 import type {MacrosFile} from '../schema/macros';
@@ -13,7 +13,7 @@ export interface MediaUseSources {
   readonly props: PropsFile;
   readonly themes: ThemesFile;
   readonly macros: MacrosFile;
-  readonly songs: readonly GroupedSong[];
+  readonly songs: readonly Song[];
   readonly services: readonly Service[];
 }
 

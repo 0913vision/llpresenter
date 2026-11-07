@@ -1,55 +1,46 @@
+import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {describe, expect, it} from 'vitest';
 import {findSlideHotKey} from '@core/services/slideHotKeys';
-import {parseGroupedSong} from '@core/schema/groupedSong';
+import {parseSong} from '@core/schema/song';
 import type {ShowTile} from '@core/schema/showService';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 
 const SONG = '00000000-0000-4000-8000-000000000001';
-const FIRST = '00000000-0000-4000-8000-000000000002';
-const SECOND = '00000000-0000-4000-8000-000000000003';
 
 function tiles(): readonly ShowTile[] {
   const song = expectSuccess(
-    parseGroupedSong(
+    parseSong(
       JSON.stringify({
         format: 'llsong',
         schemaVersion: 1,
         id: SONG,
         title: 'Invented song',
-        groups: [
+        slides: [
+          {id: fixtureSlideId(1), lines: ['Invented one'], label: 'Same'},
           {
-            id: FIRST,
-            name: 'Same',
-            slides: [
-              {lines: ['Invented one']},
-              {lines: ['Invented two'], hotKey: 'KeyA'},
-            ],
+            id: fixtureSlideId(2),
+            lines: ['Invented two'],
+            hotKey: 'KeyA',
+            label: 'Same',
           },
           {
-            id: SECOND,
-            name: 'Same',
-            slides: [{lines: ['Invented three'], hotKey: 'Digit0'}],
+            id: fixtureSlideId(3),
+            lines: ['Invented three'],
+            hotKey: 'Digit0',
+            label: 'Same',
           },
-        ],
-        arrangements: [
-          {name: 'Repeated', groups: [SECOND, FIRST, SECOND, FIRST]},
         ],
       }),
       'invented.llsong',
     ),
   ).data;
-  const groups = new Map(song.groups.map(group => [group.id, group]));
-  return (song.arrangements?.[0]?.groups ?? []).flatMap(groupId => {
-    const group = groups.get(groupId);
-    if (group === undefined) throw new Error('Missing invented group');
-    return group.slides.map((slide, slideIndex) => ({
-      label: group.name,
-      labelColor: 'none' as const,
-      lines: slide.lines,
-      ...(slide.hotKey === undefined ? {} : {hotKey: slide.hotKey}),
-      sourceSlide: {songId: song.id, groupId, slideIndex},
-    }));
-  });
+  return song.slides.map(slide => ({
+    label: slide.label ?? null,
+    labelColor: 'none',
+    lines: slide.lines,
+    ...(slide.hotKey === undefined ? {} : {hotKey: slide.hotKey}),
+    sourceSlide: {songId: song.id, slideId: slide.id},
+  }));
 }
 
 describe('source-slide hot-key projection', () => {
@@ -57,17 +48,17 @@ describe('source-slide hot-key projection', () => {
     const input = tiles();
     for (let repeat = 0; repeat < 20; repeat += 1) {
       expect(findSlideHotKey(input, 'KeyA')).toEqual({
-        tileIndex: 2,
-        sourceSlide: {songId: SONG, groupId: FIRST, slideIndex: 1},
+        tileIndex: 1,
+        sourceSlide: {songId: SONG, slideId: fixtureSlideId(2)},
       });
       expect(findSlideHotKey(input, 'Digit0')).toEqual({
-        tileIndex: 0,
-        sourceSlide: {songId: SONG, groupId: SECOND, slideIndex: 0},
+        tileIndex: 2,
+        sourceSlide: {songId: SONG, slideId: fixtureSlideId(3)},
       });
     }
     expect(
       findSlideHotKey(
-        input.filter(tile => tile.sourceSlide?.groupId === SECOND),
+        input.filter(tile => tile.sourceSlide?.slideId === fixtureSlideId(3)),
         'KeyA',
       ),
     ).toBeNull();

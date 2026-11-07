@@ -3,7 +3,6 @@ import {classNames} from '@renderer/ui/classNames';
 import styles from './ServiceTable.module.css';
 
 const COLUMNS = [
-  ['구성', styles.arrangement],
   ['슬라이드', styles.slides],
   ['테마', styles.theme],
   ['배경', styles.background],

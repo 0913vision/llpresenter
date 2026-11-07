@@ -145,6 +145,7 @@ export class EditorCatalog {
     this.libraryStatus = 'ready';
     const ids = new Set(entries.map(entry => entry.id));
     for (const id of this.context.pool.keys()) {
+      if (this.context.pool.get(id)?.itemSession === true) continue;
       if (!ids.has(id)) this.context.pool.remove(id);
     }
     this.context.host.publish();

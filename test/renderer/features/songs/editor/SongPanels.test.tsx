@@ -35,37 +35,18 @@ vi.mock('@renderer/rendering/outputRenderer', () => ({
 }));
 
 describe('song editor right panels', () => {
-  it('previews the next slide in the selected source arrangement and clears it at the end', async () => {
-    const fixture = editorFixture();
-    const [firstGroup, secondGroup] = fixture.first.song.groups;
-    if (firstGroup === undefined || secondGroup === undefined) {
-      throw new Error('Missing groups');
-    }
-    const first = {
-      ...fixture.first,
-      song: {
-        ...fixture.first.song,
-        arrangements: [
-          {name: 'Reversed', groups: [secondGroup.id, firstGroup.id]},
-        ],
-      },
-    };
-    fixture.documents.set(first.song.id, first);
-    const {session, store, user} = await editorSetup({...fixture, first});
+  it('previews the next slide in deck order and clears it at the end', async () => {
+    const {session, store, user, first} = await editorSetup();
     render(<SongPreviewPanel store={store} />);
     await user.click(screen.getByRole('radio', {name: '무대 화면'}));
-    act(() => {
-      session.selectArrangement('Reversed');
-      session.select({block: 1, start: 0, end: 0});
-    });
     expect(drawing.render.mock.lastCall?.[0].slide?.next).toEqual({
-      label: firstGroup.name,
-      lines: firstGroup.slides[0]?.lines,
+      label: first.song.slides[1]?.label,
+      lines: first.song.slides[1]?.lines,
     });
-    act(() => session.select({block: 0, start: 0, end: 0}));
+    act(() => session.select({block: 1, start: 0, end: 0}));
     expect(drawing.render.mock.lastCall?.[0].slide?.next).toBeUndefined();
   });
-  it('selects repeated occurrences, scrolls the block without moving grid focus, and previews unsaved input without output', async () => {
+  it('selects slides, scrolls the block without moving grid focus, and previews unsaved input without output', async () => {
     const fixture = editorFixture();
     const output = vi.spyOn(fixture.api.live, 'send');
     const {session, store} = await editorSetup(fixture);
@@ -75,13 +56,12 @@ describe('song editor right panels', () => {
         <SongSlidePanel store={store} sizeClass="normal" />
       </>,
     );
-    act(() => session.selectArrangement('주일용'));
     const list = screen.getByRole('listbox', {name: '슬라이드'});
     const options = within(list).getAllByRole('option');
-    expect(options).toHaveLength(3);
-    const repeated = options[2];
+    expect(options).toHaveLength(2);
+    const repeated = options[1];
     if (repeated === undefined) throw new Error('No repeated occurrence');
-    const middle = options[1];
+    const middle = options[0];
     if (middle === undefined) throw new Error('No middle occurrence');
     fireEvent.click(middle);
     expect(drawing.render.mock.lastCall?.[0].slide?.next).toEqual({
@@ -92,7 +72,7 @@ describe('song editor right panels', () => {
     fireEvent.click(repeated);
     expect(session.history.snapshot.selection.block).toBe(1);
     expect(repeated.getAttribute('aria-selected')).toBe('true');
-    expect(options[1]?.getAttribute('aria-selected')).toBe('false');
+    expect(options[0]?.getAttribute('aria-selected')).toBe('false');
     expect(drawing.render.mock.lastCall?.[0].slide?.next).toBeUndefined();
     expect(document.activeElement).toBe(repeated);
     expect(HTMLElement.prototype.scrollIntoView).toHaveBeenCalledWith({
@@ -111,19 +91,18 @@ describe('song editor right panels', () => {
     expect(list.querySelector('img,video')).toBeNull();
   });
 
-  it('retains an empty order in the slide panel and keeps each song occurrence separate', async () => {
+  it('shows an empty item deck and keeps each song selection separate', async () => {
     const fixture = editorFixture();
     const first = {
       ...fixture.first,
       song: {
         ...fixture.first.song,
-        arrangements: [{name: '빈 구성', groups: []}],
+        slides: [],
       },
     };
     fixture.documents.set(first.song.id, first);
-    const {session, store, second} = await editorSetup({...fixture, first});
+    const {store, second} = await editorSetup({...fixture, first});
     render(<SongSlidePanel store={store} sizeClass="normal" />);
-    act(() => session.selectArrangement('빈 구성'));
     expect(screen.queryAllByRole('option')).toHaveLength(0);
     act(() => store.open(second));
     expect(

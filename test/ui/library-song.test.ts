@@ -1,8 +1,9 @@
+import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {mkdir, readdir, readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import type {ElectronApplication, Page} from 'playwright-core';
 import {expect, it} from 'vitest';
-import {parseGroupedSong} from '@core/schema/groupedSong';
+import {parseSong} from '@core/schema/song';
 import {offscreenApp} from './electron-app';
 
 const FIRST = '33000000-0000-4000-8000-000000000001';
@@ -39,7 +40,7 @@ async function saveEvidence(
     (await editor.locator('body').innerText({timeout: 2_000})).slice(0, 800),
   );
   const title = await read(async () => {
-    const parsed = parseGroupedSong(await readFile(file, 'utf8'), file);
+    const parsed = parseSong(await readFile(file, 'utf8'), file);
     return parsed.ok ? parsed.value.data.title : parsed.error.message;
   });
   const log = await read(async () => {
@@ -71,14 +72,7 @@ async function seedSong(
       schemaVersion: 1,
       id: song.id,
       title: song.title,
-      groups: [
-        {
-          id: `0f000000-0000-4000-8000-${song.id.slice(-12)}`,
-          name: '1절',
-          slides: [{lines: [song.text]}],
-        },
-      ],
-      arrangements: [],
+      slides: [{id: fixtureSlideId(1), lines: [song.text], label: '1절'}],
     }),
     'utf8',
   );

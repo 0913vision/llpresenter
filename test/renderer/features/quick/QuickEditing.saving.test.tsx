@@ -104,7 +104,7 @@ describe('quick editing', () => {
           date: '2026-10-26T09:00',
           order: [
             kind === 'song'
-              ? {id: quickId(901), song: fixture.song.songId}
+              ? {slides: [], id: quickId(901), song: fixture.song.songId}
               : {id: quickId(901), bible: bible.ref},
           ],
         },

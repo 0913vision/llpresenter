@@ -1,8 +1,9 @@
+import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {mkdir, readFile, readdir, writeFile} from 'node:fs/promises';
 import {dirname, join} from 'node:path';
 import {beforeEach, expect, it, onTestFinished, vi} from 'vitest';
 import {makeTempDir} from '@fixtures/tempDir';
-import {arrangementGroupIds, type GroupedSong} from '@core/schema/groupedSong';
+import {type Song} from '@core/schema/song';
 import {createSongId} from '@core/schema/ids';
 import type {Logger} from '@main/log';
 import {openAppConfig} from '@main/store/appConfigFile';
@@ -30,30 +31,22 @@ vi.mock('node:fs/promises', async importOriginal => {
 });
 
 const SONG_ID = createSongId('00000000-0000-4000-8000-000000000001');
-const DAWN = '00000000-0000-4000-8000-000000000201';
-const NOON = '00000000-0000-4000-8000-000000000202';
-const EVENING = '00000000-0000-4000-8000-000000000203';
+
 const stored = {
   format: 'llsong',
   schemaVersion: 1,
   id: SONG_ID,
   title: 'Invented stored song',
   extension: {keep: true},
-  groups: [
+  slides: [
     {
-      id: DAWN,
-      name: 'Verse',
-      slides: [{lines: ['Invented dawn'], note: 'first'}],
+      id: fixtureSlideId(1),
+      lines: ['Invented dawn'],
+      note: 'first',
+      label: 'Verse',
     },
-    {id: NOON, name: 'Verse', slides: [{lines: ['Invented noon']}]},
-    {id: EVENING, name: 'Chorus', slides: [{lines: ['Invented evening']}]},
-  ],
-  arrangements: [
-    {
-      name: 'Reverse repeat',
-      groups: [EVENING, NOON, DAWN, NOON],
-      note: 'order',
-    },
+    {id: fixtureSlideId(2), lines: ['Invented noon'], label: 'Verse'},
+    {id: fixtureSlideId(3), lines: ['Invented evening'], label: 'Chorus'},
   ],
 };
 
@@ -123,29 +116,20 @@ function documentOf(content: ContentStore) {
   return document;
 }
 
-function linesIn(song: GroupedSong, name?: string): string[] {
-  const groups = new Map(song.groups.map(group => [group.id, group]));
-  return arrangementGroupIds(song, name).flatMap(
-    id => groups.get(id)?.slides.flatMap(slide => slide.lines) ?? [],
-  );
+function linesIn(song: Song): string[] {
+  return song.slides.flatMap(slide => slide.lines);
 }
 
 async function revise(content: ContentStore, line: string) {
   const {song, revision} = documentOf(content);
-  const [first, ...groups] = song.groups;
-  const [slide, ...slides] = first?.slides ?? [];
-  if (first === undefined || slide === undefined) {
-    throw new Error('Missing invented source slide');
-  }
   const result = await content.apply({
     type: 'song.update',
     baseRevision: revision,
     song: {
       ...song,
-      groups: [
-        {...first, slides: [{...slide, lines: [line]}, ...slides]},
-        ...groups,
-      ],
+      slides: song.slides.map((slide, index) =>
+        index === 0 ? {...slide, lines: [line]} : slide,
+      ),
     },
   });
   expect(result.ok).toBe(true);
@@ -171,14 +155,8 @@ it('reads a file without writing it on read or idle flush', async () => {
     'Invented noon',
     'Invented evening',
   ]);
-  expect(linesIn(song, 'Reverse repeat')).toEqual([
-    'Invented evening',
-    'Invented noon',
-    'Invented dawn',
-    'Invented noon',
-  ]);
   expect(song).toMatchObject({extension: {keep: true}});
-  expect(song.groups[0]?.slides[0]).toMatchObject({note: 'first'});
+  expect(song.slides[0]).toMatchObject({note: 'first'});
   await content.flush();
   expect(write).not.toHaveBeenCalled();
   expect(await readFile(file, 'utf8')).toBe(original);
@@ -186,16 +164,16 @@ it('reads a file without writing it on read or idle flush', async () => {
 
 it('writes the edit and keeps the original bytes as the recovery copy', async () => {
   const {file, original, content, loaded} = await scenario();
-  const ids = documentOf(content).song.groups.map(group => group.id);
+  const ids = documentOf(content).song.slides.map(slide => slide.id);
   await revise(content, 'Invented revised dawn');
   await content.flush();
   const saved: unknown = JSON.parse(await readFile(file, 'utf8'));
   expect(saved).toMatchObject({schemaVersion: 1, extension: {keep: true}});
-  expect(documentOf(content).song.groups.map(group => group.id)).toEqual(ids);
+  expect(documentOf(content).song.slides.map(slide => slide.id)).toEqual(ids);
   expect(await recoveryText(loaded)).toBe(original);
 });
 
-it('preserves the file on atomic rename failure and retries the newest grouped edit', async () => {
+it('preserves the file on atomic rename failure and retries the newest slide-deck edit', async () => {
   const {file, original, content, loaded} = await scenario();
   fault.enabled = true;
   await revise(content, 'Invented pending line');
@@ -211,26 +189,17 @@ it('preserves the file on atomic rename failure and retries the newest grouped e
   await content.flush();
   const saved: unknown = JSON.parse(await readFile(file, 'utf8'));
   expect(saved).toMatchObject({schemaVersion: 1, extension: {keep: true}});
-  expect(saved).toHaveProperty('groups.0.slides.0.lines', [
-    'Invented newest line',
-  ]);
+  expect(saved).toHaveProperty('slides.0.lines', ['Invented newest line']);
   expect(await recoveryText(loaded)).toBe(original);
 });
 
-it('reloads group identities, repeated arrangements and source hot keys after saving', async () => {
+it('reloads slide identities, labels and hot keys after saving', async () => {
   const {file, content} = await scenario();
   const {song, revision} = documentOf(content);
   const edited = {
     ...song,
-    groups: song.groups.map((group, index) =>
-      index === 0
-        ? {
-            ...group,
-            slides: group.slides.map((slide, position) =>
-              position === 0 ? {...slide, hotKey: 'KeyK' as const} : slide,
-            ),
-          }
-        : group,
+    slides: song.slides.map((slide, index) =>
+      index === 0 ? {...slide, hotKey: 'KeyK'} : slide,
     ),
   };
   expect(
@@ -246,26 +215,23 @@ it('reloads group identities, repeated arrangements and source hot keys after sa
   const saved: unknown = JSON.parse(await readFile(file, 'utf8'));
   const reopened = await scenario(saved);
   expect(documentOf(reopened.content).song).toEqual(documentOf(content).song);
-  expect(documentOf(reopened.content).song.groups[0]?.slides[0]?.hotKey).toBe(
-    'KeyK',
-  );
-  expect(linesIn(documentOf(reopened.content).song, 'Reverse repeat')).toEqual(
-    linesIn(song, 'Reverse repeat'),
-  );
+  expect(documentOf(reopened.content).song.slides[0]?.hotKey).toBe('KeyK');
+  expect(linesIn(documentOf(reopened.content).song)).toEqual(linesIn(song));
 });
 
-it('keeps a known newer grouped file read-only without rewriting it', async () => {
+it('keeps a known newer slide-deck file read-only without rewriting it', async () => {
   const source = {
     format: 'llsong',
     schemaVersion: 2,
     id: SONG_ID,
     title: 'Invented future song',
     future: {keep: true},
-    groups: [
+    slides: [
       {
-        id: '00000000-0000-4000-8000-000000000101',
-        name: 'Verse',
-        slides: [{lines: ['Invented future line'], hotKey: 'KeyA'}],
+        id: fixtureSlideId(4),
+        lines: ['Invented future line'],
+        hotKey: 'KeyA',
+        label: 'Verse',
       },
     ],
   };
@@ -284,7 +250,7 @@ it('keeps a known newer grouped file read-only without rewriting it', async () =
   expect(await readFile(file, 'utf8')).toBe(original);
 });
 
-it('skips a malformed grouped file once and leaves its original bytes intact', async () => {
+it('skips a malformed slide-deck file once and leaves its original bytes intact', async () => {
   const {file, original, content, write, loaded} = await scenario({
     format: 'llsong',
     schemaVersion: 1,

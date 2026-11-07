@@ -1,7 +1,8 @@
+import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {libraryEndpoints} from '@contracts/ipc/library';
-import {createSongGroupId, createSongId} from '@core/schema/ids';
-import type {GroupedSong} from '@core/schema/groupedSong';
+import {createSongId} from '@core/schema/ids';
+import type {Song} from '@core/schema/song';
 import {parseSongDocument} from '@core/schema/contentDocuments';
 import type {Logger} from '@main/log';
 import {
@@ -28,27 +29,9 @@ function sources(overrides: object = {}) {
       schemaVersion: 1,
       id: songId,
       title: 'Invented song',
-      groups: [
-        {
-          id: createSongGroupId('00000000-0000-4000-8000-000000000101'),
-          name: 'Verse',
-          slides: [{lines: ['First']}],
-        },
-        {
-          id: createSongGroupId('00000000-0000-4000-8000-000000000102'),
-          name: '',
-          slides: [{lines: ['Second']}],
-        },
-      ],
-      arrangements: [
-        {
-          name: 'Alternate',
-          groups: [
-            createSongGroupId('00000000-0000-4000-8000-000000000102'),
-            createSongGroupId('00000000-0000-4000-8000-000000000101'),
-            createSongGroupId('00000000-0000-4000-8000-000000000102'),
-          ],
-        },
+      slides: [
+        {id: fixtureSlideId(1), lines: ['First'], label: 'Verse'},
+        {id: fixtureSlideId(2), lines: ['Second']},
       ],
     },
     revision: 3,
@@ -95,8 +78,7 @@ describe('library song projection', () => {
           lines: ['First'],
           sourceSlide: {
             songId,
-            groupId: createSongGroupId('00000000-0000-4000-8000-000000000101'),
-            slideIndex: 0,
+            slideId: fixtureSlideId(1),
           },
         },
         {
@@ -105,8 +87,7 @@ describe('library song projection', () => {
           lines: ['Second'],
           sourceSlide: {
             songId,
-            groupId: createSongGroupId('00000000-0000-4000-8000-000000000102'),
-            slideIndex: 0,
+            slideId: fixtureSlideId(2),
           },
         },
       ],
@@ -131,23 +112,24 @@ describe('library song projection', () => {
 
   it('projects a grouped song and maps hot keys', async () => {
     const gSongId = createSongId('20000000-0000-4000-8000-000000000010');
-    const g1Id = createSongGroupId('e0000000-0000-4000-8000-000000000001');
-    const groupedSong: GroupedSong = {
+
+    const song: Song = {
       format: 'llsong',
       schemaVersion: 1,
       id: gSongId,
       title: 'Grouped Library Song',
-      groups: [
+      slides: [
         {
-          id: g1Id,
-          name: 'Verse',
-          slides: [{lines: ['G1 Line 1'], hotKey: 'KeyA'}],
+          id: fixtureSlideId(3),
+          lines: ['G1 Line 1'],
+          hotKey: 'KeyA',
+          label: 'Verse',
         },
       ],
     };
     const source: LibrarySongSources = {
       song: vi.fn(() => ({
-        song: groupedSong,
+        song: song,
         revision: 4,
         access: 'editable' as const,
       })),
@@ -166,8 +148,7 @@ describe('library song projection', () => {
           lines: ['G1 Line 1'],
           sourceSlide: {
             songId: gSongId,
-            groupId: g1Id,
-            slideIndex: 0,
+            slideId: fixtureSlideId(3),
           },
           hotKey: 'KeyA',
         },
@@ -176,24 +157,18 @@ describe('library song projection', () => {
     });
   });
 
-  it('caps grouped song tile expansion and marks tile-limit problem', async () => {
+  it('caps song slide projection and marks tile-limit problem', async () => {
     const gSongId = createSongId('20000000-0000-4000-8000-000000000011');
-    const slides = Array.from({length: 100}, (_, index) => ({
+    const slides = Array.from({length: 10_001}, (_, index) => ({
+      id: fixtureSlideId(index),
       lines: [`Line ${index}`],
     }));
-    const groupsOverLimit = Array.from({length: 101}, (_, i) => ({
-      id: createSongGroupId(
-        `f0000000-0000-4000-8000-${String(i).padStart(12, '0')}`,
-      ),
-      name: `G${i}`,
-      slides,
-    }));
-    const hugeSongDefault: GroupedSong = {
+    const hugeSongDefault: Song = {
       format: 'llsong',
       schemaVersion: 1,
       id: gSongId,
       title: 'Huge Song Default',
-      groups: groupsOverLimit,
+      slides,
     };
     const source: LibrarySongSources = {
       song: vi.fn(() => ({

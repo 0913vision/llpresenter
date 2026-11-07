@@ -7,8 +7,8 @@ import type {LiveThemeItem} from '@core/schema/liveTheme';
 import type {Screen, ScreensFile} from '@core/schema/screens';
 import type {RenderScreen, ThemeFrame} from '@renderer/rendering/layer';
 import {resolveThemeOutput} from '@core/themes/output';
-import type {GroupedSong} from '@core/schema/groupedSong';
-import {linearBlockAddress, linearSlidesOf} from '@core/songs/blockEdits';
+import type {Song} from '@core/schema/song';
+import {linearSlidesOf} from '@core/songs/blockEdits';
 
 export const PREVIEW_ROLES = [
   {value: 'audience', label: '청중 화면'},
@@ -93,7 +93,7 @@ export function previewAppearance({
 
 /** A local selected song picture; no service selection or output command. */
 export function selectedPreview(
-  song: GroupedSong,
+  song: Song,
   {
     block,
     background,
@@ -108,7 +108,7 @@ export function selectedPreview(
   const project = (index: number | undefined) => {
     const slide = index === undefined ? undefined : slides[index];
     if (slide === undefined || index === undefined) return undefined;
-    const rawLabel = linearBlockAddress(song, index)?.groupName;
+    const rawLabel = slide.label;
     return {
       lines: slide.lines,
       label: rawLabel === undefined || rawLabel === '' ? null : rawLabel,

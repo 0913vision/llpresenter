@@ -121,17 +121,6 @@ export class AppConfigFile implements UiStateFields {
     this.scheduleSave();
   }
 
-  get orderEditorWindow(): AppConfig['orderEditorWindow'] {
-    return this.config.orderEditorWindow;
-  }
-
-  setOrderEditorWindow(
-    placement: NonNullable<AppConfig['orderEditorWindow']>,
-  ): void {
-    this.config = {...this.config, orderEditorWindow: placement};
-    this.scheduleSave();
-  }
-
   get songEditorWindow(): AppConfig['songEditorWindow'] {
     return this.config.songEditorWindow;
   }

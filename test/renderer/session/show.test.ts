@@ -2,7 +2,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import {emptyLiveState, type LiveState} from '@core/live/state';
 import {bibleSource} from '@core/bible/source';
-import {createSongGroupId, createSongId} from '@core/schema/ids';
+import {createSongSlideId, createSongId} from '@core/schema/ids';
 import {lookupRequest} from '@fixtures/core/bibleLookups';
 import {formLookupReply} from '@fixtures/core/bibleReplies';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
@@ -250,10 +250,9 @@ describe('slide hotkeys', () => {
               hotKey: 'KeyA',
               sourceSlide: {
                 songId: createSongId('30000000-0000-4000-8000-000000000001'),
-                groupId: createSongGroupId(
+                slideId: createSongSlideId(
                   'a0000000-0000-4000-8000-000000000001',
                 ),
-                slideIndex: 0,
               },
             };
           }
@@ -263,10 +262,9 @@ describe('slide hotkeys', () => {
               hotKey: 'Digit1',
               sourceSlide: {
                 songId: createSongId('30000000-0000-4000-8000-000000000001'),
-                groupId: createSongGroupId(
+                slideId: createSongSlideId(
                   'a0000000-0000-4000-8000-000000000001',
                 ),
-                slideIndex: 1,
               },
             };
           }

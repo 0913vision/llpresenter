@@ -62,25 +62,14 @@ describe('openAppConfig with a broken app.json (qa C19)', () => {
     const file = await appJson();
     const config = await openAppConfig({file, log: mockLog()});
     onTestFinished(() => config.dispose());
-    const order = {
-      x: 0,
-      y: 0,
-      width: 900,
-      height: 700,
-      maximized: false,
-      slideSize: 160,
-    };
     const song = {x: 5, y: 6, width: 1000, height: 800, maximized: true};
-    config.setOrderEditorWindow(order);
     config.setSongEditorWindow(song);
     await config.flush();
     expect(await readJson(file)).toMatchObject({
-      orderEditorWindow: order,
       songEditorWindow: song,
     });
     const reopened = await openAppConfig({file, log: mockLog()});
     onTestFinished(() => reopened.dispose());
-    expect(reopened.orderEditorWindow).toEqual(order);
     expect(reopened.songEditorWindow).toEqual(song);
   });
   it('keeps an invalid UTF-8 app.json unchanged after in-memory edits', async () => {

@@ -5,10 +5,10 @@ covers the 라이브러리 and search, the song editor, 예배 순서 item setti
 adding items, creating and importing services, saving a 템플릿, text import, and
 the shared bottom 미디어 bin.
 
-Terms: 슬라이드 (slide), 예배 순서 (service order), 템플릿 (template), 구성
-(arrangement), 이름표 (label), 라이브러리 (library), 매크로 (macro), 청중 화면
-(main screen), 무대 화면 (stage screen), 방송 화면 (broadcast captions), 진행
-(Show workspace), 퀵 실행 (quick launch). See 01.
+Terms: 슬라이드 (slide), 예배 순서 (service order), 템플릿 (template), 이름표
+(label), 라이브러리 (library), 매크로 (macro), 청중 화면 (main screen), 무대
+화면 (stage screen), 방송 화면 (broadcast captions), 진행 (Show workspace), 퀵
+실행 (quick launch). See 01.
 
 ## Layout
 
@@ -40,43 +40,29 @@ system README (window sizes and layout).
 ## The 예배 순서 table and the editor windows (B20)
 
 The user decided this on November 2 (drafts o1 to o6 and g5, outside the
-repository). The table, the 순서 편집 window, the 곡 편집 window, and the
-오버레이 bar on the 슬라이드 have landed.
+repository). The table, the 곡 편집 window, and the 오버레이 bar on the 슬라이드
+have landed.
 
 ### 준비
 
-- The center of 준비 is the 예배 순서 table, one row per item. Clicking a row
-  shows that item's preview, 슬라이드, and settings on the right. The 라이브러리
-  stays on the left. The song editor is no longer a column of 준비: choosing a
-  라이브러리 song opens the 곡 편집 window. The 미리보기 keeps one full-width
-  16:9 picture for every item kind: a song, a Bible passage, a 빈 슬라이드,
-  광고, or 설교, and a 영상 or 그림 (its file and name). With no item, or a
-  구역, selected the picture stays empty at the same size, so the panels below
-  it do not move.
-- The columns are 이름, 구성, 슬라이드, 테마, 배경, 시작할 때, and 메모.
-  슬라이드 counts the slides of the order the item plays; a media item has none,
-  so its cell is empty (its length shows on its tile in the bin). A song with
-  its own order (`customOrder`, made in 순서 편집) shows the 구성 the order
-  started from, followed by the small changed dot with the tooltip "이 예배에서
-  바꾼 순서"; the right column's 구성 select and the 순서 편집 window's 구성
-  picker show the same name and dot. Anything that lists the order itself
-  (chips, tiles, the 슬라이드 count) shows the order that plays. Picking a 구성
-  clears the order and the dot goes. 테마 shows the name of the item's own 테마,
-  or, dimmed, the default of its kind, with the reason in the tooltip. 배경
-  shows the picture and name, dimmed when the item follows the song's. 테마 and
-  시작할 때 change in the cell, which opens its list of choices; the other
-  columns are changed on the right or in the windows. A cell with no value (no
-  배경, no 시작할 때, no 메모) shows nothing, not 없음; it still opens its menu
-  or field on click and shows a frame on hover. Item names read strong, cell
-  values quieter, column names quietest. A 구역 row is a compact group head with
-  a thin line above it (none above the first), and shows only its name. Item
-  rows are 44px high and 구역 rows 32px.
-- 항목 and 구역 at the end of the table add a row after the last one. 항목 opens
-  the list of "Quick add" (below).
-- The right column's 슬라이드 panel has 순서 편집…, which opens the 순서 편집
-  window on the song item.
-- A song row's right-click has 순서 편집… and 곡 편집… after 구성 › (11). A
-  double-click or Enter on a song row opens 순서 편집.
+- The center table shows 이름, 슬라이드, 테마, 배경, 시작할 때, and 메모. Counts
+  and thumbnails use the selected item's own slides. The library stays on the
+  left; preview and item settings stay on the right.
+- The preview keeps one full-width 16:9 picture for every item kind: songs,
+  Bible passages, blank slides, announcements, sermons, videos, and images.
+  Media previews show the file and name. With no item or a section selected, the
+  stage and caption stay blank at the same size so the panels below do not move.
+- Double-click or Enter on a song row, or 곡 편집…, opens the existing song
+  editor on that item's deck. A library row opens its library song instead.
+- Song item menus offer 라이브러리에 저장… and 라이브러리에서 다시 불러오기.
+  Both ask before replacing slides; saving to the library includes its usage
+  line. Nothing synchronizes automatically. 구성 controls, their changed dot,
+  the order strip, and the 순서 편집 window are removed.
+- 항목 and 구역 at the end of the table append items and sections. Themes,
+  backgrounds, macros, memo, and section behavior retain their existing rules.
+- Cells without a background, start macro, or memo stay empty while retaining
+  their menu or field on click and a frame on hover. Item rows are 44px and
+  section rows 32px; section names have a thin line above except the first.
 
 ### Slides items and 슬라이드 편집
 
@@ -144,26 +130,10 @@ repository). The table, the 순서 편집 window, the 곡 편집 window, and the
   pending item switch or close even while its save is still running; completing
   that save does not resume the canceled action or replace a newer confirmation.
 
-### 순서 편집
-
-- A window for this service's order of the song and its 오버레이. The order
-  belongs to this item only; 구성으로 저장… saves it as a 구성 of the song. It
-  shows the order as group tokens, as ProPresenter's arrangements do (02), with
-  the 구성 picker.
-- It opens beside the 라이브러리, its left edge at the library's right edge, and
-  is not modal, so media can be dragged in from the library.
-- 슬라이드 fill rows to the window's width, and the window scrolls. A size
-  slider at the bottom right sets their size, remembered with the window's
-  bounds.
-- An order change (moving, adding, or removing a token) moves the 오버레이
-  ranges in the same write: a range stays on its start and end 슬라이드, and
-  removing the end 슬라이드 makes the 슬라이드 before it the end. A range whose
-  슬라이드 are all removed is kept and clamped when read.
-
 ### 오버레이 on 슬라이드
 
-The same bar and menus work in 순서 편집 and in the 슬라이드 list on 준비's
-right.
+The bar and menus work in the selected item's slide list. Song-item ranges store
+endpoint slide IDs (02), so moves keep the endpoints attached.
 
 - Add: drag media from the 라이브러리 미디어 list or the 미디어 bin onto a
   슬라이드, or choose 오버레이 추가… on the 슬라이드's right-click. The range
@@ -183,27 +153,23 @@ right.
 
 ### 곡 편집
 
-- A window for the 라이브러리 song itself (lyrics, 이름표, 구성), like the 화면
-  설정 window. 곡 편집 from 진행 opens it at the clicked 슬라이드.
-- Edits stay in the window until 저장 (Ctrl S). 저장 always asks "<제목> 곡을
-  덮어쓸까요?" with 취소 and 덮어쓰기, with the usage line when other services
-  use the song. This replaces saving 라이브러리 songs on every edit.
-- 다른 이름으로 저장… (Ctrl Shift S) opens a name dialog filled with "<제목>
-  복사본" (and 복사본 2, 3, … when taken: the one copy-name rule, 11), makes a
-  new 라이브러리 song from the edits, and leaves the original unchanged. When
-  the window was opened from an item (순서 편집… or a 준비 row), that item
-  switches to the new song.
-- Unsaved edits show a dot before the title. Closing the window with unsaved
-  edits asks 저장, 저장 안 함, 취소, as the 테마 editor does (12).
-
-Source: drafts o1 to o6 and g5, user decision, November 2.
+- The existing window edits either a library song or the independent deck of the
+  service item that opened it. The item editor shows the library title as
+  read-only. Saving that window changes the service item only.
+- Library edits stay in the window until 저장 (Ctrl S), with the existing
+  overwrite question. 다른 이름으로 저장… creates a new library song; when
+  opened from an item, it first saves that item's edits and changes its source
+  reference to the new song.
+- Unsaved edits show a dot before the title. Closing or switching with unsaved
+  edits asks 저장, 저장 안 함, 취소. A stale service revision refuses an item
+  save and retains its draft.
 
 ## 예배 순서 panel in 준비
 
 - The header, service switcher, and 항목 추가 (add item) work as in 진행 (see
   04).
 - Each row shows a detail at the right: the 슬라이드 count for songs, Bible
-  passages ("슬라이드 9개"; for a song, the length of the chosen 구성), and the
+  passages ("슬라이드 9개"; for a song, the length of the item deck), and the
   duration for media ("5:00").
 - Selecting a song item opens its item settings (see "예배 순서 item settings").
 - No board shows the center panel for other item kinds. Version 1 shows these
@@ -217,7 +183,7 @@ Source: drafts o1 to o6 and g5, user decision, November 2.
   removes the selected item without confirmation, and Ctrl Z restores it
   (proposal). Ctrl Z and 편집 > 실행 취소 undo every edit of an item the same
   way, one step each: a change in its cells or the right column (메모, 테마,
-  구성, 배경, 시작할 때, 오버레이) as well as the order edits (10, "Focus
+  배경, 시작할 때, 오버레이) as well as the order edits (10, "Focus
   precedence"). The right-click menu has 삭제 (delete) (proposal).
 - The list accepts 라이브러리 songs dropped on it (see "Adding items to the 예배
   순서").
@@ -310,74 +276,25 @@ the editor until 저장 ("곡 편집" under B20 above).
   - An invalid title isn't saved and reverts when the field loses focus
     (proposal).
 
-### 구성 row
+### Slide rows
 
-- The label "구성" and the same dropdown as the item view, at every number of
-  choices: 기본, a separator, the named 구성, a separator, 새 구성…, 이름
-  바꾸기…, 삭제, a separator, 구성 편집…. 기본 has rename and delete disabled
-  with the reason "기본 구성은 바꿀 수 없습니다" (October 31 B22).
-- A 구성 is an ordered list of named groups, with repeats (October 27 user
-  decision). Choosing it shows the expanded slides on the right. The source
-  editor keeps master group order; repeated group occurrences share the same
-  lyrics. 구성 편집… opens the editable group chip strip in the song editor.
-- 새 구성… asks for a name and copies the chosen order. 이름 바꾸기… opens the
-  naming dialog; 삭제 removes the selected named 구성.
-  - Because 예배 순서 items pick a 구성 by name, a rename also updates the
-    `arrangement` value of every 예배 순서 item that points to this song and the
-    old name (proposal).
-  - After a delete, items that picked that 구성 use 기본 (proposal).
-
-### Blocks
-
-- Source blocks are organized into named groups, such as 1절 and 후렴. A group
-  contains one or more slides. Show its 이름표 chip at the group start; unnamed
-  groups show 이름표. The name comes from the group, not an independent label on
-  each slide. Names may repeat, and different groups with the same name remain
-  distinct. Show their source position to distinguish them in menus.
-- Each block is one 슬라이드. Show its source number on the left and edit its
-  lines on the right without field chrome. Editing a repeated group's source
-  updates every occurrence.
-- The block that holds the cursor is active. It has a lighter background and a
-  blue bar at its left edge.
-- Editing rules (proposal, our design: ProPresenter's Reflow editor shows the
-  text on the left and the slides on the right and breaks a slide with Ctrl
-  Enter, S4 p. 74, but no ProPresenter source says that an empty line separates
-  slides):
-  - Enter starts a new line in the same block.
-  - Enter on an empty line splits the block there. The empty line goes away, and
-    the lines after it become a new block.
-  - Backspace at the start of a block merges it into the previous block only
-    within the same group. At a group's first slide it does nothing, with the
-    tooltip 그룹 경계에서는 슬라이드를 합칠 수 없습니다 (02). Lyrics and all
-    arrangements remain unchanged, including separate, reversed and repeated
-    uses of the two adjacent groups.
-  - Pasting text with blank lines splits it into blocks at the blank lines.
-  - The up and down arrow keys move between lines and across blocks.
-- Inserting or splitting a block keeps the new slide in its group. Group IDs
-  keep arrangement references stable when slides move. Splitting a group
-  replaces each occurrence with its parts in order. Cross-group Backspace is
-  refused as defined in 02, even when the two groups share a name or every
-  current occurrence happens to use them together.
-- Ctrl Z undoes edits for the current session, and Ctrl Y or Ctrl Shift Z redoes
-  them (decided; Ctrl Y follows ProPresenter, S1). Each song has its own history
-  while the app runs, up to 100 steps; the oldest step drops off past that.
-  Typing in one block counts as one step until the cursor leaves the block or 1
-  second passes without typing. The history is gone when the app quits
-  (proposal).
-- Ctrl Enter splits the block at the cursor, and Ctrl Shift N inserts an empty
-  block after the current one (decided, 10).
+- Each row is one slide with its own number, lyrics, and 이름표 chip, including
+  adjacent slides with the same name. Unnamed chips show 이름표; free names use
+  neutral colors. There are no group boundaries or shared chorus occurrences.
+- Enter adds a line. Ctrl Enter splits at the cursor with a fresh slide ID.
+  Backspace at the beginning merges into the preceding slide even when names
+  differ. Pasting text with blank lines creates separate slides. Ctrl Shift N
+  adds a blank slide; an empty item has 슬라이드 추가.
+- Ctrl Z and Ctrl Y undo and redo up to 100 steps. Typing groups until the
+  cursor leaves the row or one second passes. Split, merge, and label edits each
+  form a step.
 
 ### 이름표 menu
 
-- Clicking a block's 이름표 chip opens the menu:
-  - "이름표 없음" (no 이름표), then the 이름표 list (defaults in 02), each with
-    its color swatch. The current one has a check mark.
-  - A separator, then 이름표 관리….
-- Choosing a name sets the group's `name`. Starting a new group at a slide
-  splits the current group there, retaining every arrangement's slide order
-  (02). Renaming one group does not merge it with another same-named group.
-- The picker only assigns a name to this group. Creation and shared changes
-  belong to 이름표 관리; picker rows have no management context menu.
+Every row chip opens 이름표 없음, catalog names with swatches, a separator, 이름
+적기…, and 이름표 관리…. 이름 적기… accepts a trimmed free name of 1–64
+characters in an inline field. Choosing a name changes only that slide; it does
+not add the name to the shared catalog.
 
 ### Managing the 이름표 list
 
@@ -395,7 +312,7 @@ it, and a failed save keeps its applied identity for retry or correction. Color
 and rename tooltips explain their library-wide scope.
 
 새 이름표 at the bottom left appends a uniquely named row with no color and
-focuses and selects its name. Creation does not assign it to the current group.
+focuses and selects its name. Creation does not assign it to the current slide.
 Changes save immediately, so 닫기 is the dialog's only footer completion action.
 The preferences page has the same 새 이름표 action without a completion footer.
 Leaving the page, through either navigation or a requested preferences page,
@@ -421,23 +338,21 @@ On open, focus the dialog surface with no name selected or rename tooltip. Tab
 enters the first name field. 새 이름표 still focuses and selects the new row's
 name.
 
-| Item                 | Behavior                                                                                                                    |
-| -------------------- | --------------------------------------------------------------------------------------------------------------------------- |
-| 이름 바꾸기 (rename) | Renames the 이름표 in the list and rewrites the name in every 라이브러리 song that uses it. Recovery copies apply (see 02). |
-| 색 (color)           | Applies the color to every group with that name in every song.                                                              |
-| 삭제 (delete)        | Removes the name from the list only. Songs keep the name, and it draws with no color.                                       |
+| Item                 | Behavior                                                                                                                                            |
+| -------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 이름 바꾸기 (rename) | Renames the 이름표 in the list and rewrites the name in every library song, service item and template that uses it. Recovery copies apply (see 02). |
+| 색 (color)           | Applies the color to every slide with that name in songs and service items.                                                                         |
+| 삭제 (delete)        | Removes the name from the list only. Songs keep the name, and it draws with no color.                                                               |
 
 ### Slide hot keys
 
 - The shared thumbnail 슬라이드 menu's 단축키… row opens 슬라이드 단축키 in the
   song editor. The item view opens that editor at the clicked source slide
   first. There is no separate hot-key bar. Store an optional physical `KeyA`
-  through `KeyZ` or `Digit0` through `Digit9` in `groups[].slides[].hotKey`
-  (02). No assignment is the default.
-- Assign a key to that source slide once, regardless of how many times its group
-  occurs in a 구성. Another source slide in the same song cannot use that code.
-  The conflict identifies the source slide number in master group order; another
-  song may use the same code.
+  through `KeyZ` or `Digit0` through `Digit9` in `slides[].hotKey` (02). No
+  assignment is the default.
+- Assign a key to one slide; it must be unique within its library or item deck.
+  Other decks may use the same key. Conflicts name the current slide number.
 - Enter or numeric keypad Enter saves a changed, valid assignment. Esc cancels
   the draft. Backspace, Delete or 지우기 removes the assignment. Tab and Shift
   Tab navigate without changing it, and standalone modifier keys leave the draft
@@ -449,8 +364,7 @@ name.
   A removed source closes the dialog. A refused commit keeps it open.
 - Assignment/removal uses the song's existing undo and save path as one step,
   separate from typing, without moving the lyric cursor. In 진행 the key goes to
-  the first projected occurrence of that exact source, never the next match by
-  이름표 (04).
+  that exact slide, independently of 이름표 (04).
 
 ### Preview
 
@@ -461,8 +375,7 @@ name.
 
 ### 슬라이드 list
 
-- Header: "슬라이드" and the count. Thumbnails of the 슬라이드 in file order, or
-  in the chosen 구성's order (proposal).
+- Header: "슬라이드" and the count. Thumbnails of the 슬라이드 in deck order.
 - Clicking a thumbnail selects that block in the editor and shows it in the
   preview. It never outputs.
 - A thumbnail size slider sits in the footer.
@@ -479,28 +392,10 @@ settings) panel.
 
 ### Item panel (center)
 
-- Header: the song title, the sequence length ("슬라이드 9개"), and the same
-  edit label as the slide menu (곡 편집). That button opens the song editor at
-  the selected occurrence's source slide.
-- 구성 row: the label "구성" and a select that shows the chosen 구성 ("주일용").
-  Its menu is the song editor's menu above. Choosing a 구성 changes only this
-  item. Every source-management action first opens the song editor at the
-  selected source slide; creating a 구성 does not assign it to this item.
-- Chip strip: one chip per group occurrence, showing its name in the 이름표
-  color, without grips or an add button. Unnamed groups show 이름표 없음 and
-  their source position. Repeated group IDs produce repeated chips, not
-  duplicated source slides.
-  - The strip is read-only for every 구성: dragging, Alt+←/→ and Delete do
-    nothing. Source order changes belong only in the song editor.
-  - Selecting a chip selects the first thumbnail of that occurrence. The chip
-    containing the live slide has the on-output ring. Repeated occurrences have
-    distinct sequence positions even though they reference one group.
-- 슬라이드 list (draft g5): the sequence positions as compact thumbnails with
-  the 오버레이 bar under each row (see "오버레이 on 슬라이드"). Clicking selects
-  locally and double clicking a song's slide opens 곡 편집. Item thumbnails use
-  the same 슬라이드 menu model as 진행, with supported source actions enabled,
-  and add 오버레이 추가…, 오버레이 바꾸기…, and 오버레이 삭제. 진행 keeps its
-  thumbnail grid.
+The selected song item shows its title, 곡 편집…, thumbnails of its own deck,
+and its slide count. Selecting a thumbnail changes the preview, without output.
+The editor and 단축키… action open at that item slide. Library edits leave these
+lyrics, labels, ordering, and keys unchanged.
 
 ### Preview and 항목 설정 (right)
 
@@ -526,16 +421,10 @@ changes when the selected item is live.
 
 ### What belongs to the service and what belongs to the song
 
-| Belongs to the 예배 순서 item (this service only) | Belongs to the 라이브러리 song (every service) |
-| ------------------------------------------------- | ---------------------------------------------- |
-| Which 구성 to use                                 | Lyrics, 슬라이드, and 이름표                   |
-| Background override                               | Default background                             |
-| Start 매크로                                      | 구성 names and their 슬라이드 orders           |
-| Memo                                              | Title                                          |
-
-Source: `PrepService`, `NewService` and `AddSongs` (same panels), `Main`
-decisions "라이브러리와 예배 순서는 따로" and "곡 구성은 프리셋", `LabelChip`
-README, `Select` README, product log versions 52, 53, and 61.
+An item owns its slides, labels, keys, overlays, background override, theme,
+start macro and memo. The library song owns its title, default background and
+separate slide deck. Explicit save/reload actions copy slides between them;
+changes never propagate to other items.
 
 ## Adding items to the 예배 순서
 
@@ -547,8 +436,8 @@ README, `Select` README, product log versions 52, 53, and 61.
   순서. The spot right below a section (구역) is valid, including an empty
   section. Over a valid spot, the ghost row shows a plus.
 - Esc cancels the drag.
-- A drop inserts a song item with the default 구성, no background override, and
-  no start 매크로 (proposal).
+- A drop inserts a song item with a copy of its slides and background, and no
+  start 매크로 (proposal).
 - A drop into an empty section inserts a song after its section row. The section
   stays in the list.
 
@@ -621,11 +510,11 @@ Source: the user's decision from the m3-check3 check, October 26.
     between steps. The calendar popover is a UI follow-up.
   - 만들기 is unavailable while the name is empty, with the reason in a tooltip.
   - 만들기 creates a new service file with the checked items, in order, with new
-    item IDs. Song references, 구성 names, background overrides, start 매크로,
-    and memos copy as they are. A section comes along if it or any of its
-    children is checked. The new service becomes the current service. The output
-    doesn't change. The flow creates an empty service, copies only the checked
-    items, and then opens it.
+    item IDs. Song references, independent slide decks, background overrides,
+    start 매크로, and memos copy as they are. A section comes along if it or any
+    of its children is checked. The new service becomes the current service. The
+    output doesn't change. The flow creates an empty service, copies only the
+    checked items, and then opens it.
   - A `write-failed` result from creation or copying means the edit is already
     applied in main, with a pending disk save. Continue with the applied service
     id after creation and continue to opening after copying. Keep the copied
@@ -670,7 +559,7 @@ lead's date/time choice and source-menu decision recorded in those requests.
   the service list.
 - The dialog "다른 예배에서 가져오기" has the 템플릿 and 지난 예배 lists on the
   left (no 빈 예배), and a tree with check boxes on the right. Song rows show
-  the chosen 구성 name as a detail ("주일용").
+  the item’s slide count as a detail.
 - The first 템플릿 is selected initially, or the first other service if there is
   no 템플릿. The open service isn't offered as a source. When the operator picks
   a source, nothing is checked, including when returning to a source.
@@ -797,8 +686,8 @@ row-menu decision.
 - 이름표 인식 (detect 이름표): with the 환경설정 option 이름표: 대괄호 줄
   (bracket lines), a line that holds only a bracketed name, such as "[후렴]", is
   an 이름표 line. Its slides share that 이름표 until the next 이름표 line; the
-  preview band appears on the group's first slide. An 이름표 line never becomes
-  a lyric line.
+  preview band appears on every slide. An 이름표 line never becomes a lyric
+  line.
   - Compare names after trimming, without case sensitivity. An exact match in
     the list suggests that 이름표, before any English-name rule.
   - Suggest `Verse N` and `V N` as `N절`; `Intro` as 전주; `Chorus` and
@@ -814,8 +703,8 @@ row-menu decision.
     후렴). Keep the header text if no unique suggestion exists.
   - Suggest a mapped 이름표 only if it exists in the user's list; otherwise keep
     the original header. Suggest `N절` even when the list lacks it (`Verse 4`
-    suggests `4절`). A chosen or typed name outside the list is added with no
-    color only when the song is saved.
+    suggests `4절`). A chosen or typed name outside the list stays a free name
+    with neutral colors. Saving does not add it to the shared list.
 - Trim blank lines at the start and end, and trailing spaces on each line
   (proposal).
 - Before splitting (proposal): CRLF and CR line endings become LF, and tabs
@@ -833,9 +722,9 @@ row-menu decision.
   optional spaces: `[ 후렴 ]` gives 후렴. Other brackets, such as "(후렴)", are
   lyrics. An 이름표 line also ends the current 슬라이드, so its 이름표 starts a
   new 슬라이드 (proposal).
-- The imported song has one group for each 이름표 line, named by it. The text
-  before the first 이름표 line is one group with no name. The import writes this
-  song as it is; it never converts an older format.
+- Every imported slide keeps the mapped 이름표 of its section. Slides before the
+  first 이름표 line have no label. The import writes this slide list directly;
+  it never converts an older format.
 - The preview updates at once when an option changes.
 
 ### Import dialog
@@ -857,12 +746,12 @@ row-menu decision.
   or its chevron for the song editor's 이름표 menu: 이름표 없음, then the list
   with swatches and a check on the current choice, without 이름표 관리…. Picking
   fills the field; typing replaces its text. An unknown name shows "새 이름표"
-  inside the field. 이름표 없음 clears the group's name.
+  inside the field. 이름표 없음 clears the slide’s label.
 - Footer: 머리줄 그대로 쓰기 and 적용 (primary). Esc and the close button keep
   the original header names, as 머리줄 그대로 쓰기 does. 적용 assigns each
-  header's chosen name to all its slides, preview bands, and saved groups,
+  header's chosen name to all its slides, preview bands, and saved slides,
   preserving section boundaries. Neither action saves anything.
-- If the mapped groups exceed the song import limits, 적용 is unavailable and
+- If the mapped slides exceed the song import limits, 적용 is unavailable and
   its tooltip gives the reason. The previous draft stays unchanged; shortening a
   name or choosing another 이름표 can make 적용 available again.
 - If the 라이브러리 already has the title, the title field shows the error ring,
@@ -901,10 +790,8 @@ row-menu decision.
 | Keys    | Enter is 덮어쓰기. Esc is 취소.                                                                  |
 
 - The answers:
-  - 덮어쓰기 replaces the existing song's title, 슬라이드, background, and 구성
-    with the imported song's, and keeps the existing song ID so that 예배 순서
-    references stay valid (proposal). 예배 순서 items whose 구성 name no longer
-    exists use 기본. The old version stays as a recovery copy (see 02).
+  - 덮어쓰기 replaces the library song at its checked revision, preserving its
+    identity. Existing service items and templates keep their independent decks.
   - 새 곡으로 저장 saves a new song with a new ID. Because titles are unique
     (proposal), append " (2)", or the next free number, to the title (proposal).
   - 취소 returns to the editor. Nothing is saved.

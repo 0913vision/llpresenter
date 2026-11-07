@@ -2,7 +2,7 @@ import {useCallback, useMemo, useState, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {LibrarySong} from '@core/schema/contentDocuments';
 import {createSongId} from '@core/schema/ids';
-import {SONG_SCHEMA_VERSION, type GroupedSong} from '@core/schema/groupedSong';
+import {SONG_SCHEMA_VERSION, type Song} from '@core/schema/song';
 import type {Label} from '@core/schema/labels';
 import type {Preferences} from '@core/schema/preferences';
 import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
@@ -20,7 +20,7 @@ import {
   DUPLICATE_TITLE_REASON,
   normalizeSongTitle,
 } from '@core/songs/songTitle';
-import {importGroups} from '@core/songs/importGroups';
+import {importSlides} from '@core/songs/importSlides';
 import {importLimitReason} from '@core/songs/importLimits';
 import {textImportHeaders} from '@core/songs/textImport';
 import {
@@ -51,7 +51,7 @@ const FIRST_LINES = [
 /** The choices of the dialog that the next import starts from. */
 export type TextImportChoice = Partial<Preferences['import']['txt']>;
 
-function previewSong(draft: TextImportDraft, title: string): GroupedSong {
+function previewSong(draft: TextImportDraft, title: string): Song {
   let count = 0;
   const candidateId = (): string =>
     `00000000-0000-4000-8000-${String(++count).padStart(12, '0')}`;
@@ -60,7 +60,7 @@ function previewSong(draft: TextImportDraft, title: string): GroupedSong {
     schemaVersion: SONG_SCHEMA_VERSION,
     id: createSongId('00000000-0000-4000-8000-000000000000'),
     title,
-    groups: importGroups(draft.slides, candidateId),
+    slides: importSlides(draft.slides, candidateId),
   };
 }
 
@@ -170,7 +170,7 @@ export function TextImportDialog({
     () => draft?.slides.map((_, index) => index + 1) ?? [],
     [draft],
   );
-  const candidateSong = useMemo<GroupedSong | null>(() => {
+  const candidateSong = useMemo<Song | null>(() => {
     if (draft === null) return null;
     return previewSong(draft, shownTitle);
   }, [draft, shownTitle]);

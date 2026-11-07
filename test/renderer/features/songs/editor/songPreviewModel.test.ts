@@ -1,7 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {
-  editorGroupedSong,
+  editorDeckSong,
   editorSong,
 } from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {editorPreviewFixture} from '@fixtures/renderer/features/songs/editor/editorPreviewFixture';
@@ -12,7 +12,7 @@ import {
 
 describe('local song preview model', () => {
   it('projects the chosen next source block and omits it after the last place', () => {
-    const song = editorGroupedSong(1).song;
+    const song = editorDeckSong(1).song;
     const intermediate = selectedPreview(song, {
       block: 1,
       nextBlock: 2,
@@ -28,7 +28,7 @@ describe('local song preview model', () => {
       background: undefined,
     });
     expect(final.slide).not.toHaveProperty('next');
-    expect(final.slide?.lines).toEqual(song.groups[0]?.slides[0]?.lines);
+    expect(final.slide?.lines).toEqual(song.slides[0]?.lines);
   });
   it('maps each preview role to its screen, theme name, and configured empty color', () => {
     const {themes, screens} = editorPreviewFixture();
@@ -83,7 +83,7 @@ describe('local song preview model', () => {
     expect(layers.slide).toMatchObject({
       itemId: song.id,
       position: 1,
-      lines: song.groups[1]?.slides[0]?.lines,
+      lines: song.slides[1]?.lines,
     });
     expect(layers.media).toEqual({
       mediaId: 'fixture-media',
@@ -97,7 +97,7 @@ describe('local song preview model', () => {
   });
 
   it('draws grouped song slides with group label name across all slides of a group', () => {
-    const song = editorGroupedSong(1).song;
+    const song = editorDeckSong(1).song;
     const slide0 = selectedPreview(song, {block: 0, background: undefined});
     expect(slide0.slide).toMatchObject({
       itemId: song.id,

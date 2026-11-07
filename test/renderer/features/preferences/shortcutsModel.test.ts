@@ -32,8 +32,6 @@ const CTRL_J: KeyBinding = {code: 'KeyJ', mods: ['ctrl']};
 
 /** The commands that no handler runs yet; 단축키 offers no key for them. */
 const HIDDEN = [
-  'arrangement.add',
-  'arrangement.insertSlide',
   'import.pptx',
   'media.newAudioPlaylist',
   'media.newPlaylist',

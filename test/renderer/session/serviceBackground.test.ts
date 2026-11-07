@@ -28,9 +28,9 @@ function setup() {
       future: {keep: true},
       order: [
         {
+          slides: [],
           id: itemId,
           song: songId,
-          arrangement: 'Invented arrangement',
           memo: 'Keep this',
           future: [1, 2],
         },

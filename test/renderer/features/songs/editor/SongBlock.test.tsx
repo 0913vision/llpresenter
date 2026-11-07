@@ -1,15 +1,15 @@
+import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {act, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {parseGroupedSong, type GroupedSong} from '@core/schema/groupedSong';
+import {parseSong, type Song} from '@core/schema/song';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {
   hoverForTooltip,
   resetTooltips,
 } from '@fixtures/renderer/ui/tooltipTesting';
 import {
-  BACKSPACE_REFUSAL_MESSAGE,
   SongBlock,
   type EditorFocus,
 } from '@renderer/features/songs/editor/SongBlock';
@@ -18,25 +18,26 @@ import {SongSession} from '@renderer/features/songs/editor/songSession';
 
 afterEach(resetTooltips);
 
-function createGroupedSong(unnamed = false): GroupedSong {
+function createSong(unnamed = false): Song {
   return expectSuccess(
-    parseGroupedSong(
+    parseSong(
       JSON.stringify({
         format: 'llsong',
         schemaVersion: 1,
         id: '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab',
         title: '테스트 찬송',
-        groups: [
+        slides: [
           {
-            id: '11111111-1111-4111-a111-111111111111',
-            name: unnamed ? '' : '1절',
-            slides: [{lines: ['첫째 줄']}, {lines: ['둘째 줄']}],
+            id: fixtureSlideId(1),
+            lines: ['첫째 줄'],
+            label: unnamed ? undefined : '1절',
           },
           {
-            id: '22222222-2222-4222-a222-222222222222',
-            name: '후렴',
-            slides: [{lines: ['후렴 줄']}],
+            id: fixtureSlideId(2),
+            lines: ['둘째 줄'],
+            label: unnamed ? undefined : '1절',
           },
+          {id: fixtureSlideId(3), lines: ['후렴 줄'], label: '후렴'},
         ],
       }),
       'memory.llsong',
@@ -52,7 +53,7 @@ function blockLyrics(number: number): HTMLTextAreaElement {
 
 function renderBlock(
   block: number,
-  song: GroupedSong = createGroupedSong(),
+  song: Song = createSong(),
   options: {
     readonly onOpen?: (anchor: HTMLElement, block: number) => void;
     readonly editable?: boolean;
@@ -99,19 +100,19 @@ function renderBlock(
 }
 
 describe('SongBlock', () => {
-  it('renders 이름표 placeholder on first slide of an unnamed group', () => {
-    renderBlock(0, createGroupedSong(true));
+  it('renders 이름표 placeholder on an unlabeled slide', () => {
+    renderBlock(0, createSong(true));
     expect(screen.getByRole('button', {name: /이름표/})).toBeDefined();
   });
 
-  it('omits label tag on non-first slide of a group when inactive', () => {
+  it('shows the label of every inactive slide', () => {
     renderBlock(1);
-    expect(screen.queryByRole('button')).toBeNull();
+    expect(screen.getByRole('button', {name: '1절'})).toBeDefined();
   });
 
-  it('renders split button on non-first slide when active and opens label menu on click', () => {
+  it('opens the active slide label menu from its chip', () => {
     const api = mockLlpApi();
-    const song = createGroupedSong();
+    const song = createSong();
     const session = new SongSession({
       document: {song, revision: 1, access: 'editable'},
       api: api.content,
@@ -146,13 +147,13 @@ describe('SongBlock', () => {
         top={80}
       />,
     );
-    const splitButton = screen.getByRole('button', {name: '새 그룹'});
+    const splitButton = screen.getByRole('button', {name: '1절'});
     expect(splitButton).toBeDefined();
     fireEvent.click(splitButton);
     expect(onOpen).toHaveBeenCalledWith(splitButton, 1);
   });
 
-  it('refuses Backspace at start of first slide and displays refusal tooltip', () => {
+  it('keeps Backspace at the first slide start as a harmless no-op', () => {
     const {session} = renderBlock(0);
     const input = blockLyrics(1);
     act(() => {
@@ -161,10 +162,8 @@ describe('SongBlock', () => {
       fireEvent.select(input);
     });
     fireEvent.keyDown(input, {key: 'Backspace', code: 'Backspace'});
-    expect(screen.getByRole('tooltip').textContent).toBe(
-      BACKSPACE_REFUSAL_MESSAGE,
-    );
-    expect(session.history.snapshot.song.groups[0]?.slides).toHaveLength(2);
+    expect(screen.queryByRole('tooltip')).toBeNull();
+    expect(session.history.snapshot.song.slides).toHaveLength(3);
   });
 
   it('does not show refusal tooltip on plain focus or hover over first slide', async () => {
@@ -180,8 +179,8 @@ describe('SongBlock', () => {
 
   it('opens label menu via Ctrl+G keyboard shortcut on the active slide', () => {
     const onOpen = vi.fn();
-    renderBlock(1, createGroupedSong(), {onOpen, active: true});
-    const splitButton = screen.getByRole('button', {name: '새 그룹'});
+    renderBlock(1, createSong(), {onOpen, active: true});
+    const splitButton = screen.getByRole('button', {name: '1절'});
     const input = blockLyrics(2);
     act(() => {
       input.focus();
@@ -190,9 +189,9 @@ describe('SongBlock', () => {
     expect(onOpen).toHaveBeenCalledWith(splitButton, 1);
   });
 
-  it('opens label menu via Ctrl+G anchored to label button on group-start slide', () => {
+  it('opens label menu via Ctrl+G anchored to label button on first slide', () => {
     const onOpen = vi.fn();
-    renderBlock(0, createGroupedSong(), {onOpen, active: true});
+    renderBlock(0, createSong(), {onOpen, active: true});
     const labelButton = screen.getByRole('button', {name: /1절/});
     const input = blockLyrics(1);
     act(() => {
@@ -204,7 +203,7 @@ describe('SongBlock', () => {
 
   it('does nothing on Ctrl+G keyboard shortcut when block is not editable', () => {
     const onOpen = vi.fn();
-    renderBlock(1, createGroupedSong(), {
+    renderBlock(1, createSong(), {
       onOpen,
       editable: false,
       active: true,
@@ -217,10 +216,10 @@ describe('SongBlock', () => {
     expect(onOpen).not.toHaveBeenCalled();
   });
 
-  it('moves focus to split button on Shift+Tab from textarea', async () => {
+  it('moves focus to label chip on Shift+Tab from textarea', async () => {
     const user = userEvent.setup();
-    renderBlock(1, createGroupedSong(), {active: true, editable: true});
-    const splitButton = screen.getByRole('button', {name: '새 그룹'});
+    renderBlock(1, createSong(), {active: true, editable: true});
+    const splitButton = screen.getByRole('button', {name: '1절'});
     const input = blockLyrics(2);
     input.focus();
     expect(document.activeElement).toBe(input);

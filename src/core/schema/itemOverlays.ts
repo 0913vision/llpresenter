@@ -1,7 +1,12 @@
 import * as v from 'valibot';
 import {overlayRangesOverlap} from '../themes/overlayRanges';
 import {THEME_LIMITS} from '../themes/elementRules';
-import {itemOverlayIdSchema, mediaIdSchema, screenIdSchema} from './ids';
+import {
+  itemOverlayIdSchema,
+  mediaIdSchema,
+  screenIdSchema,
+  songSlideIdSchema,
+} from './ids';
 import type {ReadonlyKnown} from './fileFormat';
 import {
   jsonObject,
@@ -55,4 +60,27 @@ export const itemOverlaysSchema = v.pipe(
 
 export type ItemOverlay = ReadonlyKnown<
   v.InferOutput<typeof itemOverlaySchema>
+>;
+
+export const songItemOverlaySchema = jsonObject({
+  id: itemOverlayIdSchema,
+  name: v.pipe(nonBlankText, v.maxLength(THEME_LIMITS.name)),
+  from: songSlideIdSchema,
+  to: songSlideIdSchema,
+  screens: v.pipe(
+    v.array(screenIdSchema),
+    v.maxLength(THEME_LIMITS.screens),
+    v.check(
+      ids => new Set(ids).size === ids.length,
+      'Expected unique overlay screens',
+    ),
+  ),
+  content,
+});
+export const songItemOverlaysSchema = v.pipe(
+  listWithUniqueIds(songItemOverlaySchema),
+  v.maxLength(THEME_LIMITS.overlays),
+);
+export type SongItemOverlay = ReadonlyKnown<
+  v.InferOutput<typeof songItemOverlaySchema>
 >;

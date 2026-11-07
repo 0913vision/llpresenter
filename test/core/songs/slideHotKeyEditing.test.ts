@@ -1,38 +1,36 @@
+import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {expect, it} from 'vitest';
-import {parseGroupedSong} from '@core/schema/groupedSong';
-import {createSongId, createSongGroupId} from '@core/schema/ids';
+import {parseSong} from '@core/schema/song';
+import {createSongId, createSongSlideId} from '@core/schema/ids';
 import {
   assignSlideHotKey,
   slideHotKeyView,
 } from '@core/songs/slideHotKeyEditing';
 
 const songId = createSongId('00000000-0000-4000-8000-000000000001');
-const first = createSongGroupId('00000000-0000-4000-8000-000000000002');
-const second = createSongGroupId('00000000-0000-4000-8000-000000000003');
-const source = {songId, groupId: second, slideIndex: 1};
+const source = {songId, slideId: fixtureSlideId(3)};
 function fixture() {
-  const parsed = parseGroupedSong(
+  const parsed = parseSong(
     JSON.stringify({
       format: 'llsong',
       schemaVersion: 1,
       id: songId,
       title: 'Invented song',
-      groups: [
+      slides: [
         {
-          id: first,
-          name: '후렴',
-          slides: [{lines: ['Invented first line'], hotKey: 'KeyA'}],
+          id: fixtureSlideId(1),
+          lines: ['Invented first line'],
+          hotKey: 'KeyA',
+          label: '후렴',
         },
+        {id: fixtureSlideId(2), lines: ['Invented second line'], label: '후렴'},
         {
-          id: second,
-          name: '후렴',
-          slides: [
-            {lines: ['Invented second line']},
-            {lines: ['Invented third line'], future: {retained: true}},
-          ],
+          id: fixtureSlideId(3),
+          lines: ['Invented third line'],
+          future: {retained: true},
+          label: '후렴',
         },
       ],
-      arrangements: [{name: 'Repeat', groups: [second, first, second]}],
     }),
     'invented.llsong',
   );
@@ -40,7 +38,7 @@ function fixture() {
   return parsed.value.data;
 }
 
-it('edits the particular grouped source once and preserves repeats, identities and unknown fields', () => {
+it('edits the particular slide once and preserves identities and unknown fields', () => {
   const song = fixture();
   const view = slideHotKeyView(song, source);
   expect(view).toEqual({
@@ -50,15 +48,16 @@ it('edits the particular grouped source once and preserves repeats, identities a
   });
   const changed = assignSlideHotKey(song, source, 'KeyC');
   if (!changed.ok) throw new Error(changed.error);
-  expect(changed.value.groups[1]?.slides[1]).toEqual({
+  expect(changed.value.slides[2]).toEqual({
+    id: fixtureSlideId(3),
+    label: '후렴',
     lines: ['Invented third line'],
     future: {retained: true},
     hotKey: 'KeyC',
   });
-  expect(changed.value.groups[0]).toBe(song.groups[0]);
-  expect(changed.value.groups[1]?.slides[0]).toBe(song.groups[1]?.slides[0]);
-  expect(changed.value.arrangements).toBe(song.arrangements);
-  expect(song.groups[1]?.slides[1]?.hotKey).toBeUndefined();
+  expect(changed.value.slides[0]).toBe(song.slides[0]);
+  expect(changed.value.slides[1]).toBe(song.slides[1]);
+  expect(song.slides[2]?.hotKey).toBeUndefined();
   const unchanged = assignSlideHotKey(changed.value, source, 'KeyC');
   expect(unchanged.ok && unchanged.value === changed.value).toBe(true);
   const cleared = assignSlideHotKey(changed.value, source, undefined);
@@ -83,7 +82,9 @@ it('refuses duplicate/invalid assignments and mismatched or missing source ident
       'KeyC',
     ),
   ).toEqual({ok: false, error: 'missing-source'});
-  expect(assignSlideHotKey(song, {...source, slideIndex: 9}, 'KeyC')).toEqual({
+  expect(
+    assignSlideHotKey(song, {...source, slideId: fixtureSlideId(9)}, 'KeyC'),
+  ).toEqual({
     ok: false,
     error: 'missing-source',
   });
@@ -92,7 +93,7 @@ it('refuses duplicate/invalid assignments and mismatched or missing source ident
       song,
       {
         ...source,
-        groupId: createSongGroupId('00000000-0000-4000-8000-000000000004'),
+        slideId: createSongSlideId('00000000-0000-4000-8000-000000000004'),
       },
       'KeyC',
     ),
@@ -107,6 +108,6 @@ it.each(['', 'KeyAA', 'Digit10', 'Numpad1', 'ControlLeft', 'Keya'])(
       ok: false,
       error: 'invalid-key',
     });
-    expect(song.groups[1]?.slides[1]?.hotKey).toBeUndefined();
+    expect(song.slides[2]?.hotKey).toBeUndefined();
   },
 );

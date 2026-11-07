@@ -3,7 +3,7 @@ import type {
   EditResult,
   EditSuccess,
 } from '@core/schema/contentEdit';
-import type {GroupedSong} from '@core/schema/groupedSong';
+import type {Song} from '@core/schema/song';
 import type {Service, Template} from '@core/schema/service';
 import {basename} from 'node:path';
 import type {Logger} from '../log';
@@ -25,7 +25,7 @@ import type {RecoveryTarget} from './recoveryCopies';
  * ports. Construction does not load documents or register another edit queue.
  */
 export interface ContentWriteOptions {
-  readonly songs: DocumentCollection<GroupedSong>;
+  readonly songs: DocumentCollection<Song>;
   readonly services: DocumentCollection<Service>;
   readonly templates: DocumentCollection<Template>;
   readonly files: DocumentFiles;

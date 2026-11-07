@@ -63,7 +63,13 @@ function setup(
   },
 ) {
   const items = [
-    {id: SONG_ITEM, song: HYMN_ONE_ID, theme: THEME, memo: LONG_TEXT},
+    {
+      slides: [],
+      id: SONG_ITEM,
+      song: HYMN_ONE_ID,
+      theme: THEME,
+      memo: LONG_TEXT,
+    },
     bibleItem,
     {id: MEDIA_ITEM, media: MEDIA_ID},
     {id: SLOT_ITEM, slot: 'song', title: 'Open slot'},

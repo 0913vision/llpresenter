@@ -8,7 +8,7 @@ import {
 import {appEndpoints} from '@contracts/ipc/app';
 import {contentEndpoints} from '@contracts/ipc/content';
 import {parseEditResult} from '@core/schema/contentEdit';
-import {parseGroupedSong} from '@core/schema/groupedSong';
+import {parseSong} from '@core/schema/song';
 import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
@@ -19,7 +19,7 @@ import {HYMN_ONE_ID, hymnOne, writeJson} from '@fixtures/main/store/testFiles';
 const NEW_TITLE = '방금 저장한 제목';
 
 async function titleOn(file: string): Promise<string | undefined> {
-  const parsed = parseGroupedSong(await readFile(file, 'utf8'), file);
+  const parsed = parseSong(await readFile(file, 'utf8'), file);
   return parsed.ok ? parsed.value.data.title : undefined;
 }
 

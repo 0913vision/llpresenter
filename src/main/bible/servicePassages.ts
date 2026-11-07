@@ -5,7 +5,11 @@ import {
   parseBibleLookupRequest,
   type BibleLookupPassage,
 } from '@core/schema/bibleLookup';
-import {isItemOfKind, type ServiceItem} from '@core/schema/service';
+import {
+  isItemOfKind,
+  type ServiceItem,
+  type ServiceItemOf,
+} from '@core/schema/service';
 import {SHOW_SERVICE_LIMITS, type ShowTile} from '@core/schema/showService';
 import type {BibleLookupSession} from './lookup';
 
@@ -64,7 +68,7 @@ export async function resolveServicePassages(
     return reply?.result.ok ? reply.result.value : null;
   };
   const resolveSlides = async (
-    item: Extract<ServiceItem, {slides: unknown}>,
+    item: ServiceItemOf<'slides'>,
   ): Promise<ReadonlyMap<string, BibleLookupPassage>> => {
     const found = new Map<string, BibleLookupPassage>();
     for (const slide of item.slides.slides) {

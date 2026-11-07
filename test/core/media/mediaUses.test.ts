@@ -99,8 +99,8 @@ describe('the places that use a media item', () => {
     const free = song();
     const services = [
       service([
-        {id: uuid(1), song: free.id, background: target},
-        {id: uuid(2), song: free.id},
+        {slides: [], id: uuid(1), song: free.id, background: target},
+        {slides: [], id: uuid(2), song: free.id},
         {id: uuid(3), media: target},
         {id: uuid(4), media: other},
         {

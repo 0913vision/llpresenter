@@ -62,7 +62,7 @@ describe('imported song editor sessions', () => {
     session.select({block: 1, start: 0, end: 0});
     session.edit({type: 'label', name: 'Chorus'});
     expect(
-      session.history.snapshot.song.groups.map(group => group.name),
+      session.history.snapshot.song.slides.map(slide => slide.label),
     ).toEqual(['Verse', 'Chorus']);
   });
 
@@ -111,13 +111,13 @@ describe('imported song editor sessions', () => {
     const accepted = f.store.getSnapshot().session;
     expect(accepted).toBe(cached);
     expect(
-      accepted?.history.snapshot.song.groups.map(group => ({
-        name: group.name,
-        lines: group.slides.map(slide => slide.lines),
+      accepted?.history.snapshot.song.slides.map(slide => ({
+        name: slide.label,
+        lines: slide.lines,
       })),
     ).toEqual([
-      {name: 'Invented', lines: [['First invented line']]},
-      {name: '', lines: [['Second invented line']]},
+      {name: 'Invented', lines: ['First invented line']},
+      {name: undefined, lines: ['Second invented line']},
     ]);
     expect(accepted?.readOnly).toBe(false);
     expect(accepted?.history.canUndo).toBe(false);
@@ -129,7 +129,7 @@ describe('imported song editor sessions', () => {
       song: {title: 'Editable after overwrite'},
     });
   });
-  it('keeps title, lyrics, background, undo and arrangements local until Save', async () => {
+  it('keeps title, lyrics, background, undo and labels local until Save', async () => {
     vi.useFakeTimers();
     onTestFinished(() => {
       vi.useRealTimers();
@@ -144,19 +144,14 @@ describe('imported song editor sessions', () => {
     f.session.endTyping();
     f.session.edit('undo');
     f.session.edit('redo');
-    const name = f.session.createArrangement();
-    if (name === undefined) throw new Error('No arrangement');
-    expect(await f.store.renameArrangement(name, 'Imported order')).toBe(true);
-    expect(await f.store.renameArrangement('Imported order', '  ')).toBe(false);
-    expect(await f.store.deleteArrangement('Imported order')).toBe(true);
+    f.session.edit({type: 'label', name: 'Free name'});
     await vi.advanceTimersByTimeAsync(5000);
     expect(await f.session.flush()).toBe(true);
     expect(f.edits).toHaveLength(0);
     expect(f.imports).toHaveLength(0);
-    expect(
-      f.session.history.snapshot.song.groups.flatMap(group => group.slides)[0]
-        ?.lines,
-    ).toEqual(['Changed']);
+    expect(f.session.history.snapshot.song.slides[0]?.lines).toEqual([
+      'Changed',
+    ]);
     expect(f.store.getSnapshot().imported).toBe(true);
     expect(f.store.sessionOf(f.session.document.song.id)).toBeUndefined();
     expect(vi.getTimerCount()).toBe(0);
@@ -197,7 +192,6 @@ describe('imported song editor sessions', () => {
   it('saves once, accepts the main document and enables normal autosave afterward', async () => {
     const f = fixture();
     f.session.editTitle('Imported title');
-    f.session.createArrangement();
     expect(await f.store.saveImported({kind: 'new'})).toBe(true);
     expect(f.imports).toHaveLength(1);
     expect(f.imports[0]).toMatchObject({
@@ -205,9 +199,9 @@ describe('imported song editor sessions', () => {
       target: {kind: 'new'},
       draft: {
         title: 'Imported title',
-        groups: [
-          {name: 'Invented', slides: [{lines: ['First invented line']}]},
-          {name: '', slides: [{lines: ['Second invented line']}]},
+        slides: [
+          {lines: ['First invented line'], label: 'Invented'},
+          {lines: ['Second invented line']},
         ],
       },
     });

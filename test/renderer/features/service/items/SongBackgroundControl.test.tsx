@@ -214,6 +214,7 @@ describe('slide-header background control', () => {
       view: {
         serviceId: 'service',
         item: {
+          slides: [],
           id,
           song: createSongId('20000000-0000-4000-8000-000000000001'),
           background: image.id,

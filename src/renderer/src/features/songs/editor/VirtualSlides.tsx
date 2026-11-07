@@ -11,10 +11,9 @@ import type {Label} from '@core/schema/labels';
 import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui/SlideThumbnail';
 import {thumbnailWidth} from '@renderer/ui/thumbnailSize';
 import {isComposing} from '@renderer/ui/ime';
-import type {GroupedSong} from '@core/schema/groupedSong';
+import type {Song} from '@core/schema/song';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
-import {linearSlidesOf} from '@core/songs/blockEdits';
 import styles from './SongPanels.module.css';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {slideMenuEntries} from './slideMenuEntries';
@@ -83,7 +82,7 @@ export function VirtualSlides({
   hotKeyReason,
   canvasFor,
 }: {
-  readonly song: SlideSource | GroupedSong;
+  readonly song: SlideSource | Song;
   readonly numbers: readonly number[];
   readonly labels: readonly Label[];
   readonly selected: number | undefined;
@@ -243,8 +242,7 @@ export function VirtualSlides({
           className={styles.grid}
         >
           {numbers.slice(start, end).map((number, index) => {
-            const slides =
-              'slides' in song ? song.slides : linearSlidesOf(song);
+            const slides = song.slides;
             const slide = slides[number - 1];
             return slide === undefined ? null : (
               <SlideThumbnail

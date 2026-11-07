@@ -80,7 +80,7 @@ describe('SourceTree', () => {
     expect(state('찬양')).toBe('true');
     expect(item('헌금 찬양').getAttribute('aria-describedby')).toBeNull();
     expect(screen.queryByText('빈 항목')).toBeNull();
-    expect(screen.getByText('주일용')).toBeDefined();
+    expect(item(titles.first).getAttribute('aria-describedby')).toBeNull();
   });
 
   it('checks consecutive empty sections independently, including the final one', async () => {

@@ -15,7 +15,7 @@ import type {
   EditSuccess,
 } from '@core/schema/contentEdit';
 import type {FileError} from '@core/schema/fileFormat';
-import type {GroupedSong} from '@core/schema/groupedSong';
+import type {Song} from '@core/schema/song';
 import type {ServiceId, SongId, TemplateId} from '@core/schema/ids';
 import type {Service, Template} from '@core/schema/service';
 import type {DocumentCollection, StoredDocument} from './documents';
@@ -67,14 +67,14 @@ export type ContentHandlers = {
  * families never own a second edit queue, persistence instance, or state copy.
  */
 export interface ContentCommandContext {
-  readonly songs: DocumentCollection<GroupedSong>;
+  readonly songs: DocumentCollection<Song>;
   readonly services: DocumentCollection<Service>;
   readonly templates: DocumentCollection<Template>;
   readonly locations: DataLocations;
   readonly settings: SettingsStore | null | undefined;
   readonly events: ContentEvents;
   readonly kinds: {
-    readonly song: Kind<GroupedSong>;
+    readonly song: Kind<Song>;
     readonly service: Kind<Service>;
     readonly template: Kind<Template>;
   };

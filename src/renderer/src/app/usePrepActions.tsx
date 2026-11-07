@@ -9,8 +9,6 @@ import {
 import type {SongId} from '@core/schema/ids';
 import {isItemOfKind} from '@core/schema/service';
 import type {SongSlideSource} from '@core/schema/showService';
-import {linearSlidesOf} from '@core/songs/blockModel';
-import {playedOrderWithLimit} from '@core/songs/itemOrder';
 import {TextImportFlow} from '@renderer/features/songs/import/TextImportFlow';
 import {openItem, useShow} from '@renderer/session/show';
 import {isLibrarySource} from '@renderer/session/showLibrary';
@@ -42,30 +40,18 @@ async function openServiceSong(
   if (item === undefined || !isItemOfKind(item, 'song')) {
     throw new Error('The service song is no longer available');
   }
-  const document = await api.songs.get(item.song);
-  if (!isCurrent()) return;
-  if (document === null) throw new Error('The song is no longer available');
-  const draft = editor.attach(document);
-  if (draft === undefined) return;
-  const song = draft.history.snapshot.song;
-  const number = playedOrderWithLimit(song, {
-    arrangement: item.arrangement,
-    customOrder: item.customOrder,
-  }).slides[target.position ?? 0];
-  let block = number === undefined ? 0 : number - 1;
-  const source = target.source;
-  if (source !== undefined) {
-    if (source.songId !== document.song.id) {
-      throw new Error('The service song source has changed');
-    }
-    block = linearSlidesOf(song).findIndex(
-      slide =>
-        slide.groupId === source.groupId &&
-        slide.slideIndex === source.slideIndex,
-    );
-    if (block < 0) throw new Error('The source slide is no longer available');
-  }
-  editor.open(document, {block, arrangement: item.arrangement});
+  if (!isCurrent() || service === null) return;
+  const block =
+    target.source === undefined
+      ? (target.position ?? 0)
+      : item.slides.findIndex(slide => slide.id === target.source?.slideId);
+  if (block < 0) throw new Error('The source slide is no longer available');
+  const opened = await api.window.openSongEditor({
+    songId: item.song,
+    block,
+    from: {serviceId: service.service.id, itemId: item.id},
+  });
+  if (!opened.ok) throw new Error('The song editor could not open');
 }
 
 /** App's existing editor binding, guarded navigation, and text-import surface. */

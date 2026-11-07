@@ -7,7 +7,7 @@ import {
 } from '@fixtures/renderer/features/service/items/itemFixture';
 import {itemEditFixture} from '@fixtures/renderer/features/service/items/itemEditTesting';
 import {
-  arrangementRequest,
+  memoRequest,
   backgroundRequest,
 } from '@renderer/features/service/items/itemPlaybackCommands';
 import {ItemMemoDrafts} from '@renderer/features/service/items/itemMemoDrafts';
@@ -40,9 +40,9 @@ describe('item memo drafts', () => {
     const {queue, memos, service} = setup();
 
     const choosing = queue.submit(
-      arrangementRequest(
+      memoRequest(
         {serviceId: fixtureServiceId, itemId: fixtureItems.arranged},
-        undefined,
+        'earlier',
       ),
     );
     const saving = memos.save(
@@ -52,7 +52,6 @@ describe('item memo drafts', () => {
     expect(await choosing).toBe(true);
     expect(await saving).toBe(true);
     expect(service().service.order[1]).toMatchObject({memo: '기다린 메모'});
-    expect(service().service.order[1]).not.toHaveProperty('arrangement');
   });
 
   it('never drops a refused memo draft by age and refuses new ones at the limit', async () => {

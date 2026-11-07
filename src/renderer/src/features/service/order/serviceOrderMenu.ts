@@ -20,15 +20,15 @@ export interface ServiceOrderMenuInput {
   /** Whether the 예배 순서 is at its item limit, which stops a copy. */
   readonly full?: boolean;
   readonly remove: () => void;
-  /** 순서 편집 and 곡 편집 of the 준비 menu; undefined outside 준비. */
+  /** 곡 편집 of the 준비 menu; undefined outside 준비. */
   readonly editSong?:
     | {
-        readonly editOrder: () => void;
         readonly editSong: (() => void) | undefined;
       }
     | undefined;
   readonly song?: {
-    readonly arrangements: readonly MenuEntry[];
+    readonly save: () => void;
+    readonly reload: () => void;
     readonly locked: boolean;
     readonly reason: string | undefined;
     readonly showInLibrary: (() => void) | undefined;
@@ -42,13 +42,6 @@ function songEditRows({
   if (editSong === undefined) return [];
   return [
     menuSeparator('song-edit-separator'),
-    {
-      kind: 'item',
-      id: 'edit-order',
-      label: windowCommandLabels.editOrder,
-      ...menuAvailability(song?.reason),
-      onSelect: editSong.editOrder,
-    },
     {
       kind: 'item',
       id: 'edit-song',
@@ -74,17 +67,23 @@ function openRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {
       return [
         {
           kind: 'item',
-          id: 'arrangement',
-          label: '구성',
-          submenu: input.song?.arrangements ?? [],
+          id: 'save-to-library',
+          label: '라이브러리에 저장…',
           ...menuAvailability(
-            !input.editable
-              ? '예배 순서 편집 불가'
-              : (input.song?.reason ??
-                  (input.song?.locked !== false
-                    ? '구성 변경 불가'
-                    : undefined)),
+            input.song?.reason ??
+              (input.song?.locked ? '예배 순서 편집 불가' : undefined),
           ),
+          onSelect: input.song?.save,
+        },
+        {
+          kind: 'item',
+          id: 'reload-from-library',
+          label: '라이브러리에서 다시 불러오기',
+          ...menuAvailability(
+            input.song?.reason ??
+              (input.song?.locked ? '예배 순서 편집 불가' : undefined),
+          ),
+          onSelect: input.song?.reload,
         },
         ...songEditRows(input),
         laterRow('destination', '출력할 화면', {submenu: true}),

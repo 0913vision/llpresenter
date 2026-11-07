@@ -13,7 +13,7 @@ import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjectio
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {slideLayerOf} from '@core/presentation/slideLayer';
-import {NEWER_FILE_REASON} from './ItemArrangement';
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {OverlayWarning} from './ItemThemeRow';
 import {OverlayClips} from './OverlayClip';
 import type {ServiceItemStore} from './serviceItemStore';

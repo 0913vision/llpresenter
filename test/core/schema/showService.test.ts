@@ -371,8 +371,7 @@ describe('parseShowService', () => {
   it('keeps the source slide and hot key of a tile', () => {
     const sourceSlide = {
       songId: '00000000-0000-4000-8000-000000000001',
-      groupId: '00000000-0000-4000-8000-000000000002',
-      slideIndex: 1,
+      slideId: '00000000-0000-4000-8000-000000000002',
     };
     const tiles = [
       {
@@ -398,37 +397,32 @@ describe('parseShowService', () => {
       hotKey: 'Numpad0',
       sourceSlide: {
         songId: '00000000-0000-4000-8000-000000000001',
-        groupId: '00000000-0000-4000-8000-000000000002',
-        slideIndex: 0,
+        slideId: '00000000-0000-4000-8000-000000000002',
       },
     },
     {hotKey: null},
     {
       sourceSlide: {
         songId: '00000000-0000-4000-8000-000000000001',
-        groupId: '00000000-0000-4000-8000-000000000002',
-        slideIndex: -1,
+        slideId: -1,
       },
     },
     {
       sourceSlide: {
         songId: '00000000-0000-4000-8000-000000000001',
-        groupId: '00000000-0000-4000-8000-000000000002',
-        slideIndex: 0.5,
+        slideId: null,
       },
     },
     {
       sourceSlide: {
         songId: 'invalid',
-        groupId: '00000000-0000-4000-8000-000000000002',
-        slideIndex: 0,
+        slideId: '00000000-0000-4000-8000-000000000002',
       },
     },
     {
       sourceSlide: {
         songId: '00000000-0000-4000-8000-000000000001',
-        groupId: 'invalid',
-        slideIndex: 0,
+        slideId: 'invalid',
       },
     },
   ])('rejects malformed tile metadata %j', metadata => {

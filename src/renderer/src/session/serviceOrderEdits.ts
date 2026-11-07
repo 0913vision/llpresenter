@@ -251,6 +251,10 @@ export class ServiceOrderEdits {
       order.splice(index, 0, {
         id: createServiceItemId(crypto.randomUUID()),
         song: songId,
+        slides: structuredClone(song.song.slides),
+        ...(song.song.background === undefined
+          ? {}
+          : {background: song.song.background}),
       });
       return {ok: true, value: order};
     });

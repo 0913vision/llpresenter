@@ -1,51 +1,15 @@
-import {
-  sourceSlideCount,
-  type GroupedSong,
-  type SongGroup,
-} from '../schema/groupedSong';
+import type {Song, SongSlide} from '../schema/song';
 
-import type {SongGroupId} from '../schema/ids';
-
-import type {SlideHotKey} from '../schema/slideHotKey';
-
-/** A zero-based source block and UTF-16 selection; it does not select output. */
 export interface BlockSelection {
   readonly block: number;
   readonly start: number;
   readonly end: number;
 }
-
-/** A song and bounded editing selection, without persistence or session ownership. */
 export interface BlockSnapshot {
-  readonly song: GroupedSong;
+  readonly song: Song;
   readonly selection: BlockSelection;
-  readonly mergeRefused?: boolean;
 }
-
-/** Locates a source slide inside its group, independently of arrangement order. */
-export interface GroupedSlideAddress {
-  readonly groupIndex: number;
-  readonly groupId: SongGroupId;
-  readonly groupName: string;
-  readonly slideIndex: number;
-  readonly isGroupStart: boolean;
-  readonly slide: {
-    readonly lines: readonly string[];
-    readonly hotKey?: SlideHotKey;
-  };
-}
-
-/** A flattened source-slide view; it does not change group identities or content. */
-export interface EditorSlideItem {
-  readonly lines: readonly string[];
-  readonly label?: string | undefined;
-  readonly isGroupStart?: boolean;
-  readonly groupId?: SongGroupId;
-  readonly slideIndex?: number;
-  readonly hotKey?: SlideHotKey;
-}
-
-/** Describes one lyric edit, including Ctrl Enter split and Ctrl Shift N insert; it does not apply or persist it. */
+export type EditorSlideItem = SongSlide;
 export type BlockCommand =
   | {
       readonly type: 'text';
@@ -54,88 +18,29 @@ export type BlockCommand =
       readonly end: number;
     }
   | {readonly type: 'paste'; readonly text: string}
-  | {
-      readonly type: 'label';
-      readonly name: string | undefined;
-      readonly ids?: readonly [SongGroupId, SongGroupId];
-    }
+  | {readonly type: 'label'; readonly name: string | undefined}
   | {readonly type: 'enter' | 'split' | 'insert' | 'merge'};
 
-/** Normalizes line endings without trimming lyric text or changing blank lines. */
 export const normalize = (text: string): string => text.replace(/\r\n?/g, '\n');
-
-/** Matches blank-line block separators without matching nonblank lyric lines. */
 export const BLANK_LINES = /\n(?:[^\S\n]*\n)+/g;
-
-/** Splits normalized lyric text into lines without retaining an empty-text line. */
 export const linesOf = (text: string): readonly string[] =>
   text === '' ? [] : text.split('\n');
-
-export {sourceSlideCount as groupedSlideCount} from '../schema/groupedSong';
-
-/** Counts source slides independently of arrangements. */
-export function slideCountOf(song: GroupedSong): number {
-  return sourceSlideCount(song);
+export function slideCountOf(song: Song): number {
+  return song.slides.length;
 }
-
-/** Locates a grouped source slide by flattened index without modifying the song. */
-export function linearBlockAddress(
-  song: GroupedSong,
-  linearIndex: number,
-): GroupedSlideAddress | undefined {
-  let offset = 0;
-  for (let groupIndex = 0; groupIndex < song.groups.length; groupIndex++) {
-    const group = song.groups[groupIndex];
-    if (group === undefined) continue;
-    if (linearIndex < offset + group.slides.length) {
-      const slideIndex = linearIndex - offset;
-      const slide = group.slides[slideIndex];
-      if (slide === undefined) return undefined;
-      return {
-        groupIndex,
-        groupId: group.id,
-        groupName: group.name,
-        slideIndex,
-        isGroupStart: slideIndex === 0,
-        slide,
-      };
-    }
-    offset += group.slides.length;
-  }
-  return undefined;
+export function linearSlidesOf(song: Song): readonly EditorSlideItem[] {
+  return song.slides;
 }
-
-function groupSlidesOf(group: SongGroup): readonly EditorSlideItem[] {
-  return group.slides.map((slide, index) => ({
-    lines: slide.lines,
-    ...(index === 0 && group.name !== '' ? {label: group.name} : {}),
-    isGroupStart: index === 0,
-    groupId: group.id,
-    slideIndex: index,
-    ...(slide.hotKey === undefined ? {} : {hotKey: slide.hotKey}),
-  }));
-}
-
-/** Flattens source slides for editing without expanding arrangements or mutating groups. */
-export function linearSlidesOf(song: GroupedSong): readonly EditorSlideItem[] {
-  return song.groups.flatMap(groupSlidesOf);
-}
-
-/** Bounds a source block and UTF-16 caret range without cloning or modifying the song. */
 export function blockSnapshot(
-  song: GroupedSong,
+  song: Song,
   selection: BlockSelection = {block: 0, start: 0, end: 0},
-  mergeRefused?: boolean,
 ): BlockSnapshot {
-  const count = slideCountOf(song);
-  const block = Math.max(0, Math.min(Math.max(0, count - 1), selection.block));
-  const slides = linearSlidesOf(song);
-  const length = slides[block]?.lines.join('\n').length ?? 0;
+  const block = Math.max(
+    0,
+    Math.min(Math.max(0, song.slides.length - 1), selection.block),
+  );
+  const length = song.slides[block]?.lines.join('\n').length ?? 0;
   const start = Math.max(0, Math.min(length, selection.start));
   const end = Math.max(start, Math.min(length, selection.end));
-  return {
-    song,
-    selection: {block, start, end},
-    ...(mergeRefused ? {mergeRefused: true} : {}),
-  };
+  return {song, selection: {block, start, end}};
 }

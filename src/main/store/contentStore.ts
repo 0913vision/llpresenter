@@ -4,7 +4,7 @@ import type {
   TemplateEntry,
 } from '@core/schema/contentDocuments';
 import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
-import {serializeGroupedSong, type GroupedSong} from '@core/schema/groupedSong';
+import {serializeSong, type Song} from '@core/schema/song';
 import {type ServiceId} from '@core/schema/ids';
 import {
   serializeService,
@@ -57,7 +57,7 @@ export type {DocumentFiles} from './contentPersistence';
 export interface ContentStoreOptions {
   readonly settings?: SettingsStore | null;
   readonly locations: DataLocations;
-  readonly songs: ReadonlyMap<string, StoredFile<GroupedSong>>;
+  readonly songs: ReadonlyMap<string, StoredFile<Song>>;
   readonly services: ReadonlyMap<string, StoredFile<Service>>;
   readonly templates: ReadonlyMap<string, StoredFile<Template>>;
   readonly files: DocumentFiles;
@@ -67,7 +67,7 @@ export interface ContentStoreOptions {
   readonly openServiceId?: string | null;
 }
 
-const SONG: Kind<GroupedSong> = {name: 'song', serialize: serializeGroupedSong};
+const SONG: Kind<Song> = {name: 'song', serialize: serializeSong};
 const SERVICE: Kind<Service> = {name: 'service', serialize: serializeService};
 const TEMPLATE: Kind<Template> = {
   name: 'template',
@@ -84,7 +84,7 @@ const TEMPLATE: Kind<Template> = {
  * change. Every change goes to the windows with its revision.
  */
 export class ContentStore {
-  private readonly songs: DocumentCollection<GroupedSong>;
+  private readonly songs: DocumentCollection<Song>;
   private readonly services: DocumentCollection<Service>;
   private readonly templates: DocumentCollection<Template>;
   private editing: Promise<void> = Promise.resolve();
@@ -293,7 +293,7 @@ export class ContentStore {
   }
 
   /** The current songs, for the open 예배 순서 in 진행. */
-  storedSongs(): ReadonlyMap<string, StoredDocument<GroupedSong>> {
+  storedSongs(): ReadonlyMap<string, StoredDocument<Song>> {
     return new Map(this.songs.all().map(song => [song.data.id, song]));
   }
 

@@ -15,12 +15,9 @@ export type TableApi = Pick<
 
 /** What a cell reads from the library song of an item. */
 export interface SongFacts {
-  readonly arrangements: readonly string[];
   /** The song's own background, which an item without one follows. */
   readonly background: MediaId | undefined;
 }
-
-const NO_NAMES: readonly string[] = [];
 
 async function readFacts(
   api: Pick<LlpApi, 'songs'>,
@@ -28,8 +25,6 @@ async function readFacts(
 ): Promise<SongFacts> {
   const document = await api.songs.get(id);
   return {
-    arrangements:
-      document?.song.arrangements?.map(entry => entry.name) ?? NO_NAMES,
     background: document?.song.background,
   };
 }

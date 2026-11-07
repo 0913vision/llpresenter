@@ -1,7 +1,6 @@
 import * as v from 'valibot';
 import type {Result} from '../common/result';
 import {serviceIdSchema, serviceItemIdSchema, songIdSchema} from './ids';
-import {ORDER_EDITOR_SLIDE_SIZE_MAX} from './appConfig';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
 
 /** The highest frame rate a window may report. */
@@ -98,44 +97,13 @@ export function isFrameRateReport(value: unknown): value is FrameRateReport {
   return parseFrameRateReport(value).ok;
 }
 
-const orderEditorTargetSchema = payloadObject({
+const songItemTargetSchema = payloadObject({
   serviceId: serviceIdSchema,
   itemId: serviceItemIdSchema,
 });
 
-/** The song item that the 순서 편집 window edits. */
-export type OrderEditorTarget = Readonly<
-  v.InferOutput<typeof orderEditorTargetSchema>
->;
-
-export function parseOrderEditorTarget(
-  value: unknown,
-): Result<OrderEditorTarget, PayloadError> {
-  return parsePayload(orderEditorTargetSchema, value);
-}
-
-const orderEditorSlideSizeSchema = v.pipe(
-  v.number(),
-  v.integer(),
-  v.minValue(1),
-  v.maxValue(ORDER_EDITOR_SLIDE_SIZE_MAX),
-);
-
-/** Checks the slide tile width, in CSS pixels, that the 순서 편집 window keeps. */
-export function parseOrderEditorSlideSize(
-  value: unknown,
-): Result<number, PayloadError> {
-  return parsePayload(orderEditorSlideSizeSchema, value);
-}
-
 /** What the 곡 편집 window can start with besides the song. */
-export const songEditorActions = [
-  'create-arrangement',
-  'rename-arrangement',
-  'delete-arrangement',
-  'edit-arrangement',
-  'hot-key',
-] as const;
+export const songEditorActions = ['hot-key'] as const;
 
 export type SongEditorWindowAction = (typeof songEditorActions)[number];
 
@@ -152,9 +120,8 @@ const songEditorTargetSchema = payloadObject({
       v.maxValue(SONG_EDITOR_BLOCK_MAX),
     ),
   ),
-  arrangement: v.exactOptional(v.pipe(v.string(), v.maxLength(512))),
   action: v.exactOptional(v.picklist(songEditorActions)),
-  from: v.exactOptional(orderEditorTargetSchema),
+  from: v.exactOptional(songItemTargetSchema),
   focusTitle: v.exactOptional(v.boolean()),
 });
 

@@ -2,7 +2,6 @@ import type {ServiceItemChange} from '@core/services/itemFieldChanges';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {Result} from '@core/common/result';
 import type {EditFailure, EditSuccess} from '@core/schema/contentEdit';
-import {isItemOfKind} from '@core/schema/service';
 import type {Service} from '@core/schema/service';
 import {recordItemEdit} from './serviceOrderEdits';
 
@@ -18,20 +17,6 @@ export type ServiceItemEditResult = Result<
 export type ServiceItemApi = Pick<LlpApi, 'services' | 'content'>;
 
 export type {ServiceItemChange} from '@core/services/itemFieldChanges';
-
-/** The same item-only arrangement choice in its setting and context menu. */
-export function itemArrangementChange(
-  name: string | undefined,
-): ServiceItemChange {
-  return item => {
-    if (!isItemOfKind(item, 'song')) return null;
-    if (item.arrangement === name) return item;
-    const updated = {...item};
-    if (name === undefined) delete updated.arrangement;
-    else updated.arrangement = name;
-    return updated;
-  };
-}
 
 export interface ServiceItemUpdate {
   readonly serviceId: string;

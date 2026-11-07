@@ -1,38 +1,10 @@
 import {describe, expect, it} from 'vitest';
 import type {Label} from '@core/schema/labels';
 import {
-  arrangementNameReason,
-  DUPLICATE_ARRANGEMENT_NAME_REASON,
-  EMPTY_ARRANGEMENT_NAME_REASON,
-  MISSING_ARRANGEMENT_REASON,
-  RESERVED_ARRANGEMENT_NAME_REASON,
-} from '@renderer/features/songs/editor/ArrangementDialog';
-import {
   DUPLICATE_LABEL_NAME_REASON,
   EMPTY_LABEL_NAME_REASON,
   labelNameReason,
 } from '@renderer/features/songs/editor/LabelNameField';
-
-describe('arrangement name reasons', () => {
-  const names = ['기본', '주일용', '저녁용'];
-
-  it.each([
-    ['', '주일용', EMPTY_ARRANGEMENT_NAME_REASON],
-    ['   ', '주일용', EMPTY_ARRANGEMENT_NAME_REASON],
-    [' 기본 ', '주일용', RESERVED_ARRANGEMENT_NAME_REASON],
-    ['새 구성', '사라진 구성', MISSING_ARRANGEMENT_REASON],
-    [' 저녁용 ', '주일용', DUPLICATE_ARRANGEMENT_NAME_REASON],
-  ])('rejects %j renamed from %j', (value, from, reason) => {
-    expect(arrangementNameReason(value, names, from)).toBe(reason);
-  });
-
-  it.each([
-    [' 주일용 ', '주일용'],
-    ['새벽용', '주일용'],
-  ])('accepts %j renamed from %j', (value, from) => {
-    expect(arrangementNameReason(value, names, from)).toBeUndefined();
-  });
-});
 
 describe('label name reasons', () => {
   const labels: readonly Label[] = [{name: '후렴', color: 'none', key: null}];

@@ -1,3 +1,4 @@
+import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {describe, expect, it} from 'vitest';
 import {
   parseLibrarySongs,
@@ -22,13 +23,7 @@ function songDocument() {
       schemaVersion: 1,
       id: SONG_ID,
       title: '만복의 근원 하나님',
-      groups: [
-        {
-          id: '00000000-0000-4000-8000-000000000101',
-          name: '',
-          slides: [{lines: ['Invented contract line']}],
-        },
-      ],
+      slides: [{id: fixtureSlideId(1), lines: ['Invented contract line']}],
     },
     revision: 2,
     access: 'editable',
@@ -46,9 +41,9 @@ function librarySong() {
 }
 
 describe('parseSongDocument', () => {
-  it('rejects a song that carries slides instead of groups', () => {
+  it('rejects slides without identities and empty library decks', () => {
     const original = songDocument();
-    const {groups: _groups, ...header} = original.song;
+    const header = original.song;
     expect(
       parseSongDocument({
         ...original,

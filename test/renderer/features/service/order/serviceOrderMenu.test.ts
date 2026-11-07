@@ -20,7 +20,8 @@ it('omits the unavailable editor group without an empty separator in prep', () =
   ).toEqual([
     'hide',
     '|',
-    'arrangement',
+    'save-to-library',
+    'reload-from-library',
     'destination',
     '|',
     'copy',
@@ -34,7 +35,7 @@ it('omits the unavailable editor group without an empty separator in prep', () =
   ]);
 });
 
-it('explains protected edits and unavailable arrangement and library actions', () => {
+it('explains protected edits and unavailable library actions', () => {
   const input: ServiceOrderMenuInput = {
     row: {kind: 'header', id: 'row', title: '구역'},
     editable: false,
@@ -56,9 +57,6 @@ it('explains protected edits and unavailable arrangement and library actions', (
     row: {...input.row, kind: 'song' as const},
   };
   const missing = menuItems(serviceOrderMenuEntries(song));
-  expect(missing.find(row => row.id === 'arrangement')?.title).toBe(
-    '구성 변경 불가',
-  );
   expect(missing.find(row => row.id === 'show-in-library')?.title).toBe(
     '이 창에서는 쓸 수 없음',
   );
@@ -66,20 +64,24 @@ it('explains protected edits and unavailable arrangement and library actions', (
     serviceOrderMenuEntries({
       ...song,
       song: {
-        arrangements: [],
+        save: vi.fn(),
+        reload: vi.fn(),
         locked: true,
         reason: '불러오는 중',
         showInLibrary: undefined,
       },
     }),
   );
-  for (const id of ['arrangement', 'show-in-library']) {
+  for (const id of [
+    'save-to-library',
+    'reload-from-library',
+    'show-in-library',
+  ]) {
     expect(loading.find(row => row.id === id)?.title).toBe('불러오는 중');
   }
 });
 
-it('puts 순서 편집 and 곡 편집 after 구성 in the prep menu and runs them', () => {
-  const editOrder = vi.fn();
+it('puts the item editor after library transfer actions and runs it', () => {
   const editSong = vi.fn();
   const entries = serviceOrderMenuEntries({
     row: {kind: 'song', id: 'row', title: '곡'},
@@ -88,7 +90,7 @@ it('puts 순서 편집 and 곡 편집 after 구성 in the prep menu and runs the
     rename: vi.fn(),
     duplicate: vi.fn(),
     remove: vi.fn(),
-    editSong: {editOrder, editSong},
+    editSong: {editSong},
   });
   const ids = entries.map(entry =>
     entry.kind === 'separator' ? '|' : entry.id,
@@ -96,17 +98,15 @@ it('puts 순서 편집 and 곡 편집 after 구성 in the prep menu and runs the
   expect(ids.slice(0, 8)).toEqual([
     'hide',
     '|',
-    'arrangement',
+    'save-to-library',
+    'reload-from-library',
     '|',
-    'edit-order',
     'edit-song',
     '|',
     'destination',
   ]);
   const rows = menuItems(entries);
-  rows.find(row => row.id === 'edit-order')?.onSelect?.();
   rows.find(row => row.id === 'edit-song')?.onSelect?.();
-  expect(editOrder).toHaveBeenCalledOnce();
   expect(editSong).toHaveBeenCalledOnce();
 });
 
@@ -118,7 +118,7 @@ it('disables 곡 편집 without a song and both while the song loads', () => {
     rename: vi.fn(),
     duplicate: vi.fn(),
     remove: vi.fn(),
-    editSong: {editOrder: vi.fn(), editSong: undefined},
+    editSong: {editSong: undefined},
   };
   const missing = menuItems(serviceOrderMenuEntries(base));
   expect(missing.find(row => row.id === 'edit-song')).toMatchObject({
@@ -129,14 +129,15 @@ it('disables 곡 편집 without a song and both while the song loads', () => {
     serviceOrderMenuEntries({
       ...base,
       song: {
-        arrangements: [],
+        save: vi.fn(),
+        reload: vi.fn(),
         locked: true,
         reason: '불러오는 중',
         showInLibrary: undefined,
       },
     }),
   );
-  for (const id of ['edit-order', 'edit-song']) {
+  for (const id of ['edit-song']) {
     expect(loading.find(row => row.id === id)?.title).toBe('불러오는 중');
   }
 });

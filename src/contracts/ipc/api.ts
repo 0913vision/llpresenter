@@ -27,7 +27,6 @@ import {
   type OutputApi,
 } from './output';
 import {locationsApi, type LocationsApi} from './locations';
-import {orderEditorApi, type OrderEditorApi} from './orderEditor';
 import {recoveryApi, type RecoveryApi} from './recovery';
 import {serviceApi, type ServiceApi} from './service';
 import {
@@ -100,7 +99,6 @@ export interface LlpApi {
   readonly textImport: TextImportApi;
   readonly recovery: RecoveryApi;
   readonly locations: LocationsApi;
-  readonly orderEditor: OrderEditorApi;
   readonly songEditorWindow: SongEditorWindowApi;
   readonly slidesEditor: SlidesEditorApi;
 }
@@ -140,7 +138,6 @@ export function llpApi(
     textImport: textImportApi(port),
     recovery: recoveryApi(port),
     locations: locationsApi(port),
-    orderEditor: orderEditorApi(port),
     songEditorWindow: songEditorWindowApi(port),
     slidesEditor: custom.slidesEditor ?? slidesEditorApi(port),
   };

@@ -1,3 +1,4 @@
+import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {describe, expect, it, vi} from 'vitest';
 import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import type {
@@ -13,10 +14,8 @@ import {
   createServiceItemId,
   createSongId,
   createThemeId,
-  createSongGroupId,
 } from '@core/schema/ids';
 import {withStartField} from '@core/services/itemFieldChanges';
-import {withArrangementChoice} from '@core/songs/itemOrder';
 import {themeRequest} from '@renderer/features/service/items/itemAppearanceCommands';
 import {updateServiceItem} from '@renderer/session/serviceItemUpdate';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
@@ -53,7 +52,13 @@ function fixture() {
       futureMetadata: {keep: true},
       order: [
         {id: first, header: 'Invented header'},
-        {id: second, song: songId, memo: 'Keep this', futureField: [1, 2]},
+        {
+          slides: [],
+          id: second,
+          song: songId,
+          memo: 'Keep this',
+          futureField: [1, 2],
+        },
         {id: third, futureKind: {keep: true}},
       ],
     },
@@ -66,13 +71,7 @@ function fixture() {
       schemaVersion: 1,
       id: songId,
       title: 'Invented song',
-      groups: [
-        {
-          id: createSongGroupId('30000000-0000-4000-8000-000000000001'),
-          name: '',
-          slides: [{lines: ['Invented words']}],
-        },
-      ],
+      slides: [{id: fixtureSlideId(1), lines: ['Invented words']}],
     },
     revision: 1,
     access: 'editable',
@@ -169,7 +168,7 @@ describe('service order edits', () => {
       state.document.service.order[0],
       state.document.service.order[1],
       {id: third, header: 'Second section'},
-      {id: tail, song: songId},
+      {slides: [], id: tail, song: songId},
     ];
     if (order[0] === undefined || order[1] === undefined) {
       throw new Error('Missing rows');
@@ -216,8 +215,16 @@ describe('service order edits', () => {
     await edits.insertSong(serviceId, songId, second);
     await edits.insertSong(serviceId, songId, null);
     const order = state.document?.service.order ?? [];
-    expect(order[1]).toEqual({id: order[1]?.id, song: songId});
-    expect(order.at(-1)).toEqual({id: order.at(-1)?.id, song: songId});
+    expect(order[1]).toEqual({
+      slides: state.song?.song.slides,
+      id: order[1]?.id,
+      song: songId,
+    });
+    expect(order.at(-1)).toEqual({
+      slides: state.song?.song.slides,
+      id: order.at(-1)?.id,
+      song: songId,
+    });
     expect(new Set(ids()).size).toBe(5);
     await edits.undo(serviceId);
     expect(ids()).toHaveLength(4);
@@ -322,7 +329,13 @@ describe('service order edits', () => {
         ...state.document.service,
         order: state.document.service.order.map(item =>
           item.id === second
-            ? {futureField: [1, 2], memo: 'Keep this', song: songId, id: second}
+            ? {
+                slides: [],
+                futureField: [1, 2],
+                memo: 'Keep this',
+                song: songId,
+                id: second,
+              }
             : item,
         ),
       },
@@ -497,7 +510,6 @@ describe('service order edits', () => {
     const changes = [
       withStartField('memo', '새 메모'),
       themeRequest(null, createThemeId(THEME_ID)).change,
-      withArrangementChoice('주일용'),
       withStartField('macro', MACRO_ID),
     ];
     const original = memoOf();
@@ -508,7 +520,6 @@ describe('service order edits', () => {
     expect(finished).toMatchObject({
       memo: '새 메모',
       theme: THEME_ID,
-      arrangement: '주일용',
       macro: MACRO_ID,
     });
     for (const step of changes.keys()) {

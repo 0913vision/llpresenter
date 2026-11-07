@@ -50,16 +50,6 @@ const windowPlacementEntries = {
 
 const windowPlacementSchema = jsonObject(windowPlacementEntries);
 
-/** The widest slide tile, in CSS pixels, that the 순서 편집 size slider keeps. */
-export const ORDER_EDITOR_SLIDE_SIZE_MAX = 4096;
-
-const orderEditorWindowSchema = jsonObject({
-  ...windowPlacementEntries,
-  slideSize: v.exactOptional(
-    v.pipe(positiveInteger, v.maxValue(ORDER_EDITOR_SLIDE_SIZE_MAX)),
-  ),
-});
-
 /** The window size classes of the design system `Layout`. */
 export const sizeClasses = ['narrow', 'normal', 'wide'] as const;
 
@@ -83,7 +73,6 @@ const appConfigSchema = jsonObject({
   ),
   layout: v.exactOptional(appLayoutSchema),
   screensWindow: v.exactOptional(windowPlacementSchema),
-  orderEditorWindow: v.exactOptional(orderEditorWindowSchema),
   songEditorWindow: v.exactOptional(windowPlacementSchema),
   previewBig: v.exactOptional(screenIdSchema),
   macroView: v.exactOptional(v.picklist(['grid', 'list'])),

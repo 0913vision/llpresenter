@@ -239,7 +239,6 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
       mode: 'normal',
     });
     expect(mocks.editorWindowContexts).toEqual([
-      {name: 'order', context},
       {name: 'song', context},
       {name: 'slides', context},
     ]);
@@ -247,7 +246,6 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     await vi.waitFor(() =>
       expect(mocks.editorWindowStops.song).toHaveBeenCalledOnce(),
     );
-    expect(mocks.editorWindowStops.order).toHaveBeenCalledOnce();
     expect(mocks.editorWindowStops.slides).toHaveBeenCalledOnce();
   });
 

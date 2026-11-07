@@ -9,7 +9,7 @@ import {IconButton} from '@renderer/ui/IconButton';
 import {Menu} from '@renderer/ui/Menu';
 import {menuButtonProps} from '@renderer/ui/menuButton';
 import type {Notice} from '@renderer/ui/notices';
-import {NEWER_FILE_REASON} from './ItemArrangement';
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {otherItemEntries} from './quickAddItems';
 import {passageItem, type PassageDefaults} from './quickAddBible';
 import {BibleQuickAdd} from './BibleQuickAdd';

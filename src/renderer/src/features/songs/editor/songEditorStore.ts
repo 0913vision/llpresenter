@@ -118,8 +118,9 @@ export class SongEditorStore {
     options: {
       readonly focusTitle?: boolean;
       readonly block?: number;
-      readonly arrangement?: string | undefined;
       readonly action?: SongEditorAction | undefined;
+      readonly content?: EditorApi['content'];
+      readonly reload?: () => Promise<SongDocument | null>;
     } = {},
   ): void {
     if (!this.alive) return;
@@ -138,16 +139,18 @@ export class SongEditorStore {
       document !== null && options.focusTitle === true ? ++this.focusSerial : 0;
     this.actionRequest = null;
     if (document !== null) {
-      const session = this.pool.attach(document);
+      const session = this.pool.attach(
+        document,
+        options.content,
+        options.reload,
+      );
       if (options.block !== undefined) {
-        session.selectArrangement(options.arrangement);
         session.select({block: options.block, start: 0, end: 0});
       }
       if (options.action !== undefined) {
         this.actionRequest = {
           action: options.action,
           serial: ++this.actionSerial,
-          arrangement: session.arrangement,
         };
       }
     }
@@ -162,9 +165,13 @@ export class SongEditorStore {
         : {
             action,
             serial: ++this.actionSerial,
-            arrangement: this.state.session?.arrangement,
           };
     this.publish();
+  }
+
+  /** Item pushes share the rename buffer with library pushes. */
+  receiveDocument(document: SongDocument): void {
+    this.sharedEdits.receive({songId: document.song.id, document});
   }
 
   openImported(draft: TextImportDraft): void {
@@ -247,18 +254,6 @@ export class SongEditorStore {
     onApplied?: RenameApplied,
   ): Promise<boolean> {
     return this.sharedEdits.renameLabel(from, to, onApplied);
-  }
-
-  renameArrangement(
-    from: string,
-    to: string,
-    onApplied?: RenameApplied,
-  ): Promise<boolean> {
-    return this.sharedEdits.renameArrangement(from, to, onApplied);
-  }
-
-  deleteArrangement(name: string): Promise<boolean> {
-    return this.sharedEdits.deleteArrangement(name);
   }
 
   /** Persists an applied identity without replaying its rename or its reference rewrites. */

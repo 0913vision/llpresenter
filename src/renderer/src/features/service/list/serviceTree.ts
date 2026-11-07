@@ -22,7 +22,6 @@ export interface TreeRow {
 /** The checked rows by id: items, and headers with no items under them. */
 export type TreeSelection = ReadonlySet<ServiceItemId>;
 
-const DEFAULT_ARRANGEMENT = '기본';
 const MISSING_SONG = '곡을 찾을 수 없습니다';
 const kindLabels = {
   media: '미디어',
@@ -45,7 +44,6 @@ function rowOf(
     return {
       label: songTitles.get(item.song) ?? MISSING_SONG,
       icon: icons.song,
-      detail: item.arrangement ?? DEFAULT_ARRANGEMENT,
     };
   }
   if (isItemOfKind(item, 'bible')) {

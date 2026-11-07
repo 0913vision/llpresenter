@@ -17,11 +17,11 @@ describe('shared label edits', () => {
       baseRevision: 1,
     });
     for (const document of documents.values()) {
-      expect(document.song.groups[0]?.name).toBe('새 절');
+      expect(document.song.slides[0]?.label).toBe('새 절');
     }
     session.edit('undo');
     await session.flush();
-    expect(session.history.snapshot.song.groups[0]?.name).toBe('새 절');
+    expect(session.history.snapshot.song.slides[0]?.label).toBe('새 절');
   });
 
   it('flushes queued text before a rename and maps the redo history', async () => {
@@ -47,22 +47,17 @@ describe('shared label edits', () => {
     release();
     expect(await earlier).toBe(true);
     expect(await rename).toBe(true);
-    expect(
-      session.document.song.groups.flatMap(group => group.slides)[0],
-    ).toMatchObject({
+    expect(session.document.song.slides[0]).toMatchObject({
       lines: ['latest'],
     });
     session.edit('undo');
     await session.flush();
-    expect(
-      session.history.snapshot.song.groups.flatMap(group => group.slides)[0]
-        ?.lines,
-    ).toEqual(first.song.groups.flatMap(group => group.slides)[0]?.lines);
+    expect(session.history.snapshot.song.slides[0]?.lines).toEqual(
+      first.song.slides[0]?.lines,
+    );
     session.edit('redo');
     await session.flush();
-    expect(
-      session.history.snapshot.song.groups.flatMap(group => group.slides)[0],
-    ).toMatchObject({
+    expect(session.history.snapshot.song.slides[0]).toMatchObject({
       lines: ['latest'],
     });
   });
@@ -90,9 +85,7 @@ describe('shared label edits', () => {
     expect(await store.renameLabel('1절', '새 절')).toBe(true);
     session.edit('redo');
     await session.flush();
-    expect(
-      session.history.snapshot.song.groups.flatMap(group => group.slides)[0],
-    ).toMatchObject({
+    expect(session.history.snapshot.song.slides[0]).toMatchObject({
       lines: ['redo draft'],
     });
   });

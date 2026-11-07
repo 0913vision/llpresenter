@@ -1,15 +1,12 @@
+import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import type {
   LibrarySong,
   SongChange,
   SongDocument,
 } from '@core/schema/contentDocuments';
 import {parseSongDocument} from '@core/schema/contentDocuments';
-import {
-  createServiceId,
-  createSongId,
-  createSongGroupId,
-} from '@core/schema/ids';
-import {sourceSlideCount} from '@core/schema/groupedSong';
+import {createServiceId, createSongId} from '@core/schema/ids';
+import {sourceSlideCount} from '@core/schema/song';
 import {LIBRARY_SEARCH_LIMITS} from '@core/schema/librarySearch';
 import type {EditResult} from '@core/schema/contentEdit';
 import type {LibraryApi} from '@renderer/features/songs/library/useLibrary';
@@ -23,15 +20,7 @@ export function fixtureSong(number: number, title: string): SongDocument {
         `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`,
       ),
       title,
-      groups: [
-        {
-          id: createSongGroupId(
-            `10000000-0000-4000-8000-${String(number).padStart(12, '0')}`,
-          ),
-          name: '',
-          slides: [{lines: [`Invented words ${number}`]}],
-        },
-      ],
+      slides: [{id: fixtureSlideId(1), lines: [`Invented words ${number}`]}],
     },
     revision: 1,
     access: 'editable',
@@ -138,10 +127,9 @@ export function libraryFixture(
             ...document,
             song: {
               ...document.song,
-              groups: document.song.groups.map(group => ({
-                ...group,
-                slides: [{lines: []}],
-              })),
+              slides: document.song.slides
+                .slice(0, 1)
+                .map(slide => ({...slide, lines: []})),
             },
           });
           pushList();

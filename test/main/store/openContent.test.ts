@@ -1,3 +1,4 @@
+import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {
   ask,
   askForService,
@@ -36,7 +37,7 @@ describe('content opening through registerStore', () => {
       schemaVersion: 1,
       id: itemId(82),
       title: 'Standalone editable song',
-      groups: [{id: itemId(81), name: '', slides: [{lines: ['Before']}]}],
+      slides: [{id: fixtureSlideId(1), lines: ['Before']}],
     };
     await writeJson(join(root, 'Songs', `${song.id}.llsong`), song);
     const store = await register(mockLog(), context, () => true);
@@ -58,10 +59,7 @@ describe('content opening through registerStore', () => {
         song: {
           ...current,
           title: 'After edit',
-          groups: current.groups.map(group => ({
-            ...group,
-            slides: [{lines: ['After']}],
-          })),
+          slides: current.slides.map(slide => ({...slide, lines: ['After']})),
         },
       }),
     ).toMatchObject({ok: true});
@@ -114,12 +112,9 @@ describe('content opening through registerStore', () => {
       id: songId,
       title: 'Standalone invented song',
       background: mediaId,
-      groups: [
-        {id: itemId(82), name: 'Verse', slides: [{lines: ['First']}]},
-        {id: itemId(83), name: '', slides: [{lines: ['Second']}]},
-      ],
-      arrangements: [
-        {name: 'Other', groups: [itemId(83), itemId(82), itemId(83)]},
+      slides: [
+        {id: fixtureSlideId(2), lines: ['First'], label: 'Verse'},
+        {id: fixtureSlideId(3), lines: ['Second']},
       ],
       future: 'kept',
     });
@@ -169,10 +164,7 @@ describe('content opening through registerStore', () => {
     const original = {
       ...hymnOne(),
       title: '새벽의 길',
-      groups: [
-        {id: itemId(81), name: '', slides: [{lines: ['돌아온 아침빛']}]},
-      ],
-      arrangements: [],
+      slides: [{id: fixtureSlideId(4), lines: ['돌아온 아침빛']}],
     };
     await writeJson(join(root, 'Songs', 'song.llsong'), original);
     const store = await register(mockLog(), context, () => true);
@@ -196,9 +188,9 @@ describe('content opening through registerStore', () => {
     const edited = {
       ...current,
       title: '바람의 노래',
-      groups: current.groups.map(group => ({
-        ...group,
-        slides: [{lines: ['다시 피어난 햇살']}],
+      slides: current.slides.map(slide => ({
+        ...slide,
+        lines: ['다시 피어난 햇살'],
       })),
     };
     expect(
@@ -272,7 +264,7 @@ describe('content opening through registerStore', () => {
     await writeJson(
       join(root, 'Services', 'open.llservice'),
       service(SUNDAY_ID, '2026-11-01T11:00', [
-        {id: itemId(1), song: HYMN_ONE_ID},
+        {slides: [], id: itemId(1), song: HYMN_ONE_ID},
       ]),
     );
     await register(mockLog(), context, () => true);

@@ -1,18 +1,18 @@
 import {expect, it, vi} from 'vitest';
-import type {GroupedSong} from '@core/schema/groupedSong';
+import type {Song} from '@core/schema/song';
 import type {SongSlideSource} from '@core/schema/showService';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {editorGroupedSong} from '@fixtures/renderer/features/songs/editor/editorFixture';
+import {editorDeckSong} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {SongSession} from '@renderer/features/songs/editor/songSession';
 
-function sourceOf(song: GroupedSong): SongSlideSource {
-  const group = song.groups[1];
+function sourceOf(song: Song): SongSlideSource {
+  const group = song.slides[1];
   if (group === undefined) throw new Error('Missing source group fixture');
-  return {songId: song.id, groupId: group.id, slideIndex: 0};
+  return {songId: song.id, slideId: group.id};
 }
 
 it('marks accepted assignments dirty and routes undo and redo through the owning session', () => {
-  const document = editorGroupedSong(1);
+  const document = editorDeckSong(1);
   const changed = vi.fn();
   const session = new SongSession({
     document,
@@ -26,17 +26,11 @@ it('marks accepted assignments dirty and routes undo and redo through the owning
   expect(session.setSlideHotKey(source, 'Digit3')).toBe(true);
   expect(session.clean).toBe(false);
   expect(changed).toHaveBeenCalledOnce();
-  expect(session.history.snapshot.song.groups[1]?.slides[0]?.hotKey).toBe(
-    'Digit3',
-  );
+  expect(session.history.snapshot.song.slides[1]?.hotKey).toBe('Digit3');
   session.edit('undo');
-  expect(
-    session.history.snapshot.song.groups[1]?.slides[0]?.hotKey,
-  ).toBeUndefined();
+  expect(session.history.snapshot.song.slides[1]?.hotKey).toBeUndefined();
   session.edit('redo');
-  expect(session.history.snapshot.song.groups[1]?.slides[0]?.hotKey).toBe(
-    'Digit3',
-  );
+  expect(session.history.snapshot.song.slides[1]?.hotKey).toBe('Digit3');
   const calls = changed.mock.calls.length;
   expect(session.setSlideHotKey(source, 'Digit3')).toBe(false);
   expect(session.setSlideHotKey(source, 'F1')).toBe(false);
@@ -47,7 +41,7 @@ it('marks accepted assignments dirty and routes undo and redo through the owning
 it.each(['readOnly', 'blocked', 'close-preflight', 'closed', 'discarded'])(
   'refuses key edits while the session is %s',
   async lock => {
-    const document = editorGroupedSong(
+    const document = editorDeckSong(
       1,
       lock === 'readOnly' ? 'readOnly' : 'editable',
     );

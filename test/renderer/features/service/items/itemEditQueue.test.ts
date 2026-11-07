@@ -5,21 +5,11 @@ import {
   fixtureServiceId,
 } from '@fixtures/renderer/features/service/items/itemFixture';
 import {itemEditFixture} from '@fixtures/renderer/features/service/items/itemEditTesting';
-import {
-  arrangementRequest,
-  startMacroRequest,
-} from '@renderer/features/service/items/itemPlaybackCommands';
+import {startMacroRequest} from '@renderer/features/service/items/itemPlaybackCommands';
 describe('item edit queue', () => {
-  it('refuses a 구성 for other kinds and reports main refusals', async () => {
-    const {api, queue, problem, edits} = itemEditFixture();
-    let target = {serviceId: fixtureServiceId, itemId: fixtureItems.slot};
-
-    expect(await queue.submit(arrangementRequest(target, '주일용'))).toBe(
-      false,
-    );
-    expect(edits).toEqual([]);
-    expect(problem.mock.calls.at(-1)?.[0]).toBe('구성 변경 실패');
-    target = {serviceId: fixtureServiceId, itemId: fixtureItems.plain};
+  it('reports main save refusals', async () => {
+    const {api, queue, problem} = itemEditFixture();
+    const target = {serviceId: fixtureServiceId, itemId: fixtureItems.plain};
     vi.spyOn(api.content, 'edit').mockResolvedValueOnce({
       ok: false,
       error: {
@@ -29,7 +19,9 @@ describe('item edit queue', () => {
         unchangedFiles: ['invented.llservice'],
       },
     });
-    expect(await queue.submit(arrangementRequest(target, '주일용'))).toBe(true);
+    expect(
+      await queue.submit(startMacroRequest(target, fixtureMacros.praise)),
+    ).toBe(true);
     expect(problem.mock.calls.at(-1)?.[0]).toBe('예배 저장 실패');
   });
 
@@ -37,9 +29,9 @@ describe('item edit queue', () => {
     const {queue, edits, service} = itemEditFixture();
 
     const first = queue.submit(
-      arrangementRequest(
+      startMacroRequest(
         {serviceId: fixtureServiceId, itemId: fixtureItems.arranged},
-        undefined,
+        fixtureMacros.sermon,
       ),
     );
     const second = queue.submit(
@@ -57,6 +49,5 @@ describe('item edit queue', () => {
     expect(service().service.order[1]).toMatchObject({
       macro: fixtureMacros.praise,
     });
-    expect(service().service.order[1]).not.toHaveProperty('arrangement');
   });
 });

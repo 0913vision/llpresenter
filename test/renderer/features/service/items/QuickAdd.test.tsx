@@ -11,7 +11,7 @@ import {
   hoverForTooltip,
   resetTooltips,
 } from '@fixtures/renderer/ui/tooltipTesting';
-import {NEWER_FILE_REASON} from '@renderer/features/service/items/ItemArrangement';
+import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {
   fixtureItems,
   fixtureServiceId,

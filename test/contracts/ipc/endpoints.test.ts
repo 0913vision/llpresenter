@@ -5,7 +5,6 @@ import {contentEndpoints} from '@contracts/ipc/content';
 import {libraryEndpoints} from '@contracts/ipc/library';
 import {liveEndpoints} from '@contracts/ipc/live';
 import {mediaEndpoints} from '@contracts/ipc/media';
-import {orderEditorEndpoints} from '@contracts/ipc/orderEditor';
 import {outputEndpoints} from '@contracts/ipc/output';
 import {recoveryEndpoints} from '@contracts/ipc/recovery';
 import {serviceEndpoints} from '@contracts/ipc/service';
@@ -30,7 +29,6 @@ const DECLARED = [
   libraryEndpoints,
   liveEndpoints,
   mediaEndpoints,
-  orderEditorEndpoints,
   outputEndpoints,
   recoveryEndpoints,
   serviceEndpoints,

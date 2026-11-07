@@ -2,7 +2,7 @@ import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useMemo, useState, useSyncExternalStore, type JSX} from 'react';
 import type {SongDocument} from '@core/schema/contentDocuments';
 import type {SongId} from '@core/schema/ids';
-import {sourceSlideCount} from '@core/schema/groupedSong';
+import {sourceSlideCount} from '@core/schema/song';
 import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
 import {AlertDialog, Button} from '@renderer/ui';
 import {countedMeta} from '@renderer/ui/countedMeta';

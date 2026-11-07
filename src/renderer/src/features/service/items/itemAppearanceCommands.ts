@@ -1,3 +1,8 @@
+import {isItemOfKind} from '@core/schema/service';
+import {
+  projectedItemOverlays,
+  storedSongOverlays,
+} from '@core/services/songItemOverlays';
 import type {ThemeId} from '@core/schema/ids';
 import {checkPart} from '@core/schema/fileFormat';
 import {itemOverlaysSchema, type ItemOverlay} from '@core/schema/itemOverlays';
@@ -30,12 +35,15 @@ export function overlayRequest(
     failure: '오버레이 변경 실패',
     change: item => {
       if (!isStartItem(item)) return null;
-      const rows = change(item.overlays ?? []);
+      const rows = change(projectedItemOverlays(item));
       const checked = checkPart(itemOverlaysSchema, rows);
       if (!checked.ok) return null;
-      const updated = {...item};
-      if (rows.length === 0) delete updated.overlays;
-      else updated.overlays = checked.value;
+      const {overlays: removed, ...kept} = item;
+      if (rows.length === 0) return kept;
+      if (isItemOfKind(item, 'song')) {
+        return {...item, overlays: storedSongOverlays(item, checked.value)};
+      }
+      const updated = {...item, overlays: checked.value};
       return updated;
     },
   };

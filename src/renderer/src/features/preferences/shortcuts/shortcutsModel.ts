@@ -61,8 +61,6 @@ function objectCommand(id: string, name: string): readonly ShortcutCommand[] {
  * its handler is registered.
  */
 const COMMANDS_WITHOUT_HANDLER: ReadonlySet<string> = new Set([
-  'arrangement.add',
-  'arrangement.insertSlide',
   'import.pptx',
   'media.newAudioPlaylist',
   'media.newPlaylist',

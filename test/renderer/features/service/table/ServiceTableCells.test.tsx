@@ -5,7 +5,6 @@ import {
   render,
   screen,
   waitFor,
-  within,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, expect, it, vi} from 'vitest';
@@ -36,9 +35,7 @@ const macros =
 
 const SONG_ID = createSongId('00000000-0000-4000-8000-000000000201');
 const media = itemMedia().value.items;
-const songs = new Map([
-  [SONG_ID, {arrangements: ['짧게', '길게'], background: fixtureMedia.warm}],
-]);
+const songs = new Map([[SONG_ID, {background: fixtureMedia.warm}]]);
 
 function rowOf(background?: {mediaId: string; title?: string}): ItemRow {
   return {
@@ -52,11 +49,7 @@ function rowOf(background?: {mediaId: string; title?: string}): ItemRow {
 }
 
 function song(extra: object = {}): ServiceItem {
-  return {
-    id: ITEM_ID,
-    song: SONG_ID,
-    ...extra,
-  };
+  return {slides: [], id: ITEM_ID, song: SONG_ID, ...extra};
 }
 
 function setup({
@@ -107,14 +100,11 @@ it.each(['blank', 'ad'] as const)(
   },
 );
 
-it('shows the 구성, 슬라이드 count, 테마, 시작할 때, and 메모 of the item', () => {
+it('shows the 슬라이드 count, 테마, 시작할 때, and 메모 of the item', () => {
   setup({
-    item: song({arrangement: '짧게', macro: MACRO_ID, memo: '간주 길게'}),
+    item: song({macro: MACRO_ID, memo: '간주 길게'}),
   });
 
-  expect(screen.getByRole('button', {name: /^구성, /}).textContent).toBe(
-    '짧게',
-  );
   expect(screen.getByText('4')).toBeDefined();
   expect(screen.getByRole('button', {name: /^테마, /}).textContent).toBe(
     songTheme.name,
@@ -127,24 +117,9 @@ it('shows the 구성, 슬라이드 count, 테마, 시작할 때, and 메모 of t
   );
 });
 
-it('marks the 구성 of an item that plays its own order, and not one that follows its 구성', () => {
-  setup({item: song({arrangement: '짧게', customOrder: []})});
-  const cell = screen.getByRole('button', {name: /^구성, /});
-  expect(cell.textContent).toBe('짧게');
-  expect(
-    within(cell).getByRole('img', {name: '이 예배에서 바꾼 순서'}),
-  ).toBeDefined();
-  cleanup();
-  setup({item: song({arrangement: '짧게'})});
-  expect(screen.queryByRole('img', {name: '이 예배에서 바꾼 순서'})).toBeNull();
-});
-
-it('shows 기본 for the 구성 and nothing for the start when the item sets none', () => {
+it('leaves the start cell empty when the item sets none', () => {
   setup();
 
-  expect(screen.getByRole('button', {name: /^구성, /}).textContent).toBe(
-    '기본',
-  );
   expect(screen.getByRole('button', {name: /^시작할 때, /}).textContent).toBe(
     '',
   );
@@ -215,22 +190,16 @@ it('shows a still and the name of the video, image, or song default that plays, 
   ).toBeNull();
 });
 
-it('writes the chosen 구성 and 배경 for this row only', async () => {
+it('writes the chosen 배경 for this row only', async () => {
   const {submitItemEdit} = setup();
   const user = userEvent.setup();
 
-  await user.click(screen.getByRole('button', {name: /^구성, /}));
-  await user.click(screen.getByRole('menuitemradio', {name: '길게'}));
-  expect(submitItemEdit.mock.calls[0]?.[0].change(song())).toMatchObject({
-    arrangement: '길게',
-  });
-
   await user.click(screen.getByRole('button', {name: /^배경, /}));
   await user.click(await screen.findByRole('option', {name: /새벽 하늘/}));
-  expect(submitItemEdit.mock.calls[1]?.[0].change(song())).toMatchObject({
+  expect(submitItemEdit.mock.calls[0]?.[0].change(song())).toMatchObject({
     background: fixtureMedia.dawn,
   });
-  expect(submitItemEdit.mock.calls[1]?.[0].target).toEqual({
+  expect(submitItemEdit.mock.calls[0]?.[0].target).toEqual({
     serviceId: SERVICE_ID,
     itemId: ITEM_ID,
   });
@@ -275,10 +244,9 @@ it('edits the memo as text in the cell, saves on Enter or leaving, and cancels o
   ).not.toHaveProperty('memo');
 });
 
-it('keeps the memo, 구성, and 배경 closed for a read-only service', async () => {
+it('keeps the memo and 배경 closed for a read-only service', async () => {
   const {submitItemEdit} = setup({readOnly: true});
   await userEvent.click(screen.getByRole('button', {name: /^메모, /}));
-  await userEvent.click(screen.getByRole('button', {name: /^구성, /}));
   await userEvent.click(screen.getByRole('button', {name: /^배경, /}));
   expect(screen.queryByRole('textbox')).toBeNull();
   expect(screen.queryByRole('menu')).toBeNull();
@@ -307,7 +275,7 @@ it('saves a memo at most once when a blur follows Enter, and not at all after Es
 
 it('names every cell button with its row, so a screen reader hears which row it is', () => {
   setup({item: song({macro: MACRO_ID, memo: '간주 길게'})});
-  for (const name of ['구성', '테마', '배경', '시작할 때', '메모']) {
+  for (const name of ['테마', '배경', '시작할 때', '메모']) {
     expect(screen.getByRole('button', {name: `${name}, 첫 곡`})).toBeDefined();
   }
 });

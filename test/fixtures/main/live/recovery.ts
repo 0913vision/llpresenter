@@ -1,4 +1,5 @@
 import {isRecord} from '@core/common/guards';
+import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {emptyLiveState} from '@core/live/state';
 import {createServiceId, createServiceItemId} from '@core/schema/ids';
 import {
@@ -6,7 +7,7 @@ import {
   type RecoveryRecord,
 } from '@core/schema/recoveryRecord';
 import {parseService} from '@core/schema/service';
-import {parseGroupedSong} from '@core/schema/groupedSong';
+import {parseSong} from '@core/schema/song';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import type {RecoveryContent} from '@main/live/recovery/plan';
 import {
@@ -36,23 +37,32 @@ function serviceOf(id: string, order: readonly object[]) {
 }
 
 /**
- * Two 예배 순서: the first has a song item (5 slides in its 구성), a header,
+ * Two services: the first has a song item with five independent slides, a header,
  * and a song that is gone; the second, listed first, has only a header.
  */
 export function recoveryContent(): RecoveryContent {
+  const hymn = expectSuccess(
+    parseSong(JSON.stringify(hymnOne()), 'hymn.llsong'),
+  ).data;
+  const slides = Array.from({length: 5}, (_, index) => {
+    const slide = hymn.slides[index % hymn.slides.length];
+    if (slide === undefined) throw new Error('Missing hymn slide');
+    return {...slide, id: fixtureSlideId(index + 1)};
+  });
   const services = new Map<string, ReturnType<typeof serviceOf>>(
     [
       serviceOf(EVENING_ID, [{id: itemId(104), header: '찬양'}]),
       serviceOf(SUNDAY_ID, [
-        {id: SONG_ITEM, song: HYMN_ONE_ID, arrangement: '주일용'},
+        {slides, id: SONG_ITEM, song: HYMN_ONE_ID},
         {id: HEADER_ITEM, header: '말씀'},
-        {id: MISSING_SONG_ITEM, song: 'f0f0f0f0-f0f0-4f0f-8f0f-f0f0f0f0f0f0'},
+        {
+          slides: [],
+          id: MISSING_SONG_ITEM,
+          song: 'f0f0f0f0-f0f0-4f0f-8f0f-f0f0f0f0f0f0',
+        },
       ]),
     ].map(document => [document.id, document]),
   );
-  const hymn = expectSuccess(
-    parseGroupedSong(JSON.stringify(hymnOne()), 'hymn.llsong'),
-  ).data;
   return {
     serviceList: () => [...services.keys()].map(id => ({id})),
     service: id => {

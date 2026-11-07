@@ -49,8 +49,8 @@ export const titles = {
 /** A 템플릿 with two populated sections followed by two empty sections. */
 export const templateOrder: readonly ServiceItem[] = [
   {id: ids.praise, header: '찬양'},
-  {id: ids.doxology, song: ids.firstSong, arrangement: '주일용'},
-  {id: ids.nearer, song: ids.secondSong},
+  {slides: [], id: ids.doxology, song: ids.firstSong},
+  {slides: [], id: ids.nearer, song: ids.secondSong},
   {id: ids.word, header: '말씀'},
   {
     id: ids.psalm,
@@ -105,7 +105,7 @@ export const pastDocument: ServiceDocument = {
     date: '2026-10-25T09:30',
     order: [
       {id: ids.pastHeader, header: '찬양'},
-      {id: ids.pastSong, song: ids.firstSong},
+      {slides: [], id: ids.pastSong, song: ids.firstSong},
     ],
   },
   revision: 3,

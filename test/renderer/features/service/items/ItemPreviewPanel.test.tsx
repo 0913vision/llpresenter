@@ -33,7 +33,7 @@ vi.mock(
 );
 
 describe('ItemPreviewPanel', () => {
-  it('pictures the place the item has selected, in the arrangement it plays', async () => {
+  it('pictures the place the item has selected, in its independent deck', async () => {
     const fixture = itemFixture();
     const editor = new SongEditorStore(fixture.api, vi.fn());
     const items = new ServiceItemStore(fixture.api, editor, vi.fn());
@@ -50,12 +50,11 @@ describe('ItemPreviewPanel', () => {
       await editor.dispose();
     });
     await waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
-    const {arrangement, position, song} = items.getSnapshot();
+    const {position, song} = items.getSnapshot();
 
     await waitFor(() =>
       expect(itemPicture).toHaveBeenLastCalledWith({
         song: song?.history.snapshot.song,
-        arrangement,
         position,
         background: song?.background,
       }),

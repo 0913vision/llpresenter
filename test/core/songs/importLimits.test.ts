@@ -1,18 +1,13 @@
+import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {describe, expect, it} from 'vitest';
 import {limitReason} from '@core/common/limitReason';
 import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
 import {importLimitReason} from '@core/songs/importLimits';
-import {sampleGroupedSong} from '@fixtures/core/songs/blockFixtures';
+import {sampleSong} from '@fixtures/core/songs/blockFixtures';
 
-const GROUP = '11111111-1111-4111-a111-111111111111';
-
-function songWith(
-  slides: ReadonlyArray<{readonly lines: readonly string[]}>,
-  picks = 0,
-) {
-  return sampleGroupedSong(
-    [{id: GROUP, name: '1절', slides}],
-    [{name: 'Order', groups: Array.from({length: picks}, () => GROUP)}],
+function songWith(slides: ReadonlyArray<{readonly lines: readonly string[]}>) {
+  return sampleSong(
+    slides.map((slide, index) => ({...slide, id: fixtureSlideId(index + 1)})),
   );
 }
 
@@ -23,14 +18,13 @@ describe('importLimitReason', () => {
       SONG_IMPORT_LIMITS.characters -
       JSON.stringify({
         title: base.title,
-        groups: base.groups,
-        arrangements: base.arrangements,
+        slides: base.slides,
       }).length;
     const withCharacters = (extra: number) => ({
       ...base,
-      groups: base.groups.map(group => ({
-        ...group,
-        slides: [{lines: ['x'.repeat(padding + extra)]}],
+      slides: base.slides.map(slide => ({
+        ...slide,
+        lines: ['x'.repeat(padding + extra)],
       })),
     });
     expect(importLimitReason(withCharacters(0))).toBeUndefined();
@@ -43,9 +37,7 @@ describe('importLimitReason', () => {
     const slides = Array.from({length: SONG_IMPORT_LIMITS.slides}, () => ({
       lines: [],
     }));
-    expect(
-      importLimitReason(songWith(slides, SONG_IMPORT_LIMITS.picks)),
-    ).toBeUndefined();
+    expect(importLimitReason(songWith(slides))).toBeUndefined();
   });
 
   it.each([
@@ -64,11 +56,6 @@ describe('importLimitReason', () => {
         {lines: Array.from({length: SONG_IMPORT_LIMITS.lines + 1}, () => '')},
       ]),
       limitReason('줄', SONG_IMPORT_LIMITS.lines),
-    ],
-    [
-      'order places',
-      songWith([{lines: []}], SONG_IMPORT_LIMITS.picks + 1),
-      limitReason('구성 순서', SONG_IMPORT_LIMITS.picks),
     ],
   ])('names the limit of %s', (_name, song, reason) => {
     expect(importLimitReason(song)).toBe(reason);

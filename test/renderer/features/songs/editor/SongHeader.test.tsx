@@ -106,9 +106,7 @@ describe('song editor header', () => {
       act(() => session.edit('undo'));
       await act(() => session.flush());
       expect(documents.get(first.song.id)?.song.title).toBe('New title');
-      expect(lyrics().value).toBe(
-        first.song.groups.flatMap(group => group.slides)[0]?.lines.join('\n'),
-      );
+      expect(lyrics().value).toBe(first.song.slides[0]?.lines.join('\n'));
     } finally {
       vi.useRealTimers();
     }
@@ -143,7 +141,7 @@ describe('song editor header', () => {
     expect(title().getAttribute('aria-invalid')).toBe('true');
     expect(documents.get(first.song.id)?.song).toMatchObject({
       title: first.song.title,
-      groups: [{slides: [{lines: ['retained']}]}, {}],
+      slides: [{lines: ['retained']}, {}],
     });
     fireEvent.blur(title());
     expect(title().value).toBe(first.song.title);

@@ -1,3 +1,4 @@
+import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {
   ask,
   developmentContext,
@@ -43,11 +44,12 @@ describe('registerStore', () => {
         schemaVersion: 1,
         id,
         title: `Invented song ${index}`,
-        groups: [
+        slides: [
           {
-            id: itemId(index + 7),
-            name: 'Before',
-            slides: [{lines: ['Invented line'], future: 'kept'}],
+            id: fixtureSlideId(1),
+            lines: ['Invented line'],
+            future: 'kept',
+            label: 'Before',
           },
         ],
       });
@@ -101,11 +103,11 @@ describe('registerStore', () => {
     for (const id of ids) {
       expect(await ask(contentEndpoints.songs.get.channel, id)).toMatchObject({
         revision: 1,
-        song: {groups: [{name: 'After', slides: [{future: 'kept'}]}]},
+        song: {slides: [{future: 'kept', label: 'After'}]},
       });
       expect(
         JSON.parse(await readFile(join(root, 'Songs', `${id}.llsong`), 'utf8')),
-      ).toMatchObject({groups: [{name: 'After'}]});
+      ).toMatchObject({slides: [{label: 'After'}]});
     }
   });
 
@@ -253,7 +255,7 @@ describe('registerStore', () => {
     expect(JSON.parse(await readFile(file, 'utf8'))).toEqual(value);
   });
 
-  it('imports through IPC, keeps the overwritten recovery copy, and persists new labels', async () => {
+  it('imports through IPC, keeps the overwritten recovery copy, and keeps free labels out of the catalog', async () => {
     const context = await developmentContext();
     const root = join(context.appDataFolder, DATA_FOLDER_NAME);
     const file = join(root, 'Songs', 'song.llsong');
@@ -265,11 +267,11 @@ describe('registerStore', () => {
         type: 'song.import',
         draft: {
           title: 'Invented import',
-          groups: [
+          slides: [
             {
-              id: itemId(9),
-              name: 'Invented label',
-              slides: [{lines: ['Invented line']}],
+              id: fixtureSlideId(3),
+              lines: ['Invented line'],
+              label: 'Invented label',
             },
           ],
         },
@@ -292,7 +294,7 @@ describe('registerStore', () => {
     );
     expect(
       JSON.parse(await readFile(join(root, 'Settings', 'labels.json'), 'utf8')),
-    ).toHaveProperty(
+    ).not.toHaveProperty(
       'labels',
       expect.arrayContaining([
         {name: 'Invented label', color: 'none', key: null},

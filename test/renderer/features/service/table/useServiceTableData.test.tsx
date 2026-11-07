@@ -12,7 +12,7 @@ import {
 } from '@core/schema/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
-import {sampleGroupedSong} from '@fixtures/core/songs/blockFixtures';
+import {sampleSong} from '@fixtures/core/songs/blockFixtures';
 import {useServiceTableData} from '@renderer/features/service/table/useServiceTableData';
 
 const SERVICE_ID = createServiceId('00000000-0000-4000-8000-000000000001');
@@ -43,8 +43,8 @@ function serviceOf(
 
 it('drops the facts of a song that no item uses any more', async () => {
   let document = serviceOf(1, [
-    {id: ITEM_A, song: FIRST},
-    {id: ITEM_B, song: SECOND},
+    {slides: [], id: ITEM_A, song: FIRST},
+    {slides: [], id: ITEM_B, song: SECOND},
   ]);
   const listeners = new Set<(change: ServiceChange) => void>();
   const api = mockLlpApi({
@@ -59,7 +59,7 @@ it('drops the facts of a song that no item uses any more', async () => {
       get: (id): Promise<SongDocument> =>
         Promise.resolve({
           song: {
-            ...sampleGroupedSong(),
+            ...sampleSong(),
             id: id === SECOND ? SECOND : FIRST,
           },
           revision: 1,
@@ -73,7 +73,7 @@ it('drops the facts of a song that no item uses any more', async () => {
   const {result} = renderHook(() => useServiceTableData(api, SERVICE_ID));
   await waitFor(() => expect(result.current.songs.size).toBe(2));
 
-  document = serviceOf(2, [{id: ITEM_A, song: FIRST}]);
+  document = serviceOf(2, [{slides: [], id: ITEM_A, song: FIRST}]);
   act(() => {
     for (const listener of listeners) {
       listener({serviceId: SERVICE_ID, document});

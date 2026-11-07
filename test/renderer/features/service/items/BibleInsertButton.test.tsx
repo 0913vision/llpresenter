@@ -50,10 +50,10 @@ function setup(
       ...document.service,
       order: [
         {id: fixtureItems.header, header: 'First section'},
-        {id: fixtureItems.arranged, song: fixture.first.song.id},
+        {slides: [], id: fixtureItems.arranged, song: fixture.first.song.id},
         {id: fixtureItems.slot, header: 'Empty section', future: {keep: true}},
         {id: fixtureItems.lost, header: 'Next section'},
-        {id: fixtureItems.plain, song: fixture.second.song.id},
+        {slides: [], id: fixtureItems.plain, song: fixture.second.song.id},
       ],
     },
   });

@@ -11,7 +11,7 @@ import {contentEndpoints} from '@contracts/ipc/content';
 import {liveEndpoints} from '@contracts/ipc/live';
 import {serviceEndpoints} from '@contracts/ipc/service';
 import {parseEditResult} from '@core/schema/contentEdit';
-import {parseGroupedSong} from '@core/schema/groupedSong';
+import {parseSong} from '@core/schema/song';
 import {parseShowService} from '@core/schema/showService';
 import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
@@ -27,7 +27,7 @@ import {
 } from '@fixtures/main/store/testFiles';
 
 describe('registerStore', () => {
-  it('pushes edited song tiles without a live-state push and flushes before disposal', async () => {
+  it('keeps service item tiles independent of a library edit and flushes before disposal', async () => {
     const context = await developmentContext();
     const root = join(context.appDataFolder, DATA_FOLDER_NAME);
     const file = join(root, 'Songs', 'original-name.llsong');
@@ -35,7 +35,7 @@ describe('registerStore', () => {
     await writeJson(
       join(root, 'Services', 'open.llservice'),
       service(SUNDAY_ID, '2026-11-01T11:00', [
-        {id: itemId(1), song: HYMN_ONE_ID},
+        {slides: hymnOne().slides, id: itemId(1), song: HYMN_ONE_ID},
       ]),
     );
     const store = await register(mockLog(), context, () => true);
@@ -46,10 +46,9 @@ describe('registerStore', () => {
     const current = (await songDocument(HYMN_ONE_ID)).song;
     const edited = {
       ...current,
-      groups: current.groups
+      slides: current.slides
         .slice(0, 1)
-        .map(group => ({...group, slides: [{lines: ['새로 편집한 가사']}]})),
-      arrangements: [],
+        .map(slide => ({...slide, lines: ['새로 편집한 가사']})),
     };
 
     const answer = parseEditResult(
@@ -68,15 +67,15 @@ describe('registerStore', () => {
     expect(after).toMatchObject({
       ok: true,
       value: {
-        revision: 2,
-        tiles: {[itemId(1)]: [{lines: ['새로 편집한 가사']}]},
+        revision: before.value.revision,
+        tiles: before.value.tiles,
       },
     });
     expect(
       electron.send.mock.calls.filter(
         ([channel]) => channel === serviceEndpoints.changed.channel,
       ),
-    ).toHaveLength(1);
+    ).toHaveLength(0);
     expect(
       electron.send.mock.calls.some(
         ([channel]) => channel === liveEndpoints.changed.channel,
@@ -89,11 +88,11 @@ describe('registerStore', () => {
     ).toBe(true);
     await store.dispose();
 
-    expect(parseGroupedSong(await readFile(file, 'utf8'), file)).toMatchObject({
+    expect(parseSong(await readFile(file, 'utf8'), file)).toMatchObject({
       ok: true,
       value: {
         data: {
-          groups: [{slides: [{lines: ['새로 편집한 가사']}]}],
+          slides: [{lines: ['새로 편집한 가사']}],
           future: {enabled: true},
         },
       },

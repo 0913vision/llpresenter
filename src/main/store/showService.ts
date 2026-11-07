@@ -1,7 +1,7 @@
 import {NO_LABEL_COLOR, type LabelColor} from '@core/labels/colors';
 import type {MediaChoice} from '@core/live/state';
 import type {LoadedFile} from '@core/schema/fileFormat';
-import type {GroupedSong, SongGroup} from '@core/schema/groupedSong';
+import type {Song, SongSlide} from '@core/schema/song';
 import type {Label} from '@core/schema/labels';
 import type {MediaItem} from '@core/schema/mediaList';
 import {
@@ -16,7 +16,6 @@ import {
   type ShowService,
   type ShowTile,
 } from '@core/schema/showService';
-import {playedGroupIds, type SongPlay} from '@core/songs/itemOrder';
 import {projectSlides} from '@core/presentation/slides';
 import type {ServicePassages} from '../bible/servicePassages';
 
@@ -25,7 +24,7 @@ export {SHOW_SERVICE_LIMITS} from '@core/schema/showService';
 /** A document's content and whether a newer app version wrote it. */
 type Shown<T> = Pick<LoadedFile<T>, 'data' | 'access'>;
 
-type SongLibrary = ReadonlyMap<string, Shown<GroupedSong>>;
+type SongLibrary = ReadonlyMap<string, Shown<Song>>;
 
 export interface ShowServiceSources {
   readonly service: Shown<Service>;
@@ -70,9 +69,10 @@ export function buildShowService({
 
   for (const item of order) {
     if (!isItemOfKind(item, 'song')) continue;
-    const song = songs.get(item.song);
-    if (song === undefined) continue;
-    const projected = projectSongTiles(song.data, colors, item);
+    const projected = projectSongTiles(
+      {id: item.song, slides: item.slides},
+      colors,
+    );
     if (projected.capped) {
       cappedItems.add(item.id);
       itemTiles[item.id] = [];
@@ -234,14 +234,14 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
 /** The item's override takes precedence even when its media cannot be found. */
 export function songBackgroundId(
   item: ServiceItemOf<'song'>,
-  song: GroupedSong,
+  song: Song,
 ): string | undefined {
   return item.background ?? song.background;
 }
 
 function songRow(
   item: ServiceItemOf<'song'>,
-  song: Shown<GroupedSong> | undefined,
+  song: Shown<Song> | undefined,
   sources: RowSources,
 ): ShowRow {
   const {id} = item;
@@ -270,58 +270,34 @@ function songRow(
   };
 }
 
-/**
- * Projects a song's slides to tiles and indicates whether the tile count hit the
- * expansion cap. An oversized expansion emits an empty tile set and flags capped.
- */
+/** Projects the supplied deck directly, including service-local edits. */
 export function projectSongTiles(
-  song: GroupedSong,
+  song: Pick<Song, 'id'> & {readonly slides: readonly SongSlide[]},
   colors: ReadonlyMap<string, LabelColor>,
-  play: SongPlay = {},
 ): ProjectedSongTiles {
-  const groupIds = playedGroupIds(song, play);
-
-  const groupsById = new Map<string, SongGroup>(
-    song.groups.map(group => [group.id, group]),
-  );
-  const tiles: ShowTile[] = [];
-
-  for (const groupId of groupIds) {
-    const group = groupsById.get(groupId);
-    if (group === undefined) continue;
-    const label = group.name === '' ? null : group.name;
-    const labelColor =
-      label === null ? NO_LABEL_COLOR : (colors.get(label) ?? NO_LABEL_COLOR);
-
-    for (let slideIndex = 0; slideIndex < group.slides.length; slideIndex++) {
-      const slide = group.slides[slideIndex];
-      if (slide === undefined) continue;
-      if (tiles.length >= SHOW_SERVICE_LIMITS.tiles) {
-        return {tiles: [], capped: true};
-      }
-      tiles.push({
-        label,
-        labelColor,
-        lines: slide.lines,
-        sourceSlide: {
-          songId: song.id,
-          groupId: group.id,
-          slideIndex,
-        },
-        ...(slide.hotKey === undefined ? {} : {hotKey: slide.hotKey}),
-      });
-    }
+  if (song.slides.length > SHOW_SERVICE_LIMITS.tiles) {
+    return {tiles: [], capped: true};
   }
-
-  return {tiles, capped: false};
+  return {
+    capped: false,
+    tiles: song.slides.map(slide => ({
+      label: slide.label ?? null,
+      labelColor:
+        slide.label === undefined
+          ? NO_LABEL_COLOR
+          : (colors.get(slide.label) ?? NO_LABEL_COLOR),
+      lines: slide.lines,
+      sourceSlide: {songId: song.id, slideId: slide.id},
+      ...(slide.hotKey === undefined ? {} : {hotKey: slide.hotKey}),
+    })),
+  };
 }
 
 export function songTiles(
-  song: GroupedSong,
+  song: Song,
   colors: ReadonlyMap<string, LabelColor>,
-  play: SongPlay = {},
 ): ShowTile[] {
-  return [...projectSongTiles(song, colors, play).tiles];
+  return [...projectSongTiles(song, colors).tiles];
 }
 
 // NOTE(0913vision): When two 이름표 share a jump key, the one listed first in

@@ -1,3 +1,4 @@
+import {projectedItemOverlays} from '@core/services/songItemOverlays';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {ServiceItem} from '@core/schema/service';
 import {useItemTheme} from './ItemThemeRow';
@@ -27,7 +28,7 @@ export function useOverlayEditing({
   const first = targets[0];
   return {
     editing: {
-      overlays: item?.overlays ?? [],
+      overlays: projectedItemOverlays(item),
       count,
       reason,
       screens: targets,

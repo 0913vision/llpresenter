@@ -1,25 +1,21 @@
+import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {describe, expect, it} from 'vitest';
 import {parseContentEdit} from '@core/schema/contentEdit';
 import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
 
 const id = '00000000-0000-4000-8000-000000000001';
-const group = '00000000-0000-4000-8000-000000000002';
 const draft = {
   title: 'Invented import',
-  groups: [
-    {id: group, name: 'New label', slides: [{lines: ['Invented line']}]},
+  slides: [
+    {id: fixtureSlideId(1), lines: ['Invented line'], label: 'New label'},
   ],
-  arrangements: [{name: 'Sequence', groups: [group, group]}],
 };
 const request = {type: 'song.import', draft, target: {kind: 'new'}};
-
-function groupOf(count: number, lines: readonly string[] = []) {
-  return Array.from({length: count}, (_, index) => ({
-    id: `10000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
-    name: '',
-    slides: [{lines}],
+const slidesOf = (count: number) =>
+  Array.from({length: count}, (_, index) => ({
+    id: fixtureSlideId(index + 1),
+    lines: [],
   }));
-}
 
 describe('song.import contract', () => {
   it.each([{kind: 'new'}, {kind: 'overwrite', songId: id, baseRevision: 1}])(
@@ -31,54 +27,21 @@ describe('song.import contract', () => {
   );
   it.each([
     {title: ' '},
-    {groups: []},
-    {groups: [{id: group, name: ' ', slides: [{lines: ['Line']}]}]},
-    {groups: [{id: group, name: 'x', slides: []}]},
-    {groups: [{id: group, name: 'x', slides: [{lines: [3]}]}]},
-    {groups: [{id: 'bad', name: 'x', slides: [{lines: []}]}]},
-    {background: 'not-an-id'},
-    {arrangements: [{name: '기본', groups: [group]}]},
-    {
-      arrangements: [
-        {name: 'Same', groups: [group]},
-        {name: 'Same', groups: [group]},
-      ],
-    },
-    {groups: groupOf(SONG_IMPORT_LIMITS.slides + 1)},
-    {
-      groups: [
-        {
-          id: group,
-          name: 'x',
-          slides: [{lines: Array.from({length: 20_001}, () => '')}],
-        },
-      ],
-    },
-    {
-      groups: [
-        {id: group, name: 'x', slides: [{lines: ['x'.repeat(1_500_001)]}]},
-      ],
-    },
     {title: 'x'.repeat(513)},
-    {groups: [{id: group, name: 'x'.repeat(513), slides: [{lines: []}]}]},
-    {arrangements: [{name: 'x'.repeat(513), groups: [group]}]},
+    {slides: []},
+    {slides: [{id: fixtureSlideId(1), lines: ['Line'], label: ' '}]},
+    {slides: [{id: fixtureSlideId(1), lines: [3]}]},
+    {slides: [{id: 'invalid', lines: []}]},
+    {slides: [{id: fixtureSlideId(1), lines: [], label: 'x'.repeat(65)}]},
+    {slides: [...draft.slides, ...draft.slides]},
+    {slides: slidesOf(SONG_IMPORT_LIMITS.slides + 1)},
     {
-      arrangements: Array.from({length: 1001}, (_, index) => ({
-        name: `Sequence ${index}`,
-        groups: [],
-      })),
-    },
-    {
-      arrangements: [
-        {
-          name: 'Sequence',
-          groups: Array.from(
-            {length: SONG_IMPORT_LIMITS.picks + 1},
-            () => group,
-          ),
-        },
+      slides: [
+        {id: fixtureSlideId(1), lines: Array.from({length: 20_001}, () => '')},
       ],
     },
+    {slides: [{id: fixtureSlideId(1), lines: ['x'.repeat(1_500_001)]}]},
+    {background: 'not-an-id'},
   ])('rejects malformed or excessive draft fields %j', fields => {
     expect(
       parseContentEdit({...request, draft: {...draft, ...fields}}).ok,
@@ -92,33 +55,19 @@ describe('song.import contract', () => {
   ])('rejects invalid target %o', target => {
     expect(parseContentEdit({...request, target}).ok).toBe(false);
   });
-  it('accepts the slide and line limits and preserves safe nested extension fields', () => {
-    for (const groups of [
-      groupOf(SONG_IMPORT_LIMITS.slides),
+  it('accepts slide and line limits and retains safe extension fields', () => {
+    for (const slides of [
+      slidesOf(SONG_IMPORT_LIMITS.slides),
       [
         {
-          id: group,
-          name: '',
-          slides: [
-            {lines: Array.from({length: SONG_IMPORT_LIMITS.lines}, () => '')},
-          ],
+          id: fixtureSlideId(1),
+          lines: Array.from({length: SONG_IMPORT_LIMITS.lines}, () => ''),
         },
       ],
-      [
-        {
-          id: group,
-          name: '',
-          slides: [{lines: ['Line'], future: {kept: true}}],
-          future: {kept: true},
-        },
-      ],
+      [{id: fixtureSlideId(1), lines: ['Line'], future: {kept: true}}],
     ]) {
-      expect(
-        parseContentEdit({...request, draft: {title: 'Limit', groups}}),
-      ).toEqual({
-        ok: true,
-        value: {...request, draft: {title: 'Limit', groups}},
-      });
+      const edit = {...request, draft: {title: 'Limit', slides}};
+      expect(parseContentEdit(edit)).toEqual({ok: true, value: edit});
     }
   });
 });

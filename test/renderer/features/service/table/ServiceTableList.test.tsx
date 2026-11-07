@@ -10,7 +10,7 @@ import {
 } from '@core/schema/ids';
 import {createDefaultThemes} from '@core/themes/defaults';
 import type {SongChange, SongDocument} from '@core/schema/contentDocuments';
-import {sampleGroupedSong} from '@fixtures/core/songs/blockFixtures';
+import {sampleSong} from '@fixtures/core/songs/blockFixtures';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {ServiceTableList} from '@renderer/features/service/table/ServiceTableList';
@@ -29,7 +29,7 @@ function setup() {
       id: SERVICE_ID,
       name: 'Invented service',
       date: '2026-11-02T11:00',
-      order: [{id: SONG_ITEM, song: SONG_ID, memo: '간주 길게'}],
+      order: [{slides: [], id: SONG_ITEM, song: SONG_ID, memo: '간주 길게'}],
     },
     revision: 1,
     access: 'editable',
@@ -44,11 +44,10 @@ function setup() {
     jumpKeys: {},
   });
   const edits: ContentEdit[] = [];
-  let songDocument: SongDocument = {
+  const songDocument: SongDocument = {
     song: {
-      ...sampleGroupedSong(),
+      ...sampleSong(),
       id: SONG_ID,
-      arrangements: [{name: '짧게', groups: []}],
     },
     revision: 1,
     access: 'editable',
@@ -88,20 +87,7 @@ function setup() {
       onProblem={vi.fn()}
     />,
   );
-  const changeSong = (names: readonly string[]): void => {
-    songDocument = {
-      song: {
-        ...songDocument.song,
-        arrangements: names.map(name => ({name, groups: []})),
-      },
-      revision: songDocument.revision + 1,
-      access: 'editable',
-    };
-    for (const listener of songListeners) {
-      listener({songId: SONG_ID, document: songDocument});
-    }
-  };
-  return {edits, changeSong};
+  return {edits};
 }
 
 beforeEach(() => {
@@ -119,14 +105,7 @@ it('draws one row per item under the column names, without the plain count', asy
 
   const row = await screen.findByRole('option', {name: '첫 곡'});
   expect(await screen.findByText('간주 길게')).toBeDefined();
-  for (const name of [
-    '구성',
-    '슬라이드',
-    '테마',
-    '배경',
-    '시작할 때',
-    '메모',
-  ]) {
+  for (const name of ['슬라이드', '테마', '배경', '시작할 때', '메모']) {
     expect(screen.getAllByText(name).length).toBeGreaterThan(0);
   }
   expect(row.textContent).not.toContain('슬라이드 0개');
@@ -191,9 +170,9 @@ it('moves from a row into its cells with ArrowRight, opens a cell with Enter, an
 
   await userEvent.keyboard('{ArrowRight}');
   expect(document.activeElement).toBe(
-    screen.getByRole('button', {name: /^구성, /}),
+    screen.getByRole('button', {name: /^테마, /}),
   );
-  await userEvent.keyboard('{ArrowRight}{ArrowRight}');
+  await userEvent.keyboard('{ArrowRight}');
   expect(document.activeElement).toBe(
     screen.getByRole('button', {name: /^배경, /}),
   );
@@ -214,33 +193,13 @@ it('moves from a row into its cells with ArrowRight, opens a cell with Enter, an
   expect(document.activeElement).toBe(row);
 });
 
-it('offers a 구성 added in the song editor without a change of the service', async () => {
-  const {changeSong} = setup();
-  await screen.findByRole('option', {name: '첫 곡'});
-  await userEvent.click(screen.getByRole('button', {name: /^구성, /}));
-  expect(
-    await screen.findByRole('menuitemradio', {name: '짧게'}),
-  ).toBeDefined();
-  expect(screen.queryByRole('menuitemradio', {name: '길게'})).toBeNull();
-  await userEvent.keyboard('{Escape}');
-  await waitFor(() => expect(screen.queryByRole('menu')).toBeNull());
-
-  act(() => changeSong(['짧게', '길게']));
-  await userEvent.click(screen.getByRole('button', {name: /^구성, /}));
-  expect(
-    await screen.findByRole('menuitemradio', {name: '길게'}),
-  ).toBeDefined();
-});
-
 it('types a memo with spaces and arrow keys without the row taking them', async () => {
   setup();
   const row = await screen.findByRole('option', {name: '첫 곡'});
   await screen.findByRole('button', {name: /^메모, /});
   row.focus();
   expect(row.getAttribute('aria-selected')).toBe('false');
-  await userEvent.keyboard(
-    '{ArrowRight}{ArrowRight}{ArrowRight}{ArrowRight}{ArrowRight}',
-  );
+  await userEvent.keyboard('{ArrowRight}{ArrowRight}{ArrowRight}{ArrowRight}');
   await userEvent.keyboard('{Enter}');
   const field = await screen.findByRole('textbox', {name: /^메모, /});
   const selected = row.getAttribute('aria-selected');

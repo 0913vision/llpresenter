@@ -63,7 +63,7 @@ export function SongHeader({
           value={session.title.value}
           onChange={value => session.editTitle(value)}
           onBlur={() => session.finishTitle()}
-          readOnly={session.readOnly || state.busy}
+          readOnly={session.readOnly || session.itemSession || state.busy}
           title={
             session.blocked
               ? '저장 오류'
@@ -88,7 +88,7 @@ export function SongHeader({
           }}
         />
       </div>
-      {state.imported ? null : (
+      {state.imported || session.itemSession ? null : (
         <Tooltip text={usageTip}>
           <span
             tabIndex={0}

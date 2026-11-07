@@ -100,83 +100,23 @@ describe('service panel editing', () => {
     expect(useShow.getState().openItemId).toBeNull();
   });
 
-  it('checks the item arrangement and changes only the clicked item through the setting writer', async () => {
-    const fixture = setup('show', false, {
-      namedArrangement: true,
-      arrangement: '짧은 구성',
-    });
-    const user = userEvent.setup();
-    fireEvent.contextMenu(screen.getByRole('option', {name: '다음 곡'}));
-    const parent = await screen.findByRole('menuitem', {name: '구성'});
-    await waitFor(() =>
-      expect(parent.getAttribute('aria-disabled')).not.toBe('true'),
-    );
-    await user.hover(parent);
-    expect(
-      (
-        await screen.findByRole('menuitemradio', {name: '짧은 구성'})
-      ).getAttribute('aria-checked'),
-    ).toBe('true');
-    await user.click(screen.getByRole('menuitemradio', {name: '기본'}));
-    await waitFor(() =>
-      expect(fixture.document().service.order[2]).not.toHaveProperty(
-        'arrangement',
-      ),
-    );
-    expect(fixture.document().service.order[1]).toHaveProperty(
-      'arrangement',
-      '짧은 구성',
-    );
-    fireEvent.contextMenu(screen.getByRole('option', {name: '다음 곡'}));
-    const next = await screen.findByRole('menuitem', {name: '구성'});
-    await waitFor(() =>
-      expect(next.getAttribute('aria-disabled')).not.toBe('true'),
-    );
-    await user.hover(next);
-    expect(
-      (await screen.findByRole('menuitemradio', {name: '기본'})).getAttribute(
-        'aria-checked',
-      ),
-    ).toBe('true');
-    await user.click(screen.getByRole('menuitemradio', {name: '짧은 구성'}));
-    await waitFor(() =>
-      expect(fixture.document().service.order[2]).toHaveProperty(
-        'arrangement',
-        '짧은 구성',
-      ),
-    );
-    expect(fixture.send).not.toHaveBeenCalled();
-    expect(useShow.getState().openItemId).toBeNull();
-  });
-
-  it('keeps a single default arrangement selectable without writing an unchanged item', async () => {
-    const {api, send} = setup();
-    const user = userEvent.setup();
-    fireEvent.contextMenu(screen.getByRole('option', {name: '첫 곡'}));
-    const parent = await screen.findByRole('menuitem', {name: '구성'});
-    await waitFor(() =>
-      expect(parent.getAttribute('aria-disabled')).not.toBe('true'),
-    );
-    await user.hover(parent);
-    const only = await screen.findByRole('menuitemradio', {name: '기본'});
-    expect(screen.getAllByRole('menuitemradio')).toEqual([only]);
-    expect(only.getAttribute('aria-checked')).toBe('true');
-    await user.click(only);
-    expect(api.content.edit).not.toHaveBeenCalled();
-    expect(send).not.toHaveBeenCalled();
-  });
-
   it('disables both new rows when the song is missing', async () => {
     const {send, onShowInLibrary} = setup('show', false, {missingSong: true});
     await act(async () => {
       fireEvent.contextMenu(screen.getByRole('option', {name: '첫 곡'}));
     });
-    await userEvent.hover(screen.getByRole('menuitem', {name: '구성'}));
+    await userEvent.hover(
+      screen.getByRole('menuitem', {name: '라이브러리에 저장…'}),
+    );
     expect(await screen.findByRole('tooltip')).toHaveProperty(
       'textContent',
       '곡 파일을 찾을 수 없습니다',
     );
-    for (const name of ['구성', '라이브러리에서 보기']) {
+    for (const name of [
+      '라이브러리에 저장…',
+      '라이브러리에서 다시 불러오기',
+      '라이브러리에서 보기',
+    ]) {
       expect(
         screen.getByRole('menuitem', {name}).getAttribute('aria-disabled'),
       ).toBe('true');
@@ -198,7 +138,7 @@ describe('service panel editing', () => {
       );
       expect(
         screen
-          .getByRole('menuitem', {name: '구성'})
+          .getByRole('menuitem', {name: '라이브러리에 저장…'})
           .getAttribute('aria-disabled'),
       ).toBe('true');
       await userEvent.click(reveal);

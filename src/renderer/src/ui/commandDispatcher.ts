@@ -65,7 +65,7 @@ function focusedControlOwnsKey(event: KeyboardEvent): boolean {
   if (
     isInside(
       event.target,
-      '[data-command-context="canvas"], [data-command-context="arrangement"]',
+      '[data-command-context="canvas"], [data-command-context="chips"]',
     )
   ) {
     return false;

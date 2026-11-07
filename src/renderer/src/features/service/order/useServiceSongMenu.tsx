@@ -1,16 +1,13 @@
 import {useEffect, useRef, useState} from 'react';
 import type {SongDocument} from '@core/schema/contentDocuments';
 import {isItemOfKind, type ServiceItemOf} from '@core/schema/service';
-import {DEFAULT_ARRANGEMENT_NAME} from '@core/schema/song';
-import {arrangementOptions} from '@core/songs/songArrangements';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import {
-  itemArrangementChange,
-  updateServiceItem,
-} from '@renderer/session/serviceItemUpdate';
 import {useShow} from '@renderer/session/show';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
-import type {MenuEntry} from '@renderer/ui/menuModel';
+import {AlertDialog} from '@renderer/ui/AlertDialog';
+import {usageMeta} from '@renderer/ui/usageText';
+import {createServiceId} from '@core/schema/ids';
+import type {Revision} from '@core/schema/contentDocuments';
 
 interface SongMenuTarget {
   readonly id: string;
@@ -23,6 +20,8 @@ interface SongMenuData {
   readonly item: ServiceItemOf<'song'>;
   readonly document: SongDocument;
   readonly readOnly: boolean;
+  readonly serviceRevision: Revision;
+  readonly usedBy: number;
 }
 
 /** Reads only the clicked item's song; leaving the menu invalidates its reads. */
@@ -36,6 +35,10 @@ export function useServiceSongMenu(
   const [failure, setFailure] = useState<{
     target: SongMenuTarget;
     revision: number | null;
+  } | null>(null);
+  const [question, setQuestion] = useState<{
+    data: SongMenuData;
+    save: boolean;
   } | null>(null);
   const writing = useRef(false);
   const [busy, setBusy] = useState(false);
@@ -64,11 +67,17 @@ export function useServiceSongMenu(
         setFailure({target, revision});
         return;
       }
+      const usedBy =
+        (await api.songs.list()).find(entry => entry.id === item.song)?.usedBy
+          .length ?? 0;
+      if (!current()) return;
       setData({
         target,
         revision,
         item,
         document,
+        serviceRevision: service.revision,
+        usedBy,
         readOnly: service.access === 'readOnly',
       });
     };
@@ -94,46 +103,34 @@ export function useServiceSongMenu(
       : !current
         ? '불러오는 중'
         : undefined;
-  const choose = async (name: string): Promise<void> => {
-    const serviceId = current?.target.serviceId;
-    if (
-      !api ||
-      !current ||
-      current.readOnly ||
-      writing.current ||
-      serviceId === null ||
-      serviceId === undefined
-    ) {
-      return;
-    }
+  const transfer = async (): Promise<void> => {
+    if (question === null || api === undefined || writing.current) return;
+    const captured = question.data;
+    const serviceId = captured.target.serviceId;
+    if (serviceId === null) return;
     writing.current = true;
     setBusy(true);
-    const change = itemArrangementChange(
-      name === DEFAULT_ARRANGEMENT_NAME ? undefined : name,
-    );
     try {
       await pendingWritesOf(api).run({
         write: async () => {
-          const result = await updateServiceItem(api, {
-            serviceId,
-            itemId: current.item.id,
-            change: item =>
-              isItemOfKind(item, 'song') && item.song === current.item.song
-                ? change(item)
-                : null,
+          const result = await api.content.edit({
+            type: question.save
+              ? 'service.song.saveToLibrary'
+              : 'service.song.reloadFromLibrary',
+            serviceId: createServiceId(serviceId),
+            itemId: captured.item.id,
+            baseRevision: captured.serviceRevision,
+            songRevision: captured.document.revision,
           });
           if (!result.ok) {
             onProblem({
-              key: `service-item:${result.error.reason}`,
+              key: 'song-transfer',
               kind: 'warning',
               icon: 'warning',
-              title:
-                result.error.reason === 'write-failed'
-                  ? '예배 저장 실패'
-                  : '구성 변경 실패',
+              title: '곡 저장 또는 불러오기 실패',
               time: noticeTime(),
             });
-          }
+          } else setQuestion(null);
           return result.ok || result.error.reason === 'write-failed';
         },
         refused: false,
@@ -144,33 +141,44 @@ export function useServiceSongMenu(
       setBusy(false);
     }
   };
-  const selected = current?.document.song.arrangements?.some(
-    item => item.name === current.item.arrangement,
-  )
-    ? current.item.arrangement
-    : DEFAULT_ARRANGEMENT_NAME;
-  const entries: readonly MenuEntry[] = current
-    ? arrangementOptions(current.document.song).map(option => ({
-        kind: 'item',
-        id: option.value,
-        label: option.label,
-        check: 'radio',
-        checked: option.value === selected,
-        onSelect: () => {
-          choose(option.value).catch((cause: unknown) =>
-            api?.log.write({
-              level: 'error',
-              message: 'Could not change the service item arrangement',
-              detail: String(cause),
-            }),
-          );
-        },
-      }))
-    : [];
   return {
-    entries,
     songId: current?.item.song,
     reason,
     locked: current?.readOnly === true || busy,
+    save: () => {
+      if (current !== null) setQuestion({data: current, save: true});
+    },
+    reload: () => {
+      if (current !== null) setQuestion({data: current, save: false});
+    },
+    dialog:
+      question === null ? null : (
+        <AlertDialog
+          icon="song"
+          title={
+            question.save
+              ? `‘${question.data.document.song.title}’ 곡을 덮어쓸까요?`
+              : '라이브러리에서 다시 불러올까요?'
+          }
+          meta={
+            question.save ? usageMeta(question.data.usedBy, '예배') : undefined
+          }
+          onCancel={() => {
+            if (!busy) setQuestion(null);
+          }}
+          actions={[
+            {
+              label: question.save ? '덮어쓰기' : '다시 불러오기',
+              primary: true,
+              disabled: busy,
+              onSelect: () => {
+                transfer().catch((error: unknown) =>
+                  console.error('Could not transfer the song item', error),
+                );
+              },
+            },
+          ]}
+        />
+      ),
   };
 }

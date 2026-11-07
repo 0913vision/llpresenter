@@ -41,14 +41,12 @@ describe('treeRows', () => {
       {
         label: titles.first,
         icon: 'song',
-        detail: '주일용',
         header: false,
         headerId: ids.praise,
       },
       {
         label: titles.second,
         icon: 'song',
-        detail: '기본',
         header: false,
         headerId: ids.praise,
       },

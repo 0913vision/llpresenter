@@ -1,11 +1,11 @@
 import type {LibrarySong, SongDocument} from '@core/schema/contentDocuments';
 import {parseSongDocument} from '@core/schema/contentDocuments';
 import type {ContentEdit} from '@core/schema/contentEdit';
-import {SONG_SCHEMA_VERSION, type GroupedSong} from '@core/schema/groupedSong';
+import {SONG_SCHEMA_VERSION, type Song} from '@core/schema/song';
 import type {SongId} from '@core/schema/ids';
 import {createSongId} from '@core/schema/ids';
 import type {TextImportDraft} from '@core/schema/textImport';
-import {importGroups} from '@core/songs/importGroups';
+import {importSlides} from '@core/songs/importSlides';
 import {normalizeSongTitle} from '@core/songs/songTitle';
 import type {EditorApi, EditorOperationHost} from './editorContracts';
 import {SongSession} from './songSession';
@@ -53,12 +53,12 @@ export class ImportedSongDraft {
       this.requestLeave(() => this.openImported(draft));
       return;
     }
-    const song: GroupedSong = {
+    const song: Song = {
       format: 'llsong',
       schemaVersion: SONG_SCHEMA_VERSION,
       id: createSongId(crypto.randomUUID()),
       title: normalizeSongTitle(draft.title) || '가져온 곡',
-      groups: importGroups(draft.slides, () => crypto.randomUUID()),
+      slides: importSlides(draft.slides, () => crypto.randomUUID()),
     };
     const checked = parseSongDocument({
       song,
@@ -147,10 +147,7 @@ export class ImportedSongDraft {
             target,
             draft: {
               title: normalizeSongTitle(session.title.value),
-              groups: song.groups,
-              ...(song.arrangements === undefined
-                ? {}
-                : {arrangements: song.arrangements}),
+              slides: song.slides,
               ...(session.background === undefined
                 ? {}
                 : {background: session.background}),

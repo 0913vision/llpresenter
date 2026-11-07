@@ -1,5 +1,5 @@
 import {useEffect, useMemo, useState, type JSX} from 'react';
-import type {GroupedSong} from '@core/schema/groupedSong';
+import type {Song} from '@core/schema/song';
 import type {SongSlideSource} from '@core/schema/showService';
 import {SlideHotKeyDialog} from './SlideHotKeyDialog';
 import {
@@ -8,17 +8,17 @@ import {
 } from '@core/songs/slideHotKeyEditing';
 
 /** Binds the key recorder to a grouped source; commits through its owner's writer. */
-export function GroupedSlideHotKeyDialog({
+export function SongSlideHotKeyDialog({
   song,
   source,
   disabledReason,
   onChange,
   onClose,
 }: {
-  readonly song: GroupedSong;
+  readonly song: Song;
   readonly source: SongSlideSource;
   readonly disabledReason?: string | undefined;
-  readonly onChange: (next: GroupedSong) => boolean;
+  readonly onChange: (next: Song) => boolean;
   readonly onClose: () => void;
 }): JSX.Element | null {
   const [opened] = useState(() => ({song, source}));
@@ -30,8 +30,7 @@ export function GroupedSlideHotKeyDialog({
   const changed =
     song !== opened.song ||
     source.songId !== opened.source.songId ||
-    source.groupId !== opened.source.groupId ||
-    source.slideIndex !== opened.source.slideIndex;
+    source.slideId !== opened.source.slideId;
   return (
     <SlideHotKeyDialog
       value={view.value}

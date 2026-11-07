@@ -4,6 +4,7 @@ import {createAppFlushRequestId} from '@core/schema/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {
   fixtureItems,
+  fixtureMacros,
   fixtureServiceId,
   itemFixture,
 } from '@fixtures/renderer/features/service/items/itemFixture';
@@ -136,7 +137,7 @@ it('answers a close flush only after a running item edit is sent, and refuses it
         };
       }),
   );
-  const choosing = items.chooseArrangement(undefined);
+  const choosing = items.setStartMacro(fixtureMacros.praise);
   const requestId = createAppFlushRequestId(
     'a07e61b8-de75-4081-8c93-041526374859',
   );
@@ -155,7 +156,7 @@ it('answers a close flush only after a running item edit is sent, and refuses it
     flushDone.mock.invocationCallOrder[0] ?? -Infinity,
   );
   expect(items.getSnapshot().busy).toBe(true);
-  expect(await items.chooseArrangement('주일용')).toBe(false);
+  expect(await items.setBackground(null)).toBe(false);
   expect(edit).toHaveBeenCalledOnce();
   await session.dispose();
 });
@@ -188,7 +189,7 @@ it('restarts item edits when the editor refuses the close flush', async () => {
     });
   });
   expect(items.getSnapshot().busy).toBe(false);
-  expect(await items.chooseArrangement('주일용')).toBe(true);
+  expect(await items.setBackground(null)).toBe(true);
   await session.dispose();
 });
 
@@ -218,7 +219,7 @@ it('refuses the close when a pending item read rejects while the editor flush su
         };
       }),
   );
-  const choosing = items.chooseArrangement(undefined);
+  const choosing = items.setBackground(null);
   const requestId = createAppFlushRequestId(
     'c29a83da-f097-41a3-8eb5-263748596071',
   );
@@ -234,7 +235,7 @@ it('refuses the close when a pending item read rejects while the editor flush su
   expect(await choosing).toBe(false);
   expect(items.getSnapshot().busy).toBe(false);
   expect(editor.getSnapshot().busy).toBe(false);
-  expect(await items.chooseArrangement('주일용')).toBe(true);
+  expect(await items.setBackground(null)).toBe(true);
   await session.dispose();
 });
 

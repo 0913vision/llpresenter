@@ -5,11 +5,11 @@ clicking 슬라이드 (see 03). This document defines what each 진행 panel sho
 does. Layout and sizes follow the design system and the `ShowH` and `Compact`
 boards.
 
-Terms: 슬라이드 (slide), 예배 순서 (service order), 구성 (arrangement), 이름표
-(label), 청중 화면 (main screen), 무대 화면 (stage screen), 방송 화면 (broadcast
-captions), 진행 도구 (show tools), 퀵 실행 (quick launch), 그래픽 (prop), 메시지
-(message), 타이머 (timer), 매크로 (macro), 라이브러리 (library), 준비 (Prep
-workspace). See 01.
+Terms: 슬라이드 (slide), 예배 순서 (service order), 이름표 (label), 청중 화면
+(main screen), 무대 화면 (stage screen), 방송 화면 (broadcast captions), 진행
+도구 (show tools), 퀵 실행 (quick launch), 그래픽 (prop), 메시지 (message),
+타이머 (timer), 매크로 (macro), 라이브러리 (library), 준비 (Prep workspace).
+See 01.
 
 ## Layout
 
@@ -53,12 +53,12 @@ Source: `Main` decisions "진행 화면은 절충안" and "작업 공간 세 개
 
 ### List
 
-| Row            | Shows                                                                                            | Clicking it                                                                         |
-| -------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------- |
-| Section (구역) | Group name, for example 예배 전 (before service), 찬양 (praise), 말씀 (sermon), 마무리 (closing) | Nothing: a plain label with no hover or selection (November 7 user decision).       |
-| Song           | Song icon, song title                                                                            | Selects the row and opens the song's 슬라이드 in the 슬라이드 panel, in 구성 order. |
-| Bible passage  | Book icon, passage name, for example 요한복음 3장 16절                                           | Selects the row and opens the passage's 슬라이드 in the 슬라이드 panel.             |
-| Media          | Video icon, media name, for example 예배 전 카운트다운                                           | Selects the row and opens one media tile in the 슬라이드 panel.                     |
+| Row            | Shows                                                                                            | Clicking it                                                                               |
+| -------------- | ------------------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------- |
+| Section (구역) | Group name, for example 예배 전 (before service), 찬양 (praise), 말씀 (sermon), 마무리 (closing) | Nothing: a plain label with no hover or selection (November 7 user decision).             |
+| Song           | Song icon, song title                                                                            | Selects the row and opens the song's 슬라이드 in the 슬라이드 panel, in item slide order. |
+| Bible passage  | Book icon, passage name, for example 요한복음 3장 16절                                           | Selects the row and opens the passage's 슬라이드 in the 슬라이드 panel.                   |
+| Media          | Video icon, media name, for example 예배 전 카운트다운                                           | Selects the row and opens one media tile in the 슬라이드 panel.                           |
 
 - Clicking a row only selects it. The operator outputs by clicking a 슬라이드 in
   the 슬라이드 panel.
@@ -164,10 +164,8 @@ service needs no confirmation), product log version 63.
   leaves the live sequence running. Shutdown releases the timer. An item with
   손으로 never schedules a timer.
 
-- For a song item, the grid shows the 슬라이드 in the order of the chosen 구성,
-  or of the item's own order when it has one (05). A 슬라이드 that appears
-  several times in the 구성 gets several tiles. In the board, a song with 4
-  슬라이드 has a 구성 of 9 tiles.
+- For a song item, the grid shows its own slides in stored order. Repeated
+  lyrics are independent slides with distinct IDs.
 - A tile is a 16:9 picture with an 이름표 band below it. The picture shows only
   the 슬라이드's lines, not the song's background. The band shows the position
   in the sequence (from 1) and the 이름표 name, painted in the 이름표 color.
@@ -230,14 +228,9 @@ source was found.
   skipped, and on the last item next does nothing. Every command that means next
   슬라이드 follows this (the → key, Space, Page Down). On the first tile,
   previous does nothing (proposal).
-- A slide hot key outputs its particular source slide in the song open in the
-  슬라이드 panel, even when another item is live. It identifies
-  `{songId, groupId, slideIndex}` (02), independently of 이름표 names. If the
-  chosen 구성 repeats that group, the first projected occurrence is the
-  destination. Further presses target that same occurrence and never cycle. If
-  the source is absent from the chosen 구성, the key does nothing. This is the
-  October 27 S26 user decision; ProPresenter documents per-slide hot keys (S4 p.
-  58), while the repeated-group rule is our explicit user decision.
+- A slide hot key outputs its identified `{songId, slideId}` in the open item
+  deck, independently of label names. Further presses target that same slide.
+  Direct library playback uses the library deck.
 - Live commands run once per key press and ignore key repeat (decided, 10).
 - These keys don't work while a text field has focus (10, focus precedence).
 
@@ -247,7 +240,7 @@ If the operator edits the lyrics of a song on output in 준비, the output scree
 don't change until the next 슬라이드 goes out (proposal). The tiles in the
 슬라이드 panel change at once.
 
-Source: `ShowH` (슬라이드 grid, 9 tiles in 구성 order, background select),
+Source: `ShowH` (슬라이드 grid, 9 tiles in item slide order, background select),
 `Problems` (missing background file and 다시 연결), `SlideThumbnail` README,
 `Slider` README, `Main` decision "구성대로 진행".
 
@@ -606,14 +599,14 @@ Source: `Overlays` (tool controls), `Problems` (still background), `Macros`,
 Clicking a row runs it at once. A toggle item keeps a red bar at the left of its
 row while it's on. Clicking it again turns it off.
 
-| Kind          | Example in the board       | Clicking it                                                                                                                                                                | Toggle                                |
-| ------------- | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
-| Bible passage | 요한복음 3장 16절          | Opens the passage in the Bible panel and outputs its first 슬라이드 (proposal).                                                                                            | No                                    |
-| Song          | 주 하나님 지으신 모든 세계 | Opens the song in the 슬라이드 panel with the default 구성 and outputs its first 슬라이드 (proposal). Doesn't add it to the 예배 순서 or change the background (proposal). | No                                    |
-| Black screen  | 검은 화면                  | Turns on or off a built-in 그래픽 that covers every audience screen with black (proposal).                                                                                 | Yes                                   |
-| 그래픽        | 로고 화면 (logo screen)    | Turns that 그래픽 on or off.                                                                                                                                               | Yes                                   |
-| 타이머        | 타이머 1                   | Starts or resumes its own timer according to its kind. Clicking a running timer resets it; a clock click has no effect (see the kind rules above).                         | Yes, while running; never for a clock |
-| 매크로        |                            | Runs that 매크로 (proposal).                                                                                                                                               | No                                    |
+| Kind          | Example in the board       | Clicking it                                                                                                                                                                 | Toggle                                |
+| ------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
+| Bible passage | 요한복음 3장 16절          | Opens the passage in the Bible panel and outputs its first 슬라이드 (proposal).                                                                                             | No                                    |
+| Song          | 주 하나님 지으신 모든 세계 | Opens the song in the 슬라이드 panel in its own slide order and outputs its first 슬라이드 (proposal). Doesn't add it to the 예배 순서 or change the background (proposal). | No                                    |
+| Black screen  | 검은 화면                  | Turns on or off a built-in 그래픽 that covers every audience screen with black (proposal).                                                                                  | Yes                                   |
+| 그래픽        | 로고 화면 (logo screen)    | Turns that 그래픽 on or off.                                                                                                                                                | Yes                                   |
+| 타이머        | 타이머 1                   | Starts or resumes its own timer according to its kind. Clicking a running timer resets it; a clock click has no effect (see the kind rules above).                          | Yes, while running; never for a clock |
+| 매크로        |                            | Runs that 매크로 (proposal).                                                                                                                                                | No                                    |
 
 - The board's 축도 (benediction, 슬라이드 icon) is read as a short song made in
   the 라이브러리 (proposal, open question).
@@ -968,8 +961,8 @@ this:
   rules of 05 "Search". The list shows at most 20 songs in alphabetical title
   order, including lyric matches (October 27 user decision, P03). A lyrics match
   shows its first matching line under the title (proposal).
-- Choosing a song opens it in the 슬라이드 panel with the default 구성. It isn't
-  added to the 예배 순서. Clicking its 슬라이드 outputs them.
+- Choosing a song opens it in the 슬라이드 panel in its own slide order. It
+  isn't added to the 예배 순서. Clicking its 슬라이드 outputs them.
 - In 준비, choosing a result selects the song in the 라이브러리 and opens the
   song editor (see 05).
 

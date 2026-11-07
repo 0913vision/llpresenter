@@ -1,5 +1,5 @@
 import {labelInk} from '@renderer/ui/labelInk';
-import type {GroupedSong} from '@core/schema/groupedSong';
+import type {Song} from '@core/schema/song';
 import {
   useEffect,
   useEffectEvent,
@@ -19,7 +19,7 @@ import type {ShowTile} from '@core/schema/showService';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
-import {linearBlockAddress, slideCountOf} from '@core/songs/blockEdits';
+import {slideCountOf} from '@core/songs/blockEdits';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {Panel, PanelHeader, PanelTitle} from '@renderer/ui/Panel';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';
@@ -129,7 +129,7 @@ export function Picture({
 
 /** One 슬라이드 of a song and its place in the order the panel shows. */
 export interface SongPicture {
-  readonly song: GroupedSong;
+  readonly song: Song;
   /** The 슬라이드's index in the song file. */
   readonly block: number;
   /** The next source block in the selected order; absent after its last place. */
@@ -260,15 +260,15 @@ export function ContentPreviewFrame({
   // theme content is drawn), so the column below does not move
   // when the selection changes from one item to another.
   const {position, total} = picture ?? {position: 0, total: 0};
-  const addr = song === undefined ? undefined : linearBlockAddress(song, block);
+  const addr = song === undefined ? undefined : song.slides[block];
   const labelName =
     mediaPicture !== undefined
       ? mediaPicture.name
       : tilePicture !== undefined
         ? (tilePicture.tile.label ?? undefined)
-        : addr?.groupName === ''
+        : addr?.label === ''
           ? undefined
-          : addr?.groupName;
+          : addr?.label;
   const color =
     tilePicture?.tile.labelColor ??
     labels.find(label => label.name === labelName)?.color ??
@@ -330,7 +330,8 @@ export function SongPreviewPanel({
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const session = state.session;
   const snapshot = session?.history.snapshot;
-  const order = session?.arrangementOrder.slides ?? [];
+  const order =
+    session?.history.snapshot.song.slides.map((_, index) => index + 1) ?? [];
   const at = session?.selectedOccurrence ?? -1;
   const next = at < 0 ? undefined : order[at + 1];
   return (

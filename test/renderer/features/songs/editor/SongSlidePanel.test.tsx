@@ -1,15 +1,15 @@
-import {act, fireEvent, render, screen, within} from '@testing-library/react';
+import {fireEvent, render, screen, within} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {parseGroupedSong} from '@core/schema/groupedSong';
-import {editorGroupedSong} from '@fixtures/renderer/features/songs/editor/editorFixture';
+
+import {editorDeckSong} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {SongSession} from '@renderer/features/songs/editor/songSession';
 import {
   SongSlidePanel,
   type SongSlideStore,
 } from '@renderer/features/songs/editor/SongSlidePanel';
 
-function createGroupedSession(document = editorGroupedSong(1)) {
+function createGroupedSession(document = editorDeckSong(1)) {
   const api = mockLlpApi();
   const listeners = new Set<() => void>();
   let snapshot: {
@@ -38,46 +38,8 @@ function createGroupedSession(document = editorGroupedSong(1)) {
   return {session, store};
 }
 
-describe('SongSlidePanel with grouped songs', () => {
-  it('shows 슬라이드가 너무 많음 for an arrangement over the slide limit', () => {
-    const original = editorGroupedSong(1);
-    const group = original.song.groups[0];
-    if (group === undefined) throw new Error('Missing group');
-    const source = {
-      ...original.song,
-      groups: [
-        {
-          ...group,
-          slides: Array.from({length: 10_000}, () => ({lines: ['Invented']})),
-        },
-      ],
-      arrangements: [
-        {name: 'Large', groups: Array.from({length: 100_000}, () => group.id)},
-      ],
-    };
-    const parsed = parseGroupedSong(JSON.stringify(source), 'invented.llsong');
-    if (!parsed.ok) throw new Error(parsed.error.message);
-    const {session, store} = createGroupedSession({
-      ...original,
-      song: parsed.value.data,
-    });
-    render(<SongSlidePanel store={store} sizeClass="normal" />);
-    act(() => session.selectArrangement('Large'));
-    expect(
-      screen.getByRole('status', {
-        name: '슬라이드는 10000개까지 사용할 수 있습니다',
-      }),
-    ).toBeDefined();
-    expect(screen.getByText('슬라이드가 너무 많습니다')).toBeDefined();
-    act(() => session.selectArrangement(undefined));
-    expect(
-      screen.queryByRole('status', {
-        name: '슬라이드는 10000개까지 사용할 수 있습니다',
-      }),
-    ).toBeNull();
-  });
-
-  it('renders thumbnails expanding groups in master order when no arrangement is picked', () => {
+describe('SongSlidePanel with slide decks', () => {
+  it('renders every slide in deck order with its own label', () => {
     const {store} = createGroupedSession();
     render(<SongSlidePanel store={store} sizeClass="normal" />);
     const list = screen.getByRole('listbox', {name: '슬라이드'});
@@ -90,32 +52,17 @@ describe('SongSlidePanel with grouped songs', () => {
     expect(options[2]?.textContent).toContain('빛을 따라가요');
   });
 
-  it('renders thumbnails expanding groups in named arrangement order with repeats', () => {
+  it('selects corresponding block when thumbnail is clicked by its position', () => {
     const {session, store} = createGroupedSession();
     render(<SongSlidePanel store={store} sizeClass="normal" />);
-    act(() => session.selectArrangement('주일용'));
     const list = screen.getByRole('listbox', {name: '슬라이드'});
     const options = within(list).getAllByRole('option');
-    expect(options).toHaveLength(5);
-    expect(options[0]?.textContent).toContain('1절');
-    expect(options[1]?.textContent).toContain('맑은 하늘 바라보며');
-    expect(options[2]?.textContent).toContain('후렴');
-    expect(options[3]?.textContent).toContain('1절');
-    expect(options[4]?.textContent).toContain('맑은 하늘 바라보며');
-  });
+    expect(options).toHaveLength(3);
 
-  it('selects corresponding block when thumbnail is clicked and tracks repeated occurrences', () => {
-    const {session, store} = createGroupedSession();
-    render(<SongSlidePanel store={store} sizeClass="normal" />);
-    act(() => session.selectArrangement('주일용'));
-    const list = screen.getByRole('listbox', {name: '슬라이드'});
-    const options = within(list).getAllByRole('option');
-    expect(options).toHaveLength(5);
-
-    const repeated = options[3];
+    const repeated = options[1];
     if (repeated === undefined) throw new Error('Missing thumbnail');
     fireEvent.click(repeated);
-    expect(session.history.snapshot.selection.block).toBe(0);
+    expect(session.history.snapshot.selection.block).toBe(1);
     expect(repeated.getAttribute('aria-selected')).toBe('true');
     expect(options[0]?.getAttribute('aria-selected')).toBe('false');
 
@@ -124,6 +71,6 @@ describe('SongSlidePanel with grouped songs', () => {
     fireEvent.click(chorus);
     expect(session.history.snapshot.selection.block).toBe(2);
     expect(chorus.getAttribute('aria-selected')).toBe('true');
-    expect(options[3]?.getAttribute('aria-selected')).toBe('false');
+    expect(options[1]?.getAttribute('aria-selected')).toBe('false');
   });
 });

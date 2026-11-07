@@ -1,3 +1,5 @@
+import {expectSuccess} from '@fixtures/core/schema/testHelpers';
+import {parseServiceDocument} from '@core/schema/contentDocuments';
 import {
   cleanup,
   fireEvent,
@@ -28,12 +30,37 @@ const service: ShowService = {
   jumpKeys: {},
 };
 
-const openOrderEditor = vi.fn();
+const openSongEditor = vi.fn();
 
 beforeEach(() => {
-  openOrderEditor.mockReset();
-  openOrderEditor.mockResolvedValue({ok: true, value: undefined});
-  window.llp = mockLlpApi({window: {openOrderEditor}});
+  openSongEditor.mockReset();
+  openSongEditor.mockResolvedValue({ok: true, value: undefined});
+  window.llp = mockLlpApi({
+    window: {openSongEditor},
+    services: {
+      get: async () =>
+        expectSuccess(
+          parseServiceDocument({
+            access: 'editable',
+            revision: 1,
+            service: {
+              format: 'llservice',
+              schemaVersion: 1,
+              id: SERVICE_ID,
+              name: 'Invented',
+              date: '2026-11-08T09:00',
+              order: [
+                {
+                  id: SONG_ITEM,
+                  song: '50000000-0000-4000-8000-000000000001',
+                  slides: [],
+                },
+              ],
+            },
+          }),
+        ),
+    },
+  });
   applyService(null);
   applyService(service);
   useShow.setState({openItemId: null});
@@ -44,26 +71,26 @@ afterEach(() => {
   delete window.llp;
 });
 
-describe('ServiceOrderList 순서 편집 entry points', () => {
-  it('opens 순서 편집 on a double click of a song row in 준비', async () => {
+describe('ServiceOrderList 곡 편집 entry points', () => {
+  it('opens 곡 편집 on a double click of a song row in 준비', async () => {
     render(<ServiceOrderList workspace="prep" />);
     fireEvent.doubleClick(screen.getByRole('option', {name: /새벽을/}));
 
     await waitFor(() =>
-      expect(openOrderEditor).toHaveBeenCalledWith({
-        serviceId: SERVICE_ID,
-        itemId: SONG_ITEM,
+      expect(openSongEditor).toHaveBeenCalledWith({
+        songId: '50000000-0000-4000-8000-000000000001',
+        from: {serviceId: SERVICE_ID, itemId: SONG_ITEM},
       }),
     );
   });
 
-  it('opens 순서 편집 on Enter in a song row in 준비', async () => {
+  it('opens 곡 편집 on Enter in a song row in 준비', async () => {
     render(<ServiceOrderList workspace="prep" />);
     fireEvent.keyDown(screen.getByRole('option', {name: /새벽을/}), {
       key: 'Enter',
     });
 
-    await waitFor(() => expect(openOrderEditor).toHaveBeenCalledOnce());
+    await waitFor(() => expect(openSongEditor).toHaveBeenCalledOnce());
   });
 
   it('does not open it for other rows, other keys, or 진행', () => {
@@ -76,11 +103,11 @@ describe('ServiceOrderList 순서 편집 entry points', () => {
     rerender(<ServiceOrderList workspace="show" />);
     fireEvent.doubleClick(screen.getByRole('option', {name: /새벽을/}));
 
-    expect(openOrderEditor).not.toHaveBeenCalled();
+    expect(openSongEditor).not.toHaveBeenCalled();
   });
 
   it('reports a refusal as a problem notice', async () => {
-    openOrderEditor.mockResolvedValue({
+    openSongEditor.mockResolvedValue({
       ok: false,
       error: {reason: 'failed'},
     });
@@ -90,7 +117,7 @@ describe('ServiceOrderList 순서 편집 entry points', () => {
 
     await waitFor(() =>
       expect(onProblem).toHaveBeenCalledWith(
-        expect.objectContaining({title: '순서 편집 창을 열 수 없음'}),
+        expect.objectContaining({title: '곡 편집 창을 열 수 없음'}),
       ),
     );
   });
