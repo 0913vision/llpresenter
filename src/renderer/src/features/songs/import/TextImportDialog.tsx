@@ -29,6 +29,7 @@ import {
   matchingImportLabel,
   suggestImportLabel,
 } from '@core/songs/importLabelMapping';
+import {TEXT_ENCODINGS} from './textEncodings';
 import {ImportLabelMappingDialog} from './ImportLabelMappingDialog';
 import {useImportPreview} from './useImportPreview';
 import styles from './TextImportDialog.module.css';
@@ -42,6 +43,13 @@ const SPLITS = [
   {value: 'lineBreak', label: '줄 바꿈'},
   {value: 'symbol', label: '기호'},
 ] as const;
+const FIRST_LINES = [
+  {value: 'title', label: '제목'},
+  {value: 'lyrics', label: '가사'},
+] as const;
+
+/** The choices of the dialog that the next import starts from. */
+export type TextImportChoice = Partial<Preferences['import']['txt']>;
 
 function previewSong(draft: TextImportDraft, title: string): GroupedSong {
   let count = 0;
@@ -65,6 +73,9 @@ export function TextImportDialog({
   onEdit,
   onDiscard,
   onProblem,
+  onRemember,
+  onEncoding,
+  reading = false,
 }: {
   readonly api: LlpApi['textImport'];
   readonly source: TextImportSource;
@@ -74,6 +85,13 @@ export function TextImportDialog({
   readonly onEdit: (draft: TextImportDraft) => void;
   readonly onDiscard: () => void;
   readonly onProblem: (notice: Notice) => void;
+  /** Called with each changed choice, so the next import starts from it. */
+  readonly onRemember?: ((choice: TextImportChoice) => void) | undefined;
+  /** True while the file is read again; 편집 waits for it. */
+  readonly reading?: boolean | undefined;
+  /** Reads the same file again with this encoding. */
+  readonly onEncoding?:
+    ((encoding: Preferences['import']['txt']['encoding']) => void) | undefined;
 }): JSX.Element {
   const [options, setOptions] = useState<TextImportOptions>(() => ({
     split: defaults.split,
@@ -186,9 +204,11 @@ export function TextImportDialog({
         cancelLabel="저장 안 함"
         primary={{
           label: '편집',
-          disabled: preview.draft === null || draftReason !== undefined,
+          disabled:
+            reading || preview.draft === null || draftReason !== undefined,
           title:
             draftReason ??
+            (reading ? '파일을 다시 읽는 중' : undefined) ??
             (preview.invalidSymbol
               ? '나누기 기호를 적어야 합니다'
               : preview.pending
@@ -197,7 +217,7 @@ export function TextImportDialog({
                   ? '가져올 슬라이드가 없습니다'
                   : undefined),
           onSelect: () => {
-            if (draft && draftReason === undefined) {
+            if (!reading && draft && draftReason === undefined) {
               onEdit({...draft, title: shownTitle});
             }
           },
@@ -209,7 +229,8 @@ export function TextImportDialog({
                 aria-label="슬라이드 나누기"
                 options={SPLITS}
                 value={options.split}
-                onChange={split =>
+                onChange={split => {
+                  onRemember?.({split});
                   setOptions(current => {
                     const {symbol, ...shared} = current;
                     return {
@@ -220,8 +241,8 @@ export function TextImportDialog({
                         : {}),
                       unitsPerSlide: split === 'lineBreak' ? 2 : 1,
                     };
-                  })
-                }
+                  });
+                }}
               />
             </DialogField>
             {options.split === 'symbol' ? (
@@ -255,6 +276,7 @@ export function TextImportDialog({
                 checked={options.labels === 'bracketLine'}
                 onChange={checked => {
                   if (checked) setMappingRequested(true);
+                  onRemember?.({labels: checked ? 'bracketLine' : 'off'});
                   setOptions(current => ({
                     ...current,
                     labels: checked ? 'bracketLine' : 'off',
@@ -262,6 +284,29 @@ export function TextImportDialog({
                 }}
               />
             </DialogField>
+            {source.source === 'clipboard' ? (
+              <DialogField label="첫 줄">
+                <SelectMenu
+                  aria-label="첫 줄"
+                  options={FIRST_LINES}
+                  value={options.firstLine}
+                  onChange={firstLine => {
+                    onRemember?.({firstLine});
+                    setOptions(current => ({...current, firstLine}));
+                  }}
+                />
+              </DialogField>
+            ) : (
+              <DialogField label="글자 인코딩">
+                <SelectMenu
+                  aria-label="글자 인코딩"
+                  options={TEXT_ENCODINGS}
+                  value={defaults.encoding}
+                  disabled={reading}
+                  onChange={encoding => onEncoding?.(encoding)}
+                />
+              </DialogField>
+            )}
           </>
         }
       >

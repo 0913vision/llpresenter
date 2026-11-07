@@ -151,7 +151,7 @@ it('edits the shared catalog from preferences while an editor dialog follows it'
     screen.getByRole('navigation', {name: '환경설정 항목'}),
   );
   const names = navigation.getAllByRole('option').map(row => row.textContent);
-  expect(names.indexOf('이름표')).toBe(names.indexOf('라이브러리') + 1);
+  expect(names.indexOf('이름표')).toBe(names.indexOf('저장') + 1);
   await f.user.click(navigation.getByRole('option', {name: '이름표'}));
   const page = screen.getByRole('region', {name: '이름표'});
   const dialog = screen.getByRole('dialog', {name: '이름표 관리'});
@@ -446,9 +446,9 @@ it.each(['sidebar', 'request'] as const)(
     await f.user.type(field, '보존할 이름');
     const navigate = async (): Promise<void> => {
       if (source === 'sidebar') {
-        await f.user.click(screen.getByRole('option', {name: '라이브러리'}));
+        await f.user.click(screen.getByRole('option', {name: '저장'}));
       } else {
-        act(() => request('library'));
+        act(() => request('storage'));
       }
     };
     if (source === 'request') fireEvent.blur(field);
@@ -476,7 +476,7 @@ it.each(['sidebar', 'request'] as const)(
     await f.user.type(field, '수정한 이름');
     await navigate();
     await waitFor(() =>
-      expect(screen.getByRole('heading').textContent).toBe('라이브러리'),
+      expect(screen.getByRole('heading').textContent).toBe('저장'),
     );
     expect(f.labels().value.labels[0]?.name).toBe('수정한 이름');
   },
@@ -506,14 +506,14 @@ it('settles an unblurred rename before applying the latest requested page', asyn
   await f.user.clear(field);
   await f.user.type(field, '저장할 이름');
   act(() => {
-    request('library');
-    request('import');
+    request('storage');
+    request('media');
   });
   await waitFor(() => expect(edit).toHaveBeenCalledOnce());
   expect(screen.getByRole('heading').textContent).toBe('이름표');
   await act(async () => finish());
   await waitFor(() =>
-    expect(screen.getByRole('heading').textContent).toBe('가져오기'),
+    expect(screen.getByRole('heading').textContent).toBe('미디어'),
   );
   expect(f.labels().value.labels[0]?.name).toBe('저장할 이름');
   expect(edit).toHaveBeenCalledOnce();
@@ -526,7 +526,7 @@ it('keeps invalid label text when navigation cannot save it', async () => {
   const field = screen.getByRole('textbox', {name: '1절 이름'});
   await f.user.clear(field);
   await f.user.type(field, '후렴');
-  await f.user.click(screen.getByRole('option', {name: '라이브러리'}));
+  await f.user.click(screen.getByRole('option', {name: '저장'}));
   expect(screen.getByRole('heading').textContent).toBe('이름표');
   expect(field).toHaveProperty('value', '후렴');
   expect(field.getAttribute('aria-invalid')).toBe('true');

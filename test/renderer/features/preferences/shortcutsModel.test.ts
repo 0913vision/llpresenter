@@ -30,11 +30,42 @@ function commandOf(id: string) {
 const F1: KeyBinding = {code: 'F1', mods: []};
 const CTRL_J: KeyBinding = {code: 'KeyJ', mods: ['ctrl']};
 
+/** The commands that no handler runs yet; 단축키 offers no key for them. */
+const HIDDEN = [
+  'arrangement.add',
+  'arrangement.insertSlide',
+  'import.pptx',
+  'media.newAudioPlaylist',
+  'media.newPlaylist',
+  'media.nextBackground',
+  'media.previousBackground',
+  'media.relink',
+  'screens.identify',
+  'screens.redetect',
+  'screens.showFallbackWindow',
+  'service.quickAdd',
+  'service.revealLibrary',
+  'service.switcher',
+  'show.first',
+  'show.last',
+  'stageEditor.addElement',
+  'stageEditor.fit',
+  'tools.showing',
+  'ui.resetLayout',
+];
+
 describe('allCommands', () => {
+  it('leaves out the commands that no handler runs yet', () => {
+    const ids = allCommands(NAMES).map(command => command.id);
+
+    for (const id of HIDDEN) expect(ids).not.toContain(id);
+    expect(ids).toContain('clear.slide');
+  });
+
   it('adds a command for each 그래픽 and two for each 타이머', () => {
     const commands = allCommands(NAMES);
 
-    expect(commands).toHaveLength(shortcutCommands.length + 3);
+    expect(commands).toHaveLength(shortcutCommands.length - HIDDEN.length + 3);
     expect(commands.slice(-3).map(command => command.name)).toEqual([
       '로고',
       '설교 시작과 정지',

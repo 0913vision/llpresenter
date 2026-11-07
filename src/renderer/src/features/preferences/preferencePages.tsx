@@ -8,17 +8,18 @@ import {PropertyGroup, PropertyValue} from '@renderer/ui/PropertyRow';
 import {
   AUDIO_LIMITS,
   PREFERENCE_LIMITS,
-  previewFpsChoices,
   TRANSITION_LIMITS,
 } from '@core/schema/preferences';
 import type {PreferencesFile} from '@core/schema/preferences';
 import type {PreferenceEdits} from './usePreferenceEdits';
 import {
+  ActionRow,
   CountRow,
   PathRow,
-  SelectRow,
   SegmentedRow,
   CheckboxRow,
+  SelectRow,
+  TransitionRow,
   ValueActionRow,
 } from './PreferenceRows';
 import {DeviceRow} from './DeviceRow';
@@ -30,11 +31,10 @@ import {useUiZoom} from './useUiZoom';
 export const preferencePages = [
   {id: 'general', label: '일반', icon: 'gear'},
   {id: 'output', label: '출력', icon: 'mplay'},
-  {id: 'library', label: '라이브러리', icon: 'folder'},
+  {id: 'storage', label: '저장', icon: 'folder'},
   {id: 'labels', label: '이름표', icon: 'bookmark'},
   {id: 'media', label: '미디어', icon: 'audio'},
   {id: 'bible', label: '성경', icon: 'book'},
-  {id: 'import', label: '가져오기', icon: 'download'},
   {id: 'shortcuts', label: '단축키', icon: 'keyboard'},
   {id: 'about', label: '정보', icon: 'info'},
 ] as const satisfies ReadonlyArray<{
@@ -45,28 +45,6 @@ export const preferencePages = [
 
 export type {PreferencePageId};
 
-const HARDWARE_ACCELERATION_NOTE = '다음에 켤 때 적용됩니다';
-const LANGUAGE_OPTIONS = [{value: 'ko', label: '한국어'}] as const;
-const LAUNCH_OPTIONS = [
-  {value: 'lastService', label: '마지막 예배 열기'},
-] as const;
-const AT_LAST_SLIDE_OPTIONS = [
-  {value: 'stop', label: '정지'},
-  {value: 'nextItem', label: '다음 항목'},
-] as const;
-const DISCONNECT_OPTIONS = [
-  {value: 'window', label: '창으로 바꾸기'},
-  {value: 'off', label: '출력 끄기'},
-] as const;
-const TRANSITION_OPTIONS = [
-  {value: 'none', label: '없음'},
-  {value: 'dissolve', label: '디졸브'},
-] as const;
-const FPS_OPTIONS = previewFpsChoices.map(fps => ({
-  value: String(fps),
-  label: `${fps}fps`,
-}));
-
 const ZOOM_OPTIONS = Array.from(
   {length: (UI_ZOOM.max - UI_ZOOM.min) / UI_ZOOM.step + 1},
   (_, index) => {
@@ -74,10 +52,10 @@ const ZOOM_OPTIONS = Array.from(
     return {value: String(percent), label: `${percent}%`};
   },
 );
-const TRANSITION_NOTE = '다음 슬라이드나 다음 배경부터 적용됩니다';
-const NEXT_TRACK_NOTE = '다음 곡부터 적용됩니다';
-const NEXT_LAUNCH_NOTE = '다음에 켤 때 적용됩니다';
-const BACKUP_NOTE = '다음 백업부터 적용됩니다';
+const FOLDER_NOTE = '다음에 켤 때부터 씁니다. 있던 파일은 옮기지 않습니다';
+const AUTO_BACKUP_NOTE = '하루 한 번, 앱을 켤 때';
+const PREVIOUS_VERSION_NOTE =
+  '곡과 예배 파일을 저장할 때 바로 전 판을 남깁니다';
 
 type TransitionPart = 'slide' | 'media';
 
@@ -104,145 +82,48 @@ interface PageProps {
   readonly edits: PreferenceEdits;
 }
 
-/** 일반: 앱, 저장, 지우기. */
+/** 일반: 화면 확대, Windows 시작할 때 실행. */
 export function GeneralPage({edits}: PageProps): JSX.Element | null {
   const {preferences, lockedReason, change} = edits;
   const zoom = useUiZoom();
   if (preferences === null) return null;
   const disabled = lockedReason !== undefined;
   return (
-    <>
-      <PropertyGroup title="앱">
-        <SelectRow
-          label="언어"
-          disabled={disabled}
-          title={lockedReason}
-          options={LANGUAGE_OPTIONS}
-          value={preferences.language}
-          onChange={language => change(stored => ({...stored, language}))}
-        />
-        <SelectRow
-          label="화면 확대"
-          disabled={zoom.percent === null}
-          options={ZOOM_OPTIONS}
-          value={String(zoom.percent ?? UI_ZOOM.defaultPercent)}
-          onChange={percent => zoom.setPercent(Number(percent))}
-        />
-      </PropertyGroup>
-      <PropertyGroup title="시작">
-        <SelectRow
-          label="시작할 때"
-          disabled={disabled}
-          title={lockedReason}
-          options={LAUNCH_OPTIONS}
-          value={preferences.onLaunch}
-          onChange={onLaunch => change(stored => ({...stored, onLaunch}))}
-        />
-        <CheckboxRow
-          label="Windows 시작할 때 실행"
-          disabled={disabled}
-          title={lockedReason}
-          checked={preferences.general.launchAtLogin}
-          onChange={launchAtLogin =>
-            change(stored => ({
-              ...stored,
-              general: {...stored.general, launchAtLogin},
-            }))
-          }
-        />
-      </PropertyGroup>
-      <PropertyGroup title="저장">
-        <CountRow
-          label="복구 사본"
-          unit="개"
-          disabled={disabled}
-          title={lockedReason}
-          value={preferences.backupCopies}
-          {...PREFERENCE_LIMITS.backupCopies}
-          onChange={backupCopies =>
-            change(stored => ({...stored, backupCopies}))
-          }
-        />
-      </PropertyGroup>
-      <PropertyGroup title="슬라이드 넘기기">
-        <SelectRow
-          label="마지막 슬라이드에서 다음 슬라이드"
-          disabled={disabled}
-          title={lockedReason}
-          options={AT_LAST_SLIDE_OPTIONS}
-          value={preferences.show.atLastSlide}
-          onChange={atLastSlide =>
-            change(stored => ({
-              ...stored,
-              show: {...stored.show, atLastSlide},
-            }))
-          }
-        />
-      </PropertyGroup>
-      <PropertyGroup title="오디오">
-        <CountRow
-          label="오디오 전환"
-          unit="초"
-          disabled={disabled}
-          title={lockedReason ?? NEXT_TRACK_NOTE}
-          value={preferences.show.audio.transitionSeconds}
-          {...AUDIO_LIMITS.transition}
-          onChange={transitionSeconds =>
-            change(stored => ({
-              ...stored,
-              show: {
-                ...stored.show,
-                audio: {...stored.show?.audio, transitionSeconds},
-              },
-            }))
-          }
-        />
-        <CountRow
-          label="페이드 아웃 시간"
-          unit="초"
-          disabled={disabled}
-          title={lockedReason}
-          value={preferences.show.audio.fadeOutSeconds}
-          {...AUDIO_LIMITS.fadeOut}
-          onChange={fadeOutSeconds =>
-            change(stored => ({
-              ...stored,
-              show: {
-                ...stored.show,
-                audio: {...stored.show?.audio, fadeOutSeconds},
-              },
-            }))
-          }
-        />
-      </PropertyGroup>
-      <PropertyGroup title="지우기">
-        <CheckboxRow
-          label="지우기 되돌리기 단추 보이기"
-          disabled={disabled}
-          title={lockedReason}
-          checked={preferences.show.showClearUndoButton}
-          onChange={showClearUndoButton =>
-            change(stored => ({
-              ...stored,
-              show: {...stored.show, showClearUndoButton},
-            }))
-          }
-        />
-      </PropertyGroup>
-    </>
+    <PropertyGroup>
+      <SelectRow
+        label="화면 확대"
+        disabled={zoom.percent === null}
+        options={ZOOM_OPTIONS}
+        value={String(zoom.percent ?? UI_ZOOM.defaultPercent)}
+        onChange={percent => zoom.setPercent(Number(percent))}
+      />
+      <CheckboxRow
+        label="Windows 시작할 때 실행"
+        disabled={disabled}
+        title={lockedReason}
+        checked={preferences.general.launchAtLogin}
+        onChange={launchAtLogin =>
+          change(stored => ({
+            ...stored,
+            general: {...stored.general, launchAtLogin},
+          }))
+        }
+      />
+    </PropertyGroup>
   );
 }
 
-/** 출력: 시작, 안정성, 성능. */
+/** 출력: 켤 때 출력, 모니터, 전환. */
 export function OutputPage({edits}: PageProps): JSX.Element | null {
   const {preferences, lockedReason, change} = edits;
   if (preferences === null) return null;
   const disabled = lockedReason !== undefined;
+  const {transition} = preferences.output;
   return (
     <>
-      <PropertyGroup title="시작">
+      <PropertyGroup>
         <CheckboxRow
-          label="켤 때 화면 출력"
+          label="앱을 켤 때 출력"
           disabled={disabled}
           title={lockedReason}
           checked={preferences.showOnLaunch}
@@ -250,115 +131,48 @@ export function OutputPage({edits}: PageProps): JSX.Element | null {
             change(stored => ({...stored, showOnLaunch}))
           }
         />
+        <ActionRow
+          label="모니터"
+          action="화면 설정…"
+          onAction={() => window.llp?.window.openScreens()}
+        />
       </PropertyGroup>
       <PropertyGroup title="전환">
-        <SegmentedRow
-          label="슬라이드 전환"
+        <TransitionRow
+          label="슬라이드"
           disabled={disabled}
-          title={lockedReason ?? TRANSITION_NOTE}
-          options={TRANSITION_OPTIONS}
-          value={preferences.output.transition.slide.kind}
-          onChange={kind =>
+          title={lockedReason}
+          kind={transition.slide.kind}
+          seconds={transition.slide.seconds}
+          limits={TRANSITION_LIMITS.slide}
+          onKind={kind =>
             change(stored => changedTransition(stored, 'slide', {kind}))
           }
+          onSeconds={seconds =>
+            change(stored => changedTransition(stored, 'slide', {seconds}))
+          }
         />
-        {preferences.output.transition.slide.kind === 'none' ? null : (
-          <CountRow
-            label="슬라이드 전환 시간"
-            unit="초"
-            disabled={disabled}
-            title={lockedReason ?? TRANSITION_NOTE}
-            value={preferences.output.transition.slide.seconds}
-            {...TRANSITION_LIMITS.slide}
-            onChange={seconds =>
-              change(stored => changedTransition(stored, 'slide', {seconds}))
-            }
-          />
-        )}
-        <SegmentedRow
-          label="배경 전환"
+        <TransitionRow
+          label="배경"
           disabled={disabled}
-          title={lockedReason ?? TRANSITION_NOTE}
-          options={TRANSITION_OPTIONS}
-          value={preferences.output.transition.media.kind}
-          onChange={kind =>
+          title={lockedReason}
+          kind={transition.media.kind}
+          seconds={transition.media.seconds}
+          limits={TRANSITION_LIMITS.media}
+          onKind={kind =>
             change(stored => changedTransition(stored, 'media', {kind}))
           }
-        />
-        {preferences.output.transition.media.kind === 'none' ? null : (
-          <CountRow
-            label="배경 전환 시간"
-            unit="초"
-            disabled={disabled}
-            title={lockedReason ?? TRANSITION_NOTE}
-            value={preferences.output.transition.media.seconds}
-            {...TRANSITION_LIMITS.media}
-            onChange={seconds =>
-              change(stored => changedTransition(stored, 'media', {seconds}))
-            }
-          />
-        )}
-      </PropertyGroup>
-      <PropertyGroup title="안정성">
-        <CheckboxRow
-          label="출력 중 절전 막기"
-          disabled={disabled}
-          title={lockedReason}
-          checked={preferences.preventSleep}
-          onChange={preventSleep =>
-            change(stored => ({...stored, preventSleep}))
+          onSeconds={seconds =>
+            change(stored => changedTransition(stored, 'media', {seconds}))
           }
-        />
-        <CheckboxRow
-          label="출력 창 항상 위"
-          disabled={disabled}
-          title={lockedReason}
-          checked={preferences.alwaysOnTop}
-          onChange={alwaysOnTop => change(stored => ({...stored, alwaysOnTop}))}
-        />
-        <SelectRow
-          label="화면 연결이 끊기면"
-          disabled={disabled}
-          title={lockedReason}
-          options={DISCONNECT_OPTIONS}
-          value={preferences.onDisconnect}
-          onChange={onDisconnect =>
-            change(stored => ({...stored, onDisconnect}))
-          }
-        />
-      </PropertyGroup>
-      <PropertyGroup title="성능">
-        <CheckboxRow
-          label="하드웨어 가속"
-          disabled={disabled}
-          title={lockedReason ?? HARDWARE_ACCELERATION_NOTE}
-          checked={preferences.hardwareAcceleration}
-          onChange={hardwareAcceleration =>
-            change(stored => ({...stored, hardwareAcceleration}))
-          }
-        />
-        <SelectRow
-          label="미리보기"
-          disabled={disabled}
-          title={lockedReason}
-          options={FPS_OPTIONS}
-          value={String(preferences.previewFps)}
-          onChange={fps => {
-            const previewFps = previewFpsChoices.find(
-              choice => String(choice) === fps,
-            );
-            if (previewFps !== undefined) {
-              change(stored => ({...stored, previewFps}));
-            }
-          }}
         />
       </PropertyGroup>
     </>
   );
 }
 
-/** 라이브러리: 위치, 백업. */
-export function LibraryPage({
+/** 저장: 폴더, 백업, 이전 판. */
+export function StoragePage({
   edits,
   onProblem,
 }: PageProps & {
@@ -372,25 +186,19 @@ export function LibraryPage({
   const unavailable = disabled || view === null;
   return (
     <>
-      <PropertyGroup title="위치">
+      <PropertyGroup title="폴더">
         <PathRow
           label="곡"
           path={view?.songs.path ?? ''}
           disabled={unavailable}
-          title={
-            locations.refusals.songsPath ??
-            (view?.songs.pending ? NEXT_LAUNCH_NOTE : lockedReason)
-          }
+          title={locations.refusals.songsPath ?? lockedReason ?? FOLDER_NOTE}
           onChange={() => locations.choose('songsPath')}
         />
         <PathRow
           label="미디어"
           path={view?.media.path ?? ''}
           disabled={unavailable}
-          title={
-            locations.refusals.mediaPath ??
-            (view?.media.pending ? NEXT_LAUNCH_NOTE : lockedReason)
-          }
+          title={locations.refusals.mediaPath ?? lockedReason ?? FOLDER_NOTE}
           onChange={() => locations.choose('mediaPath')}
         />
       </PropertyGroup>
@@ -398,17 +206,17 @@ export function LibraryPage({
         <CheckboxRow
           label="자동 백업"
           disabled={disabled}
-          title={lockedReason}
+          title={lockedReason ?? AUTO_BACKUP_NOTE}
           checked={preferences.backup.auto}
           onChange={auto =>
             change(stored => ({...stored, backup: {...stored.backup, auto}}))
           }
         />
         <PathRow
-          label="백업 위치"
+          label="백업 폴더"
           path={view?.backup.path ?? ''}
           disabled={unavailable}
-          title={locations.refusals.backupPath ?? lockedReason ?? BACKUP_NOTE}
+          title={locations.refusals.backupPath ?? lockedReason}
           onChange={() => locations.choose('backupPath')}
         />
         <CountRow
@@ -431,11 +239,23 @@ export function LibraryPage({
           onAction={locations.backUpNow}
         />
       </PropertyGroup>
+      <PropertyGroup title="이전 판">
+        <CountRow
+          label="파일마다"
+          unit="개"
+          disabled={disabled}
+          title={lockedReason ?? PREVIOUS_VERSION_NOTE}
+          value={preferences.backupCopies}
+          {...PREFERENCE_LIMITS.backupCopies}
+          onChange={backupCopies =>
+            change(stored => ({...stored, backupCopies}))
+          }
+        />
+      </PropertyGroup>
     </>
   );
 }
 
-const NEW_MEDIA_NOTE = '다음에 가져오는 미디어부터 적용됩니다';
 const END_OPTIONS = [
   {value: 'loop', label: '반복'},
   {value: 'stop', label: '정지'},
@@ -461,13 +281,21 @@ export function MediaPage({edits}: PageProps): JSX.Element | null {
         defaults: {...stored.media?.defaults, ...changed},
       },
     }));
+  const setAudio = (changed: {
+    readonly transitionSeconds?: number;
+    readonly fadeOutSeconds?: number;
+  }): void =>
+    change(stored => ({
+      ...stored,
+      show: {...stored.show, audio: {...stored.show?.audio, ...changed}},
+    }));
   return (
     <>
       <PropertyGroup title="새 미디어">
         <SegmentedRow
           label="영상 끝나면"
           disabled={disabled}
-          title={lockedReason ?? NEW_MEDIA_NOTE}
+          title={lockedReason}
           options={END_OPTIONS}
           value={defaults.end}
           onChange={end => setDefaults({end})}
@@ -475,7 +303,7 @@ export function MediaPage({edits}: PageProps): JSX.Element | null {
         <SegmentedRow
           label="맞춤"
           disabled={disabled}
-          title={lockedReason ?? NEW_MEDIA_NOTE}
+          title={lockedReason}
           options={FIT_OPTIONS}
           value={defaults.fit}
           onChange={fit => setDefaults({fit})}
@@ -483,7 +311,7 @@ export function MediaPage({edits}: PageProps): JSX.Element | null {
         <CheckboxRow
           label="영상 소리"
           disabled={disabled}
-          title={lockedReason ?? NEW_MEDIA_NOTE}
+          title={lockedReason}
           checked={defaults.audio}
           onChange={audio => setDefaults({audio})}
         />
@@ -515,6 +343,24 @@ export function MediaPage({edits}: PageProps): JSX.Element | null {
             }))
           }
         />
+        <CountRow
+          label="곡 겹치기"
+          unit="초"
+          disabled={disabled}
+          title={lockedReason}
+          value={preferences.show.audio.transitionSeconds}
+          {...AUDIO_LIMITS.transition}
+          onChange={transitionSeconds => setAudio({transitionSeconds})}
+        />
+        <CountRow
+          label="페이드 아웃"
+          unit="초"
+          disabled={disabled}
+          title={lockedReason}
+          value={preferences.show.audio.fadeOutSeconds}
+          {...AUDIO_LIMITS.fadeOut}
+          onChange={fadeOutSeconds => setAudio({fadeOutSeconds})}
+        />
       </PropertyGroup>
     </>
   );
@@ -522,7 +368,7 @@ export function MediaPage({edits}: PageProps): JSX.Element | null {
 
 const VERSION_LOADING = '확인 중';
 
-/** 정보: 현재 버전, 문제 해결. */
+/** 정보: 버전, 문제 해결. */
 export function AboutPage(): JSX.Element {
   const readiness = useContext(LoadReadinessContext);
   const [version, setVersion] = useState(VERSION_LOADING);
@@ -570,31 +416,30 @@ export function AboutPage(): JSX.Element {
   };
   return (
     <>
-      <PropertyGroup title="버전">
-        <PropertyValue label="현재 버전" value={version} />
+      <PropertyGroup>
+        <PropertyValue label="버전" value={version} />
       </PropertyGroup>
       <PropertyGroup title="문제 해결">
-        <ValueActionRow
+        <ActionRow
           label="기록 폴더"
-          value=""
           action="폴더 열기"
           onAction={() => window.llp?.window.openLogFolder()}
         />
-        <ValueActionRow
+        <ActionRow
           label="진단 정보"
-          value={
+          action="복사"
+          result={
             copied === 'done'
               ? '복사했습니다'
               : copied === 'failed'
                 ? '복사하지 못했습니다'
-                : ''
+                : undefined
           }
-          action="복사"
           onAction={copy}
         />
         <CheckboxRow
           label="자세한 기록"
-          title="다음에 켤 때는 꺼집니다"
+          title="앱을 다시 켜면 꺼집니다"
           checked={verbose}
           onChange={on => {
             setVerbose(on);

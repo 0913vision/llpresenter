@@ -66,7 +66,7 @@ describe('mockLlpApi', () => {
     await expect(api.songs.list()).resolves.toEqual([]);
     await expect(api.services.get('a')).resolves.toBeNull();
     await expect(api.preferences.get()).resolves.toMatchObject({
-      show: {showClearUndoButton: false},
+      show: {atLastSlide: 'stop'},
     });
     await expect(api.settings.get({name: 'labels'})).rejects.toThrow(
       'no settings documents',

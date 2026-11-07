@@ -164,7 +164,7 @@ function install(
 async function mount(options?: Parameters<typeof install>[0]) {
   install(options);
   const view = render(<PreferencesView onProblem={onProblem} />);
-  await screen.findByRole('checkbox', {name: '지우기 되돌리기 단추 보이기'});
+  await screen.findByRole('checkbox', {name: 'Windows 시작할 때 실행'});
   return view;
 }
 
@@ -280,7 +280,7 @@ describe('PreferencesView', () => {
     await mount();
     await openPage('성경');
     const toggle = screen.getByRole('checkbox', {
-      name: '절 나누기 창 저절로 열기',
+      name: '나눌 자리 확인',
     });
     expect(toggle.getAttribute('aria-checked')).toBe('true');
     await userEvent.click(toggle);
@@ -318,24 +318,23 @@ describe('PreferencesView', () => {
       },
     });
     render(<PreferencesView onProblem={onProblem} />);
-    await screen.findByRole('checkbox', {name: '지우기 되돌리기 단추 보이기'});
+    await screen.findByRole('checkbox', {name: 'Windows 시작할 때 실행'});
     act(() => show('bible'));
     await waitFor(() =>
       expect(screen.getByRole('heading').textContent).toBe('성경'),
     );
   });
 
-  it('lists the nine pages and opens the 단축키 page', async () => {
+  it('lists the eight pages and opens the 단축키 page', async () => {
     await mount();
 
     expect(screen.getAllByRole('option').map(row => row.textContent)).toEqual([
       '일반',
       '출력',
-      '라이브러리',
+      '저장',
       '이름표',
       '미디어',
       '성경',
-      '가져오기',
       '단축키',
       '정보',
     ]);
@@ -344,21 +343,19 @@ describe('PreferencesView', () => {
     expect(screen.queryAllByRole('checkbox')).toHaveLength(0);
   });
 
-  it('shows the stored value or its default in each 일반 row', async () => {
+  it('has only 화면 확대 and Windows 시작할 때 실행 on the 일반 page', async () => {
     await mount();
 
-    expect(screen.getByRole('button', {name: /언어/}).textContent).toContain(
-      '한국어',
-    );
-    expect(screen.getByRole('spinbutton', {name: '복구 사본'})).toHaveProperty(
-      'value',
-      '10',
-    );
+    expect(screen.getByRole('button', {name: /화면 확대/})).toBeTruthy();
     expect(
       screen
-        .getByRole('checkbox', {name: '지우기 되돌리기 단추 보이기'})
+        .getByRole('checkbox', {name: 'Windows 시작할 때 실행'})
         .getAttribute('aria-checked'),
     ).toBe('false');
+    for (const gone of ['언어', '시작할 때', '복구 사본', '지우기 되돌리기']) {
+      expect(screen.queryByText(new RegExp(`^${gone}`))).toBeNull();
+    }
+    expect(screen.queryAllByRole('spinbutton')).toHaveLength(0);
   });
 
   it('shows Windows 시작할 때 실행 off by default and saves it under general at once', async () => {
@@ -374,30 +371,37 @@ describe('PreferencesView', () => {
   it('saves a switch at once against the file revision and keeps unknown fields', async () => {
     await mount();
     await userEvent.click(
-      screen.getByRole('checkbox', {name: '지우기 되돌리기 단추 보이기'}),
+      screen.getByRole('checkbox', {name: 'Windows 시작할 때 실행'}),
     );
 
     await waitFor(() => expect(edit).toHaveBeenCalledOnce());
     expect(edit.mock.calls[0]?.[0]).toMatchObject({baseRevision: 5});
     expect(written()).toMatchObject({
-      show: {showClearUndoButton: true},
+      general: {launchAtLogin: true},
       backup: {keep: 30},
       unknownField: 'kept',
     });
   });
 
-  it.each([
-    ['켤 때 화면 출력', {showOnLaunch: true}],
-    ['출력 중 절전 막기', {preventSleep: false}],
-    ['출력 창 항상 위', {alwaysOnTop: true}],
-    ['하드웨어 가속', {hardwareAcceleration: false}],
-  ])('writes the 출력 switch %s', async (label, expected) => {
+  it('writes 앱을 켤 때 출력', async () => {
     await mount();
     await openPage('출력');
-    await userEvent.click(screen.getByRole('checkbox', {name: label}));
+    await userEvent.click(
+      screen.getByRole('checkbox', {name: '앱을 켤 때 출력'}),
+    );
 
     await waitFor(() => expect(edit).toHaveBeenCalledOnce());
-    expect(written()).toMatchObject(expected);
+    expect(written()).toMatchObject({showOnLaunch: true});
+  });
+
+  it('opens 화면 설정 from the 모니터 row', async () => {
+    const openScreens = vi.fn();
+    await mount({window: {openScreens}});
+    await openPage('출력');
+    await userEvent.click(screen.getByRole('button', {name: '화면 설정…'}));
+
+    expect(openScreens).toHaveBeenCalledOnce();
+    expect(edit).not.toHaveBeenCalled();
   });
 
   it('builds the next write on the revision and value of the one before', async () => {
@@ -413,33 +417,37 @@ describe('PreferencesView', () => {
     await mount();
     await openPage('출력');
     await userEvent.click(
-      screen.getByRole('checkbox', {name: '켤 때 화면 출력'}),
+      screen.getByRole('checkbox', {name: '앱을 켤 때 출력'}),
     );
-    await userEvent.click(
-      screen.getByRole('checkbox', {name: '출력 창 항상 위'}),
-    );
+    await openPage('저장');
+    await userEvent.click(screen.getByRole('checkbox', {name: '자동 백업'}));
 
     await waitFor(() => expect(edit).toHaveBeenCalledTimes(2));
     expect(edit.mock.calls[0]?.[0]).toMatchObject({baseRevision: 5});
     expect(edit.mock.calls[1]?.[0]).toMatchObject({baseRevision: 6});
-    expect(written()).toMatchObject({showOnLaunch: true, alwaysOnTop: true});
+    expect(written()).toMatchObject({
+      showOnLaunch: true,
+      backup: {auto: false, keep: 30},
+    });
     expect(onProblem).not.toHaveBeenCalled();
   });
 
-  describe('the 오디오 rows of the 일반 page', () => {
+  describe('the 소리 time rows of the 미디어 page', () => {
     it('shows 0.5 s and 3 s by default', async () => {
       await mount();
+      await openPage('미디어');
       expect(
-        screen.getByRole('spinbutton', {name: '오디오 전환'}),
+        screen.getByRole('spinbutton', {name: '곡 겹치기'}),
       ).toHaveProperty('value', '0.5');
       expect(
-        screen.getByRole('spinbutton', {name: '페이드 아웃 시간'}),
+        screen.getByRole('spinbutton', {name: '페이드 아웃'}),
       ).toHaveProperty('value', '3.0');
     });
 
     it('writes a committed time, kept within its range, and the other fields', async () => {
       await mount();
-      const fade = screen.getByRole('spinbutton', {name: '페이드 아웃 시간'});
+      await openPage('미디어');
+      const fade = screen.getByRole('spinbutton', {name: '페이드 아웃'});
       fireEvent.change(fade, {target: {value: '99'}});
       fireEvent.keyDown(fade, {key: 'Enter'});
       await waitFor(() => expect(edit).toHaveBeenCalledOnce());
@@ -515,7 +523,7 @@ describe('PreferencesView', () => {
     it('shows a dissolve of 0.2 s and 0.5 s by default, with both time rows', async () => {
       await mount();
       await openPage('출력');
-      for (const label of ['슬라이드 전환', '배경 전환']) {
+      for (const label of ['슬라이드', '배경']) {
         const group = screen.getByRole('radiogroup', {name: label});
         expect(
           within(group)
@@ -523,8 +531,8 @@ describe('PreferencesView', () => {
             .getAttribute('aria-checked'),
         ).toBe('true');
       }
-      expect(times('슬라이드 전환 시간')).toHaveProperty('value', '0.2');
-      expect(times('배경 전환 시간')).toHaveProperty('value', '0.5');
+      expect(times('슬라이드 시간')).toHaveProperty('value', '0.2');
+      expect(times('배경 시간')).toHaveProperty('value', '0.5');
     });
 
     it('hides the time row of a transition that is 없음 and keeps the other', async () => {
@@ -535,14 +543,14 @@ describe('PreferencesView', () => {
         },
       });
       await openPage('출력');
-      const group = screen.getByRole('radiogroup', {name: '슬라이드 전환'});
+      const group = screen.getByRole('radiogroup', {name: '슬라이드'});
       expect(
         within(group)
           .getByRole('radio', {name: '없음'})
           .getAttribute('aria-checked'),
       ).toBe('true');
-      expect(times('슬라이드 전환 시간')).toBeNull();
-      expect(times('배경 전환 시간')).not.toBeNull();
+      expect(times('슬라이드 시간')).toBeNull();
+      expect(times('배경 시간')).not.toBeNull();
     });
 
     it('saves 없음 at once and keeps the seconds and the other fields', async () => {
@@ -553,7 +561,7 @@ describe('PreferencesView', () => {
         },
       });
       await openPage('출력');
-      const group = screen.getByRole('radiogroup', {name: '슬라이드 전환'});
+      const group = screen.getByRole('radiogroup', {name: '슬라이드'});
       await userEvent.click(within(group).getByRole('radio', {name: '없음'}));
       await waitFor(() => expect(edit).toHaveBeenCalledOnce());
       expect(written().output).toEqual({
@@ -565,7 +573,7 @@ describe('PreferencesView', () => {
     it('saves a time within its range when it is committed', async () => {
       await mount();
       await openPage('출력');
-      const field = screen.getByRole('spinbutton', {name: '배경 전환 시간'});
+      const field = screen.getByRole('spinbutton', {name: '배경 시간'});
       fireEvent.change(field, {target: {value: '2.5'}});
       fireEvent.keyDown(field, {key: 'Enter'});
       await waitFor(() => expect(edit).toHaveBeenCalledOnce());
@@ -573,56 +581,9 @@ describe('PreferencesView', () => {
     });
   });
 
-  it('writes the 출력 selects', async () => {
+  it('writes the 저장 backup rows', async () => {
     await mount();
-    await openPage('출력');
-    await userEvent.click(screen.getByRole('button', {name: /미리보기/}));
-    await userEvent.click(
-      await screen.findByRole('menuitemradio', {name: '60fps'}),
-    );
-    await waitFor(() => expect(written()).toMatchObject({previewFps: 60}));
-
-    edit.mockClear();
-    await userEvent.click(
-      screen.getByRole('button', {name: /화면 연결이 끊기면/}),
-    );
-    await userEvent.click(
-      await screen.findByRole('menuitemradio', {name: '출력 끄기'}),
-    );
-    await waitFor(() => expect(written()).toMatchObject({onDisconnect: 'off'}));
-  });
-
-  it('shows 정지 for what next does on the last slide and saves 다음 항목 beside the other show choices', async () => {
-    await mount();
-    const row = screen.getByRole('button', {
-      name: /마지막 슬라이드에서 다음 슬라이드/,
-    });
-    expect(row.textContent).toContain('정지');
-    edit.mockClear();
-    await userEvent.click(row);
-    await userEvent.click(
-      await screen.findByRole('menuitemradio', {name: '다음 항목'}),
-    );
-    await waitFor(() =>
-      expect(written()).toMatchObject({
-        show: {atLastSlide: 'nextItem'},
-        ...UNKNOWN_FIELDS,
-      }),
-    );
-  });
-
-  it('locks the last-slide row for a file of a newer version', async () => {
-    await mount({access: 'readOnly'});
-    expect(
-      screen
-        .getByRole('button', {name: /마지막 슬라이드에서 다음 슬라이드/})
-        .getAttribute('aria-disabled'),
-    ).toBe('true');
-  });
-
-  it('writes the 라이브러리 backup rows', async () => {
-    await mount();
-    await openPage('라이브러리');
+    await openPage('저장');
     await userEvent.click(screen.getByRole('checkbox', {name: '자동 백업'}));
     await waitFor(() =>
       expect(written()).toMatchObject({backup: {auto: false, keep: 30}}),
@@ -637,7 +598,8 @@ describe('PreferencesView', () => {
 
   it('writes a committed count and keeps it within its range', async () => {
     await mount();
-    const copies = screen.getByRole('spinbutton', {name: '복구 사본'});
+    await openPage('저장');
+    const copies = screen.getByRole('spinbutton', {name: '파일마다'});
     fireEvent.change(copies, {target: {value: '99'}});
     fireEvent.keyDown(copies, {key: 'Enter'});
 
@@ -651,7 +613,7 @@ describe('PreferencesView', () => {
     });
     await mount();
     await userEvent.click(
-      screen.getByRole('checkbox', {name: '지우기 되돌리기 단추 보이기'}),
+      screen.getByRole('checkbox', {name: 'Windows 시작할 때 실행'}),
     );
     await waitFor(() =>
       expect(onProblem).toHaveBeenCalledWith(
@@ -662,7 +624,7 @@ describe('PreferencesView', () => {
     onProblem.mockClear();
     edit.mockRejectedValueOnce(new Error('ipc down'));
     await userEvent.click(
-      screen.getByRole('checkbox', {name: '지우기 되돌리기 단추 보이기'}),
+      screen.getByRole('checkbox', {name: 'Windows 시작할 때 실행'}),
     );
     await waitFor(() => expect(onProblem).toHaveBeenCalledOnce());
   });
@@ -670,7 +632,7 @@ describe('PreferencesView', () => {
   it('writes nothing for a file of a newer version', async () => {
     await mount({access: 'readOnly'});
     await userEvent.click(
-      screen.getByRole('checkbox', {name: '지우기 되돌리기 단추 보이기'}),
+      screen.getByRole('checkbox', {name: 'Windows 시작할 때 실행'}),
     );
 
     expect(edit).not.toHaveBeenCalled();
@@ -755,11 +717,11 @@ describe('PreferencesView', () => {
   it('shows the 새 구절 defaults, and writes each choice beside the other fields', async () => {
     await mount();
     await openPage('성경');
-    const split = screen.getByRole('button', {name: /나누기/});
-    expect(split.textContent).toContain('한 슬라이드에 한 절');
-    expect(screen.getByRole('button', {name: /참조/}).textContent).toContain(
-      '슬라이드마다',
-    );
+    const split = screen.getByRole('button', {name: /한 슬라이드에/});
+    expect(split.textContent).toContain('한 절');
+    expect(
+      screen.getByRole('button', {name: /구절 표시/}).textContent,
+    ).toContain('슬라이드마다');
     const translationName = screen.getByRole('checkbox', {name: '역본 이름'});
     expect(translationName.getAttribute('aria-checked')).toBe('false');
     await userEvent.click(translationName);
@@ -767,7 +729,7 @@ describe('PreferencesView', () => {
       expect(written().bible?.defaults?.translationName).toBe(true),
     );
     edit.mockClear();
-    await userEvent.click(screen.getByRole('button', {name: /참조/}));
+    await userEvent.click(screen.getByRole('button', {name: /구절 표시/}));
     await userEvent.click(
       await screen.findByRole('menuitemradio', {name: '마지막 슬라이드만'}),
     );
@@ -777,44 +739,10 @@ describe('PreferencesView', () => {
     edit.mockClear();
     await userEvent.click(split);
     await userEvent.click(
-      await screen.findByRole('menuitemradio', {name: '두 절씩'}),
+      await screen.findByRole('menuitemradio', {name: '두 절'}),
     );
     await waitFor(() => expect(written().bible?.defaults?.split).toBe('two'));
     expect(written()).toMatchObject(UNKNOWN_FIELDS);
-  });
-
-  it('writes 한 슬라이드 최대 줄 수 within its range', async () => {
-    await mount();
-    await openPage('성경');
-    const lines = await screen.findByRole('spinbutton', {
-      name: '한 슬라이드 최대 줄 수',
-    });
-    fireEvent.change(lines, {target: {value: '30'}});
-    fireEvent.keyDown(lines, {key: 'Enter'});
-
-    await waitFor(() =>
-      expect(written()).toMatchObject({bible: {maxLines: 12}}),
-    );
-  });
-
-  it.each([
-    ['슬라이드 나누기', '줄 바꿈', {split: 'lineBreak'}],
-    ['이름표', '사용 안 함', {labels: 'off'}],
-    ['첫 줄', '가사', {firstLine: 'lyrics'}],
-    ['글자 인코딩', 'CP949', {encoding: 'cp949'}],
-  ])('writes the 가져오기 select %s', async (label, choice, expected) => {
-    await mount();
-    await openPage('가져오기');
-    await userEvent.click(
-      screen.getByRole('button', {name: new RegExp(label)}),
-    );
-    await userEvent.click(
-      await screen.findByRole('menuitemradio', {name: choice}),
-    );
-
-    await waitFor(() =>
-      expect(written()).toMatchObject({import: {txt: expected}}),
-    );
   });
 
   it('never replaces a newer pushed document with an older reply', async () => {
@@ -828,7 +756,7 @@ describe('PreferencesView', () => {
     await mount();
     await openPage('출력');
     await userEvent.click(
-      screen.getByRole('checkbox', {name: '켤 때 화면 출력'}),
+      screen.getByRole('checkbox', {name: '앱을 켤 때 출력'}),
     );
     await waitFor(() => expect(edit).toHaveBeenCalledOnce());
     act(() =>
@@ -840,9 +768,8 @@ describe('PreferencesView', () => {
       }),
     );
     answer({ok: true, value: {id: 'preferences', revision: 6}});
-    await userEvent.click(
-      screen.getByRole('checkbox', {name: '출력 창 항상 위'}),
-    );
+    await openPage('저장');
+    await userEvent.click(screen.getByRole('checkbox', {name: '자동 백업'}));
 
     await waitFor(() => expect(edit).toHaveBeenCalledTimes(2));
     expect(edit.mock.calls[1]?.[0]).toMatchObject({baseRevision: 9});
@@ -855,7 +782,7 @@ describe('PreferencesView', () => {
     if (api === undefined) throw new Error('Missing api');
     await pendingWritesOf(api).flush();
     await userEvent.click(
-      screen.getByRole('checkbox', {name: '켤 때 화면 출력'}),
+      screen.getByRole('checkbox', {name: '앱을 켤 때 출력'}),
     );
 
     expect(edit).not.toHaveBeenCalled();

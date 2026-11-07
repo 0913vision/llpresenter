@@ -203,7 +203,7 @@ describe('ShortcutsPage', () => {
 
     edit.mockClear();
     await userEvent.click(rowOf(/미디어 지우기/));
-    await userEvent.click(screen.getByRole('button', {name: '지우기'}));
+    await userEvent.click(screen.getByRole('button', {name: '단축키 지우기'}));
     await waitFor(() => expect(written()).toMatchObject({'clear.media': []}));
   });
 
@@ -284,12 +284,12 @@ describe('ShortcutsPage', () => {
 
   it('shows 기본값 없음 for a command without a default key', async () => {
     await mount();
-    await userEvent.click(rowOf(/첫 슬라이드/));
+    await userEvent.click(rowOf(/항목 끄기/));
 
     expect(screen.getByText('기본값 없음')).toBeTruthy();
     expect(
       screen
-        .getByRole('button', {name: '지우기'})
+        .getByRole('button', {name: '단축키 지우기'})
         .getAttribute('aria-disabled'),
     ).toBe('true');
   });
@@ -304,7 +304,9 @@ describe('ShortcutsPage', () => {
       screen.getByRole('button', {name: '모두 기본값으로'}),
     );
     expect(edit).not.toHaveBeenCalled();
-    const dialog = await screen.findByRole('alertdialog');
+    const dialog = await screen.findByRole('alertdialog', {
+      name: '모든 단축키를 기본값으로 되돌릴까요?',
+    });
     await userEvent.click(
       within(dialog).getByRole('button', {name: '모두 기본값으로'}),
     );

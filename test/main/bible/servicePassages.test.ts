@@ -145,13 +145,12 @@ describe('saved Bible passage resolution', () => {
       const row = {...original, bible: {...original.bible, split}};
       const result = await resolveServicePassages([row], fixture(), {
         reportError: vi.fn(),
-        maxLines: 2,
       });
       return result.tiles.get(row.id)?.map(tile => tile.label);
     };
     expect(await built('verse')).toEqual(['3:16', '3:17', '3:18']);
     expect(await built('two')).toEqual(['3:16-17', '3:18']);
-    expect(await built('fit')).toEqual(['3:16-17', '3:18']);
+    expect(await built('fit')).toEqual(['3:16-18']);
   });
   it('exposes normalized identity only for successfully resolved saved items', async () => {
     const bible = fixture();

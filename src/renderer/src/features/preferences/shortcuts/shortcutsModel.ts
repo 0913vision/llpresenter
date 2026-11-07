@@ -55,10 +55,40 @@ function objectCommand(id: string, name: string): readonly ShortcutCommand[] {
   return command === undefined ? [] : [command];
 }
 
-/** The registry commands, then one command for each theme, 그래픽, 매크로, 타이머, and 화면. */
+/**
+ * The registry commands that no handler runs yet. 단축키 hides them, so no key
+ * is offered for a command that does nothing; a command leaves this list when
+ * its handler is registered.
+ */
+const COMMANDS_WITHOUT_HANDLER: ReadonlySet<string> = new Set([
+  'arrangement.add',
+  'arrangement.insertSlide',
+  'import.pptx',
+  'media.newAudioPlaylist',
+  'media.newPlaylist',
+  'media.nextBackground',
+  'media.previousBackground',
+  'media.relink',
+  'screens.identify',
+  'screens.redetect',
+  'screens.showFallbackWindow',
+  'service.quickAdd',
+  'service.revealLibrary',
+  'service.switcher',
+  'show.first',
+  'show.last',
+  'stageEditor.addElement',
+  'stageEditor.fit',
+  'tools.showing',
+  'ui.resetLayout',
+]);
+
+/** The registry commands with a handler, then one command for each theme, 그래픽, 매크로, 타이머, and 화면. */
 export function allCommands(names: ObjectNames): readonly ShortcutCommand[] {
   return [
-    ...shortcutCommands,
+    ...shortcutCommands.filter(
+      command => !COMMANDS_WITHOUT_HANDLER.has(command.id),
+    ),
     ...names.themes.flatMap(item =>
       objectCommand(`theme.${item.id}`, item.name),
     ),

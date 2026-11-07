@@ -153,7 +153,7 @@ describe('registerStore', () => {
       expect.any(Error),
     );
     expect(await ask(settingsEndpoints.preferences.channel)).toMatchObject({
-      show: {showClearUndoButton: false},
+      show: {atLastSlide: 'stop'},
     });
   });
 });

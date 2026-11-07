@@ -7,11 +7,8 @@ import {menuAvailability} from '@renderer/ui/menuModel';
 import {PropertyGroup} from '@renderer/ui/PropertyRow';
 import type {BibleEdits} from './useBibleEdits';
 import type {PreferenceEdits} from './usePreferenceEdits';
-import {
-  PREFERENCE_LIMITS,
-  type PreferencesFile,
-} from '@core/schema/preferences';
-import {CountRow, CheckboxRow, SelectRow} from './PreferenceRows';
+import type {PreferencesFile} from '@core/schema/preferences';
+import {CheckboxRow, SelectRow} from './PreferenceRows';
 import styles from './BiblePage.module.css';
 
 const ALREADY_DEFAULT = '이미 기본 역본입니다';
@@ -68,9 +65,9 @@ function TranslationRow({
 }
 
 const SPLIT_OPTIONS = [
-  {value: 'verse', label: '한 슬라이드에 한 절'},
-  {value: 'two', label: '두 절씩'},
-  {value: 'fit', label: '길이에 맞춤'},
+  {value: 'verse', label: '한 절'},
+  {value: 'two', label: '두 절'},
+  {value: 'fit', label: '들어가는 만큼'},
 ] as const;
 const REFERENCE_OPTIONS = [
   {value: 'every', label: '슬라이드마다'},
@@ -102,7 +99,7 @@ export function BiblePage({
     }));
   return (
     <>
-      <PropertyGroup title="설치된 역본">
+      <PropertyGroup title="역본">
         {(bible.translations ?? []).map(translation => (
           <TranslationRow
             key={translation.id}
@@ -115,7 +112,7 @@ export function BiblePage({
       {preferences === null ? null : (
         <PropertyGroup title="새 구절">
           <CheckboxRow
-            label="절 나누기 창 저절로 열기"
+            label="나눌 자리 확인"
             disabled={lockedReason !== undefined}
             title={lockedReason}
             checked={preferences.bible.splitEditorAutoOpen}
@@ -127,7 +124,7 @@ export function BiblePage({
             }
           />
           <SelectRow
-            label="나누기"
+            label="한 슬라이드에"
             disabled={lockedReason !== undefined}
             title={lockedReason}
             options={SPLIT_OPTIONS}
@@ -135,7 +132,7 @@ export function BiblePage({
             onChange={split => changeDefaults({split})}
           />
           <SelectRow
-            label="참조"
+            label="구절 표시"
             disabled={lockedReason !== undefined}
             title={lockedReason}
             options={REFERENCE_OPTIONS}
@@ -155,20 +152,6 @@ export function BiblePage({
             title={lockedReason}
             checked={preferences.bible.defaults.translationName}
             onChange={translationName => changeDefaults({translationName})}
-          />
-          <CountRow
-            label="한 슬라이드 최대 줄 수"
-            unit="줄"
-            disabled={lockedReason !== undefined}
-            title={lockedReason}
-            value={preferences.bible.maxLines}
-            {...PREFERENCE_LIMITS.bibleMaxLines}
-            onChange={maxLines =>
-              change(stored => ({
-                ...stored,
-                bible: {...stored.bible, maxLines},
-              }))
-            }
           />
         </PropertyGroup>
       )}

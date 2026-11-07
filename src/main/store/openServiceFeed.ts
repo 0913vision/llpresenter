@@ -17,8 +17,6 @@ export interface OpenServiceSources {
   readonly content: Pick<ContentStore, 'storedService' | 'storedSongs'>;
   readonly backgroundOf: (mediaId: string) => Promise<MediaChoice | null>;
   readonly bible?: Pick<BibleLookupSession, 'lookup'>;
-  /** The most lines a slide of a saved `fit` passage holds (환경설정 › 성경). */
-  readonly bibleMaxLines?: () => number;
   /** The media list, for the names of media items. */
   readonly mediaItems?: () => readonly MediaItem[];
 }
@@ -144,9 +142,6 @@ export class OpenServiceFeed {
               {
                 reportError: this.reportError,
                 isCurrent: () => this.canPublish(),
-                ...(this.sources.bibleMaxLines === undefined
-                  ? {}
-                  : {maxLines: this.sources.bibleMaxLines()}),
               },
             ),
           }),

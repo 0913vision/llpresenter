@@ -2,6 +2,7 @@ import type {JSX} from 'react';
 import {NumberField} from '@renderer/ui/NumberField';
 import {Button} from '@renderer/ui/Button';
 import {PropertyRow, PropertyValue} from '@renderer/ui/PropertyRow';
+import styles from './PreferenceRows.module.css';
 import {TextField} from '@renderer/ui/TextField';
 import {SelectMenu, type SelectOption} from '@renderer/ui/SelectMenu';
 import {Checkbox} from '@renderer/ui/Checkbox';
@@ -169,7 +170,7 @@ export function PathRow({
             title={title}
             onChange={NO_CHANGE}
           />
-          <Button size="sm" disabled={disabled} onClick={onChange}>
+          <Button size="md" disabled={disabled} onClick={onChange}>
             바꾸기
           </Button>
         </>
@@ -196,10 +197,108 @@ export function ValueActionRow({
       label={label}
       value={value}
       action={
-        <Button size="sm" disabled={disabled} title={title} onClick={onAction}>
+        <Button size="md" disabled={disabled} title={title} onClick={onAction}>
           {action}
         </Button>
       }
     />
+  );
+}
+
+/**
+ * A row with only an action: the button starts the control column, and the
+ * result of the action, such as 복사했습니다, follows it.
+ */
+export function ActionRow({
+  label,
+  action,
+  result,
+  disabled,
+  title,
+  onAction,
+}: RowProps & {
+  readonly action: string;
+  readonly result?: string | undefined;
+  readonly onAction: () => void;
+}): JSX.Element {
+  return (
+    <PropertyRow label={label}>
+      {() => (
+        <>
+          <Button
+            size="md"
+            disabled={disabled}
+            title={title}
+            onClick={onAction}
+          >
+            {action}
+          </Button>
+          {result === undefined || result === '' ? null : (
+            <span role="status" className={styles.result}>
+              {result}
+            </span>
+          )}
+        </>
+      )}
+    </PropertyRow>
+  );
+}
+
+type TransitionKind = 'none' | 'dissolve';
+
+const TRANSITION_OPTIONS = [
+  {value: 'none', label: '없음'},
+  {value: 'dissolve', label: '디졸브'},
+] as const;
+
+/** A 전환 choice, with its seconds on the same row while it is a dissolve. */
+export function TransitionRow({
+  label,
+  disabled,
+  title,
+  kind,
+  seconds,
+  limits,
+  onKind,
+  onSeconds,
+}: RowProps & {
+  readonly kind: TransitionKind;
+  readonly seconds: number;
+  readonly limits: {
+    readonly min: number;
+    readonly max: number;
+    readonly step: number;
+  };
+  readonly onKind: (kind: TransitionKind) => void;
+  readonly onSeconds: (seconds: number) => void;
+}): JSX.Element {
+  return (
+    <PropertyRow label={label}>
+      {({controlId, labelId}) => (
+        <>
+          <SegmentedControl
+            id={controlId}
+            labelledBy={labelId}
+            disabled={disabled}
+            title={title}
+            options={TRANSITION_OPTIONS}
+            value={kind}
+            onChange={onKind}
+          />
+          {kind === 'none' ? null : (
+            <NumberField
+              aria-label={`${label} 시간`}
+              value={seconds}
+              {...limits}
+              unit="초"
+              updateOn="commit"
+              readOnly={disabled}
+              title={title}
+              onChange={onSeconds}
+            />
+          )}
+        </>
+      )}
+    </PropertyRow>
   );
 }

@@ -46,7 +46,7 @@ const fixtures = {
   preferences: {
     format: 'llsettings.preferences',
     schemaVersion: 1,
-    show: {showClearUndoButton: false},
+    show: {atLastSlide: 'stop'},
   },
   shortcuts: {format: 'llsettings.shortcuts', schemaVersion: 1, bindings: {}},
 } as const satisfies Readonly<
@@ -153,7 +153,7 @@ describe('app-wide settings contracts', () => {
         name: 'preferences',
         value: {
           ...fixtures.preferences,
-          show: {showClearUndoButton: true, future: {kept: true}},
+          show: {atLastSlide: 'nextItem', future: {kept: true}},
         },
         revision: 1,
         access: 'editable',

@@ -56,7 +56,6 @@ export const screenSchema = jsonObject({
   resolution: v.exactOptional(pixelSize),
   onDisconnect: v.exactOptional(v.picklist(['window', 'off'])),
   alwaysOnTop: v.exactOptional(v.boolean()),
-  preventSleep: v.exactOptional(v.boolean()),
   edgeMargin: v.exactOptional(percent),
   offset: v.exactOptional(jsonObject({x: pixelPosition, y: pixelPosition})),
   previewBackground: v.exactOptional(v.picklist(['green', 'black', 'checker'])),
@@ -81,11 +80,10 @@ const screensFormat: FileFormat<typeof screensSchema> = {
 export type ScreensFile = ReadonlyKnown<v.InferOutput<typeof screensSchema>>;
 
 /**
- * One output screen. An absent optional field means its default: the
- * 환경설정 output values for `onDisconnect`, `alwaysOnTop`, and
- * `preventSleep`, no edge margin or offset, a green preview background, and
- * 1920 x 1080 for a capture window. A full screen without `display` is
- * unassigned.
+ * One output screen. An absent optional field means its default: 창으로
+ * 바꾸기 for `onDisconnect`, off for `alwaysOnTop`, no edge margin or offset,
+ * a green preview background, and 1920 x 1080 for a capture window. A full
+ * screen without `display` is unassigned.
  */
 export type Screen = ScreensFile['screens'][number];
 

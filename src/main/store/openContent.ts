@@ -12,7 +12,6 @@ import {OpenServiceFeed} from './openServiceFeed';
 import {RecoveryCopies} from './recoveryCopies';
 import {type SaveFailureSink} from './saveFailures';
 import {Saver} from './saver';
-import {defaultPreferences} from '@core/schema/preferences';
 import {type SettingsStore} from './settingsStore';
 
 /**
@@ -120,8 +119,6 @@ async function createContent(
     },
     backgroundOf: id => media?.backgroundOf(id) ?? store.media.backgroundOf(id),
   };
-  const readBibleMaxLines = (): number =>
-    settings?.preferences().bible.maxLines ?? defaultPreferences.bible.maxLines;
   feed = new OpenServiceFeed(
     {
       get serviceId() {
@@ -133,24 +130,14 @@ async function createContent(
       content,
       backgroundOf: library.backgroundOf,
       bible,
-      bibleMaxLines: readBibleMaxLines,
       mediaItems: () => media?.get().value.items ?? [],
     },
     service => broadcast(serviceEndpoints.changed.channel, service, log),
     error => log.error('could not refresh the open 예배 순서', error),
   );
-  let bibleMaxLines = readBibleMaxLines();
   const removeSettingsListener =
     settings?.subscribe(document => {
-      const nextBibleMaxLines = readBibleMaxLines();
-      const maxLinesChanged =
-        document.name === 'preferences' && bibleMaxLines !== nextBibleMaxLines;
-      bibleMaxLines = nextBibleMaxLines;
-      if (
-        document.name === 'labels' ||
-        document.name === 'bible' ||
-        maxLinesChanged
-      ) {
+      if (document.name === 'labels' || document.name === 'bible') {
         feed
           .refresh()
           .catch((error: unknown) =>

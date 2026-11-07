@@ -54,21 +54,27 @@ export function PropertyGroup({
   icon,
   children,
 }: {
-  /** One or two words, such as 이번 예배 or 안정성. */
-  readonly title: string;
+  /** One or two words, such as 이번 예배 or 안정성; none for a page's lead rows. */
+  readonly title?: string | undefined;
   /** A 12px icon before the title, such as `note` for 메모. */
   readonly icon?: string | undefined;
   readonly children: ReactNode;
 }): JSX.Element {
   const titleId = useId();
   return (
-    <div role="group" aria-labelledby={titleId} className={styles.group}>
-      <p id={titleId} className={styles.groupTitle}>
-        {icon === undefined ? null : (
-          <Icon name={icon} size={GROUP_ICON_SIZE} />
-        )}
-        {title}
-      </p>
+    <div
+      role="group"
+      aria-labelledby={title === undefined ? undefined : titleId}
+      className={styles.group}
+    >
+      {title === undefined ? null : (
+        <p id={titleId} className={styles.groupTitle}>
+          {icon === undefined ? null : (
+            <Icon name={icon} size={GROUP_ICON_SIZE} />
+          )}
+          {title}
+        </p>
+      )}
       {children}
     </div>
   );

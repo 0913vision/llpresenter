@@ -25,7 +25,6 @@ function savedScreens(reader: SettingsReader): readonly Screen[] {
 }
 
 function outputScreens(reader: SettingsReader): readonly OutputScreen[] {
-  const onDisconnect = reader.preferences().onDisconnect;
   return savedScreens(reader).flatMap(screen => {
     if (screen.method === 'ndi') return [];
     return [
@@ -35,7 +34,7 @@ function outputScreens(reader: SettingsReader): readonly OutputScreen[] {
         kind: screen.kind,
         method: screen.method,
         display: screen.display ?? null,
-        onDisconnect: screen.onDisconnect ?? onDisconnect,
+        onDisconnect: screen.onDisconnect ?? 'window',
         alwaysOnTop: screen.alwaysOnTop ?? false,
         ...(screen.resolution === undefined
           ? {}

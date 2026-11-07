@@ -45,31 +45,6 @@ describe('addScreen', () => {
     },
   );
 
-  it('starts with the 환경설정 values for 절전 막기, 항상 위, and 연결이 끊기면', () => {
-    const screen = addScreen([], {
-      ...INPUT,
-      defaults: {preventSleep: false, alwaysOnTop: true, onDisconnect: 'off'},
-    })[0];
-    expect(screen).toMatchObject({
-      preventSleep: false,
-      alwaysOnTop: true,
-      onDisconnect: 'off',
-    });
-    const other = addScreen([], {
-      ...INPUT,
-      defaults: {
-        preventSleep: true,
-        alwaysOnTop: false,
-        onDisconnect: 'window',
-      },
-    })[0];
-    expect(other).toMatchObject({
-      preventSleep: true,
-      alwaysOnTop: false,
-      onDisconnect: 'window',
-    });
-  });
-
   it('uses the Stage kind without enabling output', () => {
     expect(addScreen([], {...INPUT, kind: 'stage'})[0]).toEqual({
       ...INPUT,

@@ -359,8 +359,8 @@ Source: `ShowH`, `PreviewFrame` README, `Problems`, ProPresenter 7.5 user guide
 ## Clear row
 
 The row holds 모두 (all), 가사 (lyrics), 미디어 (media), 그래픽, 오디오 (audio),
-메시지, in that order. When 지우기 되돌리기 단추 보이기 is on, append a
-separator and 되돌리기 (undo); the default is off (proposal). 03 defines the
+메시지, in that order. While a clear can be brought back, append a separator and
+되돌리기 (undo); it hides when there is nothing to bring back. 03 defines the
 behavior. Ctrl Z never undoes a clear.
 
 ## 진행 도구

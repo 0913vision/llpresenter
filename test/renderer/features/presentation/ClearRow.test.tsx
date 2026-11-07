@@ -1,20 +1,11 @@
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  onTestFinished,
-  vi,
-} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import type {LlpApi} from '@contracts/ipc/api';
-import {defaultPreferences} from '@core/schema/preferences';
 import {emptyLayers, emptyLiveState, type LiveLayers} from '@core/live/state';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {startLiveSync, useLive} from '@renderer/session/live';
+import {useLive} from '@renderer/session/live';
 import {
   hoverForTooltip,
   resetTooltips,
@@ -35,40 +26,22 @@ vi.mock('@renderer/ui/Icon', () => ({
 
 const sent: LiveCommand[] = [];
 
-function installApi(showClearUndoButton?: boolean): LlpApi {
+function installApi(): LlpApi {
   const api = mockLlpApi({
     live: {
       get: async () => emptyLiveState(),
       send: command => sent.push(command),
       subscribe: () => () => undefined,
     },
-    preferences:
-      showClearUndoButton === undefined
-        ? {}
-        : {
-            get: async () => ({
-              ...defaultPreferences,
-              show: {...defaultPreferences.show, showClearUndoButton},
-            }),
-          },
   });
   window.llp = api;
   return api;
 }
 
-async function renderWithUndo(compact = false) {
-  const api = installApi(true);
-  const firstState = emptyLiveState();
-  const firstRead = Promise.resolve(firstState);
-  vi.spyOn(api.live, 'get').mockReturnValue(firstRead);
-  const result = render(<ClearRow compact={compact} />);
-  onTestFinished(startLiveSync());
-  await act(async () => {
-    await firstRead;
-  });
-  expect(useLive.getState().state).toBe(firstState);
-  await screen.findByRole('button', {name: '되돌리기'});
-  return result;
+function renderWithUndo(compact = false) {
+  installApi();
+  setCanUndo(true);
+  return render(<ClearRow compact={compact} />);
 }
 
 function setCanUndo(canUndo: boolean): void {
@@ -171,22 +144,18 @@ afterEach(() => {
 });
 
 describe('ClearRow', () => {
-  it.each([undefined, false])(
-    'hides undo and its divider for preference %s',
-    async setting => {
-      installApi(setting);
-      setCanUndo(true);
-      const state = useLive.getState().state;
-      render(<ClearRow compact={false} />);
-      await act(async () => undefined);
-      const group = screen.getByRole('group', {name: '지우기'});
-      expect(group.querySelectorAll('button')).toHaveLength(7);
-      expect(screen.queryByRole('button', {name: '되돌리기'})).toBeNull();
-      expect(group.querySelector('[aria-hidden="true"]')).toBeNull();
-      expect(useLive.getState().state).toBe(state);
-      expect(sent).toEqual([]);
-    },
-  );
+  it('hides undo and its divider while there is nothing to bring back', () => {
+    installApi();
+    setCanUndo(false);
+    const state = useLive.getState().state;
+    render(<ClearRow compact={false} />);
+    const group = screen.getByRole('group', {name: '지우기'});
+    expect(group.querySelectorAll('button')).toHaveLength(7);
+    expect(screen.queryByRole('button', {name: '되돌리기'})).toBeNull();
+    expect(group.querySelector('[aria-hidden="true"]')).toBeNull();
+    expect(useLive.getState().state).toBe(state);
+    expect(sent).toEqual([]);
+  });
 
   it('stays hidden without preload', () => {
     delete window.llp;
@@ -195,44 +164,17 @@ describe('ClearRow', () => {
     expect(screen.getAllByRole('button')).toHaveLength(7);
   });
 
-  it('shows only undo and its divider after an enabled preference arrives', async () => {
-    const api = installApi();
-    let finish: (value: typeof defaultPreferences) => void = () => undefined;
-    vi.spyOn(api.preferences, 'get').mockImplementation(
-      () =>
-        new Promise(resolve => {
-          finish = resolve;
-        }),
-    );
+  it('shows only undo and its divider while a clear can be brought back', () => {
+    installApi();
     setCanUndo(true);
     const state = useLive.getState().state;
     render(<ClearRow compact={false} />);
-    expect(screen.queryByRole('button', {name: '되돌리기'})).toBeNull();
-    iconRenders.names.length = 0;
-    await act(async () =>
-      finish({
-        ...defaultPreferences,
-        show: {...defaultPreferences.show, showClearUndoButton: true},
-      }),
-    );
     const group = screen.getByRole('group', {name: '지우기'});
     expect(
       [...group.querySelectorAll('button')].at(-1)?.getAttribute('aria-label'),
     ).toBe('되돌리기');
     expect(group.querySelectorAll('[aria-hidden="true"]')).toHaveLength(1);
-    expect(iconRenders.names).toEqual(['undo']);
     expect(useLive.getState().state).toBe(state);
-    expect(sent).toEqual([]);
-  });
-
-  it('keeps undo hidden when the preference read fails', async () => {
-    const api = installApi();
-    vi.spyOn(api.preferences, 'get').mockRejectedValue(
-      new Error('Read failed'),
-    );
-    render(<ClearRow compact={false} />);
-    await act(async () => undefined);
-    expect(screen.queryByRole('button', {name: '되돌리기'})).toBeNull();
     expect(sent).toEqual([]);
   });
 
@@ -245,7 +187,7 @@ describe('ClearRow', () => {
   });
 
   it('gives the undo button a tooltip with its name and no shortcut', async () => {
-    await renderWithUndo();
+    renderWithUndo();
     const undo = screen.getByRole('button', {name: '되돌리기'});
     expect(undo.hasAttribute('aria-keyshortcuts')).toBe(false);
     expect((await hoverForTooltip(undo))?.textContent).toBe('되돌리기');
@@ -296,30 +238,21 @@ describe('ClearRow', () => {
     ).toBe('false');
   });
 
-  it('sends clear.undo from the undo button while there is something to undo', async () => {
-    await renderWithUndo();
-    act(() => setCanUndo(true));
-    const undo = screen.getByRole('button', {name: '되돌리기'});
-    expect(undo.getAttribute('aria-disabled')).toBe('false');
-    expect(undo.getAttribute('data-state')).toBeNull();
-    fireEvent.click(undo);
+  it('sends clear.undo from the undo button', () => {
+    renderWithUndo();
+    fireEvent.click(screen.getByRole('button', {name: '되돌리기'}));
     expect(sent).toEqual([{type: 'clear.undo'}]);
   });
 
-  it('dims the undo button and sends nothing when there is nothing to undo', async () => {
-    await renderWithUndo();
+  it('removes the undo button when there is nothing left to bring back', () => {
+    renderWithUndo();
     act(() => setCanUndo(false));
-    const undo = screen.getByRole('button', {name: '되돌리기'});
-    expect(undo.getAttribute('aria-disabled')).toBe('true');
-    expect(undo.getAttribute('data-state')).toBe('off');
-    expect(undo.hasAttribute('disabled')).toBe(false);
-    fireEvent.click(undo);
-    expect(sent).toHaveLength(0);
+    expect(screen.queryByRole('button', {name: '되돌리기'})).toBeNull();
   });
 
-  it('redraws only the undo button when canUndo changes', async () => {
-    await renderWithUndo();
-    act(() => setCanUndo(false));
+  it('redraws only the undo button when canUndo changes', () => {
+    installApi();
+    render(<ClearRow compact={false} />);
     iconRenders.names.length = 0;
     act(() => setCanUndo(true));
     expect(iconRenders.names).toEqual(['undo']);
@@ -333,12 +266,12 @@ describe('ClearRow', () => {
     expect([...iconRenders.names].sort()).toEqual(['layers', 'text']);
   });
 
-  it('shows the names in the regular form and only icons in the compact form', async () => {
-    const {unmount} = await renderWithUndo();
+  it('shows the names in the regular form and only icons in the compact form', () => {
+    const {unmount} = renderWithUndo();
     expect(screen.getByText('가사')).toBeTruthy();
     expect(screen.getByText('되돌리기')).toBeTruthy();
     unmount();
-    await renderWithUndo(true);
+    renderWithUndo(true);
     expect(screen.queryByText('가사')).toBeNull();
     expect(screen.getByRole('button', {name: '가사 지우기'})).toBeTruthy();
   });

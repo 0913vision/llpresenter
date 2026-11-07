@@ -387,7 +387,7 @@ writing rules.
   the 환경설정 window. In 화면 설정, only the test pattern, which the operator
   turns on, changes an output.
 - Never let the display sleep or a screen saver start while an output is on
-  (절전 막기, prevent sleep).
+  (fixed; no setting, 10).
 - Never lose an output because a monitor disconnects. Fall back to a window.
 - Never turn an output black because a background file is missing. Hold the last
   frame.
@@ -397,6 +397,5 @@ writing rules.
 - Never show Windows toast notifications from the app (proposal).
 
 Source: design system principle 6, `Dialog` and `ClearButton` READMEs (F1 to F6
-always work), `Screens` (항상 위, 절전 막기), `Prefs` (출력 중 절전 막기),
-`docs/TECH.md` principles and operating rules, product log (stability first,
-offline).
+always work), `Screens` (항상 위), `docs/TECH.md` principles and operating
+rules, product log (stability first, offline).

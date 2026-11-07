@@ -194,6 +194,37 @@ describe('text import IPC registration', () => {
     expect(log.warn).not.toHaveBeenCalled();
   });
 
+  it('reads the file chosen last again, without a dialog, when asked to', async () => {
+    setup();
+    const file = {
+      source: 'file',
+      fileName: 'Example.txt',
+      text: 'One',
+    } as const;
+    const chosen: string[] = [];
+    const reading = async (
+      _request: unknown,
+      inputs: {readonly chooseFile: () => Promise<string | null>},
+    ) => {
+      const path = await inputs.chooseFile();
+      if (path !== null) chosen.push(path);
+      return {ok: true, value: file} as const;
+    };
+    vi.mocked(readTextImport)
+      .mockImplementationOnce(reading)
+      .mockImplementationOnce(reading);
+    electron.chooseFile.mockResolvedValueOnce({
+      canceled: false,
+      filePaths: ['C:/data/Example.txt'],
+    });
+    const read = handler(libraryEndpoints.readText.channel);
+    await read({}, readRequest);
+    await read({}, {...readRequest, encoding: 'cp949', again: true});
+
+    expect(chosen).toEqual(['C:/data/Example.txt', 'C:/data/Example.txt']);
+    expect(electron.chooseFile).toHaveBeenCalledOnce();
+  });
+
   it('awaits clipboard text, preserves cancellation, and resets after input failure', async () => {
     const {log} = setup();
     const read = handler(libraryEndpoints.readText.channel);

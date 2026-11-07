@@ -19,7 +19,6 @@ const screen = (
   method,
   onDisconnect: 'window',
   alwaysOnTop: false,
-  preventSleep: true,
   edgeMargin: 0,
   offset: {x: 0, y: 0},
 });

@@ -79,6 +79,42 @@ beforeEach(() => {
 });
 
 describe('text import dialog', () => {
+  it('hands each changed choice on, and offers the encoding only for a file', async () => {
+    const f = fixture();
+    const onRemember = vi.fn();
+    const onEncoding = vi.fn();
+    const view = render(
+      <TextImportDialog
+        {...f.props}
+        source={{...source, text: 'Invented line'}}
+        onRemember={onRemember}
+        onEncoding={onEncoding}
+      />,
+    );
+    expect(screen.queryByRole('button', {name: '첫 줄'})).toBeNull();
+    await userEvent.click(
+      screen.getByRole('button', {name: '슬라이드 나누기'}),
+    );
+    await userEvent.click(screen.getByRole('menuitemradio', {name: '줄 바꿈'}));
+    expect(onRemember).toHaveBeenLastCalledWith({split: 'lineBreak'});
+    await userEvent.click(screen.getByRole('button', {name: '글자 인코딩'}));
+    await userEvent.click(screen.getByRole('menuitemradio', {name: 'CP949'}));
+    expect(onEncoding).toHaveBeenCalledWith('cp949');
+    view.unmount();
+
+    render(
+      <TextImportDialog
+        {...f.props}
+        source={{source: 'clipboard', fileName: null, text: 'Invented line'}}
+        onRemember={onRemember}
+      />,
+    );
+    expect(screen.queryByRole('button', {name: '글자 인코딩'})).toBeNull();
+    await userEvent.click(screen.getByRole('button', {name: '첫 줄'}));
+    await userEvent.click(screen.getByRole('menuitemradio', {name: '가사'}));
+    expect(onRemember).toHaveBeenLastCalledWith({firstLine: 'lyrics'});
+  });
+
   it('starts label mapping with the table and no introductory paragraph', async () => {
     const f = fixture();
     render(

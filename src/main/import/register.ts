@@ -61,6 +61,7 @@ class TextImportSession {
   private disposed = false;
   private reading = false;
   private clipboardCheck: Promise<boolean> | undefined;
+  private lastFile: string | null = null;
 
   constructor(
     private readonly inputs: TextImportInputs,
@@ -107,7 +108,17 @@ class TextImportSession {
     }
     this.reading = true;
     try {
-      const result = await readTextImport(parsed.value, this.inputs);
+      const result = await readTextImport(parsed.value, {
+        ...this.inputs,
+        chooseFile: async () => {
+          if (parsed.value.again === true && this.lastFile !== null) {
+            return this.lastFile;
+          }
+          const path = await this.inputs.chooseFile();
+          if (path !== null) this.lastFile = path;
+          return path;
+        },
+      });
       if (!result.ok) {
         this.log.warn('could not read text import input', result.error);
       }

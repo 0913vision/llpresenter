@@ -590,25 +590,15 @@ describe('screen creation and group outputs', () => {
     expect(send).not.toHaveBeenCalled();
   });
 
-  it('gives a new screen the 환경설정 values for 절전 막기, 항상 위, and 연결이 끊기면', async () => {
-    const {edit} = setup(screensDocument(), undefined, {
-      preferences: settingsDocument('preferences', {
-        format: 'llsettings.preferences',
-        schemaVersion: 1,
-        preventSleep: false,
-        alwaysOnTop: true,
-        onDisconnect: 'off',
-      }),
-    });
+  it('starts a new screen with 항상 위 off and no 절전 막기 field', async () => {
+    const {edit} = setup(screensDocument());
     await add('청중', '새 창');
     await screen.findByRole('option', {name: '새 청중 화면'});
     const request = edit.mock.calls[0]?.[0];
     if (request?.name !== 'screens') throw new Error('Missing screen creation');
-    expect(request.value.screens.at(-1)).toMatchObject({
-      preventSleep: false,
-      alwaysOnTop: true,
-      onDisconnect: 'off',
-    });
+    const created = request.value.screens.at(-1);
+    expect(created).toMatchObject({alwaysOnTop: false});
+    expect(created).not.toHaveProperty('preventSleep');
   });
 
   it('switches a new screen on when its group is on', async () => {

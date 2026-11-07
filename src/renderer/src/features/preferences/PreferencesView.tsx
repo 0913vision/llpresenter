@@ -14,14 +14,13 @@ import type {Notice} from '@renderer/ui/notices';
 import {
   AboutPage,
   GeneralPage,
-  LibraryPage,
   MediaPage,
   OutputPage,
+  StoragePage,
   preferencePages,
   type PreferencePageId,
 } from './preferencePages';
 import {BiblePage} from './BiblePage';
-import {ImportPage} from './ImportPage';
 import {ShortcutsPage} from './shortcuts/ShortcutsPage';
 import {useBibleEdits} from './useBibleEdits';
 import {usePreferenceEdits} from './usePreferenceEdits';
@@ -228,8 +227,8 @@ function PreferencesContent({
         <Properties placement="window">
           {page === 'general' ? <GeneralPage edits={edits} /> : null}
           {page === 'output' ? <OutputPage edits={edits} /> : null}
-          {page === 'library' ? (
-            <LibraryPage edits={edits} onProblem={onProblem} />
+          {page === 'storage' ? (
+            <StoragePage edits={edits} onProblem={onProblem} />
           ) : null}
           {page === 'labels' ? (
             <LabelsPage store={labelStore} managerRef={labelManager} />
@@ -237,7 +236,6 @@ function PreferencesContent({
           {page === 'about' ? <AboutPage /> : null}
           {page === 'media' ? <MediaPage edits={edits} /> : null}
           {page === 'bible' ? <BiblePage edits={edits} bible={bible} /> : null}
-          {page === 'import' ? <ImportPage edits={edits} /> : null}
         </Properties>
       </section>
     </div>

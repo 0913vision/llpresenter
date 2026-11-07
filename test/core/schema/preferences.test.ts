@@ -64,7 +64,6 @@ describe('parsePreferences', () => {
   });
 
   it.each([
-    ['a language without a translation', {language: 'en'}, 'language'],
     ['a backup group that is an array', {backup: []}, 'backup'],
     [
       'an unlisted source position',
@@ -85,10 +84,7 @@ describe('the ranges of 환경설정', () => {
   it.each([
     ['zero recovery copies', {backupCopies: 0}, 'backupCopies'],
     ['51 recovery copies', {backupCopies: 51}, 'backupCopies'],
-    ['a frame rate that is text', {previewFps: '30'}, 'previewFps'],
-    ['a frame rate the previews lack', {previewFps: 24}, 'previewFps'],
     ['366 kept backups', {backup: {auto: false, keep: 366}}, 'backup.keep'],
-    ['13 lines per 장', {bible: {maxLines: 13}}, 'bible.maxLines'],
   ])('drops %s alone and keeps the rest', (_name, change, field) => {
     const loaded = expectSuccess(
       parsePreferences(
@@ -101,9 +97,7 @@ describe('the ranges of 환경설정', () => {
     expect(loaded.data.showOnLaunch).toBe(true);
     expect(withPreferenceDefaults(loaded.data)).toMatchObject({
       backupCopies: defaultPreferences.backupCopies,
-      previewFps: defaultPreferences.previewFps,
       backup: {keep: defaultPreferences.backup.keep},
-      bible: {maxLines: defaultPreferences.bible.maxLines},
     });
   });
 
@@ -111,15 +105,11 @@ describe('the ranges of 환경설정', () => {
     for (const ends of [
       {
         backupCopies: 3,
-        previewFps: 15,
         backup: {keep: 1},
-        bible: {maxLines: 1},
       },
       {
         backupCopies: 50,
-        previewFps: 60,
         backup: {keep: 365},
-        bible: {maxLines: 12},
       },
     ]) {
       const loaded = expectSuccess(
@@ -157,21 +147,6 @@ describe('the ranges of 환경설정', () => {
 
 describe('withPreferenceDefaults', () => {
   it.each([
-    {},
-    {show: {}},
-    {show: {showClearUndoButton: false}},
-    {show: {showClearUndoButton: true}},
-  ])(
-    'defaults the clear undo preference without replacing stored values: %j',
-    fields => {
-      const stored = parse({...HEADER, ...fields});
-      expect(withPreferenceDefaults(stored).show.showClearUndoButton).toBe(
-        fields.show?.showClearUndoButton ?? false,
-      );
-    },
-  );
-
-  it.each([
     [{}, 'stop'],
     [{show: {}}, 'stop'],
     [{show: {atLastSlide: 'stop'}}, 'stop'],
@@ -184,26 +159,11 @@ describe('withPreferenceDefaults', () => {
     },
   );
 
-  it('keeps the last-slide choice beside the clear undo choice', () => {
-    const stored = parse({
-      ...HEADER,
-      show: {showClearUndoButton: true, atLastSlide: 'nextItem'},
-    });
-    expectRoundTrip(codec, {
-      ...HEADER,
-      show: {showClearUndoButton: true, atLastSlide: 'nextItem'},
-    });
-    expect(withPreferenceDefaults(stored).show).toMatchObject({
-      showClearUndoButton: true,
-      atLastSlide: 'nextItem',
-    });
-  });
-
   it('preserves unknown show fields in storage and after normalization', () => {
     const config = {...HEADER, show: {future: {enabled: true}}};
     expectRoundTrip(codec, config);
     expect(withPreferenceDefaults(parse(config))).toMatchObject({
-      show: {showClearUndoButton: false, future: {enabled: true}},
+      show: {atLastSlide: 'stop', future: {enabled: true}},
     });
   });
 
@@ -291,11 +251,6 @@ describe('preferences read boundary', () => {
     expect(expectSuccess(parsePreferencesValue(HEADER))).toEqual(
       defaultPreferences,
     );
-    expect(
-      expectSuccess(
-        parsePreferencesValue({...HEADER, show: {showClearUndoButton: true}}),
-      ).show.showClearUndoButton,
-    ).toBe(true);
   });
 
   it.each([
@@ -303,8 +258,6 @@ describe('preferences read boundary', () => {
     [],
     {},
     {...HEADER, show: []},
-    {...HEADER, show: {showClearUndoButton: 'yes'}},
-    {...HEADER, show: {showClearUndoButton: null}},
     {...HEADER, show: {atLastSlide: 'next'}},
     {...HEADER, show: {atLastSlide: true}},
     {...HEADER, show: {atLastSlide: null}},
@@ -495,6 +448,38 @@ describe('오디오 times', () => {
   });
 });
 
+describe('the fields 환경설정 no longer has', () => {
+  const REMOVED = [
+    'language',
+    'onLaunch',
+    'hardwareAcceleration',
+    'previewFps',
+    'preventSleep',
+    'alwaysOnTop',
+    'onDisconnect',
+  ] as const;
+
+  it('leaves them out of the defaults and out of a read file', () => {
+    for (const name of REMOVED) {
+      expect(defaultPreferences).not.toHaveProperty(name);
+      expect(defaultPreferences.show).not.toHaveProperty(name);
+    }
+    expect(defaultPreferences.bible).not.toHaveProperty('maxLines');
+    expect(defaultPreferences.show).not.toHaveProperty('showClearUndoButton');
+    expect(withPreferenceDefaults(parse(HEADER))).toEqual(defaultPreferences);
+  });
+
+  it('no longer checks a value stored under a removed name', () => {
+    const loaded = expectSuccess(
+      parsePreferences(
+        JSON.stringify({...HEADER, language: 'en', previewFps: 24}),
+        'p.json',
+      ),
+    );
+    expect(loaded.dropped).toEqual([]);
+  });
+});
+
 describe('성경 새 구절 defaults', () => {
   it('start as a verse each, the reference on every slide, verse numbers on, no translation name', () => {
     expect(expectSuccess(parsePreferencesValue(HEADER)).bible.defaults).toEqual(
@@ -507,12 +492,11 @@ describe('성경 새 구절 defaults', () => {
     );
   });
 
-  it('keeps stored defaults next to the line limit, fills the rest, and keeps unknown fields', () => {
+  it('keeps stored defaults, fills the rest, and keeps unknown fields', () => {
     const value = {
       ...HEADER,
       bible: {
         defaults: {split: 'fit', reference: 'last', future: 1},
-        maxLines: 6,
       },
     };
     expectRoundTrip(codec, value);
@@ -524,7 +508,6 @@ describe('성경 새 구절 defaults', () => {
       translationName: false,
       future: 1,
     });
-    expect(bible.maxLines).toBe(6);
   });
 
   it.each([

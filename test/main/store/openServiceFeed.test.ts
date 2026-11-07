@@ -21,7 +21,6 @@ import {createServiceItemId} from '@core/schema/ids';
 async function setUp(
   backgroundOf: OpenServiceSources['backgroundOf'] = async () => null,
   bible?: OpenServiceSources['bible'],
-  bibleMaxLines?: OpenServiceSources['bibleMaxLines'],
 ) {
   const parsed = parseService(
     JSON.stringify(service(SUNDAY_ID, '2026-11-01T11:00', [])),
@@ -50,7 +49,6 @@ async function setUp(
       content,
       backgroundOf,
       ...(bible === undefined ? {} : {bible}),
-      ...(bibleMaxLines === undefined ? {} : {bibleMaxLines}),
     },
     push,
     report,
@@ -61,7 +59,7 @@ async function setUp(
 }
 
 describe('OpenServiceFeed', () => {
-  it('packs a saved 길이에 맞춤 passage by the 최대 줄 수 of 환경설정', async () => {
+  it('packs a saved 들어가는 만큼 passage into slides of four lines', async () => {
     const request = parseBibleLookupRequest({
       translation: 'sample',
       input: '요한복음 3:16-18',
@@ -93,12 +91,8 @@ describe('OpenServiceFeed', () => {
         translationName: false,
       },
     };
-    const labelsOf = async (maxLines: number) => {
-      const {feed, content, current} = await setUp(
-        undefined,
-        {lookup},
-        () => maxLines,
-      );
+    const labelsOf = async () => {
+      const {feed, content, current} = await setUp(undefined, {lookup});
       content.storedService.mockReturnValue({
         ...current,
         data: {...current.data, order: [item]},
@@ -108,8 +102,7 @@ describe('OpenServiceFeed', () => {
       await feed.dispose();
       return labels;
     };
-    expect(await labelsOf(2)).toEqual(['3:16-17', '3:18']);
-    expect(await labelsOf(3)).toEqual(['3:16-18']);
+    expect(await labelsOf()).toEqual(['3:16-18']);
   });
 
   it('discards a superseded saved-passage read and publishes only the latest service content', async () => {

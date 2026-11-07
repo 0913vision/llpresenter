@@ -13,7 +13,7 @@ const FOLDER_REFUSALS: Readonly<
 > = {
   'not-writable': '이 폴더에는 쓸 수 없음',
   'outside-development': '개발용 폴더 밖은 쓸 수 없음',
-  'overlaps-backup': '백업 위치와 겹치는 폴더',
+  'overlaps-backup': '백업 폴더와 겹치는 폴더',
   'settings-locked': NEWER_FILE_REASON,
 };
 const BACKUP_FAILED = '백업하지 못함';

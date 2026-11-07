@@ -77,7 +77,7 @@ function install(parts: {
 
 async function mount(page?: string) {
   const view = render(<PreferencesView onProblem={onProblem} />);
-  await screen.findByRole('checkbox', {name: '지우기 되돌리기 단추 보이기'});
+  await screen.findByRole('checkbox', {name: 'Windows 시작할 때 실행'});
   if (page !== undefined) {
     await userEvent.click(screen.getByRole('option', {name: page}));
   }
@@ -140,10 +140,10 @@ describe('일반 > 화면 확대', () => {
   });
 });
 
-describe('라이브러리 > 위치 and 백업', () => {
+describe('저장 > 폴더 and 백업', () => {
   it('shows the three folders in read-only fields with the note while a change waits', async () => {
     install({});
-    await mount('라이브러리');
+    await mount('저장');
 
     expect(await screen.findByDisplayValue(SONGS)).toHaveProperty(
       'readOnly',
@@ -157,7 +157,7 @@ describe('라이브러리 > 위치 and 백업', () => {
           screen.getByDisplayValue(MEDIA).parentElement ?? document.body,
         )
       )?.textContent,
-    ).toBe('다음에 켤 때 적용됩니다');
+    ).toBe('다음에 켤 때부터 씁니다. 있던 파일은 옮기지 않습니다');
   });
 
   it.each([
@@ -169,7 +169,7 @@ describe('라이브러리 > 위치 and 백업', () => {
       Promise.resolve<ChooseLocationResult>({ok: true, value: undefined}),
     );
     install({choose});
-    await mount('라이브러리');
+    await mount('저장');
     const button = (await changeButtons())[index];
     if (button === undefined) throw new Error('Missing 바꾸기 button');
 
@@ -188,7 +188,7 @@ describe('라이브러리 > 위치 and 백업', () => {
         error: {reason: 'not-writable', detail: 'EACCES'},
       });
     install({choose});
-    await mount('라이브러리');
+    await mount('저장');
     const [first] = await changeButtons();
     if (first === undefined) throw new Error('Missing 바꾸기 button');
 
@@ -209,7 +209,7 @@ describe('라이브러리 > 위치 and 백업', () => {
       }),
     );
     install({choose});
-    await mount('라이브러리');
+    await mount('저장');
     const buttons = await changeButtons();
     const backup = buttons[2];
     if (backup === undefined) throw new Error('Missing 바꾸기 button');
@@ -223,19 +223,19 @@ describe('라이브러리 > 위치 and 백업', () => {
           screen.getByDisplayValue(BACKUPS).parentElement ?? document.body,
         )
       )?.textContent,
-    ).toBe('백업 위치와 겹치는 폴더');
+    ).toBe('백업 폴더와 겹치는 폴더');
   });
 
   it('shows 없음 when there is no backup', async () => {
     install({});
-    await mount('라이브러리');
+    await mount('저장');
 
     expect(await screen.findByText('없음')).toBeDefined();
   });
 
   it('shows the time of the last backup', async () => {
     install({view: {...VIEW, lastBackup: Date.now()}});
-    await mount('라이브러리');
+    await mount('저장');
 
     expect(await screen.findByText(/^오늘 \d\d:\d\d$/)).toBeDefined();
   });
@@ -245,7 +245,7 @@ describe('라이브러리 > 위치 and 백업', () => {
       () => new Promise<BackUpNowResult>(() => undefined),
     );
     const api = install({backUpNow});
-    await mount('라이브러리');
+    await mount('저장');
     const button = await screen.findByRole('button', {name: '지금 백업'});
 
     await userEvent.click(button);
@@ -266,7 +266,7 @@ describe('라이브러리 > 위치 and 백업', () => {
     install({
       backUpNow: () => Promise.resolve({ok: false, error: {reason: 'failed'}}),
     });
-    await mount('라이브러리');
+    await mount('저장');
 
     await userEvent.click(
       await screen.findByRole('button', {name: '지금 백업'}),
@@ -281,7 +281,7 @@ describe('라이브러리 > 위치 and 백업', () => {
 
   it('stops following the folders when the window closes', async () => {
     const api = install({});
-    const view = await mount('라이브러리');
+    const view = await mount('저장');
 
     view.unmount();
 

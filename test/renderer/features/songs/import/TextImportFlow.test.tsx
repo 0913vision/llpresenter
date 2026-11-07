@@ -8,6 +8,7 @@ import {
   within,
 } from '@testing-library/react';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
+import type {LlpApi} from '@contracts/ipc/api';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import type {Notice} from '@renderer/ui/notices';
 import type {TextImportReadResult} from '@core/schema/textImport';
@@ -171,6 +172,173 @@ describe('text import flow', () => {
     expect(onDone).toHaveBeenCalledOnce();
     expect(onEdit).toHaveBeenCalledOnce();
     expect(f.edits).toHaveLength(0);
+  });
+
+  it('reads the file again with a chosen encoding and remembers the choice', async () => {
+    const f = fixture();
+    const read = vi.fn(
+      async (request: {encoding: string}): Promise<TextImportReadResult> => ({
+        ok: true,
+        value: {
+          source: 'file',
+          fileName: 'Invented.txt',
+          text:
+            request.encoding === 'cp949' ? 'Second reading' : 'First reading',
+        },
+      }),
+    );
+    const edit = vi.fn(async () => ({
+      ok: true as const,
+      value: {id: 'preferences' as const, revision: 2},
+    }));
+    const api = mockLlpApi({
+      ...f.api,
+      textImport: {read, preview: async request => convertTextImport(request)},
+      settings: {
+        get: async () => ({
+          name: 'preferences',
+          value: {format: 'llsettings.preferences', schemaVersion: 1},
+          revision: 1,
+          access: 'editable',
+        }),
+        edit,
+      },
+    });
+    window.llp = api;
+    onTestFinished(() => {
+      delete window.llp;
+    });
+    await act(async () => {
+      render(
+        <TextImportFlow
+          api={api}
+          store={f.store}
+          source="file"
+          onDone={vi.fn()}
+          onEdit={vi.fn()}
+          onProblem={f.problem}
+        />,
+      );
+    });
+    await screen.findByText('First reading');
+    fireEvent.click(screen.getByRole('button', {name: '글자 인코딩'}));
+    fireEvent.click(await screen.findByRole('menuitemradio', {name: 'CP949'}));
+
+    await screen.findByText('Second reading');
+    expect(read).toHaveBeenLastCalledWith({
+      source: 'file',
+      encoding: 'cp949',
+      again: true,
+    });
+    await waitFor(() => expect(edit).toHaveBeenCalledOnce());
+    expect(edit.mock.calls[0]).toMatchObject([
+      {value: {import: {txt: {encoding: 'cp949'}}}},
+    ]);
+  });
+
+  function mountFile(read: LlpApi['textImport']['read']) {
+    const f = fixture();
+    const api = mockLlpApi({
+      ...f.api,
+      textImport: {
+        read,
+        preview: async request => convertTextImport(request),
+      },
+    });
+    window.llp = api;
+    onTestFinished(() => {
+      delete window.llp;
+    });
+    const onDone = vi.fn();
+    const onEdit = vi.fn();
+    render(
+      <TextImportFlow
+        api={api}
+        store={f.store}
+        source="file"
+        onDone={onDone}
+        onEdit={onEdit}
+        onProblem={f.problem}
+      />,
+    );
+    return {...f, onDone, onEdit};
+  }
+
+  const fileResult = (text: string): TextImportReadResult => ({
+    ok: true,
+    value: {source: 'file', fileName: 'Invented.txt', text},
+  });
+
+  it('keeps the encoding choice after a file cannot be decoded and retries the same file', async () => {
+    const read = vi.fn(async (request: {encoding: string; again?: boolean}) =>
+      request.again === true
+        ? fileResult('Decoded line')
+        : ({
+            ok: false,
+            error: {reason: 'decode-failed', message: 'Not UTF-8'},
+          } satisfies TextImportReadResult),
+    );
+    const view = mountFile(read);
+
+    const dialog = await screen.findByRole('dialog', {name: '글자 인코딩'});
+    expect(view.onDone).not.toHaveBeenCalled();
+    expect(view.problem).not.toHaveBeenCalled();
+    fireEvent.click(within(dialog).getByRole('button', {name: '다시 읽기'}));
+
+    await screen.findByText('Decoded line');
+    expect(read).toHaveBeenLastCalledWith({
+      source: 'file',
+      encoding: 'cp949',
+      again: true,
+    });
+    expect(view.onDone).not.toHaveBeenCalled();
+  });
+
+  it('closes the import when a clipboard text cannot be read', async () => {
+    const read = vi.fn(async () => ({
+      ok: false as const,
+      error: {reason: 'decode-failed' as const, message: 'Bad'},
+    }));
+    const f = fixture();
+    const api = mockLlpApi({...f.api, textImport: {read}});
+    const onDone = vi.fn();
+    render(
+      <TextImportFlow
+        api={api}
+        store={f.store}
+        source="clipboard"
+        onDone={onDone}
+        onEdit={vi.fn()}
+        onProblem={f.problem}
+      />,
+    );
+    await waitFor(() => expect(onDone).toHaveBeenCalledOnce());
+  });
+
+  it('never applies an old reading: 편집 waits for the read and the latest read wins', async () => {
+    const pending = deferred<TextImportReadResult>();
+    const read = vi.fn(async (request: {encoding: string; again?: boolean}) =>
+      request.again === true ? pending.promise : fileResult('First reading'),
+    );
+    const view = mountFile(read);
+    await screen.findByText('First reading');
+    fireEvent.click(screen.getByRole('button', {name: '글자 인코딩'}));
+    fireEvent.click(await screen.findByRole('menuitemradio', {name: 'CP949'}));
+
+    const edit = screen.getByRole('button', {name: '편집'});
+    await waitFor(() =>
+      expect(edit.getAttribute('aria-disabled')).toBe('true'),
+    );
+    fireEvent.click(edit);
+    expect(view.onEdit).not.toHaveBeenCalled();
+    expect(view.onDone).not.toHaveBeenCalled();
+
+    await act(async () => pending.resolve(fileResult('Second reading')));
+    await screen.findByText('Second reading');
+    expect(screen.queryByText('First reading')).toBeNull();
+    fireEvent.click(screen.getByRole('button', {name: '편집'}));
+    expect(view.store.getSnapshot().imported).toBe(true);
+    expect(view.onEdit).toHaveBeenCalledOnce();
   });
 
   it.each(['cancel', 'failure'] as const)(

@@ -1,0 +1,4 @@
+.result {
+  color: var(--text-2);
+  font: var(--type-label);
+}

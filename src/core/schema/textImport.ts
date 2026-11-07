@@ -25,6 +25,8 @@ export const importSlideSchema = jsonObject({
 const readRequestSchema = payloadObject({
   source: v.picklist(['file', 'clipboard']),
   encoding: textImportEncodingSchema,
+  /** Reads the file chosen last again, with this encoding, without asking. */
+  again: v.exactOptional(v.boolean()),
 });
 
 const textImportSourceSchema = v.pipe(

@@ -2,11 +2,10 @@
 export const PREFERENCE_PAGE_IDS = [
   'general',
   'output',
-  'library',
+  'storage',
   'labels',
   'media',
   'bible',
-  'import',
   'shortcuts',
   'about',
 ] as const;

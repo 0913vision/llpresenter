@@ -44,8 +44,8 @@ Rules for output windows:
   re-enters full screen, moves or resizes the picture, raises the control window
   or changes its focus (user decision, M3-C3-9).
 - If 항상 위 (always on top) is on, keep the full screen window above other
-  windows. If 절전 막기 (prevent sleep) is on, prevent display sleep and system
-  sleep while that screen's output is on.
+  windows. While any output is on, prevent display sleep and system sleep
+  (fixed; see 10).
 - 가장자리 여백 (edge margin, %) shrinks the whole picture toward the center by
   that amount. 위치 미세 조정 (position fine-tuning, x and y in px) moves the
   whole picture by that amount (proposal: these values correct projector
@@ -375,13 +375,12 @@ project). Build it as a 매크로 with several clear actions. If needed, set tha
   a clear like ProPresenter was unsupported. The m3-check3 user decision above
   adds per-key toggle restore; re-triggering a slide also shows it again. The
   toggle is a user rule, not a documented ProPresenter behavior.
-- 환경설정 > 진행 > 지우기 되돌리기 단추 보이기 controls the button. It is off
-  by default (proposal pending user confirmation; M2 check 1 row 7; 10). Turning
-  it on adds a separator and 되돌리기 after 메시지 in the clear row. When
-  nothing can be restored, the button is dim and does nothing. The command
-  `clear.undo` has no default key; Ctrl Z never calls it.
-- The optional button undoes the last clear, including 모두. It shows again what
-  those layers held just before the clear:
+- The clear row shows a separator and 되돌리기 after 메시지 while a clear can be
+  brought back, and hides both when there is nothing to bring back. No
+  preference controls it. The command `clear.undo` has no default key; Ctrl Z
+  never calls it.
+- The button undoes the last clear, including 모두. It shows again what those
+  layers held just before the clear:
   - Lyrics: the same 슬라이드 becomes the live 슬라이드 again.
   - Media: the same media plays again from the position at the moment of the
     clear (proposal).

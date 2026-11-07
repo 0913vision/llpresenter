@@ -158,7 +158,7 @@ describe('registerStore', () => {
 
     expect(await askForService()).toBeNull();
     expect(await ask(settingsEndpoints.preferences.channel)).toMatchObject({
-      show: {showClearUndoButton: false},
+      show: {atLastSlide: 'stop'},
     });
     expect(log.info).toHaveBeenCalledWith(
       'read the data folder',

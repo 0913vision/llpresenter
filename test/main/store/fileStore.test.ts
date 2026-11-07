@@ -290,7 +290,9 @@ describe('loadStore', () => {
     const store = await loadedStore(context);
 
     expect(store.preferences.backup).toEqual({auto: true, keep: 5});
-    expect(store.preferences.previewFps).toBe(defaultPreferences.previewFps);
+    expect(store.preferences.backupCopies).toBe(
+      defaultPreferences.backupCopies,
+    );
     expect(store.problems).toEqual([]);
   });
 

@@ -24,6 +24,10 @@ A row that places one name and one control side by side in a property field or a
 - Value `ll-prop__value`: a read-only value. `body` (16/22), `text-2`, tabular numbers, truncated with an ellipsis when it overflows (주사율 60Hz, 현재 버전 1.0.0, 마지막 백업 오늘 07:58). For a value that reads like a name (the source song name), use `ll-prop__value--primary` for `text`. An icon in front of a value is 14px `text-3` (`link` for the source song).
 - Extra information after the value `ll-prop__meta`: `label` (14/20) `text-3` (such as 60Hz after a resolution). Do not repeat the source location after a song name; the source group and link icon already identify it.
 - An action after a value, such as 라이브러리 곡 열기 (`IconButton` sm, `open` icon), sits at the right end of the control cell (`margin-left: auto`). In code: `PropertyValue` `action`.
+- A value plus a button in a 환경설정 row (마지막 백업 and 지금 백업, a folder path and 바꾸기…) keeps the value first and the md `Button` after it.
+- An action-only row (기록 폴더, 진단 정보, 모니터) has no value: its md `Button` starts the control cell, like any other control, and a result such as 복사했습니다 follows it in `label` `text-2`. It is not pushed to the right end.
+- A dependent value sits on its parent's row: the seconds field of a transition follows the segmented control on the same row, and only while the choice needs it.
+- A group of lead rows that need no name (일반, 출력) uses `PropertyGroup` without a title.
 - Put a multi-line control (메모) under the group name at the full cell width, without a name cell. If a multi-line control really needs a name cell, use `ll-prop--top` to align the name with the first line.
 
 ### Name cell width rules

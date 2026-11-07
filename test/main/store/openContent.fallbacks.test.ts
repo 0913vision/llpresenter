@@ -58,7 +58,7 @@ it('falls back to the loaded store labels and media backgrounds while the settin
   expect(background).toHaveBeenCalledWith('invented-media');
 });
 
-it('refreshes the open service for 환경설정 only when the 최대 줄 수 changed', async () => {
+it('refreshes the open service for 환경설정 only for labels and Bible changes, never for another 환경설정 change', async () => {
   const {store, log, readers} = await setup();
   const settings = new SettingsStore({
     documents: new Map([
@@ -94,18 +94,17 @@ it('refreshes the open service for 환경설정 only when the 최대 줄 수 cha
     opened.content.dispose();
   });
   const refresh = vi.spyOn(opened.feed, 'refresh');
-  const change = async (bible: {maxLines: number}, general: object) => {
+  const change = async (general: object) => {
     const document = settings.get('preferences');
     if (document.name !== 'preferences') throw new Error('Not preferences');
     await settings.apply({
       type: 'settings.update',
       name: 'preferences',
       baseRevision: document.revision,
-      value: {...document.value, bible, general},
+      value: {...document.value, general},
     });
   };
-  await change({maxLines: 4}, {launchAtLogin: true});
+  await change({launchAtLogin: true});
+  await change({launchAtLogin: false});
   expect(refresh).not.toHaveBeenCalled();
-  await change({maxLines: 6}, {launchAtLogin: true});
-  expect(refresh).toHaveBeenCalledOnce();
 });

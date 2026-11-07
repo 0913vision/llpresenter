@@ -25,6 +25,7 @@ import styles from './ShortcutsPage.module.css';
 const NO_DEFAULT = '기본값 없음';
 const RESET_LABEL = '기본값으로';
 const CLEAR_LABEL = '지우기';
+const CLEAR_BUTTON_LABEL = '단축키 지우기';
 const LIST_LABEL = '명령';
 
 function keysOf(binding: KeyBinding): readonly string[] {
@@ -347,7 +348,7 @@ export function ShortcutsPage({
               title={edits.lockedReason}
               onClick={() => edits.record(selected.command, null)}
             >
-              {CLEAR_LABEL}
+              {CLEAR_BUTTON_LABEL}
             </Button>
           </>
         )}

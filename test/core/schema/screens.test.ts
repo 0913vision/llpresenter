@@ -26,7 +26,6 @@ function mainScreen() {
     },
     onDisconnect: 'window',
     alwaysOnTop: true,
-    preventSleep: true,
     edgeMargin: 2.5,
     offset: {x: -4, y: 0},
   };

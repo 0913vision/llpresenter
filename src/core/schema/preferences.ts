@@ -24,7 +24,6 @@ const PREFERENCES_FORMAT = 'llsettings.preferences';
 export const PREFERENCE_LIMITS = {
   backupCopies: {min: 3, max: 50},
   backupKeep: {min: 1, max: 365},
-  bibleMaxLines: {min: 1, max: 12},
 } as const;
 
 /** The most characters of an audio device id or label that is kept. */
@@ -72,9 +71,6 @@ function secondsWithin({min, max}: {min: number; max: number}) {
   return v.pipe(v.number(), v.finite(), v.minValue(min), v.maxValue(max));
 }
 
-/** The frame rates the previews may run at. */
-export const previewFpsChoices = [15, 30, 60] as const;
-
 interface CountLimits {
   readonly min: number;
   readonly max: number;
@@ -91,18 +87,14 @@ const mediaDefaultsSchema = jsonObject({
   audio: optionalBoolean,
 });
 const backupCopiesSchema = countWithin(PREFERENCE_LIMITS.backupCopies);
-const previewFpsSchema = v.picklist(previewFpsChoices);
 const backupKeepSchema = countWithin(PREFERENCE_LIMITS.backupKeep);
-const bibleMaxLinesSchema = countWithin(PREFERENCE_LIMITS.bibleMaxLines);
 
 const topLevelRanges = {
   backupCopies: backupCopiesSchema,
-  previewFps: previewFpsSchema,
 };
 
 const groupRanges = {
   backup: {keep: backupKeepSchema},
-  bible: {maxLines: bibleMaxLinesSchema},
 };
 
 /** What the next-슬라이드 key does on the last 슬라이드 of an item. */
@@ -120,16 +112,9 @@ export const textImportEncodingSchema = v.picklist(['auto', 'utf-8', 'cp949']);
 export const preferencesSchema = jsonObject({
   format: v.literal(PREFERENCES_FORMAT),
   schemaVersion: positiveInteger,
-  language: v.exactOptional(v.picklist(['ko'])),
-  onLaunch: v.exactOptional(v.picklist(['lastService'])),
   general: v.exactOptional(jsonObject({launchAtLogin: optionalBoolean})),
   backupCopies: v.exactOptional(backupCopiesSchema),
   showOnLaunch: optionalBoolean,
-  preventSleep: optionalBoolean,
-  alwaysOnTop: optionalBoolean,
-  onDisconnect: v.exactOptional(v.picklist(['window', 'off'])),
-  hardwareAcceleration: optionalBoolean,
-  previewFps: v.exactOptional(previewFpsSchema),
   clearKeys: v.exactOptional(
     jsonObject({
       all: v.exactOptional(clearFadeSchema),
@@ -142,7 +127,6 @@ export const preferencesSchema = jsonObject({
   ),
   show: v.exactOptional(
     jsonObject({
-      showClearUndoButton: optionalBoolean,
       atLastSlide: v.exactOptional(atLastSlideSchema),
       audio: v.exactOptional(
         jsonObject({
@@ -187,7 +171,6 @@ export const preferencesSchema = jsonObject({
           translationName: optionalBoolean,
         }),
       ),
-      maxLines: v.exactOptional(bibleMaxLinesSchema),
       splitEditorAutoOpen: optionalBoolean,
       sourcePosition: v.exactOptional(v.picklist(['bottomRight'])),
     }),
@@ -246,16 +229,9 @@ export const defaultPreferences: Preferences = {
   clearKeys: {},
   format: PREFERENCES_FORMAT,
   schemaVersion: 1,
-  language: 'ko',
-  onLaunch: 'lastService',
   general: {launchAtLogin: false},
   backupCopies: 10,
   showOnLaunch: false,
-  preventSleep: true,
-  alwaysOnTop: false,
-  onDisconnect: 'window',
-  hardwareAcceleration: true,
-  previewFps: 30,
   output: {
     transition: {
       slide: {kind: 'dissolve', seconds: 0.2},
@@ -263,7 +239,6 @@ export const defaultPreferences: Preferences = {
     },
   },
   show: {
-    showClearUndoButton: false,
     atLastSlide: 'stop',
     audio: {transitionSeconds: 0.5, fadeOutSeconds: 3},
   },
@@ -280,7 +255,6 @@ export const defaultPreferences: Preferences = {
       verseNumbers: true,
       translationName: false,
     },
-    maxLines: 4,
     splitEditorAutoOpen: true,
     sourcePosition: 'bottomRight',
   },

@@ -216,7 +216,7 @@ describe('registerStore', () => {
       }
     }
     expect(await ask(settingsEndpoints.preferences.channel)).toMatchObject({
-      show: {showClearUndoButton: false},
+      show: {atLastSlide: 'stop'},
     });
   });
 
@@ -320,7 +320,7 @@ describe('registerStore', () => {
       {
         format: 'llsettings.preferences',
         schemaVersion: 1,
-        show: {showClearUndoButton: true},
+        show: {atLastSlide: 'nextItem'},
       },
     );
     const log = mockLog();
@@ -329,7 +329,7 @@ describe('registerStore', () => {
       ask(settingsEndpoints.preferences.channel),
       ask(settingsEndpoints.preferences.channel),
     ]);
-    expect(first).toMatchObject({show: {showClearUndoButton: true}});
+    expect(first).toMatchObject({show: {atLastSlide: 'nextItem'}});
     expect(second).toEqual(first);
     expect(
       log.info.mock.calls.filter(

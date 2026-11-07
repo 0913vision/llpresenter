@@ -1,4 +1,4 @@
-import {useEffect, useState, type JSX} from 'react';
+import type {JSX} from 'react';
 import {Icon, useTooltip} from '@renderer/ui';
 import {useButtonPress} from '@renderer/ui/press';
 import {withTooltipProps} from '@renderer/ui/Tooltip';
@@ -84,7 +84,6 @@ function ClearButton({
 }
 
 function UndoButton({compact}: {readonly compact: boolean}): JSX.Element {
-  const canUndo = useCanUndo();
   const {targetProps, tooltip} = useTooltip({
     text: '되돌리기',
     command: 'clear.undo',
@@ -96,8 +95,6 @@ function UndoButton({compact}: {readonly compact: boolean}): JSX.Element {
         type="button"
         className={`${styles.button} ${styles.undo}`}
         aria-label="되돌리기"
-        aria-disabled={!canUndo}
-        data-state={canUndo ? undefined : 'off'}
         onClick={undoClear}
       >
         <Icon name="undo" size={compact ? 16 : 18} />
@@ -113,23 +110,7 @@ function UndoControls({
 }: {
   readonly compact: boolean;
 }): JSX.Element | null {
-  const [visible, setVisible] = useState(false);
-  useEffect(() => {
-    const api = window.llp;
-    if (api === undefined) return undefined;
-    let stopped = false;
-    api.preferences.get().then(
-      preferences => {
-        if (!stopped) setVisible(preferences.show.showClearUndoButton);
-      },
-      // NOTE(0913vision): Preload logs a failed read; keep the default hidden.
-      () => undefined,
-    );
-    return () => {
-      stopped = true;
-    };
-  }, []);
-  if (!visible) return null;
+  if (!useCanUndo()) return null;
   return (
     <>
       <span className={styles.divider} aria-hidden="true" />
@@ -138,7 +119,7 @@ function UndoControls({
   );
 }
 
-/** The 지우기 row, with clear undo visible only when its preference is on. */
+/** The 지우기 row, with 되돌리기 shown while a clear can be brought back. */
 export function ClearRow({compact}: {readonly compact: boolean}): JSX.Element {
   return (
     <div
