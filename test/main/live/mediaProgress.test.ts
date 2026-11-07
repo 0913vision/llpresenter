@@ -52,7 +52,7 @@ function mockLog() {
 }
 
 describe('startMediaProgress', () => {
-  it('samples twice a second while a background plays, skips repeats and unrelated changes, and cleans up', async () => {
+  it('samples once a second while a background plays, skips repeats and unrelated changes, and cleans up', async () => {
     const clock = installMockClock();
     const {store, listeners, announce, showMedia} = mockStore();
     const publish = vi.fn();
@@ -62,17 +62,19 @@ describe('startMediaProgress', () => {
     store.mediaProgress.mockReturnValue(reading(0));
     showMedia(DAWN);
     expect(publish).toHaveBeenLastCalledWith(reading(0));
-    await clock.advance(499);
+    await clock.advance(999);
     expect(publish).toHaveBeenCalledOnce();
-    store.mediaProgress.mockReturnValue(reading(0.5));
+    store.mediaProgress.mockReturnValue(reading(1));
     await clock.advance(1);
-    expect(publish).toHaveBeenLastCalledWith(reading(0.5));
+    expect(publish).toHaveBeenLastCalledWith(reading(1));
     announce({...store.state, stageMessage: 'Invented'});
-    await clock.advance(500);
+    await clock.advance(1000);
     expect(publish).toHaveBeenCalledTimes(2);
 
     store.mediaProgress.mockReturnValue(null);
     showMedia(null);
+    expect(publish).toHaveBeenLastCalledWith(reading(1));
+    await clock.advance(1000);
     expect(publish).toHaveBeenLastCalledWith(null);
     expect(vi.getTimerCount()).toBe(0);
     stop();
@@ -91,10 +93,29 @@ describe('startMediaProgress', () => {
     showMedia(DAWN);
     expect(log.warn).toHaveBeenCalledOnce();
 
-    await clock.advance(500);
+    await clock.advance(1000);
     expect(publish).toHaveBeenCalledTimes(2);
     stop();
     expect(vi.getTimerCount()).toBe(0);
     expect(listeners.size).toBe(0);
+  });
+
+  it('coalesces rapid replacements, clears, and restarts within the same second', async () => {
+    const clock = installMockClock();
+    const {store, showMedia} = mockStore();
+    const publish = vi.fn();
+    const stop = startMediaProgress(store, publish, mockLog());
+    store.mediaProgress.mockReturnValue(reading(0));
+    showMedia(DAWN);
+    await clock.advance(100);
+    showMedia(null);
+    store.mediaProgress.mockReturnValue({...reading(0), startedAt: 100});
+    showMedia({...DAWN, startedAt: 100});
+    await clock.advance(899);
+    expect(publish).toHaveBeenCalledOnce();
+    await clock.advance(1);
+    expect(publish).toHaveBeenCalledTimes(2);
+    expect(publish).toHaveBeenLastCalledWith({...reading(0), startedAt: 100});
+    stop();
   });
 });

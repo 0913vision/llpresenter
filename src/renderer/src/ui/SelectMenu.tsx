@@ -33,6 +33,8 @@ export interface SelectMenuProps<T extends string> extends Omit<
   /** The name of the list; defaults to the button's `aria-label`. */
   readonly menuLabel?: string | undefined;
   readonly actions?: readonly SelectAction[] | undefined;
+  /** Starts any deferred list preparation when the operator opens it. */
+  readonly onOpen?: (() => void) | undefined;
 }
 
 const NO_VALUE = '없음';
@@ -82,6 +84,7 @@ export function SelectMenu<T extends string>({
   valueText,
   menuLabel,
   actions = [],
+  onOpen,
   ...selectProps
 }: SelectMenuProps<T>): JSX.Element {
   const [trigger, setTrigger] = useState<HTMLButtonElement | null>(null);
@@ -95,7 +98,10 @@ export function SelectMenu<T extends string>({
         ref={setTrigger}
         value={valueText ?? current?.label ?? NO_VALUE}
         expanded={open}
-        onExpandedChange={setOpen}
+        onExpandedChange={expanded => {
+          if (expanded && !open) onOpen?.();
+          setOpen(expanded);
+        }}
       />
       {open && trigger !== null ? (
         <Menu

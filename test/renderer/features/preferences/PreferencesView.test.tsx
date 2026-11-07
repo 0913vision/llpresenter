@@ -798,17 +798,20 @@ describe('PreferencesView', () => {
         deviceId: device.id,
         label: device.label,
       }));
+      const devices = Object.assign(new EventTarget(), {
+        enumerateDevices: vi.fn(() => Promise.resolve(list)),
+      });
+      const watch = vi.spyOn(devices, 'addEventListener');
       Object.defineProperty(navigator, 'mediaDevices', {
         configurable: true,
-        value: Object.assign(new EventTarget(), {
-          enumerateDevices: () => Promise.resolve(list),
-        }),
+        value: devices,
       });
+      return {enumerate: devices.enumerateDevices, watch};
     }
     afterEach(() => Reflect.deleteProperty(navigator, 'mediaDevices'));
 
     it('shows Windows 기본 장치 for both rows by default and lists each connected device', async () => {
-      connect(MIXER);
+      const discovery = connect(MIXER);
       await mount();
       await openPage('미디어');
       expect(screen.getByRole('heading').textContent).toBe('미디어');
@@ -817,7 +820,11 @@ describe('PreferencesView', () => {
       expect(
         screen.getByRole('button', {name: /미리 듣기 장치/}).textContent,
       ).toContain('Windows 기본 장치');
+      expect(discovery.enumerate).not.toHaveBeenCalled();
+      expect(discovery.watch).not.toHaveBeenCalled();
       await userEvent.click(output);
+      await screen.findByRole('menuitemradio', {name: 'Mixer (USB)'});
+      expect(discovery.enumerate).toHaveBeenCalledOnce();
       expect(
         screen.getAllByRole('menuitemradio').map(row => row.textContent),
       ).toContain('Mixer (USB)');

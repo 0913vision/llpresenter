@@ -301,9 +301,11 @@ each preview follows ProPresenter's rule: it shows what goes out.
   style. A loop wraps within its duration; a nonlooping video holds at the end.
   Images and a cleared background show no line. Until duration metadata arrives,
   show the position with an indeterminate line and omit remaining time. Main
-  samples its existing background timeline twice a second; the renderer displays
-  those samples without another clock, releases its subscription on unmount, and
-  offers no transport buttons or scrubbing (October 31 N2).
+  samples its existing background timeline at most once a second, including
+  rapid media changes; the renderer updates only when a displayed second
+  changes. It displays those samples without another clock, releases its
+  subscription on unmount, and offers no transport buttons or scrubbing (October
+  31 N2).
 
 ### Clears in the previews
 

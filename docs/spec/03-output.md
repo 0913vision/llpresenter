@@ -97,12 +97,20 @@ screen's output on and off. There is no confirmation.
 - Turning an output off keeps the output state (the live 슬라이드, background,
   그래픽, and so on). Turning it back on shows that content at once. While the
   output is off, the preview keeps showing the same picture.
-- Preload and size hidden outputs before they are needed. Reveal a complete
-  current frame without a dissolve. An output requested on must never remain
-  hidden indefinitely: if preparation has not completed within 1.5 seconds,
-  reveal what is drawn and log the fallback once for that window (lead rule from
-  the m3-check3 review, October 27). Missing monitor information uses the
-  configured disconnect fallback rather than blocking preparation forever.
+- Keep the off output's window and screen settings ready, but release its media
+  sources, decoders, drawing objects, and animation work. On enable, prepare the
+  latest main-owned live state and playback position before revealing it. An on
+  capture window keeps drawing even when another window covers it.
+- Size hidden outputs before they are needed. Reveal a complete current frame
+  without a dissolve. An output requested on must never remain hidden
+  indefinitely: if preparation has not completed within 1.5 seconds, reveal what
+  is drawn and log the fallback once for that window (lead rule from the
+  m3-check3 review, October 27). Missing monitor information uses the configured
+  disconnect fallback rather than blocking preparation forever.
+- Once a frame is ready at its current size, stop per-frame readiness checks.
+  Static lyrics do not update DOM or styles. Clock and timer ticks update only
+  elements whose displayed value changed, without rewriting identical
+  attributes.
 - Off means the output window is hidden (proposal: ProPresenter turns audience
   and stage screens off from the Preview window, S4 p. 24, and doesn't say what
   an off screen shows). The capture window is hidden too.

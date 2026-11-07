@@ -200,31 +200,8 @@ export class ThemeElementView {
         );
       }
     } else {
-      const timer =
-        element.kind === 'timer' &&
-        (element.timerId ?? frame.stageTimerId) !== undefined &&
-        frame.timers !== undefined
-          ? fillTimerTokens(
-              `{timer:${element.timerId ?? frame.stageTimerId}}`,
-              frame.timers,
-              frame.timers.now(),
-            )
-          : undefined;
       this.showText(
-        themeElementText(element, {
-          layers,
-          item,
-          stageMessage: frame.stageMessage,
-          clock:
-            element.kind === 'clock'
-              ? stageClockText(
-                  frame.timers?.now().wall ?? Date.now(),
-                  element.clockFormat,
-                )
-              : undefined,
-          timer,
-          videoTimeLeft: remainingText(videoRemaining),
-        }),
+        this.textContent(layers, frame, videoRemaining),
         frame,
         (element.kind === 'currentText'
           ? layers.slide?.continued
@@ -238,9 +215,48 @@ export class ThemeElementView {
       : element.kind === 'media' || element.kind === 'background'
         ? 'media'
         : undefined;
-    this.box.style.opacity = String(
+    const opacity = String(
       target === undefined ? 1 : (frame.clearOpacity?.[target] ?? 1),
     );
+    if (this.box.style.opacity !== opacity) this.box.style.opacity = opacity;
+  }
+
+  /** Timed elements leave the DOM untouched until their displayed value changes. */
+  tick(layers: LiveLayers, frame: RenderFrame, videoRemaining?: number): void {
+    const text = this.textContent(layers, frame, videoRemaining);
+    if (text !== this.shownText) this.showText(text, frame);
+  }
+
+  private textContent(
+    layers: LiveLayers,
+    frame: RenderFrame,
+    videoRemaining?: number,
+  ): string | null {
+    const {element} = this;
+    const timer =
+      element.kind === 'timer' &&
+      (element.timerId ?? frame.stageTimerId) !== undefined &&
+      frame.timers !== undefined
+        ? fillTimerTokens(
+            `{timer:${element.timerId ?? frame.stageTimerId}}`,
+            frame.timers,
+            frame.timers.now(),
+          )
+        : undefined;
+    return themeElementText(element, {
+      layers,
+      item: frame.theme?.item ?? null,
+      stageMessage: frame.stageMessage,
+      clock:
+        element.kind === 'clock'
+          ? stageClockText(
+              frame.timers?.now().wall ?? Date.now(),
+              element.clockFormat,
+            )
+          : undefined,
+      timer,
+      videoTimeLeft: remainingText(videoRemaining),
+    });
   }
 
   private showMedia(
@@ -304,7 +320,12 @@ export class ThemeElementView {
     continued = false,
   ): void {
     if (this.text === null) return;
-    if (this.element.kind !== 'overlay') this.box.hidden = text === null;
+    if (
+      this.element.kind !== 'overlay' &&
+      this.box.hidden !== (text === null)
+    ) {
+      this.box.hidden = text === null;
+    }
     let style: TextStyle = DEFAULT_TEXT_STYLE;
     if (isThemeTextElement(this.element)) {
       const textStyle = this.element.text;

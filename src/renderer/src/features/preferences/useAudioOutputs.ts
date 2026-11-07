@@ -6,10 +6,12 @@ import {deviceApi, listAudioOutputs} from '@renderer/rendering/audioSink';
 /** The connected audio output devices, read again whenever the devices change. */
 export function useAudioOutputs(
   list: () => Promise<readonly AudioDevice[]> = listAudioOutputs,
+  enabled = true,
 ): readonly AudioDevice[] {
   const readiness = useContext(LoadReadinessContext);
   const [devices, setDevices] = useState<readonly AudioDevice[]>([]);
   useEffect(() => {
+    if (!enabled) return undefined;
     let current = true;
     const ready = readiness?.begin();
     const refresh = (): void => {
@@ -30,6 +32,6 @@ export function useAudioOutputs(
       ready?.();
       deviceApi()?.removeEventListener('devicechange', refresh);
     };
-  }, [list, readiness]);
+  }, [list, readiness, enabled]);
   return devices;
 }

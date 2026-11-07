@@ -589,4 +589,42 @@ describe('theme composition drawing', () => {
     expect(vi.getTimerCount()).toBe(0);
     view.dispose();
   });
+
+  it('leaves every idle node untouched and changes only the timed element whose text changed', () => {
+    const {root, view, text} = setup();
+    let wall = Date.UTC(2026, 0, 1, 0);
+    const elements: ThemeElement[] = [
+      {...themeElementBase(), kind: 'currentText'},
+      {...themeElementBase(31), kind: 'clock', clockFormat: '24h'},
+    ];
+    view.render(song, {
+      ...frame(elements),
+      transitions: false,
+      timers: {list: [], runs: undefined, now: () => ({wall, timer: 0})},
+    });
+    const observer = new MutationObserver(() => undefined);
+    observer.observe(root, {
+      attributes: true,
+      childList: true,
+      characterData: true,
+      subtree: true,
+    });
+    const staticBox = root.querySelector('[data-kind="currentText"]');
+    const first = text('clock');
+    vi.advanceTimersByTime(750);
+    expect(observer.takeRecords()).toEqual([]);
+    wall += 60_000;
+    vi.advanceTimersByTime(250);
+    expect(text('clock')).not.toBe(first);
+    const mutations = observer.takeRecords();
+    expect(mutations.length).toBeGreaterThan(0);
+    expect(mutations.every(record => !staticBox?.contains(record.target))).toBe(
+      true,
+    );
+    expect(mutations.some(record => record.attributeName === 'hidden')).toBe(
+      false,
+    );
+    observer.disconnect();
+    view.dispose();
+  });
 });

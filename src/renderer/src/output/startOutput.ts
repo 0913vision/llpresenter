@@ -73,11 +73,8 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
     });
   };
   const stopCatching = catchUncaughtErrors(report);
-  const renderer = new OutputRenderer(root, {
-    textStyle: DEFAULT_TEXT_STYLE,
-    mediaUrl,
-    onError: report,
-  });
+  let renderer: OutputRenderer | null = null;
+  let hasFrame = false;
   let latest: LiveState | null = null;
   let stopped = false;
   let revealPending = true;
@@ -92,8 +89,8 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
   let readyTimer: ReturnType<typeof setTimeout> | null = null;
   const enabled = (): boolean => latest?.outputs[screenId] === true;
   const draw = (): void => {
-    if (latest === null) return;
-    if (!enabled()) revealPending = true;
+    if (latest === null || !enabled() || renderer === null) return;
+    hasFrame = false;
     try {
       const frame = frames.frame(latest);
       if (frame === undefined) return;
@@ -101,6 +98,7 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
         ...frame,
         transitions: enabled() && !revealPending,
       });
+      hasFrame = true;
       drawCount += 1;
     } catch (error) {
       report('could not update the output frame', error);
@@ -125,17 +123,13 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
       );
   }
   const complete = (): boolean =>
-    fontsReady &&
-    latest !== null &&
-    frames.frame(latest) !== undefined &&
-    renderer.ready();
+    fontsReady && hasFrame && renderer?.ready() === true;
   const frameKey = (): string =>
     `${drawCount}/${window.innerWidth}/${window.innerHeight}`;
-  // NOTE(0913vision): An off output is a hidden window, which runs animation
-  // frames about once a second. The page notes what each frame drew while it
-  // is hidden too, so turning it on reveals at once when nothing changed: a
-  // frame is painted once the next frame sees the same drawing.
+  // NOTE(0913vision): Only a pending reveal needs readiness work. A frame is
+  // painted once the next animation frame sees the same completed drawing.
   const noteFrame = (time: number): void => {
+    if (!revealPending || !enabled()) return;
     const key = complete() ? frameKey() : '';
     if (key === '') paintedFrame = '';
     else if (key === seenFrame) paintedFrame = key;
@@ -191,6 +185,11 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
     }, READY_POLL_MS);
   };
   const resized = (): void => {
+    if (!enabled()) return;
+    enableEpoch += 1;
+    revealPending = true;
+    seenFrame = '';
+    paintedFrame = '';
     lastAttempt = -Infinity;
     watchReadiness();
   };
@@ -218,6 +217,24 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
         revealPending = true;
         lastAttempt = -Infinity;
       }
+      if (!enabled()) {
+        if (readyTimer !== null) clearTimeout(readyTimer);
+        readyTimer = null;
+        stopMeter?.();
+        stopMeter = null;
+        renderer?.dispose();
+        renderer = null;
+        hasFrame = false;
+        drawnState = '';
+        seenFrame = '';
+        paintedFrame = '';
+        return;
+      }
+      renderer ??= new OutputRenderer(root, {
+        textStyle: DEFAULT_TEXT_STYLE,
+        mediaUrl,
+        onError: report,
+      });
       const content = drawnContent(state);
       if (content !== drawnState) {
         drawnState = content;
@@ -236,7 +253,7 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
     stopMeter?.();
     stopFollowing();
     frames.dispose();
-    renderer.dispose();
+    renderer?.dispose();
     stopCatching();
   };
 }

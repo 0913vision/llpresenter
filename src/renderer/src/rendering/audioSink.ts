@@ -112,17 +112,28 @@ export function followAudioOutput(options: FollowOptions): () => void {
   let stopped = false;
   let last: ResolvedSink | undefined;
   let round = 0;
+  let watching: MediaDevices | null = null;
+  const apply = (sink: ResolvedSink): void => {
+    if (last?.sinkId === sink.sinkId && last.missing === sink.missing) return;
+    last = sink;
+    options.apply(sink);
+  };
   const refresh = (): void => {
     const mine = ++round;
+    if (choice === undefined || choice.id === '') {
+      watching?.removeEventListener('devicechange', refresh);
+      watching = null;
+      apply({sinkId: '', missing: false});
+      return;
+    }
+    if (watching === null) {
+      watching = deviceApi();
+      watching?.addEventListener('devicechange', refresh);
+    }
     list()
       .then(devices => {
         if (stopped || mine !== round) return;
-        const sink = resolveAudioSink(choice, devices);
-        if (last?.sinkId === sink.sinkId && last.missing === sink.missing) {
-          return;
-        }
-        last = sink;
-        options.apply(sink);
+        apply(resolveAudioSink(choice, devices));
       })
       .catch((error: unknown) =>
         options.onError('could not list the audio output devices', error),
@@ -134,7 +145,13 @@ export function followAudioOutput(options: FollowOptions): () => void {
     readonly revision: number;
     readonly value: unknown;
   }): void => {
-    if (stopped || document.revision < revision) return;
+    if (
+      stopped ||
+      document.name !== 'preferences' ||
+      document.revision < revision
+    ) {
+      return;
+    }
     revision = document.revision;
     choice = pickChoice(document, options.pick);
     refresh();
@@ -146,11 +163,10 @@ export function followAudioOutput(options: FollowOptions): () => void {
     .catch((error: unknown) =>
       options.onError('could not read the audio output choice', error),
     );
-  deviceApi()?.addEventListener('devicechange', refresh);
   return () => {
     stopped = true;
     unsubscribe();
-    deviceApi()?.removeEventListener('devicechange', refresh);
+    watching?.removeEventListener('devicechange', refresh);
   };
 }
 

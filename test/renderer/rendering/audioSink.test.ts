@@ -153,6 +153,9 @@ describe('followAudioOutput', () => {
       push: (value: object) => {
         for (const listener of listeners) listener(document(value));
       },
+      pushDocument: (value: SettingsDocument) => {
+        for (const listener of listeners) listener(value);
+      },
     };
   }
 
@@ -160,6 +163,10 @@ describe('followAudioOutput', () => {
     const {apply, stop} = setup();
     await vi.waitFor(() => expect(apply).toHaveBeenCalledOnce());
     expect(apply).toHaveBeenCalledWith({sinkId: '', missing: false});
+    expect(devices.enumerateDevices).not.toHaveBeenCalled();
+    devices.dispatchEvent(new Event('devicechange'));
+    await settle();
+    expect(devices.enumerateDevices).not.toHaveBeenCalled();
     stop();
   });
 
@@ -226,5 +233,63 @@ describe('followAudioOutput', () => {
     devices.dispatchEvent(new Event('devicechange'));
     await Promise.resolve();
     expect(apply).toHaveBeenCalledOnce();
+  });
+
+  it('ignores unrelated settings revisions without resetting the selected device', async () => {
+    devices.list = [{kind: 'audiooutput', deviceId: 'hall', label: 'Mixer'}];
+    const {apply, pushDocument, push, stop} = setup({
+      audioOutput: {id: 'hall', label: 'Mixer'},
+    });
+    await vi.waitFor(() => expect(apply).toHaveBeenCalledOnce());
+    pushDocument({
+      name: 'screens',
+      revision: 1000,
+      access: 'editable',
+      value: {format: 'llsettings.screens', schemaVersion: 1, screens: []},
+    });
+    await settle();
+    expect(devices.enumerateDevices).toHaveBeenCalledOnce();
+    expect(apply).toHaveBeenLastCalledWith({sinkId: 'hall', missing: false});
+    push({media: {audioOutput: {id: '', label: ''}}});
+    expect(apply).toHaveBeenLastCalledWith({sinkId: '', missing: false});
+    stop();
+  });
+
+  it('discards an outstanding custom-device lookup after returning to default', async () => {
+    let finish: (value: FakeDevices['list']) => void = () => undefined;
+    devices.enumerateDevices.mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          finish = resolve;
+        }),
+    );
+    const {apply, push, stop} = setup({
+      audioOutput: {id: 'hall', label: 'Mixer'},
+    });
+    await vi.waitFor(() =>
+      expect(devices.enumerateDevices).toHaveBeenCalledOnce(),
+    );
+    push({media: {audioOutput: {id: '', label: ''}}});
+    finish([{kind: 'audiooutput', deviceId: 'hall', label: 'Mixer'}]);
+    await settle();
+    expect(apply).toHaveBeenCalledExactlyOnceWith({sinkId: '', missing: false});
+    stop();
+  });
+
+  it('stops device discovery when a custom choice returns to the Windows default', async () => {
+    devices.list = [{kind: 'audiooutput', deviceId: 'hall', label: 'Mixer'}];
+    const {apply, push, stop} = setup({
+      audioOutput: {id: 'hall', label: 'Mixer'},
+    });
+    await vi.waitFor(() =>
+      expect(apply).toHaveBeenCalledWith({sinkId: 'hall', missing: false}),
+    );
+    const calls = devices.enumerateDevices.mock.calls.length;
+    push({media: {audioOutput: {id: '', label: ''}}});
+    expect(apply).toHaveBeenLastCalledWith({sinkId: '', missing: false});
+    devices.dispatchEvent(new Event('devicechange'));
+    await settle();
+    expect(devices.enumerateDevices).toHaveBeenCalledTimes(calls);
+    stop();
   });
 });

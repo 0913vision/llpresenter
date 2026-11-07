@@ -1,4 +1,4 @@
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
 import {emptyLiveState, type LiveState} from '@core/live/state';
 import type {
@@ -11,6 +11,7 @@ import {classes} from '@renderer/rendering/classes';
 import {SlideLayerView} from '@renderer/rendering/slideLayer';
 import {startOutput} from '@renderer/output/startOutput';
 import {ScreenFrames} from '@renderer/rendering/screenFrames';
+import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {MAIN, overlaySettings} from '@fixtures/core/overlays';
 import {parseLiveState} from '@core/schema/liveState';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
@@ -32,6 +33,7 @@ const themeOutput = resolveThemeOutput({
 const SHOWING: LiveState = {
   ...emptyLiveState(),
   version: 3,
+  outputs: {[MAIN_SCREEN]: true},
   themeItem,
   themeOutput,
   layers: {
@@ -95,6 +97,7 @@ function setUp(live: Partial<LlpApi['live']> = {}) {
     output: {reportFrameRate: report => rates.push(report)},
   });
   const stop = startOutput({root, api, screenId: MAIN_SCREEN});
+  onTestFinished(stop);
   return {root, logs, rates, stop};
 }
 
@@ -196,7 +199,8 @@ describe('startOutput', () => {
     stop();
   });
 
-  it('keeps hidden live content loaded and reports ready only with its background, without a reveal dissolve', async () => {
+  it('keeps off outputs empty and loads the latest live background before revealing without a dissolve', async () => {
+    vi.spyOn(Date, 'now').mockReturnValue(10_000);
     let current = {...SHOWING, outputs: {[MAIN]: false}};
     let receive: (state: LiveState) => void = () => undefined;
     const reportReady = vi.fn((report: FrameReadyReport) =>
@@ -229,7 +233,7 @@ describe('startOutput', () => {
       version: 4,
       layers: {
         ...current.layers,
-        media: {mediaId: 'still-water', loop: true, startedAt: 0},
+        media: {mediaId: 'still-water', loop: true, startedAt: 3000},
         slide: {
           itemId: 'fixture',
           position: 0,
@@ -240,32 +244,32 @@ describe('startOutput', () => {
     };
     receive(current);
     runFramesFor(80);
-    expect(root.textContent).toContain('Hidden content');
+    expect(root.children).toHaveLength(0);
     expect(reportReady).not.toHaveBeenCalled();
+    expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
+    current = {...current, version: 5, outputs: {[MAIN]: true}};
+    receive(current);
+    expect(root.textContent).toContain('Hidden content');
+    runFramesFor(80);
+    expect(reportReady.mock.calls.some(([report]) => report.ready)).toBe(false);
     const video = [...root.querySelectorAll('video')].find(video =>
       video.src.includes('still-water'),
     );
-    if (video === undefined) throw new Error('Missing hidden background');
+    if (video === undefined) {
+      throw new Error('Missing newly enabled background');
+    }
+    Object.defineProperty(video, 'duration', {value: 12, configurable: true});
+    video.dispatchEvent(new Event('loadedmetadata'));
+    expect(video.currentTime).toBe(7);
     video.dispatchEvent(new Event('playing'));
-    runFramesFor(80);
-    await Promise.resolve();
-    await Promise.resolve();
-    await Promise.resolve();
-    expect(reportReady).not.toHaveBeenCalled();
-    const plays = vi.mocked(HTMLMediaElement.prototype.play).mock.calls.length;
-    current = {...current, version: 5, outputs: {[MAIN]: true}};
-    receive(current);
-    runFramesFor(80);
-    await Promise.resolve();
+    await pumpReadiness();
+    await pumpReadiness();
     expect(reportReady).toHaveBeenLastCalledWith(
       expect.objectContaining({screenId: MAIN, version: 5, ready: true}),
     );
     root.dispatchEvent(new MouseEvent('pointerdown', {bubbles: true}));
     expect(raise).toHaveBeenCalledExactlyOnceWith(MAIN);
     expect(video.classList.contains(classes.dissolving)).toBe(false);
-    expect(vi.mocked(HTMLMediaElement.prototype.play)).toHaveBeenCalledTimes(
-      plays,
-    );
     current = {
       ...current,
       version: 6,
@@ -281,6 +285,13 @@ describe('startOutput', () => {
     if (incoming === undefined) throw new Error('Missing new background');
     incoming.dispatchEvent(new Event('playing'));
     expect(incoming.classList.contains(classes.dissolving)).toBe(true);
+    current = {...current, version: 7, outputs: {[MAIN]: false}};
+    receive(current);
+    expect(root.children).toHaveLength(0);
+    expect(video.hasAttribute('src')).toBe(false);
+    expect(incoming.hasAttribute('src')).toBe(false);
+    expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled();
+    expect(HTMLMediaElement.prototype.load).toHaveBeenCalled();
     stop();
     root.dispatchEvent(new MouseEvent('pointerdown', {bubbles: true}));
     expect(raise).toHaveBeenCalledOnce();
@@ -305,7 +316,7 @@ describe('startOutput', () => {
     expect(
       logs.some(entry => entry.message === 'could not update the output frame'),
     ).toBe(true);
-    receive({...emptyLiveState(), version: 5});
+    receive({...emptyLiveState(), outputs: {[MAIN_SCREEN]: true}, version: 5});
     expect(root.textContent).toBe(text);
     receive({
       ...SHOWING,
@@ -357,7 +368,12 @@ describe('startOutput', () => {
     const pending = new Map<string, (document: SettingsDocument) => void>();
     const api = mockLlpApi({
       live: {
-        get: () => Promise.resolve({...live, themeOutput}),
+        get: () =>
+          Promise.resolve({
+            ...live,
+            themeOutput,
+            outputs: {[MAIN_SCREEN]: true},
+          }),
         subscribe: () => stopLive,
       },
       settings: {
@@ -453,6 +469,45 @@ describe('startOutput', () => {
     await vi.waitFor(() => expect(logs.length).toBeGreaterThan(0));
     runFramesFor(SECOND_AND_A_BIT_MS * 3);
     expect(rates).toEqual([]);
+  });
+
+  it('stops readiness and frame construction after acknowledgment while keeping an on output alive', async () => {
+    const settings = overlaySettings();
+    const defaults = mockLlpApi();
+    const ready = vi.fn(() => Promise.resolve(true));
+    const build = vi.spyOn(ScreenFrames.prototype, 'frame');
+    const checkReady = vi.spyOn(OutputRenderer.prototype, 'ready');
+    const root = document.createElement('div');
+    const api = mockLlpApi({
+      settings: {
+        get: ({name}) =>
+          name === 'screens'
+            ? Promise.resolve(settings.reader.get(name))
+            : defaults.settings.get({name}),
+      },
+      live: {
+        get: () =>
+          Promise.resolve({
+            ...SHOWING,
+            layers: {...SHOWING.layers, media: null},
+          }),
+      },
+      output: {reportReady: ready},
+    });
+    const stop = startOutput({root, api, screenId: MAIN_SCREEN});
+    await Promise.resolve();
+    await pumpReadiness();
+    await pumpReadiness();
+    expect(ready).toHaveBeenCalled();
+    const built = build.mock.calls.length;
+    const reports = ready.mock.calls.length;
+    const checks = checkReady.mock.calls.length;
+    runFramesFor(3000);
+    expect(build).toHaveBeenCalledTimes(built);
+    expect(ready).toHaveBeenCalledTimes(reports);
+    expect(checkReady).toHaveBeenCalledTimes(checks);
+    expect(root.textContent).toContain('만복의 근원');
+    stop();
   });
 
   it('stops listening and removes its picture when stopped', () => {

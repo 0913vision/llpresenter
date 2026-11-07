@@ -12,6 +12,7 @@ interface ThemePage {
   readonly root: HTMLElement;
   readonly canvas: HTMLElement;
   readonly elements: readonly ThemeElementView[];
+  readonly ticking: readonly ThemeElementView[];
   readonly signature: string;
 }
 
@@ -45,7 +46,9 @@ export class ThemeCompositionView {
     this.gaps.follow(frame);
     this.content = {layers, frame};
     const theme = frame.theme;
-    this.root.hidden = theme === undefined;
+    if (this.root.hidden !== (theme === undefined)) {
+      this.root.hidden = theme === undefined;
+    }
     if (theme === undefined) {
       this.clear();
       return;
@@ -59,14 +62,11 @@ export class ThemeCompositionView {
     }
     this.draw(rebuilt);
     if (rebuilt && this.leaving !== null) this.awaitIncoming(frame);
-    const ticks =
-      this.page?.elements.some(view =>
-        ['clock', 'timer', 'videoTimeLeft'].includes(view.element.kind),
-      ) ?? false;
+    const ticks = (this.page?.ticking.length ?? 0) > 0;
     if (ticks && this.ticker === null) {
       this.ticker = setInterval(() => {
         try {
-          this.draw();
+          this.tick();
         } catch (error) {
           this.gaps.failed('tick', error);
         }
@@ -122,6 +122,9 @@ export class ThemeCompositionView {
       root: page,
       canvas,
       elements,
+      ticking: elements.filter(view =>
+        ['clock', 'timer', 'videoTimeLeft'].includes(view.element.kind),
+      ),
       signature,
     };
     if (old !== null) {
@@ -207,6 +210,29 @@ export class ThemeCompositionView {
             `${1 / scale}px`,
           );
         }
+      }
+    }
+  }
+
+  private tick(): void {
+    const page = this.page;
+    const content = this.content;
+    if (page === null || content === null) return;
+    const video = page.ticking.some(
+      view => view.element.kind === 'videoTimeLeft',
+    )
+      ? (page.elements
+          .find(view => view.element.kind === 'media')
+          ?.remaining() ??
+        page.elements
+          .find(view => view.element.kind === 'background')
+          ?.remaining())
+      : undefined;
+    for (const view of page.ticking) {
+      try {
+        view.tick(content.layers, content.frame, video);
+      } catch (error) {
+        this.gaps.failed(view.element.id, error);
       }
     }
   }

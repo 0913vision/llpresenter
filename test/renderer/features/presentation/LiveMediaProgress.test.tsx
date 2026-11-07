@@ -59,6 +59,17 @@ it('shows the main-owned position below the preview and releases its subscriptio
   act(() => push({...reading, positionSeconds: 13}));
   expect(screen.getByText('0:13')).toBeDefined();
   expect(screen.getByText('-0:41')).toBeDefined();
+  const observer = new MutationObserver(() => undefined);
+  observer.observe(line.parentElement ?? line, {
+    attributes: true,
+    childList: true,
+    characterData: true,
+    subtree: true,
+  });
+  act(() => push({...reading, positionSeconds: 13.2}));
+  act(() => push({...reading, positionSeconds: 13.8}));
+  expect(observer.takeRecords()).toEqual([]);
+  observer.disconnect();
   act(() => push({...reading, positionSeconds: 47.2}));
   expect(screen.getByText('-0:07')).toBeDefined();
   act(() => push(null));

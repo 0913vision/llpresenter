@@ -962,6 +962,9 @@ It is a list, not a set of rows.
   device, show the warning icon on the row with the reason in a tooltip, and go
   back to the saved device when it returns. Audio never stops because a device
   is missing.
+- The Windows default needs no device enumeration or device-change watcher.
+  Discover devices only when a custom device is selected or its list is opened;
+  keep watching a custom choice so a disconnected device can return.
 - 미디어 폴더로 복사 (`media.copyOnImport`) is stored but has no row yet.
 
 #### 성경 (Bible)

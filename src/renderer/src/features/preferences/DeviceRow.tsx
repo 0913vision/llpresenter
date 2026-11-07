@@ -26,6 +26,7 @@ export function DeviceRow({
   disabled,
   title,
   onChange,
+  onOpen,
 }: {
   readonly label: string;
   readonly choice: AudioDevice;
@@ -33,6 +34,7 @@ export function DeviceRow({
   readonly disabled?: boolean | undefined;
   readonly title?: string | undefined;
   readonly onChange: (device: AudioDevice) => void;
+  readonly onOpen?: (() => void) | undefined;
 }): JSX.Element {
   const {missing, sinkId} = resolveAudioSink(choice, devices);
   const value = missing ? choice.id : sinkId;
@@ -63,6 +65,7 @@ export function DeviceRow({
             title={title}
             options={options}
             value={value}
+            onOpen={onOpen}
             onChange={id => {
               const device = devices.find(entry => entry.id === id);
               onChange(

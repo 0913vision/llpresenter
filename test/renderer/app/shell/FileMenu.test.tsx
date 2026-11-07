@@ -55,7 +55,7 @@ describe('the 파일 menu', () => {
     await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
     await userEvent.click(screen.getByRole('menuitem', {name: '새 예배'}));
     expect(screen.queryByRole('menu', {name: '파일'})).toBeNull();
-    expect(screen.getByRole('dialog', {name: '새 예배'})).toBeDefined();
+    expect(await screen.findByRole('dialog', {name: '새 예배'})).toBeDefined();
     expect(
       await screen.findByRole('treeitem', {name: titles.first}),
     ).toBeDefined();
