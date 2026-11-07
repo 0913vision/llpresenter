@@ -7,15 +7,18 @@
   flex-direction: column;
   min-height: 0;
   padding: var(--panel-inset);
+  overflow-y: auto;
+  scrollbar-gutter: stable;
 }
 
 /* NOTE(0913vision): The stage is 16:9 at the panel width. When the panel
    gives it less height, the screen inside shrinks as a whole instead of being
    cropped. */
 .stage {
-  flex: 0 1 auto;
+  flex: none;
   width: 100%;
   min-height: 0;
+  max-height: calc(100% - var(--space-10) - var(--size-control-xs));
   aspect-ratio: var(--aspect-output);
   container-type: size;
 }
@@ -39,6 +42,13 @@
   gap: var(--space-8);
   padding-top: var(--space-10);
   font: var(--type-caption);
+  height: calc(var(--space-10) + 1lh);
+  white-space: nowrap;
+}
+.caption > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .swatch {
   width: var(--space-10);

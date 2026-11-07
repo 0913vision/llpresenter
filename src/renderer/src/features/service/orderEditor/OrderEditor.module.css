@@ -53,6 +53,7 @@
   min-height: 0;
   padding: var(--space-16);
   overflow-y: auto;
+  scrollbar-gutter: stable;
 }
 
 .footer {

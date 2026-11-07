@@ -19,6 +19,7 @@
   min-width: 0;
   padding: var(--space-16) var(--space-24);
   overflow-y: auto;
+  scrollbar-gutter: stable;
   background: var(--bg-panel);
 }
 

@@ -206,6 +206,8 @@ export function CanvasEditor<T extends CanvasElement>({
       gesture.current = null;
     };
   }, []);
+  // NOTE(0913vision): Measure outside the scroller so its bars and selection
+  // handles cannot change the fit size.
   const [watchSpace, available] = useElementSize();
   const fitted = fitAspect(
     available ?? {width: 0, height: 0},
@@ -332,145 +334,147 @@ export function CanvasEditor<T extends CanvasElement>({
       data-canvas-editor
     >
       {toolbar}
-      <div
-        ref={watchSpace}
-        className={`${styles.space} ${footer === 'zoom' ? styles.scrollable : ''}`}
-      >
+      <div className={styles.viewport}>
+        <div ref={watchSpace} className={styles.measure} aria-hidden="true" />
         <div
-          ref={canvas}
-          data-command-context="canvas"
-          className={styles.canvas}
-          style={{width: size.width, height: size.height}}
-          data-canvas
-          tabIndex={0}
-          role="group"
-          aria-label={`${label} 캔버스`}
-          onPointerMove={event => {
-            const current = gesture.current;
-            if (current?.id !== event.pointerId) return;
-            current.delta = {
-              x: (event.clientX - current.x) / current.scale,
-              y: (event.clientY - current.y) / current.scale,
-            };
-            update(event.altKey);
-          }}
-          onPointerUp={event => {
-            if (gesture.current?.id === event.pointerId) stop(true);
-          }}
-          onPointerCancel={() => stop(false)}
-          onLostPointerCapture={event => {
-            if (
-              event.target === gesture.current?.target &&
-              event.pointerId === gesture.current.id &&
-              event.buttons === 0 &&
-              !gesture.current.target.hasPointerCapture(event.pointerId)
-            ) {
-              stop(true);
-            }
-          }}
-          onPointerLeave={event => {
-            const current = gesture.current;
-            if (
-              current?.id === event.pointerId &&
-              !current.target.hasPointerCapture(current.id)
-            ) {
-              stop(false);
-            }
-          }}
-          onBlur={event => {
-            if (
-              !(event.relatedTarget instanceof Node) ||
-              !event.currentTarget.contains(event.relatedTarget)
-            ) {
-              stop(false);
-            }
-          }}
-          onPointerDown={event => {
-            if (event.target === event.currentTarget) {
-              event.currentTarget.focus();
-              select(null);
-            }
-          }}
-          onKeyDown={event => {
-            if (event.key === 'Alt' && gesture.current !== null) {
-              event.preventDefault();
-              update(true);
-              return;
-            }
-            if (event.key === 'Escape') {
-              stop(false);
-              return;
-            }
-          }}
-          onKeyUp={event => {
-            if (event.key === 'Alt' && gesture.current !== null) {
-              event.preventDefault();
-              update(false);
-            }
-          }}
+          className={`${styles.space} ${footer === 'zoom' ? styles.scrollable : ''}`}
         >
-          {renderContent(picture.elements)}
-          {draft?.guides === undefined || selected !== draft.id ? null : (
-            <div className={styles.guides} aria-hidden="true">
-              {draft.guides.x === undefined ||
-              draft.guides.x < 0 ||
-              draft.guides.x > layout.width ? null : (
-                <span
-                  className={styles.guideX}
-                  data-canvas-guide="x"
-                  style={{
-                    left: `min(${(100 * draft.guides.x) / layout.width}%, calc(100% - var(--size-guide-line)))`,
-                  }}
+          <div
+            ref={canvas}
+            data-command-context="canvas"
+            className={styles.canvas}
+            style={{width: size.width, height: size.height}}
+            data-canvas
+            tabIndex={0}
+            role="group"
+            aria-label={`${label} 캔버스`}
+            onPointerMove={event => {
+              const current = gesture.current;
+              if (current?.id !== event.pointerId) return;
+              current.delta = {
+                x: (event.clientX - current.x) / current.scale,
+                y: (event.clientY - current.y) / current.scale,
+              };
+              update(event.altKey);
+            }}
+            onPointerUp={event => {
+              if (gesture.current?.id === event.pointerId) stop(true);
+            }}
+            onPointerCancel={() => stop(false)}
+            onLostPointerCapture={event => {
+              if (
+                event.target === gesture.current?.target &&
+                event.pointerId === gesture.current.id &&
+                event.buttons === 0 &&
+                !gesture.current.target.hasPointerCapture(event.pointerId)
+              ) {
+                stop(true);
+              }
+            }}
+            onPointerLeave={event => {
+              const current = gesture.current;
+              if (
+                current?.id === event.pointerId &&
+                !current.target.hasPointerCapture(current.id)
+              ) {
+                stop(false);
+              }
+            }}
+            onBlur={event => {
+              if (
+                !(event.relatedTarget instanceof Node) ||
+                !event.currentTarget.contains(event.relatedTarget)
+              ) {
+                stop(false);
+              }
+            }}
+            onPointerDown={event => {
+              if (event.target === event.currentTarget) {
+                event.currentTarget.focus();
+                select(null);
+              }
+            }}
+            onKeyDown={event => {
+              if (event.key === 'Alt' && gesture.current !== null) {
+                event.preventDefault();
+                update(true);
+                return;
+              }
+              if (event.key === 'Escape') {
+                stop(false);
+                return;
+              }
+            }}
+            onKeyUp={event => {
+              if (event.key === 'Alt' && gesture.current !== null) {
+                event.preventDefault();
+                update(false);
+              }
+            }}
+          >
+            {renderContent(picture.elements)}
+            {draft?.guides === undefined || selected !== draft.id ? null : (
+              <div className={styles.guides} aria-hidden="true">
+                {draft.guides.x === undefined ||
+                draft.guides.x < 0 ||
+                draft.guides.x > layout.width ? null : (
+                  <span
+                    className={styles.guideX}
+                    data-canvas-guide="x"
+                    style={{
+                      left: `min(${(100 * draft.guides.x) / layout.width}%, calc(100% - var(--size-guide-line)))`,
+                    }}
+                  />
+                )}
+                {draft.guides.y === undefined ||
+                draft.guides.y < 0 ||
+                draft.guides.y > layout.height ? null : (
+                  <span
+                    className={styles.guideY}
+                    data-canvas-guide="y"
+                    style={{
+                      top: `min(${(100 * draft.guides.y) / layout.height}%, calc(100% - var(--size-guide-line)))`,
+                    }}
+                  />
+                )}
+              </div>
+            )}
+            {picture.elements.map(element => (
+              <div
+                key={element.id}
+                className={`${styles.element} ${selected === element.id || selectedIds?.includes(element.id) ? styles.selected : ''}`}
+                style={{
+                  left: `${(100 * element.frame.x) / layout.width}%`,
+                  top: `${(100 * element.frame.y) / layout.height}%`,
+                  width: `${(100 * element.frame.w) / layout.width}%`,
+                  height: `${(100 * element.frame.h) / layout.height}%`,
+                }}
+                data-canvas-element={element.id}
+              >
+                <button
+                  className={styles.move}
+                  aria-label={getElementLabel(element)}
+                  aria-pressed={
+                    selected === element.id ||
+                    selectedIds?.includes(element.id) === true
+                  }
+                  onClick={() => select(element.id)}
+                  onPointerDown={event => start(event, element, 'move')}
                 />
-              )}
-              {draft.guides.y === undefined ||
-              draft.guides.y < 0 ||
-              draft.guides.y > layout.height ? null : (
-                <span
-                  className={styles.guideY}
-                  data-canvas-guide="y"
-                  style={{
-                    top: `min(${(100 * draft.guides.y) / layout.height}%, calc(100% - var(--size-guide-line)))`,
-                  }}
-                />
-              )}
-            </div>
-          )}
-          {picture.elements.map(element => (
-            <div
-              key={element.id}
-              className={`${styles.element} ${selected === element.id || selectedIds?.includes(element.id) ? styles.selected : ''}`}
-              style={{
-                left: `${(100 * element.frame.x) / layout.width}%`,
-                top: `${(100 * element.frame.y) / layout.height}%`,
-                width: `${(100 * element.frame.w) / layout.width}%`,
-                height: `${(100 * element.frame.h) / layout.height}%`,
-              }}
-              data-canvas-element={element.id}
-            >
-              <button
-                className={styles.move}
-                aria-label={getElementLabel(element)}
-                aria-pressed={
-                  selected === element.id ||
-                  selectedIds?.includes(element.id) === true
-                }
-                onClick={() => select(element.id)}
-                onPointerDown={event => start(event, element, 'move')}
-              />
-              {selected !== element.id || readOnly
-                ? null
-                : resizeHandles.map(handle => (
-                    <button
-                      key={handle}
-                      className={styles.handle}
-                      data-handle={handle}
-                      aria-label={`${element.name} ${handleNames[handle]} 크기 조절`}
-                      onPointerDown={event => start(event, element, handle)}
-                    />
-                  ))}
-            </div>
-          ))}
+                {selected !== element.id || readOnly
+                  ? null
+                  : resizeHandles.map(handle => (
+                      <button
+                        key={handle}
+                        className={styles.handle}
+                        data-handle={handle}
+                        aria-label={`${element.name} ${handleNames[handle]} 크기 조절`}
+                        onPointerDown={event => start(event, element, handle)}
+                      />
+                    ))}
+              </div>
+            ))}
+          </div>
         </div>
       </div>
       <CanvasFrameBar

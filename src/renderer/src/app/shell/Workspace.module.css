@@ -50,9 +50,32 @@
   min-width: 0;
   min-height: 0;
   overflow-y: auto;
+  scrollbar-gutter: stable;
   display: flex;
   flex-direction: column;
   gap: 0;
+}
+
+.column:has(> .settings) {
+  /* NOTE(0913vision): Item content must not redistribute these panel rows. */
+  --item-preview-height: calc(
+    (var(--ll-col-right) - 2 * var(--panel-inset)) * 9 / 16 +
+      var(--size-panel-header) + 2 * var(--panel-inset) + var(--space-10) +
+      var(--size-control-xs)
+  );
+
+  display: grid;
+  grid-template-rows:
+    clamp(
+      var(--preview-min-height),
+      calc(
+        100% - var(--slides-min-height) - var(--settings-min-height) - 2 *
+          var(--panel-gap)
+      ),
+      var(--item-preview-height)
+    )
+    minmax(var(--slides-min-height), 1fr)
+    minmax(var(--settings-min-height), 1fr);
 }
 
 .panel {
@@ -86,6 +109,7 @@
   flex: 1;
   min-height: 0;
   overflow: auto;
+  scrollbar-gutter: stable;
 }
 
 .stableScrollbar {

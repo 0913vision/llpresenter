@@ -71,6 +71,7 @@
   flex: 1;
   min-height: 0;
   overflow-y: auto;
+  scrollbar-gutter: stable;
   padding: var(--space-12) var(--panel-inset) var(--space-24);
 }
 .layer {

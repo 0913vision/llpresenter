@@ -44,6 +44,11 @@ they have the same limit. A 테마 sets the elements of each screen itself.
   save.
 - A canvas is 1920 x 1080 reference pixels. Every size and position is in
   reference pixels and scales to the screen's real resolution.
+- The editor fits that canvas to a measurement area independent of its
+  scrollbars. Selecting an element, dragging, typing or editing a property keeps
+  the canvas size and position unchanged. Selection handles fit inside the
+  reserved canvas margin; only explicit zoom or workspace resizing changes the
+  fit.
 - An element is one of a fixed set of kinds (see "Elements"). There are no
   free-form objects.
 - Every 예배 순서 item uses one 테마: the one it names, or else the default 테마

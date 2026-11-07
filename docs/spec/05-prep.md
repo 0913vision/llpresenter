@@ -25,6 +25,14 @@ Terms: 슬라이드 (slide), 예배 순서 (service order), 템플릿 (template)
   selects it.
 - The same 라이브러리 song can be open in the song editor while it's on output
   in 진행.
+- At a fixed window and bin size, selecting another item keeps the right
+  column's preview, slides and settings panel boundaries in place. Different
+  item controls scroll inside those panels instead of redistributing their
+  heights. Song and slide previews reserve the same caption height; extra
+  Bible-part controls scroll without shrinking the picture.
+- Lists, editor bodies, property panels, dialogs and pickers reserve vertical
+  scrollbar space. Crossing the overflow threshold must not change their content
+  width or move neighboring controls.
 
 Source: `Reflow`, `PrepService`, `Main` decision "작업 공간 세 개", design
 system README (window sizes and layout).

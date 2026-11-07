@@ -21,6 +21,7 @@
   min-height: 0;
   padding: var(--space-18) var(--split-inline-inset);
   overflow-y: auto;
+  scrollbar-gutter: stable;
   color: var(--text);
   font: 500 var(--split-text-size) / var(--split-line-height) var(--font-ui);
   word-break: keep-all;
@@ -71,7 +72,6 @@
   color: var(--text);
 }
 .hint[aria-pressed='true'] {
-  margin-inline: var(--space-10);
   background: var(--accent-fill);
   color: var(--text-on-fill);
 }

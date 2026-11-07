@@ -27,6 +27,9 @@
 .side {
   background: var(--bg-panel);
 }
+.side > section {
+  flex: 1;
+}
 .header {
   display: flex;
   align-items: center;
@@ -56,6 +59,7 @@
 
   flex: 1;
   overflow-y: auto;
+  scrollbar-gutter: stable;
 }
 .row {
   display: grid;
@@ -157,11 +161,14 @@
   flex-direction: column;
   min-height: 0;
   padding: var(--space-14);
+  overflow-y: auto;
+  scrollbar-gutter: stable;
 }
 .stage {
-  flex: 0 1 auto;
+  flex: none;
   width: 100%;
   min-height: 0;
+  max-height: calc(100% - var(--space-10) - var(--size-control-xs));
   container-type: size;
   aspect-ratio: 16 / 9;
 }
@@ -171,15 +178,17 @@
   margin-inline: auto;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  border: var(--radius-hairline) solid var(--line);
+  box-shadow: 0 0 0 var(--radius-hairline) var(--line);
   border-radius: var(--radius-sm);
 }
 .caption {
   display: flex;
   flex: none;
   gap: var(--space-8);
-  padding-top: var(--space-8);
+  padding-top: var(--space-10);
   font: var(--type-caption);
+  min-height: calc(var(--space-10) + 1lh);
+  white-space: nowrap;
 }
 .caption > :first-child {
   overflow: hidden;

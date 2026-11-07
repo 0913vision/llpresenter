@@ -42,6 +42,7 @@
   flex: 1;
   min-height: 0;
   overflow: auto;
+  scrollbar-gutter: stable;
 }
 .trash {
   visibility: hidden;
@@ -89,6 +90,7 @@
   flex: none;
   max-height: calc(var(--size-preview-small-max) * 2);
   overflow: auto;
+  scrollbar-gutter: stable;
 }
 .screenButton {
   display: flex;

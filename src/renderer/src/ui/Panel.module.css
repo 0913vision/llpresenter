@@ -229,6 +229,7 @@
   min-height: 0;
   padding: var(--panel-inset);
   overflow: auto;
+  scrollbar-gutter: stable;
 }
 
 .list {

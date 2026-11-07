@@ -157,6 +157,7 @@
   font: var(--type-body);
   resize: none;
   overflow: auto;
+  scrollbar-gutter: stable;
   field-sizing: content;
 }
 
