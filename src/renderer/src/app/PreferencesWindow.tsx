@@ -5,8 +5,11 @@ import {
   useState,
   useSyncExternalStore,
   type JSX,
+  type Ref,
 } from 'react';
 import {PreferencesView} from '@renderer/features/preferences/PreferencesView';
+import type {PreferencesViewHandle} from '@renderer/features/preferences/PreferencesView';
+import type {PreferencePageId} from '@core/schema/preferencePages';
 import {useShortcutSettings} from '@renderer/platform/useShortcutSettings';
 import type {PreferencesRequest} from '@contracts/ipc/window';
 import {IconButton} from '@renderer/ui';
@@ -27,9 +30,17 @@ const noSubscription = () => () => undefined;
 export function PreferencesWindow({
   closeFlush,
   session,
+  request,
+  onReady,
+  onPageSelect,
+  viewRef,
 }: {
   readonly closeFlush?: CloseFlush | undefined;
   readonly session?: ControlSession | undefined;
+  readonly request?: PreferencesRequest | undefined;
+  readonly onReady?: ((request: PreferencesRequest) => void) | undefined;
+  readonly onPageSelect?: ((page: PreferencePageId) => void) | undefined;
+  readonly viewRef?: Ref<PreferencesViewHandle> | undefined;
 }): JSX.Element {
   const [localNotices, setNotices] = useState<readonly Notice[]>([]);
   const getLocalNotices = useCallback(() => localNotices, [localNotices]);
@@ -69,7 +80,10 @@ export function PreferencesWindow({
         <PreferencesView
           onProblem={report}
           labelStore={session?.editor}
-          onReady={ready}
+          onReady={onReady ?? ready}
+          request={request}
+          onPageSelect={onPageSelect}
+          viewRef={viewRef}
         />
       </main>
       <NotificationStack

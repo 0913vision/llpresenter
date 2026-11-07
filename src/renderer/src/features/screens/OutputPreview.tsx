@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useState, type JSX} from 'react';
+import {useCallback, useEffect, useMemo, useState, type JSX} from 'react';
 import type {Screen} from '@core/schema/screens';
 import {sendLive} from '@renderer/session/live';
 import {ScreenPreview} from '@renderer/features/presentation/ScreenPreview';
@@ -30,6 +30,7 @@ const noScreens: readonly Screen[] = [];
 function useTestPatternOnOutput(
   screenId: Screen['id'],
   mode: PreviewMode,
+  resetMode: () => void,
 ): void {
   useEffect(() => {
     if (mode !== 'pattern') return undefined;
@@ -43,16 +44,19 @@ function useTestPatternOnOutput(
     return () => {
       window.removeEventListener('pagehide', hide);
       hide();
+      resetMode();
     };
-  }, [screenId, mode]);
+  }, [screenId, mode, resetMode]);
 }
 
 function PreviewBody({
   screen,
   caption,
+  pictureEnabled,
 }: {
   readonly screen: Screen;
   readonly caption: PreviewCaption;
+  readonly pictureEnabled: boolean;
 }): JSX.Element {
   const [mode, setMode] = useState<PreviewMode>('content');
   const [watchPicture, available] = useElementSize();
@@ -60,7 +64,8 @@ function PreviewBody({
     available === undefined
       ? undefined
       : fitAspect(available, REFERENCE_SCREEN.width / REFERENCE_SCREEN.height);
-  useTestPatternOnOutput(screen.id, mode);
+  const resetMode = useCallback(() => setMode('content'), []);
+  useTestPatternOnOutput(screen.id, mode, resetMode);
   const signal = signalText(caption);
   return (
     <section className={styles.preview} aria-label="출력 미리보기">
@@ -74,14 +79,15 @@ function PreviewBody({
       />
       <div className={styles.picture} ref={watchPicture}>
         <div className={styles.frame} style={picture} data-preview-picture>
-          <ScreenPreview
-            screenId={screen.id}
-            chroma={screen.method === 'capture'}
-          />
+          {pictureEnabled ? (
+            <ScreenPreview
+              screenId={screen.id}
+              chroma={screen.method === 'capture'}
+            />
+          ) : null}
         </div>
       </div>
       <div className={styles.caption}>
-        <span className={styles.name}>{caption.name}</span>
         <span>{caption.target}</span>
         {signal !== '' && <span>{signal}</span>}
       </div>
@@ -100,8 +106,10 @@ function PreviewBody({
  */
 export function OutputPreview({
   onProblem,
+  pictureEnabled = true,
 }: {
   readonly onProblem?: ((notice: Notice) => void) | undefined;
+  readonly pictureEnabled?: boolean | undefined;
 }): JSX.Element | null {
   const document = useSettingsDocument('screens', LOAD_TITLE, onProblem);
   const monitors = useMonitors();
@@ -112,5 +120,12 @@ export function OutputPreview({
     [selected, monitors],
   );
   if (selected === undefined || caption === undefined) return null;
-  return <PreviewBody key={selected.id} screen={selected} caption={caption} />;
+  return (
+    <PreviewBody
+      key={selected.id}
+      screen={selected}
+      caption={caption}
+      pictureEnabled={pictureEnabled}
+    />
+  );
 }

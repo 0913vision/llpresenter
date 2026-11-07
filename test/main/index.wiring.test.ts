@@ -201,13 +201,15 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     await vi.waitFor(() => expect(mocks.textImportStop).toHaveBeenCalledOnce());
   });
 
-  it('registers the screens window owner and disposes it before saving app.json', async () => {
+  it('registers one settings window owner and disposes it before saving app.json', async () => {
     await startMain();
     expect(mocks.screensWindowContexts).toEqual([
       expect.objectContaining({
         control: mocks.opened.control,
-        store: mocks.outputContexts[0]?.store,
-        config: mocks.appConfig,
+        screens: {
+          store: mocks.outputContexts[0]?.store,
+          config: mocks.appConfig,
+        },
         zoom: mocks.zoom,
         mode: 'normal',
       }),

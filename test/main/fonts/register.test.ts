@@ -73,6 +73,20 @@ it('answers trusted main frames, rejects foreign output pages and arguments, and
     await expect(
       ask({sender: screens, senderFrame: screens.mainFrame}),
     ).resolves.toEqual([fontFamilyFixture()]);
+    const settings = {
+      ...output,
+      getURL: () => 'file:///app/index.html?window=settings',
+    };
+    await expect(
+      ask({sender: settings, senderFrame: settings.mainFrame}),
+    ).resolves.toEqual([fontFamilyFixture()]);
+    const foreignSettings = {
+      ...settings,
+      getURL: () => 'file:///other/index.html?window=settings',
+    };
+    expect(() =>
+      ask({sender: foreignSettings, senderFrame: foreignSettings.mainFrame}),
+    ).toThrow('Invalid');
     expect(() => ask({sender: output, senderFrame: {}})).toThrow('Invalid');
     const foreign = {...output, getURL: () => 'file:///other/output.html'};
     expect(() =>

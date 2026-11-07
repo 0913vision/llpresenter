@@ -18,15 +18,40 @@ import {useLiveStateShortcuts} from '@renderer/features/tools/useLiveStateShortc
 import {useUiZoomKeys} from './shell/uiZoomKeys';
 import {useInitialListFocus} from './useWindowKeyboard';
 import {useShortcutSettings} from '@renderer/platform/useShortcutSettings';
+import {
+  LoadReadiness,
+  LoadReadinessContext,
+  usePaintedReadiness,
+} from '@renderer/ui/loadReadiness';
+import {useCloseKeys} from './useWindowKeyboard';
 
-/** The screen and monitor settings, separate from the theme workspace. */
-export function ScreensWindow({
-  onProblem,
-  closeFlush,
-}: {
+interface ScreensWindowProps {
   readonly onProblem?: ((notice: Notice) => void) | undefined;
   readonly closeFlush?: CloseFlush | undefined;
-}): JSX.Element {
+  readonly onReady?: (() => void) | undefined;
+  readonly preparing?: boolean | undefined;
+}
+
+/** The screen and monitor settings, separate from the theme workspace. */
+export function ScreensWindow(props: ScreensWindowProps): JSX.Element {
+  const [readiness] = useState(() => new LoadReadiness());
+  return (
+    <LoadReadinessContext value={readiness}>
+      <ScreensContent {...props} readiness={readiness} />
+    </LoadReadinessContext>
+  );
+}
+
+function ScreensContent({
+  onProblem,
+  closeFlush,
+  onReady,
+  preparing = false,
+  readiness,
+}: ScreensWindowProps & {readonly readiness: LoadReadiness}): JSX.Element {
+  usePaintedReadiness(readiness, onReady);
+  const close = useCallback(() => window.llp?.window.control('close'), []);
+  useCloseKeys(close);
   const [notices, setNotices] = useState<readonly Notice[]>([]);
   useShortcutSettings(window.llp);
   useClearKeys();
@@ -78,7 +103,14 @@ export function ScreensWindow({
             />
             <Panel
               title="출력 미리보기"
-              parts={{body: <OutputPreview onProblem={report} />}}
+              parts={{
+                body: (
+                  <OutputPreview
+                    onProblem={report}
+                    pictureEnabled={!preparing}
+                  />
+                ),
+              }}
             />
           </div>
           <div className={styles.column}>

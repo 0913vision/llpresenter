@@ -9,7 +9,7 @@ import {
   within,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {StrictMode} from 'react';
+import {Activity, StrictMode} from 'react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {EditResult} from '@core/schema/contentEdit';
 import type {
@@ -200,6 +200,45 @@ async function openPage(name: string): Promise<void> {
 }
 
 describe('PreferencesView', () => {
+  it('uses the current shared-window request after the view resumes', async () => {
+    const legacy = vi.fn(async () => 'general' as const);
+    install({window: {preferencesPage: legacy}});
+    const onReady = vi.fn();
+    const request = {requestId: 2, page: 'shortcuts'} as const;
+    const view = render(
+      <Activity mode="visible">
+        <PreferencesView
+          onProblem={onProblem}
+          onReady={onReady}
+          request={request}
+        />
+      </Activity>,
+    );
+    await waitFor(() => expect(onReady).toHaveBeenCalledWith(request));
+    view.rerender(
+      <Activity mode="hidden">
+        <PreferencesView
+          onProblem={onProblem}
+          onReady={onReady}
+          request={request}
+        />
+      </Activity>,
+    );
+    const next = {requestId: 4, page: 'bible'} as const;
+    onReady.mockClear();
+    view.rerender(
+      <Activity mode="visible">
+        <PreferencesView
+          onProblem={onProblem}
+          onReady={onReady}
+          request={next}
+        />
+      </Activity>,
+    );
+    await waitFor(() => expect(onReady).toHaveBeenCalledWith(next));
+    expect(screen.getByRole('heading', {name: '성경'})).toBeTruthy();
+    expect(legacy).not.toHaveBeenCalled();
+  });
   it.each([
     'bible',
     'shortcuts',

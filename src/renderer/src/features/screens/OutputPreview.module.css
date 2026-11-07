@@ -38,8 +38,3 @@
   color: var(--text-2);
   font: var(--type-caption);
 }
-
-.name {
-  color: var(--text);
-  font: var(--type-body-strong);
-}

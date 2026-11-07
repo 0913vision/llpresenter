@@ -119,7 +119,7 @@ it('flushes focused property drafts and queued writes in the settings renderer b
   });
   window.llp = api;
   const originalUrl = window.location.href;
-  window.history.replaceState({}, '', '?window=screens');
+  window.history.replaceState({}, '', '?window=settings');
   const container = document.createElement('div');
   container.id = 'root';
   const input = document.createElement('input');

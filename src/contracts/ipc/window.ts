@@ -73,6 +73,36 @@ export interface PreferencesRequest {
   readonly page: PreferencePageId;
 }
 
+export interface SettingsRequest extends PreferencesRequest {
+  readonly view: 'preferences' | 'screens';
+  readonly preparing: boolean;
+}
+
+/** Checks the bounded route and generation of the shared settings window. */
+export function parseSettingsRequest(
+  value: unknown,
+): Result<SettingsRequest, PayloadError> {
+  const parsed = parsePreferencesRequest(value);
+  if (!parsed.ok) return parsed;
+  if (
+    typeof value !== 'object' ||
+    value === null ||
+    !('view' in value) ||
+    (value.view !== 'preferences' && value.view !== 'screens') ||
+    !('preparing' in value) ||
+    typeof value.preparing !== 'boolean'
+  ) {
+    return {
+      ok: false,
+      error: {field: '', message: 'Expected a settings window route'},
+    };
+  }
+  return {
+    ok: true,
+    value: {...parsed.value, view: value.view, preparing: value.preparing},
+  };
+}
+
 /** Correlates a rendered preferences page with the request that selected it. */
 export function parsePreferencesRequest(
   value: unknown,
@@ -140,6 +170,26 @@ export function parseOnOff(value: unknown): Result<boolean, PayloadError> {
 
 /** The title bar calls. */
 export const windowEndpoints = {
+  settingsRequest: query<SettingsRequest>(
+    'window:settings-request',
+    parseSettingsRequest,
+  ),
+  showSettingsRequest: push<SettingsRequest>(
+    'window:show-settings-request',
+    parseSettingsRequest,
+  ),
+  beginSettingsRequest: request<SettingsRequest, boolean>(
+    'window:begin-settings-request',
+    {request: parseSettingsRequest, reply: parseOnOff, refuse: () => false},
+  ),
+  rejectSettingsRequest: message<SettingsRequest>(
+    'window:reject-settings-request',
+    parseSettingsRequest,
+  ),
+  settingsReady: message<SettingsRequest>(
+    'window:settings-ready',
+    parseSettingsRequest,
+  ),
   openScreens: signal('window:open-screens'),
   openPreferences: signal('window:open-preferences'),
   preferencesReady: message<PreferencesRequest>(
@@ -193,6 +243,13 @@ export const windowEndpoints = {
 /** The title bar part of `window.llp`. */
 export function windowApi(port: IpcPort) {
   return {
+    /** Reads and follows the latest route of the one settings window. */
+    settingsRequest: port.query(windowEndpoints.settingsRequest),
+    onSettingsRequest: port.subscribe(windowEndpoints.showSettingsRequest),
+    /** Hides and sizes a changing view before its renderer commits it. */
+    beginSettingsRequest: port.request(windowEndpoints.beginSettingsRequest),
+    rejectSettingsRequest: port.message(windowEndpoints.rejectSettingsRequest),
+    settingsReady: port.message(windowEndpoints.settingsReady),
     /** Opens or focuses the screen configuration window. */
     openScreens: port.signal(windowEndpoints.openScreens),
     /** Opens or focuses the 환경설정 window. */

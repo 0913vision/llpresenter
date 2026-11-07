@@ -1,55 +1,18 @@
-import {app, BrowserWindow, ipcMain, screen} from 'electron';
-import {windowEndpoints} from '@contracts/ipc/window';
+import {screen, type BrowserWindow} from 'electron';
 import type {AppConfigFile} from '../store/appConfigFile';
-import type {UiZoomRegistration} from '../store/uiZoom';
-import type {Logger} from '../log';
-import {guardTestPatterns} from '../outputs/testPatternGuard';
-import {blockNavigation, loadPage, preloadPath} from './page';
-import {reloadAfterCrash} from './crashReload';
-import {registerControlClose, type ControlClose} from './controlClose';
-import {
-  discardTestFrames,
-  windowTestOptions,
-  type WindowMode,
-} from './testWindows';
+import type {WindowMode} from './testWindows';
 
+export type ScreensWindowConfig = Pick<
+  AppConfigFile,
+  'screensWindow' | 'setScreensWindow'
+>;
 const MIN_WIDTH = 1280;
 const MIN_HEIGHT = 720;
 const DEFAULT_WIDTH = 1600;
 const DEFAULT_HEIGHT = 900;
-const PAGE = {name: 'index', query: {window: 'screens'}} as const;
 
-interface ScreensWindowOptions {
-  readonly control: BrowserWindow;
-  readonly store: Parameters<typeof guardTestPatterns>[0]['store'];
-  readonly config: Pick<AppConfigFile, 'screensWindow' | 'setScreensWindow'>;
-  readonly zoom: Pick<UiZoomRegistration, 'attachControl'>;
-  readonly mode: WindowMode;
-  readonly log: Logger;
-}
-
-export interface ScreensWindowRegistration {
-  readonly close: () => Promise<boolean>;
-  readonly dispose: () => Promise<void>;
-}
-
-function rememberWindow(
-  win: BrowserWindow,
-  {config, mode}: Pick<ScreensWindowOptions, 'config' | 'mode'>,
-): void {
-  if (mode === 'offscreen' || win.isDestroyed()) return;
-  config.setScreensWindow({
-    ...win.getNormalBounds(),
-    maximized: win.isMaximized(),
-  });
-}
-
-function createScreensWindow({
-  config,
-  zoom,
-  mode,
-  log,
-}: ScreensWindowOptions): BrowserWindow {
+/** Restores the screen editor's saved bounds without moving it off its monitor. */
+export function screensBounds(config: ScreensWindowConfig) {
   const saved = config.screensWindow;
   const area = (
     saved === undefined
@@ -64,8 +27,7 @@ function createScreensWindow({
     area.height,
     Math.max(MIN_HEIGHT, saved?.height ?? DEFAULT_HEIGHT),
   );
-  const {webPreferences, ...testOptions} = windowTestOptions(mode);
-  const created = new BrowserWindow({
+  return {
     width,
     height,
     x: Math.max(
@@ -84,104 +46,33 @@ function createScreensWindow({
     ),
     minWidth: Math.min(MIN_WIDTH, area.width),
     minHeight: Math.min(MIN_HEIGHT, area.height),
-    title: '화면 설정',
-    frame: false,
-    show: false,
-    backgroundColor: '#0e0e0e',
-    ...testOptions,
-    webPreferences: {
-      preload: preloadPath,
-      sandbox: true,
-      contextIsolation: true,
-      nodeIntegration: false,
-      spellcheck: false,
-      ...webPreferences,
-    },
-  });
-  const remember = (): void => rememberWindow(created, {config, mode});
-  created.on('move', remember);
-  created.on('resize', remember);
-  created.on('close', remember);
-  created.removeMenu();
-  created.webContents.setAudioMuted(true);
-  discardTestFrames(created.webContents, mode);
-  zoom.attachControl(created.webContents);
-  blockNavigation(created);
-  created.once('ready-to-show', () => {
-    if (mode === 'offscreen') return;
-    if (saved?.maximized === true) created.maximize();
-    created.show();
-  });
-  reloadAfterCrash({win: created, page: PAGE, label: 'screens', log});
-  loadPage(created, PAGE, log);
-  return created;
+  };
 }
 
-/** Owns one screen configuration window and releases its IPC and window on stop. */
-export function registerScreensWindow({
-  control,
-  store,
-  config,
-  zoom,
-  mode,
-  log,
-}: ScreensWindowOptions): ScreensWindowRegistration {
-  let win: BrowserWindow | null = null;
-  let closing: ControlClose | undefined;
-  let disposed = false;
-  const open = (): void => {
-    if (disposed) return;
-    if (win !== null && !win.isDestroyed()) {
-      if (mode === 'normal') {
-        if (win.isMinimized()) win.restore();
-        win.focus();
-      }
-      return;
-    }
-    const created = createScreensWindow({
-      control,
-      store,
-      config,
-      zoom,
-      mode,
-      log,
-    });
-    win = created;
-    const stopPatterns = guardTestPatterns({control: created, store, log});
-    const handshake = registerControlClose({control: created, log});
-    closing = handshake;
-    created.once('closed', () => {
-      stopPatterns();
-      handshake.dispose();
-      win = null;
-      closing = undefined;
-      if (control.isDestroyed()) app.quit();
-    });
-  };
-  ipcMain.on(windowEndpoints.openScreens.channel, open);
-  const close = async (): Promise<boolean> => {
-    const current = win;
-    if (current === null || current.isDestroyed()) return true;
-    if (!(await closing?.confirmClose())) return false;
-    if (!current.isDestroyed()) {
-      rememberWindow(current, {config, mode});
-      current.destroy();
-    }
-    return true;
-  };
-  const closeAfterControl = (): void => {
-    close().catch((error: unknown) =>
-      log.error('could not close the screens window', error),
-    );
-  };
-  control.once('closed', closeAfterControl);
-  return {
-    close,
-    dispose: async () => {
-      if (disposed || !(await close())) return;
-      disposed = true;
-      ipcMain.removeListener(windowEndpoints.openScreens.channel, open);
-      control.removeListener('closed', closeAfterControl);
-    },
-  };
+/** Keeps screen-editor placement separate from the fixed preferences dialog. */
+export function rememberScreensWindow(
+  win: BrowserWindow,
+  config: ScreensWindowConfig,
+  mode: WindowMode,
+): void {
+  if (mode === 'offscreen' || win.isDestroyed()) return;
+  config.setScreensWindow({
+    ...win.getNormalBounds(),
+    maximized: win.isMaximized(),
+  });
+}
+
+export function applyScreensBounds(
+  win: BrowserWindow,
+  config: ScreensWindowConfig,
+  mode: WindowMode,
+): void {
+  const maximized = config.screensWindow?.maximized === true;
+  const {minWidth, minHeight, ...bounds} = screensBounds(config);
+  if (mode === 'normal' && win.isMaximized()) win.unmaximize();
+  win.setResizable(true);
+  win.setMaximizable(true);
+  win.setMinimumSize(minWidth, minHeight);
+  win.setBounds(bounds);
+  if (mode === 'normal' && maximized) win.maximize();
 }

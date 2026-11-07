@@ -4,6 +4,9 @@ import {
   useRef,
   useState,
   useSyncExternalStore,
+  useImperativeHandle,
+  Activity,
+  type Ref,
   type JSX,
 } from 'react';
 import type {PreferencesRequest} from '@contracts/ipc/window';
@@ -36,6 +39,13 @@ interface PreferencesViewProps {
   readonly onProblem: (notice: Notice) => void;
   readonly labelStore?: SongEditorStore | undefined;
   readonly onReady?: ((request: PreferencesRequest) => void) | undefined;
+  readonly request?: PreferencesRequest | undefined;
+  readonly onPageSelect?: ((page: PreferencePageId) => void) | undefined;
+  readonly viewRef?: Ref<PreferencesViewHandle> | undefined;
+}
+
+export interface PreferencesViewHandle {
+  settle(): Promise<boolean>;
 }
 
 /** The page list and the open page of the 환경설정 window. */
@@ -53,9 +63,16 @@ function PreferencesContent({
   labelStore,
   onReady,
   readiness,
+  request: controlledRequest,
+  onPageSelect,
+  viewRef,
 }: PreferencesViewProps & {readonly readiness: LoadReadiness}): JSX.Element {
-  const [page, setPage] = useState<PreferencePageId>('general');
-  const [started, setStarted] = useState(false);
+  const [localPage, setPage] = useState<PreferencePageId>('general');
+  const page = controlledRequest?.page ?? localPage;
+  const [shortcutsPrepared, setShortcutsPrepared] = useState(false);
+  if (page === 'shortcuts' && !shortcutsPrepared) setShortcutsPrepared(true);
+  const [localStarted, setStarted] = useState(false);
+  const started = controlledRequest !== undefined || localStarted;
   const [pageRequest, setPageRequest] = useState(0);
   const pending = useSyncExternalStore(
     readiness.subscribe,
@@ -67,11 +84,26 @@ function PreferencesContent({
       labelStore?.getSnapshot().labels !== null ||
       labelStore.getSnapshot().labelsStatus === 'failed',
   );
-  const [request, setRequest] = useState<PreferencesRequest | null>(null);
+  const [localRequest, setRequest] = useState<PreferencesRequest | null>(null);
+  const request = controlledRequest ?? localRequest;
+  const announced = useRef<PreferencesRequest | null>(null);
   const currentPage = useRef(page);
   const labelManager = useRef<LabelManagerHandle>(null);
   const requestedPage = useRef<PreferencePageId | null>(null);
   const settling = useRef(false);
+  useImperativeHandle(
+    viewRef,
+    () => ({
+      settle: async () => {
+        const focused = document.activeElement;
+        if (focused instanceof HTMLElement) focused.blur();
+        return page === 'labels'
+          ? ((await labelManager.current?.settle()) ?? true)
+          : true;
+      },
+    }),
+    [page],
+  );
   const requestPage = useCallback((next: PreferencePageId): void => {
     setPageRequest(value => value + 1);
     requestedPage.current = next;
@@ -113,6 +145,9 @@ function PreferencesContent({
   // run instead of asking again.
   const start = useRef<Promise<PreferencePageId | null> | null>(null);
   useEffect(() => {
+    if (controlledRequest !== undefined) {
+      return undefined;
+    }
     const api = window.llp?.window;
     if (api === undefined) return undefined;
     let stopped = false;
@@ -141,10 +176,16 @@ function PreferencesContent({
       requestedPage.current = null;
       stop();
     };
-  }, [requestPage]);
+  }, [requestPage, controlledRequest]);
   useEffect(() => {
     const api = window.llp?.window;
-    if (api === undefined || onReady === undefined) return undefined;
+    if (
+      api === undefined ||
+      onReady === undefined ||
+      controlledRequest !== undefined
+    ) {
+      return undefined;
+    }
     let active = true;
     api.preferencesRequest().then(
       value => {
@@ -160,7 +201,7 @@ function PreferencesContent({
     return () => {
       active = false;
     };
-  }, [pageRequest, onReady]);
+  }, [pageRequest, onReady, controlledRequest]);
   const edits = usePreferenceEdits(onProblem);
   const loaded = pending === 0 && (page !== 'labels' || labelsLoaded);
   useEffect(() => {
@@ -173,14 +214,17 @@ function PreferencesContent({
       return undefined;
     }
     let stopped = false;
-    let frame = 0;
     const draw = (): void => {
-      if (stopped) return;
-      frame = requestAnimationFrame(() => {
-        frame = requestAnimationFrame(() => {
-          if (!stopped) onReady(request);
-        });
-      });
+      if (
+        stopped ||
+        readiness.getSnapshot() !== 0 ||
+        (announced.current?.requestId === request.requestId &&
+          announced.current.page === request.page)
+      ) {
+        return;
+      }
+      announced.current = request;
+      onReady(request);
     };
     document.fonts.ready.then(draw, (error: unknown) => {
       window.llp?.log.write({
@@ -192,9 +236,8 @@ function PreferencesContent({
     });
     return () => {
       stopped = true;
-      cancelAnimationFrame(frame);
     };
-  }, [started, loaded, onReady, pageRequest, page, request]);
+  }, [started, loaded, onReady, pageRequest, page, request, readiness]);
   const bible = useBibleEdits(onProblem);
   const current = preferencePages.find(entry => entry.id === page);
   return (
@@ -205,7 +248,10 @@ function PreferencesContent({
           selected={page}
           onSelect={value => {
             const next = preferencePages.find(entry => entry.id === value);
-            if (next !== undefined) requestPage(next.id);
+            if (next !== undefined) {
+              if (onPageSelect !== undefined) onPageSelect(next.id);
+              else requestPage(next.id);
+            }
           }}
         >
           {preferencePages.map(entry => (
@@ -219,11 +265,14 @@ function PreferencesContent({
         </ListBox>
       </nav>
       <section className={styles.page} aria-label={current?.label}>
-        {page === 'shortcuts' ? (
-          <ShortcutsPage onProblem={onProblem} />
-        ) : (
+        {page === 'shortcuts' ? null : (
           <h1 className={styles.title}>{current?.label}</h1>
         )}
+        {shortcutsPrepared ? (
+          <Activity mode={page === 'shortcuts' ? 'visible' : 'hidden'}>
+            <ShortcutsPage onProblem={onProblem} />
+          </Activity>
+        ) : null}
         <Properties placement="window">
           {page === 'general' ? <GeneralPage edits={edits} /> : null}
           {page === 'output' ? <OutputPage edits={edits} /> : null}

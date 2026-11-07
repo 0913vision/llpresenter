@@ -141,17 +141,11 @@ const mocks = vi.hoisted(() => {
 });
 
 vi.mock('electron', () => mocks.electron);
-vi.mock('@main/windows/screens', () => ({
-  registerScreensWindow: (context: unknown) => {
+vi.mock('@main/windows/settingsWindow', () => ({
+  registerSettingsWindow: (context: unknown) => {
     mocks.screensWindowContexts.push(context);
     return {close: mocks.screensWindowClose, dispose: mocks.screensWindowStop};
   },
-}));
-vi.mock('@main/windows/preferences', () => ({
-  registerPreferencesWindow: () => ({
-    close: () => Promise.resolve(true),
-    dispose: () => Promise.resolve(),
-  }),
 }));
 vi.mock('@main/windows/orderEditor', () => ({
   registerOrderEditorWindow: (context: unknown) => {

@@ -223,8 +223,18 @@ describe('the display layout', () => {
 
     await waitFor(() => expect(box(2)).toBeTruthy());
     expect(box(1).textContent).toContain('컨트롤');
+    expect(box(1).textContent).toContain('모니터 1');
+    expect(box(1).textContent).not.toContain('출력 미지정');
+    expect(box(1).textContent).not.toContain('연결된 화면 없음');
     expect(box(2).textContent).toContain('Monitor 2');
     expect(box(2).textContent).toContain('1920×1080');
+  });
+
+  it('describes an unused physical monitor as unassigned output', async () => {
+    setup(() => Promise.resolve([monitor(3, 0)]));
+    await waitFor(() => expect(box(3).textContent).toContain('출력 미지정'));
+    expect(box(3).textContent).toContain('모니터 3');
+    expect(box(3).textContent).not.toContain('연결된 화면 없음');
   });
 
   it('highlights the monitor of the selected screen', async () => {

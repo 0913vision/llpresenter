@@ -854,6 +854,11 @@ same place.
 - Open with the requested page, settings, and fonts already drawn, without
   exposing a blank frame. After saving on close, hide the window before
   releasing it and return focus to its opener. A refused save keeps it open.
+- 환경설정, 편집 > 단축키, and 화면 설정 use the same prepared window (06).
+  단축키 is prepared before it is requested. Only the active view handles keys
+  or runs previews; switching views preserves controls without another resident
+  renderer. A page readiness signal belongs to its current request, including
+  after a renderer reload.
 - The window and its frame stay as in 06: a separate window titled "환경설정",
   opened from 파일 > 환경설정 or Ctrl ,.
 - Pages, in this order. Each row's name is one line in the left column; no

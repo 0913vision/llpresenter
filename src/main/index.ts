@@ -51,8 +51,7 @@ import {
 import {createControlWindow} from './windows/control';
 import {announceReloadAfterCrash} from './windows/reloadNotice';
 import {registerOrderEditorWindow} from './windows/orderEditor';
-import {registerPreferencesWindow} from './windows/preferences';
-import {registerScreensWindow} from './windows/screens';
+import {registerSettingsWindow} from './windows/settingsWindow';
 import {registerSongEditorWindow} from './windows/songEditor';
 import {registerSlidesEditorWindow} from './windows/slidesEditor';
 import {isItemOfKind} from '@core/schema/service';
@@ -227,19 +226,12 @@ function start(): void {
       const stopReloadNotice = announceReloadAfterCrash(win.webContents, () =>
         problems.feed.report({kind: 'control-reloaded'}),
       );
-      const screensWindow = registerScreensWindow({
-        control: win,
-        store,
-        config: appConfig,
-        zoom,
-        mode: windowMode,
-        log,
-      });
-      const preferencesWindow = registerPreferencesWindow({
+      const settingsWindow = registerSettingsWindow({
         control: win,
         zoom,
         mode: windowMode,
         log,
+        screens: {store, config: appConfig},
       });
       const editorWindowContext = {
         control: win,
@@ -272,8 +264,7 @@ function start(): void {
       const closing = registerControlClose({control: win, log});
       shutdown.confirmWith(
         async () =>
-          (await screensWindow.close()) &&
-          (await preferencesWindow.close()) &&
+          (await settingsWindow.close()) &&
           (await orderEditorWindow.close()) &&
           (await slidesEditorWindow.close()) &&
           (await closing.confirmClose()),
@@ -370,8 +361,8 @@ function start(): void {
       shutdown.add({name: 'stop the soak scenario', run: stopSoakScenario});
       shutdown.add({name: 'stop text import', run: stopTextImport});
       shutdown.add({
-        name: 'stop screen configuration',
-        run: screensWindow.dispose,
+        name: 'stop the settings window',
+        run: settingsWindow.dispose,
       });
       shutdown.add({
         name: 'stop the Windows sign-in item',
@@ -380,10 +371,6 @@ function start(): void {
       shutdown.add({
         name: 'stop the location channels',
         run: stopLocations,
-      });
-      shutdown.add({
-        name: 'stop the preferences window',
-        run: preferencesWindow.dispose,
       });
       shutdown.add({
         name: 'stop the order editor window',

@@ -21,7 +21,9 @@ function isRenderReader(sender: WebContents, control: FontReader): boolean {
       actual.origin === expected.origin &&
       (actual.pathname === expected.pathname ||
         (actual.pathname === controlPage.pathname &&
-          actual.searchParams.get('window') === 'screens'))
+          ['screens', 'settings'].includes(
+            actual.searchParams.get('window') ?? '',
+          )))
     );
   } catch {
     return false;

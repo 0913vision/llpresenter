@@ -87,6 +87,16 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
       ...overrides.live,
     },
     window: {
+      settingsRequest: async () => ({
+        requestId: 0,
+        view: 'preferences',
+        page: 'general',
+        preparing: false,
+      }),
+      onSettingsRequest: () => () => undefined,
+      beginSettingsRequest: async () => true,
+      rejectSettingsRequest: () => undefined,
+      settingsReady: () => undefined,
       control: () => undefined,
       fullScreen: () => Promise.resolve(false),
       onFullScreen: () => () => undefined,

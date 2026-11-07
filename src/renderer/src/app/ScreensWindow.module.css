@@ -29,10 +29,18 @@
   min-height: 0;
   overflow-x: auto;
   grid-template-columns:
-    var(--col-left-compact) minmax(var(--col-center-min), 1fr)
+    var(--col-left) minmax(var(--col-center-min), 1fr)
     var(--col-right);
   gap: var(--panel-gap);
   padding: var(--panel-gap);
+}
+
+@media (width < 1600px) {
+  .columns {
+    grid-template-columns:
+      var(--col-left) minmax(var(--col-center-min), 1fr)
+      calc(var(--col-right) - var(--col-left) + var(--col-left-compact));
+  }
 }
 
 .column {

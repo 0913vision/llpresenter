@@ -11,7 +11,43 @@ import {
   windowEndpoints,
   parsePreferencesRequest,
   PREFERENCES_REQUEST_LIMIT,
+  parseSettingsRequest,
 } from '@contracts/ipc/window';
+
+describe('the shared settings request', () => {
+  it.each(['screens', 'preferences'])(
+    'accepts %s with a bounded identity and strips extra fields',
+    view => {
+      for (const requestId of [0, PREFERENCES_REQUEST_LIMIT]) {
+        for (const preparing of [true, false]) {
+          const value = {view, page: 'shortcuts', requestId, preparing};
+          expect(parseSettingsRequest({...value, extra: true})).toEqual({
+            ok: true,
+            value,
+          });
+        }
+      }
+    },
+  );
+  it.each([
+    null,
+    {},
+    {view: 'other', page: 'general', requestId: 0, preparing: false},
+    {view: 'screens', page: 'other', requestId: 0, preparing: false},
+    {view: 'screens', page: 'general', requestId: -1, preparing: false},
+    {
+      view: 'screens',
+      page: 'general',
+      requestId: PREFERENCES_REQUEST_LIMIT + 1,
+      preparing: false,
+    },
+    {view: 'screens', page: 'general', requestId: 0.5, preparing: false},
+    {view: 'screens', page: 'general', requestId: 0, preparing: 'false'},
+    {view: 'screens', page: 'general', requestId: 0},
+  ])('rejects malformed request %j', value => {
+    expect(parseSettingsRequest(value).ok).toBe(false);
+  });
+});
 
 describe('preferences request identity', () => {
   it.each([0, PREFERENCES_REQUEST_LIMIT])(

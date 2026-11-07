@@ -105,14 +105,14 @@ function MonitorView({
         height: percent(box.height),
       }}
     >
-      <span className={styles.number}>{box.number}</span>
+      <span className={styles.number}>모니터 {box.number}</span>
+      <span>{box.name}</span>
+      <span>{box.resolution}</span>
       {box.screens.length > 0 && (
         <span className={styles.screens}>{box.screens.join(', ')}</span>
       )}
-      {box.screens.length === 0 && <span>연결된 화면 없음</span>}
+      {!box.control && box.screens.length === 0 && <span>출력 미지정</span>}
       {box.control && <span className={styles.control}>{CONTROL_LABEL}</span>}
-      <span>{box.resolution}</span>
-      <span>{box.name}</span>
     </button>
   );
 }

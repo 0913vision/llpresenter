@@ -26,6 +26,20 @@ It closes with the app and remembers its normal size, position, and maximized
 state in the computer-local `app.json`. A saved position on a disconnected
 monitor is brought into the current work area.
 
+화면 설정 and 환경설정 share one prepared native window and renderer. Opening
+either switches that window to the requested view; it appears only after its
+settings, monitor data, and fonts have drawn. The hidden view keeps its controls
+prepared but stops keyboard handling, subscriptions, and preview rendering.
+Leaving 화면 설정 removes its test pattern and returning starts in 화면 내용.
+The screen editor keeps its saved geometry separately from the fixed preferences
+dialog. Switching settles pending drafts first; canceling keeps the current
+view. Closing saves, hides, releases the window, and returns focus to its
+opener; a refused save keeps it open. A replacement is prepared after close. The
+prepared native window keeps background throttling off while hidden. Readiness
+waits for committed data and fonts, then main captures the requested native
+frame before revealing it, without waiting on an occluded window's animation
+frames. Inactive views still suspend their effects and previews.
+
 | Column | 화면 설정 window                                                                      | 테마 workspace (12)                                       |
 | ------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------- |
 | Left   | 화면 list, grouped into 청중, 방송, and 무대                                          | 테마 list, then 요소 and 요소 추가 for the current screen |
@@ -35,6 +49,11 @@ monitor is brought into the current work area.
 - The toolbar workspace tab is 테마. The 테마 editor is specified in 12; "The
   테마 editor canvas" below holds the canvas and color rules it shares.
 - The 화면 설정 window holds screens and monitors only. It has no 테마 panels.
+- Its screen list uses the standard left-column width so ordinary screen names
+  and targets fit together. A monitor box identifies the physical monitor first;
+  the control monitor says 컨트롤, and an unused output monitor says 출력
+  미지정. The preview caption shows target and signal details without repeating
+  the screen name already present in the list and assignment card.
 - Changes save at once and apply to output at once. Closing the window takes its
   test pattern off the output.
 
@@ -135,8 +154,8 @@ Source: `Screens`, `Main` board guide (화면 설정), 12.
   - So a pattern never stays on a projector during a service, the app also hides
     every pattern when the main window closes, crashes, or reloads, and hides a
     screen's pattern when its output turns off (lead decision, October 26).
-- The caption shows the screen name, the target and monitor name ("모니터 2
-  EPSON 프로젝터"), and the resolution and refresh rate ("1920×1080 60Hz").
+- The caption shows the target and monitor name ("모니터 2 EPSON 프로젝터"), and
+  the resolution and refresh rate ("1920×1080 60Hz").
 
 ### Screen properties
 

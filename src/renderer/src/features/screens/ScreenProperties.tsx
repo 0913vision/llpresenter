@@ -187,7 +187,7 @@ function CorrectionRows({
           />
         )}
       </PropertyRow>
-      <PropertyRow label="위치 조정">
+      <PropertyRow label="위치 미세 조정">
         {({controlId}) => (
           <span className={styles.pair}>
             <NumberField

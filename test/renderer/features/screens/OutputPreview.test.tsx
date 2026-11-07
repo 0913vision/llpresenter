@@ -1,4 +1,5 @@
 import {resolveThemeOutput} from '@core/themes/output';
+import {Activity} from 'react';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {act, cleanup, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -48,14 +49,18 @@ const monitors: MonitorList = [
   },
 ];
 
-function setup(document = screensDocument()) {
+function setup(document = screensDocument(), active = true) {
   const send = vi.fn<(command: LiveCommand) => void>();
   window.llp = mockLlpApi({
     monitors: {get: () => Promise.resolve(monitors)},
     settings: {get: () => Promise.resolve(document)},
     live: {send},
   });
-  const view = render(<OutputPreview />);
+  const view = render(
+    <Activity mode={active ? 'visible' : 'hidden'}>
+      <OutputPreview />
+    </Activity>,
+  );
   const patternCommands = () =>
     send.mock.calls
       .map(([command]) => command)
@@ -180,6 +185,30 @@ describe('the output preview', () => {
     });
   });
 
+  it('removes the pattern when preferences replaces the view and never restores it on return', async () => {
+    const {view, patternCommands} = setup();
+    await choose('테스트 패턴');
+    view.rerender(
+      <Activity mode="hidden">
+        <OutputPreview />
+      </Activity>,
+    );
+    expect(patternCommands().at(-1)).toMatchObject({on: false});
+    const count = patternCommands().length;
+    view.rerender(
+      <Activity mode="visible">
+        <OutputPreview />
+      </Activity>,
+    );
+    await screen.findByText('모니터 2 EPSON 프로젝터');
+    expect(
+      screen
+        .getByRole('radio', {name: '화면 내용'})
+        .getAttribute('aria-checked'),
+    ).toBe('true');
+    expect(patternCommands()).toHaveLength(count);
+  });
+
   it('keeps one preview drawing across the modes', async () => {
     setup();
     await screen.findByText('모니터 2 EPSON 프로젝터');
@@ -205,7 +234,7 @@ describe('the output preview', () => {
     });
     if (corrected.name !== 'screens') throw new Error('Missing screens');
     setup(corrected);
-    await screen.findByText('청중 화면');
+    await screen.findByText('모니터 2 EPSON 프로젝터');
     await choose('테스트 패턴');
 
     act(() =>

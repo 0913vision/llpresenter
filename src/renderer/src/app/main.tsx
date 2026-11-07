@@ -27,6 +27,11 @@ interface WindowPage {
 }
 
 const WINDOW_PAGES: Readonly<Record<string, WindowPage>> = {
+  settings: {
+    title: '환경설정',
+    prepare: session => session.startEditor(),
+    load: async () => (await import('./SettingsWindow')).SettingsWindow,
+  },
   screens: {
     title: '화면 설정',
     load: async () => (await import('./ScreensWindow')).ScreensWindow,

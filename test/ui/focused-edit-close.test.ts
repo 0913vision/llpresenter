@@ -11,7 +11,7 @@ async function openScreenSettings(
   await control.getByRole('menuitem', {name: '출력', exact: true}).click();
   await control.getByRole('menuitem', {name: '화면 설정…'}).click();
   const findSettings = () =>
-    app.windows().find(page => page.url().includes('window=screens'));
+    app.windows().find(page => page.url().includes('window=settings'));
   await expect
     .poll(() => findSettings() !== undefined, {timeout: WAIT})
     .toBe(true);
@@ -43,7 +43,7 @@ it(
       settings.waitForEvent('close'),
       app.electron().evaluate(({BrowserWindow}) => {
         const window = BrowserWindow.getAllWindows().find(window =>
-          window.webContents.getURL().includes('window=screens'),
+          window.webContents.getURL().includes('window=settings'),
         );
         if (window === undefined) {
           throw new Error('Screen settings window not found');
