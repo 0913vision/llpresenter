@@ -72,6 +72,7 @@ describe('ThumbnailSizeControl', () => {
     expect(onChange).not.toHaveBeenCalled();
     expect(input('slider').value).toBe('100');
     await userEvent.keyboard('{Enter}');
+    expect(document.activeElement).toBe(input('spinbutton'));
     expect(input('slider').value).toBe('124');
     expect(input('spinbutton').value).toBe('124%');
     expect(onCommit).toHaveBeenCalledExactlyOnceWith(124);

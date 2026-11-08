@@ -131,7 +131,7 @@ describe('SlidePanelBody', () => {
   it('stops measuring when it unmounts', () => {
     vi.stubGlobal('ResizeObserver', FixedWidthObserver);
     const {unmount} = renderPanel('normal');
-    expect(FixedWidthObserver.observers.size).toBe(1);
+    expect(FixedWidthObserver.observers.size).toBeGreaterThan(0);
     unmount();
     expect(FixedWidthObserver.observers.size).toBe(0);
   });

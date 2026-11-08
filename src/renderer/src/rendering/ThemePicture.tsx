@@ -24,6 +24,9 @@ import bulletStyles from './bulletText.module.css';
 import {bulletTextStyle, textParagraphs} from './textParagraphs';
 import {resolveTextTracking} from '@core/themes/textTracking';
 import {themeTextVAlign} from '@core/themes/textAlignment';
+import {TextFitCache} from './textFitCache';
+
+const textFits = new TextFitCache();
 
 interface MeasuredText {
   readonly lines: readonly string[];
@@ -77,18 +80,45 @@ function ThemeTextBox({
       target.style.fontSize = `${element.text.size}px`;
       return;
     }
-    const size = fitTextInFrame(
-      {
-        size: element.text.size,
-        width: element.frame.w,
-        height: element.frame.h,
-      },
-      candidate => {
-        target.style.fontSize = `${candidate}px`;
-        return {width: target.scrollWidth, height: target.scrollHeight};
-      },
-    );
-    target.style.fontSize = `${size}px`;
+    const fit = (): void => {
+      const size = textFits.fit(
+        JSON.stringify([
+          content,
+          element.frame.w,
+          element.frame.h,
+          element.text,
+        ]),
+        () =>
+          fitTextInFrame(
+            {
+              size: element.text.size,
+              width: element.frame.w,
+              height: element.frame.h,
+            },
+            candidate => {
+              target.style.fontSize = `${candidate}px`;
+              return {width: target.scrollWidth, height: target.scrollHeight};
+            },
+          ),
+        target.ownerDocument.fonts,
+      );
+      target.style.fontSize = `${size}px`;
+    };
+    fit();
+    if (typeof target.ownerDocument.fonts === 'undefined') return;
+    let mounted = true;
+    if (target.ownerDocument.fonts.status === 'loading') {
+      void target.ownerDocument.fonts.ready.then(
+        () => {
+          if (mounted) fit();
+        },
+        (error: unknown) =>
+          console.error('Could not load thumbnail fonts', error),
+      );
+    }
+    return () => {
+      mounted = false;
+    };
   }, [element, content, measured]);
   return (
     <div

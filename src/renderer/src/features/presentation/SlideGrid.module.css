@@ -1,5 +1,11 @@
 .keeper {
-  display: contents;
+  position: relative;
+}
+
+.window {
+  position: absolute;
+  right: 0;
+  left: 0;
 }
 
 .grid {

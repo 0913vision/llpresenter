@@ -123,3 +123,51 @@ it('shows the picture of a media tile, with the name in the band', () => {
     thumbnailUrl(media),
   );
 });
+
+it('maps windowed clicks and menus to logical slide positions and keeps keyboard focus', () => {
+  const send = vi.fn<(command: LiveCommand) => void>();
+  const onOpenPrep = vi.fn();
+  window.llp = mockLlpApi({live: {send}});
+  applyService({
+    revision: 101,
+    id: 'long-service',
+    name: 'Long service',
+    readOnly: false,
+    rows: [{id: 'long-song', kind: 'song', title: 'Long song'}],
+    tiles: {
+      'long-song': Array.from({length: 100}, (_, index) => ({
+        label: null,
+        labelColor: 'none',
+        lines: [`Slide ${index + 1}`],
+      })),
+    },
+    jumpKeys: {},
+  });
+  openItem('long-song');
+  const {container} = render(
+    <SlideGrid columns={4} scalePercent={100} onOpenPrep={onOpenPrep} />,
+  );
+  expect(screen.getAllByRole('option')).toHaveLength(16);
+  const lastMounted = slide(15);
+  lastMounted.focus();
+  fireEvent.keyDown(lastMounted, {key: 'ArrowDown'});
+  expect(document.activeElement?.getAttribute('aria-posinset')).toBe('20');
+  expect(document.activeElement?.getAttribute('aria-selected')).toBe('true');
+  fireEvent.scroll(container, {target: {scrollTop: 24}});
+  const last = screen.getAllByRole('option').at(-1);
+  if (!last) throw Error('Missing final slide');
+  expect(last.getAttribute('aria-posinset')).toBe('100');
+  expect(last.getAttribute('aria-setsize')).toBe('100');
+  fireEvent.contextMenu(last);
+  fireEvent.click(
+    screen.getByRole('menuitem', {name: windowCommandLabels.editSong}),
+  );
+  expect(onOpenPrep).toHaveBeenCalledExactlyOnceWith('long-song', 99);
+  fireEvent.click(last);
+  const command = send.mock.calls.at(-1)?.[0];
+  if (command?.type !== 'live.batch') throw Error('Missing output batch');
+  expect(command.commands.at(-1)).toMatchObject({
+    type: 'slide.show',
+    slide: {position: 99},
+  });
+});

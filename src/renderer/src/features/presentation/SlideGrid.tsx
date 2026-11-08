@@ -13,6 +13,7 @@ import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {useBibleTileProjection} from '../bible/useBibleProjections';
 import styles from './SlideGrid.module.css';
+import {useSlideWindow} from './useSlideWindow';
 
 const GRID_SELECTOR = '[role="listbox"]';
 
@@ -67,11 +68,24 @@ export function SlideGrid({
     gap,
     scalePercent,
   });
+  const window = useSlideWindow(keeperRef, {
+    count: tiles?.length ?? 0,
+    columns,
+    tileWidth,
+    width,
+    gap,
+    selected: selectedTile,
+    live: liveIndex,
+    itemId: openItemId,
+    onSelect: selectTile,
+  });
 
   useEffect(() => {
     if (!isInside()) return;
-    keeperRef.current?.querySelector<HTMLElement>('[tabindex="0"]')?.focus();
-  }, [isInside, openItemId, selectedTile, tiles?.length]);
+    keeperRef.current
+      ?.querySelector<HTMLElement>('[tabindex="0"]')
+      ?.focus({preventScroll: true});
+  }, [isInside, openItemId, selectedTile, tiles?.length, window.start]);
 
   const onOutput = useCallback(
     (index: number): void => {
@@ -86,59 +100,78 @@ export function SlideGrid({
       className={styles.keeper}
       onFocus={onFocus}
       onBlur={onBlur}
+      onKeyDownCapture={window.navigate}
+      style={{height: window.height}}
     >
-      <ThumbnailGrid
-        workspace="show"
-        label="슬라이드"
-        columns={columns}
-        tileWidth={tileWidth}
-        selected={tiles === undefined ? undefined : selectedTile}
-        onSelect={selectTile}
-        onOutput={onOutput}
-        onMenu={(index, anchor) => {
-          if (openItemId !== null) setMenu({itemId: openItemId, index, anchor});
-        }}
-        className={styles.grid}
-      >
-        {tiles?.map((tile, index) => {
-          const picture = tile.media?.mediaId;
-          const slide =
-            openItemId === null
-              ? null
-              : slideLayerOf({itemId: openItemId, index}, () => tiles);
-          const appearance =
-            tile.biblePart === undefined ? undefined : bible?.appearance;
-          return (
-            <SlideThumbnail
-              key={index}
-              number={index + 1}
-              canvas={
-                appearance !== undefined && slide !== null ? (
-                  <SlidePicture
-                    slide={slide}
-                    layout={appearance.theme.layout}
-                    emptyColor={appearance.theme.emptyColor}
-                    item={appearance.theme.item}
-                    background={appearance.background}
-                  />
-                ) : theme === undefined || slide === null ? undefined : (
-                  <SlidePicture {...theme} slide={slide} />
-                )
-              }
-              label={
-                tile.label ??
-                (picture === undefined ? undefined : tile.lines.join(' '))
-              }
-              labelColor={tile.labelColor}
-              text={picture === undefined ? tile.lines.join('\n') : undefined}
-              media={picture === undefined ? undefined : thumbnailSrc(picture)}
-              selected={index === selectedTile}
-              live={index === liveIndex}
-              hotKey={tile.hotKey}
-            />
-          );
-        })}
-      </ThumbnailGrid>
+      <div className={styles.window} style={{top: window.offset}}>
+        <ThumbnailGrid
+          workspace="show"
+          label="슬라이드"
+          columns={columns}
+          tileWidth={tileWidth}
+          positionOffset={window.start}
+          setSize={tiles?.length ?? 0}
+          selected={
+            selectedTile >= window.start && selectedTile < window.end
+              ? selectedTile - window.start
+              : undefined
+          }
+          onSelect={index => selectTile(window.start + index)}
+          onOutput={index => onOutput(window.start + index)}
+          onMenu={(index, anchor) => {
+            if (openItemId !== null) {
+              setMenu({
+                itemId: openItemId,
+                index: window.start + index,
+                anchor,
+              });
+            }
+          }}
+          className={styles.grid}
+        >
+          {tiles?.slice(window.start, window.end).map((tile, local) => {
+            const index = window.start + local;
+            const picture = tile.media?.mediaId;
+            const slide =
+              openItemId === null
+                ? null
+                : slideLayerOf({itemId: openItemId, index}, () => tiles);
+            const appearance =
+              tile.biblePart === undefined ? undefined : bible?.appearance;
+            return (
+              <SlideThumbnail
+                key={index}
+                number={index + 1}
+                canvas={
+                  appearance !== undefined && slide !== null ? (
+                    <SlidePicture
+                      slide={slide}
+                      layout={appearance.theme.layout}
+                      emptyColor={appearance.theme.emptyColor}
+                      item={appearance.theme.item}
+                      background={appearance.background}
+                    />
+                  ) : theme === undefined || slide === null ? undefined : (
+                    <SlidePicture {...theme} slide={slide} />
+                  )
+                }
+                label={
+                  tile.label ??
+                  (picture === undefined ? undefined : tile.lines.join(' '))
+                }
+                labelColor={tile.labelColor}
+                text={picture === undefined ? tile.lines.join('\n') : undefined}
+                media={
+                  picture === undefined ? undefined : thumbnailSrc(picture)
+                }
+                selected={index === selectedTile}
+                live={index === liveIndex}
+                hotKey={tile.hotKey}
+              />
+            );
+          })}
+        </ThumbnailGrid>
+      </div>
       {menu !== null && menu.itemId === openItemId && tiles?.[menu.index] ? (
         <Menu
           label="슬라이드"

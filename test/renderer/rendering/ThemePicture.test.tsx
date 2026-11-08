@@ -46,6 +46,33 @@ function element(kind: ThemeElement['kind'], index: number): ThemeElement {
   return value;
 }
 
+it('reuses a thumbnail fit on remount and refits changed text, frame, and style', () => {
+  const source = element('currentText', 991);
+  if (source.kind !== 'currentText') throw Error('Expected text');
+  const width = vi
+    .spyOn(Element.prototype, 'scrollWidth', 'get')
+    .mockReturnValue(10);
+  const show = (value = source, text = 'Remounted thumbnail fit') =>
+    render(
+      <ThemePicture
+        elements={[value]}
+        background="#000000"
+        samples={{currentText: text}}
+      />,
+    );
+  show().unmount();
+  expect(width).toHaveBeenCalledTimes(1);
+  show(structuredClone(source)).unmount();
+  expect(width).toHaveBeenCalledTimes(1);
+  show(source, 'Changed thumbnail fit').unmount();
+  show({...source, frame: {...source.frame, w: source.frame.w - 1}}).unmount();
+  show({
+    ...source,
+    text: {...source.text, weight: source.text.weight === 400 ? 800 : 400},
+  }).unmount();
+  expect(width).toHaveBeenCalledTimes(4);
+});
+
 it.each([undefined, 'disc'] as const)(
   'uses %s hanging paragraph markup in thumbnails, including measured text and empty lines',
   bulletStyle => {

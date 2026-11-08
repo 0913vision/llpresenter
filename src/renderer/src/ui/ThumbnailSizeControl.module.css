@@ -7,3 +7,10 @@
 .field {
   width: calc(5ch + var(--space-10) * 2);
 }
+
+.field input {
+  /* NOTE(0913vision): CSS modules scopes literal animation values as names. */
+  --caret-mode: manual;
+
+  caret-animation: var(--caret-mode);
+}
