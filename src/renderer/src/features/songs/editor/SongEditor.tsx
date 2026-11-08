@@ -28,6 +28,7 @@ import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {useShow} from '@renderer/session/show';
 import {useEditorFocus} from './useEditorFocus';
 import {SlideTransitionRibbon} from './SlideTransitionRibbon';
+import {useEditorLiveIndex} from './useEditorLiveIndex';
 
 /** Mount with a window-owned store; unmounting does not discard song history. */
 export function SongEditor({
@@ -105,6 +106,10 @@ function SongBlocks({
 }): JSX.Element {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const {song, selection} = session.history.snapshot;
+  const liveIndex = useEditorLiveIndex(
+    session.itemSession ? song.id : `library:${song.id}`,
+    song.slides,
+  );
   const list = useSyncExternalStore(
     session.history.model.subscribe,
     session.history.model.getSnapshot,
@@ -157,7 +162,9 @@ function SongBlocks({
     if (row === null) return;
     const block = Number(row.dataset.editorBlock);
     const input = target instanceof HTMLTextAreaElement;
-    const label = target === row.querySelector('button:not([data-slide-gap])');
+    const label =
+      target ===
+      row.querySelector('button:not([data-slide-gap], [role="checkbox"])');
     if (event.shiftKey ? !label && !(input && session.readOnly) : !input) {
       return;
     }
@@ -203,7 +210,7 @@ function SongBlocks({
       const target =
         owner.requested && owner.target === 'label'
           ? viewport.current?.querySelector<HTMLElement>(
-              `[data-editor-block="${selection.block}"] button:not([data-slide-gap])`,
+              `[data-editor-block="${selection.block}"] button:not([data-slide-gap], [role="checkbox"])`,
             )
           : input;
       (target ?? input).focus({preventScroll: true});
@@ -244,9 +251,8 @@ function SongBlocks({
               session={session}
               focus={focus}
               active={list.selection.ids.has(slide.id)}
-              focused={
-                selection.block === block && list.selection.ids.has(slide.id)
-              }
+              live={block === liveIndex}
+              focused={selection.block === block}
               caret={list.selection.caret === block}
               canvas={
                 theme === undefined ? undefined : (

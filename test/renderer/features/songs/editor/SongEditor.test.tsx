@@ -16,6 +16,45 @@ function cursor(input: HTMLTextAreaElement, start: number, end = start): void {
 }
 
 describe('song editor view', () => {
+  it('toggles with the list checkbox and Space while preserving pointer selection modifiers', async () => {
+    const {session, user} = await editorSetup();
+    const rows = [
+      ...document.querySelectorAll<HTMLElement>('[data-editor-block]'),
+    ];
+    const first = rows[0];
+    const second = rows[1];
+    if (!first || !second) throw new Error('Missing rows');
+    const count = () => session.slideModel.getSnapshot().selection.ids.size;
+    await user.click(first);
+    const box = screen.getByRole('checkbox', {name: '슬라이드 2 선택'});
+    await user.click(box);
+    expect(count()).toBe(2);
+    expect(box.getAttribute('aria-checked')).toBe('true');
+    await user.keyboard(' ');
+    expect(count()).toBe(1);
+    expect(document.activeElement).toBe(box);
+    await user.keyboard(' ');
+    expect(count()).toBe(2);
+    await user.click(second);
+    expect(count()).toBe(1);
+    await user.keyboard(' ');
+    expect(count()).toBe(0);
+    await user.keyboard(' ');
+    expect(count()).toBe(1);
+    fireEvent.click(first, {shiftKey: true});
+    expect(count()).toBe(2);
+    fireEvent.click(second, {ctrlKey: true});
+    expect(count()).toBe(1);
+    await user.click(second);
+    expect(count()).toBe(1);
+    const input = lyrics(2);
+    await user.click(input);
+    const length = input.value.length;
+    await user.keyboard(' ');
+    expect(count()).toBe(1);
+    expect(input.value.length).toBe(length + 1);
+  });
+
   it.each(['number', 'thumbnail', 'margin'])(
     'keeps slide shortcuts active after clicking the row %s from a text field',
     async place => {

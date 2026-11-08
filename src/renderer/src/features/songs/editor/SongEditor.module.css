@@ -28,10 +28,6 @@
   position: absolute;
   inset-inline: 0;
   display: grid;
-  grid-template-columns: var(--space-18) var(--slides-thumbnail-width) minmax(
-      0,
-      1fr
-    );
   gap: var(--space-16);
   align-items: start;
   padding: var(--space-14);
@@ -41,22 +37,6 @@
 
 .blockWindow {
   position: relative;
-}
-
-.block[data-active='true'] {
-  border-left-color: var(--accent);
-  background: var(--selection);
-}
-
-.block[data-focused='true'] {
-  box-shadow: var(--ring-field-focus);
-}
-
-.number {
-  padding-top: var(--space-2);
-  color: var(--text-3);
-  font: var(--type-caption);
-  font-variant-numeric: tabular-nums;
 }
 
 .label {

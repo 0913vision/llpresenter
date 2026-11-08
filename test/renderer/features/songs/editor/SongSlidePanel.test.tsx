@@ -41,6 +41,33 @@ function createGroupedSession(document = editorDeckSong(1)) {
 }
 
 describe('SongSlidePanel with slide decks', () => {
+  it('toggles the focused grid slide with Space and never renders a checkbox', async () => {
+    const {session, store} = createGroupedSession();
+    const user = userEvent.setup();
+    render(<SongSlidePanel store={store} sizeClass="normal" />);
+    const options = screen.getAllByRole('option');
+    const first = options[0];
+    const third = options[2];
+    if (!first || !third) throw new Error('Missing slides');
+    await user.click(first);
+    fireEvent.click(third, {shiftKey: true});
+    expect(screen.getAllByRole('option', {selected: true})).toHaveLength(3);
+    await user.keyboard(' ');
+    expect(screen.getAllByRole('option', {selected: true})).toHaveLength(2);
+    expect(document.activeElement).toBe(third);
+    await user.keyboard(' ');
+    expect(screen.getAllByRole('option', {selected: true})).toHaveLength(3);
+    fireEvent.click(first, {ctrlKey: true});
+    expect(screen.getAllByRole('option', {selected: true})).toHaveLength(2);
+    await user.click(first);
+    expect(screen.getAllByRole('option', {selected: true})).toEqual([first]);
+    await user.hover(third);
+    act(() => third.focus());
+    expect(screen.queryByRole('checkbox', {hidden: true})).toBeNull();
+    expect(first.getAttribute('data-selection-style')).toBe('plate');
+    session.discard();
+  });
+
   it('clears grid selection with Escape before invoking the guarded back action', async () => {
     const {session, store} = createGroupedSession();
     const back = vi.fn();

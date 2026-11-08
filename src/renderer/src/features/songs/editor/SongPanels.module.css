@@ -136,3 +136,7 @@
   right: 0;
   top: var(--grid-top, 0);
 }
+
+.viewport[data-editor] .grid {
+  gap: var(--space-24);
+}

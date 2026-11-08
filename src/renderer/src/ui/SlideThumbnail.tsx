@@ -116,6 +116,8 @@ export function ThumbnailGrid(props: ThumbnailGridProps): JSX.Element {
 }
 
 export interface SlideThumbnailProps {
+  /** Editor selection surrounds the picture and number band with a quiet plate. */
+  readonly selectionStyle?: 'ring' | 'plate';
   readonly transition?:
     import('@core/schema/slideTransition').SlideTransition | undefined;
   readonly canvas?: ReactNode;
@@ -230,6 +232,7 @@ export const SlideThumbnail = memo(
     live = false,
     hotKey,
     transition,
+    selectionStyle = 'ring',
   }: SlideThumbnailProps): JSX.Element => {
     const {targetProps, tooltip} = useTooltip(
       titleTooltip(
@@ -244,6 +247,7 @@ export const SlideThumbnail = memo(
         aria-selected={selected}
         aria-label={thumbnailName({number, label, text, hotKey})}
         data-state={thumbnailState(live, missingFile !== undefined)}
+        data-selection-style={selectionStyle}
         data-color={labelColor === NO_LABEL_COLOR ? undefined : labelColor}
         className={styles.thumb}
       >

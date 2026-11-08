@@ -16,6 +16,27 @@ A thumbnail that shows one 슬라이드 (slide) as a 16:9 output canvas with a 2
 
 ## Anatomy
 
+### Editor selection plate
+
+Song and slides item editors use `selectionStyle="plate"` in the shared grid.
+Their list rows use `EditorSlidePlate` and `EditorSlideNumber`. Other callers,
+including 진행, retain the default ring style.
+
+- The plate wraps the picture and number band with 6px (`space-6`) on every side.
+  The picture radius is 3px (`radius-sm`); the plate radius is their sum, 9px.
+- Selected: `selection` plate and `text-on-selection` number. Hover: `bg-raised`
+  plate. Selection wins over hover and does not dim when focus leaves the list.
+  Label chips keep `label-fill` and `label-ink`. No row fill or selection frame.
+- Live: `ring-live` around the picture. Keyboard focus keeps its own outline.
+- Grid: number and label chip centered in a 22px band, 6px below the picture;
+  24px grid gaps leave room for the plates. No checkbox, including hover/focus.
+- List: the unchanged app Checkbox precedes the number on the plate. It appears
+  on selected rows, hover, and keyboard focus, without shifting the number.
+  Clicking it or pressing Space on a focused slide toggles that slide. Plain
+  slide click selects only it; Shift and Ctrl retain range and toggle behavior.
+
+### Default thumbnail
+
 - Outer element: `button`. Its corner radius `radius-md` (4px) clips the canvas and the band together (`overflow: hidden`). Rings are outer shadows, so they aren't clipped.
 - Canvas: 16:9, background `output-black`. Don't draw the song's default background (background media such as 따뜻한 빛). Fill only an image or video placed in the 슬라이드 itself, with `object-fit: cover` (a Sunday announcement 슬라이드).
 - Lyrics: text `text-on-fill`, weight 700, line height 1.45, centered, horizontal padding 10%. Keep the line breaks as written in the 슬라이드 (`white-space: pre-line`, `word-break: keep-all`).

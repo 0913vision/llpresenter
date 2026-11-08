@@ -91,6 +91,26 @@ function clipboard() {
 }
 
 describe('slide row editing surface', () => {
+  it('toggles the list checkbox and focused slide without Ctrl', async () => {
+    render(<Harness draft={makeDraft()} />);
+    const user = userEvent.setup();
+    await user.click(row(0));
+    const box = screen.getByRole('checkbox', {name: '슬라이드 2 선택'});
+    await user.click(box);
+    expect(selected()).toEqual([row(0), row(1)]);
+    await user.keyboard(' ');
+    expect(selected()).toEqual([row(0)]);
+    expect(document.activeElement).toBe(box);
+    await user.keyboard(' ');
+    expect(selected()).toEqual([row(0), row(1)]);
+    await user.click(row(1));
+    expect(selected()).toEqual([row(1)]);
+    await user.keyboard(' ');
+    expect(selected()).toHaveLength(0);
+    await user.keyboard(' ');
+    expect(selected()).toEqual([row(1)]);
+  });
+
   it('selects ranges and toggles individual rows without changing the anchor on pointer focus', async () => {
     render(<Harness draft={makeDraft()} />);
     const user = userEvent.setup();

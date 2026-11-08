@@ -19,6 +19,8 @@ import {
 } from '@renderer/platform/problemReasons';
 import styles from './SongEditor.module.css';
 import {SlideTransitionMark} from '@renderer/ui/SlideTransitionMark';
+import {EditorSlideNumber} from './EditorSlideNumber';
+import plate from './EditorSlidePlate.module.css';
 
 export interface EditorFocus {
   inputs: Array<HTMLTextAreaElement | null>;
@@ -35,6 +37,7 @@ interface BlockProps {
   readonly focus: RefObject<EditorFocus>;
   readonly active: boolean;
   readonly focused?: boolean;
+  readonly live?: boolean;
   readonly locked: boolean;
   readonly editable: boolean;
   readonly color: LabelColor;
@@ -54,6 +57,7 @@ export const SongBlock = memo(
     focus,
     active,
     focused = false,
+    live = false,
     locked,
     editable,
     color,
@@ -147,8 +151,9 @@ export const SongBlock = memo(
 
     return (
       <div
-        className={styles.block}
+        className={`${styles.block} ${plate.row}`}
         data-active={active}
+        data-live={live}
         data-focused={focused}
         data-editor-block={block}
         data-song-slide={slide.id}
@@ -184,7 +189,13 @@ export const SongBlock = memo(
               ?.focus();
           }}
         />
-        <span className={styles.number}>{block + 1}</span>
+        <EditorSlideNumber
+          number={block + 1}
+          selected={active}
+          onToggle={() =>
+            session.selectSlides({type: 'click', id: slide.id, ctrl: true})
+          }
+        />
         <div className={styles.thumbnail} data-editor-thumbnail>
           {canvas}
           <SlideTransitionMark transition={slide.transition} />

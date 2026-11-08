@@ -78,6 +78,7 @@ export function SongSlidePanel({
           className={styles.slideSurface}
         >
           <VirtualSlides
+            sourceId={session.itemSession ? song.id : `library:${song.id}`}
             session={session}
             key={song.id}
             background={session.background}

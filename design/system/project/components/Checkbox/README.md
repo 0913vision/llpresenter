@@ -12,7 +12,7 @@ A 16px checkbox for picking several things, and a check row that toggles when yo
 ## Where not to use
 
 - Picking only one: use `SegmentedControl` or `Select`.
-- Marking the currently selected row in a list: use the `selection` background of the list row. Don't add a checkbox.
+- Marking the currently selected row in a list: use the `selection` background of the list row. Exception: the song and slides item editors put the normal 16px Checkbox before the number on the thumbnail plate (A placement), outside the picture. Show it when selected, hovered, or keyboard focused, reserving its space when hidden. This exception is for list view only; the grid never has a checkbox.
 
 ## Anatomy
 

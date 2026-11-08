@@ -134,3 +134,57 @@
   pointer-events: none;
   z-index: 1;
 }
+
+.thumb[data-selection-style='plate'] {
+  position: relative;
+  overflow: visible;
+  background: transparent;
+  box-shadow: none;
+}
+
+.thumb[data-selection-style='plate']::before {
+  position: absolute;
+  inset: calc(-1 * var(--space-6));
+  border-radius: calc(var(--radius-sm) + var(--space-6));
+  content: '';
+  pointer-events: none;
+}
+
+.thumb[data-selection-style='plate']:hover::before {
+  background: var(--bg-raised);
+}
+
+.thumb[data-selection-style='plate'][aria-selected='true']::before {
+  background: var(--selection);
+}
+
+.thumb[data-selection-style='plate'] .canvas {
+  border-radius: var(--radius-sm);
+}
+
+.thumb[data-selection-style='plate'][data-state~='live'] .canvas {
+  box-shadow: var(--ring-live);
+}
+
+.thumb[data-selection-style='plate'] .band {
+  position: relative;
+  justify-content: center;
+  height: var(--size-control-xs);
+  margin-top: var(--space-6);
+  padding: 0;
+  background: transparent;
+  color: var(--text-3);
+}
+
+.thumb[data-selection-style='plate'][aria-selected='true'] .number {
+  color: var(--text-on-selection);
+}
+
+.thumb[data-selection-style='plate'] .label {
+  height: var(--size-control-xs);
+  padding: 0 var(--space-6);
+  border-radius: var(--radius-sm);
+  background: var(--label-fill);
+  color: var(--label-ink);
+  line-height: var(--size-control-xs);
+}

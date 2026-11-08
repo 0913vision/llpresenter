@@ -71,6 +71,16 @@ have landed.
 
 ### Slides items and 슬라이드 편집
 
+Song and slides item editors mark selection with a `selection` plate around the
+thumbnail and number band, with 6px padding and 9px outer radius. Hover uses
+`bg-raised`; live keeps its red ring and keyboard focus its own outline. The
+list puts the normal Checkbox before the number, visible on selection, hover or
+keyboard focus with its space reserved. Checkbox click or Space on a focused
+slide toggles that slide without Ctrl; plain click selects only it, and Shift
+and Ctrl keep their range and toggle behavior. Text fields retain normal Space
+entry. The grid has no Checkbox, including hover and focus. Selection does not
+dim when focus leaves. 진행 retains its existing thumbnail style.
+
 - 항목 추가 offers 구역 이름 with the ordered section names from the shared
   Sunday section list (12), without inserted spaces. Choosing a name inserts an
   editable 빈 슬라이드 after the selection, or appends without a selection,

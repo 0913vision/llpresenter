@@ -54,8 +54,8 @@
 .rows {
   --slides-thumbnail-width: calc(var(--size-editor-label) - var(--space-8));
   --slides-content-offset: calc(
-    var(--space-2) + var(--space-14) + var(--space-18) + var(--space-16) * 2 +
-      var(--slides-thumbnail-width)
+    var(--space-2) + var(--space-14) + var(--space-18) + var(--space-8) * 2 +
+      var(--space-16) * 3 + var(--slides-thumbnail-width)
   );
 
   flex: 1;
@@ -63,10 +63,8 @@
   scrollbar-gutter: stable;
 }
 .row {
+  position: relative;
   display: grid;
-  grid-template-columns:
-    var(--space-18) var(--slides-thumbnail-width)
-    minmax(0, 1fr);
   gap: var(--space-16);
   align-items: start;
   padding: var(--space-14);
@@ -74,23 +72,12 @@
   border-left: var(--space-2) solid transparent;
   outline: none;
 }
-.row[data-selected] {
-  background: var(--selection);
-  border-left-color: var(--accent);
-}
-.row[data-focused] {
-  box-shadow: var(--ring-field-focus);
-}
 .rowSurface {
   display: flex;
   flex: 1;
   min-width: 0;
   min-height: 0;
   outline: none;
-}
-.row:focus-visible {
-  outline: var(--radius-hairline) solid var(--accent);
-  outline-offset: calc(-1 * var(--radius-hairline));
 }
 .gap {
   display: block;
@@ -114,18 +101,11 @@
 .gap[data-slide-drop]::after {
   background: var(--accent);
 }
-.number {
-  font: var(--type-caption);
-  color: var(--text-3);
-  padding-top: var(--space-2);
-  font-variant-numeric: tabular-nums;
-}
 .thumbnail {
   position: relative;
   height: fit-content;
   aspect-ratio: 16 / 9;
   overflow: hidden;
-  border: var(--radius-hairline) solid var(--line);
   border-radius: var(--radius-sm);
 }
 .fields {

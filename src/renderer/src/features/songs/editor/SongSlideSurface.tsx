@@ -397,6 +397,35 @@ export function SongSlideSurface<T extends SlideListItem>({
       }}
       data-slide-surface
       onKeyDownCapture={event => {
+        const keyTarget = event.target;
+        if (
+          event.key === ' ' &&
+          !event.defaultPrevented &&
+          !isComposing(event) &&
+          !event.ctrlKey &&
+          !event.metaKey &&
+          !event.altKey &&
+          !event.shiftKey &&
+          keyTarget instanceof HTMLElement &&
+          (keyTarget === event.currentTarget ||
+            keyTarget.matches('[data-song-slide], [role="option"]'))
+        ) {
+          const index = Number(
+            keyTarget.closest<HTMLElement>('[data-slide-index]')?.dataset
+              .slideIndex ?? session.selectedOccurrence,
+          );
+          const slide = view.slides[index];
+          event.preventDefault();
+          event.stopPropagation();
+          if (
+            !event.repeat &&
+            slide !== undefined &&
+            view.selection.caret === null
+          ) {
+            session.selectSlides({type: 'click', id: slide.id, ctrl: true});
+          }
+          return;
+        }
         if (
           !event.defaultPrevented &&
           event.key === 'Escape' &&

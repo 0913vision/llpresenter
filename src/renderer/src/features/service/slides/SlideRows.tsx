@@ -12,6 +12,9 @@ import {isInTextEntry} from '@renderer/ui/textEntry';
 import {SongSlideSurface} from '../../songs/editor/SongSlideSurface';
 import {SlidesListSession} from './slidesListSession';
 import styles from './SlidesEditor.module.css';
+import {EditorSlideNumber} from '../../songs/editor/EditorSlideNumber';
+import {useEditorLiveIndex} from '../../songs/editor/useEditorLiveIndex';
+import plate from '../../songs/editor/EditorSlidePlate.module.css';
 
 export function SlideRows({
   draft,
@@ -51,6 +54,7 @@ export function SlideRows({
     commands.slideModel.getSnapshot,
   );
   const {item, selection, selected} = draft.snapshot;
+  const liveIndex = useEditorLiveIndex(item.id, item.slides.slides);
   const rows = item.slides.slides;
   const gap = (index: number): ReactNode => (
     <button
@@ -86,11 +90,11 @@ export function SlideRows({
           <Fragment key={slide.id}>
             {gap(index)}
             <div
-              className={styles.row}
+              className={`${styles.row} ${plate.row}`}
+              data-active={selection.ids.has(slide.id)}
+              data-live={index === liveIndex}
               data-selected={selection.ids.has(slide.id) || undefined}
-              data-focused={
-                (selected === index && selection.ids.has(slide.id)) || undefined
-              }
+              data-focused={selected === index}
               tabIndex={-1}
               data-slide-id={slide.id}
               data-song-slide={slide.id}
@@ -118,6 +122,17 @@ export function SlideRows({
                 }
               }}
             >
+              <EditorSlideNumber
+                number={index + 1}
+                selected={selection.ids.has(slide.id)}
+                onToggle={() =>
+                  commands.selectSlides({
+                    type: 'click',
+                    id: slide.id,
+                    ctrl: true,
+                  })
+                }
+              />
               {renderRow(slide, index)}
             </div>
           </Fragment>

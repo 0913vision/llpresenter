@@ -94,6 +94,7 @@ it.each(['blank', 'ad'] as const)(
       }),
     ).toBeTruthy();
     expect(await screen.findByRole('option', {name: '2 a.png'})).toBeTruthy();
+    expect(screen.queryByRole('checkbox', {hidden: true})).toBeNull();
     inline.unmount();
     items.dispose();
     await editor.dispose();

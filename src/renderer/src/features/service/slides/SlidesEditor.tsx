@@ -451,8 +451,7 @@ function SlidesEditorBody({
             onBack={onBack}
             renderRow={(slide, index) => (
               <>
-                <span className={styles.number}>{index + 1}</span>
-                <div className={styles.thumbnail}>
+                <div className={styles.thumbnail} data-editor-thumbnail>
                   <SlidesCanvas
                     item={item}
                     index={index}

@@ -19,6 +19,7 @@ import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {slideMenuEntries} from './slideMenuEntries';
 import type {SlideListSession} from './slideListSession';
 import type {SlideListItem} from '@core/songs/slideListEdits';
+import {useEditorLiveIndex} from './useEditorLiveIndex';
 
 const OVERSCAN_ROWS = 1;
 const INITIAL_ROWS = 2;
@@ -87,6 +88,7 @@ export function VirtualSlides<T extends SlideListItem>({
   session,
   decoration,
   background,
+  sourceId,
 }: {
   readonly song: SlideSource | Song;
   readonly numbers: readonly number[];
@@ -102,7 +104,12 @@ export function VirtualSlides<T extends SlideListItem>({
   readonly session?: SlideListSession<T>;
   readonly decoration?: ((start: number) => ReactNode) | undefined;
   readonly background?: string | undefined;
+  readonly sourceId?: string | undefined;
 }): JSX.Element {
+  const liveIndex = useEditorLiveIndex(
+    sourceId,
+    session?.slideModel.getSnapshot().slides ?? [],
+  );
   const theme = useSlideTheme(
     {id: 'thumbnail', kind: 'song', title: ''},
     'external',
@@ -126,9 +133,12 @@ export function VirtualSlides<T extends SlideListItem>({
       setMeasure({
         width: node.clientWidth - px('padding-left') - px('padding-right'),
         height: node.clientHeight,
-        xGap: px('--space-12'),
-        yGap: px('--space-16'),
-        band: px('--size-thumb-band'),
+        xGap: px(session === undefined ? '--space-12' : '--space-24'),
+        yGap: px(session === undefined ? '--space-16' : '--space-24'),
+        band:
+          session === undefined
+            ? px('--size-thumb-band')
+            : px('--size-control-xs') + px('--space-6'),
         inset: px('padding-top'),
       });
     };
@@ -136,7 +146,7 @@ export function VirtualSlides<T extends SlideListItem>({
     observer.observe(node);
     read();
     return () => observer.disconnect();
-  }, []);
+  }, [session]);
   const width = thumbnailWidth({
     gridWidth: measure.width,
     columns: baseline,
@@ -278,6 +288,7 @@ export function VirtualSlides<T extends SlideListItem>({
     <div
       ref={viewport}
       data-slide-columns={columns}
+      data-editor={session !== undefined || undefined}
       className={styles.viewport}
       onScroll={event => setScrollTop(event.currentTarget.scrollTop)}
       onKeyDownCapture={navigate}
@@ -341,6 +352,8 @@ export function VirtualSlides<T extends SlideListItem>({
             const thumbnail = (
               <SlideThumbnail
                 key={start + index}
+                selectionStyle={session === undefined ? 'ring' : 'plate'}
+                live={number - 1 === liveIndex}
                 number={number}
                 label={slide.label === '' ? undefined : slide.label}
                 labelColor={
