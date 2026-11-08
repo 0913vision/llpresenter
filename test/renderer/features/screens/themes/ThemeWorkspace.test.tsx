@@ -526,13 +526,82 @@ it('edits the first saved screen split budget without audience screens despite t
   expect(count()).toBeNull();
 });
 
+it('edits bounded OKLCH stops without a mixing control and supports undo and inheritance', async () => {
+  const {value} = setup();
+  await screen.findByLabelText('테마 캔버스');
+  fireEvent.click(screen.getByRole('tab', {name: '화면'}));
+  fireEvent.click(screen.getByRole('radio', {name: '그라데이션'}));
+  expect(screen.queryByRole('radiogroup', {name: '색 섞기'})).toBeNull();
+  const number = (name: string, value: string): void => {
+    const field = screen.getByRole('spinbutton', {name});
+    field.focus();
+    fireEvent.change(field, {target: {value}});
+    fireEvent.keyDown(field, {key: 'Enter'});
+  };
+  number('각도', '90');
+  number('위치 1', '36');
+  number('위치 2', '87');
+  for (const [label, color] of [
+    ['색 1', '#00303A'],
+    ['색 2', '#00667A'],
+  ] as const) {
+    const field = screen.getByRole('textbox', {name: label});
+    field.focus();
+    fireEvent.change(field, {target: {value: color}});
+    fireEvent.keyDown(field, {key: 'Enter'});
+  }
+  fireEvent.click(screen.getByRole('radio', {name: '그라데이션'}));
+  expect(screen.getByDisplayValue('#00303A')).toBe(
+    screen.getByRole('textbox', {name: '색 1'}),
+  );
+  fireEvent.click(screen.getByRole('button', {name: '색 추가'}));
+  fireEvent.click(screen.getByRole('button', {name: '색 추가'}));
+  expect(
+    screen.getByRole('button', {name: '색 추가'}).getAttribute('aria-disabled'),
+  ).toBe('true');
+  expect(screen.getByRole('spinbutton', {name: '위치 4'})).toBeDefined();
+  fireEvent.click(screen.getByRole('button', {name: '색 2 삭제'}));
+  expect(screen.queryByRole('spinbutton', {name: '위치 4'})).toBeNull();
+  fireEvent.keyDown(document.body, {key: 'z', code: 'KeyZ', ctrlKey: true});
+  expect(screen.getByRole('spinbutton', {name: '위치 4'})).toBeDefined();
+  fireEvent.keyDown(document.body, {key: 'y', code: 'KeyY', ctrlKey: true});
+  expect(screen.queryByRole('spinbutton', {name: '위치 4'})).toBeNull();
+  await saveEdits();
+  const background = value().themes[0]?.screens[MAIN]?.background;
+  expect(background).toMatchObject({
+    kind: 'linear',
+    angle: 90,
+    mixing: 'oklch',
+  });
+  if (background === undefined || typeof background === 'string') {
+    throw new Error('Missing gradient');
+  }
+  expect(background.stops).toHaveLength(3);
+  expect(background.stops[0]).toMatchObject({color: '#00303A', position: 36});
+  expect(background.stops.at(-1)).toMatchObject({
+    color: '#00667A',
+    position: 87,
+  });
+  fireEvent.click(screen.getByRole('radio', {name: '단색'}));
+  expect(screen.getByDisplayValue('#00303A')).toBe(
+    screen.getByRole('textbox', {name: '색'}),
+  );
+  fireEvent.keyDown(document.body, {key: 'z', code: 'KeyZ', ctrlKey: true});
+  expect(screen.getByRole('spinbutton', {name: '각도'})).toBeDefined();
+  fireEvent.click(screen.getByRole('radio', {name: '화면 기본'}));
+  expect(screen.queryByRole('spinbutton', {name: '각도'})).toBeNull();
+  await saveEdits();
+  expect(value().themes[0]?.screens[MAIN]?.background).toBeUndefined();
+});
+
 it('renders the edited background through a screen link and restores retained elements after empty mode', async () => {
   const {value} = setup();
   await screen.findByLabelText('테마 캔버스');
   const canvas = () => screen.getByLabelText('테마 캔버스');
   await screen.findByRole('button', {name: '현재 가사'});
   fireEvent.click(screen.getByRole('tab', {name: '화면'}));
-  const background = screen.getByRole('textbox', {name: '배경색'});
+  fireEvent.click(screen.getByRole('radio', {name: '단색'}));
+  const background = screen.getByRole('textbox', {name: '색'});
   background.focus();
   fireEvent.change(background, {target: {value: '#1C355C'}});
   fireEvent.keyDown(background, {key: 'Enter'});

@@ -14,7 +14,7 @@ import {
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';
 import {menuAvailability} from '@renderer/ui/menuModel';
 import {withParticle} from '@renderer/ui/korean';
-import {ColorProperty} from '../ColorProperty';
+import {ThemeBackgroundProperties} from './ThemeBackgroundProperties';
 import {ThemeElementProperties} from './ThemeElementProperties';
 import {ThemeNumber} from './ThemePropertyFields';
 import {themeSamples} from './ThemeCanvas';
@@ -151,20 +151,7 @@ function ThemeScreenProperties({
             />
           )}
         </PropertyRow>
-        <ColorProperty
-          label="배경색"
-          value={layout.background ?? ''}
-          allowNone
-          inheritedColor={emptyScreenColor(screen)}
-          noneLabel={`화면 기본 (${emptyScreenColor(screen) === '#000000' ? '검정' : emptyScreenColor(screen)})`}
-          reason={model.elementReason}
-          commit={background =>
-            model.layoutChange(current => {
-              const {background: previous, ...rest} = current;
-              return background === '' ? rest : {...current, background};
-            })
-          }
-        />
+        <ThemeBackgroundProperties model={model} />
         <PropertyValue
           label="크기"
           value={`${THEME_LIMITS.width} × ${THEME_LIMITS.height}`}

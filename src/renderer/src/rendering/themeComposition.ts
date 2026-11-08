@@ -5,6 +5,7 @@ import {ThemeElementView} from './themeElement';
 import {ThemeGaps} from './themeGaps';
 import {OUTPUT_TRANSITIONS} from './transitions';
 import {THEME_LIMITS} from '@core/themes/elementRules';
+import {themeBackgroundStyle} from './themeBackground';
 
 interface ThemePage {
   layers: LiveLayers;
@@ -56,9 +57,8 @@ export class ThemeCompositionView {
     const signature = JSON.stringify([theme.themeId, theme.layout]);
     const rebuilt = signature !== this.page?.signature;
     if (rebuilt) this.build(signature, frame, layers);
-    if (this.page !== null) {
-      this.page.root.style.backgroundColor =
-        theme.layout.background ?? theme.emptyColor;
+    if (this.page !== null && theme.layout.background === undefined) {
+      this.page.root.style.backgroundColor = theme.emptyColor;
     }
     this.draw(rebuilt);
     if (rebuilt && this.leaving !== null) this.awaitIncoming(frame);
@@ -89,7 +89,10 @@ export class ThemeCompositionView {
     const page = document.createElement('div');
     page.dataset['themePage'] = theme.themeId;
     page.className = `${classes.layer} ${classes.instant}`;
-    page.style.backgroundColor = theme.layout.background ?? theme.emptyColor;
+    Object.assign(
+      page.style,
+      themeBackgroundStyle(theme.layout.background, theme.emptyColor),
+    );
     const canvas = document.createElement('div');
     Object.assign(canvas.style, {
       position: 'absolute',

@@ -102,7 +102,9 @@ it('draws the 기본 band opaque where the screen background is the chroma green
   if (output === undefined || composition === undefined) {
     throw new Error('Missing theme snapshot');
   }
-  const over = (background: string): LiveState => ({
+  const over = (
+    background: import('@core/schema/themeBackground').ThemeBackground,
+  ): LiveState => ({
     ...state,
     themeOutput: {
       ...output,
@@ -124,6 +126,19 @@ it('draws the 기본 band opaque where the screen background is the chroma green
   expect(frames.frame(over('#112233'))?.messageBand?.background.opacity).toBe(
     72,
   );
+  expect(
+    frames.frame(
+      over({
+        kind: 'linear',
+        angle: 0,
+        mixing: 'oklch',
+        stops: [
+          {color: '#00B140', position: 0},
+          {color: '#000000', position: 100},
+        ],
+      }),
+    )?.messageBand?.background.opacity,
+  ).toBe(72);
 });
 
 it('draws the band opaque over the own key color of a 캡처용 창 screen', async () => {

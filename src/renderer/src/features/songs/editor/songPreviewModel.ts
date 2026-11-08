@@ -6,6 +6,7 @@ import type {ThemesFile} from '@core/schema/themes';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
 import type {Screen, ScreensFile} from '@core/schema/screens';
 import type {RenderScreen, ThemeFrame} from '@renderer/rendering/layer';
+import {themeBackgroundColor} from '@renderer/rendering/themeBackground';
 import {resolveThemeOutput} from '@core/themes/output';
 import type {Song} from '@core/schema/song';
 import {linearSlidesOf} from '@core/songs/blockEdits';
@@ -86,7 +87,10 @@ export function previewAppearance({
               ? '영상'
               : '찬양'
         : themeName || '이름 없는 테마',
-    background: composition.layout.background ?? composition.emptyColor,
+    background: themeBackgroundColor(
+      composition.layout.background,
+      composition.emptyColor,
+    ),
     checker: false,
   };
 }

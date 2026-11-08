@@ -33,6 +33,7 @@ function setup({stored, windows}: {stored?: boolean; windows: boolean}) {
     log,
     saving: {
       folder: '/settings',
+      delayMs: 0,
       files: {
         write: () => Promise.resolve({ok: true, value: undefined}),
         remove: () => Promise.resolve({ok: true, value: undefined}),

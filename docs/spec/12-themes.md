@@ -205,8 +205,40 @@ until the operator or an action changes it (S4 pp. 37 to 38).
   capture window, as today.
 - A screen in 비움, or a screen with nothing live and no 대기 화면 element,
   shows its 빈 화면 색.
-- A 테마 screen in 직접 배치 has a 배경색 that starts as 화면 기본 (the screen's
-  빈 화면 색) and can be set per 테마.
+- A 테마 screen in 직접 배치 has one 배경: 화면 기본 (the screen's 빈 화면 색),
+  단색, or 그라데이션. It sits behind all elements. Linked screens use the
+  source screen's background; 비움 uses the screen's 빈 화면 색.
+- A gradient is linear, with a clockwise angle from 0 to 359 degrees: 0 runs
+  left to right, 90 top to bottom, and 135 top-right to bottom-left. It uses the
+  screen rectangle's projected gradient line, including its aspect ratio.
+- A gradient has 2 to 4 colors with positions from 0 to 100 percent in
+  nondecreasing order. Equal positions create a hard edge. The angle, color
+  swatches and hex fields, positions, and add/remove actions live together in
+  the 화면 properties. Position edits stay between their neighbors; adding a
+  color splits the widest interval. Changes preview immediately and use the same
+  undo, redo, save, and leave-draft behavior as element properties.
+- Every gradient uses OKLCH with the shorter hue path, as defined by
+  [CSS Color 4](https://www.w3.org/TR/css-color/#interpolation); there is no
+  mixing selector. Neutral and near-neutral endpoints (RGB channel spread at
+  most 2 levels) borrow the adjacent endpoint's hue. The same renderer paints
+  editor canvases, thumbnails and outputs, with a static, low-amplitude noise
+  tile over the gradient to reduce projector banding. Solid colors remain
+  untextured. A gradient is not treated as a uniform chroma-key background for
+  message bands.
+
+The Sunday background palette uses angle 135 and these exact stops; the two
+three-stop entries keep their approved look with the single mixing method.
+
+| Name     | Stops (percent, hex)                 |
+| -------- | ------------------------------------ |
+| 청록     | 36 #00303A, 87 #00667A               |
+| 적갈     | 36 #3A0000, 61.5 #5A2500, 87 #7A4900 |
+| 초록     | 36 #003A24, 87 #007A43               |
+| 자주     | 36 #3A002E, 87 #AC00A0               |
+| 청록초록 | 36 #003A28, 87 #00AC98               |
+| 남보라   | 36 #2C003A, 87 #0073AC               |
+| 올리브   | 36 #3A1900, 61.5 #5C4800, 87 #7D7A00 |
+| 연초록   | 36 #7A9F5A, 67 #30A26A               |
 
 ### Transitions
 
@@ -245,8 +277,8 @@ as ProPresenter keeps them in its Configure Screens window (S4 p. 32).
   zoom percentage, zoom in, and 화면에 맞춤 on the right.
 - **Right column:** the three screens small on top (a click switches the
   canvas), then panel-header tabs 요소 | 화면. 요소 shows the selected element's
-  properties. 화면 shows the mode, the 배경색, and the size. Selecting an
-  element opens 요소; clicking empty canvas opens 화면.
+  properties. 화면 shows the mode, the 배경, and the size. Selecting an element
+  opens 요소; clicking empty canvas opens 화면.
 
 Editing:
 
@@ -354,6 +386,27 @@ Screen layout:
 | ---------- | ---------------------------------------------------------------------------------- | -------------------------------------- |
 | `mode`     | `{ "kind": "own" }` \| `{ "kind": "same", "screen": ID }` \| `{ "kind": "empty" }` | 직접 배치, `<screen>`과 동일, or 비움. |
 | `elements` | Array of Element, at most 10, bottom first                                         | Used only in `own`.                    |
+
+`background` is optional. Its absence means 화면 기본. A `#RRGGBB` string is the
+legacy 단색 representation and remains valid. A gradient uses this shape:
+
+```json
+{
+  "kind": "linear",
+  "angle": 135,
+  "mixing": "oklch",
+  "stops": [
+    {"color": "#000000", "position": 0},
+    {"color": "#FFFFFF", "position": 100}
+  ]
+}
+```
+
+`angle` is an integer from 0 to 359. `mixing` is fixed to `oklch`. There must be
+2 to 4 stops with finite positions from 0 to 100 in nondecreasing order; every
+color is a six-digit hex string. Unknown gradient and stop fields round-trip
+like other settings extensions. Existing files need no migration; the layout
+field is validated in both settings and live output payloads.
 
 Element: `id`, `kind` (`currentText`, `reference`, `nextText`, `label`, `media`,
 `background`, `overlay`, `itemName`, `slideName`, `text`, `image`, `box`,

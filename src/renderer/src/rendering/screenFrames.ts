@@ -119,7 +119,9 @@ export class ScreenFrames {
     const band = messageBandFor(
       messageStyle,
       isKeyBackground(
-        composition.layout.background ?? composition.emptyColor,
+        typeof composition.layout.background === 'object'
+          ? undefined
+          : (composition.layout.background ?? composition.emptyColor),
         screen,
       ),
     );

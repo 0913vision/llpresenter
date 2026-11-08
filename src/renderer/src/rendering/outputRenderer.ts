@@ -1,5 +1,6 @@
 import {emptyLayers, type LayerKind, type LiveLayers} from '@core/live/state';
 import {ThemeCompositionView} from './themeComposition';
+import {themeBackgroundColor} from './themeBackground';
 import {classes} from './classes';
 import {ClearFades} from './clearFades';
 import type {
@@ -115,7 +116,10 @@ export class OutputRenderer {
     this.setBackground(
       (frame.theme === undefined
         ? undefined
-        : (frame.theme.layout.background ?? frame.theme.emptyColor)) ??
+        : themeBackgroundColor(
+            frame.theme.layout.background,
+            frame.theme.emptyColor,
+          )) ??
         frame.screen?.emptyColor ??
         (frame.screen?.method === 'capture' ? CHROMA_BACKGROUND : null),
     );

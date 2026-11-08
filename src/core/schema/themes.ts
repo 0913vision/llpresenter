@@ -29,6 +29,7 @@ import {
   positiveInteger,
 } from './primitives';
 import {textStyleEntries} from './textStyle';
+import {themeBackgroundSchema} from './themeBackground';
 
 const range = (min: number, max: number) =>
   v.pipe(v.number(), v.finite(), v.minValue(min), v.maxValue(max));
@@ -144,7 +145,7 @@ export const themeScreenLayoutSchema = jsonObject({
     ),
   ),
   // NOTE(0913vision): Absence inherits the screen's configured empty color.
-  background: v.exactOptional(hexColor),
+  background: v.exactOptional(themeBackgroundSchema),
 });
 
 export const themeClipboardSchema = jsonObject({

@@ -7,6 +7,7 @@ import {
   type JSX,
 } from 'react';
 import type {ThemeElement, ThemeText} from '@core/schema/themes';
+import type {ThemeBackground} from '@core/schema/themeBackground';
 import {mediaObjectFit} from '@core/media/objectFit';
 import {THEME_LIMITS, type ThemeElementKind} from '@core/themes/elementRules';
 import {hasThemeText, type TextThemeElement} from '@core/themes/elementEdits';
@@ -18,6 +19,7 @@ import {fitTextInFrame} from './fitText';
 import {stageClockText, STAGE_TICK_MS} from './stageClock';
 import {fillTimerTokens, type RenderTimers} from './timerTokens';
 import styles from './ThemePicture.module.css';
+import {themeBackgroundStyle} from './themeBackground';
 
 interface MeasuredText {
   readonly lines: readonly string[];
@@ -224,7 +226,7 @@ export function ThemePicture({
   measuredText,
 }: {
   readonly elements: readonly ThemeElement[];
-  readonly background: string;
+  readonly background: ThemeBackground;
   readonly samples: Partial<Record<ThemeElementKind, string>>;
   readonly timers?: RenderTimers | undefined;
   readonly media?: Partial<Record<'media' | 'background', string>> | undefined;
@@ -235,7 +237,7 @@ export function ThemePicture({
     <svg
       className={styles.picture}
       viewBox={`0 0 ${THEME_LIMITS.width} ${THEME_LIMITS.height}`}
-      style={{backgroundColor: background}}
+      style={themeBackgroundStyle(background)}
       aria-hidden="true"
     >
       <foreignObject width={THEME_LIMITS.width} height={THEME_LIMITS.height}>
