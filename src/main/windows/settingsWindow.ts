@@ -6,6 +6,7 @@ import {
 } from '@contracts/ipc/window';
 import type {PreferencePageId} from '@core/schema/preferencePages';
 import {guardTestPatterns} from '../outputs/testPatternGuard';
+import {dispatchLogged} from '../live/store';
 import {registerControlClose, type ControlClose} from './controlClose';
 import {
   createPreferencesWindow,
@@ -144,6 +145,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     this.select(target, false);
     this.prepare();
     this.win?.webContents.setBackgroundThrottling(false);
+    this.win?.contentView.setVisible(true);
     if (this.options.mode === 'offscreen') {
       this.win?.webContents.startPainting();
     }
@@ -192,7 +194,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     this.closing = registerControlClose({
       control: win,
       log: this.options.log,
-      beforeClose: this.hide,
+      close: this.hide,
     });
     if (this.options.screens !== undefined) {
       this.stopPatterns = guardTestPatterns({
@@ -206,12 +208,16 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     win.webContents.on('did-start-loading', () => {
       this.rendered = false;
       this.presented = null;
+      win.hide();
+      win.setOpacity(0);
       this.requested = this.request.page;
     });
     win.webContents.on('render-process-gone', (_event, details) => {
       if (win.isDestroyed() || details.reason === 'clean-exit') return;
       this.rendered = false;
       this.presented = null;
+      win.hide();
+      win.setOpacity(0);
       this.request = {...this.request, requestId: this.nextId()};
       this.requested = this.request.page;
     });
@@ -246,8 +252,9 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     if (request.preparing) return true;
     if (this.geometryView === request.view) return true;
     this.remember();
-    if (this.options.mode === 'normal' && this.geometryView !== null) {
-      win.hide();
+    if (this.options.mode === 'normal') {
+      win.setOpacity(0);
+      if (this.geometryView !== null || win.isVisible()) win.hide();
     }
     this.applyingGeometry = true;
     this.geometryView = request.view;
@@ -338,6 +345,13 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
       win.webContents.invalidate();
       return;
     }
+    // NOTE(0913vision): A hidden capture does not prime the native swapchain.
+    // Map the final-size frame transparently before capturing, including the
+    // first open, then expose only the committed native content.
+    if (!win.isVisible()) {
+      win.setOpacity(0);
+      win.showInactive();
+    }
     await win.webContents.capturePage();
     if (
       this.win !== win ||
@@ -359,6 +373,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
       return;
     }
     this.presented = request;
+    win.setOpacity(1);
     this.show();
   }
 
@@ -390,7 +405,28 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
   private readonly hide = (): void => {
     if (this.win === null || this.win.isDestroyed()) return;
     this.remember();
+    this.geometryView = null;
     this.win.hide();
+    this.win.contentView.setVisible(false);
+    this.win.webContents.setBackgroundThrottling(true);
+    if (this.options.mode === 'offscreen') {
+      this.win.webContents.stopPainting();
+    } else {
+      this.win.setOpacity(0);
+      if (this.win.isMaximized()) this.win.unmaximize();
+    }
+    this.win.setMinimumSize(0, 0);
+    this.win.setBounds({width: 0, height: 0});
+    const screens = this.options.screens;
+    if (screens !== undefined) {
+      for (const screenId of screens.store.state.testPatterns ?? []) {
+        dispatchLogged(
+          screens.store,
+          {type: 'screen.testPattern.set', screenId, on: false},
+          this.options.log,
+        );
+      }
+    }
     if (
       this.wanted &&
       this.options.mode === 'normal' &&
@@ -399,6 +435,10 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
       this.opener?.focus();
     }
     this.wanted = false;
+    this.warmTargets = [];
+    this.select({view: 'preferences', page: this.preferencesPage}, true);
+    this.pushRequest();
+    this.closing?.resume();
   };
 
   private readonly closed = (): void => {
@@ -433,7 +473,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     if (!(await this.closing?.confirmClose())) return false;
     if (!current.isDestroyed()) {
       this.hide();
-      current.destroy();
+      if (this.stopping) current.destroy();
     }
     return true;
   };

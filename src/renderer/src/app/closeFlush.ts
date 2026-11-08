@@ -36,6 +36,7 @@ export class CloseFlush {
   private timer: ReturnType<typeof setTimeout> | undefined;
   private progress: ReturnType<typeof setInterval> | undefined;
   private disposed = false;
+  private generation = 0;
   private readonly listeners = new Set<() => void>();
   private readonly stopAnswering: Unsubscribe;
 
@@ -66,6 +67,14 @@ export class CloseFlush {
     this.options.api.app.closeAnyway();
   };
 
+  /** Clears a previous close's dialog when its retained window opens again. */
+  resume(): void {
+    this.generation++;
+    clearTimeout(this.timer);
+    clearInterval(this.progress);
+    this.show('hidden');
+  }
+
   dispose(): void {
     this.disposed = true;
     clearTimeout(this.timer);
@@ -75,6 +84,8 @@ export class CloseFlush {
   }
 
   private async answer({requestId}: AppFlushRequest): Promise<void> {
+    const generation = ++this.generation;
+    clearInterval(this.progress);
     this.options.api.app.flushProgress({requestId});
     this.progress = setInterval(() => {
       this.options.api.app.flushProgress({requestId});
@@ -82,6 +93,7 @@ export class CloseFlush {
     const question = this.options.decide?.();
     const decision =
       question === undefined ? 'settled' : await this.decided(question);
+    if (!this.isCurrent(generation)) return;
     if (decision !== 'settled') {
       clearInterval(this.progress);
       this.options.api.app.flushDone({requestId, result: false});
@@ -90,6 +102,7 @@ export class CloseFlush {
     }
     this.showSavingSoon();
     const result = await this.flushed();
+    if (!this.isCurrent(generation)) return;
     clearInterval(this.progress);
     clearTimeout(this.timer);
     this.options.api.app.flushDone({requestId, result});
@@ -107,6 +120,10 @@ export class CloseFlush {
     this.timer = setTimeout(() => {
       this.show('saving');
     }, SAVING_DIALOG_DELAY_MS);
+  }
+
+  private isCurrent(generation: number): boolean {
+    return !this.disposed && generation === this.generation;
   }
 
   private async decided(

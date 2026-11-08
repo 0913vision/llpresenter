@@ -31,6 +31,7 @@ export function SettingsWindow({
     if (api === undefined) return undefined;
     let alive = true;
     let processing = false;
+    let reopening = true;
     let next: SettingsRequest | null = null;
     const take = (): SettingsRequest | null => {
       const request = next;
@@ -55,6 +56,10 @@ export function SettingsWindow({
       }
       const accepted = await api.beginSettingsRequest(request);
       if (!active() || !accepted || waiting()) return;
+      if (!request.preparing && reopening) {
+        session.resume();
+        reopening = false;
+      }
       shown.current = request;
       document.title = request.view === 'screens' ? '화면 설정' : '환경설정';
       setCurrent(request);
@@ -73,6 +78,7 @@ export function SettingsWindow({
       }
     };
     const accept = (request: SettingsRequest): void => {
+      if (request.preparing) reopening = true;
       next = request;
       run().catch((error: unknown) =>
         window.llp?.log.write({
@@ -104,7 +110,7 @@ export function SettingsWindow({
       next = null;
       stop();
     };
-  }, [api]);
+  }, [api, session]);
   const preferencesReady = useCallback(
     (request: PreferencesRequest): void => {
       const active = shown.current;

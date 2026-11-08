@@ -852,18 +852,23 @@ same place.
 ### 환경설정 window
 
 - Open with the requested page, settings, and fonts already drawn, without
-  exposing a blank frame. After saving on close, hide the window before
-  releasing it and return focus to its opener. A refused save keeps it open.
+  exposing a blank frame. After saving on close, hide and retain the window and
+  return focus to its opener. A refused save keeps it open.
 - 환경설정, 편집 > 단축키, and 화면 설정 use the same prepared window (06).
   Preparation loads JavaScript, data, fonts and layout without painting or
   retaining full-size display surfaces. The native display area stays empty
   until an open request applies its bounds. Only an explicit open captures the
-  requested committed frame before reveal. After the close/save handshake,
-  destroy the painted window and prepare a fresh unpainted one. 단축키 is
-  prepared before it is requested. Only the active view handles keys or runs
-  previews; switching views preserves controls without another resident
-  renderer. A page readiness signal belongs to its current request, including
-  after a renderer reload.
+  requested committed frame before reveal. On every open, including the first,
+  stage the final-size native frame transparently until its content is painted,
+  then make it opaque and focus it. After the close/save handshake, hide the
+  content view, park its display area empty, stop painting, and throttle it;
+  keep the same renderer ready for immediate reopening. Reopen resumes the write
+  gate and clears the previous saving dialog. Each later close flushes again;
+  destroy only during shutdown or after losing the window. 단축키 is prepared
+  before it is requested. Only the active view handles keys or runs previews;
+  switching views preserves controls without another resident renderer. A page
+  readiness signal belongs to its current request, including after a renderer
+  reload.
 - The window and its frame stay as in 06: a separate window titled "환경설정",
   opened from 파일 > 환경설정 or Ctrl ,.
 - Pages, in this order. Each row's name is one line in the left column; no

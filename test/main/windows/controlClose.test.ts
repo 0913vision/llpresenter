@@ -115,6 +115,43 @@ beforeEach(() => {
 });
 
 describe('control window close handshake', () => {
+  it('flushes each close of a retained dialog instead of reusing its first confirmation', async () => {
+    const control = new MockControl();
+    const hide = vi.fn();
+    const closing = registerControlClose({
+      control,
+      log: recordingLogger(),
+      close: () => {
+        hide();
+        closing.resume();
+      },
+    });
+    onTestFinished(() => closing.dispose());
+    const reply = (index: number, result: boolean): void => {
+      const value: unknown = control.webContents.send.mock.calls[index]?.[1];
+      const requestId: unknown = Reflect.get(Object(value), 'requestId');
+      electron.ipcMain.emit(appEndpoints.flushDone.channel, CONTROL_ID, {
+        requestId,
+        result,
+      });
+    };
+    control.close();
+    reply(0, true);
+    await settled();
+    expect(hide).toHaveBeenCalledOnce();
+    expect(control.destroyed).toBe(false);
+    control.close();
+    expect(control.webContents.send).toHaveBeenCalledTimes(2);
+    reply(1, false);
+    await settled();
+    expect(hide).toHaveBeenCalledOnce();
+    expect(control.destroyed).toBe(false);
+    control.close();
+    reply(2, true);
+    await settled();
+    expect(hide).toHaveBeenCalledTimes(2);
+    expect(control.destroyed).toBe(false);
+  });
   it('hides a dialog only after saving succeeds and before destroying its window', async () => {
     const beforeClose = vi.fn();
     const {control, reply} = setup(beforeClose);

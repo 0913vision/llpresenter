@@ -30,6 +30,7 @@ export class ControlSession {
   private readonly listeners = new Set<() => void>();
   private closing: Promise<void> | undefined;
   private editorBlocked = false;
+  private generation = 0;
   /** Answers main's flush before closing and holds the 저장 중 dialog. */
   readonly closeFlush: CloseFlush | undefined;
 
@@ -99,6 +100,16 @@ export class ControlSession {
     this.publish();
   };
 
+  /** Restarts editing when a retained settings window opens after a close. */
+  resume(): void {
+    if (this.closing !== undefined) return;
+    this.generation++;
+    this.editorBlocked = false;
+    if (this.api !== undefined) pendingWritesOf(this.api).resume();
+    this.editorStore?.resume();
+    this.closeFlush?.resume();
+  }
+
   /** Release resources after unmount, including the close flush answer. */
   dispose(): Promise<void> {
     if (typeof window !== 'undefined' && import.meta.env.DEV) {
@@ -126,6 +137,7 @@ export class ControlSession {
   // background edits), and in memo drafts that a refused save left waiting.
   // The close goes on only after main writes all accepted edits to disk.
   private async flushBeforeClose(): Promise<boolean> {
+    const generation = this.generation;
     commitFocusedField();
     this.editorBlocked = true;
     const writes =
@@ -144,10 +156,12 @@ export class ControlSession {
         (await this.api?.app.savePending()) === true;
       return flushed;
     } finally {
-      this.editorBlocked = flushed;
-      if (!flushed) {
-        writes?.resume();
-        this.editorStore?.resume();
+      if (generation === this.generation) {
+        this.editorBlocked = flushed;
+        if (!flushed) {
+          writes?.resume();
+          this.editorStore?.resume();
+        }
       }
     }
   }

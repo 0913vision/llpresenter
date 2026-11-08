@@ -39,19 +39,32 @@ it(
         `document.activeElement?.value === '12'`,
       ),
     ).toBe(true);
-    await Promise.all([
-      settings.waitForEvent('close'),
-      app.electron().evaluate(({BrowserWindow}) => {
-        const window = BrowserWindow.getAllWindows().find(window =>
-          window.webContents.getURL().includes('window=settings'),
-        );
-        if (window === undefined) {
-          throw new Error('Screen settings window not found');
-        }
-        window.close();
-      }),
-    ]);
+    const settingsId = await app.electron().evaluate(({BrowserWindow}) => {
+      const window = BrowserWindow.getAllWindows().find(window =>
+        window.webContents.getURL().includes('window=settings'),
+      );
+      if (window === undefined) {
+        throw new Error('Screen settings window not found');
+      }
+      window.close();
+      return window.id;
+    });
+    await expect
+      .poll(
+        () =>
+          app.electron().evaluate(({BrowserWindow}, id) => {
+            const window = BrowserWindow.fromId(id);
+            return (
+              window !== null &&
+              !window.isDestroyed() &&
+              !window.contentView.getVisible()
+            );
+          }, settingsId),
+        {timeout: WAIT},
+      )
+      .toBe(true);
     const quittingSettings = await openScreenSettings(page, app.electron());
+    expect(quittingSettings).toBe(settings);
     expect(
       await quittingSettings
         .getByRole('spinbutton', {name: '가로 위치'})

@@ -33,14 +33,17 @@ prepared but stops keyboard handling, subscriptions, and preview rendering.
 Leaving 화면 설정 removes its test pattern and returning starts in 화면 내용.
 The screen editor keeps its saved geometry separately from the fixed preferences
 dialog. Switching settles pending drafts first; canceling keeps the current
-view. Closing saves, hides, releases the window, and returns focus to its
-opener; a refused save keeps it open. A replacement is prepared after close. The
-prepared native window uses background throttling and does not paint or allocate
-full-size surfaces while hidden. An explicit open applies the requested
-geometry, disables throttling, and enables painting. Readiness waits for
-committed data and fonts, then main captures the requested native frames before
-revealing it, without waiting on an occluded window's animation frames. Inactive
-views still suspend their effects and previews.
+view. Closing saves, hides the window, and returns focus to its opener; a
+refused save keeps it open. The same renderer and prepared controls survive
+every close, including an immediate reopen. Hidden windows park their display
+area empty, hide their content view, stop offscreen painting, and enable
+background throttling. An explicit open restores the requested geometry, resumes
+editing, disables throttling, and enables painting. After the committed data and
+fonts are ready, main maps the native frame transparently and captures its
+final-size content before making it opaque and focusing it. The first open uses
+the same staging, so a blank native frame is never exposed. Only quitting or
+losing the window releases the renderer. Inactive views still suspend their
+effects and previews; every close performs its own save handshake.
 
 | Column | 화면 설정 window                                                                      | 테마 workspace (12)                                       |
 | ------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------- |

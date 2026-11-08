@@ -68,6 +68,36 @@ function setup(
 }
 
 describe('close flush', () => {
+  it('ignores a previous close completing after the retained window resumes', async () => {
+    const clock = installMockClock();
+    const answer = deferred();
+    const flush = vi
+      .fn()
+      .mockReturnValueOnce(answer.promise)
+      .mockResolvedValue(true);
+    const {model, request, flushDone} = setup(flush);
+    request();
+    await clock.advance(SAVING_DIALOG_DELAY_MS);
+    expect(model.getSnapshot()).toBe('saving');
+    model.resume();
+    request();
+    await clock.runAll();
+    expect(flushDone).toHaveBeenCalledOnce();
+    answer.resolve(false);
+    await clock.runAll();
+    expect(flushDone).toHaveBeenCalledOnce();
+    expect(model.getSnapshot()).toBe('hidden');
+    expect(vi.getTimerCount()).toBe(0);
+  });
+  it('clears a previous failure when a retained window resumes', async () => {
+    const clock = installMockClock();
+    const {model, request} = setup(async () => false);
+    request();
+    await clock.runAll();
+    expect(model.getSnapshot()).toBe('failed');
+    model.resume();
+    expect(model.getSnapshot()).toBe('hidden');
+  });
   it('asks about drafts before it flushes and shows 저장 중 only after the answer', async () => {
     const clock = installMockClock();
     const answer = deferred();

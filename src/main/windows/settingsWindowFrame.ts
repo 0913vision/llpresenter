@@ -56,6 +56,7 @@ export function createPreferencesWindow({
     title: '환경설정',
     frame: false,
     show: false,
+    opacity: 0,
     paintWhenInitiallyHidden: false,
     parent: control,
     skipTaskbar: true,
@@ -72,6 +73,7 @@ export function createPreferencesWindow({
     },
   });
   created.removeMenu();
+  created.contentView.setVisible(false);
   // NOTE(0913vision): Offscreen rendering has its own frame pump, independent
   // of the initially-hidden native-window flag. Start it only on an open.
   if (mode === 'offscreen') created.webContents.stopPainting();

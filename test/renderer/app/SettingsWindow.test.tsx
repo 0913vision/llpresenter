@@ -93,6 +93,8 @@ function mount(initial: Promise<SettingsRequest> = Promise.resolve(general)) {
   const begin = vi.fn(async () => true);
   const ready = vi.fn();
   const reject = vi.fn();
+  const session = new ControlSession(undefined);
+  const resume = vi.spyOn(session, 'resume');
   window.llp = mockLlpApi({
     window: {
       settingsRequest: () => initial,
@@ -105,24 +107,35 @@ function mount(initial: Promise<SettingsRequest> = Promise.resolve(general)) {
       },
     },
   });
-  render(
-    <SettingsWindow
-      session={new ControlSession(undefined)}
-      closeFlush={undefined}
-    />,
-  );
+  render(<SettingsWindow session={session} closeFlush={undefined} />);
   return {
     push: (value: SettingsRequest) => act(() => push(value)),
     begin,
     ready,
     reject,
+    resume,
   };
 }
 
 describe('the shared settings renderer', () => {
-  it('preserves the inactive view DOM, suspends its effects and identifies readiness', async () => {
-    const {push, ready} = mount();
+  it('resumes only on reopen, including a hidden request superseded before committing', async () => {
+    const {push, resume} = mount();
     await screen.findByRole('main', {name: 'preferences'});
+    push(screens);
+    await screen.findByRole('main', {name: 'screens'});
+    expect(resume).toHaveBeenCalledOnce();
+    push(shortcuts);
+    await screen.findByRole('main', {name: 'preferences'});
+    expect(resume).toHaveBeenCalledOnce();
+    push({...general, requestId: 4});
+    push({...screens, requestId: 5});
+    await screen.findByRole('main', {name: 'screens'});
+    expect(resume).toHaveBeenCalledTimes(2);
+  });
+  it('preserves the inactive view DOM, suspends its effects and identifies readiness', async () => {
+    const {push, ready, resume} = mount();
+    await screen.findByRole('main', {name: 'preferences'});
+    expect(resume).not.toHaveBeenCalled();
     fireEvent.change(screen.getByRole('textbox', {name: 'draft'}), {
       target: {value: 'kept'},
     });
@@ -130,6 +143,7 @@ describe('the shared settings renderer', () => {
     expect(ready).toHaveBeenLastCalledWith(general);
     push(screens);
     await screen.findByRole('main', {name: 'screens'});
+    expect(resume).toHaveBeenCalledOnce();
     await waitFor(() => expect(mock.active).toEqual(new Set(['screens'])));
     fireEvent.click(screen.getByRole('button', {name: 'screens ready'}));
     expect(ready).toHaveBeenLastCalledWith(screens);

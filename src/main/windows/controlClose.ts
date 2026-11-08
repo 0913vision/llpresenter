@@ -37,6 +37,8 @@ export interface ControlCloseOptions {
   readonly timeoutMs?: number;
   /** Hides a dialog before its renderer and native window are released. */
   readonly beforeClose?: () => void;
+  /** Replaces native close for a retained dialog after its flush succeeds. */
+  readonly close?: () => void;
 }
 
 /** The control window's close handshake, for the quit path and disposal. */
@@ -47,6 +49,8 @@ export interface ControlClose {
    * settles it within the flush bound. It never rejects.
    */
   confirmClose(): Promise<boolean>;
+  /** Rearms the handshake after a retained dialog was hidden. */
+  resume(): void;
   dispose(): void;
 }
 
@@ -121,6 +125,11 @@ class ControlCloseHandshake implements ControlClose {
     this.confirmed = closes;
     this.refused = !closes;
     return closes;
+  }
+
+  resume(): void {
+    this.confirmed = false;
+    this.refused = false;
   }
 
   dispose(): void {
@@ -224,7 +233,8 @@ class ControlCloseHandshake implements ControlClose {
   private closeWindow(): void {
     if (this.options.control.isDestroyed()) return;
     this.options.beforeClose?.();
-    this.options.control.close();
+    if (this.options.close === undefined) this.options.control.close();
+    else this.options.close();
   }
 }
 

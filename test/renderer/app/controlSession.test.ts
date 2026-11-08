@@ -9,6 +9,77 @@ import {
   itemFixture,
 } from '@fixtures/renderer/features/service/items/itemFixture';
 import {ControlSession} from '@renderer/app/controlSession';
+import {pendingWritesOf} from '@renderer/platform/pendingWrites';
+
+it('does not stop the reopened editor when an older forced close finishes saving', async () => {
+  let request: (value: AppFlushRequest) => void = () => undefined;
+  let finish: (value: boolean) => void = () => undefined;
+  const savePending = vi.fn(
+    () =>
+      new Promise<boolean>(resolve => {
+        finish = resolve;
+      }),
+  );
+  const api = mockLlpApi({
+    app: {
+      subscribeFlushRequests: listener => {
+        request = listener;
+        return () => undefined;
+      },
+      savePending,
+    },
+  });
+  const session = new ControlSession(api);
+  onTestFinished(() => session.dispose());
+  request({
+    requestId: createAppFlushRequestId('a52f1d63-8f20-4b3c-9d4e-5f6071829304'),
+  });
+  await vi.waitFor(() => expect(savePending).toHaveBeenCalledOnce());
+  session.resume();
+  finish(true);
+  for (let turn = 0; turn < 5; turn++) await Promise.resolve();
+  session.startEditor();
+  expect(session.editor).toBeDefined();
+  expect(pendingWritesOf(api).isStopped).toBe(false);
+});
+
+it('resumes the retained window write gate and can flush a second edit after reopening', async () => {
+  let request: (value: AppFlushRequest) => void = () => undefined;
+  const flushDone = vi.fn();
+  const api = mockLlpApi({
+    app: {
+      subscribeFlushRequests: listener => {
+        request = listener;
+        return () => undefined;
+      },
+      flushDone,
+      savePending: async () => true,
+    },
+  });
+  const session = new ControlSession(api);
+  onTestFinished(() => session.dispose());
+  const gate = pendingWritesOf(api);
+  const requestId = createAppFlushRequestId(
+    'c52f1d63-8f20-4b3c-9d4e-5f6071829304',
+  );
+  request({requestId});
+  await vi.waitFor(() => expect(flushDone).toHaveBeenCalledOnce());
+  expect(gate.isStopped).toBe(true);
+  session.resume();
+  expect(gate.isStopped).toBe(false);
+  const write = vi.fn(async () => true);
+  expect(await gate.run({write, refused: false, sent: result => result})).toBe(
+    true,
+  );
+  expect(write).toHaveBeenCalledOnce();
+  session.startEditor();
+  expect(session.editor).toBeDefined();
+  request({
+    requestId: createAppFlushRequestId('d52f1d63-8f20-4b3c-9d4e-5f6071829304'),
+  });
+  await vi.waitFor(() => expect(flushDone).toHaveBeenCalledTimes(2));
+  expect(gate.isStopped).toBe(true);
+});
 
 it('refuses close after a memo reaches main but cannot be saved to disk, then retries', async () => {
   const {api} = itemFixture();
