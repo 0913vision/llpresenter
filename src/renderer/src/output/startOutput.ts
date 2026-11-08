@@ -173,8 +173,9 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
     const version = latest.version;
     const width = window.innerWidth;
     const height = window.innerHeight;
-    const ready = complete();
-    if (ready && paintedFrame !== frameKey()) return;
+    // NOTE(0913vision): An unpainted frame must reach main as not ready so it
+    // can wake a hidden native compositor without treating a timer as a paint.
+    const ready = complete() && paintedFrame === frameKey();
     if (time - lastAttempt < READY_RECHECK_MS && (!ready || lastReady)) return;
     lastAttempt = time;
     lastReady = ready;

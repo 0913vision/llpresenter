@@ -55,6 +55,26 @@ function setUp(autoReady = true) {
 }
 
 describe('OutputWindow', () => {
+  it('requests hidden painting only for an incomplete current frame', () => {
+    const {output, windows, setVersion} = setUp(false);
+    const handle = windows.only('main');
+    setVersion(2);
+    output.frameReady(1, {...PROJECTOR, ready: false});
+    expect(handle.frameRequests).toBe(0);
+    output.frameReady(2, {...PROJECTOR, ready: false});
+    expect(handle.frameRequests).toBe(1);
+    expect(handle.mode.kind).toBe('hidden');
+    output.preload(FULL_SCREEN);
+    output.frameReady(2, {...PROJECTOR, ready: true});
+    expect(handle.frameRequests).toBe(1);
+    output.update(FULL_SCREEN);
+    output.frameReady(2, {...PROJECTOR, ready: false});
+    expect(handle.frameRequests).toBe(1);
+    output.dispose();
+    output.frameReady(2, {...PROJECTOR, ready: false});
+    expect(handle.frameRequests).toBe(1);
+  });
+
   it('records a hidden prepared frame without revealing before the request', () => {
     const {output, windows, setVersion} = setUp(false);
     output.preload(FULL_SCREEN);

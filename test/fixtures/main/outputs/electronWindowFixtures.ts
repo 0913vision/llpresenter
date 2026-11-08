@@ -15,6 +15,7 @@ const electron = await vi.hoisted(async () => {
       isCrashed: vi.fn(() => false),
       executeJavaScript: vi.fn(() => Promise.resolve(0)),
       forcefullyCrashRenderer: vi.fn(),
+      capturePage: vi.fn(() => Promise.resolve()),
     });
     readonly setContentBounds = vi.fn<(bounds: Rect) => void>();
     readonly setTitle = vi.fn();

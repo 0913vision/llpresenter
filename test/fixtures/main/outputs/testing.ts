@@ -40,6 +40,7 @@ export class MockOutputHandle implements OutputWindowHandle {
   pings = 0;
   monitorRemovals = 0;
   raises = 0;
+  frameRequests = 0;
   readonly stackingChanges: boolean[] = [];
   /** How long the page takes to answer a ping; null when it never does. */
   answerAfterMs: number | null = 0;
@@ -65,6 +66,10 @@ export class MockOutputHandle implements OutputWindowHandle {
 
   contentSize(): Size {
     return this.viewport;
+  }
+
+  requestFrame(): void {
+    this.frameRequests += 1;
   }
 
   configure(screen: OutputScreen): void {

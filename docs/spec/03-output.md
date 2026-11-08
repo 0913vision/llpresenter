@@ -104,6 +104,17 @@ screen's output on and off. There is no confirmation.
   enable, retain the prepared player and seek to the main-owned live media's
   current position before revealing the current frame, without a dissolve. An on
   capture window keeps drawing even when another window covers it.
+- At launch, create and load every configured non-NDI output window as soon as
+  screen settings arrive, even when all output switches are off. Keep them
+  hidden without taking focus or showing on a monitor. The first turn-on uses
+  that same window, as later turn-ons do; preloading does not enable an output
+  or acquire the display wake lock.
+- While a hidden native output waits for its decoded, laid-out frame to paint,
+  request a one-pixel page capture to wake the compositor without showing the
+  window. Keep only one request in flight and discard the image. Stop requesting
+  once the renderer confirms its painted frame; do not capture visible or
+  offscreen test windows. A timer may request painting when animation frames
+  stall, but a timer or capture alone cannot declare the output ready.
 - Size hidden outputs before they are needed. Reveal a complete current frame
   without a dissolve. An output requested on must never remain hidden
   indefinitely: if preparation has not completed within 1.5 seconds, reveal what

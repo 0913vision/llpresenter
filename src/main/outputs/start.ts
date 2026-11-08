@@ -118,8 +118,8 @@ export interface RunningOutputs {
 }
 
 /**
- * Starts watching the monitors and the output switches, opens the output
- * windows as outputs turn on, follows their frame rate reports, and publishes
+ * Starts watching the monitors and the output switches, preloads hidden output
+ * windows when settings arrive, follows their frame rate reports, and publishes
  * the output status (`output:status:get`, `output:status:changed`) and
  * publishes the monitor list (`monitors:get`, `monitors:changed`), and
  * handles 다시 시도 (`output:retry`), 모니터 다시 찾기

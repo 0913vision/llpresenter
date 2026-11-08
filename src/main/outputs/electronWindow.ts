@@ -269,6 +269,8 @@ export function createElectronOutputWindow(
 ): OutputWindowHandle {
   const {log, mode} = options;
   const win = createBrowserWindow(screen, mode);
+  let framePending = false;
+  let frameFailureReported = false;
   discardTestFrames(win.webContents, mode);
   const page: PageRequest = {name: 'output', query: {screen: screen.id}};
   win.removeMenu();
@@ -293,6 +295,30 @@ export function createElectronOutputWindow(
       else win.setContentBounds(bounds);
     },
     contentSize: () => win.getContentBounds(),
+    requestFrame: () => {
+      if (
+        mode !== 'normal' ||
+        framePending ||
+        win.isDestroyed() ||
+        win.isVisible()
+      ) {
+        return;
+      }
+      framePending = true;
+      // NOTE(0913vision): A native hidden window can paint at 1 fps despite
+      // backgroundThrottling:false. A one-pixel capture wakes its compositor
+      // without showing the window; the renderer still confirms the full frame.
+      void win.webContents
+        .capturePage({x: 0, y: 0, width: 1, height: 1})
+        .catch((error: unknown) => {
+          if (win.isDestroyed() || frameFailureReported) return;
+          frameFailureReported = true;
+          log.error('could not prepare a hidden output frame', error);
+        })
+        .finally(() => {
+          framePending = false;
+        });
+    },
     reload: () => startLoading(win, page),
     crashRenderer: () => {
       if (!win.isDestroyed()) win.webContents.forcefullyCrashRenderer();

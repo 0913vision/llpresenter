@@ -14,6 +14,8 @@ import type {OutputScreen} from './screens';
 export interface OutputWindowHandle {
   configure(screen: OutputScreen): void;
   prepare(bounds: Rect, kind: ShownPlacement['kind']): void;
+  /** Wakes the hidden compositor for a pending frame without showing the window. */
+  requestFrame(): void;
   contentSize(): Size;
   /** Changes only this window's stacking, without moving it or taking focus. */
   setAlwaysOnTop(onTop: boolean): void;
@@ -136,7 +138,11 @@ export class OutputWindow {
   ): boolean {
     if (this.disposed) return false;
     if (this.visible) return true;
-    if (!frame.ready || version !== this.options.liveVersion()) return false;
+    if (version !== this.options.liveVersion()) return false;
+    if (!frame.ready) {
+      this.handle?.requestFrame();
+      return false;
+    }
     this.readyVersion = version;
     this.readySize = frame;
     this.frameReported();

@@ -102,6 +102,55 @@ function setUp(live: Partial<LlpApi['live']> = {}) {
 }
 
 describe('startOutput', () => {
+  it('requests hidden painting while animation frames stall, then stops when painted', async () => {
+    vi.useFakeTimers({
+      toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'],
+    });
+    const reportReady = vi.fn<(report: FrameReadyReport) => Promise<boolean>>(
+      () => Promise.resolve(false),
+    );
+    const defaults = mockLlpApi();
+    const api = mockLlpApi({
+      settings: {
+        get: ({name}) =>
+          name === 'screens'
+            ? Promise.resolve(overlaySettings().reader.get(name))
+            : defaults.settings.get({name}),
+      },
+      live: {
+        get: async () => ({
+          ...SHOWING,
+          outputs: {},
+          layers: {...SHOWING.layers, media: null},
+        }),
+      },
+      output: {reportReady},
+    });
+    const stop = startOutput({
+      root: document.createElement('div'),
+      api,
+      screenId: MAIN,
+    });
+    try {
+      await vi.advanceTimersByTimeAsync(250);
+      expect(reportReady).toHaveBeenCalled();
+      expect(reportReady.mock.calls.every(([report]) => !report.ready)).toBe(
+        true,
+      );
+      await pumpReadiness();
+      await pumpReadiness();
+      expect(reportReady).toHaveBeenLastCalledWith(
+        expect.objectContaining({ready: true}),
+      );
+      const count = reportReady.mock.calls.length;
+      await vi.advanceTimersByTimeAsync(1000);
+      expect(reportReady).toHaveBeenCalledTimes(count);
+    } finally {
+      stop();
+      vi.useRealTimers();
+    }
+  });
+
   it.each([
     ['playing', 'pause'],
     ['transitionrun', 'transitionend'],
@@ -257,8 +306,15 @@ describe('startOutput', () => {
       output: {reportReady},
     });
     const stop = startOutput({root, api, screenId: MAIN});
+    onTestFinished(stop);
     await Promise.resolve();
-    await pumpReadiness();
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      await pumpReadiness();
+      if (reportReady.mock.lastCall?.[0].ready) break;
+    }
+    expect(reportReady).toHaveBeenLastCalledWith(
+      expect.objectContaining({version: SHOWING.version, ready: true}),
+    );
     current = {
       ...current,
       version: SHOWING.version + 1,
@@ -271,7 +327,6 @@ describe('startOutput', () => {
     if (incoming === null) throw new Error('Missing replacement background');
     incoming.dispatchEvent(new Event('playing'));
     expect(incoming.classList.contains(classes.dissolving)).toBe(true);
-    stop();
   });
 
   it('prepares paused off-output media and resumes the latest position without a dissolve', async () => {
