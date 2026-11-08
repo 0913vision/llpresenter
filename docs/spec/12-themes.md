@@ -495,6 +495,15 @@ Keep unknown fields, as every settings file does (02).
   화면 retain their existing 말씀 layouts. The normal 배경 and 미디어 elements
   above the shipped picture retain item background overrides and blank picture
   slides, since blank items also use this theme by default.
+- 사도신경, 주기도문 is an additional built-in theme. Its 청중 화면 shares the
+  말씀 background asset and title frame, replacing 성경 출처 with 항목 이름
+  (NanumSquare Bold 72 px). 현재 가사 uses NanumSquare Bold 104 px, -3 px
+  tracking, 150 px line spacing, left/top alignment, and at most four lines in
+  the verse box from x 129 to 1805. 방송 화면 and 무대 화면 retain the 말씀
+  layouts. Adding a prayer installs this theme if an older catalog lacks it,
+  without replacing saved themes. If the media catalog lacks the 말씀
+  background, its image ID serves the bundled asset; a catalogued replacement
+  takes precedence.
 - 설교 제목 and 설교 제목 (두 줄) are additional themes, not kind defaults. In a
   blank 슬라이드 item, set the item name to the passage range and the slide text
   to the sermon title, with a line break for the two-line layout. Choose the

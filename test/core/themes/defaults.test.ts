@@ -186,6 +186,7 @@ it('makes a valid file with built-in themes and a standby clock and timer on sta
     '말씀',
     '영상',
     '광고',
+    '사도신경, 주기도문',
     '설교 제목',
     '설교 제목 (두 줄)',
     '예배 준비',
@@ -243,6 +244,37 @@ it('ships the audience scripture picture and editable typography without changin
         element => element.kind === 'image',
       ),
     ).toBe(false);
+  }
+});
+
+it('uses item names and a four-line verse box for liturgy while retaining other scripture screens', () => {
+  const theme = createDefaultThemes().themes.find(
+    theme => theme.name === '사도신경, 주기도문',
+  );
+  const scripture = builtInTheme('bible');
+  const audience = theme?.screens[createScreenId(STARTER_SCREEN_IDS.main)];
+  expect(
+    audience?.elements.find(element => element.kind === 'reference'),
+  ).toBeUndefined();
+  expect(
+    audience?.elements.find(element => element.kind === 'itemName'),
+  ).toMatchObject({
+    frame: {x: 130.6, y: 107},
+    text: {size: 72, font: 'NanumSquare', weight: 700},
+  });
+  expect(
+    audience?.elements.find(element => element.kind === 'currentText'),
+  ).toMatchObject({
+    frame: {x: 129, w: 1676},
+    text: {maxLines: 4, size: 104, tracking: -3},
+  });
+  for (const screen of [
+    STARTER_SCREEN_IDS.broadcast,
+    STARTER_SCREEN_IDS.stage,
+  ]) {
+    expect(theme?.screens[createScreenId(screen)]).toEqual(
+      scripture.screens[createScreenId(screen)],
+    );
   }
 });
 

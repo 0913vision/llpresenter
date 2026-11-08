@@ -27,6 +27,7 @@ import {registerMediaUses} from './mediaUses';
 import {LoadingMediaLibrary} from './mediaLibrary';
 import {openMediaStore} from './mediaLoader';
 import {SUNDAY_PICTURES} from './bundledPictures';
+import {SUNDAY_PICTURE_IDS} from '@core/themes/sundayScripture';
 import {initialPictures} from './initialPictures';
 import type {MediaStore} from './mediaStore';
 import {openContent, type OpenedContent} from './openContent';
@@ -211,6 +212,9 @@ export function registerStore({
   });
   const mediaLibrary = new LoadingMediaLibrary(
     media.then(store => (store === null ? null : {media: store})),
+    SUNDAY_PICTURES.filter(
+      picture => picture.id === SUNDAY_PICTURE_IDS.scripture,
+    ),
   );
   ipcMain.handle(appEndpoints.savePending.channel, async () => {
     try {

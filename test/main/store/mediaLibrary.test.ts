@@ -117,6 +117,20 @@ describe('buildMediaLibrary', () => {
 });
 
 describe('LoadingMediaLibrary', () => {
+  it('serves a shipped picture absent from an older catalog and prefers an operator replacement', async () => {
+    const shipped = join(ELSEWHERE, 'scripture.png');
+    const {library} = build([item(LIGHT, 'replacement.png')]);
+    const media = new LoadingMediaLibrary(Promise.resolve({media: library}), [
+      {id: WARM, file: shipped},
+      {id: LIGHT, file: shipped},
+    ]);
+    await expect(media.findFile(WARM)).resolves.toBe(shipped);
+    await expect(media.findFile(LIGHT)).resolves.toBe(
+      join(MEDIA, 'replacement.png'),
+    );
+    await expect(media.findFile('unknown')).resolves.toBeNull();
+    expect(media.roots()).toEqual([MEDIA, ELSEWHERE]);
+  });
   it('waits for the data, then finds files and gives the roots', async () => {
     type Loaded = {media: typeof NO_MEDIA} | null;
     let finish: (value: Loaded) => void = () => undefined;

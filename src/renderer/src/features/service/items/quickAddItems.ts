@@ -8,12 +8,14 @@ import {
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 import {newSlidesItem} from '@core/services/slidesEdits';
+import {LITURGY} from '@core/services/liturgy';
+import {prepareLiturgy} from './quickAddLiturgy';
 
 const SECTION_NAME = '새 구역';
 
 export interface OtherItemChoices {
   readonly media: readonly MediaItem[];
-  readonly onInsert: (item: ServiceItem) => void;
+  readonly onInsert: (item: ServiceItem | (() => Promise<ServiceItem>)) => void;
   /** Switches the popover to typing a passage reference. */
   readonly onBible: () => void;
 }
@@ -62,6 +64,17 @@ export function otherItemEntries({
       label: form === 'ad' ? '광고' : '빈 슬라이드',
       icon: 'monitor',
       onSelect: () => onInsert(newSlidesItem(form, newId())),
+    })),
+    ...(['creed', 'prayer'] as const).map(kind => ({
+      kind: 'item' as const,
+      id: `other:${kind}`,
+      label: LITURGY[kind].name,
+      submenu: (['new', 'old'] as const).map(translation => ({
+        kind: 'item' as const,
+        id: `${kind}:${translation}`,
+        label: translation === 'new' ? '새 번역' : '옛 번역',
+        onSelect: () => onInsert(() => prepareLiturgy(kind, translation)),
+      })),
     })),
     {
       kind: 'item',

@@ -47,18 +47,22 @@ export function ServiceQuickAdd({
     const passage = passageItem(ref, defaults);
     insertItem(passage);
   };
-  const insertItem = (item: ServiceItem): void => {
+  const insertItem = (
+    source: ServiceItem | (() => Promise<ServiceItem>),
+  ): void => {
     const api = window.llp;
     if (api === undefined) return;
     const {rows, openItemId} = useShow.getState();
     const selected = rows.findIndex(row => row.id === openItemId);
-    const before = isItemOfKind(item, 'slides')
-      ? selected < 0
-        ? null
-        : (rows[selected + 1]?.id ?? null)
-      : quickAddBefore(rows, openItemId);
-    if ('header' in item) useHeaderRename.getState().request(item.id);
+    const before =
+      typeof source === 'function' || isItemOfKind(source, 'slides')
+        ? selected < 0
+          ? null
+          : (rows[selected + 1]?.id ?? null)
+        : quickAddBefore(rows, openItemId);
     editing.run(async (edits, id) => {
+      const item = typeof source === 'function' ? await source() : source;
+      if ('header' in item) useHeaderRename.getState().request(item.id);
       const result = await edits.insertItem(
         id,
         item,
@@ -73,7 +77,9 @@ export function ServiceQuickAdd({
         const opened = await api.slidesEditor.open({
           serviceId: id,
           itemId: item.id,
-          ...(item.slides.form === 'blank' ? {focusText: true} : {}),
+          ...(typeof source !== 'function' && item.slides.form === 'blank'
+            ? {focusText: true}
+            : {}),
         });
         if (!opened.ok) throw new Error('Could not open the added slides item');
       }

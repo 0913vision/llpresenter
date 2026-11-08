@@ -2,7 +2,7 @@ import {useState, type JSX} from 'react';
 import {createServiceItemId} from '@core/schema/ids';
 import {isItemOfKind, type ServiceItem} from '@core/schema/service';
 import {useHeaderRename} from '@renderer/session/headerRename';
-import {useShow} from '@renderer/session/show';
+import {openItem, useShow} from '@renderer/session/show';
 import {useOrderFull} from '@renderer/session/orderFull';
 import {ORDER_FULL_REASON} from '@renderer/session/serviceOrderEdits';
 import {rememberBiblePassage} from '@renderer/session/recentWriter';
@@ -43,10 +43,34 @@ export function ServiceTableFooter({
           ? ORDER_FULL_REASON
           : undefined;
   const disabled = reason !== undefined || editing.busy;
-  const append = (item: ServiceItem): void => {
-    if ('header' in item) useHeaderRename.getState().request(item.id);
+  const append = (source: ServiceItem | (() => Promise<ServiceItem>)): void => {
+    const {rows, openItemId} = useShow.getState();
+    const selected = rows.findIndex(row => row.id === openItemId);
+    const before =
+      typeof source === 'function' && selected >= 0
+        ? rows[selected + 1]?.id
+        : undefined;
     editing.run(async (edits, id) => {
-      const result = await edits.insertItem(id, item, null);
+      const item = typeof source === 'function' ? await source() : source;
+      if ('header' in item) useHeaderRename.getState().request(item.id);
+      const result = await edits.insertItem(
+        id,
+        item,
+        before === undefined ? null : createServiceItemId(before),
+      );
+      if (
+        typeof source === 'function' &&
+        (result.ok ? result.value : result.error.reason === 'write-failed')
+      ) {
+        if (useShow.getState().serviceId === id) openItem(item.id);
+        const opened = await window.llp?.slidesEditor.open({
+          serviceId: id,
+          itemId: item.id,
+        });
+        if (!opened?.ok) {
+          throw new Error('Could not open the added liturgy item');
+        }
+      }
       if (
         (result.ok ? result.value : result.error.reason === 'write-failed') &&
         isItemOfKind(item, 'bible')

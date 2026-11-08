@@ -47,25 +47,38 @@ export const NO_MEDIA: MediaLibrary = {
 
 /**
  * The media library of data that is still being read: a lookup waits for the
- * data, and there are no roots until it is read. Data that couldn't be read
- * has no media.
+ * data. Explicitly supplied bundled pictures remain available to older catalogs;
+ * catalogued replacements take precedence.
  */
 export class LoadingMediaLibrary {
   private library: MediaLibrary = NO_MEDIA;
   private readonly ready: Promise<void>;
 
-  constructor(loading: Promise<{readonly media: MediaLibrary} | null>) {
+  constructor(
+    loading: Promise<{readonly media: MediaLibrary} | null>,
+    private readonly bundled: ReadonlyArray<{
+      readonly id: string;
+      readonly file: string;
+    }> = [],
+  ) {
     this.ready = this.keep(loading);
   }
 
   /** The file of a media id, once the data is read. */
   readonly findFile = async (mediaId: string): Promise<string | null> => {
     await this.ready;
-    return this.library.fileOf(mediaId);
+    return (
+      this.library.fileOf(mediaId) ??
+      this.bundled.find(picture => picture.id === mediaId)?.file ??
+      null
+    );
   };
 
-  /** The folders media come from, or none before the data is read. */
-  readonly roots = (): readonly string[] => this.library.roots;
+  /** Catalogued media roots plus the explicitly supplied bundled picture roots. */
+  readonly roots = (): readonly string[] => [
+    ...this.library.roots,
+    ...new Set(this.bundled.map(picture => dirname(picture.file))),
+  ];
 
   private async keep(
     loading: Promise<{readonly media: MediaLibrary} | null>,

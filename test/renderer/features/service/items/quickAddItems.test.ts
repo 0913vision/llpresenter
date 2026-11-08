@@ -1,9 +1,16 @@
 import {describe, expect, it, vi} from 'vitest';
 import {createMediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
-import type {ServiceItem} from '@core/schema/service';
+import type {OtherItemChoices} from '@renderer/features/service/items/quickAddItems';
 import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
 import {otherItemEntries} from '@renderer/features/service/items/quickAddItems';
+
+vi.mock('@renderer/features/service/items/quickAddLiturgy', () => ({
+  prepareLiturgy: vi.fn(async (kind: string, translation: string) => ({
+    kind,
+    translation,
+  })),
+}));
 
 const warm = createMediaId('60000000-0000-4000-8000-000000000021');
 const song = createMediaId('60000000-0000-4000-8000-000000000022');
@@ -22,7 +29,7 @@ function entry(entries: readonly MenuEntry[], id: string): MenuItem {
   return found;
 }
 
-function build(onInsert: (item: ServiceItem) => void) {
+function build(onInsert: OtherItemChoices['onInsert']) {
   return otherItemEntries({
     media,
     onInsert,
@@ -42,6 +49,8 @@ describe('quick add other items', () => {
       '|',
       '빈 슬라이드',
       '광고',
+      '사도신경',
+      '주기도문',
       '미디어',
       '성경 구절…',
       '영상 스트림 항목…',
@@ -55,6 +64,8 @@ describe('quick add other items', () => {
       ['빈 항목 추가', true],
       ['빈 슬라이드', false],
       ['광고', false],
+      ['사도신경', false],
+      ['주기도문', false],
       ['미디어', false],
       ['성경 구절…', false],
       ['영상 스트림 항목…', true],
@@ -68,17 +79,20 @@ describe('quick add other items', () => {
   });
 
   it('inserts a new section with a unique id and the unchanged header field', () => {
-    const onInsert = vi.fn<(item: ServiceItem) => void>();
+    const onInsert = vi.fn<OtherItemChoices['onInsert']>();
     entry(build(onInsert), 'other:header').onSelect?.();
     entry(build(onInsert), 'other:header').onSelect?.();
     const [first, second] = onInsert.mock.calls.map(([item]) => item);
     expect(first).toMatchObject({header: '새 구역'});
+    if (typeof first === 'function' || typeof second === 'function') {
+      throw new Error('Expected immediate section items');
+    }
     expect(first?.id).not.toBe(second?.id);
   });
   it.each(['blank', 'ad'])(
     'adds a %s item with one empty slide and its playback defaults',
     form => {
-      const onInsert = vi.fn<(item: ServiceItem) => void>();
+      const onInsert = vi.fn<OtherItemChoices['onInsert']>();
       entry(build(onInsert), `other:${form}`).onSelect?.();
       expect(onInsert.mock.calls[0]?.[0]).toMatchObject({
         slides: {
@@ -91,8 +105,30 @@ describe('quick add other items', () => {
     },
   );
 
+  it.each(['creed', 'prayer'])(
+    'offers both translations for %s',
+    async kind => {
+      const onInsert = vi.fn<OtherItemChoices['onInsert']>();
+      const choices = items(
+        entry(build(onInsert), `other:${kind}`).submenu ?? [],
+      );
+      expect(choices.map(choice => choice.label)).toEqual([
+        '새 번역',
+        '옛 번역',
+      ]);
+      for (const [index, translation] of ['new', 'old'].entries()) {
+        choices[index]?.onSelect?.();
+        const source = onInsert.mock.calls.at(-1)?.[0];
+        if (typeof source !== 'function') {
+          throw new Error('Missing item factory');
+        }
+        await expect(source()).resolves.toEqual({kind, translation});
+      }
+    },
+  );
+
   it('offers media without audio', () => {
-    const onInsert = vi.fn<(item: ServiceItem) => void>();
+    const onInsert = vi.fn<OtherItemChoices['onInsert']>();
     const entries = build(onInsert);
     const mediaChoices = items(entry(entries, 'other:media').submenu ?? []);
     expect(mediaChoices.map(item => item.label)).toEqual(['따뜻한 빛']);
@@ -115,7 +151,7 @@ describe('quick add other items', () => {
 
   it('retains unnamed videos and their insertion target while excluding audio', () => {
     const unnamed = createMediaId('60000000-0000-4000-8000-000000000023');
-    const onInsert = vi.fn<(item: ServiceItem) => void>();
+    const onInsert = vi.fn<OtherItemChoices['onInsert']>();
     const entries = otherItemEntries({
       media: [
         ...media,

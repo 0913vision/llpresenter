@@ -20,6 +20,7 @@ import {
   sundayPreparationLayout,
   sundayServiceTimesLayout,
 } from './sundayStandby';
+import {creedPrayerTheme} from './creedPrayer';
 
 export type ThemeScreen = Pick<Screen, 'id' | 'kind' | 'method'>;
 
@@ -308,6 +309,7 @@ export function createDefaultThemes(
         .filter(kind => kind !== 'blank' && kind !== 'ad')
         .map(kind => builtInTheme(kind, screens)),
       builtInTheme('ad', screens),
+      creedPrayerTheme(builtInTheme('bible', screens), screens),
       ...[false, true].map((twoLines, index): Theme => ({
         id: createThemeId(uuid(106 + index)),
         name: twoLines ? '설교 제목 (두 줄)' : '설교 제목',

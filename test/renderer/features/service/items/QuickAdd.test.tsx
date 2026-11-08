@@ -2,7 +2,11 @@ import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import * as v from 'valibot';
-import {createMediaId, translationIdSchema} from '@core/schema/ids';
+import {
+  createMediaId,
+  createServiceItemId,
+  translationIdSchema,
+} from '@core/schema/ids';
 import {parseSettingsDocument} from '@core/schema/settingsDocuments';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {mockMenuRowHeight} from '@fixtures/renderer/features/songs/editor/editorTesting';
@@ -22,6 +26,12 @@ import {ServiceQuickAdd} from '@renderer/features/service/items/QuickAdd';
 import {quickAddBefore} from '@core/services/quickAddPosition';
 import {formLookupReply} from '@fixtures/core/bibleReplies';
 import type {RecentPassage} from '@core/schema/bible';
+import {prepareLiturgy} from '@renderer/features/service/items/quickAddLiturgy';
+import {newSlidesItem} from '@core/services/slidesEdits';
+
+vi.mock('@renderer/features/service/items/quickAddLiturgy', () => ({
+  prepareLiturgy: vi.fn(),
+}));
 
 afterEach(() => {
   useShow.setState({
@@ -180,6 +190,37 @@ function fillBibleForm(end = ''): void {
 }
 
 describe('항목 추가', () => {
+  it('inserts a prepared liturgy after the selected item and opens its slide commands', async () => {
+    const {api, user, service} = setup();
+    const item = newSlidesItem(
+      'blank',
+      createServiceItemId(crypto.randomUUID()),
+    );
+    vi.mocked(prepareLiturgy).mockResolvedValueOnce(item);
+    const open = vi
+      .spyOn(api.slidesEditor, 'open')
+      .mockResolvedValue({ok: true, value: undefined});
+    useShow.setState({
+      openItemId: fixtureItems.arranged,
+      rows: [
+        {kind: 'song', id: fixtureItems.arranged, title: '첫 곡'},
+        {kind: 'song', id: fixtureItems.plain, title: '다음 곡'},
+      ],
+    });
+    await user.click(screen.getByRole('button', {name: '항목 추가'}));
+    await user.click(screen.getByRole('menuitem', {name: '사도신경'}));
+    await user.click(await screen.findByRole('menuitem', {name: '옛 번역'}));
+    await waitFor(() => expect(open).toHaveBeenCalledOnce());
+    expect(prepareLiturgy).toHaveBeenCalledWith('creed', 'old');
+    const order = service().service.order;
+    const index = order.findIndex(row => row.id === fixtureItems.arranged);
+    expect(order[index + 1]).toEqual(item);
+    expect(order[index + 2]?.id).toBe(fixtureItems.plain);
+    expect(open).toHaveBeenCalledWith({
+      serviceId: fixtureServiceId,
+      itemId: item.id,
+    });
+  });
   it.each(['빈 슬라이드', '광고'])(
     'inserts %s immediately after the selection, selects it and opens its editor',
     async label => {
