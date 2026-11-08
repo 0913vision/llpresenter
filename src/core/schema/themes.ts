@@ -62,6 +62,15 @@ const textEntries = {
   tracking: v.exactOptional(
     range(THEME_LIMITS.tracking.min, THEME_LIMITS.tracking.max),
   ),
+  shortTracking: v.exactOptional(
+    jsonObject({
+      maxCharacters: v.pipe(
+        positiveInteger,
+        v.maxValue(THEME_LIMITS.shortTextCharacters),
+      ),
+      tracking: range(THEME_LIMITS.tracking.min, THEME_LIMITS.tracking.max),
+    }),
+  ),
   bullets: v.exactOptional(v.boolean()),
   align: v.picklist(['left', 'center', 'right']),
   outline: textOutlineSchema,

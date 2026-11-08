@@ -76,12 +76,12 @@ describe('theme element properties', () => {
     );
   });
   it('accepts optional bounded tracking and passage range sources without changing old elements', () => {
-    for (const tracking of [-20, -3, 0, 0.1, 40]) {
+    for (const tracking of [-20, -3, 0, 0.1, 52, 152, 200]) {
       expect(v.safeParse(themeTextSchema, {...text, tracking}).success).toBe(
         true,
       );
     }
-    for (const tracking of [-20.1, 40.1, NaN, Infinity, '3']) {
+    for (const tracking of [-20.1, 200.1, NaN, Infinity, '3']) {
       expect(v.safeParse(themeTextSchema, {...text, tracking}).success).toBe(
         false,
       );
@@ -103,6 +103,34 @@ describe('theme element properties', () => {
       }).success,
     ).toBe(false);
     expect(v.safeParse(themeTextSchema, text).success).toBe(true);
+  });
+  it('accepts bounded optional short-text tracking without changing old text styles', () => {
+    expect(v.safeParse(themeTextSchema, text).success).toBe(true);
+    for (const shortTracking of [
+      {maxCharacters: 1, tracking: -20},
+      {maxCharacters: 2, tracking: 152},
+      {maxCharacters: 10, tracking: 200},
+    ]) {
+      expect(
+        v.safeParse(themeTextSchema, {...text, shortTracking}).success,
+      ).toBe(true);
+    }
+    for (const shortTracking of [
+      null,
+      true,
+      {},
+      {maxCharacters: 0, tracking: 152},
+      {maxCharacters: 11, tracking: 152},
+      {maxCharacters: 2.5, tracking: 152},
+      {maxCharacters: '2', tracking: 152},
+      {maxCharacters: 2, tracking: 201},
+      {maxCharacters: 2, tracking: NaN},
+      {maxCharacters: 2, tracking: -21},
+    ]) {
+      expect(
+        v.safeParse(themeTextSchema, {...text, shortTracking}).success,
+      ).toBe(false);
+    }
   });
   it('accepts slideName with only the common text fields on every screen, once per screen', () => {
     const slideName = {id: uuid(1), kind: 'slideName', frame, text};

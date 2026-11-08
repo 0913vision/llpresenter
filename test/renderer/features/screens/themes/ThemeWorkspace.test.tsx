@@ -297,6 +297,31 @@ it('shows clean geometry after selection and preserves explicitly typed precisio
   });
 });
 
+it('can enable and remove short-text tracking without changing the ordinary spacing', async () => {
+  const {value} = setup();
+  fireEvent.click(await screen.findByRole('button', {name: '현재 가사'}));
+  fireEvent.click(screen.getByRole('checkbox', {name: '짧은 글 자간'}));
+  await saveEdits();
+  const current = () =>
+    value().themes[0]?.screens[MAIN]?.elements.find(
+      element => element.kind === 'currentText',
+    );
+  await waitFor(() =>
+    expect(current()?.text.shortTracking).toEqual({
+      maxCharacters: 2,
+      tracking: -3,
+    }),
+  );
+  expect(screen.getByRole('spinbutton', {name: '최대 글자 수'})).toHaveProperty(
+    'value',
+    '2',
+  );
+  fireEvent.click(screen.getByRole('checkbox', {name: '짧은 글 자간'}));
+  await saveEdits();
+  await waitFor(() => expect(current()?.text.shortTracking).toBeUndefined());
+  expect(current()?.text.tracking).toBe(-3);
+});
+
 it('adds and deletes elements with keyboard actions and saves checkbox/text properties', async () => {
   const {value} = setup();
   await screen.findByRole('button', {name: '현재 가사'});

@@ -22,6 +22,7 @@ import styles from './ThemePicture.module.css';
 import {themeBackgroundStyle} from './themeBackground';
 import bulletStyles from './bulletText.module.css';
 import {BULLET_STYLE, textParagraphs} from './textParagraphs';
+import {resolveTextTracking} from '@core/themes/textTracking';
 
 interface MeasuredText {
   readonly lines: readonly string[];
@@ -29,15 +30,21 @@ interface MeasuredText {
   readonly part?: number;
 }
 
-function textEffects(text: ThemeText): CSSProperties {
+function textEffects(
+  text: ThemeText,
+  content: string,
+  continued: boolean,
+): CSSProperties {
   const {outline, shadow} = text;
+  const {spacing, indent} = resolveTextTracking(text, content, continued);
   const angle = (shadow.angle * Math.PI) / 180;
   return {
     ...BULLET_STYLE,
     fontFamily: fontFamilyFor(text.font),
     fontWeight: text.weight,
     lineHeight: text.lineHeight,
-    letterSpacing: text.tracking ?? 0,
+    letterSpacing: spacing,
+    textIndent: indent,
     textAlign: text.align,
     color: text.color,
     WebkitTextStroke: outline.on
@@ -94,7 +101,14 @@ function ThemeTextBox({
       <div
         ref={block}
         className={styles.text}
-        style={{...textEffects(element.text), fontSize: element.text.size}}
+        style={{
+          ...textEffects(
+            element.text,
+            measured?.lines.join('\n') ?? content,
+            measured?.continued ?? false,
+          ),
+          fontSize: element.text.size,
+        }}
       >
         {measured === undefined
           ? element.text.bullets
@@ -108,7 +122,13 @@ function ThemeTextBox({
                   {line || '\u00a0'}
                 </div>
               ))
-            : content
+            : element.text.shortTracking !== undefined
+              ? content
+                  .split('\n')
+                  .map((line, index) => (
+                    <div key={index}>{line || '\u00a0'}</div>
+                  ))
+              : content
           : measured.lines.map((line, index) => {
               const startsParagraph = index === 0 && (measured.part ?? 1) === 1;
               const run = continuationText(

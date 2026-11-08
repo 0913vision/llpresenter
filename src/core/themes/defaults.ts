@@ -16,6 +16,7 @@ import {STARTER_SCREEN_IDS} from '../screens/screens';
 import {THEME_LIMITS, themeItemKinds, type ThemeItemKind} from './elementRules';
 import {sundayScriptureLayout, sermonTitleLayout} from './sundayScripture';
 import {sundayNoticeLayout} from './sundayNotice';
+import {SECTION_THEME_ID, sundaySectionLayout} from './sundaySections';
 import {
   sundayPreparationLayout,
   sundayServiceTimesLayout,
@@ -322,6 +323,18 @@ export function createDefaultThemes(
           ]),
         ),
       })),
+      {
+        id: SECTION_THEME_ID,
+        name: '구역 이름',
+        screens: Object.fromEntries(
+          screens.map(screen => [
+            screen.id,
+            screen.kind === 'audience'
+              ? sundaySectionLayout()
+              : layoutFor(screen, 'blank'),
+          ]),
+        ),
+      },
       {
         id: createThemeId(uuid(110)),
         name: '예배 준비',

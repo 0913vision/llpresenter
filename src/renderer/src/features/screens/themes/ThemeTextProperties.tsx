@@ -97,6 +97,65 @@ export function ThemeTextProperties({
           change={tracking => change(value => ({...value, tracking}))}
         />
         <ThemeCheck
+          label="짧은 글 자간"
+          checked={text.shortTracking !== undefined}
+          reason={reason}
+          change={on =>
+            change(value => {
+              if (on) {
+                return {
+                  ...value,
+                  shortTracking: {
+                    maxCharacters: 2,
+                    tracking: value.tracking ?? 0,
+                  },
+                };
+              }
+              const next = {...value};
+              delete next.shortTracking;
+              return next;
+            })
+          }
+        />
+        {text.shortTracking === undefined ? null : (
+          <>
+            <ThemeNumber
+              label="최대 글자 수"
+              value={text.shortTracking.maxCharacters}
+              min={1}
+              max={THEME_LIMITS.shortTextCharacters}
+              reason={reason}
+              change={maxCharacters =>
+                change(value => ({
+                  ...value,
+                  shortTracking: {
+                    ...value.shortTracking,
+                    tracking: value.shortTracking?.tracking ?? 0,
+                    maxCharacters,
+                  },
+                }))
+              }
+            />
+            <ThemeNumber
+              label="짧은 글 자간 값"
+              value={text.shortTracking.tracking}
+              min={THEME_LIMITS.tracking.min}
+              max={THEME_LIMITS.tracking.max}
+              reason={reason}
+              change={tracking =>
+                change(value => ({
+                  ...value,
+                  shortTracking: {
+                    ...value.shortTracking,
+                    maxCharacters: value.shortTracking?.maxCharacters ?? 2,
+                    tracking,
+                  },
+                }))
+              }
+            />
+          </>
+        )}
+        <ThemeCheck
           label="글머리 기호"
           checked={text.bullets ?? false}
           reason={reason}

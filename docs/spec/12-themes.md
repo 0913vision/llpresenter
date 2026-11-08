@@ -114,7 +114,8 @@ one-pixel increment (ten with Shift).
 | 크기             | Text elements                               | 12 to 400                                                           |
 | 색               | Text elements, 사각형                       | `#RRGGBB`                                                           |
 | 줄 간격          | Text elements                               | 0.8 to 3.0                                                          |
-| 자간             | Text elements                               | -20 to 40 reference px; default 0                                   |
+| 자간             | Text elements                               | -20 to 200 reference px; default 0                                  |
+| 짧은 글 자간     | Text elements                               | Off by default; 최대 글자 수 1 to 10, alternate 자간 -20 to 200 px  |
 | 글머리 기호      | Text elements                               | Checkbox, off by default; one hanging bullet per nonempty paragraph |
 | 출처 내용        | 성경 출처                                   | 현재 절 (default), 항목 범위                                        |
 | 가로 정렬        | Text elements                               | 왼쪽, 가운데, 오른쪽                                                |
@@ -474,6 +475,30 @@ Keep unknown fields, as every settings file does (02).
 
 ### Defaults
 
+- New libraries include a 구역 이름 theme for a blank 슬라이드 item. 항목 이름
+  supplies the Korean name without inserted spaces; its one slide text supplies
+  the English name, which may be empty. On 청중 화면 both use white
+  KoPubWorldDotum without shadow or outline: Bold 152 px at y=412, tracking 52
+  px, and Light 56 px at y=613, tracking 34 px. Korean names of up to two
+  characters use 152 px tracking. The centered short-text option compensates for
+  the change in CSS trailing spacing so the visual center stays fixed. Counts
+  use Unicode code points excluding whitespace and generated continuation
+  markers, so wrapping does not change the decision. Literal marker text still
+  counts. Empty text keeps ordinary tracking. Measurement, output and thumbnails
+  use the same rule, including edits and scaling. The two gray rules are an
+  ordinary transparent picture, at x=700, y=305/759, 520 x 5 px, #737D87.
+- Each section card keeps an ordinary item background picture. New catalogs
+  include one 1920 x 1080 picture per section color, generated with the same
+  OKLCH gradient presets as the editor. Without an item background the theme
+  uses the 청록 gradient. Saved themes and catalogs are kept. The core section
+  list contains, in order: 묵상기도, 사도신경, 회개와간구의기도, 찬양, 합심기도,
+  봉헌, 봉헌기도, 성찬식, 축복기도, 세례식, 간구기도, 광고, 축도. Their colors
+  are 청록, 청록, 적갈, 초록, 적갈, 자주, 자주, 청록초록, 남보라, 청록초록,
+  적갈, 남보라, 올리브. English is empty for 묵상기도; the others use Apostle's
+  Creed, Repentance Prayer, Praise, Corporate Prayer, Offering, Offering Prayer,
+  Holy Communion, Blessing, Baptism, Supplication Prayer, Notice, Benediction.
+  This theme is not a kind default; 방송 화면 and 무대 화면 use the existing
+  blank-item layout.
 - In new libraries, 찬양 on 청중 화면 uses white NanumSquare ExtraBold
   (weight 800) at 108 px, centered horizontally and top aligned, with -3 px
   tracking, 137 px line spacing, and no shadow or outline. Its text frame is

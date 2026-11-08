@@ -7,6 +7,7 @@ import {continuationText} from '@core/bible/split/continuation';
 import {contSizeOf} from '@core/bible/split/layout';
 import {BULLET_STYLE, textParagraphs} from './textParagraphs';
 import bulletStyles from './bulletText.module.css';
+import {resolveTextTracking} from '@core/themes/textTracking';
 
 /** The dissolve between 장 (docs/spec/03-output.md, version 1 default). */
 export const SLIDE_DISSOLVE_MS = OUTPUT_TRANSITIONS.slideMs;
@@ -113,6 +114,7 @@ const STYLE_FIELDS = [
   'color',
   'lineHeight',
   'tracking',
+  'shortTracking',
   'bullets',
   'align',
   'vAlign',
@@ -273,9 +275,7 @@ export class SlideLayerView {
   /** Lays the 장 out again at a new screen scale, without a dissolve. */
   rescale(scale: number): void {
     this.scale = scale;
-    for (const page of this.pages) {
-      page.block.style.letterSpacing = `${(this.style.tracking ?? 0) * scale}px`;
-    }
+    for (const page of this.pages) this.applyTracking(page);
     const {shadow, outline} = effects(this.style);
     const angle = (shadow.angle * Math.PI) / 180;
     const x = Math.round(Math.cos(angle) * shadow.distance * scale * 1e6) / 1e6;
@@ -312,7 +312,19 @@ export class SlideLayerView {
     }
   }
 
-  private fit({element, block}: Page): void {
+  private applyTracking(page: Page): void {
+    const {spacing, indent} = resolveTextTracking(
+      this.style,
+      page.lines.join('\n'),
+      page.continued,
+    );
+    page.block.style.letterSpacing = `${spacing * this.scale}px`;
+    page.block.style.textIndent = `${indent * this.scale}px`;
+  }
+
+  private fit(page: Page): void {
+    this.applyTracking(page);
+    const {element, block} = page;
     const size = this.style.size * this.scale;
     const markers = block.querySelectorAll<HTMLElement>(
       '[data-bible-continuation]',

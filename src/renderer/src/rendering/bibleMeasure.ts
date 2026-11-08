@@ -7,6 +7,7 @@ import {
 import type {ThemeElement} from '@core/schema/themes';
 import {fontFamilyFor} from './slideLayer';
 import {BULLET_INDENT} from './textParagraphs';
+import {resolveTextTracking} from '@core/themes/textTracking';
 
 export type BibleTextElement = Extract<ThemeElement, {kind: 'currentText'}>;
 type TextWidth = (text: string, size: number) => number;
@@ -103,6 +104,23 @@ export function bibleMeasure(
   };
   return {
     spec,
-    measure: (value, options) => measureBibleLines(value, options, widthOf),
+    measure: (value, options) => {
+      const tracking = resolveTextTracking(
+        {...text, tracking: options.tracking},
+        value,
+      ).spacing;
+      return measureBibleLines(
+        value,
+        {
+          ...options,
+          tracking,
+          markerTracking:
+            text.shortTracking === undefined
+              ? options.markerTracking
+              : tracking,
+        },
+        widthOf,
+      );
+    },
   };
 }

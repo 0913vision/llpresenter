@@ -14,7 +14,8 @@ export const THEME_LIMITS = {
   weight: {min: 100, max: 900},
   fontSize: {min: 12, max: 400},
   lineHeight: {min: 0.8, max: 3},
-  tracking: {min: -20, max: 40},
+  tracking: {min: -20, max: 200},
+  shortTextCharacters: 10,
   maxLines: 12,
   radius: 200,
 } as const;

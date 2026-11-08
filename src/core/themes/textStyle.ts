@@ -11,6 +11,10 @@ export interface TextStyle {
   readonly color: string;
   readonly lineHeight: number;
   readonly tracking?: number;
+  readonly shortTracking?: {
+    readonly maxCharacters: number;
+    readonly tracking: number;
+  };
   readonly bullets?: boolean;
   readonly align: 'left' | 'center' | 'right';
   readonly vAlign: 'top' | 'middle' | 'bottom';
