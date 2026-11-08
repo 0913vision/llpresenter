@@ -11,8 +11,8 @@ export const GRADIENT_PRESETS: readonly GradientPreset[] = (
     {
       name: '청록',
       stops: [
-        [5, '#00222B'],
-        [100, '#00809A'],
+        [0, '#002E38'],
+        [100, '#00667A'],
       ],
     },
     {
@@ -26,8 +26,8 @@ export const GRADIENT_PRESETS: readonly GradientPreset[] = (
     {
       name: '초록',
       stops: [
-        [0, '#003A24'],
-        [100, '#007A43'],
+        [0, '#13452C'],
+        [100, '#3B8440'],
       ],
     },
     {

@@ -62,9 +62,14 @@ async function setup() {
   );
   return {...fixture, ...view};
 }
-function choose(name = 'Alternate') {
+async function choose(name = 'Alternate'): Promise<void> {
+  await waitFor(() =>
+    expect(
+      screen.getByRole('button', {name: '역본'}).getAttribute('aria-disabled'),
+    ).toBeNull(),
+  );
   fireEvent.click(screen.getByRole('button', {name: '역본'}));
-  fireEvent.click(screen.getByRole('menuitemradio', {name}));
+  fireEvent.click(await screen.findByRole('menuitemradio', {name}));
 }
 
 beforeEach(() => {
@@ -155,7 +160,7 @@ describe('Bible preview display controls', () => {
           .getAttribute('aria-disabled'),
       ).toBeNull(),
     );
-    choose();
+    await choose();
     await waitFor(() =>
       expect(currentSource().passage.translation).toBe(alternate),
     );
@@ -169,12 +174,12 @@ describe('Bible preview display controls', () => {
     });
     expect(fixture.send).not.toHaveBeenCalled();
     expect(fixture.edit).not.toHaveBeenCalled();
-    choose('Invented');
+    await choose('Invented');
     await waitFor(() =>
       expect(currentSource().passage.translation).toBe('sample'),
     );
     expect(useShow.getState().selectedTile).toBe(1);
-    choose('Invented');
+    await choose('Invented');
     expect(fixture.lookup).toHaveBeenCalledTimes(2);
   });
 
@@ -199,7 +204,7 @@ describe('Bible preview display controls', () => {
           },
         };
       });
-      choose();
+      await choose();
       await waitFor(() =>
         expect(currentSource().passage.translation).toBe(alternate),
       );
@@ -215,7 +220,7 @@ describe('Bible preview display controls', () => {
       new Error('Invented unavailable translation'),
     );
     const original = currentSource();
-    choose();
+    await choose();
     await waitFor(() =>
       expect(
         screen
@@ -230,7 +235,7 @@ describe('Bible preview display controls', () => {
         .getAttribute('aria-disabled'),
     ).toBeNull();
     expect(fixture.send).not.toHaveBeenCalled();
-    choose();
+    await choose();
     await waitFor(() =>
       expect(currentSource().passage.translation).toBe(alternate),
     );
@@ -245,7 +250,7 @@ describe('Bible preview display controls', () => {
           finish = resolve;
         }),
     );
-    choose();
+    await choose();
     fireEvent.click(screen.getByRole('button', {name: '역본'}));
     fireEvent.click(screen.getByRole('checkbox', {name: '절 번호'}));
     expect(screen.queryByRole('menu')).toBeNull();
@@ -272,7 +277,7 @@ describe('Bible preview display controls', () => {
             finish = resolve;
           }),
       );
-      choose();
+      await choose();
       act(() => {
         if (cancel === 'selection') openItem('song-morning');
         if (cancel === 'output') {
@@ -296,9 +301,13 @@ describe('Bible preview display controls', () => {
   it('releases a timed-out lookup without changing the preview', async () => {
     const fixture = await setup();
     const original = currentSource();
+    fireEvent.click(screen.getByRole('button', {name: '역본'}));
+    const alternateOption = await screen.findByRole('menuitemradio', {
+      name: 'Alternate',
+    });
     vi.useFakeTimers();
     fixture.lookup.mockReturnValueOnce(new Promise(() => undefined));
-    choose();
+    fireEvent.click(alternateOption);
     await act(async () => {
       await vi.advanceTimersByTimeAsync(2100);
     });

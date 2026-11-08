@@ -11,12 +11,12 @@ it('keeps the chosen teal and approved presets in presentation order', () => {
       name: '청록',
       stops: [
         {
-          position: 5,
-          color: '#00222B',
+          position: 0,
+          color: '#002E38',
         },
         {
           position: 100,
-          color: '#00809A',
+          color: '#00667A',
         },
       ],
     },
@@ -42,11 +42,11 @@ it('keeps the chosen teal and approved presets in presentation order', () => {
       stops: [
         {
           position: 0,
-          color: '#003A24',
+          color: '#13452C',
         },
         {
           position: 100,
-          color: '#007A43',
+          color: '#3B8440',
         },
       ],
     },

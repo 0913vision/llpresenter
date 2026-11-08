@@ -563,11 +563,11 @@ it('picks gradient presets in one undo step, edits only the selected stop and re
   expect(within(presets).getAllByRole('button')).toHaveLength(19);
   fireEvent.click(within(presets).getByRole('button', {name: '청록'}));
   expect(screen.getByRole('textbox', {name: '색'}).getAttribute('value')).toBe(
-    '#00222B',
+    '#002E38',
   );
   fireEvent.click(screen.getByRole('slider', {name: '색 2, 100 %'}));
   expect(screen.getByRole('textbox', {name: '색'}).getAttribute('value')).toBe(
-    '#00809A',
+    '#00667A',
   );
   expect(screen.getAllByRole('spinbutton', {name: '위치'})).toHaveLength(1);
   fireEvent.click(within(presets).getByRole('button', {name: '적갈'}));
@@ -679,7 +679,7 @@ it('adds sampled stops, drags across neighbors in one undo step, and moves or de
   expect(background).toMatchObject({
     stops: [
       {color: '#004A59', position: 50},
-      {color: '#007A43', position: 87},
+      {color: '#3B8440', position: 87},
     ],
   });
 });
