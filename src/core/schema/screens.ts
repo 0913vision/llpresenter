@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import {monitorIdentitySchema} from './monitorIdentity';
 import type {Result} from '../common/result';
 import {
   parseFile,
@@ -24,6 +25,7 @@ import {
 } from './primitives';
 
 const displaySchema = jsonObject({
+  identity: v.exactOptional(monitorIdentitySchema),
   id: v.pipe(v.number(), v.integer()),
   name: v.string(),
   number: positiveInteger,

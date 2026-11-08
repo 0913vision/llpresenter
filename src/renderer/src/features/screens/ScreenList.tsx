@@ -122,8 +122,8 @@ export function ScreenList({
   const select = useScreensSelection(view => view.select);
   const screens = document?.value.screens ?? noScreens;
   const groups = useMemo(
-    () => screenGroups(screens, statuses, outputs),
-    [screens, statuses, outputs],
+    () => screenGroups(screens, {statuses, outputs, monitors}),
+    [screens, statuses, outputs, monitors],
   );
   const selected = selectedScreenIn(selection, screens)?.id;
   const sections = useMemo(

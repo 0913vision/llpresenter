@@ -1,4 +1,6 @@
 import type {Screen} from '@core/schema/screens';
+import type {MonitorList} from '@core/schema/monitors';
+import {monitorAssignment} from '@core/screens/monitorAssignment';
 import {UNASSIGNED_TARGET, targetByMethod} from '@core/screens/screenRows';
 import type {PreviewTarget} from '@renderer/ui/PreviewFrame';
 
@@ -18,26 +20,31 @@ export interface ScreenSummary {
 /** Saved names and destinations in screen-document order, without role aliases. */
 export function summarizeScreens(
   screens: readonly Screen[],
+  monitors: MonitorList = [],
 ): readonly ScreenSummary[] {
-  return screens.map(screen => ({
-    id: screen.id,
-    icon:
-      screen.method === 'capture' || screen.method === 'ndi'
-        ? 'capture'
-        : 'mplay',
-    toolbarLabel: screen.name,
-    statusLabel: screen.name,
-    target:
-      screen.method === 'fullscreen'
-        ? screen.display === undefined
-          ? UNASSIGNED_TARGET
-          : `모니터 ${screen.display.number} ${screen.display.name}`
-        : targetByMethod[screen.method],
-    targetKind: screen.method === 'fullscreen' ? 'display' : screen.method,
-    kind: screen.kind,
-    chroma:
-      (screen.previewBackground ?? 'green') === 'green' &&
-      screen.kind !== 'stage' &&
-      (screen.method === 'capture' || screen.method === 'ndi'),
-  }));
+  const assignment = monitorAssignment(monitors);
+  return screens.map(screen => {
+    const display = assignment.get(screen.id) ?? screen.display;
+    return {
+      id: screen.id,
+      icon:
+        screen.method === 'capture' || screen.method === 'ndi'
+          ? 'capture'
+          : 'mplay',
+      toolbarLabel: screen.name,
+      statusLabel: screen.name,
+      target:
+        screen.method === 'fullscreen'
+          ? display === undefined
+            ? UNASSIGNED_TARGET
+            : `모니터 ${display.number} ${display.name}`
+          : targetByMethod[screen.method],
+      targetKind: screen.method === 'fullscreen' ? 'display' : screen.method,
+      kind: screen.kind,
+      chroma:
+        (screen.previewBackground ?? 'green') === 'green' &&
+        screen.kind !== 'stage' &&
+        (screen.method === 'capture' || screen.method === 'ndi'),
+    };
+  });
 }

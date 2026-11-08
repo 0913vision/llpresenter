@@ -21,6 +21,29 @@ function monitor(number = 1) {
 }
 
 describe('parseMonitorList', () => {
+  it('publishes bounded identities while dropping future payload fields', () => {
+    const identity = {
+      kind: 'windows',
+      devicePath: 'path',
+      edid: {manufacturer: 'DEL', product: '1234', serial: 'PANEL123'},
+    };
+    expect(
+      parseMonitorList([{...monitor(), identity: {...identity, future: true}}]),
+    ).toEqual({ok: true, value: [{...monitor(), identity}]});
+    expect(
+      parseMonitorList([
+        {...monitor(), identity: {...identity, devicePath: 'x'.repeat(513)}},
+      ]).ok,
+    ).toBe(false);
+    expect(
+      parseMonitorList([
+        {
+          ...monitor(),
+          identity: {...identity, edid: {...identity.edid, serial: 'UNKNOWN'}},
+        },
+      ]).ok,
+    ).toBe(false);
+  });
   it('accepts a saved display id and older lists without one', () => {
     const list = [{...monitor(), id: -22}, monitor(2)];
     expect(parseMonitorList(list)).toEqual({ok: true, value: list});

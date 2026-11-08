@@ -20,6 +20,29 @@ function setUp() {
 }
 
 describe('OutputStatusBoard', () => {
+  it('publishes availability changes while placement stays off', () => {
+    const {board, states} = setUp();
+    const listener = vi.fn();
+    board.subscribe(listener);
+    states.set('main', {
+      placement: 'off',
+      renderer: 'running',
+      monitorAvailable: false,
+    });
+    board.refresh();
+    states.set('main', {
+      placement: 'off',
+      renderer: 'running',
+      monitorAvailable: true,
+    });
+    board.refresh();
+    board.refresh();
+    expect(listener).toHaveBeenCalledTimes(2);
+    expect(board.snapshot()['main']).toMatchObject({
+      placement: 'off',
+      monitorAvailable: true,
+    });
+  });
   it('publishes and clears a control conflict independently of window placement', () => {
     const {board, states, listener} = setUp();
     states.set('main', {

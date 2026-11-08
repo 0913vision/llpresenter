@@ -18,6 +18,80 @@ import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 import {installMockClock} from '@fixtures/mockClock';
 
 describe('saved output backend', () => {
+  it('keeps output drawing during identity lookup, then stays off after disconnect and return', async () => {
+    const clock = installMockClock();
+    const displays = mocks.displays;
+    if (displays === null) throw new Error('Missing displays');
+    const original = displays.displays;
+    displays.displays = original.map(display => ({
+      ...display,
+      identityPending: true,
+    }));
+    const identity = {
+      kind: 'windows',
+      devicePath: 'path',
+      edid: {manufacturer: 'DEL', product: '1234', serial: 'PANEL123'},
+    } as const;
+    const {store, save, windows} = setup();
+    save([
+      {...main, display: {...main.display, identity}, onDisconnect: 'off'},
+    ]);
+    await loaded();
+    store.dispatch({type: 'output.set', screenId: MAIN, on: true});
+    await loaded();
+    expect(store.state.outputs[MAIN]).toBe(true);
+    expect(windows.only(MAIN).mode.kind).toBe('fullscreen');
+    displays.change(
+      ...original.map(display =>
+        display.id === 2 ? {...display, identity} : display,
+      ),
+    );
+    await clock.advance(300);
+    await loaded();
+    expect(windows.only(MAIN).mode.kind).toBe('fullscreen');
+    // NOTE(0913vision): A metrics event must not shrink an unchanged target while the
+    // next lookup is pending, nor after metadata becomes unavailable.
+    for (const identityPending of [true, false]) {
+      displays.change(
+        ...original.map(display => ({
+          ...display,
+          identityPending,
+          identityUnknown: true,
+        })),
+      );
+      await clock.advance(300);
+      await loaded();
+      expect(store.state.outputs[MAIN]).toBe(true);
+      expect(windows.only(MAIN).mode.kind).toBe('fullscreen');
+      expect(
+        mocks.answers.get(outputEndpoints.status.channel)?.(),
+      ).toMatchObject({
+        [MAIN]: {placement: 'fullscreen', monitorAvailable: true},
+      });
+    }
+    displays.change(
+      ...original.map(display =>
+        display.id === 2 ? {...display, identity} : display,
+      ),
+    );
+    await clock.advance(300);
+    displays.remove(2);
+    await clock.advance(300);
+    expect(store.state.outputs[MAIN]).toBe(false);
+    displays.change(
+      ...original.map(display =>
+        display.id === 2 ? {...display, id: 22, identity} : display,
+      ),
+    );
+    await clock.advance(300);
+    expect(store.state.outputs[MAIN]).toBe(false);
+    expect(windows.only(MAIN).mode.kind).toBe('hidden');
+    expect(mocks.answers.get(outputEndpoints.status.channel)?.()).toMatchObject(
+      {
+        [MAIN]: {placement: 'off', monitorAvailable: true, monitor: 2},
+      },
+    );
+  });
   it('protects the control window on the audience monitor and restores output when it leaves', async () => {
     const clock = installMockClock();
     const {controlWindow, store, windows, stop} = setup();

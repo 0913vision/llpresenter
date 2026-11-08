@@ -1,7 +1,14 @@
 import {intersectionArea, sameRect, type Rect} from './rect';
+import type {MonitorIdentity} from '@core/schema/monitorIdentity';
+import {sameMonitorIdentity} from '@core/screens/monitorIdentity';
 
 /** A monitor as the operating system reports it. */
 export interface DisplayInfo {
+  readonly identity?: MonitorIdentity;
+  /** Identity is still being read; absence is not yet a confirmed disconnect. */
+  readonly identityPending?: boolean;
+  /** No successful identity snapshot for this topology; use legacy matching. */
+  readonly identityUnknown?: boolean;
   /** The operating system's display id. */
   readonly id: number;
   /** The name the operating system gives the monitor. */
@@ -39,6 +46,9 @@ export function numberMonitors(
 
 function sameMonitor(a: Monitor, b: Monitor): boolean {
   return (
+    sameMonitorIdentity(a.identity, b.identity) &&
+    a.identityPending === b.identityPending &&
+    a.identityUnknown === b.identityUnknown &&
     a.id === b.id &&
     a.name === b.name &&
     a.number === b.number &&

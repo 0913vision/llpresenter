@@ -128,6 +128,31 @@ async function loaded(): Promise<void> {
 beforeEach(() => vi.mocked(findControlMonitor).mockReturnValue(control));
 
 describe('initial saved monitor assignment', () => {
+  it('saves discovered identity once the background query finishes', async () => {
+    const f = fixture();
+    f.displays.monitors = [
+      {...control, identityPending: true},
+      {...second, identityPending: true},
+    ];
+    const stop = assignInitialMonitors(f.options);
+    await loaded();
+    expect(f.save).not.toHaveBeenCalled();
+    const identity = {
+      kind: 'windows',
+      devicePath: 'path',
+      edid: {manufacturer: 'DEL', product: '1234', serial: 'PANEL123'},
+    } as const;
+    f.displays.monitors = [control, {...second, identity}];
+    f.change();
+    await loaded();
+    expect(f.save).toHaveBeenCalledOnce();
+    const document = f.reader.get('screens');
+    expect(
+      document.name === 'screens' &&
+        document.value.screens[0]?.display?.identity,
+    ).toEqual(identity);
+    stop();
+  });
   it('saves audience on the second monitor and stage on the third without changing broadcast', async () => {
     const f = fixture();
     const stop = assignInitialMonitors(f.options);

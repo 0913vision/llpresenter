@@ -102,7 +102,10 @@ function reconnectedCard({
   after,
   time,
 }: ScreenTransition): Notice {
-  const monitor = monitorLabel(after);
+  const monitor = [
+    ...monitorLabel(after),
+    ...(after.placement === 'off' ? [OUTPUT_OFF] : []),
+  ];
   return {
     key: monitorNoticeKey(screenId),
     kind: 'info',
@@ -122,6 +125,13 @@ function reconnectedCard({
 function monitorChange(transition: ScreenTransition): CardChange | null {
   const was = transition.before?.placement;
   const now = transition.after.placement;
+  if (
+    now === 'off' &&
+    transition.before?.monitorAvailable !== true &&
+    transition.after.monitorAvailable === true
+  ) {
+    return {kind: 'update', notice: reconnectedCard(transition)};
+  }
   if (now === was) return null;
   const key = monitorNoticeKey(transition.screenId);
   switch (now) {

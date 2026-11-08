@@ -88,6 +88,24 @@ beforeEach(() => {
 });
 
 describe('useOutputNotices', () => {
+  it('reports an off-output return only after a known disconnect warning', () => {
+    const {target, push, showWindow} = setup();
+    const returned: Notice = {...lostCard(), kind: 'info', meta: ['출력 꺼짐']};
+    const update = {
+      kind: 'update',
+      screenId: STAGE_SCREEN,
+      notice: returned,
+    } as const;
+    push({}, [update]);
+    expect(target.report).not.toHaveBeenCalled();
+    push(STAGE_LOST, [
+      {kind: 'show', screenId: STAGE_SCREEN, notice: lostCard()},
+    ]);
+    push({}, [update]);
+    expect(target.report).toHaveBeenLastCalledWith(returned);
+    expect(useOutputWarnings.getState().warnings.size).toBe(0);
+    expect(showWindow).not.toHaveBeenCalled();
+  });
   it('shows a warning card and keeps it for the 출력 menu under the full screen name', () => {
     const {target, push} = setup();
     const card = lostCard();

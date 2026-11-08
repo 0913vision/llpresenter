@@ -43,6 +43,7 @@ const outputScreenStatusSchema = payloadObject({
   ),
   fpsLow: v.boolean(),
   controlConflict: v.exactOptional(v.boolean()),
+  monitorAvailable: v.exactOptional(v.boolean()),
   monitor: v.exactOptional(
     v.pipe(
       v.number(),
@@ -68,6 +69,8 @@ const outputScreenRequestSchema = payloadObject({screenId});
  * screen is assigned to, kept after that monitor disconnects, and absent when
  * it never had one. `controlConflict` marks a window fallback while the main
  * window occupies the assigned monitor.
+ * `monitorAvailable` reports resolved assignment independently of output on/off;
+ * it is absent while hardware identity is pending or for non-monitor outputs.
  */
 export type OutputScreenStatus = Readonly<
   v.InferOutput<typeof outputScreenStatusSchema>

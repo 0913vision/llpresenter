@@ -10,6 +10,7 @@ import {
   useScreenSummaries,
 } from '@renderer/platform/ScreenSummaries';
 import {summarizeScreens} from '@renderer/platform/screens';
+import {projector} from '@fixtures/renderer/features/screens/monitors';
 
 function Labels(): JSX.Element {
   const screens = useScreenSummaries();
@@ -162,6 +163,11 @@ it('projects every saved output method and monitor identity in document order', 
   });
   if (value.name !== 'screens') throw new Error('Expected screens');
   const summaries = summarizeScreens(value.value.screens);
+  const matched = summarizeScreens(value.value.screens, [
+    {...projector, number: 1, name: 'Current', screenIds: [MAIN_ID]},
+  ]);
+  expect(matched[0]?.target).toBe('모니터 1 Current');
+  expect(summaries[0]?.target).toBe('모니터 7 Projector');
   expect(
     summaries.map(({target, targetKind, chroma}) => ({
       target,

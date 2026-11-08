@@ -1,6 +1,9 @@
 import {screen, type Display, type Event} from 'electron';
 import type {DisplayInfo} from './monitor';
 import type {DisplaySource} from './registry';
+import {IdentityDisplaySource} from './identitySource';
+import {readWindowsMonitors} from './windowsMonitors';
+import type {Logger} from '../log';
 
 function toDisplayInfo(display: Display, primaryId: number): DisplayInfo {
   return {
@@ -11,12 +14,18 @@ function toDisplayInfo(display: Display, primaryId: number): DisplayInfo {
     scaleFactor: display.scaleFactor,
     refreshRate: display.displayFrequency,
     primary: display.id === primaryId,
+    identityUnknown: true,
   };
 }
 
 /** Reads and watches the monitors through Electron's `screen`. Use it after the app is ready. */
-export function createElectronDisplaySource(): DisplaySource {
-  return {
+export function createElectronDisplaySource(log: Logger): DisplaySource {
+  if (process.platform !== 'win32') {
+    log.warn(
+      'monitor identity unavailable on this platform; using legacy matching',
+    );
+  }
+  const source: DisplaySource = {
     read: () => {
       const primaryId = screen.getPrimaryDisplay().id;
       return screen
@@ -37,4 +46,12 @@ export function createElectronDisplaySource(): DisplaySource {
       };
     },
   };
+  return process.platform === 'win32'
+    ? new IdentityDisplaySource({
+        source,
+        query: readWindowsMonitors,
+        pixelBounds: display => screen.dipToScreenRect(null, display.bounds),
+        log,
+      })
+    : source;
 }

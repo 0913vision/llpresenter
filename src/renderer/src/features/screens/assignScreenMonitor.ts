@@ -1,5 +1,9 @@
 import type {MonitorInfo} from '@core/schema/monitors';
 import type {Screen} from '@core/schema/screens';
+import {
+  sameMonitorIdentity,
+  monitorSerialKey,
+} from '@core/screens/monitorIdentity';
 
 export interface MonitorAssignmentInput {
   readonly screens: readonly Screen[];
@@ -9,6 +13,16 @@ export interface MonitorAssignmentInput {
   readonly observedScreens?: readonly Screen[] | undefined;
 }
 
+function savedOnMonitor(screen: Screen, monitor: MonitorInfo): boolean {
+  const saved = screen.display;
+  if (saved?.identity === undefined) return saved?.id === monitor.id;
+  const serial = monitorSerialKey(saved.identity);
+  return serial !== undefined
+    ? serial === monitorSerialKey(monitor.identity)
+    : saved.identity.devicePath.toUpperCase() ===
+        monitor.identity?.devicePath.toUpperCase();
+}
+
 function sameAssignment(before: Screen | undefined, current: Screen): boolean {
   if (before?.method !== current.method) return false;
   const saved = before.display;
@@ -16,6 +30,7 @@ function sameAssignment(before: Screen | undefined, current: Screen): boolean {
   if (saved === next) return true;
   if (saved === undefined || next === undefined) return false;
   return (
+    sameMonitorIdentity(saved.identity, next.identity) &&
     saved.id === next.id &&
     saved.name === next.name &&
     saved.number === next.number &&
@@ -42,6 +57,7 @@ export function assignScreenMonitor({
     return screens;
   }
   const display = {
+    ...(monitor.identity === undefined ? {} : {identity: monitor.identity}),
     id: monitor.id,
     name: monitor.name,
     number: monitor.number,
@@ -54,7 +70,7 @@ export function assignScreenMonitor({
       return {...screen, method: 'fullscreen', display};
     }
     if (
-      screen.display?.id !== monitor.id &&
+      !savedOnMonitor(screen, monitor) &&
       !(
         monitor.screenIds.includes(screen.id) &&
         sameAssignment(observed.get(screen.id), screen)

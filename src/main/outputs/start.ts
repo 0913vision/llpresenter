@@ -151,7 +151,7 @@ export function startOutputs({
   windowMode,
 }: OutputContext): RunningOutputs {
   let stopped = false;
-  const displays = new DisplayRegistry(createElectronDisplaySource(), log);
+  const displays = new DisplayRegistry(createElectronDisplaySource(log), log);
   const controlBounds = () =>
     control.isDestroyed() ? null : control.getBounds();
   const screens = createSettingsScreenSource(
@@ -224,6 +224,7 @@ export function startOutputs({
       );
     }),
     screens.subscribe(() => board.refresh()),
+    displays.subscribe(() => board.refresh()),
     listenToWindows(
       outputEndpoints.health.channel,
       handleOutputHealth(screenId => {

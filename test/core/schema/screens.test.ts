@@ -55,6 +55,67 @@ function withScreen(screen: object) {
 }
 
 describe('parseScreens', () => {
+  it('round trips additive Windows identity and future nested fields', () => {
+    const screen = mainScreen();
+    expectRoundTrip(
+      codec,
+      withScreen({
+        ...screen,
+        display: {
+          ...screen.display,
+          identity: {
+            kind: 'windows',
+            devicePath: 'path',
+            future: true,
+            edid: {
+              manufacturer: 'DEL',
+              product: '1234',
+              serial: 'PANEL123',
+              future: 1,
+            },
+          },
+        },
+      }),
+    );
+    expectRoundTrip(
+      codec,
+      withScreen({
+        ...screen,
+        display: {
+          ...screen.display,
+          identity: {kind: 'windows', devicePath: 'path'},
+        },
+      }),
+    );
+  });
+  it.each([
+    {kind: 'windows', devicePath: ''},
+    {kind: 'windows', devicePath: 'x'.repeat(513)},
+    {kind: 'other', devicePath: 'path'},
+    {
+      kind: 'windows',
+      devicePath: 'path',
+      edid: {manufacturer: 'DEL', product: '1234', serial: '0000'},
+    },
+    {
+      kind: 'windows',
+      devicePath: 'path',
+      edid: {manufacturer: 'DEL', product: '1234', serial: 'x'.repeat(65)},
+    },
+    {
+      kind: 'windows',
+      devicePath: 'path',
+      edid: {manufacturer: 'DEL', product: '1234'},
+    },
+  ])('rejects invalid monitor identity %j', identity => {
+    const screen = mainScreen();
+    const value = withScreen({
+      ...screen,
+      display: {...screen.display, identity},
+    });
+    const result = parseScreens(JSON.stringify(value), 'screens.json');
+    if (result.ok) throw new Error('Invalid identity accepted');
+  });
   it.each(['#000000', '#00B140', '#abC123'])(
     'keeps empty color %s',
     emptyColor => {

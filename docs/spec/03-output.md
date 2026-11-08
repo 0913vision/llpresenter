@@ -521,8 +521,30 @@ Source: `Overlays` 무대 tab, 12.
   설정 and the output targets immediately. Preserve window, capture and NDI
   methods. Any saved assignment, even to a disconnected monitor, prevents this
   automatic assignment; never move an operator-assigned screen.
-- To find a screen's saved monitor, match the operating system display ID first,
-  then the monitor name and resolution, and then the position (proposal).
+- On Windows, after a successful identity query, first match a unique saved EDID
+  manufacturer, product and meaningful serial. A missing or ambiguous serial
+  match stays missing, even if a look-alike has its former display ID or
+  position. Without a serial, match the saved device path. These identities are
+  read asynchronously at launch and after topology changes settle, without
+  opening a window or blocking startup.
+- If identity is not available yet, unsupported, failed or timed out, use the
+  existing display ID and heuristic matching for all saved assignments, even
+  those with identity. Log the unknown state once per episode as a warning. Keep
+  a matched fullscreen output fullscreen while reading identity, including when
+  its ID, rectangle and scale remain unchanged after a topology event; retain
+  the verified previous target ahead of a reused saved ID. Refine the assignment
+  after a successful query; a confirmed mismatch is then missing. Limit each
+  query to five seconds, with no polling or rapid failure retries; a later
+  settled topology event can trigger a fresh query.
+- Assignments saved without identity retain display ID, previous match, monitor
+  name and physical pixel size, then position matching. Compare pixel sizes
+  using both the saved and current scale, allowing integer-DIP rounding. Weak
+  matches must be unique and never take the control monitor or another output's
+  monitor.
+- Screen rows and preview captions use the currently matched monitor's number,
+  including while output is off or in a control-conflict fallback; use the saved
+  number only while its monitor is missing. The status bar gives the control
+  conflict reason, for example “모니터 1에 컨트롤 창이 있어 창으로 표시 중”.
 - When a monitor's resolution or position changes, fit the full screen output
   window to the new bounds.
 
@@ -560,12 +582,19 @@ while monitors settle.
 If the screen's 연결이 끊기면 setting is to turn the output off instead, turn
 that screen's output off and show the same warning notification (proposal).
 
-When the same monitor connects again, move the output window back to full screen
-on that monitor. If the screen's 항상 위 setting is on, restore always on top so
-the output is above the control window; otherwise keep always on top off. Return
-the toolbar and status bar to normal, and turn the warning notification into the
-information notification "무대 모니터 다시 연결됨" (stage monitor reconnected).
-It closes after 6 seconds.
+When the same monitor connects again and the output is still on, move the output
+window back to full screen on that monitor. If the screen's 항상 위 setting is
+on, restore always on top so the output is above the control window; otherwise
+keep always on top off. Return the toolbar and status bar to normal, and turn
+the warning notification into the information notification "무대 모니터 다시
+연결됨" (stage monitor reconnected). It closes after 6 seconds.
+
+If disconnect handling turned the output off (`onDisconnect: off`), reconnection
+keeps it off until the operator turns it on. Replace the existing disconnect
+warning with “무대 모니터 다시 연결됨” (using the screen's name), with “출력
+꺼짐” in the detail, for 6 seconds. Do not show, focus or raise the output
+window. An output turned off manually during fallback also stays off; an output
+already off before disconnect produces no new notification on reconnection.
 
 - If the output of that screen is off when its monitor disconnects, don't show a
   notification. If the operator then turns the output on, follow steps 1 to 3

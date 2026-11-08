@@ -530,6 +530,8 @@ describe('OutputManager status', () => {
     expect(manager.screenStates().get('main')).toEqual({
       placement: 'off',
       renderer: 'running',
+      monitor: monitor(PROJECTOR).number,
+      monitorAvailable: true,
     });
 
     store.dispatch(turn(true));
@@ -537,6 +539,7 @@ describe('OutputManager status', () => {
       placement: 'fullscreen',
       renderer: 'running',
       monitor: monitor(PROJECTOR).number,
+      monitorAvailable: true,
     });
     displays.change(monitorsOf(CONTROL));
     displays.change();
@@ -545,6 +548,7 @@ describe('OutputManager status', () => {
       placement: 'monitorMissing',
       renderer: 'running',
       monitor: monitor(PROJECTOR).number,
+      monitorAvailable: false,
     });
     expect(log.messages('warn')).toEqual(['output monitor missing']);
     expect(onStatusChange).toHaveBeenCalledTimes(2);
@@ -561,6 +565,8 @@ describe('OutputManager status', () => {
     expect(manager.screenStates().get('main')).toEqual({
       placement: 'off',
       renderer: 'limited',
+      monitor: monitor(PROJECTOR).number,
+      monitorAvailable: true,
     });
   });
 

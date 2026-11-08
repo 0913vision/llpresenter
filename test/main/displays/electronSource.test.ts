@@ -1,5 +1,6 @@
 import {expect, it, vi} from 'vitest';
 import {createElectronDisplaySource} from '@main/displays/electronSource';
+import {recordingLogger} from '@fixtures/main/displays/testing';
 
 const screen = await vi.hoisted(async () => {
   const {EventEmitter} = await import('node:events');
@@ -9,7 +10,7 @@ vi.mock('electron', () => ({screen}));
 
 it('forwards the removed display id synchronously and releases all Electron listeners', () => {
   const listener = vi.fn();
-  const stop = createElectronDisplaySource().watch(listener);
+  const stop = createElectronDisplaySource(recordingLogger()).watch(listener);
   screen.emit('display-removed', {}, {id: 22});
   expect(listener).toHaveBeenCalledExactlyOnceWith({kind: 'removed', id: 22});
   screen.emit('display-added', {}, {id: 44});

@@ -8,8 +8,10 @@ import {
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import type {Notice} from '@renderer/ui/notices';
 import {summarizeScreens, type ScreenSummary} from './screens';
+import type {MonitorList} from '@core/schema/monitors';
 
 const noScreens: readonly ScreenSummary[] = [];
+const noMonitors: MonitorList = [];
 
 /** The shell's screen document projection, also usable by isolated views. */
 export const ScreenSummariesContext = createContext(noScreens);
@@ -18,15 +20,19 @@ export const ScreenSummariesContext = createContext(noScreens);
 export function ScreenSummariesProvider({
   children,
   onProblem,
+  monitors = noMonitors,
 }: {
   readonly children: ReactNode;
   readonly onProblem: (notice: Notice) => void;
+  readonly monitors?: MonitorList;
 }): JSX.Element {
   const document = useSettingsDocument('screens', '화면', onProblem);
   const screens = useMemo(
     () =>
-      document === null ? noScreens : summarizeScreens(document.value.screens),
-    [document],
+      document === null
+        ? noScreens
+        : summarizeScreens(document.value.screens, monitors),
+    [document, monitors],
   );
   return (
     <ScreenSummariesContext value={screens}>{children}</ScreenSummariesContext>

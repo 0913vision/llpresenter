@@ -20,7 +20,8 @@ function sameStatus(a: OutputScreenStatus, b: OutputScreenStatus): boolean {
     a.fps === b.fps &&
     a.fpsLow === b.fpsLow &&
     a.monitor === b.monitor &&
-    a.controlConflict === b.controlConflict
+    a.controlConflict === b.controlConflict &&
+    a.monitorAvailable === b.monitorAvailable
   );
 }
 
@@ -53,7 +54,7 @@ export class OutputStatusBoard {
     const statuses: Record<string, OutputScreenStatus> = {};
     for (const [
       screenId,
-      {placement, renderer, monitor},
+      {placement, renderer, monitor, monitorAvailable},
     ] of this.sources.screenStates()) {
       const rate =
         placement === 'off' ? null : this.sources.frameRate(screenId);
@@ -64,6 +65,7 @@ export class OutputStatusBoard {
         fps: rate?.fps ?? null,
         fpsLow: rate?.status === 'low',
         ...(monitor === undefined ? {} : {monitor}),
+        ...(monitorAvailable === undefined ? {} : {monitorAvailable}),
       };
     }
     return statuses;

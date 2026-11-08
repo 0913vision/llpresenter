@@ -21,6 +21,7 @@ function assignedScreen(screen: Screen, monitor: Monitor): Screen {
   return {
     ...screen,
     display: {
+      ...(monitor.identity === undefined ? {} : {identity: monitor.identity}),
       id: monitor.id,
       name: monitor.name,
       number: monitor.number,
@@ -36,6 +37,7 @@ function initialScreens(
   controlBounds: Rect | null,
 ): ScreensFile | null {
   if (file.screens.some(screen => screen.display !== undefined)) return null;
+  if (monitors.some(monitor => monitor.identityPending)) return null;
   const control = findControlMonitor(monitors, controlBounds);
   const targets = monitors.filter(monitor => monitor.id !== control?.id);
   const audience = file.screens.find(

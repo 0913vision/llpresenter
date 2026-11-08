@@ -25,6 +25,7 @@ describe('StatusBar', () => {
       stage: {
         placement: 'window',
         controlConflict: true,
+        monitor: 1,
         renderer: 'running',
         fps: null,
         fpsLow: false,
@@ -32,7 +33,7 @@ describe('StatusBar', () => {
     };
     render(<StatusBar />);
     expect(screen.getByRole('status').textContent).toBe(
-      '무대 화면 창으로 표시 중',
+      '무대 화면: 모니터 1에 컨트롤 창이 있어 창으로 표시 중',
     );
   });
   it('keeps a fixed empty status region in normal operation', () => {

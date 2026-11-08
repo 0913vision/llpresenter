@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import {monitorIdentityPayloadSchema} from './monitorIdentity';
 import type {Result} from '../common/result';
 import {MONITOR_NUMBER_MAX} from './outputStatus';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
@@ -38,6 +39,7 @@ const extent = v.pipe(
 );
 
 const monitorInfoSchema = payloadObject({
+  identity: v.exactOptional(monitorIdentityPayloadSchema),
   id: v.exactOptional(
     v.pipe(
       v.number(),

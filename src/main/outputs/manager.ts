@@ -48,9 +48,10 @@ export interface OutputManagerOptions {
 
 /** How one screen's output shows and what its renderer is doing. */
 export interface ScreenOutputState {
+  readonly monitorAvailable?: boolean;
   readonly placement: OutputStatus;
   readonly renderer: RendererState;
-  /** The number of the monitor it last showed full screen on, kept after a disconnect. */
+  /** The current matched number, kept after a disconnect, including while output is off. */
   readonly monitor?: number;
 }
 
@@ -200,9 +201,12 @@ export class OutputManager {
   /** The placement and renderer state of every screen in the list. */
   screenStates(): ReadonlyMap<string, ScreenOutputState> {
     return new Map(
-      this.options.screens.list().map(({id}) => {
+      this.options.screens.list().map(({id, method, display}) => {
         const monitor = this.monitorNumbers.get(id);
         const state: ScreenOutputState = {
+          ...(!this.disposed && method === 'fullscreen' && display !== null
+            ? {monitorAvailable: this.previousMonitors.has(id)}
+            : {}),
           placement: this.statuses.get(id) ?? 'off',
           renderer: this.windows.get(id)?.rendererState ?? 'running',
           ...(monitor === undefined ? {} : {monitor}),
@@ -288,12 +292,7 @@ export class OutputManager {
       }
       const placement = this.placementFor(screen, surroundings);
       const monitor = surroundings.assigned.get(screen.id);
-      if (
-        monitor !== undefined &&
-        (placement?.kind === 'fullscreen' ||
-          (placement?.kind === 'window' &&
-            placement.reason === 'controlConflict'))
-      ) {
+      if (monitor !== undefined) {
         this.monitorNumbers.set(screen.id, monitor.number);
       }
       this.apply(screen, placement);

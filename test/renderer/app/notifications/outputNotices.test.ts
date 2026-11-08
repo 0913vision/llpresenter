@@ -48,6 +48,25 @@ function shown(change: NoticeChange | undefined) {
 }
 
 describe('outputNoticeChanges, lost monitor', () => {
+  it('updates an existing loss notice when the monitor returns with output still off', () => {
+    const before = status({placement: 'off', monitorAvailable: false});
+    const after = status({placement: 'off', monitorAvailable: true});
+    expect(changes({stage: before}, {stage: after}).result).toMatchObject([
+      {
+        kind: 'update',
+        notice: {
+          kind: 'info',
+          title: '무대 화면 모니터 다시 연결됨',
+          meta: ['모니터 3', '출력 꺼짐'],
+        },
+      },
+    ]);
+    expect(changes({stage: after}, {stage: after}).result).toEqual([]);
+    expect(
+      changes({stage: status({placement: 'off'})}, {stage: after}).result[0]
+        ?.kind,
+    ).toBe('update');
+  });
   it('warns that the stage monitor is lost, with its monitor and two actions', () => {
     const {result, actions} = changes(
       {stage: status()},

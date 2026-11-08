@@ -81,8 +81,17 @@ export function useOutputNotices(
         return;
       }
       if (change.notice.kind !== 'warning') {
+        const knownLoss = useOutputWarnings
+          .getState()
+          .warnings.has(change.notice.key);
         dropOutputWarning(change.notice.key);
-        report(change.notice);
+        if (
+          change.kind === 'show' ||
+          knownLoss ||
+          isShowing(change.notice.key)
+        ) {
+          report(change.notice);
+        }
         return;
       }
       const notice = keptAfterActions(change.notice, report);

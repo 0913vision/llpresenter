@@ -1,4 +1,5 @@
 import {ThemeLeaveGuard} from '@renderer/features/screens/themes/themeLeaveGuard';
+import {useMonitors} from '@renderer/features/screens/useMonitors';
 import {AudioShortcuts} from '@renderer/features/tools/AudioShortcuts';
 import {MediaViewProvider} from '@renderer/features/media/MediaViewProvider';
 import {ToolObjectShortcuts} from '@renderer/features/tools/ToolObjectShortcuts';
@@ -60,8 +61,12 @@ interface AppProps {
 }
 
 export function App(props: AppProps): JSX.Element {
+  const monitors = useMonitors();
   return (
-    <ScreenSummariesProvider onProblem={props.session.report}>
+    <ScreenSummariesProvider
+      onProblem={props.session.report}
+      monitors={monitors}
+    >
       <ControlApp {...props} />
     </ScreenSummariesProvider>
   );

@@ -26,6 +26,14 @@ function statuses() {
 }
 
 describe('parseOutputStatuses', () => {
+  it('accepts optional availability independently of an off output', () => {
+    const value = {stage: {...statuses().stage, monitorAvailable: true}};
+    expect(parseOutputStatuses(value)).toEqual({ok: true, value});
+    expect(
+      parseOutputStatuses({stage: {...value.stage, monitorAvailable: 'yes'}})
+        .ok,
+    ).toBe(false);
+  });
   it('accepts the optional control-conflict flag', () => {
     for (const controlConflict of [false, true]) {
       const value = {

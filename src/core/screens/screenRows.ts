@@ -1,5 +1,7 @@
 import type {OutputStatuses} from '../schema/outputStatus';
 import type {Screen} from '../schema/screens';
+import type {MonitorList} from '../schema/monitors';
+import {monitorAssignment} from './monitorAssignment';
 
 /** A screen row's health dot: none while the output is off. */
 export type ScreenHealth = 'ok' | 'warning' | 'none';
@@ -31,32 +33,13 @@ export const targetByMethod = {
   ndi: 'NDI',
 } as const;
 
-function showsOnMonitor(status: ScreenStatus | undefined, on: boolean) {
-  return (
-    on &&
-    (status?.placement === 'fullscreen' ||
-      status?.placement === 'monitorMissing' ||
-      status?.controlConflict === true)
-  );
-}
-
-function monitorNumber(
-  screen: Screen,
-  status: ScreenStatus | undefined,
-  on: boolean,
-): number | undefined {
-  if (screen.display === undefined) return undefined;
-  const shown = showsOnMonitor(status, on) ? status?.monitor : undefined;
-  return shown ?? screen.display.number;
-}
-
-function targetOf(
-  screen: Screen,
-  status: ScreenStatus | undefined,
-  on: boolean,
-): string {
+function targetOf(screen: Screen, monitors: MonitorList): string {
   if (screen.method !== 'fullscreen') return targetByMethod[screen.method];
-  const number = monitorNumber(screen, status, on);
+  const number =
+    screen.display === undefined
+      ? undefined
+      : (monitorAssignment(monitors).get(screen.id)?.number ??
+        screen.display.number);
   return number === undefined ? UNASSIGNED_TARGET : `모니터 ${number}`;
 }
 
@@ -68,9 +51,7 @@ function iconOf(screen: Screen): string {
 
 function problemOf(status: ScreenStatus): string | undefined {
   if (status.controlConflict) {
-    const target =
-      status.monitor === undefined ? '모니터' : `모니터 ${status.monitor}`;
-    return `${target}에 컨트롤 창이 있어 창으로 표시 중`;
+    return controlConflictReason(status.monitor);
   }
   if (status.placement === 'monitorMissing') return '모니터를 찾을 수 없습니다';
   if (status.renderer === 'restarting') return '출력 창 다시 시작 중';
@@ -92,8 +73,7 @@ function healthOf(
 
 function rowOf(
   screen: Screen,
-  statuses: OutputStatuses,
-  outputs: Readonly<Record<string, boolean>>,
+  {statuses, outputs, monitors}: ScreenGroupsInput,
 ): ScreenRow {
   const status = statuses[screen.id];
   const on = outputs[screen.id] === true;
@@ -101,20 +81,29 @@ function rowOf(
     id: screen.id,
     name: screen.name,
     icon: iconOf(screen),
-    target: targetOf(screen, status, on),
+    target: targetOf(screen, monitors),
     ...healthOf(on, status),
   };
 }
 
-/** The 청중, 방송, and 무대 groups of the screen list, each in file order. */
+interface ScreenGroupsInput {
+  readonly statuses: OutputStatuses;
+  readonly outputs: Readonly<Record<string, boolean>>;
+  readonly monitors: MonitorList;
+}
+
+export function controlConflictReason(number: number | undefined): string {
+  return `${number === undefined ? '모니터' : `모니터 ${number}`}에 컨트롤 창이 있어 창으로 표시 중`;
+}
+
+/** The 청중, 방송, and 무대 groups, with destinations from current assignments. */
 export function screenGroups(
   screens: readonly Screen[],
-  statuses: OutputStatuses,
-  outputs: Readonly<Record<string, boolean>>,
+  input: ScreenGroupsInput,
 ): ScreenGroups {
   const rows = screens.map(screen => ({
     kind: screen.kind,
-    row: rowOf(screen, statuses, outputs),
+    row: rowOf(screen, input),
   }));
   const of = (kind: Screen['kind']): readonly ScreenRow[] =>
     rows.filter(entry => entry.kind === kind).map(entry => entry.row);

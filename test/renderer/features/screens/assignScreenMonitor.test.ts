@@ -14,6 +14,43 @@ function screens() {
 }
 
 describe('assignScreenMonitor', () => {
+  it('does not release another identified panel merely because its old numeric ID was reused', () => {
+    const identity = {
+      kind: 'windows',
+      devicePath: 'path',
+      edid: {manufacturer: 'DEL', product: '1234', serial: 'ORIGINAL'},
+    } as const;
+    const source = screens().map(screen =>
+      screen.display === undefined
+        ? screen
+        : {...screen, display: {...screen.display, identity}},
+    );
+    const result = assignScreenMonitor({
+      screens: source,
+      screenId: STAGE_ID,
+      monitor: {
+        ...projector,
+        screenIds: [],
+        identity: {...identity, edid: {...identity.edid, serial: 'OTHER'}},
+      },
+    });
+    expect(result[0]?.display?.identity).toEqual(identity);
+  });
+  it('persists the identity from the explicitly chosen monitor', () => {
+    const identity = {
+      kind: 'windows',
+      devicePath: 'path',
+      edid: {manufacturer: 'DEL', product: '1234', serial: 'PANEL123'},
+    } as const;
+    const result = assignScreenMonitor({
+      screens: screens(),
+      screenId: STAGE_ID,
+      monitor: {...projector, identity},
+    });
+    expect(
+      result.find(screen => screen.id === STAGE_ID)?.display?.identity,
+    ).toEqual(identity);
+  });
   it('saves display identity and releases the previous screen together', () => {
     const result = assignScreenMonitor({
       screens: screens(),

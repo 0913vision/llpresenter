@@ -1,4 +1,5 @@
 import type {JSX} from 'react';
+import {controlConflictReason} from '@core/screens/screenRows';
 import {useOutputStatuses} from '@renderer/features/screens/useOutputStatuses';
 import {useScreenSummaries} from '../../platform/ScreenSummaries';
 import styles from './StatusBar.module.css';
@@ -17,7 +18,11 @@ export function StatusBar({
     const status = statuses[screen.id];
     if (status === undefined || status.placement === 'off') return [];
     const problems: string[] = [];
-    if (status.placement === 'monitorMissing' || status.controlConflict) {
+    if (status.controlConflict) {
+      problems.push(
+        `${screen.statusLabel}: ${controlConflictReason(status.monitor)}`,
+      );
+    } else if (status.placement === 'monitorMissing') {
       problems.push(`${screen.statusLabel} 창으로 표시 중`);
     }
     if (status.renderer === 'restarting') {
