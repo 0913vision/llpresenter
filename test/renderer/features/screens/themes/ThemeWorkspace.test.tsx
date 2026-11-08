@@ -274,10 +274,10 @@ it('shows clean geometry after selection and preserves explicitly typed precisio
   const {value} = setup();
   fireEvent.click(await screen.findByRole('button', {name: '현재 가사'}));
   for (const [name, shown] of [
-    ['X', '115.2'],
-    ['Y', '64.8'],
-    ['W', '1689.6'],
-    ['H', '950.4'],
+    ['X', '132'],
+    ['Y', '141'],
+    ['W', '1656'],
+    ['H', '411'],
   ] as const) {
     expect(screen.getByRole('spinbutton', {name})).toHaveProperty(
       'value',

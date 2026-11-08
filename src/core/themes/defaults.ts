@@ -141,6 +141,7 @@ function audienceElements(
     ...lyricFrame,
     h: lyricFrame.h - (kind === 'bible' ? referenceHeight + referenceGap : 0),
   };
+  const sundaySong = kind === 'song' && !lowerThird;
   const media: ThemeElement[] = lowerThird
     ? []
     : [
@@ -152,8 +153,21 @@ function audienceElements(
     {
       id: createThemeElementId(uuid(3)),
       kind: 'currentText',
-      frame: textFrame,
-      text: {...basicText, maxLines, vAlign: lowerThird ? 'bottom' : 'middle'},
+      frame: sundaySong ? {x: 132, y: 141, w: 1656, h: 411} : textFrame,
+      text: sundaySong
+        ? {
+            ...basicText,
+            maxLines,
+            font: 'NanumSquare',
+            weight: 800,
+            size: 108,
+            tracking: -3,
+            lineHeight: 137 / 108,
+            vAlign: 'top',
+            shadow: {...basicText.shadow, on: false},
+            outline: {...basicText.outline, on: false},
+          }
+        : {...basicText, maxLines, vAlign: lowerThird ? 'bottom' : 'middle'},
     },
   ];
 }

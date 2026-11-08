@@ -16,7 +16,7 @@ import {
   SUNDAY_NOTICE_DIVIDER_ID,
 } from '@core/themes/sundayNotice';
 
-it('converts the starter audience styles and stage geometry into theme elements', () => {
+it('places song lyrics near the top while retaining the starter broadcast styles and stage geometry', () => {
   const main = createScreenId(STARTER_SCREEN_IDS.main);
   const broadcast = createScreenId(STARTER_SCREEN_IDS.broadcast);
   const stage = createScreenId(STARTER_SCREEN_IDS.stage);
@@ -28,17 +28,36 @@ it('converts the starter audience styles and stage geometry into theme elements'
       {kind: 'media'},
       {
         kind: 'currentText',
+        frame: {x: 132, y: 141, w: 1656, h: 411},
         text: {
-          font: STARTER_TEXT_STYLE.font,
-          size: STARTER_TEXT_STYLE.size,
-          vAlign: 'middle',
+          font: 'NanumSquare',
+          weight: 800,
+          size: 108,
+          color: '#FFFFFF',
+          align: 'center',
+          tracking: -3,
+          lineHeight: 137 / 108,
+          vAlign: 'top',
+          shadow: {on: false},
+          outline: {on: false},
         },
       },
     ],
   });
   expect(theme.screens[broadcast]).toMatchObject({
-    elements: [{kind: 'currentText', text: {vAlign: 'bottom'}}],
+    elements: [
+      {
+        kind: 'currentText',
+        text: {
+          font: STARTER_TEXT_STYLE.font,
+          size: STARTER_TEXT_STYLE.size,
+          weight: STARTER_TEXT_STYLE.weight,
+          vAlign: 'bottom',
+        },
+      },
+    ],
   });
+  expect(theme.screens[main]?.background).toBeUndefined();
   expect(theme.screens[broadcast]?.background).toBeUndefined();
   expect(theme.screens[stage]?.elements.map(element => element.frame)).toEqual(
     STARTER_STAGE_ELEMENTS.map(element => element.frame),
@@ -51,6 +70,32 @@ it('converts the starter audience styles and stage geometry into theme elements'
     'nextLabel',
     'nextText',
     'stageMessage',
+  ]);
+  const current = theme.screens[stage]?.elements.find(
+    element => element.kind === 'currentText',
+  );
+  expect(current?.text).toMatchObject({
+    font: STARTER_TEXT_STYLE.font,
+    size: STARTER_TEXT_STYLE.size,
+    weight: STARTER_TEXT_STYLE.weight,
+    vAlign: STARTER_TEXT_STYLE.vAlign,
+  });
+});
+
+it('leaves room for three song rows at the configured size and pitch without adding a theme picture', () => {
+  const layout =
+    builtInTheme('song').screens[createScreenId(STARTER_SCREEN_IDS.main)];
+  const current = layout?.elements.find(
+    element => element.kind === 'currentText',
+  );
+  if (current === undefined) throw Error('Expected song text');
+  expect(current.frame.h).toBeGreaterThanOrEqual(
+    current.text.size * current.text.lineHeight * 3,
+  );
+  expect(layout?.elements.map(element => element.kind)).toEqual([
+    'background',
+    'media',
+    'currentText',
   ]);
 });
 

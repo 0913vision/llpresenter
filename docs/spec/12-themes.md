@@ -461,6 +461,14 @@ Keep unknown fields, as every settings file does (02).
 
 ### Defaults
 
+- In new libraries, 찬양 on 청중 화면 uses white NanumSquare ExtraBold
+  (weight 800) at 108 px, centered horizontally and top aligned, with -3 px
+  tracking, 137 px line spacing, and no shadow or outline. Its text frame is
+  (132, 141, 1656, 411), leaving room for three lines at the same size and
+  pitch; the first line's ink starts near y=157. Missing fonts fall back to
+  Pretendard. The theme inherits 화면 기본; each song keeps its own background
+  picture through the normal 배경 and 미디어 elements. 방송 화면 and 무대 화면
+  retain their existing 찬양 layouts, and saved themes are not migrated.
 - New libraries include three ordinary, replaceable 1920 x 1080 pictures for
   말씀 and the two sermon title layouts. Existing catalogs and saved themes are
   kept as they are.
