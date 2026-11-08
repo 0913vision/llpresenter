@@ -51,6 +51,7 @@ export class ThemeElementView {
   private readonly options: RenderLayerOptions;
   private readonly gaps: ThemeGaps;
   private shownText: string | null = null;
+  private shownSlideKey: string | null = null;
   private shownContinued = false;
   private shownBiblePart: number | undefined;
   private readonly previewMaxLines: number | undefined;
@@ -373,13 +374,27 @@ export class ThemeElementView {
       };
     }
     this.text.setStyle(style);
+    if (frame.transitions === false || frame.standby) {
+      this.text.finishTransition();
+    }
     if (
       frame.transitionTimes !== undefined &&
       SLIDE_ELEMENT_KINDS.includes(this.element.kind)
     ) {
       this.text.setDissolveMs(frame.transitionTimes.slideMs);
+      if (frame.slideTransition !== undefined) {
+        this.text.setTransition(frame.slideTransition, this.element.frame);
+        this.box.style.overflow =
+          frame.slideTransition.kind === 'push' ? 'visible' : 'hidden';
+      }
     }
+    const slideKey =
+      SLIDE_ELEMENT_KINDS.includes(this.element.kind) &&
+      frame.slide !== undefined
+        ? `${frame.slide.itemId}:${frame.slide.position}`
+        : null;
     if (
+      slideKey === this.shownSlideKey &&
       text === this.shownText &&
       continued === this.shownContinued &&
       biblePart === this.shownBiblePart
@@ -397,7 +412,7 @@ export class ThemeElementView {
           ? null
           : {
               itemId: frame.theme?.item?.id ?? 'standby',
-              position: 0,
+              position: frame.slide?.position ?? 0,
               label: null,
               lines: text.split('\n'),
               continued,
@@ -407,6 +422,7 @@ export class ThemeElementView {
       );
     }
     this.shownText = text;
+    this.shownSlideKey = slideKey;
     this.shownContinued = continued;
     this.shownBiblePart = biblePart;
   }

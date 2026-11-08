@@ -1,0 +1,12 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-16);
+  padding: var(--space-8) 0;
+}
+
+.label {
+  flex: 0 0 calc(var(--space-20) * 7);
+  color: var(--text-2);
+  font: var(--type-label);
+}

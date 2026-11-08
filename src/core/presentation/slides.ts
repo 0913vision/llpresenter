@@ -27,6 +27,9 @@ export function projectSlides(
       const book = BIBLE_BOOKS.find(book => book.id === reference.book);
       return {
         sourceSlideId: slide.id,
+        ...(slide.transition === undefined
+          ? {}
+          : {transition: slide.transition}),
         label: `${slide.verse.chapter}:${slide.verse.verse}`,
         labelColor: NO_LABEL_COLOR,
         lines: verse === undefined ? [] : bibleOutputLines(verse.text),
@@ -39,6 +42,9 @@ export function projectSlides(
       const picture = media.get(slide.media);
       return {
         sourceSlideId: slide.id,
+        ...(slide.transition === undefined
+          ? {}
+          : {transition: slide.transition}),
         label: picture?.file.split(/[\\/]/).at(-1) ?? '찾을 수 없는 그림',
         labelColor: NO_LABEL_COLOR,
         lines: [],
@@ -53,6 +59,7 @@ export function projectSlides(
         : undefined;
     return {
       sourceSlideId: slide.id,
+      ...(slide.transition === undefined ? {} : {transition: slide.transition}),
       label:
         item.slides.form === 'ad' ? (name ?? '') : (text.split('\n')[0] ?? ''),
       labelColor: NO_LABEL_COLOR,

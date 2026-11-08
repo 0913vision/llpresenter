@@ -187,7 +187,7 @@ it('carries the 전환 times of 환경설정 and follows a change', async () => 
   const {frames, state, push, onChange} = setup();
   await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(4));
   expect(frames.frame(state)?.transitionTimes).toEqual({
-    slideMs: 200,
+    slideMs: 500,
     backgroundMs: 500,
   });
   push(
@@ -198,7 +198,7 @@ it('carries the 전환 times of 환경설정 and follows a change', async () => 
         schemaVersion: 1,
         output: {
           transition: {
-            slide: {kind: 'none'},
+            between: {kind: 'none', sec: 0.5},
             media: {kind: 'dissolve', seconds: 1.2},
           },
         },
@@ -208,7 +208,7 @@ it('carries the 전환 times of 환경설정 and follows a change', async () => 
   );
   expect(onChange).toHaveBeenCalledTimes(5);
   expect(frames.frame(state)?.transitionTimes).toEqual({
-    slideMs: 0,
+    slideMs: 500,
     backgroundMs: 1200,
   });
 });
@@ -294,4 +294,60 @@ it('draws a message in the style its screen picked and falls back to 기본', as
   expect(frames.frame(state)?.messageStyle).toMatchObject({size: 120});
   expect(frames.frame(state)?.messageBand).toBeUndefined();
   expect(onChange).toHaveBeenCalledTimes(6);
+});
+
+it('holds the selected effect across redraws and applies new defaults only to the next slide', async () => {
+  const {frames, state, push, onChange} = setup();
+  await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(4));
+  const at = (
+    itemId: string,
+    position: number,
+    transition?: {kind: 'wipe'; sec: number},
+  ): LiveState => ({
+    ...state,
+    layers: {
+      ...state.layers,
+      slide: {
+        itemId,
+        position,
+        label: null,
+        lines: ['Same words'],
+        ...(transition === undefined ? {} : {transition}),
+      },
+    },
+  });
+  expect(frames.frame(at('a', 0))?.slideTransition).toEqual({
+    kind: 'dissolve',
+    sec: 0.5,
+  });
+  expect(frames.frame(at('a', 1))?.slideTransition).toEqual({
+    kind: 'none',
+    sec: 0.2,
+  });
+  expect(
+    frames.frame(at('a', 2, {kind: 'wipe', sec: 4}))?.slideTransition,
+  ).toEqual({kind: 'wipe', sec: 4});
+  push(
+    settingsDocument(
+      'preferences',
+      {
+        format: 'llsettings.preferences',
+        schemaVersion: 1,
+        output: {transition: {within: {kind: 'push', dir: 'right', sec: 10}}},
+      },
+      3,
+    ),
+  );
+  expect(
+    frames.frame(at('a', 2, {kind: 'wipe', sec: 4}))?.slideTransition,
+  ).toEqual({kind: 'wipe', sec: 4});
+  expect(frames.frame(at('a', 1))?.slideTransition).toEqual({
+    kind: 'push',
+    dir: 'right',
+    sec: 10,
+  });
+  expect(frames.frame(at('b', 1))?.slideTransition).toEqual({
+    kind: 'dissolve',
+    sec: 0.5,
+  });
 });

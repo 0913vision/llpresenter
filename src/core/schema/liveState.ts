@@ -1,3 +1,4 @@
+import {slideTransitionSchema} from './slideTransition';
 import * as v from 'valibot';
 import {layerKinds, type LayerKind, type LiveState} from '../live/state';
 import type {Result} from '../common/result';
@@ -72,6 +73,7 @@ export const layerSchemas = {
     ),
     biblePart: v.exactOptional(biblePartSchema),
     sourceSlideId: v.exactOptional(slideIdSchema),
+    transition: v.exactOptional(slideTransitionSchema),
     label: v.nullable(liveTextSchema),
     lines: slideLinesSchema,
     continued: v.exactOptional(v.boolean()),

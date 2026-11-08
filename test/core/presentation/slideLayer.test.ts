@@ -12,6 +12,19 @@ const tiles: Readonly<Record<string, readonly SlideTile[]>> = {
 const tilesOf = (itemId: string): readonly SlideTile[] => tiles[itemId] ?? [];
 
 describe('slideLayerOf', () => {
+  it('carries the incoming tile override independently of the next tile', () => {
+    const transition = {kind: 'wipe', dir: 'down', sec: 4} as const;
+    const deck: readonly SlideTile[] = [
+      {label: null, labelColor: 'none', lines: ['A'], transition},
+      {label: null, labelColor: 'none', lines: ['B']},
+    ];
+    expect(
+      slideLayerOf({itemId: 'item', index: 0}, () => deck)?.transition,
+    ).toEqual(transition);
+    expect(
+      slideLayerOf({itemId: 'item', index: 1}, () => deck)?.transition,
+    ).toBeUndefined();
+  });
   it('numbers ad text slides around pictures and renumbers after reorder or deletion', () => {
     const text: SlideTile = {
       kind: 'ad',

@@ -4,6 +4,7 @@ import type {RenderFrame, RenderLayerOptions} from './layer';
 import {ThemeElementView} from './themeElement';
 import {ThemeGaps} from './themeGaps';
 import {OUTPUT_TRANSITIONS} from './transitions';
+import {SlideAnimation} from './slideAnimation';
 import {THEME_LIMITS} from '@core/themes/elementRules';
 import {themeBackgroundStyle} from './themeBackground';
 
@@ -29,6 +30,7 @@ export class ThemeCompositionView {
   private ticker: ReturnType<typeof setInterval> | null = null;
   private animation: number | null = null;
   private preparing = false;
+  private readonly slideAnimation = new SlideAnimation(true);
   private content: {layers: LiveLayers; frame: RenderFrame} | null = null;
 
   constructor(
@@ -57,6 +59,16 @@ export class ThemeCompositionView {
     const signature = JSON.stringify([theme.themeId, theme.layout]);
     const rebuilt = signature !== this.page?.signature;
     if (rebuilt) this.build(signature, frame, layers);
+    else if (this.leaving !== null && this.page !== null) {
+      const previous = this.page.frame.slide ?? this.page.layers.slide;
+      const incoming = frame.slide ?? layers.slide;
+      if (
+        previous?.itemId !== incoming?.itemId ||
+        previous?.position !== incoming?.position
+      ) {
+        this.releaseLeaving();
+      }
+    }
     if (this.page !== null && theme.layout.background === undefined) {
       this.page.root.style.backgroundColor = theme.emptyColor;
     }
@@ -150,7 +162,11 @@ export class ThemeCompositionView {
     const duration =
       frame.transitions === false
         ? 0
-        : (frame.transitionTimes?.slideMs ?? OUTPUT_TRANSITIONS.slideMs);
+        : frame.slideTransition !== undefined
+          ? frame.slideTransition.kind === 'none'
+            ? 0
+            : frame.slideTransition.sec * 1000
+          : (frame.transitionTimes?.slideMs ?? OUTPUT_TRANSITIONS.slideMs);
     page.root.style.transition = `opacity ${duration}ms linear`;
     // NOTE(0913vision): A newly inserted page needs its zero-opacity style
     // committed before rAF; otherwise Chromium paints its first frame opaque.
@@ -163,6 +179,15 @@ export class ThemeCompositionView {
       }
       this.preparing = false;
       page.root.style.opacity = '1';
+      if (frame.slideTransition !== undefined && this.leaving !== null) {
+        this.slideAnimation.play(
+          this.leaving.root,
+          page.root,
+          frame.transitions === false
+            ? {kind: 'none', sec: frame.slideTransition.sec}
+            : frame.slideTransition,
+        );
+      }
       // NOTE(0913vision): The outgoing opaque page stays behind the incoming
       // one. Fading both pages exposes black at the middle of a dissolve.
       this.releaseTimer = setTimeout(() => this.releaseLeaving(), duration);
@@ -246,6 +271,7 @@ export class ThemeCompositionView {
   }
 
   private releaseLeaving(): void {
+    this.slideAnimation.cancel();
     if (this.page !== null) {
       this.page.root.style.transition = 'none';
       this.page.root.style.opacity = '1';

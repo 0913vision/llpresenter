@@ -17,6 +17,7 @@ import {jsonObject, positiveInteger} from './primitives';
 import type {PayloadError} from './payload';
 import {clearFadeSchema} from './clearFade';
 import {bibleReferenceSchema, bibleSplitSchema} from './biblePassage';
+import {slideTransitionSchema, type SlideTransition} from './slideTransition';
 
 const PREFERENCES_FORMAT = 'llsettings.preferences';
 
@@ -41,7 +42,6 @@ export const audioDeviceSchema = jsonObject({
 
 /** The seconds a 전환 may last, as 환경설정 allows them. */
 export const TRANSITION_LIMITS = {
-  slide: {min: 0.1, max: 2, step: 0.1},
   media: {min: 0.1, max: 3, step: 0.1},
 } as const;
 
@@ -52,10 +52,6 @@ function transitionSeconds({min, max}: {min: number; max: number}) {
   return v.pipe(v.number(), v.finite(), v.minValue(min), v.maxValue(max));
 }
 
-const slideTransitionSchema = jsonObject({
-  kind: v.exactOptional(transitionKindSchema),
-  seconds: v.exactOptional(transitionSeconds(TRANSITION_LIMITS.slide)),
-});
 const mediaTransitionSchema = jsonObject({
   kind: v.exactOptional(transitionKindSchema),
   seconds: v.exactOptional(transitionSeconds(TRANSITION_LIMITS.media)),
@@ -148,7 +144,8 @@ export const preferencesSchema = jsonObject({
     jsonObject({
       transition: v.exactOptional(
         jsonObject({
-          slide: v.exactOptional(slideTransitionSchema),
+          between: v.exactOptional(slideTransitionSchema),
+          within: v.exactOptional(slideTransitionSchema),
           media: v.exactOptional(mediaTransitionSchema),
         }),
       ),
@@ -213,8 +210,21 @@ type Complete<T> = T extends readonly unknown[]
     : T;
 
 /** 환경설정 with every field present. */
-export type Preferences = Omit<Complete<PreferencesFile>, 'clearKeys'> & {
+export type Preferences = Omit<
+  Complete<PreferencesFile>,
+  'clearKeys' | 'output'
+> & {
   readonly clearKeys: NonNullable<PreferencesFile['clearKeys']>;
+  readonly output: {
+    readonly transition: {
+      readonly between: SlideTransition;
+      readonly within: SlideTransition;
+      readonly media: {
+        readonly kind: 'none' | 'dissolve';
+        readonly seconds: number;
+      };
+    };
+  };
 };
 
 /**
@@ -234,7 +244,8 @@ export const defaultPreferences: Preferences = {
   showOnLaunch: false,
   output: {
     transition: {
-      slide: {kind: 'dissolve', seconds: 0.2},
+      between: {kind: 'dissolve', sec: 0.5},
+      within: {kind: 'none', sec: 0.2},
       media: {kind: 'dissolve', seconds: 0.5},
     },
   },
@@ -275,10 +286,12 @@ export function withPreferenceDefaults(stored: PreferencesFile): Preferences {
     ...stored,
     output: {
       transition: {
-        slide: {
-          ...defaultPreferences.output.transition.slide,
-          ...stored.output?.transition?.slide,
-        },
+        between:
+          stored.output?.transition?.between ??
+          defaultPreferences.output.transition.between,
+        within:
+          stored.output?.transition?.within ??
+          defaultPreferences.output.transition.within,
         media: {
           ...defaultPreferences.output.transition.media,
           ...stored.output?.transition?.media,
@@ -365,7 +378,6 @@ function dropValuesOutOfRange(
   if (isRecord(output) && isRecord(transition)) {
     let changed = transition;
     for (const [name, seconds] of [
-      ['slide', transitionSeconds(TRANSITION_LIMITS.slide)],
       ['media', transitionSeconds(TRANSITION_LIMITS.media)],
     ] as const) {
       const part = changed[name];

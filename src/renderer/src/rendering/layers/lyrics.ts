@@ -12,8 +12,11 @@ export const lyricsLayer = defineLayer({
         if (frame?.transitionTimes !== undefined) {
           view.setDissolveMs(frame.transitionTimes.slideMs);
         }
+        if (frame?.slideTransition !== undefined) {
+          view.setTransition(frame.slideTransition);
+        }
         view.setStyle(options.textStyle);
-        view.show(layers.slide);
+        view.show(layers.slide, frame?.transitions);
       },
       rescale: scale => view.rescale(scale),
       dispose: () => view.dispose(),

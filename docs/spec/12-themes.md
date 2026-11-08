@@ -295,10 +295,11 @@ darker light green keeps white text readable.
 
 ### Transitions
 
-- A 슬라이드 change inside one item uses the slide transition (03,
-  "Transitions") on the elements whose content changed.
-- A 테마 change between items uses the same transition on the whole screen;
-  there is no separate setting.
+- A slide's own transition overrides the between-item or within-item default
+  (03, "Transitions"). Lyric elements move across the same screen distance and
+  share the same wipe edge, including layouts with separate text boxes.
+- A 테마 change between items applies the incoming slide effect to the whole
+  screen after its content is ready; there is no separate setting.
 
 ### When a 테마 can't be used
 

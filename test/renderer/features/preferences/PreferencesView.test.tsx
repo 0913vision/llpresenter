@@ -559,36 +559,45 @@ describe('PreferencesView', () => {
     const times = (label: string) =>
       screen.queryByRole('spinbutton', {name: label});
 
-    it('shows a dissolve of 0.2 s and 0.5 s by default, with both time rows', async () => {
+    it('shows independent defaults and a disabled time for none', async () => {
       await mount();
       await openPage('출력');
-      for (const label of ['슬라이드', '배경']) {
-        const group = screen.getByRole('radiogroup', {name: label});
-        expect(
-          within(group)
-            .getByRole('radio', {name: '디졸브'})
-            .getAttribute('aria-checked'),
-        ).toBe('true');
-      }
-      expect(times('슬라이드 시간')).toHaveProperty('value', '0.2');
+      const between = screen.getByRole('group', {name: '곡이 바뀔 때'});
+      const inside = screen.getByRole('group', {name: '곡 안에서 넘길 때'});
+      expect(
+        within(between)
+          .getByRole('button', {name: '디졸브'})
+          .getAttribute('aria-pressed'),
+      ).toBe('true');
+      expect(
+        within(inside)
+          .getByRole('button', {name: '없음'})
+          .getAttribute('aria-pressed'),
+      ).toBe('true');
+      expect(times('곡이 바뀔 때 시간')).toHaveProperty('value', '0.5');
+      expect(times('곡 안에서 넘길 때 시간')).toHaveProperty('disabled', true);
       expect(times('배경 시간')).toHaveProperty('value', '0.5');
     });
 
-    it('hides the time row of a transition that is 없음 and keeps the other', async () => {
+    it('keeps a none time visible and disables direction', async () => {
       await mount({
         stored: {
           ...STORED,
-          output: {transition: {slide: {kind: 'none', seconds: 1}}},
+          output: {transition: {between: {kind: 'none', sec: 1}}},
         },
       });
       await openPage('출력');
-      const group = screen.getByRole('radiogroup', {name: '슬라이드'});
+      const group = screen.getByRole('group', {name: '곡이 바뀔 때'});
       expect(
         within(group)
-          .getByRole('radio', {name: '없음'})
-          .getAttribute('aria-checked'),
+          .getByRole('button', {name: '없음'})
+          .getAttribute('aria-pressed'),
       ).toBe('true');
-      expect(times('슬라이드 시간')).toBeNull();
+      expect(times('곡이 바뀔 때 시간')).toHaveProperty('disabled', true);
+      expect(times('곡이 바뀔 때 시간')).toHaveProperty('value', '1.0');
+      expect(
+        within(group).getByRole('button', {name: '왼쪽으로'}),
+      ).toHaveProperty('disabled', true);
       expect(times('배경 시간')).not.toBeNull();
     });
 
@@ -596,15 +605,19 @@ describe('PreferencesView', () => {
       await mount({
         stored: {
           ...STORED,
-          output: {transition: {slide: {seconds: 1.5}}},
+          output: {transition: {between: {kind: 'wipe', dir: 'up', sec: 1.5}}},
         },
       });
       await openPage('출력');
-      const group = screen.getByRole('radiogroup', {name: '슬라이드'});
-      await userEvent.click(within(group).getByRole('radio', {name: '없음'}));
+      const group = screen.getByRole('group', {name: '곡이 바뀔 때'});
+      expect(within(group).getByRole('button', {name: '위로'})).toHaveProperty(
+        'disabled',
+        false,
+      );
+      await userEvent.click(within(group).getByRole('button', {name: '없음'}));
       await waitFor(() => expect(edit).toHaveBeenCalledOnce());
       expect(written().output).toEqual({
-        transition: {slide: {seconds: 1.5, kind: 'none'}},
+        transition: {between: {sec: 1.5, kind: 'none'}},
       });
       expect(written()).toMatchObject(UNKNOWN_FIELDS);
     });

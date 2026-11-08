@@ -43,6 +43,8 @@ export interface RenderScreen {
 }
 
 export interface RenderFrame {
+  readonly slide?: import('@core/live/state').SlideLayer;
+  readonly slideTransition?: import('@core/schema/slideTransition').SlideTransition;
   readonly stageTimerId?: TimerId;
   readonly theme?: ThemeFrame;
   readonly fonts?: FontCatalog;

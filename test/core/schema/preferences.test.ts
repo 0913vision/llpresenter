@@ -15,7 +15,7 @@ import {
 } from '@fixtures/core/schema/testHelpers';
 
 const codec = {parse: parsePreferences, serialize: serializePreferences};
-const HEADER = {format: 'llsettings.preferences', schemaVersion: 1};
+const HEADER = {format: 'llsettings.preferences', schemaVersion: 1} as const;
 
 function parse(json: unknown) {
   return expectSuccess(
@@ -330,75 +330,60 @@ describe('audio output choices', () => {
 });
 
 describe('전환 settings', () => {
-  it('starts as a 0.2 s slide dissolve and a 0.5 s background dissolve', () => {
+  it('defaults to a short dissolve between items and none within', () => {
     const {transition} = expectSuccess(parsePreferencesValue(HEADER)).output;
-    expect(transition.slide).toEqual({kind: 'dissolve', seconds: 0.2});
+    expect(transition.between).toEqual({kind: 'dissolve', sec: 0.5});
+    expect(transition.within).toEqual({kind: 'none', sec: 0.2});
     expect(transition.media).toEqual({kind: 'dissolve', seconds: 0.5});
   });
-
-  it('keeps stored choices, fills the rest, and keeps unknown fields', () => {
-    const value = {
+  it('round-trips independent defaults and unknown fields', () => {
+    expectRoundTrip(codec, {
       ...HEADER,
       output: {
         transition: {
-          slide: {kind: 'none', future: 1},
-          media: {seconds: 3},
+          between: {kind: 'wipe', dir: 'up', sec: 4, future: 1},
+          within: {kind: 'push', dir: 'right', sec: 0.1},
+          media: {kind: 'none', seconds: 3},
         },
       },
-    };
-    expectRoundTrip(codec, value);
-    const {transition} = expectSuccess(parsePreferencesValue(value)).output;
-    expect(transition.slide).toMatchObject({kind: 'none', seconds: 0.2});
-    expect(transition.media).toEqual({kind: 'dissolve', seconds: 3});
-  });
-
-  it.each([
-    ['slide', 0.1],
-    ['slide', 2],
-    ['media', 0.1],
-    ['media', 3],
-  ])('accepts the %s limit %s', (part, seconds) => {
-    expectRoundTrip(codec, {
-      ...HEADER,
-      output: {transition: {[part]: {kind: 'dissolve', seconds}}},
     });
   });
-
-  it.each([
-    ['slide', 0.05],
-    ['slide', 2.1],
-    ['media', 0],
-    ['media', 3.1],
-  ])(
-    'drops the %s time %s on read and falls back to its default',
-    (part, seconds) => {
-      const value = {
-        ...HEADER,
-        output: {transition: {[part]: {kind: 'none', seconds}}},
-      };
-      const loaded = parse(value);
-      const transition = withPreferenceDefaults(loaded).output.transition;
-      expect(transition[part === 'slide' ? 'slide' : 'media']).toMatchObject({
-        kind: 'none',
-        seconds: part === 'slide' ? 0.2 : 0.5,
-      });
-    },
-  );
-
-  it('refuses to write a time out of range and an unknown kind', () => {
+  it.each(['between', 'within'])('refuses invalid %s defaults', part => {
     expectInvalidField(
       codec,
-      {...HEADER, output: {transition: {slide: {kind: 'wipe'}}}},
-      'output.transition.slide.kind',
-    );
-    const text = serializePreferences(
       {
-        ...defaultPreferences,
-        output: {transition: {slide: {seconds: 5}}},
+        ...HEADER,
+        output: {
+          transition: {
+            [part]: {kind: 'zoom', sec: 1},
+          },
+        },
       },
-      'preferences.json',
+      `output.transition.${part}.kind`,
     );
-    expect(text.ok).toBe(false);
+    expect(
+      serializePreferences(
+        {
+          ...HEADER,
+          output: {
+            transition: {
+              [part]: {kind: 'dissolve', sec: 10.1},
+            },
+          },
+        },
+        'preferences.json',
+      ).ok,
+    ).toBe(false);
+  });
+  it('keeps background range recovery', () => {
+    const stored = parse({
+      ...HEADER,
+      output: {transition: {media: {kind: 'none', seconds: 10}}},
+    });
+    expect(withPreferenceDefaults(stored).output.transition.media).toEqual({
+      kind: 'none',
+      seconds: 0.5,
+    });
   });
 });
 

@@ -548,11 +548,20 @@ without them already does (`loop`, `fill`), and a video always carries `audio`,
 so with the defaults an import is stored as before. Read the choices once when
 an import request is admitted; media already in the list keep their own values.
 
-`output.transition.slide` and `output.transition.media` are optional objects
-with an optional `kind` (`none` or `dissolve`, default `dissolve`) and an
-optional `seconds`: 0.1 to 2.0, default 0.2, for `slide`; 0.1 to 3.0, default
-0.5, for `media`. A `seconds` outside its range is dropped when the file is read
-and falls back to its default. `none` is a cut and ignores `seconds`.
+Every song slide and service slide (text, picture, or verse) may store an
+optional `transition`: `{kind, sec, dir?}`. `kind` is `none`, `dissolve`,
+`push`, or `wipe`; `sec` is a finite number from 0.1 through 10. `dir` is
+permitted only for `push` and `wipe`: `left`, `right`, `up`, or `down`; absent
+uses `left`. An absent transition inherits the output default; explicit `none`
+overrides it. Existing song content and unknown fields survive saves unchanged.
+
+`output.transition.between` and `.within` store the same transition object.
+Their defaults are `{kind: 'dissolve', sec: 0.5}` and
+`{kind: 'none', sec: 0.2}`. They replace the previous `slide` setting without a
+migration or legacy reader. `output.transition.media` remains an optional object
+with optional `kind` (`none` or `dissolve`, default `dissolve`) and `seconds`
+(0.1 to 3, default 0.5). An out-of-range background time is dropped on read and
+uses its default.
 
 `show.audio.transitionSeconds` (0 to 5, default 0.5) and
 `show.audio.fadeOutSeconds` (0.5 to 10, default 3) are optional numbers in

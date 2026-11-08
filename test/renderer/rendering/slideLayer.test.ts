@@ -3,7 +3,7 @@ import type {SlideLayer} from '@core/live/state';
 import {classes} from '@renderer/rendering/classes';
 import {DEFAULT_TEXT_STYLE, scaleFor} from '@core/themes/textStyle';
 import {SlideLayerView} from '@renderer/rendering/slideLayer';
-import {OUTPUT_TRANSITIONS} from '@renderer/rendering/transitions';
+import {SLIDE_DISSOLVE_MS} from '@renderer/rendering/slideLayer';
 import bulletStyles from '@renderer/rendering/bulletText.module.css';
 
 const VERSE: SlideLayer = {
@@ -53,6 +53,29 @@ describe('SlideLayerView', () => {
       'visible',
     );
     view.dispose();
+  });
+  it('keeps two pages through effect changes and stops motion for an unchanged standby frame', () => {
+    const {view, pages, parent} = setUp();
+    const cancel = vi.fn();
+    const animate = vi.fn(() => ({cancel}));
+    for (const page of pages()) {
+      Object.defineProperty(page, 'animate', {value: animate});
+    }
+    view.setTransition({kind: 'none', sec: 0.5});
+    view.show(VERSE);
+    view.setTransition({kind: 'push', dir: 'right', sec: 4});
+    const incoming = {...VERSE, position: 1, lines: ['Next page']};
+    view.show(incoming);
+    expect(animate).toHaveBeenCalledTimes(2);
+    view.setTransition({kind: 'wipe', dir: 'up', sec: 1});
+    expect(cancel).not.toHaveBeenCalled();
+    expect(pages()).toHaveLength(2);
+    view.show(incoming, false);
+    expect(cancel).toHaveBeenCalledTimes(2);
+    view.show(null);
+    expect(pages().every(page => page.style.opacity === '0')).toBe(true);
+    view.dispose();
+    expect(parent.children).toHaveLength(0);
   });
   it('adds hanging bullets to logical paragraphs, keeps empty lines blank, and updates a retained page when toggled', () => {
     const {view, shownPage} = setUp();
@@ -273,7 +296,7 @@ describe('SlideLayerView', () => {
         ? parent.firstElementChild.style
         : undefined
       )?.getPropertyValue('--slide-dissolve'),
-    ).toBe(`${OUTPUT_TRANSITIONS.slideMs}ms`);
+    ).toBe(`${SLIDE_DISSOLVE_MS}ms`);
   });
   it('draws the lines of a 장 as stored, one row each', () => {
     const {view, shownLines} = setUp();
@@ -305,7 +328,7 @@ describe('SlideLayerView', () => {
     const {parent, view} = setUp();
     const layer = () => parent.querySelector<HTMLElement>(`.${classes.layer}`);
     expect(layer()?.style.getPropertyValue('--slide-dissolve')).toBe(
-      `${OUTPUT_TRANSITIONS.slideMs}ms`,
+      `${SLIDE_DISSOLVE_MS}ms`,
     );
     view.setDissolveMs(1000);
     expect(layer()?.style.getPropertyValue('--slide-dissolve')).toBe('1000ms');

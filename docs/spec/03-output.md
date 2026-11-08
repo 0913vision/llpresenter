@@ -243,20 +243,27 @@ colors), 12.
 
 ### Transitions
 
-- 환경설정 > 출력 > 전환 sets two transitions (06, `output.transition`):
-  슬라이드 전환 and 배경 전환, each 없음 (a cut) or 디졸브 with a time. The
-  defaults are a 슬라이드 dissolve of 0.2 seconds (0.1 to 2.0) and a background
-  dissolve of 0.5 seconds (0.1 to 3.0). A change applies from the next 슬라이드
-  or the next background; one that is dissolving finishes with the time it
-  started with. Every output and every preview reads the same values. A 테마
-  change between items uses the slide transition on the whole screen (12,
-  "Transitions").
-- The 슬라이드 전환 draws the lyric elements (현재 가사, 성경 출처, 다음 가사,
-  이름표, 다음 이름표). The 배경 전환 draws the 배경 and 미디어 elements. These
-  stay fixed and are not settings: clears happen at once or fade as in "Clear
-  buttons and shortcuts", a 메시지 fades in as a 슬라이드 does at the default
-  time, and the other text elements of a 테마 (the clock, the 타이머, the 항목
-  이름) dissolve at the default 0.2 seconds.
+- Each incoming slide's own transition wins over the output defaults. Otherwise,
+  changing item identity uses `output.transition.between` (dissolve, 0.5 s),
+  while navigating within the same item uses `.within` (none). This applies to
+  songs, Bible, sermon, blank slides, and announcements on every screen kind.
+  Jumping backwards or to another slide of the same item still uses `within`.
+- Effects are none, dissolve, push, and wipe. Push moves both old and new pages
+  in the chosen direction. Wipe keeps their positions fixed and replaces the old
+  page across a hard moving edge. Both have left, right, up, and down
+  directions. Times range from 0.1 to 10 seconds, including a manually chosen
+  four-second title slide. None keeps its time but does not animate.
+- The same compositor timing drives dissolve, push, and wipe. A running effect
+  retains its selected duration; settings changes apply at the next slide. A new
+  slide interrupts the previous effect, reusing two pages. Clearing, standby,
+  and disposal cancel their animations.
+- Lyric elements (current and next lyrics, reference, slide name and number,
+  current and next labels) follow the slide effect. Background pictures and
+  video keep the separate existing background transition. A theme change between
+  items applies the selected slide effect to the whole composition, after
+  incoming content is ready, without a second effect on its children.
+- Clears retain their own instant/fade behavior. Messages and other text
+  elements retain their 0.2-second dissolve.
 
 Source: `ShowH` (clicking a 슬라이드 changes all three previews), `Main`
 decisions "출력은 누르면 바로" and "구성대로 진행", 12 (text element

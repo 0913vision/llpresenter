@@ -2,7 +2,8 @@ import type {SlideLayer} from '@core/live/state';
 import {fitTextInFrame} from './fitText';
 import {classes} from './classes';
 import {TEXT_EFFECTS, type TextStyle} from '@core/themes/textStyle';
-import {OUTPUT_TRANSITIONS} from './transitions';
+import type {SlideTransition} from '@core/schema/slideTransition';
+import {SlideAnimation, type SlideAnimationFrame} from './slideAnimation';
 import {continuationText} from '@core/bible/split/continuation';
 import {contSizeOf} from '@core/bible/split/layout';
 import {bulletTextStyle, textParagraphs} from './textParagraphs';
@@ -10,7 +11,7 @@ import bulletStyles from './bulletText.module.css';
 import {resolveTextTracking} from '@core/themes/textTracking';
 
 /** The dissolve between 장 (docs/spec/03-output.md, version 1 default). */
-export const SLIDE_DISSOLVE_MS = OUTPUT_TRANSITIONS.slideMs;
+export const SLIDE_DISSOLVE_MS = 200;
 
 const FALLBACK_FONTS = "'Pretendard Variable', sans-serif";
 
@@ -188,6 +189,8 @@ export class SlideLayerView {
   private current: SlideLayer | null = null;
   private scale = 1;
   private dissolveMs: number = SLIDE_DISSOLVE_MS;
+  private effect: SlideTransition | undefined;
+  private readonly animation = new SlideAnimation();
 
   constructor(
     parent: HTMLElement,
@@ -209,6 +212,7 @@ export class SlideLayerView {
 
   /** Shows the 장 with a dissolve, or clears the layer at once for null. */
   show(slide: SlideLayer | null, transitions = true): void {
+    if (!transitions) this.animation.cancel();
     if (sameSlide(this.current, slide)) return;
     this.current = slide;
     if (slide === null) {
@@ -226,6 +230,13 @@ export class SlideLayerView {
     this.element.classList.toggle(classes.instant, !transitions);
     next.element.classList.add(classes.shown);
     this.pages[this.front].element.classList.remove(classes.shown);
+    if (this.effect !== undefined) {
+      this.animation.play(
+        this.pages[this.front].element,
+        next.element,
+        transitions ? this.effect : {kind: 'none', sec: this.effect.sec},
+      );
+    }
     this.front = back;
   }
 
@@ -242,10 +253,19 @@ export class SlideLayerView {
     this.fit(front);
   }
 
-  /**
-   * Sets how long the next 장 takes to dissolve in; 0 is a cut. A dissolve
-   * that is running keeps the time it started with.
-   */
+  /** Selects the next effect without restarting the animation already running. */
+  setTransition(effect: SlideTransition, frame?: SlideAnimationFrame): void {
+    this.effect = effect;
+    this.animation.setFrame(frame);
+    for (const page of this.pages) {
+      page.element.style.willChange = 'transform, opacity, clip-path';
+    }
+  }
+
+  finishTransition(): void {
+    this.animation.cancel();
+  }
+
   setDissolveMs(ms: number): void {
     if (ms === this.dissolveMs) return;
     this.dissolveMs = ms;
@@ -302,12 +322,15 @@ export class SlideLayerView {
   }
 
   dispose(): void {
+    this.animation.cancel();
     this.element.remove();
   }
 
   private clearAtOnce(): void {
+    this.animation.cancel();
     this.element.classList.add(classes.instant);
     for (const page of this.pages) {
+      if (this.effect !== undefined) page.element.style.opacity = '0';
       page.element.classList.remove(classes.shown);
       writeLines(page, ['']);
     }

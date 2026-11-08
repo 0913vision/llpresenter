@@ -9,6 +9,7 @@ import {
   AUDIO_LIMITS,
   PREFERENCE_LIMITS,
   TRANSITION_LIMITS,
+  withPreferenceDefaults,
 } from '@core/schema/preferences';
 import type {PreferencesFile} from '@core/schema/preferences';
 import type {PreferenceEdits} from './usePreferenceEdits';
@@ -26,6 +27,7 @@ import {DeviceRow} from './DeviceRow';
 import {useAudioOutputs} from './useAudioOutputs';
 import {useLibraryLocations} from './useLibraryLocations';
 import {useUiZoom} from './useUiZoom';
+import {SlideTransitionRow} from './SlideTransitionRow';
 
 /** The pages of the 환경설정 list, in the order it shows them. */
 export const preferencePages = [
@@ -57,7 +59,7 @@ const AUTO_BACKUP_NOTE = '하루 한 번, 앱을 켤 때';
 const PREVIOUS_VERSION_NOTE =
   '곡과 예배 파일을 저장할 때 바로 전 판을 남깁니다';
 
-type TransitionPart = 'slide' | 'media';
+type TransitionPart = 'media';
 
 /** The stored file with one part of a 전환 changed, the rest kept as stored. */
 function changedTransition(
@@ -138,20 +140,28 @@ export function OutputPage({edits}: PageProps): JSX.Element | null {
         />
       </PropertyGroup>
       <PropertyGroup title="전환">
-        <TransitionRow
-          label="슬라이드"
-          disabled={disabled}
-          title={lockedReason}
-          kind={transition.slide.kind}
-          seconds={transition.slide.seconds}
-          limits={TRANSITION_LIMITS.slide}
-          onKind={kind =>
-            change(stored => changedTransition(stored, 'slide', {kind}))
-          }
-          onSeconds={seconds =>
-            change(stored => changedTransition(stored, 'slide', {seconds}))
-          }
-        />
+        {(['between', 'within'] as const).map(part => (
+          <SlideTransitionRow
+            key={part}
+            label={part === 'between' ? '곡이 바뀔 때' : '곡 안에서 넘길 때'}
+            value={transition[part]}
+            disabled={disabled}
+            onChange={update =>
+              change(stored => ({
+                ...stored,
+                output: {
+                  ...stored.output,
+                  transition: {
+                    ...stored.output?.transition,
+                    [part]: update(
+                      withPreferenceDefaults(stored).output.transition[part],
+                    ),
+                  },
+                },
+              }))
+            }
+          />
+        ))}
         <TransitionRow
           label="배경"
           disabled={disabled}

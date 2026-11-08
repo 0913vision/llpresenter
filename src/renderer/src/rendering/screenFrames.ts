@@ -1,8 +1,12 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {LiveState} from '@core/live/state';
 import type {MessageStyle} from '@core/schema/messages';
-import {transitionTimes, type TransitionTimes} from '@core/output/transitions';
-import {withPreferenceDefaults} from '@core/schema/preferences';
+import {slideTransitionFor, transitionTimes} from '@core/output/transitions';
+import type {SlideLayer} from '@core/live/state';
+import {
+  defaultPreferences,
+  withPreferenceDefaults,
+} from '@core/schema/preferences';
 import {isKeyBackground} from '@core/screens/emptyColor';
 import {messageBandFor, resolveMessageStyle} from '@core/screens/messageStyle';
 import type {Timer} from '@core/schema/timers';
@@ -29,7 +33,10 @@ export class ScreenFrames {
   private screen: RenderScreen | undefined;
   private timers: readonly Timer[] = [];
   private messageStyles: readonly MessageStyle[] | undefined;
-  private times: TransitionTimes | undefined;
+  private preferences = defaultPreferences;
+  private previousSlide: SlideLayer | null = null;
+  private previousItemId: string | null = null;
+  private effect = defaultPreferences.output.transition.between;
   private readonly stops: ReadonlyArray<() => void>;
   private readonly timerClock: MainTimerClock;
 
@@ -74,10 +81,10 @@ export class ScreenFrames {
         name: 'preferences',
         select: document =>
           document.name === 'preferences'
-            ? transitionTimes(withPreferenceDefaults(document.value))
+            ? withPreferenceDefaults(document.value)
             : undefined,
-        receive: times => {
-          this.times = times;
+        receive: preferences => {
+          this.preferences = preferences;
           options.onChange();
         },
         onError: error => onError('could not read the 전환 times', error),
@@ -102,6 +109,20 @@ export class ScreenFrames {
   frame(state: LiveState | null): RenderFrame | undefined {
     const {screen} = this;
     if (screen === undefined) return undefined;
+    const slide = state?.layers.slide ?? null;
+    const itemId = slide?.itemId ?? state?.themeItem?.id ?? null;
+    if (
+      itemId !== this.previousItemId ||
+      slide?.position !== this.previousSlide?.position
+    ) {
+      this.effect = slideTransitionFor(
+        this.preferences.output.transition,
+        this.previousItemId,
+        slide ?? (itemId === null ? null : {itemId}),
+      );
+    }
+    this.previousSlide = slide;
+    this.previousItemId = itemId;
     const output = state?.themeOutput;
     const composition = output?.screens[screen.id];
     if (output === undefined || composition === undefined) return undefined;
@@ -127,12 +148,14 @@ export class ScreenFrames {
     );
     return {
       theme,
+      ...(slide === null ? {} : {slide}),
       ...(this.fonts === undefined ? {} : {fonts: this.fonts}),
       ...(state?.stageTimerId === undefined
         ? {}
         : {stageTimerId: state.stageTimerId}),
       screen,
-      ...(this.times === undefined ? {} : {transitionTimes: this.times}),
+      transitionTimes: transitionTimes(this.preferences, this.effect),
+      slideTransition: this.effect,
       messageStyle,
       ...(band === undefined ? {} : {messageBand: band}),
       ...(state?.clearEffects === undefined

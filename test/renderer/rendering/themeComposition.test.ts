@@ -392,6 +392,78 @@ describe('theme composition drawing', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
+  it.each(['none', 'push'] as const)(
+    'interrupts a four-second theme wipe for the next slide with %s',
+    kind => {
+      const {root, view, text, onError} = setup();
+      const elements: ThemeElement[] = [
+        {...themeElementBase(), kind: 'currentText'},
+      ];
+      view.render(song, frame(elements));
+      const incoming = {
+        ...song,
+        slide: {
+          itemId: 'incoming',
+          position: 0,
+          label: null,
+          lines: ['Incoming title'],
+        },
+      };
+      const incomingFrame: RenderFrame = {
+        ...frame(elements, {
+          themeId: createThemeId('00000000-0000-4000-8000-000000000502'),
+        }),
+        slide: incoming.slide,
+        slideTransition: {kind: 'wipe', dir: 'left', sec: 4},
+        transitionTimes: {slideMs: 4000, backgroundMs: 500},
+      };
+      view.render(incoming, incomingFrame);
+      const cancel = vi.fn();
+      const animate = vi.fn(() => ({cancel}));
+      for (const page of root.querySelectorAll(
+        `[data-theme-page], .${classes.page}`,
+      )) {
+        Object.defineProperty(page, 'animate', {value: animate});
+      }
+      vi.advanceTimersByTime(1000);
+      expect(animate).toHaveBeenCalledTimes(2);
+      expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(2);
+      view.render(incoming, {...incomingFrame, stageMessage: 'Unrelated'});
+      expect(cancel).not.toHaveBeenCalled();
+
+      const next = {
+        ...incoming,
+        slide: {...incoming.slide, position: 1, lines: ['Next lyrics']},
+      };
+      view.render(next, {
+        ...incomingFrame,
+        slide: next.slide,
+        slideTransition: {kind, sec: 0.5},
+        transitionTimes: {
+          slideMs: kind === 'none' ? 0 : 500,
+          backgroundMs: 500,
+        },
+      });
+
+      expect(cancel).toHaveBeenCalledTimes(2);
+      expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(1);
+      expect(
+        root.querySelector<HTMLElement>('[data-theme-page]')?.style.opacity,
+      ).toBe('1');
+      expect(text('currentText')).toBe('Next lyrics');
+      expect(animate).toHaveBeenCalledTimes(kind === 'none' ? 2 : 4);
+      if (kind === 'push') {
+        expect(animate).toHaveBeenLastCalledWith(expect.any(Array), {
+          duration: 500,
+          easing: 'linear',
+        });
+      }
+      expect(vi.getTimerCount()).toBe(0);
+      expect(onError).not.toHaveBeenCalled();
+      view.dispose();
+    },
+  );
+
   it('keeps the opaque outgoing picture until the new composition can draw, with no child fade from empty', () => {
     const {root, view} = setup();
     let ready = true;
@@ -437,6 +509,8 @@ describe('theme composition drawing', () => {
     expect(incoming?.style.opacity).toBe('1');
     expect(root.contains(outgoing)).toBe(true);
     expect(outgoing?.style.opacity).not.toBe('0');
+    vi.advanceTimersByTime(250);
+    expect(root.contains(outgoing)).toBe(true);
     vi.advanceTimersByTime(250);
     expect(root.contains(outgoing)).toBe(false);
     view.dispose();
@@ -527,7 +601,7 @@ describe('theme composition drawing', () => {
         themeId: createThemeId('00000000-0000-4000-8000-000000000503'),
       }),
     );
-    vi.advanceTimersByTime(250);
+    vi.advanceTimersByTime(532);
     expect(root.querySelector('video[src]')).toBe(video);
     expect(root.querySelectorAll('video')).toHaveLength(2);
     expect(video.currentTime).toBe(7);
@@ -594,6 +668,8 @@ describe('theme composition drawing', () => {
     vi.advanceTimersByTime(250);
     expect(root.querySelector('video[src]')).toBe(video);
     expect(HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(plays);
+    expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(2);
+    vi.advanceTimersByTime(282);
     expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(1);
     view.dispose();
     expect(vi.getTimerCount()).toBe(0);

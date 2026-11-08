@@ -1,3 +1,4 @@
+import {slideTransitionSchema} from './slideTransition';
 import * as v from 'valibot';
 import {labelColorSchema} from './labelColor';
 import type {Result} from '../common/result';
@@ -133,6 +134,7 @@ export const showTileSchema = v.pipe(
     continued: v.exactOptional(v.boolean()),
     biblePart: v.exactOptional(biblePartSchema),
     sourceSlideId: v.exactOptional(slideIdSchema),
+    transition: v.exactOptional(slideTransitionSchema),
     verse: v.exactOptional(
       payloadObject({
         reference: bibleVerseReferenceSchema,

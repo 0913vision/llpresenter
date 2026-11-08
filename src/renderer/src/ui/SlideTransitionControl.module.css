@@ -1,0 +1,89 @@
+.controls,
+.gallery,
+.directions {
+  display: flex;
+  gap: var(--space-6);
+}
+
+.controls {
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-16);
+}
+
+.tile,
+.directions button {
+  border: 0;
+  border-radius: var(--radius-md);
+  background: var(--bg-control);
+  color: var(--text);
+  font: var(--type-label);
+  cursor: pointer;
+}
+
+.tile {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-4);
+  padding: var(--space-6) var(--space-8);
+  min-width: calc(var(--space-16) * 4);
+}
+
+.tile svg {
+  width: var(--size-dialog-header);
+  height: var(--size-control-md);
+}
+
+.old {
+  fill: var(--accent-fill);
+}
+
+.next {
+  fill: var(--label-orange);
+}
+
+.edge {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: 2;
+}
+
+.group {
+  display: grid;
+  gap: var(--space-6);
+  color: var(--text-3);
+  font: var(--type-label);
+}
+
+.directions button {
+  width: var(--size-panel-header);
+  height: var(--size-control-md);
+}
+
+.tile[aria-pressed='true'],
+.directions button[aria-pressed='true'] {
+  background: var(--selection);
+  box-shadow: var(--ring-selected);
+}
+
+.tile:hover:not(:disabled),
+.directions button:hover:not(:disabled) {
+  background: var(--bg-control-hover);
+}
+
+.tile:focus-visible,
+.directions button:focus-visible {
+  outline: var(--space-2) solid var(--accent);
+  outline-offset: var(--space-2);
+}
+
+.tile:disabled,
+.directions button:disabled {
+  background: var(--bg-well);
+  color: var(--text-off);
+  cursor: default;
+}
+
+.time {
+  --field-number-width: calc(var(--space-20) * 3);
+}

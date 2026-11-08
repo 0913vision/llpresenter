@@ -1,3 +1,4 @@
+import {slideTransitionSchema} from './slideTransition';
 import * as v from 'valibot';
 import type {Result} from '../common/result';
 import {isRecord} from '../common/guards';
@@ -69,6 +70,7 @@ export const bibleVerseReferenceSchema = jsonObject({
 export const verseSlideSchema = jsonObject({
   id: slideIdSchema,
   verse: bibleVerseReferenceSchema,
+  transition: v.exactOptional(slideTransitionSchema),
 });
 
 export type VerseSlide = ReadonlyKnown<v.InferOutput<typeof verseSlideSchema>>;
@@ -81,9 +83,14 @@ export const slideSchema = v.pipe(
           jsonObject({
             id: slideIdSchema,
             text: slideTextSchema,
+            transition: v.exactOptional(slideTransitionSchema),
             name: v.exactOptional(slideNameSchema),
           }),
-          jsonObject({id: slideIdSchema, media: mediaIdSchema}),
+          jsonObject({
+            id: slideIdSchema,
+            media: mediaIdSchema,
+            transition: v.exactOptional(slideTransitionSchema),
+          }),
         ]),
   ),
   v.check(

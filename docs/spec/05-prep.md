@@ -961,3 +961,11 @@ Source: the user's October 26 shared-bin decision (04), `Media`, `MediaTile`
 README, `StatusMarks` README (progress bar), `Slider` README, `docs/TECH.md`
 media. Existing media features move into the bin; the layout move does not
 expand the feature-freeze scope.
+
+### Slide transition metadata
+
+Song and shared item editors preserve each slide's optional transition during
+ordinary text, label, order, save, and clipboard edits (02). The first
+transition stage adds data, global defaults, and output playback. The effect
+ribbon, selection-based changes, corner markers, apply-to-all, and animated
+effect preview belong to the separate editor stage.

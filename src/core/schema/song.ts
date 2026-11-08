@@ -1,3 +1,4 @@
+import {slideTransitionSchema} from './slideTransition';
 import * as v from 'valibot';
 import type {Result} from '../common/result';
 import {
@@ -34,6 +35,7 @@ export const songSlideSchema = jsonObject({
       v.maxLength(SONG_LIMITS.label),
     ),
   ),
+  transition: v.exactOptional(slideTransitionSchema),
   hotKey: v.exactOptional(slideHotKeySchema),
 });
 
