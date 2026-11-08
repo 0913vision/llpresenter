@@ -1043,13 +1043,14 @@ this preference.
 | ------- | --------------------------------- | ------------------------------------------------------------ | ------------- | -------------------------------- | ------------ | ------- |
 | 역본    | One row per installed translation | Name, language, 기본 tag, more menu (기본으로)               | 개역한글 기본 | `bible.json` `translations[]`    | At once      |         |
 | 새 구절 | 나눌 자리 확인                    | Checkbox                                                     | On            | `bible.splitEditorAutoOpen`      | Next lookup  |         |
-| 새 구절 | 한 슬라이드에 (per 슬라이드)      | Select: 한 절, 두 절, 들어가는 만큼                          | 한 절         | `bible.defaults.split`           | New passages |         |
 | 새 구절 | 구절 표시 (reference)             | Select: 슬라이드마다, 첫 슬라이드만, 마지막 슬라이드만, 없음 | 슬라이드마다  | `bible.defaults.reference`       | New passages |         |
 | 새 구절 | 절 번호 (verse numbers)           | Checkbox                                                     | On            | `bible.defaults.verseNumbers`    | New passages |         |
 | 새 구절 | 역본 이름 (translation name)      | Checkbox                                                     | Off           | `bible.defaults.translationName` | New passages |         |
 
-- 들어가는 만큼 fills each 슬라이드 to the 테마's text frame; no line count is
-  set here (12).
+- Every verse starts a new slide (04). There is no 한 슬라이드에 packing row.
+  Legacy `bible.defaults.split` values are preserved but ignored; new passages
+  store `verse`. The theme's frame and 성경 분할 줄 수 determine how a long
+  verse splits further (12).
 - 출처 위치 (reference position) moves into the 테마 (see "Fonts"): the 성경
   출처 element sets it per screen, because the 청중 화면 and the 방송 화면 need
   different positions (12).

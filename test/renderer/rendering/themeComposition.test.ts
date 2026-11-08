@@ -147,7 +147,7 @@ describe('theme composition drawing', () => {
       {...emptyLayers(), slide: {...tile, itemId: 'bible:sample', position: 0}},
       frame(elements),
     );
-    expect(text('reference')).toBe('요한복음 3:16~17 (개역한글)');
+    expect(text('reference')).toBe('요한복음 3:16 (개역한글)');
     view.dispose();
   });
   it.each(['output', 'preview'] as const)(

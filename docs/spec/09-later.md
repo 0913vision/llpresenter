@@ -176,3 +176,4 @@ them.
 | A 다중 레이어 지우기 (Clear Groups) button                                                    | 매크로 with clear actions (see 07)                             | product log 2026-10-24, `Main` decisions |
 | Broadcast streaming and recording                                                             | OBS                                                            | product log 2026-10-23                   |
 | Musician features                                                                             | None (out of scope)                                            | product log 2026-10-24                   |
+| Bible PowerPoint export, TXT export, and styled clipboard copy from Copible                   | LoveLight outputs Bible passages directly                      | Bible scope decision, November 9         |

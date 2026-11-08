@@ -7,6 +7,7 @@ import type {BiblePassage} from '@core/schema/biblePassage';
 export interface PassageDefaults {
   readonly translation: BibleLookupReply['translation'];
   readonly verseNumbers: boolean;
+  /** Accepted from old preferences; new passages always start each verse anew. */
   readonly split?: BiblePassage['split'];
   readonly reference?: BiblePassage['reference'];
   readonly translationName?: boolean;
@@ -18,7 +19,6 @@ export function passageItem(
   {
     translation,
     verseNumbers,
-    split = 'verse',
     reference = 'every',
     translationName = false,
   }: PassageDefaults,
@@ -28,7 +28,7 @@ export function passageItem(
     bible: {
       translation,
       ref,
-      split,
+      split: 'verse',
       reference,
       verseNumbers,
       translationName,

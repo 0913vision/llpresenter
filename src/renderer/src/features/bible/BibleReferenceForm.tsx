@@ -1,6 +1,7 @@
 import {
   useEffect,
   useId,
+  useLayoutEffect,
   useRef,
   useState,
   type JSX,
@@ -22,6 +23,7 @@ import {useBibleLookup} from './useBibleLookup';
 import {
   changeReferenceField,
   EMPTY_REFERENCE,
+  reconcileReferenceFields,
   referenceFieldsState,
   selectedBook,
   type ReferencePart,
@@ -86,10 +88,17 @@ export function BibleReferenceForm(
       ? (selectedRecent?.translation ?? props.translation)
       : props.translation;
   const root = useRef<HTMLDivElement>(null);
-  const advancedBook = useRef<{
+  const [chapterFocus, setChapterFocus] = useState<{
     readonly bookId: number;
     readonly translation: TranslationId | undefined;
   } | null>(null);
+  const advancedBook = useRef<typeof chapterFocus>(null);
+  useLayoutEffect(() => {
+    if (chapterFocus === null) return;
+    // NOTE(0913vision): Completion must enable the chapter input before focus.
+    focusChapter(root.current);
+    advancedBook.current = chapterFocus;
+  }, [chapterFocus]);
   useEffect(() => {
     if (props.autoFocus && props.translation !== undefined) {
       root.current
@@ -127,8 +136,10 @@ export function BibleReferenceForm(
         ?.querySelector<HTMLInputElement>('[role="combobox"]')
         ?.focus();
     }
-  }, [bookId, metadata, translation]);
-  const state = referenceFieldsState(fields, metadata?.bounds);
+  }, [bookId, chapterFocus, metadata, translation]);
+  const reconciled = reconcileReferenceFields(fields, metadata?.bounds);
+  if (reconciled !== fields) setFields(reconciled);
+  const state = referenceFieldsState(reconciled, metadata?.bounds);
   const reply = useBibleLookup({
     ...props,
     translation,
@@ -156,9 +167,13 @@ export function BibleReferenceForm(
   const expanded =
     props.translation !== undefined && open && suggestions.length > 0;
   const change = (part: ReferencePart, value: string): void => {
+    const nextFields = reconcileReferenceFields(
+      changeReferenceField(fields, part, value),
+      metadata?.bounds,
+    );
+    if (nextFields === fields && value !== fields[part]) return;
     advancedBook.current = null;
     props.onIntent?.();
-    const nextFields = changeReferenceField(fields, part, value);
     if (nextFields !== fields || selectedRecent !== undefined) {
       const nextInput = referenceFieldsState(
         nextFields,
@@ -171,7 +186,7 @@ export function BibleReferenceForm(
       );
     }
     setRecent(null);
-    setFields(previous => changeReferenceField(previous, part, value));
+    setFields(nextFields);
     setBlocked(null);
     if (part === 'book') {
       setPointed(-1);
@@ -189,9 +204,8 @@ export function BibleReferenceForm(
       choose(item.input);
       // NOTE(0913vision): A chosen book moves on to 장, as in copible, the
       // Bible reference app.
-      focusChapter(root.current);
       if (item.bookId !== undefined) {
-        advancedBook.current = {bookId: item.bookId, translation};
+        setChapterFocus({bookId: item.bookId, translation});
       }
       return;
     }
@@ -235,10 +249,7 @@ export function BibleReferenceForm(
       return;
     }
     choose(candidate.korean);
-    focusChapter(root.current);
-    if (metadata === null) {
-      advancedBook.current = {bookId: candidate.id, translation};
-    }
+    setChapterFocus({bookId: candidate.id, translation});
   };
   const onKeyDown = (
     part: ReferencePart,
@@ -261,9 +272,7 @@ export function BibleReferenceForm(
         const next =
           event.key === 'ArrowDown'
             ? Math.min(pointed + 1, suggestions.length - 1)
-            : pointed < 0
-              ? suggestions.length - 1
-              : Math.max(0, pointed - 1);
+            : Math.max(-1, pointed - 1);
         setPointed(next);
         setKeyboardPointed(next);
         return;
@@ -287,6 +296,10 @@ export function BibleReferenceForm(
       root.current
         ?.querySelector<HTMLInputElement>('[role="combobox"]')
         ?.focus();
+      return;
+    }
+    if (part !== 'book' && event.key.length === 1 && !/^\d$/u.test(event.key)) {
+      event.preventDefault();
       return;
     }
     if (
@@ -378,7 +391,7 @@ export function BibleReferenceForm(
           onCompositionStart={() => {
             advancedBook.current = null;
           }}
-          disabled={props.translation === undefined}
+          disabled={props.translation === undefined || !state.enabled[part]}
           invalid={reason(part) !== undefined}
           invalidReason={reason(part)}
         />

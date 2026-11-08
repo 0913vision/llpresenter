@@ -605,8 +605,8 @@ Source: `Overlays` (tool controls), `Problems` (still background), `Macros`,
 ### Panel
 
 - Header: "퀵 실행" and 퀵 실행 추가 (add, plus icon).
-- Tool row: the Bible passage field (book icon, placeholder "요 3:16, 창
-  1:1-5"). See "Bible passages".
+- Tool row: the four Bible reference fields 책, 장, 시작절, 끝절, with a book
+  icon on 책. See "Bible passages".
 - List: one row per item, with a kind icon and a name. Rows show no shortcuts.
 - A timer row shows its current value in place, using the same formatter and
   kind rules as the timer tab. A running non-clock row keeps the red bar. A
@@ -742,24 +742,37 @@ that ProPresenter's Edit mode has the same behavior.
   component is used in 준비 항목 추가 성경 구절.
 - 책 lists every containment match in canonical order, using Korean full and
   short names by jamo, English names and codes, and IME-off QWERTY input (02).
-  Nothing is highlighted initially. With 책 empty and no suggestion pointed,
-  forward Tab moves on like in any field, because there is nothing to complete
-  (lead decision, November 2). With text in 책, forward Tab completes an exact
-  match or a sole candidate to the full name and moves to 장. With several
-  candidates and no exact match, Tab stays until an arrow-key selection is made.
-  The selected book wins when the operator explicitly points to one. A click or
-  Enter selects a suggestion before any output.
-- With all four reference fields empty, Tab passes through the form without
-  validation, so the operator can reach the rest of 진행 without entering a
-  passage. Once any field contains text, forward Tab moves through valid 장,
-  시작절, and 끝절. 장 ranges from 1 to the book's chapter count, 시작절 from 1
-  to the chapter's last verse, and 끝절 from 시작절 to the last verse. An empty
-  끝절 means one verse. Changing 시작절 clears 끝절. Invalid values block Tab
-  and mark the affected fields with the error ring and a short Korean tooltip
-  reason, with no adjacent sentence. Lookup clamps an oversized 끝절 to the
-  chapter's last verse; Enter also normalizes the displayed end. A reversed end
-  blocks lookup. Shift Tab keeps backward navigation and IME composition keeps
-  its keys.
+  Current codes include `ezk`, `jol`, `jnh`, `nam`, `mrk`, `jhn`, and `php`; the
+  previous `eze`, `joe`, `jon`, `nah`, `mar`, `joh`, and `phi` still work. An
+  exact code wins over an incidental IME-off containment match: `mrk` completes
+  to 마가복음. Nothing is highlighted initially. With 책 empty and no suggestion
+  pointed, forward Tab moves on like in any field, because there is nothing to
+  complete (lead decision, November 2). With text in 책, forward Tab completes
+  an exact match or a sole candidate to the full name and moves to 장. With
+  several candidates and no exact match, Tab stays until an arrow-key selection
+  is made. The selected book wins when the operator explicitly points to one. A
+  click or Enter selects a suggestion before any output.
+- Up from no highlight leaves it unselected; Up from the first row clears the
+  highlight. Down from no highlight selects the first row. An ambiguous book
+  still blocks Tab after Up clears its selection.
+- 장 is enabled only for a resolved book; 시작절 requires a valid 장 and loaded
+  verse bounds; 끝절 requires a valid 시작절. An invalid book clears 장, 시작절,
+  and 끝절; an invalid 장 clears 시작절 and 끝절; an invalid 시작절 clears 끝절.
+  Pending or stale metadata disables dependent fields without erasing their
+  values. All three number fields accept only ASCII digits or empty input,
+  including pasted values. Navigation, editing shortcuts, and IME control keys
+  keep their normal behavior.
+- With all four reference fields empty, Tab leaves 책 and skips the disabled
+  numeric fields, so the rest of 진행 stays reachable without entering a
+  passage; Shift Tab returns to 책. Once input begins, forward Tab moves through
+  valid 장, 시작절, and 끝절. 장 ranges from 1 to the book's chapter count,
+  시작절 from 1 to the chapter's last verse, and 끝절 from 시작절 to the last
+  verse. An empty 끝절 means one verse. Changing 시작절 clears 끝절. Invalid
+  values block Tab and mark the affected fields with the error ring and a short
+  Korean tooltip reason, with no adjacent sentence. Lookup clamps an oversized
+  끝절 to the chapter's last verse; Enter also normalizes the displayed end. A
+  reversed end blocks lookup. Shift Tab keeps backward navigation and IME
+  composition keeps its keys.
 - Suggestions open below 책. The 책 group lists all matching books, without the
   former eight-book cap. 최근 lists up to ten stored passages. Choosing a recent
   clears the manual fields and previews its original stored range, including
@@ -906,11 +919,18 @@ integration use this contract, with a distinct cancellable ID per lookup.
     box width and height, and 성경 분할 줄 수 (`maxLines`). The font is measured
     at its configured size rather than shrunk to avoid splitting. This applies
     to saved 성경 구절 items and the 진행 Bible panel, including next/previous
-    navigation.
+    navigation. Unmeasured fallback slides follow the same verse boundary rule.
+    The legacy `two` and `fit` packing values remain readable but never combine
+    verses; new passages store `verse`, and there is no packing preference (02,
+    10).
   - Every non-last part ends with ` (계속)`, two steps smaller on the PowerPoint
     size list. Numbering, when enabled for a multi-verse passage, appears only
     on the first part of each verse and is included in measurement. A single
     verse has no number prefix, as in Copible. The source text stays exact.
+    Width measurement includes the body tracking interval before the marker's
+    leading space, the space at marker size, and marker tracking. This also
+    applies to negative and short-text tracking; a marker on its own line has no
+    preceding gap or body tracking.
   - Confirmed word cuts in `bibleCuts.json` are reused only when the text hash
     matches and the current theme still fits. An overflowing saved entry stays
     in the file while automatic splitting is used. Measurement failure retains

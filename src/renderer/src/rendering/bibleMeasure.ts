@@ -61,7 +61,9 @@ export function measureBibleLines(
       widthOf(marker, spec.markerSize) +
       Math.max(0, Array.from(marker).length - 1) * spec.markerTracking;
     const gap =
-      line === '' ? 0 : widthOf(' ', spec.markerSize) + spec.markerTracking;
+      line === ''
+        ? 0
+        : spec.tracking + widthOf(' ', spec.markerSize) + spec.markerTracking;
     if (line !== '' && width(line) + gap + markerWidth > spec.width) flush();
     const total = (line === '' ? 0 : width(line) + gap) + markerWidth;
     lines.push(line === '' ? marker : line + CONT_MARKER);

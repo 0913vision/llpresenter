@@ -44,8 +44,8 @@ export function BibleInsertButton({
     editing.run(async (edits, id) => {
       const result = await edits.insertItemInSection(id, selected, () => {
         // NOTE(0913vision): The preview picks the numbering and the reference;
-        // the loaded 환경설정 defaults give the split and the translation name,
-        // as in the 성경 구절… dialog. Until loaded, use the built-in defaults.
+        // loaded 환경설정 defaults give the translation name. New items always
+        // start each verse anew. Until loaded, use the built-in defaults.
         return Promise.resolve(
           passageItem(source.passage.ref, {
             ...defaults,

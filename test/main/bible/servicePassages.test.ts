@@ -107,7 +107,7 @@ describe('saved Bible passage resolution', () => {
         reportError: vi.fn(),
       });
       expect(result.tiles.get(row.id)?.[0]?.reference).toBe(
-        `요한복음 3:16~17${translationName ? ' (개역한글)' : ''}`,
+        `요한복음 3:16${translationName ? ' (개역한글)' : ''}`,
       );
     }
   });
@@ -136,7 +136,7 @@ describe('saved Bible passage resolution', () => {
     }
   });
 
-  it('splits a saved passage as it asks, and leaves a verse-each passage as it was', async () => {
+  it('starts each saved verse on a slide, including legacy packing values', async () => {
     const original = items('요한복음 3:16-18')[0];
     if (original === undefined || !isItemOfKind(original, 'bible')) {
       throw new Error('Missing Bible fixture');
@@ -149,8 +149,8 @@ describe('saved Bible passage resolution', () => {
       return result.tiles.get(row.id)?.map(tile => tile.label);
     };
     expect(await built('verse')).toEqual(['3:16', '3:17', '3:18']);
-    expect(await built('two')).toEqual(['3:16-17', '3:18']);
-    expect(await built('fit')).toEqual(['3:16-18']);
+    expect(await built('two')).toEqual(['3:16', '3:17', '3:18']);
+    expect(await built('fit')).toEqual(['3:16', '3:17', '3:18']);
   });
   it('exposes normalized identity only for successfully resolved saved items', async () => {
     const bible = fixture();

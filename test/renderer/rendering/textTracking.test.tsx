@@ -133,9 +133,16 @@ it.each([
   {
     text: '가나다라 마',
     continued: true,
-    widths: [52, 76],
+    widths: [52, 10, 52],
     width: 76,
     maxCharacters: 5,
+  },
+  {
+    text: '가나다라마 바',
+    continued: true,
+    widths: [66, 80],
+    width: 80,
+    maxCharacters: 6,
   },
 ])(
   'keeps measured spacing through wrapping and continuation: $text / $continued',

@@ -59,7 +59,7 @@ async function setUp(
 }
 
 describe('OpenServiceFeed', () => {
-  it('packs a saved 들어가는 만큼 passage into slides of four lines', async () => {
+  it('starts each verse on a slide for a legacy 들어가는 만큼 passage', async () => {
     const request = parseBibleLookupRequest({
       translation: 'sample',
       input: '요한복음 3:16-18',
@@ -102,7 +102,7 @@ describe('OpenServiceFeed', () => {
       await feed.dispose();
       return labels;
     };
-    expect(await labelsOf()).toEqual(['3:16-18']);
+    expect(await labelsOf()).toEqual(['3:16', '3:17', '3:18']);
   });
 
   it('discards a superseded saved-passage read and publishes only the latest service content', async () => {

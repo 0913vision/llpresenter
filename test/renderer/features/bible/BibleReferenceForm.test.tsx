@@ -47,14 +47,102 @@ function setup() {
   };
 }
 
-function enterPassage(view: ReturnType<typeof setup>, end = ''): void {
+async function enterPassage(
+  view: ReturnType<typeof setup>,
+  end = '',
+): Promise<void> {
   fireEvent.change(view.book, {target: {value: '요'}});
   fireEvent.change(view.chapter, {target: {value: '3'}});
+  await waitFor(() => expect(view.start.disabled).toBe(false));
   fireEvent.change(view.start, {target: {value: '16'}});
   if (end) fireEvent.change(view.end, {target: {value: end}});
 }
 
 describe('shared Bible reference form', () => {
+  it('completes mrk to Mark instead of the IME-off Zechariah containment match', async () => {
+    const view = setup();
+    view.lookup.mockImplementation(request => formLookupReply(request, [41]));
+    await view.user.type(view.book, 'mrk');
+    await view.user.tab();
+    expect(view.book.value).toBe('마가복음');
+    expect(document.activeElement).toBe(view.chapter);
+  });
+
+  it.each(['{ArrowUp}', '{ArrowDown}{ArrowUp}'])(
+    'leaves no choice after %s and blocks ambiguous Tab',
+    async keys => {
+      const view = setup();
+      await view.user.type(view.book, '베');
+      await view.user.keyboard(keys);
+      expect(view.book.hasAttribute('aria-activedescendant')).toBe(false);
+      expect(
+        screen
+          .getAllByRole('option')
+          .every(row => row.getAttribute('aria-selected') === 'false'),
+      ).toBe(true);
+      await view.user.tab();
+      expect(view.book.value).toBe('베');
+      expect(document.activeElement).toBe(view.book);
+      await view.user.keyboard('{ArrowDown}{Tab}');
+      expect(view.book.value).toBe('에베소서');
+      expect(document.activeElement).toBe(view.chapter);
+    },
+  );
+
+  it('gates the numeric fields and clears descendants of invalid input', async () => {
+    const view = setup();
+    expect([
+      view.chapter.disabled,
+      view.start.disabled,
+      view.end.disabled,
+    ]).toEqual([true, true, true]);
+    await view.user.type(view.book, '요');
+    expect([
+      view.chapter.disabled,
+      view.start.disabled,
+      view.end.disabled,
+    ]).toEqual([false, true, true]);
+    await view.user.type(view.chapter, '3');
+    await waitFor(() => expect(view.start.disabled).toBe(false));
+    expect(view.end.disabled).toBe(true);
+    await view.user.type(view.start, '16');
+    await view.user.type(view.end, '18');
+    fireEvent.change(view.start, {target: {value: '37'}});
+    expect(view.end.value).toBe('');
+    expect(view.end.disabled).toBe(true);
+    fireEvent.change(view.chapter, {target: {value: '22'}});
+    expect(view.start.value).toBe('');
+    expect(view.start.disabled).toBe(true);
+    fireEvent.change(view.book, {target: {value: '베'}});
+    expect(view.chapter.value).toBe('');
+    expect(view.chapter.disabled).toBe(true);
+    expect(view.onSubmit).not.toHaveBeenCalled();
+  });
+
+  it.each(['chapter', 'start', 'end'] as const)(
+    'filters non-digit typing and paste in %s without breaking edit keys',
+    async part => {
+      const view = setup();
+      await enterPassage(view, '18');
+      await waitFor(() => expect(view.onPreview).toHaveBeenCalled());
+      const field = view[part];
+      const value = field.value;
+      await view.user.click(field);
+      await view.user.keyboard('a.-+가');
+      expect(field.value).toBe(value);
+      await view.user.paste('1.5');
+      expect(field.value).toBe(value);
+      expect(view.end.value).toBe('18');
+      expect(fireEvent.keyDown(field, {key: 'a', ctrlKey: true})).toBe(true);
+      expect(fireEvent.keyDown(field, {key: 'a', metaKey: true})).toBe(true);
+      expect(
+        fireEvent.keyDown(field, {key: 'Process', isComposing: true}),
+      ).toBe(true);
+      await view.user.keyboard('{Home}{Delete}');
+      expect(field.value).toBe(value.slice(1));
+    },
+  );
+
   it('keeps Tab on an ambiguous arrow pick absent from the installed translation', async () => {
     const view = setup();
     view.lookup.mockImplementation(request => formLookupReply(request, [43]));
@@ -128,7 +216,7 @@ describe('shared Bible reference form', () => {
       if (action === 'edit') {
         fireEvent.change(view.chapter, {target: {value: '2'}});
       } else if (action === 'blur') {
-        await view.user.click(view.start);
+        await view.user.click(view.book);
       } else if (action === 'translation') {
         view.rerender(
           <BibleReferenceForm {...view.props} translation={undefined} />,
@@ -147,7 +235,7 @@ describe('shared Bible reference form', () => {
         );
       }
       expect(document.activeElement).toBe(focus);
-      if (action === 'blur') expect(document.activeElement).toBe(view.start);
+      if (action === 'blur') expect(document.activeElement).toBe(view.book);
       expect(view.onPreview).not.toHaveBeenCalled();
       expect(view.onSubmit).not.toHaveBeenCalled();
     },
@@ -222,7 +310,8 @@ describe('shared Bible reference form', () => {
 
     await view.user.tab();
 
-    expect(document.activeElement).toBe(view.chapter);
+    expect(document.activeElement).not.toBe(view.book);
+    expect(view.chapter.disabled).toBe(true);
     expect(view.book.value).toBe('');
     expect(view.book.getAttribute('aria-invalid')).not.toBe('true');
 
@@ -237,19 +326,16 @@ describe('shared Bible reference form', () => {
     render(<button type="button">다음 패널</button>);
     view.book.focus();
 
-    for (const next of [view.chapter, view.start, view.end]) {
-      await view.user.tab();
-      expect(document.activeElement).toBe(next);
+    for (const field of [view.chapter, view.start, view.end]) {
+      expect(field.disabled).toBe(true);
     }
     await view.user.tab();
     expect(document.activeElement).toBe(
       screen.getByRole('button', {name: '다음 패널'}),
     );
-    for (const previous of [view.end, view.start, view.chapter, view.book]) {
-      await view.user.tab({shift: true});
-      expect(document.activeElement).toBe(previous);
-      expect(previous.getAttribute('aria-invalid')).not.toBe('true');
-    }
+    await view.user.tab({shift: true});
+    expect(document.activeElement).toBe(view.book);
+    expect(view.book.getAttribute('aria-invalid')).not.toBe('true');
     expect(view.onSubmit).not.toHaveBeenCalled();
     expect(view.onPreview).not.toHaveBeenCalled();
   });
@@ -261,7 +347,8 @@ describe('shared Bible reference form', () => {
     await view.user.keyboard('{ArrowDown}{Tab}');
 
     expect(view.book.value).toBe('');
-    expect(document.activeElement).toBe(view.chapter);
+    expect(document.activeElement).not.toBe(view.book);
+    expect(view.chapter.disabled).toBe(true);
   });
 
   it('starts without a highlight and blocks ambiguous Tab until an arrow selects a book', async () => {
@@ -311,7 +398,7 @@ describe('shared Bible reference form', () => {
 
   it('moves through valid fields, leaves Shift Tab and IME keys alone, and previews before output', async () => {
     const view = setup();
-    enterPassage(view);
+    await enterPassage(view);
     await waitFor(() => expect(view.onPreview).toHaveBeenCalled());
     await view.user.click(view.chapter);
     await view.user.tab();
@@ -337,14 +424,12 @@ describe('shared Bible reference form', () => {
     ['chapter', '22'],
     ['chapter', '0'],
     ['start', '37'],
-    ['start', '1.5'],
     ['end', '15'],
-    ['end', 'x'],
   ] as const)(
     'blocks invalid %s %s with only a tooltip reason',
     async (part, value) => {
       const view = setup();
-      enterPassage(view);
+      await enterPassage(view);
       await waitFor(() => expect(view.onPreview).toHaveBeenCalled());
       fireEvent.change(view[part], {target: {value}});
       await view.user.click(view[part]);
@@ -362,13 +447,15 @@ describe('shared Bible reference form', () => {
 
   it('lets Shift Tab leave a blocked field and Esc return to 책 without the reason', async () => {
     const view = setup();
-    fireEvent.change(view.book, {target: {value: '요'}});
+    await view.user.type(view.book, '요');
     await view.user.click(view.chapter);
     await view.user.tab();
     expect(document.activeElement).toBe(view.chapter);
     expect(view.chapter.getAttribute('aria-invalid')).toBe('true');
     await view.user.tab({shift: true});
     expect(document.activeElement).toBe(view.book);
+    fireEvent.change(view.chapter, {target: {value: '3'}});
+    await waitFor(() => expect(view.start.disabled).toBe(false));
     await view.user.click(view.start);
     await view.user.tab();
     expect(document.activeElement).toBe(view.start);
@@ -380,7 +467,7 @@ describe('shared Bible reference form', () => {
 
   it('blocks Tab on an oversized end, clamps its lookup, and clears it when the start changes', async () => {
     const view = setup();
-    enterPassage(view, '99');
+    await enterPassage(view, '99');
     await waitFor(() =>
       expect(view.onPreview).toHaveBeenLastCalledWith(
         expect.objectContaining({ref: '요한복음 3:16-36'}),
@@ -400,7 +487,7 @@ describe('shared Bible reference form', () => {
 
   it('does not submit an old passage when returning to it during a new lookup', async () => {
     const view = setup();
-    enterPassage(view);
+    await enterPassage(view);
     await waitFor(() => expect(view.onPreview).toHaveBeenCalled());
     let finish: (reply: BibleLookupReply) => void = () => undefined;
     let finishReturn: (reply: BibleLookupReply) => void = () => undefined;
@@ -448,7 +535,7 @@ describe('shared Bible reference form', () => {
 
   it('cannot use old bounds or a passage while a different translation is pending', async () => {
     const view = setup();
-    enterPassage(view);
+    await enterPassage(view);
     await waitFor(() => expect(view.onPreview).toHaveBeenCalled());
     let finish: (reply: BibleLookupReply) => void = () => undefined;
     view.lookup.mockImplementationOnce(
@@ -461,6 +548,9 @@ describe('shared Bible reference form', () => {
     view.rerender(
       <BibleReferenceForm {...view.props} translation={other.translation} />,
     );
+    expect(view.start.value).toBe('16');
+    expect(view.start.disabled).toBe(true);
+    expect(view.end.disabled).toBe(true);
     fireEvent.keyDown(view.start, {key: 'Enter'});
     expect(view.onSubmit).not.toHaveBeenCalled();
     await act(async () => finish(await formLookupReply(other)));
@@ -469,6 +559,8 @@ describe('shared Bible reference form', () => {
         expect.objectContaining({translation: other.translation}),
       ),
     );
+    expect(view.start.disabled).toBe(false);
+    expect(view.end.disabled).toBe(false);
     view.rerender(
       <BibleReferenceForm {...view.props} translation={undefined} />,
     );
@@ -484,7 +576,7 @@ describe('shared Bible reference form', () => {
       .spyOn(console, 'error')
       .mockImplementation(() => undefined);
     view.lookup.mockRejectedValueOnce(new Error('Invented failure'));
-    enterPassage(view);
+    fireEvent.change(view.book, {target: {value: '요'}});
     await waitFor(() => expect(error).toHaveBeenCalled());
     let finish: (reply: BibleLookupReply) => void = () => undefined;
     view.lookup.mockImplementationOnce(
@@ -513,7 +605,7 @@ describe('Bible reference form readiness', () => {
     const view = setup();
     const onReady = ready(view);
     view.lookup.mockImplementation(request => formLookupReply(request, [43]));
-    enterPassage(view);
+    await enterPassage(view);
     await waitFor(() => expect(onReady.mock.lastCall?.[0]).toBeTruthy());
 
     await view.user.clear(view.book);
@@ -536,7 +628,7 @@ describe('Bible reference form readiness', () => {
     async (label, value) => {
       const view = setup();
       const onReady = ready(view);
-      enterPassage(view);
+      await enterPassage(view);
       await waitFor(() => expect(onReady.mock.lastCall?.[0]).toBeTruthy());
 
       fireEvent.change(screen.getByRole('textbox', {name: label}), {

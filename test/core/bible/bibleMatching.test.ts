@@ -8,6 +8,22 @@ import {
 } from '@core/bible/bibleMatching';
 
 describe('four-field book candidates', () => {
+  it.each([
+    ['ezk', 'eze', 26],
+    ['jol', 'joe', 29],
+    ['jnh', 'jon', 32],
+    ['nam', 'nah', 34],
+    ['mrk', 'mar', 41],
+    ['jhn', 'joh', 43],
+    ['php', 'phi', 50],
+  ])('recognizes current %s and retained %s codes', (current, previous, id) => {
+    for (const code of [current, current.toUpperCase(), previous]) {
+      expect(exactBibleBook(code)?.id).toBe(id);
+      expect(matchBooks(code).map(book => book.id)).toEqual([id]);
+      expect(findBibleBooks(code).some(book => book.id === id)).toBe(true);
+    }
+  });
+
   it('keeps every containment match even when a short name matches exactly', () => {
     const matches = findBibleBooks('요');
     expect(matches.map(book => book.id)).toEqual([

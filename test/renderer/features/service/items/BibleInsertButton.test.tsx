@@ -170,7 +170,7 @@ it.each([true, false])(
 );
 
 it.each(['verse', 'two', 'fit'] as const)(
-  'saves the 나누기 default %s and the 역본 이름 default of 환경설정',
+  'ignores legacy packing default %s while saving the translation-name default',
   async split => {
     const view = setup(
       Promise.resolve({
@@ -191,7 +191,7 @@ it.each(['verse', 'two', 'fit'] as const)(
     await view.user.click(view.button);
     await waitFor(() => expect(view.service().service.order).toHaveLength(6));
     expect(view.service().service.order[3]).toMatchObject({
-      bible: {split, translationName: true},
+      bible: {split: 'verse', translationName: true},
     });
     expect(view.preferences).not.toHaveBeenCalled();
   },
@@ -231,7 +231,7 @@ it('uses changed defaults for subsequent insertions while the Bible panel stays 
   await view.user.click(view.button);
   await waitFor(() => expect(view.service().service.order).toHaveLength(7));
   expect(view.service().service.order[4]).toMatchObject({
-    bible: {split: 'two', translationName: true},
+    bible: {split: 'verse', translationName: true},
   });
   expect(view.preferences).not.toHaveBeenCalled();
   expect(view.preferenceListenerCount()).toBe(1);
@@ -248,21 +248,26 @@ it('uses preference changes before the initial read resolves and ignores its sta
       ...defaultPreferences,
       bible: {
         ...defaultPreferences.bible,
-        defaults: {...defaultPreferences.bible.defaults, split: 'fit'},
+        defaults: {
+          ...defaultPreferences.bible.defaults,
+          split: 'fit',
+          reference: 'last',
+          translationName: true,
+        },
       },
     }),
   );
   await view.user.click(view.button);
   await waitFor(() => expect(view.service().service.order).toHaveLength(6));
   expect(view.service().service.order[3]).toMatchObject({
-    bible: {split: 'fit'},
+    bible: {split: 'verse', reference: 'every', translationName: true},
   });
   await act(async () => finish(defaultPreferences));
   view.preferences.mockClear();
   await view.user.click(view.button);
   await waitFor(() => expect(view.service().service.order).toHaveLength(7));
   expect(view.service().service.order[4]).toMatchObject({
-    bible: {split: 'fit'},
+    bible: {split: 'verse', reference: 'every', translationName: true},
   });
   expect(view.preferences).not.toHaveBeenCalled();
 });

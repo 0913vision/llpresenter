@@ -769,8 +769,7 @@ describe('PreferencesView', () => {
   it('shows the 새 구절 defaults, and writes each choice beside the other fields', async () => {
     await mount();
     await openPage('성경');
-    const split = screen.getByRole('button', {name: /한 슬라이드에/});
-    expect(split.textContent).toContain('한 절');
+    expect(screen.queryByRole('button', {name: /한 슬라이드에/})).toBeNull();
     expect(
       screen.getByRole('button', {name: /구절 표시/}).textContent,
     ).toContain('슬라이드마다');
@@ -788,12 +787,6 @@ describe('PreferencesView', () => {
     await waitFor(() =>
       expect(written().bible?.defaults?.reference).toBe('last'),
     );
-    edit.mockClear();
-    await userEvent.click(split);
-    await userEvent.click(
-      await screen.findByRole('menuitemradio', {name: '두 절'}),
-    );
-    await waitFor(() => expect(written().bible?.defaults?.split).toBe('two'));
     expect(written()).toMatchObject(UNKNOWN_FIELDS);
   });
 

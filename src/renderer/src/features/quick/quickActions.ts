@@ -23,9 +23,7 @@ export function quickItemUnavailable(item: QuickItem): string | undefined {
   if (item.kind === 'black') return '검은 화면을 쓸 수 없습니다';
   if (
     item.kind === 'bible' &&
-    (item.ref.split !== 'verse' ||
-      item.ref.reference !== 'none' ||
-      item.ref.translationName)
+    (item.ref.reference !== 'none' || item.ref.translationName)
   ) {
     return '이 구절은 쓸 수 없습니다';
   }

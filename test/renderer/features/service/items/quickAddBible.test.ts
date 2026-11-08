@@ -29,7 +29,7 @@ describe('quick add Bible passages', () => {
     expect(first.id).not.toBe(second.id);
   });
 
-  it('takes the split, the reference, and the translation name of 환경설정 for a new passage', () => {
+  it('takes reference and translation settings but ignores legacy packing defaults', () => {
     expect(
       passageItem('요한복음 3:16', {
         translation,
@@ -39,7 +39,7 @@ describe('quick add Bible passages', () => {
         translationName: true,
       }),
     ).toMatchObject({
-      bible: {split: 'two', reference: 'last', translationName: true},
+      bible: {split: 'verse', reference: 'last', translationName: true},
     });
   });
 });

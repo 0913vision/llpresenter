@@ -248,9 +248,9 @@ describe('Bible verse shortcuts', () => {
     expect(edit).not.toHaveBeenCalled();
   });
 
-  it('adds the next verse past the last slide of a saved two-verse split', async () => {
-    const fixture = await setupSaved(true, 1, 'two');
-    expect(useShow.getState().tiles['saved-bible']).toHaveLength(2);
+  it('adds the next verse past the last slide of a legacy two-verse passage', async () => {
+    const fixture = await setupSaved(true, 2, 'two');
+    expect(useShow.getState().tiles['saved-bible']).toHaveLength(3);
     await outputAdjacentBibleVerse('next');
     expect(useShow.getState().rows).toBe(fixture.rows);
     expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])).toMatchObject({

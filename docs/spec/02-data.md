@@ -243,14 +243,14 @@ title, label, and Bible reference.
 
 ### Bible passage object (proposal)
 
-| Field             | Type                                           | Meaning                                                                                                          |
-| ----------------- | ---------------------------------------------- | ---------------------------------------------------------------------------------------------------------------- |
-| `translation`     | String (translation ID)                        | Translation.                                                                                                     |
-| `ref`             | String                                         | Normalized reference, for example "요한복음 3:16-18".                                                            |
-| `split`           | `"verse"` \| `"two"` \| `"fit"`                | 나누기 (split): 한 슬라이드에 한 절 (one verse per 슬라이드), 두 절씩 (two verses), 길이에 맞춤 (fit to length). |
-| `reference`       | `"every"` \| `"first"` \| `"last"` \| `"none"` | Where the reference shows: every 슬라이드, first 슬라이드 only, last 슬라이드 only, or nowhere.                  |
-| `verseNumbers`    | Boolean                                        | 절 번호 (verse numbers).                                                                                         |
-| `translationName` | Boolean                                        | 역본 이름 (translation name).                                                                                    |
+| Field             | Type                                           | Meaning                                                                                                                                |
+| ----------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `translation`     | String (translation ID)                        | Translation.                                                                                                                           |
+| `ref`             | String                                         | Normalized reference, for example "요한복음 3:16-18".                                                                                  |
+| `split`           | `"verse"` \| `"two"` \| `"fit"`                | Legacy packing field. Old values remain readable and preserved, but every verse starts a new slide (04). New passages store `"verse"`. |
+| `reference`       | `"every"` \| `"first"` \| `"last"` \| `"none"` | Where the reference shows: every 슬라이드, first 슬라이드 only, last 슬라이드 only, or nowhere.                                        |
+| `verseNumbers`    | Boolean                                        | 절 번호 (verse numbers).                                                                                                               |
+| `translationName` | Boolean                                        | 역본 이름 (translation name).                                                                                                          |
 
 ### Sections
 
@@ -595,20 +595,21 @@ Cancelling or failing an import may remove only copies created by that job,
 never the original. Removing an item from the media list does not delete its
 source file.
 
-| Area    | Field                                                                                                               | Type and default                                                               | UI name                                                                                                                                                         | Source                |
-| ------- | ------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------- |
-| General | `backupCopies`                                                                                                      | Integer, 10                                                                    | 이전 판 > 파일마다 10개 (10 previous versions per file). See recovery copies below.                                                                             | `Prefs`               |
-| Output  | `showOnLaunch`                                                                                                      | Boolean, false                                                                 | 앱을 켤 때 출력 (output on launch)                                                                                                                              | `Prefs`               |
-| Show    | `show.atLastSlide`                                                                                                  | `"stop"` \| `"nextItem"`, `"stop"`                                             | 마지막 슬라이드에서 다음 슬라이드: 정지 or 다음 항목 (see 04)                                                                                                   | `Prefs`               |
-| 저장    | `backup.auto`                                                                                                       | Boolean, true                                                                  | 자동 백업 (automatic backup)                                                                                                                                    | `Prefs`               |
-| 저장    | `backup.keep`                                                                                                       | Integer, 30                                                                    | 보관 30개 (keep 30)                                                                                                                                             | `Prefs`               |
-| Bible   | `bible.defaults.split`, `bible.defaults.reference`, `bible.defaults.verseNumbers`, `bible.defaults.translationName` | `verse` \| `two` \| `fit`, `every` \| `first` \| `last` \| `none`, true, false | 한 슬라이드에, 구절 표시, 절 번호, 역본 이름 of a new passage; a saved passage keeps its own values (`bible.verseNumbers` is now `bible.defaults.verseNumbers`) | `Prefs`               |
-| Bible   | `bible.sourcePosition`                                                                                              | `"bottomRight"`                                                                | Unused: no 환경설정 row, nothing reads it. Kept so old files load.                                                                                              | `Prefs`               |
-| Import  | `import.txt.split`                                                                                                  | `"blankLine"` \| `"lineBreak"` \| `"symbol"`                                   | 슬라이드 나누기: 빈 줄 (split: blank line)                                                                                                                      | `Prefs`, `ImportText` |
-| Import  | `import.txt.labels`                                                                                                 | `"bracketLine"` \| `"off"`                                                     | 이름표: 대괄호 줄 (이름표: bracket lines)                                                                                                                       | `Prefs`               |
-| Import  | `import.txt.firstLine`                                                                                              | `"title"` \| `"lyrics"`                                                        | 첫 줄: 제목 (first line: title)                                                                                                                                 | `Prefs`               |
-| Import  | `import.txt.encoding`                                                                                               | `"auto"` \| `"utf-8"` \| `"cp949"`                                             | 글자 인코딩: 자동 (encoding: auto)                                                                                                                              | `Prefs`               |
-| Import  | `import.pptx.*`                                                                                                     |                                                                                | Later (see 09)                                                                                                                                                  | `Prefs`               |
+| Area    | Field                                                                                       | Type and default                                    | UI name                                                                                                                                          | Source                |
+| ------- | ------------------------------------------------------------------------------------------- | --------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------- |
+| General | `backupCopies`                                                                              | Integer, 10                                         | 이전 판 > 파일마다 10개 (10 previous versions per file). See recovery copies below.                                                              | `Prefs`               |
+| Output  | `showOnLaunch`                                                                              | Boolean, false                                      | 앱을 켤 때 출력 (output on launch)                                                                                                               | `Prefs`               |
+| Show    | `show.atLastSlide`                                                                          | `"stop"` \| `"nextItem"`, `"stop"`                  | 마지막 슬라이드에서 다음 슬라이드: 정지 or 다음 항목 (see 04)                                                                                    | `Prefs`               |
+| 저장    | `backup.auto`                                                                               | Boolean, true                                       | 자동 백업 (automatic backup)                                                                                                                     | `Prefs`               |
+| 저장    | `backup.keep`                                                                               | Integer, 30                                         | 보관 30개 (keep 30)                                                                                                                              | `Prefs`               |
+| Bible   | `bible.defaults.reference`, `bible.defaults.verseNumbers`, `bible.defaults.translationName` | `every` \| `first` \| `last` \| `none`, true, false | 구절 표시, 절 번호, 역본 이름 of a new passage; a saved passage keeps its own values (`bible.verseNumbers` is now `bible.defaults.verseNumbers`) | `Prefs`               |
+| Bible   | `bible.defaults.split`                                                                      | `verse` \| `two` \| `fit`, default `verse`          | Legacy field, retained on read/write but ignored. No preference row; new passages use `verse` (04, 10).                                          | `Prefs`               |
+| Bible   | `bible.sourcePosition`                                                                      | `"bottomRight"`                                     | Unused: no 환경설정 row, nothing reads it. Kept so old files load.                                                                               | `Prefs`               |
+| Import  | `import.txt.split`                                                                          | `"blankLine"` \| `"lineBreak"` \| `"symbol"`        | 슬라이드 나누기: 빈 줄 (split: blank line)                                                                                                       | `Prefs`, `ImportText` |
+| Import  | `import.txt.labels`                                                                         | `"bracketLine"` \| `"off"`                          | 이름표: 대괄호 줄 (이름표: bracket lines)                                                                                                        | `Prefs`               |
+| Import  | `import.txt.firstLine`                                                                      | `"title"` \| `"lyrics"`                             | 첫 줄: 제목 (first line: title)                                                                                                                  | `Prefs`               |
+| Import  | `import.txt.encoding`                                                                       | `"auto"` \| `"utf-8"` \| `"cp949"`                  | 글자 인코딩: 자동 (encoding: auto)                                                                                                               | `Prefs`               |
+| Import  | `import.pptx.*`                                                                             |                                                     | Later (see 09)                                                                                                                                   | `Prefs`               |
 
 - The song, media, and backup locations are needed before the app reads any
   data. Store them in `app.json` in the app data folder, not in this file.
@@ -769,27 +770,26 @@ IDs are selected by the app, not supplied in the edit.
 
 ### What comes from copible
 
-The earlier plan was to follow "the offline data of copible". A read-only look
-at the user's repository (`<copible clone>`, last commit on 2025-07-22, on
-2026-10-25) found no offline Bible text and no file format:
+The Bible behavior reference is Copible 1.6.0 (read-only source review, November
+9). It does not ship an offline translation file format:
 
 - copible fetches verse text live, one chapter at a time, from the Korean Bible
   Society website (`https://www.bskorea.or.kr/bible/korbibReadpage.php` with
   `version=GAE`, in `src/data/bible-crawler.js`). `GAE` is 개역개정, the
-  translation this app excludes. A handoff note in that repository
-  (`Summary.md`) names an older source, holybible.or.kr, with EUC-KR pages.
+  translation this app excludes. It has no translation switcher or parallel
+  translation view.
 - So this app defines its own translation file format (below), and the text of
   개역한글 and KJV comes from a public-domain source that the user chooses (see
   "Candidate text sources").
 
 What this app reuses, ported to TypeScript with tests, without copying any text:
 
-| Part              | In copible                                                                                                                                                                                                         | In this app                                                                                        |
-| ----------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------------------------------------------------------------------------- |
-| Book metadata     | 66 books with `id`, `korean`, `koreanShort`, `english`, `englishShort`, `testament`, `chapters` (`src/data/bible-metadata.js`)                                                                                     | The same shape ("Book metadata")                                                                   |
-| Book matching     | Exact matches on the four names; partial matches that compare Hangul by its letters (jamo) and also try the input as QWERTY typed with the Korean IME off, with es-hangul (`disassemble`, `convertQwertyToHangul`) | The same rules for the suggestions in the 퀵 실행 Bible field (04)                                 |
-| Reference parsing | One pattern, `/^(.+?)\s*(\d+):(\d+)(?:-(\d+))?$/`: book, chapter, verse, optional end verse                                                                                                                        | An extended grammar ("Reference grammar"), because 04 also needs chapter ranges and whole chapters |
-| Live fetching     | The crawler above                                                                                                                                                                                                  | Not used                                                                                           |
+| Part            | In copible                                                                                                                                                                                                         | In this app                                                                                         |
+| --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| Book metadata   | 66 books with `id`, `korean`, `koreanShort`, `english`, `englishShort`, `testament`, `chapters` (`src/data/bible-metadata.js`)                                                                                     | The same shape ("Book metadata")                                                                    |
+| Book matching   | Exact matches on the four names; partial matches that compare Hangul by its letters (jamo) and also try the input as QWERTY typed with the Korean IME off, with es-hangul (`disassemble`, `convertQwertyToHangul`) | The same rules for the suggestions in the 퀵 실행 Bible field (04)                                  |
+| Reference entry | Four fields: book, chapter, required start verse, optional end verse in the same chapter                                                                                                                           | The same operator fields (04); stored/API references additionally accept the extended grammar below |
+| Live fetching   | The crawler above                                                                                                                                                                                                  | Not used                                                                                            |
 
 ### Book metadata (proposal)
 
@@ -808,6 +808,11 @@ The app bundles one table of the 66 books in code. It isn't a user file.
 - Verse counts aren't in this table. They come from each translation file,
   because versification differs between translations (one dataset counts 31,101
   verses for 개역한글 and 31,102 for KJV).
+- Matching accepts the current codes `ezk`, `jol`, `jnh`, `nam`, `mrk`, `jhn`,
+  and `php` alongside the older `eze`, `joe`, `jon`, `nah`, `mar`, `joh`, and
+  `phi`. Exact codes take priority over incidental IME-off containment matches.
+  Jamo containment is not arbitrary spelling correction or multi-syllable
+  initial-only search.
 
 ### Translation file (`.llbible`, schema version 2)
 
@@ -1010,14 +1015,12 @@ those verses and never renumber the rest:
   verses 1, 2, 4, and 5, shown with those numbers. The passage's reference keeps
   the range as typed, 1-5. A range in which every verse is omitted is invalid,
   with the same reason as one verse.
-- **Splitting into 슬라이드.** 나누기 counts only the verses that are there: 한
-  슬라이드에 한 절 makes no 슬라이드 for an omitted verse; 두 절씩 pairs the
-  verses that are there (1 and 2, then 4 and 5); 길이에 맞춤 just has fewer
-  lines.
+- **Splitting into 슬라이드.** Each available verse starts a new slide; long
+  verses split further as in 04. Omitted verses make no slide. Legacy packing
+  values never combine neighboring verses, including in unmeasured fallbacks.
 - **References on 슬라이드.** With 참조 set to 슬라이드마다, each 슬라이드 shows
-  the verses it holds by their original numbers: the 슬라이드 with verses 4 and
-  5 shows `요한복음 3:4~5` when the passage is in John 3. The tile band keeps
-  `3:4-5`. The full book name and `~` apply to screen reference text (04).
+  its verse's original number: verse 4 in John 3 shows `요한복음 3:4`, with
+  `3:4` in the tile band. Further parts keep the same verse reference (04).
 - **Endpoints.** An endpoint that names an omitted verse still counts as an
   existing verse for the endpoint rules above, because the verse exists in the
   numbering.

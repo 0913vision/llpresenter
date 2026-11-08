@@ -52,13 +52,17 @@ describe('bibleVerseTiles reference', () => {
         translationName: true,
       });
       expect(tiles.map(tile => tile.reference)).toEqual([
-        `${localized} 3:16~17 (KJV)`,
-        `${localized} 3:18~4:1 (KJV)`,
+        `${localized} 3:16 (KJV)`,
+        `${localized} 3:17 (KJV)`,
+        `${localized} 3:18 (KJV)`,
+        `${localized} 4:1 (KJV)`,
         `${localized} 4:2 (KJV)`,
       ]);
       expect(tiles.map(tile => tile.label)).toEqual([
-        '3:16-17',
-        '3:18-4:1',
+        '3:16',
+        '3:17',
+        '3:18',
+        '4:1',
         '4:2',
       ]);
       expect(bibleVerseTiles(value, {reference: 'first'})[0]?.reference).toBe(
@@ -79,22 +83,26 @@ describe('bibleVerseTiles reference', () => {
         });
         const suffix = translationName ? ' (개역한글)' : '';
         const expected = [
-          '요한복음 3:34~35',
-          '요한복음 3:36~4:1',
+          '요한복음 3:34',
+          '요한복음 3:35',
+          '요한복음 3:36',
+          '요한복음 4:1',
           '요한복음 4:2',
         ];
         expect(tiles.map(tile => tile.reference)).toEqual(
           expected.map((text, index) =>
             reference === 'every' ||
             (reference === 'first' && index === 0) ||
-            (reference === 'last' && index === 2)
+            (reference === 'last' && index === expected.length - 1)
               ? text + suffix
               : undefined,
           ),
         );
         expect(tiles.map(tile => tile.label)).toEqual([
-          '3:34-35',
-          '3:36-4:1',
+          '3:34',
+          '3:35',
+          '3:36',
+          '4:1',
           '4:2',
         ]);
       }
@@ -112,9 +120,8 @@ describe('bibleVerseTiles reference', () => {
         ?.reference,
     ).toBe('요한일서 3:34');
     expect(
-      bibleVerseTiles(JOHN, {reference: 'every', split: 'fit', maxLines: 5})[0]
-        ?.reference,
-    ).toBe('요한복음 3:34~4:2');
+      bibleVerseTiles(JOHN, {reference: 'every', split: 'fit'})[0]?.reference,
+    ).toBe('요한복음 3:34');
   });
   it('shows the reference on every slide, as every passage did before', () => {
     expect(references('every')).toEqual([
@@ -170,45 +177,46 @@ describe('bibleVerseTiles split', () => {
     expect(tiles[0]?.lines).toEqual(['34 a']);
   });
 
-  it('puts two verses on a slide, the last one alone when the count is odd', () => {
-    const tiles = bibleVerseTiles(JOHN, {reference: 'last', split: 'two'});
-    expect(tiles.map(tile => tile.label)).toEqual([
-      '3:34-35',
-      '3:36-4:1',
-      '4:2',
-    ]);
-    expect(tiles[0]?.lines).toEqual(['34 a', '35 b']);
-    expect(tiles.map(tile => tile.reference)).toEqual([
-      undefined,
-      undefined,
-      '요한복음 4:2',
-    ]);
-  });
+  it.each(['two', 'fit'] as const)(
+    'starts each verse anew for legacy %s packing',
+    split => {
+      const tiles = bibleVerseTiles(JOHN, {reference: 'last', split});
+      expect(tiles.map(tile => tile.label)).toEqual([
+        '3:34',
+        '3:35',
+        '3:36',
+        '4:1',
+        '4:2',
+      ]);
+      expect(tiles.map(tile => tile.lines)).toEqual([
+        ['34 a'],
+        ['35 b'],
+        ['36 c'],
+        ['1 d'],
+        ['2 e'],
+      ]);
+      expect(tiles.map(tile => tile.reference)).toEqual([
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        '요한복음 4:2',
+      ]);
+    },
+  );
 
-  it('packs as many verses as fit in the line limit', () => {
-    const tiles = bibleVerseTiles(JOHN, {
-      reference: 'first',
-      split: 'fit',
-      maxLines: 3,
-    });
-    expect(tiles.map(tile => tile.label)).toEqual(['3:34-36', '4:1-2']);
-    expect(tiles.map(tile => tile.reference)).toEqual([
-      '요한복음 3:34~36',
-      undefined,
-    ]);
-  });
-
-  it('keeps a verse that alone passes the line limit on its own slide', () => {
+  it('keeps long text intact within the verse fallback and skips omitted verses', () => {
     const long = 'x'.repeat(LIVE_STATE_LIMITS.textCharacters * 3);
     const tiles = bibleVerseTiles(
       passage([
         [1, 1, 'a'],
         [1, 2, long],
-        [1, 3, 'c'],
+        [1, 4, 'c'],
       ]),
-      {verseNumbers: false, reference: 'every', split: 'fit', maxLines: 2},
+      {verseNumbers: false, reference: 'every', split: 'fit'},
     );
-    expect(tiles.map(tile => tile.label)).toEqual(['1:1', '1:2', '1:3']);
+    expect(tiles.map(tile => tile.label)).toEqual(['1:1', '1:2', '1:4']);
+    expect(tiles[1]?.lines.join('')).toBe(long);
   });
 });
 
@@ -251,11 +259,8 @@ describe('bibleSource reference', () => {
 });
 
 describe('labelEdge', () => {
-  it('reads the first and the last verse of every label the builder writes', () => {
-    const labels = bibleVerseTiles(JOHN, {split: 'two'}).map(
-      tile => tile.label,
-    );
-    expect(labels).toEqual(['3:34-35', '3:36-4:1', '4:2']);
+  it('reads the first and last verse of legacy labels', () => {
+    const labels = ['3:34-35', '3:36-4:1', '4:2'];
     expect(labels.map(label => labelEdge(label, 'first'))).toEqual([
       '3:34',
       '3:36',

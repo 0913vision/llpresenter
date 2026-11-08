@@ -66,6 +66,16 @@ const SHIFTED: Readonly<Record<string, string>> = {
 };
 export const BOOK_SUGGESTION_LIMIT = 8;
 
+const COPIBLE_CODES: Readonly<Record<number, string>> = {
+  26: 'ezk',
+  29: 'jol',
+  32: 'jnh',
+  34: 'nam',
+  41: 'mrk',
+  43: 'jhn',
+  50: 'php',
+};
+
 function normalize(text: string): string {
   return text.normalize('NFC').toLowerCase().replace(/\s+/gu, '');
 }
@@ -87,13 +97,20 @@ function letters(text: string): string {
   );
 }
 
-const names = BIBLE_BOOKS.map(book => ({
-  book,
-  plain: [book.korean, book.koreanShort, book.english, book.englishShort].map(
-    normalize,
-  ),
-  korean: [book.korean, book.koreanShort].map(letters),
-}));
+const names = BIBLE_BOOKS.map(book => {
+  const code = COPIBLE_CODES[book.id];
+  return {
+    book,
+    plain: [
+      book.korean,
+      book.koreanShort,
+      book.english,
+      book.englishShort,
+      ...(code === undefined ? [] : [code]),
+    ].map(normalize),
+    korean: [book.korean, book.koreanShort].map(letters),
+  };
+});
 
 function keyboardLetters(input: string): string {
   return letters(

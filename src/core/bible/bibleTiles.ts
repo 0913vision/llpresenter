@@ -18,23 +18,9 @@ export function bibleOutputLines(text: string): readonly string[] {
   return lines;
 }
 
-type Verse = BibleLookupPassage['verses'][number];
-
-/** The verses a slide shows, as `3:34` or as a span, `3:36-4:1`. */
-function spanOf(verses: readonly Verse[], separator = '-'): string {
-  const first = verses[0];
-  const last = verses.at(-1);
-  if (first === undefined || last === undefined) return '';
-  const start = `${first.chapter}:${first.verse}`;
-  if (verses.length === 1) return start;
-  return first.chapter === last.chapter
-    ? `${start}${separator}${last.verse}`
-    : `${start}${separator}${last.chapter}:${last.verse}`;
-}
-
 /**
- * The chapter and verse at the start or the end of a slide label that
- * `spanOf` wrote, such as `3:34`, `3:34-36`, or `3:36-4:1`.
+ * The chapter and verse at either end of a current or legacy slide label,
+ * such as `3:34`, `3:34-36`, or `3:36-4:1`.
  */
 export function labelEdge(
   label: string | null | undefined,
@@ -52,53 +38,13 @@ export interface TileOptions {
   readonly translationName?: boolean;
   /** Which slides show the reference; none when absent. */
   readonly reference?: BiblePassage['reference'];
-  /** A verse each when absent, as the builder always made. */
+  /** Legacy packing value; each verse starts a slide regardless of this value. */
   readonly split?: BiblePassage['split'];
-  /** The most lines a slide of a `fit` passage holds; 4 when absent. */
-  readonly maxLines?: number | undefined;
-}
-
-interface GroupRule {
-  readonly split: BiblePassage['split'];
-  readonly maxLines: number;
-  readonly linesOf: (verse: Verse) => number;
 }
 
 /**
- * Groups the verses of a passage into slides: a verse each, two each, or
- * as many as fit in `maxLines` lines of the slide (a verse is one line, more
- * when its text is long; a verse that alone passes the limit stands alone).
- */
-function groupsOf(
-  verses: readonly Verse[],
-  {split, maxLines, linesOf}: GroupRule,
-): ReadonlyArray<readonly Verse[]> {
-  if (split === 'verse') return verses.map(verse => [verse]);
-  const groups: Verse[][] = [];
-  let used = 0;
-  for (const verse of verses) {
-    const need = linesOf(verse);
-    const current = groups.at(-1);
-    const fits =
-      split === 'two'
-        ? current !== undefined && current.length < 2
-        : current !== undefined && used + need <= maxLines;
-    if (current !== undefined && fits) {
-      current.push(verse);
-      used += need;
-    } else {
-      groups.push([verse]);
-      used = need;
-    }
-  }
-  return groups;
-}
-
-/**
- * The slides of a passage. With the default `verse` split, one slide per verse,
- * which is what the builder always made; `two` and `fit` pack neighboring
- * verses into a slide. The reference shows on every slide, the first, the
- * last, or none.
+ * The unmeasured fallback slides, one per verse. Measured projection can split
+ * a long verse further. The reference shows on every slide, first, last, or none.
  */
 export function bibleVerseTiles(
   passage: BibleLookupPassage,
@@ -108,29 +54,22 @@ export function bibleVerseTiles(
     verseNumbers = true,
     translationName = false,
     reference = 'none',
-    split = 'verse',
-    maxLines = 4,
   } = options;
-  const text = (verse: Verse): string =>
-    verseNumbers ? `${verse.verse} ${verse.text}` : verse.text;
-  const groups = groupsOf(passage.verses, {
-    split,
-    maxLines,
-    linesOf: verse => bibleOutputLines(text(verse)).length,
-  });
   const book = passage.displayRef.replace(/\s+\d.*$/u, '');
   const translation =
     translationName && passage.translationLabel
       ? ` (${passage.translationLabel})`
       : '';
-  return groups.map((group, index) => ({
-    label: spanOf(group),
+  return passage.verses.map((verse, index) => ({
+    label: `${verse.chapter}:${verse.verse}`,
     labelColor: NO_LABEL_COLOR,
     ...(reference === 'every' ||
     (reference === 'first' && index === 0) ||
-    (reference === 'last' && index === groups.length - 1)
-      ? {reference: `${book} ${spanOf(group, '~')}${translation}`}
+    (reference === 'last' && index === passage.verses.length - 1)
+      ? {reference: `${book} ${verse.chapter}:${verse.verse}${translation}`}
       : {}),
-    lines: group.flatMap(verse => bibleOutputLines(text(verse))),
+    lines: bibleOutputLines(
+      verseNumbers ? `${verse.verse} ${verse.text}` : verse.text,
+    ),
   }));
 }

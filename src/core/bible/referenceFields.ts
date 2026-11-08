@@ -80,7 +80,43 @@ export function referenceFieldsState(
     clampedEnd >= start
       ? `${book.korean} ${chapter}:${start}${clampedEnd === start ? '' : `-${clampedEnd}`}`
       : '';
-  return {book, errors, input, clampedEnd};
+  const enabled = {
+    book: true,
+    chapter: book !== undefined,
+    start: book !== undefined && errors.chapter === undefined,
+    end:
+      book !== undefined &&
+      errors.chapter === undefined &&
+      errors.start === undefined,
+  };
+  return {book, errors, input, clampedEnd, enabled};
+}
+
+/** Clears descendants of invalid input, preserving values while bounds load. */
+export function reconcileReferenceFields(
+  fields: ReferenceFields,
+  bounds?: BibleLookupReply['bounds'],
+): ReferenceFields {
+  const book = selectedBook(fields.book);
+  const chapter = positiveNumber(fields.chapter);
+  const start = positiveNumber(fields.start);
+  const counts =
+    bounds?.bookId === book?.id ? bounds?.chapterVerses : undefined;
+  const count = chapter === undefined ? undefined : counts?.[chapter - 1];
+  if (!book) {
+    return fields.chapter || fields.start || fields.end
+      ? {...fields, chapter: '', start: '', end: ''}
+      : fields;
+  }
+  if (!chapter || chapter > book.chapters || (counts && !count)) {
+    return fields.start || fields.end
+      ? {...fields, start: '', end: ''}
+      : fields;
+  }
+  if ((!start || (count !== undefined && start > count)) && fields.end) {
+    return {...fields, end: ''};
+  }
+  return fields;
 }
 
 export function changeReferenceField(
@@ -88,6 +124,11 @@ export function changeReferenceField(
   part: ReferencePart,
   value: string,
 ): ReferenceFields {
+  if (part !== 'book' && !/^\d*$/u.test(value)) return fields;
   if (fields[part] === value) return fields;
-  return {...fields, [part]: value, ...(part === 'start' ? {end: ''} : {})};
+  return reconcileReferenceFields({
+    ...fields,
+    [part]: value,
+    ...(part === 'start' ? {end: ''} : {}),
+  });
 }

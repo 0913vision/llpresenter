@@ -64,11 +64,6 @@ function TranslationRow({
   );
 }
 
-const SPLIT_OPTIONS = [
-  {value: 'verse', label: '한 절'},
-  {value: 'two', label: '두 절'},
-  {value: 'fit', label: '들어가는 만큼'},
-] as const;
 const REFERENCE_OPTIONS = [
   {value: 'every', label: '슬라이드마다'},
   {value: 'first', label: '첫 슬라이드만'},
@@ -122,14 +117,6 @@ export function BiblePage({
                 bible: {...stored.bible, splitEditorAutoOpen},
               }))
             }
-          />
-          <SelectRow
-            label="한 슬라이드에"
-            disabled={lockedReason !== undefined}
-            title={lockedReason}
-            options={SPLIT_OPTIONS}
-            value={preferences.bible.defaults.split}
-            onChange={split => changeDefaults({split})}
           />
           <SelectRow
             label="구절 표시"

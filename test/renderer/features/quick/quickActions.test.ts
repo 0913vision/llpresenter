@@ -102,6 +102,25 @@ describe('quick execution', () => {
       expect(problem).not.toHaveBeenCalled();
     },
   );
+  it.each(['two', 'fit'] as const)(
+    'outputs each verse separately for legacy %s packing',
+    async split => {
+      const fixture = quickFixture();
+      window.llp = fixture.api;
+      const item = quickItem('bible');
+      if (item.kind !== 'bible') throw new Error('Missing Bible item');
+      const problem = vi.fn();
+      await quickRunner(fixture.api, problem).run({
+        ...item,
+        ref: {...item.ref, split},
+      });
+      expect(
+        useShow.getState().bibleSource?.tiles.map(tile => tile.label),
+      ).toEqual(['3:16', '3:17', '3:18']);
+      expect(fixture.send).toHaveBeenCalledOnce();
+      expect(problem).not.toHaveBeenCalled();
+    },
+  );
   it('rejects unsupported passage display settings instead of discarding them', async () => {
     const fixture = quickFixture();
     window.llp = fixture.api;
@@ -110,7 +129,7 @@ describe('quick execution', () => {
     const problem = vi.fn();
     await quickRunner(fixture.api, problem).run({
       ...item,
-      ref: {...item.ref, split: 'two'},
+      ref: {...item.ref, reference: 'last'},
     });
     expect(fixture.lookup).not.toHaveBeenCalled();
     expect(fixture.send).not.toHaveBeenCalled();

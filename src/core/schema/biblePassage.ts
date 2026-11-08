@@ -3,7 +3,7 @@ import type {ReadonlyKnown} from './fileFormat';
 import {translationIdSchema} from './ids';
 import {jsonObject, nonBlankText} from './primitives';
 
-/** How a passage splits into slides: a verse each, two each, or as many as fit. */
+/** Legacy packing values remain readable; every verse now starts a new slide. */
 export const bibleSplitSchema = v.picklist(['verse', 'two', 'fit']);
 
 /** Which slides of a passage show its reference. */

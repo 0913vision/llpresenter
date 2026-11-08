@@ -18,7 +18,78 @@ const spec = {
 const widthOf = (text: string, size: number) =>
   (Array.from(text).length * size) / 36;
 
+/**
+ * Canvas advances from Noto Serif KR Medium: body at 36px, marker at 28px.
+ * The output's body text node + smaller span has one tracking interval at
+ * the join. DOM width minus terminal tracking agrees within 1/64px.
+ */
+const notoWidths: Readonly<Record<string, number>> = {
+  하나님이: 139.10400390625,
+  ' ': 8.67999267578125,
+  '(계속)': 74.815948486328,
+};
+const notoWidth = (value: string): number => {
+  const width = notoWidths[value];
+  if (width === undefined) throw new Error(`Unmeasured font run: ${value}`);
+  return width;
+};
+
 describe('theme Bible text measurement', () => {
+  it.each([
+    {tracking: -1.5, width: 211, fits: true, lastWidth: 210.599945068359},
+    {tracking: 0, width: 223, fits: true, lastWidth: 222.599945068359},
+    {tracking: 2, width: 237, fits: false, lastWidth: 80.815948486328},
+  ])(
+    'counts the real-font continuation join at tracking $tracking',
+    ({tracking, width, fits, lastWidth}) => {
+      const measured = measureBibleLines(
+        '하나님이',
+        {
+          ...spec,
+          tracking,
+          markerTracking: tracking,
+          width,
+          maxLines: 1,
+        },
+        notoWidth,
+      );
+      expect(measured.fits).toBe(fits);
+      expect(measured.lines).toEqual(
+        fits ? ['하나님이 (계속)'] : ['하나님이', '(계속)'],
+      );
+      expect(measured.lineWidths.at(-1)).toBeCloseTo(lastWidth);
+    },
+  );
+
+  it('uses short-text tracking at the real-font body/marker join', () => {
+    const element = {
+      ...themeElementBase(),
+      kind: 'currentText' as const,
+      frame: {x: 0, y: 0, w: 211, h: 100},
+      text: {
+        ...themeElementBase().text,
+        font: 'Noto Serif KR',
+        weight: 500,
+        size: 36,
+        maxLines: 1,
+        tracking: 2,
+        shortTracking: {maxCharacters: 4, tracking: -1.5},
+      },
+    };
+    const layout = bibleMeasure(element, {
+      font: '',
+      measureText: value => ({width: notoWidth(value)}),
+    });
+    const measured = layout.measure('하나님이', {
+      ...layout.spec,
+      marker: ' (계속)',
+      markerSize: 28,
+    });
+    expect(measured.lines).toEqual(['하나님이 (계속)']);
+    expect(measured.fits).toBe(true);
+    expect(measured.lineWidths[0]).toBeCloseTo(210.59994506835938);
+  });
+
   it.each([undefined, 'disc'] as const)(
     'reserves %s hanging indent without charging paragraph gaps to measured wrap rows',
     bulletStyle => {
