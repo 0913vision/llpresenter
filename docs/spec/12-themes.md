@@ -388,10 +388,10 @@ default. The 대기 화면 row has no 삭제 and no 기본으로 지정.
   resuming captured playback positions. It does not change the current 그래픽,
   메시지, or audio, including their clocks. Its one capture is temporary and new
   output content invalidates it, as for the other clear keys.
-- With nothing live, every screen shows the 대기 화면 테마, for example the
-  church logo on the 청중 화면, the clock on the 무대 화면, and nothing on the
-  방송 화면. The same screens show at launch when outputs turn on and nothing is
-  live.
+- With nothing live, every screen shows the 대기 화면 테마: initially the
+  church's service times on the 청중 화면, the clock and timer on the 무대 화면,
+  and nothing on the 방송 화면. The same screens show at launch when outputs
+  turn on and nothing is live.
 - The 대기 화면 is edited in the same editor and can't be deleted. Elements that
   show live content (현재 가사, 미디어, 오버레이, and the like) aren't offered
   on it.
@@ -510,7 +510,25 @@ Keep unknown fields, as every settings file does (02).
   슬라이드 이름 for an 광고 name, or 미디어 for a picture. Linked screens use
   the source screen's elements when checking.
 - The other built-in defaults are 찬양 for 곡, 말씀 for 성경, and 영상 for
-  미디어. The 대기 화면 starts with a clock and timer on stage.
+  미디어.
+- A new library's 대기 화면 shows the church's service times on 청중 화면. Its
+  replaceable 1920 x 1080 picture contains a smooth green gradient (angle 135,
+  0% #567A40, 100% #1F7D4E), the title rule and verse box outline. Five editable
+  글 elements contain LOVELIGHT, the seven days, times, service names, and
+  Ephesians 3:20-21. Days are one right-aligned Noto Sans CJK KR Thin list;
+  times are one Regular list; service names are one KoPubWorldDotum Medium list.
+  Each list has seven lines at 52 px with 72.3 px line spacing. The title uses
+  Noto Sans CJK KR Black 80 px with 12 px tracking; the verse uses
+  KoPubWorldDotum Medium 36 px. All text is white without shadow or outline.
+  무대 화면 keeps its clock and timer, and 방송 화면 stays empty.
+- 예배 준비 is an additional normal theme for a 빈 슬라이드 item with one empty
+  slide, not a kind default or the 대기 화면. Its audience picture has the
+  bracket frame over a teal gradient (angle 135, 5% #00222B, 100% #00809A). Two
+  editable 글 elements say "잠시후에 예배가 시작됩니다" and "지금은 기도로
+  예배를 준비하는 시간입니다", centered in white KoPubWorldDotum Bold at 120 px
+  and 74 px, without shadow or outline. Other screens use their normal
+  blank-item layouts. Both new pictures are ordinary library media. Saved themes
+  and existing libraries are not migrated.
 
 ## Where the rest of the spec uses 테마
 

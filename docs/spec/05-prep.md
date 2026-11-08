@@ -303,6 +303,11 @@ text, and choose 설교 제목 or 설교 제목 (두 줄). The second theme acce
 title with a line break. These themes use the existing item fields; they do not
 change the Bible passage or the stored verses.
 
+To show the preparation screen, add a 빈 슬라이드 item with one empty slide and
+choose 예배 준비. Its two audience messages are editable 글 elements in the
+theme, so the slide needs no text. This is separate from the 대기 화면, which
+initially shows the church's service times when no item is live (12).
+
 ## Song editor
 
 The inline editor uses the same slide selection, clipboard and undo model as the

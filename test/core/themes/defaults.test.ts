@@ -188,11 +188,11 @@ it('makes a valid file with built-in themes and a standby clock and timer on sta
     '광고',
     '설교 제목',
     '설교 제목 (두 줄)',
+    '예배 준비',
   ]);
-  const stage = createDefaultThemes().standby.screens;
-  expect(
-    Object.values(stage).map(layout => layout.elements.map(e => e.kind)),
-  ).toEqual([['clock', 'timer']]);
+  const stage =
+    defaults.standby.screens[createScreenId(STARTER_SCREEN_IDS.stage)];
+  expect(stage?.elements.map(e => e.kind)).toEqual(['clock', 'timer']);
 });
 
 it('ships the audience scripture picture and editable typography without changing other screens', () => {

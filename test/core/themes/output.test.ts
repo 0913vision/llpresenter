@@ -8,6 +8,7 @@ import {
   themeScreens,
 } from '@fixtures/core/themeOutput';
 import {resolveThemeOutput} from '@core/themes/output';
+import {SUNDAY_STANDBY_PICTURE_IDS} from '@core/themes/sundayStandby';
 
 describe('published theme compositions', () => {
   it('publishes standby and each screen empty color when there is no item', () => {
@@ -21,16 +22,22 @@ describe('published theme compositions', () => {
     expect(output.themeId).toBe(file.standby.id);
     expect(output.screens[THEME_MAIN]).toMatchObject({
       emptyColor: '#123456',
-      layout: {mode: {kind: 'empty'}},
+      layout: {mode: {kind: 'own'}},
     });
+    expect(output.screens[THEME_MAIN]?.layout.elements[0]).toMatchObject({
+      kind: 'image',
+      mediaId: SUNDAY_STANDBY_PICTURE_IDS.serviceTimes,
+    });
+    expect(output.screens[THEME_CAPTURE]?.layout.elements).toEqual([]);
     expect(output.screens[THEME_CAPTURE]?.emptyColor).toBe('#00B140');
   });
 
   it('gives a 무대 화면 without a 대기 화면 layout a clock and a timer', () => {
     const stage = themeScreens.find(screen => screen.kind === 'stage');
     if (stage === undefined) throw new Error('Missing stage screen');
+    const file = themeFile();
     const output = resolveThemeOutput({
-      file: themeFile(),
+      file: {...file, standby: {...file.standby, screens: {}}},
       screens: themeScreens,
       item: null,
       revision: 1,

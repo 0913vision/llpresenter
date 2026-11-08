@@ -16,6 +16,10 @@ import {STARTER_SCREEN_IDS} from '../screens/screens';
 import {THEME_LIMITS, themeItemKinds, type ThemeItemKind} from './elementRules';
 import {sundayScriptureLayout, sermonTitleLayout} from './sundayScripture';
 import {sundayNoticeLayout} from './sundayNotice';
+import {
+  sundayPreparationLayout,
+  sundayServiceTimesLayout,
+} from './sundayStandby';
 
 export type ThemeScreen = Pick<Screen, 'id' | 'kind' | 'method'>;
 
@@ -290,8 +294,13 @@ export function createDefaultThemes(
       name: '대기 화면',
       screens: Object.fromEntries(
         screens
-          .filter(screen => screen.kind === 'stage')
-          .map(screen => [screen.id, standbyStageLayout()]),
+          .filter(screen => screen.kind !== 'broadcast')
+          .map(screen => [
+            screen.id,
+            screen.kind === 'audience'
+              ? sundayServiceTimesLayout()
+              : standbyStageLayout(),
+          ]),
       ),
     },
     themes: [
@@ -311,6 +320,18 @@ export function createDefaultThemes(
           ]),
         ),
       })),
+      {
+        id: createThemeId(uuid(110)),
+        name: '예배 준비',
+        screens: Object.fromEntries(
+          screens.map(screen => [
+            screen.id,
+            screen.kind === 'audience'
+              ? sundayPreparationLayout()
+              : layoutFor(screen, 'blank'),
+          ]),
+        ),
+      },
     ],
     defaults: {...themeIds},
   };
