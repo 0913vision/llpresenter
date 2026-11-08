@@ -23,6 +23,7 @@ import type {Theme} from '@core/schema/themes';
 import type {Screen} from '@core/schema/screens';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {useLive} from '@renderer/session/live';
+import * as gradientSampling from '@renderer/rendering/sampleThemeGradient';
 import {mockCanvasViewport} from '@fixtures/renderer/ui/canvasTesting';
 import {ThemeLeaveGuard} from '@renderer/features/screens/themes/themeLeaveGuard';
 import {useThemePanels} from '@renderer/features/screens/themes/useThemePanels';
@@ -526,72 +527,127 @@ it('edits the first saved screen split budget without audience screens despite t
   expect(count()).toBeNull();
 });
 
-it('edits bounded OKLCH stops without a mixing control and supports undo and inheritance', async () => {
+it('picks gradient presets in one undo step, edits only the selected stop and retains inheritance', async () => {
+  const {value} = setup();
+  await screen.findByLabelText('테마 캔버스');
+  fireEvent.click(screen.getByRole('tab', {name: '화면'}));
+  expect(screen.queryByRole('group', {name: '프리셋'})).toBeNull();
+  fireEvent.click(screen.getByRole('radio', {name: '그라데이션'}));
+  expect(screen.queryByRole('radiogroup', {name: '색 섞기'})).toBeNull();
+  const presets = screen.getByRole('group', {name: '프리셋'});
+  expect(within(presets).getAllByRole('button')).toHaveLength(8);
+  fireEvent.click(within(presets).getByRole('button', {name: '청록'}));
+  expect(screen.getByRole('textbox', {name: '색'}).getAttribute('value')).toBe(
+    '#00303A',
+  );
+  fireEvent.click(screen.getByRole('slider', {name: '색 2, 87 %'}));
+  expect(screen.getByRole('textbox', {name: '색'}).getAttribute('value')).toBe(
+    '#00667A',
+  );
+  expect(screen.getAllByRole('spinbutton', {name: '위치'})).toHaveLength(1);
+  fireEvent.click(within(presets).getByRole('button', {name: '적갈'}));
+  expect(screen.getAllByRole('slider')).toHaveLength(3);
+  expect(
+    within(presets)
+      .getByRole('button', {name: '적갈'})
+      .getAttribute('aria-pressed'),
+  ).toBe('true');
+  fireEvent.keyDown(document.body, {key: 'z', code: 'KeyZ', ctrlKey: true});
+  expect(screen.getAllByRole('slider')).toHaveLength(2);
+  expect(
+    within(presets)
+      .getByRole('button', {name: '청록'})
+      .getAttribute('aria-pressed'),
+  ).toBe('true');
+  fireEvent.keyDown(document.body, {key: 'y', code: 'KeyY', ctrlKey: true});
+  expect(screen.getAllByRole('slider')).toHaveLength(3);
+  await saveEdits();
+  expect(value().themes[0]?.screens[MAIN]?.background).toMatchObject({
+    kind: 'linear',
+    angle: 135,
+    mixing: 'oklch',
+    stops: [
+      {color: '#3A0000', position: 36},
+      {color: '#5A2500', position: 61.5},
+      {color: '#7A4900', position: 87},
+    ],
+  });
+  fireEvent.click(screen.getByRole('radio', {name: '단색'}));
+  expect(screen.getByRole('textbox', {name: '색'}).getAttribute('value')).toBe(
+    '#3A0000',
+  );
+  expect(screen.queryByRole('group', {name: '프리셋'})).toBeNull();
+  fireEvent.keyDown(document.body, {key: 'z', code: 'KeyZ', ctrlKey: true});
+  expect(screen.getByRole('spinbutton', {name: '각도'})).toBeDefined();
+  fireEvent.click(screen.getByRole('radio', {name: '화면 기본'}));
+  await saveEdits();
+  expect(value().themes[0]?.screens[MAIN]?.background).toBeUndefined();
+});
+
+it('adds sampled stops, drags across neighbors in one undo step, and moves or deletes with keys', async () => {
+  const sample = vi
+    .spyOn(gradientSampling, 'sampleThemeGradient')
+    .mockReturnValue('#004A59');
   const {value} = setup();
   await screen.findByLabelText('테마 캔버스');
   fireEvent.click(screen.getByRole('tab', {name: '화면'}));
   fireEvent.click(screen.getByRole('radio', {name: '그라데이션'}));
-  expect(screen.queryByRole('radiogroup', {name: '색 섞기'})).toBeNull();
-  const number = (name: string, value: string): void => {
-    const field = screen.getByRole('spinbutton', {name});
-    field.focus();
-    fireEvent.change(field, {target: {value}});
-    fireEvent.keyDown(field, {key: 'Enter'});
-  };
-  number('각도', '90');
-  number('위치 1', '36');
-  number('위치 2', '87');
-  for (const [label, color] of [
-    ['색 1', '#00303A'],
-    ['색 2', '#00667A'],
-  ] as const) {
-    const field = screen.getByRole('textbox', {name: label});
-    field.focus();
-    fireEvent.change(field, {target: {value: color}});
-    fireEvent.keyDown(field, {key: 'Enter'});
-  }
-  fireEvent.click(screen.getByRole('radio', {name: '그라데이션'}));
-  expect(screen.getByDisplayValue('#00303A')).toBe(
-    screen.getByRole('textbox', {name: '색 1'}),
-  );
-  fireEvent.click(screen.getByRole('button', {name: '색 추가'}));
-  fireEvent.click(screen.getByRole('button', {name: '색 추가'}));
+  fireEvent.click(screen.getByRole('button', {name: '청록'}));
+  const bar = screen.getByRole('group', {name: '그라데이션 색상점'});
+  const track = bar.firstElementChild;
+  if (track === null) throw new Error('Missing track');
+  fireEvent.click(track, {clientX: 480});
+  expect(sample).toHaveBeenLastCalledWith(expect.anything(), 50);
   expect(
-    screen.getByRole('button', {name: '색 추가'}).getAttribute('aria-disabled'),
+    screen
+      .getByRole('slider', {name: '색 2, 50 %'})
+      .getAttribute('aria-current'),
   ).toBe('true');
-  expect(screen.getByRole('spinbutton', {name: '위치 4'})).toBeDefined();
-  fireEvent.click(screen.getByRole('button', {name: '색 2 삭제'}));
-  expect(screen.queryByRole('spinbutton', {name: '위치 4'})).toBeNull();
+  expect(screen.getByRole('textbox', {name: '색'}).getAttribute('value')).toBe(
+    '#004A59',
+  );
+  fireEvent.click(track, {clientX: 672});
+  fireEvent.click(track, {clientX: 768});
+  expect(sample).toHaveBeenCalledTimes(2);
+  expect(within(bar).getAllByRole('slider')).toHaveLength(4);
+  fireEvent.keyDown(screen.getByRole('slider', {name: '색 3, 70 %'}), {
+    key: 'Backspace',
+  });
+  expect(within(bar).getAllByRole('slider')).toHaveLength(3);
+  const handle = screen.getByRole('slider', {name: '색 1, 36 %'});
+  fireEvent.pointerDown(handle, {pointerId: 1, button: 0, clientX: 345.6});
+  fireEvent.pointerMove(bar, {pointerId: 1, clientX: 576});
+  fireEvent.pointerMove(bar, {pointerId: 1, clientX: 768});
+  fireEvent.pointerMove(bar, {pointerId: 1, clientX: 921.6});
+  expect(screen.getByRole('slider', {name: '색 3, 96 %'})).toBe(
+    document.activeElement,
+  );
+  fireEvent.pointerUp(bar, {pointerId: 1});
   fireEvent.keyDown(document.body, {key: 'z', code: 'KeyZ', ctrlKey: true});
-  expect(screen.getByRole('spinbutton', {name: '위치 4'})).toBeDefined();
+  expect(screen.getByRole('slider', {name: '색 1, 36 %'})).toBeDefined();
   fireEvent.keyDown(document.body, {key: 'y', code: 'KeyY', ctrlKey: true});
-  expect(screen.queryByRole('spinbutton', {name: '위치 4'})).toBeNull();
+  const last = screen.getByRole('slider', {name: '색 3, 96 %'});
+  fireEvent.keyDown(last, {key: 'ArrowLeft', shiftKey: true});
+  fireEvent.keyDown(screen.getByRole('slider', {name: '색 2, 86 %'}), {
+    key: 'ArrowRight',
+  });
+  expect(screen.getByRole('slider', {name: '색 2, 87 %'})).toBeDefined();
+  fireEvent.keyDown(screen.getByRole('slider', {name: '색 2, 87 %'}), {
+    key: 'Delete',
+  });
+  expect(within(bar).getAllByRole('slider')).toHaveLength(2);
+  fireEvent.keyDown(within(bar).getAllByRole('slider')[0] ?? bar, {
+    key: 'Delete',
+  });
+  expect(within(bar).getAllByRole('slider')).toHaveLength(2);
   await saveEdits();
   const background = value().themes[0]?.screens[MAIN]?.background;
   expect(background).toMatchObject({
-    kind: 'linear',
-    angle: 90,
-    mixing: 'oklch',
+    stops: [
+      {color: '#004A59', position: 50},
+      {color: '#00667A', position: 87},
+    ],
   });
-  if (background === undefined || typeof background === 'string') {
-    throw new Error('Missing gradient');
-  }
-  expect(background.stops).toHaveLength(3);
-  expect(background.stops[0]).toMatchObject({color: '#00303A', position: 36});
-  expect(background.stops.at(-1)).toMatchObject({
-    color: '#00667A',
-    position: 87,
-  });
-  fireEvent.click(screen.getByRole('radio', {name: '단색'}));
-  expect(screen.getByDisplayValue('#00303A')).toBe(
-    screen.getByRole('textbox', {name: '색'}),
-  );
-  fireEvent.keyDown(document.body, {key: 'z', code: 'KeyZ', ctrlKey: true});
-  expect(screen.getByRole('spinbutton', {name: '각도'})).toBeDefined();
-  fireEvent.click(screen.getByRole('radio', {name: '화면 기본'}));
-  expect(screen.queryByRole('spinbutton', {name: '각도'})).toBeNull();
-  await saveEdits();
-  expect(value().themes[0]?.screens[MAIN]?.background).toBeUndefined();
 });
 
 it('renders the edited background through a screen link and restores retained elements after empty mode', async () => {

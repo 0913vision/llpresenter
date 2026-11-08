@@ -16,44 +16,60 @@ export function createThemeGradient(color: string): ThemeGradient {
   };
 }
 
-/** Inserts into the widest interval, retaining the surrounding stop positions. */
-export function addGradientStop(gradient: ThemeGradient): ThemeGradient {
-  if (gradient.stops.length >= THEME_BACKGROUND_LIMITS.stops) return gradient;
-  let at = 1;
-  let gap = -1;
-  for (let index = 1; index < gradient.stops.length; index++) {
-    const left = gradient.stops[index - 1];
-    const right = gradient.stops[index];
-    if (
-      left !== undefined &&
-      right !== undefined &&
-      right.position - left.position > gap
-    ) {
-      at = index;
-      gap = right.position - left.position;
-    }
+/** Inserts a sampled color at a point, after any existing hard edge there. */
+export function addGradientStop(
+  gradient: ThemeGradient,
+  position: number,
+  color: string,
+): {gradient: ThemeGradient; index: number} {
+  if (gradient.stops.length >= THEME_BACKGROUND_LIMITS.stops) {
+    return {gradient, index: 0};
   }
-  const left = gradient.stops[at - 1];
-  const right = gradient.stops[at];
-  if (left === undefined || right === undefined) return gradient;
-  const color = `#${[1, 3, 5]
-    .map(offset =>
-      Math.round(
-        (parseInt(left.color.slice(offset, offset + 2), 16) +
-          parseInt(right.color.slice(offset, offset + 2), 16)) /
-          2,
-      )
-        .toString(16)
-        .padStart(2, '0'),
-    )
-    .join('')
-    .toUpperCase()}`;
+  const stop = {color, position: boundedPosition(position)};
+  const next = gradient.stops.findIndex(
+    value => value.position > stop.position,
+  );
+  const index = next < 0 ? gradient.stops.length : next;
   return {
-    ...gradient,
-    stops: [
-      ...gradient.stops.slice(0, at),
-      {color, position: (left.position + right.position) / 2},
-      ...gradient.stops.slice(at),
-    ],
+    gradient: {
+      ...gradient,
+      stops: [
+        ...gradient.stops.slice(0, index),
+        stop,
+        ...gradient.stops.slice(index),
+      ],
+    },
+    index,
   };
+}
+
+function boundedPosition(value: number): number {
+  return Math.max(0, Math.min(100, value));
+}
+
+/** Moves one stop across its neighbors, retaining its color and extension fields. */
+export function moveGradientStop(
+  gradient: ThemeGradient,
+  index: number,
+  position: number,
+): {gradient: ThemeGradient; index: number} {
+  const previous = gradient.stops[index];
+  if (previous === undefined) return {gradient, index};
+  const stop = {...previous, position: boundedPosition(position)};
+  if (stop.position === previous.position) return {gradient, index};
+  const stops = gradient.stops.map((value, at) =>
+    at === index ? stop : value,
+  );
+  stops.sort((left, right) => left.position - right.position);
+  return {gradient: {...gradient, stops}, index: stops.indexOf(stop)};
+}
+
+/** Removes a selected stop while retaining at least two colors. */
+export function removeGradientStop(
+  gradient: ThemeGradient,
+  index: number,
+): ThemeGradient {
+  return gradient.stops.length <= 2 || gradient.stops[index] === undefined
+    ? gradient
+    : {...gradient, stops: gradient.stops.filter((_, at) => at !== index)};
 }

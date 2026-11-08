@@ -81,3 +81,42 @@ describe('the working copy history', () => {
     ]);
   });
 });
+
+it('groups live drag edits once and ends the group before a later edit', () => {
+  const saved = createDefaultThemes();
+  const theme = saved.themes[0];
+  if (theme === undefined) throw new Error('Missing starter theme');
+  const target = {theme: theme.id, screen: main, screens: [main]};
+  const {result} = renderHook(() =>
+    useThemeDraft({
+      saved,
+      reason: undefined,
+      change: () => Promise.resolve({ok: true, value: true}),
+      report: () => undefined,
+    }),
+  );
+  const original = theme.screens[main.id]?.background;
+  const edit = (background: string) =>
+    act(() =>
+      result.current.edit(theme.id, file =>
+        editThemeLayout(file, target, layout => ({...layout, background})),
+      ),
+    );
+  const shown = () =>
+    result.current.file === null
+      ? undefined
+      : findTheme(result.current.file, theme.id)?.screens[main.id]?.background;
+  const finish = result.current.beginEditGroup();
+  edit('#000001');
+  edit('#000002');
+  edit('#000003');
+  expect(shown()).toBe('#000003');
+  finish();
+  edit('#000004');
+  act(() => result.current.undo());
+  expect(shown()).toBe('#000003');
+  act(() => result.current.undo());
+  expect(shown()).toBe(original);
+  act(() => result.current.redo());
+  expect(shown()).toBe('#000003');
+});

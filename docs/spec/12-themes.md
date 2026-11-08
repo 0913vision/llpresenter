@@ -211,12 +211,24 @@ until the operator or an action changes it (S4 pp. 37 to 38).
 - A gradient is linear, with a clockwise angle from 0 to 359 degrees: 0 runs
   left to right, 90 top to bottom, and 135 top-right to bottom-left. It uses the
   screen rectangle's projected gradient line, including its aspect ratio.
-- A gradient has 2 to 4 colors with positions from 0 to 100 percent in
-  nondecreasing order. Equal positions create a hard edge. The angle, color
-  swatches and hex fields, positions, and add/remove actions live together in
-  the 화면 properties. Position edits stay between their neighbors; adding a
-  color splits the widest interval. Changes preview immediately and use the same
-  undo, redo, save, and leave-draft behavior as element properties.
+- A gradient has 2 to 4 colors at nondecreasing positions from 0 to 100 percent.
+  Equal positions create a hard edge. Its 화면 properties show preset picture
+  tiles, 각도, and a full-width left-to-right stop bar. New gradients start from
+  청록. Presets are hidden for 화면 기본 and 단색.
+- A preset replaces angle and stops in one undo step and selects the first stop.
+  Its tile is selected only while those visible values match. The list lives in
+  one core constant, in the palette order below.
+- A handle selects one stop; only its 색 swatch/hex, 위치 percentage and delete
+  button appear below the bar. Dragging moves it across neighbors, updates the
+  preview and position immediately, and makes one undo step. Position fields
+  also allow crossing neighbors; color identity follows the moved stop.
+- Clicking empty track adds and selects a stop at that position, sampled with
+  the output's OKLCH interpolation and native sRGB conversion. Addition stops at
+  four colors; deletion stops at two. Delete or Backspace removes a focused
+  handle. Left/Right move it by 1 percent, or 10 with Shift. Handles are
+  focusable and named with their ordinal and position, such as 색 1, 36 %.
+- Changes use the same undo, redo, save and leave-draft behavior as element
+  properties. Read-only and linked layouts retain their existing edit guards.
 - Every gradient uses OKLCH with the shorter hue path, as defined by
   [CSS Color 4](https://www.w3.org/TR/css-color/#interpolation); there is no
   mixing selector. Neutral and near-neutral endpoints (RGB channel spread at
@@ -235,7 +247,7 @@ three-stop entries keep their approved look with the single mixing method.
 | 적갈     | 36 #3A0000, 61.5 #5A2500, 87 #7A4900 |
 | 초록     | 36 #003A24, 87 #007A43               |
 | 자주     | 36 #3A002E, 87 #AC00A0               |
-| 청록초록 | 36 #003A28, 87 #00AC98               |
+| 청록초록 | 36 #003A28, 87 #008474               |
 | 남보라   | 36 #2C003A, 87 #0073AC               |
 | 올리브   | 36 #3A1900, 61.5 #5C4800, 87 #7D7A00 |
 | 연초록   | 36 #7A9F5A, 67 #30A26A               |

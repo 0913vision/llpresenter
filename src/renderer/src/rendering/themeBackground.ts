@@ -1,4 +1,7 @@
-import type {ThemeBackground} from '@core/schema/themeBackground';
+import type {
+  ThemeBackground,
+  ThemeGradient,
+} from '@core/schema/themeBackground';
 
 const NOISE_SIZE = 64;
 const NEUTRAL_CHANNEL_SPREAD = 2;
@@ -14,6 +17,25 @@ function gradientColor(color: string): string {
   return Math.max(...channels) - Math.min(...channels) <= NEUTRAL_CHANNEL_SPREAD
     ? `oklch(from ${color} l max(c, ${MIN_HUE_CHROMA}) none)`
     : color;
+}
+
+/** Samples the same shorter-hue interpolation as the output, including hard edges. */
+export function themeGradientColorAt(
+  gradient: ThemeGradient,
+  position: number,
+): string {
+  let left = gradient.stops[0];
+  if (left === undefined) return '#000000';
+  if (position < left.position) return left.color;
+  for (const right of gradient.stops.slice(1)) {
+    if (position < right.position) {
+      const amount =
+        (position - left.position) / (right.position - left.position);
+      return `color-mix(in oklch shorter hue, ${gradientColor(left.color)} ${(1 - amount) * 100}%, ${gradientColor(right.color)} ${amount * 100}%)`;
+    }
+    left = right;
+  }
+  return left.color;
 }
 
 /** The opaque base under a gradient; a gradient is never a uniform chroma key. */

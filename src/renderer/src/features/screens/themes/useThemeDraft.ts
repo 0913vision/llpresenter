@@ -44,11 +44,20 @@ export function useThemeDraft({saved, reason, change, report}: DraftWrites) {
   });
   const past = useRef<Array<ThemeDraft | null>>([]);
   const future = useRef<Array<ThemeDraft | null>>([]);
+  const group = useRef<{changed: boolean} | null>(null);
+  const beginEditGroup = (): (() => void) => {
+    const current = {changed: false};
+    group.current = current;
+    return () => {
+      if (group.current === current) group.current = null;
+    };
+  };
   const keep = (next: ThemeDraft | null): void => {
     draftRef.current = next;
     setDraft(next);
   };
   const forget = (): void => {
+    group.current = null;
     past.current = [];
     future.current = [];
   };
@@ -79,9 +88,12 @@ export function useThemeDraft({saved, reason, change, report}: DraftWrites) {
     );
     if (!result.ok) report(themeProblems[result.error]);
     else {
-      past.current = [...past.current, draftRef.current].slice(
-        -THEME_HISTORY_LIMIT,
-      );
+      if (!group.current?.changed) {
+        past.current = [...past.current, draftRef.current].slice(
+          -THEME_HISTORY_LIMIT,
+        );
+      }
+      if (group.current !== null) group.current.changed = true;
       future.current = [];
       keep(result.value);
     }
@@ -89,6 +101,7 @@ export function useThemeDraft({saved, reason, change, report}: DraftWrites) {
   };
 
   const step = (from: typeof past, to: typeof past): void => {
+    group.current = null;
     if (reason !== undefined || from.current.length === 0) return;
     const previous = from.current.pop() ?? null;
     to.current.push(draftRef.current);
@@ -142,6 +155,7 @@ export function useThemeDraft({saved, reason, change, report}: DraftWrites) {
     dirtyThemeId,
     hasDraft: (): boolean => draftRef.current !== null,
     edit,
+    beginEditGroup,
     save,
     saveAs,
     undo,

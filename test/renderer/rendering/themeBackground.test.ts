@@ -2,6 +2,7 @@ import {expect, it} from 'vitest';
 import {
   themeBackgroundColor,
   themeBackgroundStyle,
+  themeGradientColorAt,
 } from '@renderer/rendering/themeBackground';
 import type {ThemeGradient} from '@core/schema/themeBackground';
 
@@ -58,4 +59,36 @@ it('removes the gradient image on inheritance or a legacy solid without retainin
     backgroundImage: 'none',
   });
   expect(themeBackgroundColor(gradient, '#00B140')).toBe('#00303A');
+});
+
+it('samples OKLCH weights, endpoint extensions and the right side of hard edges', () => {
+  expect(themeGradientColorAt(gradient, 0)).toBe('#00303A');
+  expect(themeGradientColorAt(gradient, 100)).toBe('#00667A');
+  expect(themeGradientColorAt(gradient, 61.5)).toBe(
+    'color-mix(in oklch shorter hue, #00303A 50%, #00667A 50%)',
+  );
+  expect(
+    themeGradientColorAt(
+      {
+        ...gradient,
+        stops: [
+          {color: '#FF0000', position: 50},
+          {color: '#0000FF', position: 50},
+        ],
+      },
+      50,
+    ),
+  ).toBe('#0000FF');
+  expect(
+    themeGradientColorAt(
+      {
+        ...gradient,
+        stops: [
+          {color: '#808081', position: 0},
+          {color: '#FF0000', position: 100},
+        ],
+      },
+      50,
+    ),
+  ).toContain('oklch(from #808081 l max(c, 0.0001) none) 50%');
 });
