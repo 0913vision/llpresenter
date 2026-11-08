@@ -30,6 +30,7 @@ interface ScreensWindowProps {
   readonly closeFlush?: CloseFlush | undefined;
   readonly onReady?: (() => void) | undefined;
   readonly preparing?: boolean | undefined;
+  readonly requestId?: number | undefined;
 }
 
 /** The screen and monitor settings, separate from the theme workspace. */
@@ -47,6 +48,7 @@ function ScreensContent({
   closeFlush,
   onReady,
   preparing = false,
+  requestId,
   readiness,
 }: ScreensWindowProps & {readonly readiness: LoadReadiness}): JSX.Element {
   usePaintedReadiness(readiness, onReady);
@@ -58,7 +60,7 @@ function ScreensContent({
   useLiveStateShortcuts();
   useUiZoomKeys();
   const body = useRef<HTMLElement>(null);
-  useInitialListFocus(body);
+  useInitialListFocus(body, requestId);
   const report = useCallback(
     (notice: Notice) => {
       setNotices(current => addNotice(current, notice));

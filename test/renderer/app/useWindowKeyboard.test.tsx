@@ -25,9 +25,15 @@ function Closing({
   );
 }
 
-function Listed({late = false}: {readonly late?: boolean}): JSX.Element {
+function Listed({
+  late = false,
+  requestId,
+}: {
+  readonly late?: boolean;
+  readonly requestId?: number;
+}): JSX.Element {
   const root = useRef<HTMLElement>(null);
-  useInitialListFocus(root);
+  useInitialListFocus(root, requestId);
   return (
     <main ref={root}>
       <button type="button">before</button>
@@ -94,6 +100,45 @@ describe('secondary window keyboard', () => {
   it('focuses the selected list entry when the window opens', () => {
     render(<Listed />);
     expect(document.activeElement?.textContent).toBe('second');
+  });
+
+  it('focuses the selected entry again when a mounted window receives a new request', () => {
+    const view = render(<Listed requestId={1} />);
+    const selected = screen.getByRole('option', {name: 'second'});
+    expect(document.activeElement).toBe(selected);
+    selected.blur();
+
+    view.rerender(<Listed requestId={2} />);
+    expect(document.activeElement).toBe(selected);
+
+    const control = screen.getByRole('button', {name: 'before'});
+    control.focus();
+    view.rerender(<Listed requestId={3} />);
+    expect(document.activeElement).toBe(control);
+  });
+
+  it('keeps a cancelled late-focus request cancelled until the window opens again', async () => {
+    const view = render(<Listed late requestId={1} />);
+    fireEvent.keyDown(document.body, {key: 'Tab'});
+    view.rerender(<Listed requestId={1} />);
+    await Promise.resolve();
+    expect(document.activeElement).toBe(document.body);
+
+    view.rerender(<Listed requestId={2} />);
+    expect(document.activeElement?.textContent).toBe('second');
+  });
+
+  it('uses the current list Tab stop while selection attributes are still updating', () => {
+    const view = render(<Listed requestId={1} />);
+    const previous = screen.getByRole('option', {name: 'second'});
+    const next = screen.getByRole('option', {name: 'first'});
+    previous.blur();
+    previous.tabIndex = -1;
+    next.tabIndex = 0;
+
+    view.rerender(<Listed requestId={2} />);
+
+    expect(document.activeElement).toBe(next);
   });
 
   it('stops waiting for the list after the first key press', async () => {

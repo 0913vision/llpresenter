@@ -41,18 +41,24 @@ export function useCloseKeys(close: () => void): void {
  * Puts focus on the first list entry of a window when it opens, so a
  * keyboard or screen reader user starts inside the content instead of on
  * `body`. It waits for the content to appear, and gives up as soon as focus
- * has gone anywhere else or the user presses a key or the pointer.
+ * has gone anywhere else or the user presses a key or the pointer. A new
+ * request also initializes a prepared window that stayed mounted while closed.
  */
-export function useInitialListFocus(root: RefObject<HTMLElement | null>): void {
+export function useInitialListFocus(
+  root: RefObject<HTMLElement | null>,
+  requestId?: number,
+): void {
   useEffect(() => {
     const element = root.current;
     if (element === null) return undefined;
     const placed = (): boolean => {
       if (document.activeElement !== document.body) return true;
       const entry =
+        element.querySelector<HTMLElement>(`${LIST_ENTRY}[tabindex="0"]`) ??
         element.querySelector<HTMLElement>(
           `${LIST_ENTRY}[aria-selected="true"]`,
-        ) ?? element.querySelector<HTMLElement>(LIST_ENTRY);
+        ) ??
+        element.querySelector<HTMLElement>(LIST_ENTRY);
       if (entry === null) return false;
       entry.focus();
       return true;
@@ -70,5 +76,5 @@ export function useInitialListFocus(root: RefObject<HTMLElement | null>): void {
       document.removeEventListener('pointerdown', stop);
       document.removeEventListener('keydown', stop);
     };
-  }, [root]);
+  }, [root, requestId]);
 }

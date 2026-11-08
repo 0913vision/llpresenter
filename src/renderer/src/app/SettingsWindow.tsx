@@ -144,6 +144,7 @@ export function SettingsWindow({
           closeFlush={closeFlush}
           onReady={screensReady}
           preparing={current?.preparing ?? true}
+          requestId={current?.requestId}
         />
       </Activity>
     </div>

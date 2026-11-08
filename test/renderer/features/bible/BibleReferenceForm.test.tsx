@@ -232,6 +232,28 @@ describe('shared Bible reference form', () => {
     expect(document.activeElement).toBe(view.book);
   });
 
+  it('lets Tab cross an untouched form and Shift Tab return without requiring a passage', async () => {
+    const view = setup();
+    render(<button type="button">다음 패널</button>);
+    view.book.focus();
+
+    for (const next of [view.chapter, view.start, view.end]) {
+      await view.user.tab();
+      expect(document.activeElement).toBe(next);
+    }
+    await view.user.tab();
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', {name: '다음 패널'}),
+    );
+    for (const previous of [view.end, view.start, view.chapter, view.book]) {
+      await view.user.tab({shift: true});
+      expect(document.activeElement).toBe(previous);
+      expect(previous.getAttribute('aria-invalid')).not.toBe('true');
+    }
+    expect(view.onSubmit).not.toHaveBeenCalled();
+    expect(view.onPreview).not.toHaveBeenCalled();
+  });
+
   it('lets Tab leave an empty 책 field after an arrow key that points at nothing', async () => {
     const view = setup();
     view.book.focus();
@@ -340,6 +362,7 @@ describe('shared Bible reference form', () => {
 
   it('lets Shift Tab leave a blocked field and Esc return to 책 without the reason', async () => {
     const view = setup();
+    fireEvent.change(view.book, {target: {value: '요'}});
     await view.user.click(view.chapter);
     await view.user.tab();
     expect(document.activeElement).toBe(view.chapter);

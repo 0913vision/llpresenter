@@ -749,14 +749,17 @@ that ProPresenter's Edit mode has the same behavior.
   candidates and no exact match, Tab stays until an arrow-key selection is made.
   The selected book wins when the operator explicitly points to one. A click or
   Enter selects a suggestion before any output.
-- Forward Tab moves through valid 장, 시작절, and 끝절. 장 ranges from 1 to the
-  book's chapter count, 시작절 from 1 to the chapter's last verse, and 끝절 from
-  시작절 to the last verse. An empty 끝절 means one verse. Changing 시작절
-  clears 끝절. Invalid values block Tab and mark the affected fields with the
-  error ring and a short Korean tooltip reason, with no adjacent sentence.
-  Lookup clamps an oversized 끝절 to the chapter's last verse; Enter also
-  normalizes the displayed end. A reversed end blocks lookup. Shift Tab keeps
-  backward navigation and IME composition keeps its keys.
+- With all four reference fields empty, Tab passes through the form without
+  validation, so the operator can reach the rest of 진행 without entering a
+  passage. Once any field contains text, forward Tab moves through valid 장,
+  시작절, and 끝절. 장 ranges from 1 to the book's chapter count, 시작절 from 1
+  to the chapter's last verse, and 끝절 from 시작절 to the last verse. An empty
+  끝절 means one verse. Changing 시작절 clears 끝절. Invalid values block Tab
+  and mark the affected fields with the error ring and a short Korean tooltip
+  reason, with no adjacent sentence. Lookup clamps an oversized 끝절 to the
+  chapter's last verse; Enter also normalizes the displayed end. A reversed end
+  blocks lookup. Shift Tab keeps backward navigation and IME composition keeps
+  its keys.
 - Suggestions open below 책. The 책 group lists all matching books, without the
   former eight-book cap. 최근 lists up to ten stored passages. Choosing a recent
   clears the manual fields and previews its original stored range, including

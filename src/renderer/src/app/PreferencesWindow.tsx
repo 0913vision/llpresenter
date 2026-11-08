@@ -58,7 +58,7 @@ export function PreferencesWindow({
     [],
   );
   useCloseKeys(close);
-  useInitialListFocus(body);
+  useInitialListFocus(body, request?.requestId);
   useEffect(() => watchInputModality(window), []);
   const report = useCallback(
     (notice: Notice) => {

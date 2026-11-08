@@ -932,8 +932,10 @@ whole chapters and ranges across chapters.
 - 장 is an integer from 1 to the book's chapter count. 시작절 is an integer from
   1 to the selected chapter's verse count. 끝절 is empty for one verse, or an
   integer from 시작절 through the chapter's last verse. Changing 시작절 clears
-  끝절. Invalid fields block forward Tab and expose a short Korean reason only
-  through the field tooltip. Shift Tab remains backward navigation.
+  끝절. An entirely empty reference form lets Tab pass through without
+  validation. Otherwise invalid fields block forward Tab and expose a short
+  Korean reason only through the field tooltip. Shift Tab remains backward
+  navigation.
 - A 끝절 above the last verse blocks Tab, but lookup clamps it to that last
   verse. An end below 시작절 remains invalid and blocks lookup.
 - Optional `bounds` in a Bible lookup reply contains `bookId` and

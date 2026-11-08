@@ -289,7 +289,14 @@ export function BibleReferenceForm(
         ?.focus();
       return;
     }
-    if (event.key === 'Tab' && !event.shiftKey && state.errors[part]) {
+    if (
+      event.key === 'Tab' &&
+      !event.shiftKey &&
+      state.errors[part] &&
+      [fields.book, fields.chapter, fields.start, fields.end].some(
+        value => value.trim() !== '',
+      )
+    ) {
       event.preventDefault();
       setBlocked(part);
       return;

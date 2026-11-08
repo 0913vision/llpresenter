@@ -1,4 +1,5 @@
-import {fireEvent, render, screen} from '@testing-library/react';
+import {fireEvent, render, screen, waitFor} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import {useState} from 'react';
 import {describe, expect, it, vi} from 'vitest';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
@@ -76,16 +77,24 @@ it.each(['select', 'Escape', 'outside', 'unmount'])(
   },
 );
 
-it.each([{key: 'ContextMenu'}, {key: 'F10', shiftKey: true}])(
-  'marks the focused row for $key',
-  keys => {
+it.each(['{ContextMenu}', '{Shift>}{F10}{/Shift}'])(
+  'marks the keyboard target and restores its focus after %s',
+  async keys => {
+    const user = userEvent.setup();
     render(<Harness />);
     const target = screen.getByRole('button', {name: '첫 대상'});
-    target.focus();
-    fireEvent.keyDown(target, keys);
+    await user.tab();
+    expect(document.activeElement).toBe(target);
+    await user.keyboard(keys);
     expect(target.hasAttribute('data-menu-target')).toBe(true);
-    fireEvent.keyDown(screen.getByRole('menu'), {key: 'Escape'});
+    expect(document.activeElement).toBe(screen.getByRole('menu'));
+    await user.keyboard('{Escape}');
     expect(target.hasAttribute('data-menu-target')).toBe(false);
+    await waitFor(() => expect(document.activeElement).toBe(target));
+    await user.tab();
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', {name: '다음 대상'}),
+    );
   },
 );
 
