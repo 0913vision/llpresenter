@@ -114,7 +114,10 @@ screen's output on and off. There is no confirmation.
   window. Keep only one request in flight and discard the image. Stop requesting
   once the renderer confirms its painted frame; do not capture visible or
   offscreen test windows. A timer may request painting when animation frames
-  stall, but a timer or capture alone cannot declare the output ready.
+  stall, but a timer or capture alone cannot declare the output ready. A
+  temporarily unavailable hidden compositor retries without an error-level log.
+  On Windows, prepare native fullscreen while hidden before accepting the
+  painted frame, so the first reveal does not introduce a fullscreen resize.
 - Size hidden outputs before they are needed. Reveal a complete current frame
   without a dissolve. An output requested on must never remain hidden
   indefinitely: if preparation has not completed within 1.5 seconds, reveal what
@@ -604,6 +607,9 @@ empty picture and the main process retries after a cool-down. See 08.
   and transparency. Cached video thumbnails are never substituted for images.
   Theme video countdowns in live previews read main's media progress, without a
   decoder or a separate playback clock.
+- While every output is off, hide the operator's video progress row and stop its
+  progress publications. Resume with main's current position when an output
+  turns on; this does not change the saved live media or its playback clock.
 - Output windows aim for 60 fps. While moving, each second they measure their
   actual frame rate and report it to the main process. Static pictures send
   health reports without a measured FPS instead. The status bar shows a rate

@@ -31,6 +31,8 @@ import {OutputStatusBoard} from './statusBoard';
 import {guardTestPatterns} from './testPatternGuard';
 import {WakeKeeper, keepAwakeWhileOutputsOn} from './wakeLock';
 import {assignInitialMonitors} from './initialMonitors';
+import {findControlMonitor} from '../displays/monitor';
+import {watchControlMonitor} from './controlMonitor';
 
 /** What the output windows hang on. */
 export interface OutputContext {
@@ -78,6 +80,7 @@ function publishStatus({
 }
 
 interface MonitorPublishing {
+  readonly control: BrowserWindow;
   readonly displays: DisplayRegistry;
   readonly outputs: OutputManager;
   readonly controlBounds: () => Rect | null;
@@ -85,6 +88,7 @@ interface MonitorPublishing {
 }
 
 function publishMonitors({
+  control,
   displays,
   outputs,
   controlBounds,
@@ -103,6 +107,16 @@ function publishMonitors({
     answerWindows(outputEndpoints.monitors.channel, list),
     displays.subscribe(push),
     outputs.subscribeAssignment(push),
+    watchControlMonitor({
+      control,
+      displays,
+      monitorId: () =>
+        findControlMonitor(displays.monitors, controlBounds())?.id ?? null,
+      changed: () => {
+        outputs.controlMonitorChanged();
+        push();
+      },
+    }),
   ];
 }
 
@@ -138,10 +152,12 @@ export function startOutputs({
 }: OutputContext): RunningOutputs {
   let stopped = false;
   const displays = new DisplayRegistry(createElectronDisplaySource(), log);
+  const controlBounds = () =>
+    control.isDestroyed() ? null : control.getBounds();
   const screens = createSettingsScreenSource(
     settings,
     log,
-    createDefaultScreenSource(displays),
+    createDefaultScreenSource(displays, controlBounds),
   );
   const frameRates = new FrameRateTracker(
     screenId => screens.list().some(({id}) => id === screenId),
@@ -151,8 +167,6 @@ export function startOutputs({
     screenStates: () => outputs.screenStates(),
     frameRate: screenId => frameRates.current(screenId),
   });
-  const controlBounds = () =>
-    control.isDestroyed() ? null : control.getBounds();
   const outputs = new OutputManager({
     store,
     displays,
@@ -234,7 +248,7 @@ export function startOutputs({
       }, log),
     ),
     ...publishStatus({board, outputs, displays, log}),
-    ...publishMonitors({displays, outputs, controlBounds, log}),
+    ...publishMonitors({control, displays, outputs, controlBounds, log}),
     keepAwakeWhileOutputsOn(
       store,
       new WakeKeeper(createElectronWakeLock(), log),

@@ -17,7 +17,7 @@ export function StatusBar({
     const status = statuses[screen.id];
     if (status === undefined || status.placement === 'off') return [];
     const problems: string[] = [];
-    if (status.placement === 'monitorMissing') {
+    if (status.placement === 'monitorMissing' || status.controlConflict) {
       problems.push(`${screen.statusLabel} 창으로 표시 중`);
     }
     if (status.renderer === 'restarting') {

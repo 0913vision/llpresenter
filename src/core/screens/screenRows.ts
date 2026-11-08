@@ -35,7 +35,8 @@ function showsOnMonitor(status: ScreenStatus | undefined, on: boolean) {
   return (
     on &&
     (status?.placement === 'fullscreen' ||
-      status?.placement === 'monitorMissing')
+      status?.placement === 'monitorMissing' ||
+      status?.controlConflict === true)
   );
 }
 
@@ -66,6 +67,11 @@ function iconOf(screen: Screen): string {
 }
 
 function problemOf(status: ScreenStatus): string | undefined {
+  if (status.controlConflict) {
+    const target =
+      status.monitor === undefined ? '모니터' : `모니터 ${status.monitor}`;
+    return `${target}에 컨트롤 창이 있어 창으로 표시 중`;
+  }
   if (status.placement === 'monitorMissing') return '모니터를 찾을 수 없습니다';
   if (status.renderer === 'restarting') return '출력 창 다시 시작 중';
   if (status.renderer === 'limited') {

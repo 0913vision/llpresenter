@@ -55,6 +55,29 @@ function setUp(autoReady = true) {
 }
 
 describe('OutputWindow', () => {
+  it.each(['monitorMissing', 'controlConflict'] as const)(
+    'demotes a first %s fallback once and preserves an operator raise until placement changes',
+    reason => {
+      const {output, windows} = setUp();
+      const handle = windows.only('main');
+      const demote = vi.spyOn(handle, 'prepareForMonitorRemoval');
+      const show = vi.spyOn(handle, 'showWindowed');
+      const fallback: ShownPlacement = {...FALLBACK, reason};
+      output.update(fallback);
+      expect(demote).toHaveBeenCalledTimes(1);
+      expect(demote.mock.invocationCallOrder[0]).toBeLessThan(
+        show.mock.invocationCallOrder[0] ?? 0,
+      );
+      output.bringToFront();
+      output.update({...fallback});
+      expect(demote).toHaveBeenCalledTimes(1);
+      output.update({...fallback, bounds: {...fallback.bounds, x: 600}});
+      expect(demote).toHaveBeenCalledTimes(2);
+      output.update(FULL_SCREEN);
+      expect(handle.mode.kind).toBe('fullscreen');
+      output.dispose();
+    },
+  );
   it('requests hidden painting only for an incomplete current frame', () => {
     const {output, windows, setVersion} = setUp(false);
     const handle = windows.only('main');

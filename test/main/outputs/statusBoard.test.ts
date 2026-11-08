@@ -20,6 +20,24 @@ function setUp() {
 }
 
 describe('OutputStatusBoard', () => {
+  it('publishes and clears a control conflict independently of window placement', () => {
+    const {board, states, listener} = setUp();
+    states.set('main', {
+      placement: 'controlConflict',
+      renderer: 'running',
+      monitor: 2,
+    });
+    board.refresh();
+    expect(board.snapshot()['main']).toMatchObject({
+      placement: 'window',
+      controlConflict: true,
+      monitor: 2,
+    });
+    states.set('main', {placement: 'window', renderer: 'running', monitor: 2});
+    board.refresh();
+    expect(listener).toHaveBeenCalledTimes(2);
+    expect(board.snapshot()['main']).not.toHaveProperty('controlConflict');
+  });
   it('builds each screen from its placement, renderer state, and frame rate', () => {
     const {board} = setUp();
     expect(board.snapshot()).toEqual({

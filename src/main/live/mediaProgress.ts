@@ -14,13 +14,14 @@ export function startMediaProgress(
   let sampledAt = -Infinity;
   let stopped = false;
   let previousMedia = store.state.layers.media;
+  let outputsOn = Object.values(store.state.outputs).some(Boolean);
   let previous: MediaProgress | null = null;
   const tick = (): void => {
     timer = undefined;
     if (stopped) return;
     sampledAt = performance.now();
     try {
-      const next = store.mediaProgress();
+      const next = outputsOn ? store.mediaProgress() : null;
       if (JSON.stringify(next) !== JSON.stringify(previous)) {
         publish(next);
         previous = next;
@@ -28,12 +29,14 @@ export function startMediaProgress(
     } catch (error: unknown) {
       log.warn('Could not publish background playback position', error);
     }
-    if (store.state.layers.media !== null) timer = setTimeout(tick, UPDATE_MS);
+    if (outputsOn && store.state.layers.media !== null) {
+      timer = setTimeout(tick, UPDATE_MS);
+    }
   };
   const refresh = (): void => {
     if (
       timer !== undefined ||
-      (store.state.layers.media === null && previous === null)
+      ((!outputsOn || store.state.layers.media === null) && previous === null)
     ) {
       return;
     }
@@ -42,6 +45,15 @@ export function startMediaProgress(
     else timer = setTimeout(tick, delay);
   };
   const unsubscribe = store.subscribe(state => {
+    const nextOn = Object.values(state.outputs).some(Boolean);
+    if (nextOn !== outputsOn) {
+      outputsOn = nextOn;
+      previousMedia = state.layers.media;
+      if (timer !== undefined) clearTimeout(timer);
+      timer = undefined;
+      tick();
+      return;
+    }
     if (state.layers.media === previousMedia) return;
     previousMedia = state.layers.media;
     refresh();

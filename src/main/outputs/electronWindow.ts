@@ -271,6 +271,7 @@ export function createElectronOutputWindow(
   const win = createBrowserWindow(screen, mode);
   let framePending = false;
   let frameFailureReported = false;
+  let frameUnavailableReported = false;
   discardTestFrames(win.webContents, mode);
   const page: PageRequest = {name: 'output', query: {screen: screen.id}};
   win.removeMenu();
@@ -293,6 +294,16 @@ export function createElectronOutputWindow(
     prepare: (bounds, kind) => {
       if (kind === 'window') win.setBounds(bounds);
       else win.setContentBounds(bounds);
+      // NOTE(0913vision): The first reveal must paint after native fullscreen
+      // setup, just like a window that stayed fullscreen across later hides.
+      if (
+        mode === 'normal' &&
+        process.platform === 'win32' &&
+        kind === 'fullscreen' &&
+        !win.isFullScreen()
+      ) {
+        enterFullScreen(win, bounds);
+      }
     },
     contentSize: () => win.getContentBounds(),
     requestFrame: () => {
@@ -311,7 +322,15 @@ export function createElectronOutputWindow(
       void win.webContents
         .capturePage({x: 0, y: 0, width: 1, height: 1})
         .catch((error: unknown) => {
-          if (win.isDestroyed() || frameFailureReported) return;
+          if (win.isDestroyed()) return;
+          if (error instanceof Error && error.message === 'UnknownVizError') {
+            if (!frameUnavailableReported) {
+              frameUnavailableReported = true;
+              log.info('hidden output compositor is not ready; retrying');
+            }
+            return;
+          }
+          if (frameFailureReported) return;
           frameFailureReported = true;
           log.error('could not prepare a hidden output frame', error);
         })

@@ -26,6 +26,14 @@ function statuses() {
 }
 
 describe('parseOutputStatuses', () => {
+  it('accepts the optional control-conflict flag', () => {
+    for (const controlConflict of [false, true]) {
+      const value = {
+        main: {...statuses().main, placement: 'window', controlConflict},
+      };
+      expect(parseOutputStatuses(value)).toEqual({ok: true, value});
+    }
+  });
   it('accepts the status of every screen, and no screens', () => {
     expect(parseOutputStatuses(statuses())).toEqual({
       ok: true,
@@ -36,6 +44,11 @@ describe('parseOutputStatuses', () => {
 
   it.each([
     ['an unknown placement', {placement: 'hidden'}, 'main.placement'],
+    [
+      'a nonboolean conflict flag',
+      {controlConflict: 'yes'},
+      'main.controlConflict',
+    ],
     ['an unknown renderer state', {renderer: 'crashed'}, 'main.renderer'],
     ['a frame rate above the limit', {fps: 241}, 'main.fps'],
     ['a negative frame rate', {fps: -1}, 'main.fps'],

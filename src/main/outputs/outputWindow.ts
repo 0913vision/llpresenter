@@ -306,8 +306,8 @@ export class OutputWindow {
     if (placement.kind === 'window') {
       return (
         this.applied?.kind !== 'window' ||
-        (placement.reason === 'monitorMissing' &&
-          (this.applied.reason !== 'monitorMissing' ||
+        (placement.reason !== 'method' &&
+          (this.applied.reason !== placement.reason ||
             !sameRect(this.applied.bounds, placement.bounds)))
       );
     }
@@ -328,6 +328,7 @@ export class OutputWindow {
     }
     // NOTE(0913vision): Normal windows keep an operator's placement. A lost
     // monitor fallback follows later work-area changes as Windows settles.
+    if (placement.reason !== 'method') handle.prepareForMonitorRemoval();
     handle.showWindowed(
       this.keepsOperatorBounds(placement) ? null : placement.bounds,
       placement.alwaysOnTop ?? false,
@@ -340,7 +341,7 @@ export class OutputWindow {
       placement.kind === 'window' &&
       previous?.kind === 'window' &&
       (placement.reason === 'method' ||
-        (previous.reason === 'monitorMissing' &&
+        (previous.reason === placement.reason &&
           sameRect(previous.bounds, placement.bounds)))
     );
   }

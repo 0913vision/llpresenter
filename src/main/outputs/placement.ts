@@ -3,7 +3,7 @@ import {centeredRect, type Rect, type Size} from '../displays/rect';
 import type {OutputScreen} from './screens';
 
 /** Why an output shows in a normal window. */
-export type WindowReason = 'method' | 'monitorMissing';
+export type WindowReason = 'method' | 'monitorMissing' | 'controlConflict';
 
 /** Where and how an output that is on shows. */
 export type Placement =
@@ -108,6 +108,9 @@ export function planPlacement({
         return screen.display === null
           ? windowOn(controlMonitor, 'method')
           : whenMonitorMissing(screen, controlMonitor);
+      }
+      if (monitor.id === controlMonitor.id) {
+        return windowOn(controlMonitor, 'controlConflict');
       }
       return {
         kind: 'fullscreen',

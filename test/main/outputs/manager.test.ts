@@ -249,6 +249,28 @@ beforeEach(() => {
 });
 
 describe('OutputManager placement', () => {
+  it('replans an enabled screen on control movement and reports its conflict target', () => {
+    const {manager, store} = setUp();
+    store.dispatch(turn(true));
+    vi.mocked(findControlMonitor).mockReturnValue(monitor(PROJECTOR));
+    vi.mocked(planPlacement).mockReturnValue({
+      ...FALLBACK,
+      reason: 'controlConflict',
+    });
+    manager.controlMonitorChanged();
+    expect(planPlacement).toHaveBeenLastCalledWith(
+      expect.objectContaining({controlMonitor: monitor(PROJECTOR)}),
+    );
+    expect(manager.screenStates().get('main')).toMatchObject({
+      placement: 'controlConflict',
+      monitor: 2,
+    });
+    expect(manager.assignedMonitorIds.get('main')).toBe(2);
+    vi.mocked(planPlacement).mockReturnValue(fullScreenOn(PROJECTOR));
+    manager.controlMonitorChanged();
+    expect(manager.screenStates().get('main')?.placement).toBe('fullscreen');
+    manager.dispose();
+  });
   it('prepares each screen at its planned placement while off, and shows and hides it with its switch', () => {
     const screen = screenOn(PROJECTOR);
     const {store} = setUp([screen]);

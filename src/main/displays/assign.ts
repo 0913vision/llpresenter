@@ -102,7 +102,17 @@ export function assignMonitors(
   input: AssignmentInput,
 ): ReadonlyMap<string, Monitor> {
   const assigned = new Map<string, Monitor>();
-  matchBySavedId(input.requests, input.monitors, assigned);
+  const requested = new Map<number, number>();
+  for (const {display} of input.requests) {
+    requested.set(display.id, (requested.get(display.id) ?? 0) + 1);
+  }
+  const unique = {
+    ...input,
+    requests: input.requests.filter(
+      ({display}) => requested.get(display.id) === 1,
+    ),
+  };
+  matchBySavedId(unique.requests, input.monitors, assigned);
   // NOTE(0913vision): A weaker match never takes a monitor that a stronger one
   // gave away or the control monitor, and a screen gets a monitor only when
   // it is the screen's single candidate and no other screen wants it in the
@@ -110,7 +120,7 @@ export function assignMonitors(
   // the operator's window or over another screen's output when the real
   // monitor is unplugged.
   for (const pass of passes(input.previous)) {
-    matchUnambiguously(input, pass, assigned);
+    matchUnambiguously(unique, pass, assigned);
   }
   return assigned;
 }

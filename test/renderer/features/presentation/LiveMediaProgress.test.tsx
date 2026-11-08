@@ -6,6 +6,7 @@ import type {MediaProgress} from '@core/schema/mediaProgress';
 import {useLive} from '@renderer/session/live';
 import {TestScreenSummaries} from '@fixtures/renderer/platform/screenSummaries';
 import {PreviewPanel} from '@renderer/features/presentation/PreviewPanel';
+import {LiveMediaProgress} from '@renderer/features/presentation/LiveMediaProgress';
 
 vi.mock('@renderer/features/presentation/ScreenPreview', () => ({
   ScreenPreview: () => null,
@@ -23,6 +24,43 @@ const reading: MediaProgress = {
   durationSeconds: 54,
 };
 
+it('unsubscribes and hides while every output is off, ignoring late samples and resuming a fresh query', async () => {
+  let push: (value: MediaProgress | null) => void = () => undefined;
+  const unsubscribe = vi.fn();
+  const query = vi.fn(() => Promise.resolve(reading));
+  window.llp = mockLlpApi({
+    live: {
+      mediaProgress: query,
+      subscribeMediaProgress: listener => {
+        push = listener;
+        return unsubscribe;
+      },
+    },
+  });
+  const empty = emptyLiveState();
+  const state = {
+    ...empty,
+    outputs: {main: true},
+    layers: {
+      ...empty.layers,
+      media: {mediaId: 'video', startedAt: 0, loop: true},
+    },
+  };
+  useLive.setState({state});
+  render(<LiveMediaProgress />);
+  await screen.findByRole('progressbar');
+  act(() => useLive.setState({state: {...state, outputs: {main: false}}}));
+  expect(unsubscribe).toHaveBeenCalledOnce();
+  act(() => push({...reading, positionSeconds: 30}));
+  expect(screen.queryByRole('progressbar')).toBeNull();
+  query.mockResolvedValue({...reading, positionSeconds: 40});
+  act(() =>
+    useLive.setState({state: {...state, outputs: {main: false, stage: true}}}),
+  );
+  await screen.findByText('0:40');
+  expect(query).toHaveBeenCalledTimes(2);
+});
+
 it('shows the main-owned position below the preview and releases its subscription', async () => {
   let push: (value: MediaProgress | null) => void = () => undefined;
   const stop = vi.fn();
@@ -39,6 +77,7 @@ it('shows the main-owned position below the preview and releases its subscriptio
   useLive.setState({
     state: {
       ...state,
+      outputs: {main: true},
       layers: {
         ...state.layers,
         media: {mediaId: 'video', startedAt: 0, loop: true},
@@ -97,6 +136,7 @@ it('keeps a pushed reading newer than the initial query and hides cleared or rep
   useLive.setState({
     state: {
       ...state,
+      outputs: {main: true},
       layers: {
         ...state.layers,
         media: {mediaId: 'video', startedAt: 0, loop: true},

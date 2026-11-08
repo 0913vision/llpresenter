@@ -8,6 +8,27 @@ import {expect, it} from 'vitest';
 import {installMockClock} from '@fixtures/mockClock';
 import {BOUNDS_RECHECK_MS} from '@main/outputs/windowPlacement';
 
+it('shows an initially hidden fallback behind control without activation', async () => {
+  const clock = installMockClock();
+  const control = mockControl();
+  const output = openOutput('normal', control);
+  const win = lastWindow();
+  output.prepareForMonitorRemoval();
+  output.showWindowed(WINDOW_BOUNDS);
+  expect(control.moveAbove.mock.invocationCallOrder.at(-1)).toBeGreaterThan(
+    win.moveTop.mock.invocationCallOrder.at(-1) ?? 0,
+  );
+  expect(win.isAlwaysOnTop()).toBe(false);
+  expect(control.focus).not.toHaveBeenCalled();
+  expect(win.focus).not.toHaveBeenCalled();
+  await clock.advance(BOUNDS_RECHECK_MS);
+  control.moveAbove.mockClear();
+  output.bringToFront();
+  win.emit('move');
+  await clock.advance(BOUNDS_RECHECK_MS);
+  expect(control.moveAbove).not.toHaveBeenCalled();
+});
+
 it.each([false, true])(
   'ends disconnect demotion before capture changes with top=%s',
   async alwaysOnTop => {

@@ -28,6 +28,19 @@ function mainRow(statuses: OutputStatuses, on = true) {
 }
 
 describe('screenGroups', () => {
+  it('marks the current control-conflict target amber without calling it disconnected', () => {
+    const status = {
+      ...running,
+      placement: 'window',
+      controlConflict: true,
+      monitor: 3,
+    } as const;
+    expect(mainRow({[MAIN_ID]: status})).toMatchObject({
+      target: '모니터 3',
+      health: 'warning',
+      problem: '모니터 3에 컨트롤 창이 있어 창으로 표시 중',
+    });
+  });
   it('splits 청중, 방송, and 무대 in file order with icon and target', () => {
     const groups = screenGroups(screens(), {}, {});
     expect(groups.audience.map(row => [row.id, row.icon, row.target])).toEqual([

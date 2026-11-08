@@ -13,6 +13,27 @@ const saved = {
 };
 
 describe('planPlacement', () => {
+  it.each(['window', 'off'] as const)(
+    'keeps control accessible regardless of disconnect action %s',
+    onDisconnect => {
+      const screen = fullScreenScreen({
+        display: saved,
+        onDisconnect,
+        alwaysOnTop: true,
+      });
+      expect(
+        planPlacement({screen, monitor: projector, controlMonitor: projector}),
+      ).toEqual({
+        kind: 'window',
+        reason: 'controlConflict',
+        bounds: {x: 2400, y: 250, ...OUTPUT_WINDOW_SIZE},
+      });
+      expect(
+        planPlacement({screen, monitor: projector, controlMonitor}),
+      ).toMatchObject({kind: 'fullscreen', bounds: projector.bounds});
+      expect(screen.display).toEqual(saved);
+    },
+  );
   it('centers fallback bounds in a work area offset by a left taskbar', () => {
     const placement = planPlacement({
       screen: fullScreenScreen({display: saved}),

@@ -4,10 +4,66 @@ import {
   mockControl,
   mockLog,
   openOutput,
+  MONITOR,
 } from '@fixtures/main/outputs/electronWindowFixtures';
 import {describe, expect, it} from 'vitest';
 
 describe('hidden output painting', () => {
+  it.skipIf(process.platform !== 'win32')(
+    'prepares the first Windows fullscreen surface before painting and does not resize on reveal',
+    () => {
+      const output = openOutput('normal');
+      const win = lastWindow();
+      let full = false;
+      let bounds = win.getContentBounds();
+      win.setContentBounds.mockImplementation(next => {
+        bounds = next;
+      });
+      win.getContentBounds.mockImplementation(() => bounds);
+      win.getBounds.mockImplementation(() => bounds);
+      win.isFullScreen.mockImplementation(() => full);
+      win.setFullScreen.mockImplementation((next: boolean) => {
+        full = next;
+      });
+      output.prepare(MONITOR, 'fullscreen');
+      expect(win.setFullScreen).toHaveBeenCalledExactlyOnceWith(true);
+      expect(win.showInactive).not.toHaveBeenCalled();
+      expect(win.show).not.toHaveBeenCalled();
+      expect(win.focus).not.toHaveBeenCalled();
+      output.requestFrame();
+      expect(win.setFullScreen.mock.invocationCallOrder[0]).toBeLessThan(
+        win.webContents.capturePage.mock.invocationCallOrder[0] ?? 0,
+      );
+      output.showFullScreen(MONITOR, false);
+      expect(win.setFullScreen).toHaveBeenCalledTimes(1);
+      output.hide();
+      output.prepare({...MONITOR, x: 4000}, 'fullscreen');
+      expect(win.setFullScreen).toHaveBeenCalledTimes(1);
+      expect(win.isVisible()).toBe(false);
+    },
+  );
+
+  it('retries an unavailable hidden compositor without hiding later unexpected errors', async () => {
+    const log = mockLog();
+    const output = openOutput('normal', mockControl(), log);
+    const win = lastWindow();
+    win.webContents.capturePage.mockRejectedValue(new Error('UnknownVizError'));
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      output.requestFrame();
+      await Promise.resolve();
+      await Promise.resolve();
+    }
+    expect(log.error).not.toHaveBeenCalled();
+    expect(log.info).toHaveBeenCalledOnce();
+    const failure = new Error('Unexpected failure');
+    win.webContents.capturePage.mockRejectedValue(failure);
+    output.requestFrame();
+    await Promise.resolve();
+    expect(log.error).toHaveBeenCalledWith(
+      'could not prepare a hidden output frame',
+      failure,
+    );
+  });
   it('wakes one compositor capture at a time without presenting the window', async () => {
     const output = openOutput('normal');
     const win = lastWindow();

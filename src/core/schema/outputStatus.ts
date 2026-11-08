@@ -42,6 +42,7 @@ const outputScreenStatusSchema = payloadObject({
     v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(FRAME_RATE_MAX)),
   ),
   fpsLow: v.boolean(),
+  controlConflict: v.exactOptional(v.boolean()),
   monitor: v.exactOptional(
     v.pipe(
       v.number(),
@@ -64,8 +65,9 @@ const outputScreenRequestSchema = payloadObject({screenId});
  * measured over the last second, or `null` before the first report or while it
  * is off. `fpsLow` is set when the main process judges that rate too low.
  * `monitor` is the number (from 1, as 화면 설정 counts) of the monitor the
- * screen last showed full screen on, kept after that monitor disconnects, and
- * absent when it never had one.
+ * screen is assigned to, kept after that monitor disconnects, and absent when
+ * it never had one. `controlConflict` marks a window fallback while the main
+ * window occupies the assigned monitor.
  */
 export type OutputScreenStatus = Readonly<
   v.InferOutput<typeof outputScreenStatusSchema>

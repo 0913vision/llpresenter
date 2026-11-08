@@ -26,12 +26,15 @@ function remainingSecond(reading: MediaProgress): number | null {
 /** Displays main's samples; this view never advances playback time itself. */
 export function LiveMediaProgress(): JSX.Element | null {
   const media = useLive(view => view.state?.layers.media);
+  const outputsOn = useLive(view =>
+    Object.values(view.state?.outputs ?? {}).some(Boolean),
+  );
   const mediaId = media?.mediaId;
   const startedAt = media?.startedAt;
   const [reading, setReading] = useState<MediaProgress | null>(null);
   useEffect(() => {
     const api = window.llp?.live;
-    if (api === undefined || mediaId === undefined) return;
+    if (api === undefined || mediaId === undefined || !outputsOn) return;
     let active = true;
     let pushed = false;
     const accept = (value: MediaProgress | null): void => {
@@ -55,8 +58,9 @@ export function LiveMediaProgress(): JSX.Element | null {
       active = false;
       stop();
     };
-  }, [mediaId, startedAt]);
+  }, [mediaId, startedAt, outputsOn]);
   if (
+    !outputsOn ||
     reading === null ||
     reading.mediaId !== mediaId ||
     reading.startedAt !== startedAt

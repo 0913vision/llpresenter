@@ -15,8 +15,38 @@ import {CAPTIONS, MAIN} from '@fixtures/core/overlays';
 import {openNumberWindow} from '@main/outputs/numberWindow';
 import {sendToWindows} from '@main/ipc';
 import {MAIN_SCREEN} from '@fixtures/core/screenIds';
+import {installMockClock} from '@fixtures/mockClock';
 
 describe('saved output backend', () => {
+  it('protects the control window on the audience monitor and restores output when it leaves', async () => {
+    const clock = installMockClock();
+    const {controlWindow, store, windows, stop} = setup();
+    await loaded();
+    store.dispatch({type: 'output.set', screenId: MAIN, on: true});
+    const original = controlWindow.getBounds();
+    const bounds = vi.spyOn(controlWindow, 'getBounds');
+    bounds.mockReturnValue({...original, x: 1920});
+    controlWindow.emit('move');
+    await clock.advance(0);
+    expect(windows.only(MAIN).mode.kind).toBe('window');
+    expect(mocks.answers.get(outputEndpoints.status.channel)?.()).toMatchObject(
+      {[MAIN]: {placement: 'window', controlConflict: true, monitor: 2}},
+    );
+    expect(sendToWindows).toHaveBeenCalledWith(
+      outputEndpoints.monitorsChanged.channel,
+      expect.arrayContaining([
+        expect.objectContaining({id: 2, hasMainWindow: true}),
+      ]),
+      expect.anything(),
+    );
+    bounds.mockReturnValue(original);
+    controlWindow.emit('resize');
+    await clock.advance(0);
+    expect(windows.only(MAIN).mode.kind).toBe('fullscreen');
+    stop();
+    expect(controlWindow.listenerCount('move')).toBe(0);
+    expect(controlWindow.listenerCount('resize')).toBe(0);
+  });
   it('releases the wake lock, its listeners, and its channels once when outputs stop', async () => {
     const {settings, store, stop} = setup();
     await loaded();

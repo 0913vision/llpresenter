@@ -38,6 +38,24 @@ function assign(
 }
 
 describe('assignMonitors', () => {
+  it('leaves conflicting saved IDs unresolved even with different previous matches', () => {
+    const display = monitorById(monitorsOf({id: 2, x: 1920}), 2);
+    const requests = ['main', 'stage'].map(screenId => ({screenId, display}));
+    expect(
+      assign(
+        requests,
+        [
+          {id: 1, primary: true},
+          {id: 2, x: 1920},
+          {id: 3, x: 3840},
+        ],
+        new Map([
+          ['main', 2],
+          ['stage', 3],
+        ]),
+      ),
+    ).toEqual({});
+  });
   const control = {id: 1, primary: true, name: 'DELL U2720Q'};
   const projector = {id: 2, x: 1920, name: 'EPSON PJ'};
   const stage = {id: 3, x: 3840, name: 'LG TV'};

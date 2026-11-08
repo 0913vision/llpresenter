@@ -22,7 +22,7 @@ function reading(positionSeconds: number): MediaProgress {
 
 function mockStore() {
   const listeners = new Set<(state: LiveState) => void>();
-  let state = emptyLiveState();
+  let state: LiveState = {...emptyLiveState(), outputs: {main: true}};
   const store = {
     get state() {
       return state;
@@ -52,6 +52,25 @@ function mockLog() {
 }
 
 describe('startMediaProgress', () => {
+  it('stops publications with every output off and resumes the current position when any output returns', async () => {
+    const clock = installMockClock();
+    const {store, announce, showMedia} = mockStore();
+    const publish = vi.fn();
+    const stop = startMediaProgress(store, publish, mockLog());
+    store.mediaProgress.mockReturnValue(reading(1));
+    showMedia(DAWN);
+    announce({...store.state, outputs: {main: false}});
+    expect(publish).toHaveBeenLastCalledWith(null);
+    expect(vi.getTimerCount()).toBe(0);
+    store.mediaProgress.mockClear();
+    await clock.advance(5000);
+    expect(store.mediaProgress).not.toHaveBeenCalled();
+    store.mediaProgress.mockReturnValue(reading(2));
+    announce({...store.state, outputs: {main: false, stage: true}});
+    expect(publish).toHaveBeenLastCalledWith(reading(2));
+    expect(vi.getTimerCount()).toBe(1);
+    stop();
+  });
   it('samples once a second while a background plays, skips repeats and unrelated changes, and cleans up', async () => {
     const clock = installMockClock();
     const {store, listeners, announce, showMedia} = mockStore();

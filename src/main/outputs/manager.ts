@@ -30,7 +30,8 @@ export interface MonitorFeed {
 }
 
 /** How a screen's output shows. */
-export type OutputStatus = 'off' | 'fullscreen' | 'window' | 'monitorMissing';
+export type OutputStatus =
+  'off' | 'fullscreen' | 'window' | 'monitorMissing' | 'controlConflict';
 
 /** The arguments of the {@link OutputManager} constructor. */
 export interface OutputManagerOptions {
@@ -66,9 +67,7 @@ function statusOf(placement: Placement | null): OutputStatus {
     case 'fullscreen':
       return 'fullscreen';
     case 'window':
-      return placement.reason === 'monitorMissing'
-        ? 'monitorMissing'
-        : 'window';
+      return placement.reason === 'method' ? 'window' : placement.reason;
     case 'off':
       return 'monitorMissing';
   }
@@ -124,6 +123,11 @@ export class OutputManager {
         ? [this.options.screens.subscribe(() => this.sync())]
         : []),
     ];
+    this.sync();
+  }
+
+  /** Replans outputs after the control window changes monitors. */
+  controlMonitorChanged(): void {
     this.sync();
   }
 
@@ -283,12 +287,17 @@ export class OutputManager {
         );
       }
       const placement = this.placementFor(screen, surroundings);
-      this.apply(screen, placement);
-      if (placement?.kind === 'off') turnOff.push(screen.id);
       const monitor = surroundings.assigned.get(screen.id);
-      if (placement?.kind === 'fullscreen' && monitor !== undefined) {
+      if (
+        monitor !== undefined &&
+        (placement?.kind === 'fullscreen' ||
+          (placement?.kind === 'window' &&
+            placement.reason === 'controlConflict'))
+      ) {
         this.monitorNumbers.set(screen.id, monitor.number);
       }
+      this.apply(screen, placement);
+      if (placement?.kind === 'off') turnOff.push(screen.id);
     }
     for (const screenId of turnOff) this.turnOff(screenId);
   }

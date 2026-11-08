@@ -20,6 +20,21 @@ afterEach(() => {
 });
 
 describe('StatusBar', () => {
+  it('shows the window fallback while control occupies the target monitor', () => {
+    fixture.statuses = {
+      stage: {
+        placement: 'window',
+        controlConflict: true,
+        renderer: 'running',
+        fps: null,
+        fpsLow: false,
+      },
+    };
+    render(<StatusBar />);
+    expect(screen.getByRole('status').textContent).toBe(
+      '무대 화면 창으로 표시 중',
+    );
+  });
   it('keeps a fixed empty status region in normal operation', () => {
     fixture.statuses = {
       stage: {
