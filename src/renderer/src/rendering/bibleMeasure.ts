@@ -87,8 +87,8 @@ export function bibleMeasure(
   const spec: SplitSpec = {
     font: text.font,
     size: text.size,
-    tracking: 0,
-    markerTracking: 0,
+    tracking: text.tracking ?? 0,
+    markerTracking: text.tracking ?? 0,
     width: frame.w,
     maxLines: Math.min(
       text.maxLines,

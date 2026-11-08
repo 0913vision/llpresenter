@@ -66,7 +66,11 @@ export function themeElementText(
     case 'currentText':
       return slide?.lines.join('\n') ?? null;
     case 'reference':
-      return slide?.reference ?? null;
+      return slide === null
+        ? null
+        : element.source === 'item' && item?.kind === 'bible'
+          ? (item.title ?? slide.reference ?? null)
+          : (slide.reference ?? null);
     case 'nextText':
       return slide?.next?.lines.join('\n') ?? null;
     case 'label':

@@ -21,6 +21,7 @@ import {
 import type {SettingsProblem} from './settingsStore';
 import {MediaStore} from './mediaStore';
 import type {SaveFailureSink} from './saveFailures';
+import type {MediaItem} from '@core/schema/mediaList';
 
 /** What the media list opens with besides the loaded data. */
 export interface MediaStoreContext {
@@ -28,12 +29,13 @@ export interface MediaStoreContext {
   readonly log: Logger;
   /** Hears the files that couldn't be written, for 저장할 수 없음. */
   readonly failures?: SaveFailureSink | undefined;
+  readonly initialItems?: (() => Promise<readonly MediaItem[]>) | undefined;
 }
 
 /** Loads the media list independently and creates only a missing file. */
 export async function openMediaStore(
   store: LoadedStore,
-  {settings, log, failures}: MediaStoreContext,
+  {settings, log, failures, initialItems}: MediaStoreContext,
 ): Promise<{
   readonly store: MediaStore;
   readonly problems: readonly SettingsProblem[];
@@ -49,7 +51,11 @@ export async function openMediaStore(
     reportCopyProblem: error =>
       log.warn('could not keep a recovery copy', error),
   });
-  const {document, problems} = await readMediaDocument(location, saver);
+  const {document, problems} = await readMediaDocument(
+    location,
+    saver,
+    initialItems,
+  );
   const opened = new MediaStore({
     document,
     file: location.file,
@@ -76,6 +82,7 @@ export async function openMediaStore(
 async function readMediaDocument(
   location: SettingsLocation,
   saver: Saver,
+  initialItems?: () => Promise<readonly MediaItem[]>,
 ): Promise<{
   readonly document: MediaDocument;
   readonly problems: SettingsProblem[];
@@ -101,9 +108,15 @@ async function readMediaDocument(
     access = read.problems.some(problem => problem.kind === 'newer')
       ? 'readOnly'
       : (read.data?.access ?? 'editable');
+    const initial =
+      read.data === null &&
+      read.problems.length === 0 &&
+      initialItems !== undefined
+        ? {...EMPTY_MEDIA_LIST, items: await initialItems()}
+        : EMPTY_MEDIA_LIST;
     const document = parseMediaDocument({
       name: 'media',
-      value: read.data?.data ?? EMPTY_MEDIA_LIST,
+      value: read.data?.data ?? initial,
       access,
       revision: 1,
     });

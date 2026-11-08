@@ -1010,6 +1010,11 @@ this preference.
 - 출처 위치 (reference position) moves into the 테마 (see "Fonts"): the 성경
   출처 element sets it per screen, because the 청중 화면 and the 방송 화면 need
   different positions (12).
+- In a new library the 말씀 audience theme uses a shipped teal picture,
+  NanumSquare Bold 72 px for the item passage range and 104 px for verse text,
+  with 150 px line spacing and -3 px tracking. These are theme properties, not
+  Bible preferences; existing themes are retained. The additional 설교 제목
+  themes and their replaceable pictures are described in 12.
 
 #### 단축키 (Shortcuts)
 

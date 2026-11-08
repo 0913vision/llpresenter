@@ -28,6 +28,31 @@ function setUp() {
 }
 
 describe('SlideLayerView', () => {
+  it('scales letter spacing with the output and applies tracking-only edits to retained pages', () => {
+    const {view, pages, shownPage} = setUp();
+    view.show(VERSE);
+    const shown = shownPage();
+    view.setStyle({...DEFAULT_TEXT_STYLE, tracking: -3});
+    view.rescale(0.5);
+    for (const page of pages()) {
+      expect(
+        page.querySelector<HTMLElement>(`.${classes.block}`)?.style
+          .letterSpacing,
+      ).toBe('-1.5px');
+    }
+    view.setStyle({...DEFAULT_TEXT_STYLE, tracking: 6});
+    expect(shownPage()).toBe(shown);
+    expect(
+      shown?.querySelector<HTMLElement>(`.${classes.block}`)?.style
+        .letterSpacing,
+    ).toBe('3px');
+    view.setStyle(DEFAULT_TEXT_STYLE);
+    expect(
+      shown?.querySelector<HTMLElement>(`.${classes.block}`)?.style
+        .letterSpacing,
+    ).toBe('0px');
+    view.dispose();
+  });
   it('keeps split preview text at its configured size and marks only excess lines', () => {
     const parent = document.createElement('div');
     const view = new SlideLayerView(parent, DEFAULT_TEXT_STYLE, 2);

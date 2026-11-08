@@ -97,6 +97,7 @@ const STYLE_FIELDS = [
   'size',
   'color',
   'lineHeight',
+  'tracking',
   'align',
   'vAlign',
   'maxLines',
@@ -208,6 +209,9 @@ export class SlideLayerView {
   /** Lays the 장 out again at a new screen scale, without a dissolve. */
   rescale(scale: number): void {
     this.scale = scale;
+    for (const page of this.pages) {
+      page.block.style.letterSpacing = `${(this.style.tracking ?? 0) * scale}px`;
+    }
     const {shadow, outline} = effects(this.style);
     const angle = (shadow.angle * Math.PI) / 180;
     const x = Math.round(Math.cos(angle) * shadow.distance * scale * 1e6) / 1e6;

@@ -27,7 +27,7 @@ export function startLoading(
   win: BrowserWindow,
   {name, query = {}}: PageRequest,
 ): Promise<void> {
-  const devServer = process.env['ELECTRON_RENDERER_URL'];
+  const devServer = process.env.ELECTRON_RENDERER_URL;
   return devServer !== undefined && devServer.length > 0
     ? win.loadURL(`${devServer}/${name}.html${searchOf(query)}`)
     : win.loadFile(join(__dirname, `../renderer/${name}.html`), {query});

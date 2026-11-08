@@ -36,6 +36,31 @@ function element(kind: ThemeElement['kind'], index: number): ThemeElement {
   return value;
 }
 
+it('resolves an item-range reference in a slide thumbnail just as output does', () => {
+  const reference = element('reference', 8);
+  if (reference.kind !== 'reference') throw Error('Expected reference');
+  render(
+    <SlidePicture
+      slide={{
+        itemId: 'bible',
+        position: 1,
+        label: null,
+        lines: ['Invented verse'],
+        reference: 'Book 11:30',
+      }}
+      layout={{mode: {kind: 'own'}, elements: [{...reference, source: 'item'}]}}
+      item={{
+        id: 'bible',
+        kind: 'bible',
+        source: 'external',
+        title: 'Book 11:29~30',
+      }}
+    />,
+  );
+  expect(screen.getByText('Book 11:29~30')).toBeTruthy();
+  expect(screen.queryByText('Book 11:30')).toBeNull();
+});
+
 it('keeps measured Bible rows at the theme size and frame instead of fitting or rewrapping them', () => {
   const source = element('currentText', 1);
   if (source.kind !== 'currentText') throw Error('Expected current text');
@@ -95,7 +120,13 @@ it('keeps the fill opacity separate from its fitted text', () => {
   const value = {
     ...source,
     frame: {x: 0, y: 0, w: 800, h: 400},
-    text: {...source.text, lineHeight: 1, maxLines: 2, align: 'right' as const},
+    text: {
+      ...source.text,
+      lineHeight: 1,
+      maxLines: 2,
+      tracking: -3,
+      align: 'right' as const,
+    },
     box: {on: true, fill: '#112233', opacity: 50, radius: 8},
   };
   vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(100);
@@ -109,6 +140,7 @@ it('keeps the fill opacity separate from its fitted text', () => {
   );
   const text = screen.getByText('Invented preview');
   expect(text.style.textAlign).toBe('right');
+  expect(text.style.letterSpacing).toBe('-3px');
   expect(text.style.fontSize).toBe(`${source.text.size}px`);
   const fill = view.container.querySelector<HTMLElement>('[style*="opacity"]');
   expect(fill?.style.opacity).toBe('0.5');

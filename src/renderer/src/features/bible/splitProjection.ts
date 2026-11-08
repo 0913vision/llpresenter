@@ -305,6 +305,9 @@ export class BibleProjections {
             id: source.id,
             kind: source.kind === 'slides' ? 'blank' : 'bible',
             source: source.source,
+            ...(source.kind === 'bible'
+              ? {title: source.passage.displayRef}
+              : {}),
           },
         },
       },

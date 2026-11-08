@@ -63,7 +63,7 @@ they have the same limit. A 테마 sets the elements of each screen itself.
 | Element        | Content comes from                                                                 | Screens        | Per screen |
 | -------------- | ---------------------------------------------------------------------------------- | -------------- | ---------- |
 | 현재 가사      | The live 슬라이드's text: lyrics or a Bible verse                                  | All            | One        |
-| 성경 출처      | The live Bible 슬라이드's reference; empty on other 슬라이드                       | All            | One        |
+| 성경 출처      | The live Bible 슬라이드's reference, or its item's whole passage range             | All            | One        |
 | 다음 가사      | The next 슬라이드's text                                                           | All            | One        |
 | 이름표         | The live 슬라이드's 이름표                                                         | All            | One        |
 | 다음 이름표    | The next 슬라이드's 이름표                                                         | All            | One        |
@@ -113,6 +113,8 @@ one-pixel increment (ten with Shift).
 | 크기             | Text elements                               | 12 to 400                                               |
 | 색               | Text elements, 사각형                       | `#RRGGBB`                                               |
 | 줄 간격          | Text elements                               | 0.8 to 3.0                                              |
+| 자간             | Text elements                               | -20 to 40 reference px; default 0                       |
+| 출처 내용        | 성경 출처                                   | 현재 절 (default), 항목 범위                            |
 | 가로 정렬        | Text elements                               | 왼쪽, 가운데, 오른쪽                                    |
 | 세로 위치        | Text elements                               | 위, 가운데, 아래                                        |
 | 성경 분할 줄 수  | Bible split-source text, in 화면 > 성경     | 1 to 12; Bible split budget at the configured size (04) |
@@ -124,6 +126,11 @@ one-pixel increment (ten with Shift).
 Text elements are 현재 가사, 성경 출처, 다음 가사, 이름표, 다음 이름표, 항목
 이름, 슬라이드 이름, 글, 시계, 타이머, 영상 남은 시간, 무대 메시지, and 메모.
 `slideName` has only the common text element properties.
+
+성경 출처 with 항목 범위 shows the Bible item's whole passage on every slide,
+including split continuations. Without an item range it falls back to the
+slide's reference. Clearing the slide clears this element. 현재 절 keeps the
+slide's reference and its passage visibility setting.
 
 All text keeps its theme size while wrapped lines fit the full element frame;
 only actual overflow shrinks it (03). The stored `maxLines` property is the
@@ -354,8 +361,9 @@ Element: `id`, `kind` (`currentText`, `reference`, `nextText`, `label`, `media`,
 `{ x, y, w, h }`, and the properties of its kind from "Element properties"
 (`text` fields as the text style of 02, `box` with fill, opacity, and radius,
 `fit`, and per kind `content` for 글, `mediaId` for 이미지, `timerId` for
-타이머, `clockFormat` for 시계). Keep unknown fields, as every settings file
-does (02).
+타이머, `clockFormat` for 시계, optional `source: "slide" | "item"` for 성경
+출처, and optional `text.tracking` in reference pixels, default 0). Keep unknown
+fields, as every settings file does (02).
 
 ### Item fields (`.llservice`)
 
@@ -366,6 +374,25 @@ does (02).
 
 ### Defaults
 
+- New libraries include three ordinary, replaceable 1920 x 1080 pictures for
+  말씀 and the two sermon title layouts. Existing catalogs and saved themes are
+  kept as they are.
+- 말씀 on 청중 화면 uses its full-screen teal picture, white NanumSquare Bold
+  text without outline or shadow: an item-range 성경 출처 at 72 px, and 현재
+  가사 at 104 px, left/top aligned, with -3 px tracking and 150 px line spacing.
+  The text frame starts at (130.6, 248), is 1660 x 750, and has a five-line
+  Bible split budget. Missing fonts fall back to Pretendard. 방송 화면 and 무대
+  화면 retain their existing 말씀 layouts. The normal 배경 and 미디어 elements
+  above the shipped picture retain item background overrides and blank picture
+  slides, since blank items also use this theme by default.
+- 설교 제목 and 설교 제목 (두 줄) are additional themes, not kind defaults. In a
+  blank 슬라이드 item, set the item name to the passage range and the slide text
+  to the sermon title, with a line break for the two-line layout. Choose the
+  corresponding theme. The audience picture contains the rules; 항목 이름 uses
+  white KoPubWorldDotum Medium 86 px with 6 px tracking and 현재 가사 uses Bold
+  140 px with -6 px tracking, centered between the rules. Other screens retain
+  their 말씀 layout. The picture and both text elements remain editable in the
+  normal theme editor.
 - `defaults.blank` selects 말씀 and `defaults.ad` selects 광고 in a new
   `themes.json`. Both can be changed like the other kind defaults.
 - The 광고 theme draws these elements bottom to top on every screen: a

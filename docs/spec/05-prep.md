@@ -291,6 +291,14 @@ Source: `Reflow`, `PrepService`, `AddSongs`, `ListRow` README.
 
 Source: `Reflow`, `PrepService`, `TextField` README, `AlertDialog` README.
 
+For scripture slides, a new library's 말씀 theme uses a replaceable teal picture
+with editable NanumSquare Bold verse text and the whole passage range on the
+audience screen (12). To author a sermon title with the same look, add a blank
+슬라이드 item, name it with the passage range, enter the title as the slide
+text, and choose 설교 제목 or 설교 제목 (두 줄). The second theme accepts a
+title with a line break. These themes use the existing item fields; they do not
+change the Bible passage or the stored verses.
+
 ## Song editor
 
 The inline editor uses the same slide selection, clipboard and undo model as the

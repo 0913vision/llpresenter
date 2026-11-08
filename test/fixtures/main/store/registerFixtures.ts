@@ -9,6 +9,8 @@ import type {Logger} from '@main/log';
 import {openAppConfig} from '@main/store/appConfigFile';
 import {registerStore, type DataStore} from '@main/store/register';
 
+vi.mock('@main/store/bundledPictures', () => ({SUNDAY_PICTURES: []}));
+
 /** A mock IPC handler signature without an Electron connection. */
 export type Handler = (event: unknown, value: unknown) => unknown;
 

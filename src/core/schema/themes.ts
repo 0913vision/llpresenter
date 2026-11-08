@@ -58,6 +58,9 @@ const textEntries = {
   ),
   size: range(THEME_LIMITS.fontSize.min, THEME_LIMITS.fontSize.max),
   lineHeight: range(THEME_LIMITS.lineHeight.min, THEME_LIMITS.lineHeight.max),
+  tracking: v.exactOptional(
+    range(THEME_LIMITS.tracking.min, THEME_LIMITS.tracking.max),
+  ),
   align: v.picklist(['left', 'center', 'right']),
   outline: textOutlineSchema,
   shadow: textShadowSchema,
@@ -92,7 +95,9 @@ export const themeElementSchema = v.pipe(
   jsonObject({}),
   v.variant('kind', [
     textElement('currentText', {text: lyricText}),
-    textElement('reference', {}),
+    textElement('reference', {
+      source: v.exactOptional(v.picklist(['slide', 'item'])),
+    }),
     textElement('nextText', {text: lyricText}),
     textElement('label', {}),
     textElement('nextLabel', {}),

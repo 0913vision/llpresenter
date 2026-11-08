@@ -14,6 +14,7 @@ import type {
 } from '../schema/themes';
 import {STARTER_SCREEN_IDS} from '../screens/screens';
 import {THEME_LIMITS, themeItemKinds, type ThemeItemKind} from './elementRules';
+import {sundayScriptureLayout, sermonTitleLayout} from './sundayScripture';
 
 export type ThemeScreen = Pick<Screen, 'id' | 'kind' | 'method'>;
 
@@ -160,6 +161,9 @@ function layoutFor(
   screen: ThemeScreen,
   kind: ThemeItemKind,
 ): ThemeScreenLayout {
+  if (kind === 'bible' && screen.kind === 'audience') {
+    return sundayScriptureLayout();
+  }
   if (kind === 'ad') return advertisementLayout();
   const lowerThird = screen.kind === 'broadcast';
   const elements =
@@ -276,6 +280,18 @@ export function createDefaultThemes(
         .filter(kind => kind !== 'blank' && kind !== 'ad')
         .map(kind => builtInTheme(kind, screens)),
       builtInTheme('ad', screens),
+      ...[false, true].map((twoLines, index): Theme => ({
+        id: createThemeId(uuid(106 + index)),
+        name: twoLines ? '설교 제목 (두 줄)' : '설교 제목',
+        screens: Object.fromEntries(
+          screens.map(screen => [
+            screen.id,
+            screen.kind === 'audience'
+              ? sermonTitleLayout(twoLines)
+              : layoutFor(screen, 'bible'),
+          ]),
+        ),
+      })),
     ],
     defaults: {...themeIds},
   };

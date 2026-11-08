@@ -31,6 +31,7 @@ function textEffects(text: ThemeText): CSSProperties {
     fontFamily: fontFamilyFor(text.font),
     fontWeight: text.weight,
     lineHeight: text.lineHeight,
+    letterSpacing: text.tracking ?? 0,
     textAlign: text.align,
     color: text.color,
     WebkitTextStroke: outline.on

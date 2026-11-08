@@ -3,6 +3,56 @@ import {emptyLayers} from '@core/live/state';
 import {themeElementBase} from '@fixtures/core/themeOutput';
 import {themeElementText, themeElementMedia} from '@core/themes/content';
 
+it('can keep the item passage range on every Bible slide while preserving the slide source', () => {
+  const reference = {...themeElementBase(), kind: 'reference'} as const;
+  const item = {
+    id: 'bible',
+    kind: 'bible',
+    source: 'service',
+    title: 'Book 11:29~30',
+  } as const;
+  for (const verse of [29, 30]) {
+    const layers = {
+      ...emptyLayers(),
+      slide: {
+        itemId: item.id,
+        position: verse - 29,
+        label: null,
+        lines: ['Verse'],
+        reference: `Book 11:${verse}`,
+      },
+    };
+    expect(themeElementText(reference, {layers, item})).toBe(
+      `Book 11:${verse}`,
+    );
+    expect(
+      themeElementText({...reference, source: 'slide'}, {layers, item}),
+    ).toBe(`Book 11:${verse}`);
+    expect(
+      themeElementText({...reference, source: 'item'}, {layers, item}),
+    ).toBe(item.title);
+    const {title: _title, ...untitled} = item;
+    expect(
+      themeElementText(
+        {...reference, source: 'item'},
+        {layers, item: untitled},
+      ),
+    ).toBe(`Book 11:${verse}`);
+    expect(
+      themeElementText(
+        {...reference, source: 'item'},
+        {layers, item: {...item, kind: 'blank'}},
+      ),
+    ).toBe(`Book 11:${verse}`);
+  }
+  expect(
+    themeElementText(
+      {...reference, source: 'item'},
+      {layers: emptyLayers(), item},
+    ),
+  ).toBeNull();
+});
+
 it('draws the live slide name and leaves unnamed or picture slides empty', () => {
   const element = {...themeElementBase(), kind: 'slideName'} as const;
   const layers = {

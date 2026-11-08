@@ -81,6 +81,24 @@ export function ThemeElementProperties({
             </PropertyRow>
           ))}
         </PropertyColumns>
+        {element.kind === 'reference' ? (
+          <PropertyRow label="출처 내용">
+            {({controlId}) => (
+              <SelectMenu
+                id={controlId}
+                block
+                value={element.source ?? 'slide'}
+                options={[
+                  {value: 'slide', label: '현재 절'},
+                  {value: 'item', label: '항목 범위'},
+                ]}
+                disabled={reason !== undefined}
+                title={reason}
+                onChange={source => change(value => ({...value, source}))}
+              />
+            )}
+          </PropertyRow>
+        ) : null}
         {element.kind === 'text' ? (
           <ThemeContent
             value={element.content}

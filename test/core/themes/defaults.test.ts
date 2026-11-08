@@ -10,6 +10,7 @@ import {builtInTheme, createDefaultThemes} from '@core/themes/defaults';
 import {resolveThemeOutput} from '@core/themes/output';
 import {themeItemKinds} from '@core/themes/elementRules';
 import {themesSchema} from '@core/schema/themes';
+import {SUNDAY_PICTURE_IDS} from '@core/themes/sundayScripture';
 
 it('converts the starter audience styles and stage geometry into theme elements', () => {
   const main = createScreenId(STARTER_SCREEN_IDS.main);
@@ -85,7 +86,9 @@ it('adds a reference only for Bible layouts and adapts to configured screen IDs'
   const screens = [{id, kind: 'audience', method: 'fullscreen'}] as const;
   expect(Object.keys(builtInTheme('bible', screens).screens)).toEqual([id]);
   expect(
-    builtInTheme('bible', screens).screens[id]?.elements.at(-1)?.kind,
+    builtInTheme('bible', screens).screens[id]?.elements.find(
+      element => element.kind === 'reference',
+    )?.kind,
   ).toBe('reference');
   expect(
     builtInTheme('song', screens).screens[id]?.elements.some(
@@ -134,11 +137,104 @@ it('makes a valid file with built-in themes and a standby clock and timer on sta
     '말씀',
     '영상',
     '광고',
+    '설교 제목',
+    '설교 제목 (두 줄)',
   ]);
   const stage = createDefaultThemes().standby.screens;
   expect(
     Object.values(stage).map(layout => layout.elements.map(e => e.kind)),
   ).toEqual([['clock', 'timer']]);
+});
+
+it('ships the audience scripture picture and editable typography without changing other screens', () => {
+  const audience = createScreenId(STARTER_SCREEN_IDS.main);
+  const layout = builtInTheme('bible').screens[audience];
+  expect(layout?.elements).toMatchObject([
+    {
+      kind: 'image',
+      mediaId: SUNDAY_PICTURE_IDS.scripture,
+      frame: {x: 0, y: 0, w: 1920, h: 1080},
+    },
+    {kind: 'background', fit: 'fit'},
+    {kind: 'media', fit: 'fit'},
+    {
+      kind: 'reference',
+      source: 'item',
+      text: {
+        font: 'NanumSquare',
+        weight: 700,
+        size: 72,
+        shadow: {on: false},
+        outline: {on: false},
+      },
+    },
+    {
+      kind: 'currentText',
+      frame: {x: 130.6, y: 248, w: 1660, h: 750},
+      text: {
+        font: 'NanumSquare',
+        weight: 700,
+        size: 104,
+        tracking: -3,
+        lineHeight: 150 / 104,
+        maxLines: 5,
+        align: 'left',
+        vAlign: 'top',
+        shadow: {on: false},
+        outline: {on: false},
+      },
+    },
+  ]);
+  for (const screen of [
+    STARTER_SCREEN_IDS.broadcast,
+    STARTER_SCREEN_IDS.stage,
+  ]) {
+    expect(
+      builtInTheme('bible').screens[createScreenId(screen)]?.elements.some(
+        element => element.kind === 'image',
+      ),
+    ).toBe(false);
+  }
+});
+
+it('offers one- and two-line sermon titles using item names and ordinary slide text', () => {
+  const file = createDefaultThemes();
+  const audience = createScreenId(STARTER_SCREEN_IDS.main);
+  for (const [name, mediaId, height] of [
+    ['설교 제목', SUNDAY_PICTURE_IDS.sermon, 220],
+    ['설교 제목 (두 줄)', SUNDAY_PICTURE_IDS.sermonTwoLines, 390],
+  ] as const) {
+    const theme = file.themes.find(theme => theme.name === name);
+    expect(theme?.screens[audience]?.elements).toMatchObject([
+      {kind: 'image', mediaId},
+      {
+        kind: 'itemName',
+        text: {font: 'KoPubWorldDotum', weight: 500, size: 86, tracking: 6},
+      },
+      {
+        kind: 'currentText',
+        frame: {h: height},
+        text: {
+          font: 'KoPubWorldDotum',
+          weight: 700,
+          size: 140,
+          tracking: -6,
+          align: 'center',
+          vAlign: 'middle',
+        },
+      },
+    ]);
+    expect(
+      theme?.screens[createScreenId(STARTER_SCREEN_IDS.broadcast)],
+    ).toEqual(
+      builtInTheme('blank').screens[
+        createScreenId(STARTER_SCREEN_IDS.broadcast)
+      ],
+    );
+    expect(theme?.screens[createScreenId(STARTER_SCREEN_IDS.stage)]).toEqual(
+      builtInTheme('blank').screens[createScreenId(STARTER_SCREEN_IDS.stage)],
+    );
+  }
 });
 
 it('defaults blank slides to 말씀 and builds the ad frame on every configured screen', () => {

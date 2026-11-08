@@ -346,6 +346,19 @@ describe('Bible passages', () => {
     return reply.result.value;
   }
 
+  it('supplies the whole passage range when sending either external verse to output', async () => {
+    const source = bibleSource(await passage('요한복음 3:16-18'));
+    useShow.setState({bibleSource: source, openItemId: source.id});
+    for (const index of [0, 1]) {
+      outputTile({itemId: source.id, index});
+      expect(slides().at(-1)?.slide).toMatchObject({
+        kind: 'bible',
+        title: source.passage.displayRef,
+        position: index,
+      });
+    }
+  });
+
   it('goes on from the live verse with the next and previous 장 keys after the passage grows', async () => {
     const original = bibleSource(await passage('요한복음 3:16-18'));
     const grown = bibleSource(await passage('요한복음 3:15-18'));

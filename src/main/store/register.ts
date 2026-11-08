@@ -26,6 +26,8 @@ import {registerMediaChannels, type MediaBackendPort} from './mediaChannels';
 import {registerMediaUses} from './mediaUses';
 import {LoadingMediaLibrary} from './mediaLibrary';
 import {openMediaStore} from './mediaLoader';
+import {SUNDAY_PICTURES} from './bundledPictures';
+import {initialPictures} from './initialPictures';
 import type {MediaStore} from './mediaStore';
 import {openContent, type OpenedContent} from './openContent';
 import {SaveFailures} from './saveFailures';
@@ -110,6 +112,8 @@ export function registerStore({
       if (store === null) return null;
       const readySettings = await settings;
       const opened = await openMediaStore(store, {
+        initialItems: () =>
+          initialPictures(store.locations.media, SUNDAY_PICTURES),
         settings: readySettings,
         log,
         failures: saveFailures,

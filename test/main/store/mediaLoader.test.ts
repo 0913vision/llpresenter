@@ -2,6 +2,7 @@ import {readFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import * as mediaListSchema from '@core/schema/mediaList';
+import {createMediaId} from '@core/schema/ids';
 import {makeTempDir} from '@fixtures/tempDir';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {openAppConfig} from '@main/store/appConfigFile';
@@ -33,6 +34,43 @@ async function setup() {
 }
 
 describe('media list loading', () => {
+  it('adds bundled pictures only to a missing catalog, not an existing empty or broken file', async () => {
+    const picture = {
+      id: createMediaId(ID),
+      name: 'Scripture',
+      file: 'scripture.png',
+      kind: 'image' as const,
+      size: 15,
+      width: 1920,
+      height: 1080,
+    };
+    const initialItems = vi.fn(async () => [picture]);
+    for (const existing of [null, JSON.stringify(EMPTY), '{"format":']) {
+      const {loaded, log} = await setup();
+      if (existing !== null) {
+        await writeJson(
+          join(loaded.locations.settings, 'media.json'),
+          existing,
+        );
+      }
+      initialItems.mockClear();
+      const opened = await openMediaStore(loaded, {
+        settings: null,
+        log,
+        initialItems,
+      });
+      onTestFinished(() => opened.store.dispose());
+      expect(initialItems).toHaveBeenCalledTimes(existing === null ? 1 : 0);
+      expect(opened.store.get().value.items).toEqual(
+        existing === null ? [picture] : [],
+      );
+      if (existing !== null) {
+        expect(
+          await readFile(join(loaded.locations.settings, 'media.json'), 'utf8'),
+        ).toBe(existing);
+      }
+    }
+  });
   it('keeps defaults and a file problem when default serialization unexpectedly fails', async () => {
     const {loaded, log} = await setup();
     vi.spyOn(mediaListSchema, 'serializeMediaList').mockImplementationOnce(

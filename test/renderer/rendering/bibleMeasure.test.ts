@@ -19,6 +19,29 @@ const widthOf = (text: string, size: number) =>
   (Array.from(text).length * size) / 36;
 
 describe('theme Bible text measurement', () => {
+  it('uses the theme tracking for both verse wrapping and its continuation marker', () => {
+    const element = {
+      ...themeElementBase(),
+      kind: 'currentText' as const,
+      frame: {x: 0, y: 0, w: 42, h: 300},
+      text: {...themeElementBase().text, size: 36, maxLines: 5, tracking: -3},
+    };
+    const layout = bibleMeasure(element, {
+      font: '',
+      measureText: value => ({width: Array.from(value).length * 10}),
+    });
+    expect(layout.spec).toMatchObject({tracking: -3, markerTracking: -3});
+    const options = {...layout.spec, marker: '', markerSize: 28};
+    expect(layout.measure('가나다라마', options).lines).toEqual(['가나다라마']);
+    expect(
+      layout.measure('가나다라마', {...options, tracking: 0}).lines,
+    ).toEqual(['가나다라', '마']);
+    expect(
+      layout
+        .measure('가나다라마', {...options, marker: ' (계속)', markerSize: 28})
+        .lineWidths.at(-1),
+    ).toBe(31);
+  });
   it('wraps at word boundaries, ignores trailing gaps, and counts the smaller marker', () => {
     const measured = measureBibleLines('가나다 라마바 사아자', spec, widthOf);
     expect(measured.lines).toEqual(['가나다 라마바', '사아자 (계속)']);

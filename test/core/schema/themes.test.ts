@@ -46,6 +46,35 @@ const file = {
 };
 
 describe('theme element properties', () => {
+  it('accepts optional bounded tracking and passage range sources without changing old elements', () => {
+    for (const tracking of [-20, -3, 0, 0.1, 40]) {
+      expect(v.safeParse(themeTextSchema, {...text, tracking}).success).toBe(
+        true,
+      );
+    }
+    for (const tracking of [-20.1, 40.1, NaN, Infinity, '3']) {
+      expect(v.safeParse(themeTextSchema, {...text, tracking}).success).toBe(
+        false,
+      );
+    }
+    for (const source of [undefined, 'slide', 'item']) {
+      expect(
+        v.safeParse(themeElementSchema, {
+          ...element,
+          kind: 'reference',
+          ...(source === undefined ? {} : {source}),
+        }).success,
+      ).toBe(true);
+    }
+    expect(
+      v.safeParse(themeElementSchema, {
+        ...element,
+        kind: 'reference',
+        source: 'other',
+      }).success,
+    ).toBe(false);
+    expect(v.safeParse(themeTextSchema, text).success).toBe(true);
+  });
   it('accepts slideName with only the common text fields on every screen, once per screen', () => {
     const slideName = {id: uuid(1), kind: 'slideName', frame, text};
     expect(v.safeParse(themeElementSchema, slideName).success).toBe(true);

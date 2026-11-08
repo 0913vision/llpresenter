@@ -87,6 +87,15 @@ export function ThemeTextProperties({
           reason={reason}
           change={lineHeight => change(value => ({...value, lineHeight}))}
         />
+        <ThemeNumber
+          label="자간"
+          value={text.tracking ?? 0}
+          min={THEME_LIMITS.tracking.min}
+          max={THEME_LIMITS.tracking.max}
+          step={0.1}
+          reason={reason}
+          change={tracking => change(value => ({...value, tracking}))}
+        />
         <PropertyRow label="가로 정렬">
           {({controlId, labelId}) => (
             <SegmentedControl

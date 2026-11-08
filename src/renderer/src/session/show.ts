@@ -183,7 +183,9 @@ export function outputTile(cursor: TileCursor): void {
     );
   }
   sendSlideOutput(
-    slide,
+    source === null
+      ? slide
+      : {...slide, kind: 'bible', title: source.passage.displayRef},
     row?.kind === 'slides' || row?.kind === 'song' ? row.background : undefined,
     startServiceItem(cursor.itemId),
   );
