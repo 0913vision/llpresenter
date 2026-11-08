@@ -567,7 +567,7 @@ it('picks gradient presets in one undo step, edits only the selected stop and re
   );
   fireEvent.click(screen.getByRole('slider', {name: '색 2, 100 %'}));
   expect(screen.getByRole('textbox', {name: '색'}).getAttribute('value')).toBe(
-    '#00667A',
+    '#00768C',
   );
   expect(screen.getAllByRole('spinbutton', {name: '위치'})).toHaveLength(1);
   fireEvent.click(within(presets).getByRole('button', {name: '적갈'}));

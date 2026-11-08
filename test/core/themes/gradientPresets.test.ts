@@ -16,7 +16,7 @@ it('keeps the chosen teal and approved presets in presentation order', () => {
         },
         {
           position: 100,
-          color: '#00667A',
+          color: '#00768C',
         },
       ],
     },

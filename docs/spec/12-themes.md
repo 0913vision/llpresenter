@@ -272,7 +272,7 @@ darker light green keeps white text readable.
 
 | Name     | Stops (percent, hex)                |
 | -------- | ----------------------------------- |
-| 청록     | 0 #002E38, 100 #00667A              |
+| 청록     | 0 #002E38, 100 #00768C              |
 | 적갈     | 0 #3A0000, 50 #5A2500, 100 #7A4900  |
 | 초록     | 0 #13452C, 100 #3B8440              |
 | 자주     | 0 #3A002E, 100 #AC00A0              |
@@ -586,7 +586,7 @@ fields, as every settings file does (02).
   무대 화면 keeps its clock and timer, and 방송 화면 stays empty.
 - 예배 준비 is an additional normal theme for a 빈 슬라이드 item with one empty
   slide, not a kind default or the 대기 화면. Its audience picture has the
-  bracket frame over a teal gradient (angle 135, 0% #002E38, 100% #00667A). Two
+  bracket frame over a teal gradient (angle 135, 0% #002E38, 100% #00768C). Two
   editable 글 elements say "잠시후에 예배가 시작됩니다" and "지금은 기도로
   예배를 준비하는 시간입니다", centered in white KoPubWorldDotum Bold at 120 px
   and 74 px, without shadow or outline. Other screens use their normal
