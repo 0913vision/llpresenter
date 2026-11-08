@@ -46,41 +46,57 @@ function element(kind: ThemeElement['kind'], index: number): ThemeElement {
   return value;
 }
 
-it('uses the same hanging paragraph markup in thumbnails, including measured text and empty lines', () => {
-  const source = element('currentText', 1);
-  if (source.kind !== 'currentText') throw Error('Expected text');
-  const value = {...source, text: {...source.text, bullets: true}};
-  const view = render(
-    <ThemePicture
-      elements={[value]}
-      background="#000000"
-      samples={{currentText: 'One\n\nTwo'}}
-    />,
-  );
-  expect(
-    view.container.querySelectorAll(`.${bulletStyles.paragraph}`),
-  ).toHaveLength(3);
-  expect(
-    view.container.querySelectorAll(`.${bulletStyles.marker}`),
-  ).toHaveLength(2);
-  view.rerender(
-    <ThemePicture
-      elements={[value]}
-      background="#000000"
-      samples={{currentText: ''}}
-      measuredText={{lines: ['One', 'Two'], continued: false}}
-    />,
-  );
-  expect(
-    view.container.querySelectorAll(`.${bulletStyles.paragraph}`),
-  ).toHaveLength(1);
-  expect(
-    view.container.querySelectorAll(`.${bulletStyles.marker}`),
-  ).toHaveLength(1);
-  expect(
-    view.container.querySelectorAll(`.${bulletStyles.continuation}`),
-  ).toHaveLength(1);
-});
+it.each([undefined, 'disc'] as const)(
+  'uses %s hanging paragraph markup in thumbnails, including measured text and empty lines',
+  bulletStyle => {
+    const source = element('currentText', 1);
+    if (source.kind !== 'currentText') throw Error('Expected text');
+    const value = {
+      ...source,
+      text: {
+        ...source.text,
+        bullets: true,
+        ...(bulletStyle === undefined ? {} : {bulletStyle}),
+      },
+    };
+    const view = render(
+      <ThemePicture
+        elements={[value]}
+        background="#000000"
+        samples={{currentText: 'One\n\nTwo'}}
+      />,
+    );
+    expect(
+      view.container.querySelectorAll(`.${bulletStyles.paragraph}`),
+    ).toHaveLength(3);
+    expect(
+      view.container.querySelectorAll(`.${bulletStyles.marker}`),
+    ).toHaveLength(2);
+    const paragraph = view.container.querySelector(
+      `.${bulletStyles.paragraph}`,
+    );
+    expect(
+      paragraph?.parentElement?.style.getPropertyValue('--bullet-indent'),
+    ).toBe(`${(bulletStyle === 'disc' ? 107 : 90) / 86}em`);
+    view.rerender(
+      <ThemePicture
+        elements={[value]}
+        background="#000000"
+        samples={{currentText: ''}}
+        measuredText={{lines: ['One', 'Two'], continued: false}}
+      />,
+    );
+    expect(
+      view.container.querySelectorAll(`.${bulletStyles.paragraph}`),
+    ).toHaveLength(1);
+    expect(
+      view.container.querySelectorAll(`.${bulletStyles.marker}`),
+    ).toHaveLength(1);
+    expect(
+      view.container.querySelectorAll(`.${bulletStyles.continuation}`),
+    ).toHaveLength(1);
+  },
+);
 
 it.each(['currentText', 'nextText'] as const)(
   'keeps one wrapped verse paragraph through measurement, %s output and thumbnails, including its next part',

@@ -6,7 +6,7 @@ import {
 } from '@core/bible/split/layout';
 import type {ThemeElement} from '@core/schema/themes';
 import {fontFamilyFor} from './slideLayer';
-import {BULLET_INDENT} from './textParagraphs';
+import {bulletIndent} from './textParagraphs';
 import {resolveTextTracking} from '@core/themes/textTracking';
 
 export type BibleTextElement = Extract<ThemeElement, {kind: 'currentText'}>;
@@ -86,7 +86,7 @@ export function bibleMeasure(
   context: BibleFontMeasure,
 ): SplitLayout {
   const {text, frame} = element;
-  const indent = text.bullets ? text.size * BULLET_INDENT : 0;
+  const indent = text.bullets ? text.size * bulletIndent(text) : 0;
   const spec: SplitSpec = {
     font: text.font,
     size: text.size,

@@ -49,8 +49,14 @@ export function sundayNoticeLayout(): ThemeScreenLayout {
       {
         id: id(7),
         kind: 'slideNumber',
-        frame: {x: 55, y: 51, w: 200, h: 260},
-        text: {...text, size: 160, tracking: -6, align: 'center'},
+        frame: {x: 97, y: 21, w: 113, h: 208},
+        text: {
+          ...text,
+          size: 160,
+          tracking: -6,
+          align: 'center',
+          lineHeight: 1,
+        },
       },
       {
         id: id(8),
@@ -63,20 +69,21 @@ export function sundayNoticeLayout(): ThemeScreenLayout {
       {
         id: id(5),
         kind: 'slideName',
-        frame: {x: 241.4, y: 150, w: 1540, h: 180},
-        text,
+        frame: {x: 240, y: 107, w: 1540, h: 145},
+        text: {...text, lineHeight: 1},
       },
       {
         id: id(6),
         kind: 'currentText',
-        frame: {x: 169.4, y: 363, w: 1581.2, h: 620},
+        frame: {x: 129, y: 287, w: 1676, h: 776},
         text: {
           ...text,
           size: 86,
           weight: 500,
-          lineHeight: 104.5 / 86,
+          lineHeight: 128 / 86,
           vAlign: 'top',
           bullets: true,
+          bulletStyle: 'disc',
           maxLines: 6,
         },
       },

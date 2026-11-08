@@ -16,6 +16,7 @@ export interface TextStyle {
     readonly tracking: number;
   };
   readonly bullets?: boolean;
+  readonly bulletStyle?: 'disc';
   readonly align: 'left' | 'center' | 'right';
   readonly vAlign: 'top' | 'middle' | 'bottom';
   /** The 장 shrinks until its text fits the height of this many lines. */

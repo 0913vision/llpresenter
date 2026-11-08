@@ -46,6 +46,21 @@ const file = {
 };
 
 describe('theme element properties', () => {
+  it('accepts the optional disc bullet style without changing unspecified styles', () => {
+    expect(v.safeParse(themeTextSchema, text).success).toBe(true);
+    expect(
+      v.safeParse(themeTextSchema, {
+        ...text,
+        bullets: true,
+        bulletStyle: 'disc',
+      }).success,
+    ).toBe(true);
+    for (const bulletStyle of ['square', '', true, 1, null]) {
+      expect(v.safeParse(themeTextSchema, {...text, bulletStyle}).success).toBe(
+        false,
+      );
+    }
+  });
   it('accepts optional bullets only as a Boolean and limits slide numbers to one per screen', () => {
     for (const bullets of [true, false]) {
       expect(v.safeParse(themeTextSchema, {...text, bullets}).success).toBe(

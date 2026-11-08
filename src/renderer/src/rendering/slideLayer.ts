@@ -5,7 +5,7 @@ import {TEXT_EFFECTS, type TextStyle} from '@core/themes/textStyle';
 import {OUTPUT_TRANSITIONS} from './transitions';
 import {continuationText} from '@core/bible/split/continuation';
 import {contSizeOf} from '@core/bible/split/layout';
-import {BULLET_STYLE, textParagraphs} from './textParagraphs';
+import {bulletTextStyle, textParagraphs} from './textParagraphs';
 import bulletStyles from './bulletText.module.css';
 import {resolveTextTracking} from '@core/themes/textTracking';
 
@@ -102,7 +102,7 @@ function applyStyle({element, block}: Page, style: TextStyle): void {
   block.style.fontWeight = String(style.weight);
   block.style.lineHeight = String(style.lineHeight);
   block.style.color = style.color;
-  for (const [name, value] of Object.entries(BULLET_STYLE)) {
+  for (const [name, value] of Object.entries(bulletTextStyle(style))) {
     block.style.setProperty(name, value);
   }
 }
@@ -116,6 +116,7 @@ const STYLE_FIELDS = [
   'tracking',
   'shortTracking',
   'bullets',
+  'bulletStyle',
   'align',
   'vAlign',
   'maxLines',

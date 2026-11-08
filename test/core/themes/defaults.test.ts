@@ -375,10 +375,12 @@ it('makes the audience notice an editable picture, number, name and bulleted bod
     {kind: 'background'},
     {
       kind: 'slideNumber',
+      frame: {x: 97, y: 21, w: 113, h: 208},
       text: {
         font: 'KoPubWorldDotum',
         weight: 700,
         size: 160,
+        lineHeight: 1,
         tracking: -6,
         align: 'center',
       },
@@ -388,15 +390,22 @@ it('makes the audience notice an editable picture, number, name and bulleted bod
       mediaId: SUNDAY_NOTICE_DIVIDER_ID,
       frame: {x: 0, y: 0, w: 1920, h: 1080},
     },
-    {kind: 'slideName', text: {size: 108, weight: 700, tracking: -3}},
+    {
+      kind: 'slideName',
+      frame: {x: 240, y: 107, w: 1540, h: 145},
+      text: {size: 108, weight: 700, tracking: -3, lineHeight: 1},
+    },
     {
       kind: 'currentText',
+      frame: {x: 129, y: 287, w: 1676, h: 776},
       text: {
         size: 86,
         weight: 500,
         bullets: true,
+        bulletStyle: 'disc',
         tracking: -3,
-        lineHeight: 104.5 / 86,
+        lineHeight: 128 / 86,
+        maxLines: 6,
         vAlign: 'top',
         shadow: {on: false},
         outline: {on: false},

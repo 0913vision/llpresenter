@@ -21,7 +21,7 @@ import {fillTimerTokens, type RenderTimers} from './timerTokens';
 import styles from './ThemePicture.module.css';
 import {themeBackgroundStyle} from './themeBackground';
 import bulletStyles from './bulletText.module.css';
-import {BULLET_STYLE, textParagraphs} from './textParagraphs';
+import {bulletTextStyle, textParagraphs} from './textParagraphs';
 import {resolveTextTracking} from '@core/themes/textTracking';
 
 interface MeasuredText {
@@ -39,7 +39,7 @@ function textEffects(
   const {spacing, indent} = resolveTextTracking(text, content, continued);
   const angle = (shadow.angle * Math.PI) / 180;
   return {
-    ...BULLET_STYLE,
+    ...bulletTextStyle(text),
     fontFamily: fontFamilyFor(text.font),
     fontWeight: text.weight,
     lineHeight: text.lineHeight,

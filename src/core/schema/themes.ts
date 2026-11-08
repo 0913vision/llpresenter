@@ -72,6 +72,7 @@ const textEntries = {
     }),
   ),
   bullets: v.exactOptional(v.boolean()),
+  bulletStyle: v.exactOptional(v.literal('disc')),
   align: v.picklist(['left', 'center', 'right']),
   outline: textOutlineSchema,
   shadow: textShadowSchema,

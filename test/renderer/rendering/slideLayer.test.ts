@@ -29,6 +29,31 @@ function setUp() {
 }
 
 describe('SlideLayerView', () => {
+  it('changes a retained bulleted page to discs and restores the existing glyph layout', () => {
+    const {view, shownPage} = setUp();
+    const style = {...DEFAULT_TEXT_STYLE, bullets: true};
+    view.setStyle(style);
+    view.show(VERSE, false);
+    const page = shownPage();
+    const block = page?.querySelector<HTMLElement>(`.${classes.block}`);
+    view.setStyle({...style, bulletStyle: 'disc'});
+    expect(shownPage()).toBe(page);
+    expect(block?.style.getPropertyValue('--bullet-indent')).toBe(
+      `${107 / 86}em`,
+    );
+    expect(block?.style.getPropertyValue('--bullet-gap')).toBe('0em');
+    expect(block?.style.getPropertyValue('--bullet-disc-content')).toBe('""');
+    expect(block?.style.getPropertyValue('--bullet-wrap')).toBe('normal');
+    view.setStyle(style);
+    expect(block?.style.getPropertyValue('--bullet-indent')).toBe(
+      `${90 / 86}em`,
+    );
+    expect(block?.style.getPropertyValue('--bullet-disc-content')).toBe('none');
+    expect(block?.style.getPropertyValue('--bullet-visibility')).toBe(
+      'visible',
+    );
+    view.dispose();
+  });
   it('adds hanging bullets to logical paragraphs, keeps empty lines blank, and updates a retained page when toggled', () => {
     const {view, shownPage} = setUp();
     view.show({...VERSE, lines: ['One\nTwo', '', 'Last']}, false);

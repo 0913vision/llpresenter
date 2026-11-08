@@ -4,7 +4,7 @@
   padding-left: var(--bullet-indent);
   white-space: pre-wrap;
   word-break: keep-all;
-  overflow-wrap: break-word;
+  overflow-wrap: var(--bullet-wrap);
 }
 
 .paragraph:not(:first-child) {
@@ -18,4 +18,17 @@
   font-family: Arial, sans-serif;
   font-weight: 400;
   letter-spacing: normal;
+  visibility: var(--bullet-visibility);
+}
+
+.marker::before {
+  content: var(--bullet-disc-content);
+  position: absolute;
+  left: var(--bullet-disc-left);
+  top: var(--bullet-disc-top);
+  width: var(--bullet-disc-size);
+  height: var(--bullet-disc-size);
+  border-radius: 50%;
+  background: currentColor;
+  visibility: visible;
 }

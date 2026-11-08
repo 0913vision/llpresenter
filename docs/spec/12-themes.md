@@ -140,9 +140,14 @@ With 글머리 기호 enabled, operators type plain text. Each explicit line sta
 paragraph with an Arial bullet; automatic wrapping stays under the paragraph
 text. Empty lines remain blank. Hanging indent is 90/86 em and the paragraph gap
 is 23/86 em, scaling with the font size. 줄 간격 sets spacing within a wrapped
-paragraph. These values keep the notice body at a 90 px indent, a 23 px
-paragraph gap and about 128 px paragraph pitch at 86 px. Both output and
-thumbnails use this layout; the stored text is unchanged.
+paragraph. At 86 px these styles have a 90 px indent and a 23 px paragraph gap;
+with 104.5 px line spacing their paragraph pitch is about 128 px. The optional
+`disc` bullet style uses a round marker instead: at 86 px, its diameter is 20
+px, its top-left is (19, 56) relative to the paragraph, and the hanging indent
+is 107 px. It has no extra paragraph gap and wraps only at spaces; 줄 간격
+determines the pitch of both wrapped and explicit lines. Marker geometry scales
+with the font size. Without this style, existing Arial bullets remain unchanged.
+Both output and thumbnails use this layout; the stored text is unchanged.
 
 Measured Bible wrap rows retain the verse's paragraph instead of starting a new
 bullet or paragraph gap on every row. A later part of the same verse keeps the
@@ -463,8 +468,9 @@ Element: `id`, `kind` (`currentText`, `reference`, `nextText`, `label`, `media`,
 opacity, and radius, `fit`, and per kind `content` for 글, `mediaId` for 이미지,
 `timerId` for 타이머, `clockFormat` for 시계, optional
 `source: "slide" | "item"` for 성경 출처, optional `text.tracking` in reference
-pixels, default 0, and optional `text.bullets`, a Boolean defaulting to false).
-Keep unknown fields, as every settings file does (02).
+pixels, default 0, optional `text.bullets`, a Boolean defaulting to false, and
+optional `text.bulletStyle: "disc"` for the round hanging markers). Keep unknown
+fields, as every settings file does (02).
 
 ### Item fields (`.llservice`)
 
@@ -548,11 +554,17 @@ Keep unknown fields, as every settings file does (02).
   full-screen 미디어 with 채우기 so picture slides cover the whole frame. All
   text is white KoPubWorldDotum without shadow or outline. The number is Bold
   160 px with -6 px tracking; the title is Bold 108 px with -3 px tracking; the
-  body is Medium 86 px with -3 px tracking and 글머리 기호 enabled. Body ink
-  starts near (262, 373), with paragraphs about 128 px apart. New catalogs
-  include both pictures; existing catalogs and themes are kept. The slash group
-  sits above the number and below the title, cutting the number along the line
-  so none shows beyond it.
+  body is Medium 86 px with -3 px tracking and disc 글머리 기호 enabled. Its
+  frame is (129, 287, 1676, 776), with the right edge at 1805 and room for six
+  128 px lines. The text starts 107 px inside the frame; continuation lines hang
+  under the text. The number frame is (97, 21, 113, 208); the title frame is
+  (240, 107, 1540, 145). Both move up with the slash group by 65 px from the
+  original notice draft. The slash is white at 26% opacity, 2 px wide, and
+  extends 18% farther around (198, 200) along the line through (117, 280) and
+  (278, 119), then moves up 65 px with its background-filled cutting triangle.
+  New catalogs include both pictures; existing catalogs and themes are kept. The
+  slash group sits above the number and below the title, cutting the number
+  along the line so none shows beyond it.
 - 방송 화면 and 무대 화면 retain their 광고 layout: a #141c2e full-screen box, a
   24 px #e6b54a left bar, fixed "교회 소식", covering media, the 132 px slide
   name and 60 px #c9d1e0 body. The default 광고 item's 8-second advance and 반복
