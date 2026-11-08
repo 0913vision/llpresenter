@@ -23,13 +23,14 @@ import {
   PREPARATION_THEME_ID,
 } from './sundayStandby';
 import {creedPrayerTheme} from './creedPrayer';
+import {SONG_THEME_ID} from './songTitle';
 
 export type ThemeScreen = Pick<Screen, 'id' | 'kind' | 'method'>;
 
 const uuid = (index: number) =>
   `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
 const themeIds = {
-  song: createThemeId(uuid(101)),
+  song: SONG_THEME_ID,
   bible: createThemeId(uuid(102)),
   media: createThemeId(uuid(104)),
   blank: createThemeId(uuid(102)),
@@ -207,6 +208,9 @@ function layoutFor(
   return {
     mode: {kind: 'own'},
     elements,
+    ...(kind === 'song' && screen.kind === 'audience'
+      ? {songTitle: 'sunday' as const}
+      : {}),
   };
 }
 

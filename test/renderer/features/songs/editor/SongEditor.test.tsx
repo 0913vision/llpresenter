@@ -55,6 +55,47 @@ describe('song editor view', () => {
     expect(input.value.length).toBe(length + 1);
   });
 
+  it('adds, edits, undoes and deletes a single title through the slide menu', async () => {
+    const {session, user} = await editorSetup();
+    const before = session.history.snapshot.song.slides;
+    const surface = screen.getByRole('group', {name: '슬라이드 편집 명령'});
+    fireEvent.contextMenu(surface);
+    await user.click(
+      screen.getByRole('menuitem', {name: '제목 슬라이드 추가'}),
+    );
+    expect(session.history.snapshot.song.slides[0]).toMatchObject({
+      titleSlide: true,
+      lines: [session.title.nextValue],
+    });
+    const input = screen.getByRole('textbox', {
+      name: '슬라이드 1 제목 및 부제',
+    });
+    fireEvent.change(input, {target: {value: 'New title\nSubtitle'}});
+    expect(session.history.snapshot.song.slides[0]?.lines).toEqual([
+      'New title',
+      'Subtitle',
+    ]);
+    fireEvent.contextMenu(surface);
+    expect(
+      screen
+        .getByRole('menuitem', {name: '제목 슬라이드 추가'})
+        .getAttribute('aria-disabled'),
+    ).toBe('true');
+    await user.keyboard('{Escape}');
+    act(() => session.edit('undo'));
+    expect(session.history.snapshot.song.slides[0]?.lines).toEqual([
+      session.title.nextValue,
+    ]);
+    act(() => session.edit('undo'));
+    expect(session.history.snapshot.song.slides).toEqual(before);
+    act(() => session.edit('redo'));
+    act(() => session.commandSlides({type: 'duplicate'}));
+    expect(session.history.snapshot.song.slides).toHaveLength(
+      before.length + 1,
+    );
+    act(() => session.commandSlides({type: 'delete'}));
+    expect(session.history.snapshot.song.slides).toEqual(before);
+  });
   it.each(['number', 'thumbnail', 'margin'])(
     'keeps slide shortcuts active after clicking the row %s from a text field',
     async place => {

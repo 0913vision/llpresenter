@@ -6,11 +6,12 @@ import {themeElementText} from '@core/themes/content';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {ThemePicture} from './ThemePicture';
+import {songTitleLayout} from '@core/themes/songTitle';
 
 /** Shared slide canvas for presentation tiles, item previews, and slide editors. */
 export function SlidePicture({
   slide,
-  layout,
+  layout: sourceLayout,
   emptyColor = '#000000',
   item = null,
   background,
@@ -21,6 +22,7 @@ export function SlidePicture({
   readonly item?: LiveThemeItem | null;
   readonly background?: string | undefined;
 }): JSX.Element {
+  const layout = songTitleLayout(sourceLayout, slide);
   const layers = {...emptyLayers(), slide};
   const samples = Object.fromEntries(
     layout.elements.map(element => [

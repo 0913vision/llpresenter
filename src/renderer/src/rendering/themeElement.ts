@@ -1,6 +1,6 @@
 import type {LiveLayers, MediaLayer} from '@core/live/state';
 import {mediaObjectFit} from '@core/media/objectFit';
-import type {ThemeElement} from '@core/schema/themes';
+import type {ResolvedThemeElement} from '@core/themes/songTitle';
 import type {TextStyle} from '@core/themes/textStyle';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {themeTextVAlign} from '@core/themes/textAlignment';
@@ -62,7 +62,7 @@ export class ThemeElementView {
   };
 
   constructor(
-    readonly element: ThemeElement,
+    readonly element: ResolvedThemeElement,
     parent: HTMLElement,
     {
       options,
@@ -223,13 +223,20 @@ export class ThemeElementView {
               : undefined,
       });
     }
-    const target = SLIDE_ELEMENT_KINDS.includes(element.kind)
-      ? 'slide'
-      : element.kind === 'media' || element.kind === 'background'
-        ? 'media'
-        : undefined;
+    this.setClearOpacity(frame.clearOpacity);
+  }
+
+  setClearOpacity(clearOpacity: RenderFrame['clearOpacity']): void {
+    const {element} = this;
+    const target =
+      element.clearTarget === 'slide' ||
+      SLIDE_ELEMENT_KINDS.includes(element.kind)
+        ? 'slide'
+        : element.kind === 'media' || element.kind === 'background'
+          ? 'media'
+          : undefined;
     const opacity = String(
-      target === undefined ? 1 : (frame.clearOpacity?.[target] ?? 1),
+      target === undefined ? 1 : (clearOpacity?.[target] ?? 1),
     );
     if (this.box.style.opacity !== opacity) this.box.style.opacity = opacity;
   }

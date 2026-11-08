@@ -71,6 +71,7 @@ interface SlideSource {
   readonly slides: ReadonlyArray<{
     readonly label?: string;
     readonly lines: readonly string[];
+    readonly titleSlide?: true;
     readonly transition?: import('@core/schema/slideTransition').SlideTransition;
   }>;
 }
@@ -376,6 +377,9 @@ export function VirtualSlides<T extends SlideListItem>({
                         position: number - 1,
                         label: slide.label ?? null,
                         lines: slide.lines,
+                        ...(slide.titleSlide === undefined
+                          ? {}
+                          : {titleSlide: slide.titleSlide}),
                       }}
                     />
                   ))

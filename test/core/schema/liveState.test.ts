@@ -28,6 +28,17 @@ function busyState(): LiveState {
 }
 
 describe('parseLiveState', () => {
+  it('accepts a song title marker and rejects other flag values', () => {
+    const state = busyState();
+    for (const titleSlide of [true, false, 'title', null]) {
+      expect(
+        parseLiveState({
+          ...state,
+          layers: {...state.layers, slide: {...state.layers.slide, titleSlide}},
+        }).ok,
+      ).toBe(titleSlide === true);
+    }
+  });
   it('preserves bounded measured-part metadata on the next verse', () => {
     const slide = {
       itemId: 'verse',

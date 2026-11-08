@@ -4,6 +4,31 @@ import {blockSnapshot} from '@core/songs/blockModel';
 import {editBlocks} from '@core/songs/blockEdits';
 
 describe('slide text editing', () => {
+  it('prepends one editable title without a special transition and keeps lyrics', () => {
+    const before = blockSnapshot(sampleSong(), {block: 2, start: 0, end: 0});
+    const after = editBlocks(before, {type: 'title', title: 'Invented title'});
+    expect(after.song.slides[0]).toMatchObject({
+      titleSlide: true,
+      lines: ['Invented title'],
+    });
+    expect(after.song.slides[0]?.transition).toBeUndefined();
+    expect(after.song.slides.slice(1)).toEqual(before.song.slides);
+    expect(after.selection.block).toBe(0);
+    expect(editBlocks(after, {type: 'title', title: 'Again'})).toBe(after);
+    const edited = editBlocks(after, {
+      type: 'text',
+      text: 'New title\nSubtitle',
+      start: 0,
+      end: 0,
+    });
+    expect(edited.song.slides[0]?.lines).toEqual(['New title', 'Subtitle']);
+    expect(editBlocks(edited, {type: 'split'})).toBe(edited);
+    expect(
+      editBlocks(edited, {type: 'text', text: 'a\nb\nc', start: 0, end: 0}),
+    ).toBe(edited);
+    const lyric = blockSnapshot(edited.song, {block: 1, start: 0, end: 0});
+    expect(editBlocks(lyric, {type: 'merge'})).toBe(lyric);
+  });
   it('inserts a newline without creating a slide', () => {
     const before = blockSnapshot(sampleSong(), {block: 0, start: 2, end: 2});
     const after = editBlocks(before, {type: 'enter'});

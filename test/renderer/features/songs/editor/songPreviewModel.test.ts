@@ -11,6 +11,27 @@ import {
 } from '@renderer/features/songs/editor/songPreviewModel';
 
 describe('local song preview model', () => {
+  it('retains the selected title identity and its song background', () => {
+    const song = editorDeckSong(1).song;
+    const first = song.slides[0];
+    if (first === undefined) throw new Error('Missing slide');
+    const selected = selectedPreview(
+      {
+        ...song,
+        slides: [{...first, titleSlide: true, lines: ['Title', 'Subtitle']}],
+      },
+      {
+        block: 0,
+        background: 'photo',
+      },
+    );
+    expect(selected.slide).toMatchObject({
+      titleSlide: true,
+      lines: ['Title', 'Subtitle'],
+    });
+    expect(selected.slide?.transition).toBeUndefined();
+    expect(selected.media?.mediaId).toBe('photo');
+  });
   it('projects the chosen next source block and omits it after the last place', () => {
     const song = editorDeckSong(1).song;
     const intermediate = selectedPreview(song, {

@@ -33,6 +33,7 @@ export function slideLayerOf(
         ? tile.label
         : null,
     lines: tile.lines,
+    ...(tile.titleSlide === undefined ? {} : {titleSlide: tile.titleSlide}),
     ...(tile.transition === undefined ? {} : {transition: tile.transition}),
     ...(tile.name === undefined ? {} : {name: tile.name}),
     ...(tile.picture === undefined ? {} : {picture: tile.picture}),

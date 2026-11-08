@@ -30,6 +30,8 @@ import {useEditorFocus} from './useEditorFocus';
 import {SlideTransitionRibbon} from './SlideTransitionRibbon';
 import {useEditorLiveIndex} from './useEditorLiveIndex';
 import {songEditorSourceId} from './songEditorSourceId';
+import {SONG_LIMITS} from '@core/schema/song';
+import {menuAvailability} from '@renderer/ui/menuModel';
 
 /** Mount with a window-owned store; unmounting does not discard song history. */
 export function SongEditor({
@@ -86,6 +88,31 @@ export function SongEditor({
             store={store}
             className={styles.surface}
             onBack={onBack}
+            blocked={state.busy}
+            extraMenu={() => [
+              {
+                kind: 'item',
+                id: 'song-title',
+                label: '제목 슬라이드 추가',
+                ...menuAvailability(
+                  state.busy || state.session?.readOnly
+                    ? '지금은 편집할 수 없습니다'
+                    : state.session?.history.snapshot.song.slides.some(
+                          slide => slide.titleSlide,
+                        )
+                      ? '제목 슬라이드가 있습니다'
+                      : (state.session?.history.snapshot.song.slides.length ??
+                            0) >= SONG_LIMITS.slides
+                        ? '슬라이드가 너무 많습니다'
+                        : undefined,
+                ),
+                onSelect: () =>
+                  state.session?.edit({
+                    type: 'title',
+                    title: state.session.title.nextValue,
+                  }),
+              },
+            ]}
           >
             <SongBlocks store={store} session={state.session} />
           </SongSlideSurface>
@@ -264,6 +291,9 @@ function SongBlocks({
                       itemId: song.id,
                       position: block,
                       lines: slide.lines,
+                      ...(slide.titleSlide === undefined
+                        ? {}
+                        : {titleSlide: slide.titleSlide}),
                       label: slide.label ?? null,
                     }}
                   />

@@ -993,3 +993,13 @@ ordinary text, label, order, save, and clipboard edits (02).
   animation as output and never changes live output. Rapid edits replace the
   pending preview; unrelated redraws do not restart it. 기본값 previews the
   between-item default on the first slide and the within-item default on others.
+
+### Song title slides
+
+The song editor slide menu offers 제목 슬라이드 추가. It inserts the current
+song title at the start, once per deck. The existing text field edits the title
+on its first line and an optional subtitle on its second line, each at most 512
+characters. The title remains first; ordinary delete and undo apply. Duplicating
+a title or pasting a second title is refused. Title slides have no special
+transition default; the existing per-slide editor sets a manual 4-second
+transition when desired. Library and service-local decks preserve the title.

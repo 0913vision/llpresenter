@@ -18,7 +18,7 @@ import {OverlayWarning} from './ItemThemeRow';
 import {OverlayClips} from './OverlayClip';
 import type {ServiceItemStore} from './serviceItemStore';
 import {openItemSong} from './openItemSong';
-import {useItemSlides} from './useItemSlides';
+import {useItemSlides, type ItemSlide} from './useItemSlides';
 import {useOverlayControl} from './useOverlayControl';
 import {useOverlayEditing} from './useOverlayEditing';
 import styles from './ItemOverlays.module.css';
@@ -54,7 +54,7 @@ export function ItemSlideGrid({
     itemId: bible ? state.item.id : null,
     ...(state.service === null ? {} : {serviceId: state.service.service.id}),
   });
-  const slides = useMemo(
+  const slides = useMemo<readonly ItemSlide[]>(
     () =>
       projection?.tiles.map(tile => ({
         text: tile.lines.join('\n'),
@@ -113,6 +113,9 @@ export function ItemSlideGrid({
             position: index,
             label: songSlide.label ?? null,
             lines: songSlide.text.split('\n'),
+            ...(songSlide.titleSlide === undefined
+              ? {}
+              : {titleSlide: songSlide.titleSlide}),
           }}
         />
       );

@@ -6,6 +6,9 @@ import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {SlideLayerView} from '@renderer/rendering/slideLayer';
 import {MAIN} from '@fixtures/core/overlays';
+import {SONG_THEME_ID} from '@core/themes/songTitle';
+import type {RenderFrame} from '@renderer/rendering/layer';
+import {fixedThemeText, themeElementBase} from '@fixtures/core/themeOutput';
 
 class MockResizeObserver {
   static readonly instances: MockResizeObserver[] = [];
@@ -52,6 +55,101 @@ function setUp({mode}: {mode?: RenderMode} = {}) {
 }
 
 describe('OutputRenderer', () => {
+  it('fades both song title lines on F2, restores them, and leaves fixed content opaque', () => {
+    vi.useFakeTimers();
+    const {parent, renderer, onError} = setUp();
+    try {
+      let now = 1000;
+      const frame: RenderFrame = {
+        timers: {list: [], runs: undefined, now: () => ({timer: now, wall: 0})},
+        theme: {
+          themeId: SONG_THEME_ID,
+          revision: 1,
+          missing: [],
+          sourceScreenId: MAIN,
+          emptyColor: '#123456',
+          item: {id: 'song', kind: 'song', source: 'service'},
+          layout: {
+            mode: {kind: 'own'},
+            songTitle: 'sunday',
+            elements: [
+              {
+                ...themeElementBase(31),
+                kind: 'background',
+                fit: 'fit',
+                radius: 0,
+              },
+              {...themeElementBase(), kind: 'currentText'},
+              fixedThemeText('Fixed text'),
+            ],
+          },
+        },
+      };
+      const shown: LiveLayers = {
+        ...emptyLayers(),
+        slide: {
+          itemId: 'song',
+          position: 0,
+          label: null,
+          lines: ['Title', 'Subtitle'],
+          titleSlide: true,
+        },
+      };
+      renderer.render(shown, frame);
+      const textBoxes = Array.from(
+        parent.querySelectorAll<HTMLElement>('[data-kind="text"]'),
+      );
+      expect(textBoxes.map(box => box.textContent)).toEqual([
+        'Title',
+        'Subtitle',
+        'Fixed text',
+      ]);
+      const background = parent.querySelector<HTMLElement>(
+        '[data-kind="background"]',
+      );
+      const effect = {
+        target: {kind: 'layer', layer: 'slide'},
+        since: now,
+        durationMs: 1200,
+      } as const;
+      const cleared = {...shown, slide: null};
+      renderer.render(cleared, {...frame, clearEffects: [effect]});
+      expect(textBoxes.map(box => box.style.opacity)).toEqual(['1', '1', '1']);
+      now = 1600;
+      vi.advanceTimersByTime(32);
+      expect(textBoxes.map(box => box.style.opacity)).toEqual([
+        '0.5',
+        '0.5',
+        '1',
+      ]);
+      expect(background?.style.opacity).toBe('1');
+      renderer.render(shown, frame);
+      expect(textBoxes.map(box => box.style.opacity)).toEqual(['1', '1', '1']);
+      renderer.render(cleared, {
+        ...frame,
+        clearEffects: [{...effect, since: now}],
+      });
+      now = 2500;
+      vi.advanceTimersByTime(32);
+      expect(textBoxes.map(box => box.style.opacity)).toEqual([
+        '0.25',
+        '0.25',
+        '1',
+      ]);
+      now = 2800;
+      vi.advanceTimersByTime(32);
+      expect(
+        textBoxes
+          .slice(0, 2)
+          .every(box => !parent.contains(box) || box.style.opacity === '0'),
+      ).toBe(true);
+      expect(background?.style.opacity).toBe('1');
+      expect(onError).not.toHaveBeenCalled();
+    } finally {
+      renderer.dispose();
+      vi.useRealTimers();
+    }
+  });
   it('detects moving videos and CSS animations but leaves a static picture idle', () => {
     const {parent, renderer} = setUp();
     expect(renderer.moving()).toBe(false);

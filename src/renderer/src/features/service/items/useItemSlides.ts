@@ -9,6 +9,7 @@ import {savedPassageTiles} from './bibleItemModel';
 import {useItemMedia} from './useItemSources';
 
 export interface ItemSlide {
+  readonly titleSlide?: true;
   readonly text: string;
   readonly label: string | undefined;
   readonly color: LabelColor;
@@ -42,6 +43,9 @@ export function useItemSlides(
       return item.slides.map(slide => {
         return {
           text: slide.lines.join('\n'),
+          ...(slide.titleSlide === undefined
+            ? {}
+            : {titleSlide: slide.titleSlide}),
           label: slide.label,
           color:
             editorState.labels?.value.labels.find(

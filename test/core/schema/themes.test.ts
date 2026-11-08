@@ -46,6 +46,17 @@ const file = {
 };
 
 describe('theme element properties', () => {
+  it('accepts only the optional Sunday song title layout selector', () => {
+    expect(
+      v.safeParse(themeScreenLayoutSchema, {...layout, songTitle: 'sunday'})
+        .success,
+    ).toBe(true);
+    for (const songTitle of [false, true, null, 'unknown']) {
+      expect(
+        v.safeParse(themeScreenLayoutSchema, {...layout, songTitle}).success,
+      ).toBe(false);
+    }
+  });
   it('accepts the optional disc bullet style without changing unspecified styles', () => {
     expect(v.safeParse(themeTextSchema, text).success).toBe(true);
     expect(

@@ -42,6 +42,21 @@ it('accepts an optional song theme and rejects malformed theme identities', () =
 });
 
 describe('parseShowService', () => {
+  it('validates the title marker on projected song tiles', () => {
+    const value = showService();
+    for (const titleSlide of [true, false, 'title', null]) {
+      expect(
+        parseShowService({
+          ...value,
+          tiles: {
+            'item-2': [
+              {label: null, labelColor: 'none', lines: ['Title'], titleSlide},
+            ],
+          },
+        }).ok,
+      ).toBe(titleSlide === true);
+    }
+  });
   it('checks resolved verse slots and caps source text and reference counts', () => {
     const tile = {
       label: '3:16',

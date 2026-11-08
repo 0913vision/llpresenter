@@ -26,6 +26,23 @@ export function editBlocks(
   command: BlockCommand,
 ): BlockSnapshot {
   const {song, selection} = snapshot;
+  if (command.type === 'title') {
+    if (
+      song.slides.some(slide => slide.titleSlide) ||
+      song.slides.length >= SONG_LIMITS.slides ||
+      command.title.length > SONG_LIMITS.titleLine ||
+      /[\r\n]/.test(command.title)
+    ) {
+      return snapshot;
+    }
+    return blockSnapshot({
+      ...song,
+      slides: [
+        {id: newSongSlideId(), titleSlide: true, lines: [command.title]},
+        ...song.slides,
+      ],
+    });
+  }
   const {block, start, end} = selection;
   const slide = song.slides[block];
   if (slide === undefined) {
@@ -40,6 +57,7 @@ export function editBlocks(
       : snapshot;
   }
   if (command.type === 'merge') {
+    if (slide.titleSlide || song.slides[block - 1]?.titleSlide) return snapshot;
     if (start !== 0 || end !== 0 || block === 0) return snapshot;
     const result = mergeSlideWithPrevious(song.slides, slide.id);
     const position = song.slides[block - 1]?.lines.join('\n').length ?? 0;
@@ -51,13 +69,34 @@ export function editBlocks(
       : snapshot;
   }
   const original = slide.lines.join('\n');
-  if (command.type === 'text' || command.type === 'enter') {
+  if (slide.titleSlide && command.type === 'split') return snapshot;
+  if (
+    command.type === 'text' ||
+    command.type === 'enter' ||
+    (slide.titleSlide && command.type === 'paste')
+  ) {
     const text =
       command.type === 'text'
         ? normalize(command.text)
-        : `${original.slice(0, start)}\n${original.slice(end)}`;
+        : `${original.slice(0, start)}${command.type === 'paste' ? normalize(command.text) : '\n'}${original.slice(end)}`;
+    if (
+      slide.titleSlide &&
+      (linesOf(text).length > 2 ||
+        linesOf(text).some(line => line.length > SONG_LIMITS.titleLine))
+    ) {
+      return snapshot;
+    }
     const caret =
-      command.type === 'text' ? command : {start: start + 1, end: start + 1};
+      command.type === 'text'
+        ? command
+        : {
+            start:
+              start +
+              (command.type === 'paste' ? normalize(command.text).length : 1),
+            end:
+              start +
+              (command.type === 'paste' ? normalize(command.text).length : 1),
+          };
     return blockSnapshot(
       text === original
         ? song

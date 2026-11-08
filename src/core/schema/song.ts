@@ -22,11 +22,12 @@ import {slideHotKeySchema} from './slideHotKey';
 export const SONG_NAME_MAX_LENGTH = 512;
 
 export const SONG_SCHEMA_VERSION = 1;
-export const SONG_LIMITS = {slides: 10_000, label: 64} as const;
+export const SONG_LIMITS = {slides: 10_000, label: 64, titleLine: 512} as const;
 
 export const songSlideSchema = jsonObject({
   id: songSlideIdSchema,
   lines: v.array(v.string()),
+  titleSlide: v.exactOptional(v.literal(true)),
   label: v.exactOptional(
     v.pipe(
       v.string(),
@@ -43,6 +44,20 @@ export const songSlideSchema = jsonObject({
 export const songSlidesSchema = v.pipe(
   listWithUniqueIds(songSlideSchema),
   v.maxLength(SONG_LIMITS.slides),
+  v.check(
+    slides =>
+      slides.every(
+        (slide, index) =>
+          slide.titleSlide === undefined ||
+          (index === 0 &&
+            slide.lines.length <= 2 &&
+            slide.lines.every(
+              line =>
+                line.length <= SONG_LIMITS.titleLine && !/[\r\n]/.test(line),
+            )),
+      ),
+    'A song title must be first and contain at most two short lines',
+  ),
   v.check(slides => {
     const keys = slides.flatMap(slide =>
       slide.hotKey === undefined ? [] : [slide.hotKey],

@@ -76,6 +76,7 @@ export const layerSchemas = {
     transition: v.exactOptional(slideTransitionSchema),
     label: v.nullable(liveTextSchema),
     lines: slideLinesSchema,
+    titleSlide: v.exactOptional(v.literal(true)),
     continued: v.exactOptional(v.boolean()),
     reference: v.exactOptional(liveTextSchema),
     name: v.exactOptional(liveTextSchema),

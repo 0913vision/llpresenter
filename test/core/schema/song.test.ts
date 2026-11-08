@@ -16,6 +16,53 @@ const song = (slides: unknown = [slide()]) => ({
 const parse = (data: unknown) => parseSong(JSON.stringify(data), 'song.llsong');
 
 describe('song slide deck contract', () => {
+  it('round trips a first title slide with bounded editable title and subtitle', () => {
+    const input = song([
+      {...slide(), titleSlide: true, lines: ['Title', 'Subtitle']},
+      slide(2),
+    ]);
+    const read = expectSuccess(parse(input));
+    expect(
+      JSON.parse(expectSuccess(serializeSong(read.data, 'song.llsong'))),
+    ).toEqual(input);
+    expect(
+      parseService(
+        JSON.stringify({
+          format: 'llservice',
+          schemaVersion: 1,
+          id: id(200),
+          name: 'Service',
+          date: '2026-01-01T11:00',
+          order: [{id: id(201), song: id(100), slides: input.slides}],
+        }),
+        'service.llservice',
+      ).ok,
+    ).toBe(true);
+    for (const lines of [
+      [],
+      ['Title'],
+      ['Title', ''],
+      ['x'.repeat(SONG_LIMITS.titleLine), 'Subtitle'],
+    ]) {
+      expect(parse(song([{...slide(), titleSlide: true, lines}])).ok).toBe(
+        true,
+      );
+    }
+  });
+  it('rejects duplicate or misplaced titles, invalid flags and oversized title text', () => {
+    const title = {...slide(), titleSlide: true};
+    for (const slides of [
+      [slide(2), title],
+      [title, {...title, id: id(2)}],
+      [{...title, titleSlide: false}],
+      [{...title, titleSlide: 'title'}],
+      [{...title, lines: ['a', 'b', 'c']}],
+      [{...title, lines: ['x'.repeat(SONG_LIMITS.titleLine + 1)]}],
+      [{...title, lines: ['a\nb']}],
+    ]) {
+      expect(parse(song(slides)).ok).toBe(false);
+    }
+  });
   it('round trips blank slides, free names and unknown nested fields', () => {
     const input = {
       ...song([

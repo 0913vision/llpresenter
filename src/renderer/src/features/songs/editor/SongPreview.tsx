@@ -283,6 +283,9 @@ export function ContentPreviewFrame({
                 position: tilePicture.position - 1,
                 label: tilePicture.tile.label,
                 lines: tilePicture.tile.lines,
+                ...(tilePicture.tile.titleSlide === undefined
+                  ? {}
+                  : {titleSlide: tilePicture.tile.titleSlide}),
                 ...(tilePicture.tile.transition === undefined
                   ? {}
                   : {transition: tilePicture.tile.transition}),

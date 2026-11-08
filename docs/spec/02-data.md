@@ -1216,3 +1216,8 @@ MiB, with 1 KiB of it reserved for the header, so the state must fit in the rest
 Source: `Main` service notes ("출력 상태는 파일에 넣지 않습니다"), `Main`
 decision "복구는 출력 상태만", `Recovery` (three restore rows), product log
 versions 61 and 62.
+
+Song slides may carry `titleSlide: true`. Only the first slide may carry it; its
+`lines` contains at most two strings of at most 512 characters without embedded
+newlines. Existing slides need no migration. The marker is retained in service
+decks, show tiles, and the live slide payload.

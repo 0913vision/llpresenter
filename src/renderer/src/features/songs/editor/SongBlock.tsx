@@ -21,6 +21,7 @@ import styles from './SongEditor.module.css';
 import {SlideTransitionMark} from '@renderer/ui/SlideTransitionMark';
 import {EditorSlideNumber} from './EditorSlideNumber';
 import plate from './EditorSlidePlate.module.css';
+import {SONG_LIMITS} from '@core/schema/song';
 
 export interface EditorFocus {
   inputs: Array<HTMLTextAreaElement | null>;
@@ -224,7 +225,12 @@ export const SongBlock = memo(
             ref={input => {
               focus.current.inputs[block] = input;
             }}
-            aria-label={`슬라이드 ${block + 1} 가사`}
+            aria-label={`슬라이드 ${block + 1} ${slide.titleSlide ? '제목 및 부제' : '가사'}`}
+            title={
+              slide.titleSlide
+                ? `제목 및 부제: 두 줄, 각 ${SONG_LIMITS.titleLine}자`
+                : undefined
+            }
             className={styles.lyrics}
             value={slide.lines.join('\n')}
             data-empty={slide.lines.join('\n') === '' || undefined}

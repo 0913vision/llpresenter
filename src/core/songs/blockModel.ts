@@ -19,6 +19,7 @@ export type BlockCommand =
     }
   | {readonly type: 'paste'; readonly text: string}
   | {readonly type: 'label'; readonly name: string | undefined}
+  | {readonly type: 'title'; readonly title: string}
   | {readonly type: 'enter' | 'split' | 'insert' | 'merge'};
 
 export const normalize = (text: string): string => text.replace(/\r\n?/g, '\n');

@@ -3,6 +3,7 @@ import type {Screen} from '../schema/screens';
 import type {Theme, ThemeScreenLayout, ThemesFile} from '../schema/themes';
 import {builtInTheme, type ThemeScreen} from './defaults';
 import {themeElementProblem, type ThemeItemKind} from './elementRules';
+import {SONG_THEME_ID} from './songTitle';
 
 interface ItemThemeRequest {
   readonly file: ThemesFile | null | undefined;
@@ -76,7 +77,15 @@ export function resolveThemeScreen(
     if (layout.mode.kind === 'own') {
       return themeElementProblem(layout.elements, destination.kind) ===
         undefined
-        ? {sourceScreenId: current, layout}
+        ? {
+            sourceScreenId: current,
+            layout:
+              theme.id === SONG_THEME_ID &&
+              layout.songTitle !== 'sunday' &&
+              screens.find(screen => screen.id === current)?.kind === 'audience'
+                ? {...layout, songTitle: 'sunday'}
+                : layout,
+          }
         : empty;
     }
     current = layout.mode.screen;

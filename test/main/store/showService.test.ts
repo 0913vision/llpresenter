@@ -36,6 +36,24 @@ import {
 const MISSING_SONG_ID = '0f0f0f0f-0f0f-4f0f-8f0f-0f0f0f0f0f0f';
 const MEDIA_ID = '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293';
 
+it('projects a song title marker without inventing a transition', () => {
+  const song = loaded(parseSong(JSON.stringify(hymnOne()), 'song.llsong')).data;
+  const tiles = projectSongTiles(
+    {
+      ...song,
+      slides: [
+        {id: fixtureSlideId(1), titleSlide: true, lines: ['Title', 'Subtitle']},
+      ],
+    },
+    new Map(),
+  ).tiles;
+  expect(tiles[0]).toMatchObject({
+    titleSlide: true,
+    lines: ['Title', 'Subtitle'],
+  });
+  expect(tiles[0]?.transition).toBeUndefined();
+});
+
 function loaded<T>(parsed: Result<LoadedFile<T>, FileError>): LoadedFile<T> {
   if (!parsed.ok) {
     throw new Error(parsed.error.message);

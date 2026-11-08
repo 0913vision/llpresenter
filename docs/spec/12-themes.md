@@ -609,3 +609,15 @@ fields, as every settings file does (02).
 - 11: the toolbar 테마 button and the 출력 menu's 테마 바꾸기 row; 출력 › 화면
   설정… opens the 화면 설정 window; the 지우기 row has 항목.
 - 04: the 진행 지우기 row starts with 항목 (항목 끄기).
+
+### Song title layout
+
+New 찬양 audience layouts carry optional `songTitle: "sunday"`. For a song title
+slide, the shared output and thumbnail composition replaces 현재 가사 with the
+editable title and subtitle lines over the same song background. The white title
+uses NanumSquare ExtraBold at 120 px, centered without shadow or outline, in
+frame (339, 181, 1242, 160). The optional subtitle uses NanumSquare Regular at
+64 px with 24 px tracking in frame (252, 345, 1416, 90). Lyric slides and the
+other screen roles retain their normal layouts. The built-in 찬양 also resolves
+this title variant in saved catalogs without rewriting their lyric layouts.
+Other layouts without the selector retain ordinary text rendering.

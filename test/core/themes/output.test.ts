@@ -11,6 +11,31 @@ import {resolveThemeOutput} from '@core/themes/output';
 import {SUNDAY_STANDBY_PICTURE_IDS} from '@core/themes/sundayStandby';
 
 describe('published theme compositions', () => {
+  it('resolves titles for saved built-in song themes while retaining lyric edits and other roles', () => {
+    const file = themeFile();
+    const song = file.themes.find(theme => theme.id === file.defaults.song);
+    const audience = song?.screens[THEME_MAIN];
+    if (song === undefined || audience === undefined) {
+      throw new Error('Missing song theme');
+    }
+    const {songTitle: removed, ...legacy} = audience;
+    const saved: Theme = {
+      ...song,
+      screens: {...song.screens, [THEME_MAIN]: legacy},
+    };
+    const output = resolveThemeOutput({
+      file: {...file, themes: [saved]},
+      screens: themeScreens,
+      item: {id: 'song', kind: 'song', source: 'service'},
+      revision: 1,
+    });
+    expect(output.screens[THEME_MAIN]?.layout.songTitle).toBe('sunday');
+    expect(output.screens[THEME_MAIN]?.layout.elements).toEqual(
+      legacy.elements,
+    );
+    expect(output.screens[THEME_CAPTURE]?.layout.songTitle).toBeUndefined();
+    expect(saved.screens[THEME_MAIN]).not.toHaveProperty('songTitle');
+  });
   it('publishes standby and each screen empty color when there is no item', () => {
     const file = themeFile();
     const output = resolveThemeOutput({

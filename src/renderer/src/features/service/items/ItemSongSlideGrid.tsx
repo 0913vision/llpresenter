@@ -154,6 +154,9 @@ function ItemSongTiles({
                 position: index,
                 label: slide.label ?? null,
                 lines: slide.lines,
+                ...(slide.titleSlide === undefined
+                  ? {}
+                  : {titleSlide: slide.titleSlide}),
               }}
             />
           );

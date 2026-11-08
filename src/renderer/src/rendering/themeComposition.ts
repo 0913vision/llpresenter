@@ -7,6 +7,7 @@ import {OUTPUT_TRANSITIONS} from './transitions';
 import {SlideAnimation} from './slideAnimation';
 import {THEME_LIMITS} from '@core/themes/elementRules';
 import {themeBackgroundStyle} from './themeBackground';
+import {songTitleLayout} from '@core/themes/songTitle';
 
 interface ThemePage {
   layers: LiveLayers;
@@ -46,6 +47,18 @@ export class ThemeCompositionView {
   }
 
   render(layers: LiveLayers, frame: RenderFrame): void {
+    if (frame.theme !== undefined) {
+      frame = {
+        ...frame,
+        theme: {
+          ...frame.theme,
+          layout: songTitleLayout(
+            frame.theme.layout,
+            frame.slide ?? layers.slide,
+          ),
+        },
+      };
+    }
     this.gaps.follow(frame);
     this.content = {layers, frame};
     const theme = frame.theme;
@@ -199,6 +212,15 @@ export class ThemeCompositionView {
     const page = this.page;
     const content = this.content;
     if (page === null || content === null) return;
+    for (const view of this.leaving?.elements ?? []) {
+      view.setClearOpacity({
+        ...content.frame.clearOpacity,
+        slide:
+          content.layers.slide === null
+            ? 0
+            : (content.frame.clearOpacity?.slide ?? 1),
+      });
+    }
     page.layers = content.layers;
     page.frame = content.frame;
     const video =

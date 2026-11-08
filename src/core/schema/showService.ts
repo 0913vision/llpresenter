@@ -127,6 +127,7 @@ export const showTileSchema = v.pipe(
     label: v.nullable(v.string()),
     labelColor: labelColorSchema,
     lines: v.array(v.string()),
+    titleSlide: v.exactOptional(v.literal(true)),
     reference: v.exactOptional(liveTextSchema),
     name: v.exactOptional(liveTextSchema),
     picture: v.exactOptional(mediaIdSchema),

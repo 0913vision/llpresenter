@@ -12,6 +12,25 @@ const tiles: Readonly<Record<string, readonly SlideTile[]>> = {
 const tilesOf = (itemId: string): readonly SlideTile[] => tiles[itemId] ?? [];
 
 describe('slideLayerOf', () => {
+  it('carries title identity into output without turning the next lyric into a title', () => {
+    const deck: readonly SlideTile[] = [
+      {
+        titleSlide: true,
+        label: null,
+        labelColor: 'none',
+        lines: ['Title', 'Subtitle'],
+      },
+      {label: null, labelColor: 'none', lines: ['Lyric']},
+    ];
+    expect(slideLayerOf({itemId: 'song', index: 0}, () => deck)).toMatchObject({
+      titleSlide: true,
+      lines: ['Title', 'Subtitle'],
+      next: {lines: ['Lyric']},
+    });
+    expect(
+      slideLayerOf({itemId: 'song', index: 1}, () => deck)?.titleSlide,
+    ).toBeUndefined();
+  });
   it('carries the incoming tile override independently of the next tile', () => {
     const transition = {kind: 'wipe', dir: 'down', sec: 4} as const;
     const deck: readonly SlideTile[] = [

@@ -115,6 +115,7 @@ export function selectedPreview(
     const rawLabel = slide.label;
     return {
       lines: slide.lines,
+      ...(slide.titleSlide === undefined ? {} : {titleSlide: slide.titleSlide}),
       label: rawLabel === undefined || rawLabel === '' ? null : rawLabel,
     };
   };
@@ -137,6 +138,7 @@ export function selectedPreview(
       position: block,
       label: slide.label,
       lines: slide.lines,
+      ...(slide.titleSlide === undefined ? {} : {titleSlide: slide.titleSlide}),
       ...(transition === undefined ? {} : {transition}),
       ...(next === undefined ? {} : {next}),
     },
