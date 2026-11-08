@@ -311,16 +311,17 @@ bar handles.
   (https://support.renewedvision.com/hc/en-us/articles/360050786794;
   https://support.renewedvision.com/hc/en-us/articles/55789101197587).
 
-| Group | Row                                       | Does                                                                                                                   | Status  |
-| ----- | ----------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ------- |
-| 1     | 구역 추가                                 | Adds a 구역 header (PP New Header).                                                                                    | Now     |
-| 1     | 자리 표시 추가, 빈 항목 추가              | PP New Placeholder, New Cue.                                                                                           | Off     |
-| 2     | 빈 슬라이드, 광고                         | Add a slides item after the selection and open 슬라이드 편집 (05).                                                     | Now     |
-| 2     | 사도신경 ›, 주기도문 ›                    | Each offers 새 번역 and 옛 번역; adds editable slides after the selection with manual advance (05).                    | Now     |
-| 2     | 미디어 ›                                  | Submenu of media, as today.                                                                                            | Now     |
-| 2     | 성경 구절…                                | Opens the 성경 구절 dialog.                                                                                            | Now     |
-| 2     | 영상 스트림 항목…, 오디오 스트림 항목…    | PP stream items.                                                                                                       | Off     |
-| -     | Search field and the 라이브러리 song list | Removed from this menu. Songs come from 라이브러리 right-click (예배 순서에 추가) and toolbar 곡 검색 with Ctrl Enter. | Removed |
+| Group | Row                                       | Does                                                                                                                                            | Status  |
+| ----- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| 1     | 구역 추가                                 | Adds a 구역 header (PP New Header).                                                                                                             | Now     |
+| 1     | 자리 표시 추가, 빈 항목 추가              | PP New Placeholder, New Cue.                                                                                                                    | Off     |
+| 2     | 빈 슬라이드, 광고                         | Add a slides item after the selection and open 슬라이드 편집 (05).                                                                              | Now     |
+| 2     | 사도신경 ›, 주기도문 ›                    | Each offers 새 번역 and 옛 번역; adds editable slides after the selection with manual advance (05).                                             | Now     |
+| 2     | 구역 이름 ›                               | Offers the ordered Sunday section names; adds an editable 빈 슬라이드 with its theme, English line and background after the selection (05, 12). | Now     |
+| 2     | 미디어 ›                                  | Submenu of media, as today.                                                                                                                     | Now     |
+| 2     | 성경 구절…                                | Opens the 성경 구절 dialog.                                                                                                                     | Now     |
+| 2     | 영상 스트림 항목…, 오디오 스트림 항목…    | PP stream items.                                                                                                                                | Off     |
+| -     | Search field and the 라이브러리 song list | Removed from this menu. Songs come from 라이브러리 right-click (예배 순서에 추가) and toolbar 곡 검색 with Ctrl Enter.                          | Removed |
 
 ### 예배 순서 항목 오른쪽 클릭
 

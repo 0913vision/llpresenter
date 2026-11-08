@@ -25,7 +25,7 @@ import {
 import {SUNDAY_PICTURE_IDS} from '@core/themes/sundayScripture';
 import type {InitialPicture} from './initialPictures';
 
-export const SUNDAY_PICTURES: readonly InitialPicture[] = [
+export const SECTION_PICTURES: readonly InitialPicture[] = [
   ...SECTION_BACKGROUNDS.map(picture => ({
     id: picture.id,
     name: `구역 ${picture.color} 배경`,
@@ -40,6 +40,10 @@ export const SUNDAY_PICTURES: readonly InitialPicture[] = [
     }[picture.color],
   })),
   {id: SECTION_RULES_ID, name: '구역 이름 선', file: sectionRules},
+];
+
+export const SUNDAY_PICTURES: readonly InitialPicture[] = [
+  ...SECTION_PICTURES,
   {
     id: SUNDAY_STANDBY_PICTURE_IDS.serviceTimes,
     name: '예배 안내 배경',

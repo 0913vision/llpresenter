@@ -4,6 +4,7 @@ import type {MediaItem} from '@core/schema/mediaList';
 import type {OtherItemChoices} from '@renderer/features/service/items/quickAddItems';
 import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
 import {otherItemEntries} from '@renderer/features/service/items/quickAddItems';
+import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
 
 vi.mock('@renderer/features/service/items/quickAddLiturgy', () => ({
   prepareLiturgy: vi.fn(async (kind: string, translation: string) => ({
@@ -51,6 +52,7 @@ describe('quick add other items', () => {
       '광고',
       '사도신경',
       '주기도문',
+      '구역 이름',
       '미디어',
       '성경 구절…',
       '영상 스트림 항목…',
@@ -66,6 +68,7 @@ describe('quick add other items', () => {
       ['광고', false],
       ['사도신경', false],
       ['주기도문', false],
+      ['구역 이름', false],
       ['미디어', false],
       ['성경 구절…', false],
       ['영상 스트림 항목…', true],
@@ -88,6 +91,18 @@ describe('quick add other items', () => {
       throw new Error('Expected immediate section items');
     }
     expect(first?.id).not.toBe(second?.id);
+  });
+  it('offers the section cards in the shared list order without inserted spaces', () => {
+    const choices = items(
+      entry(
+        build(() => undefined),
+        'other:section-card',
+      ).submenu ?? [],
+    );
+    expect(choices.map(choice => choice.label)).toEqual(
+      SUNDAY_SECTIONS.map(section => section.name),
+    );
+    expect(choices.every(choice => choice.disabled !== true)).toBe(true);
   });
   it.each(['blank', 'ad'])(
     'adds a %s item with one empty slide and its playback defaults',

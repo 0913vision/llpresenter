@@ -1,7 +1,7 @@
 import {resolve} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {mediaEndpoints} from '@contracts/ipc/media';
-import {parseMediaDocument} from '@core/schema/mediaEdit';
+import {parseMediaDocument, type MediaEditResult} from '@core/schema/mediaEdit';
 import {createMediaId} from '@core/schema/ids';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
@@ -53,7 +53,10 @@ function mockBackend(): MediaBackend {
   };
 }
 
-function setup(access: 'editable' | 'readOnly' = 'editable') {
+function setup(
+  access: 'editable' | 'readOnly' = 'editable',
+  prepareSections?: Parameters<typeof registerMediaChannels>[2],
+) {
   const log = recordingLogger();
   const store = new MediaStore({
     document: expectSuccess(
@@ -86,13 +89,30 @@ function setup(access: 'editable' | 'readOnly' = 'editable') {
       remove: async () => ({ok: true, value: undefined}),
     },
   });
-  const channels = registerMediaChannels(Promise.resolve(store), log);
+  const channels = registerMediaChannels(
+    Promise.resolve(store),
+    log,
+    prepareSections,
+  );
   onTestFinished(() => channels.dispose());
   electron.send.mockClear();
   return {store, log, channels};
 }
 
 describe('media backend boundary', () => {
+  it('routes section preparation to the fixed app-side picture provider without accepting client paths', async () => {
+    const prepare = vi
+      .fn<(store: MediaStore) => Promise<MediaEditResult>>()
+      .mockResolvedValue({ok: true, value: null});
+    const {store} = setup('editable', prepare);
+    expect(
+      await handler(mediaEndpoints.edit.channel)(
+        {},
+        {type: 'media.sections.prepare', paths: ['ignored']},
+      ),
+    ).toEqual({ok: true, value: null});
+    expect(prepare).toHaveBeenCalledExactlyOnceWith(store);
+  });
   it('bounds pending backend work and rejects a disconnected late reply', async () => {
     const {channels, store} = setup();
     let release: (result: unknown) => void = () => undefined;

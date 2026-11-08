@@ -16,7 +16,10 @@ import {
 
 export type MediaListEdit = Exclude<
   MediaEdit,
-  {readonly type: 'media.relink' | 'media.import.cancel'}
+  {
+    readonly type:
+      'media.relink' | 'media.import.cancel' | 'media.sections.prepare';
+  }
 >;
 export type PlaylistRef = NonNullable<
   import('@core/schema/mediaEdit').MediaImportRequest['playlist']

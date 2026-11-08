@@ -21,6 +21,7 @@ const progress = {
 
 describe('media list edits', () => {
   it.each([
+    {type: 'media.sections.prepare'},
     {type: 'media.playlist.create', kind: 'media'},
     {type: 'media.playlist.create', kind: 'audio'},
     {

@@ -387,6 +387,11 @@ marker. Wrapping therefore keeps the same spacing decision; literal marker text
 still counts when it is not marked as a continuation. `slideNumber` is a text
 element with the common properties and the one-per-screen limit described in 12.
 
+An `itemName` element may store `centerWhenTextEmpty` (Boolean, off when
+omitted). When enabled, whitespace-only or absent current slide text centers the
+item name vertically in its frame; otherwise its configured alignment applies.
+Saved themes without this option keep their alignment.
+
 ### 매크로 (`macros.json`)
 
 | Field           | Type                                                                                                 | Meaning                                                                   | Source                                    |
@@ -691,6 +696,11 @@ change this picker preference.
 | `mediaStrip`                                    | Saved open or closed choice. When present, it wins over the size class and height defaults. With no saved choice, use the defaults in 04.                                                                                 |
 
 ## Media list (`Settings\media.json`)
+
+The `media.sections.prepare` edit has only its `type` field. Explicit section
+insertion uses it to add the eight packaged section pictures missing from an
+existing media catalog, keeping existing entries and files. Paths and picture
+IDs are selected by the app, not supplied in the edit.
 
 | Field                     | Type                                | Meaning                                                                                                                                                                                           | Source                          |
 | ------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |

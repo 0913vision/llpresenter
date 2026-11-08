@@ -11,10 +11,14 @@ export interface InitialPicture {
   readonly file: string;
 }
 
-/** Copies shipped pictures into a new library, where operators can replace them. */
+/**
+ * Copies shipped pictures without overwriting operator files. Reports each new
+ * file before reading metadata, so callers can roll back an incomplete batch.
+ */
 export async function initialPictures(
   folder: string,
   pictures: readonly InitialPicture[],
+  onCopied?: (file: string) => void,
 ): Promise<readonly MediaItem[]> {
   await mkdir(folder, {recursive: true});
   const items: MediaItem[] = [];
@@ -22,6 +26,7 @@ export async function initialPictures(
     const file = await freePath(folder, `${picture.id}.png`);
     if (file === null) throw new Error('No free name for a default picture');
     await copyFile(picture.file, file, constants.COPYFILE_EXCL);
+    onCopied?.(file);
     const size = (await stat(file)).size;
     items.push({
       id: picture.id,

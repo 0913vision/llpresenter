@@ -50,6 +50,7 @@ interface ConnectedBackend {
 export function registerMediaChannels(
   loading: Promise<MediaStore | null>,
   log: Logger,
+  prepareSections?: (store: MediaStore) => Promise<MediaEditResult>,
 ) {
   let disposed = false;
   let backend: ConnectedBackend | null = null;
@@ -112,6 +113,16 @@ export function registerMediaChannels(
       const store = await ready;
       if (disposed || store === null) return CLOSED;
       const edit = parsed.value;
+      if (edit.type === 'media.sections.prepare') {
+        try {
+          return prepareSections === undefined
+            ? UNAVAILABLE
+            : await prepareSections(store);
+        } catch (error: unknown) {
+          log.error('could not prepare section pictures', error);
+          return mediaRefusal('invalid', 'Could not prepare section pictures');
+        }
+      }
       if (edit.type !== 'media.relink' && edit.type !== 'media.import.cancel') {
         return store.apply(edit);
       }

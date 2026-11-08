@@ -61,6 +61,20 @@ describe('theme element properties', () => {
       );
     }
   });
+  it('accepts optional empty-text centering only as a Boolean without changing old item names', () => {
+    const name = {...element, kind: 'itemName'};
+    expect(v.safeParse(themeElementSchema, name).success).toBe(true);
+    for (const centerWhenTextEmpty of [true, false]) {
+      expect(
+        v.safeParse(themeElementSchema, {...name, centerWhenTextEmpty}).success,
+      ).toBe(true);
+    }
+    for (const centerWhenTextEmpty of [null, 1, 'true']) {
+      expect(
+        v.safeParse(themeElementSchema, {...name, centerWhenTextEmpty}).success,
+      ).toBe(false);
+    }
+  });
   it('accepts optional bullets only as a Boolean and limits slide numbers to one per screen', () => {
     for (const bullets of [true, false]) {
       expect(v.safeParse(themeTextSchema, {...text, bullets}).success).toBe(

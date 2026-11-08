@@ -143,7 +143,8 @@ export function sundaySectionLayout(): ThemeScreenLayout {
       {
         id: id(4),
         kind: 'itemName',
-        frame: {x: 44, y: 412, w: 1876, h: 198},
+        frame: {x: 44, y: 412, w: 1876, h: 240},
+        centerWhenTextEmpty: true,
         text,
       },
       {

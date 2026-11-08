@@ -23,6 +23,7 @@ import {themeBackgroundStyle} from './themeBackground';
 import bulletStyles from './bulletText.module.css';
 import {bulletTextStyle, textParagraphs} from './textParagraphs';
 import {resolveTextTracking} from '@core/themes/textTracking';
+import {themeTextVAlign} from '@core/themes/textAlignment';
 
 interface MeasuredText {
   readonly lines: readonly string[];
@@ -61,10 +62,12 @@ function ThemeTextBox({
   element,
   content,
   measured,
+  vAlign = element.text.vAlign,
 }: {
   readonly element: TextThemeElement;
   readonly content: string;
   readonly measured?: MeasuredText | undefined;
+  readonly vAlign?: ThemeText['vAlign'];
 }): JSX.Element {
   const block = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
@@ -95,7 +98,7 @@ function ThemeTextBox({
           top: 'flex-start',
           middle: 'center',
           bottom: 'flex-end',
-        }[element.text.vAlign],
+        }[vAlign],
       }}
     >
       <div
@@ -201,6 +204,10 @@ function contents(
     return (
       <ThemeTextBox
         element={element}
+        vAlign={themeTextVAlign(
+          element,
+          context.measuredText?.lines.join('\n') ?? samples.currentText ?? '',
+        )}
         measured={
           element.kind === 'currentText'
             ? context.measuredText

@@ -71,6 +71,18 @@ have landed.
 
 ### Slides items and 슬라이드 편집
 
+- 항목 추가 offers 구역 이름 with the ordered section names from the shared
+  Sunday section list (12), without inserted spaces. Choosing a name inserts an
+  editable 빈 슬라이드 after the selection, or appends without a selection,
+  selects it and opens 슬라이드 편집. The item uses its Korean name, the 구역
+  이름 theme, the section's ordinary background picture, one text slide with the
+  English name (empty for 묵상기도), and manual advance. Item name, slide text
+  and background remain editable through the normal controls. A missing theme
+  definition is added for the configured screens; an existing theme is
+  preserved. Preparation also copies absent section backgrounds and the rules
+  picture into an existing media catalog. Existing media IDs and operator
+  replacements are preserved, and existing disk files are never overwritten. If
+  preparation fails, no section item is inserted.
 - 항목 추가 also offers 사도신경 and 주기도문 submenus, each with 새 번역
   (Protestant 2004) and 옛 번역. All four insert after the selected row, or
   append without a selection, using an editable 빈 슬라이드 item named for the

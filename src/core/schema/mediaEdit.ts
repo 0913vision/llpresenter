@@ -56,6 +56,7 @@ const propertiesChangeSchema = v.pipe(
 const mediaEditSchema = v.pipe(
   plainObject,
   v.variant('type', [
+    v.object({type: v.literal('media.sections.prepare')}),
     v.object({
       type: v.literal('media.playlist.create'),
       kind: v.picklist(['media', 'audio']),
@@ -166,7 +167,8 @@ export type MediaImportProgress = ReadonlyKnown<
 
 /**
  * The success id names the affected entity; revision belongs to the whole
- * media list. Null success cancels a relink dialog or a copy job.
+ * media list. Null success cancels a relink dialog or copy job, or leaves
+ * already prepared section pictures unchanged.
  */
 export type MediaEditResult = Result<EditSuccess | null, EditFailure>;
 

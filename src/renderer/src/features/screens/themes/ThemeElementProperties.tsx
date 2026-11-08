@@ -81,6 +81,20 @@ export function ThemeElementProperties({
             </PropertyRow>
           ))}
         </PropertyColumns>
+        {element.kind === 'itemName' ? (
+          <ThemeCheck
+            label="가사 없을 때 가운데"
+            checked={element.centerWhenTextEmpty ?? false}
+            reason={reason}
+            change={centerWhenTextEmpty =>
+              change(value =>
+                value.kind === 'itemName'
+                  ? {...value, centerWhenTextEmpty}
+                  : value,
+              )
+            }
+          />
+        ) : null}
         {element.kind === 'reference' ? (
           <PropertyRow label="출처 내용">
             {({controlId}) => (

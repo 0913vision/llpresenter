@@ -10,6 +10,8 @@ import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 import {newSlidesItem} from '@core/services/slidesEdits';
 import {LITURGY} from '@core/services/liturgy';
 import {prepareLiturgy} from './quickAddLiturgy';
+import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
+import {prepareSection} from './quickAddSection';
 
 const SECTION_NAME = '새 구역';
 
@@ -76,6 +78,17 @@ export function otherItemEntries({
         onSelect: () => onInsert(() => prepareLiturgy(kind, translation)),
       })),
     })),
+    {
+      kind: 'item',
+      id: 'other:section-card',
+      label: '구역 이름',
+      submenu: SUNDAY_SECTIONS.map(section => ({
+        kind: 'item' as const,
+        id: `section-card:${section.name}`,
+        label: section.name,
+        onSelect: () => onInsert(() => prepareSection(section)),
+      })),
+    },
     {
       kind: 'item',
       id: 'other:media',

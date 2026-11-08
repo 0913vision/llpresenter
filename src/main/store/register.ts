@@ -26,7 +26,8 @@ import {registerMediaChannels, type MediaBackendPort} from './mediaChannels';
 import {registerMediaUses} from './mediaUses';
 import {LoadingMediaLibrary} from './mediaLibrary';
 import {openMediaStore} from './mediaLoader';
-import {SUNDAY_PICTURES} from './bundledPictures';
+import {SUNDAY_PICTURES, SECTION_PICTURES} from './bundledPictures';
+import {prepareSectionPictures} from './prepareSectionPictures';
 import {SUNDAY_PICTURE_IDS} from '@core/themes/sundayScripture';
 import {initialPictures} from './initialPictures';
 import type {MediaStore} from './mediaStore';
@@ -126,7 +127,9 @@ export function registerStore({
       log.error('could not open the media list', error);
       return null;
     });
-  const mediaChannels = registerMediaChannels(media, log);
+  const mediaChannels = registerMediaChannels(media, log, store =>
+    prepareSectionPictures(store, SECTION_PICTURES),
+  );
   let bible: BibleLookupSession | undefined;
   let bibleClosed = false;
   const openBible = (): BibleLookupSession =>

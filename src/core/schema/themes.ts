@@ -113,7 +113,9 @@ export const themeElementSchema = v.pipe(
     textElement('nextText', {text: lyricText}),
     textElement('label', {}),
     textElement('nextLabel', {}),
-    textElement('itemName', {}),
+    textElement('itemName', {
+      centerWhenTextEmpty: v.exactOptional(v.boolean()),
+    }),
     textElement('slideName', {}),
     textElement('slideNumber', {}),
     textElement('text', {content: v.string()}),

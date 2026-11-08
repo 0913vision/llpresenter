@@ -107,24 +107,25 @@ not change the saved number. Dragging and resizing save the rounded geometry
 shown on the canvas and in the fields. Arrow keys retain their existing
 one-pixel increment (ten with Shift).
 
-| Property         | Applies to                                  | Range                                                               |
-| ---------------- | ------------------------------------------- | ------------------------------------------------------------------- |
-| X, Y, W, H       | All                                         | Shown to 0.1 px; inside the canvas; W and H at least 8              |
-| 글꼴, 굵기       | Text elements                               | An installed family; 100 to 900                                     |
-| 크기             | Text elements                               | 12 to 400                                                           |
-| 색               | Text elements, 사각형                       | `#RRGGBB`                                                           |
-| 줄 간격          | Text elements                               | 0.8 to 3.0                                                          |
-| 자간             | Text elements                               | -20 to 200 reference px; default 0                                  |
-| 짧은 글 자간     | Text elements                               | Off by default; 최대 글자 수 1 to 10, alternate 자간 -20 to 200 px  |
-| 글머리 기호      | Text elements                               | Checkbox, off by default; one hanging bullet per nonempty paragraph |
-| 출처 내용        | 성경 출처                                   | 현재 절 (default), 항목 범위                                        |
-| 가로 정렬        | Text elements                               | 왼쪽, 가운데, 오른쪽                                                |
-| 세로 위치        | Text elements                               | 위, 가운데, 아래                                                    |
-| 성경 분할 줄 수  | Bible split-source text, in 화면 > 성경     | 1 to 12; Bible split budget at the configured size (04)             |
-| 외곽선, 그림자   | Text elements                               | On or off                                                           |
-| 채우기, 불투명도 | 사각형, and the box behind any text element | `#RRGGBB`; 0 to 100                                                 |
-| 모서리           | 사각형, 이미지, 미디어, 배경                | 0 to 200                                                            |
-| 맞춤             | 이미지, 미디어, 배경, 오버레이              | 맞추기, 채우기, 늘리기 (the media properties' 맞춤)                 |
+| Property            | Applies to                                  | Range                                                                             |
+| ------------------- | ------------------------------------------- | --------------------------------------------------------------------------------- |
+| X, Y, W, H          | All                                         | Shown to 0.1 px; inside the canvas; W and H at least 8                            |
+| 글꼴, 굵기          | Text elements                               | An installed family; 100 to 900                                                   |
+| 크기                | Text elements                               | 12 to 400                                                                         |
+| 색                  | Text elements, 사각형                       | `#RRGGBB`                                                                         |
+| 줄 간격             | Text elements                               | 0.8 to 3.0                                                                        |
+| 자간                | Text elements                               | -20 to 200 reference px; default 0                                                |
+| 짧은 글 자간        | Text elements                               | Off by default; 최대 글자 수 1 to 10, alternate 자간 -20 to 200 px                |
+| 글머리 기호         | Text elements                               | Checkbox, off by default; one hanging bullet per nonempty paragraph               |
+| 출처 내용           | 성경 출처                                   | 현재 절 (default), 항목 범위                                                      |
+| 가사 없을 때 가운데 | 항목 이름                                   | Checkbox, off by default; use the frame's vertical center when 현재 가사 is empty |
+| 가로 정렬           | Text elements                               | 왼쪽, 가운데, 오른쪽                                                              |
+| 세로 위치           | Text elements                               | 위, 가운데, 아래                                                                  |
+| 성경 분할 줄 수     | Bible split-source text, in 화면 > 성경     | 1 to 12; Bible split budget at the configured size (04)                           |
+| 외곽선, 그림자      | Text elements                               | On or off                                                                         |
+| 채우기, 불투명도    | 사각형, and the box behind any text element | `#RRGGBB`; 0 to 100                                                               |
+| 모서리              | 사각형, 이미지, 미디어, 배경                | 0 to 200                                                                          |
+| 맞춤                | 이미지, 미디어, 배경, 오버레이              | 맞추기, 채우기, 늘리기 (the media properties' 맞춤)                               |
 
 Text elements are 현재 가사, 성경 출처, 다음 가사, 이름표, 다음 이름표, 항목
 이름, 슬라이드 이름, 글, 시계, 타이머, 영상 남은 시간, 무대 메시지, and 메모.
@@ -485,14 +486,16 @@ fields, as every settings file does (02).
   supplies the Korean name without inserted spaces; its one slide text supplies
   the English name, which may be empty. On 청중 화면 both use white
   KoPubWorldDotum without shadow or outline: Bold 152 px at y=412, tracking 52
-  px, and Light 56 px at y=613, tracking 34 px. Korean names of up to two
-  characters use 152 px tracking. The centered short-text option compensates for
-  the change in CSS trailing spacing so the visual center stays fixed. Counts
-  use Unicode code points excluding whitespace and generated continuation
-  markers, so wrapping does not change the decision. Literal marker text still
-  counts. Empty text keeps ordinary tracking. Measurement, output and thumbnails
-  use the same rule, including edits and scaling. The two gray rules are an
-  ordinary transparent picture, at x=700, y=305/759, 520 x 5 px, #737D87.
+  px, and Light 56 px at y=613, tracking 34 px. The Korean frame is 240 px high
+  and enables 가사 없을 때 가운데: with an empty English line, its ink starts
+  near y=460 between the rules; otherwise it starts near y=415. Korean names of
+  up to two characters use 152 px tracking. The centered short-text option
+  compensates for the change in CSS trailing spacing so the visual center stays
+  fixed. Counts use Unicode code points excluding whitespace and generated
+  continuation markers, so wrapping does not change the decision. Literal marker
+  text still counts. Empty text keeps ordinary tracking. Measurement, output and
+  thumbnails use the same rule, including edits and scaling. The two gray rules
+  are an ordinary transparent picture, at x=700, y=305/759, 520 x 5 px, #737D87.
 - Each section card keeps an ordinary item background picture. New catalogs
   include one 1920 x 1080 picture per section color, generated with the same
   OKLCH gradient presets as the editor. Without an item background the theme

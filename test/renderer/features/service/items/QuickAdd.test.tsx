@@ -28,6 +28,8 @@ import {formLookupReply} from '@fixtures/core/bibleReplies';
 import type {RecentPassage} from '@core/schema/bible';
 import {prepareLiturgy} from '@renderer/features/service/items/quickAddLiturgy';
 import {newSlidesItem} from '@core/services/slidesEdits';
+import {SECTION_THEME_ID, SUNDAY_SECTIONS} from '@core/themes/sundaySections';
+import {isItemOfKind} from '@core/schema/service';
 
 vi.mock('@renderer/features/service/items/quickAddLiturgy', () => ({
   prepareLiturgy: vi.fn(),
@@ -152,7 +154,7 @@ function setup() {
   });
   const onProblem = vi.fn();
   render(<ServiceQuickAdd onProblem={onProblem} />);
-  return {...fixture, onProblem, user: userEvent.setup()};
+  return {...fixture, api, onProblem, user: userEvent.setup()};
 }
 
 async function openBibleForm(
@@ -190,6 +192,54 @@ function fillBibleForm(end = ''): void {
 }
 
 describe('항목 추가', () => {
+  it.each(['찬양', '합심기도', '묵상기도', '축도'])(
+    'inserts an editable %s section card after the selection with its picture and one English slide',
+    async name => {
+      const {api, user, service, onProblem} = setup();
+      const preparePictures = vi
+        .spyOn(api.media, 'edit')
+        .mockResolvedValue({ok: true, value: null});
+      const open = vi
+        .spyOn(api.slidesEditor, 'open')
+        .mockResolvedValue({ok: true, value: undefined});
+      useShow.setState({
+        openItemId: fixtureItems.arranged,
+        rows: [
+          {kind: 'song', id: fixtureItems.arranged, title: '첫 곡'},
+          {kind: 'song', id: fixtureItems.plain, title: '다음 곡'},
+        ],
+      });
+      await user.click(screen.getByRole('button', {name: '항목 추가'}));
+      await user.click(screen.getByRole('menuitem', {name: '구역 이름'}));
+      await user.click(await screen.findByRole('menuitem', {name}));
+      await waitFor(() => expect(open).toHaveBeenCalledOnce());
+      expect(preparePictures).toHaveBeenCalledWith({
+        type: 'media.sections.prepare',
+      });
+      expect(onProblem).not.toHaveBeenCalled();
+      const section = SUNDAY_SECTIONS.find(section => section.name === name);
+      const order = service().service.order;
+      const index = order.findIndex(item => item.id === fixtureItems.arranged);
+      const added = order[index + 1];
+      expect(added).toMatchObject({
+        theme: SECTION_THEME_ID,
+        background: section?.background,
+        slides: {form: 'blank', name, slides: [{text: section?.english}]},
+      });
+      if (added === undefined || !isItemOfKind(added, 'slides')) {
+        throw Error('Missing section card');
+      }
+      expect(added.slides.advance).toBeUndefined();
+      expect(added.slides.loop).toBeUndefined();
+      expect(added.slides.slides).toHaveLength(1);
+      expect(order[index + 2]?.id).toBe(fixtureItems.plain);
+      expect(useShow.getState().openItemId).toBe(added.id);
+      expect(open).toHaveBeenCalledWith({
+        serviceId: fixtureServiceId,
+        itemId: added.id,
+      });
+    },
+  );
   it('inserts a prepared liturgy after the selected item and opens its slide commands', async () => {
     const {api, user, service} = setup();
     const item = newSlidesItem(

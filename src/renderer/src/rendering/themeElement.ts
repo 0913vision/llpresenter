@@ -3,6 +3,7 @@ import {mediaObjectFit} from '@core/media/objectFit';
 import type {ThemeElement} from '@core/schema/themes';
 import type {TextStyle} from '@core/themes/textStyle';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
+import {themeTextVAlign} from '@core/themes/textAlignment';
 import {
   isThemeTextElement,
   themeElementText,
@@ -203,6 +204,9 @@ export class ThemeElementView {
       }
     } else {
       this.showText(this.textContent(layers, frame, videoRemaining), frame, {
+        vAlign: isThemeTextElement(element)
+          ? themeTextVAlign(element, layers.slide?.lines.join('\n') ?? '')
+          : undefined,
         continued:
           (element.kind === 'currentText'
             ? layers.slide?.continued
@@ -328,9 +332,11 @@ export class ThemeElementView {
     {
       continued = false,
       biblePart,
+      vAlign,
     }: {
       readonly continued?: boolean;
       readonly biblePart?: number | undefined;
+      readonly vAlign?: TextStyle['vAlign'] | undefined;
     } = {},
   ): void {
     if (this.text === null) return;
@@ -356,6 +362,7 @@ export class ThemeElementView {
       }
       style = {
         ...textStyle,
+        vAlign: vAlign ?? textStyle.vAlign,
         font:
           known === false && !bundled ? 'Pretendard Variable' : textStyle.font,
         margin: 0,

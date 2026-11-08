@@ -60,7 +60,8 @@ it('adds an editable section theme without changing the kind defaults or other s
     {kind: 'image', mediaId: SECTION_RULES_ID},
     {
       kind: 'itemName',
-      frame: {x: 44, y: 412, w: 1876, h: 198},
+      frame: {x: 44, y: 412, w: 1876, h: 240},
+      centerWhenTextEmpty: true,
       text: {
         font: 'KoPubWorldDotum',
         weight: 700,
