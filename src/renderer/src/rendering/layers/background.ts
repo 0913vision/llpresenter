@@ -13,7 +13,7 @@ export const backgroundLayer = defineLayer({
           view.setDissolveMs(frame.transitionTimes.backgroundMs);
         }
         if (frame?.clearOpacity?.media !== undefined) view.hold();
-        else view.show(layers.media, frame?.transitions);
+        else view.show(layers.media, frame?.transitions, frame?.standby);
       },
       ready: () => view.ready(),
       dispose: () => view.dispose(),

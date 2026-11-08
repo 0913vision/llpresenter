@@ -50,10 +50,18 @@ export function startOffsetSeconds(
   duration: number,
   now: number,
 ): number {
+  const offset = playbackOffsetSeconds(media, duration, now);
+  return offset < MIN_SEEK_SECONDS ? 0 : offset;
+}
+
+function playbackOffsetSeconds(
+  media: MediaLayer,
+  duration: number,
+  now: number,
+): number {
   if (!Number.isFinite(duration) || duration <= 0) return 0;
   const elapsed = backgroundElapsedSeconds(media, now);
-  const offset = media.loop ? elapsed % duration : Math.min(elapsed, duration);
-  return offset < MIN_SEEK_SECONDS ? 0 : offset;
+  return media.loop ? elapsed % duration : Math.min(elapsed, duration);
 }
 
 type VideoIndex = 0 | 1;
@@ -128,6 +136,7 @@ class PlaybackBackgroundLayerView {
   private transitions = true;
   private failed = false;
   private held = false;
+  private standby = false;
   private audioGain = 1;
   private sinkId = '';
   private dissolveMs: number = BACKGROUND_DISSOLVE_MS;
@@ -182,13 +191,16 @@ class PlaybackBackgroundLayerView {
     this.dissolveMs = ms;
   }
 
-  show(media: MediaLayer | null, transitions = true): void {
+  show(media: MediaLayer | null, transitions = true, standby = false): void {
+    const resumed = this.standby && !standby;
+    const suspended = !this.standby && standby;
+    this.standby = standby;
     if (this.held) {
       this.held = false;
       this.current = null;
       this.clearAtOnce();
     }
-    transitions = transitions && this.dissolveMs > 0;
+    transitions = transitions && !standby && this.dissolveMs > 0;
     this.transitions = transitions;
     if (this.handover?.contentChange === true) {
       this.handover = {...this.handover, dissolve: transitions};
@@ -202,6 +214,7 @@ class PlaybackBackgroundLayerView {
       }
     }
     const unchanged = media?.mediaId === this.current?.mediaId;
+    const restarted = media?.startedAt !== this.current?.startedAt;
     this.current = media;
     for (const index of VIDEO_INDEXES) {
       if (this.holdsCurrent(index)) {
@@ -209,13 +222,24 @@ class PlaybackBackgroundLayerView {
       }
     }
     if (unchanged) {
+      if (suspended) this.pauseForStandby();
+      else if (resumed) this.resume();
+      else if (standby && restarted) {
+        const target = this.handover?.to ?? this.front;
+        this.cancelFrame(target);
+        this.seekCurrent(this.videos[target]);
+        this.prepareFrame(target);
+      }
       return;
     }
     this.failed = false;
     this.cancelSpare();
     this.cancelSeek();
     if (media === null) this.clearAtOnce();
-    else this.start(media);
+    else {
+      if (standby) this.clearAtOnce();
+      this.start(media);
+    }
   }
 
   remaining(): number | undefined {
@@ -311,7 +335,71 @@ class PlaybackBackgroundLayerView {
     this.load(to, media.mediaId);
     this.seekOnceLoaded(video, media);
     this.handover = {to, dissolve: this.transitions, contentChange: true};
-    this.play(video);
+    if (!this.standby) this.play(video);
+  }
+
+  private pauseForStandby(): void {
+    this.cancelSpare();
+    const target = this.handover?.to ?? this.front;
+    for (const index of VIDEO_INDEXES) {
+      if (index !== target) this.unloadAt(index);
+      else this.videos[index].pause();
+    }
+    this.prepareFrame(target);
+  }
+
+  private prepareFrame(index: VideoIndex): void {
+    const video = this.videos[index];
+    if (
+      (!this.standby && !this.atEnd()) ||
+      !this.holdsCurrent(index) ||
+      video.seeking ||
+      video.readyState < HTMLMediaElement.HAVE_CURRENT_DATA
+    ) {
+      return;
+    }
+    this.cancelFrame(index);
+    this.decoded[index] = true;
+    this.handlePlaying(index);
+  }
+
+  private resume(): void {
+    if (this.current === null) return;
+    const target = this.handover?.to ?? this.front;
+    if (this.isImage(target)) return;
+    const video = this.videos[target];
+    this.cancelFrame(target);
+    this.handover = {to: target, dissolve: false, contentChange: false};
+    this.seekCurrent(video);
+    if (this.atEnd()) {
+      video.pause();
+      this.prepareFrame(target);
+    } else this.play(video);
+  }
+
+  private atEnd(): boolean {
+    const media = this.current;
+    const video = this.videos[this.handover?.to ?? this.front];
+    return (
+      media !== null &&
+      !media.loop &&
+      Number.isFinite(video.duration) &&
+      video.duration > 0 &&
+      backgroundElapsedSeconds(media, Date.now()) >= video.duration
+    );
+  }
+
+  private seekCurrent(video: HTMLVideoElement): void {
+    if (
+      this.current !== null &&
+      video.readyState >= HTMLMediaElement.HAVE_METADATA
+    ) {
+      video.currentTime = playbackOffsetSeconds(
+        this.current,
+        video.duration,
+        Date.now(),
+      );
+    }
   }
 
   private settleFront(reused: VideoIndex): void {
@@ -369,7 +457,10 @@ class PlaybackBackgroundLayerView {
     try {
       video.playbackRate = properties?.speed ?? 1;
       video.volume = ((properties?.volume ?? 100) / 100) * this.audioGain;
-      video.muted = (this.options.muted ?? true) || properties?.audio !== true;
+      video.muted =
+        this.standby ||
+        (this.options.muted ?? true) ||
+        properties?.audio !== true;
     } catch (error) {
       this.onError('could not apply background media properties', error);
     }
@@ -392,8 +483,9 @@ class PlaybackBackgroundLayerView {
     const removers = this.videos.flatMap((video, index) => {
       const at: VideoIndex = index === 0 ? 0 : 1;
       const onPlaying = (): void => {
-        if (this.held) {
+        if (this.held || this.standby || this.atEnd()) {
           video.pause();
+          this.prepareFrame(at);
           return;
         }
         if (this.isImage(at)) return;
@@ -423,14 +515,19 @@ class PlaybackBackgroundLayerView {
         }
       };
       const onEnded = (): void => this.handleEnded(at);
+      const onPrepared = (): void => this.prepareFrame(at);
       const onError = (): void => this.handleError(at);
       video.addEventListener('playing', onPlaying);
       video.addEventListener('ended', onEnded);
       video.addEventListener('error', onError);
+      video.addEventListener('loadeddata', onPrepared);
+      video.addEventListener('seeked', onPrepared);
       return [
         () => video.removeEventListener('playing', onPlaying),
         () => video.removeEventListener('ended', onEnded),
         () => video.removeEventListener('error', onError),
+        () => video.removeEventListener('loadeddata', onPrepared),
+        () => video.removeEventListener('seeked', onPrepared),
       ];
     });
     return () => {
@@ -445,6 +542,13 @@ class PlaybackBackgroundLayerView {
     this.handover = null;
     const previous = this.pictureAt(this.front);
     const next = this.pictureAt(index);
+    if (index === this.front) {
+      next.style.zIndex = FRONT_LAYER;
+      next.classList.remove(classes.dissolving);
+      next.classList.add(classes.shown);
+      this.prepareSpareLater();
+      return;
+    }
     next.style.zIndex = FRONT_LAYER;
     previous.style.zIndex = BACK_LAYER;
     this.element.style.setProperty(
@@ -478,11 +582,12 @@ class PlaybackBackgroundLayerView {
   // about 50 ms while its decoder starts, so it waits until the new
   // background has played for a while instead of landing on the dissolve.
   private prepareSpareLater(): void {
+    if (this.standby || this.atEnd()) return;
     this.spareTimer = setTimeout(() => this.prepareSpare(), SPARE_DELAY_MS);
   }
 
   private handleEnded(index: VideoIndex): void {
-    if (this.held) return;
+    if (this.held || this.standby) return;
     if (this.isImage(index)) return;
     // NOTE(0913vision): An outgoing background that ends while the next one
     // starts holds its last frame; only the current background loops.
@@ -534,6 +639,7 @@ class PlaybackBackgroundLayerView {
   }
 
   private play(video: HTMLVideoElement): void {
+    if (this.standby) return;
     const src = video.getAttribute('src');
     video.play().catch((error: unknown) => {
       if (video.getAttribute('src') !== src) return;
@@ -658,8 +764,10 @@ export class BackgroundLayerView {
     this.view.setDissolveMs(ms);
   }
 
-  show(media: MediaLayer | null, transitions = true): void {
-    this.view.show(media, transitions);
+  show(media: MediaLayer | null, transitions = true, standby = false): void {
+    if (this.view instanceof PlaybackBackgroundLayerView) {
+      this.view.show(media, transitions, standby);
+    } else this.view.show(media, transitions);
   }
 
   remaining(): number | undefined {

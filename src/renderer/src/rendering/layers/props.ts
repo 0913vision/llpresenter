@@ -80,8 +80,8 @@ export const propsLayer = defineLayer({
       view.template = text;
       view.ticking = hasTickingToken(text, timers);
     };
-    const followTicking = (): void => {
-      const ticking = pool.some(view => view.ticking);
+    const followTicking = (standby: boolean): void => {
+      const ticking = !standby && pool.some(view => view.ticking);
       if (ticking && ticker === null) {
         ticker = setInterval(tick, TIMER_TICK_MS);
       } else if (!ticking && ticker !== null) {
@@ -144,7 +144,7 @@ export const propsLayer = defineLayer({
             view.image.show(item.content.media);
           }
         }
-        followTicking();
+        followTicking(frame?.standby === true);
       },
       rescale: next => {
         scale = next;

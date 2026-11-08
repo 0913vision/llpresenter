@@ -443,6 +443,70 @@ describe('theme composition drawing', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
+  it.each([false, true])(
+    'stops outgoing media when disabling during a theme transition with incoming ready=%s',
+    incomingReady => {
+      const {root, view} = setup();
+      const background: ThemeElement = {
+        ...themeElementBase(),
+        kind: 'background',
+        fit: 'fit',
+        radius: 0,
+      };
+      const layers = {...song, media: {mediaId, loop: true, startedAt: 1000}};
+      view.render(layers, frame([background]));
+      const outgoing = root.querySelector('[data-theme-page]');
+      const outgoingVideo = root.querySelector<HTMLVideoElement>('video[src]');
+      if (outgoingVideo === null) throw new Error('Missing outgoing player');
+      outgoingVideo.dispatchEvent(new Event('playing'));
+      const nextId = createMediaId('00000000-0000-4000-8000-000000000602');
+      const nextLayers = {...layers, media: {...layers.media, mediaId: nextId}};
+      const nextFrame = {
+        ...frame([background], {
+          themeId: createThemeId('00000000-0000-4000-8000-000000000502'),
+        }),
+        transitionTimes: {slideMs: 1000, backgroundMs: 500},
+      };
+      view.render(nextLayers, nextFrame);
+      const incomingVideo = root.querySelector<HTMLVideoElement>(
+        `video[src*="${nextId}"]`,
+      );
+      if (incomingVideo === null) throw new Error('Missing incoming player');
+      if (incomingReady) incomingVideo.dispatchEvent(new Event('playing'));
+      vi.advanceTimersByTime(32);
+      expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(2);
+      expect(root.contains(outgoing)).toBe(true);
+      expect(view.ready()).toBe(incomingReady);
+
+      view.render(nextLayers, {...nextFrame, standby: true});
+
+      expect(root.contains(outgoing)).toBe(false);
+      expect(outgoingVideo.hasAttribute('src')).toBe(false);
+      expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(1);
+      expect(root.querySelector('[data-theme-page]')?.classList).toContain(
+        classes.instant,
+      );
+      expect(
+        root.querySelector<HTMLElement>('[data-theme-page]')?.style.transition,
+      ).toBe('none');
+      expect(
+        root.querySelector<HTMLElement>('[data-theme-page]')?.style.opacity,
+      ).toBe('1');
+      expect(incomingVideo.hasAttribute('src')).toBe(true);
+      expect(view.ready()).toBe(incomingReady);
+      expect(vi.getTimerCount()).toBe(0);
+      const plays = vi.mocked(HTMLMediaElement.prototype.play).mock.calls
+        .length;
+      const loads = vi.mocked(HTMLMediaElement.prototype.load).mock.calls
+        .length;
+      vi.advanceTimersByTime(5000);
+      expect(HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(plays);
+      expect(HTMLMediaElement.prototype.load).toHaveBeenCalledTimes(loads);
+      expect(vi.getTimerCount()).toBe(0);
+      view.dispose();
+    },
+  );
+
   it('reuses a retained background decoder and playback position across theme layouts', () => {
     const {root, view, onError} = setup();
     const elements: ThemeElement[] = [
@@ -568,6 +632,26 @@ describe('theme composition drawing', () => {
     view.dispose();
     expect(image?.getAttribute('src')).toBeNull();
     expect(image?.onerror).toBeNull();
+  });
+
+  it('holds standby clock text without ticking and resumes it when enabled', () => {
+    const {view, text} = setup();
+    let wall = Date.UTC(2026, 0, 1, 0);
+    const content = {
+      ...frame([{...themeElementBase(), kind: 'clock', clockFormat: '24h'}]),
+      standby: true,
+      timers: {list: [], runs: undefined, now: () => ({wall, timer: 0})},
+    };
+    view.render(song, content);
+    const first = text('clock');
+    wall += 60_000;
+    vi.advanceTimersByTime(2500);
+    expect(text('clock')).toBe(first);
+    expect(vi.getTimerCount()).toBe(0);
+    view.render(song, {...content, standby: false});
+    expect(text('clock')).not.toBe(first);
+    view.dispose();
+    expect(vi.getTimerCount()).toBe(0);
   });
 
   it('ticks clock text without allocating pages and cancels its ticker when hidden', () => {

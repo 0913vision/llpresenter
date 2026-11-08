@@ -51,8 +51,18 @@ describe('background layer', () => {
   it('shows the media layer, with the frame transitions', () => {
     const {layer, view} = create();
     layer.render({...emptyLayers(), media: MEDIA}, {transitions: false});
-    expect(view.show).toHaveBeenCalledExactlyOnceWith(MEDIA, false);
+    expect(view.show).toHaveBeenCalledExactlyOnceWith(MEDIA, false, undefined);
     expect(view.hold).not.toHaveBeenCalled();
+  });
+
+  it.each([true, false])('passes standby=%s to the media player', standby => {
+    const {layer, view} = create();
+    layer.render({...emptyLayers(), media: MEDIA}, {standby});
+    expect(view.show).toHaveBeenCalledExactlyOnceWith(
+      MEDIA,
+      undefined,
+      standby,
+    );
   });
 
   it('gives the view the 배경 전환 time of the frame, and a cut for 0', () => {

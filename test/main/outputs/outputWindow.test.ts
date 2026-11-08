@@ -55,6 +55,17 @@ function setUp(autoReady = true) {
 }
 
 describe('OutputWindow', () => {
+  it('records a hidden prepared frame without revealing before the request', () => {
+    const {output, windows, setVersion} = setUp(false);
+    output.preload(FULL_SCREEN);
+    setVersion(1);
+    expect(output.frameReady(1, {...PROJECTOR, ready: true})).toBe(false);
+    expect(windows.only('main').mode.kind).toBe('hidden');
+    output.update(FULL_SCREEN);
+    expect(windows.only('main').mode.kind).toBe('fullscreen');
+    output.dispose();
+  });
+
   it('never leaves a requested output hidden past the frame deadline and logs once', async () => {
     const clock = installMockClock();
     const {output, windows, log} = setUp(false);

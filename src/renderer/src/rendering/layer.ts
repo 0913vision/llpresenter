@@ -50,6 +50,8 @@ export interface RenderFrame {
   readonly clearOpacity?: Readonly<Partial<Record<LayerKind, number>>>;
   readonly propOpacity?: ReadonlyMap<string, number>;
   readonly transitions?: boolean;
+  /** Prepares a paused frame without audio, animation or clock updates. */
+  readonly standby?: boolean;
   readonly screen?: RenderScreen;
   /** How this screen draws a 메시지; absent draws the 기본 style. */
   readonly messageStyle?: TextStyle;

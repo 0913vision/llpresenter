@@ -96,9 +96,13 @@ screen's output on and off. There is no confirmation.
 - Turning an output off keeps the output state (the live 슬라이드, background,
   그래픽, and so on). Turning it back on shows that content at once. While the
   output is off, the preview keeps showing the same picture.
-- Keep the off output's window and screen settings ready, but release its media
-  sources, decoders, drawing objects, and animation work. On enable, prepare the
-  latest main-owned live state and playback position before revealing it. An on
+- Prepare the current live picture at the off output's size when its content
+  changes. Load a live video paused and decode its first frame, without audio or
+  a loop spare. Once that frame is ready, stop readiness sampling, animation and
+  clock updates; an off output does not keep decoding or drawing. Replace the
+  prepared picture when live content changes and release superseded media. On
+  enable, retain the prepared player and seek to the main-owned live media's
+  current position before revealing the current frame, without a dissolve. An on
   capture window keeps drawing even when another window covers it.
 - Size hidden outputs before they are needed. Reveal a complete current frame
   without a dissolve. An output requested on must never remain hidden

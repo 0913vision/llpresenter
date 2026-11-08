@@ -314,7 +314,7 @@ export class ThemeElementView {
       this.media?.hold();
     } else {
       try {
-        this.media?.show(corrected, frame.transitions);
+        this.media?.show(corrected, frame.transitions, frame.standby);
       } catch {
         if (this.mediaId !== null) this.gaps.missing('media', this.mediaId);
         this.media?.show(null, false);

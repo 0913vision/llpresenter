@@ -92,6 +92,7 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
   let stopped = false;
   let revealPending = true;
   let lastAttempt = -Infinity;
+  let lastReady = false;
   let enableEpoch = 0;
   let drawCount = 0;
   let drawnState = '';
@@ -102,18 +103,29 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
   let readyTimer: ReturnType<typeof setTimeout> | null = null;
   const enabled = (): boolean => latest?.outputs[screenId] === true;
   const draw = (): void => {
-    if (latest === null || !enabled() || renderer === null) return;
+    if (latest === null || renderer === null) return;
+    if (!enabled()) {
+      enableEpoch += 1;
+      revealPending = true;
+      seenFrame = '';
+      paintedFrame = '';
+      lastAttempt = -Infinity;
+      lastReady = false;
+    }
     hasFrame = false;
     try {
       const frame = frames.frame(latest);
       if (frame === undefined) return;
       renderer.render(latest.layers, {
         ...frame,
+        standby: !enabled(),
+        ...(!enabled() ? {clearEffects: []} : {}),
         transitions: enabled() && !revealPending,
       });
       hasFrame = true;
       drawCount += 1;
-      meter?.refresh();
+      reportFrameRates();
+      watchReadiness();
     } catch (error) {
       report('could not update the output frame', error);
     }
@@ -147,7 +159,7 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
   // NOTE(0913vision): Only a pending reveal needs readiness work. A frame is
   // painted once the next animation frame sees the same completed drawing.
   const noteFrame = (time: number): void => {
-    if (!revealPending || !enabled()) return;
+    if (!revealPending) return;
     const key = complete() ? frameKey() : '';
     if (key === '') paintedFrame = '';
     else if (key === seenFrame) paintedFrame = key;
@@ -155,13 +167,7 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
     reportReady(time);
   };
   const reportReady = (time: number): void => {
-    if (
-      stopped ||
-      readyInFlight ||
-      latest === null ||
-      !enabled() ||
-      !revealPending
-    ) {
+    if (stopped || readyInFlight || latest === null || !revealPending) {
       return;
     }
     const version = latest.version;
@@ -169,8 +175,9 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
     const height = window.innerHeight;
     const ready = complete();
     if (ready && paintedFrame !== frameKey()) return;
-    if (time - lastAttempt < READY_RECHECK_MS) return;
+    if (time - lastAttempt < READY_RECHECK_MS && (!ready || lastReady)) return;
     lastAttempt = time;
+    lastReady = ready;
     const epoch = enableEpoch;
     readyInFlight = true;
     void api.output
@@ -182,7 +189,14 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
         height,
       })
       .then(shown => {
-        if (!stopped && enableEpoch === epoch && enabled() && shown) {
+        if (stopped || enableEpoch !== epoch) return;
+        if (!enabled() && ready) {
+          revealPending = false;
+          if (readyTimer !== null) clearTimeout(readyTimer);
+          readyTimer = null;
+          meter?.stop();
+          meter = null;
+        } else if (enabled() && shown) {
           revealPending = false;
           draw();
         }
@@ -195,7 +209,7 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
       });
   };
   const watchReadiness = (): void => {
-    if (stopped || readyTimer !== null || !enabled() || !revealPending) return;
+    if (stopped || readyTimer !== null || !revealPending) return;
     readyTimer = setTimeout(() => {
       readyTimer = null;
       reportReady(performance.now());
@@ -203,12 +217,13 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
     }, READY_POLL_MS);
   };
   const resized = (): void => {
-    if (!enabled()) return;
     enableEpoch += 1;
     revealPending = true;
     seenFrame = '';
     paintedFrame = '';
     lastAttempt = -Infinity;
+    lastReady = false;
+    if (!enabled()) draw();
     watchReadiness();
     meter?.refresh();
   };
@@ -218,9 +233,10 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
   };
   root.addEventListener('pointerdown', raise);
   const reportFrameRates = (): void => {
+    if (!enabled() && !revealPending) return;
     meter ??= startFrameRateMeter({
       onFrame: noteFrame,
-      active: () => revealPending || renderer?.moving() === true,
+      active: () => revealPending || (enabled() && renderer?.moving() === true),
       reportIdle: () => api.output.reportHealth({screenId}),
       report: fps => api.output.reportFrameRate({screenId, fps}),
     });
@@ -238,19 +254,7 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
         enableEpoch += 1;
         revealPending = true;
         lastAttempt = -Infinity;
-      }
-      if (!enabled()) {
-        if (readyTimer !== null) clearTimeout(readyTimer);
-        readyTimer = null;
-        meter?.stop();
-        meter = null;
-        renderer?.dispose();
-        renderer = null;
-        hasFrame = false;
-        drawnState = '';
-        seenFrame = '';
-        paintedFrame = '';
-        return;
+        lastReady = false;
       }
       renderer ??= new OutputRenderer(root, {
         textStyle: DEFAULT_TEXT_STYLE,
@@ -258,7 +262,7 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
         onError: report,
       });
       const content = drawnContent(state);
-      if (content !== drawnState) {
+      if (content !== drawnState || wasEnabled !== enabled()) {
         drawnState = content;
         draw();
       }

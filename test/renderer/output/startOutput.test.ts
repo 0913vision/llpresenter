@@ -274,7 +274,7 @@ describe('startOutput', () => {
     stop();
   });
 
-  it('keeps off outputs empty and loads the latest live background before revealing without a dissolve', async () => {
+  it('prepares paused off-output media and resumes the latest position without a dissolve', async () => {
     vi.spyOn(Date, 'now').mockReturnValue(10_000);
     let current = {...SHOWING, outputs: {[MAIN]: false}};
     let receive: (state: LiveState) => void = () => undefined;
@@ -319,14 +319,31 @@ describe('startOutput', () => {
     };
     receive(current);
     runFramesFor(80);
-    expect(root.children).toHaveLength(0);
-    expect(reportReady).not.toHaveBeenCalled();
+    expect(root.textContent).toContain('Hidden content');
     expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
+    const prepared = [...root.querySelectorAll('video')].find(video =>
+      video.src.includes('still-water'),
+    );
+    if (prepared === undefined) throw new Error('Missing prepared background');
+    Object.defineProperty(prepared, 'readyState', {
+      value: HTMLMediaElement.HAVE_CURRENT_DATA,
+      configurable: true,
+    });
+    prepared.dispatchEvent(new Event('loadeddata'));
+    await pumpReadiness();
+    await pumpReadiness();
+    expect(reportReady).toHaveBeenLastCalledWith(
+      expect.objectContaining({version: 4, ready: true}),
+    );
     current = {...current, version: 5, outputs: {[MAIN]: true}};
     receive(current);
     expect(root.textContent).toContain('Hidden content');
     runFramesFor(80);
-    expect(reportReady.mock.calls.some(([report]) => report.ready)).toBe(false);
+    expect(
+      reportReady.mock.calls.some(
+        ([report]) => report.version === 5 && report.ready,
+      ),
+    ).toBe(false);
     const video = [...root.querySelectorAll('video')].find(video =>
       video.src.includes('still-water'),
     );
@@ -362,9 +379,9 @@ describe('startOutput', () => {
     expect(incoming.classList.contains(classes.dissolving)).toBe(true);
     current = {...current, version: 7, outputs: {[MAIN]: false}};
     receive(current);
-    expect(root.children).toHaveLength(0);
+    expect(root.children).not.toHaveLength(0);
     expect(video.hasAttribute('src')).toBe(false);
-    expect(incoming.hasAttribute('src')).toBe(false);
+    expect(incoming.hasAttribute('src')).toBe(true);
     expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled();
     expect(HTMLMediaElement.prototype.load).toHaveBeenCalled();
     stop();
@@ -546,44 +563,48 @@ describe('startOutput', () => {
     expect(rates).toEqual([]);
   });
 
-  it('stops readiness and frame construction after acknowledgment while keeping an on output alive', async () => {
-    const settings = overlaySettings();
-    const defaults = mockLlpApi();
-    const ready = vi.fn(() => Promise.resolve(true));
-    const build = vi.spyOn(ScreenFrames.prototype, 'frame');
-    const checkReady = vi.spyOn(OutputRenderer.prototype, 'ready');
-    const root = document.createElement('div');
-    const api = mockLlpApi({
-      settings: {
-        get: ({name}) =>
-          name === 'screens'
-            ? Promise.resolve(settings.reader.get(name))
-            : defaults.settings.get({name}),
-      },
-      live: {
-        get: () =>
-          Promise.resolve({
-            ...SHOWING,
-            layers: {...SHOWING.layers, media: null},
-          }),
-      },
-      output: {reportReady: ready},
-    });
-    const stop = startOutput({root, api, screenId: MAIN_SCREEN});
-    await Promise.resolve();
-    await pumpReadiness();
-    await pumpReadiness();
-    expect(ready).toHaveBeenCalled();
-    const built = build.mock.calls.length;
-    const reports = ready.mock.calls.length;
-    const checks = checkReady.mock.calls.length;
-    runFramesFor(3000);
-    expect(build).toHaveBeenCalledTimes(built);
-    expect(ready).toHaveBeenCalledTimes(reports);
-    expect(checkReady).toHaveBeenCalledTimes(checks);
-    expect(root.textContent).toContain('만복의 근원');
-    stop();
-  });
+  it.each([true, false])(
+    'stops readiness work after preparing an output enabled=%s',
+    async enabled => {
+      const settings = overlaySettings();
+      const defaults = mockLlpApi();
+      const ready = vi.fn(() => Promise.resolve(enabled));
+      const build = vi.spyOn(ScreenFrames.prototype, 'frame');
+      const checkReady = vi.spyOn(OutputRenderer.prototype, 'ready');
+      const root = document.createElement('div');
+      const api = mockLlpApi({
+        settings: {
+          get: ({name}) =>
+            name === 'screens'
+              ? Promise.resolve(settings.reader.get(name))
+              : defaults.settings.get({name}),
+        },
+        live: {
+          get: () =>
+            Promise.resolve({
+              ...SHOWING,
+              outputs: {[MAIN_SCREEN]: enabled},
+              layers: {...SHOWING.layers, media: null},
+            }),
+        },
+        output: {reportReady: ready},
+      });
+      const stop = startOutput({root, api, screenId: MAIN_SCREEN});
+      await Promise.resolve();
+      await pumpReadiness();
+      await pumpReadiness();
+      expect(ready).toHaveBeenCalled();
+      const built = build.mock.calls.length;
+      const reports = ready.mock.calls.length;
+      const checks = checkReady.mock.calls.length;
+      runFramesFor(3000);
+      expect(build).toHaveBeenCalledTimes(built);
+      expect(ready).toHaveBeenCalledTimes(reports);
+      expect(checkReady).toHaveBeenCalledTimes(checks);
+      expect(root.textContent).toContain('만복의 근원');
+      stop();
+    },
+  );
 
   it('stops listening and removes its picture when stopped', () => {
     const {root, logs, stop} = setUp();

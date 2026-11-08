@@ -61,8 +61,9 @@ export class ThemeCompositionView {
       this.page.root.style.backgroundColor = theme.emptyColor;
     }
     this.draw(rebuilt);
-    if (rebuilt && this.leaving !== null) this.awaitIncoming(frame);
-    const ticks = (this.page?.ticking.length ?? 0) > 0;
+    if (frame.standby) this.releaseLeaving();
+    else if (rebuilt && this.leaving !== null) this.awaitIncoming(frame);
+    const ticks = !frame.standby && (this.page?.ticking.length ?? 0) > 0;
     if (ticks && this.ticker === null) {
       this.ticker = setInterval(() => {
         try {
@@ -195,7 +196,7 @@ export class ThemeCompositionView {
     }
     page.root.classList.toggle(
       classes.instant,
-      content.frame.transitions === false,
+      content.frame.standby === true || content.frame.transitions === false,
     );
   }
 
@@ -245,7 +246,10 @@ export class ThemeCompositionView {
   }
 
   private releaseLeaving(): void {
-    if (this.page !== null) this.page.root.style.opacity = '1';
+    if (this.page !== null) {
+      this.page.root.style.transition = 'none';
+      this.page.root.style.opacity = '1';
+    }
     if (this.animation !== null) cancelAnimationFrame(this.animation);
     this.animation = null;
     if (this.releaseTimer !== null) clearTimeout(this.releaseTimer);
