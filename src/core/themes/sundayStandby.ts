@@ -1,5 +1,13 @@
-import {createMediaId, createThemeElementId} from '../schema/ids';
+import {
+  createMediaId,
+  createThemeElementId,
+  createThemeId,
+} from '../schema/ids';
 import type {ThemeScreenLayout, ThemeText} from '../schema/themes';
+
+export const PREPARATION_THEME_ID = createThemeId(
+  '00000000-0000-4000-8000-000000000110',
+);
 
 export const SUNDAY_STANDBY_PICTURE_IDS = {
   serviceTimes: createMediaId('00000000-0000-4000-8000-000000000390'),

@@ -282,6 +282,16 @@ Source: `Main` service notes (same file format), `NewService`, and the user's
 decision from the m3-check3 check, October 26 (empty sections replace slot
 items).
 
+New data folders include **주일 2부 예배**, with default time **11:30**. Its
+sections are 예배 전, 묵상기도, 사도신경, 회개와간구의기도, 찬양, 합심기도,
+말씀, 봉헌, 봉헌기도, 광고, 축도, in that order. 예배 전 contains an 예배 준비
+blank slide with its theme; each named section except 말씀 contains its 구역
+이름 card. 사도신경 also contains the 새 번역 text item, and 광고 contains one
+empty notice slide using the normal 광고 defaults. Operators add their songs,
+sermon title, passage and notices later; no sample content or slot items is
+included. All items remain ordinary editable items. Existing data folders are
+unchanged, including folders with no templates or a deleted built-in template.
+
 ## App-wide settings
 
 Split the app-wide settings into one JSON file per area (proposal). If one file

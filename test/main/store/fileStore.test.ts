@@ -1,4 +1,4 @@
-import {rm, symlink} from 'node:fs/promises';
+import {mkdir, readFile, readdir, rm, symlink} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {makeTempDir} from '@fixtures/tempDir';
@@ -64,7 +64,7 @@ function dataRoot(context: TestFolders): string {
 }
 
 describe('loadStore', () => {
-  it('starts empty, with the default 이름표, on the first launch', async () => {
+  it('starts with the Sunday template and default 이름표, without songs or services', async () => {
     const context = await developmentContext();
 
     const store = await loadedStore(context);
@@ -72,10 +72,31 @@ describe('loadStore', () => {
     expect(store.locations.dataRoot).toBe(dataRoot(context));
     expect(store.songs.size).toBe(0);
     expect(store.services.size).toBe(0);
+    expect([...store.templates.values()].map(({data}) => data)).toMatchObject([
+      {name: '주일 2부 예배', time: '11:30'},
+    ]);
     expect(store.labels).toEqual(DEFAULT_LABELS);
     expect(store.preferences).toEqual(defaultPreferences);
     expect(store.openServiceId).toBeNull();
     expect(store.problems).toEqual([]);
+  });
+
+  it('does not change an existing empty data folder or restore a deleted built-in template', async () => {
+    const context = await developmentContext();
+    await mkdir(dataRoot(context));
+    const empty = await loadedStore(context);
+    expect(empty.templates.size).toBe(0);
+    expect(await readdir(dataRoot(context))).toEqual([]);
+
+    const freshContext = await developmentContext();
+    const fresh = await loadedStore(freshContext);
+    const builtIn = [...fresh.templates.values()][0];
+    if (builtIn === undefined) throw Error('Missing built-in template');
+    const original = await readFile(builtIn.file, 'utf8');
+    await loadedStore(freshContext);
+    expect(await readFile(builtIn.file, 'utf8')).toBe(original);
+    await rm(builtIn.file);
+    expect((await loadedStore(freshContext)).templates.size).toBe(0);
   });
 
   it('loads songs, services, and 이름표 from the data folder', async () => {

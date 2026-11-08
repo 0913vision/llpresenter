@@ -1,4 +1,6 @@
 import {describe, expect, it} from 'vitest';
+import {sundayTemplate} from '@core/services/sundayTemplate';
+import {isItemOfKind} from '@core/schema/service';
 import {
   allState,
   checkAll,
@@ -27,6 +29,31 @@ function row(id: string): TreeRow {
 }
 
 describe('treeRows', () => {
+  it('names all fixed Sunday template slides and retains its empty sermon section in a full selection', () => {
+    const template = sundayTemplate();
+    const sundayRows = treeRows(template.order, new Map());
+    expect(sundayRows.map(row => row.label)).toEqual(
+      template.order.map(item =>
+        isItemOfKind(item, 'header')
+          ? item.header
+          : isItemOfKind(item, 'slides')
+            ? item.slides.name
+            : '',
+      ),
+    );
+    expect(
+      sundayRows
+        .filter(row => !row.header)
+        .every(row => row.icon === 'monitor'),
+    ).toBe(true);
+    const all = checkAll(sundayRows, true);
+    expect(selectedIds(sundayRows, all)).toEqual(
+      template.order
+        .filter(item => !isItemOfKind(item, 'header') || item.header === '말씀')
+        .map(item => item.id),
+    );
+    expect(itemCount(sundayRows)).toBe(12);
+  });
   it('labels every kind and puts items under the header before them', () => {
     expect(
       rows.map(({label, icon, detail, header, headerId}) => ({

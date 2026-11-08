@@ -30,6 +30,7 @@ import {
   type LocationContext,
 } from './locations';
 import {readSettingsFile, settingsLocation} from './settingsFile';
+import {initialTemplates} from './initialTemplates';
 
 const LABELS_AREA = 'labels';
 const PREFERENCES_AREA = 'preferences';
@@ -117,6 +118,7 @@ export async function loadStore(
   if (!confined.ok) {
     return confined;
   }
+  const initialProblem = await initialTemplates(confined.value);
   const data = await readData(confined.value);
   return {
     ok: true,
@@ -128,6 +130,7 @@ export async function loadStore(
       problems: [
         ...ignored.map(field => ignoredProblem(appConfig.file, field)),
         ...data.problems,
+        ...(initialProblem === null ? [] : [initialProblem]),
       ],
     },
   };

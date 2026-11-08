@@ -20,6 +20,7 @@ import {SECTION_THEME_ID, sundaySectionLayout} from './sundaySections';
 import {
   sundayPreparationLayout,
   sundayServiceTimesLayout,
+  PREPARATION_THEME_ID,
 } from './sundayStandby';
 import {creedPrayerTheme} from './creedPrayer';
 
@@ -336,7 +337,7 @@ export function createDefaultThemes(
         ),
       },
       {
-        id: createThemeId(uuid(110)),
+        id: PREPARATION_THEME_ID,
         name: '예배 준비',
         screens: Object.fromEntries(
           screens.map(screen => [

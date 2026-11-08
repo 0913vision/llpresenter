@@ -49,6 +49,14 @@ function rowOf(
   if (isItemOfKind(item, 'bible')) {
     return {label: item.bible.ref, icon: icons.bible};
   }
+  if (isItemOfKind(item, 'slides')) {
+    return {
+      label:
+        item.slides.name ||
+        (item.slides.form === 'ad' ? '광고' : '빈 슬라이드'),
+      icon: 'monitor',
+    };
+  }
   const kind = serviceItemKind(item);
   return kind === 'media'
     ? {label: kindLabels[kind], icon: icons[kind]}

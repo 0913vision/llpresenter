@@ -1,4 +1,5 @@
-import {createServiceItemId, createSlideId} from '@core/schema/ids';
+import {createServiceItemId} from '@core/schema/ids';
+import {newSectionItem} from '@core/services/sectionCards';
 import type {ServiceItemOf} from '@core/schema/service';
 import {createDefaultThemes} from '@core/themes/defaults';
 import {
@@ -32,14 +33,5 @@ export async function prepareSection(
     });
     if (!result.ok) throw new Error('Could not add the section theme');
   }
-  return {
-    id: createServiceItemId(crypto.randomUUID()),
-    theme: SECTION_THEME_ID,
-    background: section.background,
-    slides: {
-      form: 'blank',
-      name: section.name,
-      slides: [{id: createSlideId(crypto.randomUUID()), text: section.english}],
-    },
-  };
+  return newSectionItem(createServiceItemId(crypto.randomUUID()), section);
 }
