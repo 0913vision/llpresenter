@@ -18,7 +18,7 @@ function ItemOffButton({compact}: {readonly compact: boolean}): JSX.Element {
   const hasItem = useLive(view => view.state?.themeItem != null);
   const restores = useLive(view => view.state?.canRestoreItem ?? false);
   const active = hasItem || restores;
-  const name = restores ? '항목 되돌리기' : '항목 끄기';
+  const name = restores ? '항목 되돌리기' : '대기 화면으로';
   const {targetProps, tooltip} = useTooltip({
     text: name,
     command: 'item.stop',
@@ -32,7 +32,7 @@ function ItemOffButton({compact}: {readonly compact: boolean}): JSX.Element {
       <button
         {...withTooltipProps({onBlur: pressBlur}, targetProps)}
         type="button"
-        className={styles.button}
+        className={`${styles.button} ${styles.standby}`}
         aria-label={name}
         aria-pressed={restores}
         aria-disabled={!active}
@@ -40,7 +40,7 @@ function ItemOffButton({compact}: {readonly compact: boolean}): JSX.Element {
         {...press}
       >
         <Icon name="slides" size={compact ? 16 : 18} />
-        {compact ? null : <span className={styles.label}>항목</span>}
+        {compact ? null : <span className={styles.label}>대기 화면</span>}
       </button>
       {tooltip}
     </>

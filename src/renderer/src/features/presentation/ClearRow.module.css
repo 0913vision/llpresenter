@@ -44,6 +44,12 @@
   cursor: default;
 }
 
+.standby {
+  flex: 1.4;
+  min-width: max-content;
+  margin-inline-end: var(--space-8);
+}
+
 .all {
   flex: 1.4;
 }
@@ -90,6 +96,11 @@
 
 .compact .button {
   height: var(--size-clear-button-compact);
+}
+
+.compact .standby {
+  flex: 1;
+  min-width: 0;
 }
 
 .compact .divider {

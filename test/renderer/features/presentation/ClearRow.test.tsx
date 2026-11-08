@@ -5,6 +5,8 @@ import type {LiveCommand} from '@core/live/commands';
 import type {LlpApi} from '@contracts/ipc/api';
 import {emptyLayers, emptyLiveState, type LiveLayers} from '@core/live/state';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
+import {cssRules} from '@fixtures/renderer/ui/cssRules';
+import styles from '@renderer/features/presentation/ClearRow.module.css';
 import {useLive} from '@renderer/session/live';
 import {
   hoverForTooltip,
@@ -67,14 +69,15 @@ function renderActiveItemOff() {
     },
   });
   render(<ClearRow compact={false} />);
-  const button = screen.getByRole('button', {name: '항목 끄기'});
+  const button = screen.getByRole('button', {name: '대기 화면으로'});
   return {button, send};
 }
 
-it('places Item Off first, sends the shared command, and disables it in standby', () => {
+it('names Item Off by its standby result, sends the shared command, and disables it in standby', async () => {
   const {button, send} = renderActiveItemOff();
   expect(screen.getAllByRole('button')[0]).toBe(button);
-  expect(button.textContent).toBe('항목');
+  expect(button.textContent).toBe('대기 화면');
+  expect((await hoverForTooltip(button))?.textContent).toBe('대기 화면으로');
   fireEvent.click(button);
   expect(send).toHaveBeenCalledExactlyOnceWith({type: 'item.stop'});
   act(() => useLive.setState({state: {...emptyLiveState(), themeItem: null}}));
@@ -94,6 +97,7 @@ it('offers Item Restore after a stop, preserving its pressed state until main ac
   expect(screen.getByRole('button', {name: '항목 되돌리기'})).toBe(button);
   expect(button.getAttribute('aria-disabled')).toBe('false');
   expect(button.getAttribute('aria-pressed')).toBe('true');
+  expect(button.textContent).toBe('대기 화면');
   expect((await hoverForTooltip(button))?.textContent).toBe('항목 되돌리기');
   fireEvent.click(button);
   expect(send).toHaveBeenLastCalledWith({type: 'item.restore'});
@@ -107,7 +111,7 @@ it('offers Item Restore after a stop, preserving its pressed state until main ac
       },
     }),
   );
-  expect(screen.getByRole('button', {name: '항목 끄기'})).toBe(button);
+  expect(screen.getByRole('button', {name: '대기 화면으로'})).toBe(button);
   expect(button.getAttribute('aria-pressed')).toBe('false');
 });
 
@@ -292,9 +296,28 @@ describe('ClearRow', () => {
     const {unmount} = renderWithUndo();
     expect(screen.getByText('가사')).toBeTruthy();
     expect(screen.getByText('되돌리기')).toBeTruthy();
+    expect(screen.getByText('대기 화면')).toBeTruthy();
     unmount();
     renderWithUndo(true);
     expect(screen.queryByText('가사')).toBeNull();
+    expect(screen.queryByText('대기 화면')).toBeNull();
     expect(screen.getByRole('button', {name: '가사 지우기'})).toBeTruthy();
   });
+
+  it.each([false, true])(
+    'keeps standby apart from the six clears, including without labels (compact: %s)',
+    compact => {
+      render(<ClearRow compact={compact} />);
+      const standby = screen.getByRole('button', {name: '대기 화면으로'});
+      const all = screen.getByRole('button', {name: '모두 지우기'});
+      expect([...standby.classList]).toContain(styles.standby);
+      expect(standby.nextElementSibling).toBe(all);
+      const rules = cssRules(
+        'src/renderer/src/features/presentation/ClearRow.module.css',
+      );
+      expect(rules('.row')).toContain('gap: var(--space-4)');
+      expect(rules('.standby')).toContain('margin-inline-end: var(--space-8)');
+      expect(rules('.compact .standby')).not.toContain('margin');
+    },
+  );
 });

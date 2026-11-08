@@ -11,15 +11,16 @@ The 지우기 (clear) row in the right column of the 진행 (Show) workspace. It
 
 - Clearing the contents of a list or a field (emptying a text field, deleting an item): Button, IconButton.
 - Taking items down one at a time from the 표시 중 (showing) list in 진행 도구 (show tools): IconButton (지우기).
-- Don't mix other commands into the 지우기 row. Put only 되돌리기 (undo) there, after the divider.
+- Keep the item toggle 대기 화면 before the six clears and 되돌리기 (undo) after the divider. Don't mix other commands into the row.
 - Don't add a button that clears a chosen set of layers at once (like Clear Groups in ProPresenter) in v1. Build such combinations as 지우기 actions in a macro, and if needed, attach that macro to the 시작할 때 (on start) macro of a 예배 순서 (service order) item.
 
 ## Anatomy
 
 - Row: background `bg-panel`, corner radius `radius-lg`, padding `space-8`, gap between buttons `space-4`. The row is a panel of its own and has no header.
-- Order: 모두 (all), 가사 (lyrics), 미디어 (media), 그래픽 (props), 오디오 (audio), 메시지 (message). Then its divider and 되돌리기, always: the row never changes its buttons' size or place (principle 6), and 되돌리기 is in its off state (like a button with nothing to clear) until a clear can be brought back. Its label never wraps.
+- Order: 대기 화면 (standby), then 모두 (all), 가사 (lyrics), 미디어 (media), 그래픽 (props), 오디오 (audio), 메시지 (message). Separate 대기 화면 from the six clears by `space-12`: the row's `space-4` gap plus `space-8` after that button. Then its divider and 되돌리기, always: the row never changes its buttons' size or place (principle 6), and 되돌리기 is in its off state (like a button with nothing to clear) until a clear can be brought back. Its label never wraps.
 - Button: height `size-clear-button` (52px), corner radius `radius-md`, name `caption-strong` (16/22/600) under an icon `size-icon-18`, gap `space-4`. Buttons share the row width (flex 1). 모두 is 1.4 times as wide.
-- Icons: 모두 `layers`, 가사 `text`, 미디어 `image`, 그래픽 `prop`, 오디오 `audio`, 메시지 `msg`, 되돌리기 `undo`.
+- 대기 화면: flex 1.4 with at least its label's width. In the narrow row it returns to flex 1 with no minimum width. The `space-12` group gap stays at every width, so the icon-only row keeps the distinction.
+- Icons: 대기 화면 `slides`, 모두 `layers`, 가사 `text`, 미디어 `image`, 그래픽 `prop`, 오디오 `audio`, 메시지 `msg`, 되돌리기 `undo`.
 - Divider: 1×32, `line`, horizontal margin `space-4` (8 together with the gap between buttons).
 - 되돌리기: background `bg-toolbar-hover`. It sits one step lower than the 지우기 buttons to show that it does a different job.
 - Narrow window: row padding `space-6`, button height 40, icon `size-icon-16` only, no name. Divider 1×24, horizontal margin `space-2`. 모두 stays 1.4 times as wide, so its width sets it apart.
@@ -29,7 +30,8 @@ The 지우기 (clear) row in the right column of the 진행 (Show) workspace. It
 | Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
 | 지우기 | `size-clear-button` 52 | `caption-strong` | Regular window (column `col-right` 480) |
-| 모두 | 52, 1.4 times as wide | `caption-strong` | First place in the row |
+| 대기 화면 | 52, 1.4 times as wide, at least its label | `caption-strong` | First place, before the group gap |
+| 모두 | 52, 1.4 times as wide | `caption-strong` | First of the six clears |
 | 되돌리기 | 52 | `caption-strong` | Last place, after the divider |
 | Compact | 40 | No name (icon 16) | Narrow window (column `col-right-compact` 360) |
 
@@ -48,6 +50,7 @@ Don't use red because a layer is live. Show only whether there is something to c
 
 ## Behavior
 
+- 대기 화면 runs 항목 끄기: remove the live item's slide, background, and overlays, leaving graphics, messages, and audio running. The button stays bright and pressed when that item can be restored; pressing it again restores the item. With no live or restorable item it is off. Its command keeps the name 항목 끄기 in menus and the shortcut list, without a default shortcut.
 - Unmodified Enter and Space press a focused clear button. Modified activation keys pass to their owner without clearing a layer.
 - A click clears that layer at once. Don't show a confirmation dialog. If the operator clicked by mistake, 되돌리기 brings it back.
 - 모두 clears every layer that has something to clear at once. While even one layer is left, 모두 is in the something-to-clear state.
@@ -61,6 +64,7 @@ Don't use red because a layer is live. Show only whether there is something to c
 
 - A button name is the one-word name of its layer: 모두, 가사, 미디어, 그래픽, 오디오, 메시지. The undo button is "되돌리기".
 - Write tooltips and `aria-label` as "layer name + 지우기": "가사 지우기". For 되돌리기, write "되돌리기".
+- The item toggle keeps the visible name 대기 화면 in both states. Its tooltip and `aria-label` are 대기 화면으로, or 항목 되돌리기 while pressed.
 - Don't show a notification after a clear. The button changing to nothing to clear is enough.
 
 ## Implementation notes

@@ -399,17 +399,19 @@ default. The 대기 화면 row has no 삭제 and no 기본으로 지정.
 ## 항목 끄기 and the 대기 화면
 
 - 항목 끄기 takes the live item off every screen in one step: its 슬라이드, its
-  배경, and its 오버레이. Its control is a 항목 button first in 진행's 지우기
-  row, shaped like the other clear buttons, with the tooltip 항목 끄기, and a
-  출력 menu row. It has no default shortcut: the standard-key audit in 10 found
-  no equivalent item-only toggle. The operator can assign one. Unlike 지우기
-  모두, it leaves 그래픽 and 메시지 on screen. 실행 취소 (undo) brings the item
-  back, as for a clear (03, "Undo").
-- After stopping, the 항목 button stays bright and pressed with the tooltip 항목
-  복원. Pressing it again restores that item's 슬라이드, 배경, and 오버레이,
-  resuming captured playback positions. It does not change the current 그래픽,
-  메시지, or audio, including their clocks. Its one capture is temporary and new
-  output content invalidates it, as for the other clear keys.
+  배경, and its 오버레이. Its control is a 대기 화면 button first in 진행's
+  지우기 row, shaped like the other clear buttons, with the tooltip 대기
+  화면으로. A `space-12` group gap separates it from the six clears at every
+  width, including the narrow icon-only row. The 출력 menu and shortcut list
+  keep the command name 항목 끄기. It has no default shortcut: the standard-key
+  audit in 10 found no equivalent item-only toggle. The operator can assign one.
+  Unlike 지우기 모두, it leaves 그래픽 and 메시지 on screen. 실행 취소 (undo)
+  brings the item back, as for a clear (03, "Undo").
+- After stopping, the 대기 화면 button stays bright and pressed with the tooltip
+  항목 되돌리기. Pressing it again restores that item's 슬라이드, 배경, and
+  오버레이, resuming captured playback positions. It does not change the current
+  그래픽, 메시지, or audio, including their clocks. Its one capture is temporary
+  and new output content invalidates it, as for the other clear keys.
 - With nothing live, every screen shows the 대기 화면 테마: initially the
   church's service times on the 청중 화면, the clock and timer on the 무대 화면,
   and nothing on the 방송 화면. The same screens show at launch when outputs
@@ -607,8 +609,8 @@ fields, as every settings file does (02).
   editor. Screens and monitors are in the 화면 설정 window.
 - 07: the 매크로 action 테마 바꾸기 ("테마 바꾸기" above).
 - 11: the toolbar 테마 button and the 출력 menu's 테마 바꾸기 row; 출력 › 화면
-  설정… opens the 화면 설정 window; the 지우기 row has 항목.
-- 04: the 진행 지우기 row starts with 항목 (항목 끄기).
+  설정… opens the 화면 설정 window; the 지우기 row has 대기 화면.
+- 04: the 진행 지우기 row starts with 대기 화면 (the 항목 끄기 command).
 
 ### Song title layout
 

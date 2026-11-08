@@ -324,15 +324,18 @@ each preview follows ProPresenter's rule: it shows what goes out.
 
 ### Clears in the previews
 
-- The first button in the clear row is 항목, with the tooltip 항목 끄기. It
-  removes the live item's slide, background, and overlays from every screen
-  together. Graphics, messages, and audio keep running. Each screen shows its
-  standby theme behind those independent layers (12). Clear undo restores the
-  item. After stopping, the button stays bright and pressed with the tooltip
-  항목 되돌리기. Pressing it again restores only that item's content;
-  independent layers keep their current state and playback. Like the other clear
-  keys, new output content invalidates the capture. The command has no default
-  shortcut.
+- The first button in the clear row is 대기 화면, with the tooltip 대기
+  화면으로. It removes the live item's slide, background, and overlays from
+  every screen together. Graphics, messages, and audio keep running. Each screen
+  shows its standby theme behind those independent layers (12). Clear undo
+  restores the item. After stopping, the button stays bright and pressed with
+  the tooltip 항목 되돌리기. Pressing it again restores only that item's
+  content; independent layers keep their current state and playback. Like the
+  other clear keys, new output content invalidates the capture. The command has
+  no default shortcut. The menu and shortcut command keeps the name 항목 끄기.
+  Separate 대기 화면 from the six clears with a `space-12` group gap (`space-4`
+  row gap plus `space-8` after the button), including in the narrow icon-only
+  row.
 
 - A clear removes its layer from the previews at the same moment as from the
   outputs, at once (03). The other layers stay. For example, after 가사 (F2) the
