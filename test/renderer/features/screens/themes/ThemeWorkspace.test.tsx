@@ -535,14 +535,14 @@ it('picks gradient presets in one undo step, edits only the selected stop and re
   fireEvent.click(screen.getByRole('radio', {name: '그라데이션'}));
   expect(screen.queryByRole('radiogroup', {name: '색 섞기'})).toBeNull();
   const presets = screen.getByRole('group', {name: '프리셋'});
-  expect(within(presets).getAllByRole('button')).toHaveLength(8);
+  expect(within(presets).getAllByRole('button')).toHaveLength(19);
   fireEvent.click(within(presets).getByRole('button', {name: '청록'}));
   expect(screen.getByRole('textbox', {name: '색'}).getAttribute('value')).toBe(
-    '#00303A',
+    '#00222B',
   );
-  fireEvent.click(screen.getByRole('slider', {name: '색 2, 87 %'}));
+  fireEvent.click(screen.getByRole('slider', {name: '색 2, 100 %'}));
   expect(screen.getByRole('textbox', {name: '색'}).getAttribute('value')).toBe(
-    '#00667A',
+    '#00809A',
   );
   expect(screen.getAllByRole('spinbutton', {name: '위치'})).toHaveLength(1);
   fireEvent.click(within(presets).getByRole('button', {name: '적갈'}));
@@ -567,9 +567,9 @@ it('picks gradient presets in one undo step, edits only the selected stop and re
     angle: 135,
     mixing: 'oklch',
     stops: [
-      {color: '#3A0000', position: 36},
-      {color: '#5A2500', position: 61.5},
-      {color: '#7A4900', position: 87},
+      {color: '#3A0000', position: 0},
+      {color: '#5A2500', position: 50},
+      {color: '#7A4900', position: 100},
     ],
   });
   fireEvent.click(screen.getByRole('radio', {name: '단색'}));
@@ -592,7 +592,16 @@ it('adds sampled stops, drags across neighbors in one undo step, and moves or de
   await screen.findByLabelText('테마 캔버스');
   fireEvent.click(screen.getByRole('tab', {name: '화면'}));
   fireEvent.click(screen.getByRole('radio', {name: '그라데이션'}));
-  fireEvent.click(screen.getByRole('button', {name: '청록'}));
+  fireEvent.click(screen.getByRole('button', {name: '초록'}));
+  const setPosition = (value: string): void => {
+    const field = screen.getByRole('spinbutton', {name: '위치'});
+    field.focus();
+    fireEvent.change(field, {target: {value}});
+    fireEvent.keyDown(field, {key: 'Enter'});
+  };
+  setPosition('36');
+  fireEvent.click(screen.getByRole('slider', {name: '색 2, 100 %'}));
+  setPosition('87');
   const bar = screen.getByRole('group', {name: '그라데이션 색상점'});
   const track = bar.firstElementChild;
   if (track === null) throw new Error('Missing track');
@@ -645,7 +654,7 @@ it('adds sampled stops, drags across neighbors in one undo step, and moves or de
   expect(background).toMatchObject({
     stops: [
       {color: '#004A59', position: 50},
-      {color: '#00667A', position: 87},
+      {color: '#007A43', position: 87},
     ],
   });
 });

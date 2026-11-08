@@ -259,19 +259,32 @@ until the operator or an action changes it (S4 pp. 37 to 38).
   untextured. A gradient is not treated as a uniform chroma-key background for
   message bands.
 
-The Sunday background palette uses angle 135 and these exact stops; the two
-three-stop entries keep their approved look with the single mixing method.
+The gradient preset list uses angle 135 and these exact stops, in the order
+below. The first eight are the church palette, followed by the extra choices.
+Church presets place their stops at 0/100, or 0/50/100 for three colors, except
+the chosen 5/100 teal. The darker light green keeps white text readable.
 
-| Name     | Stops (percent, hex)                 |
-| -------- | ------------------------------------ |
-| 청록     | 36 #00303A, 87 #00667A               |
-| 적갈     | 36 #3A0000, 61.5 #5A2500, 87 #7A4900 |
-| 초록     | 36 #003A24, 87 #007A43               |
-| 자주     | 36 #3A002E, 87 #AC00A0               |
-| 청록초록 | 36 #003A28, 87 #008474               |
-| 남보라   | 36 #2C003A, 87 #0073AC               |
-| 올리브   | 36 #3A1900, 61.5 #5C4800, 87 #7D7A00 |
-| 연초록   | 36 #7A9F5A, 67 #30A26A               |
+| Name     | Stops (percent, hex)                |
+| -------- | ----------------------------------- |
+| 청록     | 5 #00222B, 100 #00809A              |
+| 적갈     | 0 #3A0000, 50 #5A2500, 100 #7A4900  |
+| 초록     | 0 #003A24, 100 #007A43              |
+| 자주     | 0 #3A002E, 100 #AC00A0              |
+| 청록초록 | 0 #003A28, 100 #008474              |
+| 남보라   | 0 #2C003A, 100 #0073AC              |
+| 올리브   | 0 #3A1900, 50 #5C4800, 100 #7D7A00  |
+| 연초록   | 0 #567A40, 100 #1F7D4E              |
+| 새벽     | 20 #141B3F, 95 #4A2A78              |
+| 노을     | 20 #2E0A2C, 70 #7A2238, 100 #B0522A |
+| 바다     | 20 #0A1F3F, 95 #0F6470              |
+| 밤하늘   | 10 #070B18, 100 #1C2856             |
+| 성탄     | 20 #0B3325, 95 #6E0E1C              |
+| 부활     | 20 #261246, 95 #8C6A22              |
+| 성령     | 20 #2E0606, 95 #A8381A              |
+| 은혜     | 20 #1A222D, 95 #465565              |
+| 묵상     | 10 #121212, 100 #343434             |
+| 감사     | 20 #321F0E, 95 #8E5E27              |
+| 오로라   | 15 #0A2433, 55 #1F5E4A, 95 #4A2F78  |
 
 ### Transitions
 
@@ -470,8 +483,10 @@ Keep unknown fields, as every settings file does (02).
   picture through the normal 배경 and 미디어 elements. 방송 화면 and 무대 화면
   retain their existing 찬양 layouts, and saved themes are not migrated.
 - New libraries include three ordinary, replaceable 1920 x 1080 pictures for
-  말씀 and the two sermon title layouts. Existing catalogs and saved themes are
-  kept as they are.
+  말씀 and the two sermon title layouts. Their backgrounds use the 청록 preset
+  above, rendered with the output's OKLCH mixing and dither; the two title
+  pictures retain their original rule pixels and positions. Existing catalogs
+  and saved themes are kept as they are.
 - 말씀 on 청중 화면 uses its full-screen teal picture, white NanumSquare Bold
   text without outline or shadow: an item-range 성경 출처 at 72 px, and 현재
   가사 at 104 px, left/top aligned, with -3 px tracking and 150 px line spacing.
@@ -491,17 +506,19 @@ Keep unknown fields, as every settings file does (02).
 - `defaults.blank` selects 말씀 and `defaults.ad` selects 광고 in a new
   `themes.json`. Both can be changed like the other kind defaults.
 - On 청중 화면 the 광고 theme uses a shipped 1920 x 1080 blue-purple picture and
-  a separate transparent slash picture, both ordinary replaceable images. Above
-  the background are 배경 for an item override, 슬라이드 번호, the slash
-  picture, 슬라이드 이름, 현재 가사, and full-screen 미디어 with 채우기 so
-  picture slides cover the whole frame. All text is white KoPubWorldDotum
-  without shadow or outline. The number is Bold 160 px with -6 px tracking; the
-  title is Bold 108 px with -3 px tracking; the body is Medium 86 px with -3 px
-  tracking and 글머리 기호 enabled. Body ink starts near (262, 373), with
-  paragraphs about 128 px apart. New catalogs include both pictures; existing
-  catalogs and themes are kept. The slash picture includes the original
-  background mask that clips the number, and sits above the number but below the
-  title, matching the source composition.
+  a separate transparent slash picture, both ordinary replaceable images. The
+  background uses the 남보라 preset above with the output's OKLCH mixing and
+  dither; the slash group includes an opaque triangle filled from the background
+  picture at the same coordinates. Above the background are 배경 for an item
+  override, 슬라이드 번호, the slash picture, 슬라이드 이름, 현재 가사, and
+  full-screen 미디어 with 채우기 so picture slides cover the whole frame. All
+  text is white KoPubWorldDotum without shadow or outline. The number is Bold
+  160 px with -6 px tracking; the title is Bold 108 px with -3 px tracking; the
+  body is Medium 86 px with -3 px tracking and 글머리 기호 enabled. Body ink
+  starts near (262, 373), with paragraphs about 128 px apart. New catalogs
+  include both pictures; existing catalogs and themes are kept. The slash group
+  sits above the number and below the title, cutting the number along the line
+  so none shows beyond it.
 - 방송 화면 and 무대 화면 retain their 광고 layout: a #141c2e full-screen box, a
   24 px #e6b54a left bar, fixed "교회 소식", covering media, the 132 px slide
   name and 60 px #c9d1e0 body. The default 광고 item's 8-second advance and 반복
