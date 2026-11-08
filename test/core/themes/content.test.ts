@@ -2,6 +2,48 @@ import {expect, it} from 'vitest';
 import {emptyLayers} from '@core/live/state';
 import {themeElementBase} from '@fixtures/core/themeOutput';
 import {themeElementText, themeElementMedia} from '@core/themes/content';
+import {createMediaId} from '@core/schema/ids';
+
+it('draws the prepared text-slide number only for ads, without guessing from the deck position', () => {
+  const element = {...themeElementBase(), kind: 'slideNumber'} as const;
+  const slide = {
+    itemId: 'ad',
+    position: 4,
+    label: null,
+    lines: ['Body'],
+    textSlideNumber: 3,
+  };
+  const item = {id: 'ad', kind: 'ad', source: 'service'} as const;
+  const content = {item, layers: {...emptyLayers(), slide}};
+  expect(themeElementText(element, content)).toBe('3');
+  expect(
+    themeElementText(element, {...content, layers: emptyLayers()}),
+  ).toBeNull();
+  for (const kind of ['song', 'bible', 'blank', 'media'] as const) {
+    expect(
+      themeElementText(element, {...content, item: {...item, kind}}),
+    ).toBeNull();
+  }
+  const {textSlideNumber: _number, ...unnumbered} = slide;
+  expect(
+    themeElementText(element, {
+      ...content,
+      layers: {...content.layers, slide: unnumbered},
+    }),
+  ).toBeNull();
+  expect(
+    themeElementText(element, {
+      ...content,
+      layers: {
+        ...content.layers,
+        slide: {
+          ...slide,
+          picture: createMediaId('00000000-0000-4000-8000-000000000001'),
+        },
+      },
+    }),
+  ).toBeNull();
+});
 
 it('can keep the item passage range on every Bible slide while preserving the slide source', () => {
   const reference = {...themeElementBase(), kind: 'reference'} as const;

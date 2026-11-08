@@ -36,7 +36,20 @@ export function SlidePicture({
       measuredText={
         slide.biblePart === undefined
           ? undefined
-          : {lines: slide.lines, continued: slide.continued ?? false}
+          : {
+              lines: slide.lines,
+              continued: slide.continued ?? false,
+              part: slide.biblePart,
+            }
+      }
+      measuredNextText={
+        slide.next?.biblePart === undefined
+          ? undefined
+          : {
+              lines: slide.next.lines,
+              continued: slide.next.continued ?? false,
+              part: slide.next.biblePart,
+            }
       }
       media={{
         ...(slide.picture === undefined

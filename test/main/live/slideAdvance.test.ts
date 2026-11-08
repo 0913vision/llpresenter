@@ -23,6 +23,20 @@ import {
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => vi.useRealTimers());
 
+it('keeps text-only ad numbering through automatic picture advance and looping', () => {
+  const {store, show, stop} = setup(true);
+  show(0);
+  expect(store.state.layers.slide?.textSlideNumber).toBe(1);
+  vi.advanceTimersByTime(3000);
+  expect(store.state.layers.slide?.picture).toBe(SLIDE_PICTURE);
+  expect(store.state.layers.slide?.textSlideNumber).toBeUndefined();
+  vi.advanceTimersByTime(3000);
+  expect(store.state.layers.slide?.textSlideNumber).toBe(2);
+  vi.advanceTimersByTime(3000);
+  expect(store.state.layers.slide?.textSlideNumber).toBe(1);
+  stop();
+});
+
 it('advances a retained measured sequence after the control leaves, remapping cuts before the live verse', () => {
   const previous = setup();
   previous.stop();

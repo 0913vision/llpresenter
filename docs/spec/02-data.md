@@ -377,7 +377,10 @@ Screen layout:
 | `background` | `#RRGGBB`, optional                                                                | The empty color. Absent inherits the screen's configured empty color. |
 
 The element fields, the kinds, and their limits are in 12. A missing file is
-created with the defaults in 12, "Defaults".
+created with the defaults in 12, "Defaults". Theme text may store optional
+`tracking` (bounded reference pixels) and `bullets` (Boolean, off when omitted);
+`slideNumber` is a text element with the common properties and the
+one-per-screen limit described in 12.
 
 ### 매크로 (`macros.json`)
 

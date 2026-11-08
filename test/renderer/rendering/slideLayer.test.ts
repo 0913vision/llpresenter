@@ -4,6 +4,7 @@ import {classes} from '@renderer/rendering/classes';
 import {DEFAULT_TEXT_STYLE, scaleFor} from '@core/themes/textStyle';
 import {SlideLayerView} from '@renderer/rendering/slideLayer';
 import {OUTPUT_TRANSITIONS} from '@renderer/rendering/transitions';
+import bulletStyles from '@renderer/rendering/bulletText.module.css';
 
 const VERSE: SlideLayer = {
   itemId: 'hymn-1',
@@ -28,6 +29,32 @@ function setUp() {
 }
 
 describe('SlideLayerView', () => {
+  it('adds hanging bullets to logical paragraphs, keeps empty lines blank, and updates a retained page when toggled', () => {
+    const {view, shownPage} = setUp();
+    view.show({...VERSE, lines: ['One\nTwo', '', 'Last']}, false);
+    const shown = shownPage();
+    view.setStyle({...DEFAULT_TEXT_STYLE, bullets: true});
+    const block = shown?.querySelector(`.${classes.block}`);
+    expect(block?.children).toHaveLength(4);
+    expect(
+      [...(block?.querySelectorAll(`.${bulletStyles.marker}`) ?? [])].map(
+        node => node.textContent,
+      ),
+    ).toEqual(['•', '•', '•']);
+    expect(block?.children[2]?.textContent).toBe('\u00a0');
+    expect(
+      [...(block?.children ?? [])].every(row =>
+        row.classList.contains(bulletStyles.paragraph ?? ''),
+      ),
+    ).toBe(true);
+    view.replaceLines(['Replacement']);
+    expect(shownPage()).toBe(shown);
+    expect(block?.children).toHaveLength(1);
+    view.setStyle(DEFAULT_TEXT_STYLE);
+    expect(block?.textContent).toBe('Replacement');
+    expect(block?.querySelectorAll(`.${bulletStyles.marker}`)).toHaveLength(0);
+    view.dispose();
+  });
   it('scales letter spacing with the output and applies tracking-only edits to retained pages', () => {
     const {view, pages, shownPage} = setUp();
     view.show(VERSE);

@@ -17,6 +17,7 @@ export function SplitSlidePicture({
   element,
   maxLines,
   appearance,
+  part = 1,
 }: {
   readonly lines: readonly string[];
   readonly continued: boolean;
@@ -24,6 +25,7 @@ export function SplitSlidePicture({
   readonly element: BibleTextElement;
   readonly maxLines: number;
   readonly appearance: SplitAppearance | undefined;
+  readonly part?: number;
 }): JSX.Element {
   const parent = useRef<HTMLDivElement>(null);
   const renderer = useRef<OutputRenderer | null>(null);
@@ -65,6 +67,7 @@ export function SplitSlidePicture({
         slide: {
           itemId: 'split-preview',
           position: 0,
+          biblePart: part,
           label: null,
           lines,
           continued,
@@ -95,7 +98,7 @@ export function SplitSlidePicture({
   }, [element.id, maxLines]);
   useLayoutEffect(
     () => draw(),
-    [lines, continued, reference, element, appearance],
+    [lines, continued, reference, element, appearance, part],
   );
   return <div ref={parent} className={styles.picture} />;
 }

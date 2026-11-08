@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import type {SlideTile} from '@core/presentation/model';
 import {slideLayerOf} from '@core/presentation/slideLayer';
+import {createMediaId} from '@core/schema/ids';
 
 const tiles: Readonly<Record<string, readonly SlideTile[]>> = {
   song: [
@@ -11,6 +12,38 @@ const tiles: Readonly<Record<string, readonly SlideTile[]>> = {
 const tilesOf = (itemId: string): readonly SlideTile[] => tiles[itemId] ?? [];
 
 describe('slideLayerOf', () => {
+  it('numbers ad text slides around pictures and renumbers after reorder or deletion', () => {
+    const text: SlideTile = {
+      kind: 'ad',
+      label: null,
+      labelColor: 'none',
+      name: 'Notice',
+      lines: ['Body'],
+    };
+    const picture: SlideTile = {
+      ...text,
+      picture: createMediaId('00000000-0000-4000-8000-000000000001'),
+      lines: [],
+    };
+    for (const deck of [
+      [picture, text, picture, text, text],
+      [text, picture, text],
+      [text, text, picture],
+    ]) {
+      let number = 0;
+      for (const [index, tile] of deck.entries()) {
+        const slide = slideLayerOf({itemId: 'ad', index}, () => deck);
+        expect(slide?.textSlideNumber).toBe(
+          tile.picture === undefined ? ++number : undefined,
+        );
+      }
+    }
+    expect(
+      slideLayerOf({itemId: 'blank', index: 0}, () => [
+        {...text, kind: 'blank'},
+      ])?.textSlideNumber,
+    ).toBeUndefined();
+  });
   it('builds the layer that outputting the tile sends', () => {
     expect(slideLayerOf({itemId: 'song', index: 0}, tilesOf)).toEqual({
       itemId: 'song',
@@ -38,11 +71,21 @@ describe('slideLayerOf', () => {
         continued: true,
         biblePart: 1,
       },
-      {label: '3:16', labelColor: 'none', lines: ['다라'], continued: false},
+      {
+        label: '3:16',
+        labelColor: 'none',
+        lines: ['다라'],
+        continued: false,
+        biblePart: 2,
+      },
     ];
     expect(
       slideLayerOf({itemId: 'bible', index: 0}, () => parts),
-    ).toMatchObject({continued: true, biblePart: 1, next: {continued: false}});
+    ).toMatchObject({
+      continued: true,
+      biblePart: 1,
+      next: {continued: false, biblePart: 2},
+    });
   });
 
   it('carries an explicit Bible reference without treating song labels as references', () => {

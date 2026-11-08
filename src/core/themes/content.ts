@@ -81,6 +81,12 @@ export function themeElementText(
       return item?.contentCleared ? null : (item?.title ?? null);
     case 'slideName':
       return slide?.name ?? null;
+    case 'slideNumber':
+      return item?.kind === 'ad' &&
+        slide?.picture === undefined &&
+        slide?.textSlideNumber !== undefined
+        ? String(slide.textSlideNumber)
+        : null;
     case 'memo':
       return item?.contentCleared ? null : (item?.memo ?? null);
     case 'text':

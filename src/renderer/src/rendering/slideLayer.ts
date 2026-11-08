@@ -5,6 +5,8 @@ import {TEXT_EFFECTS, type TextStyle} from '@core/themes/textStyle';
 import {OUTPUT_TRANSITIONS} from './transitions';
 import {continuationText} from '@core/bible/split/continuation';
 import {contSizeOf} from '@core/bible/split/layout';
+import {BULLET_STYLE, textParagraphs} from './textParagraphs';
+import bulletStyles from './bulletText.module.css';
 
 /** The dissolve between 장 (docs/spec/03-output.md, version 1 default). */
 export const SLIDE_DISSOLVE_MS = OUTPUT_TRANSITIONS.slideMs;
@@ -57,6 +59,9 @@ function effects(style: TextStyle) {
 interface Page {
   readonly element: HTMLDivElement;
   readonly block: HTMLDivElement;
+  lines: readonly string[];
+  continued: boolean;
+  biblePart: number | undefined;
 }
 
 function sameSlide(a: SlideLayer | null, b: SlideLayer | null): boolean {
@@ -65,6 +70,7 @@ function sameSlide(a: SlideLayer | null, b: SlideLayer | null): boolean {
     a.itemId === b.itemId &&
     a.position === b.position &&
     a.continued === b.continued &&
+    a.biblePart === b.biblePart &&
     a.lines.length === b.lines.length &&
     a.lines.every((line, index) => line === b.lines[index])
   );
@@ -75,7 +81,13 @@ function createPage(style: TextStyle): Page {
   const block = document.createElement('div');
   element.className = classes.page;
   block.className = classes.block;
-  const page = {element, block};
+  const page: Page = {
+    element,
+    block,
+    lines: [],
+    continued: false,
+    biblePart: undefined,
+  };
   applyStyle(page, style);
   element.append(block);
   return page;
@@ -89,6 +101,9 @@ function applyStyle({element, block}: Page, style: TextStyle): void {
   block.style.fontWeight = String(style.weight);
   block.style.lineHeight = String(style.lineHeight);
   block.style.color = style.color;
+  for (const [name, value] of Object.entries(BULLET_STYLE)) {
+    block.style.setProperty(name, value);
+  }
 }
 
 const STYLE_FIELDS = [
@@ -98,6 +113,7 @@ const STYLE_FIELDS = [
   'color',
   'lineHeight',
   'tracking',
+  'bullets',
   'align',
   'vAlign',
   'maxLines',
@@ -107,17 +123,47 @@ const STYLE_FIELDS = [
 ] as const satisfies ReadonlyArray<keyof TextStyle>;
 
 function writeLines(
-  block: HTMLElement,
+  page: Page,
   lines: readonly string[],
-  continued = false,
+  {
+    continued = false,
+    bullets = false,
+    biblePart,
+  }: {
+    readonly continued?: boolean | undefined;
+    readonly bullets?: boolean | undefined;
+    readonly biblePart?: number | undefined;
+  } = {},
 ): void {
+  page.lines = lines;
+  page.continued = continued;
+  page.biblePart = biblePart;
+  const {block} = page;
+  if (bullets && biblePart === undefined) lines = textParagraphs(lines);
   lines.forEach((line, index) => {
     const row =
       block.children.item(index) ??
       block.appendChild(document.createElement('div'));
+    const startsParagraph =
+      biblePart === undefined || (biblePart === 1 && index === 0);
+    row.classList.toggle(
+      bulletStyles.paragraph ?? 'bulletParagraph',
+      bullets && startsParagraph,
+    );
+    row.classList.toggle(
+      bulletStyles.continuation ?? 'bulletContinuation',
+      bullets && !startsParagraph,
+    );
     const run = continuationText(line, continued && index === lines.length - 1);
     row.textContent =
       run.body.length > 0 ? run.body : run.marker === '' ? NO_BREAK_SPACE : '';
+    if (bullets && startsParagraph && line.trim() !== '') {
+      const marker = document.createElement('span');
+      marker.className = bulletStyles.marker ?? '';
+      marker.setAttribute('aria-hidden', 'true');
+      marker.textContent = '•';
+      row.prepend(marker);
+    }
     if (run.marker !== '') {
       const marker = document.createElement('span');
       marker.dataset['bibleContinuation'] = '';
@@ -168,7 +214,11 @@ export class SlideLayerView {
     }
     const back: PageIndex = this.front === 0 ? 1 : 0;
     const next = this.pages[back];
-    writeLines(next.block, slide.lines, slide.continued);
+    writeLines(next, slide.lines, {
+      continued: slide.continued,
+      bullets: this.style.bullets,
+      biblePart: slide.biblePart,
+    });
     this.fit(next);
     this.element.classList.toggle(classes.instant, !transitions);
     next.element.classList.add(classes.shown);
@@ -181,7 +231,11 @@ export class SlideLayerView {
     if (this.current === null) return;
     this.current = {...this.current, lines};
     const front = this.pages[this.front];
-    writeLines(front.block, lines, this.current.continued);
+    writeLines(front, lines, {
+      continued: this.current.continued,
+      bullets: this.style.bullets,
+      biblePart: this.current.biblePart,
+    });
     this.fit(front);
   }
 
@@ -198,11 +252,21 @@ export class SlideLayerView {
   /** Applies a changed text style in place, without replacing pages or dissolving. */
   setStyle(style: TextStyle): void {
     if (STYLE_FIELDS.every(key => this.style[key] === style[key])) return;
+    const bulletsChanged = this.style.bullets !== style.bullets;
     this.style = style;
     this.element.classList.add(classes.instant);
     this.element.classList.toggle(classes.shadow, effects(style).shadow.on);
     this.element.classList.toggle(classes.outline, effects(style).outline.on);
-    for (const page of this.pages) applyStyle(page, style);
+    for (const page of this.pages) {
+      applyStyle(page, style);
+      if (bulletsChanged) {
+        writeLines(page, page.lines, {
+          continued: page.continued,
+          bullets: style.bullets,
+          biblePart: page.biblePart,
+        });
+      }
+    }
     this.rescale(this.scale);
   }
 
@@ -244,7 +308,7 @@ export class SlideLayerView {
     this.element.classList.add(classes.instant);
     for (const page of this.pages) {
       page.element.classList.remove(classes.shown);
-      writeLines(page.block, ['']);
+      writeLines(page, ['']);
     }
   }
 

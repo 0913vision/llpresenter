@@ -358,6 +358,7 @@ function VerseSplitEditor(
               >
                 <SplitSlidePicture
                   lines={slide.lines}
+                  part={slide.index + 1}
                   continued={!slide.isLast}
                   reference={props.label}
                   element={props.element}

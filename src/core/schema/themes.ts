@@ -62,6 +62,7 @@ const textEntries = {
   tracking: v.exactOptional(
     range(THEME_LIMITS.tracking.min, THEME_LIMITS.tracking.max),
   ),
+  bullets: v.exactOptional(v.boolean()),
   align: v.picklist(['left', 'center', 'right']),
   outline: textOutlineSchema,
   shadow: textShadowSchema,
@@ -104,6 +105,7 @@ export const themeElementSchema = v.pipe(
     textElement('nextLabel', {}),
     textElement('itemName', {}),
     textElement('slideName', {}),
+    textElement('slideNumber', {}),
     textElement('text', {content: v.string()}),
     textElement('clock', {clockFormat: v.picklist(['24h', '12h'])}),
     textElement('timer', {timerId: v.exactOptional(timerIdSchema)}),

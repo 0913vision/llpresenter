@@ -84,14 +84,18 @@ it.each(['audience', 'stage', 'broadcast'] as const)(
         },
         frame,
       );
-      const preview = render(<SlidePicture layout={layout} slide={slide} />);
+      const preview = render(
+        <SlidePicture layout={layout} slide={slide} item={frame.theme.item} />,
+      );
       if (index === 1) {
         expect(
           root.querySelector('[data-kind="media"] img')?.getAttribute('src'),
         ).toBe(mediaUrl(SLIDE_PICTURE));
         expect(
-          preview.container.querySelector('img')?.getAttribute('src'),
-        ).toBe(mediaUrl(SLIDE_PICTURE));
+          Array.from(preview.container.querySelectorAll('img')).map(image =>
+            image.getAttribute('src'),
+          ),
+        ).toContain(mediaUrl(SLIDE_PICTURE));
         expect(
           root.querySelector<HTMLElement>('[data-kind="slideName"]')?.hidden,
         ).toBe(true);
@@ -112,10 +116,21 @@ it.each(['audience', 'stage', 'broadcast'] as const)(
           root.querySelector('[data-kind="media"] img')?.getAttribute('src'),
         ).toBe(mediaUrl(SLIDE_PICTURE));
       } else {
+        const paragraphs = slide.lines.join('\n').split('\n');
+        const body = paragraphs
+          .map(line => (kind === 'audience' ? `•${line}` : line))
+          .join('');
         expect(
           root.querySelector('[data-kind="currentText"]')?.textContent,
-        ).toContain(slide.lines.join('\n').replaceAll('\n', ''));
-        expect(preview.container.textContent).toContain(slide.lines.join('\n'));
+        ).toContain(body);
+        expect(preview.container.textContent).toContain(
+          kind === 'audience' ? body : slide.lines.join('\n'),
+        );
+        if (kind === 'audience') {
+          expect(
+            root.querySelector('[data-kind="slideNumber"]')?.textContent,
+          ).toContain(String(slide.textSlideNumber));
+        }
         if (index === 0) {
           expect(
             root.querySelector('[data-kind="slideName"]')?.textContent,

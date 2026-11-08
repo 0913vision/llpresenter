@@ -30,6 +30,7 @@ export const themeElementKinds = [
   'overlay',
   'itemName',
   'slideName',
+  'slideNumber',
   'text',
   'image',
   'box',

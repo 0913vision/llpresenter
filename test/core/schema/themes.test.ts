@@ -46,6 +46,35 @@ const file = {
 };
 
 describe('theme element properties', () => {
+  it('accepts optional bullets only as a Boolean and limits slide numbers to one per screen', () => {
+    for (const bullets of [true, false]) {
+      expect(v.safeParse(themeTextSchema, {...text, bullets}).success).toBe(
+        true,
+      );
+    }
+    for (const bullets of ['true', 1, null]) {
+      expect(v.safeParse(themeTextSchema, {...text, bullets}).success).toBe(
+        false,
+      );
+    }
+    const number = {id: uuid(1), kind: 'slideNumber', frame, text};
+    expect(v.safeParse(themeElementSchema, number).success).toBe(true);
+    expect(
+      v.safeParse(themeElementSchema, {...number, text: undefined}).success,
+    ).toBe(false);
+    expect(
+      v.safeParse(themeScreenLayoutSchema, {
+        ...layout,
+        elements: [number, {...number, id: uuid(2)}],
+      }).success,
+    ).toBe(false);
+    expect(availableThemeElementKinds([], 'audience', false)).toContain(
+      'slideNumber',
+    );
+    expect(availableThemeElementKinds([], 'audience', true)).not.toContain(
+      'slideNumber',
+    );
+  });
   it('accepts optional bounded tracking and passage range sources without changing old elements', () => {
     for (const tracking of [-20, -3, 0, 0.1, 40]) {
       expect(v.safeParse(themeTextSchema, {...text, tracking}).success).toBe(

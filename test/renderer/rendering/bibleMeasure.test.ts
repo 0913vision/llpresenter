@@ -19,6 +19,23 @@ const widthOf = (text: string, size: number) =>
   (Array.from(text).length * size) / 36;
 
 describe('theme Bible text measurement', () => {
+  it('reserves hanging indent without charging paragraph gaps to measured wrap rows', () => {
+    const element = {
+      ...themeElementBase(),
+      kind: 'currentText' as const,
+      frame: {x: 0, y: 0, w: 500, h: 315},
+      text: {
+        ...themeElementBase().text,
+        size: 86,
+        lineHeight: 105 / 86,
+        maxLines: 5,
+        bullets: true,
+      },
+    };
+    expect(
+      bibleMeasure(element, {font: '', measureText: () => ({width: 10})}).spec,
+    ).toMatchObject({width: 410, maxLines: 3});
+  });
   it('uses the theme tracking for both verse wrapping and its continuation marker', () => {
     const element = {
       ...themeElementBase(),

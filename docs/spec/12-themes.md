@@ -60,26 +60,27 @@ they have the same limit. A 테마 sets the elements of each screen itself.
 
 ## Elements
 
-| Element        | Content comes from                                                                 | Screens        | Per screen |
-| -------------- | ---------------------------------------------------------------------------------- | -------------- | ---------- |
-| 현재 가사      | The live 슬라이드's text: lyrics or a Bible verse                                  | All            | One        |
-| 성경 출처      | The live Bible 슬라이드's reference, or its item's whole passage range             | All            | One        |
-| 다음 가사      | The next 슬라이드's text                                                           | All            | One        |
-| 이름표         | The live 슬라이드's 이름표                                                         | All            | One        |
-| 다음 이름표    | The next 슬라이드's 이름표                                                         | All            | One        |
-| 미디어         | The live 슬라이드 when it is a photo or a video                                    | All            | One        |
-| 배경           | The item's background (the 곡 배경 today)                                          | All            | One        |
-| 오버레이       | The item's 오버레이 for the live 슬라이드                                          | All            | One        |
-| 항목 이름      | The live item's name                                                               | All            | One        |
-| 슬라이드 이름  | The live 슬라이드's name (`slideName`), an 광고 text slide's name; empty otherwise | All            | One        |
-| 글             | Fixed text written in the 테마                                                     | All            | Several    |
-| 이미지         | A fixed image from the media list                                                  | All            | Several    |
-| 사각형         | A filled box                                                                       | All            | Several    |
-| 시계           | The current time                                                                   | All            | One        |
-| 타이머         | A 타이머 picked in the element                                                     | All            | Several    |
-| 영상 남은 시간 | Time left of the video playing on the media layer                                  | All            | One        |
-| 무대 메시지    | The stage message sent from 진행 도구                                              | 무대 화면 only | One        |
-| 메모           | The live 슬라이드's memo                                                           | 무대 화면 only | One        |
+| Element        | Content comes from                                                                                 | Screens        | Per screen |
+| -------------- | -------------------------------------------------------------------------------------------------- | -------------- | ---------- |
+| 현재 가사      | The live 슬라이드's text: lyrics or a Bible verse                                                  | All            | One        |
+| 성경 출처      | The live Bible 슬라이드's reference, or its item's whole passage range                             | All            | One        |
+| 다음 가사      | The next 슬라이드's text                                                                           | All            | One        |
+| 이름표         | The live 슬라이드's 이름표                                                                         | All            | One        |
+| 다음 이름표    | The next 슬라이드's 이름표                                                                         | All            | One        |
+| 미디어         | The live 슬라이드 when it is a photo or a video                                                    | All            | One        |
+| 배경           | The item's background (the 곡 배경 today)                                                          | All            | One        |
+| 오버레이       | The item's 오버레이 for the live 슬라이드                                                          | All            | One        |
+| 항목 이름      | The live item's name                                                                               | All            | One        |
+| 슬라이드 이름  | The live 슬라이드's name (`slideName`), an 광고 text slide's name; empty otherwise                 | All            | One        |
+| 슬라이드 번호  | The live 광고 text slide's position among text slides, 1-based; empty for pictures and other kinds | All            | One        |
+| 글             | Fixed text written in the 테마                                                                     | All            | Several    |
+| 이미지         | A fixed image from the media list                                                                  | All            | Several    |
+| 사각형         | A filled box                                                                                       | All            | Several    |
+| 시계           | The current time                                                                                   | All            | One        |
+| 타이머         | A 타이머 picked in the element                                                                     | All            | Several    |
+| 영상 남은 시간 | Time left of the video playing on the media layer                                                  | All            | One        |
+| 무대 메시지    | The stage message sent from 진행 도구                                                              | 무대 화면 only | One        |
+| 메모           | The live 슬라이드's memo                                                                           | 무대 화면 only | One        |
 
 - 무대 메시지 and 메모 exist only on the 무대 화면 so that the audience never
   sees them. The editor offers them only there, and a paste onto another screen
@@ -106,26 +107,46 @@ not change the saved number. Dragging and resizing save the rounded geometry
 shown on the canvas and in the fields. Arrow keys retain their existing
 one-pixel increment (ten with Shift).
 
-| Property         | Applies to                                  | Range                                                   |
-| ---------------- | ------------------------------------------- | ------------------------------------------------------- |
-| X, Y, W, H       | All                                         | Shown to 0.1 px; inside the canvas; W and H at least 8  |
-| 글꼴, 굵기       | Text elements                               | An installed family; 100 to 900                         |
-| 크기             | Text elements                               | 12 to 400                                               |
-| 색               | Text elements, 사각형                       | `#RRGGBB`                                               |
-| 줄 간격          | Text elements                               | 0.8 to 3.0                                              |
-| 자간             | Text elements                               | -20 to 40 reference px; default 0                       |
-| 출처 내용        | 성경 출처                                   | 현재 절 (default), 항목 범위                            |
-| 가로 정렬        | Text elements                               | 왼쪽, 가운데, 오른쪽                                    |
-| 세로 위치        | Text elements                               | 위, 가운데, 아래                                        |
-| 성경 분할 줄 수  | Bible split-source text, in 화면 > 성경     | 1 to 12; Bible split budget at the configured size (04) |
-| 외곽선, 그림자   | Text elements                               | On or off                                               |
-| 채우기, 불투명도 | 사각형, and the box behind any text element | `#RRGGBB`; 0 to 100                                     |
-| 모서리           | 사각형, 이미지, 미디어, 배경                | 0 to 200                                                |
-| 맞춤             | 이미지, 미디어, 배경, 오버레이              | 맞추기, 채우기, 늘리기 (the media properties' 맞춤)     |
+| Property         | Applies to                                  | Range                                                               |
+| ---------------- | ------------------------------------------- | ------------------------------------------------------------------- |
+| X, Y, W, H       | All                                         | Shown to 0.1 px; inside the canvas; W and H at least 8              |
+| 글꼴, 굵기       | Text elements                               | An installed family; 100 to 900                                     |
+| 크기             | Text elements                               | 12 to 400                                                           |
+| 색               | Text elements, 사각형                       | `#RRGGBB`                                                           |
+| 줄 간격          | Text elements                               | 0.8 to 3.0                                                          |
+| 자간             | Text elements                               | -20 to 40 reference px; default 0                                   |
+| 글머리 기호      | Text elements                               | Checkbox, off by default; one hanging bullet per nonempty paragraph |
+| 출처 내용        | 성경 출처                                   | 현재 절 (default), 항목 범위                                        |
+| 가로 정렬        | Text elements                               | 왼쪽, 가운데, 오른쪽                                                |
+| 세로 위치        | Text elements                               | 위, 가운데, 아래                                                    |
+| 성경 분할 줄 수  | Bible split-source text, in 화면 > 성경     | 1 to 12; Bible split budget at the configured size (04)             |
+| 외곽선, 그림자   | Text elements                               | On or off                                                           |
+| 채우기, 불투명도 | 사각형, and the box behind any text element | `#RRGGBB`; 0 to 100                                                 |
+| 모서리           | 사각형, 이미지, 미디어, 배경                | 0 to 200                                                            |
+| 맞춤             | 이미지, 미디어, 배경, 오버레이              | 맞추기, 채우기, 늘리기 (the media properties' 맞춤)                 |
 
 Text elements are 현재 가사, 성경 출처, 다음 가사, 이름표, 다음 이름표, 항목
 이름, 슬라이드 이름, 글, 시계, 타이머, 영상 남은 시간, 무대 메시지, and 메모.
 `slideName` has only the common text element properties.
+
+슬라이드 번호 counts the item's text slides in saved order, excluding picture
+slides. Reordering, inserting or deleting slides updates that number in output
+and previews, including automatic advance. It is empty when no slide is live, on
+picture slides, and on other item kinds. Its common text properties remain
+editable; it is not available in the 대기 화면.
+
+With 글머리 기호 enabled, operators type plain text. Each explicit line starts a
+paragraph with an Arial bullet; automatic wrapping stays under the paragraph
+text. Empty lines remain blank. Hanging indent is 90/86 em and the paragraph gap
+is 23/86 em, scaling with the font size. 줄 간격 sets spacing within a wrapped
+paragraph. These values keep the notice body at a 90 px indent, a 23 px
+paragraph gap and about 128 px paragraph pitch at 86 px. Both output and
+thumbnails use this layout; the stored text is unchanged.
+
+Measured Bible wrap rows retain the verse's paragraph instead of starting a new
+bullet or paragraph gap on every row. A later part of the same verse keeps the
+hanging indent without repeating the bullet. Output, next-text elements, split
+previews and thumbnails use the measured part identity for this rule.
 
 성경 출처 with 항목 범위 shows the Bible item's whole passage on every slide,
 including split continuations. Without an item range it falls back to the
@@ -421,14 +442,15 @@ like other settings extensions. Existing files need no migration; the layout
 field is validated in both settings and live output payloads.
 
 Element: `id`, `kind` (`currentText`, `reference`, `nextText`, `label`, `media`,
-`background`, `overlay`, `itemName`, `slideName`, `text`, `image`, `box`,
-`clock`, `timer`, `stageMessage`, `memo`, `nextLabel`, `videoTimeLeft`), `frame`
-`{ x, y, w, h }`, and the properties of its kind from "Element properties"
-(`text` fields as the text style of 02, `box` with fill, opacity, and radius,
-`fit`, and per kind `content` for 글, `mediaId` for 이미지, `timerId` for
-타이머, `clockFormat` for 시계, optional `source: "slide" | "item"` for 성경
-출처, and optional `text.tracking` in reference pixels, default 0). Keep unknown
-fields, as every settings file does (02).
+`background`, `overlay`, `itemName`, `slideName`, `slideNumber`, `text`,
+`image`, `box`, `clock`, `timer`, `stageMessage`, `memo`, `nextLabel`,
+`videoTimeLeft`), `frame` `{ x, y, w, h }`, and the properties of its kind from
+"Element properties" (`text` fields as the text style of 02, `box` with fill,
+opacity, and radius, `fit`, and per kind `content` for 글, `mediaId` for 이미지,
+`timerId` for 타이머, `clockFormat` for 시계, optional
+`source: "slide" | "item"` for 성경 출처, optional `text.tracking` in reference
+pixels, default 0, and optional `text.bullets`, a Boolean defaulting to false).
+Keep unknown fields, as every settings file does (02).
 
 ### Item fields (`.llservice`)
 
@@ -460,12 +482,22 @@ fields, as every settings file does (02).
   normal theme editor.
 - `defaults.blank` selects 말씀 and `defaults.ad` selects 광고 in a new
   `themes.json`. Both can be changed like the other kind defaults.
-- The 광고 theme draws these elements bottom to top on every screen: a
-  full-screen #141c2e 사각형, a 24 px #e6b54a bar at the left, fixed text "교회
-  소식", full-screen 미디어 with 채우기, 슬라이드 이름, and 현재 가사. The
-  heading starts at (150, 190); the slide name uses 132 px, weight 800; body
-  text uses 60 px, line height 1.55, and #c9d1e0. A picture slide has no current
-  text or name, so its media covers the fixed frame below it.
+- On 청중 화면 the 광고 theme uses a shipped 1920 x 1080 blue-purple picture and
+  a separate transparent slash picture, both ordinary replaceable images. Above
+  the background are 배경 for an item override, 슬라이드 번호, the slash
+  picture, 슬라이드 이름, 현재 가사, and full-screen 미디어 with 채우기 so
+  picture slides cover the whole frame. All text is white KoPubWorldDotum
+  without shadow or outline. The number is Bold 160 px with -6 px tracking; the
+  title is Bold 108 px with -3 px tracking; the body is Medium 86 px with -3 px
+  tracking and 글머리 기호 enabled. Body ink starts near (262, 373), with
+  paragraphs about 128 px apart. New catalogs include both pictures; existing
+  catalogs and themes are kept. The slash picture includes the original
+  background mask that clips the number, and sits above the number but below the
+  title, matching the source composition.
+- 방송 화면 and 무대 화면 retain their 광고 layout: a #141c2e full-screen box, a
+  24 px #e6b54a left bar, fixed "교회 소식", covering media, the 132 px slide
+  name and 60 px #c9d1e0 body. The default 광고 item's 8-second advance and 반복
+  remain unchanged (05).
 - Item settings warn when a screen's resolved theme lacks 현재 가사 for text,
   슬라이드 이름 for an 광고 name, or 미디어 for a picture. Linked screens use
   the source screen's elements when checking.

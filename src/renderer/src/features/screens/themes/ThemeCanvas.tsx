@@ -134,6 +134,7 @@ export const themeSamples = {
   timer: '05:00',
   videoTimeLeft: '02:30',
   reference: '요한복음 1:1',
+  slideNumber: '1',
   label: '1절',
   nextLabel: '후렴',
 };

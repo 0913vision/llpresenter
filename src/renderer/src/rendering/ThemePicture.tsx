@@ -20,16 +20,20 @@ import {stageClockText, STAGE_TICK_MS} from './stageClock';
 import {fillTimerTokens, type RenderTimers} from './timerTokens';
 import styles from './ThemePicture.module.css';
 import {themeBackgroundStyle} from './themeBackground';
+import bulletStyles from './bulletText.module.css';
+import {BULLET_STYLE, textParagraphs} from './textParagraphs';
 
 interface MeasuredText {
   readonly lines: readonly string[];
   readonly continued: boolean;
+  readonly part?: number;
 }
 
 function textEffects(text: ThemeText): CSSProperties {
   const {outline, shadow} = text;
   const angle = (shadow.angle * Math.PI) / 180;
   return {
+    ...BULLET_STYLE,
     fontFamily: fontFamilyFor(text.font),
     fontWeight: text.weight,
     lineHeight: text.lineHeight,
@@ -93,8 +97,20 @@ function ThemeTextBox({
         style={{...textEffects(element.text), fontSize: element.text.size}}
       >
         {measured === undefined
-          ? content
+          ? element.text.bullets
+            ? textParagraphs([content]).map((line, index) => (
+                <div key={index} className={bulletStyles.paragraph}>
+                  {line.trim() === '' ? null : (
+                    <span className={bulletStyles.marker} aria-hidden="true">
+                      •
+                    </span>
+                  )}
+                  {line || '\u00a0'}
+                </div>
+              ))
+            : content
           : measured.lines.map((line, index) => {
+              const startsParagraph = index === 0 && (measured.part ?? 1) === 1;
               const run = continuationText(
                 line,
                 measured.continued && index === measured.lines.length - 1,
@@ -102,9 +118,16 @@ function ThemeTextBox({
               return (
                 <div
                   key={index}
-                  className={styles.measuredLine}
+                  className={`${styles.measuredLine} ${element.text.bullets ? (startsParagraph ? bulletStyles.paragraph : bulletStyles.continuation) : ''}`}
                   data-measured-line=""
                 >
+                  {element.text.bullets &&
+                  startsParagraph &&
+                  line.trim() !== '' ? (
+                    <span className={bulletStyles.marker} aria-hidden="true">
+                      •
+                    </span>
+                  ) : null}
                   {run.body || (run.marker === '' ? '\u00a0' : '')}
                   {run.marker === '' ? null : (
                     <span style={{fontSize: contSizeOf(element.text)}}>
@@ -126,6 +149,7 @@ function contents(
     timers: RenderTimers | undefined;
     media: Partial<Record<'media' | 'background', string>> | undefined;
     measuredText: MeasuredText | undefined;
+    measuredNextText: MeasuredText | undefined;
   },
 ): JSX.Element | null {
   const {samples, timers} = context;
@@ -158,7 +182,11 @@ function contents(
       <ThemeTextBox
         element={element}
         measured={
-          element.kind === 'currentText' ? context.measuredText : undefined
+          element.kind === 'currentText'
+            ? context.measuredText
+            : element.kind === 'nextText'
+              ? context.measuredNextText
+              : undefined
         }
         content={
           element.kind === 'text'
@@ -224,6 +252,7 @@ export function ThemePicture({
   timers,
   media,
   measuredText,
+  measuredNextText,
 }: {
   readonly elements: readonly ThemeElement[];
   readonly background: ThemeBackground;
@@ -232,6 +261,7 @@ export function ThemePicture({
   readonly media?: Partial<Record<'media' | 'background', string>> | undefined;
   /** Already measured output rows, drawn at the theme size without fitting or wrapping. */
   readonly measuredText?: MeasuredText | undefined;
+  readonly measuredNextText?: MeasuredText | undefined;
 }): JSX.Element {
   return (
     <svg
@@ -271,7 +301,13 @@ export function ThemePicture({
                     }}
                   />
                 ) : null}
-                {contents(element, {samples, timers, media, measuredText})}
+                {contents(element, {
+                  samples,
+                  timers,
+                  media,
+                  measuredText,
+                  measuredNextText,
+                })}
               </div>
             );
           })}

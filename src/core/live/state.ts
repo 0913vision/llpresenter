@@ -50,6 +50,7 @@ export interface NextSlide {
   readonly label: string | null;
   readonly lines: readonly string[];
   readonly continued?: boolean;
+  readonly biblePart?: number;
 }
 
 /** The slide on output: a service item, its position in the arrangement, and what to draw. */
@@ -57,6 +58,8 @@ export interface SlideLayer {
   readonly picture?: MediaId;
   readonly itemId: string;
   readonly position: number;
+  /** One-based position among an ad item's text slides; pictures are excluded. */
+  readonly textSlideNumber?: number;
   /** One-based part within the Bible verse named by label, independent of position. */
   readonly biblePart?: number;
   readonly sourceSlideId?: SlideId;

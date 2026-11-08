@@ -11,6 +11,10 @@ import {resolveThemeOutput} from '@core/themes/output';
 import {themeItemKinds} from '@core/themes/elementRules';
 import {themesSchema} from '@core/schema/themes';
 import {SUNDAY_PICTURE_IDS} from '@core/themes/sundayScripture';
+import {
+  SUNDAY_NOTICE_PICTURE_ID,
+  SUNDAY_NOTICE_DIVIDER_ID,
+} from '@core/themes/sundayNotice';
 
 it('converts the starter audience styles and stage geometry into theme elements', () => {
   const main = createScreenId(STARTER_SCREEN_IDS.main);
@@ -237,12 +241,17 @@ it('offers one- and two-line sermon titles using item names and ordinary slide t
   }
 });
 
-it('defaults blank slides to 말씀 and builds the ad frame on every configured screen', () => {
+it('defaults blank slides to 말씀 and retains the broadcast and stage ad frames', () => {
   const file = createDefaultThemes();
   expect(file.defaults.blank).toBe(file.defaults.bible);
   const ad = file.themes.find(theme => theme.id === file.defaults.ad);
   expect(ad?.name).toBe('광고');
-  for (const layout of Object.values(ad?.screens ?? {})) {
+  for (const screen of [
+    STARTER_SCREEN_IDS.broadcast,
+    STARTER_SCREEN_IDS.stage,
+  ]) {
+    const layout = ad?.screens[createScreenId(screen)];
+    if (layout === undefined) throw Error('Expected ad layout');
     expect(layout.elements.map(element => element.kind)).toEqual([
       'box',
       'box',
@@ -274,4 +283,47 @@ it('defaults blank slides to 말씀 and builds the ad frame on every configured 
   }
   expect(builtInTheme('ad')).toEqual(ad);
   expect(builtInTheme('blank')).toEqual(builtInTheme('bible'));
+});
+
+it('makes the audience notice an editable picture, number, name and bulleted body with a covering picture layer', () => {
+  const ad =
+    builtInTheme('ad').screens[createScreenId(STARTER_SCREEN_IDS.main)];
+  expect(ad?.elements).toMatchObject([
+    {
+      kind: 'image',
+      mediaId: SUNDAY_NOTICE_PICTURE_ID,
+      frame: {x: 0, y: 0, w: 1920, h: 1080},
+    },
+    {kind: 'background'},
+    {
+      kind: 'slideNumber',
+      text: {
+        font: 'KoPubWorldDotum',
+        weight: 700,
+        size: 160,
+        tracking: -6,
+        align: 'center',
+      },
+    },
+    {
+      kind: 'image',
+      mediaId: SUNDAY_NOTICE_DIVIDER_ID,
+      frame: {x: 0, y: 0, w: 1920, h: 1080},
+    },
+    {kind: 'slideName', text: {size: 108, weight: 700, tracking: -3}},
+    {
+      kind: 'currentText',
+      text: {
+        size: 86,
+        weight: 500,
+        bullets: true,
+        tracking: -3,
+        lineHeight: 104.5 / 86,
+        vAlign: 'top',
+        shadow: {on: false},
+        outline: {on: false},
+      },
+    },
+    {kind: 'media', fit: 'fill', frame: {x: 0, y: 0, w: 1920, h: 1080}},
+  ]);
 });

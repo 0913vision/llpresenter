@@ -11,6 +11,7 @@ export const themeElementNames: Readonly<Record<ThemeElementKind, string>> = {
   overlay: '오버레이',
   itemName: '항목 이름',
   slideName: '슬라이드 이름',
+  slideNumber: '슬라이드 번호',
   text: '글자',
   image: '이미지',
   box: '사각형',

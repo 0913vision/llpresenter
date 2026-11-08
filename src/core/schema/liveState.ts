@@ -27,6 +27,7 @@ import {
   liveThemeOutputSchema,
 } from './liveTheme';
 import {themeItemKinds} from '../themes/elementRules';
+import {SLIDES_LIMITS} from './service';
 
 const id = v.pipe(v.string(), v.nonEmpty());
 const count = v.pipe(v.number(), v.integer(), v.minValue(0));
@@ -61,6 +62,14 @@ export const layerSchemas = {
     picture: v.exactOptional(mediaIdSchema),
     itemId: id,
     position: count,
+    textSlideNumber: v.exactOptional(
+      v.pipe(
+        v.number(),
+        v.integer(),
+        v.minValue(1),
+        v.maxValue(SLIDES_LIMITS.slides),
+      ),
+    ),
     biblePart: v.exactOptional(biblePartSchema),
     sourceSlideId: v.exactOptional(slideIdSchema),
     label: v.nullable(liveTextSchema),
@@ -76,6 +85,7 @@ export const layerSchemas = {
         label: v.nullable(liveTextSchema),
         lines: slideLinesSchema,
         continued: v.exactOptional(v.boolean()),
+        biblePart: v.exactOptional(biblePartSchema),
       }),
     ),
   }),

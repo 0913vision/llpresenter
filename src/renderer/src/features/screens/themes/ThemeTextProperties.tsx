@@ -96,6 +96,12 @@ export function ThemeTextProperties({
           reason={reason}
           change={tracking => change(value => ({...value, tracking}))}
         />
+        <ThemeCheck
+          label="글머리 기호"
+          checked={text.bullets ?? false}
+          reason={reason}
+          change={bullets => change(value => ({...value, bullets}))}
+        />
         <PropertyRow label="가로 정렬">
           {({controlId, labelId}) => (
             <SegmentedControl

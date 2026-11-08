@@ -35,6 +35,7 @@ const SLIDE_ELEMENT_KINDS: readonly string[] = [
   'currentText',
   'reference',
   'slideName',
+  'slideNumber',
   'nextText',
   'label',
   'nextLabel',
@@ -50,6 +51,7 @@ export class ThemeElementView {
   private readonly gaps: ThemeGaps;
   private shownText: string | null = null;
   private shownContinued = false;
+  private shownBiblePart: number | undefined;
   private readonly previewMaxLines: number | undefined;
   private mediaId: string | null = null;
   private mediaStartedAt: number | null = null;
@@ -200,15 +202,21 @@ export class ThemeElementView {
         );
       }
     } else {
-      this.showText(
-        this.textContent(layers, frame, videoRemaining),
-        frame,
-        (element.kind === 'currentText'
-          ? layers.slide?.continued
-          : element.kind === 'nextText'
-            ? layers.slide?.next?.continued
-            : false) === true,
-      );
+      this.showText(this.textContent(layers, frame, videoRemaining), frame, {
+        continued:
+          (element.kind === 'currentText'
+            ? layers.slide?.continued
+            : element.kind === 'nextText'
+              ? layers.slide?.next?.continued
+              : false) === true,
+        biblePart:
+          element.kind === 'currentText'
+            ? (layers.slide?.biblePart ??
+              (this.previewMaxLines === undefined ? undefined : 1))
+            : element.kind === 'nextText'
+              ? layers.slide?.next?.biblePart
+              : undefined,
+      });
     }
     const target = SLIDE_ELEMENT_KINDS.includes(element.kind)
       ? 'slide'
@@ -317,7 +325,13 @@ export class ThemeElementView {
   private showText(
     text: string | null,
     frame: RenderFrame,
-    continued = false,
+    {
+      continued = false,
+      biblePart,
+    }: {
+      readonly continued?: boolean;
+      readonly biblePart?: number | undefined;
+    } = {},
   ): void {
     if (this.text === null) return;
     if (
@@ -358,7 +372,13 @@ export class ThemeElementView {
     ) {
       this.text.setDissolveMs(frame.transitionTimes.slideMs);
     }
-    if (text === this.shownText && continued === this.shownContinued) return;
+    if (
+      text === this.shownText &&
+      continued === this.shownContinued &&
+      biblePart === this.shownBiblePart
+    ) {
+      return;
+    }
     const ticking = ['clock', 'timer', 'videoTimeLeft'].includes(
       this.element.kind,
     );
@@ -374,12 +394,14 @@ export class ThemeElementView {
               label: null,
               lines: text.split('\n'),
               continued,
+              ...(biblePart === undefined ? {} : {biblePart}),
             },
         frame.transitions !== false,
       );
     }
     this.shownText = text;
     this.shownContinued = continued;
+    this.shownBiblePart = biblePart;
   }
 
   remaining(): number | undefined {

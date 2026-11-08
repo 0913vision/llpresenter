@@ -1,6 +1,11 @@
 import {act, cleanup, render, screen} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import {createThemeElementId, createTimerId} from '@core/schema/ids';
+import {
+  createThemeElementId,
+  createTimerId,
+  createThemeId,
+  createScreenId,
+} from '@core/schema/ids';
 import {newThemeElement} from '@core/themes/newElement';
 import type {ThemeElement} from '@core/schema/themes';
 import {SlideLayerView} from '@renderer/rendering/slideLayer';
@@ -10,6 +15,11 @@ import {stageClockText} from '@renderer/rendering/stageClock';
 import {fillTimerTokens} from '@renderer/rendering/timerTokens';
 import {ThemePicture} from '@renderer/rendering/ThemePicture';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
+import bulletStyles from '@renderer/rendering/bulletText.module.css';
+import {ThemeCompositionView} from '@renderer/rendering/themeComposition';
+import {bibleMeasure} from '@renderer/rendering/bibleMeasure';
+import {emptyLayers, type SlideLayer} from '@core/live/state';
+import {mediaUrl} from '@contracts/ipc/mediaUrls';
 
 vi.mock('@renderer/rendering/stageClock', () => ({
   STAGE_TICK_MS: 1000,
@@ -35,6 +45,153 @@ function element(kind: ThemeElement['kind'], index: number): ThemeElement {
   if (value === undefined) throw new Error('Missing picture fixture');
   return value;
 }
+
+it('uses the same hanging paragraph markup in thumbnails, including measured text and empty lines', () => {
+  const source = element('currentText', 1);
+  if (source.kind !== 'currentText') throw Error('Expected text');
+  const value = {...source, text: {...source.text, bullets: true}};
+  const view = render(
+    <ThemePicture
+      elements={[value]}
+      background="#000000"
+      samples={{currentText: 'One\n\nTwo'}}
+    />,
+  );
+  expect(
+    view.container.querySelectorAll(`.${bulletStyles.paragraph}`),
+  ).toHaveLength(3);
+  expect(
+    view.container.querySelectorAll(`.${bulletStyles.marker}`),
+  ).toHaveLength(2);
+  view.rerender(
+    <ThemePicture
+      elements={[value]}
+      background="#000000"
+      samples={{currentText: ''}}
+      measuredText={{lines: ['One', 'Two'], continued: false}}
+    />,
+  );
+  expect(
+    view.container.querySelectorAll(`.${bulletStyles.paragraph}`),
+  ).toHaveLength(1);
+  expect(
+    view.container.querySelectorAll(`.${bulletStyles.marker}`),
+  ).toHaveLength(1);
+  expect(
+    view.container.querySelectorAll(`.${bulletStyles.continuation}`),
+  ).toHaveLength(1);
+});
+
+it.each(['currentText', 'nextText'] as const)(
+  'keeps one wrapped verse paragraph through measurement, %s output and thumbnails, including its next part',
+  kind => {
+    const source = element('currentText', 1);
+    if (source.kind !== 'currentText') throw Error('Expected current text');
+    const value = {
+      ...source,
+      frame: {x: 0, y: 0, w: 220, h: 315},
+      text: {
+        ...source.text,
+        size: 86,
+        lineHeight: 105 / 86,
+        maxLines: 5,
+        bullets: true,
+      },
+    };
+    const measured = bibleMeasure(value, {
+      font: '',
+      measureText: text => ({width: text.length * 10}),
+    });
+    const result = measured.measure('Alpha beta gamma delta', {
+      ...measured.spec,
+      marker: '',
+      markerSize: 64,
+    });
+    expect(result.lines).toEqual(['Alpha beta', 'gamma delta']);
+    expect(measured.spec.maxLines).toBe(3);
+    const layout = {mode: {kind: 'own' as const}, elements: [{...value, kind}]};
+    const item = {
+      id: 'verse',
+      kind: 'bible' as const,
+      source: 'external' as const,
+    };
+    const screen = {
+      id: createScreenId('00000000-0000-4000-8000-000000000001'),
+      kind: 'audience' as const,
+    };
+    const frame = {
+      screen,
+      transitions: false,
+      theme: {
+        layout,
+        item,
+        sourceScreenId: screen.id,
+        emptyColor: '#000000',
+        themeId: createThemeId('00000000-0000-4000-8000-000000000102'),
+        revision: 0,
+        missing: [],
+      },
+    };
+    const root = document.createElement('div');
+    const output = new ThemeCompositionView(root, {
+      textStyle: DEFAULT_TEXT_STYLE,
+      mediaUrl,
+      onError: vi.fn(),
+    });
+    const next = {
+      label: null,
+      biblePart: kind === 'nextText' ? 1 : 2,
+      lines: kind === 'nextText' ? result.lines : ['Other verse'],
+    };
+    const slide: SlideLayer = {
+      itemId: item.id,
+      position: 0,
+      label: null,
+      biblePart: kind === 'currentText' ? 1 : 2,
+      lines: kind === 'currentText' ? result.lines : ['Other verse'],
+      next,
+    };
+    const preview = render(
+      <SlidePicture slide={slide} layout={layout} item={item} />,
+    );
+    output.render({...emptyLayers(), slide}, frame);
+    const shown = () =>
+      root.querySelector(
+        `[data-kind="${kind}"] .${classes.shown} .${classes.block}`,
+      );
+    for (const block of [shown(), preview.container]) {
+      expect(block?.querySelectorAll(`.${bulletStyles.marker}`)).toHaveLength(
+        1,
+      );
+      expect(
+        block?.querySelectorAll(`.${bulletStyles.paragraph}`),
+      ).toHaveLength(1);
+      expect(
+        block?.querySelectorAll(`.${bulletStyles.continuation}`),
+      ).toHaveLength(1);
+    }
+    const continued =
+      kind === 'currentText'
+        ? {...slide, biblePart: 2}
+        : {...slide, next: {...next, biblePart: 2}};
+    output.render({...emptyLayers(), slide: continued}, frame);
+    preview.rerender(
+      <SlidePicture slide={continued} layout={layout} item={item} />,
+    );
+    for (const block of [shown(), preview.container]) {
+      expect(block?.querySelectorAll(`.${bulletStyles.marker}`)).toHaveLength(
+        0,
+      );
+      expect(
+        block?.querySelectorAll(`.${bulletStyles.paragraph}`),
+      ).toHaveLength(0);
+      expect(
+        block?.querySelectorAll(`.${bulletStyles.continuation}`),
+      ).toHaveLength(2);
+    }
+    output.dispose();
+  },
+);
 
 it('resolves an item-range reference in a slide thumbnail just as output does', () => {
   const reference = element('reference', 8);

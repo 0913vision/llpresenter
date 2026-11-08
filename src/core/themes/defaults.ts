@@ -15,6 +15,7 @@ import type {
 import {STARTER_SCREEN_IDS} from '../screens/screens';
 import {THEME_LIMITS, themeItemKinds, type ThemeItemKind} from './elementRules';
 import {sundayScriptureLayout, sermonTitleLayout} from './sundayScripture';
+import {sundayNoticeLayout} from './sundayNotice';
 
 export type ThemeScreen = Pick<Screen, 'id' | 'kind' | 'method'>;
 
@@ -164,7 +165,11 @@ function layoutFor(
   if (kind === 'bible' && screen.kind === 'audience') {
     return sundayScriptureLayout();
   }
-  if (kind === 'ad') return advertisementLayout();
+  if (kind === 'ad') {
+    return screen.kind === 'audience'
+      ? sundayNoticeLayout()
+      : advertisementLayout();
+  }
   const lowerThird = screen.kind === 'broadcast';
   const elements =
     screen.kind === 'stage'

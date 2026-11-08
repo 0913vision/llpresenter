@@ -107,6 +107,13 @@ export function slideLayers(
     slide: {
       itemId: item.id,
       position: index,
+      ...(item.slides.form === 'ad' && 'text' in slide
+        ? {
+            textSlideNumber: item.slides.slides
+              .slice(0, index + 1)
+              .filter(slide => 'text' in slide).length,
+          }
+        : {}),
       label: null,
       lines: 'text' in slide ? slide.text.split('\n') : [],
       ...('text' in slide && slide.name !== undefined

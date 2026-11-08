@@ -28,6 +28,60 @@ function busyState(): LiveState {
 }
 
 describe('parseLiveState', () => {
+  it('preserves bounded measured-part metadata on the next verse', () => {
+    const slide = {
+      itemId: 'verse',
+      position: 0,
+      label: null,
+      lines: ['First'],
+      next: {label: null, lines: ['Next']},
+    };
+    for (const biblePart of [1, 10_000]) {
+      const state = {
+        ...emptyLiveState(),
+        layers: {
+          ...emptyLiveState().layers,
+          slide: {...slide, next: {...slide.next, biblePart}},
+        },
+      };
+      expect(parseLiveState(state)).toEqual({ok: true, value: state});
+    }
+    for (const biblePart of [0, -1, 1.5, 10_001, '1']) {
+      expect(
+        parseLiveState({
+          ...emptyLiveState(),
+          layers: {
+            ...emptyLiveState().layers,
+            slide: {...slide, next: {...slide.next, biblePart}},
+          },
+        }).ok,
+      ).toBe(false);
+    }
+  });
+  it('accepts only a bounded positive integer for the optional ad text-slide number', () => {
+    const slide = {itemId: 'ad', position: 0, label: null, lines: ['Notice']};
+    for (const textSlideNumber of [1, 200]) {
+      const state = {
+        ...emptyLiveState(),
+        layers: {
+          ...emptyLiveState().layers,
+          slide: {...slide, textSlideNumber},
+        },
+      };
+      expect(parseLiveState(state)).toEqual({ok: true, value: state});
+    }
+    for (const textSlideNumber of [0, -1, 1.5, 201, Infinity, '1']) {
+      expect(
+        parseLiveState({
+          ...emptyLiveState(),
+          layers: {
+            ...emptyLiveState().layers,
+            slide: {...slide, textSlideNumber},
+          },
+        }).ok,
+      ).toBe(false);
+    }
+  });
   it('preserves picture provenance on media after lyrics are cleared', () => {
     const state = {
       ...emptyLiveState(),

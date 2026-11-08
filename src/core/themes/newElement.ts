@@ -62,6 +62,7 @@ export function newThemeElement({
     case 'nextLabel':
     case 'itemName':
     case 'slideName':
+    case 'slideNumber':
     case 'timer':
     case 'videoTimeLeft':
     case 'stageMessage':

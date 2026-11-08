@@ -1,0 +1,21 @@
+.paragraph,
+.continuation {
+  position: relative;
+  padding-left: var(--bullet-indent);
+  white-space: pre-wrap;
+  word-break: keep-all;
+  overflow-wrap: break-word;
+}
+
+.paragraph:not(:first-child) {
+  margin-top: var(--bullet-gap);
+}
+
+.marker {
+  position: absolute;
+  left: 0;
+  top: var(--bullet-offset);
+  font-family: Arial, sans-serif;
+  font-weight: 400;
+  letter-spacing: normal;
+}

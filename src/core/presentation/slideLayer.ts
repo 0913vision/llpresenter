@@ -17,6 +17,13 @@ export function slideLayerOf(
   return {
     itemId: cursor.itemId,
     position: cursor.index,
+    ...(tile.kind === 'ad' && tile.picture === undefined
+      ? {
+          textSlideNumber: tiles
+            .slice(0, cursor.index + 1)
+            .filter(tile => tile.picture === undefined).length,
+        }
+      : {}),
     ...(tile.biblePart === undefined ? {} : {biblePart: tile.biblePart}),
     ...(tile.sourceSlideId === undefined
       ? {}
@@ -43,6 +50,9 @@ export function slideLayerOf(
             ...(next.continued === undefined
               ? {}
               : {continued: next.continued}),
+            ...(next.biblePart === undefined
+              ? {}
+              : {biblePart: next.biblePart}),
           },
         }),
   };
