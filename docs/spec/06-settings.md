@@ -277,6 +277,9 @@ full command list.
 - A search field with the placeholder "명령, 키" (command, key), and a filter:
   전체 (all), 바꾼 것 (changed, with a count), 겹침 (conflicts, with an amber
   count).
+- An empty list shows 검색 결과 없음 for a nonblank search, otherwise 바꾼
+  단축키 없음 for 바꿈 or 겹친 단축키 없음 for 겹침; Up/Down leave an empty list
+  unchanged.
 - A table with the columns 명령 (command) and 단축키 (shortcut), grouped as in
   10's command list. Each 그래픽, 매크로, and 타이머 has its own row under its
   group. Bare letters/digits are reserved for source-slide hot keys, which are

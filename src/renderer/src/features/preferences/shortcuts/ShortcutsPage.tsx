@@ -3,6 +3,7 @@ import type {KeyBinding} from '@core/schema/shortcuts';
 import {shortcutNames} from '@core/shortcuts/keys';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {Button} from '@renderer/ui/Button';
+import {EmptyState} from '@renderer/ui/EmptyState';
 import {contextMenuAnchor, isContextMenuKey} from '@renderer/ui/contextMenu';
 import {KeyCombo, KeyList} from '@renderer/ui/KeyCap';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
@@ -148,6 +149,14 @@ export function ShortcutsPage({
   const counts = shortcutCounts(rows);
   const shown = filterRows(rows, query, filter);
   const groups = groupRows(shown);
+  const emptyText =
+    query.trim() !== ''
+      ? '검색 결과 없음'
+      : filter === 'changed'
+        ? '바꾼 단축키 없음'
+        : filter === 'conflict'
+          ? '겹친 단축키 없음'
+          : undefined;
   const selected = rows.find(row => row.command.id === selectedId);
   const locked = edits.lockedReason !== undefined;
   useEffect(() => {
@@ -282,6 +291,9 @@ export function ShortcutsPage({
           }
         }}
       >
+        {groups.length === 0 && emptyText !== undefined ? (
+          <EmptyState text={emptyText} />
+        ) : null}
         {groups.map(group => (
           <div key={group.title} role="group" aria-label={group.title}>
             <p className={styles.group}>{group.title}</p>

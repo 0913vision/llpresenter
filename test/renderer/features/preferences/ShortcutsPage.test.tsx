@@ -100,6 +100,36 @@ async function editRow(name: RegExp | string) {
 }
 
 describe('ShortcutsPage', () => {
+  it.each([
+    {filter: /바꿈/, query: '', text: '바꾼 단축키 없음'},
+    {filter: /겹침/, query: '', text: '겹친 단축키 없음'},
+    {filter: /바꿈/, query: 'no matching command', text: '검색 결과 없음'},
+  ])(
+    'shows $text and safely ignores empty-list arrow steps',
+    async ({filter, query, text}) => {
+      await mount();
+      await userEvent.click(rowOf(/가사 지우기/));
+      await userEvent.click(screen.getByRole('radio', {name: filter}));
+      const search = screen.getByRole('textbox', {name: '명령 찾기'});
+      fireEvent.change(search, {target: {value: query}});
+      const list = screen.getByRole('listbox', {name: '명령'});
+      expect(within(list).getByRole('status').textContent).toBe(text);
+      expect(within(list).queryAllByRole('option')).toHaveLength(0);
+      search.focus();
+      expect(() => {
+        fireEvent.keyDown(list, {key: 'ArrowDown'});
+        fireEvent.keyDown(list, {key: 'ArrowUp'});
+      }).not.toThrow();
+      expect(document.activeElement).toBe(search);
+      expect(within(list).queryAllByRole('option')).toHaveLength(0);
+      expect(edit).not.toHaveBeenCalled();
+      fireEvent.change(search, {target: {value: ''}});
+      await userEvent.click(screen.getByRole('radio', {name: /전체/}));
+      expect(within(list).queryByRole('status')).toBeNull();
+      expect(within(list).getAllByRole('option').length).toBeGreaterThan(0);
+    },
+  );
+
   it('lists the commands in groups without a 퀵 실행 group', async () => {
     await mount();
 
