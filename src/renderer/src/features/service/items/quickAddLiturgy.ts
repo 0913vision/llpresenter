@@ -7,13 +7,8 @@ import {
 import {builtInTheme} from '@core/themes/defaults';
 import {
   CREED_PRAYER_THEME_ID,
-  creedPrayerLayout,
   creedPrayerTheme,
 } from '@core/themes/creedPrayer';
-import {
-  bibleMeasure,
-  createBibleMeasureContext,
-} from '@renderer/rendering/bibleMeasure';
 
 export async function prepareLiturgy(
   kind: LiturgyKind,
@@ -21,19 +16,10 @@ export async function prepareLiturgy(
 ) {
   const api = window.llp;
   if (api === undefined) throw new Error('App API unavailable');
-  await document.fonts.load('700 104px "NanumSquare"');
-  const canvas = createBibleMeasureContext();
-  const element = creedPrayerLayout().elements.find(
-    element => element.kind === 'currentText',
-  );
-  if (canvas === null || element === undefined) {
-    throw new Error('Liturgy measurement unavailable');
-  }
-  const item = newLiturgyItem(
-    createServiceItemId(crypto.randomUUID()),
-    {kind, translation},
-    bibleMeasure(element, canvas),
-  );
+  const item = newLiturgyItem(createServiceItemId(crypto.randomUUID()), {
+    kind,
+    translation,
+  });
   const [themes, screens] = await Promise.all([
     api.settings.get({name: 'themes'}),
     api.settings.get({name: 'screens'}),

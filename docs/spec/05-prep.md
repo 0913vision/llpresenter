@@ -75,12 +75,10 @@ have landed.
   (Protestant 2004) and 옛 번역. All four insert after the selected row, or
   append without a selection, using an editable 빈 슬라이드 item named for the
   prayer, the 사도신경, 주기도문 theme, and manual advance. The editor opens
-  with the first slide selected. Text uses bundled, curated lines and slide
-  boundaries. Each draft line stays one screen line, measured at NanumSquare
-  Bold 104 px with -3 px tracking. A line that exceeds the verse box may split
-  once at its explicitly defined phrase boundary; words are never packed to fill
-  the width. Only overflow beyond four lines carries to the next draft slide.
-  아멘. ends the last line, never a slide alone.
+  with the first slide selected. Bundled slides contain one paragraph each,
+  wrapping at spaces like 말씀 at 104 px; premeasured sentence boundaries (or
+  comma splits for sentences over four lines) are fixed in the content, with
+  아멘. attached to the final sentence and no runtime slide splitting.
 
 - 항목 추가 offers 빈 슬라이드 and 광고 before 미디어. Each inserts after the
   selected row, selects the item, and opens 슬라이드 편집. Without a selection

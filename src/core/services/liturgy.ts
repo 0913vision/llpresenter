@@ -1,8 +1,7 @@
-import {layoutText, type SplitLayout} from '../bible/split/layout';
 import {createSlideId, type ServiceItemId} from '../schema/ids';
 import type {ServiceItemOf} from '../schema/service';
 import {CREED_PRAYER_THEME_ID} from '../themes/creedPrayer';
-import {LITURGY_DRAFTS} from './liturgyDrafts';
+import {LITURGY_SLIDES} from './liturgySlides';
 
 export const APOSTLES_CREED_NEW =
   '나는 전능하신 아버지 하나님, 천지의 창조주를 믿습니다. 나는 그의 유일하신 아들, 우리 주 예수 그리스도를 믿습니다. 그는 성령으로 잉태되어 동정녀 마리아에게서 나시고, 본디오 빌라도에게 고난을 받아 십자가에 못 박혀 죽으시고, 장사된 지 사흘 만에 죽은 자 가운데서 다시 살아나셨으며, 하늘에 오르시어 전능하신 아버지 하나님 우편에 앉아 계시다가, 거기로부터 살아 있는 자와 죽은 자를 심판하러 오십니다. 나는 성령을 믿으며, 거룩한 공교회와 성도의 교제와 죄를 용서받는 것과 몸의 부활과 영생을 믿습니다. 아멘.';
@@ -20,49 +19,6 @@ export const LITURGY = {
 export type LiturgyKind = keyof typeof LITURGY;
 export type LiturgyTranslation = 'new' | 'old';
 
-const PHRASE_BREAKS: Readonly<Record<string, readonly [string, string]>> = {
-  '거룩한 공회와 성도가 서로 교통하는 것과,': [
-    '거룩한 공회와',
-    '성도가 서로 교통하는 것과,',
-  ],
-};
-
-function fitsLine(line: string, layout: SplitLayout): boolean {
-  const measured = layoutText(line, layout);
-  return (
-    measured.nLines === 1 &&
-    measured.lineWidths.every(width => width <= layout.spec.width)
-  );
-}
-
-function draftLine(line: string, layout: SplitLayout): readonly string[] {
-  if (fitsLine(line, layout)) return [line];
-  const phrases = PHRASE_BREAKS[line];
-  if (!phrases?.every(phrase => fitsLine(phrase, layout))) {
-    throw new Error('Liturgy draft line cannot fit without breaking a phrase');
-  }
-  return phrases;
-}
-
-/** Keeps draft rows and pages, carrying overflow only at approved phrase boundaries. */
-export function liturgySlides(
-  draft: ReadonlyArray<readonly string[]>,
-  layout: SplitLayout,
-): string[] {
-  const slides: string[] = [];
-  let carry: string[] = [];
-  for (const page of draft) {
-    const lines = [...carry, ...page.flatMap(line => draftLine(line, layout))];
-    slides.push(lines.slice(0, 4).join('\n'));
-    carry = lines.slice(4);
-  }
-  while (carry.length > 0) {
-    slides.push(carry.slice(0, 4).join('\n'));
-    carry = carry.slice(4);
-  }
-  return slides;
-}
-
 export function newLiturgyItem(
   id: ServiceItemId,
   {
@@ -72,7 +28,6 @@ export function newLiturgyItem(
     readonly kind: LiturgyKind;
     readonly translation: LiturgyTranslation;
   },
-  layout: SplitLayout,
 ): ServiceItemOf<'slides'> {
   return {
     id,
@@ -80,12 +35,10 @@ export function newLiturgyItem(
     slides: {
       form: 'blank',
       name: LITURGY[kind].name,
-      slides: liturgySlides(LITURGY_DRAFTS[kind][translation], layout).map(
-        text => ({
-          id: createSlideId(crypto.randomUUID()),
-          text,
-        }),
-      ),
+      slides: LITURGY_SLIDES[kind][translation].map(text => ({
+        id: createSlideId(crypto.randomUUID()),
+        text,
+      })),
     },
   };
 }
