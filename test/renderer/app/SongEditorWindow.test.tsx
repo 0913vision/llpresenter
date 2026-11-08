@@ -31,6 +31,13 @@ import {resetTooltips} from '@fixtures/renderer/ui/tooltipTesting';
 import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {lyrics} from '@fixtures/renderer/features/songs/editor/editorTesting';
 
+vi.mock('@renderer/rendering/outputRenderer', () => ({
+  OutputRenderer: class {
+    render = vi.fn();
+    dispose = vi.fn();
+  },
+}));
+
 class MockResizeObserver implements ResizeObserver {
   observe(): void {
     return;

@@ -1,0 +1,15 @@
+.ribbon {
+  display: grid;
+  flex: none;
+  gap: var(--space-8);
+  padding: var(--space-12) var(--space-14);
+  border-bottom: var(--radius-hairline) solid var(--line);
+}
+
+.all {
+  align-self: end;
+}
+.hint {
+  color: var(--text-3);
+  font: var(--type-caption);
+}

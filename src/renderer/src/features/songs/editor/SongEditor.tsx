@@ -27,6 +27,7 @@ import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {useShow} from '@renderer/session/show';
 import {useEditorFocus} from './useEditorFocus';
+import {SlideTransitionRibbon} from './SlideTransitionRibbon';
 
 /** Mount with a window-owned store; unmounting does not discard song history. */
 export function SongEditor({
@@ -72,6 +73,11 @@ export function SongEditor({
             store={store}
             session={state.session}
             busy={state.busy}
+          />
+          <SlideTransitionRibbon
+            session={state.session}
+            disabled={state.busy}
+            song
           />
           <SongSlideSurface
             session={state.session}

@@ -18,6 +18,7 @@ import {
   NOTHING_TO_UNDO,
 } from '@renderer/platform/problemReasons';
 import styles from './SongEditor.module.css';
+import {SlideTransitionMark} from '@renderer/ui/SlideTransitionMark';
 
 export interface EditorFocus {
   inputs: Array<HTMLTextAreaElement | null>;
@@ -186,6 +187,7 @@ export const SongBlock = memo(
         <span className={styles.number}>{block + 1}</span>
         <div className={styles.thumbnail} data-editor-thumbnail>
           {canvas}
+          <SlideTransitionMark transition={slide.transition} />
         </div>
         <div className={styles.text}>
           <div className={styles.label}>

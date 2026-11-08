@@ -137,7 +137,9 @@ describe('service item preview and 항목 설정', () => {
     const grid = screen.getByRole('listbox', {name: '슬라이드'});
     expect(within(grid).getAllByRole('option')).toHaveLength(3);
     expect(caption()).toContain('3:161 / 3');
-    expect(lastLayers()?.slide?.lines).toEqual(['16 Invented verse 16']);
+    await waitFor(() =>
+      expect(lastLayers()?.slide?.lines).toEqual(['16 Invented verse 16']),
+    );
     expect(drawing.render.mock.lastCall?.[1]?.theme?.item?.title).toBe(
       panelPassage().ref,
     );
@@ -147,15 +149,18 @@ describe('service item preview and 항목 설정', () => {
     });
     await user.click(slideOption(grid, 2));
     expect(caption()).toContain('3:183 / 3');
-    expect(lastLayers()?.slide?.lines).toEqual(['18 Invented verse 18']);
+    await waitFor(() =>
+      expect(lastLayers()?.slide?.lines).toEqual(['18 Invented verse 18']),
+    );
     expect(lastLayers()?.slide?.next).toBeUndefined();
     await user.keyboard('{ArrowLeft}');
     expect(caption()).toContain('3:172 / 3');
-    expect(lastLayers()?.slide?.next).toEqual({
-      label: '3:18',
-      lines: ['18 Invented verse 18'],
-    });
-    expect(lastLayers()?.slide?.lines).toEqual(['17 Invented verse 17']);
+    await waitFor(() =>
+      expect(lastLayers()?.slide).toMatchObject({
+        lines: ['17 Invented verse 17'],
+        next: {label: '3:18', lines: ['18 Invented verse 18']},
+      }),
+    );
     expect(screen.queryByRole('button', {name: '바로 띄우기'})).toBeNull();
     expect(output).not.toHaveBeenCalled();
     expect(edits).toHaveLength(0);
@@ -170,7 +175,9 @@ describe('service item preview and 항목 설정', () => {
     );
     expect(within(grid).getAllByRole('option')).toHaveLength(1);
     expect(caption()).toContain('3:161 / 1');
-    expect(lastLayers()?.slide?.lines).toEqual(['16 Invented verse 16']);
+    await waitFor(() =>
+      expect(lastLayers()?.slide?.lines).toEqual(['16 Invented verse 16']),
+    );
     act(() => useShow.setState({tiles: {}}));
     expect(within(grid).queryAllByRole('option')).toHaveLength(0);
     expect(caption().trim()).toBe('미리보기');
@@ -217,7 +224,7 @@ describe('service item preview and 항목 설정', () => {
       }),
     );
     expect(items.getSnapshot().item).toMatchObject({background: override});
-    expect(lastLayers()?.media?.mediaId).toBe(override);
+    await waitFor(() => expect(lastLayers()?.media?.mediaId).toBe(override));
   });
 
   it('names the source song and opens it in the 곡 편집 window', async () => {

@@ -17,6 +17,7 @@ import {
 import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import {editorPreviewFixture} from '@fixtures/renderer/features/songs/editor/editorPreviewFixture';
 import type {LabelColorPreview} from '@core/schema/labelColorPreview';
+import {defaultPreferences} from '@core/schema/preferences';
 
 /** Invented source documents for the editor gallery and focused tests. */
 export function editorSong(
@@ -219,7 +220,14 @@ export function editorFixture() {
             ? preview.themes
             : request.name === 'screens'
               ? preview.screens
-              : labels,
+              : request.name === 'preferences'
+                ? {
+                    name: 'preferences',
+                    revision: 1,
+                    access: 'editable',
+                    value: defaultPreferences,
+                  }
+                : labels,
         ),
       subscribe: listener => {
         settings.add(listener);

@@ -1,0 +1,11 @@
+.mark {
+  position: absolute;
+  z-index: 1;
+  inset-inline-end: 0;
+  inset-block-end: 0;
+  width: var(--space-16);
+  height: var(--space-16);
+  background: var(--accent);
+  clip-path: polygon(100% 0, 100% 100%, 0 100%);
+  pointer-events: none;
+}

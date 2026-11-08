@@ -15,6 +15,7 @@ import {titleTooltip, useTooltip} from './Tooltip';
 import type {Workspace} from './workspace';
 import type {TileListBaseProps} from './TileList';
 import styles from './SlideThumbnail.module.css';
+import {SlideTransitionMark} from './SlideTransitionMark';
 
 const workspaceMoves: Readonly<Record<Workspace, TileMoves>> = {
   show: rowMoves,
@@ -115,6 +116,8 @@ export function ThumbnailGrid(props: ThumbnailGridProps): JSX.Element {
 }
 
 export interface SlideThumbnailProps {
+  readonly transition?:
+    import('@core/schema/slideTransition').SlideTransition | undefined;
   readonly canvas?: ReactNode;
   /** The 슬라이드 number in the band, from 1. */
   readonly number: number;
@@ -173,14 +176,16 @@ function Canvas({
   media,
   missingFile,
   hotKey,
+  transition,
 }: Pick<
   SlideThumbnailProps,
-  'canvas' | 'text' | 'media' | 'missingFile' | 'hotKey'
+  'canvas' | 'text' | 'media' | 'missingFile' | 'hotKey' | 'transition'
 >): JSX.Element {
   if (missingFile !== undefined) {
     return (
       <span className={styles.canvas}>
         <MissingFileMark />
+        <SlideTransitionMark transition={transition} />
         {hotKey !== undefined && (
           <span className={styles.hotKey} aria-hidden="true">
             {formatSlideHotKey(hotKey)}
@@ -191,6 +196,7 @@ function Canvas({
   }
   return (
     <span className={styles.canvas}>
+      <SlideTransitionMark transition={transition} />
       {canvas}
       {canvas !== undefined || media === undefined ? null : (
         <img className={styles.media} src={media} alt="" decoding="async" />
@@ -223,6 +229,7 @@ export const SlideThumbnail = memo(
     selected = false,
     live = false,
     hotKey,
+    transition,
   }: SlideThumbnailProps): JSX.Element => {
     const {targetProps, tooltip} = useTooltip(
       titleTooltip(
@@ -246,6 +253,7 @@ export const SlideThumbnail = memo(
           media={media}
           missingFile={missingFile}
           hotKey={hotKey}
+          transition={transition}
         />
         <span className={styles.band} style={labelInk(labelColor)}>
           <span className={styles.number}>{number}</span>

@@ -129,6 +129,7 @@ export function selectedPreview(
     };
   }
   const next = project(nextBlock);
+  const transition = slides[block]?.transition;
   return {
     ...emptyLayers(),
     slide: {
@@ -136,6 +137,7 @@ export function selectedPreview(
       position: block,
       label: slide.label,
       lines: slide.lines,
+      ...(transition === undefined ? {} : {transition}),
       ...(next === undefined ? {} : {next}),
     },
     media:

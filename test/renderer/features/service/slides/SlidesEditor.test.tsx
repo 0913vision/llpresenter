@@ -182,6 +182,56 @@ function savedItem(f: ReturnType<typeof setup>): SlidesItem {
 }
 
 describe('automatic inline slides editor', () => {
+  it.each(['blank', 'ad'] as const)(
+    'saves one transition command across text and media slides in %s, including undo and defaults',
+    async form => {
+      const f = setup(form);
+      const user = userEvent.setup();
+      try {
+        const controls = within(
+          await screen.findByRole('group', {name: '슬라이드 전환'}),
+        );
+        const rows = [
+          ...document.querySelectorAll<HTMLElement>('[data-slide-id]'),
+        ];
+        if (!rows[0] || !rows[1]) throw new Error('Missing rows');
+        fireEvent.click(rows[0]);
+        fireEvent.click(rows[1], {shiftKey: true});
+        await user.click(controls.getByRole('button', {name: '밀어내기'}));
+        await act(async () => {
+          await pendingWritesOf(f.api).settleDrafts();
+        });
+        expect(
+          savedItem(f).slides.slides.every(
+            slide => slide.transition?.kind === 'push',
+          ),
+        ).toBe(true);
+        expect(
+          screen.getAllByRole('img', {name: '개별 전환 설정'}),
+        ).toHaveLength(2);
+        await user.keyboard('{Control>}z{/Control}');
+        await act(async () => {
+          await pendingWritesOf(f.api).settleDrafts();
+        });
+        expect(
+          savedItem(f).slides.slides.every(
+            slide => slide.transition === undefined,
+          ),
+        ).toBe(true);
+        await user.keyboard('{Control>}y{/Control}');
+        await user.click(controls.getByRole('button', {name: '기본값'}));
+        await act(async () => {
+          await pendingWritesOf(f.api).settleDrafts();
+        });
+        expect(
+          savedItem(f).slides.slides.every(slide => !('transition' in slide)),
+        ).toBe(true);
+      } finally {
+        f.view.unmount();
+        await f.session.dispose();
+      }
+    },
+  );
   it('recovers every failed item from the single remaining retry notification', async () => {
     const f = setup('blank');
     f.view.unmount();

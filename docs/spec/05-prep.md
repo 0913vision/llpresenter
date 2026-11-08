@@ -965,7 +965,21 @@ expand the feature-freeze scope.
 ### Slide transition metadata
 
 Song and shared item editors preserve each slide's optional transition during
-ordinary text, label, order, save, and clipboard edits (02). The first
-transition stage adds data, global defaults, and output playback. The effect
-ribbon, selection-based changes, corner markers, apply-to-all, and animated
-effect preview belong to the separate editor stage.
+ordinary text, label, order, save, and clipboard edits (02).
+
+- Above the slide list, the 효과 gallery offers 기본값, 없음, 디졸브, 밀어내기,
+  and 닦아내기. 방향 is enabled only for the two directional effects. 시간 is
+  always visible, from 0.1 to 10 seconds in 0.1-second steps, and disabled for
+  기본값 and 없음.
+- Changes affect the Shift/Ctrl selection in one undo step. 이 곡 전체에 적용
+  copies the selected effect to every song slide in one step; shared slide items
+  use 전체 슬라이드에 적용. Selection and unrelated slide fields stay intact.
+- 기본값 removes the override. Explicit effects, including 없음, show a small
+  blue triangle at the thumbnail's bottom-right corner. Mixed selections have no
+  pressed effect tile; direction, time and apply-all are disabled until a common
+  effect is chosen. Read-only or blocked sessions cannot edit effects.
+- The existing local preview plays the chosen effect once when it changes, from
+  the preceding slide (empty text for the first slide). It uses the same
+  animation as output and never changes live output. Rapid edits replace the
+  pending preview; unrelated redraws do not restart it. 기본값 previews the
+  between-item default on the first slide and the within-item default on others.

@@ -29,6 +29,8 @@ disabled for 없음; otherwise it accepts 0.1 to 10 seconds. Defaults are 디졸
 kind. The existing 배경 row remains unchanged. A slide's saved effect overrides
 these defaults. Changes apply to the next transition without restarting one
 already running. The old single 슬라이드 setting is replaced without migration.
+The editor's 기본값 tile removes its per-slide override and follows these rows;
+it does not change either global default (05).
 
 ### Layout and navigation
 

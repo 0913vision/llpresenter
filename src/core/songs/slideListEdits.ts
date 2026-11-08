@@ -5,6 +5,7 @@ import {
   slideClipboardTextSchema,
 } from '../schema/slideClipboard';
 import {SONG_LIMITS} from '../schema/song';
+import type {SlideTransition} from '../schema/slideTransition';
 import {
   emptySlideSelection,
   selectSlideList,
@@ -16,6 +17,7 @@ export interface SlideListItem {
   readonly id: string;
   readonly hotKey?: string;
   readonly label?: string;
+  readonly transition?: SlideTransition;
 }
 export type SlideListError = 'invalid' | 'limit';
 type MutableSlide<T> = {-readonly [Key in keyof T]: T[Key]};
@@ -50,6 +52,11 @@ export type SlideListCommand<T extends SlideListItem> =
   | {readonly type: 'duplicate'}
   | {readonly type: 'delete'}
   | {readonly type: 'move'; readonly index: number}
+  | {
+      readonly type: 'transition';
+      readonly transition: SlideTransition | undefined;
+      readonly all?: boolean;
+    }
   | {readonly type: 'label'; readonly label: string | undefined};
 
 export function validateSlideList<T extends SlideListItem>(
@@ -157,7 +164,11 @@ function changedSlides<T extends SlideListItem>(
 ): Result<SlideListSnapshot<T>, SlideListError> {
   const {slides, selection} = snapshot;
   const selected = slides.filter(slide => selection.ids.has(slide.id));
-  if (command.type !== 'paste' && selected.length === 0) {
+  if (
+    command.type !== 'paste' &&
+    !(command.type === 'transition' && command.all) &&
+    selected.length === 0
+  ) {
     return {ok: true, value: snapshot};
   }
   if (command.type === 'paste' || command.type === 'duplicate') {
@@ -215,6 +226,28 @@ function changedSlides<T extends SlideListItem>(
     return {
       ok: true,
       value: selectedSnapshot([...before, ...selected, ...after], selected),
+    };
+  }
+  if (command.type === 'transition') {
+    return {
+      ok: true,
+      value: {
+        ...snapshot,
+        slides: slides.map(slide => {
+          if (
+            (!command.all && !selection.ids.has(slide.id)) ||
+            JSON.stringify(slide.transition) ===
+              JSON.stringify(command.transition)
+          ) {
+            return slide;
+          }
+          const next: MutableSlide<T> = {...slide};
+          delete next.transition;
+          return command.transition === undefined
+            ? next
+            : {...next, transition: command.transition};
+        }),
+      },
     };
   }
   const label = command.label?.trim();

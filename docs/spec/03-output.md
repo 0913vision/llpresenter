@@ -243,6 +243,9 @@ colors), 12.
 
 ### Transitions
 
+The editor's local preview uses these same slide effects. A changed effect
+replays once from the preceding slide without sending output commands (05).
+
 - Each incoming slide's own transition wins over the output defaults. Otherwise,
   changing item identity uses `output.transition.between` (dissolve, 0.5 s),
   while navigating within the same item uses `.within` (none). This applies to

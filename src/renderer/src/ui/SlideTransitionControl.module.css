@@ -11,6 +11,10 @@
   gap: var(--space-16);
 }
 
+.gallery {
+  flex-wrap: wrap;
+}
+
 .tile,
 .directions button {
   border: 0;
@@ -36,6 +40,13 @@
 
 .old {
   fill: var(--accent-fill);
+}
+
+.inherited {
+  fill: none;
+  stroke: var(--text-3);
+  stroke-width: 2;
+  stroke-dasharray: 4 3;
 }
 
 .next {

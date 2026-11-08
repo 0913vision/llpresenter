@@ -41,6 +41,8 @@ import type {SlidesEditorModel} from './useSlidesEditor';
 import {SlideRows} from './SlideRows';
 import styles from './SlidesEditor.module.css';
 import headerStyles from '../../songs/editor/SongHeader.module.css';
+import {SlideTransitionRibbon} from '../../songs/editor/SlideTransitionRibbon';
+import {SlideTransitionMark} from '@renderer/ui/SlideTransitionMark';
 
 const ADVANCES = [3, 5, 8, 10, 15, 20, 30];
 const TEXT_LIMIT = SLIDES_LIMITS.text;
@@ -423,6 +425,12 @@ function SlidesEditorBody({
               ?.focus()
           }
         />
+        {model.session === null ? null : (
+          <SlideTransitionRibbon
+            session={model.session}
+            disabled={model.stopped || bibleDialog !== null || picker !== null}
+          />
+        )}
         <fieldset
           className={styles.editable}
           disabled={model.stopped || model.session?.readOnly === true}
@@ -452,6 +460,7 @@ function SlidesEditorBody({
                     projection={projection}
                     thumbnail
                   />
+                  <SlideTransitionMark transition={slide.transition} />
                 </div>
                 <SlideFields
                   slide={slide}

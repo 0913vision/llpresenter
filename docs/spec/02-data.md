@@ -564,6 +564,8 @@ optional `transition`: `{kind, sec, dir?}`. `kind` is `none`, `dissolve`,
 permitted only for `push` and `wipe`: `left`, `right`, `up`, or `down`; absent
 uses `left`. An absent transition inherits the output default; explicit `none`
 overrides it. Existing song content and unknown fields survive saves unchanged.
+The editor's 기본값 action removes this field rather than storing a sentinel.
+Selection and apply-all changes use one atomic slide-history step each.
 
 `output.transition.between` and `.within` store the same transition object.
 Their defaults are `{kind: 'dissolve', sec: 0.5}` and

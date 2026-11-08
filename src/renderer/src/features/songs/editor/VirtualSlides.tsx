@@ -67,6 +67,7 @@ interface SlideSource {
   readonly slides: ReadonlyArray<{
     readonly label?: string;
     readonly lines: readonly string[];
+    readonly transition?: import('@core/schema/slideTransition').SlideTransition;
   }>;
 }
 
@@ -369,6 +370,9 @@ export function VirtualSlides<T extends SlideListItem>({
                       session.slideModel.getSnapshot().selection.ids.has(own.id)
                 }
                 hotKey={'hotKey' in slide ? slide.hotKey : undefined}
+                transition={
+                  own === undefined ? slide.transition : own.transition
+                }
               />
             );
             if (session === undefined) return thumbnail;
