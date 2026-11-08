@@ -9,6 +9,7 @@ import {CLICK_FOCUS_SELECTOR} from '@renderer/ui';
 import {
   openNextItem,
   openPreviousItem,
+  outputBoundarySlide,
   outputNext,
   outputPrevious,
   revealLiveItem,
@@ -20,6 +21,8 @@ import {outputAdjacentBibleVerse} from '../bible/verseShortcuts';
 const commands: readonly WindowShortcut[] = [
   {id: 'show.next', run: () => outputNext()},
   {id: 'show.previous', run: () => outputPrevious()},
+  {id: 'show.first', run: () => outputBoundarySlide('first')},
+  {id: 'show.last', run: () => outputBoundarySlide('last')},
   {id: 'service.nextItem', run: () => openNextItem()},
   {id: 'service.previousItem', run: () => openPreviousItem()},
   {id: 'service.revealLive', run: () => revealLiveItem()},

@@ -109,6 +109,41 @@ describe('handleShowKey next and previous', () => {
   });
 });
 
+describe('handleShowKey first and last slides', () => {
+  it.each([
+    ['Home', 'first'],
+    ['End', 'last'],
+  ])('outputs the %s boundary once per physical press', (code, boundary) => {
+    expect(press(code).defaultPrevented).toBe(true);
+    expect(press(code, {repeat: true}).defaultPrevented).toBe(true);
+    expect(showState.outputBoundarySlide).toHaveBeenCalledExactlyOnceWith(
+      boundary,
+    );
+  });
+
+  it.each(['Home', 'End'])(
+    'leaves %s with text, lists and modal focus',
+    code => {
+      for (const createTarget of [
+        () => appendTo('input'),
+        () => appendTo('textarea'),
+        () => appendTo('div', {contenteditable: 'true'}),
+        () => appendTo('div', {role: 'listbox'}),
+        () => appendTo('div', {role: 'dialog'}),
+        () => appendTo('div', {role: 'menu'}),
+      ]) {
+        const target = createTarget();
+        expect(press(code, {}, target).defaultPrevented).toBe(false);
+        target.remove();
+      }
+      press(code, {isComposing: true});
+      setColumnDragActive(true);
+      press(code);
+      expect(showState.outputBoundarySlide).not.toHaveBeenCalled();
+    },
+  );
+});
+
 describe('handleShowKey where a focused control takes the key', () => {
   it.each(['button', 'switch', 'checkbox', 'radio', 'tab'])(
     'leaves Space to a focused %s so that it presses',

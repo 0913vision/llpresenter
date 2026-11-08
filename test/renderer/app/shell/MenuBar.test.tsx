@@ -66,8 +66,8 @@ describe('MenuBar', () => {
     render(<MenuBar title="" />);
     await userEvent.click(screen.getByRole('menuitem', {name: '출력'}));
     expect(screen.getByRole('menu', {name: '출력'})).toBeDefined();
-    expect(outputItem('청중 화면').textContent).toBe('출력 끄기');
-    expect(outputItem('무대 화면').textContent).toBe('출력 켜기');
+    expect(outputItem('청중 화면').textContent).toBe('출력 끄기Ctrl 1');
+    expect(outputItem('무대 화면').textContent).toBe('출력 켜기Ctrl 2');
     expect(outputItem('방송 화면').textContent).toBe('출력 켜기');
     expect(screen.queryByRole('menuitem', {name: /문제 보기/})).toBeNull();
   });

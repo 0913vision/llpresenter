@@ -70,7 +70,9 @@ describe('shortcut registry', () => {
     );
     expect(parsed.ok && parsed.value.dropped).toEqual([]);
     expect(shortcutConflicts({})).toEqual([]);
-    expect(commandBindings('tools.messages', {})).toEqual([]);
+    expect(commandBindings('tools.messages', {})).toEqual([
+      {code: 'KeyM', mods: ['ctrl']},
+    ]);
   });
 
   it('overrides or removes defaults while preserving unrelated unknown IDs', () => {

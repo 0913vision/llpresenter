@@ -73,8 +73,6 @@ const COMMANDS_WITHOUT_HANDLER: ReadonlySet<string> = new Set([
   'service.quickAdd',
   'service.revealLibrary',
   'service.switcher',
-  'show.first',
-  'show.last',
   'stageEditor.addElement',
   'stageEditor.fit',
   'tools.showing',

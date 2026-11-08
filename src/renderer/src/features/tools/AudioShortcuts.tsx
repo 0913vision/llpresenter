@@ -1,6 +1,8 @@
 import {useSyncExternalStore, type JSX} from 'react';
 import {audioTracks} from '@core/media/audioTracks';
 import {audioPlayCommand} from '@core/media/audioPlayCommand';
+import {commandBindings} from '@core/shortcuts/bindings';
+import {shortcutCommands} from '@core/shortcuts/registry';
 import {commandBindingStore} from '@renderer/ui/commandBindings';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useLive} from '@renderer/session/live';
@@ -11,7 +13,7 @@ import {useAudioSelection} from './state/audioSelection';
 import {useToolEditing} from './useToolEditing';
 import {setAudioLoop} from './audioLoop';
 
-/** Loads audio command state only when the operator assigned an audio binding. */
+/** Loads audio command state while a default or assigned audio key is active. */
 export function AudioShortcuts({
   onProblem,
 }: {
@@ -21,8 +23,9 @@ export function AudioShortcuts({
     commandBindingStore.subscribe,
     commandBindingStore.get,
   );
-  return Object.keys(bindings).some(
-    id => id.startsWith('audio.') && (bindings[id]?.length ?? 0) > 0,
+  return shortcutCommands.some(
+    ({id}) =>
+      id.startsWith('audio.') && commandBindings(id, bindings).length > 0,
   ) ? (
     <BoundAudioShortcuts onProblem={onProblem} />
   ) : null;

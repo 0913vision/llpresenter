@@ -12,6 +12,27 @@ afterEach(() => {
 });
 
 describe('dispatchShortcut', () => {
+  it.each([
+    ['output.audience', 'Digit1', {ctrlKey: true}],
+    ['output.stage', 'Digit2', {ctrlKey: true}],
+    ['audio.playPause', 'KeyP', {altKey: true}],
+  ])(
+    'runs %s once using its physical default and respects composition',
+    (id, code, modifiers) => {
+      const ran: string[] = [];
+      const owner = renderHook(() =>
+        useCommandShortcuts([{id, run: () => ran.push(id)}]),
+      );
+      const key = {key: 'ㅔ', code, ...modifiers};
+      fireEvent.keyDown(document.body, {...key, isComposing: true});
+      expect(ran).toEqual([]);
+      fireEvent.keyDown(document.body, key);
+      fireEvent.keyDown(document.body, {...key, repeat: true});
+      expect(ran).toEqual([id]);
+      owner.unmount();
+    },
+  );
+
   it('routes fixed clipboard keys through control ownership, text, composition and modal guards', () => {
     const control = document.body.appendChild(document.createElement('div'));
     const field = control.appendChild(document.createElement('input'));

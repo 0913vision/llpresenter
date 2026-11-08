@@ -57,14 +57,14 @@ afterEach(async () => {
   useLive.setState({state: null});
 });
 
-it('unmounts the player panels while retaining summary feeds until leaving the workspaces', async () => {
+it('releases workspace media feeds while retaining audio shortcut state until app unmount', async () => {
   const {api, send, mount} = setup();
   const stopMedia = vi.fn();
   const stopCopies = vi.fn();
   const subscribe = vi.spyOn(api.media, 'subscribe').mockReturnValue(stopMedia);
   const previewProgress = vi.spyOn(api.live, 'subscribeMediaProgress');
   vi.spyOn(api.media, 'subscribeImports').mockReturnValue(stopCopies);
-  mount();
+  const {unmount} = mount();
   await screen.findByRole('region', {name: '미디어'});
   await userEvent.click(mediaBinToggle());
   expect(screen.queryByRole('region', {name: '미디어'})).toBeNull();
@@ -72,12 +72,14 @@ it('unmounts the player panels while retaining summary feeds until leaving the w
   expect(stopCopies).not.toHaveBeenCalled();
   await userEvent.click(mediaBinToggle());
   await screen.findByRole('region', {name: '미디어'});
-  expect(subscribe).toHaveBeenCalledOnce();
+  expect(subscribe).toHaveBeenCalledTimes(2);
   expect(previewProgress).not.toHaveBeenCalled();
   await userEvent.click(screen.getByRole('tab', {name: '테마'}));
   expect(stopMedia).toHaveBeenCalledOnce();
   expect(stopCopies).toHaveBeenCalledOnce();
   expect(send).not.toHaveBeenCalled();
+  unmount();
+  expect(stopMedia).toHaveBeenCalledTimes(subscribe.mock.calls.length);
 });
 
 it('finishes an import and opens prep after its media panel is collapsed', async () => {

@@ -44,8 +44,6 @@ const HIDDEN = [
   'service.quickAdd',
   'service.revealLibrary',
   'service.switcher',
-  'show.first',
-  'show.last',
   'stageEditor.addElement',
   'stageEditor.fit',
   'tools.showing',
@@ -95,6 +93,35 @@ describe('allCommands', () => {
 
 describe('buildRows', () => {
   const commands = allCommands(NAMES);
+
+  it.each([
+    ['show.first', 'Home'],
+    ['show.last', 'End'],
+    ['output.audience', 'Ctrl 1'],
+    ['output.stage', 'Ctrl 2'],
+    ['tools.stage', 'Alt S'],
+    ['tools.timers', 'Ctrl Shift C'],
+    ['tools.messages', 'Ctrl M'],
+    ['tools.props', 'Ctrl Shift P'],
+    ['tools.actionPalette', 'Alt C'],
+    ['bible.focus', 'Ctrl Alt B'],
+    ['audio.playPause', 'Alt P'],
+    ['app.preferences', 'Ctrl ,'],
+  ])('shows and restores the standard default for %s', (id, text) => {
+    const command = commandOf(id);
+    const defaults = buildRows(commands, {});
+    expect(
+      filterRows(defaults, text, 'all').map(row => row.command.id),
+    ).toContain(id);
+    const removed = withBinding({}, command, null);
+    expect(
+      buildRows(commands, removed).find(row => row.command.id === id),
+    ).toMatchObject({
+      bindings: [],
+      changed: true,
+    });
+    expect(buildRows(commands, withoutOverride(removed, id))).toEqual(defaults);
+  });
 
   it('marks only a command that differs from its default as changed', () => {
     const rows = buildRows(commands, {

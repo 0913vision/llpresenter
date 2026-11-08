@@ -59,6 +59,9 @@ beforeEach(() => {
   seedSampleService();
   vi.spyOn(showState, 'outputNext').mockImplementation(() => undefined);
   vi.spyOn(showState, 'outputPrevious').mockImplementation(() => undefined);
+  vi.spyOn(showState, 'outputBoundarySlide').mockImplementation(
+    () => undefined,
+  );
   vi.spyOn(showState, 'outputHotKey').mockImplementation(() => true);
   vi.spyOn(showState, 'openNextItem').mockImplementation(() => undefined);
   vi.spyOn(showState, 'openPreviousItem').mockImplementation(() => undefined);

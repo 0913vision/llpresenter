@@ -275,6 +275,15 @@ export function outputPrevious(): void {
   outputIfPresent(previousTile(sequenceState()));
 }
 
+/** Outputs the first or last tile of the open presentation without wrapping. */
+export function outputBoundarySlide(boundary: 'first' | 'last'): void {
+  const itemId = useShow.getState().openItemId;
+  if (itemId === null) return;
+  const tiles = tilesOf(itemId);
+  if (tiles.length === 0) return;
+  outputTile({itemId, index: boundary === 'first' ? 0 : tiles.length - 1});
+}
+
 /** True if the open presentation has a slide assigned to this physical hot key. */
 export function hasSlideHotKey(code: string): boolean {
   const view = useShow.getState();

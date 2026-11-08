@@ -401,7 +401,8 @@ default. The 대기 화면 row has no 삭제 and no 기본으로 지정.
 - 항목 끄기 takes the live item off every screen in one step: its 슬라이드, its
   배경, and its 오버레이. Its control is a 항목 button first in 진행's 지우기
   row, shaped like the other clear buttons, with the tooltip 항목 끄기, and a
-  출력 menu row. Its shortcut comes with the shortcut review (B7). Unlike 지우기
+  출력 menu row. It has no default shortcut: the standard-key audit in 10 found
+  no equivalent item-only toggle. The operator can assign one. Unlike 지우기
   모두, it leaves 그래픽 and 메시지 on screen. 실행 취소 (undo) brings the item
   back, as for a clear (03, "Undo").
 - After stopping, the 항목 button stays bright and pressed with the tooltip 항목

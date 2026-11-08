@@ -327,7 +327,7 @@ describe('the 창 menu', () => {
       within(menu)
         .getAllByRole('menuitem')
         .map(row => row.textContent),
-    ).toEqual(['최소화', '최대화', '환경설정…']);
+    ).toEqual(['최소화', '최대화', '환경설정…Ctrl ,']);
     await user.click(rowOf(menu, '최소화'));
     expect(control).toHaveBeenLastCalledWith('minimize');
     menu = await openMenu(user, '창');

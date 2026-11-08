@@ -13,6 +13,7 @@ import {
   openNextItem,
   openPreviousItem,
   outputHotKey,
+  outputBoundarySlide,
   revealLiveItem,
   selectTile,
   openItem,
@@ -71,6 +72,33 @@ afterEach(() => {
 });
 
 describe('show state', () => {
+  it.each([
+    ['first', 0],
+    ['last', 2],
+  ] as const)(
+    'outputs the %s slide of the open item, not the live item',
+    (boundary, position) => {
+      setLive('song-morning', 1);
+      openItem('song-river');
+      outputBoundarySlide(boundary);
+      expect(slides()).toHaveLength(1);
+      expect(slides()[0]).toMatchObject({
+        slide: {itemId: 'song-river', position},
+      });
+      expect(useShow.getState().selectedTile).toBe(position);
+    },
+  );
+
+  it('does nothing at a boundary without an open, nonempty presentation', () => {
+    setLive('song-morning', 1);
+    for (const itemId of [null, 'before', 'missing']) {
+      useShow.setState({openItemId: itemId});
+      outputBoundarySlide('first');
+      outputBoundarySlide('last');
+    }
+    expect(sent).toEqual([]);
+  });
+
   it('opens an item with its first tile selected', () => {
     useShow.setState({selectedTile: 3});
     openItem('song-morning');
