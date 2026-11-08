@@ -15,6 +15,7 @@ export function EditorSlideNumber({
   return (
     <span className={styles.number}>
       <Checkbox
+        tabIndex={-1}
         className={styles.checkbox}
         aria-label={`슬라이드 ${number} 선택`}
         checked={selected}

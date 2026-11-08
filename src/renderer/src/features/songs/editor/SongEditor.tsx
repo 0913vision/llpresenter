@@ -29,6 +29,7 @@ import {useShow} from '@renderer/session/show';
 import {useEditorFocus} from './useEditorFocus';
 import {SlideTransitionRibbon} from './SlideTransitionRibbon';
 import {useEditorLiveIndex} from './useEditorLiveIndex';
+import {songEditorSourceId} from './songEditorSourceId';
 
 /** Mount with a window-owned store; unmounting does not discard song history. */
 export function SongEditor({
@@ -107,7 +108,7 @@ function SongBlocks({
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const {song, selection} = session.history.snapshot;
   const liveIndex = useEditorLiveIndex(
-    session.itemSession ? song.id : `library:${song.id}`,
+    songEditorSourceId(session),
     song.slides,
   );
   const list = useSyncExternalStore(

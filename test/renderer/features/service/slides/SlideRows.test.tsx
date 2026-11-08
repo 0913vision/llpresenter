@@ -91,6 +91,28 @@ function clipboard() {
 }
 
 describe('slide row editing surface', () => {
+  it('tabs through editable fields without stopping at any slide checkbox', async () => {
+    render(<Harness draft={makeDraft()} />);
+    const user = userEvent.setup();
+    const surface = screen.getByRole('group', {name: '슬라이드 편집 명령'});
+    act(() => surface.focus());
+    const fields = screen.getAllByRole('textbox', {name: '글'});
+    for (const field of fields) {
+      await user.tab();
+      expect(document.activeElement).toBe(field);
+    }
+    await user.tab();
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', {name: '글 추가'}),
+    );
+    for (const field of [...fields].reverse()) {
+      await user.tab({shift: true});
+      expect(document.activeElement).toBe(field);
+    }
+    await user.tab({shift: true});
+    expect(document.activeElement).toBe(surface);
+  });
+
   it('toggles the list checkbox and focused slide without Ctrl', async () => {
     render(<Harness draft={makeDraft()} />);
     const user = userEvent.setup();

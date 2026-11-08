@@ -158,6 +158,15 @@
   background: var(--selection);
 }
 
+.thumb[data-selection-style='plate']:focus-visible {
+  outline: none;
+}
+
+.thumb[data-selection-style='plate']:focus-visible::before {
+  outline: var(--space-2) solid var(--accent);
+  outline-offset: var(--space-2);
+}
+
 .thumb[data-selection-style='plate'] .canvas {
   border-radius: var(--radius-sm);
 }

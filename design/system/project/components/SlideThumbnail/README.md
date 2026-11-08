@@ -27,7 +27,8 @@ including 진행, retain the default ring style.
 - Selected: `selection` plate and `text-on-selection` number. Hover: `bg-raised`
   plate. Selection wins over hover and does not dim when focus leaves the list.
   Label chips keep `label-fill` and `label-ink`. No row fill or selection frame.
-- Live: `ring-live` around the picture. Keyboard focus keeps its own outline.
+- Live: `ring-live` around the picture. Keyboard focus draws a 2px `accent`
+  outline 2px outside the plate, so neither the plate nor the live ring covers it.
 - Grid: number and label chip centered in a 22px band, 6px below the picture;
   24px grid gaps leave room for the plates. No checkbox, including hover/focus.
 - List: the unchanged app Checkbox precedes the number on the plate. It appears

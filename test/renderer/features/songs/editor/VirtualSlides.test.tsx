@@ -3,6 +3,14 @@ import {act, fireEvent, render, screen} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 import {editorSong} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {VirtualSlides} from '@renderer/features/songs/editor/VirtualSlides';
+import type {SlideListSession} from '@renderer/features/songs/editor/slideListSession';
+import type {SlideListView} from '@core/songs/slideListModel';
+import type {SongSlide} from '@core/schema/song';
+import {useEditorLiveIndex} from '@renderer/features/songs/editor/useEditorLiveIndex';
+
+vi.mock('@renderer/features/songs/editor/useEditorLiveIndex', () => ({
+  useEditorLiveIndex: vi.fn(),
+}));
 
 const NUMBERS = Array.from({length: 2000}, (_, index) => (index % 2) + 1);
 function List(): JSX.Element {
@@ -21,6 +29,74 @@ function List(): JSX.Element {
 }
 
 describe('virtual editor slides', () => {
+  it('refreshes live slide identities on model notifications and releases its subscription', () => {
+    const song = editorSong(1).song;
+    let snapshot: SlideListView<SongSlide> = {
+      slides: song.slides,
+      selection: {ids: new Set(), anchor: null, focus: null, caret: null},
+      canUndo: false,
+      canRedo: false,
+    };
+    const listeners = new Set<() => void>();
+    const session: SlideListSession<SongSlide> = {
+      slideModel: {
+        getSnapshot: () => snapshot,
+        subscribe: listener => {
+          listeners.add(listener);
+          return () => {
+            listeners.delete(listener);
+          };
+        },
+        limits: {minSlides: 0, maxSlides: 2000},
+      },
+      clipboardOwner: {},
+      slideDocumentId: song.id,
+      slideIntent: 0,
+      selectedOccurrence: 0,
+      readOnly: false,
+      selectSlides: vi.fn(),
+      commandSlides: vi.fn(),
+      copySlides: vi.fn(() => null),
+      cutSlides: vi.fn(() => null),
+      pasteSlides: vi.fn(),
+      edit: vi.fn(),
+    };
+    const view = render(
+      <VirtualSlides
+        song={song}
+        numbers={[1, 2]}
+        labels={[]}
+        selected={0}
+        onSelect={vi.fn()}
+        baseline={3}
+        scale={100}
+        session={session}
+        sourceId="editor-item"
+      />,
+    );
+    expect(useEditorLiveIndex).toHaveBeenLastCalledWith(
+      'editor-item',
+      song.slides,
+    );
+    expect(listeners.size).toBe(1);
+    const reordered = [...song.slides].reverse();
+    act(() => {
+      snapshot = {...snapshot, slides: reordered};
+      for (const listener of listeners) listener();
+    });
+    expect(useEditorLiveIndex).toHaveBeenLastCalledWith(
+      'editor-item',
+      reordered,
+    );
+    act(() => {
+      snapshot = {...snapshot, slides: []};
+      for (const listener of listeners) listener();
+    });
+    expect(useEditorLiveIndex).toHaveBeenLastCalledWith('editor-item', []);
+    view.unmount();
+    expect(listeners.size).toBe(0);
+  });
+
   it('keeps a bounded window, reaches both ends, and focuses the logical selected occurrence', () => {
     render(<List />);
     expect(screen.getAllByRole('option').length).toBeLessThan(20);

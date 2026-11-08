@@ -2,6 +2,7 @@ import {
   useLayoutEffect,
   useRef,
   useState,
+  useSyncExternalStore,
   type CSSProperties,
   type JSX,
   type KeyboardEvent,
@@ -23,6 +24,8 @@ import {useEditorLiveIndex} from './useEditorLiveIndex';
 
 const OVERSCAN_ROWS = 1;
 const INITIAL_ROWS = 2;
+const emptySnapshot = () => undefined;
+const emptySubscribe = () => emptySnapshot;
 interface Measure {
   readonly width: number;
   readonly height: number;
@@ -106,10 +109,11 @@ export function VirtualSlides<T extends SlideListItem>({
   readonly background?: string | undefined;
   readonly sourceId?: string | undefined;
 }): JSX.Element {
-  const liveIndex = useEditorLiveIndex(
-    sourceId,
-    session?.slideModel.getSnapshot().slides ?? [],
+  const list = useSyncExternalStore(
+    session?.slideModel.subscribe ?? emptySubscribe,
+    session?.slideModel.getSnapshot ?? emptySnapshot,
   );
+  const liveIndex = useEditorLiveIndex(sourceId, list?.slides ?? []);
   const theme = useSlideTheme(
     {id: 'thumbnail', kind: 'song', title: ''},
     'external',
@@ -348,7 +352,7 @@ export function VirtualSlides<T extends SlideListItem>({
             const slides = song.slides;
             const slide = slides[number - 1];
             if (slide === undefined) return null;
-            const own = session?.slideModel.getSnapshot().slides[number - 1];
+            const own = list?.slides[number - 1];
             const thumbnail = (
               <SlideThumbnail
                 key={start + index}
@@ -379,8 +383,7 @@ export function VirtualSlides<T extends SlideListItem>({
                 selected={
                   session === undefined
                     ? start + index === selected
-                    : own !== undefined &&
-                      session.slideModel.getSnapshot().selection.ids.has(own.id)
+                    : own !== undefined && list?.selection.ids.has(own.id)
                 }
                 hotKey={'hotKey' in slide ? slide.hotKey : undefined}
                 transition={
@@ -401,10 +404,7 @@ export function VirtualSlides<T extends SlideListItem>({
                   type="button"
                   data-slide-gap={number - 1}
                   className={styles.gridGap}
-                  data-caret={
-                    session.slideModel.getSnapshot().selection.caret ===
-                    number - 1
-                  }
+                  data-caret={list?.selection.caret === number - 1}
                   aria-label={`슬라이드 ${number} 앞에 삽입`}
                   onClick={event => {
                     session.selectSlides({type: 'gap', index: number - 1});
@@ -424,10 +424,7 @@ export function VirtualSlides<T extends SlideListItem>({
             type="button"
             className={styles.lastGap}
             data-slide-gap={numbers.length}
-            data-caret={
-              session.slideModel.getSnapshot().selection.caret ===
-              numbers.length
-            }
+            data-caret={list?.selection.caret === numbers.length}
             aria-label="마지막 슬라이드 뒤에 삽입"
             onClick={event => {
               session.selectSlides({type: 'gap', index: numbers.length});
