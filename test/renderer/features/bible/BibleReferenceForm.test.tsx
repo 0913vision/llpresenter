@@ -616,10 +616,66 @@ describe('shared Bible reference form', () => {
       finishReturn(await formLookupReply(lookupRequest('요한복음 3:16'))),
     );
     await waitFor(() => expect(view.onPreview).toHaveBeenCalledTimes(2));
-    fireEvent.keyDown(view.end, {key: 'Enter'});
     expect(view.onSubmit).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({ref: '요한복음 3:16'}),
     );
+  });
+
+  it('submits the final field when Enter immediately follows typing', async () => {
+    const view = setup();
+    await enterPassage(view);
+    await waitFor(() => expect(view.end.disabled).toBe(false));
+    act(() => {
+      fireEvent.change(view.end, {target: {value: '18'}});
+      fireEvent.keyDown(view.end, {key: 'Enter'});
+    });
+    await waitFor(() =>
+      expect(view.onSubmit).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({ref: '요한복음 3:16-18'}),
+      ),
+    );
+  });
+
+  it('shows an invalid end on immediate Enter without submitting', async () => {
+    const view = setup();
+    await enterPassage(view);
+    await waitFor(() => expect(view.end.disabled).toBe(false));
+    act(() => {
+      fireEvent.change(view.end, {target: {value: '15'}});
+      fireEvent.keyDown(view.end, {key: 'Enter'});
+    });
+    expect(view.end.getAttribute('aria-invalid')).toBe('true');
+    expect(view.onSubmit).not.toHaveBeenCalled();
+  });
+
+  it('cancels a pending Enter when the reference is edited', async () => {
+    const view = setup();
+    await enterPassage(view);
+    await waitFor(() => expect(view.onPreview).toHaveBeenCalled());
+    let finish: (reply: BibleLookupReply) => void = () => undefined;
+    view.lookup.mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          finish = resolve;
+        }),
+    );
+    fireEvent.change(view.end, {target: {value: '18'}});
+    fireEvent.keyDown(view.end, {key: 'Enter'});
+    await waitFor(() =>
+      expect(view.lookup).toHaveBeenLastCalledWith(
+        lookupRequest('요한복음 3:16-18'),
+      ),
+    );
+    fireEvent.change(view.end, {target: {value: '19'}});
+    await act(async () =>
+      finish(await formLookupReply(lookupRequest('요한복음 3:16-18'))),
+    );
+    await waitFor(() =>
+      expect(view.onPreview).toHaveBeenLastCalledWith(
+        expect.objectContaining({ref: '요한복음 3:16-19'}),
+      ),
+    );
+    expect(view.onSubmit).not.toHaveBeenCalled();
   });
 
   it('cannot use old bounds or a passage while a different translation is pending', async () => {

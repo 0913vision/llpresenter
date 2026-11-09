@@ -37,6 +37,29 @@ function setup(
 }
 
 describe('Show Bible reference mount', () => {
+  it('outputs the passage when Enter follows the final digit immediately', async () => {
+    const view = setup([]);
+    const chapter = screen.getByRole<HTMLInputElement>('textbox', {name: '장'});
+    const start = screen.getByRole<HTMLInputElement>('textbox', {
+      name: '시작절',
+    });
+    const end = screen.getByRole<HTMLInputElement>('textbox', {name: '끝절'});
+    fireEvent.change(view.field, {target: {value: '요'}});
+    fireEvent.change(chapter, {target: {value: '3'}});
+    await waitFor(() => expect(start.disabled).toBe(false));
+    fireEvent.change(start, {target: {value: '16'}});
+    await waitFor(() => expect(end.disabled).toBe(false));
+    act(() => {
+      fireEvent.change(end, {target: {value: '18'}});
+      fireEvent.keyDown(end, {key: 'Enter'});
+    });
+    await waitFor(() =>
+      expect(view.onShow).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({ref: '요한복음 3:16-18'}),
+      ),
+    );
+  });
+
   it('clears a blocked manual-field error when choosing a valid recent passage', async () => {
     const view = setup();
     await view.user.type(view.field, 'unknown');
@@ -124,7 +147,6 @@ describe('Show Bible reference mount', () => {
         expect.objectContaining({translation: other.translation}),
       ),
     );
-    fireEvent.keyDown(view.field, {key: 'Enter'});
     expect(view.onShow).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({translation: other.translation}),
     );

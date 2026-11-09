@@ -1,5 +1,6 @@
 import {
   useEffect,
+  useEffectEvent,
   useId,
   useLayoutEffect,
   useRef,
@@ -149,6 +150,37 @@ export function BibleReferenceForm(
     input: selectedRecent?.ref ?? state.input,
   });
   const passage = reply?.result.ok ? reply.result.value : undefined;
+  const pendingSubmit = useRef<{
+    input: string;
+    translation: TranslationId;
+    clampedEnd: number | undefined;
+    part: ReferencePart;
+  } | null>(null);
+  const submitPending = useEffectEvent((value: BibleLookupPassage) => {
+    props.onSubmit(value);
+  });
+  useEffect(() => {
+    const pending = pendingSubmit.current;
+    if (pending === null) return;
+    if (
+      pending.input !== (selectedRecent?.ref ?? state.input) ||
+      pending.translation !== translation
+    ) {
+      pendingSubmit.current = null;
+      return;
+    }
+    if (reply === null) return;
+    pendingSubmit.current = null;
+    if (!reply.result.ok) {
+      setBlocked(pending.part);
+      return;
+    }
+    if (pending.clampedEnd !== undefined) {
+      setFields(previous => ({...previous, end: String(pending.clampedEnd)}));
+    }
+    setOpen(false);
+    submitPending(reply.result.value);
+  }, [reply, selectedRecent?.ref, state.input, translation]);
   const onReady = props.onReady;
   useEffect(() => onReady?.(passage ?? null), [onReady, passage]);
   const suggestions: readonly BibleSuggestion[] = [
@@ -175,6 +207,7 @@ export function BibleReferenceForm(
       metadata?.bounds,
     );
     if (nextFields === fields && value !== fields[part]) return;
+    pendingSubmit.current = null;
     advancedBook.current = null;
     props.onIntent?.();
     if (nextFields !== fields || selectedRecent !== undefined) {
@@ -265,12 +298,14 @@ export function BibleReferenceForm(
       return;
     }
     if (event.key === 'Escape' && expanded) {
+      pendingSubmit.current = null;
       event.preventDefault();
       event.stopPropagation();
       setOpen(false);
       return;
     }
     if (event.key === 'Escape' && props.onEscape !== undefined) {
+      pendingSubmit.current = null;
       event.preventDefault();
       event.stopPropagation();
       props.onEscape();
@@ -302,6 +337,7 @@ export function BibleReferenceForm(
       }
     }
     if (event.key === 'Escape' && part !== 'book') {
+      pendingSubmit.current = null;
       event.preventDefault();
       event.stopPropagation();
       setBlocked(null);
@@ -346,12 +382,49 @@ export function BibleReferenceForm(
       }
       return;
     }
-    if (passage) {
-      if (fields.end !== '' && state.clampedEnd !== undefined) {
-        setFields(previous => ({...previous, end: String(state.clampedEnd)}));
+    // NOTE(0913vision): The last change can still be batched while the lookup
+    // and its rendered result refer to the previous value.
+    const currentFields = {
+      book:
+        root.current?.querySelector<HTMLInputElement>('[role="combobox"]')
+          ?.value ?? fields.book,
+      chapter:
+        root.current?.querySelector<HTMLInputElement>(
+          '[data-reference-part="chapter"]',
+        )?.value ?? fields.chapter,
+      start:
+        root.current?.querySelector<HTMLInputElement>(
+          '[data-reference-part="start"]',
+        )?.value ?? fields.start,
+      end:
+        root.current?.querySelector<HTMLInputElement>(
+          '[data-reference-part="end"]',
+        )?.value ?? fields.end,
+    };
+    const currentState = referenceFieldsState(currentFields, metadata?.bounds);
+    const input = selectedRecent?.ref ?? currentState.input;
+    if (passage && reply?.input === input) {
+      pendingSubmit.current = null;
+      if (currentFields.end !== '' && currentState.clampedEnd !== undefined) {
+        setFields(previous => ({
+          ...previous,
+          end: String(currentState.clampedEnd),
+        }));
       }
       setOpen(false);
       props.onSubmit(passage);
+    } else if (
+      translation !== undefined &&
+      input !== '' &&
+      reply?.input !== input
+    ) {
+      pendingSubmit.current = {
+        input,
+        translation,
+        clampedEnd:
+          currentFields.end === '' ? undefined : currentState.clampedEnd,
+        part,
+      };
     } else {
       setBlocked(part);
     }
