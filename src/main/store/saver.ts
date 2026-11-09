@@ -11,6 +11,7 @@ export interface SaveRequest {
 export interface SaverOptions {
   readonly copies: Pick<RecoveryCopies, 'keepPrevious'>;
   readonly reportCopyProblem: (problem: WriteProblem) => void;
+  readonly onCopyResult?: (file: string, ok: boolean) => void;
   /** Writes the text. An atomic write by default. */
   readonly writeText?: WriteFile<string>;
 }
@@ -47,6 +48,7 @@ export class Saver {
     text,
   }: SaveRequest): Promise<WriteResult> {
     const copied = await this.options.copies.keepPrevious(target);
+    this.options.onCopyResult?.(target.file, copied.ok);
     if (!copied.ok) {
       this.options.reportCopyProblem(copied.error);
     }

@@ -34,6 +34,7 @@ import type {MediaStore} from './mediaStore';
 import {openContent, type OpenedContent} from './openContent';
 import {SaveFailures} from './saveFailures';
 import {registerSaveProblems} from './saveProblems';
+import {backupGate} from './backup';
 import {registerServiceChannels} from './serviceChannels';
 import {createSettingsAccess, type SettingsAccess} from './settingsAccess';
 import {registerSettingsChannels} from './settingsChannels';
@@ -203,6 +204,11 @@ export function registerStore({
     log,
   );
   let backupProblem: AppProblem | null = null;
+  const stopBackupCompletion = backupGate.subscribeCompleted(() => {
+    if (backupProblem === null) return;
+    backupProblem = null;
+    problems.push({kind: 'backup-recovered'});
+  });
   const removeBackupProblem = problems.addStanding(() =>
     backupProblem === null ? [] : [backupProblem],
   );
@@ -284,6 +290,7 @@ export function registerStore({
         stopSkippedFiles();
         removeSkippedFiles();
         removeBackupProblem();
+        stopBackupCompletion();
         removeSaveProblems();
         saveFailures.dispose();
       }

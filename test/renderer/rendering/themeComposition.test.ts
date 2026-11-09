@@ -15,6 +15,7 @@ import {MAX_THEME_GAPS} from '@renderer/rendering/themeGaps';
 import {bibleVerseTiles} from '@core/bible/bibleTiles';
 import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
 import {ThemeElementView} from '@renderer/rendering/themeElement';
+import {followPlaybackProblems} from '@renderer/rendering/playbackProblem';
 
 const song: LiveLayers = {
   ...emptyLayers(),
@@ -77,6 +78,42 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers());
 
 describe('theme composition drawing', () => {
+  it('reports active resource failures without output text and retires recovered or removed owners', async () => {
+    const {root, view} = setup();
+    const report = vi.fn();
+    const stop = followPlaybackProblems(root, report);
+    const elements: ThemeElement[] = [
+      {
+        ...themeElementBase(),
+        kind: 'text',
+        content: 'Fallback text',
+        text: {...themeElementBase().text, font: 'Missing family'},
+      },
+      {...themeElementBase(31), kind: 'image', mediaId, fit: 'fit', radius: 0},
+    ];
+    view.render(song, {
+      ...frame(elements, {missing: ['missing-theme']}),
+      fonts: [],
+      transitions: false,
+    });
+    const image = root.querySelector('img');
+    image?.dispatchEvent(new Event('error'));
+    expect(report).toHaveBeenLastCalledWith([
+      'font-missing',
+      'media-missing',
+      'theme-missing',
+    ]);
+    expect(root.textContent).toBe('Fallback text');
+    image?.dispatchEvent(new Event('load'));
+    expect(image?.hidden).toBe(false);
+    view.render(song, {...frame(elements), fonts: [], transitions: false});
+    expect(report).toHaveBeenLastCalledWith(['font-missing']);
+    view.render(song, {screen: {id: THEME_MAIN, kind: 'audience'}});
+    await Promise.resolve();
+    expect(report).toHaveBeenLastCalledWith([]);
+    stop();
+    view.dispose();
+  });
   it('draws the split guide at a moved three-line text box and marks its overflow', () => {
     const root = document.createElement('div');
     const element: ThemeElement = {

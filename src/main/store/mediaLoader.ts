@@ -49,6 +49,7 @@ export async function openMediaStore(
   });
   const saver = new Saver({
     copies,
+    onCopyResult: (file, ok) => failures?.copyResult?.(file, ok),
     reportCopyProblem: error =>
       log.warn('could not keep a recovery copy', error),
   });

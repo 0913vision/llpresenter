@@ -1,6 +1,7 @@
 import type {JSX} from 'react';
 import {controlConflictReason} from '@core/screens/screenRows';
 import {useOutputStatuses} from '@renderer/features/screens/useOutputStatuses';
+import {useMonitors} from '@renderer/features/screens/useMonitors';
 import {useScreenSummaries} from '../../platform/ScreenSummaries';
 import styles from './StatusBar.module.css';
 
@@ -14,6 +15,7 @@ export function StatusBar({
 }): JSX.Element {
   const screens = useScreenSummaries();
   const statuses = useOutputStatuses();
+  const monitors = useMonitors();
   const messages = screens.flatMap(screen => {
     const status = statuses[screen.id];
     if (status === undefined || status.placement === 'off') return [];
@@ -41,6 +43,9 @@ export function StatusBar({
   return (
     <footer role="status" className={styles.bar}>
       {standby ? <span>대기</span> : null}
+      {monitors.some(monitor => monitor.identityUnavailable) ? (
+        <span>모니터 정보 확인 안 됨</span>
+      ) : null}
       {saveState === 'saving' ? <span>저장을 시도하는 중...</span> : null}
       {saveState === 'failed' ? <span role="alert">저장하지 못함</span> : null}
       {messages.map(message => (

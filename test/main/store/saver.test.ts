@@ -19,6 +19,31 @@ async function settle(): Promise<void> {
 }
 
 describe('Saver', () => {
+  it('reports copy failure and recovery independently of the edit being saved', async () => {
+    const keepPrevious = vi
+      .fn<SaverOptions['copies']['keepPrevious']>()
+      .mockResolvedValueOnce({ok: false, error: {file: 'a', message: 'full'}})
+      .mockResolvedValue(COPIED);
+    const onCopyResult = vi.fn();
+    const writeText = vi.fn().mockResolvedValue(COPIED);
+    const saver = new Saver({
+      copies: {keepPrevious},
+      onCopyResult,
+      reportCopyProblem: vi.fn(),
+      writeText,
+    });
+    expect((await saver.save({target: songTarget('a'), text: 'v2'})).ok).toBe(
+      true,
+    );
+    expect((await saver.save({target: songTarget('a'), text: 'v3'})).ok).toBe(
+      true,
+    );
+    expect(onCopyResult.mock.calls).toEqual([
+      ['a', false],
+      ['a', true],
+    ]);
+    expect(writeText).toHaveBeenLastCalledWith('a', 'v3');
+  });
   it('keeps a copy of the previous version, then writes the new text', async () => {
     const folder = await makeTempDir();
     const file = join(folder, 'song.llsong');

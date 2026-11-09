@@ -21,6 +21,13 @@ describe('playback problem payloads', () => {
       parsePlaybackProblemReport(['device-missing', 'device-failed']).ok,
     ).toBe(true);
     expect(parsePlaybackProblemReport([]).ok).toBe(true);
+    expect(
+      parsePlaybackProblemReport([
+        'font-missing',
+        'theme-missing',
+        'media-missing',
+      ]).ok,
+    ).toBe(true);
     expect(parsePlaybackRetry({source: 'audio'}).ok).toBe(true);
   });
 

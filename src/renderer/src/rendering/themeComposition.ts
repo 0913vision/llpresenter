@@ -3,6 +3,7 @@ import {classes} from './classes';
 import type {RenderFrame, RenderLayerOptions} from './layer';
 import {ThemeElementView} from './themeElement';
 import {ThemeGaps} from './themeGaps';
+import {setPlaybackProblem} from './playbackProblem';
 import {OUTPUT_TRANSITIONS} from './transitions';
 import {SlideAnimation} from './slideAnimation';
 import {THEME_LIMITS} from '@core/themes/elementRules';
@@ -62,6 +63,11 @@ export class ThemeCompositionView {
     this.gaps.follow(frame);
     this.content = {layers, frame};
     const theme = frame.theme;
+    setPlaybackProblem(
+      this.root,
+      'theme-missing',
+      (theme?.missing.length ?? 0) > 0,
+    );
     if (this.root.hidden !== (theme === undefined)) {
       this.root.hidden = theme === undefined;
     }

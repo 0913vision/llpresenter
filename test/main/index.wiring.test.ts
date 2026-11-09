@@ -290,11 +290,26 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
       expect.objectContaining({store: mocks.outputContexts[0]?.store}),
     ]);
     expect(mocks.storeOptions[0]).toHaveProperty('problems', mocks.problemFeed);
+    const options = mocks.recordOptions[0];
+    if (options === undefined) {
+      throw new Error('Missing recovery writer options');
+    }
+    const standing = mocks.problemFeed.addStanding.mock.calls[0]?.[0];
+    expect(standing?.()).toEqual([]);
+    options.onFailureChanged?.(true);
+    const failed = {kind: 'protection-write', target: 'record', failed: true};
+    expect(mocks.problemFeed.push).toHaveBeenLastCalledWith(failed);
+    expect(standing?.()).toEqual([failed]);
+    options.onFailureChanged?.(false);
+    expect(standing?.()).toEqual([]);
     beforeQuit();
     await vi.waitFor(() =>
       expect(mocks.electron.app.quit).toHaveBeenCalledOnce(),
     );
     expect(mocks.problemsStop).toHaveBeenCalledOnce();
+    expect(
+      mocks.problemFeed.addStanding.mock.results[0]?.value,
+    ).toHaveBeenCalledOnce();
   });
 
   it('connects the media backend to the data store and the control window and stops it before closing data', async () => {

@@ -56,6 +56,23 @@ function backups(
   });
 }
 
+it('announces completed backups but not skips or failures, and unsubscribes', async () => {
+  const locations = await dataLocations();
+  const gate = new BackupGate();
+  const completed = vi.fn();
+  const stop = gate.subscribeCompleted(completed);
+  await backups(locations, {gate, isAnyOutputOn: () => true}).backUpNow();
+  expect(completed).not.toHaveBeenCalled();
+  expect((await backups(locations, {gate}).backUpNow()).kind).toBe('done');
+  expect(completed).toHaveBeenCalledOnce();
+  // NOTE(0913vision): The same timestamp cannot create a second backup directory.
+  expect((await backups(locations, {gate}).backUpNow()).kind).toBe('failed');
+  expect(completed).toHaveBeenCalledOnce();
+  stop();
+  gate.complete();
+  expect(completed).toHaveBeenCalledOnce();
+});
+
 describe('backupFolderName', () => {
   it('names a backup after the local time', () => {
     expect(backupFolderName(NOW)).toBe(NOW_NAME);

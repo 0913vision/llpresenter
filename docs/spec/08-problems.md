@@ -27,6 +27,27 @@ Turning a screen off hides its playback warnings until it is on again. The
 dedicated audio window reports `오디오 다시 시작 중` and, at the restart limit,
 `오디오 다시 시작 중단` with `다시 시도`; the card clears when it recovers.
 
+An active theme with unavailable resources uses the same control warning cards
+and output menu: `<screen> 테마 없음`, `<screen> 글꼴 없음`, or
+`<screen> 테마 미디어 읽기 실패`. Font fallback keeps the text readable.
+Recovered resources and removed elements clear their warnings; output windows
+never display these labels.
+
+Failed writes of the live recovery record show `진행 복구 기록 저장 실패`.
+Failed previous-version copies show `이전 판 저장 실패`, independently of
+whether the current edit was saved. Each warning survives a control reload and
+clears after its affected writes succeed. Copy diagnostics retain at most 100
+distinct file paths. If more files fail before recovery, the paths are discarded
+and one warning stays for the rest of the app session: later successes cannot
+prove that every untracked copy recovered. This does not block current edits. A
+successful backup clears the launch backup warning and the manual backup
+warning. A Bible file that failed to load is checked again on the next lookup,
+so restoring the file does not require an app restart.
+
+Unavailable monitor identity shows only `모니터 정보 확인 안 됨` in the status
+bar after the query finishes. It adds no warning card; safe output placement
+continues, and a successful query clears the line.
+
 | Problem                    | Where it shows                                                                                                                         | What keeps working                                                                                                     | How the operator fixes it                                                                 | Source                                      |
 | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------- |
 | Output monitor lost        | Toolbar button (amber dot and icon), status bar ("무대 화면 창으로 표시 중"), amber outline on the preview frame, warning notification | The output continues in a window on the control monitor                                                                | 모니터 다시 찾기 (find monitor again), 창 보기 (show window), or reconnecting the monitor | `Problems`                                  |

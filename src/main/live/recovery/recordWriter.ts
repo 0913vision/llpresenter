@@ -18,6 +18,7 @@ interface RecordWriterOptions {
   /** The open 예배 순서, which the record keeps beside the live state. */
   readonly serviceId: () => ServiceId | null;
   readonly log: Logger;
+  readonly onFailureChanged?: (failed: boolean) => void;
   readonly now?: () => number;
   readonly intervalMs?: number;
   readonly write?: (
@@ -133,7 +134,11 @@ export class RecoveryRecordWriter {
     } = this.options;
     try {
       const serviceId = this.options.serviceId();
-      if (state === this.lastState && serviceId === this.lastServiceId) {
+      if (
+        !this.failing &&
+        state === this.lastState &&
+        serviceId === this.lastServiceId
+      ) {
         return true;
       }
       const text = serializeRecoveryRecord({
@@ -155,7 +160,7 @@ export class RecoveryRecordWriter {
       this.lastState = state;
       this.lastServiceId = serviceId;
       if (this.failing) log.info('the recovery record is written again');
-      this.failing = false;
+      this.setFailing(false);
       return true;
     } catch (error: unknown) {
       this.reportFailure(error);
@@ -167,7 +172,13 @@ export class RecoveryRecordWriter {
     if (!this.failing) {
       this.options.log.warn('could not write the recovery record', error);
     }
-    this.failing = true;
+    this.setFailing(true);
+  }
+
+  private setFailing(failed: boolean): void {
+    if (failed === this.failing) return;
+    this.failing = failed;
+    this.options.onFailureChanged?.(failed);
   }
 }
 

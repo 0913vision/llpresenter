@@ -66,6 +66,42 @@ beforeEach(() => {
 });
 
 describe('useProblemNotices', () => {
+  it('shows protection warnings independently and clears each after recovery', async () => {
+    const {target, push} = setup();
+    await act(async () => undefined);
+    push({kind: 'protection-write', target: 'record', failed: true});
+    push({kind: 'protection-write', target: 'copies', failed: true});
+    expect(target.report.mock.calls.map(([notice]) => notice.title)).toEqual([
+      '진행 복구 기록 저장 실패',
+      '이전 판 저장 실패',
+    ]);
+    push({kind: 'protection-write', target: 'record', failed: false});
+    expect(target.dismiss).toHaveBeenCalledExactlyOnceWith(
+      'protection-write:record',
+    );
+    push({kind: 'protection-write', target: 'copies', failed: false});
+    expect(target.dismiss).toHaveBeenLastCalledWith('protection-write:copies');
+  });
+
+  it('does not resurrect backup or protection failures from a stale startup list', async () => {
+    let resolve: (value: readonly AppProblem[]) => void = () => undefined;
+    const initial = new Promise<readonly AppProblem[]>(done => {
+      resolve = value => {
+        done(value);
+      };
+    });
+    const {target, push} = setup(initial);
+    push({kind: 'backup-recovered'});
+    push({kind: 'protection-write', target: 'record', failed: false});
+    await act(async () =>
+      resolve([
+        {kind: 'backup-failed', name: 'backup'},
+        {kind: 'protection-write', target: 'record', failed: true},
+      ]),
+    );
+    expect(target.report).not.toHaveBeenCalled();
+    expect(target.dismiss).toHaveBeenCalledWith('backup-failed');
+  });
   it('shows the files skipped before the window loaded as one card', async () => {
     const {target} = setup([
       fileSkippedProblem(1, 'D:/data/settings/themes.json'),

@@ -73,6 +73,7 @@ export class RecoveryCopies {
       }
       return {ok: true, value: undefined};
     } catch (error: unknown) {
+      this.lastCopyAt.delete(target.file);
       const message = error instanceof Error ? error.message : String(error);
       return {ok: false, error: {file: target.file, message}};
     }

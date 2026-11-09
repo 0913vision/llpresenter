@@ -65,6 +65,34 @@ function recordOf(text: string | undefined) {
 
 const OK: Written = {ok: true, value: undefined};
 
+it('reports record failure once and clears only after a real successful write', async () => {
+  const store = mockStore();
+  const changed = vi.fn();
+  const write = vi.fn<() => Promise<Written>>().mockResolvedValue(OK);
+  const writer = new RecoveryRecordWriter({
+    file: 'live.json',
+    store,
+    serviceId: () => null,
+    log: recordingLogger(),
+    write,
+    onFailureChanged: changed,
+  });
+  await writer.persistOutputs(store.state);
+  write.mockResolvedValue({
+    ok: false,
+    error: {file: 'live.json', message: 'full'},
+  });
+  await writer.persistOutputs({...store.state, version: 1});
+  await writer.persistOutputs({...store.state, version: 2});
+  expect(changed.mock.calls).toEqual([[true]]);
+  write.mockResolvedValue(OK);
+  // NOTE(0913vision): Returning to the last saved state must still test the disk.
+  await writer.persistOutputs(store.state);
+  expect(changed.mock.calls).toEqual([[true], [false]]);
+  expect(write).toHaveBeenCalledTimes(4);
+  writer.stop();
+});
+
 function setup(options: {serviceId?: ServiceId | null} = {}) {
   const store = mockStore();
   const log = recordingLogger();

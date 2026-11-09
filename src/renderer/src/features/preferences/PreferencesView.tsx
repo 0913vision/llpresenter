@@ -37,6 +37,7 @@ const noSubscribe = () => () => undefined;
 
 interface PreferencesViewProps {
   readonly onProblem: (notice: Notice) => void;
+  readonly onDismiss?: ((key: string) => void) | undefined;
   readonly labelStore?: SongEditorStore | undefined;
   readonly onReady?: ((request: PreferencesRequest) => void) | undefined;
   readonly request?: PreferencesRequest | undefined;
@@ -60,6 +61,7 @@ export function PreferencesView(props: PreferencesViewProps): JSX.Element {
 
 function PreferencesContent({
   onProblem,
+  onDismiss,
   labelStore,
   onReady,
   readiness,
@@ -280,7 +282,11 @@ function PreferencesContent({
           {page === 'general' ? <GeneralPage edits={edits} /> : null}
           {page === 'output' ? <OutputPage edits={edits} /> : null}
           {page === 'storage' ? (
-            <StoragePage edits={edits} onProblem={onProblem} />
+            <StoragePage
+              edits={edits}
+              onProblem={onProblem}
+              onDismiss={onDismiss}
+            />
           ) : null}
           {page === 'labels' ? (
             <LabelsPage store={labelStore} managerRef={labelManager} />

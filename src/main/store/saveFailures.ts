@@ -21,6 +21,9 @@ export const MAX_FAILED_RETRIES_IN_A_ROW = 3;
  */
 export const MAX_WAITING_SAVES = 100;
 
+/** Maximum distinct failed copies tracked before retaining only a warning flag. */
+export const MAX_TRACKED_COPY_FAILURES = 100;
+
 /** A file that couldn't be written, and how its store writes it again. */
 export interface WaitingSave {
   readonly file: string;
@@ -31,6 +34,7 @@ export interface WaitingSave {
 
 /** Where a store reports the files it couldn't write, and wrote again. */
 export interface SaveFailureSink {
+  copyResult?(file: string, ok: boolean): void;
   waiting(save: WaitingSave): void;
   saved(file: string): void;
   /** Shows the waiting files again, as after an edit was refused at the cap. */
@@ -60,6 +64,8 @@ function firstOf<T>(values: Iterable<T>): T | undefined {
  * {@link MAX_FAILED_RETRIES_IN_A_ROW} failures in a row.
  */
 export class SaveFailures implements SaveFailureSink {
+  private readonly failedCopies = new Set<string>();
+  private copyFailuresOverflowed = false;
   private readonly saves = new Map<string, {save: WaitingSave}>();
   private readonly listeners = new Set<SaveProblemListener>();
   private published: AppProblemOf<'save-failed'> | null = null;
@@ -68,6 +74,34 @@ export class SaveFailures implements SaveFailureSink {
   private disposed = false;
 
   constructor(private readonly options: SaveFailuresOptions) {}
+
+  /** Copy failures do not mean the current edit is waiting to be saved. */
+  copyResult(file: string, ok: boolean): void {
+    if (this.disposed || this.copyFailuresOverflowed) return;
+    const wasFailed = this.failedCopies.size > 0;
+    if (ok) this.failedCopies.delete(file);
+    else if (!this.failedCopies.has(file)) {
+      if (this.failedCopies.size >= MAX_TRACKED_COPY_FAILURES) {
+        // NOTE(0913vision): Once file identities are dropped, later successes
+        // cannot prove that all failed copies recovered. Keep the warning for
+        // this session without retaining or collecting more file paths.
+        this.copyFailuresOverflowed = true;
+        this.failedCopies.clear();
+        return;
+      }
+      this.failedCopies.add(file);
+    }
+    const failed = this.failedCopies.size > 0;
+    if (failed !== wasFailed) {
+      this.publish({kind: 'protection-write', target: 'copies', failed});
+    }
+  }
+
+  copyProblems(): readonly AppProblem[] {
+    return this.failedCopies.size === 0 && !this.copyFailuresOverflowed
+      ? []
+      : [{kind: 'protection-write', target: 'copies', failed: true}];
+  }
 
   /**
    * Keeps a file waiting; a file that waits already keeps its place and
@@ -120,6 +154,8 @@ export class SaveFailures implements SaveFailureSink {
   }
 
   dispose(): void {
+    this.failedCopies.clear();
+    this.copyFailuresOverflowed = false;
     this.disposed = true;
     clearTimeout(this.timer);
     this.timer = undefined;

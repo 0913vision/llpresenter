@@ -83,6 +83,7 @@ async function createContent(
   });
   const saver = new Saver({
     copies,
+    onCopyResult: (file, ok) => failures.copyResult?.(file, ok),
     reportCopyProblem: problem =>
       log.warn('could not keep a recovery copy', problem),
   });

@@ -157,10 +157,24 @@ function start(): void {
         isAnyOutputOn: () => isAnyOutputOn(store.state),
         log,
       });
+      let recordFailed = false;
+      const removeRecordProblem = problems.feed.addStanding(() =>
+        recordFailed
+          ? [{kind: 'protection-write', target: 'record', failed: true}]
+          : [],
+      );
       const recoveryRecord = new RecoveryRecordWriter({
         file: join(recoveryFolder, RECOVERY_RECORD_FILE),
         store,
         serviceId: openServiceIdOf(dataStore.content, log),
+        onFailureChanged: failed => {
+          recordFailed = failed;
+          problems.feed.push({
+            kind: 'protection-write',
+            target: 'record',
+            failed,
+          });
+        },
         log,
       });
       const stopOutputPersistence = store.connectOutputPersistence(state =>
@@ -365,6 +379,7 @@ function start(): void {
           await store.settled();
           stopOutputPersistence();
           recoveryRecord.stop();
+          removeRecordProblem();
         },
       });
       // NOTE(0913vision): The soak scenario stops next, so it changes

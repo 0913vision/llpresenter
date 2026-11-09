@@ -39,6 +39,7 @@ const extent = v.pipe(
 );
 
 const monitorInfoSchema = payloadObject({
+  identityUnavailable: v.exactOptional(v.boolean()),
   identity: v.exactOptional(monitorIdentityPayloadSchema),
   id: v.exactOptional(
     v.pipe(

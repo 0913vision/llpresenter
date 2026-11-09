@@ -29,6 +29,9 @@ describe('app problem payloads', () => {
   });
 
   it.each([
+    {kind: 'protection-write', target: 'record', failed: true},
+    {kind: 'protection-write', target: 'copies', failed: false},
+    {kind: 'backup-recovered'},
     {kind: 'save-failed', name: 'songs.llsong', count: 1},
     {kind: 'save-failed', name: 'x', count: 1000},
     {kind: 'save-recovered'},
@@ -39,6 +42,9 @@ describe('app problem payloads', () => {
   });
 
   it.each([
+    {kind: 'protection-write', target: 'other', failed: true},
+    {kind: 'protection-write', target: 'copies', failed: 'true'},
+    {kind: 'protection-write', target: 'record'},
     {kind: 'save-failed', name: '', count: 1},
     {kind: 'save-failed', name: 'x', count: 0},
     {kind: 'save-failed', name: 'x', count: 1.5},

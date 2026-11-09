@@ -5,6 +5,7 @@ import {noticeTime} from '@renderer/ui/notices';
 import type {NoticeTarget} from './useOutputNotices';
 import {
   WAITING_SAVES_KEY,
+  BACKUP_FAILED_KEY,
   backupFailedCard,
   controlReloadedCard,
   macroDroppedCard,
@@ -12,8 +13,17 @@ import {
   waitingSavesCard,
 } from './problemNotices';
 
-function isSaveProblem(problem: AppProblem): boolean {
-  return problem.kind === 'save-failed' || problem.kind === 'save-recovered';
+function problemGroup(problem: AppProblem): string {
+  if (problem.kind === 'protection-write') {
+    return `${problem.kind}:${problem.target}`;
+  }
+  if (problem.kind === 'save-failed' || problem.kind === 'save-recovered') {
+    return 'save';
+  }
+  if (problem.kind === 'backup-failed' || problem.kind === 'backup-recovered') {
+    return 'backup';
+  }
+  return problem.kind;
 }
 
 /**
@@ -35,10 +45,30 @@ export function useProblemNotices(
     const {problems} = api;
     const skipped = new Map<number, string>();
     let stopped = false;
-    let savePushed = false;
+    const pushed = new Set<string>();
     const take = (problem: AppProblem): void => {
       if (stopped) return;
       switch (problem.kind) {
+        case 'protection-write': {
+          const key = problemGroup(problem);
+          if (!problem.failed) close(key);
+          else {
+            show({
+              key,
+              kind: 'warning',
+              icon: 'warning',
+              time: noticeTime(),
+              title:
+                problem.target === 'record'
+                  ? '진행 복구 기록 저장 실패'
+                  : '이전 판 저장 실패',
+            });
+          }
+          return;
+        }
+        case 'backup-recovered':
+          close(BACKUP_FAILED_KEY);
+          return;
         case 'macro-dropped':
           show(macroDroppedCard(problem, noticeTime()));
           return;
@@ -72,11 +102,18 @@ export function useProblemNotices(
       }
     };
     const fromPush = (problem: AppProblem): void => {
-      if (isSaveProblem(problem)) savePushed = true;
+      pushed.add(problemGroup(problem));
       take(problem);
     };
     const fromList = (problem: AppProblem): void => {
-      if (savePushed && isSaveProblem(problem)) return;
+      if (
+        (problem.kind === 'protection-write' ||
+          problemGroup(problem) === 'save' ||
+          problemGroup(problem) === 'backup') &&
+        pushed.has(problemGroup(problem))
+      ) {
+        return;
+      }
       take(problem);
     };
     const unsubscribe = problems.subscribe(fromPush);

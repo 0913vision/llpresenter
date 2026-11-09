@@ -38,6 +38,26 @@ function setup(initial: Promise<PlaybackProblems> = Promise.resolve([])) {
 }
 
 describe('usePlaybackNotices', () => {
+  it('keeps active theme warnings in Korean and removes them after recovery', () => {
+    const {push, target} = setup();
+    push([
+      {
+        source: 'audience',
+        name: '청중 화면',
+        renderer: 'running',
+        kinds: ['font-missing', 'theme-missing', 'media-missing'],
+      },
+    ]);
+    expect(target.report.mock.calls.map(([notice]) => notice.title)).toEqual([
+      '청중 화면 글꼴 없음',
+      '청중 화면 테마 없음',
+      '청중 화면 테마 미디어 읽기 실패',
+    ]);
+    expect(useOutputWarnings.getState().warnings.size).toBe(3);
+    push([]);
+    expect(target.dismiss).toHaveBeenCalledTimes(3);
+    expect(useOutputWarnings.getState().warnings.size).toBe(0);
+  });
   it('shows Korean failures with retry, retains dismissed warnings for the output menu, and clears on recovery', () => {
     const {push, target, retryPlayback} = setup();
     const problems: PlaybackProblems = [

@@ -69,6 +69,16 @@ async function setup() {
 }
 
 describe('Bible lookup session', () => {
+  it('reloads a restored Bible file without a settings change or app restart', async () => {
+    const {folder, session} = await setup();
+    // NOTE(0913vision): Remove the file after indexing but before chapter reads.
+    await session.lookup(request('John'));
+    const file = join(folder, 'sample.llbible');
+    await unlink(file);
+    expect((await session.lookup(request())).result.ok).toBe(false);
+    await writeFile(file, chunkedTranslationFile().bytes);
+    expect((await session.lookup(request())).result.ok).toBe(true);
+  });
   it('returns chapter bounds for a book-only request without reading chapter text', async () => {
     const read = vi.spyOn(chapterFile, 'readBibleChapter');
     const {session} = await setup();
@@ -182,7 +192,7 @@ describe('Bible lookup session', () => {
     });
   });
 
-  it('reloads only when installed file identities change and reports each skipped file once', async () => {
+  it('reloads changed or failed files and reports each skipped file once', async () => {
     const {session, get} = await setup();
     await session.lookup(request());
     const warnings = vi.mocked(log.warn).mock.calls.length;

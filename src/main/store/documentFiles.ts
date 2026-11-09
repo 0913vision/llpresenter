@@ -31,6 +31,7 @@ export function documentFiles({
     remove: async target => {
       await saver.idle();
       const copied = await copies.keepBeforeDelete(target);
+      failures?.copyResult?.(target.file, copied.ok);
       if (!copied.ok) {
         log.warn('could not keep a recovery copy', copied.error);
         return copied;

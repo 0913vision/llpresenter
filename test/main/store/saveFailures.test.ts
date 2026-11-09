@@ -2,7 +2,11 @@ import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {installMockClock} from '@fixtures/mockClock';
 import type {AppProblem} from '@core/schema/appProblem';
 import {recordingLogger} from '@fixtures/main/displays/testing';
-import {SAVE_RETRY_INTERVAL_MS, SaveFailures} from '@main/store/saveFailures';
+import {
+  MAX_TRACKED_COPY_FAILURES,
+  SAVE_RETRY_INTERVAL_MS,
+  SaveFailures,
+} from '@main/store/saveFailures';
 
 function setup() {
   const log = recordingLogger();
@@ -20,6 +24,83 @@ function setup() {
 }
 
 describe('save failures', () => {
+  it('recovers at the copy diagnostic cap without counting duplicates or recovered files', () => {
+    const {failures, pushed} = setup();
+    for (let index = 0; index < MAX_TRACKED_COPY_FAILURES; index++) {
+      failures.copyResult(`file-${index}`, false);
+    }
+    failures.copyResult('file-0', false);
+    failures.copyResult('file-0', true);
+    failures.copyResult('replacement', false);
+    for (let index = 1; index < MAX_TRACKED_COPY_FAILURES; index++) {
+      failures.copyResult(`file-${index}`, true);
+    }
+    expect(failures.copyProblems()).toHaveLength(1);
+    failures.copyResult('replacement', true);
+    expect(failures.copyProblems()).toEqual([]);
+    expect(pushed).toHaveBeenCalledTimes(2);
+    expect(pushed).toHaveBeenLastCalledWith({
+      kind: 'protection-write',
+      target: 'copies',
+      failed: false,
+    });
+  });
+
+  it('bounds copy diagnostics during bulk saves and never clears an overflowed warning from partial success', () => {
+    const {failures, pushed} = setup();
+    for (let index = 0; index < MAX_TRACKED_COPY_FAILURES; index++) {
+      failures.copyResult(`file-${index}`, false);
+    }
+    // NOTE(0913vision): Inspect retained paths to catch unbounded diagnostics,
+    // even when their public warning remains a single problem.
+    expect(failures).toHaveProperty(
+      'failedCopies.size',
+      MAX_TRACKED_COPY_FAILURES,
+    );
+    for (
+      let index = MAX_TRACKED_COPY_FAILURES;
+      index < MAX_TRACKED_COPY_FAILURES * 10;
+      index++
+    ) {
+      failures.copyResult(`file-${index}`, false);
+    }
+    expect(failures).toHaveProperty('failedCopies.size', 0);
+    for (let index = 0; index < MAX_TRACKED_COPY_FAILURES * 10; index++) {
+      failures.copyResult(`file-${index}`, true);
+      failures.saved(`file-${index}`);
+    }
+    failures.copyResult('unrelated', true);
+    expect(failures.problems()).toEqual([]);
+    const warning = {kind: 'protection-write', target: 'copies', failed: true};
+    expect(failures.copyProblems()).toEqual([warning]);
+    expect(pushed).toHaveBeenCalledExactlyOnceWith(warning);
+    failures.dispose();
+    failures.copyResult('after-dispose', false);
+    expect(failures.copyProblems()).toEqual([]);
+    expect(failures).toHaveProperty('failedCopies.size', 0);
+    expect(pushed).toHaveBeenCalledTimes(1);
+  });
+
+  it('keeps a separate copy warning until every affected file can be copied', () => {
+    const {failures, pushed} = setup();
+    failures.copyResult('a', false);
+    failures.copyResult('a', false);
+    failures.copyResult('b', false);
+    failures.copyResult('a', true);
+    failures.copyResult('unrelated', true);
+    expect(failures.problems()).toEqual([]);
+    expect(failures.copyProblems()).toEqual([
+      {kind: 'protection-write', target: 'copies', failed: true},
+    ]);
+    expect(pushed).toHaveBeenCalledTimes(1);
+    failures.copyResult('b', true);
+    expect(failures.copyProblems()).toEqual([]);
+    expect(pushed).toHaveBeenLastCalledWith({
+      kind: 'protection-write',
+      target: 'copies',
+      failed: false,
+    });
+  });
   it('pushes the oldest file and the count on each change, then save-recovered', () => {
     const {failures, pushed, wait} = setup();
     wait('a.llsong', 'Invented hymn');

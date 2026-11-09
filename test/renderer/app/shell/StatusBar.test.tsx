@@ -5,6 +5,10 @@ import type {OutputStatuses} from '@core/schema/outputStatus';
 import {StatusBar} from '@renderer/app/shell/StatusBar';
 
 const fixture = vi.hoisted((): {statuses: OutputStatuses} => ({statuses: {}}));
+const identity = vi.hoisted(() => ({unavailable: false}));
+vi.mock('@renderer/features/screens/useMonitors', () => ({
+  useMonitors: () => [{identityUnavailable: identity.unavailable}],
+}));
 vi.mock('@renderer/features/screens/useOutputStatuses', () => ({
   useOutputStatuses: () => fixture.statuses,
 }));
@@ -17,9 +21,21 @@ vi.mock('@renderer/platform/ScreenSummaries', () => ({
 afterEach(() => {
   cleanup();
   fixture.statuses = {};
+  identity.unavailable = false;
 });
 
 describe('StatusBar', () => {
+  it('shows identity fallback as quiet text and clears it when available', () => {
+    identity.unavailable = true;
+    const {rerender} = render(<StatusBar />);
+    expect(screen.getByRole('status').textContent).toBe(
+      '모니터 정보 확인 안 됨',
+    );
+    expect(screen.queryByRole('alert')).toBeNull();
+    identity.unavailable = false;
+    rerender(<StatusBar />);
+    expect(screen.getByRole('status').textContent).toBe('');
+  });
   it('shows the window fallback while control occupies the target monitor', () => {
     fixture.statuses = {
       stage: {

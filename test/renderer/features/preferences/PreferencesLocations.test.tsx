@@ -28,6 +28,7 @@ const VIEW: LocationsView = {
 };
 
 const onProblem = vi.fn();
+const onDismiss = vi.fn();
 
 function install(parts: {
   readonly view?: LocationsView;
@@ -76,7 +77,9 @@ function install(parts: {
 }
 
 async function mount(page?: string) {
-  const view = render(<PreferencesView onProblem={onProblem} />);
+  const view = render(
+    <PreferencesView onProblem={onProblem} onDismiss={onDismiss} />,
+  );
   await screen.findByRole('checkbox', {name: 'Windows 시작할 때 실행'});
   if (page !== undefined) {
     await userEvent.click(screen.getByRole('option', {name: page}));
@@ -92,6 +95,7 @@ afterEach(() => {
   cleanup();
   resetTooltips();
   onProblem.mockReset();
+  onDismiss.mockReset();
   delete window.llp;
 });
 
@@ -276,6 +280,27 @@ describe('저장 > 폴더 and 백업', () => {
       expect(onProblem).toHaveBeenCalledWith(
         expect.objectContaining({title: '백업하지 못함'}),
       ),
+    );
+  });
+
+  it('dismisses a failed manual backup warning only after success', async () => {
+    const backUpNow = vi
+      .fn<LlpApi['locations']['backUpNow']>()
+      .mockResolvedValueOnce({ok: false, error: {reason: 'failed'}})
+      .mockResolvedValue({ok: true, value: undefined});
+    install({backUpNow});
+    await mount('저장');
+    const button = await screen.findByRole('button', {name: '지금 백업'});
+    await userEvent.click(button);
+    await waitFor(() =>
+      expect(onProblem).toHaveBeenCalledWith(
+        expect.objectContaining({key: 'preferences:backup'}),
+      ),
+    );
+    expect(onDismiss).not.toHaveBeenCalled();
+    await userEvent.click(button);
+    await waitFor(() =>
+      expect(onDismiss).toHaveBeenCalledWith('preferences:backup'),
     );
   });
 

@@ -62,4 +62,37 @@ describe('save problems', () => {
     expect(push).toHaveBeenCalledTimes(2);
     saves.dispose();
   });
+
+  it('includes unresolved copy failures in reload snapshots without retrying saved edits', () => {
+    const log = recordingLogger();
+    const saves = new SaveFailures({log});
+    let standing: StandingProblems = () => [];
+    const push = vi.fn();
+    const stop = registerSaveProblems(
+      saves,
+      {
+        report: vi.fn(),
+        push,
+        addStanding: source => {
+          standing = source;
+          return () => undefined;
+        },
+      },
+      log,
+    );
+    saves.copyResult('saved-song', false);
+    expect(standing()).toEqual([
+      {kind: 'protection-write', target: 'copies', failed: true},
+    ]);
+    expect(saves.problems()).toEqual([]);
+    saves.copyResult('saved-song', true);
+    expect(standing()).toEqual([]);
+    expect(push).toHaveBeenLastCalledWith({
+      kind: 'protection-write',
+      target: 'copies',
+      failed: false,
+    });
+    stop();
+    saves.dispose();
+  });
 });

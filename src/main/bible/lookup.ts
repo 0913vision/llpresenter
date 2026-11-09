@@ -51,6 +51,7 @@ export class BibleLookupSession {
   private pending: Promise<void> = Promise.resolve();
   private waiting = 0;
   private disposed = false;
+  private needsRefresh = false;
 
   constructor(private readonly options: BibleLookupOptions) {
     this.pending = this.refresh().then(
@@ -102,11 +103,13 @@ export class BibleLookupSession {
     const key = JSON.stringify(
       document.value.translations.map(({id, file}) => ({id, file})),
     );
-    if (key !== this.translationsKey) {
+    if (key !== this.translationsKey || this.needsRefresh) {
+      this.needsRefresh = false;
       const loaded = await loadBibleLibrary({
         folder: this.options.folder,
         translations: document.value.translations,
         onProblem: problem => {
+          this.needsRefresh = true;
           if (this.disposed || this.warnedFiles.has(problem.file)) return;
           if (this.warnedFiles.size >= WARNED_FILE_LIMIT) {
             const oldest = this.warnedFiles.values().next().value;

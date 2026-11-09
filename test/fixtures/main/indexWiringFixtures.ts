@@ -7,6 +7,8 @@ import type {LiveStore} from '@main/live/store';
 import type {MediaBackendRegistration} from '@main/media/register';
 import type {MediaHandlerOptions} from '@main/windows/mediaResponse';
 import type {BibleLookupSession} from '@main/bible/lookup';
+import type {StandingProblems} from '@main/problemFeed';
+import type {RecoveryRecordWriter} from '@main/live/recovery/recordWriter';
 
 // NOTE(0913vision): Each test imports the whole main process afresh, which
 // takes several seconds under coverage on a busy machine.
@@ -43,7 +45,9 @@ const mocks = vi.hoisted(() => {
       markQuitting: vi.fn<() => Promise<void>>(),
       cleanExit: vi.fn<() => Promise<void>>(),
     },
-    recordOptions: new Array<unknown>(),
+    recordOptions: new Array<
+      ConstructorParameters<typeof RecoveryRecordWriter>[0]
+    >(),
     writers: new Array<unknown>(),
     recoveryOptions: new Array<unknown>(),
     recoveryStart: vi.fn<() => Promise<void>>(),
@@ -95,7 +99,13 @@ const mocks = vi.hoisted(() => {
     closeStop: vi.fn<() => void>(),
     problemContexts: new Array<unknown>(),
     problemsStop: vi.fn<() => void>(),
-    problemFeed: {report: vi.fn(), push: vi.fn(), addStanding: vi.fn()},
+    problemFeed: {
+      report: vi.fn(),
+      push: vi.fn(),
+      addStanding: vi.fn<(source: StandingProblems) => () => void>(() =>
+        vi.fn(),
+      ),
+    },
     playbackProblems: {},
     playbackProblemsStop: vi.fn<() => void>(),
     appHandlers,
@@ -188,7 +198,9 @@ vi.mock('@main/live/recovery/session', () => ({
 vi.mock('@main/live/recovery/recordWriter', () => ({
   openServiceIdOf: () => () => null,
   RecoveryRecordWriter: class {
-    constructor(options: unknown) {
+    constructor(
+      options: ConstructorParameters<typeof RecoveryRecordWriter>[0],
+    ) {
       mocks.recordOptions.push(options);
       mocks.writers.push(this);
     }

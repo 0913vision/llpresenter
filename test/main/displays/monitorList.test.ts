@@ -16,6 +16,23 @@ function list(
 }
 
 describe('toMonitorList', () => {
+  it('reports unavailable identity only after the pending query finishes', () => {
+    const monitors = monitorsOf({id: 9});
+    const unavailable = monitors.map(monitor => ({
+      ...monitor,
+      identityUnknown: true,
+    }));
+    expect(list({monitors: unavailable})[0]?.identityUnavailable).toBe(true);
+    expect(
+      list({
+        monitors: unavailable.map(monitor => ({
+          ...monitor,
+          identityPending: true,
+        })),
+      })[0]?.identityUnavailable,
+    ).toBeUndefined();
+    expect(list({monitors})[0]?.identityUnavailable).toBeUndefined();
+  });
   it('lists the monitors in number order with their details', () => {
     const monitors = monitorsOf(
       {id: 9, x: 1920, name: 'Projector', refreshRate: 50},

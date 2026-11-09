@@ -63,7 +63,18 @@ export interface BackupsOptions {
 export class BackupGate {
   private active = false;
   private readonly listeners = new Set<() => void>();
+  private readonly completed = new Set<() => void>();
 
+  subscribeCompleted(listener: () => void): () => void {
+    this.completed.add(listener);
+    return () => {
+      this.completed.delete(listener);
+    };
+  }
+
+  complete(): void {
+    for (const listener of [...this.completed]) listener();
+  }
   get running(): boolean {
     return this.active;
   }
@@ -147,6 +158,7 @@ export class Backups {
         now: this.now(),
         developmentFolder: this.options.developmentFolder,
       });
+      if (backup.ok) gate.complete();
       return backup.ok
         ? {kind: 'done', backup: backup.value}
         : {kind: 'failed', problem: backup.error};

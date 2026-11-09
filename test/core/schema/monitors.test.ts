@@ -21,6 +21,13 @@ function monitor(number = 1) {
 }
 
 describe('parseMonitorList', () => {
+  it('accepts only boolean identity availability', () => {
+    const value = [{...monitor(), identityUnavailable: true}];
+    expect(parseMonitorList(value)).toEqual({ok: true, value});
+    expect(
+      parseMonitorList([{...monitor(), identityUnavailable: 'yes'}]).ok,
+    ).toBe(false);
+  });
   it('publishes bounded identities while dropping future payload fields', () => {
     const identity = {
       kind: 'windows',

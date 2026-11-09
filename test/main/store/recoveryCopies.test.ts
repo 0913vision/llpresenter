@@ -1,4 +1,4 @@
-import {readdir, readFile, writeFile} from 'node:fs/promises';
+import {readdir, readFile, rename, unlink, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
 import {makeTempDir} from '@fixtures/tempDir';
@@ -31,6 +31,20 @@ async function setUp(keep = 10) {
 }
 
 describe('RecoveryCopies', () => {
+  it('does not treat a throttled save as recovery after a final copy fails', async () => {
+    const {file, copies, target, copyFolder, advance} = await setUp();
+    await writeFile(file, 'version 1');
+    await copies.keepPrevious(target);
+    advance(1000);
+    await rename(copyFolder, `${copyFolder}.held`);
+    await writeFile(copyFolder, 'blocked directory');
+    expect((await copies.keepBeforeDelete(target)).ok).toBe(false);
+    expect((await copies.keepPrevious(target)).ok).toBe(false);
+    await unlink(copyFolder);
+    await rename(`${copyFolder}.held`, copyFolder);
+    expect((await copies.keepPrevious(target)).ok).toBe(true);
+    expect(await readdir(copyFolder)).toHaveLength(2);
+  });
   it('keeps the previous version under its kind and id, named by time', async () => {
     const {file, copies, target, copyFolder} = await setUp();
     await writeFile(file, 'version 1');

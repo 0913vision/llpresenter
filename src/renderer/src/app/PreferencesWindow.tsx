@@ -68,6 +68,14 @@ export function PreferencesWindow({
     },
     [session],
   );
+  const dismiss = useCallback(
+    (key: string) => {
+      if (session === undefined) {
+        setNotices(current => removeNotice(current, key));
+      } else session.dismiss(key);
+    },
+    [session],
+  );
   return (
     <div className={styles.window} data-workspace-layout="preferences">
       <header className={styles.titlebar}>
@@ -79,6 +87,7 @@ export function PreferencesWindow({
       <main ref={body} className={styles.body} aria-label={TITLE}>
         <PreferencesView
           onProblem={report}
+          onDismiss={dismiss}
           labelStore={session?.editor}
           onReady={onReady ?? ready}
           request={request}
@@ -86,14 +95,7 @@ export function PreferencesWindow({
           viewRef={viewRef}
         />
       </main>
-      <NotificationStack
-        notices={notices}
-        onClose={key => {
-          if (session === undefined) {
-            setNotices(current => removeNotice(current, key));
-          } else session.dismiss(key);
-        }}
-      />
+      <NotificationStack notices={notices} onClose={dismiss} />
       {closeFlush === undefined ? null : (
         <SavingDialog closeFlush={closeFlush} />
       )}

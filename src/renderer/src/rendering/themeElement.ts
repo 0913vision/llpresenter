@@ -17,6 +17,7 @@ import {stageClockText} from './stageClock';
 import {fillTimerTokens} from './timerTokens';
 import type {RenderFrame, RenderLayerOptions} from './layer';
 import type {ThemeGaps} from './themeGaps';
+import {setPlaybackProblem} from './playbackProblem';
 
 function fillColor(fill: string, opacity: number): string {
   const [red, green, blue] = [1, 3, 5].map(at =>
@@ -142,12 +143,18 @@ export class ThemeElementView {
         objectFit: mediaObjectFit(element.fit),
       });
       this.image.onerror = () => {
+        setPlaybackProblem(this.box, 'media-missing', true);
         this.gaps.missing('media', element.mediaId);
         if (this.image !== null) this.image.hidden = true;
+      };
+      this.image.onload = () => {
+        setPlaybackProblem(this.box, 'media-missing', false);
+        if (this.image !== null) this.image.hidden = false;
       };
       try {
         this.image.src = options.mediaUrl(element.mediaId);
       } catch {
+        setPlaybackProblem(this.box, 'media-missing', true);
         this.gaps.missing('media', element.mediaId);
         this.image.hidden = true;
       }
@@ -327,7 +334,9 @@ export class ThemeElementView {
     } else {
       try {
         this.media?.show(corrected, frame.transitions, frame.standby);
+        setPlaybackProblem(this.box, 'media-missing', false);
       } catch {
+        setPlaybackProblem(this.box, 'media-missing', true);
         if (this.mediaId !== null) this.gaps.missing('media', this.mediaId);
         this.media?.show(null, false);
       }
@@ -364,6 +373,11 @@ export class ThemeElementView {
       );
       const bundled = ['Pretendard', 'Pretendard Variable'].includes(
         textStyle.font,
+      );
+      setPlaybackProblem(
+        this.box,
+        'font-missing',
+        text !== null && text !== '' && known === false && !bundled,
       );
       if (known === false && !bundled) {
         this.gaps.missing('font', textStyle.font);
@@ -478,6 +492,7 @@ export class ThemeElementView {
     this.text?.dispose();
     if (this.image !== null) {
       this.image.onerror = null;
+      this.image.onload = null;
       this.image.removeAttribute('src');
     }
     this.box.remove();

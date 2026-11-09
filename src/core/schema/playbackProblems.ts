@@ -12,6 +12,9 @@ export const playbackProblemKinds = [
   'playback',
   'device-missing',
   'device-failed',
+  'font-missing',
+  'theme-missing',
+  'media-missing',
 ] as const;
 export type PlaybackProblemKind = (typeof playbackProblemKinds)[number];
 

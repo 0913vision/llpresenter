@@ -185,11 +185,13 @@ export function OutputPage({edits}: PageProps): JSX.Element | null {
 export function StoragePage({
   edits,
   onProblem,
+  onDismiss,
 }: PageProps & {
   readonly onProblem: (notice: Notice) => void;
+  readonly onDismiss?: ((key: string) => void) | undefined;
 }): JSX.Element | null {
   const {preferences, lockedReason, change} = edits;
-  const locations = useLibraryLocations(onProblem);
+  const locations = useLibraryLocations(onProblem, onDismiss);
   if (preferences === null) return null;
   const disabled = lockedReason !== undefined;
   const {view} = locations;

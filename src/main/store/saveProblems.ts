@@ -17,7 +17,10 @@ export function registerSaveProblems(
   feed: ProblemFeed,
   log: Logger,
 ): () => void {
-  const removeStanding = feed.addStanding(() => saves.problems());
+  const removeStanding = feed.addStanding(() => [
+    ...saves.problems(),
+    ...saves.copyProblems(),
+  ]);
   const stop = saves.subscribe(problem => {
     feed.push(problem);
   });

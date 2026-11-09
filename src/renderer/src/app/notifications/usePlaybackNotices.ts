@@ -35,6 +35,9 @@ export function usePlaybackNotices(
               : `${name} 미디어 재생 실패`,
           'device-missing': '오디오 출력 장치 연결 끊김',
           'device-failed': '오디오 출력 장치 변경 실패',
+          'font-missing': `${name} 글꼴 없음`,
+          'theme-missing': `${name} 테마 없음`,
+          'media-missing': `${name} 테마 미디어 읽기 실패`,
           restarting: '오디오 다시 시작 중',
           limited: '오디오 다시 시작 중단',
         };

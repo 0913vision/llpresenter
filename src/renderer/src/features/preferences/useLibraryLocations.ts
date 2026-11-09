@@ -39,6 +39,7 @@ export interface LibraryLocationsState {
  */
 export function useLibraryLocations(
   onProblem: (notice: Notice) => void,
+  onDismiss?: (key: string) => void,
 ): LibraryLocationsState {
   const readiness = useContext(LoadReadinessContext);
   const [view, setView] = useState<LocationsView | null>(null);
@@ -46,8 +47,10 @@ export function useLibraryLocations(
     Partial<Record<LibraryLocationField, string>>
   >({});
   const report = useRef(onProblem);
+  const dismiss = useRef(onDismiss);
   useEffect(() => {
     report.current = onProblem;
+    dismiss.current = onDismiss;
   });
   useEffect(() => {
     const api = window.llp;
@@ -96,7 +99,10 @@ export function useLibraryLocations(
     window.llp?.locations
       .backUpNow()
       .then(result => {
-        if (result.ok) return;
+        if (result.ok) {
+          dismiss.current?.('preferences:backup');
+          return;
+        }
         const title =
           result.error.reason === 'output-on'
             ? BACKUP_OUTPUT_ON

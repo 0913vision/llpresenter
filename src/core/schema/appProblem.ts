@@ -27,6 +27,12 @@ const appProblemSchema = v.pipe(
       count: v.pipe(v.number(), v.safeInteger(), v.minValue(1)),
     }),
     v.object({kind: v.literal('save-recovered')}),
+    v.object({kind: v.literal('backup-recovered')}),
+    v.object({
+      kind: v.literal('protection-write'),
+      target: v.picklist(['record', 'copies']),
+      failed: v.boolean(),
+    }),
     v.object({kind: v.literal('control-reloaded')}),
     v.object({
       kind: v.literal('backup-failed'),
