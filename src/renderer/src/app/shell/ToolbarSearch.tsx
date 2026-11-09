@@ -25,8 +25,7 @@ import {useShow} from '@renderer/session/show';
 import {useOrderFull} from '@renderer/session/orderFull';
 import {ORDER_FULL_REASON} from '@renderer/session/serviceOrderEdits';
 import {useServiceOrderEditing} from '@renderer/features/service/order/useServiceOrderEditing';
-import {quickAddBefore} from '@core/services/quickAddPosition';
-import {createServiceItemId} from '@core/schema/ids';
+import {insertSelectedSong} from '@renderer/session/insertSelectedSong';
 import {useTooltip} from '@renderer/ui/Tooltip';
 
 const SONG_ICON_SIZE = 16;
@@ -202,14 +201,8 @@ export function ToolbarSearch({
         root.current?.contains(event.target) === true,
       run: () => {
         if (!selected || addReason !== undefined) return;
-        const {rows, openItemId} = useShow.getState();
-        const before = quickAddBefore(rows, openItemId);
         editing.run((edits, id) =>
-          edits.insertSong(
-            id,
-            selected.songId,
-            before === null ? null : createServiceItemId(before),
-          ),
+          insertSelectedSong(edits, id, selected.songId),
         );
         setOpen(false);
       },

@@ -38,6 +38,35 @@ it('supports a required image choice and keeps empty search results from selecti
   expect(onSelect).not.toHaveBeenCalled();
 });
 
+it('renders visible image and video type icons', () => {
+  const image = createMediaId('00000000-0000-4000-8000-000000000001');
+  const video = createMediaId('00000000-0000-4000-8000-000000000002');
+  render(
+    <MediaPicker
+      anchor={document.createElement('button')}
+      items={[
+        {id: image, name: 'Image', kind: 'image', file: 'a.png', size: 0},
+        {id: video, name: 'Video', kind: 'video', file: 'b.mp4', size: 0},
+      ]}
+      selected={undefined}
+      query=""
+      onQueryChange={vi.fn()}
+      onSelect={vi.fn()}
+      onClose={vi.fn()}
+    />,
+  );
+  const icon = (name: string) =>
+    screen
+      .getByRole('option', {name})
+      .querySelector<HTMLElement>(':scope > [aria-hidden="true"]');
+  expect(icon('Image')?.style.visibility).not.toBe('hidden');
+  expect(icon('Video')?.style.visibility).not.toBe('hidden');
+  expect(icon('Video')?.style.maskImage).toBeTruthy();
+  expect(icon('Video')?.style.maskImage).not.toBe(
+    icon('Image')?.style.maskImage,
+  );
+});
+
 it('clears pointer highlighting without changing selection and keeps keyboard pointing on leave', () => {
   document.documentElement.style.setProperty('--size-row-menu', '28px');
   const anchor = document.createElement('button');

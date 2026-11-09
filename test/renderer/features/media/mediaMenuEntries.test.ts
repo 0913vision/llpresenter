@@ -51,6 +51,24 @@ it('offers service insertion for image and video tiles, but not audio tiles', ()
   ).toBe(false);
 });
 
+it('disables service insertion with a reason when the file is missing', () => {
+  const addToService = vi.fn();
+  const add = mediaTileMenuEntries(
+    entry,
+    actions({addToService, missing: true}),
+  ).find(row => row.id === 'add-to');
+  expect(add).toMatchObject({
+    kind: 'item',
+    disabled: true,
+    title: '파일을 찾을 수 없습니다',
+  });
+  expect(addToService).not.toHaveBeenCalled();
+  const available = mediaTileMenuEntries(entry, actions({addToService})).find(
+    row => row.id === 'add-to',
+  );
+  expect(available).toMatchObject({kind: 'item', disabled: false});
+});
+
 it('keeps output in the default group and service insertion beside library commands', () => {
   const output = vi.fn();
   const addToService = vi.fn();

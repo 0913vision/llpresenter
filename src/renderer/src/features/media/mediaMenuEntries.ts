@@ -250,7 +250,9 @@ export function mediaTileMenuEntries(
             id: 'add-to',
             contextGroup: 'library' as const,
             label: '예배 순서에 추가',
-            ...menuAvailability(actions.addReason),
+            ...menuAvailability(
+              actions.missing ? '파일을 찾을 수 없습니다' : actions.addReason,
+            ),
             onSelect: () => actions.addToService?.(item.id),
           },
         ]

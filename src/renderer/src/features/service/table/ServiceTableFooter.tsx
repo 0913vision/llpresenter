@@ -18,6 +18,7 @@ import {otherItemEntries} from '../items/quickAddItems';
 import {useOtherSources} from '../items/useOtherSources';
 import {useServiceOrderEditing} from '../order/useServiceOrderEditing';
 import styles from './ServiceTable.module.css';
+import {insertSelectedSong} from '@renderer/session/insertSelectedSong';
 
 const SECTION_NAME = '새 구역';
 const NO_SERVICE_REASON = '열린 예배 없음';
@@ -84,16 +85,8 @@ export function ServiceTableFooter({
   const appendPassage = (ref: string, defaults: PassageDefaults): void =>
     append(passageItem(ref, defaults));
   const insertSong = (song: SongId): void => {
-    const {rows, openItemId} = useShow.getState();
-    const before = quickAddBefore(rows, openItemId);
     setChoosingSong(false);
-    editing.run((edits, id) =>
-      edits.insertSong(
-        id,
-        song,
-        before === null ? null : createServiceItemId(before),
-      ),
-    );
+    editing.run((edits, id) => insertSelectedSong(edits, id, song));
   };
   return (
     <div className={styles.footer}>

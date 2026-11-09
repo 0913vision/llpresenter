@@ -264,7 +264,9 @@ export function MediaPicker({
         <span className={menu.lead}>
           {checked ? <Icon name="check" size={14} /> : null}
         </span>
-        {item === undefined ? null : <Icon name={item.kind} size={14} />}
+        {item === undefined ? null : (
+          <Icon name={item.kind === 'video' ? 'film' : item.kind} size={14} />
+        )}
         <span className={menu.label}>
           {item === undefined
             ? (defaultChoice?.label ?? NONE_LABEL)

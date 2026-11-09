@@ -18,6 +18,7 @@ import {quickAddBefore} from '@core/services/quickAddPosition';
 import {useOtherSources} from './useOtherSources';
 import {useHeaderRename} from '@renderer/session/headerRename';
 import {rememberBiblePassage} from '@renderer/session/recentWriter';
+import {insertSelectedSong} from '@renderer/session/insertSelectedSong';
 
 const NO_SERVICE_REASON = '열린 예배 없음';
 
@@ -50,16 +51,8 @@ export function ServiceQuickAdd({
     insertItem(passage);
   };
   const insertSong = (song: SongId): void => {
-    const {rows, openItemId} = useShow.getState();
-    const before = quickAddBefore(rows, openItemId);
     setChoosingSong(false);
-    editing.run((edits, id) =>
-      edits.insertSong(
-        id,
-        song,
-        before === null ? null : createServiceItemId(before),
-      ),
-    );
+    editing.run((edits, id) => insertSelectedSong(edits, id, song));
   };
   const insertItem = (
     source: ServiceItem | (() => Promise<ServiceItem>),
