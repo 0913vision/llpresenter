@@ -9,6 +9,7 @@ import type {MediaHandlerOptions} from '@main/windows/mediaResponse';
 import type {BibleLookupSession} from '@main/bible/lookup';
 import type {StandingProblems} from '@main/problemFeed';
 import type {RecoveryRecordWriter} from '@main/live/recovery/recordWriter';
+import type {registerUpdates} from '@main/update/register';
 
 // NOTE(0913vision): Each test imports the whole main process afresh, which
 // takes several seconds under coverage on a busy machine.
@@ -27,6 +28,8 @@ const mocks = vi.hoisted(() => {
   const appHandlers = new Map<string, Array<(...args: unknown[]) => void>>();
   return {
     order,
+    updateContexts: new Array<Parameters<typeof registerUpdates>[0]>(),
+    updateStop: vi.fn<() => void>(),
     overlayContexts: new Array<unknown>(),
     audioContexts: new Array<unknown>(),
     audioStop: vi.fn<() => void>(),
@@ -138,7 +141,11 @@ const mocks = vi.hoisted(() => {
     outputContexts,
     frameRates: vi.fn<() => readonly unknown[]>(() => []),
     storeDispose: vi.fn<() => Promise<void>>(),
-    appConfig: {flush: vi.fn<() => Promise<void>>()},
+    storeSavePending: vi.fn<() => Promise<boolean>>(),
+    appConfig: {
+      flush: vi.fn<() => Promise<void>>(),
+      savePending: vi.fn<() => Promise<boolean>>(),
+    },
     storeOptions,
     findMediaFile: vi.fn<(mediaId: string) => Promise<string | null>>(),
     mediaRoots: vi.fn<() => readonly string[]>(),
@@ -153,6 +160,13 @@ const mocks = vi.hoisted(() => {
 });
 
 vi.mock('electron', () => mocks.electron);
+vi.mock('@main/update/register', () => ({
+  registerUpdates: (context: Parameters<typeof registerUpdates>[0]) => {
+    mocks.updateContexts.push(context);
+    return mocks.updateStop;
+  },
+  updatesAllowed: () => false,
+}));
 vi.mock('@main/windows/settingsWindow', () => ({
   registerSettingsWindow: (context: unknown) => {
     mocks.screensWindowContexts.push(context);
@@ -339,6 +353,7 @@ vi.mock('@main/store/register', () => ({
       content: Promise.resolve(null),
       settings: mocks.settings,
       dispose: mocks.storeDispose,
+      savePending: mocks.storeSavePending,
       findMediaFile: mocks.findMediaFile,
       mediaRoots: mocks.mediaRoots,
     };
@@ -412,6 +427,8 @@ export function deferred(): {promise: Promise<void>; resolve: () => void} {
 }
 
 beforeEach(async () => {
+  mocks.updateContexts.length = 0;
+  mocks.updateStop.mockClear();
   mocks.screensWindowContexts.length = 0;
   mocks.editorWindowContexts.length = 0;
   mocks.editorWindowStops.order.mockClear();
@@ -431,6 +448,10 @@ beforeEach(async () => {
   mocks.audioStop.mockReset();
   mocks.themeOutputContexts.length = 0;
   mocks.themeOutputStop.mockReset();
+  mocks.slideAdvanceContexts.length = 0;
+  mocks.slideAdvanceStop.mockReset();
+  mocks.slidesProjectionContexts.length = 0;
+  mocks.slidesProjection.dispose.mockReset();
   mocks.recovery.crashed = false;
   mocks.recovery.markQuitting.mockReset();
   mocks.recovery.cleanExit.mockReset();
@@ -478,7 +499,12 @@ beforeEach(async () => {
   mocks.outputsStop.mockReset();
   mocks.outputContexts.length = 0;
   mocks.storeDispose.mockReset();
+  mocks.storeSavePending.mockReset().mockResolvedValue(true);
   mocks.appConfig.flush.mockReset();
+  mocks.appConfig.savePending.mockReset().mockImplementation(async () => {
+    await mocks.appConfig.flush();
+    return true;
+  });
   mocks.storeOptions.length = 0;
   mocks.mediaOptions.length = 0;
 });

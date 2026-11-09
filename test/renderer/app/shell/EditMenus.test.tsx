@@ -340,7 +340,7 @@ describe('the 창 menu', () => {
 });
 
 describe('the 도움말 menu', () => {
-  it('keeps 시작 안내 unavailable and opens the other two rows', async () => {
+  it('keeps 시작 안내 unavailable and enables logs, updates and version information', async () => {
     const user = userEvent.setup();
     render(<MenuBar title="" />);
     const menu = await openMenu(user, '도움말');
@@ -348,6 +348,7 @@ describe('the 도움말 menu', () => {
     expect(rows.map(row => row.textContent)).toEqual([
       '시작 안내',
       '기록 폴더 열기',
+      '업데이트 확인',
       '버전 정보',
     ]);
     expect(
@@ -355,6 +356,10 @@ describe('the 도움말 menu', () => {
     ).toBe(rowOf(menu, '기록 폴더 열기').textContent);
     expect(await reasonOf(rowOf(menu, '시작 안내'))).toBe(NOT_YET);
     expect(isOff(rowOf(menu, '기록 폴더 열기'))).toBe(false);
+    expect(isOff(rowOf(menu, '업데이트 확인'))).toBe(false);
+    expect(
+      shortcutCommands.find(command => command.id === 'app.checkUpdate')?.name,
+    ).toBe(rowOf(menu, '업데이트 확인').textContent);
     expect(isOff(rowOf(menu, '버전 정보'))).toBe(false);
   });
 

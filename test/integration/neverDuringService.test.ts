@@ -3,8 +3,8 @@ import {join, relative, sep} from 'node:path';
 import {describe, expect, it} from 'vitest';
 
 // NOTE(0913vision): Spec 08, "What must never happen during a service". These
-// scan the source for what the app must never contain: an updater, a toast, a
-// remote network call, a window question on an output, or a page that reaches out.
+// scan for forbidden output UI and network access outside the main-process
+// adapters. Updater flow tests cover click-only installation and output guards.
 
 const ROOT = join(__dirname, '..', '..');
 const SOURCE = join(ROOT, 'src');
@@ -26,12 +26,12 @@ function mentions(pattern: RegExp, files: readonly string[]): string[] {
 const code = filesUnder(SOURCE, ['.ts', '.tsx']);
 
 describe('never during a service', () => {
-  it('has no updater: nothing installs or restarts the app by itself', () => {
-    expect(mentions(/autoUpdater|electron-updater|squirrel/i, code)).toEqual(
-      [],
-    );
+  it('confines the updater dependency to one main-process adapter', () => {
+    expect(mentions(/autoUpdater|electron-updater|squirrel/i, code)).toEqual([
+      'src/main/update/electronUpdater.ts',
+    ]);
     const manifest = readFileSync(join(ROOT, 'package.json'), 'utf8');
-    expect(manifest).not.toMatch(/electron-updater|update-electron-app/);
+    expect(manifest).not.toMatch(/update-electron-app/);
   });
 
   it('shows no Windows toast: nothing builds an Electron Notification', () => {

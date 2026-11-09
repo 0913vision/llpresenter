@@ -47,8 +47,9 @@ export interface ControlClose {
    * Asks the control window to flush its edits, joining a request that is
    * already pending, and answers whether closing may go on. Missing progress
    * settles it within the flush bound. It never rejects.
+   * When `requireSaved` is true, only an explicit successful flush permits an update.
    */
-  confirmClose(): Promise<boolean>;
+  confirmClose(requireSaved?: boolean): Promise<boolean>;
   /** Rearms the handshake after a retained dialog was hidden. */
   resume(): void;
   dispose(): void;
@@ -64,6 +65,7 @@ class ControlCloseHandshake implements ControlClose {
   private pending: PendingFlush | null = null;
   private timer: ReturnType<typeof setTimeout> | undefined;
   private confirmed = false;
+  private flushed = false;
   private refused = false;
   private disposed = false;
   private readonly controlId: number;
@@ -118,10 +120,15 @@ class ControlCloseHandshake implements ControlClose {
     );
   }
 
-  async confirmClose(): Promise<boolean> {
-    if (this.confirmed || this.disposed) return true;
+  async confirmClose(requireSaved = false): Promise<boolean> {
+    if (this.confirmed || this.disposed) {
+      return !requireSaved || (this.flushed && !this.disposed);
+    }
     const outcome = await (this.pending?.outcome ?? this.requestFlush());
-    const closes = closeStepAfter(outcome) === 'close';
+    this.flushed = outcome === 'flushed';
+    const closes = requireSaved
+      ? this.flushed
+      : closeStepAfter(outcome) === 'close';
     this.confirmed = closes;
     this.refused = !closes;
     return closes;
@@ -129,6 +136,7 @@ class ControlCloseHandshake implements ControlClose {
 
   resume(): void {
     this.confirmed = false;
+    this.flushed = false;
     this.refused = false;
   }
 

@@ -3,6 +3,39 @@
 How to work on LoveLight Presenter: where the rules live, and how code is
 written, tested, and committed.
 
+## Windows installers and releases
+
+The installer uses electron-builder 26.18.0 and the main process wraps
+electron-updater 6.8.11. Both are pinned MIT dependencies. Builder produces the
+NSIS installer and update metadata; the updater handles GitHub feeds, verified
+downloads, cached files, and NSIS replacement. Neither belongs in the output
+path. The runtime adapter is `src/main/update/electronUpdater.ts`.
+
+Build installers on GitHub runners only. The branch CI installer job runs when
+packaging inputs change, uses `--publish never`, checks archive contents,
+launches the unpacked app with hidden windows and isolated data, and retains the
+unsigned installer and measurements for 14 days. It has a read-only token. The
+package contains the built main, preload, three renderer pages, emitted assets,
+Pretendard, and font/icon notices. It excludes Bible text, local data, tests,
+logs, and `.llp`. Existing data roots remain outside the install folder. The
+assisted uninstaller has no data deletion page; its custom initialization also
+rejects `--delete-app-data`, which upstream otherwise honors independently of
+`deleteAppDataOnUninstall: false`.
+
+For a release, dispatch **release.yml** with an existing `vMAJOR.MINOR.PATCH`
+tag from the main branch's bump job. The workflow checks out that exact tag,
+verifies its version against `package.json`, and uses the built-in
+`GITHUB_TOKEN` to upload the exe, blockmap, and `latest.yml` to a **draft**
+GitHub Release. Only this job has `contents: write`. It does not run on tag
+pushes and does not create tags. The user reviews and publishes the draft on
+GitHub; publishing that draft is the release approval. No additional secret is
+needed. Installed apps read public releases without a token.
+
+The installer finish page, release draft, and README link to the official KoPub
+font page before the first run. KoPub files are not bundled or downloaded by the
+app or installer. Rerunning the workflow preserves existing draft notes and adds
+the font guidance only if it is missing.
+
 ## Sources of truth
 
 - UI appearance, sizes, states, and copy rules: the design system in

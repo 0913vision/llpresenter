@@ -46,6 +46,22 @@ function outputItem(name: string): HTMLElement {
 }
 
 describe('MenuBar', () => {
+  it('checks updates from the help item immediately above version information', async () => {
+    const check = vi.fn();
+    window.llp = mockLlpApi({update: {check}});
+    render(<MenuBar title="" />);
+    await userEvent.click(screen.getByRole('menuitem', {name: '도움말'}));
+    const items = within(
+      screen.getByRole('menu', {name: '도움말'}),
+    ).getAllByRole('menuitem');
+    const index = items.findIndex(item => item.textContent === '업데이트 확인');
+    expect(index).toBeGreaterThanOrEqual(0);
+    expect(items[index + 1]?.textContent).toBe('버전 정보');
+    await userEvent.click(
+      screen.getByRole('menuitem', {name: '업데이트 확인'}),
+    );
+    expect(check).toHaveBeenCalledOnce();
+  });
   it('names the window buttons with aria-label and a tooltip, not a title', async () => {
     render(<MenuBar title="" />);
     const minimize = screen.getByRole('button', {name: '최소화'});

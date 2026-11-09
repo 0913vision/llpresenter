@@ -115,6 +115,34 @@ beforeEach(() => {
 });
 
 describe('control window close handshake', () => {
+  it.each(['forced', 'no-reply'] as const)(
+    'rejects %s as update durability confirmation',
+    async outcome => {
+      const clock = installMockClock();
+      const {control, closing} = setup();
+      const confirmation = closing.confirmClose(true);
+      if (outcome === 'forced') {
+        electron.ipcMain.emit(appEndpoints.closeAnyway.channel, CONTROL_ID);
+      } else {
+        await clock.advance(APP_FLUSH_LIMITS.timeoutMs);
+      }
+      expect(await confirmation).toBe(false);
+      expect(control.destroyed).toBe(false);
+    },
+  );
+
+  it('requires a fresh successful flush after an unverified normal close', async () => {
+    const {closing, reply} = setup();
+    const normal = closing.confirmClose();
+    electron.ipcMain.emit(appEndpoints.closeAnyway.channel, CONTROL_ID);
+    expect(await normal).toBe(true);
+    expect(await closing.confirmClose(true)).toBe(false);
+    closing.resume();
+    const strict = closing.confirmClose(true);
+    reply(true, CONTROL_ID, 1);
+    expect(await strict).toBe(true);
+  });
+
   it('flushes each close of a retained dialog instead of reusing its first confirmation', async () => {
     const control = new MockControl();
     const hide = vi.fn();

@@ -1,0 +1,40 @@
+appId: com.mideum.llpresenter
+productName: LoveLight Presenter
+executableName: LoveLightPresenter
+directories:
+  output: artifacts/installer
+  buildResources: build
+files:
+  - out/**/*
+  - package.json
+  - '!**/*.{llbible,gguf,log}'
+  - '!**/{.llp,test,tests,coverage,userData,logs}/**/*'
+extraResources:
+  - from: design/system/project/fonts/LICENSE.txt
+    to: notices/Pretendard-OFL.txt
+  - from: src/renderer/src/ui/icons/LICENSE-phosphor.txt
+    to: notices/Phosphor-MIT.txt
+asar: true
+npmRebuild: false
+win:
+  target:
+    - target: nsis
+      arch: [x64]
+nsis:
+  oneClick: false
+  allowToChangeInstallationDirectory: true
+  createDesktopShortcut: true
+  createStartMenuShortcut: true
+  shortcutName: LoveLight Presenter
+  uninstallDisplayName: LoveLight Presenter
+  runAfterFinish: true
+  deleteAppDataOnUninstall: false
+  include: build/installer.nsh
+  artifactName: LoveLightPresenter-Setup-${version}.${ext}
+publish:
+  provider: github
+  owner: 0913vision
+  repo: llpresenter
+  private: false
+  releaseType: draft
+  vPrefixedTagName: true

@@ -53,6 +53,8 @@ import {usePlaybackNotices} from './notifications/usePlaybackNotices';
 import {useProblemNotices} from './notifications/useProblemNotices';
 import styles from './App.module.css';
 import {useLaunchReady} from './useLaunchReady';
+import {UPDATE_NOTICE_KEY, useUpdate} from './update/useUpdate';
+import {addNotice} from '@renderer/ui/notices';
 
 const noEditorSubscription = (): (() => void) => () => undefined;
 
@@ -94,6 +96,8 @@ function ControlApp({
   const [focusSearch, setFocusSearch] = useState(false);
   const searchFocused = useCallback(() => setFocusSearch(false), []);
   const notices = useSyncExternalStore(session.subscribe, session.getNotices);
+  const resumeAfterUpdate = useCallback(() => session.resume(), [session]);
+  const update = useUpdate(session.api?.update, resumeAfterUpdate);
   const [warningHeight, setWarningHeight] = useState(0);
   const [themeLeave] = useState(() => new ThemeLeaveGuard());
   const onWorkspace = (next: WorkspaceId): void => {
@@ -164,6 +168,7 @@ function ControlApp({
       <ToolObjectShortcuts api={session.api} onProblem={session.report} />
       <QuickObjectShortcuts api={session.api} onProblem={session.report} />
       <AudioShortcuts onProblem={session.report} />
+      {update.dialog}
       <MenuBar
         onWorkspace={onWorkspace}
         onMedia={onMedia}
@@ -211,9 +216,13 @@ function ControlApp({
       {prepActions.importSurface}
       <RecoveryPrompt recovery={recovery} />
       <NotificationStack
-        notices={notices}
+        notices={
+          update.notice === null ? notices : addNotice(notices, update.notice)
+        }
         compact={sizeClass === 'narrow'}
-        onClose={session.dismiss}
+        onClose={key =>
+          key === UPDATE_NOTICE_KEY ? update.dismiss() : session.dismiss(key)
+        }
         onWarningHeightChange={setWarningHeight}
       />
       {session.closeFlush === undefined ? null : (

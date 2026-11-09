@@ -24,14 +24,18 @@ export interface WindowTestOptions {
 }
 
 /**
- * Reads the window mode once at launch. A packaged app ignores the variable,
- * so it can't hide the windows of a real service.
+ * Packaged apps ignore test mode except in the explicit GitHub installer smoke.
  */
 export function windowModeFrom(
   env: NodeJS.ProcessEnv,
   isPackaged: boolean,
 ): WindowMode {
-  if (isPackaged) return 'normal';
+  if (
+    isPackaged &&
+    !(env.GITHUB_ACTIONS === 'true' && env.LLP_INSTALLER_SMOKE === '1')
+  ) {
+    return 'normal';
+  }
   return env[TEST_WINDOWS_VARIABLE] === OFFSCREEN_VALUE
     ? 'offscreen'
     : 'normal';

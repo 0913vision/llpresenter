@@ -2,9 +2,11 @@ node_modules
 out
 coverage
 dist
+artifacts/
 *.tsbuildinfo
 *.log
 *.ps1
+!scripts/installer/run-ci.ps1
 .DS_Store
 # Session worktrees, session notes, and local outputs
 .claude/worktrees/

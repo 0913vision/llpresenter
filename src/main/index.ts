@@ -1,6 +1,8 @@
 import {app, ipcMain, type BrowserWindow, type IpcMainEvent} from 'electron';
 import {serviceEndpoints} from '@contracts/ipc/service';
 import {LaunchIdle} from './store/launchIdle';
+import {registerUpdates, updatesAllowed} from './update/register';
+import {recoveryMarkerRemoved} from './update/recovery';
 import {join} from 'node:path';
 import {isAnyOutputOn} from '@core/live/state';
 import {registerBible} from './bible/register';
@@ -140,6 +142,15 @@ function start(): void {
       const zoom = registerUiZoom(appConfig, log);
       const store = new LiveStore();
       const launchIdle = new LaunchIdle();
+      if (app.isPackaged && windowMode === 'offscreen') {
+        launchIdle.ready
+          .then(ready => {
+            if (ready) log.info('installer smoke ready');
+          })
+          .catch((error: unknown) =>
+            log.warn('Could not record installer smoke readiness', error),
+          );
+      }
       shutdown.add({
         name: 'cancel deferred launch work',
         run: () => launchIdle.dispose(),
@@ -308,11 +319,29 @@ function start(): void {
       const stopFonts = registerFonts(win, log, launchIdle.ready);
       const closing = registerControlClose({control: win, log});
       shutdown.confirmWith(
-        async () =>
-          (await settingsWindow.close()) &&
+        async requireSaved =>
+          (await settingsWindow.close(requireSaved)) &&
           (await slidesEditorWindow.close()) &&
-          (await closing.confirmClose()),
+          (await closing.confirmClose(requireSaved)),
       );
+      const stopUpdates = registerUpdates({
+        control: win,
+        store,
+        log,
+        shutdown,
+        ready: launchIdle.ready,
+        version: app.getVersion(),
+        verifyClean: () => recoveryMarkerRemoved(recoveryFolder),
+        savePending: dataStore.savePending,
+        resumeAfterCancelledInstall: () => closing.resume(),
+        enabled: updatesAllowed({
+          packaged: app.isPackaged,
+          platform: process.platform,
+          testing:
+            windowMode === 'offscreen' || process.env.NODE_ENV === 'test',
+        }),
+      });
+      shutdown.add({name: 'stop update channels', run: stopUpdates});
       const stopMediaBackend = registerMediaBackend({
         settings: dataStore.settings,
         uiState: appConfig,
@@ -459,8 +488,12 @@ function start(): void {
       shutdown.add({name: 'stop the outputs', run: outputs.stop});
       shutdown.add({name: 'save the UI state', run: () => ui.dispose()});
       shutdown.add({name: 'stop UI zoom', run: () => zoom.dispose()});
-      shutdown.add({name: 'save app.json', run: () => appConfig.flush()});
+      shutdown.add({name: 'save app.json', run: () => appConfig.savePending()});
       shutdown.add({name: 'finish the soak record', run: stopSoakRecorder});
+      shutdown.add({
+        name: 'save pending store edits',
+        run: dataStore.savePending,
+      });
       shutdown.add({name: 'close the data store', run: dataStore.dispose});
       shutdown.add({name: 'stop serving media', run: stopServingMedia});
       shutdown.add({

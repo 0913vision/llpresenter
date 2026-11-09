@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {llpApi} from '@contracts/ipc/api';
 import {appEndpoints} from '@contracts/ipc/app';
+import {updateEndpoints} from '@contracts/ipc/update';
 import {bibleEndpoints} from '@contracts/ipc/bible';
 import {contentEndpoints} from '@contracts/ipc/content';
 import type {IpcPort, WindowPlatform} from '@contracts/ipc/endpoint';
@@ -26,6 +27,7 @@ function endpointsIn(table: object): object[] {
 
 const DECLARED = [
   appEndpoints,
+  updateEndpoints,
   bibleEndpoints,
   contentEndpoints,
   libraryEndpoints,

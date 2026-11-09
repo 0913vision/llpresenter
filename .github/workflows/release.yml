@@ -1,0 +1,65 @@
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Existing version tag from the bump job (vMAJOR.MINOR.PATCH)
+        required: true
+        type: string
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ inputs.tag }}
+  cancel-in-progress: false
+
+jobs:
+  draft:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    env:
+      RELEASE_NOTES: '첫 실행 전에 [KoPub 공식 페이지](https://www.kopus.org/biz-electronic-font2/)에서 주일 테마 글꼴(KoPub)을 설치해 주세요.'
+    permissions:
+      contents: write
+    steps:
+      - name: Validate tag syntax
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+        run: |
+          if ($env:RELEASE_TAG -cnotmatch '^v[0-9]+\.[0-9]+\.[0-9]+$') { throw 'Expected vMAJOR.MINOR.PATCH' }
+      - uses: actions/checkout@v7.0.1
+        with:
+          ref: refs/tags/${{ inputs.tag }}
+          fetch-depth: 0
+          persist-credentials: false
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24.20.0
+          cache: npm
+      - name: Verify existing tag and package version
+        run: node scripts/installer/release-tag.mts
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+      - run: npm ci
+      - name: Refuse an already published release
+        run: node scripts/installer/draft.mts
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - run: npm run build
+      - name: Publish installer and update metadata to a draft
+        run: >-
+          npx --no-install electron-builder --win nsis --x64 --publish always
+          --config.releaseInfo.releaseNotes="$env:RELEASE_NOTES"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+          EP_DRAFT: 'true'
+      - name: Include the font link in an existing draft too
+        run: node scripts/installer/draft.mts --write-notes
+        env:
+          RELEASE_TAG: ${{ inputs.tag }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

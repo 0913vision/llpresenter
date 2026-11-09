@@ -28,6 +28,7 @@ jobs:
     timeout-minutes: 5
     outputs:
       code: ${{ steps.files.outputs.code }}
+      installer: ${{ steps.installer.outputs.installer }}
     steps:
       - uses: actions/checkout@v7.0.1
         with:
@@ -42,6 +43,12 @@ jobs:
             code=false
           fi
           echo "code=$code" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24.20.0
+      - name: Find packaging input changes
+        id: installer
+        run: node scripts/installer/inputs.mts "$(git merge-base origin/main HEAD)"
 
   checks:
     needs: changes
@@ -119,6 +126,62 @@ jobs:
       - run: npx --no-install vitest run --shard=${{ matrix.shard }}/3
         env:
           LLP_CI_TEST_WORKERS: '1'
+
+  installer:
+    needs: [changes, checks, tests]
+    if: github.event_name == 'push' && github.ref != 'refs/heads/main' && needs.changes.outputs.installer == 'true'
+    runs-on: windows-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+    steps:
+      - uses: actions/checkout@v7.0.1
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24.20.0
+          cache: npm
+      - name: Cache installed packages
+        id: modules
+        uses: actions/cache@v6.1.0
+        with:
+          path: node_modules
+          key: modules-${{ runner.os }}-node24.20.0-${{ hashFiles('package-lock.json') }}
+      - name: Cache Electron downloads
+        if: steps.modules.outputs.cache-hit != 'true'
+        uses: actions/cache@v6.1.0
+        with:
+          path: ~\AppData\Local\electron\Cache
+          key: electron-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: electron-${{ runner.os }}-
+      - name: Install packaging dependencies
+        if: steps.modules.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: ./scripts/installer/run-ci.ps1 install
+      - name: Package the Windows installer
+        shell: pwsh
+        run: ./scripts/installer/run-ci.ps1 package
+        env:
+          CSC_IDENTITY_AUTO_DISCOVERY: 'false'
+      - name: Inspect archive and record sizes
+        shell: pwsh
+        run: ./scripts/installer/run-ci.ps1 inspect
+      - name: Launch the unpacked app with hidden windows
+        shell: pwsh
+        run: ./scripts/installer/run-ci.ps1 smoke
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: windows-x64-unsigned-${{ github.sha }}-${{ github.run_attempt }}
+          path: |
+            artifacts/installer/LoveLightPresenter-Setup-*.exe
+            artifacts/installer/build-info.json
+            artifacts/installer/archive-list.txt
+            artifacts/installer/smoke-result.json
+            artifacts/installer/smoke.log
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 14
 
   # NOTE(0913vision): The November 1 user decision measures coverage only after
   # a push to main, beside the version bump. The run records the number and

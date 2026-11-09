@@ -312,6 +312,7 @@ export const shortcutCommands: readonly ShortcutCommand[] = (
     ['app.quit', '종료', '창과 메뉴', ['control'], []],
     ['app.openLogs', '기록 폴더 열기', '창과 메뉴', ['control'], []],
     ['app.about', '버전 정보', '창과 메뉴', ['control'], []],
+    ['app.checkUpdate', '업데이트 확인', '창과 메뉴', ['control'], []],
     ['window.minimize', '최소화', '창과 메뉴', ['control'], []],
     ['window.maximize', '최대화', '창과 메뉴', ['control'], []],
     [

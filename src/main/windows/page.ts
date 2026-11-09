@@ -1,4 +1,4 @@
-import type {BrowserWindow} from 'electron';
+import {app, type BrowserWindow} from 'electron';
 import {join} from 'node:path';
 import type {Logger} from '../log';
 
@@ -27,7 +27,9 @@ export function startLoading(
   win: BrowserWindow,
   {name, query = {}}: PageRequest,
 ): Promise<void> {
-  const devServer = process.env.ELECTRON_RENDERER_URL;
+  const devServer = app.isPackaged
+    ? undefined
+    : process.env.ELECTRON_RENDERER_URL;
   return devServer !== undefined && devServer.length > 0
     ? win.loadURL(`${devServer}/${name}.html${searchOf(query)}`)
     : win.loadFile(join(__dirname, `../renderer/${name}.html`), {query});

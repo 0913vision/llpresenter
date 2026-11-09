@@ -1,4 +1,5 @@
 import {appApi, problemsApi, type AppApi, type ProblemsApi} from './app';
+import {updateApi, type UpdateApi} from './update';
 import {bibleApi, type BibleApi} from './bible';
 import {
   contentApi,
@@ -68,6 +69,7 @@ export {
  * part is declared with its calls in its own file in this folder.
  */
 export interface LlpApi {
+  readonly update: UpdateApi;
   readonly bible: BibleApi;
   readonly app: AppApi;
   readonly problems: ProblemsApi;
@@ -112,10 +114,12 @@ export function llpApi(
     | {
         readonly slidesEditor?: SlidesEditorApi;
         readonly bible?: BibleApi;
+        readonly update?: UpdateApi;
       } = {},
 ): LlpApi {
   const custom = 'open' in bridges ? {slidesEditor: bridges} : bridges;
   return {
+    update: custom.update ?? updateApi(port),
     bible: custom.bible ?? bibleApi(port),
     app: appApi(port),
     problems: problemsApi(port),

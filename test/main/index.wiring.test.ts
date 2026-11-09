@@ -9,6 +9,46 @@ import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 
 describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
+  it('requires strict renderer confirmation and durable stores before update disposal', async () => {
+    await startMain();
+    const update = mocks.updateContexts[0];
+    if (update === undefined) throw new Error('Missing update registration');
+    mocks.storeSavePending.mockResolvedValue(false);
+    const install = vi.fn();
+    expect(
+      await update.shutdown.quitForUpdate(install, () => true, {
+        savePending: update.savePending,
+        verifyClean: update.verifyClean,
+      }),
+    ).toBe(false);
+    expect(mocks.screensWindowClose).toHaveBeenCalledWith(true);
+    expect(mocks.confirmClose).toHaveBeenCalledWith(true);
+    expect(mocks.storeSavePending).toHaveBeenCalledOnce();
+    expect(mocks.storeDispose).not.toHaveBeenCalled();
+    expect(mocks.updateStop).not.toHaveBeenCalled();
+    expect(mocks.electron.app.quit).not.toHaveBeenCalled();
+    expect(install).not.toHaveBeenCalled();
+  });
+
+  it('defers the updater until launch readiness and disposes it during shutdown', async () => {
+    const control = await startMain();
+    expect(mocks.updateContexts).toHaveLength(1);
+    expect(mocks.updateContexts[0]).toHaveProperty('control', control);
+    expect(mocks.updateContexts[0]).toHaveProperty(
+      'ready',
+      expect.any(Promise),
+    );
+    expect(mocks.updateContexts[0]).toHaveProperty('enabled', false);
+    expect(mocks.updateContexts[0]).toHaveProperty(
+      'savePending',
+      mocks.storeSavePending,
+    );
+    beforeQuit();
+    await vi.waitFor(() =>
+      expect(mocks.electron.app.quit).toHaveBeenCalledOnce(),
+    );
+    expect(mocks.updateStop).toHaveBeenCalledOnce();
+  });
   it('connects slide advance to live state and disposes its timer before data', async () => {
     await startMain();
     expect(mocks.slideAdvanceContexts).toHaveLength(1);

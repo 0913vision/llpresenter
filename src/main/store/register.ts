@@ -58,6 +58,8 @@ export interface StoreRegistration {
 
 /** What the main process wiring uses of the data store. */
 export interface DataStore extends SettingsAccess {
+  /** Flushes every store without disposing it and reports failed writes explicitly. */
+  readonly savePending: () => Promise<boolean>;
   readonly bible: Pick<BibleLookupSession, 'lookup'>;
   readonly content: Promise<ContentStore | null>;
   readonly settings: Promise<SettingsReader | null>;
@@ -228,7 +230,7 @@ export function registerStore({
       picture => picture.id === SUNDAY_PICTURE_IDS.scripture,
     ),
   );
-  ipcMain.handle(appEndpoints.savePending.channel, async () => {
+  const savePending = async (): Promise<boolean> => {
     try {
       const [ready, readySettings, readyMedia] = await Promise.all([
         opened,
@@ -244,8 +246,10 @@ export function registerStore({
       log.error('could not save pending edits before closing', error);
       return false;
     }
-  });
+  };
+  ipcMain.handle(appEndpoints.savePending.channel, savePending);
   return {
+    savePending,
     get bible() {
       if (!bibleClosed) openBible();
       return bibleReader;

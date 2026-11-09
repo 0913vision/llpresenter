@@ -17,6 +17,7 @@ import {openAppConfig} from '@main/store/appConfigFile';
 import type {WriteResult} from '@main/store/fileWriter';
 import {DATA_FOLDER_NAME} from '@main/store/locations';
 import {registerStore} from '@main/store/register';
+import {ShutdownCoordinator} from '@main/shutdown';
 import {itemId, service, writeJson} from '@fixtures/main/store/testFiles';
 
 type Handler = (event: unknown, value?: unknown) => unknown;
@@ -236,6 +237,25 @@ it.each([
       blocked === 'service' ? oldMemo : newestMemo,
     );
     expect(write.mock.calls.some(([path]) => path === blockedFile)).toBe(true);
+    const app = {
+      on: vi.fn(),
+      quit: vi.fn(),
+      releaseSingleInstanceLock: vi.fn(),
+    };
+    const coordinator = new ShutdownCoordinator({app, log});
+    const install = vi.fn();
+    const dispose = vi.fn();
+    coordinator.confirmWith(() => Promise.resolve(true));
+    coordinator.add({name: 'dispose stores', run: dispose});
+    expect(
+      await coordinator.quitForUpdate(install, () => true, {
+        savePending: store.savePending,
+      }),
+    ).toBe(false);
+    expect(install).not.toHaveBeenCalled();
+    expect(dispose).not.toHaveBeenCalled();
+    expect(app.quit).not.toHaveBeenCalled();
+    expect(app.releaseSingleInstanceLock).not.toHaveBeenCalled();
     const configBefore = parseAppConfig(
       await readFile(configFile, 'utf8'),
       configFile,

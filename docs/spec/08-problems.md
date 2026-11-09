@@ -424,9 +424,10 @@ writing rules.
   loopback HTTP server and never follow a redirect. Missing or failed AI uses
   rules for that verse (04, "Local AI boundary chooser").
 - Never install an update, restart the app on its own, or show an update prompt
-  while any output is on. Version 1 has no updater. `docs/TECH.md` says the user
-  installs new versions by hand, and not on the day of a service or the day
-  before.
+  while any output is on. The updater defers its questions until every output is
+  off, and installs only after an explicit click and clean shutdown (01, "App
+  updates"). Manual live checks use nonmodal notices. Do not install on the day
+  of a service or the day before.
 - Never let saving, backups, imports, media analysis, or search indexing stall
   the output. Do them asynchronously or in a helper process. Don't run automatic
   backups during a service.

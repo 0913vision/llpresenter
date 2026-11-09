@@ -691,11 +691,12 @@ Which thing a row acts on:
   and a support page says the menu holds links to resources. No source lists its
   rows on Windows, so the rows and groups are ours (Not seen in PP).
 
-| Group | Row            | Does                                                                                                | Command        | Status |
-| ----- | -------------- | --------------------------------------------------------------------------------------------------- | -------------- | ------ |
-| 1     | 시작 안내      | PP Welcome to ProPresenter. The app has no walkthrough.                                             | None           | Off    |
-| 2     | 기록 폴더 열기 | Opens the log folder (`logs` in the app data folder, 02) in the file manager.                       | `app.openLogs` | Now    |
-| 2     | 버전 정보      | A small dialog with the app name and version and one 확인 button, no links (the app works offline). | `app.about`    | Now    |
+| Group | Row            | Does                                                                                                | Command           | Status |
+| ----- | -------------- | --------------------------------------------------------------------------------------------------- | ----------------- | ------ |
+| 1     | 시작 안내      | PP Welcome to ProPresenter. The app has no walkthrough.                                             | None              | Off    |
+| 2     | 기록 폴더 열기 | Opens the log folder (`logs` in the app data folder, 02) in the file manager.                       | `app.openLogs`    | Now    |
+| 2     | 업데이트 확인  | Checks public releases; the update flow and output guards are in 01, "App updates".                 | `app.checkUpdate` | Now    |
+| 2     | 버전 정보      | A small dialog with the app name and version and one 확인 button, no links (the app works offline). | `app.about`       | Now    |
 
 - PP's links to online resources are left out: the app works without the
   internet (TECH rule 5).

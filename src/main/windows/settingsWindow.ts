@@ -27,7 +27,7 @@ export interface SettingsWindowOptions extends SettingsWindowFrameOptions {
 }
 
 export interface SettingsWindowRegistration {
-  readonly close: () => Promise<boolean>;
+  readonly close: (requireSaved?: boolean) => Promise<boolean>;
   readonly dispose: () => Promise<void>;
 }
 
@@ -467,10 +467,10 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     }, WARMUP_DELAY_MS);
   };
 
-  readonly close = async (): Promise<boolean> => {
+  readonly close = async (requireSaved = false): Promise<boolean> => {
     const current = this.win;
     if (current === null || current.isDestroyed()) return true;
-    if (!(await this.closing?.confirmClose())) return false;
+    if (!(await this.closing?.confirmClose(requireSaved))) return false;
     if (!current.isDestroyed()) {
       this.hide();
       if (this.stopping) current.destroy();

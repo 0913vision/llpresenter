@@ -5,6 +5,7 @@ import {badValueLog, createIpcPort} from './port';
 import {windowPlatform} from './platform';
 import {slidesEditorPreload} from './slidesEditor';
 import {biblePreload} from './bible';
+import {updatePreload} from './update';
 
 const log = badValueLog(ipcRenderer, outputEndpoints.log.channel);
 const port = createIpcPort(ipcRenderer, log);
@@ -14,5 +15,6 @@ contextBridge.exposeInMainWorld(
   llpApi(port, windowPlatform({webFrame, webUtils}, log), {
     slidesEditor: slidesEditorPreload(port),
     bible: biblePreload(port),
+    update: updatePreload(port),
   }),
 );

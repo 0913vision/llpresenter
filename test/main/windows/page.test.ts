@@ -1,4 +1,4 @@
-import {BrowserWindow, type HandlerDetails} from 'electron';
+import {app, BrowserWindow, type HandlerDetails} from 'electron';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {blockNavigation, loadPage, startLoading} from '@main/windows/page';
@@ -6,6 +6,11 @@ import {blockNavigation, loadPage, startLoading} from '@main/windows/page';
 vi.mock('electron', async () => {
   const {EventEmitter} = await import('node:events');
   return {
+    app: {
+      get isPackaged() {
+        return false;
+      },
+    },
     BrowserWindow: class MockBrowserWindow {
       readonly loadURL = vi.fn(() => Promise.resolve());
       readonly loadFile = vi.fn(() => Promise.resolve());
@@ -20,9 +25,20 @@ function mockWindow() {
   return new BrowserWindow();
 }
 
-afterEach(() => vi.unstubAllEnvs());
+afterEach(() => {
+  vi.unstubAllEnvs();
+  vi.restoreAllMocks();
+});
 
 describe('startLoading', () => {
+  it('ignores the dev URL in a packaged app', async () => {
+    vi.spyOn(app, 'isPackaged', 'get').mockReturnValue(true);
+    vi.stubEnv('ELECTRON_RENDERER_URL', 'http://localhost:5173');
+    const win = mockWindow();
+    await startLoading(win, {name: 'index'});
+    expect(win.loadURL).not.toHaveBeenCalled();
+    expect(win.loadFile).toHaveBeenCalled();
+  });
   it('loads from the dev server with the query when there is one', async () => {
     vi.stubEnv('ELECTRON_RENDERER_URL', 'http://localhost:5173');
     const win = mockWindow();

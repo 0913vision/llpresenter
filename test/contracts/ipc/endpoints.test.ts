@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {appEndpoints} from '@contracts/ipc/app';
+import {updateEndpoints} from '@contracts/ipc/update';
 import {bibleEndpoints} from '@contracts/ipc/bible';
 import {contentEndpoints} from '@contracts/ipc/content';
 import {libraryEndpoints} from '@contracts/ipc/library';
@@ -24,6 +25,7 @@ function channelsOf(table: object): string[] {
 
 const DECLARED = [
   appEndpoints,
+  updateEndpoints,
   bibleEndpoints,
   contentEndpoints,
   libraryEndpoints,

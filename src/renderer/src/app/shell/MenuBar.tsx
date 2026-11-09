@@ -245,6 +245,9 @@ function EntryMenu({
 
 /** The 도움말 menu and the dialog its 버전 정보 row opens. */
 function HelpMenu({control}: {readonly control: MenuControl}): JSX.Element {
+  useWindowShortcuts([
+    {id: 'app.checkUpdate', run: () => window.llp?.update.check()},
+  ]);
   const [about, setAbout] = useState<AppInfo | null>(null);
   const showAbout = (): void => {
     window.llp?.window.appInfo().then(setAbout, (error: unknown) =>

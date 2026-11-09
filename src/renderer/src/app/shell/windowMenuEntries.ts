@@ -51,6 +51,13 @@ export function helpMenuEntries(actions: {
     },
     {
       kind: 'item',
+      id: 'update',
+      label: '업데이트 확인',
+      command: 'app.checkUpdate',
+      onSelect: () => window.llp?.update.check(),
+    },
+    {
+      kind: 'item',
       id: 'version',
       label: '버전 정보',
       command: 'app.about',

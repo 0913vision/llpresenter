@@ -9,6 +9,13 @@ import {
 } from '@main/windows/testWindows';
 
 describe('windowModeFrom', () => {
+  it('permits the explicit packaged smoke only on a GitHub runner', () => {
+    const env = {LLP_TEST_WINDOWS: 'offscreen', LLP_INSTALLER_SMOKE: '1'};
+    expect(windowModeFrom(env, true)).toBe('normal');
+    expect(windowModeFrom({...env, GITHUB_ACTIONS: 'true'}, true)).toBe(
+      'offscreen',
+    );
+  });
   it('opens windows offscreen in development when asked', () => {
     expect(windowModeFrom({LLP_TEST_WINDOWS: 'offscreen'}, false)).toBe(
       'offscreen',
