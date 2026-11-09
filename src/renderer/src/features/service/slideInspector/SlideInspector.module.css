@@ -18,3 +18,16 @@
   width: 100%;
   justify-content: flex-start;
 }
+
+.mediaPicture {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: var(--output-black);
+}
+.canvas {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}

@@ -225,7 +225,7 @@ function SoundGroup({shown, disabled, change}: Editing) {
   );
 }
 
-function MediaProperties({
+export function MediaProperties({
   item,
   disabled,
 }: {

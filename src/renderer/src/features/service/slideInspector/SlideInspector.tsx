@@ -49,7 +49,7 @@ function InspectorContent({
     ReturnType<SongEditorStore['getSnapshot']>['session']
   >;
   readonly busy: boolean;
-}): JSX.Element {
+}): JSX.Element | null {
   const view = useSyncExternalStore(
     session.slideModel.subscribe,
     session.slideModel.getSnapshot,
@@ -79,6 +79,7 @@ function InspectorContent({
         : {theme: session.document.itemTheme}),
     },
   });
+  if (selected.length === 0) return null;
   return (
     <div
       onKeyDown={event =>

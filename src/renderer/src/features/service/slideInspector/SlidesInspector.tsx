@@ -34,30 +34,31 @@ export function SlidesInspector({
   return (
     <Panel label="슬라이드 속성">
       <PanelBody>
-        <div
-          onKeyDown={event =>
-            slideTransitionUndo(event, session, session.readOnly)
-          }
-        >
-          <div className={styles.picture}>
-            <SlidesCanvas
-              item={item}
-              index={selected}
-              appearance={appearance}
-              projection={projection}
-            />
+        {view.selection.ids.size === 0 || slide === undefined ? null : (
+          <div
+            onKeyDown={event =>
+              slideTransitionUndo(event, session, session.readOnly)
+            }
+          >
+            <div className={styles.picture}>
+              <SlidesCanvas
+                item={item}
+                index={selected}
+                appearance={appearance}
+                projection={projection}
+              />
+            </div>
+            <div className={styles.caption}>
+              {slideBand(slide, media)}
+              <span>
+                {selected + 1} / {view.slides.length}
+              </span>
+            </div>
+            <Properties>
+              <TransitionRows session={session} disabled={false} />
+            </Properties>
           </div>
-          <div className={styles.caption}>
-            {slide === undefined ? '' : slideBand(slide, media)}
-            <span>
-              {view.slides.length === 0 ? 0 : selected + 1} /{' '}
-              {view.slides.length}
-            </span>
-          </div>
-          <Properties>
-            <TransitionRows session={session} disabled={false} />
-          </Properties>
-        </div>
+        )}
       </PanelBody>
     </Panel>
   );

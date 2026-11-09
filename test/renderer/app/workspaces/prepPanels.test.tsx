@@ -12,7 +12,7 @@ import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStor
 import {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {SlideInspector} from '@renderer/features/service/slideInspector/SlideInspector';
 import {SlidesInspector} from '@renderer/features/service/slideInspector/SlidesInspector';
-import {ItemPreviewPanel} from '@renderer/features/service/items/ItemSidePanels';
+import {OtherSlideInspector} from '@renderer/features/service/slideInspector/OtherSlideInspector';
 import {useSlidesEditor} from '@renderer/features/service/slides/useSlidesEditor';
 import {newSlidesItem} from '@core/services/slidesEdits';
 import {createServiceId, createServiceItemId} from '@core/schema/ids';
@@ -227,7 +227,7 @@ describe('usePrepPanels', () => {
     await waitFor(() => expect(result.current.columns).toEqual(columns));
   });
 
-  it('retains the item preview for an editor without a supported inspector session', async () => {
+  it('mounts the other-item inspector for a Bible or media editor', async () => {
     const {result} = setup();
     result.current.partsOf(SERVICE_ORDER);
     const openOther =
@@ -235,7 +235,9 @@ describe('usePrepPanels', () => {
     await act(async () => openOther?.('bible-item'));
     expect(result.current.columns[2]).toEqual(['슬라이드 속성']);
     const panel = result.current.partsOf('슬라이드 속성').embedded;
-    expect(isValidElement(panel) && panel.type === ItemPreviewPanel).toBe(true);
+    expect(isValidElement(panel) && panel.type === OtherSlideInspector).toBe(
+      true,
+    );
   });
 
   it('draws the 예배 순서 as the table, not the plain list', () => {

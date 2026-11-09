@@ -45,6 +45,8 @@ it('updates its local picture as the selected lyrics change', async () => {
     session.edit({type: 'text', text: '새로운 가사', start: 6, end: 6}),
   );
   expect(picture.textContent).toContain('새로운 가사');
+  act(() => session.selectSlides({type: 'clear'}));
+  expect(within(view.container).queryByTestId('picture')).toBeNull();
   view.unmount();
 });
 

@@ -65,4 +65,39 @@ it('tracks slide item selection and applies mixed transition edits', async () =>
       slide => slide.transition?.kind === 'dissolve',
     ),
   ).toBe(true);
+  act(() => session.selectSlides({type: 'clear'}));
+  expect(panel.queryByTestId('picture')).toBeNull();
+  expect(panel.queryByLabelText('효과')).toBeNull();
+});
+
+it('shows the picture and transition control for a card-only slide item', async () => {
+  const item = newSlidesItem(
+    'blank',
+    createServiceItemId('00000000-0000-4000-8000-000000000121'),
+  );
+  const draft = new SlidesDraft({
+    ...item,
+    slides: {
+      ...item.slides,
+      name: '구역 이름',
+      slides: [
+        {
+          id: createSlideId('00000000-0000-4000-8000-000000000122'),
+          text: 'WELCOME',
+        },
+      ],
+    },
+  });
+  const session = new SlidesListSession(draft, {
+    locked: () => false,
+    problem: vi.fn(),
+  });
+  const view = render(<SlidesInspector api={mockLlpApi()} session={session} />);
+  const panel = within(view.container);
+  expect(panel.getByTestId('picture').textContent).toBe('WELCOME');
+  await userEvent.click(panel.getByLabelText('효과'));
+  await userEvent.click(
+    within(document.body).getByRole('menuitemradio', {name: '밀어내기'}),
+  );
+  expect(draft.snapshot.item.slides.slides[0]?.transition?.kind).toBe('push');
 });

@@ -1114,6 +1114,11 @@ transition without replacing its effect or direction; slides using the inherited
 default keep that default. The 슬라이드 속성 panel supports undo and redo for
 its edits.
 
+슬라이드 속성 is blank when the song or slide-item selection is empty. For a
+media item it shows the image or video thumbnail and the existing media property
+rows. For a Bible item it shows the selected local verse picture and label only;
+Bible items have no transition row.
+
 ### Slide surface views
 
 The song and slides editors offer 목록 and 격자 views of the same slide order.

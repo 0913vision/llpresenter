@@ -14,6 +14,7 @@ import type {SongEditorWindowModel} from '@renderer/features/songs/editor/useSon
 import {InlineSongActions} from './InlineSongActions';
 import {SlideInspector} from '@renderer/features/service/slideInspector/SlideInspector';
 import {SlidesInspector} from '@renderer/features/service/slideInspector/SlidesInspector';
+import {OtherSlideInspector} from '@renderer/features/service/slideInspector/OtherSlideInspector';
 import {ServiceItemPanel} from '@renderer/features/service/items/SongItemPanel';
 import type {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import {
@@ -160,7 +161,7 @@ function prepPanelParts({
   if (title === '슬라이드 속성') {
     return {
       embedded: otherEditor ? (
-        <ItemPreviewPanel items={prep.items} editor={prep.editor} />
+        <OtherSlideInspector items={prep.items} editor={prep.editor} />
       ) : prep.slides?.session ? (
         <SlidesInspector api={prep.api} session={prep.slides.session} />
       ) : (
