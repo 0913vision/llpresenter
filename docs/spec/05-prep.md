@@ -23,6 +23,12 @@ Terms: 슬라이드 (slide), 예배 순서 (service order), 템플릿 (template)
   and media selection follow 04.
 - The previews in 준비 never affect the output. Clicking a 슬라이드 in 준비 only
   selects it.
+- Control-window previews, slide thumbnails, media tiles, and editor pictures
+  use cached copies sized for their displayed physical pixels, including display
+  scaling and zoom. Copies preserve fit and crop, are made off the UI thread,
+  and fall back to their source while loading. The cache has a memory cap and
+  invalidates every size when the source file changes. Output windows keep the
+  original pictures.
 - The same 라이브러리 song can be open in the song editor while it's on output
   in 진행.
 - At a fixed window and bin size, selecting another item keeps the right

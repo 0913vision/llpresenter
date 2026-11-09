@@ -16,6 +16,7 @@ export function registerMediaScheme(): void {
         secure: true,
         stream: true,
         corsEnabled: true,
+        supportFetchAPI: true,
       },
     },
   ]);

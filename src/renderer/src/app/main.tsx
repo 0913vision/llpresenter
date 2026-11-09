@@ -10,6 +10,7 @@ import {
 } from '@renderer/app/shell/loadColumnWidthStore';
 import {App} from './App';
 import {ControlSession} from './controlSession';
+import {startControlPictures} from '@renderer/platform/controlPictures';
 
 const root = document.getElementById('root');
 
@@ -79,6 +80,8 @@ async function startWindowPage(
 }
 
 async function start(container: HTMLElement): Promise<void> {
+  const stopPictures = startControlPictures(window.llp);
+  window.addEventListener('pagehide', stopPictures, {once: true});
   const stopLive = startLiveSync();
   const page = windowPageOf(window.location.search);
   if (page !== undefined) {

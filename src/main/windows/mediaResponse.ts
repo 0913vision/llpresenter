@@ -79,14 +79,18 @@ function fileBody(path: string, {start, end}: ByteRange): ResponseBody {
  * Answers a request for a file, with the part a `Range` header asks for, so
  * video elements can stream and seek.
  *
- * @param extraHeaders - Headers to add, such as CORS for the analysis page.
+ * @param options - Additional headers and whether only metadata is requested.
  */
 export async function createFileResponse(
   path: string,
   rangeHeader: string | null,
-  extraHeaders: Readonly<Record<string, string>> = {},
+  options: {
+    readonly headers?: Readonly<Record<string, string>>;
+    readonly head?: boolean;
+  } = {},
 ): Promise<Response> {
-  const {size} = await stat(path);
+  const {headers: extraHeaders = {}, head = false} = options;
+  const {size, mtimeMs, ctimeMs, ino} = await stat(path);
   const range = parseRange(rangeHeader, size);
   if (range === 'unsatisfiable') {
     return new Response(null, {
@@ -100,11 +104,14 @@ export async function createFileResponse(
     'Content-Type': mediaTypeOf(path),
     'Content-Length': String(bytes.end - bytes.start + 1),
     'Accept-Ranges': 'bytes',
+    ETag: `"${size}-${mtimeMs}-${ctimeMs}-${ino}"`,
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Expose-Headers': 'ETag',
   };
   if (range !== null) {
     headers['Content-Range'] = `bytes ${range.start}-${range.end}/${size}`;
   }
-  return new Response(fileBody(path, bytes), {
+  return new Response(head ? null : fileBody(path, bytes), {
     status: range === null ? HTTP_OK : HTTP_PARTIAL,
     headers,
   });
@@ -146,13 +153,13 @@ async function serveThumbnail(
   try {
     const path = (await thumbnail?.(mediaId)) ?? null;
     if (path === null) return new Response(null, {status: HTTP_NOT_FOUND});
-    return await createFileResponse(
-      path,
-      request.headers.get('range'),
-      thumbnailRevisionFromUrl(request.url) === null
-        ? THUMBNAIL_HEADERS
-        : REVISIONED_HEADERS,
-    );
+    return await createFileResponse(path, request.headers.get('range'), {
+      headers:
+        thumbnailRevisionFromUrl(request.url) === null
+          ? THUMBNAIL_HEADERS
+          : REVISIONED_HEADERS,
+      head: request.method === 'HEAD',
+    });
   } catch (error: unknown) {
     log.warn('could not serve a thumbnail', error);
     return new Response(null, {status: HTTP_NOT_FOUND});
@@ -172,11 +179,9 @@ async function serveAnalysisFile(
     return new Response(null, {status: HTTP_NOT_FOUND});
   }
   try {
-    return await createFileResponse(
-      path,
-      request.headers.get('range'),
-      ANALYSIS_HEADERS,
-    );
+    return await createFileResponse(path, request.headers.get('range'), {
+      headers: ANALYSIS_HEADERS,
+    });
   } catch (error: unknown) {
     log.warn('could not serve a file for analysis', error);
     return new Response(null, {status: HTTP_NOT_FOUND});
@@ -215,7 +220,9 @@ export function createMediaHandler(
         });
         return new Response(null, {status: HTTP_NOT_FOUND});
       }
-      return await createFileResponse(allowed, request.headers.get('range'));
+      return await createFileResponse(allowed, request.headers.get('range'), {
+        head: request.method === 'HEAD',
+      });
     } catch (error) {
       log.warn(`could not serve the media file of ${mediaId}`, error);
       return new Response(null, {status: HTTP_NOT_FOUND});

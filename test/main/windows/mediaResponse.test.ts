@@ -1,5 +1,5 @@
 import {createReadStream} from 'node:fs';
-import {writeFile} from 'node:fs/promises';
+import {utimes, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
 import {analysisUrl, mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
@@ -57,6 +57,20 @@ describe('parseRange', () => {
 });
 
 describe('createFileResponse', () => {
+  it('answers HEAD with a changed file stamp without opening a stream', async () => {
+    const path = await sampleVideo();
+    const streams = vi.mocked(createReadStream).mock.calls.length;
+    const first = await createFileResponse(path, null, {head: true});
+    expect(first.body).toBeNull();
+    expect(first.headers.get('content-length')).toBe('10');
+    expect(first.headers.get('access-control-expose-headers')).toBe('ETag');
+    await writeFile(path, 'abcdefghij');
+    await utimes(path, 1, 1);
+    const second = await createFileResponse(path, null, {head: true});
+    expect(second.headers.get('etag')).not.toBe(first.headers.get('etag'));
+    expect(vi.mocked(createReadStream).mock.calls).toHaveLength(streams);
+  });
+
   it('sends the whole file with its type when no range is asked for', async () => {
     const response = await createFileResponse(await sampleVideo(), null);
     expect(response.status).toBe(200);
