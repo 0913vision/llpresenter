@@ -325,14 +325,14 @@ export class SlideLayerView {
     if (this.current !== null) this.fit(this.pages[this.front]);
   }
 
-  /** The displayed font size after fitting, in canvas pixels. */
+  /** The fitted CSS font size in scaled layout pixels, before any canvas transform. */
   fittedSize(): number | undefined {
     if (this.current === null) return undefined;
     return Number.parseFloat(this.pages[this.front].block.style.fontSize);
   }
 
-  capSize(maximum: number): void {
-    this.maximumSize = maximum / this.scale;
+  capSize(maximum: number | undefined): void {
+    this.maximumSize = maximum === undefined ? undefined : maximum / this.scale;
     if (this.current !== null) this.fit(this.pages[this.front]);
   }
 

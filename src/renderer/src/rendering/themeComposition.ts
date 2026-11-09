@@ -276,12 +276,12 @@ export class ThemeCompositionView {
     const currentSize = page.elements
       .find(view => view.element.kind === 'currentText')
       ?.fittedTextSize();
-    if (currentSize !== undefined && Number.isFinite(currentSize)) {
-      for (const view of page.elements) {
-        if (view.element.kind === 'nextText') {
-          view.capTextSize((currentSize * 2) / 3);
-        }
-      }
+    const maximum =
+      currentSize !== undefined && Number.isFinite(currentSize)
+        ? (currentSize * 2) / 3
+        : undefined;
+    for (const view of page.elements) {
+      if (view.element.kind === 'nextText') view.capTextSize(maximum);
     }
     page.root.classList.toggle(
       classes.instant,

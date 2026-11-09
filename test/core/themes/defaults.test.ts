@@ -445,9 +445,12 @@ it('uses readable stage defaults and cover for built-in audience media', () => {
     current.frame.h / (4 * current.text.lineHeight),
   ).toBeGreaterThanOrEqual(90);
   expect(next.text.size).toBeLessThan(current.text.size);
+  expect(next.frame.x).toBe(current.frame.x);
+  expect(next.frame.w).toBe(current.frame.w);
   for (const label of elements.filter(
     e => e.kind === 'label' || e.kind === 'nextLabel',
   )) {
+    expect(label.frame.w).toBe(current.frame.w);
     expect(label.text.size).toBeGreaterThanOrEqual(40);
     expect(label.frame.h).toBeGreaterThanOrEqual(
       label.text.size * label.text.lineHeight,

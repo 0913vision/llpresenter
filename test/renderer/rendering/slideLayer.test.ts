@@ -486,8 +486,13 @@ it('preserves a fitted text cap through refitting and rescaling', () => {
   expect(view.fittedSize()).toBe(80);
   view.capSize(60);
   expect(view.fittedSize()).toBe(60);
+  view.rescale(2);
+  expect(view.fittedSize()).toBe(120);
   view.rescale(1);
   expect(view.fittedSize()).toBe(60);
+  view.capSize(undefined);
+  expect(view.fittedSize()).toBe(80);
+  view.capSize(60);
   view.setStyle({...DEFAULT_TEXT_STYLE, size: 40});
   expect(view.fittedSize()).toBe(40);
   view.dispose();

@@ -162,7 +162,7 @@ function ScreenGroup({shown, disabled, change}: Editing) {
   return (
     <PropertyGroup title="화면">
       <Tooltip text="테마의 맞춤이 우선합니다">
-        <div>
+        <div data-testid="media-fit-tooltip">
           <PropertyRow label="맞춤">
             {({controlId, labelId}) => (
               <SegmentedControl

@@ -1083,7 +1083,10 @@ it('caps next text against the fitted current size for varied slide pairs', () =
   view.render(song, frame([current, next]));
   size.mockReturnValue(NaN);
   view.render(song, frame([current, next]));
-  expect(cap).not.toHaveBeenCalled();
+  expect(cap).toHaveBeenCalledTimes(2);
+  expect(cap).toHaveBeenNthCalledWith(1, undefined);
+  expect(cap).toHaveBeenNthCalledWith(2, undefined);
+  cap.mockClear();
   size.mockReturnValue(90);
   view.render(song, frame([current]));
   expect(cap).not.toHaveBeenCalled();

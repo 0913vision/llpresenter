@@ -246,8 +246,7 @@ it('explains theme fit precedence in a tooltip while keeping media fit editable'
   setup();
   const panel = await choose('Notice');
   const group = within(panel).getByRole('radiogroup', {name: '\ub9de\ucda4'});
-  const target = group.parentElement?.parentElement?.parentElement;
-  if (!target) throw Error('Missing tooltip target');
+  const target = within(panel).getByTestId('media-fit-tooltip');
   fireEvent.pointerEnter(target);
   expect((await screen.findByRole('tooltip')).textContent).toContain(
     '\ud14c\ub9c8\uc758 \ub9de\ucda4\uc774 \uc6b0\uc120\ud569\ub2c8\ub2e4',
@@ -255,4 +254,19 @@ it('explains theme fit precedence in a tooltip while keeping media fit editable'
   expect(
     within(group).getByRole('radio', {name: '\ucc44\uc6b0\uae30'}),
   ).toHaveProperty('disabled', false);
+});
+
+it('shows the fit precedence tooltip on keyboard focus', async () => {
+  setup();
+  const panel = await choose('Notice');
+  const target = within(panel).getByTestId('media-fit-tooltip');
+  const match = vi.spyOn(target, 'matches').mockReturnValue(true);
+  const control = within(panel).getByRole('radio', {
+    name: '\ucc44\uc6b0\uae30',
+  });
+  fireEvent.focus(control);
+  expect((await screen.findByRole('tooltip')).textContent).toContain(
+    '\ud14c\ub9c8\uc758 \ub9de\ucda4\uc774 \uc6b0\uc120\ud569\ub2c8\ub2e4',
+  );
+  match.mockRestore();
 });
