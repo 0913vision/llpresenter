@@ -1101,3 +1101,17 @@ number and label name on the label color, or only the number on a neutral fill
 when unlabeled. Preparation slide thumbnails and editor rows do not show a live
 ring; the service order row keeps its LIVE badge. Grid selection plates have an
 accent ring for clear distinction.
+
+The song editor's right column shows the selected slide as a local 16:9 picture
+with its label, followed by 이름표, 전환 and 단축키 settings. The picture
+follows text edits immediately and does not send to output. Label and transition
+edits apply to the selected slides; differing values are shown as mixed.
+
+The slide-item editor uses the same local picture and transition rows, backed by
+its draft selection. Slide-item records do not have song labels or slide
+hotkeys.
+
+For a mixed transition selection, changing the duration updates each explicit
+transition without replacing its effect or direction; slides using the inherited
+default keep that default. The 슬라이드 속성 panel supports undo and redo for
+its edits.

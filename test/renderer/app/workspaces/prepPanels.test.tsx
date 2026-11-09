@@ -9,6 +9,11 @@ import {
 } from '@renderer/app/workspaces/serviceOrderPanel';
 import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
+import {SlideInspector} from '@renderer/features/service/slideInspector/SlideInspector';
+import {SlidesInspector} from '@renderer/features/service/slideInspector/SlidesInspector';
+import {useSlidesEditor} from '@renderer/features/service/slides/useSlidesEditor';
+import {newSlidesItem} from '@core/services/slidesEdits';
+import {createServiceId, createServiceItemId} from '@core/schema/ids';
 
 vi.mock('@renderer/app/workspaces/serviceOrderPanel', async importOriginal => ({
   ...(await importOriginal<
@@ -106,6 +111,9 @@ describe('usePrepPanels', () => {
     act(() => editor.open(fixture.first));
 
     await waitFor(() => expect(result.current.columns).not.toEqual(columns));
+    expect(result.current.columns[2]).toEqual(['슬라이드 속성']);
+    const panel = result.current.partsOf('슬라이드 속성').embedded;
+    expect(isValidElement(panel) && panel.type === SlideInspector).toBe(true);
     act(() => editor.open(null));
     await waitFor(() => expect(result.current.columns).toEqual(columns));
   });
@@ -117,5 +125,40 @@ describe('usePrepPanels', () => {
     expect(vi.mocked(serviceOrderParts).mock.lastCall?.[0].table?.api).toBe(
       fixture.api,
     );
+  });
+
+  it('mounts the slide-item inspector for a slide draft', () => {
+    const fixture = itemFixture();
+    const editor = new SongEditorStore(fixture.api, vi.fn());
+    const items = new ServiceItemStore(fixture.api, editor, vi.fn());
+    const report = vi.fn();
+    const itemId = createServiceItemId('00000000-0000-4000-8000-000000000012');
+    const item = newSlidesItem('blank', itemId);
+    const target = {
+      serviceId: createServiceId('00000000-0000-4000-8000-000000000013'),
+      itemId,
+    };
+    const {result, unmount} = renderHook(() => {
+      const model = useSlidesEditor(fixture.api, report);
+      const session = model.sessionFor(item, target);
+      return usePrepPanels({
+        prep: {
+          api: fixture.api,
+          editor,
+          items,
+          slides: {...model, session, draft: session.draft},
+        },
+        sizeClass: 'normal',
+        onProblem: undefined,
+        onOpenPrep: undefined,
+        onShowInLibrary: undefined,
+      });
+    });
+    expect(result.current.columns[2]).toEqual(['슬라이드 속성']);
+    const panel = result.current.partsOf('슬라이드 속성').embedded;
+    expect(isValidElement(panel) && panel.type === SlidesInspector).toBe(true);
+    unmount();
+    items.dispose();
+    return editor.dispose();
   });
 });

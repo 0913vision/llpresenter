@@ -57,6 +57,7 @@ export type SlideListCommand<T extends SlideListItem> =
       readonly transition: SlideTransition | undefined;
       readonly all?: boolean;
     }
+  | {readonly type: 'transition-seconds'; readonly sec: number}
   | {readonly type: 'label'; readonly label: string | undefined};
 
 export function validateSlideList<T extends SlideListItem>(
@@ -226,6 +227,21 @@ function changedSlides<T extends SlideListItem>(
     return {
       ok: true,
       value: selectedSnapshot([...before, ...selected, ...after], selected),
+    };
+  }
+  if (command.type === 'transition-seconds') {
+    return {
+      ok: true,
+      value: {
+        ...snapshot,
+        slides: slides.map(slide =>
+          !selection.ids.has(slide.id) ||
+          slide.transition === undefined ||
+          slide.transition.sec === command.sec
+            ? slide
+            : {...slide, transition: {...slide.transition, sec: command.sec}},
+        ),
+      },
     };
   }
   if (command.type === 'transition') {

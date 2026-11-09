@@ -43,11 +43,11 @@ export function SongEditorRibbon({
           </PanelHeader>
         </Panel>
       ) : null}
+      <SlideHotKeyControl store={store} session={session} busy={busy} />
       {selected === 'design' && design ? (
         renderDesign(session, busy)
       ) : (
         <>
-          <SlideHotKeyControl store={store} session={session} busy={busy} />
           <SlideTransitionRibbon session={session} disabled={busy} song />
           <SongTitleLayoutControl session={session} disabled={busy} />
         </>

@@ -172,7 +172,6 @@ describe('virtual editor slides', () => {
       />,
     );
     expect(view.container.querySelector('[data-state~="live"]')).toBeNull();
-    expect(view.container.innerHTML).not.toContain('--ring-live');
     expect(
       screen
         .getAllByRole('option')

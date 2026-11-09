@@ -5,23 +5,11 @@ import {
 } from '@core/schema/slideTransition';
 import {NumberField} from './NumberField';
 import styles from './SlideTransitionControl.module.css';
+import {SLIDE_EFFECTS, SLIDE_DIRECTIONS} from './slideTransitionChoices';
 
 export type SlideTransitionChange = (
   current: SlideTransition,
 ) => SlideTransition;
-
-const KINDS = [
-  ['none', '없음'],
-  ['dissolve', '디졸브'],
-  ['push', '밀어내기'],
-  ['wipe', '닦아내기'],
-] as const;
-const DIRECTIONS = [
-  ['left', '←', '왼쪽으로'],
-  ['right', '→', '오른쪽으로'],
-  ['up', '↑', '위로'],
-  ['down', '↓', '아래로'],
-] as const;
 
 function EffectPicture({
   kind,
@@ -109,7 +97,7 @@ export function SlideTransitionControl({
               <span>기본값</span>
             </button>
           )}
-          {KINDS.map(([kind, name]) => (
+          {SLIDE_EFFECTS.map(([kind, name]) => (
             <button
               key={kind}
               type="button"
@@ -138,7 +126,7 @@ export function SlideTransitionControl({
       <div className={styles.group}>
         <span>방향</span>
         <div className={styles.directions}>
-          {DIRECTIONS.map(([dir, arrow, name]) => (
+          {SLIDE_DIRECTIONS.map(([dir, arrow, name]) => (
             <button
               key={dir}
               type="button"

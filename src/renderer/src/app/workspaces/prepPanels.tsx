@@ -10,6 +10,8 @@ import {songItemDesign} from '@renderer/features/service/items/SongItemDesign';
 import {ItemPreviewPanel} from '@renderer/features/service/items/ItemSidePanels';
 import type {SongEditorWindowModel} from '@renderer/features/songs/editor/useSongEditorWindow';
 import {InlineSongActions} from './InlineSongActions';
+import {SlideInspector} from '@renderer/features/service/slideInspector/SlideInspector';
+import {SlidesInspector} from '@renderer/features/service/slideInspector/SlidesInspector';
 import {ServiceItemPanel} from '@renderer/features/service/items/SongItemPanel';
 import type {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import {
@@ -39,7 +41,7 @@ const PREP_COLUMNS = [
 const PREP_DRAFT_COLUMNS = [
   ['라이브러리'],
   ['편집'],
-  ['미리보기', '슬라이드'],
+  ['슬라이드 속성'],
 ] as const;
 
 /** What 준비 works on: the API, the song editor, and the item panels. */
@@ -130,6 +132,15 @@ function prepPanelParts({
             )
           }
         />
+      ),
+    };
+  }
+  if (title === '슬라이드 속성') {
+    return {
+      embedded: prep.slides?.session ? (
+        <SlidesInspector api={prep.api} session={prep.slides.session} />
+      ) : (
+        <SlideInspector store={prep.editor} />
       ),
     };
   }
