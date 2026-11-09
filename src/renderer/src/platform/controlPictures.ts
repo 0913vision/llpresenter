@@ -97,11 +97,15 @@ export function startControlPictures(api: LlpApi | undefined): () => void {
         ) {
           return;
         }
+        const displayed = url === value.source ? original : url;
         if (element instanceof HTMLImageElement) {
-          if (element.srcset !== `${url} 1x`) element.srcset = `${url} 1x`;
+          if (displayed === original) element.removeAttribute('srcset');
+          else if (element.srcset !== `${displayed} 1x`) {
+            element.srcset = `${displayed} 1x`;
+          }
         } else {
-          if (element.style.backgroundImage !== `url("${url}")`) {
-            element.style.backgroundImage = `url("${url}")`;
+          if (element.style.backgroundImage !== `url("${displayed}")`) {
+            element.style.backgroundImage = `url("${displayed}")`;
           }
           target.applied = element.style.backgroundImage;
         }

@@ -91,6 +91,9 @@ describe('control pictures', () => {
       source: `llp-media://media/${fixtureMedia.warm}`,
       thumbnail: true,
     });
+    await answer(0, `llp-media://media/${fixtureMedia.warm}`);
+    expect(image.srcset).toBe('');
+    expect(image.src).toBe(`llp-media://thumbnail/${fixtureMedia.warm}`);
   });
 
   it('keeps the original source while a copy loads', async () => {
