@@ -10,6 +10,7 @@ import {THEME_LIMITS} from '@core/themes/elementRules';
 import {themeBackgroundStyle} from './themeBackground';
 import {songTitleLayout} from '@core/themes/songTitle';
 import {themeElementMedia} from '@core/themes/content';
+import {SECTION_THEMES} from '@core/themes/sundaySections';
 
 interface ThemePage {
   layers: LiveLayers;
@@ -273,8 +274,16 @@ export class ThemeCompositionView {
         this.gaps.failed(view.element.id, error);
       }
     }
+    const sectionStage =
+      content.frame.screen?.kind === 'stage' &&
+      SECTION_THEMES.some(
+        section => section.id === content.frame.theme?.themeId,
+      );
     const currentSize = page.elements
-      .find(view => view.element.kind === 'currentText')
+      .find(
+        view =>
+          view.element.kind === (sectionStage ? 'itemName' : 'currentText'),
+      )
       ?.fittedTextSize();
     const maximum =
       currentSize !== undefined && Number.isFinite(currentSize)

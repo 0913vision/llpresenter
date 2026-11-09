@@ -16,6 +16,7 @@ import {bibleVerseTiles} from '@core/bible/bibleTiles';
 import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
 import {ThemeElementView} from '@renderer/rendering/themeElement';
 import {followPlaybackProblems} from '@renderer/rendering/playbackProblem';
+import {SECTION_THEME_ID} from '@core/themes/sundaySections';
 
 const song: LiveLayers = {
   ...emptyLayers(),
@@ -1092,5 +1093,31 @@ it('caps next text against the fitted current size for varied slide pairs', () =
   expect(cap).not.toHaveBeenCalled();
   size.mockRestore();
   cap.mockRestore();
+  view.dispose();
+});
+
+it('caps section stage next text against the Korean item name, not its English subtitle', () => {
+  const {view} = setup();
+  const size = vi
+    .spyOn(ThemeElementView.prototype, 'fittedTextSize')
+    .mockImplementation(function (this: ThemeElementView) {
+      return this.element.kind === 'itemName' ? 120 : 42;
+    });
+  const cap = vi.spyOn(ThemeElementView.prototype, 'capTextSize');
+  const elements: ThemeElement[] = [
+    {...themeElementBase(), kind: 'itemName'},
+    {...themeElementBase(31), kind: 'currentText'},
+    {...themeElementBase(32), kind: 'nextText'},
+  ];
+  const stageFrame = frame(elements);
+  if (!stageFrame.theme) throw Error('missing theme');
+  view.render(song, {
+    ...stageFrame,
+    screen: {id: THEME_MAIN, kind: 'stage'},
+    theme: {...stageFrame.theme, themeId: SECTION_THEME_ID},
+  });
+  expect(cap).toHaveBeenLastCalledWith(80);
+  cap.mockRestore();
+  size.mockRestore();
   view.dispose();
 });

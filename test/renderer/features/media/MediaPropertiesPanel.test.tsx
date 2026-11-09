@@ -260,6 +260,7 @@ it('shows the fit precedence tooltip on keyboard focus', async () => {
   setup();
   const panel = await choose('Notice');
   const target = within(panel).getByTestId('media-fit-tooltip');
+  // NOTE(0913vision): jsdom cannot determine :focus-visible; this stands in for keyboard modality.
   const match = vi.spyOn(target, 'matches').mockReturnValue(true);
   const control = within(panel).getByRole('radio', {
     name: '\ucc44\uc6b0\uae30',

@@ -15,6 +15,7 @@ import {createScreenId} from '@core/schema/ids';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {resolveTextTracking} from '@core/themes/textTracking';
 import {STARTER_TEXT_STYLE} from '@core/themes/starterLayout';
+import {builtInTheme} from '@core/themes/defaults';
 
 it('lists the section cards in service order with per-color gradient themes', () => {
   expect(
@@ -126,6 +127,14 @@ it('adds an editable section theme without changing the kind defaults or other s
   }
   const stage = createScreenId(STARTER_SCREEN_IDS.stage);
   const stageLayout = theme?.screens[stage];
+  const ordinaryStage = builtInTheme('song').screens[stage];
+  for (const kind of ['nextText', 'nextLabel'] as const) {
+    expect(
+      stageLayout?.elements.find(element => element.kind === kind),
+    ).toMatchObject(
+      ordinaryStage?.elements.find(element => element.kind === kind) ?? {},
+    );
+  }
   expect(
     stageLayout?.elements.filter(
       element => element.kind === 'itemName' || element.kind === 'currentText',

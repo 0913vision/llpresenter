@@ -693,3 +693,6 @@ The section gradient layout retains 늘리기 for its background element.
 
 Bible item cards use their section theme; the passage slides retain their Bible
 theme and their overlay ranges follow their content positions.
+
+On a stage section card the next label and text keep the normal stage frames and
+next text is capped against the fitted Korean item name, not its subtitle.
