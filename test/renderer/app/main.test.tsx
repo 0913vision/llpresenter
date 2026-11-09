@@ -1,6 +1,6 @@
 import {isValidElement, type ReactNode} from 'react';
 import {act, waitFor} from '@testing-library/react';
-import {expect, it, vi} from 'vitest';
+import {beforeEach, expect, it, vi} from 'vitest';
 import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {ControlSession} from '@renderer/app/controlSession';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
@@ -8,12 +8,23 @@ import {createAppFlushRequestId} from '@core/schema/ids';
 import type {AppFlushRequest} from '@core/schema/appFlush';
 
 const root = vi.hoisted(() => ({render: vi.fn(), unmount: vi.fn()}));
-const stops = vi.hoisted(() => ({live: vi.fn(), service: vi.fn()}));
+const stops = vi.hoisted(() => ({
+  live: vi.fn(),
+  service: vi.fn(),
+  pictures: vi.fn(),
+}));
 vi.mock('react-dom/client', () => ({createRoot: () => root}));
 vi.mock('@renderer/session/live', () => ({startLiveSync: () => stops.live}));
 vi.mock('@renderer/session/show', () => ({
   startServiceSync: () => stops.service,
 }));
+vi.mock('@renderer/platform/controlPictures', () => ({
+  startControlPictures: () => stops.pictures,
+}));
+
+beforeEach(() => {
+  stops.pictures.mockClear();
+});
 
 it('creates a window session outside render and releases its resources on pagehide once', async () => {
   const fixture = editorFixture();
@@ -52,6 +63,7 @@ it('creates a window session outside render and releases its resources on pagehi
     expect(stops.live).toHaveBeenCalledTimes(1);
     expect(stops.service).toHaveBeenCalledTimes(1);
     expect(dispose).toHaveBeenCalledTimes(1);
+    expect(stops.pictures).toHaveBeenCalledOnce();
   } finally {
     window.dispatchEvent(new Event('pagehide'));
     container.remove();
@@ -87,6 +99,7 @@ it('releases startup subscriptions if the page hides before UI state loads', asy
     });
     expect(stops.live).toHaveBeenCalledTimes(1);
     expect(stops.service).toHaveBeenCalledTimes(1);
+    expect(stops.pictures).toHaveBeenCalledOnce();
     await act(async () => {
       resolveUi?.({});
     });
@@ -160,6 +173,7 @@ it('flushes focused property drafts and queued writes in the settings renderer b
     expect(root.unmount).toHaveBeenCalledOnce();
     expect(stops.live).toHaveBeenCalledOnce();
     expect(stops.service).not.toHaveBeenCalled();
+    expect(stops.pictures).toHaveBeenCalledOnce();
   } finally {
     release();
     await submitted;
@@ -195,6 +209,7 @@ it.each([{name: 'screens', title: '화면 설정'}])(
       window.dispatchEvent(new Event('pagehide'));
       expect(root.unmount).toHaveBeenCalledOnce();
       expect(stops.live).toHaveBeenCalledOnce();
+      expect(stops.pictures).toHaveBeenCalledOnce();
     } finally {
       container.remove();
       delete window.llp;

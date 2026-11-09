@@ -2,12 +2,12 @@ import {parsePictureRequest} from '@core/schema/pictureCopy';
 import {pictureSize} from '@core/media/pictureSize';
 import {coverCrop} from '@core/media/coverCrop';
 import type {PictureRequest} from './pictureCache';
+import {readPictureSource} from './pictureSource';
 
 async function make(
   request: PictureRequest,
 ): Promise<{blob: Blob; width: number; height: number}> {
-  const response = await fetch(request.source, {cache: 'no-store'});
-  if (!response.ok) throw new Error('Could not read preview picture');
+  const response = await readPictureSource(request.source);
   const bitmap = await createImageBitmap(await response.blob());
   try {
     const crop =

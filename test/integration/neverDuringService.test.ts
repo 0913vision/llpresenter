@@ -43,14 +43,17 @@ describe('never during a service', () => {
     ).toEqual([]);
   });
 
-  it('allows only the loopback LLM transport and no remote address in the code', () => {
+  it('allows only loopback LLM and local media transports, with no remote address in the code', () => {
     const productCode = code.filter(file => !file.includes('gallery'));
     expect(
       mentions(
         /\bfetch\(|XMLHttpRequest|new WebSocket|net\.(request|fetch)|https?\.(get|request)\(/,
         productCode,
       ),
-    ).toEqual(['src/main/bible/llm/http.ts']);
+    ).toEqual([
+      'src/main/bible/llm/http.ts',
+      'src/renderer/src/platform/pictureSource.ts',
+    ]);
     expect(
       mentions(
         /https?:\/\/(?!localhost|127\.0\.0\.1|www\.w3\.org)/,

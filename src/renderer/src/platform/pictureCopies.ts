@@ -1,4 +1,5 @@
 import {parsePictureReply} from '@core/schema/pictureCopy';
+import {readPictureSource} from './pictureSource';
 import {
   PictureCache,
   type PictureRequest,
@@ -60,8 +61,7 @@ export function openPictureCopies(): PictureCache {
 
   const cache = new PictureCache({
     stamp: async source => {
-      const response = await fetch(source, {method: 'HEAD', cache: 'no-store'});
-      if (!response.ok) throw new Error('Could not read preview source');
+      const response = await readPictureSource(source, 'HEAD');
       return response.headers.get('etag') ?? '';
     },
     make: async (request: PictureRequest) => {
