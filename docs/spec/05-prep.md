@@ -72,8 +72,9 @@ have landed.
   the order strip, and the 순서 편집 window are removed.
 - 항목 and 구역 at the end of the table add after the selected item, at the end
   of a selected section, or at the end when nothing is selected. The song picker
-  highlights the first result, and adds the single highlighted song with Enter,
-  double-click, or 추가. The search field keeps focus as ↑ and ↓ move the
+  starts with no highlight for an empty search; typing a character or pressing ↑
+  or ↓ highlights the first result. It adds the single highlighted song with
+  Enter, double-click, or 추가. The search field keeps focus as ↑ and ↓ move the
   highlight; with no result, 추가 is disabled with a reason. Cell edits target
   the row containing the cell, including when its background file is missing.
 - Editable background cells with no background show 없음 and open the same

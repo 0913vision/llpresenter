@@ -33,6 +33,8 @@ export interface TextFieldProps extends Omit<
    * Esc clears the value or, when empty, releases focus.
    */
   readonly clearable?: boolean | undefined;
+  /** Whether Escape clears this field; false leaves Escape to its container. */
+  readonly escapeClears?: boolean | undefined;
   /** A short prefix inside the field, such as 시작 or 끝. */
   readonly affix?: string | undefined;
   /** Right-aligns the value with tabular numbers, for times like 00:30.0. */
@@ -94,6 +96,7 @@ export function TextField({
   variant = 'default',
   icon,
   clearable = false,
+  escapeClears = true,
   affix,
   numeric = false,
   ring = false,
@@ -129,7 +132,9 @@ export function TextField({
 
   const handleKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
     onKeyDown?.(event);
-    if (event.defaultPrevented || readOnly || !clearable) return;
+    if (event.defaultPrevented || readOnly || !clearable || !escapeClears) {
+      return;
+    }
     if (event.key !== 'Escape' || isComposing(event) || hasModifier(event)) {
       return;
     }

@@ -83,7 +83,9 @@ export function SongPicker({
     query.trim() === ''
       ? songs
       : songs.filter(song => matchingIds.has(song.id));
-  const choice = shown.find(song => song.id === selected) ?? shown.at(0);
+  const choice =
+    shown.find(song => song.id === selected) ??
+    (query.trim() === '' ? undefined : shown.at(0));
   const choiceId = choice?.id;
   const optionId = (id: SongId): string => `${listId}-${id}`;
   useEffect(() => {
@@ -95,12 +97,6 @@ export function SongPicker({
   }, [choiceId, listId]);
   const fieldKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
     if (isComposing(event) || hasModifier(event)) return;
-    if (event.key === 'Escape') {
-      event.preventDefault();
-      event.stopPropagation();
-      onClose();
-      return;
-    }
     if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
     event.preventDefault();
     const current = shown.findIndex(song => song.id === choice?.id);
@@ -135,7 +131,7 @@ export function SongPicker({
         <TextField
           aria-label="곡 검색"
           role="combobox"
-          aria-expanded="true"
+          aria-expanded={choice !== undefined}
           aria-controls={listId}
           aria-autocomplete="list"
           aria-activedescendant={
@@ -144,6 +140,7 @@ export function SongPicker({
           placeholder="제목, 가사, 초성"
           icon="search"
           clearable
+          escapeClears={false}
           block
           value={query}
           onChange={value => {

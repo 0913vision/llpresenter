@@ -110,6 +110,25 @@ describe('TextField', () => {
     expect(onKey).toHaveBeenCalledWith('Escape', false);
   });
 
+  it('can leave Esc to its container while retaining the clear button', async () => {
+    const onKey = vi.fn();
+    render(
+      <div
+        onKeyDown={event => {
+          onKey(event.key, event.defaultPrevented);
+        }}
+      >
+        <Search initial="은혜" escapeClears={false} />
+      </div>,
+    );
+    await userEvent.click(searchBox());
+    await userEvent.keyboard('{Escape}');
+    expect(searchBox().value).toBe('은혜');
+    expect(onKey).toHaveBeenCalledWith('Escape', false);
+    await userEvent.click(screen.getByRole('button', {name: '검색어 지우기'}));
+    expect(searchBox().value).toBe('');
+  });
+
   it('passes modified Escape without clearing search', () => {
     render(<Search initial="은혜" />);
     const field = searchBox();

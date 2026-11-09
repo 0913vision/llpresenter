@@ -18,6 +18,35 @@ afterEach(() => {
   delete window.llp;
 });
 
+it.each(['ArrowDown', 'ArrowUp'])(
+  'does not select on open; %s selects the first song',
+  async key => {
+    window.llp = mockLlpApi({
+      songs: {
+        list: async () => [
+          {id, title: '첫 곡', slideCount: 1, access: 'editable', usedBy: []},
+        ],
+      },
+    });
+    const choose = vi.fn();
+    render(<SongPicker onChoose={choose} onClose={vi.fn()} />);
+    const user = userEvent.setup();
+    const field = screen.getByRole('combobox', {name: '곡 검색'});
+    const row = await screen.findByRole('option', {name: '첫 곡'});
+    expect(row.getAttribute('aria-selected')).toBe('false');
+    expect(field.getAttribute('aria-expanded')).toBe('false');
+    expect(field.getAttribute('aria-activedescendant')).toBeNull();
+    await user.keyboard('{Enter}');
+    expect(choose).not.toHaveBeenCalled();
+    await user.keyboard(`{${key}}`);
+    expect(row.getAttribute('aria-selected')).toBe('true');
+    expect(field.getAttribute('aria-expanded')).toBe('true');
+    expect(field.getAttribute('aria-activedescendant')).toBe(row.id);
+    await user.keyboard('{Enter}');
+    expect(choose).toHaveBeenCalledExactlyOnceWith(id);
+  },
+);
+
 it.each(['enter', 'double click'] as const)(
   'chooses a song with %s',
   async method => {
@@ -114,6 +143,7 @@ it.each([
       selected: true,
     });
     expect(field.getAttribute('aria-activedescendant')).toBe(first.id);
+    expect(field.getAttribute('aria-expanded')).toBe('true');
     expect(document.activeElement).toBe(field);
     if (keys !== '') {
       await user.keyboard(keys);
@@ -153,6 +183,7 @@ it('does not add when there are no results and closes on Escape', async () => {
     screen.getByRole('button', {name: '추가'}).getAttribute('aria-disabled'),
   ).toBe('true');
   expect(field.getAttribute('aria-activedescendant')).toBeNull();
+  expect(field.getAttribute('aria-expanded')).toBe('false');
   await user.keyboard('{Enter}');
   expect(choose).not.toHaveBeenCalled();
   await user.keyboard('{Escape}');
