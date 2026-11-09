@@ -16,6 +16,8 @@ export interface MediaTileActions {
   readonly editable: boolean;
   readonly inPlaylist: boolean;
   readonly audioPlaylist: boolean;
+  readonly addToService?: ((id: MediaId) => void) | undefined;
+  readonly addReason?: string | undefined;
   readonly properties: (id: MediaId) => void;
   readonly cancel: (id: MediaId) => void;
   readonly relink: (id: MediaId) => void;
@@ -241,6 +243,18 @@ export function mediaTileMenuEntries(
             onSelect: actions.output,
           },
         ]),
+    ...(item.kind !== 'audio' && actions.addToService !== undefined
+      ? [
+          {
+            kind: 'item' as const,
+            id: 'add-to',
+            contextGroup: 'library' as const,
+            label: '예배 순서에 추가',
+            ...menuAvailability(actions.addReason),
+            onSelect: () => actions.addToService?.(item.id),
+          },
+        ]
+      : []),
     ...(actions.missing
       ? [
           {

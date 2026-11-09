@@ -1,5 +1,6 @@
 import {expect, it, vi} from 'vitest';
 import type {MenuEntry} from '@renderer/ui/menuModel';
+import {contextMenuEntries} from '@renderer/ui/contextMenuEntries';
 import {mediaItem} from '@fixtures/renderer/features/media/mediaTesting';
 import {
   mediaTileMenuEntries,
@@ -32,6 +33,45 @@ function rows(entries: readonly MenuEntry[]): readonly string[] {
 
 const item = mediaItem(1, {name: 'Invented video'});
 const entry = {kind: 'media' as const, id: item.id, item, copying: undefined};
+
+it('offers service insertion for image and video tiles, but not audio tiles', () => {
+  const addToService = vi.fn();
+  const entries = mediaTileMenuEntries(entry, actions({addToService}));
+  const add = entries.find(row => row.id === 'add-to');
+  expect(add).toMatchObject({kind: 'item', label: '예배 순서에 추가'});
+  if (add?.kind !== 'item') throw new Error('Missing add command');
+  add.onSelect?.();
+  expect(addToService).toHaveBeenCalledExactlyOnceWith(item.id);
+  const audio = mediaItem(3, {name: 'Invented audio', kind: 'audio'});
+  expect(
+    mediaTileMenuEntries(
+      {kind: 'media', id: audio.id, item: audio, copying: undefined},
+      actions({addToService}),
+    ).some(row => row.id === 'add-to'),
+  ).toBe(false);
+});
+
+it('keeps output in the default group and service insertion beside library commands', () => {
+  const output = vi.fn();
+  const addToService = vi.fn();
+  const entries = contextMenuEntries(
+    mediaTileMenuEntries(entry, actions({output, addToService})),
+  );
+  const ids = entries.map(row => row.id);
+  const outputIndex = ids.indexOf('output');
+  const addIndex = ids.indexOf('add-to');
+  const revealIndex = ids.indexOf('reveal');
+  const deleteIndex = ids.indexOf('delete');
+  expect(outputIndex).toBe(0);
+  expect(addIndex).toBeGreaterThan(outputIndex);
+  expect(Math.abs(addIndex - revealIndex)).toBe(1);
+  expect(deleteIndex).toBeGreaterThan(Math.max(addIndex, revealIndex));
+  const add = entries[addIndex];
+  if (add?.kind !== 'item') throw new Error('Missing add command');
+  expect(add.contextGroup).toBe('library');
+  add.onSelect?.();
+  expect(addToService).toHaveBeenCalledWith(item.id);
+});
 
 it('lists the media tile rows and icons in ProPresenter order', () => {
   const entries = mediaTileMenuEntries(entry, actions());

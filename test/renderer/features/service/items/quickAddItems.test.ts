@@ -44,6 +44,7 @@ describe('quick add other items', () => {
     expect(
       entries.map(entry => (entry.kind === 'separator' ? '|' : entry.label)),
     ).toEqual([
+      '곡…',
       '구역 추가',
       '자리 표시 추가',
       '빈 항목 추가',
@@ -61,6 +62,7 @@ describe('quick add other items', () => {
     expect(
       items(entries).map(item => [item.label, item.disabled === true]),
     ).toEqual([
+      ['곡…', false],
       ['구역 추가', false],
       ['자리 표시 추가', true],
       ['빈 항목 추가', true],

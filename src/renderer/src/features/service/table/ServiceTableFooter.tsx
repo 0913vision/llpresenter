@@ -1,8 +1,9 @@
 import {useState, type JSX} from 'react';
-import {createServiceItemId} from '@core/schema/ids';
+import {createServiceItemId, type SongId} from '@core/schema/ids';
 import {isItemOfKind, type ServiceItem} from '@core/schema/service';
 import {useHeaderRename} from '@renderer/session/headerRename';
-import {openItem, useShow} from '@renderer/session/show';
+import {useShow} from '@renderer/session/show';
+import {quickAddBefore} from '@core/services/quickAddPosition';
 import {useOrderFull} from '@renderer/session/orderFull';
 import {ORDER_FULL_REASON} from '@renderer/session/serviceOrderEdits';
 import {rememberBiblePassage} from '@renderer/session/recentWriter';
@@ -10,6 +11,7 @@ import {Button} from '@renderer/ui/Button';
 import {Menu} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import {BibleQuickAdd} from '../items/BibleQuickAdd';
+import {SongPicker} from '../items/SongPicker';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {passageItem, type PassageDefaults} from '../items/quickAddBible';
 import {otherItemEntries} from '../items/quickAddItems';
@@ -20,7 +22,7 @@ import styles from './ServiceTable.module.css';
 const SECTION_NAME = '새 구역';
 const NO_SERVICE_REASON = '열린 예배 없음';
 
-/** Footer adders; slide items open after the selection, other rows append. */
+/** Footer adders insert after the current selection. */
 export function ServiceTableFooter({
   onProblem,
 }: {
@@ -33,6 +35,7 @@ export function ServiceTableFooter({
   const [button, setButton] = useState<HTMLButtonElement | null>(null);
   const [open, setOpen] = useState(false);
   const [typingPassage, setTypingPassage] = useState(false);
+  const [choosingSong, setChoosingSong] = useState(false);
   const sources = useOtherSources(open);
   const reason =
     serviceId === null
@@ -45,25 +48,19 @@ export function ServiceTableFooter({
   const disabled = reason !== undefined || editing.busy;
   const append = (source: ServiceItem | (() => Promise<ServiceItem>)): void => {
     const {rows, openItemId} = useShow.getState();
-    const selected = rows.findIndex(row => row.id === openItemId);
-    const before =
-      (typeof source === 'function' || isItemOfKind(source, 'slides')) &&
-      selected >= 0
-        ? rows[selected + 1]?.id
-        : undefined;
+    const before = quickAddBefore(rows, openItemId);
     editing.run(async (edits, id) => {
       const item = typeof source === 'function' ? await source() : source;
       if ('header' in item) useHeaderRename.getState().request(item.id);
       const result = await edits.insertItem(
         id,
         item,
-        before === undefined ? null : createServiceItemId(before),
+        before === null ? null : createServiceItemId(before),
       );
       if (
         isItemOfKind(item, 'slides') &&
         (result.ok ? result.value : result.error.reason === 'write-failed')
       ) {
-        if (useShow.getState().serviceId === id) openItem(item.id);
         const opened = await window.llp?.slidesEditor.open({
           serviceId: id,
           itemId: item.id,
@@ -86,6 +83,18 @@ export function ServiceTableFooter({
   };
   const appendPassage = (ref: string, defaults: PassageDefaults): void =>
     append(passageItem(ref, defaults));
+  const insertSong = (song: SongId): void => {
+    const {rows, openItemId} = useShow.getState();
+    const before = quickAddBefore(rows, openItemId);
+    setChoosingSong(false);
+    editing.run((edits, id) =>
+      edits.insertSong(
+        id,
+        song,
+        before === null ? null : createServiceItemId(before),
+      ),
+    );
+  };
   return (
     <div className={styles.footer}>
       <Button
@@ -132,6 +141,10 @@ export function ServiceTableFooter({
               setOpen(false);
               setTypingPassage(true);
             },
+            onSong: () => {
+              setOpen(false);
+              setChoosingSong(true);
+            },
           })}
         />
       ) : null}
@@ -139,6 +152,12 @@ export function ServiceTableFooter({
         <BibleQuickAdd
           onInsert={appendPassage}
           onClose={() => setTypingPassage(false)}
+        />
+      ) : null}
+      {choosingSong && !disabled ? (
+        <SongPicker
+          onChoose={insertSong}
+          onClose={() => setChoosingSong(false)}
         />
       ) : null}
     </div>

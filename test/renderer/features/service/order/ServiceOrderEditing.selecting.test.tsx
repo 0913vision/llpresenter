@@ -61,7 +61,7 @@ describe('service panel editing', () => {
     expect(api.content.edit).toHaveBeenCalledTimes(1);
   });
 
-  it('selects an empty section and keeps it when a dropped song is added below it', async () => {
+  it('selects a dropped song added below an empty section', async () => {
     const {ids, send} = setup('prep', false, {emptySection: true});
     const target = screen.getByRole('option', {name: '빈 구역'});
     fireEvent.click(target);
@@ -81,10 +81,7 @@ describe('service panel editing', () => {
       lastId,
       emptySectionId,
     ]);
-    expect(
-      screen.getByRole('option', {name: '빈 구역', selected: true}),
-    ).toBeDefined();
-    expect(useShow.getState().openItemId).toBe(emptySectionId);
+    await waitFor(() => expect(useShow.getState().openItemId).toBe(ids()[4]));
     expect(send).not.toHaveBeenCalled();
   });
 

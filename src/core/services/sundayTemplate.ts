@@ -39,7 +39,18 @@ export function sundayTemplate(): Template {
     if (name === '사도신경') {
       order.push(newLiturgyItem(itemId(), {kind: 'creed', translation: 'new'}));
     } else if (name === '광고') {
-      order.push(newSlidesItem('ad', itemId()));
+      const notice = newSlidesItem('ad', itemId());
+      const slide = notice.slides.slides[0];
+      if (slide === undefined || !('text' in slide)) {
+        throw Error('Missing notice slide');
+      }
+      order.push({
+        ...notice,
+        slides: {
+          ...notice.slides,
+          slides: [{...slide, name: '광고 제목', text: '내용 1\n내용 2'}],
+        },
+      });
     }
   }
   return {

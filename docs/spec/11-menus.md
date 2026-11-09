@@ -302,22 +302,25 @@ bar handles.
 
 - Where: 예배 순서 panel header (QuickAdd)
 - Opens: Click + 항목 추가.
-- Purpose: Add one item that is not a song.
+- Purpose: Add one item, including an existing library song.
 - PP: PP playlist + menu
   (https://support.renewedvision.com/hc/en-us/articles/360050786794;
   https://support.renewedvision.com/hc/en-us/articles/55789101197587).
+  ProPresenter also documents headers, placeholders and presentations in its
+  [playlist + menu](https://support.renewedvision.com/hc/en-us/articles/40377194830995-Creating-and-Using-Playlist-Templates-in-ProPresenter).
 
-| Group | Row                                       | Does                                                                                                                                            | Status  |
-| ----- | ----------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
-| 1     | 구역 추가                                 | Adds a 구역 header (PP New Header).                                                                                                             | Now     |
-| 1     | 자리 표시 추가, 빈 항목 추가              | PP New Placeholder, New Cue.                                                                                                                    | Off     |
-| 2     | 빈 슬라이드, 광고                         | Add a slides item after the selection and open 슬라이드 편집 (05).                                                                              | Now     |
-| 2     | 사도신경 ›, 주기도문 ›                    | Each offers 새 번역 and 옛 번역; adds editable slides after the selection with manual advance (05).                                             | Now     |
-| 2     | 구역 이름 ›                               | Offers the ordered Sunday section names; adds an editable 빈 슬라이드 with its theme, English line and background after the selection (05, 12). | Now     |
-| 2     | 미디어 ›                                  | Submenu of media, as today.                                                                                                                     | Now     |
-| 2     | 성경 구절…                                | Opens the 성경 구절 dialog.                                                                                                                     | Now     |
-| 2     | 영상 스트림 항목…, 오디오 스트림 항목…    | PP stream items.                                                                                                                                | Off     |
-| -     | Search field and the 라이브러리 song list | Removed from this menu. Songs come from 라이브러리 right-click (예배 순서에 추가) and toolbar 곡 검색 with Ctrl Enter.                          | Removed |
+| Group | Row                                    | Does                                                                                                                                            | Status  |
+| ----- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| 1     | 곡…                                    | Opens a searchable library song picker and adds the choice after the selected row.                                                              | Now     |
+| 1     | 구역 추가                              | Adds a 구역 header (PP New Header).                                                                                                             | Now     |
+| 1     | 자리 표시 추가, 빈 항목 추가           | PP New Placeholder, New Cue.                                                                                                                    | Off     |
+| 2     | 빈 슬라이드, 광고                      | Add a slides item after the selection and open 슬라이드 편집 (05).                                                                              | Now     |
+| 2     | 사도신경 ›, 주기도문 ›                 | Each offers 새 번역 and 옛 번역; adds editable slides after the selection with manual advance (05).                                             | Now     |
+| 2     | 구역 이름 ›                            | Offers the ordered Sunday section names; adds an editable 빈 슬라이드 with its theme, English line and background after the selection (05, 12). | Now     |
+| 2     | 미디어 ›                               | Submenu of media, as today.                                                                                                                     | Now     |
+| 2     | 성경 구절…                             | Opens the 성경 구절 dialog.                                                                                                                     | Now     |
+| 2     | 영상 스트림 항목…, 오디오 스트림 항목… | PP stream items.                                                                                                                                | Off     |
+| -     | Inline song list                       | Songs are chosen in the 곡… dialog, or added from 라이브러리 and toolbar search.                                                                | Removed |
 
 ### 예배 순서 항목 오른쪽 클릭
 
@@ -401,7 +404,7 @@ replace only this item's slides. Both capture the service and song revisions. �
 
 | Group | Row                                                                       | Does                                                                                                                                                                                                                    | Status |
 | ----- | ------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 1     | 예배 순서에 추가                                                          | Appends the song to the end of the open 예배 순서 at once; the row is disabled with its reason when none is open or it is read-only: newer than PP (B8), no services submenu.                                           | Now    |
+| 1     | 예배 순서에 추가                                                          | Adds the song immediately after the selected row, or at the end with no selection; disabled with its reason when no service is open or it is read-only.                                                                 | Now    |
 | 2     | 출력 대상 ›                                                               | PP Destination.                                                                                                                                                                                                         | Off    |
 | 3     | 곡 편집                                                                   | Opens the song in the inline 곡 편집 editor (05; PP Reflow).                                                                                                                                                            | New    |
 | 4     | 복사, 붙여넣기                                                            | PP clipboard rows, with icons (Arrangements video 3:08).                                                                                                                                                                | Off    |
@@ -473,7 +476,8 @@ page shares the row controls, save and rename behavior, deletion question and �
 
 | Group | Row                      | Does                                                                                                                                                                                                                                      | Status |
 | ----- | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
-| 0     | 다시 연결…               | Only when the file is missing; first row (ours).                                                                                                                                                                                          | Now    |
+| 6     | 예배 순서에 추가         | Adds an image or video after the selected row, or at the end with no selection, in the library/service group. Audio is excluded because service media items do not use the audio output layer.                                            | Now    |
+| 0     | 다시 연결…               | Only when the file is missing (ours).                                                                                                                                                                                                     | Now    |
 | 1     | 속성                     | Selects the media tile and shows its properties in place (PP Inspector).                                                                                                                                                                  | Now    |
 | 1     | 전환 효과…               | PP Transitions.                                                                                                                                                                                                                           | Off    |
 | 2     | 동작 ›, 알파 ›           | PP Behavior, Alpha Type.                                                                                                                                                                                                                  | Off    |

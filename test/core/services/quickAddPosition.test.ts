@@ -23,8 +23,9 @@ describe('quick add position', () => {
     expect(quickAddBefore(sections, 'last')).toBeNull();
   });
 
-  it('goes before the header that ends the selected item group', () => {
-    expect(quickAddBefore(rows, 's1')).toBe('h2');
+  it('goes immediately after the selected row', () => {
+    expect(quickAddBefore(rows, 'h1')).toBe('s1');
+    expect(quickAddBefore(rows, 's1')).toBe('s2');
     expect(quickAddBefore(rows, 's2')).toBe('h2');
   });
 

@@ -192,6 +192,58 @@ function fillBibleForm(end = ''): void {
 }
 
 describe('항목 추가', () => {
+  it('searches the library and inserts the chosen song immediately after the selected item', async () => {
+    const {api, user, service, first} = setup();
+    const rows = [
+      {kind: 'song' as const, id: fixtureItems.arranged, title: '첫 곡'},
+      {kind: 'song' as const, id: fixtureItems.plain, title: '다음 곡'},
+    ];
+    useShow.setState({openItemId: fixtureItems.arranged, rows});
+    vi.spyOn(api.library, 'search').mockImplementation(async ({query}) => ({
+      query,
+      matches: [
+        {
+          songId: first.song.id,
+          title: first.song.title,
+          slideCount: 2,
+          match: {kind: 'title'},
+        },
+      ],
+    }));
+    await user.click(screen.getByRole('button', {name: '항목 추가'}));
+    await user.click(screen.getByRole('menuitem', {name: '곡…'}));
+    await user.type(screen.getByRole('textbox', {name: '곡 검색'}), '새 노래');
+    await user.click(
+      await screen.findByRole('option', {name: first.song.title}),
+    );
+    await user.click(screen.getByRole('button', {name: '추가'}));
+    await waitFor(() => expect(service().service.order).toHaveLength(6));
+    const order = service().service.order;
+    const index = order.findIndex(item => item.id === fixtureItems.arranged);
+    expect(order[index + 1]).toMatchObject({
+      song: first.song.id,
+      slides: first.song.slides,
+    });
+    expect(order[index + 2]?.id).toBe(fixtureItems.plain);
+  });
+
+  it('closes Bible suggestions before closing the passage dialog on Escape', async () => {
+    const {api, user} = setup();
+    mockBible(api);
+    await openBibleForm(user);
+    const book = screen.getByRole<HTMLInputElement>('combobox', {name: '책'});
+    await user.type(book, '요');
+    await waitFor(() =>
+      expect(book.getAttribute('aria-expanded')).toBe('true'),
+    );
+    await user.keyboard('{Escape}');
+    expect(book.getAttribute('aria-expanded')).toBe('false');
+    expect(book.value).toBe('요');
+    expect(screen.getByRole('dialog', {name: '성경 구절'})).toBeTruthy();
+    await user.keyboard('{Escape}');
+    expect(screen.queryByRole('dialog', {name: '성경 구절'})).toBeNull();
+  });
+
   it.each(['찬양', '합심기도', '묵상기도', '축도'])(
     'inserts an editable %s section card after the selection with its gradient theme and one English slide',
     async name => {
@@ -230,6 +282,14 @@ describe('항목 추가', () => {
       expect(added.slides.loop).toBeUndefined();
       expect(added.slides.slides).toHaveLength(1);
       expect(order[index + 2]?.id).toBe(fixtureItems.plain);
+      act(() =>
+        useShow.setState(state => ({
+          rows: [
+            ...state.rows,
+            {kind: 'slides', id: added.id, title: name, form: 'blank'},
+          ],
+        })),
+      );
       expect(useShow.getState().openItemId).toBe(added.id);
       expect(open).toHaveBeenCalledWith({
         serviceId: fixtureServiceId,
@@ -293,10 +353,26 @@ describe('항목 추가', () => {
         slides: {form: label === '광고' ? 'ad' : 'blank'},
       });
       expect(order[index + 2]?.id).toBe(fixtureItems.plain);
-      expect(useShow.getState().openItemId).toBe(added?.id);
+      if (added === undefined || !isItemOfKind(added, 'slides')) {
+        throw new Error('Missing inserted slide item');
+      }
+      act(() =>
+        useShow.setState(state => ({
+          rows: [
+            ...state.rows,
+            {
+              kind: 'slides',
+              id: added.id,
+              title: label,
+              form: added.slides.form,
+            },
+          ],
+        })),
+      );
+      expect(useShow.getState().openItemId).toBe(added.id);
       expect(open).toHaveBeenCalledWith({
         serviceId: fixtureServiceId,
-        itemId: added?.id,
+        itemId: added.id,
         ...(label === '빈 슬라이드' ? {focusText: true} : {}),
       });
     },

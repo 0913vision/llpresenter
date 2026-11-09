@@ -70,8 +70,9 @@ have landed.
   Both ask before replacing slides; saving to the library includes its usage
   line. Nothing synchronizes automatically. 구성 controls, their changed dot,
   the order strip, and the 순서 편집 window are removed.
-- 항목 and 구역 at the end of the table append items and sections. Themes,
-  backgrounds, macros, memo, and section behavior retain their existing rules.
+- 항목 and 구역 at the end of the table add after the selected row, or at the
+  end when nothing is selected. Themes, backgrounds, macros, memo, and section
+  behavior retain their existing rules.
 - Editable background cells with no background show 없음 and open the same
   picker on the first click. Cells without a start macro or memo stay empty
   while retaining their menu or field on click and a frame on hover. Item rows
@@ -547,17 +548,13 @@ Source: `AddSongs`, `ListRow` README.
 
 ### Quick add
 
-- 항목 추가 in the 예배 순서 header opens a popover with a search field ("곡,
-  가사, 초성").
-- The 라이브러리 group lists matching songs, with the matching part highlighted
-  and the 슬라이드 count. The first result is highlighted.
-- The 다른 항목 (other items) group lists 구역 추가 (add section), 성경 구절
-  (Bible passage), 미디어 (media).
-- Enter or a click inserts the song. A selected section is the insertion target,
-  including when it is empty. If an item is selected, use its section. Insert at
-  that section's end, before the next section, or at the service's end when
-  nothing is selected. The popover then closes. Adding content keeps the section
-  row.
+- 항목 추가 offers 곡… first, opening a searchable library picker. Choosing a
+  song and 추가 inserts a separate item deck. Library row 예배 순서에 추가,
+  toolbar search Ctrl Enter, quick add, the table footer, Bible insertion,
+  untargeted song drops, media tile menus and paste insert immediately after the
+  selected service row, or at the end when none is selected. Explicit row drops
+  retain their drop position. A successful insertion selects and scrolls to the
+  new row when the operator has not moved the selection while it was saving.
 - Other items (proposal):
   - 구역 추가: inserts an empty section named "새 구역" in rename mode.
   - 성경 구절: opens the shared four-field passage dialog (04). 책 accepts
@@ -565,10 +562,17 @@ Source: `AddSongs`, `ListRow` README.
     Tab or Enter completes the book name and moves through 장, 시작절, 끝절;
     matching partial names are not marked red. `ckd` completes to 창세기, while
     `chd` has no match. Enter in 끝절 or 추가 inserts the validated passage with
-    the default settings; earlier Enter presses never insert it.
+    the default settings; earlier Enter presses never insert it. Escape closes
+    an open suggestion list first, then closes the dialog without clearing the
+    unfinished reference.
   - 미디어: a submenu with the media list.
 
 Source: `AddSongsQuick`, `Main` board guide (예배 순서에 곡 넣기).
+
+The default 주일 2부 예배 template is seeded when the Templates folder is
+absent, including an existing data root. Existing template folders and their
+contents are left alone. Its 광고 deck contains one placeholder notice with a
+title and two content lines.
 
 ### Sections
 

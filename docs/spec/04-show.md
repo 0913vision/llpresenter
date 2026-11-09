@@ -68,9 +68,9 @@ Source: `Main` decisions "진행 화면은 절충안" and "작업 공간 세 개
 - A 구역 can be empty and remains visible. In 진행 it is only a label: click and
   double click do nothing, and the arrow keys skip it. In 준비 it is a
   selectable row that the operator can add with 구역 추가 (new row 새 구역),
-  rename, or remove, and 항목 추가 adds into the selected section, or the
-  section containing the selected item; with no selection, it appends to the
-  service. See 05.
+  rename, or remove. Adding an item inserts it immediately after the selected
+  row, or at the end when none is selected. A successful insertion selects and
+  reveals the new row without changing output. See 05.
 - In the list, the up and down arrow keys move between item rows. Home and End
   go to the first and last row. ← → Space Page Up Page Down still output the
   next and previous 슬라이드 while the list has focus (10, focus precedence).

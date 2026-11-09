@@ -5,8 +5,46 @@ import {applyService, useShow} from '@renderer/session/show';
 import {sampleService} from '@fixtures/renderer/session/sampleService';
 import {useLibrary} from '@renderer/features/songs/library/useLibrary';
 import {useLibraryServices} from '@renderer/features/songs/library/useLibraryServices';
+import {
+  itemFixture,
+  fixtureItems,
+  fixtureServiceId,
+} from '@fixtures/renderer/features/service/items/itemFixture';
 
 beforeEach(() => applyService(null));
+
+it('inserts a library song immediately after the selected service row and selects it on the projection', async () => {
+  const fixture = itemFixture();
+  const rows = [
+    {kind: 'song' as const, id: fixtureItems.arranged, title: '첫 곡'},
+    {kind: 'song' as const, id: fixtureItems.plain, title: '다음 곡'},
+  ];
+  act(() =>
+    useShow.setState({
+      serviceId: fixtureServiceId,
+      readOnly: false,
+      openItemId: fixtureItems.arranged,
+      rows,
+    }),
+  );
+  const {result} = renderHook(() => useLibraryServices(fixture.api, vi.fn()));
+  await act(() => result.current.append(fixture.first.song.id));
+  const order = fixture.service().service.order;
+  const at = order.findIndex(item => item.id === fixtureItems.arranged);
+  const added = order[at + 1];
+  expect(added).toMatchObject({
+    song: fixture.first.song.id,
+    slides: fixture.first.song.slides,
+  });
+  expect(order[at + 2]?.id).toBe(fixtureItems.plain);
+  if (added === undefined) throw new Error('Missing added song');
+  act(() =>
+    useShow.setState({
+      rows: [...rows, {kind: 'song', id: added.id, title: '추가한 곡'}],
+    }),
+  );
+  expect(useShow.getState().openItemId).toBe(added.id);
+});
 
 it('follows the open service access without enumerating saved service files', async () => {
   const {api} = libraryFixture();

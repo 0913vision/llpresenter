@@ -1,8 +1,8 @@
 import {useState, type JSX} from 'react';
 import {isItemOfKind, type ServiceItem} from '@core/schema/service';
-import {createServiceItemId} from '@core/schema/ids';
+import {createServiceItemId, type SongId} from '@core/schema/ids';
 import {useServiceOrderEditing} from '@renderer/features/service/order/useServiceOrderEditing';
-import {openItem, useShow} from '@renderer/session/show';
+import {useShow} from '@renderer/session/show';
 import {useOrderFull} from '@renderer/session/orderFull';
 import {ORDER_FULL_REASON} from '@renderer/session/serviceOrderEdits';
 import {IconButton} from '@renderer/ui/IconButton';
@@ -13,6 +13,7 @@ import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {otherItemEntries} from './quickAddItems';
 import {passageItem, type PassageDefaults} from './quickAddBible';
 import {BibleQuickAdd} from './BibleQuickAdd';
+import {SongPicker} from './SongPicker';
 import {quickAddBefore} from '@core/services/quickAddPosition';
 import {useOtherSources} from './useOtherSources';
 import {useHeaderRename} from '@renderer/session/headerRename';
@@ -20,7 +21,7 @@ import {rememberBiblePassage} from '@renderer/session/recentWriter';
 
 const NO_SERVICE_REASON = '열린 예배 없음';
 
-/** Adds non-song items at the end of the selected service section. */
+/** Adds items after the selected service row. */
 export function ServiceQuickAdd({
   onProblem,
 }: {
@@ -33,6 +34,7 @@ export function ServiceQuickAdd({
   const [button, setButton] = useState<HTMLButtonElement | null>(null);
   const [open, setOpen] = useState(false);
   const [typingPassage, setTypingPassage] = useState(false);
+  const [choosingSong, setChoosingSong] = useState(false);
   const sources = useOtherSources(open);
   const reason =
     serviceId === null
@@ -47,19 +49,25 @@ export function ServiceQuickAdd({
     const passage = passageItem(ref, defaults);
     insertItem(passage);
   };
+  const insertSong = (song: SongId): void => {
+    const {rows, openItemId} = useShow.getState();
+    const before = quickAddBefore(rows, openItemId);
+    setChoosingSong(false);
+    editing.run((edits, id) =>
+      edits.insertSong(
+        id,
+        song,
+        before === null ? null : createServiceItemId(before),
+      ),
+    );
+  };
   const insertItem = (
     source: ServiceItem | (() => Promise<ServiceItem>),
   ): void => {
     const api = window.llp;
     if (api === undefined) return;
     const {rows, openItemId} = useShow.getState();
-    const selected = rows.findIndex(row => row.id === openItemId);
-    const before =
-      typeof source === 'function' || isItemOfKind(source, 'slides')
-        ? selected < 0
-          ? null
-          : (rows[selected + 1]?.id ?? null)
-        : quickAddBefore(rows, openItemId);
+    const before = quickAddBefore(rows, openItemId);
     editing.run(async (edits, id) => {
       const item = typeof source === 'function' ? await source() : source;
       if ('header' in item) useHeaderRename.getState().request(item.id);
@@ -73,7 +81,6 @@ export function ServiceQuickAdd({
           (!result.ok && result.error.reason === 'write-failed')) &&
         isItemOfKind(item, 'slides')
       ) {
-        if (useShow.getState().serviceId === id) openItem(item.id);
         const opened = await api.slidesEditor.open({
           serviceId: id,
           itemId: item.id,
@@ -119,6 +126,10 @@ export function ServiceQuickAdd({
           entries={otherItemEntries({
             ...sources,
             onInsert: insertItem,
+            onSong: () => {
+              setOpen(false);
+              setChoosingSong(true);
+            },
             onBible: () => {
               setOpen(false);
               setTypingPassage(true);
@@ -130,6 +141,12 @@ export function ServiceQuickAdd({
         <BibleQuickAdd
           onInsert={insertPassage}
           onClose={() => setTypingPassage(false)}
+        />
+      ) : null}
+      {choosingSong && !disabled ? (
+        <SongPicker
+          onChoose={insertSong}
+          onClose={() => setChoosingSong(false)}
         />
       ) : null}
     </>

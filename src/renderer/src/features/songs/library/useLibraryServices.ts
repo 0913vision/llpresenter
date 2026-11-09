@@ -1,6 +1,11 @@
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useEffect, useRef, useState} from 'react';
-import {createServiceId, type SongId} from '@core/schema/ids';
+import {
+  createServiceId,
+  createServiceItemId,
+  type SongId,
+} from '@core/schema/ids';
+import {quickAddBefore} from '@core/services/quickAddPosition';
 import {useShow} from '@renderer/session/show';
 import {useOrderFull} from '@renderer/session/orderFull';
 import {
@@ -41,7 +46,10 @@ export function useLibraryServices(
       const result = await serviceOrderEditsFor(api).insertSong(
         createServiceId(current.serviceId),
         song,
-        null,
+        (() => {
+          const before = quickAddBefore(current.rows, current.openItemId);
+          return before === null ? null : createServiceItemId(before);
+        })(),
       );
       if (!result.ok) {
         onProblem({

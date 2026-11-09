@@ -207,13 +207,24 @@ it('saves the built-in split when the defaults cannot be read', async () => {
   });
 });
 
-it('uses changed defaults for subsequent insertions while the Bible panel stays mounted and releases the subscription on unmount', async () => {
+it('uses changed defaults after reopening the Bible panel and releases its subscription', async () => {
   const view = setup();
   await view.user.click(view.button);
   await waitFor(() => expect(view.service().service.order).toHaveLength(6));
   expect(view.service().service.order[3]).toMatchObject({
     bible: {split: 'verse', translationName: false},
   });
+  const firstAdded = view.service().service.order[3];
+  if (firstAdded === undefined) throw new Error('Missing first passage');
+  act(() =>
+    useShow.setState(state => ({
+      rows: [
+        ...state.rows,
+        {kind: 'bible', id: firstAdded.id, title: '첫 구절'},
+      ],
+    })),
+  );
+  expect(useShow.getState().openItemId).toBe(firstAdded.id);
   act(() =>
     view.pushPreferences({
       ...defaultPreferences,
@@ -227,8 +238,17 @@ it('uses changed defaults for subsequent insertions while the Bible panel stays 
       },
     }),
   );
+  view.preferences.mockResolvedValue({
+    ...defaultPreferences,
+    bible: {
+      ...defaultPreferences.bible,
+      defaults: {...defaultPreferences.bible.defaults, translationName: true},
+    },
+  });
+  act(() => openBiblePassage(panelPassage()));
+  expect(useShow.getState().bibleSource?.insertion?.itemId).toBe(firstAdded.id);
   view.preferences.mockClear();
-  await view.user.click(view.button);
+  await view.user.click(screen.getByRole('button', {name: '예배 순서에 넣기'}));
   await waitFor(() => expect(view.service().service.order).toHaveLength(7));
   expect(view.service().service.order[4]).toMatchObject({
     bible: {split: 'verse', translationName: true},

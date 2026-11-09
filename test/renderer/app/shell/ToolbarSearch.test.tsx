@@ -170,16 +170,24 @@ it.each(['section', 'end'])(
     });
     await waitFor(() => expect(service().service.order).toHaveLength(6));
     expect(
-      service().service.order[location === 'section' ? 3 : 5],
+      service().service.order[location === 'section' ? 2 : 5],
     ).toMatchObject({song: second.song.id});
     expect(
       service().service.order[location === 'section' ? 4 : 3],
     ).toMatchObject({id: fixtureItems.slot, header: 'Next section'});
     expect(open).not.toHaveBeenCalled();
     expect(send).not.toHaveBeenCalled();
-    expect(useShow.getState().openItemId).toBe(
-      location === 'section' ? fixtureItems.arranged : null,
+    const added = service().service.order[location === 'section' ? 2 : 5];
+    if (added === undefined) throw new Error('Missing added song');
+    act(() =>
+      useShow.setState(state => ({
+        rows: [
+          ...state.rows,
+          {kind: 'song', id: added.id, title: second.song.title},
+        ],
+      })),
     );
+    expect(useShow.getState().openItemId).toBe(added.id);
   },
 );
 

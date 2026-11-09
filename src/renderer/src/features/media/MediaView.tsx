@@ -11,7 +11,7 @@ import {
 } from 'react';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {mediaLoops} from '@core/media/mediaEndRule';
-import type {MediaId} from '@core/schema/ids';
+import {createServiceItemId, type MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
 import type {MediaUses} from '@core/schema/mediaUses';
 import {RenameDialog} from '@renderer/ui/RenameDialog';
@@ -21,6 +21,12 @@ import {USAGE_LABEL, USAGE_UNAVAILABLE} from '@renderer/ui/usageText';
 import {MEDIA_LIMITS} from '@core/schema/mediaList';
 import {useLive} from '@renderer/session/live';
 import {sendMediaOutput} from '@renderer/session/itemOutput';
+import {useShow} from '@renderer/session/showStore';
+import {useOrderFull} from '@renderer/session/orderFull';
+import {ORDER_FULL_REASON} from '@renderer/session/serviceOrderEdits';
+import {quickAddBefore} from '@core/services/quickAddPosition';
+import {useServiceOrderEditing} from '@renderer/session/useServiceOrderEditing';
+import {newMediaItem} from '@core/services/quickAddMedia';
 import {
   Button,
   MediaTile,
@@ -156,6 +162,20 @@ export function MediaView({
   onCollapse,
 }: MediaViewProps): JSX.Element {
   const {library, view, choice, selected, select: setSelected} = useMediaView();
+  const serviceId = useShow(state => state.serviceId);
+  const serviceReadOnly = useShow(state => state.readOnly);
+  const orderFull = useOrderFull();
+  const orderEditing = useServiceOrderEditing(serviceId, onProblem);
+  const addReason =
+    serviceId === null
+      ? '열린 예배 없음'
+      : serviceReadOnly
+        ? NEWER_FILE_REASON
+        : orderFull
+          ? ORDER_FULL_REASON
+          : orderEditing.busy
+            ? '예배 순서에 추가하는 중'
+            : undefined;
   const imported = useMediaImportCompletion();
   const [columns, setColumns] = useState<number>();
   const [menu, setMenu] = useState<OpenMenu | null>(null);
@@ -252,6 +272,19 @@ export function MediaView({
     editable: view.document?.access === 'editable',
     inPlaylist: playlist !== null,
     audioPlaylist: playlist?.kind === 'audio',
+    addReason,
+    addToService: mediaId => {
+      if (addReason !== undefined) return;
+      const {rows, openItemId} = useShow.getState();
+      const before = quickAddBefore(rows, openItemId);
+      orderEditing.run((edits, id) =>
+        edits.insertItem(
+          id,
+          newMediaItem(mediaId),
+          before === null ? null : createServiceItemId(before),
+        ),
+      );
+    },
     properties: setSelected,
     cancel: mediaId => {
       library.cancel(mediaId, nameOf(entry)).catch((cause: unknown) => {

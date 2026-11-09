@@ -2,6 +2,7 @@ import {useLayoutEffect, useRef, useSyncExternalStore} from 'react';
 import {createServiceId, createServiceItemId} from '@core/schema/ids';
 import {SERVICE_LIMITS} from '@core/schema/service';
 import {useShow} from '@renderer/session/show';
+import {revealAddedItem} from '@renderer/session/selectAddedItem';
 import {serviceItemClipboardFor} from '@renderer/session/serviceItemClipboard';
 import {ORDER_FULL_REASON} from '@renderer/session/serviceOrderEdits';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
@@ -79,6 +80,8 @@ export function useServiceItemClipboard({
     if (paste.ids.every(id => now.rows.some(row => row.id === id))) {
       pending.current = null;
       onPasted(paste.ids);
+      const last = paste.ids.at(-1);
+      if (last !== undefined) revealAddedItem(last);
     }
   };
   useLayoutEffect(selectPasted);

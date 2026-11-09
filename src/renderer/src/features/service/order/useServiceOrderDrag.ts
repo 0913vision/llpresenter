@@ -4,6 +4,8 @@ import {useEffect, useRef, useState, type DragEvent} from 'react';
 import type {SongId} from '@core/schema/ids';
 import {readSongDragData, SONG_DRAG_MIME} from '@core/schema/songDrag';
 import type {ServiceRow} from '@core/presentation/model';
+import {quickAddBefore} from '@core/services/quickAddPosition';
+import {useShow} from '@renderer/session/showStore';
 import {sectionBoundaryIndex} from '@core/services/serviceSections';
 import {beforeRowMidpoint} from '@renderer/ui/rowDrag';
 import {useDragClickGuard} from '@renderer/ui/useDragClickGuard';
@@ -97,6 +99,10 @@ export function useServiceOrderDrag({
     dragged.current = null;
     setInsertBefore(undefined);
   };
+  const dropBefore = (event: DragEvent): string | null =>
+    dragged.current === null && rowElement(event.target) === null
+      ? quickAddBefore(rows, useShow.getState().openItemId)
+      : destination(event);
   return {
     insertBefore,
     dragProps: {
@@ -137,7 +143,7 @@ export function useServiceOrderDrag({
         event.preventDefault();
         event.dataTransfer.dropEffect =
           dragged.current === null ? 'copy' : 'move';
-        setInsertBefore(destination(event));
+        setInsertBefore(dropBefore(event));
       },
       onDragLeave: (event: DragEvent): void => {
         if (
@@ -150,7 +156,7 @@ export function useServiceOrderDrag({
       onDrop: (event: DragEvent): void => {
         if (!accepts(event)) return;
         event.preventDefault();
-        const before = destination(event);
+        const before = dropBefore(event);
         const source = dragged.current === null ? null : moving.current;
         clear();
         if (source !== null) {

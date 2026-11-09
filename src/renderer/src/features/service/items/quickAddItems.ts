@@ -1,4 +1,5 @@
 import {createServiceItemId} from '@core/schema/ids';
+import {newMediaItem} from '@core/services/quickAddMedia';
 import type {MediaItem} from '@core/schema/mediaList';
 import type {ServiceItem} from '@core/schema/service';
 import {
@@ -20,6 +21,7 @@ export interface OtherItemChoices {
   readonly onInsert: (item: ServiceItem | (() => Promise<ServiceItem>)) => void;
   /** Switches the popover to typing a passage reference. */
   readonly onBible: () => void;
+  readonly onSong?: (() => void) | undefined;
 }
 
 function newId(): ServiceItem['id'] {
@@ -49,8 +51,15 @@ export function otherItemEntries({
   media,
   onInsert,
   onBible,
+  onSong,
 }: OtherItemChoices): readonly MenuEntry[] {
   return [
+    {
+      kind: 'item',
+      id: 'other:song',
+      label: '곡…',
+      onSelect: onSong,
+    },
     {
       kind: 'item',
       id: 'other:header',
@@ -99,7 +108,7 @@ export function otherItemEntries({
           kind: 'item',
           id: `media:${item.id}`,
           label: mediaName(item),
-          onSelect: () => onInsert({id: newId(), media: item.id}),
+          onSelect: () => onInsert(newMediaItem(item.id)),
         })),
         '미디어 없음',
       ),

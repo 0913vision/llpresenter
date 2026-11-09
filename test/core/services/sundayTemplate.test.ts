@@ -63,7 +63,7 @@ it('ships the church order with fixed editable cards and empty places for local 
       name: '광고',
       advance: 8,
       loop: true,
-      slides: [{name: '', text: ''}],
+      slides: [{name: '광고 제목', text: '내용 1\n내용 2'}],
     },
   });
   expect(notice?.slides.slides).toHaveLength(1);

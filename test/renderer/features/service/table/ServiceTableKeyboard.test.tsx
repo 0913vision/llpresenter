@@ -217,7 +217,9 @@ it.each(['빈 슬라이드', '광고'])(
     expect(document.activeElement).toBe(
       screen.getByRole('button', {name: '항목'}),
     );
-    await user.keyboard('{Enter}{Home}{ArrowDown}{ArrowDown}{ArrowDown}');
+    await user.keyboard(
+      '{Enter}{Home}{ArrowDown}{ArrowDown}{ArrowDown}{ArrowDown}',
+    );
     if (label === '광고') await user.keyboard('{ArrowDown}');
     const menu = screen.getByRole('menu', {name: '항목 추가'});
     expect(menu.getAttribute('aria-activedescendant')).toBe(

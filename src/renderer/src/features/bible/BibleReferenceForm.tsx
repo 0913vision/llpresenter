@@ -41,6 +41,8 @@ export interface BibleReferenceFormProps {
   readonly autoFocus?: boolean;
   readonly recents?: readonly RecentPassage[];
   readonly onReady?: (passage: BibleLookupPassage | null) => void;
+  /** In a dialog, Esc dismisses the form after closing book suggestions. */
+  readonly onEscape?: (() => void) | undefined;
 }
 
 const NUMBER_PARTS = ['chapter', 'start', 'end'] as const;
@@ -262,13 +264,19 @@ export function BibleReferenceForm(
     if (isComposing(event) || event.altKey || event.ctrlKey || event.metaKey) {
       return;
     }
+    if (event.key === 'Escape' && expanded) {
+      event.preventDefault();
+      event.stopPropagation();
+      setOpen(false);
+      return;
+    }
+    if (event.key === 'Escape' && props.onEscape !== undefined) {
+      event.preventDefault();
+      event.stopPropagation();
+      props.onEscape();
+      return;
+    }
     if (part === 'book') {
-      if (event.key === 'Escape' && expanded) {
-        event.preventDefault();
-        event.stopPropagation();
-        setOpen(false);
-        return;
-      }
       if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
         advancedBook.current = null;
         event.preventDefault();

@@ -19,6 +19,8 @@ import {
 } from '@core/schema/service';
 import {sectionBoundaryIndex} from '@core/services/serviceSections';
 import {pendingWritesOf} from '../platform/pendingWrites';
+import {useShow} from './showStore';
+import {selectAddedItem} from './selectAddedItem';
 
 const HISTORY_LIMIT = 100;
 type Order = Service['order'];
@@ -74,10 +76,32 @@ type OrderChange = (
   service: Service,
 ) => Result<Order, EditFailure> | Promise<Result<Order, EditFailure>>;
 type HistoryAction = 'record' | 'undo' | 'redo';
+interface SendOptions {
+  readonly action: HistoryAction;
+  readonly selectAdded: boolean;
+  readonly cursor: string | null | undefined;
+}
 interface HistoryEntry {
   readonly serviceId: ServiceId;
   readonly before: Order;
   readonly after: Order;
+}
+
+function selectAddedFromOrder(
+  serviceId: ServiceId,
+  entry: Pick<HistoryEntry, 'before' | 'after'>,
+  options: SendOptions,
+): void {
+  if (
+    options.action !== 'record' ||
+    !options.selectAdded ||
+    options.cursor === undefined
+  ) {
+    return;
+  }
+  const oldIds = new Set(entry.before.map(item => item.id));
+  const added = entry.after.filter(item => !oldIds.has(item.id)).at(-1);
+  if (added !== undefined) selectAddedItem(serviceId, added.id, options.cursor);
 }
 
 /** What a refused add says when the 예배 순서 has reached its item limit. */
@@ -241,24 +265,28 @@ export class ServiceOrderEdits {
     songId: SongId,
     beforeId: ServiceItemId | null,
   ) {
-    return this.update(serviceId, async service => {
-      const index = insertionIndex(service.order, beforeId);
-      if (index < 0) return refuse('not-found', 'The drop target is gone');
-      const song = await this.api.songs.get(songId);
-      if (song?.song.id !== songId) {
-        return refuse('not-found', 'The song no longer exists');
-      }
-      const order = [...service.order];
-      order.splice(index, 0, {
-        id: createServiceItemId(crypto.randomUUID()),
-        song: songId,
-        slides: structuredClone(song.song.slides),
-        ...(song.song.background === undefined
-          ? {}
-          : {background: song.song.background}),
-      });
-      return {ok: true, value: order};
-    });
+    return this.update(
+      serviceId,
+      async service => {
+        const index = insertionIndex(service.order, beforeId);
+        if (index < 0) return refuse('not-found', 'The drop target is gone');
+        const song = await this.api.songs.get(songId);
+        if (song?.song.id !== songId) {
+          return refuse('not-found', 'The song no longer exists');
+        }
+        const order = [...service.order];
+        order.splice(index, 0, {
+          id: createServiceItemId(crypto.randomUUID()),
+          song: songId,
+          slides: structuredClone(song.song.slides),
+          ...(song.song.background === undefined
+            ? {}
+            : {background: song.song.background}),
+        });
+        return {ok: true, value: order};
+      },
+      {selectAdded: true},
+    );
   }
 
   /** Copies selected rows and complete sections once, in document order. */
@@ -338,13 +366,17 @@ export class ServiceOrderEdits {
     item: ServiceItem,
     beforeId: ServiceItemId | null,
   ) {
-    return this.update(serviceId, service => {
-      const index = insertionIndex(service.order, beforeId);
-      if (index < 0) return refuse('not-found', 'The drop target is gone');
-      const order = [...service.order];
-      order.splice(index, 0, item);
-      return {ok: true, value: order};
-    });
+    return this.update(
+      serviceId,
+      service => {
+        const index = insertionIndex(service.order, beforeId);
+        if (index < 0) return refuse('not-found', 'The drop target is gone');
+        const order = [...service.order];
+        order.splice(index, 0, item);
+        return {ok: true, value: order};
+      },
+      {selectAdded: true},
+    );
   }
 
   /** Inserts the whole copied selection after a row, as one undo step. */
@@ -353,23 +385,27 @@ export class ServiceOrderEdits {
     items: readonly ServiceItem[],
     afterId: ServiceItemId | null,
   ) {
-    return this.update(serviceId, service => {
-      const selected =
-        afterId === null
-          ? service.order.length - 1
-          : service.order.findIndex(item => item.id === afterId);
-      if (afterId !== null && selected < 0) {
-        return refuse('not-found', 'The paste target is gone');
-      }
-      return {
-        ok: true,
-        value: [
-          ...service.order.slice(0, selected + 1),
-          ...items,
-          ...service.order.slice(selected + 1),
-        ],
-      };
-    });
+    return this.update(
+      serviceId,
+      service => {
+        const selected =
+          afterId === null
+            ? service.order.length - 1
+            : service.order.findIndex(item => item.id === afterId);
+        if (afterId !== null && selected < 0) {
+          return refuse('not-found', 'The paste target is gone');
+        }
+        return {
+          ok: true,
+          value: [
+            ...service.order.slice(0, selected + 1),
+            ...items,
+            ...service.order.slice(selected + 1),
+          ],
+        };
+      },
+      {selectAdded: false},
+    );
   }
 
   /** Prepares an item under the close gate and inserts it in the current section. */
@@ -384,17 +420,13 @@ export class ServiceOrderEdits {
       service => {
         if (!item) return refuse('invalid', 'The item is unavailable');
         const selected = service.order.findIndex(row => row.id === selectedId);
-        const next =
-          selected < 0
-            ? -1
-            : service.order.findIndex(
-                (row, index) => index > selected && isItemOfKind(row, 'header'),
-              );
+        const next = selected < 0 ? service.order.length : selected + 1;
         const order = [...service.order];
-        order.splice(next < 0 ? order.length : next, 0, item);
+        order.splice(next, 0, item);
         return {ok: true, value: order};
       },
       {
+        selectAdded: true,
         beforeRead: async () => {
           item = await prepare();
         },
@@ -440,16 +472,23 @@ export class ServiceOrderEdits {
   private update(
     serviceId: ServiceId,
     change: OrderChange,
-    options: {action?: HistoryAction; beforeRead?: () => Promise<void>} = {},
+    options: {
+      action?: HistoryAction;
+      beforeRead?: () => Promise<void>;
+      selectAdded?: boolean;
+    } = {},
   ): Promise<ServiceOrderEditResult> {
-    const {action = 'record', beforeRead} = options;
+    const {action = 'record', beforeRead, selectAdded = false} = options;
+    const view = useShow.getState();
+    const cursor = view.serviceId === serviceId ? view.openItemId : undefined;
+    const sendOptions = {action, selectAdded, cursor};
     return pendingWritesOf(this.api).run({
       write:
         beforeRead === undefined
-          ? () => this.send(serviceId, change, action)
+          ? () => this.send(serviceId, change, sendOptions)
           : async () => {
               await beforeRead();
-              return this.send(serviceId, change, action);
+              return this.send(serviceId, change, sendOptions);
             },
       refused: {
         ok: false,
@@ -462,7 +501,7 @@ export class ServiceOrderEdits {
   private async send(
     serviceId: ServiceId,
     change: OrderChange,
-    action: HistoryAction,
+    options: SendOptions,
   ): Promise<ServiceOrderEditResult> {
     if (this.busy) {
       return {
@@ -496,7 +535,8 @@ export class ServiceOrderEdits {
         baseRevision: document.revision,
       });
       if (saved.ok || saved.error.reason === 'write-failed') {
-        this.history.record({serviceId, before, after}, action);
+        this.history.record({serviceId, before, after}, options.action);
+        selectAddedFromOrder(serviceId, {before, after}, options);
       }
       return saved.ok ? {ok: true, value: true} : saved;
     } catch (cause) {

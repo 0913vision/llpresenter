@@ -166,6 +166,7 @@ export function transfer(payload = '') {
 }
 
 beforeEach(() => {
+  HTMLElement.prototype.scrollIntoView = vi.fn();
   applyService(null);
   useLive.setState({state: null, lastStartedItemId: null});
 });

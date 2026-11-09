@@ -46,6 +46,7 @@ export function BiblePassageDialog({
         onReady={setPassage}
         onPreview={() => undefined}
         onSubmit={choose}
+        onEscape={onClose}
         autoFocus
       />
     </Dialog>

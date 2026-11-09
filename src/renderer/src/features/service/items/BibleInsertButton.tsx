@@ -37,10 +37,11 @@ export function BibleInsertButton({
   const insert = (): void => {
     if (api === undefined || reason !== undefined) return;
     const view = useShow.getState();
-    const selected =
-      source.insertion?.serviceId === serviceId
+    const selected = view.rows.some(row => row.id === view.openItemId)
+      ? view.openItemId
+      : source.insertion?.serviceId === serviceId
         ? source.insertion.itemId
-        : view.openItemId;
+        : null;
     editing.run(async (edits, id) => {
       const result = await edits.insertItemInSection(id, selected, () => {
         // NOTE(0913vision): The preview picks the numbering and the reference;

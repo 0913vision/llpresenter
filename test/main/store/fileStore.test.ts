@@ -81,12 +81,12 @@ describe('loadStore', () => {
     expect(store.problems).toEqual([]);
   });
 
-  it('does not change an existing empty data folder or restore a deleted built-in template', async () => {
+  it('seeds a missing Templates folder without restoring a deleted template in an existing folder', async () => {
     const context = await developmentContext();
-    await mkdir(dataRoot(context));
+    await mkdir(join(dataRoot(context), 'Songs'), {recursive: true});
     const empty = await loadedStore(context);
-    expect(empty.templates.size).toBe(0);
-    expect(await readdir(dataRoot(context))).toEqual([]);
+    expect(empty.templates.size).toBe(1);
+    expect(await readdir(join(dataRoot(context), 'Songs'))).toEqual([]);
 
     const freshContext = await developmentContext();
     const fresh = await loadedStore(freshContext);

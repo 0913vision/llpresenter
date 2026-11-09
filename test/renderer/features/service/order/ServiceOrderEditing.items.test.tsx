@@ -13,6 +13,19 @@ import {
 } from '@fixtures/renderer/features/service/order/serviceOrderEditingFixtures';
 
 describe('service panel editing', () => {
+  it('drops a song without a row target immediately after the selected item', async () => {
+    const {ids, send} = setup('prep');
+    fireEvent.click(screen.getByRole('option', {name: '첫 곡'}));
+    const list = screen.getByRole('listbox', {name: '예배 순서'});
+    const dataTransfer = transfer(JSON.stringify({kind: 'song', songId}));
+    fireEvent.drop(list, {dataTransfer});
+    await waitFor(() => expect(ids()).toHaveLength(4));
+    expect(ids()[1]).toBe(firstId);
+    expect(ids()[3]).toBe(lastId);
+    await waitFor(() => expect(useShow.getState().openItemId).toBe(ids()[2]));
+    expect(send).not.toHaveBeenCalled();
+  });
+
   it('copies validated library song drops and ignores unrelated or malformed data', async () => {
     const {api, send, ids} = setup('prep');
     const target = screen.getByRole('option', {name: '첫 곡'});
