@@ -500,6 +500,12 @@ fields, as every settings file does (02).
   text still counts. Empty text keeps ordinary tracking. Measurement, output and
   thumbnails use the same rule, including edits and scaling. The two gray rules
   are an ordinary transparent picture, at x=700, y=305/759, 520 x 5 px, #737D87.
+- The section theme's short-text option includes per-name tracking overrides:
+  회개와간구의기도 uses 40 px and 봉헌 uses 52 px, both without short-text
+  center compensation. All section names retain 152 px type. 찬양, 광고 and 축도
+  retain 152 px tracking; the other names use 52 px. These defaults apply to new
+  themes; saved themes are not overwritten. Output, measurement and thumbnails
+  share the overrides, including renaming and scaling.
 - Each section card keeps an ordinary item background picture. New catalogs
   include one 1920 x 1080 picture per section color, generated with the same
   OKLCH gradient presets as the editor. Without an item background the theme

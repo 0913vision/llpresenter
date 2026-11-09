@@ -59,6 +59,23 @@ it('keeps short-name tracking and center compensation identical in output and th
   expect(block()?.style.letterSpacing).toBe('26px');
   expect(thumb()?.style.letterSpacing).toBe('52px');
   expect(block()?.style.textIndent).toBe('0px');
+  for (const [name, tracking] of [
+    ['회개와간구의기도', 40],
+    ['봉헌', 52],
+  ] as const) {
+    output.replaceLines([name]);
+    picture.rerender(
+      <ThemePicture
+        background="#000000"
+        elements={[source]}
+        samples={{itemName: name}}
+      />,
+    );
+    expect(block()?.style.letterSpacing).toBe(`${tracking / 2}px`);
+    expect(thumb()?.style.letterSpacing).toBe(`${tracking}px`);
+    expect(block()?.style.textIndent).toBe('0px');
+    expect(thumb()?.style.textIndent).toBe('0px');
+  }
   output.replaceLines(['봉헌']);
   output.setStyle({...style, shortTracking: {maxCharacters: 2, tracking: 160}});
   expect(block()?.style.letterSpacing).toBe('80px');

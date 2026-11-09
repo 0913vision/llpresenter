@@ -397,6 +397,13 @@ marker. Wrapping therefore keeps the same spacing decision; literal marker text
 still counts when it is not marked as a continuation. `slideNumber` is a text
 element with the common properties and the one-per-screen limit described in 12.
 
+`shortTracking.overrides` optionally stores up to 16 `{text, tracking}` entries.
+Each text is unique, nonempty, without whitespace, and at most 80 UTF-16 code
+units; tracking has the same -20 to 200 bounds. An exact match after the same
+whitespace and generated-marker removal takes precedence over the character
+count. It uses ordinary tracking without short-text center compensation. No
+match preserves the existing count rule; omitting the list preserves old themes.
+
 An `itemName` element may store `centerWhenTextEmpty` (Boolean, off when
 omitted). When enabled, whitespace-only or absent current slide text centers the
 item name vertically in its frame; otherwise its configured alignment applies.

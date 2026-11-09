@@ -69,6 +69,30 @@ const textEntries = {
         v.maxValue(THEME_LIMITS.shortTextCharacters),
       ),
       tracking: range(THEME_LIMITS.tracking.min, THEME_LIMITS.tracking.max),
+      overrides: v.exactOptional(
+        v.pipe(
+          v.array(
+            jsonObject({
+              text: v.pipe(
+                nonBlankText,
+                v.maxLength(THEME_LIMITS.name),
+                v.check(text => !/\s/u.test(text), 'Expected unspaced text'),
+              ),
+              tracking: range(
+                THEME_LIMITS.tracking.min,
+                THEME_LIMITS.tracking.max,
+              ),
+            }),
+          ),
+          v.maxLength(THEME_LIMITS.trackingOverrides),
+          v.check(
+            overrides =>
+              new Set(overrides.map(override => override.text)).size ===
+              overrides.length,
+            'Expected unique tracking override text',
+          ),
+        ),
+      ),
     }),
   ),
   bullets: v.exactOptional(v.boolean()),

@@ -14,6 +14,10 @@ export interface TextStyle {
   readonly shortTracking?: {
     readonly maxCharacters: number;
     readonly tracking: number;
+    readonly overrides?: ReadonlyArray<{
+      readonly text: string;
+      readonly tracking: number;
+    }>;
   };
   readonly bullets?: boolean;
   readonly bulletStyle?: 'disc';

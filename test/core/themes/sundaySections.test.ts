@@ -67,7 +67,14 @@ it('adds an editable section theme without changing the kind defaults or other s
         weight: 700,
         size: 152,
         tracking: 52,
-        shortTracking: {maxCharacters: 2, tracking: 152},
+        shortTracking: {
+          maxCharacters: 2,
+          tracking: 152,
+          overrides: [
+            {text: '회개와간구의기도', tracking: 40},
+            {text: '봉헌', tracking: 52},
+          ],
+        },
         shadow: {on: false},
       },
     },

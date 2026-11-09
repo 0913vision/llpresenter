@@ -16,6 +16,7 @@ export const THEME_LIMITS = {
   lineHeight: {min: 0.8, max: 3},
   tracking: {min: -20, max: 200},
   shortTextCharacters: 10,
+  trackingOverrides: 16,
   maxLines: 12,
   radius: 200,
 } as const;

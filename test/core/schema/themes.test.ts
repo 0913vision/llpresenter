@@ -173,6 +173,46 @@ describe('theme element properties', () => {
       ).toBe(false);
     }
   });
+  it('validates bounded unique tracking overrides while keeping unknown fields', () => {
+    const shortTracking = {maxCharacters: 2, tracking: 152};
+    const parse = (overrides: unknown) =>
+      v.safeParse(themeTextSchema, {
+        ...text,
+        shortTracking: {...shortTracking, overrides},
+      });
+    for (const overrides of [
+      [],
+      [{text: '가'.repeat(80), tracking: -20, future: true}],
+      Array.from({length: 16}, (_, i) => ({text: String(i), tracking: 200})),
+    ]) {
+      const result = parse(overrides);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.output.shortTracking?.overrides).toEqual(overrides);
+      }
+    }
+    for (const overrides of [
+      null,
+      {},
+      [{text: '', tracking: 40}],
+      [{text: '가 나', tracking: 40}],
+      [{text: '가\n나', tracking: 40}],
+      [{text: '가'.repeat(81), tracking: 40}],
+      [{text: '가', tracking: -21}],
+      [{text: '가', tracking: 201}],
+      [{text: '가', tracking: NaN}],
+      [{text: '가', tracking: Infinity}],
+      [{text: '가', tracking: '40'}],
+      [{text: '가'}],
+      Array.from({length: 17}, (_, i) => ({text: String(i), tracking: 40})),
+      [
+        {text: '가', tracking: 40},
+        {text: '가', tracking: 52},
+      ],
+    ]) {
+      expect(parse(overrides).success).toBe(false);
+    }
+  });
   it('accepts slideName with only the common text fields on every screen, once per screen', () => {
     const slideName = {id: uuid(1), kind: 'slideName', frame, text};
     expect(v.safeParse(themeElementSchema, slideName).success).toBe(true);

@@ -1,15 +1,9 @@
 import {continuationText} from '../bible/split/continuation';
+import type {TextStyle} from './textStyle';
 
-interface TrackingStyle {
-  readonly tracking?: number;
-  readonly shortTracking?: {
-    readonly maxCharacters: number;
-    readonly tracking: number;
-  };
-  readonly align: 'left' | 'center' | 'right';
-}
+type TrackingStyle = Pick<TextStyle, 'tracking' | 'shortTracking' | 'align'>;
 
-/** Resolves short text spacing while keeping centered text on the same visual axis. */
+/** Resolves per-name spacing before the short-text rule and its center offset. */
 export function resolveTextTracking(
   style: TrackingStyle,
   content: string,
@@ -23,7 +17,10 @@ export function resolveTextTracking(
     const last = lines.length - 1;
     lines[last] = continuationText(lines[last] ?? '', true).body;
   }
-  const count = Array.from(lines.join('').replace(/\s/gu, '')).length;
+  const name = lines.join('').replace(/\s/gu, '');
+  const override = option.overrides?.find(override => override.text === name);
+  if (override !== undefined) return {spacing: override.tracking, indent: 0};
+  const count = Array.from(name).length;
   const spacing =
     count > 0 && count <= option.maxCharacters ? option.tracking : base;
   return {spacing, indent: style.align === 'center' ? spacing - base : 0};
