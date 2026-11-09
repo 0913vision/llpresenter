@@ -48,6 +48,17 @@ have landed.
 - The center table shows 이름, 슬라이드, 테마, 배경, 시작할 때, and 메모. Counts
   and thumbnails use the selected item's own slides. The library stays on the
   left; preview and the slides grid stay on the right.
+- Column headings stay pinned while table rows scroll. This applies to every
+  table, including shortcut settings and import label mapping. Scrolling a row
+  into view leaves it below the headings.
+- 미리보기 uses the same panel as 진행 (04): a plain title, ordered screen
+  choices, identical picture and caption geometry, and the same default height
+  budget. Its caption may show the selected slide's label, position and theme.
+  There is no extra bar below the picture.
+- The song name band sits above the thumbnail viewport without overlapping it.
+  When a selected thumbnail row is taller than the viewport, automatic scrolling
+  keeps its top visible instead of clipping it to align its bottom. This holds
+  after a width, zoom or panel-height change.
 - The preview keeps one full-width 16:9 picture for every item kind: songs,
   Bible passages, blank slides, announcements, sermons, videos, and images.
   Media previews show the file and name. With no item or a section selected, the

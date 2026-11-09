@@ -22,11 +22,8 @@ import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {slideCountOf} from '@core/songs/blockEdits';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {openPreviewMedia} from '@renderer/rendering/previewMedia';
-import {Panel, PanelHeader, PanelTitle} from '@renderer/ui/Panel';
-import {PreviewScreenPicker} from '@renderer/ui/PreviewScreenPicker';
 import {RolePreview} from './RolePreview';
 import {
-  PREVIEW_ROLES,
   previewAppearance,
   selectedPreview,
   type PreviewRole,
@@ -218,7 +215,6 @@ export function ContentPreviewFrame({
   readonly item?: LiveThemeItem | undefined;
 }): JSX.Element {
   const [role, setRole] = useState<PreviewRole>('audience');
-  const [room, setRoom] = useState(true);
   const documents = usePreviewSettings(settings);
   const appearances = useMemo(() => {
     const localItem =
@@ -355,54 +351,38 @@ export function ContentPreviewFrame({
     labels.find(label => label.name === labelName)?.color ??
     'none';
   return (
-    <Panel label="미리보기">
-      <PanelHeader>
-        <PanelTitle title="미리보기" />
-        {picture === null || room ? null : (
-          <PreviewScreenPicker
-            screens={PREVIEW_ROLES.map(entry => ({
-              id: entry.value,
-              name: entry.label,
-            }))}
-            big={role}
-            onChange={setRole}
+    <RolePreview
+      big={role}
+      onBigChange={setRole}
+      blank={picture === null}
+      renderRole={shown =>
+        picture === null ? (
+          <div className={styles.screen} data-blank="" />
+        ) : (
+          <Picture
+            layers={layers}
+            appearance={appearances[shown]}
+            transition={transition}
+            before={before}
           />
-        )}
-      </PanelHeader>
-      <RolePreview
-        big={role}
-        onBigChange={setRole}
-        onRoom={setRoom}
-        blank={picture === null}
-        renderRole={shown =>
-          picture === null ? (
-            <div className={styles.screen} data-blank="" />
-          ) : (
-            <Picture
-              layers={layers}
-              appearance={appearances[shown]}
-              transition={transition}
-              before={before}
+        )
+      }
+      caption={() => (
+        <>
+          {color === 'none' ? null : (
+            <span
+              className={styles.swatch}
+              style={{background: labelInk(color)['--label-fill']}}
             />
-          )
-        }
-        caption={() => (
-          <>
-            {color === 'none' ? null : (
-              <span
-                className={styles.swatch}
-                style={{background: labelInk(color)['--label-fill']}}
-              />
-            )}
-            <span>{labelName}</span>
-            <span>
-              {position} / {total}
-            </span>
-            <span className={styles.style}>{appearance.themeName}</span>
-          </>
-        )}
-      />
-    </Panel>
+          )}
+          <span>{labelName}</span>
+          <span>
+            {position} / {total}
+          </span>
+          <span className={styles.style}>{appearance.themeName}</span>
+        </>
+      )}
+    />
   );
 }
 

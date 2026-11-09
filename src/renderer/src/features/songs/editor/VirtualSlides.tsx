@@ -56,8 +56,9 @@ function reveal(
   },
 ): number {
   const top = Math.floor(index / columns) * stride + inset;
-  if (top < node.scrollTop) node.scrollTop = top;
-  else if (top + stride > node.scrollTop + node.clientHeight) {
+  if (top < node.scrollTop || stride + inset > node.clientHeight) {
+    node.scrollTop = Math.max(0, top - inset);
+  } else if (top + stride > node.scrollTop + node.clientHeight) {
     node.scrollTop = Math.max(0, top + stride - node.clientHeight);
   }
   return node.scrollTop;
@@ -188,7 +189,7 @@ export function VirtualSlides<T extends SlideListItem>({
     if (node !== null && selected !== undefined) {
       reveal(node, selected, {columns, stride, inset: measure.inset});
     }
-  }, [selected, columns, stride, measure.inset]);
+  }, [selected, columns, stride, measure.inset, measure.height]);
   useLayoutEffect(() => {
     const target = focusNext.current;
     if (target !== null && target >= start && target < end) {

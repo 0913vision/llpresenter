@@ -17,6 +17,7 @@ import {
   StatusDot,
 } from '@renderer/ui';
 import type {Screen} from '@core/schema/screens';
+import {SCREEN_KIND_ORDER} from '@core/screens/screens';
 import {sendLive, useOutputs} from '@renderer/session/live';
 import type {Notice} from '@renderer/ui/notices';
 import {MAX_TARGET_SCREENS} from '@core/schema/overlayState';
@@ -36,9 +37,7 @@ import {useScreenListWindow} from './useScreenListWindow';
 import {useMonitors} from './useMonitors';
 
 const LIST_LABEL = '화면';
-const AUDIENCE_LABEL = '청중';
-const BROADCAST_LABEL = '방송';
-const STAGE_LABEL = '무대';
+const GROUP_LABELS = {audience: '청중', stage: '무대', broadcast: '방송'};
 const LOAD_TITLE = '화면';
 const noScreens: readonly Screen[] = [];
 
@@ -128,11 +127,11 @@ export function ScreenList({
   const selected = selectedScreenIn(selection, screens)?.id;
   const sections = useMemo(
     () =>
-      [
-        {kind: 'audience', label: AUDIENCE_LABEL, rows: groups.audience},
-        {kind: 'broadcast', label: BROADCAST_LABEL, rows: groups.broadcast},
-        {kind: 'stage', label: STAGE_LABEL, rows: groups.stage},
-      ] as const,
+      SCREEN_KIND_ORDER.map(kind => ({
+        kind,
+        label: GROUP_LABELS[kind],
+        rows: groups[kind],
+      })),
     [groups],
   );
   const listRoot = useRef<HTMLDivElement>(null);

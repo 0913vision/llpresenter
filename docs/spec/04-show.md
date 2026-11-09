@@ -215,7 +215,7 @@ service needs no confirmation), product log version 63.
 
 ### Panel keyboard order
 
-After the toolbar (workspace tabs, 검색, 테마, 청중, 방송, 무대), Tab visits: 1
+After the toolbar (workspace tabs, 검색, 테마, 청중, 무대, 방송), Tab visits: 1
 예배 순서, 2 슬라이드, 3 퀵 실행, 4 미리보기, 5 지우기, 6 진행 도구, 7 미디어.
 Shift Tab reverses the same sequence. Narrow layouts skip only controls that are
 absent or hidden; collapsed panels retain their expand button. Each list or grid
@@ -301,8 +301,19 @@ Source: `ShowH` (슬라이드 grid, 9 tiles in item slide order, background sele
 
 ## Preview panel
 
-The background video progress bar has a reserved row below the previews. Showing
-or hiding it never changes the large preview's size.
+진행 and 준비 use one preview panel: a plain 미리보기 title, the same screen
+picker, picture box, caption height and insets. The default workspace allocation
+is the same at each window size, including the room reserved below it, so
+switching workspaces does not move its edges. User-resized panel rows still use
+their saved height. Screen choices everywhere, including the toolbar and 화면
+설정, are ordered 청중 화면, 무대 화면, 방송 화면; saved order within each kind
+is retained. Caption content can differ between live monitoring and local item
+previews, but never adds a row or changes the picture geometry.
+
+The background video progress line is drawn over the bottom edge of the live
+picture. It has no separate row below the picture; showing or hiding it changes
+no panel dimensions. There is no decorative light bar between picture and
+caption.
 
 ProPresenter's main window has one Preview window at the top right. It shows the
 output of one screen, chosen with the arrow below it (Audience or Stage), and
@@ -344,7 +355,7 @@ each preview follows ProPresenter's rule: it shows what goes out.
 - Previews draw at the 미리보기 rate, 30 fps by default (03). A dissolve can
   look less smooth than on the output; the content is the same.
 
-- While a background video is live, one thin progress line below the preview
+- While a background video is live, one thin progress line over the preview
   shows its position ("0:12") and remaining source time ("-0:42") in the caption
   style. A loop wraps within its duration; a nonlooping video holds at the end.
   Images and a cleared background show no line. Until duration metadata arrives,

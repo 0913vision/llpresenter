@@ -37,6 +37,10 @@
   --slides-min-height: 220px;
   --settings-min-height: 80px;
   --preview-min-height: 132px;
+  --preview-reserve: calc(
+    var(--tools-min-height) + var(--size-clear-button) + 2 * var(--space-8) +
+      2 * var(--panel-gap)
+  );
   flex: 1;
   min-height: 0;
   display: grid;
@@ -54,6 +58,13 @@
   display: flex;
   flex-direction: column;
   gap: 0;
+}
+
+.columns[data-size='narrow'] {
+  --preview-reserve: calc(
+    var(--tools-min-height) + var(--size-clear-button-compact) + 2 *
+      var(--space-6) + 2 * var(--panel-gap)
+  );
 }
 
 .column:has(> .settings) {
@@ -163,6 +174,14 @@
 .fit {
   flex: 0 1 auto;
   min-height: var(--preview-min-height);
+  max-height: max(
+    var(--preview-min-height),
+    calc(100% - var(--preview-reserve))
+  );
+}
+
+.fit[style*='height:'] {
+  max-height: none;
 }
 
 .content .body,

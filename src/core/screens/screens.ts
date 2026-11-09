@@ -4,3 +4,6 @@ export const STARTER_SCREEN_IDS = {
   broadcast: '00000000-0000-4000-8000-000000000002',
   stage: '00000000-0000-4000-8000-000000000003',
 } as const;
+
+/** The presentation order shared by screen selectors and screen settings. */
+export const SCREEN_KIND_ORDER = ['audience', 'stage', 'broadcast'] as const;

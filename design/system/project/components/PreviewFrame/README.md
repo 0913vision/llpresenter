@@ -13,8 +13,8 @@ another small).
 ## Where to use
 
 - The preview panel at the top of the right column in the 진행 workspace.
-- The large frame can also be used in 준비. Its segmented control and
-  이름표 caption are separate from this three-slot monitoring selector.
+- The same `PreviewPanel` wraps it in 준비, including its title and screen
+  picker. Only the rendered content and caption content differ.
 
 Use SlideThumbnail for slide thumbnails. Screen settings and 테마 editing use
 their editing canvases instead.
@@ -25,7 +25,7 @@ their editing canvases instead.
   body's width inside it, 16:9, centered when it is shorter than the width.
 - Below the large picture is one row of tiles, one for each other screen, in
   the fixed order 청중 화면, 무대 화면, 방송 화면 without the large one. Vertical
-  gap is `space-12`, or `space-8` in the narrow window form; horizontal gap is
+  gap is `space-12` in both workspaces at every window size; horizontal gap is
   `space-8`.
 - Pictures keep `aspect-output` (16:9), with `output-black` background and a
   1px `line` frame. 방송 화면 uses `chroma`, matching its capture background.
@@ -93,7 +93,8 @@ what will appear when output is enabled. Give reasons in tooltips, for example
   activated slot.
 - Modified Enter and Space pass through without selecting a screen.
 - Swap immediately, with no picture transition.
-- Do not add state explanations, style names, or 테마 names to the captions.
+- Keep live captions to screen names and destinations. Local item captions may
+  show the selected slide's label, position and theme in the same fixed row.
 
 ## Implementation
 
@@ -113,8 +114,9 @@ identity and playback position, including when the window changes size.
 `usePreviewRoom` tells a panel whether the tile row fits: it compares what the
 picture, its caption, the tile row, and the rows around them need with what the
 column leaves the panel after the minimum heights of its neighbors. The 진행
-panel reports the answer to its header (`PreviewHeaderPicker`); 준비 does it
-through `RolePreview`.
+and 준비 both use `PreviewPanel`, which owns its header and body together.
+They share the default workspace height budget, including the space reserved
+below the preview. A saved splitter height still takes precedence.
 
 The shell adapter derives status from the live outputs map, selects through
 `showLarge`, and uses `ScreenPreview` for each picture. `ScreenPreview`

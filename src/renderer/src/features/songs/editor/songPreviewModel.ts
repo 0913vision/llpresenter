@@ -1,5 +1,5 @@
 import {emptyLayers, type LiveLayers} from '@core/live/state';
-import {STARTER_SCREEN_IDS} from '@core/screens/screens';
+import {SCREEN_KIND_ORDER, STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {screenIdSchema} from '@core/schema/ids';
 import {parsePayload} from '@core/schema/payload';
 import type {ThemesFile} from '@core/schema/themes';
@@ -11,11 +11,15 @@ import {resolveThemeOutput} from '@core/themes/output';
 import type {Song} from '@core/schema/song';
 import {linearSlidesOf} from '@core/songs/blockEdits';
 
-export const PREVIEW_ROLES = [
-  {value: 'audience', label: '청중 화면'},
-  {value: 'stage', label: '무대 화면'},
-  {value: 'broadcast', label: '방송 화면'},
-] as const;
+const ROLE_LABELS = {
+  audience: '청중 화면',
+  stage: '무대 화면',
+  broadcast: '방송 화면',
+};
+export const PREVIEW_ROLES = SCREEN_KIND_ORDER.map(value => ({
+  value,
+  label: ROLE_LABELS[value],
+}));
 export type PreviewRole = (typeof PREVIEW_ROLES)[number]['value'];
 
 const STARTER_ID_OF_ROLE: Readonly<Record<PreviewRole, string>> = {

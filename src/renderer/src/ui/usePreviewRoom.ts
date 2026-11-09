@@ -70,6 +70,10 @@ function availableHeight(host: HTMLElement): number {
     column.clientHeight -
     (parseFloat(style.paddingTop) || 0) -
     (parseFloat(style.paddingBottom) || 0);
+  const sharedLimit =
+    style.getPropertyValue('--preview-reserve').trim() === ''
+      ? height
+      : height - tokenPx(host, '--preview-reserve');
   for (const child of column.children) {
     if (child === host || !(child instanceof HTMLElement)) continue;
     const fixed =
@@ -80,7 +84,7 @@ function availableHeight(host: HTMLElement): number {
       ? child.getBoundingClientRect().height
       : parseFloat(getComputedStyle(child).minHeight) || 0;
   }
-  return height;
+  return Math.min(height, sharedLimit);
 }
 
 /**

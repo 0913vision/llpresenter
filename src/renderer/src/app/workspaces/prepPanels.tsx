@@ -134,7 +134,7 @@ function prepPanelParts({
   if (title === '미리보기') {
     if (prep.slides?.session) {
       return {
-        size: 'content',
+        size: 'fit',
         embedded: (
           <InlineSlidesPanels
             api={prep.api}
@@ -146,7 +146,7 @@ function prepPanelParts({
       };
     }
     return {
-      size: 'content',
+      size: 'fit',
       embedded:
         hasDraft && !itemEditor ? (
           <SongPreviewPanel store={prep.editor} />

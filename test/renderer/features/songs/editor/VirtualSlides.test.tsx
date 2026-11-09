@@ -31,6 +31,45 @@ function List(): JSX.Element {
 }
 
 describe('virtual editor slides', () => {
+  it('keeps the top of the selected thumbnail visible when a row is taller than the viewport', () => {
+    let resize = () => {};
+    vi.stubGlobal(
+      'ResizeObserver',
+      class {
+        constructor(callback: () => void) {
+          resize = callback;
+        }
+        observe() {}
+        unobserve() {}
+        disconnect() {}
+      },
+    );
+    try {
+      const view = render(<List />);
+      const viewport = view.container.querySelector<HTMLElement>(
+        '[data-slide-columns]',
+      );
+      if (viewport === null) throw new Error('Missing slide viewport');
+      Object.defineProperty(viewport, 'clientWidth', {value: 900});
+      Object.defineProperty(viewport, 'clientHeight', {value: 80});
+      viewport.style.cssText =
+        'padding: 14px; --space-12: 12px; --space-16: 16px; --size-thumb-band: 28px';
+      act(() => resize());
+      expect(viewport.scrollTop).toBe(0);
+      fireEvent.keyDown(screen.getAllByRole('option')[0] ?? viewport, {
+        key: 'ArrowDown',
+      });
+      expect(viewport.scrollTop).toBeGreaterThan(0);
+      fireEvent.keyDown(screen.getAllByRole('option')[0] ?? viewport, {
+        key: 'Home',
+      });
+      expect(viewport.scrollTop).toBe(0);
+      view.unmount();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+
   it('tabs through the grid once in either direction while keeping gutter pointer insertion', async () => {
     const {session, user, view} = await editorSetup();
     view.unmount();

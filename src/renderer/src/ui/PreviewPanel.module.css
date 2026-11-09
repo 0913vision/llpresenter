@@ -6,6 +6,6 @@
   box-sizing: border-box;
   min-height: 0;
   padding: var(--panel-inset);
-  overflow-y: auto;
+  overflow: auto;
   scrollbar-gutter: stable;
 }

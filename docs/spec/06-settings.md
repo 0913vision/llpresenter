@@ -61,7 +61,7 @@ effects and previews; every close performs its own save handshake.
 
 | Column | 화면 설정 window                                                                      | 테마 workspace (12)                                       |
 | ------ | ------------------------------------------------------------------------------------- | --------------------------------------------------------- |
-| Left   | 화면 list, grouped into 청중, 방송, and 무대                                          | 테마 list, then 요소 and 요소 추가 for the current screen |
+| Left   | 화면 list, grouped into 청중, 무대, and 방송                                          | 테마 list, then 요소 and 요소 추가 for the current screen |
 | Center | 배치 (monitor layout and 별도 창 및 미지정 화면), then 출력 미리보기 with 테스트 패턴 | The canvas of the current screen                          |
 | Right  | Selected screen properties                                                            | The three screens, then the 요소 and 화면 tabs            |
 
@@ -82,7 +82,7 @@ Source: `Screens`, `Main` board guide (화면 설정), 12.
 
 ### Screen list
 
-- Three groups, 청중 (audience), 방송 (broadcast), and 무대 (stage). Each row
+- Three groups, 청중 (audience), 무대 (stage), and 방송 (broadcast). Each row
   shows an icon (청중 화면 and 무대 화면 use monitor icons, 방송 화면 uses the
   capture icon), the name, the target (모니터 2, 캡처용 창), and a health dot.
 - 화면 추가 (add screen, plus icon) is in the board. It adds a screen to its
@@ -185,7 +185,7 @@ defaults off for every method and can be enabled in the screen's properties
 | Group              | Row                                   | Control                                                                           | Behavior                                                                                                                                                                                                                                                                                                                          |
 | ------------------ | ------------------------------------- | --------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 화면 (screen)      | 이름 (name)                           | Text field                                                                        | Screen name. Toolbar labels and tooltips use it.                                                                                                                                                                                                                                                                                  |
-| 화면               | 종류 (kind)                           | 청중, 방송, or 무대                                                               | The kind decides which elements the 테마 editor offers on the screen (12). A screen that still has its default name (새 청중 화면) takes the default name of its new kind when the kind changes; a name the user typed stays.                                                                                                     |
+| 화면               | 종류 (kind)                           | 청중, 무대, or 방송                                                               | The kind decides which elements the 테마 editor offers on the screen (12). A screen that still has its default name (새 청중 화면) takes the default name of its new kind when the kind changes; a name the user typed stays.                                                                                                     |
 | 화면               | 메시지 스타일 (message style)         | Select: 기본 and each saved 메시지 style by name                                  | How a 메시지 sent to this screen is drawn, whatever the 테마 (12; user decision, November 2). Default 기본, the built-in style, a band across the top of the screen (03; user decision, November 3). A 메시지 showing on this screen redraws in the new style at once. Until 메시지 styles can be made, the list holds only 기본. |
 | 출력 (output)      | 방식 (method)                         | 전체 화면, 창, 캡처용 창, NDI                                                     | See 03. In version 1, NDI shows as unavailable, with the reason in a tooltip (proposal).                                                                                                                                                                                                                                          |
 | 출력               | 장치 (device)                         | Select with the monitor name as a detail ("모니터 2 EPSON 프로젝터")              | The monitor for full screen.                                                                                                                                                                                                                                                                                                      |

@@ -1,57 +1,25 @@
-import {useLayoutEffect, useRef, type JSX} from 'react';
+import type {JSX} from 'react';
 import {useLive, useOutputs} from '@renderer/session/live';
 import {
   useHasMediaView,
   useMediaView,
 } from '@renderer/features/media/MediaViewProvider';
-import {setTilesHidden, showLarge, usePreview} from '@renderer/session/preview';
+import {showLarge, usePreview} from '@renderer/session/preview';
 import {useScreenSummaries} from '@renderer/platform/ScreenSummaries';
-import {PreviewFrame, type PreviewScreen} from '@renderer/ui/PreviewFrame';
-import {PreviewScreenPicker} from '@renderer/ui/PreviewScreenPicker';
-import {usePreviewRoom} from '@renderer/ui/usePreviewRoom';
+import type {PreviewScreen} from '@renderer/ui/PreviewFrame';
+import {PreviewPanel as SharedPreviewPanel} from '@renderer/ui/PreviewPanel';
 import {ScreenPreview} from './ScreenPreview';
-import styles from './PreviewPanel.module.css';
 import {MISSING_STILL_BACKGROUND_TIP} from '@renderer/platform/problemReasons';
 import {LiveMediaProgress} from './LiveMediaProgress';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 
 const NO_STILL_SCREENS: ReadonlySet<string> = new Set();
 
-/** The progress bar lies over the picture, so no row is reserved for it. */
-function noExtraRows(): number {
-  return 0;
-}
-
-/** The screen picker of the panel header, shown while the tile row is hidden. */
-export function PreviewHeaderPicker(): JSX.Element | null {
-  const hidden = usePreview(view => view.tilesHidden);
-  const largeScreenId = usePreview(view => view.largeScreenId);
-  const summaries = useScreenSummaries();
-  if (!hidden || summaries.length < 2) return null;
-  const big = summaries.some(screen => screen.id === largeScreenId)
-    ? largeScreenId
-    : (summaries[0]?.id ?? '');
-  return (
-    <PreviewScreenPicker
-      screens={summaries.map(screen => ({
-        id: screen.id,
-        name: screen.statusLabel,
-      }))}
-      big={big}
-      onChange={showLarge}
-    />
-  );
-}
-
 function renderScreen(screen: PreviewScreen<string>): JSX.Element {
   return <ScreenPreview screenId={screen.id} chroma={screen.chroma === true} />;
 }
 
-function MediaPreviewPanel({
-  compact,
-}: {
-  readonly compact: boolean;
-}): JSX.Element {
+function MediaPreviewPanel(): JSX.Element {
   const {view} = useMediaView();
   const mediaId = useLive(state => state.state?.layers.media?.mediaId);
   const testPatterns = useLive(state => state.state?.testPatterns);
@@ -78,28 +46,18 @@ function MediaPreviewPanel({
       }
     }
   }
-  return <PreviewPanelFrame compact={compact} stillScreens={stillScreens} />;
+  return <PreviewPanelFrame stillScreens={stillScreens} />;
 }
 
 /** Uses the workspace's shared media metadata without opening another feed. */
-export function PreviewPanel({
-  compact,
-}: {
-  readonly compact: boolean;
-}): JSX.Element {
-  return useHasMediaView() ? (
-    <MediaPreviewPanel compact={compact} />
-  ) : (
-    <PreviewPanelFrame compact={compact} />
-  );
+export function PreviewPanel(): JSX.Element {
+  return useHasMediaView() ? <MediaPreviewPanel /> : <PreviewPanelFrame />;
 }
 
 /** The live monitoring panel. Selecting a screen never sends an output command. */
 function PreviewPanelFrame({
-  compact,
   stillScreens = NO_STILL_SCREENS,
 }: {
-  readonly compact: boolean;
   readonly stillScreens?: ReadonlySet<string>;
 }): JSX.Element {
   const largeScreenId = usePreview(view => view.largeScreenId);
@@ -129,29 +87,13 @@ function PreviewPanelFrame({
         : undefined,
     }),
   );
-  const root = useRef<HTMLDivElement>(null);
-  const room = usePreviewRoom(root, {
-    tiles: Math.max(0, summaries.length - 1),
-    extra: noExtraRows,
-  });
-  useLayoutEffect(() => {
-    setTilesHidden(!room);
-    return () => setTilesHidden(false);
-  }, [room]);
   return (
-    <div ref={root} className={styles.panel}>
-      <div className={styles.screens}>
-        <PreviewFrame
-          screens={screens}
-          big={large}
-          compact={compact}
-          sizing="content"
-          tiles={room}
-          overlay={<LiveMediaProgress />}
-          onBigChange={showLarge}
-          renderScreen={renderScreen}
-        />
-      </div>
-    </div>
+    <SharedPreviewPanel
+      screens={screens}
+      big={large}
+      overlay={<LiveMediaProgress />}
+      onBigChange={showLarge}
+      renderScreen={renderScreen}
+    />
   );
 }

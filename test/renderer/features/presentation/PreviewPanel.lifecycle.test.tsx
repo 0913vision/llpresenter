@@ -139,7 +139,7 @@ afterEach(() => {
 
 describe('PreviewPanel real renderer lifecycle', () => {
   it('keeps the stage video countdown advancing without any video element', async () => {
-    const {container, unmount} = render(<PreviewPanel compact={false} />);
+    const {container, unmount} = render(<PreviewPanel />);
     await act(async () => {
       await Promise.resolve();
     });
@@ -202,7 +202,7 @@ describe('PreviewPanel real renderer lifecycle', () => {
           },
         },
       });
-      const {container, unmount} = render(<PreviewPanel compact={false} />);
+      const {container, unmount} = render(<PreviewPanel />);
       await act(async () => {
         await Promise.resolve();
       });
@@ -225,10 +225,8 @@ describe('PreviewPanel real renderer lifecycle', () => {
     },
   );
 
-  it('keeps cached stills across selection and resizing without ever creating video elements', async () => {
-    const {container, rerender, unmount} = render(
-      <PreviewPanel compact={false} />,
-    );
+  it('keeps cached stills across selection and rerenders without ever creating video elements', async () => {
+    const {container, rerender, unmount} = render(<PreviewPanel />);
     await act(async () => {
       await Promise.resolve();
     });
@@ -249,16 +247,14 @@ describe('PreviewPanel real renderer lifecycle', () => {
     const parents = pictures.map(image => image.parentElement);
     const live = useLive.getState().state;
 
-    for (const compact of [true, false]) {
-      rerender(<PreviewPanel compact={compact} />);
-      for (const name of ['무대 화면', '방송 화면', '청중 화면']) {
-        fireEvent.click(screen.getByRole('button', {name: new RegExp(name)}));
-        expect(container.querySelector('video')).toBeNull();
-        expect([...container.querySelectorAll('img')]).toEqual(pictures);
-        expect(pictures.map(image => image.parentElement)).toEqual(parents);
-        expect(pictures.every(image => image.isConnected)).toBe(true);
-        expect([...container.querySelectorAll('img[src]')]).toEqual(stills);
-      }
+    rerender(<PreviewPanel />);
+    for (const name of ['무대 화면', '방송 화면', '청중 화면']) {
+      fireEvent.click(screen.getByRole('button', {name: new RegExp(name)}));
+      expect(container.querySelector('video')).toBeNull();
+      expect([...container.querySelectorAll('img')]).toEqual(pictures);
+      expect(pictures.map(image => image.parentElement)).toEqual(parents);
+      expect(pictures.every(image => image.isConnected)).toBe(true);
+      expect([...container.querySelectorAll('img[src]')]).toEqual(stills);
     }
     expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
     expect(HTMLMediaElement.prototype.pause).not.toHaveBeenCalled();

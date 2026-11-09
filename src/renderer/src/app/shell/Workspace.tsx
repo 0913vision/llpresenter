@@ -175,6 +175,7 @@ export function Workspace({
       ) : null}
       <div
         data-resize-panel="media.upper"
+        data-size={sizeClass}
         className={classNames(
           styles.columns,
           toggle.collapsed && styles.leftCollapsed,

@@ -1,5 +1,5 @@
 import {act, cleanup, render, screen} from '@testing-library/react';
-import {useRef, type JSX} from 'react';
+import {useRef, type CSSProperties, type JSX} from 'react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {usePreviewRoom} from '@renderer/ui/usePreviewRoom';
 
@@ -11,6 +11,7 @@ const TOKENS: Readonly<Record<string, number>> = {
   '--space-12': 12,
   '--space-8': 8,
   '--size-preview-small-max': 160,
+  '--preview-reserve': 316,
 };
 /**
  * Width 456: the large picture needs 456 * 9 / 16 + 30 = 286.5, two tiles of
@@ -70,6 +71,10 @@ afterEach(() => {
 });
 
 const noExtra = (): number => 0;
+interface WorkspaceStyle extends CSSProperties {
+  readonly '--preview-reserve': string;
+}
+const workspaceStyle: WorkspaceStyle = {'--preview-reserve': '316px'};
 
 function Anchor(): JSX.Element {
   const ref = useRef<HTMLDivElement>(null);
@@ -82,6 +87,18 @@ function Anchor(): JSX.Element {
 }
 
 describe('usePreviewRoom', () => {
+  it('uses the same reserved workspace height when the neighboring panels differ', () => {
+    render(
+      <div data-ch="760" style={workspaceStyle}>
+        <div data-resize-panel="preview">
+          <Anchor />
+        </div>
+        <div data-resize-panel="slides" style={{minHeight: '240px'}} />
+      </div>,
+    );
+    expect(screen.getByText('picker')).toBeDefined();
+  });
+
   it.each([
     [700, 'picker'],
     [760, 'tiles'],

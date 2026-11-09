@@ -91,13 +91,13 @@ export async function offscreenApp(): Promise<{
         () =>
           current
             .windows()
-            .some(window => window.url().includes('/index.html')),
+            .some(window => window.url().endsWith('/index.html')),
         {timeout: POLL_TIMEOUT},
       )
       .toBe(true);
     const page = current
       .windows()
-      .find(window => window.url().includes('/index.html'));
+      .find(window => window.url().endsWith('/index.html'));
     if (page === undefined) throw new Error('Control window not found');
     const windowed = performance.now();
     // NOTE(0913vision): The window exists before React has mounted, so wait for

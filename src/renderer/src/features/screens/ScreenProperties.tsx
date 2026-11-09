@@ -4,6 +4,7 @@ import {useMemo, useState, type JSX} from 'react';
 import type {MonitorInfo, MonitorList} from '@core/schema/monitors';
 import type {Screen} from '@core/schema/screens';
 import {emptyScreenColor} from '@core/screens/emptyColor';
+import {SCREEN_KIND_ORDER} from '@core/screens/screens';
 import {ColorProperty} from './ColorProperty';
 import {
   Checkbox,
@@ -46,11 +47,11 @@ const NAME_PROBLEMS = {
   taken: '같은 이름의 화면이 있습니다',
 } as const;
 
-const KIND_OPTIONS = [
-  {value: 'audience', label: '청중'},
-  {value: 'broadcast', label: '방송'},
-  {value: 'stage', label: '무대'},
-] as const;
+const KIND_LABELS = {audience: '청중', stage: '무대', broadcast: '방송'};
+const KIND_OPTIONS = SCREEN_KIND_ORDER.map(value => ({
+  value,
+  label: KIND_LABELS[value],
+}));
 const METHOD_OPTIONS = [
   {value: 'fullscreen', label: '전체 화면'},
   {value: 'window', label: '창'},

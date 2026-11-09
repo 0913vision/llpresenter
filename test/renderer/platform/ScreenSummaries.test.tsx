@@ -4,7 +4,11 @@ import {act, cleanup, render, screen} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {MAIN_ID, CAPTIONS_ID} from '@fixtures/core/screenDocuments';
+import {
+  MAIN_ID,
+  CAPTIONS_ID,
+  screensDocument,
+} from '@fixtures/core/screenDocuments';
 import {
   ScreenSummariesProvider,
   useScreenSummaries,
@@ -30,6 +34,37 @@ function labels(): readonly string[] {
 afterEach(() => {
   cleanup();
   delete window.llp;
+});
+
+it('orders toolbar and preview screens by kind without changing saved names or order within a kind', () => {
+  const document = screensDocument();
+  if (document.name !== 'screens') throw new Error('Expected screens');
+  const original = document.value.screens;
+  expect(summarizeScreens(original).map(screen => screen.statusLabel)).toEqual([
+    '청중 화면',
+    '무대 화면',
+    '방송 화면',
+  ]);
+  expect(original.map(screen => screen.name)).toEqual([
+    '청중 화면',
+    '방송 화면',
+    '무대 화면',
+  ]);
+  const extended = settingsDocument('screens', {
+    screens: [
+      ...original,
+      {
+        id: '00000000-0000-4000-8000-000000000099',
+        name: '두 번째 청중',
+        kind: 'audience',
+        method: 'window',
+      },
+    ],
+  });
+  if (extended.name !== 'screens') throw new Error('Expected screens');
+  expect(
+    summarizeScreens(extended.value.screens).map(screen => screen.statusLabel),
+  ).toEqual(['청중 화면', '두 번째 청중', '무대 화면', '방송 화면']);
 });
 
 function document(revision: number, name = '사용자 화면', method = 'window') {
@@ -118,7 +153,7 @@ it('reports a failed read without inventing default screens', async () => {
   expect(labels()).toEqual([]);
 });
 
-it('projects every saved output method and monitor identity in document order', () => {
+it('projects every saved output method and monitor identity in screen-kind order', () => {
   const value = settingsDocument('screens', {
     screens: [
       {
@@ -177,8 +212,8 @@ it('projects every saved output method and monitor identity in document order', 
   ).toEqual([
     {target: '모니터 7 Projector', targetKind: 'display', chroma: false},
     {target: '캡처용 창', targetKind: 'capture', chroma: false},
-    {target: '모니터 미지정', targetKind: 'display', chroma: false},
     {target: '창', targetKind: 'window', chroma: false},
     {target: 'NDI', targetKind: 'ndi', chroma: true},
+    {target: '모니터 미지정', targetKind: 'display', chroma: false},
   ]);
 });

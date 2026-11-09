@@ -89,6 +89,12 @@
   white-space: nowrap;
 }
 
+.caption > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .name {
   overflow: hidden;
   color: var(--text);

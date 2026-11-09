@@ -86,7 +86,7 @@ it('shows the main-owned position below the preview and releases its subscriptio
   });
   const view = render(
     <TestScreenSummaries>
-      <PreviewPanel compact={false} />
+      <PreviewPanel />
     </TestScreenSummaries>,
   );
   const line = await screen.findByRole('progressbar', {
@@ -145,7 +145,7 @@ it('keeps a pushed reading newer than the initial query and hides cleared or rep
   });
   render(
     <TestScreenSummaries>
-      <PreviewPanel compact={false} />
+      <PreviewPanel />
     </TestScreenSummaries>,
   );
   act(() => push({...reading, positionSeconds: 20}));

@@ -93,7 +93,7 @@ describe('preview overlay wiring', () => {
     const {store, snapshot, removals, stopSettings, screens} = setup();
     const view = render(
       <ScreenSummariesContext value={screens}>
-        <PreviewPanel compact={false} />
+        <PreviewPanel />
       </ScreenSummariesContext>,
     );
     await act(async () => {});

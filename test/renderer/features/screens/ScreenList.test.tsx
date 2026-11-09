@@ -137,6 +137,22 @@ function withExtraAudience(
 }
 
 describe('screen creation and group outputs', () => {
+  it('lists audience, stage and broadcast groups in the same order as the toolbar', async () => {
+    setup();
+    await screen.findByRole('option', {name: '청중 화면'});
+    expect(
+      screen.getAllByRole('option').map(row => row.dataset['value']),
+    ).toEqual([MAIN_ID, STAGE_ID, CAPTIONS_ID]);
+    fireEvent.keyDown(screen.getByRole('option', {name: '청중 화면'}), {
+      key: 'ArrowDown',
+    });
+    expect(useScreensSelection.getState().selection).toEqual({id: STAGE_ID});
+    fireEvent.keyDown(screen.getByRole('option', {name: '무대 화면'}), {
+      key: 'ArrowDown',
+    });
+    expect(useScreensSelection.getState().selection).toEqual({id: CAPTIONS_ID});
+  });
+
   it('lists screen commands in spec order and disables delete with its reason for the last screen of a kind', async () => {
     setup();
     const contextTarget = await screen.findByRole('option', {

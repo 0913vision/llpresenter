@@ -32,7 +32,9 @@ it.each([false, true])(
   'labels and toggles the broadcast group with output on=%s',
   on => {
     const {input, send} = fixture();
-    const broadcastId = input.screens[1]?.id;
+    const broadcastId = input.screens.find(
+      screen => screen.kind === 'broadcast',
+    )?.id;
     if (!broadcastId) throw new Error('Missing broadcast fixture');
     const row = menuItems(
       screenEntries({...input, outputs: {[broadcastId]: on}}),

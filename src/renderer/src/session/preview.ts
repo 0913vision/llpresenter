@@ -7,21 +7,11 @@ const DEFAULT_LARGE_SCREEN_ID: string = STARTER_SCREEN_IDS.main;
 
 interface PreviewView {
   readonly largeScreenId: string;
-  /** The panel has no room for the tile row; its header offers a picker instead. */
-  readonly tilesHidden: boolean;
 }
 
 export const usePreview = create<PreviewView>(() => ({
   largeScreenId: DEFAULT_LARGE_SCREEN_ID,
-  tilesHidden: false,
 }));
-
-/** Tells the header whether the 진행 panel shows its tile row. */
-export function setTilesHidden(hidden: boolean): void {
-  if (usePreview.getState().tilesHidden !== hidden) {
-    usePreview.setState({tilesHidden: hidden});
-  }
-}
 
 /** Makes a screen's preview the large one. The large one becomes small. */
 export function showLarge(screenId: string): void {

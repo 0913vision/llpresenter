@@ -10,11 +10,11 @@ import {
   type RefObject,
 } from 'react';
 import type {ScreenRow} from '@core/screens/screenRows';
+import {SCREEN_KIND_ORDER} from '@core/screens/screens';
 
 const INITIAL_ROWS = 12;
 const OVERSCAN = 4;
-type SectionKind = 'audience' | 'broadcast' | 'stage';
-const KINDS: readonly SectionKind[] = ['audience', 'broadcast', 'stage'];
+type SectionKind = (typeof SCREEN_KIND_ORDER)[number];
 interface Section {
   readonly kind: SectionKind;
   readonly rows: readonly ScreenRow[];
@@ -70,7 +70,9 @@ function measureView(
     previous.top === next.top &&
     previous.height === next.height &&
     previous.row === next.row &&
-    KINDS.every(kind => previous.offsets[kind] === next.offsets[kind])
+    SCREEN_KIND_ORDER.every(
+      kind => previous.offsets[kind] === next.offsets[kind],
+    )
       ? previous
       : next,
   );

@@ -69,7 +69,7 @@ it('marks missing live videos from the shared media feed and removes the mark af
   render(
     <TestScreenSummaries>
       <MediaViewProvider api={fixture.api} onProblem={vi.fn()}>
-        <PreviewPanel compact={false} />
+        <PreviewPanel />
       </MediaViewProvider>
     </TestScreenSummaries>,
   );
@@ -133,7 +133,7 @@ it('puts the pause tooltip only on theme frames that show the media content', as
   render(
     <TestScreenSummaries>
       <MediaViewProvider api={api} onProblem={vi.fn()}>
-        <PreviewPanel compact={false} />
+        <PreviewPanel />
       </MediaViewProvider>
     </TestScreenSummaries>,
   );

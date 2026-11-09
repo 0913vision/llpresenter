@@ -13,6 +13,7 @@ import type {SongChange, SongDocument} from '@core/schema/contentDocuments';
 import {sampleSong} from '@fixtures/core/songs/blockFixtures';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
+import {cssRules} from '@fixtures/renderer/ui/cssRules';
 import {ServiceTableList} from '@renderer/features/service/table/ServiceTableList';
 import type {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import {useLive} from '@renderer/session/live';
@@ -225,7 +226,7 @@ it('types a memo with spaces and arrow keys without the row taking them', async 
   expect(row.getAttribute('aria-selected')).toBe(selected);
 });
 
-it('gives each section its own box for the head and the line above it', async () => {
+it('keeps section options clear of the pinned header when ArrowUp selects them', async () => {
   setup();
   await screen.findByRole('option', {name: '첫 곡'});
   act(() =>
@@ -246,4 +247,19 @@ it('gives each section its own box for the head and the line above it', async ()
     '[data-order-id="praise"]',
   );
   expect(section?.className).not.toBe('');
+  const options = screen.getAllByRole('option');
+  const [heading, item] = options;
+  if (heading === undefined || item === undefined) {
+    throw new Error('Expected a section heading and an item');
+  }
+  item.focus();
+  await userEvent.keyboard('{ArrowUp}');
+  expect(document.activeElement).toBe(heading);
+  expect(heading.getAttribute('aria-selected')).toBe('true');
+  const rules = cssRules(
+    'src/renderer/src/features/service/table/ServiceTable.module.css',
+  );
+  expect(rules(".table [role='option']")).toContain(
+    'scroll-margin-block-start: var(--size-table-header)',
+  );
 });

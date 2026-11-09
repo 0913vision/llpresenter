@@ -2,6 +2,7 @@ import {afterEach, expect, it} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {useLive} from '@renderer/session/live';
 import {outputMenuFixture as fixture} from '@fixtures/renderer/platform/outputMenu';
+import {MAIN_ID, CAPTIONS_ID, STAGE_ID} from '@fixtures/core/screenDocuments';
 import {
   outputGroup,
   itemStopEntry,
@@ -18,26 +19,27 @@ it('toggles whole output groups and broadcast through bounded transactions', () 
   for (const screens of [audience, stage, audience.slice(1)]) {
     outputGroup(screens, input.outputs).onSelect?.();
   }
-  const ids = input.screens.map(screen => screen.id);
   expect(send.mock.calls).toEqual([
     [
       {
         type: 'live.batch',
-        commands: ids
-          .slice(0, 2)
-          .map(screenId => ({type: 'output.set', screenId, on: false})),
+        commands: [MAIN_ID, CAPTIONS_ID].map(screenId => ({
+          type: 'output.set',
+          screenId,
+          on: false,
+        })),
       },
     ],
     [
       {
         type: 'live.batch',
-        commands: [{type: 'output.set', screenId: ids[2], on: true}],
+        commands: [{type: 'output.set', screenId: STAGE_ID, on: true}],
       },
     ],
     [
       {
         type: 'live.batch',
-        commands: [{type: 'output.set', screenId: ids[1], on: true}],
+        commands: [{type: 'output.set', screenId: CAPTIONS_ID, on: true}],
       },
     ],
   ]);
