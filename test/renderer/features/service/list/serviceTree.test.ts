@@ -52,7 +52,7 @@ describe('treeRows', () => {
         .filter(item => !isItemOfKind(item, 'header') || item.header === '말씀')
         .map(item => item.id),
     );
-    expect(itemCount(sundayRows)).toBe(12);
+    expect(itemCount(sundayRows)).toBe(10);
   });
   it('labels every kind and puts items under the header before them', () => {
     expect(

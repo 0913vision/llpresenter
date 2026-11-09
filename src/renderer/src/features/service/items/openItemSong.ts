@@ -1,3 +1,4 @@
+import {cardOffset} from '@core/services/sectionCards';
 import {isItemOfKind} from '@core/schema/service';
 import type {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import type {SongEditorWindowAction} from '@core/schema/ipcPayloads';
@@ -22,7 +23,7 @@ export function openItemSong({
   window.llp?.window
     .openSongEditor({
       songId: item.song,
-      block: position ?? selected,
+      block: position ?? Math.max(0, selected - cardOffset(item)),
       ...(action === undefined ? {} : {action}),
       from: {serviceId: service.service.id, itemId: item.id},
     })

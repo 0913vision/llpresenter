@@ -70,6 +70,17 @@ function setup(
       theme: THEME,
       memo: LONG_TEXT,
     },
+    {
+      id: itemId(66),
+      song: HYMN_ONE_ID,
+      slides: [],
+      sectionCard: {name: 'Section', english: 'Section', theme: THEME},
+    },
+    {
+      id: itemId(67),
+      slides: {form: 'blank', name: 'Slides', slides: []},
+      sectionCard: {name: 'Section', english: 'Section', theme: THEME},
+    },
     bibleItem,
     {id: MEDIA_ITEM, media: MEDIA_ID},
     {id: SLOT_ITEM, slot: 'song', title: 'Open slot'},
@@ -111,6 +122,13 @@ describe('registerThemeOutput item resolver', () => {
       title: HYMN_TITLE,
       memo: LONG_TEXT.slice(0, LIVE_STATE_LIMITS.textCharacters),
     });
+  });
+
+  it('passes the opening card offset for song and slides items', async () => {
+    const item = await resolver(setup());
+    expect(item(itemId(66))?.cardOffset).toBe(1);
+    expect(item(itemId(67))?.cardOffset).toBe(1);
+    expect(item(SONG_ITEM)?.cardOffset).toBeUndefined();
   });
 
   it('names a Bible item by its reference', async () => {

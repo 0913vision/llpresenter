@@ -20,6 +20,7 @@ export const liveThemeItemSchema = payloadObject({
   title: v.exactOptional(liveTextSchema),
   memo: v.exactOptional(liveTextSchema),
   overlays: v.exactOptional(itemOverlaysSchema),
+  cardOffset: v.exactOptional(v.literal(1)),
   slidePosition: v.exactOptional(nonNegativeInteger),
   contentCleared: v.exactOptional(v.boolean()),
   startedAt: v.exactOptional(v.pipe(v.number(), v.finite())),

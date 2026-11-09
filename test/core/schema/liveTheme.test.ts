@@ -25,6 +25,7 @@ describe('live theme payloads', () => {
       kind: 'song',
       source: 'service',
       slidePosition: 0,
+      cardOffset: 1,
     };
     expect(v.safeParse(liveThemeItemSchema, item)).toMatchObject({
       success: true,
@@ -84,6 +85,9 @@ describe('live theme payloads', () => {
     {memo: 1},
     {startedAt: Infinity},
     {source: 'renderer'},
+    {cardOffset: 0},
+    {cardOffset: 2},
+    {cardOffset: true},
     {slidePosition: -1},
     {slidePosition: 1.5},
     {slidePosition: Infinity},

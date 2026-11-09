@@ -1,3 +1,5 @@
+import {cardOffset} from '@core/services/sectionCards';
+import {sectionCardEntries} from './SectionCardEditor';
 import {useEffect, useSyncExternalStore, type JSX} from 'react';
 import {createSongId} from '@core/schema/ids';
 import type {ServiceDocument} from '@core/schema/contentDocuments';
@@ -108,6 +110,7 @@ function ItemSongTiles({
     },
   );
   const at = session.selectedOccurrence;
+  const offset = cardOffset(item);
   const {editing} = useOverlayEditing({
     api: editor.api,
     item: {...item, slides: view.slides},
@@ -116,7 +119,7 @@ function ItemSongTiles({
     change: change => items.changeOverlays(change),
   });
   const overlay = useOverlayControl(editing);
-  useEffect(() => items.selectPosition(at), [items, at]);
+  useEffect(() => items.selectPosition(at + offset), [items, at, offset]);
   return (
     <SongSlideSurface
       session={session}
@@ -127,13 +130,16 @@ function ItemSongTiles({
         openItemSong({items, editor, position: index, action: 'hot-key'})
       }
       className={styles.slideSurface}
-      extraMenu={index => overlay.entries(index + 1)}
+      extraMenu={index => [
+        ...sectionCardEntries(items),
+        ...overlay.entries(index + 1),
+      ]}
     >
       <VirtualSlides
         sourceId={item.id}
         session={session}
         song={session.history.snapshot.song}
-        numbers={view.slides.map((_, index) => index + 1)}
+        numbers={view.slides.map((_, index) => index + (1 + cardOffset(item)))}
         labels={state.labels?.value.labels ?? []}
         selected={at}
         baseline={2}

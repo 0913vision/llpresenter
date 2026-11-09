@@ -1,3 +1,4 @@
+import {parseThemes} from '@core/schema/themes';
 import {expect, it} from 'vitest';
 import {
   SUNDAY_SECTIONS,
@@ -6,7 +7,10 @@ import {
   SECTION_RULES_ID,
   sectionGradient,
 } from '@core/themes/sundaySections';
-import {createDefaultThemes, builtInTheme} from '@core/themes/defaults';
+import {createDefaultThemes, legacySectionLayout} from '@core/themes/defaults';
+import {resolveThemeScreen} from '@core/themes/resolve';
+import {themeElementText} from '@core/themes/content';
+import {emptyLayers} from '@core/live/state';
 import {createScreenId} from '@core/schema/ids';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {resolveTextTracking} from '@core/themes/textTracking';
@@ -103,7 +107,7 @@ it('adds an editable section theme without changing the kind defaults or other s
     theme?.screens[createScreenId(STARTER_SCREEN_IDS.broadcast)];
   expect(broadcast?.elements).toMatchObject([
     {
-      kind: 'currentText',
+      kind: 'itemName',
       text: {
         font: STARTER_TEXT_STYLE.font,
         size: STARTER_TEXT_STYLE.size,
@@ -121,7 +125,15 @@ it('adds an editable section theme without changing the kind defaults or other s
     expect(broadcast?.elements[0]?.frame[axis]).toBeCloseTo(expected);
   }
   const stage = createScreenId(STARTER_SCREEN_IDS.stage);
-  expect(theme?.screens[stage]).toEqual(builtInTheme('blank').screens[stage]);
+  const stageLayout = theme?.screens[stage];
+  expect(
+    stageLayout?.elements.filter(
+      element => element.kind === 'itemName' || element.kind === 'currentText',
+    ),
+  ).toMatchObject([
+    {kind: 'itemName', text: {size: 84}},
+    {kind: 'currentText', text: {size: 42}},
+  ]);
 });
 
 it('widens short Unicode names, preserves their center, and leaves other text unchanged', () => {
@@ -163,4 +175,106 @@ it('widens short Unicode names, preserves their center, and leaves other text un
     spacing: 52,
     indent: 0,
   });
+});
+
+it('shows the Korean card name on broadcast and both lines on stage for embedded and standalone cards', () => {
+  const file = createDefaultThemes();
+  const theme = file.themes.find(value => value.id === SECTION_THEME_ID);
+  if (theme === undefined) throw Error('missing section theme');
+  const screens = [
+    {id: createScreenId(STARTER_SCREEN_IDS.main), kind: 'audience'},
+    {id: createScreenId(STARTER_SCREEN_IDS.broadcast), kind: 'broadcast'},
+    {id: createScreenId(STARTER_SCREEN_IDS.stage), kind: 'stage'},
+  ] as const;
+  for (const embedded of [false, true]) {
+    const card = {
+      name: SUNDAY_SECTIONS[1]?.name ?? '',
+      english: "Apostle's Creed",
+      theme: SECTION_THEME_ID,
+    };
+    const slide = {
+      itemId: 'item',
+      position: 0,
+      label: null,
+      lines: [card.english],
+      ...(embedded ? {sectionCard: card} : {}),
+    };
+    const content = {
+      layers: {...emptyLayers(), slide},
+      item: {
+        id: 'item',
+        source: 'service' as const,
+        kind: 'blank' as const,
+        title: card.name,
+      },
+    };
+    const broadcast = resolveThemeScreen(theme, screens[1].id, screens).layout;
+    expect(
+      broadcast.elements.map(element => themeElementText(element, content)),
+    ).toEqual([card.name]);
+    const stage = resolveThemeScreen(theme, screens[2].id, screens).layout;
+    const title = stage.elements.find(element => element.kind === 'itemName');
+    const english = stage.elements.find(
+      element => element.kind === 'currentText',
+    );
+    expect(title && themeElementText(title, content)).toBe(card.name);
+    expect(english && themeElementText(english, content)).toBe(card.english);
+    expect(english?.frame.y).toBeGreaterThanOrEqual(
+      (title?.frame.y ?? 0) + (title?.frame.h ?? 0),
+    );
+  }
+});
+
+it('uses the new presentation for untouched saved defaults and preserves edited layouts', () => {
+  const file = createDefaultThemes();
+  const original = file.themes.find(theme => theme.id === SECTION_THEME_ID);
+  if (original === undefined) throw Error('missing section theme');
+  const screens = [
+    {
+      id: createScreenId(STARTER_SCREEN_IDS.broadcast),
+      kind: 'broadcast',
+      method: 'capture',
+    },
+    {
+      id: createScreenId(STARTER_SCREEN_IDS.stage),
+      kind: 'stage',
+      method: 'fullscreen',
+    },
+  ] as const;
+  const saved = {
+    ...original,
+    screens: Object.fromEntries(
+      screens.map(screen => [screen.id, legacySectionLayout(screen)]),
+    ),
+  };
+  const decoded = parseThemes(
+    JSON.stringify({...file, themes: [saved]}),
+    'themes.json',
+  );
+  if (!decoded.ok) throw Error(decoded.error.message);
+  const reloaded = decoded.value.data.themes[0];
+  if (reloaded === undefined) throw Error('missing saved theme');
+  expect(
+    resolveThemeScreen(reloaded, screens[0].id, screens).layout.elements[0]
+      ?.kind,
+  ).toBe('itemName');
+  expect(
+    resolveThemeScreen(saved, screens[0].id, screens).layout.elements[0]?.kind,
+  ).toBe('itemName');
+  expect(
+    resolveThemeScreen(saved, screens[1].id, screens).layout.elements.some(
+      element => element.kind === 'itemName',
+    ),
+  ).toBe(true);
+  const editedLayout = {
+    ...legacySectionLayout(screens[0]),
+    background: '#123456',
+  };
+  const edited = {
+    ...saved,
+    screens: {...saved.screens, [screens[0].id]: editedLayout},
+  };
+  expect(resolveThemeScreen(edited, screens[0].id, screens).layout).toEqual(
+    editedLayout,
+  );
 });

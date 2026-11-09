@@ -36,19 +36,19 @@ it('ships the church order with fixed editable cards and empty places for local 
   ).toEqual([
     ['예배 전', ['예배 준비']],
     ['묵상기도', ['묵상기도']],
-    ['사도신경', ['사도신경', '사도신경']],
+    ['사도신경', ['사도신경']],
     ['회개와간구의기도', ['회개와간구의기도']],
     ['찬양', ['찬양']],
     ['합심기도', ['합심기도']],
     ['말씀', []],
     ['봉헌', ['봉헌']],
     ['봉헌기도', ['봉헌기도']],
-    ['광고', ['광고', '광고']],
+    ['광고', ['광고']],
     ['축도', ['축도']],
   ]);
   const fixed = template.order.filter(item => isItemOfKind(item, 'slides'));
-  expect(fixed).toHaveLength(12);
-  expect(template.order).toHaveLength(23);
+  expect(fixed).toHaveLength(10);
+  expect(template.order).toHaveLength(21);
   const preparation = fixed.find(item => item.theme === PREPARATION_THEME_ID);
   expect(preparation).toMatchObject({
     slides: {form: 'blank', name: '예배 준비', slides: [{text: ''}]},
@@ -57,6 +57,12 @@ it('ships the church order with fixed editable cards and empty places for local 
   expect(
     creed?.slides.slides.map(slide => ('text' in slide ? slide.text : null)),
   ).toEqual(LITURGY_SLIDES.creed.new);
+  expect(creed?.sectionCard).toEqual({
+    name: SUNDAY_SECTIONS[1]?.name,
+    english: "Apostle's Creed",
+    theme: SUNDAY_SECTIONS.find(s => s.name === SUNDAY_SECTIONS[1]?.name)
+      ?.theme,
+  });
   const notice = fixed.find(item => item.slides.form === 'ad');
   expect(notice).toMatchObject({
     slides: {
@@ -65,6 +71,12 @@ it('ships the church order with fixed editable cards and empty places for local 
       loop: true,
       slides: [{name: '광고 제목', text: '내용 1\n내용 2'}],
     },
+  });
+  expect(notice?.sectionCard).toEqual({
+    name: SUNDAY_SECTIONS[11]?.name,
+    english: 'Notice',
+    theme: SUNDAY_SECTIONS.find(s => s.name === SUNDAY_SECTIONS[11]?.name)
+      ?.theme,
   });
   expect(notice?.slides.slides).toHaveLength(1);
   for (const card of fixed.filter(item =>

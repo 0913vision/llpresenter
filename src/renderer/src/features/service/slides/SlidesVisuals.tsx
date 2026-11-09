@@ -197,10 +197,12 @@ export function SlidesPreview({
   selected,
   media,
   projection,
+  offset = 0,
 }: {
   readonly api: Pick<LlpApi, 'settings' | 'bible'>;
   readonly item: SlidesItem;
   readonly selected: number;
+  readonly offset?: number;
   readonly media: readonly MediaItem[];
   readonly projection?: BibleProjection | null;
 }): JSX.Element {
@@ -248,7 +250,7 @@ export function SlidesPreview({
               {'text' in slide ? slide.name : slideBand(slide, media)}
             </span>
             <span>
-              {selected + 1} / {item.slides.slides.length}
+              {selected + 1 + offset} / {item.slides.slides.length + offset}
             </span>
             <span className={styles.themeName}>{appearance.themeName}</span>
           </>

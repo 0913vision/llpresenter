@@ -1,3 +1,4 @@
+import {cardOffset} from '../services/sectionCards';
 import type {LiveLayers} from '../live/state';
 import type {LiveThemeItem} from '../schema/liveTheme';
 import type {ScreenId} from '../schema/ids';
@@ -25,7 +26,8 @@ export function themeOverlay(
   if (item?.contentCleared) return undefined;
   const slidePosition = item?.slidePosition ?? layers.slide?.position;
   if (slidePosition === undefined) return undefined;
-  const position = slidePosition + 1;
+  const position = slidePosition + 1 - (item === null ? 0 : cardOffset(item));
+  if (position < 1) return undefined;
   return item?.overlays?.find(
     overlay =>
       overlay.from <= position &&

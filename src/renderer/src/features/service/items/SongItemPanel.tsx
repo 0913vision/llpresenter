@@ -1,3 +1,5 @@
+import {cardOffset} from '@core/services/sectionCards';
+import {SectionCardEditor} from './SectionCardEditor';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useEffect, useSyncExternalStore, type JSX} from 'react';
 import type {ServiceItemOf} from '@core/schema/service';
@@ -156,6 +158,7 @@ function SongItemView({
           {session?.document.song.title ?? '없는 곡'}
         </Button>
         <PanelBody variant="flush">
+          <SectionCardEditor items={items} />
           {service === null ? null : (
             <ItemSongSlideGrid
               items={items}
@@ -167,7 +170,7 @@ function SongItemView({
             />
           )}
         </PanelBody>
-        <PanelFooter count={item.slides.length} />
+        <PanelFooter count={item.slides.length + cardOffset(item)} />
       </Panel>
     </div>
   );

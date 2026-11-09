@@ -1,3 +1,4 @@
+import {cardOffset} from '@core/services/sectionCards';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import type {LiveCommand} from '@core/live/commands';
 import type {LiveThemeItem, LiveThemeMode} from '@core/schema/liveTheme';
@@ -114,9 +115,21 @@ export class ThemeRuntime {
           item = withPlayback(this.options.item(item.id) ?? item, item);
         }
         {
-          const position = command.slide.position + 1;
+          if (command.slide.sectionCard !== undefined) {
+            item = {
+              ...item,
+              kind: 'blank',
+              title: command.slide.sectionCard.name,
+              theme: command.slide.sectionCard.theme,
+            };
+          }
+          const offset = cardOffset(item);
+          const position = command.slide.position + 1 - offset;
           const active = item.overlays?.find(
-            overlay => overlay.from <= position && overlay.to >= position,
+            overlay =>
+              position > 0 &&
+              overlay.from <= position &&
+              overlay.to >= position,
           );
           const previousPosition = before.state.themeItem?.contentCleared
             ? undefined
@@ -127,8 +140,9 @@ export class ThemeRuntime {
               ? undefined
               : item.overlays?.find(
                   overlay =>
-                    overlay.from <= previousPosition + 1 &&
-                    overlay.to >= previousPosition + 1,
+                    previousPosition + 1 > offset &&
+                    overlay.from <= previousPosition + 1 - offset &&
+                    overlay.to >= previousPosition + 1 - offset,
                 );
           if (item.startedAt === undefined) {
             item = {...item, startedAt: context.now};

@@ -4,7 +4,11 @@ import {
   createThemeId,
   type ThemeId,
 } from '../schema/ids';
-import type {ThemeScreenLayout, ThemeText} from '../schema/themes';
+import type {
+  ThemeElement,
+  ThemeScreenLayout,
+  ThemeText,
+} from '../schema/themes';
 import {GRADIENT_PRESETS} from './gradientPresets';
 
 export const SECTION_THEME_ID = createThemeId(
@@ -138,5 +142,35 @@ export function sundaySectionLayout(
         text: {...english, weight: 300, size: 56, tracking: 34, maxLines: 1},
       },
     ],
+  };
+}
+
+/** Section cards keep the normal broadcast and stage controls around their title. */
+export function sectionOtherLayout(
+  layout: ThemeScreenLayout,
+  kind: 'broadcast' | 'stage',
+): ThemeScreenLayout {
+  if (layout.mode.kind !== 'own') return layout;
+  return {
+    ...layout,
+    elements: layout.elements.flatMap<ThemeElement>(element => {
+      if (element.kind !== 'currentText') return [element];
+      if (kind === 'broadcast') {
+        return [{...element, kind: 'itemName' as const}];
+      }
+      return [
+        {
+          ...element,
+          kind: 'itemName' as const,
+          frame: {...element.frame, h: 150},
+        },
+        {
+          ...element,
+          id: id(99),
+          frame: {...element.frame, y: element.frame.y + 150, h: 90},
+          text: {...element.text, size: 42, maxLines: 1},
+        },
+      ];
+    }),
   };
 }

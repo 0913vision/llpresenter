@@ -1,3 +1,4 @@
+import {withSectionCard} from '@core/services/sectionCards';
 import type {LiveCommand} from '@core/live/commands';
 import type {MediaChoice, SlideLayer} from '@core/live/state';
 import {isItemOfKind, type ServiceItemOf} from '@core/schema/service';
@@ -204,7 +205,10 @@ export function registerSlideAdvance({
               : library.get(item.background);
           return {
             item,
-            tiles: projected ?? projectSlides(item, library),
+            tiles: withSectionCard(
+              item.sectionCard,
+              projected ?? projectSlides(item, library),
+            ),
             ...(background === undefined
               ? {}
               : {

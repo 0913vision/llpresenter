@@ -1,3 +1,4 @@
+import {withSectionCard} from '@core/services/sectionCards';
 import {useEffect, useLayoutEffect, useRef, useState, type JSX} from 'react';
 import {versesToReview} from '@core/bible/split/splitVerses';
 import type {VerseSlide} from '@core/schema/service';
@@ -56,9 +57,12 @@ export function BibleSplitTools({
         ? null
         : (view, id) => {
             const source = splitSourceFor(view, id);
-            return source === null
-              ? null
-              : (projections.get(source)?.tiles ?? null);
+            if (source === null) return null;
+            const tiles = projections.get(source)?.tiles;
+            if (tiles === undefined) return null;
+            return view.rows.find(row => row.id === id)?.kind === 'slides'
+              ? withSectionCard(view.tiles[id]?.[0]?.sectionCard, tiles)
+              : tiles;
           },
       themes === null || screens === null || saved === null
         ? null

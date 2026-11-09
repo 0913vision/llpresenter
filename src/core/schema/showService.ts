@@ -7,7 +7,11 @@ import type {Result} from '../common/result';
 import type {ReadonlyKnown} from './fileFormat';
 import {biblePartSchema, mediaChoiceSchema} from './liveState';
 import {BIBLE_LOOKUP_LIMITS, bibleLookupPassageSchema} from './bibleLookup';
-import {bibleVerseReferenceSchema, SLIDES_LIMITS} from './service';
+import {
+  bibleVerseReferenceSchema,
+  sectionCardSchema,
+  SLIDES_LIMITS,
+} from './service';
 import {bibleReferenceSchema as bibleReferenceFrequencySchema} from './biblePassage';
 import {
   mediaIdSchema,
@@ -132,6 +136,7 @@ export type SongSlideSource = ReadonlyKnown<
 
 export const showTileSchema = v.pipe(
   payloadObject({
+    sectionCard: v.exactOptional(sectionCardSchema),
     label: v.nullable(v.string()),
     labelColor: labelColorSchema,
     lines: v.array(v.string()),

@@ -59,6 +59,18 @@ export function SlideGrid({
           },
     row === undefined ? 'external' : 'service',
   );
+  const card = tiles?.find(tile => tile.sectionCard !== undefined)?.sectionCard;
+  const cardTheme = useSlideTheme(
+    card === undefined || openItemId === null
+      ? undefined
+      : {
+          id: openItemId,
+          kind: 'slides',
+          form: 'blank',
+          title: card.name,
+          theme: card.theme,
+        },
+  );
   const bible = useBibleTileProjection({itemId: openItemId});
   const liveIndex = useLiveTileIndex();
   useEffect(() => {
@@ -156,7 +168,11 @@ export function SlideGrid({
                 selectionStyle="plate"
                 number={index + 1}
                 canvas={
-                  appearance !== undefined && slide !== null ? (
+                  tile.sectionCard !== undefined &&
+                  cardTheme !== undefined &&
+                  slide !== null ? (
+                    <SlidePicture {...cardTheme} slide={slide} />
+                  ) : appearance !== undefined && slide !== null ? (
                     <SlidePicture
                       slide={slide}
                       layout={appearance.theme.layout}

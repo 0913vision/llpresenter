@@ -523,7 +523,10 @@ fields, as every settings file does (02).
   묵상기도; the others use Apostle's Creed, Repentance Prayer, Praise, Corporate
   Prayer, Offering, Offering Prayer, Holy Communion, Blessing, Baptism,
   Supplication Prayer, Notice, Benediction. These themes are not kind defaults;
-  방송 화면 and 무대 화면 use the existing blank-item layout.
+  Broadcast uses the Korean item name in its normal lower third; stage shows the
+  Korean name as current text, with the smaller English line below. Untouched
+  saved section layouts resolve the same way; edited layouts stay unchanged.
+  This screen choice is the lead's rehearsal default, not a user decision.
 - In new libraries, 찬양 on 청중 화면 uses white NanumSquare ExtraBold
   (weight 800) at 108 px, centered horizontally and top aligned, with -3 px
   tracking, 137 px line spacing, and no shadow or outline. Its text frame is
@@ -669,3 +672,9 @@ px) independently. The opening title may use 12/12 px while another song retains
 The optional titleTop and subtitleTop in `titleLayout` set each line's frame y
 coordinate explicitly. For example, the opening subtitle uses 338 px and the
 closing song title uses 158 px; unconfigured titles retain 181/345 px.
+
+An opening section card uses its own section theme and Korean name while the
+remaining slides retain the item theme.
+
+If a section card theme is missing, output reports the missing theme and uses
+the blank-item default theme, as for any missing item theme.

@@ -270,7 +270,9 @@ export function tilesForView(
   itemId: ItemId,
 ): readonly SlideTile[] {
   const projected = bibleTileResolver?.(view, itemId);
-  if (projected !== null && projected !== undefined) return projected;
+  if (projected !== null && projected !== undefined) {
+    return projected;
+  }
   return isLibrarySource(view, itemId)
     ? view.librarySong.tiles
     : isBibleSource(view, itemId)

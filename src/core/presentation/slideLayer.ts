@@ -21,7 +21,8 @@ export function slideLayerOf(
       ? {
           textSlideNumber: tiles
             .slice(0, cursor.index + 1)
-            .filter(tile => tile.picture === undefined).length,
+            .filter(tile => tile.kind === 'ad' && tile.picture === undefined)
+            .length,
         }
       : {}),
     ...(tile.biblePart === undefined ? {} : {biblePart: tile.biblePart}),
@@ -33,6 +34,7 @@ export function slideLayerOf(
         ? tile.label
         : null,
     lines: tile.lines,
+    ...(tile.sectionCard === undefined ? {} : {sectionCard: tile.sectionCard}),
     ...(tile.titleSlide === undefined ? {} : {titleSlide: tile.titleSlide}),
     ...(tile.titleLayout === undefined ? {} : {titleLayout: tile.titleLayout}),
     ...(tile.transition === undefined ? {} : {transition: tile.transition}),

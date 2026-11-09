@@ -85,7 +85,9 @@ export function slidesOutput(
           itemId: slide.itemId,
           slidePicture: true,
         };
-  if (media !== undefined) commands.push({type: 'media.show', media});
+  if (slide.sectionCard !== undefined) {
+    commands.push({type: 'layer.clear', target: 'media'});
+  } else if (media !== undefined) commands.push({type: 'media.show', media});
   commands.push({type: 'slide.show', slide});
   return {type: 'live.batch', commands};
 }

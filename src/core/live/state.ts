@@ -1,3 +1,4 @@
+import type {SectionCard} from '../schema/service';
 import type {ActiveMessage, ActiveProp} from '../schema/overlayState';
 import type {MacroId, MediaId, ScreenId, SlideId, TimerId} from '../schema/ids';
 import type {TimerRuns} from '../schema/timerState';
@@ -55,6 +56,7 @@ export interface NextSlide {
 
 /** The slide on output: a service item, its position in the arrangement, and what to draw. */
 export interface SlideLayer {
+  readonly sectionCard?: SectionCard;
   readonly titleSlide?: true;
   readonly titleLayout?: import('../schema/songTitleLayout').SongTitleLayout;
   readonly transition?: import('../schema/slideTransition').SlideTransition;

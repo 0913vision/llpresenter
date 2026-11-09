@@ -1,3 +1,4 @@
+import {cardOffset} from '@core/services/sectionCards';
 import type {JSX} from 'react';
 import type {ItemRow} from '@core/presentation/model';
 import type {MediaId, SongId} from '@core/schema/ids';
@@ -100,10 +101,12 @@ export function ServiceTableCells({
     <span className={styles.grid}>
       <span className={classNames(styles.cell, styles.slides)}>
         {item !== undefined && isItemOfKind(item, 'slides')
-          ? item.slides.slides.length
+          ? item.slides.slides.length + cardOffset(item)
           : row.kind === 'media'
             ? ''
-            : (detail ?? '')}
+            : song?.sectionCard !== undefined
+              ? song.slides.length + 1
+              : (detail ?? '')}
       </span>
       {item === undefined ? (
         <span className={classNames(styles.cell, styles.theme)} />

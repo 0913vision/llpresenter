@@ -1,3 +1,8 @@
+import {cardOffset} from '@core/services/sectionCards';
+import {
+  SectionCardEditor,
+  sectionCardEntries,
+} from '../items/SectionCardEditor';
 import {type JSX, useEffect, useMemo, useSyncExternalStore} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {SlidesDraft, type SlidesItem} from '@core/services/slidesEdits';
@@ -73,13 +78,17 @@ function SlidesItemTiles({
     session.slideModel.getSnapshot,
   );
   const {item, selected} = session.draft.snapshot;
+  const offset = cardOffset(item);
   const {appearance} = useSlidesAppearance(api, item);
   const {projection} = useSlidesVerseProjection(api, item);
   const media = useItemMedia(api.media).document?.value.items ?? [];
-  useEffect(() => items.selectPosition(selected), [items, selected]);
+  useEffect(
+    () => items.selectPosition(selected + offset),
+    [items, selected, offset],
+  );
   const edit = (index = selected): void => {
     if (service === null || openEditor === undefined) return;
-    items.selectPosition(index);
+    items.selectPosition(index + cardOffset(item));
     openEditor({serviceId: service.service.id, itemId: item.id}).catch(
       (error: unknown) => console.error('Could not open slides editor', error),
     );
@@ -99,12 +108,14 @@ function SlidesItemTiles({
         </PanelActions>
       </PanelHeader>
       <PanelBody variant="flush">
+        <SectionCardEditor items={items} />
         <SongSlideSurface
           session={session}
           report={session.reportNotice}
           editLabel="슬라이드 편집…"
           className={styles.slideSurface}
           onEdit={edit}
+          extraMenu={() => sectionCardEntries(items)}
         >
           <VirtualSlides
             sourceId={item.id}
@@ -115,7 +126,7 @@ function SlidesItemTiles({
                 lines: [],
               })),
             }}
-            numbers={view.slides.map((_, i) => i + 1)}
+            numbers={view.slides.map((_, i) => i + (1 + cardOffset(item)))}
             labels={[]}
             selected={selected}
             baseline={2}
@@ -134,7 +145,7 @@ function SlidesItemTiles({
           />
         </SongSlideSurface>
       </PanelBody>
-      <PanelFooter count={view.slides.length} />
+      <PanelFooter count={view.slides.length + cardOffset(item)} />
     </Panel>
   );
 }

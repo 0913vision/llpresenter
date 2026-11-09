@@ -15,12 +15,19 @@ export function sendSlideOutput(
     slide.itemId;
   const output = slidesOutput(
     slide,
-    entering || slide.kind === 'ad' || slide.kind === 'blank'
+    slide.sectionCard === undefined &&
+      (entering ||
+        live.state?.layers.slide?.sectionCard !== undefined ||
+        slide.kind === 'ad' ||
+        slide.kind === 'blank')
       ? background
       : undefined,
   );
   const clearBackground =
-    entering && background === undefined && slide.picture === undefined;
+    slide.sectionCard === undefined &&
+    entering &&
+    background === undefined &&
+    slide.picture === undefined;
   sendLive({
     type: 'live.batch',
     commands: [

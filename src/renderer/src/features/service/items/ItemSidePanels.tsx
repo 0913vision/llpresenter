@@ -1,3 +1,6 @@
+import {cardOffset} from '@core/services/sectionCards';
+import {useSlideTheme} from '@renderer/platform/useSlideTheme';
+import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {projectedItemOverlays} from '@core/services/songItemOverlays';
 import {useSyncExternalStore, type JSX} from 'react';
 import {isItemOfKind} from '@core/schema/service';
@@ -110,10 +113,26 @@ export function ItemPreviewPanel({items, editor}: ItemPanelProps): JSX.Element {
           ? null
           : itemPicture({
               song: previewSong,
-              position,
+              position: Math.max(0, position - cardOffset(item)),
               background:
                 item.background ?? privateSong?.background ?? song?.background,
             });
+  const card =
+    item !== null &&
+    (isItemOfKind(item, 'song') || isItemOfKind(item, 'slides'))
+      ? item.sectionCard
+      : undefined;
+  const cardTheme = useSlideTheme(
+    card === undefined || item === null
+      ? undefined
+      : {
+          id: item.id,
+          kind: 'slides',
+          form: 'blank',
+          title: card.name,
+          theme: card.theme,
+        },
+  );
   const previewKind =
     item === null
       ? undefined
@@ -128,14 +147,47 @@ export function ItemPreviewPanel({items, editor}: ItemPanelProps): JSX.Element {
     item !== null && isItemOfKind(item, 'bible')
       ? item.bible.ref
       : previewSong?.title;
+  if (
+    item !== null &&
+    card !== undefined &&
+    position === 0 &&
+    cardTheme !== undefined
+  ) {
+    return (
+      <Panel label={'\ubbf8\ub9ac\ubcf4\uae30'}>
+        <PanelBody>
+          <div
+            style={{
+              position: 'relative',
+              overflow: 'hidden',
+              width: '100%',
+              aspectRatio: '16 / 9',
+            }}
+          >
+            <SlidePicture
+              {...cardTheme}
+              slide={{
+                itemId: item.id,
+                position: 0,
+                label: card.name,
+                lines: [card.english],
+                sectionCard: card,
+              }}
+            />
+          </div>
+        </PanelBody>
+      </Panel>
+    );
+  }
   if (item !== null && isItemOfKind(item, 'slides')) {
     return (
       <SlidesPreview
         api={editor.api}
         item={item}
+        offset={cardOffset(item)}
         selected={Math.max(
           0,
-          Math.min(position, item.slides.slides.length - 1),
+          Math.min(position - cardOffset(item), item.slides.slides.length - 1),
         )}
         media={media.document?.value.items ?? []}
       />

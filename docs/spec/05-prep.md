@@ -1085,3 +1085,7 @@ the group at the canvas boundary without changing gaps. Both drag surfaces show
 the count. Delete from a key or menu is immediate for one element; more than one
 asks once with the count. Each deletion records one undo step. A pending
 confirmation cannot delete a changed document or layout.
+
+Song and slides items can add an opening section card from the slide menu. Its
+Korean and English text can be edited and the card removed independently. The
+standalone 구역 이름 item remains available.

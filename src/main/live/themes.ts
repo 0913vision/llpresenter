@@ -1,3 +1,4 @@
+import {cardOffset} from '@core/services/sectionCards';
 import {projectedItemOverlays} from '@core/services/songItemOverlays';
 import {isItemOfKind} from '@core/schema/service';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
@@ -70,6 +71,11 @@ export function registerThemeOutput({
             id,
             kind,
             source: 'service',
+            ...((isItemOfKind(entry, 'song') ||
+              isItemOfKind(entry, 'slides')) &&
+            cardOffset(entry)
+              ? {cardOffset: 1 as const}
+              : {}),
             ...(entry.theme === undefined ? {} : {theme: entry.theme}),
             ...(title === undefined
               ? {}

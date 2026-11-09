@@ -1,3 +1,4 @@
+import {withSectionCard} from '@core/services/sectionCards';
 import {NO_LABEL_COLOR, type LabelColor} from '@core/labels/colors';
 import type {MediaChoice} from '@core/live/state';
 import type {LoadedFile} from '@core/schema/fileFormat';
@@ -87,6 +88,21 @@ export function buildShowService({
   for (const item of order) {
     const tiles = otherTiles(item, {backgrounds, media, passages});
     if (tiles !== undefined) itemTiles[item.id] = tiles;
+  }
+  for (const item of order) {
+    if (
+      (!isItemOfKind(item, 'song') && !isItemOfKind(item, 'slides')) ||
+      item.sectionCard === undefined
+    ) {
+      continue;
+    }
+    const tiles = itemTiles[item.id] ?? [];
+    if (tiles.length >= SHOW_SERVICE_LIMITS.tiles) {
+      cappedItems.add(item.id);
+      itemTiles[item.id] = [];
+      continue;
+    }
+    itemTiles[item.id] = withSectionCard(item.sectionCard, tiles);
   }
   const rowSources: RowSources = {
     songs,

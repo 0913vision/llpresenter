@@ -1,7 +1,9 @@
+import {sameJson} from '../common/sameJson';
+import {SECTION_THEMES, sectionOtherLayout} from './sundaySections';
 import type {ScreenId, ThemeId} from '../schema/ids';
 import type {Screen} from '../schema/screens';
 import type {Theme, ThemeScreenLayout, ThemesFile} from '../schema/themes';
-import {builtInTheme, type ThemeScreen} from './defaults';
+import {builtInTheme, legacySectionLayout, type ThemeScreen} from './defaults';
 import {themeElementProblem, type ThemeItemKind} from './elementRules';
 import {SONG_THEME_ID} from './songTitle';
 
@@ -42,6 +44,27 @@ export function implicitScreenLayout(
     : {mode: {kind: 'same', screen: first.id}, elements: []};
 }
 
+function resolvedSectionLayout(
+  theme: Theme,
+  layout: ThemeScreenLayout,
+  source: Pick<Screen, 'id' | 'kind'> | undefined,
+): ThemeScreenLayout {
+  if (
+    (source?.kind !== 'broadcast' && source?.kind !== 'stage') ||
+    !SECTION_THEMES.some(section => section.id === theme.id)
+  ) {
+    return layout;
+  }
+  const legacy = legacySectionLayout({
+    id: source.id,
+    kind: source.kind,
+    method: source.kind === 'broadcast' ? 'capture' : 'fullscreen',
+  });
+  return sameJson(layout, legacy)
+    ? sectionOtherLayout(layout, source.kind)
+    : layout;
+}
+
 export interface ResolvedThemeScreen {
   readonly sourceScreenId: ScreenId;
   readonly layout: ThemeScreenLayout;
@@ -75,17 +98,19 @@ export function resolveThemeScreen(
       return {sourceScreenId: current, layout: emptyLayout};
     }
     if (layout.mode.kind === 'own') {
-      return themeElementProblem(layout.elements, destination.kind) ===
+      const source = screens.find(screen => screen.id === current);
+      let resolved = layout;
+      if (
+        source?.kind === 'audience' &&
+        theme.id === SONG_THEME_ID &&
+        layout.songTitle !== 'sunday'
+      ) {
+        resolved = {...layout, songTitle: 'sunday'};
+      }
+      resolved = resolvedSectionLayout(theme, resolved, source);
+      return themeElementProblem(resolved.elements, destination.kind) ===
         undefined
-        ? {
-            sourceScreenId: current,
-            layout:
-              theme.id === SONG_THEME_ID &&
-              layout.songTitle !== 'sunday' &&
-              screens.find(screen => screen.id === current)?.kind === 'audience'
-                ? {...layout, songTitle: 'sunday'}
-                : layout,
-          }
+        ? {sourceScreenId: current, layout: resolved}
         : empty;
     }
     current = layout.mode.screen;

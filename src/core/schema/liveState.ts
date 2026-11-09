@@ -1,3 +1,4 @@
+import {sectionCardSchema} from './service';
 import {songTitleLayoutSchema} from './songTitleLayout';
 import {slideTransitionSchema} from './slideTransition';
 import * as v from 'valibot';
@@ -77,6 +78,7 @@ export const layerSchemas = {
     transition: v.exactOptional(slideTransitionSchema),
     label: v.nullable(liveTextSchema),
     lines: slideLinesSchema,
+    sectionCard: v.exactOptional(sectionCardSchema),
     titleSlide: v.exactOptional(v.literal(true)),
     titleLayout: v.exactOptional(songTitleLayoutSchema),
     continued: v.exactOptional(v.boolean()),

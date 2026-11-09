@@ -25,7 +25,7 @@ import {
 
 import {parseSong, type Song} from '@core/schema/song';
 import type {ServicePassages} from '@main/bible/servicePassages';
-import {translationIdSchema} from '@core/schema/ids';
+import {createThemeId, translationIdSchema} from '@core/schema/ids';
 import {slidesItem, SLIDES_ITEM} from '@fixtures/core/slides';
 import {MOCK_LONG_VERSE} from '@fixtures/core/bibleSplit';
 import {
@@ -663,4 +663,27 @@ describe('buildShowService media items', () => {
       [itemId(3)]: [],
     });
   });
+});
+
+it('projects the card ahead of song and slide content without changing their theme', () => {
+  const theme = createThemeId('00000000-0000-4000-8000-000000000111');
+  const sectionCard = {name: '사도신경', english: "Apostle's Creed", theme};
+  const song = loadedSong(hymnOne());
+  for (const item of [
+    {id: itemId(1), song: HYMN_ONE_ID, slides: song.data.slides, sectionCard},
+    {...slidesItem(), sectionCard},
+  ]) {
+    const shown = buildShowService({
+      service: loadedService([item]),
+      songs: new Map([[HYMN_ONE_ID, song]]),
+      labels: [],
+      revision: 1,
+    });
+    expect(shown.tiles[item.id]?.[0]).toMatchObject({
+      sectionCard,
+      lines: [sectionCard.english],
+    });
+    expect(shown.tiles[item.id]?.length).toBeGreaterThan(1);
+    expect(shown.rows[0]).not.toHaveProperty('theme', theme);
+  }
 });

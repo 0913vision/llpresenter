@@ -132,6 +132,19 @@ export const slidesSchema = v.pipe(
 
 export type Slide = ReadonlyKnown<v.InferOutput<typeof slideSchema>>;
 
+export const sectionCardSchema = jsonObject({
+  name: v.pipe(
+    slideNameSchema,
+    v.check(name => name.trim().length > 0, 'Expected a non-empty card name'),
+  ),
+  english: slideTextSchema,
+  theme: themeIdSchema,
+});
+
+export type SectionCard = ReadonlyKnown<
+  v.InferOutput<typeof sectionCardSchema>
+>;
+
 const itemFields = {
   id: serviceItemIdSchema,
   theme: v.exactOptional(themeIdSchema),
@@ -148,6 +161,7 @@ const itemSchemas = {
   song: jsonObject({
     ...itemFields,
     overlays: v.exactOptional(songItemOverlaysSchema),
+    sectionCard: v.exactOptional(sectionCardSchema),
     song: songIdSchema,
     slides: songSlidesSchema,
     background: v.exactOptional(mediaIdSchema),
@@ -160,6 +174,7 @@ const itemSchemas = {
   }),
   slides: jsonObject({
     ...itemFields,
+    sectionCard: v.exactOptional(sectionCardSchema),
     slides: slidesSchema,
     background: v.exactOptional(mediaIdSchema),
     ...startFields,

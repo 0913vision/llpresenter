@@ -3,7 +3,7 @@ import type {ServiceItem, Template} from '../schema/service';
 import {SUNDAY_SECTIONS} from '../themes/sundaySections';
 import {PREPARATION_THEME_ID} from '../themes/sundayStandby';
 import {newLiturgyItem} from './liturgy';
-import {newSectionItem} from './sectionCards';
+import {newSectionItem, sectionCardOf} from './sectionCards';
 import {newSlidesItem} from './slidesEdits';
 
 const itemId = () => createServiceItemId(crypto.randomUUID());
@@ -35,9 +35,11 @@ export function sundayTemplate(): Template {
     if (name === '말씀') continue;
     const section = SUNDAY_SECTIONS.find(section => section.name === name);
     if (section === undefined) throw Error(`Missing section card: ${name}`);
-    order.push(newSectionItem(itemId(), section));
     if (name === '사도신경') {
-      order.push(newLiturgyItem(itemId(), {kind: 'creed', translation: 'new'}));
+      order.push({
+        ...newLiturgyItem(itemId(), {kind: 'creed', translation: 'new'}),
+        sectionCard: sectionCardOf(section),
+      });
     } else if (name === '광고') {
       const notice = newSlidesItem('ad', itemId());
       const slide = notice.slides.slides[0];
@@ -46,11 +48,14 @@ export function sundayTemplate(): Template {
       }
       order.push({
         ...notice,
+        sectionCard: sectionCardOf(section),
         slides: {
           ...notice.slides,
           slides: [{...slide, name: '광고 제목', text: '내용 1\n내용 2'}],
         },
       });
+    } else {
+      order.push(newSectionItem(itemId(), section));
     }
   }
   return {

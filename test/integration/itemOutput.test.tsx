@@ -1,3 +1,4 @@
+import {createThemeId} from '@core/schema/ids';
 import {afterEach, beforeEach, expect, it} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import {emptyLiveState, type SlideLayer} from '@core/live/state';
@@ -91,4 +92,22 @@ it('keeps a background-only choice within its item and clears it at the next bac
   expect(history.state.layers.media).toBe(playing);
   sendSlideOutput({...slide, itemId: 'next'});
   expect(history.state.layers.media).toBeNull();
+});
+
+it('restores the same item background when moving from its card to content', () => {
+  const sectionCard = {
+    name: 'Section',
+    english: 'Section',
+    theme: createThemeId('00000000-0000-4000-8000-000000000111'),
+  };
+  sendSlideOutput({...slide, sectionCard}, background);
+  useLive.setState({state: history.state});
+  sendSlideOutput({...slide, position: 1}, background);
+  expect(sent.at(-1)).toMatchObject({
+    type: 'live.batch',
+    commands: [
+      {type: 'media.show', media: background},
+      {type: 'slide.show', slide: {position: 1}},
+    ],
+  });
 });

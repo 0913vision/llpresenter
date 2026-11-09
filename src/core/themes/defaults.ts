@@ -16,7 +16,11 @@ import {STARTER_SCREEN_IDS} from '../screens/screens';
 import {THEME_LIMITS, themeItemKinds, type ThemeItemKind} from './elementRules';
 import {sundayScriptureLayout, sermonTitleLayout} from './sundayScripture';
 import {sundayNoticeLayout} from './sundayNotice';
-import {SECTION_THEMES, sundaySectionLayout} from './sundaySections';
+import {
+  SECTION_THEMES,
+  sundaySectionLayout,
+  sectionOtherLayout,
+} from './sundaySections';
 import {
   sundayPreparationLayout,
   sundayServiceTimesLayout,
@@ -215,6 +219,11 @@ function layoutFor(
   };
 }
 
+/** The former unmodified section layout, used only when resolving saved defaults. */
+export function legacySectionLayout(screen: ThemeScreen): ThemeScreenLayout {
+  return layoutFor(screen, 'blank');
+}
+
 function advertisementLayout(): ThemeScreenLayout {
   const text: ThemeText = {
     ...basicText,
@@ -338,7 +347,7 @@ export function createDefaultThemes(
             screen.id,
             screen.kind === 'audience'
               ? sundaySectionLayout(color)
-              : layoutFor(screen, 'blank'),
+              : sectionOtherLayout(layoutFor(screen, 'blank'), screen.kind),
           ]),
         ),
       })),

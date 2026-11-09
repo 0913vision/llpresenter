@@ -2,6 +2,7 @@ import {describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
 import {
+  createThemeId,
   createServiceItemId,
   createItemOverlayId,
   createMediaId,
@@ -513,4 +514,141 @@ describe('main-process theme runtime', () => {
       ),
     ).toBeUndefined();
   });
+});
+
+it('uses the section card theme only while its slide is live', () => {
+  const {store, dispatch, slide, service, current} = setup();
+  const theme = current().defaults.blank;
+  if (theme === undefined) throw new Error('Missing blank theme');
+  const sectionCard = {name: '사도신경', english: "Apostle's Creed", theme};
+  dispatch({
+    type: 'slide.show',
+    slide: {
+      itemId: ITEM,
+      position: 0,
+      label: sectionCard.name,
+      lines: [sectionCard.english],
+      sectionCard,
+    },
+  });
+  expect(store.state.themeItem).toMatchObject({
+    kind: 'blank',
+    title: sectionCard.name,
+    theme,
+  });
+  slide(ITEM, undefined, 1);
+  expect(store.state.themeItem).toMatchObject({
+    kind: 'song',
+    title: service.title,
+    theme: service.theme,
+  });
+});
+
+it.each(['song', 'blank'] as const)(
+  'matches content overlay positions with an opening card for %s',
+  kind => {
+    const overlay = {
+      id: createItemOverlayId('00000000-0000-4000-8000-000000000301'),
+      name: 'Overlay',
+      from: 1,
+      to: 1,
+      screens: [THEME_MAIN],
+      content: {text: 'Overlay'},
+    };
+    const {store, dispatch, slide, service, save, current, advance} = setup([
+      overlay,
+    ]);
+    save({...service, kind, cardOffset: 1});
+    const theme = current().defaults.blank;
+    if (theme === undefined) throw Error('missing theme');
+    const sectionCard = {name: 'Section', english: 'Section', theme};
+    dispatch({
+      type: 'slide.show',
+      slide: {
+        itemId: ITEM,
+        position: 0,
+        label: null,
+        lines: ['Section'],
+        sectionCard,
+      },
+    });
+    expect(
+      themeOverlay(
+        store.state.themeItem ?? null,
+        store.state.layers,
+        THEME_MAIN,
+      ),
+    ).toBeUndefined();
+    advance(100);
+    slide(ITEM, undefined, 1);
+    expect(
+      themeOverlay(
+        store.state.themeItem ?? null,
+        store.state.layers,
+        THEME_MAIN,
+      )?.id,
+    ).toBe(overlay.id);
+    expect(store.state.themeItem?.overlayStartedAt).toBe(1100);
+    slide(ITEM, undefined, 2);
+    expect(
+      themeOverlay(
+        store.state.themeItem ?? null,
+        store.state.layers,
+        THEME_MAIN,
+      ),
+    ).toBeUndefined();
+  },
+);
+
+it('falls back to the blank default when a card theme has been removed', () => {
+  const {store, dispatch, current} = setup();
+  const missing = createThemeId('00000000-0000-4000-8000-000000009999');
+  dispatch({
+    type: 'slide.show',
+    slide: {
+      itemId: ITEM,
+      position: 0,
+      label: null,
+      lines: ['Section'],
+      sectionCard: {name: 'Section', english: 'Section', theme: missing},
+    },
+  });
+  expect(store.state.themeOutput?.themeId).toBe(current().defaults.blank);
+  expect(store.state.themeOutput?.missing).toContain(missing);
+});
+
+it('keeps an overlay on the same content when the card is added and removed', () => {
+  const overlay = {
+    id: createItemOverlayId('00000000-0000-4000-8000-000000000301'),
+    name: 'Overlay',
+    from: 1,
+    to: 1,
+    screens: [THEME_MAIN],
+    content: {text: 'Overlay'},
+  };
+  const {store, service, save, slide, dispatch, current} = setup([overlay]);
+  const active = () =>
+    themeOverlay(store.state.themeItem ?? null, store.state.layers, THEME_MAIN)
+      ?.id;
+  slide();
+  expect(active()).toBe(overlay.id);
+  save({...service, cardOffset: 1});
+  const theme = current().defaults.blank;
+  if (theme === undefined) throw Error('missing theme');
+  dispatch({
+    type: 'slide.show',
+    slide: {
+      itemId: ITEM,
+      position: 0,
+      label: null,
+      lines: ['Section'],
+      sectionCard: {name: 'Section', english: 'Section', theme},
+    },
+  });
+  expect(active()).toBeUndefined();
+  slide(ITEM, undefined, 1);
+  expect(active()).toBe(overlay.id);
+  save(service);
+  slide();
+  expect(active()).toBe(overlay.id);
 });
