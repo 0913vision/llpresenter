@@ -48,6 +48,7 @@ export function ServiceTableList({
           {
             kind: 'item',
             id: 'memo',
+            contextGroup: 'memo',
             label: '메모…',
             ...menuAvailability(readOnly ? NEWER_FILE_REASON : undefined),
             onSelect: () =>

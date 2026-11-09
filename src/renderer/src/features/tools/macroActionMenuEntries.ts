@@ -160,6 +160,7 @@ function addActionEntries(
         {
           kind: 'item',
           id: 'clear',
+          contextGroup: 'delete',
           label: '지우기',
           icon: 'eraser',
           ...menuAvailability(
@@ -234,10 +235,11 @@ function editEntries(
     return {
       kind: 'item',
       id: `edit-${index}`,
+      unimplemented: !known,
       label: `동작 편집: ${macroActionName(action, targets)}`,
       icon: actionIcon(action),
       ...menuAvailability(
-        locked ? lockedReason(input) : !known ? '아직 없는 기능' : undefined,
+        !known ? '아직 없는 기능' : locked ? lockedReason(input) : undefined,
       ),
       loadSubmenu: known
         ? () => [
@@ -263,6 +265,7 @@ function editEntries(
                   {
                     kind: 'item' as const,
                     id: 'open',
+                    contextGroup: 'default' as const,
                     label:
                       action.kind === 'theme'
                         ? '테마 편집'

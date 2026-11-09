@@ -53,7 +53,9 @@ describe('service panel editing', () => {
   it('copies a whole 구역 with its items from its menu', async () => {
     const {ids} = setup('prep');
     fireEvent.contextMenu(screen.getByRole('option', {name: '제목'}));
-    await userEvent.click(await screen.findByRole('menuitem', {name: '복제'}));
+    await userEvent.click(
+      await screen.findByRole('menuitem', {name: '3개 복제'}),
+    );
     await waitFor(() => expect(ids()).toHaveLength(6));
     expect(ids().slice(0, 3)).toEqual([headerId, firstId, lastId]);
   });
@@ -97,7 +99,7 @@ describe('service panel editing', () => {
     );
     expect(onOpenPrep).toHaveBeenCalledWith(lastId);
     expect(send).not.toHaveBeenCalled();
-    expect(useShow.getState().openItemId).toBeNull();
+    expect(useShow.getState().openItemId).toBe(lastId);
   });
 
   it('disables both new rows when the song is missing', async () => {

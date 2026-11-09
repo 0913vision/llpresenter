@@ -247,6 +247,7 @@ export function MediaView({
       });
   };
   const actions = (entry: MediaEntry): MediaTileActions => ({
+    output: () => output(entries.findIndex(row => row.id === entry.id)),
     missing: missing(entry),
     editable: view.document?.access === 'editable',
     inPlaylist: playlist !== null,
@@ -397,6 +398,7 @@ export function MediaView({
             onOutput={workspace === 'show' ? () => undefined : output}
             onMenu={(at, anchor) => {
               const entry = entries[at];
+              if (entry !== undefined) setSelected(entry.id);
               const choices =
                 entry === undefined
                   ? []
@@ -443,6 +445,7 @@ export function MediaView({
       </Panel>
       {menu === null ? null : (
         <Menu
+          context
           label="미디어 메뉴"
           anchor={menu.anchor}
           onClose={() => setMenu(null)}

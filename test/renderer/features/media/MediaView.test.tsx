@@ -162,13 +162,14 @@ describe('media view', () => {
           item.getAttribute('role') === 'separator' ? '|' : item.textContent,
       ),
     ).toEqual([
-      '탐색기에서 보기',
       '재생',
       '효과음으로 지정',
-      '|',
       '속성',
-      '복제',
       '이름 바꾸기',
+      '|',
+      '복제',
+      '|',
+      '탐색기에서 보기',
       '|',
       '삭제',
     ]);
@@ -482,7 +483,8 @@ describe('media view', () => {
       const video = await tile('Dawn');
       fireEvent.keyDown(video, {key: 'ArrowRight'});
       fireEvent.contextMenu(video);
-      expect(selected.getAttribute('aria-selected')).toBe('true');
+      expect(selected.getAttribute('aria-selected')).toBe('false');
+      expect(video.getAttribute('aria-selected')).toBe('true');
       const properties = screen.getByRole('menuitem', {name: '속성'});
       expect(properties.getAttribute('aria-disabled')).not.toBe('true');
       fireEvent.click(properties);
@@ -602,13 +604,14 @@ describe('media view', () => {
         .filter(item => item.getAttribute('aria-disabled') !== 'true')
         .map(item => item.textContent),
     ).toEqual([
+      '출력',
       '속성',
       '맞춤',
       '끝나면',
-      '복제',
       '이름 바꾸기',
-      '삭제',
+      '복제',
       '탐색기에서 보기',
+      '삭제',
     ]);
     fireEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
     const dialog = await screen.findByRole('alertdialog');
@@ -751,6 +754,6 @@ describe('media view', () => {
         .getAllByRole('menuitem')
         .filter(item => item.getAttribute('aria-disabled') !== 'true')
         .map(item => item.textContent),
-    ).toEqual(['속성', '탐색기에서 보기']);
+    ).toEqual(['출력', '속성', '탐색기에서 보기']);
   });
 });

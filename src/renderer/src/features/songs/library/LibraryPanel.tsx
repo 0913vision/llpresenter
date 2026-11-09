@@ -186,6 +186,7 @@ export function LibraryPanel({
               }}
               onContextMenu={(event, id) => {
                 event.preventDefault();
+                library.select(id);
                 setMenu({
                   id,
                   anchor: contextMenuAnchor(event),
@@ -198,6 +199,7 @@ export function LibraryPanel({
       </Panel>
       {menu && menuSong ? (
         <Menu
+          context
           label="곡 메뉴"
           anchor={menu.anchor}
           onClose={() => setMenu(null)}

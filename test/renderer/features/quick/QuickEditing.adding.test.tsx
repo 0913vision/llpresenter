@@ -76,6 +76,7 @@ describe('quick editing', () => {
     'opens the complete quick-item menu when locked=%s',
     async locked => {
       const save = vi.fn(async () => true);
+      const activate = vi.fn();
       render(
         <QuickRowEditor
           api={mockLlpApi()}
@@ -85,6 +86,7 @@ describe('quick editing', () => {
           item={quickItem('black')}
           locked={locked}
           save={save}
+          activate={activate}
         >
           <button>항목</button>
         </QuickRowEditor>,
@@ -95,15 +97,20 @@ describe('quick editing', () => {
       });
       expect(
         renderedToolMenuRows(screen.getByRole('menu', {name: '퀵 실행 항목'})),
-      ).toEqual(['복제', '이름 바꾸기', '삭제']);
+      ).toEqual(['실행', '|', '이름 바꾸기', '|', '복제', '|', '삭제']);
+      const run = screen.getByRole('menuitem', {name: '실행'});
+      expect(run.getAttribute('aria-disabled')).not.toBe('true');
       if (locked) {
         for (const row of screen.getAllByRole('menuitem')) {
+          if (row === run) continue;
           expect(row.getAttribute('aria-disabled')).toBe('true');
           fireEvent.click(row);
         }
         expect(screen.queryByRole('dialog')).toBeNull();
         expect(save).not.toHaveBeenCalled();
       }
+      fireEvent.click(run);
+      expect(activate).toHaveBeenCalledOnce();
     },
   );
   it('copies the row from its menu, and says why a full list cannot', async () => {

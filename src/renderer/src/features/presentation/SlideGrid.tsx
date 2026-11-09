@@ -162,6 +162,7 @@ export function SlideGrid({
           onOutput={index => onOutput(window.start + index)}
           onMenu={(index, anchor) => {
             if (openItemId !== null) {
+              selectTile(window.start + index);
               setMenu({
                 itemId: openItemId,
                 index: window.start + index,
@@ -217,13 +218,23 @@ export function SlideGrid({
       </div>
       {menu !== null && menu.itemId === openItemId && tiles?.[menu.index] ? (
         <Menu
+          context
           label="슬라이드"
           anchor={menu.anchor}
-          entries={slideMenuEntries(
-            onOpenPrep === undefined
-              ? undefined
-              : () => onOpenPrep(menu.itemId, menu.index),
-          )}
+          entries={[
+            {
+              kind: 'item',
+              id: 'output',
+              contextGroup: 'default',
+              label: '출력',
+              onSelect: () => onOutput(menu.index),
+            },
+            ...slideMenuEntries(
+              onOpenPrep === undefined
+                ? undefined
+                : () => onOpenPrep(menu.itemId, menu.index),
+            ),
+          ]}
           onClose={() => setMenu(null)}
         />
       ) : null}

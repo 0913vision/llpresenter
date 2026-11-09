@@ -291,6 +291,7 @@ export function useMacroPanel({
     commit({kind: 'membership', id: item.id, collection, member}, after);
   };
   const menuHandlers = (item: Macro): MacroMenuHandlers => ({
+    start: () => start(item),
     rename: () => renameAfterMenu(item),
     changeIcon: () => setEditor({kind: 'icon', item}),
     changeColor: () => {
@@ -387,7 +388,7 @@ export function useMacroPanel({
     trigger: HTMLElement | undefined,
   ): void => {
     revision.current++;
-    setSelected(undefined);
+    setSelected(item.id);
     setMenu({item, anchor, trigger});
   };
   const closeMenu = (): void => setMenu(null);

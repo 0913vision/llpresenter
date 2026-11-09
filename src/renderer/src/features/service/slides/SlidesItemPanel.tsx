@@ -42,9 +42,10 @@ export function SlidesItemPanel({
       new SlidesListSession(new SlidesDraft(item), {
         locked: () => service.access === 'readOnly',
         problem: message => console.error(message),
+        report: items.reportNotice,
       });
     return commands;
-  }, [controller, item, service]);
+  }, [controller, item, items, service]);
   return session === null ? null : (
     <SlidesItemTiles
       api={api}
@@ -100,6 +101,7 @@ function SlidesItemTiles({
       <PanelBody variant="flush">
         <SongSlideSurface
           session={session}
+          report={session.reportNotice}
           editLabel="슬라이드 편집…"
           className={styles.slideSurface}
           onEdit={edit}

@@ -347,7 +347,10 @@ export function VirtualSlides<T extends SlideListItem>({
             if (session !== undefined) return;
             const at = start + index;
             const number = numbers[at];
-            if (number !== undefined) setMenu({index: at, number, anchor});
+            if (number !== undefined) {
+              onSelect(at);
+              setMenu({index: at, number, anchor});
+            }
           }}
           className={styles.grid}
         >
@@ -448,6 +451,7 @@ export function VirtualSlides<T extends SlideListItem>({
       </div>
       {menu !== null && numbers[menu.index] === menu.number ? (
         <Menu
+          context
           label="슬라이드"
           anchor={menu.anchor}
           entries={slideMenuEntries(

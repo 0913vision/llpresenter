@@ -20,6 +20,7 @@ import {serviceRowMenuEntries} from './serviceRowMenu';
 export function useServiceRowMenu(
   onProblem: (notice: Notice) => void,
   closePicker: () => void,
+  open?: (entry: ServiceEntry) => void,
 ) {
   const currentId = useShow(view => view.serviceId);
   const [menu, setMenu] = useState<{
@@ -101,11 +102,13 @@ export function useServiceRowMenu(
     <>
       {menu ? (
         <Menu
+          context
           label="예배 메뉴"
           anchor={menu.anchor}
           onClose={() => setMenu(null)}
           entries={serviceRowMenuEntries({
             entry: menu.entry,
+            activate: open === undefined ? undefined : () => open(menu.entry),
             currentId,
             busy: busy || saver.busy,
             rename: () => renameAfterMenu(menu.entry),

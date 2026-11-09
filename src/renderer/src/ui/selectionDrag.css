@@ -1,0 +1,26 @@
+.selection-drag {
+  position: fixed;
+  left: -100vw;
+  top: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  max-width: var(--size-menu-max);
+  padding: var(--space-6);
+  color: var(--text);
+  background: var(--bg-panel);
+  border: 1px solid var(--selection);
+}
+
+.selection-drag > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.selection-drag__count {
+  padding: var(--space-2) var(--space-6);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  background: var(--accent-fill);
+}

@@ -29,6 +29,7 @@ export function MacroMenu({
   const targets = useMacroTargets(onProblem);
   return (
     <Menu
+      context
       label="매크로"
       anchor={anchor}
       onClose={onClose}

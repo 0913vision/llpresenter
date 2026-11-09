@@ -136,8 +136,10 @@ it('opens the complete read-only timer menu with disabled commands', async () =>
   const menu = screen.getByRole('menu', {name: '타이머'});
   expect(renderedToolMenuRows(menu)).toEqual([
     '수정…',
-    '복제',
+    '|',
     '이름 바꾸기',
+    '|',
+    '복제',
     '|',
     '삭제',
   ]);

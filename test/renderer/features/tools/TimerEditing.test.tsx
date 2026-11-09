@@ -70,7 +70,7 @@ it('puts 수정… above 이름 바꾸기 and opens the timer with its saved val
   fireEvent.contextMenu(await screen.findByRole('group', {name: '점검'}));
   expect(
     renderedToolMenuRows(screen.getByRole('menu', {name: '타이머'})),
-  ).toEqual(['수정…', '복제', '이름 바꾸기', '|', '삭제']);
+  ).toEqual(['수정…', '|', '이름 바꾸기', '|', '복제', '|', '삭제']);
   fireEvent.click(screen.getByRole('menuitem', {name: '수정…'}));
   const dialog = await screen.findByRole('dialog', {name: '타이머 수정'});
   expect(dialog).toBeTruthy();
@@ -194,7 +194,7 @@ it('opens the timer a 퀵 실행 row refers to and saves it under the same id', 
   });
   expect(
     renderedToolMenuRows(screen.getByRole('menu', {name: '퀵 실행 항목'})),
-  ).toEqual(['수정…', '복제', '이름 바꾸기', '삭제']);
+  ).toEqual(['수정…', '이름 바꾸기', '|', '복제', '|', '삭제']);
   fireEvent.click(screen.getByRole('menuitem', {name: '수정…'}));
   await screen.findByRole('dialog', {name: '타이머 수정'});
   fireEvent.click(screen.getByRole('button', {name: '타이머 종류'}));

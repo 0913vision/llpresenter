@@ -197,6 +197,7 @@ export function ThemeList({
           {
             kind: 'item',
             id: 'duplicate',
+            contextGroup: 'clipboard',
             label: '복제',
             ...menuAvailability(duplicateReason),
             onSelect: () =>
@@ -219,6 +220,7 @@ export function ThemeList({
                 {
                   kind: 'item',
                   id: 'delete',
+                  contextGroup: 'delete',
                   label: '삭제',
                   ...menuAvailability(
                     model.reason ?? (checking ? USAGE_LOADING : undefined),
@@ -266,7 +268,10 @@ export function ThemeList({
             const theme = choices.find(value => value.id === id);
             if (theme !== undefined) model.chooseTheme(theme.id);
           }}
-          onMenu={(theme, anchor) => setMenu({theme, anchor})}
+          onMenu={(theme, anchor) => {
+            model.chooseTheme(theme.id);
+            setMenu({theme, anchor});
+          }}
           renaming={
             renaming === null
               ? null
@@ -300,6 +305,7 @@ export function ThemeList({
       </Panel>
       {menu === null ? null : (
         <Menu
+          context
           label="테마"
           anchor={menu.anchor}
           entries={entries}

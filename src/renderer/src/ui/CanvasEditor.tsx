@@ -1,3 +1,7 @@
+import {
+  translateFrames,
+  type SelectedFrame,
+} from '@core/canvas/selectionFrames';
 import {useCommandShortcuts} from './commandDispatcher';
 import {
   useLayoutEffect,
@@ -37,6 +41,10 @@ export interface CanvasDocument<T extends CanvasElement> {
   readonly contained?: boolean;
 }
 export interface CanvasActions {
+  readonly frames?: (
+    values: readonly SelectedFrame[],
+    completed: (saved: boolean) => void,
+  ) => void;
   readonly frame: (
     id: string,
     frame: ElementFrame,
@@ -69,6 +77,7 @@ export interface CanvasEditorProps<T extends CanvasElement> {
 }
 
 interface Gesture {
+  readonly members: readonly SelectedFrame[];
   readonly id: number;
   readonly elementId: string;
   readonly start: ElementFrame;
@@ -119,6 +128,7 @@ export function CanvasEditor<T extends CanvasElement>({
   const [draft, setDraft] = useState<{
     id: string;
     frame: ElementFrame;
+    frames?: readonly SelectedFrame[] | undefined;
     pending?: boolean;
     waiting?: boolean;
     guides?: GuideLines;
@@ -198,6 +208,7 @@ export function CanvasEditor<T extends CanvasElement>({
   ]);
 
   const active = useRef(true);
+  const draggedClick = useRef(false);
   const saveSequence = useRef(0);
   useLayoutEffect(() => {
     active.current = true;
@@ -223,9 +234,16 @@ export function CanvasEditor<T extends CanvasElement>({
       : {
           ...layout,
           elements: layout.elements.map(element =>
-            element.id === draft.id
-              ? {...element, frame: draft.frame}
-              : element,
+            draft.frames?.some(row => row.id === element.id)
+              ? {
+                  ...element,
+                  frame:
+                    draft.frames.find(row => row.id === element.id)?.frame ??
+                    element.frame,
+                }
+              : element.id === draft.id
+                ? {...element, frame: draft.frame}
+                : element,
           ),
         };
   if (draft?.pending && !draft.waiting) {
@@ -262,12 +280,32 @@ export function CanvasEditor<T extends CanvasElement>({
       return;
     }
     const sequence = ++saveSequence.current;
-    setDraft({id: current.elementId, frame: current.frame, pending: true});
-    actions.frame(current.elementId, current.frame, saved => {
+    draggedClick.current = true;
+    const frames =
+      current.members.length > 1
+        ? translateFrames(
+            current.members,
+            {
+              x: current.frame.x - current.start.x,
+              y: current.frame.y - current.start.y,
+            },
+            layout,
+          )
+        : undefined;
+    setDraft({
+      id: current.elementId,
+      frame: current.frame,
+      pending: true,
+      frames,
+    });
+    const completed = (saved: boolean): void => {
       if (!saved && active.current && saveSequence.current === sequence) {
         setDraft(null);
       }
-    });
+    };
+    if (frames !== undefined && actions.frames !== undefined) {
+      actions.frames(frames, completed);
+    } else actions.frame(current.elementId, current.frame, completed);
   };
   const start = (
     event: PointerEvent<HTMLButtonElement>,
@@ -275,13 +313,22 @@ export function CanvasEditor<T extends CanvasElement>({
     handle: Gesture['handle'],
   ): void => {
     if (event.button !== 0 || readOnly || gesture.current !== null) return;
+    draggedClick.current = false;
     const surface = canvas.current;
     const width = surface?.getBoundingClientRect().width ?? 0;
     if (surface === null || width <= 0) return;
     event.preventDefault();
     event.currentTarget.focus();
-    select(element.id);
+    const group =
+      handle === 'move' &&
+      actions.frames !== undefined &&
+      selectedIds?.includes(element.id);
+    if (!group) select(element.id);
+    const members = group
+      ? layout.elements.filter(row => selectedIds?.includes(row.id))
+      : [element];
     gesture.current = {
+      members,
       id: event.pointerId,
       elementId: element.id,
       start: element.frame,
@@ -300,7 +347,7 @@ export function CanvasEditor<T extends CanvasElement>({
       targets: [
         {x: 0, y: 0, w: layout.width, h: layout.height},
         ...layout.elements
-          .filter(item => item.id !== element.id)
+          .filter(item => !members.some(member => member.id === item.id))
           .map(item => item.frame),
       ],
       delta: {x: 0, y: 0},
@@ -324,8 +371,20 @@ export function CanvasEditor<T extends CanvasElement>({
       ? roundGeometryFrame(frameWithinBounds(rounded, layout))
       : rounded;
     const guides = frame === guided.frame ? guided.guides : {};
-    current.frame = frame;
-    setDraft({id: current.elementId, frame, guides});
+    const frames =
+      current.members.length > 1
+        ? translateFrames(
+            current.members,
+            {
+              x: frame.x - current.start.x,
+              y: frame.y - current.start.y,
+            },
+            layout,
+          )
+        : undefined;
+    current.frame =
+      frames?.find(row => row.id === current.elementId)?.frame ?? frame;
+    setDraft({id: current.elementId, frame: current.frame, frames, guides});
   };
   return (
     <section
@@ -413,6 +472,18 @@ export function CanvasEditor<T extends CanvasElement>({
             }}
           >
             {renderContent(picture.elements)}
+            {draft?.frames !== undefined && !draft.pending ? (
+              <span
+                className={styles.dragCount}
+                aria-hidden="true"
+                style={{
+                  left: `${(100 * draft.frame.x) / layout.width}%`,
+                  top: `${(100 * draft.frame.y) / layout.height}%`,
+                }}
+              >
+                {draft.frames.length}
+              </span>
+            ) : null}
             {draft?.guides === undefined || selected !== draft.id ? null : (
               <div className={styles.guides} aria-hidden="true">
                 {draft.guides.x === undefined ||
@@ -458,7 +529,10 @@ export function CanvasEditor<T extends CanvasElement>({
                     selected === element.id ||
                     selectedIds?.includes(element.id) === true
                   }
-                  onClick={() => select(element.id)}
+                  onClick={() => {
+                    if (!draggedClick.current) select(element.id);
+                    draggedClick.current = false;
+                  }}
                   onPointerDown={event => start(event, element, 'move')}
                 />
                 {selected !== element.id || readOnly

@@ -76,6 +76,7 @@ export function SlideRows({
   return (
     <SongSlideSurface
       session={commands}
+      report={commands.reportNotice}
       blocked={blocked}
       onBack={onBack}
       className={styles.rowSurface}

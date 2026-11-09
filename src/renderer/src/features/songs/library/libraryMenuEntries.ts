@@ -38,6 +38,7 @@ export function libraryMenuEntries({
     {
       kind: 'item',
       id: 'add-to',
+      contextGroup: 'library',
       label: '예배 순서에 추가',
       ...menuAvailability(
         appendDisabledReason ?? (busy ? '작업 중' : undefined),
@@ -49,6 +50,7 @@ export function libraryMenuEntries({
     {
       kind: 'item',
       id: 'lyrics',
+      contextGroup: 'default',
       label: windowCommandLabels.editSong,
       ...menuAvailability(busy ? '작업 중' : undefined),
       onSelect: open,
@@ -59,6 +61,7 @@ export function libraryMenuEntries({
     {
       kind: 'item',
       id: 'duplicate',
+      contextGroup: 'clipboard',
       label: '복제',
       icon: 'duplicate',
       ...menuAvailability(songCopyReason(song, busy)),
@@ -80,6 +83,7 @@ export function libraryMenuEntries({
     {
       kind: 'item',
       id: 'delete',
+      contextGroup: 'delete',
       label: '삭제',
       danger: true,
       ...menuAvailability(
@@ -95,6 +99,7 @@ export function libraryMenuEntries({
     {
       kind: 'item',
       id: 'reveal',
+      contextGroup: 'library',
       label: '탐색기에서 보기',
       onSelect: reveal,
     },

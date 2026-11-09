@@ -183,7 +183,10 @@ it('opens disabled editing commands on a read-only prop list', async () => {
   render(<PropTab />);
   fireEvent.contextMenu(await screen.findByRole('option', {name: '로고'}));
   expect(screen.getByRole('menu', {name: '그래픽'})).toBeDefined();
+  const output = screen.getByRole('menuitem', {name: '출력 전환'});
+  expect(output.getAttribute('aria-disabled')).not.toBe('true');
   for (const row of screen.getAllByRole('menuitem')) {
+    if (row === output) continue;
     expect(row.getAttribute('aria-disabled')).toBe('true');
     fireEvent.click(row);
   }

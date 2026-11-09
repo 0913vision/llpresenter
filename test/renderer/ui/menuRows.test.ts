@@ -11,10 +11,13 @@ describe('laterRow', () => {
     expect(laterRow('cut', '잘라내기', {icon: 'scissors'})).toEqual({
       kind: 'item',
       id: 'cut',
+      contextGroup: 'clipboard',
       label: '잘라내기',
       icon: 'scissors',
       meta: undefined,
+      command: undefined,
       disabled: true,
+      unimplemented: true,
       title: NOT_YET,
       submenu: undefined,
     });

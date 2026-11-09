@@ -15,6 +15,7 @@ export function slideMenuEntries(
     {
       kind: 'item',
       id: 'edit',
+      contextGroup: 'default',
       label: windowCommandLabels.editSong,
       ...menuAvailability(
         edit === undefined

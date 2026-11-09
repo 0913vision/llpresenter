@@ -15,20 +15,24 @@ feature we lack), Moved, Removed.
   it; entering the submenu cancels the pending switch. Only the row under the
   pointer receives the pointed highlight. Outside the menu, keep the open
   parent's expanded mark without pointing to another row.
-- **Purpose:** A menu acts on the one thing that was clicked (a 매크로, a
-  그래픽, a 슬라이드), or adds one kind of thing. Rows are grouped by what they
-  do, in ProPresenter (PP) order. Nothing else goes into a menu: no palettes, no
-  search fields, no settings rows.
-- **Reference:** PP 7 as of March 2026 (Renewed Vision support articles and
-  tutorial videos). Where PP has the same menu, use its rows, groups, and order.
-  Where no PP screen could be found, the section says "Not seen in PP" and
-  follows the list-row rule below.
+- **Context target:** Right-click on a selected row preserves the selection;
+  right-click on an unselected row selects only that row. Existing single
+  selection lists remain single selection. Selecting a context target never
+  outputs or runs it. Multi-selection menus contain only commands applicable to
+  every selected row, with counts where the meaning changes.
+- **Context order:** Default action (the same as Enter or double-click), item
+  settings, 메모, clipboard (잘라내기, 복사, 붙여넣기, 복제), library/service
+  and export, 항목 숨기기, 삭제 last. Undo and redo precede clipboard commands.
+  Library commands order 라이브러리에서 보기, 라이브러리에 저장, 라이브러리에서
+  다시 불러오기, then exports. Separate only nonempty groups; never leave
+  leading, trailing or doubled separators. This rule takes precedence over the
+  historical PP group numbers in the tables below.
+- **Reference:** PP screenshots document available commands. Context ordering
+  and selection follow the shared rules above for every object menu.
 - **Rows PP has and we lack:** Show them as disabled rows (text-off, no hover,
-  tooltip "아직 없는 기능"), so the menu keeps its final shape and the feature
-  can be built later (decided 2026-10-30).
-- **Hide or disable:** Hide a row that does not apply to this object (PP hides
-  Edit Action and Remove Actions on a 매크로 with no actions). Disable a row
-  that applies but cannot run now (붙여넣기 with an empty clipboard).
+  tooltip "아직 없는 기능"), including nested rows and placeholder submenu
+  parents, so the feature can be built later (user decision, October 30).
+  Implemented commands that cannot run now stay disabled with their reason.
 - **Appearance:** Measured from PP and scaled to our 16px text: width 276 (or
   wider for long rows), vertical padding 6, radius 12, row 28, highlight inset 5
   with radius 9, text starts 28 from the menu edge, separator 1px
@@ -55,19 +59,15 @@ feature we lack), Moved, Removed.
   라이브러리 menu, as in PP. Icon 18 at the text start, its text at 55. In a
   group where some rows have icons, rows without one (이름 바꾸기) start their
   text at 55 too. Phosphor Regular, the same set as the app.
-- **Delete:** 삭제 is the last row, in its own group or at the end of the
-  clipboard group as PP has it, in normal text color.
-- **Delete rule (user decision, November 2):** As editing programs do, a delete
-  that Ctrl Z can undo happens at once with no question. A delete that cannot be
-  undone asks first in the app's AlertDialog with 삭제 as the confirm button,
-  and the question says where the thing is used when other places use it ("이
-  곡은 예배 2곳에서 씁니다"). Undoable today: 예배 순서 항목 and 구역 (the 예배
-  순서 history), and slides in the inline 곡 편집 editor (its history until
-  저장). Asking: 곡, 테마 (always, with where it is used or the default of a
-  kind), 매크로, 매크로 모음, 그래픽, 타이머, 메시지 틀, 이름표, 오버레이,
-  미디어, 재생목록, 예배, 템플릿, 화면, and 퀵 실행 항목. Not covered: 단축키
-  지우기 and 재생목록에서 빼기 (a removal that keeps the thing itself) ask
-  nothing and have no undo; the lead decides whether they get an undo.
+- **Delete:** 삭제 is last, in normal text color. An undoable single-item delete
+  happens immediately without a question (user decision, November 2). Service
+  order rows, shared song/slides surfaces and theme elements ask once in
+  AlertDialog only when more than one item is selected, with the selection
+  count. Confirm removes the set in one history step; cancel changes nothing;
+  one undo restores the whole set. A confirmation for a document that changed
+  meanwhile performs no deletion and reports that the items changed. Other
+  destructive object deletes keep their usage-aware questions. Shortcut clearing
+  and playlist membership removal keep their existing behavior.
 - **Wording:** 이름 바꾸기 everywhere (not 이름 변경). An ellipsis marks a
   command that asks for input in a dialog or another window (수정…, 전환 효과…).
   Inline editors, workspace or tool-tab switches, and menus or pickers have no
@@ -89,14 +89,10 @@ feature we lack), Moved, Removed.
   insertion line (a marker before a chip), Esc puts the row back, and Alt ↑ and
   Alt ↓ move the focused row by one place (Alt ← and Alt → for chips). Each list
   keeps its own write (B25 rule 6; 10).
-- **Two-row menus:** No separator between the only two rows.
-- **List-row rule:** For a named thing in a list whose PP menu we could not see,
-  use the shape PP gives such things (Look preset: Make Live | Duplicate,
-  Rename, Delete; playlist: Rename, Save As… | Duplicate, Delete; prop: Edit…, …
-  | Duplicate, Rename | Delete): its own command first (수정…, 지금 적용) |
-  복제, 이름 바꾸기 | 삭제. No icons. 복제 is a disabled row where we cannot
-  copy yet. A built-in thing that cannot change (모든 매크로) shows the same
-  rows disabled with the reason in the tooltip.
+- **Separators:** Context separators divide nonempty command groups only.
+- **List-row rule:** Apply the context order above to named objects. Keep future
+  features disabled with "아직 없는 기능"; built-in objects retain commands
+  disabled with a reason explaining why the object cannot change.
 - **Keyboard:** The Menu keyboard rules stay (arrows, Home, End, Enter, Space,
   Esc, type-ahead, Menu key and Shift F10).
 - **Select lists:** The 34 Select dropdowns keep their options and take the same
@@ -106,15 +102,15 @@ feature we lack), Moved, Removed.
 
 ## 복제 by kind
 
-Every list whose right-click menu has 복제 copies the one thing that was
-clicked. The copy gets a new id and the copy name (`copyName`, above), lands
-right after the original, and is selected where the list has a selection. 편집 >
-복제 and Ctrl D (`edit.duplicate`) run the same handler as the row where that
-list has the focus, and the row and the key give the same reason when they can't
-run. A copy that would pass the list's cap is refused with the cap's reason, as
-adding one is (the row is disabled with that reason); a locked list gives its
-lock reason first. A copy never holds live state: no running timer or content on
-output.
+Every list whose right-click menu has 복제 copies the selected set when it
+supports multiple selection, otherwise its selected context target. The copy
+gets a new id and the copy name (`copyName`, above), lands right after the
+original, and is selected where the list has a selection. 편집 > 복제 and Ctrl D
+(`edit.duplicate`) run the same handler as the row where that list has the
+focus, and the row and the key give the same reason when they can't run. A copy
+that would pass the list's cap is refused with the cap's reason, as adding one
+is (the row is disabled with that reason); a locked list gives its lock reason
+first. A copy never holds live state: no running timer or content on output.
 
 | Kind            | The copy holds                                                                            | Not copied       | Notes                                                                                                                                         |
 | --------------- | ----------------------------------------------------------------------------------------- | ---------------- | --------------------------------------------------------------------------------------------------------------------------------------------- |

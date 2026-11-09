@@ -1,3 +1,5 @@
+import {useSelectionDelete} from '@renderer/ui/useSelectionDelete';
+import {selectionLabel, selectionDragImage} from '@renderer/ui/selectionDrag';
 import {
   useEffect,
   useLayoutEffect,
@@ -24,6 +26,7 @@ import {readSlideText, writeSlideText} from './systemSlideClipboard';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
+import type {Notice} from '@renderer/ui/notices';
 
 /** Rows and thumbnails dispatch to the same session, including its insertion caret. */
 export function SongSlideSurface<T extends SlideListItem>({
@@ -32,6 +35,7 @@ export function SongSlideSurface<T extends SlideListItem>({
   className,
   onBack,
   store,
+  report,
   onEdit,
   onHotKey,
   extraMenu,
@@ -43,6 +47,7 @@ export function SongSlideSurface<T extends SlideListItem>({
   readonly className?: string | undefined;
   readonly onBack?: (() => void) | undefined;
   readonly store?: SongEditorStore | undefined;
+  readonly report?: ((notice: Notice) => void) | undefined;
   readonly onEdit?: ((index: number) => void) | undefined;
   readonly onHotKey?: ((index: number) => void) | undefined;
   readonly extraMenu?: (index: number) => readonly MenuEntry[];
@@ -59,13 +64,21 @@ export function SongSlideSurface<T extends SlideListItem>({
   const [labelAnchor, setLabelAnchor] = useState<HTMLElement | null>(null);
   const labelAfterMenu = useMenuHandoff(menu !== null, setLabelAnchor);
   const surfaceRef = useRef<HTMLDivElement>(null);
+  const deletion = useSelectionDelete(notice => {
+    if (report !== undefined) report(notice);
+    else store?.reportNotice(notice);
+  });
+  const releaseDrag = useRef<(() => void) | undefined>(undefined);
+  useEffect(() => () => releaseDrag.current?.(), []);
   const dragClick = useDragClickGuard();
   const mounted = useRef(true);
   const sessionRef = useRef(session);
+  const blockedRef = useRef(blocked);
   const pasteQueueRef = useRef<Promise<void> | undefined>(undefined);
   useLayoutEffect(() => {
     sessionRef.current = session;
-  }, [session]);
+    blockedRef.current = blocked;
+  }, [session, blocked]);
   useEffect(() => {
     mounted.current = true;
     return () => {
@@ -154,6 +167,23 @@ export function SongSlideSurface<T extends SlideListItem>({
     session.slideModel.limits.minSlides
       ? '곡에는 슬라이드가 하나 이상 있어야 합니다'
       : undefined);
+  const askDelete = (): void => {
+    if (deleteReason !== undefined) return;
+    const snapshot = session.slideModel.getSnapshot();
+    deletion.ask(
+      snapshot.selection.ids.size,
+      () =>
+        mounted.current &&
+        sessionRef.current === session &&
+        !session.readOnly &&
+        !blockedRef.current &&
+        session.slideModel.getSnapshot() === snapshot,
+      () => {
+        surfaceRef.current?.focus();
+        session.commandSlides({type: 'delete'});
+      },
+    );
+  };
   const duplicateReason =
     editReason ??
     selectionReason ??
@@ -220,10 +250,7 @@ export function SongSlideSurface<T extends SlideListItem>({
       context: 'song',
       when: owns,
       unavailable: () => deleteReason,
-      run: () => {
-        surfaceRef.current?.focus();
-        session.commandSlides({type: 'delete'});
-      },
+      run: askDelete,
     },
     {
       id: 'edit.undo',
@@ -251,8 +278,8 @@ export function SongSlideSurface<T extends SlideListItem>({
     },
   ]);
   const entries: readonly MenuEntry[] = [
-    ...(extraMenu?.(menuIndex) ?? []),
-    ...(onHotKey === undefined
+    ...(view.selection.ids.size <= 1 ? (extraMenu?.(menuIndex) ?? []) : []),
+    ...(onHotKey === undefined || view.selection.ids.size !== 1
       ? []
       : [
           {
@@ -263,12 +290,13 @@ export function SongSlideSurface<T extends SlideListItem>({
             onSelect: () => onHotKey(menuIndex),
           },
         ]),
-    ...(onEdit === undefined
+    ...(onEdit === undefined || view.selection.ids.size !== 1
       ? []
       : [
           {
             kind: 'item' as const,
             id: 'edit',
+            contextGroup: 'default' as const,
             label: editLabel,
             onSelect: () => onEdit(menuIndex),
           },
@@ -288,7 +316,8 @@ export function SongSlideSurface<T extends SlideListItem>({
     {
       kind: 'item',
       id: 'copy',
-      label: '복사',
+      contextGroup: 'clipboard',
+      label: selectionLabel('복사', view.selection.ids.size),
       meta: 'Ctrl C',
       ...menuAvailability(selected ? undefined : '선택한 슬라이드가 없습니다'),
       onSelect: () => copy(),
@@ -296,7 +325,8 @@ export function SongSlideSurface<T extends SlideListItem>({
     {
       kind: 'item',
       id: 'cut',
-      label: '잘라내기',
+      contextGroup: 'clipboard',
+      label: selectionLabel('잘라내기', view.selection.ids.size),
       meta: 'Ctrl X',
       ...menuAvailability(deleteReason),
       onSelect: () => copy(true),
@@ -304,6 +334,7 @@ export function SongSlideSurface<T extends SlideListItem>({
     {
       kind: 'item',
       id: 'paste',
+      contextGroup: 'clipboard',
       label: '붙여넣기',
       meta: 'Ctrl V',
       ...menuAvailability(pasteReason),
@@ -312,7 +343,8 @@ export function SongSlideSurface<T extends SlideListItem>({
     {
       kind: 'item',
       id: 'duplicate',
-      label: '복제',
+      contextGroup: 'clipboard',
+      label: selectionLabel('복제', view.selection.ids.size),
       meta: 'Ctrl D',
       ...menuAvailability(duplicateReason),
       onSelect: () => session.commandSlides({type: 'duplicate'}),
@@ -320,15 +352,17 @@ export function SongSlideSurface<T extends SlideListItem>({
     {
       kind: 'item',
       id: 'delete',
-      label: '삭제',
+      contextGroup: 'delete',
+      label: selectionLabel('삭제', view.selection.ids.size),
       meta: 'Delete',
       ...menuAvailability(deleteReason),
-      onSelect: () => session.commandSlides({type: 'delete'}),
+      onSelect: askDelete,
     },
     {kind: 'separator', id: 'history'},
     {
       kind: 'item',
       id: 'undo',
+      contextGroup: 'clipboard',
       label: '실행 취소',
       meta: 'Ctrl Z',
       ...menuAvailability(
@@ -343,6 +377,7 @@ export function SongSlideSurface<T extends SlideListItem>({
     {
       kind: 'item',
       id: 'redo',
+      contextGroup: 'clipboard',
       label: '다시 실행',
       meta: 'Ctrl Y',
       ...menuAvailability(
@@ -364,6 +399,12 @@ export function SongSlideSurface<T extends SlideListItem>({
       role="group"
       aria-label="슬라이드 편집 명령"
       onCopy={event => {
+        if (
+          !(event.target instanceof Node) ||
+          !event.currentTarget.contains(event.target)
+        ) {
+          return;
+        }
         if (isInTextEntry(event.target)) return;
         const text = session.copySlides();
         if (text === null) return;
@@ -372,6 +413,12 @@ export function SongSlideSurface<T extends SlideListItem>({
         event.clipboardData.setData('text/plain', text);
       }}
       onCut={event => {
+        if (
+          !(event.target instanceof Node) ||
+          !event.currentTarget.contains(event.target)
+        ) {
+          return;
+        }
         if (readOnly || isInTextEntry(event.target)) return;
         surfaceRef.current?.focus({preventScroll: true});
         const text = session.cutSlides();
@@ -381,6 +428,12 @@ export function SongSlideSurface<T extends SlideListItem>({
         event.clipboardData.setData('text/plain', text);
       }}
       onPaste={event => {
+        if (
+          !(event.target instanceof Node) ||
+          !event.currentTarget.contains(event.target)
+        ) {
+          return;
+        }
         if (readOnly || isInTextEntry(event.target)) return;
         event.preventDefault();
         event.stopPropagation();
@@ -397,6 +450,12 @@ export function SongSlideSurface<T extends SlideListItem>({
       }}
       data-slide-surface
       onKeyDownCapture={event => {
+        if (
+          !(event.target instanceof Node) ||
+          !event.currentTarget.contains(event.target)
+        ) {
+          return;
+        }
         const keyTarget = event.target;
         if (
           event.key === ' ' &&
@@ -456,6 +515,15 @@ export function SongSlideSurface<T extends SlideListItem>({
             : event.currentTarget;
         event.preventDefault();
         event.stopPropagation();
+        const targetId =
+          target.closest<HTMLElement>('[data-song-slide]')?.dataset.songSlide;
+        const targetSlide = view.slides.find(slide => slide.id === targetId);
+        if (
+          targetSlide !== undefined &&
+          !view.selection.ids.has(targetSlide.id)
+        ) {
+          session.selectSlides({type: 'click', id: targetSlide.id});
+        }
         setMenu({kind: 'element', element: target, target});
         setMenuIndex(
           Number(
@@ -465,6 +533,12 @@ export function SongSlideSurface<T extends SlideListItem>({
         );
       }}
       onKeyDown={event => {
+        if (
+          !(event.target instanceof Node) ||
+          !event.currentTarget.contains(event.target)
+        ) {
+          return;
+        }
         if (
           event.defaultPrevented ||
           isComposing(event) ||
@@ -533,6 +607,12 @@ export function SongSlideSurface<T extends SlideListItem>({
         run();
       }}
       onContextMenu={event => {
+        if (
+          !(event.target instanceof Node) ||
+          !event.currentTarget.contains(event.target)
+        ) {
+          return;
+        }
         if (isInTextEntry(event.target)) return;
         const row =
           event.target instanceof Element
@@ -574,6 +654,12 @@ export function SongSlideSurface<T extends SlideListItem>({
           session.slideDocumentId,
         );
         event.dataTransfer.effectAllowed = 'move';
+        releaseDrag.current?.();
+        releaseDrag.current = selectionDragImage(
+          event.dataTransfer,
+          row ?? event.currentTarget,
+          session.slideModel.getSnapshot().selection.ids.size,
+        );
         dragClick.markDragged();
       }}
       onDragOver={event => {
@@ -606,9 +692,13 @@ export function SongSlideSurface<T extends SlideListItem>({
         event.stopPropagation();
         session.commandSlides({type: 'move', index});
       }}
-      onDragEnd={clearDrop}
+      onDragEnd={() => {
+        clearDrop();
+        releaseDrag.current?.();
+      }}
     >
       {children}
+      {deletion.dialog}
       {store === undefined || labelAnchor === null ? null : (
         <LabelMenu
           store={store}
@@ -625,6 +715,7 @@ export function SongSlideSurface<T extends SlideListItem>({
       )}
       {menu === null ? null : (
         <Menu
+          context
           label="슬라이드"
           anchor={menu}
           entries={entries}

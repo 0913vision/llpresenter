@@ -6,6 +6,7 @@ import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 export function serviceRowMenuEntries({
   entry,
   currentId,
+  activate,
   busy,
   rename,
   save,
@@ -13,6 +14,7 @@ export function serviceRowMenuEntries({
   remove,
 }: {
   readonly entry: ServiceEntry;
+  readonly activate?: (() => void) | undefined;
   readonly currentId: string | null;
   readonly busy: boolean;
   readonly rename: () => void;
@@ -22,6 +24,17 @@ export function serviceRowMenuEntries({
 }): readonly MenuEntry[] {
   const open = entry.id === currentId;
   return [
+    ...(activate === undefined
+      ? []
+      : [
+          {
+            kind: 'item' as const,
+            id: 'open',
+            contextGroup: 'default' as const,
+            label: '열기',
+            onSelect: activate,
+          },
+        ]),
     {
       kind: 'item',
       id: 'rename',
@@ -38,6 +51,7 @@ export function serviceRowMenuEntries({
     {
       kind: 'item',
       id: 'save-template',
+      contextGroup: 'library',
       label: '템플릿으로 저장…',
       ...menuAvailability(busy ? '예배 저장 중' : undefined),
       onSelect: save,
@@ -49,6 +63,7 @@ export function serviceRowMenuEntries({
     {
       kind: 'item',
       id: 'duplicate',
+      contextGroup: 'clipboard',
       label: '복제',
       ...menuAvailability(
         entry.access === 'readOnly'
@@ -62,6 +77,7 @@ export function serviceRowMenuEntries({
     {
       kind: 'item',
       id: 'delete',
+      contextGroup: 'delete',
       label: '삭제',
       ...menuAvailability(
         open

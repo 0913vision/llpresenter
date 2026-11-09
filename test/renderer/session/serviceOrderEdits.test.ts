@@ -856,3 +856,42 @@ describe('serviceOrderEditsFor', () => {
     );
   });
 });
+
+it('removes and duplicates a complete selection with one write and one undo', async () => {
+  const {edits, ids, edit, state} = fixture();
+  const before = state.document?.service.order;
+  await edits.removeMany(serviceId, [third, second]);
+  expect(ids()).toEqual([first]);
+  expect(edit).toHaveBeenCalledTimes(1);
+  await edits.undo(serviceId);
+  expect(state.document?.service.order).toEqual(before);
+  const a = createServiceItemId('20000000-0000-4000-8000-000000000011');
+  const b = createServiceItemId('20000000-0000-4000-8000-000000000012');
+  await edits.duplicateMany(
+    serviceId,
+    new Map([
+      [third, b],
+      [second, a],
+    ]),
+  );
+  expect(ids()).toEqual([first, second, third, a, b]);
+  expect(state.document?.service.order[3]).toMatchObject({
+    memo: 'Keep this',
+    futureField: [1, 2],
+  });
+  await edits.undo(serviceId);
+  expect(state.document?.service.order).toEqual(before);
+});
+it('rejects a vanished member atomically and moves a set in document order', async () => {
+  const {edits, ids, edit} = fixture();
+  const missing = createServiceItemId('20000000-0000-4000-8000-000000000099');
+  expect(await edits.removeMany(serviceId, [second, missing])).toMatchObject({
+    ok: false,
+  });
+  expect(edit).not.toHaveBeenCalled();
+  await edits.moveMany(serviceId, [third, second], first);
+  expect(ids()).toEqual([second, third, first]);
+  expect(edit).toHaveBeenCalledTimes(1);
+  await edits.undo(serviceId);
+  expect(ids()).toEqual([first, second, third]);
+});

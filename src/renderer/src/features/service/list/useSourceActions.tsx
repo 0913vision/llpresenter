@@ -169,6 +169,7 @@ export function useSourceActions({
     <>
       {menu === null ? null : (
         <Menu
+          context
           label={`${menu.row.name} ${kindName(menu.row.source)}`}
           anchor={menu.anchor}
           onClose={() => setMenu(null)}
@@ -186,6 +187,7 @@ export function useSourceActions({
             {
               kind: 'item',
               id: 'delete',
+              contextGroup: 'delete',
               label: '삭제',
               danger: true,
               ...menuAvailability(

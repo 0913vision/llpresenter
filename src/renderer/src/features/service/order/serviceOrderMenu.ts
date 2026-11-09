@@ -51,6 +51,7 @@ function songEditRows({
     {
       kind: 'item',
       id: 'edit-song',
+      contextGroup: 'default',
       label: windowCommandLabels.editSong,
       ...menuAvailability(
         song?.reason ??
@@ -74,6 +75,7 @@ function openRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {
         {
           kind: 'item',
           id: 'save-to-library',
+          contextGroup: 'library',
           label: '라이브러리에 저장…',
           ...menuAvailability(
             input.song?.reason ??
@@ -84,6 +86,7 @@ function openRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {
         {
           kind: 'item',
           id: 'reload-from-library',
+          contextGroup: 'library',
           label: '라이브러리에서 다시 불러오기',
           ...menuAvailability(
             input.song?.reason ??
@@ -100,6 +103,7 @@ function openRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {
               {
                 kind: 'item',
                 id: 'prep',
+                contextGroup: 'default',
                 label: windowCommandLabels.editSong,
                 onSelect: openInPrep,
               } as const,
@@ -115,6 +119,7 @@ function openRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {
             {
               kind: 'item',
               id: 'prep',
+              contextGroup: 'default',
               label: '준비에서 열기',
               onSelect: openInPrep,
             },
@@ -153,6 +158,7 @@ function exportRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {
     {
       kind: 'item',
       id: 'show-in-library',
+      contextGroup: 'library',
       label: '라이브러리에서 보기',
       ...menuAvailability(
         input.song?.reason ??
@@ -167,11 +173,7 @@ function exportRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {
   ];
 }
 
-/**
- * The right-click menu of one 예배 순서 row, after ProPresenter's playlist
- * item menu (spec 11): hide, the rows for this kind of item, then copy,
- * rename, and delete.
- */
+/** Commands for one 예배 순서 row, grouped by the shared context-menu order. */
 export function serviceOrderMenuEntries(
   input: ServiceOrderMenuInput,
 ): readonly MenuEntry[] {
@@ -183,6 +185,7 @@ export function serviceOrderMenuEntries(
     {
       kind: 'item',
       id: 'copy',
+      contextGroup: 'clipboard',
       label: '복사',
       meta: 'Ctrl C',
       ...menuAvailability(
@@ -196,6 +199,7 @@ export function serviceOrderMenuEntries(
     {
       kind: 'item',
       id: 'paste',
+      contextGroup: 'clipboard',
       label: '붙여넣기',
       meta: 'Ctrl V',
       ...menuAvailability(
@@ -209,6 +213,7 @@ export function serviceOrderMenuEntries(
     {
       kind: 'item',
       id: 'duplicate',
+      contextGroup: 'clipboard',
       label: '복제',
       command: 'edit.duplicate',
       ...menuAvailability(
@@ -224,6 +229,7 @@ export function serviceOrderMenuEntries(
     {
       kind: 'item',
       id: 'delete',
+      contextGroup: 'delete',
       command: 'edit.delete',
       label: '삭제',
       danger: true,

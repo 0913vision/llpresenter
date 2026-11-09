@@ -134,6 +134,7 @@ export function useOverlayControl(editing: OverlayEditing): OverlayControl {
       {
         kind: 'item',
         id: 'overlay-remove',
+        contextGroup: 'delete',
         label: '오버레이 삭제',
         danger: true,
         ...menuAvailability(reason),

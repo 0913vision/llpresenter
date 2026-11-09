@@ -16,6 +16,7 @@ import type {MenuSearch} from './MenuParts';
 import {MenuSurface, type MenuSurfaceProps} from './MenuSurface';
 import {placeAtPoint, placeBelow, viewportSize, type Point} from './placement';
 import styles from './Menu.module.css';
+import {contextMenuEntries} from './contextMenuEntries';
 
 export type {MenuCloseReason} from './menuKeys';
 export type {MenuSearch} from './MenuParts';
@@ -27,6 +28,7 @@ export type MenuAnchor = (
 ) & {readonly target?: HTMLElement | undefined};
 
 export interface MenuProps {
+  readonly context?: boolean;
   /** The menu name for assistive technology. */
   readonly label: string;
   readonly entries: readonly MenuEntry[];
@@ -64,7 +66,8 @@ function anchorPlace(anchor: MenuAnchor): MenuSurfaceProps['place'] {
  */
 export function Menu({
   label,
-  entries,
+  entries: suppliedEntries,
+  context = false,
   anchor,
   onClose,
   search,
@@ -73,6 +76,9 @@ export function Menu({
   footer,
   autoFocus = true,
 }: MenuProps): JSX.Element {
+  const entries = context
+    ? contextMenuEntries(suppliedEntries)
+    : suppliedEntries;
   const catcher = useRef<HTMLDivElement>(null);
   const outsideRename = useRef(false);
   const renaming = menuItems(entries).some(item => item.rename !== undefined);

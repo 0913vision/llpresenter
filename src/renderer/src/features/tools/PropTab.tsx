@@ -13,6 +13,7 @@ import {useAudioMedia} from './useAudioMedia';
 import {focusedOptionIndex, useDuplicateShortcut} from './useDuplicateShortcut';
 import {useToolEditing} from './useToolEditing';
 import styles from './PropGrid.module.css';
+import {menuAvailability} from '@renderer/ui/menuModel';
 import {propMenuEntries, toolMenuReason} from './toolMenuEntries';
 
 type Editor = {kind: 'add'} | {kind: 'edit' | 'delete'; prop: Prop};
@@ -26,9 +27,12 @@ export function PropTab({
   const screens = useSettingsDocument('screens', '화면', onProblem);
   const media = useAudioMedia(onProblem, 'prop');
   const [editor, setEditor] = useState<Editor | null>(null);
-  const [menu, setMenu] = useState<{prop: Prop; anchor: MenuAnchor} | null>(
-    null,
-  );
+  const [menu, setMenu] = useState<{
+    prop: Prop;
+    anchor: MenuAnchor;
+    activate: () => void;
+    reason: string | undefined;
+  } | null>(null);
   const {busy, run} = useToolEditing({
     api: window.llp,
     write: savePropEdit,
@@ -84,22 +88,33 @@ export function PropTab({
         props={document?.value.props ?? []}
         screens={screens?.value.screens ?? []}
         media={media?.value.items}
-        onMenu={(prop, anchor) => {
-          setMenu({prop, anchor});
+        onMenu={(prop, anchor, action) => {
+          setMenu({prop, anchor, ...action});
         }}
       />
       {menu ? (
         <Menu
+          context
           label="그래픽"
           anchor={menu.anchor}
           onClose={() => setMenu(null)}
-          entries={propMenuEntries({
-            reason: toolMenuReason(locked, busy),
-            edit: () => setEditor({kind: 'edit', prop: menu.prop}),
-            duplicate: () => duplicate(menu.prop),
-            duplicateReason,
-            remove: () => setEditor({kind: 'delete', prop: menu.prop}),
-          })}
+          entries={[
+            {
+              kind: 'item',
+              id: 'output',
+              contextGroup: 'default',
+              label: '출력 전환',
+              ...menuAvailability(menu.reason),
+              onSelect: menu.activate,
+            },
+            ...propMenuEntries({
+              reason: toolMenuReason(locked, busy),
+              edit: () => setEditor({kind: 'edit', prop: menu.prop}),
+              duplicate: () => duplicate(menu.prop),
+              duplicateReason,
+              remove: () => setEditor({kind: 'delete', prop: menu.prop}),
+            }),
+          ]}
         />
       ) : null}
       {editor?.kind === 'delete' ? (

@@ -237,7 +237,7 @@ describe('ShortcutsPage', () => {
     await waitFor(() => expect(written()).toMatchObject({'clear.media': []}));
   });
 
-  it('answers a right-click with the same two actions as the bottom bar and writes them', async () => {
+  it('offers editing first, followed by the bottom bar reset and clear actions', async () => {
     await mount({
       'clear.slide': [{code: 'KeyJ', mods: ['ctrl']}],
       'future.command': [{code: 'F8', mods: []}],
@@ -245,7 +245,7 @@ describe('ShortcutsPage', () => {
     fireEvent.contextMenu(rowOf(/가사 지우기/));
     expect(
       screen.getAllByRole('menuitem').map(item => item.textContent),
-    ).toEqual(['기본값으로', '지우기']);
+    ).toEqual(['단축키 편집', '기본값으로', '지우기']);
     await userEvent.click(screen.getByRole('menuitem', {name: '기본값으로'}));
     await waitFor(() =>
       expect(written()).toEqual({'future.command': [{code: 'F8', mods: []}]}),

@@ -42,6 +42,13 @@ it('offers theme targets and marks an action of an unknown kind as unsupported',
     title: '아직 없는 기능',
     loadSubmenu: undefined,
   });
+  const lockedRows = menuItems(
+    macroActionEntries({item, locked: true, targets: undefined}, handlers),
+  );
+  expect(lockedRows.find(row => row.id === 'edit-0')).toMatchObject({
+    disabled: true,
+    title: '아직 없는 기능',
+  });
   const remove = menuItems(
     rows.find(row => row.id === 'remove-actions')?.submenu ?? [],
   ).find(row => row.id === 'remove-0');

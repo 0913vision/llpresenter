@@ -104,7 +104,7 @@ it.each([false, true])(
     );
     expect(
       renderedToolMenuRows(screen.getByRole('menu', {name: '메시지'})),
-    ).toEqual(['수정…', '|', '복제', '이름 바꾸기', '|', '삭제']);
+    ).toEqual(['수정…', '|', '이름 바꾸기', '|', '복제', '|', '삭제']);
     if (locked) {
       for (const row of screen.getAllByRole('menuitem')) {
         expect(row.getAttribute('aria-disabled')).toBe('true');

@@ -166,7 +166,7 @@ describe('screen creation and group outputs', () => {
           .getByRole('menu')
           .querySelectorAll('[role="menuitem"], [role="separator"]'),
       ].map(row => row.textContent);
-    const expected = ['이름 바꾸기', '삭제', '사용'];
+    const expected = ['이름 바꾸기', '', '사용', '', '삭제'];
     const remove = () => screen.getByRole('menuitem', {name: '삭제'});
     expect(rows()).toEqual(expected);
     expect(remove().getAttribute('aria-disabled')).toBe('true');
@@ -193,7 +193,6 @@ describe('screen creation and group outputs', () => {
   it('toggles only the clicked output and waits for main confirmation', async () => {
     const {send, edit} = setup();
     const row = await screen.findByRole('option', {name: '청중 화면'});
-    const previous = useScreensSelection.getState().selection;
     fireEvent.contextMenu(row);
     fireEvent.click(screen.getByRole('menuitem', {name: '사용'}));
     expect(send).toHaveBeenCalledExactlyOnceWith({
@@ -202,7 +201,7 @@ describe('screen creation and group outputs', () => {
       on: true,
     });
     expect(useLive.getState().state?.outputs[MAIN_ID]).toBeUndefined();
-    expect(useScreensSelection.getState().selection).toBe(previous);
+    expect(useScreensSelection.getState().selection).toEqual({id: MAIN_ID});
     act(() =>
       useLive.setState({
         state: {...emptyLiveState(), outputs: {[MAIN_ID]: true}},
@@ -357,7 +356,7 @@ describe('screen creation and group outputs', () => {
       [...screen.getByRole('menu').querySelectorAll('[role="menuitem"]')].map(
         row => row.textContent,
       ),
-    ).toEqual(['이름 바꾸기', '삭제', '사용']);
+    ).toEqual(['이름 바꾸기', '사용', '삭제']);
   });
 
   it('asks with the object particle that fits a name ending in a vowel', async () => {

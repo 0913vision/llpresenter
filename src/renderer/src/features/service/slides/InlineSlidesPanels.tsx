@@ -59,6 +59,7 @@ export function InlineSlidesPanels({
       <PanelBody variant="flush">
         <SongSlideSurface
           session={session}
+          report={session.reportNotice}
           onBack={onBack}
           className={styles.slideSurface}
         >

@@ -1,4 +1,6 @@
-import {useRef, useState, type DragEvent} from 'react';
+import {orderedSelection} from '@core/common/selectionOrder';
+import {selectionDragImage} from '@renderer/ui/selectionDrag';
+import {useEffect, useRef, useState, type DragEvent} from 'react';
 import type {SongId} from '@core/schema/ids';
 import {readSongDragData, SONG_DRAG_MIME} from '@core/schema/songDrag';
 import type {ServiceRow} from '@core/presentation/model';
@@ -9,7 +11,9 @@ import {useDragClickGuard} from '@renderer/ui/useDragClickGuard';
 interface DragOptions {
   readonly enabled: boolean;
   readonly rows: readonly ServiceRow[];
-  readonly onMove: (source: string, before: string | null) => void;
+  readonly onMove: (source: readonly string[], before: string | null) => void;
+  readonly selected: ReadonlySet<string>;
+  readonly select: (id: string) => void;
   readonly onCopy: (songId: SongId, before: string | null) => void;
 }
 
@@ -28,14 +32,20 @@ export function useServiceOrderDrag({
   enabled,
   rows,
   onMove,
+  selected,
+  select,
   onCopy,
 }: DragOptions) {
   const dragged = useRef<string | null>(null);
+  const sourceRows = useRef<readonly ServiceRow[] | null>(null);
+  const moving = useRef<readonly string[]>([]);
+  const release = useRef<(() => void) | undefined>(undefined);
+  useEffect(() => () => release.current?.(), []);
   const click = useDragClickGuard();
   const [insertBefore, setInsertBefore] = useState<string | null | undefined>();
   const accepts = (event: DragEvent): boolean =>
     enabled &&
-    (dragged.current !== null ||
+    ((dragged.current !== null && sourceRows.current === rows) ||
       event.dataTransfer.types.includes(SONG_DRAG_MIME));
   const destination = (event: DragEvent): string | null => {
     let element = rowElement(event.target);
@@ -64,7 +74,9 @@ export function useServiceOrderDrag({
     if (targetIndex < 0) return id;
     const requested = targetIndex + (after ? 1 : 0);
     let index = requested;
-    if (rows.find(row => row.id === dragged.current)?.kind === 'header') {
+    if (
+      rows.some(row => moving.current.includes(row.id) && row.kind === 'header')
+    ) {
       index = sectionBoundaryIndex(
         rows,
         requested,
@@ -80,6 +92,8 @@ export function useServiceOrderDrag({
     return rows[index]?.id ?? null;
   };
   const clear = (): void => {
+    release.current?.();
+    moving.current = [];
     dragged.current = null;
     setInsertBefore(undefined);
   };
@@ -89,14 +103,32 @@ export function useServiceOrderDrag({
       onPointerDownCapture: click.props.onPointerDownCapture,
       onClickCapture: click.props.onClickCapture,
       onDoubleClickCapture: click.props.onDoubleClickCapture,
-      onDragStart: (event: DragEvent): void => {
+      onDragStart: (event: DragEvent<HTMLElement>): void => {
         if (!enabled) {
           event.preventDefault();
           return;
         }
-        dragged.current = serviceOrderRowId(event.target);
+        const id = serviceOrderRowId(event.target);
+        if (id === null) {
+          event.preventDefault();
+          return;
+        }
+        if (!selected.has(id)) select(id);
+        moving.current = orderedSelection(
+          rows,
+          selected.has(id) ? selected : new Set([id]),
+          row => row.kind === 'header',
+        ).map(row => row.id);
+        dragged.current = id;
+        sourceRows.current = rows;
+        release.current?.();
+        release.current = selectionDragImage(
+          event.dataTransfer,
+          rowElement(event.target) ?? event.currentTarget,
+          moving.current.length,
+        );
         event.dataTransfer.effectAllowed = 'move';
-        event.dataTransfer.setData('text/plain', dragged.current ?? '');
+        event.dataTransfer.setData('text/plain', id);
         click.markDragged();
       },
       onDragEnd: clear,
@@ -119,7 +151,7 @@ export function useServiceOrderDrag({
         if (!accepts(event)) return;
         event.preventDefault();
         const before = destination(event);
-        const source = dragged.current;
+        const source = dragged.current === null ? null : moving.current;
         clear();
         if (source !== null) {
           onMove(source, before);

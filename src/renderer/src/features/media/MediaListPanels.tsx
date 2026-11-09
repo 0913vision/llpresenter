@@ -94,6 +94,7 @@ function usePlaylistEditing(kind: 'media' | 'audio') {
     if (row === null || !key.startsWith(`${kind}:`)) return;
     event.preventDefault();
     event.stopPropagation();
+    choose(choiceOf(key));
     setMenu({id: key.slice(kind.length + 1), anchor: contextMenuAnchor(event)});
   };
   const duplicate = (id: string): void => {
@@ -125,6 +126,7 @@ function usePlaylistEditing(kind: 'media' | 'audio') {
     <>
       {menu !== null && menuPlaylist !== null ? (
         <Menu
+          context
           label="재생목록 메뉴"
           anchor={menu.anchor}
           onClose={() => setMenu(null)}

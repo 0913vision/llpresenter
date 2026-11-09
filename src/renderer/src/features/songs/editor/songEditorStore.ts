@@ -110,6 +110,7 @@ export class SongEditorStore {
   }
 
   readonly getSnapshot = (): EditorState => this.state;
+  readonly reportNotice = (notice: Notice): void => this.onProblem(notice);
   readonly subscribe = (listener: () => void): (() => void) => {
     this.listeners.add(listener);
     return () => {

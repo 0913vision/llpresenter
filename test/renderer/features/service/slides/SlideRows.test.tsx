@@ -5,6 +5,7 @@ import {afterEach, describe, expect, it, vi} from 'vitest';
 import {createServiceItemId, createSlideId} from '@core/schema/ids';
 import {SlidesDraft, newSlidesItem} from '@core/services/slidesEdits';
 import {SlideRows} from '@renderer/features/service/slides/SlideRows';
+import {SlidesListSession} from '@renderer/features/service/slides/slidesListSession';
 
 afterEach(cleanup);
 function makeDraft(
@@ -34,10 +35,12 @@ function Harness({
   draft,
   blocked = false,
   report = vi.fn(),
+  session,
 }: {
   draft: SlidesDraft;
   blocked?: boolean;
   report?: (text: string) => void;
+  session?: SlidesListSession;
 }) {
   const list = useRef<HTMLDivElement>(null);
   const [, refresh] = useState(0);
@@ -47,6 +50,7 @@ function Harness({
       draft={draft}
       blocked={blocked}
       report={report}
+      session={session}
       update={update}
       list={list}
       renderRow={slide => (
@@ -84,6 +88,7 @@ function clipboard() {
   const data = new Map<string, string>();
   return {
     getData: (type: string) => data.get(type) ?? '',
+    setDragImage: vi.fn(),
     setData: (type: string, text: string) => {
       data.set(type, text);
     },
@@ -220,10 +225,35 @@ describe('slide row editing surface', () => {
     expect(rows()).toHaveLength(5);
     keys('a', {ctrlKey: true});
     keys('Delete');
+    fireEvent.click(screen.getByRole('button', {name: '삭제'}));
     expect(rows()).toHaveLength(0);
     expect(document.activeElement).toBe(screen.getByRole('group'));
     keys('z', {ctrlKey: true});
     expect(rows()).toHaveLength(5);
+  });
+
+  it('reports a stale group deletion to the slides session notification channel', () => {
+    const draft = makeDraft();
+    const report = vi.fn();
+    const session = new SlidesListSession(draft, {
+      locked: () => false,
+      problem: vi.fn(),
+      report,
+    });
+    render(<Harness draft={draft} session={session} />);
+    fireEvent.click(row(1));
+    fireEvent.click(row(3), {ctrlKey: true});
+    keys('Delete');
+    expect(screen.getByRole('alertdialog')).toBeDefined();
+    act(() => session.selectSlides({type: 'clear'}));
+    fireEvent.click(screen.getByRole('button', {name: '삭제'}));
+    expect(rows()).toHaveLength(4);
+    expect(report).toHaveBeenCalledExactlyOnceWith(
+      expect.objectContaining({
+        key: 'selection-delete:stale',
+        kind: 'info',
+      }),
+    );
   });
 
   it('moves the whole disjoint selection to a gap without replacing identities', () => {
@@ -270,6 +300,7 @@ describe('slide row editing surface', () => {
     expect(rows()).toHaveLength(6);
     expect(selected()).toEqual([row(4), row(5)]);
     keys('Delete');
+    fireEvent.click(screen.getByRole('button', {name: '삭제'}));
     expect(rows()).toHaveLength(4);
   });
 

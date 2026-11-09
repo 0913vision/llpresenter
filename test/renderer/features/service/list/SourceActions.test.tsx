@@ -193,7 +193,6 @@ describe('the service source menu', () => {
         ).toBe('true'),
       );
       const opener = await screen.findByRole('option', {name});
-      const selected = opener.getAttribute('aria-selected');
       act(() => opener.focus());
       fireEvent.keyDown(opener, {key, shiftKey: key === 'F10'});
       const menu = screen.getByRole('menu');
@@ -201,9 +200,9 @@ describe('the service source menu', () => {
         [...menu.querySelectorAll('[role="menuitem"], [role="separator"]')].map(
           row => row.textContent,
         ),
-      ).toEqual(['이름 바꾸기', '삭제']);
+      ).toEqual(['이름 바꾸기', '', '삭제']);
       expect(menu.querySelector('svg')).toBeNull();
-      expect(opener.getAttribute('aria-selected')).toBe(selected);
+      expect(opener.getAttribute('aria-selected')).toBe('true');
       expect(edits).toHaveLength(0);
       fireEvent.keyDown(menu, {key: 'Escape'});
       expect(screen.queryByRole('menu')).toBeNull();

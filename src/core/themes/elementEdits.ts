@@ -1,3 +1,4 @@
+import {moveSelection} from '../common/selectionOrder';
 import type {ThemeElementId} from '../schema/ids';
 import {checkPart} from '../schema/fileFormat';
 import {
@@ -115,4 +116,39 @@ export function parseThemeClipboard(
   } catch {
     return undefined;
   }
+}
+
+/** Reorders selected layers together without reversing their stacking order. */
+export function reorderThemeSelection(
+  elements: readonly ThemeElement[],
+  ids: ReadonlySet<string>,
+  direction: 'front' | 'forward' | 'backward' | 'back',
+): readonly ThemeElement[] {
+  if (direction === 'front' || direction === 'back') {
+    return moveSelection(
+      elements,
+      ids,
+      direction === 'front' ? elements.length : 0,
+    );
+  }
+  const next = [...elements];
+  const step = direction === 'forward' ? -1 : 1;
+  for (
+    let index = step === -1 ? next.length - 2 : 1;
+    index >= 0 && index < next.length;
+    index += step
+  ) {
+    const row = next[index];
+    const neighbor = next[index - step];
+    if (
+      row !== undefined &&
+      neighbor !== undefined &&
+      ids.has(row.id) &&
+      !ids.has(neighbor.id)
+    ) {
+      next[index] = neighbor;
+      next[index - step] = row;
+    }
+  }
+  return next;
 }

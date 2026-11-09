@@ -298,6 +298,8 @@ export function QuickRowEditor({
   children,
   insertBefore = false,
   onPinChange,
+  activate,
+  activateReason,
 }: {
   readonly api: LlpApi;
   readonly item: QuickItem;
@@ -311,6 +313,8 @@ export function QuickRowEditor({
   readonly timersFull: boolean;
   readonly save: Save;
   readonly children: ReactNode;
+  readonly activate?: (() => void) | undefined;
+  readonly activateReason?: string | undefined;
   readonly insertBefore?: boolean;
   readonly onPinChange?: ((id: string, active: boolean) => void) | undefined;
 }): JSX.Element {
@@ -353,23 +357,38 @@ export function QuickRowEditor({
       {children}
       {menu ? (
         <Menu
+          context
           label="퀵 실행 항목"
           anchor={menu}
           onClose={() => setMenu(null)}
-          entries={quickItemMenuEntries({
-            reason: toolMenuReason(locked),
-            ...(item.kind === 'timer'
-              ? {
-                  edit: {onSelect: change.open, reason: change.reason},
-                }
-              : {}),
-            rename: () => {
-              renameAfterMenu(true);
-            },
-            duplicate,
-            duplicateReason,
-            remove: () => setDeleting(true),
-          })}
+          entries={[
+            ...(activate === undefined
+              ? []
+              : [
+                  {
+                    kind: 'item' as const,
+                    id: 'run',
+                    contextGroup: 'default' as const,
+                    label: '실행',
+                    ...menuAvailability(activateReason),
+                    onSelect: activate,
+                  },
+                ]),
+            ...quickItemMenuEntries({
+              reason: toolMenuReason(locked),
+              ...(item.kind === 'timer'
+                ? {
+                    edit: {onSelect: change.open, reason: change.reason},
+                  }
+                : {}),
+              rename: () => {
+                renameAfterMenu(true);
+              },
+              duplicate,
+              duplicateReason,
+              remove: () => setDeleting(true),
+            }),
+          ]}
         />
       ) : null}
       {deleting ? (

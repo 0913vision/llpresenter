@@ -162,13 +162,16 @@ it('lists the service menu rows and groups in spec order without opening the ser
       row.getAttribute('role') === 'separator' ? '|' : row.textContent,
     ),
   ).toEqual([
-    '이름 바꾸기',
-    '템플릿으로 저장…',
+    '열기',
     '|',
+    '이름 바꾸기',
+    '|',
+    '복제',
+    '|',
+    '템플릿으로 저장…',
     '내보내기',
     '인쇄',
     '|',
-    '복제',
     '삭제',
   ]);
   for (const name of ['내보내기', '인쇄']) {

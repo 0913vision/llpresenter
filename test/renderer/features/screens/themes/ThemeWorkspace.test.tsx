@@ -1149,3 +1149,85 @@ it('shows, selects and edits the clock and timer of an older 대기 화면 witho
     ]);
   });
 });
+
+it('reports a stale group deletion through the theme notice channel', async () => {
+  const {report} = setup();
+  await screen.findByRole('button', {name: '현재 가사'});
+  const target = screen.getByRole('button', {name: '무대 화면 편집'});
+  const list = screen.getByRole('listbox', {name: '요소'});
+  const [first, second] = within(list).getAllByRole('option');
+  if (!first || !second) throw new Error('Missing elements');
+  fireEvent.click(first);
+  fireEvent.click(second, {ctrlKey: true});
+  fireEvent.contextMenu(first);
+  await userEvent.click(screen.getByRole('menuitem', {name: /2개 삭제/}));
+  expect(screen.getByRole('alertdialog')).toBeDefined();
+  fireEvent.click(target);
+  await userEvent.click(screen.getByRole('button', {name: '삭제'}));
+  expect(report).toHaveBeenCalledExactlyOnceWith(
+    expect.objectContaining({
+      key: 'selection-delete:stale',
+      kind: 'info',
+    }),
+  );
+});
+
+it('keeps a selected element set for context commands and confirms one deletion with one undo', async () => {
+  setup();
+  await screen.findByRole('button', {name: '현재 가사'});
+  const list = screen.getByRole('listbox', {name: '요소'});
+  const [first, second] = within(list).getAllByRole('option');
+  if (!first || !second) throw new Error('Missing elements');
+  fireEvent.click(first);
+  fireEvent.click(second, {ctrlKey: true});
+  fireEvent.contextMenu(first);
+  expect(within(list).getAllByRole('option', {selected: true})).toHaveLength(2);
+  expect(
+    screen.getByRole('menuitem', {name: '2개 맨 앞으로 가져오기'}),
+  ).toBeDefined();
+  await userEvent.click(screen.getByRole('menuitem', {name: /2개 삭제/}));
+  expect(
+    screen.getByRole('alertdialog', {name: '2개를 삭제할까요?'}),
+  ).toBeDefined();
+  await userEvent.click(screen.getByRole('button', {name: '삭제'}));
+  expect(within(list).getAllByRole('option')).toHaveLength(1);
+  fireEvent.keyDown(document.body, {key: 'z', code: 'KeyZ', ctrlKey: true});
+  expect(within(list).getAllByRole('option')).toHaveLength(3);
+});
+
+it('reorders a disjoint element selection from its menu and drag image without reversing it', async () => {
+  setup();
+  await screen.findByRole('button', {name: '현재 가사'});
+  const list = screen.getByRole('listbox', {name: '요소'});
+  const [first, second, last] = within(list).getAllByRole('option');
+  if (!first || !second || !last) throw new Error('Missing elements');
+  const names = () =>
+    within(list)
+      .getAllByRole('option')
+      .map(row => row.getAttribute('data-value'));
+  const original = names();
+  fireEvent.click(first);
+  fireEvent.click(last, {ctrlKey: true});
+  fireEvent.contextMenu(first);
+  await userEvent.click(
+    screen.getByRole('menuitem', {name: '2개 맨 앞으로 가져오기'}),
+  );
+  expect(names()).toEqual([original[0], original[2], original[1]]);
+  fireEvent.keyDown(document.body, {key: 'z', code: 'KeyZ', ctrlKey: true});
+  expect(names()).toEqual(original);
+  fireEvent.click(first);
+  fireEvent.click(last, {ctrlKey: true});
+  const data = new Map<string, string>();
+  const dataTransfer = {
+    getData: (type: string) => data.get(type) ?? '',
+    setData: (type: string, value: string) => data.set(type, value),
+    setDragImage: vi.fn(),
+  };
+  fireEvent.dragStart(first, {dataTransfer});
+  expect(document.querySelector('.selection-drag__count')?.textContent).toBe(
+    '2',
+  );
+  fireEvent.drop(last, {dataTransfer, clientY: 1});
+  expect(names()).toEqual([original[1], original[0], original[2]]);
+  expect(document.querySelector('.selection-drag')).toBeNull();
+});

@@ -199,6 +199,7 @@ export function ItemSlideGrid({
         <OverlayClips control={control} />
         {menu === null ? null : (
           <Menu
+            context
             label="슬라이드 메뉴"
             anchor={menu.anchor}
             onClose={() => setMenu(null)}

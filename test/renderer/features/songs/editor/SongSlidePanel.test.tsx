@@ -147,3 +147,28 @@ describe('SongSlidePanel with slide decks', () => {
     expect(options[1]?.getAttribute('aria-selected')).toBe('false');
   });
 });
+
+it('confirms one counted grid deletion, cancels safely and restores the selection in one undo', async () => {
+  const {session, store} = createGroupedSession();
+  render(<SongSlidePanel store={store} sizeClass="normal" />);
+  const [first, second, third] = screen.getAllByRole('option');
+  if (!first || !second || !third) throw new Error('Missing slides');
+  fireEvent.click(first);
+  fireEvent.click(second, {ctrlKey: true});
+  fireEvent.contextMenu(first);
+  expect(screen.getAllByRole('option', {selected: true})).toHaveLength(2);
+  await userEvent.click(screen.getByRole('menuitem', {name: /2개 삭제/}));
+  expect(
+    screen.getByRole('alertdialog', {name: '2개를 삭제할까요?'}),
+  ).toBeDefined();
+  await userEvent.click(screen.getByRole('button', {name: '취소'}));
+  expect(session.history.snapshot.song.slides).toHaveLength(3);
+  fireEvent.contextMenu(first);
+  await userEvent.click(screen.getByRole('menuitem', {name: /2개 삭제/}));
+  await userEvent.click(screen.getByRole('button', {name: '삭제'}));
+  expect(session.history.snapshot.song.slides).toHaveLength(1);
+  act(() => session.edit('undo'));
+  expect(session.history.snapshot.song.slides).toHaveLength(3);
+  fireEvent.contextMenu(screen.getAllByRole('option')[2] ?? third);
+  expect(screen.getAllByRole('option', {selected: true})).toHaveLength(1);
+});

@@ -206,8 +206,10 @@ function CollectionPopover({
             >
               {rows.map(row => {
                 const item = collections.find(item => item.id === row.id);
-                const showContext = (anchor: MenuAnchor): void =>
+                const showContext = (anchor: MenuAnchor): void => {
+                  onChange(item?.id);
                   setContext({id: row.id, anchor});
+                };
                 return (
                   <Fragment key={row.id}>
                     {insertBefore !== undefined && insertBefore === item?.id ? (

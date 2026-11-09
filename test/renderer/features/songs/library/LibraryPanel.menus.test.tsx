@@ -22,16 +22,15 @@ import {setup} from '@fixtures/renderer/features/songs/library/libraryPanelFixtu
 
 describe('library panel', () => {
   it.each([{key: 'ContextMenu'}, {key: 'F10', shiftKey: true}])(
-    'opens the focused song menu with $key without selecting it',
+    'selects the focused song for $key without opening its editor',
     async key => {
       const {onOpenSong} = await setup();
       const opener = screen.getByRole('option', {name: '찬송 10'});
-      const selected = opener.getAttribute('aria-selected');
       act(() => opener.focus());
       fireEvent.keyDown(opener, key);
       const menu = screen.getByRole('menu', {name: '곡 메뉴'});
       expect(onOpenSong).not.toHaveBeenCalled();
-      expect(opener.getAttribute('aria-selected')).toBe(selected);
+      expect(opener.getAttribute('aria-selected')).toBe('true');
       fireEvent.keyDown(menu, {key: 'Escape'});
       expect(screen.queryByRole('menu')).toBeNull();
       expect(document.activeElement).toBe(opener);

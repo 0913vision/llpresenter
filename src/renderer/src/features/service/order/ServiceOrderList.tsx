@@ -1,4 +1,7 @@
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
+import {useSelectionDelete} from '@renderer/ui/useSelectionDelete';
+import {selectionLabel} from '@renderer/ui/selectionDrag';
+import {orderedSelection} from '@core/common/selectionOrder';
 import {createServiceId} from '@core/schema/ids';
 import {isItemOfKind, SLIDES_LIMITS} from '@core/schema/service';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
@@ -289,14 +292,6 @@ export function ServiceOrderList({
   );
   const editable = !readOnly && !editing.busy && window.llp !== undefined;
   const full = useOrderFull();
-  const moveRow = (source: string, before: string | null): void =>
-    editing.run((edits, id) =>
-      edits.move(
-        id,
-        createServiceItemId(source),
-        before === null ? null : createServiceItemId(before),
-      ),
-    );
   const moveRowSaved = (
     source: string,
     before: string | null,
@@ -308,19 +303,6 @@ export function ServiceOrderList({
         before === null ? null : createServiceItemId(before),
       ),
     );
-  const {insertBefore, dragProps} = useServiceOrderDrag({
-    enabled: editable,
-    rows,
-    onMove: moveRow,
-    onCopy: (songId, before) =>
-      editing.run((edits, id) =>
-        edits.insertSong(
-          id,
-          songId,
-          before === null ? null : createServiceItemId(before),
-        ),
-      ),
-  });
   const [menu, setMenu] = useState<{
     id: string;
     serviceId: string | null;
@@ -354,6 +336,28 @@ export function ServiceOrderList({
       onOpenItem?.();
       openItem(itemId);
     },
+  });
+  const {insertBefore, dragProps} = useServiceOrderDrag({
+    enabled: editable,
+    rows,
+    selected: selection.selected,
+    select: id => selection.replace([id], id),
+    onMove: (ids, before) =>
+      editing.run((edits, id) =>
+        edits.moveMany(
+          id,
+          ids.map(createServiceItemId),
+          before === null ? null : createServiceItemId(before),
+        ),
+      ),
+    onCopy: (songId, before) =>
+      editing.run((edits, id) =>
+        edits.insertSong(
+          id,
+          songId,
+          before === null ? null : createServiceItemId(before),
+        ),
+      ),
   });
   const clipboard = useServiceItemClipboard({
     serviceId,
@@ -485,26 +489,51 @@ export function ServiceOrderList({
       }
     });
   };
-  const deleteFromKey = (): void => {
-    if (editable && openItemId !== null) {
-      runFocusedEdit((edits, service) =>
-        edits.remove(service, createServiceItemId(openItemId)),
-      );
-    }
-  };
-  const duplicateItem = (id: string): void => {
-    if (!editable) return;
-    const copyId = createServiceItemId(crypto.randomUUID());
-    editing
-      .save((edits, service) =>
-        edits.duplicate(service, createServiceItemId(id), copyId),
+  const deletion = useSelectionDelete(onProblem);
+  const targets = (id?: string): readonly string[] =>
+    rows
+      .filter(row =>
+        id !== undefined && !selection.selected.has(id)
+          ? row.id === id
+          : selection.selected.has(row.id),
       )
+      .map(row => row.id);
+  const askDelete = (ids: readonly string[]): void => {
+    if (!editable || ids.length === 0) return;
+    const snapshot = useShow.getState();
+    deletion.ask(
+      ids.length,
+      () =>
+        useShow.getState().serviceId === snapshot.serviceId &&
+        useShow.getState().rows === snapshot.rows &&
+        !useShow.getState().readOnly,
+      () =>
+        runFocusedEdit((edits, service) =>
+          edits.removeMany(service, ids.map(createServiceItemId)),
+        ),
+    );
+  };
+  const deleteFromKey = (): void => askDelete(targets());
+  const duplicateItems = (ids: readonly string[]): void => {
+    if (!editable || ids.length === 0) return;
+    const copies = new Map(
+      orderedSelection(rows, new Set(ids), row => row.kind === 'header').map(
+        row => [
+          createServiceItemId(row.id),
+          createServiceItemId(crypto.randomUUID()),
+        ],
+      ),
+    );
+    const copyIds = [...copies.values()];
+    editing
+      .save((edits, service) => edits.duplicateMany(service, copies))
       .then(saved => {
-        if (saved) openItem(copyId);
+        const last = copyIds.at(-1);
+        if (saved && last !== undefined) selection.replace(copyIds, last);
       })
-      .catch((cause: unknown) => {
-        console.error('Could not copy a 예배 순서 item:', cause);
-      });
+      .catch((cause: unknown) =>
+        console.error('Could not duplicate service items:', cause),
+      );
   };
   const historyReason = (kind: 'undo' | 'redo'): string | undefined => {
     const api = window.llp;
@@ -560,7 +589,6 @@ export function ServiceOrderList({
       context: 'service',
       when: event =>
         ownsCommand(event) &&
-        workspace === 'prep' &&
         openItemId !== null &&
         event.target instanceof Node &&
         listRef.current
@@ -573,7 +601,7 @@ export function ServiceOrderList({
             : undefined
           : '예배 순서 편집 불가',
       run: () => {
-        if (openItemId !== null && !full) duplicateItem(openItemId);
+        if (!full) duplicateItems(targets());
       },
     },
     {
@@ -581,7 +609,6 @@ export function ServiceOrderList({
       context: 'service',
       when: event =>
         ownsCommand(event) &&
-        workspace === 'prep' &&
         event.target instanceof Node &&
         listRef.current
           ?.querySelector('[role="listbox"]')
@@ -636,7 +663,9 @@ export function ServiceOrderList({
   ): readonly MenuEntry[] => {
     const row = rows.find(value => value.id === target.id);
     if (row === undefined) return [];
-    return [
+    const ids = targets(target.id);
+    const count = ids.length;
+    const entries: readonly MenuEntry[] = [
       ...serviceOrderMenuEntries({
         row,
         editable,
@@ -700,18 +729,38 @@ export function ServiceOrderList({
           pasteReason: clipboard.pasteReason,
         },
         duplicate: () => {
-          duplicateItem(target.id);
+          duplicateItems(ids);
           setMenu(null);
         },
         remove: () => {
-          editing.run((edits, id) =>
-            edits.remove(id, createServiceItemId(target.id)),
-          );
+          askDelete(ids);
           setMenu(null);
         },
       }),
-      ...(table?.menuFor?.(row) ?? []),
+      ...(count === 1 ? (table?.menuFor?.(row) ?? []) : []),
     ];
+    const common = new Set(['copy', 'paste', 'duplicate', 'delete']);
+    const duplicateCount = orderedSelection(
+      rows,
+      new Set(ids),
+      row => row.kind === 'header',
+    ).length;
+    return entries
+      .filter(
+        entry => count === 1 || (entry.kind === 'item' && common.has(entry.id)),
+      )
+      .map(entry =>
+        entry.kind !== 'item' ||
+        !['copy', 'duplicate', 'delete'].includes(entry.id)
+          ? entry
+          : {
+              ...entry,
+              label: selectionLabel(
+                entry.label,
+                entry.id === 'duplicate' ? duplicateCount : count,
+              ),
+            },
+      );
   };
   return (
     <div
@@ -729,6 +778,7 @@ export function ServiceOrderList({
         const id = serviceOrderRowId(event.target);
         if (id === null) return;
         event.preventDefault();
+        if (!selection.selected.has(id)) selection.replace([id], id);
         setMenu({
           id,
           serviceId,
@@ -755,6 +805,7 @@ export function ServiceOrderList({
           if (id === null) return;
           event.preventDefault();
           event.stopPropagation();
+          if (!selection.selected.has(id)) selection.replace([id], id);
           setMenu({id, serviceId, anchor: contextMenuAnchor(event)});
           return;
         }
@@ -860,9 +911,11 @@ export function ServiceOrderList({
       ) : null}
       {insertBefore === null ? <ListInsertLine /> : null}
       {table?.footer}
+      {deletion.dialog}
       {serviceActions.dialogs}
       {menu?.serviceId === serviceId ? (
         <Menu
+          context
           label="예배 순서 항목 메뉴"
           anchor={menu.anchor}
           onClose={() => setMenu(null)}

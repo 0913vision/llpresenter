@@ -172,6 +172,14 @@ export function ShortcutsPage({
   const rowMenuEntries = (row: ShortcutRow): readonly MenuEntry[] => [
     {
       kind: 'item',
+      id: 'edit',
+      contextGroup: 'default',
+      label: '단축키 편집',
+      ...menuAvailability(edits.lockedReason),
+      onSelect: () => setEditingId(row.command.id),
+    },
+    {
+      kind: 'item',
       id: 'reset',
       label: RESET_LABEL,
       ...menuAvailability(
@@ -182,6 +190,7 @@ export function ShortcutsPage({
     {
       kind: 'item',
       id: 'clear',
+      contextGroup: 'delete',
       label: CLEAR_LABEL,
       ...menuAvailability(
         edits.lockedReason ??
@@ -321,6 +330,7 @@ export function ShortcutsPage({
       </div>
       {menu === null || menuRow === undefined ? null : (
         <Menu
+          context
           label="단축키 행 메뉴"
           anchor={menu.anchor}
           onClose={() => setMenu(null)}

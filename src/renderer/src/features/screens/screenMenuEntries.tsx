@@ -96,6 +96,7 @@ export function screenMenuEntries(
     {
       kind: 'item',
       id: 'delete',
+      contextGroup: 'delete',
       label: '삭제',
       ...menuAvailability(actions.reason ?? actions.deleteReason),
       onSelect: actions.remove,
@@ -103,6 +104,7 @@ export function screenMenuEntries(
     {
       kind: 'item',
       id: 'toggle',
+      contextGroup: 'hide',
       label: actions.on ? '사용 안 함' : '사용',
       ...menuAvailability(actions.outputReason),
       onSelect: actions.toggle,
@@ -116,5 +118,5 @@ export function ScreenContextMenu({
 }: Omit<MenuProps, 'entries'> & {
   readonly actions: ScreenMenuActions;
 }): JSX.Element {
-  return <Menu {...props} entries={screenMenuEntries(actions)} />;
+  return <Menu context {...props} entries={screenMenuEntries(actions)} />;
 }

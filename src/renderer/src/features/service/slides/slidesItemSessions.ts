@@ -77,6 +77,7 @@ export class SlidesItemSessions {
         this.api === undefined ||
         pendingWritesOf(this.api).isStopped,
       problem: title => this.problem(title),
+      report: notice => this.report(notice),
     });
     const entry: Entry = {
       target,

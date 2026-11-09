@@ -94,7 +94,10 @@ export function useScreenRowActions(
           onClose: () => setRenaming(null),
         };
   return {
-    open: (id: string, anchor: MenuAnchor): void => setMenu({id, anchor}),
+    open: (id: string, anchor: MenuAnchor): void => {
+      select(id);
+      setMenu({id, anchor});
+    },
     renameFor,
     overlays: (
       <>

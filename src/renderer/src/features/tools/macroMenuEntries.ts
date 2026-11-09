@@ -19,6 +19,7 @@ import {
 
 /** What the 매크로 menu can ask its panel to do. */
 export interface MacroMenuHandlers extends MacroActionMenuHandlers {
+  readonly start?: () => void;
   readonly rename: () => void;
   readonly changeIcon: () => void;
   readonly changeColor: () => void;
@@ -84,6 +85,7 @@ function collectionEntries(
     {
       kind: 'item',
       id: 'add-to',
+      contextGroup: 'library',
       label: '모음에 추가',
       ...menuAvailability(locked ? lockedReason(input) : undefined),
       submenu: collectionRows(input, {
@@ -95,6 +97,7 @@ function collectionEntries(
     {
       kind: 'item',
       id: 'move-to',
+      contextGroup: 'library',
       label: '모음으로 옮기기',
       ...menuAvailability(
         locked
@@ -172,6 +175,7 @@ function clipboardEntries(
     {
       kind: 'item',
       id: 'duplicate',
+      contextGroup: 'clipboard',
       label: '복제',
       icon: 'duplicate',
       ...menuAvailability(macroDuplicateReason(input)),
@@ -181,6 +185,7 @@ function clipboardEntries(
     {
       kind: 'item',
       id: 'delete',
+      contextGroup: 'delete',
       label: '삭제',
       icon: 'trash',
       danger: true,
@@ -199,6 +204,17 @@ export function macroMenuEntries(
   handlers: MacroMenuHandlers,
 ): readonly MenuEntry[] {
   return [
+    ...(handlers.start === undefined
+      ? []
+      : [
+          {
+            kind: 'item' as const,
+            id: 'run',
+            contextGroup: 'default' as const,
+            label: '실행',
+            onSelect: handlers.start,
+          },
+        ]),
     ...collectionEntries(input, handlers),
     menuSeparator('appearance-separator'),
     ...appearanceEntries(input, handlers),

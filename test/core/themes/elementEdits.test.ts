@@ -8,6 +8,7 @@ import {createDefaultThemes} from '@core/themes/defaults';
 import {THEME_LIMITS, themeElementKinds} from '@core/themes/elementRules';
 import {newThemeElement} from '@core/themes/newElement';
 import {
+  reorderThemeSelection,
   changeThemeElement,
   editThemeElements,
   hasThemeText,
@@ -142,3 +143,22 @@ it('refuses stage content on audience screens and live content in standby withou
     ]).ok,
   ).toBe(false);
 });
+
+it.each([
+  ['front', [1, 3, 5, 2, 4]],
+  ['back', [2, 4, 1, 3, 5]],
+  ['forward', [1, 3, 2, 5, 4]],
+  ['backward', [2, 1, 4, 3, 5]],
+] as const)(
+  'moves disjoint selected layers %s without reversing their order',
+  (direction, expected) => {
+    const elements = [1, 2, 3, 4, 5].map(n => element('text', n));
+    expect(
+      reorderThemeSelection(
+        elements,
+        new Set([elementId(4), elementId(2)]),
+        direction,
+      ).map(row => row.id),
+    ).toEqual(expected.map(elementId));
+  },
+);

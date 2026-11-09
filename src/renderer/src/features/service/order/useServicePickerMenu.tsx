@@ -14,7 +14,7 @@ export function useServicePickerMenu(onProblem: (notice: Notice) => void) {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const picker = useServicePicker(onProblem);
   const actions = useServiceActions({onProblem, onOpen: picker.close});
-  const rows = useServiceRowMenu(onProblem, picker.close);
+  const rows = useServiceRowMenu(onProblem, picker.close, picker.select);
   const currentId = useShow(view => view.serviceId);
   const openAt = (element: HTMLElement): void => {
     setAnchor(element);

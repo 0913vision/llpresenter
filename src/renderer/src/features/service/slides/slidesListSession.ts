@@ -2,6 +2,7 @@ import type {Slide, SlidesDraft} from '@core/services/slidesEdits';
 import type {SlideListCommand} from '@core/songs/slideListEdits';
 import type {SlideSelectionAction} from '@core/songs/slideListSelection';
 import type {SlideListSession} from '../../songs/editor/slideListSession';
+import type {Notice} from '@renderer/ui/notices';
 
 /** Borrows the draft's only model for the shared row and grid command surface. */
 export class SlidesListSession implements SlideListSession<Slide> {
@@ -11,17 +12,23 @@ export class SlidesListSession implements SlideListSession<Slide> {
     private host: {
       readonly locked: () => boolean;
       readonly problem: (message: string) => void;
+      readonly report?: ((notice: Notice) => void) | undefined;
     },
   ) {}
   configure(host: {
     readonly locked: () => boolean;
     readonly problem: (message: string) => void;
+    readonly report?: ((notice: Notice) => void) | undefined;
   }): void {
     this.host = host;
   }
   get slideModel() {
     return this.draft.model;
   }
+  readonly reportNotice = (notice: Notice): void => {
+    if (this.host.report !== undefined) this.host.report(notice);
+    else this.host.problem(notice.title);
+  };
   get clipboardOwner(): object {
     return this.draft.clipboard;
   }

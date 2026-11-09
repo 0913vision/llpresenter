@@ -67,6 +67,7 @@ const RETRY_READ_LABEL = '다시 불러오기';
  */
 
 export class ServiceItemStore {
+  readonly reportNotice = (notice: Notice): void => this.onProblem(notice);
   private readonly listeners = new Set<() => void>();
   private readonly edits: ItemEditQueue;
   private readonly memos: ItemMemoDrafts;

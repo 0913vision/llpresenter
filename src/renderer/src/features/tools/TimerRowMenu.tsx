@@ -138,6 +138,7 @@ export function TimerRowMenu({
       {children}
       {menu ? (
         <Menu
+          context
           label="타이머"
           anchor={menu}
           onClose={() => setMenu(null)}

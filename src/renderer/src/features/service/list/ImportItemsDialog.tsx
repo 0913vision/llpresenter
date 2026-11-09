@@ -77,7 +77,10 @@ export function ImportItemsDialog({
             onSelect={state.choose}
             withEmpty={false}
             onRetry={state.lists.failed ? state.lists.retry : undefined}
-            onRowMenu={actions.openMenu}
+            onRowMenu={(event, row) => {
+              state.choose(row.source);
+              actions.openMenu(event, row);
+            }}
           />
         }
       >

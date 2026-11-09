@@ -256,7 +256,7 @@ describe('service order clipboard commands', () => {
     fireEvent.click(first);
     fireEvent.click(last, {ctrlKey: true});
     fireEvent.contextMenu(first);
-    await user.click(await screen.findByRole('menuitem', {name: /^복사/u}));
+    await user.click(await screen.findByRole('menuitem', {name: /^2개 복사/u}));
     await waitFor(() =>
       expect(serviceItemClipboardFor(api).getCount()).toBe(2),
     );

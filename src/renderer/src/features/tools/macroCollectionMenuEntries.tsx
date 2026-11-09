@@ -20,6 +20,7 @@ export function macroCollectionMenuEntries(
     {
       kind: 'item',
       id: 'duplicate',
+      contextGroup: 'clipboard',
       label: '복제',
       ...menuAvailability(actions.reason ?? actions.duplicateReason),
       onSelect: actions.duplicate,
@@ -35,6 +36,7 @@ export function macroCollectionMenuEntries(
     {
       kind: 'item',
       id: 'delete',
+      contextGroup: 'delete',
       label: '삭제',
       ...menuAvailability(actions.reason),
       onSelect: actions.remove,
@@ -48,5 +50,7 @@ export function MacroCollectionMenu({
 }: Omit<MenuProps, 'entries'> & {
   readonly actions: CollectionMenuActions;
 }): JSX.Element {
-  return <Menu {...props} entries={macroCollectionMenuEntries(actions)} />;
+  return (
+    <Menu context {...props} entries={macroCollectionMenuEntries(actions)} />
+  );
 }

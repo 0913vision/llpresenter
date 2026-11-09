@@ -11,6 +11,7 @@ import type {MediaEntry} from './mediaEntries';
 import {shownProps, type MediaProps} from './mediaProps';
 
 export interface MediaTileActions {
+  readonly output?: () => void;
   readonly missing: boolean;
   readonly editable: boolean;
   readonly inPlaylist: boolean;
@@ -40,6 +41,7 @@ function duplicateRow(item: MediaItem, actions: MediaTileActions): MenuEntry {
   return {
     kind: 'item',
     id: 'duplicate',
+    contextGroup: 'clipboard',
     label: '복제',
     icon: actions.audioPlaylist ? undefined : 'duplicate',
     ...menuAvailability(actions.editable ? undefined : NEWER_FILE_REASON),
@@ -51,6 +53,7 @@ function deleteRow(item: MediaItem, actions: MediaTileActions): MenuEntry {
   return {
     kind: 'item',
     id: 'delete',
+    contextGroup: 'delete',
     label: '삭제',
     icon: actions.audioPlaylist ? undefined : 'trash',
     danger: true,
@@ -63,6 +66,7 @@ function revealRow(item: MediaItem, actions: MediaTileActions): MenuEntry {
   return {
     kind: 'item',
     id: 'reveal',
+    contextGroup: 'library',
     label: '탐색기에서 보기',
     onSelect: () => actions.reveal(item.id),
   };
@@ -186,6 +190,7 @@ function mediaRows(
           {
             kind: 'item' as const,
             id: 'leave',
+            contextGroup: 'delete' as const,
             label: '재생목록에서 빼기',
             ...menuAvailability(
               actions.editable ? undefined : NEWER_FILE_REASON,
@@ -196,6 +201,7 @@ function mediaRows(
       : []),
     deleteRow(item, actions),
     menuSeparator('export-separator'),
+    // NOTE(0913vision): Service insertion commands share this library/export group.
     revealRow(item, actions),
     laterRow('cleanup', '정리 기준', {submenu: true}),
   ];
@@ -224,6 +230,17 @@ export function mediaTileMenuEntries(
   if (entry.kind !== 'media') return [];
   const {item} = entry;
   return [
+    ...(actions.output === undefined || item.kind === 'audio' || actions.missing
+      ? []
+      : [
+          {
+            kind: 'item' as const,
+            id: 'output',
+            contextGroup: 'default' as const,
+            label: '출력',
+            onSelect: actions.output,
+          },
+        ]),
     ...(actions.missing
       ? [
           {
@@ -258,6 +275,7 @@ export function playlistMenuEntries(
     {
       kind: 'item',
       id: 'duplicate',
+      contextGroup: 'clipboard',
       label: '복제',
       ...menuAvailability(title),
       onSelect: duplicate,
@@ -265,6 +283,7 @@ export function playlistMenuEntries(
     {
       kind: 'item',
       id: 'delete',
+      contextGroup: 'delete',
       label: '삭제',
       danger: true,
       ...menuAvailability(title),

@@ -1,3 +1,4 @@
+import {orderedSelection, moveSelection} from '@core/common/selectionOrder';
 import type {LlpApi} from '@contracts/ipc/api';
 import {copyName} from '@core/common/copyName';
 import {isRecord} from '@core/common/guards';
@@ -187,14 +188,16 @@ export class ServiceOrderEdits {
   }
 
   remove(serviceId: ServiceId, itemId: ServiceItemId) {
+    return this.removeMany(serviceId, [itemId]);
+  }
+
+  removeMany(serviceId: ServiceId, itemIds: readonly ServiceItemId[]) {
     return this.update(serviceId, service => {
-      if (!service.order.some(item => item.id === itemId)) {
-        return refuse('not-found', 'The item no longer exists');
+      if (itemIds.some(id => !service.order.some(item => item.id === id))) {
+        return refuse('not-found', 'An item no longer exists');
       }
-      return {
-        ok: true,
-        value: service.order.filter(item => item.id !== itemId),
-      };
+      const ids = new Set(itemIds);
+      return {ok: true, value: service.order.filter(item => !ids.has(item.id))};
     });
   }
 
@@ -203,35 +206,33 @@ export class ServiceOrderEdits {
     itemId: ServiceItemId,
     beforeId: ServiceItemId | null,
   ) {
+    return this.moveMany(serviceId, [itemId], beforeId);
+  }
+
+  moveMany(
+    serviceId: ServiceId,
+    itemIds: readonly ServiceItemId[],
+    beforeId: ServiceItemId | null,
+  ) {
     return this.update(serviceId, service => {
-      const start = service.order.findIndex(row => row.id === itemId);
-      const item = service.order[start];
-      if (item === undefined) {
-        return refuse('not-found', 'The item no longer exists');
+      if (itemIds.some(id => !service.order.some(item => item.id === id))) {
+        return refuse('not-found', 'An item no longer exists');
       }
-      const nextHeader = isItemOfKind(item, 'header')
-        ? service.order.findIndex(
-            (row, index) => index > start && isItemOfKind(row, 'header'),
-          )
-        : start + 1;
-      const end = nextHeader < 0 ? service.order.length : nextHeader;
-      const moving = service.order.slice(start, end);
-      if (moving.some(row => row.id === beforeId)) {
+      const moving = orderedSelection(service.order, new Set(itemIds), row =>
+        isItemOfKind(row, 'header'),
+      );
+      const ids = new Set(moving.map(row => row.id));
+      if (beforeId !== null && ids.has(beforeId)) {
         return {ok: true, value: service.order};
       }
-      const order = [
-        ...service.order.slice(0, start),
-        ...service.order.slice(end),
-      ];
-      const requested = insertionIndex(order, beforeId);
-      const index = isItemOfKind(item, 'header')
-        ? sectionBoundaryIndex(order, requested, row =>
+      const requested = insertionIndex(service.order, beforeId);
+      if (requested < 0) return refuse('not-found', 'The drop target is gone');
+      const index = moving.some(row => isItemOfKind(row, 'header'))
+        ? sectionBoundaryIndex(service.order, requested, row =>
             isItemOfKind(row, 'header'),
           )
         : requested;
-      if (index < 0) return refuse('not-found', 'The drop target is gone');
-      order.splice(index, 0, ...moving);
-      return {ok: true, value: order};
+      return {ok: true, value: moveSelection(service.order, ids, index)};
     });
   }
 
@@ -260,39 +261,45 @@ export class ServiceOrderEdits {
     });
   }
 
-  /**
-   * Copies an item right after itself with a new id, as one undo step. A 구역
-   * copies the whole section (the header and its items up to the next header)
-   * and the copy goes after the section. The copy of the clicked row takes
-   * `copyId`; the other rows of a section get fresh ids.
-   */
+  /** Copies selected rows and complete sections once, in document order. */
   duplicate(
     serviceId: ServiceId,
     itemId: ServiceItemId,
     copyId: ServiceItemId,
   ) {
+    return this.duplicateMany(serviceId, new Map([[itemId, copyId]]));
+  }
+
+  duplicateMany(
+    serviceId: ServiceId,
+    copyIds: ReadonlyMap<ServiceItemId, ServiceItemId>,
+  ) {
     return this.update(serviceId, service => {
-      const start = service.order.findIndex(row => row.id === itemId);
-      const item = service.order[start];
-      if (item === undefined) {
-        return refuse('not-found', 'The item no longer exists');
+      if (
+        [...copyIds.keys()].some(
+          id => !service.order.some(item => item.id === id),
+        )
+      ) {
+        return refuse('not-found', 'An item no longer exists');
       }
-      const header = isItemOfKind(item, 'header');
-      const next = header
-        ? service.order.findIndex(
-            (row, index) => index > start && isItemOfKind(row, 'header'),
-          )
-        : -1;
-      const end = header ? (next < 0 ? service.order.length : next) : start + 1;
+      const selected = orderedSelection(
+        service.order,
+        new Set(copyIds.keys()),
+        row => isItemOfKind(row, 'header'),
+      );
+      const last = selected.at(-1);
+      if (last === undefined) return {ok: true, value: service.order};
+      const end = service.order.findIndex(row => row.id === last.id) + 1;
       const headers = service.order.flatMap(row =>
         isItemOfKind(row, 'header') ? [row.header] : [],
       );
-      const copies = service.order.slice(start, end).map((row, index) => {
+      const copies = selected.map(row => {
         const id =
-          index === 0 ? copyId : createServiceItemId(crypto.randomUUID());
-        return isItemOfKind(row, 'header')
-          ? {...row, id, header: copyName(row.header, headers)}
-          : {...row, id};
+          copyIds.get(row.id) ?? createServiceItemId(crypto.randomUUID());
+        if (!isItemOfKind(row, 'header')) return {...row, id};
+        const header = copyName(row.header, headers);
+        headers.push(header);
+        return {...row, id, header};
       });
       return {
         ok: true,

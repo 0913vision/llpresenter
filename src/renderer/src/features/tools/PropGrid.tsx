@@ -1,6 +1,6 @@
 import {toggleProp} from './toolCommands';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
-import type {JSX} from 'react';
+import {useState, type JSX} from 'react';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import type {MediaItem} from '@core/schema/mediaList';
 import type {Prop} from '@core/schema/props';
@@ -21,8 +21,15 @@ export function PropGrid({
   readonly screens: readonly Screen[];
   /** The media list; a 그래픽 whose image is not in it cannot be shown. */
   readonly media?: readonly MediaItem[] | undefined;
-  readonly onMenu?: ((prop: Prop, anchor: MenuAnchor) => void) | undefined;
+  readonly onMenu?:
+    | ((
+        prop: Prop,
+        anchor: MenuAnchor,
+        action: {activate: () => void; reason: string | undefined},
+      ) => void)
+    | undefined;
 }): JSX.Element {
+  const [selected, setSelected] = useState<string | null>(null);
   const layer = useLive(view => view.state?.layers.prop);
   const isOn = (prop: Prop): boolean =>
     layer?.items
@@ -52,10 +59,17 @@ export function PropGrid({
       columns="auto"
       arrowsMove="focus"
       spaceKey="press"
-      selected={undefined}
+      selected={props.findIndex(prop => prop.id === selected)}
       onMenu={(index, anchor) => {
         const prop = props[index];
-        if (prop) onMenu?.(prop, anchor);
+        if (prop) {
+          setSelected(prop.id);
+          onMenu?.(prop, anchor, {
+            activate: () => toggle(prop),
+            reason:
+              imageGone(prop) && !isOn(prop) ? MISSING_MEDIA_TIP : undefined,
+          });
+        }
       }}
       onActivate={index => {
         const prop = props[index];

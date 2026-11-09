@@ -1,7 +1,10 @@
-import {useEffect, useRef, useState, type JSX} from 'react';
+import {useSelectionDelete} from '@renderer/ui/useSelectionDelete';
+import {selectionLabel} from '@renderer/ui/selectionDrag';
+import type {Notice} from '@renderer/ui/notices';
+import {useEffect, useLayoutEffect, useRef, useState, type JSX} from 'react';
 import {emptyScreenColor} from '@core/screens/emptyColor';
 import {resolveThemeScreen} from '@core/themes/resolve';
-import {moveThemeElement} from '@core/themes/elementEdits';
+import {reorderThemeSelection} from '@core/themes/elementEdits';
 import {CanvasEditor} from '@renderer/ui/CanvasEditor';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
@@ -24,49 +27,70 @@ import styles from './Themes.module.css';
 export function useThemeSurfaces(
   model: ThemeModel,
   liveId: string | undefined,
+  report: ((notice: Notice) => void) | undefined,
 ) {
   const [menu, setMenu] = useState<{
     id: string | null;
     anchor: MenuAnchor;
   } | null>(null);
-  const clipboard = useThemeClipboard(model);
+  const deletion = useSelectionDelete(notice => report?.(notice));
+  const current = useRef(model);
+  useLayoutEffect(() => {
+    current.current = model;
+  });
+  const requestDelete = (ids: readonly string[]): void => {
+    if (model.elementReason !== undefined) return;
+    const file = model.file;
+    const target = model.target;
+    deletion.ask(
+      ids.length,
+      () =>
+        current.current.file === file &&
+        current.current.target?.theme === target?.theme &&
+        current.current.target?.screen.id === target?.screen.id &&
+        current.current.elementReason === undefined,
+      () => model.remove(ids),
+    );
+  };
+  const surfaceModel = {...model, remove: requestDelete};
+  const clipboard = useThemeClipboard(surfaceModel);
   const onMenu = (id: string | null, anchor: MenuAnchor): void => {
     if (id !== null && !model.selectedIds.includes(id)) model.select(id);
     setMenu({id, anchor});
   };
-  const selected = menu?.id ?? model.selectedIds[0];
-  const index = model.visibleElements.findIndex(
-    element => element.id === selected,
-  );
-  const reorder = (position: number): void => {
-    if (selected !== undefined) {
-      model.elements(values => moveThemeElement(values, selected, position));
-    }
+  const ids = new Set(model.selectedIds);
+  const reorder = (
+    direction: 'front' | 'forward' | 'backward' | 'back',
+  ): void => {
+    model.elements(values => reorderThemeSelection(values, ids, direction));
   };
-  const length = model.visibleElements.length;
   const entries: readonly MenuEntry[] = [
-    ...[
-      {id: 'front', label: '맨 앞으로 가져오기', position: length - 1},
-      {id: 'forward', label: '앞으로 가져오기', position: index + 1},
-      {id: 'backward', label: '뒤로 보내기', position: index - 1},
-      {id: 'back', label: '맨 뒤로 보내기', position: 0},
-    ].map(
+    ...(
+      [
+        {id: 'front', label: '맨 앞으로 가져오기'},
+        {id: 'forward', label: '앞으로 가져오기'},
+        {id: 'backward', label: '뒤로 보내기'},
+        {id: 'back', label: '맨 뒤로 보내기'},
+      ] as const
+    ).map(
       action =>
         ({
           kind: 'item',
           id: action.id,
-          label: action.label,
+          label: selectionLabel(action.label, ids.size),
           ...menuAvailability(
-            model.elementReason ?? (index < 0 ? '선택한 요소 없음' : undefined),
+            model.elementReason ??
+              (ids.size === 0 ? '선택한 요소 없음' : undefined),
           ),
-          onSelect: () => reorder(action.position),
+          onSelect: () => reorder(action.id),
         }) as const,
     ),
     {kind: 'separator', id: 'clipboard'},
     {
       kind: 'item',
       id: 'copy',
-      label: '복사',
+      contextGroup: 'clipboard',
+      label: selectionLabel('복사', ids.size),
       meta: 'Ctrl C',
       ...menuAvailability(
         model.selectedIds.length === 0 ? '선택한 요소 없음' : undefined,
@@ -76,6 +100,7 @@ export function useThemeSurfaces(
     {
       kind: 'item',
       id: 'paste',
+      contextGroup: 'clipboard',
       label: '붙여넣기',
       meta: 'Ctrl V',
       ...menuAvailability(model.elementReason),
@@ -84,13 +109,14 @@ export function useThemeSurfaces(
     {
       kind: 'item',
       id: 'delete',
-      label: '삭제',
+      contextGroup: 'delete',
+      label: selectionLabel('삭제', ids.size),
       meta: 'Delete',
       ...menuAvailability(
         model.elementReason ??
           (model.selectedIds.length === 0 ? '선택한 요소 없음' : undefined),
       ),
-      onSelect: () => model.remove(model.selectedIds),
+      onSelect: () => requestDelete(model.selectedIds),
     },
   ];
   return {
@@ -98,7 +124,7 @@ export function useThemeSurfaces(
       <div className={styles.left}>
         <ThemeList model={model} liveId={liveId} />
         <ThemeElements
-          model={model}
+          model={surfaceModel}
           onMenu={onMenu}
           editorEvents={clipboard.events}
         />
@@ -106,8 +132,10 @@ export function useThemeSurfaces(
           <ThemeImageDialog model={model} />
         )}
         <ThemeSaveDialogs model={model} />
+        {deletion.dialog}
         {menu === null ? null : (
           <Menu
+            context
             label="요소"
             entries={entries}
             anchor={menu.anchor}
@@ -118,7 +146,7 @@ export function useThemeSurfaces(
     ),
     canvas: (
       <ThemeCanvas
-        model={model}
+        model={surfaceModel}
         editorEvents={clipboard.events}
         onMenu={onMenu}
       />
@@ -256,6 +284,17 @@ function ThemeCanvas({
           />
         )}
         actions={{
+          frames: (frames, completed) =>
+            model.elements(
+              values =>
+                values.map(element => {
+                  const next = frames.find(row => row.id === element.id);
+                  return next === undefined
+                    ? element
+                    : {...element, frame: next.frame};
+                }),
+              completed,
+            ),
           frame: model.frame,
           frameValue: model.frameValue,
           nudge: model.nudge,

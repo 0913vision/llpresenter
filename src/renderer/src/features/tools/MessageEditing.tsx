@@ -136,6 +136,7 @@ export function MessageEditing({
     const id = target.closest<HTMLElement>('[role="option"]')?.dataset['value'];
     const item = document?.value.templates.find(item => item.id === id);
     if (item === undefined) return false;
+    onSelect(item.id);
     setMenu({anchor, item});
     return true;
   };
@@ -225,6 +226,7 @@ export function MessageEditing({
       </div>
       {menu ? (
         <Menu
+          context
           label="메시지"
           anchor={menu.anchor}
           onClose={() => setMenu(null)}

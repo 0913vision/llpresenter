@@ -144,3 +144,13 @@
 .handle[data-handle='e'] {
   cursor: ew-resize;
 }
+
+.dragCount {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+  padding: var(--space-2) var(--space-6);
+  border-radius: var(--radius-sm);
+  color: var(--text);
+  background: var(--accent-fill);
+}

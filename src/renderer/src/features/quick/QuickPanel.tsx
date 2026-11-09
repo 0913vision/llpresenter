@@ -183,6 +183,16 @@ export function QuickPanel({
               known && item.kind === 'timer'
                 ? timers.definitions.get(item.ref)
                 : undefined;
+            const activate = (): void => {
+              if (available) {
+                setActivationVersion(value => value + 1);
+                runner
+                  ?.run(item)
+                  .catch((cause: unknown) =>
+                    console.error('Quick item callback failed:', cause),
+                  );
+              }
+            };
             return (
               <div
                 key={item.id}
@@ -193,6 +203,8 @@ export function QuickPanel({
                   api={api}
                   item={item}
                   timer={timer}
+                  activate={activate}
+                  activateReason={reason}
                   onProblem={onProblem}
                   locked={locked}
                   full={full}
@@ -219,16 +231,7 @@ export function QuickPanel({
                     }
                     disabled={!available}
                     reason={reason}
-                    onPress={() => {
-                      if (available) {
-                        setActivationVersion(value => value + 1);
-                        runner
-                          ?.run(item)
-                          .catch((cause: unknown) =>
-                            console.error('Quick item callback failed:', cause),
-                          );
-                      }
-                    }}
+                    onPress={activate}
                   />
                 </QuickRowEditor>
               </div>

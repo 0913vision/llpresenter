@@ -189,16 +189,17 @@ dim when focus leaves. 진행 retains its existing thumbnail style.
   picture IDs, ad names, and verse references. Structured rows paste between
   items of the same form; outside plain text (including copied song lines) makes
   text rows split at blank lines.
-- Drag moves the whole selection. Delete outside a text field removes the
-  selection. The row and gap context menus expose clipboard, duplicate, delete,
-  undo, and redo commands with shortcuts. Text fields keep native text selection
-  and clipboard behavior. Ctrl Z and Ctrl Y undo and redo local item edits and
-  row commands in one shared, 100-step history, restoring row selection and the
-  caret. Removing rows focuses the list command surface, including an empty
-  list, so keyboard undo remains available. The preview has 청중 화면, 무대
-  화면, and 방송 화면 tabs and a position caption. Automatic saves keep typing
-  focus and text selection. Acknowledging a write does not break the current
-  typing undo group.
+- Drag moves the whole selection in document order with a count badge. Delete
+  outside a text field is immediate for one item; more than one asks once with
+  the count. It removes the selection as one undo step. The row and gap context
+  menus expose clipboard, duplicate, delete, undo, and redo commands with
+  shortcuts. Text fields keep native text selection and clipboard behavior. Ctrl
+  Z and Ctrl Y undo and redo local item edits and row commands in one shared,
+  100-step history, restoring row selection and the caret. Removing rows focuses
+  the list command surface, including an empty list, so keyboard undo remains
+  available. The preview has 청중 화면, 무대 화면, and 방송 화면 tabs and a
+  position caption. Automatic saves keep typing focus and text selection.
+  Acknowledging a write does not break the current typing undo group.
 - Service item edits save automatically through the service edit path, the same
   as song items. There is no 저장 button or save/discard question on leaving;
   only a library song retains explicit 저장. Both local item history and the
@@ -269,10 +270,12 @@ endpoint slide IDs (02), so moves keep the endpoints attached.
   - Section (구역): an empty center panel.
 - The operator drags rows to reorder them. Dragging a 구역 moves it with its
   items, up to the next 구역, as one section (user decision, October 26). Delete
-  removes the selected item without confirmation, and Ctrl Z restores it
-  (proposal). Ctrl Z and 편집 > 실행 취소 undo every edit of an item the same
-  way, one step each: a change in its cells or the right column (메모, 테마,
-  배경, 시작할 때, 오버레이) as well as the order edits (10, "Focus
+  is immediate for one row and asks once with the selected count for more than
+  one. It removes all selected rows, and Ctrl Z restores them in one step. The
+  selection, counted drag image, duplicate and context-menu rules are shared
+  with 진행 (04, 11). Ctrl Z and 편집 > 실행 취소 undo every edit of an item the
+  same way, one step each: a change in its cells or the right column (메모,
+  테마, 배경, 시작할 때, 오버레이) as well as the order edits (10, "Focus
   precedence"). The right-click menu has 삭제 (delete) (proposal).
 - The list accepts 라이브러리 songs dropped on it (see "Adding items to the 예배
   순서").
@@ -489,10 +492,14 @@ name.
   Copies receive fresh IDs and no conflicting slide keys. Plain text from
   outside splits at blank lines. Repeated fast paste waits for copy and stays
   one undo step per paste; moving focus or selection cancels a delayed paste.
-- Ctrl D duplicates after the selection; Delete removes the whole selection.
-  Drag moves it together. These operations use the same 100-step history as
-  typing, labels, split and merge. A library retains at least one slide; an item
-  may be empty. Read-only decks allow selection and copy.
+- Ctrl D duplicates after the selection; Delete is immediate for one slide, asks
+  once with the count for more than one, and removes the whole selection as one
+  undo step. Selected right-click targets preserve the set; unselected targets
+  first become the only selection. Menus hide commands that apply to only one
+  member and count set-wide commands. Drag moves it together. These operations
+  use the same 100-step history as typing, labels, split and merge. A library
+  retains at least one slide; an item may be empty. Read-only decks allow
+  selection and copy.
 - The preview follows selection without output. Esc in a slide's lyrics, 글,
   이름, or 내용 field leaves text editing and selects that row, focusing the
   list command surface without changing its text. The next Esc clears selection
@@ -1059,3 +1066,14 @@ undo apply, retaining text and spacing. Splitting a title or merging across
 either side of a title is refused. Title slides have no special transition
 default; use the existing 슬라이드 전환 control to choose a slow transition when
 desired. Library and service-local decks preserve every title.
+
+### Theme element selection commands
+
+The element list supports Ctrl toggles, Shift ranges and Ctrl A. Right-click on
+a selected element preserves the set; another element selects only itself.
+Z-order commands and list drags move the whole set in its existing stacking
+order. Canvas drags translate all selected elements by the same delta, clamping
+the group at the canvas boundary without changing gaps. Both drag surfaces show
+the count. Delete from a key or menu is immediate for one element; more than one
+asks once with the count. Each deletion records one undo step. A pending
+confirmation cannot delete a changed document or layout.

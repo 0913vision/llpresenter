@@ -1,11 +1,12 @@
 import {limitReason} from '@core/common/limitReason';
-import type {DragEvent, JSX} from 'react';
+import {useEffect, useRef, type DragEvent, type JSX} from 'react';
 import {
   THEME_LIMITS,
   availableThemeElementKinds,
   themeElementKinds,
 } from '@core/themes/elementRules';
-import {dropThemeElement} from '@core/themes/elementEdits';
+import {moveSelection} from '@core/common/selectionOrder';
+import {selectionDragImage} from '@renderer/ui/selectionDrag';
 import {Button} from '@renderer/ui/Button';
 import {IconButton} from '@renderer/ui/IconButton';
 import {ListBox, ListRow} from '@renderer/ui/ListRow';
@@ -50,6 +51,15 @@ export function ThemeElements({
   readonly editorEvents: import('./useThemeClipboard').ThemeEditorEvents;
 }): JSX.Element {
   const elements = model.visibleElements;
+  const dragged = useRef<readonly string[]>([]);
+  const release = useRef<(() => void) | undefined>(undefined);
+  useEffect(
+    () => () => {
+      release.current?.();
+      dragged.current = [];
+    },
+    [model.theme?.id, model.screen?.id],
+  );
   const topFirst = [...elements].reverse();
   const drop = (event: DragEvent, index: number): void => {
     event.preventDefault();
@@ -62,7 +72,11 @@ export function ThemeElements({
     }
     const id = event.dataTransfer.getData(THEME_ELEMENT_DRAG);
     if (!elements.some(element => element.id === id)) return;
-    model.elements(values => dropThemeElement(values, id, index));
+    if (!dragged.current.includes(id)) return;
+    const ids = new Set(dragged.current);
+    model.elements(values => moveSelection(values, ids, index));
+    release.current?.();
+    dragged.current = [];
   };
   const allowed = availableThemeElementKinds(
     elements,
@@ -100,9 +114,57 @@ export function ThemeElements({
                 key={element.id}
                 className={styles.elementRow}
                 draggable={model.elementReason === undefined}
+                onClickCapture={event => {
+                  if (
+                    event.target instanceof Element &&
+                    event.target.closest('button')
+                  ) {
+                    return;
+                  }
+                  if (event.ctrlKey || event.metaKey) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    model.selectMany(
+                      model.selectedIds.includes(element.id)
+                        ? model.selectedIds.filter(id => id !== element.id)
+                        : [...model.selectedIds, element.id],
+                    );
+                  } else if (event.shiftKey) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const anchor = topFirst.findIndex(
+                      row => row.id === model.selectedIds[0],
+                    );
+                    model.selectMany(
+                      topFirst
+                        .slice(
+                          Math.min(anchor < 0 ? index : anchor, index),
+                          Math.max(anchor, index) + 1,
+                        )
+                        .map(row => row.id),
+                    );
+                  }
+                }}
                 onDragStart={event => {
+                  const ids = model.selectedIds.includes(element.id)
+                    ? model.selectedIds
+                    : [element.id];
+                  if (!model.selectedIds.includes(element.id)) {
+                    model.select(element.id);
+                  }
+                  dragged.current = ids;
+                  release.current?.();
+                  release.current = selectionDragImage(
+                    event.dataTransfer,
+                    event.currentTarget,
+                    ids.length,
+                  );
                   event.dataTransfer.setData(THEME_ELEMENT_DRAG, element.id);
                   event.dataTransfer.effectAllowed = 'move';
+                }}
+                onDragEnd={() => {
+                  release.current?.();
+                  dragged.current = [];
                 }}
                 onDrop={event => {
                   const row = event.currentTarget.getBoundingClientRect();

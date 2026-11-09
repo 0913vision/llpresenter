@@ -159,6 +159,7 @@ export function transfer(payload = '') {
     types: payload === '' ? [] : [SONG_DRAG_MIME],
     effectAllowed: 'none',
     dropEffect: 'none',
+    setDragImage: vi.fn(),
     setData: vi.fn(),
     getData: () => payload,
   };

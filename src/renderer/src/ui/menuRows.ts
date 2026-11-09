@@ -1,5 +1,23 @@
 import type {MenuItem, MenuSeparator} from './menuModel';
 
+const contextGroups: Readonly<Record<string, MenuItem['contextGroup']>> = {
+  cut: 'clipboard',
+  copy: 'clipboard',
+  paste: 'clipboard',
+  'copy-style': 'clipboard',
+  'paste-style': 'clipboard',
+  export: 'library',
+  'export-bundle': 'library',
+  'export-images': 'library',
+  print: 'library',
+  'add-to': 'library',
+  'move-to': 'library',
+  memo: 'memo',
+  hide: 'hide',
+  disable: 'hide',
+  delete: 'delete',
+};
+
 /** The tooltip on a row for a ProPresenter feature the app doesn't have yet. */
 export const NOT_YET = '아직 없는 기능';
 
@@ -25,11 +43,13 @@ export function laterRow(
   return {
     kind: 'item',
     id,
+    contextGroup: contextGroups[id] ?? 'settings',
     label,
     icon: options.icon,
     meta: options.meta,
     command: options.command,
     disabled: true,
+    unimplemented: true,
     title: NOT_YET,
     submenu: options.submenu === true ? [] : undefined,
   };

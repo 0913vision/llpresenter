@@ -69,15 +69,14 @@ describe('media list panels', () => {
     {list: '오디오 재생목록', name: 'Hymns', key: 'ContextMenu'},
     {list: '오디오 재생목록', name: 'Hymns', key: 'F10'},
   ])(
-    'opens $list with $key and restores focus without choosing it',
+    'selects the $list target with $key and restores focus after its menu',
     async ({list, name, key}) => {
       const {edit} = setup();
       const opener = await row(list, new RegExp(name));
-      const selected = opener.getAttribute('aria-selected');
       act(() => opener.focus());
       fireEvent.keyDown(opener, {key, shiftKey: key === 'F10'});
       const menu = screen.getByRole('menu', {name: '재생목록 메뉴'});
-      expect(opener.getAttribute('aria-selected')).toBe(selected);
+      expect(opener.getAttribute('aria-selected')).toBe('true');
       expect(edit).not.toHaveBeenCalled();
       fireEvent.keyDown(menu, {key: 'Escape'});
       expect(screen.queryByRole('menu')).toBeNull();
@@ -413,14 +412,15 @@ describe('media list panels', () => {
         .filter(item => item.getAttribute('aria-disabled') !== 'true')
         .map(item => item.textContent),
     ).toEqual([
+      '출력',
       '속성',
       '맞춤',
       '끝나면',
-      '복제',
       '이름 바꾸기',
+      '복제',
+      '탐색기에서 보기',
       '재생목록에서 빼기',
       '삭제',
-      '탐색기에서 보기',
     ]);
     fireEvent.click(screen.getByRole('menuitem', {name: '재생목록에서 빼기'}));
     await vi.waitFor(() =>

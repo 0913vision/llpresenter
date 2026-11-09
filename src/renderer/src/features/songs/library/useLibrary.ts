@@ -385,6 +385,7 @@ export function useLibrary(
       setQuery(value);
     },
     selected,
+    select: setSelected,
     clearSelection: (): void => {
       requests.current.open++;
       opening.current = null;

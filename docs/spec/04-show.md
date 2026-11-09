@@ -113,14 +113,23 @@ order, no row dims.
   its items, 05) and add items with 항목 추가 (proposal: the header has an 항목
   추가 button).
 - No board shows the row's right-click menu. Version 1 has "준비에서 열기" (open
-  in 준비) and "삭제" (delete) (proposal). Delete works without confirmation,
-  and Ctrl Z or 편집 > 실행 취소 restores the item (proposal). Both always run
-  edit undo and never restore cleared output (M2 check 1 row 8; 03, 10).
+  in 준비) and "삭제" (delete). Delete is immediate for one row and asks once
+  with the selected count for more than one, and Ctrl Z or 편집 > 실행 취소
+  restores the whole deletion. Both always run edit undo and never restore
+  cleared output (M2 check 1 row 8; 03, 10).
 - Deleting or moving the item that is on output doesn't change the output.
 - Ctrl C and 복사 copy the selected 예배 순서 rows. Shift selects a range (also
   with the up/down arrows, Home and End), Ctrl toggles individual rows, and an
   unmodified click or arrow returns to one selected row. 구역 labels remain
   passive in 진행; in 준비 they can join the selection.
+- Right-click on a selected row preserves the set; on another row it selects
+  only that row without output. The menu offers commands applicable to the whole
+  selection and counts copy, duplicate and delete labels. Ctrl D and menu
+  duplicate copy the set in document order after its last row. Dragging any
+  selected row moves the whole ordered set with a count badge. Each deletion,
+  duplication or move is one undo step. Delete from key or menu is immediate for
+  one row; two or more ask once with the count. Cancel changes nothing. Context
+  menus follow 11.
 - Ctrl V and 붙여넣기 insert the copied rows after the selected cursor row, or
   at the end with no selection. The row menu pastes after its clicked row;
   copying from a selected row copies the whole selection, otherwise just that

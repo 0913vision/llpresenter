@@ -15,7 +15,7 @@ export function toolMenuReason(
 }
 
 function command(
-  item: Pick<MenuItem, 'id' | 'label' | 'onSelect'>,
+  item: Pick<MenuItem, 'id' | 'label' | 'onSelect' | 'contextGroup'>,
   reason: string | undefined,
 ): MenuItem {
   return {
@@ -45,10 +45,25 @@ export function namedToolMenuEntries({
 }): readonly MenuEntry[] {
   return [
     ...(edit
-      ? [command({id: 'edit', label: '수정…', onSelect: edit}, reason)]
+      ? [
+          command(
+            {
+              id: 'edit',
+              contextGroup: 'default',
+              label: '수정…',
+              onSelect: edit,
+            },
+            reason,
+          ),
+        ]
       : []),
     command(
-      {id: 'duplicate', label: '복제', onSelect: duplicate},
+      {
+        id: 'duplicate',
+        contextGroup: 'clipboard',
+        label: '복제',
+        onSelect: duplicate,
+      },
       reason ?? duplicateReason,
     ),
     command({id: 'rename', label: '이름 바꾸기', onSelect: rename}, reason),
@@ -56,7 +71,15 @@ export function namedToolMenuEntries({
       ? [
           menuSeparator('delete-separator'),
           {
-            ...command({id: 'delete', label: '삭제', onSelect: remove}, reason),
+            ...command(
+              {
+                id: 'delete',
+                contextGroup: 'delete',
+                label: '삭제',
+                onSelect: remove,
+              },
+              reason,
+            ),
             danger: true,
           },
         ]
@@ -80,16 +103,27 @@ export function messageMenuEntries({
   readonly reason: string | undefined;
 }): readonly MenuEntry[] {
   return [
-    command({id: 'edit', label: '수정…', onSelect: edit}, reason),
+    command(
+      {id: 'edit', contextGroup: 'default', label: '수정…', onSelect: edit},
+      reason,
+    ),
     menuSeparator('copy-separator'),
     command(
-      {id: 'duplicate', label: '복제', onSelect: duplicate},
+      {
+        id: 'duplicate',
+        contextGroup: 'clipboard',
+        label: '복제',
+        onSelect: duplicate,
+      },
       reason ?? duplicateReason,
     ),
     laterRow('rename', '이름 바꾸기'),
     menuSeparator('delete-separator'),
     {
-      ...command({id: 'delete', label: '삭제', onSelect: remove}, reason),
+      ...command(
+        {id: 'delete', contextGroup: 'delete', label: '삭제', onSelect: remove},
+        reason,
+      ),
       danger: true,
     },
   ];
@@ -114,14 +148,22 @@ export function propMenuEntries({
     laterRow('add-to', '모음에 추가', {submenu: true}),
     laterRow('move-to', '모음으로 옮기기', {submenu: true}),
     menuSeparator('edit-separator'),
-    command({id: 'edit', label: '수정…', onSelect: edit}, reason),
+    command(
+      {id: 'edit', contextGroup: 'settings', label: '수정…', onSelect: edit},
+      reason,
+    ),
     laterRow('transitions', '전환 효과…'),
     laterRow('auto-clear', '자동 지우기', {submenu: true}),
     menuSeparator('clipboard-separator'),
     ...laterClipboardRows(),
     {
       ...command(
-        {id: 'duplicate', label: '복제', onSelect: duplicate},
+        {
+          id: 'duplicate',
+          contextGroup: 'clipboard',
+          label: '복제',
+          onSelect: duplicate,
+        },
         reason ?? duplicateReason,
       ),
       icon: 'duplicate',
@@ -129,7 +171,10 @@ export function propMenuEntries({
     laterRow('rename', '이름 바꾸기'),
     menuSeparator('delete-separator'),
     {
-      ...command({id: 'delete', label: '삭제', onSelect: remove}, reason),
+      ...command(
+        {id: 'delete', contextGroup: 'delete', label: '삭제', onSelect: remove},
+        reason,
+      ),
       icon: 'trash',
       danger: true,
     },
@@ -161,18 +206,31 @@ export function quickItemMenuEntries({
     ...(edit
       ? [
           command(
-            {id: 'edit', label: '수정…', onSelect: edit.onSelect},
+            {
+              id: 'edit',
+              contextGroup: 'settings',
+              label: '수정…',
+              onSelect: edit.onSelect,
+            },
             reason ?? edit.reason,
           ),
         ]
       : []),
     command(
-      {id: 'duplicate', label: '복제', onSelect: duplicate},
+      {
+        id: 'duplicate',
+        contextGroup: 'clipboard',
+        label: '복제',
+        onSelect: duplicate,
+      },
       reason ?? duplicateReason,
     ),
     command({id: 'rename', label: '이름 바꾸기', onSelect: rename}, reason),
     {
-      ...command({id: 'delete', label: '삭제', onSelect: remove}, reason),
+      ...command(
+        {id: 'delete', contextGroup: 'delete', label: '삭제', onSelect: remove},
+        reason,
+      ),
       danger: true,
     },
   ];

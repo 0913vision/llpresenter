@@ -367,14 +367,13 @@ describe('service panel editing', () => {
     await waitFor(() => expect(ids()).toEqual([lastId, headerId, firstId]));
   });
 
-  it('does not select or output a row on the click after a native drag', () => {
+  it('selects the drag source and ignores its release click without output', () => {
     const {send} = setup();
-    const before = useShow.getState().openItemId;
     const row = screen.getByRole('option', {name: '다음 곡'});
     fireEvent.dragStart(row, {dataTransfer: transfer()});
     fireEvent.dragEnd(row);
     fireEvent.click(row, {detail: 1});
-    expect(useShow.getState().openItemId).toBe(before);
+    expect(useShow.getState().openItemId).toBe(lastId);
     expect(send).not.toHaveBeenCalled();
     fireEvent.pointerDown(row);
     fireEvent.click(row, {detail: 1});

@@ -75,7 +75,7 @@ it('lists collections first and the row menu in spec order with immutable all ma
     [...menu.querySelectorAll('[role="menuitem"], [role="separator"]')].map(
       row => (row.getAttribute('role') === 'separator' ? '|' : row.textContent),
     ),
-  ).toEqual(['복제', '이름 바꾸기', '|', '삭제']);
+  ).toEqual(['이름 바꾸기', '|', '복제', '|', '삭제']);
   for (const item of within(menu).getAllByRole('menuitem')) {
     expect(item.getAttribute('aria-disabled')).toBe('true');
     fireEvent.click(item);
