@@ -101,7 +101,7 @@ const libraries = new WeakMap<
   {library: PreviewMediaLibrary; users: number}
 >();
 
-/** Images retain their original pixels; only videos use the media-bin still. */
+/** Resolves original picture sources and video stills for control previews. */
 export function openPreviewMedia(
   api: LlpApi | undefined,
 ): (PreviewMediaSource & {readonly dispose: () => void}) | undefined {
