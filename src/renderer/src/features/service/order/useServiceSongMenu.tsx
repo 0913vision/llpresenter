@@ -8,10 +8,12 @@ import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {usageMeta} from '@renderer/ui/usageText';
 import {createServiceId} from '@core/schema/ids';
 import type {Revision} from '@core/schema/contentDocuments';
+import type {LlpApi} from '@contracts/ipc/api';
 
 interface SongMenuTarget {
   readonly id: string;
   readonly serviceId: string | null;
+  readonly api?: LlpApi | undefined;
 }
 
 interface SongMenuData {
@@ -30,7 +32,7 @@ export function useServiceSongMenu(
   onProblem: (notice: Notice) => void,
   beforeSave?: () => Promise<number | null>,
 ) {
-  const api = window.llp;
+  const api = target?.api ?? window.llp;
   const revision = useShow(view => view.revision);
   const [data, setData] = useState<SongMenuData | null>(null);
   const [failure, setFailure] = useState<{

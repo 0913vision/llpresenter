@@ -7,7 +7,7 @@ import {slidesItem} from '@fixtures/core/slides';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {SongEditorStore} from '@renderer/features/songs/editor';
 import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
-import {ItemThemeRow} from '@renderer/features/service/items/ItemThemeRow';
+import {ItemThemeRow} from '@renderer/features/service/details/ItemThemeRow';
 
 afterEach(cleanup);
 

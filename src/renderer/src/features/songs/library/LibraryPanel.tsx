@@ -44,6 +44,7 @@ export interface LibraryPanelProps {
   readonly navigating?: boolean | undefined;
   /** Opens the editor; after creation the host focuses its title field. */
   readonly onOpenSong: (selection: LibrarySelection) => void;
+  readonly onSelectSong?: ((songId: SongId) => void) | undefined;
   readonly onNewSong?: (() => void) | undefined;
   readonly beforeOpen?: ((open: () => void) => void) | undefined;
   /** The workspace host merges problems into its one notification list. */
@@ -58,6 +59,7 @@ export function LibraryPanel({
   api,
   navigating = false,
   onOpenSong,
+  onSelectSong,
   onNewSong,
   beforeOpen,
   onProblem,
@@ -185,7 +187,10 @@ export function LibraryPanel({
               selected={library.selected}
               onSelect={id => {
                 if (navigating) open(id);
-                else library.select(id);
+                else {
+                  library.select(id);
+                  onSelectSong?.(id);
+                }
               }}
               onOpen={open}
               onNavigate={library.select}

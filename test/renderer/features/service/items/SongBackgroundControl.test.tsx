@@ -20,7 +20,7 @@ import * as backgroundHook from '@renderer/features/service/items/useSongBackgro
 import {
   SongBackgroundControl,
   SongBackgroundSelect,
-} from '@renderer/features/service/items/SongBackgroundControl';
+} from '@renderer/features/service/details/SongBackgroundControl';
 
 const image: MediaItem = {
   id: createMediaId('30000000-0000-4000-8000-000000000001'),

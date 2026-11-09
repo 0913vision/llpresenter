@@ -209,7 +209,7 @@ describe('usePrepPanels', () => {
     expect(result.current.columns).toEqual([
       ['라이브러리'],
       [SERVICE_ORDER],
-      ['미리보기', '슬라이드'],
+      ['세부정보'],
     ]);
   });
 

@@ -25,8 +25,11 @@ import {PropertyRow} from '@renderer/ui/PropertyRow';
 import {Select} from '@renderer/ui/Select';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {TextArea} from '@renderer/ui/TextArea';
-import type {ItemTarget, ServiceItemStore} from './serviceItemStore';
-import {useFollowedDocument, type DocumentSource} from './useFollowedDocument';
+import type {ItemTarget, ServiceItemStore} from '../items/serviceItemStore';
+import {
+  useFollowedDocument,
+  type DocumentSource,
+} from '../items/useFollowedDocument';
 
 const NONE = '없음';
 const NO_MACRO = '';

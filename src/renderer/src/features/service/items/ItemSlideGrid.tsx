@@ -1,5 +1,5 @@
 import {cardOffset} from '@core/services/sectionCards';
-import {sectionCardEntries} from './SectionCardEditor';
+import {sectionCardEntries} from '../details/sectionCardActions';
 import {useMemo, useRef, useState, useSyncExternalStore, type JSX} from 'react';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {isItemOfKind} from '@core/schema/service';
@@ -16,7 +16,7 @@ import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {OverlayWarning} from './ItemThemeRow';
+import {OverlayWarning} from '../details/ItemThemeRow';
 import {OverlayClips} from './OverlayClip';
 import type {ServiceItemStore} from './serviceItemStore';
 import {openItemSong} from './openItemSong';

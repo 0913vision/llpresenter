@@ -1,4 +1,4 @@
-import {cleanup, render} from '@testing-library/react';
+import {cleanup, fireEvent, render} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import type {MediaLayer} from '@core/live/state';
 import {emptyLayers} from '@core/live/state';
@@ -96,6 +96,17 @@ it.each(['audience', 'stage', 'broadcast'] as const)(
             image.getAttribute('src'),
           ),
         ).toContain(mediaUrl(SLIDE_PICTURE));
+        const image = Array.from(
+          preview.container.querySelectorAll('img'),
+        ).find(
+          candidate =>
+            candidate.getAttribute('src') === mediaUrl(SLIDE_PICTURE),
+        );
+        if (image === undefined) throw Error('Missing slide picture');
+        fireEvent.error(image);
+        expect(image.style.visibility).toBe('hidden');
+        fireEvent.load(image);
+        expect(image.style.visibility).toBe('');
         expect(
           root.querySelector<HTMLElement>('[data-kind="slideName"]')?.hidden,
         ).toBe(true);

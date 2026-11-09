@@ -5,6 +5,7 @@ import {
   useState,
   type CSSProperties,
   type JSX,
+  type SyntheticEvent,
 } from 'react';
 import type {ThemeElement, ThemeText} from '@core/schema/themes';
 import type {ThemeBackground} from '@core/schema/themeBackground';
@@ -27,6 +28,10 @@ import {themeTextVAlign} from '@core/themes/textAlignment';
 import {TextFitCache} from './textFitCache';
 
 const textFits = new TextFitCache();
+
+function imageVisibility(event: SyntheticEvent<HTMLImageElement>): void {
+  event.currentTarget.style.visibility = event.type === 'error' ? 'hidden' : '';
+}
 
 interface MeasuredText {
   readonly lines: readonly string[];
@@ -214,6 +219,8 @@ function contents(
         src={source}
         alt=""
         draggable={false}
+        onError={imageVisibility}
+        onLoad={imageVisibility}
         style={{
           objectFit: mediaObjectFit(element.fit),
           borderRadius: element.radius,
@@ -260,6 +267,8 @@ function contents(
         src={mediaUrl(element.mediaId)}
         alt=""
         draggable={false}
+        onError={imageVisibility}
+        onLoad={imageVisibility}
         style={{
           objectFit: mediaObjectFit(element.fit),
           borderRadius: element.radius,

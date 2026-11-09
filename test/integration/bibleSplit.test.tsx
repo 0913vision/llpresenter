@@ -28,6 +28,7 @@ import {BibleSplitTools} from '@renderer/features/bible/BibleSplitTools';
 import {BibleQuickField} from '@renderer/features/quick/BibleQuickField';
 import {QuickPanel} from '@renderer/features/quick/QuickPanel';
 import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
+import {DetailsPanel} from '@renderer/features/service/details/DetailsPanel';
 import {ServiceItemPanel} from '@renderer/features/service/items/SongItemPanel';
 import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import {SongEditorStore} from '@renderer/features/songs/editor';
@@ -226,7 +227,7 @@ function setup() {
 }
 
 describe('prepare and reuse theme-fitted Bible slides', () => {
-  it.each(['show', 'prep'])(
+  it.each(['show', 'prep', 'details'])(
     'draws the measured Bible rows at the theme size in the %s tiles',
     async workspace => {
       const layout = mockSplitLayout();
@@ -282,7 +283,7 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
         useShow.setState({openItemId: sourceId});
       }
       const editor =
-        workspace === 'prep' ? new SongEditorStore(api, vi.fn()) : null;
+        workspace !== 'show' ? new SongEditorStore(api, vi.fn()) : null;
       const items =
         editor === null ? null : new ServiceItemStore(api, editor, vi.fn());
       const view = render(
@@ -291,11 +292,21 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
             <BibleSplitTools onProblem={vi.fn()} />
             <BiblePanel sizeClass="normal" />
           </>
-        ) : items === null || editor === null ? null : (
+        ) : items === null || editor === null ? null : workspace === 'prep' ? (
           <ServiceItemPanel items={items} editor={editor} sizeClass="normal" />
+        ) : (
+          <DetailsPanel
+            target={{kind: 'item', itemId: sourceId}}
+            api={api}
+            items={items}
+            editor={editor}
+          />
         ),
       );
       try {
+        if (workspace === 'details') {
+          fireEvent.click(screen.getByRole('tab', {name: '슬라이드'}));
+        }
         const verse = passage.verses[0];
         if (verse === undefined) throw Error('Missing verse');
         const expected = splitVerse(verse.text, layout, {prefix: '16 '})
@@ -310,9 +321,11 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
           );
           expect(rows?.[0]?.parentElement?.style.fontSize).toBe('36px');
         });
-        expect(
-          screen.getByRole('group', {name: '슬라이드 크기'}),
-        ).toBeDefined();
+        if (workspace !== 'details') {
+          expect(
+            screen.getByRole('group', {name: '슬라이드 크기'}),
+          ).toBeDefined();
+        }
         if (workspace === 'prep') {
           const first = screen.getAllByRole('option')[0];
           if (first === undefined) throw Error('Missing tile');

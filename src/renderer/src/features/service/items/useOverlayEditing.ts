@@ -1,7 +1,7 @@
 import {projectedItemOverlays} from '@core/services/songItemOverlays';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {ServiceItem} from '@core/schema/service';
-import {useItemTheme} from './ItemThemeRow';
+import {useItemTheme} from '../details/ItemThemeRow';
 import {useItemMedia} from './useItemSources';
 import type {OverlayEditing} from './overlayEditing';
 

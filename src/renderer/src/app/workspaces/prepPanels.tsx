@@ -8,8 +8,8 @@ import {
 } from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {SongId} from '@core/schema/ids';
+import {parseServiceItemId} from '@core/schema/ids';
 import {songItemDesign} from '@renderer/features/service/items/SongItemDesign';
-import {ItemPreviewPanel} from '@renderer/features/service/items/ItemSidePanels';
 import type {SongEditorWindowModel} from '@renderer/features/songs/editor/useSongEditorWindow';
 import {InlineSongActions} from './InlineSongActions';
 import {SlideInspector} from '@renderer/features/service/slideInspector/SlideInspector';
@@ -19,8 +19,6 @@ import {ServiceItemPanel} from '@renderer/features/service/items/SongItemPanel';
 import type {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import {
   SongEditor,
-  SongPreviewPanel,
-  SongSlidePanel,
   type SongEditorStore,
 } from '@renderer/features/songs/editor';
 import {
@@ -36,19 +34,16 @@ import {
 } from '../shell/WorkspacePanel';
 import {SERVICE_ORDER, serviceOrderParts} from './serviceOrderPanel';
 import {SlidesEditor} from '@renderer/features/service/slides/SlidesEditor';
-import {InlineSlidesPanels} from '@renderer/features/service/slides/InlineSlidesPanels';
 import type {SlidesEditorModel} from '@renderer/features/service/slides/useSlidesEditor';
 import {isEditorEscape} from '@renderer/features/songs/editor/editorEscape';
 import {SlidesBackButton} from '@renderer/features/service/slides/SlidesBackButton';
 import {useShow} from '@renderer/session/show';
 import headerStyles from '@renderer/features/songs/editor/SongHeader.module.css';
 import styles from './OtherPrepEditor.module.css';
+import {DetailsPanel} from '@renderer/features/service/details/DetailsPanel';
+import {isLibrarySource, openLibrarySong} from '@renderer/session/showLibrary';
 
-const PREP_COLUMNS = [
-  ['라이브러리'],
-  [SERVICE_ORDER],
-  ['미리보기', '슬라이드'],
-] as const;
+const PREP_COLUMNS = [['라이브러리'], [SERVICE_ORDER], ['세부정보']] as const;
 
 const PREP_DRAFT_COLUMNS = [
   [SERVICE_ORDER],
@@ -79,17 +74,18 @@ const ignoreProblem = (): void => undefined;
 function libraryParts(
   prep: PrepBinding,
   onProblem: ((notice: Notice) => void) | undefined,
-  navigating = false,
+  options: {onSelectSong: (id: SongId) => void; navigating: boolean},
 ): PanelParts {
   return {
     embedded: (
       <LibraryPanel
         api={prep.api}
-        navigating={navigating}
+        navigating={options.navigating}
         selectionRequest={prep.selectionRequest}
         onSelectionHandled={prep.onSelectionHandled}
         onProblem={onProblem ?? ignoreProblem}
         onNewSong={prep.onNewSong}
+        onSelectSong={options.onSelectSong}
         beforeOpen={open => prep.editor.requestLeave(open)}
         onOpenSong={selection =>
           prep.editor.open(selection.document, {
@@ -110,6 +106,7 @@ function prepPanelParts({
   onBack,
   onProblem,
   sizeClass,
+  onSelectSong,
 }: {
   readonly title: string;
   readonly prep: PrepBinding | undefined;
@@ -118,10 +115,13 @@ function prepPanelParts({
   readonly onBack: () => void;
   readonly onProblem: ((notice: Notice) => void) | undefined;
   readonly sizeClass: SizeClass;
+  readonly onSelectSong: (id: SongId) => void;
 }): PanelParts {
   if (!prep) return {};
   const back = onBack;
-  if (title === '라이브러리') return libraryParts(prep, onProblem, hasDraft);
+  if (title === '라이브러리') {
+    return libraryParts(prep, onProblem, {onSelectSong, navigating: hasDraft});
+  }
   if (title === '편집') {
     if (otherEditor) {
       return {
@@ -167,62 +167,6 @@ function prepPanelParts({
       ) : (
         <SlideInspector store={prep.editor} />
       ),
-    };
-  }
-  if (title === '미리보기') {
-    if (prep.slides?.session) {
-      return {
-        size: 'fit',
-        embedded: (
-          <InlineSlidesPanels
-            api={prep.api}
-            session={prep.slides.session}
-            preview
-            onBack={back}
-          />
-        ),
-      };
-    }
-    return {
-      size: 'fit',
-      embedded:
-        hasDraft && !otherEditor ? (
-          <SongPreviewPanel store={prep.editor} />
-        ) : (
-          <ItemPreviewPanel items={prep.items} editor={prep.editor} />
-        ),
-    };
-  }
-  if (title === '슬라이드') {
-    if (prep.slides?.session) {
-      return {
-        size: 'rest',
-        embedded: (
-          <InlineSlidesPanels
-            api={prep.api}
-            session={prep.slides.session}
-            onBack={back}
-          />
-        ),
-      };
-    }
-    return {
-      size: 'rest',
-      embedded:
-        hasDraft && !otherEditor ? (
-          <SongSlidePanel
-            store={prep.editor}
-            sizeClass={sizeClass}
-            onBack={back}
-          />
-        ) : (
-          <ServiceItemPanel
-            items={prep.items}
-            editor={prep.editor}
-            slides={prep.slides}
-            sizeClass={sizeClass}
-          />
-        ),
     };
   }
   return {};
@@ -301,6 +245,42 @@ export function usePrepPanels({
       setOtherId(null);
     }
   }, [otherId, serviceId, otherExists]);
+  const selectedItem = useShow(view => view.openItemId);
+  const selectionRequest = useRef(0);
+  const onSelectSong = (songId: SongId): void => {
+    if (prep === undefined) return;
+    const request = ++selectionRequest.current;
+    const previous = useShow.getState().openItemId;
+    prep.api.library.showSong({songId}).then(
+      song => {
+        if (
+          request === selectionRequest.current &&
+          previous === useShow.getState().openItemId &&
+          song !== null
+        ) {
+          openLibrarySong(song);
+        }
+      },
+      () =>
+        onProblem?.({
+          key: 'details:library',
+          kind: 'warning',
+          icon: 'warning',
+          title: '곡 불러오기 실패',
+          time: noticeTime(),
+        }),
+    );
+  };
+  const selectedSong = useShow(view =>
+    isLibrarySource(view, view.openItemId) ? view.librarySong.songId : null,
+  );
+  const parsedItem = parseServiceItemId(selectedItem);
+  const selectedTarget =
+    selectedSong !== null
+      ? {kind: 'song' as const, songId: selectedSong}
+      : parsedItem.ok
+        ? {kind: 'item' as const, itemId: parsedItem.value}
+        : null;
   const editorKind = useSyncExternalStore(
     prep?.editor.subscribe ?? noSubscribe,
     () => {
@@ -413,14 +393,30 @@ export function usePrepPanels({
                 ? undefined
                 : {api: prep.api, items: prep.items},
           })
-        : prepPanelParts({
-            title,
-            prep,
-            hasDraft,
-            otherEditor: otherId !== null,
-            onBack: back,
-            onProblem,
-            sizeClass,
-          }),
+        : title === '세부정보' && prep !== undefined
+          ? {
+              embedded: (
+                <DetailsPanel
+                  key={
+                    selectedSong ?? (parsedItem.ok ? parsedItem.value : 'none')
+                  }
+                  target={selectedTarget}
+                  items={prep.items}
+                  editor={prep.editor}
+                  api={prep.api}
+                  onOpenPrep={openOther}
+                />
+              ),
+            }
+          : prepPanelParts({
+              title,
+              prep,
+              hasDraft,
+              otherEditor: otherId !== null,
+              onBack: back,
+              onProblem,
+              sizeClass,
+              onSelectSong,
+            }),
   };
 }

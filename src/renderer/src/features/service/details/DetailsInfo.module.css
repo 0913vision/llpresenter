@@ -1,0 +1,9 @@
+﻿.properties {
+  --property-label-width: calc(
+    var(--size-prop-label) + var(--space-24) + var(--space-8)
+  );
+}
+
+.button {
+  width: 100%;
+}

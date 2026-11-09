@@ -34,7 +34,7 @@ import {
 import {useShow} from '@renderer/session/show';
 import {MEDIA_DRAG_MIME} from '@renderer/features/media/mediaDrag';
 import {ItemSlideGrid} from '@renderer/features/service/items/ItemSlideGrid';
-import {ItemSettingsPanel} from '@renderer/features/service/items/ItemSidePanels';
+import {DetailsPanel} from '@renderer/features/service/details/DetailsPanel';
 import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import {
   fixtureItems,
@@ -124,10 +124,19 @@ async function setup(
   const items = new ServiceItemStore(fixture.api, editor, problem);
   items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
   const navigate = vi.fn();
+  useShow.setState({
+    serviceId: fixtureServiceId,
+    openItemId: fixtureItems.arranged,
+  });
   const view = render(
     <WorkspaceNavigation.Provider value={navigate}>
       <ItemSlideGrid items={items} editor={editor} />
-      <ItemSettingsPanel items={items} editor={editor} />
+      <DetailsPanel
+        target={{kind: 'item', itemId: fixtureItems.arranged}}
+        api={fixture.api}
+        items={items}
+        editor={editor}
+      />
     </WorkspaceNavigation.Provider>,
   );
   onTestFinished(async () => {

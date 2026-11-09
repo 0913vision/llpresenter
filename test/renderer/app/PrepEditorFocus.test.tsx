@@ -191,7 +191,7 @@ function commandList(): HTMLElement {
   return within(editor).getByRole('group', {name: '슬라이드 편집 명령'});
 }
 
-it.each(['double-click', 'Enter', 'edit button'] as const)(
+it.each(['double-click', 'Enter'] as const)(
   'focuses a service song opened by %s and restores its table row after Escape',
   async path => {
     const f = setup();
@@ -199,12 +199,7 @@ it.each(['double-click', 'Enter', 'edit button'] as const)(
     const row = within(table).getByRole('option', {name: /Service song/});
     await userEvent.click(row);
     if (path === 'double-click') await userEvent.dblClick(row);
-    else if (path === 'Enter') await userEvent.keyboard('{Enter}');
-    else {
-      await userEvent.click(
-        await screen.findByRole('button', {name: '곡 편집'}),
-      );
-    }
+    else await userEvent.keyboard('{Enter}');
     await waitFor(() => expect(document.activeElement).toBe(commandList()));
     const model = f.session.editor?.getSnapshot().session?.slideModel;
     expect(model?.getSnapshot().selection.ids.size).toBe(1);
@@ -240,6 +235,23 @@ it.each([
       expect(screen.queryByRole('button', {name: '‹ Service'})).toBeNull(),
     );
     expect(document.activeElement).toBe(screen.getByRole('option', {name}));
+  },
+);
+
+it.each(['Bible item', 'Media item'] as const)(
+  'opens the %s editor and inspector from a details slide',
+  async name => {
+    const f = setup();
+    const send = vi.spyOn(f.api.live, 'send');
+    await userEvent.click(screen.getByRole('option', {name}));
+    const details = screen.getByRole('region', {name: '세부정보'});
+    await userEvent.click(within(details).getByRole('tab', {name: '슬라이드'}));
+    const grid = within(details).getByRole('listbox', {name: '슬라이드'});
+    const first = await within(grid).findByRole('option', {name: /^1(?:\s|$)/});
+    await userEvent.dblClick(first);
+    await screen.findByRole('button', {name: '‹ Service'});
+    expect(screen.getByRole('region', {name: '슬라이드 속성'})).toBeTruthy();
+    expect(send).not.toHaveBeenCalled();
   },
 );
 
@@ -320,19 +332,14 @@ it('shows the full navigator name in a tooltip when it is truncated', async () =
   expect((await hoverForTooltip(name))?.textContent).toBe('Service song');
 });
 
-it.each(['double-click', 'Enter', 'edit button'] as const)(
+it.each(['double-click', 'Enter'] as const)(
   'focuses sermon list commands opened by %s and handles body Escape',
   async path => {
     setup();
     const row = screen.getByRole('option', {name: /Sermon item/});
     await userEvent.click(row);
     if (path === 'double-click') await userEvent.dblClick(row);
-    else if (path === 'Enter') await userEvent.keyboard('{Enter}');
-    else {
-      await userEvent.click(
-        await screen.findByRole('button', {name: '슬라이드 편집…'}),
-      );
-    }
+    else await userEvent.keyboard('{Enter}');
     await waitFor(() => expect(document.activeElement).toBe(commandList()));
     fireEvent.keyDown(document.body, {key: 'Escape', code: 'Escape'});
     await waitFor(() =>
@@ -381,11 +388,15 @@ it.each(['double-click', 'Enter'] as const)(
 it('selects the source slide and focuses commands after opening from the right grid', async () => {
   const f = setup();
   await userEvent.click(screen.getByRole('option', {name: /Service song/}));
-  const grid = await screen.findByRole('group', {name: '슬라이드 편집 명령'});
-  const slide = grid.querySelector<HTMLElement>(
-    '[data-slide-index="1"] [role="option"]',
+  const details = await screen.findByRole('region', {name: '세부정보'});
+  await within(details).findByText(
+    `곡, 슬라이드 ${f.first.song.slides.length}개`,
   );
-  if (slide === null) throw new Error('Missing second grid slide');
+  expect(within(details).getByText('1')).toBeTruthy();
+  await userEvent.click(within(details).getByRole('tab', {name: '슬라이드'}));
+  const grid = within(details).getByRole('listbox', {name: '슬라이드'});
+  const slide = within(grid).getAllByRole('option')[1];
+  if (slide === undefined) throw new Error('Missing second grid slide');
   await userEvent.dblClick(slide);
   await waitFor(() => expect(document.activeElement).toBe(commandList()));
   const model = f.session.editor
@@ -394,6 +405,34 @@ it('selects the source slide and focuses commands after opening from the right g
   expect([...(model?.selection.ids ?? [])]).toEqual([
     f.first.song.slides[1]?.id,
   ]);
+});
+
+it('shows a library song on a single click without opening its editor', async () => {
+  const f = setup();
+  vi.spyOn(f.api.library, 'showSong').mockResolvedValue({
+    songId: f.first.song.id,
+    songRevision: f.first.revision,
+    title: f.first.song.title,
+    readOnly: false,
+    tiles: f.first.song.slides.map(slide => ({
+      label: slide.label ?? null,
+      labelColor: 'none' as const,
+      lines: slide.lines,
+    })),
+    jumpKeys: {},
+  });
+  const live = vi.spyOn(f.api.live, 'send');
+  const library = screen.getByRole('listbox', {name: '라이브러리 곡'});
+  await userEvent.click(
+    await within(library).findByRole('option', {name: f.first.song.title}),
+  );
+  const details = screen.getByRole('region', {name: '세부정보'});
+  await within(details).findByText(
+    `곡, 슬라이드 ${f.first.song.slides.length}개`,
+  );
+  expect(within(details).queryByRole('group', {name: '이번 예배'})).toBeNull();
+  expect(f.api.window.openSongEditor).not.toHaveBeenCalled();
+  expect(live).not.toHaveBeenCalled();
 });
 
 it('keeps Ctrl N in the title and enters the first slide text with Enter', async () => {

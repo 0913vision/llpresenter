@@ -16,7 +16,7 @@ import {
   SONG_DEFAULT_LABEL,
   missingBackgroundTip,
 } from '../../media/backgroundChoices';
-import {useSongBackground} from './useSongBackground';
+import {useSongBackground} from '../items/useSongBackground';
 import styles from './SongBackgroundControl.module.css';
 
 const ICON_SIZE = 14;

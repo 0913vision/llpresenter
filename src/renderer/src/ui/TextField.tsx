@@ -30,7 +30,8 @@ export interface TextFieldProps extends Omit<
   readonly icon?: string | undefined;
   /**
    * Makes it a search field: a clear-text button while there is a value, and
-   * Esc clears the value or, when empty, releases focus.
+   * Esc clears the value or, when empty, releases focus unless escapeClears
+   * is false.
    */
   readonly clearable?: boolean | undefined;
   /** Whether Escape clears this field; false leaves Escape to its container. */

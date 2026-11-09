@@ -16,7 +16,7 @@ Terms: 슬라이드 (slide), 예배 순서 (service order), 템플릿 (template)
 | ------ | ------------------------------------------------------------------- | ----------------------- |
 | Left   | 라이브러리                                                          | `Reflow`, `PrepService` |
 | Center | The 예배 순서 table ("The 예배 순서 table and inline song editing") | `Reflow`, `PrepService` |
-| Right  | The selected item's 미리보기 and 슬라이드                           | `Reflow`, `PrepService` |
+| Right  | The selected source's 세부정보                                      | `Reflow`, `PrepService` |
 
 - In an editor, the left column is a compact numbered 예배 순서 navigator, or
   the library when editing a library song. Its rows use compact spacing for the
@@ -38,11 +38,8 @@ Terms: 슬라이드 (slide), 예배 순서 (service order), 템플릿 (template)
   selects it.
 - The same 라이브러리 song can be open in the song editor while it's on output
   in 진행.
-- At a fixed window and bin size, selecting another item keeps the right
-  column's preview and slides panel boundaries in place. Different item controls
-  scroll inside those panels instead of redistributing their heights. Song and
-  slide previews reserve the same caption height; extra Bible-part controls
-  scroll without shrinking the picture.
+- The right column has one scroll containing the first-slide picture, the source
+  heading and the selected information or slide grid tab.
 - Lists, editor bodies, property panels, dialogs and pickers reserve vertical
   scrollbar space. Crossing the overflow threshold must not change their content
   width or move neighboring controls.
@@ -52,30 +49,19 @@ system README (window sizes and layout).
 
 ## The 예배 순서 table and inline song editing
 
-The user decided this on November 2 (drafts o1 to o6 and g5, outside the
-repository). The table, inline song editor, and 오버레이 bar on the 슬라이드
-have landed.
+The table and inline song editor share the service selection.
 
 ### 준비
 
 - The center table shows 이름, 슬라이드, 테마, 배경, 시작할 때, and 메모. Counts
   and thumbnails use the selected item's own slides. The library stays on the
-  left; preview and the slides grid stay on the right.
+  left; 세부정보 stays on the right.
 - Column headings stay pinned while table rows scroll. This applies to every
   table, including shortcut settings and import label mapping. Scrolling a row
   into view leaves it below the headings.
-- 미리보기 uses the same panel as 진행 (04): a plain title, ordered screen
-  choices, identical picture and caption geometry, and the same default height
-  budget. Its caption may show the selected slide's label, position and theme.
-  There is no extra bar below the picture.
-- The song name band sits above the thumbnail viewport without overlapping it.
-  When a selected thumbnail row is taller than the viewport, automatic scrolling
-  keeps its top visible instead of clipping it to align its bottom. This holds
-  after a width, zoom or panel-height change.
-- The preview keeps one full-width 16:9 picture for every item kind: songs,
-  Bible passages, blank slides, announcements, sermons, videos, and images.
-  Media previews show the file and name. With no item or a section selected, the
-  stage and caption stay blank at the same size so the panels below do not move.
+- The first slide, including a section-name card when present, is a full-width
+  16:9 picture for every item kind. Its label strip matches the slide grid.
+  Selecting a grid picture does not change the first picture or output.
 - Double-click or Enter opens the editor for any service item. Song and slide
   items use their existing editors; Bible and other items use their existing
   item panels in the center. A library row opens its library song.
@@ -528,11 +514,13 @@ Source: `Reflow`, `ImportEdit`, `LabelChip` README, `LabelColorPicker` README,
 
 ## 예배 순서 item settings
 
-The center table holds the selected item's 테마, 배경, 시작할 때 and 메모. The
-right column has two parts: 미리보기, then the item's slide grid filling the
-remaining height with one scroll. A source-song link appears below the grid
-header and opens that library song. The item keeps its own slide count, theme
-and slides even when its library source changes.
+The right column shows 세부정보 for the selected item: its first slide picture,
+title and kind with slide count, followed by 정보 and 슬라이드 tabs. 정보 groups
+the applicable settings under 이번 예배 and source details under 원본, with
+left-aligned values in a common property grid. 슬라이드 shows the item's
+pictures in a grid; selection is local and a double click opens the editor at
+that slide. The item keeps its own slide count, theme and slides even when its
+library source changes. The picture and both tabs share one scroll.
 
 ### What belongs to the service and what belongs to the song
 

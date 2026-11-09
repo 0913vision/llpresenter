@@ -12,7 +12,7 @@ import {useShowKeys} from '@renderer/features/presentation/shortcuts';
 import {useLibrarySongSync} from '@renderer/features/presentation/useLibrarySongSync';
 import {BibleSplitTools} from '@renderer/features/bible/BibleSplitTools';
 import {QuickPanel} from '@renderer/features/quick/QuickPanel';
-import {SongBackgroundControl} from '@renderer/features/service/items/SongBackgroundControl';
+import {SongBackgroundControl} from '@renderer/features/service/details/SongBackgroundControl';
 import {ShowToolsPanel} from '@renderer/features/tools/ShowToolsPanel';
 import {useShow} from '@renderer/session/show';
 import {isBibleSource} from '@renderer/session/showLibrary';

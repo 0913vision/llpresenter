@@ -16,7 +16,7 @@ import {
   memoRequest,
   startMacroRequest,
 } from '../items/itemPlaybackCommands';
-import {resolveMacro} from '../items/ItemSettingsRows';
+import {resolveMacro} from '../details/ItemSettingsRows';
 import type {ServiceItemStore} from '../items/serviceItemStore';
 import {ThemeCell} from './ThemeCell';
 import {BackgroundCell} from './BackgroundCell';

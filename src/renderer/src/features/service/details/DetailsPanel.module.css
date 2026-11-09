@@ -1,0 +1,19 @@
+﻿.picture {
+  position: relative;
+  overflow: hidden;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  background: var(--output-black);
+}
+.title {
+  margin-top: var(--space-10);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 600;
+}
+.meta {
+  margin: var(--space-4) 0 var(--space-8);
+  color: var(--text-2);
+  font: var(--type-caption);
+}

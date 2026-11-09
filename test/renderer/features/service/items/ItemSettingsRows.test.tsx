@@ -19,7 +19,7 @@ import {
   fixtureServiceId,
   itemFixture,
 } from '@fixtures/renderer/features/service/items/itemFixture';
-import {ItemSettingsPanel} from '@renderer/features/service/items/ItemSidePanels';
+import {DetailsPanel} from '@renderer/features/service/details/DetailsPanel';
 import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import type {Notice} from '@renderer/ui/notices';
 
@@ -43,14 +43,22 @@ async function setup(itemId: string = fixtureItems.arranged) {
   const problem = vi.fn<(notice: Notice) => void>();
   const items = new ServiceItemStore(fixture.api, editor, problem);
   items.show({serviceId: fixtureServiceId, itemId});
-  const view = render(<ItemSettingsPanel items={items} editor={editor} />);
+  useShow.setState({serviceId: fixtureServiceId, openItemId: itemId});
+  const view = render(
+    <DetailsPanel
+      target={{kind: 'item', itemId: createServiceItemId(itemId)}}
+      api={fixture.api}
+      items={items}
+      editor={editor}
+    />,
+  );
   onTestFinished(async () => {
     view.unmount();
     items.dispose();
     await editor.dispose();
   });
   await waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
-  const settings = screen.getByRole('region', {name: '항목 설정'});
+  const settings = screen.getByRole('region', {name: '세부정보'});
   await waitFor(() =>
     expect(
       within(settings)
@@ -88,7 +96,18 @@ function failedMacros() {
   const editor = new SongEditorStore(fixture.api, vi.fn());
   const items = new ServiceItemStore(fixture.api, editor, vi.fn());
   items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged});
-  const view = render(<ItemSettingsPanel items={items} editor={editor} />);
+  useShow.setState({
+    serviceId: fixtureServiceId,
+    openItemId: fixtureItems.arranged,
+  });
+  const view = render(
+    <DetailsPanel
+      target={{kind: 'item', itemId: fixtureItems.arranged}}
+      api={fixture.api}
+      items={items}
+      editor={editor}
+    />,
+  );
   onTestFinished(async () => {
     view.unmount();
     items.dispose();
@@ -268,7 +287,7 @@ describe('항목 설정 이번 예배 and 메모', () => {
       items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged}),
     );
     expect(
-      within(screen.getByRole('region', {name: '항목 설정'})).getByRole(
+      within(screen.getByRole('region', {name: '세부정보'})).getByRole(
         'textbox',
         {name: '메모'},
       ),
@@ -341,13 +360,13 @@ describe('항목 설정 이번 예배 and 메모', () => {
       items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged}),
     );
     expect(
-      within(screen.getByRole('region', {name: '항목 설정'})).getByRole(
+      within(screen.getByRole('region', {name: '세부정보'})).getByRole(
         'textbox',
         {name: '메모'},
       ),
     ).toHaveProperty('value', '천천히');
     const again = within(
-      screen.getByRole('region', {name: '항목 설정'}),
+      screen.getByRole('region', {name: '세부정보'}),
     ).getByRole('textbox', {name: '메모'});
     expect((await hoverForTooltip(again))?.textContent).toBe(
       '저장하지 못한 메모가 너무 많음',

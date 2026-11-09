@@ -13,9 +13,9 @@ import {Button} from '@renderer/ui/Button';
 import {Icon} from '@renderer/ui/Icon';
 import {Tooltip} from '@renderer/ui/Tooltip';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
-import type {ServiceItemStore} from './serviceItemStore';
-import {useItemSettings} from './useItemSources';
-import styles from './ItemOverlays.module.css';
+import type {ServiceItemStore} from '../items/serviceItemStore';
+import {useItemSettings} from '../items/useItemSources';
+import styles from '../items/ItemOverlays.module.css';
 
 export function useItemTheme(
   api: LlpApi['settings'],
