@@ -44,6 +44,9 @@ it('shows themed slides with ad names in their bands and sends picture slides on
   render(<SlideGrid columns={4} scalePercent={100} />);
   expect(screen.getAllByRole('option')).toHaveLength(3);
   expect(screen.getAllByRole('option')[0]?.textContent).toContain('Meeting');
+  expect(slide(0).querySelector('[class*="band"]')?.textContent).toContain(
+    'Meeting',
+  );
   fireEvent.click(slide(1));
   expect(screen.queryByRole('option', {selected: true})).toBeNull();
   const command = send.mock.calls.at(-1)?.[0];
@@ -53,6 +56,25 @@ it('shows themed slides with ad names in their bands and sends picture slides on
     type: 'slide.show',
     slide: {position: 1},
   });
+});
+
+it('shows a Bible verse label in the attached strip', () => {
+  applyService({
+    revision: 1,
+    id: 'bible-service',
+    name: '예배',
+    readOnly: false,
+    rows: [{kind: 'bible', id: 'bible-item', title: '요한복음'}],
+    tiles: {
+      'bible-item': [{label: '3:16', labelColor: 'none', lines: ['말씀']}],
+    },
+    jumpKeys: {},
+  });
+  openItem('bible-item');
+  render(<SlideGrid columns={4} scalePercent={100} />);
+  expect(slide(0).querySelector('[class*="band"]')?.textContent).toContain(
+    '3:16',
+  );
 });
 
 function slide(index: number): HTMLElement {

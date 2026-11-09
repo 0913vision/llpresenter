@@ -19,7 +19,6 @@ import type {SongSession} from './songSession';
 import {VirtualSlides} from './VirtualSlides';
 import styles from './SongPanels.module.css';
 import {SongSlideSurface} from './SongSlideSurface';
-import {songEditorSourceId} from './songEditorSourceId';
 
 export interface SongSlideStore {
   readonly subscribe: (listener: () => void) => () => void;
@@ -79,7 +78,6 @@ export function SongSlidePanel({
           className={styles.slideSurface}
         >
           <VirtualSlides
-            sourceId={songEditorSourceId(session)}
             session={session}
             key={song.id}
             background={session.background}

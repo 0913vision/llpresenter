@@ -115,3 +115,6 @@ by default; when on, every row above the current output item dims by position.
 - NewService, ServiceImport left list: empty service row 36 → 30, group header top 12 → 10.
 - NewService empty slot: dashed line #4a4a4a → `line-control`.
 - AddSongs drag ghost row: background rgba(42, 42, 42, 0.95) → `bg-control`, plus circle #3d8bf0 → `accent-fill`, shadow 0 8px 20px → `shadow-popover`.
+
+In preparation, the service order row retains its LIVE badge; slide editor rows
+do not draw a live ring around their thumbnail.

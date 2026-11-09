@@ -70,6 +70,14 @@ it.each(['blank', 'ad'] as const)(
       }),
     ).toBeTruthy();
     expect(await screen.findByRole('option', {name: '2 a.png'})).toBeTruthy();
+    expect(
+      screen.getAllByRole('option')[0]?.querySelector('[class*="band"]')
+        ?.textContent,
+    ).toContain(form === 'ad' ? '소식 이름' : '첫 줄');
+    expect(
+      screen.getAllByRole('option')[1]?.querySelector('[class*="band"]')
+        ?.textContent,
+    ).toContain('a.png');
     expect(screen.queryByRole('button', {name: '순서 편집…'})).toBeNull();
     await userEvent.click(screen.getByRole('button', {name: '슬라이드 편집…'}));
     expect(open).toHaveBeenCalledWith({
@@ -94,6 +102,10 @@ it.each(['blank', 'ad'] as const)(
       }),
     ).toBeTruthy();
     expect(await screen.findByRole('option', {name: '2 a.png'})).toBeTruthy();
+    expect(
+      screen.getAllByRole('option')[0]?.querySelector('[class*="band"]')
+        ?.textContent,
+    ).toContain(form === 'ad' ? '소식 이름' : '첫 줄');
     expect(screen.queryByRole('checkbox', {hidden: true})).toBeNull();
     inline.unmount();
     items.dispose();

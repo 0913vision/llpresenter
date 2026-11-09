@@ -64,7 +64,6 @@ export function InlineSlidesPanels({
           className={styles.slideSurface}
         >
           <VirtualSlides
-            sourceId={item.id}
             session={session}
             song={{
               slides: view.slides.map(slide => ({

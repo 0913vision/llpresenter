@@ -127,6 +127,8 @@ export interface SlideThumbnailProps {
   readonly number: number;
   /** The 이름표 name; leave it out for a 슬라이드 without an 이름표. */
   readonly label?: string | undefined;
+  /** Describes an unlabeled slide to assistive technology without changing its band. */
+  readonly accessibleLabel?: string | undefined;
   /** The 이름표 color; `none` paints the band `label-none`. */
   readonly labelColor?: LabelColor | undefined;
   /** The lyrics, with the line breaks as written in the 슬라이드. */
@@ -217,6 +219,27 @@ function Canvas({
   );
 }
 
+/** The attached caption shared by thumbnail grids and editor rows. */
+export function SlideThumbnailBand({
+  number,
+  label,
+  labelColor = NO_LABEL_COLOR,
+}: {
+  readonly number: number;
+  readonly label?: string | undefined;
+  readonly labelColor?: LabelColor | undefined;
+}): JSX.Element {
+  return (
+    <span
+      className={styles.band}
+      style={labelInk(label ? labelColor : NO_LABEL_COLOR)}
+    >
+      <span className={styles.number}>{number}</span>
+      {label ? <span className={styles.label}>{label}</span> : null}
+    </span>
+  );
+}
+
 /**
  * One 슬라이드 in a `ThumbnailGrid`: a 16:9 output canvas and a 24px 이름표 band.
  * Rings show selected and live; live wins.
@@ -226,6 +249,7 @@ export const SlideThumbnail = memo(
     number,
     canvas,
     label,
+    accessibleLabel,
     labelColor = NO_LABEL_COLOR,
     text,
     media,
@@ -247,7 +271,12 @@ export const SlideThumbnail = memo(
         type="button"
         role="option"
         aria-selected={selected}
-        aria-label={thumbnailName({number, label, text, hotKey})}
+        aria-label={thumbnailName({
+          number,
+          label: label ?? accessibleLabel,
+          text,
+          hotKey,
+        })}
         data-state={thumbnailState(live, missingFile !== undefined)}
         data-selection-style={selectionStyle}
         data-color={labelColor === NO_LABEL_COLOR ? undefined : labelColor}
@@ -261,12 +290,11 @@ export const SlideThumbnail = memo(
           hotKey={hotKey}
           transition={transition}
         />
-        <span className={styles.band} style={labelInk(labelColor)}>
-          <span className={styles.number}>{number}</span>
-          {label === undefined ? null : (
-            <span className={styles.label}>{label}</span>
-          )}
-        </span>
+        <SlideThumbnailBand
+          number={number}
+          label={label}
+          labelColor={labelColor}
+        />
         {tooltip}
       </button>
     );

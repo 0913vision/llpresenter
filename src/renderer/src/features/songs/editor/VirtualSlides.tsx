@@ -20,7 +20,6 @@ import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {slideMenuEntries} from './slideMenuEntries';
 import type {SlideListSession} from './slideListSession';
 import type {SlideListItem} from '@core/songs/slideListEdits';
-import {useEditorLiveIndex} from './useEditorLiveIndex';
 
 const OVERSCAN_ROWS = 1;
 const INITIAL_ROWS = 2;
@@ -94,7 +93,6 @@ export function VirtualSlides<T extends SlideListItem>({
   session,
   decoration,
   background,
-  sourceId,
 }: {
   readonly song: SlideSource | Song;
   readonly numbers: readonly number[];
@@ -110,13 +108,11 @@ export function VirtualSlides<T extends SlideListItem>({
   readonly session?: SlideListSession<T>;
   readonly decoration?: ((start: number) => ReactNode) | undefined;
   readonly background?: string | undefined;
-  readonly sourceId?: string | undefined;
 }): JSX.Element {
   const list = useSyncExternalStore(
     session?.slideModel.subscribe ?? emptySubscribe,
     session?.slideModel.getSnapshot ?? emptySnapshot,
   );
-  const liveIndex = useEditorLiveIndex(sourceId, list?.slides ?? []);
   const theme = useSlideTheme(
     {id: 'thumbnail', kind: 'song', title: ''},
     'external',
@@ -363,7 +359,6 @@ export function VirtualSlides<T extends SlideListItem>({
               <SlideThumbnail
                 key={start + index}
                 selectionStyle={session === undefined ? 'ring' : 'plate'}
-                live={number - 1 === liveIndex}
                 number={number}
                 label={slide.label === '' ? undefined : slide.label}
                 labelColor={

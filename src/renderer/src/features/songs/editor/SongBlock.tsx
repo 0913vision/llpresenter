@@ -9,6 +9,7 @@ import {
 } from 'react';
 import type {LabelColor} from '@core/labels/colors';
 import {LabelTag} from '@renderer/ui/LabelChip';
+import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
 import {isComposing} from '@renderer/ui/ime';
 import {linearSlidesOf, type EditorSlideItem} from '@core/songs/blockEdits';
 import {adjacentBlock, editorCommand} from './editorKeys';
@@ -38,7 +39,6 @@ interface BlockProps {
   readonly focus: RefObject<EditorFocus>;
   readonly active: boolean;
   readonly focused?: boolean;
-  readonly live?: boolean;
   readonly locked: boolean;
   readonly editable: boolean;
   readonly color: LabelColor;
@@ -58,7 +58,6 @@ export const SongBlock = memo(
     focus,
     active,
     focused = false,
-    live = false,
     locked,
     editable,
     color,
@@ -154,7 +153,6 @@ export const SongBlock = memo(
       <div
         className={`${styles.block} ${plate.row}`}
         data-active={active}
-        data-live={live}
         data-focused={focused}
         data-editor-block={block}
         data-song-slide={slide.id}
@@ -199,8 +197,15 @@ export const SongBlock = memo(
           }
         />
         <div className={styles.thumbnail} data-editor-thumbnail>
-          {canvas}
-          <SlideTransitionMark transition={slide.transition} />
+          <div className={styles.thumbnailCanvas}>
+            {canvas}
+            <SlideTransitionMark transition={slide.transition} />
+          </div>
+          <SlideThumbnailBand
+            number={block + 1}
+            label={slide.label}
+            labelColor={color}
+          />
         </div>
         <div className={styles.text}>
           <div className={styles.label}>

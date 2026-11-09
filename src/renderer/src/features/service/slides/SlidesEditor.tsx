@@ -25,6 +25,7 @@ import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import {useEditorFocus} from '@renderer/features/songs/editor/useEditorFocus';
 import {Button, Checkbox, PanelFooter, TextField} from '@renderer/ui';
 import {TextArea} from '@renderer/ui/TextArea';
+import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {useShow} from '@renderer/session/show';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
@@ -452,14 +453,20 @@ function SlidesEditorBody({
             renderRow={(slide, index) => (
               <>
                 <div className={styles.thumbnail} data-editor-thumbnail>
-                  <SlidesCanvas
-                    item={item}
-                    index={index}
-                    appearance={appearance}
-                    projection={projection}
-                    thumbnail
+                  <div className={styles.thumbnailCanvas}>
+                    <SlidesCanvas
+                      item={item}
+                      index={index}
+                      appearance={appearance}
+                      projection={projection}
+                      thumbnail
+                    />
+                    <SlideTransitionMark transition={slide.transition} />
+                  </div>
+                  <SlideThumbnailBand
+                    number={index + 1}
+                    label={slideBand(slide, media)}
                   />
-                  <SlideTransitionMark transition={slide.transition} />
                 </div>
                 <SlideFields
                   slide={slide}

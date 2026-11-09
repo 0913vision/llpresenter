@@ -136,7 +136,6 @@ function ItemSongTiles({
       ]}
     >
       <VirtualSlides
-        sourceId={item.id}
         session={session}
         song={session.history.snapshot.song}
         numbers={view.slides.map((_, index) => index + (1 + cardOffset(item)))}

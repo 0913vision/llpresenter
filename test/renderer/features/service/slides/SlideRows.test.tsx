@@ -3,11 +3,16 @@ import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {createServiceItemId, createSlideId} from '@core/schema/ids';
+import {emptyLiveState} from '@core/live/state';
+import {useLive} from '@renderer/session/live';
 import {SlidesDraft, newSlidesItem} from '@core/services/slidesEdits';
 import {SlideRows} from '@renderer/features/service/slides/SlideRows';
 import {SlidesListSession} from '@renderer/features/service/slides/slidesListSession';
 
-afterEach(cleanup);
+afterEach(() => {
+  cleanup();
+  useLive.setState({state: null});
+});
 function makeDraft(
   form: 'ad' | 'blank' = 'blank',
   clipboard?: SlidesDraft['clipboard'],
@@ -96,6 +101,27 @@ function clipboard() {
 }
 
 describe('slide row editing surface', () => {
+  it('does not mark the live slide in preparation', () => {
+    const draft = makeDraft();
+    const state = emptyLiveState();
+    useLive.setState({
+      state: {
+        ...state,
+        layers: {
+          ...state.layers,
+          slide: {
+            itemId: draft.snapshot.item.id,
+            position: 0,
+            label: null,
+            lines: [],
+          },
+        },
+      },
+    });
+    render(<Harness draft={draft} />);
+    expect(row(0).hasAttribute('data-live')).toBe(false);
+  });
+
   it('tabs through editable fields without stopping at any slide checkbox', async () => {
     render(<Harness draft={makeDraft()} />);
     const user = userEvent.setup();

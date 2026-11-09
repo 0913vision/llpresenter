@@ -24,12 +24,12 @@ retain the default ring style.
 
 - The plate wraps the picture and number band with 6px (`space-6`) on every side.
   The picture radius is 3px (`radius-sm`); the plate radius is their sum, 9px.
-- Selected: `selection` plate and `text-on-selection` number. Hover: `bg-raised`
+- Selected: `selection` plate. Hover: `bg-raised`
   plate. Selection wins over hover and does not dim when focus leaves the list.
-  Label chips keep `label-fill` and `label-ink`. No row fill or selection frame.
-- Live: `ring-live` around the picture. Keyboard focus draws a 2px `accent`
+  The attached caption strip keeps `label-fill` and `label-ink`. Preparation grid plates have a `ring-selected` outline.
+- Live in Show: `ring-live` around the picture. Preparation does not display a live slide ring. Keyboard focus draws a 2px `accent`
   outline 2px outside the plate, so neither the plate nor the live ring covers it.
-- Grid: number and label chip centered in a 22px band, 6px below the picture;
+- Grid: number and label in a 24px color-filled strip attached to the picture;
   24px grid gaps leave room for the plates. No checkbox, including hover/focus.
 - List: the unchanged app Checkbox precedes the number on the plate. It appears
   on selected rows, hover, and keyboard focus, without shifting the number.
@@ -44,7 +44,7 @@ retain the default ring style.
 - Lyric font size = canvas width × 0.044. In CSS, set `container-type: inline-size` on the canvas and `font-size: 4.4cqw` on the text. Don't set a minimum, because the thumbnail must break lines in the same places as the output.
   - The draft ShowH formula `thumbFont = 48 / column count` (px) fits only a center column of 1144 (1116 inside the body). As width ratios, 2 columns 552px→24px (0.0435), 4 columns 270px→12px (0.0444), and 6 columns 176px→8px (0.0455), so a single 0.044 is used.
 - Measured Bible parts use their output lines and resolved theme text box instead of the generic lyric font and inset. Scale the theme's reference-pixel frame and font to the canvas; keep each measured line on one row with no wrapping or refitting. Keep the smaller continuation marker. The same lines, box and size apply in 진행, 준비 and verse editor thumbnails at every thumbnail percentage; song tiles retain the lyric style above.
-- 이름표 band: height `size-thumb-band` (24px), text `band` (16/22/600), left padding `space-8`, gap between number and name `space-8`, number in `tabular-nums`. If the 이름표 has a color, paint the whole band in that color (`label-teal` and so on) with `text-on-label` text. Otherwise use `label-none` with `label-gray` text, and write only the number. Truncate a long name with an ellipsis.
+- 이름표 band: height `size-thumb-band` (24px), text `band` (16/22/600), left padding `space-8`, gap between number and name `space-8`, number in `tabular-nums`. For a labeled slide, fill the band with its color and choose dark or white text by contrast. An unlabeled slide uses `label-none` and `label-gray`, with only its number. Truncate a long name with an ellipsis.
 - Grid (`ll-thumb-grid`): `ThumbnailSizeControl` in the panel's bottom row sets a continuous percentage from 50% to 200%, default 100%, with a synchronized % field. Gap `space-16` vertical, `space-12` horizontal. The outer margin is the panel body's `panel-inset` (14). The window size range sets the baseline column count (narrow window 3, regular 4, wide 6. See Layout).
   - `thumbnailWidth` scales the baseline tile width by the percentage and caps it at the usable grid width. Moving the control right makes thumbnails larger; tiles wrap without stretching. The resulting column count follows the available width, not a fixed 2–8 mapping.
   - Compatibility behavior: callers without a valid positive `tileWidth` can still set integer `columns`. This layout fills equal column tracks; it is not the percentage control.
@@ -58,7 +58,7 @@ retain the default ring style.
 | Media 슬라이드 | width × 9/16 + 24 | band `band` | A 슬라이드 with an image or video (Sunday announcement) |
 
 These heights describe the default ring style. Plate grids, including 진행,
-use width × 9/16 + 28px (22px number band plus 6px spacing).
+use width × 9/16 + 24px.
 The thumbnail itself has no size variants. Its fixed tile width sets its size; integer column tracks remain available for compatibility callers.
 
 ## States
@@ -67,7 +67,7 @@ The thumbnail itself has no size variants. Its fixed tile width sets its size; i
 |---|---|---|---|
 | Default | `output-black`, band `label-*` or `label-none` | `text-on-fill`, band `text-on-label` or `label-gray` | |
 | Hover | Same | Same | Outer 1px `line-control` |
-| Selected (not live) | Same | Same | `ring-selected` (2px `accent`) |
+| Selected in 준비 | Same | Same | `ring-selected` (2px `accent`) |
 | Live | Same | Same | `ring-live` (3px `live`). Takes priority over selected |
 | Focus in 준비 | Same | Same | `outline: 2px solid accent`, `outline-offset: 4px` (outside the live ring) |
 | Focus in 진행 | Same | Same | Plate style: 2px `accent` outline, 2px outside the plate; live picture ring remains |
@@ -78,14 +78,14 @@ Hover uses the same 1px `line-control` as the hover of the small previews (ShowH
 ## Behavior
 
 - `ThumbnailGrid.tileWidth` optionally sets a fixed tile width in CSS pixels, normally computed by `thumbnailWidth` from spec-13's percentage. Tiles keep that width across wrapping rather than filling integer column tracks. Row navigation reads the actual layout. Without a valid positive width, the existing `columns` layout remains available for callers that have not adopted the percentage control.
-- Both workspaces draw `:focus-visible` on keyboard entry and navigation. 진행 uses the shared selection plate, independently of the live picture ring. Pointer focus alone has no keyboard outline. `ThumbnailGrid` passes its `workspace` through to the grid; other tile lists default to 준비.
+- Both workspaces draw `:focus-visible` on keyboard entry and navigation. Only 준비 grids draw a selection ring; 진행 shows the live picture ring without a selection plate. Pointer focus alone has no keyboard outline. `ThumbnailGrid` passes its `workspace` through to the grid; other tile lists default to 준비.
 - In the 진행 workspace, a click outputs that 슬라이드. In the 준비 workspace, a click only selects it.
 - The grid is `role="listbox"`, and each thumbnail is `role="option"` + `aria-selected`. Tab enters the grid only once (roving tabindex), on the selected thumbnail.
 - A windowed host can pass `positionOffset` (zero-based), `setSize`, and `orientation` through `ThumbnailGrid` to `TileList`. The list owns the mounted options' full-list ARIA positions. Omitted position props leave ordinary grids unchanged; the host keeps logical navigation and windowing.
 - In the 준비 workspace, the arrow keys move between thumbnails, and Enter and Space act as a click.
 - In the 진행 workspace, the grid keeps only ↑ and ↓ (one row) and Enter (a click). ←, →, Space, Page Up, and Page Down go to 다음 슬라이드 and 이전 슬라이드 even while the grid has focus, as in ProPresenter (focus precedence, rule 5, in `docs/spec/10-shortcuts-and-settings.md`). Space never presses the focused thumbnail there.
 - The grid takes keyboard focus on a mouse click, also in 진행, where a click on other buttons and tiles leaves focus where it was. While focus is in the grid, it follows the selection, also when 다음 슬라이드 moves it.
-- A live 슬라이드 has `data-state="live"`, a 슬라이드 whose media file is missing has `data-state="warning"`, and one with both has `data-state="live warning"`.
+- A live Show 슬라이드 has `data-state="live"`, a 슬라이드 whose media file is missing has `data-state="warning"`, and one with both has `data-state="live warning"`.
 - Write the `aria-label` in this order: number, 이름표, first line. "2 프리코러스, 저 천사여 찬송하세".
 - Moving the size slider continuously changes the tile width, and the lyric text follows that width. The row wraps when fewer tiles fit.
 

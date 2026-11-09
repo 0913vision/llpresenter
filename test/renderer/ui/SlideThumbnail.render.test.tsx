@@ -35,6 +35,7 @@ function SongGrid(): JSX.Element {
         <SlideThumbnail
           key={color}
           number={index + 1}
+          label={`label ${index + 1}`}
           labelColor={color}
           selected={index === selected}
         />
@@ -47,7 +48,7 @@ describe('ThumbnailGrid rendering', () => {
   it('redraws only the thumbnails whose selection changed', async () => {
     render(<SongGrid />);
     inkRenders.length = 0;
-    await userEvent.click(screen.getByRole('option', {name: '3'}));
+    await userEvent.click(screen.getByRole('option', {name: '3 label 3'}));
     expect(inkRenders.toSorted()).toEqual(['#5FB8C2', '#D6B35F']);
   });
 });

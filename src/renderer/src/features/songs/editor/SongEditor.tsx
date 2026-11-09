@@ -27,8 +27,6 @@ import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {useShow} from '@renderer/session/show';
 import {useEditorFocus} from './useEditorFocus';
-import {useEditorLiveIndex} from './useEditorLiveIndex';
-import {songEditorSourceId} from './songEditorSourceId';
 import {SONG_LIMITS} from '@core/schema/song';
 import {menuAvailability} from '@renderer/ui/menuModel';
 
@@ -133,10 +131,6 @@ function SongBlocks({
 }): JSX.Element {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const {song, selection} = session.history.snapshot;
-  const liveIndex = useEditorLiveIndex(
-    songEditorSourceId(session),
-    song.slides,
-  );
   const list = useSyncExternalStore(
     session.history.model.subscribe,
     session.history.model.getSnapshot,
@@ -278,7 +272,6 @@ function SongBlocks({
               session={session}
               focus={focus}
               active={list.selection.ids.has(slide.id)}
-              live={block === liveIndex}
               focused={selection.block === block}
               caret={list.selection.caret === block}
               canvas={

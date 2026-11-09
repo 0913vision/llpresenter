@@ -15,7 +15,10 @@
     var(--editor-number-width) + var(--space-16) +
       var(--slides-thumbnail-width) + var(--space-6) * 2
   );
-  height: calc(var(--slides-thumbnail-width) * 9 / 16 + var(--space-6) * 2);
+  height: calc(
+    var(--slides-thumbnail-width) * 9 / 16 + var(--size-thumb-band) +
+      var(--space-6) * 2
+  );
   border-radius: calc(var(--radius-sm) + var(--space-6));
   content: '';
   pointer-events: none;
@@ -66,8 +69,4 @@
 [data-slide-surface]:focus-visible .row[data-focused='true']::before {
   outline: var(--space-2) solid var(--accent);
   outline-offset: var(--space-2);
-}
-
-.row[data-live='true'] [data-editor-thumbnail] {
-  box-shadow: var(--ring-live);
 }

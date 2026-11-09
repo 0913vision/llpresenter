@@ -185,10 +185,14 @@ export function SlideGrid({
                   )
                 }
                 label={
-                  tile.label ??
-                  (picture === undefined ? undefined : tile.lines.join(' '))
+                  tile.label === '' ? undefined : (tile.label ?? undefined)
                 }
                 labelColor={tile.labelColor}
+                accessibleLabel={
+                  picture === undefined || tile.label
+                    ? undefined
+                    : tile.lines.join(' ')
+                }
                 text={picture === undefined ? tile.lines.join('\n') : undefined}
                 media={
                   picture === undefined ? undefined : thumbnailSrc(picture)

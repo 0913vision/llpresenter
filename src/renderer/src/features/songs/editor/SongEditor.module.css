@@ -54,10 +54,17 @@
 .thumbnail {
   position: relative;
   width: 100%;
-  aspect-ratio: var(--aspect-output);
   overflow: hidden;
   background: var(--output-black);
   border-radius: var(--radius-sm);
+}
+
+.thumbnailCanvas {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--aspect-output);
+  overflow: hidden;
+  background: var(--output-black);
 }
 
 .text {

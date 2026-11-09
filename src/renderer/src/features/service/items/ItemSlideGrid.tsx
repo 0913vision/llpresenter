@@ -183,7 +183,8 @@ export function ItemSlideGrid({
             <SlideThumbnail
               key={index}
               number={index + 1}
-              label={slide.label}
+              selectionStyle="plate"
+              label={slide.label === '' ? undefined : slide.label}
               labelColor={slide.color}
               text={slide.media === undefined ? slide.text : undefined}
               canvas={canvasFor(index)}

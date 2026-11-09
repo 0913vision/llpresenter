@@ -197,8 +197,8 @@ service needs no confirmation), product log version 63.
 ### 슬라이드 grid
 
 - 빈 슬라이드 and 광고 items use the same click and slide navigation commands as
-  songs. Their bands show the sequence number and the 광고 text slide's name,
-  the picture's file name, or a 빈 슬라이드 text slide's first line.
+  songs. Their attached caption strips show only the sequence number because
+  these slides have no labels.
 - With 넘기기 set to an interval, the main process advances the live item's
   slides every N seconds, even if the control window reloads. With 반복 on, the
   last slide returns to the first; otherwise it stays on the last. Clicking a
@@ -211,8 +211,9 @@ service needs no confirmation), product log version 63.
   lyrics are independent slides with distinct IDs.
 - A tile is a 16:9 picture with an 이름표 band below it. The picture shows only
   the 슬라이드's lines, not the song's background. The band shows the position
-  in the sequence (from 1) and the 이름표 name, painted in the 이름표 color.
-  Without an 이름표, the band shows only the number.
+  in the sequence (from 1) and the 이름표 name on a strip filled with the 이름표
+  color. Bible verse labels and named or media slides also keep their labels in
+  the band. Without a label, the band shows only the number.
 - Clicking a tile outputs that 슬라이드 at once (see 03). The live tile has a
   red ring around its picture: only that tile, not other tiles of the same
   슬라이드. There is no separate tile selection. Keyboard focus draws an accent

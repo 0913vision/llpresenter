@@ -1,6 +1,9 @@
 import {useState, type JSX} from 'react';
 import {act, fireEvent, render, screen} from '@testing-library/react';
-import {describe, expect, it, vi} from 'vitest';
+import {afterEach, describe, expect, it, vi} from 'vitest';
+import {emptyLiveState} from '@core/live/state';
+import {useLive} from '@renderer/session/live';
+
 import userEvent from '@testing-library/user-event';
 import {editorSetup} from '@fixtures/renderer/features/songs/editor/editorTesting';
 import {editorSong} from '@fixtures/renderer/features/songs/editor/editorFixture';
@@ -8,11 +11,8 @@ import {VirtualSlides} from '@renderer/features/songs/editor/VirtualSlides';
 import type {SlideListSession} from '@renderer/features/songs/editor/slideListSession';
 import type {SlideListView} from '@core/songs/slideListModel';
 import type {SongSlide} from '@core/schema/song';
-import {useEditorLiveIndex} from '@renderer/features/songs/editor/useEditorLiveIndex';
 
-vi.mock('@renderer/features/songs/editor/useEditorLiveIndex', () => ({
-  useEditorLiveIndex: vi.fn(),
-}));
+afterEach(() => useLive.setState({state: null}));
 
 const NUMBERS = Array.from({length: 2000}, (_, index) => (index % 2) + 1);
 function List(): JSX.Element {
@@ -112,7 +112,7 @@ describe('virtual editor slides', () => {
     );
   });
 
-  it('refreshes live slide identities on model notifications and releases its subscription', () => {
+  it('keeps editor thumbnails free of live marks and releases its subscription', () => {
     const song = editorSong(1).song;
     let snapshot: SlideListView<SongSlide> = {
       slides: song.slides,
@@ -144,6 +144,21 @@ describe('virtual editor slides', () => {
       pasteSlides: vi.fn(),
       edit: vi.fn(),
     };
+    const state = emptyLiveState();
+    useLive.setState({
+      state: {
+        ...state,
+        layers: {
+          ...state.layers,
+          slide: {
+            itemId: song.id,
+            position: 0,
+            label: null,
+            lines: [],
+          },
+        },
+      },
+    });
     const view = render(
       <VirtualSlides
         song={song}
@@ -154,28 +169,30 @@ describe('virtual editor slides', () => {
         baseline={3}
         scale={100}
         session={session}
-        sourceId="editor-item"
       />,
     );
-    expect(useEditorLiveIndex).toHaveBeenLastCalledWith(
-      'editor-item',
-      song.slides,
-    );
+    expect(view.container.querySelector('[data-state~="live"]')).toBeNull();
+    expect(view.container.innerHTML).not.toContain('--ring-live');
+    expect(
+      screen
+        .getAllByRole('option')
+        .every(option => !option.dataset.state?.includes('live')),
+    ).toBe(true);
     expect(listeners.size).toBe(1);
     const reordered = [...song.slides].reverse();
     act(() => {
       snapshot = {...snapshot, slides: reordered};
       for (const listener of listeners) listener();
     });
-    expect(useEditorLiveIndex).toHaveBeenLastCalledWith(
-      'editor-item',
-      reordered,
-    );
+    expect(
+      screen
+        .getAllByRole('option')
+        .every(option => !option.dataset.state?.includes('live')),
+    ).toBe(true);
     act(() => {
       snapshot = {...snapshot, slides: []};
       for (const listener of listeners) listener();
     });
-    expect(useEditorLiveIndex).toHaveBeenLastCalledWith('editor-item', []);
     view.unmount();
     expect(listeners.size).toBe(0);
   });

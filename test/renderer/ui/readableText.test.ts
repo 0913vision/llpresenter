@@ -1,5 +1,7 @@
 import {readFileSync} from 'node:fs';
 import {describe, expect, it} from 'vitest';
+import {paletteHex} from '@core/labels/colors';
+import {labelInk} from '@renderer/ui/labelInk';
 
 const read = (path: string): string => readFileSync(path, 'utf8');
 const TOKEN_CSS_PATHS = [
@@ -63,5 +65,24 @@ describe('readable control text', () => {
       expect(design).toContain(`--${name}: ${value};`);
       expect(app).toContain(`--${name}: ${value};`);
     }
+  });
+});
+
+describe('thumbnail label contrast', () => {
+  it.each(TOKEN_CSS_PATHS)('keeps every palette color readable in %s', path => {
+    const source = read(path);
+    for (const color of Object.values(paletteHex)) {
+      const ink =
+        labelInk(color)['--label-ink'] === 'var(--text-on-label)'
+          ? token(source, 'text-on-label')
+          : token(source, 'text-on-fill');
+      const fill = luminance(color.slice(1));
+      const ratio = (Math.max(ink, fill) + 0.05) / (Math.min(ink, fill) + 0.05);
+      expect(ratio, color).toBeGreaterThanOrEqual(4.5);
+    }
+    const neutral =
+      (token(source, 'label-gray') + 0.05) /
+      (token(source, 'bg-control') + 0.05);
+    expect(neutral).toBeGreaterThanOrEqual(4.5);
   });
 });

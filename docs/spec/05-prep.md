@@ -89,13 +89,13 @@ have landed.
 
 Song and slides item editors mark selection with a `selection` plate around the
 thumbnail and number band, with 6px padding and 9px outer radius. Hover uses
-`bg-raised`; live keeps its red ring and keyboard focus its own outline. The
-list puts the normal Checkbox before the number, visible on selection, hover or
-keyboard focus with its space reserved. Checkbox click or Space on a focused
-slide toggles that slide without Ctrl; plain click selects only it, and Shift
-and Ctrl keep their range and toggle behavior. Text fields retain normal Space
-entry. The grid has no Checkbox, including hover and focus. Selection does not
-dim when focus leaves. 진행 retains its existing thumbnail style.
+`bg-raised`; keyboard focus keeps its own outline and live slides have no red
+ring. The list puts the normal Checkbox before the number, visible on selection,
+hover or keyboard focus with its space reserved. Checkbox click or Space on a
+focused slide toggles that slide without Ctrl; plain click selects only it, and
+Shift and Ctrl keep their range and toggle behavior. Text fields retain normal
+Space entry. The grid has no Checkbox, including hover and focus. Selection does
+not dim when focus leaves. 진행 retains its existing thumbnail style.
 
 - 항목 추가 offers 구역 이름 with the ordered section names from the shared
   Sunday section list (12), without inserted spaces. Choosing a name inserts an
@@ -131,8 +131,8 @@ dim when focus leaves. 진행 retains its existing thumbnail style.
   slide count, item theme or form default, background, start macro, and memo.
   The right column shows the preview, item name, 슬라이드 편집… and themed
   thumbnails. Item properties stay in table cells. It has no 순서 편집… action.
-  Thumbnail bands show the number and ad name, picture filename, or first line
-  of blank text.
+  Their attached thumbnail strips show the number only; these slides have no
+  labels.
 - Double-click or Enter on a blank, ad, or sermon slides item opens its editor
   in 준비's center. Existing 슬라이드 편집 requests use the same editor, with no
   separate window. The back button shows the service name. Esc in a slide text
@@ -1090,3 +1090,9 @@ confirmation cannot delete a changed document or layout.
 Song and slides items can add an opening section card from the slide menu. Its
 Korean and English text can be edited and the card removed independently. The
 standalone 구역 이름 item remains available.
+
+Slide thumbnail captions in grids and editor rows are attached strips showing
+number and label name on the label color, or only the number on a neutral fill
+when unlabeled. Preparation slide thumbnails and editor rows do not show a live
+ring; the service order row keeps its LIVE badge. Grid selection plates have an
+accent ring for clear distinction.

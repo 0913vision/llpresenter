@@ -13,7 +13,6 @@ import {SongSlideSurface} from '../../songs/editor/SongSlideSurface';
 import {SlidesListSession} from './slidesListSession';
 import styles from './SlidesEditor.module.css';
 import {EditorSlideNumber} from '../../songs/editor/EditorSlideNumber';
-import {useEditorLiveIndex} from '../../songs/editor/useEditorLiveIndex';
 import plate from '../../songs/editor/EditorSlidePlate.module.css';
 
 export function SlideRows({
@@ -54,7 +53,6 @@ export function SlideRows({
     commands.slideModel.getSnapshot,
   );
   const {item, selection, selected} = draft.snapshot;
-  const liveIndex = useEditorLiveIndex(item.id, item.slides.slides);
   const rows = item.slides.slides;
   const gap = (index: number): ReactNode => (
     <button
@@ -93,7 +91,6 @@ export function SlideRows({
             <div
               className={`${styles.row} ${plate.row}`}
               data-active={selection.ids.has(slide.id)}
-              data-live={index === liveIndex}
               data-selected={selection.ids.has(slide.id) || undefined}
               data-focused={selected === index}
               tabIndex={-1}

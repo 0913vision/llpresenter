@@ -104,10 +104,17 @@
 .thumbnail {
   position: relative;
   height: fit-content;
-  aspect-ratio: 16 / 9;
   overflow: hidden;
   border-radius: var(--radius-sm);
 }
+.thumbnailCanvas {
+  position: relative;
+  width: 100%;
+  aspect-ratio: var(--aspect-output);
+  overflow: hidden;
+  background: var(--output-black);
+}
+
 .fields {
   display: grid;
   min-width: 0;

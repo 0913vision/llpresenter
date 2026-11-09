@@ -78,6 +78,8 @@
 
 .band {
   display: flex;
+  box-sizing: border-box;
+  width: 100%;
   align-items: center;
   gap: var(--space-8);
   height: var(--size-thumb-band);
@@ -154,7 +156,7 @@
 }
 
 .thumb[data-selection-style='plate'] .canvas {
-  border-radius: var(--radius-sm);
+  border-radius: var(--radius-sm) var(--radius-sm) 0 0;
 }
 
 .thumb[data-selection-style='plate'][data-state~='live'] .canvas {
@@ -163,23 +165,12 @@
 
 .thumb[data-selection-style='plate'] .band {
   position: relative;
-  justify-content: center;
-  height: var(--size-control-xs);
-  margin-top: var(--space-6);
-  padding: 0;
-  background: transparent;
-  color: var(--text-3);
+  width: 100%;
+  box-sizing: border-box;
+  border-radius: 0 0 var(--radius-sm) var(--radius-sm);
 }
 
-.thumb[data-selection-style='plate'][aria-selected='true'] .number {
-  color: var(--text-on-selection);
-}
-
-.thumb[data-selection-style='plate'] .label {
-  height: var(--size-control-xs);
-  padding: 0 var(--space-6);
-  border-radius: var(--radius-sm);
-  background: var(--label-fill);
-  color: var(--label-ink);
-  line-height: var(--size-control-xs);
+.grid[data-workspace='prep']
+  .thumb[data-selection-style='plate'][aria-selected='true']::before {
+  box-shadow: var(--ring-selected);
 }
