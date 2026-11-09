@@ -21,6 +21,51 @@ import {
 } from '@core/songs/slideListSelection';
 
 describe('slide list commands', () => {
+  it('changes only selected explicit transition durations and skips defaults and equal durations', () => {
+    const {adapter, history} = selectedSlideList([1, 2, 3, 4], [1, 2, 3]);
+    const slides = history.present.slides.map((slide, index) => {
+      if (index === 0) {
+        return {
+          ...slide,
+          transition: {kind: 'wipe' as const, dir: 'up' as const, sec: 1},
+        };
+      }
+      if (index === 2) {
+        return {
+          ...slide,
+          transition: {kind: 'push' as const, dir: 'right' as const, sec: 2},
+        };
+      }
+      if (index === 3) {
+        return {...slide, transition: {kind: 'dissolve' as const, sec: 1}};
+      }
+      return slide;
+    });
+    const before = {...history.present, slides};
+    const next = resultValue(
+      editSlideList(before, {type: 'transition-seconds', sec: 2}, adapter),
+    );
+    expect(next.slides[0]?.transition).toEqual({
+      kind: 'wipe',
+      dir: 'up',
+      sec: 2,
+    });
+    expect(next.slides[1]).toEqual(slides[1]);
+    expect(next.slides[2]).toEqual(slides[2]);
+    expect(next.slides[3]).toEqual(slides[3]);
+    expect(
+      resultValue(
+        editSlideList(next, {type: 'transition-seconds', sec: 2}, adapter),
+      ),
+    ).toBe(next);
+    const empty = {...before, selection: emptySlideSelection<SongSlideId>()};
+    expect(
+      resultValue(
+        editSlideList(empty, {type: 'transition-seconds', sec: 2}, adapter),
+      ),
+    ).toBe(empty);
+  });
+
   it('copies a deep snapshot in list order, with labels and plain text', () => {
     const {adapter, history} = selectedSlideList([1, 2, 3, 4], [4, 2]);
     const copied = resultValue(copySlideList(history.present, adapter));

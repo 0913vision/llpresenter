@@ -15,6 +15,39 @@ import {
 import {selectSlideList} from '@core/songs/slideListSelection';
 
 describe('slide list history', () => {
+  it('skips no-op duration commits so undo reaches the previous real edit', () => {
+    const {adapter, history} = selectedSlideList([1, 2], [1, 2]);
+    const changed = resultValue(
+      applySlideListCommand(history, {type: 'label', label: 'New'}, adapter),
+    );
+    const noDefaultChange = resultValue(
+      applySlideListCommand(
+        changed,
+        {type: 'transition-seconds', sec: 2},
+        adapter,
+      ),
+    );
+    expect(noDefaultChange).toBe(changed);
+    expect(undoSlideList(noDefaultChange).present).toBe(history.present);
+
+    const withEffect = resultValue(
+      applySlideListCommand(
+        changed,
+        {type: 'transition', transition: {kind: 'wipe', dir: 'up', sec: 2}},
+        adapter,
+      ),
+    );
+    const unchanged = resultValue(
+      applySlideListCommand(
+        withEffect,
+        {type: 'transition-seconds', sec: 2},
+        adapter,
+      ),
+    );
+    expect(unchanged).toBe(withEffect);
+    expect(undoSlideList(unchanged).present).toBe(changed.present);
+  });
+
   it('undoes item fields and row commands in one history while retaining fields during structural edits', () => {
     const {adapter, history} = selectedSlideList();
     const context = {name: 'Invented item', advance: 8};

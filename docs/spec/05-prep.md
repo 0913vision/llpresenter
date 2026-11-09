@@ -139,8 +139,7 @@ not dim when focus leaves. 진행 retains its existing thumbnail style.
   in 준비's center. Existing 슬라이드 편집 requests use the same editor, with no
   separate window. The back button shows the service name. Esc in a slide text
   field selects its row; subsequent presses clear selection and go back. The
-  right column keeps the selected draft's preview and slide grid. Its edit
-  button is hidden while that item's editor is open, including song items.
+  슬라이드 속성 shows the selected draft's picture and transition settings.
 - Opening an item or library song by double-click, Enter, or its edit action
   focuses the editor's list command surface with the first slide or the source
   slide selected. Editing keys work without another click. A new song opened by
@@ -255,7 +254,7 @@ endpoint slide IDs (02), so moves keep the endpoints attached.
 - A library song has 저장 and 다른 이름으로 저장…. Its changes stay local until
   저장, with the overwrite question. Leaving a dirty song asks 저장, 저장 안 함,
   취소. Cancel retains the draft and previous selection.
-- The right column keeps its preview and one scrolling slide grid. There is no
+- 슬라이드 속성 shows the selected slide's picture and settings. There is no
   항목 설정 panel. Theme, background, start macro and memo stay in table cells;
   메모… in the row menu also works when the memo column is hidden.
 
@@ -1102,7 +1101,7 @@ when unlabeled. Preparation slide thumbnails and editor rows do not show a live
 ring; the service order row keeps its LIVE badge. Grid selection plates have an
 accent ring for clear distinction.
 
-The song editor's right column shows the selected slide as a local 16:9 picture
+The song editor's 슬라이드 속성 shows the selected slide as a local 16:9 picture
 with its label, followed by 이름표, 전환 and 단축키 settings. The picture
 follows text edits immediately and does not send to output. Label and transition
 edits apply to the selected slides; differing values are shown as mixed.
