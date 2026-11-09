@@ -1,4 +1,9 @@
-import {parseFontCatalog, type FontCatalog} from '@core/schema/fontCatalog';
+import {
+  parseFontCatalog,
+  parseFontCatalogSnapshot,
+  type FontCatalog,
+  type FontCatalogSnapshot,
+} from '@core/schema/fontCatalog';
 import {
   parseFrameRateReport,
   parseOutputHealthReport,
@@ -70,6 +75,14 @@ export const outputEndpoints = {
   monitors: query<MonitorList>('monitors:get', parseMonitorList),
   monitorsChanged: push<MonitorList>('monitors:changed', parseMonitorList),
   fonts: query<FontCatalog>('fonts:get', parseFontCatalog),
+  fontSnapshot: query<FontCatalogSnapshot>(
+    'fonts:snapshot',
+    parseFontCatalogSnapshot,
+  ),
+  fontsChanged: push<FontCatalogSnapshot>(
+    'fonts:changed',
+    parseFontCatalogSnapshot,
+  ),
   log: message<RendererLogEntry>('log:write', parseRendererLogEntry),
 };
 
@@ -141,6 +154,8 @@ export function fontsApi(port: IpcPort) {
   return {
     /** Reads installed family names and weights; rejects after logging on failure. */
     get: port.query(outputEndpoints.fonts),
+    snapshot: port.query(outputEndpoints.fontSnapshot),
+    subscribe: port.subscribe(outputEndpoints.fontsChanged),
   };
 }
 

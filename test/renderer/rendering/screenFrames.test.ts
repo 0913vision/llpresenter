@@ -12,10 +12,12 @@ import {
 } from '@fixtures/core/themeOutput';
 import {DEFAULT_MESSAGE_STYLE} from '@core/schema/messages';
 import {ScreenFrames} from '@renderer/rendering/screenFrames';
+import type {FontsApi} from '@contracts/ipc/output';
+import type {FontCatalogSnapshot} from '@core/schema/fontCatalog';
 
 const STYLE_ID = '44444444-4444-4444-8444-444444444444';
 
-function setup(screenId = THEME_MAIN) {
+function setup(screenId = THEME_MAIN, fonts?: FontsApi) {
   const listeners = new Set<(document: SettingsDocument) => void>();
   const unsubscribe = vi.fn();
   const get = vi.fn(async ({name}: {name: string}) =>
@@ -45,6 +47,7 @@ function setup(screenId = THEME_MAIN) {
   const onChange = vi.fn();
   const onError = vi.fn();
   const frames = new ScreenFrames({
+    ...(fonts === undefined ? {} : {fonts}),
     settings: api.settings,
     clock: async () => 0,
     screenId,
@@ -75,6 +78,29 @@ function setup(screenId = THEME_MAIN) {
     },
   };
 }
+
+it('withholds unverified absence from output fallback decisions and releases font subscriptions', async () => {
+  let publish: (value: FontCatalogSnapshot) => void = () => undefined;
+  const stop = vi.fn();
+  const fonts = mockLlpApi({
+    fonts: {
+      snapshot: async () => ({families: [], verified: false}),
+      subscribe: receive => {
+        publish = receive;
+        return stop;
+      },
+    },
+  }).fonts;
+  const {frames, state} = setup(THEME_MAIN, fonts);
+  await vi.waitFor(() => expect(frames.frame(state)).toBeDefined());
+  expect(frames.frame(state)?.fonts).toBeUndefined();
+  publish({families: [], verified: true});
+  expect(frames.frame(state)?.fonts).toEqual([]);
+  publish({families: [], verified: false});
+  expect(frames.frame(state)?.fonts).toBeUndefined();
+  frames.dispose();
+  expect(stop).toHaveBeenCalledOnce();
+});
 
 it('uses the main composition and subscribes only to screens, messages, 환경설정, and timers', async () => {
   const {frames, state, get, onChange} = setup(THEME_STAGE);

@@ -148,6 +148,16 @@ export class OutputManager {
     return this.windows.get(screenId)?.frameReady(version, frame) ?? false;
   }
 
+  allPrepared(): boolean {
+    const screens = this.options.screens.list();
+    return (
+      screens.length > 0 &&
+      screens.every(
+        screen => this.windows.get(screen.id)?.framePrepared === true,
+      )
+    );
+  }
+
   /** 다시 시도 for a screen whose window holds the restart limit. */
   retry(screenId: string): void {
     this.windows.get(screenId)?.retry();

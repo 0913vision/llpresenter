@@ -129,6 +129,7 @@ beforeEach(() => {
 export function setup(
   loading?: Promise<SettingsReader | null>,
   windowMode: WindowMode = 'offscreen',
+  autoReady = true,
 ) {
   const settings = overlaySettings();
   settings.update(settingsDocument('screens', {screens: [main]}));
@@ -141,16 +142,19 @@ export function setup(
     show: false,
     webPreferences: {offscreen: true},
   });
+  const onPrepared = vi.fn();
   const running = startOutputs({
     store,
     settings: settingsPromise,
     control: controlWindow,
     log,
     windowMode,
+    onPrepared,
   });
   const dispatch = store.dispatch.bind(store);
   vi.spyOn(store, 'dispatch').mockImplementation((...args) => {
     const result = dispatch(...args);
+    if (!autoReady) return result;
     for (const window of mocks.windows?.created ?? []) {
       mocks.answers.get(outputEndpoints.frameReady.channel)?.(undefined, {
         screenId: window.screen.id,
@@ -180,12 +184,14 @@ export function setup(
     stop,
     stopOverlays,
     controlWindow,
+    onPrepared,
   };
 }
 
-export async function loaded() {
+export async function loaded(autoReady = true) {
   await Promise.resolve();
   await Promise.resolve();
+  if (!autoReady) return;
   for (const window of mocks.windows?.created ?? []) {
     mocks.answers.get(outputEndpoints.frameReady.channel)?.(undefined, {
       screenId: window.screen.id,

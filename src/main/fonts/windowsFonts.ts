@@ -15,7 +15,9 @@ $ErrorActionPreference = 'Stop'
 Add-Type -AssemblyName PresentationCore
 $english = [System.Windows.Markup.XmlLanguage]::GetLanguage('en-US')
 $korean = [System.Windows.Markup.XmlLanguage]::GetLanguage('ko-KR')
-$catalog = @([System.Windows.Media.Fonts]::SystemFontFamilies | Select-Object -First ${FONT_CATALOG_LIMITS.families} | ForEach-Object {
+$families = @([System.Windows.Media.Fonts]::SystemFontFamilies | Select-Object -First ${FONT_CATALOG_LIMITS.families + 1})
+if ($families.Count -gt ${FONT_CATALOG_LIMITS.families}) { throw 'Too many installed font families' }
+$catalog = @($families | ForEach-Object {
   $family = $_
   $names = $family.FamilyNames
   $canonical = if ($names.ContainsKey($english)) { $names[$english] } else { $family.Source }

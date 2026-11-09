@@ -36,6 +36,7 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     expect(mocks.fontContexts).toHaveLength(1);
     expect(mocks.fontContexts[0]).toHaveProperty('control', control);
     expect(mocks.fontContexts[0]).toHaveProperty('log.warn');
+    expect(mocks.fontContexts[0]).toHaveProperty('ready', expect.any(Promise));
     beforeQuit();
     await vi.waitFor(() => expect(mocks.storeDispose).toHaveBeenCalledOnce());
     expect(mocks.fontsStop).toHaveBeenCalledOnce();

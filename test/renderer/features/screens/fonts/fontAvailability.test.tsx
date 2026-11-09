@@ -1,6 +1,6 @@
 import {act, cleanup, renderHook, waitFor} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
-import type {FontCatalog} from '@core/schema/fontCatalog';
+import type {FontCatalog, FontCatalogSnapshot} from '@core/schema/fontCatalog';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {fontFamilyFixture} from '@fixtures/core/fontCatalog';
 import {
@@ -11,7 +11,36 @@ import {
 import {useFontCatalog} from '@renderer/features/screens/fonts/useFontCatalog';
 
 const family = fontFamilyFixture();
-const ready = {status: 'ready', families: [family]} as const;
+const ready = {status: 'ready', verified: true, families: [family]} as const;
+
+it('uses cached choices without missing warnings, accepts refreshes, and ignores an older reply', async () => {
+  let reply: (value: FontCatalogSnapshot) => void = () => undefined;
+  let push: (value: FontCatalogSnapshot) => void = () => undefined;
+  const stop = vi.fn();
+  window.llp = mockLlpApi({
+    fonts: {
+      snapshot: () =>
+        new Promise(resolve => {
+          reply = resolve;
+        }),
+      subscribe: receive => {
+        push = receive;
+        return stop;
+      },
+    },
+  });
+  const view = renderHook(useFontCatalog);
+  act(() => push({families: [family], verified: false}));
+  expect(
+    missingFontReason('Newly installed', view.result.current),
+  ).toBeUndefined();
+  act(() => push({families: [family], verified: true}));
+  expect(missingFontReason('Absent', view.result.current)).toBeDefined();
+  await act(async () => reply({families: [], verified: false}));
+  expect(view.result.current).toEqual(ready);
+  view.unmount();
+  expect(stop).toHaveBeenCalledOnce();
+});
 
 afterEach(() => {
   cleanup();

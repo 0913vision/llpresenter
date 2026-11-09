@@ -52,6 +52,7 @@ import {useOutputNotices} from './notifications/useOutputNotices';
 import {usePlaybackNotices} from './notifications/usePlaybackNotices';
 import {useProblemNotices} from './notifications/useProblemNotices';
 import styles from './App.module.css';
+import {useLaunchReady} from './useLaunchReady';
 
 const noEditorSubscription = (): (() => void) => () => undefined;
 
@@ -146,6 +147,7 @@ function ControlApp({
   useEffect(() => watchInputModality(window), []);
   useOutputNotices(session.api, session);
   usePlaybackNotices(session.api, session);
+  useLaunchReady(session.api);
   const saveFailed = useProblemNotices(session.api, session);
   const closeView = useSyncExternalStore(
     session.closeFlush?.subscribe ?? noEditorSubscription,

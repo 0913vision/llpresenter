@@ -2,6 +2,8 @@ import {extname, join} from 'node:path';
 import type {FileError, LoadedFile} from '@core/schema/fileFormat';
 import {listFolder, loadFile, type ParseFile} from './readFiles';
 
+const READ_CONCURRENCY = 8;
+
 /** A loaded file, and where it is, so that a change saves to the same file. */
 export interface StoredFile<T> extends LoadedFile<T> {
   readonly file: string;
@@ -31,22 +33,31 @@ export async function loadFolder<T extends {readonly id: string}>(
   }
   const items = new Map<string, StoredFile<T>>();
   const problems: FileError[] = [];
-  for (const name of names.value.filter(name => extname(name) === extension)) {
-    const file = join(folder, name);
-    const loaded = await loadFile(file, parse);
-    if (!loaded.ok) {
-      problems.push(loaded.error);
-      continue;
+  const files = names.value
+    .filter(name => extname(name) === extension)
+    .map(name => join(folder, name));
+  for (let offset = 0; offset < files.length; offset += READ_CONCURRENCY) {
+    const batch = await Promise.all(
+      files.slice(offset, offset + READ_CONCURRENCY).map(async file => ({
+        file,
+        loaded: await loadFile(file, parse),
+      })),
+    );
+    for (const {file, loaded} of batch) {
+      if (!loaded.ok) {
+        problems.push(loaded.error);
+        continue;
+      }
+      if (loaded.value === null) {
+        continue;
+      }
+      const {id} = loaded.value.data;
+      if (items.has(id)) {
+        problems.push(duplicateProblem(file));
+        continue;
+      }
+      items.set(id, {...loaded.value, file});
     }
-    if (loaded.value === null) {
-      continue;
-    }
-    const {id} = loaded.value.data;
-    if (items.has(id)) {
-      problems.push(duplicateProblem(file));
-      continue;
-    }
-    items.set(id, {...loaded.value, file});
   }
   return {items, problems};
 }

@@ -10,7 +10,7 @@ import {
 import {isKeyBackground} from '@core/screens/emptyColor';
 import {messageBandFor, resolveMessageStyle} from '@core/screens/messageStyle';
 import type {Timer} from '@core/schema/timers';
-import type {FontCatalog} from '@core/schema/fontCatalog';
+import type {FontCatalog, FontCatalogSnapshot} from '@core/schema/fontCatalog';
 import type {RenderFrame, RenderScreen} from './layer';
 import {MainTimerClock} from './mainTimerClock';
 import {followRenderScreen} from './screenIdentity';
@@ -43,11 +43,21 @@ export class ScreenFrames {
   constructor(options: ScreenFramesOptions) {
     const {settings, screenId, onError} = options;
     this.timerClock = new MainTimerClock(options.clock, onError);
-    options.fonts?.get().then(
-      fonts => {
-        if (this.disposed) return;
-        this.fonts = fonts;
-        options.onChange();
+    let pushedFonts = false;
+    const receiveFonts = (value: FontCatalogSnapshot): void => {
+      if (this.disposed) return;
+      const fonts = value.verified ? value.families : undefined;
+      if (this.fonts === fonts) return;
+      this.fonts = fonts;
+      options.onChange();
+    };
+    const stopFonts = options.fonts?.subscribe(value => {
+      pushedFonts = true;
+      receiveFonts(value);
+    });
+    options.fonts?.snapshot().then(
+      value => {
+        if (!pushedFonts) receiveFonts(value);
       },
       (error: unknown) => {
         if (!this.disposed) {
@@ -56,6 +66,7 @@ export class ScreenFrames {
       },
     );
     this.stops = [
+      () => stopFonts?.(),
       followRenderScreen({
         settings,
         id: screenId,

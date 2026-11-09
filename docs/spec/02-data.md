@@ -1167,9 +1167,15 @@ being used to delete a file.
 ### Automatic backup
 
 - If 자동 백업 is on, back up once a day, at launch, when no service is running.
-  Copy the song, service, 템플릿, and settings folders into a folder in the
-  backup location named after the backup's start time, `YYYY-MM-DD_HHmmss`
-  (proposal). Leave out media files because of their size (proposal).
+  Start at idle after the service view and configured output windows are ready.
+  Each window's first complete current frame satisfies its launch readiness;
+  subsequent live changes do not undo it while other windows finish preparing.
+  Quitting before readiness cancels the deferred attempt; quitting during a
+  backup retains the normal shutdown wait. Check output-on exclusion when the
+  deferred attempt actually starts. Copy the song, service, 템플릿, and settings
+  folders into a folder in the backup location named after the backup's start
+  time, `YYYY-MM-DD_HHmmss` (proposal). Leave out media files because of their
+  size (proposal).
 - A backup copies into a folder with `.partial` at the end of its name and
   renames it to the final name only when every file is copied, so a folder
   without `.partial` is always a complete backup (proposal).

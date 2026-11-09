@@ -37,6 +37,7 @@ export function missingFontReason(
 ): string | undefined {
   if (
     state.status !== 'ready' ||
+    !state.verified ||
     isBundledFont(font) ||
     installedFamily(font, state.families) !== undefined
   ) {

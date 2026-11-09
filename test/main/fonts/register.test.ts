@@ -15,7 +15,11 @@ const native = vi.hoisted(() => ({
   fromWebContents: vi.fn(),
 }));
 vi.mock('electron', () => ({
-  BrowserWindow: {fromWebContents: native.fromWebContents},
+  app: {getPath: () => 'C:/font-test'},
+  BrowserWindow: {
+    fromWebContents: native.fromWebContents,
+    getAllWindows: () => [],
+  },
   ipcMain: {
     handle: (name: string, handler: Handler) =>
       native.handlers.set(name, handler),
@@ -23,6 +27,13 @@ vi.mock('electron', () => ({
   },
 }));
 vi.mock('@main/fonts/windowsFonts', () => ({readWindowsFonts: native.read}));
+vi.mock('@main/fonts/windowsFontStamp', () => ({
+  readWindowsFontStamp: async () => 'a'.repeat(64),
+}));
+vi.mock('@main/fonts/catalogFile', () => ({
+  readCatalogFile: async () => null,
+  writeCatalogFile: async () => undefined,
+}));
 
 afterEach(() => {
   native.handlers.clear();
@@ -54,6 +65,12 @@ it('answers trusted main frames, rejects foreign output pages and arguments, and
       sender: control.webContents,
       senderFrame: control.webContents.mainFrame,
     };
+    const snapshot = native.handlers.get(outputEndpoints.fontSnapshot.channel);
+    if (snapshot === undefined) {
+      throw new Error('Missing font snapshot handler');
+    }
+    expect(() => snapshot({...event, senderFrame: {}})).toThrow('Invalid');
+    expect(() => snapshot(event, {})).toThrow('Invalid');
     expect(() => ask(event, {})).toThrow('Invalid');
     expect(native.read).not.toHaveBeenCalled();
     await expect(ask(event)).resolves.toEqual([fontFamilyFixture()]);
@@ -101,4 +118,5 @@ it('answers trusted main frames, rejects foreign output pages and arguments, and
     stop();
   }
   expect(native.handlers.has(outputEndpoints.fonts.channel)).toBe(false);
+  expect(native.handlers.has(outputEndpoints.fontSnapshot.channel)).toBe(false);
 });

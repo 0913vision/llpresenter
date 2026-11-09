@@ -123,7 +123,9 @@ screen's output on and off. There is no confirmation.
   indefinitely: if preparation has not completed within 1.5 seconds, reveal what
   is drawn and log the fallback once for that window (lead rule from the
   m3-check3 review, October 27). Missing monitor information uses the configured
-  disconnect fallback rather than blocking preparation forever.
+  disconnect fallback rather than blocking preparation forever. A deadline
+  reveal does not acknowledge startup preparation. Keep reporting readiness
+  until main accepts the first complete current frame.
 - Once a frame is ready at its current size, stop per-frame readiness checks.
   Static lyrics do not update DOM or styles. Clock and timer ticks update only
   elements whose displayed value changed, without rewriting identical

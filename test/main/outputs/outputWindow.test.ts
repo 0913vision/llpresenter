@@ -55,6 +55,37 @@ function setUp(autoReady = true) {
 }
 
 describe('OutputWindow', () => {
+  it('retains startup preparation after a current accepted frame, including hidden outputs', () => {
+    const {output, setVersion} = setUp(false);
+    const frame = {width: 960, height: 540, ready: true};
+    expect(output.framePrepared).toBe(false);
+    output.frameReady(1, frame);
+    expect(output.framePrepared).toBe(false);
+    output.frameReady(0, {...frame, ready: false});
+    expect(output.framePrepared).toBe(false);
+    expect(output.frameReady(0, frame)).toBe(false);
+    expect(output.framePrepared).toBe(true);
+    setVersion(1);
+    expect(output.framePrepared).toBe(true);
+    output.dispose();
+    output.frameReady(1, frame);
+    expect(output.framePrepared).toBe(false);
+  });
+  it('requires a complete current frame after the reveal deadline before marking startup prepared', async () => {
+    const clock = installMockClock();
+    const {output, windows, setVersion} = setUp(false);
+    output.update(FULL_SCREEN);
+    await clock.advance(OUTPUT_REVEAL_DEADLINE_MS);
+    expect(windows.only('main').mode.kind).toBe('fullscreen');
+    expect(output.framePrepared).toBe(false);
+    setVersion(1);
+    expect(output.frameReady(0, {...PROJECTOR, ready: true})).toBe(false);
+    expect(output.frameReady(1, {...PROJECTOR, ready: false})).toBe(false);
+    expect(output.framePrepared).toBe(false);
+    expect(output.frameReady(1, {...PROJECTOR, ready: true})).toBe(true);
+    expect(output.framePrepared).toBe(true);
+    output.dispose();
+  });
   it.each(['monitorMissing', 'controlConflict'] as const)(
     'demotes a first %s fallback once and preserves an operator raise until placement changes',
     reason => {

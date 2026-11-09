@@ -137,6 +137,13 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
     },
     fonts: {
       get: () => Promise.resolve([]),
+      snapshot: () =>
+        overrides.fonts?.get === undefined
+          ? Promise.resolve({families: [], verified: true})
+          : overrides.fonts
+              .get()
+              .then(families => ({families, verified: true})),
+      subscribe: () => () => undefined,
       ...overrides.fonts,
     },
     output: {
@@ -155,6 +162,7 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
       ...overrides.output,
     },
     service: {
+      ready: () => undefined,
       slidesProjection: () => undefined,
       get: () => Promise.resolve(null),
       open: () => Promise.resolve(null),

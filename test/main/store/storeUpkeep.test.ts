@@ -61,6 +61,44 @@ function setup(outcome?: () => Promise<BackupOutcome>) {
 }
 
 describe('upkeepAtLaunch', () => {
+  it('defers all upkeep to readiness and waits for an already started backup', async () => {
+    let release: (ready: boolean) => void = () => undefined;
+    const launchIdle = new Promise<boolean>(resolve => {
+      release = resolve;
+    });
+    let finish: (value: BackupOutcome) => void = () => undefined;
+    const log = setup(
+      () =>
+        new Promise(resolve => {
+          finish = resolve;
+        }),
+    );
+    const done = vi.fn();
+    const work = upkeepAtLaunch(Promise.resolve(store()), () => false, {
+      log,
+      launchIdle,
+    });
+    void work.then(done, done);
+    await Promise.resolve();
+    expect(backups.order).toEqual([]);
+    release(true);
+    await vi.waitFor(() => expect(backups.order).toContain('backup'));
+    expect(done).not.toHaveBeenCalled();
+    finish({kind: 'skipped', reason: 'auto-off'});
+    await work;
+    expect(done).toHaveBeenCalledOnce();
+    backups.outcome = () =>
+      Promise.resolve({kind: 'skipped', reason: 'auto-off'});
+  });
+
+  it('cancels a deferred backup on early shutdown', async () => {
+    const log = setup();
+    await upkeepAtLaunch(Promise.resolve(store()), () => false, {
+      log,
+      launchIdle: Promise.resolve(false),
+    });
+    expect(backups.order).toEqual([]);
+  });
   it('does nothing without a loaded store', async () => {
     const log = setup();
 

@@ -57,7 +57,7 @@ function renderPicker(
 ) {
   const change = vi.fn();
   const family = fontFamilyFixture();
-  const state = {status: 'ready', families: [family]} as const;
+  const state = {status: 'ready', verified: true, families: [family]} as const;
   const props = {
     id: 'font-choice',
     font: options.font ?? 'Pretendard',
@@ -77,7 +77,7 @@ function renderPicker(
 
 it('puts bundled Pretendard first, matches localized aliases and keeps an unavailable saved family', () => {
   const family = fontFamilyFixture();
-  const state = {status: 'ready', families: [family]} as const;
+  const state = {status: 'ready', verified: true, families: [family]} as const;
   const found = familyChoices('검사용 고딕', state);
   expect(found.selected).toBe(family.family);
   expect(found.options.map(item => item.value)).toEqual([
@@ -111,7 +111,7 @@ it('keeps a large list keyboard reachable while mounting only a small window', (
       <FontPicker
         id="font-choice"
         font="Pretendard"
-        state={{status: 'ready', families}}
+        state={{status: 'ready', verified: true, families}}
         reason={undefined}
         problem={undefined}
         onChange={change}
@@ -162,7 +162,11 @@ it('searches aliases, retains the query when metadata arrives and commits the in
       <label htmlFor="font-choice">글꼴</label>
       <FontPicker
         {...props}
-        state={{status: 'ready', families: [fontFamilyFixture()]}}
+        state={{
+          status: 'ready',
+          verified: true,
+          families: [fontFamilyFixture()],
+        }}
       />
     </>,
   );

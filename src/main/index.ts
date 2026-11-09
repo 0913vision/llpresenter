@@ -1,4 +1,6 @@
-import {app, type BrowserWindow} from 'electron';
+import {app, ipcMain, type BrowserWindow, type IpcMainEvent} from 'electron';
+import {serviceEndpoints} from '@contracts/ipc/service';
+import {LaunchIdle} from './store/launchIdle';
 import {join} from 'node:path';
 import {isAnyOutputOn} from '@core/live/state';
 import {registerBible} from './bible/register';
@@ -137,9 +139,15 @@ function start(): void {
       const ui = registerUiState(appConfig, log);
       const zoom = registerUiZoom(appConfig, log);
       const store = new LiveStore();
+      const launchIdle = new LaunchIdle();
+      shutdown.add({
+        name: 'cancel deferred launch work',
+        run: () => launchIdle.dispose(),
+      });
       const problems = registerProblemFeed({store, log});
       const dataStore = registerStore({
         log,
+        launchIdle: launchIdle.ready,
         isAnyOutputOn: () => isAnyOutputOn(store.state),
         appConfig,
         problems: problems.feed,
@@ -240,6 +248,27 @@ function start(): void {
       });
       const win = createControlWindow(log, windowMode, zoom);
       control = win;
+      const serviceReady = (event: IpcMainEvent, ...args: unknown[]): void => {
+        if (
+          event.sender !== win.webContents ||
+          event.senderFrame !== win.webContents.mainFrame ||
+          args.length !== 0
+        ) {
+          return;
+        }
+        void dataStore.content.then(
+          () => launchIdle.serviceReady(),
+          (error: unknown) =>
+            log.warn('Could not confirm launch readiness', error),
+        );
+      };
+      ipcMain.on(serviceEndpoints.ready.channel, serviceReady);
+      shutdown.add({
+        name: 'stop startup readiness',
+        run: () => {
+          ipcMain.removeListener(serviceEndpoints.ready.channel, serviceReady);
+        },
+      });
       const stopReloadNotice = announceReloadAfterCrash(win.webContents, () =>
         problems.feed.report({kind: 'control-reloaded'}),
       );
@@ -276,7 +305,7 @@ function start(): void {
           );
         },
       });
-      const stopFonts = registerFonts(win, log);
+      const stopFonts = registerFonts(win, log, launchIdle.ready);
       const closing = registerControlClose({control: win, log});
       shutdown.confirmWith(
         async () =>
@@ -313,6 +342,7 @@ function start(): void {
       });
       const outputs = startOutputs({
         playbackProblems: playbackProblems.board,
+        onPrepared: () => launchIdle.outputsReady(),
         store,
         settings: dataStore.settings,
         saveScreenSettings: dataStore.applySettingsEdit,

@@ -44,6 +44,7 @@ import {contentProblems, logLoadedStore, upkeepAtLaunch} from './storeUpkeep';
 
 export interface StoreRegistration {
   readonly log: Logger;
+  readonly launchIdle?: Promise<boolean>;
   /** Whether any output is on. A backup never starts while one is. */
   readonly isAnyOutputOn: () => boolean;
   /** `app.json`, opened once at launch with `openAppConfig`. */
@@ -92,6 +93,7 @@ export interface DataStore extends SettingsAccess {
  */
 export function registerStore({
   log,
+  launchIdle,
   isAnyOutputOn,
   appConfig,
   context = electronLocationContext,
@@ -214,6 +216,7 @@ export function registerStore({
   );
   const upkeep = upkeepAtLaunch(loading, isAnyOutputOn, {
     log,
+    ...(launchIdle === undefined ? {} : {launchIdle}),
     onBackupFailed: folder => {
       backupProblem = backupFailedProblem(folder);
       problems.push(backupProblem);

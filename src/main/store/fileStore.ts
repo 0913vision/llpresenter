@@ -157,20 +157,15 @@ export function chooseOpenService(
 }
 
 async function readData(locations: DataLocations): Promise<DataRead> {
-  const songs = await loadFolder(locations.songs, SONG_EXTENSION, parseSong);
-  const services = await loadFolder(
-    locations.services,
-    SERVICE_EXTENSION,
-    parseService,
-  );
-  const templates = await loadFolder(
-    locations.templates,
-    SERVICE_EXTENSION,
-    parseTemplate,
-  );
-  const labels = await readLabels(locations);
-  const preferences = await readPreferences(locations);
-  const media = await readMedia(locations);
+  const [songs, services, templates, labels, preferences, media] =
+    await Promise.all([
+      loadFolder(locations.songs, SONG_EXTENSION, parseSong),
+      loadFolder(locations.services, SERVICE_EXTENSION, parseService),
+      loadFolder(locations.templates, SERVICE_EXTENSION, parseTemplate),
+      readLabels(locations),
+      readPreferences(locations),
+      readMedia(locations),
+    ]);
   return {
     songs: songs.items,
     services: services.items,

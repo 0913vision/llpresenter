@@ -87,6 +87,7 @@ export class OutputWindow {
   private visible = false;
   private disposed = false;
   private drewSinceLoad = false;
+  private startupPrepared = false;
   private readyVersion = -1;
   private readySize: Size | null = null;
   private revealTimer: ReturnType<typeof setTimeout> | null = null;
@@ -116,6 +117,11 @@ export class OutputWindow {
     return this.recovery.state;
   }
 
+  /** Whether this window has accepted its first complete current frame. */
+  get framePrepared(): boolean {
+    return !this.disposed && this.startupPrepared;
+  }
+
   preload(placement?: ShownPlacement): void {
     if (this.disposed) return;
     this.ensureHandle();
@@ -137,7 +143,12 @@ export class OutputWindow {
     frame: Pick<FrameReadyReport, 'width' | 'height' | 'ready'>,
   ): boolean {
     if (this.disposed) return false;
-    if (this.visible) return true;
+    if (version === this.options.liveVersion() && frame.ready) {
+      this.startupPrepared = true;
+    }
+    // NOTE(0913vision): Deadline reveal can precede a complete frame. Keep the
+    // renderer reporting until startup preparation is actually acknowledged.
+    if (this.visible) return this.startupPrepared;
     if (version !== this.options.liveVersion()) return false;
     if (!frame.ready) {
       this.handle?.requestFrame();

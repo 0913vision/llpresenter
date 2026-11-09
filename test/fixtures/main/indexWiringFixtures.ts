@@ -110,6 +110,7 @@ const mocks = vi.hoisted(() => {
     playbackProblemsStop: vi.fn<() => void>(),
     appHandlers,
     electron: {
+      ipcMain: {on: vi.fn(), removeListener: vi.fn()},
       app: {
         setPath: vi.fn(),
         getPath: vi.fn<(name: string) => string>(),
@@ -183,8 +184,8 @@ vi.mock('@main/bible/registerAi', () => ({
   registerBibleAi: () => mocks.bibleAiStop,
 }));
 vi.mock('@main/fonts/register', () => ({
-  registerFonts: (control: unknown, log: unknown) => {
-    mocks.fontContexts.push({control, log});
+  registerFonts: (control: unknown, log: unknown, ready?: Promise<boolean>) => {
+    mocks.fontContexts.push({control, log, ready});
     return mocks.fontsStop;
   },
 }));

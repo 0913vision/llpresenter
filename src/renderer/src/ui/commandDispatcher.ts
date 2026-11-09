@@ -57,9 +57,11 @@ function surfaceOwnsKeys(event: KeyboardEvent): boolean {
     dragging ||
     pointer?.dragged === true ||
     modalStack.isOpen ||
-    document.querySelector(
-      '[role="menu"], [role="dialog"], [role="alertdialog"]',
-    ) !== null ||
+    [
+      ...document.querySelectorAll(
+        '[role="menu"], [role="dialog"], [role="alertdialog"]',
+      ),
+    ].some(surface => surface.closest('[inert]') === null) ||
     isInside(event.target, '[data-command-dragging="true"]')
   );
 }

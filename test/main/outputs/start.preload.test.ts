@@ -7,10 +7,43 @@ import {
   STAGE_SCREEN,
 } from '@fixtures/main/outputs/startFixtures';
 import type {SettingsReader} from '@core/schema/settingsReader';
+import {outputEndpoints} from '@contracts/ipc/output';
 import {MAIN, CAPTIONS} from '@fixtures/core/overlays';
 import {describe, expect, it} from 'vitest';
 
 describe('output windows at launch', () => {
+  it('finishes preparation when visible and hidden outputs become ready across live versions', async () => {
+    const {save, store, windows, onPrepared} = setup(
+      undefined,
+      'offscreen',
+      false,
+    );
+    save([main, {...main, id: CAPTIONS, kind: 'broadcast', method: 'capture'}]);
+    await loaded(false);
+    const report = (screenId: string, version: number, ready = true) =>
+      mocks.answers.get(outputEndpoints.frameReady.channel)?.(undefined, {
+        screenId,
+        version,
+        ...windows.only(screenId).contentSize(),
+        ready,
+      });
+    store.dispatch({type: 'output.set', screenId: MAIN, on: true});
+    const firstVersion = store.state.version;
+    expect(report(MAIN, firstVersion)).toBe(true);
+    expect(windows.only(MAIN).mode.kind).toBe('fullscreen');
+    expect(onPrepared).not.toHaveBeenCalled();
+    store.dispatch({type: 'screen.testPattern.set', screenId: MAIN, on: true});
+    expect(store.state.version).toBeGreaterThan(firstVersion);
+    expect(windows.only(MAIN).mode.kind).toBe('fullscreen');
+    expect(report(MAIN, store.state.version)).toBe(true);
+    expect(report(CAPTIONS, firstVersion)).toBe(false);
+    expect(report(CAPTIONS, store.state.version, false)).toBe(false);
+    expect(onPrepared).not.toHaveBeenCalled();
+    expect(report(CAPTIONS, store.state.version)).toBe(false);
+    expect(windows.only(CAPTIONS).mode.kind).toBe('hidden');
+    expect(onPrepared).toHaveBeenCalledOnce();
+  });
+
   it.each(['normal', 'offscreen'] as const)(
     'prepares every saved output while switches remain off in %s mode',
     async mode => {

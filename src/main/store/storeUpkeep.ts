@@ -33,6 +33,7 @@ type LoggedStore = Pick<
 /** Where upkeep writes its log, and who hears that the launch backup failed. */
 export interface UpkeepReport {
   readonly log: Logger;
+  readonly launchIdle?: Promise<boolean>;
   /** Called with the backup folder when the launch backup could not be made. */
   readonly onBackupFailed?: ((folder: string) => void) | undefined;
 }
@@ -47,6 +48,7 @@ export async function upkeepAtLaunch(
   if (store === null) {
     return;
   }
+  if (report.launchIdle !== undefined && !(await report.launchIdle)) return;
   await removeLeftoverTempFiles(store, log);
   await backUpAtLaunch(store, isAnyOutputOn, report);
 }

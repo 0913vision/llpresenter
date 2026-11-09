@@ -4,11 +4,12 @@ import {
   type ServiceOpenRequest,
 } from '@core/schema/serviceOpen';
 import {parseShowService, type ShowService} from '@core/schema/showService';
-import {message, push, query, request, type IpcPort} from './endpoint';
+import {message, push, query, request, signal, type IpcPort} from './endpoint';
 import {parseSlidesProjection} from '@core/schema/slidesProjection';
 
 /** The calls about the open 예배 순서 as 진행 shows it. */
 export const serviceEndpoints = {
+  ready: signal('service:ready'),
   slidesProjection: message('service:slides-projection', parseSlidesProjection),
   get: query<ShowService | null>('service:get', parseShowService),
   open: request<ServiceOpenRequest, ShowService | null>('service:open', {
@@ -21,6 +22,7 @@ export const serviceEndpoints = {
 /** The open 예배 순서 part of `window.llp`. */
 export function serviceApi(port: IpcPort) {
   return {
+    ready: port.signal(serviceEndpoints.ready),
     slidesProjection: port.message(serviceEndpoints.slidesProjection),
     /**
      * Reads the open 예배 순서 as 진행 shows it, or `null` when none is open.

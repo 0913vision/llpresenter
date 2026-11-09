@@ -38,6 +38,7 @@ import type {PlaybackProblemBoard} from './playbackProblems';
 /** What the output windows hang on. */
 export interface OutputContext {
   readonly playbackProblems?: PlaybackProblemBoard;
+  readonly onPrepared?: () => void;
   readonly store: LiveStore;
   readonly settings: Promise<SettingsReader | null>;
   readonly saveScreenSettings?: (
@@ -146,6 +147,7 @@ export interface RunningOutputs {
  */
 export function startOutputs({
   playbackProblems,
+  onPrepared,
   store,
   settings,
   saveScreenSettings,
@@ -206,6 +208,7 @@ export function startOutputs({
   const releaseNumbers = store.connectMonitorNumbers(numbers);
   const stopRetaining = screens.subscribe(() => {
     frameRates.retain(screens.list().map(({id}) => id));
+    if (screens.ready && screens.list().length === 0) onPrepared?.();
   });
   outputs.start();
   const stops = [
@@ -221,11 +224,13 @@ export function startOutputs({
         log.error('invalid output frame ready report', report.error);
         return false;
       }
-      return outputs.frameReady(
+      const shown = outputs.frameReady(
         report.value.screenId,
         report.value.version,
         report.value,
       );
+      if (outputs.allPrepared()) onPrepared?.();
+      return shown;
     }),
     screens.subscribe(() => board.refresh()),
     displays.subscribe(() => board.refresh()),

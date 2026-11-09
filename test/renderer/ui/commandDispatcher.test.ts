@@ -64,6 +64,32 @@ describe('dispatchShortcut', () => {
     owner.unmount();
   });
 
+  it('allows commands during inert menu warmup but blocks them for an open menu', () => {
+    const warmup = document.body.appendChild(document.createElement('div'));
+    warmup.setAttribute('inert', '');
+    warmup.setAttribute('aria-hidden', 'true');
+    warmup
+      .appendChild(document.createElement('div'))
+      .setAttribute('role', 'menu');
+    const ran: string[] = [];
+    const owner = renderHook(() =>
+      useCommandShortcuts([
+        {id: 'library.newSong', run: () => ran.push('new')},
+      ]),
+    );
+    const key = {key: 'n', code: 'KeyN', ctrlKey: true};
+    fireEvent.keyDown(document.body, key);
+    expect(ran).toEqual(['new']);
+    const menu = document.body.appendChild(document.createElement('div'));
+    menu.setAttribute('role', 'menu');
+    fireEvent.keyDown(document.body, key);
+    expect(ran).toEqual(['new']);
+    menu.remove();
+    fireEvent.keyDown(document.body, key);
+    expect(ran).toEqual(['new', 'new']);
+    owner.unmount();
+  });
+
   it('asks the focused editor to commit its draft before it runs a command', () => {
     const field = document.body.appendChild(document.createElement('input'));
     const order: string[] = [];

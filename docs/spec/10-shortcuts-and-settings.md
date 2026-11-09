@@ -1160,7 +1160,13 @@ Where each font setting lives:
 Font rules (proposal):
 
 - The font select lists the bundled Pretendard first, then the fonts installed
-  on this computer, by family.
+  on this computer, by family. Reuse a validated persisted catalog immediately
+  and verify font folder and registry stamps in the background after launch
+  readiness and periodically while open. Keep verified availability during
+  periodic checks with unchanged stamps, without clearing or re-raising font
+  warnings. Changed stamps require fresh enumeration before confirming missing
+  fonts. A timeout or failed check leaves availability unknown: preserve the
+  saved font and suppress missing-font warnings until verification succeeds.
 - Every output font stack ends with the bundled Pretendard. A Latin-only font
   then draws Hangul with Pretendard, not with a random system font. Line breaks
   stay predictable.

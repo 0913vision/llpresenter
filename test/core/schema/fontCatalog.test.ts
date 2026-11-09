@@ -1,6 +1,30 @@
 import {expect, it} from 'vitest';
 import {fontFamilyFixture} from '@fixtures/core/fontCatalog';
-import {FONT_CATALOG_LIMITS, parseFontCatalog} from '@core/schema/fontCatalog';
+import {
+  FONT_CATALOG_LIMITS,
+  parseFontCatalog,
+  parseFontCatalogSnapshot,
+} from '@core/schema/fontCatalog';
+
+it('validates snapshot certainty and retains catalog caps', () => {
+  const families = [fontFamilyFixture()];
+  expect(parseFontCatalogSnapshot({families, verified: false})).toEqual({
+    ok: true,
+    value: {families, verified: false},
+  });
+  for (const value of [
+    null,
+    {families},
+    {families, verified: 'yes'},
+    {families: [{}], verified: true},
+    {
+      families: Array(FONT_CATALOG_LIMITS.families + 1).fill(families[0]),
+      verified: true,
+    },
+  ]) {
+    expect(parseFontCatalogSnapshot(value).ok).toBe(false);
+  }
+});
 
 it('keeps localized names and nonstandard OpenType weights and drops unknown fields', () => {
   const fixture = fontFamilyFixture();

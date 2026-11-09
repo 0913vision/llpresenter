@@ -52,3 +52,17 @@ export function parseFontCatalog(
 ): Result<FontCatalog, PayloadError> {
   return parsePayload(catalog, value);
 }
+
+const snapshot = payloadObject({families: catalog, verified: v.boolean()});
+
+/** Cached choices are usable immediately; only verified choices establish absence. */
+export interface FontCatalogSnapshot {
+  readonly families: FontCatalog;
+  readonly verified: boolean;
+}
+
+export function parseFontCatalogSnapshot(
+  value: unknown,
+): Result<FontCatalogSnapshot, PayloadError> {
+  return parsePayload(snapshot, value);
+}
