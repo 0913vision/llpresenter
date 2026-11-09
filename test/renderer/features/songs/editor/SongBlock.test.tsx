@@ -59,6 +59,7 @@ function renderBlock(
     readonly editable?: boolean;
     readonly locked?: boolean;
     readonly active?: boolean;
+    readonly grid?: boolean;
   } = {},
 ) {
   const api = mockLlpApi();
@@ -94,12 +95,25 @@ function renderBlock(
       expanded={false}
       onOpen={onOpen}
       top={block * 80}
+      grid={options.grid ?? false}
     />,
   );
   return {...result, session, focus, slide, onOpen};
 }
 
 describe('SongBlock', () => {
+  it('opens the label menu from the only grid band', () => {
+    const {onOpen, container} = renderBlock(0, createSong(), {grid: true});
+    const band = screen.getByRole('button', {name: '\uC774\uB984\uD45C 1'});
+    expect(container.querySelectorAll('[data-editor-thumbnail]')).toHaveLength(
+      1,
+    );
+    expect(screen.queryByRole('button', {name: '1\uC808'})).toBeNull();
+    expect(container.textContent.match(/1\uC808/g)).toHaveLength(1);
+    fireEvent.click(band);
+    expect(onOpen).toHaveBeenCalledWith(band, 0);
+  });
+
   it('renders 이름표 placeholder on an unlabeled slide', () => {
     renderBlock(0, createSong(true));
     expect(screen.getByRole('button', {name: /이름표/})).toBeDefined();

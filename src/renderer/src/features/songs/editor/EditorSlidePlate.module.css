@@ -70,3 +70,29 @@
   outline: var(--space-2) solid var(--accent);
   outline-offset: var(--space-2);
 }
+
+.grid {
+  grid-template-columns: 1fr;
+  gap: var(--space-6);
+  border: 0;
+}
+.grid::before {
+  inset: var(--space-8);
+  width: auto;
+  height: auto;
+}
+
+.leading {
+  position: absolute;
+  box-sizing: border-box;
+  padding: var(--space-14);
+  outline: none;
+}
+.leadingNumber {
+  color: var(--text-3);
+  font: var(--type-caption);
+}
+[data-leading-active] .leading {
+  background: var(--selection);
+  border-radius: var(--radius-sm);
+}

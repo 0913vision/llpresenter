@@ -2,6 +2,7 @@ import {act, fireEvent, render, screen, within} from '@testing-library/react';
 import {expect, it, vi} from 'vitest';
 import {editorSetup} from '@fixtures/renderer/features/songs/editor/editorTesting';
 import {SlideInspector} from '@renderer/features/service/slideInspector/SlideInspector';
+import {seedSlideSurfaceView} from '@renderer/features/songs/editor/SlideSurfaceView';
 
 vi.mock('@renderer/platform/useSettingsDocument', () => ({
   useSettingsDocument: () => null,
@@ -11,6 +12,30 @@ vi.mock('@renderer/features/songs/editor/SongPreview', () => ({
     <div data-testid="picture">{layers.slide?.lines.join(' ')}</div>
   ),
 }));
+
+it.each(['list', 'grid'] as const)(
+  'reflects a %s surface selection in the inspector',
+  async mode => {
+    seedSlideSurfaceView({layout: {normal: {editorSlideView: mode}}});
+    const {store, session, view} = await editorSetup();
+    const inspector = render(<SlideInspector store={store} />);
+    try {
+      const second = view.container.querySelector<HTMLElement>(
+        '[data-editor-block="1"]',
+      );
+      if (second === null) throw new Error('Missing second slide');
+      fireEvent.click(second);
+      const expected = session.history.snapshot.song.slides[1];
+      if (expected === undefined) throw new Error('Missing slide data');
+      expect(
+        within(inspector.container).getByTestId('picture').textContent,
+      ).toBe(expected.lines.join(' '));
+    } finally {
+      inspector.unmount();
+      seedSlideSurfaceView({});
+    }
+  },
+);
 
 it('updates its local picture as the selected lyrics change', async () => {
   const {store, session} = await editorSetup();

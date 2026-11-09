@@ -31,6 +31,7 @@ import {
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {useSlidesEditor} from '@renderer/features/service/slides/useSlidesEditor';
+import {seedSlideSurfaceView} from '@renderer/features/songs/editor/SlideSurfaceView';
 import {renderHook} from '@testing-library/react';
 import {NotificationStack} from '@renderer/ui/Notification';
 
@@ -182,56 +183,125 @@ function savedItem(f: ReturnType<typeof setup>): SlidesItem {
 }
 
 describe('automatic inline slides editor', () => {
-  it.each(['blank', 'ad'] as const)(
-    'saves one transition command across text and media slides in %s, including undo and defaults',
-    async form => {
-      const f = setup(form);
-      const user = userEvent.setup();
+  it.each(['list', 'grid'] as const)(
+    'adds a slide after the selection in %s',
+    async mode => {
+      seedSlideSurfaceView({layout: {normal: {editorSlideView: mode}}});
+      const f = setup('blank');
       try {
-        const controls = within(
-          await screen.findByRole('group', {name: '슬라이드 전환'}),
+        await screen.findByRole('textbox', {name: '\uAE00'});
+        const firstRow = document.querySelector<HTMLElement>(
+          '[data-slide-index="0"]',
         );
-        const rows = [
-          ...document.querySelectorAll<HTMLElement>('[data-slide-id]'),
-        ];
-        if (!rows[0] || !rows[1]) throw new Error('Missing rows');
-        fireEvent.click(rows[0]);
-        fireEvent.click(rows[1], {shiftKey: true});
-        await user.click(controls.getByRole('button', {name: '밀어내기'}));
+        if (firstRow === null) throw new Error('Missing first slide');
+        fireEvent.click(firstRow);
+        fireEvent.click(
+          screen.getByRole('button', {name: '\uAE00 \uCD94\uAC00'}),
+        );
         await act(async () => {
           await pendingWritesOf(f.api).settleDrafts();
         });
-        expect(
-          savedItem(f).slides.slides.every(
-            slide => slide.transition?.kind === 'push',
-          ),
-        ).toBe(true);
-        expect(
-          screen.getAllByRole('img', {name: '개별 전환 설정'}),
-        ).toHaveLength(2);
-        await user.keyboard('{Control>}z{/Control}');
-        await act(async () => {
-          await pendingWritesOf(f.api).settleDrafts();
-        });
-        expect(
-          savedItem(f).slides.slides.every(
-            slide => slide.transition === undefined,
-          ),
-        ).toBe(true);
-        await user.keyboard('{Control>}y{/Control}');
-        await user.click(controls.getByRole('button', {name: '기본값'}));
-        await act(async () => {
-          await pendingWritesOf(f.api).settleDrafts();
-        });
-        expect(
-          savedItem(f).slides.slides.every(slide => !('transition' in slide)),
-        ).toBe(true);
+        expect(savedItem(f).slides.slides).toHaveLength(3);
+        expect(savedItem(f).slides.slides[1]).toHaveProperty('text', '');
       } finally {
         f.view.unmount();
         await f.session.dispose();
+        seedSlideSurfaceView({});
       }
     },
   );
+
+  it('positions multiline and media rows from their measured heights', async () => {
+    const measure = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: HTMLElement) {
+        const child = this.querySelector<HTMLElement>('[data-slide-index]');
+        const height =
+          child?.dataset['slideIndex'] === '0'
+            ? 240
+            : child?.dataset['slideIndex'] === '1'
+              ? 160
+              : 0;
+        return DOMRect.fromRect({width: 400, height});
+      });
+    const f = setup('blank', [
+      {id: slideId, text: 'First\nSecond\nThird'},
+      {
+        id: createSlideId('00000000-0000-4000-8000-000000000005'),
+        media: mediaId,
+      },
+      {id: createSlideId('00000000-0000-4000-8000-000000000006'), text: 'Last'},
+    ]);
+    try {
+      const first = (
+        await screen.findAllByRole('textbox', {name: '\uAE00'})
+      )[0];
+      if (first === undefined) throw new Error('Missing text slide');
+      const firstRow = first.closest<HTMLElement>('[data-slide-index]');
+      expect(firstRow).not.toBeNull();
+      await waitFor(() => {
+        const second = document.querySelector<HTMLElement>(
+          '[data-slide-index="1"]',
+        );
+        expect(second?.parentElement?.style.top).toBe('240px');
+        const third = document.querySelector<HTMLElement>(
+          '[data-slide-index="2"]',
+        );
+        expect(third?.parentElement?.style.top).toBe('400px');
+      });
+    } finally {
+      f.view.unmount();
+      await f.session.dispose();
+      measure.mockRestore();
+    }
+  });
+
+  it('keeps text edits when switching between list and grid', async () => {
+    const f = setup('blank');
+    const user = userEvent.setup();
+    try {
+      const toolbar = within(
+        await screen.findByRole('toolbar', {
+          name: '\uC2AC\uB77C\uC774\uB4DC \uBCF4\uAE30',
+        }),
+      );
+      const text = await screen.findByRole('textbox', {name: '\uAE00'});
+      fireEvent.change(text, {target: {value: 'List edit'}});
+      await user.click(toolbar.getByRole('button', {name: '\uACA9\uC790'}));
+      expect(screen.getByRole('textbox', {name: '\uAE00'})).toHaveProperty(
+        'value',
+        'List edit',
+      );
+      fireEvent.change(screen.getByRole('textbox', {name: '\uAE00'}), {
+        target: {value: 'Grid edit'},
+      });
+      await user.click(toolbar.getByRole('button', {name: '\uBAA9\uB85D'}));
+      await act(async () => {
+        await pendingWritesOf(f.api).settleDrafts();
+      });
+      expect(savedItem(f).slides.slides[0]).toMatchObject({text: 'Grid edit'});
+    } finally {
+      f.view.unmount();
+      await f.session.dispose();
+    }
+  });
+
+  it('leaves transition controls to the inspector', async () => {
+    const f = setup('blank');
+    try {
+      await screen.findByRole('toolbar', {
+        name: '\uC2AC\uB77C\uC774\uB4DC \uBCF4\uAE30',
+      });
+      expect(
+        screen.queryByRole('group', {
+          name: '\uC2AC\uB77C\uC774\uB4DC \uC804\uD658',
+        }),
+      ).toBeNull();
+    } finally {
+      f.view.unmount();
+      await f.session.dispose();
+    }
+  });
   it('recovers every failed item from the single remaining retry notification', async () => {
     const f = setup('blank');
     f.view.unmount();

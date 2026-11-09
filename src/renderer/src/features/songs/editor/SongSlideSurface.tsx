@@ -11,6 +11,7 @@ import {
   type DragEvent,
 } from 'react';
 import type {SlideListItem} from '@core/songs/slideListEdits';
+import type {LeadingSlideCard} from './SlideCardRenderer';
 
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {isComposing} from '@renderer/ui/ime';
@@ -41,9 +42,11 @@ export function SongSlideSurface<T extends SlideListItem>({
   extraMenu,
   blocked = false,
   editLabel = windowCommandLabels.editSong,
+  leadingCard,
 }: {
   readonly session: SlideListSession<T>;
   readonly children: ReactNode;
+  readonly leadingCard?: LeadingSlideCard | undefined;
   readonly className?: string | undefined;
   readonly onBack?: (() => void) | undefined;
   readonly store?: SongEditorStore | undefined;
@@ -59,6 +62,23 @@ export function SongSlideSurface<T extends SlideListItem>({
     session.slideModel.subscribe,
     session.slideModel.getSnapshot,
   );
+  const [cardSelected, setCardSelected] = useState(false);
+  const leadingSelected = leadingCard !== undefined && cardSelected;
+  const selectCard = (): void => {
+    if (leadingCard === undefined || leadingSelected) return;
+    session.selectSlides({type: 'clear'});
+    setCardSelected(true);
+    leadingCard.onSelectChange?.(true);
+    const viewport = surfaceRef.current?.querySelector<HTMLElement>(
+      '[data-slide-columns]',
+    );
+    if (viewport !== null && viewport !== undefined) viewport.scrollTop = 0;
+  };
+  const clearCard = (): void => {
+    if (!leadingSelected) return;
+    setCardSelected(false);
+    leadingCard.onSelectChange?.(false);
+  };
   const [menu, setMenu] = useState<MenuAnchor | null>(null);
   const [menuIndex, setMenuIndex] = useState(0);
   const [labelAnchor, setLabelAnchor] = useState<HTMLElement | null>(null);
@@ -160,15 +180,21 @@ export function SongSlideSurface<T extends SlideListItem>({
   };
   const editReason = readOnly ? NEWER_FILE_REASON : undefined;
   const selectionReason = selected ? undefined : '선택한 슬라이드가 없습니다';
-  const deleteReason =
-    editReason ??
-    selectionReason ??
-    (view.slides.length - view.selection.ids.size <
-    session.slideModel.limits.minSlides
-      ? '곡에는 슬라이드가 하나 이상 있어야 합니다'
-      : undefined);
+  const deleteReason = leadingSelected
+    ? editReason
+    : (editReason ??
+      selectionReason ??
+      (view.slides.length - view.selection.ids.size <
+      session.slideModel.limits.minSlides
+        ? '곡에는 슬라이드가 하나 이상 있어야 합니다'
+        : undefined));
   const askDelete = (): void => {
     if (deleteReason !== undefined) return;
+    if (leadingSelected) {
+      clearCard();
+      leadingCard.onDelete();
+      return;
+    }
     const snapshot = session.slideModel.getSnapshot();
     deletion.ask(
       snapshot.selection.ids.size,
@@ -442,13 +468,45 @@ export function SongSlideSurface<T extends SlideListItem>({
       }}
       onPointerDownCapture={event => {
         dragClick.props.onPointerDownCapture();
-        if (event.button === 0) focusList(event.target);
+        if (event.button === 0) {
+          if (
+            event.target instanceof Element &&
+            event.target.closest('[data-leading-card]') !== null
+          ) {
+            selectCard();
+          } else if (
+            event.target instanceof Element &&
+            event.target.closest('[data-song-slide], [data-slide-gap]') !== null
+          ) {
+            clearCard();
+          }
+          focusList(event.target);
+        }
       }}
       onClickCapture={event => {
         dragClick.props.onClickCapture(event);
-        if (!event.defaultPrevented) focusList(event.target);
+        if (event.defaultPrevented) return;
+        if (
+          event.target instanceof Element &&
+          event.target.closest('[data-leading-card]') !== null
+        ) {
+          selectCard();
+          if (
+            !isInTextEntry(event.target) &&
+            event.target.closest('button') === null
+          ) {
+            surfaceRef.current?.focus({preventScroll: true});
+          }
+        } else if (
+          event.target instanceof Element &&
+          event.target.closest('[data-song-slide], [data-slide-gap]') !== null
+        ) {
+          clearCard();
+        }
+        focusList(event.target);
       }}
       data-slide-surface
+      data-leading-active={leadingSelected || undefined}
       onKeyDownCapture={event => {
         if (
           !(event.target instanceof Node) ||
@@ -457,6 +515,13 @@ export function SongSlideSurface<T extends SlideListItem>({
           return;
         }
         const keyTarget = event.target;
+        if (leadingSelected && !isInTextEntry(event.target)) {
+          if (event.key === ' ' || event.key === 'Enter') {
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+          }
+        }
         if (
           event.key === ' ' &&
           !event.defaultPrevented &&
@@ -551,6 +616,53 @@ export function SongSlideSurface<T extends SlideListItem>({
         }
         const control = event.ctrlKey || event.metaKey;
         if (control) return;
+        if (leadingCard !== undefined && !event.shiftKey) {
+          const columns = Number(
+            surfaceRef.current?.querySelector<HTMLElement>(
+              '[data-slide-columns]',
+            )?.dataset.slideColumns ?? 1,
+          );
+          if (
+            leadingSelected &&
+            ['ArrowUp', 'ArrowLeft', 'Home'].includes(event.key)
+          ) {
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+          }
+          if (
+            leadingSelected &&
+            (event.key === 'ArrowDown' || event.key === 'ArrowRight')
+          ) {
+            const first =
+              view.slides[
+                event.key === 'ArrowDown'
+                  ? Math.min(columns - 1, view.slides.length - 1)
+                  : 0
+              ];
+            if (first !== undefined) {
+              clearCard();
+              session.selectSlides({type: 'click', id: first.id});
+              event.preventDefault();
+              event.stopPropagation();
+              surfaceRef.current?.focus();
+            }
+            return;
+          }
+          if (
+            !leadingSelected &&
+            (event.key === 'Home' ||
+              (event.key === 'ArrowUp' &&
+                session.selectedOccurrence === columns - 1) ||
+              (event.key === 'ArrowLeft' && session.selectedOccurrence === 0))
+          ) {
+            selectCard();
+            event.preventDefault();
+            event.stopPropagation();
+            surfaceRef.current?.focus();
+            return;
+          }
+        }
         const key = event.key.toLowerCase();
         let run: (() => void) | undefined;
         if (key.startsWith('arrow')) {
@@ -613,7 +725,13 @@ export function SongSlideSurface<T extends SlideListItem>({
         ) {
           return;
         }
-        if (isInTextEntry(event.target)) return;
+        if (
+          isInTextEntry(event.target) ||
+          (event.target instanceof Element &&
+            event.target.closest('[data-leading-card]'))
+        ) {
+          return;
+        }
         const row =
           event.target instanceof Element
             ? event.target.closest<HTMLElement>('[data-song-slide]')

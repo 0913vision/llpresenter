@@ -15,19 +15,21 @@ const rowStyle: CSSProperties & {'--size-control-xs': string} = {
 function Fixture({
   slides,
   selected,
+  mode = 'list',
+  scale = 100,
 }: {
+  readonly mode?: 'list' | 'grid';
+  readonly scale?: number;
   readonly slides: readonly WindowSlideItem[];
   readonly selected: number;
 }) {
-  const {viewport, total, offsets, indices, setScrollTop} = useSongBlockWindow(
-    slides,
-    selected,
-    undefined,
-  );
+  const {viewport, total, offsets, columns, indices, setScrollTop} =
+    useSongBlockWindow(slides, selected, {mode, scale});
   return (
     <div
       ref={viewport}
       data-testid="viewport"
+      data-columns={columns}
       onScroll={event => setScrollTop(event.currentTarget.scrollTop)}
     >
       <div data-testid="content" style={{height: total}}>
@@ -35,7 +37,7 @@ function Fixture({
           <div
             key={index}
             data-editor-block={index}
-            style={{...rowStyle, top: offsets[index]}}
+            style={{...rowStyle, top: offsets[Math.floor(index / columns)]}}
           >
             <textarea
               aria-label={`Row ${index}`}
@@ -70,6 +72,34 @@ function observer() {
 }
 
 describe('song block window measurements', () => {
+  it('windows 300 grid slides and reveals the selected cell at either zoom', () => {
+    const measured = observer();
+    const slides = Array.from({length: 300}, () => ({lines: ['Slide']}));
+    const view = render(<Fixture slides={slides} selected={0} mode="grid" />);
+    const viewport = screen.getByTestId('viewport');
+    Object.defineProperty(viewport, 'clientHeight', {
+      value: 500,
+      configurable: true,
+    });
+    Object.defineProperty(viewport, 'clientWidth', {
+      value: 1000,
+      configurable: true,
+    });
+    act(() => measured.resize());
+    expect(viewport.dataset['columns']).toBe('4');
+    expect(screen.getAllByRole('textbox').length).toBeLessThan(40);
+    view.rerender(<Fixture slides={slides} selected={120} mode="grid" />);
+    expect(viewport.scrollTop).toBeGreaterThan(0);
+    expect(screen.getByRole('textbox', {name: 'Row 120'})).toBeDefined();
+    fireEvent.scroll(viewport);
+    expect(screen.getAllByRole('textbox').length).toBeLessThan(40);
+    view.rerender(
+      <Fixture slides={slides} selected={120} mode="grid" scale={200} />,
+    );
+    expect(viewport.dataset['columns']).toBe('2');
+    expect(screen.getByRole('textbox', {name: 'Row 120'})).toBeDefined();
+  });
+
   it('uses line counts and token metrics, reveals the final row, and disconnects its one observer', () => {
     const measured = observer();
     const slides: readonly WindowSlideItem[] = [

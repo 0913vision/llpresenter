@@ -1,6 +1,8 @@
 import {
-  Fragment,
+  useCallback,
   useLayoutEffect,
+  useRef,
+  useState,
   useMemo,
   useSyncExternalStore,
   type JSX,
@@ -14,13 +16,57 @@ import {SlidesListSession} from './slidesListSession';
 import styles from './SlidesEditor.module.css';
 import {EditorSlideNumber} from '../../songs/editor/EditorSlideNumber';
 import plate from '../../songs/editor/EditorSlidePlate.module.css';
+import {useSongBlockWindow} from '../../songs/editor/useSongBlockWindow';
+import {useSlideSurfaceView} from '../../songs/editor/SlideSurfaceView';
+
+import {
+  LEADING_CARD_WINDOW_ITEM,
+  type LeadingSlideCard,
+  type SlideCardRenderer,
+} from '../../songs/editor/SlideCardRenderer';
+import {LeadingSlideCardView} from '../../songs/editor/LeadingSlideCardView';
+export type {SlideCardRenderer} from '../../songs/editor/SlideCardRenderer';
+
+function MeasuredRow({
+  children,
+  style,
+  onHeight,
+  id,
+}: {
+  readonly children: ReactNode;
+  readonly style: import('react').CSSProperties;
+  readonly onHeight: (id: string, height: number) => void;
+  readonly id: string;
+}): JSX.Element {
+  const rowRef = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const node = rowRef.current;
+    if (node === null) return;
+    const measure = (): void => {
+      const height = node.getBoundingClientRect().height;
+      if (height > 0) onHeight(id, height);
+    };
+    measure();
+    if (typeof ResizeObserver === 'undefined') return;
+    const observer = new ResizeObserver(measure);
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [id, onHeight]);
+  return (
+    <div ref={rowRef} className={styles.rowPosition} style={style}>
+      {children}
+    </div>
+  );
+}
 
 export function SlideRows({
   draft,
   blocked,
   report,
-  list,
+  list: listRef,
   renderRow,
+  renderCard,
+  leadingCard,
   children,
   session,
   onBack,
@@ -31,6 +77,9 @@ export function SlideRows({
   readonly report: (message: string) => void;
   readonly list: RefObject<HTMLDivElement | null>;
   readonly renderRow: (slide: Slide, index: number) => ReactNode;
+  /** Return a card body to replace the normal row or cell contents. */
+  readonly renderCard?: SlideCardRenderer | undefined;
+  readonly leadingCard?: LeadingSlideCard | undefined;
   readonly children: ReactNode;
   readonly session?: SlidesListSession | undefined;
   readonly onBack?: (() => void) | undefined;
@@ -54,6 +103,57 @@ export function SlideRows({
   );
   const {item, selection, selected} = draft.snapshot;
   const rows = item.slides.slides;
+  const view = useSlideSurfaceView();
+  const [measured, setMeasured] = useState<Readonly<Record<string, number>>>(
+    {},
+  );
+  useLayoutEffect(() => {
+    const viewport = listRef.current;
+    if (viewport === null || typeof ResizeObserver === 'undefined') return;
+    let width = viewport.clientWidth;
+    const observer = new ResizeObserver(() => {
+      if (viewport.clientWidth === width) return;
+      width = viewport.clientWidth;
+      setMeasured({});
+    });
+    observer.observe(viewport);
+    return () => observer.disconnect();
+  }, [listRef]);
+  const keyFor = useCallback(
+    (id: string) => `${view.mode}:${view.scale}:${id}`,
+    [view.mode, view.scale],
+  );
+  const leadingOffset = leadingCard === undefined ? 0 : 1;
+  const heights = useMemo(() => {
+    const values = rows.map(slide => measured[keyFor(slide.id)]);
+    return leadingCard === undefined
+      ? values
+      : [measured[keyFor('leading-card')], ...values];
+  }, [rows, measured, keyFor, leadingCard]);
+  const saveHeight = useCallback(
+    (id: string, height: number) => {
+      const key = keyFor(id);
+      setMeasured(current =>
+        current[key] === height ? current : {...current, [key]: height},
+      );
+    },
+    [keyFor],
+  );
+  const windowSlides = useMemo(() => {
+    const content = rows.map(slide => ({
+      lines: 'text' in slide ? slide.text.split('\n') : [''],
+    }));
+    return leadingCard === undefined
+      ? content
+      : [LEADING_CARD_WINDOW_ITEM, ...content];
+  }, [rows, leadingCard]);
+  const {total, offsets, columns, cellWidth, columnGap, indices, setScrollTop} =
+    useSongBlockWindow(windowSlides, selected + leadingOffset, {
+      mode: view.mode,
+      scale: view.scale,
+      viewportRef: listRef,
+      heights,
+    });
   const gap = (index: number): ReactNode => (
     <button
       type="button"
@@ -74,67 +174,119 @@ export function SlideRows({
   return (
     <SongSlideSurface
       session={commands}
+      leadingCard={leadingCard}
       report={commands.reportNotice}
       blocked={blocked}
       onBack={onBack}
       className={styles.rowSurface}
     >
       <div
-        ref={list}
+        ref={listRef}
         className={styles.rows}
+        data-view={view.mode}
+        data-slide-columns={columns}
+        onScroll={event => setScrollTop(event.currentTarget.scrollTop)}
         aria-label="슬라이드 편집 목록"
         tabIndex={-1}
       >
-        {rows.map((slide, index) => (
-          <Fragment key={slide.id}>
-            {gap(index)}
-            <div
-              className={`${styles.row} ${plate.row}`}
-              data-active={selection.ids.has(slide.id)}
-              data-selected={selection.ids.has(slide.id) || undefined}
-              data-focused={selected === index}
-              tabIndex={-1}
-              data-slide-id={slide.id}
-              data-song-slide={slide.id}
-              data-slide-index={index}
-              data-editor-block={index}
-              draggable={!blocked}
-              onClick={event => {
-                if (
-                  isInTextEntry(event.target) ||
-                  (event.target instanceof Element &&
-                    event.target.closest('button') !== null)
-                ) {
-                  return;
-                }
-                commands.selectSlides({
-                  type: 'click',
-                  id: slide.id,
-                  shift: event.shiftKey,
-                  ctrl: event.ctrlKey || event.metaKey,
-                });
-              }}
-              onFocusCapture={event => {
-                if (isInTextEntry(event.target)) {
-                  commands.selectSlides({type: 'click', id: slide.id});
-                }
-              }}
-            >
-              <EditorSlideNumber
-                number={index + 1}
-                selected={selection.ids.has(slide.id)}
-                onToggle={() =>
-                  commands.selectSlides({
-                    type: 'click',
-                    id: slide.id,
-                    ctrl: true,
-                  })
-                }
-              />
-              {renderRow(slide, index)}
-            </div>
-          </Fragment>
-        ))}
+        <div className={styles.rowWindow} style={{height: total}}>
+          {indices.map(position => {
+            if (leadingCard !== undefined && position === 0) {
+              return (
+                <MeasuredRow
+                  key="leading-card"
+                  id="leading-card"
+                  onHeight={saveHeight}
+                  style={{
+                    top: offsets[0] ?? 0,
+                    left: 0,
+                    width:
+                      view.mode === 'grid' && cellWidth > 0
+                        ? cellWidth
+                        : '100%',
+                  }}
+                >
+                  <LeadingSlideCardView
+                    card={leadingCard}
+                    mode={view.mode}
+                    style={{position: 'relative'}}
+                  />
+                </MeasuredRow>
+              );
+            }
+            const index = position - leadingOffset;
+            const slide = rows[index];
+            if (slide === undefined) return null;
+            return (
+              <MeasuredRow
+                key={slide.id}
+                id={slide.id}
+                onHeight={saveHeight}
+                style={{
+                  top: offsets[Math.floor(position / columns)] ?? 0,
+                  left:
+                    view.mode === 'grid' && cellWidth > 0
+                      ? `${(position % columns) * (cellWidth + columnGap)}px`
+                      : `${((position % columns) * 100) / columns}%`,
+                  width:
+                    view.mode === 'grid' && cellWidth > 0
+                      ? `${cellWidth}px`
+                      : `${100 / columns}%`,
+                }}
+              >
+                {gap(index)}
+                <div
+                  className={`${styles.row} ${plate.row} ${view.mode === 'grid' ? plate.grid : ''}`}
+                  data-active={selection.ids.has(slide.id)}
+                  data-selected={selection.ids.has(slide.id) || undefined}
+                  data-focused={selected === index}
+                  tabIndex={-1}
+                  data-slide-id={slide.id}
+                  data-song-slide={slide.id}
+                  data-slide-index={index}
+                  data-editor-block={index}
+                  draggable={!blocked}
+                  onClick={event => {
+                    if (
+                      isInTextEntry(event.target) ||
+                      (event.target instanceof Element &&
+                        event.target.closest('button') !== null)
+                    ) {
+                      return;
+                    }
+                    commands.selectSlides({
+                      type: 'click',
+                      id: slide.id,
+                      shift: event.shiftKey,
+                      ctrl: event.ctrlKey || event.metaKey,
+                    });
+                  }}
+                  onFocusCapture={event => {
+                    if (isInTextEntry(event.target)) {
+                      commands.selectSlides({type: 'click', id: slide.id});
+                    }
+                  }}
+                >
+                  {view.mode === 'grid' ? null : (
+                    <EditorSlideNumber
+                      number={index + 1 + leadingOffset}
+                      selected={selection.ids.has(slide.id)}
+                      onToggle={() =>
+                        commands.selectSlides({
+                          type: 'click',
+                          id: slide.id,
+                          ctrl: true,
+                        })
+                      }
+                    />
+                  )}
+                  {renderCard?.(slide, index, view.mode) ??
+                    renderRow(slide, index)}
+                </div>
+              </MeasuredRow>
+            );
+          })}
+        </div>
         {gap(rows.length)}
         {children}
       </div>

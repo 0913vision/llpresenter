@@ -7,3 +7,8 @@ export {
   type SongPicture,
 } from './SongPreview';
 export {SongSlidePanel} from './SongSlidePanel';
+export type {
+  LeadingSlideCard,
+  SlideCardRenderer,
+  SlideSurfaceMode,
+} from './SlideCardRenderer';

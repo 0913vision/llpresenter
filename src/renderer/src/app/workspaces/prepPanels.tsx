@@ -119,6 +119,7 @@ function prepPanelParts({
       embedded: (
         <SongEditor
           store={prep.editor}
+          ui={prep.api.ui}
           renderDesign={songItemDesign(prep.api, prep.items)}
           onImportedSave={prep.onImportedSave}
           onBack={back}

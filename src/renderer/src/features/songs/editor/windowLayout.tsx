@@ -1,4 +1,5 @@
 import type {JSX} from 'react';
+import type {UiApi} from '@contracts/ipc/ui';
 import {Button} from '@renderer/ui/Button';
 import {SongEditor} from './SongEditor';
 import {SongPreviewPanel} from './SongPreview';
@@ -15,8 +16,10 @@ export function SongWindowLayout({
   store,
   model,
   renderDesign,
+  ui,
 }: {
   readonly store: SongEditorStore;
+  readonly ui?: Pick<UiApi, 'setLayout'> | undefined;
   readonly model: SongEditorWindowModel;
   readonly renderDesign?: SongDesignRenderer | undefined;
 }): JSX.Element {
@@ -27,6 +30,7 @@ export function SongWindowLayout({
       <div className={styles.lyrics}>
         <SongEditor
           store={store}
+          ui={ui}
           unsaved={unsaved}
           renderDesign={renderDesign}
         />

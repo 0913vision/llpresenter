@@ -1044,21 +1044,11 @@ and
 Song and shared item editors preserve each slide's optional transition during
 ordinary text, label, order, save, and clipboard edits (02).
 
-- Above the slide list, the 효과 gallery offers 기본값, 없음, 디졸브, 밀어내기,
-  and 닦아내기. 방향 is enabled only for the two directional effects. 시간 is
-  always visible, from 0.1 to 10 seconds in 0.1-second steps, and disabled for
-  기본값 and 없음.
-- Changes affect the Shift/Ctrl selection in one undo step. 이 곡 전체에 적용
-  copies the selected effect to every song slide in one step; shared slide items
-  use 전체 슬라이드에 적용. Selection and unrelated slide fields stay intact.
-  The apply button occupies its own row below 시간, aligned to that group's left
-  edge, with the standard 30px control height. No preview instruction sentence
-  appears below the effects; mixed-selection and multiple-selection status
-  remain.
-- 기본값 removes the override. Explicit effects, including 없음, show a small
-  blue triangle at the thumbnail's bottom-right corner. Mixed selections have no
-  pressed effect tile; direction, time and apply-all are disabled until a common
-  effect is chosen. Read-only or blocked sessions cannot edit effects.
+- The selected slides' transition settings are in the right inspector. Effect,
+  direction and duration change the selected slides together; applying to all
+  slides is a single undo step. The default removes the override, and thumbnails
+  mark explicit effects. Mixed selections show their differing values, and
+  read-only or blocked sessions cannot edit them.
 - The local preview redraws immediately without animation when typing, selecting
   slides, editing a theme or changing effects. Effect settings remain editable
   metadata; they play only on output and its live preview in 진행 (03).
@@ -1114,3 +1104,13 @@ For a mixed transition selection, changing the duration updates each explicit
 transition without replacing its effect or direction; slides using the inherited
 default keep that default. The 슬라이드 속성 panel supports undo and redo for
 its edits.
+
+### Slide surface views
+
+The song and slides editors offer 목록 and 격자 views of the same slide order.
+Each text slide has an editable field and an immediately updated picture in both
+views. The view and grid size belong to the window. Grid size can be adjusted
+with the slide size control. Selection stays local to the editor; click selects
+a slide, Ctrl-click toggles it, and Shift-click extends a range. Drag or
+Alt+Up/Down reorders slides. Existing insertion, deletion, clipboard, and text
+editing commands apply in both views.

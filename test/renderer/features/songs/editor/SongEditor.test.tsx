@@ -1,7 +1,8 @@
-import {act, fireEvent, screen, waitFor} from '@testing-library/react';
+import {act, fireEvent, screen, waitFor, within} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 import {editorSong} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {SongEditor} from '@renderer/features/songs/editor/SongEditor';
+import {seedSlideSurfaceView} from '@renderer/features/songs/editor/SlideSurfaceView';
 import {
   editorSetup,
   lyrics,
@@ -16,6 +17,94 @@ function cursor(input: HTMLTextAreaElement, start: number, end = start): void {
 }
 
 describe('song editor view', () => {
+  it.each(['list', 'grid'] as const)(
+    'shows an independent leading card before song slides in %s',
+    async mode => {
+      seedSlideSurfaceView({layout: {normal: {editorSlideView: mode}}});
+      const {store, session, user, view} = await editorSetup();
+      const onDelete = vi.fn();
+      const onSelectChange = vi.fn();
+      const count = session.history.snapshot.song.slides.length;
+      view.rerender(
+        <SongEditor
+          store={store}
+          leadingCard={{
+            render: current => <span>{`Card ${current}`}</span>,
+            onDelete,
+            onSelectChange,
+          }}
+        />,
+      );
+      const card = screen.getByLabelText('\uAD6C\uC5ED \uC774\uB984');
+      expect(card.textContent).toContain(`Card ${mode}`);
+      expect(
+        screen.getByRole('textbox', {
+          name: '\uC2AC\uB77C\uC774\uB4DC 2 \uAC00\uC0AC',
+        }),
+      ).toBeDefined();
+      await user.click(card);
+      await user.keyboard('{Delete}');
+      expect(onDelete).toHaveBeenCalledOnce();
+      expect(session.history.snapshot.song.slides).toHaveLength(count);
+      expect(onSelectChange).toHaveBeenCalledWith(true);
+      seedSlideSurfaceView({});
+    },
+  );
+
+  it('renders a custom card with editable fields in both views', async () => {
+    const {store, session, user, view} = await editorSetup();
+    const renderCard = (_slide: unknown, index: number, mode: string) =>
+      index === 0 ? (
+        <input aria-label="Section card" data-mode={mode} defaultValue={mode} />
+      ) : undefined;
+    view.rerender(<SongEditor store={store} renderCard={renderCard} />);
+    expect(screen.getByRole('textbox', {name: 'Section card'})).toHaveProperty(
+      'value',
+      'list',
+    );
+    const first = view.container.querySelector<HTMLElement>(
+      '[data-editor-block="0"]',
+    );
+    if (first === null) throw new Error('Missing card row');
+    fireEvent.click(first);
+    const firstSlide = session.history.snapshot.song.slides[0];
+    if (firstSlide === undefined) throw new Error('Missing slide');
+    expect(
+      session.slideModel.getSnapshot().selection.ids.has(firstSlide.id),
+    ).toBe(true);
+    await user.click(screen.getByRole('button', {name: '\uACA9\uC790'}));
+    const card = screen.getByRole('textbox', {name: 'Section card'});
+    expect(card.getAttribute('data-mode')).toBe('grid');
+    fireEvent.change(card, {target: {value: 'Edited card'}});
+    expect(card).toHaveProperty('value', 'Edited card');
+    expect(
+      view.container
+        .querySelector('[data-editor-block="0"]')
+        ?.getAttribute('data-grid'),
+    ).toBe('true');
+    await user.click(screen.getByRole('button', {name: '\uBAA9\uB85D'}));
+  });
+
+  it('edits slide text in both surface views', async () => {
+    const {session, user} = await editorSetup();
+    const toolbar = screen.getByRole('toolbar', {
+      name: '\uC2AC\uB77C\uC774\uB4DC \uBCF4\uAE30',
+    });
+    fireEvent.change(lyrics(), {target: {value: 'List edit'}});
+    await user.click(
+      within(toolbar).getByRole('button', {name: '\uACA9\uC790'}),
+    );
+    expect(lyrics().value).toBe('List edit');
+    fireEvent.change(lyrics(), {target: {value: 'Grid edit'}});
+    await user.click(
+      within(toolbar).getByRole('button', {name: '\uBAA9\uB85D'}),
+    );
+    expect(lyrics().value).toBe('Grid edit');
+    expect(session.history.snapshot.song.slides[0]?.lines).toEqual([
+      'Grid edit',
+    ]);
+  });
+
   it('reports a stale group deletion through the editor notice channel', async () => {
     const {session, onProblem, user} = await editorSetup();
     const surface = screen.getByRole('group', {name: '슬라이드 편집 명령'});

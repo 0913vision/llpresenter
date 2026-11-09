@@ -23,6 +23,7 @@ import {SlideTransitionMark} from '@renderer/ui/SlideTransitionMark';
 import {EditorSlideNumber} from './EditorSlideNumber';
 import plate from './EditorSlidePlate.module.css';
 import {SONG_LIMITS} from '@core/schema/song';
+import type {SlideCardRenderer} from './SlideCardRenderer';
 
 export interface EditorFocus {
   inputs: Array<HTMLTextAreaElement | null>;
@@ -45,8 +46,15 @@ interface BlockProps {
   readonly expanded: boolean;
   readonly onOpen: (anchor: HTMLElement, block: number) => void;
   readonly top: number;
+  readonly column?: number;
+  readonly columns?: number;
+  readonly cellWidth?: number;
+  readonly columnGap?: number;
+  readonly grid?: boolean;
+  readonly numberOffset?: number;
   readonly caret?: boolean;
   readonly canvas?: ReactNode;
+  readonly renderCard?: SlideCardRenderer<EditorSlideItem> | undefined;
 }
 
 /** Keeps untouched blocks out of the typing render path. */
@@ -64,8 +72,15 @@ export const SongBlock = memo(
     expanded,
     onOpen,
     top,
+    column = 0,
+    columns = 1,
+    cellWidth = 0,
+    columnGap = 0,
+    grid = false,
+    numberOffset = 0,
     caret,
     canvas,
+    renderCard,
   }: BlockProps): JSX.Element => {
     const labelButtonRef = useRef<HTMLButtonElement | null>(null);
 
@@ -151,14 +166,28 @@ export const SongBlock = memo(
 
     return (
       <div
-        className={`${styles.block} ${plate.row}`}
+        className={`${styles.block} ${plate.row} ${grid ? plate.grid : ''}`}
         data-active={active}
         data-focused={focused}
         data-editor-block={block}
         data-song-slide={slide.id}
         data-slide-index={block}
         draggable={!locked}
-        style={{top}}
+        data-grid={grid || undefined}
+        style={
+          grid
+            ? {
+                top,
+                left:
+                  cellWidth > 0
+                    ? `${column * (cellWidth + columnGap)}px`
+                    : `${(column * 100) / columns}%`,
+                right: 'auto',
+                width: cellWidth > 0 ? `${cellWidth}px` : `${100 / columns}%`,
+                boxSizing: 'border-box',
+              }
+            : {top}
+        }
         onClick={event => {
           if (
             event.target instanceof Element &&
@@ -180,7 +209,7 @@ export const SongBlock = memo(
           data-caret={caret}
           data-slide-gap={block}
           tabIndex={-1}
-          aria-label={`슬라이드 ${block + 1} 앞에 삽입`}
+          aria-label={`슬라이드 ${block + 1 + numberOffset} 앞에 삽입`}
           onClick={event => {
             event.stopPropagation();
             session.selectSlides({type: 'gap', index: block});
@@ -189,106 +218,133 @@ export const SongBlock = memo(
               ?.focus();
           }}
         />
-        <EditorSlideNumber
-          number={block + 1}
-          selected={active}
-          onToggle={() =>
-            session.selectSlides({type: 'click', id: slide.id, ctrl: true})
-          }
-        />
-        <div className={styles.thumbnail} data-editor-thumbnail>
-          <div className={styles.thumbnailCanvas}>
-            {canvas}
-            <SlideTransitionMark transition={slide.transition} />
-          </div>
-          <SlideThumbnailBand
-            number={block + 1}
-            label={slide.label}
-            labelColor={color}
+        {grid ? null : (
+          <EditorSlideNumber
+            number={block + 1 + numberOffset}
+            selected={active}
+            onToggle={() =>
+              session.selectSlides({type: 'click', id: slide.id, ctrl: true})
+            }
           />
-        </div>
-        <div className={styles.text}>
-          <div className={styles.label}>
-            {
-              <LabelTag
-                buttonRef={labelButtonRef}
-                name={slide.label === '' ? undefined : slide.label}
-                color={color}
-                picker={
-                  !editable
-                    ? undefined
-                    : {
-                        expanded,
-                        onOpen: anchor => {
-                          if (!locked) onOpen(anchor, block);
-                        },
+        )}
+        {renderCard?.(slide, block, grid ? 'grid' : 'list') ?? (
+          <>
+            <div className={styles.thumbnail} data-editor-thumbnail>
+              <div className={styles.thumbnailCanvas}>
+                {canvas}
+                <SlideTransitionMark transition={slide.transition} />
+              </div>
+              {grid && editable ? (
+                <button
+                  ref={labelButtonRef}
+                  type="button"
+                  className={styles.bandButton}
+                  aria-label={`\uC774\uB984\uD45C ${block + 1 + numberOffset}`}
+                  aria-expanded={expanded}
+                  onClick={event => {
+                    if (!locked) onOpen(event.currentTarget, block);
+                  }}
+                >
+                  <SlideThumbnailBand
+                    number={block + 1 + numberOffset}
+                    label={slide.label}
+                    labelColor={color}
+                  />
+                </button>
+              ) : (
+                <SlideThumbnailBand
+                  number={block + 1 + numberOffset}
+                  label={slide.label}
+                  labelColor={color}
+                />
+              )}
+            </div>
+            <div className={styles.text}>
+              {grid ? null : (
+                <div className={styles.label}>
+                  {
+                    <LabelTag
+                      buttonRef={labelButtonRef}
+                      name={slide.label === '' ? undefined : slide.label}
+                      color={color}
+                      picker={
+                        !editable
+                          ? undefined
+                          : {
+                              expanded,
+                              onOpen: anchor => {
+                                if (!locked) onOpen(anchor, block);
+                              },
+                            }
                       }
+                    />
+                  }
+                </div>
+              )}
+              <textarea
+                ref={input => {
+                  focus.current.inputs[block] = input;
+                }}
+                aria-label={`슬라이드 ${block + 1 + numberOffset} ${slide.titleSlide ? '제목 및 부제' : '가사'}`}
+                title={
+                  slide.titleSlide
+                    ? `제목 및 부제: 두 줄, 각 ${SONG_LIMITS.titleLine}자`
+                    : undefined
                 }
+                className={styles.lyrics}
+                value={slide.lines.join('\n')}
+                data-empty={slide.lines.join('\n') === '' || undefined}
+                rows={Math.max(1, slide.lines.length)}
+                readOnly={locked}
+                wrap="off"
+                spellCheck={false}
+                onFocus={event => {
+                  select(event.currentTarget);
+                }}
+                onBlur={() => {
+                  focus.current.composing = false;
+                  session.endTyping();
+                }}
+                onSelect={event => {
+                  if (event.currentTarget === document.activeElement) {
+                    select(event.currentTarget);
+                  }
+                }}
+                onCompositionStart={() => {
+                  focus.current.composing = true;
+                }}
+                onCompositionEnd={() => {
+                  focus.current.composing = false;
+                }}
+                onKeyDown={keyDown}
+                onChange={event => {
+                  if (locked) return;
+                  const input = event.currentTarget;
+                  select(input);
+                  session.edit({
+                    type: 'text',
+                    text: input.value,
+                    start: input.selectionStart,
+                    end: input.selectionEnd,
+                  });
+                }}
+                onPaste={event => {
+                  if (locked || focus.current.composing) return;
+                  const text = event.clipboardData.getData('text/plain');
+                  event.preventDefault();
+                  if (text === '') return;
+                  select(event.currentTarget);
+                  focus.current.requested = true;
+                  focus.current.target = 'lyrics';
+                  session.edit({
+                    type: 'paste',
+                    text,
+                  });
+                }}
               />
-            }
-          </div>
-          <textarea
-            ref={input => {
-              focus.current.inputs[block] = input;
-            }}
-            aria-label={`슬라이드 ${block + 1} ${slide.titleSlide ? '제목 및 부제' : '가사'}`}
-            title={
-              slide.titleSlide
-                ? `제목 및 부제: 두 줄, 각 ${SONG_LIMITS.titleLine}자`
-                : undefined
-            }
-            className={styles.lyrics}
-            value={slide.lines.join('\n')}
-            data-empty={slide.lines.join('\n') === '' || undefined}
-            rows={Math.max(1, slide.lines.length)}
-            readOnly={locked}
-            wrap="off"
-            spellCheck={false}
-            onFocus={event => {
-              select(event.currentTarget);
-            }}
-            onBlur={() => {
-              focus.current.composing = false;
-              session.endTyping();
-            }}
-            onSelect={event => {
-              if (event.currentTarget === document.activeElement) {
-                select(event.currentTarget);
-              }
-            }}
-            onCompositionStart={() => {
-              focus.current.composing = true;
-            }}
-            onCompositionEnd={() => {
-              focus.current.composing = false;
-            }}
-            onKeyDown={keyDown}
-            onChange={event => {
-              if (locked) return;
-              const input = event.currentTarget;
-              select(input);
-              session.edit({
-                type: 'text',
-                text: input.value,
-                start: input.selectionStart,
-                end: input.selectionEnd,
-              });
-            }}
-            onPaste={event => {
-              if (locked || focus.current.composing) return;
-              const text = event.clipboardData.getData('text/plain');
-              event.preventDefault();
-              if (text === '') return;
-              select(event.currentTarget);
-              focus.current.requested = true;
-              focus.current.target = 'lyrics';
-              session.edit({
-                type: 'paste',
-                text,
-              });
-            }}
-          />
-        </div>
+            </div>
+          </>
+        )}
       </div>
     );
   },

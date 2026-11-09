@@ -7,10 +7,13 @@ import {emptyLiveState} from '@core/live/state';
 import {useLive} from '@renderer/session/live';
 import {SlidesDraft, newSlidesItem} from '@core/services/slidesEdits';
 import {SlideRows} from '@renderer/features/service/slides/SlideRows';
+import type {LeadingSlideCard} from '@renderer/features/songs/editor/SlideCardRenderer';
+import {seedSlideSurfaceView} from '@renderer/features/songs/editor/SlideSurfaceView';
 import {SlidesListSession} from '@renderer/features/service/slides/slidesListSession';
 
 afterEach(() => {
   cleanup();
+  seedSlideSurfaceView({});
   useLive.setState({state: null});
 });
 function makeDraft(
@@ -41,11 +44,13 @@ function Harness({
   blocked = false,
   report = vi.fn(),
   session,
+  leadingCard,
 }: {
   draft: SlidesDraft;
   blocked?: boolean;
   report?: (text: string) => void;
   session?: SlidesListSession;
+  leadingCard?: LeadingSlideCard;
 }) {
   const list = useRef<HTMLDivElement>(null);
   const [, refresh] = useState(0);
@@ -53,6 +58,7 @@ function Harness({
   return (
     <SlideRows
       draft={draft}
+      leadingCard={leadingCard}
       blocked={blocked}
       report={report}
       session={session}
@@ -101,6 +107,61 @@ function clipboard() {
 }
 
 describe('slide row editing surface', () => {
+  it.each(['list', 'grid'] as const)(
+    'does not drop content above the leading card in %s',
+    mode => {
+      seedSlideSurfaceView({layout: {normal: {editorSlideView: mode}}});
+      const draft = makeDraft();
+      const ids = draft.snapshot.item.slides.slides.map(slide => slide.id);
+      render(
+        <Harness
+          draft={draft}
+          leadingCard={{render: () => <span>Card</span>, onDelete: vi.fn()}}
+        />,
+      );
+      const card = screen.getByLabelText('\uAD6C\uC5ED \uC774\uB984');
+      const dataTransfer = clipboard();
+      fireEvent.dragStart(row(1), {dataTransfer});
+      fireEvent.drop(card, {dataTransfer});
+      expect(draft.snapshot.item.slides.slides.map(slide => slide.id)).toEqual(
+        ids,
+      );
+    },
+  );
+
+  it.each(['list', 'grid'] as const)(
+    'selects and deletes an item-owned leading card in %s',
+    async mode => {
+      seedSlideSurfaceView({layout: {normal: {editorSlideView: mode}}});
+      const draft = makeDraft();
+      const onDelete = vi.fn();
+      const onSelectChange = vi.fn();
+      const user = userEvent.setup();
+      render(
+        <Harness
+          draft={draft}
+          leadingCard={{
+            render: current => <span>{`Card ${current}`}</span>,
+            onDelete,
+            onSelectChange,
+          }}
+        />,
+      );
+      const card = screen.getByLabelText('\uAD6C\uC5ED \uC774\uB984');
+      expect(card.textContent).toContain(`Card ${mode}`);
+      expect(card.getAttribute('draggable')).not.toBe('true');
+      expect(draft.snapshot.item.slides.slides).toHaveLength(4);
+      await user.click(card);
+      expect(onSelectChange).toHaveBeenCalledWith(true);
+      await user.keyboard('{Delete}');
+      expect(onDelete).toHaveBeenCalledOnce();
+      expect(draft.snapshot.item.slides.slides).toHaveLength(4);
+      await user.click(row(0));
+      await user.keyboard('{ArrowUp}');
+      expect(onSelectChange).toHaveBeenLastCalledWith(true);
+    },
+  );
+
   it('does not mark the live slide in preparation', () => {
     const draft = makeDraft();
     const state = emptyLiveState();
@@ -240,23 +301,27 @@ describe('slide row editing surface', () => {
     },
   );
 
-  it('duplicates and deletes the selection, retains keyboard focus when empty, and undoes/redoes', () => {
-    render(<Harness draft={makeDraft()} />);
-    fireEvent.click(row(1));
-    keys('d', {ctrlKey: true});
-    expect(rows()).toHaveLength(5);
-    keys('z', {ctrlKey: true});
-    expect(rows()).toHaveLength(4);
-    keys('y', {ctrlKey: true});
-    expect(rows()).toHaveLength(5);
-    keys('a', {ctrlKey: true});
-    keys('Delete');
-    fireEvent.click(screen.getByRole('button', {name: '삭제'}));
-    expect(rows()).toHaveLength(0);
-    expect(document.activeElement).toBe(screen.getByRole('group'));
-    keys('z', {ctrlKey: true});
-    expect(rows()).toHaveLength(5);
-  });
+  it.each(['list', 'grid'] as const)(
+    'duplicates and deletes in %s, retaining keyboard focus',
+    mode => {
+      seedSlideSurfaceView({layout: {normal: {editorSlideView: mode}}});
+      render(<Harness draft={makeDraft()} />);
+      fireEvent.click(row(1));
+      keys('d', {ctrlKey: true});
+      expect(rows()).toHaveLength(5);
+      keys('z', {ctrlKey: true});
+      expect(rows()).toHaveLength(4);
+      keys('y', {ctrlKey: true});
+      expect(rows()).toHaveLength(5);
+      keys('a', {ctrlKey: true});
+      keys('Delete');
+      fireEvent.click(screen.getByRole('button', {name: '삭제'}));
+      expect(rows()).toHaveLength(0);
+      expect(document.activeElement).toBe(screen.getByRole('group'));
+      keys('z', {ctrlKey: true});
+      expect(rows()).toHaveLength(5);
+    },
+  );
 
   it('reports a stale group deletion to the slides session notification channel', () => {
     const draft = makeDraft();
@@ -282,30 +347,34 @@ describe('slide row editing surface', () => {
     );
   });
 
-  it('moves the whole disjoint selection to a gap without replacing identities', () => {
-    const draft = makeDraft();
-    render(<Harness draft={draft} />);
-    const ids = draft.snapshot.item.slides.slides.map(slide => slide.id);
-    fireEvent.click(row(1));
-    fireEvent.click(row(3), {ctrlKey: true});
-    expect(fireEvent.mouseDown(row(1), {button: 0})).toBe(true);
-    expect(selected()).toHaveLength(2);
-    const dataTransfer = clipboard();
-    fireEvent.dragStart(row(1), {dataTransfer});
-    fireEvent.drop(screen.getByRole('button', {name: '1번째 위치에 삽입'}), {
-      dataTransfer,
-    });
-    expect(draft.snapshot.item.slides.slides.map(slide => slide.id)).toEqual([
-      ids[1],
-      ids[3],
-      ids[0],
-      ids[2],
-    ]);
-    keys('z', {ctrlKey: true});
-    expect(draft.snapshot.item.slides.slides.map(slide => slide.id)).toEqual(
-      ids,
-    );
-  });
+  it.each(['list', 'grid'] as const)(
+    'moves the disjoint selection in %s without replacing identities',
+    mode => {
+      seedSlideSurfaceView({layout: {normal: {editorSlideView: mode}}});
+      const draft = makeDraft();
+      render(<Harness draft={draft} />);
+      const ids = draft.snapshot.item.slides.slides.map(slide => slide.id);
+      fireEvent.click(row(1));
+      fireEvent.click(row(3), {ctrlKey: true});
+      expect(fireEvent.mouseDown(row(1), {button: 0})).toBe(true);
+      expect(selected()).toHaveLength(2);
+      const dataTransfer = clipboard();
+      fireEvent.dragStart(row(1), {dataTransfer});
+      fireEvent.drop(screen.getByRole('button', {name: '1번째 위치에 삽입'}), {
+        dataTransfer,
+      });
+      expect(draft.snapshot.item.slides.slides.map(slide => slide.id)).toEqual([
+        ids[1],
+        ids[3],
+        ids[0],
+        ids[2],
+      ]);
+      keys('z', {ctrlKey: true});
+      expect(draft.snapshot.item.slides.slides.map(slide => slide.id)).toEqual(
+        ids,
+      );
+    },
+  );
 
   it('preserves multi-selection on right-click and exposes undo, redo and clipboard shortcuts', async () => {
     render(<Harness draft={makeDraft()} />);

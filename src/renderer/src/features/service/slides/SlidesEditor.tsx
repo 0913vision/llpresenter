@@ -39,10 +39,11 @@ import {
   useSlidesAppearance,
 } from './SlidesVisuals';
 import type {SlidesEditorModel} from './useSlidesEditor';
-import {SlideRows} from './SlideRows';
+import {SlideRows, type SlideCardRenderer} from './SlideRows';
+import type {LeadingSlideCard} from '../../songs/editor/SlideCardRenderer';
+import {SlideSurfaceView} from '../../songs/editor/SlideSurfaceView';
 import styles from './SlidesEditor.module.css';
 import headerStyles from '../../songs/editor/SongHeader.module.css';
-import {SlideTransitionRibbon} from '../../songs/editor/SlideTransitionRibbon';
 import {SlideTransitionMark} from '@renderer/ui/SlideTransitionMark';
 
 const ADVANCES = [3, 5, 8, 10, 15, 20, 30];
@@ -252,10 +253,14 @@ export function SlidesEditor({
   api,
   model,
   onBack,
+  renderCard,
+  leadingCard,
 }: {
   readonly api: LlpApi;
   readonly model: SlidesEditorModel;
   readonly onBack?: (() => void) | undefined;
+  readonly renderCard?: SlideCardRenderer | undefined;
+  readonly leadingCard?: LeadingSlideCard | undefined;
 }): JSX.Element | null {
   const {draft} = model;
   if (draft === null) return null;
@@ -266,6 +271,8 @@ export function SlidesEditor({
       model={model}
       draft={draft}
       onBack={onBack}
+      renderCard={renderCard}
+      leadingCard={leadingCard}
     />
   );
 }
@@ -275,11 +282,15 @@ function SlidesEditorBody({
   model,
   onBack,
   draft,
+  renderCard,
+  leadingCard,
 }: {
   readonly api: LlpApi;
   readonly model: SlidesEditorModel;
   readonly onBack?: (() => void) | undefined;
   readonly draft: SlidesDraft;
+  readonly renderCard?: SlideCardRenderer | undefined;
+  readonly leadingCard?: LeadingSlideCard | undefined;
 }): JSX.Element {
   const {item, selected} = draft.snapshot;
   const serviceName = useShow(view => view.serviceName);
@@ -426,12 +437,7 @@ function SlidesEditorBody({
               ?.focus()
           }
         />
-        {model.session === null ? null : (
-          <SlideTransitionRibbon
-            session={model.session}
-            disabled={model.stopped || bibleDialog !== null || picker !== null}
-          />
-        )}
+        <SlideSurfaceView ui={api.ui} />
         <fieldset
           className={styles.editable}
           disabled={model.stopped || model.session?.readOnly === true}
@@ -450,6 +456,8 @@ function SlidesEditorBody({
             list={rowList}
             session={model.session ?? undefined}
             onBack={onBack}
+            leadingCard={leadingCard}
+            renderCard={renderCard}
             renderRow={(slide, index) => (
               <>
                 <div className={styles.thumbnail} data-editor-thumbnail>
@@ -464,7 +472,7 @@ function SlidesEditorBody({
                     <SlideTransitionMark transition={slide.transition} />
                   </div>
                   <SlideThumbnailBand
-                    number={index + 1}
+                    number={index + 1 + (leadingCard === undefined ? 0 : 1)}
                     label={slideBand(slide, media)}
                   />
                 </div>
@@ -486,7 +494,7 @@ function SlidesEditorBody({
                 icon="plus"
                 disabled={rows.length >= SLIDES_LIMIT}
                 onClick={() => {
-                  draft.add(newTextSlide(item.slides.form));
+                  draft.insert([newTextSlide(item.slides.form)]);
                   update();
                 }}
               >
@@ -513,7 +521,9 @@ function SlidesEditorBody({
             </div>
           </SlideRows>
         </fieldset>
-        <PanelFooter count={rows.length} />
+        <PanelFooter
+          count={rows.length + (leadingCard === undefined ? 0 : 1)}
+        />
       </div>
       {onBack !== undefined ? null : (
         <div className={styles.side}>
@@ -554,7 +564,9 @@ function SlidesEditorBody({
           onSelect={id => {
             if (id === undefined) return;
             if (picker.slideId === undefined) {
-              draft.add({id: createSlideId(crypto.randomUUID()), media: id});
+              draft.insert([
+                {id: createSlideId(crypto.randomUUID()), media: id},
+              ]);
             } else {
               const index = rows.findIndex(
                 slide => slide.id === picker.slideId,

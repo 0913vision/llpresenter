@@ -275,3 +275,28 @@ describe('parseUiState', () => {
     }
   });
 });
+
+describe('editor slide view layout', () => {
+  it('accepts a view and bounded scale and rejects invalid values', () => {
+    expect(
+      parseLayoutChange({
+        sizeClass: 'normal',
+        editorSlideView: 'grid',
+        editorSlideScalePercent: 125,
+      }).ok,
+    ).toBe(true);
+    expect(
+      parseLayoutChange({sizeClass: 'normal', editorSlideView: 'tiles'}).ok,
+    ).toBe(false);
+    expect(
+      parseLayoutChange({sizeClass: 'normal', editorSlideScalePercent: 201}).ok,
+    ).toBe(false);
+    expect(
+      parseUiState({
+        layout: {
+          normal: {editorSlideView: 'grid', editorSlideScalePercent: 125},
+        },
+      }).ok,
+    ).toBe(true);
+  });
+});

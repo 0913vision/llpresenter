@@ -3,6 +3,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {useSongEditorWindow} from '@renderer/features/songs/editor/useSongEditorWindow';
 import {songItemDesign} from '@renderer/features/service/items/SongItemDesign';
+import {seedSlideSurfaceView} from '@renderer/features/songs/editor/SlideSurfaceView';
 import {SongWindowLayout} from '@renderer/features/songs/editor/windowLayout';
 import {useShortcutSettings} from '@renderer/platform/useShortcutSettings';
 import {IconButton} from '@renderer/ui';
@@ -24,6 +25,18 @@ function SongEditorWindowBody({
   const notices = useSyncExternalStore(session.subscribe, session.getNotices);
   const model = useSongEditorWindow(editor, api, {report: session.report});
   useShortcutSettings(api);
+  useEffect(() => {
+    let active = true;
+    api.ui
+      .get()
+      .then(state => {
+        if (active) seedSlideSurfaceView(state, 'song');
+      })
+      .catch((error: unknown) => console.error(error));
+    return () => {
+      active = false;
+    };
+  }, [api]);
   useEffect(() => watchInputModality(window), []);
   return (
     <div className={styles.window} data-workspace-layout="song">
@@ -44,6 +57,7 @@ function SongEditorWindowBody({
       </header>
       <SongWindowLayout
         store={editor}
+        ui={api.ui}
         model={model}
         renderDesign={
           session.items === undefined

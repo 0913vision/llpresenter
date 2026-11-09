@@ -3,7 +3,6 @@ import {Panel, PanelHeader, PanelTabs} from '@renderer/ui/Panel';
 import type {SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';
 import {SlideHotKeyControl} from './SlideHotKeyControl';
-import {SlideTransitionRibbon} from './SlideTransitionRibbon';
 import {SongTitleLayoutControl} from './SongTitleLayoutControl';
 
 export type SongDesignRenderer = (
@@ -47,10 +46,7 @@ export function SongEditorRibbon({
       {selected === 'design' && design ? (
         renderDesign(session, busy)
       ) : (
-        <>
-          <SlideTransitionRibbon session={session} disabled={busy} song />
-          <SongTitleLayoutControl session={session} disabled={busy} />
-        </>
+        <SongTitleLayoutControl session={session} disabled={busy} />
       )}
     </>
   );

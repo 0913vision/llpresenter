@@ -237,3 +237,18 @@
   flex: 1;
   border: 0;
 }
+
+.rowWindow {
+  position: relative;
+}
+.rowPosition {
+  position: absolute;
+  box-sizing: border-box;
+}
+.rows[data-view='grid'] .thumbnail,
+.rows[data-view='grid'] .fields {
+  position: relative;
+}
+.rows[data-view='grid'] .fields textarea {
+  min-height: calc(var(--size-control-md) * 2);
+}

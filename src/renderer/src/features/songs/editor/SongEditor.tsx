@@ -17,8 +17,13 @@ import type {SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';
 import styles from './SongEditor.module.css';
 import type {SongId} from '@core/schema/ids';
+import type {UiApi} from '@contracts/ipc/ui';
 import {isComposing} from '@renderer/ui/ime';
-import {linearSlidesOf, slideCountOf} from '@core/songs/blockEdits';
+import {
+  linearSlidesOf,
+  slideCountOf,
+  type EditorSlideItem,
+} from '@core/songs/blockEdits';
 import {PanelFooter} from '@renderer/ui/Panel';
 import {Button} from '@renderer/ui/Button';
 import {useSongBlockWindow} from './useSongBlockWindow';
@@ -28,7 +33,14 @@ import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {useShow} from '@renderer/session/show';
 import {useEditorFocus} from './useEditorFocus';
 import {SONG_LIMITS} from '@core/schema/song';
+import {SlideSurfaceView, useSlideSurfaceView} from './SlideSurfaceView';
 import {menuAvailability} from '@renderer/ui/menuModel';
+import {
+  LEADING_CARD_WINDOW_ITEM,
+  type LeadingSlideCard,
+  type SlideCardRenderer,
+} from './SlideCardRenderer';
+import {LeadingSlideCardView} from './LeadingSlideCardView';
 
 /** Mount with a window-owned store; unmounting does not discard song history. */
 export function SongEditor({
@@ -38,9 +50,15 @@ export function SongEditor({
   onBack,
   actions,
   renderDesign,
+  renderCard,
+  leadingCard,
+  ui,
 }: {
   readonly store: SongEditorStore;
+  readonly ui?: Pick<UiApi, 'setLayout'> | undefined;
   readonly renderDesign?: SongDesignRenderer | undefined;
+  readonly renderCard?: SlideCardRenderer<EditorSlideItem> | undefined;
+  readonly leadingCard?: LeadingSlideCard | undefined;
   readonly onImportedSave?: ((id: SongId) => void) | undefined;
   /** Shows the dot before the title while edits wait for 저장. */
   readonly unsaved?: boolean;
@@ -78,8 +96,10 @@ export function SongEditor({
             busy={state.busy}
             renderDesign={renderDesign}
           />
+          <SlideSurfaceView ui={ui} />
           <SongSlideSurface
             session={state.session}
+            leadingCard={leadingCard}
             store={store}
             className={styles.surface}
             onBack={onBack}
@@ -111,10 +131,18 @@ export function SongEditor({
               },
             ]}
           >
-            <SongBlocks store={store} session={state.session} />
+            <SongBlocks
+              store={store}
+              session={state.session}
+              renderCard={renderCard}
+              leadingCard={leadingCard}
+            />
           </SongSlideSurface>
           <PanelFooter
-            count={slideCountOf(state.session.history.snapshot.song)}
+            count={
+              slideCountOf(state.session.history.snapshot.song) +
+              (leadingCard === undefined ? 0 : 1)
+            }
           />
         </div>
       )}
@@ -125,9 +153,13 @@ export function SongEditor({
 function SongBlocks({
   store,
   session,
+  renderCard,
+  leadingCard,
 }: {
   readonly store: SongEditorStore;
   readonly session: SongSession;
+  readonly renderCard?: SlideCardRenderer<EditorSlideItem> | undefined;
+  readonly leadingCard?: LeadingSlideCard | undefined;
 }): JSX.Element {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const {song, selection} = session.history.snapshot;
@@ -156,11 +188,37 @@ function SongBlocks({
     null,
   );
   const slides = useMemo(() => linearSlidesOf(song), [song]);
-  const {viewport, total, offsets, indices, setScrollTop} = useSongBlockWindow(
-    slides,
-    selection.block,
-    menu?.block,
+  const view = useSlideSurfaceView();
+  const leadingOffset = leadingCard === undefined ? 0 : 1;
+  const [leadingHeight, setLeadingHeight] = useState<number | undefined>(
+    undefined,
   );
+  const leadingHeights = useMemo(
+    () => (leadingCard === undefined ? undefined : [leadingHeight]),
+    [leadingCard, leadingHeight],
+  );
+  const windowSlides = useMemo(
+    () =>
+      leadingCard === undefined
+        ? slides
+        : [LEADING_CARD_WINDOW_ITEM, ...slides],
+    [slides, leadingCard],
+  );
+  const {
+    viewport,
+    total,
+    offsets,
+    columns,
+    cellWidth,
+    columnGap,
+    indices,
+    setScrollTop,
+  } = useSongBlockWindow(windowSlides, selection.block + leadingOffset, {
+    menu: menu?.block === undefined ? undefined : menu.block + leadingOffset,
+    mode: view.mode,
+    scale: view.scale,
+    ...(leadingHeights === undefined ? {} : {heights: leadingHeights}),
+  });
   const tab = (event: KeyboardEvent<HTMLDivElement>): void => {
     if (
       event.code !== 'Tab' ||
@@ -250,6 +308,8 @@ function SongBlocks({
       role="group"
       aria-label="가사"
       className={styles.blocks}
+      data-view={view.mode}
+      data-slide-columns={columns}
       onScroll={event => setScrollTop(event.currentTarget.scrollTop)}
       onKeyDown={tab}
     >
@@ -262,7 +322,24 @@ function SongBlocks({
         </Button>
       ) : null}
       <div className={styles.blockWindow} style={{height: total}}>
-        {indices.map(block => {
+        {indices.map(position => {
+          if (leadingCard !== undefined && position === 0) {
+            return (
+              <LeadingSlideCardView
+                key="leading-card"
+                card={leadingCard}
+                mode={view.mode}
+                onHeight={setLeadingHeight}
+                style={{
+                  top: offsets[0] ?? 0,
+                  left: 0,
+                  width:
+                    view.mode === 'grid' && cellWidth > 0 ? cellWidth : '100%',
+                }}
+              />
+            );
+          }
+          const block = position - leadingOffset;
           const slide = slides[block];
           return slide === undefined ? null : (
             <SongBlock
@@ -270,6 +347,7 @@ function SongBlocks({
               slide={slide}
               block={block}
               session={session}
+              renderCard={renderCard}
               focus={focus}
               active={list.selection.ids.has(slide.id)}
               focused={selection.block === block}
@@ -303,7 +381,13 @@ function SongBlocks({
               }
               expanded={menu?.block === block}
               onOpen={openMenu}
-              top={offsets[block] ?? 0}
+              top={offsets[Math.floor(position / columns)] ?? 0}
+              column={position % columns}
+              columns={columns}
+              cellWidth={cellWidth}
+              columnGap={columnGap}
+              grid={view.mode === 'grid'}
+              numberOffset={leadingOffset}
             />
           );
         })}
