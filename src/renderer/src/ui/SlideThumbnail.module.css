@@ -43,20 +43,6 @@
   outline-offset: var(--space-focus-outside-live-ring);
 }
 
-.grid[data-workspace='show'] .thumb:focus-visible {
-  outline: none;
-}
-
-.grid[data-workspace='show']
-  .thumb[aria-selected='true']:not([data-state~='live']) {
-  box-shadow: none;
-}
-
-.grid[data-workspace='show']
-  .thumb[aria-selected='true']:not([data-state~='live']):hover {
-  box-shadow: var(--ring-hover);
-}
-
 .canvas {
   position: relative;
   display: block;

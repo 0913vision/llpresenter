@@ -258,6 +258,7 @@ export const ListRow = memo((props: ListRowProps): JSX.Element => {
 });
 
 export interface ListActionRowProps {
+  readonly tabIndex?: number | undefined;
   readonly title: string;
   readonly icon?: string | undefined;
   readonly meta?: ReactNode;
@@ -274,6 +275,7 @@ export interface ListActionRowProps {
  * and off reports it with `aria-pressed` and a `live` bar on the left.
  */
 export function ListActionRow({
+  tabIndex,
   title,
   icon,
   meta,
@@ -290,6 +292,7 @@ export function ListActionRow({
   return (
     <>
       <button
+        tabIndex={tabIndex}
         {...withTooltipProps({onBlur: pressBlur}, targetProps)}
         type="button"
         aria-pressed={pressed}

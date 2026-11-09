@@ -7,6 +7,7 @@ import {
   type FocusEvent,
 } from 'react';
 import type {QuickItem} from '@core/schema/quick';
+import {isComposing} from '@renderer/ui/ime';
 
 const FALLBACK_ROW = 30;
 const INITIAL_ROWS = 10;
@@ -17,6 +18,9 @@ export function useQuickWindow(items: readonly QuickItem[]) {
   const [view, setView] = useState({top: 0, height: 0, row: FALLBACK_ROW});
   const [pinned, setPinned] = useState<string | null>(null);
   const [focused, setFocused] = useState<string | null>(null);
+  const tabStop = items.some(item => item.id === focused)
+    ? focused
+    : items[0]?.id;
   const pin = useCallback(
     (id: string, active: boolean) =>
       setPinned(old => (active ? id : old === id ? null : old)),
@@ -65,7 +69,7 @@ export function useQuickWindow(items: readonly QuickItem[]) {
   );
   const end = Math.min(items.length, start + visible + OVERSCAN * 2);
   const shown = items.flatMap((item, index) =>
-    (index >= start && index < end) || item.id === pinned || item.id === focused
+    (index >= start && index < end) || item.id === pinned || item.id === tabStop
       ? [{item, index}]
       : [],
   );
@@ -87,7 +91,8 @@ export function useQuickWindow(items: readonly QuickItem[]) {
       event.altKey ||
       event.ctrlKey ||
       event.metaKey ||
-      (event.shiftKey && event.key !== 'Tab')
+      event.shiftKey ||
+      isComposing(event)
     ) {
       return;
     }
@@ -111,9 +116,6 @@ export function useQuickWindow(items: readonly QuickItem[]) {
         break;
       case 'ArrowUp':
         next = Math.max(0, index - 1);
-        break;
-      case 'Tab':
-        next = index + (event.shiftKey ? -1 : 1);
         break;
       default:
         return;
@@ -143,6 +145,7 @@ export function useQuickWindow(items: readonly QuickItem[]) {
   };
   return {
     shown,
+    tabStop,
     rowHeight: view.row,
     onKeyDown,
     pin,
@@ -159,14 +162,6 @@ export function useQuickWindow(items: readonly QuickItem[]) {
         target.closest<HTMLElement>('[data-quick-id]')?.dataset['quickId'] ??
           null,
       );
-    },
-    onBlurCapture: (event: FocusEvent<HTMLDivElement>) => {
-      if (
-        !(event.relatedTarget instanceof Node) ||
-        !event.currentTarget.contains(event.relatedTarget)
-      ) {
-        setFocused(null);
-      }
     },
   };
 }

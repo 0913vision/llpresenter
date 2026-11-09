@@ -101,7 +101,7 @@ it('bounds a long quick list and reaches its last row by keyboard', async () => 
   viewport.scrollTop = 0;
   fireEvent.scroll(viewport);
   for (let index = 2; index <= 12; index++) {
-    fireEvent.keyDown(document.activeElement ?? firstAgain, {key: 'Tab'});
+    fireEvent.keyDown(document.activeElement ?? firstAgain, {key: 'ArrowDown'});
     await waitFor(() =>
       expect(document.activeElement?.textContent).toBe(`Item ${index}`),
     );
@@ -111,6 +111,19 @@ it('bounds a long quick list and reaches its last row by keyboard', async () => 
     expect(document.activeElement?.textContent).toContain('Item 500'),
   );
   expect(within(list).getAllByRole('button').length).toBeLessThanOrEqual(15);
+  const last = document.activeElement;
+  expect(
+    within(list)
+      .getAllByRole('button')
+      .filter(button => button.tabIndex === 0),
+  ).toEqual([last]);
+  expect(fireEvent.keyDown(last ?? firstAgain, {key: 'Tab'})).toBe(true);
+  act(() => screen.getByRole('combobox', {name: '책'}).focus());
+  expect(
+    within(list)
+      .getAllByRole('button')
+      .filter(button => button.tabIndex === 0),
+  ).toEqual([last]);
   expect(fixture.send).not.toHaveBeenCalled();
   unmount();
   expect(disconnect).toHaveBeenCalledTimes(observe.mock.calls.length);

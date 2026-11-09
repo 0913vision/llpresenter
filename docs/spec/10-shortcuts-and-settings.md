@@ -386,10 +386,19 @@ move keyboard focus** to the clicked button or tile (decided). Only text fields,
 the 슬라이드 grid, and the 예배 순서 list take focus on a click. A control gets
 keyboard focus only through Tab, where the operator expects Space to press it.
 Without this rule, an operator who clicks the 찬양 매크로 and then presses Space
-to go to the next 슬라이드 would run the 매크로 again. In 진행, thumbnails never
-draw a keyboard focus border, including after arrows or Tab (M2 check 1 row 3);
-keep their focus and activation behavior. 준비 keeps the blue keyboard focus
-border. Other controls keep their design system focus indicators.
+to go to the next 슬라이드 would run the 매크로 again. In 진행, order rows and
+thumbnails draw an accent `:focus-visible` outline after keyboard entry or
+navigation. Thumbnail selection uses the shared plate; live output keeps its red
+picture ring. Pointer focus alone does not draw a keyboard outline. Other
+controls keep their design system focus indicators.
+
+Tab leaves the toolbar in its existing order, then visits 1 예배 순서, 2
+슬라이드, 3 퀵 실행, 4 미리보기, 5 지우기, 6 진행 도구, 7 미디어. Shift Tab
+reverses it. Lists and grids take one stop each. The order row goes straight to
+the selected slide (the live slide if the open item is live), then the size
+slider and % field, then other slide controls. Narrow layouts keep this order
+for available controls. See 04 for panel entry and collapsed panels. This adds
+no default key.
 
 Rules this precedence replaces or narrows:
 
@@ -550,6 +559,23 @@ the ProPresenter key (S1 unless noted), the basis and reason, where it works,
 and the version. "진행" in the "Works in" column means only in the 진행
 workspace. "All" means every workspace of the main window, within the rules of
 "Where shortcuts work".
+
+#### 패널 이동 (panel focus)
+
+These commands have no default keys. Each is listed in 환경설정 > 단축키 and
+accepts an operator assignment. They focus the same current/selected control as
+panel entry through Tab (04), without output. This is the user's panel-order
+decision; no equivalent generic ProPresenter panel command is claimed.
+
+| Command     | ID              | Default | Works in |
+| ----------- | --------------- | ------- | -------- |
+| 예배 순서로 | `panel.order`   | None    | 진행     |
+| 슬라이드로  | `panel.slides`  | None    | 진행     |
+| 퀵 실행으로 | `panel.quick`   | None    | 진행     |
+| 미리보기로  | `panel.preview` | None    | 진행     |
+| 지우기로    | `panel.clear`   | None    | 진행     |
+| 진행 도구로 | `panel.tools`   | None    | 진행     |
+| 미디어로    | `panel.media`   | None    | 진행     |
 
 #### 슬라이드 (slide navigation)
 

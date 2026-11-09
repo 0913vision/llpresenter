@@ -68,6 +68,7 @@ export function Panel({
   if (parts.embedded) {
     return (
       <div
+        data-panel={title}
         data-resize-panel={rowId ?? ''}
         className={sizedClass(styles.embedded, parts.size)}
       >
@@ -77,13 +78,19 @@ export function Panel({
   }
   if (parts.bare) {
     return (
-      <div data-resize-panel="" data-resize-fixed className={styles.bare}>
+      <div
+        data-panel={title}
+        data-resize-panel=""
+        data-resize-fixed
+        className={styles.bare}
+      >
         {parts.bare}
       </div>
     );
   }
   return (
     <section
+      data-panel={title}
       data-resize-panel={rowId ?? ''}
       className={sizedClass(styles.panel, parts.size)}
       aria-label={title}

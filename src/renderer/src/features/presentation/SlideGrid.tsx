@@ -1,4 +1,13 @@
-import {useCallback, useEffect, useRef, useState, type JSX} from 'react';
+import {
+  useCallback,
+  useContext,
+  useEffect,
+  useEffectEvent,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type JSX,
+} from 'react';
 import {outputTile, selectTile, useShow} from '@renderer/session/show';
 import {shownTiles, useLiveTileIndex} from '@renderer/session/showLibrary';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
@@ -14,6 +23,7 @@ import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {useBibleTileProjection} from '../bible/useBibleProjections';
 import styles from './SlideGrid.module.css';
 import {useSlideWindow} from './useSlideWindow';
+import {ShowSlideEntry} from './showPanelNavigation';
 
 const GRID_SELECTOR = '[role="listbox"]';
 
@@ -79,6 +89,38 @@ export function SlideGrid({
     itemId: openItemId,
     onSelect: selectTile,
   });
+  const entryRef = useContext(ShowSlideEntry);
+  const pendingEntry = useRef<number | null>(null);
+  const [entryVersion, requestEntry] = useState(0);
+  const enter = useEffectEvent(() => {
+    if (!tiles?.length) return;
+    const index =
+      liveIndex !== null && liveIndex >= 0 && liveIndex < tiles.length
+        ? liveIndex
+        : Math.max(0, Math.min(selectedTile, tiles.length - 1));
+    pendingEntry.current = index;
+    window.reveal(index);
+    selectTile(index);
+    requestEntry(value => value + 1);
+  });
+  useEffect(() => {
+    if (!entryRef) return;
+    entryRef.current = enter;
+    return () => {
+      entryRef.current = null;
+    };
+  }, [entryRef]);
+  useLayoutEffect(() => {
+    const index = pendingEntry.current;
+    if (index === null) return;
+    const tile = keeperRef.current?.querySelector<HTMLElement>(
+      `[aria-posinset="${index + 1}"]`,
+    );
+    if (tile) {
+      pendingEntry.current = null;
+      tile.focus({preventScroll: true});
+    }
+  }, [entryVersion, window.start, window.end]);
 
   useEffect(() => {
     if (!isInside()) return;
@@ -141,6 +183,7 @@ export function SlideGrid({
             return (
               <SlideThumbnail
                 key={index}
+                selectionStyle="plate"
                 number={index + 1}
                 canvas={
                   appearance !== undefined && slide !== null ? (

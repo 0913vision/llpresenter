@@ -188,11 +188,10 @@ service needs no confirmation), product log version 63.
   in the sequence (from 1) and the 이름표 name, painted in the 이름표 color.
   Without an 이름표, the band shows only the number.
 - Clicking a tile outputs that 슬라이드 at once (see 03). The live tile has a
-  red ring: only that tile, not other tiles of the same 슬라이드. In 진행, don't
-  draw a keyboard focus border around thumbnails, including after arrow
-  navigation. Keep keyboard focus and activation behavior. In 준비, keep the
-  blue keyboard focus border so selection can move before an edit (decided, M2
-  check 1 row 3).
+  red ring around its picture: only that tile, not other tiles of the same
+  슬라이드. Selection uses the shared plate around the picture and number band.
+  Keyboard focus draws an accent outline outside the plate, independently of
+  selection and live output. Pointer focus alone does not draw it.
 - The footer has a continuous size slider and a synchronized % field (M2 check 1
   row 9). The proposed range is 50% to 200%, step 1 percentage point for typing
   and keyboard adjustment, default 100%. Pointer dragging changes the size
@@ -200,6 +199,27 @@ service needs no confirmation), product log version 63.
   3, regular 4, or wide 6 columns; thumbnails retain their scaled width when the
   number of columns changes. Save the percentage per size class, not a column
   count. 10 defines the mapping, storage, and reasons.
+
+### Panel keyboard order
+
+After the toolbar (workspace tabs, 검색, 테마, 청중, 방송, 무대), Tab visits: 1
+예배 순서, 2 슬라이드, 3 퀵 실행, 4 미리보기, 5 지우기, 6 진행 도구, 7 미디어.
+Shift Tab reverses the same sequence. Narrow layouts skip only controls that are
+absent or hidden; collapsed panels retain their expand button. Each list or grid
+is one Tab stop, with arrows moving inside it.
+
+The 예배 순서 header controls precede its selected row. Tab from that row enters
+the selected slide of the open item, or its live slide when that item is live.
+Shift Tab from the grid returns to the same order row. The grid's size slider
+and percentage follow immediately, then its other controls (including Bible
+display controls), before 퀵 실행. These moves only change focus and selection,
+never output. The order row also draws its usual inset accent focus outline.
+
+The seven panel destinations are separately assignable in 환경설정 > 단축키,
+with no default keys (10). They enter the current row of the order, slide grid,
+quick list, or media grid, and otherwise the first available control. Menus,
+dialogs, IME, and field validation keep their own keyboard behavior.
+
 - Other item kinds:
   - Bible passage: the Bible 슬라이드 (see "Bible passages").
   - Media: one media tile. Clicking it outputs that media to the media layer.

@@ -69,7 +69,7 @@ export function useSlideWindow(
       setMeasure({
         height: viewport.clientHeight,
         inset: px('padding-top'),
-        band: px('--size-thumb-band'),
+        band: px('--size-control-xs') + px('--space-6'),
         rowGap: px('row-gap'),
       });
       scroll();
@@ -143,6 +143,11 @@ export function useSlideWindow(
     onSelect(next);
   };
   return {
+    reveal: (index: number): void => {
+      const viewport = keeper.current?.parentElement;
+      reveal(viewport, index, {tracks, stride, ...measure});
+      if (viewport) setScrollTop(viewport.scrollTop);
+    },
     start,
     end,
     offset: first * stride,

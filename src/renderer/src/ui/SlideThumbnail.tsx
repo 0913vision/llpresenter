@@ -72,8 +72,8 @@ interface GridStyle extends CSSProperties {
  * The 슬라이드 grid (`ll-thumb-grid`): a listbox of `SlideThumbnail` items that Tab
  * enters once. The arrow keys move the selection; a click or Enter outputs a
  * 슬라이드 in 진행 and selects it in 준비. While focus is in the grid, it follows the
- * selection, also when 다음 슬라이드 moves it. 진행 keeps keyboard focus without
- * drawing its focus outline; 준비 draws it.
+ * selection, also when 다음 슬라이드 moves it. Keyboard focus remains visible in
+ * both workspaces, independently of selection and live output.
  */
 export function ThumbnailGrid(props: ThumbnailGridProps): JSX.Element {
   const {workspace, columns, onSelect} = props;

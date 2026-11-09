@@ -24,6 +24,10 @@ import {PanelColumn} from './PanelColumn';
 import {ResizeGap} from '@renderer/ui/ResizeGap';
 import {useRowLayout} from '@renderer/ui/useRowLayout';
 import styles from './Workspace.module.css';
+import {
+  ShowSlideEntry,
+  useShowPanelNavigation,
+} from '@renderer/features/presentation/showPanelNavigation';
 
 const ignoreProblem = (): void => undefined;
 
@@ -87,6 +91,7 @@ export function Workspace({
   readonly themeLeave?: ThemeLeaveGuard | undefined;
 }): JSX.Element {
   const {gridRef, drag} = useColumnLayout(sizeClass, store);
+  const navigation = useShowPanelNavigation(gridRef, id === 'show');
   const toggle = useSidebarToggle(id === 'show' ? sidebar : undefined);
   const show = useShowPanels({
     active: id === 'show',
@@ -133,7 +138,7 @@ export function Workspace({
         <ColumnGap column={column === 1 ? 'left' : 'right'} drag={drag} />
       ) : null}
       {column === 0 && toggle.collapsed ? (
-        <div className={styles.column}>
+        <div className={styles.column} data-panel="예배 순서">
           <CollapsedSidebar
             claimFocus={toggle.claimFocus}
             onPress={button => toggle.toggle(false, button)}
@@ -158,6 +163,7 @@ export function Workspace({
     <main
       ref={gridRef}
       data-workspace-layout={id}
+      onKeyDown={navigation.onKeyDown}
       className={classNames(
         styles.workspace,
         id !== 'screens' && api !== undefined && styles.mediaAvailable,
@@ -198,15 +204,19 @@ export function Workspace({
       ) : null}
     </main>
   );
-  return api === undefined || hasMediaView ? (
-    frame
-  ) : (
-    <MediaViewProvider
-      api={api}
-      active={id !== 'screens'}
-      onProblem={onProblem ?? ignoreProblem}
-    >
-      {frame}
-    </MediaViewProvider>
+  const content =
+    api === undefined || hasMediaView ? (
+      frame
+    ) : (
+      <MediaViewProvider
+        api={api}
+        active={id !== 'screens'}
+        onProblem={onProblem ?? ignoreProblem}
+      >
+        {frame}
+      </MediaViewProvider>
+    );
+  return (
+    <ShowSlideEntry value={navigation.slideEntry}>{content}</ShowSlideEntry>
   );
 }

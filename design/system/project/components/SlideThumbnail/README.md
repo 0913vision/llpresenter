@@ -16,11 +16,11 @@ A thumbnail that shows one 슬라이드 (slide) as a 16:9 output canvas with a 2
 
 ## Anatomy
 
-### Editor selection plate
+### Selection plate
 
-Song and slides item editors use `selectionStyle="plate"` in the shared grid.
-Their list rows use `EditorSlidePlate` and `EditorSlideNumber`. Other callers,
-including 진행, retain the default ring style.
+Song and slides item editors and the 진행 slide grid use `selectionStyle="plate"` in the shared grid.
+Editor list rows use `EditorSlidePlate` and `EditorSlideNumber`. Other callers
+retain the default ring style.
 
 - The plate wraps the picture and number band with 6px (`space-6`) on every side.
   The picture radius is 3px (`radius-sm`); the plate radius is their sum, 9px.
@@ -57,6 +57,8 @@ including 진행, retain the default ring style.
 | Measured Bible part | width × 9/16 + 24 | theme size and text box scaled from 1920 × 1080, fixed measured rows | 진행 Bible tiles, 준비 Bible items, verse thumbnails |
 | Media 슬라이드 | width × 9/16 + 24 | band `band` | A 슬라이드 with an image or video (Sunday announcement) |
 
+These heights describe the default ring style. Plate grids, including 진행,
+use width × 9/16 + 28px (22px number band plus 6px spacing).
 The thumbnail itself has no size variants. Its fixed tile width sets its size; integer column tracks remain available for compatibility callers.
 
 ## States
@@ -68,7 +70,7 @@ The thumbnail itself has no size variants. Its fixed tile width sets its size; i
 | Selected (not live) | Same | Same | `ring-selected` (2px `accent`) |
 | Live | Same | Same | `ring-live` (3px `live`). Takes priority over selected |
 | Focus in 준비 | Same | Same | `outline: 2px solid accent`, `outline-offset: 4px` (outside the live ring) |
-| Focus in 진행 | Same | Same | No keyboard focus outline; selection and live rings remain |
+| Focus in 진행 | Same | Same | Plate style: 2px `accent` outline, 2px outside the plate; live picture ring remains |
 | 슬라이드 media file missing | Hatching (`bg-inset`/`bg-well`, 135°, 6px) | `filex` 24px `warning` in the center | If live, also `ring-live`. The path is in the title tooltip |
 
 Hover uses the same 1px `line-control` as the hover of the small previews (ShowH `.pv:hover`, 1px #6e6e6e). Because it is a gray 1px line, it doesn't get confused with the blue 2px (selected) or the red 3px (live), and it only shows where you can click. On a selected or live thumbnail, hover keeps that ring as it is.
@@ -76,7 +78,7 @@ Hover uses the same 1px `line-control` as the hover of the small previews (ShowH
 ## Behavior
 
 - `ThumbnailGrid.tileWidth` optionally sets a fixed tile width in CSS pixels, normally computed by `thumbnailWidth` from spec-13's percentage. Tiles keep that width across wrapping rather than filling integer column tracks. Row navigation reads the actual layout. Without a valid positive width, the existing `columns` layout remains available for callers that have not adopted the percentage control.
-- In 진행, keyboard focus remains on the thumbnail but draws no focus outline. Tab, arrow movement, Enter, and the live/selection rings still work. 준비 keeps the usual focus outline. `ThumbnailGrid` passes its `workspace` through to the grid; other tile lists default to 준비.
+- Both workspaces draw `:focus-visible` on keyboard entry and navigation. 진행 uses the shared selection plate, independently of the live picture ring. Pointer focus alone has no keyboard outline. `ThumbnailGrid` passes its `workspace` through to the grid; other tile lists default to 준비.
 - In the 진행 workspace, a click outputs that 슬라이드. In the 준비 workspace, a click only selects it.
 - The grid is `role="listbox"`, and each thumbnail is `role="option"` + `aria-selected`. Tab enters the grid only once (roving tabindex), on the selected thumbnail.
 - A windowed host can pass `positionOffset` (zero-based), `setSize`, and `orientation` through `ThumbnailGrid` to `TileList`. The list owns the mounted options' full-list ARIA positions. Omitted position props leave ordinary grids unchanged; the host keeps logical navigation and windowing.

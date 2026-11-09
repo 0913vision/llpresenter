@@ -174,7 +174,6 @@ export function QuickPanel({
           style={{height: items.length * windowed.rowHeight}}
           onKeyDown={windowed.onKeyDown}
           onFocusCapture={windowed.onFocusCapture}
-          onBlurCapture={windowed.onBlurCapture}
         >
           {windowed.shown.map(({item, index}) => {
             const known = isKnownQuickItem(item);
@@ -203,6 +202,7 @@ export function QuickPanel({
                   insertBefore={drag.before === item.id}
                 >
                   <ListActionRow
+                    tabIndex={item.id === windowed.tabStop ? 0 : -1}
                     title={item.name}
                     meta={
                       timer ? (

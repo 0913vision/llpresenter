@@ -46,6 +46,31 @@ function press(overrides: Partial<PhysicalKeyPress> = {}): PhysicalKeyPress {
 }
 
 describe('shortcut registry', () => {
+  it('offers seven assignable panel commands without default keys or output', () => {
+    const panels = shortcutCommands.filter(command =>
+      command.id.startsWith('panel.'),
+    );
+    expect(panels.map(command => command.name)).toEqual([
+      '예배 순서로',
+      '슬라이드로',
+      '퀵 실행으로',
+      '미리보기로',
+      '지우기로',
+      '진행 도구로',
+      '미디어로',
+    ]);
+    for (const command of panels) {
+      expect(command).toMatchObject({
+        defaults: [],
+        contexts: ['show'],
+        output: false,
+      });
+      const binding = [{code: 'F8', mods: []}] as const;
+      expect(commandBindings(command.id, {[command.id]: binding})).toEqual(
+        binding,
+      );
+    }
+  });
   it('reserves Ctrl E for Bible splitting while Ctrl R opens preparation', () => {
     expect(commandBindings('bible.splitEdit', {})).toEqual([
       {code: 'KeyE', mods: ['ctrl']},
