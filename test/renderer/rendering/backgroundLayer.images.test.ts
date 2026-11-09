@@ -3,7 +3,7 @@ import type {MediaLayer} from '@core/live/state';
 import {installMockClock} from '@fixtures/mockClock';
 import {
   BACKGROUND_DISSOLVE_MS,
-  SPARE_DELAY_MS,
+  BACKGROUND_RELEASE_DELAY_MS,
   type RenderMode,
 } from '@renderer/rendering/backgroundLayer';
 import {classes} from '@renderer/rendering/classes';
@@ -54,7 +54,7 @@ describe.each<RenderMode>(['output'])(
       image.dispatchEvent(new Event('load'));
       expect(isShown(image)).toBe(true);
       expect(image.classList.contains(classes.dissolving)).toBe(true);
-      await clock.advance(BACKGROUND_DISSOLVE_MS + SPARE_DELAY_MS);
+      await clock.advance(BACKGROUND_DISSOLVE_MS + BACKGROUND_RELEASE_DELAY_MS);
 
       expect(videos.every(video => !video.hasAttribute('src'))).toBe(true);
       expect(videos.every(video => !video.loop)).toBe(true);
@@ -85,7 +85,7 @@ describe.each<RenderMode>(['output'])(
       const {parent, view, videos} = setUp(mode);
       view.show(WARM_LIGHT);
       videos[1].dispatchEvent(new Event('playing'));
-      await clock.advance(BACKGROUND_DISSOLVE_MS + SPARE_DELAY_MS);
+      await clock.advance(BACKGROUND_DISSOLVE_MS + BACKGROUND_RELEASE_DELAY_MS);
       view.show(SUNSET);
       refuseVideoSource(videos[0]);
       const image = incomingImage(parent);
@@ -95,7 +95,7 @@ describe.each<RenderMode>(['output'])(
       image.dispatchEvent(new Event('load'));
       expect(image.style.zIndex).toBe('1');
       expect(videos[1].style.zIndex).toBe('0');
-      await clock.advance(BACKGROUND_DISSOLVE_MS + SPARE_DELAY_MS);
+      await clock.advance(BACKGROUND_DISSOLVE_MS + BACKGROUND_RELEASE_DELAY_MS);
       expect(videos[1].hasAttribute('src')).toBe(false);
       expect(isShown(videos[1])).toBe(false);
       view.dispose();
@@ -108,7 +108,7 @@ describe.each<RenderMode>(['output'])(
       refuseVideoSource(videos[1]);
       const image = incomingImage(parent);
       image.dispatchEvent(new Event('load'));
-      await clock.advance(BACKGROUND_DISSOLVE_MS + SPARE_DELAY_MS);
+      await clock.advance(BACKGROUND_DISSOLVE_MS + BACKGROUND_RELEASE_DELAY_MS);
       view.show({...SUNSET});
       expect(incomingImage(parent)).toBe(image);
       expect(playsOf(videos[1])).toBe(1);
@@ -117,7 +117,7 @@ describe.each<RenderMode>(['output'])(
       expect(isShown(image)).toBe(true);
       videos[0].dispatchEvent(new Event('playing'));
       expect(isShown(videos[0])).toBe(true);
-      await clock.advance(BACKGROUND_DISSOLVE_MS + SPARE_DELAY_MS);
+      await clock.advance(BACKGROUND_DISSOLVE_MS + BACKGROUND_RELEASE_DELAY_MS);
       expect(image.hasAttribute('src')).toBe(false);
       expect(isShown(image)).toBe(false);
       view.dispose();
@@ -171,7 +171,7 @@ describe.each<RenderMode>(['output'])(
       refuseVideoSource(videos[1]);
       const previous = incomingImage(parent);
       previous.dispatchEvent(new Event('load'));
-      await clock.advance(BACKGROUND_DISSOLVE_MS + SPARE_DELAY_MS);
+      await clock.advance(BACKGROUND_DISSOLVE_MS + BACKGROUND_RELEASE_DELAY_MS);
 
       const nextId = 'morning-image';
       view.show({...SUNSET, mediaId: nextId});
@@ -182,7 +182,7 @@ describe.each<RenderMode>(['output'])(
       if (next === null) throw new Error('expected the next still image');
       expect(isShown(previous)).toBe(true);
       next.dispatchEvent(new Event('load'));
-      await clock.advance(BACKGROUND_DISSOLVE_MS + SPARE_DELAY_MS);
+      await clock.advance(BACKGROUND_DISSOLVE_MS + BACKGROUND_RELEASE_DELAY_MS);
       expect(isShown(next)).toBe(true);
       expect(previous.hasAttribute('src')).toBe(false);
       expect(parent.querySelectorAll('img')).toHaveLength(2);

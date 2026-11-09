@@ -34,8 +34,8 @@ export const MIN_SEEK_SECONDS = 0.5;
 const UNSUPPORTED_SOURCE = 4;
 export const VIDEO_FRAME_DEADLINE_MS = 250;
 
-/** How long a new background plays before the spare video for its loop loads. */
-export const SPARE_DELAY_MS = 1500;
+/** How long a finished handover retains the previous player's resources. */
+export const BACKGROUND_RELEASE_DELAY_MS = 1500;
 
 /**
  * Where a background should be now: the time since it started, wrapped for a
@@ -107,14 +107,14 @@ function unload(video: HTMLVideoElement): void {
   // NOTE(0913vision): Removing the source and loading again gives the
   // decoder memory back (docs/TECH.md, memory).
   video.pause();
+  video.loop = false;
   video.removeAttribute('src');
   video.load();
 }
 
 /**
- * Keeps two reusable videos and two images. A looping video hands over to
- * the spare, loaded at the start, when the front ends. A new background
- * starts on the spare and dissolves over the old one.
+ * Keeps two reusable videos and two images for background changes. Only the
+ * current video loops; the other player unloads after the handover.
  */
 class PlaybackBackgroundLayerView {
   private readonly options: Omit<BackgroundLayerOptions, 'onError'>;
@@ -131,7 +131,7 @@ class PlaybackBackgroundLayerView {
   private front: VideoIndex = 0;
   private current: MediaLayer | null = null;
   private handover: Handover | null = null;
-  private spareTimer: ReturnType<typeof setTimeout> | null = null;
+  private releaseTimer: ReturnType<typeof setTimeout> | null = null;
   private stopWaitingToSeek: (() => void) | null = null;
   private transitions = true;
   private failed = false;
@@ -233,7 +233,7 @@ class PlaybackBackgroundLayerView {
       return;
     }
     this.failed = false;
-    this.cancelSpare();
+    this.cancelRelease();
     this.cancelSeek();
     if (media === null) this.clearAtOnce();
     else {
@@ -250,7 +250,7 @@ class PlaybackBackgroundLayerView {
   }
 
   dispose(): void {
-    this.cancelSpare();
+    this.cancelRelease();
     this.cancelSeek();
     this.stopListening();
     this.unloadAt(0);
@@ -272,7 +272,7 @@ class PlaybackBackgroundLayerView {
   hold(): void {
     if (this.held) return;
     this.held = true;
-    this.cancelSpare();
+    this.cancelRelease();
     this.cancelSeek();
     for (const video of this.videos) video.pause();
   }
@@ -329,6 +329,7 @@ class PlaybackBackgroundLayerView {
   }
 
   private start(media: MediaLayer): void {
+    this.videos[this.front].loop = false;
     const to = otherOf(this.front);
     const video = this.videos[to];
     this.settleFront(to);
@@ -339,7 +340,7 @@ class PlaybackBackgroundLayerView {
   }
 
   private pauseForStandby(): void {
-    this.cancelSpare();
+    this.cancelRelease();
     const target = this.handover?.to ?? this.front;
     for (const index of VIDEO_INDEXES) {
       if (index !== target) this.unloadAt(index);
@@ -455,6 +456,7 @@ class PlaybackBackgroundLayerView {
     video.style.objectFit = objectFit;
     this.images[index].style.objectFit = objectFit;
     try {
+      video.loop = this.current?.loop === true;
       video.playbackRate = properties?.speed ?? 1;
       video.volume = ((properties?.volume ?? 100) / 100) * this.audioGain;
       video.muted =
@@ -546,7 +548,7 @@ class PlaybackBackgroundLayerView {
       next.style.zIndex = FRONT_LAYER;
       next.classList.remove(classes.dissolving);
       next.classList.add(classes.shown);
-      this.prepareSpareLater();
+      this.releasePreviousLater();
       return;
     }
     next.style.zIndex = FRONT_LAYER;
@@ -559,7 +561,7 @@ class PlaybackBackgroundLayerView {
     next.classList.add(classes.shown);
     this.front = index;
     if (dissolve) {
-      this.spareTimer = setTimeout(
+      this.releaseTimer = setTimeout(
         () => this.finishDissolve(),
         this.dissolveMs,
       );
@@ -567,7 +569,7 @@ class PlaybackBackgroundLayerView {
       hide(previous);
       this.videos[otherOf(index)].pause();
       this.videos[otherOf(index)].currentTime = 0;
-      if (!this.holdsCurrent(otherOf(index))) this.prepareSpareLater();
+      if (!this.holdsCurrent(otherOf(index))) this.releasePreviousLater();
     }
   }
 
@@ -575,15 +577,16 @@ class PlaybackBackgroundLayerView {
     const outgoing = otherOf(this.front);
     this.hideAt(outgoing);
     this.videos[outgoing].pause();
-    this.prepareSpareLater();
+    this.releasePreviousLater();
   }
 
-  // NOTE(0913vision): Loading the spare video holds the output's frames for
-  // about 50 ms while its decoder starts, so it waits until the new
-  // background has played for a while instead of landing on the dissolve.
-  private prepareSpareLater(): void {
+  private releasePreviousLater(): void {
     if (this.standby || this.atEnd()) return;
-    this.spareTimer = setTimeout(() => this.prepareSpare(), SPARE_DELAY_MS);
+    this.cancelRelease();
+    this.releaseTimer = setTimeout(
+      () => this.releasePrevious(),
+      BACKGROUND_RELEASE_DELAY_MS,
+    );
   }
 
   private handleEnded(index: VideoIndex): void {
@@ -593,17 +596,7 @@ class PlaybackBackgroundLayerView {
     // starts holds its last frame; only the current background loops.
     if (index !== this.front || !this.holdsCurrent(index)) return;
     if (this.current?.loop !== true) return;
-    const spareIndex = otherOf(index);
-    const spare = this.videos[spareIndex];
-    const spareReady =
-      this.holdsCurrent(spareIndex) &&
-      spare.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA;
-    if (!spareReady) {
-      this.restart(this.videos[index]);
-      return;
-    }
-    this.handover = {to: spareIndex, dissolve: false, contentChange: false};
-    this.play(spare);
+    this.restart(this.videos[index]);
   }
 
   private handleError(index: VideoIndex): void {
@@ -621,16 +614,11 @@ class PlaybackBackgroundLayerView {
     this.onError('could not play a background video', detail);
   }
 
-  private prepareSpare(): void {
-    this.spareTimer = null;
+  private releasePrevious(): void {
+    this.releaseTimer = null;
     const spareIndex = otherOf(this.front);
     this.hideAt(spareIndex);
-    if (this.current === null || this.isImage(this.front)) {
-      this.unloadAt(spareIndex);
-      return;
-    }
-    this.videos[spareIndex].pause();
-    this.load(spareIndex, this.current.mediaId);
+    this.unloadAt(spareIndex);
   }
 
   private restart(video: HTMLVideoElement): void {
@@ -704,7 +692,7 @@ class PlaybackBackgroundLayerView {
     if (this.handover?.to !== index && this.front !== index) return;
     this.failed = true;
     this.handover = null;
-    this.cancelSpare();
+    this.cancelRelease();
     this.cancelSeek();
     if (index === this.front && this.decoded[index]) {
       this.videos[index].pause();
@@ -718,10 +706,10 @@ class PlaybackBackgroundLayerView {
     }
   }
 
-  private cancelSpare(): void {
-    if (this.spareTimer === null) return;
-    clearTimeout(this.spareTimer);
-    this.spareTimer = null;
+  private cancelRelease(): void {
+    if (this.releaseTimer === null) return;
+    clearTimeout(this.releaseTimer);
+    this.releaseTimer = null;
   }
 
   private cancelFrame(index: VideoIndex): void {

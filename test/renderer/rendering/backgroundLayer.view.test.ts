@@ -2,7 +2,7 @@ import {describe, expect, it, vi} from 'vitest';
 import {installMockClock} from '@fixtures/mockClock';
 import {
   BACKGROUND_DISSOLVE_MS,
-  SPARE_DELAY_MS,
+  BACKGROUND_RELEASE_DELAY_MS,
   VIDEO_FRAME_DEADLINE_MS,
 } from '@renderer/rendering/backgroundLayer';
 import {classes} from '@renderer/rendering/classes';
@@ -188,7 +188,7 @@ describe('BackgroundLayerView', () => {
     expect(incoming.classList.contains(classes.dissolving)).toBe(true);
   });
 
-  it('loads the same background into the other video a while after the dissolve, for the loop', async () => {
+  it('loops the current video without loading a second decoder after the dissolve', async () => {
     const clock = installMockClock();
     const {view, videos} = setUp();
     const [spare, front] = videos;
@@ -196,34 +196,38 @@ describe('BackgroundLayerView', () => {
     front.dispatchEvent(new Event('playing'));
     await clock.advance(BACKGROUND_DISSOLVE_MS);
     expect(spare.getAttribute('src')).not.toBe(urlOf('warm-light'));
-    await clock.advance(SPARE_DELAY_MS);
-    expect(spare.getAttribute('src')).toBe(urlOf('warm-light'));
+    await clock.advance(BACKGROUND_RELEASE_DELAY_MS);
+    expect(spare.hasAttribute('src')).toBe(false);
+    expect(front.loop).toBe(true);
     expect(isShown(spare)).toBe(false);
     expect(playsOf(spare)).toBe(0);
   });
 
-  it('hands a looping background over to the spare when it ends, without a gap', async () => {
+  it('updates looping in place and keeps a single player through repeated native wraps', async () => {
     const clock = installMockClock();
     const {view, videos} = setUp();
     const [spare, front] = videos;
     view.show(WARM_LIGHT);
     front.dispatchEvent(new Event('playing'));
-    await clock.advance(BACKGROUND_DISSOLVE_MS + SPARE_DELAY_MS);
+    await clock.advance(BACKGROUND_DISSOLVE_MS + BACKGROUND_RELEASE_DELAY_MS);
 
-    front.dispatchEvent(new Event('ended'));
-    expect(playsOf(spare)).toBe(1);
+    front.dispatchEvent(new Event('playing'));
+    front.dispatchEvent(new Event('playing'));
+    expect(vi.getTimerCount()).toBe(0);
+    expect(playsOf(spare)).toBe(0);
     view.show({...WARM_LIGHT});
     expect(isShown(front)).toBe(true);
-    spare.dispatchEvent(new Event('playing'));
-    expect(isShown(spare)).toBe(true);
-    expect(spare.classList.contains(classes.dissolving)).toBe(false);
-    expect(isShown(front)).toBe(false);
-
-    spare.dispatchEvent(new Event('ended'));
-    expect(playsOf(front)).toBe(2);
+    expect(front.loop).toBe(true);
+    view.show({...WARM_LIGHT, loop: false});
+    expect(front.loop).toBe(false);
+    expect(playsOf(front)).toBe(1);
+    view.show({...WARM_LIGHT, loop: true});
+    expect(front.loop).toBe(true);
+    view.dispose();
+    expect(videos.every(video => !video.loop)).toBe(true);
   });
 
-  it('restarts the front video when the spare is not ready at the loop point', () => {
+  it('restarts the current video if playback unexpectedly ends despite looping', () => {
     const {view, videos} = setUp();
     const [, front] = videos;
     view.show(WARM_LIGHT);
@@ -318,14 +322,14 @@ describe('BackgroundLayerView', () => {
     expect(onError).not.toHaveBeenCalled();
   });
 
-  it('holds the outgoing loop frame until the spare produces its first decoded frame', async () => {
+  it('holds the outgoing picture until the next background produces its first decoded frame', async () => {
     const clock = installMockClock();
 
     const {view, videos} = setUp();
     const [spare, front] = videos;
     view.show(WARM_LIGHT);
     front.dispatchEvent(new Event('playing'));
-    await clock.advance(BACKGROUND_DISSOLVE_MS + SPARE_DELAY_MS);
+    await clock.advance(BACKGROUND_DISSOLVE_MS + BACKGROUND_RELEASE_DELAY_MS);
     let decoded = (): void => {};
     Object.defineProperty(spare, 'requestVideoFrameCallback', {
       value: (callback: VideoFrameRequestCallback) => {
@@ -343,7 +347,7 @@ describe('BackgroundLayerView', () => {
       },
     });
     Object.defineProperty(spare, 'cancelVideoFrameCallback', {value: vi.fn()});
-    front.dispatchEvent(new Event('ended'));
+    view.show({...WARM_LIGHT, mediaId: 'next-background'}, false);
     spare.dispatchEvent(new Event('playing'));
     expect(isShown(front)).toBe(true);
     expect(isShown(spare)).toBe(false);

@@ -4,6 +4,7 @@ import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {BackgroundLayerView} from '../rendering/backgroundLayer';
 import {fadeAudio} from '../rendering/audioFade';
 import {themeMediaAudible, themeOverlayAudio} from '@core/themes/audio';
+import type {MediaDocument} from '@core/schema/mediaEdit';
 
 /** Plays background sound once, independently of the preloaded screen windows. */
 export class BackgroundAudio {
@@ -13,6 +14,10 @@ export class BackgroundAudio {
   private readonly createOverlay: () => BackgroundLayerView;
   private state: LiveState | null = null;
   private disposed = false;
+  private pictures = new Set<string>();
+  private mediaRevision = -1;
+  private mediaReady = false;
+  private readonly stopMedia: () => void;
   private sinkId = '';
   private previous: MediaLayer | null = null;
   private fade: {since: number; durationMs: number; cancel: () => void} | null =
@@ -23,6 +28,7 @@ export class BackgroundAudio {
 
   constructor({
     root,
+    api,
     muted,
     report,
     now,
@@ -49,6 +55,20 @@ export class BackgroundAudio {
       overlay.setSink(this.sinkId);
       return overlay;
     };
+    this.stopMedia = api.media.subscribe(document =>
+      this.acceptMedia(document),
+    );
+    api.media.get().then(
+      document => this.acceptMedia(document),
+      (error: unknown) => {
+        if (!this.disposed) {
+          report('could not read background audio media', error);
+          /** Keep playback available; later metadata pushes restore filtering. */
+          this.mediaReady = true;
+          this.draw();
+        }
+      },
+    );
   }
 
   /** Plays the video sound to a device; an empty id is the Windows default. */
@@ -66,16 +86,34 @@ export class BackgroundAudio {
 
   dispose(): void {
     this.disposed = true;
+    this.stopMedia();
+    this.pictures.clear();
     this.fade?.cancel();
     this.view.dispose();
     this.overlay?.dispose();
   }
 
+  private acceptMedia(document: MediaDocument): void {
+    if (this.disposed || document.revision <= this.mediaRevision) return;
+    this.mediaRevision = document.revision;
+    this.mediaReady = true;
+    this.pictures = new Set(
+      document.value.items
+        .filter(item => item.kind === 'image')
+        .map(item => item.id),
+    );
+    this.draw();
+  }
+
+  private sound(media: MediaLayer | null): MediaLayer | null {
+    return media !== null && this.pictures.has(media.mediaId) ? null : media;
+  }
+
   private draw(): void {
-    if (this.disposed || this.state === null) return;
+    if (this.disposed || this.state === null || !this.mediaReady) return;
     try {
       const state = this.state;
-      const overlay = themeOverlayAudio(state);
+      const overlay = this.sound(themeOverlayAudio(state));
       if (overlay !== null) this.overlay ??= this.createOverlay();
       if (
         overlay !== null &&
@@ -100,7 +138,8 @@ export class BackgroundAudio {
           this.view.show(null, false);
         }
         this.stopFade();
-        this.previous = media.properties?.audio === true ? media : null;
+        this.previous =
+          media.properties?.audio === true ? this.sound(media) : null;
         this.view.show(this.previous, false);
         return;
       }

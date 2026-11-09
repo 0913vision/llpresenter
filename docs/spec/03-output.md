@@ -328,7 +328,10 @@ README (states and motion).
 - Play a video with its media properties: 끝나면 (at the end: loop or stop),
   구간 (range start and end), 속도 (speed), 맞춤 (fit: fit, fill, or stretch),
   소리 켜기 (sound on), and 음량 (volume).
-- Loop seamlessly (`docs/TECH.md` media: alternate two video elements).
+- Loop seamlessly in the current video element without preloading another copy
+  of the same background. Keep two reusable players for background changes;
+  retain the outgoing picture until the incoming frame is ready, then release
+  the outgoing source after the transition.
 - With stop at the end, hold the last frame (proposal).
 - Show an image as a still, with its fit setting.
 - When several screens show the same background, each screen plays it

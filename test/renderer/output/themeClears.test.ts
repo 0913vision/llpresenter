@@ -120,7 +120,7 @@ it.each([
   ['F3', 'media'],
 ] as const)(
   'keeps the theme overlay sound playing through %s and its clear fade',
-  (_key, target) => {
+  async (_key, target) => {
     const sound = document.createElement('div');
     const report = vi.fn();
     const api = mockLlpApi({
@@ -140,6 +140,9 @@ it.each([
     try {
       const state = overlayState();
       audio.show(state);
+      await vi.waitFor(() =>
+        expect(sound.querySelector('video[src]')).not.toBeNull(),
+      );
       const soundtrack = sound.querySelector<HTMLVideoElement>('video[src]');
       if (soundtrack === null) throw new Error('Missing playback');
       const mockPauseSound = vi.fn();

@@ -9,6 +9,9 @@ import {contSizeOf} from '@core/bible/split/layout';
 import {bulletTextStyle, textParagraphs} from './textParagraphs';
 import bulletStyles from './bulletText.module.css';
 import {resolveTextTracking} from '@core/themes/textTracking';
+import {TextFitCache} from './textFitCache';
+
+const textFits = new WeakMap<Document, TextFitCache>();
 
 /** The dissolve between 장 (docs/spec/03-output.md, version 1 default). */
 export const SLIDE_DISSOLVE_MS = 200;
@@ -371,16 +374,30 @@ export class SlideLayerView {
       });
       return;
     }
-    const fontSize = fitTextInFrame(
-      {
-        size,
-        width: element.clientWidth,
-        height: element.clientHeight,
-      },
-      px => {
-        setSize(px);
-        return {width: block.scrollWidth, height: block.scrollHeight};
-      },
+    const width = element.clientWidth;
+    const height = element.clientHeight;
+    const document = element.ownerDocument;
+    let cache = textFits.get(document);
+    if (cache === undefined) {
+      cache = new TextFitCache();
+      textFits.set(document, cache);
+    }
+    const fontSize = cache.fit(
+      JSON.stringify([
+        page.lines,
+        page.continued,
+        page.biblePart,
+        this.style,
+        this.scale,
+        width,
+        height,
+      ]),
+      () =>
+        fitTextInFrame({size, width, height}, px => {
+          setSize(px);
+          return {width: block.scrollWidth, height: block.scrollHeight};
+        }),
+      document.fonts,
     );
     setSize(fontSize);
   }
