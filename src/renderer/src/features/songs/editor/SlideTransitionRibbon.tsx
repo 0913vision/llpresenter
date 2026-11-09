@@ -86,6 +86,7 @@ export function SlideTransitionRibbon<T extends SlideListItem>({
         }
       >
         <Button
+          size="md"
           disabled={locked || mixed}
           className={styles.all}
           onClick={() =>
@@ -99,13 +100,13 @@ export function SlideTransitionRibbon<T extends SlideListItem>({
           {song ? '이 곡 전체에 적용' : '전체 슬라이드에 적용'}
         </Button>
       </SlideTransitionControl>
-      <span className={styles.hint}>
-        {mixed
-          ? '선택한 슬라이드의 효과가 서로 다릅니다.'
-          : count > 1
-            ? `선택한 슬라이드 ${count}장에 적용됩니다.`
-            : '전환 효과는 진행 중 슬라이드를 보낼 때 재생합니다.'}
-      </span>
+      {mixed || count > 1 ? (
+        <span className={styles.hint}>
+          {mixed
+            ? '선택한 슬라이드의 효과가 서로 다릅니다.'
+            : `선택한 슬라이드 ${count}장에 적용됩니다.`}
+        </span>
+      ) : null}
     </div>
   );
 }

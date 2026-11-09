@@ -1,0 +1,22 @@
+.ribbon {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: start;
+  gap: var(--space-16);
+  padding: var(--space-12) var(--space-14);
+  border-bottom: var(--radius-hairline) solid var(--line);
+}
+
+.group {
+  display: grid;
+  justify-items: start;
+  gap: var(--space-6);
+  min-width: 0;
+  max-width: var(--size-menu-max);
+  color: var(--text-3);
+  font: var(--type-label);
+}
+
+.group button {
+  max-width: 100%;
+}

@@ -15,7 +15,7 @@ import {CellButton} from './CellButton';
 import styles from './ServiceTable.module.css';
 
 const NONE = '없음';
-/** An empty cell shows nothing; the picker's 없음 row still names the choice. */
+/** Noneditable cells stay blank when this item kind has no background. */
 const EMPTY = '';
 
 /** What the background cell shows: the picture and the name that will play. */
@@ -36,9 +36,10 @@ function Shown({
   );
 }
 
-/** The 배경 of an item row: a still of what plays and its name, blank when nothing plays. */
+/** The 배경 of an item row: a still and name, or 없음 when an editable cell has none. */
 export function BackgroundCell({
   row,
+  presentation = 'cell',
   rowLabel,
   item,
   media,
@@ -47,6 +48,7 @@ export function BackgroundCell({
   choose,
 }: {
   readonly row: ItemRow;
+  readonly presentation?: 'cell' | 'ribbon';
   readonly rowLabel: string;
   readonly item: ServiceItem | undefined;
   readonly media: readonly MediaItem[];
@@ -69,7 +71,7 @@ export function BackgroundCell({
   const selectedBackground = slidesItem?.background ?? playing;
   const shown =
     selectedBackground === undefined
-      ? {media: undefined, name: EMPTY}
+      ? {media: undefined, name: choose === undefined ? EMPTY : NONE}
       : {
           media: selectedBackground,
           name:
@@ -98,6 +100,7 @@ export function BackgroundCell({
   return (
     <>
       <CellButton
+        presentation={presentation}
         label={`배경, ${rowLabel}`}
         width={styles.background}
         dim={!own}

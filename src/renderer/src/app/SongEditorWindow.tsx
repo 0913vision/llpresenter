@@ -2,6 +2,7 @@ import {useEffect, useSyncExternalStore, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {useSongEditorWindow} from '@renderer/features/songs/editor/useSongEditorWindow';
+import {songItemDesign} from '@renderer/features/service/items/SongItemDesign';
 import {SongWindowLayout} from '@renderer/features/songs/editor/windowLayout';
 import {useShortcutSettings} from '@renderer/platform/useShortcutSettings';
 import {IconButton} from '@renderer/ui';
@@ -41,7 +42,15 @@ function SongEditorWindowBody({
           />
         </div>
       </header>
-      <SongWindowLayout store={editor} model={model} />
+      <SongWindowLayout
+        store={editor}
+        model={model}
+        renderDesign={
+          session.items === undefined
+            ? undefined
+            : songItemDesign(api, session.items)
+        }
+      />
       <NotificationStack notices={notices} onClose={session.dismiss} />
       {session.closeFlush === undefined ? null : (
         <SavingDialog closeFlush={session.closeFlush} />

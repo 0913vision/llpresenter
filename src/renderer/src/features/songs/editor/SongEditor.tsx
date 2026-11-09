@@ -10,10 +10,9 @@ import {
   type ReactNode,
 } from 'react';
 import {LabelMenu} from './LabelMenu';
-import {SongTitleLayoutControl} from './SongTitleLayoutControl';
+import {SongEditorRibbon, type SongDesignRenderer} from './SongEditorRibbon';
 import {SongBlock, type EditorFocus} from './SongBlock';
 import {SongHeader} from './SongHeader';
-import {SlideHotKeyControl} from './SlideHotKeyControl';
 import type {SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';
 import styles from './SongEditor.module.css';
@@ -28,7 +27,6 @@ import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {useShow} from '@renderer/session/show';
 import {useEditorFocus} from './useEditorFocus';
-import {SlideTransitionRibbon} from './SlideTransitionRibbon';
 import {useEditorLiveIndex} from './useEditorLiveIndex';
 import {songEditorSourceId} from './songEditorSourceId';
 import {SONG_LIMITS} from '@core/schema/song';
@@ -41,8 +39,10 @@ export function SongEditor({
   unsaved = false,
   onBack,
   actions,
+  renderDesign,
 }: {
   readonly store: SongEditorStore;
+  readonly renderDesign?: SongDesignRenderer | undefined;
   readonly onImportedSave?: ((id: SongId) => void) | undefined;
   /** Shows the dot before the title while edits wait for 저장. */
   readonly unsaved?: boolean;
@@ -74,19 +74,11 @@ export function SongEditor({
             }
             actions={state.imported ? null : actions}
           />
-          <SlideHotKeyControl
+          <SongEditorRibbon
             store={store}
             session={state.session}
             busy={state.busy}
-          />
-          <SlideTransitionRibbon
-            session={state.session}
-            disabled={state.busy}
-            song
-          />
-          <SongTitleLayoutControl
-            session={state.session}
-            disabled={state.busy}
+            renderDesign={renderDesign}
           />
           <SongSlideSurface
             session={state.session}

@@ -27,6 +27,9 @@ it('disables every transition edit for a read-only song', async () => {
 
 it('edits Shift/Ctrl selections, marks explicit cuts, restores defaults and applies all in one undo step', async () => {
   const {session, user} = await editorSetup();
+  expect(
+    screen.queryByText('효과를 고르면 미리보기에서 재생합니다.'),
+  ).toBeNull();
   const rows = [
     ...document.querySelectorAll<HTMLElement>('[data-editor-block]'),
   ];

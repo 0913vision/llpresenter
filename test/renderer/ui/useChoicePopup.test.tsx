@@ -203,6 +203,8 @@ it('ignores inside, anchor and dialog interactions, uses the latest callback and
   document.body.append(dialog);
   anchors.add(dialog);
   fireEvent.pointerDown(dialog);
+  fireEvent.scroll(dialog);
+  fireEvent.scroll(view.container);
   expect(onClose).not.toHaveBeenCalled();
   fireEvent.scroll(document.body);
   expect(onClose).toHaveBeenCalledExactlyOnceWith(false);

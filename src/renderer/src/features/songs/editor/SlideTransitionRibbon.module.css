@@ -7,7 +7,7 @@
 }
 
 .all {
-  align-self: end;
+  justify-self: start;
 }
 .hint {
   color: var(--text-3);

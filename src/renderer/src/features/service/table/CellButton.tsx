@@ -1,4 +1,6 @@
 import type {JSX, ReactNode, Ref} from 'react';
+import {Button} from '@renderer/ui/Button';
+import {Icon} from '@renderer/ui/Icon';
 import {classNames} from '@renderer/ui/classNames';
 import {titleTooltip, useTooltip, withTooltipProps} from '@renderer/ui/Tooltip';
 import styles from './ServiceTable.module.css';
@@ -12,6 +14,7 @@ export const TABLE_CELL = 'data-table-cell';
  */
 export function CellButton({
   label,
+  presentation = 'cell',
   width,
   dim,
   reason,
@@ -23,6 +26,7 @@ export function CellButton({
   children,
 }: {
   readonly label: string;
+  readonly presentation?: 'cell' | 'ribbon';
   readonly width: string | undefined;
   readonly dim: boolean;
   /** Why the cell can't change now; it becomes the tooltip. */
@@ -36,6 +40,23 @@ export function CellButton({
   readonly children: ReactNode;
 }): JSX.Element {
   const {targetProps, tooltip} = useTooltip(titleTooltip(reason ?? hint));
+  if (presentation === 'ribbon') {
+    return (
+      <Button
+        ref={buttonRef}
+        size="md"
+        aria-label={label}
+        aria-haspopup={popup}
+        aria-expanded={expanded}
+        disabled={reason !== undefined}
+        title={reason ?? hint}
+        onClick={onOpen}
+      >
+        {children}
+        <Icon name="down" size={12} />
+      </Button>
+    );
+  }
   return (
     <>
       <button

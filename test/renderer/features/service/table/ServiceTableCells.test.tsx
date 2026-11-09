@@ -159,7 +159,7 @@ it('keeps both lists closed for a read-only service', async () => {
   expect(submitItemEdit).not.toHaveBeenCalled();
 });
 
-it('shows a still and the name of the video, image, or song default that plays, and nothing for none', () => {
+it('shows a still and the name of the video, image, or song default that plays, and 없음 for none', () => {
   const view = (row: ItemRow, item: ServiceItem = song()) => {
     cleanup();
     setup({row, item});
@@ -184,7 +184,7 @@ it('shows a still and the name of the video, image, or song default that plays, 
   const inherited = view(rowOf({mediaId: fixtureMedia.warm}));
   expect(inherited.textContent).toBe('따뜻한 빛');
   expect(inherited.className).toContain('dim');
-  expect(view(rowOf()).textContent).toBe('');
+  expect(view(rowOf()).textContent).toBe('없음');
   expect(
     screen.getByRole('button', {name: /^배경, /}).querySelector('img'),
   ).toBeNull();
@@ -194,7 +194,12 @@ it('writes the chosen 배경 for this row only', async () => {
   const {submitItemEdit} = setup();
   const user = userEvent.setup();
 
+  expect(screen.getByRole('button', {name: /^배경, /}).textContent).toBe(
+    '없음',
+  );
   await user.click(screen.getByRole('button', {name: /^배경, /}));
+  expect(screen.getByRole('listbox', {name: '배경 선택'})).toBeTruthy();
+  expect(screen.getByRole('option', {name: '곡 기본값'})).toBeTruthy();
   await user.click(await screen.findByRole('option', {name: /새벽 하늘/}));
   expect(submitItemEdit.mock.calls[0]?.[0].change(song())).toMatchObject({
     background: fixtureMedia.dawn,

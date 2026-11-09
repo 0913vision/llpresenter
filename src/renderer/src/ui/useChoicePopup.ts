@@ -82,10 +82,9 @@ export function useChoicePopup({
     document.addEventListener(
       'scroll',
       event => {
-        if (
-          event.target instanceof Node &&
-          !surface.current?.contains(event.target)
-        ) {
+        // NOTE(0913vision): Other panels scroll when selecting the row. Only
+        // scrolling the anchor's ancestors changes this popup's position.
+        if (event.target instanceof Node && event.target.contains(anchor)) {
           close(false);
         }
       },

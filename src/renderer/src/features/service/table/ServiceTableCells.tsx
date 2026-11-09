@@ -1,17 +1,15 @@
 import type {JSX} from 'react';
 import type {ItemRow} from '@core/presentation/model';
-import type {MediaId, SongId, ThemeId} from '@core/schema/ids';
+import type {MediaId, SongId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
 import type {ServiceItem} from '@core/schema/service';
 import {isItemOfKind} from '@core/schema/service';
 import {isStartItem} from '@core/services/itemFieldChanges';
 import type {ThemesFile} from '@core/schema/themes';
-import {itemThemeCell} from '@core/themes/itemThemeCell';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import {classNames} from '@renderer/ui/classNames';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {themeRequest} from '../items/itemAppearanceCommands';
 import {
   backgroundRequest,
   memoRequest,
@@ -19,6 +17,7 @@ import {
 } from '../items/itemPlaybackCommands';
 import {resolveMacro} from '../items/ItemSettingsRows';
 import type {ServiceItemStore} from '../items/serviceItemStore';
+import {ThemeCell} from './ThemeCell';
 import {BackgroundCell} from './BackgroundCell';
 import {CellMenu} from './CellMenu';
 import {MemoCell} from './MemoCell';
@@ -26,10 +25,8 @@ import type {SongFacts} from './useServiceTableData';
 import styles from './ServiceTable.module.css';
 
 const NONE = '없음';
-const DEFAULT_THEME = '기본';
 const MISSING_MACRO = '매크로 없음';
 const NO_MACRO_ID = 'none';
-const DEFAULT_THEME_ID = 'default';
 
 type Macro = ReturnType<typeof resolveMacro>;
 
@@ -47,37 +44,6 @@ export interface ServiceTableCellsProps {
   readonly items: Pick<ServiceItemStore, 'submitItemEdit'>;
   readonly serviceId: string | null;
   readonly readOnly: boolean;
-}
-
-function themeEntries({
-  item,
-  followsDefault,
-  themes,
-  choose,
-}: {
-  readonly item: ServiceItem;
-  readonly followsDefault: boolean;
-  readonly themes: ThemesFile | null;
-  readonly choose: (theme: ThemeId | undefined) => void;
-}): readonly MenuEntry[] {
-  return [
-    {
-      kind: 'item',
-      id: DEFAULT_THEME_ID,
-      label: DEFAULT_THEME,
-      check: 'radio',
-      checked: followsDefault,
-      onSelect: () => choose(undefined),
-    },
-    ...(themes?.themes ?? []).map((theme): MenuEntry => ({
-      kind: 'item',
-      id: theme.id,
-      label: theme.name,
-      check: 'radio',
-      checked: !followsDefault && item.theme === theme.id,
-      onSelect: () => choose(theme.id),
-    })),
-  ];
 }
 
 function macroEntries({
@@ -125,8 +91,6 @@ export function ServiceTableCells({
 }: ServiceTableCellsProps): JSX.Element {
   const target = serviceId === null ? null : {serviceId, itemId: row.id};
   const song = item !== undefined && 'song' in item ? item : undefined;
-  const themeCell =
-    item === undefined ? undefined : itemThemeCell(item, themes);
   const macro =
     item !== undefined && isStartItem(item)
       ? resolveMacro(macros, item.macro)
@@ -141,22 +105,16 @@ export function ServiceTableCells({
             ? ''
             : (detail ?? '')}
       </span>
-      {item === undefined || themeCell === undefined ? (
+      {item === undefined ? (
         <span className={classNames(styles.cell, styles.theme)} />
       ) : (
-        <CellMenu
+        <ThemeCell
+          item={item}
+          themes={themes}
+          target={target}
+          items={items}
           label={`테마, ${rowLabel}`}
-          text={themeCell.name}
-          dim={themeCell.followsDefault}
-          width={styles.theme}
           reason={reason}
-          entries={themeEntries({
-            item,
-            followsDefault: themeCell.followsDefault,
-            themes,
-            choose: theme =>
-              editorTask(items.submitItemEdit(themeRequest(target, theme))),
-          })}
         />
       )}
       <BackgroundCell

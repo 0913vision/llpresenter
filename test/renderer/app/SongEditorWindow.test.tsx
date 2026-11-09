@@ -11,6 +11,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {ContentEdit} from '@core/schema/contentEdit';
 import type {SongEditorTarget} from '@core/schema/ipcPayloads';
+import {isItemOfKind} from '@core/schema/service';
 import {
   createServiceItemId,
   createServiceId,
@@ -23,17 +24,26 @@ import {
 } from '@core/schema/contentDocuments';
 import {ControlSession} from '@renderer/app/controlSession';
 import {SongEditorWindow} from '@renderer/app/SongEditorWindow';
+import type {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {
   pendingWritesOf,
   type DraftOutcome,
 } from '@renderer/platform/pendingWrites';
 import {resetTooltips} from '@fixtures/renderer/ui/tooltipTesting';
 import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
-import {lyrics} from '@fixtures/renderer/features/songs/editor/editorTesting';
+import {
+  lyrics,
+  mockMenuRowHeight,
+} from '@fixtures/renderer/features/songs/editor/editorTesting';
+import {fixtureMedia, itemMedia} from '@fixtures/core/mediaList';
+
+const {renderPreview} = vi.hoisted(() => ({
+  renderPreview: vi.fn<OutputRenderer['render']>(),
+}));
 
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
-    render = vi.fn();
+    render = renderPreview;
     dispose = vi.fn();
   },
 }));
@@ -52,6 +62,7 @@ class MockResizeObserver implements ResizeObserver {
 
 beforeEach(() => {
   resetTooltips();
+  renderPreview.mockClear();
   HTMLElement.prototype.scrollIntoView = vi.fn();
   vi.stubGlobal('ResizeObserver', MockResizeObserver);
   vi.spyOn(HTMLMediaElement.prototype, 'pause').mockImplementation(
@@ -65,7 +76,7 @@ beforeEach(() => {
 const SERVICE_ID = createServiceId('30000000-0000-4000-8000-000000000001');
 const ITEM_ID = createServiceItemId('40000000-0000-4000-8000-000000000001');
 
-function openWindow(target: SongEditorTarget | null) {
+function openWindow(target: SongEditorTarget | null, pushWrites = false) {
   const fixture = editorFixture();
   const retargets = new Set<(target: SongEditorTarget | null) => void>();
   const serviceChanges = new Set<(change: ServiceChange) => void>();
@@ -89,6 +100,11 @@ function openWindow(target: SongEditorTarget | null) {
   });
   if (!service.ok || service.value === null) throw new Error('Bad service');
   let document: ServiceDocument = service.value;
+  const pushService = (): void => {
+    for (const listener of serviceChanges) {
+      listener({serviceId: SERVICE_ID, document});
+    }
+  };
   const edits: ContentEdit[] = fixture.edits;
   const api: LlpApi = {
     ...fixture.api,
@@ -140,6 +156,7 @@ function openWindow(target: SongEditorTarget | null) {
           service: command.service,
           revision: document.revision + 1,
         };
+        if (pushWrites) pushService();
         return {ok: true, value: {id: SERVICE_ID, revision: document.revision}};
       },
     },
@@ -162,6 +179,7 @@ function openWindow(target: SongEditorTarget | null) {
         };
       },
     },
+    media: {...fixture.api.media, get: async () => itemMedia()},
   };
   window.llp = api;
   const session = new ControlSession(api);
@@ -178,6 +196,14 @@ function openWindow(target: SongEditorTarget | null) {
     session,
     edits,
     service: () => document,
+    songItem: () => {
+      const item = document.service.order.find(row => row.id === ITEM_ID);
+      if (item === undefined || !isItemOfKind(item, 'song')) {
+        throw new Error('Missing song item');
+      }
+      return item;
+    },
+    pushService,
     retarget: (next: SongEditorTarget) =>
       act(() => {
         for (const listener of retargets) listener(next);
@@ -199,6 +225,143 @@ afterEach(() => {
 });
 
 describe('곡 편집 window', () => {
+  it.each([true, false])(
+    'keeps lyric undo and selection after a background write and push (push before reply: %s)',
+    async pushWrites => {
+      mockMenuRowHeight();
+      const opened = openWindow(
+        {songId: FIRST_ID, from: {serviceId: SERVICE_ID, itemId: ITEM_ID}},
+        pushWrites,
+      );
+      await waitFor(() => expect(lyrics(1)).toBeTruthy());
+      fireEvent.change(lyrics(1), {target: {value: '바꾼 가사'}});
+      const session = opened.session.editor?.getSnapshot().session;
+      if (session == null) throw new Error('Missing item session');
+      await act(async () => {
+        expect(await session.flush()).toBe(true);
+        session.select({block: 1, start: 1, end: 2});
+        session.selectSlides({type: 'all'});
+      });
+      const history = session.history;
+      const selection = session.slideModel.getSnapshot().selection;
+      const caret = history.snapshot.selection;
+      const user = userEvent.setup();
+      await user.click(screen.getByRole('tab', {name: '디자인'}));
+      for (const [choice, background] of [
+        ['새벽 하늘', fixtureMedia.dawn],
+        ['곡 기본값', undefined],
+      ] as const) {
+        const revision = opened.service().revision;
+        const button = await screen.findByRole('button', {name: /^배경, /});
+        await waitFor(() =>
+          expect(button.getAttribute('aria-disabled')).toBeNull(),
+        );
+        await user.click(button);
+        await user.click(await screen.findByRole('option', {name: choice}));
+        await waitFor(() =>
+          expect(opened.service().revision).toBe(revision + 1),
+        );
+        if (!pushWrites) act(opened.pushService);
+        await waitFor(() =>
+          expect(session.document.revision).toBe(revision + 1),
+        );
+        expect(session.background).toBe(background);
+        expect(session.history).toBe(history);
+        expect(session.slideModel.getSnapshot().selection).toEqual(selection);
+        expect(session.history.snapshot.selection).toEqual(caret);
+        expect(session.unsaved).toBe(false);
+        await act(async () => {
+          session.edit('undo');
+          expect(await session.flush()).toBe(true);
+        });
+        expect(session.history.snapshot.song.slides[0]?.lines).toEqual(
+          opened.first.song.slides[0]?.lines,
+        );
+        expect(opened.songItem().background).toBe(background);
+        await act(async () => {
+          session.edit('redo');
+          expect(await session.flush()).toBe(true);
+          session.select(caret);
+          session.selectSlides({type: 'all'});
+        });
+        expect(session.history.snapshot.song.slides[0]?.lines).toEqual([
+          '바꾼 가사',
+        ]);
+        expect(opened.songItem().background).toBe(background);
+      }
+      expect(opened.documents.get(FIRST_ID)).toEqual(opened.first);
+    },
+  );
+
+  it('renders the captured item theme after a completed design write and service push', async () => {
+    const opened = openWindow(
+      {songId: FIRST_ID, from: {serviceId: SERVICE_ID, itemId: ITEM_ID}},
+      true,
+    );
+    await waitFor(() => expect(lyrics(1)).toBeTruthy());
+    const themes = await opened.api.settings.get({name: 'themes'});
+    if (themes.name !== 'themes') throw new Error('Missing themes');
+    const alternate = themes.value.themes.find(theme => theme.name === '말씀');
+    if (alternate === undefined) throw new Error('Missing alternate theme');
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('tab', {name: '디자인'}));
+    const button = await screen.findByRole('button', {name: '테마'});
+    await waitFor(() =>
+      expect(button.getAttribute('aria-disabled')).toBeNull(),
+    );
+    for (const [choice, theme] of [
+      [alternate.name, alternate.id],
+      ['기본', undefined],
+    ] as const) {
+      renderPreview.mockClear();
+      await user.click(button);
+      await user.click(screen.getByRole('menuitemradio', {name: choice}));
+      await waitFor(() => {
+        const rendered = renderPreview.mock.calls
+          .filter(([, frame]) => frame?.theme?.item?.id === ITEM_ID)
+          .at(-1)?.[1]?.theme;
+        expect(rendered).toMatchObject({
+          themeId: theme ?? themes.value.defaults.song,
+          item: {id: ITEM_ID, source: 'service'},
+        });
+      });
+      expect(opened.service().service.order[0]?.theme).toBe(theme);
+      expect(
+        opened.session.editor?.getSnapshot().session?.document.itemTheme,
+      ).toBe(theme);
+    }
+    opened.retarget({songId: FIRST_ID});
+    await waitFor(() =>
+      expect(screen.queryByRole('tab', {name: '디자인'})).toBeNull(),
+    );
+    expect(
+      opened.session.editor?.getSnapshot().session?.document.itemTheme,
+    ).toBeUndefined();
+  });
+
+  it('offers item design without changing the deck and omits it for library songs', async () => {
+    const opened = openWindow({
+      songId: FIRST_ID,
+      from: {serviceId: SERVICE_ID, itemId: ITEM_ID},
+    });
+    await waitFor(() => expect(lyrics(1)).toBeTruthy());
+    const session = opened.session.editor?.getSnapshot().session;
+    const slides = session?.history.snapshot.song.slides;
+    const selection = session?.slideModel.getSnapshot().selection;
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('tab', {name: '디자인'}));
+    await screen.findByRole('button', {name: '테마'});
+    await user.click(screen.getByRole('tab', {name: '편집'}));
+    expect(session?.history.snapshot.song.slides).toBe(slides);
+    expect(session?.slideModel.getSnapshot().selection).toBe(selection);
+    opened.retarget({songId: FIRST_ID});
+    await waitFor(() =>
+      expect(screen.queryByRole('tab', {name: '디자인'})).toBeNull(),
+    );
+    expect(screen.getByRole('button', {name: '기본 배경'})).toBeTruthy();
+    expect(opened.edits).toHaveLength(0);
+  });
+
   it('retains the same item history when returning from its editor to the table', async () => {
     const opened = await openedWithEdit({
       songId: FIRST_ID,

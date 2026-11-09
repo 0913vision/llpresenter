@@ -6,6 +6,7 @@ import {
 } from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {SongId} from '@core/schema/ids';
+import {songItemDesign} from '@renderer/features/service/items/SongItemDesign';
 import {ItemPreviewPanel} from '@renderer/features/service/items/ItemSidePanels';
 import type {SongEditorWindowModel} from '@renderer/features/songs/editor/useSongEditorWindow';
 import {InlineSongActions} from './InlineSongActions';
@@ -116,6 +117,7 @@ function prepPanelParts({
       embedded: (
         <SongEditor
           store={prep.editor}
+          renderDesign={songItemDesign(prep.api, prep.items)}
           onImportedSave={prep.onImportedSave}
           onBack={back}
           actions={

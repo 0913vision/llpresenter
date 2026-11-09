@@ -1,20 +1,19 @@
 import type {LlpApi} from '@contracts/ipc/api';
-import type {
-  SongDocument,
-  ServiceDocument,
-} from '@core/schema/contentDocuments';
+import type {ServiceDocument} from '@core/schema/contentDocuments';
 import type {SongEditorTarget} from '@core/schema/ipcPayloads';
 import {createSongId} from '@core/schema/ids';
 import {isItemOfKind} from '@core/schema/service';
 import type {Song} from '@core/schema/song';
+import type {EditorSongDocument} from './songSessionPersistence';
 
 type ItemTarget = NonNullable<SongEditorTarget['from']>;
+type ItemSongDocument = EditorSongDocument & {readonly itemTarget: ItemTarget};
 
 export async function loadItemSong(
   api: Pick<LlpApi, 'services' | 'songs' | 'content'>,
   target: ItemTarget,
   songId: Song['id'],
-): Promise<SongDocument | null> {
+): Promise<ItemSongDocument | null> {
   const [service, library] = await Promise.all([
     api.services.get(target.serviceId),
     api.songs.get(songId),
@@ -38,7 +37,7 @@ export function itemSongDocument(
   service: ServiceDocument,
   target: ItemTarget,
   source: Song,
-): SongDocument | null {
+): ItemSongDocument | null {
   const item = service.service.order.find(row => row.id === target.itemId);
   if (
     item === undefined ||
@@ -49,6 +48,8 @@ export function itemSongDocument(
   }
   const {background: removed, ...song} = source;
   return {
+    itemTarget: target,
+    ...(item.theme === undefined ? {} : {itemTheme: item.theme}),
     access: service.access,
     revision: service.revision,
     song: {

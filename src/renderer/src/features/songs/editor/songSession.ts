@@ -268,12 +268,13 @@ export class SongSession {
       this.itemSession &&
       this.clean &&
       document.revision >= this.document.revision &&
-      document.song.background === this.document.song.background &&
       JSON.stringify(document.song.slides) ===
         JSON.stringify(this.document.song.slides)
     ) {
       this.persistence.acceptBaseline(document);
       this.title.accept(document.song.title);
+      this.background = document.song.background;
+      this.backgroundEdited = false;
       this.options.changed();
       return;
     }

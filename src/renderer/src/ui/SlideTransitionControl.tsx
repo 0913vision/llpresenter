@@ -171,8 +171,8 @@ export function SlideTransitionControl({
           updateOn="commit"
           onChange={sec => onChange(current => ({...current, sec}))}
         />
+        {children}
       </div>
-      {children}
     </div>
   );
 }

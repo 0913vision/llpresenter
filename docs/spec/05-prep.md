@@ -72,9 +72,11 @@ have landed.
   the order strip, and the 순서 편집 window are removed.
 - 항목 and 구역 at the end of the table append items and sections. Themes,
   backgrounds, macros, memo, and section behavior retain their existing rules.
-- Cells without a background, start macro, or memo stay empty while retaining
-  their menu or field on click and a frame on hover. Item rows are 44px and
-  section rows 32px; section names have a thin line above except the first.
+- Editable background cells with no background show 없음 and open the same
+  picker on the first click. Cells without a start macro or memo stay empty
+  while retaining their menu or field on click and a frame on hover. Item rows
+  are 44px and section rows 32px; section names have a thin line above except
+  the first.
 - The table shares 진행's item selection and clipboard (04, "Editing the 예배
   순서 in 진행"): Shift selects a range, Ctrl toggles rows, and Ctrl C/V, 편집
   and the row menu copy/paste complete items within or across services. Pasting
@@ -997,6 +999,31 @@ expand the feature-freeze scope.
 
 ### Slide transition metadata
 
+The service song editor ribbon has 편집 and 디자인 tabs. 디자인 places 테마
+before 배경 and uses the same choices, names and writes as the service order's
+table cells (not its right-click menu). 테마 offers 기본 and the stored themes;
+배경 offers 곡 기본값 and image/video media. Media dragged onto slides creates
+or replaces an overlay, rather than changing this background. Changes apply to
+the captured service item, never the library song or another service's deck.
+Pending lyric edits finish before appearance writes. A saved background change
+updates the editor's baseline without replacing lyric undo history or slide
+selection when the slide deck is unchanged. The separate editor window's preview
+uses the captured service item's theme and follows its changes, including a
+return to 기본. Read-only, blocked and saving states prevent changes. Returning
+to 편집 keeps the slide selection and history. Library song editing omits 디자인
+because themes belong to service items; its existing 기본 배경 control remains
+in the header for the library song's default background.
+
+The grouping follows PowerPoint's Design tab (Themes followed by Format
+Background) and Google Slides' separate Theme and Background commands. Their
+themes coordinate presentation appearance; their background commands change
+slide fills. This app keeps its existing item-level scope and media choices.
+Sources:
+[PowerPoint themes](https://support.microsoft.com/en-us/powerpoint/training/add-color-and-design-to-your-slides-with-themes),
+[PowerPoint backgrounds](https://powerpoint.cloud.microsoft/create/en/slide-backgrounds/),
+and
+[Google Slides theme and background](https://support.google.com/docs/answer/1705254?hl=en-GB).
+
 Song and shared item editors preserve each slide's optional transition during
 ordinary text, label, order, save, and clipboard edits (02).
 
@@ -1007,6 +1034,10 @@ ordinary text, label, order, save, and clipboard edits (02).
 - Changes affect the Shift/Ctrl selection in one undo step. 이 곡 전체에 적용
   copies the selected effect to every song slide in one step; shared slide items
   use 전체 슬라이드에 적용. Selection and unrelated slide fields stay intact.
+  The apply button occupies its own row below 시간, aligned to that group's left
+  edge, with the standard 30px control height. No preview instruction sentence
+  appears below the effects; mixed-selection and multiple-selection status
+  remain.
 - 기본값 removes the override. Explicit effects, including 없음, show a small
   blue triangle at the thumbnail's bottom-right corner. Mixed selections have no
   pressed effect tile; direction, time and apply-all are disabled until a common

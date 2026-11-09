@@ -1,11 +1,14 @@
 import type {LlpApi} from '@contracts/ipc/api';
-import type {MediaId} from '@core/schema/ids';
+import type {MediaId, ThemeId} from '@core/schema/ids';
 import type {Song} from '@core/schema/song';
+import type {SongEditorTarget} from '@core/schema/ipcPayloads';
 import {TYPING_PAUSE_MS} from '@core/songs/songHistory';
 import {normalizeSongTitle} from '@core/songs/songTitle';
 import {editorTask} from './editorTask';
 
 export interface EditorSongDocument {
+  readonly itemTarget?: NonNullable<SongEditorTarget['from']>;
+  readonly itemTheme?: ThemeId;
   readonly song: Song;
   readonly revision: number;
   readonly access: 'editable' | 'readOnly';

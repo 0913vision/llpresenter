@@ -3,10 +3,12 @@ import {ModifiedMark} from '@renderer/ui/ListRow';
 import {Menu} from '@renderer/ui/Menu';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {CellButton} from './CellButton';
+import styles from './ServiceTable.module.css';
 
 /** A table cell that opens a list of choices in place. */
 export function CellMenu({
   label,
+  presentation = 'cell',
   text,
   dim,
   width,
@@ -16,6 +18,7 @@ export function CellMenu({
   mark,
 }: {
   readonly label: string;
+  readonly presentation?: 'cell' | 'ribbon';
   readonly text: string;
   readonly dim: boolean;
   readonly width: string | undefined;
@@ -32,6 +35,7 @@ export function CellMenu({
   return (
     <>
       <CellButton
+        presentation={presentation}
         label={label}
         width={width}
         dim={dim}
@@ -42,7 +46,11 @@ export function CellMenu({
         buttonRef={setButton}
         onOpen={() => setOpen(true)}
       >
-        {text}
+        {presentation === 'ribbon' ? (
+          <span className={styles.truncate}>{text}</span>
+        ) : (
+          text
+        )}
         {mark === undefined ? null : (
           <ModifiedMark label={mark} spacer={false} />
         )}

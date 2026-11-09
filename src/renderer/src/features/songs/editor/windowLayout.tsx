@@ -5,6 +5,7 @@ import {SongPreviewPanel} from './SongPreview';
 import {SongSaveDialogs} from './SongSaveDialogs';
 import type {SongEditorStore} from './songEditorStore';
 import type {SongEditorWindowModel} from './useSongEditorWindow';
+import type {SongDesignRenderer} from './SongEditorRibbon';
 import styles from './SongWindowLayout.module.css';
 
 const NO_EDITS = '변경 없음';
@@ -13,16 +14,22 @@ const NO_EDITS = '변경 없음';
 export function SongWindowLayout({
   store,
   model,
+  renderDesign,
 }: {
   readonly store: SongEditorStore;
   readonly model: SongEditorWindowModel;
+  readonly renderDesign?: SongDesignRenderer | undefined;
 }): JSX.Element {
   const {session, saving} = model;
   const unsaved = session?.unsaved === true;
   return (
     <div className={styles.layout}>
       <div className={styles.lyrics}>
-        <SongEditor store={store} unsaved={unsaved} />
+        <SongEditor
+          store={store}
+          unsaved={unsaved}
+          renderDesign={renderDesign}
+        />
       </div>
       <div className={styles.side}>
         <SongPreviewPanel store={store} />
