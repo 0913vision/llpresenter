@@ -29,6 +29,7 @@ describe('song editor view', () => {
         <SongEditor
           store={store}
           leadingCard={{
+            label: '\uAD6C\uC5ED \uC774\uB984',
             render: current => <span>{`Card ${current}`}</span>,
             onDelete,
             onSelectChange,

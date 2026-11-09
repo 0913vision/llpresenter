@@ -35,7 +35,7 @@ export function LeadingSlideCardView({
       style={style}
       data-leading-card
       tabIndex={-1}
-      aria-label={'\uAD6C\uC5ED \uC774\uB984'}
+      aria-label={card.label}
     >
       <span className={styles.leadingNumber}>1</span>
       {card.render(mode)}

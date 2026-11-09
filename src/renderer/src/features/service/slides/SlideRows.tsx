@@ -5,6 +5,7 @@ import {
   useState,
   useMemo,
   useSyncExternalStore,
+  type CSSProperties,
   type JSX,
   type ReactNode,
   type RefObject,
@@ -13,6 +14,7 @@ import type {Slide, SlidesDraft} from '@core/services/slidesEdits';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {SongSlideSurface} from '../../songs/editor/SongSlideSurface';
 import {SlidesListSession} from './slidesListSession';
+import {reconcileSlideRowMeasurements} from './slideRowMeasurements';
 import styles from './SlidesEditor.module.css';
 import {EditorSlideNumber} from '../../songs/editor/EditorSlideNumber';
 import plate from '../../songs/editor/EditorSlidePlate.module.css';
@@ -34,7 +36,7 @@ function MeasuredRow({
   id,
 }: {
   readonly children: ReactNode;
-  readonly style: import('react').CSSProperties;
+  readonly style: CSSProperties;
   readonly onHeight: (id: string, height: number) => void;
   readonly id: string;
 }): JSX.Element {
@@ -104,9 +106,18 @@ export function SlideRows({
   const {item, selection, selected} = draft.snapshot;
   const rows = item.slides.slides;
   const view = useSlideSurfaceView();
-  const [measured, setMeasured] = useState<Readonly<Record<string, number>>>(
-    {},
+  const scope = `${view.mode}:${view.scale}`;
+  const ids: string[] = rows.map(slide => slide.id);
+  if (leadingCard !== undefined) ids.push('leading-card');
+  const [cache, setCache] = useState(() =>
+    reconcileSlideRowMeasurements(
+      {scope, ids: new Set(), values: {}},
+      scope,
+      ids,
+    ),
   );
+  const current = reconcileSlideRowMeasurements(cache, scope, ids);
+  if (current !== cache) setCache(current);
   useLayoutEffect(() => {
     const viewport = listRef.current;
     if (viewport === null || typeof ResizeObserver === 'undefined') return;
@@ -114,30 +125,32 @@ export function SlideRows({
     const observer = new ResizeObserver(() => {
       if (viewport.clientWidth === width) return;
       width = viewport.clientWidth;
-      setMeasured({});
+      setCache(previous => ({...previous, values: {}}));
     });
     observer.observe(viewport);
     return () => observer.disconnect();
   }, [listRef]);
-  const keyFor = useCallback(
-    (id: string) => `${view.mode}:${view.scale}:${id}`,
-    [view.mode, view.scale],
-  );
   const leadingOffset = leadingCard === undefined ? 0 : 1;
   const heights = useMemo(() => {
-    const values = rows.map(slide => measured[keyFor(slide.id)]);
+    const values = rows.map(slide => current.values[slide.id]);
     return leadingCard === undefined
       ? values
-      : [measured[keyFor('leading-card')], ...values];
-  }, [rows, measured, keyFor, leadingCard]);
+      : [current.values['leading-card'], ...values];
+  }, [rows, current, leadingCard]);
   const saveHeight = useCallback(
     (id: string, height: number) => {
-      const key = keyFor(id);
-      setMeasured(current =>
-        current[key] === height ? current : {...current, [key]: height},
-      );
+      setCache(previous => {
+        if (
+          previous.scope !== scope ||
+          !previous.ids.has(id) ||
+          previous.values[id] === height
+        ) {
+          return previous;
+        }
+        return {...previous, values: {...previous.values, [id]: height}};
+      });
     },
-    [keyFor],
+    [scope],
   );
   const windowSlides = useMemo(() => {
     const content = rows.map(slide => ({

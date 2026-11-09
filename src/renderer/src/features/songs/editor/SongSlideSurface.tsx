@@ -62,12 +62,21 @@ export function SongSlideSurface<T extends SlideListItem>({
     session.slideModel.subscribe,
     session.slideModel.getSnapshot,
   );
-  const [cardSelected, setCardSelected] = useState(false);
-  const leadingSelected = leadingCard !== undefined && cardSelected;
+  const [cardSelection, setCardSelection] = useState({
+    documentId: session.slideDocumentId,
+    selected: false,
+  });
+  if (cardSelection.documentId !== session.slideDocumentId) {
+    setCardSelection({documentId: session.slideDocumentId, selected: false});
+  }
+  const leadingSelected =
+    leadingCard !== undefined &&
+    cardSelection.documentId === session.slideDocumentId &&
+    cardSelection.selected;
   const selectCard = (): void => {
     if (leadingCard === undefined || leadingSelected) return;
     session.selectSlides({type: 'clear'});
-    setCardSelected(true);
+    setCardSelection({documentId: session.slideDocumentId, selected: true});
     leadingCard.onSelectChange?.(true);
     const viewport = surfaceRef.current?.querySelector<HTMLElement>(
       '[data-slide-columns]',
@@ -76,7 +85,7 @@ export function SongSlideSurface<T extends SlideListItem>({
   };
   const clearCard = (): void => {
     if (!leadingSelected) return;
-    setCardSelected(false);
+    setCardSelection({documentId: session.slideDocumentId, selected: false});
     leadingCard.onSelectChange?.(false);
   };
   const [menu, setMenu] = useState<MenuAnchor | null>(null);

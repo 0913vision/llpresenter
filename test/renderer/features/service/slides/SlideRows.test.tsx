@@ -107,6 +107,48 @@ function clipboard() {
 }
 
 describe('slide row editing surface', () => {
+  it('clears leading-card selection when the edited item changes', async () => {
+    const first = makeDraft();
+    const second = new SlidesDraft({
+      ...first.snapshot.item,
+      id: createServiceItemId('20000000-0000-4000-8000-000000000001'),
+    });
+    const onDelete = vi.fn();
+    const leadingCard = {
+      label: 'Opening card',
+      render: () => <span>Card</span>,
+      onDelete,
+    };
+    const user = userEvent.setup();
+    const view = render(<Harness draft={first} leadingCard={leadingCard} />);
+    await user.click(screen.getByLabelText('Opening card'));
+    expect(
+      screen
+        .getByRole('group', {
+          name: '\uC2AC\uB77C\uC774\uB4DC \uD3B8\uC9D1 \uBA85\uB839',
+        })
+        .hasAttribute('data-leading-active'),
+    ).toBe(true);
+    view.rerender(<Harness draft={second} leadingCard={leadingCard} />);
+    expect(
+      screen
+        .getByRole('group', {
+          name: '\uC2AC\uB77C\uC774\uB4DC \uD3B8\uC9D1 \uBA85\uB839',
+        })
+        .hasAttribute('data-leading-active'),
+    ).toBe(false);
+    await user.keyboard('{Delete}');
+    expect(onDelete).not.toHaveBeenCalled();
+    view.rerender(<Harness draft={first} leadingCard={leadingCard} />);
+    expect(
+      screen
+        .getByRole('group', {
+          name: '\uC2AC\uB77C\uC774\uB4DC \uD3B8\uC9D1 \uBA85\uB839',
+        })
+        .hasAttribute('data-leading-active'),
+    ).toBe(false);
+  });
+
   it.each(['list', 'grid'] as const)(
     'does not drop content above the leading card in %s',
     mode => {
@@ -116,7 +158,11 @@ describe('slide row editing surface', () => {
       render(
         <Harness
           draft={draft}
-          leadingCard={{render: () => <span>Card</span>, onDelete: vi.fn()}}
+          leadingCard={{
+            label: '\uAD6C\uC5ED \uC774\uB984',
+            render: () => <span>Card</span>,
+            onDelete: vi.fn(),
+          }}
         />,
       );
       const card = screen.getByLabelText('\uAD6C\uC5ED \uC774\uB984');
@@ -141,6 +187,7 @@ describe('slide row editing surface', () => {
         <Harness
           draft={draft}
           leadingCard={{
+            label: '\uAD6C\uC5ED \uC774\uB984',
             render: current => <span>{`Card ${current}`}</span>,
             onDelete,
             onSelectChange,
