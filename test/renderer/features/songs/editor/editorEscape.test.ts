@@ -2,14 +2,20 @@ import {expect, it} from 'vitest';
 import {isEditorEscape} from '@renderer/features/songs/editor/editorEscape';
 
 it('accepts only unmodified non-composing Escape outside a text field', () => {
+  const root = document.createElement('div');
+  const child = document.createElement('button');
   const input = document.createElement('input');
-  document.body.append(input);
+  const zone = document.createElement('div');
+  const outside = document.createElement('div');
+  zone.dataset['editorEscapeZone'] = '';
+  root.append(child, input);
+  document.body.append(root, zone, outside);
   const check = (target: HTMLElement, init: KeyboardEventInit): boolean => {
     let result = false;
     target.addEventListener(
       'keydown',
       event => {
-        result = isEditorEscape(event);
+        result = isEditorEscape(event, root);
       },
       {once: true},
     );
@@ -22,5 +28,10 @@ it('accepts only unmodified non-composing Escape outside a text field', () => {
   expect(check(document.body, {key: 'Escape', ctrlKey: true})).toBe(false);
   expect(check(document.body, {key: 'Escape', isComposing: true})).toBe(false);
   expect(check(input, {key: 'Escape'})).toBe(false);
-  input.remove();
+  expect(check(child, {key: 'Escape'})).toBe(true);
+  expect(check(zone, {key: 'Escape'})).toBe(true);
+  expect(check(outside, {key: 'Escape'})).toBe(false);
+  root.remove();
+  zone.remove();
+  outside.remove();
 });

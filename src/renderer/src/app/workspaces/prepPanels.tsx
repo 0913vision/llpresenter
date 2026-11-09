@@ -240,16 +240,7 @@ function OtherPrepEditor({
   const root = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const escape = (event: KeyboardEvent): void => {
-      if (!isEditorEscape(event)) return;
-      const target = event.target;
-      if (
-        !(target instanceof Element) ||
-        (target !== document.body &&
-          !root.current?.contains(target) &&
-          !target.closest('[data-editor-escape-zone]'))
-      ) {
-        return;
-      }
+      if (!isEditorEscape(event, root.current)) return;
       event.preventDefault();
       event.stopPropagation();
       onBack();
@@ -297,17 +288,18 @@ export function usePrepPanels({
   const leaveTurn = useRef(0);
   const otherService = useRef<string | null>(null);
   const serviceId = useShow(view => view.serviceId);
-  const rows = useShow(view => view.rows);
+  const otherExists = useShow(
+    view => otherId !== null && view.rows.some(row => row.id === otherId),
+  );
   useEffect(() => {
     if (
       otherId !== null &&
-      (serviceId !== otherService.current ||
-        !rows.some(row => row.id === otherId))
+      (serviceId !== otherService.current || !otherExists)
     ) {
       leaveTurn.current++;
       setOtherId(null);
     }
-  }, [otherId, serviceId, rows]);
+  }, [otherId, serviceId, otherExists]);
   const editorKind = useSyncExternalStore(
     prep?.editor.subscribe ?? noSubscribe,
     () => {

@@ -43,17 +43,10 @@ export function useEditorFocus<T extends SlideListItem>(
   }, [root, session, request]);
 
   const escape = useEffectEvent((event: KeyboardEvent): void => {
-    if (session === null || onBack === undefined || !isEditorEscape(event)) {
-      return;
-    }
-    const target = event.target;
-    const editor = root.current;
     if (
-      editor === null ||
-      !(target instanceof Element) ||
-      (target !== document.body &&
-        !editor.contains(target) &&
-        target.closest('[data-editor-escape-zone]') === null)
+      session === null ||
+      onBack === undefined ||
+      !isEditorEscape(event, root.current)
     ) {
       return;
     }
