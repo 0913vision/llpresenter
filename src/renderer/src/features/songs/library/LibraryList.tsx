@@ -20,6 +20,8 @@ interface LibraryListProps {
   readonly rows: readonly LibraryRow[];
   readonly selected: SongId | null;
   readonly onSelect: (id: SongId) => void;
+  readonly onOpen: (id: SongId) => void;
+  readonly onNavigate: (id: SongId) => void;
   readonly onContextMenu: (event: ContextMenuEvent, id: SongId) => void;
 }
 
@@ -28,6 +30,8 @@ export function LibraryList({
   rows,
   selected,
   onSelect,
+  onOpen,
+  onNavigate,
   onContextMenu,
 }: LibraryListProps): JSX.Element {
   const viewport = useRef<HTMLDivElement>(null);
@@ -110,7 +114,7 @@ export function LibraryList({
       element.scrollTop = Math.max(0, index * view.row - view.height / 2);
       measure();
     }
-    onSelect(next.song.id);
+    onNavigate(next.song.id);
   };
 
   return (
@@ -137,8 +141,21 @@ export function LibraryList({
           <div
             key={song.id}
             draggable
+            onDoubleClick={() => onOpen(song.id)}
             onContextMenu={event => onContextMenu(event, song.id)}
-            onKeyDown={event => {
+            onKeyDownCapture={event => {
+              if (
+                event.key === 'Enter' &&
+                !event.altKey &&
+                !event.ctrlKey &&
+                !event.metaKey &&
+                !event.shiftKey
+              ) {
+                event.preventDefault();
+                event.stopPropagation();
+                onOpen(song.id);
+                return;
+              }
               if (!isContextMenuKey(event)) return;
               event.preventDefault();
               event.stopPropagation();

@@ -18,6 +18,19 @@ Terms: 슬라이드 (slide), 예배 순서 (service order), 템플릿 (template)
 | Center | The 예배 순서 table ("The 예배 순서 table and inline song editing") | `Reflow`, `PrepService` |
 | Right  | The selected item's 미리보기 and 슬라이드                           | `Reflow`, `PrepService` |
 
+- In an editor, the left column is a compact numbered 예배 순서 navigator, or
+  the library when editing a library song. Its rows use compact spacing for the
+  number, icon and name, with no count; a truncated name shows its full text in
+  a tooltip. The editor occupies the center and the slide inspector occupies the
+  right column for song and slide items; Bible and media items retain their
+  existing preview there.
+- A single click selects a library song or service item. Double-click or Enter
+  opens its editor. In the navigator, clicking a row or pressing Enter switches
+  items after the leave guard and queued item edits have settled; arrow keys
+  move focus.
+- Back and Esc outside text fields return to the list, restoring the selected
+  row, keyboard focus and scroll position. Tab moves through the navigator,
+  center and right panels in that order.
 - The same bottom 미디어 bin as 진행 sits below these columns. Opening it keeps
   the editor, selected service item and unsaved drafts in place. Its visibility
   and media selection follow 04.
@@ -63,9 +76,9 @@ have landed.
   Bible passages, blank slides, announcements, sermons, videos, and images.
   Media previews show the file and name. With no item or a section selected, the
   stage and caption stay blank at the same size so the panels below do not move.
-- Double-click or Enter on a song row, or 곡 편집, opens the existing song
-  editor inside 준비 on that item's deck. A library row opens its library song
-  instead.
+- Double-click or Enter opens the editor for any service item. Song and slide
+  items use their existing editors; Bible and other items use their existing
+  item panels in the center. A library row opens its library song.
 - Song item menus offer 라이브러리에 저장… and 라이브러리에서 다시 불러오기.
   Both ask before replacing slides; saving to the library includes its usage
   line. Nothing synchronizes automatically. 구성 controls, their changed dot,
@@ -138,7 +151,7 @@ not dim when focus leaves. 진행 retains its existing thumbnail style.
 - Double-click or Enter on a blank, ad, or sermon slides item opens its editor
   in 준비's center. Existing 슬라이드 편집 requests use the same editor, with no
   separate window. The back button shows the service name. Esc in a slide text
-  field selects its row; subsequent presses clear selection and go back. The
+  field leaves text editing; Esc outside a text field returns to the list. The
   슬라이드 속성 shows the selected draft's picture and transition settings.
 - Opening an item or library song by double-click, Enter, or its edit action
   focuses the editor's list command surface with the first slide or the source
@@ -266,12 +279,8 @@ endpoint slide IDs (02), so moves keep the endpoints attached.
   passages ("슬라이드 9개"; for a song, the length of the item deck), and the
   duration for media ("5:00").
 - Selecting a song item opens its item settings (see "예배 순서 item settings").
-- No board shows the center panel for other item kinds. Version 1 shows these
-  (proposal):
-  - Bible passage: the Bible panel of 04 without the output buttons, so the
-    operator can change the translation and split.
-  - Media: the media properties of that media.
-  - Section (구역): an empty center panel.
+- In the editor, Bible and media items show their current item panels in the
+  center. Slide and section-card items use the slide editor.
 - The operator drags rows to reorder them. Dragging a 구역 moves it with its
   items, up to the next 구역, as one section (user decision, October 26). Delete
   is immediate for one row and asks once with the selected count for more than
@@ -298,7 +307,7 @@ Source: `Reflow`, `PrepService`, `AddSongs`, `ListRow` README.
   board), compared with the Korean collation of the platform
   (`Intl.Collator('ko', {numeric: true})`), so "찬송 2" comes before "찬송 10"
   (proposal).
-- Clicking a row selects the song and opens the song editor.
+- Clicking a row selects the song; double-click or Enter opens the song editor.
 - Dragging a row to the 예배 순서 adds the song (see "Adding items to the 예배
   순서").
 

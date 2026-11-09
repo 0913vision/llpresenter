@@ -69,6 +69,7 @@ export function PanelColumn({
             title={title}
             parts={partsOf(title)}
             rowId={rowId(workspace, title, draft)}
+            editorEscapeZone={workspace === 'prep' && draft}
           />
           {index < titles.length - 1 ? (
             <ResizeGap

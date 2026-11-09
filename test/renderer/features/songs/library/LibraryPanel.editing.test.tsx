@@ -139,7 +139,7 @@ describe('library panel', () => {
     );
     const {onOpenSong, user} = await setup(fixture);
     const original = fixtureSong(1, '찬송 10');
-    await user.click(screen.getByRole('option', {name: '찬송 10'}));
+    await user.dblClick(screen.getByRole('option', {name: '찬송 10'}));
     act(() =>
       fixture.pushList(
         fixture.list().filter(song => song.id !== original.song.id),

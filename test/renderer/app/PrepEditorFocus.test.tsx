@@ -10,6 +10,7 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
+import {createServiceItemId, createThemeId} from '@core/schema/ids';
 import type {SongEditorTarget} from '@core/schema/ipcPayloads';
 import type {SlidesEditorTarget} from '@contracts/ipc/slidesEditor';
 import {newSlidesItem} from '@core/services/slidesEdits';
@@ -24,6 +25,11 @@ import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore
 import {applyService} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
 import {isItemOfKind} from '@core/schema/service';
+import {otherItems, templateOrder} from '@fixtures/core/serviceList';
+import {
+  hoverForTooltip,
+  resetTooltips,
+} from '@fixtures/renderer/ui/tooltipTesting';
 import {mockMenuRowHeight} from '@fixtures/renderer/features/songs/editor/editorTesting';
 
 vi.mock('@renderer/rendering/outputRenderer', () => ({
@@ -36,9 +42,34 @@ vi.mock('@renderer/rendering/SlidePicture', () => ({SlidePicture: () => null}));
 
 const sessions: ControlSession[] = [];
 
-function setup() {
+function setup(extraSlides = false) {
   const f = itemFixture();
   const slides = newSlidesItem('blank', fixtureItems.lost);
+  const announcement = newSlidesItem(
+    'ad',
+    createServiceItemId('50000000-0000-4000-8000-000000000097'),
+  );
+  const section = {
+    ...newSlidesItem(
+      'blank',
+      createServiceItemId('50000000-0000-4000-8000-000000000098'),
+    ),
+    sectionCard: {
+      name: 'Section',
+      english: 'Section',
+      theme: createThemeId('00000000-0000-4000-8000-000000000111'),
+    },
+  };
+  const sourceBible = templateOrder.find(item => isItemOfKind(item, 'bible'));
+  if (!sourceBible) throw new Error('Missing Bible fixture');
+  const media = otherItems[0];
+  if (!media || !isItemOfKind(media, 'media')) {
+    throw new Error('Missing media fixture');
+  }
+  const bible = {
+    ...sourceBible,
+    id: createServiceItemId('50000000-0000-4000-8000-000000000099'),
+  };
   f.pushService({
     ...f.service(),
     service: {
@@ -46,6 +77,9 @@ function setup() {
       order: [
         ...f.service().service.order.filter(item => item.id !== slides.id),
         slides,
+        bible,
+        media,
+        ...(extraSlides ? [announcement, section] : []),
       ],
     },
   });
@@ -81,6 +115,24 @@ function setup() {
     rows: [
       {kind: 'song', id: fixtureItems.arranged, title: 'Service song'},
       {kind: 'slides', form: 'blank', id: slides.id, title: 'Sermon item'},
+      {kind: 'bible', id: bible.id, title: 'Bible item'},
+      {kind: 'media', id: media.id, title: 'Media item'},
+      ...(extraSlides
+        ? [
+            {
+              kind: 'slides' as const,
+              form: 'ad' as const,
+              id: announcement.id,
+              title: 'Announcement item',
+            },
+            {
+              kind: 'slides' as const,
+              form: 'blank' as const,
+              id: section.id,
+              title: 'Section item',
+            },
+          ]
+        : []),
     ],
     tiles: {
       [fixtureItems.arranged]: f.first.song.slides.map(slide => ({
@@ -90,6 +142,17 @@ function setup() {
         sourceSlide: {songId: f.first.song.id, slideId: slide.id},
       })),
       [slides.id]: [{lines: [], label: null, labelColor: 'none'}],
+      [bible.id]: [{lines: [], label: null, labelColor: 'none'}],
+      ...(extraSlides
+        ? {
+            [announcement.id]: [
+              {lines: [], label: null, labelColor: 'none' as const},
+            ],
+            [section.id]: [
+              {lines: [], label: null, labelColor: 'none' as const},
+            ],
+          }
+        : {}),
     },
     jumpKeys: {},
   });
@@ -113,6 +176,7 @@ beforeEach(() => {
 });
 afterEach(async () => {
   cleanup();
+  resetTooltips();
   await Promise.all(sessions.splice(0).map(session => session.dispose()));
   applyService(null);
   useLive.setState({state: null});
@@ -147,15 +211,114 @@ it.each(['double-click', 'Enter', 'edit button'] as const)(
     await userEvent.keyboard('{Control>}d{/Control}');
     expect(model?.getSnapshot().slides).toHaveLength(3);
     await userEvent.keyboard('{Escape}');
-    expect(model?.getSnapshot().selection.ids.size).toBe(0);
-    expect(screen.queryByRole('listbox', {name: '예배 순서'})).toBeNull();
-    await userEvent.keyboard('{Escape}');
     const returned = await screen.findByRole('listbox', {name: '예배 순서'});
     expect(document.activeElement).toBe(
       within(returned).getByRole('option', {name: /Service song/}),
     );
   },
 );
+
+it.each([
+  ['Bible item', 'double-click'],
+  ['Bible item', 'Enter'],
+  ['Media item', 'double-click'],
+  ['Media item', 'Enter'],
+] as const)(
+  'opens %s with %s and returns to its focused row on Escape',
+  async (name, path) => {
+    setup();
+    const row = screen.getByRole('option', {name});
+    await userEvent.click(row);
+    expect(screen.queryByRole('button', {name: '‹ Service'})).toBeNull();
+    if (path === 'double-click') await userEvent.dblClick(row);
+    else await userEvent.keyboard('{Enter}');
+    const back = await screen.findByRole('button', {name: '‹ Service'});
+    expect(back.closest('[data-panel="편집"]')).not.toBeNull();
+    back.focus();
+    await userEvent.keyboard('{Escape}');
+    await waitFor(() =>
+      expect(screen.queryByRole('button', {name: '‹ Service'})).toBeNull(),
+    );
+    expect(document.activeElement).toBe(screen.getByRole('option', {name}));
+  },
+);
+
+it.each([
+  ['Announcement item', 'double-click'],
+  ['Announcement item', 'Enter'],
+  ['Section item', 'double-click'],
+  ['Section item', 'Enter'],
+] as const)('opens %s with %s in the slide editor', async (name, path) => {
+  setup(true);
+  const row = screen.getByRole('option', {name});
+  await userEvent.click(row);
+  if (path === 'double-click') await userEvent.dblClick(row);
+  else await userEvent.keyboard('{Enter}');
+  await waitFor(() => expect(document.activeElement).toBe(commandList()));
+  await userEvent.keyboard('{Escape}');
+  await waitFor(() =>
+    expect(document.activeElement).toBe(screen.getByRole('option', {name})),
+  );
+});
+
+it('switches from a song to a Bible item and back to a song', async () => {
+  setup();
+  await userEvent.dblClick(screen.getByRole('option', {name: /Service song/}));
+  await waitFor(() => expect(document.activeElement).toBe(commandList()));
+  await userEvent.click(screen.getByRole('option', {name: 'Bible item'}));
+  await screen.findByRole('button', {name: '‹ Service'});
+  await userEvent.click(screen.getByRole('option', {name: /Service song/}));
+  await waitFor(() => expect(document.activeElement).toBe(commandList()));
+});
+
+it('tabs from the numbered navigator through the editor before the right panel', async () => {
+  setup();
+  await userEvent.dblClick(screen.getByRole('option', {name: /Service song/}));
+  await waitFor(() => expect(document.activeElement).toBe(commandList()));
+  const navigator = screen.getByRole('listbox', {name: '예배 순서'});
+  const row = within(navigator).getByRole('option', {name: /Service song/});
+  expect(row.textContent).toContain('1');
+  expect(row.textContent).toContain('Service song');
+  expect(row.textContent).not.toContain('슬라이드');
+  expect(
+    within(navigator).getByRole('option', {name: 'Bible item'}).textContent,
+  ).not.toContain('슬라이드');
+  row.focus();
+  let sawEditor = false;
+  let sawRight = false;
+  for (let i = 0; i < 60 && !sawRight; i++) {
+    await userEvent.tab();
+    const active = document.activeElement;
+    if (!(active instanceof Element)) continue;
+    if (active.closest('[data-panel="편집"]')) sawEditor = true;
+    if (active.closest('[data-panel="슬라이드 속성"]')) {
+      expect(sawEditor).toBe(true);
+      sawRight = true;
+    }
+  }
+  expect(sawRight).toBe(true);
+  await userEvent.keyboard('{Escape}');
+  await waitFor(() =>
+    expect(document.activeElement).toBe(
+      screen.getByRole('option', {name: /Service song/}),
+    ),
+  );
+});
+
+it('shows the full navigator name in a tooltip when it is truncated', async () => {
+  setup();
+  await userEvent.dblClick(screen.getByRole('option', {name: /Service song/}));
+  await waitFor(() => expect(document.activeElement).toBe(commandList()));
+  const row = within(
+    screen.getByRole('listbox', {name: '예배 순서'}),
+  ).getByRole('option', {name: /Service song/});
+  const name = within(row).getByText('Service song');
+  Object.defineProperties(name, {
+    clientWidth: {value: 40},
+    scrollWidth: {value: 120},
+  });
+  expect((await hoverForTooltip(name))?.textContent).toBe('Service song');
+});
 
 it.each(['double-click', 'Enter', 'edit button'] as const)(
   'focuses sermon list commands opened by %s and handles body Escape',
@@ -171,14 +334,12 @@ it.each(['double-click', 'Enter', 'edit button'] as const)(
       );
     }
     await waitFor(() => expect(document.activeElement).toBe(commandList()));
-    await userEvent.keyboard('{Escape}');
-    act(() =>
-      document.activeElement instanceof HTMLElement
-        ? document.activeElement.blur()
-        : undefined,
-    );
-    expect(document.activeElement).toBe(document.body);
     fireEvent.keyDown(document.body, {key: 'Escape', code: 'Escape'});
+    await waitFor(() =>
+      expect(
+        screen.queryByLabelText('슬라이드 편집', {selector: 'div'}),
+      ).toBeNull(),
+    );
     const table = await screen.findByRole('listbox', {name: '예배 순서'});
     expect(document.activeElement).toBe(
       within(table).getByRole('option', {name: /Sermon item/}),
@@ -200,7 +361,6 @@ it.each(['double-click', 'Enter'] as const)(
       await userEvent.keyboard('{Enter}');
     }
     await waitFor(() => expect(document.activeElement).toBe(commandList()));
-    await userEvent.keyboard('{Escape}');
     act(() =>
       document.activeElement instanceof HTMLElement
         ? document.activeElement.blur()
@@ -275,7 +435,7 @@ it('starts a new blank item in slide 1 text, then reopens it on list commands', 
   if (added === undefined) throw new Error('Missing added item');
   await userEvent.keyboard('{Escape}');
   expect(document.activeElement).toBe(commandList());
-  await userEvent.keyboard('{Escape}{Escape}');
+  await userEvent.keyboard('{Escape}');
   await screen.findByRole('listbox', {name: '예배 순서'});
   await act(async () => {
     await f.api.slidesEditor.open({

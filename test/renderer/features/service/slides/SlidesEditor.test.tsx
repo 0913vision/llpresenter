@@ -383,7 +383,7 @@ describe('automatic inline slides editor', () => {
     {form: 'ad' as const, field: '슬라이드 이름'},
     {form: 'ad' as const, field: '내용'},
   ])(
-    'leaves $field editing with Escape, then clears selection and returns to the table',
+    'leaves $field editing with Escape, then returns to the table',
     async ({form, field}) => {
       const f = setup(form);
       const input = await screen.findByRole<
@@ -411,12 +411,9 @@ describe('automatic inline slides editor', () => {
           ?.getAttribute('data-slide-id'),
       ).toBe(slideId);
       await userEvent.keyboard('{Escape}');
-      expect(
-        document.querySelectorAll('[data-slide-id][data-selected]'),
-      ).toHaveLength(0);
-      expect(screen.queryByRole('textbox', {name: field})).toBeTruthy();
-      await userEvent.keyboard('{Escape}');
-      expect(screen.queryByRole('textbox', {name: field})).toBeNull();
+      await waitFor(() =>
+        expect(screen.queryByRole('textbox', {name: field})).toBeNull(),
+      );
       expect(screen.queryByRole('alertdialog')).toBeNull();
       expect(f.content).not.toHaveBeenCalled();
       f.view.unmount();

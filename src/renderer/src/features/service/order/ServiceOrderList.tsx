@@ -168,8 +168,10 @@ function ItemRows({
   rename,
   selected,
   openBackground,
+  navigator,
 }: {
   readonly openBackground: (id: string) => void;
+  readonly navigator: boolean;
   readonly items: readonly ServiceRow[];
   readonly selected: ReadonlySet<string>;
   readonly liveItemId: string | null;
@@ -203,13 +205,17 @@ function ItemRows({
                   : undefined
               }
               rename={renaming === row.id ? rename(row) : undefined}
-              lead={table === undefined ? undefined : numbers.get(row.id)}
-              className={table?.rowClass}
+              lead={
+                table === undefined && !navigator
+                  ? undefined
+                  : numbers.get(row.id)
+              }
+              className={navigator ? styles.navigatorRow : table?.rowClass}
               icon={iconByKind[row.kind]}
               live={row.id === liveItemId}
               done={done.has(row.id)}
               meta={
-                workspace !== 'prep' || table !== undefined
+                workspace !== 'prep' || table !== undefined || navigator
                   ? undefined
                   : ['song', 'bible'].includes(row.kind)
                     ? `슬라이드 ${tiles[row.id]?.length ?? 0}개`
@@ -261,6 +267,9 @@ function logProblem(notice: Notice): void {
 /** The main-owned 예배 순서 list shared by 진행 and 준비. */
 export function ServiceOrderList({
   workspace = 'show',
+  navigator = false,
+  onOpenOther,
+  onNavigateEditor,
   onProblem = logProblem,
   onOpenPrep,
   onOpenItem,
@@ -268,6 +277,10 @@ export function ServiceOrderList({
   table,
 }: {
   readonly workspace?: Workspace | undefined;
+  readonly navigator?: boolean | undefined;
+  readonly onOpenOther?: ((id: string) => void) | undefined;
+  readonly onNavigateEditor?:
+    ((id: string, kind: ServiceRow['kind']) => void) | undefined;
   readonly table?: ServiceTableParts | undefined;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
   readonly onOpenPrep?:
@@ -345,8 +358,15 @@ export function ServiceOrderList({
     cursor: openItemId,
     ids: selectableIds,
     onSelect: itemId => {
-      onOpenItem?.();
-      openItem(itemId);
+      if (navigator) {
+        const kind = rows.find(row => row.id === itemId)?.kind;
+        if (kind !== undefined && kind !== 'header') {
+          onNavigateEditor?.(itemId, kind);
+        }
+      } else {
+        onOpenItem?.();
+        openItem(itemId);
+      }
     },
   });
   const {insertBefore, dragProps} = useServiceOrderDrag({
@@ -675,7 +695,11 @@ export function ServiceOrderList({
   const openOrderEditor = (id: string | null): boolean => {
     if (workspace !== 'prep' || id === null || serviceId === null) return false;
     const kind = rows.find(row => row.id === id)?.kind;
-    if (kind !== 'song' && kind !== 'slides') return false;
+    if (kind === undefined || kind === 'header') return false;
+    if (kind !== 'song' && kind !== 'slides') {
+      onOpenOther?.(id);
+      return true;
+    }
     const api = window.llp;
     if (api !== undefined) {
       editorTask(
@@ -889,6 +913,7 @@ export function ServiceOrderList({
               durations={durations}
               table={table}
               numbers={numbers}
+              navigator={navigator}
               renaming={renaming}
               rename={renameItem}
               openBackground={openBackground}
@@ -948,6 +973,7 @@ export function ServiceOrderList({
                   durations={durations}
                   table={table}
                   numbers={numbers}
+                  navigator={navigator}
                   renaming={renaming}
                   rename={renameItem}
                   openBackground={openBackground}

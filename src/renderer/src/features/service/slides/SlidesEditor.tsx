@@ -43,6 +43,7 @@ import {SlideRows, type SlideCardRenderer} from './SlideRows';
 import type {LeadingSlideCard} from '../../songs/editor/SlideCardRenderer';
 import {SlideSurfaceView} from '../../songs/editor/SlideSurfaceView';
 import styles from './SlidesEditor.module.css';
+import {SlidesBackButton} from './SlidesBackButton';
 import headerStyles from '../../songs/editor/SongHeader.module.css';
 import {SlideTransitionMark} from '@renderer/ui/SlideTransitionMark';
 
@@ -78,9 +79,7 @@ function SlidesHeader({
     <>
       <header className={headerStyles.header} data-inline="true">
         {onBack === undefined ? null : (
-          <Button className={styles.back} onClick={onBack}>
-            ‹ {serviceName || '예배 순서'}
-          </Button>
+          <SlidesBackButton serviceName={serviceName} onBack={onBack} />
         )}
         <span className={headerStyles.unsaved} data-empty aria-hidden="true" />
         <div className={headerStyles.title}>

@@ -85,7 +85,7 @@ it('opens the library song inline and releases every listener', async () => {
     .spyOn(fixture.api.window, 'openSongEditor')
     .mockResolvedValue({ok: true, value: undefined});
   const library = screen.getByRole('region', {name: '라이브러리'});
-  fireEvent.click(
+  fireEvent.doubleClick(
     await within(library).findByRole('option', {
       name: fixture.first.song.title,
     }),

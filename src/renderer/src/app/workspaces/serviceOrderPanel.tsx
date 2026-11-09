@@ -1,4 +1,4 @@
-import type {ReactNode} from 'react';
+import type {ComponentProps, ReactNode} from 'react';
 import type {SongId} from '@core/schema/ids';
 import {ReadOnlyMark} from '@renderer/features/presentation/ReadOnlyMark';
 import {ServiceQuickAdd} from '@renderer/features/service/items/QuickAdd';
@@ -16,6 +16,9 @@ export const SERVICE_ORDER = '예배 순서';
 /** The 예배 순서 panel as 진행 or 준비 shows it. */
 export function serviceOrderParts({
   workspace,
+  navigator = false,
+  onOpenOther,
+  onNavigateEditor,
   onProblem,
   onOpenPrep,
   onShowInLibrary,
@@ -24,6 +27,11 @@ export function serviceOrderParts({
   table,
 }: {
   readonly workspace: 'show' | 'prep';
+  readonly navigator?: boolean | undefined;
+  readonly onOpenOther?: ((id: string) => void) | undefined;
+  readonly onNavigateEditor?: ComponentProps<
+    typeof ServiceOrderList
+  >['onNavigateEditor'];
   readonly onProblem: ((notice: Notice) => void) | undefined;
   readonly onOpenPrep: ((itemId: string) => void) | undefined;
   readonly onShowInLibrary: ((songId: SongId) => void) | undefined;
@@ -36,9 +44,12 @@ export function serviceOrderParts({
   return {
     header: <ServiceOrderHeader onProblem={onProblem} />,
     body:
-      table === undefined ? (
+      table === undefined || navigator ? (
         <ServiceOrderList
           workspace={workspace}
+          navigator={navigator}
+          onOpenOther={onOpenOther}
+          onNavigateEditor={onNavigateEditor}
           onProblem={onProblem}
           onOpenPrep={onOpenPrep}
           onShowInLibrary={onShowInLibrary}
@@ -46,6 +57,8 @@ export function serviceOrderParts({
         />
       ) : (
         <ServiceTableList
+          onOpenOther={onOpenOther}
+          onNavigateEditor={onNavigateEditor}
           api={table.api}
           items={table.items}
           onProblem={onProblem}

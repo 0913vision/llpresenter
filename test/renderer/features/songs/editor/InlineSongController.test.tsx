@@ -14,7 +14,7 @@ import {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import type {SongEditorWindowModel} from '@renderer/features/songs/editor/useSongEditorWindow';
 import {SongEditor} from '@renderer/features/songs/editor/SongEditor';
 
-it('leaves a lyric field with Escape before clearing its row and guarding a dirty library song exit', async () => {
+it('leaves a lyric field with Escape before guarding a dirty library song exit', async () => {
   HTMLElement.prototype.scrollIntoView = vi.fn();
   const fixture = itemFixture();
   const store = new SongEditorStore(fixture.api, vi.fn(), 'manual');
@@ -58,10 +58,6 @@ it('leaves a lyric field with Escape before clearing its row and guarding a dirt
     expect(selected).toHaveLength(1);
     expect(selected[0]?.getAttribute('data-editor-block')).toBe('1');
     expect(screen.queryByRole('alertdialog')).toBeNull();
-    await userEvent.keyboard('{Escape}');
-    expect(
-      document.querySelectorAll('[data-song-slide][data-active="true"]'),
-    ).toHaveLength(0);
     await userEvent.keyboard('{Escape}');
     await screen.findByRole('alertdialog');
     expect(store.getSnapshot().session).not.toBeNull();

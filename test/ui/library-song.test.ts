@@ -90,9 +90,16 @@ it(
     const title = editor.getByRole('textbox', {name: '곡 제목'});
     await title.waitFor({timeout: WAIT});
     const lyrics = editor.getByRole('textbox', {name: '슬라이드 1 가사'});
+    await lyrics.waitFor({timeout: WAIT});
     await title.fill('점검 알파 수정');
     await title.press('Enter');
+    await page.waitForFunction(
+      `document.activeElement?.getAttribute('aria-label') === '슬라이드 1 가사'`,
+      {timeout: WAIT},
+    );
+    await expect.poll(() => lyrics.inputValue()).toBe('첫 번째 창작 문장');
     await lyrics.fill('새로 만든 점검 문장');
+    await expect.poll(() => lyrics.inputValue()).toBe('새로 만든 점검 문장');
     await lyrics.press('Tab');
     const file = join(app.data, 'LoveLight', 'Songs', `${FIRST}.llsong`);
     await editor.getByRole('button', {name: '저장', exact: true}).click();

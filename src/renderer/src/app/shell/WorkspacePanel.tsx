@@ -60,15 +60,18 @@ export function Panel({
   title,
   parts,
   rowId,
+  editorEscapeZone = false,
 }: {
   readonly title: string;
   readonly parts: PanelParts;
   readonly rowId?: PanelRowId | undefined;
+  readonly editorEscapeZone?: boolean | undefined;
 }): JSX.Element {
   if (parts.embedded) {
     return (
       <div
         data-panel={title}
+        data-editor-escape-zone={editorEscapeZone ? '' : undefined}
         data-resize-panel={rowId ?? ''}
         className={sizedClass(styles.embedded, parts.size)}
       >
@@ -80,6 +83,7 @@ export function Panel({
     return (
       <div
         data-panel={title}
+        data-editor-escape-zone={editorEscapeZone ? '' : undefined}
         data-resize-panel=""
         data-resize-fixed
         className={styles.bare}
@@ -91,6 +95,7 @@ export function Panel({
   return (
     <section
       data-panel={title}
+      data-editor-escape-zone={editorEscapeZone ? '' : undefined}
       data-resize-panel={rowId ?? ''}
       className={sizedClass(styles.panel, parts.size)}
       aria-label={title}

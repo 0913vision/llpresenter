@@ -18,6 +18,8 @@ describe('library panel', () => {
     ]);
     expect(screen.getByText('3개')).toBeDefined();
     await user.click(screen.getByRole('option', {name: '찬송 2'}));
+    expect(onOpenSong).not.toHaveBeenCalled();
+    await user.dblClick(screen.getByRole('option', {name: '찬송 2'}));
     await waitFor(() =>
       expect(onOpenSong).toHaveBeenCalledWith({
         document: fixture.documents.get(
@@ -74,6 +76,15 @@ describe('library panel', () => {
     );
     fireEvent.keyDown(screen.getByRole('listbox', {name: '라이브러리 곡'}), {
       key: 'End',
+    });
+    await waitFor(() =>
+      expect(document.activeElement).toBe(
+        screen.getByRole('option', {name: 'Invented song 205'}),
+      ),
+    );
+    expect(onOpenSong).not.toHaveBeenCalled();
+    fireEvent.keyDown(screen.getByRole('option', {name: 'Invented song 205'}), {
+      key: 'Enter',
     });
     await waitFor(() =>
       expect(onOpenSong).toHaveBeenCalledWith({

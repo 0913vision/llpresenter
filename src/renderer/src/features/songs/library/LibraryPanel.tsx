@@ -41,6 +41,7 @@ export type LibrarySelectionRequest =
 
 export interface LibraryPanelProps {
   readonly api: LibraryApi;
+  readonly navigating?: boolean | undefined;
   /** Opens the editor; after creation the host focuses its title field. */
   readonly onOpenSong: (selection: LibrarySelection) => void;
   readonly onNewSong?: (() => void) | undefined;
@@ -55,6 +56,7 @@ export interface LibraryPanelProps {
 /** The independent library panel; the workspace host mounts it beside its editor. */
 export function LibraryPanel({
   api,
+  navigating = false,
   onOpenSong,
   onNewSong,
   beforeOpen,
@@ -182,8 +184,11 @@ export function LibraryPanel({
               rows={library.visible}
               selected={library.selected}
               onSelect={id => {
-                open(id);
+                if (navigating) open(id);
+                else library.select(id);
               }}
+              onOpen={open}
+              onNavigate={library.select}
               onContextMenu={(event, id) => {
                 event.preventDefault();
                 library.select(id);

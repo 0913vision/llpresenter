@@ -127,6 +127,8 @@ describe('library panel', () => {
     const first = screen.getByRole('option', {name: '만복의 근원 하나님'});
     expect(first.getAttribute('aria-selected')).toBe('true');
     expect(document.activeElement).toBe(first);
+    expect(onOpenSong).not.toHaveBeenCalled();
+    fireEvent.keyDown(first, {key: 'Enter'});
     await waitFor(() =>
       expect(onOpenSong).toHaveBeenCalledWith({
         document: fixtureSong(2, '만복의 근원 하나님'),

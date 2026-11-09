@@ -70,6 +70,9 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     expect(mocks.slideAdvanceStop.mock.invocationCallOrder[0]).toBeLessThan(
       mocks.storeDispose.mock.invocationCallOrder[0] ?? Infinity,
     );
+    await vi.waitFor(() =>
+      expect(mocks.electron.app.quit).toHaveBeenCalledOnce(),
+    );
   });
   it('registers fonts for the control window and stops enumeration before closing data', async () => {
     const control = await startMain();
@@ -82,6 +85,9 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     expect(mocks.fontsStop).toHaveBeenCalledOnce();
     expect(mocks.fontsStop.mock.invocationCallOrder[0]).toBeLessThan(
       mocks.storeDispose.mock.invocationCallOrder[0] ?? Infinity,
+    );
+    await vi.waitFor(() =>
+      expect(mocks.electron.app.quit).toHaveBeenCalledOnce(),
     );
   });
 
@@ -102,6 +108,9 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     );
     expect(mocks.bibleStop.mock.invocationCallOrder[0]).toBeLessThan(
       mocks.storeDispose.mock.invocationCallOrder[0] ?? Infinity,
+    );
+    await vi.waitFor(() =>
+      expect(mocks.electron.app.quit).toHaveBeenCalledOnce(),
     );
   });
   it('starts a crashed session in standby and removes its marker after saving the data store', async () => {
@@ -175,6 +184,9 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     await vi.waitFor(() =>
       expect(mocks.recovery.cleanExit).toHaveBeenCalledOnce(),
     );
+    await vi.waitFor(() =>
+      expect(mocks.electron.app.quit).toHaveBeenCalledOnce(),
+    );
   });
 
   it('connects macro execution to the shared live and data stores and stops it before closing data', async () => {
@@ -194,6 +206,9 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     expect(mocks.macrosStop).toHaveBeenCalledOnce();
     expect(mocks.macrosStop.mock.invocationCallOrder[0]).toBeLessThan(
       mocks.storeDispose.mock.invocationCallOrder[0] ?? Infinity,
+    );
+    await vi.waitFor(() =>
+      expect(mocks.electron.app.quit).toHaveBeenCalledOnce(),
     );
   });
   it('starts independent audio output and releases it before the data store', async () => {
@@ -219,6 +234,9 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     expect(mocks.audioStop.mock.invocationCallOrder[0]).toBeLessThan(
       mocks.storeDispose.mock.invocationCallOrder[0] ?? Infinity,
     );
+    await vi.waitFor(() =>
+      expect(mocks.electron.app.quit).toHaveBeenCalledOnce(),
+    );
   });
   it('connects overlay settings to the live store and stops overlays before closing the data store', async () => {
     await startMain();
@@ -237,6 +255,9 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     expect(mocks.overlaysStop.mock.invocationCallOrder[0]).toBeLessThan(
       mocks.storeDispose.mock.invocationCallOrder[0] ?? Infinity,
     );
+    await vi.waitFor(() =>
+      expect(mocks.electron.app.quit).toHaveBeenCalledOnce(),
+    );
   });
 
   it('registers text import for the control window and removes its handlers on shutdown', async () => {
@@ -249,6 +270,9 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     ]);
     beforeQuit();
     await vi.waitFor(() => expect(mocks.textImportStop).toHaveBeenCalledOnce());
+    await vi.waitFor(() =>
+      expect(mocks.electron.app.quit).toHaveBeenCalledOnce(),
+    );
   });
 
   it('registers one settings window owner and disposes it before saving app.json', async () => {
@@ -278,6 +302,9 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     expect(mocks.screensWindowStop.mock.invocationCallOrder[0]).toBeLessThan(
       mocks.appConfig.flush.mock.invocationCallOrder.at(-1) ?? -Infinity,
     );
+    await vi.waitFor(() =>
+      expect(mocks.electron.app.quit).toHaveBeenCalledOnce(),
+    );
   });
 
   it('registers editor window owners with the control window and stops them at quit', async () => {
@@ -297,6 +324,9 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
       expect(mocks.editorWindowStops.song).toHaveBeenCalledOnce(),
     );
     expect(mocks.editorWindowStops.slides).toHaveBeenCalledOnce();
+    await vi.waitFor(() =>
+      expect(mocks.electron.app.quit).toHaveBeenCalledOnce(),
+    );
   });
 
   it('asks the control window to flush before saving and keeps running when it refuses', async () => {
@@ -367,6 +397,9 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     expect(mocks.mediaBackendStop.mock.invocationCallOrder[0]).toBeLessThan(
       mocks.storeDispose.mock.invocationCallOrder[0] ?? -Infinity,
     );
+    await vi.waitFor(() =>
+      expect(mocks.electron.app.quit).toHaveBeenCalledOnce(),
+    );
   });
 
   it('registers theme output and releases it before closing data', async () => {
@@ -379,6 +412,9 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     expect(mocks.themeOutputStop).toHaveBeenCalledOnce();
     expect(mocks.themeOutputStop.mock.invocationCallOrder[0]).toBeLessThan(
       mocks.storeDispose.mock.invocationCallOrder[0] ?? Infinity,
+    );
+    await vi.waitFor(() =>
+      expect(mocks.electron.app.quit).toHaveBeenCalledOnce(),
     );
   });
 });

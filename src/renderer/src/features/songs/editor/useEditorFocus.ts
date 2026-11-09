@@ -5,8 +5,7 @@ import {
   type RefObject,
 } from 'react';
 import type {SlideListItem} from '@core/songs/slideListEdits';
-import {isComposingKey} from '@renderer/ui/ime';
-import {modalStack} from '@renderer/ui/modalStack';
+import {isEditorEscape} from './editorEscape';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import type {SlideListSession} from './slideListSession';
 
@@ -44,19 +43,7 @@ export function useEditorFocus<T extends SlideListItem>(
   }, [root, session, request]);
 
   const escape = useEffectEvent((event: KeyboardEvent): void => {
-    if (
-      session === null ||
-      onBack === undefined ||
-      event.defaultPrevented ||
-      event.key !== 'Escape' ||
-      event.ctrlKey ||
-      event.metaKey ||
-      event.altKey ||
-      event.shiftKey ||
-      isComposingKey(event) ||
-      isInTextEntry(event.target) ||
-      modalStack.isOpen
-    ) {
+    if (session === null || onBack === undefined || !isEditorEscape(event)) {
       return;
     }
     const target = event.target;
@@ -66,18 +53,16 @@ export function useEditorFocus<T extends SlideListItem>(
       !(target instanceof Element) ||
       (target !== document.body &&
         !editor.contains(target) &&
-        target.closest('[data-resize-panel^="draft."]') === null)
+        target.closest('[data-editor-escape-zone]') === null)
     ) {
       return;
     }
-    const {selection} = session.slideModel.getSnapshot();
-    if (selection.ids.size > 0 || selection.caret !== null) return;
     event.preventDefault();
     event.stopPropagation();
     onBack();
   });
   useEffect(() => {
-    document.addEventListener('keydown', escape);
-    return () => document.removeEventListener('keydown', escape);
+    document.addEventListener('keydown', escape, true);
+    return () => document.removeEventListener('keydown', escape, true);
   }, []);
 }

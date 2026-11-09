@@ -32,6 +32,9 @@ describe('main entry lifecycle', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     expect(mocks.zoom.dispose.mock.invocationCallOrder[0]).toBeLessThan(
       mocks.appConfig.flush.mock.invocationCallOrder[0] ?? Infinity,
     );
+    await vi.waitFor(() =>
+      expect(mocks.electron.app.quit).toHaveBeenCalledOnce(),
+    );
   });
 
   it('gives the data store the app.json it opened first', async () => {
@@ -54,6 +57,9 @@ describe('main entry lifecycle', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     await vi.waitFor(() => {
       expect(mocks.appConfig.flush).toHaveBeenCalledTimes(1);
     });
+    await vi.waitFor(() =>
+      expect(mocks.electron.app.quit).toHaveBeenCalledOnce(),
+    );
   });
 
   it('serves media through the data store lookup', async () => {
@@ -91,6 +97,9 @@ describe('main entry lifecycle', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     );
     expect(mocks.mediaBackendStop.mock.invocationCallOrder[0]).toBeLessThan(
       mocks.analysis.dispose.mock.invocationCallOrder[0] ?? -Infinity,
+    );
+    await vi.waitFor(() =>
+      expect(mocks.electron.app.quit).toHaveBeenCalledOnce(),
     );
   });
 
