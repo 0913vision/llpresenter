@@ -1,10 +1,12 @@
-import {useEffect, useState, type JSX} from 'react';
+import {useEffect, useId, useState, type JSX, type KeyboardEvent} from 'react';
 import type {LibrarySong} from '@core/schema/contentDocuments';
 import type {SongId} from '@core/schema/ids';
 import {LIBRARY_SEARCH_LIMITS} from '@core/schema/librarySearch';
 import {Dialog} from '@renderer/ui/Dialog';
 import {ListBox, ListRow} from '@renderer/ui/ListRow';
 import {TextField} from '@renderer/ui/TextField';
+import {isComposing} from '@renderer/ui/ime';
+import {hasModifier} from '@renderer/ui/modifierKeys';
 import styles from './SongPicker.module.css';
 
 /** Chooses an existing library song for a service order. */
@@ -22,6 +24,7 @@ export function SongPicker({
     readonly ids: readonly SongId[];
   } | null>(null);
   const [selected, setSelected] = useState<string>();
+  const listId = useId();
   useEffect(() => {
     const api = window.llp;
     if (api === undefined) return undefined;
@@ -80,7 +83,33 @@ export function SongPicker({
     query.trim() === ''
       ? songs
       : songs.filter(song => matchingIds.has(song.id));
-  const choice = shown.find(song => song.id === selected);
+  const choice = shown.find(song => song.id === selected) ?? shown.at(0);
+  const choiceId = choice?.id;
+  const optionId = (id: SongId): string => `${listId}-${id}`;
+  useEffect(() => {
+    if (choiceId !== undefined) {
+      document
+        .getElementById(`${listId}-${choiceId}`)
+        ?.scrollIntoView({block: 'nearest'});
+    }
+  }, [choiceId, listId]);
+  const fieldKeyDown = (event: KeyboardEvent<HTMLInputElement>): void => {
+    if (isComposing(event) || hasModifier(event)) return;
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      event.stopPropagation();
+      onClose();
+      return;
+    }
+    if (event.key !== 'ArrowDown' && event.key !== 'ArrowUp') return;
+    event.preventDefault();
+    const current = shown.findIndex(song => song.id === choice?.id);
+    const index =
+      event.key === 'ArrowDown'
+        ? Math.min(shown.length - 1, current + 1)
+        : Math.max(0, current - 1);
+    setSelected(shown[index]?.id);
+  };
   const optionSong = (target: EventTarget | null): SongId | undefined => {
     const option =
       target instanceof Element
@@ -96,6 +125,7 @@ export function SongPicker({
       primary={{
         label: '추가',
         disabled: choice === undefined,
+        title: choice === undefined ? '선택할 곡이 없습니다' : undefined,
         onSelect: () => {
           if (choice !== undefined) onChoose(choice.id);
         },
@@ -104,6 +134,13 @@ export function SongPicker({
       <div className={styles.content}>
         <TextField
           aria-label="곡 검색"
+          role="combobox"
+          aria-expanded="true"
+          aria-controls={listId}
+          aria-autocomplete="list"
+          aria-activedescendant={
+            choice === undefined ? undefined : optionId(choice.id)
+          }
           placeholder="제목, 가사, 초성"
           icon="search"
           clearable
@@ -113,6 +150,7 @@ export function SongPicker({
             setSelected(undefined);
             setQuery(value);
           }}
+          onKeyDown={fieldKeyDown}
         />
         <div
           className={styles.list}
@@ -123,10 +161,8 @@ export function SongPicker({
           onKeyDownCapture={event => {
             if (
               event.key !== 'Enter' ||
-              event.altKey ||
-              event.ctrlKey ||
-              event.metaKey ||
-              event.shiftKey
+              isComposing(event) ||
+              hasModifier(event)
             ) {
               return;
             }
@@ -139,6 +175,7 @@ export function SongPicker({
           }}
         >
           <ListBox
+            id={listId}
             label="라이브러리 곡 선택"
             selected={choice?.id}
             onSelect={setSelected}
@@ -146,6 +183,7 @@ export function SongPicker({
             {shown.map(song => (
               <ListRow
                 key={song.id}
+                optionId={optionId(song.id)}
                 value={song.id}
                 title={song.title}
                 icon="song"

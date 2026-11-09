@@ -235,7 +235,7 @@ describe('항목 추가', () => {
     }));
     await user.click(screen.getByRole('button', {name: '항목 추가'}));
     await user.click(screen.getByRole('menuitem', {name: '곡…'}));
-    await user.type(screen.getByRole('textbox', {name: '곡 검색'}), '새 노래');
+    await user.type(screen.getByRole('combobox', {name: '곡 검색'}), '새 노래');
     await user.click(
       await screen.findByRole('option', {name: first.song.title}),
     );

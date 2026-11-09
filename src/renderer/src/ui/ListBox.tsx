@@ -143,6 +143,7 @@ function useOneTabStop(
 
 /** Controlled selection and contents of a single-cursor list box. */
 export interface ListBoxProps {
+  readonly id?: string | undefined;
   readonly multiple?: boolean;
   /** The list name for assistive technology, such as 예배 순서. */
   readonly label: string;
@@ -167,6 +168,7 @@ export interface ListBoxProps {
  * pass on to the window.
  */
 export function ListBox({
+  id,
   multiple = false,
   label,
   selected,
@@ -199,6 +201,7 @@ export function ListBox({
         {...clickFocusProps}
         ref={listRef}
         role="listbox"
+        id={id}
         aria-multiselectable={multiple || undefined}
         data-workspace={workspace}
         aria-label={label}

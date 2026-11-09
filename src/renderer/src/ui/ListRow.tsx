@@ -29,6 +29,8 @@ const MODIFIED_LABEL = '저장하지 않은 변경';
 export type GroupRename = RenameContract;
 
 export interface ListRowProps {
+  /** The DOM id of this option when a combobox points to it. */
+  readonly optionId?: string | undefined;
   readonly selected?: boolean | undefined;
   /** The value the list reports when this row is selected. */
   readonly value: string;
@@ -237,6 +239,7 @@ export const ListRow = memo((props: ListRowProps): JSX.Element => {
     <div
       {...targetProps}
       role="option"
+      id={props.optionId}
       aria-selected={isSelected}
       aria-labelledby={props.accessibleName === undefined ? titleId : undefined}
       aria-label={props.accessibleName}
