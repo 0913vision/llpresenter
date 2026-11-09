@@ -147,9 +147,20 @@ it(
       );
       const result = await page.evaluate<boolean>(`(async () => {
         const entry = ${JSON.stringify(entry)};
-        const doc = await window.llp.settings.get({name:'bibleCuts'});
+        const doc = await window.llp.settings.get({name: 'bibleCuts'});
         if (doc.name !== 'bibleCuts') return false;
-        const edit = await window.llp.settings.edit({type:'settings.update',name:'bibleCuts',baseRevision:doc.revision,value:{...doc.value,entries:{...doc.value.entries,sample:{...doc.value.entries.sample,'43:3:16':entry}}}});
+        const edit = await window.llp.settings.edit({
+          type: 'settings.update',
+          name: 'bibleCuts',
+          baseRevision: doc.revision,
+          value: {
+            ...doc.value,
+            entries: {
+              ...doc.value.entries,
+              sample: {...doc.value.entries.sample, '43:3:16': entry},
+            },
+          },
+        });
         return edit.ok;
       })()`);
       expect(result).toBe(true);
