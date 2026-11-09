@@ -109,14 +109,13 @@ describe('SlideGrid', () => {
   it('keeps the focus in the grid when another item replaces the focused tile', () => {
     openItem('song-morning');
     render(<SlideGrid columns={2} scalePercent={100} />);
-    const tiles = screen.getAllByRole('option');
-    act(() => useShow.setState({selectedTile: 3}));
-    tiles[3]?.focus();
-    expect(document.activeElement).toBe(tiles[3]);
+    const grid = screen.getByRole('listbox');
+    grid.focus();
+    expect(document.activeElement).toBe(grid);
     act(() => openItem('song-river'));
     const next = screen.getAllByRole('option');
     expect(next).toHaveLength(3);
-    expect(document.activeElement).toBe(next[0]);
+    expect(document.activeElement).toBe(grid);
     expect(sent).toHaveLength(0);
   });
 
@@ -125,7 +124,8 @@ describe('SlideGrid', () => {
     openItem('song-morning');
     render(<SlideGrid columns={2} scalePercent={100} />);
     act(() => useShow.setState({selectedTile: 3}));
-    screen.getAllByRole('option')[3]?.focus();
+    const grid = screen.getByRole('listbox');
+    grid.focus();
     const shorter = sampleService.tiles['song-morning']?.slice(0, 2) ?? [];
     act(() =>
       applyService({
@@ -137,7 +137,7 @@ describe('SlideGrid', () => {
     const tiles = screen.getAllByRole('option');
     expect(tiles).toHaveLength(2);
     expect(useShow.getState().selectedTile).toBe(1);
-    expect(document.activeElement).toBe(tiles[1]);
+    expect(document.activeElement).toBe(grid);
     expect(sent).toHaveLength(0);
   });
 
@@ -156,26 +156,30 @@ describe('SlideGrid', () => {
         <SlideGrid columns={2} scalePercent={100} />
       </>,
     );
-    screen.getAllByRole('option')[1]?.focus();
+    screen.getByRole('listbox').focus();
     fireEvent.pointerDown(screen.getByRole('button', {name: 'outside'}));
-    screen.getAllByRole('option')[1]?.blur();
+    screen.getByRole('listbox').blur();
     act(() => openItem('song-river'));
     expect(document.activeElement).toBe(document.body);
   });
 
-  it('moves the selection by rows with up and down and outputs nothing', () => {
+  it('outputs a row from the live slide with up and down', () => {
     openItem('song-morning');
+    setLiveSlide('song-morning', 0);
     render(<SlideGrid columns={2} scalePercent={100} />);
-    const press = (key: string): void => {
-      fireEvent.keyDown(document.activeElement ?? document.body, {key});
-    };
-    screen.getAllByRole('option')[0]?.focus();
-    press('ArrowDown');
-    expect(useShow.getState().selectedTile).toBe(2);
-    press('ArrowDown');
-    expect(useShow.getState().selectedTile).toBe(2);
-    press('ArrowUp');
-    expect(useShow.getState().selectedTile).toBe(0);
-    expect(sent).toHaveLength(0);
+    const grid = screen.getByRole('listbox');
+    grid.focus();
+    fireEvent.keyDown(grid, {key: 'ArrowDown'});
+    expect(lastLiveCommand(sent.at(-1))).toMatchObject({
+      type: 'slide.show',
+      slide: {itemId: 'song-morning', position: 2},
+    });
+    act(() => setLiveSlide('song-morning', 2));
+    fireEvent.keyDown(grid, {key: 'ArrowUp'});
+    expect(lastLiveCommand(sent.at(-1))).toMatchObject({
+      type: 'slide.show',
+      slide: {itemId: 'song-morning', position: 0},
+    });
+    expect(document.activeElement).toBe(grid);
   });
 });

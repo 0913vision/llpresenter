@@ -10,8 +10,11 @@ import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {slidesItem, SLIDES_ITEM} from '@fixtures/core/slides';
 import {projectSlides} from '@core/presentation/slides';
 import type {LiveCommand} from '@core/live/commands';
+import {useLive} from '@renderer/session/live';
+import {emptyLiveState} from '@core/live/state';
 
 beforeEach(() => {
+  useLive.setState({state: null});
   seedSampleService();
   openItem('song-morning');
   window.llp = mockLlpApi();
@@ -42,6 +45,7 @@ it('shows themed slides with ad names in their bands and sends picture slides on
   expect(screen.getAllByRole('option')).toHaveLength(3);
   expect(screen.getAllByRole('option')[0]?.textContent).toContain('Meeting');
   fireEvent.click(slide(1));
+  expect(screen.queryByRole('option', {selected: true})).toBeNull();
   const command = send.mock.calls.at(-1)?.[0];
   expect(command?.type).toBe('live.batch');
   if (command?.type !== 'live.batch') throw Error('Missing output batch');
@@ -148,11 +152,29 @@ it('maps windowed clicks and menus to logical slide positions and keeps keyboard
     <SlideGrid columns={4} scalePercent={100} onOpenPrep={onOpenPrep} />,
   );
   expect(screen.getAllByRole('option')).toHaveLength(16);
-  const lastMounted = slide(15);
-  lastMounted.focus();
-  fireEvent.keyDown(lastMounted, {key: 'ArrowDown'});
-  expect(document.activeElement?.getAttribute('aria-posinset')).toBe('20');
-  expect(document.activeElement?.getAttribute('aria-selected')).toBe('true');
+  const state = emptyLiveState();
+  act(() =>
+    useLive.setState({
+      state: {
+        ...state,
+        layers: {
+          ...state.layers,
+          slide: {
+            itemId: 'long-song',
+            position: 15,
+            label: null,
+            lines: ['Slide 16'],
+          },
+        },
+      },
+    }),
+  );
+  const grid = screen.getByRole('listbox', {name: '슬라이드'});
+  grid.focus();
+  fireEvent.keyDown(grid, {key: 'ArrowDown'});
+  expect(document.activeElement).toBe(grid);
+  expectOutput(send.mock.calls.at(-1)?.[0], 19);
+  expect(screen.queryByRole('option', {selected: true})).toBeNull();
   fireEvent.scroll(container, {target: {scrollTop: 24}});
   const last = screen.getAllByRole('option').at(-1);
   if (!last) throw Error('Missing final slide');
@@ -171,3 +193,59 @@ it('maps windowed clicks and menus to logical slide positions and keeps keyboard
     slide: {position: 99},
   });
 });
+
+it('outputs one row from the live slide, leaves Enter inert, and targets right-click', () => {
+  const send = vi.fn<(command: LiveCommand) => void>();
+  const onOpenPrep = vi.fn();
+  window.llp = mockLlpApi({live: {send}});
+  const state = emptyLiveState();
+  useLive.setState({
+    state: {
+      ...state,
+      layers: {
+        ...state.layers,
+        slide: {
+          itemId: 'song-morning',
+          position: 4,
+          label: null,
+          lines: ['Live'],
+        },
+      },
+    },
+  });
+  render(<SlideGrid columns={4} scalePercent={100} onOpenPrep={onOpenPrep} />);
+  const grid = screen.getByRole('listbox', {name: '슬라이드'});
+  grid.focus();
+  expect(document.activeElement).toBe(grid);
+  expect(grid.tabIndex).toBe(0);
+  expect(
+    screen
+      .getAllByRole('option')
+      .every(
+        tile =>
+          tile.tabIndex === -1 &&
+          tile.getAttribute('aria-selected') === 'false',
+      ),
+  ).toBe(true);
+  fireEvent.keyDown(grid, {key: 'Enter'});
+  expect(send).not.toHaveBeenCalled();
+  fireEvent.keyDown(grid, {key: 'ArrowUp'});
+  expectOutput(send.mock.calls.at(-1)?.[0], 0);
+  fireEvent.contextMenu(slide(2));
+  fireEvent.click(
+    screen.getByRole('menuitem', {name: windowCommandLabels.editSong}),
+  );
+  expect(onOpenPrep).toHaveBeenCalledWith('song-morning', 2);
+  expect(screen.queryByRole('option', {selected: true})).toBeNull();
+});
+
+function expectOutput(
+  command: LiveCommand | undefined,
+  position: number,
+): void {
+  if (command?.type !== 'live.batch') throw Error('Missing output batch');
+  expect(command.commands.at(-1)).toMatchObject({
+    type: 'slide.show',
+    slide: {position},
+  });
+}

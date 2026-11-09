@@ -51,6 +51,7 @@ export interface ThumbnailGridBaseProps extends TileListPosition {
 /** The 슬라이드 grid of 진행, where a click or Enter outputs a 슬라이드. */
 export interface ShowThumbnailGridProps extends ThumbnailGridBaseProps {
   readonly workspace: 'show';
+  readonly gridFocus?: boolean | undefined;
   /** A click or Enter outputs that 슬라이드. */
   readonly onOutput: (index: number) => void;
 }
@@ -98,6 +99,7 @@ export function ThumbnailGrid(props: ThumbnailGridProps): JSX.Element {
       columns={fixedWidth === undefined ? columns : 'auto'}
       spaceKey={workspaceSpaceKey[workspace]}
       takesClickFocus
+      gridFocus={props.workspace === 'show' && props.gridFocus}
       arrowsMove="selection"
       selected={props.selected}
       onSelect={onSelect}

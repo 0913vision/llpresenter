@@ -128,7 +128,7 @@ function byName(name: string): HTMLElement {
   return screen.getByRole('button', {name});
 }
 function chosenSlide(): HTMLElement {
-  return screen.getByRole('option', {name: '3, Slide 3'});
+  return screen.getByRole('listbox', {name: '슬라이드'});
 }
 
 it.each([false, true])(
@@ -201,17 +201,13 @@ it('reveals an unmounted live slide on entry, without changing output', async ()
   );
   screen.getByRole('option', {name: 'Current row'}).focus();
   await user.tab();
-  expect(document.activeElement?.getAttribute('aria-posinset')).toBe('66');
-  expect(document.activeElement?.getAttribute('aria-selected')).toBe('true');
+  expect(document.activeElement).toBe(chosenSlide());
   expect(send).not.toHaveBeenCalled();
 });
 
-it.each([
-  {selected: 2, expected: 3},
-  {selected: 65, expected: 10},
-])(
+it.each([{selected: 2}, {selected: 65}])(
   'keeps Tab moving after the live slide is deleted, selection $selected',
-  async ({selected, expected}) => {
+  async ({selected}) => {
     const send = vi.fn();
     window.llp = mockLlpApi({live: {send}});
     const user = userEvent.setup();
@@ -245,10 +241,7 @@ it.each([
       }),
     );
     await user.tab();
-    expect(document.activeElement?.getAttribute('aria-posinset')).toBe(
-      String(expected),
-    );
-    expect(document.activeElement?.getAttribute('aria-selected')).toBe('true');
+    expect(document.activeElement).toBe(chosenSlide());
     await user.tab();
     expect(document.activeElement).toBe(screen.getByLabelText('Size'));
     await user.tab({shift: true});
@@ -285,7 +278,7 @@ it('uses assigned panel keys only in show and leaves modal and IME keys alone', 
 
 it.each([
   ['order', 'Current row'],
-  ['slides', '3, Slide 3'],
+  ['slides', '슬라이드'],
   ['quick', '책'],
   ['preview', 'Preview'],
   ['clear', 'Clear'],
@@ -304,9 +297,11 @@ it.each([
   const target =
     id === 'quick'
       ? screen.getByLabelText(name)
-      : id === 'order' || id === 'slides'
-        ? screen.getByRole('option', {name})
-        : byName(name);
+      : id === 'slides'
+        ? screen.getByRole('listbox', {name})
+        : id === 'order'
+          ? screen.getByRole('option', {name})
+          : byName(name);
   expect(document.activeElement).toBe(target);
   fireEvent.keyUp(target, {key: 'F8', code: 'F8'});
 });

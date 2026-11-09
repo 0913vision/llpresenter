@@ -3,17 +3,15 @@ import {
   useContext,
   useEffect,
   useEffectEvent,
-  useLayoutEffect,
   useRef,
   useState,
   type JSX,
 } from 'react';
-import {outputTile, selectTile, useShow} from '@renderer/session/show';
+import {outputTile, useShow} from '@renderer/session/show';
 import {shownTiles, useLiveTileIndex} from '@renderer/session/showLibrary';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {SlideThumbnail, ThumbnailGrid, thumbnailWidth} from '@renderer/ui';
 import {useGridMeasure} from '@renderer/ui/useGridMeasure';
-import {useKeptFocus} from './useKeptFocus';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {slideMenuEntries} from '@renderer/features/songs/editor/slideMenuEntries';
 import {isItemRow} from '@core/presentation/model';
@@ -43,7 +41,6 @@ export function SlideGrid({
   onOpenPrep,
 }: SlideGridProps): JSX.Element {
   const openItemId = useShow(view => view.openItemId);
-  const selectedTile = useShow(view => view.selectedTile);
   const tiles = useShow(shownTiles);
   const row = useShow(view => view.rows.find(value => value.id === openItemId));
   const librarySong = useShow(view => view.librarySong);
@@ -64,13 +61,15 @@ export function SlideGrid({
   );
   const bible = useBibleTileProjection({itemId: openItemId});
   const liveIndex = useLiveTileIndex();
+  useEffect(() => {
+    if (liveIndex !== null) useShow.setState({selectedTile: liveIndex});
+  }, [liveIndex, openItemId]);
   const [menu, setMenu] = useState<{
     itemId: string;
     index: number;
     anchor: MenuAnchor;
   } | null>(null);
   const keeperRef = useRef<HTMLDivElement>(null);
-  const {isInside, onFocus, onBlur} = useKeptFocus(keeperRef);
   const {width, gap} = useGridMeasure(keeperRef, GRID_SELECTOR);
   const tileWidth = thumbnailWidth({
     gridWidth: width,
@@ -84,24 +83,18 @@ export function SlideGrid({
     tileWidth,
     width,
     gap,
-    selected: selectedTile,
     live: liveIndex,
     itemId: openItemId,
-    onSelect: selectTile,
+    onOutput: index => {
+      if (openItemId !== null) outputTile({itemId: openItemId, index});
+    },
   });
   const entryRef = useContext(ShowSlideEntry);
-  const pendingEntry = useRef<number | null>(null);
-  const [entryVersion, requestEntry] = useState(0);
   const enter = useEffectEvent(() => {
-    if (!tiles?.length) return;
-    const index =
-      liveIndex !== null && liveIndex >= 0 && liveIndex < tiles.length
-        ? liveIndex
-        : Math.max(0, Math.min(selectedTile, tiles.length - 1));
-    pendingEntry.current = index;
-    window.reveal(index);
-    selectTile(index);
-    requestEntry(value => value + 1);
+    if (liveIndex !== null) window.reveal(liveIndex);
+    keeperRef.current
+      ?.querySelector<HTMLElement>(GRID_SELECTOR)
+      ?.focus({preventScroll: true});
   });
   useEffect(() => {
     if (!entryRef) return;
@@ -110,24 +103,6 @@ export function SlideGrid({
       entryRef.current = null;
     };
   }, [entryRef]);
-  useLayoutEffect(() => {
-    const index = pendingEntry.current;
-    if (index === null) return;
-    const tile = keeperRef.current?.querySelector<HTMLElement>(
-      `[aria-posinset="${index + 1}"]`,
-    );
-    if (tile) {
-      pendingEntry.current = null;
-      tile.focus({preventScroll: true});
-    }
-  }, [entryVersion, window.start, window.end]);
-
-  useEffect(() => {
-    if (!isInside()) return;
-    keeperRef.current
-      ?.querySelector<HTMLElement>('[tabindex="0"]')
-      ?.focus({preventScroll: true});
-  }, [isInside, openItemId, selectedTile, tiles?.length, window.start]);
 
   const onOutput = useCallback(
     (index: number): void => {
@@ -140,29 +115,23 @@ export function SlideGrid({
     <div
       ref={keeperRef}
       className={styles.keeper}
-      onFocus={onFocus}
-      onBlur={onBlur}
       onKeyDownCapture={window.navigate}
       style={{height: window.height}}
     >
       <div className={styles.window} style={{top: window.offset}}>
         <ThumbnailGrid
           workspace="show"
+          gridFocus
           label="슬라이드"
           columns={columns}
           tileWidth={tileWidth}
           positionOffset={window.start}
           setSize={tiles?.length ?? 0}
-          selected={
-            selectedTile >= window.start && selectedTile < window.end
-              ? selectedTile - window.start
-              : undefined
-          }
-          onSelect={index => selectTile(window.start + index)}
+          selected={undefined}
+          onSelect={() => undefined}
           onOutput={index => onOutput(window.start + index)}
           onMenu={(index, anchor) => {
             if (openItemId !== null) {
-              selectTile(window.start + index);
               setMenu({
                 itemId: openItemId,
                 index: window.start + index,
@@ -208,7 +177,6 @@ export function SlideGrid({
                 media={
                   picture === undefined ? undefined : thumbnailSrc(picture)
                 }
-                selected={index === selectedTile}
                 live={index === liveIndex}
                 hotKey={tile.hotKey}
               />

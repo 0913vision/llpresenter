@@ -75,6 +75,8 @@ export interface TileListBaseProps extends TileListPosition {
    * (docs/spec/10-shortcuts-and-settings.md).
    */
   readonly takesClickFocus?: boolean | undefined;
+  /** Put the Tab stop on the whole grid instead of individual tiles. */
+  readonly gridFocus?: boolean | undefined;
   /** The index of the selected tile. */
   readonly selected: number | undefined;
   /** A click or Enter (and Space with `press`) on a tile that isn't disabled. */
@@ -214,7 +216,13 @@ export function TileList(props: TileListProps): JSX.Element {
   useLayoutEffect(() => {
     const list = listRef.current;
     if (list === null) return;
-    keepOneTabStop(list, tabStop);
+    if (props.gridFocus) {
+      tilesOf(list).forEach(tile => {
+        tile.tabIndex = -1;
+      });
+    } else {
+      keepOneTabStop(list, tabStop);
+    }
     const supplied =
       props.setSize !== undefined || props.positionOffset !== undefined;
     if (!supplied && !positioned.current) return;
@@ -243,6 +251,7 @@ export function TileList(props: TileListProps): JSX.Element {
     if (index >= 0) onActivate(index);
   };
   const onClick = (event: MouseEvent<HTMLDivElement>): void => {
+    if (props.gridFocus) event.currentTarget.focus({preventScroll: true});
     activate(event.currentTarget, event.target);
   };
   const onDoubleClick = (event: MouseEvent<HTMLDivElement>): void => {
@@ -299,6 +308,7 @@ export function TileList(props: TileListProps): JSX.Element {
   // 진행 handler leaves it alone; a Space that the list passes on reaches it.
   const onKeyDown = (event: KeyboardEvent<HTMLDivElement>): void => {
     if (isContextMenuKey(event)) openMenuFromKey(event);
+    else if (event.key === ENTER && props.gridFocus) event.preventDefault();
     else if (event.key === ENTER) pressOnEnter(event);
     else if (event.key === SPACE) space.onKeyDown(event);
     else moveOnArrow(event);
@@ -324,6 +334,14 @@ export function TileList(props: TileListProps): JSX.Element {
       {...press}
       ref={listRef}
       role="listbox"
+      tabIndex={props.gridFocus ? 0 : undefined}
+      onMouseDown={
+        props.gridFocus
+          ? event => {
+              if (event.button === 0) event.preventDefault();
+            }
+          : undefined
+      }
       data-workspace={props.workspace ?? 'prep'}
       aria-label={props.label}
       aria-orientation={props.orientation}

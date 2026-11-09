@@ -24,9 +24,8 @@ function Grid({
     tileWidth,
     columns: 4,
     gap: 12,
-    selected,
     itemId: 'song',
-    onSelect: index => {
+    onOutput: index => {
       select(index);
       setSelected(index);
     },
@@ -85,7 +84,7 @@ it('mounts only visible rows and a margin, including both ends while scrolling',
 });
 
 it('navigates beyond the mounted window and leaves output keys to the dispatcher', () => {
-  render(<Grid />);
+  render(<Grid live={23} />);
   const viewport = screen.getByTestId('viewport');
   fireEvent.scroll(viewport, {target: {scrollTop: 0}});
   const last = screen.getAllByRole('option').at(-1);
@@ -135,7 +134,7 @@ it.each([
 ])(
   'keeps slide $slide focused when $key has no destination in that column',
   ({slide, key}) => {
-    render(<Grid count={6} />);
+    render(<Grid count={6} live={Number(slide) - 1} />);
     const option = screen.getByRole('option', {name: slide});
     option.focus();
     expect(fireEvent.keyDown(option, {key})).toBe(false);
@@ -145,7 +144,7 @@ it.each([
 );
 
 it('moves into an incomplete final row when the destination exists', () => {
-  render(<Grid count={6} />);
+  render(<Grid count={6} live={1} />);
   fireEvent.keyDown(screen.getByRole('option', {name: '2'}), {
     key: 'ArrowDown',
   });

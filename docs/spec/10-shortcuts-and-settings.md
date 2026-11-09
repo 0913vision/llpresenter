@@ -369,11 +369,10 @@ the keys that earlier rules pass on.
    newest 100 steps and ends with the window. An edit made in another window (곡
    편집, 순서 편집) is not in it; if one changed the order since, 실행 취소
    refuses instead of overwriting it.
-5. **In 진행, the 슬라이드 grid and the 예배 순서 list** take ↑, ↓, and Enter
-   (the list also Home and End), and pass ←, →, Space, Page Up, and Page Down to
-   다음 슬라이드 and 이전 슬라이드. This is ProPresenter's behavior: after the
-   operator clicks a slide, Space and → fire the next one (S4 p. 70). Decided,
-   follows ProPresenter.
+5. **In the Show workspace**, the slide grid and service order list take up and
+   down arrows. The grid immediately outputs one row from the live slide; Enter
+   does nothing. The order list also keeps Home, End, and Enter. Both pass left,
+   right, Space, Page Up and Page Down to the live commands.
 6. **Any other control with keyboard focus** takes the keys its design system
    README gives it, for example a 매크로 tile (arrows move, Enter and Space run,
    07), a button (Enter and Space press), a checkbox, a segmented control, a
@@ -386,46 +385,45 @@ move keyboard focus** to the clicked button or tile (decided). Only text fields,
 the 슬라이드 grid, and the 예배 순서 list take focus on a click. A control gets
 keyboard focus only through Tab, where the operator expects Space to press it.
 Without this rule, an operator who clicks the 찬양 매크로 and then presses Space
-to go to the next 슬라이드 would run the 매크로 again. In 진행, order rows and
-thumbnails draw an accent `:focus-visible` outline after keyboard entry or
-navigation. Thumbnail selection uses the shared plate; live output keeps its red
-picture ring. Pointer focus alone does not draw a keyboard outline. Other
-controls keep their design system focus indicators.
+to go to the next 슬라이드 would run the 매크로 again. In Show, order rows and
+the grid draw an accent `:focus-visible` outline after keyboard entry. The grid
+has no tile selection; live output keeps its red picture ring. Pointer focus
+alone does not draw a keyboard outline. Other controls keep their design system
+focus indicators.
 
 Tab leaves the toolbar in its existing order, then visits 1 예배 순서, 2
 슬라이드, 3 퀵 실행, 4 미리보기, 5 지우기, 6 진행 도구, 7 미디어. Shift Tab
 reverses it. Lists and grids take one stop each. The order row goes straight to
-the selected slide (the live slide if the open item is live), then the size
-slider and % field, then other slide controls. Narrow layouts keep this order
-for available controls. See 04 for panel entry and collapsed panels. This adds
-no default key.
+the grid itself, then the size slider and % field, then other slide controls.
+Narrow layouts keep this order for available controls. See 04 for panel entry
+and collapsed panels. This adds no default key.
 
 Rules this precedence replaces or narrows:
 
-| Existing rule                                                                              | Change                                                                                                             |
-| ------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------ |
-| `SlideThumbnail` README: arrows move between thumbnails, Enter and Space act as a click    | In 진행, ← → and Space go to 다음 슬라이드 and 이전 슬라이드; the grid keeps ↑ ↓ and Enter. 준비 keeps the README. |
-| 04 "Keyboard": arrow keys move the selected tile; Enter and Space output the selected tile | Same change as above.                                                                                              |
-| 07 "Keyboard": arrows move between 매크로 tiles, Enter or Space runs the 매크로            | Kept, but it applies only when a tile has keyboard focus, which a mouse click no longer gives.                     |
-| Component READMEs for buttons, checkboxes, segmented controls, sliders, and tab rows       | Kept for keyboard focus. A mouse click in 진행 doesn't give them focus.                                            |
+| Existing rule                                                                              | Change                                                                                                                                         |
+| ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SlideThumbnail` README: arrows move between thumbnails, Enter and Space act as a click    | In 진행, ← → and Space go to 다음 슬라이드 and 이전 슬라이드; the grid outputs a row away with ↑ ↓; Enter does nothing. 준비 keeps the README. |
+| 04 "Keyboard": arrow keys move the selected tile; Enter and Space output the selected tile | Same change as above.                                                                                                                          |
+| 07 "Keyboard": arrows move between 매크로 tiles, Enter or Space runs the 매크로            | Kept, but it applies only when a tile has keyboard focus, which a mouse click no longer gives.                                                 |
+| Component READMEs for buttons, checkboxes, segmented controls, sliders, and tab rows       | Kept for keyboard focus. A mouse click in 진행 doesn't give them focus.                                                                        |
 
 #### Summary by focus
 
-| Where the focus is                                 | 지우기 F1 to F6 | Clear undo (no default key)   | Other live commands                                                                      | Workspace, tab, and window commands | Editing commands                  |
-| -------------------------------------------------- | --------------- | ----------------------------- | ---------------------------------------------------------------------------------------- | ----------------------------------- | --------------------------------- |
-| 진행, no text field                                | Yes             | Only a user-assigned key (03) | Yes                                                                                      | Yes                                 | Edit undo for editable lists      |
-| 진행, the 슬라이드 grid or the 예배 순서 list      | Yes             | Only a user-assigned key (03) | Yes. The grid keeps ↑, ↓, and Enter; the list keeps ↑, ↓, Home, End, and Enter (rule 5). | Yes                                 | Edit undo for editable lists      |
-| 진행, another control with keyboard focus          | Yes             | Only a user-assigned key (03) | Only keys the control doesn't use (rule 6)                                               | Yes                                 | Edit undo for editable lists      |
-| 준비, no text field                                | Yes             | Only a user-assigned key (03) | Only commands with a modifier (Ctrl 1, Ctrl 2, 테마 keys, item keys)                     | Yes                                 | Yes, in their context             |
-| 화면 설정, no text field                           | Yes             | Only a user-assigned key (03) | Only commands with a modifier                                                            | Yes                                 | Yes, in their context             |
-| Any text field                                     | Yes             | No                            | Only commands with Ctrl or Alt that aren't text editing keys                             | Yes (Ctrl and Alt commands)         | Text editing keys go to the field |
-| An open menu                                       | Yes             | No                            | No                                                                                       | No                                  | No                                |
-| A dialog or confirmation dialog                    | Yes             | No                            | No                                                                                       | No                                  | No                                |
-| During a drag                                      | Yes             | No                            | No (Esc cancels the drag)                                                                | No                                  | No                                |
-| The 환경설정 window                                | Yes             | No                            | No                                                                                       | Esc or Ctrl W closes the window     | Not applicable                    |
-| The key field on the 단축키 page, while it records | Recorded        | Recorded                      | Recorded                                                                                 | Recorded                            | Recorded                          |
-| An output window (it shouldn't get focus)          | Yes             | Only a user-assigned key (03) | Same as the main window                                                                  | No                                  | No                                |
-| Another app has focus                              | No              | No                            | No                                                                                       | No                                  | No                                |
+| Where the focus is                                 | 지우기 F1 to F6 | Clear undo (no default key)   | Other live commands                                                                         | Workspace, tab, and window commands | Editing commands                  |
+| -------------------------------------------------- | --------------- | ----------------------------- | ------------------------------------------------------------------------------------------- | ----------------------------------- | --------------------------------- |
+| 진행, no text field                                | Yes             | Only a user-assigned key (03) | Yes                                                                                         | Yes                                 | Edit undo for editable lists      |
+| 진행, the 슬라이드 grid or the 예배 순서 list      | Yes             | Only a user-assigned key (03) | Yes. The grid outputs by row with ↑, ↓; the list keeps ↑, ↓, Home, End, and Enter (rule 5). | Yes                                 | Edit undo for editable lists      |
+| 진행, another control with keyboard focus          | Yes             | Only a user-assigned key (03) | Only keys the control doesn't use (rule 6)                                                  | Yes                                 | Edit undo for editable lists      |
+| 준비, no text field                                | Yes             | Only a user-assigned key (03) | Only commands with a modifier (Ctrl 1, Ctrl 2, 테마 keys, item keys)                        | Yes                                 | Yes, in their context             |
+| 화면 설정, no text field                           | Yes             | Only a user-assigned key (03) | Only commands with a modifier                                                               | Yes                                 | Yes, in their context             |
+| Any text field                                     | Yes             | No                            | Only commands with Ctrl or Alt that aren't text editing keys                                | Yes (Ctrl and Alt commands)         | Text editing keys go to the field |
+| An open menu                                       | Yes             | No                            | No                                                                                          | No                                  | No                                |
+| A dialog or confirmation dialog                    | Yes             | No                            | No                                                                                          | No                                  | No                                |
+| During a drag                                      | Yes             | No                            | No (Esc cancels the drag)                                                                   | No                                  | No                                |
+| The 환경설정 window                                | Yes             | No                            | No                                                                                          | Esc or Ctrl W closes the window     | Not applicable                    |
+| The key field on the 단축키 page, while it records | Recorded        | Recorded                      | Recorded                                                                                    | Recorded                            | Recorded                          |
+| An output window (it shouldn't get focus)          | Yes             | Only a user-assigned key (03) | Same as the main window                                                                     | No                                  | No                                |
+| Another app has focus                              | No              | No                            | No                                                                                          | No                                  | No                                |
 
 - UI zoom (Ctrl +, Ctrl -, Ctrl 0) works in the main and 환경설정 windows,
   including text fields, menus, and dialogs, except while recording a key or
@@ -788,18 +786,18 @@ decision; no equivalent generic ProPresenter panel command is claimed.
 
 These actions have no command ID and no shortcut, for the reason given:
 
-| Action                                                                                         | Reason                                                                                                                                                                      | How the keyboard reaches it                                                          |
-| ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| Outputting one specific 슬라이드, media tile, image                                            | The target is one item on screen. 다음 슬라이드, 이전 슬라이드, slide hot keys, and 다음 배경 cover live navigation.                                                        | The 슬라이드 grid with focus, ↑ ↓ and Enter (rule 5); other tiles with Tab and Enter |
-| Selecting a 예배 순서 row                                                                      | Selection isn't output (04).                                                                                                                                                | ↑ ↓ in the focused list, or 다음 항목 and 이전 항목                                  |
-| Changing a value in a property panel, the media properties, or the 메시지 tab                  | The control holds the value and has its own keys.                                                                                                                           | Tab to the control, then its keys                                                    |
-| Drag and drop (reordering items, chips, and tiles, files from Explorer)                        | A gesture. The spec gives keyboard moves only to the chip strip (Alt ← and Alt →, 05).                                                                                      | Chip strip only                                                                      |
-| Right-click menu items (이름 바꾸기, 삭제, 아이콘 바꾸기, 색, 모음, 시작할 때 실행, and so on) | They act on the item under the menu.                                                                                                                                        | Shift F10 or the Menu key on the focused item (07)                                   |
-| Dialog buttons (만들기, 가져오기, 덮어쓰기, 복구, 새로 시작)                                   | They belong to one dialog.                                                                                                                                                  | Enter for the primary button, Esc for 취소 (fixed)                                   |
-| The 다시 시도 button of a save failure notification                                            | Bound to one notification. Notifications never take focus (08).                                                                                                             | None; the app keeps the content in memory until a retry (02)                         |
-| The 테스트 패턴 choice in 화면 설정                                                            | It changes a real output, and only in 화면 설정 by the operator's choice (08). A global key could put color bars on the projector during a service.                         | The segmented control in 화면 설정                                                   |
-| Bible panel buttons (앞 절 추가, 뒤 절 추가, 예배 순서에 넣기)                                 | They act on the passage in the open Bible panel. 바로 띄우기 is Enter in the Bible field, and Shift+→ and Shift+← add a verse at the passage's ends while they output (04). | Tab and Enter                                                                        |
-| Choosing a search result, a service in the service list, or a suggestion                       | They belong to an open list.                                                                                                                                                | ↑ ↓ and Enter (04, `Menu` README)                                                    |
+| Action                                                                                         | Reason                                                                                                                                                                      | How the keyboard reaches it                                                       |
+| ---------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------- |
+| Outputting one specific 슬라이드, media tile, image                                            | The target is one item on screen. 다음 슬라이드, 이전 슬라이드, slide hot keys, and 다음 배경 cover live navigation.                                                        | The focused grid outputs by row with ↑ ↓ (rule 5); other tiles with Tab and Enter |
+| Selecting a 예배 순서 row                                                                      | Selection isn't output (04).                                                                                                                                                | ↑ ↓ in the focused list, or 다음 항목 and 이전 항목                               |
+| Changing a value in a property panel, the media properties, or the 메시지 tab                  | The control holds the value and has its own keys.                                                                                                                           | Tab to the control, then its keys                                                 |
+| Drag and drop (reordering items, chips, and tiles, files from Explorer)                        | A gesture. The spec gives keyboard moves only to the chip strip (Alt ← and Alt →, 05).                                                                                      | Chip strip only                                                                   |
+| Right-click menu items (이름 바꾸기, 삭제, 아이콘 바꾸기, 색, 모음, 시작할 때 실행, and so on) | They act on the item under the menu.                                                                                                                                        | Shift F10 or the Menu key on the focused item (07)                                |
+| Dialog buttons (만들기, 가져오기, 덮어쓰기, 복구, 새로 시작)                                   | They belong to one dialog.                                                                                                                                                  | Enter for the primary button, Esc for 취소 (fixed)                                |
+| The 다시 시도 button of a save failure notification                                            | Bound to one notification. Notifications never take focus (08).                                                                                                             | None; the app keeps the content in memory until a retry (02)                      |
+| The 테스트 패턴 choice in 화면 설정                                                            | It changes a real output, and only in 화면 설정 by the operator's choice (08). A global key could put color bars on the projector during a service.                         | The segmented control in 화면 설정                                                |
+| Bible panel buttons (앞 절 추가, 뒤 절 추가, 예배 순서에 넣기)                                 | They act on the passage in the open Bible panel. 바로 띄우기 is Enter in the Bible field, and Shift+→ and Shift+← add a verse at the passage's ends while they output (04). | Tab and Enter                                                                     |
+| Choosing a search result, a service in the service list, or a suggestion                       | They belong to an open list.                                                                                                                                                | ↑ ↓ and Enter (04, `Menu` README)                                                 |
 
 ### Standard default audit
 
@@ -1422,7 +1420,7 @@ migrations.
 | 06 "Shortcuts": "Where shortcuts work" and "Default shortcuts"         | Replaced by "Shortcut system" in this file (decided 2026-10-25).                                                                                                                                                                                                           |
 | 04 "Keyboard" and "Keyboard summary for 진행"                          | Decided: add Page Down and Page Up, 다음 항목, and the rule for → when another item is open; ← → and Space in the 슬라이드 grid go to the live commands (focus precedence rule 5); next on the last 슬라이드 becomes the 진행 setting.                                     |
 | 07 "Keyboard" (매크로 tiles)                                           | Decided: kept, but it applies only to keyboard focus, which a mouse click in 진행 no longer gives (focus precedence).                                                                                                                                                      |
-| `SlideThumbnail` README (design system)                                | Decided: in 진행, ← → and Space go to 다음 슬라이드 and 이전 슬라이드; the grid keeps ↑ ↓ and Enter.                                                                                                                                                                       |
+| `SlideThumbnail` README (design system)                                | Decided: in 진행, ← → and Space go to 다음 슬라이드 and 이전 슬라이드; the grid outputs a row away with ↑ ↓; Enter does nothing.                                                                                                                                           |
 | Design system component behavior in 진행                               | Decided: a mouse click on a button or tile doesn't move keyboard focus; text fields, the 슬라이드 grid, and the 예배 순서 list still take it.                                                                                                                              |
 | M2 check 1 rows 3, 7 to 11                                             | No 진행 thumbnail focus border; clear undo button optional and hidden by default; no clear Ctrl Z; continuous thumbnail percentage; UI zoom; proposed layout reset confirmation. 01, 03, and 04 carry these overrides; the design-system owner updates its matching rules. |
 | 02 `shortcuts.json`, grouped songs and legacy `labels.json`            | Decided: physical codes for command bindings and source-slide keys. Preserve legacy label metadata; see "Storage" and the October 27 S26 decision.                                                                                                                         |

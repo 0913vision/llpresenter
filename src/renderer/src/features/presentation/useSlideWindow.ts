@@ -34,20 +34,18 @@ export function useSlideWindow(
     tileWidth,
     width,
     gap,
-    selected,
     live,
     itemId,
-    onSelect,
+    onOutput,
   }: {
     readonly count: number;
     readonly columns: number;
     readonly tileWidth: number;
     readonly width: number;
     readonly gap: number;
-    readonly selected: number;
     readonly live: number | null;
     readonly itemId: string | null;
-    readonly onSelect: (index: number) => void;
+    readonly onOutput: (index: number) => void;
   },
 ) {
   const [measure, setMeasure] = useState({
@@ -108,31 +106,26 @@ export function useSlideWindow(
   const start = first * tracks;
   const end = Math.min(count, (first + visible + OVERSCAN_ROWS * 2) * tracks);
   useLayoutEffect(() => {
-    reveal(keeper.current?.parentElement, Math.min(selected, count - 1), {
-      tracks,
-      stride,
-      ...measure,
-    });
-  }, [keeper, selected, itemId, tracks, stride, measure, count]);
-  useLayoutEffect(() => {
     if (live !== null) {
       reveal(keeper.current?.parentElement, live, {tracks, stride, ...measure});
     }
   }, [keeper, live, itemId, tracks, stride, measure]);
   const navigate = (event: KeyboardEvent<HTMLDivElement>): void => {
     if (isComposing(event) || hasModifier(event)) return;
+    if (
+      !(event.target instanceof Element) ||
+      !event.target.closest('[role="listbox"]')
+    ) {
+      return;
+    }
     const delta =
       event.key === 'ArrowUp'
         ? -tracks
         : event.key === 'ArrowDown'
           ? tracks
           : undefined;
-    const option =
-      event.target instanceof Element
-        ? event.target.closest('[role="option"]')
-        : null;
-    if (delta === undefined || option === null || count === 0) return;
-    const current = Number(option.getAttribute('aria-posinset')) - 1;
+    if (delta === undefined || count === 0) return;
+    const current = live ?? (delta > 0 ? -delta : 0);
     event.preventDefault();
     event.stopPropagation();
     const next = current + delta;
@@ -140,7 +133,7 @@ export function useSlideWindow(
     const viewport = keeper.current?.parentElement;
     reveal(viewport, next, {tracks, stride, ...measure});
     if (viewport) setScrollTop(viewport.scrollTop);
-    onSelect(next);
+    onOutput(next);
   };
   return {
     reveal: (index: number): void => {

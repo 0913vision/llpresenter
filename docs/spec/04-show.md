@@ -215,9 +215,9 @@ service needs no confirmation), product log version 63.
   Without an 이름표, the band shows only the number.
 - Clicking a tile outputs that 슬라이드 at once (see 03). The live tile has a
   red ring around its picture: only that tile, not other tiles of the same
-  슬라이드. Selection uses the shared plate around the picture and number band.
-  Keyboard focus draws an accent outline outside the plate, independently of
-  selection and live output. Pointer focus alone does not draw it.
+  슬라이드. There is no separate tile selection. Keyboard focus draws an accent
+  outline around the grid, independently of live output. Pointer focus alone
+  does not draw it.
 - The footer has a continuous size slider and a synchronized % field (M2 check 1
   row 9). The proposed range is 50% to 200%, step 1 percentage point for typing
   and keyboard adjustment, default 100%. Pointer dragging changes the size
@@ -232,14 +232,14 @@ After the toolbar (workspace tabs, 검색, 테마, 청중, 무대, 방송), Tab 
 예배 순서, 2 슬라이드, 3 퀵 실행, 4 미리보기, 5 지우기, 6 진행 도구, 7 미디어.
 Shift Tab reverses the same sequence. Narrow layouts skip only controls that are
 absent or hidden; collapsed panels retain their expand button. Each list or grid
-is one Tab stop, with arrows moving inside it.
+is one Tab stop.
 
 The 예배 순서 header controls precede its selected row. Tab from that row enters
-the selected slide of the open item, or its live slide when that item is live.
-Shift Tab from the grid returns to the same order row. The grid's size slider
-and percentage follow immediately, then its other controls (including Bible
-display controls), before 퀵 실행. These moves only change focus and selection,
-never output. The order row also draws its usual inset accent focus outline.
+the grid itself. Its arrows continue from the live slide when the open item is
+live. Shift Tab from the grid returns to the same order row. The grid's size
+slider and percentage follow immediately, then its other controls (including
+Bible display controls), before 퀵 실행. These moves only change focus, never
+output. The order row also draws its usual inset accent focus outline.
 
 The seven panel destinations are separately assignable in 환경설정 > 단축키,
 with no default keys (10). They enter the current row of the order, slide grid,
@@ -259,18 +259,17 @@ The shortcut part of 10 is decided (2026-10-25): shortcuts follow ProPresenter
 where it has a key or a behavior, and 10's choice applies where no ProPresenter
 source was found.
 
-| Key                    | Action                             | Basis                                                                                         |
-| ---------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------- |
-| ↑, ↓ (grid has focus)  | Move the selected tile by a row    | `SlideThumbnail` README, narrowed by 10 (focus precedence rule 5)                             |
-| Enter (grid has focus) | Output the selected tile           | `SlideThumbnail` README                                                                       |
-| →, Space, Page Down    | Output the next 슬라이드           | Follows ProPresenter for → (S1) and Space (S4 p. 70); Page Down for presentation remotes (10) |
-| ←, Page Up             | Output the previous 슬라이드       | Follows ProPresenter for ← (S1); Page Up for presentation remotes (10)                        |
-| Slide hot key          | Output its particular source slide | Follows ProPresenter's individual slide hot keys (S4 p. 58; October 27 S26 decision; 10)      |
+| Key                   | Action                             | Basis                                                                                         |
+| --------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------- |
+| ↑, ↓ (grid has focus) | Output one row from the live slide | No separate selection (10)                                                                    |
+| →, Space, Page Down   | Output the next 슬라이드           | Follows ProPresenter for → (S1) and Space (S4 p. 70); Page Down for presentation remotes (10) |
+| ←, Page Up            | Output the previous 슬라이드       | Follows ProPresenter for ← (S1); Page Up for presentation remotes (10)                        |
+| Slide hot key         | Output its particular source slide | Follows ProPresenter's individual slide hot keys (S4 p. 58; October 27 S26 decision; 10)      |
 
 - → ← Space Page Up Page Down output the next and previous 슬라이드 even while
   the 슬라이드 grid or the 예배 순서 list has focus, as ProPresenter does after
-  a click on a slide (S4 p. 70). The grid keeps only ↑, ↓, and Enter (10, "Focus
-  precedence").
+  a click on a slide (S4 p. 70). The grid outputs one row away with ↑ and ↓;
+  Enter does nothing (10).
 - A mouse click in 진행 moves keyboard focus only to a text field, the 슬라이드
   grid, or the 예배 순서 list. A click on any other button or tile, such as a
   매크로 or a 그래픽, leaves keyboard focus where it was (10). So after a click
@@ -347,11 +346,10 @@ each preview follows ProPresenter's rule: it shows what goes out.
   the picture (see "Layout and states").
 - A preview follows the live output, never the selection. A click on a 슬라이드
   outputs it (03), so the previews change at the same moment as the outputs.
-  Moving the selected tile with the keyboard, opening another 예배 순서 item in
-  the 슬라이드 panel, or opening the Bible panel changes no preview until
-  something goes out. ProPresenter has no step between choosing a slide and
-  showing it: a click shows the slide, and the active slide is outlined in the
-  grid (guide pp. 12, 70).
+  Opening another 예배 순서 item in the 슬라이드 panel, or opening the Bible
+  panel changes no preview until something goes out. ProPresenter has no step
+  between choosing a slide and showing it: a click shows the slide, and the
+  active slide is outlined in the grid (guide pp. 12, 70).
 - No preview shows the next 슬라이드 as a separate picture. The next 슬라이드
   appears only where the 테마 has a 다음 가사 element on that screen, such as
   the 무대 화면 and its preview (12). ProPresenter does the same: Next Slide is
