@@ -24,6 +24,7 @@ import {
 } from './sundayStandby';
 import {creedPrayerTheme} from './creedPrayer';
 import {SONG_THEME_ID} from './songTitle';
+import {lightSongTheme} from './lightSong';
 
 export type ThemeScreen = Pick<Screen, 'id' | 'kind' | 'method'>;
 
@@ -315,6 +316,7 @@ export function createDefaultThemes(
         .filter(kind => kind !== 'blank' && kind !== 'ad')
         .map(kind => builtInTheme(kind, screens)),
       builtInTheme('ad', screens),
+      lightSongTheme(builtInTheme('song', screens), screens),
       creedPrayerTheme(builtInTheme('bible', screens), screens),
       ...[false, true].map((twoLines, index): Theme => ({
         id: createThemeId(uuid(106 + index)),

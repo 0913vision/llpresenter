@@ -143,7 +143,7 @@ export const themeElementSchema = v.pipe(
 );
 
 export const themeScreenLayoutSchema = jsonObject({
-  songTitle: v.exactOptional(v.literal('sunday')),
+  songTitle: v.exactOptional(v.picklist(['sunday', 'sunday-light'])),
   mode: v.pipe(
     jsonObject({}),
     v.variant('kind', [

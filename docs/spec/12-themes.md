@@ -520,6 +520,12 @@ fields, as every settings file does (02).
   Pretendard. The theme inherits 화면 기본; each song keeps its own background
   picture through the normal 배경 and 미디어 elements. 방송 화면 and 무대 화면
   retain their existing 찬양 layouts, and saved themes are not migrated.
+- New libraries also include 찬양 (밝은 배경) in the same theme list. Its
+  audience lyrics use black (#000000) in the wider frame (36, 141, 1848, 411),
+  with the same typography as 찬양. Its title and optional subtitle are also
+  black. The white 찬양 frame stays (132, 141, 1656, 411). It keeps the song's
+  normal picture and the existing broadcast and stage layouts. Operators pick
+  this variant explicitly; the song default and saved catalogs are unchanged.
 - New libraries include three ordinary, replaceable 1920 x 1080 pictures for
   말씀 and the two sermon title layouts. Their backgrounds use the 청록 preset
   above, rendered with the output's OKLCH mixing and dither; the two title
@@ -622,4 +628,6 @@ frame (339, 181, 1242, 160). The optional subtitle uses NanumSquare Regular at
 64 px with 24 px tracking in frame (252, 345, 1416, 90). Lyric slides and the
 other screen roles retain their normal layouts. The built-in 찬양 also resolves
 this title variant in saved catalogs without rewriting their lyric layouts.
-Other layouts without the selector retain ordinary text rendering.
+Other layouts without the selector retain ordinary text rendering. The 밝은 배경
+variant uses `songTitle: "sunday-light"` for the same title and subtitle
+composition in black, including when copied or saved.

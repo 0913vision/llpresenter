@@ -186,6 +186,7 @@ it('makes a valid file with built-in themes and a standby clock and timer on sta
     '말씀',
     '영상',
     '광고',
+    '찬양 (밝은 배경)',
     '사도신경, 주기도문',
     '설교 제목',
     '설교 제목 (두 줄)',

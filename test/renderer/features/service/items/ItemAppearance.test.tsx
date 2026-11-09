@@ -20,6 +20,7 @@ import {
 import {checkPart} from '@core/schema/fileFormat';
 import {biblePassageSchema} from '@core/schema/biblePassage';
 import {createDefaultThemes} from '@core/themes/defaults';
+import {LIGHT_SONG_THEME_ID} from '@core/themes/lightSong';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import type {Theme} from '@core/schema/themes';
 import {fixtureMedia} from '@fixtures/core/mediaList';
@@ -164,7 +165,9 @@ it('stores a chosen theme, follows its kind default again, and opens the theme w
   await user.click(screen.getByRole('button', {name: '테마 편집'}));
   expect(navigate).toHaveBeenCalledWith('screens');
   await user.click(screen.getByRole('button', {name: '테마'}));
-  await user.click(screen.getByRole('menuitemradio', {name: /찬양/}));
+  await user.click(
+    screen.getByRole('menuitemradio', {name: /^찬양(?:\s*기본)?$/}),
+  );
   await waitFor(() => expect(stored()).not.toHaveProperty('theme'));
 });
 
@@ -593,12 +596,28 @@ it.each(['bible', 'media'] as const)(
   },
 );
 
+it('selects the light song look through the existing theme menu', async () => {
+  const {user, stored} = await setup();
+  await user.click(screen.getByRole('button', {name: '테마'}));
+  await user.click(
+    screen.getByRole('menuitemradio', {name: '찬양 (밝은 배경)'}),
+  );
+  await waitFor(() => expect(stored()?.theme).toBe(LIGHT_SONG_THEME_ID));
+  await user.click(screen.getByRole('button', {name: '테마'}));
+  await user.click(
+    screen.getByRole('menuitemradio', {name: /^찬양(?:\s*기본)?$/}),
+  );
+  await waitFor(() => expect(stored()).not.toHaveProperty('theme'));
+});
+
 it('offers the built-in default when the saved default theme is gone', async () => {
   const {user, stored} = await setup({...defaults, themes: [special]});
   await user.click(screen.getByRole('button', {name: '테마'}));
   await user.click(screen.getByRole('menuitemradio', {name: '특송'}));
   await waitFor(() => expect(stored()?.theme).toBe(SPECIAL));
   await user.click(screen.getByRole('button', {name: '테마'}));
-  await user.click(screen.getByRole('menuitemradio', {name: /찬양/}));
+  await user.click(
+    screen.getByRole('menuitemradio', {name: /^찬양(?:\s*기본)?$/}),
+  );
   await waitFor(() => expect(stored()).not.toHaveProperty('theme'));
 });

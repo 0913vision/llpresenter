@@ -37,18 +37,22 @@ export function songTitleLayout(
 ): ThemeScreenLayout {
   if (
     layout.mode.kind !== 'own' ||
-    layout.songTitle !== 'sunday' ||
+    layout.songTitle === undefined ||
     !slide?.titleSlide
   ) {
     return layout;
   }
+  const text =
+    layout.songTitle === 'sunday-light'
+      ? {...titleText, color: '#000000'}
+      : titleText;
   const title: ResolvedThemeElement = {
     id: createThemeElementId('00000000-0000-4000-8000-000000000383'),
     kind: 'text',
     clearTarget: 'slide',
     content: slide.lines[0] ?? '',
     frame: {x: 339, y: 181, w: 1242, h: 160},
-    text: titleText,
+    text,
   };
   const subtitle: ResolvedThemeElement = {
     id: createThemeElementId('00000000-0000-4000-8000-000000000384'),
@@ -56,7 +60,7 @@ export function songTitleLayout(
     clearTarget: 'slide',
     content: slide.lines[1] ?? '',
     frame: {x: 252, y: 345, w: 1416, h: 90},
-    text: {...titleText, weight: 400, size: 64, tracking: 24},
+    text: {...text, weight: 400, size: 64, tracking: 24},
   };
   return {
     ...layout,

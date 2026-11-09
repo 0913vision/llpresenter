@@ -47,10 +47,11 @@ const file = {
 
 describe('theme element properties', () => {
   it('accepts only the optional Sunday song title layout selector', () => {
-    expect(
-      v.safeParse(themeScreenLayoutSchema, {...layout, songTitle: 'sunday'})
-        .success,
-    ).toBe(true);
+    for (const songTitle of ['sunday', 'sunday-light']) {
+      expect(
+        v.safeParse(themeScreenLayoutSchema, {...layout, songTitle}).success,
+      ).toBe(true);
+    }
     for (const songTitle of [false, true, null, 'unknown']) {
       expect(
         v.safeParse(themeScreenLayoutSchema, {...layout, songTitle}).success,
