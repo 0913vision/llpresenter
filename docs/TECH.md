@@ -19,8 +19,8 @@ library, or upgrade a version, record the reason in this document.
    action, import format, or input device must take only one new entry in its
    registry. Don't change existing code to wedge it in.
 5. **Work without the internet.** Don't rely on the network during a service.
-   Bundle the Bible text and fonts with the app. Install an update only when
-   the user clicks, and never while an output is on.
+   Bundle the Bible text and fonts with the app. Install an update only when the
+   user clicks, and never while an output is on.
 
 ## Stack
 
@@ -291,10 +291,9 @@ reason in this document, and the lead has approved it.
 
 ## Operating rules
 
-- The app is installed with one Windows installer file (electron-builder,
-  NSIS, x64), which the GitHub Release of each version carries. A release is a
-  draft until the user publishes it, and only a published release reaches the
-  app.
+- The app is installed with one Windows installer file (electron-builder, NSIS,
+  x64), which the GitHub Release of each version carries. A release is a draft
+  until the user publishes it, and only a published release reaches the app.
 - The installed app looks for a newer release at launch and from 도움말 >
   업데이트 확인, and downloads it in the background. It installs it only after
   the user clicks 설치, never while an output is on, and never on quit.
