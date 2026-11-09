@@ -13,7 +13,11 @@
   padding: var(--panel-inset);
 }
 
-.grid:focus-visible {
+.grid:focus {
+  outline: none;
+}
+
+.keeper[data-tab-focus='true'] .grid:focus {
   outline: var(--space-2) solid var(--accent);
   outline-offset: calc(-1 * var(--space-2));
 }

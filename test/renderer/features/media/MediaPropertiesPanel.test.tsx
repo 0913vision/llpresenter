@@ -241,3 +241,18 @@ describe('media properties panel', () => {
     expect(reveal).toHaveBeenCalledExactlyOnceWith(mediaId(1));
   });
 });
+
+it('explains theme fit precedence in a tooltip while keeping media fit editable', async () => {
+  setup();
+  const panel = await choose('Notice');
+  const group = within(panel).getByRole('radiogroup', {name: '\ub9de\ucda4'});
+  const target = group.parentElement?.parentElement?.parentElement;
+  if (!target) throw Error('Missing tooltip target');
+  fireEvent.pointerEnter(target);
+  expect((await screen.findByRole('tooltip')).textContent).toContain(
+    '\ud14c\ub9c8\uc758 \ub9de\ucda4\uc774 \uc6b0\uc120\ud569\ub2c8\ub2e4',
+  );
+  expect(
+    within(group).getByRole('radio', {name: '\ucc44\uc6b0\uae30'}),
+  ).toHaveProperty('disabled', false);
+});

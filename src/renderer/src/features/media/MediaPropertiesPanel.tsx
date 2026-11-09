@@ -9,6 +9,7 @@ import {
   PropertyValue,
 } from '@renderer/ui/PropertyRow';
 import {SegmentedControl} from '@renderer/ui/SegmentedControl';
+import {Tooltip} from '@renderer/ui/Tooltip';
 import {Slider} from '@renderer/ui/Slider';
 import {Checkbox} from '@renderer/ui/Checkbox';
 import {TextField} from '@renderer/ui/TextField';
@@ -160,23 +161,27 @@ function PlaybackGroup({shown, duration, disabled, change}: Editing) {
 function ScreenGroup({shown, disabled, change}: Editing) {
   return (
     <PropertyGroup title="화면">
-      <PropertyRow label="맞춤">
-        {({controlId, labelId}) => (
-          <SegmentedControl
-            id={controlId}
-            labelledBy={labelId}
-            fill
-            disabled={disabled}
-            options={[
-              {value: 'fit', label: '맞추기'},
-              {value: 'fill', label: '채우기'},
-              {value: 'stretch', label: '늘리기'},
-            ]}
-            value={shown.fit}
-            onChange={fit => change({fit})}
-          />
-        )}
-      </PropertyRow>
+      <Tooltip text="테마의 맞춤이 우선합니다">
+        <div>
+          <PropertyRow label="맞춤">
+            {({controlId, labelId}) => (
+              <SegmentedControl
+                id={controlId}
+                labelledBy={labelId}
+                fill
+                disabled={disabled}
+                options={[
+                  {value: 'fit', label: '맞추기'},
+                  {value: 'fill', label: '채우기'},
+                  {value: 'stretch', label: '늘리기'},
+                ]}
+                value={shown.fit}
+                onChange={fit => change({fit})}
+              />
+            )}
+          </PropertyRow>
+        </div>
+      </Tooltip>
     </PropertyGroup>
   );
 }

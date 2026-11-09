@@ -1050,3 +1050,44 @@ describe('theme composition drawing', () => {
     view.dispose();
   });
 });
+
+it('caps next text against the fitted current size for varied slide pairs', () => {
+  const {view} = setup();
+  const size = vi.spyOn(ThemeElementView.prototype, 'fittedTextSize');
+  const cap = vi.spyOn(ThemeElementView.prototype, 'capTextSize');
+  const current = {...themeElementBase(), kind: 'currentText' as const};
+  const next = {...themeElementBase(31), kind: 'nextText' as const};
+  for (const [lines, nextLines, fitted] of [
+    [['short'], ['long long long'], 90],
+    [['long long long'], ['short'], 42],
+    [['one', 'two', 'three', 'four'], ['short'], 72],
+  ] as const) {
+    size.mockReturnValue(fitted);
+    view.render(
+      {
+        ...song,
+        slide: {
+          itemId: 'invented',
+          position: 0,
+          label: null,
+          lines: [...lines],
+          next: {lines: [...nextLines], label: null},
+        },
+      },
+      frame([current, next]),
+    );
+    expect(cap).toHaveBeenLastCalledWith((fitted * 2) / 3);
+  }
+  cap.mockClear();
+  size.mockReturnValue(undefined);
+  view.render(song, frame([current, next]));
+  size.mockReturnValue(NaN);
+  view.render(song, frame([current, next]));
+  expect(cap).not.toHaveBeenCalled();
+  size.mockReturnValue(90);
+  view.render(song, frame([current]));
+  expect(cap).not.toHaveBeenCalled();
+  size.mockRestore();
+  cap.mockRestore();
+  view.dispose();
+});

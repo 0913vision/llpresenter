@@ -36,11 +36,11 @@ const element = <TKind extends StageElementKind>(
 ) => ({id: kind, name, kind, frame: {x, y, w, h}});
 
 export const STARTER_STAGE_ELEMENTS = [
-  element('currentLabel', '현재 이름표', [45, 49, 330, 39]),
-  element('currentSlide', '현재 가사', [45, 100, 1194, 260]),
+  element('currentLabel', '현재 이름표', [45, 60, 1300, 50]),
+  element('currentSlide', '현재 가사', [45, 115, 1350, 450]),
   element('clock', '시계', [1440, 60, 420, 120]),
   element('timer', '타이머', [1440, 189, 420, 60]),
-  element('nextLabel', '다음 이름표', [45, 471, 1194, 38]),
-  element('nextSlide', '다음 가사', [45, 520, 1194, 170]),
+  element('nextLabel', '다음 이름표', [45, 585, 1300, 50]),
+  element('nextSlide', '다음 가사', [45, 640, 1830, 300]),
   element('stageMessage', '무대 메시지', [0, 960, 1920, 120]),
 ] as const;

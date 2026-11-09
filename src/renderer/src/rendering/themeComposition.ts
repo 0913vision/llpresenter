@@ -273,6 +273,16 @@ export class ThemeCompositionView {
         this.gaps.failed(view.element.id, error);
       }
     }
+    const currentSize = page.elements
+      .find(view => view.element.kind === 'currentText')
+      ?.fittedTextSize();
+    if (currentSize !== undefined && Number.isFinite(currentSize)) {
+      for (const view of page.elements) {
+        if (view.element.kind === 'nextText') {
+          view.capTextSize((currentSize * 2) / 3);
+        }
+      }
+    }
     page.root.classList.toggle(
       classes.instant,
       content.frame.standby === true || content.frame.transitions === false,

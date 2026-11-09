@@ -110,7 +110,29 @@ function stageElements(): ThemeElement[] {
     };
     const kind = stageKinds[element.kind];
     if (kind === 'currentText' || kind === 'nextText') {
-      return {...base, kind, text: {...text, maxLines}};
+      return {
+        ...base,
+        kind,
+        text: {
+          ...text,
+          size: kind === 'currentText' ? 120 : 80,
+          lineHeight: 1.2,
+          maxLines,
+        },
+      };
+    }
+    if (kind === 'label' || kind === 'nextLabel') {
+      return {
+        ...base,
+        kind,
+        text: {
+          ...text,
+          size: 42,
+          lineHeight: 1.1,
+          color: '#AAAAAA',
+          align: 'left',
+        },
+      };
     }
     if (kind === 'clock') return {...base, kind, clockFormat: '24h'};
     return {...base, kind};
@@ -149,7 +171,7 @@ function audienceElements(
   lowerThird: boolean,
   kind: ThemeItemKind,
 ): ThemeElement[] {
-  const base = {frame: {...fullFrame}, fit: 'fit', radius: 0} as const;
+  const base = {frame: {...fullFrame}, fit: 'fill', radius: 0} as const;
   const textFrame = {
     ...lyricFrame,
     h: lyricFrame.h - (kind === 'bible' ? referenceHeight + referenceGap : 0),

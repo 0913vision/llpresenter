@@ -45,7 +45,7 @@ export function sundayNoticeLayout(): ThemeScreenLayout {
         fit: 'stretch',
         radius: 0,
       },
-      {id: id(2), kind: 'background', frame, fit: 'fit', radius: 0},
+      {id: id(2), kind: 'background', frame, fit: 'fill', radius: 0},
       {
         id: id(7),
         kind: 'slideNumber',

@@ -76,7 +76,7 @@ it('places song lyrics near the top while retaining the starter broadcast styles
   );
   expect(current?.text).toMatchObject({
     font: STARTER_TEXT_STYLE.font,
-    size: STARTER_TEXT_STYLE.size,
+    size: 120,
     weight: STARTER_TEXT_STYLE.weight,
     vAlign: STARTER_TEXT_STYLE.vAlign,
   });
@@ -213,8 +213,8 @@ it('ships the audience scripture picture and editable typography without changin
       mediaId: SUNDAY_PICTURE_IDS.scripture,
       frame: {x: 0, y: 0, w: 1920, h: 1080},
     },
-    {kind: 'background', fit: 'fit'},
-    {kind: 'media', fit: 'fit'},
+    {kind: 'background', fit: 'fill'},
+    {kind: 'media', fit: 'fill'},
     {
       kind: 'reference',
       source: 'item',
@@ -420,4 +420,37 @@ it('makes the audience notice an editable picture, number, name and bulleted bod
     },
     {kind: 'media', fit: 'fill', frame: {x: 0, y: 0, w: 1920, h: 1080}},
   ]);
+});
+
+it('uses readable stage defaults and cover for built-in audience media', () => {
+  const defaults = createDefaultThemes();
+  const audience = createScreenId(STARTER_SCREEN_IDS.main);
+  const stage = createScreenId(STARTER_SCREEN_IDS.stage);
+  for (const theme of defaults.themes) {
+    for (const element of theme.screens[audience]?.elements ?? []) {
+      if (element.kind !== 'background' && element.kind !== 'media') continue;
+      const sectionBackground =
+        theme.name.startsWith('\uad6c\uc5ed \uc774\ub984') &&
+        element.kind === 'background';
+      expect(element.fit).toBe(sectionBackground ? 'stretch' : 'fill');
+    }
+  }
+  const elements = builtInTheme('song').screens[stage]?.elements ?? [];
+  const current = elements.find(e => e.kind === 'currentText');
+  const next = elements.find(e => e.kind === 'nextText');
+  if (current?.kind !== 'currentText' || next?.kind !== 'nextText') {
+    throw Error('stage text missing');
+  }
+  expect(
+    current.frame.h / (4 * current.text.lineHeight),
+  ).toBeGreaterThanOrEqual(90);
+  expect(next.text.size).toBeLessThan(current.text.size);
+  for (const label of elements.filter(
+    e => e.kind === 'label' || e.kind === 'nextLabel',
+  )) {
+    expect(label.text.size).toBeGreaterThanOrEqual(40);
+    expect(label.frame.h).toBeGreaterThanOrEqual(
+      label.text.size * label.text.lineHeight,
+    );
+  }
 });

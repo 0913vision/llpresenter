@@ -4,7 +4,7 @@ import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {createMediaId} from '@core/schema/ids';
 import {thumbnailUrl} from '@contracts/ipc/mediaUrls';
-import {applyService, openItem} from '@renderer/session/show';
+import {applyService, openItem, useShow} from '@renderer/session/show';
 import {SlideGrid} from '@renderer/features/presentation/SlideGrid';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {slidesItem, SLIDES_ITEM} from '@fixtures/core/slides';
@@ -271,3 +271,96 @@ function expectOutput(
     slide: {position},
   });
 }
+
+it('tracks the live index for Bible position after click and row output', () => {
+  const send = vi.fn<(command: LiveCommand) => void>();
+  window.llp = mockLlpApi({live: {send}});
+  render(<SlideGrid columns={2} scalePercent={100} />);
+  const publish = (position: number): void => {
+    const state = emptyLiveState();
+    act(() =>
+      useLive.setState({
+        state: {
+          ...state,
+          layers: {
+            ...state.layers,
+            slide: {
+              itemId: 'song-morning',
+              position,
+              label: null,
+              lines: ['live'],
+            },
+          },
+        },
+      }),
+    );
+  };
+  fireEvent.click(slide(1));
+  expectOutput(send.mock.calls.at(-1)?.[0], 1);
+  publish(1);
+  expect(useShow.getState().selectedTile).toBe(1);
+  fireEvent.keyDown(
+    screen.getByRole('listbox', {name: '\uc2ac\ub77c\uc774\ub4dc'}),
+    {key: 'ArrowDown'},
+  );
+  expectOutput(send.mock.calls.at(-1)?.[0], 3);
+  publish(3);
+  expect(useShow.getState().selectedTile).toBe(3);
+});
+
+it('stays at row boundaries and starts at the first slide on down when nothing is live', () => {
+  const send = vi.fn<(command: LiveCommand) => void>();
+  window.llp = mockLlpApi({live: {send}});
+  render(<SlideGrid columns={3} scalePercent={100} />);
+  const grid = screen.getByRole('listbox', {name: '\uc2ac\ub77c\uc774\ub4dc'});
+  fireEvent.keyDown(grid, {key: 'ArrowUp'});
+  expect(send).not.toHaveBeenCalled();
+  fireEvent.keyDown(grid, {key: 'ArrowDown'});
+  expectOutput(send.mock.calls.at(-1)?.[0], 0);
+  const publish = (position: number): void => {
+    const state = emptyLiveState();
+    act(() =>
+      useLive.setState({
+        state: {
+          ...state,
+          layers: {
+            ...state.layers,
+            slide: {
+              itemId: 'song-morning',
+              position,
+              label: null,
+              lines: ['live'],
+            },
+          },
+        },
+      }),
+    );
+  };
+  publish(0);
+  send.mockClear();
+  fireEvent.keyDown(grid, {key: 'ArrowUp'});
+  expect(send).not.toHaveBeenCalled();
+  publish(3);
+  fireEvent.keyDown(grid, {key: 'ArrowDown'});
+  expect(send).not.toHaveBeenCalled();
+});
+
+it('shows grid focus only after Tab entry, not pointer followed by arrows', () => {
+  render(<SlideGrid columns={4} scalePercent={100} />);
+  const grid = screen.getByRole('listbox', {name: '\uc2ac\ub77c\uc774\ub4dc'});
+  const keeper = grid.parentElement?.parentElement;
+  expect(keeper).not.toBeNull();
+  fireEvent.pointerDown(slide(0));
+  fireEvent.click(slide(0));
+  expect(document.activeElement).toBe(grid);
+  fireEvent.keyDown(grid, {key: 'ArrowDown'});
+  expect(keeper?.getAttribute('data-tab-focus')).toBeNull();
+  grid.blur();
+  fireEvent.keyDown(document, {key: 'Tab'});
+  fireEvent.focus(grid);
+  expect(keeper?.getAttribute('data-tab-focus')).toBe('true');
+  fireEvent.keyDown(grid, {key: 'ArrowDown'});
+  expect(keeper?.getAttribute('data-tab-focus')).toBe('true');
+  fireEvent.pointerDown(slide(0));
+  expect(keeper?.getAttribute('data-tab-focus')).toBeNull();
+});

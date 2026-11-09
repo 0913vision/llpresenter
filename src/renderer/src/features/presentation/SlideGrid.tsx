@@ -82,6 +82,23 @@ export function SlideGrid({
     anchor: MenuAnchor;
   } | null>(null);
   const keeperRef = useRef<HTMLDivElement>(null);
+  const tabEntry = useRef(false);
+  const [showFocus, setShowFocus] = useState(false);
+  useEffect(() => {
+    const keyDown = (event: globalThis.KeyboardEvent): void => {
+      tabEntry.current = event.key === 'Tab';
+    };
+    const pointerDown = (): void => {
+      tabEntry.current = false;
+      setShowFocus(false);
+    };
+    document.addEventListener('keydown', keyDown, true);
+    document.addEventListener('pointerdown', pointerDown, true);
+    return () => {
+      document.removeEventListener('keydown', keyDown, true);
+      document.removeEventListener('pointerdown', pointerDown, true);
+    };
+  }, []);
   const {width, gap} = useGridMeasure(keeperRef, GRID_SELECTOR);
   const tileWidth = thumbnailWidth({
     gridWidth: width,
@@ -127,6 +144,13 @@ export function SlideGrid({
     <div
       ref={keeperRef}
       className={styles.keeper}
+      data-tab-focus={showFocus ? 'true' : undefined}
+      onFocusCapture={() => setShowFocus(tabEntry.current)}
+      onBlurCapture={event => {
+        if (!event.currentTarget.contains(event.relatedTarget)) {
+          setShowFocus(false);
+        }
+      }}
       onKeyDownCapture={window.navigate}
       style={{height: window.height}}
     >

@@ -678,3 +678,15 @@ remaining slides retain the item theme.
 
 If a section card theme is missing, output reports the missing theme and uses
 the blank-item default theme, as for any missing item theme.
+
+New-library stage layouts use a large centered current text frame
+(45,115,1350,450), a smaller next frame (45,640,1830,300), and muted 42 px
+labels. Current text starts at 120 px; next starts at 80 px and is capped at two
+thirds of the fitted current size when current text is present. Clock, timer,
+and stage message retain their positions. These dimensions are our design.
+Built-in audience background and media elements start at 채우기 (cover); their
+editable theme-element 맞춤 wins over the media property's 맞춤 when rendered
+through that element. The media properties panel explains this precedence in a
+tooltip. Existing libraries are unchanged.
+
+The section gradient layout retains 늘리기 for its background element.

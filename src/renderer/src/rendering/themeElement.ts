@@ -448,6 +448,14 @@ export class ThemeElementView {
     this.shownBiblePart = biblePart;
   }
 
+  fittedTextSize(): number | undefined {
+    return this.text?.fittedSize();
+  }
+
+  capTextSize(maximum: number): void {
+    this.text?.capSize(maximum);
+  }
+
   remaining(): number | undefined {
     return this.media?.remaining();
   }

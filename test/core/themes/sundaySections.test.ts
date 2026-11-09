@@ -131,7 +131,7 @@ it('adds an editable section theme without changing the kind defaults or other s
       element => element.kind === 'itemName' || element.kind === 'currentText',
     ),
   ).toMatchObject([
-    {kind: 'itemName', text: {size: 84}},
+    {kind: 'itemName', text: {size: 120}},
     {kind: 'currentText', text: {size: 42}},
   ]);
 });

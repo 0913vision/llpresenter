@@ -47,14 +47,14 @@ export function sundayScriptureLayout(): ThemeScreenLayout {
         id: id(2),
         kind: 'background',
         frame: {x: 0, y: 0, w: 1920, h: 1080},
-        fit: 'fit',
+        fit: 'fill',
         radius: 0,
       },
       {
         id: id(4),
         kind: 'media',
         frame: {x: 0, y: 0, w: 1920, h: 1080},
-        fit: 'fit',
+        fit: 'fill',
         radius: 0,
       },
       {

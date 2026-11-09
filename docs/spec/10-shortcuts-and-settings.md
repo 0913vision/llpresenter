@@ -400,12 +400,12 @@ and collapsed panels. This adds no default key.
 
 Rules this precedence replaces or narrows:
 
-| Existing rule                                                                              | Change                                                                                                                                         |
-| ------------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------- |
-| `SlideThumbnail` README: arrows move between thumbnails, Enter and Space act as a click    | In 진행, ← → and Space go to 다음 슬라이드 and 이전 슬라이드; the grid outputs a row away with ↑ ↓; Enter does nothing. 준비 keeps the README. |
-| 04 "Keyboard": arrow keys move the selected tile; Enter and Space output the selected tile | Same change as above.                                                                                                                          |
-| 07 "Keyboard": arrows move between 매크로 tiles, Enter or Space runs the 매크로            | Kept, but it applies only when a tile has keyboard focus, which a mouse click no longer gives.                                                 |
-| Component READMEs for buttons, checkboxes, segmented controls, sliders, and tab rows       | Kept for keyboard focus. A mouse click in 진행 doesn't give them focus.                                                                        |
+| Existing rule                                                                                  | Change                                                                                                                                         |
+| ---------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------- |
+| `SlideThumbnail` README: arrows move between thumbnails, Enter and Space act as a click        | In 진행, ← → and Space go to 다음 슬라이드 and 이전 슬라이드; the grid outputs a row away with ↑ ↓; Enter does nothing. 준비 keeps the README. |
+| Former 04 "Keyboard" rule (replaced): arrows move the selected tile; Enter and Space output it | Same change as above.                                                                                                                          |
+| 07 "Keyboard": arrows move between 매크로 tiles, Enter or Space runs the 매크로                | Kept, but it applies only when a tile has keyboard focus, which a mouse click no longer gives.                                                 |
+| Component READMEs for buttons, checkboxes, segmented controls, sliders, and tab rows           | Kept for keyboard focus. A mouse click in 진행 doesn't give them focus.                                                                        |
 
 #### Summary by focus
 

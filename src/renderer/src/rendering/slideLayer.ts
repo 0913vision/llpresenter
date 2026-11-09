@@ -191,6 +191,7 @@ export class SlideLayerView {
   private front: PageIndex = 0;
   private current: SlideLayer | null = null;
   private scale = 1;
+  private maximumSize: number | undefined;
   private dissolveMs: number = SLIDE_DISSOLVE_MS;
   private effect: SlideTransition | undefined;
   private readonly animation = new SlideAnimation();
@@ -324,6 +325,17 @@ export class SlideLayerView {
     if (this.current !== null) this.fit(this.pages[this.front]);
   }
 
+  /** The displayed font size after fitting, in canvas pixels. */
+  fittedSize(): number | undefined {
+    if (this.current === null) return undefined;
+    return Number.parseFloat(this.pages[this.front].block.style.fontSize);
+  }
+
+  capSize(maximum: number): void {
+    this.maximumSize = maximum / this.scale;
+    if (this.current !== null) this.fit(this.pages[this.front]);
+  }
+
   dispose(): void {
     this.animation.cancel();
     this.element.remove();
@@ -399,6 +411,6 @@ export class SlideLayerView {
         }),
       document.fonts,
     );
-    setSize(fontSize);
+    setSize(Math.min(fontSize, (this.maximumSize ?? Infinity) * this.scale));
   }
 }

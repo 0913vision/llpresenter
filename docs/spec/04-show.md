@@ -217,8 +217,10 @@ service needs no confirmation), product log version 63.
 - Clicking a tile outputs that 슬라이드 at once (see 03). The live tile has a
   red ring around its picture: only that tile, not other tiles of the same
   슬라이드. There is no separate tile selection. Keyboard focus draws an accent
-  outline around the grid, independently of live output. Pointer focus alone
-  does not draw it.
+  outline around the grid only after Tab entry, independently of live output. A
+  pointer press clears it; later arrow keys do not restore it. The internal
+  `selectedTile` tracks the live index after output so Bible position and
+  projection navigation retain the live verse.
 - The footer has a continuous size slider and a synchronized % field (M2 check 1
   row 9). The proposed range is 50% to 200%, step 1 percentage point for typing
   and keyboard adjustment, default 100%. Pointer dragging changes the size
@@ -260,17 +262,19 @@ The shortcut part of 10 is decided (2026-10-25): shortcuts follow ProPresenter
 where it has a key or a behavior, and 10's choice applies where no ProPresenter
 source was found.
 
-| Key                   | Action                             | Basis                                                                                         |
-| --------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------- |
-| ↑, ↓ (grid has focus) | Output one row from the live slide | No separate selection (10)                                                                    |
-| →, Space, Page Down   | Output the next 슬라이드           | Follows ProPresenter for → (S1) and Space (S4 p. 70); Page Down for presentation remotes (10) |
-| ←, Page Up            | Output the previous 슬라이드       | Follows ProPresenter for ← (S1); Page Up for presentation remotes (10)                        |
-| Slide hot key         | Output its particular source slide | Follows ProPresenter's individual slide hot keys (S4 p. 58; October 27 S26 decision; 10)      |
+| Key                   | Action                                                                                    | Basis                                                                                         |
+| --------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| ↑, ↓ (grid has focus) | Output one row from the live slide; without one, down outputs slide 1 and up does nothing | No separate selection (10)                                                                    |
+| →, Space, Page Down   | Output the next 슬라이드                                                                  | Follows ProPresenter for → (S1) and Space (S4 p. 70); Page Down for presentation remotes (10) |
+| ←, Page Up            | Output the previous 슬라이드                                                              | Follows ProPresenter for ← (S1); Page Up for presentation remotes (10)                        |
+| Slide hot key         | Output its particular source slide                                                        | Follows ProPresenter's individual slide hot keys (S4 p. 58; October 27 S26 decision; 10)      |
 
 - → ← Space Page Up Page Down output the next and previous 슬라이드 even while
   the 슬라이드 grid or the 예배 순서 list has focus, as ProPresenter does after
   a click on a slide (S4 p. 70). The grid outputs one row away with ↑ and ↓;
-  Enter does nothing (10).
+  Enter does nothing (10). With no live slide, ? outputs slide 1 and ? does
+  nothing. At the first row ? stays; at the last row ? stays if a full row step
+  would exceed the slide count, including a partial last row.
 - A mouse click in 진행 moves keyboard focus only to a text field, the 슬라이드
   grid, or the 예배 순서 list. A click on any other button or tile, such as a
   매크로 or a 그래픽, leaves keyboard focus where it was (10). So after a click
@@ -1007,12 +1011,11 @@ integration use this contract, with a distinct cancellable ID per lookup.
       and previous continue from that verse and part in the new projection. If
       that part no longer exists, navigation starts from the verse's last part.
   - 참조 chooses 슬라이드마다, 첫 슬라이드만, 마지막 슬라이드만, or 없음. Each
-    selected slide shows its own verses with the full book name:
-    `요한복음 3:16`, `요한복음 3:16~18`, or `요한복음 3:34~4:2`. Ranges use `~`
-    without spaces, following copible, including book names such as 요한일서.
-    Book names follow the translation's language (02), including `John` and
-    `1 John` for KJV. The theme's 출처 element draws this text wherever it is
-    placed.
+    live slide shows its own verses with the full book name: `요한복음 3:16`,
+    `요한복음 3:16~18`, or `요한복음 3:34~4:2`. Ranges use `~` without spaces,
+    following copible, including book names such as 요한일서. Book names follow
+    the translation's language (02), including `John` and `1 John` for KJV. The
+    theme's 출처 element draws this text wherever it is placed.
   - Turning on 역본 이름 appends the translation's `shortName` in parentheses:
     `요한복음 3:16~18 (개역한글)`. It draws wherever the reference draws, on the
     same slides. The default is off, set in 환경설정 > 성경 > 새 구절.

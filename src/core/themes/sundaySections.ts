@@ -119,7 +119,7 @@ export function sundaySectionLayout(
     background: sectionGradient(color),
     elements: [
       {id: id(1), kind: 'background', frame, fit: 'stretch', radius: 0},
-      {id: id(2), kind: 'media', frame, fit: 'fit', radius: 0},
+      {id: id(2), kind: 'media', frame, fit: 'fill', radius: 0},
       {
         id: id(3),
         kind: 'image',

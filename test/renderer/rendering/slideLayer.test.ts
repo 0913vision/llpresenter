@@ -478,3 +478,17 @@ describe('SlideLayerView', () => {
     expect(parent.childElementCount).toBe(0);
   });
 });
+
+it('preserves a fitted text cap through refitting and rescaling', () => {
+  const {view} = setUp();
+  view.setStyle({...DEFAULT_TEXT_STYLE, size: 80});
+  view.show(VERSE, false);
+  expect(view.fittedSize()).toBe(80);
+  view.capSize(60);
+  expect(view.fittedSize()).toBe(60);
+  view.rescale(1);
+  expect(view.fittedSize()).toBe(60);
+  view.setStyle({...DEFAULT_TEXT_STYLE, size: 40});
+  expect(view.fittedSize()).toBe(40);
+  view.dispose();
+});
