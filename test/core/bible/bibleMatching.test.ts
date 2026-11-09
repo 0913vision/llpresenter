@@ -8,6 +8,19 @@ import {
 } from '@core/bible/bibleMatching';
 
 describe('four-field book candidates', () => {
+  it('distinguishes the reported chd typo from Genesis keyboard input', () => {
+    for (const input of ['chd', '총']) {
+      expect(exactBibleBook(input)).toBeUndefined();
+      expect(findBibleBooks(input)).toEqual([]);
+    }
+    for (const input of ['ckd', 'ckdtprl', '창세기', '창', 'Genesis', 'GEN']) {
+      expect(exactBibleBook(input)?.id).toBe(1);
+    }
+    for (const input of ['ㅊㅏ', '차', '창세', 'ckdtp', 'nesis']) {
+      expect(findBibleBooks(input).map(book => book.id)).toEqual([1]);
+    }
+  });
+
   it.each([
     ['ezk', 'eze', 26],
     ['jol', 'joe', 29],

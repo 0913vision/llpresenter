@@ -91,7 +91,7 @@ async function enterReference() {
       '요한복음 3:16-18',
     ),
   );
-  return book;
+  return screen.getByRole<HTMLInputElement>('textbox', {name: '끝절'});
 }
 
 describe('quick Bible verse-number defaults', () => {
@@ -106,14 +106,14 @@ describe('quick Bible verse-number defaults', () => {
           <BiblePanel sizeClass="normal" />
         </>,
       );
-      const book = await enterReference();
+      const end = await enterReference();
       expect(useShow.getState().bibleSource?.tiles[0]?.lines).toEqual([
         `${numbers ? '16 ' : ''}Invented book 43, chapter 3, verse 16`,
       ]);
       expect(test.send).not.toHaveBeenCalled();
       act(() => selectTile(1));
       const user = userEvent.setup();
-      await user.click(book);
+      await user.click(end);
       await user.keyboard('{Enter}');
       expect(lastLiveCommand(test.send.mock.calls.at(-1)?.[0])).toMatchObject({
         type: 'slide.show',
@@ -140,11 +140,11 @@ describe('quick Bible verse-number defaults', () => {
         <BiblePanel sizeClass="normal" />
       </>,
     );
-    const book = await enterReference();
+    const end = await enterReference();
     act(() => selectTile(1));
     act(() => test.push(true));
     const user = userEvent.setup();
-    await user.click(book);
+    await user.click(end);
     await user.keyboard('{Enter}');
     const command = lastLiveCommand(test.send.mock.calls.at(-1)?.[0]);
     if (command?.type !== 'slide.show') {

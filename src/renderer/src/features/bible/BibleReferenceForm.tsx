@@ -8,7 +8,7 @@ import {
   type KeyboardEvent,
 } from 'react';
 import type {BibleLookupApi} from '@contracts/ipc/bible';
-import {findBibleBooks} from '@core/bible/bibleMatching';
+import {exactBibleBook, findBibleBooks} from '@core/bible/bibleMatching';
 import {recentPassages} from '@core/bible/bibleRecents';
 import type {RecentPassage} from '@core/schema/bible';
 import {
@@ -52,9 +52,9 @@ const LABELS = {
 } as const;
 const ignorePreview = (): void => undefined;
 
-function focusChapter(root: HTMLElement | null): void {
+function focusPart(root: HTMLElement | null, part: ReferencePart): void {
   const field = root?.querySelector<HTMLInputElement>(
-    '[data-reference-part="chapter"]',
+    `[data-reference-part="${part}"]`,
   );
   field?.focus();
   field?.select();
@@ -96,7 +96,7 @@ export function BibleReferenceForm(
   useLayoutEffect(() => {
     if (chapterFocus === null) return;
     // NOTE(0913vision): Completion must enable the chapter input before focus.
-    focusChapter(root.current);
+    focusPart(root.current, 'chapter');
     advancedBook.current = chapterFocus;
   }, [chapterFocus]);
   useEffect(() => {
@@ -111,7 +111,8 @@ export function BibleReferenceForm(
   const book = selectedBook(fields.book);
   const bookId = book?.id;
   const books = findBibleBooks(fields.book);
-  const metadataBook = books[keyboardPointed ?? -1] ?? book;
+  const metadataBook =
+    exactBibleBook(fields.book) ?? books[keyboardPointed ?? -1] ?? book;
   const metadata = useBibleLookup({
     ...props,
     translation,
@@ -225,8 +226,11 @@ export function BibleReferenceForm(
     setOpen(false);
   };
   const reason = (part: ReferencePart): string | undefined => {
-    if (part === 'book' && bookUnavailable) {
-      return '이 역본에 없는 책';
+    if (part === 'book') {
+      if (bookUnavailable) return '이 역본에 없는 책';
+      return fields.book.trim() !== '' && books.length === 0
+        ? '입력한 이름과 일치하는 성경 책이 없습니다'
+        : undefined;
     }
     if (part === 'start' && reply?.result.ok === false) {
       return reply.result.error.code === 'omitted'
@@ -237,13 +241,13 @@ export function BibleReferenceForm(
       ? state.errors[part]
       : undefined;
   };
-  const tabBook = (): void => {
-    const candidate = books[keyboardPointed ?? -1] ?? book;
+  const advanceBook = (): void => {
+    const candidate = metadataBook;
     if (!candidate) {
       setBlocked('book');
       return;
     }
-    if (candidate.id === metadataBook?.id && bookUnavailable) {
+    if (bookUnavailable) {
       if (candidate.id !== book?.id) choose(candidate.korean);
       setBlocked('book');
       return;
@@ -285,7 +289,7 @@ export function BibleReferenceForm(
           return;
         }
         event.preventDefault();
-        tabBook();
+        advanceBook();
         return;
       }
     }
@@ -322,6 +326,16 @@ export function BibleReferenceForm(
       part === 'book' && expanded ? suggestions[pointed] : undefined;
     if (candidate) {
       chooseSuggestion(candidate);
+      return;
+    }
+    if (selectedRecent === undefined && part !== 'end') {
+      if (part === 'book') {
+        advanceBook();
+      } else if (state.errors[part] === undefined) {
+        focusPart(root.current, part === 'chapter' ? 'start' : 'end');
+      } else {
+        setBlocked(part);
+      }
       return;
     }
     if (passage) {

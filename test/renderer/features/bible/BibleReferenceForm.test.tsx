@@ -16,6 +16,7 @@ import {BibleReferenceForm} from '@renderer/features/bible/BibleReferenceForm';
 import {Dialog} from '@renderer/ui/Dialog';
 import {formLookupReply} from '@fixtures/core/bibleReplies';
 import {lookupRequest} from '@fixtures/core/bibleLookups';
+import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
 
 beforeEach(() => {
   HTMLElement.prototype.scrollIntoView = vi.fn();
@@ -59,6 +60,91 @@ async function enterPassage(
 }
 
 describe('shared Bible reference form', () => {
+  it.each(['Tab', 'Enter'])(
+    'completes Korean, English, jamo and IME-off names with %s without marking matches red',
+    async key => {
+      const view = setup();
+      view.lookup.mockImplementation(request =>
+        formLookupReply(
+          request,
+          BIBLE_BOOKS.map(book => book.id),
+        ),
+      );
+      for (const input of [
+        '창세기',
+        '창',
+        'Genesis',
+        'GEN',
+        'nesis',
+        '차',
+        'ㅊㅏ',
+        '창세',
+        'ckd',
+        'ckdtp',
+        'ckdtprl',
+      ]) {
+        await view.user.click(view.book);
+        fireEvent.change(view.book, {target: {value: input}});
+        expect(view.book.getAttribute('aria-invalid')).toBeNull();
+        await view.user.keyboard(`{${key}}`);
+        expect(view.book.value).toBe('창세기');
+        expect(document.activeElement).toBe(view.chapter);
+        fireEvent.change(view.chapter, {target: {value: '1'}});
+        await waitFor(() => expect(view.start.disabled).toBe(false));
+        expect(view.book.getAttribute('aria-invalid')).toBeNull();
+      }
+      expect(view.onSubmit).not.toHaveBeenCalled();
+    },
+  );
+
+  it('explains an unmatched IME-off name and clears the error after correction', async () => {
+    const view = setup();
+    await view.user.type(view.book, 'chd');
+    await view.user.tab();
+    expect(document.activeElement).toBe(view.book);
+    expect(view.book.getAttribute('aria-invalid')).toBe('true');
+    expect(
+      document.getElementById(view.book.getAttribute('aria-describedby') ?? '')
+        ?.textContent,
+    ).toBe('입력한 이름과 일치하는 성경 책이 없습니다');
+    fireEvent.change(view.book, {target: {value: 'ckd'}});
+    await view.user.keyboard('{Enter}');
+    expect(view.book.value).toBe('창세기');
+    expect(view.book.getAttribute('aria-invalid')).toBeNull();
+    expect(document.activeElement).toBe(view.chapter);
+  });
+
+  it('gives an exact name priority over an arrow selection on Tab as copible does', async () => {
+    const view = setup();
+    await view.user.type(view.book, '요');
+    await view.user.keyboard('{ArrowDown}{Tab}');
+    expect(view.book.value).toBe('요한복음');
+    expect(document.activeElement).toBe(view.chapter);
+  });
+
+  it.each(['Tab', 'Enter'])(
+    'advances through the four fields with %s and submits only at the end',
+    async key => {
+      const view = setup();
+      await view.user.type(view.book, 'ckd');
+      await view.user.keyboard(`{${key}}`);
+      expect(document.activeElement).toBe(view.chapter);
+      await view.user.type(view.chapter, '1');
+      await waitFor(() => expect(view.start.disabled).toBe(false));
+      await view.user.keyboard(`{${key}}`);
+      expect(document.activeElement).toBe(view.start);
+      await view.user.type(view.start, '1');
+      await view.user.keyboard(`{${key}}`);
+      expect(document.activeElement).toBe(view.end);
+      expect(view.onSubmit).not.toHaveBeenCalled();
+      await waitFor(() => expect(view.onPreview).toHaveBeenCalled());
+      await view.user.keyboard('{Enter}');
+      expect(view.onSubmit).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({ref: '창세기 1:1'}),
+      );
+    },
+  );
+
   it('completes mrk to Mark instead of the IME-off Zechariah containment match', async () => {
     const view = setup();
     view.lookup.mockImplementation(request => formLookupReply(request, [41]));
@@ -363,7 +449,7 @@ describe('shared Bible reference form', () => {
     await view.user.tab();
     expect(document.activeElement).toBe(view.book);
     expect(view.book.value).toBe('베');
-    expect(view.book.getAttribute('aria-invalid')).toBe('true');
+    expect(view.book.getAttribute('aria-invalid')).toBeNull();
     await view.user.keyboard('{ArrowDown}{ArrowDown}{Tab}');
     expect(view.book.value).toBe('베드로전서');
     expect(document.activeElement).toBe(view.chapter);
@@ -413,10 +499,13 @@ describe('shared Bible reference form', () => {
     fireEvent.keyDown(view.start, {key: 'Enter', isComposing: true});
     expect(view.onSubmit).not.toHaveBeenCalled();
     await view.user.keyboard('{Enter}');
+    expect(document.activeElement).toBe(view.end);
+    expect(view.onSubmit).not.toHaveBeenCalled();
+    await view.user.keyboard('{Enter}');
     expect(view.onSubmit).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({ref: '요한복음 3:16'}),
     );
-    fireEvent.keyDown(view.start, {key: 'Enter', repeat: true});
+    fireEvent.keyDown(view.end, {key: 'Enter', repeat: true});
     expect(view.onSubmit).toHaveBeenCalledOnce();
   });
 
@@ -511,7 +600,7 @@ describe('shared Bible reference form', () => {
       ),
     );
     fireEvent.change(view.start, {target: {value: '16'}});
-    fireEvent.keyDown(view.start, {key: 'Enter'});
+    fireEvent.keyDown(view.end, {key: 'Enter'});
     expect(view.onSubmit).not.toHaveBeenCalled();
     await act(async () =>
       finish(await formLookupReply(lookupRequest('요한복음 3:17'))),
@@ -521,13 +610,13 @@ describe('shared Bible reference form', () => {
         lookupRequest('요한복음 3:16'),
       ),
     );
-    fireEvent.keyDown(view.start, {key: 'Enter'});
+    fireEvent.keyDown(view.end, {key: 'Enter'});
     expect(view.onSubmit).not.toHaveBeenCalled();
     await act(async () =>
       finishReturn(await formLookupReply(lookupRequest('요한복음 3:16'))),
     );
     await waitFor(() => expect(view.onPreview).toHaveBeenCalledTimes(2));
-    fireEvent.keyDown(view.start, {key: 'Enter'});
+    fireEvent.keyDown(view.end, {key: 'Enter'});
     expect(view.onSubmit).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({ref: '요한복음 3:16'}),
     );
@@ -551,7 +640,7 @@ describe('shared Bible reference form', () => {
     expect(view.start.value).toBe('16');
     expect(view.start.disabled).toBe(true);
     expect(view.end.disabled).toBe(true);
-    fireEvent.keyDown(view.start, {key: 'Enter'});
+    fireEvent.keyDown(view.end, {key: 'Enter'});
     expect(view.onSubmit).not.toHaveBeenCalled();
     await act(async () => finish(await formLookupReply(other)));
     await waitFor(() =>
@@ -566,7 +655,7 @@ describe('shared Bible reference form', () => {
     );
     expect(view.book.disabled).toBe(true);
     expect(view.end.disabled).toBe(true);
-    fireEvent.keyDown(view.start, {key: 'Enter'});
+    fireEvent.keyDown(view.end, {key: 'Enter'});
     expect(view.onSubmit).not.toHaveBeenCalled();
   });
 

@@ -783,11 +783,16 @@ that ProPresenter's Edit mode has the same behavior.
   exact code wins over an incidental IME-off containment match: `mrk` completes
   to 마가복음. Nothing is highlighted initially. With 책 empty and no suggestion
   pointed, forward Tab moves on like in any field, because there is nothing to
-  complete (lead decision, November 2). With text in 책, forward Tab completes
-  an exact match or a sole candidate to the full name and moves to 장. With
-  several candidates and no exact match, Tab stays until an arrow-key selection
-  is made. The selected book wins when the operator explicitly points to one. A
-  click or Enter selects a suggestion before any output.
+  complete (lead decision, November 2). With text in 책, forward Tab or Enter
+  completes an exact match or a sole candidate to the full name and moves to 장.
+  With several candidates and no exact match, completion stays until an
+  arrow-key selection is made. As in copible, Tab gives the exact name priority
+  over a highlighted partial match; a click or Enter selects a highlighted
+  suggestion. Matching partial names are not errors. Only an unmatched name or a
+  book absent from the selected installed translation has a red ring with a
+  plain Korean tooltip reason. `ckd` and `ckdtprl` complete to 창세기; `chd`
+  means 총 and has no match, as in copible. A valid full name in an installed
+  translation is never marked red.
 - Up from no highlight leaves it unselected; Up from the first row clears the
   highlight. Down from no highlight selects the first row. An ambiguous book
   still blocks Tab after Up clears its selection.
@@ -800,15 +805,15 @@ that ProPresenter's Edit mode has the same behavior.
   keep their normal behavior.
 - With all four reference fields empty, Tab leaves 책 and skips the disabled
   numeric fields, so the rest of 진행 stays reachable without entering a
-  passage; Shift Tab returns to 책. Once input begins, forward Tab moves through
-  valid 장, 시작절, and 끝절. 장 ranges from 1 to the book's chapter count,
-  시작절 from 1 to the chapter's last verse, and 끝절 from 시작절 to the last
-  verse. An empty 끝절 means one verse. Changing 시작절 clears 끝절. Invalid
-  values block Tab and mark the affected fields with the error ring and a short
-  Korean tooltip reason, with no adjacent sentence. Lookup clamps an oversized
-  끝절 to the chapter's last verse; Enter also normalizes the displayed end. A
-  reversed end blocks lookup. Shift Tab keeps backward navigation and IME
-  composition keeps its keys.
+  passage; Shift Tab returns to 책. Once input begins, forward Tab and Enter
+  move through valid 장, 시작절, and 끝절. 장 ranges from 1 to the book's
+  chapter count, 시작절 from 1 to the chapter's last verse, and 끝절 from 시작절
+  to the last verse. An empty 끝절 means one verse. Changing 시작절 clears 끝절.
+  Invalid values block Tab and mark the affected fields with the error ring and
+  a short Korean tooltip reason, with no adjacent sentence. Lookup clamps an
+  oversized 끝절 to the chapter's last verse; Enter also normalizes the
+  displayed end. A reversed end blocks lookup. Shift Tab keeps backward
+  navigation and IME composition keeps its keys.
 - Suggestions open below 책. The 책 group lists all matching books, without the
   former eight-book cap. 최근 lists up to ten stored passages. Choosing a recent
   clears the manual fields and previews its original stored range, including
@@ -816,15 +821,17 @@ that ProPresenter's Edit mode has the same behavior.
   passage. Editing any field starts a new manual reference.
 - As soon as the fields form a valid reference, the Bible panel opens in place
   of the 슬라이드 panel in the center column.
-- Enter from any field outputs the current valid passage, as 바로 띄우기 does. A
-  pending lookup, invalid reference, repeated Enter, or composition Enter cannot
-  output. The four fields build a range within one chapter; stored references
-  and recent passages retain the full grammar in 02.
+- Enter from 끝절 outputs the current valid passage, as 바로 띄우기 does. Enter
+  from 책, 장, and 시작절 completes that field and moves to the next one without
+  output, even when a valid preview already exists. A pending lookup, invalid
+  reference, repeated Enter, or composition Enter cannot output. The four fields
+  build a range within one chapter; stored references and recent passages retain
+  the full grammar in 02.
 - 준비 항목 추가 성경 구절 opens a small 성경 구절 dialog with the same fields.
-  Enter inserts the current passage item using the opening's default translation
-  and verse-number preference. 추가 performs the same insertion; it is disabled
-  without a current valid lookup. 취소 forgets the opening and its pending
-  replies. No passage is output from this dialog.
+  Enter from 끝절 inserts the current passage item using the opening's default
+  translation and verse-number preference. 추가 performs the same insertion; it
+  is disabled without a current valid lookup. 취소 forgets the opening and its
+  pending replies. No passage is output from this dialog.
 
 ### 절 나누기
 
@@ -1004,9 +1011,9 @@ integration use this contract, with a distinct cancellable ID per lookup.
   output, edit the 예배 순서, or add recent history. When the live verse is in
   the extended preview, its tile keeps the live ring and the next and previous
   keys go on from it. A book boundary stops the extension. A failed or
-  superseded lookup leaves the preview unchanged. Enter from the unchanged
-  reference fields outputs the expanded preview; editing a field starts a new
-  lookup from those fields.
+  superseded lookup leaves the preview unchanged. Enter from the unchanged 끝절
+  field outputs the expanded preview; editing a field starts a new lookup from
+  those fields.
 - Shift+→ outputs the verse after the live one in the open passage; on the
   passage's last verse it first adds the next verse to the passage. Shift+← does
   the same toward the first verse (user decision, October 30). In the middle of
@@ -1019,11 +1026,9 @@ integration use this contract, with a distinct cancellable ID per lookup.
 - 예배 순서에 넣기 inserts a Bible passage item into the selected section or the
   section containing the selected 예배 순서 item, following 항목 추가's
   insertion rule (05). An empty section stays as the passage's section row.
-- Enter in the passage field does the same as 바로 띄우기. If the suggestion
-  list points to a different row, Enter first chooses that suggestion (proposal:
-  reconciles the `TextField` document, which says Enter shows the passage, with
-  the board, which says the operator checks the preview before showing it; open
-  question).
+- Enter in 끝절 does the same as 바로 띄우기. In the preceding fields it
+  completes the field and advances focus. Choosing a recent passage keeps its
+  existing Enter-to-output behavior after preview.
 - If the reference isn't valid, the field shows an error ring with the reason in
   a tooltip, for example "구절을 찾을 수 없습니다" (passage not recognized)
   (proposal).

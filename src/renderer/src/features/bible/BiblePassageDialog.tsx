@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import type {LlpApi} from '@contracts/ipc/api';
+import type {BibleLookupApi} from '@contracts/ipc/bible';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import type {TranslationId} from '@core/schema/ids';
 import {Dialog} from '@renderer/ui/Dialog';
@@ -13,7 +13,7 @@ export function BiblePassageDialog({
   onChoose,
   onClose,
 }: {
-  readonly api: LlpApi['bible'];
+  readonly api: BibleLookupApi;
   readonly translation: TranslationId | undefined;
   readonly limit?: number;
   readonly onChoose: (passage: BibleLookupPassage) => void;

@@ -540,8 +540,12 @@ Source: `AddSongs`, `ListRow` README.
   row.
 - Other items (proposal):
   - 구역 추가: inserts an empty section named "새 구역" in rename mode.
-  - 성경 구절: shows a reference field in the popover. Enter inserts a Bible
-    passage item with the default settings.
+  - 성경 구절: opens the shared four-field passage dialog (04). 책 accepts
+    Korean full/short names, English names/codes, partial jamo and IME-off keys.
+    Tab or Enter completes the book name and moves through 장, 시작절, 끝절;
+    matching partial names are not marked red. `ckd` completes to 창세기, while
+    `chd` has no match. Enter in 끝절 or 추가 inserts the validated passage with
+    the default settings; earlier Enter presses never insert it.
   - 미디어: a submenu with the media list.
 
 Source: `AddSongsQuick`, `Main` board guide (예배 순서에 곡 넣기).

@@ -348,6 +348,11 @@ describe('항목 추가', () => {
     );
     await user.click(screen.getByRole('textbox', {name: '시작절'}));
     await user.keyboard('{Enter}');
+    expect(document.activeElement).toBe(
+      screen.getByRole('textbox', {name: '끝절'}),
+    );
+    expect(service().service.order).toHaveLength(2);
+    await user.keyboard('{Enter}');
     await waitFor(() => expect(service().service.order).toHaveLength(3));
     expect(quickAddBefore).toHaveBeenLastCalledWith(
       useShow.getState().rows,
