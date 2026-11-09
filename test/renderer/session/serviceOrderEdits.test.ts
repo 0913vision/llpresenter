@@ -1,4 +1,5 @@
 import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
+import * as v from 'valibot';
 import {describe, expect, it, vi} from 'vitest';
 import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import type {
@@ -14,6 +15,7 @@ import {
   createServiceItemId,
   createSongId,
   createThemeId,
+  translationIdSchema,
 } from '@core/schema/ids';
 import {withStartField} from '@core/services/itemFieldChanges';
 import {themeRequest} from '@renderer/features/service/items/itemAppearanceCommands';
@@ -126,6 +128,62 @@ function fixture() {
 }
 
 describe('service order edits', () => {
+  it('inserts a prepared Bible item at the end of a selected section', async () => {
+    const {edits, ids, state} = fixture();
+    if (state.document === null) throw new Error('Missing document');
+    const next = createServiceItemId('20000000-0000-4000-8000-000000000015');
+    state.document = {
+      ...state.document,
+      service: {
+        ...state.document.service,
+        order: [
+          ...state.document.service.order,
+          {id: next, header: 'Next section'},
+        ],
+      },
+    };
+    const bible = {
+      id: createServiceItemId('20000000-0000-4000-8000-000000000014'),
+      bible: {
+        translation: v.parse(translationIdSchema, 'krv'),
+        ref: 'John 3:16',
+        split: 'verse' as const,
+        reference: 'every' as const,
+        verseNumbers: true,
+      },
+    };
+    await edits.insertItemInSection(serviceId, first, async () => bible);
+    expect(ids()).toEqual([first, second, third, bible.id, next]);
+  });
+  it('moves noncontiguous selected items across a section header and undoes once', async () => {
+    const {edits, state, ids} = fixture();
+    if (state.document === null) throw new Error('Missing document');
+    const fourth = createServiceItemId('20000000-0000-4000-8000-000000000004');
+    const fifth = createServiceItemId('20000000-0000-4000-8000-000000000005');
+    state.document = {
+      ...state.document,
+      service: {
+        ...state.document.service,
+        order: [
+          ...state.document.service.order,
+          {id: fourth, header: 'Second section'},
+          {id: fifth, song: songId, slides: []},
+        ],
+      },
+    };
+    await edits.moveStep(serviceId, [second, fifth], 'up');
+    expect(ids()).toEqual([second, first, third, fifth, fourth]);
+    await edits.undo(serviceId);
+    expect(ids()).toEqual([first, second, third, fourth, fifth]);
+  });
+  it('moves multiple selected items by one position and undoes them together', async () => {
+    const {edits, ids, edit} = fixture();
+    await edits.moveStep(serviceId, [second, third], 'up');
+    expect(ids()).toEqual([second, third, first]);
+    expect(edit).toHaveBeenCalledTimes(1);
+    await edits.undo(serviceId);
+    expect(ids()).toEqual([first, second, third]);
+  });
   it('pastes several complete items after a row as one undo and redo step, or appends them', async () => {
     const {edits, ids, edit} = fixture();
     const copied = [

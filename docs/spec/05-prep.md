@@ -70,9 +70,11 @@ have landed.
   Both ask before replacing slides; saving to the library includes its usage
   line. Nothing synchronizes automatically. 구성 controls, their changed dot,
   the order strip, and the 순서 편집 window are removed.
-- 항목 and 구역 at the end of the table add after the selected row, or at the
-  end when nothing is selected. Themes, backgrounds, macros, memo, and section
-  behavior retain their existing rules.
+- 항목 and 구역 at the end of the table add after the selected item, at the end
+  of a selected section, or at the end when nothing is selected. The song picker
+  adds the focused song with Enter or double-click; Enter in the search field
+  adds the selected song. Cell edits target the row containing the cell,
+  including when its background file is missing.
 - Editable background cells with no background show 없음 and open the same
   picker on the first click. Cells without a start macro or memo stay empty
   while retaining their menu or field on click and a frame on hover. Item rows
@@ -550,11 +552,13 @@ Source: `AddSongs`, `ListRow` README.
 
 - 항목 추가 offers 곡… first, opening a searchable library picker. Choosing a
   song and 추가 inserts a separate item deck. Library row 예배 순서에 추가,
-  toolbar search Ctrl Enter, quick add, the table footer, Bible insertion,
-  untargeted song drops, media tile menus and paste insert immediately after the
-  selected service row, or at the end when none is selected. Explicit row drops
-  retain their drop position. A successful insertion selects and scrolls to the
-  new row when the operator has not moved the selection while it was saving.
+  toolbar search Ctrl Enter, quick add, the table footer, untargeted song drops,
+  and media tile menus insert after the selected item or at the end of a
+  selected section, or at the end when none is selected. Bible insertion follows
+  the same section rule. Paste deliberately inserts immediately after the
+  selected row, including a section header. Explicit row drops retain their drop
+  position. A successful insertion selects and scrolls to the new row when the
+  operator has not moved the selection while it was saving.
 - Other items (proposal):
   - 구역 추가: inserts an empty section named "새 구역" in rename mode.
   - 성경 구절: opens the shared four-field passage dialog (04). 책 accepts

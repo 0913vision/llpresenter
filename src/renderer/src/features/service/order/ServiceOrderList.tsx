@@ -30,7 +30,6 @@ import {useEffect, useMemo, useRef, useState, type JSX} from 'react';
 import {createServiceItemId, type SongId} from '@core/schema/ids';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import {hasModifier} from '@renderer/ui/modifierKeys';
-import {useRowMoveKeys} from '@renderer/ui/reorder';
 import {useMovedRowFocus} from './useMovedRowFocus';
 import {useOrderEditFocus} from './useOrderEditFocus';
 import {useOrderResizeFocus} from './useOrderResizeFocus';
@@ -87,6 +86,30 @@ interface RowGroup {
   readonly id: string;
   readonly label: string | undefined;
   readonly items: readonly ServiceRow[];
+}
+
+function movableItems(
+  rows: readonly ServiceRow[],
+  ids: readonly string[],
+): readonly string[] {
+  const selected = new Set(ids);
+  return rows
+    .filter(row => row.kind !== 'header' && selected.has(row.id))
+    .map(row => row.id);
+}
+
+function canMoveItems(
+  rows: readonly ServiceRow[],
+  ids: readonly string[],
+  direction: 'up' | 'down',
+): boolean {
+  const chosen = new Set(movableItems(rows, ids));
+  return rows.some((row, index) => {
+    const neighbor = rows[index + (direction === 'up' ? -1 : 1)];
+    return (
+      chosen.has(row.id) && neighbor !== undefined && !chosen.has(neighbor.id)
+    );
+  });
 }
 
 function groupRows(rows: readonly ServiceRow[]): readonly RowGroup[] {
@@ -292,17 +315,6 @@ export function ServiceOrderList({
   );
   const editable = !readOnly && !editing.busy && window.llp !== undefined;
   const full = useOrderFull();
-  const moveRowSaved = (
-    source: string,
-    before: string | null,
-  ): Promise<boolean> =>
-    editing.save((edits, id) =>
-      edits.move(
-        id,
-        createServiceItemId(source),
-        before === null ? null : createServiceItemId(before),
-      ),
-    );
   const [menu, setMenu] = useState<{
     id: string;
     serviceId: string | null;
@@ -448,18 +460,20 @@ export function ServiceOrderList({
     };
   };
   const movedFocus = useMovedRowFocus(listRef, rows, serviceId);
-  useRowMoveKeys({
-    owns: ownsCommand,
-    rowId: target => {
-      const id = target === null ? null : serviceOrderRowId(target);
-      const row = rows.find(value => value.id === id);
-      return row !== undefined && row.kind !== 'header' ? id : null;
-    },
-    ids: rows.map(row => row.id),
-    enabled: editable,
-    onMove: (id, before) => {
-      const disarm = movedFocus.arm(id);
-      moveRowSaved(id, before).then(
+  const moveItems = (
+    ids: readonly string[],
+    direction: 'up' | 'down',
+    focusId: string,
+  ): void => {
+    const movable = movableItems(rows, ids);
+    if (!editable || movable.length === 0) return;
+    if (!canMoveItems(rows, movable, direction)) return;
+    const disarm = movedFocus.arm(focusId);
+    editing
+      .save((edits, id) =>
+        edits.moveStep(id, movable.map(createServiceItemId), direction),
+      )
+      .then(
         saved => {
           if (!saved) disarm();
         },
@@ -468,8 +482,7 @@ export function ServiceOrderList({
           console.error('Could not move a 예배 순서 item:', error);
         },
       );
-    },
-  });
+  };
   const runFocusedEdit = (
     operation: Parameters<typeof editing.run>[0],
   ): void => {
@@ -545,7 +558,31 @@ export function ServiceOrderList({
     if (kind === 'undo') return edits.canUndo(id) ? undefined : NOTHING_TO_UNDO;
     return edits.canRedo(id) ? undefined : NOTHING_TO_REDO;
   };
+  const moveFromKey = (
+    event: KeyboardEvent,
+    direction: 'up' | 'down',
+  ): void => {
+    const id = event.target === null ? null : serviceOrderRowId(event.target);
+    if (id === null) return;
+    moveItems(
+      selection.selected.has(id) ? [...selection.selected] : [id],
+      direction,
+      id,
+    );
+  };
   useWindowShortcuts([
+    {
+      id: 'list.moveUp',
+      context: 'service',
+      when: ownsCommand,
+      run: event => moveFromKey(event, 'up'),
+    },
+    {
+      id: 'list.moveDown',
+      context: 'service',
+      when: ownsCommand,
+      run: event => moveFromKey(event, 'down'),
+    },
     {
       id: 'edit.copy',
       fixedBindings: [{code: 'KeyC', mods: ['ctrl']}],
@@ -707,6 +744,10 @@ export function ServiceOrderList({
           setMenu(null);
         },
         full,
+        moveUpReason: canMoveItems(rows, ids, 'up') ? undefined : '맨 위입니다',
+        moveDownReason: canMoveItems(rows, ids, 'down')
+          ? undefined
+          : '맨 아래입니다',
         clipboard: {
           copy: () => {
             editorTask(
@@ -732,6 +773,14 @@ export function ServiceOrderList({
           duplicateItems(ids);
           setMenu(null);
         },
+        moveUp: () => {
+          moveItems(ids, 'up', target.id);
+          setMenu(null);
+        },
+        moveDown: () => {
+          moveItems(ids, 'down', target.id);
+          setMenu(null);
+        },
         remove: () => {
           askDelete(ids);
           setMenu(null);
@@ -739,7 +788,14 @@ export function ServiceOrderList({
       }),
       ...(count === 1 ? (table?.menuFor?.(row) ?? []) : []),
     ];
-    const common = new Set(['copy', 'paste', 'duplicate', 'delete']);
+    const common = new Set([
+      'copy',
+      'paste',
+      'duplicate',
+      'move-up',
+      'move-down',
+      'delete',
+    ]);
     const duplicateCount = orderedSelection(
       rows,
       new Set(ids),

@@ -344,6 +344,7 @@ bar handles.
 | header | 색 바꾸기                              | 구역 rows only (PP Change Color on a header).                                                                                                                     | Off    |
 | 3      | 복사 (Ctrl C), 붙여넣기 (Ctrl V)       | PP clipboard rows; the Windows build shows the keys at the right.                                                                                                 | Now    |
 | 3      | 복제 (Ctrl D)                          | Copies the item, or the whole 구역 with its items for a 구역 row, as one undo step (see "복제 by kind"). Ctrl D does the same in 준비 with the focus on the list. | Now    |
+| 3      | 위로 옮기기, 아래로 옮기기             | Moves selected item rows one position with Alt ↑ or Alt ↓, as one undo step. Section rows move by drag only.                                                      | Now    |
 | 3      | 이름 바꾸기                            | 구역 rows (PP Rename on headers). A song, 성경, or 미디어 item has no name of its own (it shows its source's name), so its row stays disabled as Later.           | Now    |
 | 3      | 삭제                                   | Removes the item from the service. No icon, as in PP.                                                                                                             | Now    |
 | song   | 라이브러리에서 보기                    | Selects the song in the 라이브러리 (PP Show in Library).                                                                                                          | New    |

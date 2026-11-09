@@ -6,6 +6,31 @@ import {
   type ServiceOrderMenuInput,
 } from '@renderer/features/service/order/serviceOrderMenu';
 
+it('explains when selected rows cannot move farther', () => {
+  const entries = menuItems(
+    serviceOrderMenuEntries({
+      row: {kind: 'song', id: 'row', title: '곡'},
+      editable: true,
+      openInPrep: undefined,
+      rename: vi.fn(),
+      duplicate: vi.fn(),
+      remove: vi.fn(),
+      moveUp: vi.fn(),
+      moveDown: vi.fn(),
+      moveUpReason: '맨 위입니다',
+      moveDownReason: '맨 아래입니다',
+    }),
+  );
+  expect(entries.find(row => row.id === 'move-up')).toMatchObject({
+    disabled: true,
+    title: '맨 위입니다',
+  });
+  expect(entries.find(row => row.id === 'move-down')).toMatchObject({
+    disabled: true,
+    title: '맨 아래입니다',
+  });
+});
+
 it('omits the unavailable editor group without an empty separator in prep', () => {
   const entries = serviceOrderMenuEntries({
     row: {kind: 'song', id: 'row', title: '곡'},
@@ -27,6 +52,8 @@ it('omits the unavailable editor group without an empty separator in prep', () =
     'copy',
     'paste',
     'duplicate',
+    'move-up',
+    'move-down',
     'delete',
     '|',
     'show-in-library',

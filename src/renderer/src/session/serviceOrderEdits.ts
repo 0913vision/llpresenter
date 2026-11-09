@@ -18,6 +18,7 @@ import {
   type ServiceItem,
 } from '@core/schema/service';
 import {sectionBoundaryIndex} from '@core/services/serviceSections';
+import {sectionInsertIndex} from '@core/services/quickAddPosition';
 import {pendingWritesOf} from '../platform/pendingWrites';
 import {useShow} from './showStore';
 import {selectAddedItem} from './selectAddedItem';
@@ -260,6 +261,50 @@ export class ServiceOrderEdits {
     });
   }
 
+  /** Moves selected item rows one position, retaining one history entry. */
+  moveStep(
+    serviceId: ServiceId,
+    itemIds: readonly ServiceItemId[],
+    direction: 'up' | 'down',
+  ) {
+    return this.update(serviceId, service => {
+      const selected = new Set(itemIds);
+      if (
+        itemIds.some(
+          id =>
+            !service.order.some(
+              item => item.id === id && !isItemOfKind(item, 'header'),
+            ),
+        )
+      ) {
+        return refuse('not-found', 'An item no longer exists');
+      }
+      const order = [...service.order];
+      const indices =
+        direction === 'up'
+          ? Array.from({length: Math.max(0, order.length - 1)}, (_, i) => i + 1)
+          : Array.from(
+              {length: Math.max(0, order.length - 1)},
+              (_, i) => order.length - 2 - i,
+            );
+      for (const index of indices) {
+        const other = index + (direction === 'up' ? -1 : 1);
+        const item = order[index];
+        const neighbor = order[other];
+        if (
+          item !== undefined &&
+          neighbor !== undefined &&
+          selected.has(item.id) &&
+          !selected.has(neighbor.id)
+        ) {
+          order[index] = neighbor;
+          order[other] = item;
+        }
+      }
+      return {ok: true, value: order};
+    });
+  }
+
   insertSong(
     serviceId: ServiceId,
     songId: SongId,
@@ -419,8 +464,9 @@ export class ServiceOrderEdits {
       serviceId,
       service => {
         if (!item) return refuse('invalid', 'The item is unavailable');
-        const selected = service.order.findIndex(row => row.id === selectedId);
-        const next = selected < 0 ? service.order.length : selected + 1;
+        const next = sectionInsertIndex(service.order, selectedId, row =>
+          isItemOfKind(row, 'header'),
+        );
         const order = [...service.order];
         order.splice(next, 0, item);
         return {ok: true, value: order};

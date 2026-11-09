@@ -11,6 +11,52 @@ import {
 } from '@fixtures/renderer/features/service/order/serviceOrderEditingFixtures';
 
 describe.each(['show', 'prep'] as const)('%s service selection', workspace => {
+  it('moves the selected items with Alt arrows in one undo step', async () => {
+    const {ids, list} = setup(workspace);
+    const first = screen.getByRole('option', {name: '첫 곡'});
+    const last = screen.getByRole('option', {name: '다음 곡'});
+    fireEvent.click(first);
+    fireEvent.click(last, {ctrlKey: true});
+    last.focus();
+    fireEvent.keyDown(last, {key: 'ArrowUp', code: 'ArrowUp', altKey: true});
+    await waitFor(() => expect(ids()).toEqual([firstId, lastId, headerId]));
+    fireEvent.keyDown(list(), {key: 'z', code: 'KeyZ', ctrlKey: true});
+    await waitFor(() => expect(ids()).toEqual([headerId, firstId, lastId]));
+  });
+  it('moves a focused item down with Alt Down', async () => {
+    const {ids} = setup(workspace);
+    const first = screen.getByRole('option', {name: '첫 곡'});
+    fireEvent.click(first);
+    first.focus();
+    fireEvent.keyDown(first, {
+      key: 'ArrowDown',
+      code: 'ArrowDown',
+      altKey: true,
+    });
+    await waitFor(() => expect(ids()).toEqual([headerId, lastId, firstId]));
+  });
+  it('disables a menu move at the end with its reason', async () => {
+    setup(workspace);
+    const last = screen.getByRole('option', {name: '다음 곡'});
+    fireEvent.contextMenu(last);
+    expect(
+      screen
+        .getByRole('menuitem', {name: /아래로 옮기기/})
+        .getAttribute('aria-disabled'),
+    ).toBe('true');
+  });
+  it('moves selected rows together from the menu and undoes in one step', async () => {
+    const {ids, list} = setup(workspace);
+    const first = screen.getByRole('option', {name: '첫 곡'});
+    const last = screen.getByRole('option', {name: '다음 곡'});
+    fireEvent.click(first);
+    fireEvent.click(last, {ctrlKey: true});
+    fireEvent.contextMenu(first);
+    await userEvent.click(screen.getByRole('menuitem', {name: /위로 옮기기/}));
+    await waitFor(() => expect(ids()).toEqual([firstId, lastId, headerId]));
+    fireEvent.keyDown(list(), {key: 'z', code: 'KeyZ', ctrlKey: true});
+    await waitFor(() => expect(ids()).toEqual([headerId, firstId, lastId]));
+  });
   it('reports a stale confirmation through the host notification channel', async () => {
     const {ids, onProblem} = setup(workspace);
     const first = screen.getByRole('option', {name: '첫 곡'});

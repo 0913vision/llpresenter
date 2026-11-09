@@ -192,6 +192,29 @@ function fillBibleForm(end = ''): void {
 }
 
 describe('항목 추가', () => {
+  it('adds a song after the last item of the selected section', async () => {
+    const {user, service, first} = setup();
+    useShow.setState({
+      openItemId: fixtureItems.header,
+      rows: [
+        {kind: 'header', id: fixtureItems.header, title: '찬양'},
+        {kind: 'song', id: fixtureItems.arranged, title: '첫 곡'},
+        {kind: 'song', id: fixtureItems.plain, title: '다음 곡'},
+        {kind: 'header', id: fixtureItems.slot, title: '헌금 찬양'},
+        {kind: 'song', id: fixtureItems.lost, title: '마지막 곡'},
+      ],
+    });
+    await user.click(screen.getByRole('button', {name: '항목 추가'}));
+    await user.click(screen.getByRole('menuitem', {name: '곡…'}));
+    await user.dblClick(
+      await screen.findByRole('option', {name: first.song.title}),
+    );
+    await waitFor(() => expect(service().service.order).toHaveLength(6));
+    const order = service().service.order;
+    const index = order.findIndex(item => item.id === fixtureItems.plain);
+    expect(order[index + 1]).toMatchObject({song: first.song.id});
+    expect(order[index + 2]?.id).toBe(fixtureItems.slot);
+  });
   it('searches the library and inserts the chosen song immediately after the selected item', async () => {
     const {api, user, service, first} = setup();
     const rows = [

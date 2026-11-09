@@ -18,12 +18,15 @@ import {ServiceTableList} from '@renderer/features/service/table/ServiceTableLis
 import type {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import {useLive} from '@renderer/session/live';
 import {applyService} from '@renderer/session/show';
+import {openItem, useShow} from '@renderer/session/show';
+import {fixtureMedia, itemMedia} from '@fixtures/core/mediaList';
 
 const SERVICE_ID = createServiceId('00000000-0000-4000-8000-000000000001');
 const SONG_ITEM = createServiceItemId('10000000-0000-4000-8000-000000000002');
 const SONG_ID = createSongId('20000000-0000-4000-8000-000000000001');
+const OTHER_ITEM = createServiceItemId('10000000-0000-4000-8000-000000000003');
 
-function setup() {
+function setup(twoRows = false) {
   const document: ServiceDocument = {
     service: {
       format: 'llservice',
@@ -31,7 +34,10 @@ function setup() {
       id: SERVICE_ID,
       name: 'Invented service',
       date: '2026-11-02T11:00',
-      order: [{slides: [], id: SONG_ITEM, song: SONG_ID, memo: '간주 길게'}],
+      order: [
+        {slides: [], id: SONG_ITEM, song: SONG_ID, memo: '간주 길게'},
+        ...(twoRows ? [{slides: [], id: OTHER_ITEM, song: SONG_ID}] : []),
+      ],
     },
     revision: 1,
     access: 'editable',
@@ -41,7 +47,17 @@ function setup() {
     revision: 1,
     name: 'Invented service',
     readOnly: false,
-    rows: [{kind: 'song', id: SONG_ITEM, title: '첫 곡'}],
+    rows: [
+      {
+        kind: 'song',
+        id: SONG_ITEM,
+        title: '첫 곡',
+        ...(twoRows ? {problem: 'missing-background' as const} : {}),
+      },
+      ...(twoRows
+        ? [{kind: 'song' as const, id: OTHER_ITEM, title: '다음 곡'}]
+        : []),
+    ],
     tiles: {},
     jumpKeys: {},
   });
@@ -57,6 +73,7 @@ function setup() {
   const songListeners = new Set<(change: SongChange) => void>();
   const api = mockLlpApi({
     services: {get: () => Promise.resolve(document)},
+    media: {get: () => Promise.resolve(itemMedia())},
     songs: {
       get: () => Promise.resolve(songDocument),
       subscribe: listener => {
@@ -93,6 +110,25 @@ function setup() {
 
 beforeEach(() => {
   useLive.setState({state: null});
+});
+
+it('opens the clicked missing-background row and targets its cell while another row is open', async () => {
+  const {submitItemEdit} = setup(true);
+  const user = userEvent.setup();
+  await screen.findByRole('button', {name: '배경, 첫 곡'});
+  act(() => openItem(OTHER_ITEM));
+  await user.click(screen.getByText('첫 곡', {selector: '[id]'}));
+  expect(useShow.getState().openItemId).toBe(SONG_ITEM);
+  await user.keyboard('{Escape}');
+  act(() => openItem(OTHER_ITEM));
+  await user.click(screen.getByRole('button', {name: '배경, 첫 곡'}));
+  await user.click(await screen.findByRole('option', {name: /새벽 하늘/}));
+  const request = submitItemEdit.mock.calls[0]?.[0];
+  expect(request?.target).toEqual({serviceId: SERVICE_ID, itemId: SONG_ITEM});
+  expect(
+    request?.change({id: SONG_ITEM, song: SONG_ID, slides: []}),
+  ).toMatchObject({background: fixtureMedia.dawn});
+  expect(request?.target?.itemId).not.toBe(OTHER_ITEM);
 });
 
 afterEach(() => {

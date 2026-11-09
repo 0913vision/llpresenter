@@ -17,6 +17,10 @@ export interface ServiceOrderMenuInput {
   readonly openInPrep: (() => void) | undefined;
   readonly rename: () => void;
   readonly duplicate: () => void;
+  readonly moveUp?: (() => void) | undefined;
+  readonly moveDown?: (() => void) | undefined;
+  readonly moveUpReason?: string | undefined;
+  readonly moveDownReason?: string | undefined;
   readonly clipboard?: {
     readonly copy: () => void;
     readonly paste: () => void;
@@ -225,6 +229,36 @@ export function serviceOrderMenuEntries(
       ),
       onSelect: input.duplicate,
     },
+    ...(input.row.kind === 'header'
+      ? []
+      : [
+          {
+            kind: 'item' as const,
+            id: 'move-up',
+            contextGroup: 'clipboard' as const,
+            label: '위로 옮기기',
+            command: 'list.moveUp',
+            ...menuAvailability(
+              input.editable && input.moveUp !== undefined
+                ? input.moveUpReason
+                : '예배 순서 편집 불가',
+            ),
+            onSelect: input.moveUp,
+          },
+          {
+            kind: 'item' as const,
+            id: 'move-down',
+            contextGroup: 'clipboard' as const,
+            label: '아래로 옮기기',
+            command: 'list.moveDown',
+            ...menuAvailability(
+              input.editable && input.moveDown !== undefined
+                ? input.moveDownReason
+                : '예배 순서 편집 불가',
+            ),
+            onSelect: input.moveDown,
+          },
+        ]),
     ...renameRow(input),
     {
       kind: 'item',

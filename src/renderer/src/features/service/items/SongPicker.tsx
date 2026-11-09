@@ -73,14 +73,21 @@ export function SongPicker({
       active = false;
     };
   }, [query, songs]);
+  const matchingIds = new Set(
+    matches?.query === query.trim() ? matches.ids : [],
+  );
   const shown =
     query.trim() === ''
       ? songs
-      : songs.filter(
-          song =>
-            matches?.query === query.trim() && matches.ids.includes(song.id),
-        );
+      : songs.filter(song => matchingIds.has(song.id));
   const choice = shown.find(song => song.id === selected);
+  const optionSong = (target: EventTarget | null): SongId | undefined => {
+    const option =
+      target instanceof Element
+        ? target.closest<HTMLElement>('[role="option"]')
+        : null;
+    return shown.find(song => song.id === option?.dataset['value'])?.id;
+  };
   return (
     <Dialog
       title="곡 추가"
@@ -107,7 +114,30 @@ export function SongPicker({
             setQuery(value);
           }}
         />
-        <div className={styles.list}>
+        <div
+          className={styles.list}
+          onDoubleClick={event => {
+            const song = optionSong(event.target);
+            if (song !== undefined) onChoose(song);
+          }}
+          onKeyDownCapture={event => {
+            if (
+              event.key !== 'Enter' ||
+              event.altKey ||
+              event.ctrlKey ||
+              event.metaKey ||
+              event.shiftKey
+            ) {
+              return;
+            }
+            const song = optionSong(event.target);
+            if (song !== undefined) {
+              event.preventDefault();
+              event.stopPropagation();
+              onChoose(song);
+            }
+          }}
+        >
           <ListBox
             label="라이브러리 곡 선택"
             selected={choice?.id}
