@@ -96,7 +96,11 @@ it('shows the first picture and resets the tab and selection when the item chang
   }
 });
 import {newSlidesItem} from '@core/services/slidesEdits';
-import {createMediaId, createThemeId} from '@core/schema/ids';
+import {
+  createMediaId,
+  createServiceItemId,
+  createThemeId,
+} from '@core/schema/ids';
 import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
 
 it.each(['bible', 'ad', 'media', 'card'] as const)(
@@ -346,6 +350,71 @@ it('updates the media title when its source changes or disappears', async () => 
     expect(await screen.findByTitle('Renamed')).toBeTruthy();
     act(() => accept(mediaDocument([], 3)));
     await screen.findByTitle('미디어 없음');
+  } finally {
+    view.unmount();
+    items.dispose();
+    await editor.dispose();
+  }
+});
+
+it('shows section item counts and restores item details when switching targets', async () => {
+  const f = itemFixture();
+  const document = f.service();
+  const first = document.service.order.find(
+    row => row.id === fixtureItems.arranged,
+  );
+  if (first === undefined) throw Error('Missing item');
+  const section = {
+    id: createServiceItemId('00000000-0000-4000-8000-000000000491'),
+    header: '합심기도',
+  };
+  const empty = {
+    id: createServiceItemId('00000000-0000-4000-8000-000000000492'),
+    header: '빈 구역',
+  };
+  const next = {
+    id: createServiceItemId('00000000-0000-4000-8000-000000000493'),
+    header: '다음 구역',
+  };
+  f.pushService({
+    ...document,
+    service: {...document.service, order: [section, first, empty, next]},
+  });
+  useShow.setState({serviceId: fixtureServiceId, openItemId: section.id});
+  const editor = new SongEditorStore(f.api, vi.fn());
+  const items = new ServiceItemStore(f.api, editor, vi.fn());
+  const panelFor = (itemId: typeof section.id) => (
+    <DetailsPanel
+      target={{kind: 'item', itemId}}
+      api={f.api}
+      items={items}
+      editor={editor}
+    />
+  );
+  const view = render(panelFor(section.id));
+  const panel = () => screen.getByRole('region', {name: '세부정보'});
+  const expectSection = async (name: string, count: number) => {
+    await within(panel()).findByText(`구역, 항목 ${count}개`);
+    expect(within(panel()).getByText(name)).toBeTruthy();
+    expect(panel().textContent).toBe(`${name}구역, 항목 ${count}개`);
+    expect(within(panel()).queryByRole('tablist')).toBeNull();
+    expect(within(panel()).queryByTestId('picture')).toBeNull();
+    expect(panel().querySelector('[class*="picture"]')).toBeNull();
+    expect(within(panel()).queryByText(/슬라이드 0개/)).toBeNull();
+  };
+  try {
+    await expectSection('합심기도', 1);
+    view.rerender(panelFor(empty.id));
+    await expectSection('빈 구역', 0);
+    view.rerender(panelFor(first.id));
+    await within(panel()).findByText(
+      `곡, 슬라이드 ${f.first.song.slides.length}개`,
+    );
+    expect(within(panel()).getByTestId('picture')).toBeTruthy();
+    expect(within(panel()).getByRole('tab', {name: '정보'})).toBeTruthy();
+    expect(within(panel()).getByRole('tab', {name: '슬라이드'})).toBeTruthy();
+    view.rerender(panelFor(section.id));
+    await expectSection('합심기도', 1);
   } finally {
     view.unmount();
     items.dispose();

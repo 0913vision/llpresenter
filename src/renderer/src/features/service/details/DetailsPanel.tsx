@@ -263,6 +263,25 @@ function DetailsPanelContent({
       });
     openEditor(() => api.window.openSongEditor({songId: item.song}), fail);
   };
+  if (item !== null && isItemOfKind(item, 'header')) {
+    const order = service?.service.order ?? [];
+    const start = order.findIndex(row => row.id === item.id);
+    let itemCount = 0;
+    for (const row of start < 0 ? [] : order.slice(start + 1)) {
+      if (isItemOfKind(row, 'header')) break;
+      itemCount += 1;
+    }
+    return (
+      <Panel label="세부정보">
+        <PanelBody>
+          <div className={styles.title} title={item.header}>
+            {item.header}
+          </div>
+          <div className={styles.meta}>구역, 항목 {itemCount}개</div>
+        </PanelBody>
+      </Panel>
+    );
+  }
   return (
     <Panel label="세부정보">
       <PanelBody>
