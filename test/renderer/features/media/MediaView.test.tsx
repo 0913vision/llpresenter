@@ -32,6 +32,7 @@ import {
 import type {MediaListChoice} from '@renderer/features/media/mediaEntries';
 import type {MediaDocument, MediaImportResult} from '@core/schema/mediaEdit';
 import {useShow} from '@renderer/session/showStore';
+import * as mediaMenus from '@renderer/features/media/mediaMenuEntries';
 import {
   itemFixture,
   fixtureItems,
@@ -90,6 +91,41 @@ async function tile(name: string): Promise<HTMLElement> {
 }
 
 describe('media view', () => {
+  it('refuses a stale add callback when the media file becomes missing', async () => {
+    const items = itemFixture();
+    const media = mediaFixture(mediaDocument([mediaItem(1, {name: 'Dawn'})]));
+    const edit = vi.spyOn(items.api.content, 'edit');
+    const menuEntries = vi.spyOn(mediaMenus, 'mediaTileMenuEntries');
+    onTestFinished(() => menuEntries.mockRestore());
+    useShow.setState({
+      serviceId: fixtureServiceId,
+      readOnly: false,
+      openItemId: fixtureItems.arranged,
+      rows: [],
+    });
+    onTestFinished(() =>
+      useShow.setState({serviceId: null, openItemId: null, rows: []}),
+    );
+    setup({
+      ...media,
+      api: {
+        ...media.api,
+        services: items.api.services,
+        songs: items.api.songs,
+        content: items.api.content,
+      },
+    });
+    fireEvent.contextMenu(await tile('Dawn'));
+    await screen.findByRole('menuitem', {name: '예배 순서에 추가'});
+    const actions = menuEntries.mock.calls.at(-1)?.[1];
+    if (actions?.addToService === undefined) {
+      throw new Error('Missing add action');
+    }
+    act(() => media.pushMissing([mediaId(1)]));
+    act(() => actions.addToService?.(mediaId(1)));
+    expect(edit).not.toHaveBeenCalled();
+    expect(items.service().service.order).toHaveLength(5);
+  });
   it('adds a media tile after the selected service item and selects it after projection', async () => {
     const items = itemFixture();
     const media = mediaFixture(mediaDocument([mediaItem(1, {name: 'Dawn'})]));

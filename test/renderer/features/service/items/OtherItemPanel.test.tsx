@@ -4,6 +4,7 @@ import {afterEach, describe, expect, it, vi} from 'vitest';
 import {createServiceItemId} from '@core/schema/ids';
 import type {ServiceItem} from '@core/schema/service';
 import type {MediaDocument} from '@core/schema/mediaEdit';
+import type {MissingMedia} from '@core/schema/mediaFiles';
 import {
   mediaDocument,
   mediaFixture,
@@ -109,6 +110,26 @@ describe('the center panel of other item kinds', () => {
     await waitFor(() => expect(result.current.media).toHaveLength(3));
     unmount();
     expect(fixture.listeners.document.size).toBe(0);
+  });
+
+  it('keeps missing-file pushes newer than the initial read and releases them', async () => {
+    const fixture = sourcesFixture();
+    let finish: (ids: MissingMedia) => void = () => undefined;
+    fixture.missing.mockReturnValueOnce(
+      new Promise(resolve => {
+        finish = resolve;
+      }),
+    );
+    window.llp = fixture.api;
+    const {result, unmount} = renderHook(() => useOtherSources(true));
+    expect(result.current.mediaReady).toBe(false);
+    act(() => fixture.pushMissing([fixtureMedia.dawn]));
+    await act(async () => finish([]));
+    expect(result.current.mediaReady).toBe(true);
+    expect(result.current.missingMedia.has(fixtureMedia.dawn)).toBe(true);
+    expect(result.current.canAddMedia(fixtureMedia.dawn)).toBe(false);
+    unmount();
+    expect(fixture.listeners.missing.size).toBe(0);
   });
 
   it('leaves the panel empty for a header, a slot, and no selection', () => {

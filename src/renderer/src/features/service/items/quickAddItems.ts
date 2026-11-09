@@ -1,4 +1,4 @@
-import {createServiceItemId} from '@core/schema/ids';
+import {createServiceItemId, type MediaId} from '@core/schema/ids';
 import {newMediaItem} from '@core/services/quickAddMedia';
 import type {MediaItem} from '@core/schema/mediaList';
 import type {ServiceItem} from '@core/schema/service';
@@ -13,11 +13,15 @@ import {LITURGY} from '@core/services/liturgy';
 import {prepareLiturgy} from './quickAddLiturgy';
 import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
 import {prepareSection} from './quickAddSection';
+import {mediaAddAvailability} from '@renderer/features/media/mediaAddAvailability';
 
 const SECTION_NAME = '새 구역';
 
 export interface OtherItemChoices {
   readonly media: readonly MediaItem[];
+  readonly missingMedia?: ReadonlySet<MediaId>;
+  readonly mediaReady?: boolean;
+  readonly canAddMedia?: (id: MediaId) => boolean;
   readonly onInsert: (item: ServiceItem | (() => Promise<ServiceItem>)) => void;
   /** Switches the popover to typing a passage reference. */
   readonly onBible: () => void;
@@ -49,6 +53,9 @@ function submenu(
 /** Commands in the service order's other-items group. */
 export function otherItemEntries({
   media,
+  missingMedia = new Set(),
+  mediaReady = true,
+  canAddMedia,
   onInsert,
   onBible,
   onSong,
@@ -108,7 +115,20 @@ export function otherItemEntries({
           kind: 'item',
           id: `media:${item.id}`,
           label: mediaName(item),
-          onSelect: () => onInsert(newMediaItem(item.id)),
+          ...mediaAddAvailability(
+            missingMedia.has(item.id),
+            mediaReady ? undefined : '불러오는 중',
+          ),
+          onSelect: () => {
+            if (
+              !mediaReady ||
+              missingMedia.has(item.id) ||
+              canAddMedia?.(item.id) === false
+            ) {
+              return;
+            }
+            onInsert(newMediaItem(item.id));
+          },
         })),
         '미디어 없음',
       ),

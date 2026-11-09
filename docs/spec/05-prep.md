@@ -569,7 +569,8 @@ Source: `AddSongs`, `ListRow` README.
     the default settings; earlier Enter presses never insert it. Escape closes
     an open suggestion list first, then closes the dialog without clearing the
     unfinished reference.
-  - 미디어: a submenu with the media list.
+  - 미디어: a submenu with the media list. Missing files cannot be added and
+    show the reason in a tooltip.
 
 Source: `AddSongsQuick`, `Main` board guide (예배 순서에 곡 넣기).
 

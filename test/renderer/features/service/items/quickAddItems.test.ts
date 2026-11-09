@@ -39,6 +39,43 @@ function build(onInsert: OtherItemChoices['onInsert']) {
 }
 
 describe('quick add other items', () => {
+  it('disables and guards missing media even if an old callback is invoked', () => {
+    const onInsert = vi.fn<OtherItemChoices['onInsert']>();
+    let missing = false;
+    const choices = otherItemEntries({
+      media,
+      onInsert,
+      onBible: vi.fn(),
+      missingMedia: new Set(),
+      mediaReady: true,
+      canAddMedia: () => !missing,
+    });
+    const mediaRow = entry(
+      entry(choices, 'other:media').submenu ?? [],
+      `media:${warm}`,
+    );
+    expect(mediaRow.disabled).toBe(false);
+    missing = true;
+    mediaRow.onSelect?.();
+    expect(onInsert).not.toHaveBeenCalled();
+    const disabled = otherItemEntries({
+      media,
+      onInsert,
+      onBible: vi.fn(),
+      missingMedia: new Set([warm]),
+      mediaReady: true,
+    });
+    const missingRow = entry(
+      entry(disabled, 'other:media').submenu ?? [],
+      `media:${warm}`,
+    );
+    expect(missingRow).toMatchObject({
+      disabled: true,
+      title: '파일을 찾을 수 없습니다',
+    });
+    missingRow.onSelect?.();
+    expect(onInsert).not.toHaveBeenCalled();
+  });
   it('lists the rows of the ProPresenter playlist + menu in its order', () => {
     const entries = build(() => undefined);
     expect(

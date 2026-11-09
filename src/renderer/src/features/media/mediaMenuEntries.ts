@@ -8,6 +8,7 @@ import {
   menuSeparator,
 } from '@renderer/ui/menuRows';
 import type {MediaEntry} from './mediaEntries';
+import {mediaAddAvailability} from './mediaAddAvailability';
 import {shownProps, type MediaProps} from './mediaProps';
 
 export interface MediaTileActions {
@@ -250,9 +251,7 @@ export function mediaTileMenuEntries(
             id: 'add-to',
             contextGroup: 'library' as const,
             label: '예배 순서에 추가',
-            ...menuAvailability(
-              actions.missing ? '파일을 찾을 수 없습니다' : actions.addReason,
-            ),
+            ...mediaAddAvailability(actions.missing, actions.addReason),
             onSelect: () => actions.addToService?.(item.id),
           },
         ]

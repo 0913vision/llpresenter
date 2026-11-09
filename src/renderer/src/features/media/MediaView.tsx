@@ -274,7 +274,12 @@ export function MediaView({
     audioPlaylist: playlist?.kind === 'audio',
     addReason,
     addToService: mediaId => {
-      if (addReason !== undefined || view.missing.has(mediaId)) return;
+      if (
+        addReason !== undefined ||
+        library.getSnapshot().missing.has(mediaId)
+      ) {
+        return;
+      }
       const {rows, openItemId} = useShow.getState();
       const before = quickAddBefore(rows, openItemId);
       orderEditing.run((edits, id) =>
