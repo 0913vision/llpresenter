@@ -70,12 +70,16 @@ One row of a list. The base is a 30px row with a 16px type icon, a 16px name, an
 | Focus in 진행 | Unchanged | Unchanged | outline 2px `accent`, offset −2px (inside the row); selection and live marks remain |
 | Selected | `selection` | Name and icon `text`, extra and second line `text-on-selection` | `aria-selected="true"`, stays the same on hover |
 | Live | `selection` if selected, otherwise transparent | Unchanged | LIVE badge on the right, `data-state="live"` |
-| Past item | Transparent | Name `text-3`, icon `text-off` | A 예배 순서 item that has already passed in the 진행 (Show) workspace, `data-state="done"` |
+| Past item | Transparent | Name `text-3`, icon `text-off` | A row above the current output item when 지난 순서 흐리게 is on (off by default), `data-state="done"`; every kind uses position only |
 | Missing file | Unchanged | Unchanged | 14px `warning` icon after the name + tooltip |
 | 퀵 실행 on | `bg-control-hover` | Name and icon `text` | 3px `live` bar inside on the left, `aria-pressed="true"` |
 | Disabled | Transparent | Name, icon, and extra all `text-off` | No hover, reason in a tooltip |
 
 ## Behavior
+
+Past section headings also use `data-state="done"`, with `text-off`. Dimming
+applies to the heading only, not the rows inside its group. The setting is off
+by default; when on, every row above the current output item dims by position.
 
 - For an action row, modified Space and Enter pass to their owner without running the action; unmodified activation still runs it.
 - Both workspaces draw the row's `:focus-visible` outline on keyboard entry and navigation. Pointer focus alone has no outline. Controls at a row's end keep their own focus outline in either workspace.

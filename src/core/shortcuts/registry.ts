@@ -126,7 +126,7 @@ export const shortcutCommands: readonly ShortcutCommand[] = (
       ['control'],
       [],
     ],
-    ['service.switcher', '예배 순서 바꾸기', '예배 순서', ['control'], []],
+    ['service.switcher', '예배 열기', '예배 순서', ['control'], ['ctrl KeyO']],
     ['service.quickAdd', '항목 추가', '예배 순서', ['control'], []],
     ['clear.all', '모두 지우기', '지우기', ['control'], ['F1']],
     ['clear.slide', '가사 지우기', '지우기', ['control'], ['F2']],

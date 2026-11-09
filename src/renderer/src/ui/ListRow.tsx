@@ -46,7 +46,7 @@ export interface ListRowProps {
   readonly sub?: readonly ReactNode[] | undefined;
   /** On the screens now: a LIVE badge replaces the extra information. */
   readonly live?: boolean | undefined;
-  /** A 예배 순서 item that has already passed. */
+  /** A row above the current output item when past-row dimming is enabled. */
   readonly done?: boolean | undefined;
   /** The reason for a problem, such as 미디어 파일 없음; draws a warning icon. */
   readonly warning?: string | undefined;
@@ -341,6 +341,7 @@ export function NameField({
  * including for an empty section. `rename` edits the name in place.
  */
 export function ListGroup({
+  done = false,
   label,
   value,
   selected,
@@ -349,6 +350,7 @@ export function ListGroup({
   children,
 }: {
   readonly label: string;
+  readonly done?: boolean | undefined;
   readonly value?: string | undefined;
   readonly selected?: boolean | undefined;
   readonly rename?: GroupRename | undefined;
@@ -360,6 +362,7 @@ export function ListGroup({
     value !== undefined ? (
       <ListRow
         value={value}
+        done={done}
         selected={selected}
         title={label}
         rename={rename}
@@ -374,6 +377,7 @@ export function ListGroup({
     <div role="group" aria-labelledby={labelId} className={styles.groupRows}>
       <div
         id={actions === undefined ? labelId : undefined}
+        data-state={value === undefined && done ? 'done' : undefined}
         className={classNames(
           value === undefined && styles.group,
           value !== undefined &&

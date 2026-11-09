@@ -261,9 +261,9 @@ Source: `StageEditor`, `IconButton` README (비율 고정, 격자에 맞추기),
 
 - 환경설정 is a separate window with its own title bar ("환경설정") and a close
   button. It opens from 파일 > 환경설정.
-- The left list has the pages 일반, 출력, 저장, 이름표, 미디어, 성경, 단축키,
-  and 정보. 10 ("환경설정 window") has every row of every page: its control,
-  range, default, stored field, when a change applies, and its tooltip.
+- The left list has the pages 일반, 출력, 예배 순서, 저장, 이름표, 미디어, 성경,
+  단축키, and 정보. 10 ("환경설정 window") has every row of every page: its
+  control, range, default, stored field, when a change applies, and its tooltip.
 - Checkboxes and selects apply at once and save (`Checkbox` README). 02 lists
   the stored fields.
 - The 모니터 row on 출력 is a button, 화면 설정…, that opens the 화면 설정

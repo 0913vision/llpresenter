@@ -12,6 +12,7 @@ import {
 
 const EMPTY_SHOW_SETTINGS = new Map<SettingsName, SettingsDocument>();
 for (const [name, value] of [
+  ['preferences', defaultPreferences],
   ['quick', {format: 'llsettings.quick', schemaVersion: 1, items: []}],
   ['screens', {format: 'llsettings.screens', schemaVersion: 1, screens: []}],
   ['timers', {format: 'llsettings.timers', schemaVersion: 1, timers: []}],

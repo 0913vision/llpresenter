@@ -12,28 +12,13 @@ interface LiveView {
    */
   readonly lastStartedItemId: string | null;
   readonly commandVersion: number;
-  readonly startedItemIds: ReadonlySet<string>;
 }
 
 const noOutputs: Readonly<Record<string, boolean>> = {};
-const MAX_STARTED_ITEMS = 10_000;
-
-function rememberItem(ids: ReadonlySet<string>, itemId: string | undefined) {
-  if (itemId === undefined || ids.has(itemId)) return ids;
-  const next = new Set(ids);
-  next.add(itemId);
-  if (next.size > MAX_STARTED_ITEMS) {
-    const oldest = next.values().next().value;
-    if (oldest !== undefined) next.delete(oldest);
-  }
-  return next;
-}
-
 export const useLive = create<LiveView>(() => ({
   state: null,
   lastStartedItemId: null,
   commandVersion: 0,
-  startedItemIds: new Set(),
 }));
 
 function accept(next: LiveState): void {
@@ -45,10 +30,6 @@ function accept(next: LiveState): void {
     // starts, so it is the last started item; a slide's item is the fallback.
     lastStartedItemId:
       next.themeItem?.id ?? next.layers.slide?.itemId ?? view.lastStartedItemId,
-    startedItemIds: rememberItem(
-      view.startedItemIds,
-      next.layers.slide?.itemId,
-    ),
   }));
 }
 
@@ -75,7 +56,7 @@ export function startLiveSync(): () => void {
 export function sendLive(command: LiveCommand): void {
   const commands = command.type === 'live.batch' ? command.commands : [command];
   useLive.setState(view => {
-    let {lastStartedItemId, startedItemIds} = view;
+    let {lastStartedItemId} = view;
     for (const child of commands) {
       if (child.type === 'slide.show') lastStartedItemId = child.slide.itemId;
       if (child.type === 'media.show' && child.media.itemId !== undefined) {
@@ -83,14 +64,12 @@ export function sendLive(command: LiveCommand): void {
       }
       if (child.type === 'item.start') {
         lastStartedItemId = child.itemId;
-        startedItemIds = rememberItem(startedItemIds, child.itemId);
       }
     }
     return {
       commandVersion:
         view.commandVersion + (interruptsSongOutput(command) ? 1 : 0),
       lastStartedItemId,
-      startedItemIds,
     };
   });
   window.llp?.live.send(command);

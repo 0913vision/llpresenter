@@ -10,6 +10,8 @@ import {
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import {emptyLiveState} from '@core/live/state';
+import type {SettingsDocument} from '@core/schema/settingsDocuments';
+import {defaultPreferences} from '@core/schema/preferences';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {useLive} from '@renderer/session/live';
 import {
@@ -360,6 +362,154 @@ describe('ServiceOrderList', () => {
 });
 
 describe('ServiceOrderList progress', () => {
+  function dimmingSettings() {
+    const listeners = new Set<(document: SettingsDocument) => void>();
+    let revision = 1;
+    const settings = (dimPastItems: boolean): SettingsDocument => ({
+      name: 'preferences',
+      access: 'editable',
+      revision: revision++,
+      value: {
+        ...defaultPreferences,
+        show: {...defaultPreferences.show, dimPastItems},
+      },
+    });
+    window.llp = mockLlpApi({
+      settings: {
+        get: async () => settings(true),
+        subscribe: listener => {
+          listeners.add(listener);
+          return () => listeners.delete(listener);
+        },
+      },
+    });
+    return (enabled: boolean) => {
+      const document = settings(enabled);
+      for (const listener of listeners) listener(document);
+    };
+  }
+
+  function stateAt(slide: string | null, media: string | null): void {
+    const base = emptyLiveState();
+    useLive.setState({
+      state: {
+        ...base,
+        layers: {
+          ...base.layers,
+          slide:
+            slide === null
+              ? null
+              : {itemId: slide, position: 0, label: null, lines: ['Lyrics']},
+          media:
+            media === null
+              ? null
+              : {
+                  itemId: media,
+                  mediaId: 'shared-background',
+                  loop: true,
+                  startedAt: 0,
+                },
+        },
+      },
+      lastStartedItemId: null,
+    });
+  }
+
+  it.each(['show', 'prep'] as const)(
+    'dims every kind and section by position in %s, then restores rows when moving back or disabling',
+    async workspace => {
+      const update = dimmingSettings();
+      applyService({
+        ...sampleService,
+        rows: [
+          {id: 'section', kind: 'header', title: 'Earlier section'},
+          {id: 'lyrics', kind: 'song', title: 'Lyrics without background'},
+          {
+            id: 'media',
+            kind: 'media',
+            title: 'Background reused by the current song',
+          },
+          {
+            id: 'background',
+            kind: 'slides',
+            form: 'blank',
+            title: 'Background only',
+          },
+          {id: 'bible', kind: 'bible', title: 'Bible'},
+          {id: 'unknown', kind: 'unknown', title: 'Unknown item'},
+          {id: 'current', kind: 'song', title: 'Current song'},
+          {id: 'future-section', kind: 'header', title: 'Later section'},
+          {id: 'future', kind: 'song', title: 'Later song'},
+        ],
+      });
+      stateAt('current', 'media');
+      render(<ServiceOrderList workspace={workspace} />);
+      const past = () =>
+        [
+          'Lyrics without background',
+          'Background reused by the current song',
+          'Background only',
+          'Bible',
+          'Unknown item',
+        ].map(name => screen.getByRole('option', {name}));
+      await waitFor(() =>
+        expect(
+          past().every(row => row.dataset['state']?.includes('done')),
+        ).toBe(true),
+      );
+      const section = screen
+        .getByText('Earlier section')
+        .closest('[data-state]');
+      expect(section?.getAttribute('data-state')).toBe('done');
+      expect(
+        screen.getByRole('option', {name: 'Current song'}).dataset['state'],
+      ).toBe('live');
+      expect(
+        screen.getByText('Later section').closest('[data-state]'),
+      ).toBeNull();
+      expect(
+        screen.getByRole('option', {name: 'Later song'}).dataset['state'],
+      ).toBeUndefined();
+      act(() => stateAt('lyrics', 'media'));
+      expect(past().every(row => !row.dataset['state']?.includes('done'))).toBe(
+        true,
+      );
+      act(() => stateAt(null, 'background'));
+      expect(
+        screen.getByRole('option', {name: 'Background only'}).dataset['state'],
+      ).toBe('live');
+      expect(
+        screen.getByRole('option', {name: 'Lyrics without background'}).dataset[
+          'state'
+        ],
+      ).toBe('done');
+      expect(
+        screen.getByRole('option', {name: 'Bible'}).dataset['state'],
+      ).toBeUndefined();
+      act(() => update(false));
+      expect(past().every(row => !row.dataset['state']?.includes('done'))).toBe(
+        true,
+      );
+      act(() => update(true));
+      expect(
+        screen.getByRole('option', {name: 'Lyrics without background'}).dataset[
+          'state'
+        ],
+      ).toBe('done');
+      act(() => stateAt(null, null));
+      expect(past().every(row => !row.dataset['state']?.includes('done'))).toBe(
+        true,
+      );
+      expect(
+        screen.getByText('Earlier section').closest('[data-state]'),
+      ).toBeNull();
+      act(() => stateAt('outside-this-service', 'media'));
+      expect(past().every(row => !row.dataset['state']?.includes('done'))).toBe(
+        true,
+      );
+    },
+  );
+
   function live(slideItemId: string | null): void {
     const base = emptyLiveState();
     useLive.setState({
@@ -374,7 +524,6 @@ describe('ServiceOrderList progress', () => {
         },
       },
       lastStartedItemId: 'psalm-23',
-      startedItemIds: new Set(['song-morning', 'psalm-23']),
     });
   }
 
@@ -382,15 +531,15 @@ describe('ServiceOrderList progress', () => {
     return screen.getByRole('option', {name: title});
   }
 
-  it('dims only started items above the current item, follows reorder, and keeps progress through clear', () => {
+  it('keeps past rows normal while live changes, clears, and moves in the order', () => {
     live('psalm-23');
     render(<ServiceOrderList />);
-    expect(row(/아침이 밝아 오네/).dataset['state']).toContain('done');
+    expect(row(/아침이 밝아 오네/).dataset['state']).toBeUndefined();
     expect(row(/맑은 시냇물/).dataset['state']).toBeUndefined();
     expect(row(/시편 23편/).dataset['state']).toContain('live');
 
     act(() => live(null));
-    expect(row(/아침이 밝아 오네/).dataset['state']).toContain('done');
+    expect(row(/아침이 밝아 오네/).dataset['state']).toBeUndefined();
     expect(row(/시편 23편/).dataset['state']).toBeUndefined();
     act(() =>
       applyService({

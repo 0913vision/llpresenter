@@ -8,7 +8,6 @@ afterEach(() => {
   useLive.setState({
     state: null,
     lastStartedItemId: null,
-    startedItemIds: new Set(),
   });
 });
 

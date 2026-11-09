@@ -82,12 +82,21 @@ Source: `Main` decisions "진행 화면은 절충안" and "작업 공간 세 개
 
 ### Row states
 
-| State     | When                                                                                   | Appearance                                             |
-| --------- | -------------------------------------------------------------------------------------- | ------------------------------------------------------ |
-| Selected  | The item open in the 슬라이드 panel                                                    | Selected row background                                |
-| On output | The live 슬라이드 came from this item                                                  | LIVE badge at the right                                |
-| Done      | The item started at least once since launch and sits above the current item (proposal) | Dim text                                               |
-| Problem   | Something is wrong, for example the song is missing or the background file is missing  | Amber warning icon after the name, reason in a tooltip |
+Past rows stay normal by default. 환경설정 > 예배 순서 > 지난 순서 흐리게
+enables the Done appearance. The current item is the source of the live slide,
+or the live media item when there is no slide. Every row above it, including
+sections and items never started, dims by position alone. Lyrics without a
+background, media, background-only items and other kinds follow the same rule. A
+background still used by a later song dims with the earlier rows. Moving back
+restores the rows below the new current item. With no current item in this
+order, no row dims.
+
+| State     | When                                                                                  | Appearance                                             |
+| --------- | ------------------------------------------------------------------------------------- | ------------------------------------------------------ |
+| Selected  | The item open in the 슬라이드 panel                                                   | Selected row background                                |
+| On output | The live 슬라이드 came from this item                                                 | LIVE badge at the right                                |
+| Done      | Above the current output item, with 지난 순서 흐리게 on                               | Dim text and icon; section headings also dim           |
+| Problem   | Something is wrong, for example the song is missing or the background file is missing | Amber warning icon after the name, reason in a tooltip |
 
 ### Starting an item and its start 매크로
 
@@ -131,6 +140,7 @@ README, `Main` decision "구성대로 진행".
 
 ## Service list
 
+- 파일 > 예배 열기… (Ctrl O) opens the same picker from any control workspace.
 - Clicking the current service name in the 예배 순서 header opens the list right
   below it.
 - A search field ("검색", search) sits at the top. Each keystroke filters the

@@ -17,6 +17,7 @@ import type {Notice} from '@renderer/ui/notices';
 import {
   AboutPage,
   GeneralPage,
+  ServiceOrderPage,
   MediaPage,
   OutputPage,
   StoragePage,
@@ -280,6 +281,7 @@ function PreferencesContent({
           className={page === 'labels' ? styles.labels : undefined}
         >
           {page === 'general' ? <GeneralPage edits={edits} /> : null}
+          {page === 'serviceOrder' ? <ServiceOrderPage edits={edits} /> : null}
           {page === 'output' ? <OutputPage edits={edits} /> : null}
           {page === 'storage' ? (
             <StoragePage

@@ -2,6 +2,7 @@
 export const PREFERENCE_PAGE_IDS = [
   'general',
   'output',
+  'serviceOrder',
   'storage',
   'labels',
   'media',

@@ -9,7 +9,13 @@ import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 describe('mockLlpApi', () => {
   it('supplies valid empty documents for the initially mounted show panels', async () => {
     const api = mockLlpApi();
-    for (const name of ['quick', 'screens', 'timers', 'messages'] as const) {
+    for (const name of [
+      'preferences',
+      'quick',
+      'screens',
+      'timers',
+      'messages',
+    ] as const) {
       const document = await api.settings.get({name});
       expect(document.name).toBe(name);
       expect(parseSettingsDocument(document).ok).toBe(true);

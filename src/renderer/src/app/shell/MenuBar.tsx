@@ -7,6 +7,7 @@ import type {AppInfo} from '@contracts/ipc/window';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import type {TextImportReadRequest} from '@core/schema/textImport';
 import {useServiceActions} from '@renderer/features/service/list/useServiceActions';
+import {useServicePickerMenu} from '@renderer/features/service/order/useServicePickerMenu';
 import {Icon, Menu, useTooltip} from '@renderer/ui';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {openOnArrowDown} from '@renderer/ui/menuButton';
@@ -192,12 +193,21 @@ function FileMenu({
   readonly clipboard: ReturnType<typeof useClipboardAvailability>['status'];
 }): JSX.Element {
   const {anchor} = control;
+  const picker = useServicePickerMenu(onProblem);
   const actions = useServiceActions({onProblem, onOpen: control.close});
   const media = useFileMediaImport(onProblem);
   const entries = fileMenuEntries({
     service: actions.entries,
     onImportText,
     onNewSong,
+    onOpenService:
+      window.llp === undefined || picker.busy
+        ? undefined
+        : () => {
+            control.close();
+            const trigger = control.keys.bar.elementOf(FILE_MENU);
+            if (trigger !== null) picker.openAt(trigger);
+          },
     clipboard,
     media,
   });
@@ -215,6 +225,7 @@ function FileMenu({
         />
       ) : null}
       {actions.dialogs}
+      {picker.overlays}
     </>
   );
 }

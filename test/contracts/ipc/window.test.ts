@@ -90,9 +90,12 @@ describe('window text edit action', () => {
 });
 
 describe('the 환경설정 page request', () => {
-  it.each(['general', 'labels', 'shortcuts'])('accepts %s', page => {
-    expect(parsePreferencePage(page)).toEqual({ok: true, value: page});
-  });
+  it.each(['general', 'serviceOrder', 'labels', 'shortcuts'])(
+    'accepts %s',
+    page => {
+      expect(parsePreferencePage(page)).toEqual({ok: true, value: page});
+    },
+  );
 
   it.each(['', 'Shortcuts', 3, null, undefined])('rejects %j', value => {
     expect(parsePreferencePage(value)).toMatchObject({ok: false});

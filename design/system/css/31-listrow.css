@@ -21,9 +21,10 @@
 .ll-row[aria-selected="true"] .ll-row__icon { color: var(--text); }
 .ll-row[aria-selected="true"] .ll-row__meta, .ll-row[aria-selected="true"] .ll-row__sub { color: var(--text-on-selection); }
 
-/* Past item: a 예배 순서 item that has already passed during the service */
+/* Past rows above the current output item, when dimming is enabled. */
 .ll-row[data-state~="done"] { color: var(--text-3); }
 .ll-row[data-state~="done"] .ll-row__icon { color: var(--text-off); }
+.ll-row-group[data-state~="done"] { color: var(--text-off); }
 
 /* 퀵 실행 on: a prop or screen that is showing now */
 .ll-row[aria-pressed="true"] { background: var(--bg-control-hover); color: var(--text); box-shadow: inset 3px 0 0 var(--live); }

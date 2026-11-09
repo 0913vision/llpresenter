@@ -43,7 +43,6 @@ const HIDDEN = [
   'screens.showFallbackWindow',
   'service.quickAdd',
   'service.revealLibrary',
-  'service.switcher',
   'stageEditor.addElement',
   'stageEditor.fit',
   'tools.showing',
@@ -77,6 +76,7 @@ describe('allCommands', () => {
 
     for (const id of HIDDEN) expect(ids).not.toContain(id);
     expect(ids).toContain('clear.slide');
+    expect(ids).toContain('service.switcher');
   });
 
   it('adds a command for each 그래픽 and two for each 타이머', () => {

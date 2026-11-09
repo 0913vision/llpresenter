@@ -16,6 +16,7 @@ interface FileMenuInput {
   readonly service: ServiceActionEntries;
   readonly onImportText: ImportText | undefined;
   readonly onNewSong: (() => void) | undefined;
+  readonly onOpenService: (() => void) | undefined;
   readonly clipboard: 'checking' | 'empty' | 'ready';
   readonly media: MenuItem;
 }
@@ -58,6 +59,19 @@ export function fileMenuEntries(input: FileMenuInput): readonly MenuEntry[] {
       onSelect: () => input.onNewSong?.(),
     },
     {...service.newService, command: 'service.new', icon: undefined},
+    {
+      kind: 'item',
+      id: 'open-service',
+      label: '예배 열기…',
+      command: 'service.switcher',
+      meta: shortcutText('service.switcher'),
+      ...menuAvailability(
+        input.onOpenService === undefined
+          ? '지금은 예배를 열 수 없습니다'
+          : undefined,
+      ),
+      onSelect: () => input.onOpenService?.(),
+    },
     laterRow('new-library', '새 라이브러리'),
     {
       kind: 'item',

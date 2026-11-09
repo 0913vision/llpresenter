@@ -364,12 +364,13 @@ describe('PreferencesView', () => {
     );
   });
 
-  it('lists the eight pages and opens the 단축키 page', async () => {
+  it('lists the nine pages and opens the 단축키 page', async () => {
     await mount();
 
     expect(screen.getAllByRole('option').map(row => row.textContent)).toEqual([
       '일반',
       '출력',
+      '예배 순서',
       '저장',
       '이름표',
       '미디어',
@@ -380,6 +381,48 @@ describe('PreferencesView', () => {
     await openPage('단축키');
     expect(screen.getByRole('heading').textContent).toBe('단축키');
     expect(screen.queryAllByRole('checkbox')).toHaveLength(0);
+  });
+
+  it('saves past-row dimming immediately while preserving other show settings', async () => {
+    await mount({
+      stored: {...STORED, show: {atLastSlide: 'nextItem'}},
+    });
+    await openPage('예배 순서');
+    const checkbox = screen.getByRole('checkbox', {name: '지난 순서 흐리게'});
+    expect(checkbox.getAttribute('aria-checked')).toBe('false');
+    await userEvent.click(checkbox);
+    await waitFor(() => expect(edit).toHaveBeenCalledOnce());
+    expect(written()).toMatchObject({
+      ...UNKNOWN_FIELDS,
+      show: {dimPastItems: true, atLastSlide: 'nextItem'},
+    });
+    act(() =>
+      pushed({
+        name: 'preferences',
+        value: written(),
+        revision: 6,
+        access: 'editable',
+      }),
+    );
+    await waitFor(() =>
+      expect(checkbox.getAttribute('aria-checked')).toBe('true'),
+    );
+    await userEvent.click(checkbox);
+    await waitFor(() => expect(edit).toHaveBeenCalledTimes(2));
+    expect(written()).toMatchObject({show: {dimPastItems: false}});
+  });
+
+  it('loads saved past-row dimming and locks it for a newer preferences file', async () => {
+    await mount({
+      access: 'readOnly',
+      stored: {...STORED, show: {dimPastItems: true}},
+    });
+    await openPage('예배 순서');
+    const checkbox = screen.getByRole('checkbox', {name: '지난 순서 흐리게'});
+    expect(checkbox.getAttribute('aria-checked')).toBe('true');
+    expect(checkbox.getAttribute('aria-disabled')).toBe('true');
+    await userEvent.click(checkbox);
+    expect(edit).not.toHaveBeenCalled();
   });
 
   it('has only 화면 확대 and Windows 시작할 때 실행 on the 일반 page', async () => {

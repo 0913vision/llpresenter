@@ -4,7 +4,8 @@ import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {applyService} from '@renderer/session/show';
+import {applyService, useShow} from '@renderer/session/show';
+import {createServiceId} from '@core/schema/ids';
 import {
   ids,
   librarySongs,
@@ -50,6 +51,83 @@ afterEach(() => {
 });
 
 describe('the 파일 menu', () => {
+  it.each(['menu', 'shortcut'])(
+    'opens the service picker through the %s without changing output',
+    async source => {
+      const {send} = setup();
+      const id = createServiceId('00000000-0000-4000-8000-000000000409');
+      const service = {
+        id,
+        revision: 1,
+        name: '저녁 예배',
+        readOnly: false,
+        rows: [],
+        tiles: {},
+        jumpKeys: {},
+      };
+      if (window.llp === undefined) throw new Error('Missing mock API');
+      const list = vi.spyOn(window.llp.services, 'list').mockResolvedValue([
+        {
+          id,
+          name: service.name,
+          date: '2026-11-09T19:00',
+          access: 'editable',
+        },
+      ]);
+      const open = vi
+        .spyOn(window.llp.service, 'open')
+        .mockResolvedValue(service);
+      render(<MenuBar title="" />);
+      if (source === 'menu') {
+        await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
+        const items = screen
+          .getAllByRole('menuitem')
+          .map(row => row.textContent);
+        expect(items[items.indexOf('새 예배') + 1]).toBe('예배 열기…Ctrl O');
+        await userEvent.click(
+          screen.getByRole('menuitem', {name: /^예배 열기/}),
+        );
+      } else {
+        await userEvent.keyboard('{Control>}o{/Control}');
+      }
+      expect(screen.queryByRole('menu', {name: '파일'})).toBeNull();
+      expect(
+        await screen.findByRole('menu', {name: '예배 선택'}),
+      ).toBeDefined();
+      await userEvent.click(
+        await screen.findByRole('menuitemradio', {name: /저녁 예배/}),
+      );
+      await waitFor(() => expect(useShow.getState().serviceId).toBe(id));
+      expect(list).toHaveBeenCalledOnce();
+      expect(open).toHaveBeenCalledExactlyOnceWith({serviceId: id});
+      expect(screen.queryByRole('menu')).toBeNull();
+      expect(send).not.toHaveBeenCalled();
+    },
+  );
+
+  it('cancels the service picker and returns focus to File', async () => {
+    setup();
+    render(<MenuBar title="" />);
+    await userEvent.keyboard('{Control>}o{/Control}');
+    expect(await screen.findByRole('menu', {name: '예배 선택'})).toBeDefined();
+    await userEvent.keyboard('{Escape}');
+    expect(screen.queryByRole('menu')).toBeNull();
+    expect(document.activeElement).toBe(
+      screen.getByRole('menuitem', {name: '파일'}),
+    );
+    expect(useShow.getState().serviceId).toBeNull();
+  });
+
+  it('keeps Open Service unavailable outside the app connection', async () => {
+    render(<MenuBar title="" />);
+    await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
+    expect(
+      screen
+        .getByRole('menuitem', {name: /^예배 열기/})
+        .getAttribute('aria-disabled'),
+    ).toBe('true');
+  });
+
   it('opens 새 예배 after closing the menu and keeps the dialog until cancel', async () => {
     const {send} = setup();
     render(<MenuBar title="" />);

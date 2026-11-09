@@ -1,3 +1,4 @@
+import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {createServiceId} from '@core/schema/ids';
 import {isItemOfKind, SLIDES_LIMITS} from '@core/schema/service';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
@@ -99,18 +100,20 @@ function groupRows(rows: readonly ServiceRow[]): readonly RowGroup[] {
 }
 
 /**
- * The item on output: the one with a slide, or the last started media item
- * while its media is still out.
+ * The item on output: the slide's owner, otherwise the media's owner.
+ * Older media without an owner use the matching last-started media item.
  */
 function useLiveItemId(): string | null {
   const slideItem = useLive(view => view.state?.layers.slide?.itemId ?? null);
   const mediaId = useLive(view => view.state?.layers.media?.mediaId);
+  const mediaItemId = useLive(view => view.state?.layers.media?.itemId ?? null);
   const started = useLive(view => view.lastStartedItemId);
   const row = useShow(view => view.rows.find(item => item.id === started));
   const tile = useShow(view =>
     started === null ? undefined : view.tiles[started]?.[0],
   );
   if (slideItem !== null) return slideItem;
+  if (mediaItemId !== null) return mediaItemId;
   if (row?.kind === 'media' && tile?.media?.mediaId === mediaId) {
     return mediaId === undefined ? null : row.id;
   }
@@ -120,11 +123,11 @@ function useLiveItemId(): string | null {
 function ItemRows({
   items,
   liveItemId,
+  done,
   editable,
   insertBefore,
   workspace,
   durations,
-  done,
   table,
   numbers,
   renaming,
@@ -134,11 +137,11 @@ function ItemRows({
   readonly items: readonly ServiceRow[];
   readonly selected: ReadonlySet<string>;
   readonly liveItemId: string | null;
+  readonly done: ReadonlySet<string>;
   readonly editable: boolean;
   readonly insertBefore: string | null | undefined;
   readonly workspace: Workspace;
   readonly durations: Readonly<Record<string, string>>;
-  readonly done: ReadonlySet<string>;
   readonly table: ServiceTableParts | undefined;
   /** The place of each item among all items, shown in the table. */
   readonly numbers: ReadonlyMap<string, number>;
@@ -228,19 +231,14 @@ export function ServiceOrderList({
   );
   const openItemId = useShow(view => view.openItemId);
   const liveItemId = useLiveItemId();
-  const currentItemId = useLive(
-    view => view.lastStartedItemId ?? view.state?.layers.slide?.itemId,
-  );
-  const started = useLive(view => view.startedItemIds);
+  const preferences = useSettingsDocument('preferences', '환경설정', onProblem);
+  const dimPastItems = preferences?.value.show?.dimPastItems === true;
   const done = useMemo(() => {
-    const current = rows.findIndex(row => row.id === currentItemId);
-    return new Set(
-      rows
-        .slice(0, Math.max(0, current))
-        .filter(row => started.has(row.id))
-        .map(row => row.id),
-    );
-  }, [rows, currentItemId, started]);
+    const current = dimPastItems
+      ? rows.findIndex(row => row.id === liveItemId)
+      : -1;
+    return new Set(rows.slice(0, Math.max(0, current)).map(row => row.id));
+  }, [rows, liveItemId, dimPastItems]);
   const serviceId = useShow(view => view.serviceId);
   const readOnly = useShow(view => view.readOnly);
   // NOTE(0913vision): The list owns the 새 예배 dialog, not the empty state,
@@ -741,11 +739,11 @@ export function ServiceOrderList({
               items={group.items}
               selected={selection.selected}
               liveItemId={liveItemId}
+              done={done}
               editable={editable}
               insertBefore={insertBefore}
               workspace={workspace}
               durations={durations}
-              done={done}
               table={table}
               numbers={numbers}
               renaming={renaming}
@@ -773,6 +771,7 @@ export function ServiceOrderList({
             >
               {insertBefore === group.id ? <ListInsertLine /> : null}
               <ListGroup
+                done={done.has(group.id)}
                 selected={selection.selected.has(group.id)}
                 // NOTE(0913vision): In 진행 a section is a plain label: no
                 // click, hover, selection, or arrow stop (spec 04).
@@ -798,11 +797,11 @@ export function ServiceOrderList({
                   items={group.items}
                   selected={selection.selected}
                   liveItemId={liveItemId}
+                  done={done}
                   editable={editable}
                   insertBefore={insertBefore}
                   workspace={workspace}
                   durations={durations}
-                  done={done}
                   table={table}
                   numbers={numbers}
                   renaming={renaming}

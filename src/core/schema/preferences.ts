@@ -124,6 +124,7 @@ export const preferencesSchema = jsonObject({
   show: v.exactOptional(
     jsonObject({
       atLastSlide: v.exactOptional(atLastSlideSchema),
+      dimPastItems: v.exactOptional(v.boolean()),
       audio: v.exactOptional(
         jsonObject({
           transitionSeconds: v.exactOptional(
@@ -251,6 +252,7 @@ export const defaultPreferences: Preferences = {
   },
   show: {
     atLastSlide: 'stop',
+    dimPastItems: false,
     audio: {transitionSeconds: 0.5, fadeOutSeconds: 3},
   },
   backup: {auto: true, keep: 30},

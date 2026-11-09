@@ -33,6 +33,7 @@ import {SlideTransitionRow} from './SlideTransitionRow';
 export const preferencePages = [
   {id: 'general', label: '일반', icon: 'gear'},
   {id: 'output', label: '출력', icon: 'mplay'},
+  {id: 'serviceOrder', label: '예배 순서', icon: 'listplus'},
   {id: 'storage', label: '저장', icon: 'folder'},
   {id: 'labels', label: '이름표', icon: 'bookmark'},
   {id: 'media', label: '미디어', icon: 'audio'},
@@ -108,6 +109,28 @@ export function GeneralPage({edits}: PageProps): JSX.Element | null {
           change(stored => ({
             ...stored,
             general: {...stored.general, launchAtLogin},
+          }))
+        }
+      />
+    </PropertyGroup>
+  );
+}
+
+/** The appearance of past rows in the service order. */
+export function ServiceOrderPage({edits}: PageProps): JSX.Element | null {
+  const {preferences, lockedReason, change} = edits;
+  if (preferences === null) return null;
+  return (
+    <PropertyGroup>
+      <CheckboxRow
+        label="지난 순서 흐리게"
+        disabled={lockedReason !== undefined}
+        title={lockedReason}
+        checked={preferences.show.dimPastItems}
+        onChange={dimPastItems =>
+          change(stored => ({
+            ...stored,
+            show: {...stored.show, dimPastItems},
           }))
         }
       />

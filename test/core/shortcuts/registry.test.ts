@@ -46,6 +46,15 @@ function press(overrides: Partial<PhysicalKeyPress> = {}): PhysicalKeyPress {
 }
 
 describe('shortcut registry', () => {
+  it('opens the service picker with Ctrl O in every control workspace', () => {
+    expect(shortcutCommand('service.switcher')).toMatchObject({
+      name: '예배 열기',
+      defaults: [{code: 'KeyO', mods: ['ctrl']}],
+      contexts: ['control'],
+      output: false,
+      repeat: false,
+    });
+  });
   it('offers seven assignable panel commands without default keys or output', () => {
     const panels = shortcutCommands.filter(command =>
       command.id.startsWith('panel.'),

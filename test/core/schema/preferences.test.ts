@@ -147,6 +147,18 @@ describe('the ranges of 환경설정', () => {
 
 describe('withPreferenceDefaults', () => {
   it.each([
+    [{}, false],
+    [{show: {}}, false],
+    [{show: {dimPastItems: false}}, false],
+    [{show: {dimPastItems: true}}, true],
+  ] as const)('defaults past-row dimming to off: %j', (fields, expected) => {
+    const config = {...HEADER, ...fields};
+    expectRoundTrip(codec, config);
+    expect(withPreferenceDefaults(parse(config)).show.dimPastItems).toBe(
+      expected,
+    );
+  });
+  it.each([
     [{}, 'stop'],
     [{show: {}}, 'stop'],
     [{show: {atLastSlide: 'stop'}}, 'stop'],
@@ -261,6 +273,9 @@ describe('preferences read boundary', () => {
     {...HEADER, show: {atLastSlide: 'next'}},
     {...HEADER, show: {atLastSlide: true}},
     {...HEADER, show: {atLastSlide: null}},
+    {...HEADER, show: {dimPastItems: 'true'}},
+    {...HEADER, show: {dimPastItems: 1}},
+    {...HEADER, show: {dimPastItems: null}},
   ])('rejects malformed preferences %j', value => {
     expect(parsePreferencesValue(value).ok).toBe(false);
   });

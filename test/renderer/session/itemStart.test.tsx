@@ -86,7 +86,6 @@ beforeEach(() => {
     state: null,
     lastStartedItemId: null,
     commandVersion: 0,
-    startedItemIds: new Set(),
   });
 });
 afterEach(() => {
@@ -199,7 +198,7 @@ describe('starting a service item', () => {
     finish({...value, revision: 2, tiles: {[first]: [tile]}});
     await waitFor(() => expect(useShow.getState().revision).toBe(2));
     expect(sent).toEqual([]);
-    expect(useLive.getState().startedItemIds.size).toBe(0);
+    expect(useLive.getState().lastStartedItemId).toBeNull();
   });
 
   it('does not start an item after a newer output supersedes its pending lookup', async () => {
@@ -232,8 +231,7 @@ describe('starting a service item', () => {
       'layer.clear',
       'slide.show',
     ]);
-    expect(useLive.getState().startedItemIds.has(first)).toBe(false);
-    expect(useLive.getState().startedItemIds.has(second)).toBe(true);
+    expect(useLive.getState().lastStartedItemId).toBe(second);
   });
 
   it('remembers the current item from the initial live feed without starting it again', async () => {
@@ -249,26 +247,10 @@ describe('starting a service item', () => {
     });
     const stop = startLiveSync();
     await waitFor(() =>
-      expect(useLive.getState().startedItemIds.has(first)).toBe(true),
+      expect(useLive.getState().lastStartedItemId).toBe(first),
     );
     outputTile({itemId: first, index: 1});
     expect(sent.map(command => command.type)).toEqual(['slide.show']);
     stop();
-  });
-
-  it('caps remembered items and retains their identity on repeated starts', () => {
-    setup();
-    useLive.setState({
-      startedItemIds: new Set(
-        Array.from({length: 10_000}, (_, index) => `old-${index}`),
-      ),
-    });
-    sendLive({type: 'item.start', itemId: first});
-    const ids = useLive.getState().startedItemIds;
-    expect(ids.size).toBe(10_000);
-    expect(ids.has('old-0')).toBe(false);
-    expect(ids.has(first)).toBe(true);
-    sendLive({type: 'item.start', itemId: first});
-    expect(useLive.getState().startedItemIds).toBe(ids);
   });
 });

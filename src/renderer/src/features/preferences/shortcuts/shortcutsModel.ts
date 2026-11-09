@@ -72,7 +72,6 @@ const COMMANDS_WITHOUT_HANDLER: ReadonlySet<string> = new Set([
   'screens.showFallbackWindow',
   'service.quickAdd',
   'service.revealLibrary',
-  'service.switcher',
   'stageEditor.addElement',
   'stageEditor.fit',
   'tools.showing',

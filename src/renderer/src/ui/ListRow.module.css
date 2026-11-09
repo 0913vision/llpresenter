@@ -198,6 +198,10 @@
   font: var(--type-caption-strong);
 }
 
+.group[data-state~='done'] {
+  color: var(--text-off);
+}
+
 .groupField {
   flex: 1 1 auto;
   min-width: 0;
