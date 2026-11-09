@@ -181,6 +181,7 @@ export const SongBlock = memo(
           className={styles.gap}
           data-caret={caret}
           data-slide-gap={block}
+          tabIndex={-1}
           aria-label={`슬라이드 ${block + 1} 앞에 삽입`}
           onClick={event => {
             event.stopPropagation();

@@ -407,6 +407,7 @@ export function VirtualSlides<T extends SlideListItem>({
                 <button
                   type="button"
                   data-slide-gap={number - 1}
+                  tabIndex={-1}
                   className={styles.gridGap}
                   data-caret={list?.selection.caret === number - 1}
                   aria-label={`슬라이드 ${number} 앞에 삽입`}
@@ -428,6 +429,7 @@ export function VirtualSlides<T extends SlideListItem>({
             type="button"
             className={styles.lastGap}
             data-slide-gap={numbers.length}
+            tabIndex={-1}
             data-caret={list?.selection.caret === numbers.length}
             aria-label="마지막 슬라이드 뒤에 삽입"
             onClick={event => {

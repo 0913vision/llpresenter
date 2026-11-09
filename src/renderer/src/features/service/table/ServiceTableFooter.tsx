@@ -20,7 +20,7 @@ import styles from './ServiceTable.module.css';
 const SECTION_NAME = '새 구역';
 const NO_SERVICE_REASON = '열린 예배 없음';
 
-/** 항목 and 구역: add a row at the end of the 예배 순서 table. */
+/** Footer adders; slide items open after the selection, other rows append. */
 export function ServiceTableFooter({
   onProblem,
 }: {
@@ -47,7 +47,8 @@ export function ServiceTableFooter({
     const {rows, openItemId} = useShow.getState();
     const selected = rows.findIndex(row => row.id === openItemId);
     const before =
-      typeof source === 'function' && selected >= 0
+      (typeof source === 'function' || isItemOfKind(source, 'slides')) &&
+      selected >= 0
         ? rows[selected + 1]?.id
         : undefined;
     editing.run(async (edits, id) => {
@@ -59,16 +60,19 @@ export function ServiceTableFooter({
         before === undefined ? null : createServiceItemId(before),
       );
       if (
-        typeof source === 'function' &&
+        isItemOfKind(item, 'slides') &&
         (result.ok ? result.value : result.error.reason === 'write-failed')
       ) {
         if (useShow.getState().serviceId === id) openItem(item.id);
         const opened = await window.llp?.slidesEditor.open({
           serviceId: id,
           itemId: item.id,
+          ...(typeof source !== 'function' && item.slides.form === 'blank'
+            ? {focusText: true}
+            : {}),
         });
         if (!opened?.ok) {
-          throw new Error('Could not open the added liturgy item');
+          throw new Error('Could not open the added slides item');
         }
       }
       if (

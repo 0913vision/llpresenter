@@ -326,6 +326,9 @@ it('holds the field still while a save waits, so newer text is never lost', asyn
   await waitFor(() =>
     expect(screen.queryByRole('textbox', {name: /^메모, /})).toBeNull(),
   );
+  expect(document.activeElement).toBe(
+    screen.getByRole('button', {name: /^메모, /}),
+  );
 });
 
 it('ignores Escape while a save waits, so the field cannot be reopened under an older save', async () => {

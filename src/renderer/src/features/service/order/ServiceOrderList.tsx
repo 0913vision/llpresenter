@@ -28,6 +28,8 @@ import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import {hasModifier} from '@renderer/ui/modifierKeys';
 import {useRowMoveKeys} from '@renderer/ui/reorder';
 import {useMovedRowFocus} from './useMovedRowFocus';
+import {useOrderEditFocus} from './useOrderEditFocus';
+import {serviceRowLabel} from './serviceRowLabel';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {openSongEditorWindow} from '@renderer/features/songs/editor/openWindow';
 import {clickFocusProps} from '@renderer/ui/clickFocus';
@@ -155,6 +157,11 @@ function ItemRows({
               selected={selected.has(row.id)}
               value={row.id}
               title={row.title}
+              accessibleName={
+                row.title.trim() === ''
+                  ? serviceRowLabel(row, numbers.get(row.id) ?? 1)
+                  : undefined
+              }
               rename={renaming === row.id ? rename(row) : undefined}
               lead={table === undefined ? undefined : numbers.get(row.id)}
               className={table?.rowClass}
@@ -173,6 +180,7 @@ function ItemRows({
                 ['song', 'bible'].includes(row.kind)
                   ? String(tiles[row.id]?.length ?? 0)
                   : durations[row.id],
+                serviceRowLabel(row, numbers.get(row.id) ?? 1),
               )}
               warning={
                 row.problem === undefined ? undefined : problemTips[row.problem]
@@ -289,6 +297,12 @@ export function ServiceOrderList({
     onProblem,
   );
   const listRef = useRef<HTMLDivElement>(null);
+  const editFocus = useOrderEditFocus({
+    list: listRef,
+    rows,
+    serviceId,
+    cursor: openItemId,
+  });
   const selectableIds = useMemo(
     () =>
       rows
@@ -416,10 +430,28 @@ export function ServiceOrderList({
       );
     },
   });
+  const runFocusedEdit = (
+    operation: Parameters<typeof editing.run>[0],
+  ): void => {
+    const disarm = editFocus.arm();
+    editing.run(async (edits, service) => {
+      try {
+        const result = await operation(edits, service);
+        if (
+          result.ok ? !result.value : result.error.reason !== 'write-failed'
+        ) {
+          disarm();
+        }
+        return result;
+      } catch (error) {
+        disarm();
+        throw error;
+      }
+    });
+  };
   const deleteFromKey = (): void => {
     if (editable && openItemId !== null) {
-      listRef.current?.focus();
-      editing.run((edits, service) =>
+      runFocusedEdit((edits, service) =>
         edits.remove(service, createServiceItemId(openItemId)),
       );
     }
@@ -472,8 +504,7 @@ export function ServiceOrderList({
       unavailable: () => historyReason('undo'),
       run: () => {
         if (editable) {
-          listRef.current?.focus();
-          editing.run((edits, service) => edits.undo(service));
+          runFocusedEdit((edits, service) => edits.undo(service));
         }
       },
     },
@@ -484,8 +515,7 @@ export function ServiceOrderList({
       unavailable: () => historyReason('redo'),
       run: () => {
         if (editable) {
-          listRef.current?.focus();
-          editing.run((edits, service) => edits.redo(service));
+          runFocusedEdit((edits, service) => edits.redo(service));
         }
       },
     },
@@ -780,15 +810,14 @@ export function ServiceOrderList({
             </div>
           ),
         )}
-      </ListBox>
-      {rows.length === 0 ? (
-        serviceId === null ? (
-          <NoServiceState
-            onNewService={() => serviceActions.entries.newService.onSelect?.()}
-          />
-        ) : (
+        {rows.length === 0 && serviceId !== null ? (
           <EmptyState text="항목 없음" />
-        )
+        ) : null}
+      </ListBox>
+      {rows.length === 0 && serviceId === null ? (
+        <NoServiceState
+          onNewService={() => serviceActions.entries.newService.onSelect?.()}
+        />
       ) : null}
       {insertBefore === null ? <ListInsertLine /> : null}
       {table?.footer}

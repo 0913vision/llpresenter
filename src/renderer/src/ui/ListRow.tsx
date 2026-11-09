@@ -33,6 +33,8 @@ export interface ListRowProps {
   /** The value the list reports when this row is selected. */
   readonly value: string;
   readonly title: string;
+  /** Accessible name when the visible title alone cannot name the row. */
+  readonly accessibleName?: string | undefined;
   readonly className?: string | undefined;
   /** A number before the icon, such as an item's place in the 예배 순서. */
   readonly lead?: number | undefined;
@@ -236,7 +238,8 @@ export const ListRow = memo((props: ListRowProps): JSX.Element => {
       {...targetProps}
       role="option"
       aria-selected={isSelected}
-      aria-labelledby={titleId}
+      aria-labelledby={props.accessibleName === undefined ? titleId : undefined}
+      aria-label={props.accessibleName}
       aria-disabled={disabled ? true : undefined}
       data-value={value}
       data-state={rowState(live, done, warning !== undefined)}

@@ -317,6 +317,7 @@ function SongBlocks({
         type="button"
         className={styles.endGap}
         data-slide-gap={slides.length}
+        tabIndex={-1}
         data-caret={list.selection.caret === slides.length}
         aria-label="마지막 슬라이드 뒤에 삽입"
         onClick={event => {

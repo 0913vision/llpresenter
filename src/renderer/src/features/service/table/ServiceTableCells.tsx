@@ -36,6 +36,7 @@ type Macro = ReturnType<typeof resolveMacro>;
 /** What the cells of one item row read and write. */
 export interface ServiceTableCellsProps {
   readonly row: ItemRow;
+  readonly rowLabel?: string;
   readonly item: ServiceItem | undefined;
   /** The 슬라이드 count of the item; media has none, its length shows on its tile. */
   readonly detail: string | undefined;
@@ -111,6 +112,7 @@ function macroEntries({
 /** The 구성, 슬라이드, 테마, 배경, 시작할 때, and 메모 cells of an item row. */
 export function ServiceTableCells({
   row,
+  rowLabel = row.title,
   item,
   detail,
   themes,
@@ -143,7 +145,7 @@ export function ServiceTableCells({
         <span className={classNames(styles.cell, styles.theme)} />
       ) : (
         <CellMenu
-          label={`테마, ${row.title}`}
+          label={`테마, ${rowLabel}`}
           text={themeCell.name}
           dim={themeCell.followsDefault}
           width={styles.theme}
@@ -159,6 +161,7 @@ export function ServiceTableCells({
       )}
       <BackgroundCell
         row={row}
+        rowLabel={rowLabel}
         item={item}
         media={media}
         songBackground={
@@ -179,7 +182,7 @@ export function ServiceTableCells({
         <span className={classNames(styles.cell, styles.start)} />
       ) : (
         <CellMenu
-          label={`시작할 때, ${row.title}`}
+          label={`시작할 때, ${rowLabel}`}
           text={macro?.name ?? (item.macro === undefined ? '' : MISSING_MACRO)}
           dim={macro === undefined}
           width={styles.start}
@@ -198,8 +201,8 @@ export function ServiceTableCells({
         <span className={classNames(styles.cell, styles.memo)} />
       ) : (
         <MemoCell
-          label={`메모, ${row.title}`}
-          key={item.memo ?? ''}
+          key={`${serviceId}:${item.id}`}
+          label={`메모, ${rowLabel}`}
           memo={item.memo ?? ''}
           reason={reason}
           save={memo => items.submitItemEdit(memoRequest(target, memo))}

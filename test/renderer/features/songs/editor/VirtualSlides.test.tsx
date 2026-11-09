@@ -1,6 +1,8 @@
 import {useState, type JSX} from 'react';
 import {act, fireEvent, render, screen} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
+import userEvent from '@testing-library/user-event';
+import {editorSetup} from '@fixtures/renderer/features/songs/editor/editorTesting';
 import {editorSong} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {VirtualSlides} from '@renderer/features/songs/editor/VirtualSlides';
 import type {SlideListSession} from '@renderer/features/songs/editor/slideListSession';
@@ -29,6 +31,48 @@ function List(): JSX.Element {
 }
 
 describe('virtual editor slides', () => {
+  it('tabs through the grid once in either direction while keeping gutter pointer insertion', async () => {
+    const {session, user, view} = await editorSetup();
+    view.unmount();
+    const song = session.history.snapshot.song;
+    render(
+      <>
+        <button type="button">앞</button>
+        <VirtualSlides
+          song={song}
+          numbers={song.slides.map((_, index) => index + 1)}
+          labels={[]}
+          selected={0}
+          onSelect={vi.fn()}
+          baseline={3}
+          scale={100}
+          session={session}
+        />
+        <button type="button">뒤</button>
+      </>,
+    );
+    act(() => screen.getByRole('button', {name: '앞'}).focus());
+    await user.tab();
+    const option = screen.getAllByRole('option')[0];
+    expect(document.activeElement).toBe(option);
+    await user.tab();
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', {name: '뒤'}),
+    );
+    await user.tab({shift: true});
+    expect(document.activeElement).toBe(option);
+    await user.tab({shift: true});
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', {name: '앞'}),
+    );
+    await userEvent.click(
+      screen.getByRole('button', {name: '마지막 슬라이드 뒤에 삽입'}),
+    );
+    expect(session.slideModel.getSnapshot().selection.caret).toBe(
+      song.slides.length,
+    );
+  });
+
   it('refreshes live slide identities on model notifications and releases its subscription', () => {
     const song = editorSong(1).song;
     let snapshot: SlideListView<SongSlide> = {

@@ -63,9 +63,10 @@ export function ServiceTableList({
       header: <ServiceTableHeader />,
       rowClass: styles.row,
       sectionClass: styles.section,
-      cellsOf: (row, detail) => (
+      cellsOf: (row, detail, rowLabel) => (
         <ServiceTableCells
           row={row}
+          rowLabel={rowLabel}
           item={data.items.get(row.id)}
           detail={detail}
           themes={data.themeFile}

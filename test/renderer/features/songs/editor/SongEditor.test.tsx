@@ -16,6 +16,38 @@ function cursor(input: HTMLTextAreaElement, start: number, end = start): void {
 }
 
 describe('song editor view', () => {
+  it('tabs from slide commands to label and lyrics, skipping pointer insertion gutters in both directions', async () => {
+    const {session, user} = await editorSetup();
+    const surface = screen.getByRole('group', {name: '슬라이드 편집 명령'});
+    act(() => surface.focus());
+    await user.tab();
+    const label = document.activeElement;
+    expect(
+      label?.closest('[data-editor-block]')?.getAttribute('data-editor-block'),
+    ).toBe('0');
+    expect(label?.hasAttribute('data-slide-gap')).toBe(false);
+    expect(label?.tagName).toBe('BUTTON');
+    await user.tab();
+    expect(document.activeElement).toBe(lyrics());
+    await user.tab({shift: true});
+    expect(document.activeElement).toBe(label);
+    await user.tab({shift: true});
+    expect(document.activeElement).toBe(surface);
+    await user.keyboard('{Escape}{Home}');
+    expect(session.slideModel.getSnapshot().selection.caret).toBe(0);
+    await user.keyboard('{End}');
+    expect(session.slideModel.getSnapshot().selection.caret).toBe(
+      session.slideModel.getSnapshot().slides.length,
+    );
+    const end = screen.getByRole('button', {name: '마지막 슬라이드 뒤에 삽입'});
+    expect(end.tabIndex).toBe(-1);
+    await user.click(
+      screen.getByRole('button', {name: '슬라이드 1 앞에 삽입'}),
+    );
+    expect(session.slideModel.getSnapshot().selection.caret).toBe(0);
+    expect(document.activeElement).toBe(surface);
+  });
+
   it('toggles with the list checkbox and Space while preserving pointer selection modifiers', async () => {
     const {session, user} = await editorSetup();
     const rows = [

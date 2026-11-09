@@ -39,6 +39,7 @@ function Shown({
 /** The 배경 of an item row: a still of what plays and its name, blank when nothing plays. */
 export function BackgroundCell({
   row,
+  rowLabel,
   item,
   media,
   songBackground,
@@ -46,6 +47,7 @@ export function BackgroundCell({
   choose,
 }: {
   readonly row: ItemRow;
+  readonly rowLabel: string;
   readonly item: ServiceItem | undefined;
   readonly media: readonly MediaItem[];
   /** The library song's own background, for a song item. */
@@ -96,7 +98,7 @@ export function BackgroundCell({
   return (
     <>
       <CellButton
-        label={`배경, ${row.title}`}
+        label={`배경, ${rowLabel}`}
         width={styles.background}
         dim={!own}
         reason={reason}

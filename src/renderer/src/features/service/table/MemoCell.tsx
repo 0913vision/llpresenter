@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState, type JSX} from 'react';
+import {useLayoutEffect, useRef, useState, type JSX} from 'react';
 import {isComposing} from '@renderer/ui/ime';
 import {hasModifier} from '@renderer/ui/modifierKeys';
 import {CellButton} from './CellButton';
@@ -48,7 +48,7 @@ export function MemoCell({
   const saving = useRef(false);
   const [busy, setBusy] = useState(false);
   const editing = draft !== null;
-  useEffect(() => {
+  useLayoutEffect(() => {
     if (!editing) {
       if (returnFocus.current) {
         returnFocus.current = false;
@@ -80,7 +80,10 @@ export function MemoCell({
   }
   const end = (focus: boolean): void => {
     done.current = true;
-    returnFocus.current = focus;
+    returnFocus.current =
+      focus &&
+      field.current !== null &&
+      document.activeElement === field.current;
     setDraft(null);
   };
   const commit = (focus: boolean): void => {
