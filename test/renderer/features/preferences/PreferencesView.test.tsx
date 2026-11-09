@@ -26,6 +26,8 @@ import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import type {PreferencePageId} from '@core/schema/preferencePages';
 import {MISSING_DEVICE_REASON} from '@renderer/features/preferences/DeviceRow';
 import {PreferencesView} from '@renderer/features/preferences/PreferencesView';
+import {MenuBar} from '@renderer/app/shell/MenuBar';
+import {renderWithScreenSummaries} from '@fixtures/renderer/platform/screenSummaries';
 
 const UNKNOWN_FIELDS = {unknownField: 'kept'};
 const STORED: PreferencesFile = {
@@ -410,6 +412,44 @@ describe('PreferencesView', () => {
     await userEvent.click(checkbox);
     await waitFor(() => expect(edit).toHaveBeenCalledTimes(2));
     expect(written()).toMatchObject({show: {dimPastItems: false}});
+  });
+
+  it('keeps the last-slide choice and menu check in sync in both directions', async () => {
+    await mount();
+    renderWithScreenSummaries(<MenuBar title="" />);
+    await openPage('예배 순서');
+    const choice = screen.getByRole('radiogroup', {
+      name: '마지막 슬라이드에서',
+    });
+    const stop = within(choice).getByRole('radio', {name: '멈춤'});
+    const next = within(choice).getByRole('radio', {name: '다음 항목으로'});
+    expect(stop.getAttribute('aria-checked')).toBe('true');
+    await userEvent.click(next);
+    await waitFor(() => expect(edit).toHaveBeenCalledOnce());
+    expect(written()).toMatchObject({show: {atLastSlide: 'nextItem'}});
+    act(() =>
+      pushed({
+        name: 'preferences',
+        value: written(),
+        revision: 6,
+        access: 'editable',
+      }),
+    );
+    await userEvent.click(screen.getByRole('menuitem', {name: '보기'}));
+    const row = screen.getByRole('menuitemcheckbox', {name: '이어서 진행'});
+    await waitFor(() => expect(row.getAttribute('aria-checked')).toBe('true'));
+    await userEvent.click(row);
+    await waitFor(() => expect(edit).toHaveBeenCalledTimes(2));
+    expect(written()).toMatchObject({show: {atLastSlide: 'stop'}});
+    act(() =>
+      pushed({
+        name: 'preferences',
+        value: written(),
+        revision: 7,
+        access: 'editable',
+      }),
+    );
+    await waitFor(() => expect(stop.getAttribute('aria-checked')).toBe('true'));
   });
 
   it('loads saved past-row dimming and locks it for a newer preferences file', async () => {

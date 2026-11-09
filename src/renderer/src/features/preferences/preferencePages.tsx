@@ -116,12 +116,30 @@ export function GeneralPage({edits}: PageProps): JSX.Element | null {
   );
 }
 
-/** The appearance of past rows in the service order. */
+const LAST_SLIDE_OPTIONS = [
+  {value: 'stop', label: '멈춤'},
+  {value: 'nextItem', label: '다음 항목으로'},
+] as const;
+
+/** Service order appearance and navigation. */
 export function ServiceOrderPage({edits}: PageProps): JSX.Element | null {
   const {preferences, lockedReason, change} = edits;
   if (preferences === null) return null;
   return (
     <PropertyGroup>
+      <SegmentedRow
+        label="마지막 슬라이드에서"
+        disabled={lockedReason !== undefined}
+        title={lockedReason}
+        options={LAST_SLIDE_OPTIONS}
+        value={preferences.show.atLastSlide}
+        onChange={atLastSlide =>
+          change(stored => ({
+            ...stored,
+            show: {...stored.show, atLastSlide},
+          }))
+        }
+      />
       <CheckboxRow
         label="지난 순서 흐리게"
         disabled={lockedReason !== undefined}

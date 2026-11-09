@@ -953,7 +953,7 @@ same place. Native window and field keys are identified separately.
 | --------- | --------------------------------------------------------- | ----- | --------------------------------------------------------- |
 | 일반      | UI zoom, launch with Windows                              | 1     | General; no app-wide UI zoom source found                 |
 | 출력      | Output on launch, the monitor button, transitions         | 1     | Screens, General                                          |
-| 예배 순서 | Past-row appearance                                       | 1     | User decision, November 9                                 |
+| 예배 순서 | Last-slide navigation and past-row appearance             | 1     | User decision, November 9                                 |
 | 저장      | Folders, automatic backup, previous versions per file     | 1     | Advanced (Support Files, media repository)                |
 | 이름표    | The shared 이름표 list                                    | 1     | Groups (S4 p. 176)                                        |
 | 미디어    | New media defaults, sound devices and times               | 1     | Import, Audio, Advanced                                   |
@@ -996,9 +996,10 @@ Rules for every row:
 
 #### 예배 순서 (Service order)
 
-| Row              | Control  | Default | Stored in                              | Applies |
-| ---------------- | -------- | ------- | -------------------------------------- | ------- |
-| 지난 순서 흐리게 | Checkbox | Off     | `preferences.json` `show.dimPastItems` | At once |
+| Row                 | Control                        | Default | Stored in                              | Applies                                 |
+| ------------------- | ------------------------------ | ------- | -------------------------------------- | --------------------------------------- |
+| 마지막 슬라이드에서 | Segmented: 멈춤, 다음 항목으로 | 멈춤    | `preferences.json` `show.atLastSlide`  | At once; shared with 보기 > 이어서 진행 |
+| 지난 순서 흐리게    | Checkbox                       | Off     | `preferences.json` `show.dimPastItems` | At once                                 |
 
 When enabled, every row above the current output item dims by position,
 including section headings and every item kind. Going back restores later rows.

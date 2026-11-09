@@ -264,13 +264,17 @@ Source: `StageEditor`, `IconButton` README (비율 고정, 격자에 맞추기),
 - The left list has the pages 일반, 출력, 예배 순서, 저장, 이름표, 미디어, 성경,
   단축키, and 정보. 10 ("환경설정 window") has every row of every page: its
   control, range, default, stored field, when a change applies, and its tooltip.
-- Checkboxes and selects apply at once and save (`Checkbox` README). 02 lists
-  the stored fields.
+- Checkboxes, segmented choices, and selects apply at once and save (`Checkbox`
+  README). 02 lists the stored fields.
 - The 모니터 row on 출력 is a button, 화면 설정…, that opens the 화면 설정
   window; the monitor of each output is set there.
 
 Source: `Prefs`, `PropertyRow` README, `MenuBar` README (secondary window title
 bar), `docs/TECH.md` operating rules.
+
+예배 순서 > 마지막 슬라이드에서 offers 멈춤 (default) and 다음 항목으로. It
+shares `show.atLastSlide` with 보기 > 이어서 진행; either change is reflected in
+the other at once.
 
 일반 > 화면 확대 is a select with the steps 100% to 200% in 10% steps, kept in
 step with the keys (Ctrl +, Ctrl -, Ctrl 0) and with every other control window.
