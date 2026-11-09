@@ -74,7 +74,7 @@ they have the same limit. A 테마 sets the elements of each screen itself.
 | 슬라이드 이름  | The live 슬라이드's name (`slideName`), an 광고 text slide's name; empty otherwise                 | All            | One        |
 | 슬라이드 번호  | The live 광고 text slide's position among text slides, 1-based; empty for pictures and other kinds | All            | One        |
 | 글             | Fixed text written in the 테마                                                                     | All            | Several    |
-| 이미지         | A fixed image from the media list                                                                  | All            | Several    |
+| 이미지         | A fixed user image or bundled theme picture                                                        | All            | Several    |
 | 사각형         | A filled box                                                                                       | All            | Several    |
 | 시계           | The current time                                                                                   | All            | One        |
 | 타이머         | A 타이머 picked in the element                                                                     | All            | Several    |
@@ -268,30 +268,32 @@ until the operator or an action changes it (S4 pp. 37 to 38).
 
 The gradient preset list uses angle 135 and these exact stops, in the order
 below. The first eight are the church palette, followed by the extra choices.
-Church presets place their stops at 0/100, or 0/50/100 for three colors. The
-darker light green keeps white text readable.
+밝은 초록 preserves the deck's 36/67 stops. 어두운 초록 is the former 연초록;
+its stops and position in the list stay unchanged. Themes store gradient values,
+not preset names or indices, so the rename does not change existing themes.
 
-| Name     | Stops (percent, hex)                |
-| -------- | ----------------------------------- |
-| 청록     | 0 #002E38, 100 #00768C              |
-| 적갈     | 0 #3A0000, 50 #5A2500, 100 #7A4900  |
-| 초록     | 0 #13452C, 100 #3B8440              |
-| 자주     | 0 #3A002E, 100 #AC00A0              |
-| 청록초록 | 0 #003A28, 100 #008474              |
-| 남보라   | 0 #2C003A, 100 #0073AC              |
-| 올리브   | 0 #3A1900, 50 #5C4800, 100 #7D7A00  |
-| 연초록   | 0 #567A40, 100 #1F7D4E              |
-| 새벽     | 20 #141B3F, 95 #4A2A78              |
-| 노을     | 20 #2E0A2C, 70 #7A2238, 100 #B0522A |
-| 바다     | 20 #0A1F3F, 95 #0F6470              |
-| 밤하늘   | 10 #070B18, 100 #1C2856             |
-| 성탄     | 20 #0B3325, 95 #6E0E1C              |
-| 부활     | 20 #261246, 95 #8C6A22              |
-| 성령     | 20 #2E0606, 95 #A8381A              |
-| 은혜     | 20 #1A222D, 95 #465565              |
-| 묵상     | 10 #121212, 100 #343434             |
-| 감사     | 20 #321F0E, 95 #8E5E27              |
-| 오로라   | 15 #0A2433, 55 #1F5E4A, 95 #4A2F78  |
+| Name        | Stops (percent, hex)                |
+| ----------- | ----------------------------------- |
+| 청록        | 0 #002E38, 100 #00768C              |
+| 적갈        | 0 #3A0000, 50 #5A2500, 100 #7A4900  |
+| 초록        | 0 #13452C, 100 #3B8440              |
+| 자주        | 0 #3A002E, 100 #AC00A0              |
+| 청록초록    | 0 #003A28, 100 #008474              |
+| 남보라      | 0 #2C003A, 100 #0073AC              |
+| 올리브      | 0 #3A1900, 50 #5C4800, 100 #7D7A00  |
+| 어두운 초록 | 0 #567A40, 100 #1F7D4E              |
+| 새벽        | 20 #141B3F, 95 #4A2A78              |
+| 노을        | 20 #2E0A2C, 70 #7A2238, 100 #B0522A |
+| 바다        | 20 #0A1F3F, 95 #0F6470              |
+| 밤하늘      | 10 #070B18, 100 #1C2856             |
+| 성탄        | 20 #0B3325, 95 #6E0E1C              |
+| 부활        | 20 #261246, 95 #8C6A22              |
+| 성령        | 20 #2E0606, 95 #A8381A              |
+| 은혜        | 20 #1A222D, 95 #465565              |
+| 묵상        | 10 #121212, 100 #343434             |
+| 감사        | 20 #321F0E, 95 #8E5E27              |
+| 오로라      | 15 #0A2433, 55 #1F5E4A, 95 #4A2F78  |
+| 밝은 초록   | 36 #7A9F5A, 67 #30A26A              |
 
 ### Transitions
 
@@ -486,9 +488,9 @@ fields, as every settings file does (02).
 
 ### Defaults
 
-- New libraries include a 구역 이름 theme for a blank 슬라이드 item. 항목 이름
-  supplies the Korean name without inserted spaces; its one slide text supplies
-  the English name, which may be empty. On 청중 화면 both use white
+- New libraries include seven 구역 이름 color themes for a blank 슬라이드 item.
+  항목 이름 supplies the Korean name without inserted spaces; its one slide text
+  supplies the English name, which may be empty. On 청중 화면 both use white
   KoPubWorldDotum without shadow or outline: Bold 152 px at y=412, tracking 52
   px, and Light 56 px at y=613, tracking 34 px. The Korean frame is 240 px high
   and enables 가사 없을 때 가운데: with an empty English line, its ink starts
@@ -506,18 +508,17 @@ fields, as every settings file does (02).
   retain 152 px tracking; the other names use 52 px. These defaults apply to new
   themes; saved themes are not overwritten. Output, measurement and thumbnails
   share the overrides, including renaming and scaling.
-- Each section card keeps an ordinary item background picture. New catalogs
-  include one 1920 x 1080 picture per section color, generated with the same
-  OKLCH gradient presets as the editor. Without an item background the theme
-  uses the 청록 gradient. Saved themes and catalogs are kept. The core section
-  list contains, in order: 묵상기도, 사도신경, 회개와간구의기도, 찬양, 합심기도,
-  봉헌, 봉헌기도, 성찬식, 축복기도, 세례식, 간구기도, 광고, 축도. Their colors
-  are 청록, 청록, 적갈, 초록, 적갈, 자주, 자주, 청록초록, 남보라, 청록초록,
-  적갈, 남보라, 올리브. English is empty for 묵상기도; the others use Apostle's
-  Creed, Repentance Prayer, Praise, Corporate Prayer, Offering, Offering Prayer,
-  Holy Communion, Blessing, Baptism, Supplication Prayer, Notice, Benediction.
-  This theme is not a kind default; 방송 화면 and 무대 화면 use the existing
-  blank-item layout.
+- Each section card selects its color's 구역 이름 theme, with no item background
+  media. Its audience layout uses the matching `GRADIENT_PRESETS` gradient
+  directly, including OKLCH mixing and dither. The seven generated section PNGs
+  are not shipped. The core section list contains, in order: 묵상기도, 사도신경,
+  회개와간구의기도, 찬양, 합심기도, 봉헌, 봉헌기도, 성찬식, 축복기도, 세례식,
+  간구기도, 광고, 축도. Their colors are 청록, 청록, 적갈, 초록, 적갈, 자주,
+  자주, 청록초록, 남보라, 청록초록, 적갈, 남보라, 올리브. English is empty for
+  묵상기도; the others use Apostle's Creed, Repentance Prayer, Praise, Corporate
+  Prayer, Offering, Offering Prayer, Holy Communion, Blessing, Baptism,
+  Supplication Prayer, Notice, Benediction. These themes are not kind defaults;
+  방송 화면 and 무대 화면 use the existing blank-item layout.
 - In new libraries, 찬양 on 청중 화면 uses white NanumSquare ExtraBold
   (weight 800) at 108 px, centered horizontally and top aligned, with -3 px
   tracking, 137 px line spacing, and no shadow or outline. Its text frame is
@@ -532,11 +533,11 @@ fields, as every settings file does (02).
   black. The white 찬양 frame stays (132, 141, 1656, 411). It keeps the song's
   normal picture and the existing broadcast and stage layouts. Operators pick
   this variant explicitly; the song default and saved catalogs are unchanged.
-- New libraries include three ordinary, replaceable 1920 x 1080 pictures for
-  말씀 and the two sermon title layouts. Their backgrounds use the 청록 preset
-  above, rendered with the output's OKLCH mixing and dither; the two title
-  pictures retain their original rule pixels and positions. Existing catalogs
-  and saved themes are kept as they are.
+- The app includes three bundled 1920 x 1080 background pictures for 말씀 and
+  the two sermon title layouts. Their backgrounds use the 청록 preset above,
+  rendered with the output's OKLCH mixing and dither; the two title pictures
+  retain their original rule pixels and positions. Existing catalogs and saved
+  themes are kept as they are.
 - 말씀 on 청중 화면 uses its full-screen teal picture, white NanumSquare Bold
   text without outline or shadow: an item-range 성경 출처 at 72 px, and 현재
   가사 at 104 px, left/top aligned, with -3 px tracking and 150 px line spacing.
@@ -551,9 +552,8 @@ fields, as every settings file does (02).
   tracking, 150 px line spacing, left/top alignment, and at most four lines in
   the verse box from x 129 to 1805. 방송 화면 and 무대 화면 retain the 말씀
   layouts. Adding a prayer installs this theme if an older catalog lacks it,
-  without replacing saved themes. If the media catalog lacks the 말씀
-  background, its image ID serves the bundled asset; a catalogued replacement
-  takes precedence.
+  without replacing saved themes. Its background ID always resolves to the
+  bundled 말씀 asset.
 - 설교 제목 and 설교 제목 (두 줄) are additional themes, not kind defaults. In a
   blank 슬라이드 item, set the item name to the passage range and the slide text
   to the sermon title, with a line break for the two-line layout. Choose the
@@ -565,25 +565,25 @@ fields, as every settings file does (02).
 - `defaults.blank` selects 말씀 and `defaults.ad` selects 광고 in a new
   `themes.json`. Both can be changed like the other kind defaults.
 - On 청중 화면 the 광고 theme uses a shipped 1920 x 1080 blue-purple picture and
-  a separate transparent slash picture, both ordinary replaceable images. The
-  background uses the 남보라 preset above with the output's OKLCH mixing and
-  dither; the slash group includes an opaque triangle filled from the background
-  picture at the same coordinates. Above the background are 배경 for an item
-  override, 슬라이드 번호, the slash picture, 슬라이드 이름, 현재 가사, and
-  full-screen 미디어 with 채우기 so picture slides cover the whole frame. All
-  text is white KoPubWorldDotum without shadow or outline. The number is Bold
-  160 px with -6 px tracking; the title is Bold 108 px with -3 px tracking; the
-  body is Medium 86 px with -3 px tracking and disc 글머리 기호 enabled. Its
-  frame is (129, 287, 1676, 776), with the right edge at 1805 and room for six
-  128 px lines. The text starts 107 px inside the frame; continuation lines hang
-  under the text. The number frame is (97, 21, 113, 208); the title frame is
-  (240, 107, 1540, 145). Both move up with the slash group by 65 px from the
-  original notice draft. The slash is white at 26% opacity, 2 px wide, and
-  extends 18% farther around (198, 200) along the line through (117, 280) and
-  (278, 119), then moves up 65 px with its background-filled cutting triangle.
-  New catalogs include both pictures; existing catalogs and themes are kept. The
-  slash group sits above the number and below the title, cutting the number
-  along the line so none shows beyond it.
+  a separate transparent slash picture, both app assets. The background uses the
+  남보라 preset above with the output's OKLCH mixing and dither; the slash group
+  includes an opaque triangle filled from the background picture at the same
+  coordinates. Above the background are 배경 for an item override, 슬라이드
+  번호, the slash picture, 슬라이드 이름, 현재 가사, and full-screen 미디어 with
+  채우기 so picture slides cover the whole frame. All text is white
+  KoPubWorldDotum without shadow or outline. The number is Bold 160 px with -6
+  px tracking; the title is Bold 108 px with -3 px tracking; the body is Medium
+  86 px with -3 px tracking and disc 글머리 기호 enabled. Its frame is (129,
+  287, 1676, 776), with the right edge at 1805 and room for six 128 px lines.
+  The text starts 107 px inside the frame; continuation lines hang under the
+  text. The number frame is (97, 21, 113, 208); the title frame is (240, 107,
+  1540, 145). Both move up with the slash group by 65 px from the original
+  notice draft. The slash is white at 26% opacity, 2 px wide, and extends 18%
+  farther around (198, 200) along the line through (117, 280) and (278, 119),
+  then moves up 65 px with its background-filled cutting triangle. Both pictures
+  belong to the app, outside the user media catalog. The slash group sits above
+  the number and below the title, cutting the number along the line so none
+  shows beyond it.
 - 방송 화면 and 무대 화면 retain their 광고 layout: a #141c2e full-screen box, a
   24 px #e6b54a left bar, fixed "교회 소식", covering media, the 132 px slide
   name and 60 px #c9d1e0 body. The default 광고 item's 8-second advance and 반복
@@ -594,23 +594,42 @@ fields, as every settings file does (02).
 - The other built-in defaults are 찬양 for 곡, 말씀 for 성경, and 영상 for
   미디어.
 - A new library's 대기 화면 shows the church's service times on 청중 화면. Its
-  replaceable 1920 x 1080 picture contains a smooth green gradient (angle 135,
-  0% #567A40, 100% #1F7D4E), the title rule and verse box outline. Five editable
-  글 elements contain LOVELIGHT, the seven days, times, service names, and
-  Ephesians 3:20-21. Days are one right-aligned Noto Sans CJK KR Thin list;
-  times are one Regular list; service names are one KoPubWorldDotum Medium list.
-  Each list has seven lines at 52 px with 72.3 px line spacing. The title uses
-  Noto Sans CJK KR Black 80 px with 12 px tracking; the verse uses
-  KoPubWorldDotum Medium 36 px. All text is white without shadow or outline.
-  무대 화면 keeps its clock and timer, and 방송 화면 stays empty.
+  bundled 1920 x 1080 picture defaults to 예배 안내 배경 (밝게), matching the
+  PowerPoint export (angle 135, 36% #7A9F5A, 67% #30A26A). 예배 안내 배경
+  (어둡게) keeps the existing picture and ID (0% #567A40, 100% #1F7D4E). Both
+  remain pictures containing only the gradient, title rule and verse box
+  outline; no text is baked into either picture. Five editable 글 elements
+  contain LOVELIGHT, the seven days, times, service names, and Ephesians
+  3:20-21. Days are one right-aligned Noto Sans CJK KR Thin list; times are one
+  Regular list; service names are one KoPubWorldDotum Medium list. Each list has
+  seven lines at 52 px with 72.3 px line spacing. The title uses Noto Sans CJK
+  KR Black 80 px with 12 px tracking; the verse uses KoPubWorldDotum Medium 36
+  px. All text is white without shadow or outline. 무대 화면 keeps its clock and
+  timer, and 방송 화면 stays empty.
 - 예배 준비 is an additional normal theme for a 빈 슬라이드 item with one empty
   slide, not a kind default or the 대기 화면. Its audience picture has the
   bracket frame over a teal gradient (angle 135, 0% #002E38, 100% #00768C). Two
   editable 글 elements say "잠시후에 예배가 시작됩니다" and "지금은 기도로
   예배를 준비하는 시간입니다", centered in white KoPubWorldDotum Bold at 120 px
   and 74 px, without shadow or outline. Other screens use their normal
-  blank-item layouts. Both new pictures are ordinary library media. Saved themes
-  and existing libraries are not migrated.
+  blank-item layouts. Both pictures are bundled theme assets.
+
+### Bundled pictures
+
+The nine theme pictures are immutable app assets. Existing pictures keep their
+IDs; the bright service-times alternative has its own ID. Output, previews,
+thumbnails and analysis resolve those IDs without a media catalog entry. They
+are never copied into `Media`, included in media search or counts, or offered
+for renaming or deletion. No old-data migration is provided before the first
+release.
+
+The theme editor's image picker lists a 기본 배경 group before user 미디어: 광고
+배경, 말씀 배경, 설교 제목 배경, 설교 제목 두 줄 배경, 예배 안내 배경 (밝게),
+예배 안내 배경 (어둡게), and 예배 준비 배경. Search and keyboard selection reach
+both groups. Adding or replacing an image uses the selected asset ID without
+importing it. 광고 사선 and 구역 이름 선 remain embedded decorations in their
+themes and never appear as choices. Their existing elements still show the
+correct picture name.
 
 ## Where the rest of the spec uses 테마
 

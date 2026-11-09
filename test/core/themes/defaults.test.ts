@@ -190,7 +190,13 @@ it('makes a valid file with built-in themes and a standby clock and timer on sta
     '사도신경, 주기도문',
     '설교 제목',
     '설교 제목 (두 줄)',
-    '구역 이름',
+    '구역 이름 청록',
+    '구역 이름 적갈',
+    '구역 이름 초록',
+    '구역 이름 자주',
+    '구역 이름 청록초록',
+    '구역 이름 남보라',
+    '구역 이름 올리브',
     '예배 준비',
   ]);
   const stage =

@@ -560,7 +560,14 @@ it('picks gradient presets in one undo step, edits only the selected stop and re
   fireEvent.click(screen.getByRole('radio', {name: '그라데이션'}));
   expect(screen.queryByRole('radiogroup', {name: '색 섞기'})).toBeNull();
   const presets = screen.getByRole('group', {name: '프리셋'});
-  expect(within(presets).getAllByRole('button')).toHaveLength(19);
+  expect(within(presets).getAllByRole('button')).toHaveLength(20);
+  expect(within(presets).queryByRole('button', {name: '연초록'})).toBeNull();
+  fireEvent.click(within(presets).getByRole('button', {name: '밝은 초록'}));
+  expect(screen.getByRole('slider', {name: '색 1, 36 %'})).toBeDefined();
+  expect(screen.getByRole('slider', {name: '색 2, 67 %'})).toBeDefined();
+  fireEvent.click(within(presets).getByRole('button', {name: '어두운 초록'}));
+  expect(screen.getByRole('slider', {name: '색 1, 0 %'})).toBeDefined();
+  expect(screen.getByRole('slider', {name: '색 2, 100 %'})).toBeDefined();
   fireEvent.click(within(presets).getByRole('button', {name: '청록'}));
   expect(screen.getByRole('textbox', {name: '색'}).getAttribute('value')).toBe(
     '#002E38',

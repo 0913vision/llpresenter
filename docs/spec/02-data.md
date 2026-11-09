@@ -727,10 +727,15 @@ change this picker preference.
 
 ## Media list (`Settings\media.json`)
 
-The `media.sections.prepare` edit has only its `type` field. Explicit section
-insertion uses it to add the eight packaged section pictures missing from an
-existing media catalog, keeping existing entries and files. Paths and picture
-IDs are selected by the app, not supplied in the edit.
+A fresh media catalog and `Media` folder are empty. Only media the operator
+imports belongs there. Bundled theme backgrounds and decorations stay in the app
+assets, with their existing IDs resolved outside `media.json`; they do not
+appear in Media, media search, or counts and cannot be renamed or deleted.
+Section themes use gradient presets instead of image files (12).
+
+The `media.sections.prepare` edit retains only its `type` field as a no-op.
+Section insertion chooses a gradient theme and does not add media entries or
+files.
 
 | Field                     | Type                                | Meaning                                                                                                                                                                                           | Source                          |
 | ------------------------- | ----------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------- |

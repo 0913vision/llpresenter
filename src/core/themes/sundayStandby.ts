@@ -12,6 +12,7 @@ export const PREPARATION_THEME_ID = createThemeId(
 export const SUNDAY_STANDBY_PICTURE_IDS = {
   serviceTimes: createMediaId('00000000-0000-4000-8000-000000000390'),
   preparation: createMediaId('00000000-0000-4000-8000-000000000391'),
+  serviceTimesBright: createMediaId('00000000-0000-4000-8000-000000000392'),
 } as const;
 
 const id = (number: number) =>
@@ -45,7 +46,7 @@ export function sundayServiceTimesLayout(): ThemeScreenLayout {
       {
         id: id(1),
         kind: 'image',
-        mediaId: SUNDAY_STANDBY_PICTURE_IDS.serviceTimes,
+        mediaId: SUNDAY_STANDBY_PICTURE_IDS.serviceTimesBright,
         frame: {x: 0, y: 0, w: 1920, h: 1080},
         fit: 'stretch',
         radius: 0,

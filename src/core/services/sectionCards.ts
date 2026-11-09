@@ -1,6 +1,6 @@
 import {createSlideId, type ServiceItemId} from '../schema/ids';
 import type {ServiceItemOf} from '../schema/service';
-import {SECTION_THEME_ID, type SundaySection} from '../themes/sundaySections';
+import {type SundaySection} from '../themes/sundaySections';
 
 /** The editable card shared by the item menu and built-in service templates. */
 export function newSectionItem(
@@ -9,8 +9,7 @@ export function newSectionItem(
 ): ServiceItemOf<'slides'> {
   return {
     id,
-    theme: SECTION_THEME_ID,
-    background: section.background,
+    theme: section.theme,
     slides: {
       form: 'blank',
       name: section.name,

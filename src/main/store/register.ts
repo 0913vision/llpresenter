@@ -26,10 +26,7 @@ import {registerMediaChannels, type MediaBackendPort} from './mediaChannels';
 import {registerMediaUses} from './mediaUses';
 import {LoadingMediaLibrary} from './mediaLibrary';
 import {openMediaStore} from './mediaLoader';
-import {SUNDAY_PICTURES, SECTION_PICTURES} from './bundledPictures';
-import {prepareSectionPictures} from './prepareSectionPictures';
-import {SUNDAY_PICTURE_IDS} from '@core/themes/sundayScripture';
-import {initialPictures} from './initialPictures';
+import {SUNDAY_PICTURES} from './bundledPictures';
 import type {MediaStore} from './mediaStore';
 import {openContent, type OpenedContent} from './openContent';
 import {SaveFailures} from './saveFailures';
@@ -77,8 +74,8 @@ export interface DataStore extends SettingsAccess {
    */
   readonly dispose: () => Promise<void>;
   /**
-   * The file of a media id from `media.json`, once the data is read, or
-   * `null` when there is none.
+   * The file of user media or a bundled theme picture, once the data is read,
+   * or `null` when the ID is unknown.
    */
   readonly findMediaFile: (mediaId: string) => Promise<string | null>;
   /** The folders media files may come from; none before the data is read. */
@@ -119,8 +116,7 @@ export function registerStore({
       if (store === null) return null;
       const readySettings = await settings;
       const opened = await openMediaStore(store, {
-        initialItems: () =>
-          initialPictures(store.locations.media, SUNDAY_PICTURES),
+        pictures: SUNDAY_PICTURES,
         settings: readySettings,
         log,
         failures: saveFailures,
@@ -132,9 +128,7 @@ export function registerStore({
       log.error('could not open the media list', error);
       return null;
     });
-  const mediaChannels = registerMediaChannels(media, log, store =>
-    prepareSectionPictures(store, SECTION_PICTURES),
-  );
+  const mediaChannels = registerMediaChannels(media, log);
   let bible: BibleLookupSession | undefined;
   let bibleClosed = false;
   const openBible = (): BibleLookupSession =>
@@ -226,9 +220,7 @@ export function registerStore({
   });
   const mediaLibrary = new LoadingMediaLibrary(
     media.then(store => (store === null ? null : {media: store})),
-    SUNDAY_PICTURES.filter(
-      picture => picture.id === SUNDAY_PICTURE_IDS.scripture,
-    ),
+    SUNDAY_PICTURES,
   );
   const savePending = async (): Promise<boolean> => {
     try {

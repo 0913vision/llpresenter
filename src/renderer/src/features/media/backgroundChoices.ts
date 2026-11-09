@@ -4,7 +4,7 @@ import type {MediaItem} from '@core/schema/mediaList';
 export const SONG_DEFAULT_LABEL = '곡 기본값';
 const UNNAMED_MEDIA = '이름 없는 미디어';
 
-export function mediaName(media: MediaItem): string {
+export function mediaName(media: Pick<MediaItem, 'name'>): string {
   return media.name === '' ? UNNAMED_MEDIA : media.name;
 }
 

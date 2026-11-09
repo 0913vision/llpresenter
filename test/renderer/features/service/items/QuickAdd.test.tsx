@@ -28,7 +28,7 @@ import {formLookupReply} from '@fixtures/core/bibleReplies';
 import type {RecentPassage} from '@core/schema/bible';
 import {prepareLiturgy} from '@renderer/features/service/items/quickAddLiturgy';
 import {newSlidesItem} from '@core/services/slidesEdits';
-import {SECTION_THEME_ID, SUNDAY_SECTIONS} from '@core/themes/sundaySections';
+import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
 import {isItemOfKind} from '@core/schema/service';
 
 vi.mock('@renderer/features/service/items/quickAddLiturgy', () => ({
@@ -193,7 +193,7 @@ function fillBibleForm(end = ''): void {
 
 describe('항목 추가', () => {
   it.each(['찬양', '합심기도', '묵상기도', '축도'])(
-    'inserts an editable %s section card after the selection with its picture and one English slide',
+    'inserts an editable %s section card after the selection with its gradient theme and one English slide',
     async name => {
       const {api, user, service, onProblem} = setup();
       const preparePictures = vi
@@ -213,17 +213,14 @@ describe('항목 추가', () => {
       await user.click(screen.getByRole('menuitem', {name: '구역 이름'}));
       await user.click(await screen.findByRole('menuitem', {name}));
       await waitFor(() => expect(open).toHaveBeenCalledOnce());
-      expect(preparePictures).toHaveBeenCalledWith({
-        type: 'media.sections.prepare',
-      });
+      expect(preparePictures).not.toHaveBeenCalled();
       expect(onProblem).not.toHaveBeenCalled();
       const section = SUNDAY_SECTIONS.find(section => section.name === name);
       const order = service().service.order;
       const index = order.findIndex(item => item.id === fixtureItems.arranged);
       const added = order[index + 1];
       expect(added).toMatchObject({
-        theme: SECTION_THEME_ID,
-        background: section?.background,
+        theme: section?.theme,
         slides: {form: 'blank', name, slides: [{text: section?.english}]},
       });
       if (added === undefined || !isItemOfKind(added, 'slides')) {

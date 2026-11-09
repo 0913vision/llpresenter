@@ -109,3 +109,45 @@ it('windows inherited background choices, wraps across the divider and clamps af
   fireEvent.keyDown(search, {key: 'Enter'});
   expect(props.onSelect).toHaveBeenCalledExactlyOnceWith(undefined);
 });
+
+it('keeps grouped backgrounds keyboard reachable across the virtual user list', () => {
+  document.documentElement.style.setProperty('--size-row-menu', '28px');
+  const items = Array.from({length: 60}, (_, index) => ({
+    id: createMediaId(
+      `10000000-0000-4000-8000-${String(index).padStart(12, '0')}`,
+    ),
+    name: `User ${index}`,
+    kind: 'image' as const,
+    file: 'user.png',
+    size: 1,
+  }));
+  const builtin = {
+    id: createMediaId('20000000-0000-4000-8000-000000000001'),
+    name: 'Built-in',
+    kind: 'image' as const,
+  };
+  const onSelect = vi.fn();
+  render(
+    <MediaPicker
+      anchor={document.createElement('button')}
+      items={items}
+      leadingGroup={{label: '기본 배경', items: [builtin]}}
+      itemsLabel="미디어"
+      selected={items.at(-1)?.id}
+      query=""
+      onQueryChange={vi.fn()}
+      onSelect={onSelect}
+      onClose={vi.fn()}
+      allowNone={false}
+    />,
+  );
+  const search = screen.getByRole('combobox', {name: '검색'});
+  expect(screen.getAllByRole('option').length).toBeLessThan(16);
+  expect(screen.getByRole('option', {name: 'User 59'})).toBeTruthy();
+  fireEvent.keyDown(search, {key: 'ArrowDown'});
+  expect(search.getAttribute('aria-activedescendant')).toBe(
+    screen.getByRole('option', {name: 'Built-in'}).id,
+  );
+  fireEvent.keyDown(search, {key: 'Enter'});
+  expect(onSelect).toHaveBeenCalledExactlyOnceWith(builtin.id);
+});

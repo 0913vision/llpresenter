@@ -107,7 +107,7 @@ it('keeps the chosen teal and approved presets in presentation order', () => {
       ],
     },
     {
-      name: '연초록',
+      name: '어두운 초록',
       stops: [
         {
           position: 0,
@@ -268,6 +268,13 @@ it('keeps the chosen teal and approved presets in presentation order', () => {
           position: 95,
           color: '#4A2F78',
         },
+      ],
+    },
+    {
+      name: '밝은 초록',
+      stops: [
+        {position: 36, color: '#7A9F5A'},
+        {position: 67, color: '#30A26A'},
       ],
     },
   ]);

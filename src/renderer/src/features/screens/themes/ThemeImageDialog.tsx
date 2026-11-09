@@ -1,5 +1,6 @@
 import {useState, type JSX} from 'react';
 import type {MediaId} from '@core/schema/ids';
+import {THEME_BACKGROUNDS} from '@core/themes/pictures';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {ThemeImageChoice} from './ThemeImageChoice';
 import {Dialog} from '@renderer/ui/Dialog';
@@ -12,7 +13,9 @@ export function ThemeImageDialog({
   readonly model: ThemeModel;
 }): JSX.Element {
   const [selected, setSelected] = useState<MediaId>();
-  const image = model.images.find(value => value.id === selected);
+  const image = [...THEME_BACKGROUNDS, ...model.images].find(
+    value => value.id === selected,
+  );
   return (
     <Dialog
       title="이미지 선택"

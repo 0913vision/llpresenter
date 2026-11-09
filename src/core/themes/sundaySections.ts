@@ -2,7 +2,7 @@ import {
   createMediaId,
   createThemeElementId,
   createThemeId,
-  type MediaId,
+  type ThemeId,
 } from '../schema/ids';
 import type {ThemeScreenLayout, ThemeText} from '../schema/themes';
 import {GRADIENT_PRESETS} from './gradientPresets';
@@ -14,51 +14,26 @@ export const SECTION_RULES_ID = createMediaId(
   '00000000-0000-4000-8000-000000000407',
 );
 
-export const SECTION_BACKGROUNDS = [
-  {
-    color: '청록',
-    id: createMediaId('00000000-0000-4000-8000-000000000400'),
-    file: 'section-teal.png',
-  },
-  {
-    color: '적갈',
-    id: createMediaId('00000000-0000-4000-8000-000000000401'),
-    file: 'section-russet.png',
-  },
-  {
-    color: '초록',
-    id: createMediaId('00000000-0000-4000-8000-000000000402'),
-    file: 'section-green.png',
-  },
-  {
-    color: '자주',
-    id: createMediaId('00000000-0000-4000-8000-000000000403'),
-    file: 'section-magenta.png',
-  },
+export const SECTION_THEMES = [
+  {color: '청록', id: SECTION_THEME_ID},
+  {color: '적갈', id: createThemeId('00000000-0000-4000-8000-000000000120')},
+  {color: '초록', id: createThemeId('00000000-0000-4000-8000-000000000121')},
+  {color: '자주', id: createThemeId('00000000-0000-4000-8000-000000000122')},
   {
     color: '청록초록',
-    id: createMediaId('00000000-0000-4000-8000-000000000404'),
-    file: 'section-teal-green.png',
+    id: createThemeId('00000000-0000-4000-8000-000000000123'),
   },
-  {
-    color: '남보라',
-    id: createMediaId('00000000-0000-4000-8000-000000000405'),
-    file: 'section-blue-purple.png',
-  },
-  {
-    color: '올리브',
-    id: createMediaId('00000000-0000-4000-8000-000000000406'),
-    file: 'section-olive.png',
-  },
+  {color: '남보라', id: createThemeId('00000000-0000-4000-8000-000000000124')},
+  {color: '올리브', id: createThemeId('00000000-0000-4000-8000-000000000125')},
 ] as const;
 
-export type SectionColor = (typeof SECTION_BACKGROUNDS)[number]['color'];
+export type SectionColor = (typeof SECTION_THEMES)[number]['color'];
 
 export interface SundaySection {
   readonly name: string;
   readonly english: string;
   readonly color: SectionColor;
-  readonly background: MediaId;
+  readonly theme: ThemeId;
 }
 
 /** The section-card insertion data, in the church's service order. */
@@ -82,16 +57,16 @@ export const SUNDAY_SECTIONS: readonly SundaySection[] = (
   name,
   english,
   color,
-  background: sectionBackground(color),
+  theme: sectionTheme(color),
 }));
 
-function sectionBackground(color: SectionColor) {
-  const picture = SECTION_BACKGROUNDS.find(picture => picture.color === color);
-  if (picture === undefined) throw Error('Missing section background');
-  return picture.id;
+function sectionTheme(color: SectionColor) {
+  const theme = SECTION_THEMES.find(theme => theme.color === color);
+  if (theme === undefined) throw Error('Missing section theme');
+  return theme.id;
 }
 
-/** Uses the same approved palette as the gradient editor and generated pictures. */
+/** Uses the same approved palette as the gradient editor and output. */
 export function sectionGradient(color: SectionColor) {
   const preset = GRADIENT_PRESETS.find(preset => preset.name === color);
   if (preset === undefined) throw Error('Missing section gradient preset');
@@ -131,11 +106,13 @@ const text: ThemeText = {
   outline: {on: false, color: '#000000', width: 1},
 };
 
-export function sundaySectionLayout(): ThemeScreenLayout {
+export function sundaySectionLayout(
+  color: SectionColor = '청록',
+): ThemeScreenLayout {
   const {shortTracking: _shortTracking, ...english} = text;
   return {
     mode: {kind: 'own'},
-    background: sectionGradient('청록'),
+    background: sectionGradient(color),
     elements: [
       {id: id(1), kind: 'background', frame, fit: 'stretch', radius: 0},
       {id: id(2), kind: 'media', frame, fit: 'fit', radius: 0},

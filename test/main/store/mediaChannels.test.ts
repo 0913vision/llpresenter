@@ -1,7 +1,7 @@
 import {resolve} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {mediaEndpoints} from '@contracts/ipc/media';
-import {parseMediaDocument, type MediaEditResult} from '@core/schema/mediaEdit';
+import {parseMediaDocument} from '@core/schema/mediaEdit';
 import {createMediaId} from '@core/schema/ids';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
@@ -53,10 +53,7 @@ function mockBackend(): MediaBackend {
   };
 }
 
-function setup(
-  access: 'editable' | 'readOnly' = 'editable',
-  prepareSections?: Parameters<typeof registerMediaChannels>[2],
-) {
+function setup(access: 'editable' | 'readOnly' = 'editable') {
   const log = recordingLogger();
   const store = new MediaStore({
     document: expectSuccess(
@@ -89,29 +86,23 @@ function setup(
       remove: async () => ({ok: true, value: undefined}),
     },
   });
-  const channels = registerMediaChannels(
-    Promise.resolve(store),
-    log,
-    prepareSections,
-  );
+  const channels = registerMediaChannels(Promise.resolve(store), log);
   onTestFinished(() => channels.dispose());
   electron.send.mockClear();
   return {store, log, channels};
 }
 
 describe('media backend boundary', () => {
-  it('routes section preparation to the fixed app-side picture provider without accepting client paths', async () => {
-    const prepare = vi
-      .fn<(store: MediaStore) => Promise<MediaEditResult>>()
-      .mockResolvedValue({ok: true, value: null});
-    const {store} = setup('editable', prepare);
+  it('acknowledges section preparation without adding any media', async () => {
+    const {store} = setup();
+    const before = store.get();
     expect(
       await handler(mediaEndpoints.edit.channel)(
         {},
-        {type: 'media.sections.prepare', paths: ['ignored']},
+        {type: 'media.sections.prepare'},
       ),
     ).toEqual({ok: true, value: null});
-    expect(prepare).toHaveBeenCalledExactlyOnceWith(store);
+    expect(store.get()).toBe(before);
   });
   it('bounds pending backend work and rejects a disconnected late reply', async () => {
     const {channels, store} = setup();

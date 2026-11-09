@@ -17,7 +17,7 @@ it('gives configured audience screens editable service times while preserving ot
   const layout = file.standby.screens[audience];
   expect(layout?.elements[0]).toMatchObject({
     kind: 'image',
-    mediaId: SUNDAY_STANDBY_PICTURE_IDS.serviceTimes,
+    mediaId: SUNDAY_STANDBY_PICTURE_IDS.serviceTimesBright,
   });
   const words = layout?.elements.filter(element => element.kind === 'text');
   expect(words?.map(element => element.content)).toEqual([

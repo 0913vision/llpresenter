@@ -60,7 +60,7 @@ export const GRADIENT_PRESETS: readonly GradientPreset[] = (
       ],
     },
     {
-      name: '연초록',
+      name: '어두운 초록',
       stops: [
         [0, '#567A40'],
         [100, '#1F7D4E'],
@@ -143,6 +143,13 @@ export const GRADIENT_PRESETS: readonly GradientPreset[] = (
         [15, '#0A2433'],
         [55, '#1F5E4A'],
         [95, '#4A2F78'],
+      ],
+    },
+    {
+      name: '밝은 초록',
+      stops: [
+        [36, '#7A9F5A'],
+        [67, '#30A26A'],
       ],
     },
   ] as const

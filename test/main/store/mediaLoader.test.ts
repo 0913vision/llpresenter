@@ -1,4 +1,4 @@
-import {readFile} from 'node:fs/promises';
+import {readFile, readdir} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import * as mediaListSchema from '@core/schema/mediaList';
@@ -34,7 +34,7 @@ async function setup() {
 }
 
 describe('media list loading', () => {
-  it('adds bundled pictures only to a missing catalog, not an existing empty or broken file', async () => {
+  it('keeps app pictures out of fresh, empty and broken user catalogs', async () => {
     const picture = {
       id: createMediaId(ID),
       name: 'Scripture',
@@ -44,7 +44,6 @@ describe('media list loading', () => {
       width: 1920,
       height: 1080,
     };
-    const initialItems = vi.fn(async () => [picture]);
     for (const existing of [null, JSON.stringify(EMPTY), '{"format":']) {
       const {loaded, log} = await setup();
       if (existing !== null) {
@@ -53,17 +52,29 @@ describe('media list loading', () => {
           existing,
         );
       }
-      initialItems.mockClear();
       const opened = await openMediaStore(loaded, {
         settings: null,
         log,
-        initialItems,
+        pictures: [picture],
       });
       onTestFinished(() => opened.store.dispose());
-      expect(initialItems).toHaveBeenCalledTimes(existing === null ? 1 : 0);
-      expect(opened.store.get().value.items).toEqual(
-        existing === null ? [picture] : [],
-      );
+      expect(opened.store.get().value.items).toEqual([]);
+      await expect(readdir(loaded.locations.media)).rejects.toMatchObject({
+        code: 'ENOENT',
+      });
+      expect(opened.store.fileOf(picture.id)).toBe(picture.file);
+      expect(
+        await opened.store.apply({type: 'media.delete', mediaId: picture.id}),
+      ).toMatchObject({ok: false, error: {reason: 'not-found'}});
+      expect(
+        await opened.store.apply({
+          type: 'media.properties.update',
+          mediaId: picture.id,
+          baseRevision: 1,
+          changes: {name: 'Changed'},
+        }),
+      ).toMatchObject({ok: false, error: {reason: 'not-found'}});
+      expect(opened.store.get().value.items).toEqual([]);
       if (existing !== null) {
         expect(
           await readFile(join(loaded.locations.settings, 'media.json'), 'utf8'),

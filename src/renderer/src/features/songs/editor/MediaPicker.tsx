@@ -17,6 +17,7 @@ import {isComposing} from '@renderer/ui/ime';
 import {hasModifier} from '@renderer/ui/modifierKeys';
 import {useButtonPress} from '@renderer/ui/press';
 import {layerContainer} from '@renderer/ui/layers';
+import {modalStack} from '@renderer/ui/modalStack';
 import {MenuSearchField} from '@renderer/ui/MenuParts';
 import menu from '@renderer/ui/Menu.module.css';
 import {useChoicePopup} from '@renderer/ui/useChoicePopup';
@@ -46,12 +47,19 @@ function targetFor(
   }
 }
 
+export type MediaPickerItem = Pick<MediaItem, 'id' | 'name' | 'kind'>;
+
 interface PickerProps {
   readonly allowNone?: boolean;
   readonly label?: string;
   readonly defaultChoice?: {readonly label: string; readonly detail: string};
   readonly anchor: HTMLElement;
   readonly items: readonly MediaItem[];
+  readonly leadingGroup?: {
+    readonly label: string;
+    readonly items: readonly MediaPickerItem[];
+  };
+  readonly itemsLabel?: string;
   readonly selected: MediaId | undefined;
   readonly query: string;
   readonly onQueryChange: (value: string) => void;
@@ -66,18 +74,21 @@ export function MediaPicker({
   defaultChoice,
   anchor,
   items,
+  leadingGroup,
+  itemsLabel,
   selected,
   query,
   onQueryChange,
   onSelect,
   onClose,
 }: PickerProps): JSX.Element {
+  const [overModal] = useState(() => modalStack.isOpen);
   const searchable = useMemo(
     () =>
-      items
+      [...(leadingGroup?.items ?? []), ...items]
         .filter(item => item.kind !== 'audio')
         .map(item => ({item, name: searchName(mediaName(item))})),
-    [items],
+    [items, leadingGroup],
   );
   const hasDefault = allowNone || defaultChoice !== undefined;
   const choices = useMemo(() => {
@@ -89,6 +100,21 @@ export function MediaPicker({
         .map(({item}) => item),
     ];
   }, [searchable, query, hasDefault]);
+  const groups = useMemo(() => {
+    const leadingIds = new Set(leadingGroup?.items.map(item => item.id));
+    const leadingCount = choices.filter(
+      item => item !== undefined && leadingIds.has(item.id),
+    ).length;
+    const firstItem = hasDefault ? 1 : 0;
+    return [
+      ...(leadingGroup !== undefined && leadingCount > 0
+        ? [{index: firstItem, label: leadingGroup.label}]
+        : []),
+      ...(itemsLabel !== undefined && choices.length > firstItem + leadingCount
+        ? [{index: firstItem + leadingCount, label: itemsLabel}]
+        : []),
+    ];
+  }, [choices, leadingGroup, itemsLabel, hasDefault]);
   const [activeIndex, setActive] = useState(() =>
     searchName(query) === ''
       ? Math.max(
@@ -101,6 +127,8 @@ export function MediaPicker({
   const [top, setTop] = useState(0);
   const [row, setRow] = useState(0);
   const [gap, setGap] = useState(0);
+  const groupOffset = (index: number): number =>
+    groups.filter(group => group.index <= index).length * row;
   const separator = useRef<HTMLDivElement>(null);
   const separated = defaultChoice !== undefined && choices.length > 1;
   const viewport = useRef<HTMLDivElement>(null);
@@ -132,17 +160,23 @@ export function MediaPicker({
     if (row > 0 && height === row && !initialized.current) {
       initialized.current = true;
       surface.current?.querySelector('input')?.focus();
-      element.scrollTop = active * row + (active > 0 ? nextGap : 0);
+      element.scrollTop =
+        active === 0
+          ? 0
+          : active * row +
+            nextGap +
+            groups.filter(group => group.index <= active).length * row;
       setTop(element.scrollTop);
     }
-  }, [active, row, surface, separated, gap]);
+  }, [active, row, surface, separated, gap, groups]);
   const point = (index: number): void => {
     setActive(index);
     const element = viewport.current;
     if (element === null) return;
     const height = element.clientHeight || row * VISIBLE_ROWS;
-    const y = index * row + (index > 0 ? gap : 0);
-    if (y < element.scrollTop) element.scrollTop = y;
+    const y = index * row + (index > 0 ? gap : 0) + groupOffset(index);
+    if (index === 0) element.scrollTop = 0;
+    else if (y < element.scrollTop) element.scrollTop = y;
     else if (y + row > element.scrollTop + height) {
       element.scrollTop = y + row - height;
     }
@@ -186,7 +220,9 @@ export function MediaPicker({
   };
   const start = Math.max(
     hasDefault ? 1 : 0,
-    Math.floor(row > 0 ? Math.max(0, top - gap) / row : 0) - OVERSCAN,
+    Math.floor(row > 0 ? Math.max(0, top - gap) / row : 0) -
+      groups.length -
+      OVERSCAN,
   );
   const visible = choices.slice(
     start,
@@ -221,7 +257,7 @@ export function MediaPicker({
         aria-setsize={choices.length}
         className={classNames(menu.item, styles.option)}
         data-index={index}
-        style={{top: index * row + (index > 0 ? gap : 0)}}
+        style={{top: index * row + (index > 0 ? gap : 0) + groupOffset(index)}}
         onPointerMove={() => setActive(index)}
         onMouseDown={event => event.preventDefault()}
       >
@@ -243,7 +279,7 @@ export function MediaPicker({
     );
   };
   return createPortal(
-    <div className={menu.layer}>
+    <div className={menu.layer} data-over-modal={overModal ? '' : undefined}>
       <div
         ref={surface}
         className={classNames(menu.menu, styles.picker)}
@@ -272,8 +308,24 @@ export function MediaPicker({
           onScroll={event => setTop(event.currentTarget.scrollTop)}
         >
           <div
-            style={{height: choices.length * row + gap, position: 'relative'}}
+            style={{
+              height: (choices.length + groups.length) * row + gap,
+              position: 'relative',
+            }}
           >
+            {groups.map((group, index) => (
+              <div
+                key={group.label}
+                className={classNames(menu.group, styles.group)}
+                style={{
+                  top:
+                    (group.index + index) * row + (group.index > 0 ? gap : 0),
+                  height: row,
+                }}
+              >
+                {group.label}
+              </div>
+            ))}
             {hasDefault ? option(0) : null}
             {separated ? (
               <div

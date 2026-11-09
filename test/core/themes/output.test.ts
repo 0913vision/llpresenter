@@ -51,7 +51,7 @@ describe('published theme compositions', () => {
     });
     expect(output.screens[THEME_MAIN]?.layout.elements[0]).toMatchObject({
       kind: 'image',
-      mediaId: SUNDAY_STANDBY_PICTURE_IDS.serviceTimes,
+      mediaId: SUNDAY_STANDBY_PICTURE_IDS.serviceTimesBright,
     });
     expect(output.screens[THEME_CAPTURE]?.layout.elements).toEqual([]);
     expect(output.screens[THEME_CAPTURE]?.emptyColor).toBe('#00B140');

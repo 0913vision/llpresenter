@@ -8,6 +8,7 @@ import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {EMPTY_MEDIA_LIST} from '@main/store/defaults';
 import type {Analysis, AnalysisRequest} from '@main/media/mediaAnalyser';
+import type {BundledPicture} from '@main/store/bundledPicture';
 import {Thumbnails, type ThumbnailSource} from '@main/media/thumbnails';
 
 const mediaId = (index: number): MediaId =>
@@ -47,12 +48,16 @@ function setup(
     [VIDEO, {kind: 'video', file: 'D:/media/dawn.mp4'}],
     [SONG, {kind: 'audio', file: 'D:/media/hymn.mp3'}],
   ]),
+  pictures: readonly BundledPicture[] = [],
 ) {
   const state = {entries, document: documentOf(entries)};
   const listeners = new Set<(document: MediaDocument) => void>();
   const source: ThumbnailSource = {
+    pictures,
     get: () => state.document,
     fileOf: id => {
+      const picture = pictures.find(picture => picture.id === id);
+      if (picture !== undefined) return picture.file;
       for (const [key, entry] of state.entries) {
         if (key === id) return entry.file;
       }
@@ -103,6 +108,23 @@ function setup(
 }
 
 describe('media thumbnails', () => {
+  it('analyses app pictures absent from user media and keeps their thumbnails across catalog edits', async () => {
+    const file = 'D:/app/assets/scripture.png';
+    const {thumbnails, analyse, change, cache} = setup(new Map(), [
+      {id: VIDEO, name: 'Scripture', file},
+    ]);
+    await thumbnails.start();
+    expect(await thumbnails.thumbnailOf(VIDEO)).toBe(`cache/${VIDEO}.jpg`);
+    expect(analyse).toHaveBeenCalledExactlyOnceWith({
+      file,
+      kind: 'image',
+      thumbnail: true,
+    });
+    change(new Map());
+    expect(cache.remove).not.toHaveBeenCalled();
+    expect(await thumbnails.thumbnailOf(VIDEO)).toBe(`cache/${VIDEO}.jpg`);
+    expect(analyse).toHaveBeenCalledOnce();
+  });
   it('makes a missing thumbnail through analysis, keeps it, and reuses it', async () => {
     const {thumbnails, kept, analyse} = setup();
     expect(await thumbnails.thumbnailOf(VIDEO)).toBe(`cache/${VIDEO}.jpg`);

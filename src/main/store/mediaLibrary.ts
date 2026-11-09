@@ -4,6 +4,7 @@ import type {MediaChoice} from '@core/live/state';
 import {mediaLoops} from '@core/media/mediaEndRule';
 import type {Result} from '@core/common/result';
 import type {FileError} from '@core/schema/fileFormat';
+import type {BundledPicture} from './bundledPicture';
 import type {MediaItem} from '@core/schema/mediaList';
 import {isInside} from './locations';
 import {realPathInside} from '../windows/insideRoots';
@@ -13,14 +14,14 @@ const LEAVES_MEDIA_FOLDER =
 
 /** Where the file of each media item is, and the folders media come from. */
 export interface MediaLibrary {
-  /** The file of a media id, or `null` when the list has none for it. */
+  /** A user media or bundled picture file, or `null` for an unknown ID. */
   fileOf(mediaId: string): string | null;
   /** A playable visual background, or null for a missing or refused file. */
   backgroundOf(mediaId: string): Promise<MediaChoice | null>;
   /**
    * The media folder and the folders of original files referenced outside it.
    * Every file is still resolved by
-   * catalogued media ID and checked against these roots after following links.
+   * catalogued or bundled ID and checked against these roots after following links.
    */
   readonly roots: readonly string[];
 }
@@ -30,6 +31,7 @@ export interface MediaLibrarySources {
   readonly mediaFolder: string;
   /** `media.json`, for the problems. */
   readonly listFile: string;
+  readonly pictures?: readonly BundledPicture[] | undefined;
 }
 
 export interface MediaLibraryRead {
@@ -47,8 +49,7 @@ export const NO_MEDIA: MediaLibrary = {
 
 /**
  * The media library of data that is still being read: a lookup waits for the
- * data. Explicitly supplied bundled pictures remain available to older catalogs;
- * catalogued replacements take precedence.
+ * data. App-owned pictures resolve independently of the user catalog.
  */
 export class LoadingMediaLibrary {
   private library: MediaLibrary = NO_MEDIA;
@@ -68,16 +69,18 @@ export class LoadingMediaLibrary {
   readonly findFile = async (mediaId: string): Promise<string | null> => {
     await this.ready;
     return (
-      this.library.fileOf(mediaId) ??
       this.bundled.find(picture => picture.id === mediaId)?.file ??
+      this.library.fileOf(mediaId) ??
       null
     );
   };
 
   /** Catalogued media roots plus the explicitly supplied bundled picture roots. */
   readonly roots = (): readonly string[] => [
-    ...this.library.roots,
-    ...new Set(this.bundled.map(picture => dirname(picture.file))),
+    ...new Set([
+      ...this.library.roots,
+      ...this.bundled.map(picture => dirname(picture.file)),
+    ]),
   ];
 
   private async keep(
@@ -98,6 +101,7 @@ export function buildMediaLibrary({
   items,
   mediaFolder,
   listFile,
+  pictures = [],
 }: MediaLibrarySources): MediaLibraryRead {
   const files = new Map<string, string>();
   const choices = new Map<string, MediaChoice>();
@@ -125,6 +129,11 @@ export function buildMediaLibrary({
       roots.add(dirname(placed.value));
     }
   });
+  for (const picture of pictures) {
+    files.set(picture.id, picture.file);
+    choices.set(picture.id, {mediaId: picture.id, loop: false});
+    roots.add(dirname(picture.file));
+  }
   return {
     library: {
       fileOf: mediaId => files.get(mediaId) ?? null,

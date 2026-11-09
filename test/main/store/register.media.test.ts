@@ -11,13 +11,25 @@ import {mediaEndpoints} from '@contracts/ipc/media';
 import {settingsEndpoints} from '@contracts/ipc/settings';
 import {createMediaId} from '@core/schema/ids';
 import {parseMediaDocument} from '@core/schema/mediaEdit';
-import {readFile} from 'node:fs/promises';
+import {readFile, readdir} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it} from 'vitest';
 import {DATA_FOLDER_NAME} from '@main/store/locations';
 import {itemId, writeJson} from '@fixtures/main/store/testFiles';
 
 describe('registerStore', () => {
+  it('opens a fresh user data folder with no media or copied theme pictures', async () => {
+    const context = await developmentContext();
+    const registered = await register(mockLog(), context, () => true);
+    const media = await registered.media;
+    expect(media?.get().value.items).toEqual([]);
+    expect(await ask(mediaEndpoints.get.channel)).toMatchObject({
+      value: {items: []},
+    });
+    await expect(
+      readdir(join(context.appDataFolder, DATA_FOLDER_NAME, 'Media')),
+    ).rejects.toMatchObject({code: 'ENOENT'});
+  });
   it('refreshes the open service from edited media and leaves deleted media bytes intact', async () => {
     const context = await developmentContext();
     const root = join(context.appDataFolder, DATA_FOLDER_NAME);

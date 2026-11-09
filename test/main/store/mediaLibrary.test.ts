@@ -117,7 +117,7 @@ describe('buildMediaLibrary', () => {
 });
 
 describe('LoadingMediaLibrary', () => {
-  it('serves a shipped picture absent from an older catalog and prefers an operator replacement', async () => {
+  it('serves app pictures independently of user media and prevents catalog overrides', async () => {
     const shipped = join(ELSEWHERE, 'scripture.png');
     const {library} = build([item(LIGHT, 'replacement.png')]);
     const media = new LoadingMediaLibrary(Promise.resolve({media: library}), [
@@ -125,9 +125,7 @@ describe('LoadingMediaLibrary', () => {
       {id: LIGHT, file: shipped},
     ]);
     await expect(media.findFile(WARM)).resolves.toBe(shipped);
-    await expect(media.findFile(LIGHT)).resolves.toBe(
-      join(MEDIA, 'replacement.png'),
-    );
+    await expect(media.findFile(LIGHT)).resolves.toBe(shipped);
     await expect(media.findFile('unknown')).resolves.toBeNull();
     expect(media.roots()).toEqual([MEDIA, ELSEWHERE]);
   });

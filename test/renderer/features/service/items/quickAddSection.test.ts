@@ -51,8 +51,7 @@ it('prepares every section as a normal editable one-slide item without automatic
   for (const [index, item] of items.entries()) {
     const section = SUNDAY_SECTIONS[index];
     expect(item).toMatchObject({
-      theme: SECTION_THEME_ID,
-      background: section?.background,
+      theme: section?.theme,
       slides: {
         form: 'blank',
         name: section?.name,
@@ -108,20 +107,12 @@ it('does not return an item when saving its missing theme is refused', async () 
   );
 });
 
-it('prepares the bundled pictures before returning an item and stops if preparation fails', async () => {
-  const {edit, preparePictures} = setup();
-  const section = SUNDAY_SECTIONS[0];
-  if (section === undefined) throw Error('Missing fixture');
-  await prepareSection(section);
-  expect(preparePictures).toHaveBeenCalledWith({
-    type: 'media.sections.prepare',
-  });
-  preparePictures.mockResolvedValueOnce({
-    ok: false,
-    error: {reason: 'read-only', message: 'Cannot prepare pictures'},
-  });
-  await expect(prepareSection(section)).rejects.toThrow(
-    'Could not prepare section pictures',
-  );
-  expect(edit).not.toHaveBeenCalled();
+it('inserts sections without preparing or changing user media', async () => {
+  const {preparePictures} = setup();
+  for (const section of SUNDAY_SECTIONS) {
+    const item = await prepareSection(section);
+    expect(item.background).toBeUndefined();
+    expect(item.theme).toBe(section.theme);
+  }
+  expect(preparePictures).not.toHaveBeenCalled();
 });

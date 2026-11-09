@@ -36,3 +36,10 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+.group {
+  position: absolute;
+  box-sizing: border-box;
+  left: 0;
+  right: 0;
+}

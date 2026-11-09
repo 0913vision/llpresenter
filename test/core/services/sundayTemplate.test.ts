@@ -7,7 +7,7 @@ import {
 } from '@core/schema/service';
 import {sundayTemplate} from '@core/services/sundayTemplate';
 import {LITURGY_SLIDES} from '@core/services/liturgySlides';
-import {SUNDAY_SECTIONS, SECTION_THEME_ID} from '@core/themes/sundaySections';
+import {SUNDAY_SECTIONS, SECTION_THEMES} from '@core/themes/sundaySections';
 import {PREPARATION_THEME_ID} from '@core/themes/sundayStandby';
 import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
 
@@ -67,12 +67,15 @@ it('ships the church order with fixed editable cards and empty places for local 
     },
   });
   expect(notice?.slides.slides).toHaveLength(1);
-  for (const card of fixed.filter(item => item.theme === SECTION_THEME_ID)) {
+  for (const card of fixed.filter(item =>
+    SECTION_THEMES.some(theme => theme.id === item.theme),
+  )) {
     const section = SUNDAY_SECTIONS.find(
       section => section.name === card.slides.name,
     );
     expect(section).toBeDefined();
-    expect(card.background).toBe(section?.background);
+    expect(card.background).toBeUndefined();
+    expect(card.theme).toBe(section?.theme);
     expect(
       card.slides.slides.map(slide => ('text' in slide ? slide.text : null)),
     ).toEqual([section?.english]);

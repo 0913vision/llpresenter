@@ -1,7 +1,7 @@
 import {expect, it} from 'vitest';
 import {
   SUNDAY_SECTIONS,
-  SECTION_BACKGROUNDS,
+  SECTION_THEMES,
   SECTION_THEME_ID,
   SECTION_RULES_ID,
   sectionGradient,
@@ -12,7 +12,7 @@ import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {resolveTextTracking} from '@core/themes/textTracking';
 import {STARTER_TEXT_STYLE} from '@core/themes/starterLayout';
 
-it('lists the section cards in service order with per-color reusable pictures', () => {
+it('lists the section cards in service order with per-color gradient themes', () => {
   expect(
     SUNDAY_SECTIONS.map(section => [
       section.name,
@@ -34,11 +34,10 @@ it('lists the section cards in service order with per-color reusable pictures', 
     ['광고', 'Notice', '남보라'],
     ['축도', 'Benediction', '올리브'],
   ]);
-  expect(new Set(SECTION_BACKGROUNDS.map(picture => picture.id)).size).toBe(7);
+  expect(new Set(SECTION_THEMES.map(picture => picture.id)).size).toBe(7);
   for (const section of SUNDAY_SECTIONS) {
     expect(
-      SECTION_BACKGROUNDS.find(picture => picture.id === section.background)
-        ?.color,
+      SECTION_THEMES.find(picture => picture.id === section.theme)?.color,
     ).toBe(section.color);
     expect(sectionGradient(section.color)).toMatchObject({
       angle: 135,
@@ -47,10 +46,20 @@ it('lists the section cards in service order with per-color reusable pictures', 
   }
 });
 
+it('uses the matching gradient in every section theme without a media background', () => {
+  const defaults = createDefaultThemes();
+  for (const section of SECTION_THEMES) {
+    const theme = defaults.themes.find(theme => theme.id === section.id);
+    expect(
+      theme?.screens[createScreenId(STARTER_SCREEN_IDS.main)]?.background,
+    ).toEqual(sectionGradient(section.color));
+  }
+});
+
 it('adds an editable section theme without changing the kind defaults or other screen layouts', () => {
   const defaults = createDefaultThemes();
   const theme = defaults.themes.find(theme => theme.id === SECTION_THEME_ID);
-  expect(theme?.name).toBe('구역 이름');
+  expect(theme?.name).toBe('구역 이름 청록');
   expect(Object.values(defaults.defaults)).not.toContain(SECTION_THEME_ID);
   const layout = theme?.screens[createScreenId(STARTER_SCREEN_IDS.main)];
   expect(layout?.background).toEqual(sectionGradient('청록'));

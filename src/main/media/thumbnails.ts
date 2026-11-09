@@ -1,3 +1,4 @@
+import type {BundledPicture} from '../store/bundledPicture';
 import {stat} from 'node:fs/promises';
 import {relative} from 'node:path';
 import {parseMediaId, type MediaId} from '@core/schema/ids';
@@ -12,6 +13,7 @@ export const MAX_THUMBNAILS_IN_PROGRESS = MEDIA_LIMITS.importBatch;
 
 /** What thumbnails use of the media store. */
 export interface ThumbnailSource {
+  readonly pictures?: readonly BundledPicture[];
   get(): MediaDocument;
   /** The item's absolute file, or null when its path is refused. */
   fileOf(mediaId: string): string | null;
@@ -122,7 +124,9 @@ export class Thumbnails {
   }
 
   private follow(source: ThumbnailSource, document: MediaDocument): void {
-    const ids = new Set(document.value.items.map(({id}) => id));
+    const ids = new Set(
+      [...document.value.items, ...(source.pictures ?? [])].map(({id}) => id),
+    );
     for (const id of [...this.files.keys()]) {
       if (!ids.has(id)) this.forget(id);
     }
@@ -141,11 +145,15 @@ export class Thumbnails {
     });
   }
 
-  // NOTE(0913vision): Only an item in the list now, with a picture and a path
-  // the library accepts, has a thumbnail, cached or not.
+  // NOTE(0913vision): Only a current user item or an explicit bundled picture
+  // with an accepted path has a thumbnail, cached or not.
   private async picture(mediaId: MediaId): Promise<Picture | null> {
     const source = await this.options.source;
-    const item = source?.get().value.items.find(({id}) => id === mediaId);
+    const bundled = source?.pictures?.find(({id}) => id === mediaId);
+    const item =
+      bundled === undefined
+        ? source?.get().value.items.find(({id}) => id === mediaId)
+        : {...bundled, kind: 'image' as const};
     const file = source?.fileOf(mediaId) ?? null;
     if (
       this.disposed ||

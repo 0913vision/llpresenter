@@ -1,3 +1,4 @@
+import type {BundledPicture} from './bundledPicture';
 import type {MediaChoice} from '@core/live/state';
 import type {EditRefusalReason} from '@core/schema/contentEdit';
 import type {FileError} from '@core/schema/fileFormat';
@@ -33,6 +34,7 @@ export interface MediaStoreOptions {
   readonly files: DocumentFiles;
   readonly log: Logger;
   readonly delayMs?: number;
+  readonly pictures?: readonly BundledPicture[] | undefined;
 }
 
 export type MediaListener = (document: MediaDocument) => void;
@@ -62,6 +64,10 @@ export class MediaStore implements MediaLibrary {
       options.log,
       options.delayMs,
     );
+  }
+
+  get pictures(): readonly BundledPicture[] {
+    return this.options.pictures ?? [];
   }
 
   get(): MediaDocument {
@@ -281,6 +287,7 @@ export class MediaStore implements MediaLibrary {
       items: document.value.items,
       mediaFolder: this.options.mediaFolder,
       listFile: this.options.file,
+      pictures: this.pictures,
     });
   }
 
