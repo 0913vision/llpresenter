@@ -3,6 +3,7 @@ import {expect, it} from 'vitest';
 import {
   SUNDAY_SECTIONS,
   SECTION_THEMES,
+  isSectionTheme,
   SECTION_THEME_ID,
   SECTION_RULES_ID,
   sectionGradient,
@@ -40,6 +41,9 @@ it('lists the section cards in service order with per-color gradient themes', ()
     ['축도', 'Benediction', '올리브'],
   ]);
   expect(new Set(SECTION_THEMES.map(picture => picture.id)).size).toBe(7);
+  expect(SECTION_THEMES.every(theme => isSectionTheme(theme.id))).toBe(true);
+  expect(isSectionTheme(undefined)).toBe(false);
+  expect(isSectionTheme(createDefaultThemes().defaults.song)).toBe(false);
   for (const section of SUNDAY_SECTIONS) {
     expect(
       SECTION_THEMES.find(picture => picture.id === section.theme)?.color,

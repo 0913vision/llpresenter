@@ -1121,3 +1121,37 @@ it('caps section stage next text against the Korean item name, not its English s
   size.mockRestore();
   view.dispose();
 });
+
+it.each(['missing', 'hidden', 'invalid'] as const)(
+  'falls back to current text when the stage section title is %s',
+  state => {
+    const {view} = setup();
+    const size = vi
+      .spyOn(ThemeElementView.prototype, 'fittedTextSize')
+      .mockImplementation(function (this: ThemeElementView) {
+        if (this.element.kind === 'itemName') {
+          return state === 'invalid' ? NaN : undefined;
+        }
+        return 42;
+      });
+    const cap = vi.spyOn(ThemeElementView.prototype, 'capTextSize');
+    const elements: ThemeElement[] = [
+      ...(state === 'missing'
+        ? []
+        : [{...themeElementBase(), kind: 'itemName' as const}]),
+      {...themeElementBase(31), kind: 'currentText'},
+      {...themeElementBase(32), kind: 'nextText'},
+    ];
+    const stageFrame = frame(elements);
+    if (!stageFrame.theme) throw Error('missing theme');
+    view.render(song, {
+      ...stageFrame,
+      screen: {id: THEME_MAIN, kind: 'stage'},
+      theme: {...stageFrame.theme, themeId: SECTION_THEME_ID},
+    });
+    expect(cap).toHaveBeenLastCalledWith(28);
+    cap.mockRestore();
+    size.mockRestore();
+    view.dispose();
+  },
+);

@@ -1,5 +1,5 @@
 import {sameJson} from '../common/sameJson';
-import {SECTION_THEMES, sectionOtherLayout} from './sundaySections';
+import {isSectionTheme, sectionOtherLayout} from './sundaySections';
 import type {ScreenId, ThemeId} from '../schema/ids';
 import type {Screen} from '../schema/screens';
 import type {Theme, ThemeScreenLayout, ThemesFile} from '../schema/themes';
@@ -51,7 +51,7 @@ function resolvedSectionLayout(
 ): ThemeScreenLayout {
   if (
     (source?.kind !== 'broadcast' && source?.kind !== 'stage') ||
-    !SECTION_THEMES.some(section => section.id === theme.id)
+    !isSectionTheme(theme.id)
   ) {
     return layout;
   }

@@ -31,6 +31,10 @@ export const SECTION_THEMES = [
   {color: '올리브', id: createThemeId('00000000-0000-4000-8000-000000000125')},
 ] as const;
 
+export function isSectionTheme(id: ThemeId | undefined): boolean {
+  return SECTION_THEMES.some(section => section.id === id);
+}
+
 export type SectionColor = (typeof SECTION_THEMES)[number]['color'];
 
 export interface SundaySection {
