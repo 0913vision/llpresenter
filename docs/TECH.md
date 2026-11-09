@@ -161,9 +161,10 @@ Each registry entry registers a type name, a data format (schema), a renderer
 
 ## Media
 
-- Video uses Chromium's video playback. A looping background alternates between
-  two video elements so that it joins without a gap. The next background is
-  loaded ahead of time.
+- Video uses Chromium's video playback. A looping background loops natively in
+  one video element; measured at the wrap, it joins with a shorter paint gap
+  than the old two-element swap and no black frame, and it holds one decoder
+  instead of two. The next background is loaded ahead of time.
 - A phase 1 test decides the supported formats (proposal: H.264 MP4, VP9 WebM).
   Check the format and duration on import, and report files that can't play at
   that point.
@@ -221,7 +222,7 @@ A pull request is approved only when it meets everything below
 - Release everything you register: event subscriptions, timers, IPC listeners,
   `URL.createObjectURL` results, video and audio elements, windows, and utility
   processes.
-- Output windows reuse a fixed number of video elements (two for the looping
+- Output windows reuse a fixed number of video elements (one for the current
   background and one for the next background). When a video is done, clear its
   source (remove `src`, then call `load()`) to give back decoder memory.
 - Make thumbnails and preview images at their displayed size, and keep them in a
