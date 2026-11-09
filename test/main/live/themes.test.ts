@@ -81,6 +81,11 @@ function setup(
       slides: {form: 'blank', name: 'Slides', slides: []},
       sectionCard: {name: 'Section', english: 'Section', theme: THEME},
     },
+    {
+      ...bibleItem,
+      id: itemId(68),
+      sectionCard: {name: 'Section', english: 'Section', theme: THEME},
+    },
     bibleItem,
     {id: MEDIA_ITEM, media: MEDIA_ID},
     {id: SLOT_ITEM, slot: 'song', title: 'Open slot'},
@@ -128,6 +133,7 @@ describe('registerThemeOutput item resolver', () => {
     const item = await resolver(setup());
     expect(item(itemId(66))?.cardOffset).toBe(1);
     expect(item(itemId(67))?.cardOffset).toBe(1);
+    expect(item(itemId(68))?.cardOffset).toBe(1);
     expect(item(SONG_ITEM)?.cardOffset).toBeUndefined();
   });
 

@@ -1,3 +1,5 @@
+import {cardOffset} from '@core/services/sectionCards';
+import {sectionCardEntries} from './SectionCardEditor';
 import {useMemo, useRef, useState, useSyncExternalStore, type JSX} from 'react';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {isItemOfKind} from '@core/schema/service';
@@ -50,6 +52,7 @@ export function ItemSlideGrid({
       : undefined,
   );
   const bible = state.item !== null && isItemOfKind(state.item, 'bible');
+  const offset = bible ? cardOffset(state.item) : 0;
   const projection = useBibleTileProjection({
     itemId: bible ? state.item.id : null,
     ...(state.service === null ? {} : {serviceId: state.service.service.id}),
@@ -96,7 +99,7 @@ export function ItemSlideGrid({
   if (state.item === null) return <></>;
   const song = isItemOfKind(state.item, 'song');
   const selected = Math.min(
-    Math.max(0, state.position),
+    Math.max(0, state.position - offset),
     Math.max(0, slides.length - 1),
   );
   const edit = (index: number): void => {
@@ -173,16 +176,16 @@ export function ItemSlideGrid({
           columns={COLUMNS}
           tileWidth={tileWidth}
           selected={slides.length === 0 ? undefined : selected}
-          onSelect={index => items.selectPosition(index)}
+          onSelect={index => items.selectPosition(index + offset)}
           onMenu={(index, anchor) => {
-            items.selectPosition(index);
+            items.selectPosition(index + offset);
             setMenu({index, anchor});
           }}
         >
           {slides.map((slide, index) => (
             <SlideThumbnail
               key={index}
-              number={index + 1}
+              number={index + 1 + offset}
               selectionStyle="plate"
               label={slide.label === '' ? undefined : slide.label}
               labelColor={slide.color}
@@ -222,6 +225,7 @@ export function ItemSlideGrid({
                     }
                   : undefined,
               ),
+              ...(bible ? sectionCardEntries(items) : []),
               menuSeparator('overlay-separator'),
               ...control.entries(menu.index + 1),
             ]}

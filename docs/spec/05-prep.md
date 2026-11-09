@@ -1088,9 +1088,12 @@ the count. Delete from a key or menu is immediate for one element; more than one
 asks once with the count. Each deletion records one undo step. A pending
 confirmation cannot delete a changed document or layout.
 
-Song and slides items can add an opening section card from the slide menu. Its
-Korean and English text can be edited and the card removed independently. The
-standalone 구역 이름 item remains available.
+Song, Bible, and slides items can add an opening section card from the slide
+menu. Its Korean and English text can be edited and the card removed
+independently. The standalone 구역 이름 item remains available.
+
+Adding or removing an opening card leaves overlay ranges attached to their
+content slides; the card itself does not display those overlays.
 
 Slide thumbnail captions in grids and editor rows are attached strips showing
 number and label name on the label color, or only the number on a neutral fill

@@ -79,6 +79,9 @@ export const layerSchemas = {
     label: v.nullable(liveTextSchema),
     lines: slideLinesSchema,
     sectionCard: v.exactOptional(sectionCardSchema),
+    sequenceLength: v.exactOptional(
+      v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(10_000)),
+    ),
     titleSlide: v.exactOptional(v.literal(true)),
     titleLayout: v.exactOptional(songTitleLayoutSchema),
     continued: v.exactOptional(v.boolean()),

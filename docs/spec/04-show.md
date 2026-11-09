@@ -1128,5 +1128,10 @@ keys are changed are in 10, "Shortcut system".
 | Slide hot key (a bare letter or digit)           | Its particular source slide in the open song, first projected occurrence | Follows ProPresenter per-slide assignment (S4 p. 58); S26 user decision; no default keys |
 | A key set for a 테마, 그래픽, 매크로, or 타이머  | That object's command                                                    | No default keys; follows ProPresenter's Key Mappings for 그래픽 and 매크로 (S2, S3)      |
 
-A song or slides item with a section card shows it as the first slide; next,
-previous, and resumed playback include it in the item sequence.
+A song, Bible, or slides item with a section card shows it as the first slide;
+next, previous, and resumed playback include it in the item sequence.
+
+Bible split selection and verse shortcuts count source verses independently of
+the opening card. Item navigation and restoration include the card.
+
+When an opening Bible card is live, the previous-verse key does nothing.

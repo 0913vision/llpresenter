@@ -7,7 +7,7 @@ import type {MediaChoice} from '@core/live/state';
 import type {FileError, LoadedFile} from '@core/schema/fileFormat';
 import type {Label} from '@core/schema/labels';
 import {mediaListSchema} from '@core/schema/mediaList';
-import {parseService, type Service} from '@core/schema/service';
+import {parseService, serviceSchema, type Service} from '@core/schema/service';
 import {DEFAULT_LABELS} from '@main/store/defaults';
 import {
   buildShowService,
@@ -686,4 +686,92 @@ it('projects the card ahead of song and slide content without changing their the
     expect(shown.tiles[item.id]?.length).toBeGreaterThan(1);
     expect(shown.rows[0]).not.toHaveProperty('theme', theme);
   }
+});
+
+it('keeps a Bible card before the resolved verses and rejects invalid cards', () => {
+  const card = {
+    name: 'Section',
+    english: 'Section',
+    theme: createThemeId('00000000-0000-4000-8000-000000000111'),
+  };
+  const item = {
+    id: itemId(1),
+    bible: {
+      translation: 'sample',
+      ref: 'John 3:16',
+      split: 'verse',
+      reference: 'every',
+      verseNumbers: true,
+      translationName: false,
+    },
+    sectionCard: card,
+  };
+  const verse = {label: '3:16', labelColor: 'none' as const, lines: ['Verse']};
+  const passages: ServicePassages = {
+    tiles: new Map([[item.id, [verse]]]),
+    references: new Map(),
+    unavailable: new Set(),
+  };
+  const show = buildShowService({
+    service: loadedService([item]),
+    songs: new Map(),
+    labels: [],
+    revision: 1,
+    passages,
+  });
+  expect(show.tiles[item.id]).toMatchObject([
+    {sectionCard: card},
+    {label: '3:16', lines: ['Verse']},
+  ]);
+  expect(
+    v.safeParse(serviceSchema, {
+      ...service(SUNDAY_ID, '2026-11-01T11:00', []),
+      order: [{...item, sectionCard: {...card, name: ' '}}],
+    }).success,
+  ).toBe(false);
+});
+
+it('reports the Bible tile limit when its opening card would exceed it', () => {
+  const card = {
+    name: 'Section',
+    english: 'Section',
+    theme: createThemeId('00000000-0000-4000-8000-000000000111'),
+  };
+  const item = {
+    id: itemId(1),
+    bible: {
+      translation: 'sample',
+      ref: 'John 3:16',
+      split: 'verse',
+      reference: 'every',
+      verseNumbers: true,
+      translationName: false,
+    },
+    sectionCard: card,
+  };
+  const verse = {label: '3:16', labelColor: 'none' as const, lines: ['Verse']};
+  const passages: ServicePassages = {
+    tiles: new Map([
+      [item.id, Array.from({length: SHOW_SERVICE_LIMITS.tiles}, () => verse)],
+    ]),
+    references: new Map(),
+    unavailable: new Set(),
+  };
+  const show = buildShowService({
+    service: loadedService([item]),
+    songs: new Map(),
+    labels: [],
+    revision: 1,
+    passages,
+  });
+  expect(show.rows[0]).toMatchObject({problem: 'tile-limit'});
+  const unavailable = buildShowService({
+    service: loadedService([item]),
+    songs: new Map(),
+    labels: [],
+    revision: 1,
+    passages: {...passages, unavailable: new Set([item.id])},
+  });
+  expect(unavailable.rows[0]).toMatchObject({problem: 'tile-limit'});
+  expect(show.tiles[item.id]).toEqual([]);
 });

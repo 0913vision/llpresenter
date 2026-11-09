@@ -7,7 +7,11 @@ import {
   isItemOfKind,
 } from '@core/schema/service';
 import {sundayTemplate} from '@core/services/sundayTemplate';
-import {sectionCardOf, withSectionCard} from '@core/services/sectionCards';
+import {
+  cardOffset,
+  sectionCardOf,
+  withSectionCard,
+} from '@core/services/sectionCards';
 import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {nextTile, previousTile} from '@core/presentation/navigation';
@@ -54,6 +58,7 @@ describe('section card', () => {
     ];
     const tiles = withSectionCard(card, original);
     expect(withSectionCard(undefined, original)).toBe(original);
+    expect(withSectionCard(card, original)).toBe(tiles);
     // NOTE(0913vision): A published projection may already contain a card.
     const updated = {...card, english: 'Edited'};
     expect(withSectionCard(updated, tiles)).toEqual([
@@ -61,7 +66,12 @@ describe('section card', () => {
       ...original,
     ]);
     expect(slideLayerOf({itemId: 'item', index: 0}, () => tiles)).toMatchObject(
-      {sectionCard: card, lines: [card.english], next: {lines: ['text']}},
+      {
+        sectionCard: card,
+        sequenceLength: 2,
+        lines: [card.english],
+        next: {lines: ['text']},
+      },
     );
     const state = {
       tilesOf: () => tiles,
@@ -116,4 +126,9 @@ it('validates the optional card in a service item without changing older data', 
   expect(v.safeParse(templateSchema, {...data, order: [oldItem]}).success).toBe(
     true,
   );
+});
+
+it('treats an explicitly undefined card as absent', () => {
+  expect(cardOffset({sectionCard: undefined})).toBe(0);
+  expect(cardOffset({cardOffset: 1})).toBe(1);
 });

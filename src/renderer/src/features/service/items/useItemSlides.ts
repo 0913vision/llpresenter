@@ -60,12 +60,14 @@ export function useItemSlides(
       });
     }
     if (isItemOfKind(item, 'bible')) {
-      return bible.map(tile => ({
-        text: tile.lines.join('\n'),
-        label: tile.label ?? undefined,
-        color: tile.labelColor,
-        media: undefined,
-      }));
+      return bible
+        .filter(tile => tile.sectionCard === undefined)
+        .map(tile => ({
+          text: tile.lines.join('\n'),
+          label: tile.label ?? undefined,
+          color: tile.labelColor,
+          media: undefined,
+        }));
     }
     const list = media.document?.value.items ?? [];
     const byId = new Map(list.map(file => [file.id, file]));

@@ -1,3 +1,4 @@
+import {createThemeId} from '@core/schema/ids';
 import {lastLiveCommand} from '@fixtures/renderer/session/liveCommands';
 import {act, cleanup} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
@@ -123,7 +124,71 @@ afterEach(() => {
   delete window.llp;
 });
 
+async function savedWithCard(position: number) {
+  const fixture = await setupSaved(true, 'first');
+  const id = 'saved-bible';
+  const state = useShow.getState();
+  const card = {
+    name: 'Section',
+    english: 'Section',
+    theme: createThemeId('00000000-0000-4000-8000-000000000111'),
+  };
+  const tiles = [
+    {
+      label: 'Section',
+      labelColor: 'none' as const,
+      lines: ['Section'],
+      sectionCard: card,
+    },
+    ...(state.tiles[id] ?? []),
+  ];
+  useShow.setState({
+    tiles: {...state.tiles, [id]: tiles},
+    selectedTile: position,
+  });
+  const live = emptyLiveState();
+  useLive.setState({
+    state: {
+      ...live,
+      layers: {
+        ...live.layers,
+        slide: {
+          itemId: id,
+          position,
+          label: tiles[position]?.label ?? null,
+          lines: [],
+          ...(position === 0 ? {sectionCard: card} : {}),
+        },
+      },
+    },
+  });
+  fixture.lookup.mockClear();
+  fixture.send.mockClear();
+  return fixture;
+}
+
 describe('Bible verse shortcuts', () => {
+  it('does nothing for previous verse from the card and advances to the first verse', async () => {
+    const fixture = await savedWithCard(0);
+    await outputAdjacentBibleVerse('previous');
+    expect(fixture.lookup).not.toHaveBeenCalled();
+    expect(fixture.send).not.toHaveBeenCalled();
+    await outputAdjacentBibleVerse('next');
+    expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])).toMatchObject({
+      type: 'slide.show',
+      slide: {position: 1, label: '3:16'},
+    });
+  });
+  it('extends to the previous passage edge from the first verse instead of outputting the card', async () => {
+    const fixture = await savedWithCard(1);
+    await outputAdjacentBibleVerse('previous');
+    expect(fixture.lookup).toHaveBeenCalled();
+    expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])).toMatchObject({
+      type: 'slide.show',
+      slide: {label: '3:15'},
+    });
+  });
+
   it('keeps saved translation visibility when extending beyond the live endpoint', async () => {
     const fixture = await setupSaved();
     useShow.setState({

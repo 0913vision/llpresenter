@@ -34,7 +34,9 @@ export function slideLayerOf(
         ? tile.label
         : null,
     lines: tile.lines,
-    ...(tile.sectionCard === undefined ? {} : {sectionCard: tile.sectionCard}),
+    ...(tile.sectionCard === undefined
+      ? {}
+      : {sectionCard: tile.sectionCard, sequenceLength: tiles.length}),
     ...(tile.titleSlide === undefined ? {} : {titleSlide: tile.titleSlide}),
     ...(tile.titleLayout === undefined ? {} : {titleLayout: tile.titleLayout}),
     ...(tile.transition === undefined ? {} : {transition: tile.transition}),

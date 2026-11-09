@@ -18,7 +18,9 @@ export function sectionCardEntries(
   const state = items.getSnapshot();
   if (
     state.item === null ||
-    (!isItemOfKind(state.item, 'song') && !isItemOfKind(state.item, 'slides'))
+    (!isItemOfKind(state.item, 'song') &&
+      !isItemOfKind(state.item, 'slides') &&
+      !isItemOfKind(state.item, 'bible'))
   ) {
     return [];
   }
@@ -58,7 +60,8 @@ function saveCard(
       change: current => {
         if (
           !isItemOfKind(current, 'song') &&
-          !isItemOfKind(current, 'slides')
+          !isItemOfKind(current, 'slides') &&
+          !isItemOfKind(current, 'bible')
         ) {
           return null;
         }
@@ -80,7 +83,9 @@ function saveField(
   if (
     service === null ||
     item === null ||
-    (!isItemOfKind(item, 'song') && !isItemOfKind(item, 'slides')) ||
+    (!isItemOfKind(item, 'song') &&
+      !isItemOfKind(item, 'slides') &&
+      !isItemOfKind(item, 'bible')) ||
     item.sectionCard === undefined ||
     item.sectionCard[field] === value
   ) {
@@ -93,7 +98,8 @@ function saveField(
       change: current => {
         if (
           (!isItemOfKind(current, 'song') &&
-            !isItemOfKind(current, 'slides')) ||
+            !isItemOfKind(current, 'slides') &&
+            !isItemOfKind(current, 'bible')) ||
           current.sectionCard === undefined
         ) {
           return null;
@@ -119,7 +125,9 @@ export function SectionCardEditor({
   );
   const card =
     item !== null &&
-    (isItemOfKind(item, 'song') || isItemOfKind(item, 'slides'))
+    (isItemOfKind(item, 'song') ||
+      isItemOfKind(item, 'slides') ||
+      isItemOfKind(item, 'bible'))
       ? item.sectionCard
       : undefined;
   const theme = useSlideTheme(

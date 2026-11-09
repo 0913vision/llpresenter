@@ -60,9 +60,7 @@ export function BibleSplitTools({
             if (source === null) return null;
             const tiles = projections.get(source)?.tiles;
             if (tiles === undefined) return null;
-            return view.rows.find(row => row.id === id)?.kind === 'slides'
-              ? withSectionCard(view.tiles[id]?.[0]?.sectionCard, tiles)
-              : tiles;
+            return withSectionCard(view.tiles[id]?.[0]?.sectionCard, tiles);
           },
       themes === null || screens === null || saved === null
         ? null
@@ -130,7 +128,15 @@ export function BibleSplitTools({
       }),
     [projections, autoOpen],
   );
-  const selected = useShow(view => view.selectedTile);
+  const selected = useShow(
+    view =>
+      view.selectedTile -
+      (view.openItemId !== null &&
+      view.rows.find(row => row.id === view.openItemId)?.kind === 'bible' &&
+      view.tiles[view.openItemId]?.[0]?.sectionCard !== undefined
+        ? 1
+        : 0),
+  );
   const liveId = useLive(view => view.state?.layers.slide?.itemId ?? null);
   const liveProjection = useShow(view => {
     if (liveId === null || projections === null) return null;

@@ -1,6 +1,9 @@
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {describe, expect, it} from 'vitest';
-import {createMediaId, createMessageId} from '@core/schema/ids';
+import {createMediaId, createMessageId, createThemeId} from '@core/schema/ids';
+import {isItemOfKind} from '@core/schema/service';
+import * as v from 'valibot';
+import {translationIdSchema} from '@core/schema/ids';
 import {
   CAPTIONS,
   MAIN,
@@ -248,4 +251,165 @@ describe('recovery plan', () => {
       'showing',
     ]);
   });
+});
+
+it.each(['song', 'slides', 'bible'] as const)(
+  'offers a recorded opening card from a %s item',
+  kind => {
+    const fixture = sources();
+    const service = fixture.content.service(SERVICE)?.service;
+    const original = service?.order.find(item => item.id === SONG_ITEM);
+    if (
+      service === undefined ||
+      original === undefined ||
+      !isItemOfKind(original, 'song')
+    ) {
+      throw Error('missing fixture');
+    }
+    const card = {
+      name: 'Section',
+      english: 'Section',
+      theme: createThemeId('00000000-0000-4000-8000-000000000111'),
+    };
+    const item =
+      kind === 'song'
+        ? {...original, sectionCard: card}
+        : kind === 'slides'
+          ? {
+              id: SONG_ITEM,
+              sectionCard: card,
+              slides: {form: 'blank' as const, name: 'Slides', slides: []},
+            }
+          : {
+              id: SONG_ITEM,
+              sectionCard: card,
+              bible: {
+                translation: v.parse(translationIdSchema, 'sample'),
+                ref: 'John 3:16',
+                split: 'verse' as const,
+                reference: 'every' as const,
+                verseNumbers: true,
+                translationName: false,
+              },
+            };
+    const content = {
+      ...fixture.content,
+      service: (id: string) =>
+        id === SERVICE
+          ? {service: {...service, order: [item]}}
+          : fixture.content.service(id),
+    };
+    const record = recoveryRecordOf({
+      layers: {
+        slide: {
+          itemId: SONG_ITEM,
+          position: 0,
+          sequenceLength: 4,
+          label: 'Section',
+          lines: ['Section'],
+          sectionCard: card,
+        },
+      },
+    });
+    const plan = planRecovery(record, {...fixture, content});
+    expect(plan).toMatchObject([
+      {
+        row: {
+          kind: 'slide',
+          slide: {
+            itemId: SONG_ITEM,
+            position: 0,
+            slideCount: kind === 'song' ? 6 : kind === 'slides' ? 1 : 4,
+          },
+        },
+        commands: [{type: 'slide.show', slide: {sectionCard: card}}],
+      },
+    ]);
+  },
+);
+
+it('does not restore a recorded card after the source card is removed', () => {
+  const card = {
+    name: 'Section',
+    english: 'Section',
+    theme: createThemeId('00000000-0000-4000-8000-000000000111'),
+  };
+  const record = recoveryRecordOf({
+    layers: {
+      slide: {
+        itemId: SONG_ITEM,
+        position: 0,
+        label: 'Section',
+        lines: ['Section'],
+        sectionCard: card,
+      },
+    },
+  });
+  expect(planRecovery(record, sources())).toEqual([]);
+});
+
+it('uses one as the Bible card summary count for older records', () => {
+  const fixture = sources();
+  const service = fixture.content.service(SERVICE)?.service;
+  if (service === undefined) throw Error('missing service');
+  const card = {
+    name: 'Section',
+    english: 'Section',
+    theme: createThemeId('00000000-0000-4000-8000-000000000111'),
+  };
+  const item = {
+    id: SONG_ITEM,
+    sectionCard: card,
+    bible: {
+      translation: v.parse(translationIdSchema, 'sample'),
+      ref: 'John 3:16',
+      split: 'verse' as const,
+      reference: 'every' as const,
+      verseNumbers: true,
+      translationName: false,
+    },
+  };
+  const content = {
+    ...fixture.content,
+    service: (id: string) =>
+      id === SERVICE
+        ? {service: {...service, order: [item]}}
+        : fixture.content.service(id),
+  };
+  const record = recoveryRecordOf({
+    layers: {
+      slide: {
+        itemId: SONG_ITEM,
+        position: 0,
+        label: 'Section',
+        lines: ['Section'],
+        sectionCard: card,
+      },
+    },
+  });
+  expect(planRecovery(record, {...fixture, content})).toMatchObject([
+    {row: {kind: 'slide', slide: {slideCount: 1}}},
+  ]);
+});
+
+it('rejects an over-limit captured Bible sequence length', () => {
+  const card = {
+    name: 'Section',
+    english: 'Section',
+    theme: createThemeId('00000000-0000-4000-8000-000000000111'),
+  };
+  expect(() =>
+    recoveryRecordOf({
+      layers: {
+        slide: {
+          itemId: SONG_ITEM,
+          position: 0,
+          label: 'Section',
+          lines: ['Section'],
+          sectionCard: card,
+          sequenceLength: 10001,
+        },
+      },
+    }),
+  ).toThrow();
 });

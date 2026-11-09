@@ -544,7 +544,7 @@ it('uses the section card theme only while its slide is live', () => {
   });
 });
 
-it.each(['song', 'blank'] as const)(
+it.each(['song', 'blank', 'bible'] as const)(
   'matches content overlay positions with an opening card for %s',
   kind => {
     const overlay = {

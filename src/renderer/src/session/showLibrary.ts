@@ -76,7 +76,7 @@ export function publishSlidesProjection(
     itemId,
     revision: row.sourceRevision,
     measurement: bibleMeasurement,
-    tiles,
+    tiles: tiles.filter(tile => tile.sectionCard === undefined),
   });
   if (!parsed.ok) {
     api.log.write({
@@ -120,7 +120,7 @@ export function setBibleTileResolver(
   const next = id === null ? null : (resolver?.(view, id) ?? null);
   const restored =
     detached?.itemId === id && next !== null
-      ? biblePartIndex(next, detached)
+      ? biblePartIndex(tilesForView(view, id), detached)
       : null;
   const selectedTile =
     restored ??
@@ -132,8 +132,13 @@ export function setBibleTileResolver(
         )
       : view.selectedTile);
   useShow.setState({selectedTile});
-  const tile = previous?.[view.selectedTile];
-  if (resolver === null && id !== null && tile !== undefined) {
+  const tile = before[view.selectedTile];
+  if (
+    resolver === null &&
+    id !== null &&
+    tile !== undefined &&
+    tile.sectionCard === undefined
+  ) {
     detachedSelection = {
       itemId: id,
       label: tile.label,
@@ -270,14 +275,14 @@ export function tilesForView(
   itemId: ItemId,
 ): readonly SlideTile[] {
   const projected = bibleTileResolver?.(view, itemId);
-  if (projected !== null && projected !== undefined) {
-    return projected;
-  }
-  return isLibrarySource(view, itemId)
-    ? view.librarySong.tiles
-    : isBibleSource(view, itemId)
-      ? (bibleSourceFor(view, itemId)?.tiles ?? noTiles)
-      : (view.tiles[itemId] ?? noTiles);
+  return (
+    projected ??
+    (isLibrarySource(view, itemId)
+      ? view.librarySong.tiles
+      : isBibleSource(view, itemId)
+        ? (bibleSourceFor(view, itemId)?.tiles ?? noTiles)
+        : (view.tiles[itemId] ?? noTiles))
+  );
 }
 
 /** Selects the open source's tiles without copying either projection. */

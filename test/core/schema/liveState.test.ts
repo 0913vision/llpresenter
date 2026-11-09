@@ -434,3 +434,25 @@ describe('parseLiveState', () => {
     }
   });
 });
+
+it('bounds the recorded card sequence length', () => {
+  const state = emptyLiveState();
+  const slide = {
+    itemId: 'item',
+    position: 0,
+    label: null,
+    lines: ['Section'],
+    sequenceLength: 2,
+  };
+  expect(parseLiveState({...state, layers: {...state.layers, slide}}).ok).toBe(
+    true,
+  );
+  for (const sequenceLength of [0, 10001, 1.5]) {
+    expect(
+      parseLiveState({
+        ...state,
+        layers: {...state.layers, slide: {...slide, sequenceLength}},
+      }).ok,
+    ).toBe(false);
+  }
+});

@@ -24,28 +24,49 @@ export function sectionCardOf(section: SundaySection) {
   return {name: section.name, english: section.english, theme: section.theme};
 }
 
-/** Prepend a card, replacing one already present in a published projection. */
+const projectedCards = new WeakMap<
+  readonly ShowTile[],
+  WeakMap<SectionCard, readonly ShowTile[]>
+>();
+
+/** Prepend or refresh a published card, keeping a stable projection identity. */
 export function withSectionCard(
   card: SectionCard | undefined,
   tiles: readonly ShowTile[],
 ): readonly ShowTile[] {
-  return card === undefined
-    ? tiles
-    : [
-        {
-          label: card.name,
-          labelColor: 'none',
-          lines: [card.english],
-          sectionCard: card,
-        },
-        ...tiles.slice(tiles[0]?.sectionCard === undefined ? 0 : 1),
-      ];
+  if (card === undefined) return tiles;
+  let cards = projectedCards.get(tiles);
+  if (cards === undefined) {
+    cards = new WeakMap();
+    projectedCards.set(tiles, cards);
+  }
+  const cached = cards.get(card);
+  if (cached !== undefined) return cached;
+  const projected: readonly ShowTile[] = [
+    {
+      label: card.name,
+      labelColor: 'none',
+      lines: [card.english],
+      sectionCard: card,
+    },
+    ...tiles.slice(tiles[0]?.sectionCard === undefined ? 0 : 1),
+  ];
+  cards.set(card, projected);
+  return projected;
+}
+
+/** A service item carries the card data; live output carries its bounded offset. */
+interface CardOffsetItem {
+  readonly sectionCard?: SectionCard | undefined;
+}
+interface CardOffsetLive {
+  readonly cardOffset?: 1 | undefined;
 }
 
 /** Number of opening cards before content positions. */
-export function cardOffset(item: {
-  readonly sectionCard?: unknown;
-  readonly cardOffset?: 1;
-}): 0 | 1 {
-  return item.sectionCard !== undefined || item.cardOffset === 1 ? 1 : 0;
+export function cardOffset(item: CardOffsetItem | CardOffsetLive): 0 | 1 {
+  const source: CardOffsetItem & CardOffsetLive = item;
+  return source.sectionCard !== undefined || source.cardOffset !== undefined
+    ? 1
+    : 0;
 }

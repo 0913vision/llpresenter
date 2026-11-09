@@ -28,9 +28,18 @@ export async function outputAdjacentBibleVerse(
   const itemId = initial.openItemId;
   const liveIndex = liveTileIndex(initial, slide);
   if (!api || itemId === null || liveIndex === null) return;
-  const count = tilesForView(initial, itemId).length;
+  const currentTiles = tilesForView(initial, itemId);
+  if (
+    direction === 'previous' &&
+    currentTiles[liveIndex]?.sectionCard !== undefined
+  ) {
+    return;
+  }
+  const count = currentTiles.length;
   const beside = direction === 'previous' ? liveIndex - 1 : liveIndex + 1;
-  if (beside >= 0 && beside < count) {
+  const cardBoundary =
+    direction === 'previous' && currentTiles[beside]?.sectionCard !== undefined;
+  if (beside >= 0 && beside < count && !cardBoundary) {
     outputTile({itemId, index: beside});
     return;
   }
@@ -76,7 +85,9 @@ export async function outputAdjacentBibleVerse(
       enteredRef: source?.enteredRef ?? passage.ref,
       enteredTranslation: source?.enteredTranslation ?? passage.translation,
     });
-    const tiles = tilesForView(initial, itemId);
+    const tiles = tilesForView(initial, itemId).filter(
+      tile => tile.sectionCard === undefined,
+    );
     const edge = expanded.verses.at(direction === 'previous' ? 0 : -1);
     if (
       edge === undefined ||

@@ -690,3 +690,6 @@ through that element. The media properties panel explains this precedence in a
 tooltip. Existing libraries are unchanged.
 
 The section gradient layout retains 늘리기 for its background element.
+
+Bible item cards use their section theme; the passage slides retain their Bible
+theme and their overlay ranges follow their content positions.

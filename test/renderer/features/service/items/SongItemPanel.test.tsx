@@ -1,3 +1,5 @@
+import {parseServiceDocument} from '@core/schema/contentDocuments';
+import {createThemeId} from '@core/schema/ids';
 import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {
   act,
@@ -169,4 +171,80 @@ describe('service song item panel', () => {
     await user.click(button);
     expect(openWindow).not.toHaveBeenCalled();
   });
+});
+
+it('selects the second Bible verse at position two and shows slide number three after its card', async () => {
+  const fixture = itemFixture();
+  const editor = new SongEditorStore(fixture.api, vi.fn());
+  const items = new ServiceItemStore(fixture.api, editor, vi.fn());
+  const current = fixture.service();
+  const candidate = parseServiceDocument({
+    ...current,
+    service: {
+      ...current.service,
+      order: [
+        {
+          id: fixtureItems.arranged,
+          sectionCard: {
+            name: 'Section',
+            english: 'Section',
+            theme: '00000000-0000-4000-8000-000000000111',
+          },
+          bible: {
+            translation: 'sample',
+            ref: 'John 3:16-17',
+            split: 'verse',
+            reference: 'every',
+            verseNumbers: true,
+            translationName: false,
+          },
+        },
+      ],
+    },
+  });
+  if (!candidate.ok || candidate.value === null) throw Error('invalid fixture');
+  fixture.pushService(candidate.value);
+  useShow.setState({
+    serviceId: fixtureServiceId,
+    openItemId: fixtureItems.arranged,
+    tiles: {
+      [fixtureItems.arranged]: [
+        {
+          label: 'Section',
+          labelColor: 'none',
+          lines: ['Section'],
+          sectionCard: {
+            name: 'Section',
+            english: 'Section',
+            theme: createThemeId('00000000-0000-4000-8000-000000000111'),
+          },
+        },
+        {label: '3:16', labelColor: 'none', lines: ['First']},
+        {label: '3:17', labelColor: 'none', lines: ['Second']},
+      ],
+    },
+  });
+  const view = render(
+    <ServiceItemPanel items={items} editor={editor} sizeClass="normal" />,
+  );
+  onTestFinished(async () => {
+    view.unmount();
+    items.dispose();
+    await editor.dispose();
+  });
+  await waitFor(() => expect(items.getSnapshot().item).not.toBeNull());
+  const grid = await screen.findByRole('listbox', {name: '슬라이드'});
+  await waitFor(() =>
+    expect(within(grid).getAllByRole('option')).toHaveLength(2),
+  );
+  const second = within(grid).getAllByRole('option')[1];
+  if (second === undefined) throw Error('missing verse');
+  expect(second.textContent).toContain('3');
+  expect(screen.getByText('3\uac1c')).toBeDefined();
+  await userEvent.click(second);
+  expect(items.getSnapshot().position).toBe(2);
+  fireEvent.contextMenu(second);
+  expect(
+    screen.getByRole('menuitem', {name: '구역 이름 슬라이드 추가'}),
+  ).toBeDefined();
 });

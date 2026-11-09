@@ -1,3 +1,4 @@
+import {cardOffset} from '@core/services/sectionCards';
 import {useMemo, type JSX, type ReactNode} from 'react';
 import type {ServiceItemOf} from '@core/schema/service';
 import {VirtualSlides} from '@renderer/features/songs/editor/VirtualSlides';
@@ -42,7 +43,9 @@ export function BibleItemPanel({
 }): JSX.Element {
   const rawTiles = useShow(view => savedPassageTiles(view, serviceId, item.id));
   const projection = useBibleTileProjection({itemId: item.id, serviceId});
-  const tiles = projection?.tiles ?? rawTiles;
+  const tiles = (projection?.tiles ?? rawTiles).filter(
+    tile => tile.sectionCard === undefined,
+  );
   const scale = useThumbnailScale(sizeClass);
   const projected = useMemo(
     () => ({
@@ -86,7 +89,7 @@ export function BibleItemPanel({
         )}
       </PanelBody>
       <PanelFooter
-        count={tiles.length}
+        count={tiles.length + cardOffset(item)}
         end={
           <ThumbnailSizeControl
             value={scale}

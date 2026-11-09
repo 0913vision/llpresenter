@@ -1,3 +1,4 @@
+import {cardOffset} from '@core/services/sectionCards';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import type {LabelColor} from '@core/labels/colors';
 import type {SingleLiveCommand} from '@core/live/commands';
@@ -9,7 +10,7 @@ import type {Screen} from '@core/schema/screens';
 import {
   isItemOfKind,
   type Service,
-  type ServiceItemOf,
+  type ServiceItem,
 } from '@core/schema/service';
 import type {ServiceId} from '@core/schema/ids';
 import type {Song} from '@core/schema/song';
@@ -80,13 +81,13 @@ function outputsStep(
 
 interface SourceItem {
   readonly serviceId: ServiceId;
-  readonly item: ServiceItemOf<'song'>;
+  readonly item: ServiceItem;
 }
 
 // NOTE(0913vision): The record names the service open at its last write,
 // which can differ from the one the live 슬라이드 came from, so every service
 // is searched after the recorded one. Item ids are unique across services.
-function sourceSongItem(
+function sourceItem(
   content: RecoveryContent,
   serviceId: string | null,
   itemId: string,
@@ -99,7 +100,7 @@ function sourceSongItem(
     const service = content.service(id)?.service;
     const item = service?.order.find(entry => entry.id === itemId);
     if (service === undefined || item === undefined) continue;
-    return isItemOfKind(item, 'song') ? {serviceId: service.id, item} : null;
+    return {serviceId: service.id, item};
   }
   return null;
 }
@@ -110,15 +111,42 @@ function slideStep(
 ): RecoveryStep | null {
   const slide = state.layers.slide;
   if (slide === null) return null;
-  const source = sourceSongItem(content, recordedServiceId, slide.itemId);
+  const source = sourceItem(content, recordedServiceId, slide.itemId);
   if (source === null) return null;
   const {serviceId, item} = source;
-  const song = content.song(item.song)?.song;
-  if (song === undefined) return null;
-  const slideCount = songTiles(
-    {...song, slides: item.slides},
-    NO_LABEL_COLORS,
-  ).length;
+  if (
+    slide.sectionCard !== undefined &&
+    (slide.position !== 0 ||
+      (!isItemOfKind(item, 'song') &&
+        !isItemOfKind(item, 'slides') &&
+        !isItemOfKind(item, 'bible')) ||
+      item.sectionCard === undefined)
+  ) {
+    return null;
+  }
+  let title: string;
+  let slideCount: number;
+  if (isItemOfKind(item, 'song')) {
+    const song = content.song(item.song)?.song;
+    if (song === undefined) return null;
+    title = song.title;
+    slideCount =
+      songTiles({...song, slides: item.slides}, NO_LABEL_COLORS).length +
+      cardOffset(item);
+  } else if (
+    (isItemOfKind(item, 'slides') || isItemOfKind(item, 'bible')) &&
+    item.sectionCard !== undefined &&
+    slide.sectionCard !== undefined &&
+    slide.position === 0
+  ) {
+    title = isItemOfKind(item, 'slides') ? item.slides.name : item.bible.ref;
+    // NOTE(0913vision): The captured Bible count is only a dialog summary, not a source for output.
+    slideCount = isItemOfKind(item, 'slides')
+      ? item.slides.slides.length + 1
+      : (slide.sequenceLength ?? 1);
+  } else {
+    return null;
+  }
   if (slide.position >= slideCount) return null;
   const media = state.layers.media;
   const commands: SingleLiveCommand[] = [{type: 'slide.show', slide}];
@@ -134,7 +162,7 @@ function slideStep(
       slide: {
         serviceId,
         itemId: item.id,
-        title: song.title,
+        title,
         position: slide.position,
         slideCount,
       },

@@ -91,7 +91,9 @@ export function buildShowService({
   }
   for (const item of order) {
     if (
-      (!isItemOfKind(item, 'song') && !isItemOfKind(item, 'slides')) ||
+      (!isItemOfKind(item, 'song') &&
+        !isItemOfKind(item, 'slides') &&
+        !isItemOfKind(item, 'bible')) ||
       item.sectionCard === undefined
     ) {
       continue;
@@ -233,9 +235,11 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
               ...(item.theme === undefined ? {} : {theme: item.theme}),
             },
           }),
-      ...(sources.passages?.unavailable.has(id)
-        ? {problem: 'missing-bible' as const}
-        : {}),
+      ...(sources.cappedItems.has(id)
+        ? {problem: 'tile-limit' as const}
+        : sources.passages?.unavailable.has(id)
+          ? {problem: 'missing-bible' as const}
+          : {}),
     };
   }
   if (isItemOfKind(item, 'media')) {

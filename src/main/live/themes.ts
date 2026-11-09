@@ -72,7 +72,8 @@ export function registerThemeOutput({
             kind,
             source: 'service',
             ...((isItemOfKind(entry, 'song') ||
-              isItemOfKind(entry, 'slides')) &&
+              isItemOfKind(entry, 'slides') ||
+              isItemOfKind(entry, 'bible')) &&
             cardOffset(entry)
               ? {cardOffset: 1 as const}
               : {}),

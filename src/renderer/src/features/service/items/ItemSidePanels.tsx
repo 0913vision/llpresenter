@@ -61,8 +61,12 @@ export function ItemPreviewPanel({items, editor}: ItemPanelProps): JSX.Element {
     itemId: item !== null && isItemOfKind(item, 'bible') ? item.id : null,
     ...(service === null ? {} : {serviceId: service.service.id}),
   });
-  const tiles = projection?.tiles ?? rawTiles;
-  const at = shownPosition(position, tiles.length);
+  const tiles = (projection?.tiles ?? rawTiles).filter(
+    tile => tile.sectionCard === undefined,
+  );
+  const bibleOffset =
+    item !== null && isItemOfKind(item, 'bible') ? cardOffset(item) : 0;
+  const at = shownPosition(Math.max(0, position - bibleOffset), tiles.length);
   const tile = at === undefined ? undefined : tiles[at];
   const labels =
     useSyncExternalStore(editor.subscribe, editor.getSnapshot).labels?.value
@@ -104,8 +108,8 @@ export function ItemPreviewPanel({items, editor}: ItemPanelProps): JSX.Element {
             itemId: item.id,
             tile,
             next: tiles[at + 1],
-            position: at + 1,
-            total: tiles.length,
+            position: at + 1 + bibleOffset,
+            total: tiles.length + bibleOffset,
           }
         : item === null ||
             !isItemOfKind(item, 'song') ||
@@ -119,7 +123,9 @@ export function ItemPreviewPanel({items, editor}: ItemPanelProps): JSX.Element {
             });
   const card =
     item !== null &&
-    (isItemOfKind(item, 'song') || isItemOfKind(item, 'slides'))
+    (isItemOfKind(item, 'song') ||
+      isItemOfKind(item, 'slides') ||
+      isItemOfKind(item, 'bible'))
       ? item.sectionCard
       : undefined;
   const cardTheme = useSlideTheme(

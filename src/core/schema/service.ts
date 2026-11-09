@@ -169,6 +169,7 @@ const itemSchemas = {
   }),
   bible: jsonObject({
     ...itemFields,
+    sectionCard: v.exactOptional(sectionCardSchema),
     bible: biblePassageSchema,
     ...startFields,
   }),

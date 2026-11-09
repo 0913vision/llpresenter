@@ -347,6 +347,10 @@ session over it. A second answer is refused while a restore is in progress.
 - If the item of the last 슬라이드 no longer exists, hide the 마지막 슬라이드
   row (proposal).
 
+An opening section card can be restored for a song, slides, or Bible item if the
+item still carries a card. For a Bible card, its captured sequence length is
+used for the recovery summary; older records without it show one slide.
+
 Source: `Recovery`, `AlertDialog` README, `Checkbox` README, `Main` decision
 "복구는 출력 상태만", product log versions 61 and 62.
 

@@ -2,7 +2,7 @@ import {act, cleanup, waitFor} from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import {emptyLiveState} from '@core/live/state';
-import {createMediaId, createSongId} from '@core/schema/ids';
+import {createMediaId, createSongId, createThemeId} from '@core/schema/ids';
 import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {sampleService} from '@fixtures/renderer/session/sampleService';
@@ -16,6 +16,8 @@ import {
 } from '@renderer/session/show';
 import {
   librarySourceId,
+  setBibleTileResolver,
+  tilesForView,
   openLibrarySong,
   refreshLibrarySong,
 } from '@renderer/session/showLibrary';
@@ -342,4 +344,52 @@ it('uses a newer retained tile without applying an older lookup background', asy
     ],
   });
   expect(useShow.getState().librarySong?.songRevision).toBe(2);
+});
+
+it('retains the Bible verse selection when a card precedes a remeasured passage', () => {
+  const card = {
+    name: 'Section',
+    english: 'Section',
+    theme: createThemeId('00000000-0000-4000-8000-000000000111'),
+  };
+  const opening = {
+    label: 'Section',
+    labelColor: 'none' as const,
+    lines: ['Section'],
+    sectionCard: card,
+  };
+  const first = {
+    label: '3:16',
+    labelColor: 'none' as const,
+    lines: ['Verse 16'],
+    biblePart: 1,
+  };
+  const second = {
+    label: '3:17',
+    labelColor: 'none' as const,
+    lines: ['Verse 17'],
+    biblePart: 1,
+  };
+  const extra = {...first, biblePart: 2};
+  applyService({
+    ...sampleService,
+    tiles: {...sampleService.tiles, 'psalm-23': [opening, first, second]},
+  });
+  openItem('psalm-23');
+  selectTile(2);
+  const projected = [opening, first, extra, second];
+  try {
+    setBibleTileResolver((_view, id) => (id === 'psalm-23' ? projected : null));
+    expect(useShow.getState().selectedTile).toBe(3);
+    expect(tilesForView(useShow.getState(), 'psalm-23')[3]?.label).toBe('3:17');
+    selectTile(0);
+    const revised = [opening, first, second];
+    setBibleTileResolver((_view, id) => (id === 'psalm-23' ? revised : null));
+    expect(useShow.getState().selectedTile).toBe(0);
+    expect(
+      tilesForView(useShow.getState(), 'psalm-23')[0]?.sectionCard,
+    ).toEqual(card);
+  } finally {
+    setBibleTileResolver(null);
+  }
 });

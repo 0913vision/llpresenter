@@ -287,9 +287,9 @@ sections remain grouping rows. The 사도신경 and 광고 items carry an option
 opening `sectionCard` with bounded `name`, `english`, and `theme` fields; their
 content and item theme remain independent. Other named sections retain
 standalone cards, and 말씀 remains empty. Existing data folders are unchanged.
-Song and slides items may carry the same optional card without migration. The
-card name must not be blank; unknown fields are preserved as for other data
-objects.
+Song, Bible, and slides items may carry the same optional card without
+migration. The card name must not be blank; unknown fields are preserved as for
+other data objects.
 
 ## App-wide settings
 
