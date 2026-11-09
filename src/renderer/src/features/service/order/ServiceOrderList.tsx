@@ -29,6 +29,7 @@ import {hasModifier} from '@renderer/ui/modifierKeys';
 import {useRowMoveKeys} from '@renderer/ui/reorder';
 import {useMovedRowFocus} from './useMovedRowFocus';
 import {useOrderEditFocus} from './useOrderEditFocus';
+import {useOrderResizeFocus} from './useOrderResizeFocus';
 import {serviceRowLabel} from './serviceRowLabel';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {openSongEditorWindow} from '@renderer/features/songs/editor/openWindow';
@@ -297,6 +298,7 @@ export function ServiceOrderList({
     onProblem,
   );
   const listRef = useRef<HTMLDivElement>(null);
+  useOrderResizeFocus(listRef);
   const editFocus = useOrderEditFocus({
     list: listRef,
     rows,

@@ -128,6 +128,9 @@ dim when focus leaves. 진행 retains its existing thumbnail style.
   slide selected. Editing keys work without another click. A new song opened by
   Ctrl N keeps focus in its title. Returning from the editor focuses the
   originating service or library row.
+- Song title fields keep a 160px minimum and a 280px maximum (`size-field-key`
+  and `size-field-title`). Secondary header controls wrap when necessary,
+  instead of squeezing the title; ultrawide headers keep the same maximum.
 - The header edits 이름, 테마, 넘기기 (손으로 or every 3, 5, 8, 10, 15, 20, or
   30 seconds), and 반복. Its first row uses the song editor's height, padding,
   and alignment: back, name field, then actions. Theme, advance, and loop sit
@@ -902,7 +905,12 @@ and 59.
   7"), a grid and list view toggle, and 가져오기 (import). A grid of media tiles
   (picture, duration chip with a loop icon when the media loops, name). Footer:
   count and total size ("7개 2.1GB") and a thumbnail size slider (2 to 8
-  columns).
+  columns). Before an operator adjusts it, the shared 진행/준비 bin starts from
+  five columns and adds columns as needed to fit one complete 16:9 picture, its
+  name and panel insets in the viewport height. This automatic fit follows
+  window and bin resizing. The slider describes that initial state as 자동 크기;
+  changing it selects an explicit column count, retained across subsequent
+  resizes while the view remains open.
 - Right inside the bin: the 미디어 속성 panel with the tabs 미디어 속성 (media
   properties), 정보 (info), 전환 (transition), and 소리 (sound). Above the
   groups: a preview player with a play button, the position ("0:12"), the time

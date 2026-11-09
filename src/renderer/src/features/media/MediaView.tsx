@@ -157,7 +157,7 @@ export function MediaView({
 }: MediaViewProps): JSX.Element {
   const {library, view, choice, selected, select: setSelected} = useMediaView();
   const imported = useMediaImportCompletion();
-  const [columns, setColumns] = useState(DEFAULT_MEDIA_COLUMNS);
+  const [columns, setColumns] = useState<number>();
   const [menu, setMenu] = useState<OpenMenu | null>(null);
   const [deleting, setDeleting] = useState<{
     readonly item: MediaItem;
@@ -389,7 +389,8 @@ export function MediaView({
             onDrop={drop}
             label={title}
             count={entries.length}
-            columns={columns}
+            columns={columns ?? DEFAULT_MEDIA_COLUMNS}
+            fitHeight={columns === undefined}
             selected={index < 0 ? undefined : index}
             onSelect={at => setSelected(entries[at]?.id ?? null)}
             onActivate={activate}
@@ -425,8 +426,12 @@ export function MediaView({
               min={MIN_MEDIA_COLUMNS}
               max={MAX_MEDIA_COLUMNS}
               step={1}
-              value={MIN_MEDIA_COLUMNS + MAX_MEDIA_COLUMNS - columns}
-              valueText={`${columns}열`}
+              value={
+                MIN_MEDIA_COLUMNS +
+                MAX_MEDIA_COLUMNS -
+                (columns ?? DEFAULT_MEDIA_COLUMNS)
+              }
+              valueText={columns === undefined ? '자동 크기' : `${columns}열`}
               onChange={size =>
                 setColumns(MIN_MEDIA_COLUMNS + MAX_MEDIA_COLUMNS - size)
               }

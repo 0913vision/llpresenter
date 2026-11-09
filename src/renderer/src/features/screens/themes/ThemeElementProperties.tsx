@@ -49,7 +49,7 @@ export function ThemeElementProperties({
   return (
     <Properties key={element.id}>
       <PropertyGroup title={themeElementNames[element.kind]}>
-        <PropertyColumns>
+        <PropertyColumns responsive>
           {(['x', 'y', 'w', 'h'] as const).map(field => (
             <PropertyRow key={field} label={field.toUpperCase()}>
               {({controlId}) => (

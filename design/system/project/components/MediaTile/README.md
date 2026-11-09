@@ -22,6 +22,7 @@ A media tile that shows one background video or image as a 16:9 picture with a n
 - Missing file `ll-media__missing`: the frame background becomes hatching (`bg-inset`/`bg-well`, 135°, 6px), with a 24px `filex` icon in `warning` in the center. Hide the picture and the duration.
 - Copying `ll-media__busy`: `scrim` over the frame, a percentage in the center (`caption-strong` `text`), and a progress bar `space-6` in from the bottom (StatusMarks' `ll-progress`).
 - Grid `ll-media-grid`: the size slider in the panel's bottom row sets the column count (2–8 columns, `--ll-cols`), gap `space-16` vertical, `space-12` horizontal. The outer margin is the panel body's `panel-inset`.
+- The shared media bin initially fits tile height automatically: at least five columns, adding columns so the 16:9 picture, `space-8`, 20px name line and both panel insets fit the bounded viewport. Its virtual row stride includes the same 20px name line. Once the operator adjusts the size slider, that explicit column count takes precedence over automatic fitting until the view closes.
 - Media strip `ll-media-strip`: one row, fixed tile width 150 (picture 84), gap `space-12`, horizontal scroll when it overflows. So that rings aren't clipped, the strip has 4px of padding inside and is pulled outward by the same amount. The panel height is header 34 + content 136 = 170.
 
 ## Sizes and variants

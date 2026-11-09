@@ -32,6 +32,9 @@ See 01.
   available movement show the normal cursor; the collapsed bin does not expose a
   height handle. Window resizing fits saved heights without replacing the
   operator's preference.
+- When the order viewport resizes while a row owns focus, scroll just enough to
+  keep that row visible. Do not change focus, selection or output, or scroll the
+  list when focus is elsewhere.
 
 Source: `Main` decisions "진행 화면은 절충안" and "작업 공간 세 개", product log
 (진행 screen direction).

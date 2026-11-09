@@ -55,10 +55,7 @@ export function SongHeader({
     input.select();
   }, [store, state.titleFocus]);
   return (
-    <header
-      className={styles.header}
-      data-inline={back !== undefined || undefined}
-    >
+    <header className={styles.header}>
       {back}
       {unsaved ? (
         <Tooltip text="저장하지 않은 변경">

@@ -42,10 +42,19 @@ export function Properties({
 /** Two columns of property groups, as in the 테마 element properties. */
 export function PropertyColumns({
   children,
+  responsive = false,
 }: {
   readonly children: ReactNode;
+  /** Stacks rows when two numeric controls would be narrower than their token. */
+  readonly responsive?: boolean;
 }): JSX.Element {
-  return <div className={styles.columns}>{children}</div>;
+  return (
+    <div
+      className={classNames(styles.columns, responsive && styles.responsive)}
+    >
+      {children}
+    </div>
+  );
 }
 
 /** A named group of rows with a line below it. */

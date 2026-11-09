@@ -13,6 +13,7 @@ import {MediaGrid} from '@renderer/ui';
 import {isComposing} from '@renderer/ui/ime';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import styles from './MediaView.module.css';
+import {mediaGridLayout} from './mediaGridLayout';
 
 /** The rows mounted beyond the visible ones, above and below. */
 export const OVERSCAN_ROWS = 1;
@@ -20,7 +21,6 @@ export const OVERSCAN_ROWS = 1;
 /** The rows mounted before the viewport has been measured. */
 export const INITIAL_ROWS = 3;
 
-const NAME_LINE_PX = 16;
 const OPTION = '[role="option"]';
 
 interface Measure {
@@ -98,6 +98,8 @@ export interface VirtualMediaGridProps {
   readonly label: string;
   readonly count: number;
   readonly columns: number;
+  /** Automatic size may add columns so a whole tile fits the viewport. */
+  readonly fitHeight?: boolean;
   readonly selected: number | undefined;
   /** Read-only grids move focus without changing selection. */
   readonly arrowsMove?: 'selection' | 'focus';
@@ -119,7 +121,8 @@ export interface VirtualMediaGridProps {
 export function VirtualMediaGrid({
   label,
   count,
-  columns,
+  columns: requestedColumns,
+  fitHeight = false,
   selected,
   arrowsMove = 'selection',
   onSelect,
@@ -135,14 +138,11 @@ export function VirtualMediaGrid({
   const focusNext = useRef<number | null>(null);
   const measure = useMeasure(viewport);
   const [scrollTop, setScrollTop] = useState(0);
-  const tileWidth =
-    measure.width > 0
-      ? (measure.width - (columns - 1) * measure.xGap) / columns
-      : 0;
-  const stride =
-    tileWidth > 0
-      ? (tileWidth * 9) / 16 + measure.nameGap + NAME_LINE_PX + measure.yGap
-      : 1;
+  const {columns, stride} = mediaGridLayout({
+    columns: requestedColumns,
+    fitHeight,
+    ...measure,
+  });
   const rows = Math.ceil(count / columns);
   const visible =
     measure.height > 0 ? Math.ceil(measure.height / stride) : INITIAL_ROWS;

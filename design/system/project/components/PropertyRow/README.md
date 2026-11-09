@@ -41,6 +41,7 @@ The place where the row sits sets the name cell width. Don't set it separately f
 
 - A panel's 84px fits names up to "위치 미세 조정" and "연결이 끊기면" on one line in 14px text. Don't wrap a name that overflows onto two lines. Shorten the name.
 - When you place two columns on a wide surface, as in the 테마 editor, use `ll-prop-cols` with `space-24` between the columns. Rows inside a column follow the panel rule (84px).
+- Geometry rows use `PropertyColumns responsive`: each column reserves the label, gap and a `size-field-number` (96px) control. If two columns cannot fit, stack them in X, Y, W, H order. Label widths and control sizes stay unchanged, so four-digit dimensions remain readable in a narrow sidebar.
 
 ## Sizes and variants
 
