@@ -159,6 +159,11 @@ describe('main entry lifecycle', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
   });
 
   it('lets the soak scenario change the live state', async () => {
+    const saved = deferred();
+    mocks.recordPersistOutputs.mockImplementation(async () => {
+      await saved.promise;
+      return true;
+    });
     await startMain();
     const store = mocks.outputContexts[0]?.store;
 
@@ -168,6 +173,12 @@ describe('main entry lifecycle', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
       on: true,
     });
 
+    expect(mocks.recordPersistOutputs).toHaveBeenCalledWith(
+      expect.objectContaining({outputs: {[MAIN_SCREEN]: true}}),
+    );
+    expect(store?.state.outputs[MAIN_SCREEN]).not.toBe(true);
+    saved.resolve();
+    await store?.settled();
     expect(store?.state.outputs).toEqual({[MAIN_SCREEN]: true});
   });
 

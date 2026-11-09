@@ -20,6 +20,7 @@ import {
 } from './settingsFile';
 import type {SettingsProblem} from './settingsStore';
 import {MediaStore} from './mediaStore';
+import {recoverMediaImports} from './mediaImportJournal';
 import type {SaveFailureSink} from './saveFailures';
 import type {MediaItem} from '@core/schema/mediaList';
 
@@ -63,6 +64,9 @@ export async function openMediaStore(
     files: documentFiles({saver, copies, log, failures}),
     log,
   });
+  if (problems.length === 0 && opened.startupProblems.length === 0) {
+    await recoverMediaImports(store.locations.media, document.value, log);
+  }
   const [pathProblem] = opened.startupProblems;
   if (pathProblem !== undefined) {
     problems.push({

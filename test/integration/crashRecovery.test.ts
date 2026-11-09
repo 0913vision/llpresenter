@@ -109,6 +109,52 @@ const UNAVAILABLE = {ok: false, error: {reason: 'unavailable'}};
 const FILE_WRITE_WAIT_MS = 5000;
 
 describe('restoring the output state after a crash', () => {
+  it.each(['false', 'rejected'])(
+    'keeps a failed %s durable restore available for retry without overwriting the record',
+    async outcome => {
+      const {controller, store, record, broadcasts, calls} = await setup();
+      let finish: (saved: boolean) => void = () => undefined;
+      let reject: (error: Error) => void = () => undefined;
+      const write = vi.fn(
+        () =>
+          new Promise<boolean>((resolve, fail) => {
+            finish = resolve;
+            reject = fail;
+          }),
+      );
+      store.connectOutputPersistence(write);
+      const offered = await controller.summary();
+      const answer = {
+        savedAt: SAVED_AT,
+        rows: ['outputs', 'slide', 'showing'],
+      } as const;
+      const applied = controller.apply(answer);
+      await vi.waitFor(() => expect(write).toHaveBeenCalledOnce());
+      expect(store.state).toEqual(emptyLiveState());
+      expect(record.start).not.toHaveBeenCalled();
+      expect(await controller.startFresh()).toMatchObject(UNAVAILABLE);
+      expect(await controller.apply(answer)).toMatchObject(UNAVAILABLE);
+
+      if (outcome === 'false') finish(false);
+      else reject(new Error('disk full'));
+      expect(await applied).toMatchObject({
+        ok: false,
+        error: {reason: 'apply-failed'},
+      });
+      expect(store.state).toEqual(emptyLiveState());
+      expect(broadcasts).toEqual([]);
+      expect(calls).toEqual([]);
+      expect(await controller.summary()).toEqual(offered);
+
+      write.mockResolvedValue(true);
+      expect(await controller.apply(answer)).toEqual({ok: true, value: null});
+      expect(store.state.outputs[MAIN]).toBe(true);
+      expect(store.state.layers.slide?.itemId).toBe(SONG_ITEM);
+      expect(record.start).toHaveBeenCalledOnce();
+      expect(await controller.summary()).toBeNull();
+    },
+  );
+
   it('records a normal launch at once and applies 켤 때 화면 출력 without asking', async () => {
     const {controller, calls} = await setup({crashed: false});
     await controller.start();
@@ -145,7 +191,7 @@ describe('restoring the output state after a crash', () => {
 
   it('restores the checked rows in order in one broadcast, without startup macros', async () => {
     const {controller, store, broadcasts, calls} = await setup();
-    const dispatch = vi.spyOn(store, 'dispatch');
+    const dispatch = vi.spyOn(store, 'dispatchCommitted');
     const result = await controller.apply({
       savedAt: SAVED_AT,
       rows: ['showing', 'outputs'],
@@ -176,6 +222,7 @@ describe('restoring the output state after a crash', () => {
     const {controller, store} = await setup({
       text: recoveryText({
         ...emptyLiveState(),
+        outputs: {[MAIN]: true},
         layers: {
           ...emptyLiveState().layers,
           prop: {
@@ -220,7 +267,7 @@ describe('restoring the output state after a crash', () => {
     ]);
   });
 
-  it('reports a restore that changed nothing and still ends the wait', async () => {
+  it('keeps the offer when a restore changes nothing', async () => {
     const {controller, record, log} = await setup({
       registry: new SliceRegistry([]),
     });
@@ -230,8 +277,8 @@ describe('restoring the output state after a crash', () => {
     expect(log.messages('warn')).toContain(
       'nothing of the output state was restored',
     );
-    expect(record.start).toHaveBeenCalledOnce();
-    expect(await controller.summary()).toBeNull();
+    expect(record.start).not.toHaveBeenCalled();
+    expect(await controller.summary()).not.toBeNull();
   });
 
   it('refuses a stale or unoffered answer and keeps waiting', async () => {
@@ -337,6 +384,7 @@ describe('a record written after another service opened', () => {
     const store = new LiveStore(undefined, () => NOW);
     store.connectSettings(settings.reader);
     let open: ServiceId | null = SERVICE;
+    store.dispatch({type: 'output.set', screenId: MAIN, on: true});
     const writer = new RecoveryRecordWriter({
       file,
       store,
@@ -423,6 +471,7 @@ describe('recovery sources', () => {
 function emptyWith({stage}: {readonly stage: boolean}): LiveState {
   return {
     ...emptyLiveState(),
+    outputs: {[MAIN]: true},
     ...(stage ? {stageMessage: 'Fixture stage note'} : {}),
   };
 }

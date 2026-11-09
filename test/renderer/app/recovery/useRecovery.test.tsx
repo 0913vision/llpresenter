@@ -81,16 +81,40 @@ describe('useRecovery', () => {
     await waitFor(() => expect(result.current.offer).toEqual(newer));
   });
 
-  it('closes the offer and warns when a restore changed nothing', async () => {
-    const {result, apply, onProblem} = setup([sampleOffer()]);
+  it('reloads the offer after a failed write and allows a successful retry', async () => {
+    const offer = sampleOffer();
+    const {result, summary, apply, onProblem} = setup([offer, offer]);
     apply.mockResolvedValueOnce({
       ok: false,
-      error: {reason: 'apply-failed', message: 'Invented rejected commands'},
+      error: {reason: 'apply-failed', message: 'Invented failed durable write'},
     });
     await waitFor(() => expect(result.current.offer).not.toBeNull());
 
     act(() => result.current.restore(['outputs']));
 
+    await waitFor(() => expect(onProblem).toHaveBeenCalledOnce());
+    await waitFor(() => expect(result.current.busy).toBe(false));
+    expect(result.current.offer).toEqual(offer);
+    expect(summary).toHaveBeenCalledTimes(2);
+    expect(onProblem.mock.lastCall?.[0].title).toBe('복구 실패');
+
+    act(() => result.current.restore(['outputs']));
+    await waitFor(() => expect(result.current.offer).toBeNull());
+    expect(apply).toHaveBeenCalledTimes(2);
+    expect(apply.mock.lastCall?.[0]).toEqual({
+      savedAt: offer.savedAt,
+      rows: ['outputs'],
+    });
+  });
+
+  it('closes a consumed offer when starting fresh reports a startup failure', async () => {
+    const {result, startFresh, onProblem} = setup([sampleOffer(), null]);
+    startFresh.mockResolvedValueOnce({
+      ok: false,
+      error: {reason: 'apply-failed', message: 'Invented startup failure'},
+    });
+    await waitFor(() => expect(result.current.offer).not.toBeNull());
+    act(() => result.current.startFresh());
     await waitFor(() => expect(result.current.offer).toBeNull());
     expect(onProblem.mock.lastCall?.[0].title).toBe('복구 실패');
   });

@@ -1,6 +1,7 @@
 import {EventEmitter} from 'node:events';
 import {beforeEach, expect, onTestFinished, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
+import type {LiveState} from '@core/live/state';
 import {makeTempDir} from '@fixtures/tempDir';
 import type {LiveStore} from '@main/live/store';
 import type {MediaBackendRegistration} from '@main/media/register';
@@ -52,6 +53,7 @@ const mocks = vi.hoisted(() => {
     recordStart: vi.fn<() => void>(),
     recordStop: vi.fn<() => void>(),
     recordSettled: vi.fn<() => Promise<void>>(),
+    recordPersistOutputs: vi.fn<(state: LiveState) => Promise<boolean>>(),
     macroContexts: new Array<unknown>(),
     macrosStop: vi.fn<() => void>(),
     overlaysStop: vi.fn<() => void>(),
@@ -191,6 +193,7 @@ vi.mock('@main/live/recovery/recordWriter', () => ({
     start = mocks.recordStart;
     stop = mocks.recordStop;
     settled = mocks.recordSettled;
+    persistOutputs = mocks.recordPersistOutputs;
   },
 }));
 vi.mock('@main/live/recovery/controller', () => ({
@@ -420,6 +423,7 @@ beforeEach(async () => {
   mocks.recordStart.mockReset();
   mocks.recordStop.mockReset();
   mocks.recordSettled.mockReset();
+  mocks.recordPersistOutputs.mockReset().mockResolvedValue(true);
   mocks.macroContexts.length = 0;
   mocks.macrosStop.mockReset();
   mocks.overlaysStop.mockReset();

@@ -162,6 +162,9 @@ function start(): void {
         serviceId: openServiceIdOf(dataStore.content, log),
         log,
       });
+      const stopOutputPersistence = store.connectOutputPersistence(state =>
+        recoveryRecord.persistOutputs(state),
+      );
       const disposeIpc = registerIpc(store, log, {
         windowMode,
         isControlWindow: candidate => candidate === control,
@@ -349,7 +352,11 @@ function start(): void {
       });
       shutdown.add({
         name: 'stop the recovery record',
-        run: () => recoveryRecord.stop(),
+        run: async () => {
+          await store.settled();
+          stopOutputPersistence();
+          recoveryRecord.stop();
+        },
       });
       // NOTE(0913vision): The soak scenario stops next, so it changes
       // nothing while the outputs close. Output windows turn a close into

@@ -256,6 +256,17 @@ readable text only for a problem or standby.
 At launch, if `recovery\session.lock` still exists, the last exit was a crash
 (see 02).
 
+Output on/off changes are written to the recovery record before the switch is
+published to output windows or the controls. If that write fails, the output
+keeps its previous state. Commands arriving during the write keep their order;
+at most 32 wait, and further commands are refused and logged. When the last
+durable state has every output off, launch normally without a recovery dialog,
+even if a slide or overlay was still selected.
+
+Restoring waits for those writes before reporting success. If a restore write
+fails, keep the recovery offer for retry and do not start recording the empty
+session over it. A second answer is refused while a restore is in progress.
+
 ### What the app does
 
 1. Open the last service as it was. Songs, services, and settings were saved on

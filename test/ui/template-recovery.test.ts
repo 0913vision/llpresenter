@@ -1,4 +1,5 @@
 import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
+import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 import {mkdir, readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {expect, it} from 'vitest';
@@ -81,6 +82,18 @@ it(
         () =>
           page.evaluate<boolean>(
             'window.llp.live.get().then(live => live.layers.slide !== null)',
+          ),
+        {timeout: WAIT},
+      )
+      .toBe(true);
+    await page.evaluate(
+      `window.llp.live.send({type: 'output.set', screenId: '${MAIN_SCREEN}', on: true})`,
+    );
+    await expect
+      .poll(
+        () =>
+          page.evaluate<boolean>(
+            `window.llp.live.get().then(live => live.outputs['${MAIN_SCREEN}'] === true)`,
           ),
         {timeout: WAIT},
       )

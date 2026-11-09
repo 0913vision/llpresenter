@@ -12,7 +12,7 @@ import {
 } from '@core/schema/recoveryRecord';
 import type {Logger} from '../../log';
 import {isMissingFile} from '../../store/fsErrors';
-import {dispatchBatched} from '../store';
+import {dispatchBatchedCommitted} from '../store';
 import {
   planRecovery,
   type RecoveryContent,
@@ -32,7 +32,7 @@ interface RecoveryOptions {
   readonly crashed: boolean;
   /** `live.json`, read once after a crash. */
   readonly file: string;
-  readonly store: Parameters<typeof dispatchBatched>[0];
+  readonly store: Parameters<typeof dispatchBatchedCommitted>[0];
   readonly sources: Promise<RecoverySources | null>;
   readonly record: Pick<RecoveryRecordWriter, 'start'>;
   /** 켤 때 화면 출력, as on a normal launch. Never throws. */
@@ -121,6 +121,7 @@ async function readRecord(
  */
 export class RecoveryController implements RecoveryPort {
   private answered: boolean;
+  private applying = false;
   private freshLaunch: Promise<RecoveryResult> | null = null;
   private readonly offer: Promise<Offer | null>;
 
@@ -159,26 +160,34 @@ export class RecoveryController implements RecoveryPort {
     if (!rows.every(kind => offered.has(kind))) {
       return failure('invalid-selection', 'A selected row is not offered');
     }
-    this.answered = true;
+    this.applying = true;
     const commands = [
       ...waiting.steps
         .filter(({row}) => rows.includes(row.kind))
         .flatMap(({commands: rowCommands}) => rowCommands),
     ];
     try {
-      if (!dispatchBatched(this.options.store, commands, this.options.log)) {
+      if (
+        !(await dispatchBatchedCommitted(
+          this.options.store,
+          commands,
+          this.options.log,
+        ))
+      ) {
         this.options.log.warn('nothing of the output state was restored', {
           rows,
         });
         return failure('apply-failed', 'Nothing could be restored');
       }
+      this.answered = true;
+      this.options.record.start();
       this.options.log.info('restored the output state', {rows});
       return OK;
     } catch (error: unknown) {
       this.options.log.error('could not restore the output state', error);
       return failure('apply-failed', 'The output state could not be restored');
     } finally {
-      this.options.record.start();
+      this.applying = false;
     }
   }
 
@@ -191,6 +200,7 @@ export class RecoveryController implements RecoveryPort {
   private async loadOffer(): Promise<Offer | null> {
     const record = await readRecord(this.options.file, this.options.log);
     if (record === null) return null;
+    if (!Object.values(record.state.outputs).some(Boolean)) return null;
     const sources = await this.options.sources;
     if (sources === null) {
       this.options.log.warn('recovery has no settings or content to check');
@@ -202,7 +212,7 @@ export class RecoveryController implements RecoveryPort {
   // NOTE(0913vision): Callers check and claim the answer in the same task
   // as this call, with no await in between, so two answers never both apply.
   private waiting(offer: Offer | null): Waiting | null {
-    if (this.answered) return null;
+    if (this.answered || this.applying) return null;
     const steps =
       offer === null ? [] : planRecovery(offer.record, offer.sources);
     if (offer !== null && steps.length > 0) return {offer, steps};

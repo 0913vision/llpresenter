@@ -20,6 +20,11 @@ import type {Analysis, AnalysisRequest, MediaFacts} from './mediaAnalyser';
 import {mediaKindOf, type MediaKind} from './mediaKinds';
 import {realPathInside} from '../windows/insideRoots';
 import {storedPath} from './storedPath';
+import {
+  beginMediaImport,
+  finishMediaImport,
+  importTemporary,
+} from '../store/mediaImportJournal';
 
 /** The most import jobs that wait or run at once. */
 export const MAX_IMPORT_JOBS = MEDIA_LIMITS.importBatch;
@@ -78,6 +83,8 @@ interface ImportJob {
   readonly release: () => void;
   /** Set when the job starts joining the media list; it can't be cancelled after. */
   admitting: boolean;
+  journalFolder?: string;
+  keepJournal?: boolean;
 }
 
 type JobOutcome =
@@ -317,7 +324,7 @@ export class MediaImporter {
         : {phase: 'failed', message: placed.error};
     }
     if (cancelled(job)) {
-      await this.removeCopy(placed);
+      await this.removeCopy(placed, job);
       return CANCELLED;
     }
     this.options.report(progress(job, 'analysing', 100));
@@ -328,11 +335,11 @@ export class MediaImporter {
       signal: job.abort.signal,
     });
     if (cancelled(job)) {
-      await this.removeCopy(placed);
+      await this.removeCopy(placed, job);
       return CANCELLED;
     }
     if (analysis.kind === 'cant-play') {
-      await this.removeCopy(placed);
+      await this.removeCopy(placed, job);
       return this.refused(job, analysis);
     }
     if (analysis.kind === 'unavailable') {
@@ -343,6 +350,10 @@ export class MediaImporter {
     }
     const facts = analysis.kind === 'read' ? analysis.facts : {};
     const outcome = await this.admit(job, store, {placed, facts});
+    if (outcome === COMPLETE && !job.keepJournal) {
+      // NOTE(0913vision): A failed registry write keeps the intent for launch reconciliation.
+      await this.retireJournal(job);
+    }
     if (outcome === COMPLETE && facts.thumbnail !== undefined) {
       await this.options.saveThumbnail(
         job.mediaId,
@@ -389,21 +400,35 @@ export class MediaImporter {
       },
       job.playlist,
     );
-    if (added.ok || added.error.reason === 'write-failed') return COMPLETE;
+    if (added.ok) return COMPLETE;
+    if (added.error.reason === 'write-failed') {
+      job.keepJournal = true;
+      return COMPLETE;
+    }
     this.options.log.warn('could not add imported media', added.error);
-    await this.removeCopy(placed);
+    await this.removeCopy(placed, job);
     return {phase: 'failed', message: NOT_ADDED};
   }
 
-  private async removeCopy(placed: PlacedFile) {
+  private async removeCopy(placed: PlacedFile, job: ImportJob) {
     if (!placed.copied) return;
     try {
       await rm(placed.file, {force: true});
+      await this.retireJournal(job);
     } catch (error: unknown) {
       this.options.log.warn('could not remove an unused media copy', {
         file: placed.file,
         error,
       });
+    }
+  }
+
+  private async retireJournal(job: ImportJob): Promise<void> {
+    if (job.journalFolder === undefined) return;
+    try {
+      await finishMediaImport(job.journalFolder, job.mediaId);
+    } catch (error: unknown) {
+      this.options.log.warn('could not retire the media import journal', error);
     }
   }
 
@@ -424,14 +449,23 @@ export class MediaImporter {
     }
     const target = await freePath(folder, job.fileName);
     if (target === null) return {ok: false, error: COPY_FAILED};
+    const journal = {
+      version: 1,
+      mediaId: job.mediaId,
+      file: basename(target),
+    } as const;
+    await beginMediaImport(folder, journal);
+    job.journalFolder = folder;
     const copy = this.options.copy ?? copyWithProgress;
     const copied = await copy({
       from: job.source,
       to: target,
       signal: job.abort.signal,
       onPercent,
+      temporary: importTemporary(folder, journal),
     });
     if (!copied.ok) {
+      await this.retireJournal(job);
       if (!cancelled(job)) {
         this.options.log.warn('could not copy imported media', {
           file: job.source,

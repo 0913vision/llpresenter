@@ -1,6 +1,6 @@
 import {randomUUID} from 'node:crypto';
 import {createReadStream, createWriteStream} from 'node:fs';
-import {access, mkdir, rename, rm, stat} from 'node:fs/promises';
+import {access, mkdir, open, rename, rm, stat} from 'node:fs/promises';
 import {basename, dirname, extname, join} from 'node:path';
 import {Transform} from 'node:stream';
 import {pipeline} from 'node:stream/promises';
@@ -17,6 +17,8 @@ export interface CopyOptions {
   readonly signal: AbortSignal;
   /** Receives each whole percent once, as the copy reaches it. */
   readonly onPercent: (percent: number) => void;
+  /** An importer-owned temporary path already named in its durable journal. */
+  readonly temporary?: string;
 }
 
 /**
@@ -30,8 +32,8 @@ export async function copyWithProgress({
   to,
   signal,
   onPercent,
+  temporary = join(dirname(to), `.${basename(to)}.${randomUUID()}.tmp`),
 }: CopyOptions): Promise<Result<number, string>> {
-  const temporary = join(dirname(to), `.${basename(to)}.${randomUUID()}.tmp`);
   try {
     const {size} = await stat(from);
     await mkdir(dirname(to), {recursive: true});
@@ -55,6 +57,12 @@ export async function copyWithProgress({
       createWriteStream(temporary, {flags: 'wx'}),
       {signal},
     );
+    const handle = await open(temporary, 'r+');
+    try {
+      await handle.sync();
+    } finally {
+      await handle.close();
+    }
     await rename(temporary, to);
     return {ok: true, value: size};
   } catch (error: unknown) {

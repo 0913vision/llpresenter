@@ -1143,6 +1143,17 @@ preferred), `docs/HANDOFF.md` (개역한글 and KJV).
   leave a half-written file.
 - If writes to one file overlap, run them in order. The later content must win.
 
+An imported media copy has a durable intent in `Media\.imports\<media ID>.json`
+before copying starts. Its temporary file is flushed before it becomes the final
+media file. The intent is removed only after the media list is saved or the
+unused copy is removed. At launch, before imports are accepted, reconcile these
+intents with the readable media list: keep any registered file, and remove only
+unregistered files owned by an unfinished intent. If the media list could not be
+read reliably, leave the intents and files untouched. Unjournaled files are
+never inferred to be imports. The journal accepts at most 200 unfinished
+intents; an unreadable or invalid intent is left in place and logged instead of
+being used to delete a file.
+
 ### Recovery copies (implementation requirement)
 
 - Before you overwrite a file, keep the previous version as
@@ -1191,7 +1202,8 @@ preferred), `docs/HANDOFF.md` (개역한글 and KJV).
 
 Don't put the output state in song, service, or settings files. Instead, the
 main process writes it to the recovery record each time it changes. You can
-batch these writes to once per second (proposal).
+batch ordinary edits to once per second. Output on/off changes bypass this
+interval and finish the durable record write before the switch is published.
 
 `recovery\live.json` uses the `llrecovery` file format, schema version 1. Its
 `state` is the complete live output state, alongside the service ID. It keeps

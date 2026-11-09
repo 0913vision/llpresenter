@@ -6,7 +6,7 @@ import type {Logger} from '../../log';
 import {writeFileAtomically, type WriteProblem} from '../../store/atomicWrite';
 import type {LiveStore} from '../store';
 
-/** At most one record write per interval (docs/spec/02-data.md, proposal). */
+/** Ordinary edits are throttled; output switches bypass this interval. */
 export const RECORD_INTERVAL_MS = 1000;
 
 const RECORD_FORMAT = 'llrecovery';
@@ -39,7 +39,8 @@ function recordedState({timers, lastMacroId, ...state}: LiveState): LiveState {
  * Keeps `live.json` close to the live state: one write right away, then at
  * most one per interval while the state changes, with one write in flight and
  * later changes folded into the next one. A failed write keeps the previous
- * record and is logged once until a write succeeds again.
+ * record and is logged once until a write succeeds again. Output switches
+ * flush immediately before they become visible.
  */
 export class RecoveryRecordWriter {
   private stopFollowing: (() => void) | null = null;
@@ -48,6 +49,7 @@ export class RecoveryRecordWriter {
   private pending = false;
   private stopped = false;
   private failing = false;
+  private switching = false;
   private lastState: LiveState | null = null;
   private lastServiceId: ServiceId | null = null;
 
@@ -75,6 +77,24 @@ export class RecoveryRecordWriter {
     await this.writing;
   }
 
+  /** Flushes the transition before LiveStore publishes it, behind any older write. */
+  async persistOutputs(state: LiveState): Promise<boolean> {
+    if (this.stopped) return false;
+    this.switching = true;
+    this.pending = false;
+    if (this.timer !== null) clearTimeout(this.timer);
+    this.timer = null;
+    await this.writing;
+    const saved = this.writeCurrent(state);
+    this.writing = saved.then(() => undefined);
+    try {
+      return await saved;
+    } finally {
+      this.writing = null;
+      this.switching = false;
+    }
+  }
+
   private readonly schedule = (): void => {
     if (this.timer !== null || this.stopped) return;
     this.timer = setTimeout(
@@ -89,31 +109,33 @@ export class RecoveryRecordWriter {
   };
 
   private request(): void {
-    if (this.stopped) return;
+    if (this.stopped || this.switching) return;
     if (this.writing !== null) {
       this.pending = true;
       return;
     }
-    this.writing = this.writeCurrent().finally(() => {
-      this.writing = null;
-      if (!this.pending) return;
-      this.pending = false;
-      this.request();
-    });
+    this.writing = this.writeCurrent(this.options.store.state)
+      .then(() => undefined)
+      .finally(() => {
+        this.writing = null;
+        if (!this.pending) return;
+        this.pending = false;
+        this.request();
+      });
   }
 
-  private async writeCurrent(): Promise<void> {
+  private async writeCurrent(state: LiveState): Promise<boolean> {
     const {
-      store,
       file,
       log,
       now = Date.now,
       write = writeFileAtomically,
     } = this.options;
     try {
-      const state = store.state;
       const serviceId = this.options.serviceId();
-      if (state === this.lastState && serviceId === this.lastServiceId) return;
+      if (state === this.lastState && serviceId === this.lastServiceId) {
+        return true;
+      }
       const text = serializeRecoveryRecord({
         format: RECORD_FORMAT,
         schemaVersion: RECORD_SCHEMA_VERSION,
@@ -123,19 +145,21 @@ export class RecoveryRecordWriter {
       });
       if (!text.ok) {
         this.reportFailure(text.error);
-        return;
+        return false;
       }
       const written = await write(file, text.value);
       if (!written.ok) {
         this.reportFailure(written.error);
-        return;
+        return false;
       }
       this.lastState = state;
       this.lastServiceId = serviceId;
       if (this.failing) log.info('the recovery record is written again');
       this.failing = false;
+      return true;
     } catch (error: unknown) {
       this.reportFailure(error);
+      return false;
     }
   }
 

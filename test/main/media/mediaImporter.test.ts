@@ -409,7 +409,7 @@ describe('media import boundaries', () => {
     await ended(reports, 1);
 
     expect(reports.at(-1)).toMatchObject({phase: 'complete'});
-    expect(await readdir(media)).toEqual(['Kept.png']);
+    expect((await readdir(media)).sort()).toEqual(['.imports', 'Kept.png']);
     expect(await readFile(original, 'utf8')).toBe('invented');
   });
 

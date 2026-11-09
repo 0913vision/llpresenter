@@ -26,6 +26,10 @@ export type LiveCommandListener = (
 
 export type ProblemListener = (problem: AppProblem) => void;
 
+const MAX_WAITING_COMMANDS = 32;
+
+type PersistOutputs = (state: LiveState) => Promise<boolean>;
+
 /**
  * The single source of truth for the live state. It doesn't depend on
  * Electron; the IPC layer subscribes to it to reach the windows.
@@ -42,6 +46,9 @@ export class LiveStore {
   private macros: MacroCommandPort | undefined;
   private audioMedia: (() => MediaList) | undefined;
   private readonly readClock: () => Pick<SliceInputs, 'now' | 'timerNow'>;
+  private persistOutputs: PersistOutputs | undefined;
+  private committing: Promise<void> | null = null;
+  private readonly waiting: Array<() => void> = [];
 
   /**
    * Starts from the initial state.
@@ -66,6 +73,19 @@ export class LiveStore {
 
   get state(): LiveState {
     return this.history.state;
+  }
+
+  /** Keeps output switches unpublished until their recovery state is durable. */
+  connectOutputPersistence(persist: PersistOutputs): () => void {
+    this.persistOutputs = persist;
+    return () => {
+      if (this.persistOutputs === persist) this.persistOutputs = undefined;
+    };
+  }
+
+  /** Waits for admitted output switches and commands queued behind them. */
+  async settled(): Promise<void> {
+    while (this.committing !== null) await this.committing;
   }
 
   mediaProgress(): MediaProgress | null {
@@ -148,13 +168,54 @@ export class LiveStore {
    * @param onSkipped - Receives one diagnostic per unsupported or failed command,
    * and last the one for a dropped dispatch. Each 매크로 that a dropped
    * dispatch ran then goes to the problem listeners.
-   * @returns Whether the state changed.
+   * @returns Whether state changed or a command was admitted behind a durable switch.
    */
   dispatch(
     command: LiveCommand,
     onListenerError?: (error: unknown) => void,
     onSkipped?: (problem: SkippedLiveCommand) => void,
   ): boolean {
+    const result = this.dispatchResult(command, onListenerError, onSkipped);
+    if (typeof result === 'boolean') return result;
+    void result.catch(() => undefined);
+    return true;
+  }
+
+  /** Resolves after publication; rejects if the durable output write fails. */
+  async dispatchCommitted(
+    command: LiveCommand,
+    onListenerError?: (error: unknown) => void,
+    onSkipped?: (problem: SkippedLiveCommand) => void,
+  ): Promise<boolean> {
+    return this.dispatchResult(command, onListenerError, onSkipped);
+  }
+
+  private dispatchResult(
+    command: LiveCommand,
+    onListenerError?: (error: unknown) => void,
+    onSkipped?: (problem: SkippedLiveCommand) => void,
+  ): boolean | Promise<boolean> {
+    if (this.committing !== null) {
+      if (this.waiting.length >= MAX_WAITING_COMMANDS) {
+        onListenerError?.(
+          new Error('Too many commands waiting for an output switch'),
+        );
+        return false;
+      }
+      return new Promise((resolve, reject) => {
+        this.waiting.push(() => {
+          try {
+            resolve(this.dispatchResult(command, onListenerError, onSkipped));
+          } catch (error: unknown) {
+            reject(
+              error instanceof Error
+                ? error
+                : new Error('Queued live command failed', {cause: error}),
+            );
+          }
+        });
+      });
+    }
     const commands: SingleLiveCommand[] = [];
     const {history: next, skipped} = this.slices.run(this.history, command, {
       onCommand: executed => commands.push(executed),
@@ -172,7 +233,6 @@ export class LiveStore {
         : {monitorNumbers: this.monitorNumbers}),
     });
     const changed = next !== this.history;
-    this.history = next;
     for (const problem of skipped) {
       try {
         onSkipped?.(problem);
@@ -181,6 +241,49 @@ export class LiveStore {
       }
     }
     this.reportDroppedMacros(skipped, onListenerError);
+    if (
+      changed &&
+      this.persistOutputs !== undefined &&
+      outputsChanged(this.state, next.state)
+    ) {
+      const result = this.persistOutputs(next.state)
+        .then(saved => {
+          if (!saved) throw new Error('Could not save the output switch');
+          this.publish(next, commands, onListenerError);
+          return true;
+        })
+        .catch((error: unknown) => {
+          onListenerError?.(error);
+          throw error;
+        });
+      this.committing = result
+        .then(
+          () => undefined,
+          () => undefined,
+        )
+        .finally(() => {
+          this.committing = null;
+          this.drainWaiting();
+        });
+      return result;
+    }
+    this.publish(next, commands, onListenerError);
+    return changed;
+  }
+
+  private drainWaiting(): void {
+    while (this.committing === null && this.waiting.length > 0) {
+      this.waiting.shift()?.();
+    }
+  }
+
+  private publish(
+    next: LiveHistory,
+    commands: readonly SingleLiveCommand[],
+    onListenerError?: (error: unknown) => void,
+  ): void {
+    const changed = next !== this.history;
+    this.history = next;
     if (changed) this.notify(next.state, onListenerError);
     for (const listener of this.commandListeners) {
       try {
@@ -189,7 +292,6 @@ export class LiveStore {
         onListenerError?.(error);
       }
     }
-    return changed;
   }
 
   subscribe(listener: LiveListener): () => void {
@@ -254,16 +356,24 @@ export class LiveStore {
   }
 }
 
+function outputsChanged(before: LiveState, after: LiveState): boolean {
+  return [
+    ...new Set([...Object.keys(before.outputs), ...Object.keys(after.outputs)]),
+  ].some(id => Boolean(before.outputs[id]) !== Boolean(after.outputs[id]));
+}
+
 /**
  * Rejects unhandled commands and logs every listener that throws.
  *
- * @returns Whether the state changed.
+ * @returns The dispatcher's admission or awaited commit result.
  */
-export function dispatchLogged(
-  store: Pick<LiveStore, 'handles' | 'dispatch'>,
+export function dispatchLogged<T extends boolean | Promise<boolean>>(
+  store: Pick<LiveStore, 'handles'> & {
+    dispatch: (...args: Parameters<LiveStore['dispatch']>) => T;
+  },
   command: LiveCommand,
   log: Logger,
-): boolean {
+): T | false {
   if (!store.handles(command.type)) {
     log.warn('unhandled live command', {type: command.type});
     return false;
@@ -323,6 +433,35 @@ export function dispatchBatched(
     const batchChanged = dispatchLogged(
       store,
       {type: 'live.batch', commands: batch},
+      log,
+    );
+    changed ||= batchChanged;
+  }
+  return changed;
+}
+
+/** Waits for each batch's publication and stops on a failed durable write. */
+export async function dispatchBatchedCommitted(
+  store: Pick<LiveStore, 'handles' | 'dispatchCommitted'>,
+  commands: readonly SingleLiveCommand[],
+  log: Logger,
+): Promise<boolean> {
+  const committed = {
+    handles: (type: string) => store.handles(type),
+    dispatch: store.dispatchCommitted.bind(store),
+  };
+  let changed = false;
+  for (
+    let start = 0;
+    start < commands.length;
+    start += MAX_LIVE_BATCH_COMMANDS
+  ) {
+    const batchChanged = await dispatchLogged(
+      committed,
+      {
+        type: 'live.batch',
+        commands: commands.slice(start, start + MAX_LIVE_BATCH_COMMANDS),
+      },
       log,
     );
     changed ||= batchChanged;

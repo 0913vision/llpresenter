@@ -38,7 +38,7 @@ function logFailure(
 /**
  * The crash offer and its answer. Main holds the outputs off and the startup
  * 매크로 until one answer arrives; a stale or invalid selection reads the
- * offer again, a restore that changed nothing reports 출력 상태 복구 실패,
+ * offer again, a failed restore reports 복구 실패 and reloads the offer,
  * and a request that fails keeps the dialog so the operator can answer again.
  * An offer that can't be read reports a card whose 다시 시도 reads it again,
  * so main is never left waiting with no way to answer.
@@ -87,9 +87,7 @@ export function useRecovery(
       return;
     }
     if (result.error.reason === 'apply-failed') {
-      setOffer(null);
       onProblem({...FAILED_NOTICE, time: noticeTime()});
-      return;
     }
     setOffer((await api?.recovery.summary()) ?? null);
   };

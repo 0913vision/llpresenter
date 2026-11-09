@@ -15,7 +15,7 @@ import {
   recoverySources,
 } from '@main/live/recovery/controller';
 import {planRecovery, type RecoveryStep} from '@main/live/recovery/plan';
-import {dispatchBatched, type LiveStore} from '@main/live/store';
+import {dispatchBatchedCommitted, type LiveStore} from '@main/live/store';
 
 const files = vi.hoisted(() => {
   const state: {text: string | null} = {text: null};
@@ -34,7 +34,7 @@ vi.mock('node:fs/promises', () => ({
 vi.mock('@main/live/recovery/plan', () => ({planRecovery: vi.fn()}));
 vi.mock('@main/live/store', async importOriginal => ({
   ...(await importOriginal<typeof import('@main/live/store')>()),
-  dispatchBatched: vi.fn(() => true),
+  dispatchBatchedCommitted: vi.fn(async () => true),
 }));
 
 const MAIN = createScreenId('00000000-0000-4000-8000-000000000001');
@@ -55,7 +55,7 @@ const UNAVAILABLE = {ok: false, error: {reason: 'unavailable'}};
 
 function setup({
   crashed = true,
-  text = recoveryText(emptyLiveState()),
+  text = recoveryText({...emptyLiveState(), outputs: {[MAIN]: true}}),
   steps = STEPS,
   sources = true,
 }: {
@@ -76,9 +76,9 @@ function setup({
     calls.push('startup macros');
   });
   const log = recordingLogger();
-  const store: Pick<LiveStore, 'handles' | 'dispatch'> = {
+  const store: Pick<LiveStore, 'handles' | 'dispatchCommitted'> = {
     handles: vi.fn(() => true),
-    dispatch: vi.fn(() => true),
+    dispatchCommitted: vi.fn(async () => true),
   };
   const controller = new RecoveryController({
     crashed,
@@ -116,7 +116,7 @@ describe('RecoveryController', () => {
       rows: STEPS.map(({row}) => row),
     });
     expect(calls).toEqual([]);
-    expect(dispatchBatched).not.toHaveBeenCalled();
+    expect(dispatchBatchedCommitted).not.toHaveBeenCalled();
   });
 
   it('restores the checked rows in plan order, then records the session', async () => {
@@ -126,7 +126,7 @@ describe('RecoveryController', () => {
       await controller.apply({savedAt: SAVED_AT, rows: ['showing', 'outputs']}),
     ).toEqual({ok: true, value: null});
 
-    expect(dispatchBatched).toHaveBeenCalledExactlyOnceWith(
+    expect(dispatchBatchedCommitted).toHaveBeenCalledExactlyOnceWith(
       store,
       STEPS.flatMap(({commands}) => commands),
       log,
@@ -136,9 +136,9 @@ describe('RecoveryController', () => {
     expect(await controller.startFresh()).toMatchObject(UNAVAILABLE);
   });
 
-  it('reports a restore that changed nothing and still ends the wait', async () => {
+  it('keeps the offer when a restore changes nothing', async () => {
     const {controller, record, log} = setup();
-    vi.mocked(dispatchBatched).mockReturnValueOnce(false);
+    vi.mocked(dispatchBatchedCommitted).mockResolvedValueOnce(false);
 
     expect(
       await controller.apply({savedAt: SAVED_AT, rows: ['outputs']}),
@@ -146,7 +146,8 @@ describe('RecoveryController', () => {
     expect(log.messages('warn')).toContain(
       'nothing of the output state was restored',
     );
-    expect(record.start).toHaveBeenCalledOnce();
+    expect(record.start).not.toHaveBeenCalled();
+    expect(await controller.summary()).not.toBeNull();
   });
 
   it('refuses a stale answer and a row it did not offer, and keeps waiting', async () => {
@@ -170,7 +171,7 @@ describe('RecoveryController', () => {
 
     expect(await controller.startFresh()).toEqual({ok: true, value: null});
     expect(calls).toEqual(['record', 'outputs on launch', 'startup macros']);
-    expect(dispatchBatched).not.toHaveBeenCalled();
+    expect(dispatchBatchedCommitted).not.toHaveBeenCalled();
   });
 
   it('reports startup 매크로 that fail and still records the session', async () => {

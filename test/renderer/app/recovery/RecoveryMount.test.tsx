@@ -1,4 +1,5 @@
-import {act, cleanup, render, screen} from '@testing-library/react';
+import {act, cleanup, render, screen, waitFor} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import type {RecoveryResult, RecoverySummary} from '@core/schema/recovery';
@@ -47,6 +48,40 @@ function setup(offers: ReadonlyArray<RecoverySummary | Error>) {
 
 const dialog = () =>
   screen.queryByRole('alertdialog', {name: '출력 내용을 복구할까요?'});
+
+it('keeps the dialog and checked rows available to retry a failed durable restore', async () => {
+  const offer = sampleOffer();
+  const {apply, summary} = setup([offer, offer]);
+  apply.mockResolvedValueOnce({
+    ok: false,
+    error: {reason: 'apply-failed', message: 'Invented failed durable write'},
+  });
+  await screen.findByRole('alertdialog', {name: '출력 내용을 복구할까요?'});
+  await userEvent.click(
+    screen.getByRole('checkbox', {name: /마지막 슬라이드/}),
+  );
+  await userEvent.click(screen.getByRole('button', {name: '복구'}));
+
+  await waitFor(() => expect(summary).toHaveBeenCalledTimes(2));
+  expect(dialog()).not.toBeNull();
+  expect(
+    screen
+      .getByRole('checkbox', {name: /마지막 슬라이드/})
+      .getAttribute('aria-checked'),
+  ).toBe('false');
+  await waitFor(() =>
+    expect(
+      screen.getByRole('button', {name: '복구'}).getAttribute('aria-disabled'),
+    ).not.toBe('true'),
+  );
+  await userEvent.click(screen.getByRole('button', {name: '복구'}));
+  await waitFor(() => expect(dialog()).toBeNull());
+  expect(apply).toHaveBeenCalledTimes(2);
+  expect(apply.mock.calls.map(([answer]) => answer)).toEqual([
+    {savedAt: offer.savedAt, rows: ['outputs', 'showing']},
+    {savedAt: offer.savedAt, rows: ['outputs', 'showing']},
+  ]);
+});
 
 beforeEach(() => {
   applyService(null);
