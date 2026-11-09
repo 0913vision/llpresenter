@@ -1,4 +1,5 @@
 import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
+import {SUNDAY_NOTICE_PICTURE_ID} from '@core/themes/sundayNotice';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {libraryEndpoints} from '@contracts/ipc/library';
 import {createSongId} from '@core/schema/ids';
@@ -64,6 +65,40 @@ function registered(ready: Promise<LibrarySongSources | null>) {
 }
 
 describe('library song projection', () => {
+  it.each(['none', 'builtin', 'missing'] as const)(
+    'reports the missing name only for a real reference: %s',
+    async state => {
+      const source = sources();
+      const document = source.song();
+      if (document === null) throw Error('Missing fixture');
+      const id = SUNDAY_NOTICE_PICTURE_ID;
+      const shown = await showLibrarySong(
+        {
+          ...source,
+          song: () => ({
+            ...document,
+            song: {
+              ...document.song,
+              ...(state === 'none' ? {} : {background: id}),
+            },
+          }),
+          backgroundOf: async () =>
+            state === 'builtin' ? {mediaId: id, loop: false} : null,
+          backgroundName: () => 'Warm light',
+        },
+        songId,
+      );
+      if (state === 'missing') {
+        expect(shown).toMatchObject({
+          problem: 'missing-background',
+          missingBackgroundName: 'Warm light',
+        });
+      } else {
+        expect(shown).not.toHaveProperty('problem');
+        expect(shown).not.toHaveProperty('missingBackgroundName');
+      }
+    },
+  );
   it('uses file order, current label colors and first jump keys without a service item', async () => {
     const source = sources();
     expect(await showLibrarySong(source, songId)).toEqual({

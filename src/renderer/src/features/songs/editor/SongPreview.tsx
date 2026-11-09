@@ -30,15 +30,6 @@ import {
 } from './songPreviewModel';
 import type {SongEditorStore} from './songEditorStore';
 import styles from './SongPanels.module.css';
-import type {LiveLayers} from '@core/live/state';
-import type {SlideTransition} from '@core/schema/slideTransition';
-import {
-  defaultPreferences,
-  withPreferenceDefaults,
-} from '@core/schema/preferences';
-import {transitionTimes} from '@core/output/transitions';
-import {SlidePreviewPlayback} from './slidePreviewPlayback';
-
 function usePreviewSettings(api: LlpApi['settings']) {
   const [documents, setDocuments] = useState<readonly SettingsDocument[]>([]);
   useEffect(() => {
@@ -46,9 +37,7 @@ function usePreviewSettings(api: LlpApi['settings']) {
     const accept = (document: SettingsDocument): void => {
       if (
         !alive ||
-        (document.name !== 'themes' &&
-          document.name !== 'screens' &&
-          document.name !== 'preferences')
+        (document.name !== 'themes' && document.name !== 'screens')
       ) {
         return;
       }
@@ -66,7 +55,7 @@ function usePreviewSettings(api: LlpApi['settings']) {
       });
     };
     const stop = api.subscribe(accept);
-    for (const name of ['themes', 'screens', 'preferences'] as const) {
+    for (const name of ['themes', 'screens'] as const) {
       void api.get({name}).then(accept, (error: unknown) => {
         if (alive) console.error('Could not read song preview settings', error);
       });
@@ -79,7 +68,6 @@ function usePreviewSettings(api: LlpApi['settings']) {
   return {
     themes: documents.find(item => item.name === 'themes')?.value,
     screens: documents.find(item => item.name === 'screens')?.value,
-    preferences: documents.find(item => item.name === 'preferences')?.value,
   };
 }
 
@@ -89,39 +77,20 @@ interface ScreenStyle extends CSSProperties {
 export function Picture({
   layers,
   appearance,
-  animate = true,
-  transition,
-  before,
 }: {
   readonly layers: ReturnType<typeof selectedPreview>;
   readonly appearance: ReturnType<typeof previewAppearance>;
-  readonly animate?: boolean;
-  readonly transition?: SlideTransition | undefined;
-  readonly before?: LiveLayers | undefined;
 }): JSX.Element {
   const parent = useRef<HTMLDivElement>(null);
-  const playback = useRef<SlidePreviewPlayback | null>(null);
+  const renderer = useRef<OutputRenderer | null>(null);
   const draw = useEffectEvent(() => {
     try {
-      playback.current?.render(
-        layers,
-        {
-          screen: appearance.screen,
-          theme: appearance.theme,
-          transitions: animate,
-          ...(layers.slide === null ? {} : {slide: layers.slide}),
-          ...(transition === undefined
-            ? {}
-            : {
-                slideTransition: transition,
-                transitionTimes: transitionTimes(
-                  defaultPreferences,
-                  transition,
-                ),
-              }),
-        },
-        before,
-      );
+      renderer.current?.render(layers, {
+        screen: appearance.screen,
+        theme: appearance.theme,
+        transitions: false,
+        ...(layers.slide === null ? {} : {slide: layers.slide}),
+      });
     } catch (error) {
       console.error('Could not update song preview', error);
     }
@@ -136,27 +105,17 @@ export function Picture({
       mode: 'preview',
       onError: (message, error) => console.error(message, error),
     });
-    playback.current = new SlidePreviewPlayback((layers, frame) =>
-      view.render(layers, frame),
-    );
+    renderer.current = view;
     draw();
     return () => {
-      playback.current?.dispose();
-      playback.current = null;
+      renderer.current = null;
       view.dispose();
       previewMedia?.dispose();
     };
   }, []);
   useLayoutEffect(() => {
     draw();
-  }, [
-    layers,
-    appearance.screen,
-    appearance.theme,
-    animate,
-    transition,
-    before,
-  ]);
+  }, [layers, appearance.screen, appearance.theme]);
   const style: ScreenStyle = {'--output-background': appearance.background};
   return (
     <div
@@ -312,26 +271,6 @@ export function ContentPreviewFrame({
             : selectedPreview(song, {block, background, nextBlock}),
     [song, block, background, nextBlock, tilePicture, mediaPicture],
   );
-  const defaults =
-    documents.preferences === undefined
-      ? defaultPreferences
-      : withPreferenceDefaults(documents.preferences);
-  const transition =
-    layers.slide?.transition ??
-    defaults.output.transition[
-      (picture?.position ?? 1) === 1 ? 'between' : 'within'
-    ];
-  const before = useMemo(
-    () =>
-      song === undefined || block === 0
-        ? {...layers, slide: null}
-        : selectedPreview(song, {
-            block: block - 1,
-            background,
-            nextBlock: block,
-          }),
-    [song, block, background, layers],
-  );
   // NOTE(0913vision): With nothing to show (no item, or a 구역 selected) the
   // panel keeps its full-width stage and the height of its caption, blank (no
   // theme content is drawn), so the column below does not move
@@ -359,12 +298,7 @@ export function ContentPreviewFrame({
         picture === null ? (
           <div className={styles.screen} data-blank="" />
         ) : (
-          <Picture
-            layers={layers}
-            appearance={appearances[shown]}
-            transition={transition}
-            before={before}
-          />
+          <Picture layers={layers} appearance={appearances[shown]} />
         )
       }
       caption={() => (

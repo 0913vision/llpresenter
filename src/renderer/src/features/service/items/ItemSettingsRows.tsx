@@ -18,7 +18,6 @@ import type {SongSession} from '@renderer/features/songs/editor/songSession';
 import {
   backgroundName,
   backgroundMedia,
-  mediaName,
   SONG_DEFAULT_LABEL,
 } from '@renderer/features/media/backgroundChoices';
 import {MediaPicker} from '@renderer/features/songs/editor/MediaPicker';
@@ -32,7 +31,6 @@ import {useFollowedDocument, type DocumentSource} from './useFollowedDocument';
 const NONE = '없음';
 const NO_MACRO = '';
 const MACRO_META = '매크로';
-const MISSING_BACKGROUND = '배경 파일 없음';
 const MISSING_MACRO = '매크로 없음';
 const LOADING_REASON = '불러오는 중';
 const READ_FAILED_REASON = '불러오지 못했습니다';
@@ -119,13 +117,7 @@ export function ItemBackgroundRow({
             ref={setButton}
             id={controlId}
             block
-            value={
-              selected === undefined
-                ? mediaId === undefined
-                  ? NONE
-                  : MISSING_BACKGROUND
-                : mediaName(selected)
-            }
+            value={backgroundName(list, mediaId)}
             meta={inherited ? SONG_DEFAULT_LABEL : undefined}
             lead={
               selected === undefined

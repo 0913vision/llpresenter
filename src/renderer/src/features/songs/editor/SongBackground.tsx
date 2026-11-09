@@ -7,6 +7,11 @@ import {MediaPicker, NONE_LABEL} from './MediaPicker';
 import type {SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';
 import styles from './SongBackground.module.css';
+import {
+  backgroundName,
+  backgroundPicture,
+  missingBackgroundTip,
+} from '../../media/backgroundChoices';
 
 /** Reads checked media while mounted; a delayed get cannot replace a newer push. */
 export function SongBackground({
@@ -58,7 +63,10 @@ export function SongBackground({
     [state.doc],
   );
   const selected = items.find(item => item.id === session.background);
-  const missing = session.background !== undefined && selected === undefined;
+  const missing =
+    session.background !== undefined &&
+    selected === undefined &&
+    backgroundPicture(session.background) === undefined;
   const disabled =
     session.readOnly || busy || (state.doc === null && !state.failed);
   if (disabled && anchor !== null) setAnchor(null);
@@ -73,7 +81,7 @@ export function SongBackground({
           : state.doc === null
             ? '미디어 불러오는 중'
             : missing
-              ? '미디어를 찾을 수 없습니다'
+              ? missingBackgroundTip()
               : undefined;
   return (
     <div className={styles.control}>
@@ -84,7 +92,11 @@ export function SongBackground({
         aria-label="기본 배경"
         aria-busy={state.doc === null && !state.failed ? true : undefined}
         size="sm"
-        value={selected?.name ?? (missing ? '미디어 없음' : NONE_LABEL)}
+        value={
+          session.background === undefined
+            ? NONE_LABEL
+            : backgroundName(items, session.background)
+        }
         lead={
           selected === undefined
             ? undefined

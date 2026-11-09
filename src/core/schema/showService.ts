@@ -1,4 +1,5 @@
 import {songTitleLayoutSchema} from './songTitleLayout';
+import {MEDIA_LIMITS} from './mediaList';
 import {slideTransitionSchema} from './slideTransition';
 import * as v from 'valibot';
 import {labelColorSchema} from './labelColor';
@@ -86,6 +87,9 @@ const showRowSchema = v.pipe(
       theme: v.exactOptional(themeIdSchema),
       problem: v.exactOptional(v.picklist(showRowProblems)),
       background: v.exactOptional(mediaChoiceSchema),
+      missingBackgroundName: v.exactOptional(
+        v.pipe(v.string(), v.maxLength(MEDIA_LIMITS.name)),
+      ),
     }),
     v.object({
       kind: v.literal('slides'),
@@ -95,6 +99,9 @@ const showRowSchema = v.pipe(
       sourceRevision: v.exactOptional(positiveInteger),
       theme: v.exactOptional(themeIdSchema),
       background: v.exactOptional(mediaChoiceSchema),
+      missingBackgroundName: v.exactOptional(
+        v.pipe(v.string(), v.maxLength(MEDIA_LIMITS.name)),
+      ),
       problem: v.exactOptional(v.picklist(showRowProblems)),
     }),
     v.object({

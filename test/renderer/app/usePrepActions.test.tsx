@@ -169,6 +169,30 @@ function setupServiceSong() {
   return {...fixture, ...setup(fixture.api), open};
 }
 
+it.each(['song', 'slides'] as const)(
+  'reveals %s background settings without opening its text editor',
+  kind => {
+    const {result, open, api} = setupServiceSong();
+    mock.view.rows = [
+      kind === 'song'
+        ? {kind, id: fixtureItems.arranged, title: 'Song'}
+        : {kind, id: fixtureItems.arranged, title: 'Ad', form: 'ad'},
+    ];
+    const openSlides = vi.spyOn(api.slidesEditor, 'open');
+    act(() =>
+      result.current.onOpenPrep(fixtureItems.arranged, undefined, 'settings'),
+    );
+    act(() => mock.editor.requestLeave.mock.calls[0]?.[0]());
+    expect(mock.openItem).toHaveBeenCalledWith(fixtureItems.arranged);
+    expect(mock.items.show).toHaveBeenCalledWith({
+      serviceId: fixtureServiceId,
+      itemId: fixtureItems.arranged,
+    });
+    expect(open).not.toHaveBeenCalled();
+    expect(openSlides).not.toHaveBeenCalled();
+  },
+);
+
 it.each([1, undefined])(
   'opens the item editor at position %s',
   async position => {

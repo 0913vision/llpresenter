@@ -259,8 +259,10 @@ colors), 12.
 
 ### Transitions
 
-The editor's local preview uses these same slide effects. A changed effect
-replays once from the preceding slide without sending output commands (05).
+Transitions play on output and its live preview in 진행. Every editing preview
+(준비, song and slide editors, and the theme editor) redraws immediately,
+including text, selection, theme and transition-setting changes. Editing never
+replays an effect or sends output commands (05).
 
 - Each incoming slide's own transition wins over the output defaults. Otherwise,
   changing item identity uses `output.transition.between` (dissolve, 0.5 s),
@@ -277,10 +279,12 @@ replays once from the preceding slide without sending output commands (05).
   slide interrupts the previous effect, reusing two pages. Clearing, standby,
   and disposal cancel their animations.
 - Lyric elements (current and next lyrics, reference, slide name and number,
-  current and next labels) follow the slide effect. Background pictures and
-  video keep the separate existing background transition. A theme change between
-  items applies the selected slide effect to the whole composition, after
-  incoming content is ready, without a second effect on its children.
+  current and next labels) follow the slide effect. When a new slide changes its
+  item, song or theme background, the background and text share one effect,
+  duration and start time after the incoming picture is ready. An unchanged
+  background keeps its player and position without restarting or flashing.
+  Independent media cues retain the media transition, including a cue that
+  changes the theme. A whole-composition transition has no second child effect.
 - Clears retain their own instant/fade behavior. Messages and other text
   elements retain their 0.2-second dissolve.
 

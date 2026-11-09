@@ -1011,11 +1011,9 @@ ordinary text, label, order, save, and clipboard edits (02).
   blue triangle at the thumbnail's bottom-right corner. Mixed selections have no
   pressed effect tile; direction, time and apply-all are disabled until a common
   effect is chosen. Read-only or blocked sessions cannot edit effects.
-- The existing local preview plays the chosen effect once when it changes, from
-  the preceding slide (empty text for the first slide). It uses the same
-  animation as output and never changes live output. Rapid edits replace the
-  pending preview; unrelated redraws do not restart it. 기본값 previews the
-  between-item default on the first slide and the within-item default on others.
+- The local preview redraws immediately without animation when typing, selecting
+  slides, editing a theme or changing effects. Effect settings remain editable
+  metadata; they play only on output and its live preview in 진행 (03).
 
 ### Song title slides
 

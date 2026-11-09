@@ -301,7 +301,12 @@ not preset names or indices, so the rename does not change existing themes.
   (03, "Transitions"). Lyric elements move across the same screen distance and
   share the same wipe edge, including layouts with separate text boxes.
 - A 테마 change between items applies the incoming slide effect to the whole
-  screen after its content is ready; there is no separate setting.
+  screen after its content is ready; there is no separate setting. The same
+  timing covers a changed item or song background within one theme. Media items
+  that are their own cues retain the media transition (03).
+- Theme editing previews redraw immediately without any transition. This also
+  applies to 준비, song and slide editing previews; only live output and its
+  진행 preview animate.
 
 ### When a 테마 can't be used
 

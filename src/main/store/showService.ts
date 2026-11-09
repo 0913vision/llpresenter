@@ -168,6 +168,10 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
       item.background === undefined
         ? undefined
         : sources.backgrounds.get(item.background);
+    const missingBackgroundName =
+      item.background === undefined
+        ? undefined
+        : sources.media?.get(item.background)?.name;
     return {
       kind: 'slides',
       id,
@@ -179,7 +183,12 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
       ...(item.theme === undefined ? {} : {theme: item.theme}),
       ...(background === undefined ? {} : {background}),
       ...(item.background !== undefined && background === undefined
-        ? {problem: 'missing-background' as const}
+        ? {
+            problem: 'missing-background' as const,
+            ...(missingBackgroundName === undefined
+              ? {}
+              : {missingBackgroundName}),
+          }
         : item.slides.slides.some(
               slide =>
                 'media' in slide &&
@@ -252,6 +261,10 @@ function songRow(
   const mediaId = songBackgroundId(item, song.data);
   const background =
     mediaId === undefined ? undefined : sources.backgrounds.get(mediaId);
+  const missingBackgroundName =
+    background === undefined && mediaId !== undefined
+      ? sources.media?.get(mediaId)?.name
+      : undefined;
   const capped = sources.cappedItems.has(item.id);
   const problem = capped
     ? 'tile-limit'
@@ -267,6 +280,7 @@ function songRow(
     ...(item.theme === undefined ? {} : {theme: item.theme}),
     ...(problem === undefined ? {} : {problem}),
     ...(background === undefined ? {} : {background}),
+    ...(missingBackgroundName === undefined ? {} : {missingBackgroundName}),
   };
 }
 

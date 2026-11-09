@@ -1,4 +1,3 @@
-import {NOT_YET} from '@renderer/ui/menuRows';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useId, useState, type JSX} from 'react';
 import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
@@ -14,16 +13,14 @@ import type {Notice} from '@renderer/ui/notices';
 import {
   backgroundName,
   backgroundMedia,
-  mediaName,
   SONG_DEFAULT_LABEL,
+  missingBackgroundTip,
 } from '../../media/backgroundChoices';
 import {useSongBackground} from './useSongBackground';
-import {MISSING_BACKGROUND_TIP} from '../../../platform/problemReasons';
 import styles from './SongBackgroundControl.module.css';
 
 const ICON_SIZE = 14;
 const CHEVRON_SIZE = 12;
-// TODO(0913vision): Enable relinking when P6a implements media.relink.
 
 function Picture({media}: {readonly media: MediaItem}): JSX.Element {
   return (
@@ -35,8 +32,12 @@ function Picture({media}: {readonly media: MediaItem}): JSX.Element {
   );
 }
 
-function BackgroundWarning(): JSX.Element {
-  const reason = MISSING_BACKGROUND_TIP;
+function BackgroundWarning({
+  name,
+}: {
+  readonly name: string | undefined;
+}): JSX.Element {
+  const reason = missingBackgroundTip(name);
   const {targetProps, tooltip} = useTooltip({text: reason});
   return (
     <>
@@ -84,21 +85,11 @@ export function SongBackgroundSelect({
   );
   const disabled = readOnly || busy;
   const expanded = anchor !== null && !disabled;
-  const value =
-    selected === undefined
-      ? selection.mediaId === undefined
-        ? '없음'
-        : '배경 파일 없음'
-      : mediaName(selected);
+  const value = backgroundName(items, selection.mediaId);
   return (
     <div className={styles.controls}>
-      {selection.missing ? (
-        <>
-          <BackgroundWarning />
-          <Button disabled icon="refresh" title={NOT_YET}>
-            다시 연결
-          </Button>
-        </>
+      {selection.missing && selection.mediaId !== undefined ? (
+        <BackgroundWarning name={selected?.name} />
       ) : null}
       <Button
         className={styles.select}

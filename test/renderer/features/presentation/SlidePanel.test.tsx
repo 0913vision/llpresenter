@@ -1,6 +1,7 @@
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
+import {SUNDAY_NOTICE_PICTURE_ID} from '@core/themes/sundayNotice';
 import type {LayoutChange} from '@core/schema/uiState';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {useLive} from '@renderer/session/live';
@@ -221,12 +222,53 @@ describe('SlidePanel with a library source', () => {
       reason: '새 버전의 파일이라 바꿀 수 없습니다',
     },
     {
-      source: librarySong({problem: 'missing-background'}),
-      reason: '배경 파일을 찾을 수 없음',
+      source: librarySong({
+        problem: 'missing-background',
+        missingBackgroundName: '고요한 물결',
+      }),
+      reason:
+        '배경 파일을 찾을 수 없습니다: 고요한 물결. 다른 배경을 선택하세요.',
     },
   ])('shows the library source problem: $reason', ({source, reason}) => {
     openLibrarySong(source);
     render(<SlidePanelMeta />);
     expect(screen.getByRole('img', {name: reason})).toBeDefined();
   });
+
+  it('opens the library song editor to replace a missing background', () => {
+    const api = mockLlpApi();
+    window.llp = api;
+    const open = vi.spyOn(api.window, 'openSongEditor');
+    const source = librarySong({
+      problem: 'missing-background',
+      missingBackgroundName: 'Warm light',
+    });
+    openLibrarySong(source);
+    render(<SlidePanelMeta />);
+    fireEvent.click(screen.getByRole('button', {name: '배경 바꾸기'}));
+    expect(open).toHaveBeenCalledWith({songId: source.songId});
+  });
+
+  it('disables background replacement when the desktop API is unavailable', () => {
+    delete window.llp;
+    openLibrarySong(librarySong({problem: 'missing-background'}));
+    render(<SlidePanelMeta />);
+    expect(
+      screen
+        .getByRole('button', {name: '배경 바꾸기'})
+        .getAttribute('aria-disabled'),
+    ).toBe('true');
+  });
+
+  it.each([undefined, {mediaId: SUNDAY_NOTICE_PICTURE_ID, loop: false}])(
+    'does not warn for absent or bundled backgrounds: %s',
+    background => {
+      openLibrarySong(
+        librarySong(background === undefined ? {} : {background}),
+      );
+      render(<SlidePanelMeta />);
+      expect(screen.queryByRole('img', {name: /배경 파일/u})).toBeNull();
+      expect(screen.queryByRole('button', {name: '배경 바꾸기'})).toBeNull();
+    },
+  );
 });

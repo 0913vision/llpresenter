@@ -78,6 +78,229 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers());
 
 describe('theme composition drawing', () => {
+  it.each(['dissolve', 'wipe', 'push', 'none'] as const)(
+    'shares the %s transition between a new slide and its changed background after decoding',
+    kind => {
+      const {root, view} = setup();
+      const elements: ThemeElement[] = [
+        {...themeElementBase(), kind: 'background', fit: 'fill', radius: 0},
+        {...themeElementBase(31), kind: 'currentText'},
+      ];
+      const first = {...song, media: {mediaId, startedAt: 1000, loop: true}};
+      view.render(first, frame(elements));
+      const outgoing = root.querySelector('[data-theme-page]');
+      const nextId = createMediaId('00000000-0000-4000-8000-000000000602');
+      const next = {
+        ...first,
+        media: {...first.media, mediaId: nextId},
+        slide: {
+          itemId: 'next-song',
+          position: 0,
+          label: null,
+          lines: ['Next song'],
+        },
+      };
+      view.render(next, {
+        ...frame(elements),
+        slide: next.slide,
+        slideTransition: {kind, sec: 1.2},
+        transitionTimes: {slideMs: 1200, backgroundMs: 50},
+      });
+      const pages = root.querySelectorAll<HTMLElement>('[data-theme-page]');
+      expect(pages).toHaveLength(2);
+      const incoming = pages[1];
+      const animate = vi.fn(() => ({cancel: vi.fn()}));
+      for (const page of pages) {
+        Object.defineProperty(page, 'animate', {value: animate});
+      }
+      expect(incoming?.textContent).toBe('Next song');
+      vi.advanceTimersByTime(1600);
+      expect(incoming?.style.opacity).toBe('0');
+      expect(root.contains(outgoing)).toBe(true);
+      expect(animate).not.toHaveBeenCalled();
+      root
+        .querySelector(`video[src*="${nextId}"]`)
+        ?.dispatchEvent(new Event('playing'));
+      vi.advanceTimersByTime(32);
+      expect(incoming?.style.opacity).toBe('1');
+      expect(animate).toHaveBeenCalledTimes(kind === 'none' ? 0 : 2);
+      if (kind !== 'none') {
+        expect(animate).toHaveBeenLastCalledWith(expect.any(Array), {
+          duration: 1200,
+          easing: 'linear',
+        });
+        expect(root.contains(outgoing)).toBe(true);
+        vi.advanceTimersByTime(1200);
+      }
+      expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(1);
+      view.dispose();
+    },
+  );
+
+  it('keeps the player for an unchanged background and uses media timing for independent cues', () => {
+    const {root, view} = setup();
+    const elements: ThemeElement[] = [
+      {...themeElementBase(), kind: 'background', fit: 'fill', radius: 0},
+      {...themeElementBase(31), kind: 'currentText'},
+    ];
+    const first = {...song, media: {mediaId, startedAt: 1000, loop: true}};
+    const instant = {...frame(elements), transitions: false};
+    view.render(first, instant);
+    const video = root.querySelector<HTMLVideoElement>('video[src]');
+    video?.dispatchEvent(new Event('playing'));
+    const next = {
+      ...first,
+      slide: {itemId: 'invented', position: 1, label: null, lines: ['Next']},
+    };
+    view.render(next, instant);
+    expect(root.querySelector('video[src]')).toBe(video);
+    expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(1);
+    const nextId = createMediaId('00000000-0000-4000-8000-000000000602');
+    view.render(
+      {...next, media: {...next.media, mediaId: nextId}},
+      {
+        ...frame(elements),
+        transitionTimes: {slideMs: 1200, backgroundMs: 350},
+      },
+    );
+    expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(1);
+    root
+      .querySelector(`video[src*="${nextId}"]`)
+      ?.dispatchEvent(new Event('playing'));
+    expect(root.querySelector('[data-kind="background"]')?.innerHTML).toContain(
+      '350ms',
+    );
+    view.dispose();
+  });
+
+  it('replaces edited theme content synchronously without a leaving page or animation', () => {
+    const {root, view} = setup();
+    const element = {
+      ...themeElementBase(),
+      kind: 'text' as const,
+      content: 'Before',
+    };
+    view.render(song, {...frame([element]), transitions: false});
+    view.render(song, {
+      ...frame([{...element, content: 'After'}]),
+      transitions: false,
+    });
+    expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(1);
+    expect(root.textContent).toBe('After');
+    expect(vi.getTimerCount()).toBe(0);
+    view.dispose();
+  });
+
+  it('keeps the outgoing picture when another slide arrives before the same pending background is ready', () => {
+    const {root, view, text} = setup();
+    let ready = true;
+    vi.spyOn(ThemeElementView.prototype, 'ready').mockImplementation(
+      () => ready,
+    );
+    const elements: ThemeElement[] = [
+      {...themeElementBase(), kind: 'background', fit: 'fill', radius: 0},
+      {...themeElementBase(31), kind: 'currentText'},
+    ];
+    view.render(song, frame(elements));
+    const outgoing = root.querySelector('[data-theme-page]');
+    ready = false;
+    const layers = {
+      ...song,
+      media: {mediaId, loop: true, startedAt: 1000},
+      slide: {itemId: 'next', position: 0, label: null, lines: ['First']},
+    };
+    view.render(layers, frame(elements));
+    const loads = vi.mocked(HTMLMediaElement.prototype.load).mock.calls.length;
+    view.render(
+      {...layers, slide: {...layers.slide, position: 1, lines: ['Latest']}},
+      {
+        ...frame(elements),
+        slideTransition: {kind: 'none', sec: 0.5},
+      },
+    );
+    vi.advanceTimersByTime(32);
+    expect(root.contains(outgoing)).toBe(true);
+    expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(2);
+    expect(HTMLMediaElement.prototype.load).toHaveBeenCalledTimes(loads);
+    ready = true;
+    vi.advanceTimersByTime(32);
+    expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(1);
+    expect(text('currentText')).toBe('Latest');
+    view.dispose();
+  });
+
+  it('keeps the outgoing page when decoding finishes before the latest slide arrives and animation has not started', () => {
+    const {root, view, text} = setup();
+    let ready = true;
+    vi.spyOn(ThemeElementView.prototype, 'ready').mockImplementation(
+      () => ready,
+    );
+    const elements: ThemeElement[] = [
+      {...themeElementBase(), kind: 'background', fit: 'fill', radius: 0},
+      {...themeElementBase(31), kind: 'currentText'},
+    ];
+    view.render(song, frame(elements));
+    ready = false;
+    const layers = {
+      ...song,
+      media: {mediaId, loop: true, startedAt: 1000},
+      slide: {itemId: 'next', position: 0, label: null, lines: ['First']},
+    };
+    view.render(layers, {
+      ...frame(elements),
+      slideTransition: {kind: 'dissolve', sec: 4},
+    });
+    const pages = root.querySelectorAll<HTMLElement>('[data-theme-page]');
+    const outgoing = pages[0];
+    const incoming = pages[1];
+    const animate = vi.fn(() => ({cancel: vi.fn()}));
+    for (const page of pages) {
+      Object.defineProperty(page, 'animate', {value: animate});
+    }
+    const loads = vi.mocked(HTMLMediaElement.prototype.load).mock.calls.length;
+    ready = true;
+    view.render(
+      {...layers, slide: {...layers.slide, position: 1, lines: ['Latest']}},
+      {...frame(elements), slideTransition: {kind: 'push', sec: 1.2}},
+    );
+    expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(2);
+    expect(root.contains(outgoing ?? null)).toBe(true);
+    expect(incoming?.style.opacity).toBe('0');
+    expect(animate).not.toHaveBeenCalled();
+    expect(HTMLMediaElement.prototype.load).toHaveBeenCalledTimes(loads);
+    vi.advanceTimersByTime(32);
+    expect(incoming?.style.opacity).toBe('1');
+    expect(animate).toHaveBeenCalledTimes(2);
+    expect(animate).toHaveBeenLastCalledWith(
+      [{transform: 'translateX(100%)'}, {transform: 'translate(0)'}],
+      {duration: 1200, easing: 'linear'},
+    );
+    expect(root.contains(outgoing ?? null)).toBe(true);
+    vi.advanceTimersByTime(1200);
+    expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(1);
+    expect(text('currentText')).toBe('Latest');
+    view.dispose();
+  });
+
+  it('keeps the media transition when a media cue also changes the theme', () => {
+    const {root, view} = setup();
+    const element = {...themeElementBase(), kind: 'currentText' as const};
+    view.render(song, frame([element]));
+    view.render(song, {
+      ...frame([element], {
+        themeId: createThemeId('00000000-0000-4000-8000-000000000502'),
+        item: {id: 'cue', kind: 'media', source: 'service'},
+      }),
+      slideTransition: {kind: 'push', sec: 4},
+      transitionTimes: {slideMs: 4000, backgroundMs: 350},
+    });
+    const incoming = root.querySelectorAll<HTMLElement>('[data-theme-page]')[1];
+    expect(incoming?.style.transition).toContain('350ms');
+    vi.advanceTimersByTime(400);
+    expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(1);
+    view.dispose();
+  });
+
   it('reports active resource failures without output text and retires recovered or removed owners', async () => {
     const {root, view} = setup();
     const report = vi.fn();

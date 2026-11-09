@@ -11,6 +11,8 @@ import {
   hoverForTooltip,
 } from '@fixtures/renderer/ui/tooltipTesting';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
+import {createMediaId} from '@core/schema/ids';
+import {SUNDAY_NOTICE_PICTURE_ID} from '@core/themes/sundayNotice';
 import {
   fixtureItems,
   fixtureMacros,
@@ -98,6 +100,26 @@ function failedMacros() {
 }
 
 describe('항목 설정 이번 예배 and 메모', () => {
+  it('distinguishes empty, bundled and missing inherited backgrounds', async () => {
+    const {settings, first, pushSong} = await setup();
+    const background = within(settings).getByRole('button', {name: '배경'});
+    let revision = first.revision;
+    for (const [id, name] of [
+      [undefined, '없음'],
+      [SUNDAY_NOTICE_PICTURE_ID, '광고 배경'],
+      [createMediaId('00000000-0000-4000-8000-000000000999'), '배경 파일 없음'],
+    ] as const) {
+      const {background: _old, ...song} = first.song;
+      act(() =>
+        pushSong({
+          ...first,
+          revision: ++revision,
+          song: {...song, ...(id === undefined ? {} : {background: id})},
+        }),
+      );
+      expect(background.textContent).toContain(name);
+    }
+  });
   it('overrides the background for this item and returns to 곡 기본값', async () => {
     const {settings, user, service, first, pushSong} = await setup();
     act(() =>

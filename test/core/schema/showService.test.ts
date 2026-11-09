@@ -42,6 +42,32 @@ it('accepts an optional song theme and rejects malformed theme identities', () =
 });
 
 describe('parseShowService', () => {
+  it.each(['song', 'slides'])(
+    'bounds the missing background name on %s rows',
+    kind => {
+      const row = {
+        kind,
+        id: 'item',
+        title: 'Item',
+        ...(kind === 'slides' ? {form: 'ad'} : {}),
+      };
+      const parse = (missingBackgroundName: unknown) =>
+        parseShowService({
+          ...showService(),
+          rows: [
+            {...row, problem: 'missing-background', missingBackgroundName},
+          ],
+        });
+      expect(parse('Warm light')).toMatchObject({
+        ok: true,
+        value: {rows: [{missingBackgroundName: 'Warm light'}]},
+      });
+      expect(parse('x'.repeat(256)).ok).toBe(true);
+      for (const name of [null, 12, 'x'.repeat(257)]) {
+        expect(parse(name).ok).toBe(false);
+      }
+    },
+  );
   it('preserves bounded title layout on projected tiles', () => {
     const titleLayout = {
       titleTracking: 12,

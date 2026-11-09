@@ -72,7 +72,11 @@ export interface PrepActions {
   readonly newSong: () => void;
   readonly openSong: (songId: SongId, position?: number) => void;
   readonly onShowInLibrary: (songId: SongId) => void;
-  readonly onOpenPrep: (itemId: string, position?: number) => void;
+  readonly onOpenPrep: (
+    itemId: string,
+    position?: number,
+    target?: 'settings',
+  ) => void;
   readonly importSurface: JSX.Element | null;
 }
 
@@ -159,7 +163,11 @@ export function usePrepActions({
     if (session.editor) session.editor.requestLeave(reveal);
     else reveal();
   };
-  const onOpenPrep = (itemId: string, position?: number): void => {
+  const onOpenPrep = (
+    itemId: string,
+    position?: number,
+    target?: 'settings',
+  ): void => {
     const request = ++songOpen.current;
     onWorkspace('prep');
     const open = (): void => {
@@ -172,6 +180,13 @@ export function usePrepActions({
       prepSelection.clear();
       openItem(itemId);
       session.editor?.open(null);
+      if (target === 'settings') {
+        slides.close();
+        if (view.serviceId !== null) {
+          session.items?.show({serviceId: view.serviceId, itemId});
+        }
+        return;
+      }
       if (
         view.serviceId !== null &&
         view.rows.some(row => row.id === itemId && row.kind === 'song')

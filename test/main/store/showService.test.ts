@@ -1,4 +1,5 @@
 import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
+import {SUNDAY_NOTICE_PICTURE_ID} from '@core/themes/sundayNotice';
 import * as v from 'valibot';
 import {describe, expect, it} from 'vitest';
 import type {Result} from '@core/common/result';
@@ -35,6 +36,72 @@ import {
 
 const MISSING_SONG_ID = '0f0f0f0f-0f0f-4f0f-8f0f-0f0f0f0f0f0f';
 const MEDIA_ID = '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293';
+
+it.each(['song default', 'song override', 'slides'] as const)(
+  'only warns for a missing referenced background in %s',
+  source => {
+    for (const state of ['none', 'builtin', 'missing'] as const) {
+      const id = SUNDAY_NOTICE_PICTURE_ID;
+      const reference = state === 'none' ? {} : {background: id};
+      const deck = loadedSong({
+        ...hymnOne(),
+        ...(source === 'song default' ? reference : {}),
+      });
+      const item =
+        source === 'slides'
+          ? {
+              ...slidesItem(),
+              slides: {
+                ...slidesItem().slides,
+                slides: slidesItem().slides.slides.filter(
+                  slide => 'text' in slide,
+                ),
+              },
+              ...reference,
+            }
+          : {
+              id: itemId(1),
+              song: HYMN_ONE_ID,
+              slides: deck.data.slides,
+              ...(source === 'song override' ? reference : {}),
+            };
+      const shown = buildShowService({
+        service: loadedService([item]),
+        songs: new Map([[HYMN_ONE_ID, deck]]),
+        labels: [],
+        revision: 1,
+        backgrounds:
+          state === 'builtin'
+            ? new Map([[id, {mediaId: id, loop: false}]])
+            : new Map(),
+        media:
+          state === 'missing'
+            ? new Map([
+                [
+                  id,
+                  {
+                    id,
+                    name: 'Warm light',
+                    kind: 'image',
+                    file: 'gone.png',
+                    size: 1,
+                  },
+                ],
+              ])
+            : new Map(),
+      });
+      if (state === 'missing') {
+        expect(shown.rows[0]).toMatchObject({
+          problem: 'missing-background',
+          missingBackgroundName: 'Warm light',
+        });
+      } else {
+        expect(shown.rows[0]).not.toHaveProperty('problem');
+        expect(shown.rows[0]).not.toHaveProperty('missingBackgroundName');
+      }
+    }
+  },
+);
 
 it('projects a song title marker without inventing a transition', () => {
   const song = loaded(parseSong(JSON.stringify(hymnOne()), 'song.llsong')).data;

@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import type {ComponentProps} from 'react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
+import {SUNDAY_NOTICE_PICTURE_ID} from '@core/themes/sundayNotice';
 import {
   createMediaId,
   createServiceItemId,
@@ -190,16 +191,43 @@ describe('slide-header background control', () => {
     },
   );
 
-  it('marks a missing background and explains why relinking is unavailable', async () => {
-    const {container, user} = setup({selection: {...selection, missing: true}});
+  it('names a missing background and lets the operator choose its replacement', async () => {
+    const {container, user, onChoose} = setup({
+      selection: {...selection, missing: true},
+    });
     expect(
-      screen.getByRole('img', {name: '배경 파일을 찾을 수 없음'}),
+      screen.getByRole('img', {
+        name: '배경 파일을 찾을 수 없습니다: 따뜻한 빛. 다른 배경을 선택하세요.',
+      }),
     ).toBeDefined();
     expect(container.querySelector('img')).toBeNull();
-    const relink = screen.getByRole('button', {name: '다시 연결'});
-    expect(relink.getAttribute('aria-disabled')).toBe('true');
-    await user.click(relink);
-    expect((await hoverForTooltip(relink))?.textContent).toBe('아직 없는 기능');
+    expect(screen.queryByRole('button', {name: '다시 연결'})).toBeNull();
+    await user.click(screen.getByRole('button', {name: '배경 선택'}));
+    await user.click(screen.getByRole('option', {name: video.name}));
+    expect(onChoose).toHaveBeenCalledWith(video.id);
+  });
+
+  it('never warns for an empty background even if a stale missing flag arrives', () => {
+    setup({selection: {mediaId: undefined, inherited: true, missing: true}});
+    expect(screen.queryByRole('img')).toBeNull();
+    expect(
+      screen.getByRole('button', {name: '배경 선택'}).textContent,
+    ).toContain('없음');
+  });
+
+  it('names a bundled background without treating its absent catalog entry as missing', () => {
+    setup({
+      items: [],
+      selection: {
+        mediaId: SUNDAY_NOTICE_PICTURE_ID,
+        inherited: false,
+        missing: false,
+      },
+    });
+    expect(screen.queryByRole('img')).toBeNull();
+    expect(
+      screen.getByRole('button', {name: '배경 선택'}).textContent,
+    ).toContain('광고 배경');
   });
 
   it('binds the selected item and host callback to the controller', async () => {

@@ -19,6 +19,23 @@ const shown = {
 };
 
 describe('standalone library song boundary', () => {
+  it('keeps an optional bounded missing background name', () => {
+    expect(
+      parseShowLibrarySong({...shown, missingBackgroundName: 'Warm light'}),
+    ).toMatchObject({
+      ok: true,
+      value: {missingBackgroundName: 'Warm light'},
+    });
+    expect(
+      parseShowLibrarySong({...shown, missingBackgroundName: 'x'.repeat(256)})
+        .ok,
+    ).toBe(true);
+    for (const name of [null, 12, 'x'.repeat(257)]) {
+      expect(
+        parseShowLibrarySong({...shown, missingBackgroundName: name}).ok,
+      ).toBe(false);
+    }
+  });
   it('accepts a request, nullable reply, and a bounded projection', () => {
     expect(parseShowLibrarySongRequest({songId, ignored: true})).toEqual({
       ok: true,

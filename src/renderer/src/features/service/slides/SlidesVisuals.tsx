@@ -17,11 +17,6 @@ import {
 import {RolePreview} from '@renderer/features/songs/editor/RolePreview';
 import {useItemSettings} from '../items/useItemSources';
 import styles from './SlidesEditor.module.css';
-import {
-  defaultPreferences,
-  withPreferenceDefaults,
-} from '@core/schema/preferences';
-import type {SlideTransition} from '@core/schema/slideTransition';
 
 export function slideBand(slide: Slide, media: readonly MediaItem[]): string {
   if ('verse' in slide) {
@@ -150,7 +145,6 @@ export function SlidesCanvas({
   projection,
   part,
   thumbnail = false,
-  transition,
 }: {
   readonly item: SlidesItem;
   readonly index: number;
@@ -158,20 +152,12 @@ export function SlidesCanvas({
   readonly projection?: BibleProjection | null;
   readonly part?: number;
   readonly thumbnail?: boolean;
-  readonly transition?: SlideTransition | undefined;
 }): JSX.Element {
   const layers = useMemo(
     () => slideLayers(item, index, {projection, part}),
     [item, index, projection, part],
   );
   const host = useRef<HTMLDivElement>(null);
-  const before = useMemo(
-    () =>
-      index === 0
-        ? {...layers, slide: null}
-        : slideLayers(item, index - 1, {projection}),
-    [item, index, projection, layers],
-  );
   const [visible, setVisible] = useState(
     typeof IntersectionObserver === 'undefined',
   );
@@ -199,13 +185,7 @@ export function SlidesCanvas({
           background={layers.media?.mediaId}
         />
       ) : visible ? (
-        <Picture
-          layers={layers}
-          appearance={appearance}
-          animate={!thumbnail}
-          transition={thumbnail ? undefined : transition}
-          before={before}
-        />
+        <Picture layers={layers} appearance={appearance} />
       ) : null}
     </div>
   );
@@ -225,11 +205,6 @@ export function SlidesPreview({
   readonly projection?: BibleProjection | null;
 }): JSX.Element {
   const [role, setRole] = useState<PreviewRole>('audience');
-  const preferences = useItemSettings(api.settings, 'preferences');
-  const defaults =
-    preferences.document?.name === 'preferences'
-      ? withPreferenceDefaults(preferences.document.value)
-      : defaultPreferences;
   const appearances = {
     audience: useSlidesAppearance(api, item, 'audience').appearance,
     stage: useSlidesAppearance(api, item, 'stage').appearance,
@@ -262,10 +237,6 @@ export function SlidesPreview({
           appearance={appearances[forRole]}
           projection={shownProjection}
           part={part}
-          transition={
-            slide?.transition ??
-            defaults.output.transition[selected === 0 ? 'between' : 'within']
-          }
         />
       )}
       caption={() =>

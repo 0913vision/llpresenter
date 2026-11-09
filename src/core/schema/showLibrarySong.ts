@@ -1,4 +1,5 @@
 import * as v from 'valibot';
+import {MEDIA_LIMITS} from './mediaList';
 import {revisionSchema} from './contentDocuments';
 import type {ReadonlyKnown} from './fileFormat';
 import {songIdSchema, type SongId} from './ids';
@@ -35,6 +36,9 @@ const songSchema = payloadObject({
     v.maxEntries(SHOW_LIBRARY_SONG_LIMITS.jumpKeys),
   ),
   background: v.exactOptional(mediaChoiceSchema),
+  missingBackgroundName: v.exactOptional(
+    v.pipe(v.string(), v.maxLength(MEDIA_LIMITS.name)),
+  ),
   problem: v.exactOptional(
     v.picklist(['missing-background', 'newer-version', 'tile-limit']),
   ),

@@ -23,6 +23,7 @@ export interface LibrarySongSources {
   readonly song: (id: SongId) => LibrarySongDocument | null;
   readonly labels: readonly Label[];
   readonly backgroundOf: (id: string) => Promise<MediaChoice | null>;
+  readonly backgroundName?: (id: string) => string | undefined;
 }
 
 export async function showLibrarySong(
@@ -38,6 +39,10 @@ export async function showLibrarySong(
       ? null
       : await sources.backgroundOf(song.background);
   const colors = new Map(labels.map(({name, color}) => [name, color]));
+  const missingBackgroundName =
+    background === null && song.background !== undefined
+      ? sources.backgroundName?.(song.background)
+      : undefined;
   const projected = projectSongTiles(song, colors);
   const problem = projected.capped
     ? 'tile-limit'
@@ -54,6 +59,7 @@ export async function showLibrarySong(
     tiles: projected.tiles,
     jumpKeys: jumpKeysOf(labels),
     ...(background === null ? {} : {background}),
+    ...(missingBackgroundName === undefined ? {} : {missingBackgroundName}),
     ...(problem === undefined ? {} : {problem}),
   };
   const checked = parseShowLibrarySongReply(songId, projection);

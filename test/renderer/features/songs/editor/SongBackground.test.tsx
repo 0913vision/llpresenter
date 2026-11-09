@@ -10,6 +10,7 @@ import {
   mockMenuRowHeight,
 } from '@fixtures/renderer/features/songs/editor/editorTesting';
 import {SongEditor} from '@renderer/features/songs/editor/SongEditor';
+import {SUNDAY_NOTICE_PICTURE_ID} from '@core/themes/sundayNotice';
 
 function catalog(revision = 1, firstName = '푸른 바다'): MediaDocument {
   const result = parseMediaDocument({
@@ -77,6 +78,16 @@ async function openPicker(): Promise<HTMLElement> {
 }
 
 describe('song header background connection', () => {
+  it('recognizes a bundled picture outside the user catalog and clears it to none', async () => {
+    const fixture = backgroundFixture();
+    const {session} = await editorSetup(fixture);
+    act(() => session.setBackground(SUNDAY_NOTICE_PICTURE_ID));
+    await act(() => session.flush());
+    expect(trigger().textContent).toBe('광고 배경');
+    act(() => session.setBackground(undefined));
+    await act(() => session.flush());
+    expect(trigger().textContent).toBe('없음');
+  });
   it('saves image, video and none from a read-only catalog and restores trigger focus', async () => {
     const fixture = backgroundFixture({...catalog(), access: 'readOnly'});
     const {session, documents, first} = await editorSetup(fixture);
@@ -226,7 +237,7 @@ describe('song header background connection', () => {
     });
     expect(screen.getAllByRole('option')).toHaveLength(1);
     expect(screen.getByRole('combobox').getAttribute('value')).toBe('바뀐');
-    expect(trigger().textContent).toBe('미디어 없음');
+    expect(trigger().textContent).toBe('배경 파일 없음');
     expect(session.background).toBe(fixture.document.value.items[0]?.id);
     fireEvent.click(screen.getByRole('option', {name: '없음'}));
     await act(() => session.flush());

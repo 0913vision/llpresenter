@@ -26,6 +26,47 @@ afterEach(() => {
 });
 
 describe('SongPreviewFrame', () => {
+  it('redraws edited text and selection immediately even when a slide has a long transition', async () => {
+    const fixture = editorFixture();
+    const {themes, screens} = editorPreviewFixture();
+    vi.spyOn(fixture.api.settings, 'get').mockImplementation(async ({name}) =>
+      name === 'screens' ? screens : themes,
+    );
+    const picture = (text: string, position: number) => ({
+      itemId: 'edited',
+      position,
+      total: 2,
+      tile: {
+        label: null,
+        labelColor: 'none' as const,
+        lines: [text],
+        transition: {kind: 'dissolve' as const, sec: 4},
+      },
+    });
+    const props = {settings: fixture.api.settings, labels: []};
+    const view = render(
+      <SongPreviewFrame {...props} picture={picture('Before', 1)} />,
+    );
+    await waitFor(() => expect(drawing.render).toHaveBeenCalled());
+    drawing.render.mockClear();
+    view.rerender(
+      <SongPreviewFrame {...props} picture={picture('Typed text', 1)} />,
+    );
+    expect(drawing.render.mock.lastCall?.[0].slide?.lines).toEqual([
+      'Typed text',
+    ]);
+    view.rerender(
+      <SongPreviewFrame {...props} picture={picture('Next slide', 2)} />,
+    );
+    expect(drawing.render.mock.lastCall?.[0].slide?.lines).toEqual([
+      'Next slide',
+    ]);
+    expect(
+      drawing.render.mock.calls.every(
+        ([, frame]) => frame?.transitions === false,
+      ),
+    ).toBe(true);
+  });
   it('keeps a blank stage, with no theme content drawn, when there is nothing to show', async () => {
     const fixture = editorFixture();
     const {themes, screens} = editorPreviewFixture();

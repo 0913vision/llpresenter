@@ -10,6 +10,7 @@ import {
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import {emptyLiveState} from '@core/live/state';
+import {SUNDAY_NOTICE_PICTURE_ID} from '@core/themes/sundayNotice';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {defaultPreferences} from '@core/schema/preferences';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
@@ -156,6 +157,38 @@ describe('ServiceOrderList', () => {
     fireEvent.click(row);
     expect(useShow.getState().openItemId).toBe('missing-passage');
     expect(within(row).getByLabelText('성경 구절 없음')).toBeTruthy();
+    expect(sent).toHaveLength(0);
+  });
+
+  it('names a missing background and opens its existing edit path, leaving empty and builtin backgrounds clean', () => {
+    const onOpenPrep = vi.fn();
+    useShow.setState({
+      rows: [
+        {kind: 'song', id: 'none', title: 'No background'},
+        {
+          kind: 'song',
+          id: 'builtin',
+          title: 'Built-in',
+          background: {mediaId: SUNDAY_NOTICE_PICTURE_ID, loop: false},
+        },
+        {
+          kind: 'song',
+          id: 'missing',
+          title: 'Missing',
+          problem: 'missing-background',
+          missingBackgroundName: 'Warm light',
+        },
+      ],
+      tiles: {},
+    });
+    render(<ServiceOrderList onOpenPrep={onOpenPrep} />);
+    expect(
+      screen.getAllByRole('img', {name: /배경 파일을 찾을 수 없습니다/u}),
+    ).toHaveLength(1);
+    expect(screen.getByRole('img', {name: /Warm light/u})).toBeDefined();
+    fireEvent.click(screen.getByRole('button', {name: '배경 바꾸기'}));
+    expect(onOpenPrep).toHaveBeenCalledWith('missing', undefined, 'settings');
+    expect(useShow.getState().openItemId).toBe('missing');
     expect(sent).toHaveLength(0);
   });
 

@@ -38,7 +38,15 @@ import {clickFocusProps} from '@renderer/ui/clickFocus';
 import {useHeaderRename} from '@renderer/session/headerRename';
 import {openItem, useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
-import {ListBox, ListGroup, ListInsertLine, ListRow, Menu} from '@renderer/ui';
+import {
+  Button,
+  ListBox,
+  ListGroup,
+  ListInsertLine,
+  ListRow,
+  Menu,
+} from '@renderer/ui';
+import {missingBackgroundTip} from '@renderer/features/media/backgroundChoices';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import type {Workspace} from '@renderer/ui/workspace';
@@ -133,7 +141,9 @@ function ItemRows({
   renaming,
   rename,
   selected,
+  openBackground,
 }: {
+  readonly openBackground: (id: string) => void;
   readonly items: readonly ServiceRow[];
   readonly selected: ReadonlySet<string>;
   readonly liveItemId: string | null;
@@ -187,7 +197,26 @@ function ItemRows({
                 serviceRowLabel(row, numbers.get(row.id) ?? 1),
               )}
               warning={
-                row.problem === undefined ? undefined : problemTips[row.problem]
+                row.problem === 'missing-background'
+                  ? missingBackgroundTip(
+                      row.kind === 'song' || row.kind === 'slides'
+                        ? row.missingBackgroundName
+                        : undefined,
+                    )
+                  : row.problem === undefined
+                    ? undefined
+                    : problemTips[row.problem]
+              }
+              end={
+                row.problem === 'missing-background' ? (
+                  <Button
+                    size="sm"
+                    disabled={!editable}
+                    onClick={() => openBackground(row.id)}
+                  >
+                    배경 바꾸기
+                  </Button>
+                ) : undefined
               }
             />
           </div>
@@ -215,11 +244,18 @@ export function ServiceOrderList({
   readonly workspace?: Workspace | undefined;
   readonly table?: ServiceTableParts | undefined;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
-  readonly onOpenPrep?: ((itemId: string) => void) | undefined;
+  readonly onOpenPrep?:
+    | ((itemId: string, position?: number, target?: 'settings') => void)
+    | undefined;
   readonly onOpenItem?: (() => void) | undefined;
   readonly onShowInLibrary?: ((songId: SongId) => void) | undefined;
 }): JSX.Element {
   const rows = useShow(view => view.rows);
+  const openBackground = (id: string): void => {
+    openItem(id);
+    if (workspace === 'show') onOpenPrep?.(id, undefined, 'settings');
+    onOpenItem?.();
+  };
   const numbers = useMemo(
     () =>
       new Map(
@@ -748,6 +784,7 @@ export function ServiceOrderList({
               numbers={numbers}
               renaming={renaming}
               rename={renameItem}
+              openBackground={openBackground}
             />
           ) : (
             <div
@@ -806,6 +843,7 @@ export function ServiceOrderList({
                   numbers={numbers}
                   renaming={renaming}
                   rename={renameItem}
+                  openBackground={openBackground}
                 />
               </ListGroup>
             </div>

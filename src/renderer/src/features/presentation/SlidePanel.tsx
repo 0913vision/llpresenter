@@ -11,14 +11,15 @@ import {
   showThumbnailScale,
   useThumbnailScale,
 } from '@renderer/platform/thumbnailScale';
-import {Icon, ThumbnailSizeControl} from '@renderer/ui';
+import {Button, Icon, ThumbnailSizeControl} from '@renderer/ui';
+import {missingBackgroundTip} from '@renderer/features/media/backgroundChoices';
+import {openSongEditorWindow} from '@renderer/features/songs/editor/openWindow';
+import {editorTask} from '@renderer/features/songs/editor/editorTask';
+import type {Notice} from '@renderer/ui/notices';
 import {PanelFooter} from '@renderer/ui/Panel';
 import {useTooltip} from '@renderer/ui/Tooltip';
 import {SlideGrid} from './SlideGrid';
-import {
-  MISSING_BACKGROUND_TIP,
-  READ_ONLY_TIP,
-} from '../../platform/problemReasons';
+import {READ_ONLY_TIP} from '../../platform/problemReasons';
 import styles from './SlidePanel.module.css';
 
 const PROBLEM_ICON_SIZE = 14;
@@ -44,14 +45,18 @@ export function SlidePanelBody({
 /**
  * The item name and, for the live item, its current slide position.
  */
-export function SlidePanelMeta(): JSX.Element | null {
+export function SlidePanelMeta({
+  onProblem = console.error,
+}: {
+  readonly onProblem?: ((notice: Notice) => void) | undefined;
+}): JSX.Element | null {
   const openItemId = useShow(view => view.openItemId);
   const source = useShow(view =>
     isLibrarySource(view, openItemId) ? view.librarySong : null,
   );
   const reason =
     source?.problem === 'missing-background'
-      ? MISSING_BACKGROUND_TIP
+      ? missingBackgroundTip(source.missingBackgroundName)
       : source?.readOnly
         ? READ_ONLY_TIP
         : undefined;
@@ -82,6 +87,21 @@ export function SlidePanelMeta(): JSX.Element | null {
             <Icon name="warning" size={PROBLEM_ICON_SIZE} />
           </span>
           {tooltip}
+          {source?.problem === 'missing-background' ? (
+            <Button
+              size="sm"
+              disabled={source.readOnly || window.llp === undefined}
+              onClick={() => {
+                const api = window.llp;
+                if (api === undefined) return;
+                editorTask(
+                  openSongEditorWindow(api, {songId: source.songId}, onProblem),
+                );
+              }}
+            >
+              배경 바꾸기
+            </Button>
+          ) : null}
         </>
       ) : null}
       {position === undefined ? null : (

@@ -9,6 +9,7 @@ import {SlideAnimation} from './slideAnimation';
 import {THEME_LIMITS} from '@core/themes/elementRules';
 import {themeBackgroundStyle} from './themeBackground';
 import {songTitleLayout} from '@core/themes/songTitle';
+import {themeElementMedia} from '@core/themes/content';
 
 interface ThemePage {
   layers: LiveLayers;
@@ -76,7 +77,23 @@ export class ThemeCompositionView {
       return;
     }
     const signature = JSON.stringify([theme.themeId, theme.layout]);
-    const rebuilt = signature !== this.page?.signature;
+    const previous = this.page?.frame.slide ?? this.page?.layers.slide;
+    const incoming = frame.slide ?? layers.slide;
+    const slideChanged =
+      incoming !== null &&
+      (previous?.itemId !== incoming.itemId ||
+        previous.position !== incoming.position);
+    const backgroundChanged =
+      this.page !== null &&
+      theme.layout.elements.some(element => element.kind === 'background') &&
+      themeElementMedia('background', {layers, item: theme.item})?.mediaId !==
+        themeElementMedia('background', {
+          layers: this.page.layers,
+          item: this.page.frame.theme?.item ?? null,
+        })?.mediaId;
+    const rebuilt =
+      signature !== this.page?.signature || (slideChanged && backgroundChanged);
+    let pendingSlide = false;
     if (rebuilt) this.build(signature, frame, layers);
     else if (this.leaving !== null && this.page !== null) {
       const previous = this.page.frame.slide ?? this.page.layers.slide;
@@ -85,15 +102,18 @@ export class ThemeCompositionView {
         previous?.itemId !== incoming?.itemId ||
         previous?.position !== incoming?.position
       ) {
-        this.releaseLeaving();
+        if (this.preparing) pendingSlide = true;
+        else this.releaseLeaving();
       }
     }
     if (this.page !== null && theme.layout.background === undefined) {
       this.page.root.style.backgroundColor = theme.emptyColor;
     }
     this.draw(rebuilt);
-    if (frame.standby) this.releaseLeaving();
-    else if (rebuilt && this.leaving !== null) this.awaitIncoming(frame);
+    if (frame.standby || frame.transitions === false) this.releaseLeaving();
+    else if ((rebuilt || pendingSlide) && this.leaving !== null) {
+      this.awaitIncoming(frame);
+    }
     const ticks = !frame.standby && (this.page?.ticking.length ?? 0) > 0;
     if (ticks && this.ticker === null) {
       this.ticker = setInterval(() => {
@@ -178,14 +198,20 @@ export class ThemeCompositionView {
   private awaitIncoming(frame: RenderFrame): void {
     const page = this.page;
     if (page === null) return;
+    if (this.animation !== null) cancelAnimationFrame(this.animation);
+    const effect =
+      frame.theme?.item?.kind === 'media' ? undefined : frame.slideTransition;
     const duration =
       frame.transitions === false
         ? 0
-        : frame.slideTransition !== undefined
-          ? frame.slideTransition.kind === 'none'
-            ? 0
-            : frame.slideTransition.sec * 1000
-          : (frame.transitionTimes?.slideMs ?? OUTPUT_TRANSITIONS.slideMs);
+        : frame.theme?.item?.kind === 'media'
+          ? (frame.transitionTimes?.backgroundMs ??
+            OUTPUT_TRANSITIONS.backgroundMs)
+          : effect !== undefined
+            ? effect.kind === 'none'
+              ? 0
+              : effect.sec * 1000
+            : (frame.transitionTimes?.slideMs ?? OUTPUT_TRANSITIONS.slideMs);
     page.root.style.transition = `opacity ${duration}ms linear`;
     // NOTE(0913vision): A newly inserted page needs its zero-opacity style
     // committed before rAF; otherwise Chromium paints its first frame opaque.
@@ -198,13 +224,13 @@ export class ThemeCompositionView {
       }
       this.preparing = false;
       page.root.style.opacity = '1';
-      if (frame.slideTransition !== undefined && this.leaving !== null) {
+      if (effect !== undefined && this.leaving !== null) {
         this.slideAnimation.play(
           this.leaving.root,
           page.root,
           frame.transitions === false
-            ? {kind: 'none', sec: frame.slideTransition.sec}
-            : frame.slideTransition,
+            ? {kind: 'none', sec: effect.sec}
+            : effect,
         );
       }
       // NOTE(0913vision): The outgoing opaque page stays behind the incoming

@@ -104,7 +104,7 @@ export function SlideTransitionRibbon<T extends SlideListItem>({
           ? '선택한 슬라이드의 효과가 서로 다릅니다.'
           : count > 1
             ? `선택한 슬라이드 ${count}장에 적용됩니다.`
-            : '효과를 고르면 미리보기에서 재생합니다.'}
+            : '전환 효과는 진행 중 슬라이드를 보낼 때 재생합니다.'}
       </span>
     </div>
   );

@@ -119,6 +119,8 @@ async function createContent(
       return document?.name === 'labels' ? document.value.labels : store.labels;
     },
     backgroundOf: id => media?.backgroundOf(id) ?? store.media.backgroundOf(id),
+    backgroundName: id =>
+      media?.get().value.items.find(item => item.id === id)?.name,
   };
   feed = new OpenServiceFeed(
     {

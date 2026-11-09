@@ -96,7 +96,7 @@ function showPanelParts({
         body: <SlidePanelBody sizeClass={sizeClass} onOpenPrep={onOpenPrep} />,
         meta: (
           <>
-            <SlidePanelMeta />
+            <SlidePanelMeta onProblem={onProblem} />
             <SongBackgroundControl onProblem={onProblem} />
           </>
         ),
