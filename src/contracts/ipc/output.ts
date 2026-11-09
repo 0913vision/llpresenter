@@ -20,9 +20,32 @@ import {
   type OutputStatuses,
 } from '@core/schema/outputStatus';
 import {message, push, query, request, signal, type IpcPort} from './endpoint';
+import {
+  parsePlaybackProblemReport,
+  parsePlaybackProblems,
+  parsePlaybackRetry,
+  type PlaybackProblemKind,
+  type PlaybackProblems,
+} from '@core/schema/playbackProblems';
 
 /** The calls about output windows, monitors, fonts, and the log. */
 export const outputEndpoints = {
+  playbackReport: message<readonly PlaybackProblemKind[]>(
+    'output:playback:report',
+    parsePlaybackProblemReport,
+  ),
+  playbackProblems: query<PlaybackProblems>(
+    'output:playback:get',
+    parsePlaybackProblems,
+  ),
+  playbackChanged: push<PlaybackProblems>(
+    'output:playback:changed',
+    parsePlaybackProblems,
+  ),
+  playbackRetry: message<{readonly source: string}>(
+    'output:playback:retry',
+    parsePlaybackRetry,
+  ),
   health: message<OutputHealthReport>('output:health', parseOutputHealthReport),
   frameRate: message<FrameRateReport>(
     'output:frame-rate',
@@ -55,6 +78,10 @@ export function outputApi(port: IpcPort) {
   const retry = port.message(outputEndpoints.retry);
   const showWindow = port.message(outputEndpoints.showWindow);
   return {
+    reportPlaybackProblems: port.message(outputEndpoints.playbackReport),
+    getPlaybackProblems: port.query(outputEndpoints.playbackProblems),
+    subscribePlaybackProblems: port.subscribe(outputEndpoints.playbackChanged),
+    retryPlayback: port.message(outputEndpoints.playbackRetry),
     /** Reports an output window's measured frame rate, once a second. */
     reportFrameRate: port.message(outputEndpoints.frameRate),
     /** Reports a static output's health without inventing a frame rate. */

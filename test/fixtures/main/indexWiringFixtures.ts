@@ -96,6 +96,8 @@ const mocks = vi.hoisted(() => {
     problemContexts: new Array<unknown>(),
     problemsStop: vi.fn<() => void>(),
     problemFeed: {report: vi.fn(), push: vi.fn(), addStanding: vi.fn()},
+    playbackProblems: {},
+    playbackProblemsStop: vi.fn<() => void>(),
     appHandlers,
     electron: {
       app: {
@@ -342,6 +344,12 @@ vi.mock('@main/outputs/start', () => ({
     return {stop: mocks.outputsStop, frameRates: mocks.frameRates};
   },
 }));
+vi.mock('@main/outputs/playbackProblems', () => ({
+  registerPlaybackProblems: () => ({
+    board: mocks.playbackProblems,
+    stop: mocks.playbackProblemsStop,
+  }),
+}));
 vi.mock('@main/windows/mediaProtocol', () => ({
   registerMediaScheme: () => undefined,
   serveMedia: (options: MediaHandlerOptions) => {
@@ -443,6 +451,7 @@ beforeEach(async () => {
   mocks.closeStop.mockReset();
   mocks.problemContexts.length = 0;
   mocks.problemsStop.mockReset();
+  mocks.playbackProblemsStop.mockReset();
   mocks.appHandlers.clear();
   mocks.opened.control = null;
   mocks.uiDispose.mockReset();

@@ -12,6 +12,21 @@ tools). See 01.
 
 ## Problem states
 
+Live media playback failures, audio playback failures, and audio output device
+failures appear in the control window's existing warning cards and the 출력
+menu. They never add text to an output. A missing selected audio device shows
+`오디오 출력 장치 연결 끊김` with `Windows 기본 장치로 재생 중`. A refused
+device change shows `오디오 출력 장치 변경 실패`.
+
+Playback cards name the affected screen (`청중 화면 미디어 재생 실패`) or audio
+(`오디오 재생 실패`). `다시 시도` reloads only that output's renderer, which
+reads the current state and playback position from main. Problems remain
+available after the control window reloads; a recovered or removed player clears
+its problem. One recovered player does not clear another player's failure.
+Turning a screen off hides its playback warnings until it is on again. The
+dedicated audio window reports `오디오 다시 시작 중` and, at the restart limit,
+`오디오 다시 시작 중단` with `다시 시도`; the card clears when it recovers.
+
 | Problem                    | Where it shows                                                                                                                         | What keeps working                                                                                                     | How the operator fixes it                                                                 | Source                                      |
 | -------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------- | ------------------------------------------- |
 | Output monitor lost        | Toolbar button (amber dot and icon), status bar ("무대 화면 창으로 표시 중"), amber outline on the preview frame, warning notification | The output continues in a window on the control monitor                                                                | 모니터 다시 찾기 (find monitor again), 창 보기 (show window), or reconnecting the monitor | `Problems`                                  |

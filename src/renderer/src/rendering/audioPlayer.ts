@@ -3,6 +3,7 @@ import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {audioPositionSeconds} from '@core/schema/audioState';
 import {fadeAudio} from './audioFade';
 import {applySink} from './audioSink';
+import {setPlaybackProblem} from './playbackProblem';
 import {DEFAULT_AUDIO_TIMES, type AudioTimes} from '@core/media/audioTimes';
 import type {ClearEffect} from '@core/schema/clearFade';
 
@@ -79,6 +80,7 @@ export class AudioPlayer {
       this.listen(track, 'error', () => {
         if (track.layer !== null) {
           track.attempted = true;
+          setPlaybackProblem(track.element, 'playback', true);
           this.report(new Error(`Audio failed: ${track.layer.mediaId}`));
         }
       });
@@ -405,6 +407,7 @@ export class AudioPlayer {
         return;
       }
       const previous = this.active;
+      setPlaybackProblem(track.element, 'playback', false);
       this.active = track;
       this.finishCrossfade();
       if (previous !== null && previous !== track) {
@@ -431,6 +434,7 @@ export class AudioPlayer {
       () => this.attempt(commit),
       (error: unknown) => {
         if (!this.disposed && track.generation === generation) {
+          setPlaybackProblem(track.element, 'playback', true);
           this.report(error);
         }
       },
@@ -452,6 +456,7 @@ export class AudioPlayer {
   }
 
   private unload(track: Track): void {
+    setPlaybackProblem(track.element, 'playback', false);
     track.fade = 1;
     track.layer = null;
     track.generation += 1;

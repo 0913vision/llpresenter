@@ -6,6 +6,11 @@ import {
   VIDEO_FRAME_DEADLINE_MS,
 } from '@renderer/rendering/backgroundLayer';
 import {classes} from '@renderer/rendering/classes';
+import {setPlaybackProblem} from '@renderer/rendering/playbackProblem';
+
+vi.mock('@renderer/rendering/playbackProblem', () => ({
+  setPlaybackProblem: vi.fn(),
+}));
 import {
   WARM_LIGHT,
   STILL_WATER,
@@ -17,6 +22,29 @@ import {
 } from '@fixtures/renderer/rendering/backgroundLayerFixtures';
 
 describe('BackgroundLayerView', () => {
+  it('reports active video decode failure and clears the problem when the media is cleared', () => {
+    const {view, videos} = setUp();
+    view.show(WARM_LIGHT, false);
+    const front = videos[1];
+    front.dispatchEvent(new Event('playing'));
+    Object.defineProperty(front, 'error', {
+      configurable: true,
+      value: {code: 3},
+    });
+    front.dispatchEvent(new Event('error'));
+    expect(setPlaybackProblem).toHaveBeenLastCalledWith(
+      expect.any(HTMLElement),
+      'playback',
+      true,
+    );
+    view.show(null, false);
+    expect(setPlaybackProblem).toHaveBeenLastCalledWith(
+      expect.any(HTMLElement),
+      'playback',
+      false,
+    );
+    view.dispose();
+  });
   it('plays video sound to the chosen device, also for media that starts later', async () => {
     const {view, videos} = setUp();
     const sinks = videos.map(video => {

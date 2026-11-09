@@ -1,4 +1,5 @@
 import type {LlpApi} from '@contracts/ipc/api';
+import {setPlaybackProblem} from './playbackProblem';
 import {
   resolveAudioSink,
   type AudioChoice,
@@ -48,8 +49,14 @@ function change(
 ): void {
   // NOTE(0913vision): An element starts on the Windows default, which needs
   // no call.
-  if (state.wanted === state.confirmed) return;
-  if (typeof element.setSinkId !== 'function') return;
+  if (state.wanted === state.confirmed) {
+    setPlaybackProblem(element, 'device-failed', false);
+    return;
+  }
+  if (typeof element.setSinkId !== 'function') {
+    setPlaybackProblem(element, 'device-failed', true);
+    return;
+  }
   const target = state.wanted;
   state.pending = true;
   const settled = (): void => {
@@ -59,9 +66,15 @@ function change(
   element.setSinkId(target).then(
     () => {
       state.confirmed = target;
+      if (state.wanted === target) {
+        setPlaybackProblem(element, 'device-failed', false);
+      }
       settled();
     },
     (error: unknown) => {
+      if (state.wanted === target) {
+        setPlaybackProblem(element, 'device-failed', true);
+      }
       onError('could not choose the audio output device', error);
       settled();
     },
@@ -94,6 +107,7 @@ interface FollowOptions {
   readonly pick: 'audioOutput' | 'previewOutput';
   readonly apply: (sink: ResolvedSink) => void;
   readonly onError: (message: string, error: unknown) => void;
+  readonly onAvailability?: (available: boolean) => void;
   /** The connected devices; the renderer's device list when absent. */
   readonly devices?: () => Promise<readonly AudioDevice[]>;
 }
@@ -123,6 +137,7 @@ export function followAudioOutput(options: FollowOptions): () => void {
     if (choice === undefined || choice.id === '') {
       watching?.removeEventListener('devicechange', refresh);
       watching = null;
+      options.onAvailability?.(true);
       apply({sinkId: '', missing: false});
       return;
     }
@@ -133,11 +148,14 @@ export function followAudioOutput(options: FollowOptions): () => void {
     list()
       .then(devices => {
         if (stopped || mine !== round) return;
+        options.onAvailability?.(true);
         apply(resolveAudioSink(choice, devices));
       })
-      .catch((error: unknown) =>
-        options.onError('could not list the audio output devices', error),
-      );
+      .catch((error: unknown) => {
+        if (stopped || mine !== round) return;
+        options.onAvailability?.(false);
+        options.onError('could not list the audio output devices', error);
+      });
   };
   let revision = -1;
   const receive = (document: {

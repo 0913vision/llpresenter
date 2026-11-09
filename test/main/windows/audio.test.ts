@@ -9,11 +9,18 @@ import {registerAudioOutput} from '@main/windows/audio';
 import {audioMutedByDefault} from '@main/windows/audioPolicy';
 import {loadPage, startLoading} from '@main/windows/page';
 import type {WindowMode} from '@main/windows/testWindows';
+import type {
+  RecoveryOptions,
+  RendererState,
+} from '@main/outputs/rendererRecovery';
+import {watchPlaybackProblems} from '@main/outputs/playbackProblems';
 
 const mocks = await vi.hoisted(async () => {
   const {EventEmitter} = await import('node:events');
   class Window extends EventEmitter {
     readonly contents = Object.assign(new EventEmitter(), {
+      id: 10,
+      reload: vi.fn(),
       setAudioMuted: vi.fn(),
       isDestroyed: vi.fn(() => this.destroyed),
     });
@@ -34,10 +41,12 @@ const mocks = await vi.hoisted(async () => {
     }
   }
   class Recovery {
+    state: RendererState = 'running';
+    readonly retry = vi.fn();
     readonly crashed = vi.fn();
     readonly pageDrawn = vi.fn();
     readonly dispose = vi.fn();
-    constructor(readonly options: {readonly reload: () => Promise<void>}) {
+    constructor(readonly options: RecoveryOptions) {
       recoveries.push(this);
     }
   }
@@ -60,6 +69,9 @@ vi.mock('@main/live/mediaPlayback', () => ({
 }));
 vi.mock('@main/outputs/rendererRecovery', () => ({
   RendererRecovery: mocks.Recovery,
+}));
+vi.mock('@main/outputs/playbackProblems', () => ({
+  watchPlaybackProblems: vi.fn(() => vi.fn()),
 }));
 
 type Reader = Pick<MediaStore, 'get' | 'subscribe'>;
@@ -114,6 +126,30 @@ beforeEach(() => {
 });
 
 describe('registerAudioOutput', () => {
+  it('publishes audio restart state and retires the source on shutdown', () => {
+    const release = vi.fn();
+    vi.mocked(watchPlaybackProblems).mockReturnValueOnce(release);
+    const register = vi.fn(() => release);
+    const renderer = vi.fn();
+    const stop = registerAudioOutput({
+      store,
+      media: Promise.resolve(reader()),
+      log: recordingLogger(),
+      windowMode: 'offscreen',
+      playbackProblems: {register, renderer},
+    });
+    const recovery = mocks.recoveries.at(-1);
+    if (recovery === undefined) throw new Error('Missing recovery');
+    recovery.options.onStateChange?.('limited');
+    expect(renderer).toHaveBeenLastCalledWith(10, 'limited');
+    recovery.state = 'limited';
+    vi.mocked(watchPlaybackProblems).mock.lastCall?.[2].retry();
+    expect(recovery.retry).toHaveBeenCalledOnce();
+    recovery.options.onStateChange?.('running');
+    expect(renderer).toHaveBeenLastCalledWith(10, 'running');
+    stop();
+    expect(release).toHaveBeenCalledOnce();
+  });
   it('opens one hidden sandboxed window and mutes it before loading its page when the policy says so', () => {
     const {win, stop} = setup();
 

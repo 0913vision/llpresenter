@@ -10,6 +10,11 @@ import {
 import {emptyLiveState} from '@core/live/state';
 import {parseLiveState} from '@core/schema/liveState';
 import {AudioPlayer} from '@renderer/rendering/audioPlayer';
+import {setPlaybackProblem} from '@renderer/rendering/playbackProblem';
+
+vi.mock('@renderer/rendering/playbackProblem', () => ({
+  setPlaybackProblem: vi.fn(),
+}));
 
 const MEDIA = '00000000-0000-4000-8000-000000000001';
 const AUDIO_CLEAR_FADE_MS = 400;
@@ -80,6 +85,20 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers());
 
 describe('AudioPlayer', () => {
+  it('reports decode failure and clears it when the failed track is removed', async () => {
+    const {player, first} = setup();
+    player.show(state());
+    await ready(first);
+    first.dispatchEvent(new Event('error'));
+    expect(setPlaybackProblem).toHaveBeenLastCalledWith(
+      first,
+      'playback',
+      true,
+    );
+    vi.mocked(setPlaybackProblem).mockClear();
+    player.show(emptyLiveState());
+    expect(setPlaybackProblem).toHaveBeenCalledWith(first, 'playback', false);
+  });
   it('clears at once by default and leaves no pending audio or timers', async () => {
     vi.useFakeTimers();
     const {player, first} = setup();
@@ -272,10 +291,16 @@ describe('AudioPlayer', () => {
     await ready(second);
     expect(first.hasAttribute('src')).toBe(true);
     expect(onError).toHaveBeenCalledOnce();
+    expect(setPlaybackProblem).toHaveBeenLastCalledWith(
+      second,
+      'playback',
+      true,
+    );
     player.show(state(3));
     await ready(second);
     expect(first.hasAttribute('src')).toBe(false);
     expect(second.hasAttribute('src')).toBe(true);
+    expect(setPlaybackProblem).toHaveBeenCalledWith(second, 'playback', false);
   });
 
   it('ignores a stale play completion while a newer selection loads', async () => {

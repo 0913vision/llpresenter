@@ -7,6 +7,7 @@ import type {LiveState} from '@core/live/state';
 import {ScreenFrames} from '../rendering/screenFrames';
 import {startFrameRateMeter, type FrameRateMeter} from './frameRateMeter';
 import {followLiveState} from './liveFeed';
+import {followPlaybackProblems} from '../rendering/playbackProblem';
 
 /** What an output window runs on. */
 export interface OutputContext {
@@ -78,6 +79,10 @@ function catchUncaughtErrors(report: ErrorReport): () => void {
  * @returns A function that stops everything it started.
  */
 export function startOutput({root, api, screenId}: OutputContext): () => void {
+  const stopPlaybackProblems = followPlaybackProblems(
+    root,
+    api.output.reportPlaybackProblems,
+  );
   const report: ErrorReport = (message, error) => {
     api.log.write({
       level: 'error',
@@ -285,5 +290,6 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
     frames.dispose();
     renderer?.dispose();
     stopCatching();
+    stopPlaybackProblems();
   };
 }

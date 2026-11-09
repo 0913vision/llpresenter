@@ -3,6 +3,7 @@ import type {OutputMediaProperties} from '@core/schema/outputMedia';
 import {loadBackgroundImage} from './backgroundImage';
 import {classes} from './classes';
 import {applySink} from './audioSink';
+import {setPlaybackProblem} from './playbackProblem';
 import {OUTPUT_TRANSITIONS} from './transitions';
 import {backgroundElapsedSeconds} from '@core/media/backgroundPosition';
 import {mediaObjectFit} from '@core/media/objectFit';
@@ -233,6 +234,7 @@ class PlaybackBackgroundLayerView {
       return;
     }
     this.failed = false;
+    setPlaybackProblem(this.element, 'playback', false);
     this.cancelRelease();
     this.cancelSeek();
     if (media === null) this.clearAtOnce();
@@ -540,6 +542,7 @@ class PlaybackBackgroundLayerView {
   private handlePlaying(index: VideoIndex): void {
     if (this.held) return;
     if (this.handover?.to !== index) return;
+    setPlaybackProblem(this.element, 'playback', false);
     const {dissolve} = this.handover;
     this.handover = null;
     const previous = this.pictureAt(this.front);
@@ -691,6 +694,7 @@ class PlaybackBackgroundLayerView {
     if (!this.holdsCurrent(index)) return;
     if (this.handover?.to !== index && this.front !== index) return;
     this.failed = true;
+    setPlaybackProblem(this.element, 'playback', true);
     this.handover = null;
     this.cancelRelease();
     this.cancelSeek();

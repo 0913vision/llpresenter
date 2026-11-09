@@ -49,6 +49,7 @@ import {RecoveryPrompt} from './recovery/RecoveryPrompt';
 import {useRecovery} from './recovery/useRecovery';
 import {SavingDialog} from './SavingDialog';
 import {useOutputNotices} from './notifications/useOutputNotices';
+import {usePlaybackNotices} from './notifications/usePlaybackNotices';
 import {useProblemNotices} from './notifications/useProblemNotices';
 import styles from './App.module.css';
 
@@ -144,6 +145,7 @@ function ControlApp({
   useUiZoomKeys();
   useEffect(() => watchInputModality(window), []);
   useOutputNotices(session.api, session);
+  usePlaybackNotices(session.api, session);
   const saveFailed = useProblemNotices(session.api, session);
   const closeView = useSyncExternalStore(
     session.closeFlush?.subscribe ?? noEditorSubscription,

@@ -161,11 +161,20 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
       expect.objectContaining({
         store: mocks.outputContexts[0]?.store,
         windowMode: 'normal',
+        playbackProblems: mocks.playbackProblems,
       }),
     ]);
+    expect(mocks.outputContexts[0]).toHaveProperty(
+      'playbackProblems',
+      mocks.playbackProblems,
+    );
     beforeQuit();
     await vi.waitFor(() => expect(mocks.storeDispose).toHaveBeenCalledOnce());
     expect(mocks.audioStop).toHaveBeenCalledOnce();
+    expect(mocks.playbackProblemsStop).toHaveBeenCalledOnce();
+    expect(mocks.audioStop.mock.invocationCallOrder[0]).toBeLessThan(
+      mocks.playbackProblemsStop.mock.invocationCallOrder[0] ?? Infinity,
+    );
     expect(mocks.audioStop.mock.invocationCallOrder[0]).toBeLessThan(
       mocks.storeDispose.mock.invocationCallOrder[0] ?? Infinity,
     );

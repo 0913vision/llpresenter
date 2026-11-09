@@ -33,9 +33,11 @@ import {WakeKeeper, keepAwakeWhileOutputsOn} from './wakeLock';
 import {assignInitialMonitors} from './initialMonitors';
 import {findControlMonitor} from '../displays/monitor';
 import {watchControlMonitor} from './controlMonitor';
+import type {PlaybackProblemBoard} from './playbackProblems';
 
 /** What the output windows hang on. */
 export interface OutputContext {
+  readonly playbackProblems?: PlaybackProblemBoard;
   readonly store: LiveStore;
   readonly settings: Promise<SettingsReader | null>;
   readonly saveScreenSettings?: (
@@ -143,6 +145,7 @@ export interface RunningOutputs {
  * Keeps the display awake while any output is on.
  */
 export function startOutputs({
+  playbackProblems,
   store,
   settings,
   saveScreenSettings,
@@ -174,6 +177,7 @@ export function startOutputs({
     controlBounds,
     createHandle: (screen, events) =>
       createElectronOutputWindow(screen, events, {
+        ...(playbackProblems === undefined ? {} : {playbackProblems}),
         log,
         mode: windowMode,
         control,

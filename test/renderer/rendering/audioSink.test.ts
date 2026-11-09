@@ -6,6 +6,11 @@ import {
   listAudioOutputs,
 } from '@renderer/rendering/audioSink';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
+import {setPlaybackProblem} from '@renderer/rendering/playbackProblem';
+
+vi.mock('@renderer/rendering/playbackProblem', () => ({
+  setPlaybackProblem: vi.fn(),
+}));
 
 class FakeDevices extends EventTarget {
   list: Array<{kind: string; deviceId: string; label: string}> = [];
@@ -62,8 +67,18 @@ describe('applySink', () => {
     applySink(element, 'gone', onError);
     await settle();
     expect(onError).toHaveBeenCalledOnce();
+    expect(setPlaybackProblem).toHaveBeenLastCalledWith(
+      element,
+      'device-failed',
+      true,
+    );
     applySink(element, '', onError);
     await settle();
+    expect(setPlaybackProblem).toHaveBeenLastCalledWith(
+      element,
+      'device-failed',
+      false,
+    );
     expect(setSinkId.mock.calls).toEqual([['hall'], ['gone'], ['']]);
     applySink(element, '', onError);
     await settle();
@@ -141,14 +156,17 @@ describe('followAudioOutput', () => {
       },
     });
     const apply = vi.fn();
+    const onAvailability = vi.fn();
     const stop = followAudioOutput({
       settings: api.settings,
       pick: 'audioOutput',
       apply,
+      onAvailability,
       onError: vi.fn(),
     });
     return {
       apply,
+      onAvailability,
       stop,
       push: (value: object) => {
         for (const listener of listeners) listener(document(value));
@@ -167,6 +185,19 @@ describe('followAudioOutput', () => {
     devices.dispatchEvent(new Event('devicechange'));
     await settle();
     expect(devices.enumerateDevices).not.toHaveBeenCalled();
+    stop();
+  });
+
+  it('reports device enumeration failure and clears it when the list recovers', async () => {
+    devices.enumerateDevices.mockRejectedValueOnce(new Error('Unavailable'));
+    const {onAvailability, stop} = setup({
+      audioOutput: {id: 'hall', label: 'Mixer'},
+    });
+    await settle();
+    expect(onAvailability).toHaveBeenLastCalledWith(false);
+    devices.dispatchEvent(new Event('devicechange'));
+    await settle();
+    expect(onAvailability).toHaveBeenLastCalledWith(true);
     stop();
   });
 

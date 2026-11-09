@@ -12,8 +12,16 @@ import {
   type PageRequest,
 } from './page';
 import type {WindowMode} from './testWindows';
+import {
+  watchPlaybackProblems,
+  type PlaybackProblemBoard,
+} from '../outputs/playbackProblems';
 
 interface AudioOutputOptions {
+  readonly playbackProblems?: Pick<
+    PlaybackProblemBoard,
+    'register' | 'renderer'
+  >;
   readonly store: Parameters<typeof connectMediaPlayback>[0];
   readonly media: Promise<Pick<MediaStore, 'get' | 'subscribe'> | null>;
   readonly log: Logger;
@@ -22,6 +30,7 @@ interface AudioOutputOptions {
 
 /** Owns the hidden audio renderer independently of the control and screen windows. */
 export function registerAudioOutput({
+  playbackProblems,
   store,
   media,
   log,
@@ -66,10 +75,22 @@ export function registerAudioOutput({
     const recovery = new RendererRecovery({
       screenId: 'audio',
       log,
+      onStateChange: state => playbackProblems?.renderer(contents.id, state),
       reload: async () => {
         await startLoading(opened, page);
       },
     });
+    const releaseProblems =
+      playbackProblems === undefined
+        ? undefined
+        : watchPlaybackProblems(playbackProblems, contents, {
+            source: 'audio',
+            name: () => '오디오',
+            retry: () => {
+              if (recovery.state === 'limited') recovery.retry();
+              else if (recovery.state === 'running') contents.reload();
+            },
+          });
     const crashed = (
       _event: unknown,
       details: {reason: string; exitCode: number},
@@ -79,6 +100,7 @@ export function registerAudioOutput({
     };
     const ready = (): void => attempt(() => recovery.pageDrawn());
     releaseCrash = () => {
+      releaseProblems?.();
       recovery.dispose();
       if (opened.isDestroyed() || contents.isDestroyed()) return;
       attempt(() => contents.removeListener('render-process-gone', crashed));

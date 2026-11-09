@@ -8,6 +8,10 @@ import {followAudioOutput} from '../rendering/audioSink';
 import {followSettingsDocument} from '../rendering/settingsFeed';
 import {audioTimes} from '@core/media/audioTimes';
 import {withPreferenceDefaults} from '@core/schema/preferences';
+import {
+  followPlaybackProblems,
+  setPlaybackProblem,
+} from '../rendering/playbackProblem';
 
 /** Runs audio only in main's dedicated hidden window, muted unless explicitly allowed. */
 export function startAudio({
@@ -19,6 +23,10 @@ export function startAudio({
   readonly api: LlpApi;
   readonly muted?: boolean;
 }): () => void {
+  const stopPlaybackProblems = followPlaybackProblems(
+    root,
+    api.output.reportPlaybackProblems,
+  );
   const report = (message: string, error: unknown): void => {
     api.log.write({
       level: 'error',
@@ -57,7 +65,10 @@ export function startAudio({
   const stopOutput = followAudioOutput({
     settings: api.settings,
     pick: 'audioOutput',
-    apply: ({sinkId}) => {
+    onAvailability: available =>
+      setPlaybackProblem(root, 'device-failed', !available),
+    apply: ({sinkId, missing}) => {
+      setPlaybackProblem(root, 'device-missing', missing);
       player.setSink(sinkId);
       background.setSink(sinkId);
     },
@@ -85,6 +96,7 @@ export function startAudio({
     window.removeEventListener('pagehide', stop);
     stopOutput();
     stopTimes();
+    stopPlaybackProblems();
     try {
       stopFollowing?.();
     } catch (error) {

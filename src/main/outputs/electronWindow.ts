@@ -19,6 +19,10 @@ import type {OutputScreen} from './screens';
 import {OnTopKeeper} from './onTopKeeper';
 import {WindowPlacement} from './windowPlacement';
 import {forwardOutputKeys, type OutputKeyControl} from './outputKeys';
+import {
+  watchPlaybackProblems,
+  type PlaybackProblemBoard,
+} from './playbackProblems';
 
 export const OUTPUT_BACKGROUND = '#000000';
 // NOTE(0913vision): The design token `chroma` spells the same green in lower
@@ -34,6 +38,7 @@ function halfOf({width, height}: Rect): Size {
 
 /** What an Electron output window needs besides its screen and events. */
 export interface ElectronOutputWindowOptions {
+  readonly playbackProblems?: PlaybackProblemBoard;
   readonly log: Logger;
   readonly mode: WindowMode;
   readonly control: Pick<BrowserWindow, 'isDestroyed' | 'moveAbove'> &
@@ -274,6 +279,14 @@ export function createElectronOutputWindow(
   let frameUnavailableReported = false;
   discardTestFrames(win.webContents, mode);
   const page: PageRequest = {name: 'output', query: {screen: screen.id}};
+  const releaseProblems =
+    options.playbackProblems === undefined
+      ? undefined
+      : watchPlaybackProblems(options.playbackProblems, win.webContents, {
+          source: screen.id,
+          name: () => win.getTitle(),
+          retry: () => win.webContents.reload(),
+        });
   win.removeMenu();
   blockNavigation(win);
   listen(win, events);
@@ -284,6 +297,7 @@ export function createElectronOutputWindow(
     options,
   );
   const dispose = (): void => {
+    releaseProblems?.();
     releaseKeys();
     releasePresentation();
   };

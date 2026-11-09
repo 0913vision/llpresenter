@@ -55,6 +55,7 @@ import {registerSongEditorWindow} from './windows/songEditor';
 import {registerSlidesEditorWindow} from './windows/slidesEditor';
 import {isItemOfKind} from '@core/schema/service';
 import {registerAudioOutput} from './windows/audio';
+import {registerPlaybackProblems} from './outputs/playbackProblems';
 import {registerControlClose} from './windows/controlClose';
 import {registerMediaScheme, serveMedia} from './windows/mediaProtocol';
 import {windowModeFrom, type WindowMode} from './windows/testWindows';
@@ -290,7 +291,14 @@ function start(): void {
         windowMode,
         log,
       });
+      const playbackProblems = registerPlaybackProblems({
+        log,
+        enabled: source =>
+          source === 'audio' || store.state.outputs[source] === true,
+        subscribe: changed => store.subscribe(changed),
+      });
       const outputs = startOutputs({
+        playbackProblems: playbackProblems.board,
         store,
         settings: dataStore.settings,
         saveScreenSettings: dataStore.applySettingsEdit,
@@ -299,6 +307,7 @@ function start(): void {
         windowMode,
       });
       const stopAudio = registerAudioOutput({
+        playbackProblems: playbackProblems.board,
         store,
         media: dataStore.media,
         log,
@@ -391,6 +400,10 @@ function start(): void {
       shutdown.add({name: 'stop media analysis', run: analysis.dispose});
       shutdown.add({name: 'stop macros', run: macros.dispose});
       shutdown.add({name: 'stop audio', run: stopAudio});
+      shutdown.add({
+        name: 'stop playback problems',
+        run: playbackProblems.stop,
+      });
       shutdown.add({name: 'stop overlays', run: stopOverlays});
       shutdown.add({name: 'stop theme output', run: stopThemeOutput});
       shutdown.add({name: 'stop slide advance', run: stopSlideAdvance});
