@@ -6,7 +6,10 @@ import type {MissingMedia} from '@core/schema/mediaFiles';
 
 export function useOtherSources(open: boolean) {
   const api = window.llp;
+  // NOTE(0913vision): Menu callbacks can outlive the render that created them;
+  // the ref guards them against a newer missing-file push or a closed menu.
   const latestMissing = useRef<ReadonlySet<MediaId> | null>(null);
+  const [missingFailed, setMissingFailed] = useState(false);
   const [missingMedia, setMissingMedia] = useState<ReadonlySet<MediaId> | null>(
     null,
   );
@@ -22,6 +25,7 @@ export function useOtherSources(open: boolean) {
       if (!current) return;
       const next = new Set(missing);
       latestMissing.current = next;
+      setMissingFailed(false);
       setMissingMedia(next);
     };
     const acceptMedia = (document: MediaDocument): void => {
@@ -45,7 +49,10 @@ export function useOtherSources(open: boolean) {
       missing => {
         if (!missingPushed) acceptMissing(missing);
       },
-      (error: unknown) => console.error('Missing media read failed', error),
+      (error: unknown) => {
+        console.error('Missing media read failed', error);
+        if (current && !missingPushed) setMissingFailed(true);
+      },
     );
     api.media
       .get()
@@ -58,12 +65,16 @@ export function useOtherSources(open: boolean) {
       stopMissing();
       latestMissing.current = null;
       setMissingMedia(null);
+      setMissingFailed(false);
     };
   }, [api, open]);
   return {
     ...sources,
     missingMedia: missingMedia ?? new Set<MediaId>(),
     mediaReady: missingMedia !== null,
+    mediaUnavailableReason: missingFailed
+      ? '상태를 확인하지 못했습니다'
+      : undefined,
     canAddMedia: (id: MediaId): boolean =>
       latestMissing.current !== null && !latestMissing.current.has(id),
   };

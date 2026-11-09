@@ -8,7 +8,7 @@ import {
   menuSeparator,
 } from '@renderer/ui/menuRows';
 import type {MediaEntry} from './mediaEntries';
-import {mediaAddAvailability} from './mediaAddAvailability';
+import {mediaAddAvailability} from '@renderer/platform/mediaAddAvailability';
 import {shownProps, type MediaProps} from './mediaProps';
 
 export interface MediaTileActions {

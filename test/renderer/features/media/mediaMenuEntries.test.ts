@@ -60,7 +60,7 @@ it('disables service insertion with a reason when the file is missing', () => {
   expect(add).toMatchObject({
     kind: 'item',
     disabled: true,
-    title: '파일을 찾을 수 없습니다',
+    title: '미디어 파일을 찾을 수 없습니다',
   });
   expect(addToService).not.toHaveBeenCalled();
   const available = mediaTileMenuEntries(entry, actions({addToService})).find(

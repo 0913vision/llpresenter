@@ -317,7 +317,7 @@ bar handles.
 | 2     | 빈 슬라이드, 광고                      | Add a slides item after the selection and open 슬라이드 편집 (05).                                                                              | Now     |
 | 2     | 사도신경 ›, 주기도문 ›                 | Each offers 새 번역 and 옛 번역; adds editable slides after the selection with manual advance (05).                                             | Now     |
 | 2     | 구역 이름 ›                            | Offers the ordered Sunday section names; adds an editable 빈 슬라이드 with its theme, English line and background after the selection (05, 12). | Now     |
-| 2     | 미디어 ›                               | Lists media; missing files are disabled with the reason 파일을 찾을 수 없습니다.                                                                | Now     |
+| 2     | 미디어 ›                               | Lists media; missing files are disabled with the reason 미디어 파일을 찾을 수 없습니다.                                                         | Now     |
 | 2     | 성경 구절…                             | Opens the 성경 구절 dialog.                                                                                                                     | Now     |
 | 2     | 영상 스트림 항목…, 오디오 스트림 항목… | PP stream items.                                                                                                                                | Off     |
 | -     | Inline song list                       | Songs are chosen in the 곡… dialog, or added from 라이브러리 and toolbar search.                                                                | Removed |

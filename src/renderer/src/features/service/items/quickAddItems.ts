@@ -13,7 +13,7 @@ import {LITURGY} from '@core/services/liturgy';
 import {prepareLiturgy} from './quickAddLiturgy';
 import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
 import {prepareSection} from './quickAddSection';
-import {mediaAddAvailability} from '@renderer/features/media/mediaAddAvailability';
+import {mediaAddAvailability} from '@renderer/platform/mediaAddAvailability';
 
 const SECTION_NAME = '새 구역';
 
@@ -21,6 +21,7 @@ export interface OtherItemChoices {
   readonly media: readonly MediaItem[];
   readonly missingMedia?: ReadonlySet<MediaId>;
   readonly mediaReady?: boolean;
+  readonly mediaUnavailableReason?: string | undefined;
   readonly canAddMedia?: (id: MediaId) => boolean;
   readonly onInsert: (item: ServiceItem | (() => Promise<ServiceItem>)) => void;
   /** Switches the popover to typing a passage reference. */
@@ -55,6 +56,7 @@ export function otherItemEntries({
   media,
   missingMedia = new Set(),
   mediaReady = true,
+  mediaUnavailableReason,
   canAddMedia,
   onInsert,
   onBible,
@@ -117,7 +119,7 @@ export function otherItemEntries({
           label: mediaName(item),
           ...mediaAddAvailability(
             missingMedia.has(item.id),
-            mediaReady ? undefined : '불러오는 중',
+            mediaReady ? undefined : (mediaUnavailableReason ?? '불러오는 중'),
           ),
           onSelect: () => {
             if (

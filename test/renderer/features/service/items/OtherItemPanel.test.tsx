@@ -12,6 +12,7 @@ import {
 } from '@fixtures/renderer/features/media/mediaTesting';
 import {OtherItemPanel} from '@renderer/features/service/items/OtherItemPanel';
 import {useOtherSources} from '@renderer/features/service/items/useOtherSources';
+import {otherItemEntries} from '@renderer/features/service/items/quickAddItems';
 
 afterEach(() => {
   delete window.llp;
@@ -130,6 +131,69 @@ describe('the center panel of other item kinds', () => {
     expect(result.current.canAddMedia(fixtureMedia.dawn)).toBe(false);
     unmount();
     expect(fixture.listeners.missing.size).toBe(0);
+  });
+
+  it('ends loading with a reason after a failed check and retries on reopening', async () => {
+    const fixture = sourcesFixture();
+    fixture.missing.mockRejectedValueOnce(new Error('Unavailable'));
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    try {
+      window.llp = fixture.api;
+      const {result, rerender} = renderHook(({open}) => useOtherSources(open), {
+        initialProps: {open: true},
+      });
+      await waitFor(() =>
+        expect(result.current.mediaUnavailableReason).toBe(
+          '상태를 확인하지 못했습니다',
+        ),
+      );
+      await waitFor(() =>
+        expect(result.current.media.length).toBeGreaterThan(0),
+      );
+      expect(result.current.mediaReady).toBe(false);
+      const menu = otherItemEntries({
+        ...result.current,
+        onInsert: vi.fn(),
+        onBible: vi.fn(),
+      });
+      const media = menu.find(
+        entry => entry.kind === 'item' && entry.id === 'other:media',
+      );
+      if (media?.kind !== 'item') throw new Error('Missing media menu');
+      expect(media.submenu?.[0]).toMatchObject({
+        disabled: true,
+        title: '상태를 확인하지 못했습니다',
+      });
+      rerender({open: false});
+      rerender({open: true});
+      await waitFor(() => expect(result.current.mediaReady).toBe(true));
+      expect(result.current.mediaUnavailableReason).toBeUndefined();
+      expect(fixture.missing).toHaveBeenCalledTimes(2);
+    } finally {
+      log.mockRestore();
+    }
+  });
+
+  it('keeps a newer missing-file push when the initial read rejects', async () => {
+    const fixture = sourcesFixture();
+    let reject: (reason: Error) => void = () => undefined;
+    fixture.missing.mockReturnValueOnce(
+      new Promise((_resolve, fail) => {
+        reject = fail;
+      }),
+    );
+    const log = vi.spyOn(console, 'error').mockImplementation(() => undefined);
+    try {
+      window.llp = fixture.api;
+      const {result} = renderHook(() => useOtherSources(true));
+      act(() => fixture.pushMissing([fixtureMedia.dawn]));
+      await act(async () => reject(new Error('Unavailable')));
+      expect(result.current.mediaReady).toBe(true);
+      expect(result.current.mediaUnavailableReason).toBeUndefined();
+      expect(result.current.canAddMedia(fixtureMedia.dawn)).toBe(false);
+    } finally {
+      log.mockRestore();
+    }
   });
 
   it('leaves the panel empty for a header, a slot, and no selection', () => {

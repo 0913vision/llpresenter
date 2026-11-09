@@ -71,7 +71,7 @@ describe('quick add other items', () => {
     );
     expect(missingRow).toMatchObject({
       disabled: true,
-      title: '파일을 찾을 수 없습니다',
+      title: '미디어 파일을 찾을 수 없습니다',
     });
     missingRow.onSelect?.();
     expect(onInsert).not.toHaveBeenCalled();
