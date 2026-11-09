@@ -27,6 +27,7 @@ import {
   reconcileReferenceFields,
   referenceFieldsState,
   selectedBook,
+  type ReferenceFields,
   type ReferencePart,
 } from '@core/bible/referenceFields';
 import styles from './BibleReferenceField.module.css';
@@ -61,6 +62,20 @@ function focusPart(root: HTMLElement | null, part: ReferencePart): void {
   );
   field?.focus();
   field?.select();
+}
+
+function readReferenceFields(
+  root: HTMLElement | null,
+  fallback: ReferenceFields,
+): ReferenceFields {
+  const current = {...fallback};
+  for (const part of ['book', ...NUMBER_PARTS] as const) {
+    const field = root?.querySelector<HTMLInputElement>(
+      `[data-reference-part="${part}"]`,
+    );
+    if (field !== undefined && field !== null) current[part] = field.value;
+  }
+  return current;
 }
 
 /** Shares book completion and endpoint validation across Show and Prep. */
@@ -384,23 +399,7 @@ export function BibleReferenceForm(
     }
     // NOTE(0913vision): The last change can still be batched while the lookup
     // and its rendered result refer to the previous value.
-    const currentFields = {
-      book:
-        root.current?.querySelector<HTMLInputElement>('[role="combobox"]')
-          ?.value ?? fields.book,
-      chapter:
-        root.current?.querySelector<HTMLInputElement>(
-          '[data-reference-part="chapter"]',
-        )?.value ?? fields.chapter,
-      start:
-        root.current?.querySelector<HTMLInputElement>(
-          '[data-reference-part="start"]',
-        )?.value ?? fields.start,
-      end:
-        root.current?.querySelector<HTMLInputElement>(
-          '[data-reference-part="end"]',
-        )?.value ?? fields.end,
-    };
+    const currentFields = readReferenceFields(root.current, fields);
     const currentState = referenceFieldsState(currentFields, metadata?.bounds);
     const input = selectedRecent?.ref ?? currentState.input;
     if (passage && reply?.input === input) {
@@ -430,7 +429,20 @@ export function BibleReferenceForm(
     }
   };
   return (
-    <div ref={root} className={styles.form} role="group" aria-label="성경 구절">
+    <div
+      ref={root}
+      className={styles.form}
+      role="group"
+      aria-label="성경 구절"
+      onBlur={event => {
+        if (
+          !(event.relatedTarget instanceof Node) ||
+          !event.currentTarget.contains(event.relatedTarget)
+        ) {
+          pendingSubmit.current = null;
+        }
+      }}
+    >
       <div ref={bookAnchor} className={styles.book}>
         <TextField
           size="sm"
@@ -439,6 +451,7 @@ export function BibleReferenceForm(
           clearable
           autoFocus={props.autoFocus}
           aria-label="책"
+          data-reference-part="book"
           placeholder="책"
           role="combobox"
           aria-autocomplete="list"

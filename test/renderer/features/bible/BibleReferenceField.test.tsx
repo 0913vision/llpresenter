@@ -37,6 +37,60 @@ function setup(
 }
 
 describe('Show Bible reference mount', () => {
+  it.each([false, true])(
+    'cancels a held Enter only when focus leaves the form (inside: %s)',
+    async inside => {
+      const view = setup([]);
+      render(<button type="button">다른 작업</button>);
+      const chapter = screen.getByRole<HTMLInputElement>('textbox', {
+        name: '장',
+      });
+      const start = screen.getByRole<HTMLInputElement>('textbox', {
+        name: '시작절',
+      });
+      const end = screen.getByRole<HTMLInputElement>('textbox', {name: '끝절'});
+      fireEvent.change(view.field, {target: {value: '요'}});
+      fireEvent.change(chapter, {target: {value: '3'}});
+      await waitFor(() => expect(start.disabled).toBe(false));
+      fireEvent.change(start, {target: {value: '16'}});
+      await waitFor(() => expect(view.onPreview).toHaveBeenCalled());
+      let finish: (reply: BibleLookupReply) => void = () => undefined;
+      view.lookup.mockImplementationOnce(
+        () =>
+          new Promise(resolve => {
+            finish = resolve;
+          }),
+      );
+      end.focus();
+      fireEvent.change(end, {target: {value: '18'}});
+      fireEvent.keyDown(end, {key: 'Enter'});
+      await waitFor(() =>
+        expect(view.lookup).toHaveBeenLastCalledWith(
+          lookupRequest('요한복음 3:16-18'),
+        ),
+      );
+      (inside
+        ? chapter
+        : screen.getByRole('button', {name: '다른 작업'})
+      ).focus();
+      await act(async () =>
+        finish(await formLookupReply(lookupRequest('요한복음 3:16-18'))),
+      );
+      await waitFor(() =>
+        expect(view.onPreview).toHaveBeenLastCalledWith(
+          expect.objectContaining({ref: '요한복음 3:16-18'}),
+        ),
+      );
+      if (inside) {
+        expect(view.onShow).toHaveBeenCalledExactlyOnceWith(
+          expect.objectContaining({ref: '요한복음 3:16-18'}),
+        );
+      } else {
+        expect(view.onShow).not.toHaveBeenCalled();
+      }
+    },
+  );
+
   it('outputs the passage when Enter follows the final digit immediately', async () => {
     const view = setup([]);
     const chapter = screen.getByRole<HTMLInputElement>('textbox', {name: '장'});
