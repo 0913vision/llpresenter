@@ -19,8 +19,8 @@ library, or upgrade a version, record the reason in this document.
    action, import format, or input device must take only one new entry in its
    registry. Don't change existing code to wedge it in.
 5. **Work without the internet.** Don't rely on the network during a service.
-   Bundle the Bible text and fonts with the app. Update only when the user
-   clicks, and never during a service.
+   Bundle the Bible text and fonts with the app. Install an update only when
+   the user clicks, and never while an output is on.
 
 ## Stack
 
@@ -291,9 +291,15 @@ reason in this document, and the lead has approved it.
 
 ## Operating rules
 
+- The app is installed with one Windows installer file (electron-builder,
+  NSIS, x64), which the GitHub Release of each version carries. A release is a
+  draft until the user publishes it, and only a published release reaches the
+  app.
+- The installed app looks for a newer release at launch and from 도움말 >
+  업데이트 확인, and downloads it in the background. It installs it only after
+  the user clicks 설치, never while an output is on, and never on quit.
 - Don't install a new version on the day before a service or on the day of a
   service.
-- There are no automatic updates. The user installs new versions by hand.
 - Crash records stay on this computer only (they're never sent out).
 
 ## To be decided
@@ -303,5 +309,4 @@ reason in this document, and the lead has approved it.
 | Initial consonant search method                               | Phase 3 (prep)                    |
 | Bible text sources (format decided in `docs/spec/02-data.md`) | Phase 3 (tools), the user decides |
 | NDI sending (comparing native module candidates)              | Phase 5                           |
-| Building the installer                                        | Phase 5                           |
 | PowerPoint reading, sheet music rendering, camera input       | The phase of each feature         |
