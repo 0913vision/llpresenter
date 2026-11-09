@@ -628,12 +628,20 @@ fields, as every settings file does (02).
 
 New 찬양 audience layouts carry optional `songTitle: "sunday"`. For a song title
 slide, the shared output and thumbnail composition replaces 현재 가사 with the
-editable title and subtitle lines over the same song background. The white title
-uses NanumSquare ExtraBold at 120 px, centered without shadow or outline, in
-frame (339, 181, 1242, 160). The optional subtitle uses NanumSquare Regular at
-64 px with 24 px tracking in frame (252, 345, 1416, 90). Lyric slides and the
-other screen roles retain their normal layouts. The built-in 찬양 also resolves
-this title variant in saved catalogs without rewriting their lyric layouts.
-Other layouts without the selector retain ordinary text rendering. The 밝은 배경
-variant uses `songTitle: "sunday-light"` for the same title and subtitle
-composition in black, including when copied or saved.
+editable title and subtitle lines over the same song background. Both lines
+inherit the replaced 현재 가사 element's text color. The title uses NanumSquare
+ExtraBold at 120 px, centered without shadow or outline, in frame (339, 181,
+1242, 160). The optional subtitle uses NanumSquare Regular at 64 px with default
+24 px tracking in frame (252, 345, 1416, 90). Lyric slides and the other screen
+roles retain their normal layouts. The built-in 찬양 also resolves this title
+variant in saved catalogs without rewriting their lyric layouts. Other layouts
+without the selector retain ordinary text rendering. The 밝은 배경 variant uses
+`songTitle: "sunday-light"` for the same title and subtitle composition, with
+black text inherited from its lyrics, including when copied or saved. A title
+slide's `titleLayout` overrides title and subtitle tracking (defaults 0 and 24
+px) independently. The opening title may use 12/12 px while another song retains
+0/24 px; repeated titles use the same composition at every position.
+
+The optional titleTop and subtitleTop in `titleLayout` set each line's frame y
+coordinate explicitly. For example, the opening subtitle uses 338 px and the
+closing song title uses 158 px; unconfigured titles retain 181/345 px.

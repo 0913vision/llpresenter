@@ -286,6 +286,9 @@ export function ContentPreviewFrame({
                 ...(tilePicture.tile.titleSlide === undefined
                   ? {}
                   : {titleSlide: tilePicture.tile.titleSlide}),
+                ...(tilePicture.tile.titleLayout === undefined
+                  ? {}
+                  : {titleLayout: tilePicture.tile.titleLayout}),
                 ...(tilePicture.tile.transition === undefined
                   ? {}
                   : {transition: tilePicture.tile.transition}),

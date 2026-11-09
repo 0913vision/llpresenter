@@ -157,6 +157,9 @@ function ItemSongTiles({
                 ...(slide.titleSlide === undefined
                   ? {}
                   : {titleSlide: slide.titleSlide}),
+                ...(slide.titleLayout === undefined
+                  ? {}
+                  : {titleLayout: slide.titleLayout}),
               }}
             />
           );

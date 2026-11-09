@@ -16,10 +16,18 @@ const song = (slides: unknown = [slide()]) => ({
 const parse = (data: unknown) => parseSong(JSON.stringify(data), 'song.llsong');
 
 describe('song slide deck contract', () => {
-  it('round trips a first title slide with bounded editable title and subtitle', () => {
+  it('round trips repeated titles and spacing in library and service decks', () => {
     const input = song([
       {...slide(), titleSlide: true, lines: ['Title', 'Subtitle']},
       slide(2),
+      {
+        ...slide(3),
+        titleSlide: true,
+        lines: ['Repeat', 'Subtitle'],
+        titleLayout: {titleTracking: 12, subtitleTracking: 12},
+      },
+      slide(4),
+      {...slide(5), titleSlide: true, lines: ['Closing']},
     ]);
     const read = expectSuccess(parse(input));
     expect(
@@ -49,18 +57,16 @@ describe('song slide deck contract', () => {
       );
     }
   });
-  it('rejects duplicate or misplaced titles, invalid flags and oversized title text', () => {
+  it('rejects invalid flags and oversized title text at any position', () => {
     const title = {...slide(), titleSlide: true};
     for (const slides of [
-      [slide(2), title],
-      [title, {...title, id: id(2)}],
       [{...title, titleSlide: false}],
       [{...title, titleSlide: 'title'}],
       [{...title, lines: ['a', 'b', 'c']}],
       [{...title, lines: ['x'.repeat(SONG_LIMITS.titleLine + 1)]}],
       [{...title, lines: ['a\nb']}],
     ]) {
-      expect(parse(song(slides)).ok).toBe(false);
+      expect(parse(song([slide(99), ...slides])).ok).toBe(false);
     }
   });
   it('round trips blank slides, free names and unknown nested fields', () => {
@@ -99,7 +105,7 @@ describe('song slide deck contract', () => {
         {...slide(2), hotKey: 'KeyA'},
       ],
     ]) {
-      expect(parse(song(slides)).ok).toBe(false);
+      expect(parse(song([slide(99), ...slides])).ok).toBe(false);
     }
     expect(
       parse(

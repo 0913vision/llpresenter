@@ -157,14 +157,6 @@ export function SongSlideSurface<T extends SlideListItem>({
   const duplicateReason =
     editReason ??
     selectionReason ??
-    (view.slides.some(
-      slide =>
-        view.selection.ids.has(slide.id) &&
-        'titleSlide' in slide &&
-        slide.titleSlide === true,
-    )
-      ? '제목 슬라이드는 복제할 수 없습니다'
-      : undefined) ??
     (view.slides.length + view.selection.ids.size >
     session.slideModel.limits.maxSlides
       ? '슬라이드가 너무 많습니다'

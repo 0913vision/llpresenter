@@ -45,3 +45,83 @@ it('replaces only lyrics with title text and optional subtitle on an opted-in la
   const linked: ThemeScreenLayout = {...layout, mode: {kind: 'empty'}};
   expect(songTitleLayout(linked, slide)).toBe(linked);
 });
+
+it.each(['sunday', 'sunday-light'] as const)(
+  'inherits lyric ink and per-slide spacing for %s titles at any position',
+  songTitle => {
+    const layout: ThemeScreenLayout = {
+      mode: {kind: 'own'},
+      songTitle,
+      elements: [
+        {
+          ...themeElementBase(),
+          kind: 'currentText',
+          text: {...themeElementBase().text, color: '#123456', maxLines: 3},
+        },
+      ],
+    };
+    const slide = {
+      itemId: 'song',
+      position: 5,
+      label: null,
+      lines: ['Title', 'Subtitle'],
+      titleSlide: true,
+    } as const;
+    const textOf = (
+      value: typeof slide & {
+        titleLayout?: {titleTracking: number; subtitleTracking: number};
+      },
+    ) =>
+      songTitleLayout(layout, value).elements.map(element =>
+        element.kind === 'text' ? element.text : undefined,
+      );
+    expect(textOf(slide)).toMatchObject([
+      {color: '#123456', tracking: 0},
+      {color: '#123456', tracking: 24},
+    ]);
+    expect(
+      textOf({
+        ...slide,
+        titleLayout: {titleTracking: 12, subtitleTracking: 12},
+      }),
+    ).toMatchObject([
+      {color: '#123456', tracking: 12},
+      {color: '#123456', tracking: 12},
+    ]);
+  },
+);
+
+it('uses measured vertical positions without changing the default title geometry', () => {
+  const layout: ThemeScreenLayout = {
+    mode: {kind: 'own'},
+    songTitle: 'sunday',
+    elements: [
+      {
+        ...themeElementBase(),
+        kind: 'currentText',
+        text: {...themeElementBase().text, maxLines: 2},
+      },
+    ],
+  };
+  const slide = {
+    itemId: 'song',
+    position: 3,
+    label: null,
+    lines: ['Title', 'Subtitle'],
+    titleSlide: true,
+  } as const;
+  expect(
+    songTitleLayout(layout, slide).elements.map(element => element.frame.y),
+  ).toEqual([181, 345]);
+  expect(
+    songTitleLayout(layout, {
+      ...slide,
+      titleLayout: {
+        titleTracking: 12,
+        subtitleTracking: 12,
+        titleTop: 158,
+        subtitleTop: 338,
+      },
+    }).elements.map(element => element.frame.y),
+  ).toEqual([158, 338]);
+});

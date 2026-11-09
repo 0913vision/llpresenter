@@ -56,6 +56,7 @@ export interface NextSlide {
 /** The slide on output: a service item, its position in the arrangement, and what to draw. */
 export interface SlideLayer {
   readonly titleSlide?: true;
+  readonly titleLayout?: import('../schema/songTitleLayout').SongTitleLayout;
   readonly transition?: import('../schema/slideTransition').SlideTransition;
   readonly picture?: MediaId;
   readonly itemId: string;

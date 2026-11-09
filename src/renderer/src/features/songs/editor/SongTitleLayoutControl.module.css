@@ -1,0 +1,16 @@
+.spacing {
+  display: grid;
+  grid-template-columns: repeat(2, max-content);
+  flex: none;
+  gap: var(--space-16);
+  padding: var(--space-8) var(--space-14);
+  border-bottom: var(--radius-hairline) solid var(--line);
+}
+
+.field {
+  display: flex;
+  align-items: center;
+  gap: var(--space-8);
+  color: var(--text-2);
+  font: var(--type-caption);
+}

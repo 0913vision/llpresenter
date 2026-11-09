@@ -127,7 +127,9 @@ export function splitSlide(
 ): SlideEditResult {
   const index = slides.findIndex(slide => slide.id === id);
   const slide = slides[index];
-  if (slide === undefined) return {ok: false, error: 'invalid'};
+  if (slide === undefined || slide.titleSlide) {
+    return {ok: false, error: 'invalid'};
+  }
   const {line, character, newId = newSongSlideId} = position;
   const text =
     slide.lines[line] ??
@@ -167,6 +169,9 @@ export function mergeSlideWithPrevious(
   const previous = slides[index - 1];
   if (slide === undefined || previous === undefined) {
     return {ok: true, value: slides};
+  }
+  if (slide.titleSlide || previous.titleSlide) {
+    return {ok: false, error: 'invalid'};
   }
   const hotKey = previous.hotKey ?? slide.hotKey;
   return checked([

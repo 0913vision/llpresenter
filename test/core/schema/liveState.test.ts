@@ -28,6 +28,29 @@ function busyState(): LiveState {
 }
 
 describe('parseLiveState', () => {
+  it('preserves bounded title layout on a later live title and rejects invalid positions', () => {
+    const state = busyState();
+    const titleLayout = {
+      titleTracking: 12,
+      subtitleTracking: 12,
+      subtitleTop: 338,
+    };
+    const withLayout = (layout: unknown) => ({
+      ...state,
+      layers: {
+        ...state.layers,
+        slide: {...state.layers.slide, titleSlide: true, titleLayout: layout},
+      },
+    });
+    const result = parseLiveState(withLayout(titleLayout));
+    expect(result).toMatchObject({
+      ok: true,
+      value: {layers: {slide: {titleLayout}}},
+    });
+    expect(
+      parseLiveState(withLayout({...titleLayout, subtitleTop: 991})).ok,
+    ).toBe(false);
+  });
   it('accepts a song title marker and rejects other flag values', () => {
     const state = busyState();
     for (const titleSlide of [true, false, 'title', null]) {

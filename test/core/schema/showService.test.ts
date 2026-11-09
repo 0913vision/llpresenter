@@ -42,6 +42,35 @@ it('accepts an optional song theme and rejects malformed theme identities', () =
 });
 
 describe('parseShowService', () => {
+  it('preserves bounded title layout on projected tiles', () => {
+    const titleLayout = {
+      titleTracking: 12,
+      subtitleTracking: 12,
+      subtitleTop: 338,
+    };
+    const value = showService();
+    const withLayout = (layout: unknown) => ({
+      ...value,
+      tiles: {
+        'item-2': [
+          {
+            label: null,
+            labelColor: 'none',
+            lines: ['Title'],
+            titleSlide: true,
+            titleLayout: layout,
+          },
+        ],
+      },
+    });
+    expect(parseShowService(withLayout(titleLayout))).toMatchObject({
+      ok: true,
+      value: {tiles: {'item-2': [{titleLayout}]}},
+    });
+    expect(
+      parseShowService(withLayout({...titleLayout, titleTracking: 201})).ok,
+    ).toBe(false);
+  });
   it('validates the title marker on projected song tiles', () => {
     const value = showService();
     for (const titleSlide of [true, false, 'title', null]) {

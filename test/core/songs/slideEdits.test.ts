@@ -96,3 +96,25 @@ describe('independent slide edits', () => {
     expect(setSlideLabels(source, [id(1)], 'x'.repeat(65)).ok).toBe(false);
   });
 });
+
+it('moves, copies and removes repeated titles without merging or splitting them', () => {
+  const title: SongSlide = {
+    ...slide(1),
+    titleSlide: true,
+    titleLayout: {titleTracking: 12, subtitleTracking: 12},
+    lines: ['Title', 'Subtitle'],
+  };
+  const deck = [title, slide(2), {...title, id: id(3)}];
+  const copied = value(duplicateSlides(deck, [id(3)], () => id(4)));
+  expect(copied[3]).toEqual({...title, id: id(4)});
+  const moved = value(moveSlides(copied, [id(1)], 2));
+  expect(moved.map(entry => entry.id)).toEqual([id(2), id(1), id(3), id(4)]);
+  expect(
+    value(pasteSlides(deck, [title], {index: 1, newId: () => id(5)}))[1],
+  ).toEqual({...title, id: id(5)});
+  expect(value(removeSlides(deck, [id(3)]))).toEqual(deck.slice(0, 2));
+  for (const selected of [id(2), id(3)]) {
+    expect(mergeSlideWithPrevious(deck, selected).ok).toBe(false);
+  }
+  expect(splitSlide(deck, id(3), {line: 0, character: 2}).ok).toBe(false);
+});

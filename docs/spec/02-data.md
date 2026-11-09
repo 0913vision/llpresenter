@@ -1229,7 +1229,17 @@ Source: `Main` service notes ("출력 상태는 파일에 넣지 않습니다"),
 decision "복구는 출력 상태만", `Recovery` (three restore rows), product log
 versions 61 and 62.
 
-Song slides may carry `titleSlide: true`. Only the first slide may carry it; its
-`lines` contains at most two strings of at most 512 characters without embedded
-newlines. Existing slides need no migration. The marker is retained in service
-decks, show tiles, and the live slide payload.
+Song slides may carry `titleSlide: true` at any position, including repeated
+opening and closing titles. Each title slide's `lines` contains at most two
+strings of at most 512 characters without embedded newlines. Existing slides
+need no migration. The marker is retained in service decks, show tiles, and the
+live slide payload.
+
+Optional
+`titleLayout: {titleTracking, subtitleTracking, titleTop?, subtitleTop?}` stores
+per-slide tracking in 1920 px canvas units. Tracking values are finite numbers
+from -20 to 200. Optional vertical positions are finite canvas y coordinates:
+titleTop from 0 to 920 (default 181), subtitleTop from 0 to 990 (default 345).
+Absence uses 0 px for the title and 24 px for the subtitle. It travels with the
+title marker through service decks, clipboard copies, show tiles, and live
+payloads; ordinary lyric slides ignore it.

@@ -16,6 +16,7 @@ describe('slideLayerOf', () => {
     const deck: readonly SlideTile[] = [
       {
         titleSlide: true,
+        titleLayout: {titleTracking: 12, subtitleTracking: 12},
         label: null,
         labelColor: 'none',
         lines: ['Title', 'Subtitle'],
@@ -24,6 +25,7 @@ describe('slideLayerOf', () => {
     ];
     expect(slideLayerOf({itemId: 'song', index: 0}, () => deck)).toMatchObject({
       titleSlide: true,
+      titleLayout: {titleTracking: 12, subtitleTracking: 12},
       lines: ['Title', 'Subtitle'],
       next: {lines: ['Lyric']},
     });

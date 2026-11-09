@@ -42,13 +42,19 @@ it('projects a song title marker without inventing a transition', () => {
     {
       ...song,
       slides: [
-        {id: fixtureSlideId(1), titleSlide: true, lines: ['Title', 'Subtitle']},
+        {
+          id: fixtureSlideId(1),
+          titleSlide: true,
+          titleLayout: {titleTracking: 12, subtitleTracking: 12},
+          lines: ['Title', 'Subtitle'],
+        },
       ],
     },
     new Map(),
   ).tiles;
   expect(tiles[0]).toMatchObject({
     titleSlide: true,
+    titleLayout: {titleTracking: 12, subtitleTracking: 12},
     lines: ['Title', 'Subtitle'],
   });
   expect(tiles[0]?.transition).toBeUndefined();

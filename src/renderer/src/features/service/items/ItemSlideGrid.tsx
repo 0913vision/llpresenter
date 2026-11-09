@@ -116,6 +116,9 @@ export function ItemSlideGrid({
             ...(songSlide.titleSlide === undefined
               ? {}
               : {titleSlide: songSlide.titleSlide}),
+            ...(songSlide.titleLayout === undefined
+              ? {}
+              : {titleLayout: songSlide.titleLayout}),
           }}
         />
       );

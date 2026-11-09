@@ -10,6 +10,7 @@ import {
   type ReactNode,
 } from 'react';
 import {LabelMenu} from './LabelMenu';
+import {SongTitleLayoutControl} from './SongTitleLayoutControl';
 import {SongBlock, type EditorFocus} from './SongBlock';
 import {SongHeader} from './SongHeader';
 import {SlideHotKeyControl} from './SlideHotKeyControl';
@@ -83,13 +84,17 @@ export function SongEditor({
             disabled={state.busy}
             song
           />
+          <SongTitleLayoutControl
+            session={state.session}
+            disabled={state.busy}
+          />
           <SongSlideSurface
             session={state.session}
             store={store}
             className={styles.surface}
             onBack={onBack}
             blocked={state.busy}
-            extraMenu={() => [
+            extraMenu={index => [
               {
                 kind: 'item',
                 id: 'song-title',
@@ -97,19 +102,21 @@ export function SongEditor({
                 ...menuAvailability(
                   state.busy || state.session?.readOnly
                     ? '지금은 편집할 수 없습니다'
-                    : state.session?.history.snapshot.song.slides.some(
-                          slide => slide.titleSlide,
-                        )
-                      ? '제목 슬라이드가 있습니다'
-                      : (state.session?.history.snapshot.song.slides.length ??
-                            0) >= SONG_LIMITS.slides
-                        ? '슬라이드가 너무 많습니다'
-                        : undefined,
+                    : (state.session?.history.snapshot.song.slides.length ??
+                          0) >= SONG_LIMITS.slides
+                      ? '슬라이드가 너무 많습니다'
+                      : undefined,
                 ),
                 onSelect: () =>
                   state.session?.edit({
                     type: 'title',
                     title: state.session.title.nextValue,
+                    index:
+                      state.session.slideModel.getSnapshot().selection.caret ??
+                      (state.session.slideModel.getSnapshot().selection.ids
+                        .size > 0
+                        ? index + 1
+                        : 0),
                   }),
               },
             ]}
@@ -294,6 +301,9 @@ function SongBlocks({
                       ...(slide.titleSlide === undefined
                         ? {}
                         : {titleSlide: slide.titleSlide}),
+                      ...(slide.titleLayout === undefined
+                        ? {}
+                        : {titleLayout: slide.titleLayout}),
                       label: slide.label ?? null,
                     }}
                   />

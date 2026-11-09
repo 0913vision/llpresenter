@@ -1,3 +1,4 @@
+import {songTitleLayoutSchema} from './songTitleLayout';
 import {slideTransitionSchema} from './slideTransition';
 import * as v from 'valibot';
 import {layerKinds, type LayerKind, type LiveState} from '../live/state';
@@ -77,6 +78,7 @@ export const layerSchemas = {
     label: v.nullable(liveTextSchema),
     lines: slideLinesSchema,
     titleSlide: v.exactOptional(v.literal(true)),
+    titleLayout: v.exactOptional(songTitleLayoutSchema),
     continued: v.exactOptional(v.boolean()),
     reference: v.exactOptional(liveTextSchema),
     name: v.exactOptional(liveTextSchema),

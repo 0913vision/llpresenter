@@ -87,9 +87,12 @@ describe('song editor view', () => {
     expect(input.value.length).toBe(length + 1);
   });
 
-  it('adds, edits, undoes and deletes a single title through the slide menu', async () => {
+  it('adds, edits, undoes and deletes a title while keeping repeat insertion available', async () => {
     const {session, user} = await editorSetup();
     const before = session.history.snapshot.song.slides;
+    await user.click(
+      screen.getByRole('button', {name: '슬라이드 1 앞에 삽입'}),
+    );
     const surface = screen.getByRole('group', {name: '슬라이드 편집 명령'});
     fireEvent.contextMenu(surface);
     await user.click(
@@ -112,7 +115,7 @@ describe('song editor view', () => {
       screen
         .getByRole('menuitem', {name: '제목 슬라이드 추가'})
         .getAttribute('aria-disabled'),
-    ).toBe('true');
+    ).not.toBe('true');
     await user.keyboard('{Escape}');
     act(() => session.edit('undo'));
     expect(session.history.snapshot.song.slides[0]?.lines).toEqual([
@@ -121,7 +124,6 @@ describe('song editor view', () => {
     act(() => session.edit('undo'));
     expect(session.history.snapshot.song.slides).toEqual(before);
     act(() => session.edit('redo'));
-    act(() => session.commandSlides({type: 'duplicate'}));
     expect(session.history.snapshot.song.slides).toHaveLength(
       before.length + 1,
     );
@@ -455,4 +457,44 @@ describe('song editor view', () => {
     await user.type(lyrics(), 'x');
     expect(lyrics().value).toBe(before);
   });
+});
+
+it('adds a closing title at the end caret, edits its spacing, duplicates and undoes deletion', async () => {
+  const {session, user} = await editorSetup();
+  const original = session.history.snapshot.song.slides;
+  await user.click(
+    screen.getByRole('button', {name: '마지막 슬라이드 뒤에 삽입'}),
+  );
+  const surface = screen.getByRole('group', {name: '슬라이드 편집 명령'});
+  fireEvent.contextMenu(surface);
+  await user.click(screen.getByRole('menuitem', {name: '제목 슬라이드 추가'}));
+  const closing = session.history.snapshot.song.slides.at(-1);
+  expect(closing).toMatchObject({
+    titleSlide: true,
+    lines: [session.title.nextValue],
+  });
+  expect(session.history.snapshot.song.slides.slice(0, -1)).toEqual(original);
+  const spacing = screen.getByRole('spinbutton', {name: '부제 자간'});
+  await user.clear(spacing);
+  await user.type(spacing, '12{Enter}');
+  expect(session.history.snapshot.song.slides.at(-1)?.titleLayout).toEqual({
+    titleTracking: 0,
+    subtitleTracking: 12,
+  });
+  fireEvent.contextMenu(surface);
+  await user.click(screen.getByRole('menuitem', {name: /복제/}));
+  expect(session.history.snapshot.song.slides.at(-1)).toMatchObject({
+    titleSlide: true,
+    titleLayout: {titleTracking: 0, subtitleTracking: 12},
+  });
+  expect(session.history.snapshot.song.slides.at(-1)?.id).not.toBe(closing?.id);
+  act(() => surface.focus());
+  await user.keyboard('{Delete}');
+  expect(session.history.snapshot.song.slides).toHaveLength(
+    original.length + 1,
+  );
+  act(() => session.edit('undo'));
+  expect(session.history.snapshot.song.slides).toHaveLength(
+    original.length + 2,
+  );
 });

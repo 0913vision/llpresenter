@@ -18,7 +18,14 @@ describe('local song preview model', () => {
     const selected = selectedPreview(
       {
         ...song,
-        slides: [{...first, titleSlide: true, lines: ['Title', 'Subtitle']}],
+        slides: [
+          {
+            ...first,
+            titleSlide: true,
+            titleLayout: {titleTracking: 12, subtitleTracking: 12},
+            lines: ['Title', 'Subtitle'],
+          },
+        ],
       },
       {
         block: 0,
@@ -27,6 +34,7 @@ describe('local song preview model', () => {
     );
     expect(selected.slide).toMatchObject({
       titleSlide: true,
+      titleLayout: {titleTracking: 12, subtitleTracking: 12},
       lines: ['Title', 'Subtitle'],
     });
     expect(selected.slide?.transition).toBeUndefined();

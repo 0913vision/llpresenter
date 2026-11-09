@@ -997,9 +997,13 @@ ordinary text, label, order, save, and clipboard edits (02).
 ### Song title slides
 
 The song editor slide menu offers 제목 슬라이드 추가. It inserts the current
-song title at the start, once per deck. The existing text field edits the title
-on its first line and an optional subtitle on its second line, each at most 512
-characters. The title remains first; ordinary delete and undo apply. Duplicating
-a title or pasting a second title is refused. Title slides have no special
-transition default; the existing per-slide editor sets a manual 4-second
-transition when desired. Library and service-local decks preserve the title.
+song title at the insertion caret, after the targeted slide, or at the start
+when nothing is selected. Titles may repeat anywhere, including the last slide.
+The existing text field edits the title on its first line and an optional
+subtitle on its second line, each at most 512 characters. A single selected
+title exposes 제목 자간 and 부제 자간 in px, saved per slide. Defaults are 0 and
+24; each accepts -20 to 200. Ordinary move, duplicate, copy, paste, delete and
+undo apply, retaining text and spacing. Splitting a title or merging across
+either side of a title is refused. Title slides have no special transition
+default; use the existing 슬라이드 전환 control to choose a slow transition when
+desired. Library and service-local decks preserve every title.

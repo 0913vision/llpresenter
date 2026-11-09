@@ -11,6 +11,8 @@ import {
   mergeSlideWithPrevious,
   setSlideLabels,
 } from './slideEdits';
+import {checkPart} from '../schema/fileFormat';
+import {songTitleLayoutSchema} from '../schema/songTitleLayout';
 import {SONG_LIMITS} from '../schema/song';
 export {blockSnapshot, linearSlidesOf, slideCountOf} from './blockModel';
 export type {
@@ -26,22 +28,49 @@ export function editBlocks(
   command: BlockCommand,
 ): BlockSnapshot {
   const {song, selection} = snapshot;
-  if (command.type === 'title') {
+  if (command.type === 'title-layout') {
+    const slide = song.slides[command.block];
     if (
-      song.slides.some(slide => slide.titleSlide) ||
+      !slide?.titleSlide ||
+      !checkPart(songTitleLayoutSchema, command.layout).ok
+    ) {
+      return snapshot;
+    }
+    return blockSnapshot(
+      {
+        ...song,
+        slides: song.slides.map((entry, index) =>
+          index === command.block
+            ? {...entry, titleLayout: command.layout}
+            : entry,
+        ),
+      },
+      selection,
+    );
+  }
+  if (command.type === 'title') {
+    const index = command.index ?? 0;
+    if (
+      !Number.isInteger(index) ||
+      index < 0 ||
+      index > song.slides.length ||
       song.slides.length >= SONG_LIMITS.slides ||
       command.title.length > SONG_LIMITS.titleLine ||
       /[\r\n]/.test(command.title)
     ) {
       return snapshot;
     }
-    return blockSnapshot({
-      ...song,
-      slides: [
-        {id: newSongSlideId(), titleSlide: true, lines: [command.title]},
-        ...song.slides,
-      ],
-    });
+    return blockSnapshot(
+      {
+        ...song,
+        slides: [
+          ...song.slides.slice(0, index),
+          {id: newSongSlideId(), titleSlide: true, lines: [command.title]},
+          ...song.slides.slice(index),
+        ],
+      },
+      {block: index, start: 0, end: 0},
+    );
   }
   const {block, start, end} = selection;
   const slide = song.slides[block];

@@ -1,3 +1,4 @@
+import {DEFAULT_SONG_TITLE_LAYOUT} from '../schema/songTitleLayout';
 import type {SlideLayer} from '../live/state';
 import {createThemeElementId, createThemeId} from '../schema/ids';
 import type {
@@ -42,16 +43,21 @@ export function songTitleLayout(
   ) {
     return layout;
   }
-  const text =
-    layout.songTitle === 'sunday-light'
-      ? {...titleText, color: '#000000'}
-      : titleText;
+  const lyrics = layout.elements.find(
+    element => element.kind === 'currentText',
+  );
+  const spacing = {...DEFAULT_SONG_TITLE_LAYOUT, ...slide.titleLayout};
+  const text = {
+    ...titleText,
+    color: lyrics?.kind === 'currentText' ? lyrics.text.color : titleText.color,
+    tracking: spacing.titleTracking,
+  };
   const title: ResolvedThemeElement = {
     id: createThemeElementId('00000000-0000-4000-8000-000000000383'),
     kind: 'text',
     clearTarget: 'slide',
     content: slide.lines[0] ?? '',
-    frame: {x: 339, y: 181, w: 1242, h: 160},
+    frame: {x: 339, y: spacing.titleTop, w: 1242, h: 160},
     text,
   };
   const subtitle: ResolvedThemeElement = {
@@ -59,8 +65,8 @@ export function songTitleLayout(
     kind: 'text',
     clearTarget: 'slide',
     content: slide.lines[1] ?? '',
-    frame: {x: 252, y: 345, w: 1416, h: 90},
-    text: {...text, weight: 400, size: 64, tracking: 24},
+    frame: {x: 252, y: spacing.subtitleTop, w: 1416, h: 90},
+    text: {...text, weight: 400, size: 64, tracking: spacing.subtitleTracking},
   };
   return {
     ...layout,

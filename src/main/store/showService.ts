@@ -288,6 +288,9 @@ export function projectSongTiles(
           : (colors.get(slide.label) ?? NO_LABEL_COLOR),
       lines: slide.lines,
       ...(slide.titleSlide === undefined ? {} : {titleSlide: slide.titleSlide}),
+      ...(slide.titleLayout === undefined
+        ? {}
+        : {titleLayout: slide.titleLayout}),
       sourceSlide: {songId: song.id, slideId: slide.id},
       ...(slide.transition === undefined ? {} : {transition: slide.transition}),
       ...(slide.hotKey === undefined ? {} : {hotKey: slide.hotKey}),

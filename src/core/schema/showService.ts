@@ -1,3 +1,4 @@
+import {songTitleLayoutSchema} from './songTitleLayout';
 import {slideTransitionSchema} from './slideTransition';
 import * as v from 'valibot';
 import {labelColorSchema} from './labelColor';
@@ -128,6 +129,7 @@ export const showTileSchema = v.pipe(
     labelColor: labelColorSchema,
     lines: v.array(v.string()),
     titleSlide: v.exactOptional(v.literal(true)),
+    titleLayout: v.exactOptional(songTitleLayoutSchema),
     reference: v.exactOptional(liveTextSchema),
     name: v.exactOptional(liveTextSchema),
     picture: v.exactOptional(mediaIdSchema),

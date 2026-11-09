@@ -4,7 +4,7 @@ import {blockSnapshot} from '@core/songs/blockModel';
 import {editBlocks} from '@core/songs/blockEdits';
 
 describe('slide text editing', () => {
-  it('prepends one editable title without a special transition and keeps lyrics', () => {
+  it('inserts editable opening and closing titles without a special transition', () => {
     const before = blockSnapshot(sampleSong(), {block: 2, start: 0, end: 0});
     const after = editBlocks(before, {type: 'title', title: 'Invented title'});
     expect(after.song.slides[0]).toMatchObject({
@@ -14,7 +14,13 @@ describe('slide text editing', () => {
     expect(after.song.slides[0]?.transition).toBeUndefined();
     expect(after.song.slides.slice(1)).toEqual(before.song.slides);
     expect(after.selection.block).toBe(0);
-    expect(editBlocks(after, {type: 'title', title: 'Again'})).toBe(after);
+    expect(
+      editBlocks(after, {
+        type: 'title',
+        title: 'Again',
+        index: after.song.slides.length,
+      }).song.slides.at(-1),
+    ).toMatchObject({titleSlide: true, lines: ['Again']});
     const edited = editBlocks(after, {
       type: 'text',
       text: 'New title\nSubtitle',
@@ -78,4 +84,31 @@ describe('slide text editing', () => {
       editBlocks(named, {type: 'label', name: undefined}).song.slides[0]?.label,
     ).toBeUndefined();
   });
+});
+
+it('edits spacing on a later title and rejects spacing edits to lyrics', () => {
+  const before = blockSnapshot(sampleSong());
+  const title = editBlocks(before, {type: 'title', title: 'Repeat', index: 2});
+  const command = {
+    type: 'title-layout',
+    block: 2,
+    layout: {titleTracking: 12, subtitleTracking: 12},
+  } as const;
+  const after = editBlocks(title, command);
+  expect(after.song.slides[2]?.titleLayout).toEqual(command.layout);
+  expect(after.song.slides[0]).toBe(before.song.slides[0]);
+  expect(editBlocks(after, {...command, block: 0})).toBe(after);
+  expect(
+    editBlocks(after, {
+      ...command,
+      layout: {titleTracking: 201, subtitleTracking: 12},
+    }),
+  ).toBe(after);
+  expect(editBlocks(after, {type: 'merge'})).toBe(after);
+  expect(editBlocks(after, {type: 'paste', text: 'a\nb\nc'})).toBe(after);
+  for (const index of [-1, 1.5, 999]) {
+    expect(editBlocks(before, {type: 'title', title: 'Title', index})).toBe(
+      before,
+    );
+  }
 });

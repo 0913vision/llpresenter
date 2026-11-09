@@ -116,6 +116,9 @@ export function selectedPreview(
     return {
       lines: slide.lines,
       ...(slide.titleSlide === undefined ? {} : {titleSlide: slide.titleSlide}),
+      ...(slide.titleLayout === undefined
+        ? {}
+        : {titleLayout: slide.titleLayout}),
       label: rawLabel === undefined || rawLabel === '' ? null : rawLabel,
     };
   };
@@ -139,6 +142,9 @@ export function selectedPreview(
       label: slide.label,
       lines: slide.lines,
       ...(slide.titleSlide === undefined ? {} : {titleSlide: slide.titleSlide}),
+      ...(slide.titleLayout === undefined
+        ? {}
+        : {titleLayout: slide.titleLayout}),
       ...(transition === undefined ? {} : {transition}),
       ...(next === undefined ? {} : {next}),
     },

@@ -1,3 +1,4 @@
+import {songTitleLayoutSchema} from './songTitleLayout';
 import {slideTransitionSchema} from './slideTransition';
 import * as v from 'valibot';
 import type {Result} from '../common/result';
@@ -28,6 +29,7 @@ export const songSlideSchema = jsonObject({
   id: songSlideIdSchema,
   lines: v.array(v.string()),
   titleSlide: v.exactOptional(v.literal(true)),
+  titleLayout: v.exactOptional(songTitleLayoutSchema),
   label: v.exactOptional(
     v.pipe(
       v.string(),
@@ -47,16 +49,15 @@ export const songSlidesSchema = v.pipe(
   v.check(
     slides =>
       slides.every(
-        (slide, index) =>
+        slide =>
           slide.titleSlide === undefined ||
-          (index === 0 &&
-            slide.lines.length <= 2 &&
+          (slide.lines.length <= 2 &&
             slide.lines.every(
               line =>
                 line.length <= SONG_LIMITS.titleLine && !/[\r\n]/.test(line),
             )),
       ),
-    'A song title must be first and contain at most two short lines',
+    'A song title must contain at most two short lines',
   ),
   v.check(slides => {
     const keys = slides.flatMap(slide =>
