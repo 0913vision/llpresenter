@@ -1,4 +1,10 @@
-import {useEffect, useState, useSyncExternalStore, type JSX} from 'react';
+import {
+  useEffect,
+  useState,
+  useSyncExternalStore,
+  type JSX,
+  type ReactNode,
+} from 'react';
 import {isItemOfKind} from '@core/schema/service';
 import {hasSectionCard} from '@core/services/sectionCards';
 import type {ServiceItemId, SongId} from '@core/schema/ids';
@@ -32,6 +38,21 @@ const tabs = [
   {value: 'info', label: '정보'},
   {value: 'slides', label: '슬라이드'},
 ] as const;
+
+function DetailsShell({
+  children,
+  footer,
+}: {
+  readonly children?: ReactNode;
+  readonly footer?: ReactNode;
+}): JSX.Element {
+  return (
+    <Panel label="세부정보">
+      <PanelBody>{children}</PanelBody>
+      {footer}
+    </Panel>
+  );
+}
 
 function openEditor(
   request: () => Promise<{readonly ok: boolean}>,
@@ -265,89 +286,84 @@ function DetailsPanelContent({
       });
     openEditor(() => api.window.openSongEditor({songId: item.song}), fail);
   };
-  if (target === null) {
-    return (
-      <Panel label="세부정보">
-        <PanelBody>{null}</PanelBody>
-      </Panel>
-    );
+  if (item === null && library === null) {
+    return <DetailsShell />;
   }
   if (item !== null && isItemOfKind(item, 'header')) {
     const itemCount = sectionItemCount(service?.service.order ?? [], item.id);
     return (
-      <Panel label="세부정보">
-        <PanelBody>
-          <div className={styles.title} title={item.header}>
-            {item.header}
-          </div>
-          <div className={styles.meta}>구역, 항목 {itemCount}개</div>
-        </PanelBody>
-      </Panel>
+      <DetailsShell>
+        <div className={styles.title} title={item.header}>
+          {item.header}
+        </div>
+        <div className={styles.meta}>구역, 항목 {itemCount}개</div>
+      </DetailsShell>
     );
   }
   return (
-    <Panel label="세부정보">
-      <PanelBody>
-        <div className={styles.picture}>{picture(0)}</div>
-        {count === 0 ? null : (
-          <SlideThumbnailBand
-            number={1}
-            label={labelAt(0)}
-            labelColor={labelColorAt(0)}
-          />
-        )}
-        <div className={styles.title} title={title}>
-          {title}
-        </div>
-        <div className={styles.meta}>
-          {title === '' ? '' : `${kind}, 슬라이드 ${count}개`}
-        </div>
-        <PanelTabs tabs={tabs} value={tab} onChange={setTab} />
-        {tab === 'info' ? (
-          <DetailsInfo
-            details={{
-              item,
-              service,
-              state,
-              library,
-              media,
-              items,
-              editor,
-              reason,
-              api,
-              openSource,
-              edit,
-            }}
-          />
-        ) : (
-          <DetailsSlides
+    <DetailsShell
+      footer={
+        tab === 'slides' ? (
+          <PanelFooter
             count={count}
-            scale={scale}
-            selected={Math.min(
-              Math.max(0, count - 1),
-              item === null ? selected : state.position,
-            )}
-            onSelect={select}
-            onEdit={edit}
-            labelAt={labelAt}
-            colorAt={labelColorAt}
-            picture={picture}
+            end={
+              <ThumbnailSizeControl
+                compact
+                value={scale}
+                onChange={value => detailsScale.show(sizeClass, value)}
+                onCommit={value => detailsScale.save(sizeClass, value, api.ui)}
+              />
+            }
           />
-        )}
-      </PanelBody>
-      {tab === 'slides' ? (
-        <PanelFooter
-          count={count}
-          end={
-            <ThumbnailSizeControl
-              compact
-              value={scale}
-              onChange={value => detailsScale.show(sizeClass, value)}
-              onCommit={value => detailsScale.save(sizeClass, value, api.ui)}
-            />
-          }
+        ) : null
+      }
+    >
+      <div className={styles.picture}>{picture(0)}</div>
+      {count === 0 ? null : (
+        <SlideThumbnailBand
+          number={1}
+          label={labelAt(0)}
+          labelColor={labelColorAt(0)}
         />
-      ) : null}
-    </Panel>
+      )}
+      <div className={styles.title} title={title}>
+        {title}
+      </div>
+      <div className={styles.meta}>
+        {title === '' ? '' : `${kind}, 슬라이드 ${count}개`}
+      </div>
+      <PanelTabs tabs={tabs} value={tab} onChange={setTab} />
+      {tab === 'info' ? (
+        <DetailsInfo
+          details={{
+            item,
+            service,
+            state,
+            library,
+            media,
+            items,
+            editor,
+            reason,
+            api,
+            openSource,
+            edit,
+          }}
+        />
+      ) : (
+        <DetailsSlides
+          count={count}
+          scale={scale}
+          selected={Math.min(
+            Math.max(0, count - 1),
+            item === null ? selected : state.position,
+          )}
+          onSelect={select}
+          onEdit={edit}
+          labelAt={labelAt}
+          colorAt={labelColorAt}
+          picture={picture}
+        />
+      )}
+    </DetailsShell>
   );
 }

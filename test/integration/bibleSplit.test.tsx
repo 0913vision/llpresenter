@@ -306,7 +306,7 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
       );
       try {
         if (workspace === 'details') {
-          fireEvent.click(screen.getByRole('tab', {name: '슬라이드'}));
+          fireEvent.click(await screen.findByRole('tab', {name: '슬라이드'}));
         }
         const verse = passage.verses[0];
         if (verse === undefined) throw Error('Missing verse');
