@@ -3,7 +3,6 @@ import {it, expect} from 'vitest';
 import {mkdir, readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {offscreenApp} from './electron-app';
-import {killProcessTree} from '../../scripts/process-tree.mts';
 
 const SERVICE = '55000000-0000-4000-8000-000000000001';
 const FIRST = '55000000-0000-4000-8000-000000000002';
@@ -157,14 +156,7 @@ it(
         {timeout: 30000},
       )
       .toBe(true);
-    const child = app.electron().process();
-    if (child.pid === undefined) throw Error('missing pid');
-    const exited = new Promise<void>(resolve =>
-      child.once('exit', () => resolve()),
-    );
-    await killProcessTree(child.pid);
-    await exited;
-    await app.stop();
+    await app.crash();
     page = await app.start();
     await page
       .getByRole('alertdialog', {name: '출력 내용을 복구할까요?'})

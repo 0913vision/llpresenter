@@ -3,10 +3,6 @@ import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 import {mkdir, readFile, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {expect, it} from 'vitest';
-import {
-  isProcessRunning,
-  killProcessTree,
-} from '../../scripts/process-tree.mts';
 import {offscreenApp} from './electron-app';
 
 const SERVICE = '55000000-0000-4000-8000-000000000001';
@@ -114,17 +110,7 @@ it(
         {timeout: WAIT},
       )
       .toBe(true);
-    const child = app.electron().process();
-    if (child.pid === undefined) throw new Error('Electron process has no pid');
-    const exited = new Promise<void>(resolve =>
-      child.once('exit', () => resolve()),
-    );
-    // NOTE(0913vision): The kill call may report a process that was already
-    // closing; what counts is that the process is gone.
-    await killProcessTree(child.pid);
-    await exited;
-    expect(isProcessRunning(child.pid)).toBe(false);
-    await app.stop();
+    await app.crash();
     page = await app.start();
     const recovery = page.getByRole('alertdialog', {
       name: '출력 내용을 복구할까요?',

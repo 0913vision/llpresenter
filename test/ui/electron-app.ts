@@ -1,4 +1,5 @@
 import {mkdir, mkdtemp, rm} from 'node:fs/promises';
+import type {ChildProcess} from 'node:child_process';
 import {createRequire} from 'node:module';
 import {dirname, join, resolve} from 'node:path';
 import {
@@ -10,7 +11,7 @@ import {expect, onTestFinished} from 'vitest';
 import {runStepProcess} from '../../scripts/verify/step-process.mts';
 import {electronTestArgs} from '@fixtures/electronLaunch';
 import {makeTempDir} from '@fixtures/tempDir';
-import {stopElectron} from './stop-electron';
+import {crashElectron, stopElectron} from './stop-electron';
 
 const BUILD_TIMEOUT = 120_000;
 const START_TIMEOUT = 60_000;
@@ -21,6 +22,7 @@ export async function offscreenApp(): Promise<{
   readonly data: string;
   readonly start: () => Promise<Page>;
   readonly stop: () => Promise<boolean>;
+  readonly crash: () => Promise<void>;
   readonly electron: () => ElectronApplication;
 }> {
   const data = await makeTempDir();
@@ -32,13 +34,26 @@ export async function offscreenApp(): Promise<{
   const viteCli = join(dirname(vitePackage), 'bin', 'electron-vite.js');
   const main = join(root, 'main', 'index.js');
   let app: ElectronApplication | undefined;
+  let launcher: ChildProcess | undefined;
 
   const stop = async (): Promise<boolean> => {
     if (app === undefined) return false;
     const current = app;
-    const forced = await stopElectron(current);
-    if (app === current) app = undefined;
+    const forced = await stopElectron(current, launcher);
+    if (app === current) {
+      app = undefined;
+      launcher = undefined;
+    }
     return forced;
+  };
+  const crash = async (): Promise<void> => {
+    if (app === undefined) throw new Error('The test app is not running');
+    const current = app;
+    await crashElectron(current, undefined, launcher);
+    if (app === current) {
+      app = undefined;
+      launcher = undefined;
+    }
   };
   onTestFinished(async () => {
     try {
@@ -85,6 +100,7 @@ export async function offscreenApp(): Promise<{
       timeout: START_TIMEOUT,
     });
     app = current;
+    launcher = current.process();
     const launched = performance.now();
     await expect
       .poll(
@@ -122,5 +138,5 @@ export async function offscreenApp(): Promise<{
     if (app === undefined) throw new Error('The test app is not running');
     return app;
   };
-  return {data, start, stop, electron: application};
+  return {data, start, stop, crash, electron: application};
 }
