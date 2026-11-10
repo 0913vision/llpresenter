@@ -19,6 +19,21 @@ export function sectionItemCount(
   return count;
 }
 
+/** The compact kind and slide-count line below a details title. */
+export function detailsKindLine(
+  item: ServiceItem | null,
+  kind: string,
+  count: number,
+): string {
+  if (item !== null && isItemOfKind(item, 'slides')) {
+    if (item.sectionCard !== undefined && item.slides.slides.length === 0) {
+      return '구역 이름';
+    }
+    if (item.slides.form === 'blank') return `슬라이드 ${count}개`;
+  }
+  return `${kind}, 슬라이드 ${count}개`;
+}
+
 /** Heading of the selected source, independent of the rendered controls. */
 export function detailsHeading({
   item,

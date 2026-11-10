@@ -634,3 +634,73 @@ it('keeps the panel empty while a library song loads', async () => {
     await editor.dispose();
   }
 });
+
+it('shows a notice when the selected library song cannot load', async () => {
+  const f = itemFixture();
+  vi.spyOn(f.api.library, 'showSong').mockRejectedValue(new Error('failed'));
+  const report = vi.fn();
+  const editor = new SongEditorStore(f.api, report);
+  const items = new ServiceItemStore(f.api, editor, report);
+  const view = render(
+    <DetailsPanel
+      sizeClass="normal"
+      target={{kind: 'song', songId: f.first.song.id}}
+      api={f.api}
+      items={items}
+      editor={editor}
+    />,
+  );
+  try {
+    await waitFor(() =>
+      expect(report).toHaveBeenCalledWith(
+        expect.objectContaining({kind: 'warning', title: '곡 불러오기 실패'}),
+      ),
+    );
+    expect(screen.getByRole('region', {name: '세부정보'}).textContent).toBe('');
+  } finally {
+    view.unmount();
+    items.dispose();
+    await editor.dispose();
+  }
+});
+
+it('does not report a failed library request after the target changes', async () => {
+  const f = itemFixture();
+  let reject: ((reason: Error) => void) | undefined;
+  vi.spyOn(f.api.library, 'showSong').mockImplementation(
+    () =>
+      new Promise((_resolve, fail) => {
+        reject = fail;
+      }),
+  );
+  const report = vi.fn();
+  const editor = new SongEditorStore(f.api, report);
+  const items = new ServiceItemStore(f.api, editor, report);
+  const view = render(
+    <DetailsPanel
+      sizeClass="normal"
+      target={{kind: 'song', songId: f.first.song.id}}
+      api={f.api}
+      items={items}
+      editor={editor}
+    />,
+  );
+  try {
+    await waitFor(() => expect(reject).toBeDefined());
+    view.rerender(
+      <DetailsPanel
+        sizeClass="normal"
+        target={null}
+        api={f.api}
+        items={items}
+        editor={editor}
+      />,
+    );
+    await act(async () => reject?.(new Error('failed')));
+    expect(report).not.toHaveBeenCalled();
+  } finally {
+    view.unmount();
+    items.dispose();
+    await editor.dispose();
+  }
+});

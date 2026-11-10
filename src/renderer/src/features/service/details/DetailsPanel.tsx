@@ -24,7 +24,11 @@ import type {ServiceItemStore} from '../items/serviceItemStore';
 import {useItemSlides} from '../items/useItemSlides';
 import {useItemMedia} from '../items/useItemSources';
 import {slideBand} from '../slides/SlidesVisuals';
-import {detailsHeading, sectionItemCount} from './detailsHeading';
+import {
+  detailsHeading,
+  detailsKindLine,
+  sectionItemCount,
+} from './detailsHeading';
 import {detailsPicture} from './detailsPicture';
 import {DetailsInfo} from './DetailsInfo';
 import {DetailsSlides} from './DetailsSlides';
@@ -116,12 +120,22 @@ function DetailsPanelContent({
         .then(value => {
           if (active) setLibrary(value);
         })
-        .catch((error: unknown) => console.error(error));
+        .catch(() => {
+          if (active) {
+            items.reportNotice({
+              key: 'details:library-song',
+              kind: 'warning',
+              icon: 'warning',
+              title: '곡 불러오기 실패',
+              time: noticeTime(),
+            });
+          }
+        });
     }
     return () => {
       active = false;
     };
-  }, [api, songId]);
+  }, [api, items, songId]);
   const library = loadedLibrary?.songId === songId ? loadedLibrary : null;
   const item =
     target?.kind === 'item' && state.item?.id === target.itemId
@@ -330,7 +344,7 @@ function DetailsPanelContent({
         {title}
       </div>
       <div className={styles.meta}>
-        {title === '' ? '' : `${kind}, 슬라이드 ${count}개`}
+        {title === '' ? '' : detailsKindLine(item, kind, count)}
       </div>
       <PanelTabs tabs={tabs} value={tab} onChange={setTab} />
       {tab === 'info' ? (
