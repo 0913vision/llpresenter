@@ -1,0 +1,65 @@
+.panel {
+  height: 100%;
+}
+.body {
+  overflow: auto;
+}
+.library {
+  overflow: hidden;
+}
+.group {
+  padding: var(--space-12) var(--panel-inset) var(--space-4);
+  color: var(--text-2);
+  font: var(--type-caption-strong);
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--space-10);
+  width: 100%;
+  height: var(--size-row);
+  padding: 0 var(--panel-inset);
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font: var(--type-body);
+  text-align: left;
+  cursor: grab;
+}
+.row:hover,
+.chip:hover {
+  background: var(--bg-raised);
+}
+.row:disabled,
+.chip:disabled {
+  color: var(--text-off);
+  cursor: default;
+}
+.row > :first-child {
+  color: var(--text-2);
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--panel-inset) var(--space-12);
+}
+.chip {
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  background: var(--bg-control);
+  color: var(--text);
+  padding: var(--space-4) var(--space-8);
+  font: var(--type-caption);
+  cursor: grab;
+}
+
+.libraryHost:not([hidden]) {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+.library {
+  flex: 1;
+  min-height: 0;
+}

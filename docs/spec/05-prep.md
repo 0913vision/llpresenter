@@ -14,7 +14,7 @@ Terms: 슬라이드 (slide), 예배 순서 (service order), 템플릿 (template)
 
 | Column | Panels                                                              | Source                  |
 | ------ | ------------------------------------------------------------------- | ----------------------- |
-| Left   | 라이브러리                                                          | `Reflow`, `PrepService` |
+| Left   | 예배 요소 / 곡                                                      | `Reflow`, `PrepService` |
 | Center | The 예배 순서 table ("The 예배 순서 table and inline song editing") | `Reflow`, `PrepService` |
 | Right  | The selected source's 세부정보                                      | `Reflow`, `PrepService` |
 
@@ -280,6 +280,22 @@ endpoint slide IDs (02), so moves keep the endpoints attached.
   순서").
 
 Source: `Reflow`, `PrepService`, `AddSongs`, `ListRow` README.
+
+## 준비 element palette
+
+- In the list view, the left panel starts with 예배 요소 and 곡 tabs. 곡 keeps
+  the library; the foldable media bin remains available in the list and editor.
+- 순서 offers 예배 준비, 사도신경, 주기도문, 성경 구절, 광고, 빈 슬라이드, and
+  구역. Creeds and prayers use the new translation by default; their context
+  menu also offers the old translation. 사도신경 and 광고 include their section
+  card.
+- 구역 이름 offers the remaining Sunday section cards as wrapping chips. Double
+  click or Enter inserts an element after the current item or at the end of the
+  selected section; dragging inserts at the order drop line. 성경 구절 opens the
+  passage dialog.
+- A media tile dropped at an order row edge inserts a media item; dropped in the
+  middle half of a compatible row it becomes the item's background. Missing
+  files and unsupported backgrounds are refused with a reason.
 
 ## 라이브러리
 

@@ -1,3 +1,8 @@
+import type {MediaItem} from '@core/schema/mediaList';
+import {MISSING_MEDIA_TIP} from '@renderer/platform/problemReasons';
+import {ELEMENT_DRAG_MIME, isPaletteKey} from '../items/paletteItems';
+import {hasMediaDrag, readMediaDrag} from '@renderer/features/media/mediaDrag';
+import type {MediaId} from '@core/schema/ids';
 import {orderedSelection} from '@core/common/selectionOrder';
 import {selectionDragImage} from '@renderer/ui/selectionDrag';
 import {useEffect, useRef, useState, type DragEvent} from 'react';
@@ -10,6 +15,32 @@ import {sectionBoundaryIndex} from '@core/services/serviceSections';
 import {beforeRowMidpoint} from '@renderer/ui/rowDrag';
 import {useDragClickGuard} from '@renderer/ui/useDragClickGuard';
 
+/** Why a media drop cannot be used after its current file state is read. */
+export function mediaDropReason({
+  media,
+  missing,
+  target,
+  asBackground,
+}: {
+  readonly media: MediaItem | undefined;
+  readonly missing: boolean;
+  readonly target: ServiceRow | undefined;
+  readonly asBackground: boolean;
+}): string | undefined {
+  if (missing || media === undefined) return MISSING_MEDIA_TIP;
+  if (
+    asBackground &&
+    (target === undefined ||
+      (target.kind !== 'song' && target.kind !== 'slides') ||
+      media.kind === 'audio')
+  ) {
+    return '이 항목에는 배경을 지정할 수 없습니다';
+  }
+  return undefined;
+}
+
+const BACKGROUND_BAND = {start: 0.25, end: 0.75};
+
 interface DragOptions {
   readonly enabled: boolean;
   readonly rows: readonly ServiceRow[];
@@ -17,6 +48,11 @@ interface DragOptions {
   readonly selected: ReadonlySet<string>;
   readonly select: (id: string) => void;
   readonly onCopy: (songId: SongId, before: string | null) => void;
+  readonly onElement?:
+    ((key: string, before: string | null) => void) | undefined;
+  readonly onMedia?:
+    | ((id: MediaId, before: string | null, background: string | null) => void)
+    | undefined;
 }
 
 function rowElement(target: EventTarget): HTMLElement | null {
@@ -37,6 +73,8 @@ export function useServiceOrderDrag({
   selected,
   select,
   onCopy,
+  onElement,
+  onMedia,
 }: DragOptions) {
   const dragged = useRef<string | null>(null);
   const sourceRows = useRef<readonly ServiceRow[] | null>(null);
@@ -45,10 +83,14 @@ export function useServiceOrderDrag({
   useEffect(() => () => release.current?.(), []);
   const click = useDragClickGuard();
   const [insertBefore, setInsertBefore] = useState<string | null | undefined>();
+  const [backgroundTarget, setBackgroundTarget] = useState<string | null>(null);
   const accepts = (event: DragEvent): boolean =>
     enabled &&
     ((dragged.current !== null && sourceRows.current === rows) ||
-      event.dataTransfer.types.includes(SONG_DRAG_MIME));
+      event.dataTransfer.types.includes(SONG_DRAG_MIME) ||
+      (onElement !== undefined &&
+        event.dataTransfer.types.includes(ELEMENT_DRAG_MIME)) ||
+      (onMedia !== undefined && hasMediaDrag(event.dataTransfer)));
   const destination = (event: DragEvent): string | null => {
     let element = rowElement(event.target);
     if (element === null) {
@@ -98,13 +140,32 @@ export function useServiceOrderDrag({
     moving.current = [];
     dragged.current = null;
     setInsertBefore(undefined);
+    setBackgroundTarget(null);
   };
   const dropBefore = (event: DragEvent): string | null =>
     dragged.current === null && rowElement(event.target) === null
       ? quickAddBefore(rows, useShow.getState().openItemId)
       : destination(event);
+  const mediaTarget = (event: DragEvent): string | null => {
+    if (onMedia === undefined || !hasMediaDrag(event.dataTransfer)) return null;
+    const element = rowElement(event.target);
+    const id = element?.dataset['orderId'];
+    if (!element || !id || rows.find(row => row.id === id)?.kind === 'header') {
+      return null;
+    }
+    const face = element.querySelector('[role="option"]');
+    if (!face) return null;
+    const rect = face.getBoundingClientRect();
+    const offset = event.clientY - rect.top;
+    return rect.height > 0 &&
+      offset >= rect.height * BACKGROUND_BAND.start &&
+      offset <= rect.height * BACKGROUND_BAND.end
+      ? id
+      : null;
+  };
   return {
     insertBefore,
+    backgroundTarget,
     dragProps: {
       onPointerDownCapture: click.props.onPointerDownCapture,
       onClickCapture: click.props.onClickCapture,
@@ -143,7 +204,12 @@ export function useServiceOrderDrag({
         event.preventDefault();
         event.dataTransfer.dropEffect =
           dragged.current === null ? 'copy' : 'move';
-        setInsertBefore(dropBefore(event));
+        const target = mediaTarget(event);
+        const kind = rows.find(row => row.id === target)?.kind;
+        setBackgroundTarget(
+          kind === 'song' || kind === 'slides' ? target : null,
+        );
+        setInsertBefore(target === null ? dropBefore(event) : undefined);
       },
       onDragLeave: (event: DragEvent): void => {
         if (
@@ -151,16 +217,28 @@ export function useServiceOrderDrag({
           !event.currentTarget.contains(event.relatedTarget)
         ) {
           setInsertBefore(undefined);
+          setBackgroundTarget(null);
         }
       },
       onDrop: (event: DragEvent): void => {
         if (!accepts(event)) return;
         event.preventDefault();
         const before = dropBefore(event);
+        const target = mediaTarget(event);
         const source = dragged.current === null ? null : moving.current;
         clear();
         if (source !== null) {
           onMove(source, before);
+          return;
+        }
+        if (onMedia && hasMediaDrag(event.dataTransfer)) {
+          const media = readMediaDrag(event.dataTransfer);
+          if (media !== undefined) onMedia(media, before, target);
+          return;
+        }
+        if (onElement && event.dataTransfer.types.includes(ELEMENT_DRAG_MIME)) {
+          const key = event.dataTransfer.getData(ELEMENT_DRAG_MIME);
+          if (isPaletteKey(key)) onElement(key, before);
           return;
         }
         const payload = readSongDragData(

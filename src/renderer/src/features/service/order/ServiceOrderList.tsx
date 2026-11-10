@@ -1,3 +1,7 @@
+import {iconByKind} from './serviceItemIcons';
+import {useMediaOrderDrop} from './useMediaOrderDrop';
+import {usePaletteEditing} from '../items/PaletteEditing';
+import {usePaletteInsert} from '../items/usePaletteInsert';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {useSelectionDelete} from '@renderer/ui/useSelectionDelete';
 import {selectionLabel} from '@renderer/ui/selectionDrag';
@@ -61,16 +65,8 @@ import {useServiceSongMenu} from './useServiceSongMenu';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {serviceOrderRowId, useServiceOrderDrag} from './useServiceOrderDrag';
 import {useMediaDurations} from '../../media/useMediaDurations';
-import type {ItemKind, RowProblem, ServiceRow} from '@core/presentation/model';
+import type {RowProblem, ServiceRow} from '@core/presentation/model';
 import styles from './ServiceOrderList.module.css';
-
-const iconByKind: Readonly<Record<ItemKind, string>> = {
-  song: 'song',
-  bible: 'book',
-  media: 'film',
-  slides: 'monitor',
-  unknown: 'filex',
-};
 
 const problemTips: Readonly<Record<RowProblem, string>> = {
   'missing-song': '곡 파일을 찾을 수 없습니다',
@@ -160,6 +156,7 @@ function ItemRows({
   done,
   editable,
   insertBefore,
+  backgroundTarget,
   workspace,
   durations,
   table,
@@ -178,6 +175,7 @@ function ItemRows({
   readonly done: ReadonlySet<string>;
   readonly editable: boolean;
   readonly insertBefore: string | null | undefined;
+  readonly backgroundTarget: string | null;
   readonly workspace: Workspace;
   readonly durations: Readonly<Record<string, string>>;
   readonly table: ServiceTableParts | undefined;
@@ -193,7 +191,12 @@ function ItemRows({
     <>
       {items.map(row =>
         row.kind === 'header' ? null : (
-          <div key={row.id} data-order-id={row.id} draggable={editable}>
+          <div
+            key={row.id}
+            data-order-id={row.id}
+            data-media-drop={backgroundTarget === row.id ? '' : undefined}
+            draggable={editable}
+          >
             {insertBefore === row.id ? <ListInsertLine /> : null}
             <ListRow
               selected={selected.has(row.id)}
@@ -369,7 +372,10 @@ export function ServiceOrderList({
       }
     },
   });
-  const {insertBefore, dragProps} = useServiceOrderDrag({
+  const paletteEditing = usePaletteEditing();
+  const palette = usePaletteInsert(paletteEditing);
+  const mediaDrop = useMediaOrderDrop({serviceId, editing, onProblem});
+  const {insertBefore, backgroundTarget, dragProps} = useServiceOrderDrag({
     enabled: editable,
     rows,
     selected: selection.selected,
@@ -382,6 +388,11 @@ export function ServiceOrderList({
           before === null ? null : createServiceItemId(before),
         ),
       ),
+    onElement:
+      table === undefined || navigator
+        ? undefined
+        : (key, before) => palette.insert(key, before),
+    onMedia: table === undefined || navigator ? undefined : mediaDrop,
     onCopy: (songId, before) =>
       editing.run((edits, id) =>
         edits.insertSong(
@@ -909,6 +920,7 @@ export function ServiceOrderList({
               done={done}
               editable={editable}
               insertBefore={insertBefore}
+              backgroundTarget={backgroundTarget}
               workspace={workspace}
               durations={durations}
               table={table}
@@ -969,6 +981,7 @@ export function ServiceOrderList({
                   done={done}
                   editable={editable}
                   insertBefore={insertBefore}
+                  backgroundTarget={backgroundTarget}
                   workspace={workspace}
                   durations={durations}
                   table={table}
@@ -993,6 +1006,7 @@ export function ServiceOrderList({
       ) : null}
       {insertBefore === null ? <ListInsertLine /> : null}
       {table?.footer}
+      {palette.dialog}
       {deletion.dialog}
       {serviceActions.dialogs}
       {menu?.serviceId === serviceId ? (

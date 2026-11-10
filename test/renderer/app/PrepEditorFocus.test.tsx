@@ -1,3 +1,5 @@
+import {ELEMENT_DRAG_MIME} from '@renderer/features/service/items/paletteItems';
+
 import {StrictMode} from 'react';
 import {
   act,
@@ -396,6 +398,7 @@ it.each(['double-click', 'Enter'] as const)(
   'focuses library commands opened by %s and returns to its row',
   async path => {
     const f = setup();
+    await userEvent.click(screen.getByRole('tab', {name: '곡'}));
     const library = screen.getByRole('listbox', {name: '라이브러리 곡'});
     const row = await within(library).findByRole('option', {
       name: f.first.song.title,
@@ -460,6 +463,7 @@ it('shows a library song on a single click without opening its editor', async ()
     jumpKeys: {},
   });
   const live = vi.spyOn(f.api.live, 'send');
+  await userEvent.click(screen.getByRole('tab', {name: '곡'}));
   const library = screen.getByRole('listbox', {name: '라이브러리 곡'});
   await userEvent.click(
     await within(library).findByRole('option', {name: f.first.song.title}),
@@ -524,4 +528,63 @@ it('starts a new blank item in slide 1 text, then reopens it on list commands', 
   expect(
     screen.getByRole<HTMLTextAreaElement>('textbox', {name: '글'}).value,
   ).toBe('New slide text');
+});
+
+it('serializes a palette double click followed by an immediate order drop', async () => {
+  const fixture = setup();
+  const original = fixture.api.content.edit;
+  let release: (() => void) | undefined;
+  const gate = new Promise<void>(resolve => {
+    release = resolve;
+  });
+  let first = true;
+  const edit = vi
+    .spyOn(fixture.api.content, 'edit')
+    .mockImplementation(async request => {
+      if (request.type === 'service.update' && first) {
+        first = false;
+        await gate;
+      }
+      return original(request);
+    });
+  const initialIds = new Set(
+    fixture.service().service.order.map(item => item.id),
+  );
+  const before = initialIds.size;
+  const row = screen.getByRole('option', {name: /Service song/});
+  fireEvent.click(row);
+  fireEvent.doubleClick(screen.getByRole('button', {name: '빈 슬라이드'}));
+  await waitFor(() => expect(edit).toHaveBeenCalledTimes(1));
+  const dataTransfer = {
+    types: [ELEMENT_DRAG_MIME],
+    getData: (type: string) => (type === ELEMENT_DRAG_MIME ? 'standby' : ''),
+    dropEffect: 'none',
+  };
+  const event = new MouseEvent('drop', {
+    bubbles: true,
+    cancelable: true,
+    clientY: 999,
+  });
+  Object.defineProperty(event, 'dataTransfer', {value: dataTransfer});
+  fireEvent(row, event);
+  if (!release) throw new Error('Missing pending write');
+  release();
+  await waitFor(() =>
+    expect(fixture.service().service.order).toHaveLength(before + 2),
+  );
+  const added = fixture
+    .service()
+    .service.order.filter(item => !initialIds.has(item.id));
+  expect(added).toHaveLength(2);
+  expect(
+    added.map(item => (isItemOfKind(item, 'slides') ? item.slides.name : null)),
+  ).toEqual(['예배 준비', '빈 슬라이드']);
+  const calls = edit.mock.calls.map(([request]) => request);
+  expect(
+    calls.map(request =>
+      request.type === 'service.update' ? request.baseRevision : null,
+    ),
+  ).toEqual([3, 4]);
+
+  expect(edit).toHaveBeenCalledTimes(2);
 });

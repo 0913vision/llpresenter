@@ -74,7 +74,9 @@ async function killAndWaitForMain(
   if (child.pid === undefined) throw new Error('Electron launcher has no pid');
   if (process.platform !== 'win32') {
     if (pid !== child.pid) {
-      throw new Error('Electron main process is not the launched child');
+      throw new Error(
+        `Cannot stop Electron main process ${pid}: it differs from launcher ${child.pid}`,
+      );
     }
     await killProcessTree(child.pid);
     await exited;
@@ -127,7 +129,6 @@ export async function crashElectron(
       throw error;
     },
   );
-  const started = performance.now();
   const complete = await within(
     Promise.all([exited, mainExited]),
     CRASH_EXIT_LIMIT_MS,
@@ -143,5 +144,4 @@ export async function crashElectron(
       `Electron main process ${mainPid} or launcher ${child.pid} did not exit within ${CRASH_EXIT_LIMIT_MS} ms after forced stop`,
     );
   }
-  console.info(`ui crash exit: ${Math.round(performance.now() - started)} ms`);
 }

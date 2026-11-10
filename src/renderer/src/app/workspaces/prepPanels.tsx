@@ -1,5 +1,6 @@
 import {useOtherSources} from '@renderer/features/service/items/useOtherSources';
 import {EditorBackgroundDrop} from './EditorBackgroundDrop';
+import {PrepPalette} from '@renderer/features/service/items/PrepPalette';
 import {
   useEffect,
   useLayoutEffect,
@@ -142,24 +143,44 @@ function libraryParts(
 ): PanelParts {
   return {
     embedded: (
-      <LibraryPanel
-        api={prep.api}
-        navigating={options.navigating}
-        selectionRequest={prep.selectionRequest}
-        onSelectionHandled={prep.onSelectionHandled}
-        onProblem={onProblem ?? ignoreProblem}
-        onNewSong={prep.onNewSong}
-        onSelectSong={options.onSelectSong}
-        beforeOpen={open => prep.editor.requestLeave(open)}
-        onOpenSong={selection =>
-          prep.editor.open(selection.document, {
-            block: selection.position ?? 0,
-            focusTitle: selection.focusTitle,
-          })
-        }
-      />
+      <LibraryOrPalette showPalette={!options.navigating}>
+        <LibraryPanel
+          api={prep.api}
+          navigating={options.navigating}
+          selectionRequest={prep.selectionRequest}
+          onSelectionHandled={prep.onSelectionHandled}
+          onProblem={onProblem ?? ignoreProblem}
+          onNewSong={prep.onNewSong}
+          onSelectSong={options.onSelectSong}
+          beforeOpen={open => prep.editor.requestLeave(open)}
+          onOpenSong={selection =>
+            prep.editor.open(selection.document, {
+              block: selection.position ?? 0,
+              focusTitle: selection.focusTitle,
+            })
+          }
+        />
+      </LibraryOrPalette>
     ),
   };
+}
+
+function LibraryOrPalette({
+  showPalette,
+  children,
+}: {
+  readonly showPalette: boolean;
+  readonly children: React.ReactNode;
+}) {
+  const [tab, setTab] = useState<'elements' | 'songs'>('elements');
+  return (
+    <PrepPalette
+      library={children}
+      tab={tab}
+      onTabChange={setTab}
+      navigating={!showPalette}
+    />
+  );
 }
 
 function prepPanelParts({

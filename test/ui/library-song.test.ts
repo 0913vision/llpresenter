@@ -80,6 +80,7 @@ it(
     });
     let page = await app.start();
     await page.getByRole('tab', {name: '준비'}).click();
+    await page.getByRole('tab', {name: '곡', exact: true}).click();
     const library = page.getByRole('listbox', {name: '라이브러리 곡'});
     await expect
       .poll(() => library.getByRole('option').count(), {timeout: WAIT})
@@ -135,6 +136,7 @@ it(
     await app.stop();
     page = await app.start();
     await page.getByRole('tab', {name: '준비'}).click();
+    await page.getByRole('tab', {name: '곡', exact: true}).click();
     const reopened = page
       .getByRole('listbox', {name: '라이브러리 곡'})
       .getByRole('option');

@@ -84,6 +84,7 @@ export function useServiceOrderEditing(
   return {
     busy,
     run,
+    apply: (operation: Operation) => execute(operation),
     save: (operation: Operation) => execute(operation, 'saved'),
   };
 }

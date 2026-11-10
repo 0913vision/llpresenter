@@ -1,3 +1,4 @@
+import {PaletteEditingProvider} from '@renderer/features/service/items/PaletteEditing';
 import type {SongId} from '@core/schema/ids';
 import {Fragment, useCallback, useRef, type JSX} from 'react';
 import {MediaBin} from '@renderer/features/media/MediaBin';
@@ -182,7 +183,9 @@ export function Workspace({
           id === 'screens' && styles.screenSettings,
         )}
       >
-        {panelColumns}
+        <PaletteEditingProvider onProblem={onProblem ?? ignoreProblem}>
+          {panelColumns}
+        </PaletteEditingProvider>
       </div>
       {mediaOpen && api !== undefined ? (
         <ResizeGap
