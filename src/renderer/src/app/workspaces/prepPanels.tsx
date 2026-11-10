@@ -1,3 +1,5 @@
+import {useOtherSources} from '@renderer/features/service/items/useOtherSources';
+import {EditorBackgroundDrop} from './EditorBackgroundDrop';
 import {
   useEffect,
   useLayoutEffect,
@@ -169,7 +171,9 @@ function prepPanelParts({
   onProblem,
   sizeClass,
   onSelectSong,
+  sources,
 }: {
+  readonly sources: ReturnType<typeof useOtherSources>;
   readonly title: string;
   readonly prep: PrepBinding | undefined;
   readonly hasDraft: boolean;
@@ -188,7 +192,13 @@ function prepPanelParts({
     if (otherEditor) {
       return {
         embedded: (
-          <OtherPrepEditor prep={prep} sizeClass={sizeClass} onBack={back} />
+          <EditorBackgroundDrop
+            items={prep.items}
+            editor={prep.editor}
+            sources={sources}
+          >
+            <OtherPrepEditor prep={prep} sizeClass={sizeClass} onBack={back} />
+          </EditorBackgroundDrop>
         ),
       };
     }
@@ -196,65 +206,85 @@ function prepPanelParts({
       const slides = prep.slides;
       return {
         embedded: (
-          <ItemCardBinding
+          <EditorBackgroundDrop
             items={prep.items}
-            itemId={prep.slides.draft.snapshot.item.id}
+            editor={prep.editor}
+            sources={sources}
           >
-            {(card, addCard) => (
-              <SlidesEditor
-                api={prep.api}
-                model={slides}
-                onBack={back}
-                leadingCard={card}
-                addCard={addCard}
-              />
-            )}
-          </ItemCardBinding>
+            <ItemCardBinding
+              items={prep.items}
+              itemId={prep.slides.draft.snapshot.item.id}
+            >
+              {(card, addCard) => (
+                <SlidesEditor
+                  api={prep.api}
+                  model={slides}
+                  onBack={back}
+                  leadingCard={card}
+                  addCard={addCard}
+                />
+              )}
+            </ItemCardBinding>
+          </EditorBackgroundDrop>
         ),
       };
     }
     return {
       embedded: (
-        <ItemCardBinding
+        <EditorBackgroundDrop
           items={prep.items}
-          itemId={
-            prep.editor.getSnapshot().session?.itemSession === true
-              ? prep.editor.getSnapshot().session?.document.song.id
-              : undefined
-          }
+          editor={prep.editor}
+          sources={sources}
         >
-          {(card, addCard) => (
-            <SongEditor
-              store={prep.editor}
-              leadingCard={card}
-              addCard={addCard}
-              ui={prep.api.ui}
-              renderDesign={songItemDesign(prep.api, prep.items)}
-              onImportedSave={prep.onImportedSave}
-              onBack={back}
-              actions={
-                prep.controls === undefined ? null : (
-                  <InlineSongActions
-                    store={prep.editor}
-                    controlsRef={prep.controls}
-                    onProblem={onProblem ?? ignoreProblem}
-                  />
-                )
-              }
-            />
-          )}
-        </ItemCardBinding>
+          <ItemCardBinding
+            items={prep.items}
+            itemId={
+              prep.editor.getSnapshot().session?.itemSession === true
+                ? prep.editor.getSnapshot().session?.document.song.id
+                : undefined
+            }
+          >
+            {(card, addCard) => (
+              <SongEditor
+                store={prep.editor}
+                leadingCard={card}
+                addCard={addCard}
+                ui={prep.api.ui}
+                renderDesign={songItemDesign(prep.api, prep.items)}
+                onImportedSave={prep.onImportedSave}
+                onBack={back}
+                actions={
+                  prep.controls === undefined ? null : (
+                    <InlineSongActions
+                      store={prep.editor}
+                      controlsRef={prep.controls}
+                      onProblem={onProblem ?? ignoreProblem}
+                    />
+                  )
+                }
+              />
+            )}
+          </ItemCardBinding>
+        </EditorBackgroundDrop>
       ),
     };
   }
   if (title === '슬라이드 속성') {
     return {
-      embedded: otherEditor ? (
-        <OtherSlideInspector items={prep.items} editor={prep.editor} />
-      ) : prep.slides?.session ? (
-        <SlidesCardInspector prep={prep} />
-      ) : (
-        <SlideInspector store={prep.editor} />
+      embedded: (
+        <EditorBackgroundDrop
+          items={prep.items}
+          editor={prep.editor}
+          sources={sources}
+        >
+          {otherEditor ? (
+            <OtherSlideInspector items={prep.items} editor={prep.editor} />
+          ) : prep.slides?.session ? (
+            <SlidesCardInspector prep={prep} />
+          ) : (
+            <SlideInspector store={prep.editor} />
+          )}
+        </EditorBackgroundDrop>
       ),
     };
   }
@@ -396,6 +426,7 @@ export function usePrepPanels({
   );
   const hasDraft =
     editorKind !== 'table' || prep?.slides?.draft != null || otherId !== null;
+  const sources = useOtherSources(hasDraft);
   const editorId = useSyncExternalStore(
     prep?.editor.subscribe ?? noSubscribe,
     () => prep?.editor.getSnapshot().session?.document.song.id ?? null,
@@ -520,6 +551,7 @@ export function usePrepPanels({
               onProblem,
               sizeClass,
               onSelectSong,
+              sources,
             }),
   };
 }

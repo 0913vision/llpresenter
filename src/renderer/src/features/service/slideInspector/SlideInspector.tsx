@@ -66,7 +66,7 @@ function InspectorContent({
         slideTransitionUndo(event, session, busy || session.readOnly)
       }
     >
-      <div className={styles.picture}>
+      <div className={styles.picture} data-background-picture>
         {appearance === undefined || slide === undefined ? null : (
           <SlidePicture
             {...appearance}

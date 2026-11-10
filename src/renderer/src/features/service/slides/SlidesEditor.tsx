@@ -38,6 +38,7 @@ import {
   SlidesPreview,
   slideBand,
   useSlidesAppearance,
+  useSlidesItemWithBackground,
 } from './SlidesVisuals';
 import type {SlidesEditorModel} from './useSlidesEditor';
 import {SlideRows, type SlideCardRenderer} from './SlideRows';
@@ -297,7 +298,8 @@ function SlidesEditorBody({
   readonly leadingCard?: LeadingSlideCard | undefined;
   readonly addCard?: ReactNode;
 }): JSX.Element {
-  const {item, selected} = draft.snapshot;
+  const {item: draftItem, selected} = draft.snapshot;
+  const item = useSlidesItemWithBackground(draftItem);
   const serviceName = useShow(view => view.serviceName);
   const root = useRef<HTMLDivElement>(null);
   const {focusText, consumeTextFocus} = model;

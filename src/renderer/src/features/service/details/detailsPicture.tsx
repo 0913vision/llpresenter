@@ -114,10 +114,7 @@ function libraryPicture(
   return (
     <SlidePicture
       {...theme}
-      background={resolveSongSlideBackground(
-        undefined,
-        library.background?.mediaId,
-      )}
+      background={library.background?.mediaId}
       slide={{
         itemId: library.songId,
         position: index,

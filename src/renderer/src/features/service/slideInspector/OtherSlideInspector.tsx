@@ -79,7 +79,7 @@ export function OtherSlideInspector({
       <PanelBody>
         {file === undefined || file.kind === 'audio' ? null : (
           <>
-            <div className={styles.picture}>
+            <div className={styles.picture} data-background-picture>
               <img
                 className={styles.mediaPicture}
                 src={
@@ -106,7 +106,7 @@ export function OtherSlideInspector({
         cardTheme === undefined ||
         item === null ? null : (
           <>
-            <div className={styles.picture}>
+            <div className={styles.picture} data-background-picture>
               <div className={styles.canvas}>
                 <SlidePicture
                   {...cardTheme}
@@ -130,7 +130,7 @@ export function OtherSlideInspector({
         layer === null ||
         appearance === undefined ? null : (
           <>
-            <div className={styles.picture}>
+            <div className={styles.picture} data-background-picture>
               <div className={styles.canvas}>
                 <SlidePicture
                   slide={layer}

@@ -85,7 +85,10 @@ describe('usePrepPanels', () => {
           proceed = action;
         });
       const open = vi.spyOn(editor, 'open');
-      const panel = result.current.partsOf('편집').embedded;
+      const wrapper = result.current.partsOf('편집').embedded;
+      const panel = isValidElement<{children?: unknown}>(wrapper)
+        ? wrapper.props.children
+        : null;
       if (
         !isValidElement<{
           children?: (card: undefined, addCard: null) => unknown;
@@ -237,7 +240,11 @@ describe('usePrepPanels', () => {
     await waitFor(() => expect(result.current.columns).not.toEqual(columns));
     expect(result.current.columns[2]).toEqual(['슬라이드 속성']);
     const panel = result.current.partsOf('슬라이드 속성').embedded;
-    expect(isValidElement(panel) && panel.type === SlideInspector).toBe(true);
+    expect(
+      isValidElement<{children?: unknown}>(panel) &&
+        isValidElement(panel.props.children) &&
+        panel.props.children.type === SlideInspector,
+    ).toBe(true);
     act(() => editor.open(null));
     await waitFor(() => expect(result.current.columns).toEqual(columns));
   });
@@ -250,9 +257,11 @@ describe('usePrepPanels', () => {
     await act(async () => openOther?.('bible-item'));
     expect(result.current.columns[2]).toEqual(['슬라이드 속성']);
     const panel = result.current.partsOf('슬라이드 속성').embedded;
-    expect(isValidElement(panel) && panel.type === OtherSlideInspector).toBe(
-      true,
-    );
+    expect(
+      isValidElement<{children?: unknown}>(panel) &&
+        isValidElement(panel.props.children) &&
+        panel.props.children.type === OtherSlideInspector,
+    ).toBe(true);
   });
 
   it('draws the 예배 순서 as the table, not the plain list', () => {

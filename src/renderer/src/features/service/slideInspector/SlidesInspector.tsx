@@ -6,6 +6,7 @@ import {
   SlidesCanvas,
   slideBand,
   useSlidesAppearance,
+  useSlidesItemWithBackground,
 } from '../slides/SlidesVisuals';
 import type {SlidesListSession} from '../slides/slidesListSession';
 import {Panel, PanelBody} from '@renderer/ui/Panel';
@@ -26,7 +27,8 @@ export function SlidesInspector({
     session.slideModel.subscribe,
     session.slideModel.getSnapshot,
   );
-  const {item, selected} = session.draft.snapshot;
+  const {item: draftItem, selected} = session.draft.snapshot;
+  const item = useSlidesItemWithBackground(draftItem);
   const media = useItemMedia(api.media).document?.value.items ?? [];
   const {appearance} = useSlidesAppearance(api, item);
   const {projection} = useSlidesVerseProjection(api, item);
@@ -40,7 +42,7 @@ export function SlidesInspector({
               slideTransitionUndo(event, session, session.readOnly)
             }
           >
-            <div className={styles.picture}>
+            <div className={styles.picture} data-background-picture>
               <SlidesCanvas
                 item={item}
                 index={selected}

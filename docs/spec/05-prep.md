@@ -1017,17 +1017,22 @@ expand the feature-freeze scope.
 The service song editor ribbon has 편집 and 디자인 tabs. 디자인 places 테마
 before 배경 and uses the same choices, names and writes as the service order's
 table cells (not its right-click menu). 테마 offers 기본 and the stored themes;
-배경 offers 곡 기본값 and image/video media. Media dragged onto slides creates
-or replaces an overlay, rather than changing this background. Changes apply to
-the captured service item, never the library song or another service's deck.
-Pending lyric edits finish before appearance writes. A saved background change
-updates the editor's baseline without replacing lyric undo history or slide
-selection when the slide deck is unchanged. The separate editor window's preview
-uses the captured service item's theme and follows its changes, including a
-return to 기본. Read-only, blocked and saving states prevent changes. Returning
-to 편집 keeps the slide selection and history. Library song editing omits 디자인
-because themes belong to service items; its existing 기본 배경 control remains
-in the header for the library song's default background.
+배경 offers 곡 기본값 and image/video media. Media dropped on an editor slide in
+list or grid view, or on the slide properties picture, sets the item background.
+For a service song item, its override takes precedence over the library default;
+in the library song editor, the current library draft takes precedence. The
+target is highlighted while dragging. Missing media, audio, and items without a
+background are refused with a reason. Dropping on an overlay clip continues to
+create or replace the overlay. Changes apply to the captured service item, never
+the library song or another service's deck. Pending lyric edits finish before
+appearance writes. A saved background change updates the editor's baseline
+without replacing lyric undo history or slide selection when the slide deck is
+unchanged. The separate editor window's preview uses the captured service item's
+theme and follows its changes, including a return to 기본. Read-only, blocked
+and saving states prevent changes. Returning to 편집 keeps the slide selection
+and history. Library song editing omits 디자인 because themes belong to service
+items; its existing 기본 배경 control remains in the header for the library
+song's default background.
 
 The grouping follows PowerPoint's Design tab (Themes followed by Format
 Background) and Google Slides' separate Theme and Background commands. Their

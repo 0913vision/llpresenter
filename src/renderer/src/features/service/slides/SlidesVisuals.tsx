@@ -1,3 +1,5 @@
+import {parseMediaId} from '@core/schema/ids';
+import {useShow} from '@renderer/session/show';
 import {useEffect, useMemo, useRef, useState, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {MediaItem} from '@core/schema/mediaList';
@@ -28,6 +30,17 @@ export function slideBand(slide: Slide, media: readonly MediaItem[]): string {
     return file?.file.split(/[\\/]/).at(-1) ?? file?.name ?? '미디어 없음';
   }
   return slide.name ?? slide.text.split('\n')[0] ?? '';
+}
+
+/** Combines the current projected background with the editor's unsaved slide draft. */
+export function useSlidesItemWithBackground(draftItem: SlidesItem): SlidesItem {
+  const row = useShow(view =>
+    view.rows.find(entry => entry.id === draftItem.id),
+  );
+  if (row?.kind !== 'slides') return draftItem;
+  const parsed = parseMediaId(row.background?.mediaId);
+  const {background: _background, ...item} = draftItem;
+  return parsed.ok ? {...item, background: parsed.value} : item;
 }
 
 export function useSlidesAppearance(

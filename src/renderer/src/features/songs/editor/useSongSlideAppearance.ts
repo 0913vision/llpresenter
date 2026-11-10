@@ -13,10 +13,8 @@ export function resolveSongSlideBackground(
 /** The same local theme and effective background for every editor picture. */
 export function useSongSlideAppearance(session: SongSession) {
   const song = session.history.snapshot.song;
-  const itemRow = useShow(view => {
-    const row = view.rows.find(entry => entry.id === song.id);
-    return row?.kind === 'song' ? row : undefined;
-  });
+  const row = useShow(view => view.rows.find(entry => entry.id === song.id));
+  const itemRow = row?.kind === 'song' ? row : undefined;
   const theme = useSlideTheme(
     session.itemSession && itemRow !== undefined
       ? itemRow
@@ -28,8 +26,8 @@ export function useSongSlideAppearance(session: SongSession) {
     : {
         ...theme,
         background: resolveSongSlideBackground(
-          theme.background,
-          session.background,
+          session.itemSession ? theme.background : session.background,
+          session.itemSession ? session.background : theme.background,
         ),
       };
 }

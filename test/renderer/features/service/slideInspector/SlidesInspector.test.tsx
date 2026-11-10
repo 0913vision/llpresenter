@@ -14,6 +14,7 @@ vi.mock('@renderer/features/bible/useSlidesVerseProjection', () => ({
 }));
 vi.mock('@renderer/features/service/slides/SlidesVisuals', () => ({
   useSlidesAppearance: () => ({appearance: {}}),
+  useSlidesItemWithBackground: (item: unknown) => item,
   slideBand: (slide: {text: string}) => slide.text,
   SlidesCanvas: ({
     item,
