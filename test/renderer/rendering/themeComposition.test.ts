@@ -140,6 +140,10 @@ describe('theme composition drawing', () => {
       expect(band()?.style.height).toBe(goodHeight);
       expect(text('currentText')).toBe('New line');
       expect(hosts()).toBe(before);
+      const empty = {...changed, slide: {...changed.slide, lines: ['']}};
+      expect(() => view.render(empty, activeFrame)).not.toThrow();
+      expect(band()?.hidden).toBe(true);
+      expect(hosts()).toBe(before);
       const failedAttempts = attempts;
       failing = false;
       view.render(changed, activeFrame);

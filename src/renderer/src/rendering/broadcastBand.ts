@@ -1,5 +1,7 @@
-import type {SlideLayer} from '@core/live/state';
+import {emptyLayers, type SlideLayer} from '@core/live/state';
+import type {LiveThemeItem} from '@core/schema/liveTheme';
 import type {ThemeScreenLayout} from '@core/schema/themes';
+import {themeElementText} from '@core/themes/content';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {
   BROADCAST_BAND_ID,
@@ -22,11 +24,40 @@ export function isBroadcastBandLayout(layout: ThemeScreenLayout): boolean {
   );
 }
 
+/** A band only accompanies text actually supplied by its broadcast elements. */
+export function withBroadcastBandVisibility(
+  layout: ThemeScreenLayout,
+  slide: SlideLayer | null,
+  item: LiveThemeItem | null,
+): ThemeScreenLayout {
+  if (!isBroadcastBandLayout(layout)) return layout;
+  const content = {layers: {...emptyLayers(), slide}, item};
+  const visible =
+    slide !== null &&
+    layout.elements.some(
+      element =>
+        [
+          BROADCAST_TEXT_ID,
+          BROADCAST_TITLE_ID,
+          BROADCAST_REFERENCE_ID,
+        ].includes(element.id) &&
+        (themeElementText(element, content)?.trim().length ?? 0) > 0,
+    );
+  return {
+    ...layout,
+    elements: layout.elements.map(element =>
+      element.id === BROADCAST_BAND_ID && element.kind === 'box'
+        ? {...element, runtimeHidden: !visible, clearTarget: 'slide' as const}
+        : element,
+    ),
+  };
+}
+
 /** Adapts only layouts containing the built-in band marker; saved layouts are untouched. */
 export function fitBroadcastBand(
   layout: ThemeScreenLayout,
   slide: SlideLayer | null,
-  itemTitle?: string,
+  item: LiveThemeItem | null = null,
 ): ThemeScreenLayout {
   if (!isBroadcastBandLayout(layout)) {
     return layout;
@@ -34,18 +65,16 @@ export function fitBroadcastBand(
   const textElement = layout.elements.find(
     element => element.id === BROADCAST_TEXT_ID,
   );
-  const lines =
-    slide === null
-      ? []
-      : textElement?.kind === 'itemName'
-        ? [slide.sectionCard?.name ?? itemTitle ?? '']
-        : slide.lines;
-  const title =
-    layout.elements.some(element => element.id === BROADCAST_TITLE_ID) &&
-    !!slide?.name;
-  const reference =
-    layout.elements.some(element => element.id === BROADCAST_REFERENCE_ID) &&
-    !!slide?.reference;
+  const content = {layers: {...emptyLayers(), slide}, item};
+  const text =
+    textElement === undefined ? null : themeElementText(textElement, content);
+  const lines = text === null ? [] : text.split('\n');
+  const valueOf = (id: typeof BROADCAST_TITLE_ID): string | null => {
+    const element = layout.elements.find(entry => entry.id === id);
+    return element === undefined ? null : themeElementText(element, content);
+  };
+  const title = (valueOf(BROADCAST_TITLE_ID)?.trim().length ?? 0) > 0;
+  const reference = (valueOf(BROADCAST_REFERENCE_ID)?.trim().length ?? 0) > 0;
   const extra = (Number(title) + Number(reference)) * geometry.extraHeight;
   const maxBody = geometry.maxHeight - geometry.padding * 2 - extra;
   const textStyle =
@@ -86,20 +115,13 @@ export function fitBroadcastBand(
   const bottom = geometry.height - geometry.bottom;
   const top = bottom - height;
   const bodyTop = top + geometry.padding + (title ? geometry.extraHeight : 0);
-  const runtimeHidden =
-    slide === null ||
-    (slide.picture !== undefined &&
-      slide.lines.every(line => line.trim() === '') &&
-      !slide.name);
-  return {
+  const fitted: ThemeScreenLayout = {
     ...layout,
     elements: layout.elements.map(element => {
       if (element.id === BROADCAST_BAND_ID && element.kind === 'box') {
         return {
           ...element,
           frame: {...element.frame, y: top, h: height},
-          runtimeHidden,
-          clearTarget: 'slide' as const,
         };
       }
       if (element.id === BROADCAST_TEXT_ID) {
@@ -136,4 +158,5 @@ export function fitBroadcastBand(
       return element;
     }),
   };
+  return withBroadcastBandVisibility(fitted, slide, item);
 }

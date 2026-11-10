@@ -1,5 +1,6 @@
 import type {LiveLayers} from '@core/live/state';
 import type {SlideLayer} from '@core/live/state';
+import type {LiveThemeItem} from '@core/schema/liveTheme';
 import type {ThemeScreenLayout} from '@core/schema/themes';
 import {classes} from './classes';
 import type {RenderFrame, RenderLayerOptions} from './layer';
@@ -13,7 +14,11 @@ import {themeBackgroundStyle} from './themeBackground';
 import {songTitleLayout} from '@core/themes/songTitle';
 import {themeElementMedia} from '@core/themes/content';
 import {isSectionTheme} from '@core/themes/sundaySections';
-import {fitBroadcastBand, isBroadcastBandLayout} from './broadcastBand';
+import {
+  fitBroadcastBand,
+  isBroadcastBandLayout,
+  withBroadcastBandVisibility,
+} from './broadcastBand';
 
 interface ThemePage {
   layers: LiveLayers;
@@ -44,7 +49,7 @@ export class ThemeCompositionView {
     layout: ThemeScreenLayout;
     source: ThemeScreenLayout;
     slide: SlideLayer | null;
-    title: string | undefined;
+    item: LiveThemeItem | null;
     width: number;
     height: number;
     fonts: string;
@@ -70,7 +75,7 @@ export class ThemeCompositionView {
         theme: {
           ...frame.theme,
           layout: songTitleLayout(
-            this.fitBand(frame.theme.layout, slide, frame.theme.item?.title),
+            this.fitBand(frame.theme.layout, slide, frame.theme.item),
             slide,
           ),
         },
@@ -148,7 +153,7 @@ export class ThemeCompositionView {
   private fitBand(
     layout: ThemeScreenLayout,
     slide: SlideLayer | null,
-    title: string | undefined,
+    item: LiveThemeItem | null,
   ): ThemeScreenLayout {
     if (!isBroadcastBandLayout(layout)) {
       this.bandFit = null;
@@ -163,26 +168,26 @@ export class ThemeCompositionView {
       previous !== null &&
       previous.source === layout &&
       previous.slide === slide &&
-      previous.title === title &&
+      previous.item === item &&
       previous.width === width &&
       previous.height === height &&
       previous.fonts === fonts
     ) {
       return previous.layout;
     }
-    const key = JSON.stringify([layout, slide, title, width, height, fonts]);
+    const key = JSON.stringify([layout, slide, item, width, height, fonts]);
     if (previous?.key === key) {
-      this.bandFit = {...previous, source: layout, slide};
+      this.bandFit = {...previous, source: layout, slide, item};
       return previous.layout;
     }
     try {
-      const fitted = fitBroadcastBand(layout, slide, title);
+      const fitted = fitBroadcastBand(layout, slide, item);
       this.bandFit = {
         key,
         layout: fitted,
         source: layout,
         slide,
-        title,
+        item,
         width,
         height,
         fonts,
@@ -190,7 +195,11 @@ export class ThemeCompositionView {
       return fitted;
     } catch (error) {
       this.options.onError('could not fit the broadcast band', error);
-      return previous?.layout ?? layout;
+      return withBroadcastBandVisibility(
+        previous?.layout ?? layout,
+        slide,
+        item,
+      );
     }
   }
 
