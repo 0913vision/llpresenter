@@ -82,6 +82,12 @@ export function themeElementText(
             .slice(0, element.lineLimit)
             .join('\n');
     case 'label':
+      if (
+        element.hideWhenItemTitle &&
+        slide?.label === (item?.title ?? slide?.title)
+      ) {
+        return null;
+      }
       return slide?.label ?? null;
     case 'nextLabel':
       return slide?.next?.label ?? null;

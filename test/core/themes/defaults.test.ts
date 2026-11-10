@@ -80,6 +80,10 @@ it('places song lyrics near the top while retaining the starter broadcast styles
     'currentText',
     'nextText',
   ]);
+  const stageLabel = theme.screens[stage]?.elements.find(
+    element => element.kind === 'label',
+  );
+  expect(stageLabel).toMatchObject({hideWhenItemTitle: true, text: {size: 40}});
   const current = theme.screens[stage]?.elements.find(
     element => element.kind === 'currentText',
   );

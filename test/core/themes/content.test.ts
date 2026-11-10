@@ -226,3 +226,43 @@ it('limits built-in stage next lines and resolves stage bar data without changin
   ).toBe('2 / 6');
   expect(themeElementText(text, {layers, item})).toBe('Literal');
 });
+
+it('suppresses a redundant built-in stage label while keeping distinct and saved labels', () => {
+  const label = {
+    ...themeElementBase(),
+    kind: 'label',
+    hideWhenItemTitle: true,
+  } as const;
+  const item = {
+    id: 'item',
+    kind: 'song',
+    source: 'service',
+    title: 'Creed',
+  } as const;
+  const slide = {itemId: item.id, position: 0, label: 'Creed', lines: ['Text']};
+  const layers = {...emptyLayers(), slide};
+  expect(themeElementText(label, {layers, item})).toBeNull();
+  expect(
+    themeElementText({...label, hideWhenItemTitle: false}, {layers, item}),
+  ).toBe('Creed');
+  for (const distinct of ['1 Verse', 'Chorus', '3:16']) {
+    expect(
+      themeElementText(label, {
+        layers: {...layers, slide: {...slide, label: distinct}},
+        item,
+      }),
+    ).toBe(distinct);
+  }
+  expect(
+    themeElementText(label, {
+      layers: {...layers, slide: {...slide, label: null}},
+      item,
+    }),
+  ).toBeNull();
+  expect(
+    themeElementText(label, {
+      layers: {...layers, slide: {...slide, title: 'Creed'}},
+      item: null,
+    }),
+  ).toBeNull();
+});

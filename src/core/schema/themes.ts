@@ -138,7 +138,7 @@ export const themeElementSchema = v.pipe(
       text: lyricText,
       lineLimit: v.exactOptional(maxLines),
     }),
-    textElement('label', {}),
+    textElement('label', {hideWhenItemTitle: v.exactOptional(v.boolean())}),
     textElement('nextLabel', {}),
     textElement('itemName', {
       centerWhenTextEmpty: v.exactOptional(v.boolean()),

@@ -374,6 +374,20 @@ describe('theme element properties', () => {
     },
   );
 
+  it.each([true, false, 'yes'])(
+    'validates the optional duplicate label setting %s',
+    hideWhenItemTitle => {
+      expect(
+        v.safeParse(themeElementSchema, {
+          ...element,
+          kind: 'label',
+          text,
+          hideWhenItemTitle,
+        }).success,
+      ).toBe(typeof hideWhenItemTitle === 'boolean');
+    },
+  );
+
   it.each(['fit', 'fill', 'stretch'])('accepts media fit %s', fit => {
     expect(
       v.safeParse(themeElementSchema, {...element, kind: 'media', fit}).success,

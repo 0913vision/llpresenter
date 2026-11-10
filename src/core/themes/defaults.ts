@@ -4,6 +4,7 @@ import {
   STAGE_BAR_HEIGHT,
 } from './starterLayout';
 import {STAGE_COLORS} from './stageColors';
+import {REFERENCE_SCREEN} from './textStyle';
 import {
   createScreenId,
   createThemeId,
@@ -124,7 +125,8 @@ function stageElements(): ThemeElement[] {
         return {
           ...base,
           kind: 'label',
-          text: {...text, size: 36, align: 'left'},
+          hideWhenItemTitle: true,
+          text: {...text, size: 40, align: 'left'},
         };
       case 'clock':
         return {
@@ -273,11 +275,11 @@ function layoutFor(
             stops: [
               {position: 0, color: STAGE_COLORS.bar},
               {
-                position: (STAGE_BAR_HEIGHT / THEME_LIMITS.height) * 100,
+                position: (STAGE_BAR_HEIGHT / REFERENCE_SCREEN.height) * 100,
                 color: STAGE_COLORS.bar,
               },
               {
-                position: (STAGE_BAR_HEIGHT / THEME_LIMITS.height) * 100,
+                position: (STAGE_BAR_HEIGHT / REFERENCE_SCREEN.height) * 100,
                 color: '#000000',
               },
               {position: 100, color: '#000000'},
