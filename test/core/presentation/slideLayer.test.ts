@@ -201,7 +201,7 @@ it('shows next slide titles before body for every source kind', () => {
         sectionCard: sectionCardOf(section),
         lines: ['English subtitle'],
       },
-      expected: `${section.name}\nEnglish subtitle`,
+      expected: section.name,
     },
     {
       name: 'media',
@@ -258,11 +258,11 @@ it('carries the next item card and its kind without inventing content at the end
   expect(slideLayerOf(cursor, () => [current])?.next).toBeUndefined();
   expect(
     slideLayerOf(cursor, () => [current], {tile: card, kind: 'bible'})?.next,
-  ).toMatchObject({title: section.name, itemKind: 'bible', lines: ['English']});
+  ).toMatchObject({title: section.name, itemKind: 'bible', lines: []});
 });
 
 it.each(SUNDAY_SECTIONS)(
-  'shows both names of the $english section in the stage preview',
+  'shows only the Korean name of the $english section in the stage preview',
   section => {
     const item = newSectionItem(
       createServiceItemId('00000000-0000-4000-8000-000000000001'),
@@ -289,7 +289,7 @@ it.each(SUNDAY_SECTIONS)(
         layers: {...emptyLayers(), slide},
         item: null,
       }),
-    ).toBe(`${section.name}\n${section.english}`);
+    ).toBe(section.name);
   },
 );
 
@@ -311,3 +311,92 @@ it('previews the opening song title after a preceding item', () => {
   });
   expect(layer?.next).toMatchObject({itemKind: 'song', lines: ['Song title']});
 });
+
+it('previews an opening card with the first content line while retaining the card subtitle on output', () => {
+  const section = SUNDAY_SECTIONS[1];
+  if (!section) throw Error('Missing section');
+  const card = {
+    label: section.name,
+    labelColor: 'none' as const,
+    lines: [section.english],
+    sectionCard: sectionCardOf(section),
+  };
+  const content = {
+    label: null,
+    labelColor: 'none' as const,
+    lines: ['First body line\nSecond body line'],
+  };
+  const current = {
+    label: null,
+    labelColor: 'none' as const,
+    lines: ['Current'],
+  };
+  const following = {tile: card, kind: 'blank' as const, after: content};
+  const slide = slideLayerOf(
+    {itemId: 'song', index: 0},
+    () => [current],
+    following,
+  );
+  expect(slide?.next).toMatchObject({
+    title: section.name,
+    lines: content.lines,
+  });
+  const stage = createScreenId(STARTER_SCREEN_IDS.stage);
+  const element = builtInTheme('song').screens[stage]?.elements.find(
+    value => value.kind === 'nextText',
+  );
+  if (element?.kind !== 'nextText') throw Error('Missing next text element');
+  expect(
+    themeElementText(element, {layers: {...emptyLayers(), slide}, item: null}),
+  ).toBe(`${section.name}\nFirst body line`);
+  const cardSlide = slideLayerOf({itemId: 'card', index: 0}, () => [
+    card,
+    content,
+  ]);
+  expect(cardSlide?.lines).toEqual([section.english]);
+});
+
+it.each([
+  {name: 'Notice title', expected: 'Notice title'},
+  {name: '', expected: 'First body line'},
+  {name: '   ', expected: 'First body line'},
+  {name: undefined, expected: 'First body line'},
+])(
+  'uses the opening item slide title or its first body line: $name',
+  ({name, expected}) => {
+    const section = SUNDAY_SECTIONS.find(value => value.english === 'Notice');
+    if (!section) throw Error('Missing notice section');
+    const current = {
+      label: null,
+      labelColor: 'none' as const,
+      lines: ['Current'],
+    };
+    const card = {
+      ...current,
+      sectionCard: sectionCardOf(section),
+      lines: [section.english],
+    };
+    const content = {
+      ...current,
+      kind: 'ad' as const,
+      ...(name === undefined ? {} : {name}),
+      lines: ['First body line\nSecond body line'],
+    };
+    const slide = slideLayerOf({itemId: 'song', index: 0}, () => [current], {
+      tile: card,
+      kind: 'ad',
+      after: content,
+    });
+    const stage = createScreenId(STARTER_SCREEN_IDS.stage);
+    const element = builtInTheme('song').screens[stage]?.elements.find(
+      value => value.kind === 'nextText',
+    );
+    if (element?.kind !== 'nextText') throw Error('Missing next text element');
+    expect(
+      themeElementText(element, {
+        layers: {...emptyLayers(), slide},
+        item: null,
+      }),
+    ).toBe(`${section.name}\n${expected}`);
+  },
+);

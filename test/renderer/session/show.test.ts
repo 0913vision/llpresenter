@@ -2,6 +2,8 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import {emptyLiveState, type LiveState} from '@core/live/state';
 import {bibleSource} from '@core/bible/source';
+import {sectionCardOf} from '@core/services/sectionCards';
+import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
 import {createSongSlideId, createSongId} from '@core/schema/ids';
 import {lookupRequest} from '@fixtures/core/bibleLookups';
 import {formLookupReply} from '@fixtures/core/bibleReplies';
@@ -186,6 +188,58 @@ describe('show state', () => {
         itemKind: 'song',
         lines: sampleService.tiles['song-river']?.[0]?.lines,
       },
+    });
+  });
+
+  it('updates the next preview with an opening card and its first content line', () => {
+    const section = SUNDAY_SECTIONS[1];
+    if (!section) throw Error('Missing section');
+    const card = {
+      label: section.name,
+      labelColor: 'none' as const,
+      lines: [section.english],
+      sectionCard: sectionCardOf(section),
+    };
+    const body = {
+      label: null,
+      labelColor: 'none' as const,
+      lines: ['First body line', 'Second body line'],
+    };
+    useShow.setState(state => ({
+      tiles: {...state.tiles, 'song-river': [card, body]},
+    }));
+    setLive('song-morning', 1);
+    openItem('song-river');
+    expect(sent.at(-1)).toMatchObject({
+      type: 'stage.next.set',
+      next: {title: section.name, lines: body.lines},
+    });
+  });
+
+  it('refreshes an opening card preview with its content slide title', () => {
+    const section = SUNDAY_SECTIONS[1];
+    if (!section) throw Error('Missing section');
+    const card = {
+      label: section.name,
+      labelColor: 'none' as const,
+      lines: [section.english],
+      sectionCard: sectionCardOf(section),
+    };
+    const body = {
+      label: null,
+      labelColor: 'none' as const,
+      kind: 'ad' as const,
+      name: 'Notice title',
+      lines: ['Body'],
+    };
+    useShow.setState(state => ({
+      tiles: {...state.tiles, 'song-river': [card, body]},
+    }));
+    setLive('song-morning', 1);
+    openItem('song-river');
+    expect(sent.at(-1)).toMatchObject({
+      type: 'stage.next.set',
+      next: {title: section.name, lines: ['Notice title']},
     });
   });
 

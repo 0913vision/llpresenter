@@ -6,20 +6,30 @@ import type {TilesOf} from './navigation';
 export function nextSlideOf(
   tile: SlideTile,
   kind?: NextSlide['itemKind'],
-  fallbackTitle?: string,
+  context?: {
+    readonly title?: string | undefined;
+    readonly after?: SlideTile | undefined;
+  },
 ): NextSlide {
   const title =
     tile.sectionCard?.name ??
     tile.name ??
     (tile.media !== undefined || tile.picture !== undefined
-      ? fallbackTitle
+      ? context?.title
       : undefined);
+  const after = context?.after;
+  const afterTitle = after?.name?.trim();
   return {
     label:
       tile.kind === undefined || tile.biblePart !== undefined
         ? tile.label
         : null,
-    lines: tile.lines,
+    lines:
+      tile.sectionCard === undefined
+        ? tile.lines
+        : afterTitle
+          ? [afterTitle]
+          : (after?.lines ?? []),
     ...(kind === undefined ? {} : {itemKind: kind}),
     ...(title === undefined || title.trim() === '' ? {} : {title}),
     ...(tile.continued === undefined ? {} : {continued: tile.continued}),
@@ -38,6 +48,7 @@ export function slideLayerOf(
     readonly tile: SlideTile;
     readonly kind: 'song' | 'bible' | 'blank' | 'ad' | 'media';
     readonly title?: string;
+    readonly after?: SlideTile;
   },
 ): SlideLayer | null {
   const tiles = tilesOf(cursor.itemId);
@@ -80,7 +91,13 @@ export function slideLayerOf(
           next: nextSlideOf(
             next,
             tiles[cursor.index + 1] === undefined ? following?.kind : undefined,
-            following?.title,
+            {
+              title: following?.title,
+              after:
+                tiles[cursor.index + 1] === undefined
+                  ? following?.after
+                  : tiles[cursor.index + 2],
+            },
           ),
         }),
   };

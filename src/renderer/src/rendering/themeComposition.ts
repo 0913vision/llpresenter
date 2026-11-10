@@ -32,6 +32,7 @@ interface ThemePage {
 }
 
 const TICK_MS = 250;
+const STAGE_NEXT_RATIO = 2 / 3;
 
 /** Keeps at most two compositions during a whole-screen theme dissolve. */
 export class ThemeCompositionView {
@@ -368,7 +369,7 @@ export class ThemeCompositionView {
             ?.fittedTextSize();
     const maximum =
       currentSize !== undefined && Number.isFinite(currentSize)
-        ? (currentSize * 2) / 3
+        ? currentSize * STAGE_NEXT_RATIO
         : undefined;
     for (const view of page.elements) {
       if (view.element.kind !== 'nextText') continue;

@@ -4,6 +4,8 @@ import type {ResolvedThemeElement} from '@core/themes/songTitle';
 import type {TextStyle} from '@core/themes/textStyle';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {themeTextVAlign} from '@core/themes/textAlignment';
+import {STAGE_COLORS} from '@core/themes/stageColors';
+import {emptySongSlideText} from '@core/presentation/emptySongSlide';
 import {
   isThemeTextElement,
   themeElementText,
@@ -181,6 +183,12 @@ export class ThemeElementView {
     }
     const item = frame.theme?.item ?? null;
     const stage = frame.screen?.kind === 'stage';
+    const cue =
+      stage &&
+      frame.theme?.layout.stageBar === 'message-row' &&
+      element.kind === 'currentText'
+        ? emptySongSlideText(layers.slide, item, 'label')
+        : undefined;
     this.text?.setMinimumSize(
       stage && element.kind === 'nextText'
         ? Math.max(STAGE_NEXT_MIN_SIZE, element.minimumTextSize ?? 0)
@@ -241,24 +249,32 @@ export class ThemeElementView {
         );
       }
     } else {
-      this.showText(this.textContent(layers, frame, videoRemaining), frame, {
-        vAlign: isThemeTextElement(element)
-          ? themeTextVAlign(element, layers.slide?.lines.join('\n') ?? '')
-          : undefined,
-        continued:
-          (element.kind === 'currentText'
-            ? layers.slide?.continued
-            : element.kind === 'nextText'
-              ? layers.slide?.next?.continued
-              : false) === true,
-        biblePart:
-          element.kind === 'currentText'
-            ? (layers.slide?.biblePart ??
-              (this.previewMaxLines === undefined ? undefined : 1))
-            : element.kind === 'nextText'
-              ? layers.slide?.next?.biblePart
-              : undefined,
-      });
+      this.showText(
+        cue ?? this.textContent(layers, frame, videoRemaining),
+        frame,
+        {
+          cue: cue !== undefined,
+          vAlign:
+            cue !== undefined
+              ? 'middle'
+              : isThemeTextElement(element)
+                ? themeTextVAlign(element, layers.slide?.lines.join('\n') ?? '')
+                : undefined,
+          continued:
+            (element.kind === 'currentText'
+              ? layers.slide?.continued
+              : element.kind === 'nextText'
+                ? layers.slide?.next?.continued
+                : false) === true,
+          biblePart:
+            element.kind === 'currentText'
+              ? (layers.slide?.biblePart ??
+                (this.previewMaxLines === undefined ? undefined : 1))
+              : element.kind === 'nextText'
+                ? layers.slide?.next?.biblePart
+                : undefined,
+        },
+      );
     }
     this.setClearOpacity(frame.clearOpacity);
   }
@@ -380,10 +396,12 @@ export class ThemeElementView {
       continued = false,
       biblePart,
       vAlign,
+      cue = false,
     }: {
       readonly continued?: boolean;
       readonly biblePart?: number | undefined;
       readonly vAlign?: TextStyle['vAlign'] | undefined;
+      readonly cue?: boolean;
     } = {},
   ): void {
     if (this.text === null) return;
@@ -414,6 +432,7 @@ export class ThemeElementView {
       }
       style = {
         ...textStyle,
+        ...(cue ? {color: STAGE_COLORS.muted, align: 'center' as const} : {}),
         vAlign: vAlign ?? textStyle.vAlign,
         font:
           known === false && !bundled ? 'Pretendard Variable' : textStyle.font,

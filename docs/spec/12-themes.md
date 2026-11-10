@@ -698,16 +698,17 @@ next lyrics have approximately eight percent side margins and 1.2 line height.
 The slide label is omitted when it repeats the item name; a different label is
 the same size as the item name. White centered current text occupies the large
 area above a bottom-aligned yellow centered next preview. A next slide title or
-section-card name precedes its body; an untitled slide shows its body alone. The
-next preview shows at most two source lines and targets two thirds of the fitted
-current size, with enough height for two lines at that size. Section cards
-center their Korean name and English subtitle above the same next preview. The
-stage notice retains its church news card. These defaults apply to new
-libraries; existing layouts are unchanged. Built-in audience background and
-media elements start at 채우기 (cover); their editable theme-element 맞춤 wins
-over the media property's 맞춤 when rendered through that element. The media
-properties panel explains this precedence in a tooltip. Existing libraries are
-unchanged.
+section-card name precedes its first content slide's title, or its first body
+line when untitled, when present; its English subtitle appears only on the card
+itself; an untitled slide shows its body alone. The next preview shows at most
+two source lines and targets two thirds of the fitted current size, with enough
+height for two lines at that size. Section cards center their Korean name and
+English subtitle above the same next preview. The stage notice retains its
+church news card. These defaults apply to new libraries; existing layouts are
+unchanged. Built-in audience background and media elements start at 채우기
+(cover); their editable theme-element 맞춤 wins over the media property's 맞춤
+when rendered through that element. The media properties panel explains this
+precedence in a tooltip. Existing libraries are unchanged.
 
 The section gradient layout retains 늘리기 for its background element.
 
@@ -724,3 +725,8 @@ of 72 px, matching the existing next-text size ratio. Bible and other prose
 continue to wrap. When continuous next-item navigation is enabled, the stage
 next preview follows the same next-item selection and skips the same rows as the
 next-slide command. A title counts as one of the two next-preview lines.
+
+In the built-in stage layout, an empty song slide shows its label as a centered
+muted cue, or the song title when the label is empty. Stage previews show the
+same cue; audience output remains background only. On the built-in broadcast
+band, the song title takes precedence over the label for an empty song slide.

@@ -214,6 +214,8 @@ function stageSlideOf(cursor: TileCursor) {
     next === null || row === undefined || row.kind === 'header'
       ? undefined
       : tilesOf(next.itemId)[next.index];
+  const after =
+    next === null ? undefined : tilesOf(next.itemId)[next.index + 1];
   const following: Parameters<typeof slideLayerOf>[2] =
     tile === undefined || row === undefined || row.kind === 'header'
       ? undefined
@@ -226,6 +228,7 @@ function stageSlideOf(cursor: TileCursor) {
                 ? 'blank'
                 : row.kind,
           title: row.title,
+          ...(after === undefined ? {} : {after}),
         };
   return slideLayerOf(cursor, tilesOf, following);
 }
@@ -330,7 +333,12 @@ function refreshStageNext(): void {
         : row.kind === 'unknown'
           ? 'blank'
           : row.kind;
-  const next = tile === undefined ? null : nextSlideOf(tile, kind, row?.title);
+  const afterCard =
+    cursor === null ? undefined : tilesOf(cursor.itemId)[cursor.index + 1];
+  const next =
+    tile === undefined
+      ? null
+      : nextSlideOf(tile, kind, {title: row?.title, after: afterCard});
   const key = nextKey(next);
   if (
     pendingStageNext !== undefined &&

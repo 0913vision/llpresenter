@@ -1,4 +1,4 @@
-import {beforeEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {SlideLayer} from '@core/live/state';
 import {classes} from '@renderer/rendering/classes';
 import {DEFAULT_TEXT_STYLE, scaleFor} from '@core/themes/textStyle';
@@ -27,6 +27,8 @@ function setUp() {
     );
   return {parent, view, pages, shownPage, shownLines};
 }
+
+afterEach(() => vi.restoreAllMocks());
 
 describe('SlideLayerView', () => {
   it('enforces and rescales the configured minimum text size when content overflows', () => {
@@ -99,9 +101,21 @@ describe('SlideLayerView', () => {
       ).toMatchObject({fontSize: '20px', whiteSpace: 'pre'});
       view.dispose();
     } finally {
-      vi.restoreAllMocks();
       height.mockRestore();
     }
+  });
+
+  it('uses the same fitted size for both next preview lines', () => {
+    const {view, shownPage} = setUp();
+    view.show({...VERSE, lines: ['A long section name', 'Short']}, false);
+    const block = shownPage()?.querySelector<HTMLElement>(`.${classes.block}`);
+    const rows = block?.querySelectorAll<HTMLElement>(':scope > div');
+    expect(rows).toHaveLength(2);
+    expect([...(rows ?? [])].every(row => row.style.fontSize === '')).toBe(
+      true,
+    );
+    expect(block?.style.fontSize).not.toBe('');
+    view.dispose();
   });
 
   it('fits toward a changing target above and below the saved text size', () => {
@@ -122,7 +136,6 @@ describe('SlideLayerView', () => {
     view.setTargetSize(30);
     expect(block?.style.fontSize).toBe('48px');
     view.dispose();
-    vi.restoreAllMocks();
   });
 
   it('changes a retained bulleted page to discs and restores the existing glyph layout', () => {

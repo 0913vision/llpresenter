@@ -82,7 +82,10 @@ beforeEach(() => {
   vi.spyOn(HTMLMediaElement.prototype, 'pause').mockReturnValue(undefined);
   vi.spyOn(HTMLMediaElement.prototype, 'load').mockReturnValue(undefined);
 });
-afterEach(() => vi.useRealTimers());
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.useRealTimers();
+});
 
 describe('theme composition drawing', () => {
   it('keeps the last good band after a measurement error and retries without leaking the host', () => {
@@ -1448,5 +1451,63 @@ it('keeps stage next text at least 48px even when the current text is smaller', 
   );
   expect(block?.style.fontSize).toBe('48px');
   view.dispose();
-  vi.restoreAllMocks();
 });
+
+it.each(['output', 'preview'] as const)(
+  'shows an empty song cue on stage in %s and leaves audience lyrics empty',
+  mode => {
+    const root = document.createElement('div');
+    const view = new ThemeCompositionView(root, {
+      textStyle: DEFAULT_TEXT_STYLE,
+      mediaUrl: id => id,
+      onError: vi.fn(),
+      mode,
+    });
+    const elements: ThemeElement[] = [
+      {...themeElementBase(), kind: 'currentText'},
+      {...themeElementBase(31), kind: 'nextText'},
+    ];
+    const base = frame(elements);
+    if (!base.theme) throw Error('Missing theme');
+    const stage = {
+      ...base,
+      transitions: false,
+      screen: {id: THEME_MAIN, kind: 'stage' as const},
+      theme: {
+        ...base.theme,
+        layout: {...base.theme.layout, stageBar: 'message-row' as const},
+      },
+    };
+    if (song.slide === null) throw Error('Missing slide');
+    const empty = {
+      ...song,
+      slide: {...song.slide, lines: ['  '], label: 'Interlude'},
+    };
+    const current = () =>
+      root.querySelector<HTMLElement>(
+        `[data-kind="currentText"] .${classes.shown} .${classes.block}`,
+      );
+    view.render(empty, stage);
+    expect(current()?.textContent).toBe('Interlude');
+    expect(current()?.style.color).toBe('rgb(180, 180, 180)');
+    expect(
+      root.querySelector(`[data-kind="nextText"] .${classes.shown}`)
+        ?.textContent,
+    ).toBe('Invented next');
+    view.render({...empty, slide: {...empty.slide, label: null}}, stage);
+    expect(current()?.textContent).toBe('Item name');
+    view.render(song, stage);
+    expect(current()?.textContent).toBe('Invented line');
+    expect(current()?.style.color).not.toBe('rgb(180, 180, 180)');
+    view.render(empty, {
+      ...frame(elements),
+      transitions: false,
+      screen: {id: THEME_MAIN, kind: 'stage'},
+    });
+    expect(current()?.textContent.trim()).toBe('');
+    expect(current()?.style.color).not.toBe('rgb(180, 180, 180)');
+    view.render(empty, {...frame(elements), transitions: false});
+    expect(current()?.textContent.trim()).toBe('');
+    view.dispose();
+  },
+);
