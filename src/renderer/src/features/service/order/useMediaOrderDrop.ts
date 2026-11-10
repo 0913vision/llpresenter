@@ -4,21 +4,18 @@ import {newMediaItem} from '@core/services/quickAddMedia';
 import {useShow} from '@renderer/session/show';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import type {PaletteEditing} from '../items/PaletteEditing';
-import type {useServiceOrderEditing} from './useServiceOrderEditing';
 import type {ServiceTableParts} from './serviceTableParts';
 import {mediaDropReason} from './useServiceOrderDrag';
 
 /** Validates media at drop time and applies an insertion or item background. */
 export function useMediaOrderDrop({
   serviceId,
-  editing,
-  queue,
+  runEdit,
   setBackground,
   onProblem,
 }: {
   readonly serviceId: string | null;
-  readonly editing: ReturnType<typeof useServiceOrderEditing>;
-  readonly queue: PaletteEditing | null;
+  readonly runEdit: PaletteEditing['enqueueEdit'];
   readonly setBackground: ServiceTableParts['setBackground'];
   readonly onProblem: (notice: Notice) => void;
 }) {
@@ -67,8 +64,7 @@ export function useMediaOrderDrop({
       }
     };
     if (target === null) {
-      const run = queue?.enqueueInsert ?? editing.run;
-      run(async (edits, id) => {
+      runEdit(async (edits, id) => {
         if (!(await validate())) return {ok: true, value: false};
         return edits.insertItem(
           id,

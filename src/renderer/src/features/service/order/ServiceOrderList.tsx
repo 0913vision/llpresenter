@@ -1,3 +1,4 @@
+import {PREP_PALETTE_LABEL} from '../items/paletteItems';
 import {iconByKind} from './serviceItemIcons';
 import {useMediaOrderDrop} from './useMediaOrderDrop';
 import {usePaletteEditing} from '../items/PaletteEditing';
@@ -374,10 +375,13 @@ export function ServiceOrderList({
   });
   const paletteEditing = usePaletteEditing();
   const palette = usePaletteInsert(paletteEditing);
+  const runEdit =
+    table !== undefined && paletteEditing !== null
+      ? paletteEditing.enqueueEdit
+      : editing.run;
   const mediaDrop = useMediaOrderDrop({
     serviceId,
-    editing,
-    queue: paletteEditing,
+    runEdit,
     setBackground: table?.setBackground,
     onProblem,
   });
@@ -387,11 +391,7 @@ export function ServiceOrderList({
     selected: selection.selected,
     select: id => selection.replace([id], id),
     onMove: (ids, before) => {
-      const run =
-        table !== undefined && paletteEditing !== null
-          ? paletteEditing.enqueueInsert
-          : editing.run;
-      run((edits, id) =>
+      runEdit((edits, id) =>
         edits.moveMany(
           id,
           ids.map(createServiceItemId),
@@ -405,11 +405,7 @@ export function ServiceOrderList({
         : (key, before) => palette.insert(key, before),
     onMedia: table === undefined || navigator ? undefined : mediaDrop,
     onCopy: (songId, before) => {
-      const run =
-        table !== undefined && paletteEditing !== null
-          ? paletteEditing.enqueueInsert
-          : editing.run;
-      run((edits, id) =>
+      runEdit((edits, id) =>
         edits.insertSong(
           id,
           songId,
@@ -476,6 +472,12 @@ export function ServiceOrderList({
     event.target instanceof Node &&
     !isInTextEntry(event.target) &&
     listRef.current?.contains(event.target) === true;
+  const ownsPaletteHistory = (event: KeyboardEvent): boolean =>
+    table !== undefined &&
+    !navigator &&
+    event.target instanceof Element &&
+    !isInTextEntry(event.target) &&
+    event.target.closest(`[aria-label="${PREP_PALETTE_LABEL}"]`) !== null;
   const renameItem = (
     row: ServiceRow,
   ): import('@renderer/ui/ListRow').GroupRename | undefined => {
@@ -649,22 +651,26 @@ export function ServiceOrderList({
     {
       id: 'edit.undo',
       context: 'service',
-      when: ownsCommand,
+      when: event => ownsCommand(event) || ownsPaletteHistory(event),
       unavailable: () => historyReason('undo'),
-      run: () => {
+      run: event => {
         if (editable) {
-          runFocusedEdit((edits, service) => edits.undo(service));
+          if (ownsPaletteHistory(event) && paletteEditing) {
+            paletteEditing.enqueueEdit((edits, service) => edits.undo(service));
+          } else runFocusedEdit((edits, service) => edits.undo(service));
         }
       },
     },
     {
       id: 'edit.redo',
       context: 'service',
-      when: ownsCommand,
+      when: event => ownsCommand(event) || ownsPaletteHistory(event),
       unavailable: () => historyReason('redo'),
-      run: () => {
+      run: event => {
         if (editable) {
-          runFocusedEdit((edits, service) => edits.redo(service));
+          if (ownsPaletteHistory(event) && paletteEditing) {
+            paletteEditing.enqueueEdit((edits, service) => edits.redo(service));
+          } else runFocusedEdit((edits, service) => edits.redo(service));
         }
       },
     },

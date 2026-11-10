@@ -6,6 +6,7 @@ import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {contextMenuAnchor, openMenuFromKey} from '@renderer/ui/contextMenu';
 import {
   ELEMENT_DRAG_MIME,
+  PREP_PALETTE_LABEL,
   ORDER_ELEMENTS,
   PALETTE_SECTIONS,
 } from './paletteItems';
@@ -64,7 +65,7 @@ export function PrepPalette({
     </button>
   );
   return (
-    <Panel label="예배 요소와 곡" className={styles.panel}>
+    <Panel label={PREP_PALETTE_LABEL} className={styles.panel}>
       {!navigating ? (
         <PanelHeader>
           <PanelTabs

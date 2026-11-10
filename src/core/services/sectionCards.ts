@@ -37,6 +37,7 @@ export function newSectionItem(
 ): ServiceItemOf<'slides'> {
   return {
     id,
+    theme: section.theme,
     sectionCard: sectionCardOf(section),
     slides: {
       form: 'blank',

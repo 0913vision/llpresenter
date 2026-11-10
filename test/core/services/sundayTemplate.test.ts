@@ -79,18 +79,23 @@ it('ships the church order with fixed editable cards and empty places for local 
       ?.theme,
   });
   expect(notice?.slides.slides).toHaveLength(1);
-  for (const card of fixed.filter(item =>
+  const cards = fixed.filter(item =>
     SECTION_THEMES.some(theme => theme.id === item.theme),
-  )) {
+  );
+  expect(cards).toHaveLength(7);
+  for (const card of cards) {
     const section = SUNDAY_SECTIONS.find(
       section => section.name === card.slides.name,
     );
     expect(section).toBeDefined();
     expect(card.background).toBeUndefined();
     expect(card.theme).toBe(section?.theme);
-    expect(
-      card.slides.slides.map(slide => ('text' in slide ? slide.text : null)),
-    ).toEqual([section?.english]);
+    expect(card.slides.slides).toEqual([]);
+    expect(card.sectionCard).toEqual({
+      name: section?.name,
+      english: section?.english,
+      theme: section?.theme,
+    });
     expect(card.slides.advance).toBeUndefined();
     expect(card.slides.loop).toBeUndefined();
   }

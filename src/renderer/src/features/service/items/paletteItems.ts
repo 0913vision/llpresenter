@@ -3,11 +3,15 @@ import {createServiceItemId} from '@core/schema/ids';
 import type {ServiceItem} from '@core/schema/service';
 import {newSlidesItem} from '@core/services/slidesEdits';
 import {sectionCardOf} from '@core/services/sectionCards';
-import {PREPARATION_THEME_ID} from '@core/themes/sundayStandby';
+import {
+  newSundayAnnouncement,
+  newSundayPreparation,
+} from '@core/services/sundayTemplate';
 import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
 import {prepareSection} from './quickAddSection';
 import {prepareLiturgy} from './quickAddLiturgy';
 
+export const PREP_PALETTE_LABEL = '예배 요소와 곡';
 export const ELEMENT_DRAG_MIME = 'application/x-llp-service-element';
 export const ORDER_ELEMENTS = [
   {id: 'standby', label: '예배 준비', icon: iconByKind.slides},
@@ -52,14 +56,7 @@ export async function createPaletteItem(
 ): Promise<ServiceItem | null> {
   const id = createServiceItemId(crypto.randomUUID());
   if (key === 'header') return {id, header: '새 구역'};
-  if (key === 'standby') {
-    const blank = newSlidesItem('blank', id);
-    return {
-      ...blank,
-      theme: PREPARATION_THEME_ID,
-      slides: {...blank.slides, name: '예배 준비'},
-    };
-  }
+  if (key === 'standby') return newSundayPreparation(id);
   if (key === 'blank') return newSlidesItem('blank', id);
   if (key === 'ad' || key === 'creed') {
     const section = SUNDAY_SECTIONS.find(
@@ -69,9 +66,9 @@ export async function createPaletteItem(
     await prepareSection(section);
     const item =
       key === 'ad'
-        ? newSlidesItem('ad', id)
+        ? newSundayAnnouncement(id)
         : await prepareLiturgy('creed', translation);
-    return {...item, sectionCard: sectionCardOf(section)};
+    return key === 'ad' ? item : {...item, sectionCard: sectionCardOf(section)};
   }
   if (key === 'prayer') return prepareLiturgy('prayer', translation);
   const section = PALETTE_SECTIONS.find(

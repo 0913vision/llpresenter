@@ -1,3 +1,9 @@
+import {sundayTemplate} from '@core/services/sundayTemplate';
+import {newSlidesItem} from '@core/services/slidesEdits';
+import {createDefaultThemes} from '@core/themes/defaults';
+import {itemThemeCell} from '@core/themes/itemThemeCell';
+import type {ServiceItem} from '@core/schema/service';
+
 import type {SundaySection} from '@core/themes/sundaySections';
 import type {LiturgyKind, LiturgyTranslation} from '@core/services/liturgy';
 import {isItemOfKind} from '@core/schema/service';
@@ -60,4 +66,89 @@ describe('palette items', () => {
       slides: {form: 'blank'},
     });
   });
+});
+
+function withoutIds(item: ServiceItem | null): unknown {
+  const value: unknown = JSON.parse(
+    JSON.stringify(item, (key: string, value: unknown) =>
+      key === 'id' ? '<id>' : value,
+    ),
+  );
+  return value;
+}
+
+it.each([
+  ['standby', '예배 준비'],
+  ['creed', '사도신경'],
+  ['ad', '광고'],
+  ...PALETTE_SECTIONS.filter(section =>
+    [
+      '묵상기도',
+      '회개와간구의기도',
+      '찬양',
+      '합심기도',
+      '봉헌',
+      '봉헌기도',
+      '축도',
+    ].includes(section.name),
+  ).map(section => [`card:${section.name}`, section.name]),
+])(
+  'builds %s exactly as the Sunday template does, except ids',
+  async (key, name) => {
+    const template = sundayTemplate().order.find(
+      item => isItemOfKind(item, 'slides') && item.slides.name === name,
+    );
+    expect(template).toBeDefined();
+    expect(withoutIds(await createPaletteItem(key))).toEqual(
+      withoutIds(template ?? null),
+    );
+  },
+);
+
+it('uses the shared section, liturgy and blank factories for every remaining element', async () => {
+  for (const section of PALETTE_SECTIONS) {
+    const actual = await createPaletteItem(`card:${section.name}`);
+    expect(withoutIds(actual)).toEqual(
+      withoutIds(
+        newSectionItem(createServiceItemId(crypto.randomUUID()), section),
+      ),
+    );
+    expect(actual?.theme).toBe(section.theme);
+    expect(
+      itemThemeCell(
+        actual ?? {
+          id: createServiceItemId(crypto.randomUUID()),
+          header: 'unused',
+        },
+        createDefaultThemes(),
+      )?.name,
+    ).toBe(`구역 이름 ${section.color}`);
+  }
+  for (const kind of ['creed', 'prayer'] as const) {
+    for (const translation of ['new', 'old'] as const) {
+      const actual = await createPaletteItem(kind, translation);
+      const expected = newLiturgyItem(
+        createServiceItemId(crypto.randomUUID()),
+        {kind, translation},
+      );
+      if (kind === 'prayer') {
+        expect(withoutIds(actual)).toEqual(withoutIds(expected));
+      } else if (actual && isItemOfKind(actual, 'slides')) {
+        const {sectionCard, ...content} = actual;
+        expect(sectionCard?.name).toBe('사도신경');
+        expect(withoutIds(content)).toEqual(withoutIds(expected));
+      } else throw new Error('Missing creed');
+    }
+  }
+  expect(withoutIds(await createPaletteItem('blank'))).toEqual(
+    withoutIds(
+      newSlidesItem('blank', createServiceItemId(crypto.randomUUID())),
+    ),
+  );
+  expect(withoutIds(await createPaletteItem('header'))).toEqual(
+    withoutIds({
+      id: createServiceItemId(crypto.randomUUID()),
+      header: '새 구역',
+    }),
+  );
 });

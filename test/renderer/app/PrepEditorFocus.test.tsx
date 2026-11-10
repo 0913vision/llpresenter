@@ -28,7 +28,7 @@ import {
 import {App} from '@renderer/app/App';
 import {ControlSession} from '@renderer/app/controlSession';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
-import {applyService} from '@renderer/session/show';
+import {applyService, useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
 import {isItemOfKind} from '@core/schema/service';
 import {otherItems, templateOrder} from '@fixtures/core/serviceList';
@@ -692,4 +692,114 @@ it('uses item background writes for an order drop and records undo', async () =>
       .service()
       .service.order.find(item => item.id === fixtureItems.arranged),
   ).not.toHaveProperty('background');
+});
+
+it.each(['double-click', 'Enter'] as const)(
+  'selects and reveals a palette insertion made with %s',
+  async path => {
+    const fixture = setup();
+    const initial = new Set(
+      fixture.service().service.order.map(item => item.id),
+    );
+    const button = screen.getByRole('button', {name: '빈 슬라이드'});
+    button.focus();
+    if (path === 'double-click') fireEvent.doubleClick(button);
+    else fireEvent.keyDown(button, {key: 'Enter', code: 'Enter'});
+    await waitFor(() =>
+      expect(
+        fixture.service().service.order.some(item => !initial.has(item.id)),
+      ).toBe(true),
+    );
+    const added = fixture
+      .service()
+      .service.order.find(item => !initial.has(item.id));
+    if (!added) throw new Error('Missing inserted item');
+    act(() =>
+      useShow.setState(state => ({
+        rows: [
+          ...state.rows,
+          {kind: 'slides', form: 'blank', id: added.id, title: '빈 슬라이드'},
+        ],
+      })),
+    );
+    await waitFor(() => expect(useShow.getState().openItemId).toBe(added.id));
+    const row = await screen.findByRole('option', {name: /빈 슬라이드/});
+    expect(row.getAttribute('aria-selected')).toBe('true');
+    await waitFor(() =>
+      expect(
+        vi.mocked(HTMLElement.prototype.scrollIntoView).mock.instances,
+      ).toContain(row.closest('[data-order-id]')),
+    );
+  },
+);
+
+it('undoes and redoes an insertion while the palette keeps focus', async () => {
+  const fixture = setup();
+  const before = fixture.service().service.order.length;
+  const button = screen.getByRole('button', {name: '빈 슬라이드'});
+  button.focus();
+  fireEvent.doubleClick(button);
+  await waitFor(() =>
+    expect(fixture.service().service.order).toHaveLength(before + 1),
+  );
+  expect(document.activeElement).toBe(button);
+  fireEvent.keyDown(button, {key: 'z', code: 'KeyZ', ctrlKey: true});
+  await waitFor(() =>
+    expect(fixture.service().service.order).toHaveLength(before),
+  );
+  const tab = screen.getByRole('tab', {name: '예배 요소'});
+  tab.focus();
+  fireEvent.keyDown(tab, {key: 'y', code: 'KeyY', ctrlKey: true});
+  await waitFor(() =>
+    expect(fixture.service().service.order).toHaveLength(before + 1),
+  );
+});
+
+it('queues palette undo issued while the insertion is saving', async () => {
+  const fixture = setup();
+  const original = fixture.api.content.edit;
+  let release: (() => void) | undefined;
+  const gate = new Promise<void>(resolve => {
+    release = resolve;
+  });
+  let first = true;
+  const edit = vi
+    .spyOn(fixture.api.content, 'edit')
+    .mockImplementation(async request => {
+      if (request.type === 'service.update' && first) {
+        first = false;
+        await gate;
+      }
+      return original(request);
+    });
+  const before = fixture.service().service.order.length;
+  const button = screen.getByRole('button', {name: '빈 슬라이드'});
+  button.focus();
+  fireEvent.doubleClick(button);
+  await waitFor(() => expect(edit).toHaveBeenCalledTimes(1));
+  fireEvent.keyDown(button, {key: 'z', code: 'KeyZ', ctrlKey: true});
+  if (!release) throw new Error('Missing pending write');
+  release();
+  await waitFor(() => expect(edit).toHaveBeenCalledTimes(2));
+  await waitFor(() =>
+    expect(fixture.service().service.order).toHaveLength(before),
+  );
+});
+
+it('leaves undo in the library search field to native text editing', async () => {
+  const fixture = setup();
+  const before = fixture.service().service.order.length;
+  const button = screen.getByRole('button', {name: '빈 슬라이드'});
+  fireEvent.doubleClick(button);
+  await waitFor(() =>
+    expect(fixture.service().service.order).toHaveLength(before + 1),
+  );
+  fireEvent.click(screen.getByRole('tab', {name: '곡'}));
+  const search = screen.getByRole('textbox', {name: '라이브러리 검색'});
+  search.focus();
+  fireEvent.keyDown(search, {key: 'z', code: 'KeyZ', ctrlKey: true});
+  await act(async () => {
+    await Promise.resolve();
+  });
+  expect(fixture.service().service.order).toHaveLength(before + 1);
 });
