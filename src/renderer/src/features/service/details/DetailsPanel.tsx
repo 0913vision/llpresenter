@@ -265,6 +265,13 @@ function DetailsPanelContent({
       });
     openEditor(() => api.window.openSongEditor({songId: item.song}), fail);
   };
+  if (target === null) {
+    return (
+      <Panel label="세부정보">
+        <PanelBody>{null}</PanelBody>
+      </Panel>
+    );
+  }
   if (item !== null && isItemOfKind(item, 'header')) {
     const itemCount = sectionItemCount(service?.service.order ?? [], item.id);
     return (

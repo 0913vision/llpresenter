@@ -484,3 +484,44 @@ it('shows section item counts and restores item details when switching targets',
     await editor.dispose();
   }
 });
+
+it('shows an empty panel without selection and restores it after an item is cleared', async () => {
+  const f = itemFixture();
+  useShow.setState({serviceId: fixtureServiceId, openItemId: null});
+  const editor = new SongEditorStore(f.api, vi.fn());
+  const items = new ServiceItemStore(f.api, editor, vi.fn());
+  const panelFor = (selected: boolean) => (
+    <DetailsPanel
+      sizeClass="normal"
+      target={selected ? {kind: 'item', itemId: fixtureItems.arranged} : null}
+      api={f.api}
+      items={items}
+      editor={editor}
+    />
+  );
+  const view = render(panelFor(false));
+  const panel = () => screen.getByRole('region', {name: '세부정보'});
+  const expectEmpty = () => {
+    expect(panel().textContent).toBe('');
+    expect(within(panel()).queryByRole('tablist')).toBeNull();
+    expect(within(panel()).queryByTestId('picture')).toBeNull();
+    expect(panel().querySelector('[class*="picture"]')).toBeNull();
+  };
+  try {
+    expectEmpty();
+    view.rerender(panelFor(true));
+    await within(panel()).findByText(
+      `곡, 슬라이드 ${f.first.song.slides.length}개`,
+    );
+    expect(within(panel()).getByTestId('picture')).toBeTruthy();
+    expect(within(panel()).getByRole('tab', {name: '정보'})).toBeTruthy();
+    expect(within(panel()).getByRole('tab', {name: '슬라이드'})).toBeTruthy();
+    view.rerender(panelFor(false));
+    expectEmpty();
+    await waitFor(() => expect(items.getSnapshot().item).toBeNull());
+  } finally {
+    view.unmount();
+    items.dispose();
+    await editor.dispose();
+  }
+});
