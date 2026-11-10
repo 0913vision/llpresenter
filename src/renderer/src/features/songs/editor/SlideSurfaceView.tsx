@@ -82,8 +82,8 @@ export function SlideSurfaceView({
         kind="toggle"
         label={'\uC2AC\uB77C\uC774\uB4DC \uBCF4\uAE30 \uBC29\uC2DD'}
         options={[
-          {value: 'list', label: '\uBAA9\uB85D'},
-          {value: 'grid', label: '\uACA9\uC790'},
+          {value: 'list', label: '\uBAA9\uB85D', icon: 'rows'},
+          {value: 'grid', label: '\uACA9\uC790', icon: 'grid'},
         ]}
         value={current.mode}
         onChange={mode => saveMode(mode, ui)}

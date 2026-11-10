@@ -1134,9 +1134,10 @@ Bible items have no transition row.
 The song, slides, and Bible editors offer 목록 and 격자 views of the same slide
 order.
 
-The slide area footer shows the slide count on the left and the labeled view
-switch on the right. Grid view also shows the size control there. In list view
-each row has one numbered picture strip; the song strip opens its label menu.
+The slide area footer shows the slide count on the left and the icon view switch
+on the right, with 목록 and 격자 accessible names and tooltips. Grid view also
+shows the size control there. In list view each row has one numbered picture
+strip; the song strip opens its label menu.
 
 An opening 구역 이름 card is the first row or cell, and its Korean and English
 names are editable. The card cannot be moved, and content slides cannot be moved

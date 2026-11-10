@@ -1,12 +1,20 @@
 import {useCallback, useLayoutEffect, useState, type RefObject} from 'react';
-import {reconcileSlideRowMeasurements} from './slideRowMeasurements';
+import {
+  reconcileSlideRowMeasurements,
+  type SlideRowMeasurements,
+} from './slideRowMeasurements';
+
+export interface MeasuredRows {
+  readonly current: SlideRowMeasurements;
+  readonly saveHeight: (id: string, height: number) => void;
+}
 
 /** Retains measured heights for current rows until the view or width changes. */
 export function useMeasuredRows(
   scope: string,
   ids: readonly string[],
   viewportRef: RefObject<HTMLDivElement | null>,
-) {
+): MeasuredRows {
   const [cache, setCache] = useState(() =>
     reconcileSlideRowMeasurements(
       {scope, ids: new Set(), values: {}},
