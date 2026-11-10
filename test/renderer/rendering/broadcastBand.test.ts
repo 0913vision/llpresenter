@@ -16,11 +16,43 @@ import {SECTION_THEME_ID} from '@core/themes/sundaySections';
 import {PREPARATION_THEME_ID} from '@core/themes/sundayStandby';
 import {ThemeElementView} from '@renderer/rendering/themeElement';
 import {ThemeGaps} from '@renderer/rendering/themeGaps';
-import {emptyLayers} from '@core/live/state';
+import {emptyLayers, type SlideLayer} from '@core/live/state';
+import type {LiveThemeItem} from '@core/schema/liveTheme';
+import type {ThemeScreenLayout} from '@core/schema/themes';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 
 const screen = createScreenId(STARTER_SCREEN_IDS.broadcast);
 const slide = {itemId: 'item', position: 0, label: null, lines: ['one', 'two']};
+
+function bandHidden(
+  layout: ThemeScreenLayout,
+  current: SlideLayer | null,
+  item: LiveThemeItem | null = null,
+): boolean | undefined {
+  const parent = document.createElement('div');
+  const resolved = fitBroadcastBand(layout, current, item);
+  const band = resolved.elements.find(
+    element => element.id === BROADCAST_BAND_ID,
+  );
+  if (!band) throw Error('Missing band');
+  const view = new ThemeElementView(band, parent, {
+    options: {
+      textStyle: DEFAULT_TEXT_STYLE,
+      mediaUrl: id => id,
+      onError: vi.fn(),
+    },
+    gaps: new ThemeGaps(vi.fn()),
+  });
+  try {
+    view.render({...emptyLayers(), slide: current}, {});
+    const element = parent.querySelector<HTMLElement>(
+      `[data-theme-element="${BROADCAST_BAND_ID}"]`,
+    );
+    return element === null ? undefined : element.hidden === true;
+  } finally {
+    view.dispose();
+  }
+}
 
 beforeEach(() => {
   vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(
@@ -45,38 +77,20 @@ describe('broadcast band fitting', () => {
     if (!preparation || !blank || !media) {
       throw Error('Missing broadcast layouts');
     }
-    const parent = document.createElement('div');
     const empty = {...slide, lines: ['  ', '']};
     for (const [layout, kind] of [
       [preparation, 'blank'],
       [blank, 'blank'],
       [media, 'media'],
     ] as const) {
-      const resolved = fitBroadcastBand(layout, empty, {
-        id: 'item',
-        kind,
-        source: 'service',
-        title: 'Preparation',
-      });
-      const band = resolved.elements.find(
-        element => element.id === BROADCAST_BAND_ID,
-      );
-      if (!band) throw Error('Missing band');
-      const view = new ThemeElementView(band, parent, {
-        options: {
-          textStyle: DEFAULT_TEXT_STYLE,
-          mediaUrl: id => id,
-          onError: vi.fn(),
-        },
-        gaps: new ThemeGaps(vi.fn()),
-      });
-      view.render({...emptyLayers(), slide: empty}, {});
       expect(
-        parent.querySelector<HTMLElement>(
-          `[data-theme-element="${BROADCAST_BAND_ID}"]`,
-        )?.hidden,
+        bandHidden(layout, empty, {
+          id: 'item',
+          kind,
+          source: 'service',
+          title: 'Preparation',
+        }),
       ).toBe(true);
-      view.dispose();
     }
   });
   it('keeps the band for a visible section name, notice title or Bible reference', () => {
@@ -86,7 +100,6 @@ describe('broadcast band fitting', () => {
     const ad = builtInTheme('ad').screens[screen];
     const bible = builtInTheme('bible').screens[screen];
     if (!section || !ad || !bible) throw Error('Missing broadcast layouts');
-    const parent = document.createElement('div');
     const empty = {...slide, lines: ['']};
     const item = {
       id: 'item',
@@ -100,50 +113,14 @@ describe('broadcast band fitting', () => {
       [bible, {...empty, reference: 'John 3:16'}, null],
     ] as const;
     for (const [layout, current, themeItem] of cases) {
-      const resolved = fitBroadcastBand(layout, current, themeItem);
-      const band = resolved.elements.find(
-        element => element.id === BROADCAST_BAND_ID,
-      );
-      if (!band) throw Error('Missing band');
-      const view = new ThemeElementView(band, parent, {
-        options: {
-          textStyle: DEFAULT_TEXT_STYLE,
-          mediaUrl: id => id,
-          onError: vi.fn(),
-        },
-        gaps: new ThemeGaps(vi.fn()),
-      });
-      view.render({...emptyLayers(), slide: current}, {});
-      expect(
-        parent.querySelector<HTMLElement>(
-          `[data-theme-element="${BROADCAST_BAND_ID}"]`,
-        )?.hidden,
-      ).toBe(false);
-      view.dispose();
+      expect(bandHidden(layout, current, themeItem)).toBe(false);
     }
-    const cleared = fitBroadcastBand(section, empty, {
-      ...item,
-      contentCleared: true,
-    });
-    const band = cleared.elements.find(
-      element => element.id === BROADCAST_BAND_ID,
-    );
-    if (!band) throw Error('Missing band');
-    const view = new ThemeElementView(band, parent, {
-      options: {
-        textStyle: DEFAULT_TEXT_STYLE,
-        mediaUrl: id => id,
-        onError: vi.fn(),
-      },
-      gaps: new ThemeGaps(vi.fn()),
-    });
-    view.render({...emptyLayers(), slide: empty}, {});
     expect(
-      parent.querySelector<HTMLElement>(
-        `[data-theme-element="${BROADCAST_BAND_ID}"]`,
-      )?.hidden,
+      bandHidden(section, empty, {
+        ...item,
+        contentCleared: true,
+      }),
     ).toBe(true);
-    view.dispose();
   });
   it('uses size-dependent wrapping, shrinks to fit, and cleans its measuring host', () => {
     const layout = builtInTheme('song').screens[screen];
@@ -195,9 +172,9 @@ describe('broadcast band fitting', () => {
     );
     if (clipped?.kind !== 'currentText') throw Error('Missing text');
     expect(clipped.text.size).toBe(BROADCAST_MIN_TEXT);
-    const rows =
-      clipped.frame.h / (BROADCAST_MIN_TEXT * BROADCAST_GEOMETRY.lineHeight);
-    expect(rows).toBeCloseTo(Math.floor(rows));
+    expect(clipped.frame.h).toBeGreaterThanOrEqual(
+      Math.ceil(12 * BROADCAST_MIN_TEXT * BROADCAST_GEOMETRY.lineHeight),
+    );
     expect(hosts()).toBe(before);
   });
   it('grows for four lines and preserves the whole slide without paging', () => {
@@ -219,7 +196,7 @@ describe('broadcast band fitting', () => {
     if (text?.kind !== 'currentText') throw Error('Missing text');
     expect(text.text.size).toBeGreaterThanOrEqual(BROADCAST_MIN_TEXT);
   });
-  it('uses the minimum size and clips at a complete line when the slide is too long', () => {
+  it('grows beyond the preferred height to keep all twelve lines', () => {
     const layout = builtInTheme('song').screens[screen];
     if (!layout) throw Error('Missing broadcast layout');
     const result = fitBroadcastBand(layout, {
@@ -231,13 +208,68 @@ describe('broadcast band fitting', () => {
     );
     if (text?.kind !== 'currentText') throw Error('Missing text');
     expect(text.text.size).toBe(BROADCAST_MIN_TEXT);
-    expect(text.frame.h / (BROADCAST_MIN_TEXT * 1.22)).toBeCloseTo(
-      Math.floor(text.frame.h / (BROADCAST_MIN_TEXT * 1.22)),
+    expect(text.frame.h).toBeGreaterThanOrEqual(
+      Math.ceil(12 * BROADCAST_MIN_TEXT * 1.22),
     );
     expect(
       result.elements.find(element => element.id === BROADCAST_BAND_ID)?.frame
         .h,
-    ).toBeLessThanOrEqual(360);
+    ).toBeGreaterThan(360);
+  });
+  it('keeps a five-line verse and its reference inside the band', () => {
+    const layout = builtInTheme('bible').screens[screen];
+    if (!layout) throw Error('Missing broadcast layout');
+    const result = fitBroadcastBand(layout, {
+      ...slide,
+      reference: 'John 3:18',
+      lines: ['one', 'two', 'three', 'four', 'five'],
+    });
+    const band = result.elements.find(
+      element => element.id === BROADCAST_BAND_ID,
+    );
+    const body = result.elements.find(
+      element => element.id === BROADCAST_TEXT_ID,
+    );
+    const reference = result.elements.find(
+      element => element.id === BROADCAST_REFERENCE_ID,
+    );
+    if (!band || body?.kind !== 'currentText' || !reference) {
+      throw Error('Missing broadcast elements');
+    }
+    expect(body.text.size).toBe(BROADCAST_MIN_TEXT);
+    expect(body.frame.h).toBeGreaterThanOrEqual(
+      Math.ceil(5 * body.text.size * BROADCAST_GEOMETRY.lineHeight),
+    );
+    expect(body.frame.y).toBeGreaterThanOrEqual(band.frame.y);
+    expect(body.frame.y + body.frame.h).toBeLessThanOrEqual(reference.frame.y);
+    expect(reference.frame.y + reference.frame.h).toBeLessThanOrEqual(
+      band.frame.y + band.frame.h,
+    );
+    expect(band.frame.h).toBeGreaterThan(360);
+  });
+  it('shrinks below the preferred minimum only when needed to stay on screen', () => {
+    const layout = builtInTheme('bible').screens[screen];
+    if (!layout) throw Error('Missing broadcast layout');
+    const result = fitBroadcastBand(layout, {
+      ...slide,
+      reference: 'John',
+      lines: Array.from({length: 30}, (_, i) => `line ${i}`),
+    });
+    const band = result.elements.find(
+      element => element.id === BROADCAST_BAND_ID,
+    );
+    const body = result.elements.find(
+      element => element.id === BROADCAST_TEXT_ID,
+    );
+    if (!band || body?.kind !== 'currentText') {
+      throw Error('Missing broadcast elements');
+    }
+    expect(body.text.size).toBeLessThan(BROADCAST_MIN_TEXT);
+    expect(body).toMatchObject({minimumTextSize: body.text.size});
+    expect(body.frame.h).toBeGreaterThanOrEqual(
+      Math.ceil(30 * body.text.size * BROADCAST_GEOMETRY.lineHeight),
+    );
+    expect(band.frame.y).toBeGreaterThanOrEqual(0);
   });
   it('does not alter a saved layout without the built-in marker', () => {
     const layout = builtInTheme('song').screens[screen];
@@ -362,7 +394,6 @@ describe('broadcast band fitting', () => {
   it('hides the band for a clear or picture-only slide, and shows it for text or a named picture', () => {
     const layout = builtInTheme('ad').screens[screen];
     if (!layout) throw Error('Missing broadcast layout');
-    const parent = document.createElement('div');
     const picture = {
       ...slide,
       picture: createMediaId('00000000-0000-4000-8000-000000000901'),
@@ -375,26 +406,7 @@ describe('broadcast band fitting', () => {
       [{...picture, name: 'Title'}, false],
     ] as const;
     for (const [current, hidden] of cases) {
-      const resolved = fitBroadcastBand(layout, current);
-      const band = resolved.elements.find(
-        element => element.id === BROADCAST_BAND_ID,
-      );
-      if (!band) throw Error('Missing band');
-      const view = new ThemeElementView(band, parent, {
-        options: {
-          textStyle: DEFAULT_TEXT_STYLE,
-          mediaUrl: id => id,
-          onError: vi.fn(),
-        },
-        gaps: new ThemeGaps(vi.fn()),
-      });
-      view.render({...emptyLayers(), slide: current}, {});
-      expect(
-        parent.querySelector<HTMLElement>(
-          `[data-theme-element="${BROADCAST_BAND_ID}"]`,
-        )?.hidden,
-      ).toBe(hidden);
-      view.dispose();
+      expect(bandHidden(layout, current)).toBe(hidden);
     }
   });
 });

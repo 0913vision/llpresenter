@@ -3,7 +3,7 @@ import {emptyLayers, type LiveLayers} from '@core/live/state';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {createMediaId, createScreenId, createThemeId} from '@core/schema/ids';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
-import {builtInTheme} from '@core/themes/defaults';
+import {builtInTheme, createDefaultThemes} from '@core/themes/defaults';
 import {
   BROADCAST_BAND_ID,
   BROADCAST_GEOMETRY,
@@ -268,6 +268,60 @@ describe('theme composition drawing', () => {
     } finally {
       view.dispose();
       stringify.mockRestore();
+    }
+  });
+  it('refits a section band when only the live item changes', () => {
+    const section = createDefaultThemes().themes.find(
+      theme => theme.id === SECTION_THEME_ID,
+    )?.screens[createScreenId(STARTER_SCREEN_IDS.broadcast)];
+    if (!section) throw Error('Missing broadcast layout');
+    const {root, view} = setup();
+    const append = vi.spyOn(document.body, 'append');
+    const measured: string[] = [];
+    const height = vi
+      .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
+      .mockImplementation(function (this: HTMLElement) {
+        if (this.closest('[data-slide-measure]')) {
+          measured.push(this.textContent);
+        }
+        return 100;
+      });
+    const active = {...frame(section.elements), transitions: false};
+    const theme = active.theme;
+    if (!theme?.item) throw Error('Missing theme item');
+    const current = {
+      ...song,
+      slide: {
+        ...song.slide,
+        itemId: 'invented',
+        position: 0,
+        label: null,
+        lines: [''],
+      },
+    };
+    try {
+      view.render(current, active);
+      const band = () =>
+        Array.from(
+          root.querySelectorAll<HTMLElement>(
+            `[data-theme-element="${BROADCAST_BAND_ID}"]`,
+          ),
+        ).at(-1);
+      expect(band()?.hidden).toBe(false);
+      const before = append.mock.calls.length;
+      view.render(current, {
+        ...active,
+        theme: {
+          ...theme,
+          item: {...theme.item, title: 'Changed item name'},
+        },
+      });
+      expect(append.mock.calls.length).toBeGreaterThan(before);
+      expect(measured).toContain('Changed item name');
+    } finally {
+      view.dispose();
+      append.mockRestore();
+      height.mockRestore();
     }
   });
   it.each(['dissolve', 'wipe', 'push', 'none'] as const)(

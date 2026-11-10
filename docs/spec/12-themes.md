@@ -597,9 +597,10 @@ fields, as every settings file does (02).
 - A new library's broadcast layouts use an opaque bg-panel dark band across the
   bottom on the configured key color. White text is centered; a Bible reference
   sits at the right end, section cards show the Korean name, and notices show
-  their name and body in the band. The band grows upwards to at most 360 px at
-  1920 x 1080; text shrinks from 64 px to a minimum of 48 px, then clips at a
-  complete line. The whole live slide stays in sync with the audience; there is
+  their name and body in the band. The band prefers at most 360 px at 1920 x
+  1080, shrinking text from 64 px to 48 px, then grows upwards as needed to show
+  the entire slide. If even that would exceed the screen, the text shrinks
+  further to fit. The whole live slide stays in sync with the audience; there is
   no paging. Existing saved layouts are not converted.
 - The stage screen retains its advertisement layout: a #141c2e full-screen box,
   a 24 px #e6b54a left bar, fixed heading, covering media, the 132 px slide name

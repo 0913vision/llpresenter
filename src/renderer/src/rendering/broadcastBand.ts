@@ -97,20 +97,23 @@ export function fitBroadcastBand(
       ),
     );
     needed = measure.height(size);
+    const availableBody =
+      geometry.height - geometry.bottom - geometry.padding * 2 - extra;
+    if (needed > availableBody) {
+      size = fitFontSize(
+        size,
+        candidate => measure.height(candidate) <= availableBody,
+      );
+      needed = measure.height(size);
+    }
   } finally {
     measure.dispose();
   }
   const pitch = size * geometry.lineHeight;
-  const body =
-    needed > maxBody
-      ? Math.floor(maxBody / pitch) * pitch
-      : Math.max(pitch, Math.ceil(needed));
+  const body = Math.max(pitch, Math.ceil(needed));
   const height = Math.max(
     geometry.minHeight,
-    Math.min(
-      geometry.maxHeight,
-      Math.ceil(body + extra + geometry.padding * 2),
-    ),
+    Math.ceil(body + extra + geometry.padding * 2),
   );
   const bottom = geometry.height - geometry.bottom;
   const top = bottom - height;
@@ -128,17 +131,21 @@ export function fitBroadcastBand(
         const frame = {
           ...element.frame,
           y: bodyTop,
-          h: needed > maxBody ? body : height - geometry.padding * 2 - extra,
+          h: height - geometry.padding * 2 - extra,
         };
         if (element.kind === 'currentText') {
           return {
             ...element,
             frame,
             text: {...element.text, size},
-            minimumTextSize: BROADCAST_MIN_TEXT,
+            minimumTextSize: Math.min(BROADCAST_MIN_TEXT, size),
           };
         }
-        return {...element, frame, minimumTextSize: BROADCAST_MIN_TEXT};
+        return {
+          ...element,
+          frame,
+          minimumTextSize: Math.min(BROADCAST_MIN_TEXT, size),
+        };
       }
       if (element.id === BROADCAST_TITLE_ID) {
         return {
