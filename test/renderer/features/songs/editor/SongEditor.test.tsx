@@ -17,6 +17,37 @@ function cursor(input: HTMLTextAreaElement, start: number, end = start): void {
 }
 
 describe('song editor view', () => {
+  it('preserves a native text selection across an unrelated render', async () => {
+    const {store, view} = await editorSetup();
+    const input = lyrics();
+    input.focus();
+    input.setSelectionRange(0, input.value.length);
+    view.rerender(<SongEditor store={store} addCard={<span>Card</span>} />);
+    expect(input.selectionStart).toBe(0);
+    expect(input.selectionEnd).toBe(input.value.length);
+  });
+  it.each(['list', 'grid'] as const)(
+    'keeps both add controls after the slides in %s',
+    async mode => {
+      seedSlideSurfaceView({layout: {normal: {editorSlideView: mode}}});
+      const {store, view} = await editorSetup();
+      view.rerender(
+        <SongEditor
+          store={store}
+          addCard={<button type="button">구역 이름</button>}
+        />,
+      );
+      const slides = view.container.querySelector('[data-editor-block]');
+      if (slides === null) throw Error('Missing slide');
+      const add = screen.getByRole('button', {name: '슬라이드 추가'});
+      const card = screen.getByRole('button', {name: '구역 이름'});
+      expect(
+        slides.compareDocumentPosition(add) & Node.DOCUMENT_POSITION_FOLLOWING,
+      ).toBeTruthy();
+      expect(add.parentElement).toBe(card.parentElement);
+      seedSlideSurfaceView({});
+    },
+  );
   it.each(['list', 'grid'] as const)(
     'shows an independent leading card before song slides in %s',
     async mode => {

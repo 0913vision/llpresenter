@@ -45,27 +45,28 @@ function setup(missing = false) {
   return {edit, themes, preparePictures};
 }
 
-it('prepares every section as a normal editable one-slide item without automatic advance', async () => {
+it('prepares every section as a card-only item without automatic advance', async () => {
   const {edit} = setup();
   const items = await Promise.all(SUNDAY_SECTIONS.map(prepareSection));
   for (const [index, item] of items.entries()) {
     const section = SUNDAY_SECTIONS[index];
     expect(item).toMatchObject({
-      theme: section?.theme,
+      sectionCard: {
+        name: section?.name,
+        english: section?.english,
+        theme: section?.theme,
+      },
       slides: {
         form: 'blank',
         name: section?.name,
-        slides: [{text: section?.english}],
+        slides: [],
       },
     });
-    expect(item.slides.slides).toHaveLength(1);
+    expect(item.slides.slides).toHaveLength(0);
     expect(item.slides.advance).toBeUndefined();
     expect(item.slides.loop).toBeUndefined();
   }
   expect(new Set(items.map(item => item.id)).size).toBe(SUNDAY_SECTIONS.length);
-  expect(new Set(items.map(item => item.slides.slides[0]?.id)).size).toBe(
-    SUNDAY_SECTIONS.length,
-  );
   expect(edit).not.toHaveBeenCalled();
 });
 
@@ -112,7 +113,7 @@ it('inserts sections without preparing or changing user media', async () => {
   for (const section of SUNDAY_SECTIONS) {
     const item = await prepareSection(section);
     expect(item.background).toBeUndefined();
-    expect(item.theme).toBe(section.theme);
+    expect(item.sectionCard?.theme).toBe(section.theme);
   }
   expect(preparePictures).not.toHaveBeenCalled();
 });

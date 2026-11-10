@@ -5,7 +5,7 @@ import type {LabelColor} from '@core/labels/colors';
 import type {SongEditorStore} from '@renderer/features/songs/editor';
 import {useShow} from '@renderer/session/show';
 import type {ServiceItemStore} from './serviceItemStore';
-import {savedPassageTiles} from './bibleItemModel';
+import {bibleEditorData, savedPassageTiles} from './bibleItemModel';
 import {useItemMedia} from './useItemSources';
 
 export interface ItemSlide {
@@ -60,9 +60,9 @@ export function useItemSlides(
       });
     }
     if (isItemOfKind(item, 'bible')) {
-      return bible
-        .filter(tile => tile.sectionCard === undefined)
-        .map(tile => ({
+      return bibleEditorData(item, bible)
+        .slides.filter(slide => slide.kind === 'verse')
+        .map(({tile}) => ({
           text: tile.lines.join('\n'),
           label: tile.label ?? undefined,
           color: tile.labelColor,

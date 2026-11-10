@@ -1,7 +1,34 @@
-import {createSlideId, type ServiceItemId} from '../schema/ids';
-import type {SectionCard, ServiceItemOf} from '../schema/service';
+import type {ServiceItemId} from '../schema/ids';
+import {
+  isItemOfKind,
+  type SectionCard,
+  type ServiceItem,
+  type ServiceItemOf,
+} from '../schema/service';
 import type {ShowTile} from '../schema/showService';
-import {type SundaySection} from '../themes/sundaySections';
+import {SECTION_THEME_ID, type SundaySection} from '../themes/sundaySections';
+
+export function newSectionCard(): SectionCard {
+  return {name: '구역 이름', english: '', theme: SECTION_THEME_ID};
+}
+
+export function canHaveSectionCard(
+  item: ServiceItem,
+): item is ServiceItemOf<'song' | 'slides' | 'bible'> {
+  return (
+    isItemOfKind(item, 'song') ||
+    isItemOfKind(item, 'slides') ||
+    isItemOfKind(item, 'bible')
+  );
+}
+
+export function hasSectionCard(item: ServiceItem): item is ServiceItemOf<
+  'song' | 'slides' | 'bible'
+> & {
+  readonly sectionCard: SectionCard;
+} {
+  return canHaveSectionCard(item) && item.sectionCard !== undefined;
+}
 
 /** The editable card shared by the item menu and built-in service templates. */
 export function newSectionItem(
@@ -10,11 +37,11 @@ export function newSectionItem(
 ): ServiceItemOf<'slides'> {
   return {
     id,
-    theme: section.theme,
+    sectionCard: sectionCardOf(section),
     slides: {
       form: 'blank',
       name: section.name,
-      slides: [{id: createSlideId(crypto.randomUUID()), text: section.english}],
+      slides: [],
     },
   };
 }

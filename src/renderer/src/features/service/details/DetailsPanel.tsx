@@ -1,5 +1,6 @@
 import {useEffect, useState, useSyncExternalStore, type JSX} from 'react';
 import {isItemOfKind} from '@core/schema/service';
+import {hasSectionCard} from '@core/services/sectionCards';
 import type {ServiceItemId, SongId} from '@core/schema/ids';
 import type {LlpApi} from '@contracts/ipc/api';
 import {noticeTime} from '@renderer/ui/notices';
@@ -100,12 +101,7 @@ function DetailsPanelContent({
       ? state.item
       : null;
   const card =
-    item !== null &&
-    (isItemOfKind(item, 'song') ||
-      isItemOfKind(item, 'bible') ||
-      isItemOfKind(item, 'slides'))
-      ? item.sectionCard
-      : undefined;
+    item !== null && hasSectionCard(item) ? item.sectionCard : undefined;
   const offset = card === undefined ? 0 : 1;
   const bible = item !== null && isItemOfKind(item, 'bible');
   const projection = useBibleTileProjection({

@@ -1,8 +1,5 @@
 import {cardOffset} from '@core/services/sectionCards';
-import {
-  SectionCardEditor,
-  sectionCardEntries,
-} from '../items/SectionCardEditor';
+import {sectionCardEntries} from '../items/sectionCardActions';
 import {type JSX, useEffect, useMemo, useSyncExternalStore} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {SlidesDraft, type SlidesItem} from '@core/services/slidesEdits';
@@ -108,7 +105,6 @@ function SlidesItemTiles({
         </PanelActions>
       </PanelHeader>
       <PanelBody variant="flush">
-        <SectionCardEditor items={items} />
         <SongSlideSurface
           session={session}
           report={session.reportNotice}

@@ -52,7 +52,9 @@ vi.mock('@renderer/features/media/MediaPropertiesPanel', () => ({
   ),
 }));
 
-async function setup(kind: 'image' | 'video' | 'bible' | 'bible-card') {
+async function setup(
+  kind: 'image' | 'video' | 'bible' | 'bible-card' | 'slide-card',
+) {
   const fixture = itemFixture();
   const old = fixture.service();
   const itemId = createServiceItemId('50000000-0000-4000-8000-000000000099');
@@ -78,10 +80,20 @@ async function setup(kind: 'image' | 'video' | 'bible' | 'bible-card') {
             translationName: false,
           },
         }
-      : {
-          id: itemId,
-          media: kind === 'image' ? fixtureMedia.warm : fixtureMedia.dawn,
-        };
+      : kind === 'slide-card'
+        ? {
+            id: itemId,
+            sectionCard: {
+              name: '예배 시작',
+              english: 'WELCOME',
+              theme: createThemeId('00000000-0000-4000-8000-000000000100'),
+            },
+            slides: {form: 'blank' as const, name: 'Section', slides: []},
+          }
+        : {
+            id: itemId,
+            media: kind === 'image' ? fixtureMedia.warm : fixtureMedia.dawn,
+          };
   fixture.pushService({
     ...old,
     revision: old.revision + 1,
@@ -94,6 +106,14 @@ async function setup(kind: 'image' | 'video' | 'bible' | 'bible-card') {
   await waitFor(() => expect(items.getSnapshot().item).not.toBeNull());
   return {view, items, editor};
 }
+it('shows the card-only slide item in the inspector', async () => {
+  const {view, items, editor} = await setup('slide-card');
+  expect(screen.getByTestId('card-picture').textContent).toBe('예배 시작');
+  expect(screen.getByText('1 / 1')).toBeTruthy();
+  view.unmount();
+  items.dispose();
+  await editor.dispose();
+});
 it.each(['image', 'video'] as const)(
   'shows the %s picture and existing media properties',
   async kind => {

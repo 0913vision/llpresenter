@@ -42,6 +42,68 @@ import headerStyles from '@renderer/features/songs/editor/SongHeader.module.css'
 import styles from './OtherPrepEditor.module.css';
 import {DetailsPanel} from '@renderer/features/service/details/DetailsPanel';
 import {isLibrarySource, openLibrarySong} from '@renderer/session/showLibrary';
+import {useLeadingItemCard} from '@renderer/features/service/items/useLeadingItemCard';
+import {BibleInlineEditor} from '@renderer/features/service/items/BibleInlineEditor';
+import type {LeadingSlideCard} from '@renderer/features/songs/editor';
+import type {ReactNode} from 'react';
+import {isItemOfKind} from '@core/schema/service';
+import {AddSectionCard} from '@renderer/features/service/items/AddSectionCard';
+import itemCardStyles from './ItemCardBinding.module.css';
+import {hasSectionCard} from '@core/services/sectionCards';
+
+function SlidesCardInspector({prep}: {readonly prep: PrepBinding}): ReactNode {
+  const state = useSyncExternalStore(
+    prep.items.subscribe,
+    prep.items.getSnapshot,
+  );
+  const model = prep.slides?.session?.slideModel;
+  const selection = useSyncExternalStore(
+    model?.subscribe ?? noSubscribe,
+    () => model?.getSnapshot().selection.ids.size ?? 0,
+  );
+  if (
+    state.item !== null &&
+    hasSectionCard(state.item) &&
+    state.position === 0 &&
+    selection === 0
+  ) {
+    return <OtherSlideInspector items={prep.items} editor={prep.editor} />;
+  }
+  return prep.slides?.session ? (
+    <SlidesInspector api={prep.api} session={prep.slides.session} />
+  ) : null;
+}
+
+function ItemCardBinding({
+  items,
+  itemId,
+  children,
+}: {
+  readonly items: ServiceItemStore;
+  readonly itemId: string | undefined;
+  readonly children: (
+    card: LeadingSlideCard | undefined,
+    addCard: ReactNode,
+  ) => ReactNode;
+}): ReactNode {
+  const serviceId = useShow(view => view.serviceId);
+  useEffect(() => {
+    if (serviceId !== null && itemId !== undefined) {
+      items.show({serviceId, itemId});
+    }
+  }, [items, itemId, serviceId]);
+  const card = useLeadingItemCard(items, itemId);
+  return (
+    <div className={itemCardStyles.root}>
+      {children(
+        card,
+        itemId === undefined ? null : (
+          <AddSectionCard items={items} itemId={itemId} />
+        ),
+      )}
+    </div>
+  );
+}
 
 const PREP_COLUMNS = [['라이브러리'], [SERVICE_ORDER], ['세부정보']] as const;
 
@@ -131,30 +193,57 @@ function prepPanelParts({
       };
     }
     if (prep.slides?.draft !== null && prep.slides !== undefined) {
+      const slides = prep.slides;
       return {
         embedded: (
-          <SlidesEditor api={prep.api} model={prep.slides} onBack={back} />
+          <ItemCardBinding
+            items={prep.items}
+            itemId={prep.slides.draft.snapshot.item.id}
+          >
+            {(card, addCard) => (
+              <SlidesEditor
+                api={prep.api}
+                model={slides}
+                onBack={back}
+                leadingCard={card}
+                addCard={addCard}
+              />
+            )}
+          </ItemCardBinding>
         ),
       };
     }
     return {
       embedded: (
-        <SongEditor
-          store={prep.editor}
-          ui={prep.api.ui}
-          renderDesign={songItemDesign(prep.api, prep.items)}
-          onImportedSave={prep.onImportedSave}
-          onBack={back}
-          actions={
-            prep.controls === undefined ? null : (
-              <InlineSongActions
-                store={prep.editor}
-                controlsRef={prep.controls}
-                onProblem={onProblem ?? ignoreProblem}
-              />
-            )
+        <ItemCardBinding
+          items={prep.items}
+          itemId={
+            prep.editor.getSnapshot().session?.itemSession === true
+              ? prep.editor.getSnapshot().session?.document.song.id
+              : undefined
           }
-        />
+        >
+          {(card, addCard) => (
+            <SongEditor
+              store={prep.editor}
+              leadingCard={card}
+              addCard={addCard}
+              ui={prep.api.ui}
+              renderDesign={songItemDesign(prep.api, prep.items)}
+              onImportedSave={prep.onImportedSave}
+              onBack={back}
+              actions={
+                prep.controls === undefined ? null : (
+                  <InlineSongActions
+                    store={prep.editor}
+                    controlsRef={prep.controls}
+                    onProblem={onProblem ?? ignoreProblem}
+                  />
+                )
+              }
+            />
+          )}
+        </ItemCardBinding>
       ),
     };
   }
@@ -163,7 +252,7 @@ function prepPanelParts({
       embedded: otherEditor ? (
         <OtherSlideInspector items={prep.items} editor={prep.editor} />
       ) : prep.slides?.session ? (
-        <SlidesInspector api={prep.api} session={prep.slides.session} />
+        <SlidesCardInspector prep={prep} />
       ) : (
         <SlideInspector store={prep.editor} />
       ),
@@ -182,6 +271,10 @@ function OtherPrepEditor({
   readonly onBack: () => void;
 }) {
   const serviceName = useShow(view => view.serviceName);
+  const item = useSyncExternalStore(
+    prep.items.subscribe,
+    prep.items.getSnapshot,
+  ).item;
   const root = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const escape = (event: KeyboardEvent): void => {
@@ -198,12 +291,21 @@ function OtherPrepEditor({
       <header className={headerStyles.header} data-inline="true">
         <SlidesBackButton serviceName={serviceName} onBack={onBack} />
       </header>
-      <ServiceItemPanel
-        items={prep.items}
-        editor={prep.editor}
-        slides={prep.slides}
-        sizeClass={sizeClass}
-      />
+      {item !== null && isItemOfKind(item, 'bible') ? (
+        <BibleInlineEditor
+          items={prep.items}
+          ui={prep.api.ui}
+          onBack={onBack}
+          hideHeader
+        />
+      ) : (
+        <ServiceItemPanel
+          items={prep.items}
+          editor={prep.editor}
+          slides={prep.slides}
+          sizeClass={sizeClass}
+        />
+      )}
     </div>
   );
 }

@@ -19,7 +19,7 @@ import {
 import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
 import {ITEM_PANEL_LABEL} from './OtherItemPanel';
 import {shownPosition} from '../../songs/editor/songItemModel';
-import {savedPassageTiles} from './bibleItemModel';
+import {bibleEditorData, savedPassageTiles} from './bibleItemModel';
 import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {slideLayerOf} from '@core/presentation/slideLayer';
@@ -43,9 +43,9 @@ export function BibleItemPanel({
 }): JSX.Element {
   const rawTiles = useShow(view => savedPassageTiles(view, serviceId, item.id));
   const projection = useBibleTileProjection({itemId: item.id, serviceId});
-  const tiles = (projection?.tiles ?? rawTiles).filter(
-    tile => tile.sectionCard === undefined,
-  );
+  const tiles = bibleEditorData(item, rawTiles, projection?.tiles)
+    .slides.filter(slide => slide.kind === 'verse')
+    .map(slide => slide.tile);
   const scale = useThumbnailScale(sizeClass);
   const projected = useMemo(
     () => ({

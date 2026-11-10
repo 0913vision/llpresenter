@@ -9,18 +9,44 @@ import {
 import {sundayTemplate} from '@core/services/sundayTemplate';
 import {
   cardOffset,
+  newSectionItem,
+  newSectionCard,
+  hasSectionCard,
+  canHaveSectionCard,
   sectionCardOf,
   withSectionCard,
 } from '@core/services/sectionCards';
 import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {nextTile, previousTile} from '@core/presentation/navigation';
+import {createServiceItemId} from '@core/schema/ids';
 
 const section = SUNDAY_SECTIONS[1];
 if (section === undefined) throw new Error('missing section');
 const card = sectionCardOf(section);
 
 describe('section card', () => {
+  it('recognizes item cards and supplies a valid default', () => {
+    const item = newSectionItem(
+      createServiceItemId('55000000-0000-4000-8000-000000000001'),
+      section,
+    );
+    expect(hasSectionCard(item)).toBe(true);
+    const {sectionCard: _card, ...withoutCard} = item;
+    expect(hasSectionCard(withoutCard)).toBe(false);
+    expect(canHaveSectionCard(withoutCard)).toBe(true);
+    expect(canHaveSectionCard({id: item.id, header: 'Heading'})).toBe(false);
+    expect(v.safeParse(sectionCardSchema, newSectionCard()).success).toBe(true);
+  });
+  it('creates a standalone item with only its editable card', () => {
+    const item = newSectionItem(
+      createServiceItemId('55000000-0000-4000-8000-000000000001'),
+      section,
+    );
+    expect(item.sectionCard).toEqual(card);
+    expect(item.slides.slides).toEqual([]);
+    expect(withSectionCard(item.sectionCard, [])).toHaveLength(1);
+  });
   it('accepts bounded fields and rejects invalid values', () => {
     expect(v.safeParse(sectionCardSchema, card).success).toBe(true);
     expect(v.safeParse(sectionCardSchema, {...card, name: '  '}).success).toBe(

@@ -1,5 +1,5 @@
 import {cardOffset} from '@core/services/sectionCards';
-import {sectionCardEntries} from './SectionCardEditor';
+import {sectionCardEntries} from './sectionCardActions';
 import {useEffect, useSyncExternalStore, type JSX} from 'react';
 import {createSongId} from '@core/schema/ids';
 import type {ServiceDocument} from '@core/schema/contentDocuments';

@@ -23,10 +23,7 @@ import type {useItemMedia} from '../items/useItemSources';
 import {useServiceSongMenu} from '../order/useServiceSongMenu';
 import {songUsage} from '@renderer/features/songs/editor/songUsage';
 import {Tooltip} from '@renderer/ui/Tooltip';
-import {SelectMenu} from '@renderer/ui/SelectMenu';
-import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
-import {sectionCardOf} from '@core/services/sectionCards';
-import {saveCard} from './sectionCardActions';
+import {ItemCardRow} from '../items/ItemCardRow';
 import {ItemTransitionRow} from './ItemTransitionRow';
 import styles from './DetailsInfo.module.css';
 
@@ -123,41 +120,7 @@ export function DetailsInfo({
                 reason={reason}
               />
             ) : null}
-            {isItemOfKind(item, 'song') ||
-            isItemOfKind(item, 'bible') ||
-            isItemOfKind(item, 'slides') ? (
-              <PropertyRow label="구역 이름 슬라이드">
-                {({controlId}) => (
-                  <SelectMenu
-                    id={controlId}
-                    block
-                    menuLabel="구역 이름 슬라이드"
-                    value={item.sectionCard?.name ?? ''}
-                    valueText={item.sectionCard?.name ?? '없음'}
-                    options={[
-                      {value: '', label: '없음'},
-                      ...SUNDAY_SECTIONS.map(section => ({
-                        value: section.name,
-                        label: section.name,
-                      })),
-                    ]}
-                    disabled={reason !== undefined}
-                    title={reason}
-                    onChange={value => {
-                      const section = SUNDAY_SECTIONS.find(
-                        candidate => candidate.name === value,
-                      );
-                      saveCard(
-                        items,
-                        section === undefined
-                          ? undefined
-                          : sectionCardOf(section),
-                      );
-                    }}
-                  />
-                )}
-              </PropertyRow>
-            ) : null}
+            <ItemCardRow items={items} item={item} reason={reason} />
             <PropertyRow label="메모" alignTop>
               {() => (
                 <ItemMemo

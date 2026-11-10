@@ -1,6 +1,6 @@
 import {useSyncExternalStore, type JSX} from 'react';
 import {isItemOfKind} from '@core/schema/service';
-import {cardOffset} from '@core/services/sectionCards';
+import {cardOffset, hasSectionCard} from '@core/services/sectionCards';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
@@ -45,7 +45,14 @@ export function OtherSlideInspector({
     tile => tile.sectionCard === undefined,
   );
   const index = bible ? position - cardOffset(item) : -1;
-  const card = bible && position === 0 ? item.sectionCard : undefined;
+  const card =
+    item !== null && hasSectionCard(item) && position === 0
+      ? item.sectionCard
+      : undefined;
+  const count =
+    item !== null && isItemOfKind(item, 'slides')
+      ? item.slides.slides.length + 1
+      : tiles.length + 1;
   const cardTheme = useSlideTheme(
     card === undefined || item === null
       ? undefined
@@ -115,7 +122,7 @@ export function OtherSlideInspector({
             </div>
             <div className={styles.caption} style={labelInk('none')}>
               {card.name}
-              <span>1 / {tiles.length + 1}</span>
+              <span>1 / {count}</span>
             </div>
           </>
         )}

@@ -29,16 +29,18 @@ import {
 import {LeadingSlideCardView} from '../../songs/editor/LeadingSlideCardView';
 export type {SlideCardRenderer} from '../../songs/editor/SlideCardRenderer';
 
-function MeasuredRow({
+export function MeasuredRow({
   children,
   style,
   onHeight,
   id,
+  className = styles.rowPosition,
 }: {
   readonly children: ReactNode;
   readonly style: CSSProperties;
   readonly onHeight: (id: string, height: number) => void;
   readonly id: string;
+  readonly className?: string | undefined;
 }): JSX.Element {
   const rowRef = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
@@ -55,7 +57,7 @@ function MeasuredRow({
     return () => observer.disconnect();
   }, [id, onHeight]);
   return (
-    <div className={styles.rowPosition} style={style} data-measured-row>
+    <div className={className} style={style} data-measured-row>
       <div ref={rowRef}>{children}</div>
     </div>
   );

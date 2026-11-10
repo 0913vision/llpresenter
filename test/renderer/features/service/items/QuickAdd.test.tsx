@@ -268,7 +268,7 @@ describe('항목 추가', () => {
   });
 
   it.each(['찬양', '합심기도', '묵상기도', '축도'])(
-    'inserts an editable %s section card after the selection with its gradient theme and one English slide',
+    'inserts an editable %s card-only item after the selection',
     async name => {
       const {api, user, service, onProblem} = setup();
       const preparePictures = vi
@@ -295,15 +295,15 @@ describe('항목 추가', () => {
       const index = order.findIndex(item => item.id === fixtureItems.arranged);
       const added = order[index + 1];
       expect(added).toMatchObject({
-        theme: section?.theme,
-        slides: {form: 'blank', name, slides: [{text: section?.english}]},
+        sectionCard: {name, english: section?.english, theme: section?.theme},
+        slides: {form: 'blank', name, slides: []},
       });
       if (added === undefined || !isItemOfKind(added, 'slides')) {
         throw Error('Missing section card');
       }
       expect(added.slides.advance).toBeUndefined();
       expect(added.slides.loop).toBeUndefined();
-      expect(added.slides.slides).toHaveLength(1);
+      expect(added.slides.slides).toHaveLength(0);
       expect(order[index + 2]?.id).toBe(fixtureItems.plain);
       act(() =>
         useShow.setState(state => ({

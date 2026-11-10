@@ -5,6 +5,7 @@ import {
   useState,
   type JSX,
   type KeyboardEvent,
+  type ReactNode,
 } from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {createSlideId, themeIdSchema} from '@core/schema/ids';
@@ -254,12 +255,14 @@ export function SlidesEditor({
   onBack,
   renderCard,
   leadingCard,
+  addCard,
 }: {
   readonly api: LlpApi;
   readonly model: SlidesEditorModel;
   readonly onBack?: (() => void) | undefined;
   readonly renderCard?: SlideCardRenderer | undefined;
   readonly leadingCard?: LeadingSlideCard | undefined;
+  readonly addCard?: ReactNode;
 }): JSX.Element | null {
   const {draft} = model;
   if (draft === null) return null;
@@ -272,6 +275,7 @@ export function SlidesEditor({
       onBack={onBack}
       renderCard={renderCard}
       leadingCard={leadingCard}
+      addCard={addCard}
     />
   );
 }
@@ -283,6 +287,7 @@ function SlidesEditorBody({
   draft,
   renderCard,
   leadingCard,
+  addCard,
 }: {
   readonly api: LlpApi;
   readonly model: SlidesEditorModel;
@@ -290,6 +295,7 @@ function SlidesEditorBody({
   readonly draft: SlidesDraft;
   readonly renderCard?: SlideCardRenderer | undefined;
   readonly leadingCard?: LeadingSlideCard | undefined;
+  readonly addCard?: ReactNode;
 }): JSX.Element {
   const {item, selected} = draft.snapshot;
   const serviceName = useShow(view => view.serviceName);
@@ -488,6 +494,7 @@ function SlidesEditorBody({
             )}
           >
             <div className={styles.add}>
+              {addCard}
               <Button
                 variant="ghost"
                 icon="plus"

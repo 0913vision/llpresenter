@@ -1109,7 +1109,11 @@ Bible items have no transition row.
 
 ### Slide surface views
 
-The song and slides editors offer 목록 and 격자 views of the same slide order.
+The song, slides, and Bible editors offer 목록 and 격자 views of the same slide
+order. An opening 구역 이름 card is the first row or cell, and its Korean and
+English names are editable. The card cannot be moved, and content slides cannot
+be moved ahead of it. Delete removes the selected card. A standalone 구역 이름
+item opens with that card as its only slide. Bible verse text remains read-only.
 Each text slide has an editable field and an immediately updated picture in both
 views. The view and grid size belong to the window. Grid size can be adjusted
 with the slide size control. Selection stays local to the editor; click selects

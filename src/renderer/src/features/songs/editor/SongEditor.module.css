@@ -39,6 +39,12 @@
   position: relative;
 }
 
+.addRow {
+  display: flex;
+  gap: var(--space-16);
+  padding: var(--space-12) var(--space-14);
+}
+
 .label {
   display: flex;
   min-width: 0;

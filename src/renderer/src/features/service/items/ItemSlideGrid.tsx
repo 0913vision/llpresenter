@@ -1,5 +1,5 @@
 import {cardOffset} from '@core/services/sectionCards';
-import {sectionCardEntries} from '../details/sectionCardActions';
+import {sectionCardEntries} from './sectionCardActions';
 import {useMemo, useRef, useState, useSyncExternalStore, type JSX} from 'react';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {isItemOfKind} from '@core/schema/service';

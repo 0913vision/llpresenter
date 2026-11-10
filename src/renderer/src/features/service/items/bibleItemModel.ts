@@ -1,5 +1,7 @@
 import type {ShowView} from '@renderer/session/showStore';
 import type {ShowTile} from '@core/schema/showService';
+import type {ServiceItemOf} from '@core/schema/service';
+import {bibleEditorSlides} from './cardSlideModel';
 
 const NO_TILES: readonly ShowTile[] = [];
 
@@ -14,4 +16,16 @@ export function savedPassageTiles(
     view.openItemId === itemId
     ? (view.tiles[itemId] ?? NO_TILES)
     : NO_TILES;
+}
+
+/** Editor data retains the saved reference and uses measured verses when available. */
+export function bibleEditorData(
+  item: ServiceItemOf<'bible'>,
+  saved: readonly ShowTile[],
+  measured?: readonly ShowTile[],
+) {
+  return {
+    reference: item.bible,
+    slides: bibleEditorSlides(item.sectionCard, measured ?? saved),
+  };
 }

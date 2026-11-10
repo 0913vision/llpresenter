@@ -42,7 +42,7 @@ vi.mock('@renderer/rendering/SlidePicture', () => ({SlidePicture: () => null}));
 
 const sessions: ControlSession[] = [];
 
-function setup(extraSlides = false) {
+function setup(extraSlides = false, songCard = false) {
   const f = itemFixture();
   const slides = newSlidesItem('blank', fixtureItems.lost);
   const announcement = newSlidesItem(
@@ -75,7 +75,25 @@ function setup(extraSlides = false) {
     service: {
       ...f.service().service,
       order: [
-        ...f.service().service.order.filter(item => item.id !== slides.id),
+        ...f
+          .service()
+          .service.order.filter(item => item.id !== slides.id)
+          .map(item =>
+            songCard &&
+            item.id === fixtureItems.arranged &&
+            isItemOfKind(item, 'song')
+              ? {
+                  ...item,
+                  sectionCard: {
+                    name: 'Song section',
+                    english: 'Section',
+                    theme: createThemeId(
+                      '00000000-0000-4000-8000-000000000111',
+                    ),
+                  },
+                }
+              : item,
+          ),
         slides,
         bible,
         media,
@@ -271,6 +289,26 @@ it.each([
   await waitFor(() =>
     expect(document.activeElement).toBe(screen.getByRole('option', {name})),
   );
+});
+
+it('retains the section card when the details panel unmounts for the editor', async () => {
+  setup(true);
+  const row = screen.getByRole('option', {name: 'Section item'});
+  await userEvent.click(row);
+  await userEvent.dblClick(row);
+  const card = await screen.findByRole('textbox', {name: '구역 이름'});
+  expect(card).toHaveProperty('value', 'Section');
+  await waitFor(() =>
+    expect(document.querySelector('[data-leading-card]')).not.toBeNull(),
+  );
+});
+
+it('binds a service song card while switching from details to the editor', async () => {
+  setup(false, true);
+  await userEvent.dblClick(screen.getByRole('option', {name: /Service song/}));
+  const field = await screen.findByRole('textbox', {name: '구역 이름'});
+  expect(field).toHaveProperty('value', 'Song section');
+  expect(document.querySelector('[data-leading-card]')).not.toBeNull();
 });
 
 it('switches from a song to a Bible item and back to a song', async () => {

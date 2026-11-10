@@ -17,6 +17,9 @@ import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStor
 import {SongEditorStore} from '@renderer/features/songs/editor';
 import {useShow} from '@renderer/session/show';
 import {isItemOfKind} from '@core/schema/service';
+import {setItemCard} from '@renderer/features/service/items/cardSlideModel';
+import {sectionCardOf} from '@core/services/sectionCards';
+import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
 
 vi.mock('@renderer/rendering/SlidePicture', () => ({
   SlidePicture: ({slide}: {slide: {sectionCard?: {name: string}}}) => (
@@ -31,6 +34,58 @@ vi.mock('@renderer/rendering/outputRenderer', () => ({
 }));
 afterEach(() => {
   useShow.setState({serviceId: null, openItemId: null, tiles: {}});
+});
+
+it('keeps the details checkbox synchronized with the item card', async () => {
+  const f = itemFixture();
+  useShow.setState({
+    serviceId: fixtureServiceId,
+    openItemId: fixtureItems.arranged,
+  });
+  const editor = new SongEditorStore(f.api, vi.fn());
+  const items = new ServiceItemStore(f.api, editor, vi.fn());
+  const view = render(
+    <DetailsPanel
+      target={{kind: 'item', itemId: fixtureItems.arranged}}
+      api={f.api}
+      editor={editor}
+      items={items}
+    />,
+  );
+  try {
+    const checkbox = await screen.findByRole('checkbox', {
+      name: '구역 이름 슬라이드',
+    });
+    expect(checkbox.getAttribute('aria-checked')).toBe('false');
+    await userEvent.click(checkbox);
+    await waitFor(() =>
+      expect(checkbox.getAttribute('aria-checked')).toBe('true'),
+    );
+    const section = SUNDAY_SECTIONS[1];
+    if (section === undefined) throw Error('missing section');
+    await act(async () => {
+      await items.submitItemEdit({
+        target: {serviceId: fixtureServiceId, itemId: fixtureItems.arranged},
+        failure: 'failed',
+        change: item => setItemCard(item, sectionCardOf(section)),
+      });
+    });
+    expect(checkbox.getAttribute('aria-checked')).toBe('true');
+    await act(async () => {
+      await items.submitItemEdit({
+        target: {serviceId: fixtureServiceId, itemId: fixtureItems.arranged},
+        failure: 'failed',
+        change: item => setItemCard(item, undefined),
+      });
+    });
+    await waitFor(() =>
+      expect(checkbox.getAttribute('aria-checked')).toBe('false'),
+    );
+  } finally {
+    view.unmount();
+    items.dispose();
+    await editor.dispose();
+  }
 });
 
 it('shows the first picture and resets the tab and selection when the item changes', async () => {

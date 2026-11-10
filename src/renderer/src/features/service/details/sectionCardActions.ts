@@ -1,6 +1,6 @@
 import {isItemOfKind, type SectionCard} from '@core/schema/service';
 import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
-import {sectionCardOf} from '@core/services/sectionCards';
+import {hasSectionCard, sectionCardOf} from '@core/services/sectionCards';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import type {ServiceItemStore} from '../items/serviceItemStore';
 
@@ -19,7 +19,7 @@ export function sectionCardEntries(
   const disabled =
     state.service?.access === 'readOnly' ||
     state.busy ||
-    state.item.sectionCard !== undefined;
+    hasSectionCard(state.item);
   return [
     {
       kind: 'item',

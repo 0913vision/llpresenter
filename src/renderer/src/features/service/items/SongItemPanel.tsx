@@ -1,5 +1,4 @@
 import {cardOffset} from '@core/services/sectionCards';
-import {SectionCardEditor} from './SectionCardEditor';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useEffect, useSyncExternalStore, type JSX} from 'react';
 import type {ServiceItemOf} from '@core/schema/service';
@@ -77,7 +76,6 @@ export function ServiceItemPanel({
         onSelect={index => items.selectPosition(index)}
         sizeClass={sizeClass}
       >
-        <SectionCardEditor items={items} />
         <ItemSlideGrid items={items} editor={editor} sizeClass={sizeClass} />
       </BibleItemPanel>
     );
@@ -159,7 +157,6 @@ function SongItemView({
           {session?.document.song.title ?? '없는 곡'}
         </Button>
         <PanelBody variant="flush">
-          <SectionCardEditor items={items} />
           {service === null ? null : (
             <ItemSongSlideGrid
               items={items}

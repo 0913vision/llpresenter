@@ -544,6 +544,33 @@ it('uses the section card theme only while its slide is live', () => {
   });
 });
 
+it('renders the section theme for a card-only live sequence', () => {
+  const {store, dispatch, current} = setup();
+  const theme = current().defaults.blank;
+  if (theme === undefined) throw new Error('Missing blank theme');
+  const card = {name: 'Section', english: 'Welcome', theme};
+  dispatch({
+    type: 'slide.show',
+    slide: {
+      itemId: ITEM,
+      position: 0,
+      sequenceLength: 1,
+      label: card.name,
+      lines: [card.english],
+      sectionCard: card,
+    },
+  });
+  expect(store.state.layers.slide).toMatchObject({
+    sequenceLength: 1,
+    sectionCard: card,
+  });
+  expect(store.state.themeItem).toMatchObject({
+    kind: 'blank',
+    title: 'Section',
+    theme,
+  });
+});
+
 it.each(['song', 'blank', 'bible'] as const)(
   'matches content overlay positions with an opening card for %s',
   kind => {

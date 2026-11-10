@@ -43,10 +43,12 @@ export function SongSlideSurface<T extends SlideListItem>({
   blocked = false,
   editLabel = windowCommandLabels.editSong,
   leadingCard,
+  contentReadOnly = false,
 }: {
   readonly session: SlideListSession<T>;
   readonly children: ReactNode;
   readonly leadingCard?: LeadingSlideCard | undefined;
+  readonly contentReadOnly?: boolean | undefined;
   readonly className?: string | undefined;
   readonly onBack?: (() => void) | undefined;
   readonly store?: SongEditorStore | undefined;
@@ -122,7 +124,7 @@ export function SongSlideSurface<T extends SlideListItem>({
     }
   };
   const paste = (): void => {
-    if (readOnly) return;
+    if (readOnly || contentReadOnly) return;
     surfaceRef.current?.focus({preventScroll: true});
     const model = session.slideModel;
     const intent = session.slideIntent;
@@ -188,10 +190,13 @@ export function SongSlideSurface<T extends SlideListItem>({
     }
   };
   const editReason = readOnly ? NEWER_FILE_REASON : undefined;
+  const contentEditReason =
+    editReason ??
+    (contentReadOnly ? '성경 구절은 편집할 수 없습니다' : undefined);
   const selectionReason = selected ? undefined : '선택한 슬라이드가 없습니다';
   const deleteReason = leadingSelected
     ? editReason
-    : (editReason ??
+    : (contentEditReason ??
       selectionReason ??
       (view.slides.length - view.selection.ids.size <
       session.slideModel.limits.minSlides
@@ -220,14 +225,14 @@ export function SongSlideSurface<T extends SlideListItem>({
     );
   };
   const duplicateReason =
-    editReason ??
+    contentEditReason ??
     selectionReason ??
     (view.slides.length + view.selection.ids.size >
     session.slideModel.limits.maxSlides
       ? '슬라이드가 너무 많습니다'
       : undefined);
   const pasteReason =
-    editReason ??
+    contentEditReason ??
     (view.slides.length >= session.slideModel.limits.maxSlides
       ? '슬라이드가 너무 많습니다'
       : undefined);
@@ -454,7 +459,7 @@ export function SongSlideSurface<T extends SlideListItem>({
         ) {
           return;
         }
-        if (readOnly || isInTextEntry(event.target)) return;
+        if (readOnly || contentReadOnly || isInTextEntry(event.target)) return;
         surfaceRef.current?.focus({preventScroll: true});
         const text = session.cutSlides();
         if (text === null) return;
@@ -469,7 +474,7 @@ export function SongSlideSurface<T extends SlideListItem>({
         ) {
           return;
         }
-        if (readOnly || isInTextEntry(event.target)) return;
+        if (readOnly || contentReadOnly || isInTextEntry(event.target)) return;
         event.preventDefault();
         event.stopPropagation();
         surfaceRef.current?.focus({preventScroll: true});
@@ -759,7 +764,7 @@ export function SongSlideSurface<T extends SlideListItem>({
         setMenu(contextMenuAnchor(event));
       }}
       onDragStart={event => {
-        if (readOnly || isInTextEntry(event.target)) {
+        if (readOnly || contentReadOnly || isInTextEntry(event.target)) {
           event.preventDefault();
           return;
         }
@@ -792,6 +797,7 @@ export function SongSlideSurface<T extends SlideListItem>({
       onDragOver={event => {
         if (
           !readOnly &&
+          !contentReadOnly &&
           event.dataTransfer.types.includes('application/x-llp-song-slide-move')
         ) {
           event.preventDefault();
@@ -807,6 +813,7 @@ export function SongSlideSurface<T extends SlideListItem>({
       onDrop={event => {
         if (
           readOnly ||
+          contentReadOnly ||
           event.dataTransfer.getData('application/x-llp-song-slide-move') !==
             session.slideDocumentId
         ) {

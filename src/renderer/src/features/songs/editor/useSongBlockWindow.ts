@@ -66,7 +66,14 @@ export function useSongBlockWindow(
           row => row.querySelector('textarea') !== null,
         ) ?? null;
       const input = block?.querySelector('textarea');
-      if (block === null || input === undefined || input === null) return;
+      if (block === null || input === undefined || input === null) {
+        setMeasure(previous =>
+          previous.viewport === node.clientHeight
+            ? previous
+            : {...previous, viewport: node.clientHeight},
+        );
+        return;
+      }
       const css = getComputedStyle(block);
       const px = (name: string): number =>
         Number.parseFloat(css.getPropertyValue(name)) || 0;
@@ -114,6 +121,9 @@ export function useSongBlockWindow(
       ? Math.max(1, Math.floor((width + GRID_GAP) / (cellWidth + GRID_GAP)))
       : 1;
   const offsets = useMemo(() => {
+    const measuredFallback = heights?.find(
+      height => height !== undefined && height > 0,
+    );
     if (mode === 'grid') {
       const result = [0];
       for (let index = 0; index < slides.length; index += columns) {
@@ -144,6 +154,7 @@ export function useSongBlockWindow(
       result.push(
         (result.at(-1) ?? 0) +
           (heights?.[index] ??
+            measuredFallback ??
             measure.inset +
               Math.max(
                 measure.minimum,

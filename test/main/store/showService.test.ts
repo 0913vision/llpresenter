@@ -688,6 +688,30 @@ it('projects the card ahead of song and slide content without changing their the
   }
 });
 
+it('projects a card-only slides item as one live tile', () => {
+  const card = {
+    name: 'Section',
+    english: 'Section',
+    theme: createThemeId('00000000-0000-4000-8000-000000000111'),
+  };
+  const original = slidesItem();
+  const item = {
+    ...original,
+    sectionCard: card,
+    slides: {...original.slides, slides: []},
+  };
+  const shown = buildShowService({
+    service: loadedService([item]),
+    songs: new Map(),
+    labels: [],
+    revision: 1,
+  });
+  expect(shown.tiles[item.id]).toMatchObject([
+    {sectionCard: card, lines: ['Section']},
+  ]);
+  expect(shown.tiles[item.id]).toHaveLength(1);
+});
+
 it('keeps a Bible card before the resolved verses and rejects invalid cards', () => {
   const card = {
     name: 'Section',

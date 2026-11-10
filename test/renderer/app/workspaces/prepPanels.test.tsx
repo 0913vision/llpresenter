@@ -1,4 +1,4 @@
-import {act, renderHook, waitFor} from '@testing-library/react';
+import {act, render, renderHook, waitFor} from '@testing-library/react';
 import {isValidElement} from 'react';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {useShow} from '@renderer/session/show';
@@ -11,11 +11,17 @@ import {
 import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {SlideInspector} from '@renderer/features/service/slideInspector/SlideInspector';
-import {SlidesInspector} from '@renderer/features/service/slideInspector/SlidesInspector';
 import {OtherSlideInspector} from '@renderer/features/service/slideInspector/OtherSlideInspector';
 import {useSlidesEditor} from '@renderer/features/service/slides/useSlidesEditor';
 import {newSlidesItem} from '@core/services/slidesEdits';
 import {createServiceId, createServiceItemId} from '@core/schema/ids';
+
+vi.mock('@renderer/rendering/outputRenderer', () => ({
+  OutputRenderer: class {
+    render = vi.fn();
+    dispose = vi.fn();
+  },
+}));
 
 vi.mock('@renderer/app/workspaces/serviceOrderPanel', async importOriginal => ({
   ...(await importOriginal<
@@ -80,10 +86,19 @@ describe('usePrepPanels', () => {
         });
       const open = vi.spyOn(editor, 'open');
       const panel = result.current.partsOf('편집').embedded;
-      if (!isValidElement<{onBack?: () => void}>(panel)) {
+      if (
+        !isValidElement<{
+          children?: (card: undefined, addCard: null) => unknown;
+        }>(panel) ||
+        typeof panel.props.children !== 'function'
+      ) {
         throw new Error('Missing editor');
       }
-      act(() => panel.props.onBack?.());
+      const editorPanel = panel.props.children(undefined, null);
+      if (!isValidElement<{onBack?: () => void}>(editorPanel)) {
+        throw new Error('Missing song editor');
+      }
+      act(() => editorPanel.props.onBack?.());
       await waitFor(() => expect(leave).toHaveBeenCalledOnce());
       expect(open).not.toHaveBeenCalled();
       act(() => proceed?.());
@@ -326,7 +341,10 @@ describe('usePrepPanels', () => {
     });
     expect(result.current.columns[2]).toEqual(['슬라이드 속성']);
     const panel = result.current.partsOf('슬라이드 속성').embedded;
-    expect(isValidElement(panel) && panel.type === SlidesInspector).toBe(true);
+    if (!isValidElement(panel)) throw new Error('Missing inspector');
+    const view = render(panel);
+    expect(view.getByRole('region', {name: '슬라이드 속성'})).toBeTruthy();
+    view.unmount();
     unmount();
     items.dispose();
     return editor.dispose();

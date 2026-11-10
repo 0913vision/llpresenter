@@ -53,6 +53,7 @@ export function SongEditor({
   renderDesign,
   renderCard,
   leadingCard,
+  addCard,
   ui,
 }: {
   readonly store: SongEditorStore;
@@ -60,6 +61,7 @@ export function SongEditor({
   readonly renderDesign?: SongDesignRenderer | undefined;
   readonly renderCard?: SlideCardRenderer<EditorSlideItem> | undefined;
   readonly leadingCard?: LeadingSlideCard | undefined;
+  readonly addCard?: ReactNode;
   readonly onImportedSave?: ((id: SongId) => void) | undefined;
   /** Shows the dot before the title while edits wait for 저장. */
   readonly unsaved?: boolean;
@@ -137,6 +139,7 @@ export function SongEditor({
               session={state.session}
               renderCard={renderCard}
               leadingCard={leadingCard}
+              addCard={addCard}
             />
           </SongSlideSurface>
           <PanelFooter
@@ -156,11 +159,13 @@ function SongBlocks({
   session,
   renderCard,
   leadingCard,
+  addCard,
 }: {
   readonly store: SongEditorStore;
   readonly session: SongSession;
   readonly renderCard?: SlideCardRenderer<EditorSlideItem> | undefined;
   readonly leadingCard?: LeadingSlideCard | undefined;
+  readonly addCard?: ReactNode;
 }): JSX.Element {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const {song, selection} = session.history.snapshot;
@@ -170,6 +175,12 @@ function SongBlocks({
   );
   const theme = useSongSlideAppearance(session);
   const previousBlock = useRef(selection.block);
+  const restoredSelection = useRef<{
+    input: HTMLTextAreaElement | null | undefined;
+    block: number;
+    start: number;
+    end: number;
+  } | null>(null);
   const focus = useRef<EditorFocus>({
     inputs: [],
     requested: false,
@@ -309,6 +320,15 @@ function SongBlocks({
     owner.inputs.length = slides.length;
     if (owner.composing) return;
     const input = owner.inputs[selection.block];
+    const previous = restoredSelection.current;
+    const needsRestore =
+      owner.requested ||
+      previous === null ||
+      previous.input !== input ||
+      previous.block !== selection.block ||
+      previous.start !== selection.start ||
+      previous.end !== selection.end;
+    restoredSelection.current = {input, ...selection};
     const changedBlock = previousBlock.current !== selection.block;
     previousBlock.current = selection.block;
     if (changedBlock) input?.scrollIntoView({block: 'nearest'});
@@ -318,6 +338,7 @@ function SongBlocks({
     if (
       input !== undefined &&
       input !== null &&
+      needsRestore &&
       (owner.requested || ownsFocus)
     ) {
       owner.restoring = true;
@@ -348,14 +369,6 @@ function SongBlocks({
       onScroll={event => setScrollTop(event.currentTarget.scrollTop)}
       onKeyDown={tab}
     >
-      {slides.length === 0 ? (
-        <Button
-          disabled={state.busy || session.readOnly}
-          onClick={() => session.edit({type: 'insert'})}
-        >
-          슬라이드 추가
-        </Button>
-      ) : null}
       <div className={styles.blockWindow} style={{height: total}}>
         {indices.map(position => {
           if (leadingCard !== undefined && position === 0) {
@@ -468,6 +481,17 @@ function SongBlocks({
             ?.focus();
         }}
       />
+      <div className={styles.addRow}>
+        <Button
+          variant="ghost"
+          icon="plus"
+          disabled={state.busy || session.readOnly}
+          onClick={() => session.edit({type: 'insert'})}
+        >
+          슬라이드 추가
+        </Button>
+        {addCard}
+      </div>
       {menu === null ? null : (
         <LabelMenu
           store={store}

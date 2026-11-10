@@ -209,6 +209,27 @@ describe('slide row editing surface', () => {
     },
   );
 
+  it('deletes a selected card even when there are no content slides', async () => {
+    const draft = makeDraft();
+    const item = draft.snapshot.item;
+    draft.change({...item, slides: {...item.slides, slides: []}});
+    const onDelete = vi.fn();
+    render(
+      <Harness
+        draft={draft}
+        leadingCard={{
+          label: '구역 이름',
+          render: () => <span>Card</span>,
+          onDelete,
+        }}
+      />,
+    );
+    await userEvent.click(screen.getByLabelText('구역 이름'));
+    await userEvent.keyboard('{Delete}');
+    expect(onDelete).toHaveBeenCalledOnce();
+    expect(draft.snapshot.item.slides.slides).toHaveLength(0);
+  });
+
   it('does not mark the live slide in preparation', () => {
     const draft = makeDraft();
     const state = emptyLiveState();

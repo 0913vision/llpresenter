@@ -12,6 +12,7 @@ import {
   type SongId,
 } from '@core/schema/ids';
 import {isItemOfKind} from '@core/schema/service';
+import {contentPosition} from './prepCardPosition';
 import type {SongSlideSource} from '@core/schema/showService';
 import {TextImportFlow} from '@renderer/features/songs/import/TextImportFlow';
 import {openItem, useShow} from '@renderer/session/show';
@@ -50,7 +51,7 @@ async function openServiceSong(
   if (!isCurrent() || service === null) return;
   const block =
     target.source === undefined
-      ? (target.position ?? 0)
+      ? contentPosition(item, target.position)
       : item.slides.findIndex(slide => slide.id === target.source?.slideId);
   if (block < 0) throw new Error('The source slide is no longer available');
   const opened = await api.window.openSongEditor({
@@ -99,7 +100,13 @@ export function usePrepActions({
   const slides = useSlidesEditor(session.api, session.report, {
     beforeOpen: open =>
       session.editor ? session.editor.requestLeave(open) : open(),
-    positionOf: () => session.items?.getSnapshot().position ?? 0,
+    positionOf: target => {
+      const selected = session.items?.getSnapshot();
+      const item = selected?.item;
+      return item?.id === target.itemId && isItemOfKind(item, 'slides')
+        ? contentPosition(item, selected?.position)
+        : (selected?.position ?? 0);
+    },
     onOpened: target => {
       prepSelection.clear();
       session.editor?.open(null);
@@ -219,6 +226,12 @@ export function usePrepActions({
         return;
       }
       const row = view.rows.find(row => row.id === itemId);
+      if (view.serviceId !== null && row?.kind === 'bible') {
+        slides.close();
+        session.items?.show({serviceId: view.serviceId, itemId});
+        session.items?.selectPosition(position ?? 0);
+        return;
+      }
       if (view.serviceId !== null && row?.kind === 'slides') {
         session.items?.show({serviceId: view.serviceId, itemId});
         session.items?.selectPosition(position ?? 0);
