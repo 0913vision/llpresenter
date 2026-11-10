@@ -5,7 +5,7 @@ import type {Notice} from '@renderer/ui/notices';
 
 type Editing = ReturnType<typeof useServiceOrderEditing>;
 export interface PaletteEditing {
-  readonly enqueue: (operation: Parameters<Editing['apply']>[0]) => void;
+  readonly enqueueInsert: (operation: Parameters<Editing['apply']>[0]) => void;
 }
 const PaletteEditingContext = createContext<PaletteEditing | null>(null);
 
@@ -20,7 +20,7 @@ export function PaletteEditingProvider({
   const serviceId = useShow(view => view.serviceId);
   const editing = useServiceOrderEditing(serviceId, onProblem);
   const tail = useRef<Promise<unknown>>(Promise.resolve());
-  const enqueue: PaletteEditing['enqueue'] = operation => {
+  const enqueueInsert: PaletteEditing['enqueueInsert'] = operation => {
     const service = serviceId;
     tail.current = tail.current.then(() => {
       if (service === null || useShow.getState().serviceId !== service) {
@@ -30,7 +30,9 @@ export function PaletteEditingProvider({
     });
   };
   return (
-    <PaletteEditingContext value={{enqueue}}>{children}</PaletteEditingContext>
+    <PaletteEditingContext value={{enqueueInsert}}>
+      {children}
+    </PaletteEditingContext>
   );
 }
 export function usePaletteEditing(): PaletteEditing | null {

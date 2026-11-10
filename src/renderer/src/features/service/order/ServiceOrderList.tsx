@@ -374,33 +374,49 @@ export function ServiceOrderList({
   });
   const paletteEditing = usePaletteEditing();
   const palette = usePaletteInsert(paletteEditing);
-  const mediaDrop = useMediaOrderDrop({serviceId, editing, onProblem});
+  const mediaDrop = useMediaOrderDrop({
+    serviceId,
+    editing,
+    queue: paletteEditing,
+    setBackground: table?.setBackground,
+    onProblem,
+  });
   const {insertBefore, backgroundTarget, dragProps} = useServiceOrderDrag({
     enabled: editable,
     rows,
     selected: selection.selected,
     select: id => selection.replace([id], id),
-    onMove: (ids, before) =>
-      editing.run((edits, id) =>
+    onMove: (ids, before) => {
+      const run =
+        table !== undefined && paletteEditing !== null
+          ? paletteEditing.enqueueInsert
+          : editing.run;
+      run((edits, id) =>
         edits.moveMany(
           id,
           ids.map(createServiceItemId),
           before === null ? null : createServiceItemId(before),
         ),
-      ),
+      );
+    },
     onElement:
       table === undefined || navigator
         ? undefined
         : (key, before) => palette.insert(key, before),
     onMedia: table === undefined || navigator ? undefined : mediaDrop,
-    onCopy: (songId, before) =>
-      editing.run((edits, id) =>
+    onCopy: (songId, before) => {
+      const run =
+        table !== undefined && paletteEditing !== null
+          ? paletteEditing.enqueueInsert
+          : editing.run;
+      run((edits, id) =>
         edits.insertSong(
           id,
           songId,
           before === null ? null : createServiceItemId(before),
         ),
-      ),
+      );
+    },
   });
   const clipboard = useServiceItemClipboard({
     serviceId,

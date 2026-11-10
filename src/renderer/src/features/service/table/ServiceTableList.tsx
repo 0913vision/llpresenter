@@ -1,6 +1,6 @@
 import {useMemo, useState, type ComponentProps, type JSX} from 'react';
 import {isStartItem} from '@core/services/itemFieldChanges';
-import {memoRequest} from '../items/itemPlaybackCommands';
+import {backgroundRequest, memoRequest} from '../items/itemPlaybackCommands';
 import {ItemMemoDialog} from './ItemMemoDialog';
 import {menuAvailability} from '@renderer/ui/menuModel';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
@@ -39,6 +39,8 @@ export function ServiceTableList({
   const onProblem: (notice: Notice) => void = list.onProblem ?? noProblem;
   const table = useMemo<ServiceTableParts>(
     () => ({
+      setBackground: (serviceId, itemId, mediaId) =>
+        items.submitItemEdit(backgroundRequest({serviceId, itemId}, mediaId)),
       menuFor: row => {
         const item = data.items.get(row.id);
         if (item === undefined || !isStartItem(item) || serviceId === null) {

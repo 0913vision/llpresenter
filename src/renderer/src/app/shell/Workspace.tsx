@@ -183,9 +183,13 @@ export function Workspace({
           id === 'screens' && styles.screenSettings,
         )}
       >
-        <PaletteEditingProvider onProblem={onProblem ?? ignoreProblem}>
-          {panelColumns}
-        </PaletteEditingProvider>
+        {id === 'prep' ? (
+          <PaletteEditingProvider onProblem={onProblem ?? ignoreProblem}>
+            {panelColumns}
+          </PaletteEditingProvider>
+        ) : (
+          panelColumns
+        )}
       </div>
       {mediaOpen && api !== undefined ? (
         <ResizeGap

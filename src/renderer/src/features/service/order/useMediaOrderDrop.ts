@@ -1,20 +1,25 @@
 import type {MediaId} from '@core/schema/ids';
 import {createServiceItemId} from '@core/schema/ids';
 import {newMediaItem} from '@core/services/quickAddMedia';
-import {updateServiceBackground} from '@renderer/session/serviceBackground';
 import {useShow} from '@renderer/session/show';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
+import type {PaletteEditing} from '../items/PaletteEditing';
 import type {useServiceOrderEditing} from './useServiceOrderEditing';
+import type {ServiceTableParts} from './serviceTableParts';
 import {mediaDropReason} from './useServiceOrderDrag';
 
 /** Validates media at drop time and applies an insertion or item background. */
 export function useMediaOrderDrop({
   serviceId,
   editing,
+  queue,
+  setBackground,
   onProblem,
 }: {
   readonly serviceId: string | null;
   readonly editing: ReturnType<typeof useServiceOrderEditing>;
+  readonly queue: PaletteEditing | null;
+  readonly setBackground: ServiceTableParts['setBackground'];
   readonly onProblem: (notice: Notice) => void;
 }) {
   return (
@@ -33,9 +38,13 @@ export function useMediaOrderDrop({
         title,
         time: noticeTime(),
       });
-    Promise.all([api.media.missing(), api.media.get()]).then(
-      ([missing, document]) => {
-        if (useShow.getState().serviceId !== service) return;
+    const validate = async (): Promise<boolean> => {
+      try {
+        const [missing, document] = await Promise.all([
+          api.media.missing(),
+          api.media.get(),
+        ]);
+        if (useShow.getState().serviceId !== service) return false;
         const media = document.value.items.find(item => item.id === mediaId);
         const row =
           target === null
@@ -49,30 +58,34 @@ export function useMediaOrderDrop({
         });
         if (reason !== undefined) {
           report(reason);
-          return;
+          return false;
         }
-        if (target !== null) {
-          updateServiceBackground(api, {
-            serviceId: service,
-            itemId: target,
-            mediaId,
-          }).then(
-            result => {
-              if (!result.ok) report('배경 변경 실패');
-            },
-            () => report('배경 변경 실패'),
-          );
-        } else {
-          editing.run((edits, id) =>
-            edits.insertItem(
-              id,
-              newMediaItem(mediaId),
-              before === null ? null : createServiceItemId(before),
-            ),
+        return true;
+      } catch {
+        report('미디어 상태를 확인할 수 없습니다');
+        return false;
+      }
+    };
+    if (target === null) {
+      const run = queue?.enqueueInsert ?? editing.run;
+      run(async (edits, id) => {
+        if (!(await validate())) return {ok: true, value: false};
+        return edits.insertItem(
+          id,
+          newMediaItem(mediaId),
+          before === null ? null : createServiceItemId(before),
+        );
+      });
+      return;
+    }
+    validate()
+      .then(valid => {
+        if (valid && setBackground) {
+          setBackground(service, target, mediaId).catch(() =>
+            report('배경 변경 실패'),
           );
         }
-      },
-      () => report('미디어 상태를 확인할 수 없습니다'),
-    );
+      })
+      .catch(() => report('배경 변경 실패'));
   };
 }

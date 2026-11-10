@@ -43,7 +43,7 @@ export function usePaletteInsert(editing: PaletteEditing | null) {
       setBible({before: target, serviceId});
       return;
     }
-    editing.enqueue(async (edits, id) => {
+    editing.enqueueInsert(async (edits, id) => {
       const item = await createPaletteItem(key, translation);
       if (item === null) throw new Error('Unknown palette item');
       if ('header' in item) useHeaderRename.getState().request(item.id);
@@ -62,7 +62,7 @@ export function usePaletteInsert(editing: PaletteEditing | null) {
           const item = passageItem(ref, defaults);
           const target = bible.before;
           setBible(null);
-          editing.enqueue(async (edits, id) => {
+          editing.enqueueInsert(async (edits, id) => {
             const result = await edits.insertItem(
               id,
               item,

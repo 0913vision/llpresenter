@@ -1,9 +1,15 @@
+import type {MediaId} from '@core/schema/ids';
 import type {ReactNode} from 'react';
 import type {ItemRow, ServiceRow} from '@core/presentation/model';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 
 /** What the 예배 순서 list adds to its rows to draw them as a table. */
 export interface ServiceTableParts {
+  readonly setBackground?: (
+    serviceId: string,
+    itemId: string,
+    mediaId: MediaId,
+  ) => Promise<boolean>;
   readonly menuFor?: (row: ServiceRow) => readonly MenuEntry[];
   /** The column names above the rows. */
   readonly header: ReactNode;

@@ -1,3 +1,7 @@
+import {MEDIA_DRAG_MIME} from '@renderer/features/media/mediaDrag';
+import {fixtureMedia} from '@fixtures/core/mediaList';
+import {serviceOrderEditsFor} from '@renderer/session/serviceOrderEdits';
+
 import {ELEMENT_DRAG_MIME} from '@renderer/features/service/items/paletteItems';
 
 import {StrictMode} from 'react';
@@ -587,4 +591,105 @@ it('serializes a palette double click followed by an immediate order drop', asyn
   ).toEqual([3, 4]);
 
   expect(edit).toHaveBeenCalledTimes(2);
+});
+
+it('queues a media drop behind an unfinished palette insertion', async () => {
+  const fixture = setup();
+  const original = fixture.api.content.edit;
+  let release: (() => void) | undefined;
+  const gate = new Promise<void>(resolve => {
+    release = resolve;
+  });
+  let first = true;
+  const edit = vi
+    .spyOn(fixture.api.content, 'edit')
+    .mockImplementation(async request => {
+      if (request.type === 'service.update' && first) {
+        first = false;
+        await gate;
+      }
+      return original(request);
+    });
+  const initialIds = new Set(
+    fixture.service().service.order.map(item => item.id),
+  );
+  const row = screen.getByRole('option', {name: /Service song/});
+  fireEvent.click(row);
+  fireEvent.doubleClick(screen.getByRole('button', {name: '빈 슬라이드'}));
+  await waitFor(() => expect(edit).toHaveBeenCalledTimes(1));
+  const dataTransfer = {
+    types: [MEDIA_DRAG_MIME],
+    getData: (type: string) =>
+      type === MEDIA_DRAG_MIME ? fixtureMedia.warm : '',
+    dropEffect: 'none',
+  };
+  const event = new MouseEvent('drop', {
+    bubbles: true,
+    cancelable: true,
+    clientY: 1,
+  });
+  Object.defineProperty(event, 'dataTransfer', {value: dataTransfer});
+  fireEvent(row, event);
+  if (!release) throw new Error('Missing pending write');
+  release();
+  await waitFor(() =>
+    expect(fixture.service().service.order).toHaveLength(initialIds.size + 2),
+  );
+  const added = fixture
+    .service()
+    .service.order.filter(item => !initialIds.has(item.id));
+  expect(
+    added.some(
+      item => isItemOfKind(item, 'media') && item.media === fixtureMedia.warm,
+    ),
+  ).toBe(true);
+  expect(
+    added.some(
+      item =>
+        isItemOfKind(item, 'slides') && item.slides.name === '빈 슬라이드',
+    ),
+  ).toBe(true);
+  expect(
+    edit.mock.calls.map(([request]) =>
+      request.type === 'service.update' ? request.baseRevision : null,
+    ),
+  ).toEqual([3, 4]);
+});
+
+it('uses item background writes for an order drop and records undo', async () => {
+  const fixture = setup();
+  const row = screen.getByRole('option', {name: /Service song/});
+  vi.spyOn(row, 'getBoundingClientRect').mockReturnValue(
+    new DOMRect(0, 100, 200, 40),
+  );
+  const dataTransfer = {
+    types: [MEDIA_DRAG_MIME],
+    getData: (type: string) =>
+      type === MEDIA_DRAG_MIME ? fixtureMedia.warm : '',
+    dropEffect: 'none',
+  };
+  const event = new MouseEvent('drop', {
+    bubbles: true,
+    cancelable: true,
+    clientY: 120,
+  });
+  Object.defineProperty(event, 'dataTransfer', {value: dataTransfer});
+  fireEvent(row, event);
+  await waitFor(() =>
+    expect(
+      fixture
+        .service()
+        .service.order.find(item => item.id === fixtureItems.arranged),
+    ).toMatchObject({background: fixtureMedia.warm}),
+  );
+  await act(async () =>
+    expect(
+      (await serviceOrderEditsFor(fixture.api).undo(fixtureServiceId)).ok,
+    ).toBe(true),
+  );
+  expect(
+    fixture
+      .service()
+      .service.order.find(item => item.id === fixtureItems.arranged),
+  ).not.toHaveProperty('background');
 });
