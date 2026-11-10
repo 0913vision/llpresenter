@@ -506,6 +506,7 @@ export function usePrepPanels({
                   items={prep.items}
                   editor={prep.editor}
                   api={prep.api}
+                  sizeClass={sizeClass}
                   onOpenPrep={openOther}
                 />
               ),

@@ -63,6 +63,7 @@ it('keeps the first Bible picture while selecting slides locally and switching i
     const selected = useShow(view => view.openItemId);
     return (
       <DetailsPanel
+        sizeClass="normal"
         target={{
           kind: 'item',
           itemId:

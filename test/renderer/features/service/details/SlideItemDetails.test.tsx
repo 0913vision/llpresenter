@@ -56,6 +56,7 @@ it.each(['blank', 'ad'] as const)(
       .mockResolvedValue({ok: true, value: undefined});
     const view = render(
       <DetailsPanel
+        sizeClass="normal"
         target={{kind: 'item', itemId: updated.id}}
         api={f.api}
         items={items}

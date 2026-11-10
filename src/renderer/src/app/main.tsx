@@ -5,6 +5,7 @@ import {startLiveSync} from '@renderer/session/live';
 import {startServiceSync} from '@renderer/session/show';
 import {seedSlideSurfaceView} from '@renderer/features/songs/editor/SlideSurfaceView';
 import {seedThumbnailScale} from '@renderer/platform/thumbnailScale';
+import {detailsScale} from '@renderer/platform/thumbnailScale';
 import {
   createColumnWidthStore,
   loadUiState,
@@ -104,6 +105,7 @@ async function start(container: HTMLElement): Promise<void> {
   const uiState = await loadUiState(window.llp);
   if (lifecycle.stopped) return;
   seedThumbnailScale(uiState);
+  detailsScale.seed(uiState);
   seedSlideSurfaceView(uiState);
   const columnWidthStore = createColumnWidthStore(window.llp, uiState);
   lifecycle.root = createRoot(container);

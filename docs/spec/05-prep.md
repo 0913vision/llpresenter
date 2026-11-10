@@ -518,9 +518,10 @@ The right column shows 세부정보 for the selected item: its first slide pictu
 title and kind with slide count, followed by 정보 and 슬라이드 tabs. 정보 groups
 the applicable settings under 이번 예배 and source details under 원본, with
 left-aligned values in a common property grid. 슬라이드 shows the item's
-pictures in a grid; selection is local and a double click opens the editor at
-that slide. The item keeps its own slide count, theme and slides even when its
-library source changes. The picture and both tabs share one scroll.
+pictures in a grid with a remembered, independently adjustable thumbnail size;
+selection is local and a double click opens the editor at that slide. The item
+keeps its own slide count, theme and slides even when its library source
+changes. The picture and both tabs share one scroll.
 
 ### What belongs to the service and what belongs to the song
 

@@ -296,6 +296,7 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
           <ServiceItemPanel items={items} editor={editor} sizeClass="normal" />
         ) : (
           <DetailsPanel
+            sizeClass="normal"
             target={{kind: 'item', itemId: sourceId}}
             api={api}
             items={items}

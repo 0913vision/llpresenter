@@ -132,6 +132,7 @@ async function setup(
     <WorkspaceNavigation.Provider value={navigate}>
       <ItemSlideGrid items={items} editor={editor} />
       <DetailsPanel
+        sizeClass="normal"
         target={{kind: 'item', itemId: fixtureItems.arranged}}
         api={fixture.api}
         items={items}

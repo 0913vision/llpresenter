@@ -32,6 +32,7 @@ it('keeps the first item slide in its picture when a different local slide is se
   const items = new ServiceItemStore(f.api, editor, vi.fn());
   const view = render(
     <DetailsPanel
+      sizeClass="normal"
       target={{kind: 'item', itemId: fixtureItems.arranged}}
       api={f.api}
       items={items}

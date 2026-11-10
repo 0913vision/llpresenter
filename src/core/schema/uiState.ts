@@ -34,6 +34,7 @@ const layoutChangeSchema = v.pipe(
     left: integerIn(COLUMN_LIMITS.left),
     right: integerIn(COLUMN_LIMITS.right),
     thumbnailScalePercent: integerIn(COLUMN_LIMITS.thumbnailScalePercent),
+    detailsSlideScalePercent: integerIn(COLUMN_LIMITS.thumbnailScalePercent),
     editorSlideView: v.exactOptional(v.picklist(['list', 'grid'])),
     editorSlideScalePercent: integerIn(COLUMN_LIMITS.thumbnailScalePercent),
     songEditorSlideView: v.exactOptional(v.picklist(['list', 'grid'])),
@@ -44,24 +45,7 @@ const layoutChangeSchema = v.pipe(
     'Expected the left and right widths together',
   ),
   v.check(
-    ({
-      left,
-      thumbnailScalePercent,
-      leftCollapsed,
-      rows,
-      editorSlideView,
-      editorSlideScalePercent,
-      songEditorSlideView,
-      songEditorSlideScalePercent,
-    }) =>
-      left !== undefined ||
-      thumbnailScalePercent !== undefined ||
-      leftCollapsed !== undefined ||
-      rows !== undefined ||
-      editorSlideView !== undefined ||
-      editorSlideScalePercent !== undefined ||
-      songEditorSlideView !== undefined ||
-      songEditorSlideScalePercent !== undefined,
+    change => Object.keys(change).some(key => key !== 'sizeClass'),
     'Expected a layout or slide editor view change',
   ),
 );

@@ -46,6 +46,7 @@ it('keeps the details checkbox synchronized with the item card', async () => {
   const items = new ServiceItemStore(f.api, editor, vi.fn());
   const view = render(
     <DetailsPanel
+      sizeClass="normal"
       target={{kind: 'item', itemId: fixtureItems.arranged}}
       api={f.api}
       editor={editor}
@@ -110,6 +111,7 @@ it('shows the first picture and resets the tab and selection when the item chang
   const items = new ServiceItemStore(f.api, editor, vi.fn());
   const view = render(
     <DetailsPanel
+      sizeClass="normal"
       target={{kind: 'item', itemId: fixtureItems.arranged}}
       api={f.api}
       editor={editor}
@@ -129,6 +131,7 @@ it('shows the first picture and resets the tab and selection when the item chang
     expect(items.getSnapshot().position).toBe(1);
     view.rerender(
       <DetailsPanel
+        sizeClass="normal"
         target={{kind: 'item', itemId: fixtureItems.plain}}
         api={f.api}
         editor={editor}
@@ -212,6 +215,7 @@ it.each(['bible', 'ad', 'media', 'card'] as const)(
     const items = new ServiceItemStore(f.api, editor, vi.fn());
     const view = render(
       <DetailsPanel
+        sizeClass="normal"
         target={{kind: 'item', itemId: source.id}}
         api={f.api}
         editor={editor}
@@ -257,6 +261,7 @@ it('edits a common transition and preserves differing per-slide transitions', as
   const items = new ServiceItemStore(f.api, editor, vi.fn());
   const view = render(
     <DetailsPanel
+      sizeClass="normal"
       target={{kind: 'item', itemId: fixtureItems.arranged}}
       api={f.api}
       editor={editor}
@@ -334,6 +339,7 @@ it('reports an editor opening failure through the item notice handler', async ()
   const items = new ServiceItemStore(f.api, editor, report);
   const view = render(
     <DetailsPanel
+      sizeClass="normal"
       target={{kind: 'item', itemId: fixtureItems.arranged}}
       api={f.api}
       editor={editor}
@@ -386,6 +392,7 @@ it('updates the media title when its source changes or disappears', async () => 
   const items = new ServiceItemStore(f.api, editor, vi.fn());
   const view = render(
     <DetailsPanel
+      sizeClass="normal"
       target={{kind: 'item', itemId: source.id}}
       api={f.api}
       items={items}
@@ -440,6 +447,7 @@ it('shows section item counts and restores item details when switching targets',
   const items = new ServiceItemStore(f.api, editor, vi.fn());
   const panelFor = (itemId: typeof section.id) => (
     <DetailsPanel
+      sizeClass="normal"
       target={{kind: 'item', itemId}}
       api={f.api}
       items={items}

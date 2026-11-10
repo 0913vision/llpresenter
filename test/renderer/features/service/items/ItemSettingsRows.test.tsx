@@ -46,6 +46,7 @@ async function setup(itemId: string = fixtureItems.arranged) {
   useShow.setState({serviceId: fixtureServiceId, openItemId: itemId});
   const view = render(
     <DetailsPanel
+      sizeClass="normal"
       target={{kind: 'item', itemId: createServiceItemId(itemId)}}
       api={fixture.api}
       items={items}
@@ -102,6 +103,7 @@ function failedMacros() {
   });
   const view = render(
     <DetailsPanel
+      sizeClass="normal"
       target={{kind: 'item', itemId: fixtureItems.arranged}}
       api={fixture.api}
       items={items}

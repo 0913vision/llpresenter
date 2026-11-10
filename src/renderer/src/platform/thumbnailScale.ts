@@ -1,6 +1,7 @@
 import {create} from 'zustand';
 import {sizeClasses} from '@core/schema/appConfig';
 import type {UiState} from '@core/schema/uiState';
+import type {UiApi} from '@contracts/ipc/ui';
 import type {SizeClass} from '@renderer/ui/sizeClass';
 import {
   clampThumbnailScale,
@@ -9,72 +10,57 @@ import {
 } from '@renderer/ui';
 
 type ScaleBySizeClass = Readonly<Partial<Record<SizeClass, number>>>;
-
+type ScaleField = 'thumbnailScalePercent' | 'detailsSlideScalePercent';
 interface ThumbnailScaleView {
-  /** The percentage on screen, with fractions while the operator drags. */
   readonly shown: ScaleBySizeClass;
-  /** The whole percentage last saved to, or read from, `app.json`. */
   readonly saved: ScaleBySizeClass;
 }
 
-const useThumbnailScaleView = create<ThumbnailScaleView>(() => ({
-  shown: {},
-  saved: {},
-}));
-
-function savedScaleOf(sizeClass: SizeClass): number {
-  return (
-    useThumbnailScaleView.getState().saved[sizeClass] ??
-    DEFAULT_THUMBNAIL_SCALE_PERCENT
-  );
+/** Each grid keeps its own renderer state and saved layout field. */
+export function createThumbnailScaleStore(field: ScaleField) {
+  const state = create<ThumbnailScaleView>(() => ({shown: {}, saved: {}}));
+  const use = (sizeClass: SizeClass): number =>
+    state(view => view.shown[sizeClass] ?? DEFAULT_THUMBNAIL_SCALE_PERCENT);
+  const show = (sizeClass: SizeClass, percent: number): void => {
+    state.setState(view => ({
+      shown: {...view.shown, [sizeClass]: clampThumbnailScale(percent)},
+    }));
+  };
+  const save = (
+    sizeClass: SizeClass,
+    percent: number,
+    ui: Pick<UiApi, 'setLayout'> | undefined = window.llp?.ui,
+  ): void => {
+    const whole = commitThumbnailScale(percent);
+    show(sizeClass, whole);
+    if (
+      whole ===
+      (state.getState().saved[sizeClass] ?? DEFAULT_THUMBNAIL_SCALE_PERCENT)
+    ) {
+      return;
+    }
+    state.setState(view => ({saved: {...view.saved, [sizeClass]: whole}}));
+    ui?.setLayout({sizeClass, [field]: whole});
+  };
+  const seed = (uiState: UiState): void => {
+    const saved: Partial<Record<SizeClass, number>> = {};
+    for (const sizeClass of sizeClasses) {
+      const percent = uiState.layout?.[sizeClass]?.[field];
+      if (percent !== undefined) {
+        saved[sizeClass] = commitThumbnailScale(percent);
+      }
+    }
+    state.setState({shown: saved, saved});
+  };
+  return {use, show, save, seed};
 }
 
-/** The 슬라이드 size of a size class in percent: the chosen one, or 100. */
-export function useThumbnailScale(sizeClass: SizeClass): number {
-  return useThumbnailScaleView(
-    view => view.shown[sizeClass] ?? DEFAULT_THUMBNAIL_SCALE_PERCENT,
-  );
-}
+const showGridScale = createThumbnailScaleStore('thumbnailScalePercent');
+export const useThumbnailScale = showGridScale.use;
+export const showThumbnailScale = showGridScale.show;
+export const saveThumbnailScale = showGridScale.save;
+export const seedThumbnailScale = showGridScale.seed;
 
-/** Shows a 슬라이드 size while the operator drags. Saves nothing. */
-export function showThumbnailScale(
-  sizeClass: SizeClass,
-  percent: number,
-): void {
-  const shown = clampThumbnailScale(percent);
-  useThumbnailScaleView.setState(view => ({
-    shown: {...view.shown, [sizeClass]: shown},
-  }));
-}
-
-/**
- * Shows a finished 슬라이드 size as a whole percentage and sends it to the main
- * process, which saves it in `app.json`. A percentage that is already saved is
- * not sent again.
- */
-export function saveThumbnailScale(
-  sizeClass: SizeClass,
-  percent: number,
-): void {
-  const whole = commitThumbnailScale(percent);
-  showThumbnailScale(sizeClass, whole);
-  if (whole === savedScaleOf(sizeClass)) return;
-  useThumbnailScaleView.setState(view => ({
-    saved: {...view.saved, [sizeClass]: whole},
-  }));
-  window.llp?.ui.setLayout({sizeClass, thumbnailScalePercent: whole});
-}
-
-/**
- * Takes the saved 슬라이드 size of every size class from the UI state. Sends
- * nothing. The old `columns` value is a column count, not a size, so it is not
- * read.
- */
-export function seedThumbnailScale(uiState: UiState): void {
-  const saved: Partial<Record<SizeClass, number>> = {};
-  for (const sizeClass of sizeClasses) {
-    const percent = uiState.layout?.[sizeClass]?.thumbnailScalePercent;
-    if (percent !== undefined) saved[sizeClass] = commitThumbnailScale(percent);
-  }
-  useThumbnailScaleView.setState({shown: saved, saved});
-}
+export const detailsScale = createThumbnailScaleStore(
+  'detailsSlideScalePercent',
+);

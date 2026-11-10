@@ -42,6 +42,7 @@ it('resolves the detail picture background from the item before the library song
   const items = new ServiceItemStore(f.api, editor, vi.fn());
   const view = render(
     <DetailsPanel
+      sizeClass="normal"
       target={{kind: 'item', itemId: fixtureItems.arranged}}
       api={f.api}
       items={items}
@@ -128,6 +129,7 @@ it('selects item slides locally, opens the clicked slide, and keeps its independ
   const items = new ServiceItemStore(f.api, editor, vi.fn());
   const view = render(
     <DetailsPanel
+      sizeClass="normal"
       target={{kind: 'item', itemId: fixtureItems.arranged}}
       api={f.api}
       items={items}

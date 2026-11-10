@@ -3,6 +3,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LayoutChange} from '@core/schema/uiState';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {
+  createThumbnailScaleStore,
   saveThumbnailScale,
   seedThumbnailScale,
   showThumbnailScale,
@@ -72,4 +73,37 @@ describe('thumbnail scale', () => {
     saveThumbnailScale('narrow', 80);
     expect(setLayout).not.toHaveBeenCalled();
   });
+});
+
+it('keeps independently created scale stores and persisted fields separate', () => {
+  const show = createThumbnailScaleStore('thumbnailScalePercent');
+  const details = createThumbnailScaleStore('detailsSlideScalePercent');
+  const saved = {
+    layout: {
+      normal: {
+        thumbnailScalePercent: 75,
+        detailsSlideScalePercent: 135,
+        editorSlideScalePercent: 180,
+      },
+    },
+  };
+  show.seed(saved);
+  details.seed(saved);
+  expect(renderHook(() => show.use('normal')).result.current).toBe(75);
+  expect(renderHook(() => details.use('normal')).result.current).toBe(135);
+  details.save('normal', 162.4, {setLayout});
+  expect(setLayout).toHaveBeenCalledExactlyOnceWith({
+    sizeClass: 'normal',
+    detailsSlideScalePercent: 162,
+  });
+  expect(renderHook(() => show.use('normal')).result.current).toBe(75);
+  details.seed({
+    layout: {
+      normal: {detailsSlideScalePercent: 162},
+      wide: {detailsSlideScalePercent: 200},
+    },
+  });
+  expect(renderHook(() => details.use('normal')).result.current).toBe(162);
+  expect(renderHook(() => details.use('wide')).result.current).toBe(200);
+  expect(renderHook(() => details.use('narrow')).result.current).toBe(100);
 });

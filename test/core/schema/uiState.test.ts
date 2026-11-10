@@ -300,3 +300,18 @@ describe('editor slide view layout', () => {
     ).toBe(true);
   });
 });
+
+it('validates and retains the independent details slide scale', () => {
+  for (const value of [50, 100, 200]) {
+    const change = {sizeClass: 'normal', detailsSlideScalePercent: value};
+    expect(parseLayoutChange(change)).toEqual({ok: true, value: change});
+    const state = {layout: {normal: {detailsSlideScalePercent: value}}};
+    expect(parseUiState(state)).toEqual({ok: true, value: state});
+  }
+  for (const value of [49, 201, 100.5, '100', null]) {
+    expect(
+      parseLayoutChange({sizeClass: 'normal', detailsSlideScalePercent: value})
+        .ok,
+    ).toBe(false);
+  }
+});

@@ -7,6 +7,7 @@ import {
 } from 'react';
 import type {LabelColor} from '@core/labels/colors';
 import {SlideThumbnail, ThumbnailGrid} from '@renderer/ui/SlideThumbnail';
+import {detailsGridGeometry} from './detailsGridGeometry';
 
 const COLUMNS = 2;
 const INITIAL_COUNT = 8;
@@ -15,7 +16,10 @@ interface Range {
   readonly start: number;
   readonly end: number;
   readonly stride: number;
+  readonly columns: number;
+  readonly tileWidth: number;
 }
+
 function scrollParent(element: HTMLElement): HTMLElement | null {
   let parent = element.parentElement;
   while (
@@ -37,6 +41,7 @@ function reveal(viewport: HTMLElement, top: number, stride: number): void {
 /** Windows the grid against the panel's own scroll, so pictures outside it are not drawn. */
 export function DetailsSlides({
   count,
+  scale = 100,
   selected,
   onSelect,
   onEdit,
@@ -45,6 +50,7 @@ export function DetailsSlides({
   picture,
 }: {
   readonly count: number;
+  readonly scale?: number | undefined;
   readonly selected: number;
   readonly onSelect: (index: number) => void;
   readonly onEdit: (index: number) => void;
@@ -58,6 +64,8 @@ export function DetailsSlides({
     start: 0,
     end: Math.min(count, INITIAL_COUNT),
     stride: 0,
+    columns: COLUMNS,
+    tileWidth: 0,
   });
   useLayoutEffect(() => {
     const element = host.current;
@@ -73,10 +81,12 @@ export function DetailsSlides({
       const gapX = parseFloat(css.getPropertyValue('--space-12')) || 12;
       const gapY = parseFloat(css.getPropertyValue('--space-16')) || 16;
       const band = parseFloat(css.getPropertyValue('--size-thumb-band')) || 24;
-      const stride = Math.max(
-        1,
-        (((element.clientWidth - gapX) / COLUMNS) * 9) / 16 + band + gapY,
+      const {columns, tileWidth} = detailsGridGeometry(
+        element.clientWidth,
+        gapX,
+        scale,
       );
+      const stride = Math.max(1, (tileWidth * 9) / 16 + band + gapY);
       const top = Math.max(
         0,
         scroll.getBoundingClientRect().top -
@@ -85,18 +95,20 @@ export function DetailsSlides({
       const first = Math.max(
         0,
         Math.min(
-          Math.max(0, Math.ceil(count / COLUMNS) - 1),
+          Math.max(0, Math.ceil(count / columns) - 1),
           Math.floor(top / stride) - OVERSCAN,
         ),
       );
       const last = Math.min(
-        Math.ceil(count / COLUMNS),
+        Math.ceil(count / columns),
         Math.ceil((top + scroll.clientHeight) / stride) + OVERSCAN,
       );
       setRange({
-        start: first * COLUMNS,
-        end: Math.min(count, Math.max(first, last) * COLUMNS),
+        start: first * columns,
+        end: Math.min(count, Math.max(first, last) * columns),
         stride,
+        columns,
+        tileWidth,
       });
     };
     measure();
@@ -111,7 +123,7 @@ export function DetailsSlides({
       scroll.removeEventListener('scroll', measure);
       observer?.disconnect();
     };
-  }, [count]);
+  }, [count, scale]);
   const start = range.stride === 0 ? 0 : range.start;
   const end = range.stride === 0 ? Math.min(count, INITIAL_COUNT) : range.end;
   useLayoutEffect(() => {
@@ -133,7 +145,7 @@ export function DetailsSlides({
       element.getBoundingClientRect().top -
       viewport.getBoundingClientRect().top +
       viewport.scrollTop +
-      Math.floor(index / COLUMNS) * range.stride;
+      Math.floor(index / range.columns) * range.stride;
     reveal(viewport, top, range.stride);
   };
   return (
@@ -146,8 +158,8 @@ export function DetailsSlides({
         const moves: Record<string, number> = {
           ArrowLeft: selected - 1,
           ArrowRight: selected + 1,
-          ArrowUp: selected - COLUMNS,
-          ArrowDown: selected + COLUMNS,
+          ArrowUp: selected - range.columns,
+          ArrowDown: selected + range.columns,
           Home: 0,
           End: count - 1,
         };
@@ -171,12 +183,13 @@ export function DetailsSlides({
     >
       <div
         aria-hidden="true"
-        style={{height: Math.floor(start / COLUMNS) * range.stride}}
+        style={{height: Math.floor(start / range.columns) * range.stride}}
       />
       <ThumbnailGrid
         workspace="prep"
         label="슬라이드"
-        columns={COLUMNS}
+        columns={range.columns}
+        tileWidth={range.tileWidth}
         positionOffset={start}
         setSize={count}
         selected={
@@ -203,7 +216,7 @@ export function DetailsSlides({
         style={{
           height: Math.max(
             0,
-            Math.ceil((count - end) / COLUMNS) * range.stride,
+            Math.ceil((count - end) / range.columns) * range.stride,
           ),
         }}
       />

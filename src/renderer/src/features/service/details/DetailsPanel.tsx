@@ -8,7 +8,9 @@ import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
 import {useShow} from '@renderer/session/show';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
-import {Panel, PanelBody, PanelTabs} from '@renderer/ui/Panel';
+import {Panel, PanelBody, PanelFooter, PanelTabs} from '@renderer/ui/Panel';
+import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
+import type {SizeClass} from '@renderer/ui/sizeClass';
 import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import type {SongEditorStore} from '@renderer/features/songs/editor';
@@ -20,6 +22,7 @@ import {detailsHeading, sectionItemCount} from './detailsHeading';
 import {detailsPicture} from './detailsPicture';
 import {DetailsInfo} from './DetailsInfo';
 import {DetailsSlides} from './DetailsSlides';
+import {detailsScale} from '@renderer/platform/thumbnailScale';
 import styles from './DetailsPanel.module.css';
 
 type Target =
@@ -45,6 +48,7 @@ interface DetailsPanelProps {
   readonly items: ServiceItemStore;
   readonly editor: SongEditorStore;
   readonly api: LlpApi;
+  readonly sizeClass: SizeClass;
   readonly onOpenPrep?: ((itemId: string) => void) | undefined;
 }
 
@@ -64,9 +68,11 @@ function DetailsPanelContent({
   items,
   editor,
   api,
+  sizeClass,
   onOpenPrep,
 }: DetailsPanelProps): JSX.Element {
   const serviceId = useShow(view => view.serviceId);
+  const scale = detailsScale.use(sizeClass);
   const itemId = target?.kind === 'item' ? target.itemId : null;
   useEffect(() => {
     items.show(
@@ -309,6 +315,7 @@ function DetailsPanelContent({
         ) : (
           <DetailsSlides
             count={count}
+            scale={scale}
             selected={Math.min(
               Math.max(0, count - 1),
               item === null ? selected : state.position,
@@ -321,6 +328,19 @@ function DetailsPanelContent({
           />
         )}
       </PanelBody>
+      {tab === 'slides' ? (
+        <PanelFooter
+          count={count}
+          end={
+            <ThumbnailSizeControl
+              compact
+              value={scale}
+              onChange={value => detailsScale.show(sizeClass, value)}
+              onCommit={value => detailsScale.save(sizeClass, value, api.ui)}
+            />
+          }
+        />
+      ) : null}
     </Panel>
   );
 }
