@@ -699,22 +699,23 @@ The slide label is omitted when it repeats the item name; a different label is
 the same size as the item name. White centered current text occupies the large
 area above a bottom-aligned yellow centered next preview. A next slide title or
 section-card name precedes its body; an untitled slide shows its body alone. The
-next preview shows at most two source lines and is capped at two thirds of the
-fitted current size. Section cards center their Korean name and English subtitle
-above the same next preview. The stage notice retains its church news card.
-These defaults apply to new libraries; existing layouts are unchanged. Built-in
-audience background and media elements start at 채우기 (cover); their editable
-theme-element 맞춤 wins over the media property's 맞춤 when rendered through
-that element. The media properties panel explains this precedence in a tooltip.
-Existing libraries are unchanged.
+next preview shows at most two source lines and targets two thirds of the fitted
+current size, with enough height for two lines at that size. Section cards
+center their Korean name and English subtitle above the same next preview. The
+stage notice retains its church news card. These defaults apply to new
+libraries; existing layouts are unchanged. Built-in audience background and
+media elements start at 채우기 (cover); their editable theme-element 맞춤 wins
+over the media property's 맞춤 when rendered through that element. The media
+properties panel explains this precedence in a tooltip. Existing libraries are
+unchanged.
 
 The section gradient layout retains 늘리기 for its background element.
 
 Bible item cards use their section theme; the passage slides retain their Bible
 theme and their overlay ranges follow their content positions.
 
-On a stage section card the next text keeps the normal stage frame and is capped
-against the fitted Korean item name, not its subtitle.
+On a stage section card the next text follows the fitted Korean item name, not
+its subtitle.
 
 On the stage, song source lines stay whole at the largest fitting size down to
 72 px at 1920 x 1080, two thirds of the church deck's 108 px lyric size; longer

@@ -235,6 +235,7 @@ export class SlideLayerView {
   private current: SlideLayer | null = null;
   private scale = 1;
   private maximumSize: number | undefined;
+  private targetSize: number | undefined;
   private minimumSize: number | undefined;
   private lineMode: 'normal' | 'song' | 'bar' = 'normal';
   private dissolveMs: number = SLIDE_DISSOLVE_MS;
@@ -381,6 +382,14 @@ export class SlideLayerView {
     if (this.current !== null) this.fit(this.pages[this.front]);
   }
 
+  /** Fit toward this size even when the saved style sets a smaller default. */
+  setTargetSize(target: number | undefined): void {
+    const size = target === undefined ? undefined : target / this.scale;
+    if (size === this.targetSize) return;
+    this.targetSize = size;
+    if (this.current !== null) this.fit(this.pages[this.front]);
+  }
+
   /** Keep source lines intact unless a song would become too small. */
   setLineMode(mode: 'normal' | 'song' | 'bar'): void {
     if (mode === this.lineMode) return;
@@ -422,7 +431,7 @@ export class SlideLayerView {
   private fit(page: Page): void {
     this.applyTracking(page);
     const {element, block} = page;
-    const size = this.style.size * this.scale;
+    const size = (this.targetSize ?? this.style.size) * this.scale;
     const markers = block.querySelectorAll<HTMLElement>(
       '[data-bible-continuation]',
     );
@@ -458,6 +467,7 @@ export class SlideLayerView {
         page.continued,
         page.biblePart,
         this.lineMode,
+        this.targetSize,
         this.style,
         this.scale,
         width,
@@ -474,7 +484,11 @@ export class SlideLayerView {
       document.fonts,
     );
     const songMinimum =
-      Math.min(MIN_STAGE_LYRIC_SIZE, this.maximumSize ?? Infinity) * this.scale;
+      Math.min(
+        MIN_STAGE_LYRIC_SIZE,
+        this.maximumSize ?? Infinity,
+        this.targetSize ?? Infinity,
+      ) * this.scale;
     const wraps = this.lineMode === 'song' && fontSize < songMinimum;
     block.style.whiteSpace = this.lineMode === 'normal' || wraps ? '' : 'pre';
     setSize(

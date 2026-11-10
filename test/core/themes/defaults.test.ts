@@ -510,7 +510,8 @@ it('centers the stage bar and keeps the muted clock below the lyric frames', () 
   expect(next.text.size).toBe(80);
   expect(
     next.frame.y - (current.frame.y + current.frame.h),
-  ).toBeGreaterThanOrEqual(70);
+  ).toBeGreaterThanOrEqual(30);
+  expect(next.frame.h).toBeGreaterThanOrEqual((170 * 2 * 2 * 1.2) / 3);
 
   expect(clock.text).toMatchObject({size: 28, color: STAGE_COLORS.muted});
   expect(clock.frame.y).toBeGreaterThanOrEqual(next.frame.y + next.frame.h);

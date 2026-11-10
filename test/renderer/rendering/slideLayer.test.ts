@@ -104,6 +104,27 @@ describe('SlideLayerView', () => {
     }
   });
 
+  it('fits toward a changing target above and below the saved text size', () => {
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(1000);
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(
+      1000,
+    );
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(100);
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(100);
+    const {view, shownPage} = setUp();
+    view.show(VERSE, false);
+    const block = shownPage()?.querySelector<HTMLElement>(`.${classes.block}`);
+    view.setTargetSize(120);
+    expect(block?.style.fontSize).toBe('120px');
+    view.setTargetSize(60);
+    expect(block?.style.fontSize).toBe('60px');
+    view.setMinimumSize(48);
+    view.setTargetSize(30);
+    expect(block?.style.fontSize).toBe('48px');
+    view.dispose();
+    vi.restoreAllMocks();
+  });
+
   it('changes a retained bulleted page to discs and restores the existing glyph layout', () => {
     const {view, shownPage} = setUp();
     const style = {...DEFAULT_TEXT_STYLE, bullets: true};

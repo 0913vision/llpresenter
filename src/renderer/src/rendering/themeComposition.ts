@@ -371,7 +371,12 @@ export class ThemeCompositionView {
         ? (currentSize * 2) / 3
         : undefined;
     for (const view of page.elements) {
-      if (view.element.kind === 'nextText') view.capTextSize(maximum);
+      if (view.element.kind !== 'nextText') continue;
+      if (content.frame.screen?.kind === 'stage') {
+        view.targetTextSize(maximum);
+      } else {
+        view.capTextSize(maximum);
+      }
     }
     page.root.classList.toggle(
       classes.instant,

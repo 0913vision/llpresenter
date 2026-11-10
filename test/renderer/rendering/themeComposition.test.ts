@@ -1341,14 +1341,42 @@ it('caps next text against the fitted current size for varied slide pairs', () =
   view.dispose();
 });
 
-it('caps section stage next text against the Korean item name, not its English subtitle', () => {
+it.each(['song', 'ad'] as const)(
+  'targets two thirds of the fitted stage current size for %s items',
+  kind => {
+    const {view} = setup();
+    const size = vi.spyOn(ThemeElementView.prototype, 'fittedTextSize');
+    const target = vi.spyOn(ThemeElementView.prototype, 'targetTextSize');
+    const elements: ThemeElement[] = [
+      {...themeElementBase(), kind: 'currentText'},
+      {...themeElementBase(31), kind: 'nextText'},
+    ];
+    const base = frame(elements);
+    if (!base.theme?.item) throw Error('missing item');
+    const stage = {
+      ...base,
+      screen: {id: THEME_MAIN, kind: 'stage' as const},
+      theme: {...base.theme, item: {...base.theme.item, kind}},
+    };
+    for (const fitted of [120, 150, 72]) {
+      size.mockReturnValue(fitted);
+      view.render(song, stage);
+      expect(target).toHaveBeenLastCalledWith((fitted * 2) / 3);
+    }
+    size.mockRestore();
+    target.mockRestore();
+    view.dispose();
+  },
+);
+
+it('sizes section stage next text against the Korean item name, not its English subtitle', () => {
   const {view} = setup();
   const size = vi
     .spyOn(ThemeElementView.prototype, 'fittedTextSize')
     .mockImplementation(function (this: ThemeElementView) {
       return this.element.kind === 'itemName' ? 120 : 42;
     });
-  const cap = vi.spyOn(ThemeElementView.prototype, 'capTextSize');
+  const cap = vi.spyOn(ThemeElementView.prototype, 'targetTextSize');
   const elements: ThemeElement[] = [
     {...themeElementBase(), kind: 'itemName'},
     {...themeElementBase(31), kind: 'currentText'},
@@ -1379,7 +1407,7 @@ it.each(['missing', 'hidden', 'invalid'] as const)(
         }
         return 42;
       });
-    const cap = vi.spyOn(ThemeElementView.prototype, 'capTextSize');
+    const cap = vi.spyOn(ThemeElementView.prototype, 'targetTextSize');
     const elements: ThemeElement[] = [
       ...(state === 'missing'
         ? []

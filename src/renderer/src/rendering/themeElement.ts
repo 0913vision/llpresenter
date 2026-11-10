@@ -482,6 +482,10 @@ export class ThemeElementView {
     return this.text?.fittedSize();
   }
 
+  targetTextSize(target: number | undefined): void {
+    this.text?.setTargetSize(target);
+  }
+
   capTextSize(maximum: number | undefined): void {
     this.text?.capSize(maximum);
   }
