@@ -195,7 +195,7 @@ describe('slide row editing surface', () => {
         />,
       );
       const card = screen.getByLabelText('\uAD6C\uC5ED \uC774\uB984');
-      expect(card.textContent).toContain(`Card ${mode}`);
+      expect(card.textContent).toBe(`Card ${mode}`);
       expect(card.getAttribute('draggable')).not.toBe('true');
       expect(draft.snapshot.item.slides.slides).toHaveLength(4);
       await user.click(card);

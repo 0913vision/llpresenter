@@ -71,10 +71,6 @@
   padding: var(--space-14);
   outline: none;
 }
-.leadingNumber {
-  color: var(--text-3);
-  font: var(--type-caption);
-}
 [data-leading-active] .leading {
   background: var(--selection);
   border-radius: var(--radius-sm);

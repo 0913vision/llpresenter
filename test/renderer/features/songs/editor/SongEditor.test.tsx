@@ -85,7 +85,7 @@ describe('song editor view', () => {
         />,
       );
       const card = screen.getByLabelText('\uAD6C\uC5ED \uC774\uB984');
-      expect(card.textContent).toContain(`Card ${mode}`);
+      expect(card.textContent).toBe(`Card ${mode}`);
       expect(
         screen.getByRole('textbox', {
           name: '\uC2AC\uB77C\uC774\uB4DC 2 \uAC00\uC0AC',

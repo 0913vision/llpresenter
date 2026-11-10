@@ -60,6 +60,11 @@ export function SongSlideSurface<T extends SlideListItem>({
   readonly editLabel?: string;
 }): JSX.Element {
   const readOnly = blocked || session.readOnly;
+  const contentLocked = readOnly || contentReadOnly;
+  const editReason = readOnly ? NEWER_FILE_REASON : undefined;
+  const contentEditReason =
+    editReason ??
+    (contentReadOnly ? '성경 구절은 편집할 수 없습니다' : undefined);
   const view = useSyncExternalStore(
     session.slideModel.subscribe,
     session.slideModel.getSnapshot,
@@ -124,7 +129,7 @@ export function SongSlideSurface<T extends SlideListItem>({
     }
   };
   const paste = (): void => {
-    if (readOnly || contentReadOnly) return;
+    if (contentLocked) return;
     surfaceRef.current?.focus({preventScroll: true});
     const model = session.slideModel;
     const intent = session.slideIntent;
@@ -189,10 +194,6 @@ export function SongSlideSurface<T extends SlideListItem>({
       surfaceRef.current?.focus({preventScroll: true});
     }
   };
-  const editReason = readOnly ? NEWER_FILE_REASON : undefined;
-  const contentEditReason =
-    editReason ??
-    (contentReadOnly ? '성경 구절은 편집할 수 없습니다' : undefined);
   const selectionReason = selected ? undefined : '선택한 슬라이드가 없습니다';
   const deleteReason = leadingSelected
     ? editReason
@@ -459,7 +460,7 @@ export function SongSlideSurface<T extends SlideListItem>({
         ) {
           return;
         }
-        if (readOnly || contentReadOnly || isInTextEntry(event.target)) return;
+        if (contentLocked || isInTextEntry(event.target)) return;
         surfaceRef.current?.focus({preventScroll: true});
         const text = session.cutSlides();
         if (text === null) return;
@@ -474,7 +475,7 @@ export function SongSlideSurface<T extends SlideListItem>({
         ) {
           return;
         }
-        if (readOnly || contentReadOnly || isInTextEntry(event.target)) return;
+        if (contentLocked || isInTextEntry(event.target)) return;
         event.preventDefault();
         event.stopPropagation();
         surfaceRef.current?.focus({preventScroll: true});
@@ -764,7 +765,7 @@ export function SongSlideSurface<T extends SlideListItem>({
         setMenu(contextMenuAnchor(event));
       }}
       onDragStart={event => {
-        if (readOnly || contentReadOnly || isInTextEntry(event.target)) {
+        if (contentLocked || isInTextEntry(event.target)) {
           event.preventDefault();
           return;
         }
@@ -796,8 +797,7 @@ export function SongSlideSurface<T extends SlideListItem>({
       }}
       onDragOver={event => {
         if (
-          !readOnly &&
-          !contentReadOnly &&
+          !contentLocked &&
           event.dataTransfer.types.includes('application/x-llp-song-slide-move')
         ) {
           event.preventDefault();
@@ -812,8 +812,7 @@ export function SongSlideSurface<T extends SlideListItem>({
       }}
       onDrop={event => {
         if (
-          readOnly ||
-          contentReadOnly ||
+          contentLocked ||
           event.dataTransfer.getData('application/x-llp-song-slide-move') !==
             session.slideDocumentId
         ) {

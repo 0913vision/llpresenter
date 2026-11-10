@@ -39,7 +39,7 @@
 }
 :global([data-leading-card]):has(> .thumbnail) {
   display: grid;
-  grid-template-columns: var(--space-18) minmax(0, 144px) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 144px) minmax(0, 1fr);
   align-items: start;
   gap: var(--space-16);
 }
@@ -47,11 +47,6 @@
 :global([data-leading-card]):has(> .thumbnail[data-view='grid']) {
   grid-template-columns: minmax(0, 1fr);
   gap: var(--space-6);
-}
-
-:global([data-leading-card]):has(> .thumbnail[data-view='grid'])
-  > span:first-child {
-  display: none;
 }
 
 :global([aria-label='슬라이드 편집'] [data-leading-card]):has(

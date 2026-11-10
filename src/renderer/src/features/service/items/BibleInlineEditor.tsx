@@ -166,6 +166,8 @@ function BibleEditorContent({
             {windowed.indices.map(index => {
               const slide = data.slides[index];
               if (slide === undefined) return null;
+              const id = ids[index];
+              if (id === undefined) throw new Error('Missing Bible slide ID');
               const style = {
                 top:
                   windowed.offsets[Math.floor(index / windowed.columns)] ?? 0,
@@ -197,7 +199,7 @@ function BibleEditorContent({
               ) : (
                 <MeasuredRow
                   key={index}
-                  id={ids[index] ?? ''}
+                  id={id}
                   onHeight={saveHeight}
                   className={styles.position}
                   style={style}

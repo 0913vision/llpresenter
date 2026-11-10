@@ -81,6 +81,14 @@ it('shows an editable card and read-only Bible verses in both views', async () =
     await editor.dispose();
   });
   await screen.findByRole('textbox', {name: '구역 이름'});
+  const cardRow = (): HTMLElement => {
+    const row = view.container.querySelector<HTMLElement>(
+      '[data-leading-card]',
+    );
+    if (row === null) throw Error('Missing leading card');
+    return row;
+  };
+  expect(within(cardRow()).getAllByText('1', {exact: true})).toHaveLength(1);
   const editorRegion = screen.getByRole('region', {
     name: '\uC131\uACBD \uD3B8\uC9D1',
   });
@@ -104,6 +112,7 @@ it('shows an editable card and read-only Bible verses in both views', async () =
   );
   expect(screen.getAllByRole('textbox')).toHaveLength(2);
   await userEvent.click(screen.getByRole('button', {name: '격자'}));
+  expect(within(cardRow()).getAllByText('1', {exact: true})).toHaveLength(1);
   expect(within(toolbar).getByRole('spinbutton')).toBeDefined();
   expect(screen.getByText('Second verse')).toBeDefined();
   expect(screen.getAllByRole('textbox')).toHaveLength(2);
