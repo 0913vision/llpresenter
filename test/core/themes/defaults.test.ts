@@ -1,3 +1,4 @@
+import {STAGE_COLORS} from '@core/themes/stageColors';
 import * as v from 'valibot';
 import {expect, it} from 'vitest';
 import {
@@ -6,7 +7,11 @@ import {
 } from '@core/themes/starterLayout';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {createScreenId} from '@core/schema/ids';
-import {builtInTheme, createDefaultThemes} from '@core/themes/defaults';
+import {
+  builtInTheme,
+  createDefaultThemes,
+  standbyStageLayout,
+} from '@core/themes/defaults';
 import {resolveThemeOutput} from '@core/themes/output';
 import {themeItemKinds} from '@core/themes/elementRules';
 import {themesSchema} from '@core/schema/themes';
@@ -63,20 +68,21 @@ it('places song lyrics near the top while retaining the starter broadcast styles
     STARTER_STAGE_ELEMENTS.map(element => element.frame),
   );
   expect(theme.screens[stage]?.elements.map(element => element.kind)).toEqual([
+    'text',
     'label',
-    'currentText',
-    'clock',
-    'timer',
-    'nextLabel',
-    'nextText',
     'stageMessage',
+    'text',
+    'timer',
+    'clock',
+    'currentText',
+    'nextText',
   ]);
   const current = theme.screens[stage]?.elements.find(
     element => element.kind === 'currentText',
   );
   expect(current?.text).toMatchObject({
     font: STARTER_TEXT_STYLE.font,
-    size: 120,
+    size: 170,
     weight: STARTER_TEXT_STYLE.weight,
     vAlign: STARTER_TEXT_STYLE.vAlign,
   });
@@ -445,15 +451,25 @@ it('uses readable stage defaults and cover for built-in audience media', () => {
     current.frame.h / (4 * current.text.lineHeight),
   ).toBeGreaterThanOrEqual(90);
   expect(next.text.size).toBeLessThan(current.text.size);
-  expect(next.frame.x).toBe(current.frame.x);
-  expect(next.frame.w).toBe(current.frame.w);
+  expect(next.frame.y).toBeGreaterThan(current.frame.y + current.frame.h);
+  expect(next).toMatchObject({
+    lineLimit: 2,
+    text: {align: 'center', vAlign: 'bottom', color: STAGE_COLORS.next},
+  });
+  expect(current.text).toMatchObject({align: 'center', color: '#FFFFFF'});
   for (const label of elements.filter(
     e => e.kind === 'label' || e.kind === 'nextLabel',
   )) {
-    expect(label.frame.w).toBe(current.frame.w);
-    expect(label.text.size).toBeGreaterThanOrEqual(40);
+    expect(label.text.size).toBeGreaterThanOrEqual(36);
     expect(label.frame.h).toBeGreaterThanOrEqual(
       label.text.size * label.text.lineHeight,
     );
   }
+});
+
+it('keeps standby clock before timer independent of the live stage layout order', () => {
+  expect(standbyStageLayout().elements.map(element => element.kind)).toEqual([
+    'clock',
+    'timer',
+  ]);
 });

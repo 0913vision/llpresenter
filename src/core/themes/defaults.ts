@@ -1,4 +1,9 @@
-import {STARTER_TEXT_STYLE, STARTER_STAGE_ELEMENTS} from './starterLayout';
+import {
+  STARTER_TEXT_STYLE,
+  STARTER_STAGE_ELEMENTS,
+  STAGE_BAR_HEIGHT,
+} from './starterLayout';
+import {STAGE_COLORS} from './stageColors';
 import {
   createScreenId,
   createThemeId,
@@ -87,16 +92,6 @@ const audienceReferenceFrame = {
   y: lyricFrame.y + lyricFrame.h - referenceHeight,
   h: referenceHeight,
 };
-const stageKinds = {
-  currentLabel: 'label',
-  currentSlide: 'currentText',
-  clock: 'clock',
-  timer: 'timer',
-  nextLabel: 'nextLabel',
-  nextSlide: 'nextText',
-  stageMessage: 'stageMessage',
-} as const;
-
 function stageElements(): ThemeElement[] {
   const text: ThemeText = {
     ...basicText,
@@ -106,36 +101,70 @@ function stageElements(): ThemeElement[] {
     const base = {
       id: createThemeElementId(uuid(index + 1)),
       frame: {...element.frame},
-      text,
     };
-    const kind = stageKinds[element.kind];
-    if (kind === 'currentText' || kind === 'nextText') {
-      return {
-        ...base,
-        kind,
-        text: {
-          ...text,
-          size: kind === 'currentText' ? 120 : 80,
-          lineHeight: 1.2,
-          maxLines,
-        },
-      };
+    switch (element.kind) {
+      case 'itemTitle':
+        return {
+          ...base,
+          kind: 'text',
+          content: '',
+          stageSource: 'stageItemName',
+          text: {...text, size: 40, align: 'left'},
+        };
+      case 'position':
+        return {
+          ...base,
+          kind: 'text',
+          content: '',
+          stageSource: 'stagePosition',
+          text: {...text, size: 36},
+        };
+      case 'currentLabel':
+        return {
+          ...base,
+          kind: 'label',
+          text: {...text, size: 36, align: 'left'},
+        };
+      case 'clock':
+        return {
+          ...base,
+          kind: 'clock',
+          clockFormat: '24h',
+          text: {...text, size: 46, align: 'right'},
+        };
+      case 'timer':
+        return {
+          ...base,
+          kind: 'timer',
+          text: {...text, size: 42, align: 'right', color: STAGE_COLORS.next},
+        };
+      case 'stageMessage':
+        return {
+          ...base,
+          kind: 'stageMessage',
+          text: {...text, size: 36, align: 'center', color: STAGE_COLORS.next},
+        };
+      case 'currentSlide':
+        return {
+          ...base,
+          kind: 'currentText',
+          text: {...text, size: 170, lineHeight: 1.15, maxLines: 4},
+        };
+      case 'nextSlide':
+        return {
+          ...base,
+          kind: 'nextText',
+          lineLimit: 2,
+          text: {
+            ...text,
+            size: 110,
+            lineHeight: 1.15,
+            maxLines: 2,
+            vAlign: 'bottom',
+            color: STAGE_COLORS.next,
+          },
+        };
     }
-    if (kind === 'label' || kind === 'nextLabel') {
-      return {
-        ...base,
-        kind,
-        text: {
-          ...text,
-          size: 42,
-          lineHeight: 1.1,
-          color: '#AAAAAA',
-          align: 'left',
-        },
-      };
-    }
-    if (kind === 'clock') return {...base, kind, clockFormat: '24h'};
-    return {...base, kind};
   });
 }
 
@@ -144,12 +173,13 @@ function stageElements(): ThemeElement[] {
  * clock and the timer, which draws only while a timer is set for the screen.
  */
 export function standbyStageLayout(): ThemeScreenLayout {
-  return {
-    mode: {kind: 'own'},
-    elements: stageElements().filter(
-      element => element.kind === 'clock' || element.kind === 'timer',
-    ),
-  };
+  const elements = stageElements();
+  const clock = elements.find(element => element.kind === 'clock');
+  const timer = elements.find(element => element.kind === 'timer');
+  if (clock === undefined || timer === undefined) {
+    throw Error('Missing stage clock or timer');
+  }
+  return {mode: {kind: 'own'}, elements: [clock, timer]};
 }
 
 /**
@@ -235,6 +265,27 @@ function layoutFor(
   return {
     mode: {kind: 'own'},
     elements,
+    ...(screen.kind === 'stage'
+      ? {
+          background: {
+            kind: 'linear' as const,
+            angle: 90,
+            mixing: 'oklch' as const,
+            stops: [
+              {position: 0, color: STAGE_COLORS.bar},
+              {
+                position: (STAGE_BAR_HEIGHT / THEME_LIMITS.height) * 100,
+                color: STAGE_COLORS.bar,
+              },
+              {
+                position: (STAGE_BAR_HEIGHT / THEME_LIMITS.height) * 100,
+                color: '#000000',
+              },
+              {position: 100, color: '#000000'},
+            ],
+          },
+        }
+      : {}),
     ...(kind === 'song' && screen.kind === 'audience'
       ? {songTitle: 'sunday' as const}
       : {}),

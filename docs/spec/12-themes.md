@@ -679,20 +679,22 @@ remaining slides retain the item theme.
 If a section card theme is missing, output reports the missing theme and uses
 the blank-item default theme, as for any missing item theme.
 
-New-library stage layouts use a large centered current text frame
-(45,115,1350,450), a smaller next frame (45,640,1350,300), and muted 42 px
-labels. Current text starts at 120 px; next starts at 80 px and is capped at two
-thirds of the fitted current size when current text is present. Clock, timer,
-and stage message retain their positions. These dimensions are our design.
-Built-in audience background and media elements start at 채우기 (cover); their
-editable theme-element 맞춤 wins over the media property's 맞춤 when rendered
-through that element. The media properties panel explains this precedence in a
-tooltip. Existing libraries are unchanged.
+New-library stage layouts show the item name, slide label, position, clock,
+running timer and stage message in a readable top bar. White centered current
+text occupies the large area above a bottom-aligned yellow centered next
+preview. The next preview shows at most two source lines and is capped at two
+thirds of the fitted current size. Section cards center their Korean name and
+English subtitle above the same next preview. The stage notice retains its
+church news card. These defaults apply to new libraries; existing layouts are
+unchanged. Built-in audience background and media elements start at 채우기
+(cover); their editable theme-element 맞춤 wins over the media property's 맞춤
+when rendered through that element. The media properties panel explains this
+precedence in a tooltip. Existing libraries are unchanged.
 
 The section gradient layout retains 늘리기 for its background element.
 
 Bible item cards use their section theme; the passage slides retain their Bible
 theme and their overlay ranges follow their content positions.
 
-On a stage section card the next label and text keep the normal stage frames and
-next text is capped against the fitted Korean item name, not its subtitle.
+On a stage section card the next text keeps the normal stage frame and is capped
+against the fitted Korean item name, not its subtitle.

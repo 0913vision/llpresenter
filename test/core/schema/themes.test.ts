@@ -345,6 +345,35 @@ describe('theme element properties', () => {
     ).toBe(maxLines === 1 || maxLines === 12);
   });
 
+  it.each([1, 2, 12, 0, 13, 1.5])(
+    'bounds the optional next preview line limit at %s',
+    lineLimit => {
+      expect(
+        v.safeParse(themeElementSchema, {
+          ...element,
+          kind: 'nextText',
+          text: {...text, maxLines: 2},
+          lineLimit,
+        }).success,
+      ).toBe([1, 2, 12].includes(lineLimit));
+    },
+  );
+
+  it.each(['stageItemName', 'stagePosition', 'unknown'])(
+    'validates stage text source %s',
+    source => {
+      expect(
+        v.safeParse(themeElementSchema, {
+          ...element,
+          kind: 'text',
+          text,
+          content: '',
+          stageSource: source,
+        }).success,
+      ).toBe(source !== 'unknown');
+    },
+  );
+
   it.each(['fit', 'fill', 'stretch'])('accepts media fit %s', fit => {
     expect(
       v.safeParse(themeElementSchema, {...element, kind: 'media', fit}).success,

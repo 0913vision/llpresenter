@@ -1135,3 +1135,5 @@ Bible split selection and verse shortcuts count source verses independently of
 the opening card. Item navigation and restoration include the card.
 
 When an opening Bible card is live, the previous-verse key does nothing.
+
+In the 준비 palette, Ctrl Z from the 곡 tab undoes the latest 예배 순서 edit.

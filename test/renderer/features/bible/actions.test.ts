@@ -234,6 +234,7 @@ describe('Bible slide source', () => {
       slide: {
         itemId: useShow.getState().openItemId,
         position: 1,
+        sequenceLength: 3,
         label: '3:17',
         reference: '요한복음 3:17',
         kind: 'bible',

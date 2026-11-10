@@ -5,7 +5,8 @@ import {
   isItemOfKind,
   type ServiceItem,
 } from '@core/schema/service';
-import {sundayTemplate} from '@core/services/sundayTemplate';
+import {newSundayCreed, sundayTemplate} from '@core/services/sundayTemplate';
+import {createServiceItemId} from '@core/schema/ids';
 import {LITURGY_SLIDES} from '@core/services/liturgySlides';
 import {SUNDAY_SECTIONS, SECTION_THEMES} from '@core/themes/sundaySections';
 import {PREPARATION_THEME_ID} from '@core/themes/sundayStandby';
@@ -124,3 +125,38 @@ it('assigns independent item and slide IDs to each template build', () => {
   ]);
   expect(new Set(ids).size).toBe(ids.length);
 });
+
+it.each(['new', 'old'] as const)(
+  'creates the Sunday creed with its card and %s translation',
+  translation => {
+    const id = createServiceItemId('00000000-0000-4000-8000-000000000987');
+    const item = newSundayCreed(id, translation);
+    if (!isItemOfKind(item, 'slides')) throw Error('Expected creed slides');
+    expect(item.id).toBe(id);
+    expect(item.theme).toBe(CREED_PRAYER_THEME_ID);
+    expect(item.sectionCard).toEqual({
+      name: SUNDAY_SECTIONS[1]?.name,
+      english: "Apostle's Creed",
+      theme: SUNDAY_SECTIONS[1]?.theme,
+    });
+    expect(
+      item.slides.slides.map(slide => ('text' in slide ? slide.text : null)),
+    ).toEqual(LITURGY_SLIDES.creed[translation]);
+    if (translation === 'new') {
+      const template = sundayTemplate().order.find(
+        entry =>
+          isItemOfKind(entry, 'slides') &&
+          entry.theme === CREED_PRAYER_THEME_ID,
+      );
+      if (!template || !isItemOfKind(template, 'slides')) {
+        throw Error('Expected template creed');
+      }
+      expect(template.sectionCard).toEqual(item.sectionCard);
+      expect(
+        template.slides.slides.map(slide =>
+          'text' in slide ? slide.text : null,
+        ),
+      ).toEqual(LITURGY_SLIDES.creed.new);
+    }
+  },
+);

@@ -1,3 +1,4 @@
+import {builtInTheme} from '@core/themes/defaults';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {LiveStore} from '@main/live/store';
@@ -278,6 +279,50 @@ describe('registered overlay layers', () => {
     ).toBeGreaterThan(5);
     send({type: 'stage.message.set', text: null});
     render({id: STAGE, kind: 'stage'});
+    expect(shownText('stage-message')).toBeNull();
+  });
+
+  it('uses a stage theme message element when present, and falls back for saved layouts', () => {
+    const {send, renderer, store, parent, shownText} = setup();
+    send({type: 'stage.message.set', text: 'Stage cue'});
+    const theme = builtInTheme('song');
+    const layout = theme.screens[STAGE];
+    if (layout === undefined) throw Error('Missing stage layout');
+    const themeFrame = {
+      themeId: theme.id,
+      revision: 1,
+      missing: [],
+      sourceScreenId: STAGE,
+      emptyColor: '#000000',
+      layout,
+      item: null,
+    };
+    const stageFrame = {
+      screen: {id: STAGE, kind: 'stage' as const},
+      stageMessage: 'Stage cue',
+      transitions: false,
+    };
+    renderer.render(store.state.layers, {...stageFrame, theme: themeFrame});
+    expect(shownText('stage-message')).toBeNull();
+    expect(
+      parent.querySelector('[data-kind="stageMessage"]')?.textContent,
+    ).toContain('Stage cue');
+    const savedLayout = {
+      ...layout,
+      elements: layout.elements.filter(
+        element => element.kind !== 'stageMessage',
+      ),
+    };
+    renderer.render(store.state.layers, {
+      ...stageFrame,
+      theme: {...themeFrame, layout: savedLayout},
+    });
+    expect(shownText('stage-message')).toBe('Stage cue');
+    renderer.render(store.state.layers, {
+      ...stageFrame,
+      screen: {id: MAIN, kind: 'audience'},
+      theme: {...themeFrame, layout: savedLayout},
+    });
     expect(shownText('stage-message')).toBeNull();
   });
 

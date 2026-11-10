@@ -65,7 +65,11 @@ export function PrepPalette({
     </button>
   );
   return (
-    <Panel label={PREP_PALETTE_LABEL} className={styles.panel}>
+    <Panel
+      label={PREP_PALETTE_LABEL}
+      dataPanel="prep-palette"
+      className={styles.panel}
+    >
       {!navigating ? (
         <PanelHeader>
           <PanelTabs

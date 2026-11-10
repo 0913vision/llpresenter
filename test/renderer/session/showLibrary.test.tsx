@@ -99,6 +99,7 @@ it('refreshes the source and outputs its background before lyrics without item.s
           slide: {
             itemId,
             position: 0,
+            sequenceLength: 2,
             label: '1절',
             lines: ['창작한 첫 줄'],
             next: {label: '후렴', lines: ['창작한 두 번째 줄']},
@@ -155,6 +156,7 @@ it('drops a pending library output after another source outputs', async () => {
         slide: {
           itemId: 'song-morning',
           position: 0,
+          sequenceLength: 4,
           label: '1절',
           lines: sampleService.tiles['song-morning']?.[0]?.lines,
           next: {
@@ -243,6 +245,7 @@ it.each(['failure', 'timeout'] as const)(
           slide: {
             itemId,
             position: 0,
+            sequenceLength: 1,
             label: '후렴',
             lines: ['갱신된 창작 가사'],
           },
@@ -339,7 +342,13 @@ it('uses a newer retained tile without applying an older lookup background', asy
       {type: 'media.show', media: {mediaId, loop: true}},
       {
         type: 'slide.show',
-        slide: {itemId, position: 0, label: null, lines: ['최신 창작 가사']},
+        slide: {
+          itemId,
+          position: 0,
+          sequenceLength: 1,
+          label: null,
+          lines: ['최신 창작 가사'],
+        },
       },
     ],
   });

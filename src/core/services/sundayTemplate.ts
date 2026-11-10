@@ -6,7 +6,7 @@ import {
 import type {ServiceItem, Template} from '../schema/service';
 import {SUNDAY_SECTIONS} from '../themes/sundaySections';
 import {PREPARATION_THEME_ID} from '../themes/sundayStandby';
-import {newLiturgyItem} from './liturgy';
+import {newLiturgyItem, type LiturgyTranslation} from './liturgy';
 import {newSectionItem, sectionCardOf} from './sectionCards';
 import {newSlidesItem} from './slidesEdits';
 
@@ -41,6 +41,21 @@ export function newSundayAnnouncement(id: ServiceItemId): ServiceItem {
   };
 }
 
+/** The creed item shared by the template and palette. */
+export function newSundayCreed(
+  id: ServiceItemId,
+  translation: LiturgyTranslation = 'new',
+): ServiceItem {
+  const section = SUNDAY_SECTIONS.find(
+    value => value.name === '\uc0ac\ub3c4\uc2e0\uacbd',
+  );
+  if (section === undefined) throw Error('Missing creed section');
+  return {
+    ...newLiturgyItem(id, {kind: 'creed', translation}),
+    sectionCard: sectionCardOf(section),
+  };
+}
+
 /** Ordinary editable items and empty content sections in the church's order. */
 export function sundayTemplate(): Template {
   const order: ServiceItem[] = [
@@ -64,10 +79,7 @@ export function sundayTemplate(): Template {
     const section = SUNDAY_SECTIONS.find(section => section.name === name);
     if (section === undefined) throw Error(`Missing section card: ${name}`);
     if (name === '사도신경') {
-      order.push({
-        ...newLiturgyItem(itemId(), {kind: 'creed', translation: 'new'}),
-        sectionCard: sectionCardOf(section),
-      });
+      order.push(newSundayCreed(itemId()));
     } else if (name === '광고') {
       order.push(newSundayAnnouncement(itemId()));
     } else {

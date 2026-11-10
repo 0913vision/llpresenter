@@ -17,6 +17,7 @@ export function slideLayerOf(
   return {
     itemId: cursor.itemId,
     position: cursor.index,
+    sequenceLength: tiles.length,
     ...(tile.kind === 'ad' && tile.picture === undefined
       ? {
           textSlideNumber: tiles
@@ -34,9 +35,7 @@ export function slideLayerOf(
         ? tile.label
         : null,
     lines: tile.lines,
-    ...(tile.sectionCard === undefined
-      ? {}
-      : {sectionCard: tile.sectionCard, sequenceLength: tiles.length}),
+    ...(tile.sectionCard === undefined ? {} : {sectionCard: tile.sectionCard}),
     ...(tile.titleSlide === undefined ? {} : {titleSlide: tile.titleSlide}),
     ...(tile.titleLayout === undefined ? {} : {titleLayout: tile.titleLayout}),
     ...(tile.transition === undefined ? {} : {transition: tile.transition}),

@@ -1,4 +1,3 @@
-import {PREP_PALETTE_LABEL} from '../items/paletteItems';
 import {iconByKind} from './serviceItemIcons';
 import {useMediaOrderDrop} from './useMediaOrderDrop';
 import {usePaletteEditing} from '../items/PaletteEditing';
@@ -477,7 +476,7 @@ export function ServiceOrderList({
     !navigator &&
     event.target instanceof Element &&
     !isInTextEntry(event.target) &&
-    event.target.closest(`[aria-label="${PREP_PALETTE_LABEL}"]`) !== null;
+    event.target.closest('[data-panel="prep-palette"]') !== null;
   const renameItem = (
     row: ServiceRow,
   ): import('@renderer/ui/ListRow').GroupRename | undefined => {

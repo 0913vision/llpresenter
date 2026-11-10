@@ -38,6 +38,8 @@
   --ok-tint: #16301f;
   --chroma: #00b140;
   --output-black: #000000;
+  --stage-bar: #12171e;
+  --stage-next: #ffd66b;
   --scrim: rgba(0, 0, 0, 0.6);
   --scrim-strong: rgba(0, 0, 0, 0.72);
   --hue-spectrum: linear-gradient(

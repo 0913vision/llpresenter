@@ -737,6 +737,7 @@ it('undoes and redoes an insertion while the palette keeps focus', async () => {
   const fixture = setup();
   const before = fixture.service().service.order.length;
   const button = screen.getByRole('button', {name: '빈 슬라이드'});
+  expect(button.closest('[data-panel="prep-palette"]')).not.toBeNull();
   button.focus();
   fireEvent.doubleClick(button);
   await waitFor(() =>

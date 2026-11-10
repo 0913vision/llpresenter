@@ -2,9 +2,9 @@ import {iconByKind} from '../order/serviceItemIcons';
 import {createServiceItemId} from '@core/schema/ids';
 import type {ServiceItem} from '@core/schema/service';
 import {newSlidesItem} from '@core/services/slidesEdits';
-import {sectionCardOf} from '@core/services/sectionCards';
 import {
   newSundayAnnouncement,
+  newSundayCreed,
   newSundayPreparation,
 } from '@core/services/sundayTemplate';
 import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
@@ -64,11 +64,9 @@ export async function createPaletteItem(
     );
     if (!section) throw new Error('Section card is unavailable');
     await prepareSection(section);
-    const item =
-      key === 'ad'
-        ? newSundayAnnouncement(id)
-        : await prepareLiturgy('creed', translation);
-    return key === 'ad' ? item : {...item, sectionCard: sectionCardOf(section)};
+    if (key === 'ad') return newSundayAnnouncement(id);
+    await prepareLiturgy('creed', translation);
+    return newSundayCreed(id, translation);
   }
   if (key === 'prayer') return prepareLiturgy('prayer', translation);
   const section = PALETTE_SECTIONS.find(

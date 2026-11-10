@@ -56,11 +56,13 @@ export function Panels({
 /** The basic surface: a header, a scrolling body, and an optional footer. */
 export function Panel({
   label,
+  dataPanel,
   className,
   children,
 }: {
   /** The panel name, such as 예배 순서. */
   readonly label: string;
+  readonly dataPanel?: string | undefined;
   readonly className?: string | undefined;
   readonly children: ReactNode;
 }): JSX.Element {
@@ -69,6 +71,7 @@ export function Panel({
     <PanelIdBase value={base}>
       <section
         aria-label={label}
+        data-panel={dataPanel}
         className={classNames(styles.panel, className)}
       >
         {children}

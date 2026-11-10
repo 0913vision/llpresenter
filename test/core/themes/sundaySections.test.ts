@@ -132,7 +132,7 @@ it('adds an editable section theme without changing the kind defaults or other s
   const stage = createScreenId(STARTER_SCREEN_IDS.stage);
   const stageLayout = theme?.screens[stage];
   const ordinaryStage = builtInTheme('song').screens[stage];
-  for (const kind of ['nextText', 'nextLabel'] as const) {
+  for (const kind of ['nextText'] as const) {
     expect(
       stageLayout?.elements.find(element => element.kind === kind),
     ).toMatchObject(
@@ -144,7 +144,7 @@ it('adds an editable section theme without changing the kind defaults or other s
       element => element.kind === 'itemName' || element.kind === 'currentText',
     ),
   ).toMatchObject([
-    {kind: 'itemName', text: {size: 120}},
+    {kind: 'itemName', text: {size: 170}},
     {kind: 'currentText', text: {size: 42}},
   ]);
 });

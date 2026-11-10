@@ -50,6 +50,7 @@ describe('quick execution', () => {
           slide: {
             itemId: `library:${quickId(101)}`,
             position: 0,
+            sequenceLength: 1,
             label: '절 1',
             lines: ['Invented song'],
           },

@@ -126,6 +126,7 @@ describe('show state', () => {
         slide: {
           itemId: 'song-morning',
           position: 1,
+          sequenceLength: 4,
           label: '후렴',
           lines: ['함께 불러요 함께 노래해요'],
           next: {label: '2절', lines: ['낮은 언덕을 넘어', '바람이 불어 오네']},
@@ -319,6 +320,7 @@ describe('slide hotkeys', () => {
         slide: {
           itemId: 'song-morning',
           position: 0,
+          sequenceLength: 4,
           label: '1절',
           lines: ['아침이 밝아 오네', '새로운 노래를 부르리'],
           next: {

@@ -183,3 +183,46 @@ it('resolves timed and stage content and keeps the stage timer and message throu
     ),
   ).toBe('12:00');
 });
+
+it('limits built-in stage next lines and resolves stage bar data without changing ordinary text', () => {
+  const layers = {
+    ...emptyLayers(),
+    slide: {
+      itemId: 'song',
+      position: 1,
+      sequenceLength: 6,
+      label: 'Verse',
+      lines: ['Current'],
+      next: {label: 'Next', lines: ['First', 'Second', 'Third', 'Fourth']},
+    },
+  };
+  const item = {
+    id: 'song',
+    kind: 'song',
+    source: 'service',
+    title: 'Song',
+  } as const;
+  const next = {
+    ...themeElementBase(),
+    kind: 'nextText',
+    text: {...themeElementBase().text, maxLines: 2},
+  } as const;
+  expect(themeElementText({...next, lineLimit: 2}, {layers, item})).toBe(
+    'First\nSecond',
+  );
+  expect(themeElementText(next, {layers, item})).toBe(
+    'First\nSecond\nThird\nFourth',
+  );
+  const text = {
+    ...themeElementBase(),
+    kind: 'text',
+    content: 'Literal',
+  } as const;
+  expect(
+    themeElementText({...text, stageSource: 'stageItemName'}, {layers, item}),
+  ).toBe('Song');
+  expect(
+    themeElementText({...text, stageSource: 'stagePosition'}, {layers, item}),
+  ).toBe('2 / 6');
+  expect(themeElementText(text, {layers, item})).toBe('Literal');
+});

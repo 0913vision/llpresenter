@@ -74,7 +74,13 @@ export function themeElementText(
           ? (item.title ?? slide.reference ?? null)
           : (slide.reference ?? null);
     case 'nextText':
-      return slide?.next?.lines.join('\n') ?? null;
+      if (slide?.next === undefined) return null;
+      return element.lineLimit === undefined
+        ? slide.next.lines.join('\n')
+        : slide.next.lines
+            .flatMap(line => line.split('\n'))
+            .slice(0, element.lineLimit)
+            .join('\n');
     case 'label':
       return slide?.label ?? null;
     case 'nextLabel':
@@ -92,6 +98,16 @@ export function themeElementText(
     case 'memo':
       return item?.contentCleared ? null : (item?.memo ?? null);
     case 'text':
+      if (element.stageSource === 'stageItemName') {
+        return item?.contentCleared
+          ? null
+          : (item?.title ?? slide?.title ?? null);
+      }
+      if (element.stageSource === 'stagePosition') {
+        return slide?.sequenceLength === undefined
+          ? null
+          : `${slide.position + 1} / ${slide.sequenceLength}`;
+      }
       return element.content;
     case 'clock':
       return content.clock ?? null;

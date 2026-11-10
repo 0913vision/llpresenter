@@ -166,12 +166,12 @@ export function sectionOtherLayout(
         {
           ...element,
           kind: 'itemName' as const,
-          frame: {...element.frame, h: 150},
+          frame: {...element.frame, y: 220, h: 260},
         },
         {
           ...element,
           id: id(99),
-          frame: {...element.frame, y: element.frame.y + 150, h: 90},
+          frame: {...element.frame, y: 480, h: 90},
           text: {...element.text, size: 42, maxLines: 1},
         },
       ];

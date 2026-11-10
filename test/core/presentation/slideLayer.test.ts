@@ -82,6 +82,7 @@ describe('slideLayerOf', () => {
     expect(slideLayerOf({itemId: 'song', index: 0}, tilesOf)).toEqual({
       itemId: 'song',
       position: 0,
+      sequenceLength: 2,
       label: '1절',
       lines: ['a', 'b'],
       next: {label: null, lines: ['c']},

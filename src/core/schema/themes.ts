@@ -134,7 +134,10 @@ export const themeElementSchema = v.pipe(
     textElement('reference', {
       source: v.exactOptional(v.picklist(['slide', 'item'])),
     }),
-    textElement('nextText', {text: lyricText}),
+    textElement('nextText', {
+      text: lyricText,
+      lineLimit: v.exactOptional(maxLines),
+    }),
     textElement('label', {}),
     textElement('nextLabel', {}),
     textElement('itemName', {
@@ -142,7 +145,12 @@ export const themeElementSchema = v.pipe(
     }),
     textElement('slideName', {}),
     textElement('slideNumber', {}),
-    textElement('text', {content: v.string()}),
+    textElement('text', {
+      content: v.string(),
+      stageSource: v.exactOptional(
+        v.picklist(['stageItemName', 'stagePosition']),
+      ),
+    }),
     textElement('clock', {clockFormat: v.picklist(['24h', '12h'])}),
     textElement('timer', {timerId: v.exactOptional(timerIdSchema)}),
     textElement('videoTimeLeft', {}),
