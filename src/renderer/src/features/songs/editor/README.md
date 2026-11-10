@@ -118,12 +118,6 @@ its configured green, black, or checker background. Newer themes/screens pushes
 supersede delayed reads. Settings and renderer resources are released at
 unmount. It subscribes to no live layers and sends no output commands.
 
-`SongSlidePanel` displays `playbackOrder`, retaining repeated occurrences as
-separate selected positions. A click selects the source block and scrolls it
-into view while keyboard focus stays in the grid. It does not paint the song
-background into thumbnails. The caption uses the source block's file position
-and total, including when the cursor is outside a chosen order.
-
 `VirtualSlides` mounts visible rows plus a small overscan. Arrows, Home, and End
 navigate the full logical order and focus/reveal the target window. Shared
 `ThumbnailGrid` position props supply full-list ARIA positions and count.

@@ -1,6 +1,23 @@
 import {isItemOfKind, type ServiceItem} from '@core/schema/service';
 import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
 import type {SongSession} from '@renderer/features/songs/editor/songSession';
+import type {ServiceItemId} from '@core/schema/ids';
+
+/** Counts items following a section header up to the next header. */
+export function sectionItemCount(
+  order: readonly ServiceItem[],
+  headerId: ServiceItemId,
+): number {
+  const start = order.findIndex(row => row.id === headerId);
+  const header = order[start];
+  if (header === undefined || !isItemOfKind(header, 'header')) return 0;
+  let count = 0;
+  for (const row of order.slice(start + 1)) {
+    if (isItemOfKind(row, 'header')) break;
+    count += 1;
+  }
+  return count;
+}
 
 /** Heading of the selected source, independent of the rendered controls. */
 export function detailsHeading({
@@ -11,7 +28,7 @@ export function detailsHeading({
   offset,
   mediaTitle,
 }: {
-  readonly item: ServiceItem | null;
+  readonly item: Exclude<ServiceItem, {readonly header: string}> | null;
   readonly song: SongSession | null;
   readonly library: ShowLibrarySong | null;
   readonly rawCount: number;
@@ -38,9 +55,6 @@ export function detailsHeading({
   }
   if (isItemOfKind(item, 'bible')) {
     return {title: item.bible.ref, kind: '성경', count: rawCount + offset};
-  }
-  if (isItemOfKind(item, 'header')) {
-    return {title: item.header, kind: '구역', count: 0};
   }
   return {title: mediaTitle ?? '미디어 없음', kind: '미디어', count: rawCount};
 }

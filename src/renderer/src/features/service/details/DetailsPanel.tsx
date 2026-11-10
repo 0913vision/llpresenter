@@ -15,7 +15,7 @@ import type {ServiceItemStore} from '../items/serviceItemStore';
 import {useItemSlides} from '../items/useItemSlides';
 import {useItemMedia} from '../items/useItemSources';
 import {slideBand} from '../slides/SlidesVisuals';
-import {detailsHeading} from './detailsHeading';
+import {detailsHeading, sectionItemCount} from './detailsHeading';
 import {detailsPicture} from './detailsPicture';
 import {DetailsInfo} from './DetailsInfo';
 import {DetailsSlides} from './DetailsSlides';
@@ -121,7 +121,7 @@ function DetailsPanelContent({
       (isItemOfKind(item, 'media') || isItemOfKind(item, 'slides')),
   );
   const {title, kind, count} = detailsHeading({
-    item,
+    item: item !== null && isItemOfKind(item, 'header') ? null : item,
     song: state.song,
     library,
     rawCount: bibleTiles?.length ?? raw.length,
@@ -264,13 +264,7 @@ function DetailsPanelContent({
     openEditor(() => api.window.openSongEditor({songId: item.song}), fail);
   };
   if (item !== null && isItemOfKind(item, 'header')) {
-    const order = service?.service.order ?? [];
-    const start = order.findIndex(row => row.id === item.id);
-    let itemCount = 0;
-    for (const row of start < 0 ? [] : order.slice(start + 1)) {
-      if (isItemOfKind(row, 'header')) break;
-      itemCount += 1;
-    }
+    const itemCount = sectionItemCount(service?.service.order ?? [], item.id);
     return (
       <Panel label="세부정보">
         <PanelBody>
