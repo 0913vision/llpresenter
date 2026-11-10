@@ -1,3 +1,4 @@
+import {followTitle} from '@core/songs/newSongTitle';
 import type {Song, SongSlide} from '@core/schema/song';
 import type {SongSlideSource} from '@core/schema/showService';
 import {
@@ -143,6 +144,11 @@ export class SongSlideHistory {
       coalesce,
     );
     return this.snapshot;
+  }
+
+  updateMatchingTitle(previous: string, next: string): void {
+    if (previous === next) return;
+    this.model.mapSlides(slides => followTitle(slides, previous, next));
   }
 
   setSlideHotKey(source: SongSlideSource, code: string | undefined): boolean {

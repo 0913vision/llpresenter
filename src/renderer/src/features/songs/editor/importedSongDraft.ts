@@ -3,7 +3,7 @@ import {parseSongDocument} from '@core/schema/contentDocuments';
 import type {ContentEdit} from '@core/schema/contentEdit';
 import {SONG_SCHEMA_VERSION, type Song} from '@core/schema/song';
 import type {SongId} from '@core/schema/ids';
-import {createSongId} from '@core/schema/ids';
+import {createSongId, createSongSlideId} from '@core/schema/ids';
 import type {TextImportDraft} from '@core/schema/textImport';
 import {importSlides} from '@core/songs/importSlides';
 import {normalizeSongTitle} from '@core/songs/songTitle';
@@ -61,7 +61,14 @@ export class ImportedSongDraft {
       schemaVersion: SONG_SCHEMA_VERSION,
       id: createSongId(crypto.randomUUID()),
       title: normalizeSongTitle(draft.title) || '가져온 곡',
-      slides: importSlides(draft.slides, () => crypto.randomUUID()),
+      slides: [
+        {
+          id: createSongSlideId(crypto.randomUUID()),
+          titleSlide: true,
+          lines: [normalizeSongTitle(draft.title) || '가져온 곡'],
+        },
+        ...importSlides(draft.slides, () => crypto.randomUUID()),
+      ],
     };
     const checked = parseSongDocument({
       song,

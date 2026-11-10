@@ -2,11 +2,12 @@ import {act, fireEvent, screen} from '@testing-library/react';
 import {describe, expect, it} from 'vitest';
 import {
   editorSetup,
-  lyrics,
+  lyrics as slideLyrics,
 } from '@fixtures/renderer/features/songs/editor/editorTesting';
 import {parseSongDocument} from '@core/schema/contentDocuments';
 
 const COUNT = 5000;
+const lyrics = (number = 1): HTMLTextAreaElement => slideLyrics(number + 1);
 async function largeEditor() {
   const f = await editorSetup();
   act(() =>
@@ -59,7 +60,7 @@ describe('windowed song editor', () => {
   it('bounds a large import and reveals its final slide without mounting the whole song', async () => {
     const f = await largeEditor();
     expect(mounted().length).toBeLessThanOrEqual(10);
-    act(() => f.session.select({block: COUNT - 1, start: 0, end: 0}));
+    act(() => f.session.select({block: COUNT, start: 0, end: 0}));
     expect(lyrics(COUNT).value).toBe(`Invented ${COUNT - 1}`);
     expect(mounted().length).toBeLessThanOrEqual(10);
     fireEvent.change(lyrics(COUNT), {target: {value: 'Edited final slide'}});
@@ -89,7 +90,7 @@ describe('windowed song editor', () => {
         document.activeElement
           ?.closest('[data-editor-block]')
           ?.getAttribute('data-editor-block'),
-      ).toBe(String(index));
+      ).toBe(String(index + 1));
       expect(document.activeElement).toBeInstanceOf(HTMLButtonElement);
       await f.user.tab();
       expect(document.activeElement).toBe(lyrics(index + 1));

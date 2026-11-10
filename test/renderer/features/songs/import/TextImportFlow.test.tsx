@@ -170,10 +170,58 @@ describe('text import flow', () => {
     fireEvent.click(screen.getByRole('button', {name: '편집'}));
     expect(f.store.getSnapshot().imported).toBe(true);
     expect(f.store.getSnapshot().session?.title.value).toBe('Invented');
+    expect(
+      f.store.getSnapshot().session?.history.snapshot.song.slides[0],
+    ).toMatchObject({titleSlide: true, lines: ['Invented']});
     expect(onDone).toHaveBeenCalledOnce();
     expect(onEdit).toHaveBeenCalledOnce();
     expect(f.edits).toHaveLength(0);
   });
+
+  it.each(['file', 'clipboard'] as const)(
+    'starts the %s import with a title slide',
+    async source => {
+      const f = fixture();
+      const value =
+        source === 'file'
+          ? {
+              source: 'file' as const,
+              fileName: 'Example.txt',
+              text: 'Example lyrics',
+            }
+          : {
+              source: 'clipboard' as const,
+              fileName: null,
+              text: 'Example title\nExample lyrics',
+            };
+      const api = mockLlpApi({
+        ...f.api,
+        textImport: {
+          read: async () => ({ok: true, value}),
+          preview: async request => convertTextImport(request),
+        },
+      });
+      render(
+        <TextImportFlow
+          api={api}
+          store={f.store}
+          source={source}
+          onDone={vi.fn()}
+          onEdit={vi.fn()}
+          onProblem={f.problem}
+        />,
+      );
+      await screen.findByText('슬라이드 1');
+      fireEvent.click(screen.getByRole('button', {name: '편집'}));
+      const song = f.store.getSnapshot().session?.history.snapshot.song;
+      if (song === undefined) throw new Error('Missing imported song');
+      expect(song.slides[0]).toMatchObject({
+        titleSlide: true,
+        lines: [song.title],
+      });
+      expect(song.slides[1]?.lines).toEqual(['Example lyrics']);
+    },
+  );
 
   it('reads the file again with a chosen encoding and remembers the choice', async () => {
     const f = fixture();
@@ -706,9 +754,10 @@ describe('imported song actions', () => {
     );
   });
 
-  it.each(['곡 제목', '슬라이드 1 가사'])(
+  it.each(['곡 제목', '슬라이드 2 가사'])(
     'saves the imported draft from %s with Ctrl S',
     async name => {
+      HTMLElement.prototype.scrollIntoView = vi.fn();
       const f = fixture();
       f.store.openImported({
         title: 'Imported keyboard title',

@@ -143,6 +143,21 @@ export class SlideListModel<T extends SlideListItem, Context = unknown> {
     return result.ok ? {ok: true, value: this.replace(result.value)} : result;
   };
 
+  /** Map every history state for an external edit that is not a slide undo step. */
+  readonly mapSlides = (map: (slides: readonly T[]) => readonly T[]): void => {
+    const change = (
+      snapshot: SlideListSnapshot<T, Context>,
+    ): SlideListSnapshot<T, Context> => ({
+      ...snapshot,
+      slides: map(snapshot.slides),
+    });
+    this.replace({
+      present: change(this.history.present),
+      past: this.history.past.map(change),
+      future: this.history.future.map(change),
+    });
+  };
+
   /** An accepted catalog rename also changes undo/redo without adding a step. */
   readonly renameLabel = (from: string, to: string): void => {
     const rename = (

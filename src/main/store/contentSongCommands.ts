@@ -92,12 +92,20 @@ class SongContentCommands {
     const titles = new Set(
       this.context.songs.all().map(({data}) => normalizeSongTitle(data.title)),
     );
+    const title = freeTitle(NEW_SONG_TITLE, titles);
     const song: Song = {
       format: 'llsong',
       schemaVersion: SONG_SCHEMA_VERSION,
       id,
-      title: freeTitle(NEW_SONG_TITLE, titles),
-      slides: [{id: createSongSlideId(this.context.newId()), lines: []}],
+      title,
+      slides: [
+        {
+          id: createSongSlideId(this.context.newId()),
+          titleSlide: true,
+          lines: [title],
+        },
+        {id: createSongSlideId(this.context.newId()), lines: []},
+      ],
     };
     const file = join(this.context.locations.songs, `${id}${SONG_EXTENSION}`);
     const full = this.context.savesFull([file]);

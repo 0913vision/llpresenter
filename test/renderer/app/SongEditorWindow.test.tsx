@@ -396,7 +396,7 @@ describe('곡 편집 window', () => {
   it('cancels navigation from an edited new song, then discards it through the single close question', async () => {
     const opened = openWindow(null);
     act(() => opened.session.editor?.openNew());
-    fireEvent.change(lyrics(1), {target: {value: 'New unsaved lines'}});
+    fireEvent.change(lyrics(2), {target: {value: 'New unsaved lines'}});
     const leave = vi.fn();
     act(() => opened.session.editor?.requestLeave(leave));
     await userEvent.click(
@@ -405,7 +405,7 @@ describe('곡 편집 window', () => {
       }),
     );
     expect(leave).not.toHaveBeenCalled();
-    expect(lyrics(1).value).toBe('New unsaved lines');
+    expect(lyrics(2).value).toBe('New unsaved lines');
     const outcome = pendingWritesOf(opened.api).settleDrafts();
     await userEvent.click(
       within(await screen.findByRole('alertdialog')).getByRole('button', {

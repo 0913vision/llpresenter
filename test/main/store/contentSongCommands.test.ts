@@ -471,7 +471,10 @@ describe('ContentStore song creation and deletion', () => {
     const id = first.ok ? first.value.id : '';
     expect(store.song(id)?.song).toMatchObject({
       schemaVersion: 1,
-      slides: [{lines: []}],
+      slides: [
+        {titleSlide: true, lines: [store.song(id)?.song.title]},
+        {lines: []},
+      ],
     });
     expect(files.written).toEqual([
       join(locations.songs, `${id}.llsong`),

@@ -47,6 +47,92 @@ function fixture() {
 }
 
 describe('imported song editor sessions', () => {
+  it('starts imported and new drafts with a title slide and follows an unedited title', () => {
+    const f = fixture();
+    f.store.discardImported();
+    f.store.openImported({title: 'First', slides: [{lines: ['Body']}]});
+    const session = f.store.getSnapshot().session;
+    if (session === null) throw new Error('No session');
+    expect(
+      session.history.snapshot.song.slides.map(slide => slide.lines),
+    ).toEqual([['First'], ['Body']]);
+    expect(session.history.snapshot.song.slides[0]?.titleSlide).toBe(true);
+    session.editTitle('Second');
+    expect(session.history.snapshot.song.slides[0]?.lines).toEqual(['Second']);
+    session.edit({type: 'text', text: 'Custom', start: 0, end: 6});
+    session.editTitle('Third');
+    expect(session.history.snapshot.song.slides[0]?.lines).toEqual(['Custom']);
+    f.store.discardImported();
+    f.store.openNew();
+    const fresh = f.store.getSnapshot().session;
+    if (fresh === null) throw new Error('No new session');
+    expect(fresh.history.snapshot.song.slides[0]).toMatchObject({
+      titleSlide: true,
+      lines: [fresh.title.value],
+    });
+  });
+
+  it('maps title changes across lyric undo and redo without adding an undo step', () => {
+    const f = fixture();
+    f.store.discardImported();
+    f.store.openImported({title: 'Original', slides: [{lines: ['Body']}]});
+    const session = f.store.getSnapshot().session;
+    if (session === null) throw new Error('No session');
+    expect(session.history.canUndo).toBe(false);
+    session.editTitle('Renamed');
+    expect(session.history.canUndo).toBe(false);
+    session.select({block: 1, start: 0, end: 4});
+    session.edit({type: 'text', text: 'Edited', start: 0, end: 4});
+    session.endTyping();
+    session.editTitle('Final');
+    session.edit('undo');
+    expect(
+      session.history.snapshot.song.slides.map(slide => slide.lines),
+    ).toEqual([['Final'], ['Body']]);
+    expect(session.history.canUndo).toBe(false);
+    session.edit('redo');
+    expect(
+      session.history.snapshot.song.slides.map(slide => slide.lines),
+    ).toEqual([['Final'], ['Edited']]);
+  });
+
+  it('preserves a custom title in an older snapshot through a later rename', () => {
+    const f = fixture();
+    f.store.discardImported();
+    f.store.openImported({title: 'Original', slides: [{lines: ['Body']}]});
+    const session = f.store.getSnapshot().session;
+    if (session === null) throw new Error('No session');
+    session.edit({type: 'text', text: 'Custom', start: 0, end: 8});
+    session.endTyping();
+    session.edit({type: 'text', text: 'Original', start: 0, end: 6});
+    session.endTyping();
+    session.editTitle('Renamed');
+    expect(session.history.snapshot.song.slides[0]?.lines).toEqual(['Renamed']);
+    session.edit('undo');
+    expect(session.history.snapshot.song.slides[0]?.lines).toEqual(['Custom']);
+    session.edit('redo');
+    expect(session.history.snapshot.song.slides[0]?.lines).toEqual(['Renamed']);
+  });
+
+  it('does not restore a deleted title on rename and leaves invalid title edits out of the slide', () => {
+    const f = fixture();
+    f.store.discardImported();
+    f.store.openImported({title: 'Original', slides: [{lines: ['Body']}]});
+    const session = f.store.getSnapshot().session;
+    if (session === null) throw new Error('No session');
+    session.editTitle('');
+    expect(session.history.snapshot.song.slides[0]?.lines).toEqual([
+      'Original',
+    ]);
+    session.editTitle('Renamed');
+    expect(session.history.snapshot.song.slides[0]?.lines).toEqual(['Renamed']);
+    session.commandSlides({type: 'delete'});
+    session.editTitle('Again');
+    expect(
+      session.history.snapshot.song.slides.map(slide => slide.lines),
+    ).toEqual([['Body']]);
+  });
+
   it('does not create a library file for a new untouched song, and lets it leave without a question', () => {
     const f = fixture();
     f.store.discardImported();
@@ -89,11 +175,11 @@ describe('imported song editor sessions', () => {
     });
     const session = f.store.getSnapshot().session;
     if (session === null) throw new Error('No imported session');
-    session.select({block: 1, start: 0, end: 0});
+    session.select({block: 2, start: 0, end: 0});
     session.edit({type: 'label', name: 'Chorus'});
     expect(
       session.history.snapshot.song.slides.map(slide => slide.label),
-    ).toEqual(['Verse', 'Chorus']);
+    ).toEqual([undefined, 'Verse', 'Chorus']);
   });
 
   it('evicts clean sessions after repeated imports while retaining the active and item songs', async () => {
@@ -146,6 +232,7 @@ describe('imported song editor sessions', () => {
         lines: slide.lines,
       })),
     ).toEqual([
+      {name: undefined, lines: [f.first.song.title]},
       {name: 'Invented', lines: ['First invented line']},
       {name: undefined, lines: ['Second invented line']},
     ]);
@@ -170,7 +257,8 @@ describe('imported song editor sessions', () => {
     f.session.setBackground(
       createMediaId('00000000-0000-4000-8000-000000000001'),
     );
-    f.session.edit({type: 'text', text: 'Changed', start: 7, end: 7});
+    f.session.select({block: 1, start: 0, end: 0});
+    f.session.edit({type: 'text', text: 'Changed', start: 0, end: 19});
     f.session.endTyping();
     f.session.edit('undo');
     f.session.edit('redo');
@@ -179,7 +267,7 @@ describe('imported song editor sessions', () => {
     expect(await f.session.flush()).toBe(true);
     expect(f.edits).toHaveLength(0);
     expect(f.imports).toHaveLength(0);
-    expect(f.session.history.snapshot.song.slides[0]?.lines).toEqual([
+    expect(f.session.history.snapshot.song.slides[1]?.lines).toEqual([
       'Changed',
     ]);
     expect(f.store.getSnapshot().imported).toBe(true);
@@ -230,6 +318,7 @@ describe('imported song editor sessions', () => {
       draft: {
         title: 'Imported title',
         slides: [
+          {titleSlide: true, lines: ['Imported title']},
           {lines: ['First invented line'], label: 'Invented'},
           {lines: ['Second invented line']},
         ],

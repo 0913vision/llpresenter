@@ -1,3 +1,4 @@
+import {titleSlidesForCopy} from '@core/songs/newSongTitle';
 import {createSongId} from '@core/schema/ids';
 import {loadItemSong, itemSongContent} from './itemSongSession';
 import {
@@ -282,7 +283,12 @@ export function useSongEditorWindow(
     guarded(async () => {
       if (session === null) return false;
       if (from.current !== undefined && !(await session.commit())) return false;
-      const draft = session.draftSong(title);
+      const source = session.draftSong();
+      const draft = {
+        ...source,
+        title,
+        slides: titleSlidesForCopy(source, title, () => crypto.randomUUID()),
+      };
       const result = await api.content.edit({type: 'song.saveAs', song: draft});
       if (!result.ok) {
         report(problem('saveAs'));

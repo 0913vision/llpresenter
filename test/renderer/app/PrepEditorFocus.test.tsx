@@ -488,7 +488,7 @@ it('keeps Ctrl N in the title and enters the first slide text with Enter', async
   expect(document.activeElement).toBe(title);
   await userEvent.keyboard('{Enter}');
   expect(document.activeElement).toBe(
-    screen.getByRole('textbox', {name: '슬라이드 1 가사'}),
+    screen.getByRole('textbox', {name: '슬라이드 1 제목 및 부제'}),
   );
 });
 

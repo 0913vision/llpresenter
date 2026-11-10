@@ -292,3 +292,22 @@ it.each(SUNDAY_SECTIONS)(
     ).toBe(`${section.name}\n${section.english}`);
   },
 );
+
+it('previews the opening song title after a preceding item', () => {
+  const current: SlideTile = {
+    label: null,
+    labelColor: 'none',
+    lines: ['Before'],
+  };
+  const title: SlideTile = {
+    label: null,
+    labelColor: 'none',
+    titleSlide: true,
+    lines: ['Song title'],
+  };
+  const layer = slideLayerOf({itemId: 'before', index: 0}, () => [current], {
+    tile: title,
+    kind: 'song',
+  });
+  expect(layer?.next).toMatchObject({itemKind: 'song', lines: ['Song title']});
+});

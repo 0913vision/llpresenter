@@ -1,3 +1,4 @@
+import {followTitle} from '@core/songs/newSongTitle';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {MediaId} from '@core/schema/ids';
 import type {SongSlideSource} from '@core/schema/showService';
@@ -67,7 +68,9 @@ export class SongSession {
       endTyping: () => this.history.endTyping(),
       capture: document => this.captureDraft(document),
       reject: capture => {
+        const previous = this.title.nextValue;
         this.title.reject(capture.song.title);
+        this.history.updateMatchingTitle(previous, this.title.nextValue);
         this.dirty ||= capture.lyricsDirty;
       },
       acknowledge: (document, capture) =>
@@ -145,7 +148,9 @@ export class SongSession {
 
   editTitle(value: string): void {
     if (!this.acceptsEdits || this.itemSession) return;
+    const previous = this.title.nextValue;
     this.title.edit(value);
+    this.history.updateMatchingTitle(previous, this.title.nextValue);
     if (this.hasChanges || this.persistence.saving) this.persistence.schedule();
     else this.persistence.cancelSaveTimer();
     this.options.changed();
@@ -156,7 +161,9 @@ export class SongSession {
       this.endTyping();
       return;
     }
+    const previous = this.title.nextValue;
     this.title.revertInvalid();
+    this.history.updateMatchingTitle(previous, this.title.nextValue);
     if (!this.persistence.saving && !this.blocked && !this.hasChanges) {
       if (this.persistence.incomingDocument !== undefined) {
         this.install(this.persistence.incomingDocument);
@@ -359,7 +366,7 @@ export class SongSession {
       ...baseSong,
       ...draft,
       title,
-      slides: draft.slides,
+      slides: followTitle(draft.slides, this.title.nextValue, title),
       ...(this.background === undefined ? {} : {background: this.background}),
     };
   }

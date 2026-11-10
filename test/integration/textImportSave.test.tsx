@@ -99,6 +99,7 @@ it('imports invented text, edits it, and saves a real song document without open
   expect(parsed.ok).toBe(true);
   if (parsed.ok) {
     expect(parsed.value.data.slides.map(slide => slide.label)).toEqual([
+      undefined,
       '4절',
       '후렴',
       '직접 입력',

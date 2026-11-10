@@ -1076,6 +1076,12 @@ ordinary text, label, order, save, and clipboard edits (02).
 
 ### Song title slides
 
+New songs begin with a title slide containing the song title and no subtitle.
+Renaming the song updates that line while it still matches the previous title;
+an edited line is preserved. The slide can be deleted and is not recreated. A
+duplicate or saved copy gets a title slide if absent, and its matching title
+line follows the copy name while a customized line is preserved.
+
 The song editor slide menu offers 제목 슬라이드 추가. It inserts the current
 song title at the insertion caret, after the targeted slide, or at the start
 when nothing is selected. Titles may repeat anywhere, including the last slide.

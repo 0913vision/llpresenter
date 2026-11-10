@@ -1,3 +1,4 @@
+import {titleSlidesForCopy} from '@core/songs/newSongTitle';
 import {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {LibrarySong, SongDocument} from '@core/schema/contentDocuments';
@@ -299,7 +300,13 @@ export function useLibrary(
       );
       const result = await api.content.edit({
         type: 'song.saveAs',
-        song: {...source.song, title},
+        song: {
+          ...source.song,
+          title,
+          slides: titleSlidesForCopy(source.song, title, () =>
+            crypto.randomUUID(),
+          ),
+        },
       });
       const copyId = appliedId(result);
       if (copyId === null || !isActive()) return;

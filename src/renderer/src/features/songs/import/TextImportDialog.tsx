@@ -1,7 +1,7 @@
 import {useCallback, useMemo, useState, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {LibrarySong} from '@core/schema/contentDocuments';
-import {createSongId} from '@core/schema/ids';
+import {createSongId, createSongSlideId} from '@core/schema/ids';
 import {SONG_SCHEMA_VERSION, type Song} from '@core/schema/song';
 import type {Label} from '@core/schema/labels';
 import type {Preferences} from '@core/schema/preferences';
@@ -62,6 +62,21 @@ function previewSong(draft: TextImportDraft, title: string): Song {
     title,
     slides: importSlides(draft.slides, candidateId),
   };
+}
+
+/** The eventual editor draft adds a title slide; include it in limit checks. */
+function draftLimitReason(song: Song): string | undefined {
+  return importLimitReason({
+    ...song,
+    slides: [
+      {
+        id: createSongSlideId('00000000-0000-4000-8000-000000000000'),
+        titleSlide: true,
+        lines: [song.title],
+      },
+      ...song.slides,
+    ],
+  });
 }
 
 export function TextImportDialog({
@@ -176,14 +191,14 @@ export function TextImportDialog({
   }, [draft, shownTitle]);
   const draftReason = useMemo(
     () =>
-      candidateSong === null ? undefined : importLimitReason(candidateSong),
+      candidateSong === null ? undefined : draftLimitReason(candidateSong),
     [candidateSong],
   );
   const mappingReason = useMemo(
     () =>
       !mappingOpen || preview.draft === null
         ? undefined
-        : importLimitReason(
+        : draftLimitReason(
             previewSong(
               applyImportLabelMapping(preview.draft, selectedMapping),
               shownTitle,

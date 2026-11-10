@@ -454,6 +454,28 @@ describe('text import dialog', () => {
     ).toEqual(['1절', '']);
   });
 
+  it('counts the added title slide against the import limit without changing the preview', async () => {
+    const f = fixture();
+    f.preview.mockResolvedValue({
+      ok: true,
+      value: {
+        title: 'Invented',
+        slides: Array.from({length: SONG_IMPORT_LIMITS.slides}, () => ({
+          lines: ['Body'],
+        })),
+      },
+    });
+    render(<TextImportDialog {...f.props} />);
+    const edit = await screen.findByRole('button', {name: '편집'});
+    await waitFor(() =>
+      expect(edit.getAttribute('aria-disabled')).toBe('true'),
+    );
+    expect((await hoverForTooltip(edit))?.textContent).toBe(
+      limitReason('슬라이드', SONG_IMPORT_LIMITS.slides),
+    );
+    expect(screen.getAllByRole('option')[0]?.textContent).toContain('Body');
+  });
+
   it('keeps different candidate labels when section indices are equal', async () => {
     const f = fixture();
     f.preview.mockResolvedValue({
