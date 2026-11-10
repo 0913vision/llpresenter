@@ -3,15 +3,99 @@ import {expect, it, vi} from 'vitest';
 import {editorSetup} from '@fixtures/renderer/features/songs/editor/editorTesting';
 import {SlideInspector} from '@renderer/features/service/slideInspector/SlideInspector';
 import {seedSlideSurfaceView} from '@renderer/features/songs/editor/SlideSurfaceView';
+import {createSongId} from '@core/schema/ids';
+import {fixtureMedia} from '@fixtures/core/mediaList';
+import {
+  fixtureItems,
+  fixtureServiceId,
+} from '@fixtures/renderer/features/service/items/itemFixture';
+import {useShow} from '@renderer/session/show';
 
 vi.mock('@renderer/platform/useSettingsDocument', () => ({
   useSettingsDocument: () => null,
 }));
-vi.mock('@renderer/features/songs/editor/SongPreview', () => ({
-  Picture: ({layers}: {layers: {slide: {lines: string[]} | null}}) => (
-    <div data-testid="picture">{layers.slide?.lines.join(' ')}</div>
+vi.mock('@renderer/rendering/SlidePicture', () => ({
+  SlidePicture: ({
+    slide,
+    background,
+  }: {
+    slide: {lines: readonly string[]};
+    background?: string;
+  }) => (
+    <div data-testid="picture" data-background={background}>
+      {slide.lines.join(' ')}
+    </div>
   ),
 }));
+
+it.each([
+  {
+    name: 'inherited library',
+    library: fixtureMedia.warm,
+    override: undefined,
+    expected: fixtureMedia.warm,
+  },
+  {
+    name: 'item override',
+    library: fixtureMedia.warm,
+    override: fixtureMedia.dawn,
+    expected: fixtureMedia.dawn,
+  },
+  {
+    name: 'no background',
+    library: undefined,
+    override: undefined,
+    expected: undefined,
+  },
+] as const)(
+  'matches the grid and inspector for $name background',
+  async ({library, override, expected}) => {
+    const {store, first, api, view} = await editorSetup();
+    const itemId = fixtureItems.arranged;
+    const background = override ?? library;
+    const document = {
+      ...first,
+      itemTarget: {serviceId: fixtureServiceId, itemId},
+      song: {
+        ...first.song,
+        id: createSongId(itemId),
+        ...(override === undefined ? {} : {background: override}),
+      },
+    };
+    act(() => {
+      useShow.setState({
+        rows: [
+          {
+            id: itemId,
+            kind: 'song',
+            title: first.song.title,
+            ...(background === undefined
+              ? {}
+              : {background: {mediaId: background, loop: true}}),
+          },
+        ],
+      });
+      store.open(document, {content: api.content});
+    });
+    const inspector = render(<SlideInspector store={store} />);
+    try {
+      const gridPicture = within(view.container).getAllByTestId('picture')[0];
+      const inspectorPicture = within(inspector.container).getByTestId(
+        'picture',
+      );
+      if (gridPicture === undefined) throw new Error('Missing grid picture');
+      expect(gridPicture.getAttribute('data-background')).toBe(
+        expected ?? null,
+      );
+      expect(inspectorPicture.getAttribute('data-background')).toBe(
+        expected ?? null,
+      );
+    } finally {
+      inspector.unmount();
+      act(() => useShow.setState({rows: []}));
+    }
+  },
+);
 
 it.each(['list', 'grid'] as const)(
   'reflects a %s surface selection in the inspector',

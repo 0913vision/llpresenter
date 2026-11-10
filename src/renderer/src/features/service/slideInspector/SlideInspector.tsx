@@ -1,10 +1,6 @@
 import {useState, useSyncExternalStore, type JSX} from 'react';
-import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
-import {Picture} from '@renderer/features/songs/editor/SongPreview';
-import {
-  previewAppearance,
-  selectedPreview,
-} from '@renderer/features/songs/editor/songPreviewModel';
+import {SlidePicture} from '@renderer/rendering/SlidePicture';
+import {useSongSlideAppearance} from '@renderer/features/songs/editor/useSongSlideAppearance';
 import {LabelMenu} from '@renderer/features/songs/editor/LabelMenu';
 import {TransitionRows} from './TransitionRows';
 import {slideTransitionUndo} from '@renderer/features/songs/editor/slideTransitionSelection';
@@ -54,8 +50,7 @@ function InspectorContent({
     session.slideModel.subscribe,
     session.slideModel.getSnapshot,
   );
-  const themes = useSettingsDocument('themes', '테마', undefined);
-  const screens = useSettingsDocument('screens', '화면', undefined);
+  const appearance = useSongSlideAppearance(session);
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
   const snapshot = session.history.snapshot;
   const selected = view.slides.filter(slide =>
@@ -64,21 +59,6 @@ function InspectorContent({
   const slide = snapshot.song.slides[snapshot.selection.block];
   const label = selected[0]?.label;
   const mixedLabel = selected.some(item => item.label !== label);
-  const target = session.document.itemTarget;
-  const appearance = previewAppearance({
-    role: 'audience',
-    themes: themes?.value,
-    screens: screens?.value,
-    item: {
-      id: target?.itemId ?? snapshot.song.id,
-      kind: 'song',
-      source: target === undefined ? 'external' : 'service',
-      title: snapshot.song.title,
-      ...(session.document.itemTheme === undefined
-        ? {}
-        : {theme: session.document.itemTheme}),
-    },
-  });
   if (selected.length === 0) return null;
   return (
     <div
@@ -87,13 +67,23 @@ function InspectorContent({
       }
     >
       <div className={styles.picture}>
-        <Picture
-          layers={selectedPreview(snapshot.song, {
-            block: snapshot.selection.block,
-            background: session.background,
-          })}
-          appearance={appearance}
-        />
+        {appearance === undefined || slide === undefined ? null : (
+          <SlidePicture
+            {...appearance}
+            slide={{
+              itemId: snapshot.song.id,
+              position: snapshot.selection.block,
+              lines: slide.lines,
+              label: slide.label ?? null,
+              ...(slide.titleSlide === undefined
+                ? {}
+                : {titleSlide: slide.titleSlide}),
+              ...(slide.titleLayout === undefined
+                ? {}
+                : {titleLayout: slide.titleLayout}),
+            }}
+          />
+        )}
       </div>
       <div
         className={styles.caption}

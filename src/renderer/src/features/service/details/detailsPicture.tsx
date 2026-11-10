@@ -9,6 +9,7 @@ import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
 import type {SongSession} from '@renderer/features/songs/editor/songSession';
 import type {SongEditorStore} from '@renderer/features/songs/editor';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
+import {resolveSongSlideBackground} from '@renderer/features/songs/editor/useSongSlideAppearance';
 import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
@@ -90,7 +91,7 @@ function songPicture(
   return (
     <SlidePicture
       {...theme}
-      background={item.background ?? song?.background}
+      background={resolveSongSlideBackground(item.background, song?.background)}
       slide={{
         itemId: item.id,
         position: index,
@@ -113,7 +114,10 @@ function libraryPicture(
   return (
     <SlidePicture
       {...theme}
-      background={library.background?.mediaId}
+      background={resolveSongSlideBackground(
+        undefined,
+        library.background?.mediaId,
+      )}
       slide={{
         itemId: library.songId,
         position: index,

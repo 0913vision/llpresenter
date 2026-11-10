@@ -28,7 +28,7 @@ import {PanelFooter} from '@renderer/ui/Panel';
 import {Button} from '@renderer/ui/Button';
 import {useSongBlockWindow} from './useSongBlockWindow';
 import {SongSlideSurface} from './SongSlideSurface';
-import {useSlideTheme} from '@renderer/platform/useSlideTheme';
+import {useSongSlideAppearance} from './useSongSlideAppearance';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {useShow} from '@renderer/session/show';
 import {useEditorFocus} from './useEditorFocus';
@@ -168,16 +168,7 @@ function SongBlocks({
     session.history.model.subscribe,
     session.history.model.getSnapshot,
   );
-  const itemRow = useShow(view => {
-    const row = view.rows.find(row => row.id === song.id);
-    return row?.kind === 'song' ? row : undefined;
-  });
-  const theme = useSlideTheme(
-    session.itemSession && itemRow !== undefined
-      ? itemRow
-      : {id: song.id, kind: 'song', title: song.title},
-    session.itemSession ? 'service' : 'external',
-  );
+  const theme = useSongSlideAppearance(session);
   const previousBlock = useRef(selection.block);
   const focus = useRef<EditorFocus>({
     inputs: [],
@@ -420,7 +411,7 @@ function SongBlocks({
                 theme === undefined ? undefined : (
                   <SlidePicture
                     {...theme}
-                    background={theme.background ?? session.background}
+                    background={theme.background}
                     slide={{
                       itemId: song.id,
                       position: block,
