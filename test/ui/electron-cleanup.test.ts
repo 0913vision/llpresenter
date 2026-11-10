@@ -1,6 +1,7 @@
 import {expect, it} from 'vitest';
 import {isRunning} from '@fixtures/processTrees';
 import {offscreenApp} from './electron-app';
+import {CRASH_EXIT_LIMIT_MS} from './stop-electron';
 
 it(
   'ends Electron and its renderers when the app refuses to quit',
@@ -21,8 +22,10 @@ it(
     expect(await fixture.stop()).toBe(true);
     await expect.poll(() => isRunning(pid), {timeout: 10_000}).toBe(false);
     for (const renderer of renderers) {
+      // NOTE(0913vision): 60 forced stops took 1,203–13,764 ms across 20
+      // offscreen restart rounds; keep the fixture's 30-second bound here.
       await expect
-        .poll(() => isRunning(renderer), {timeout: 10_000})
+        .poll(() => isRunning(renderer), {timeout: CRASH_EXIT_LIMIT_MS})
         .toBe(false);
     }
   },

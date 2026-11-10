@@ -15,7 +15,6 @@ import {emptyLayers} from '@core/live/state';
 import {createScreenId} from '@core/schema/ids';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {resolveTextTracking} from '@core/themes/textTracking';
-import {STARTER_TEXT_STYLE} from '@core/themes/starterLayout';
 import {builtInTheme} from '@core/themes/defaults';
 
 it('lists the section cards in service order with per-color gradient themes', () => {
@@ -111,24 +110,18 @@ it('adds an editable section theme without changing the kind defaults or other s
   const broadcast =
     theme?.screens[createScreenId(STARTER_SCREEN_IDS.broadcast)];
   expect(broadcast?.elements).toMatchObject([
+    {kind: 'box', box: {fill: '#1c1c1c', opacity: 100}},
     {
       kind: 'itemName',
       text: {
-        font: STARTER_TEXT_STYLE.font,
-        size: STARTER_TEXT_STYLE.size,
-        weight: STARTER_TEXT_STYLE.weight,
-        vAlign: 'bottom',
+        font: 'Pretendard Variable',
+        size: 64,
+        weight: 700,
+        align: 'center',
       },
     },
+    {kind: 'reference'},
   ]);
-  for (const [axis, expected] of [
-    ['x', 115.2],
-    ['y', 64.8],
-    ['w', 1689.6],
-    ['h', 950.4],
-  ] as const) {
-    expect(broadcast?.elements[0]?.frame[axis]).toBeCloseTo(expected);
-  }
   const stage = createScreenId(STARTER_SCREEN_IDS.stage);
   const stageLayout = theme?.screens[stage];
   const ordinaryStage = builtInTheme('song').screens[stage];
@@ -224,7 +217,7 @@ it('shows the Korean card name on broadcast and both lines on stage for embedded
     const broadcast = resolveThemeScreen(theme, screens[1].id, screens).layout;
     expect(
       broadcast.elements.map(element => themeElementText(element, content)),
-    ).toEqual([card.name]);
+    ).toEqual([null, card.name, null]);
     const stage = resolveThemeScreen(theme, screens[2].id, screens).layout;
     const title = stage.elements.find(element => element.kind === 'itemName');
     const english = stage.elements.find(

@@ -1,4 +1,6 @@
 import type {LiveLayers} from '@core/live/state';
+import type {SlideLayer} from '@core/live/state';
+import type {ThemeScreenLayout} from '@core/schema/themes';
 import {classes} from './classes';
 import type {RenderFrame, RenderLayerOptions} from './layer';
 import {ThemeElementView} from './themeElement';
@@ -11,6 +13,7 @@ import {themeBackgroundStyle} from './themeBackground';
 import {songTitleLayout} from '@core/themes/songTitle';
 import {themeElementMedia} from '@core/themes/content';
 import {isSectionTheme} from '@core/themes/sundaySections';
+import {fitBroadcastBand, isBroadcastBandLayout} from './broadcastBand';
 
 interface ThemePage {
   layers: LiveLayers;
@@ -36,6 +39,16 @@ export class ThemeCompositionView {
   private preparing = false;
   private readonly slideAnimation = new SlideAnimation(true);
   private content: {layers: LiveLayers; frame: RenderFrame} | null = null;
+  private bandFit: {
+    key: string;
+    layout: ThemeScreenLayout;
+    source: ThemeScreenLayout;
+    slide: SlideLayer | null;
+    title: string | undefined;
+    width: number;
+    height: number;
+    fonts: string;
+  } | null = null;
 
   constructor(
     parent: HTMLElement,
@@ -51,13 +64,14 @@ export class ThemeCompositionView {
 
   render(layers: LiveLayers, frame: RenderFrame): void {
     if (frame.theme !== undefined) {
+      const slide = frame.slide ?? layers.slide;
       frame = {
         ...frame,
         theme: {
           ...frame.theme,
           layout: songTitleLayout(
-            frame.theme.layout,
-            frame.slide ?? layers.slide,
+            this.fitBand(frame.theme.layout, slide, frame.theme.item?.title),
+            slide,
           ),
         },
       };
@@ -74,6 +88,7 @@ export class ThemeCompositionView {
       this.root.hidden = theme === undefined;
     }
     if (theme === undefined) {
+      this.bandFit = null;
       this.clear();
       return;
     }
@@ -127,6 +142,55 @@ export class ThemeCompositionView {
     } else if (!ticks && this.ticker !== null) {
       clearInterval(this.ticker);
       this.ticker = null;
+    }
+  }
+
+  private fitBand(
+    layout: ThemeScreenLayout,
+    slide: SlideLayer | null,
+    title: string | undefined,
+  ): ThemeScreenLayout {
+    if (!isBroadcastBandLayout(layout)) {
+      this.bandFit = null;
+      return layout;
+    }
+    const width = this.root.clientWidth;
+    const height = this.root.clientHeight;
+    const fonts =
+      typeof document.fonts === 'undefined' ? '' : document.fonts.status;
+    const previous = this.bandFit;
+    if (
+      previous !== null &&
+      previous.source === layout &&
+      previous.slide === slide &&
+      previous.title === title &&
+      previous.width === width &&
+      previous.height === height &&
+      previous.fonts === fonts
+    ) {
+      return previous.layout;
+    }
+    const key = JSON.stringify([layout, slide, title, width, height, fonts]);
+    if (previous?.key === key) {
+      this.bandFit = {...previous, source: layout, slide};
+      return previous.layout;
+    }
+    try {
+      const fitted = fitBroadcastBand(layout, slide, title);
+      this.bandFit = {
+        key,
+        layout: fitted,
+        source: layout,
+        slide,
+        title,
+        width,
+        height,
+        fonts,
+      };
+      return fitted;
+    } catch (error) {
+      this.options.onError('could not fit the broadcast band', error);
+      return previous?.layout ?? layout;
     }
   }
 
@@ -406,6 +470,7 @@ export class ThemeCompositionView {
   dispose(): void {
     this.clear();
     this.content = null;
+    this.bandFit = null;
     this.root.remove();
   }
 }

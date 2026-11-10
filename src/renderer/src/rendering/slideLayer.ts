@@ -181,6 +181,46 @@ function writeLines(
   while (block.children.length > lines.length) block.lastElementChild?.remove();
 }
 
+/** Measures the same page and row DOM used by SlideLayerView, without showing it. */
+export function measureSlideText(
+  lines: readonly string[],
+  style: TextStyle,
+  width: number,
+): {height: (size: number) => number; dispose: () => void} {
+  const host = document.createElement('div');
+  host.dataset['slideMeasure'] = '';
+  Object.assign(host.style, {
+    position: 'fixed',
+    left: '-10000px',
+    top: '0',
+    width: `${width}px`,
+    visibility: 'hidden',
+    pointerEvents: 'none',
+  });
+  const page = createPage(style);
+  page.element.style.position = 'relative';
+  page.element.style.inset = 'auto';
+  page.block.style.width = '100%';
+  host.append(page.element);
+  document.body.append(host);
+  try {
+    writeLines(page, lines);
+  } catch (error) {
+    host.remove();
+    throw error;
+  }
+  return {
+    height: size => {
+      page.block.style.fontSize = `${size}px`;
+      const measured = page.block.scrollHeight;
+      return measured === 0 && lines.every(line => line.trim() === '')
+        ? lines.length * size * style.lineHeight
+        : measured;
+    },
+    dispose: () => host.remove(),
+  };
+}
+
 /**
  * The lyrics layer. Two pages take turns so a new 장 dissolves over the last
  * one; their rows are reused from 장 to 장.
@@ -192,6 +232,7 @@ export class SlideLayerView {
   private current: SlideLayer | null = null;
   private scale = 1;
   private maximumSize: number | undefined;
+  private minimumSize: number | undefined;
   private dissolveMs: number = SLIDE_DISSOLVE_MS;
   private effect: SlideTransition | undefined;
   private readonly animation = new SlideAnimation();
@@ -336,6 +377,10 @@ export class SlideLayerView {
     if (this.current !== null) this.fit(this.pages[this.front]);
   }
 
+  setMinimumSize(minimum: number): void {
+    this.minimumSize = minimum;
+  }
+
   dispose(): void {
     this.animation.cancel();
     this.element.remove();
@@ -411,6 +456,11 @@ export class SlideLayerView {
         }),
       document.fonts,
     );
-    setSize(Math.min(fontSize, (this.maximumSize ?? Infinity) * this.scale));
+    setSize(
+      Math.max(
+        (this.minimumSize ?? 0) * this.scale,
+        Math.min(fontSize, (this.maximumSize ?? Infinity) * this.scale),
+      ),
+    );
   }
 }

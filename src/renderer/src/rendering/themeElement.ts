@@ -133,6 +133,9 @@ export class ThemeElementView {
             this.previewMaxLines,
           )
         : null;
+    if (element.minimumTextSize !== undefined) {
+      this.text?.setMinimumSize(element.minimumTextSize);
+    }
     this.image =
       element.kind === 'image' ? document.createElement('img') : null;
     if (element.kind === 'image' && this.image !== null) {
@@ -173,6 +176,9 @@ export class ThemeElementView {
       );
     }
     const {element} = this;
+    if (element.runtimeHidden !== undefined) {
+      this.box.hidden = element.runtimeHidden;
+    }
     const item = frame.theme?.item ?? null;
     if (element.kind === 'media' || element.kind === 'background') {
       const media = themeElementMedia(element.kind, {layers, item});

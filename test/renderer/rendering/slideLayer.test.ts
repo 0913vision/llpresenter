@@ -29,6 +29,40 @@ function setUp() {
 }
 
 describe('SlideLayerView', () => {
+  it('enforces and rescales the configured minimum text size when content overflows', () => {
+    const width = vi
+      .spyOn(HTMLElement.prototype, 'clientWidth', 'get')
+      .mockReturnValue(200);
+    const height = vi
+      .spyOn(HTMLElement.prototype, 'clientHeight', 'get')
+      .mockReturnValue(100);
+    const scrollWidth = vi
+      .spyOn(HTMLElement.prototype, 'scrollWidth', 'get')
+      .mockReturnValue(1000);
+    const scrollHeight = vi
+      .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
+      .mockReturnValue(1000);
+    try {
+      const {view, shownPage} = setUp();
+      view.setMinimumSize(48);
+      view.show(VERSE, false);
+      expect(
+        shownPage()?.querySelector<HTMLElement>(`.${classes.block}`)?.style
+          .fontSize,
+      ).toBe('48px');
+      view.rescale(2);
+      expect(
+        shownPage()?.querySelector<HTMLElement>(`.${classes.block}`)?.style
+          .fontSize,
+      ).toBe('96px');
+      view.dispose();
+    } finally {
+      width.mockRestore();
+      height.mockRestore();
+      scrollWidth.mockRestore();
+      scrollHeight.mockRestore();
+    }
+  });
   it('changes a retained bulleted page to discs and restores the existing glyph layout', () => {
     const {view, shownPage} = setUp();
     const style = {...DEFAULT_TEXT_STYLE, bullets: true};

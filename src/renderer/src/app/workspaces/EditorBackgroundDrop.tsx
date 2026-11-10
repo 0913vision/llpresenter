@@ -100,7 +100,8 @@ export function EditorBackgroundDrop({
         const editorState = editor.getSnapshot();
         const session = editorState.session;
         if (session !== null && !session.itemSession) {
-          if (session.readOnly || editorState.busy) {
+          const locked = session.readOnly || editorState.busy;
+          if (locked) {
             problem('지금은 편집할 수 없습니다');
           } else session.setBackground(id);
           return;
@@ -112,10 +113,13 @@ export function EditorBackgroundDrop({
             !isItemOfKind(state.item, 'slides'))
         ) {
           problem('이 항목에는 배경을 설정할 수 없습니다');
-        } else if (state.busy || state.service?.access === 'readOnly') {
-          problem('지금은 편집할 수 없습니다');
         } else {
-          editorTask(items.setBackground(id));
+          const locked = state.busy || state.service?.access === 'readOnly';
+          if (locked) {
+            problem('지금은 편집할 수 없습니다');
+          } else {
+            editorTask(items.setBackground(id));
+          }
         }
       }}
       onDragEnd={clear}

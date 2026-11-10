@@ -34,6 +34,7 @@ import {
 import {creedPrayerTheme} from './creedPrayer';
 import {SONG_THEME_ID} from './songTitle';
 import {lightSongTheme} from './lightSong';
+import {broadcastBandLayout} from './broadcastBand';
 
 export type ThemeScreen = Pick<Screen, 'id' | 'kind' | 'method'>;
 
@@ -241,6 +242,7 @@ function layoutFor(
   screen: ThemeScreen,
   kind: ThemeItemKind,
 ): ThemeScreenLayout {
+  if (screen.kind === 'broadcast') return broadcastBandLayout(kind, basicText);
   if (kind === 'bible' && screen.kind === 'audience') {
     return sundayScriptureLayout();
   }
@@ -249,11 +251,8 @@ function layoutFor(
       ? sundayNoticeLayout()
       : advertisementLayout();
   }
-  const lowerThird = screen.kind === 'broadcast';
   const elements =
-    screen.kind === 'stage'
-      ? stageElements()
-      : audienceElements(lowerThird, kind);
+    screen.kind === 'stage' ? stageElements() : audienceElements(false, kind);
   if (kind === 'bible' && screen.kind !== 'stage') {
     elements.push({
       id: createThemeElementId(uuid(8)),
@@ -294,6 +293,9 @@ function layoutFor(
 
 /** The former unmodified section layout, used only when resolving saved defaults. */
 export function legacySectionLayout(screen: ThemeScreen): ThemeScreenLayout {
+  if (screen.kind === 'broadcast') {
+    return {mode: {kind: 'own'}, elements: audienceElements(true, 'blank')};
+  }
   return layoutFor(screen, 'blank');
 }
 

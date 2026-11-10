@@ -29,6 +29,8 @@ const titleText: ThemeText = {
 /** Runtime composition metadata, separate from the saved theme schema. */
 export type ResolvedThemeElement = ThemeElement & {
   readonly clearTarget?: 'slide';
+  readonly runtimeHidden?: boolean;
+  readonly minimumTextSize?: number;
 };
 
 /** Resolves the Sunday title in the same composition for output and thumbnails. */

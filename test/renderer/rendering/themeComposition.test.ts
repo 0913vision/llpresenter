@@ -1,7 +1,13 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLayers, type LiveLayers} from '@core/live/state';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
-import {createMediaId, createThemeId} from '@core/schema/ids';
+import {createMediaId, createScreenId, createThemeId} from '@core/schema/ids';
+import {STARTER_SCREEN_IDS} from '@core/screens/screens';
+import {builtInTheme} from '@core/themes/defaults';
+import {
+  BROADCAST_BAND_ID,
+  BROADCAST_GEOMETRY,
+} from '@core/themes/broadcastBand';
 import type {ThemeElement} from '@core/schema/themes';
 import {
   fixedThemeText,
@@ -79,6 +85,187 @@ beforeEach(() => {
 afterEach(() => vi.useRealTimers());
 
 describe('theme composition drawing', () => {
+  it('keeps the last good band after a measurement error and retries without leaking the host', () => {
+    const layout =
+      builtInTheme('song').screens[
+        createScreenId(STARTER_SCREEN_IDS.broadcast)
+      ];
+    if (!layout) throw Error('Missing broadcast layout');
+    const {root, view, onError, text} = setup();
+    const failure = new Error('measurement failed');
+    let failing = false;
+    let attempts = 0;
+    const height = vi
+      .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
+      .mockImplementation(function (this: HTMLElement) {
+        if (this.closest('[data-slide-measure]') === null) return 0;
+        attempts++;
+        if (failing) throw failure;
+        return Math.ceil(
+          Number.parseFloat(this.style.fontSize) *
+            BROADCAST_GEOMETRY.lineHeight *
+            3,
+        );
+      });
+    const activeFrame = {...frame(layout.elements), transitions: false};
+    const hosts = () =>
+      document.body.querySelectorAll('[data-slide-measure]').length;
+    const before = hosts();
+    try {
+      view.render(song, activeFrame);
+      const band = () =>
+        root.querySelector<HTMLElement>(
+          `[data-theme-element="${BROADCAST_BAND_ID}"]`,
+        );
+      const goodHeight = band()?.style.height;
+      expect(Number.parseFloat(goodHeight ?? '')).toBeGreaterThan(
+        BROADCAST_GEOMETRY.minHeight,
+      );
+      const changed = {
+        ...song,
+        slide: {
+          ...song.slide,
+          itemId: 'next',
+          position: 1,
+          label: null,
+          lines: ['New line'],
+        },
+      };
+      failing = true;
+      expect(() => view.render(changed, activeFrame)).not.toThrow();
+      expect(onError).toHaveBeenCalledWith(
+        'could not fit the broadcast band',
+        failure,
+      );
+      expect(band()?.style.height).toBe(goodHeight);
+      expect(text('currentText')).toBe('New line');
+      expect(hosts()).toBe(before);
+      const failedAttempts = attempts;
+      failing = false;
+      view.render(changed, activeFrame);
+      expect(attempts).toBeGreaterThan(failedAttempts);
+      expect(hosts()).toBe(before);
+    } finally {
+      view.dispose();
+      height.mockRestore();
+    }
+  });
+  it('uses the unfitted layout if the first band measurement fails', () => {
+    const layout =
+      builtInTheme('song').screens[
+        createScreenId(STARTER_SCREEN_IDS.broadcast)
+      ];
+    if (!layout) throw Error('Missing broadcast layout');
+    const {root, view, onError} = setup();
+    const failure = new Error('measurement failed');
+    const height = vi
+      .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
+      .mockImplementation(function (this: HTMLElement) {
+        if (this.closest('[data-slide-measure]') !== null) throw failure;
+        return 0;
+      });
+    try {
+      expect(() =>
+        view.render(song, {...frame(layout.elements), transitions: false}),
+      ).not.toThrow();
+      expect(onError).toHaveBeenCalledWith(
+        'could not fit the broadcast band',
+        failure,
+      );
+      expect(
+        root.querySelector<HTMLElement>(
+          `[data-theme-element="${BROADCAST_BAND_ID}"]`,
+        )?.style.height,
+      ).toBe(`${BROADCAST_GEOMETRY.minHeight}px`);
+      expect(document.body.querySelector('[data-slide-measure]')).toBeNull();
+    } finally {
+      view.dispose();
+      height.mockRestore();
+    }
+  });
+  it('remeasures a broadcast band only when slide, layout or output size changes', () => {
+    const layout =
+      builtInTheme('song').screens[
+        createScreenId(STARTER_SCREEN_IDS.broadcast)
+      ];
+    if (!layout) throw Error('Missing broadcast layout');
+    const {root, view} = setup();
+    const append = vi.spyOn(document.body, 'append');
+    try {
+      view.render(song, frame(layout.elements));
+      view.render(song, frame(layout.elements));
+      expect(append).toHaveBeenCalledTimes(1);
+      const changed = {
+        ...song,
+        slide: {
+          ...song.slide,
+          itemId: 'second',
+          position: 1,
+          label: null,
+          lines: ['Changed'],
+        },
+      };
+      view.render(changed, frame(layout.elements));
+      expect(append).toHaveBeenCalledTimes(2);
+      view.render(
+        changed,
+        frame([
+          ...layout.elements,
+          {...themeElementBase(95), kind: 'text', content: 'extra'},
+        ]),
+      );
+      expect(append).toHaveBeenCalledTimes(3);
+      const themeRoot = root.querySelector<HTMLElement>('[data-layer="theme"]');
+      if (!themeRoot) throw Error('Missing theme root');
+      Object.defineProperty(themeRoot, 'clientWidth', {
+        configurable: true,
+        value: 1920,
+      });
+      view.render(
+        changed,
+        frame([
+          ...layout.elements,
+          {...themeElementBase(95), kind: 'text', content: 'extra'},
+        ]),
+      );
+      expect(append).toHaveBeenCalledTimes(4);
+    } finally {
+      view.dispose();
+      append.mockRestore();
+    }
+  });
+  it('skips JSON keys when the layout and slide references are unchanged', () => {
+    const layout =
+      builtInTheme('song').screens[
+        createScreenId(STARTER_SCREEN_IDS.broadcast)
+      ];
+    if (!layout) throw Error('Missing broadcast layout');
+    const {view} = setup();
+    const activeFrame = frame(layout.elements);
+    const source = activeFrame.theme?.layout;
+    const stringify = vi.spyOn(JSON, 'stringify');
+    const keyCalls = () =>
+      stringify.mock.calls.filter(
+        call => Array.isArray(call[0]) && call[0][0] === source,
+      ).length;
+    try {
+      view.render(song, activeFrame);
+      expect(keyCalls()).toBe(1);
+      view.render(song, activeFrame);
+      expect(keyCalls()).toBe(1);
+      const cloned = {
+        ...song,
+        slide: song.slide === null ? null : {...song.slide},
+      };
+      view.render(cloned, activeFrame);
+      expect(keyCalls()).toBe(2);
+      view.render(cloned, activeFrame);
+      expect(keyCalls()).toBe(2);
+    } finally {
+      view.dispose();
+      stringify.mockRestore();
+    }
+  });
   it.each(['dissolve', 'wipe', 'push', 'none'] as const)(
     'shares the %s transition between a new slide and its changed background after decoding',
     kind => {

@@ -49,19 +49,22 @@ it('places song lyrics near the top while retaining the starter broadcast styles
       },
     ],
   });
-  expect(theme.screens[broadcast]).toMatchObject({
-    elements: [
-      {
-        kind: 'currentText',
-        text: {
-          font: STARTER_TEXT_STYLE.font,
-          size: STARTER_TEXT_STYLE.size,
-          weight: STARTER_TEXT_STYLE.weight,
-          vAlign: 'bottom',
-        },
+  expect(theme.screens[broadcast]?.elements).toMatchObject([
+    {
+      kind: 'box',
+      frame: {x: 0, y: 818, w: 1920, h: 204},
+      box: {fill: '#1c1c1c', opacity: 100},
+    },
+    {
+      kind: 'currentText',
+      text: {
+        font: 'Pretendard Variable',
+        size: 64,
+        weight: 700,
+        align: 'center',
       },
-    ],
-  });
+    },
+  ]);
   expect(theme.screens[main]?.background).toBeUndefined();
   expect(theme.screens[broadcast]?.background).toBeUndefined();
   expect(theme.screens[stage]?.elements.map(element => element.frame)).toEqual(
@@ -130,8 +133,8 @@ it.each(themeItemKinds.filter(kind => kind !== 'ad'))(
       output.screens[id]?.layout.elements.map(element => element.kind),
     ).toEqual(
       kind === 'bible' || kind === 'blank'
-        ? ['currentText', 'reference']
-        : ['currentText'],
+        ? ['box', 'currentText', 'reference']
+        : ['box', 'currentText'],
     );
   },
 );
@@ -152,26 +155,12 @@ it('adds a reference only for Bible layouts and adapts to configured screen IDs'
   ).toBe(false);
 });
 
-it('reserves a separate bottom band for the capture Bible reference', () => {
+it('gives the capture Bible a readable right-aligned reference', () => {
   const id = createScreenId(STARTER_SCREEN_IDS.broadcast);
   const bible = builtInTheme('bible').screens[id];
-  const verse = bible?.elements.find(element => element.kind === 'currentText');
-  const reference = bible?.elements.find(
-    element => element.kind === 'reference',
-  );
-  const song = builtInTheme('song').screens[id]?.elements.find(
-    element => element.kind === 'currentText',
-  );
-  if (verse === undefined || reference === undefined || song === undefined) {
-    throw new Error('Expected the starter capture text elements');
-  }
-  expect(verse.text.vAlign).toBe('bottom');
-  expect(verse.frame.y + verse.frame.h).toBeLessThan(reference.frame.y);
-  expect(reference.frame.y + reference.frame.h).toBeCloseTo(
-    song.frame.y + song.frame.h,
-  );
-  expect(reference.frame.x).toBe(verse.frame.x);
-  expect(reference.frame.w).toBe(verse.frame.w);
+  expect(
+    bible?.elements.find(element => element.kind === 'reference'),
+  ).toMatchObject({text: {size: 52, align: 'right'}});
 });
 
 it('gives the 무대 화면 of the Bible 테마 no reference and the same element kinds as the song 테마', () => {
@@ -337,10 +326,12 @@ it('defaults blank slides to 말씀 and retains the broadcast and stage ad frame
   expect(file.defaults.blank).toBe(file.defaults.bible);
   const ad = file.themes.find(theme => theme.id === file.defaults.ad);
   expect(ad?.name).toBe('광고');
-  for (const screen of [
-    STARTER_SCREEN_IDS.broadcast,
-    STARTER_SCREEN_IDS.stage,
-  ]) {
+  expect(
+    ad?.screens[createScreenId(STARTER_SCREEN_IDS.broadcast)]?.elements.map(
+      element => element.kind,
+    ),
+  ).toEqual(['media', 'box', 'slideName', 'currentText']);
+  for (const screen of [STARTER_SCREEN_IDS.stage]) {
     const layout = ad?.screens[createScreenId(screen)];
     if (layout === undefined) throw Error('Expected ad layout');
     expect(layout.elements.map(element => element.kind)).toEqual([

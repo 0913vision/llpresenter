@@ -533,8 +533,9 @@ fields, as every settings file does (02).
   (132, 141, 1656, 411), leaving room for three lines at the same size and
   pitch; the first line's ink starts near y=157. Missing fonts fall back to
   Pretendard. The theme inherits 화면 기본; each song keeps its own background
-  picture through the normal 배경 and 미디어 elements. 방송 화면 and 무대 화면
-  retain their existing 찬양 layouts, and saved themes are not migrated.
+  picture through the normal background and media elements. The broadcast screen
+  uses the new lower third, the stage uses the new-library stage layout below,
+  and saved themes are not migrated.
 - New libraries also include 찬양 (밝은 배경) in the same theme list. Its
   audience lyrics use black (#000000) in the wider frame (36, 141, 1848, 411),
   with the same typography as 찬양. Its title and optional subtitle are also
@@ -550,10 +551,11 @@ fields, as every settings file does (02).
   text without outline or shadow: an item-range 성경 출처 at 72 px, and 현재
   가사 at 104 px, left/top aligned, with -3 px tracking and 150 px line spacing.
   The text frame starts at (130.6, 248), is 1660 x 750, and has a five-line
-  Bible split budget. Missing fonts fall back to Pretendard. 방송 화면 and 무대
-  화면 retain their existing 말씀 layouts. The normal 배경 and 미디어 elements
-  above the shipped picture retain item background overrides and blank picture
-  slides, since blank items also use this theme by default.
+  Bible split budget. Missing fonts fall back to Pretendard. The broadcast
+  screen uses the lower third and the stage uses the new-library stage layout
+  below. The normal 배경 and 미디어 elements above the shipped picture retain
+  item background overrides and blank picture slides, since blank items also use
+  this theme by default.
 - 사도신경, 주기도문 is an additional built-in theme. Its 청중 화면 shares the
   말씀 background asset and title frame, replacing 성경 출처 with 항목 이름
   (NanumSquare Bold 72 px). 현재 가사 uses NanumSquare Bold 104 px, -3 px
@@ -592,9 +594,16 @@ fields, as every settings file does (02).
   belong to the app, outside the user media catalog. The slash group sits above
   the number and below the title, cutting the number along the line so none
   shows beyond it.
-- 방송 화면 and 무대 화면 retain their 광고 layout: a #141c2e full-screen box, a
-  24 px #e6b54a left bar, fixed "교회 소식", covering media, the 132 px slide
-  name and 60 px #c9d1e0 body. The default 광고 item's 8-second advance and 반복
+- A new library's broadcast layouts use an opaque bg-panel dark band across the
+  bottom on the configured key color. White text is centered; a Bible reference
+  sits at the right end, section cards show the Korean name, and notices show
+  their name and body in the band. The band grows upwards to at most 360 px at
+  1920 x 1080; text shrinks from 64 px to a minimum of 48 px, then clips at a
+  complete line. The whole live slide stays in sync with the audience; there is
+  no paging. Existing saved layouts are not converted.
+- The stage screen retains its advertisement layout: a #141c2e full-screen box,
+  a 24 px #e6b54a left bar, fixed heading, covering media, the 132 px slide name
+  and 60 px body. The default advertisement item's 8-second advance and loop
   remain unchanged (05).
 - Item settings warn when a screen's resolved theme lacks 현재 가사 for text,
   슬라이드 이름 for an 광고 name, or 미디어 for a picture. Linked screens use

@@ -59,7 +59,7 @@ it('offers preparation as a separate theme whose audience words need no slide co
   ]);
   expect(
     preparation?.screens[broadcast]?.elements.map(element => element.kind),
-  ).toEqual(['currentText']);
+  ).toEqual(['box', 'currentText', 'reference']);
   expect(
     preparation?.screens[stage]?.elements.some(
       element => element.kind === 'clock',
