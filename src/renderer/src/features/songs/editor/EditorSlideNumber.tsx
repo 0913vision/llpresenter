@@ -2,7 +2,7 @@ import type {JSX} from 'react';
 import {Checkbox} from '@renderer/ui/Checkbox';
 import styles from './EditorSlidePlate.module.css';
 
-/** A list-only selection control beside the slide number, outside its picture. */
+/** A list-only selection control over the slide picture. */
 export function EditorSlideNumber({
   number,
   selected,
@@ -21,7 +21,6 @@ export function EditorSlideNumber({
         checked={selected}
         onChange={onToggle}
       />
-      <span>{number}</span>
     </span>
   );
 }

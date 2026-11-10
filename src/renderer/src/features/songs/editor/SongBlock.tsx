@@ -9,7 +9,6 @@ import {
   type ReactNode,
 } from 'react';
 import type {LabelColor} from '@core/labels/colors';
-import {LabelTag} from '@renderer/ui/LabelChip';
 import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
 import {isComposing} from '@renderer/ui/ime';
 import {linearSlidesOf, type EditorSlideItem} from '@core/songs/blockEdits';
@@ -273,12 +272,12 @@ export const SongBlock = memo(
                 {canvas}
                 <SlideTransitionMark transition={slide.transition} />
               </div>
-              {grid && editable ? (
+              {editable ? (
                 <button
                   ref={labelButtonRef}
                   type="button"
                   className={styles.bandButton}
-                  aria-label={`\uC774\uB984\uD45C ${block + 1 + numberOffset}`}
+                  aria-label={`${slide.label === undefined || slide.label === '' ? '\uC774\uB984\uD45C \uC5C6\uC74C' : slide.label} ${block + 1 + numberOffset}`}
                   aria-expanded={expanded}
                   onClick={event => {
                     if (!locked) onOpen(event.currentTarget, block);
@@ -299,27 +298,6 @@ export const SongBlock = memo(
               )}
             </div>
             <div className={styles.text} data-grid-text>
-              {grid ? null : (
-                <div className={styles.label}>
-                  {
-                    <LabelTag
-                      buttonRef={labelButtonRef}
-                      name={slide.label === '' ? undefined : slide.label}
-                      color={color}
-                      picker={
-                        !editable
-                          ? undefined
-                          : {
-                              expanded,
-                              onOpen: anchor => {
-                                if (!locked) onOpen(anchor, block);
-                              },
-                            }
-                      }
-                    />
-                  }
-                </div>
-              )}
               <textarea
                 ref={input => {
                   focus.current.inputs[block] = input;

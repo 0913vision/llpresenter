@@ -99,7 +99,6 @@ export function SongEditor({
             busy={state.busy}
             renderDesign={renderDesign}
           />
-          <SlideSurfaceView ui={ui} />
           <SongSlideSurface
             session={state.session}
             leadingCard={leadingCard}
@@ -143,6 +142,7 @@ export function SongEditor({
             />
           </SongSlideSurface>
           <PanelFooter
+            end={<SlideSurfaceView ui={ui} />}
             count={
               slideCountOf(state.session.history.snapshot.song) +
               (leadingCard === undefined ? 0 : 1)

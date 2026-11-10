@@ -1,4 +1,4 @@
-import {render, screen, waitFor} from '@testing-library/react';
+import {render, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {expect, it, onTestFinished, vi} from 'vitest';
 import {parseServiceDocument} from '@core/schema/contentDocuments';
@@ -22,6 +22,7 @@ vi.mock('@renderer/platform/useSlideTheme', () => ({
 }));
 
 it('shows an editable card and read-only Bible verses in both views', async () => {
+  seedSlideSurfaceView({});
   const fixture = itemFixture();
   const current = fixture.service();
   const card = {
@@ -73,12 +74,29 @@ it('shows an editable card and read-only Bible verses in both views', async () =
     <BibleInlineEditor items={items} ui={fixture.api.ui} onBack={vi.fn()} />,
   );
   onTestFinished(async () => {
+    seedSlideSurfaceView({});
     view.unmount();
     items.dispose();
     useShow.setState({serviceId: null, openItemId: null, tiles: {}});
     await editor.dispose();
   });
   await screen.findByRole('textbox', {name: '구역 이름'});
+  const editorRegion = screen.getByRole('region', {
+    name: '\uC131\uACBD \uD3B8\uC9D1',
+  });
+  const toolbar = within(editorRegion).getByRole('toolbar', {
+    name: '\uC2AC\uB77C\uC774\uB4DC \uBCF4\uAE30',
+  });
+  expect(
+    within(editorRegion).getAllByRole('toolbar', {
+      name: '\uC2AC\uB77C\uC774\uB4DC \uBCF4\uAE30',
+    }),
+  ).toHaveLength(1);
+  expect(editorRegion.querySelectorAll('footer')).toHaveLength(1);
+  const footer = toolbar.closest('footer');
+  expect(footer).not.toBeNull();
+  expect(footer?.textContent).toContain('103\uAC1C');
+  expect(within(toolbar).queryByRole('spinbutton')).toBeNull();
   expect(screen.getByText('First verse')).toBeDefined();
   expect(screen.queryByText('Extra verse 99')).toBeNull();
   expect(screen.getAllByRole('option')[0]?.getAttribute('aria-readonly')).toBe(
@@ -86,9 +104,11 @@ it('shows an editable card and read-only Bible verses in both views', async () =
   );
   expect(screen.getAllByRole('textbox')).toHaveLength(2);
   await userEvent.click(screen.getByRole('button', {name: '격자'}));
+  expect(within(toolbar).getByRole('spinbutton')).toBeDefined();
   expect(screen.getByText('Second verse')).toBeDefined();
   expect(screen.getAllByRole('textbox')).toHaveLength(2);
   await userEvent.click(screen.getByRole('button', {name: '목록'}));
+  expect(within(toolbar).queryByRole('spinbutton')).toBeNull();
   await waitFor(() => expect(screen.getByText('First verse')).toBeDefined());
   await userEvent.click(screen.getByText('First verse'));
   await userEvent.keyboard('{ArrowLeft}{Delete}');

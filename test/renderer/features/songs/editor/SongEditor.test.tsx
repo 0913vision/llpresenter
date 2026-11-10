@@ -17,6 +17,23 @@ function cursor(input: HTMLTextAreaElement, start: number, end = start): void {
 }
 
 describe('song editor view', () => {
+  it('places the view switch and grid size control in the slide footer', async () => {
+    seedSlideSurfaceView({});
+    const {user} = await editorSetup();
+    const toolbar = screen.getByRole('toolbar', {
+      name: '\uC2AC\uB77C\uC774\uB4DC \uBCF4\uAE30',
+    });
+    const footer = toolbar.closest('footer');
+    expect(footer).not.toBeNull();
+    expect(footer?.textContent).toContain('2\uAC1C');
+    expect(within(toolbar).queryByRole('spinbutton')).toBeNull();
+    await user.click(
+      within(toolbar).getByRole('button', {name: '\uACA9\uC790'}),
+    );
+    expect(within(toolbar).getByRole('spinbutton')).toBeDefined();
+    seedSlideSurfaceView({});
+  });
+
   it('preserves a native text selection across an unrelated render', async () => {
     const {store, view} = await editorSetup();
     const input = lyrics();
@@ -591,7 +608,7 @@ describe('song editor view', () => {
     expect(session.history.canUndo).toBe(true);
     act(() => store.open(editorSong(5, 'readOnly')));
     expect(lyrics().readOnly).toBe(true);
-    expect(screen.queryByRole('button', {name: '1절'})).toBeNull();
+    expect(screen.queryByRole('button', {name: '1절 1'})).toBeNull();
     const before = lyrics().value;
     await user.type(lyrics(), 'x');
     expect(lyrics().value).toBe(before);

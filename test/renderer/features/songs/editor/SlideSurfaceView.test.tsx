@@ -11,6 +11,18 @@ afterEach(() => {
   seedSlideSurfaceView({});
 });
 describe('slide surface preferences', () => {
+  it('shows a labeled view switch and starts in list view', () => {
+    seedSlideSurfaceView({});
+    render(<SlideSurfaceView />);
+    const list = screen.getByRole('button', {name: '\uBAA9\uB85D'});
+    const grid = screen.getByRole('button', {name: '\uACA9\uC790'});
+    expect(list.textContent).toBe('\uBAA9\uB85D');
+    expect(grid.textContent).toBe('\uACA9\uC790');
+    expect(list.getAttribute('aria-pressed')).toBe('true');
+    fireEvent.click(grid);
+    expect(grid.getAttribute('aria-pressed')).toBe('true');
+  });
+
   it('restores each window preference and saves a choice to ui state', () => {
     const setLayout = vi.fn();
     const api = mockLlpApi({ui: {setLayout}});

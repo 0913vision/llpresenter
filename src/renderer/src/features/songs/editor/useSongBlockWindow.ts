@@ -79,11 +79,6 @@ export function useSongBlockWindow(
         Number.parseFloat(css.getPropertyValue(name)) || 0;
       const line = Number.parseFloat(getComputedStyle(input).lineHeight);
       if (!Number.isFinite(line) || line <= 0) return;
-      const label = block.querySelector<HTMLElement>(
-        'button:not([data-slide-gap], [role="checkbox"])',
-      );
-      const labelHeight = label?.getBoundingClientRect().height ?? 0;
-      const textGap = px('--space-8');
       const thumbnail = block.querySelector<HTMLElement>(
         '[data-editor-thumbnail]',
       );
@@ -91,17 +86,12 @@ export function useSongBlockWindow(
       setMeasure({
         viewport: node.clientHeight,
         line,
-        minimum: Math.max(
-          px('--size-control-xs'),
-          thumbnailHeight - labelHeight - textGap,
-        ),
+        minimum: Math.max(px('--size-control-xs'), thumbnailHeight),
         inset:
           px('padding-top') +
           px('padding-bottom') +
           px('border-top-width') +
-          px('border-bottom-width') +
-          labelHeight +
-          textGap,
+          px('border-bottom-width'),
       });
     };
     read();

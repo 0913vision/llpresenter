@@ -8,7 +8,7 @@ import {
 import {hoverForTooltip} from '@fixtures/renderer/ui/tooltipTesting';
 
 async function openMenu(user: Awaited<ReturnType<typeof editorSetup>>['user']) {
-  await user.click(screen.getByRole('button', {name: '1절'}));
+  await user.click(screen.getByRole('button', {name: '1절 1'}));
   return screen.getByRole('menu', {name: '이름표'});
 }
 
@@ -378,9 +378,7 @@ describe('song editor label menu', () => {
     await user.keyboard('{ArrowDown}{Enter}');
     await act(() => session.flush());
     expect(session.history.snapshot.song.slides[0]?.label).toBe('후렴');
-    await user.click(
-      screen.getAllByRole('button', {name: '후렴'})[0] ?? document.body,
-    );
+    await user.click(screen.getByRole('button', {name: '후렴 1'}));
     await user.click(screen.getByRole('menuitemradio', {name: '이름표 없음'}));
     expect(session.history.snapshot.song.slides[0]?.label).toBeUndefined();
   });
@@ -390,7 +388,7 @@ describe('song editor label menu', () => {
     await openMenu(user);
     await user.keyboard('{Escape}');
     expect(document.activeElement).toBe(
-      screen.getByRole('button', {name: '1절'}),
+      screen.getByRole('button', {name: '1절 1'}),
     );
     await openMenu(user);
     await user.click(lyrics());

@@ -183,6 +183,45 @@ function savedItem(f: ReturnType<typeof setup>): SlidesItem {
 }
 
 describe('automatic inline slides editor', () => {
+  it('places the view switch and grid size control in the slide footer', async () => {
+    seedSlideSurfaceView({});
+    const f = setup('blank');
+    const toolbar = await screen.findByRole('toolbar', {
+      name: '\uC2AC\uB77C\uC774\uB4DC \uBCF4\uAE30',
+    });
+    const footer = toolbar.closest('footer');
+    expect(footer).not.toBeNull();
+    expect(footer?.textContent).toContain('2\uAC1C');
+    expect(within(toolbar).queryByRole('spinbutton')).toBeNull();
+    fireEvent.click(
+      within(toolbar).getByRole('button', {name: '\uACA9\uC790'}),
+    );
+    expect(within(toolbar).getByRole('spinbutton')).toBeDefined();
+    seedSlideSurfaceView({});
+    f.view.unmount();
+    await f.session.dispose();
+  });
+
+  it('shows the slide number and label once in the list picture strip', async () => {
+    seedSlideSurfaceView({});
+    const f = setup('ad');
+    try {
+      await screen.findByRole('textbox', {
+        name: '\uC2AC\uB77C\uC774\uB4DC \uC774\uB984',
+      });
+      const row = document.querySelector<HTMLElement>('[data-slide-index="0"]');
+      if (row === null) throw new Error('Missing slide row');
+      const picture = row.querySelector<HTMLElement>('[data-editor-thumbnail]');
+      const strip = picture?.lastElementChild;
+      expect(strip?.textContent).toBe('1\uCCAB \uC18C\uC2DD');
+      expect(row.querySelector(':scope > span')?.textContent).toBe('');
+      expect(row.querySelectorAll('[data-editor-thumbnail]')).toHaveLength(1);
+    } finally {
+      f.view.unmount();
+      await f.session.dispose();
+    }
+  });
+
   it.each(['list', 'grid'] as const)(
     'adds a slide after the selection in %s',
     async mode => {

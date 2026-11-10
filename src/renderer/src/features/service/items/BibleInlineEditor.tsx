@@ -24,6 +24,7 @@ import {useSongBlockWindow} from '@renderer/features/songs/editor/useSongBlockWi
 import {SongSlideSurface} from '@renderer/features/songs/editor/SongSlideSurface';
 import {useShow} from '@renderer/session/show';
 import {Button} from '@renderer/ui/Button';
+import {PanelFooter} from '@renderer/ui/Panel';
 import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
 import {bibleEditorData, savedPassageTiles} from './bibleItemModel';
 import {useLeadingItemCard} from './useLeadingItemCard';
@@ -178,7 +179,6 @@ function BibleEditorContent({
           <strong>{data.reference.ref}</strong>
         </header>
       )}
-      <SlideSurfaceView ui={ui} />
       <SongSlideSurface
         session={session}
         leadingCard={card}
@@ -282,6 +282,10 @@ function BibleEditorContent({
           </div>
         </div>
       </SongSlideSurface>
+      <PanelFooter
+        count={data.slides.length}
+        end={<SlideSurfaceView ui={ui} />}
+      />
     </section>
   );
 }

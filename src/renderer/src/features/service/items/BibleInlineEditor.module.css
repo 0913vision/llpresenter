@@ -10,6 +10,11 @@
   gap: var(--space-14);
   padding: var(--space-14);
 }
+.surface {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
 .rows {
   flex: 1;
   min-height: 0;

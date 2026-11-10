@@ -3,7 +3,7 @@ import type {JSX} from 'react';
 import type {UiState} from '@core/schema/uiState';
 import type {UiApi} from '@contracts/ipc/ui';
 import type {SlideSurfaceMode} from './SlideCardRenderer';
-import {Button} from '@renderer/ui/Button';
+import {SegmentedControl} from '@renderer/ui/SegmentedControl';
 import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
 import {
   clampThumbnailScale,
@@ -78,24 +78,16 @@ export function SlideSurfaceView({
   const current = useSlideSurfaceView();
   return (
     <div role="toolbar" aria-label="슬라이드 보기" className={styles.toolbar}>
-      <Button
-        icon="rows"
-        title="목록"
-        aria-label="목록"
-        aria-pressed={current.mode === 'list'}
-        onClick={() => saveMode('list', ui)}
-      >
-        {null}
-      </Button>
-      <Button
-        icon="grid"
-        title="격자"
-        aria-label="격자"
-        aria-pressed={current.mode === 'grid'}
-        onClick={() => saveMode('grid', ui)}
-      >
-        {null}
-      </Button>
+      <SegmentedControl
+        kind="toggle"
+        label={'\uC2AC\uB77C\uC774\uB4DC \uBCF4\uAE30 \uBC29\uC2DD'}
+        options={[
+          {value: 'list', label: '\uBAA9\uB85D'},
+          {value: 'grid', label: '\uACA9\uC790'},
+        ]}
+        value={current.mode}
+        onChange={mode => saveMode(mode, ui)}
+      />
       {current.mode === 'grid' ? (
         <ThumbnailSizeControl
           compact

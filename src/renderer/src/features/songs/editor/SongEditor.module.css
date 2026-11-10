@@ -45,11 +45,6 @@
   padding: var(--space-12) var(--space-14);
 }
 
-.label {
-  display: flex;
-  min-width: 0;
-}
-
 .surface {
   display: flex;
   flex: 1;

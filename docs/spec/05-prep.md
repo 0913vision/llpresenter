@@ -1111,16 +1111,21 @@ Bible items have no transition row.
 ### Slide surface views
 
 The song, slides, and Bible editors offer 목록 and 격자 views of the same slide
-order. An opening 구역 이름 card is the first row or cell, and its Korean and
-English names are editable. The card cannot be moved, and content slides cannot
-be moved ahead of it. Delete removes the selected card. A standalone 구역 이름
-item opens with that card as its only slide. Bible verse text remains read-only.
-Each text slide has an editable field and an immediately updated picture in both
-views. The view and grid size belong to the window. Grid size can be adjusted
-with the slide size control. Selection stays local to the editor; click selects
-a slide, Ctrl-click toggles it, and Shift-click extends a range. Drag or
-Alt+Up/Down reorders slides. Existing insertion, deletion, clipboard, and text
-editing commands apply in both views. In grid view, text fields grow to show all
-wrapped lines without an inner scrollbar. Cells in the same grid row have the
-height of the tallest cell; typing retains the caret and surface scroll
-position.
+order.
+
+The slide area footer shows the slide count on the left and the labeled view
+switch on the right. Grid view also shows the size control there. In list view
+each row has one numbered picture strip; the song strip opens its label menu.
+
+An opening 구역 이름 card is the first row or cell, and its Korean and English
+names are editable. The card cannot be moved, and content slides cannot be moved
+ahead of it. Delete removes the selected card. A standalone 구역 이름 item opens
+with that card as its only slide. Bible verse text remains read-only. Each text
+slide has an editable field and an immediately updated picture in both views.
+The view and grid size belong to the window. Grid size can be adjusted with the
+slide size control. Selection stays local to the editor; click selects a slide,
+Ctrl-click toggles it, and Shift-click extends a range. Drag or Alt+Up/Down
+reorders slides. Existing insertion, deletion, clipboard, and text editing
+commands apply in both views. In grid view, text fields grow to show all wrapped
+lines without an inner scrollbar. Cells in the same grid row have the height of
+the tallest cell; typing retains the caret and surface scroll position.

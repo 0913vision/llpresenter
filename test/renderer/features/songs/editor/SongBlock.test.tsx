@@ -104,6 +104,18 @@ function renderBlock(
 }
 
 describe('SongBlock', () => {
+  it('shows one list number and label and opens the label menu from the strip', () => {
+    const {container, onOpen} = renderBlock(1);
+    const row = container.querySelector<HTMLElement>('[data-editor-block]');
+    if (row === null) throw new Error('Missing row');
+    const strip = screen.getByRole('button', {name: '1\uC808 2'});
+    expect(strip.closest('[data-editor-thumbnail]')).not.toBeNull();
+    expect(row.textContent.match(/1\uC808/g)).toHaveLength(1);
+    expect(row.textContent.match(/2/g)).toHaveLength(1);
+    fireEvent.click(strip);
+    expect(onOpen).toHaveBeenCalledWith(strip, 1);
+  });
+
   it.each([4, 6, 12])(
     'measures a %i-line grid field with its thumbnail',
     lineCount => {
@@ -148,17 +160,20 @@ describe('SongBlock', () => {
     },
   );
 
-  it('opens the label menu from the only grid band', () => {
-    const {onOpen, container} = renderBlock(0, createSong(), {grid: true});
-    const band = screen.getByRole('button', {name: '\uC774\uB984\uD45C 1'});
-    expect(container.querySelectorAll('[data-editor-thumbnail]')).toHaveLength(
-      1,
-    );
-    expect(screen.queryByRole('button', {name: '1\uC808'})).toBeNull();
-    expect(container.textContent.match(/1\uC808/g)).toHaveLength(1);
-    fireEvent.click(band);
-    expect(onOpen).toHaveBeenCalledWith(band, 0);
-  });
+  it.each([false, true])(
+    'uses the same label and number in the strip name (grid: %s)',
+    grid => {
+      const {onOpen, container} = renderBlock(0, createSong(), {grid});
+      const band = screen.getByRole('button', {name: '1\uC808 1'});
+      expect(
+        container.querySelectorAll('[data-editor-thumbnail]'),
+      ).toHaveLength(1);
+      expect(screen.queryByRole('button', {name: '1\uC808'})).toBeNull();
+      expect(container.textContent.match(/1\uC808/g)).toHaveLength(1);
+      fireEvent.click(band);
+      expect(onOpen).toHaveBeenCalledWith(band, 0);
+    },
+  );
 
   it('renders 이름표 placeholder on an unlabeled slide', () => {
     renderBlock(0, createSong(true));
@@ -167,10 +182,10 @@ describe('SongBlock', () => {
 
   it('shows the label of every inactive slide', () => {
     renderBlock(1);
-    expect(screen.getByRole('button', {name: '1절'})).toBeDefined();
+    expect(screen.getByRole('button', {name: '1절 2'})).toBeDefined();
   });
 
-  it('opens the active slide label menu from its chip', () => {
+  it('opens the active slide label menu from its strip', () => {
     const api = mockLlpApi();
     const song = createSong();
     const session = new SongSession({
@@ -207,7 +222,7 @@ describe('SongBlock', () => {
         top={80}
       />,
     );
-    const splitButton = screen.getByRole('button', {name: '1절'});
+    const splitButton = screen.getByRole('button', {name: '1절 2'});
     expect(splitButton).toBeDefined();
     fireEvent.click(splitButton);
     expect(onOpen).toHaveBeenCalledWith(splitButton, 1);
@@ -240,7 +255,7 @@ describe('SongBlock', () => {
   it('opens label menu via Ctrl+G keyboard shortcut on the active slide', () => {
     const onOpen = vi.fn();
     renderBlock(1, createSong(), {onOpen, active: true});
-    const splitButton = screen.getByRole('button', {name: '1절'});
+    const splitButton = screen.getByRole('button', {name: '1절 2'});
     const input = blockLyrics(2);
     act(() => {
       input.focus();
@@ -276,10 +291,10 @@ describe('SongBlock', () => {
     expect(onOpen).not.toHaveBeenCalled();
   });
 
-  it('moves focus to label chip on Shift+Tab from textarea', async () => {
+  it('moves focus to the label strip on Shift+Tab from textarea', async () => {
     const user = userEvent.setup();
     renderBlock(1, createSong(), {active: true, editable: true});
-    const splitButton = screen.getByRole('button', {name: '1절'});
+    const splitButton = screen.getByRole('button', {name: '1절 2'});
     const input = blockLyrics(2);
     input.focus();
     expect(document.activeElement).toBe(input);

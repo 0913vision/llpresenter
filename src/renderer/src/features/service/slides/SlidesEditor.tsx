@@ -442,7 +442,6 @@ function SlidesEditorBody({
               ?.focus()
           }
         />
-        <SlideSurfaceView ui={api.ui} />
         <fieldset
           className={styles.editable}
           disabled={model.stopped || model.session?.readOnly === true}
@@ -528,6 +527,7 @@ function SlidesEditorBody({
           </SlideRows>
         </fieldset>
         <PanelFooter
+          end={<SlideSurfaceView ui={api.ui} />}
           count={rows.length + (leadingCard === undefined ? 0 : 1)}
         />
       </div>
