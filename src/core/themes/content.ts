@@ -73,14 +73,18 @@ export function themeElementText(
         : element.source === 'item' && item?.kind === 'bible'
           ? (item.title ?? slide.reference ?? null)
           : (slide.reference ?? null);
-    case 'nextText':
+    case 'nextText': {
       if (slide?.next === undefined) return null;
+      const lines = slide.next.title?.trim()
+        ? [slide.next.title, ...slide.next.lines]
+        : slide.next.lines;
       return element.lineLimit === undefined
-        ? slide.next.lines.join('\n')
-        : slide.next.lines
+        ? lines.join('\n')
+        : lines
             .flatMap(line => line.split('\n'))
             .slice(0, element.lineLimit)
             .join('\n');
+    }
     case 'label':
       if (
         element.hideWhenItemTitle &&

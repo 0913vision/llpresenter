@@ -93,6 +93,7 @@ export const layerSchemas = {
     next: v.exactOptional(
       payloadObject({
         label: v.nullable(liveTextSchema),
+        title: v.exactOptional(liveTextSchema),
         lines: slideLinesSchema,
         continued: v.exactOptional(v.boolean()),
         biblePart: v.exactOptional(biblePartSchema),

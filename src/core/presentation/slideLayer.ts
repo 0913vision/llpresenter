@@ -14,6 +14,7 @@ export function slideLayerOf(
   const tile = tiles[cursor.index];
   if (!tile) return null;
   const next = tiles[cursor.index + 1];
+  const nextTitle = next?.sectionCard?.name ?? next?.name;
   return {
     itemId: cursor.itemId,
     position: cursor.index,
@@ -53,6 +54,9 @@ export function slideLayerOf(
                 ? next.label
                 : null,
             lines: next.lines,
+            ...(nextTitle === undefined || nextTitle.trim() === ''
+              ? {}
+              : {title: nextTitle}),
             ...(next.continued === undefined
               ? {}
               : {continued: next.continued}),

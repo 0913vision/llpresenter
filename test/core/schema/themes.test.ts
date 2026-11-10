@@ -622,3 +622,16 @@ describe('theme documents', () => {
     }
   });
 });
+
+it.each(['message-row', 'invalid', 1])(
+  'validates the stage bar behavior %s',
+  stageBar => {
+    expect(
+      v.safeParse(themeScreenLayoutSchema, {
+        mode: {kind: 'own'},
+        elements: [],
+        stageBar,
+      }).success,
+    ).toBe(stageBar === 'message-row');
+  },
+);

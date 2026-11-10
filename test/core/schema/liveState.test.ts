@@ -51,6 +51,29 @@ describe('parseLiveState', () => {
       parseLiveState(withLayout({...titleLayout, subtitleTop: 991})).ok,
     ).toBe(false);
   });
+  it('accepts a bounded next title and rejects oversized or non-text titles', () => {
+    const state = busyState();
+    const withTitle = (title: unknown) => ({
+      ...state,
+      layers: {
+        ...state.layers,
+        slide: {
+          ...state.layers.slide,
+          next: {label: null, lines: ['Body'], title},
+        },
+      },
+    });
+    expect(parseLiveState(withTitle('Notice title'))).toMatchObject({
+      ok: true,
+      value: {layers: {slide: {next: {title: 'Notice title'}}}},
+    });
+    expect(
+      parseLiveState(
+        withTitle('x'.repeat(LIVE_STATE_LIMITS.textCharacters + 1)),
+      ).ok,
+    ).toBe(false);
+    expect(parseLiveState(withTitle(42)).ok).toBe(false);
+  });
   it('accepts a song title marker and rejects other flag values', () => {
     const state = busyState();
     for (const titleSlide of [true, false, 'title', null]) {

@@ -1,9 +1,11 @@
+import {REFERENCE_SCREEN} from '@core/themes/textStyle';
 import {STAGE_COLORS} from '@core/themes/stageColors';
 import * as v from 'valibot';
 import {expect, it} from 'vitest';
 import {
   STARTER_TEXT_STYLE,
   STARTER_STAGE_ELEMENTS,
+  STAGE_BAR_HEIGHT,
 } from '@core/themes/starterLayout';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {createScreenId} from '@core/schema/ids';
@@ -467,4 +469,55 @@ it('keeps standby clock before timer independent of the live stage layout order'
     'clock',
     'timer',
   ]);
+});
+
+it('places the stage bar stop at its reference canvas height', () => {
+  const layout =
+    builtInTheme('song').screens[createScreenId(STARTER_SCREEN_IDS.stage)];
+  const background = layout?.background;
+  if (background === undefined || typeof background === 'string') {
+    throw Error('Missing stage gradient');
+  }
+  const stop = (STAGE_BAR_HEIGHT / REFERENCE_SCREEN.height) * 100;
+  expect(background.stops[1]?.position).toBe(stop);
+  expect(background.stops[2]?.position).toBe(stop);
+});
+
+it('centers the stage bar and keeps the muted clock below the lyric frames', () => {
+  const stage = createScreenId(STARTER_SCREEN_IDS.stage);
+  const elements = builtInTheme('song').screens[stage]?.elements ?? [];
+  const label = elements.find(element => element.kind === 'label');
+  const clock = elements.find(element => element.kind === 'clock');
+  const current = elements.find(element => element.kind === 'currentText');
+  const next = elements.find(element => element.kind === 'nextText');
+  if (
+    label?.kind !== 'label' ||
+    clock?.kind !== 'clock' ||
+    current?.kind !== 'currentText' ||
+    next?.kind !== 'nextText'
+  ) {
+    throw Error('Missing stage elements');
+  }
+  expect(label.frame.x + label.frame.w / 2).toBe(REFERENCE_SCREEN.width / 2);
+  expect(label.frame.y + label.frame.h / 2).toBe(STAGE_BAR_HEIGHT / 2);
+  const timer = elements.find(element => element.kind === 'timer');
+  expect(timer?.frame.x).toBe(1640);
+  expect(timer?.frame.y).toBe(20);
+  expect(next.text.size).toBe(80);
+  expect(
+    next.frame.y - (current.frame.y + current.frame.h),
+  ).toBeGreaterThanOrEqual(70);
+
+  expect(clock.text).toMatchObject({size: 28, color: STAGE_COLORS.muted});
+  expect(clock.frame.y).toBeGreaterThanOrEqual(next.frame.y + next.frame.h);
+  expect(clock.frame.x + clock.frame.w).toBeLessThanOrEqual(
+    REFERENCE_SCREEN.width,
+  );
+  for (const element of [current, next]) {
+    expect(element.frame.x / REFERENCE_SCREEN.width).toBeCloseTo(0.08, 2);
+    expect(element.frame.x + element.frame.w).toBe(
+      REFERENCE_SCREEN.width - element.frame.x,
+    );
+    expect(element.text.lineHeight).toBe(1.2);
+  }
 });

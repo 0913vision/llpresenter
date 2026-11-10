@@ -48,6 +48,8 @@ export interface MediaLayer extends MediaChoice {
 
 /** The 장 after the live one in the item's sequence, for the 무대 화면. */
 export interface NextSlide {
+  /** Optional title displayed before the next slide body. */
+  readonly title?: string;
   readonly label: string | null;
   readonly lines: readonly string[];
   readonly continued?: boolean;

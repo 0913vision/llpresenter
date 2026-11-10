@@ -1,3 +1,10 @@
+import {emptyLayers} from '@core/live/state';
+import {themeElementText} from '@core/themes/content';
+import {builtInTheme} from '@core/themes/defaults';
+import {createScreenId} from '@core/schema/ids';
+import {STARTER_SCREEN_IDS} from '@core/screens/screens';
+import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
+import {sectionCardOf} from '@core/services/sectionCards';
 import {describe, expect, it} from 'vitest';
 import type {SlideTile} from '@core/presentation/model';
 import {slideLayerOf} from '@core/presentation/slideLayer';
@@ -139,4 +146,91 @@ describe('slideLayerOf', () => {
       slideLayerOf({itemId: 'song', index: 0}, tilesOf),
     ).not.toHaveProperty('reference');
   });
+});
+
+it('shows next slide titles before body for every source kind', () => {
+  const stage = createScreenId(STARTER_SCREEN_IDS.stage);
+  const element = builtInTheme('song').screens[stage]?.elements.find(
+    value => value.kind === 'nextText',
+  );
+  if (element?.kind !== 'nextText') throw Error('Missing next text element');
+  const section = SUNDAY_SECTIONS[1];
+  if (section === undefined) throw Error('Missing section');
+  const common = {label: null, labelColor: 'none'} as const;
+  const examples: Array<{name: string; tile: SlideTile; expected: string}> = [
+    {
+      name: 'song',
+      tile: {...common, lines: ['Lyric one', 'Lyric two', 'Lyric three']},
+      expected: 'Lyric one\nLyric two',
+    },
+    {
+      name: 'titled announcement',
+      tile: {
+        ...common,
+        kind: 'ad',
+        name: 'Notice title',
+        lines: ['Body one\nBody two'],
+      },
+      expected: 'Notice title\nBody one',
+    },
+    {
+      name: 'titled blank slide',
+      tile: {...common, kind: 'blank', name: 'Slide title', lines: ['Body']},
+      expected: 'Slide title\nBody',
+    },
+    {
+      name: 'untitled slide',
+      tile: {...common, kind: 'blank', lines: ['First\nSecond\nThird']},
+      expected: 'First\nSecond',
+    },
+    {
+      name: 'Bible',
+      tile: {...common, biblePart: 1, lines: ['Verse one', 'Verse two']},
+      expected: 'Verse one\nVerse two',
+    },
+    {
+      name: 'section card',
+      tile: {
+        ...common,
+        sectionCard: sectionCardOf(section),
+        lines: ['English subtitle'],
+      },
+      expected: `${section.name}\nEnglish subtitle`,
+    },
+    {
+      name: 'media',
+      tile: {
+        ...common,
+        media: {
+          mediaId: createMediaId('00000000-0000-4000-8000-000000000001'),
+          loop: false,
+        },
+        lines: [],
+      },
+      expected: '',
+    },
+    {
+      name: 'picture',
+      tile: {
+        ...common,
+        picture: createMediaId('00000000-0000-4000-8000-000000000001'),
+        lines: [],
+      },
+      expected: '',
+    },
+  ];
+  for (const {name, tile, expected} of examples) {
+    const slide = slideLayerOf({itemId: 'item', index: 0}, () => [
+      {...common, lines: ['Current']},
+      tile,
+    ]);
+    if (slide === null) throw Error('Missing output');
+    expect(
+      themeElementText(element, {
+        layers: {...emptyLayers(), slide},
+        item: null,
+      }),
+      name,
+    ).toBe(expected);
+  }
 });

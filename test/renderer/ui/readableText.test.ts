@@ -95,6 +95,7 @@ it('keeps the saved stage output colors aligned with the design tokens', () => {
   for (const [name, color] of [
     ['stage-bar', STAGE_COLORS.bar],
     ['stage-next', STAGE_COLORS.next],
+    ['text-2', STAGE_COLORS.muted],
   ] as const) {
     const value = new RegExp(
       `"name": "${name}",\\s*"value": "(#[0-9a-f]{6})"`,

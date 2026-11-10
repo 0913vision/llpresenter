@@ -94,3 +94,19 @@ it('sends a picture atomically and applies the item background on text', () => {
     {type: 'slide.show', slide: text},
   ]);
 });
+
+it('projects a title on a blank text slide for the next preview', () => {
+  const item = slidesItem('blank');
+  const first = item.slides.slides[0];
+  if (first === undefined || !('text' in first)) {
+    throw Error('Missing text slide');
+  }
+  const titled = {
+    ...item,
+    slides: {
+      ...item.slides,
+      slides: [{...first, name: 'Title'}, ...item.slides.slides.slice(1)],
+    },
+  };
+  expect(projectSlides(titled)[0]?.name).toBe('Title');
+});

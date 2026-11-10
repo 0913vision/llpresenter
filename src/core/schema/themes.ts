@@ -175,6 +175,7 @@ export const themeElementSchema = v.pipe(
 );
 
 export const themeScreenLayoutSchema = jsonObject({
+  stageBar: v.exactOptional(v.literal('message-row')),
   songTitle: v.exactOptional(v.picklist(['sunday', 'sunday-light'])),
   mode: v.pipe(
     jsonObject({}),

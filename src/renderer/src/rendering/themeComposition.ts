@@ -1,3 +1,4 @@
+import {stageBarLayout} from './stageBar';
 import type {LiveLayers} from '@core/live/state';
 import type {SlideLayer} from '@core/live/state';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
@@ -75,7 +76,11 @@ export class ThemeCompositionView {
         theme: {
           ...frame.theme,
           layout: songTitleLayout(
-            this.fitBand(frame.theme.layout, slide, frame.theme.item),
+            stageBarLayout(
+              this.fitBand(frame.theme.layout, slide, frame.theme.item),
+              frame.screen?.kind === 'stage',
+              frame.stageMessage,
+            ),
             slide,
           ),
         },

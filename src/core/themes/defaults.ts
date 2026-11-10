@@ -111,7 +111,7 @@ function stageElements(): ThemeElement[] {
           kind: 'text',
           content: '',
           stageSource: 'stageItemName',
-          text: {...text, size: 40, align: 'left'},
+          text: {...text, size: 40, lineHeight: 1.1, align: 'right'},
         };
       case 'position':
         return {
@@ -119,21 +119,27 @@ function stageElements(): ThemeElement[] {
           kind: 'text',
           content: '',
           stageSource: 'stagePosition',
-          text: {...text, size: 36},
+          text: {...text, size: 36, lineHeight: 1.1, align: 'left'},
         };
       case 'currentLabel':
         return {
           ...base,
           kind: 'label',
           hideWhenItemTitle: true,
-          text: {...text, size: 40, align: 'left'},
+          text: {...text, size: 40, lineHeight: 1.1, align: 'center'},
         };
       case 'clock':
         return {
           ...base,
           kind: 'clock',
           clockFormat: '24h',
-          text: {...text, size: 46, align: 'right'},
+          text: {
+            ...text,
+            size: 28,
+            lineHeight: 1.1,
+            align: 'right',
+            color: STAGE_COLORS.muted,
+          },
         };
       case 'timer':
         return {
@@ -145,13 +151,19 @@ function stageElements(): ThemeElement[] {
         return {
           ...base,
           kind: 'stageMessage',
-          text: {...text, size: 36, align: 'center', color: STAGE_COLORS.next},
+          text: {
+            ...text,
+            size: 30,
+            lineHeight: 1.1,
+            align: 'center',
+            color: STAGE_COLORS.next,
+          },
         };
       case 'currentSlide':
         return {
           ...base,
           kind: 'currentText',
-          text: {...text, size: 170, lineHeight: 1.15, maxLines: 4},
+          text: {...text, size: 170, lineHeight: 1.2, maxLines: 4},
         };
       case 'nextSlide':
         return {
@@ -160,8 +172,8 @@ function stageElements(): ThemeElement[] {
           lineLimit: 2,
           text: {
             ...text,
-            size: 110,
-            lineHeight: 1.15,
+            size: 80,
+            lineHeight: 1.2,
             maxLines: 2,
             vAlign: 'bottom',
             color: STAGE_COLORS.next,
@@ -268,6 +280,7 @@ function layoutFor(
     elements,
     ...(screen.kind === 'stage'
       ? {
+          stageBar: 'message-row' as const,
           background: {
             kind: 'linear' as const,
             angle: 90,

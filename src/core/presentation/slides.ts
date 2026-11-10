@@ -53,10 +53,7 @@ export function projectSlides(
       };
     }
     const text = slide.text;
-    const name =
-      item.slides.form === 'ad' && typeof slide.name === 'string'
-        ? slide.name
-        : undefined;
+    const name = typeof slide.name === 'string' ? slide.name : undefined;
     return {
       sourceSlideId: slide.id,
       ...(slide.transition === undefined ? {} : {transition: slide.transition}),
