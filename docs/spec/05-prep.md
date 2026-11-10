@@ -1115,4 +1115,7 @@ views. The view and grid size belong to the window. Grid size can be adjusted
 with the slide size control. Selection stays local to the editor; click selects
 a slide, Ctrl-click toggles it, and Shift-click extends a range. Drag or
 Alt+Up/Down reorders slides. Existing insertion, deletion, clipboard, and text
-editing commands apply in both views.
+editing commands apply in both views. In grid view, text fields grow to show all
+wrapped lines without an inner scrollbar. Cells in the same grid row have the
+height of the tallest cell; typing retains the caret and surface scroll
+position.

@@ -35,6 +35,7 @@ import {useEditorFocus} from './useEditorFocus';
 import {SONG_LIMITS} from '@core/schema/song';
 import {SlideSurfaceView, useSlideSurfaceView} from './SlideSurfaceView';
 import {menuAvailability} from '@renderer/ui/menuModel';
+import {reconcileSlideRowMeasurements} from '@renderer/ui/slideRowMeasurements';
 import {
   LEADING_CARD_WINDOW_ITEM,
   type LeadingSlideCard,
@@ -193,10 +194,41 @@ function SongBlocks({
   const [leadingHeight, setLeadingHeight] = useState<number | undefined>(
     undefined,
   );
-  const leadingHeights = useMemo(
-    () => (leadingCard === undefined ? undefined : [leadingHeight]),
-    [leadingCard, leadingHeight],
+  const scope = `${view.mode}:${view.scale}`;
+  const ids: string[] = slides.map(slide => slide.id);
+  const [measurements, setMeasurements] = useState(() =>
+    reconcileSlideRowMeasurements(
+      {scope, ids: new Set(), values: {}},
+      scope,
+      ids,
+    ),
   );
+  const current = reconcileSlideRowMeasurements(measurements, scope, ids);
+  if (current !== measurements) setMeasurements(current);
+  const saveHeight = useCallback(
+    (id: string, height: number) => {
+      setMeasurements(previous => {
+        if (
+          previous.scope !== scope ||
+          !previous.ids.has(id) ||
+          previous.values[id] === height
+        ) {
+          return previous;
+        }
+        return {...previous, values: {...previous.values, [id]: height}};
+      });
+    },
+    [scope],
+  );
+  const heights = useMemo(() => {
+    const values =
+      view.mode === 'grid' ? slides.map(slide => current.values[slide.id]) : [];
+    return leadingCard === undefined
+      ? view.mode === 'grid'
+        ? values
+        : undefined
+      : [leadingHeight, ...values];
+  }, [view.mode, slides, current, leadingCard, leadingHeight]);
   const windowSlides = useMemo(
     () =>
       leadingCard === undefined
@@ -217,8 +249,20 @@ function SongBlocks({
     menu: menu?.block === undefined ? undefined : menu.block + leadingOffset,
     mode: view.mode,
     scale: view.scale,
-    ...(leadingHeights === undefined ? {} : {heights: leadingHeights}),
+    ...(heights === undefined ? {} : {heights}),
   });
+  useLayoutEffect(() => {
+    const node = viewport.current;
+    if (node === null || typeof ResizeObserver === 'undefined') return;
+    let width = node.clientWidth;
+    const observer = new ResizeObserver(() => {
+      if (node.clientWidth === width) return;
+      width = node.clientWidth;
+      setMeasurements(previous => ({...previous, values: {}}));
+    });
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [viewport]);
   const tab = (event: KeyboardEvent<HTMLDivElement>): void => {
     if (
       event.code !== 'Tab' ||
@@ -324,6 +368,27 @@ function SongBlocks({
       <div className={styles.blockWindow} style={{height: total}}>
         {indices.map(position => {
           if (leadingCard !== undefined && position === 0) {
+            if (view.mode === 'grid') {
+              return (
+                <div
+                  key="leading-card"
+                  style={{
+                    position: 'absolute',
+                    top: offsets[0] ?? 0,
+                    left: 0,
+                    width: cellWidth > 0 ? cellWidth : '100%',
+                    height: (offsets[1] ?? 0) - (offsets[0] ?? 0),
+                  }}
+                >
+                  <LeadingSlideCardView
+                    card={leadingCard}
+                    mode={view.mode}
+                    onHeight={setLeadingHeight}
+                    style={{position: 'relative'}}
+                  />
+                </div>
+              );
+            }
             return (
               <LeadingSlideCardView
                 key="leading-card"
@@ -333,8 +398,7 @@ function SongBlocks({
                 style={{
                   top: offsets[0] ?? 0,
                   left: 0,
-                  width:
-                    view.mode === 'grid' && cellWidth > 0 ? cellWidth : '100%',
+                  width: '100%',
                 }}
               />
             );
@@ -387,6 +451,13 @@ function SongBlocks({
               cellWidth={cellWidth}
               columnGap={columnGap}
               grid={view.mode === 'grid'}
+              rowHeight={
+                view.mode === 'grid'
+                  ? (offsets[Math.floor(position / columns) + 1] ?? 0) -
+                    (offsets[Math.floor(position / columns)] ?? 0)
+                  : undefined
+              }
+              onMeasure={saveHeight}
               numberOffset={leadingOffset}
             />
           );

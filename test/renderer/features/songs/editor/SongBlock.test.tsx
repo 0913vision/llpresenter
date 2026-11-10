@@ -60,6 +60,7 @@ function renderBlock(
     readonly locked?: boolean;
     readonly active?: boolean;
     readonly grid?: boolean;
+    readonly onMeasure?: ((id: string, height: number) => void) | undefined;
   } = {},
 ) {
   const api = mockLlpApi();
@@ -96,12 +97,57 @@ function renderBlock(
       onOpen={onOpen}
       top={block * 80}
       grid={options.grid ?? false}
+      onMeasure={options.onMeasure}
     />,
   );
   return {...result, session, focus, slide, onOpen};
 }
 
 describe('SongBlock', () => {
+  it.each([4, 6, 12])(
+    'measures a %i-line grid field with its thumbnail',
+    lineCount => {
+      const original = createSong();
+      const song = {
+        ...original,
+        slides: original.slides.map((slide, index) =>
+          index === 0
+            ? {
+                ...slide,
+                lines: Array.from(
+                  {length: lineCount},
+                  (_, line) => `Line ${line + 1}`,
+                ),
+              }
+            : slide,
+        ),
+      };
+      const measure = vi
+        .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+        .mockImplementation(function (this: HTMLElement) {
+          if (this.hasAttribute('data-editor-thumbnail')) {
+            return DOMRect.fromRect({height: 100});
+          }
+          if (this.hasAttribute('data-grid-text')) {
+            return DOMRect.fromRect({height: lineCount * 22 + 8});
+          }
+          return DOMRect.fromRect();
+        });
+      const onMeasure = vi.fn();
+      try {
+        const view = renderBlock(0, song, {grid: true, onMeasure});
+        expect(blockLyrics(1)).toHaveProperty('rows', lineCount);
+        expect(onMeasure).toHaveBeenCalledWith(
+          song.slides[0]?.id,
+          100 + lineCount * 22 + 8,
+        );
+        view.unmount();
+      } finally {
+        measure.mockRestore();
+      }
+    },
+  );
+
   it('opens the label menu from the only grid band', () => {
     const {onOpen, container} = renderBlock(0, createSong(), {grid: true});
     const band = screen.getByRole('button', {name: '\uC774\uB984\uD45C 1'});

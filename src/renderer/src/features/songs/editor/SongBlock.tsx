@@ -1,6 +1,7 @@
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {
   memo,
+  useLayoutEffect,
   useRef,
   type JSX,
   type KeyboardEvent,
@@ -52,6 +53,8 @@ interface BlockProps {
   readonly columnGap?: number;
   readonly grid?: boolean;
   readonly numberOffset?: number;
+  readonly rowHeight?: number | undefined;
+  readonly onMeasure?: ((id: string, height: number) => void) | undefined;
   readonly caret?: boolean;
   readonly canvas?: ReactNode;
   readonly renderCard?: SlideCardRenderer<EditorSlideItem> | undefined;
@@ -78,11 +81,45 @@ export const SongBlock = memo(
     columnGap = 0,
     grid = false,
     numberOffset = 0,
+    rowHeight,
+    onMeasure,
     caret,
     canvas,
     renderCard,
   }: BlockProps): JSX.Element => {
     const labelButtonRef = useRef<HTMLButtonElement | null>(null);
+    const blockRef = useRef<HTMLDivElement>(null);
+    useLayoutEffect(() => {
+      const node = blockRef.current;
+      if (!grid || node === null || onMeasure === undefined) return;
+      const thumbnail = node.querySelector<HTMLElement>(
+        '[data-editor-thumbnail]',
+      );
+      const text = node.querySelector<HTMLElement>('[data-grid-text]');
+      if (thumbnail === null || text === null) return;
+      const measure = (): void => {
+        const css = getComputedStyle(node);
+        const px = (name: string): number =>
+          Number.parseFloat(css.getPropertyValue(name)) || 0;
+        const cellChromeHeight =
+          px('row-gap') +
+          px('padding-top') +
+          px('padding-bottom') +
+          px('border-top-width') +
+          px('border-bottom-width');
+        const height =
+          thumbnail.getBoundingClientRect().height +
+          text.getBoundingClientRect().height +
+          cellChromeHeight;
+        if (height > 0) onMeasure(slide.id, Math.ceil(height));
+      };
+      measure();
+      if (typeof ResizeObserver === 'undefined') return;
+      const observer = new ResizeObserver(measure);
+      observer.observe(thumbnail);
+      observer.observe(text);
+      return () => observer.disconnect();
+    }, [grid, onMeasure, renderCard, slide.id]);
 
     const select = (input: HTMLTextAreaElement): void => {
       if (focus.current.restoring || focus.current.requested) return;
@@ -166,6 +203,7 @@ export const SongBlock = memo(
 
     return (
       <div
+        ref={blockRef}
         className={`${styles.block} ${plate.row} ${grid ? plate.grid : ''}`}
         data-active={active}
         data-focused={focused}
@@ -185,6 +223,7 @@ export const SongBlock = memo(
                 right: 'auto',
                 width: cellWidth > 0 ? `${cellWidth}px` : `${100 / columns}%`,
                 boxSizing: 'border-box',
+                minHeight: rowHeight,
               }
             : {top}
         }
@@ -259,7 +298,7 @@ export const SongBlock = memo(
                 />
               )}
             </div>
-            <div className={styles.text}>
+            <div className={styles.text} data-grid-text>
               {grid ? null : (
                 <div className={styles.label}>
                   {

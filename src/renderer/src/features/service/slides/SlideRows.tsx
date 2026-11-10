@@ -14,7 +14,7 @@ import type {Slide, SlidesDraft} from '@core/services/slidesEdits';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {SongSlideSurface} from '../../songs/editor/SongSlideSurface';
 import {SlidesListSession} from './slidesListSession';
-import {reconcileSlideRowMeasurements} from './slideRowMeasurements';
+import {reconcileSlideRowMeasurements} from '@renderer/ui/slideRowMeasurements';
 import styles from './SlidesEditor.module.css';
 import {EditorSlideNumber} from '../../songs/editor/EditorSlideNumber';
 import plate from '../../songs/editor/EditorSlidePlate.module.css';
@@ -55,8 +55,8 @@ function MeasuredRow({
     return () => observer.disconnect();
   }, [id, onHeight]);
   return (
-    <div ref={rowRef} className={styles.rowPosition} style={style}>
-      {children}
+    <div className={styles.rowPosition} style={style} data-measured-row>
+      <div ref={rowRef}>{children}</div>
     </div>
   );
 }
@@ -213,6 +213,10 @@ export function SlideRows({
                   style={{
                     top: offsets[0] ?? 0,
                     left: 0,
+                    height:
+                      view.mode === 'grid'
+                        ? (offsets[1] ?? 0) - (offsets[0] ?? 0)
+                        : undefined,
                     width:
                       view.mode === 'grid' && cellWidth > 0
                         ? cellWidth
@@ -241,6 +245,11 @@ export function SlideRows({
                     view.mode === 'grid' && cellWidth > 0
                       ? `${(position % columns) * (cellWidth + columnGap)}px`
                       : `${((position % columns) * 100) / columns}%`,
+                  height:
+                    view.mode === 'grid'
+                      ? (offsets[Math.floor(position / columns) + 1] ?? 0) -
+                        (offsets[Math.floor(position / columns)] ?? 0)
+                      : undefined,
                   width:
                     view.mode === 'grid' && cellWidth > 0
                       ? `${cellWidth}px`

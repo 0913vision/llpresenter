@@ -52,12 +52,12 @@ export function useSongBlockWindow(
 ) {
   const {menu, mode = 'list', scale = 100, heights} = options;
   const localRef = useRef<HTMLDivElement>(null);
-  const viewport = options.viewportRef ?? localRef;
+  const viewportRef = options.viewportRef ?? localRef;
   const [measure, setMeasure] = useState(EMPTY);
   const [scrollTop, setScrollTop] = useState(0);
   const [width, setWidth] = useState(0);
   useLayoutEffect(() => {
-    const node = viewport.current;
+    const node = viewportRef.current;
     if (node === null) return;
     const read = (): void => {
       setWidth(node.clientWidth);
@@ -102,7 +102,7 @@ export function useSongBlockWindow(
     const observer = new ResizeObserver(read);
     observer.observe(node);
     return () => observer.disconnect();
-  }, [viewport]);
+  }, [viewportRef]);
   const cellWidth = thumbnailWidth({
     gridWidth: width,
     columns: GRID_BASELINE_COLUMNS,
@@ -176,8 +176,35 @@ export function useSongBlockWindow(
   if (menu !== undefined && menu >= 0 && menu < slides.length) {
     indices.add(menu);
   }
+  const lastReveal = useRef<{
+    selected: number;
+    columns: number;
+    cellWidth: number;
+    viewportHeight: number;
+    mode: SlideSurfaceMode;
+  } | null>(null);
   useLayoutEffect(() => {
-    const node = viewport.current;
+    const previous = lastReveal.current;
+    const next = {
+      selected,
+      columns,
+      cellWidth,
+      viewportHeight: measure.viewport,
+      mode,
+    };
+    if (
+      mode === 'grid' &&
+      previous !== null &&
+      previous.mode === mode &&
+      previous.selected === next.selected &&
+      previous.columns === next.columns &&
+      previous.cellWidth === next.cellWidth &&
+      previous.viewportHeight === next.viewportHeight
+    ) {
+      return;
+    }
+    lastReveal.current = next;
+    const node = viewportRef.current;
     const row = Math.floor(selected / columns);
     const top = offsets[row];
     const bottom = offsets[row + 1];
@@ -189,9 +216,17 @@ export function useSongBlockWindow(
           ? top
           : Math.max(0, bottom - node.clientHeight);
     }
-  }, [selected, offsets, columns, viewport]);
+  }, [
+    selected,
+    offsets,
+    columns,
+    viewportRef,
+    cellWidth,
+    measure.viewport,
+    mode,
+  ]);
   return {
-    viewport,
+    viewport: viewportRef,
     total,
     offsets,
     columns,

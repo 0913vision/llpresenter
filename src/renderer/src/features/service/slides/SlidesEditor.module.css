@@ -250,5 +250,8 @@
   position: relative;
 }
 .rows[data-view='grid'] .fields textarea {
+  field-sizing: content;
+  max-height: none;
+  overflow: hidden;
   min-height: calc(var(--size-control-md) * 2);
 }

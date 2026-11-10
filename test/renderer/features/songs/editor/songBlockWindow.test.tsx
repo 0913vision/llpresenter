@@ -17,14 +17,20 @@ function Fixture({
   selected,
   mode = 'list',
   scale = 100,
+  heights,
 }: {
   readonly mode?: 'list' | 'grid';
   readonly scale?: number;
+  readonly heights?: ReadonlyArray<number | undefined> | undefined;
   readonly slides: readonly WindowSlideItem[];
   readonly selected: number;
 }) {
   const {viewport, total, offsets, columns, indices, setScrollTop} =
-    useSongBlockWindow(slides, selected, {mode, scale});
+    useSongBlockWindow(slides, selected, {
+      mode,
+      scale,
+      ...(heights === undefined ? {} : {heights}),
+    });
   return (
     <div
       ref={viewport}
@@ -72,6 +78,57 @@ function observer() {
 }
 
 describe('song block window measurements', () => {
+  it('aligns a four-line and a six-line grid cell and preserves scrolling as the row grows', () => {
+    const measured = observer();
+    const slides = [
+      {lines: ['a', 'b', 'c', 'd']},
+      {lines: ['a', 'b', 'c', 'd', 'e', 'f']},
+      {lines: ['short']},
+      {lines: ['short']},
+      {lines: ['next row']},
+    ];
+    const view = render(
+      <Fixture
+        slides={slides}
+        selected={0}
+        mode="grid"
+        heights={[210, 270, 180, 180, 180]}
+      />,
+    );
+    const viewport = screen.getByTestId('viewport');
+    Object.defineProperty(viewport, 'clientHeight', {
+      value: 300,
+      configurable: true,
+    });
+    Object.defineProperty(viewport, 'clientWidth', {
+      value: 1000,
+      configurable: true,
+    });
+    act(() => measured.resize());
+    expect(
+      screen.getByRole('textbox', {name: 'Row 0'}).parentElement?.style.top,
+    ).toBe('0px');
+    expect(
+      screen.getByRole('textbox', {name: 'Row 1'}).parentElement?.style.top,
+    ).toBe('0px');
+    expect(
+      screen.getByRole('textbox', {name: 'Row 4'}).parentElement?.style.top,
+    ).toBe('270px');
+    fireEvent.scroll(viewport, {target: {scrollTop: 42}});
+    view.rerender(
+      <Fixture
+        slides={slides}
+        selected={0}
+        mode="grid"
+        heights={[210, 310, 180, 180, 180]}
+      />,
+    );
+    expect(
+      screen.getByRole('textbox', {name: 'Row 4'}).parentElement?.style.top,
+    ).toBe('310px');
+    expect(viewport.scrollTop).toBe(42);
+  });
+
   it('windows 300 grid slides and reveals the selected cell at either zoom', () => {
     const measured = observer();
     const slides = Array.from({length: 300}, () => ({lines: ['Slide']}));

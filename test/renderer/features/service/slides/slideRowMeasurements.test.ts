@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {reconcileSlideRowMeasurements} from '@renderer/features/service/slides/slideRowMeasurements';
+import {reconcileSlideRowMeasurements} from '@renderer/ui/slideRowMeasurements';
 
 describe('slide row measurement cache', () => {
   it('prunes removed slides and preserves current slide heights', () => {

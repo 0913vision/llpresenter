@@ -154,6 +154,9 @@
   position: relative;
 }
 .block[data-grid] .lyrics {
+  field-sizing: content;
+  max-height: none;
+  overflow: hidden;
   min-height: calc(var(--size-control-md) * 2);
   background: var(--bg-control);
   padding: var(--space-4);

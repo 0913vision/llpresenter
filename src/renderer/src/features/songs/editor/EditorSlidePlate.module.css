@@ -73,6 +73,7 @@
 
 .grid {
   grid-template-columns: 1fr;
+  align-content: start;
   gap: var(--space-6);
   border: 0;
 }

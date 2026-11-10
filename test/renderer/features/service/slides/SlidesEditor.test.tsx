@@ -243,11 +243,15 @@ describe('automatic inline slides editor', () => {
         const second = document.querySelector<HTMLElement>(
           '[data-slide-index="1"]',
         );
-        expect(second?.parentElement?.style.top).toBe('240px');
+        expect(
+          second?.closest<HTMLElement>('[data-measured-row]')?.style.top,
+        ).toBe('240px');
         const third = document.querySelector<HTMLElement>(
           '[data-slide-index="2"]',
         );
-        expect(third?.parentElement?.style.top).toBe('400px');
+        expect(
+          third?.closest<HTMLElement>('[data-measured-row]')?.style.top,
+        ).toBe('400px');
       });
     } finally {
       f.view.unmount();
