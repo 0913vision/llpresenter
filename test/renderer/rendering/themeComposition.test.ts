@@ -88,6 +88,136 @@ afterEach(() => {
 });
 
 describe('theme composition drawing', () => {
+  it.each(['main', 'stage'] as const)(
+    'keeps Bible source rows on the %s screen',
+    screenKind => {
+      const screenId = createScreenId(STARTER_SCREEN_IDS[screenKind]);
+      const layout = builtInTheme('bible').screens[screenId];
+      if (!layout) throw Error('Missing Bible layout');
+      const {root, view} = setup();
+      const current = {
+        ...song,
+        slide: {
+          ...song.slide,
+          itemId: 'invented',
+          position: 0,
+          label: null,
+          kind: 'bible' as const,
+          lines: ['first line', 'second line'],
+        },
+      };
+      const active = frame(layout.elements);
+      if (!active.theme?.item) throw Error('Missing theme item');
+      try {
+        view.render(current, {
+          ...active,
+          transitions: false,
+          screen: {
+            id: screenId,
+            kind: screenKind === 'main' ? 'audience' : 'stage',
+          },
+          theme: {...active.theme, item: {...active.theme.item, kind: 'bible'}},
+        });
+        const block = root.querySelector<HTMLElement>(
+          `[data-kind="currentText"] .${classes.shown} .${classes.block}`,
+        );
+        if (!block) throw Error('Missing Bible text');
+        expect(Array.from(block.children, child => child.textContent)).toEqual([
+          'first line',
+          'second line',
+        ]);
+        expect(current.slide.lines).toEqual(['first line', 'second line']);
+      } finally {
+        view.dispose();
+      }
+    },
+  );
+  it('renders the title in the broadcast band for an empty song slide', () => {
+    const layout =
+      builtInTheme('song').screens[
+        createScreenId(STARTER_SCREEN_IDS.broadcast)
+      ];
+    if (!layout) throw Error('Missing broadcast layout');
+    const {root, view} = setup();
+    const current = {
+      ...song,
+      slide: {
+        ...song.slide,
+        itemId: 'invented',
+        position: 0,
+        label: 'Interlude',
+        kind: 'song' as const,
+        lines: [''],
+      },
+    };
+    const active = frame(layout.elements);
+    if (!active.theme?.item) throw Error('Missing theme item');
+    try {
+      view.render(current, {
+        ...active,
+        transitions: false,
+        theme: {
+          ...active.theme,
+          item: {...active.theme.item, title: 'My song'},
+        },
+      });
+      const band = root.querySelector<HTMLElement>(
+        `[data-theme-element="${BROADCAST_BAND_ID}"]`,
+      );
+      const block = root.querySelector<HTMLElement>(
+        `[data-kind="currentText"] .${classes.shown} .${classes.block}`,
+      );
+      expect(band?.hidden).toBe(false);
+      expect(block?.textContent).toBe('My song');
+      expect(block?.style.whiteSpace).toBe('pre');
+      expect(current.slide.lines).toEqual(['']);
+    } finally {
+      view.dispose();
+    }
+  });
+  it.each(['bible', 'song', 'ad'] as const)(
+    'reflows only %s Bible output in the broadcast band',
+    kind => {
+      const layout =
+        builtInTheme(kind).screens[
+          createScreenId(STARTER_SCREEN_IDS.broadcast)
+        ];
+      if (!layout) throw Error('Missing broadcast layout');
+      const {root, view} = setup();
+      const current = {
+        ...song,
+        slide: {
+          ...song.slide,
+          itemId: 'invented',
+          position: 0,
+          label: null,
+          kind,
+          lines: ['first line', 'second line'],
+        },
+      };
+      const original = [...current.slide.lines];
+      const active = frame(layout.elements);
+      if (!active.theme?.item) throw Error('Missing theme item');
+      try {
+        view.render(current, {
+          ...active,
+          transitions: false,
+          theme: {...active.theme, item: {...active.theme.item, kind}},
+        });
+        const block = root.querySelector<HTMLElement>(
+          `[data-kind="currentText"] .${classes.shown} .${classes.block}`,
+        );
+        if (!block) throw Error('Missing text block');
+        expect(block.children.length).toBe(kind === 'bible' ? 1 : 2);
+        expect(block.textContent).toBe(
+          kind === 'bible' ? 'first line second line' : 'first linesecond line',
+        );
+        expect(current.slide.lines).toEqual(original);
+      } finally {
+        view.dispose();
+      }
+    },
+  );
   it('keeps the last good band after a measurement error and retries without leaking the host', () => {
     const layout =
       builtInTheme('song').screens[
@@ -144,7 +274,15 @@ describe('theme composition drawing', () => {
       expect(text('currentText')).toBe('New line');
       expect(hosts()).toBe(before);
       const empty = {...changed, slide: {...changed.slide, lines: ['']}};
-      expect(() => view.render(empty, activeFrame)).not.toThrow();
+      if (!activeFrame.theme?.item) throw Error('Missing theme item');
+      const blankFrame = {
+        ...activeFrame,
+        theme: {
+          ...activeFrame.theme,
+          item: {...activeFrame.theme.item, kind: 'blank' as const},
+        },
+      };
+      expect(() => view.render(empty, blankFrame)).not.toThrow();
       expect(band()?.hidden).toBe(true);
       expect(hosts()).toBe(before);
       const failedAttempts = attempts;

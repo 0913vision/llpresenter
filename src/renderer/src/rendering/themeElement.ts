@@ -20,6 +20,7 @@ import {fillTimerTokens} from './timerTokens';
 import type {RenderFrame, RenderLayerOptions} from './layer';
 import type {ThemeGaps} from './themeGaps';
 import {setPlaybackProblem} from './playbackProblem';
+import {broadcastBibleFlow} from './broadcastBibleFlow';
 
 function fillColor(fill: string, opacity: number): string {
   const [red, green, blue] = [1, 3, 5].map(at =>
@@ -210,7 +211,13 @@ export class ThemeElementView {
         (element.kind === 'currentText' &&
           layers.slide?.sectionCard === undefined));
     this.text?.setLineMode(
-      stage && isBar ? 'bar' : stage && isSong ? 'song' : 'normal',
+      (element.broadcastSongTitle !== undefined &&
+        element.broadcastSongTitleWrap === false) ||
+        (stage && isBar)
+        ? 'bar'
+        : stage && isSong
+          ? 'song'
+          : 'normal',
     );
     if (element.kind === 'media' || element.kind === 'background') {
       const media = themeElementMedia(element.kind, {layers, item});
@@ -316,7 +323,7 @@ export class ThemeElementView {
             frame.timers.now(),
           )
         : undefined;
-    return themeElementText(element, {
+    const text = themeElementText(element, {
       layers,
       item: frame.theme?.item ?? null,
       stageMessage: frame.stageMessage,
@@ -330,6 +337,12 @@ export class ThemeElementView {
       timer,
       videoTimeLeft: remainingText(videoRemaining),
     });
+    if (element.broadcastSongTitle !== undefined) {
+      return element.broadcastSongTitle;
+    }
+    return text !== null && element.broadcastBibleFlow
+      ? broadcastBibleFlow(text)
+      : text;
   }
 
   private showMedia(

@@ -188,8 +188,12 @@ function writeLines(
 export function measureSlideText(
   lines: readonly string[],
   style: TextStyle,
-  width: number,
-): {height: (size: number) => number; dispose: () => void} {
+  {width, unwrapped = false}: {width: number; unwrapped?: boolean},
+): {
+  height: (size: number) => number;
+  width: (size: number) => number;
+  dispose: () => void;
+} {
   const host = document.createElement('div');
   host.dataset['slideMeasure'] = '';
   Object.assign(host.style, {
@@ -204,6 +208,7 @@ export function measureSlideText(
   page.element.style.position = 'relative';
   page.element.style.inset = 'auto';
   page.block.style.width = '100%';
+  if (unwrapped) page.block.style.whiteSpace = 'pre';
   host.append(page.element);
   document.body.append(host);
   try {
@@ -213,6 +218,10 @@ export function measureSlideText(
     throw error;
   }
   return {
+    width: size => {
+      page.block.style.fontSize = `${size}px`;
+      return page.block.scrollWidth;
+    },
     height: size => {
       page.block.style.fontSize = `${size}px`;
       const measured = page.block.scrollHeight;

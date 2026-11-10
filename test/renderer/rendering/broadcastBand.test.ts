@@ -68,6 +68,117 @@ beforeEach(() => {
 afterEach(() => vi.restoreAllMocks());
 
 describe('broadcast band fitting', () => {
+  it('shows a song title for an empty song slide, but not for empty non-songs or cleared content', () => {
+    const layout = builtInTheme('song').screens[screen];
+    if (!layout) throw Error('Missing broadcast layout');
+    const blank = {
+      ...slide,
+      kind: 'song' as const,
+      title: 'A song',
+      lines: [' ', ''],
+    };
+    const item = {
+      id: 'item',
+      kind: 'song' as const,
+      source: 'service' as const,
+      title: 'My song',
+    };
+    expect(bandHidden(layout, blank, item)).toBe(false);
+    expect(
+      bandHidden(layout, {...blank, kind: 'blank'}, {...item, kind: 'blank'}),
+    ).toBe(true);
+    expect(bandHidden(layout, blank, {...item, contentCleared: true})).toBe(
+      true,
+    );
+    expect(
+      bandHidden(layout, {...blank, title: ''}, {...item, title: ''}),
+    ).toBe(true);
+    const fitted = fitBroadcastBand(layout, blank, item);
+    const body = fitted.elements.find(
+      element => element.id === BROADCAST_TEXT_ID,
+    );
+    expect(body).toMatchObject({
+      broadcastSongTitle: 'My song',
+      minimumTextSize: BROADCAST_MIN_TEXT,
+    });
+    const spaced = fitBroadcastBand(
+      layout,
+      {...blank, label: 'Interlude'},
+      {...item, title: '  My   song\n title  '},
+    );
+    expect(
+      spaced.elements.find(element => element.id === BROADCAST_TEXT_ID),
+    ).toMatchObject({broadcastSongTitle: 'My song title'});
+    const fallback = fitBroadcastBand(
+      layout,
+      {...blank, title: '', label: 'Interlude'},
+      {...item, title: ''},
+    );
+    expect(
+      fallback.elements.find(element => element.id === BROADCAST_TEXT_ID),
+    ).toMatchObject({broadcastSongTitle: 'Interlude'});
+    const lyrics = fitBroadcastBand(
+      layout,
+      {...blank, lines: ['Lyrics']},
+      item,
+    );
+    expect(
+      lyrics.elements.find(element => element.id === BROADCAST_TEXT_ID),
+    ).toMatchObject({broadcastSongTitle: undefined});
+  });
+  it('measures a 40-character song title unwrapped and wraps at the 48 px floor', () => {
+    const layout = builtInTheme('song').screens[screen];
+    if (!layout) throw Error('Missing broadcast layout');
+    const title = '가'.repeat(40);
+    const widths = vi
+      .spyOn(HTMLElement.prototype, 'scrollWidth', 'get')
+      .mockImplementation(function (this: HTMLElement) {
+        return this.style.whiteSpace === 'pre'
+          ? Math.ceil(40 * Number.parseFloat(this.style.fontSize))
+          : BROADCAST_GEOMETRY.width - BROADCAST_GEOMETRY.sidePadding * 2;
+      });
+    const heights = vi
+      .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
+      .mockImplementation(function (this: HTMLElement) {
+        return Math.ceil(
+          Number.parseFloat(this.style.fontSize) *
+            BROADCAST_GEOMETRY.lineHeight *
+            (this.style.whiteSpace === 'pre' ? 1 : 2),
+        );
+      });
+    try {
+      const result = fitBroadcastBand(
+        layout,
+        {
+          ...slide,
+          kind: 'song',
+          lines: [''],
+          title,
+        },
+        {id: 'item', kind: 'song', source: 'service', title},
+      );
+      const body = result.elements.find(
+        element => element.id === BROADCAST_TEXT_ID,
+      );
+      if (body?.kind !== 'currentText') throw Error('Missing text');
+      expect(body.text.size).toBe(BROADCAST_MIN_TEXT);
+      expect(body).toMatchObject({
+        broadcastSongTitle: title,
+        broadcastSongTitleWrap: true,
+        minimumTextSize: BROADCAST_MIN_TEXT,
+      });
+      expect(body.frame.h).toBeGreaterThanOrEqual(
+        Math.ceil(2 * BROADCAST_MIN_TEXT * BROADCAST_GEOMETRY.lineHeight),
+      );
+      expect(
+        result.elements.find(element => element.id === BROADCAST_BAND_ID)?.frame
+          .h,
+      ).toBe(BROADCAST_GEOMETRY.minHeight);
+    } finally {
+      widths.mockRestore();
+      heights.mockRestore();
+    }
+  });
   it('hides the preparation, blank and media bands when their broadcast text is empty', () => {
     const preparation = createDefaultThemes().themes.find(
       theme => theme.id === PREPARATION_THEME_ID,
@@ -265,11 +376,54 @@ describe('broadcast band fitting', () => {
       throw Error('Missing broadcast elements');
     }
     expect(body.text.size).toBeLessThan(BROADCAST_MIN_TEXT);
+    expect(body.text.size).toBeGreaterThan(0);
     expect(body).toMatchObject({minimumTextSize: body.text.size});
     expect(body.frame.h).toBeGreaterThanOrEqual(
       Math.ceil(30 * body.text.size * BROADCAST_GEOMETRY.lineHeight),
     );
     expect(band.frame.y).toBeGreaterThanOrEqual(0);
+  });
+  it('measures a five-line Bible slide as one paragraph wrapping into at most three rows', () => {
+    const layout = builtInTheme('bible').screens[screen];
+    if (!layout) throw Error('Missing broadcast layout');
+    const original = [
+      '18 요한복음 3:18 임시 본문입니다. 이',
+      '문장은 실제 성경이 아니며, 한 절이 두 줄',
+      '이상으로 길어질 때 나누기와 줄바꿈이',
+      '어떻게 보이는지 확인하려고 조금 길게',
+      '썼습니다.',
+    ];
+    const measured: string[] = [];
+    const height = vi
+      .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
+      .mockImplementation(function (this: HTMLElement) {
+        measured.push(this.textContent);
+        return Math.ceil(
+          3 *
+            Number.parseFloat(this.style.fontSize) *
+            BROADCAST_GEOMETRY.lineHeight,
+        );
+      });
+    try {
+      const result = fitBroadcastBand(layout, {
+        ...slide,
+        kind: 'bible',
+        reference: '요한복음 3:18',
+        lines: original,
+      });
+      const text = result.elements.find(
+        element => element.id === BROADCAST_TEXT_ID,
+      );
+      if (text?.kind !== 'currentText') throw Error('Missing text');
+      expect(measured).toContain(original.join(' '));
+      expect(text.text.size).toBe(BROADCAST_GEOMETRY.textSize);
+      expect(text.frame.h).toBeGreaterThanOrEqual(
+        Math.ceil(3 * text.text.size * BROADCAST_GEOMETRY.lineHeight),
+      );
+      expect(original).toHaveLength(5);
+    } finally {
+      height.mockRestore();
+    }
   });
   it('does not alter a saved layout without the built-in marker', () => {
     const layout = builtInTheme('song').screens[screen];

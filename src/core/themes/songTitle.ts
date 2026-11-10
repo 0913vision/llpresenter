@@ -31,6 +31,9 @@ export type ResolvedThemeElement = ThemeElement & {
   readonly clearTarget?: 'slide';
   readonly runtimeHidden?: boolean;
   readonly minimumTextSize?: number;
+  readonly broadcastBibleFlow?: boolean;
+  readonly broadcastSongTitle?: string;
+  readonly broadcastSongTitleWrap?: boolean;
 };
 
 /** Resolves the Sunday title in the same composition for output and thumbnails. */

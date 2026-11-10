@@ -597,7 +597,11 @@ fields, as every settings file does (02).
 - A new library's broadcast layouts use an opaque bg-panel dark band across the
   bottom on the configured key color. White text is centered; a Bible reference
   sits at the right end, section cards show the Korean name, and notices show
-  their name and body in the band. The band prefers at most 360 px at 1920 x
+  their name and body in the band. Bible text rejoins the audience's line breaks
+  and wraps to the broadcast text width; songs and notices keep their lines. An
+  empty song slide shows its title (or its label if untitled) in the band, on
+  one line when it fits at 48 px or larger and wrapped otherwise; empty non-song
+  slides do not show an empty band. The band prefers at most 360 px at 1920 x
   1080, shrinking text from 64 px to 48 px, then grows upwards as needed to show
   the entire slide. If even that would exceed the screen, the text shrinks
   further to fit. The whole live slide stays in sync with the audience; there is
