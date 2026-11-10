@@ -35,7 +35,7 @@ import {useEditorFocus} from './useEditorFocus';
 import {SONG_LIMITS} from '@core/schema/song';
 import {SlideSurfaceView, useSlideSurfaceView} from './SlideSurfaceView';
 import {menuAvailability} from '@renderer/ui/menuModel';
-import {reconcileSlideRowMeasurements} from '@renderer/ui/slideRowMeasurements';
+import {useMeasuredRows} from '@renderer/ui/useMeasuredRows';
 import {
   LEADING_CARD_WINDOW_ITEM,
   type LeadingSlideCard,
@@ -198,30 +198,8 @@ function SongBlocks({
   );
   const scope = `${view.mode}:${view.scale}`;
   const ids: string[] = slides.map(slide => slide.id);
-  const [measurements, setMeasurements] = useState(() =>
-    reconcileSlideRowMeasurements(
-      {scope, ids: new Set(), values: {}},
-      scope,
-      ids,
-    ),
-  );
-  const current = reconcileSlideRowMeasurements(measurements, scope, ids);
-  if (current !== measurements) setMeasurements(current);
-  const saveHeight = useCallback(
-    (id: string, height: number) => {
-      setMeasurements(previous => {
-        if (
-          previous.scope !== scope ||
-          !previous.ids.has(id) ||
-          previous.values[id] === height
-        ) {
-          return previous;
-        }
-        return {...previous, values: {...previous.values, [id]: height}};
-      });
-    },
-    [scope],
-  );
+  const viewportRef = useRef<HTMLDivElement>(null);
+  const {current, saveHeight} = useMeasuredRows(scope, ids, viewportRef);
   const heights = useMemo(() => {
     const values =
       view.mode === 'grid' ? slides.map(slide => current.values[slide.id]) : [];
@@ -251,20 +229,9 @@ function SongBlocks({
     menu: menu?.block === undefined ? undefined : menu.block + leadingOffset,
     mode: view.mode,
     scale: view.scale,
+    viewportRef,
     ...(heights === undefined ? {} : {heights}),
   });
-  useLayoutEffect(() => {
-    const node = viewport.current;
-    if (node === null || typeof ResizeObserver === 'undefined') return;
-    let width = node.clientWidth;
-    const observer = new ResizeObserver(() => {
-      if (node.clientWidth === width) return;
-      width = node.clientWidth;
-      setMeasurements(previous => ({...previous, values: {}}));
-    });
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [viewport]);
   const tab = (event: KeyboardEvent<HTMLDivElement>): void => {
     if (
       event.code !== 'Tab' ||

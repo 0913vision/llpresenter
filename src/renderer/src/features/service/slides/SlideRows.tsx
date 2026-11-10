@@ -1,8 +1,6 @@
 import {
-  useCallback,
   useLayoutEffect,
   useRef,
-  useState,
   useMemo,
   useSyncExternalStore,
   type CSSProperties,
@@ -14,7 +12,7 @@ import type {Slide, SlidesDraft} from '@core/services/slidesEdits';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {SongSlideSurface} from '../../songs/editor/SongSlideSurface';
 import {SlidesListSession} from './slidesListSession';
-import {reconcileSlideRowMeasurements} from '@renderer/ui/slideRowMeasurements';
+import {useMeasuredRows} from '@renderer/ui/useMeasuredRows';
 import styles from './SlidesEditor.module.css';
 import {EditorSlideNumber} from '../../songs/editor/EditorSlideNumber';
 import plate from '../../songs/editor/EditorSlidePlate.module.css';
@@ -111,27 +109,7 @@ export function SlideRows({
   const scope = `${view.mode}:${view.scale}`;
   const ids: string[] = rows.map(slide => slide.id);
   if (leadingCard !== undefined) ids.push('leading-card');
-  const [cache, setCache] = useState(() =>
-    reconcileSlideRowMeasurements(
-      {scope, ids: new Set(), values: {}},
-      scope,
-      ids,
-    ),
-  );
-  const current = reconcileSlideRowMeasurements(cache, scope, ids);
-  if (current !== cache) setCache(current);
-  useLayoutEffect(() => {
-    const viewport = listRef.current;
-    if (viewport === null || typeof ResizeObserver === 'undefined') return;
-    let width = viewport.clientWidth;
-    const observer = new ResizeObserver(() => {
-      if (viewport.clientWidth === width) return;
-      width = viewport.clientWidth;
-      setCache(previous => ({...previous, values: {}}));
-    });
-    observer.observe(viewport);
-    return () => observer.disconnect();
-  }, [listRef]);
+  const {current, saveHeight} = useMeasuredRows(scope, ids, listRef);
   const leadingOffset = leadingCard === undefined ? 0 : 1;
   const heights = useMemo(() => {
     const values = rows.map(slide => current.values[slide.id]);
@@ -139,21 +117,6 @@ export function SlideRows({
       ? values
       : [current.values['leading-card'], ...values];
   }, [rows, current, leadingCard]);
-  const saveHeight = useCallback(
-    (id: string, height: number) => {
-      setCache(previous => {
-        if (
-          previous.scope !== scope ||
-          !previous.ids.has(id) ||
-          previous.values[id] === height
-        ) {
-          return previous;
-        }
-        return {...previous, values: {...previous.values, [id]: height}};
-      });
-    },
-    [scope],
-  );
   const windowSlides = useMemo(() => {
     const content = rows.map(slide => ({
       lines: 'text' in slide ? slide.text.split('\n') : [''],

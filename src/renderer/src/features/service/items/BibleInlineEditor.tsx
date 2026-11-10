@@ -1,9 +1,7 @@
 import {
   useCallback,
-  useLayoutEffect,
   useMemo,
   useRef,
-  useState,
   useSyncExternalStore,
   type JSX,
 } from 'react';
@@ -13,7 +11,7 @@ import {slideLayerOf} from '@core/presentation/slideLayer';
 import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
 import type {BibleProjection} from '@renderer/features/bible/splitProjection';
 import type {ShowTile} from '@core/schema/showService';
-import {reconcileSlideRowMeasurements} from '@renderer/ui/slideRowMeasurements';
+import {useMeasuredRows} from '@renderer/ui/useMeasuredRows';
 import {
   SlideSurfaceView,
   useSlideSurfaceView,
@@ -124,47 +122,15 @@ function BibleEditorContent({
       ),
     [data.slides, offset],
   );
-  const [cache, setCache] = useState(() =>
-    reconcileSlideRowMeasurements(
-      {scope, ids: new Set(), values: {}},
-      scope,
-      ids,
-    ),
-  );
-  const current = reconcileSlideRowMeasurements(cache, scope, ids);
-  if (current !== cache) setCache(current);
+  const {current, saveHeight} = useMeasuredRows(scope, ids, viewportRef);
   const heights = useMemo(
     () => ids.map(id => current.values[id]),
     [ids, current],
-  );
-  const saveHeight = useCallback(
-    (id: string, height: number) => {
-      setCache(previous =>
-        previous.scope !== scope ||
-        !previous.ids.has(id) ||
-        previous.values[id] === height
-          ? previous
-          : {...previous, values: {...previous.values, [id]: height}},
-      );
-    },
-    [scope],
   );
   const saveCardHeight = useCallback(
     (height: number) => saveHeight('leading-card', height),
     [saveHeight],
   );
-  useLayoutEffect(() => {
-    const viewport = viewportRef.current;
-    if (viewport === null || typeof ResizeObserver === 'undefined') return;
-    let width = viewport.clientWidth;
-    const observer = new ResizeObserver(() => {
-      if (viewport.clientWidth === width) return;
-      width = viewport.clientWidth;
-      setCache(previous => ({...previous, values: {}}));
-    });
-    observer.observe(viewport);
-    return () => observer.disconnect();
-  }, []);
   const windowed = useSongBlockWindow(rows, position, {
     mode,
     scale,
