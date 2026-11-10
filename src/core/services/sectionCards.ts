@@ -30,6 +30,17 @@ export function hasSectionCard(item: ServiceItem): item is ServiceItemOf<
   return canHaveSectionCard(item) && item.sectionCard !== undefined;
 }
 
+/** A slides item whose only content is its opening section card. */
+export function isStandaloneCard(
+  item: ServiceItem,
+): item is ServiceItemOf<'slides'> & {readonly sectionCard: SectionCard} {
+  return (
+    isItemOfKind(item, 'slides') &&
+    hasSectionCard(item) &&
+    item.slides.slides.length === 0
+  );
+}
+
 /** The editable card shared by the item menu and built-in service templates. */
 export function newSectionItem(
   id: ServiceItemId,

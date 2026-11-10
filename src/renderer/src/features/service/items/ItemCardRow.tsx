@@ -2,15 +2,16 @@ import type {JSX} from 'react';
 import type {ServiceItem} from '@core/schema/service';
 import {
   canHaveSectionCard,
-  hasSectionCard,
-  newSectionCard,
+  isStandaloneCard,
+  sectionCardOf,
 } from '@core/services/sectionCards';
-import {Checkbox} from '@renderer/ui/Checkbox';
+import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
+import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {PropertyRow} from '@renderer/ui/PropertyRow';
 import type {ServiceItemStore} from './serviceItemStore';
-import {setItemCard} from './cardSlideModel';
+import {saveCard} from './sectionCardActions';
 
-/** The checkbox and the slide editor write the same service-local card. */
+/** Choose the same item-owned card used by the slide editor. */
 export function ItemCardRow({
   items,
   item,
@@ -20,37 +21,34 @@ export function ItemCardRow({
   readonly item: ServiceItem;
   readonly reason: string | undefined;
 }): JSX.Element | null {
-  if (!canHaveSectionCard(item)) {
-    return null;
-  }
+  if (!canHaveSectionCard(item)) return null;
   const service = items.getSnapshot().service;
+  const value = item.sectionCard?.name ?? '';
   return (
-    <PropertyRow label="구역 이름 슬라이드">
+    <PropertyRow label="구역 이름">
       {({controlId}) => (
-        <Checkbox
+        <SelectMenu
           id={controlId}
-          checked={hasSectionCard(item)}
+          block
+          menuLabel="구역 이름"
+          value={value}
+          valueText={value || '없음'}
+          options={[
+            ...(isStandaloneCard(item) ? [] : [{value: '', label: '없음'}]),
+            ...SUNDAY_SECTIONS.map(section => ({
+              value: section.name,
+              label: section.name,
+            })),
+          ]}
           disabled={reason !== undefined || service === null}
           title={reason}
-          onChange={checked => {
-            if (service === null) return;
-            items
-              .submitItemEdit({
-                target: {serviceId: service.service.id, itemId: item.id},
-                failure: '구역 이름 저장 실패',
-                change: current => {
-                  if (!canHaveSectionCard(current)) {
-                    return null;
-                  }
-                  return setItemCard(
-                    current,
-                    checked
-                      ? (current.sectionCard ?? newSectionCard())
-                      : undefined,
-                  );
-                },
-              })
-              .catch((error: unknown) => console.error(error));
+          onChange={next => {
+            if (next === value) return;
+            const section = SUNDAY_SECTIONS.find(entry => entry.name === next);
+            saveCard(
+              items,
+              section === undefined ? undefined : sectionCardOf(section),
+            );
           }}
         />
       )}

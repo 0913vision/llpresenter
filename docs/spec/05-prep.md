@@ -533,11 +533,13 @@ Source: `Reflow`, `ImportEdit`, `LabelChip` README, `LabelColorPicker` README,
 The right column shows 세부정보 for the selected item: its first slide picture,
 title and kind with slide count, followed by 정보 and 슬라이드 tabs. 정보 groups
 the applicable settings under 이번 예배 and source details under 원본, with
-left-aligned values in a common property grid. 슬라이드 shows the item's
-pictures in a grid with a remembered, independently adjustable thumbnail size;
-selection is local and a double click opens the editor at that slide. The item
-keeps its own slide count, theme and slides even when its library source
-changes. The picture and both tabs share one scroll.
+left-aligned values in a common property grid. The 구역 이름 select adds,
+changes, or removes the opening card of a song, Bible, or slides item. For a
+standalone card it changes the section; the row is deleted to remove the card.
+슬라이드 shows the item's pictures in a grid with a remembered, independently
+adjustable thumbnail size; selection is local and a double click opens the
+editor at that slide. The item keeps its own slide count, theme and slides even
+when its library source changes. The picture and both tabs share one scroll.
 
 ### What belongs to the service and what belongs to the song
 

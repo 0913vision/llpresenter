@@ -12,6 +12,7 @@ import {
   newSectionItem,
   newSectionCard,
   hasSectionCard,
+  isStandaloneCard,
   canHaveSectionCard,
   sectionCardOf,
   withSectionCard,
@@ -19,7 +20,7 @@ import {
 import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {nextTile, previousTile} from '@core/presentation/navigation';
-import {createServiceItemId} from '@core/schema/ids';
+import {createServiceItemId, createSlideId} from '@core/schema/ids';
 
 const section = SUNDAY_SECTIONS[1];
 if (section === undefined) throw new Error('missing section');
@@ -46,6 +47,23 @@ describe('section card', () => {
     expect(item.sectionCard).toEqual(card);
     expect(item.slides.slides).toEqual([]);
     expect(withSectionCard(item.sectionCard, [])).toHaveLength(1);
+    expect(isStandaloneCard(item)).toBe(true);
+    const {sectionCard: _card, ...withoutCard} = item;
+    expect(isStandaloneCard(withoutCard)).toBe(false);
+    expect(
+      isStandaloneCard({
+        ...item,
+        slides: {
+          ...item.slides,
+          slides: [
+            {
+              id: createSlideId('55000000-0000-4000-8000-000000000002'),
+              text: 'Slide',
+            },
+          ],
+        },
+      }),
+    ).toBe(false);
   });
   it('accepts bounded fields and rejects invalid values', () => {
     expect(v.safeParse(sectionCardSchema, card).success).toBe(true);

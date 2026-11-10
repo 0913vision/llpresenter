@@ -1,6 +1,10 @@
 import {isItemOfKind, type SectionCard} from '@core/schema/service';
 import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
-import {hasSectionCard, sectionCardOf} from '@core/services/sectionCards';
+import {
+  hasSectionCard,
+  isStandaloneCard,
+  sectionCardOf,
+} from '@core/services/sectionCards';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import type {ServiceItemStore} from '../items/serviceItemStore';
 
@@ -60,6 +64,14 @@ export function saveCard(
         const updated = {...current};
         if (card === undefined) delete updated.sectionCard;
         else updated.sectionCard = card;
+        if (card !== undefined && isStandaloneCard(current)) {
+          return {
+            ...current,
+            sectionCard: card,
+            theme: card.theme,
+            slides: {...current.slides, name: card.name},
+          };
+        }
         return updated;
       },
     })

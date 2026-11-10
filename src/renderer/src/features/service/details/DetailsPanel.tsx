@@ -123,7 +123,7 @@ function DetailsPanelContent({
         .catch(() => {
           if (active) {
             items.reportNotice({
-              key: 'details:library-song',
+              key: 'details:library',
               kind: 'warning',
               icon: 'warning',
               title: '곡 불러오기 실패',

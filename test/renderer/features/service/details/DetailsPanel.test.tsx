@@ -17,9 +17,6 @@ import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStor
 import {SongEditorStore} from '@renderer/features/songs/editor';
 import {useShow} from '@renderer/session/show';
 import {isItemOfKind} from '@core/schema/service';
-import {setItemCard} from '@renderer/features/service/items/cardSlideModel';
-import {sectionCardOf} from '@core/services/sectionCards';
-import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
 
 vi.mock('@renderer/rendering/SlidePicture', () => ({
   SlidePicture: ({slide}: {slide: {sectionCard?: {name: string}}}) => (
@@ -36,7 +33,7 @@ afterEach(() => {
   useShow.setState({serviceId: null, openItemId: null, tiles: {}});
 });
 
-it('keeps the details checkbox synchronized with the item card', async () => {
+it('updates the first picture when a section is chosen', async () => {
   const f = itemFixture();
   useShow.setState({
     serviceId: fixtureServiceId,
@@ -54,34 +51,16 @@ it('keeps the details checkbox synchronized with the item card', async () => {
     />,
   );
   try {
-    const checkbox = await screen.findByRole('checkbox', {
-      name: '구역 이름 슬라이드',
-    });
-    expect(checkbox.getAttribute('aria-checked')).toBe('false');
-    await userEvent.click(checkbox);
+    const field = await screen.findByRole('button', {name: '구역 이름'});
+    expect(field.textContent).toContain('없음');
+    await userEvent.click(field);
+    await userEvent.click(screen.getByRole('menuitemradio', {name: '찬양'}));
     await waitFor(() =>
-      expect(checkbox.getAttribute('aria-checked')).toBe('true'),
+      expect(screen.getByTestId('picture').getAttribute('data-card')).toBe(
+        '찬양',
+      ),
     );
-    const section = SUNDAY_SECTIONS[1];
-    if (section === undefined) throw Error('missing section');
-    await act(async () => {
-      await items.submitItemEdit({
-        target: {serviceId: fixtureServiceId, itemId: fixtureItems.arranged},
-        failure: 'failed',
-        change: item => setItemCard(item, sectionCardOf(section)),
-      });
-    });
-    expect(checkbox.getAttribute('aria-checked')).toBe('true');
-    await act(async () => {
-      await items.submitItemEdit({
-        target: {serviceId: fixtureServiceId, itemId: fixtureItems.arranged},
-        failure: 'failed',
-        change: item => setItemCard(item, undefined),
-      });
-    });
-    await waitFor(() =>
-      expect(checkbox.getAttribute('aria-checked')).toBe('false'),
-    );
+    expect(field.textContent).toContain('찬양');
   } finally {
     view.unmount();
     items.dispose();
@@ -653,7 +632,11 @@ it('shows a notice when the selected library song cannot load', async () => {
   try {
     await waitFor(() =>
       expect(report).toHaveBeenCalledWith(
-        expect.objectContaining({kind: 'warning', title: '곡 불러오기 실패'}),
+        expect.objectContaining({
+          key: 'details:library',
+          kind: 'warning',
+          title: '곡 불러오기 실패',
+        }),
       ),
     );
     expect(screen.getByRole('region', {name: '세부정보'}).textContent).toBe('');
