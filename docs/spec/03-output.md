@@ -486,8 +486,8 @@ Source: `Overlays`, `ShowH` (target screens in the showing list), product log
   and lays it over the camera picture.
 - In version 1, the method is the capture window. It's a window without a
   monitor. It fills its background with chroma key green (`chroma`) and draws
-  the lyrics in the lower third style. OBS picks it up with window capture and a
-  chroma key.
+  the built-in broadcast layouts over it. OBS picks it up with window capture
+  and a chroma key.
 - The in-app preview of the 방송 화면 also has a green background.
 - The default 테마s draw only the lyrics in the 하단 자막 text style on the 방송
   자막, over its 빈 화면 색 (green for the capture window).

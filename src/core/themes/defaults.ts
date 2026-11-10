@@ -36,6 +36,7 @@ import {creedPrayerTheme} from './creedPrayer';
 import {SONG_THEME_ID} from './songTitle';
 import {lightSongTheme} from './lightSong';
 import {broadcastBandLayout} from './broadcastBand';
+import {broadcastLookLayout} from './broadcastLook';
 
 export type ThemeScreen = Pick<Screen, 'id' | 'kind' | 'method'>;
 
@@ -270,8 +271,15 @@ function audienceElements(
 function layoutFor(
   screen: ThemeScreen,
   kind: ThemeItemKind,
+  audienceId = createScreenId(STARTER_SCREEN_IDS.main),
 ): ThemeScreenLayout {
-  if (screen.kind === 'broadcast') return broadcastBandLayout(kind, basicText);
+  if (screen.kind === 'broadcast') {
+    if (kind === 'ad') {
+      return {mode: {kind: 'same', screen: audienceId}, elements: []};
+    }
+    if (kind === 'media') return broadcastBandLayout(kind, basicText);
+    return broadcastLookLayout(kind === 'song' ? 'song' : 'plain');
+  }
   if (kind === 'bible' && screen.kind === 'audience') {
     return sundayScriptureLayout();
   }
@@ -400,7 +408,14 @@ export function builtInTheme(
     id: themeIds[fallbackKind],
     name: names[fallbackKind],
     screens: Object.fromEntries(
-      screens.map(screen => [screen.id, layoutFor(screen, fallbackKind)]),
+      screens.map(screen => [
+        screen.id,
+        layoutFor(
+          screen,
+          fallbackKind,
+          screens.find(candidate => candidate.kind === 'audience')?.id,
+        ),
+      ]),
     ),
   };
 }
@@ -452,7 +467,9 @@ export function createDefaultThemes(
             screen.id,
             screen.kind === 'audience'
               ? sundaySectionLayout(color)
-              : sectionOtherLayout(layoutFor(screen, 'blank'), screen.kind),
+              : screen.kind === 'broadcast'
+                ? broadcastLookLayout('card')
+                : sectionOtherLayout(layoutFor(screen, 'blank'), screen.kind),
           ]),
         ),
       })),

@@ -523,10 +523,11 @@ fields, as every settings file does (02).
   묵상기도; the others use Apostle's Creed, Repentance Prayer, Praise, Corporate
   Prayer, Offering, Offering Prayer, Holy Communion, Blessing, Baptism,
   Supplication Prayer, Notice, Benediction. These themes are not kind defaults;
-  Broadcast uses the Korean item name in its normal lower third; stage shows the
-  Korean name as current text, with the smaller English line below. Untouched
-  saved section layouts resolve the same way; edited layouts stay unchanged.
-  This screen choice is the lead's rehearsal default, not a user decision.
+  Broadcast shows the Korean name and uppercase English in its blue card; stage
+  shows the Korean name as current text, with the smaller English line below.
+  Untouched saved section layouts resolve the same way; edited layouts stay
+  unchanged. This screen choice is the lead's rehearsal default, not a user
+  decision.
 - In new libraries, 찬양 on 청중 화면 uses white NanumSquare ExtraBold
   (weight 800) at 108 px, centered horizontally and top aligned, with -3 px
   tracking, 137 px line spacing, and no shadow or outline. Its text frame is
@@ -594,18 +595,25 @@ fields, as every settings file does (02).
   belong to the app, outside the user media catalog. The slash group sits above
   the number and below the title, cutting the number along the line so none
   shows beyond it.
-- A new library's broadcast layouts use an opaque bg-panel dark band across the
-  bottom on the configured key color. White text is centered; a Bible reference
-  sits at the right end, section cards show the Korean name, and notices show
-  their name and body in the band. Bible text rejoins the audience's line breaks
-  and wraps to the broadcast text width; songs and notices keep their lines. An
-  empty song slide shows its title (or its label if untitled) in the band, on
-  one line when it fits at 48 px or larger and wrapped otherwise; empty non-song
-  slides do not show an empty band. The band prefers at most 360 px at 1920 x
-  1080, shrinking text from 64 px to 48 px, then grows upwards as needed to show
-  the entire slide. If even that would exceed the screen, the text shrinks
-  further to fit. The whole live slide stays in sync with the audience; there is
-  no paging. Existing saved layouts are not converted.
+- New broadcast layouts use Pretendard Variable. Bible and plain text use an
+  opaque #106A84 band from x=0 to 1824, flush with the bottom, with 22 px top
+  and 26 px bottom padding and at least 150 px height. White bold 54 px text is
+  left aligned at x=67 with 1.25 line height; after three lines it shrinks to 44
+  px and the band grows to show the text. Bible text rejoins source line breaks
+  and wraps to the broadcast width. Only Bible slides show a 64 px high #F7F8FC
+  reference tab above the band's left edge, with dark bold 36 px text at x=67.
+  Empty text has no band.
+- Songs, including an empty song slide's title, have no band. They use white
+  bold 64 px centered text, a black 3 px outline and an opaque hard shadow of
+  distance 3 with no blur. The last line's bottom is at y=1004 and the text fits
+  within two lines. Section cards have an opaque #1D3A96 bottom-left box at
+  least 640 px wide, sized to the wider line plus 56 px left and 64 px right
+  padding. The Korean name is bold 64 px and the uppercase English line is
+  semibold 34 px, with an 8 px gap, 28 px top and 32 px bottom padding.
+- The broadcast 광고 theme links to the 청중 화면, so text notices and picture
+  slides use the same full-screen composition. These layouts use opaque fills
+  and hard shadows for both the chroma capture and future alpha output. Existing
+  saved layouts are not converted; only the built-in element IDs use this fit.
 - The stage screen retains its advertisement layout: a #141c2e full-screen box,
   a 24 px #e6b54a left bar, fixed heading, covering media, the 132 px slide name
   and 60 px body. The default advertisement item's 8-second advance and loop
@@ -733,4 +741,5 @@ next-slide command. A title counts as one of the two next-preview lines.
 In the built-in stage layout, an empty song slide shows its label as a centered
 muted cue, or the song title when the label is empty. Stage previews show the
 same cue; audience output remains background only. On the built-in broadcast
-band, the song title takes precedence over the label for an empty song slide.
+layout, an empty song slide shows only the song title; it shows nothing if the
+title is absent, and never falls back to the label.

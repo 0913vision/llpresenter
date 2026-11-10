@@ -1,3 +1,4 @@
+import {fitBroadcastLook, isBroadcastLook} from './broadcastLook';
 import {stageBarLayout} from './stageBar';
 import type {LiveLayers} from '@core/live/state';
 import type {SlideLayer} from '@core/live/state';
@@ -161,7 +162,8 @@ export class ThemeCompositionView {
     slide: SlideLayer | null,
     item: LiveThemeItem | null,
   ): ThemeScreenLayout {
-    if (!isBroadcastBandLayout(layout)) {
+    const look = isBroadcastLook(layout);
+    if (!look && !isBroadcastBandLayout(layout)) {
       this.bandFit = null;
       return layout;
     }
@@ -187,7 +189,9 @@ export class ThemeCompositionView {
       return previous.layout;
     }
     try {
-      const fitted = fitBroadcastBand(layout, slide, item);
+      const fitted = look
+        ? fitBroadcastLook(layout, slide, {item})
+        : fitBroadcastBand(layout, slide, item);
       this.bandFit = {
         key,
         layout: fitted,
@@ -201,11 +205,9 @@ export class ThemeCompositionView {
       return fitted;
     } catch (error) {
       this.options.onError('could not fit the broadcast band', error);
-      return withBroadcastBandVisibility(
-        previous?.layout ?? layout,
-        slide,
-        item,
-      );
+      return look
+        ? (previous?.layout ?? layout)
+        : withBroadcastBandVisibility(previous?.layout ?? layout, slide, item);
     }
   }
 

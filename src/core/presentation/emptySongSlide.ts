@@ -1,7 +1,7 @@
 import type {SlideLayer} from '../live/state';
 import type {LiveThemeItem} from '../schema/liveTheme';
 
-/** Resolve the cue for an empty song slide, with screen-specific precedence. */
+/** Resolve an empty-song cue: stage prefers its label; broadcast uses only the song title. */
 export function emptySongSlideText(
   slide: SlideLayer | null,
   item: LiveThemeItem | null,
@@ -20,6 +20,6 @@ export function emptySongSlideText(
   const title = [item.title?.trim(), slide.title?.trim()].find(
     value => value !== undefined && value !== '',
   );
-  const choices = prefer === 'label' ? [label, title] : [title, label];
+  const choices = prefer === 'label' ? [label, title] : [title];
   return choices.find(value => value !== undefined && value !== '');
 }

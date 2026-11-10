@@ -1,9 +1,17 @@
+import type {Theme, ThemesFile} from '@core/schema/themes';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLayers, type LiveLayers} from '@core/live/state';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {createMediaId, createScreenId, createThemeId} from '@core/schema/ids';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
-import {builtInTheme, createDefaultThemes} from '@core/themes/defaults';
+import {
+  builtInTheme as currentBuiltInTheme,
+  createDefaultThemes as currentDefaultThemes,
+  DEFAULT_THEME_TEXT,
+} from '@core/themes/defaults';
+import {broadcastBandLayout} from '@core/themes/broadcastBand';
+import {sectionOtherLayout} from '@core/themes/sundaySections';
+import type {ThemeItemKind} from '@core/themes/elementRules';
 import {
   BROADCAST_BAND_ID,
   BROADCAST_GEOMETRY,
@@ -23,6 +31,39 @@ import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
 import {ThemeElementView} from '@renderer/rendering/themeElement';
 import {followPlaybackProblems} from '@renderer/rendering/playbackProblem';
 import {SECTION_THEME_ID} from '@core/themes/sundaySections';
+
+function builtInTheme(kind: ThemeItemKind): Theme {
+  const theme = currentBuiltInTheme(kind);
+  const id = createScreenId(STARTER_SCREEN_IDS.broadcast);
+  return {
+    ...theme,
+    screens: {
+      ...theme.screens,
+      [id]: broadcastBandLayout(kind, DEFAULT_THEME_TEXT),
+    },
+  };
+}
+function createDefaultThemes(): ThemesFile {
+  const file = currentDefaultThemes();
+  const id = createScreenId(STARTER_SCREEN_IDS.broadcast);
+  return {
+    ...file,
+    themes: file.themes.map(theme =>
+      theme.id === SECTION_THEME_ID
+        ? {
+            ...theme,
+            screens: {
+              ...theme.screens,
+              [id]: sectionOtherLayout(
+                broadcastBandLayout('blank', DEFAULT_THEME_TEXT),
+                'broadcast',
+              ),
+            },
+          }
+        : theme,
+    ),
+  };
+}
 
 const song: LiveLayers = {
   ...emptyLayers(),
@@ -290,6 +331,35 @@ describe('theme composition drawing', () => {
       view.render(changed, activeFrame);
       expect(attempts).toBeGreaterThan(failedAttempts);
       expect(hosts()).toBe(before);
+    } finally {
+      view.dispose();
+      height.mockRestore();
+    }
+  });
+  it('reports a new broadcast look measurement error and uses its unfitted layout', () => {
+    const layout =
+      currentBuiltInTheme('bible').screens[
+        createScreenId(STARTER_SCREEN_IDS.broadcast)
+      ];
+    if (!layout) throw Error('Missing broadcast layout');
+    const {root, view, onError} = setup();
+    const failure = new Error('measurement failed');
+    const height = vi
+      .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
+      .mockImplementation(function (this: HTMLElement) {
+        if (this.closest('[data-slide-measure]') !== null) throw failure;
+        return 0;
+      });
+    try {
+      expect(() =>
+        view.render(song, {...frame(layout.elements), transitions: false}),
+      ).not.toThrow();
+      expect(onError).toHaveBeenCalledWith(
+        'could not fit the broadcast band',
+        failure,
+      );
+      expect(root.querySelector('[data-kind="currentText"]')).not.toBeNull();
+      expect(document.body.querySelector('[data-slide-measure]')).toBeNull();
     } finally {
       view.dispose();
       height.mockRestore();

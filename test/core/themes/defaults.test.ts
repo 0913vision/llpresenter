@@ -57,11 +57,6 @@ it('places song lyrics near the top while retaining the starter broadcast styles
   });
   expect(theme.screens[broadcast]?.elements).toMatchObject([
     {
-      kind: 'box',
-      frame: {x: 0, y: 818, w: 1920, h: 204},
-      box: {fill: '#1c1c1c', opacity: 100},
-    },
-    {
       kind: 'currentText',
       text: {
         font: 'Pretendard Variable',
@@ -143,8 +138,10 @@ it.each(themeItemKinds.filter(kind => kind !== 'ad'))(
       output.screens[id]?.layout.elements.map(element => element.kind),
     ).toEqual(
       kind === 'bible' || kind === 'blank'
-        ? ['box', 'currentText', 'reference']
-        : ['box', 'currentText'],
+        ? ['box', 'box', 'currentText', 'reference']
+        : kind === 'song'
+          ? ['currentText']
+          : ['box', 'currentText'],
     );
   },
 );
@@ -165,12 +162,12 @@ it('adds a reference only for Bible layouts and adapts to configured screen IDs'
   ).toBe(false);
 });
 
-it('gives the capture Bible a readable right-aligned reference', () => {
+it('gives the capture Bible a readable left-aligned reference', () => {
   const id = createScreenId(STARTER_SCREEN_IDS.broadcast);
   const bible = builtInTheme('bible').screens[id];
   expect(
     bible?.elements.find(element => element.kind === 'reference'),
-  ).toMatchObject({text: {size: 52, align: 'right'}});
+  ).toMatchObject({text: {size: 36, align: 'left'}});
 });
 
 it('gives the 무대 화면 of the Bible 테마 no reference and the same element kinds as the song 테마', () => {
@@ -336,11 +333,10 @@ it('defaults blank slides to 말씀 and retains the broadcast and stage ad frame
   expect(file.defaults.blank).toBe(file.defaults.bible);
   const ad = file.themes.find(theme => theme.id === file.defaults.ad);
   expect(ad?.name).toBe('광고');
-  expect(
-    ad?.screens[createScreenId(STARTER_SCREEN_IDS.broadcast)]?.elements.map(
-      element => element.kind,
-    ),
-  ).toEqual(['media', 'box', 'slideName', 'currentText']);
+  expect(ad?.screens[createScreenId(STARTER_SCREEN_IDS.broadcast)]).toEqual({
+    mode: {kind: 'same', screen: createScreenId(STARTER_SCREEN_IDS.main)},
+    elements: [],
+  });
   for (const screen of [STARTER_SCREEN_IDS.stage]) {
     const layout = ad?.screens[createScreenId(screen)];
     if (layout === undefined) throw Error('Expected ad layout');

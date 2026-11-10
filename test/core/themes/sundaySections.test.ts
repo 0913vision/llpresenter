@@ -110,17 +110,17 @@ it('adds an editable section theme without changing the kind defaults or other s
   const broadcast =
     theme?.screens[createScreenId(STARTER_SCREEN_IDS.broadcast)];
   expect(broadcast?.elements).toMatchObject([
-    {kind: 'box', box: {fill: '#1c1c1c', opacity: 100}},
+    {kind: 'box', box: {fill: '#1D3A96', opacity: 100}},
     {
       kind: 'itemName',
       text: {
         font: 'Pretendard Variable',
         size: 64,
         weight: 700,
-        align: 'center',
+        align: 'left',
       },
     },
-    {kind: 'reference'},
+    {kind: 'currentText', text: {size: 34, weight: 600}},
   ]);
   const stage = createScreenId(STARTER_SCREEN_IDS.stage);
   const stageLayout = theme?.screens[stage];
@@ -217,7 +217,7 @@ it('shows the Korean card name on broadcast and both lines on stage for embedded
     const broadcast = resolveThemeScreen(theme, screens[1].id, screens).layout;
     expect(
       broadcast.elements.map(element => themeElementText(element, content)),
-    ).toEqual([null, card.name, null]);
+    ).toEqual([null, card.name, card.english]);
     const stage = resolveThemeScreen(theme, screens[2].id, screens).layout;
     const title = stage.elements.find(element => element.kind === 'itemName');
     const english = stage.elements.find(

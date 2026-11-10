@@ -32,6 +32,7 @@ export type ResolvedThemeElement = ThemeElement & {
   readonly runtimeHidden?: boolean;
   readonly minimumTextSize?: number;
   readonly broadcastBibleFlow?: boolean;
+  readonly broadcastText?: string;
   readonly broadcastSongTitle?: string;
   readonly broadcastSongTitleWrap?: boolean;
 };

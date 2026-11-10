@@ -1,7 +1,14 @@
+import type {Theme, ThemesFile} from '@core/schema/themes';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {createMediaId, createScreenId} from '@core/schema/ids';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
-import {builtInTheme} from '@core/themes/defaults';
+import {
+  builtInTheme as currentBuiltInTheme,
+  DEFAULT_THEME_TEXT,
+} from '@core/themes/defaults';
+import {broadcastBandLayout} from '@core/themes/broadcastBand';
+import {sectionOtherLayout} from '@core/themes/sundaySections';
+import type {ThemeItemKind} from '@core/themes/elementRules';
 import {
   BROADCAST_BAND_ID,
   BROADCAST_MIN_TEXT,
@@ -11,7 +18,7 @@ import {
   BROADCAST_GEOMETRY,
 } from '@core/themes/broadcastBand';
 import {fitBroadcastBand} from '@renderer/rendering/broadcastBand';
-import {createDefaultThemes} from '@core/themes/defaults';
+import {createDefaultThemes as currentDefaultThemes} from '@core/themes/defaults';
 import {SECTION_THEME_ID} from '@core/themes/sundaySections';
 import {PREPARATION_THEME_ID} from '@core/themes/sundayStandby';
 import {ThemeElementView} from '@renderer/rendering/themeElement';
@@ -23,6 +30,45 @@ import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 
 const screen = createScreenId(STARTER_SCREEN_IDS.broadcast);
 const slide = {itemId: 'item', position: 0, label: null, lines: ['one', 'two']};
+
+function builtInTheme(kind: ThemeItemKind): Theme {
+  const theme = currentBuiltInTheme(kind);
+  return {
+    ...theme,
+    screens: {
+      ...theme.screens,
+      [screen]: broadcastBandLayout(kind, DEFAULT_THEME_TEXT),
+    },
+  };
+}
+function createDefaultThemes(): ThemesFile {
+  const file = currentDefaultThemes();
+  return {
+    ...file,
+    themes: file.themes.map(theme =>
+      theme.id === SECTION_THEME_ID
+        ? {
+            ...theme,
+            screens: {
+              ...theme.screens,
+              [screen]: sectionOtherLayout(
+                broadcastBandLayout('blank', DEFAULT_THEME_TEXT),
+                'broadcast',
+              ),
+            },
+          }
+        : theme.id === PREPARATION_THEME_ID
+          ? {
+              ...theme,
+              screens: {
+                ...theme.screens,
+                [screen]: broadcastBandLayout('blank', DEFAULT_THEME_TEXT),
+              },
+            }
+          : theme,
+    ),
+  };
+}
 
 function bandHidden(
   layout: ThemeScreenLayout,
@@ -116,7 +162,14 @@ describe('broadcast band fitting', () => {
     );
     expect(
       fallback.elements.find(element => element.id === BROADCAST_TEXT_ID),
-    ).toMatchObject({broadcastSongTitle: 'Interlude'});
+    ).toMatchObject({broadcastSongTitle: undefined});
+    expect(
+      bandHidden(
+        layout,
+        {...blank, title: '', label: 'Interlude'},
+        {...item, title: ''},
+      ),
+    ).toBe(true);
     const lyrics = fitBroadcastBand(
       layout,
       {...blank, lines: ['Lyrics']},

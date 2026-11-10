@@ -337,6 +337,7 @@ export class ThemeElementView {
       timer,
       videoTimeLeft: remainingText(videoRemaining),
     });
+    if (element.broadcastText !== undefined) return element.broadcastText;
     if (element.broadcastSongTitle !== undefined) {
       return element.broadcastSongTitle;
     }

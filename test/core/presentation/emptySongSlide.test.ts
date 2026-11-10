@@ -21,11 +21,14 @@ describe('emptySongSlideText', () => {
     expect(emptySongSlideText(slide, item, 'label')).toBe('Interlude');
     expect(emptySongSlideText(slide, item, 'title')).toBe('Song title');
   });
-  it('falls back to the other name and ignores whitespace', () => {
+  it('falls back from the stage label to the title but never from title to label', () => {
     expect(emptySongSlideText({...slide, label: '  '}, item, 'label')).toBe(
       'Song title',
     );
-    expect(emptySongSlideText(slide, {...item, title: '  '}, 'title')).toBe(
+    expect(
+      emptySongSlideText(slide, {...item, title: '  '}, 'title'),
+    ).toBeUndefined();
+    expect(emptySongSlideText(slide, {...item, title: ''}, 'label')).toBe(
       'Interlude',
     );
     expect(
