@@ -69,7 +69,7 @@ describe('SlideLayerView', () => {
     const width = vi
       .spyOn(HTMLElement.prototype, 'scrollWidth', 'get')
       .mockImplementation(function (this: HTMLElement) {
-        return (Number.parseFloat(this.style.fontSize) || 0) * 4;
+        return (Number.parseFloat(this.style.fontSize) || 0) * 2.5;
       });
     const height = vi
       .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
@@ -82,7 +82,7 @@ describe('SlideLayerView', () => {
         `.${classes.block}`,
       );
       expect(block?.style.whiteSpace).toBe('pre');
-      expect(Number.parseFloat(block?.style.fontSize ?? '')).toBe(50);
+      expect(Number.parseFloat(block?.style.fontSize ?? '')).toBe(80);
       width.mockImplementation(function (this: HTMLElement) {
         return (Number.parseFloat(this.style.fontSize) || 0) * 10;
       });
@@ -92,7 +92,7 @@ describe('SlideLayerView', () => {
       );
       expect(
         shownPage()?.querySelector<HTMLElement>(`.${classes.block}`)?.style,
-      ).toMatchObject({fontSize: '48px', whiteSpace: ''});
+      ).toMatchObject({fontSize: '72px', whiteSpace: ''});
       view.setLineMode('bar');
       expect(
         shownPage()?.querySelector<HTMLElement>(`.${classes.block}`)?.style,

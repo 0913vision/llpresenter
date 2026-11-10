@@ -11,7 +11,7 @@ import {
   themeOverlay,
 } from '@core/themes/content';
 import {BackgroundLayerView} from './backgroundLayer';
-import {SlideLayerView} from './slideLayer';
+import {SlideLayerView, STAGE_NEXT_MIN_SIZE} from './slideLayer';
 import {classes} from './classes';
 import {stageClockText} from './stageClock';
 import {fillTimerTokens} from './timerTokens';
@@ -181,6 +181,11 @@ export class ThemeElementView {
     }
     const item = frame.theme?.item ?? null;
     const stage = frame.screen?.kind === 'stage';
+    this.text?.setMinimumSize(
+      stage && element.kind === 'nextText'
+        ? Math.max(STAGE_NEXT_MIN_SIZE, element.minimumTextSize ?? 0)
+        : element.minimumTextSize,
+    );
     const kind =
       element.kind === 'nextText'
         ? (layers.slide?.next?.itemKind ?? item?.kind)

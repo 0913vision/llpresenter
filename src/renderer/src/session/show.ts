@@ -289,6 +289,8 @@ export function setAtLastSlide(value: AtLastSlide): void {
   refreshStageNext();
 }
 
+// NOTE(0913vision): The marker suppresses only the same desired value; a new
+// value still sends immediately, and matching live state clears the marker.
 let pendingStageNext:
   | {api: typeof window.llp; itemId: string; position: number; key: string}
   | undefined;

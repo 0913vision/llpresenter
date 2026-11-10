@@ -16,7 +16,8 @@ const textFits = new WeakMap<Document, TextFitCache>();
 /** The dissolve between 장 (docs/spec/03-output.md, version 1 default). */
 export const SLIDE_DISSOLVE_MS = 200;
 
-const MIN_STAGE_LYRIC_SIZE = 48;
+const MIN_STAGE_LYRIC_SIZE = 72;
+export const STAGE_NEXT_MIN_SIZE = 48;
 
 const FALLBACK_FONTS = "'Pretendard Variable', sans-serif";
 
@@ -387,8 +388,10 @@ export class SlideLayerView {
     if (this.current !== null) this.fit(this.pages[this.front]);
   }
 
-  setMinimumSize(minimum: number): void {
+  setMinimumSize(minimum: number | undefined): void {
+    if (this.minimumSize === minimum) return;
     this.minimumSize = minimum;
+    if (this.current !== null) this.fit(this.pages[this.front]);
   }
 
   dispose(): void {

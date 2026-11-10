@@ -1400,3 +1400,25 @@ it.each(['missing', 'hidden', 'invalid'] as const)(
     view.dispose();
   },
 );
+
+it('keeps stage next text at least 48px even when the current text is smaller', () => {
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(200);
+  vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(100);
+  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(1000);
+  vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(1000);
+  const {root, view} = setup();
+  const elements: ThemeElement[] = [
+    {...themeElementBase(), kind: 'currentText'},
+    {...themeElementBase(31), kind: 'nextText'},
+  ];
+  view.render(song, {
+    ...frame(elements),
+    screen: {id: THEME_MAIN, kind: 'stage'},
+  });
+  const block = root.querySelector<HTMLElement>(
+    `[data-kind="nextText"] .${classes.shown} .${classes.block}`,
+  );
+  expect(block?.style.fontSize).toBe('48px');
+  view.dispose();
+  vi.restoreAllMocks();
+});

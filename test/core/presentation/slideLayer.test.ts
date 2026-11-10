@@ -4,7 +4,13 @@ import {builtInTheme} from '@core/themes/defaults';
 import {createScreenId} from '@core/schema/ids';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
-import {sectionCardOf} from '@core/services/sectionCards';
+import {
+  newSectionItem,
+  sectionCardOf,
+  withSectionCard,
+} from '@core/services/sectionCards';
+import {projectSlides} from '@core/presentation/slides';
+import {createServiceItemId} from '@core/schema/ids';
 import {describe, expect, it} from 'vitest';
 import type {SlideTile} from '@core/presentation/model';
 import {slideLayerOf} from '@core/presentation/slideLayer';
@@ -254,3 +260,35 @@ it('carries the next item card and its kind without inventing content at the end
     slideLayerOf(cursor, () => [current], {tile: card, kind: 'bible'})?.next,
   ).toMatchObject({title: section.name, itemKind: 'bible', lines: ['English']});
 });
+
+it.each(SUNDAY_SECTIONS)(
+  'shows both names of the $english section in the stage preview',
+  section => {
+    const item = newSectionItem(
+      createServiceItemId('00000000-0000-4000-8000-000000000001'),
+      section,
+    );
+    const stage = createScreenId(STARTER_SCREEN_IDS.stage);
+    const element = builtInTheme('song').screens[stage]?.elements.find(
+      value => value.kind === 'nextText',
+    );
+    if (element?.kind !== 'nextText') throw Error('Missing next text element');
+    const tile = withSectionCard(item.sectionCard, projectSlides(item))[0];
+    if (!tile) throw Error('Missing section tile');
+    const current = {
+      label: null,
+      labelColor: 'none' as const,
+      lines: ['Current'],
+    };
+    const slide = slideLayerOf({itemId: 'song', index: 0}, () => [current], {
+      tile,
+      kind: 'blank',
+    });
+    expect(
+      themeElementText(element, {
+        layers: {...emptyLayers(), slide},
+        item: null,
+      }),
+    ).toBe(`${section.name}\n${section.english}`);
+  },
+);
