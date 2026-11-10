@@ -180,6 +180,25 @@ export class ThemeElementView {
       this.box.hidden = element.runtimeHidden;
     }
     const item = frame.theme?.item ?? null;
+    const stage = frame.screen?.kind === 'stage';
+    const kind =
+      element.kind === 'nextText'
+        ? (layers.slide?.next?.itemKind ?? item?.kind)
+        : item?.kind;
+    const isBar =
+      frame.theme?.layout.stageBar === 'message-row' &&
+      (element.kind === 'label' ||
+        (element.kind === 'text' &&
+          (element.stageSource === 'stageItemName' ||
+            element.stageSource === 'stagePosition')));
+    const isSong =
+      kind === 'song' &&
+      (element.kind === 'nextText' ||
+        (element.kind === 'currentText' &&
+          layers.slide?.sectionCard === undefined));
+    this.text?.setLineMode(
+      stage && isBar ? 'bar' : stage && isSong ? 'song' : 'normal',
+    );
     if (element.kind === 'media' || element.kind === 'background') {
       const media = themeElementMedia(element.kind, {layers, item});
       this.showMedia(media, frame, element.fit);

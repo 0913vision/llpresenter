@@ -34,12 +34,15 @@ export function followSlideAdvance({
 }): () => void {
   let timer: ReturnType<typeof setTimeout> | undefined;
   let observed = store.state.layers.slide;
+  let scheduledSlide: SlideLayer | null = null;
   let running = false;
   const cancel = (): void => {
     clearTimeout(timer);
     timer = undefined;
+    scheduledSlide = null;
   };
   const schedule = (slide: SlideLayer, source: SlideSequence): void => {
+    scheduledSlide = slide;
     const {advance, loop} = source.item.slides;
     const current =
       slide.sourceSlideId === undefined
@@ -64,7 +67,7 @@ export function followSlideAdvance({
         }
         const latest = sequence(slide.itemId);
         if (
-          store.state.layers.slide !== slide ||
+          store.state.layers.slide !== scheduledSlide ||
           latest?.item.slides.advance === undefined ||
           latest.tiles.length === 0
         ) {
@@ -115,6 +118,16 @@ export function followSlideAdvance({
   };
   const stopSequence = subscribeSequence?.(refresh);
   const stop = store.subscribeCommands(commands => {
+    if (
+      commands.length > 0 &&
+      commands.every(command => command.type === 'stage.next.set')
+    ) {
+      if (scheduledSlide === observed) {
+        scheduledSlide = store.state.layers.slide;
+      }
+      observed = store.state.layers.slide;
+      return;
+    }
     const lastSlide = commands.findLastIndex(
       value => value.type === 'slide.show',
     );

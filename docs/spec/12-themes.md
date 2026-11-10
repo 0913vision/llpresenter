@@ -715,3 +715,9 @@ theme and their overlay ranges follow their content positions.
 
 On a stage section card the next text keeps the normal stage frame and is capped
 against the fitted Korean item name, not its subtitle.
+
+On the stage, song source lines stay whole at the largest fitting size down to a
+readable minimum; longer lines may wrap at that minimum. Bible and other prose
+continue to wrap. When continuous next-item navigation is enabled, the stage
+next preview follows the same next-item selection and skips the same rows as the
+next-slide command. A title counts as one of the two next-preview lines.

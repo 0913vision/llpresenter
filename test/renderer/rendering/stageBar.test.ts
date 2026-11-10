@@ -2,6 +2,7 @@ import {expect, it} from 'vitest';
 import {builtInTheme} from '@core/themes/defaults';
 import {createScreenId} from '@core/schema/ids';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
+import {STAGE_BAR_GROUP_TOP_WITH_MESSAGE} from '@core/themes/starterLayout';
 import {stageBarLayout} from '@renderer/rendering/stageBar';
 
 it('centers the stage bar group until a message needs the lower row', () => {
@@ -17,7 +18,9 @@ it('centers the stage bar group until a message needs the lower row', () => {
         (element.kind !== 'text' || element.stageSource !== undefined),
     );
     expect(group.length).toBeGreaterThan(0);
-    for (const element of group) expect(element.frame.y).toBe(2);
+    for (const element of group) {
+      expect(element.frame.y).toBe(STAGE_BAR_GROUP_TOP_WITH_MESSAGE);
+    }
   }
   expect(
     withMessage.elements.find(element => element.kind === 'timer'),

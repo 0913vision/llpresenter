@@ -1,4 +1,5 @@
 import type {Preferences} from '@core/schema/preferences';
+import type {NextSlide} from '@core/live/state';
 import type {SingleLiveCommand} from '@core/live/commands';
 import {findSlideHotKey} from '@core/services/slideHotKeys';
 import {parseServiceItemId} from '@core/schema/ids';
@@ -15,9 +16,9 @@ import {
   previousTile,
   type SequenceState,
 } from '@core/presentation/navigation';
-import {slideLayerOf} from '@core/presentation/slideLayer';
+import {nextSlideOf, slideLayerOf} from '@core/presentation/slideLayer';
 import {rememberBiblePassage} from '@renderer/session/recentWriter';
-import {useLive} from './live';
+import {sendLive, useLive} from './live';
 import {sendMediaOutput, sendSlideOutput} from './itemOutput';
 import {
   bibleSourceFor,
@@ -86,6 +87,7 @@ function sequenceState(): SequenceState {
 export function openItem(itemId: ItemId): void {
   if (useShow.getState().openItemId === itemId) return;
   useShow.setState({openItemId: itemId, selectedTile: 0});
+  refreshStageNext();
 }
 
 /** Selects a tile of the open item without outputting it. */
@@ -125,7 +127,7 @@ function outputOtherTile(cursor: TileCursor): boolean {
 export function outputTile(cursor: TileCursor): void {
   if (tilesOf(cursor.itemId)[cursor.index]?.verse !== undefined) return;
   if (outputOtherTile(cursor)) return;
-  const slide = slideLayerOf(cursor, tilesOf);
+  const slide = stageSlideOf(cursor);
   if (!slide) return;
   const request = beginOutputRequest();
   const live = useLive.getState();
@@ -196,6 +198,38 @@ export function outputTile(cursor: TileCursor): void {
   }
 }
 
+/** Builds the same following item that the next-slide command will open. */
+function stageSlideOf(cursor: TileCursor) {
+  const view = useShow.getState();
+  const next = nextTileAtLast(
+    {live: cursor, openItemId: cursor.itemId, tilesOf},
+    view.rows,
+    atLastSlide,
+  );
+  const row =
+    next?.itemId === cursor.itemId
+      ? undefined
+      : view.rows.find(entry => entry.id === next?.itemId);
+  const tile =
+    next === null || row === undefined || row.kind === 'header'
+      ? undefined
+      : tilesOf(next.itemId)[next.index];
+  const following: Parameters<typeof slideLayerOf>[2] =
+    tile === undefined || row === undefined || row.kind === 'header'
+      ? undefined
+      : {
+          tile,
+          kind:
+            row.kind === 'slides'
+              ? (tile.kind ?? 'blank')
+              : row.kind === 'unknown'
+                ? 'blank'
+                : row.kind,
+          title: row.title,
+        };
+  return slideLayerOf(cursor, tilesOf, following);
+}
+
 interface SongOutput {
   readonly cursor: TileCursor;
   readonly request: number;
@@ -231,7 +265,7 @@ async function outputSongTile({
   if (service !== null && service.id !== serviceId) return;
 
   if (service !== null && service.id === serviceId) applyService(service);
-  const slide = slideLayerOf(cursor, tilesOf);
+  const slide = stageSlideOf(cursor);
   if (!slide) return;
   const row = useShow.getState().rows.find(row => row.id === cursor.itemId);
   sendSlideOutput(
@@ -252,6 +286,76 @@ let atLastSlide: AtLastSlide = 'stop';
 /** Tells the next-장 key what to do on the last 장 (환경설정, applied at once). */
 export function setAtLastSlide(value: AtLastSlide): void {
   atLastSlide = value;
+  refreshStageNext();
+}
+
+let pendingStageNext:
+  | {api: typeof window.llp; itemId: string; position: number; key: string}
+  | undefined;
+
+function nextKey(next: NextSlide | null | undefined): string {
+  return next == null
+    ? 'null'
+    : JSON.stringify([
+        next.label,
+        next.title ?? null,
+        next.itemKind ?? null,
+        next.lines,
+        next.continued ?? null,
+        next.biblePart ?? null,
+      ]);
+}
+
+/** Keep stage preview in sync without re-outputting the live slide. */
+function refreshStageNext(): void {
+  const slide = useLive.getState().state?.layers.slide;
+  if (slide === null || slide === undefined) return;
+  const view = useShow.getState();
+  const cursor = nextTileAtLast(sequenceState(), view.rows, atLastSlide);
+  const tile =
+    cursor === null ? undefined : tilesOf(cursor.itemId)[cursor.index];
+  const row =
+    cursor === null
+      ? undefined
+      : view.rows.find(entry => entry.id === cursor.itemId);
+  const kind =
+    row === undefined ||
+    row.kind === 'header' ||
+    cursor?.itemId === slide.itemId
+      ? undefined
+      : row.kind === 'slides'
+        ? (tile?.kind ?? 'blank')
+        : row.kind === 'unknown'
+          ? 'blank'
+          : row.kind;
+  const next = tile === undefined ? null : nextSlideOf(tile, kind, row?.title);
+  const key = nextKey(next);
+  if (
+    pendingStageNext !== undefined &&
+    (pendingStageNext.api !== window.llp ||
+      pendingStageNext.itemId !== slide.itemId ||
+      pendingStageNext.position !== slide.position)
+  ) {
+    pendingStageNext = undefined;
+  }
+  if (
+    pendingStageNext?.key === key ||
+    (pendingStageNext === undefined && nextKey(slide.next) === key)
+  ) {
+    return;
+  }
+  pendingStageNext = {
+    api: window.llp,
+    itemId: slide.itemId,
+    position: slide.position,
+    key,
+  };
+  sendLive({
+    type: 'stage.next.set',
+    itemId: slide.itemId,
+    position: slide.position,
+    next,
+  });
 }
 
 /**
@@ -390,6 +494,7 @@ export function applyService(service: ShowService | null): void {
     jumpKeys: service.jumpKeys,
     ...keptSelection(service),
   });
+  refreshStageNext();
 }
 
 /**
@@ -404,6 +509,26 @@ export function startServiceSync(): () => void {
   if (api === undefined) return () => undefined;
   let stopped = false;
   let pushed = false;
+  const unsubscribeLive = useLive.subscribe((next, previous) => {
+    const current = next.state?.layers.slide;
+    const before = previous.state?.layers.slide;
+    if (
+      pendingStageNext !== undefined &&
+      current?.itemId === pendingStageNext.itemId &&
+      pendingStageNext.position === current.position &&
+      pendingStageNext.key === nextKey(current.next)
+    ) {
+      pendingStageNext = undefined;
+    }
+    if (
+      current !== null &&
+      current !== undefined &&
+      (current.itemId !== before?.itemId ||
+        current.position !== before.position)
+    ) {
+      refreshStageNext();
+    }
+  });
   const unsubscribe = api.service.subscribe(service => {
     if (stopped) return;
     pushed = true;
@@ -420,6 +545,7 @@ export function startServiceSync(): () => void {
   );
   return () => {
     stopped = true;
+    unsubscribeLive();
     unsubscribe();
   };
 }

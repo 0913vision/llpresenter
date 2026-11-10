@@ -50,6 +50,16 @@ const slideLinesSchema = v.pipe(
   v.maxLength(LIVE_STATE_LIMITS.slideLines),
 );
 
+/** The next slide text and optional item kind, carried without changing live output. */
+export const nextSlideSchema = payloadObject({
+  label: v.nullable(liveTextSchema),
+  title: v.exactOptional(liveTextSchema),
+  itemKind: v.exactOptional(v.picklist(themeItemKinds)),
+  lines: slideLinesSchema,
+  continued: v.exactOptional(v.boolean()),
+  biblePart: v.exactOptional(biblePartSchema),
+});
+
 /** A background media choice, as `media.show` carries it. */
 export const mediaChoiceSchema = payloadObject(mediaChoiceEntries);
 
@@ -90,15 +100,7 @@ export const layerSchemas = {
     kind: v.exactOptional(v.picklist(themeItemKinds)),
     title: v.exactOptional(liveTextSchema),
     memo: v.exactOptional(liveTextSchema),
-    next: v.exactOptional(
-      payloadObject({
-        label: v.nullable(liveTextSchema),
-        title: v.exactOptional(liveTextSchema),
-        lines: slideLinesSchema,
-        continued: v.exactOptional(v.boolean()),
-        biblePart: v.exactOptional(biblePartSchema),
-      }),
-    ),
+    next: v.exactOptional(nextSlideSchema),
   }),
   prop: payloadObject({propId: id, items: v.exactOptional(activePropsSchema)}),
   audio: payloadObject({

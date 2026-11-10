@@ -116,7 +116,9 @@ describe('SlideGrid', () => {
     const next = screen.getAllByRole('option');
     expect(next).toHaveLength(3);
     expect(document.activeElement).toBe(grid);
-    expect(sent).toHaveLength(0);
+    expect(
+      sent.filter(command => command.type !== 'stage.next.set'),
+    ).toHaveLength(0);
   });
 
   it('keeps the focus in the grid when a service update removes the focused tile of the same item', () => {

@@ -1,5 +1,5 @@
 import type {MediaChoice, SlideLayer} from '@core/live/state';
-import {setLayer, type LiveHistory} from '../history';
+import {setLayer, updateLayer, type LiveHistory} from '../history';
 import {defineSlice} from '../slice';
 
 function clearPreviousPicture(
@@ -42,7 +42,7 @@ function showMedia(
 
 /** Puts content on a layer: a slide, a background, or a message. */
 export const contentSlice = defineSlice({
-  commands: ['slide.show', 'media.show', 'message.show'],
+  commands: ['slide.show', 'stage.next.set', 'media.show', 'message.show'],
   initial: {layers: {slide: null, media: null, message: null}},
   reduce: (history, command, context) => {
     switch (command.type) {
@@ -66,6 +66,36 @@ export const contentSlice = defineSlice({
         return context.apply(setLayer(shown, 'media', null), {
           type: 'media.properties.refresh',
         });
+      }
+      case 'stage.next.set': {
+        const slide = history.state.layers.slide;
+        if (
+          slide?.itemId !== command.itemId ||
+          slide.position !== command.position
+        ) {
+          return history;
+        }
+        if (
+          JSON.stringify(slide.next ?? null) === JSON.stringify(command.next)
+        ) {
+          return history;
+        }
+        const {next: _next, ...current} = slide;
+        const nextSlide =
+          command.next === null ? current : {...current, next: command.next};
+        const updated = updateLayer(history, 'slide', nextSlide);
+        const undo = history.undo;
+        if (undo === null) return updated;
+        const saved = undo.layers.slide;
+        const preserved =
+          saved?.itemId === slide.itemId && saved.position === slide.position
+            ? {...undo, layers: {...undo.layers, slide: nextSlide}}
+            : undo;
+        return {
+          ...updated,
+          undo: preserved,
+          state: {...updated.state, canUndo: history.state.canUndo},
+        };
       }
       case 'media.show':
         return context.apply(showMedia(history, command.media, context.now), {

@@ -96,7 +96,7 @@ describe('show state', () => {
       outputBoundarySlide('first');
       outputBoundarySlide('last');
     }
-    expect(sent).toEqual([]);
+    expect(slides()).toEqual([]);
   });
 
   it('opens an item with its first tile selected', () => {
@@ -137,6 +137,111 @@ describe('show state', () => {
       openItemId: 'song-morning',
       selectedTile: 1,
     });
+  });
+
+  it('previews the same following item as the next key when continuous mode is on', () => {
+    setAtLastSlide('nextItem');
+    outputTile({itemId: 'song-morning', index: 3});
+    expect(slides().at(-1)).toMatchObject({
+      slide: {
+        next: {
+          itemKind: 'song',
+          lines: sampleService.tiles['song-river']?.[0]?.lines,
+        },
+      },
+    });
+    sent.length = 0;
+    setAtLastSlide('stop');
+    outputTile({itemId: 'song-morning', index: 3});
+    const command = slides().at(-1);
+    expect(command?.slide.next).toBeUndefined();
+  });
+
+  it('skips headers on the way to the next Bible item and leaves the end empty', () => {
+    setAtLastSlide('nextItem');
+    outputTile({itemId: 'song-river', index: 2});
+    expect(slides().at(-1)).toMatchObject({
+      slide: {
+        next: {
+          itemKind: 'bible',
+          lines: sampleService.tiles['psalm-23']?.[0]?.lines,
+        },
+      },
+    });
+    sent.length = 0;
+    outputTile({itemId: 'psalm-23', index: 2});
+    expect(slides().at(-1)?.slide.next).toBeUndefined();
+  });
+
+  it('updates the stage preview when continuous navigation changes while a slide is live', () => {
+    setLive('song-morning', 3);
+    openItem('song-morning');
+    sent.length = 0;
+    setAtLastSlide('nextItem');
+    expect(sent.at(-1)).toMatchObject({
+      type: 'stage.next.set',
+      itemId: 'song-morning',
+      position: 3,
+      next: {
+        itemKind: 'song',
+        lines: sampleService.tiles['song-river']?.[0]?.lines,
+      },
+    });
+  });
+
+  it('updates stage next when the open item changes without changing the live slide', () => {
+    setLive('song-morning', 1);
+    openItem('song-river');
+    expect(sent.at(-1)).toMatchObject({
+      type: 'stage.next.set',
+      itemId: 'song-morning',
+      position: 1,
+      next: {
+        itemKind: 'song',
+        lines: sampleService.tiles['song-river']?.[0]?.lines,
+      },
+    });
+    expect(slides()).toEqual([]);
+  });
+
+  it('queues the latest continuous preference even before the live state echoes', () => {
+    setLive('song-morning', 3);
+    openItem('song-morning');
+    sent.length = 0;
+    setAtLastSlide('nextItem');
+    setAtLastSlide('nextItem');
+    setAtLastSlide('stop');
+    setAtLastSlide('stop');
+    expect(sent).toHaveLength(2);
+    expect(sent).toMatchObject([
+      {type: 'stage.next.set', next: {itemKind: 'song'}},
+      {type: 'stage.next.set', next: null},
+    ]);
+  });
+
+  it('does not resend a preview already present on the live slide', () => {
+    const first = sampleService.tiles['song-river']?.[0];
+    if (first === undefined) throw Error('Missing fixture');
+    const state = emptyLiveState();
+    useLive.setState({
+      state: {
+        ...state,
+        layers: {
+          ...state.layers,
+          slide: {
+            itemId: 'song-morning',
+            position: 3,
+            label: null,
+            lines: ['x'],
+            next: {label: first.label, lines: first.lines, itemKind: 'song'},
+          },
+        },
+      },
+    });
+    useShow.setState({openItemId: 'song-morning'});
+    sent.length = 0;
+    setAtLastSlide('nextItem');
+    expect(sent).toEqual([]);
   });
 
   it('sends nothing for a tile that does not exist', () => {

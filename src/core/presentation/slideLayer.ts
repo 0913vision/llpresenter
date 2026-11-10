@@ -1,6 +1,31 @@
-import type {SlideLayer} from '../live/state';
-import type {TileCursor} from './model';
+import type {NextSlide, SlideLayer} from '../live/state';
+import type {SlideTile, TileCursor} from './model';
 import type {TilesOf} from './navigation';
+
+/** Projects a tile into the live stage preview payload. */
+export function nextSlideOf(
+  tile: SlideTile,
+  kind?: NextSlide['itemKind'],
+  fallbackTitle?: string,
+): NextSlide {
+  const title =
+    tile.sectionCard?.name ??
+    tile.name ??
+    (tile.media !== undefined || tile.picture !== undefined
+      ? fallbackTitle
+      : undefined);
+  return {
+    label:
+      tile.kind === undefined || tile.biblePart !== undefined
+        ? tile.label
+        : null,
+    lines: tile.lines,
+    ...(kind === undefined ? {} : {itemKind: kind}),
+    ...(title === undefined || title.trim() === '' ? {} : {title}),
+    ...(tile.continued === undefined ? {} : {continued: tile.continued}),
+    ...(tile.biblePart === undefined ? {} : {biblePart: tile.biblePart}),
+  };
+}
 
 /**
  * The 장 layer that outputting a tile sends, or null when the tile is missing.
@@ -9,12 +34,16 @@ import type {TilesOf} from './navigation';
 export function slideLayerOf(
   cursor: TileCursor,
   tilesOf: TilesOf,
+  following?: {
+    readonly tile: SlideTile;
+    readonly kind: 'song' | 'bible' | 'blank' | 'ad' | 'media';
+    readonly title?: string;
+  },
 ): SlideLayer | null {
   const tiles = tilesOf(cursor.itemId);
   const tile = tiles[cursor.index];
   if (!tile) return null;
-  const next = tiles[cursor.index + 1];
-  const nextTitle = next?.sectionCard?.name ?? next?.name;
+  const next = tiles[cursor.index + 1] ?? following?.tile;
   return {
     itemId: cursor.itemId,
     position: cursor.index,
@@ -48,22 +77,11 @@ export function slideLayerOf(
     ...(next === undefined
       ? {}
       : {
-          next: {
-            label:
-              next.kind === undefined || next.biblePart !== undefined
-                ? next.label
-                : null,
-            lines: next.lines,
-            ...(nextTitle === undefined || nextTitle.trim() === ''
-              ? {}
-              : {title: nextTitle}),
-            ...(next.continued === undefined
-              ? {}
-              : {continued: next.continued}),
-            ...(next.biblePart === undefined
-              ? {}
-              : {biblePart: next.biblePart}),
-          },
+          next: nextSlideOf(
+            next,
+            tiles[cursor.index + 1] === undefined ? following?.kind : undefined,
+            following?.title,
+          ),
         }),
   };
 }

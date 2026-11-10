@@ -130,7 +130,10 @@ function textElement<TKind extends string, TEntries extends v.ObjectEntries>(
 export const themeElementSchema = v.pipe(
   jsonObject({}),
   v.variant('kind', [
-    textElement('currentText', {text: lyricText}),
+    textElement('currentText', {
+      text: lyricText,
+      fallbackText: v.exactOptional(v.pipe(v.string(), v.maxLength(4000))),
+    }),
     textElement('reference', {
       source: v.exactOptional(v.picklist(['slide', 'item'])),
     }),

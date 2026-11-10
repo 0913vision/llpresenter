@@ -1,3 +1,7 @@
+import {
+  PREPARATION_THEME_ID,
+  sundayPreparationLayout,
+} from '@core/themes/sundayStandby';
 import {REFERENCE_SCREEN} from '@core/themes/textStyle';
 import {STAGE_COLORS} from '@core/themes/stageColors';
 import * as v from 'valibot';
@@ -520,4 +524,48 @@ it('centers the stage bar and keeps the muted clock below the lyric frames', () 
     );
     expect(element.text.lineHeight).toBe(1.2);
   }
+});
+
+it('shows preparation text on stage only while its blank slide is live', () => {
+  const stage = createScreenId(STARTER_SCREEN_IDS.stage);
+  const theme = createDefaultThemes().themes.find(
+    value => value.id === PREPARATION_THEME_ID,
+  );
+  const current = theme?.screens[stage]?.elements.find(
+    element => element.kind === 'currentText',
+  );
+  if (current?.kind !== 'currentText') {
+    throw Error('Missing preparation text');
+  }
+  expect(current.fallbackText).toBe(
+    sundayPreparationLayout()
+      .elements.flatMap(element =>
+        element.kind === 'text' ? [element.content] : [],
+      )
+      .join('\n'),
+  );
+});
+
+it('leaves fixed horizontal gaps between the stage bar group frames', () => {
+  const elements =
+    builtInTheme('song').screens[createScreenId(STARTER_SCREEN_IDS.stage)]
+      ?.elements ?? [];
+  const title = elements.find(
+    element =>
+      element.kind === 'text' && element.stageSource === 'stageItemName',
+  );
+  const label = elements.find(element => element.kind === 'label');
+  const position = elements.find(
+    element =>
+      element.kind === 'text' && element.stageSource === 'stagePosition',
+  );
+  if (!title || !label || !position) {
+    throw Error('Missing bar elements');
+  }
+  expect(label.frame.x - title.frame.x - title.frame.w).toBeGreaterThanOrEqual(
+    20,
+  );
+  expect(
+    position.frame.x - label.frame.x - label.frame.w,
+  ).toBeGreaterThanOrEqual(20);
 });

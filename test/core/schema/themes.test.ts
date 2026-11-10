@@ -635,3 +635,17 @@ it.each(['message-row', 'invalid', 1])(
     ).toBe(stageBar === 'message-row');
   },
 );
+
+it.each(['Prepare', '', 'x'.repeat(4001), 42])(
+  'bounds a stage current text fallback',
+  fallbackText => {
+    expect(
+      v.safeParse(themeElementSchema, {
+        ...element,
+        kind: 'currentText',
+        text: {...text, maxLines: 2},
+        fallbackText,
+      }).success,
+    ).toBe(typeof fallbackText === 'string' && fallbackText.length <= 4000);
+  },
+);

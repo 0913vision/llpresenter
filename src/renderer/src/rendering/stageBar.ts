@@ -1,3 +1,4 @@
+import {STAGE_BAR_GROUP_TOP_WITH_MESSAGE} from '@core/themes/starterLayout';
 import type {ThemeScreenLayout} from '@core/schema/themes';
 
 /** Make room for a stage message without moving custom stage layouts. */
@@ -22,7 +23,12 @@ export function stageBarLayout(
           (element.stageSource === 'stageItemName' ||
             element.stageSource === 'stagePosition')) ||
         (element.kind === 'label' && element.hideWhenItemTitle === true);
-      return group ? {...element, frame: {...element.frame, y: 2}} : element;
+      return group
+        ? {
+            ...element,
+            frame: {...element.frame, y: STAGE_BAR_GROUP_TOP_WITH_MESSAGE},
+          }
+        : element;
     }),
   };
 }

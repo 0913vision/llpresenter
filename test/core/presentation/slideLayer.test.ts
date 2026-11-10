@@ -234,3 +234,23 @@ it('shows next slide titles before body for every source kind', () => {
     ).toBe(expected);
   }
 });
+
+it('carries the next item card and its kind without inventing content at the end', () => {
+  const section = SUNDAY_SECTIONS[1];
+  if (!section) throw Error('Missing section');
+  const current = {
+    label: null,
+    labelColor: 'none',
+    lines: ['Current'],
+  } as const;
+  const card = {
+    ...current,
+    sectionCard: sectionCardOf(section),
+    lines: ['English'],
+  };
+  const cursor = {itemId: 'song', index: 0};
+  expect(slideLayerOf(cursor, () => [current])?.next).toBeUndefined();
+  expect(
+    slideLayerOf(cursor, () => [current], {tile: card, kind: 'bible'})?.next,
+  ).toMatchObject({title: section.name, itemKind: 'bible', lines: ['English']});
+});

@@ -149,7 +149,11 @@ describe('song backgrounds on output', () => {
     sent.length = 0;
     click('two');
     await expectSlide('two');
-    expect(sent.map(command => command.type)).toEqual(['live.batch']);
+    expect(
+      sent
+        .filter(command => command.type !== 'stage.next.set')
+        .map(command => command.type),
+    ).toEqual(['live.batch']);
     expect(store.state.layers.media).toBe(playing);
     expect(store.state.layers.media?.startedAt).toBe(START);
   });

@@ -63,6 +63,47 @@ describe('SlideLayerView', () => {
       scrollHeight.mockRestore();
     }
   });
+  it('keeps song source lines whole until the readable minimum requires wrapping', () => {
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(200);
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(500);
+    const width = vi
+      .spyOn(HTMLElement.prototype, 'scrollWidth', 'get')
+      .mockImplementation(function (this: HTMLElement) {
+        return (Number.parseFloat(this.style.fontSize) || 0) * 4;
+      });
+    const height = vi
+      .spyOn(HTMLElement.prototype, 'scrollHeight', 'get')
+      .mockReturnValue(100);
+    try {
+      const {view, shownPage} = setUp();
+      view.setLineMode('song');
+      view.show(VERSE, false);
+      const block = shownPage()?.querySelector<HTMLElement>(
+        `.${classes.block}`,
+      );
+      expect(block?.style.whiteSpace).toBe('pre');
+      expect(Number.parseFloat(block?.style.fontSize ?? '')).toBe(50);
+      width.mockImplementation(function (this: HTMLElement) {
+        return (Number.parseFloat(this.style.fontSize) || 0) * 10;
+      });
+      view.show(
+        {...VERSE, itemId: 'long-line', lines: ['A much longer line']},
+        false,
+      );
+      expect(
+        shownPage()?.querySelector<HTMLElement>(`.${classes.block}`)?.style,
+      ).toMatchObject({fontSize: '48px', whiteSpace: ''});
+      view.setLineMode('bar');
+      expect(
+        shownPage()?.querySelector<HTMLElement>(`.${classes.block}`)?.style,
+      ).toMatchObject({fontSize: '20px', whiteSpace: 'pre'});
+      view.dispose();
+    } finally {
+      vi.restoreAllMocks();
+      height.mockRestore();
+    }
+  });
+
   it('changes a retained bulleted page to discs and restores the existing glyph layout', () => {
     const {view, shownPage} = setUp();
     const style = {...DEFAULT_TEXT_STYLE, bullets: true};

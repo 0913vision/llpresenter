@@ -3,7 +3,7 @@ import type {LiveCommand} from '../live/commands';
 import {layerKinds} from '../live/state';
 import type {Result} from '../common/result';
 import {screenIdSchema} from './ids';
-import {layerSchemas, mediaChoiceSchema} from './liveState';
+import {layerSchemas, mediaChoiceSchema, nextSlideSchema} from './liveState';
 import {liveActionOptions} from './liveActions';
 import {screenCommandOptions} from './screenCommands';
 import {messageExpirySchema} from './overlayState';
@@ -25,6 +25,12 @@ const singleCommandOptions = [
   messageExpirySchema,
   overlayClearSchema,
   v.object({type: v.literal('slide.show'), slide: layerSchemas.slide}),
+  v.object({
+    type: v.literal('stage.next.set'),
+    itemId: v.pipe(v.string(), v.nonEmpty()),
+    position: v.pipe(v.number(), v.integer(), v.minValue(0)),
+    next: v.nullable(nextSlideSchema),
+  }),
   v.object({type: v.literal('media.show'), media: mediaChoiceSchema}),
   v.object({type: v.literal('media.properties.refresh')}),
   v.object({type: v.literal('message.show'), message: layerSchemas.message}),

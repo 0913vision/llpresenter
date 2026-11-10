@@ -9,6 +9,23 @@ import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 
 describe('parseLiveCommand', () => {
+  it('accepts bounded stage preview updates and rejects malformed payloads', () => {
+    const command = {
+      type: 'stage.next.set',
+      itemId: 'item',
+      position: 0,
+      next: {label: null, lines: ['Next'], itemKind: 'song'},
+    };
+    expect(parseLiveCommand(command).ok).toBe(true);
+    expect(parseLiveCommand({...command, position: -1}).ok).toBe(false);
+    expect(
+      parseLiveCommand({
+        ...command,
+        next: {...command.next, itemKind: 'invalid'},
+      }).ok,
+    ).toBe(false);
+  });
+
   it('checks explicit continuation metadata on the current and next Bible parts', () => {
     const slide = {
       itemId: 'bible',

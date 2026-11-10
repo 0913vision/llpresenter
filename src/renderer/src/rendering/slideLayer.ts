@@ -16,6 +16,8 @@ const textFits = new WeakMap<Document, TextFitCache>();
 /** The dissolve between 장 (docs/spec/03-output.md, version 1 default). */
 export const SLIDE_DISSOLVE_MS = 200;
 
+const MIN_STAGE_LYRIC_SIZE = 48;
+
 const FALLBACK_FONTS = "'Pretendard Variable', sans-serif";
 
 /** A CSS font family for a saved font name, with Pretendard as the fallback. */
@@ -233,6 +235,7 @@ export class SlideLayerView {
   private scale = 1;
   private maximumSize: number | undefined;
   private minimumSize: number | undefined;
+  private lineMode: 'normal' | 'song' | 'bar' = 'normal';
   private dissolveMs: number = SLIDE_DISSOLVE_MS;
   private effect: SlideTransition | undefined;
   private readonly animation = new SlideAnimation();
@@ -377,6 +380,13 @@ export class SlideLayerView {
     if (this.current !== null) this.fit(this.pages[this.front]);
   }
 
+  /** Keep source lines intact unless a song would become too small. */
+  setLineMode(mode: 'normal' | 'song' | 'bar'): void {
+    if (mode === this.lineMode) return;
+    this.lineMode = mode;
+    if (this.current !== null) this.fit(this.pages[this.front]);
+  }
+
   setMinimumSize(minimum: number): void {
     this.minimumSize = minimum;
   }
@@ -444,20 +454,29 @@ export class SlideLayerView {
         page.lines,
         page.continued,
         page.biblePart,
+        this.lineMode,
         this.style,
         this.scale,
         width,
         height,
       ]),
-      () =>
-        fitTextInFrame({size, width, height}, px => {
+      () => {
+        block.style.whiteSpace = this.lineMode === 'normal' ? '' : 'pre';
+        const fitted = fitTextInFrame({size, width, height}, px => {
           setSize(px);
           return {width: block.scrollWidth, height: block.scrollHeight};
-        }),
+        });
+        return fitted;
+      },
       document.fonts,
     );
+    const songMinimum =
+      Math.min(MIN_STAGE_LYRIC_SIZE, this.maximumSize ?? Infinity) * this.scale;
+    const wraps = this.lineMode === 'song' && fontSize < songMinimum;
+    block.style.whiteSpace = this.lineMode === 'normal' || wraps ? '' : 'pre';
     setSize(
       Math.max(
+        wraps ? songMinimum : 0,
         (this.minimumSize ?? 0) * this.scale,
         Math.min(fontSize, (this.maximumSize ?? Infinity) * this.scale),
       ),

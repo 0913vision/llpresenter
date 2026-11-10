@@ -23,6 +23,58 @@ import {
 beforeEach(() => vi.useFakeTimers());
 afterEach(() => vi.useRealTimers());
 
+it('updates stage next metadata without restarting automatic advance', () => {
+  const {store, show, stop} = setup();
+  show(0);
+  vi.advanceTimersByTime(1000);
+  const before = store.state.layers.slide;
+  if (!before) throw Error('Missing slide');
+  store.dispatch({
+    type: 'stage.next.set',
+    itemId: before.itemId,
+    position: before.position,
+    next: {label: null, lines: ['Next item']},
+  });
+  expect(store.state.layers.slide).toMatchObject({
+    next: {lines: ['Next item']},
+  });
+  store.dispatch({
+    type: 'stage.next.set',
+    itemId: before.itemId,
+    position: before.position + 1,
+    next: null,
+  });
+  expect(store.state.layers.slide).toMatchObject({
+    next: {lines: ['Next item']},
+  });
+  vi.advanceTimersByTime(2000);
+  expect(store.state.layers.slide).toMatchObject({position: 1});
+  stop();
+});
+
+it('takes the normal advance path for a batch containing a new slide', () => {
+  const {store, show, stop, item} = setup();
+  show(0);
+  vi.advanceTimersByTime(1000);
+  const nextSlide = slideLayerOf({itemId: item.id, index: 1}, () =>
+    projectSlides(item),
+  );
+  if (nextSlide === null) throw Error('Missing slide');
+  store.dispatch({
+    type: 'live.batch',
+    commands: [
+      {type: 'stage.next.set', itemId: item.id, position: 0, next: null},
+      {type: 'slide.show', slide: nextSlide},
+    ],
+  });
+  expect(store.state.layers.slide).toMatchObject({position: 1});
+  vi.advanceTimersByTime(2999);
+  expect(store.state.layers.slide).toMatchObject({position: 1});
+  vi.advanceTimersByTime(1);
+  expect(store.state.layers.slide).toMatchObject({position: 2});
+  stop();
+});
+
 it('keeps text-only ad numbering through automatic picture advance and looping', () => {
   const {store, show, stop} = setup(true);
   show(0);

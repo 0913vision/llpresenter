@@ -266,3 +266,39 @@ it('suppresses a redundant built-in stage label while keeping distinct and saved
     }),
   ).toBeNull();
 });
+
+it('preserves the ordinary slide name outside advertisements', () => {
+  const element = {...themeElementBase(), kind: 'slideName'} as const;
+  const slide = {
+    itemId: 'blank',
+    position: 0,
+    label: null,
+    lines: ['Body'],
+    name: 'Title',
+    kind: 'blank' as const,
+  };
+  expect(
+    themeElementText(element, {layers: {...emptyLayers(), slide}, item: null}),
+  ).toBe('Title');
+});
+
+it('shows preparation fallback only for a live blank slide', () => {
+  const element = {
+    ...themeElementBase(),
+    kind: 'currentText',
+    fallbackText: 'Prepare',
+  } as const;
+  const slide = {itemId: 'item', position: 0, label: null, lines: ['']};
+  expect(
+    themeElementText(element, {layers: emptyLayers(), item: null}),
+  ).toBeNull();
+  expect(
+    themeElementText(element, {layers: {...emptyLayers(), slide}, item: null}),
+  ).toBe('Prepare');
+  expect(
+    themeElementText(element, {
+      layers: {...emptyLayers(), slide: {...slide, lines: ['Edited']}},
+      item: null,
+    }),
+  ).toBe('Edited');
+});

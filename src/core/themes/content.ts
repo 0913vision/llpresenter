@@ -65,8 +65,11 @@ export function themeElementText(
   const {layers, item} = content;
   const slide = layers.slide;
   switch (element.kind) {
-    case 'currentText':
-      return slide?.lines.join('\n') ?? null;
+    case 'currentText': {
+      if (slide === null) return null;
+      const text = slide.lines.join('\n');
+      return text.trim() === '' ? (element.fallbackText ?? text) : text;
+    }
     case 'reference':
       return slide === null
         ? null

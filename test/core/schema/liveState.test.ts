@@ -74,6 +74,24 @@ describe('parseLiveState', () => {
     ).toBe(false);
     expect(parseLiveState(withTitle(42)).ok).toBe(false);
   });
+  it.each(['song', 'bible', 'blank', 'ad', 'media', 'invalid'])(
+    'validates the following item kind %s',
+    itemKind => {
+      const state = busyState();
+      expect(
+        parseLiveState({
+          ...state,
+          layers: {
+            ...state.layers,
+            slide: {
+              ...state.layers.slide,
+              next: {label: null, lines: ['Next'], itemKind},
+            },
+          },
+        }).ok,
+      ).toBe(itemKind !== 'invalid');
+    },
+  );
   it('accepts a song title marker and rejects other flag values', () => {
     const state = busyState();
     for (const titleSlide of [true, false, 'title', null]) {

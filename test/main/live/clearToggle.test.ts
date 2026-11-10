@@ -106,3 +106,44 @@ it('drops saved restore flags when recovery has no in-memory clear captures', ()
     false,
   );
 });
+
+it.each(['media', 'message'] as const)(
+  'keeps %s clear undo while updating stage preview',
+  target => {
+    const store = setup();
+    const cleared = store.state.layers[target];
+    store.dispatch({type: 'layer.clear', target});
+    expect(store.state.canUndo).toBe(true);
+    store.dispatch({
+      type: 'stage.next.set',
+      itemId: slide.itemId,
+      position: slide.position,
+      next: {label: null, lines: ['Next']},
+    });
+    expect(store.state.canUndo).toBe(true);
+    expect(store.state.layers.slide).toEqual({
+      ...slide,
+      next: {label: null, lines: ['Next']},
+    });
+    store.dispatch({type: 'clear.undo'});
+    expect(store.state.layers[target]).toEqual(cleared);
+    expect(store.state.layers.slide).toEqual({
+      ...slide,
+      next: {label: null, lines: ['Next']},
+    });
+  },
+);
+
+it('keeps a clear toggle capture when the stage preview changes', () => {
+  const store = setup();
+  store.dispatch({type: 'layer.clear.toggle', target: 'media'});
+  store.dispatch({
+    type: 'stage.next.set',
+    itemId: slide.itemId,
+    position: slide.position,
+    next: {label: null, lines: ['Next']},
+  });
+  expect(store.state.clearToggles).toEqual(['media']);
+  store.dispatch({type: 'layer.clear.toggle', target: 'media'});
+  expect(store.state.layers.media?.mediaId).toBe('background');
+});

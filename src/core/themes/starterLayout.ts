@@ -36,12 +36,13 @@ const element = <TKind extends StageElementKind>(
 ) => ({id: kind, kind, frame: {x, y, w, h}});
 
 export const STAGE_BAR_HEIGHT = 100;
+export const STAGE_BAR_GROUP_TOP_WITH_MESSAGE = 2;
 
 export const STARTER_STAGE_ELEMENTS = [
-  element('itemTitle', [350, 26, 520, 48]),
-  element('currentLabel', [875, 26, 170, 48]),
+  element('itemTitle', [345, 26, 500, 48]),
+  element('currentLabel', [865, 26, 190, 48]),
   element('stageMessage', [770, 53, 490, 42]),
-  element('position', [1050, 26, 200, 48]),
+  element('position', [1075, 26, 175, 48]),
   element('timer', [1640, 20, 220, 65]),
   element('clock', [1660, 1020, 200, 40]),
   element('currentSlide', [154, 130, 1612, 640]),

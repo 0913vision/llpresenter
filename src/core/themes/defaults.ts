@@ -212,6 +212,21 @@ export function standbyLayoutOf(
   );
 }
 
+function preparationStageLayout(screen: ThemeScreen): ThemeScreenLayout {
+  const layout = layoutFor(screen, 'blank');
+  const fallbackText = sundayPreparationLayout()
+    .elements.flatMap(element =>
+      element.kind === 'text' ? [element.content] : [],
+    )
+    .join('\n');
+  return {
+    ...layout,
+    elements: layout.elements.map(element =>
+      element.kind === 'currentText' ? {...element, fallbackText} : element,
+    ),
+  };
+}
+
 function audienceElements(
   lowerThird: boolean,
   kind: ThemeItemKind,
@@ -449,7 +464,9 @@ export function createDefaultThemes(
             screen.id,
             screen.kind === 'audience'
               ? sundayPreparationLayout()
-              : layoutFor(screen, 'blank'),
+              : screen.kind === 'stage'
+                ? preparationStageLayout(screen)
+                : layoutFor(screen, 'blank'),
           ]),
         ),
       },

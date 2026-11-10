@@ -1,4 +1,10 @@
-import type {LayerKind, MediaChoice, MessageLayer, SlideLayer} from './state';
+import type {
+  LayerKind,
+  MediaChoice,
+  MessageLayer,
+  NextSlide,
+  SlideLayer,
+} from './state';
 import type {LiveAction} from '../schema/liveActions';
 import type {ScreenCommand} from '../schema/screenCommands';
 import type {MessageExpiry} from '../schema/overlayState';
@@ -17,6 +23,12 @@ export type SingleLiveCommand =
   | MessageExpiry
   | OverlayClear
   | {readonly type: 'slide.show'; readonly slide: SlideLayer}
+  | {
+      readonly type: 'stage.next.set';
+      readonly itemId: string;
+      readonly position: number;
+      readonly next: NextSlide | null;
+    }
   | {readonly type: 'media.show'; readonly media: MediaChoice}
   | {readonly type: 'media.properties.refresh'}
   | {readonly type: 'message.show'; readonly message: MessageLayer}
@@ -61,6 +73,7 @@ export function interruptsSongOutput(command: LiveCommand): boolean {
     case 'message.show':
     case 'media.properties.refresh':
     case 'output.set':
+    case 'stage.next.set':
     case 'stage.timer.set':
     case 'stage.message.set':
     case 'prop.set':
