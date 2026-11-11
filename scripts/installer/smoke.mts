@@ -1,5 +1,12 @@
 import {spawn} from 'node:child_process';
-import {mkdtemp, readFile, writeFile, access, readdir} from 'node:fs/promises';
+import {
+  mkdtemp,
+  readFile,
+  writeFile,
+  access,
+  readdir,
+  mkdir,
+} from 'node:fs/promises';
 import {tmpdir} from 'node:os';
 import {join, resolve} from 'node:path';
 
@@ -14,6 +21,36 @@ const installers = (await readdir(folder)).filter(name =>
 if (installers.length !== 1) throw new Error('Expected one Windows installer');
 const installer = installers[0];
 if (installer === undefined) throw new Error('Missing Windows installer');
+const settingsDir = join(data, 'LoveLight', 'Settings');
+await mkdir(settingsDir, {recursive: true});
+await writeFile(
+  join(settingsDir, 'screens.json'),
+  JSON.stringify({
+    format: 'llsettings.screens',
+    schemaVersion: 1,
+    screens: [
+      {
+        id: '00000000-0000-4000-8000-000000000001',
+        name: 'Audience',
+        kind: 'audience',
+        method: 'fullscreen',
+      },
+      {
+        id: '00000000-0000-4000-8000-000000000002',
+        name: 'Broadcast',
+        kind: 'broadcast',
+        method: 'ndi',
+        ndi: {hardwareAcceleration: true},
+      },
+      {
+        id: '00000000-0000-4000-8000-000000000003',
+        name: 'Stage',
+        kind: 'stage',
+        method: 'fullscreen',
+      },
+    ],
+  }),
+);
 const installDir = join(data, 'installed');
 const install = spawn(join(folder, installer), ['/S', `/D=${installDir}`], {
   windowsHide: true,
@@ -56,6 +93,7 @@ const launchArgs = [
   '--v=0',
   '--use-gl=angle',
   '--use-angle=swiftshader',
+  '--disable-gpu',
 ];
 const child = spawn(executable, launchArgs, {
   windowsHide: true,
@@ -91,6 +129,9 @@ try {
   );
   const readyReached = log.includes('installer smoke ready');
   const ndiNativeLoaded = log.includes('NDI native module loaded');
+  const ndiGpuFallback = log.includes(
+    'NDI shared texture unavailable; using bitmap output',
+  );
   await writeFile(
     join(folder, 'smoke.log'),
     `Ready reached: ${readyReached}\nApp log:\n${log}\nStderr:\n${stderr}\nStdout:\n${stdout}`,
@@ -100,6 +141,7 @@ try {
     !log.includes('smoke ok') ||
     !readyReached ||
     !ndiNativeLoaded ||
+    !ndiGpuFallback ||
     /failed to start|failed to load|uncaught exception|unhandled rejection/u.test(
       log,
     )
@@ -124,6 +166,7 @@ try {
     graphics: 'angle-swiftshader',
     rendererUrlIgnored: true,
     ndiNativeLoaded: true,
+    ndiGpuFallback: true,
     installedApp: true,
     recoveryLockRemoved: true,
   };

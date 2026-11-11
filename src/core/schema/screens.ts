@@ -38,6 +38,9 @@ const displaySchema = jsonObject({
   scaleFactor: positiveNumber,
 });
 
+/** Default name advertised by the broadcast sender. */
+export const NDI_DEFAULT_SOURCE_NAME = 'LOVELIGHT 방송 화면';
+
 /** Maximum NDI source-name length in characters. */
 export const NDI_SOURCE_NAME_MAX = 64;
 
@@ -48,6 +51,7 @@ const ndiSchema = jsonObject({
   resolution: v.exactOptional(pixelSize),
   fps: v.exactOptional(positiveNumber),
   alpha: v.exactOptional(v.boolean()),
+  hardwareAcceleration: v.exactOptional(v.boolean()),
   networkInterface: v.exactOptional(v.string()),
   group: v.exactOptional(v.string()),
 });

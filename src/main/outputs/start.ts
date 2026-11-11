@@ -195,6 +195,7 @@ export function startOutputs({
     ndi: (screen: OutputScreen, events: OutputWindowEvents) =>
       createNdiOutput(screen, events, {
         log,
+        onGpuFallback: () => problems?.report({kind: 'ndi-gpu-fallback'}),
         onFailure: (id, missing) => {
           if (missing) problems?.report({kind: 'ndi-runtime-missing'});
           else problems?.report({kind: 'ndi-failed'});

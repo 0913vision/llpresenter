@@ -14,7 +14,7 @@ function openReal(env = process.env) {
   return openBinding(require('koffi'), dll, env.LLP_NDI_SOURCE_NAME);
 }
 
-function openBinding(koffi, dll, name = 'LOVELIGHT 방송 화면') {
+function openBinding(koffi, dll, name = null) {
   const lib = koffi.load(dll);
   const createSettings = koffi.struct({
     p_ndi_name: 'const char *',

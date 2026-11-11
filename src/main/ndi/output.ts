@@ -1,3 +1,4 @@
+import {NDI_DEFAULT_SOURCE_NAME} from '@core/schema/screens';
 import {
   BrowserWindow,
   utilityProcess,
@@ -14,12 +15,73 @@ import type {
 import type {Logger} from '../log';
 import {blockNavigation, preloadPath, startLoading} from '../windows/page';
 import {unionDirty} from './rect';
+import {createGpuOutput} from './gpuOutput';
 
 export const NDI_SEND_TIMEOUT_MS = 5000;
 export const NDI_STOP_TIMEOUT_MS = 2000;
 
 /** Creates an offscreen output whose sender is isolated in a utility process. */
 export function createNdiOutput(
+  screen: OutputScreen,
+  events: OutputWindowEvents,
+  options: {
+    log: Logger;
+    onFailure: (id: string, missing: boolean) => void;
+    onGpuFallback?: () => void;
+  },
+): OutputWindowHandle {
+  let current = screen;
+  let active = false;
+  let capture = {x: 0, y: 0, width: 1920, height: 1080};
+  const create = (): OutputWindowHandle =>
+    current.ndi?.hardwareAcceleration === true
+      ? createGpuOutput(current, events, {
+          options,
+          bitmap: () => createBitmapOutput(current, events, options),
+        })
+      : createBitmapOutput(current, events, options);
+  let delegate = create();
+  return {
+    configure: next => {
+      const changed =
+        (current.ndi?.hardwareAcceleration ?? false) !==
+        (next.ndi?.hardwareAcceleration ?? false);
+      current = next;
+      if (changed) {
+        delegate.destroy();
+        delegate = create();
+        if (active) delegate.showCapture(capture);
+      } else delegate.configure(next);
+    },
+    prepare: (bounds, kind) => delegate.prepare(bounds, kind),
+    requestFrame: () => delegate.requestFrame(),
+    contentSize: () => delegate.contentSize(),
+    setAlwaysOnTop: value => delegate.setAlwaysOnTop(value),
+    showFullScreen: (bounds, top) => delegate.showFullScreen(bounds, top),
+    showWindowed: (bounds, top) => delegate.showWindowed(bounds, top),
+    showCapture: (bounds, top) => {
+      active = true;
+      capture = bounds;
+      delegate.showCapture(bounds, top);
+    },
+    prepareForMonitorRemoval: () => delegate.prepareForMonitorRemoval(),
+    bringToFront: () => delegate.bringToFront(),
+    bounds: () => delegate.bounds(),
+    hide: () => {
+      active = false;
+      delegate.hide();
+    },
+    reload: () => delegate.reload(),
+    crashRenderer: () => delegate.crashRenderer(),
+    ping: () => delegate.ping(),
+    destroy: () => {
+      active = false;
+      delegate.destroy();
+    },
+  };
+}
+
+function createBitmapOutput(
   screen: OutputScreen,
   events: OutputWindowEvents,
   options: {log: Logger; onFailure: (id: string, missing: boolean) => void},
@@ -146,7 +208,7 @@ export function createNdiOutput(
       serviceName: 'NDI output',
       env: {
         ...process.env,
-        LLP_NDI_SOURCE_NAME: current.ndi?.sourceName ?? 'LOVELIGHT 방송 화면',
+        LLP_NDI_SOURCE_NAME: current.ndi?.sourceName ?? NDI_DEFAULT_SOURCE_NAME,
       },
     });
     child = worker;

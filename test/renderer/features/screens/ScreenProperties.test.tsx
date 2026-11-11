@@ -307,6 +307,15 @@ describe('the screen properties', () => {
         savedScreens().find(item => item.id === CAPTIONS_ID)?.ndi?.sourceName,
       ).toBe('Broadcast source'),
     );
+    const hardware = screen.getByRole('checkbox', {name: '하드웨어 가속'});
+    expect(hardware.getAttribute('aria-checked')).toBe('false');
+    await user.click(hardware);
+    await waitFor(() =>
+      expect(
+        savedScreens().find(item => item.id === CAPTIONS_ID)?.ndi
+          ?.hardwareAcceleration,
+      ).toBe(true),
+    );
     expect(screen.getByText('30fps')).toBeTruthy();
   });
 

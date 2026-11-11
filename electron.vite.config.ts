@@ -1,9 +1,11 @@
 import {resolve} from 'node:path';
 import {copyFileSync, mkdirSync} from 'node:fs';
 import {defineConfig} from 'electron-vite';
+import type {ResolvedConfig} from 'vite';
 import react from '@vitejs/plugin-react';
 
 const DEFAULT_DEV_PORT = 5173;
+let mainOutputDir = resolve('out/main');
 
 const shared = {
   '@core': resolve('src/core'),
@@ -20,10 +22,19 @@ export default defineConfig({
     plugins: [
       {
         name: 'ndi-utility-files',
+        configResolved(config: ResolvedConfig) {
+          mainOutputDir = config.build.outDir;
+        },
         closeBundle() {
-          const target = resolve('out/main/ndi');
+          const target = resolve(mainOutputDir, 'ndi');
           mkdirSync(target, {recursive: true});
-          for (const file of ['utility.cjs', 'ndi-library.cjs', 'dirty.cjs']) {
+          for (const file of [
+            'utility.cjs',
+            'ndi-library.cjs',
+            'dirty.cjs',
+            'gpu-utility.cjs',
+            'd3d.cjs',
+          ]) {
             copyFileSync(resolve('src/main/ndi', file), resolve(target, file));
           }
         },

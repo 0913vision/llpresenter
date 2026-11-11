@@ -1,7 +1,11 @@
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useMemo, useState, type JSX} from 'react';
 import type {MonitorInfo, MonitorList} from '@core/schema/monitors';
-import {NDI_SOURCE_NAME_MAX, type Screen} from '@core/schema/screens';
+import {
+  NDI_DEFAULT_SOURCE_NAME,
+  NDI_SOURCE_NAME_MAX,
+  type Screen,
+} from '@core/schema/screens';
 import {emptyScreenColor} from '@core/screens/emptyColor';
 import {SCREEN_KIND_ORDER} from '@core/screens/screens';
 import {ColorProperty} from './ColorProperty';
@@ -78,7 +82,7 @@ function NdiRows({
   readonly reason: string | undefined;
 }): JSX.Element {
   const [draft, setDraft] = useState<string | null>(null);
-  const source = screen.ndi?.sourceName ?? 'LOVELIGHT 방송 화면';
+  const source = screen.ndi?.sourceName ?? NDI_DEFAULT_SOURCE_NAME;
   return (
     <>
       <PropertyRow label="소스 이름">
@@ -105,6 +109,19 @@ function NdiRows({
                 event.currentTarget.blur();
               }
             }}
+          />
+        )}
+      </PropertyRow>
+      <PropertyRow label="하드웨어 가속">
+        {({controlId}) => (
+          <Checkbox
+            id={controlId}
+            checked={screen.ndi?.hardwareAcceleration ?? false}
+            disabled={reason !== undefined}
+            title={reason}
+            onChange={hardwareAcceleration =>
+              change({ndi: {...screen.ndi, hardwareAcceleration}})
+            }
           />
         )}
       </PropertyRow>
