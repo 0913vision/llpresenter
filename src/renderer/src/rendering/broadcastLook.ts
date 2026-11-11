@@ -97,11 +97,17 @@ function fittedText({
             geometry.measureTolerance,
       );
     }
+    if (!song && measure.height(size) > geometry.maxBodyHeight) {
+      size = fitFontSize(
+        size,
+        candidate => measure.height(candidate) <= geometry.maxBodyHeight,
+      );
+    }
     return {
       size,
-      height: Math.max(
-        size * style.lineHeight,
-        Math.ceil(measure.height(size)),
+      height: Math.min(
+        geometry.maxBodyHeight,
+        Math.max(size * style.lineHeight, Math.ceil(measure.height(size))),
       ),
     };
   } finally {

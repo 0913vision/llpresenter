@@ -80,6 +80,47 @@ describe('built-in broadcast look', () => {
       text: {size: 42},
     });
   });
+  it('bounds and fits a very long Bible passage to the 900 px body height', () => {
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(
+      function (this: HTMLElement) {
+        return Math.ceil(Number.parseFloat(this.style.fontSize) * 1.35 * 40);
+      },
+    );
+    const fitted = fitBroadcastLook(
+      plain(),
+      {...slide, lines: ['a long passage'], reference: 'John 3:16'},
+      item,
+    );
+    const body = element(fitted, BROADCAST_TEXT_ID);
+    const box = element(fitted, BROADCAST_LOOK_BAND_ID);
+    expect(body.frame.h).toBeLessThanOrEqual(900);
+    expect(body.frame.h).toBeGreaterThan(0);
+    expect(box.frame.y).toBeGreaterThanOrEqual(0);
+    expect(box.frame.y + box.frame.h).toBe(1026);
+    expect(body).toMatchObject({text: {size: 16}});
+  });
+  it('reports an unavailable canvas context instead of silently using zero widths', () => {
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
+    const layout = createDefaultThemes().themes.find(
+      t => t.id === SECTION_THEME_ID,
+    )?.screens[screen];
+    if (!layout) throw Error('missing card');
+    expect(() =>
+      fitLook(
+        layout,
+        {
+          ...slide,
+          sectionCard: {
+            name: 'Sermon',
+            english: 'Sermon',
+            theme: SECTION_THEME_ID,
+          },
+        },
+        {item},
+      ),
+    ).toThrow('Cannot measure broadcast text: canvas context unavailable');
+    expect(document.body.querySelector('[data-slide-measure]')).toBeNull();
+  });
   it('shows the strip inside the box only for Bible slides', () => {
     const bible = fitBroadcastLook(
       plain(),

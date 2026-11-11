@@ -18,7 +18,7 @@ export const BROADCAST_LOOK_CARD_ID = createThemeElementId(
 export const BROADCAST_LOOK_TAB_ID = createThemeElementId(
   '00000000-0000-4000-8000-000000000485',
 );
-/** Sizes, colors and effects for the built-in broadcast glass box at 1920?1080. */
+/** Sizes, colors and effects for the built-in broadcast glass box at 1920×1080. */
 export const BROADCAST_LOOK_GEOMETRY = {
   screenWidth: 1920,
   screenHeight: 1080,

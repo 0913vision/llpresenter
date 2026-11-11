@@ -37,7 +37,8 @@ export function styleBroadcastGlass(
   capture: boolean,
 ): void {
   if (kind === 'header') {
-    background.style.background = `linear-gradient(90deg, color-mix(in srgb, ${glass.headerColor} ${glass.headerOpacity}%, transparent), transparent ${glass.headerFade}%)`;
+    const fadeTarget = capture ? glass.panelColor : 'transparent';
+    background.style.background = `linear-gradient(90deg, color-mix(in srgb, ${glass.headerColor} ${glass.headerOpacity}%, ${fadeTarget}), ${fadeTarget} ${glass.headerFade}%)`;
     background.style.borderRadius = `${glass.radius - glass.frameWidth}px ${glass.radius - glass.frameWidth}px 0 0`;
     return;
   }

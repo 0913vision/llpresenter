@@ -608,10 +608,10 @@ fields, as every settings file does (02).
   Section cards use a bottom-left glass box at x=58, bottom y=1026, sized to the
   wider line with 28 px padding; the Korean name is dark bold 52 px and the
   uppercase English line is #6B6B6B semibold 28 px.
-- The broadcast ?? theme links to the ?? ??, so text notices and picture slides
-  use the same full-screen composition. NDI retains the translucent box; the
-  green capture window draws its frame and panel opaque without a shadow. Only
-  the built-in element IDs use this fit.
+- The broadcast 광고 theme links to the 청중 화면, so text notices and picture
+  slides use the same full-screen composition. NDI retains the translucent box;
+  the green capture window draws its frame and panel opaque without a shadow.
+  Only the built-in element IDs use this fit.
 - The stage screen retains its advertisement layout: a #141c2e full-screen box,
   a 24 px #e6b54a left bar, fixed heading, covering media, the 132 px slide name
   and 60 px body. The default advertisement item's 8-second advance and loop
