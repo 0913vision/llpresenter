@@ -136,10 +136,10 @@ function stageElements(): ThemeElement[] {
           clockFormat: '24h',
           text: {
             ...text,
-            size: 28,
+            size: 60,
             lineHeight: 1.1,
             align: 'right',
-            color: STAGE_COLORS.muted,
+            color: '#E6E6E6',
           },
         };
       case 'timer':

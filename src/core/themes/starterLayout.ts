@@ -44,7 +44,7 @@ export const STARTER_STAGE_ELEMENTS = [
   element('stageMessage', [770, 53, 490, 42]),
   element('position', [1075, 26, 175, 48]),
   element('timer', [1640, 20, 220, 65]),
-  element('clock', [1660, 1020, 200, 40]),
+  element('clock', [1460, 982, 400, 80]),
   element('currentSlide', [154, 130, 1612, 568]),
-  element('nextSlide', [154, 728, 1612, 272]),
+  element('nextSlide', [154, 706, 1612, 272]),
 ] as const;

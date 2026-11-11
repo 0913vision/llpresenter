@@ -505,12 +505,12 @@ it('centers the stage bar and keeps the muted clock below the lyric frames', () 
   expect(timer?.frame.x).toBe(1640);
   expect(timer?.frame.y).toBe(20);
   expect(next.text.size).toBe(80);
-  expect(
-    next.frame.y - (current.frame.y + current.frame.h),
-  ).toBeGreaterThanOrEqual(30);
+  expect(next.frame.y - (current.frame.y + current.frame.h)).toBe(8);
   expect(next.frame.h).toBeGreaterThanOrEqual((170 * 2 * 2 * 1.2) / 3);
 
-  expect(clock.text).toMatchObject({size: 28, color: STAGE_COLORS.muted});
+  expect(clock.text).toMatchObject({size: 60, color: '#E6E6E6'});
+  expect(clock.frame).toEqual({x: 1460, y: 982, w: 400, h: 80});
+  expect(next.frame.y).toBe(706);
   expect(clock.frame.y).toBeGreaterThanOrEqual(next.frame.y + next.frame.h);
   expect(clock.frame.x + clock.frame.w).toBeLessThanOrEqual(
     REFERENCE_SCREEN.width,
@@ -566,4 +566,25 @@ it('leaves fixed horizontal gaps between the stage bar group frames', () => {
   expect(
     position.frame.x - label.frame.x - label.frame.w,
   ).toBeGreaterThanOrEqual(20);
+});
+
+it('uses the stage clock and next preview geometry across built-in themes', () => {
+  const stage = createScreenId(STARTER_SCREEN_IDS.stage);
+  for (const theme of createDefaultThemes().themes) {
+    const elements = theme.screens[stage]?.elements ?? [];
+    const clock = elements.find(element => element.kind === 'clock');
+    if (clock === undefined) {
+      expect(theme.id).toBe(builtInTheme('ad').id);
+      continue;
+    }
+    expect(clock).toMatchObject({
+      frame: {x: 1460, y: 982, w: 400, h: 80},
+      text: {size: 60, color: '#E6E6E6'},
+    });
+    expect(elements.find(element => element.kind === 'nextText')).toMatchObject(
+      {
+        frame: {y: 706, h: 272},
+      },
+    );
+  }
 });

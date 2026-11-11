@@ -136,10 +136,7 @@ it('adds an editable section theme without changing the kind defaults or other s
     stageLayout?.elements.filter(
       element => element.kind === 'itemName' || element.kind === 'currentText',
     ),
-  ).toMatchObject([
-    {kind: 'itemName', text: {size: 170}},
-    {kind: 'currentText', text: {size: 42}},
-  ]);
+  ).toMatchObject([{kind: 'itemName', text: {size: 170}}]);
 });
 
 it('widens short Unicode names, preserves their center, and leaves other text unchanged', () => {
@@ -183,7 +180,7 @@ it('widens short Unicode names, preserves their center, and leaves other text un
   });
 });
 
-it('shows the Korean card name on broadcast and both lines on stage for embedded and standalone cards', () => {
+it('shows both card lines on audience and broadcast and only Korean on stage for embedded and standalone cards', () => {
   const file = createDefaultThemes();
   const theme = file.themes.find(value => value.id === SECTION_THEME_ID);
   if (theme === undefined) throw Error('missing section theme');
@@ -214,6 +211,10 @@ it('shows the Korean card name on broadcast and both lines on stage for embedded
         title: card.name,
       },
     };
+    const audience = resolveThemeScreen(theme, screens[0].id, screens).layout;
+    expect(
+      audience.elements.map(element => themeElementText(element, content)),
+    ).toContain(card.english);
     const broadcast = resolveThemeScreen(theme, screens[1].id, screens).layout;
     expect(
       broadcast.elements.map(element => themeElementText(element, content)),
@@ -224,10 +225,7 @@ it('shows the Korean card name on broadcast and both lines on stage for embedded
       element => element.kind === 'currentText',
     );
     expect(title && themeElementText(title, content)).toBe(card.name);
-    expect(english && themeElementText(english, content)).toBe(card.english);
-    expect(english?.frame.y).toBeGreaterThanOrEqual(
-      (title?.frame.y ?? 0) + (title?.frame.h ?? 0),
-    );
+    expect(english).toBeUndefined();
   }
 });
 

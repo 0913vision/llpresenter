@@ -524,10 +524,9 @@ fields, as every settings file does (02).
   Prayer, Offering, Offering Prayer, Holy Communion, Blessing, Baptism,
   Supplication Prayer, Notice, Benediction. These themes are not kind defaults;
   Broadcast shows the Korean name and uppercase English in its blue card; stage
-  shows the Korean name as current text, with the smaller English line below.
-  Untouched saved section layouts resolve the same way; edited layouts stay
-  unchanged. This screen choice is the lead's rehearsal default, not a user
-  decision.
+  shows only the Korean name as current text. Untouched saved section layouts
+  resolve the same way; edited layouts stay unchanged. The stage choice follows
+  the November 11 user decision.
 - In new libraries, 찬양 on 청중 화면 uses white NanumSquare ExtraBold
   (weight 800) at 108 px, centered horizontally and top aligned, with -3 px
   tracking, 137 px line spacing, and no shadow or outline. Its text frame is
@@ -710,23 +709,24 @@ the blank-item default theme, as for any missing item theme.
 New-library stage layouts center the item name, slide label and position in a
 readable top bar alongside the running timer and stage message. The group is
 vertically centered when the message is empty; when a message is set, the group
-moves above the message. The timer sits at the right end of the bar. A smaller
-muted clock sits at the bottom right, clear of the next preview. Current and
-next lyrics have approximately eight percent side margins and 1.2 line height.
-The slide label is omitted when it repeats the item name; a different label is
-the same size as the item name. White centered current text occupies the large
-area above a bottom-aligned yellow centered next preview. A next slide title or
-section-card name precedes its first content slide's title, or its first body
-line when untitled, when present; its English subtitle appears only on the card
-itself; an untitled slide shows its body alone. The next preview shows at most
-two source lines and targets two thirds of the fitted current size, with enough
-height for two lines at that size. Section cards center their Korean name and
-English subtitle above the same next preview. The stage notice retains its
-church news card. These defaults apply to new libraries; existing layouts are
-unchanged. Built-in audience background and media elements start at 채우기
-(cover); their editable theme-element 맞춤 wins over the media property's 맞춤
-when rendered through that element. The media properties panel explains this
-precedence in a tooltip. Existing libraries are unchanged.
+moves above the message. The timer sits at the right end of the bar. A 60 px
+#E6E6E6 clock sits at the bottom right in frame (1460, 982, 400, 80), clear of
+the next preview in frame (154, 706, 1612, 272). Current and next lyrics have
+approximately eight percent side margins and 1.2 line height. The slide label is
+omitted when it repeats the item name; a different label is the same size as the
+item name. White centered current text occupies the large area above a
+bottom-aligned yellow centered next preview. A next slide title or section-card
+name precedes its first content slide's title, or its first body line when
+untitled, when present; its English subtitle appears on the audience and
+broadcast card itself; an untitled slide shows its body alone. The next preview
+shows at most two source lines and targets two thirds of the fitted current
+size, with enough height for two lines at that size. Section cards center their
+Korean name above the same next preview without the English subtitle. The stage
+notice retains its church news card. These defaults apply to new libraries;
+existing layouts are unchanged. Built-in audience background and media elements
+start at 채우기 (cover); their editable theme-element 맞춤 wins over the media
+property's 맞춤 when rendered through that element. The media properties panel
+explains this precedence in a tooltip. Existing libraries are unchanged.
 
 The section gradient layout retains 늘리기 for its background element.
 
