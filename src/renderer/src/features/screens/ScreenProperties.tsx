@@ -65,6 +65,10 @@ const BROADCAST_METHOD_OPTIONS = [
   METHOD_OPTIONS[3],
   METHOD_OPTIONS[2],
 ] as const;
+const SONG_CAPTION_OPTIONS = [
+  {value: 'band', label: '띠'},
+  {value: 'text', label: '글씨만'},
+] as const;
 const DISCONNECT_OPTIONS = [
   {value: 'window', label: '창으로 바꾸기'},
   {value: 'off', label: '출력 끄기'},
@@ -402,6 +406,22 @@ function PropertyRows({
             />
           )}
         </PropertyRow>
+        {screen.kind === 'broadcast' ? (
+          <PropertyRow label="찬양 자막">
+            {({controlId, labelId}) => (
+              <SegmentedControl
+                id={controlId}
+                labelledBy={labelId}
+                disabled={reason !== undefined}
+                title={reason}
+                options={SONG_CAPTION_OPTIONS}
+                value={screen.songCaption ?? 'band'}
+                onChange={songCaption => change({songCaption})}
+                fill
+              />
+            )}
+          </PropertyRow>
+        ) : null}
         <MessageStyleRow
           screen={screen}
           reason={reason}

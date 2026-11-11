@@ -56,14 +56,14 @@ it('places song lyrics near the top while retaining the starter broadcast styles
     ],
   });
   expect(theme.screens[broadcast]?.elements).toMatchObject([
-    {kind: 'box', box: {fill: '#FEFDF9', opacity: 90}},
+    {kind: 'box', box: {fill: '#000000', opacity: 65}},
     {
       kind: 'currentText',
       text: {
         font: 'Pretendard Variable',
         size: 56,
         weight: 700,
-        align: 'left',
+        align: 'center',
       },
     },
   ]);

@@ -43,21 +43,34 @@ export const BROADCAST_LOOK_GEOMETRY = {
   bodyPaddingTop: 22,
   bodyPaddingBottom: 26,
   bodyWeight: 700,
-  bodySize: 48,
-  bodyMinSize: 42,
+  bodySize: 55,
+  bodyMinSize: 48,
   bodyLineHeight: 1.35,
   bodyPreferredLines: 3,
   maxBodyHeight: 900,
   tabTextSize: 30,
   textColor: '#1F1F1F',
   headerTextColor: '#FFFFFF',
-  songPanelX: 120,
-  songPanelWidth: 1680,
   songX: 160,
   songWidth: 1600,
   songSize: 56,
   songLines: 2,
   songLineHeight: 1.25,
+  songBandBottom: 1040,
+  songTextBottom: 1004,
+  songBandPadding: 26,
+  songBandFadeStart: 160,
+  songBandSolidStart: 560,
+  songBandSolidEnd: 1360,
+  songBandFadeEnd: 1760,
+  songBandOpacity: 65,
+  songBandShadowBlur: 6,
+  songBandShadowOpacity: 50,
+  songTextShadowBlur: 4,
+  songTextShadowOpacity: 80,
+  songTextShadowOffset: 2,
+  songGlowBlur: 24,
+  songGlowOpacity: 55,
   cardPadding: 28,
   cardNameSize: 52,
   cardNameHeight: 65,
@@ -110,7 +123,19 @@ export function broadcastLookLayout(
     elements.push(box(BROADCAST_LOOK_BAND_ID), box(BROADCAST_LOOK_TAB_ID));
   }
   if (kind === 'card') elements.push(box(BROADCAST_LOOK_CARD_ID));
-  if (kind === 'song') elements.push(box(BROADCAST_LOOK_BAND_ID));
+  if (kind === 'song') {
+    elements.push({
+      id: BROADCAST_LOOK_BAND_ID,
+      kind: 'box',
+      frame,
+      box: {
+        on: true,
+        fill: geometry.shadowColor,
+        opacity: geometry.songBandOpacity,
+        radius: 0,
+      },
+    });
+  }
   if (kind === 'card') {
     elements.push({
       id: BROADCAST_TEXT_ID,
@@ -139,7 +164,8 @@ export function broadcastLookLayout(
           ? {
               ...style,
               size: geometry.songSize,
-              align: 'left',
+              align: 'center',
+              color: geometry.headerTextColor,
               lineHeight: geometry.songLineHeight,
               maxLines: geometry.songLines,
             }

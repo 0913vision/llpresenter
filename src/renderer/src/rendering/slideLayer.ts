@@ -194,6 +194,7 @@ export function measureSlideText(
   {width, unwrapped = false}: {width: number; unwrapped?: boolean},
 ): {
   height: (size: number) => number;
+  /** No empty-text fallback: an empty broadcast box is hidden. */
   layoutHeight: (size: number) => number;
   width: (size: number) => number;
   dispose: () => void;

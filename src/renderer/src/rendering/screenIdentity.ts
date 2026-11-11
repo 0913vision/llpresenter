@@ -27,6 +27,9 @@ export function resolveRenderScreen(
       ? {}
       : {messageStyleId: screen.messageStyleId}),
     method: screen.method,
+    ...(screen.songCaption === undefined
+      ? {}
+      : {songCaption: screen.songCaption}),
     emptyColor: emptyScreenColor(screen),
     ...(correction === undefined ? {} : {correction}),
   };

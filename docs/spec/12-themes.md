@@ -598,14 +598,22 @@ fields, as every settings file does (02).
 - The built-in broadcast look uses Pretendard Variable and a rounded glass box
   with a 6 px #E8E8E8 frame at 45%, #FEFDF9 panel at 90%, and 16 px black shadow
   at 35%. Bible and plain text use a box from x=58 to 1862, bottom at y=1026,
-  growing upward. Dark #1F1F1F bold 48 px text starts at x=90 with 1.35 line
-  height; after three lines it shrinks to 42 px and the box grows to show all
-  text. Bible source breaks are rejoined and wrapped to this width. Bible alone
-  has a 48 px brown-to-transparent header strip with white bold 30 px reference;
-  plain text has no strip. Empty text has no box.
-- Songs, including an empty slide's title, use the same glass box from x=120 to
-  1800 without a header, dark bold 56 px text at x=160 and fit within two lines.
-  Section cards use a bottom-left glass box at x=58, bottom y=1026, sized to the
+  growing upward. Dark #1F1F1F bold 55 px text starts at x=90 with 1.35 line
+  height; after three lines it shrinks to 48 px and the box grows to show text,
+  shrinking further if necessary to stay within the 900 px body height. Bible
+  source breaks are rejoined and wrapped to this width. Bible alone has a 48 px
+  brown-to-transparent header strip with white bold 30 px reference; plain text
+  has no strip. Empty text has no box.
+- Each broadcast screen chooses its song caption. The default band fades from
+  transparent at x=160 to black at 65% from x=560 to 1360, and out by x=1760;
+  its bottom is y=1040 and it has 26 px vertical padding. Text-only has no band
+  and its last line ends at y=1004. Both use centered white bold 56 px text,
+  1.25 line height and at most two lines, shrinking to fit. The band has a soft
+  6 px black shadow at 50%; text-only uses a 4 px shadow at 80% and 2 px offset
+  plus a 24 px glow at 55%. All song lines use the same style. An empty song
+  slide uses its title, not its label. The capture fallback uses an opaque black
+  band with hard ends or an unblurred hard shadow.
+- Section cards use a bottom-left glass box at x=58, bottom y=1026, sized to the
   wider line with 28 px padding; the Korean name is dark bold 52 px and the
   uppercase English line is #6B6B6B semibold 28 px.
 - The broadcast 광고 theme links to the 청중 화면, so text notices and picture

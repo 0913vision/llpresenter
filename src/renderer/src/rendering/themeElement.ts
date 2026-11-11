@@ -163,6 +163,19 @@ export class ThemeElementView {
         styleBroadcastGlass(background, element.broadcastGlass, capture);
         this.box.style.overflow = 'visible';
       }
+      if (element.broadcastSong === 'band') {
+        const pct = (x: number): number =>
+          Math.round((x / glass.screenWidth) * 100_000) / 1000;
+        const start = pct(glass.songBandFadeStart);
+        const end = pct(glass.songBandFadeEnd);
+        const black = capture
+          ? glass.shadowColor
+          : fillColor(glass.shadowColor, glass.songBandOpacity);
+        background.style.background = capture
+          ? `linear-gradient(90deg, transparent ${start}%, ${black} ${start}%, ${black} ${end}%, transparent ${end}%)`
+          : `linear-gradient(90deg, transparent ${start}%, ${black} ${pct(glass.songBandSolidStart)}%, ${black} ${pct(glass.songBandSolidEnd)}%, transparent ${end}%)`;
+        background.style.borderRadius = '0';
+      }
       this.box.append(background);
     }
     if ('radius' in element) {
@@ -177,6 +190,22 @@ export class ThemeElementView {
             this.previewMaxLines,
           )
         : null;
+    if (
+      element.broadcastSong === 'bandText' ||
+      element.broadcastSong === 'text'
+    ) {
+      this.box.style.overflow = 'visible';
+      const shadow = capture
+        ? `${glass.songTextShadowOffset}px ${glass.songTextShadowOffset}px 0 ${glass.shadowColor}`
+        : element.broadcastSong === 'bandText'
+          ? `0 0 ${glass.songBandShadowBlur}px color-mix(in srgb, ${glass.shadowColor} ${glass.songBandShadowOpacity}%, transparent)`
+          : `${glass.songTextShadowOffset}px ${glass.songTextShadowOffset}px ${glass.songTextShadowBlur}px color-mix(in srgb, ${glass.shadowColor} ${glass.songTextShadowOpacity}%, transparent), 0 0 ${glass.songGlowBlur}px color-mix(in srgb, ${glass.shadowColor} ${glass.songGlowOpacity}%, transparent)`;
+      for (const block of textParent.querySelectorAll<HTMLElement>(
+        `.${classes.block}`,
+      )) {
+        block.style.textShadow = shadow;
+      }
+    }
     if (element.minimumTextSize !== undefined) {
       this.text?.setMinimumSize(element.minimumTextSize);
     }
@@ -325,6 +354,12 @@ export class ThemeElementView {
       );
     }
     this.setClearOpacity(frame.clearOpacity);
+    if (
+      element.broadcastSong === 'bandText' ||
+      element.broadcastSong === 'text'
+    ) {
+      this.box.style.overflow = 'visible';
+    }
   }
 
   setClearOpacity(clearOpacity: RenderFrame['clearOpacity']): void {

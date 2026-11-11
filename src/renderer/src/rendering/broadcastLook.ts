@@ -108,7 +108,10 @@ function fittedText({
       size,
       height: Math.min(
         geometry.maxBodyHeight,
-        Math.max(size * style.lineHeight, Math.ceil(measure.height(size))),
+        Math.max(
+          size * style.lineHeight,
+          Math.ceil(song ? measure.layoutHeight(size) : measure.height(size)),
+        ),
       ),
     };
   } finally {
@@ -217,17 +220,17 @@ function fitBand(
 function fitSong(
   layout: ThemeScreenLayout,
   slide: SlideLayer | null,
-  item: LiveThemeItem | null,
+  {item, caption}: {item: LiveThemeItem | null; caption: 'band' | 'text'},
 ): ThemeScreenLayout {
   const body = layout.elements.find(
     e => e.id === BROADCAST_LOOK_SONG_ID && e.kind === 'currentText',
   );
   if (body?.kind !== 'currentText') return layout;
-  const title = broadcastIntent(slide, item).songTitle;
-  let value =
-    title ??
+  const raw =
+    broadcastIntent(slide, item).songTitle ??
     themeElementText(body, {layers: {...emptyLayers(), slide}, item}) ??
     '';
+  let value = raw;
   if (value.split('\n').length > geometry.songLines) {
     value = value.replace(/\s*\n\s*/gu, ' ');
   }
@@ -237,37 +240,41 @@ function fitSong(
     width: geometry.songWidth,
     song: true,
   });
+  const padding = caption === 'band' ? geometry.songBandPadding : 0;
+  const bottom =
+    caption === 'band' ? geometry.songBandBottom : geometry.songTextBottom;
+  const top = bottom - padding - height;
   const visible = slide !== null && !item?.contentCleared && !!value.trim();
-  const panelHeight =
-    height + geometry.bodyPaddingTop + geometry.bodyPaddingBottom;
-  const top = geometry.panelBottom - panelHeight;
+  const text = {
+    ...body.text,
+    size,
+    align: 'center' as const,
+    color: geometry.headerTextColor,
+  };
+  const effect = caption === 'band' ? ('bandText' as const) : ('text' as const);
   const elements = layout.elements.map((e): ResolvedThemeElement => {
     if (e.id === BROADCAST_LOOK_BAND_ID && e.kind === 'box') {
       return {
         ...e,
         frame: {
-          x: geometry.songPanelX,
-          y: top,
-          w: geometry.songPanelWidth,
-          h: panelHeight,
+          x: 0,
+          y: top - padding,
+          w: geometry.screenWidth,
+          h: height + padding * 2,
         },
-        runtimeHidden: !visible,
+        runtimeHidden: !visible || caption === 'text',
         clearTarget: 'slide',
-        broadcastGlass: 'panel',
+        broadcastSong: 'band',
       };
     }
     if (e.id === BROADCAST_LOOK_SONG_ID && e.kind === 'currentText') {
       return {
         ...e,
-        frame: {
-          x: geometry.songX,
-          y: top + geometry.bodyPaddingTop,
-          w: geometry.songWidth,
-          h: height,
-        },
-        text: {...e.text, size},
+        frame: {x: geometry.songX, y: top, w: geometry.songWidth, h: height},
+        text,
         minimumTextSize: size,
-        broadcastText: value,
+        broadcastText: visible ? value : '',
+        broadcastSong: effect,
       };
     }
     return e;
@@ -367,11 +374,16 @@ export function fitBroadcastLook(
   {
     item,
     measureWidth = textWidth,
-  }: {item: LiveThemeItem | null; measureWidth?: MeasureWidth},
+    songCaption = 'band',
+  }: {
+    item: LiveThemeItem | null;
+    measureWidth?: MeasureWidth;
+    songCaption?: 'band' | 'text';
+  },
 ): ThemeScreenLayout {
   if (!isBroadcastLook(layout)) return layout;
   if (layout.elements.some(e => e.id === BROADCAST_LOOK_SONG_ID)) {
-    return fitSong(layout, slide, item);
+    return fitSong(layout, slide, {item, caption: songCaption});
   }
   if (layout.elements.some(e => e.id === BROADCAST_LOOK_BAND_ID)) {
     return fitBand(layout, slide, {item});

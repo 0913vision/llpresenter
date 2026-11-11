@@ -1,4 +1,4 @@
-import {mockBroadcastMeasure} from './broadcastMeasure';
+import {mockBroadcastMeasure, mockBroadcastRect} from './broadcastMeasure';
 import {styleBroadcastGlass} from '@renderer/rendering/themeElement';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {createScreenId} from '@core/schema/ids';
@@ -50,18 +50,7 @@ const fitBroadcastLook = (
 
 beforeEach(() => {
   mockBroadcastMeasure(1.35);
-  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
-    function (this: HTMLElement) {
-      return new DOMRect(
-        0,
-        0,
-        1600,
-        this.children.length *
-          Number.parseFloat(this.style.fontSize) *
-          Number.parseFloat(this.style.lineHeight),
-      );
-    },
-  );
+  mockBroadcastRect();
 });
 afterEach(() => vi.restoreAllMocks());
 
@@ -71,18 +60,7 @@ describe('built-in broadcast look', () => {
       const match = /verse([234])/u.exec(el.textContent);
       return match ? Number(match[1]) : el.children.length;
     };
-    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
-      function (this: HTMLElement) {
-        return new DOMRect(
-          0,
-          0,
-          1600,
-          rowCount(this) *
-            Number.parseFloat(this.style.fontSize) *
-            Number.parseFloat(this.style.lineHeight),
-        );
-      },
-    );
+    mockBroadcastRect(rowCount);
     vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(
       function (this: HTMLElement) {
         return Math.ceil(
@@ -108,15 +86,15 @@ describe('built-in broadcast look', () => {
     );
     const oneText = element(one, BROADCAST_LOOK_SONG_ID);
     const twoText = element(two, BROADCAST_LOOK_SONG_ID);
-    expect(oneText).toMatchObject({text: {size: 56}, frame: {h: 75}});
-    expect(twoText).toMatchObject({text: {size: 56}, frame: {h: 145}});
+    expect(oneText).toMatchObject({text: {size: 56}, frame: {h: 70}});
+    expect(twoText).toMatchObject({text: {size: 56}, frame: {h: 140}});
     expect(element(two, BROADCAST_LOOK_BAND_ID).frame.h).toBeGreaterThan(
       element(one, BROADCAST_LOOK_BAND_ID).frame.h,
     );
     for (const [rows, size] of [
-      [2, 48],
-      [3, 48],
-      [4, 42],
+      [2, 55],
+      [3, 55],
+      [4, 48],
     ]) {
       const bible = fitBroadcastLook(
         plain(),
@@ -148,10 +126,10 @@ describe('built-in broadcast look', () => {
     expect(fourth.frame.h).toBeGreaterThan(third.frame.h);
     expect(element(three, BROADCAST_TEXT_ID)).toMatchObject({
       frame: {x: 90},
-      text: {size: 48, color: '#1F1F1F'},
+      text: {size: 55, color: '#1F1F1F'},
     });
     expect(element(four, BROADCAST_TEXT_ID)).toMatchObject({
-      text: {size: 42},
+      text: {size: 48},
     });
   });
   it('bounds and fits a very long Bible passage to the 900 px body height', () => {
@@ -237,7 +215,7 @@ describe('built-in broadcast look', () => {
     expect(ndi.style.boxShadow).toContain('16px');
     expect(ndi.style.borderColor).toContain('45%');
   });
-  it('puts songs and the empty slide title in a glass box and hides empty text', () => {
+  it('puts songs in a band by default and hides empty text', () => {
     const layout = builtInTheme('song').screens[screen];
     if (!layout) throw Error('missing song');
     const song = {...item, kind: 'song' as const, title: 'Song title'};
@@ -247,12 +225,12 @@ describe('built-in broadcast look', () => {
       song,
     );
     expect(element(result, BROADCAST_LOOK_BAND_ID)).toMatchObject({
-      frame: {x: 120, w: 1680},
+      frame: {x: 0, w: 1920},
       runtimeHidden: false,
     });
     expect(element(result, BROADCAST_LOOK_SONG_ID)).toMatchObject({
       frame: {x: 160},
-      text: {size: 56, align: 'left', color: '#1F1F1F'},
+      text: {size: 56, align: 'center', color: '#FFFFFF'},
     });
     const empty = fitBroadcastLook(
       layout,
@@ -262,6 +240,66 @@ describe('built-in broadcast look', () => {
     expect(element(empty, BROADCAST_LOOK_BAND_ID)).toMatchObject({
       runtimeHidden: true,
     });
+  });
+  it('switches per screen between the band and text-only captions', () => {
+    const layout = builtInTheme('song').screens[screen];
+    if (!layout) throw Error('missing song');
+    const song = {...item, kind: 'song' as const};
+    const band = fitLook(
+      layout,
+      {...slide, lines: ['one', 'two']},
+      {item: song, songCaption: 'band'},
+    );
+    const text = fitLook(
+      layout,
+      {...slide, lines: ['one', 'two']},
+      {item: song, songCaption: 'text'},
+    );
+    expect(element(band, BROADCAST_LOOK_BAND_ID)).toMatchObject({
+      runtimeHidden: false,
+      broadcastSong: 'band',
+    });
+    expect(element(text, BROADCAST_LOOK_BAND_ID)).toMatchObject({
+      runtimeHidden: true,
+    });
+    const body = element(text, BROADCAST_LOOK_SONG_ID);
+    expect(body).toMatchObject({broadcastSong: 'text', text: {size: 56}});
+    expect(body.frame.y + body.frame.h).toBe(1004);
+  });
+  it('clears song text and its background when the item is cleared', () => {
+    const layout = builtInTheme('song').screens[screen];
+    if (!layout) throw Error('missing song');
+    for (const songCaption of ['band', 'text'] as const) {
+      const result = fitLook(
+        layout,
+        {...slide, lines: ['one']},
+        {item: {...item, kind: 'song', contentCleared: true}, songCaption},
+      );
+      expect(element(result, BROADCAST_LOOK_BAND_ID)).toMatchObject({
+        runtimeHidden: true,
+      });
+      expect(element(result, BROADCAST_LOOK_SONG_ID)).toMatchObject({
+        broadcastText: '',
+      });
+    }
+  });
+  it('keeps a final Latin lyric line at full size in both captions', () => {
+    const layout = builtInTheme('song').screens[screen];
+    if (!layout) throw Error('missing song');
+    for (const songCaption of ['band', 'text'] as const) {
+      const result = fitLook(
+        layout,
+        {...slide, lines: ['\uc8fc \ud558\ub098\ub2d8', 'Hallelujah']},
+        {item: {...item, kind: 'song'}, songCaption},
+      );
+      expect(element(result, BROADCAST_LOOK_SONG_ID)).toMatchObject({
+        broadcastText: '\uc8fc \ud558\ub098\ub2d8\nHallelujah',
+        text: {size: 56},
+      });
+      expect(
+        result.elements.filter(e => e.id === BROADCAST_REFERENCE_ID),
+      ).toHaveLength(0);
+    }
   });
   it('shows the song title, never the empty slide label, and remains empty without a title', () => {
     const layout = builtInTheme('song').screens[screen];

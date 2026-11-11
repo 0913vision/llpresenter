@@ -14,6 +14,7 @@ import {
   broadcastLookLayout,
   BROADCAST_LOOK_BAND_ID,
   BROADCAST_LOOK_TAB_ID,
+  BROADCAST_LOOK_SONG_ID,
 } from '@core/themes/broadcastLook';
 import {sectionOtherLayout} from '@core/themes/sundaySections';
 import type {ThemeItemKind} from '@core/themes/elementRules';
@@ -196,7 +197,9 @@ describe('theme composition drawing', () => {
         mediaUrl: id => id,
         onError: vi.fn(),
       });
-      const active = frame(broadcastLookLayout('song').elements);
+      const active = frame(broadcastLookLayout('plain').elements, {
+        item: {id: 'invented', kind: 'bible', source: 'service'},
+      });
       view.render(song, {
         ...active,
         screen: {id: THEME_MAIN, kind: 'broadcast', method},
@@ -226,6 +229,88 @@ describe('theme composition drawing', () => {
       view.dispose();
     },
   );
+  it.each([
+    {caption: 'band', transparent: true, shadow: '6px'},
+    {caption: 'text', transparent: true, shadow: '24px'},
+    {caption: 'band', transparent: false, shadow: '2px 2px 0'},
+    {caption: 'text', transparent: false, shadow: '2px 2px 0'},
+  ] as const)(
+    'draws $caption with the correct output shadow',
+    ({caption, transparent, shadow}) => {
+      const root = document.createElement('div');
+      const view = new ThemeCompositionView(root, {
+        textStyle: DEFAULT_TEXT_STYLE,
+        mediaUrl: id => id,
+        onError: vi.fn(),
+        transparent,
+      });
+      const active = frame(broadcastLookLayout('song').elements);
+      view.render(song, {
+        ...active,
+        screen: {
+          id: THEME_MAIN,
+          kind: 'broadcast',
+          method: 'ndi',
+          songCaption: caption,
+        },
+        transitions: false,
+      });
+      const text = root.querySelector<HTMLElement>(
+        `[data-theme-element="${BROADCAST_LOOK_SONG_ID}"] .${classes.block}`,
+      );
+      expect(text?.style.textShadow).toContain(shadow);
+      const panel = root.querySelector<HTMLElement>(
+        `[data-theme-element="${BROADCAST_LOOK_BAND_ID}"] > div`,
+      );
+      if (caption === 'band' && panel) {
+        expect(panel.style.background).toContain('linear-gradient');
+        if (transparent) expect(panel.style.background).toContain('0.65');
+        else expect(panel.style.background).not.toContain('0.65');
+      }
+      view.dispose();
+    },
+  );
+  it('redraws a live broadcast song when its screen caption choice changes', () => {
+    const root = document.createElement('div');
+    const view = new ThemeCompositionView(root, {
+      textStyle: DEFAULT_TEXT_STYLE,
+      mediaUrl: id => id,
+      onError: vi.fn(),
+      transparent: true,
+    });
+    const active = frame(broadcastLookLayout('song').elements);
+    const display = {
+      id: THEME_MAIN,
+      kind: 'broadcast' as const,
+      method: 'ndi' as const,
+    };
+    view.render(song, {...active, screen: display, transitions: false});
+    const band = () =>
+      root.querySelector<HTMLElement>(
+        `[data-theme-element="${BROADCAST_LOOK_BAND_ID}"]`,
+      );
+    const shadow = () =>
+      root.querySelector<HTMLElement>(
+        `[data-theme-element="${BROADCAST_LOOK_SONG_ID}"] .${classes.block}`,
+      )?.style.textShadow;
+    expect(band()?.hidden).toBe(false);
+    expect(shadow()).toContain('6px');
+    view.render(song, {
+      ...active,
+      screen: {...display, songCaption: 'text'},
+      transitions: false,
+    });
+    expect(band()?.hidden).toBe(true);
+    expect(shadow()).toContain('24px');
+    view.render(song, {
+      ...active,
+      screen: {...display, songCaption: 'band'},
+      transitions: false,
+    });
+    expect(band()?.hidden).toBe(false);
+    expect(shadow()).toContain('6px');
+    view.dispose();
+  });
   it('omits the built-in caption band only for transparent output', () => {
     const screenId = createScreenId(STARTER_SCREEN_IDS.broadcast);
     const layout = builtInTheme('song').screens[screenId];

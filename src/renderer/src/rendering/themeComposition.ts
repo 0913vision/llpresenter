@@ -57,6 +57,7 @@ export class ThemeCompositionView {
     width: number;
     height: number;
     fonts: string;
+    songCaption: 'band' | 'text';
   } | null = null;
 
   constructor(
@@ -80,7 +81,13 @@ export class ThemeCompositionView {
           ...frame.theme,
           layout: songTitleLayout(
             stageBarLayout(
-              this.fitBand(frame.theme.layout, slide, frame.theme.item),
+              this.fitBand(frame.theme.layout, slide, {
+                item: frame.theme.item,
+                songCaption:
+                  frame.screen?.kind === 'broadcast'
+                    ? (frame.screen.songCaption ?? 'band')
+                    : 'band',
+              }),
               frame.screen?.kind === 'stage',
               frame.stageMessage,
             ),
@@ -165,7 +172,10 @@ export class ThemeCompositionView {
   private fitBand(
     layout: ThemeScreenLayout,
     slide: SlideLayer | null,
-    item: LiveThemeItem | null,
+    {
+      item,
+      songCaption,
+    }: {item: LiveThemeItem | null; songCaption: 'band' | 'text'},
   ): ThemeScreenLayout {
     const look = isBroadcastLook(layout);
     if (!look && !isBroadcastBandLayout(layout)) {
@@ -184,18 +194,27 @@ export class ThemeCompositionView {
       previous.item === item &&
       previous.width === width &&
       previous.height === height &&
-      previous.fonts === fonts
+      previous.fonts === fonts &&
+      previous.songCaption === songCaption
     ) {
       return previous.layout;
     }
-    const key = JSON.stringify([layout, slide, item, width, height, fonts]);
+    const key = JSON.stringify([
+      layout,
+      slide,
+      item,
+      width,
+      height,
+      fonts,
+      songCaption,
+    ]);
     if (previous?.key === key) {
       this.bandFit = {...previous, source: layout, slide, item};
       return previous.layout;
     }
     try {
       const fitted = look
-        ? fitBroadcastLook(layout, slide, {item})
+        ? fitBroadcastLook(layout, slide, {item, songCaption})
         : fitBroadcastBand(layout, slide, item);
       this.bandFit = {
         key,
@@ -206,6 +225,7 @@ export class ThemeCompositionView {
         width,
         height,
         fonts,
+        songCaption,
       };
       return fitted;
     } catch (error) {

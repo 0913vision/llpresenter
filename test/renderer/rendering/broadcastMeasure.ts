@@ -12,3 +12,21 @@ export function mockBroadcastMeasure(lineHeight: number): void {
     },
   );
 }
+
+/** Stubs the measurement element's line-box rectangle for broadcast fitting. */
+export function mockBroadcastRect(
+  rows: (element: HTMLElement) => number = element => element.children.length,
+): void {
+  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
+    function (this: HTMLElement) {
+      return new DOMRect(
+        0,
+        0,
+        1600,
+        rows(this) *
+          Number.parseFloat(this.style.fontSize) *
+          Number.parseFloat(this.style.lineHeight),
+      );
+    },
+  );
+}

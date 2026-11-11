@@ -61,6 +61,7 @@ export const screenSchema = jsonObject({
   name: v.string(),
   kind: v.picklist(['audience', 'broadcast', 'stage']),
   messageStyleId: v.exactOptional(messageStyleIdSchema),
+  songCaption: v.exactOptional(v.picklist(['band', 'text'])),
   method: v.picklist(['fullscreen', 'window', 'capture', 'ndi']),
   emptyColor: v.exactOptional(hexColor),
   display: v.exactOptional(displaySchema),
@@ -93,8 +94,8 @@ export type ScreensFile = ReadonlyKnown<v.InferOutput<typeof screensSchema>>;
 /**
  * One output screen. An absent optional field means its default: 창으로
  * 바꾸기 for `onDisconnect`, off for `alwaysOnTop`, no edge margin or offset,
- * a green preview background, and 1920 x 1080 for a capture window. A full
- * screen without `display` is unassigned.
+ * a green preview background, `band` for `songCaption`, and 1920 x 1080 for a
+ * capture window. A full screen without `display` is unassigned.
  */
 export type Screen = ScreensFile['screens'][number];
 

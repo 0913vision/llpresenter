@@ -36,6 +36,16 @@ describe('output screen identity', () => {
     expect(resolveRenderScreen('unknown', value.screens)).toBeUndefined();
   });
 
+  it('passes the chosen song caption from the selected screen', () => {
+    const {value} = screens();
+    const configured = value.screens.map(screen =>
+      screen.id === CAPTIONS
+        ? {...screen, songCaption: 'text' as const}
+        : screen,
+    );
+    expect(resolveRenderScreen(CAPTIONS, configured)?.songCaption).toBe('text');
+    expect(resolveRenderScreen(MAIN, configured)?.songCaption).toBeUndefined();
+  });
   it('carries the picture correction only when it changes the picture', () => {
     const {value} = screens();
     expect(

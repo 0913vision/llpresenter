@@ -137,6 +137,22 @@ describe('parseScreens', () => {
     expectRoundTrip(codec, defaultScreens());
   });
 
+  it.each(['band', 'text'])('round trips song caption %s', songCaption => {
+    expectRoundTrip(
+      codec,
+      withScreen({...mainScreen(), kind: 'broadcast', songCaption}),
+    );
+  });
+  it.each(['glass', '', null, 1])(
+    'rejects an invalid song caption %j',
+    songCaption => {
+      expectInvalidField(
+        codec,
+        withScreen({...mainScreen(), songCaption}),
+        'screens.0.songCaption',
+      );
+    },
+  );
   it('limits the NDI source name to 64 characters', () => {
     expectRoundTrip(
       codec,

@@ -36,6 +36,7 @@ export interface RenderScreen {
   readonly name?: string;
   readonly kind: Screen['kind'];
   readonly messageStyleId?: string;
+  readonly songCaption?: Screen['songCaption'];
   readonly method?: Screen['method'];
   readonly emptyColor?: string;
   /** Absent draws the picture over the whole screen. */

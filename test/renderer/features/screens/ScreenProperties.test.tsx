@@ -6,6 +6,7 @@ import {
   render,
   screen,
   waitFor,
+  within,
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
@@ -124,6 +125,30 @@ async function nameField(): Promise<HTMLElement> {
 }
 
 describe('the screen properties', () => {
+  it('shows song caption controls only for broadcast and saves the selected look', async () => {
+    const {savedScreens} = setup();
+    await nameField();
+    expect(
+      screen.queryByRole('radiogroup', {name: '\ucc2c\uc591 \uc790\ub9c9'}),
+    ).toBeNull();
+    act(() => useScreensSelection.getState().select(CAPTIONS_ID));
+    const group = await screen.findByRole('radiogroup', {
+      name: '\ucc2c\uc591 \uc790\ub9c9',
+    });
+    const band = within(group).getByRole('radio', {name: '\ub760'});
+    expect(band.getAttribute('aria-checked')).toBe('true');
+    await userEvent.click(
+      within(group).getByRole('radio', {name: '\uae00\uc528\ub9cc'}),
+    );
+    await waitFor(() =>
+      expect(
+        savedScreens().find(item => item.id === CAPTIONS_ID)?.songCaption,
+      ).toBe('text'),
+    );
+    expect(
+      savedScreens().find(item => item.id === MAIN_ID)?.songCaption,
+    ).toBeUndefined();
+  });
   it('shows black for regular output and green for capture, and saves a chosen empty color', async () => {
     const {savedScreens} = setup();
     expect(
