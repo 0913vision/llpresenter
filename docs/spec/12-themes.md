@@ -558,8 +558,8 @@ as every settings file does (02).
   item background overrides and blank picture slides, since blank items also use
   this theme by default.
 - 사도신경, 주기도문 is an additional built-in theme. Its 청중 화면 shares the
-  말씀 background asset and title frame, replacing 성경 출처 with 항목 이름
-  (NanumSquare Bold 72 px). 현재 가사 uses NanumSquare Bold 104 px, -3 px
+  말씀 background asset without a title or scripture reference. Both 사도신경
+  and 주기도문 omit their names. 현재 가사 uses NanumSquare Bold 104 px, -3 px
   tracking, 150 px line spacing, left/top alignment, and at most four lines in
   the verse box from x 129 to 1805. 방송 화면 and 무대 화면 retain the 말씀
   layouts. Adding a prayer installs this theme if an older catalog lacks it,
@@ -707,28 +707,26 @@ remaining slides retain the item theme.
 If a section card theme is missing, output reports the missing theme and uses
 the blank-item default theme, as for any missing item theme.
 
-New-library stage layouts center the item name, slide label and position in a
-readable top bar alongside the running timer and stage message. The group is
-vertically centered when the message is empty; when a message is set, the group
-moves above the message. The timer sits at the right end of the bar. A 60 px
-#E6E6E6 clock showing hours, minutes, and seconds sits at the bottom right in
-frame (1460, 982, 400, 80), clear of the next preview in frame (154, 706, 1612,
-272). Current and next lyrics have approximately eight percent side margins and
-1.2 line height. The slide label is omitted when it repeats the item name; a
-different label is the same size as the item name. White centered current text
-occupies the large area above a bottom-aligned yellow centered next preview. A
-next slide title or section-card name precedes its first content slide's title,
-or its first body line when untitled, when present; its English subtitle appears
-on the audience and broadcast card itself; an untitled slide shows its body
-alone. The next preview shows at most two source lines and targets two thirds of
-the fitted current size, with enough height for two lines at that size. Section
-cards center their Korean name above the same next preview without the English
-subtitle. The stage notice retains its church news card. These defaults apply to
-new libraries; existing layouts are unchanged. Built-in audience background and
-media elements start at 채우기 (cover); their editable theme-element 맞춤 wins
-over the media property's 맞춤 when rendered through that element. The media
-properties panel explains this precedence in a tooltip. Existing libraries are
-unchanged.
+New-library stage layouts omit the item name, position and dark top band. The
+slide label stays centered and is omitted when it repeats the item name, even
+though the item name is not shown. A stage message moves the label up to make
+room; the timer remains at the upper right. A 60 px #E6E6E6 clock showing hours,
+minutes, and seconds sits at the bottom right in frame (1460, 982, 400, 80),
+clear of the next preview in frame (154, 706, 1612, 272). Current and next
+lyrics have approximately eight percent side margins and 1.2 line height. White
+centered current text occupies the large area above a bottom-aligned yellow
+centered next preview. A next slide title or section-card name precedes its
+first content slide's title, or its first body line when untitled, when present;
+its English subtitle appears on the audience and broadcast card itself; an
+untitled slide shows its body alone. The next preview shows at most two source
+lines and targets two thirds of the fitted current size, with enough height for
+two lines at that size. Section cards center their Korean name above the same
+next preview without the English subtitle. The stage notice retains its church
+news card. These defaults apply to new libraries; existing layouts are
+unchanged. Built-in audience background and media elements start at 채우기
+(cover); their editable theme-element 맞춤 wins over the media property's 맞춤
+when rendered through that element. The media properties panel explains this
+precedence in a tooltip. Existing libraries are unchanged.
 
 The section gradient layout retains 늘리기 for its background element.
 

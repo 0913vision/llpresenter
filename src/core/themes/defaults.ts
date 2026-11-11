@@ -1,10 +1,5 @@
-import {
-  STARTER_TEXT_STYLE,
-  STARTER_STAGE_ELEMENTS,
-  STAGE_BAR_HEIGHT,
-} from './starterLayout';
+import {STARTER_TEXT_STYLE, STARTER_STAGE_ELEMENTS} from './starterLayout';
 import {STAGE_COLORS} from './stageColors';
-import {REFERENCE_SCREEN} from './textStyle';
 import {
   createScreenId,
   createThemeId,
@@ -100,28 +95,20 @@ function stageElements(): ThemeElement[] {
     ...basicText,
     shadow: {...basicText.shadow, on: false},
   };
-  return STARTER_STAGE_ELEMENTS.map((element, index): ThemeElement => {
+  const ids = {
+    currentLabel: 2,
+    stageMessage: 3,
+    timer: 5,
+    clock: 6,
+    currentSlide: 7,
+    nextSlide: 8,
+  };
+  return STARTER_STAGE_ELEMENTS.map((element): ThemeElement => {
     const base = {
-      id: createThemeElementId(uuid(index + 1)),
+      id: createThemeElementId(uuid(ids[element.kind])),
       frame: {...element.frame},
     };
     switch (element.kind) {
-      case 'itemTitle':
-        return {
-          ...base,
-          kind: 'text',
-          content: '',
-          stageSource: 'stageItemName',
-          text: {...text, size: 40, lineHeight: 1.1, align: 'right'},
-        };
-      case 'position':
-        return {
-          ...base,
-          kind: 'text',
-          content: '',
-          stageSource: 'stagePosition',
-          text: {...text, size: 36, lineHeight: 1.1, align: 'left'},
-        };
       case 'currentLabel':
         return {
           ...base,
@@ -305,23 +292,7 @@ function layoutFor(
     ...(screen.kind === 'stage'
       ? {
           stageBar: 'message-row' as const,
-          background: {
-            kind: 'linear' as const,
-            angle: 90,
-            mixing: 'oklch' as const,
-            stops: [
-              {position: 0, color: STAGE_COLORS.bar},
-              {
-                position: (STAGE_BAR_HEIGHT / REFERENCE_SCREEN.height) * 100,
-                color: STAGE_COLORS.bar,
-              },
-              {
-                position: (STAGE_BAR_HEIGHT / REFERENCE_SCREEN.height) * 100,
-                color: '#000000',
-              },
-              {position: 100, color: '#000000'},
-            ],
-          },
+          background: '#000000',
         }
       : {}),
     ...(kind === 'song' && screen.kind === 'audience'

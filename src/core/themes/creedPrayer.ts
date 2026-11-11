@@ -11,19 +11,17 @@ export function creedPrayerLayout(): ThemeScreenLayout {
   const layout = sundayScriptureLayout();
   return {
     ...layout,
-    elements: layout.elements.map(element => {
-      if (element.kind === 'reference') {
-        const {source: _source, ...title} = element;
-        return {...title, kind: 'itemName'};
-      }
-      return element.kind === 'currentText'
-        ? {
-            ...element,
-            frame: {...element.frame, x: 129, w: 1676},
-            text: {...element.text, maxLines: 4},
-          }
-        : element;
-    }),
+    elements: layout.elements
+      .filter(element => element.kind !== 'reference')
+      .map(element => {
+        return element.kind === 'currentText'
+          ? {
+              ...element,
+              frame: {...element.frame, x: 129, w: 1676},
+              text: {...element.text, maxLines: 4},
+            }
+          : element;
+      }),
   };
 }
 

@@ -11,17 +11,8 @@ it('centers the stage bar group until a message needs the lower row', () => {
   if (!layout) throw Error('Missing stage layout');
   expect(stageBarLayout(layout, true, null)).toBe(layout);
   const withMessage = stageBarLayout(layout, true, 'Cue');
-  for (const kind of ['label', 'text'] as const) {
-    const group = withMessage.elements.filter(
-      element =>
-        element.kind === kind &&
-        (element.kind !== 'text' || element.stageSource !== undefined),
-    );
-    expect(group.length).toBeGreaterThan(0);
-    for (const element of group) {
-      expect(element.frame.y).toBe(STAGE_BAR_GROUP_TOP_WITH_MESSAGE);
-    }
-  }
+  const label = withMessage.elements.find(element => element.kind === 'label');
+  expect(label?.frame.y).toBe(STAGE_BAR_GROUP_TOP_WITH_MESSAGE);
   expect(
     withMessage.elements.find(element => element.kind === 'timer'),
   ).toEqual(layout.elements.find(element => element.kind === 'timer'));

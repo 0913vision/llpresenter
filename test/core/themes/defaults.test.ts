@@ -9,7 +9,6 @@ import {expect, it} from 'vitest';
 import {
   STARTER_TEXT_STYLE,
   STARTER_STAGE_ELEMENTS,
-  STAGE_BAR_HEIGHT,
 } from '@core/themes/starterLayout';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {createScreenId} from '@core/schema/ids';
@@ -73,10 +72,8 @@ it('places song lyrics near the top while retaining the starter broadcast styles
     STARTER_STAGE_ELEMENTS.map(element => element.frame),
   );
   expect(theme.screens[stage]?.elements.map(element => element.kind)).toEqual([
-    'text',
     'label',
     'stageMessage',
-    'text',
     'timer',
     'clock',
     'currentText',
@@ -264,7 +261,7 @@ it('ships the audience scripture picture and editable typography without changin
   }
 });
 
-it('uses item names and a four-line verse box for liturgy while retaining other scripture screens', () => {
+it('omits liturgy names and keeps the four-line verse box and other scripture screens', () => {
   const theme = createDefaultThemes().themes.find(
     theme => theme.name === '사도신경, 주기도문',
   );
@@ -275,10 +272,7 @@ it('uses item names and a four-line verse box for liturgy while retaining other 
   ).toBeUndefined();
   expect(
     audience?.elements.find(element => element.kind === 'itemName'),
-  ).toMatchObject({
-    frame: {x: 130.6, y: 107},
-    text: {size: 72, font: 'NanumSquare', weight: 700},
-  });
+  ).toBeUndefined();
   expect(
     audience?.elements.find(element => element.kind === 'currentText'),
   ).toMatchObject({
@@ -478,19 +472,27 @@ it('keeps standby clock before timer independent of the live stage layout order'
   ]);
 });
 
-it('places the stage bar stop at its reference canvas height', () => {
-  const layout =
-    builtInTheme('song').screens[createScreenId(STARTER_SCREEN_IDS.stage)];
-  const background = layout?.background;
-  if (background === undefined || typeof background === 'string') {
-    throw Error('Missing stage gradient');
+it('removes the band, stage item title and position from every built-in stage layout', () => {
+  const stage = createScreenId(STARTER_SCREEN_IDS.stage);
+  const defaults = createDefaultThemes();
+  for (const theme of [defaults.standby, ...defaults.themes]) {
+    const layout = theme.screens[stage];
+    if (!layout) continue;
+    expect(
+      layout.background === undefined || layout.background === '#000000',
+    ).toBe(true);
+    expect(
+      layout.elements.filter(
+        element =>
+          element.kind === 'text' &&
+          (element.stageSource === 'stageItemName' ||
+            element.stageSource === 'stagePosition'),
+      ),
+    ).toEqual([]);
   }
-  const stop = (STAGE_BAR_HEIGHT / REFERENCE_SCREEN.height) * 100;
-  expect(background.stops[1]?.position).toBe(stop);
-  expect(background.stops[2]?.position).toBe(stop);
 });
 
-it('centers the stage bar and keeps the muted clock below the lyric frames', () => {
+it('keeps the label centered and the clock below the lyric frames', () => {
   const stage = createScreenId(STARTER_SCREEN_IDS.stage);
   const elements = builtInTheme('song').screens[stage]?.elements ?? [];
   const label = elements.find(element => element.kind === 'label');
@@ -506,7 +508,7 @@ it('centers the stage bar and keeps the muted clock below the lyric frames', () 
     throw Error('Missing stage elements');
   }
   expect(label.frame.x + label.frame.w / 2).toBe(REFERENCE_SCREEN.width / 2);
-  expect(label.frame.y + label.frame.h / 2).toBe(STAGE_BAR_HEIGHT / 2);
+  expect(label.frame.y + label.frame.h / 2).toBe(50);
   const timer = elements.find(element => element.kind === 'timer');
   expect(timer?.frame.x).toBe(1640);
   expect(timer?.frame.y).toBe(20);
@@ -516,7 +518,8 @@ it('centers the stage bar and keeps the muted clock below the lyric frames', () 
 
   expect(clock.text).toMatchObject({size: 60, color: '#E6E6E6'});
   expect(clock.frame).toEqual({x: 1460, y: 982, w: 400, h: 80});
-  expect(next.frame.y).toBe(706);
+  expect(current.frame).toEqual({x: 154, y: 130, w: 1612, h: 568});
+  expect(next.frame).toEqual({x: 154, y: 706, w: 1612, h: 272});
   expect(clock.frame.y).toBeGreaterThanOrEqual(next.frame.y + next.frame.h);
   expect(clock.frame.x + clock.frame.w).toBeLessThanOrEqual(
     REFERENCE_SCREEN.width,
@@ -548,30 +551,6 @@ it('shows preparation text on stage only while its blank slide is live', () => {
       )
       .join('\n'),
   );
-});
-
-it('leaves fixed horizontal gaps between the stage bar group frames', () => {
-  const elements =
-    builtInTheme('song').screens[createScreenId(STARTER_SCREEN_IDS.stage)]
-      ?.elements ?? [];
-  const title = elements.find(
-    element =>
-      element.kind === 'text' && element.stageSource === 'stageItemName',
-  );
-  const label = elements.find(element => element.kind === 'label');
-  const position = elements.find(
-    element =>
-      element.kind === 'text' && element.stageSource === 'stagePosition',
-  );
-  if (!title || !label || !position) {
-    throw Error('Missing bar elements');
-  }
-  expect(label.frame.x - title.frame.x - title.frame.w).toBeGreaterThanOrEqual(
-    20,
-  );
-  expect(
-    position.frame.x - label.frame.x - label.frame.w,
-  ).toBeGreaterThanOrEqual(20);
 });
 
 it('uses the stage clock and next preview geometry across built-in themes', () => {
