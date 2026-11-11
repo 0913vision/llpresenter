@@ -208,6 +208,7 @@ function createBitmapOutput(
       serviceName: 'NDI output',
       env: {
         ...process.env,
+        LLP_NDI_DEFAULT_SOURCE_NAME: NDI_DEFAULT_SOURCE_NAME,
         LLP_NDI_SOURCE_NAME: current.ndi?.sourceName ?? NDI_DEFAULT_SOURCE_NAME,
       },
     });

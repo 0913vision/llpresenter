@@ -254,6 +254,22 @@ describe('GPU NDI output', () => {
     expect(mocks.workers).toHaveLength(2);
     handle.destroy();
   });
+  it('continues after queue overflow when painting stops', () => {
+    const {handle, win, worker, fallback} = setup(true);
+    handle.showCapture(full);
+    worker().emit('message', {type: 'ready'});
+    const frames = Array.from({length: 4}, texture);
+    for (const item of frames) {
+      win.webContents.emit('paint', {texture: item}, full, {});
+    }
+    worker().emit('message', {type: 'copied'});
+    expect(worker().postMessage).toHaveBeenCalledTimes(2);
+    worker().emit('message', {type: 'copied'});
+    vi.advanceTimersByTime(6000);
+    expect(fallback).not.toHaveBeenCalled();
+    expect(frames[3]?.release).toHaveBeenCalledOnce();
+    handle.destroy();
+  });
   it('checks GPU status at startup and on textureless paint, not every frame', () => {
     const {handle, win, worker} = setup(true);
     handle.showCapture(full);

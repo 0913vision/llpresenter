@@ -7,11 +7,8 @@ function frame(dirty = full) {
 }
 function setup() {
   const send = vi.fn();
-  const invalidate = vi.fn();
-  const overflow = vi.fn();
-  const recovered = vi.fn();
-  const queue = new TextureQueue({send, invalidate, overflow, recovered});
-  return {queue, send, invalidate, overflow, recovered};
+  const queue = new TextureQueue({send});
+  return {queue, send};
 }
 
 describe('texture queue', () => {
@@ -29,24 +26,42 @@ describe('texture queue', () => {
     expect(next.texture.release).not.toHaveBeenCalled();
     expect(queue.acknowledge()).toBe(false);
   });
-  it('drops intermediate textures, then waits for a full refresh', () => {
-    const {queue, invalidate, overflow, recovered} = setup();
-    const frames = Array.from({length: 5}, () => frame());
-    for (const item of frames) queue.push(item);
-    expect(frames[3]?.texture.release).toHaveBeenCalledOnce();
-    expect(frames[4]?.texture.release).toHaveBeenCalledOnce();
-    expect(overflow).toHaveBeenCalledOnce();
-    for (let i = 0; i < 3; i++) queue.acknowledge();
-    expect(invalidate).toHaveBeenCalledOnce();
-    const partial = frame({x: 1, y: 0, width: 100, height: 100});
-    queue.push(partial);
-    expect(partial.texture.release).toHaveBeenCalledOnce();
-    expect(invalidate).toHaveBeenCalledTimes(2);
-    const restored = frame();
-    queue.push(restored);
-    expect(recovered).toHaveBeenCalledOnce();
+  it('sends the newest texture after overflow without another paint, combining all skipped dirty regions', () => {
+    const {queue, send} = setup();
+    const first = frame({x: 0, y: 0, width: 20, height: 20});
+    const older = frame({x: 30, y: 5, width: 10, height: 10});
+    const middle = frame({x: 5, y: 40, width: 15, height: 10});
+    const newest = frame({x: 50, y: 20, width: 10, height: 10});
+    for (const item of [first, older, middle, newest]) queue.push(item);
+    expect(older.texture.release).toHaveBeenCalledOnce();
+    expect(middle.texture.release).toHaveBeenCalledOnce();
+    expect(newest.texture.release).not.toHaveBeenCalled();
     queue.acknowledge();
-    expect(restored.texture.release).toHaveBeenCalledOnce();
+    expect(send).toHaveBeenLastCalledWith({
+      texture: newest.texture,
+      dirty: {x: 5, y: 5, width: 55, height: 45},
+    });
+    queue.acknowledge();
+    expect(newest.texture.release).toHaveBeenCalledOnce();
+    expect(queue.busy).toBe(false);
+  });
+
+  it('preserves coalesced dirty regions through repeated overflows', () => {
+    const {queue, send} = setup();
+    const frames = Array.from({length: 6}, (_, i) =>
+      frame({x: i * 10, y: 0, width: 5, height: 5}),
+    );
+    for (const item of frames) queue.push(item);
+    queue.acknowledge();
+    expect(send).toHaveBeenLastCalledWith({
+      texture: frames[5]?.texture,
+      dirty: {x: 10, y: 0, width: 45, height: 5},
+    });
+    for (const item of frames.slice(1, 5)) {
+      expect(item.texture.release).toHaveBeenCalledOnce();
+    }
+    queue.acknowledge();
+    expect(frames[5]?.texture.release).toHaveBeenCalledOnce();
   });
   it('releases every pending frame on clear', () => {
     const {queue} = setup();

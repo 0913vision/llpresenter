@@ -22,7 +22,6 @@ import {
 } from './textureQueue';
 
 const GPU_TIMEOUT_MS = 5000;
-const GPU_RECOVERY_TIMEOUT_MS = 3000;
 const GPU_STOP_TIMEOUT_MS = 2000;
 const GPU_MISSING_TIMEOUT_MS = 2000;
 const GPU_KEEPALIVE_MS = 1000;
@@ -154,13 +153,10 @@ function gpuHandle(
   let keepalive: ReturnType<typeof setInterval> | null = null;
   let timeout: ReturnType<typeof setTimeout> | null = null;
   let missingSince: number | null = null;
-  let recoveryTimer: ReturnType<typeof setTimeout> | null = null;
   const clear = (destroyWindow = false): void => {
     if (keepalive !== null) clearInterval(keepalive);
     if (timeout !== null) clearTimeout(timeout);
-    if (recoveryTimer !== null) clearTimeout(recoveryTimer);
     missingSince = null;
-    recoveryTimer = null;
     keepalive = null;
     timeout = null;
     const old = child;
@@ -228,20 +224,7 @@ function gpuHandle(
       fail(error);
     }
   };
-  const queue = new TextureQueue<GpuTextureFrame>({
-    send,
-    invalidate: () => win.webContents.invalidate(),
-    overflow: () => {
-      recoveryTimer = scheduleFailure(
-        'GPU dirty-region recovery timed out',
-        GPU_RECOVERY_TIMEOUT_MS,
-      );
-    },
-    recovered: () => {
-      if (recoveryTimer !== null) clearTimeout(recoveryTimer);
-      recoveryTimer = null;
-    },
-  });
+  const queue = new TextureQueue<GpuTextureFrame>({send});
   win.webContents.on('paint', (event, dirty) => {
     const texture = event.texture;
     if (!texture) {
@@ -296,6 +279,7 @@ function gpuHandle(
         serviceName: 'GPU NDI output',
         env: {
           ...process.env,
+          LLP_NDI_DEFAULT_SOURCE_NAME: NDI_DEFAULT_SOURCE_NAME,
           LLP_NDI_SOURCE_NAME:
             current.ndi?.sourceName ?? NDI_DEFAULT_SOURCE_NAME,
         },

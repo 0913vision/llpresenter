@@ -8,10 +8,16 @@ function runtimePath(env = process.env) {
   return dir ? path.join(dir, 'Processing.NDI.Lib.x64.dll') : null;
 }
 
+function sourceName(env = process.env) {
+  return (
+    env.LLP_NDI_SOURCE_NAME?.trim() || env.LLP_NDI_DEFAULT_SOURCE_NAME || null
+  );
+}
+
 function openReal(env = process.env) {
   const dll = runtimePath(env);
   if (!dll || !fs.existsSync(dll)) throw new Error('NDI_RUNTIME_MISSING');
-  return openBinding(require('koffi'), dll, env.LLP_NDI_SOURCE_NAME);
+  return openBinding(require('koffi'), dll, sourceName(env));
 }
 
 function openBinding(koffi, dll, name = null) {
@@ -85,4 +91,4 @@ function openBinding(koffi, dll, name = null) {
   };
 }
 
-module.exports = {runtimePath, openReal};
+module.exports = {runtimePath, sourceName, openReal};

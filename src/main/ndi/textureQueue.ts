@@ -1,4 +1,5 @@
 import type {Rectangle} from 'electron';
+import {unionDirty} from './rect';
 
 export const NDI_FRAME_WIDTH = 1920;
 export const NDI_FRAME_HEIGHT = 1080;
@@ -11,16 +12,12 @@ export interface TextureFrame {
 
 interface TextureQueueCallbacks<T extends TextureFrame> {
   readonly send: (frame: T) => void;
-  readonly invalidate: () => void;
-  readonly overflow: () => void;
-  readonly recovered: () => void;
 }
 
 /** Retains a bounded sequence until each GPU copy is acknowledged. */
 export class TextureQueue<T extends TextureFrame> {
   private running: T | null = null;
   private readonly pending: T[] = [];
-  private refresh = false;
 
   constructor(private readonly callbacks: TextureQueueCallbacks<T>) {}
 
@@ -29,31 +26,17 @@ export class TextureQueue<T extends TextureFrame> {
   }
 
   push(frame: T): void {
-    if (this.refresh && !this.running && this.pending.length === 0) {
-      const {dirty} = frame;
-      if (
-        dirty.x !== 0 ||
-        dirty.y !== 0 ||
-        dirty.width !== NDI_FRAME_WIDTH ||
-        dirty.height !== NDI_FRAME_HEIGHT
-      ) {
-        frame.texture.release();
-        this.callbacks.invalidate();
-        return;
-      }
-      this.refresh = false;
-      this.callbacks.recovered();
-    }
     if (!this.running) {
       this.dispatch(frame);
-    } else if (this.pending.length < MAX_PENDING_TEXTURES && !this.refresh) {
+    } else if (this.pending.length < MAX_PENDING_TEXTURES) {
       this.pending.push(frame);
     } else {
-      frame.texture.release();
-      if (!this.refresh) {
-        this.refresh = true;
-        this.callbacks.overflow();
+      let dirty = frame.dirty;
+      for (const skipped of this.pending.splice(0)) {
+        dirty = unionDirty(dirty, skipped.dirty);
+        skipped.texture.release();
       }
+      this.pending.push({...frame, dirty});
     }
   }
 
@@ -63,7 +46,6 @@ export class TextureQueue<T extends TextureFrame> {
     this.running = null;
     const next = this.pending.shift();
     if (next) this.dispatch(next);
-    else if (this.refresh) this.callbacks.invalidate();
     return true;
   }
 
@@ -72,7 +54,6 @@ export class TextureQueue<T extends TextureFrame> {
     for (const frame of this.pending.splice(0)) frame.texture.release();
     const outstanding = this.running;
     this.running = null;
-    this.refresh = false;
     return outstanding;
   }
 
