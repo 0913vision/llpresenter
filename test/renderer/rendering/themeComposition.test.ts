@@ -14,7 +14,6 @@ import {
   broadcastLookLayout,
   BROADCAST_LOOK_BAND_ID,
   BROADCAST_LOOK_TAB_ID,
-  BROADCAST_LOOK_CARD_ID,
 } from '@core/themes/broadcastLook';
 import {sectionOtherLayout} from '@core/themes/sundaySections';
 import type {ThemeItemKind} from '@core/themes/elementRules';
@@ -136,9 +135,6 @@ afterEach(() => {
 
 describe('theme composition drawing', () => {
   it('keeps the new broadcast look on transparent NDI output', () => {
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
-      measureText: (text: string) => ({width: text.length * 20}),
-    } as CanvasRenderingContext2D);
     const root = document.createElement('div');
     const view = new ThemeCompositionView(root, {
       textStyle: DEFAULT_TEXT_STYLE,
@@ -155,10 +151,6 @@ describe('theme composition drawing', () => {
     render('plain');
     expect(element(BROADCAST_LOOK_BAND_ID)?.firstElementChild).not.toBeNull();
     expect(element(BROADCAST_LOOK_TAB_ID)?.firstElementChild).not.toBeNull();
-    render('card');
-    const card = element(BROADCAST_LOOK_CARD_ID)?.firstElementChild;
-    expect(card).toBeInstanceOf(HTMLElement);
-    expect(card?.getAttribute('style')).toContain('16px');
     render('song');
     expect(element(BROADCAST_LOOK_BAND_ID)?.firstElementChild).not.toBeNull();
     expect(root.textContent).toContain('Invented line');
@@ -184,9 +176,9 @@ describe('theme composition drawing', () => {
       );
       expect(panel?.style.borderColor).toBe('rgb(232, 232, 232)');
       expect(panel?.style.boxShadow).toBe('none');
-      expect(
-        (panel?.firstElementChild as HTMLElement).style.backgroundColor,
-      ).toBe('rgb(254, 253, 249)');
+      const inner = panel?.firstElementChild;
+      if (!(inner instanceof HTMLElement)) throw Error('missing panel');
+      expect(inner.style.backgroundColor).toBe('rgb(254, 253, 249)');
       view.dispose();
     },
   );

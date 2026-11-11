@@ -144,7 +144,7 @@ function fitBand(
   const top = geometry.panelBottom - bandHeight;
   const visible = slide !== null && !item?.contentCleared && !!value.trim();
   const elements = layout.elements.map((e): ResolvedThemeElement => {
-    if (e.id === BROADCAST_LOOK_BAND_ID && e.kind === 'box')
+    if (e.id === BROADCAST_LOOK_BAND_ID && e.kind === 'box') {
       return {
         ...e,
         frame: {
@@ -157,7 +157,8 @@ function fitBand(
         clearTarget: 'slide',
         broadcastGlass: 'panel',
       };
-    if (e.id === BROADCAST_LOOK_TAB_ID && e.kind === 'box')
+    }
+    if (e.id === BROADCAST_LOOK_TAB_ID && e.kind === 'box') {
       return {
         ...e,
         frame: {
@@ -170,7 +171,8 @@ function fitBand(
         clearTarget: 'slide',
         broadcastGlass: 'header',
       };
-    if (e.id === BROADCAST_TEXT_ID && e.kind === 'currentText')
+    }
+    if (e.id === BROADCAST_TEXT_ID && e.kind === 'currentText') {
       return {
         ...e,
         frame: {
@@ -186,7 +188,8 @@ function fitBand(
         minimumTextSize: size,
         broadcastBibleFlow: bible,
       };
-    if (e.id === BROADCAST_REFERENCE_ID && e.kind === 'reference')
+    }
+    if (e.id === BROADCAST_REFERENCE_ID && e.kind === 'reference') {
       return {
         ...e,
         frame: {
@@ -198,6 +201,7 @@ function fitBand(
         text: {...e.text, vAlign: 'middle'},
         runtimeHidden: !visible || !reference.trim(),
       };
+    }
     return e;
   });
   return {...layout, elements};
@@ -231,7 +235,7 @@ function fitSong(
     height + geometry.bodyPaddingTop + geometry.bodyPaddingBottom;
   const top = geometry.panelBottom - panelHeight;
   const elements = layout.elements.map((e): ResolvedThemeElement => {
-    if (e.id === BROADCAST_LOOK_BAND_ID && e.kind === 'box')
+    if (e.id === BROADCAST_LOOK_BAND_ID && e.kind === 'box') {
       return {
         ...e,
         frame: {
@@ -244,7 +248,8 @@ function fitSong(
         clearTarget: 'slide',
         broadcastGlass: 'panel',
       };
-    if (e.id === BROADCAST_LOOK_SONG_ID && e.kind === 'currentText')
+    }
+    if (e.id === BROADCAST_LOOK_SONG_ID && e.kind === 'currentText') {
       return {
         ...e,
         frame: {
@@ -257,6 +262,7 @@ function fitSong(
         minimumTextSize: size,
         broadcastText: value,
       };
+    }
     return e;
   });
   return {...layout, elements};

@@ -60,17 +60,23 @@ describe('built-in broadcast look', () => {
         {...item, kind: 'blank'},
       ),
     );
-    const boxes = rows.map(layout => element(layout, BROADCAST_LOOK_BAND_ID));
+    const [one, three, four] = rows;
+    if (!one || !three || !four) throw Error('missing fitted rows');
+    const boxes = [one, three, four].map(layout =>
+      element(layout, BROADCAST_LOOK_BAND_ID),
+    );
+    const [first, third, fourth] = boxes;
+    if (!first || !third || !fourth) throw Error('missing boxes');
     expect(boxes.map(box => box.frame.y + box.frame.h)).toEqual([
       1026, 1026, 1026,
     ]);
-    expect(boxes[1]!.frame.h).toBeGreaterThan(boxes[0]!.frame.h);
-    expect(boxes[2]!.frame.h).toBeGreaterThan(boxes[1]!.frame.h);
-    expect(element(rows[1]!, BROADCAST_TEXT_ID)).toMatchObject({
+    expect(third.frame.h).toBeGreaterThan(first.frame.h);
+    expect(fourth.frame.h).toBeGreaterThan(third.frame.h);
+    expect(element(three, BROADCAST_TEXT_ID)).toMatchObject({
       frame: {x: 90},
       text: {size: 48, color: '#1F1F1F'},
     });
-    expect(element(rows[2]!, BROADCAST_TEXT_ID)).toMatchObject({
+    expect(element(four, BROADCAST_TEXT_ID)).toMatchObject({
       text: {size: 42},
     });
   });
@@ -109,9 +115,9 @@ describe('built-in broadcast look', () => {
     styleBroadcastGlass(capture, 'panel', true);
     styleBroadcastGlass(ndi, 'panel', false);
     expect(capture.style.borderColor).toBe('rgb(232, 232, 232)');
-    expect(
-      (capture.firstElementChild as HTMLElement).style.backgroundColor,
-    ).toBe('rgb(254, 253, 249)');
+    const panel = capture.firstElementChild;
+    if (!(panel instanceof HTMLElement)) throw Error('missing panel');
+    expect(panel.style.backgroundColor).toBe('rgb(254, 253, 249)');
     expect(capture.style.boxShadow).toBe('none');
     expect(ndi.style.boxShadow).toContain('16px');
     expect(ndi.style.borderColor).toContain('45%');
