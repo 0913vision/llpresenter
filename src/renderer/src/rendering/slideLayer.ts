@@ -184,13 +184,17 @@ function writeLines(
   while (block.children.length > lines.length) block.lastElementChild?.remove();
 }
 
-/** Measures the same page and row DOM used by SlideLayerView, without showing it. */
+/**
+ * Measures the same page and row DOM used by SlideLayerView, without showing it.
+ * Layout height counts line boxes; scroll height also includes overflowing glyphs.
+ */
 export function measureSlideText(
   lines: readonly string[],
   style: TextStyle,
   {width, unwrapped = false}: {width: number; unwrapped?: boolean},
 ): {
   height: (size: number) => number;
+  layoutHeight: (size: number) => number;
   width: (size: number) => number;
   dispose: () => void;
 } {
@@ -221,6 +225,10 @@ export function measureSlideText(
     width: size => {
       page.block.style.fontSize = `${size}px`;
       return page.block.scrollWidth;
+    },
+    layoutHeight: size => {
+      page.block.style.fontSize = `${size}px`;
+      return page.block.getBoundingClientRect().height;
     },
     height: size => {
       page.block.style.fontSize = `${size}px`;

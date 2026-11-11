@@ -48,10 +48,84 @@ const fitBroadcastLook = (
   item: LiveThemeItem | null,
 ) => fitLook(layout, slide, {item, measureWidth: text => text.length * 20});
 
-beforeEach(() => mockBroadcastMeasure(1.35));
+beforeEach(() => {
+  mockBroadcastMeasure(1.35);
+  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
+    function (this: HTMLElement) {
+      return new DOMRect(
+        0,
+        0,
+        1600,
+        this.children.length *
+          Number.parseFloat(this.style.fontSize) *
+          Number.parseFloat(this.style.lineHeight),
+      );
+    },
+  );
+});
 afterEach(() => vi.restoreAllMocks());
 
 describe('built-in broadcast look', () => {
+  it('fits line boxes rather than glyph overflow for songs and Bible passages', () => {
+    const rowCount = (el: HTMLElement): number => {
+      const match = /verse([234])/u.exec(el.textContent);
+      return match ? Number(match[1]) : el.children.length;
+    };
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
+      function (this: HTMLElement) {
+        return new DOMRect(
+          0,
+          0,
+          1600,
+          rowCount(this) *
+            Number.parseFloat(this.style.fontSize) *
+            Number.parseFloat(this.style.lineHeight),
+        );
+      },
+    );
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(
+      function (this: HTMLElement) {
+        return Math.ceil(
+          rowCount(this) *
+            Number.parseFloat(this.style.fontSize) *
+            Number.parseFloat(this.style.lineHeight) +
+            5,
+        );
+      },
+    );
+    const songLayout = builtInTheme('song').screens[screen];
+    if (!songLayout) throw Error('missing song');
+    const song = {...item, kind: 'song' as const, title: 'Song title'};
+    const one = fitBroadcastLook(
+      songLayout,
+      {...slide, lines: ['first']},
+      song,
+    );
+    const two = fitBroadcastLook(
+      songLayout,
+      {...slide, lines: ['first', 'second']},
+      song,
+    );
+    const oneText = element(one, BROADCAST_LOOK_SONG_ID);
+    const twoText = element(two, BROADCAST_LOOK_SONG_ID);
+    expect(oneText).toMatchObject({text: {size: 56}, frame: {h: 75}});
+    expect(twoText).toMatchObject({text: {size: 56}, frame: {h: 145}});
+    expect(element(two, BROADCAST_LOOK_BAND_ID).frame.h).toBeGreaterThan(
+      element(one, BROADCAST_LOOK_BAND_ID).frame.h,
+    );
+    for (const [rows, size] of [
+      [2, 48],
+      [3, 48],
+      [4, 42],
+    ]) {
+      const bible = fitBroadcastLook(
+        plain(),
+        {...slide, lines: [`verse${rows}`], reference: 'John 3:16'},
+        item,
+      );
+      expect(element(bible, BROADCAST_TEXT_ID)).toMatchObject({text: {size}});
+    }
+  });
   it('grows the box for one, three and four rows and shrinks after three', () => {
     const rows = [1, 3, 4].map(count =>
       fitBroadcastLook(

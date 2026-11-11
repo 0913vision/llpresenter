@@ -73,9 +73,10 @@ function fittedText({
   const measure = measureSlideText(value.split('\n'), style, {width});
   let size: number = song ? geometry.songSize : geometry.bodySize;
   try {
+    // NOTE(0913vision): Glyph ink may overflow a line box without adding a row.
     if (
       !song &&
-      measure.height(size) >
+      measure.layoutHeight(size) >
         geometry.bodyPreferredLines *
           geometry.bodySize *
           geometry.bodyLineHeight +
@@ -85,14 +86,14 @@ function fittedText({
     }
     if (
       song &&
-      measure.height(size) >
+      measure.layoutHeight(size) >
         geometry.songLines * geometry.songSize * style.lineHeight +
           geometry.measureTolerance
     ) {
       size = fitFontSize(
         size,
         candidate =>
-          measure.height(candidate) <=
+          measure.layoutHeight(candidate) <=
           geometry.songLines * candidate * style.lineHeight +
             geometry.measureTolerance,
       );
