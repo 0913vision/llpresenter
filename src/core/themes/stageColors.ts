@@ -3,4 +3,5 @@ export const STAGE_COLORS = {
   bar: '#12171E',
   next: '#FFD66B',
   muted: '#B4B4B4',
+  clock: '#E6E6E6',
 } as const;

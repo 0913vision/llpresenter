@@ -478,11 +478,12 @@ Element: `id`, `kind` (`currentText`, `reference`, `nextText`, `label`, `media`,
 `videoTimeLeft`), `frame` `{ x, y, w, h }`, and the properties of its kind from
 "Element properties" (`text` fields as the text style of 02, `box` with fill,
 opacity, and radius, `fit`, and per kind `content` for 글, `mediaId` for 이미지,
-`timerId` for 타이머, `clockFormat` for 시계, optional
-`source: "slide" | "item"` for 성경 출처, optional `text.tracking` in reference
-pixels, default 0, optional `text.bullets`, a Boolean defaulting to false, and
-optional `text.bulletStyle: "disc"` for the round hanging markers). Keep unknown
-fields, as every settings file does (02).
+`timerId` for 타이머, `clockFormat` and optional boolean `seconds` for 시계
+(absent means false), optional `source: "slide" | "item"` for 성경 출처,
+optional `text.tracking` in reference pixels, default 0, optional
+`text.bullets`, a Boolean defaulting to false, and optional
+`text.bulletStyle: "disc"` for the round hanging markers). Keep unknown fields,
+as every settings file does (02).
 
 ### Item fields (`.llservice`)
 
@@ -710,23 +711,24 @@ New-library stage layouts center the item name, slide label and position in a
 readable top bar alongside the running timer and stage message. The group is
 vertically centered when the message is empty; when a message is set, the group
 moves above the message. The timer sits at the right end of the bar. A 60 px
-#E6E6E6 clock sits at the bottom right in frame (1460, 982, 400, 80), clear of
-the next preview in frame (154, 706, 1612, 272). Current and next lyrics have
-approximately eight percent side margins and 1.2 line height. The slide label is
-omitted when it repeats the item name; a different label is the same size as the
-item name. White centered current text occupies the large area above a
-bottom-aligned yellow centered next preview. A next slide title or section-card
-name precedes its first content slide's title, or its first body line when
-untitled, when present; its English subtitle appears on the audience and
-broadcast card itself; an untitled slide shows its body alone. The next preview
-shows at most two source lines and targets two thirds of the fitted current
-size, with enough height for two lines at that size. Section cards center their
-Korean name above the same next preview without the English subtitle. The stage
-notice retains its church news card. These defaults apply to new libraries;
-existing layouts are unchanged. Built-in audience background and media elements
-start at 채우기 (cover); their editable theme-element 맞춤 wins over the media
-property's 맞춤 when rendered through that element. The media properties panel
-explains this precedence in a tooltip. Existing libraries are unchanged.
+#E6E6E6 clock showing hours, minutes, and seconds sits at the bottom right in
+frame (1460, 982, 400, 80), clear of the next preview in frame (154, 706, 1612,
+272). Current and next lyrics have approximately eight percent side margins and
+1.2 line height. The slide label is omitted when it repeats the item name; a
+different label is the same size as the item name. White centered current text
+occupies the large area above a bottom-aligned yellow centered next preview. A
+next slide title or section-card name precedes its first content slide's title,
+or its first body line when untitled, when present; its English subtitle appears
+on the audience and broadcast card itself; an untitled slide shows its body
+alone. The next preview shows at most two source lines and targets two thirds of
+the fitted current size, with enough height for two lines at that size. Section
+cards center their Korean name above the same next preview without the English
+subtitle. The stage notice retains its church news card. These defaults apply to
+new libraries; existing layouts are unchanged. Built-in audience background and
+media elements start at 채우기 (cover); their editable theme-element 맞춤 wins
+over the media property's 맞춤 when rendered through that element. The media
+properties panel explains this precedence in a tooltip. Existing libraries are
+unchanged.
 
 The section gradient layout retains 늘리기 for its background element.
 

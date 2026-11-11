@@ -140,6 +140,18 @@ export function ThemeElementProperties({
             )}
           </PropertyRow>
         ) : null}
+        {element.kind === 'clock' ? (
+          <ThemeCheck
+            label="초"
+            checked={element.seconds ?? false}
+            reason={reason}
+            change={seconds =>
+              change(value =>
+                value.kind === 'clock' ? {...value, seconds} : value,
+              )
+            }
+          />
+        ) : null}
         {element.kind === 'timer' ? (
           <PropertyRow label="타이머">
             {({controlId}) => (

@@ -11,11 +11,13 @@ function twoDigits(value: number): string {
 export function stageClockText(
   wall: number,
   format: ClockFormat = '24h',
+  seconds = false,
 ): string {
   const date = new Date(wall);
   const hours = date.getHours(),
     minutes = twoDigits(date.getMinutes());
+  const suffix = seconds ? `:${twoDigits(date.getSeconds())}` : '';
   return format === '12h'
-    ? `${hours < 12 ? '오전' : '오후'} ${hours % 12 || 12}:${minutes}`
-    : `${twoDigits(hours)}:${minutes}`;
+    ? `${hours < 12 ? '오전' : '오후'} ${hours % 12 || 12}:${minutes}${suffix}`
+    : `${twoDigits(hours)}:${minutes}${suffix}`;
 }

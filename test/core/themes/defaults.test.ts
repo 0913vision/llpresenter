@@ -205,6 +205,12 @@ it('makes a valid file with built-in themes and a standby clock and timer on sta
   const stage =
     defaults.standby.screens[createScreenId(STARTER_SCREEN_IDS.stage)];
   expect(stage?.elements.map(e => e.kind)).toEqual(['clock', 'timer']);
+  for (const theme of [defaults.standby, ...defaults.themes]) {
+    const clocks = Object.values(theme.screens).flatMap(layout =>
+      layout.elements.filter(e => e.kind === 'clock'),
+    );
+    expect(clocks.every(clock => clock.seconds === true)).toBe(true);
+  }
 });
 
 it('ships the audience scripture picture and editable typography without changing other screens', () => {
@@ -466,9 +472,9 @@ it('uses readable stage defaults and cover for built-in audience media', () => {
 });
 
 it('keeps standby clock before timer independent of the live stage layout order', () => {
-  expect(standbyStageLayout().elements.map(element => element.kind)).toEqual([
-    'clock',
-    'timer',
+  expect(standbyStageLayout().elements).toMatchObject([
+    {kind: 'clock', seconds: true},
+    {kind: 'timer'},
   ]);
 });
 

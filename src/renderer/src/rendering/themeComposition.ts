@@ -44,6 +44,7 @@ export class ThemeCompositionView {
   private leaving: ThemePage | null = null;
   private releaseTimer: ReturnType<typeof setTimeout> | null = null;
   private ticker: ReturnType<typeof setInterval> | null = null;
+  private clockTicker: ReturnType<typeof setTimeout> | null = null;
   private animation: number | null = null;
   private preparing = false;
   private readonly slideAnimation = new SlideAnimation(true);
@@ -154,7 +155,23 @@ export class ThemeCompositionView {
     else if ((rebuilt || pendingSlide) && this.leaving !== null) {
       this.awaitIncoming(frame);
     }
-    const ticks = !frame.standby && (this.page?.ticking.length ?? 0) > 0;
+    const ticks =
+      !frame.standby &&
+      (this.page?.ticking.some(
+        view => !(view.element.kind === 'clock' && view.element.seconds),
+      ) ??
+        false);
+    const seconds =
+      !frame.standby &&
+      (this.page?.ticking.some(
+        view => view.element.kind === 'clock' && view.element.seconds,
+      ) ??
+        false);
+    if (seconds && this.clockTicker === null) this.scheduleClock();
+    else if (!seconds && this.clockTicker !== null) {
+      clearTimeout(this.clockTicker);
+      this.clockTicker = null;
+    }
     if (ticks && this.ticker === null) {
       this.ticker = setInterval(() => {
         try {
@@ -442,7 +459,19 @@ export class ThemeCompositionView {
     }
   }
 
-  private tick(): void {
+  private scheduleClock(): void {
+    const wall = this.content?.frame.timers?.now().wall ?? Date.now();
+    this.clockTicker = setTimeout(
+      () => {
+        this.clockTicker = null;
+        this.tick(true);
+        this.scheduleClock();
+      },
+      1000 - (wall % 1000),
+    );
+  }
+
+  private tick(seconds = false): void {
     const page = this.page;
     const content = this.content;
     if (page === null || content === null) return;
@@ -457,6 +486,12 @@ export class ThemeCompositionView {
           ?.remaining())
       : undefined;
     for (const view of page.ticking) {
+      if (
+        (view.element.kind === 'clock' && view.element.seconds === true) !==
+        seconds
+      ) {
+        continue;
+      }
       try {
         view.tick(content.layers, content.frame, video);
       } catch (error) {
@@ -522,6 +557,8 @@ export class ThemeCompositionView {
     this.releaseLeaving();
     if (this.ticker !== null) clearInterval(this.ticker);
     this.ticker = null;
+    if (this.clockTicker !== null) clearTimeout(this.clockTicker);
+    this.clockTicker = null;
     if (this.page !== null) this.disposePage(this.page);
     this.page = null;
   }

@@ -134,12 +134,13 @@ function stageElements(): ThemeElement[] {
           ...base,
           kind: 'clock',
           clockFormat: '24h',
+          seconds: true,
           text: {
             ...text,
             size: 60,
             lineHeight: 1.1,
             align: 'right',
-            color: '#E6E6E6',
+            color: STAGE_COLORS.clock,
           },
         };
       case 'timer':

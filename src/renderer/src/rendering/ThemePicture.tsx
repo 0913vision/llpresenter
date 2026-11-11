@@ -303,7 +303,7 @@ function ThemeTime({
   }, [timers]);
   const content =
     element.kind === 'clock'
-      ? stageClockText(now.wall, element.clockFormat)
+      ? stageClockText(now.wall, element.clockFormat, element.seconds)
       : element.timerId === undefined || timers === undefined
         ? sample
         : fillTimerTokens(`{timer:${element.timerId}}`, timers, now);

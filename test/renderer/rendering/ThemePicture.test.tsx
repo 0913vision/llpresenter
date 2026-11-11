@@ -421,7 +421,7 @@ it('binds clock formatting and timer identity through the shared renderers and r
       timers={timers}
     />,
   );
-  expect(stageClockText).toHaveBeenLastCalledWith(42, '12h');
+  expect(stageClockText).toHaveBeenLastCalledWith(42, '12h', undefined);
   expect(fillTimerTokens).toHaveBeenLastCalledWith(
     `{timer:${timerId}}`,
     timers,
@@ -432,7 +432,7 @@ it('binds clock formatting and timer identity through the shared renderers and r
   act(() => {
     vi.advanceTimersByTime(1000);
   });
-  expect(stageClockText).toHaveBeenLastCalledWith(43, '12h');
+  expect(stageClockText).toHaveBeenLastCalledWith(43, '12h', undefined);
   view.unmount();
   expect(vi.getTimerCount()).toBe(0);
 });

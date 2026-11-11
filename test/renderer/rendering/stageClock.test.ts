@@ -6,6 +6,8 @@ const WALL = new Date(2026, 9, 26, 9, 5, 7).getTime();
 describe('stageClockText', () => {
   it('reads the 24-hour time with two-digit hours and minutes', () => {
     expect(stageClockText(WALL)).toBe('09:05');
+    expect(stageClockText(WALL, '24h', true)).toBe('09:05:07');
+    expect(stageClockText(WALL, '12h', true)).toBe('오전 9:05:07');
     expect(stageClockText(new Date(2026, 9, 26, 23, 59, 59).getTime())).toBe(
       '23:59',
     );

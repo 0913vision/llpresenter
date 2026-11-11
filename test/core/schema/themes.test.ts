@@ -248,6 +248,8 @@ describe('theme element properties', () => {
     {content: undefined},
     {kind: 'image', mediaId: undefined},
     {kind: 'clock', clockFormat: 'seconds'},
+    {kind: 'clock', seconds: 'true'},
+    {kind: 'clock', seconds: undefined},
     {kind: 'timer', timerId: 'missing'},
     {kind: 'media', fit: 'cover'},
     {kind: 'background', fit: undefined},
@@ -276,6 +278,7 @@ describe('theme element properties', () => {
         ...element,
         kind: 'clock',
         clockFormat: '12h',
+        seconds: true,
       }).success,
     ).toBe(true);
   });

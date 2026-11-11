@@ -154,7 +154,10 @@ export const themeElementSchema = v.pipe(
         v.picklist(['stageItemName', 'stagePosition']),
       ),
     }),
-    textElement('clock', {clockFormat: v.picklist(['24h', '12h'])}),
+    textElement('clock', {
+      clockFormat: v.picklist(['24h', '12h']),
+      seconds: v.exactOptional(v.boolean()),
+    }),
     textElement('timer', {timerId: v.exactOptional(timerIdSchema)}),
     textElement('videoTimeLeft', {}),
     textElement('stageMessage', {}),

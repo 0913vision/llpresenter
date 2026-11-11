@@ -1656,6 +1656,38 @@ describe('theme composition drawing', () => {
     expect(vi.getTimerCount()).toBe(0);
   });
 
+  it('aligns seconds clocks to the wall second and stops when hidden or off', () => {
+    const {view, text} = setup();
+    let wall = Date.UTC(2026, 0, 1, 0, 0, 0, 400);
+    const content = {
+      ...frame([
+        {
+          ...themeElementBase(),
+          kind: 'clock',
+          clockFormat: '24h',
+          seconds: true,
+        },
+      ]),
+      transitions: false,
+      timers: {list: [], runs: undefined, now: () => ({wall, timer: 0})},
+    };
+    view.render(song, content);
+    expect(vi.getTimerCount()).toBe(1);
+    const first = text('clock');
+    wall += 599;
+    vi.advanceTimersByTime(599);
+    expect(text('clock')).toBe(first);
+    wall++;
+    vi.advanceTimersByTime(1);
+    expect(text('clock')).not.toBe(first);
+    view.render(song, {...content, standby: true});
+    expect(vi.getTimerCount()).toBe(0);
+    view.render(song, content);
+    view.render(song, {});
+    expect(vi.getTimerCount()).toBe(0);
+    view.dispose();
+  });
+
   it('ticks clock text without allocating pages and cancels its ticker when hidden', () => {
     const {root, view, text} = setup();
     let wall = Date.UTC(2026, 0, 1, 0);
