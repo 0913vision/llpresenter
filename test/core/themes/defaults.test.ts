@@ -56,13 +56,14 @@ it('places song lyrics near the top while retaining the starter broadcast styles
     ],
   });
   expect(theme.screens[broadcast]?.elements).toMatchObject([
+    {kind: 'box', box: {fill: '#FEFDF9', opacity: 90}},
     {
       kind: 'currentText',
       text: {
         font: 'Pretendard Variable',
-        size: 64,
+        size: 56,
         weight: 700,
-        align: 'center',
+        align: 'left',
       },
     },
   ]);
@@ -140,7 +141,7 @@ it.each(themeItemKinds.filter(kind => kind !== 'ad'))(
       kind === 'bible' || kind === 'blank'
         ? ['box', 'box', 'currentText', 'reference']
         : kind === 'song'
-          ? ['currentText']
+          ? ['box', 'currentText']
           : ['box', 'currentText'],
     );
   },
@@ -167,7 +168,7 @@ it('gives the capture Bible a readable left-aligned reference', () => {
   const bible = builtInTheme('bible').screens[id];
   expect(
     bible?.elements.find(element => element.kind === 'reference'),
-  ).toMatchObject({text: {size: 36, align: 'left'}});
+  ).toMatchObject({text: {size: 30, align: 'left'}});
 });
 
 it('gives the 무대 화면 of the Bible 테마 no reference and the same element kinds as the song 테마', () => {

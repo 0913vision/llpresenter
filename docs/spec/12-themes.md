@@ -595,25 +595,23 @@ fields, as every settings file does (02).
   belong to the app, outside the user media catalog. The slash group sits above
   the number and below the title, cutting the number along the line so none
   shows beyond it.
-- New broadcast layouts use Pretendard Variable. Bible and plain text use an
-  opaque #106A84 band from x=0 to 1824, flush with the bottom, with 22 px top
-  and 26 px bottom padding and at least 150 px height. White bold 54 px text is
-  left aligned at x=67 with 1.25 line height; after three lines it shrinks to 44
-  px and the band grows to show the text. Bible text rejoins source line breaks
-  and wraps to the broadcast width. Only Bible slides show a 64 px high #F7F8FC
-  reference tab above the band's left edge, with dark bold 36 px text at x=67.
-  Empty text has no band.
-- Songs, including an empty song slide's title, have no band. They use white
-  bold 64 px centered text, a black 3 px outline and an opaque hard shadow of
-  distance 3 with no blur. The last line's bottom is at y=1004 and the text fits
-  within two lines. Section cards have an opaque #1D3A96 bottom-left box at
-  least 640 px wide, sized to the wider line plus 56 px left and 64 px right
-  padding. The Korean name is bold 64 px and the uppercase English line is
-  semibold 34 px, with an 8 px gap, 28 px top and 32 px bottom padding.
+- The built-in broadcast look uses Pretendard Variable and a rounded glass box
+  with a 6 px #E8E8E8 frame at 45%, #FEFDF9 panel at 90%, and 16 px black shadow
+  at 35%. Bible and plain text use a box from x=58 to 1862, bottom at y=1026,
+  growing upward. Dark #1F1F1F bold 48 px text starts at x=90 with 1.35 line
+  height; after three lines it shrinks to 42 px and the box grows to show all
+  text. Bible source breaks are rejoined and wrapped to this width. Bible alone
+  has a 48 px brown-to-transparent header strip with white bold 30 px reference;
+  plain text has no strip. Empty text has no box.
+- Songs, including an empty slide's title, use the same glass box from x=120 to
+  1800 without a header, dark bold 56 px text at x=160 and fit within two lines.
+  Section cards use a bottom-left glass box at x=58, bottom y=1026, sized to the
+  wider line with 28 px padding; the Korean name is dark bold 52 px and the
+  uppercase English line is #6B6B6B semibold 28 px.
 - The broadcast 광고 theme links to the 청중 화면, so text notices and picture
-  slides use the same full-screen composition. These layouts use opaque fills
-  and hard shadows for both the chroma capture and future alpha output. Existing
-  saved layouts are not converted; only the built-in element IDs use this fit.
+  slides use the same full-screen composition. NDI retains the translucent box;
+  the green capture window draws its frame and panel opaque without a shadow.
+  Only the built-in element IDs use this fit.
 - The stage screen retains its advertisement layout: a #141c2e full-screen box,
   a 24 px #e6b54a left bar, fixed heading, covering media, the 132 px slide name
   and 60 px body. The default advertisement item's 8-second advance and loop

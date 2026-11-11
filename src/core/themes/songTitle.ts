@@ -31,6 +31,7 @@ export type ResolvedThemeElement = ThemeElement & {
   readonly clearTarget?: 'slide';
   readonly runtimeHidden?: boolean;
   readonly minimumTextSize?: number;
+  readonly broadcastGlass?: 'panel' | 'header';
   readonly broadcastBibleFlow?: boolean;
   readonly broadcastText?: string;
   readonly broadcastSongTitle?: string;

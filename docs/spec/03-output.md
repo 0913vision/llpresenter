@@ -485,10 +485,9 @@ Source: `Overlays`, `ShowH` (target screens in the showing list), product log
 - The app doesn't broadcast. It makes only the 방송 화면 screen. OBS takes it
   and lays it over the camera picture.
 - The default themes draw their built-in broadcast look over the screen's
-  background, including the band, tab, card, and outlined song text where
-  appropriate (12).
+  background, including the glass box and section card where appropriate (12).
 - NDI omits the screen background and the legacy media-kind caption band; the
-  built-in broadcast look retains its band and card. OBS needs a compatible
+  built-in broadcast look retains its box and card. OBS needs a compatible
   version, DistroAV, and the NDI Runtime. Network controls and the display
   layout receiver count remain later work (09).
 - NDI hardware acceleration is optional and off by default until the church PC

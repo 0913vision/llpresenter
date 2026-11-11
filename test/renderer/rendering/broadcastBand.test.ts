@@ -1,3 +1,4 @@
+import {mockBroadcastMeasure} from './broadcastMeasure';
 import type {Theme, ThemesFile} from '@core/schema/themes';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {createMediaId, createScreenId} from '@core/schema/ids';
@@ -100,17 +101,7 @@ function bandHidden(
   }
 }
 
-beforeEach(() => {
-  vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(
-    function (this: HTMLElement) {
-      return Math.ceil(
-        this.children.length *
-          Number.parseFloat(this.style.fontSize) *
-          BROADCAST_GEOMETRY.lineHeight,
-      );
-    },
-  );
-});
+beforeEach(() => mockBroadcastMeasure(BROADCAST_GEOMETRY.lineHeight));
 afterEach(() => vi.restoreAllMocks());
 
 describe('broadcast band fitting', () => {

@@ -1,3 +1,4 @@
+import {BROADCAST_LOOK_GEOMETRY as glass} from '@core/themes/broadcastLook';
 import type {LiveLayers, MediaLayer} from '@core/live/state';
 import {mediaObjectFit} from '@core/media/objectFit';
 import type {ResolvedThemeElement} from '@core/themes/songTitle';
@@ -27,6 +28,37 @@ function fillColor(fill: string, opacity: number): string {
     Number.parseInt(fill.slice(at, at + 2), 16),
   );
   return `rgba(${red}, ${green}, ${blue}, ${opacity / 100})`;
+}
+
+/** Paints the glass as opaque shapes on the chroma-key capture window. */
+export function styleBroadcastGlass(
+  background: HTMLElement,
+  kind: 'panel' | 'header',
+  capture: boolean,
+): void {
+  if (kind === 'header') {
+    const fadeTarget = capture ? glass.panelColor : 'transparent';
+    background.style.background = `linear-gradient(90deg, color-mix(in srgb, ${glass.headerColor} ${glass.headerOpacity}%, ${fadeTarget}), ${fadeTarget} ${glass.headerFade}%)`;
+    background.style.borderRadius = `${glass.radius - glass.frameWidth}px ${glass.radius - glass.frameWidth}px 0 0`;
+    return;
+  }
+  background.style.backgroundColor = 'transparent';
+  background.style.boxSizing = 'border-box';
+  background.style.border = `${glass.frameWidth}px solid ${capture ? glass.frameColor : `color-mix(in srgb, ${glass.frameColor} ${glass.frameOpacity}%, transparent)`}`;
+  background.style.borderRadius = `${glass.radius}px`;
+  background.style.boxShadow = capture
+    ? 'none'
+    : `0 0 ${glass.shadowBlur}px color-mix(in srgb, ${glass.shadowColor} ${glass.shadowOpacity}%, transparent)`;
+  const panel = document.createElement('div');
+  Object.assign(panel.style, {
+    position: 'absolute',
+    inset: '0',
+    borderRadius: `${glass.radius - glass.frameWidth}px`,
+    backgroundColor: capture
+      ? glass.panelColor
+      : `color-mix(in srgb, ${glass.panelColor} ${glass.panelOpacity}%, transparent)`,
+  });
+  background.append(panel);
 }
 
 function remainingText(seconds: number | undefined): string | undefined {
@@ -71,7 +103,12 @@ export class ThemeElementView {
     {
       options,
       gaps,
-    }: {readonly options: RenderLayerOptions; readonly gaps: ThemeGaps},
+      capture = false,
+    }: {
+      readonly options: RenderLayerOptions;
+      readonly gaps: ThemeGaps;
+      readonly capture?: boolean;
+    },
   ) {
     this.options = options;
     this.gaps = gaps;
@@ -122,6 +159,10 @@ export class ThemeElementView {
         backgroundColor: fillColor(fill.fill, fill.opacity),
         borderRadius: `${fill.radius ?? 0}px`,
       });
+      if (element.broadcastGlass !== undefined) {
+        styleBroadcastGlass(background, element.broadcastGlass, capture);
+        this.box.style.overflow = 'visible';
+      }
       this.box.append(background);
     }
     if ('radius' in element) {

@@ -259,6 +259,10 @@ export class ThemeCompositionView {
             new ThemeElementView(element, canvas, {
               options: this.options,
               gaps: this.gaps,
+              capture:
+                !this.options.transparent &&
+                (frame.screen?.method === 'capture' ||
+                  frame.screen?.method === 'ndi'),
             }),
           );
         } catch (error) {

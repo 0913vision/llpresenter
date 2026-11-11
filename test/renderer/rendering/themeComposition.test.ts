@@ -14,8 +14,6 @@ import {
   broadcastLookLayout,
   BROADCAST_LOOK_BAND_ID,
   BROADCAST_LOOK_TAB_ID,
-  BROADCAST_LOOK_CARD_ID,
-  BROADCAST_LOOK_SONG_ID,
 } from '@core/themes/broadcastLook';
 import {sectionOtherLayout} from '@core/themes/sundaySections';
 import type {ThemeItemKind} from '@core/themes/elementRules';
@@ -153,17 +151,81 @@ describe('theme composition drawing', () => {
     render('plain');
     expect(element(BROADCAST_LOOK_BAND_ID)?.firstElementChild).not.toBeNull();
     expect(element(BROADCAST_LOOK_TAB_ID)?.firstElementChild).not.toBeNull();
-    render('card');
-    const card = element(BROADCAST_LOOK_CARD_ID)?.firstElementChild;
-    expect(card).toBeInstanceOf(HTMLElement);
-    expect(card?.getAttribute('style')).toContain('rgb(29, 58, 150)');
     render('song');
-    expect(
-      element(BROADCAST_LOOK_SONG_ID)?.querySelector(`.${classes.outline}`),
-    ).not.toBeNull();
+    expect(element(BROADCAST_LOOK_BAND_ID)?.firstElementChild).not.toBeNull();
     expect(root.textContent).toContain('Invented line');
     view.dispose();
   });
+  it('keeps an NDI screen translucent through the composition', () => {
+    const root = document.createElement('div');
+    const view = new ThemeCompositionView(root, {
+      textStyle: DEFAULT_TEXT_STYLE,
+      mediaUrl: id => id,
+      onError: vi.fn(),
+      transparent: true,
+    });
+    const active = frame(broadcastLookLayout('plain').elements, {
+      item: {id: 'invented', kind: 'bible', source: 'service'},
+    });
+    view.render(song, {
+      ...active,
+      screen: {id: THEME_MAIN, kind: 'broadcast', method: 'ndi'},
+      transitions: false,
+    });
+    const panel = root.querySelector<HTMLElement>(
+      `[data-theme-element="${BROADCAST_LOOK_BAND_ID}"] > div`,
+    );
+    if (panel === null) throw Error('missing panel');
+    const inner = panel.firstElementChild;
+    if (!(inner instanceof HTMLElement)) throw Error('missing panel');
+    expect(panel.style.borderColor).toContain('45%');
+    expect(inner.style.backgroundColor).toContain('90%');
+    expect(panel.style.boxShadow).toContain('16px');
+    const header = root.querySelector<HTMLElement>(
+      `[data-theme-element="${BROADCAST_LOOK_TAB_ID}"] > div`,
+    );
+    expect(header?.style.background).toContain('transparent');
+    view.dispose();
+  });
+  it.each(['capture', 'ndi'] as const)(
+    'draws an opaque box in a %s capture window',
+    method => {
+      const root = document.createElement('div');
+      const view = new ThemeCompositionView(root, {
+        textStyle: DEFAULT_TEXT_STYLE,
+        mediaUrl: id => id,
+        onError: vi.fn(),
+      });
+      const active = frame(broadcastLookLayout('song').elements);
+      view.render(song, {
+        ...active,
+        screen: {id: THEME_MAIN, kind: 'broadcast', method},
+        transitions: false,
+      });
+      const panel = root.querySelector<HTMLElement>(
+        `[data-theme-element="${BROADCAST_LOOK_BAND_ID}"] > div`,
+      );
+      expect(panel?.style.borderColor).toBe('rgb(232, 232, 232)');
+      expect(panel?.style.boxShadow).toBe('none');
+      const inner = panel?.firstElementChild;
+      if (!(inner instanceof HTMLElement)) throw Error('missing panel');
+      expect(inner.style.backgroundColor).toBe('rgb(254, 253, 249)');
+      const bible = frame(broadcastLookLayout('plain').elements, {
+        item: {id: 'invented', kind: 'bible', source: 'service'},
+      });
+      view.render(song, {
+        ...bible,
+        screen: {id: THEME_MAIN, kind: 'broadcast', method},
+        transitions: false,
+      });
+      const header = root.querySelector<HTMLElement>(
+        `[data-theme-element="${BROADCAST_LOOK_TAB_ID}"] > div`,
+      );
+      expect(header?.style.background).toContain('rgb(254, 253, 249)');
+      expect(header?.style.background).not.toContain('transparent');
+      view.dispose();
+    },
+  );
   it('omits the built-in caption band only for transparent output', () => {
     const screenId = createScreenId(STARTER_SCREEN_IDS.broadcast);
     const layout = builtInTheme('song').screens[screenId];
