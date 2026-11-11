@@ -370,6 +370,7 @@ function start(): void {
         subscribe: changed => store.subscribe(changed),
       });
       const outputs = startOutputs({
+        problems: problems.feed,
         playbackProblems: playbackProblems.board,
         onPrepared: () => launchIdle.outputsReady(),
         store,

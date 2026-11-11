@@ -12,6 +12,10 @@ body {
   user-select: none;
 }
 
+body.ndi-transparent {
+  background: transparent;
+}
+
 #root {
   position: relative;
 }

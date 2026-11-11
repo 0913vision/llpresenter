@@ -146,6 +146,7 @@ function monitorChange(transition: ScreenTransition): CardChange | null {
         ? {kind: 'show', notice: reconnectedCard(transition)}
         : {kind: 'dismiss', key};
     case 'window':
+    case 'ndi':
       return {kind: 'dismiss', key};
   }
 }

@@ -19,7 +19,9 @@ export function emptyScreenColor(screen: {
 }): string {
   return (
     screen.emptyColor ??
-    (screen.method === 'capture' ? CHROMA_KEY_COLOR : '#000000')
+    (screen.method === 'capture' || screen.method === 'ndi'
+      ? CHROMA_KEY_COLOR
+      : '#000000')
   );
 }
 

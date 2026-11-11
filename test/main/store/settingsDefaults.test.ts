@@ -65,7 +65,7 @@ describe('starter screen defaults', () => {
       {id: STARTER_SCREEN_IDS.main, method: 'fullscreen', alwaysOnTop: false},
       {
         id: STARTER_SCREEN_IDS.broadcast,
-        method: 'capture',
+        method: 'ndi',
         alwaysOnTop: false,
       },
       {id: STARTER_SCREEN_IDS.stage, method: 'fullscreen', alwaysOnTop: false},

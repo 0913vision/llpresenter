@@ -15,11 +15,7 @@ export const outputsSlice = defineSlice({
       document?.name === 'screens'
         ? document.value.screens.find(screen => screen.id === screenId)
         : undefined;
-    if (
-      document !== undefined &&
-      (saved === undefined || saved.method === 'ndi') &&
-      on
-    ) {
+    if (document !== undefined && saved === undefined && on) {
       throw new MissingLiveTargetError({kind: 'screen', id: screenId});
     }
     const remove = document !== undefined && saved === undefined;

@@ -14,7 +14,6 @@ import {useScreenEditor} from './useScreenEditor';
 import type {ScreenRenameProblem} from './screenEditor';
 import {lastOfKind, nameProblem} from '@core/screens/screenEdits';
 import {ScreenContextMenu} from './screenMenuEntries';
-import {NOT_YET} from '@renderer/ui/menuRows';
 
 const PROBLEMS: Readonly<Record<ScreenRenameProblem, string>> = {
   empty: '이름을 적어야 저장할 수 있습니다',
@@ -109,11 +108,7 @@ export function useScreenRowActions(
             actions={{
               reason,
               outputReason:
-                window.llp === undefined
-                  ? NOT_IN_THIS_WINDOW
-                  : target.method === 'ndi' && outputs[target.id] !== true
-                    ? NOT_YET
-                    : undefined,
+                window.llp === undefined ? NOT_IN_THIS_WINDOW : undefined,
               deleteReason: lastOfKind(document?.value.screens ?? [], target),
               on: outputs[target.id] === true,
               rename: () => {

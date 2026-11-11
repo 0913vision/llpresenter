@@ -8,49 +8,11 @@ planned at all.
 Terms: 슬라이드 (slide), 방송 화면 (broadcast captions), 퀵 실행 (quick launch),
 매크로 (macro), 라이브러리 (library), 구성 (arrangement). See 01.
 
-## NDI output
+## NDI network controls (later)
 
-### What it is
-
-- The 방송 화면 goes to OBS over NDI with an alpha channel, so OBS needs no
-  chroma key. The user prefers this method because it matches the idea of a
-  virtual display.
-- The green capture window stays as the fallback for setups without NDI.
-- The app still doesn't stream. OBS streams.
-
-### What the boards already show
-
-| Place                               | Content                                                                                                                                                                                                                                                  |
-| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Screen properties, 출력 group       | 방식 (method): NDI, 소스 이름 (source name, "LOVELIGHT 방송 화면"), 해상도 (resolution), 프레임 수 (frame rate, 30fps), 알파 채널 (alpha channel, on), 미리보기 배경 (preview background: 초록 green, 검정 black, 체크 무늬 checkerboard; default green) |
-| Screen properties, 네트워크 group   | 보낼 곳 (network interface, "이더넷 192.168.0.12"), NDI 그룹 (NDI group, "public")                                                                                                                                                                       |
-| Display layout                      | An NDI box that shows "보내는 중 수신 1" (sending, 1 receiver)                                                                                                                                                                                           |
-| Status bar                          | "방송 화면 NDI 30fps"                                                                                                                                                                                                                                    |
-| Toolbar tooltip and preview caption | Target name "NDI"                                                                                                                                                                                                                                        |
-
-### Requirements outside the app
-
-- OBS needs the DistroAV plugin and the NDI Runtime.
-- The NDI SDK is free to use here because the app is non-commercial, used in one
-  church, and not distributed. If that changes (for example, the app is
-  distributed), check the SDK redistribution terms and the NDI trademark rules
-  again.
-
-### Hooks version 1 must leave open
-
-- Accept and keep the screen value `method: "ndi"` and the screen's `ndi` object
-  (see 02).
-- Make output targets a registry (monitor window, capture window, later NDI), as
-  `docs/TECH.md` describes.
-- Draw the background as a layer, not as the window or page background, so the
-  renderer can produce frames with a transparent background later.
-- Keep the 방송 화면 preview background choice in the data
-  (`previewBackground`).
-- Run native modules only in a helper process (`docs/TECH.md`).
-
-Source: product log (2026-10-24 NDI update, version 56, version 61 SDK note),
-`Main` decisions "방송 화면은 NDI로" and "NDI SDK", `Main` remaining items,
-`ScreensNDI`, `docs/TECH.md`.
+The NDI sender for the 방송 화면 is in 03. The network interface, NDI group,
+receiver count in the display layout, and preview background selector remain
+later work. Their saved fields are kept (02 and 06).
 
 ## PowerPoint import
 

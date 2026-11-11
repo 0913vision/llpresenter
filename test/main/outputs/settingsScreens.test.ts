@@ -11,6 +11,29 @@ import {fullScreenScreen} from '@fixtures/main/outputs/testing';
 const fallback = {list: () => [fullScreenScreen()]};
 
 describe('saved output screens', () => {
+  it('falls back to a capture target when NDI cannot start', async () => {
+    const settings = overlaySettings();
+    settings.update(
+      settingsDocument('screens', {
+        screens: [
+          {id: MAIN, name: 'Broadcast', kind: 'broadcast', method: 'ndi'},
+        ],
+      }),
+    );
+    const source = createSettingsScreenSource(
+      Promise.resolve(settings.reader),
+      recordingLogger(),
+      fallback,
+    );
+    await Promise.resolve();
+    expect(source.list()).toMatchObject([
+      {id: MAIN, method: 'capture', target: 'ndi'},
+    ]);
+    source.failNdi(MAIN);
+    expect(source.list()).toMatchObject([{id: MAIN, method: 'capture'}]);
+    expect(source.list()[0]?.target).toBeUndefined();
+    source.dispose();
+  });
   it('keeps saved screen kinds for output identification', async () => {
     const settings = overlaySettings();
     const source = createSettingsScreenSource(

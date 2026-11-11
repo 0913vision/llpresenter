@@ -32,16 +32,20 @@ interface ScreenRate extends FrameRate {
 // 59.9 to 60.1, so a rate this close to the target counts as at the target.
 const TARGET_TOLERANCE_FPS = 0.5;
 
-function isLow(fps: number): boolean {
-  return fps < TARGET_FPS * (1 - LOW_FPS_SHARE);
+function isLow(fps: number, target: number): boolean {
+  return fps < target * (1 - LOW_FPS_SHARE);
 }
 
-function isAtTarget(fps: number): boolean {
-  return fps >= TARGET_FPS - TARGET_TOLERANCE_FPS;
+function isAtTarget(fps: number, target: number): boolean {
+  return fps >= target - TARGET_TOLERANCE_FPS;
 }
 
-function argueForChange(status: FrameRateStatus, fps: number): boolean {
-  return status === 'normal' ? isLow(fps) : isAtTarget(fps);
+function argueForChange(
+  status: FrameRateStatus,
+  fps: number,
+  target: number,
+): boolean {
+  return status === 'normal' ? isLow(fps, target) : isAtTarget(fps, target);
 }
 
 function otherStatus(status: FrameRateStatus): FrameRateStatus {
@@ -57,6 +61,12 @@ function otherStatus(status: FrameRateStatus): FrameRateStatus {
 export class FrameRateTracker {
   private readonly rates = new Map<string, ScreenRate>();
 
+  private target: (screenId: string) => number = () => TARGET_FPS;
+
+  setTarget(target: (screenId: string) => number): void {
+    this.target = target;
+  }
+
   constructor(
     private readonly isKnownScreen: (screenId: string) => boolean,
     private readonly log: Logger,
@@ -68,7 +78,7 @@ export class FrameRateTracker {
     if (!this.isKnownScreen(screenId)) return;
     const previous = this.rates.get(screenId);
     const status = previous?.status ?? 'normal';
-    if (!argueForChange(status, fps)) {
+    if (!argueForChange(status, fps, this.target(screenId))) {
       this.rates.set(screenId, {fps, status, disagreeingSince: null});
       return;
     }

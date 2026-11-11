@@ -38,8 +38,13 @@ const displaySchema = jsonObject({
   scaleFactor: positiveNumber,
 });
 
+/** Maximum NDI source-name length in characters. */
+export const NDI_SOURCE_NAME_MAX = 64;
+
 const ndiSchema = jsonObject({
-  sourceName: v.exactOptional(v.string()),
+  sourceName: v.exactOptional(
+    v.pipe(v.string(), v.maxLength(NDI_SOURCE_NAME_MAX)),
+  ),
   resolution: v.exactOptional(pixelSize),
   fps: v.exactOptional(positiveNumber),
   alpha: v.exactOptional(v.boolean()),

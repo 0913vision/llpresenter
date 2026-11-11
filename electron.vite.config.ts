@@ -1,4 +1,5 @@
 import {resolve} from 'node:path';
+import {copyFileSync, mkdirSync} from 'node:fs';
 import {defineConfig} from 'electron-vite';
 import react from '@vitejs/plugin-react';
 
@@ -16,6 +17,18 @@ const devPort = Number(process.env['LLP_DEV_PORT'] ?? DEFAULT_DEV_PORT);
 export default defineConfig({
   main: {
     resolve: {alias: shared},
+    plugins: [
+      {
+        name: 'ndi-utility-files',
+        closeBundle() {
+          const target = resolve('out/main/ndi');
+          mkdirSync(target, {recursive: true});
+          for (const file of ['utility.cjs', 'ndi-library.cjs', 'dirty.cjs']) {
+            copyFileSync(resolve('src/main/ndi', file), resolve(target, file));
+          }
+        },
+      },
+    ],
   },
   preload: {
     resolve: {alias: shared},

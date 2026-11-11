@@ -76,6 +76,7 @@ export class OutputRenderer {
     private readonly options: OutputRendererOptions,
   ) {
     this.root.className = classes.root;
+    if (options.transparent) this.setBackground('transparent');
     this.layers = renderLayers.flatMap(layer => this.createLayer(layer));
     parent.append(this.root);
     this.resizeObserver = new ResizeObserver(() => this.rescale());
@@ -114,14 +115,16 @@ export class OutputRenderer {
     this.testPattern = frame.testPattern === true;
     this.root.classList.toggle(classes.instant, frame.transitions === false);
     this.setBackground(
-      (frame.theme === undefined
-        ? undefined
-        : themeBackgroundColor(
-            frame.theme.layout.background,
-            frame.theme.emptyColor,
-          )) ??
-        frame.screen?.emptyColor ??
-        (frame.screen?.method === 'capture' ? CHROMA_BACKGROUND : null),
+      this.options.transparent
+        ? 'transparent'
+        : ((frame.theme === undefined
+            ? undefined
+            : themeBackgroundColor(
+                frame.theme.layout.background,
+                frame.theme.emptyColor,
+              )) ??
+            frame.screen?.emptyColor ??
+            (frame.screen?.method === 'capture' ? CHROMA_BACKGROUND : null)),
     );
     this.setScreen(frame.screen);
     this.attempt('theme', 'draw', () => {
@@ -134,7 +137,11 @@ export class OutputRenderer {
     for (const layer of this.layers) {
       const themed = frame.theme !== undefined;
       const legacy = LEGACY_CONTENT_LAYERS.has(layer.kind);
-      this.setHidden(layer, themed && legacy);
+      this.setHidden(
+        layer,
+        (themed && legacy) ||
+          (this.options.transparent === true && layer.kind === 'background'),
+      );
       const order =
         renderLayers.find(entry => entry.kind === layer.kind)?.order ?? 0;
       layer.box.style.zIndex = String(

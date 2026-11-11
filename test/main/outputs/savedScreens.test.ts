@@ -12,7 +12,7 @@ function readerOf(screens: readonly object[]) {
 }
 
 describe('switchableScreens', () => {
-  it('leaves out NDI screens', () => {
+  it('includes NDI screens', () => {
     const reader = readerOf([
       {id: uuid(1), name: 'Main', kind: 'audience', method: 'fullscreen'},
       {id: uuid(2), name: 'Captions', kind: 'audience', method: 'capture'},
@@ -24,6 +24,7 @@ describe('switchableScreens', () => {
       uuid(1),
       uuid(2),
       uuid(3),
+      uuid(4),
     ]);
   });
 

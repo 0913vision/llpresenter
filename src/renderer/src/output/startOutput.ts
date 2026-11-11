@@ -14,6 +14,7 @@ export interface OutputContext {
   readonly root: HTMLElement;
   readonly api: LlpApi;
   readonly screenId: string;
+  readonly ndi?: boolean;
 }
 
 type ErrorReport = (message: string, error: unknown) => void;
@@ -78,7 +79,12 @@ function catchUncaughtErrors(report: ErrorReport): () => void {
  *
  * @returns A function that stops everything it started.
  */
-export function startOutput({root, api, screenId}: OutputContext): () => void {
+export function startOutput({
+  root,
+  api,
+  screenId,
+  ndi = false,
+}: OutputContext): () => void {
   const stopPlaybackProblems = followPlaybackProblems(
     root,
     api.output.reportPlaybackProblems,
@@ -136,6 +142,7 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
     }
   };
   const frames = new ScreenFrames({
+    transparent: ndi,
     fonts: api.fonts,
     settings: api.settings,
     clock: () => api.live.clock(),
@@ -263,6 +270,7 @@ export function startOutput({root, api, screenId}: OutputContext): () => void {
         lastReady = false;
       }
       renderer ??= new OutputRenderer(root, {
+        transparent: ndi,
         textStyle: DEFAULT_TEXT_STYLE,
         mediaUrl,
         onError: report,

@@ -10,6 +10,13 @@ import {
   DEFAULT_THEME_TEXT,
 } from '@core/themes/defaults';
 import {broadcastBandLayout} from '@core/themes/broadcastBand';
+import {
+  broadcastLookLayout,
+  BROADCAST_LOOK_BAND_ID,
+  BROADCAST_LOOK_TAB_ID,
+  BROADCAST_LOOK_CARD_ID,
+  BROADCAST_LOOK_SONG_ID,
+} from '@core/themes/broadcastLook';
 import {sectionOtherLayout} from '@core/themes/sundaySections';
 import type {ThemeItemKind} from '@core/themes/elementRules';
 import {
@@ -129,6 +136,61 @@ afterEach(() => {
 });
 
 describe('theme composition drawing', () => {
+  it('keeps the new broadcast look on transparent NDI output', () => {
+    const root = document.createElement('div');
+    const view = new ThemeCompositionView(root, {
+      textStyle: DEFAULT_TEXT_STYLE,
+      mediaUrl: id => id,
+      onError: vi.fn(),
+      transparent: true,
+    });
+    const element = (id: string) =>
+      root.querySelector<HTMLElement>(`[data-theme-element="${id}"]`);
+    const render = (kind: 'plain' | 'card' | 'song') => {
+      const layout = broadcastLookLayout(kind);
+      view.render(song, {...frame(layout.elements), transitions: false});
+    };
+    render('plain');
+    expect(element(BROADCAST_LOOK_BAND_ID)?.firstElementChild).not.toBeNull();
+    expect(element(BROADCAST_LOOK_TAB_ID)?.firstElementChild).not.toBeNull();
+    render('card');
+    const card = element(BROADCAST_LOOK_CARD_ID)?.firstElementChild;
+    expect(card).toBeInstanceOf(HTMLElement);
+    expect(card?.getAttribute('style')).toContain('rgb(29, 58, 150)');
+    render('song');
+    expect(
+      element(BROADCAST_LOOK_SONG_ID)?.querySelector(`.${classes.outline}`),
+    ).not.toBeNull();
+    expect(root.textContent).toContain('Invented line');
+    view.dispose();
+  });
+  it('omits the built-in caption band only for transparent output', () => {
+    const screenId = createScreenId(STARTER_SCREEN_IDS.broadcast);
+    const layout = builtInTheme('song').screens[screenId];
+    if (!layout) throw Error('Missing broadcast layout');
+    const transparentRoot = document.createElement('div');
+    const transparent = new ThemeCompositionView(transparentRoot, {
+      textStyle: DEFAULT_TEXT_STYLE,
+      mediaUrl: id => id,
+      onError: vi.fn(),
+      transparent: true,
+    });
+    const normal = setup();
+    const active = frame(layout.elements);
+    transparent.render(song, active);
+    normal.view.render(song, active);
+    expect(
+      transparentRoot.querySelector(
+        `[data-theme-element="${BROADCAST_BAND_ID}"]`,
+      ),
+    ).toBeNull();
+    expect(
+      normal.root.querySelector(`[data-theme-element="${BROADCAST_BAND_ID}"]`),
+    ).not.toBeNull();
+    expect(transparentRoot.textContent).toContain('Invented line');
+    transparent.dispose();
+    normal.view.dispose();
+  });
   it.each(['main', 'stage'] as const)(
     'keeps Bible source rows on the %s screen',
     screenKind => {

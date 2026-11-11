@@ -1,8 +1,7 @@
-import {NOT_YET} from '@renderer/ui/menuRows';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useMemo, useState, type JSX} from 'react';
 import type {MonitorInfo, MonitorList} from '@core/schema/monitors';
-import type {Screen} from '@core/schema/screens';
+import {NDI_SOURCE_NAME_MAX, type Screen} from '@core/schema/screens';
 import {emptyScreenColor} from '@core/screens/emptyColor';
 import {SCREEN_KIND_ORDER} from '@core/screens/screens';
 import {ColorProperty} from './ColorProperty';
@@ -56,7 +55,11 @@ const METHOD_OPTIONS = [
   {value: 'fullscreen', label: '전체 화면'},
   {value: 'window', label: '창'},
   {value: 'capture', label: '캡처용 창'},
-  {value: 'ndi', label: 'NDI', disabled: true, title: NOT_YET},
+  {value: 'ndi', label: 'NDI'},
+] as const;
+const BROADCAST_METHOD_OPTIONS = [
+  METHOD_OPTIONS[3],
+  METHOD_OPTIONS[2],
 ] as const;
 const DISCONNECT_OPTIONS = [
   {value: 'window', label: '창으로 바꾸기'},
@@ -64,6 +67,62 @@ const DISCONNECT_OPTIONS = [
 ] as const;
 
 type Change = (change: ScreenChange) => void;
+
+function NdiRows({
+  screen,
+  change,
+  reason,
+}: {
+  readonly screen: Screen;
+  readonly change: Change;
+  readonly reason: string | undefined;
+}): JSX.Element {
+  const [draft, setDraft] = useState<string | null>(null);
+  const source = screen.ndi?.sourceName ?? 'LOVELIGHT 방송 화면';
+  return (
+    <>
+      <PropertyRow label="소스 이름">
+        {({controlId}) => (
+          <TextField
+            id={controlId}
+            block
+            maxLength={NDI_SOURCE_NAME_MAX}
+            readOnly={reason !== undefined}
+            value={draft ?? source}
+            onChange={setDraft}
+            onBlur={() => {
+              if (draft !== null && draft.trim() !== '') {
+                change({ndi: {...screen.ndi, sourceName: draft.trim()}});
+              }
+              setDraft(null);
+            }}
+            onKeyDown={event => {
+              if (
+                event.key === 'Enter' &&
+                !isComposing(event) &&
+                !hasModifier(event)
+              ) {
+                event.currentTarget.blur();
+              }
+            }}
+          />
+        )}
+      </PropertyRow>
+      <PropertyValue label="해상도" value="1920 × 1080" />
+      <PropertyValue label="프레임 수" value="30fps" />
+      <PropertyRow label="알파 채널">
+        {({controlId}) => (
+          <Checkbox
+            id={controlId}
+            checked
+            disabled
+            onChange={() => undefined}
+          />
+        )}
+      </PropertyRow>
+    </>
+  );
+}
 
 function NameRow({
   screen,
@@ -341,7 +400,11 @@ function PropertyRows({
               disabled={reason !== undefined}
               title={reason}
               labelledBy={labelId}
-              options={METHOD_OPTIONS}
+              options={
+                screen.kind === 'broadcast'
+                  ? BROADCAST_METHOD_OPTIONS
+                  : METHOD_OPTIONS.filter(option => option.value !== 'ndi')
+              }
               value={screen.method}
               onChange={method => change({method})}
               fill
@@ -355,6 +418,9 @@ function PropertyRows({
           assign={assign}
           reason={reason}
         />
+        {screen.method === 'ndi' ? (
+          <NdiRows screen={screen} change={change} reason={reason} />
+        ) : null}
         <ResolutionRow
           screen={screen}
           monitor={monitor}
@@ -369,7 +435,9 @@ function PropertyRows({
           commit={emptyColor => change({emptyColor})}
         />
       </PropertyGroup>
-      <StabilityRows screen={screen} change={change} reason={reason} />
+      {screen.method === 'ndi' ? null : (
+        <StabilityRows screen={screen} change={change} reason={reason} />
+      )}
       <CorrectionRows screen={screen} change={change} reason={reason} />
     </Properties>
   );

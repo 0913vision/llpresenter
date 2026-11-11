@@ -49,6 +49,26 @@ export function useProblemNotices(
     const take = (problem: AppProblem): void => {
       if (stopped) return;
       switch (problem.kind) {
+        case 'ndi-runtime-missing':
+          show({
+            key: 'ndi-runtime-missing',
+            kind: 'warning',
+            icon: 'warning',
+            time: noticeTime(),
+            title: 'NDI Runtime을 찾을 수 없습니다',
+            meta: ['캡처용 창을 사용할 수 있습니다'],
+          });
+          return;
+        case 'ndi-failed':
+          show({
+            key: 'ndi-failed',
+            kind: 'warning',
+            icon: 'warning',
+            time: noticeTime(),
+            title: 'NDI 출력 실패',
+            meta: ['캡처용 창으로 표시 중'],
+          });
+          return;
         case 'protection-write': {
           const key = problemGroup(problem);
           if (!problem.failed) close(key);

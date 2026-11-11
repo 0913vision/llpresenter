@@ -27,6 +27,25 @@ function setUp() {
 }
 
 describe('FrameRateTracker', () => {
+  it('judges an NDI output against its 30 fps target', () => {
+    let now = 0;
+    const tracker = new FrameRateTracker(
+      () => true,
+      recordingLogger(),
+      () => now,
+    );
+    tracker.setTarget(() => 30);
+    for (const fps of [30, 30, 30]) {
+      tracker.report({screenId: 'ndi', fps});
+      now += 1000;
+    }
+    expect(tracker.current('ndi')).toEqual({fps: 30, status: 'normal'});
+    for (const fps of [20, 20, 20]) {
+      tracker.report({screenId: 'ndi', fps});
+      now += 1000;
+    }
+    expect(tracker.current('ndi')).toEqual({fps: 20, status: 'low'});
+  });
   it('forgets removed screens while keeping retained frame reports', () => {
     const tracker = new FrameRateTracker(() => true, recordingLogger());
     tracker.report({screenId: 'main', fps: 60});

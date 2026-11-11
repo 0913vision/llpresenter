@@ -66,6 +66,14 @@ beforeEach(() => {
 });
 
 describe('useProblemNotices', () => {
+  it('shows the runtime warning with the capture-window fallback', async () => {
+    const {target} = setup([{kind: 'ndi-runtime-missing'}]);
+    await waitFor(() => expect(target.report).toHaveBeenCalled());
+    expect(target.report.mock.lastCall?.[0]).toMatchObject({
+      title: 'NDI Runtime을 찾을 수 없습니다',
+      meta: ['캡처용 창을 사용할 수 있습니다'],
+    });
+  });
   it('shows protection warnings independently and clears each after recovery', async () => {
     const {target, push} = setup();
     await act(async () => undefined);

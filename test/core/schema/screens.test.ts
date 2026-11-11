@@ -137,6 +137,18 @@ describe('parseScreens', () => {
     expectRoundTrip(codec, defaultScreens());
   });
 
+  it('limits the NDI source name to 64 characters', () => {
+    expectRoundTrip(
+      codec,
+      withScreen({...mainScreen(), ndi: {sourceName: 'a'.repeat(64)}}),
+    );
+    expectInvalidField(
+      codec,
+      withScreen({...mainScreen(), ndi: {sourceName: 'a'.repeat(65)}}),
+      'screens.0.ndi.sourceName',
+    );
+  });
+
   it('keeps NDI settings and unknown fields for later versions', () => {
     expectRoundTrip(
       codec,

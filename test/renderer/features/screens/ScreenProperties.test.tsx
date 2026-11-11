@@ -284,13 +284,30 @@ describe('the screen properties', () => {
     );
   });
 
-  it('leaves NDI unavailable', async () => {
-    setup();
+  it('selects NDI for a broadcast screen and shows its settings', async () => {
+    const {savedScreens} = setup();
+    const user = userEvent.setup();
     await nameField();
-
+    act(() => useScreensSelection.getState().select(CAPTIONS_ID));
+    await user.click(await screen.findByRole('radio', {name: 'NDI'}));
+    await waitFor(() =>
+      expect(savedScreens().find(item => item.id === CAPTIONS_ID)?.method).toBe(
+        'ndi',
+      ),
+    );
     expect(
-      screen.getByRole('radio', {name: 'NDI'}).getAttribute('aria-disabled'),
-    ).toBe('true');
+      await screen.findByRole('textbox', {name: '소스 이름'}),
+    ).toHaveProperty('value', 'LOVELIGHT 방송 화면');
+    const source = await screen.findByRole('textbox', {name: '소스 이름'});
+    expect(source.getAttribute('maxlength')).toBe('64');
+    await user.clear(source);
+    await user.type(source, 'Broadcast source{Enter}');
+    await waitFor(() =>
+      expect(
+        savedScreens().find(item => item.id === CAPTIONS_ID)?.ndi?.sourceName,
+      ).toBe('Broadcast source'),
+    );
+    expect(screen.getByText('30fps')).toBeTruthy();
   });
 
   it('saves a new name when the field is left', async () => {

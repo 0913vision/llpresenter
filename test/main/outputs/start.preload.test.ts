@@ -83,7 +83,7 @@ describe('output windows at launch', () => {
     },
   );
 
-  it('prepares late settings without a turn-on and excludes NDI screens', async () => {
+  it('prepares late settings without turning on NDI screens', async () => {
     let resolve: (reader: SettingsReader) => void = () => undefined;
     const loading = new Promise<SettingsReader>(done => {
       resolve = done;

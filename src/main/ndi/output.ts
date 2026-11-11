@@ -1,0 +1,232 @@
+import {
+  BrowserWindow,
+  utilityProcess,
+  type UtilityProcess,
+  type NativeImage,
+  type Rectangle,
+} from 'electron';
+import {join} from 'node:path';
+import type {OutputScreen} from '../outputs/screens';
+import type {
+  OutputWindowEvents,
+  OutputWindowHandle,
+} from '../outputs/outputWindow';
+import type {Logger} from '../log';
+import {blockNavigation, preloadPath, startLoading} from '../windows/page';
+import {unionDirty} from './rect';
+
+export const NDI_SEND_TIMEOUT_MS = 5000;
+export const NDI_STOP_TIMEOUT_MS = 2000;
+
+/** Creates an offscreen output whose sender is isolated in a utility process. */
+export function createNdiOutput(
+  screen: OutputScreen,
+  events: OutputWindowEvents,
+  options: {log: Logger; onFailure: (id: string, missing: boolean) => void},
+): OutputWindowHandle {
+  const {log, onFailure} = options;
+  const win = new BrowserWindow({
+    show: false,
+    skipTaskbar: true,
+    width: 1920,
+    height: 1080,
+    useContentSize: true,
+    frame: false,
+    transparent: true,
+    backgroundColor: '#00000000',
+    webPreferences: {
+      preload: preloadPath,
+      sandbox: true,
+      contextIsolation: true,
+      nodeIntegration: false,
+      backgroundThrottling: false,
+      offscreen: true,
+    },
+  });
+  win.setMinimumSize(1920, 1080);
+  win.setContentSize(1920, 1080);
+  win.webContents.setFrameRate(30);
+  const page = {name: 'output' as const, query: {screen: screen.id, ndi: '1'}};
+  blockNavigation(win);
+  win.on('page-title-updated', event => event.preventDefault());
+  win.webContents.on('render-process-gone', (_event, details) =>
+    events.onRendererGone(details),
+  );
+  void startLoading(win, page).catch((error: unknown) =>
+    log.error('could not load NDI output', error),
+  );
+  let current = screen;
+  let child: UtilityProcess | null = null;
+  let ready = false;
+  let inFlight = false;
+  let pending: {dirty: Rectangle; image: NativeImage} | null = null;
+  let closed = false;
+  let lastSent = 0;
+  let hasFrame = false;
+  let timer: ReturnType<typeof setInterval> | null = null;
+  let watchdog: ReturnType<typeof setTimeout> | null = null;
+  const sendFrame = (dirty: Rectangle, image: NativeImage): void => {
+    if (child === null) return;
+    const data = image.crop(dirty).toBitmap();
+    inFlight = true;
+    hasFrame = true;
+    lastSent = Date.now();
+    sendMessage(child, {type: 'frame', data: {...dirty, data}});
+  };
+  win.webContents.on('paint', (_event, dirty, image) => {
+    if (
+      child === null ||
+      closed ||
+      !ready ||
+      dirty.width <= 0 ||
+      dirty.height <= 0
+    ) {
+      return;
+    }
+    const size = image.getSize();
+    if (size.width !== 1920 || size.height !== 1080) return;
+    if (!inFlight) {
+      sendFrame(dirty, image);
+      return;
+    }
+    const previous = pending?.dirty;
+    if (previous === undefined) {
+      pending = {dirty, image};
+      return;
+    }
+    pending = {image, dirty: unionDirty(previous, dirty)};
+  });
+  const stop = (exited = false): void => {
+    if (timer !== null) clearInterval(timer);
+    if (watchdog !== null) clearTimeout(watchdog);
+    timer = null;
+    watchdog = null;
+    const old = child;
+    child = null;
+    ready = false;
+    inFlight = false;
+    pending = null;
+    hasFrame = false;
+    if (old === null || exited) return;
+    const killTimer = setTimeout(() => old.kill(), NDI_STOP_TIMEOUT_MS);
+    killTimer.unref();
+    old.once('exit', () => clearTimeout(killTimer));
+    try {
+      old.postMessage({type: 'stop'});
+    } catch (error) {
+      log.warn('NDI sender already stopped', error);
+      clearTimeout(killTimer);
+      old.kill();
+    }
+  };
+  const fail = (
+    worker: UtilityProcess,
+    missing: boolean,
+    reason: unknown,
+  ): void => {
+    if (child !== worker) return;
+    log.error('NDI sender failed', reason);
+    stop();
+    onFailure(current.id, missing);
+  };
+  const sendMessage = (worker: UtilityProcess, message: object): void => {
+    try {
+      worker.postMessage(message);
+      watchdog = setTimeout(
+        () => fail(worker, false, 'send timed out'),
+        NDI_SEND_TIMEOUT_MS,
+      );
+    } catch (error) {
+      fail(worker, false, error);
+    }
+  };
+  const begin = (): void => {
+    if (closed || child !== null) return;
+    const worker = utilityProcess.fork(join(__dirname, 'ndi/utility.cjs'), [], {
+      serviceName: 'NDI output',
+      env: {
+        ...process.env,
+        LLP_NDI_SOURCE_NAME: current.ndi?.sourceName ?? 'LOVELIGHT 방송 화면',
+      },
+    });
+    child = worker;
+    worker.on('message', (message: {type: string; message?: string}) => {
+      if (child !== worker) return;
+      if (message.type === 'native-loaded') {
+        log.info('NDI native module loaded');
+      }
+      if (message.type === 'ready') {
+        ready = true;
+        win.webContents.invalidate();
+      }
+      if (message.type === 'sent') {
+        if (watchdog !== null) clearTimeout(watchdog);
+        watchdog = null;
+        inFlight = false;
+        if (pending !== null) {
+          const {dirty, image} = pending;
+          pending = null;
+          sendFrame(dirty, image);
+        }
+      }
+      if (message.type === 'error') {
+        fail(
+          worker,
+          message.message?.includes('NDI_RUNTIME_MISSING') === true,
+          message.message,
+        );
+      }
+    });
+    worker.on('exit', code => {
+      if (child !== worker) return;
+      log.error('NDI sender exited', code);
+      stop(true);
+      onFailure(current.id, false);
+    });
+    timer = setInterval(() => {
+      if (
+        !ready ||
+        inFlight ||
+        !hasFrame ||
+        child === null ||
+        Date.now() - lastSent < 1000
+      ) {
+        return;
+      }
+      inFlight = true;
+      lastSent = Date.now();
+      sendMessage(child, {type: 'repeat'});
+    }, 1000);
+  };
+  return {
+    configure: next => {
+      const changed = next.ndi?.sourceName !== current.ndi?.sourceName;
+      current = next;
+      if (changed && child !== null) {
+        stop();
+        begin();
+      }
+    },
+    prepare: () => undefined,
+    requestFrame: () => win.webContents.invalidate(),
+    contentSize: () => ({width: 1920, height: 1080}),
+    setAlwaysOnTop: () => undefined,
+    showFullScreen: () => undefined,
+    showWindowed: () => undefined,
+    showCapture: () => begin(),
+    prepareForMonitorRemoval: () => undefined,
+    bringToFront: () => undefined,
+    bounds: () => null,
+    hide: stop,
+    reload: () => startLoading(win, page),
+    crashRenderer: () => win.webContents.forcefullyCrashRenderer(),
+    ping: async () => {
+      await win.webContents.executeJavaScript('0');
+    },
+    destroy: () => {
+      closed = true;
+      stop();
+      if (!win.isDestroyed()) win.destroy();
+    },
+  };
+}

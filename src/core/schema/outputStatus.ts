@@ -16,6 +16,7 @@ export const outputPlacements = [
   'off',
   'fullscreen',
   'window',
+  'ndi',
   'monitorMissing',
 ] as const;
 

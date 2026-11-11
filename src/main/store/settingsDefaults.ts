@@ -31,7 +31,7 @@ export const settingsDefaults: Readonly<Record<SettingsName, object>> = {
       {
         ...screen(CAPTIONS, '방송 화면', {
           kind: 'broadcast',
-          method: 'capture',
+          method: 'ndi',
         }),
         resolution: {width: 1920, height: 1080},
         previewBackground: 'green',

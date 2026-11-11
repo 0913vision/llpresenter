@@ -15,6 +15,7 @@ import {THEME_LIMITS} from '@core/themes/elementRules';
 import {themeBackgroundStyle} from './themeBackground';
 import {songTitleLayout} from '@core/themes/songTitle';
 import {themeElementMedia} from '@core/themes/content';
+import {BROADCAST_BAND_ID} from '@core/themes/broadcastBand';
 import {isSectionTheme} from '@core/themes/sundaySections';
 import {
   fitBroadcastBand,
@@ -134,7 +135,11 @@ export class ThemeCompositionView {
         else this.releaseLeaving();
       }
     }
-    if (this.page !== null && theme.layout.background === undefined) {
+    if (
+      this.page !== null &&
+      theme.layout.background === undefined &&
+      !this.options.transparent
+    ) {
       this.page.root.style.backgroundColor = theme.emptyColor;
     }
     this.draw(rebuilt);
@@ -225,7 +230,9 @@ export class ThemeCompositionView {
     page.className = `${classes.layer} ${classes.instant}`;
     Object.assign(
       page.style,
-      themeBackgroundStyle(theme.layout.background, theme.emptyColor),
+      this.options.transparent
+        ? {background: 'transparent'}
+        : themeBackgroundStyle(theme.layout.background, theme.emptyColor),
     );
     const canvas = document.createElement('div');
     Object.assign(canvas.style, {
@@ -241,6 +248,12 @@ export class ThemeCompositionView {
     const elements: ThemeElementView[] = [];
     if (theme.layout.mode.kind === 'own') {
       for (const element of theme.layout.elements) {
+        if (
+          this.options.transparent &&
+          (element.kind === 'background' || element.id === BROADCAST_BAND_ID)
+        ) {
+          continue;
+        }
         try {
           elements.push(
             new ThemeElementView(element, canvas, {

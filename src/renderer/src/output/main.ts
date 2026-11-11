@@ -13,11 +13,18 @@ const parameters = new URLSearchParams(window.location.search);
 const monitorNumber = parameters.get(MONITOR_NUMBER_PARAMETER);
 const screenId = parameters.get(SCREEN_PARAMETER);
 const audio = parameters.get('audio');
+const ndi = parameters.get('ndi') === '1';
+if (ndi) document.body.classList.add('ndi-transparent');
 const api = window.llp;
 if (root !== null && audio !== null && api !== undefined) {
   startAudio({root, api, muted: audio !== 'sound'});
 } else if (root !== null && monitorNumber !== null) {
   showMonitorNumber(root, monitorNumber, parameters.get('monitor-details'));
 } else if (root !== null && screenId !== null && api !== undefined) {
-  startOutput({root, api, screenId});
+  startOutput({
+    root,
+    api,
+    screenId,
+    ndi,
+  });
 }

@@ -10,6 +10,7 @@ import type {OutputScreen, ScreenSource} from './screens';
 export interface SettingsScreens extends ScreenSource, ScreenSettingsPort {
   readonly ready: boolean;
   subscribe(listener: () => void): () => void;
+  failNdi(screenId: string): void;
   dispose(): void;
 }
 
@@ -24,15 +25,23 @@ function savedScreens(reader: SettingsReader): readonly Screen[] {
   return document.value.screens;
 }
 
-function outputScreens(reader: SettingsReader): readonly OutputScreen[] {
+function outputScreens(
+  reader: SettingsReader,
+  unavailable: ReadonlySet<string>,
+): readonly OutputScreen[] {
   return savedScreens(reader).flatMap(screen => {
-    if (screen.method === 'ndi') return [];
     return [
       {
         id: screen.id,
         name: screen.name,
         kind: screen.kind,
-        method: screen.method,
+        method: screen.method === 'ndi' ? 'capture' : screen.method,
+        ...(screen.method === 'ndi' && !unavailable.has(screen.id)
+          ? {
+              target: 'ndi' as const,
+              ...(screen.ndi === undefined ? {} : {ndi: screen.ndi}),
+            }
+          : {}),
         display: screen.display ?? null,
         onDisconnect: screen.onDisconnect ?? 'window',
         alwaysOnTop: screen.alwaysOnTop ?? false,
@@ -53,6 +62,7 @@ class SavedScreenSource implements SettingsScreens {
   private usingDefaults = false;
   private unsubscribe: (() => void) | null = null;
   private readonly listeners = new Set<() => void>();
+  private readonly unavailable = new Set<string>();
 
   constructor(
     loading: Promise<SettingsReader | null>,
@@ -112,6 +122,11 @@ class SavedScreenSource implements SettingsScreens {
     });
   }
 
+  failNdi(screenId: string): void {
+    this.unavailable.add(screenId);
+    this.refresh();
+  }
+
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
@@ -125,12 +140,28 @@ class SavedScreenSource implements SettingsScreens {
   private refresh(): void {
     if (this.disposed) return;
     try {
-      this.current = this.reader === null ? [] : outputScreens(this.reader);
+      this.pruneUnavailable();
+      this.current =
+        this.reader === null
+          ? []
+          : outputScreens(this.reader, this.unavailable);
     } catch (error) {
       this.log.error('could not read output screen settings', error);
     }
     this.ready = true;
     this.notify();
+  }
+
+  private pruneUnavailable(): void {
+    if (this.reader === null) return;
+    const configured = savedScreens(this.reader);
+    for (const id of this.unavailable) {
+      if (
+        !configured.some(screen => screen.id === id && screen.method === 'ndi')
+      ) {
+        this.unavailable.delete(id);
+      }
+    }
   }
 
   private useDefaults(error?: unknown): void {

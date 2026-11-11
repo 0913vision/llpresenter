@@ -187,7 +187,7 @@ defaults off for every method and can be enabled in the screen's properties
 | 화면 (screen)      | 이름 (name)                           | Text field                                                                        | Screen name. Toolbar labels and tooltips use it.                                                                                                                                                                                                                                                                                  |
 | 화면               | 종류 (kind)                           | 청중, 무대, or 방송                                                               | The kind decides which elements the 테마 editor offers on the screen (12). A screen that still has its default name (새 청중 화면) takes the default name of its new kind when the kind changes; a name the user typed stays.                                                                                                     |
 | 화면               | 메시지 스타일 (message style)         | Select: 기본 and each saved 메시지 style by name                                  | How a 메시지 sent to this screen is drawn, whatever the 테마 (12; user decision, November 2). Default 기본, the built-in style, a band across the top of the screen (03; user decision, November 3). A 메시지 showing on this screen redraws in the new style at once. Until 메시지 styles can be made, the list holds only 기본. |
-| 출력 (output)      | 방식 (method)                         | 전체 화면, 창, 캡처용 창, NDI                                                     | See 03. In version 1, NDI shows as unavailable, with the reason in a tooltip (proposal).                                                                                                                                                                                                                                          |
+| 출력 (output)      | 방식 (method)                         | 전체 화면, 창, 캡처용 창, NDI                                                     | See 03. Broadcast screens offer NDI and the capture window; NDI is the default.                                                                                                                                                                                                                                                   |
 | 출력               | 장치 (device)                         | Select with the monitor name as a detail ("모니터 2 EPSON 프로젝터")              | The monitor for full screen.                                                                                                                                                                                                                                                                                                      |
 | 출력               | 해상도 (resolution)                   | Select                                                                            | For full screen, shows the monitor's resolution and can't change (proposal). For the capture window, offers 1920×1080, 1280×720, and 3840×2160 (proposal).                                                                                                                                                                        |
 | 출력               | 주사율 (refresh rate)                 | Read-only value ("60Hz")                                                          |                                                                                                                                                                                                                                                                                                                                   |
@@ -197,18 +197,19 @@ defaults off for every method and can be enabled in the screen's properties
 | 보정 (correction)  | 가장자리 여백 (edge margin)           | Number field (%)                                                                  | See 03.                                                                                                                                                                                                                                                                                                                           |
 | 보정               | 위치 미세 조정 (position fine-tuning) | Two number fields (x, y)                                                          | See 03.                                                                                                                                                                                                                                                                                                                           |
 
-### NDI properties (later)
+### NDI properties
 
-The `ScreensNDI` board shows the NDI version of the properties. Version 1
-doesn't build them (see 09), but keeps the data fields (see 02).
+The 방송 screen offers NDI and 캡처용 창, defaulting to NDI. Its 출력 group
+shows the source name, 1920×1080 resolution, 30 fps, and alpha on. The source
+name can be edited. The network interface and NDI group remain later work (09).
 
 | Group              | Row                                                                                                                                                                                                             |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | 출력               | 방식: NDI, 소스 이름 (source name, "LOVELIGHT 방송 화면"), 해상도, 프레임 수 (frame rate, 30fps), 알파 채널 (alpha channel), 미리보기 배경 (preview background: 초록 green, 검정 black, 체크 무늬 checkerboard) |
 | 네트워크 (network) | 보낼 곳 (network interface, "이더넷 192.168.0.12"), NDI 그룹 (NDI group, "public")                                                                                                                              |
 
-The display layout box of an NDI target shows "보내는 중 수신 1" (sending, 1
-receiver), and the status bar shows "방송 화면 NDI 30fps".
+The status bar shows "방송 화면 NDI 30fps" while sending. The display layout
+receiver count remains later work.
 
 ### Preview background of the 방송 화면
 

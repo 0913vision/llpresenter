@@ -152,7 +152,7 @@ export function ScreenList({
           ? limitReason('화면', MAX_TARGET_SCREENS)
           : undefined;
   const groupOutputs = (kind: Screen['kind']) =>
-    screens.filter(screen => screen.kind === kind && screen.method !== 'ndi');
+    screens.filter(screen => screen.kind === kind);
   return (
     <div
       {...click.props}

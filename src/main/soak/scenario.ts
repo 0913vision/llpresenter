@@ -8,6 +8,8 @@ import {
 import {parsePayload} from '@core/schema/payload';
 import type {Logger} from '../log';
 import {MAIN_SCREEN_ID} from '../outputs/defaultScreens';
+import {createScreenId} from '@core/schema/ids';
+import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {readSoakSettings} from './recorder';
 
 /** How often the scenario shows the next 장 (qa's SK2). */
@@ -82,6 +84,14 @@ export function startSoakScenario(scenario: SoakScenario): () => void {
     });
   }
   send(scenario, {type: 'output.set', screenId: MAIN_SCREEN_ID, on: true});
+  const ndiProductTest = process.env['LLP_NDI_PRODUCT_TEST'] === '1';
+  if (ndiProductTest) {
+    send(scenario, {
+      type: 'output.set',
+      screenId: createScreenId(STARTER_SCREEN_IDS.broadcast),
+      on: true,
+    });
+  }
   let position = 0;
   send(scenario, {type: 'slide.show', slide: scenarioSlide(position)});
   const message = () =>
@@ -91,11 +101,11 @@ export function startSoakScenario(scenario: SoakScenario): () => void {
       targets: 'all',
       duration: 10,
     });
-  message();
+  if (!ndiProductTest) message();
   const changer = setInterval(() => {
     position = (position + 1) % SLIDE_COUNT;
     send(scenario, {type: 'slide.show', slide: scenarioSlide(position)});
-    message();
+    if (!ndiProductTest) message();
   }, SLIDE_INTERVAL_MS);
   scenario.log.info('soak scenario started', {mediaId: scenario.mediaId});
   return () => clearInterval(changer);

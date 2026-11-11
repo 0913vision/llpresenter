@@ -1,6 +1,6 @@
 import {listPackage, extractFile} from '@electron/asar';
 import {createHash} from 'node:crypto';
-import {readdir, readFile, stat, writeFile} from 'node:fs/promises';
+import {access, readdir, readFile, stat, writeFile} from 'node:fs/promises';
 import {join, normalize, resolve} from 'node:path';
 
 if (process.env.GITHUB_ACTIONS !== 'true') {
@@ -14,6 +14,9 @@ const entries = listPackage(archive, {isPack: false}).map(path =>
 );
 const required = [
   'out/main/index.js',
+  'out/main/ndi/utility.cjs',
+  'out/main/ndi/dirty.cjs',
+  'out/main/ndi/ndi-library.cjs',
   'out/preload/index.js',
   'out/renderer/index.html',
   'out/renderer/output.html',
@@ -24,6 +27,12 @@ for (const file of required) {
     throw new Error(`Missing packaged entry: ${file}`);
   }
 }
+await access(
+  join(
+    unpacked,
+    'resources/app.asar.unpacked/node_modules/@koromix/koffi-win32-x64/win32_x64/koffi.node',
+  ),
+);
 const fonts = entries.filter(path =>
   /^out\/renderer\/assets\/.*\.woff2$/u.test(path),
 );
@@ -49,7 +58,11 @@ for (const font of fonts) {
     throw new Error(`Empty font: ${font}`);
   }
 }
-for (const notice of ['Pretendard-OFL.txt', 'Phosphor-MIT.txt']) {
+for (const notice of [
+  'Pretendard-OFL.txt',
+  'Phosphor-MIT.txt',
+  'Koffi-MIT.txt',
+]) {
   if (
     (await readFile(join(unpacked, 'resources/notices', notice), 'utf8'))
       .length < 100

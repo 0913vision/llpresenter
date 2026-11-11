@@ -31,7 +31,12 @@ export interface MonitorFeed {
 
 /** How a screen's output shows. */
 export type OutputStatus =
-  'off' | 'fullscreen' | 'window' | 'monitorMissing' | 'controlConflict';
+  | 'off'
+  | 'fullscreen'
+  | 'window'
+  | 'ndi'
+  | 'monitorMissing'
+  | 'controlConflict';
 
 /** The arguments of the {@link OutputManager} constructor. */
 export interface OutputManagerOptions {
@@ -100,6 +105,7 @@ function sameAssignment(
  */
 export class OutputManager {
   private readonly windows = new Map<string, OutputWindow>();
+  private readonly targets = new Map<string, string>();
   private readonly statuses = new Map<string, OutputStatus>();
   private previousMonitors: ReadonlyMap<string, number> = new Map();
   private readonly assignmentListeners = new Set<() => void>();
@@ -233,6 +239,7 @@ export class OutputManager {
     for (const stop of this.stops) stop();
     for (const output of this.windows.values()) output.dispose();
     this.windows.clear();
+    this.targets.clear();
     this.statuses.clear();
     this.monitorNumbers.clear();
     this.previousMonitors = new Map();
@@ -453,12 +460,24 @@ export class OutputManager {
         error,
       );
     }
-    this.report(screen.id, statusOf(placement));
+    this.report(
+      screen.id,
+      placement !== null && placement.kind !== 'off' && screen.target === 'ndi'
+        ? 'ndi'
+        : statusOf(placement),
+    );
   }
 
   private windowFor(screen: OutputScreen): OutputWindow {
     const existing = this.windows.get(screen.id);
-    if (existing !== undefined) return existing;
+    const target = screen.target ?? 'window';
+    if (existing !== undefined && this.targets.get(screen.id) === target) {
+      return existing;
+    }
+    if (existing !== undefined) {
+      existing.dispose();
+      this.windows.delete(screen.id);
+    }
     const output = new OutputWindow({
       screen,
       createHandle: this.options.createHandle,
@@ -468,6 +487,7 @@ export class OutputManager {
       onRendererState: () => this.options.onStatusChange?.(),
     });
     this.windows.set(screen.id, output);
+    this.targets.set(screen.id, target);
     return output;
   }
 
@@ -477,6 +497,7 @@ export class OutputManager {
       if (screens.some(({id}) => id === screenId)) continue;
       output.dispose();
       this.windows.delete(screenId);
+      this.targets.delete(screenId);
       this.statuses.delete(screenId);
       this.monitorNumbers.delete(screenId);
       removed = true;

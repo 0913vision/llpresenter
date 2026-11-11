@@ -20,6 +20,9 @@ export function StatusBar({
     const status = statuses[screen.id];
     if (status === undefined || status.placement === 'off') return [];
     const problems: string[] = [];
+    if (status.placement === 'ndi') {
+      problems.push(`${screen.statusLabel} NDI 30fps`);
+    }
     if (status.controlConflict) {
       problems.push(
         `${screen.statusLabel}: ${controlConflictReason(status.monitor)}`,

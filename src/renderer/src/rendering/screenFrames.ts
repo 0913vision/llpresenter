@@ -17,6 +17,7 @@ import {followRenderScreen} from './screenIdentity';
 import {followSettingsDocument} from './settingsFeed';
 
 interface ScreenFramesOptions {
+  readonly transparent?: boolean;
   readonly fonts?: LlpApi['fonts'];
   readonly settings: LlpApi['settings'];
   readonly clock: LlpApi['live']['clock'];
@@ -28,6 +29,7 @@ interface ScreenFramesOptions {
 
 /** Follows screen identity, fonts, and timers for the main-owned live theme. */
 export class ScreenFrames {
+  private readonly transparent: boolean;
   private fonts: FontCatalog | undefined;
   private disposed = false;
   private screen: RenderScreen | undefined;
@@ -41,6 +43,7 @@ export class ScreenFrames {
   private readonly timerClock: MainTimerClock;
 
   constructor(options: ScreenFramesOptions) {
+    this.transparent = options.transparent ?? false;
     const {settings, screenId, onError} = options;
     this.timerClock = new MainTimerClock(options.clock, onError);
     let pushedFonts = false;
@@ -150,12 +153,13 @@ export class ScreenFrames {
     );
     const band = messageBandFor(
       messageStyle,
-      isKeyBackground(
-        typeof composition.layout.background === 'object'
-          ? undefined
-          : (composition.layout.background ?? composition.emptyColor),
-        screen,
-      ),
+      !this.transparent &&
+        isKeyBackground(
+          typeof composition.layout.background === 'object'
+            ? undefined
+            : (composition.layout.background ?? composition.emptyColor),
+          screen,
+        ),
     );
     return {
       theme,

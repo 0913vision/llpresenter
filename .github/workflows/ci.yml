@@ -167,7 +167,7 @@ jobs:
       - name: Inspect archive and record sizes
         shell: pwsh
         run: ./scripts/installer/run-ci.ps1 inspect
-      - name: Launch the unpacked app with hidden windows
+      - name: Install and launch the app with hidden windows
         shell: pwsh
         run: ./scripts/installer/run-ci.ps1 smoke
       - uses: actions/upload-artifact@v7.0.2

@@ -14,6 +14,8 @@ export interface OutputScreen {
   readonly name: string;
   readonly kind?: 'audience' | 'broadcast' | 'stage';
   readonly method: OutputMethod;
+  readonly target?: 'ndi';
+  readonly ndi?: {readonly sourceName?: string};
   /** The monitor of a full screen output, or null while unassigned. */
   readonly display: SavedDisplay | null;
   readonly onDisconnect: DisconnectAction;

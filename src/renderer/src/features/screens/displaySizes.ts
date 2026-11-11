@@ -42,6 +42,7 @@ export function targetSize(screen: Screen): PixelSize | undefined {
     case 'window':
       return WINDOW_SIZE;
     case 'ndi':
+      return CAPTURE_DEFAULT_SIZE;
     case 'fullscreen':
       return screen.resolution;
     default: {

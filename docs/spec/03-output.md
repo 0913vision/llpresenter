@@ -17,12 +17,12 @@ workspace), 준비 (Prep workspace), 화면 설정 (Screen settings workspace).
 Each screen has one output window. Output windows don't use design system
 components. They draw at the screen's own resolution.
 
-| Method         | Name in 화면 설정 | Window                                                                                                                                                               | Version 1      | Source                            |
-| -------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------------- | --------------------------------- |
-| Full screen    | 전체 화면         | A borderless window that covers the assigned monitor.                                                                                                                | Yes            | `Screens`                         |
-| Window         | 창                | A normal, resizable window on the control monitor. Used to check output without a monitor, and when a monitor is lost.                                               | Yes            | `Screens`, `Problems`             |
-| Capture window | 캡처용 창         | A window at a set resolution (default 1920 x 1080) that isn't tied to a monitor. The background is chroma key green (`chroma`). OBS picks it up with window capture. | Yes            | `Screens`, product log 2026-10-23 |
-| NDI            | NDI               | No window. Sends over the network with an alpha channel.                                                                                                             | Later (see 09) | `ScreensNDI`                      |
+| Method         | Name in 화면 설정 | Window                                                                                                                                                               | Version 1 | Source                            |
+| -------------- | ----------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------- | --------- | --------------------------------- |
+| Full screen    | 전체 화면         | A borderless window that covers the assigned monitor.                                                                                                                | Yes       | `Screens`                         |
+| Window         | 창                | A normal, resizable window on the control monitor. Used to check output without a monitor, and when a monitor is lost.                                               | Yes       | `Screens`, `Problems`             |
+| Capture window | 캡처용 창         | A window at a set resolution (default 1920 x 1080) that isn't tied to a monitor. The background is chroma key green (`chroma`). OBS picks it up with window capture. | Yes       | `Screens`, product log 2026-10-23 |
+| NDI            | NDI               | No window. Sends over the network with an alpha channel.                                                                                                             | M4        | `ScreensNDI`                      |
 
 Rules for output windows:
 
@@ -484,17 +484,13 @@ Source: `Overlays`, `ShowH` (target screens in the showing list), product log
 
 - The app doesn't broadcast. It makes only the 방송 화면 screen. OBS takes it
   and lays it over the camera picture.
-- In version 1, the method is the capture window. It's a window without a
-  monitor. It fills its background with chroma key green (`chroma`) and draws
-  the built-in broadcast layouts over it. OBS picks it up with window capture
-  and a chroma key.
-- The in-app preview of the 방송 화면 also has a green background.
-- The default 테마s draw only the lyrics in the 하단 자막 text style on the 방송
-  자막, over its 빈 화면 색 (green for the capture window).
-- The target method is NDI with an alpha channel, which needs no chroma key. The
-  capture window is the fallback for setups without NDI. NDI comes after version
-  1 (see 09). The 화면 설정 boards and the other boards already label the 방송
-  자막 target "NDI" (open question).
+- The default themes draw their built-in broadcast look over the screen's
+  background, including the band, tab, card, and outlined song text where
+  appropriate (12).
+- NDI omits the screen background and the legacy media-kind caption band; the
+  built-in broadcast look retains its band and card. OBS needs a compatible
+  version, DistroAV, and the NDI Runtime. Network controls and the display
+  layout receiver count remain later work (09).
 
 Source: product log (2026-10-23 capture window, 2026-10-24 NDI preferred with
 the window as fallback), `Main` decision "방송 화면은 NDI로", `Screens`,

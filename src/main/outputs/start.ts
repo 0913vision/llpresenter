@@ -34,9 +34,14 @@ import {assignInitialMonitors} from './initialMonitors';
 import {findControlMonitor} from '../displays/monitor';
 import {watchControlMonitor} from './controlMonitor';
 import type {PlaybackProblemBoard} from './playbackProblems';
+import type {ProblemFeed} from '../problemFeed';
+import {createNdiOutput} from '../ndi/output';
+import type {OutputScreen} from './screens';
+import type {OutputWindowEvents} from './outputWindow';
 
 /** What the output windows hang on. */
 export interface OutputContext {
+  readonly problems?: ProblemFeed;
   readonly playbackProblems?: PlaybackProblemBoard;
   readonly onPrepared?: () => void;
   readonly store: LiveStore;
@@ -146,6 +151,7 @@ export interface RunningOutputs {
  * Keeps the display awake while any output is on.
  */
 export function startOutputs({
+  problems,
   playbackProblems,
   onPrepared,
   store,
@@ -168,22 +174,41 @@ export function startOutputs({
     screenId => screens.list().some(({id}) => id === screenId),
     log,
   );
+  frameRates.setTarget(screenId =>
+    screens.list().find(({id}) => id === screenId)?.target === 'ndi' ? 30 : 60,
+  );
   const board = new OutputStatusBoard({
     screenStates: () => outputs.screenStates(),
     frameRate: screenId => frameRates.current(screenId),
   });
+  const makeWindowTarget = (screen: OutputScreen, events: OutputWindowEvents) =>
+    createElectronOutputWindow(screen, events, {
+      ...(playbackProblems === undefined ? {} : {playbackProblems}),
+      log,
+      mode: windowMode,
+      control,
+    });
+  const targetRegistry = {
+    fullscreen: makeWindowTarget,
+    window: makeWindowTarget,
+    capture: makeWindowTarget,
+    ndi: (screen: OutputScreen, events: OutputWindowEvents) =>
+      createNdiOutput(screen, events, {
+        log,
+        onFailure: (id, missing) => {
+          if (missing) problems?.report({kind: 'ndi-runtime-missing'});
+          else problems?.report({kind: 'ndi-failed'});
+          screens.failNdi(id);
+        },
+      }),
+  };
   const outputs = new OutputManager({
     store,
     displays,
     screens,
     controlBounds,
     createHandle: (screen, events) =>
-      createElectronOutputWindow(screen, events, {
-        ...(playbackProblems === undefined ? {} : {playbackProblems}),
-        log,
-        mode: windowMode,
-        control,
-      }),
+      targetRegistry[screen.target ?? screen.method](screen, events),
     log,
     onStatusChange: () => board.refresh(),
   });

@@ -10,11 +10,9 @@ export function savedScreens(
   return document.name === 'screens' ? document.value.screens : [];
 }
 
-/** The saved screens whose output can turn on: every method but NDI, within the live output cap. */
+/** The saved screens whose output can turn on, within the live output cap. */
 export function switchableScreens(
   settings: Pick<SettingsReader, 'get'>,
 ): readonly Screen[] {
-  return savedScreens(settings)
-    .filter(({method}) => method !== 'ndi')
-    .slice(0, LIVE_STATE_LIMITS.outputs);
+  return savedScreens(settings).slice(0, LIVE_STATE_LIMITS.outputs);
 }

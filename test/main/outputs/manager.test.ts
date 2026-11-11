@@ -249,6 +249,18 @@ beforeEach(() => {
 });
 
 describe('OutputManager placement', () => {
+  it('replaces the target window and reports NDI when a screen changes target', () => {
+    const initial = screenOn(PROJECTOR);
+    const {manager, store, source} = setUp([initial]);
+    store.dispatch(turn(true));
+    const previous = outputOf('main');
+    source.announce([{...initial, method: 'capture', target: 'ndi'}]);
+    expect(previous.dispose).toHaveBeenCalledOnce();
+    expect(mocks.outputs).toHaveLength(2);
+    expect(mocks.outputs[1]?.options.screen.target).toBe('ndi');
+    expect(manager.screenStates().get('main')?.placement).toBe('ndi');
+    manager.dispose();
+  });
   it('replans an enabled screen on control movement and reports its conflict target', () => {
     const {manager, store} = setUp();
     store.dispatch(turn(true));

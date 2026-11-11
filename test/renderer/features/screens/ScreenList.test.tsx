@@ -232,7 +232,7 @@ describe('screen creation and group outputs', () => {
     expect(useLive.getState().state?.outputs[MAIN_ID]).toBeUndefined();
   });
 
-  it('keeps an unsupported NDI screen from sending an enable command', async () => {
+  it('allows an NDI screen to send an enable command', async () => {
     const {send} = setup(
       settingsDocument('screens', {
         screens: [
@@ -242,9 +242,13 @@ describe('screen creation and group outputs', () => {
     );
     fireEvent.contextMenu(await screen.findByRole('option', {name: 'Network'}));
     const enable = screen.getByRole('menuitem', {name: '사용'});
-    expect(enable.getAttribute('aria-disabled')).toBe('true');
+    expect(enable.getAttribute('aria-disabled')).not.toBe('true');
     fireEvent.click(enable);
-    expect(send).not.toHaveBeenCalled();
+    expect(send).toHaveBeenCalledWith({
+      type: 'output.set',
+      screenId: MAIN_ID,
+      on: true,
+    });
   });
 
   it('adds and assigns a monitor in one revision and releases its previous screen', async () => {
@@ -569,7 +573,7 @@ describe('screen creation and group outputs', () => {
     expect(lastAudience.getAttribute('aria-selected')).toBe('true');
   });
 
-  it('keeps non-System outputs outside the group toggle', async () => {
+  it('includes NDI outputs in the group toggle', async () => {
     const {send} = setup(
       settingsDocument('screens', {
         screens: [
@@ -582,7 +586,10 @@ describe('screen creation and group outputs', () => {
     await userEvent.click(screen.getByRole('button', {name: '청중 출력'}));
     expect(send).toHaveBeenLastCalledWith({
       type: 'live.batch',
-      commands: [{type: 'output.set', screenId: MAIN_ID, on: true}],
+      commands: [
+        {type: 'output.set', screenId: MAIN_ID, on: true},
+        {type: 'output.set', screenId: CAPTIONS_ID, on: true},
+      ],
     });
   });
   it('adds an unassigned Audience screen, selects it, and leaves output off', async () => {

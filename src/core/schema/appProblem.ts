@@ -16,6 +16,8 @@ const nameSchema = v.pipe(
 const appProblemSchema = v.pipe(
   plainObject,
   v.variant('kind', [
+    v.object({kind: v.literal('ndi-runtime-missing')}),
+    v.object({kind: v.literal('ndi-failed')}),
     v.object({
       kind: v.literal('macro-dropped'),
       macroId: macroIdSchema,

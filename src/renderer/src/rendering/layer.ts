@@ -69,6 +69,8 @@ export interface RenderFrame {
 }
 
 export interface RenderLayerOptions {
+  /** Draw the foreground without the screen's background, for an NDI spike. */
+  readonly transparent?: boolean;
   /** Shows fixed-size verse text and its line budget in the split preview. */
   readonly biblePreview?: {
     readonly elementId: string;

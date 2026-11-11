@@ -12,9 +12,9 @@ library, or upgrade a version, record the reason in this document.
 2. **Keep dependencies few and pin exact versions.** Write exact versions in
    `package.json`, without `^`, and commit `package-lock.json`. Upgrade versions
    only in a week without a service, after the checklist below.
-3. **Decide when it's needed.** For features we don't use yet (NDI, PowerPoint,
-   sheet music, camera), choose the library in that phase with a short spike.
-   Choose by "Criteria for adding a dependency" below.
+3. **Decide when it's needed.** For features we don't use yet (PowerPoint, sheet
+   music, camera), choose the library in that phase with a short spike. Choose
+   by "Criteria for adding a dependency" below.
 4. **Extend through registries.** A new content type, output target, macro
    action, import format, or input device must take only one new entry in its
    registry. Don't change existing code to wedge it in.
@@ -62,7 +62,7 @@ Output windows (renderer): 청중 화면, 무대 화면, 방송 화면 capture w
   separate
 Media analysis window (hidden renderer, on demand): video and audio duration,
   playability, and video thumbnails, with the same Chromium decoder as output
-Utility process (utilityProcess): import conversion, later NDI sending
+Utility process (utilityProcess): import conversion, NDI sending
 ```
 
 - The control window and the output windows don't change the live output state.
@@ -122,7 +122,7 @@ feature that owns it.
 | ------------------------------------------------ | ----------------------------------------------------- | -------------------------------------------- |
 | Content types (what's drawn inside a 장 (slide)) | Lyrics, Bible verses, text                            | Sheet music, camera input elements           |
 | Layers                                           | Background media, 장, props, audio, messages, notices |                                              |
-| Output targets                                   | Monitor windows, capture window                       | NDI                                          |
+| Output targets                                   | Monitor windows, capture window, NDI                  |                                              |
 | Macro actions                                    | The actions in the action palette of the macro board  | New actions, such as turning on camera input |
 | Import formats                                   | Text files, clipboard text                            | PowerPoint                                   |
 | Input devices                                    | (None)                                                | Cameras (USB capture, NDI input)             |
@@ -278,6 +278,12 @@ A pull request is approved only when it meets everything below
 
 ## Criteria for adding a dependency
 
+NDI output uses Koffi 3.3.7 (MIT) in the utility process to load the separately
+installed NDI Runtime. The Windows prebuilt module works with Electron 44
+without a compiler on the church PC. A real receiver captured the broadcast
+screen with alpha. The installer unpacks the native module; OBS interoperability
+remains a separate lead check.
+
 Add a new library only when it meets all of the following, you've recorded the
 reason in this document, and the lead has approved it.
 
@@ -307,5 +313,5 @@ reason in this document, and the lead has approved it.
 | ------------------------------------------------------------- | --------------------------------- |
 | Initial consonant search method                               | Phase 3 (prep)                    |
 | Bible text sources (format decided in `docs/spec/02-data.md`) | Phase 3 (tools), the user decides |
-| NDI sending (comparing native module candidates)              | Phase 5                           |
+| NDI network controls                                          | Later                             |
 | PowerPoint reading, sheet music rendering, camera input       | The phase of each feature         |
