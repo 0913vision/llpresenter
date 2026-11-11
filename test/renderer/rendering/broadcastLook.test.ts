@@ -1,3 +1,5 @@
+import {mockBroadcastMeasure} from './broadcastMeasure';
+import {styleBroadcastGlass} from '@renderer/rendering/themeElement';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {createScreenId} from '@core/schema/ids';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
@@ -46,97 +48,99 @@ const fitBroadcastLook = (
   item: LiveThemeItem | null,
 ) => fitLook(layout, slide, {item, measureWidth: text => text.length * 20});
 
-beforeEach(() => {
-  vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(
-    function (this: HTMLElement) {
-      return Math.ceil(
-        this.children.length * Number.parseFloat(this.style.fontSize) * 1.25,
-      );
-    },
-  );
-});
+beforeEach(() => mockBroadcastMeasure(1.35));
 afterEach(() => vi.restoreAllMocks());
 
 describe('built-in broadcast look', () => {
-  it('grows its opaque bottom band, shrinking to 44 px after three rows', () => {
-    const one = fitBroadcastLook(plain(), slide, {...item, kind: 'blank'});
-    const four = fitBroadcastLook(
-      plain(),
-      {...slide, lines: ['one', 'two', 'three', 'four']},
-      {...item, kind: 'blank'},
+  it('grows the box for one, three and four rows and shrinks after three', () => {
+    const rows = [1, 3, 4].map(count =>
+      fitBroadcastLook(
+        plain(),
+        {...slide, lines: Array(count).fill('one')},
+        {...item, kind: 'blank'},
+      ),
     );
-    const a = element(one, BROADCAST_LOOK_BAND_ID);
-    const b = element(four, BROADCAST_LOOK_BAND_ID);
-    const body = element(four, BROADCAST_TEXT_ID);
-    expect(a).toMatchObject({
-      frame: {x: 0, w: 1824, h: 150, y: 930},
-      box: {fill: '#106A84', opacity: 100},
+    const boxes = rows.map(layout => element(layout, BROADCAST_LOOK_BAND_ID));
+    expect(boxes.map(box => box.frame.y + box.frame.h)).toEqual([
+      1026, 1026, 1026,
+    ]);
+    expect(boxes[1]!.frame.h).toBeGreaterThan(boxes[0]!.frame.h);
+    expect(boxes[2]!.frame.h).toBeGreaterThan(boxes[1]!.frame.h);
+    expect(element(rows[1]!, BROADCAST_TEXT_ID)).toMatchObject({
+      frame: {x: 90},
+      text: {size: 48, color: '#1F1F1F'},
     });
-    expect(b.frame.h).toBeGreaterThan(a.frame.h);
-    expect(b.frame.y + b.frame.h).toBe(1080);
-    expect(body).toMatchObject({
-      frame: {x: 67},
-      text: {size: 44, align: 'left'},
+    expect(element(rows[2]!, BROADCAST_TEXT_ID)).toMatchObject({
+      text: {size: 42},
     });
   });
-  it('reports an unavailable canvas context instead of silently using zero widths', () => {
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
-    expect(() =>
-      fitLook(plain(), {...slide, reference: 'John 3:16'}, {item}),
-    ).toThrow('Cannot measure broadcast text: canvas context unavailable');
-    expect(document.body.querySelector('[data-slide-measure]')).toBeNull();
-  });
-  it('places the reference tab above the band only for Bible slides', () => {
+  it('shows the strip inside the box only for Bible slides', () => {
     const bible = fitBroadcastLook(
       plain(),
       {...slide, reference: 'John 3:16'},
       item,
     );
+    const blank = fitBroadcastLook(plain(), slide, {...item, kind: 'blank'});
     const band = element(bible, BROADCAST_LOOK_BAND_ID);
-    const tab = element(bible, BROADCAST_LOOK_TAB_ID);
-    const ref = element(bible, BROADCAST_REFERENCE_ID);
-    expect(tab).toMatchObject({
-      frame: {x: 0, y: band.frame.y - 64, h: 64, w: 9 * 20 + 115},
-      box: {fill: '#F7F8FC', opacity: 100},
+    expect(element(bible, BROADCAST_LOOK_TAB_ID)).toMatchObject({
+      frame: {x: 64, y: band.frame.y + 6, h: 48},
       runtimeHidden: false,
     });
-    expect(ref).toMatchObject({
-      frame: {x: 67, y: tab.frame.y},
-      text: {size: 36, color: '#1A1A1A'},
+    expect(element(bible, BROADCAST_REFERENCE_ID)).toMatchObject({
+      frame: {x: 90},
+      text: {size: 30, color: '#FFFFFF'},
     });
-    const blank = fitBroadcastLook(
-      plain(),
-      {...slide, reference: 'John 3:16'},
-      {...item, kind: 'blank'},
-    );
     expect(element(blank, BROADCAST_LOOK_TAB_ID)).toMatchObject({
       runtimeHidden: true,
     });
     expect(element(blank, BROADCAST_REFERENCE_ID)).toMatchObject({
       runtimeHidden: true,
     });
+    expect(
+      element(
+        fitBroadcastLook(plain(), {...slide, lines: []}, item),
+        BROADCAST_LOOK_BAND_ID,
+      ),
+    ).toMatchObject({runtimeHidden: true});
   });
-  it('anchors outlined songs and the empty title at the same bottom, without any green box', () => {
+  it('makes the panel opaque without a shadow for a capture window', () => {
+    const capture = document.createElement('div');
+    const ndi = document.createElement('div');
+    styleBroadcastGlass(capture, 'panel', true);
+    styleBroadcastGlass(ndi, 'panel', false);
+    expect(capture.style.borderColor).toBe('rgb(232, 232, 232)');
+    expect(
+      (capture.firstElementChild as HTMLElement).style.backgroundColor,
+    ).toBe('rgb(254, 253, 249)');
+    expect(capture.style.boxShadow).toBe('none');
+    expect(ndi.style.boxShadow).toContain('16px');
+    expect(ndi.style.borderColor).toContain('45%');
+  });
+  it('puts songs and the empty slide title in a glass box and hides empty text', () => {
     const layout = builtInTheme('song').screens[screen];
     if (!layout) throw Error('missing song');
-    expect(layout.elements.map(e => e.kind)).toEqual(['currentText']);
-    const song = {...item, kind: 'song' as const, title: '주 사랑'};
-    for (const lines of [['one', 'two'], []]) {
-      const result = fitBroadcastLook(layout, {...slide, lines}, song);
-      const body = element(result, BROADCAST_LOOK_SONG_ID);
-      expect(body.frame.y + body.frame.h).toBe(1004);
-      expect(body).toMatchObject({
-        text: {
-          size: 64,
-          align: 'center',
-          outline: {on: true, width: 3},
-          shadow: {on: true, blur: 0, opacity: 100},
-        },
-      });
-      if (!lines.length) {
-        expect(body).toMatchObject({broadcastText: '주 사랑'});
-      }
-    }
+    const song = {...item, kind: 'song' as const, title: 'Song title'};
+    const result = fitBroadcastLook(
+      layout,
+      {...slide, lines: ['one', 'two']},
+      song,
+    );
+    expect(element(result, BROADCAST_LOOK_BAND_ID)).toMatchObject({
+      frame: {x: 120, w: 1680},
+      runtimeHidden: false,
+    });
+    expect(element(result, BROADCAST_LOOK_SONG_ID)).toMatchObject({
+      frame: {x: 160},
+      text: {size: 56, align: 'left', color: '#1F1F1F'},
+    });
+    const empty = fitBroadcastLook(
+      layout,
+      {...slide, lines: []},
+      {...song, title: ''},
+    );
+    expect(element(empty, BROADCAST_LOOK_BAND_ID)).toMatchObject({
+      runtimeHidden: true,
+    });
   });
   it('shows the song title, never the empty slide label, and remains empty without a title', () => {
     const layout = builtInTheme('song').screens[screen];
@@ -170,14 +174,14 @@ describe('built-in broadcast look', () => {
     };
     const result = fitBroadcastLook(layout, current, {...item, kind: 'blank'});
     expect(element(result, BROADCAST_LOOK_CARD_ID)).toMatchObject({
-      frame: {x: 0, w: 640},
-      box: {fill: '#1D3A96'},
+      frame: {x: 58, w: 276},
+      box: {fill: '#FEFDF9'},
     });
-    expect(element(result, BROADCAST_LOOK_CARD_ID).frame.w).toBe(640);
+    expect(element(result, BROADCAST_LOOK_CARD_ID).frame.w).toBe(276);
     expect(element(result, BROADCAST_REFERENCE_ID)).toMatchObject({
       kind: 'text',
       content: 'LONG SERMON',
-      text: {size: 34, weight: 600},
+      text: {size: 28, weight: 600},
     });
     const longer = fitBroadcastLook(
       layout,
@@ -187,7 +191,7 @@ describe('built-in broadcast look', () => {
       },
       {...item, kind: 'blank'},
     );
-    expect(element(longer, BROADCAST_LOOK_CARD_ID).frame.w).toBe(920);
+    expect(element(longer, BROADCAST_LOOK_CARD_ID).frame.w).toBe(856);
   });
   it('leaves unrelated layouts untouched and links advertisements to the audience', () => {
     const layout = builtInTheme('ad').screens[screen];

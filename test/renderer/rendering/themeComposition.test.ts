@@ -15,7 +15,6 @@ import {
   BROADCAST_LOOK_BAND_ID,
   BROADCAST_LOOK_TAB_ID,
   BROADCAST_LOOK_CARD_ID,
-  BROADCAST_LOOK_SONG_ID,
 } from '@core/themes/broadcastLook';
 import {sectionOtherLayout} from '@core/themes/sundaySections';
 import type {ThemeItemKind} from '@core/themes/elementRules';
@@ -137,6 +136,9 @@ afterEach(() => {
 
 describe('theme composition drawing', () => {
   it('keeps the new broadcast look on transparent NDI output', () => {
+    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue({
+      measureText: (text: string) => ({width: text.length * 20}),
+    } as CanvasRenderingContext2D);
     const root = document.createElement('div');
     const view = new ThemeCompositionView(root, {
       textStyle: DEFAULT_TEXT_STYLE,
@@ -156,14 +158,38 @@ describe('theme composition drawing', () => {
     render('card');
     const card = element(BROADCAST_LOOK_CARD_ID)?.firstElementChild;
     expect(card).toBeInstanceOf(HTMLElement);
-    expect(card?.getAttribute('style')).toContain('rgb(29, 58, 150)');
+    expect(card?.getAttribute('style')).toContain('16px');
     render('song');
-    expect(
-      element(BROADCAST_LOOK_SONG_ID)?.querySelector(`.${classes.outline}`),
-    ).not.toBeNull();
+    expect(element(BROADCAST_LOOK_BAND_ID)?.firstElementChild).not.toBeNull();
     expect(root.textContent).toContain('Invented line');
     view.dispose();
   });
+  it.each(['capture', 'ndi'] as const)(
+    'draws an opaque box in a %s capture window',
+    method => {
+      const root = document.createElement('div');
+      const view = new ThemeCompositionView(root, {
+        textStyle: DEFAULT_TEXT_STYLE,
+        mediaUrl: id => id,
+        onError: vi.fn(),
+      });
+      const active = frame(broadcastLookLayout('song').elements);
+      view.render(song, {
+        ...active,
+        screen: {id: THEME_MAIN, kind: 'broadcast', method},
+        transitions: false,
+      });
+      const panel = root.querySelector<HTMLElement>(
+        `[data-theme-element="${BROADCAST_LOOK_BAND_ID}"] > div`,
+      );
+      expect(panel?.style.borderColor).toBe('rgb(232, 232, 232)');
+      expect(panel?.style.boxShadow).toBe('none');
+      expect(
+        (panel?.firstElementChild as HTMLElement).style.backgroundColor,
+      ).toBe('rgb(254, 253, 249)');
+      view.dispose();
+    },
+  );
   it('omits the built-in caption band only for transparent output', () => {
     const screenId = createScreenId(STARTER_SCREEN_IDS.broadcast);
     const layout = builtInTheme('song').screens[screenId];

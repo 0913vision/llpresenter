@@ -110,17 +110,17 @@ it('adds an editable section theme without changing the kind defaults or other s
   const broadcast =
     theme?.screens[createScreenId(STARTER_SCREEN_IDS.broadcast)];
   expect(broadcast?.elements).toMatchObject([
-    {kind: 'box', box: {fill: '#1D3A96', opacity: 100}},
+    {kind: 'box', box: {fill: '#FEFDF9', opacity: 90}},
     {
       kind: 'itemName',
       text: {
         font: 'Pretendard Variable',
-        size: 64,
+        size: 52,
         weight: 700,
         align: 'left',
       },
     },
-    {kind: 'currentText', text: {size: 34, weight: 600}},
+    {kind: 'currentText', text: {size: 28, weight: 600}},
   ]);
   const stage = createScreenId(STARTER_SCREEN_IDS.stage);
   const stageLayout = theme?.screens[stage];

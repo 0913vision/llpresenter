@@ -16,7 +16,12 @@ import {measureSlideText} from './slideLayer';
 import {fitFontSize} from './fitText';
 import {broadcastBibleFlow} from './broadcastBibleFlow';
 
-/** Resolves the broadcast-only Bible flow and empty-song title. */
+/**
+ * Resolves the broadcast-only Bible flow and empty-song title.
+ * @param slide - The current slide, if any.
+ * @param item - Its live theme item, if any.
+ * @returns Whether Bible flow applies and the title for an empty song slide.
+ */
 export function broadcastIntent(
   slide: SlideLayer | null,
   item: LiveThemeItem | null,

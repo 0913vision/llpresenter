@@ -18,44 +18,54 @@ export const BROADCAST_LOOK_CARD_ID = createThemeElementId(
 export const BROADCAST_LOOK_TAB_ID = createThemeElementId(
   '00000000-0000-4000-8000-000000000485',
 );
-/** Reference-pixel geometry for the built-in broadcast composition. */
+/** Sizes, colors and effects for the built-in broadcast glass box at 1920?1080. */
 export const BROADCAST_LOOK_GEOMETRY = {
   screenWidth: 1920,
   screenHeight: 1080,
-  bandWidth: 1824,
-  bodyX: 67,
-  bodyWidth: 1690,
-  bandMinHeight: 150,
-  bandPaddingTop: 22,
-  bandPaddingBottom: 26,
+  panelX: 58,
+  panelWidth: 1804,
+  panelBottom: 1026,
+  radius: 18,
+  frameWidth: 6,
+  frameColor: '#E8E8E8',
+  frameOpacity: 45,
+  panelColor: '#FEFDF9',
+  panelOpacity: 90,
+  shadowColor: '#000000',
+  shadowOpacity: 35,
+  shadowBlur: 16,
+  headerColor: '#4D4038',
+  headerOpacity: 95,
+  headerFade: 60,
+  headerHeight: 48,
+  bodyX: 90,
+  bodyWidth: 1740,
+  bodyPaddingTop: 22,
+  bodyPaddingBottom: 26,
   bodyWeight: 700,
-  bodySize: 54,
-  bodyMinSize: 44,
-  bodyLineHeight: 1.25,
+  bodySize: 48,
+  bodyMinSize: 42,
+  bodyLineHeight: 1.35,
   bodyPreferredLines: 3,
   maxBodyHeight: 900,
-  tabHeight: 64,
-  tabTextSize: 36,
-  tabRightPadding: 48,
-  tabTextSlack: 2,
+  tabTextSize: 30,
+  textColor: '#1F1F1F',
+  headerTextColor: '#FFFFFF',
+  songPanelX: 120,
+  songPanelWidth: 1680,
   songX: 160,
   songWidth: 1600,
-  songSize: 64,
+  songSize: 56,
   songLines: 2,
-  songBottom: 1004,
-  cardMinWidth: 640,
-  cardLeft: 56,
-  cardRight: 64,
-  cardTop: 28,
-  cardBottom: 32,
-  cardNameSize: 64,
-  cardNameHeight: 80,
-  cardEnglishSize: 34,
+  songLineHeight: 1.25,
+  cardPadding: 28,
+  cardNameSize: 52,
+  cardNameHeight: 65,
+  cardEnglishSize: 28,
   cardEnglishWeight: 600,
-  cardEnglishGap: 8,
-  cardEnglishHeight: 42.5,
-  cardEnglishFrameHeight: 43,
-  minExtent: 8,
+  cardEnglishColor: '#6B6B6B',
+  cardEnglishGap: 0,
+  cardEnglishHeight: 35,
   measureTolerance: 1,
 } as const;
 const geometry = BROADCAST_LOOK_GEOMETRY;
@@ -64,7 +74,7 @@ const style: ThemeText & {maxLines: number} = {
   font: 'Pretendard Variable',
   weight: geometry.bodyWeight,
   size: geometry.bodySize,
-  color: '#ffffff',
+  color: geometry.textColor,
   align: 'left',
   vAlign: 'top',
   lineHeight: geometry.bodyLineHeight,
@@ -80,32 +90,27 @@ const style: ThemeText & {maxLines: number} = {
     distance: 3,
   },
 };
-const outlined = {
-  ...style,
-  outline: {...style.outline, on: true},
-  shadow: {...style.shadow, on: true},
-};
-const box = (
-  id: typeof BROADCAST_LOOK_BAND_ID,
-  fill: string,
-): ThemeElement => ({
+const box = (id: typeof BROADCAST_LOOK_BAND_ID): ThemeElement => ({
   id,
   kind: 'box',
   frame,
-  box: {on: true, fill, opacity: 100, radius: 0},
+  box: {
+    on: true,
+    fill: geometry.panelColor,
+    opacity: geometry.panelOpacity,
+    radius: geometry.radius,
+  },
 });
-/** Built-in broadcast composition; all decoration is opaque and alpha-safe. */
+/** Built-in broadcast composition, fitted by the output renderer. */
 export function broadcastLookLayout(
   kind: 'plain' | 'song' | 'card',
 ): ThemeScreenLayout {
   const elements: ThemeElement[] = [];
   if (kind === 'plain') {
-    elements.push(
-      box(BROADCAST_LOOK_BAND_ID, '#106A84'),
-      box(BROADCAST_LOOK_TAB_ID, '#F7F8FC'),
-    );
+    elements.push(box(BROADCAST_LOOK_BAND_ID), box(BROADCAST_LOOK_TAB_ID));
   }
-  if (kind === 'card') elements.push(box(BROADCAST_LOOK_CARD_ID, '#1D3A96'));
+  if (kind === 'card') elements.push(box(BROADCAST_LOOK_CARD_ID));
+  if (kind === 'song') elements.push(box(BROADCAST_LOOK_BAND_ID));
   if (kind === 'card') {
     elements.push({
       id: BROADCAST_TEXT_ID,
@@ -120,6 +125,7 @@ export function broadcastLookLayout(
       text: {
         ...style,
         size: geometry.cardEnglishSize,
+        color: geometry.cardEnglishColor,
         weight: geometry.cardEnglishWeight,
       },
     });
@@ -131,9 +137,10 @@ export function broadcastLookLayout(
       text:
         kind === 'song'
           ? {
-              ...outlined,
+              ...style,
               size: geometry.songSize,
-              align: 'center',
+              align: 'left',
+              lineHeight: geometry.songLineHeight,
               maxLines: geometry.songLines,
             }
           : style,
@@ -143,7 +150,11 @@ export function broadcastLookLayout(
         id: BROADCAST_REFERENCE_ID,
         kind: 'reference',
         frame,
-        text: {...style, size: geometry.tabTextSize, color: '#1A1A1A'},
+        text: {
+          ...style,
+          size: geometry.tabTextSize,
+          color: geometry.headerTextColor,
+        },
       });
     }
   }

@@ -24,7 +24,7 @@ import {broadcastBibleFlow} from './broadcastBibleFlow';
 type MeasureWidth = (text: string, size: number, weight?: number) => number;
 type TextElement = Extract<ThemeElement, {kind: 'currentText'}>;
 
-// NOTE(0913vision): Each document owns one probe; a failed context lookup is not cached.
+// NOTE(0913vision): Each document owns its canvas context so tests and separate output windows never share a probe. A failed lookup is not cached.
 const contexts = new WeakMap<Document, CanvasRenderingContext2D>();
 function textWidth(
   text: string,
@@ -97,17 +97,11 @@ function fittedText({
             geometry.measureTolerance,
       );
     }
-    if (!song && measure.height(size) > geometry.maxBodyHeight) {
-      size = fitFontSize(
-        size,
-        candidate => measure.height(candidate) <= geometry.maxBodyHeight,
-      );
-    }
     return {
       size,
-      height: Math.min(
-        geometry.maxBodyHeight,
-        Math.max(size * style.lineHeight, Math.ceil(measure.height(size))),
+      height: Math.max(
+        size * style.lineHeight,
+        Math.ceil(measure.height(size)),
       ),
     };
   } finally {
@@ -115,43 +109,10 @@ function fittedText({
   }
 }
 
-function fitTab(
-  element: ThemeElement,
-  {
-    top,
-    reference,
-    visible,
-    widthOf,
-  }: {top: number; reference: string; visible: boolean; widthOf: MeasureWidth},
-): ResolvedThemeElement {
-  const width = Math.min(
-    geometry.screenWidth,
-    Math.max(
-      geometry.minExtent,
-      Math.ceil(
-        widthOf(reference, geometry.tabTextSize) +
-          geometry.bodyX +
-          geometry.tabRightPadding,
-      ),
-    ),
-  );
-  return {
-    ...element,
-    frame: {
-      x: 0,
-      y: Math.max(0, top - geometry.tabHeight),
-      w: width,
-      h: geometry.tabHeight,
-    },
-    runtimeHidden: !reference.trim() || !visible,
-    clearTarget: 'slide',
-  };
-}
-
 function fitBand(
   layout: ThemeScreenLayout,
   slide: SlideLayer | null,
-  {item, widthOf}: {item: LiveThemeItem | null; widthOf: MeasureWidth},
+  {item}: {item: LiveThemeItem | null},
 ): ThemeScreenLayout {
   const content = {layers: {...emptyLayers(), slide}, item};
   const body = layout.elements.find(
@@ -174,33 +135,50 @@ function fitBand(
     width: geometry.bodyWidth,
     song: false,
   });
-  const bandHeight = Math.max(
-    geometry.bandMinHeight,
-    height + geometry.bandPaddingTop + geometry.bandPaddingBottom,
-  );
-  const top = geometry.screenHeight - bandHeight;
-  const visible =
-    slide !== null &&
-    !item?.contentCleared &&
-    (value.trim() !== '' || reference.trim() !== '');
+  const hasHeader = bible;
+  const bandHeight =
+    height +
+    geometry.bodyPaddingTop +
+    geometry.bodyPaddingBottom +
+    (hasHeader ? geometry.headerHeight : 0);
+  const top = geometry.panelBottom - bandHeight;
+  const visible = slide !== null && !item?.contentCleared && !!value.trim();
   const elements = layout.elements.map((e): ResolvedThemeElement => {
-    if (e.id === BROADCAST_LOOK_BAND_ID && e.kind === 'box') {
+    if (e.id === BROADCAST_LOOK_BAND_ID && e.kind === 'box')
       return {
         ...e,
-        frame: {x: 0, y: top, w: geometry.bandWidth, h: bandHeight},
+        frame: {
+          x: geometry.panelX,
+          y: top,
+          w: geometry.panelWidth,
+          h: bandHeight,
+        },
         runtimeHidden: !visible,
         clearTarget: 'slide',
+        broadcastGlass: 'panel',
       };
-    }
-    if (e.id === BROADCAST_LOOK_TAB_ID && e.kind === 'box') {
-      return fitTab(e, {top, reference, visible, widthOf});
-    }
-    if (e.id === BROADCAST_TEXT_ID && e.kind === 'currentText') {
+    if (e.id === BROADCAST_LOOK_TAB_ID && e.kind === 'box')
+      return {
+        ...e,
+        frame: {
+          x: geometry.panelX + geometry.frameWidth,
+          y: top + geometry.frameWidth,
+          w: geometry.panelWidth - 2 * geometry.frameWidth,
+          h: geometry.headerHeight,
+        },
+        runtimeHidden: !visible || !hasHeader,
+        clearTarget: 'slide',
+        broadcastGlass: 'header',
+      };
+    if (e.id === BROADCAST_TEXT_ID && e.kind === 'currentText')
       return {
         ...e,
         frame: {
           x: geometry.bodyX,
-          y: top + geometry.bandPaddingTop,
+          y:
+            top +
+            geometry.bodyPaddingTop +
+            (hasHeader ? geometry.headerHeight : 0),
           w: geometry.bodyWidth,
           h: height,
         },
@@ -208,29 +186,18 @@ function fitBand(
         minimumTextSize: size,
         broadcastBibleFlow: bible,
       };
-    }
-    if (e.id === BROADCAST_REFERENCE_ID && e.kind === 'reference') {
+    if (e.id === BROADCAST_REFERENCE_ID && e.kind === 'reference')
       return {
         ...e,
         frame: {
           x: geometry.bodyX,
-          y: Math.max(0, top - geometry.tabHeight),
-          w: Math.max(
-            geometry.minExtent,
-            Math.min(
-              geometry.screenWidth - geometry.bodyX - geometry.tabRightPadding,
-              Math.ceil(
-                widthOf(reference, geometry.tabTextSize) +
-                  geometry.tabTextSlack,
-              ),
-            ),
-          ),
-          h: geometry.tabHeight,
+          y: top + geometry.frameWidth,
+          w: geometry.bodyWidth,
+          h: geometry.headerHeight,
         },
         text: {...e.text, vAlign: 'middle'},
-        runtimeHidden: !reference.trim() || !visible,
+        runtimeHidden: !visible || !reference.trim(),
       };
-    }
     return e;
   });
   return {...layout, elements};
@@ -259,22 +226,39 @@ function fitSong(
     width: geometry.songWidth,
     song: true,
   });
-  const elements = layout.elements.map((e): ResolvedThemeElement =>
-    e.id === BROADCAST_LOOK_SONG_ID && e.kind === 'currentText'
-      ? {
-          ...e,
-          frame: {
-            x: geometry.songX,
-            y: geometry.songBottom - height,
-            w: geometry.songWidth,
-            h: height,
-          },
-          text: {...e.text, size},
-          minimumTextSize: size,
-          broadcastText: value,
-        }
-      : e,
-  );
+  const visible = slide !== null && !item?.contentCleared && !!value.trim();
+  const panelHeight =
+    height + geometry.bodyPaddingTop + geometry.bodyPaddingBottom;
+  const top = geometry.panelBottom - panelHeight;
+  const elements = layout.elements.map((e): ResolvedThemeElement => {
+    if (e.id === BROADCAST_LOOK_BAND_ID && e.kind === 'box')
+      return {
+        ...e,
+        frame: {
+          x: geometry.songPanelX,
+          y: top,
+          w: geometry.songPanelWidth,
+          h: panelHeight,
+        },
+        runtimeHidden: !visible,
+        clearTarget: 'slide',
+        broadcastGlass: 'panel',
+      };
+    if (e.id === BROADCAST_LOOK_SONG_ID && e.kind === 'currentText')
+      return {
+        ...e,
+        frame: {
+          x: geometry.songX,
+          y: top + geometry.bodyPaddingTop,
+          w: geometry.songWidth,
+          h: height,
+        },
+        text: {...e.text, size},
+        minimumTextSize: size,
+        broadcastText: value,
+      };
+    return e;
+  });
   return {...layout, elements};
 }
 
@@ -292,38 +276,35 @@ function fitCard(
     ? ''
     : (slide?.sectionCard?.name ?? item?.title ?? '');
   const height =
-    geometry.cardTop +
+    geometry.cardPadding * 2 +
     geometry.cardNameHeight +
-    (english ? geometry.cardEnglishGap + geometry.cardEnglishHeight : 0) +
-    geometry.cardBottom;
+    (english ? geometry.cardEnglishGap + geometry.cardEnglishHeight : 0);
   const width = Math.min(
-    geometry.screenWidth,
-    Math.max(
-      geometry.cardMinWidth,
-      Math.ceil(
-        Math.max(
-          widthOf(name, geometry.cardNameSize),
-          widthOf(
-            english,
-            geometry.cardEnglishSize,
-            geometry.cardEnglishWeight,
-          ),
-        ) +
-          geometry.cardLeft +
-          geometry.cardRight,
-      ),
+    geometry.screenWidth - geometry.panelX,
+    Math.ceil(
+      Math.max(
+        widthOf(name, geometry.cardNameSize),
+        widthOf(english, geometry.cardEnglishSize, geometry.cardEnglishWeight),
+      ) +
+        geometry.cardPadding * 2,
     ),
   );
   const visible =
     slide !== null &&
     !item?.contentCleared &&
     (name.trim() !== '' || english.trim() !== '');
-  const textWidth = width - geometry.cardLeft - geometry.cardRight;
+  const textWidth = width - geometry.cardPadding * 2;
   const elements = layout.elements.map((e): ResolvedThemeElement => {
     if (e.id === BROADCAST_LOOK_CARD_ID && e.kind === 'box') {
       return {
         ...e,
-        frame: {x: 0, y: geometry.screenHeight - height, w: width, h: height},
+        frame: {
+          x: geometry.panelX,
+          y: geometry.panelBottom - height,
+          w: width,
+          h: height,
+        },
+        broadcastGlass: 'panel',
         runtimeHidden: !visible,
         clearTarget: 'slide',
       };
@@ -335,8 +316,8 @@ function fitCard(
         content: visible ? name : '',
         clearTarget: 'slide',
         frame: {
-          x: geometry.cardLeft,
-          y: geometry.screenHeight - height + geometry.cardTop,
+          x: geometry.panelX + geometry.cardPadding,
+          y: geometry.panelBottom - height + geometry.cardPadding,
           w: textWidth,
           h: geometry.cardNameHeight,
         },
@@ -349,15 +330,15 @@ function fitCard(
         content: visible ? english : '',
         clearTarget: 'slide',
         frame: {
-          x: geometry.cardLeft,
+          x: geometry.panelX + geometry.cardPadding,
           y:
-            geometry.screenHeight -
+            geometry.panelBottom -
             height +
-            geometry.cardTop +
+            geometry.cardPadding +
             geometry.cardNameHeight +
             geometry.cardEnglishGap,
           w: textWidth,
-          h: geometry.cardEnglishFrameHeight,
+          h: geometry.cardEnglishHeight,
         },
       };
     }
@@ -376,11 +357,11 @@ export function fitBroadcastLook(
   }: {item: LiveThemeItem | null; measureWidth?: MeasureWidth},
 ): ThemeScreenLayout {
   if (!isBroadcastLook(layout)) return layout;
-  if (layout.elements.some(e => e.id === BROADCAST_LOOK_BAND_ID)) {
-    return fitBand(layout, slide, {item, widthOf: measureWidth});
-  }
   if (layout.elements.some(e => e.id === BROADCAST_LOOK_SONG_ID)) {
     return fitSong(layout, slide, item);
+  }
+  if (layout.elements.some(e => e.id === BROADCAST_LOOK_BAND_ID)) {
+    return fitBand(layout, slide, {item});
   }
   return fitCard(layout, slide, {item, widthOf: measureWidth});
 }
