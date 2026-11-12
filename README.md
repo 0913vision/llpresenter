@@ -18,7 +18,7 @@ Download `LoveLightPresenter-Setup-<version>.exe` from this repository's
 and choose the installation folder. The desktop and Start menu shortcuts are
 named **LoveLight Presenter**. Uninstalling keeps the app data, libraries, and
 backups. The installer does not include locally prepared Bible text or the
-optional AI model. The app currently uses Electron's default icon.
+optional AI model. The app icon comes from the church's logo in `build/`.
 
 첫 실행 전에
 [KoPub 공식 페이지](https://www.kopus.org/biz-electronic-font2/)에서 주일 테마

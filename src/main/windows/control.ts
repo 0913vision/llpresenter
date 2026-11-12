@@ -3,6 +3,7 @@ import {windowEndpoints} from '@contracts/ipc/window';
 import type {Logger} from '../log';
 import type {UiZoomRegistration} from '../store/uiZoom';
 import {audioMutedByDefault} from './audioPolicy';
+import {appIconPath} from './appIcon';
 import {reloadAfterCrash} from './crashReload';
 import {blockNavigation, loadPage, preloadPath, type PageRequest} from './page';
 import {
@@ -38,6 +39,7 @@ export function createControlWindow(
     show: false,
     frame: false,
     title: 'LoveLight Presenter',
+    icon: appIconPath,
     backgroundColor: BACKGROUND,
     ...testOptions,
     webPreferences: {

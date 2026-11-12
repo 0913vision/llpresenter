@@ -3,6 +3,7 @@ import type {UiZoomRegistration} from '../store/uiZoom';
 import type {Logger} from '../log';
 import {blockNavigation, loadPage, preloadPath} from './page';
 import {reloadAfterCrash} from './crashReload';
+import {appIconPath} from './appIcon';
 import {
   discardTestFrames,
   windowTestOptions,
@@ -55,6 +56,7 @@ export function createPreferencesWindow({
     maximizable: false,
     title: '환경설정',
     frame: false,
+    icon: appIconPath,
     show: false,
     opacity: 0,
     paintWhenInitiallyHidden: false,

@@ -1,6 +1,7 @@
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {createControlWindow} from '@main/windows/control';
+import {appIconPath} from '@main/windows/appIcon';
 import {loadPage} from '@main/windows/page';
 import {CRASH_LIMIT, CRASH_PERIOD_MS} from '@main/outputs/restartBudget';
 import {audioMutedByDefault} from '@main/windows/audioPolicy';
@@ -75,6 +76,7 @@ describe('createControlWindow', () => {
     expect(win.options).toMatchObject({
       show: false,
       skipTaskbar: true,
+      icon: appIconPath,
       webPreferences: {offscreen: {useSharedTexture: true}},
     });
     win.emit('ready-to-show');

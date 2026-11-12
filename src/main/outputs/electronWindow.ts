@@ -1,5 +1,6 @@
 import {BrowserWindow, screen as displays} from 'electron';
 import {centeredRect, sameRect, type Rect, type Size} from '../displays/rect';
+import {appIconPath} from '../windows/appIcon';
 import type {Logger} from '../log';
 import {
   blockNavigation,
@@ -58,6 +59,7 @@ function createBrowserWindow(
     paintWhenInitiallyHidden: true,
     focusable: true,
     title: screen.name,
+    icon: appIconPath,
     backgroundColor:
       screen.method === 'capture' ? CAPTURE_BACKGROUND : OUTPUT_BACKGROUND,
     minimizable: screen.method !== 'capture',

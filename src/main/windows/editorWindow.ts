@@ -3,6 +3,7 @@ import type {UiZoomRegistration} from '../store/uiZoom';
 import type {Logger} from '../log';
 import {blockNavigation, loadPage, preloadPath, type PageRequest} from './page';
 import {reloadAfterCrash} from './crashReload';
+import {appIconPath} from './appIcon';
 import {
   discardTestFrames,
   windowTestOptions,
@@ -52,6 +53,7 @@ export function createEditorWindow({
     minWidth,
     minHeight,
     title,
+    icon: appIconPath,
     frame: false,
     show: false,
     backgroundColor: BACKGROUND_COLOR,

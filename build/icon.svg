@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024" preserveAspectRatio="xMinYMin meet">
+  <defs>
+    <!-- Exact 45-degree diagonal gradient from Round 8/10 (1024x1024 viewBox) -->
+    <linearGradient id="lovelightGrad" x1="158.9" y1="162.9" x2="857.1" y2="861.1" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#0A4479"/>
+      <stop offset="12.5%" stop-color="#0D437A"/>
+      <stop offset="25%" stop-color="#0D4C88"/>
+      <stop offset="37.5%" stop-color="#0B599B"/>
+      <stop offset="50%" stop-color="#086BB4"/>
+      <stop offset="62.5%" stop-color="#0580CE"/>
+      <stop offset="75%" stop-color="#0293E6"/>
+      <stop offset="87.5%" stop-color="#00A4FC"/>
+      <stop offset="100%" stop-color="#01B3FE"/>
+    </linearGradient>
+    <!-- Soft upward screen glow radiating from the hill at the bottom edge -->
+    <radialGradient id="screenHillGlow" cx="508" cy="780" r="560" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#DDF4FF"/>
+      <stop offset="38%" stop-color="#F5FBFF"/>
+      <stop offset="75%" stop-color="#FFFFFF"/>
+      <stop offset="100%" stop-color="#FFFFFF"/>
+    </radialGradient>
+    <clipPath id="cpScreen">
+      <path d="M 68.00 312.00 Q 68.00 236.00 142.74 222.20 L 865.53 88.71 Q 956.00 72.00 956.00 164.00 L 956.00 860.00 Q 956.00 952.00 865.53 935.29 L 142.74 801.80 Q 68.00 788.00 68.00 712.00 Z"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#cpScreen)">
+    <path d="M 68.00 312.00 Q 68.00 236.00 142.74 222.20 L 865.53 88.71 Q 956.00 72.00 956.00 164.00 L 956.00 860.00 Q 956.00 952.00 865.53 935.29 L 142.74 801.80 Q 68.00 788.00 68.00 712.00 Z" fill="url(#screenHillGlow)"/>
+    <ellipse cx="528" cy="752" rx="420" ry="88" fill="#8CE0FF" opacity="0.38"/>
+    <path d="M 0.00 890.40 A 980.00 980.00 0 0 1 1024.00 870.79 L 1024.00 1024.00 L 0.00 1024.00 Z" fill="url(#lovelightGrad)"/>
+    <path d="M 476.25 265.51 L 579.75 259.42 L 579.75 419.59 L 723.38 402.68 L 723.38 511.56 L 579.75 528.47 L 579.75 784.00 L 476.25 784.00 L 476.25 540.66 L 332.62 557.56 L 332.62 448.68 L 476.25 431.77 Z" fill="url(#lovelightGrad)"/>
+    <path fill-rule="evenodd" d="M 68.00 312.00 Q 68.00 236.00 142.74 222.20 L 865.53 88.71 Q 956.00 72.00 956.00 164.00 L 956.00 860.00 Q 956.00 952.00 865.53 935.29 L 142.74 801.80 Q 68.00 788.00 68.00 712.00 Z M 89.00 310.00 Q 89.00 254.00 144.05 243.72 L 864.22 109.22 Q 935.00 96.00 935.00 168.00 L 935.00 856.00 Q 935.00 928.00 864.22 914.78 L 144.05 780.28 Q 89.00 770.00 89.00 714.00 Z" fill="url(#lovelightGrad)"/>
+  </g>
+</svg>
