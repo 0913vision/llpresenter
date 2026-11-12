@@ -339,7 +339,7 @@ describe('theme composition drawing', () => {
     normal.view.dispose();
   });
   it.each(['main', 'stage'] as const)(
-    'keeps Bible source rows on the %s screen',
+    'lays out Bible text for the %s screen without changing its source',
     screenKind => {
       const screenId = createScreenId(STARTER_SCREEN_IDS[screenKind]);
       const layout = builtInTheme('bible').screens[screenId];
@@ -372,10 +372,11 @@ describe('theme composition drawing', () => {
           `[data-kind="currentText"] .${classes.shown} .${classes.block}`,
         );
         if (!block) throw Error('Missing Bible text');
-        expect(Array.from(block.children, child => child.textContent)).toEqual([
-          'first line',
-          'second line',
-        ]);
+        expect(Array.from(block.children, child => child.textContent)).toEqual(
+          screenKind === 'main'
+            ? ['first line', 'second line']
+            : ['first line second line'],
+        );
         expect(current.slide.lines).toEqual(['first line', 'second line']);
       } finally {
         view.dispose();
@@ -1747,6 +1748,82 @@ describe('theme composition drawing', () => {
     observer.disconnect();
     view.dispose();
   });
+});
+
+it('reflows Bible parts independently on stage and broadcast, including the next verse', () => {
+  const {root, view} = setup();
+  const elements: ThemeElement[] = [
+    {...themeElementBase(), kind: 'currentText'},
+    {...themeElementBase(31), kind: 'nextText', lineLimit: 2},
+  ];
+  const current = [
+    '29 \ub098\ub294 \ub9c8\uc74c\uc774 \uc628\uc720\ud558\uace0 \uacb8\uc190\ud558\ub2c8',
+    '\ub098\uc758 \uba4d\uc5d0\ub97c \uba54\uace0 \ub0b4\uac8c \ubc30\uc6b0\ub77c \uadf8\ub9ac\ud558\uba74 \ub108\ud76c',
+    '\ub9c8\uc74c\uc774 \uc27c\uc744 \uc5bb\uc73c\ub9ac\ub2c8',
+  ];
+  const next = [
+    '30 \uc774\ub294 \ub0b4 \uba4d\uc5d0\ub294 \uc27d\uace0',
+    '\ub0b4 \uc9d0\uc740 \uac00\ubcbc\uc6c0\uc774\ub77c',
+    '\ud558\uc2dc\ub2c8\ub77c',
+  ];
+  const layers: LiveLayers = {
+    ...emptyLayers(),
+    slide: {
+      itemId: 'invented',
+      position: 0,
+      label: '11:29',
+      lines: current,
+      next: {label: '11:30', lines: next, itemKind: 'bible'},
+    },
+  };
+  const base = frame(elements);
+  if (!base.theme?.item) throw Error('Missing item');
+  const bible = {
+    ...base,
+    theme: {...base.theme, item: {...base.theme.item, kind: 'bible' as const}},
+    transitions: false,
+  };
+  const rows = (kind: string) =>
+    Array.from(
+      root.querySelectorAll(
+        `[data-kind="${kind}"] .${classes.shown} .${classes.block} > div`,
+      ),
+      row => row.textContent,
+    );
+  for (const kind of ['stage', 'broadcast'] as const) {
+    view.render(layers, {...bible, screen: {id: THEME_MAIN, kind}});
+    expect(rows('currentText')).toEqual([current.join(' ')]);
+    expect(rows('nextText')).toEqual([next.join(' ')]);
+    expect(
+      root.querySelector<HTMLElement>('[data-kind="currentText"]')?.style
+        .textWrap,
+    ).toBe('balance');
+    expect(
+      root.querySelector<HTMLElement>('[data-kind="nextText"]')?.style.textWrap,
+    ).toBe('balance');
+  }
+  view.render(layers, {...bible, screen: {id: THEME_MAIN, kind: 'audience'}});
+  expect(rows('currentText')).toEqual(current);
+  if (layers.slide === null) throw Error('Missing slide');
+  const songLayers = {
+    ...layers,
+    slide: {
+      ...layers.slide,
+      next: {label: null, lines: next, itemKind: 'song' as const},
+    },
+  };
+  view.render(songLayers, {
+    ...base,
+    screen: {id: THEME_MAIN, kind: 'stage'},
+    transitions: false,
+  });
+  expect(rows('currentText')).toEqual(current);
+  expect(rows('nextText')).toEqual(next.slice(0, 2));
+  expect(
+    root.querySelector<HTMLElement>('[data-kind="currentText"]')?.style
+      .textWrap,
+  ).toBe('');
+  view.dispose();
 });
 
 it('caps next text against the fitted current size for varied slide pairs', () => {

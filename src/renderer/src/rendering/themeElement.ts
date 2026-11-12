@@ -399,9 +399,45 @@ export class ThemeElementView {
             frame.timers.now(),
           )
         : undefined;
+    const item = frame.theme?.item ?? null;
+    const slide = layers.slide;
+    const reflow =
+      frame.screen?.kind === 'stage' || frame.screen?.kind === 'broadcast';
+    const currentBible =
+      element.kind === 'currentText' &&
+      slide?.sectionCard === undefined &&
+      (slide?.biblePart !== undefined ||
+        (slide?.kind ?? item?.kind) === 'bible');
+    const nextBible =
+      element.kind === 'nextText' &&
+      slide?.next !== undefined &&
+      (slide.next.biblePart !== undefined ||
+        (slide.next.itemKind ?? slide.kind ?? item?.kind) === 'bible');
+    this.box.style.textWrap =
+      reflow && (currentBible || nextBible) ? 'balance' : '';
+    const flowedLayers =
+      !reflow || slide === null
+        ? layers
+        : {
+            ...layers,
+            slide: {
+              ...slide,
+              ...(currentBible
+                ? {lines: [broadcastBibleFlow(slide.lines.join('\n'))]}
+                : {}),
+              ...(nextBible
+                ? {
+                    next: {
+                      ...slide.next,
+                      lines: [broadcastBibleFlow(slide.next.lines.join('\n'))],
+                    },
+                  }
+                : {}),
+            },
+          };
     const text = themeElementText(element, {
-      layers,
-      item: frame.theme?.item ?? null,
+      layers: flowedLayers,
+      item,
       stageMessage: frame.stageMessage,
       clock:
         element.kind === 'clock'
