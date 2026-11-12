@@ -494,6 +494,10 @@ Source: `Overlays`, `ShowH` (target screens in the showing list), product log
   and lays it over the camera picture.
 - The default themes draw their built-in broadcast look over the screen's
   background, including the glass box, song caption and section card (12).
+- On transparent NDI output, a theme or media dissolve fades the outgoing page
+  out as the incoming page fades in, over the same duration and linear curve.
+  Opaque outputs retain the outgoing page behind the incoming page until the
+  dissolve ends; cuts, pushes, and wipes retain their existing behavior.
 - NDI omits the screen background and the legacy media-kind caption band; the
   built-in broadcast look retains its box, song caption and card. OBS needs a
   compatible version, DistroAV, and the NDI Runtime. Network controls and the

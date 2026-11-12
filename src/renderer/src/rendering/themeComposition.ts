@@ -47,7 +47,7 @@ export class ThemeCompositionView {
   private clockTicker: ReturnType<typeof setTimeout> | null = null;
   private animation: number | null = null;
   private preparing = false;
-  private readonly slideAnimation = new SlideAnimation(true);
+  private readonly slideAnimation: SlideAnimation;
   private content: {layers: LiveLayers; frame: RenderFrame} | null = null;
   private bandFit: {
     key: string;
@@ -65,6 +65,7 @@ export class ThemeCompositionView {
     parent: HTMLElement,
     private readonly options: RenderLayerOptions,
   ) {
+    this.slideAnimation = new SlideAnimation(!options.transparent);
     this.root.className = classes.layer;
     this.root.dataset['layer'] = 'theme';
     this.root.style.zIndex = '1';
@@ -371,9 +372,10 @@ export class ThemeCompositionView {
             ? {kind: 'none', sec: effect.sec}
             : effect,
         );
+      } else if (this.options.transparent && this.leaving !== null) {
+        this.leaving.root.style.transition = `opacity ${duration}ms linear`;
+        this.leaving.root.style.opacity = '0';
       }
-      // NOTE(0913vision): The outgoing opaque page stays behind the incoming
-      // one. Fading both pages exposes black at the middle of a dissolve.
       this.releaseTimer = setTimeout(() => this.releaseLeaving(), duration);
     };
     this.animation = requestAnimationFrame(check);

@@ -110,11 +110,12 @@ function frame(
   };
 }
 
-function setup() {
+function setup(transparent = false) {
   const root = document.createElement('div');
   const onError = vi.fn();
   const view = new ThemeCompositionView(root, {
     textStyle: DEFAULT_TEXT_STYLE,
+    transparent,
     mediaUrl: id => `https://media.test/${id}`,
     onError,
   });
@@ -1390,6 +1391,68 @@ describe('theme composition drawing', () => {
       view.dispose();
     },
   );
+
+  it.each([false, true])(
+    'animates a theme dissolve with transparent=%s',
+    transparent => {
+      const {root, view} = setup(transparent);
+      const elements: ThemeElement[] = [
+        {...themeElementBase(), kind: 'currentText'},
+      ];
+      view.render(song, frame(elements));
+      view.render(song, {
+        ...frame(elements, {
+          themeId: createThemeId('00000000-0000-4000-8000-000000000502'),
+        }),
+        slideTransition: {kind: 'dissolve', sec: 0.5},
+      });
+      const [outgoing, incoming] =
+        root.querySelectorAll<HTMLElement>('[data-theme-page]');
+      const oldAnimate = vi.fn(() => ({cancel: vi.fn()}));
+      const newAnimate = vi.fn(() => ({cancel: vi.fn()}));
+      Object.defineProperty(outgoing, 'animate', {value: oldAnimate});
+      Object.defineProperty(incoming, 'animate', {value: newAnimate});
+      vi.advanceTimersByTime(32);
+      const timing = {duration: 500, easing: 'linear'};
+      expect(oldAnimate).toHaveBeenCalledWith(
+        [{opacity: 1}, {opacity: transparent ? 0 : 1}],
+        timing,
+      );
+      expect(newAnimate).toHaveBeenCalledWith(
+        [{opacity: 0}, {opacity: 1}],
+        timing,
+      );
+      vi.advanceTimersByTime(500);
+      expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(1);
+      view.dispose();
+    },
+  );
+
+  it('fades the outgoing transparent page for a media transition', () => {
+    const {root, view} = setup(true);
+    const elements: ThemeElement[] = [
+      {...themeElementBase(), kind: 'currentText'},
+    ];
+    view.render(song, frame(elements));
+    const next = frame(elements, {
+      themeId: createThemeId('00000000-0000-4000-8000-000000000502'),
+    });
+    if (!next.theme?.item) throw Error('Missing item');
+    view.render(song, {
+      ...next,
+      theme: {...next.theme, item: {...next.theme.item, kind: 'media'}},
+    });
+    const [outgoing, incoming] =
+      root.querySelectorAll<HTMLElement>('[data-theme-page]');
+    if (!outgoing || !incoming) throw Error('Missing theme pages');
+    vi.advanceTimersByTime(32);
+    expect(outgoing.style.opacity).toBe('0');
+    expect(incoming.style.opacity).toBe('1');
+    expect(outgoing.style.transition).toBe(incoming.style.transition);
+    vi.advanceTimersByTime(500);
+    expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(1);
+    view.dispose();
+  });
 
   it('keeps the opaque outgoing picture until the new composition can draw, with no child fade from empty', () => {
     const {root, view} = setup();
