@@ -502,11 +502,10 @@ Source: `Overlays`, `ShowH` (target screens in the showing list), product log
   built-in broadcast look retains its box, song caption and card. OBS needs a
   compatible version, DistroAV, and the NDI Runtime. Network controls and the
   display layout receiver count remain later work (09).
-- NDI hardware acceleration is optional and off by default until the church PC
-  confirms shared-texture output has no tearing. When enabled, shared GPU
-  textures go to the sender utility; if unavailable, the output uses the bitmap
-  path and shows one notice without changing the saved option. A GPU utility
-  crash first falls back to the bitmap sender, not the capture window.
+- NDI hardware acceleration is optional and on by default. When enabled, shared
+  GPU textures go to the sender utility; if unavailable, the output uses the
+  bitmap path and shows one notice without changing the saved option. A GPU
+  utility crash first falls back to the bitmap sender, not the capture window.
 - An unavailable NDI Runtime is remembered until the method is toggled or the
   app restarts.
 

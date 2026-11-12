@@ -204,8 +204,8 @@ The 방송 screen offers NDI and 캡처용 창, defaulting to NDI. Its 출력 gr
 shows the source name, 1920×1080 resolution, 30 fps, and alpha on. The source
 name can be edited. The 하드웨어 가속 checkbox defaults on and restarts the NDI
 sender when changed. If shared textures fail, the sender falls back to the
-bitmap path with one notice. It stays off by default until the church PC has
-shown no tearing. The network interface and NDI group remain later work (09).
+bitmap path with one notice. The network interface and NDI group remain later
+work (09).
 
 | Group              | Row                                                                                                                                                                                                             |
 | ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
