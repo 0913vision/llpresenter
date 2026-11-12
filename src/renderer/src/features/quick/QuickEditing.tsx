@@ -1,3 +1,4 @@
+import {displayReference} from '@core/bible/displayReference';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {RenameDialog} from '@renderer/ui/RenameDialog';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
@@ -65,7 +66,11 @@ async function currentChoice(api: LlpApi): Promise<QuickChoice | null> {
   const item = document?.service.order.find(item => item.id === openItemId);
   if (!item) return null;
   if (isItemOfKind(item, 'bible')) {
-    return {kind: 'bible', name: item.bible.ref, ref: item.bible};
+    return {
+      kind: 'bible',
+      name: displayReference(item.bible.ref),
+      ref: item.bible,
+    };
   }
   if (isItemOfKind(item, 'song')) {
     return {

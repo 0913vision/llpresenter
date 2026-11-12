@@ -1,3 +1,5 @@
+import {displayReference} from '@core/bible/displayReference';
+import {parseReference} from '@core/bible/reference';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useEffect, useMemo, useState, type JSX} from 'react';
 import {
@@ -46,6 +48,22 @@ const icons: Readonly<Record<QuickItemKind, string>> = {
   black: 'monitor',
 };
 const EMPTY_ITEMS: readonly QuickItem[] = [];
+
+function quickLabel(item: QuickItem): string {
+  if (!isKnownQuickItem(item) || item.kind !== 'bible') return item.name;
+  const name = parseReference(item.name);
+  const reference = parseReference(item.ref.ref);
+  if (!name.ok || !reference.ok) return item.name;
+  const a = name.value;
+  const b = reference.value;
+  return a.book.id === b.book.id &&
+    a.chapter === b.chapter &&
+    a.verse === b.verse &&
+    a.endChapter === b.endChapter &&
+    a.endVerse === b.endVerse
+    ? displayReference(item.name)
+    : item.name;
+}
 
 export function QuickPanel({
   selectionVersion,
@@ -215,7 +233,7 @@ export function QuickPanel({
                 >
                   <ListActionRow
                     tabIndex={item.id === windowed.tabStop ? 0 : -1}
-                    title={item.name}
+                    title={quickLabel(item)}
                     meta={
                       timer ? (
                         <TimerValue

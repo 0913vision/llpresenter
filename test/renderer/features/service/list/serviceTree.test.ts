@@ -78,7 +78,7 @@ describe('treeRows', () => {
         headerId: ids.praise,
       },
       {label: '말씀', header: true},
-      {label: '시편 23:1-6', icon: 'book', header: false, headerId: ids.word},
+      {label: '시편 23:1~6', icon: 'book', header: false, headerId: ids.word},
       {
         label: '헌금 찬양',
         header: true,

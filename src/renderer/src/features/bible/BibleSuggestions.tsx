@@ -1,3 +1,4 @@
+import {displayReference} from '@core/bible/displayReference';
 import {
   useEffect,
   useEffectEvent,
@@ -112,7 +113,10 @@ export function BibleSuggestions({
             onMouseMove={() => onPoint(index)}
             onClick={() => onChoose(item)}
           >
-            <TruncatedText className={styles.reference} text={item.input} />
+            <TruncatedText
+              className={styles.reference}
+              text={displayReference(item.input)}
+            />
             {item.count === undefined ? null : (
               <span className={styles.count}>{item.count}절</span>
             )}

@@ -270,7 +270,7 @@ function fixture(item: SlidesItem = slidesItem('blank'), longBoth = false) {
     live: {send},
     bible: {
       lookup: async request => {
-        const range = /3:(\d+)(?:-(\d+))?/.exec(request.input);
+        const range = /3:(\d+)(?:[-~\uFF5E](\d+))?/.exec(request.input);
         const first = Number(range?.[1]);
         const last = Number(range?.[2] ?? range?.[1]);
         const verses = SLIDES_PASSAGE.verses

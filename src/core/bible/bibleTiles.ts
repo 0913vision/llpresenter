@@ -26,7 +26,7 @@ export function labelEdge(
   label: string | null | undefined,
   edge: 'first' | 'last',
 ): string | undefined {
-  const [from, to] = label?.split('-') ?? [];
+  const [from, to] = label?.split(/[-~\uFF5E]/u) ?? [];
   if (edge === 'first' || to === undefined) return from;
   return to.includes(':') ? to : `${from?.split(':')[0]}:${to}`;
 }

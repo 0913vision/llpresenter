@@ -1,3 +1,4 @@
+import {displayReference} from '@core/bible/displayReference';
 import {withSectionCard} from '@core/services/sectionCards';
 import {NO_LABEL_COLOR, type LabelColor} from '@core/labels/colors';
 import type {MediaChoice} from '@core/live/state';
@@ -223,7 +224,7 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
     return {
       kind: 'bible',
       id,
-      title: item.bible.ref,
+      title: displayReference(item.bible.ref),
       ...(bible === undefined
         ? {}
         : {

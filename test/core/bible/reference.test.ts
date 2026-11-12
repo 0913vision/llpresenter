@@ -11,11 +11,12 @@ describe('Bible reference grammar and lookup', () => {
     '요한복음3장16~18절',
     '요3:16~18',
     'John 3 : 16 - 18',
+    'John 3:16～18',
   ])('resolves %j to the required three verses', async input => {
     const result = await resolvePassage(translation, input);
     expect(result).toMatchObject({
       ok: true,
-      value: {ref: '요한복음 3:16-18', displayRef: '요한복음 3:16-18'},
+      value: {ref: '요한복음 3:16-18', displayRef: '요한복음 3:16~18'},
     });
     if (!result.ok) throw new Error(result.error.message);
     expect(result.value.verses.map(verse => verse.verse)).toEqual([16, 17, 18]);
@@ -42,6 +43,7 @@ describe('Bible reference grammar and lookup', () => {
     const result = await resolvePassage(translation, input);
     expect(result).toMatchObject({ok: true, value: {ref}});
     if (!result.ok) throw new Error(result.error.message);
+    expect(result.value.displayRef).toBe(ref.replace('-', '~'));
     expect(result.value.verses).toHaveLength(count);
     expect(await resolvePassage(translation, result.value.ref)).toEqual(result);
   });
@@ -103,9 +105,9 @@ describe('Bible reference grammar and lookup', () => {
       ...translationFile(),
       language: 'en-US',
     });
-    expect(await resolvePassage(english, '요3:16')).toMatchObject({
+    expect(await resolvePassage(english, '요3:16-18')).toMatchObject({
       ok: true,
-      value: {ref: '요한복음 3:16', displayRef: 'John 3:16'},
+      value: {ref: '요한복음 3:16-18', displayRef: 'John 3:16~18'},
     });
   });
 

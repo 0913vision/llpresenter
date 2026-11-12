@@ -1,3 +1,4 @@
+import {displayReference} from '@core/bible/displayReference';
 import {cardOffset} from '@core/services/sectionCards';
 import {projectedItemOverlays} from '@core/services/songItemOverlays';
 import {isItemOfKind} from '@core/schema/service';
@@ -65,7 +66,7 @@ export function registerThemeOutput({
                 ? media?.get().value.items.find(item => item.id === entry.media)
                     ?.name
                 : isItemOfKind(entry, 'bible')
-                  ? entry.bible.ref
+                  ? displayReference(entry.bible.ref)
                   : undefined;
           return {
             id,

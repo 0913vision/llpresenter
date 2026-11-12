@@ -14,7 +14,7 @@ export function adjacentVerseRange(
   direction: VerseDirection,
 ): string | null {
   const book = passageBook(passage);
-  const range = /^.+ (\d+)(?::(\d+)(?:-(?:(\d+):)?(\d+))?)?$/u.exec(
+  const range = /^.+ (\d+)(?::(\d+)(?:[-~\uFF5E](?:(\d+):)?(\d+))?)?$/u.exec(
     passage.ref,
   );
   if (!book || !range || bounds?.bookId !== book.id) return null;

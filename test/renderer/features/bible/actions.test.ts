@@ -86,7 +86,7 @@ describe('Bible slide source', () => {
     const passageB = {
       ...passageA,
       ref: '요한복음 4:16-18',
-      displayRef: '요한복음 4:16-18',
+      displayRef: '요한복음 4:16~18',
       verses: passageA.verses.map(verse => ({
         ...verse,
         chapter: 4,

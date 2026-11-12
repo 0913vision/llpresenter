@@ -1,3 +1,4 @@
+import {displayReference} from '@core/bible/displayReference';
 import type {CheckState} from '@renderer/ui/Checkbox';
 import type {ServiceItemId} from '@core/schema/ids';
 import {
@@ -47,7 +48,7 @@ function rowOf(
     };
   }
   if (isItemOfKind(item, 'bible')) {
-    return {label: item.bible.ref, icon: icons.bible};
+    return {label: displayReference(item.bible.ref), icon: icons.bible};
   }
   if (isItemOfKind(item, 'slides')) {
     return {

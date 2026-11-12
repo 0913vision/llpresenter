@@ -1,3 +1,4 @@
+import {displayReference} from '@core/bible/displayReference';
 import {cardOffset} from '@core/services/sectionCards';
 import {useMemo, type JSX, type ReactNode} from 'react';
 import type {ServiceItemOf} from '@core/schema/service';
@@ -61,7 +62,7 @@ export function BibleItemPanel({
   return (
     <Panel label={ITEM_PANEL_LABEL} className={styles.panel}>
       <PanelHeader>
-        <PanelTitle title={item.bible.ref} />
+        <PanelTitle title={displayReference(item.bible.ref)} />
       </PanelHeader>
       <PanelBody variant="flush">
         {children ?? (

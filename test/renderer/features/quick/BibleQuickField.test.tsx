@@ -159,7 +159,7 @@ describe('BibleQuickField', () => {
     );
 
     fireEvent.focus(field);
-    fireEvent.click(screen.getByRole('option', {name: /요한복음 3:16-18/}));
+    fireEvent.click(screen.getByRole('option', {name: /요한복음 3:16~18/}));
     expect(currentRef()).toBe('요한복음 3:16-18');
     fireEvent.keyDown(field, {key: 'Enter'});
 

@@ -1,3 +1,4 @@
+import {displayReference} from '@core/bible/displayReference';
 import {
   useCallback,
   useMemo,
@@ -142,7 +143,7 @@ function BibleEditorContent({
       {hideHeader ? null : (
         <header className={styles.header}>
           <Button onClick={onBack}>‹ 예배 순서</Button>
-          <strong>{data.reference.ref}</strong>
+          <strong>{displayReference(data.reference.ref)}</strong>
         </header>
       )}
       <SongSlideSurface

@@ -82,7 +82,7 @@ describe('registerStore', () => {
       {
         kind: 'bible',
         id: itemId(60),
-        title: '요한복음 3:16-18',
+        title: '요한복음 3:16~18',
         bible: {
           ref: '요한복음 3:16-18',
           translation: 'sample',
@@ -93,7 +93,7 @@ describe('registerStore', () => {
             translation: 'sample',
             translationLabel: 'Sample',
             ref: '요한복음 3:16-18',
-            displayRef: '요한복음 3:16-18',
+            displayRef: '요한복음 3:16~18',
             verses: [16, 17, 18].map(verse => ({
               chapter: 3,
               verse,

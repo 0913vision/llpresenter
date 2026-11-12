@@ -1,3 +1,4 @@
+import {displayReference} from '@core/bible/displayReference';
 import {cardOffset} from '@core/services/sectionCards';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import type {LabelColor} from '@core/labels/colors';
@@ -139,7 +140,9 @@ function slideStep(
     slide.sectionCard !== undefined &&
     slide.position === 0
   ) {
-    title = isItemOfKind(item, 'slides') ? item.slides.name : item.bible.ref;
+    title = isItemOfKind(item, 'slides')
+      ? item.slides.name
+      : displayReference(item.bible.ref);
     // NOTE(0913vision): The captured Bible count is only a dialog summary, not a source for output.
     slideCount = isItemOfKind(item, 'slides')
       ? item.slides.slides.length + 1

@@ -361,6 +361,14 @@ export function BibleReferenceForm(
         ?.focus();
       return;
     }
+    if (
+      (part === 'chapter' && event.key === ':' && state.enabled.start) ||
+      (part === 'start' && /^[-~\uFF5E]$/u.test(event.key) && state.enabled.end)
+    ) {
+      event.preventDefault();
+      focusPart(root.current, part === 'chapter' ? 'start' : 'end');
+      return;
+    }
     if (part !== 'book' && event.key.length === 1 && !/^\d$/u.test(event.key)) {
       event.preventDefault();
       return;

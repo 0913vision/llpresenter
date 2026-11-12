@@ -60,6 +60,43 @@ async function enterPassage(
 }
 
 describe('shared Bible reference form', () => {
+  it.each(['-', '~', '\uFF5E'])(
+    'accepts a typed and pasted chapter and verse range with %s',
+    async separator => {
+      const view = setup();
+      fireEvent.change(view.book, {target: {value: '\uc694'}});
+      await waitFor(() => expect(view.chapter.disabled).toBe(false));
+      await view.user.click(view.chapter);
+      await view.user.type(view.chapter, '3');
+      await waitFor(() => expect(view.start.disabled).toBe(false));
+      await view.user.keyboard(':16');
+      await waitFor(() => expect(view.end.disabled).toBe(false));
+      await view.user.keyboard(`${separator}18`);
+      expect([view.chapter.value, view.start.value, view.end.value]).toEqual([
+        '3',
+        '16',
+        '18',
+      ]);
+      await waitFor(() =>
+        expect(view.onPreview).toHaveBeenLastCalledWith(
+          expect.objectContaining({ref: '\uc694\ud55c\ubcf5\uc74c 3:16-18'}),
+        ),
+      );
+      await view.user.click(view.chapter);
+      await view.user.clear(view.chapter);
+      await view.user.paste(`3:16${separator}18`);
+      expect([view.chapter.value, view.start.value, view.end.value]).toEqual([
+        '3',
+        '16',
+        '18',
+      ]);
+      await view.user.click(view.start);
+      await view.user.clear(view.start);
+      await view.user.paste(`16${separator}18`);
+      expect([view.start.value, view.end.value]).toEqual(['16', '18']);
+    },
+  );
+
   it.each(['Tab', 'Enter'])(
     'completes Korean, English, jamo and IME-off names with %s without marking matches red',
     async key => {
@@ -214,7 +251,7 @@ describe('shared Bible reference form', () => {
       const field = view[part];
       const value = field.value;
       await view.user.click(field);
-      await view.user.keyboard('a.-+가');
+      await view.user.keyboard('a.+가');
       expect(field.value).toBe(value);
       await view.user.paste('1.5');
       expect(field.value).toBe(value);

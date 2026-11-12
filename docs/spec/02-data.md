@@ -1014,7 +1014,8 @@ verse is one verse.
   (the passage is reversed) for a reversed range (proposal for the wording).
 - The normalized `ref` of a Bible passage object uses the colon form and the
   full Korean book name, after these rules: "요한복음 3", "요한복음 3:16",
-  "요한복음 3:16-18", "요한복음 3:16-4:2". The same grammar reads it back.
+  "요한복음 3:16-18", "요한복음 3:16-4:2". Display ranges with `~` in Korean and
+  English. Input and stored references accept `-`, `~`, and `～`.
 - The reference drawn on a 슬라이드 uses the book name in the translation's
   language: 요한복음 3:16 for 개역한글, John 3:16 for KJV.
 

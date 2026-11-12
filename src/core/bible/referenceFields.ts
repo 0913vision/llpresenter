@@ -124,6 +124,26 @@ export function changeReferenceField(
   part: ReferencePart,
   value: string,
 ): ReferenceFields {
+  if (part !== 'book') {
+    const whole = /^(\d+)\s*:\s*(\d+)\s*[-~\uFF5E]\s*(\d+)$/u.exec(value);
+    if (whole) {
+      return reconcileReferenceFields({
+        ...fields,
+        chapter: whole[1] ?? '',
+        start: whole[2] ?? '',
+        end: whole[3] ?? '',
+      });
+    }
+    const verses =
+      part === 'start' ? /^(\d+)\s*[-~\uFF5E]\s*(\d+)$/u.exec(value) : null;
+    if (verses) {
+      return reconcileReferenceFields({
+        ...fields,
+        start: verses[1] ?? '',
+        end: verses[2] ?? '',
+      });
+    }
+  }
   if (part !== 'book' && !/^\d*$/u.test(value)) return fields;
   if (fields[part] === value) return fields;
   return reconcileReferenceFields({

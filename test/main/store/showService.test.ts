@@ -162,6 +162,23 @@ function build(
 }
 
 describe('buildShowService', () => {
+  it('opens a saved hyphenated Bible item with a tilde in its row', () => {
+    const shown = build([
+      {
+        id: itemId(1),
+        bible: {
+          translation: 'sample',
+          ref: '마태복음 11:29-30',
+          split: 'verse',
+          reference: 'every',
+          verseNumbers: true,
+          translationName: false,
+        },
+      },
+    ]);
+    expect(shown.rows[0]).toMatchObject({title: '마태복음 11:29~30'});
+  });
+
   it('carries checked verse text and a source revision without losing a missing-verse warning', () => {
     const item = slidesBibleItem();
     const shown = buildShowService({
@@ -282,7 +299,7 @@ describe('buildShowService', () => {
 
       expect(show.rows[0]).toMatchObject({
         id: itemId(1),
-        title: 'John 3 : 16 - 18',
+        title: 'John 3 : 16~18',
         bible: {
           ref: '요한복음 3:16-18',
           translation: 'sample',
@@ -399,7 +416,7 @@ describe('buildShowService', () => {
       {kind: 'header', id: itemId(1), title: '찬양'},
       {kind: 'song', id: itemId(2), title: '만복의 근원 하나님'},
       {kind: 'header', id: itemId(3), title: '찬양'},
-      {kind: 'bible', id: itemId(4), title: '요한복음 3:16-18'},
+      {kind: 'bible', id: itemId(4), title: '요한복음 3:16~18'},
       {kind: 'media', id: itemId(5), title: ''},
       {kind: 'unknown', id: itemId(7), title: '', problem: 'unknown-kind'},
       {kind: 'song', id: itemId(8), title: '', problem: 'missing-song'},

@@ -52,6 +52,43 @@ afterEach(() => {
 });
 
 describe('quick panel integration', () => {
+  it('formats a saved Bible reference name while preserving custom names and data', async () => {
+    const fixture = quickFixture();
+    const document = quickDocument();
+    const bible = document.value.items.find(item => item.kind === 'bible');
+    if (!bible) throw new Error('Missing Bible item');
+    const items = document.value.items.map(item =>
+      item.id === bible.id
+        ? {...item, name: '\uc694\ud55c\ubcf5\uc74c 3:16-18'}
+        : item,
+    );
+    fixture.pushQuick({...document, value: {...document.value, items}});
+    window.llp = fixture.api;
+    render(<QuickPanel selectionVersion={0} onProblem={vi.fn()} />);
+    expect(
+      await screen.findByRole('button', {
+        name: '\uc694\ud55c\ubcf5\uc74c 3:16~18',
+      }),
+    ).toBeTruthy();
+    expect(items.find(item => item.id === bible.id)?.name).toBe(
+      '\uc694\ud55c\ubcf5\uc74c 3:16-18',
+    );
+    expect(fixture.edit).not.toHaveBeenCalled();
+    fixture.pushQuick({
+      ...document,
+      revision: document.revision + 1,
+      value: {
+        ...document.value,
+        items: items.map(item =>
+          item.id === bible.id ? {...item, name: 'Custom 3:16-18'} : item,
+        ),
+      },
+    });
+    expect(
+      await screen.findByRole('button', {name: 'Custom 3:16-18'}),
+    ).toBeTruthy();
+  });
+
   it.each(['mouse', 'keyboard'])(
     'cancels a pending song when a recent passage is chosen with %s',
     async method => {

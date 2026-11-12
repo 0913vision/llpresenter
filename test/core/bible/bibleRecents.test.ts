@@ -46,6 +46,13 @@ describe('Bible recent history', () => {
 const translation = parsedTranslation().id;
 
 describe('recent Bible passages', () => {
+  it('preserves stored range strings when reading and saving other passages', () => {
+    const old = {ref: 'John 3:16-18', translation};
+    const fresh = {ref: 'John 3:19', translation};
+    expect(recentPassages([old])).toEqual([old]);
+    expect(rememberPassage([old], fresh)).toEqual([fresh, old]);
+  });
+
   it('bounds and deduplicates stored history before a passage is shown', () => {
     const previous = Array.from({length: 15}, (_, index) => ({
       ref: `요한복음 3:${index + 1}`,

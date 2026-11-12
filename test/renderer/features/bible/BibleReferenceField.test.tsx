@@ -135,6 +135,9 @@ describe('Show Bible reference mount', () => {
     async ref => {
       const view = setup([ref]);
       await view.user.click(view.field);
+      expect(screen.getByRole('option').textContent).toContain(
+        ref.replace('-', '~'),
+      );
       expect(screen.getByRole('option').getAttribute('aria-selected')).toBe(
         'false',
       );

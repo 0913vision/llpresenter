@@ -1,3 +1,4 @@
+import {displayReference} from '@core/bible/displayReference';
 import {isItemOfKind, type ServiceItem} from '@core/schema/service';
 import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
 import type {SongSession} from '@renderer/features/songs/editor/songSession';
@@ -69,7 +70,11 @@ export function detailsHeading({
     };
   }
   if (isItemOfKind(item, 'bible')) {
-    return {title: item.bible.ref, kind: '성경', count: rawCount + offset};
+    return {
+      title: displayReference(item.bible.ref),
+      kind: '성경',
+      count: rawCount + offset,
+    };
   }
   return {title: mediaTitle ?? '미디어 없음', kind: '미디어', count: rawCount};
 }

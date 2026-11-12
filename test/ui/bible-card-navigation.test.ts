@@ -102,7 +102,7 @@ it(
         .poll(async () => (await live()).label, {timeout: 30000})
         .toBe(label);
     const order = page.getByRole('listbox', {name: '예배 순서'});
-    await order.getByRole('option', {name: '요한복음 3:16-17'}).click();
+    await order.getByRole('option', {name: '요한복음 3:16~17'}).click();
     const grid = page.getByRole('listbox', {name: '슬라이드'});
     await expect
       .poll(() => grid.getByRole('option').count(), {timeout: 30000})
@@ -119,12 +119,12 @@ it(
     await waitLabel('3:16');
     await page.keyboard.press('Shift+ArrowLeft');
     await waitLabel('3:15');
-    await order.getByRole('option', {name: '요한복음 3:16-17'}).click();
+    await order.getByRole('option', {name: '요한복음 3:16~17'}).click();
     await grid.getByRole('option').last().click();
     await waitLabel('3:17');
     await page.keyboard.press('Shift+ArrowRight');
     await waitLabel('3:18');
-    await order.getByRole('option', {name: '요한복음 3:16-17'}).click();
+    await order.getByRole('option', {name: '요한복음 3:16~17'}).click();
     await page.keyboard.press('Control+ArrowDown');
     await expect
       .poll(
@@ -135,7 +135,7 @@ it(
         {timeout: 30000},
       )
       .toBe('true');
-    await order.getByRole('option', {name: '요한복음 3:16-17'}).click();
+    await order.getByRole('option', {name: '요한복음 3:16~17'}).click();
     await grid.getByRole('option').first().click();
     await waitLabel('Card');
     const updateCut = async (cuts: number[]) => {

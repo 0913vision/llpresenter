@@ -1,3 +1,4 @@
+import {displayReference} from './displayReference';
 import type {Result} from '../common/result';
 import {BIBLE_LOOKUP_LIMITS} from '../schema/bibleLookup';
 import type {BibleChunkHeader} from '../schema/bibleChunks';
@@ -52,11 +53,12 @@ export interface BiblePassageSource extends Pick<
 }
 
 const COLON =
-  /^(.+?)\s*(\d+)(?:\s*:\s*(\d+)(?:\s*[-~]\s*(?:(\d+)\s*:\s*)?(\d+))?)?$/u;
+  /^(.+?)\s*(\d+)(?:\s*:\s*(\d+)(?:\s*[-~\uFF5E]\s*(?:(\d+)\s*:\s*)?(\d+))?)?$/u;
 const KOREAN_CHAPTER = /^(.+?)\s*(\d+)\s*장$/u;
-const KOREAN_VERSES = /^(.+?)\s*(\d+)\s*장\s*(\d+)(?:\s*[-~]\s*(\d+))?\s*절$/u;
+const KOREAN_VERSES =
+  /^(.+?)\s*(\d+)\s*장\s*(\d+)(?:\s*[-~\uFF5E]\s*(\d+))?\s*절$/u;
 const KOREAN_CROSS =
-  /^(.+?)\s*(\d+)\s*장\s*(\d+)\s*절\s*[-~]\s*(\d+)\s*장\s*(\d+)\s*절$/u;
+  /^(.+?)\s*(\d+)\s*장\s*(\d+)\s*절\s*[-~\uFF5E]\s*(\d+)\s*장\s*(\d+)\s*절$/u;
 const BOOK_NAME = /^(?:[1-3]\s*)?[\p{L}\p{M}\s]+$/u;
 
 function error(
@@ -214,7 +216,7 @@ export async function resolvePassage(
     value: {
       translation: translation.id,
       ref: `${book.korean} ${range}`,
-      displayRef: `${name} ${range}`,
+      displayRef: displayReference(`${name} ${range}`),
       book,
       verses,
     },
