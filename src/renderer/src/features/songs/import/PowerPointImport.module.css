@@ -34,3 +34,10 @@
   flex: 1;
   min-width: 0;
 }
+
+.option {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  white-space: nowrap;
+}

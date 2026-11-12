@@ -124,7 +124,11 @@ export function registerPowerPointImport(
         }
         const parsed = parsePowerPointReadResult({
           ok: true,
-          value: {fileName: basename(path), slides: result.slides},
+          value: {
+            fileName: basename(path),
+            slides: result.slides,
+            widescreen: 'widescreen' in result ? result.widescreen : undefined,
+          },
         });
         if (!parsed.ok || !parsed.value.ok || parsed.value.value === null) {
           throw new Error('Invalid PowerPoint worker result');

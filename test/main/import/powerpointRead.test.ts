@@ -1,5 +1,8 @@
 import {describe, expect, it} from 'vitest';
-import {readPowerPoint} from '@main/import/powerpointRead';
+import {
+  isPowerPointWidescreen,
+  readPowerPoint,
+} from '@main/import/powerpointRead';
 import {powerpointSlides} from '@core/songs/powerpointSlides';
 
 function crc(bytes: Buffer): number {
@@ -60,7 +63,7 @@ describe('PowerPoint XML reader', () => {
     const body = `<p:grpSp><p:sp><p:nvSpPr><p:nvPr><p:ph idx="1"/></p:nvPr></p:nvSpPr><p:txBody><a:p><a:r><a:t>First &amp; line</a:t></a:r><a:br/><a:r><a:t>Second  </a:t></a:r></a:p></p:txBody></p:sp></p:grpSp>`;
     const ids = [1, 2, 3, 4, 5].map(n => `<p:sldId r:id="r${n}"/>`).join('');
     const parts: Record<string, string> = {
-      'ppt/presentation.xml': `<p:presentation ${ns}><p:sldIdLst>${ids}</p:sldIdLst><p:sldSz cx="100" cy="100"/></p:presentation>`,
+      'ppt/presentation.xml': `<p:presentation ${ns}><p:sldIdLst>${ids}</p:sldIdLst><p:sldSz cx="1600" cy="900"/></p:presentation>`,
       'ppt/_rels/presentation.xml.rels': rels(
         [1, 2, 3, 4, 5]
           .map(n => rel(`r${n}`, `slides/slide${n}.xml`, 'slide'))
@@ -98,4 +101,14 @@ describe('PowerPoint XML reader', () => {
       {titleSlide: true, lines: ['Title', 'Subtitle']},
     ]);
   });
+});
+
+it.each([
+  [1600, 900, true],
+  [4, 3, false],
+  [16, 10, false],
+  [12192000, 6858000, true],
+  [1617, 900, false],
+])('checks slide ratio %i by %i', (width, height, expected) => {
+  expect(isPowerPointWidescreen(width, height)).toBe(expected);
 });

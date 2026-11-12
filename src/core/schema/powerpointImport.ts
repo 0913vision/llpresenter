@@ -29,6 +29,7 @@ const slide = payloadObject({
 const source = v.pipe(
   payloadObject({
     fileName: v.string(),
+    widescreen: v.boolean(),
     slides: v.pipe(
       v.array(slide),
       v.maxLength(POWERPOINT_IMPORT_LIMITS.slides),

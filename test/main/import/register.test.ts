@@ -94,6 +94,7 @@ describe('PowerPoint import', () => {
       if (job.kind === 'read') {
         return {
           digest: 'a'.repeat(64),
+          widescreen: true,
           slides: [{number: 4, shapes: [], background: scene.key}],
         };
       }
@@ -170,6 +171,7 @@ describe('PowerPoint import', () => {
         if (job.kind === 'read') {
           return {
             digest: 'a'.repeat(64),
+            widescreen: true,
             slides: [
               {number: 1, shapes: [], background: 'ppt/media/image.png'},
             ],
@@ -241,6 +243,7 @@ describe('PowerPoint import', () => {
         if (job.kind === 'read') {
           return {
             digest: 'a'.repeat(64),
+            widescreen: true,
             slides: [{number: 1, shapes: [], background: 'ppt/media/bg.png'}],
           };
         }

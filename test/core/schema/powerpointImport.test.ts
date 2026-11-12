@@ -14,6 +14,7 @@ describe('PowerPoint import IPC', () => {
         ok: true,
         value: {
           fileName: 'a.pptx',
+          widescreen: true,
           slides: [
             {
               number: 1,
@@ -38,6 +39,7 @@ describe('PowerPoint import IPC', () => {
         ok: true,
         value: {
           fileName: 'a.pptx',
+          widescreen: true,
           slides: [{number: 0, shapes: [], background: null}],
         },
       }).ok,

@@ -39,6 +39,7 @@ describe('PowerPoint import dialog', () => {
           ok: true,
           value: {
             fileName: 'deck.pptx',
+            widescreen: true,
             slides: [
               {
                 number: 1,
@@ -78,6 +79,104 @@ describe('PowerPoint import dialog', () => {
     expect(release).toHaveBeenCalledWith({path: 'C:/temp/ppt.png'});
   });
 
+  it.each(['lyrics', 'background'] as const)(
+    'imports only the selected %s and keeps one choice checked',
+    async choice => {
+      const fixture = editorFixture();
+      const store = new SongEditorStore(fixture.api, vi.fn());
+      onTestFinished(() => store.dispose());
+      const mediaId = createMediaId('00000000-0000-4000-8000-000000000123');
+      const layers = vi.fn(async () => mockScene);
+      const onDone = vi.fn();
+      const onEdit = vi.fn();
+      const api = mockLlpApi({
+        ...fixture.api,
+        powerpoint: {
+          read: async () => ({
+            ok: true,
+            value: {
+              fileName: 'deck.pptx',
+              widescreen: true,
+              slides: [
+                {
+                  number: 1,
+                  background: 'key',
+                  shapes: [{body: true, lines: ['Lyric']}],
+                },
+              ],
+            },
+          }),
+          layers,
+          background: async () => 'C:/temp/ppt.png',
+          match: async () => mediaId,
+          release: async () => true,
+        },
+      });
+      render(
+        <PowerPointImportFlow
+          api={api}
+          store={store}
+          onDone={onDone}
+          onEdit={onEdit}
+          onProblem={vi.fn()}
+        />,
+      );
+      await screen.findByRole('dialog', {name: 'PowerPoint 가져오기'});
+      const lyrics = screen.getByRole('checkbox', {name: '가사'});
+      const background = screen.getByRole('checkbox', {name: '배경'});
+      fireEvent.click(choice === 'lyrics' ? background : lyrics);
+      const remaining = choice === 'lyrics' ? lyrics : background;
+      fireEvent.click(remaining);
+      expect(remaining.getAttribute('aria-checked')).toBe('true');
+      fireEvent.click(
+        screen.getByRole('button', {
+          name: choice === 'lyrics' ? '편집' : '가져오기',
+        }),
+      );
+      await waitFor(() => expect(onDone).toHaveBeenCalledOnce());
+      expect(layers).toHaveBeenCalledTimes(choice === 'background' ? 1 : 0);
+      expect(onEdit).toHaveBeenCalledTimes(choice === 'lyrics' ? 1 : 0);
+      if (choice === 'lyrics') {
+        expect(
+          store.getSnapshot().session?.history.snapshot.song.background,
+        ).toBeFalsy();
+      } else {
+        expect(store.getSnapshot().session).toBeNull();
+      }
+    },
+  );
+
+  it('disables background for non-widescreen decks', async () => {
+    const fixture = editorFixture();
+    const store = new SongEditorStore(fixture.api, vi.fn());
+    onTestFinished(() => store.dispose());
+    const api = mockLlpApi({
+      ...fixture.api,
+      powerpoint: {
+        read: async () => ({
+          ok: true,
+          value: {
+            fileName: 'deck.pptx',
+            widescreen: false,
+            slides: [{number: 1, background: null, shapes: []}],
+          },
+        }),
+      },
+    });
+    render(
+      <PowerPointImportFlow
+        api={api}
+        store={store}
+        onDone={vi.fn()}
+        onEdit={vi.fn()}
+        onProblem={vi.fn()}
+      />,
+    );
+    const background = await screen.findByRole('checkbox', {name: '배경'});
+    expect(background.getAttribute('aria-disabled')).toBe('true');
+    expect(background.getAttribute('aria-checked')).toBe('false');
+  });
+
   it('releases the temporary image when media import immediately fails', async () => {
     const fixture = editorFixture();
     const store = new SongEditorStore(fixture.api, vi.fn());
@@ -93,6 +192,7 @@ describe('PowerPoint import dialog', () => {
           ok: true,
           value: {
             fileName: 'deck.pptx',
+            widescreen: true,
             slides: [
               {
                 number: 1,
@@ -160,6 +260,7 @@ describe('PowerPoint import dialog', () => {
           ok: true,
           value: {
             fileName: 'deck.pptx',
+            widescreen: true,
             slides: [
               {
                 number: 1,
@@ -219,6 +320,7 @@ describe('PowerPoint import dialog', () => {
           ok: true,
           value: {
             fileName: 'deck.pptx',
+            widescreen: true,
             slides: [
               {
                 number: 1,
@@ -288,6 +390,7 @@ describe('PowerPoint import dialog', () => {
           ok: true,
           value: {
             fileName: 'deck.pptx',
+            widescreen: true,
             slides: [
               {number: 1, background: null, shapes: [shape(false, 'Other')]},
               {

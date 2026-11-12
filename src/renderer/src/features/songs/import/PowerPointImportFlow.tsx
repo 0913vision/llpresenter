@@ -6,7 +6,7 @@ import {powerpointSlides} from '@core/songs/powerpointSlides';
 import {powerpointBackgroundIndex} from '@core/songs/powerpointBackgroundIndex';
 import {powerpointBackgroundName} from '@core/media/powerpointBackground';
 import {Dialog} from '@renderer/ui/Dialog';
-import {TextField} from '@renderer/ui';
+import {Checkbox, TextField} from '@renderer/ui';
 import {SlideThumbnail} from '@renderer/ui/SlideThumbnail';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
@@ -195,6 +195,10 @@ function PowerPointDialog({
   const [end, setEnd] = useState(source.slides.length - 1);
   const [title, setTitle] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [lyrics, setLyrics] = useState(true);
+  const backgroundAvailable =
+    source.widescreen && source.slides.some(slide => slide.background !== null);
+  const [background, setBackground] = useState(backgroundAvailable);
   const [replacement, setReplacement] = useState<TextImportDraft | null>(null);
   const active = useRef(true);
   useEffect(() => {
@@ -227,20 +231,26 @@ function PowerPointDialog({
     setBusy(true);
     try {
       const winner = powerpointBackgroundIndex(range);
-      let background: TextImportDraft['background'];
-      if (winner !== undefined) {
-        background = await importSelectedBackground(
+      let importedBackground: TextImportDraft['background'];
+      if (background && winner !== undefined) {
+        importedBackground = await importSelectedBackground(
           api,
           {index: start + winner, title: shownTitle},
           () => active.current,
         );
       }
       if (!active.current) return;
+      if (!lyrics) {
+        onDone();
+        return;
+      }
       const draft: TextImportDraft = {
         title: shownTitle,
         slides,
         preserveSlides: true,
-        ...(background === undefined ? {} : {background}),
+        ...(importedBackground === undefined
+          ? {}
+          : {background: importedBackground}),
       };
       if (store.getSnapshot().imported) setReplacement(draft);
       else edit(draft);
@@ -270,8 +280,11 @@ function PowerPointDialog({
         }}
         cancelLabel="저장 안 함"
         primary={{
-          label: '편집',
-          disabled: busy || slides.length === 0,
+          label: lyrics ? '편집' : '가져오기',
+          disabled:
+            busy ||
+            slides.length === 0 ||
+            (!lyrics && powerpointBackgroundIndex(range) === undefined),
           onSelect: () => {
             create().catch(() => undefined);
           },
@@ -286,6 +299,28 @@ function PowerPointDialog({
               onChange={setTitle}
             />
             <span>슬라이드 {slides.length}</span>
+            <label className={styles.option}>
+              <Checkbox
+                aria-label="가사"
+                checked={lyrics}
+                onChange={value => {
+                  if (value || background) setLyrics(value);
+                }}
+              />
+              가사
+            </label>
+            <label className={styles.option}>
+              <Checkbox
+                aria-label="배경"
+                checked={background}
+                disabled={!backgroundAvailable}
+                title={source.widescreen ? undefined : '16:9 슬라이드만'}
+                onChange={value => {
+                  if (value || lyrics) setBackground(value);
+                }}
+              />
+              배경
+            </label>
           </div>
           <div className={styles.grid}>
             {source.slides.map((slide, index) => {

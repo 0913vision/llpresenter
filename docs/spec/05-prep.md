@@ -950,6 +950,12 @@ other such slides are lyrics. Empty slides remain blank. A title uses at most
 two shapes, joining each shape's lines with spaces. 편집 opens the unsaved song
 editor; 저장 there adds the song to the library.
 
+가사 and 배경 are selected by default. At least one remains selected. 가사 alone
+opens a song without importing media; 배경 alone imports the selected range
+background into media with 가져오기 and opens no editor. When the slide ratio
+differs from 16:9 by more than 1%, 배경 is disabled and no background picture is
+composed.
+
 ### Background
 
 The song background is one 1920 x 1080 picture of the selected slide's non-text

@@ -131,7 +131,11 @@ async function run(): Promise<void> {
   }
   const deck = readPowerPoint(bytes);
   if (job.kind === 'read') {
-    parentPort?.postMessage({digest, slides: deck.slides});
+    parentPort?.postMessage({
+      digest,
+      slides: deck.slides,
+      widescreen: deck.widescreen,
+    });
     return;
   }
   const slide = deck.slides[job.index];

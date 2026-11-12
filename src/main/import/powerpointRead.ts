@@ -19,6 +19,7 @@ import type {
 } from '@core/songs/powerpointSlides';
 export interface PowerPointDeck {
   readonly slides: readonly PowerPointSlide[];
+  readonly widescreen: boolean;
 }
 
 function lines(shape: Element): string[] {
@@ -62,6 +63,10 @@ function shapes(tree: Element): PowerPointShape[] {
     ];
   });
 }
+export function isPowerPointWidescreen(width: number, height: number): boolean {
+  return Math.abs(width / height / (16 / 9) - 1) <= 0.01;
+}
+
 /** Reads Office XML as data; embedded macros and non-slide content are ignored. */
 export function readPowerPoint(bytes: Buffer): PowerPointDeck {
   const zip = new PowerPointZip(bytes);
@@ -74,6 +79,7 @@ export function readPowerPoint(bytes: Buffer): PowerPointDeck {
   if (!(width > 0 && height > 0)) {
     throw new Error('Invalid PowerPoint slide size');
   }
+  const widescreen = isPowerPointWidescreen(width, height);
   const ids = descendants(
     descendants(presentation, 'sldIdLst')[0] ?? presentation,
     'sldId',
@@ -104,14 +110,14 @@ export function readPowerPoint(bytes: Buffer): PowerPointDeck {
     ) {
       throw new Error('PowerPoint text exceeds its limit');
     }
-    const drawing = layers.read(slidePath, {width, height});
+    const drawing = widescreen ? layers.read(slidePath, {width, height}) : null;
     slides.push({
       number: index + 1,
       shapes: slideShapes,
-      background: drawing.layers.length > 0 ? drawing.key : null,
+      background: drawing && drawing.layers.length > 0 ? drawing.key : null,
     });
   }
-  return {slides};
+  return {slides, widescreen};
 }
 
 /** Reads a selected original slide number into an on-demand canvas scene. */
