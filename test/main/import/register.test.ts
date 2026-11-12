@@ -109,6 +109,7 @@ describe('PowerPoint import', () => {
     electron.tempDir = await makeTempDir();
     const jobs = {
       run: vi.fn(async (job: PowerPointJob): Promise<unknown> => {
+        if (job.kind === 'match') return null;
         if (job.kind === 'read') {
           return {
             digest: 'a'.repeat(64),
@@ -179,6 +180,7 @@ describe('PowerPoint import', () => {
     });
     const jobs = {
       run: async (job: PowerPointJob): Promise<unknown> => {
+        if (job.kind === 'match') return null;
         if (job.kind === 'read') {
           return {
             digest: 'a'.repeat(64),

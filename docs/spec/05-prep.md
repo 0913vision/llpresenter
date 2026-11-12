@@ -958,6 +958,11 @@ song background. Cropping is ignored. The image enters the media library when
 positions, transitions and animations are not imported. The size limits are in
 the data specification.
 
+When a picture with identical bytes is already in the media library, the song
+reuses it. Otherwise the new media item is named from the song name followed by
+` 배경`; a duplicate name receives ` 2`, ` 3`, and so on. Its stored file name
+remains ASCII.
+
 ## Shared bottom 미디어 bin
 
 - This is the same bottom bin in 진행 and 준비, not a separate 준비 workspace

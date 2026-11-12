@@ -13,11 +13,15 @@ import {
 import type {TextImportRegistration} from './register';
 import {TEST_IMPORT_FILE_VARIABLE} from './testImportFile';
 import {PowerPointJobs} from './powerpointJob';
+import type {MediaStore} from '../store/mediaStore';
+import {createMediaId} from '@core/schema/ids';
 
 const MAX_TEMP_FILES = 2;
 
 export function registerPowerPointImport(
-  context: TextImportRegistration,
+  context: TextImportRegistration & {
+    readonly media?: Promise<Pick<MediaStore, 'get' | 'fileOf'> | null>;
+  },
   jobs: Pick<PowerPointJobs, 'run' | 'dispose'> = new PowerPointJobs(),
 ): () => void {
   let retained: {
@@ -157,6 +161,39 @@ export function registerPowerPointImport(
       return request.ok ? release(request.value.path) : false;
     },
   );
+  ipcMain.handle(
+    powerpointEndpoints.match.channel,
+    async (_event, value: unknown) => {
+      const request = parsePowerPointReleaseRequest(value);
+      if (!request.ok || !tempFiles.has(request.value.path) || disposed) {
+        return null;
+      }
+      const media = await context.media;
+      if (!media || !tempFiles.has(request.value.path) || isDisposed()) {
+        return null;
+      }
+      const candidates = media.get().value.items.flatMap(item => {
+        if (item.kind !== 'image') return [];
+        const path = media.fileOf(item.id);
+        return path === null ? [] : [{id: item.id, path}];
+      });
+      const matched = await jobs.run({
+        kind: 'match',
+        path: request.value.path,
+        candidates,
+      });
+      const candidate = candidates.find(item => item.id === matched);
+      return typeof matched === 'string' &&
+        media.fileOf(matched) === candidate?.path &&
+        media
+          .get()
+          .value.items.some(
+            item => item.id === matched && item.kind === 'image',
+          )
+        ? createMediaId(matched)
+        : null;
+    },
+  );
   return () => {
     if (disposed) return;
     disposed = true;
@@ -164,6 +201,7 @@ export function registerPowerPointImport(
     ipcMain.removeHandler(powerpointEndpoints.read.channel);
     ipcMain.removeHandler(powerpointEndpoints.background.channel);
     ipcMain.removeHandler(powerpointEndpoints.release.channel);
+    ipcMain.removeHandler(powerpointEndpoints.match.channel);
     for (const path of tempFiles) {
       if (!extracting.has(path)) release(path).catch(() => undefined);
     }

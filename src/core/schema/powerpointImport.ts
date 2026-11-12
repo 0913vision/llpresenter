@@ -2,6 +2,7 @@ import * as v from 'valibot';
 import {checkPart} from './fileFormat';
 import {payloadObject, plainObject} from './payload';
 import {nonNegativeInteger} from './primitives';
+import {mediaIdSchema} from './ids';
 import {
   POWERPOINT_IMPORT_LIMITS,
   TEXT_IMPORT_LIMITS,
@@ -59,6 +60,7 @@ const backgroundResult = v.nullable(v.string());
 const releaseRequest = payloadObject({
   path: v.pipe(v.string(), v.minLength(1)),
 });
+const matchResult = v.nullable(mediaIdSchema);
 export type PowerPointReadResult = v.InferOutput<typeof result>;
 export type PowerPointSource = v.InferOutput<typeof source>;
 export type PowerPointBackgroundRequest = v.InferOutput<
@@ -75,3 +77,5 @@ export const parsePowerPointReleaseRequest = (value: unknown) =>
   checkPart(releaseRequest, value);
 export const parsePowerPointReleaseResult = (value: unknown) =>
   checkPart(v.boolean(), value);
+export const parsePowerPointMatchResult = (value: unknown) =>
+  checkPart(matchResult, value);

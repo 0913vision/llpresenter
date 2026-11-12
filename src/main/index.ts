@@ -368,6 +368,7 @@ function start(): void {
         control: win,
         windowMode,
         log,
+        media: dataStore.media,
       });
       const playbackProblems = registerPlaybackProblems({
         log,

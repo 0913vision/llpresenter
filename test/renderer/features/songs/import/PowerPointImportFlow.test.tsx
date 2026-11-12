@@ -11,6 +11,58 @@ import {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {PowerPointImportFlow} from '@renderer/features/songs/import/PowerPointImportFlow';
 
 describe('PowerPoint import dialog', () => {
+  it('reuses matching media instead of importing a second image', async () => {
+    const fixture = editorFixture();
+    const store = new SongEditorStore(fixture.api, vi.fn());
+    onTestFinished(() => store.dispose());
+    const mediaId = createMediaId('00000000-0000-4000-8000-000000000123');
+    const importMedia = vi.fn(async (): Promise<MediaImportResult> => ({
+      ok: true,
+      value: [],
+    }));
+    const release = vi.fn(async () => true);
+    const api = mockLlpApi({
+      ...fixture.api,
+      powerpoint: {
+        read: async () => ({
+          ok: true,
+          value: {
+            fileName: 'deck.pptx',
+            slides: [
+              {
+                number: 1,
+                background: 'ppt/media/bg.png',
+                shapes: [{body: false, lines: ['Title']}],
+              },
+            ],
+          },
+        }),
+        background: async () => 'C:/temp/ppt.png',
+        match: async () => mediaId,
+        release,
+      },
+      media: {import: importMedia},
+    });
+    const onEdit = vi.fn();
+    render(
+      <PowerPointImportFlow
+        api={api}
+        store={store}
+        onDone={vi.fn()}
+        onEdit={onEdit}
+        onProblem={vi.fn()}
+      />,
+    );
+    await screen.findByRole('dialog', {name: 'PowerPoint 가져오기'});
+    fireEvent.click(screen.getByRole('button', {name: '편집'}));
+    await waitFor(() => expect(onEdit).toHaveBeenCalledOnce());
+    expect(store.getSnapshot().session?.history.snapshot.song.background).toBe(
+      mediaId,
+    );
+    expect(importMedia).not.toHaveBeenCalled();
+    expect(release).toHaveBeenCalledWith({path: 'C:/temp/ppt.png'});
+  });
+
   it('releases the temporary image when media import immediately fails', async () => {
     const fixture = editorFixture();
     const store = new SongEditorStore(fixture.api, vi.fn());

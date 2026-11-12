@@ -3,6 +3,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {PowerPointSource} from '@core/schema/powerpointImport';
 import type {TextImportDraft} from '@core/schema/textImport';
 import {powerpointSlides} from '@core/songs/powerpointSlides';
+import {powerpointBackgroundName} from '@core/media/powerpointBackground';
 import {Dialog} from '@renderer/ui/Dialog';
 import {TextField} from '@renderer/ui';
 import {SlideThumbnail} from '@renderer/ui/SlideThumbnail';
@@ -14,6 +15,7 @@ import styles from './PowerPointImport.module.css';
 async function importBackground(
   api: LlpApi,
   path: string,
+  title: string,
 ): Promise<NonNullable<TextImportDraft['background']>> {
   const events = new Map<string, string>();
   let notify: (() => void) | undefined;
@@ -34,36 +36,74 @@ async function importBackground(
       throw new Error('Background import failed');
     }
     const id = job.mediaId;
-    if (job.phase === 'complete') return id;
-    await new Promise<void>((resolve, reject) => {
-      const check = (): void => {
-        const phase = events.get(id);
-        if (phase === 'complete') resolve();
-        else if (phase === 'failed' || phase === 'cancelled') {
-          reject(new Error('Background import failed'));
-        }
-      };
-      notify = check;
-      check();
-    });
-    return id;
+    if (job.phase !== 'complete') {
+      await new Promise<void>((resolve, reject) => {
+        const check = (): void => {
+          const phase = events.get(id);
+          if (phase === 'complete') resolve();
+          else if (phase === 'failed' || phase === 'cancelled') {
+            reject(new Error('Background import failed'));
+          }
+        };
+        notify = check;
+        check();
+      });
+    }
+    for (let attempt = 0; attempt < 3; attempt++) {
+      const document = await api.media.get();
+      if (!document.value.items.some(item => item.id === id)) {
+        throw new Error('Imported background is unavailable');
+      }
+      const name = powerpointBackgroundName(
+        title,
+        document.value.items
+          .filter(item => item.id !== id)
+          .map(item => item.name),
+      );
+      const renamed = await api.media.edit({
+        type: 'media.properties.update',
+        mediaId: id,
+        changes: {name},
+        baseRevision: document.revision,
+      });
+      if (renamed.ok || renamed.error.reason === 'write-failed') return id;
+      if (renamed.error.reason !== 'stale') {
+        throw new Error('Background rename failed');
+      }
+    }
+    throw new Error('Background rename failed');
   } finally {
     unsubscribe();
   }
 }
 
+let backgroundQueue: Promise<void> = Promise.resolve();
+
 async function importSelectedBackground(
   api: LlpApi,
-  index: number,
+  {index, title}: {readonly index: number; readonly title: string},
   isActive: () => boolean,
 ): Promise<TextImportDraft['background']> {
-  const path = await api.powerpoint.background({index});
-  if (!path) throw new Error('Background unavailable');
+  const previous = backgroundQueue;
+  let unlock: () => void = () => undefined;
+  backgroundQueue = new Promise<void>(resolve => {
+    unlock = resolve;
+  });
   try {
+    await previous;
     if (!isActive()) return undefined;
-    return await importBackground(api, path);
+    const path = await api.powerpoint.background({index});
+    if (!path) throw new Error('Background unavailable');
+    try {
+      if (!isActive()) return undefined;
+      const existing = await api.powerpoint.match({path});
+      if (!isActive()) return undefined;
+      return existing ?? (await importBackground(api, path, title));
+    } finally {
+      await api.powerpoint.release({path});
+    }
   } finally {
-    await api.powerpoint.release({path});
+    unlock();
   }
 }
 
@@ -194,7 +234,7 @@ function PowerPointDialog({
       if (winner) {
         background = await importSelectedBackground(
           api,
-          winner.index,
+          {index: winner.index, title: shownTitle},
           () => active.current,
         );
       }

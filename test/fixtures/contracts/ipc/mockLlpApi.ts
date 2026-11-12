@@ -51,6 +51,7 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
       read: () => Promise.resolve({ok: true, value: null}),
       background: () => Promise.resolve(null),
       release: () => Promise.resolve(true),
+      match: () => Promise.resolve(null),
       ...overrides.powerpoint,
     },
     update: {
