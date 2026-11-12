@@ -4,6 +4,7 @@ import {updateEndpoints} from '@contracts/ipc/update';
 import {bibleEndpoints} from '@contracts/ipc/bible';
 import {contentEndpoints} from '@contracts/ipc/content';
 import {libraryEndpoints} from '@contracts/ipc/library';
+import {powerpointEndpoints} from '@contracts/ipc/powerpoint';
 import {liveEndpoints} from '@contracts/ipc/live';
 import {mediaEndpoints} from '@contracts/ipc/media';
 import {outputEndpoints} from '@contracts/ipc/output';
@@ -29,6 +30,7 @@ const DECLARED = [
   bibleEndpoints,
   contentEndpoints,
   libraryEndpoints,
+  powerpointEndpoints,
   liveEndpoints,
   mediaEndpoints,
   outputEndpoints,

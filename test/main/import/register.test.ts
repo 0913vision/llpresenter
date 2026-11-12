@@ -1,8 +1,11 @@
-import {writeFile} from 'node:fs/promises';
+import {readdir, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {BrowserWindow} from 'electron';
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import {libraryEndpoints} from '@contracts/ipc/library';
+import {powerpointEndpoints} from '@contracts/ipc/powerpoint';
+import {registerPowerPointImport} from '@main/import/registerPowerPoint';
+import type {PowerPointJob} from '@main/import/powerpointJob';
 import {makeTempDir} from '@fixtures/tempDir';
 import {
   registerTextImport,
@@ -33,9 +36,11 @@ const electron = vi.hoisted(() => ({
   chooseFile: vi.fn<() => Promise<Selection>>(),
   readClipboard: vi.fn<() => Promise<string>>(),
   destroyed: false,
+  tempDir: '',
 }));
 
 vi.mock('electron', () => ({
+  app: {getPath: () => electron.tempDir},
   BrowserWindow: class {
     isDestroyed() {
       return electron.destroyed;
@@ -79,6 +84,135 @@ function setup(windowMode: 'normal' | 'offscreen' = 'normal') {
 }
 
 const readRequest = {source: 'file', encoding: 'auto'};
+
+describe('PowerPoint import', () => {
+  it('refuses the old PowerPoint format before reading it', async () => {
+    const {control, log} = setup();
+    onTestFinished(
+      registerPowerPointImport({control, windowMode: 'normal', log}),
+    );
+    electron.chooseFile.mockResolvedValueOnce({
+      canceled: false,
+      filePaths: ['old.ppt'],
+    });
+    expect(
+      await handler(powerpointEndpoints.read.channel)({}, undefined),
+    ).toEqual({
+      ok: false,
+      message:
+        'PowerPoint 97-2003 파일은 가져올 수 없습니다. PowerPoint에서 .pptx로 저장한 뒤 가져오십시오.',
+    });
+  });
+
+  it('releases every temporary image after repeated imports and failures', async () => {
+    const {control, log} = setup();
+    electron.tempDir = await makeTempDir();
+    const jobs = {
+      run: vi.fn(async (job: PowerPointJob): Promise<unknown> => {
+        if (job.kind === 'read') {
+          return {
+            digest: 'a'.repeat(64),
+            slides: [
+              {number: 1, shapes: [], background: 'ppt/media/image.png'},
+            ],
+          };
+        }
+        await writeFile(job.target, 'temporary image');
+        return true;
+      }),
+      dispose: vi.fn(),
+    };
+    onTestFinished(
+      registerPowerPointImport({control, windowMode: 'normal', log}, jobs),
+    );
+    electron.chooseFile.mockResolvedValueOnce({
+      canceled: false,
+      filePaths: ['example.pptx'],
+    });
+    expect(
+      await handler(powerpointEndpoints.read.channel)({}, undefined),
+    ).toMatchObject({ok: true});
+    for (let i = 0; i < 12; i++) {
+      const path = await handler(powerpointEndpoints.background.channel)(
+        {},
+        {index: 0},
+      );
+      expect(typeof path).toBe('string');
+      const first = await handler(powerpointEndpoints.release.channel)(
+        {},
+        {path},
+      );
+      const second = await handler(powerpointEndpoints.release.channel)(
+        {},
+        {path},
+      );
+      expect(first).toBe(true);
+      expect(second).toBe(false);
+      expect(await readdir(electron.tempDir)).toEqual([]);
+    }
+    jobs.run.mockImplementationOnce(async job => {
+      if (job.kind === 'background') await writeFile(job.target, 'partial');
+      throw new Error('extraction failed');
+    });
+    expect(
+      await handler(powerpointEndpoints.background.channel)({}, {index: 0}),
+    ).toBeNull();
+    expect(await readdir(electron.tempDir)).toEqual([]);
+    const unrelated = join(electron.tempDir, 'unrelated.png');
+    await writeFile(unrelated, 'keep');
+    expect(
+      await handler(powerpointEndpoints.release.channel)({}, {path: unrelated}),
+    ).toBe(false);
+    expect(await readdir(electron.tempDir)).toEqual(['unrelated.png']);
+  });
+
+  it('cleans an extraction that finishes after the importer closes', async () => {
+    const {control, log} = setup();
+    electron.tempDir = await makeTempDir();
+    let finish: () => void = () => undefined;
+    let signalStart: () => void = () => undefined;
+    const wait = new Promise<void>(resolve => {
+      finish = resolve;
+    });
+    const started = new Promise<void>(resolve => {
+      signalStart = resolve;
+    });
+    const jobs = {
+      run: async (job: PowerPointJob): Promise<unknown> => {
+        if (job.kind === 'read') {
+          return {
+            digest: 'a'.repeat(64),
+            slides: [{number: 1, shapes: [], background: 'ppt/media/bg.png'}],
+          };
+        }
+        signalStart();
+        await wait;
+        await writeFile(job.target, 'temporary image');
+        return true;
+      },
+      dispose: vi.fn(),
+    };
+    const stop = registerPowerPointImport(
+      {control, windowMode: 'normal', log},
+      jobs,
+    );
+    onTestFinished(stop);
+    electron.chooseFile.mockResolvedValueOnce({
+      canceled: false,
+      filePaths: ['example.pptx'],
+    });
+    await handler(powerpointEndpoints.read.channel)({}, undefined);
+    const pending = handler(powerpointEndpoints.background.channel)(
+      {},
+      {index: 0},
+    );
+    await started;
+    stop();
+    finish();
+    expect(await pending).toBeNull();
+    expect(await readdir(electron.tempDir)).toEqual([]);
+  });
+});
 
 describe('clipboard availability', () => {
   it.each([

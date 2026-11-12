@@ -1,7 +1,6 @@
 import {createReadStream} from 'node:fs';
 import {stat} from 'node:fs/promises';
 import {extname} from 'node:path';
-import {Readable} from 'node:stream';
 import {
   analysisTokenFromUrl,
   mediaIdFromUrl,
@@ -72,7 +71,18 @@ function mediaTypeOf(path: string): string {
 
 function fileBody(path: string, {start, end}: ByteRange): ResponseBody {
   if (end < start) return null;
-  return Readable.toWeb(createReadStream(path, {start, end}));
+  const stream = createReadStream(path, {start, end});
+  const iterator = stream[Symbol.asyncIterator]();
+  return new ReadableStream({
+    async pull(controller) {
+      const result = await iterator.next();
+      if (result.done) controller.close();
+      else controller.enqueue(result.value);
+    },
+    cancel() {
+      stream.destroy();
+    },
+  });
 }
 
 /**

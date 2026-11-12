@@ -10,3 +10,12 @@ export const TEXT_IMPORT_LIMITS = {
   // in `SONG_IMPORT_LIMITS.characters` stays above this one.
   draftCharacters: 1_000_000,
 } as const;
+
+/** Limits applied before reading PowerPoint archive parts. */
+export const POWERPOINT_IMPORT_LIMITS = {
+  bytes: 512 * 1024 * 1024,
+  entries: 10_000,
+  xmlBytes: 16 * 1024 * 1024,
+  inflatedBytes: 1024 * 1024 * 1024,
+  slides: 5_000,
+} as const;

@@ -19,6 +19,15 @@ const devPort = Number(process.env['LLP_DEV_PORT'] ?? DEFAULT_DEV_PORT);
 export default defineConfig({
   main: {
     resolve: {alias: shared},
+    build: {
+      rolldownOptions: {
+        input: {
+          index: resolve('src/main/index.ts'),
+          powerpointWorker: resolve('src/main/import/powerpointWorker.ts'),
+        },
+        output: {entryFileNames: '[name].js'},
+      },
+    },
     plugins: [
       {
         name: 'ndi-utility-files',

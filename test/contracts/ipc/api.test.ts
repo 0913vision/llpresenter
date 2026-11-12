@@ -6,6 +6,7 @@ import {bibleEndpoints} from '@contracts/ipc/bible';
 import {contentEndpoints} from '@contracts/ipc/content';
 import type {IpcPort, WindowPlatform} from '@contracts/ipc/endpoint';
 import {libraryEndpoints} from '@contracts/ipc/library';
+import {powerpointEndpoints} from '@contracts/ipc/powerpoint';
 import {liveEndpoints} from '@contracts/ipc/live';
 import {mediaEndpoints} from '@contracts/ipc/media';
 import {locationsEndpoints} from '@contracts/ipc/locations';
@@ -31,6 +32,7 @@ const DECLARED = [
   bibleEndpoints,
   contentEndpoints,
   libraryEndpoints,
+  powerpointEndpoints,
   liveEndpoints,
   mediaEndpoints,
   recoveryEndpoints,

@@ -1,3 +1,4 @@
+import {powerpointApi, type PowerPointApi} from './powerpoint';
 import {appApi, problemsApi, type AppApi, type ProblemsApi} from './app';
 import {updateApi, type UpdateApi} from './update';
 import {bibleApi, type BibleApi} from './bible';
@@ -99,6 +100,7 @@ export interface LlpApi {
   readonly media: MediaApi;
   readonly library: LibraryApi;
   readonly textImport: TextImportApi;
+  readonly powerpoint: PowerPointApi;
   readonly recovery: RecoveryApi;
   readonly locations: LocationsApi;
   readonly songEditorWindow: SongEditorWindowApi;
@@ -140,6 +142,7 @@ export function llpApi(
     media: mediaApi(port, platform),
     library: libraryApi(port),
     textImport: textImportApi(port),
+    powerpoint: powerpointApi(port),
     recovery: recoveryApi(port),
     locations: locationsApi(port),
     songEditorWindow: songEditorWindowApi(port),

@@ -61,12 +61,17 @@ export class ImportedSongDraft {
       schemaVersion: SONG_SCHEMA_VERSION,
       id: createSongId(crypto.randomUUID()),
       title: normalizeSongTitle(draft.title) || '가져온 곡',
+      ...(draft.background === undefined ? {} : {background: draft.background}),
       slides: [
-        {
-          id: createSongSlideId(crypto.randomUUID()),
-          titleSlide: true,
-          lines: [normalizeSongTitle(draft.title) || '가져온 곡'],
-        },
+        ...(draft.preserveSlides
+          ? []
+          : [
+              {
+                id: createSongSlideId(crypto.randomUUID()),
+                titleSlide: true,
+                lines: [normalizeSongTitle(draft.title) || '가져온 곡'],
+              } as const,
+            ]),
         ...importSlides(draft.slides, () => crypto.randomUUID()),
       ],
     };

@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import type {Result} from '../common/result';
+import {mediaIdSchema} from './ids';
 import {checkPart, type ReadonlyKnown} from './fileFormat';
 import {payloadObject, plainObject} from './payload';
 import {
@@ -19,6 +20,7 @@ import {
 export const importSlideSchema = jsonObject({
   label: v.exactOptional(v.string()),
   lines: v.array(v.string()),
+  titleSlide: v.exactOptional(v.literal(true)),
   section: v.exactOptional(nonNegativeInteger),
 });
 
@@ -69,6 +71,8 @@ const previewRequestSchema = payloadObject({
 
 const draftSchema = payloadObject({
   title: v.string(),
+  preserveSlides: v.exactOptional(v.boolean()),
+  background: v.exactOptional(mediaIdSchema),
   slides: v.pipe(v.array(importSlideSchema), v.minLength(1)),
 });
 

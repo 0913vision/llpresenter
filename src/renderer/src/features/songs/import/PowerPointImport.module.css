@@ -1,0 +1,36 @@
+.content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-12);
+  height: 65vh;
+  min-height: 0;
+}
+.title {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
+}
+.title span {
+  flex: none;
+  color: var(--text-3);
+  font: var(--type-label);
+}
+.grid {
+  overflow: auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-content: start;
+  gap: var(--space-16);
+}
+.tile {
+  border: 0;
+  background: none;
+  padding: 0;
+  cursor: pointer;
+  text-align: left;
+}
+
+.title > :first-child {
+  flex: 1;
+  min-width: 0;
+}

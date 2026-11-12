@@ -310,8 +310,8 @@ READMEs, `Prefs`.
   service as template), 가져오기 (Import, submenu: 텍스트 파일 Text file,
   클립보드 텍스트 Clipboard text, PowerPoint 파일 PowerPoint file), 내보내기
   (Export, submenu), and 환경설정 (Preferences).
-  - In version 1, the PowerPoint file item shows as unavailable, with the reason
-    in a tooltip (proposal).
+  - PowerPoint to slides imports a song from a selected slide range; the image
+    and object import rows remain unavailable.
   - No source lists the items of the Export submenu. The app shows 내보내기 as a
     disabled row until an export exists (11).
 - No source lists the items of the other menus. The app has these items (the

@@ -114,6 +114,11 @@ Text import additionally caps a draft at 5,000 slides, 20,000 lines and
 1,500,000 serialized characters; imported names remain free names unless already
 cataloged.
 
+PowerPoint import caps the source at 512 MiB, 10,000 ZIP entries, 16 MiB per
+inflated XML part, 1 GiB total inflated data, and 5,000 slides. The text import
+text limits also apply. The reader rejects encrypted, damaged, or oversized
+files and does not execute macros.
+
 ## Service file (`.llservice`)
 
 Each 예배 순서 is one file. It holds only items. It doesn't hold screens, 테마,

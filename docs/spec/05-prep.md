@@ -791,7 +791,7 @@ row-menu decision.
   replaced the "1 / 3" multi-file flow of version 57.)
 - 파일 > 가져오기 > 클립보드 텍스트 (clipboard text) reads the text on the
   clipboard. The item is unavailable when the clipboard has no text (proposal).
-- 파일 > 가져오기 > PowerPoint 파일 comes later (see 09).
+- 파일 > 가져오기 > PowerPoint를 슬라이드로 opens the PowerPoint import below.
 
 ### Reading the text
 
@@ -931,6 +931,32 @@ row-menu decision.
 Source: `ImportMenu`, `ImportText`, `ImportEdit`, `ImportSave`, `Prefs`
 (가져오기), `AlertDialog` README, `TextField` README, product log versions 57
 and 59.
+
+## PowerPoint import
+
+The picker accepts `.pptx` and `.pptm`; old `.ppt` files are refused with a
+message. Files are read as ZIP and XML data, without starting PowerPoint or
+running macros. Hidden slides are skipped, and the remaining slides retain their
+original slide numbers. Shapes are read in slide order, including groups;
+tables, charts, notes and comments are ignored. Line breaks and XML entities are
+decoded, trailing whitespace is removed, and empty lines are dropped.
+
+The preview starts with all slides selected. Click a slide and Shift-click
+another to select an inclusive range. The default name is its first title line,
+or the file name without extension. Body placeholders supply lyrics and take
+precedence over decorative text. A slide with other text is a title when it is
+the first slide with text in the range, or repeats that title's first line;
+other such slides are lyrics. Empty slides remain blank. A title uses at most
+two shapes, joining each shape's lines with spaces. 편집 opens the unsaved song
+editor; 저장 there adds the song to the library.
+
+For each slide, a background image is taken from its background fill or a
+picture covering at least 90% of the slide, searching the slide, layout and
+master in order. The most common JPEG or PNG in the selected range becomes the
+song background. Cropping is ignored. The image enters the media library when
+편집 is pressed and remains there even if the song is discarded. Text styling,
+positions, transitions and animations are not imported. The size limits are in
+the data specification.
 
 ## Shared bottom 미디어 bin
 

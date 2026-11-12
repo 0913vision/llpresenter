@@ -67,6 +67,8 @@ const mocks = vi.hoisted(() => {
     settings: Promise.resolve(null),
     textImportContexts: new Array<unknown>(),
     textImportStop: vi.fn<() => void>(),
+    powerpointImportContexts: new Array<unknown>(),
+    powerpointImportStop: vi.fn<() => void>(),
     screensWindowContexts: new Array<unknown>(),
     screensWindowStop: vi.fn<() => void>(),
     screensWindowClose: vi.fn<() => Promise<boolean>>(),
@@ -297,6 +299,12 @@ vi.mock('@main/import/register', () => ({
     return mocks.textImportStop;
   },
 }));
+vi.mock('@main/import/registerPowerPoint', () => ({
+  registerPowerPointImport: (context: unknown) => {
+    mocks.powerpointImportContexts.push(context);
+    return mocks.powerpointImportStop;
+  },
+}));
 vi.mock('@main/windows/controlClose', () => ({
   registerControlClose: (context: unknown) => {
     mocks.closeContexts.push(context);
@@ -471,6 +479,8 @@ beforeEach(async () => {
   mocks.overlaysStop.mockReset();
   mocks.textImportContexts.length = 0;
   mocks.textImportStop.mockReset();
+  mocks.powerpointImportContexts.length = 0;
+  mocks.powerpointImportStop.mockReset();
   mocks.bibleContexts.length = 0;
   mocks.bibleStop.mockReset();
   mocks.bibleAiStop.mockReset();

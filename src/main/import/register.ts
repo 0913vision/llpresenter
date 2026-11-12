@@ -1,3 +1,5 @@
+import {TEST_IMPORT_FILE_VARIABLE} from './testImportFile';
+export {TEST_IMPORT_FILE_VARIABLE} from './testImportFile';
 import {clipboard, dialog, ipcMain, type BrowserWindow} from 'electron';
 import {libraryEndpoints} from '@contracts/ipc/library';
 import {
@@ -13,9 +15,6 @@ import type {WindowMode} from '../windows/testWindows';
 import {convertTextImport} from '@core/songs/textImport';
 import {readTextImport, type TextImportInputs} from './read';
 import {TEXT_IMPORT_LIMITS} from '@core/songs/textImportLimits';
-
-/** Names the file that stands in for the file dialog when windows are offscreen. */
-export const TEST_IMPORT_FILE_VARIABLE = 'LLP_TEST_IMPORT_FILE';
 
 export interface TextImportRegistration {
   readonly control: BrowserWindow;

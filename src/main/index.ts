@@ -9,6 +9,7 @@ import {registerBible} from './bible/register';
 import {registerBibleAi} from './bible/registerAi';
 import {registerFonts} from './fonts/register';
 import {registerTextImport} from './import/register';
+import {registerPowerPointImport} from './import/registerPowerPoint';
 import {startMediaAnalysis} from './media/analysis';
 import {registerMediaBackend} from './media/register';
 import {registerSongReveal} from './store/revealSong';
@@ -363,6 +364,11 @@ function start(): void {
         windowMode,
         log,
       });
+      const stopPowerPointImport = registerPowerPointImport({
+        control: win,
+        windowMode,
+        log,
+      });
       const playbackProblems = registerPlaybackProblems({
         log,
         enabled: source =>
@@ -448,6 +454,7 @@ function start(): void {
       // quit.
       shutdown.add({name: 'stop the soak scenario', run: stopSoakScenario});
       shutdown.add({name: 'stop text import', run: stopTextImport});
+      shutdown.add({name: 'stop PowerPoint import', run: stopPowerPointImport});
       shutdown.add({
         name: 'stop the settings window',
         run: settingsWindow.dispose,

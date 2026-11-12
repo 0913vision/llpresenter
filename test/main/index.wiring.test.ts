@@ -268,8 +268,17 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
         windowMode: 'normal',
       }),
     ]);
+    expect(mocks.powerpointImportContexts).toEqual([
+      expect.objectContaining({
+        control: mocks.opened.control,
+        windowMode: 'normal',
+      }),
+    ]);
     beforeQuit();
     await vi.waitFor(() => expect(mocks.textImportStop).toHaveBeenCalledOnce());
+    await vi.waitFor(() =>
+      expect(mocks.powerpointImportStop).toHaveBeenCalledOnce(),
+    );
     await vi.waitFor(() =>
       expect(mocks.electron.app.quit).toHaveBeenCalledOnce(),
     );

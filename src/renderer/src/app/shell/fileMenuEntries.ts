@@ -10,7 +10,9 @@ import {
 } from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 
-type ImportText = (source: TextImportReadRequest['source']) => void;
+type ImportText = (
+  source: TextImportReadRequest['source'] | 'powerpoint',
+) => void;
 
 interface FileMenuInput {
   readonly service: ServiceActionEntries;
@@ -92,7 +94,17 @@ export function fileMenuEntries(input: FileMenuInput): readonly MenuEntry[] {
         laterRow('multitracks', 'MultiTracks…'),
         laterRow('songselect', 'SongSelect…'),
         menuSeparator('powerpoint'),
-        laterRow('powerpoint-slides', 'PowerPoint를 슬라이드로…'),
+        {
+          kind: 'item',
+          id: 'powerpoint-slides',
+          label: 'PowerPoint를 슬라이드로…',
+          command: 'import.pptx',
+          meta: shortcutText('import.pptx'),
+          ...menuAvailability(
+            input.onImportText === undefined ? NOT_YET : undefined,
+          ),
+          onSelect: () => input.onImportText?.('powerpoint'),
+        },
         laterRow('powerpoint-images', 'PowerPoint를 이미지로…'),
         laterRow('powerpoint-objects', 'PowerPoint를 개체와 글자로…'),
       ],
