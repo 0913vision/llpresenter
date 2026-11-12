@@ -16,7 +16,11 @@ function chordsLine(
   range: readonly [number, number],
 ): HTMLElement {
   const row = document.createElement('div');
-  Object.assign(row.style, {whiteSpace: 'pre', lineHeight: '1.25'});
+  Object.assign(row.style, {
+    whiteSpace: 'pre',
+    lineHeight: '1.15',
+    paddingTop: '0.72em',
+  });
   const measures = Array.from(xml.querySelectorAll('part > measure'));
   let cursor = 0;
   for (let number = range[0]; number <= range[1]; number += 1) {
@@ -43,7 +47,7 @@ function chordsLine(
       Object.assign(chord.style, {
         position: 'absolute',
         left: '0',
-        bottom: '100%',
+        bottom: 'calc(100% + 0.05em)',
         color: '#FFD400',
         fontSize: '0.6em',
         fontWeight: '700',
@@ -58,17 +62,13 @@ function chordsLine(
   return row;
 }
 
-async function drawSystem(
+function drawSystem(
   parent: HTMLElement,
   data: Draft,
   range: readonly [number, number],
-): Promise<void> {
+): () => void {
   const holder = document.createElement('div');
-  Object.assign(holder.style, {
-    width: '100%',
-    height: '100%',
-    overflow: 'hidden',
-  });
+  Object.assign(holder.style, {width: '100%', height: '100%'});
   parent.append(holder);
   const score = new OpenSheetMusicDisplay(holder, {
     autoResize: false,
@@ -78,6 +78,9 @@ async function drawSystem(
     drawPartNames: false,
     drawMeasureNumbers: false,
     defaultColorMusic: '#FFFFFF',
+    defaultColorNotehead: '#FFFFFF',
+    defaultColorStem: '#FFFFFF',
+    defaultColorRest: '#FFFFFF',
     defaultColorLabel: '#FFFFFF',
     defaultFontFamily: 'Pretendard Variable',
     drawFromMeasureNumber: range[0] + 1,
@@ -87,28 +90,102 @@ async function drawSystem(
     drawingParameters: 'compacttight',
     disableCursor: true,
   });
-  try {
-    await score.load(data.xml);
-    score.render();
-    const svg = holder.querySelector('svg');
-    if (svg) {
-      const width = Number.parseFloat(svg.getAttribute('width') ?? '0');
-      const height = Number.parseFloat(svg.getAttribute('height') ?? '0');
-      if (width > 0 && height > 0) {
-        svg.setAttribute('viewBox', `0 0 ${width} ${height}`);
-        svg.setAttribute('width', '100%');
-        svg.setAttribute('height', '100%');
-        svg.setAttribute('preserveAspectRatio', 'xMinYMid meet');
-      }
+  Object.assign(score.EngravingRules, {
+    DefaultColorMusic: '#FFFFFF',
+    DefaultColorNotehead: '#FFFFFF',
+    DefaultColorStem: '#FFFFFF',
+    DefaultColorRest: '#FFFFFF',
+    DefaultColorLabel: '#FFFFFF',
+    DefaultColorChordSymbol: '#FFFFFF',
+    DefaultColorLyrics: '#FFFFFF',
+  });
+  let loaded = false;
+  let disposed = false;
+  const render = (): void => {
+    if (
+      !loaded ||
+      disposed ||
+      holder.clientWidth <= 0 ||
+      holder.clientHeight <= 0
+    )
+      {return;}
+    try {
+      score.render();
+      const svg = holder.querySelector('svg');
+      if (!svg) return;
+      const bounds = svg.getBBox();
+      if (bounds.width <= 0 || bounds.height <= 0) return;
+      const pad = 4;
+      svg.setAttribute(
+        'viewBox',
+        `${bounds.x - pad} ${bounds.y - pad} ${bounds.width + 2 * pad} ${bounds.height + 2 * pad}`,
+      );
+      svg.setAttribute('width', '100%');
+      svg.setAttribute('height', '100%');
+      svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+      Object.assign(svg.style, {display: 'block', overflow: 'visible'});
+    } catch (error) {
+      console.error('Could not render draft sheet', error);
     }
-  } finally {
+  };
+  const observer = new ResizeObserver(render);
+  observer.observe(holder);
+  void score
+    .load(data.xml)
+    .then(() => {
+      loaded = true;
+      render();
+    })
+    .catch((error: unknown) =>
+      console.error('Could not load draft sheet', error),
+    );
+  return () => {
+    disposed = true;
+    observer.disconnect();
     score.dispose();
-  }
+  };
+}
+
+function matchingSlide(
+  data: Draft,
+  lines: readonly string[] | undefined,
+): number {
+  if (lines === undefined) return -1;
+  return data.slides.slides.findIndex(
+    candidate =>
+      candidate.lines.length === lines.length &&
+      candidate.lines.every(
+        (line, index) => line.trim() === lines[index]?.trim(),
+      ),
+  );
+}
+
+function fitChords(overlay: HTMLElement, maximum: number): () => void {
+  const fit = (): void => {
+    if (overlay.clientWidth <= 0 || overlay.clientHeight <= 0) return;
+    overlay.style.fontSize = `${maximum}px`;
+    const rows = Array.from(overlay.children).filter(
+      (child): child is HTMLElement => child instanceof HTMLElement,
+    );
+    const width = Math.max(...rows.map(row => row.scrollWidth), 1);
+    const height = rows.reduce((total, row) => total + row.offsetHeight, 0);
+    const scale = Math.min(
+      1,
+      overlay.clientWidth / width,
+      overlay.clientHeight / Math.max(height, 1),
+    );
+    overlay.style.fontSize = `${maximum * scale}px`;
+  };
+  const observer = new ResizeObserver(fit);
+  observer.observe(overlay);
+  fit();
+  return () => observer.disconnect();
 }
 
 export class DraftSheetView {
   private overlay: HTMLElement | null = null;
   private key = '';
+  private stops: Array<() => void> = [];
 
   render(
     box: HTMLElement,
@@ -118,7 +195,10 @@ export class DraftSheetView {
     const data = draft;
     const item = frame.theme?.item;
     const next = element.kind === 'nextText';
-    const index = (slide?.position ?? -1) + (next ? 1 : 0);
+    const index =
+      data === null
+        ? -1
+        : matchingSlide(data, next ? slide?.next?.lines : slide?.lines);
     const selected = data?.slides.slides[index];
     const active =
       data !== null &&
@@ -174,6 +254,7 @@ export class DraftSheetView {
         const range = selected.systems[i];
         if (range) overlay.append(chordsLine(xml, line, range));
       });
+      this.stops.push(fitChords(overlay, size));
     } else {
       for (const range of next
         ? selected.systems.slice(0, 1)
@@ -181,15 +262,15 @@ export class DraftSheetView {
         const row = document.createElement('div');
         Object.assign(row.style, {width: '100%', flex: '1', minHeight: '0'});
         overlay.append(row);
-        void drawSystem(row, data, range).catch((error: unknown) =>
-          console.error('Could not render draft sheet', error),
-        );
+        this.stops.push(drawSystem(row, data, range));
       }
     }
   }
 
   private clear(box: HTMLElement): void {
     if (this.overlay === null) return;
+    for (const stop of this.stops) stop();
+    this.stops = [];
     this.overlay.remove();
     this.overlay = null;
     this.key = '';
@@ -199,6 +280,8 @@ export class DraftSheetView {
   }
 
   dispose(): void {
+    for (const stop of this.stops) stop();
+    this.stops = [];
     this.overlay?.remove();
     this.overlay = null;
   }
