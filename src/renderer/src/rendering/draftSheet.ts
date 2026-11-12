@@ -68,81 +68,98 @@ function drawSystem(
   range: readonly [number, number],
 ): () => void {
   const holder = document.createElement('div');
-  Object.assign(holder.style, {width: '100%', height: '100%'});
+  Object.assign(holder.style, {height: '100%', margin: 'auto'});
   parent.append(holder);
-  const score = new OpenSheetMusicDisplay(holder, {
-    autoResize: false,
-    backend: 'svg',
-    drawTitle: false,
-    drawCredits: false,
-    drawPartNames: false,
-    drawMeasureNumbers: false,
-    defaultColorMusic: '#FFFFFF',
-    defaultColorNotehead: '#FFFFFF',
-    defaultColorStem: '#FFFFFF',
-    defaultColorRest: '#FFFFFF',
-    defaultColorLabel: '#FFFFFF',
-    defaultFontFamily: 'Pretendard Variable',
-    drawFromMeasureNumber: range[0] + 1,
-    drawUpToMeasureNumber: range[1] + 1,
-    renderSingleHorizontalStaffline: true,
-    stretchLastSystemLine: true,
-    drawingParameters: 'compacttight',
-    disableCursor: true,
-  });
-  Object.assign(score.EngravingRules, {
-    DefaultColorMusic: '#FFFFFF',
-    DefaultColorNotehead: '#FFFFFF',
-    DefaultColorStem: '#FFFFFF',
-    DefaultColorRest: '#FFFFFF',
-    DefaultColorLabel: '#FFFFFF',
-    DefaultColorChordSymbol: '#FFFFFF',
-    DefaultColorLyrics: '#FFFFFF',
-  });
+  let score: OpenSheetMusicDisplay | null = null;
   let loaded = false;
   let disposed = false;
   const render = (): void => {
-    if (
-      !loaded ||
-      disposed ||
-      holder.clientWidth <= 0 ||
-      holder.clientHeight <= 0
-    )
-      {return;}
+    const width = parent.clientWidth;
+    const height = parent.clientHeight;
+    if (disposed || width <= 0 || height <= 0) return;
+    holder.style.width = `${width}px`;
+    if (score === null) {
+      const created = new OpenSheetMusicDisplay(holder, {
+        autoResize: false,
+        backend: 'svg',
+        drawTitle: false,
+        drawCredits: false,
+        drawPartNames: false,
+        drawMeasureNumbers: false,
+        defaultColorMusic: '#FFFFFF',
+        defaultColorNotehead: '#FFFFFF',
+        defaultColorStem: '#FFFFFF',
+        defaultColorRest: '#FFFFFF',
+        defaultColorLabel: '#FFFFFF',
+        defaultFontFamily: 'Pretendard Variable',
+        drawFromMeasureNumber: range[0] + 1,
+        drawUpToMeasureNumber: range[1] + 1,
+        stretchLastSystemLine: true,
+        drawingParameters: 'compacttight',
+        disableCursor: true,
+      });
+      score = created;
+      Object.assign(created.EngravingRules, {
+        DefaultColorMusic: '#FFFFFF',
+        DefaultColorNotehead: '#FFFFFF',
+        DefaultColorStem: '#FFFFFF',
+        DefaultColorRest: '#FFFFFF',
+        DefaultColorLabel: '#FFFFFF',
+        DefaultColorChordSymbol: '#FFFFFF',
+        DefaultColorLyrics: '#FFFFFF',
+      });
+      void created
+        .load(data.xml)
+        .then(() => {
+          if (disposed) return;
+          loaded = true;
+          render();
+        })
+        .catch((error: unknown) =>
+          console.error('Could not load draft sheet', error),
+        );
+      return;
+    }
+    if (!loaded) return;
     try {
+      score.Zoom = 1;
       score.render();
+      for (let attempt = 0; attempt < 6; attempt += 1) {
+        const systems = score.GraphicSheet.MusicPages.reduce(
+          (count, page) => count + page.MusicSystems.length,
+          0,
+        );
+        if (systems <= 1) break;
+        score.Zoom *= 0.8;
+        score.render();
+      }
       const svg = holder.querySelector('svg');
       if (!svg) return;
       const bounds = svg.getBBox();
       if (bounds.width <= 0 || bounds.height <= 0) return;
       const pad = 4;
+      const graphicWidth = bounds.width + 2 * pad;
+      const graphicHeight = bounds.height + 2 * pad;
+      const scale = Math.min(width / graphicWidth, height / graphicHeight);
       svg.setAttribute(
         'viewBox',
-        `${bounds.x - pad} ${bounds.y - pad} ${bounds.width + 2 * pad} ${bounds.height + 2 * pad}`,
+        `${bounds.x - pad} ${bounds.y - pad} ${graphicWidth} ${graphicHeight}`,
       );
-      svg.setAttribute('width', '100%');
-      svg.setAttribute('height', '100%');
+      svg.setAttribute('width', String(graphicWidth * scale));
+      svg.setAttribute('height', String(graphicHeight * scale));
       svg.setAttribute('preserveAspectRatio', 'xMidYMid meet');
-      Object.assign(svg.style, {display: 'block', overflow: 'visible'});
+      Object.assign(svg.style, {display: 'block', margin: 'auto'});
     } catch (error) {
       console.error('Could not render draft sheet', error);
     }
   };
   const observer = new ResizeObserver(render);
-  observer.observe(holder);
-  void score
-    .load(data.xml)
-    .then(() => {
-      loaded = true;
-      render();
-    })
-    .catch((error: unknown) =>
-      console.error('Could not load draft sheet', error),
-    );
+  observer.observe(parent);
+  render();
   return () => {
     disposed = true;
     observer.disconnect();
-    score.dispose();
+    score?.dispose();
   };
 }
 
@@ -260,7 +277,12 @@ export class DraftSheetView {
         ? selected.systems.slice(0, 1)
         : selected.systems) {
         const row = document.createElement('div');
-        Object.assign(row.style, {width: '100%', flex: '1', minHeight: '0'});
+        Object.assign(row.style, {
+          width: next ? '60%' : '100%',
+          flex: '1',
+          minHeight: '0',
+          alignSelf: 'center',
+        });
         overlay.append(row);
         this.stops.push(drawSystem(row, data, range));
       }
