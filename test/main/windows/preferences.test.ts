@@ -469,6 +469,56 @@ describe('환경설정 window', () => {
     expect(win.destroy).not.toHaveBeenCalled();
   });
 
+  it.each(['never opened', 'open', 'hidden'] as const)(
+    'disposes after the control window is destroyed with settings %s',
+    async state => {
+      const {control, open, last, owner} = setup();
+      if (state !== 'never opened') {
+        open();
+        if (state === 'hidden') await owner.close();
+      }
+      control.destroy();
+      Object.defineProperty(control, 'webContents', {
+        get: () => {
+          throw new Error('Object has been destroyed');
+        },
+      });
+      await expect(owner.dispose()).resolves.toBeUndefined();
+      expect(mocks.ipc.listenerCount(CHANNEL)).toBe(0);
+      expect(mocks.handlers.size).toBe(0);
+      if (state !== 'never opened') expect(last().destroyed).toBe(true);
+    },
+  );
+
+  it('finishes disposal when settings is destroyed during the save question', async () => {
+    const {open, last, owner} = setup();
+    open();
+    const win = last();
+    let answer: (confirmed: boolean) => void = () => undefined;
+    mocks.handshakes[0]?.confirmClose.mockReturnValueOnce(
+      new Promise(resolve => {
+        answer = resolve;
+      }),
+    );
+    const disposing = owner.dispose();
+    win.destroy();
+    answer(false);
+    await expect(disposing).resolves.toBeUndefined();
+    expect(mocks.ipc.listenerCount(CHANNEL)).toBe(0);
+    expect(mocks.handlers.size).toBe(0);
+  });
+
+  it('keeps settings open when the save question is refused on quit', async () => {
+    const {open, last, owner} = setup();
+    open();
+    mocks.handshakes[0]?.confirmClose.mockResolvedValueOnce(false);
+    await owner.dispose();
+    expect(last().destroyed).toBe(false);
+    expect(mocks.ipc.listenerCount(CHANNEL)).toBe(1);
+    await owner.dispose();
+    expect(last().destroyed).toBe(true);
+  });
+
   it('stops answering the open call after dispose', async () => {
     const {open, owner} = setup();
     await owner.dispose();

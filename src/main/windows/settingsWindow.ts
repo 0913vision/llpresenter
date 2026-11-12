@@ -336,7 +336,12 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     const win = this.win;
     const request = this.request;
     const active = (): boolean => this.wanted && this.rendered;
-    if (!active() || win === null) {
+    if (
+      !active() ||
+      win === null ||
+      win.isDestroyed() ||
+      win.webContents.isDestroyed()
+    ) {
       return;
     }
     // NOTE(0913vision): Capture only on an explicit open: it starts painting a
@@ -356,6 +361,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     if (
       this.win !== win ||
       win.isDestroyed() ||
+      win.webContents.isDestroyed() ||
       this.request !== request ||
       !active()
     ) {
@@ -367,6 +373,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     if (
       this.win !== win ||
       win.isDestroyed() ||
+      win.webContents.isDestroyed() ||
       this.request !== request ||
       !active()
     ) {
@@ -407,11 +414,14 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     this.remember();
     this.geometryView = null;
     this.win.hide();
+    if (this.win.isDestroyed()) return;
     this.win.contentView.setVisible(false);
-    this.win.webContents.setBackgroundThrottling(true);
-    if (this.options.mode === 'offscreen') {
-      this.win.webContents.stopPainting();
-    } else {
+    const contents = this.win.webContents;
+    if (!contents.isDestroyed()) {
+      contents.setBackgroundThrottling(true);
+      if (this.options.mode === 'offscreen') contents.stopPainting();
+    }
+    if (this.options.mode !== 'offscreen') {
       this.win.setOpacity(0);
       if (this.win.isMaximized()) this.win.unmaximize();
     }
@@ -470,10 +480,12 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
   readonly close = async (requireSaved = false): Promise<boolean> => {
     const current = this.win;
     if (current === null || current.isDestroyed()) return true;
-    if (!(await this.closing?.confirmClose(requireSaved))) return false;
-    if (!current.isDestroyed()) {
+    const confirmed = await this.closing?.confirmClose(requireSaved);
+    if (current.isDestroyed()) return true;
+    if (!confirmed) return false;
+    if (this.win === current) {
       this.hide();
-      if (this.stopping) current.destroy();
+      if (this.stopping && !current.isDestroyed()) current.destroy();
     }
     return true;
   };
@@ -524,10 +536,15 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     ]) {
       ipcMain.removeHandler(endpoint.channel);
     }
-    this.options.control.removeListener('closed', this.controlClosed);
-    this.options.control.webContents.removeListener(
-      'did-finish-load',
-      this.scheduleWarmup,
-    );
+    const control = this.options.control;
+    if (!control.isDestroyed()) {
+      control.removeListener('closed', this.controlClosed);
+      if (!control.webContents.isDestroyed()) {
+        control.webContents.removeListener(
+          'did-finish-load',
+          this.scheduleWarmup,
+        );
+      }
+    }
   };
 }
