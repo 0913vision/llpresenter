@@ -67,6 +67,18 @@ function drawSystem(
   data: Draft,
   range: readonly [number, number],
 ): () => void {
+  const xml = new DOMParser().parseFromString(data.xml, 'application/xml');
+  const measures = Array.from(xml.querySelectorAll('part > measure'));
+  const first = measures.findIndex(
+    measure => Number(measure.getAttribute('number')) === range[0],
+  );
+  const last = measures.findIndex(
+    measure => Number(measure.getAttribute('number')) === range[1],
+  );
+  if (first < 0 || last < first) {
+    console.error('Could not find draft sheet measure range', range);
+    return () => xml.replaceChildren();
+  }
   const holder = document.createElement('div');
   Object.assign(holder.style, {height: '100%', margin: 'auto'});
   parent.append(holder);
@@ -92,8 +104,7 @@ function drawSystem(
         defaultColorRest: '#FFFFFF',
         defaultColorLabel: '#FFFFFF',
         defaultFontFamily: 'Pretendard Variable',
-        drawFromMeasureNumber: range[0] + 1,
-        drawUpToMeasureNumber: range[1] + 1,
+        drawTimeSignatures: first === 0,
         stretchLastSystemLine: true,
         drawingParameters: 'compacttight',
         disableCursor: true,
@@ -107,11 +118,17 @@ function drawSystem(
         DefaultColorLabel: '#FFFFFF',
         DefaultColorChordSymbol: '#FFFFFF',
         DefaultColorLyrics: '#FFFFFF',
+        LyricsHeight: 5.5,
+        ChordSymbolTextHeight: 4,
+        RenderClefsAtBeginningOfStaffline: true,
+        RenderKeySignatures: true,
       });
       void created
         .load(data.xml)
         .then(() => {
           if (disposed) return;
+          created.EngravingRules.MinMeasureToDrawIndex = first;
+          created.EngravingRules.MaxMeasureToDrawIndex = last;
           loaded = true;
           render();
         })
@@ -122,9 +139,9 @@ function drawSystem(
     }
     if (!loaded) return;
     try {
-      score.Zoom = 1;
+      score.Zoom = 2.2;
       score.render();
-      for (let attempt = 0; attempt < 6; attempt += 1) {
+      for (let attempt = 0; attempt < 10; attempt += 1) {
         const systems = score.GraphicSheet.MusicPages.reduce(
           (count, page) => count + page.MusicSystems.length,
           0,
