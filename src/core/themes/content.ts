@@ -64,6 +64,12 @@ export function themeElementText(
 ): string | null {
   const {layers, item} = content;
   const slide = layers.slide;
+  const bibleReference =
+    slide?.reference === undefined
+      ? null
+      : item?.kind === 'bible'
+        ? (item.title ?? slide.reference)
+        : slide.reference;
   switch (element.kind) {
     case 'currentText': {
       if (slide === null) return null;
@@ -74,7 +80,7 @@ export function themeElementText(
       return slide === null
         ? null
         : element.source === 'item' && item?.kind === 'bible'
-          ? (item.title ?? slide.reference ?? null)
+          ? bibleReference
           : (slide.reference ?? null);
     case 'nextText': {
       if (slide?.next === undefined) return null;
@@ -89,6 +95,9 @@ export function themeElementText(
             .join('\n');
     }
     case 'label':
+      if (element.hideWhenItemTitle && item?.kind === 'bible') {
+        return bibleReference;
+      }
       if (
         element.hideWhenItemTitle &&
         slide?.label === (item?.title ?? slide?.title)

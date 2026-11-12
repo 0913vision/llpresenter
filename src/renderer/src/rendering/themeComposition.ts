@@ -89,8 +89,11 @@ export class ThemeCompositionView {
                     ? (frame.screen.songCaption ?? 'band')
                     : 'band',
               }),
-              frame.screen?.kind === 'stage',
-              frame.stageMessage,
+              {
+                stage: frame.screen?.kind === 'stage',
+                message: frame.stageMessage,
+                item: frame.theme.item,
+              },
             ),
             slide,
           ),

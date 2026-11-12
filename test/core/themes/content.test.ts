@@ -302,3 +302,41 @@ it('shows preparation fallback only for a live blank slide', () => {
     }),
   ).toBe('Edited');
 });
+
+it('shares the audience Bible reference with the built-in stage label and respects slide visibility', () => {
+  const label = {
+    ...themeElementBase(),
+    kind: 'label',
+    hideWhenItemTitle: true,
+  } as const;
+  const reference = {
+    ...themeElementBase(),
+    kind: 'reference',
+    source: 'item',
+  } as const;
+  const item = {
+    id: 'bible',
+    kind: 'bible',
+    source: 'service',
+    title: '마태복음 11:29~30',
+  } as const;
+  const slide = {
+    itemId: item.id,
+    position: 0,
+    label: '11:29',
+    lines: ['Verse'],
+    reference: '마태복음 11:29',
+  };
+  const content = {item, layers: {...emptyLayers(), slide}};
+  expect(themeElementText(label, content)).toBe('마태복음 11:29~30');
+  expect(themeElementText(label, content)).toBe(
+    themeElementText(reference, content),
+  );
+  const {reference: _reference, ...hidden} = slide;
+  const noReference = {...content, layers: {...content.layers, slide: hidden}};
+  expect(themeElementText(label, noReference)).toBeNull();
+  expect(themeElementText(reference, noReference)).toBeNull();
+  expect(
+    themeElementText(label, {...content, item: {...item, kind: 'song'}}),
+  ).toBe('11:29');
+});
