@@ -93,8 +93,8 @@ it.each([false, true])(
     const output = openOutput('normal', control);
     const win = lastWindow();
     let bounds = WINDOW_BOUNDS;
-    win.getBounds.mockImplementation(() => bounds);
-    win.setBounds.mockImplementation(next => {
+    win.getContentBounds.mockImplementation(() => bounds);
+    win.setContentBounds.mockImplementation(next => {
       bounds = next;
     });
     output.prepareForMonitorRemoval();

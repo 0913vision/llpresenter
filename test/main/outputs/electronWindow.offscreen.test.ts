@@ -82,7 +82,7 @@ describe('createElectronOutputWindow offscreen', () => {
     win.emit('leave-full-screen');
     await clock.advance(0);
 
-    expect(win.setBounds).toHaveBeenCalledWith(WINDOW_BOUNDS);
+    expect(win.setContentBounds).toHaveBeenCalledWith(WINDOW_BOUNDS);
     expect(win.moveTop).toHaveBeenCalledTimes(2);
     expect(control.moveAbove).not.toHaveBeenCalled();
     output.destroy();
@@ -94,8 +94,8 @@ describe('createElectronOutputWindow offscreen', () => {
     const output = openOutput('normal', control);
     const win = lastWindow();
     let bounds = WINDOW_BOUNDS;
-    win.getBounds.mockImplementation(() => bounds);
-    win.setBounds.mockImplementation(next => {
+    win.getContentBounds.mockImplementation(() => bounds);
+    win.setContentBounds.mockImplementation(next => {
       bounds = next;
     });
     output.showWindowed(WINDOW_BOUNDS);
@@ -123,7 +123,7 @@ describe('createElectronOutputWindow offscreen', () => {
       const control = mockControl();
       const output = openOutput('normal', control);
       const win = lastWindow();
-      win.getBounds.mockImplementation(() => WINDOW_BOUNDS);
+      win.getContentBounds.mockImplementation(() => WINDOW_BOUNDS);
       output.showWindowed(WINDOW_BOUNDS);
       win.isVisible.mockReturnValue(true);
       if (settledFirst) await clock.advance(BOUNDS_RECHECK_MS);
@@ -133,7 +133,7 @@ describe('createElectronOutputWindow offscreen', () => {
       control.moveAbove.mockClear();
 
       const recentered = {...WINDOW_BOUNDS, x: 200};
-      win.getBounds.mockImplementation(() => recentered);
+      win.getContentBounds.mockImplementation(() => recentered);
       output.showWindowed(recentered);
 
       expect(control.moveAbove).not.toHaveBeenCalled();
@@ -226,7 +226,7 @@ describe('createElectronOutputWindow offscreen', () => {
 
     output.showWindowed(WINDOW_BOUNDS);
 
-    expect(win.setBounds).toHaveBeenCalledWith(WINDOW_BOUNDS);
+    expect(win.setContentBounds).toHaveBeenCalledWith(WINDOW_BOUNDS);
     expectNeverPresented(win);
   });
 
@@ -236,7 +236,7 @@ describe('createElectronOutputWindow offscreen', () => {
 
     output.showWindowed(null);
 
-    expect(win.setBounds).not.toHaveBeenCalled();
+    expect(win.setContentBounds).not.toHaveBeenCalled();
     expectNeverPresented(win);
   });
 });

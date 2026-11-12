@@ -100,7 +100,11 @@ export class WindowPlacement {
     });
   }
 
-  verifyContentBounds(bounds: Rect, afterReapply: () => void): void {
+  verifyContentBounds(
+    bounds: Rect,
+    afterReapply: () => void,
+    settled?: () => void,
+  ): void {
     this.verify({
       bounds,
       actual: () => this.win.getContentBounds(),
@@ -108,6 +112,7 @@ export class WindowPlacement {
         this.win.setContentBounds(bounds);
         afterReapply();
       },
+      settled,
     });
   }
 

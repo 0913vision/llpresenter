@@ -21,7 +21,7 @@ describe('createElectronOutputWindow normal', () => {
     win.emit('leave-full-screen');
     await clock.advance(0);
     expect(win.setAlwaysOnTop).toHaveBeenLastCalledWith(false);
-    expect(win.setBounds).toHaveBeenLastCalledWith(WINDOW_BOUNDS);
+    expect(win.setContentBounds).toHaveBeenLastCalledWith(WINDOW_BOUNDS);
 
     output.showFullScreen(MONITOR, true);
 
@@ -38,7 +38,7 @@ describe('createElectronOutputWindow normal', () => {
     const calls: string[] = [];
     win.setAlwaysOnTop.mockImplementation(flag => calls.push(`top:${flag}`));
     control.moveAbove.mockImplementation(id => calls.push(`above:${id}`));
-    win.setBounds.mockImplementation(() => {
+    win.setContentBounds.mockImplementation(() => {
       calls.push('bounds');
     });
     win.showInactive.mockImplementation(() => calls.push('showInactive'));
@@ -104,7 +104,7 @@ describe('createElectronOutputWindow normal', () => {
       win.emit('leave-full-screen');
       await clock.advance(0);
 
-      expect(win.setBounds).not.toHaveBeenCalledWith(WINDOW_BOUNDS);
+      expect(win.setContentBounds).not.toHaveBeenCalledWith(WINDOW_BOUNDS);
       expect(control.moveAbove).not.toHaveBeenCalled();
       if (action === 'fullscreen') {
         expect(win.setFullScreen).toHaveBeenLastCalledWith(true);
@@ -132,9 +132,9 @@ describe('createElectronOutputWindow normal', () => {
     win.isFullScreen.mockReturnValue(false);
     win.emit('leave-full-screen');
     await clock.advance(0);
-    expect(win.setBounds).not.toHaveBeenCalled();
+    expect(win.setContentBounds).not.toHaveBeenCalled();
     output.showWindowed(null);
-    expect(win.setBounds).toHaveBeenCalledExactlyOnceWith(WINDOW_BOUNDS);
+    expect(win.setContentBounds).toHaveBeenCalledExactlyOnceWith(WINDOW_BOUNDS);
     output.destroy();
   });
 

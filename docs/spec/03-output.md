@@ -57,6 +57,9 @@ Rules for output windows:
 - The capture window must keep drawing when other windows cover it. OBS can't
   capture a minimized window, so the capture window has no minimize button
   (proposal).
+- A window-method or fallback output window has a 16:9 content area, initially
+  960 x 540, centered in the control monitor's work area. Resizing preserves the
+  content aspect ratio so the picture fills it without bars.
 - Closing a window-method output window with its close button is the same as
   turning that screen's output off (proposal).
 - Changing a screen's method, monitor, or resolution while its output is on

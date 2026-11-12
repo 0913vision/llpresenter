@@ -5,10 +5,34 @@ import {
   mockLog,
   openOutput,
   MONITOR,
+  WINDOW_BOUNDS,
 } from '@fixtures/main/outputs/electronWindowFixtures';
 import {describe, expect, it} from 'vitest';
 
 describe('hidden output painting', () => {
+  it.each(['normal', 'offscreen'] as const)(
+    'uses content bounds and locks only windowed output in %s mode',
+    mode => {
+      const output = openOutput(mode);
+      const win = lastWindow();
+      output.prepare(WINDOW_BOUNDS, 'window');
+      expect(win.setContentBounds).toHaveBeenLastCalledWith(WINDOW_BOUNDS);
+      expect(win.setAspectRatio).toHaveBeenLastCalledWith(16 / 9);
+      output.showWindowed(WINDOW_BOUNDS);
+      expect(win.setContentBounds).toHaveBeenLastCalledWith(WINDOW_BOUNDS);
+      expect(win.setAspectRatio).toHaveBeenLastCalledWith(16 / 9);
+      output.showCapture(MONITOR);
+      expect(win.setAspectRatio).toHaveBeenLastCalledWith(0);
+      output.showWindowed(WINDOW_BOUNDS);
+      output.showFullScreen(MONITOR, false);
+      expect(win.setAspectRatio).toHaveBeenLastCalledWith(0);
+      output.prepare(MONITOR, 'capture');
+      expect(win.setAspectRatio).toHaveBeenLastCalledWith(0);
+      output.prepare(MONITOR, 'fullscreen');
+      expect(win.setAspectRatio).toHaveBeenLastCalledWith(0);
+    },
+  );
+
   it.skipIf(process.platform !== 'win32')(
     'prepares the first Windows fullscreen surface before painting and does not resize on reveal',
     () => {

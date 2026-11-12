@@ -37,8 +37,8 @@ export type FullScreenPlacement = Extract<Placement, {kind: 'fullscreen'}>;
 export const OUTPUT_WINDOW_SIZE: Size = {width: 960, height: 540};
 export const CAPTURE_WINDOW_SIZE: Size = {width: 1920, height: 1080};
 
-/** Fits a capture resolution in an area without enlarging it. */
-export function captureBounds(area: Rect, size: Size): Rect {
+/** Fits a size proportionally in an area without enlarging it. */
+export function fitAspectBounds(area: Rect, size: Size): Rect {
   const scale = Math.min(1, area.width / size.width, area.height / size.height);
   return centeredRect(area, {
     width: Math.max(1, Math.floor(size.width * scale)),
@@ -62,7 +62,7 @@ export function captureContentWithFrame(
     width: Math.max(1, area.width - frameWidth),
     height: Math.max(1, area.height - frameHeight),
   };
-  const fitted = captureBounds(available, size);
+  const fitted = fitAspectBounds(available, size);
   const width = fitted.width + frameWidth;
   const height = fitted.height + frameHeight;
   return {
@@ -86,7 +86,7 @@ function windowOn(
   reason: WindowReason,
   alwaysOnTop = false,
 ): Placement {
-  const bounds = centeredRect(controlMonitor.workArea, OUTPUT_WINDOW_SIZE);
+  const bounds = fitAspectBounds(controlMonitor.workArea, OUTPUT_WINDOW_SIZE);
   return {
     kind: 'window',
     bounds,
@@ -122,7 +122,7 @@ export function planPlacement({
       return {
         kind: 'capture',
         ...(screen.alwaysOnTop === true ? {alwaysOnTop: true} : {}),
-        bounds: captureBounds(
+        bounds: fitAspectBounds(
           controlMonitor.workArea,
           screen.resolution ?? CAPTURE_WINDOW_SIZE,
         ),

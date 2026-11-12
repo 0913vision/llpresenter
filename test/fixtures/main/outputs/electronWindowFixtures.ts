@@ -34,6 +34,7 @@ const electron = await vi.hoisted(async () => {
     readonly setMinimizable = vi.fn();
     readonly setMaximizable = vi.fn();
     readonly setResizable = vi.fn();
+    readonly setAspectRatio = vi.fn();
     readonly setBackgroundColor = vi.fn();
     onTop = false;
     readonly setAlwaysOnTop = vi.fn<(flag: boolean) => void>(flag => {

@@ -164,6 +164,24 @@ describe('planPlacement', () => {
     ).toMatchObject({bounds: {x: 0, y: 0, width: 1920, height: 1080}});
   });
 
+  it.each(['window', 'fullscreen'] as const)(
+    'fits a %s window fallback proportionally in a short work area',
+    method => {
+      const placement = planPlacement({
+        screen: fullScreenScreen({method, display: null}),
+        monitor: null,
+        controlMonitor: {
+          ...controlMonitor,
+          workArea: {x: 0, y: 0, width: 960, height: 500},
+        },
+      });
+      expect(placement).toMatchObject({
+        kind: 'window',
+        bounds: {x: 36, y: 0, width: 888, height: 500},
+      });
+    },
+  );
+
   it('puts a full screen output over its whole monitor', () => {
     const placement = planPlacement({
       screen: fullScreenScreen({alwaysOnTop: false}),

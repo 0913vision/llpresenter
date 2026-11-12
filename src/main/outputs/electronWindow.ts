@@ -32,6 +32,7 @@ export const OUTPUT_BACKGROUND = '#000000';
 // together.
 const CAPTURE_BACKGROUND = CHROMA_KEY_COLOR.toLowerCase();
 const PING_SCRIPT = '0';
+const WINDOW_ASPECT_RATIO = 16 / 9;
 
 function halfOf({width, height}: Rect): Size {
   return {width: Math.round(width / 2), height: Math.round(height / 2)};
@@ -164,6 +165,7 @@ function presentOnScreen(
       wantedOnTop = alwaysOnTop;
       const place = () => {
         profile('window');
+        win.setAspectRatio(0);
         win.setFocusable(true);
         // NOTE(0913vision): The keeper lets go while Windows moves the window
         // into full screen, so a level change mid-move is no loss.
@@ -180,11 +182,12 @@ function presentOnScreen(
       if (bounds !== null) unplacedBounds = bounds;
       const place = () => {
         profile('window');
+        win.setAspectRatio(WINDOW_ASPECT_RATIO);
         win.setFocusable(true);
         const wantedBounds = unplacedBounds;
         if (wantedBounds !== null) {
-          win.setBounds(wantedBounds);
-          placement.verifyBounds(wantedBounds, orderWindow, () => {
+          win.setContentBounds(wantedBounds);
+          placement.verifyContentBounds(wantedBounds, orderWindow, () => {
             demoted = false;
           });
         }
@@ -203,6 +206,7 @@ function presentOnScreen(
       onTop.set(false);
       placement.windowed(() => {
         profile('capture');
+        win.setAspectRatio(0);
         win.setFocusable(true);
         win.setContentBounds(bounds);
         placement.verifyContentBounds(bounds, orderWindow);
@@ -236,11 +240,18 @@ function presentOffscreen(win: BrowserWindow): OutputPresentation {
   // goes full screen, or stays on top.
   return {
     setAlwaysOnTop: () => undefined,
-    showFullScreen: monitorBounds => win.setContentBounds(monitorBounds),
-    showWindowed: bounds => {
-      if (bounds !== null) win.setBounds(bounds);
+    showFullScreen: monitorBounds => {
+      win.setAspectRatio(0);
+      win.setContentBounds(monitorBounds);
     },
-    showCapture: bounds => win.setContentBounds(bounds),
+    showWindowed: bounds => {
+      win.setAspectRatio(WINDOW_ASPECT_RATIO);
+      if (bounds !== null) win.setContentBounds(bounds);
+    },
+    showCapture: bounds => {
+      win.setAspectRatio(0);
+      win.setContentBounds(bounds);
+    },
     prepareForMonitorRemoval: () => undefined,
     bounds: () => (win.isDestroyed() ? null : win.getBounds()),
     bringToFront: () => undefined,
@@ -283,6 +294,7 @@ export function createElectronOutputWindow(
     const area = displays.getDisplayMatching(bounds).workArea;
     return captureContentWithFrame(area, bounds, nativeFrame);
   };
+  let windowLogged = false;
   let framePending = false;
   let frameFailureReported = false;
   let frameUnavailableReported = false;
@@ -313,17 +325,34 @@ export function createElectronOutputWindow(
   win.once('closed', dispose);
   return {
     ...presentation,
+    showWindowed: (bounds, alwaysOnTop) => {
+      presentation.showWindowed(bounds, alwaysOnTop);
+      if (!windowLogged) {
+        log.info('output window content bounds', {
+          screen: screen.id,
+          ...(bounds ?? win.getContentBounds()),
+        });
+        windowLogged = true;
+      }
+    },
+    hide: () => {
+      windowLogged = false;
+      presentation.hide();
+    },
+    showFullScreen: (bounds, alwaysOnTop) => {
+      windowLogged = false;
+      presentation.showFullScreen(bounds, alwaysOnTop);
+    },
     showCapture: (bounds, alwaysOnTop) => {
+      windowLogged = false;
       const fitted = fitCapture(bounds);
       log.info('capture window bounds', {screen: screen.id, ...fitted});
       presentation.showCapture(fitted, alwaysOnTop);
     },
     configure: screen => win.setTitle(screen.name),
     prepare: (bounds, kind) => {
-      if (kind === 'window') win.setBounds(bounds);
-      else {
-        win.setContentBounds(kind === 'capture' ? fitCapture(bounds) : bounds);
-      }
+      win.setAspectRatio(kind === 'window' ? WINDOW_ASPECT_RATIO : 0);
+      win.setContentBounds(kind === 'capture' ? fitCapture(bounds) : bounds);
       // NOTE(0913vision): The first reveal must paint after native fullscreen
       // setup, just like a window that stayed fullscreen across later hides.
       if (

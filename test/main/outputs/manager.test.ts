@@ -10,7 +10,7 @@ import {
 import {fullScreenScreen} from '@fixtures/main/outputs/testing';
 import {assignMonitors} from '@main/displays/assign';
 import {findControlMonitor, type Monitor} from '@main/displays/monitor';
-import {centeredRect, type Rect, type Size} from '@main/displays/rect';
+import type {Rect, Size} from '@main/displays/rect';
 import type {MonitorRemovedListener} from '@main/displays/registry';
 import type {LiveStore} from '@main/live/store';
 import {OutputManager, type MonitorFeed} from '@main/outputs/manager';
@@ -20,7 +20,7 @@ import type {
 } from '@main/outputs/outputWindow';
 import {
   OUTPUT_WINDOW_SIZE,
-  captureBounds,
+  fitAspectBounds,
   planPlacement,
   type ShownPlacement,
 } from '@main/outputs/placement';
@@ -370,7 +370,7 @@ describe('OutputManager placement', () => {
       })),
     });
 
-    const bounds = centeredRect(CONTROL_WINDOW, OUTPUT_WINDOW_SIZE);
+    const bounds = fitAspectBounds(CONTROL_WINDOW, OUTPUT_WINDOW_SIZE);
     expect(outputOf('main').update).toHaveBeenLastCalledWith(
       {kind: 'window', bounds, reason: 'monitorMissing'},
       main,
@@ -378,7 +378,7 @@ describe('OutputManager placement', () => {
     expect(outputOf('capture').update).toHaveBeenLastCalledWith(
       {
         kind: 'capture',
-        bounds: captureBounds(CONTROL_WINDOW, {width: 1280, height: 720}),
+        bounds: fitAspectBounds(CONTROL_WINDOW, {width: 1280, height: 720}),
         alwaysOnTop: true,
       },
       capture,
@@ -399,7 +399,7 @@ describe('OutputManager placement', () => {
     const {store} = setUp([unassigned], []);
     store.dispatch({type: 'output.set', screenId: 'plain', on: true});
 
-    const bounds = centeredRect(CONTROL_WINDOW, OUTPUT_WINDOW_SIZE);
+    const bounds = fitAspectBounds(CONTROL_WINDOW, OUTPUT_WINDOW_SIZE);
     expect(outputOf('plain').update).toHaveBeenLastCalledWith(
       {kind: 'window', bounds, reason: 'method'},
       unassigned,

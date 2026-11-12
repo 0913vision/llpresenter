@@ -1,7 +1,7 @@
 import type {LiveState} from '@core/live/state';
 import {assignMonitors, type DisplayRequest} from '../displays/assign';
 import {findControlMonitor, type Monitor} from '../displays/monitor';
-import {centeredRect, type Rect} from '../displays/rect';
+import type {Rect} from '../displays/rect';
 import type {MonitorRemovedListener} from '../displays/registry';
 import type {LiveStore} from '../live/store';
 import type {Logger} from '../log';
@@ -9,7 +9,7 @@ import {OutputWindow, type CreateOutputWindowHandle} from './outputWindow';
 import type {RendererState} from './rendererRecovery';
 import {
   planPlacement,
-  captureBounds,
+  fitAspectBounds,
   OUTPUT_WINDOW_SIZE,
   CAPTURE_WINDOW_SIZE,
   type Placement,
@@ -334,8 +334,8 @@ export class OutputManager {
     for (const screen of screens) {
       const bounds =
         screen.method === 'capture'
-          ? captureBounds(area, screen.resolution ?? CAPTURE_WINDOW_SIZE)
-          : centeredRect(area, OUTPUT_WINDOW_SIZE);
+          ? fitAspectBounds(area, screen.resolution ?? CAPTURE_WINDOW_SIZE)
+          : fitAspectBounds(area, OUTPUT_WINDOW_SIZE);
       const unassigned = screen.display === null;
       const planned: Placement =
         screen.method === 'fullscreen' &&
