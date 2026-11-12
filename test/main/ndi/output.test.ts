@@ -50,11 +50,11 @@ vi.mock('@main/windows/page', () => ({
   startLoading: vi.fn(async () => undefined),
 }));
 
-function setup(gpu = false) {
+function setup(gpu: boolean | 'absent' = false) {
   const screen = fullScreenScreen({
     method: 'capture',
     target: 'ndi',
-    ...(gpu ? {ndi: {hardwareAcceleration: true}} : {}),
+    ...(gpu === 'absent' ? {} : {ndi: {hardwareAcceleration: gpu}}),
   });
   const failure = vi.fn();
   const fallback = vi.fn();
@@ -308,10 +308,27 @@ describe('GPU NDI output', () => {
     expect(fallback).toHaveBeenCalledOnce();
     handle.destroy();
   });
-  it('restarts the active output when the hardware setting changes', () => {
-    const {handle, screen, win} = setup();
+  it('starts with acceleration when the option is absent', () => {
+    const {handle} = setup('absent');
     handle.showCapture(full);
-    handle.configure({...screen, ndi: {hardwareAcceleration: true}});
+    expect(mocks.gpuStatus).toHaveBeenCalledOnce();
+    expect(mocks.workers).toHaveLength(1);
+    handle.destroy();
+  });
+  it('starts without acceleration when false is stored', () => {
+    const {handle} = setup(false);
+    handle.showCapture(full);
+    expect(mocks.gpuStatus).not.toHaveBeenCalled();
+    expect(mocks.workers).toHaveLength(1);
+    handle.destroy();
+  });
+  it('restarts the active output when acceleration is turned off', () => {
+    const {handle, screen, win, worker} = setup('absent');
+    handle.showCapture(full);
+    const gpuWorker = worker();
+    handle.configure({...screen, ndi: {hardwareAcceleration: false}});
+    expect(gpuWorker.postMessage).toHaveBeenCalledWith({type: 'stop'});
+    gpuWorker.emit('exit', 0);
     expect(win.destroy).toHaveBeenCalledOnce();
     expect(mocks.windows).toHaveLength(2);
     expect(mocks.workers).toHaveLength(2);

@@ -1,5 +1,9 @@
 import {describe, expect, it} from 'vitest';
-import {parseScreens, serializeScreens} from '@core/schema/screens';
+import {
+  NDI_DEFAULT_HARDWARE_ACCELERATION,
+  parseScreens,
+  serializeScreens,
+} from '@core/schema/screens';
 import {
   expectInvalidField,
   expectRoundTrip,
@@ -165,7 +169,7 @@ describe('parseScreens', () => {
     );
   });
 
-  it('accepts hardware acceleration booleans and treats an absent option as off', () => {
+  it('accepts hardware acceleration booleans and leaves an absent option unstored', () => {
     expectRoundTrip(
       codec,
       withScreen({...mainScreen(), ndi: {hardwareAcceleration: true}}),
@@ -180,8 +184,9 @@ describe('parseScreens', () => {
     );
     if (!parsed.ok) throw new Error('screen did not parse');
     expect(
-      parsed.value.data.screens[0]?.ndi?.hardwareAcceleration ?? false,
-    ).toBe(false);
+      parsed.value.data.screens[0]?.ndi?.hardwareAcceleration,
+    ).toBeUndefined();
+    expect(NDI_DEFAULT_HARDWARE_ACCELERATION).toBe(true);
     expectInvalidField(
       codec,
       withScreen({...mainScreen(), ndi: {hardwareAcceleration: 'true'}}),

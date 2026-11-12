@@ -2,6 +2,7 @@ import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useMemo, useState, type JSX} from 'react';
 import type {MonitorInfo, MonitorList} from '@core/schema/monitors';
 import {
+  NDI_DEFAULT_HARDWARE_ACCELERATION,
   NDI_DEFAULT_SOURCE_NAME,
   NDI_SOURCE_NAME_MAX,
   type Screen,
@@ -120,7 +121,10 @@ function NdiRows({
         {({controlId}) => (
           <Checkbox
             id={controlId}
-            checked={screen.ndi?.hardwareAcceleration ?? false}
+            checked={
+              screen.ndi?.hardwareAcceleration ??
+              NDI_DEFAULT_HARDWARE_ACCELERATION
+            }
             disabled={reason !== undefined}
             title={reason}
             onChange={hardwareAcceleration =>

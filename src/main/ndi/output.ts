@@ -1,4 +1,7 @@
-import {NDI_DEFAULT_SOURCE_NAME} from '@core/schema/screens';
+import {
+  NDI_DEFAULT_HARDWARE_ACCELERATION,
+  NDI_DEFAULT_SOURCE_NAME,
+} from '@core/schema/screens';
 import {
   BrowserWindow,
   utilityProcess,
@@ -35,7 +38,7 @@ export function createNdiOutput(
   let active = false;
   let capture = {x: 0, y: 0, width: NDI_FRAME_WIDTH, height: NDI_FRAME_HEIGHT};
   const create = (): OutputWindowHandle =>
-    current.ndi?.hardwareAcceleration === true
+    (current.ndi?.hardwareAcceleration ?? NDI_DEFAULT_HARDWARE_ACCELERATION)
       ? createGpuOutput(current, events, {
           options,
           bitmap: () => createBitmapOutput(current, events, options),
@@ -45,8 +48,9 @@ export function createNdiOutput(
   return {
     configure: next => {
       const changed =
-        (current.ndi?.hardwareAcceleration ?? false) !==
-        (next.ndi?.hardwareAcceleration ?? false);
+        (current.ndi?.hardwareAcceleration ??
+          NDI_DEFAULT_HARDWARE_ACCELERATION) !==
+        (next.ndi?.hardwareAcceleration ?? NDI_DEFAULT_HARDWARE_ACCELERATION);
       current = next;
       if (changed) {
         delegate.destroy();

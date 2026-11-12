@@ -41,6 +41,9 @@ const displaySchema = jsonObject({
 /** Default name advertised by the broadcast sender. */
 export const NDI_DEFAULT_SOURCE_NAME = 'LOVELIGHT 방송 화면';
 
+/** Default for an NDI screen without a stored acceleration preference. */
+export const NDI_DEFAULT_HARDWARE_ACCELERATION = true;
+
 /** Maximum NDI source-name length in characters. */
 export const NDI_SOURCE_NAME_MAX = 64;
 
