@@ -1,5 +1,6 @@
 import {
   MONITOR,
+  electron,
   WINDOW_BOUNDS,
   SCREEN,
   mockLog,
@@ -13,6 +14,35 @@ import {startLoading} from '@main/windows/page';
 import {createElectronOutputWindow} from '@main/outputs/electronWindow';
 import {ON_TOP_CHECK_MS} from '@main/outputs/onTopKeeper';
 import designTokens from '../../../design/system/project/tokens.json';
+
+it('prepares and shows capture content with the native frame inside the work area', () => {
+  const output = openOutput('normal');
+  const win = lastWindow();
+  const area = {x: 67, y: 0, width: 1613, height: 1050};
+  electron.getDisplayMatching.mockReturnValue({workArea: area});
+  win.getBounds.mockReturnValue({x: 100, y: 100, width: 976, height: 579});
+  win.getContentBounds.mockReturnValue({
+    x: 108,
+    y: 131,
+    width: 960,
+    height: 540,
+  });
+  const planned = {x: 67, y: 72, width: 1613, height: 907};
+  output.prepare(planned, 'capture');
+  const fitted = win.setContentBounds.mock.lastCall?.[0];
+  expect(fitted).toBeDefined();
+  if (fitted === undefined) throw new Error('Capture was not prepared');
+  expect(fitted.x - 8).toBeGreaterThanOrEqual(area.x);
+  expect(fitted.y - 31).toBeGreaterThanOrEqual(area.y);
+  expect(fitted.x - 8 + fitted.width + 16).toBeLessThanOrEqual(
+    area.x + area.width,
+  );
+  expect(fitted.y - 31 + fitted.height + 39).toBeLessThanOrEqual(
+    area.y + area.height,
+  );
+  output.showCapture(planned);
+  expect(win.setContentBounds).toHaveBeenLastCalledWith(fitted);
+});
 
 describe('createElectronOutputWindow hang handling', () => {
   it('pings the page by running a script on its main thread', async () => {

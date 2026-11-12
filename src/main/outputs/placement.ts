@@ -37,6 +37,42 @@ export type FullScreenPlacement = Extract<Placement, {kind: 'fullscreen'}>;
 export const OUTPUT_WINDOW_SIZE: Size = {width: 960, height: 540};
 export const CAPTURE_WINDOW_SIZE: Size = {width: 1920, height: 1080};
 
+/** Fits a capture resolution in an area without enlarging it. */
+export function captureBounds(area: Rect, size: Size): Rect {
+  const scale = Math.min(1, area.width / size.width, area.height / size.height);
+  return centeredRect(area, {
+    width: Math.max(1, Math.floor(size.width * scale)),
+    height: Math.max(1, Math.floor(size.height * scale)),
+  });
+}
+
+/** Fits capture content and its measured native frame inside the work area. */
+export function captureContentWithFrame(
+  area: Rect,
+  size: Size,
+  {outer, content}: {outer: Rect; content: Rect},
+): Rect {
+  const left = Math.max(0, content.x - outer.x);
+  const top = Math.max(0, content.y - outer.y);
+  const frameWidth = Math.max(left, outer.width - content.width);
+  const frameHeight = Math.max(top, outer.height - content.height);
+  const available = {
+    x: 0,
+    y: 0,
+    width: Math.max(1, area.width - frameWidth),
+    height: Math.max(1, area.height - frameHeight),
+  };
+  const fitted = captureBounds(available, size);
+  const width = fitted.width + frameWidth;
+  const height = fitted.height + frameHeight;
+  return {
+    x: Math.round(area.x + (area.width - width) / 2) + left,
+    y: Math.round(area.y + (area.height - height) / 2) + top,
+    width: fitted.width,
+    height: fitted.height,
+  };
+}
+
 /** The arguments of {@link planPlacement}. */
 export interface PlacementInput {
   readonly screen: OutputScreen;
@@ -83,20 +119,13 @@ export function planPlacement({
 }: PlacementInput): Placement {
   switch (screen.method) {
     case 'capture': {
-      const size = screen.resolution ?? CAPTURE_WINDOW_SIZE;
-      const {workArea} = controlMonitor;
       return {
         kind: 'capture',
         ...(screen.alwaysOnTop === true ? {alwaysOnTop: true} : {}),
-        bounds: {
-          ...size,
-          x:
-            workArea.x +
-            Math.max(0, Math.round((workArea.width - size.width) / 2)),
-          y:
-            workArea.y +
-            Math.max(0, Math.round((workArea.height - size.height) / 2)),
-        },
+        bounds: captureBounds(
+          controlMonitor.workArea,
+          screen.resolution ?? CAPTURE_WINDOW_SIZE,
+        ),
       };
     }
     case 'window':

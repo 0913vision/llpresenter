@@ -1,6 +1,10 @@
 import {describe, expect, it} from 'vitest';
 import {monitorById, monitorsOf} from '@fixtures/main/displays/testing';
-import {OUTPUT_WINDOW_SIZE, planPlacement} from '@main/outputs/placement';
+import {
+  captureContentWithFrame,
+  OUTPUT_WINDOW_SIZE,
+  planPlacement,
+} from '@main/outputs/placement';
 import {fullScreenScreen} from '@fixtures/main/outputs/testing';
 
 const monitors = monitorsOf({id: 1, primary: true}, {id: 2, x: 1920});
@@ -11,6 +15,42 @@ const saved = {
   name: projector.name,
   bounds: projector.bounds,
 };
+
+describe('captureContentWithFrame', () => {
+  it.each([
+    {x: 67, y: 0, width: 1613, height: 1050},
+    {x: 0, y: 0, width: 1920, height: 1080},
+    {x: -2560, y: 0, width: 2560, height: 1440},
+  ])('centers the entire framed window inside %o', area => {
+    const outer = {x: 100, y: 100, width: 976, height: 579};
+    const content = {x: 108, y: 131, width: 960, height: 540};
+    const fitted = captureContentWithFrame(
+      area,
+      {width: 1920, height: 1080},
+      {outer, content},
+    );
+    const actual = {
+      x: fitted.x - 8,
+      y: fitted.y - 31,
+      width: fitted.width + 16,
+      height: fitted.height + 39,
+    };
+    expect(actual.x).toBeGreaterThanOrEqual(area.x);
+    expect(actual.y).toBeGreaterThanOrEqual(area.y);
+    expect(actual.x + actual.width).toBeLessThanOrEqual(area.x + area.width);
+    expect(actual.y + actual.height).toBeLessThanOrEqual(area.y + area.height);
+    expect(
+      Math.abs(actual.x + actual.width / 2 - (area.x + area.width / 2)),
+    ).toBeLessThanOrEqual(0.5);
+    expect(
+      Math.abs(actual.y + actual.height / 2 - (area.y + area.height / 2)),
+    ).toBeLessThanOrEqual(0.5);
+    expect(fitted.width / fitted.height).toBeCloseTo(16 / 9, 2);
+    if (area.width === 2560) {
+      expect(fitted).toMatchObject({width: 1920, height: 1080});
+    }
+  });
+});
 
 describe('planPlacement', () => {
   it.each(['window', 'off'] as const)(
@@ -81,22 +121,47 @@ describe('planPlacement', () => {
     },
   );
 
-  it('keeps capture content at its chosen resolution without requiring or reserving a monitor', () => {
-    for (const resolution of [undefined, {width: 2560, height: 1440}]) {
-      const placement = planPlacement({
+  it.each([
+    [
+      {x: 67, y: 0, width: 1613, height: 1050},
+      {x: 67, y: 72, width: 1613, height: 907},
+    ],
+    [
+      {x: 0, y: 0, width: 1920, height: 1080},
+      {x: 0, y: 0, width: 1920, height: 1080},
+    ],
+    [
+      {x: 0, y: 0, width: 1920, height: 1040},
+      {x: 36, y: 0, width: 1848, height: 1040},
+    ],
+    [
+      {x: 0, y: 0, width: 2560, height: 1440},
+      {x: 320, y: 180, width: 1920, height: 1080},
+    ],
+  ])('fits and centers capture in %o', (workArea, bounds) => {
+    expect(
+      planPlacement({
+        screen: fullScreenScreen({method: 'capture'}),
+        monitor: null,
+        controlMonitor: {...controlMonitor, workArea},
+      }),
+    ).toEqual({kind: 'capture', alwaysOnTop: true, bounds});
+  });
+
+  it('fits a custom capture resolution', () => {
+    expect(
+      planPlacement({
         screen: fullScreenScreen({
           method: 'capture',
-          alwaysOnTop: false,
-          ...(resolution === undefined ? {} : {resolution}),
+          resolution: {width: 2560, height: 1440},
         }),
         monitor: null,
-        controlMonitor,
-      });
-      expect(placement).toEqual({
-        kind: 'capture',
-        bounds: {x: 0, y: 0, ...(resolution ?? {width: 1920, height: 1080})},
-      });
-    }
+        controlMonitor: {
+          ...controlMonitor,
+          workArea: {x: 0, y: 0, width: 1920, height: 1080},
+        },
+      }),
+    ).toMatchObject({bounds: {x: 0, y: 0, width: 1920, height: 1080}});
   });
 
   it('puts a full screen output over its whole monitor', () => {
@@ -137,7 +202,7 @@ describe('planPlacement', () => {
     }
   });
 
-  it('turns the output off when its monitor is missing and 연결이 끊기면 says off', () => {
+  it('turns the output off when its monitor is missing and ?곌껐???딄린硫?says off', () => {
     const placement = planPlacement({
       screen: fullScreenScreen({display: saved, onDisconnect: 'off'}),
       monitor: null,

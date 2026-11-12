@@ -49,6 +49,11 @@ Rules for output windows:
   that amount. 위치 미세 조정 (position fine-tuning, x and y in px) moves the
   whole picture by that amount (proposal: these values correct projector
   overscan and offset).
+- A capture window keeps its set resolution when it fits the control monitor's
+  work area. Otherwise it is reduced proportionally to fit and centered in that
+  work area; the complete 1920 x 1080 layout scales into the window. The same
+  rule applies to the NDI-missing capture-window fallback. NDI frames remain
+  1920 x 1080.
 - The capture window must keep drawing when other windows cover it. OBS can't
   capture a minimized window, so the capture window has no minimize button
   (proposal).

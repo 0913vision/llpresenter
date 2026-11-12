@@ -16,6 +16,7 @@ import type {Logger} from '../log';
 import {blockNavigation, preloadPath, startLoading} from '../windows/page';
 import {unionDirty} from './rect';
 import {createGpuOutput} from './gpuOutput';
+import {NDI_FRAME_WIDTH, NDI_FRAME_HEIGHT} from './textureQueue';
 
 export const NDI_SEND_TIMEOUT_MS = 5000;
 export const NDI_STOP_TIMEOUT_MS = 2000;
@@ -32,7 +33,7 @@ export function createNdiOutput(
 ): OutputWindowHandle {
   let current = screen;
   let active = false;
-  let capture = {x: 0, y: 0, width: 1920, height: 1080};
+  let capture = {x: 0, y: 0, width: NDI_FRAME_WIDTH, height: NDI_FRAME_HEIGHT};
   const create = (): OutputWindowHandle =>
     current.ndi?.hardwareAcceleration === true
       ? createGpuOutput(current, events, {
@@ -90,8 +91,8 @@ function createBitmapOutput(
   const win = new BrowserWindow({
     show: false,
     skipTaskbar: true,
-    width: 1920,
-    height: 1080,
+    width: NDI_FRAME_WIDTH,
+    height: NDI_FRAME_HEIGHT,
     useContentSize: true,
     frame: false,
     transparent: true,
@@ -105,8 +106,8 @@ function createBitmapOutput(
       offscreen: true,
     },
   });
-  win.setMinimumSize(1920, 1080);
-  win.setContentSize(1920, 1080);
+  win.setMinimumSize(NDI_FRAME_WIDTH, NDI_FRAME_HEIGHT);
+  win.setContentSize(NDI_FRAME_WIDTH, NDI_FRAME_HEIGHT);
   win.webContents.setFrameRate(30);
   const page = {name: 'output' as const, query: {screen: screen.id, ndi: '1'}};
   blockNavigation(win);
@@ -146,7 +147,9 @@ function createBitmapOutput(
       return;
     }
     const size = image.getSize();
-    if (size.width !== 1920 || size.height !== 1080) return;
+    if (size.width !== NDI_FRAME_WIDTH || size.height !== NDI_FRAME_HEIGHT) {
+      return;
+    }
     if (!inFlight) {
       sendFrame(dirty, image);
       return;
@@ -272,7 +275,7 @@ function createBitmapOutput(
     },
     prepare: () => undefined,
     requestFrame: () => win.webContents.invalidate(),
-    contentSize: () => ({width: 1920, height: 1080}),
+    contentSize: () => ({width: NDI_FRAME_WIDTH, height: NDI_FRAME_HEIGHT}),
     setAlwaysOnTop: () => undefined,
     showFullScreen: () => undefined,
     showWindowed: () => undefined,

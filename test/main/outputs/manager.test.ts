@@ -20,6 +20,7 @@ import type {
 } from '@main/outputs/outputWindow';
 import {
   OUTPUT_WINDOW_SIZE,
+  captureBounds,
   planPlacement,
   type ShownPlacement,
 } from '@main/outputs/placement';
@@ -377,7 +378,7 @@ describe('OutputManager placement', () => {
     expect(outputOf('capture').update).toHaveBeenLastCalledWith(
       {
         kind: 'capture',
-        bounds: centeredRect(CONTROL_WINDOW, {width: 1280, height: 720}),
+        bounds: captureBounds(CONTROL_WINDOW, {width: 1280, height: 720}),
         alwaysOnTop: true,
       },
       capture,

@@ -1,4 +1,4 @@
-import {BrowserWindow} from 'electron';
+import {BrowserWindow, screen as displays} from 'electron';
 import {centeredRect, sameRect, type Rect, type Size} from '../displays/rect';
 import type {Logger} from '../log';
 import {
@@ -17,6 +17,7 @@ import {CHROMA_KEY_COLOR} from '@core/screens/emptyColor';
 import type {OutputWindowEvents, OutputWindowHandle} from './outputWindow';
 import type {OutputScreen} from './screens';
 import {OnTopKeeper} from './onTopKeeper';
+import {captureContentWithFrame} from './placement';
 import {WindowPlacement} from './windowPlacement';
 import {forwardOutputKeys, type OutputKeyControl} from './outputKeys';
 import {
@@ -274,6 +275,14 @@ export function createElectronOutputWindow(
 ): OutputWindowHandle {
   const {log, mode} = options;
   const win = createBrowserWindow(screen, mode);
+  let nativeFrame = {outer: win.getBounds(), content: win.getContentBounds()};
+  const fitCapture = (bounds: Rect): Rect => {
+    if (!win.isFullScreen()) {
+      nativeFrame = {outer: win.getBounds(), content: win.getContentBounds()};
+    }
+    const area = displays.getDisplayMatching(bounds).workArea;
+    return captureContentWithFrame(area, bounds, nativeFrame);
+  };
   let framePending = false;
   let frameFailureReported = false;
   let frameUnavailableReported = false;
@@ -304,10 +313,17 @@ export function createElectronOutputWindow(
   win.once('closed', dispose);
   return {
     ...presentation,
+    showCapture: (bounds, alwaysOnTop) => {
+      const fitted = fitCapture(bounds);
+      log.info('capture window bounds', {screen: screen.id, ...fitted});
+      presentation.showCapture(fitted, alwaysOnTop);
+    },
     configure: screen => win.setTitle(screen.name),
     prepare: (bounds, kind) => {
       if (kind === 'window') win.setBounds(bounds);
-      else win.setContentBounds(bounds);
+      else {
+        win.setContentBounds(kind === 'capture' ? fitCapture(bounds) : bounds);
+      }
       // NOTE(0913vision): The first reveal must paint after native fullscreen
       // setup, just like a window that stayed fullscreen across later hides.
       if (

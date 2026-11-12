@@ -62,10 +62,14 @@ const electron = await vi.hoisted(async () => {
     }
   }
   const created: MockBrowserWindow[] = [];
-  return {MockBrowserWindow, created};
+  const getDisplayMatching = vi.fn((bounds: Rect) => ({workArea: bounds}));
+  return {MockBrowserWindow, created, getDisplayMatching};
 });
 
-vi.mock('electron', () => ({BrowserWindow: electron.MockBrowserWindow}));
+vi.mock('electron', () => ({
+  BrowserWindow: electron.MockBrowserWindow,
+  screen: {getDisplayMatching: electron.getDisplayMatching},
+}));
 vi.mock('@main/windows/page', () => ({
   preloadPath: 'preload.js',
   loadPage: vi.fn(),
@@ -140,6 +144,10 @@ export function expectNeverPresented(
 
 beforeEach(() => {
   electron.created.length = 0;
+  electron.getDisplayMatching.mockReset();
+  electron.getDisplayMatching.mockImplementation(bounds => ({
+    workArea: bounds,
+  }));
 });
 
 export {electron};

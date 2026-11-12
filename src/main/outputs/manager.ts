@@ -9,6 +9,7 @@ import {OutputWindow, type CreateOutputWindowHandle} from './outputWindow';
 import type {RendererState} from './rendererRecovery';
 import {
   planPlacement,
+  captureBounds,
   OUTPUT_WINDOW_SIZE,
   CAPTURE_WINDOW_SIZE,
   type Placement,
@@ -331,12 +332,10 @@ export class OutputManager {
     this.lastOutputs = this.options.store.state.outputs;
     const turnOff: string[] = [];
     for (const screen of screens) {
-      const bounds = centeredRect(
-        area,
+      const bounds =
         screen.method === 'capture'
-          ? (screen.resolution ?? CAPTURE_WINDOW_SIZE)
-          : OUTPUT_WINDOW_SIZE,
-      );
+          ? captureBounds(area, screen.resolution ?? CAPTURE_WINDOW_SIZE)
+          : centeredRect(area, OUTPUT_WINDOW_SIZE);
       const unassigned = screen.display === null;
       const planned: Placement =
         screen.method === 'fullscreen' &&
