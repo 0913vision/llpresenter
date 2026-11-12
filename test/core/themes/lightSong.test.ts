@@ -27,7 +27,8 @@ it('offers native-width dark audience lyrics while retaining the white song fram
       continue;
     }
     expect(variant?.songTitle).toBe('sunday-light');
-    expect(variant?.background).toBeUndefined();
+    expect(variant?.background).toBe('#FFFFFF');
+    expect(original?.background).toBeUndefined();
     expect(
       variant?.elements.find(element => element.kind === 'currentText')?.frame,
     ).toEqual({x: 36, y: 141, w: 1848, h: 411});

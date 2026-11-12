@@ -548,8 +548,9 @@ as every settings file does (02).
   audience lyrics use black (#000000) in the wider frame (36, 141, 1848, 411),
   with the same typography as 찬양. Its title and optional subtitle are also
   black. The white 찬양 frame stays (132, 141, 1656, 411). It keeps the song's
-  normal picture and the existing broadcast and stage layouts. Operators pick
-  this variant explicitly; the song default and saved catalogs are unchanged.
+  normal picture over a white (#FFFFFF) background and the existing broadcast
+  and stage layouts. Operators pick this variant explicitly; the song default
+  and saved catalogs are unchanged.
 - The app includes three bundled 1920 x 1080 background pictures for 말씀 and
   the two sermon title layouts. Their backgrounds use the 청록 preset above,
   rendered with the output's OKLCH mixing and dither; the two title pictures

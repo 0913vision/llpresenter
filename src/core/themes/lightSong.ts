@@ -22,6 +22,7 @@ export function lightSongTheme(
           screen.kind === 'audience'
             ? {
                 ...layout,
+                background: '#FFFFFF',
                 songTitle: 'sunday-light',
                 elements: layout.elements.map(element =>
                   element.kind === 'currentText'
