@@ -5,7 +5,7 @@ const notes =
   'Install KoPub before the first run: https://www.kopus.org/biz-electronic-font2/';
 const request = vi.fn<typeof fetch>();
 const draft = (body: string | null = null): Response =>
-  Response.json({id: 42, draft: true, body});
+  Response.json([{tag_name: 'v1.2.3', id: 42, draft: true, body}]);
 
 beforeEach(() => {
   vi.resetModules();
@@ -33,6 +33,11 @@ describe('draft release notes', () => {
     await import('./draft.mts');
 
     expect(request).toHaveBeenCalledTimes(2);
+    expect(request).toHaveBeenNthCalledWith(
+      1,
+      'https://api.github.com/repos/owner/repository/releases?per_page=100',
+      expect.anything(),
+    );
     expect(request).toHaveBeenLastCalledWith(
       'https://api.github.com/repos/owner/repository/releases/42',
       expect.objectContaining({
@@ -49,24 +54,42 @@ describe('draft release notes', () => {
   });
 
   it('refuses to change a release that has already been published', async () => {
-    request.mockResolvedValueOnce(Response.json({id: 42, draft: false}));
+    request.mockResolvedValueOnce(
+      Response.json([{tag_name: 'v1.2.3', id: 42, draft: false}]),
+    );
     await expect(import('./draft.mts')).rejects.toThrow('published release');
     expect(request).toHaveBeenCalledTimes(1);
   });
 
   it('requires the upload to have created a draft before writing notes', async () => {
-    request.mockResolvedValueOnce(new Response(null, {status: 404}));
+    request.mockResolvedValueOnce(Response.json([]));
     await expect(import('./draft.mts')).rejects.toThrow(
-      'did not create a draft',
+      'did not create a draft release for v1.2.3',
     );
     expect(request).toHaveBeenCalledTimes(1);
   });
 
   it('permits a missing release during the read-only preflight', async () => {
     process.argv = originalArgs;
-    request.mockResolvedValueOnce(new Response(null, {status: 404}));
+    request.mockResolvedValueOnce(Response.json([]));
     await import('./draft.mts');
     expect(request).toHaveBeenCalledTimes(1);
+  });
+
+  it('finds a matching draft on the next release-list page', async () => {
+    const next =
+      'https://api.github.com/repos/owner/repository/releases?per_page=100&page=2';
+    request.mockResolvedValueOnce(
+      Response.json([{tag_name: 'v1.2.4', id: 43, draft: true}], {
+        headers: {Link: `<${next}>; rel="next"`},
+      }),
+    );
+    request.mockResolvedValueOnce(draft(notes));
+
+    await import('./draft.mts');
+
+    expect(request).toHaveBeenCalledTimes(2);
+    expect(request).toHaveBeenLastCalledWith(next, expect.anything());
   });
 
   it('fails the workflow when GitHub rejects the draft note update', async () => {
