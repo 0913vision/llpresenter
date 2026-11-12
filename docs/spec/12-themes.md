@@ -431,11 +431,18 @@ default. The 대기 화면 row has no 삭제 and no 기본으로 지정.
 
 ### `Settings\themes.json`
 
-| Field      | Type                        | Meaning                                                                    |
-| ---------- | --------------------------- | -------------------------------------------------------------------------- |
-| `standby`  | Theme                       | The 대기 화면.                                                             |
-| `themes[]` | Array of Theme, at most 200 | The 테마 list.                                                             |
-| `defaults` | Object: kind to theme ID    | Optional default 테마 IDs for `song`, `bible`, `blank`, `ad`, and `media`. |
+Built-in themes and the standby layout come from the running version. The file
+contains user themes and only built-in themes explicitly saved after editing,
+marked `edited: true`. Unmarked built-in entries are ignored and removed on
+load. An unedited `standby` is omitted from storage. Theme IDs and defaults
+remain stable, so existing item references continue to resolve. Up to 200 user
+themes may coexist with the built-in themes.
+
+| Field      | Type                                                   | Meaning                                                                    |
+| ---------- | ------------------------------------------------------ | -------------------------------------------------------------------------- |
+| `standby`  | Optional Theme                                         | The 대기 화면.                                                             |
+| `themes[]` | Array of Theme, at most 200 user themes plus built-ins | The 테마 list.                                                             |
+| `defaults` | Object: kind to theme ID                               | Optional default 테마 IDs for `song`, `bible`, `blank`, `ad`, and `media`. |
 
 Theme:
 

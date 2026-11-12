@@ -3,6 +3,7 @@ import {useEffect, useRef, useState, type JSX} from 'react';
 import {createThemeId, type ThemeId} from '@core/schema/ids';
 import type {Theme, ThemesFile} from '@core/schema/themes';
 import {THEME_LIMITS, themeItemKinds} from '@core/themes/elementRules';
+import {userThemeCount} from '@core/themes/builtInIds';
 import {editThemeList, type ThemeListEdit} from '@core/themes/themeEdits';
 import {countServiceItemUses} from '@renderer/features/service/serviceItemUsage';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
@@ -136,11 +137,10 @@ export function ThemeList({
         if (alive.current) setChecking(false);
       });
   };
+  const full = userThemeCount(model.file?.themes ?? []) >= THEME_LIMITS.themes;
   const duplicateReason =
     model.reason ??
-    (model.file?.themes.length === THEME_LIMITS.themes
-      ? limitReason('테마', THEME_LIMITS.themes)
-      : undefined);
+    (full ? limitReason('테마', THEME_LIMITS.themes) : undefined);
   const duplicateSelected = (): void => {
     if (model.theme === undefined) return;
     run({
@@ -241,10 +241,7 @@ export function ThemeList({
             <IconButton
               icon="plus"
               label="새 테마"
-              disabled={
-                model.reason !== undefined ||
-                (model.file?.themes.length ?? 0) >= THEME_LIMITS.themes
-              }
+              disabled={model.reason !== undefined || full}
               title={model.reason}
               onClick={() =>
                 run({

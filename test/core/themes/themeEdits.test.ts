@@ -74,7 +74,10 @@ describe('theme lifecycle edits', () => {
       ok: false,
       error: 'duplicate-id',
     });
-    const full = {...file, themes: Array.from({length: 200}, () => theme)};
+    const full = {
+      ...file,
+      themes: Array.from({length: 200}, () => ({...theme, id})),
+    };
     expect(editThemeList(full, {kind: 'add', id}, new Set())).toEqual({
       ok: false,
       error: 'full',

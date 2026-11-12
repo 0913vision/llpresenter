@@ -1,3 +1,4 @@
+import {userThemeCount} from '../themes/builtInIds';
 import * as v from 'valibot';
 import {
   THEME_LIMITS,
@@ -212,6 +213,7 @@ export const themeClipboardSchema = jsonObject({
 });
 
 export const themeSchema = jsonObject({
+  edited: v.exactOptional(v.boolean()),
   id: themeIdSchema,
   name: v.pipe(nonBlankText, v.maxLength(THEME_LIMITS.name)),
   screens: v.pipe(
@@ -239,7 +241,10 @@ export const themesSchema = v.pipe(
     ),
     themes: v.pipe(
       listWithUniqueIds(themeSchema),
-      v.maxLength(THEME_LIMITS.themes),
+      v.check(
+        themes => userThemeCount(themes) <= THEME_LIMITS.themes,
+        'Too many user themes',
+      ),
     ),
     defaults: jsonObject({
       song: v.exactOptional(themeIdSchema),

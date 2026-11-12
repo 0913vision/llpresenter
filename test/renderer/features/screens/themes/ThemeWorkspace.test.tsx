@@ -11,7 +11,7 @@ import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {emptyLiveState} from '@core/live/state';
-import {createScreenId} from '@core/schema/ids';
+import {createScreenId, createThemeId} from '@core/schema/ids';
 import {createDefaultThemes} from '@core/themes/defaults';
 import {
   parseServiceDocument,
@@ -45,14 +45,29 @@ function setup({
   services,
   oldStandby = false,
   screenOrder,
+  userThemes = 0,
 }: {
   readonly idle?: boolean;
+  readonly userThemes?: number;
   /** A 대기 화면 saved before it had any screen layout. */
   readonly oldStandby?: boolean;
   readonly services?: Partial<LlpApi['services']>;
   readonly screenOrder?: readonly Screen[];
 } = {}) {
-  const initial = settingsDocument('themes', createDefaultThemes());
+  const defaults = createDefaultThemes();
+  const initial = settingsDocument('themes', {
+    ...defaults,
+    themes: [
+      ...defaults.themes,
+      ...Array.from({length: userThemes}, (_, index) => ({
+        id: createThemeId(
+          `11111111-1111-4111-8111-${String(index).padStart(12, '0')}`,
+        ),
+        name: `User ${index}`,
+        screens: {},
+      })),
+    ],
+  });
   if (initial.name !== 'themes') throw new Error('Expected themes');
   let themes = oldStandby
     ? {
@@ -204,6 +219,31 @@ it('keeps standby first and LIVE before kind tags, and saves theme duplication a
   cleanup();
   expect(listeners.size).toBe(0);
 });
+
+it.each([
+  [184, false],
+  [199, false],
+  [200, true],
+] as const)(
+  'enforces the user theme limit for new and duplicate controls at %i',
+  async (count, full) => {
+    setup({userThemes: count});
+    const list = await screen.findByRole('listbox', {name: '\ud14c\ub9c8'});
+    const song = await within(list).findByRole('option', {
+      name: '\ucc2c\uc591',
+    });
+    const add = screen.getByRole('button', {name: '\uc0c8 \ud14c\ub9c8'});
+    expect(add.getAttribute('aria-disabled') === 'true').toBe(full);
+    fireEvent.contextMenu(song, {
+      clientX: 10,
+      clientY: 10,
+    });
+    const duplicate = await screen.findByRole('menuitem', {
+      name: '\ubcf5\uc81c',
+    });
+    expect(duplicate.getAttribute('aria-disabled') === 'true').toBe(full);
+  },
+);
 
 it('duplicates the focused 테마 with Ctrl D, the way its 복제 row does', async () => {
   setup();

@@ -5,6 +5,7 @@ import type {Theme, ThemesFile} from '../schema/themes';
 import {
   editThemeList,
   findTheme,
+  markBuiltInEdited,
   replaceTheme,
   type ThemeEditProblem,
   type ThemeEditResult,
@@ -67,7 +68,10 @@ export function commitDraft(
   if (theme === undefined) return {ok: false, error: 'missing'};
   return {
     ok: true,
-    value: replaceTheme(saved, {...theme, screens: draft.screens}),
+    value: replaceTheme(
+      saved,
+      markBuiltInEdited({...theme, screens: draft.screens}),
+    ),
   };
 }
 

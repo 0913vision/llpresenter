@@ -547,7 +547,7 @@ describe('theme documents', () => {
   it('bounds theme lists and requires unique identities including standby', () => {
     const themes = Array.from({length: 200}, (_, n) => ({
       ...theme,
-      id: uuid(n + 100),
+      id: uuid(n + 1000),
     }));
     expect(v.safeParse(themesSchema, {...file, themes}).success).toBe(true);
     for (const invalid of [

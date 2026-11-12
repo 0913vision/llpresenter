@@ -368,13 +368,20 @@ Don't save whether a screen output is on. At launch, the 환경설정 option 켤
 
 ### 테마 (`themes.json`)
 
+Built-in themes and the standby layout come from the running version. The file
+contains user themes and only built-in themes explicitly saved after editing,
+marked `edited: true`. Unmarked built-in entries are ignored and removed on
+load. An unedited `standby` is omitted from storage. Theme IDs and defaults
+remain stable, so existing item references continue to resolve. Up to 200 user
+themes may coexist with the built-in themes.
+
 The 테마 lay out all three screens for every 예배 순서 item. Behavior is in 12.
 
-| Field      | Type                        | Meaning                                                                    |
-| ---------- | --------------------------- | -------------------------------------------------------------------------- |
-| `standby`  | Theme                       | The 대기 화면. It allows only fixed elements.                              |
-| `themes[]` | Array of Theme, at most 200 | The 테마 list. No ID equals the `standby` ID.                              |
-| `defaults` | Object: kind to theme ID    | Optional default 테마 IDs for `song`, `bible`, `blank`, `ad`, and `media`. |
+| Field      | Type                                                   | Meaning                                                                    |
+| ---------- | ------------------------------------------------------ | -------------------------------------------------------------------------- |
+| `standby`  | Optional Theme                                         | The 대기 화면. It allows only fixed elements.                              |
+| `themes[]` | Array of Theme, at most 200 user themes plus built-ins | The 테마 list. No ID equals the `standby` ID.                              |
+| `defaults` | Object: kind to theme ID                               | Optional default 테마 IDs for `song`, `bible`, `blank`, `ad`, and `media`. |
 
 Theme:
 

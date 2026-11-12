@@ -1,0 +1,296 @@
+{
+  "stageBar": "message-row",
+  "mode": {
+    "kind": "own"
+  },
+  "elements": [
+    {
+      "id": "00000000-0000-4000-8000-000000000001",
+      "frame": {
+        "x": 345,
+        "y": 26,
+        "w": 500,
+        "h": 48
+      },
+      "kind": "text",
+      "text": {
+        "font": "Pretendard",
+        "weight": 700,
+        "size": 40,
+        "color": "#FFFFFF",
+        "align": "right",
+        "vAlign": "middle",
+        "lineHeight": 1.1,
+        "outline": {
+          "on": false,
+          "width": 3,
+          "color": "#000000"
+        },
+        "shadow": {
+          "on": false,
+          "blur": 8,
+          "distance": 4,
+          "angle": 45,
+          "opacity": 60,
+          "color": "#000000"
+        }
+      },
+      "content": "Example text",
+      "stageSource": "stageItemName"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000002",
+      "frame": {
+        "x": 865,
+        "y": 26,
+        "w": 190,
+        "h": 48
+      },
+      "kind": "label",
+      "text": {
+        "font": "Pretendard",
+        "weight": 700,
+        "size": 40,
+        "color": "#FFFFFF",
+        "align": "center",
+        "vAlign": "middle",
+        "lineHeight": 1.1,
+        "outline": {
+          "on": false,
+          "width": 3,
+          "color": "#000000"
+        },
+        "shadow": {
+          "on": false,
+          "blur": 8,
+          "distance": 4,
+          "angle": 45,
+          "opacity": 60,
+          "color": "#000000"
+        }
+      },
+      "hideWhenItemTitle": true
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000003",
+      "frame": {
+        "x": 770,
+        "y": 53,
+        "w": 490,
+        "h": 42
+      },
+      "kind": "stageMessage",
+      "text": {
+        "font": "Pretendard",
+        "weight": 700,
+        "size": 30,
+        "color": "#FFD66B",
+        "align": "center",
+        "vAlign": "middle",
+        "lineHeight": 1.1,
+        "outline": {
+          "on": false,
+          "width": 3,
+          "color": "#000000"
+        },
+        "shadow": {
+          "on": false,
+          "blur": 8,
+          "distance": 4,
+          "angle": 45,
+          "opacity": 60,
+          "color": "#000000"
+        }
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000004",
+      "frame": {
+        "x": 1075,
+        "y": 26,
+        "w": 175,
+        "h": 48
+      },
+      "kind": "text",
+      "text": {
+        "font": "Pretendard",
+        "weight": 700,
+        "size": 36,
+        "color": "#FFFFFF",
+        "align": "left",
+        "vAlign": "middle",
+        "lineHeight": 1.1,
+        "outline": {
+          "on": false,
+          "width": 3,
+          "color": "#000000"
+        },
+        "shadow": {
+          "on": false,
+          "blur": 8,
+          "distance": 4,
+          "angle": 45,
+          "opacity": 60,
+          "color": "#000000"
+        }
+      },
+      "content": "Example text",
+      "stageSource": "stagePosition"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000005",
+      "frame": {
+        "x": 1640,
+        "y": 20,
+        "w": 220,
+        "h": 65
+      },
+      "kind": "timer",
+      "text": {
+        "font": "Pretendard",
+        "weight": 700,
+        "size": 42,
+        "color": "#FFD66B",
+        "align": "right",
+        "vAlign": "middle",
+        "lineHeight": 1.4,
+        "outline": {
+          "on": false,
+          "width": 3,
+          "color": "#000000"
+        },
+        "shadow": {
+          "on": false,
+          "blur": 8,
+          "distance": 4,
+          "angle": 45,
+          "opacity": 60,
+          "color": "#000000"
+        }
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000006",
+      "frame": {
+        "x": 1460,
+        "y": 982,
+        "w": 400,
+        "h": 80
+      },
+      "kind": "clock",
+      "text": {
+        "font": "Pretendard",
+        "weight": 700,
+        "size": 60,
+        "color": "#E6E6E6",
+        "align": "right",
+        "vAlign": "middle",
+        "lineHeight": 1.1,
+        "outline": {
+          "on": false,
+          "width": 3,
+          "color": "#000000"
+        },
+        "shadow": {
+          "on": false,
+          "blur": 8,
+          "distance": 4,
+          "angle": 45,
+          "opacity": 60,
+          "color": "#000000"
+        }
+      },
+      "clockFormat": "24h"
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000007",
+      "frame": {
+        "x": 154,
+        "y": 130,
+        "w": 1612,
+        "h": 568
+      },
+      "kind": "currentText",
+      "text": {
+        "font": "Pretendard",
+        "weight": 700,
+        "size": 170,
+        "color": "#FFFFFF",
+        "align": "center",
+        "vAlign": "middle",
+        "lineHeight": 1.2,
+        "outline": {
+          "on": false,
+          "width": 3,
+          "color": "#000000"
+        },
+        "shadow": {
+          "on": false,
+          "blur": 8,
+          "distance": 4,
+          "angle": 45,
+          "opacity": 60,
+          "color": "#000000"
+        },
+        "maxLines": 4
+      }
+    },
+    {
+      "id": "00000000-0000-4000-8000-000000000008",
+      "frame": {
+        "x": 154,
+        "y": 706,
+        "w": 1612,
+        "h": 272
+      },
+      "kind": "nextText",
+      "text": {
+        "font": "Pretendard",
+        "weight": 700,
+        "size": 80,
+        "color": "#FFD66B",
+        "align": "center",
+        "vAlign": "bottom",
+        "lineHeight": 1.2,
+        "outline": {
+          "on": false,
+          "width": 3,
+          "color": "#000000"
+        },
+        "shadow": {
+          "on": false,
+          "blur": 8,
+          "distance": 4,
+          "angle": 45,
+          "opacity": 60,
+          "color": "#000000"
+        },
+        "maxLines": 2
+      },
+      "lineLimit": 2
+    }
+  ],
+  "background": {
+    "kind": "linear",
+    "angle": 90,
+    "mixing": "oklch",
+    "stops": [
+      {
+        "color": "#12171E",
+        "position": 0
+      },
+      {
+        "color": "#12171E",
+        "position": 9.25925925925926
+      },
+      {
+        "color": "#000000",
+        "position": 9.25925925925926
+      },
+      {
+        "color": "#000000",
+        "position": 100
+      }
+    ]
+  }
+}

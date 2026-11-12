@@ -80,6 +80,7 @@ export async function loadSettingsArea(
             revision: 1,
           });
     if (!parsed.ok) throw new Error(parsed.error.message);
+    fallback = parsed.value;
     const [error] = read.problems;
     if (error !== undefined) {
       return {
@@ -87,7 +88,7 @@ export async function loadSettingsArea(
         problem: {file: basename(location.file), error},
       };
     }
-    if (loaded === null) {
+    if (loaded === null || (name === 'themes' && access === 'editable')) {
       const text = codec.serialize(parsed.value.value, location.file);
       if (!text.ok) {
         return {

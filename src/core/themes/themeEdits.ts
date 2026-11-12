@@ -18,6 +18,7 @@ import {
   type ThemeItemKind,
 } from './elementRules';
 import {standbyLayoutOf} from './defaults';
+import {isBuiltInThemeId, userThemeCount} from './builtInIds';
 import {implicitScreenLayout, resolveThemeScreen} from './resolve';
 
 export type ThemeEditProblem =
@@ -63,6 +64,13 @@ export function findTheme(file: ThemesFile, id: ThemeId): Theme | undefined {
     : file.themes.find(theme => theme.id === id);
 }
 
+export function markBuiltInEdited(theme: Theme): Theme {
+  return isBuiltInThemeId(theme.id) ||
+    theme.id === '00000000-0000-4000-8000-000000000100'
+    ? {...theme, edited: true}
+    : theme;
+}
+
 const NEW_THEME_NAME = '새 테마';
 
 export function replaceTheme(file: ThemesFile, theme: Theme): ThemesFile {
@@ -98,7 +106,7 @@ export function editThemeList(
   usedByItems: ReadonlySet<ThemeId>,
 ): ThemeEditResult {
   if (edit.kind === 'add' || edit.kind === 'duplicate') {
-    if (file.themes.length >= THEME_LIMITS.themes) {
+    if (userThemeCount(file.themes) >= THEME_LIMITS.themes) {
       return {ok: false, error: 'full'};
     }
     if (findTheme(file, edit.id) !== undefined) {
@@ -113,8 +121,9 @@ export function editThemeList(
     if (screens.length > THEME_LIMITS.screens) {
       return {ok: false, error: 'full'};
     }
+    const {edited: _edited, ...copy} = source ?? {};
     const theme = {
-      ...source,
+      ...copy,
       id: edit.id,
       name:
         source === undefined
@@ -146,7 +155,10 @@ export function editThemeList(
     ) {
       return {ok: false, error: 'taken'};
     }
-    return {ok: true, value: replaceTheme(file, {...theme, name})};
+    return {
+      ok: true,
+      value: replaceTheme(file, markBuiltInEdited({...theme, name})),
+    };
   }
   if (theme.id === file.standby.id) return {ok: false, error: 'standby'};
   if (edit.kind === 'default') {
@@ -248,7 +260,7 @@ export function editThemeLayout(
   ) {
     return {ok: false, error: 'link'};
   }
-  return {ok: true, value: replaceTheme(file, next)};
+  return {ok: true, value: replaceTheme(file, markBuiltInEdited(next))};
 }
 
 function validLink(

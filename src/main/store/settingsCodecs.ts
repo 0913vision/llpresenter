@@ -17,6 +17,61 @@ import type {
   SettingsName,
 } from '@core/schema/settingsDocuments';
 import type {ParseFile} from './readFiles';
+import {createDefaultThemes} from '@core/themes/defaults';
+import {isRecord} from '@core/common/guards';
+import {isBuiltInThemeId} from '@core/themes/builtInIds';
+
+const builtIns = createDefaultThemes();
+const isBuiltIn = (id: unknown) =>
+  typeof id === 'string' && isBuiltInThemeId(id);
+
+function parseStoredThemes(text: string, file: string) {
+  let raw: unknown;
+  try {
+    raw = JSON.parse(text.replace(/^\uFEFF/, ''));
+  } catch {
+    return themes.parseThemes(text, file);
+  }
+  if (!isRecord(raw) || !Array.isArray(raw.themes)) {
+    return themes.parseThemes(text, file);
+  }
+  const entries: readonly unknown[] = raw.themes;
+  const saved = entries.filter(
+    theme => !isRecord(theme) || !isBuiltIn(theme.id) || theme.edited === true,
+  );
+  const overrides = new Map(
+    saved.filter(isRecord).map(theme => [theme.id, theme]),
+  );
+  const standby =
+    isRecord(raw.standby) && raw.standby.edited === true
+      ? raw.standby
+      : builtIns.standby;
+  return themes.parseThemes(
+    JSON.stringify({
+      ...raw,
+      standby,
+      themes: [
+        ...builtIns.themes.map(theme => overrides.get(theme.id) ?? theme),
+        ...saved.filter(theme => !isRecord(theme) || !isBuiltIn(theme.id)),
+      ],
+    }),
+    file,
+  );
+}
+
+function serializeStoredThemes(value: themes.ThemesFile, file: string) {
+  const serialized = themes.serializeThemes(value, file);
+  if (!serialized.ok) return serialized;
+  const {standby, ...rest} = value;
+  const data = {
+    ...rest,
+    ...(standby.edited === true ? {standby} : {}),
+    themes: value.themes.filter(
+      theme => !isBuiltIn(theme.id) || theme.edited === true,
+    ),
+  };
+  return {ok: true, value: `${JSON.stringify(data, null, 2)}\n`} as const;
+}
 
 export type SettingsValue = SettingsDocument['value'];
 function codec<T extends SettingsValue>(
@@ -41,11 +96,7 @@ export const settingsCodecs = {
     screens.parseScreens,
     screens.serializeScreens,
   ),
-  themes: codec(
-    'llsettings.themes',
-    themes.parseThemes,
-    themes.serializeThemes,
-  ),
+  themes: codec('llsettings.themes', parseStoredThemes, serializeStoredThemes),
   macros: codec(
     'llsettings.macros',
     macros.parseMacros,

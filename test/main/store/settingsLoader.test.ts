@@ -18,8 +18,11 @@ import {
   type SettingsRead,
 } from '@main/store/settingsFile';
 import {loadSettingsArea} from '@main/store/settingsLoader';
-import {openSettingsStore} from '@main/store/settingsStore';
+import {openSettingsStore, SettingsStore} from '@main/store/settingsStore';
+import {createDefaultThemes} from '@core/themes/defaults';
+import {createThemeId} from '@core/schema/ids';
 import type {Saver} from '@main/store/saver';
+import type {DocumentFiles} from '@main/store/contentPersistence';
 import {writeJson} from '@fixtures/main/store/testFiles';
 
 vi.mock('@core/schema/settingsDocuments', async importOriginal => {
@@ -243,6 +246,61 @@ describe('loadSettingsArea', () => {
       file: 'messages.json',
       error: {message: 'Disk is full'},
     });
+  });
+
+  it('retains read themes after a failed startup rewrite and preserves them on the next save', async () => {
+    const defaults = createDefaultThemes();
+    const builtin = defaults.themes[0];
+    if (builtin === undefined) {
+      throw new Error('Missing built-in theme');
+    }
+    const edited = {...builtin, edited: true, name: 'Edited'};
+    const user = {
+      ...builtin,
+      id: createThemeId('11111111-1111-4111-8111-111111111111'),
+      name: 'User',
+    };
+    readsText(JSON.stringify({...defaults, themes: [edited, user]}));
+    const saver = mockSaver();
+    saver.save.mockResolvedValueOnce({
+      ok: false,
+      error: {file: 'themes.json', message: 'Disk full'},
+    });
+    const loaded = await loadSettingsArea('themes', locations, saver);
+    expect(loaded.problem?.error.message).toBe('Disk full');
+    const document = loaded.document;
+    if (document?.name !== 'themes') {
+      throw new Error('Missing themes');
+    }
+    expect(document.value.themes).toContainEqual(edited);
+    expect(document.value.themes).toContainEqual(user);
+    const write = vi
+      .fn<DocumentFiles['write']>()
+      .mockResolvedValue({ok: true, value: undefined});
+    const store = new SettingsStore({
+      documents: new Map([['themes', document]]),
+      problems: [],
+      log: recordingLogger(),
+      saving: {
+        folder: '/settings',
+        files: {write, remove: async () => ({ok: true, value: undefined})},
+        delayMs: 0,
+      },
+    });
+    onTestFinished(() => store.dispose());
+    const result = await store.apply({
+      type: 'settings.update',
+      name: 'themes',
+      value: document.value,
+      baseRevision: 1,
+    });
+    expect(result.ok).toBe(true);
+    const request = write.mock.calls[0]?.[0];
+    if (request === undefined) {
+      throw new Error('Missing save request');
+    }
+    const saved: unknown = JSON.parse(request.text);
+    expect(saved).toMatchObject({themes: [edited, user]});
   });
 
   it('returns no document and reports the area when its defaults cannot be built', async () => {
