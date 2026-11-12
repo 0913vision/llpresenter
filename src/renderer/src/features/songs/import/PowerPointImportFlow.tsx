@@ -2,7 +2,11 @@ import {useEffect, useMemo, useRef, useState, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {PowerPointSource} from '@core/schema/powerpointImport';
 import type {TextImportDraft} from '@core/schema/textImport';
-import {powerpointSlides} from '@core/songs/powerpointSlides';
+import {
+  powerpointDarkLyrics,
+  powerpointSlides,
+} from '@core/songs/powerpointSlides';
+import {LIGHT_SONG_THEME_ID} from '@core/themes/lightSong';
 import {powerpointBackgroundIndex} from '@core/songs/powerpointBackgroundIndex';
 import {powerpointBackgroundName} from '@core/media/powerpointBackground';
 import {Dialog} from '@renderer/ui/Dialog';
@@ -248,6 +252,7 @@ function PowerPointDialog({
         title: shownTitle,
         slides,
         preserveSlides: true,
+        ...(powerpointDarkLyrics(range) ? {theme: LIGHT_SONG_THEME_ID} : {}),
         ...(importedBackground === undefined
           ? {}
           : {background: importedBackground}),

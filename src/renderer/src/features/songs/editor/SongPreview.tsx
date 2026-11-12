@@ -336,21 +336,21 @@ export function SongPreviewPanel({
   const at = session?.selectedOccurrence ?? -1;
   const next = at < 0 ? undefined : order[at + 1];
   const target = session?.document.itemTarget;
+  const theme =
+    target === undefined ? snapshot?.song.theme : session?.document.itemTheme;
   return (
     <ContentPreviewFrame
       settings={store.api.settings}
       labels={state.labels?.value.labels ?? []}
       item={
-        session === null || target === undefined
+        session === null || (target === undefined && theme === undefined)
           ? undefined
           : {
-              id: target.itemId,
+              id: target?.itemId ?? session.document.song.id,
               kind: 'song',
               source: 'service',
               title: session.title.value,
-              ...(session.document.itemTheme === undefined
-                ? {}
-                : {theme: session.document.itemTheme}),
+              ...(theme === undefined ? {} : {theme}),
             }
       }
       picture={

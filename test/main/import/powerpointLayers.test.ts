@@ -239,3 +239,65 @@ describe('PowerPoint background layers', () => {
     expect(capped.skipped).toBe(6);
   });
 });
+
+describe('PowerPoint lyric colors', () => {
+  const placeholder = (style = '') =>
+    `<p:sp><p:nvSpPr><p:nvPr><p:ph type="body" idx="1"/></p:nvPr></p:nvSpPr><p:txBody><a:lstStyle>${style}</a:lstStyle><a:p><a:r><a:t>Lyric</a:t></a:r></a:p></p:txBody></p:sp>`;
+  const level = (fill: string) =>
+    `<a:lvl1pPr><a:defRPr>${fill}</a:defRPr></a:lvl1pPr>`;
+  const luminance = (parts: Record<string, string>) =>
+    new PowerPointLayerReader(
+      new PowerPointZip(powerpointArchive(parts)),
+    ).lyricColor('ppt/slides/s.xml');
+  it('inherits master body style, applies scheme mapping and respects layout override', () => {
+    const master = root('sldMaster').replace(
+      '</p:sldMaster>',
+      `<p:txStyles><p:bodyStyle>${level('<a:solidFill><a:schemeClr val="bg1"/></a:solidFill>')}</p:bodyStyle></p:txStyles></p:sldMaster>`,
+    );
+    const parts = fixture(
+      root('sld', placeholder()),
+      root('sldLayout'),
+      master,
+    );
+    expect(luminance(parts)).toBe(0x204060);
+    parts['ppt/slideLayouts/l.xml'] = root(
+      'sldLayout',
+      placeholder(level(solid('ffffff'))),
+    );
+    expect(luminance(parts)).toBe(0xffffff);
+    parts['ppt/slides/s.xml'] = root(
+      'sld',
+      placeholder(level(solid('000000'))),
+    );
+    expect(luminance(parts)).toBe(0);
+    parts['ppt/slides/s.xml'] = root(
+      'sld',
+      placeholder(
+        level(
+          '<a:solidFill><a:srgbClr val="ffffff"><a:shade val="50000"/></a:srgbClr></a:solidFill>',
+        ),
+      ),
+    );
+    expect(luminance(parts)).toBe(0x808080);
+  });
+  it('ignores empty body placeholders before the lyric placeholder', () => {
+    const empty = placeholder(level(solid('ffffff'))).replace('Lyric', '');
+    const lyrics = placeholder(level(solid('000000')));
+    expect(luminance(fixture(root('sld', empty + lyrics)))).toBe(0);
+  });
+
+  it('does not inherit a footer with the same placeholder index', () => {
+    const lyrics = placeholder().replace('idx="1"', 'idx="2"');
+    const footer = placeholder(level(solid('ffffff'))).replace(
+      'type="body" idx="1"',
+      'type="dt" idx="2"',
+    );
+    const master = root('sldMaster', footer).replace(
+      '</p:sldMaster>',
+      `<p:txStyles><p:bodyStyle>${level(solid('000000'))}</p:bodyStyle></p:txStyles></p:sldMaster>`,
+    );
+    expect(
+      luminance(fixture(root('sld', lyrics), root('sldLayout'), master)),
+    ).toBe(0);
+  });
+});

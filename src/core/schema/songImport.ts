@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import {revisionSchema} from './contentDocuments';
-import {mediaIdSchema, songIdSchema} from './ids';
+import {mediaIdSchema, themeIdSchema, songIdSchema} from './ids';
 import {payloadObject, plainObject} from './payload';
 import {nonBlankText} from './primitives';
 import {SONG_NAME_MAX_LENGTH, songSlidesSchema} from './song';
@@ -22,6 +22,7 @@ export const songImportDraftSchema = v.pipe(
       v.maxLength(SONG_IMPORT_LIMITS.slides),
     ),
     background: v.exactOptional(mediaIdSchema),
+    theme: v.exactOptional(themeIdSchema),
   }),
   v.check(
     draft =>

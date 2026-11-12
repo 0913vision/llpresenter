@@ -956,6 +956,12 @@ background into media with 가져오기 and opens no editor. When the slide rati
 differs from 16:9 by more than 1%, 배경 is disabled and no background picture is
 composed.
 
+The imported song uses the built-in light-background song theme when the most
+common resolved body lyric color in the selected range has relative luminance
+below 0.5. Otherwise it uses the normal song theme. Slide, layout and master
+text styles and theme color mappings supply the color; text formatting itself is
+not imported. A service item added from the song keeps its selected theme.
+
 ### Background
 
 The song background is one 1920 x 1080 picture of the selected slide's non-text

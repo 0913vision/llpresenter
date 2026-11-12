@@ -64,7 +64,7 @@ function shapes(tree: Element): PowerPointShape[] {
   });
 }
 export function isPowerPointWidescreen(width: number, height: number): boolean {
-  return Math.abs(width / height / (16 / 9) - 1) <= 0.01;
+  return Math.abs(width * 9 - height * 16) * 100 <= height * 16;
 }
 
 /** Reads Office XML as data; embedded macros and non-slide content are ignored. */
@@ -113,6 +113,7 @@ export function readPowerPoint(bytes: Buffer): PowerPointDeck {
     const drawing = widescreen ? layers.read(slidePath, {width, height}) : null;
     slides.push({
       number: index + 1,
+      lyricColor: layers.lyricColor(slidePath),
       shapes: slideShapes,
       background: drawing && drawing.layers.length > 0 ? drawing.key : null,
     });

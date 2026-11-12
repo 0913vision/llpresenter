@@ -68,6 +68,7 @@ interface WindowStyle extends CSSProperties {
 
 /** Slides that belong to no song, such as a Bible passage's. */
 interface SlideSource {
+  readonly theme?: import('@core/schema/ids').ThemeId;
   readonly slides: ReadonlyArray<{
     readonly label?: string;
     readonly lines: readonly string[];
@@ -113,9 +114,15 @@ export function VirtualSlides<T extends SlideListItem>({
     session?.slideModel.subscribe ?? emptySubscribe,
     session?.slideModel.getSnapshot ?? emptySnapshot,
   );
+  const songTheme = song.theme;
   const theme = useSlideTheme(
-    {id: 'thumbnail', kind: 'song', title: ''},
-    'external',
+    {
+      id: 'thumbnail',
+      kind: 'song',
+      title: '',
+      ...(songTheme === undefined ? {} : {theme: songTheme}),
+    },
+    songTheme === undefined ? 'external' : 'service',
   );
   const [menu, setMenu] = useState<{
     index: number;

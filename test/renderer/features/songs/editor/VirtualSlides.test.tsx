@@ -1,4 +1,6 @@
 import {useState, type JSX} from 'react';
+import {LIGHT_SONG_THEME_ID} from '@core/themes/lightSong';
+import * as slideTheme from '@renderer/platform/useSlideTheme';
 import {act, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
@@ -31,6 +33,27 @@ function List(): JSX.Element {
 }
 
 describe('virtual editor slides', () => {
+  it('uses the song theme for virtual slide pictures', () => {
+    const mockTheme = vi.spyOn(slideTheme, 'useSlideTheme');
+    const song = {...editorSong(1).song, theme: LIGHT_SONG_THEME_ID};
+    render(
+      <VirtualSlides
+        song={song}
+        numbers={[1]}
+        labels={[]}
+        selected={0}
+        onSelect={vi.fn()}
+        baseline={3}
+        scale={100}
+      />,
+    );
+    expect(mockTheme).toHaveBeenCalledWith(
+      expect.objectContaining({theme: LIGHT_SONG_THEME_ID}),
+      'service',
+    );
+    mockTheme.mockRestore();
+  });
+
   it('keeps the top of the selected thumbnail visible when a row is taller than the viewport', () => {
     let resize = () => {};
     vi.stubGlobal(

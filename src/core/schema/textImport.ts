@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import type {Result} from '../common/result';
-import {mediaIdSchema} from './ids';
+import {mediaIdSchema, themeIdSchema} from './ids';
 import {checkPart, type ReadonlyKnown} from './fileFormat';
 import {payloadObject, plainObject} from './payload';
 import {
@@ -73,6 +73,7 @@ const draftSchema = payloadObject({
   title: v.string(),
   preserveSlides: v.exactOptional(v.boolean()),
   background: v.exactOptional(mediaIdSchema),
+  theme: v.exactOptional(themeIdSchema),
   slides: v.pipe(v.array(importSlideSchema), v.minLength(1)),
 });
 

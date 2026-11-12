@@ -63,6 +63,7 @@ class SongContentCommands {
         id,
         title,
         slides: draft.slides,
+        ...(draft.theme === undefined ? {} : {theme: draft.theme}),
         ...(draft.background === undefined
           ? {}
           : {background: draft.background}),

@@ -62,6 +62,7 @@ export class ImportedSongDraft {
       id: createSongId(crypto.randomUUID()),
       title: normalizeSongTitle(draft.title) || '가져온 곡',
       ...(draft.background === undefined ? {} : {background: draft.background}),
+      ...(draft.theme === undefined ? {} : {theme: draft.theme}),
       slides: [
         ...(draft.preserveSlides
           ? []
@@ -171,6 +172,7 @@ export class ImportedSongDraft {
             draft: {
               title: normalizeSongTitle(session.title.value),
               slides: song.slides,
+              ...(song.theme === undefined ? {} : {theme: song.theme}),
               ...(session.background === undefined
                 ? {}
                 : {background: session.background}),

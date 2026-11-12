@@ -324,6 +324,7 @@ export class ServiceOrderEdits {
           id: createServiceItemId(crypto.randomUUID()),
           song: songId,
           slides: structuredClone(song.song.slides),
+          ...(song.song.theme === undefined ? {} : {theme: song.song.theme}),
           ...(song.song.background === undefined
             ? {}
             : {background: song.song.background}),

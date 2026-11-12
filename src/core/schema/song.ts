@@ -10,7 +10,12 @@ import {
   type LoadedFile,
   type ReadonlyKnown,
 } from './fileFormat';
-import {mediaIdSchema, songIdSchema, songSlideIdSchema} from './ids';
+import {
+  mediaIdSchema,
+  themeIdSchema,
+  songIdSchema,
+  songSlideIdSchema,
+} from './ids';
 import {
   jsonObject,
   listWithUniqueIds,
@@ -73,6 +78,7 @@ export const songSchema = jsonObject({
   id: songIdSchema,
   title: nonBlankText,
   background: v.exactOptional(mediaIdSchema),
+  theme: v.exactOptional(themeIdSchema),
   slides: v.pipe(songSlidesSchema, v.minLength(1)),
   updatedAt: v.exactOptional(timestamp),
 });

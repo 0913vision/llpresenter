@@ -1,6 +1,7 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {createMediaId} from '@core/schema/ids';
+import {LIGHT_SONG_THEME_ID} from '@core/themes/lightSong';
 import type {
   MediaImportProgress,
   MediaImportResult,
@@ -44,7 +45,8 @@ describe('PowerPoint import dialog', () => {
               {
                 number: 1,
                 background: 'ppt/media/bg.png',
-                shapes: [{body: false, lines: ['Title']}],
+                lyricColor: 0,
+                shapes: [{body: true, lines: ['Title']}],
               },
             ],
           },
@@ -70,6 +72,9 @@ describe('PowerPoint import dialog', () => {
     await waitFor(() => expect(onEdit).toHaveBeenCalledOnce());
     expect(store.getSnapshot().session?.history.snapshot.song.background).toBe(
       mediaId,
+    );
+    expect(store.getSnapshot().session?.history.snapshot.song.theme).toBe(
+      LIGHT_SONG_THEME_ID,
     );
     expect(importMedia).not.toHaveBeenCalled();
     expect(background).toHaveBeenCalledWith({

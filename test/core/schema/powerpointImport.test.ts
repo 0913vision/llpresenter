@@ -20,6 +20,7 @@ describe('PowerPoint import IPC', () => {
               number: 1,
               shapes: [{body: true, lines: ['test']}],
               background: null,
+              lyricColor: 0xffffff,
             },
           ],
         },
@@ -41,6 +42,18 @@ describe('PowerPoint import IPC', () => {
           fileName: 'a.pptx',
           widescreen: true,
           slides: [{number: 0, shapes: [], background: null}],
+        },
+      }).ok,
+    ).toBe(false);
+    expect(
+      parsePowerPointReadResult({
+        ok: true,
+        value: {
+          fileName: 'a.pptx',
+          widescreen: true,
+          slides: [
+            {number: 1, shapes: [], background: null, lyricColor: 0x1000000},
+          ],
         },
       }).ok,
     ).toBe(false);

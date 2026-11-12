@@ -1,4 +1,5 @@
 import {parseSong} from '@core/schema/song';
+import {LIGHT_SONG_THEME_ID} from '@core/themes/lightSong';
 import {createSongId} from '@core/schema/ids';
 import {importSlides} from '@core/songs/importSlides';
 import {convertTextImport} from '@core/songs/textImport';
@@ -30,6 +31,22 @@ import {
 } from '@fixtures/main/store/contentStoreFixtures';
 
 describe('song.import storage', () => {
+  it('persists the imported song theme', async () => {
+    const {store, files} = importSetup();
+    const result = await store.apply({
+      type: 'song.import',
+      target: {kind: 'new'},
+      draft: {...importedDraft, theme: LIGHT_SONG_THEME_ID},
+    });
+    if (!result.ok) throw new Error(result.error.message);
+    const text = files.texts.get(
+      join(locations.songs, `${result.value.id}.llsong`),
+    );
+    if (!text) throw new Error('No persisted song');
+    const parsed = parseSong(text, 'song.llsong');
+    expect(parsed.ok && parsed.value.data.theme).toBe(LIGHT_SONG_THEME_ID);
+  });
+
   it('keeps mapped header names on independent persisted slides', async () => {
     const {store, files} = importSetup();
     const preview = convertTextImport({

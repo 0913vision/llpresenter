@@ -9,6 +9,7 @@ import {
 } from '@core/songs/powerpointLayers';
 import {
   fillColor,
+  resolveColor,
   insets,
   readFill,
   type PowerPointPalette,
@@ -99,6 +100,76 @@ export class PowerPointLayerReader {
       if (part.root.localName === 'sldMaster') masterMapping = new Map(mapping);
     }
     return {colors, mapping};
+  }
+
+  lyricColor(path: string): number | null {
+    const slide = this.part(path);
+    const layout = this.related(slide, 'slideLayout');
+    const master = this.related(layout, 'slideMaster');
+    const theme = this.related(master, 'theme')?.root;
+    const parts = [master, layout, slide].filter(
+      (part): part is Part => part !== undefined,
+    );
+    const palette = this.palette(parts, theme);
+    const isBodyShape = (shape: Element): boolean => {
+      const ph = descendants(shape, 'ph')[0];
+      const type = ph?.getAttribute('type') ?? '';
+      return (
+        ph !== undefined && (type === '' || type === 'body' || type === 'obj')
+      );
+    };
+    const bodyShapes = (root: Element | undefined): Element[] =>
+      root ? descendants(root, 'sp').filter(isBodyShape) : [];
+    const slideShape = bodyShapes(slide.root).find(shape =>
+      descendants(shape, 't').some(
+        text => text.textContent.trimEnd().length > 0,
+      ),
+    );
+    if (!slideShape) return null;
+    const placeholderIndex = (shape: Element): string => {
+      const value = descendants(shape, 'ph')[0]?.getAttribute('idx');
+      if (value === '') return '0';
+      return value ?? '0';
+    };
+    const index = placeholderIndex(slideShape);
+    const layoutShape = bodyShapes(layout?.root).find(
+      shape => placeholderIndex(shape) === index,
+    );
+    const masterShape = bodyShapes(master?.root).find(
+      shape => descendants(shape, 'ph')[0]?.getAttribute('type') === 'body',
+    );
+    const shapeColor = (shape: Element | undefined): Element | undefined => {
+      if (!shape) return undefined;
+      const body = named(shape, 'txBody')[0];
+      if (!body) return undefined;
+      const paragraph = named(body, 'p')[0];
+      const run = paragraph && named(paragraph, 'r')[0];
+      const level = descendants(body, 'lvl1pPr')[0];
+      const props = [
+        run && named(run, 'rPr')[0],
+        paragraph &&
+          named(named(paragraph, 'pPr')[0] ?? paragraph, 'defRPr')[0],
+        level && named(level, 'defRPr')[0],
+      ];
+      return props.flatMap(prop => (prop ? named(prop, 'solidFill') : []))[0];
+    };
+    const bodyStyle = master && descendants(master.root, 'bodyStyle')[0];
+    const defaultProps = bodyStyle && descendants(bodyStyle, 'lvl1pPr')[0];
+    const defaultRun = defaultProps && named(defaultProps, 'defRPr')[0];
+    const fill =
+      shapeColor(slideShape) ??
+      shapeColor(layoutShape) ??
+      shapeColor(masterShape) ??
+      (defaultRun && named(defaultRun, 'solidFill')[0]);
+    const node =
+      fill && children(fill).find(child => child.localName.endsWith('Clr'));
+    if (!node) return null;
+    const color = resolveColor(node, palette);
+    return (
+      Math.round(color.r * 255) * 65536 +
+      Math.round(color.g * 255) * 256 +
+      Math.round(color.b * 255)
+    );
   }
 
   read(

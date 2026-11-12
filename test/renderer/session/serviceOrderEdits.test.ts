@@ -1,3 +1,4 @@
+import {LIGHT_SONG_THEME_ID} from '@core/themes/lightSong';
 import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import * as v from 'valibot';
 import {describe, expect, it, vi} from 'vitest';
@@ -344,6 +345,19 @@ describe('service order edits', () => {
     await edits.redo(serviceId);
     expect(ids()).toEqual([first, third]);
     expect(send).not.toHaveBeenCalled();
+  });
+
+  it('copies the song theme to a new service item', async () => {
+    const {state, edits} = fixture();
+    if (!state.song) throw new Error('No song');
+    state.song = {
+      ...state.song,
+      song: {...state.song.song, theme: LIGHT_SONG_THEME_ID},
+    };
+    await edits.insertSong(serviceId, songId, null);
+    expect(state.document?.service.order.at(-1)).toMatchObject({
+      theme: LIGHT_SONG_THEME_ID,
+    });
   });
 
   it('inserts separate song references with generated ids and inherited defaults', async () => {

@@ -18,8 +18,13 @@ export function useSongSlideAppearance(session: SongSession) {
   const theme = useSlideTheme(
     session.itemSession && itemRow !== undefined
       ? itemRow
-      : {id: song.id, kind: 'song', title: song.title},
-    session.itemSession ? 'service' : 'external',
+      : {
+          id: song.id,
+          kind: 'song',
+          title: song.title,
+          ...(song.theme === undefined ? {} : {theme: song.theme}),
+        },
+    session.itemSession || song.theme !== undefined ? 'service' : 'external',
   );
   return theme === undefined
     ? undefined
