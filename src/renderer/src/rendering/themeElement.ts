@@ -1,3 +1,4 @@
+import {DraftSheetView} from './draftSheet';
 import {BROADCAST_LOOK_GEOMETRY as glass} from '@core/themes/broadcastLook';
 import type {LiveLayers, MediaLayer} from '@core/live/state';
 import {mediaObjectFit} from '@core/media/objectFit';
@@ -80,6 +81,7 @@ const SLIDE_ELEMENT_KINDS: readonly string[] = [
 
 /** One persistent element with owned text pages, images, and video decoders. */
 export class ThemeElementView {
+  private readonly draft = new DraftSheetView();
   private readonly box = document.createElement('div');
   private readonly text: SlideLayerView | null;
   private media: BackgroundLayerView | null = null;
@@ -353,6 +355,7 @@ export class ThemeElementView {
         },
       );
     }
+    this.draft.render(this.box, element, {slide: layers.slide, frame});
     this.setClearOpacity(frame.clearOpacity);
     if (
       element.broadcastSong === 'bandText' ||
@@ -676,6 +679,7 @@ export class ThemeElementView {
   }
 
   dispose(): void {
+    this.draft.dispose();
     this.media?.dispose();
     this.text?.dispose();
     if (this.image !== null) {

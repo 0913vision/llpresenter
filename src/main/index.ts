@@ -1,3 +1,4 @@
+import {registerDraftSheet} from './draftSheet';
 import {app, ipcMain, type BrowserWindow, type IpcMainEvent} from 'electron';
 import {serviceEndpoints} from '@contracts/ipc/service';
 import {LaunchIdle} from './store/launchIdle';
@@ -76,6 +77,7 @@ const userDataProblem = applyUserDataOverride(
   defaultUserDataPath(app.getPath('appData')),
 );
 
+registerDraftSheet();
 registerMediaScheme();
 prepareSoakGarbageCollection();
 

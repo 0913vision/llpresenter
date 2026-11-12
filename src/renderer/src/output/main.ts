@@ -3,6 +3,7 @@ import '@renderer/styles/tokens.css';
 import './output.css';
 import {showMonitorNumber} from './monitorNumber';
 import {startOutput} from './startOutput';
+import {setDraftSheet} from '../rendering/draftSheet';
 import {startAudio} from './startAudio';
 
 const SCREEN_PARAMETER = 'screen';
@@ -21,10 +22,13 @@ if (root !== null && audio !== null && api !== undefined) {
 } else if (root !== null && monitorNumber !== null) {
   showMonitorNumber(root, monitorNumber, parameters.get('monitor-details'));
 } else if (root !== null && screenId !== null && api !== undefined) {
-  startOutput({
-    root,
-    api,
-    screenId,
-    ndi,
-  });
+  void (window.draftSheet?.() ?? Promise.resolve(null))
+    .then(data => {
+      setDraftSheet(data);
+      startOutput({root, api, screenId, ndi});
+    })
+    .catch((error: unknown) => {
+      console.error('Could not start draft sheet', error);
+      startOutput({root, api, screenId, ndi});
+    });
 }

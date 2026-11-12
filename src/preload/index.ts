@@ -18,3 +18,7 @@ contextBridge.exposeInMainWorld(
     update: updatePreload(port),
   }),
 );
+
+contextBridge.exposeInMainWorld('draftSheet', () =>
+  ipcRenderer.invoke('draft-sheet:read'),
+);

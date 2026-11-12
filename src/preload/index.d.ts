@@ -4,6 +4,7 @@ declare global {
   interface Window {
     /** Missing outside Electron, for example in a plain browser preview. */
     llp?: LlpApi;
+    draftSheet?: () => Promise<unknown>;
   }
 }
 
