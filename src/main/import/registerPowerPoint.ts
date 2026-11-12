@@ -7,6 +7,8 @@ import {
   parsePowerPointBackgroundRequest,
   parsePowerPointReleaseRequest,
   parsePowerPointReadResult,
+  parsePowerPointLayersRequest,
+  parsePowerPointScene,
   type PowerPointReadResult,
   type PowerPointSource,
 } from '@core/schema/powerpointImport';
@@ -15,6 +17,7 @@ import {TEST_IMPORT_FILE_VARIABLE} from './testImportFile';
 import {PowerPointJobs} from './powerpointJob';
 import type {MediaStore} from '../store/mediaStore';
 import {createMediaId} from '@core/schema/ids';
+import {boundedPowerPointImage} from './powerpointImage';
 
 const MAX_TEMP_FILES = 2;
 
@@ -30,6 +33,7 @@ export function registerPowerPointImport(
     source: PowerPointSource;
   } | null = null;
   let busy = false;
+  let drawingBusy = false;
   let disposed = false;
   const isDisposed = (): boolean => disposed;
   const tempFiles = new Set<string>();
@@ -53,6 +57,34 @@ export function registerPowerPointImport(
       return false;
     }
   };
+  ipcMain.handle(
+    powerpointEndpoints.layers.channel,
+    async (_event, value: unknown) => {
+      const request = parsePowerPointLayersRequest(value);
+      if (!request.ok || !retained || disposed || drawingBusy) return null;
+      const current = retained;
+      const slide = current.source.slides[request.value.index];
+      if (!slide?.background) return null;
+      drawingBusy = true;
+      try {
+        const result = await jobs.run({
+          kind: 'layers',
+          path: current.path,
+          digest: current.digest,
+          number: slide.number,
+        });
+        const parsed = parsePowerPointScene(result);
+        return parsed.ok && !isDisposed() && retained === current
+          ? parsed.value
+          : null;
+      } catch (error) {
+        context.log.warn('could not read PowerPoint background layers', error);
+        return null;
+      } finally {
+        drawingBusy = false;
+      }
+    },
+  );
   ipcMain.handle(
     powerpointEndpoints.read.channel,
     async (): Promise<PowerPointReadResult> => {
@@ -120,7 +152,15 @@ export function registerPowerPointImport(
       const part = retained.source.slides[request.value.index]?.background;
       if (!part) return null;
       if (tempFiles.size >= MAX_TEMP_FILES || disposed) return null;
-      const extension = extname(part).toLowerCase();
+      const image = request.value.image;
+      if (image && !boundedPowerPointImage(Buffer.from(image.bytes))) {
+        return null;
+      }
+      const extension = image
+        ? image.mime === 'image/png'
+          ? '.png'
+          : '.jpg'
+        : extname(part).toLowerCase() || '.png';
       const temp = join(
         app.getPath('temp'),
         `llp-ppt-${randomUUID()}${extension}`,
@@ -131,15 +171,24 @@ export function registerPowerPointImport(
       try {
         const file = await open(temp, 'wx');
         created = true;
-        await file.close();
+        try {
+          if (image) {
+            await file.writeFile(image.bytes);
+            await file.sync();
+          }
+        } finally {
+          await file.close();
+        }
         if (isDisposed()) throw new Error('PowerPoint import closed');
-        const result = await jobs.run({
-          kind: 'background',
-          path: retained.path,
-          digest: retained.digest,
-          index: request.value.index,
-          target: temp,
-        });
+        const result = image
+          ? true
+          : await jobs.run({
+              kind: 'background',
+              path: retained.path,
+              digest: retained.digest,
+              index: request.value.index,
+              target: temp,
+            });
         if (result !== true || isDisposed()) {
           throw new Error('PowerPoint extraction failed');
         }
@@ -199,6 +248,7 @@ export function registerPowerPointImport(
     disposed = true;
     jobs.dispose();
     ipcMain.removeHandler(powerpointEndpoints.read.channel);
+    ipcMain.removeHandler(powerpointEndpoints.layers.channel);
     ipcMain.removeHandler(powerpointEndpoints.background.channel);
     ipcMain.removeHandler(powerpointEndpoints.release.channel);
     ipcMain.removeHandler(powerpointEndpoints.match.channel);

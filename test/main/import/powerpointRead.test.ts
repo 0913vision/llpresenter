@@ -86,8 +86,8 @@ describe('PowerPoint XML reader', () => {
     const deck = readPowerPoint(archive(parts));
     expect(deck.slides.map(s => s.number)).toEqual([1, 2, 3, 4]);
     expect(deck.slides.map(s => s.background)).toEqual([
-      'ppt/media/bg.png',
-      'ppt/media/layout.jpg',
+      expect.stringMatching(/^[a-f0-9]{64}$/),
+      expect.stringMatching(/^[a-f0-9]{64}$/),
       null,
       null,
     ]);

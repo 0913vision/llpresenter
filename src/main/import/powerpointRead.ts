@@ -1,10 +1,17 @@
-import {posix} from 'node:path';
-import {DOMParser} from '@xmldom/xmldom';
 import {
   POWERPOINT_IMPORT_LIMITS,
   TEXT_IMPORT_LIMITS,
 } from '@core/songs/textImportLimits';
 import {PowerPointZip} from './powerpointZip';
+import {
+  children,
+  named,
+  descendants,
+  xml,
+  relationships,
+} from './powerpointXml';
+import {PowerPointLayerReader} from './powerpointLayers';
+import type {PowerPointScene} from '@core/songs/powerpointLayers';
 
 import type {
   PowerPointSlide,
@@ -14,64 +21,6 @@ export interface PowerPointDeck {
   readonly slides: readonly PowerPointSlide[];
 }
 
-function children(node: Node): Element[] {
-  return Array.from(node.childNodes).filter(
-    (child): child is Element => child.nodeType === 1,
-  );
-}
-function named(node: Node, name: string): Element[] {
-  return children(node).filter(child => child.localName === name);
-}
-function descendants(node: Node, name: string): Element[] {
-  return children(node).flatMap(child => [
-    ...(child.localName === name ? [child] : []),
-    ...descendants(child, name),
-  ]);
-}
-function xml(zip: PowerPointZip, name: string): Document {
-  const bytes = zip.read(name);
-  if (bytes === undefined || bytes.length > POWERPOINT_IMPORT_LIMITS.xmlBytes) {
-    throw new Error('Missing or oversized PowerPoint XML');
-  }
-  const content = bytes.toString('utf8');
-  if (/<!DOCTYPE/i.test(content)) throw new Error('Invalid PowerPoint XML');
-  const parser = new DOMParser({
-    errorHandler: () => {
-      throw new Error('Invalid PowerPoint XML');
-    },
-  });
-  const doc = parser.parseFromString(content, 'application/xml');
-  return doc;
-}
-function relationships(
-  zip: PowerPointZip,
-  part: string,
-): Map<string, {target: string; type: string}> {
-  const name = posix.join(
-    posix.dirname(part),
-    '_rels',
-    `${posix.basename(part)}.rels`,
-  );
-  if (zip.read(name) === undefined) return new Map();
-  return new Map(
-    descendants(xml(zip, name), 'Relationship')
-      .filter(e => e.getAttribute('TargetMode') !== 'External')
-      .map(e => {
-        const target = e.getAttribute('Target') ?? '';
-        return [
-          e.getAttribute('Id') ?? '',
-          {
-            target: posix.normalize(
-              target.startsWith('/')
-                ? target.slice(1)
-                : posix.join(posix.dirname(part), target),
-            ),
-            type: e.getAttribute('Type') ?? '',
-          },
-        ];
-      }),
-  );
-}
 function lines(shape: Element): string[] {
   const tx = named(shape, 'txBody')[0];
   if (!tx) return [];
@@ -113,63 +62,6 @@ function shapes(tree: Element): PowerPointShape[] {
     ];
   });
 }
-function imageFromPart(
-  zip: PowerPointZip,
-  part: string,
-  size: {readonly width: number; readonly height: number},
-): string | null {
-  const doc = xml(zip, part);
-  const rels = relationships(zip, part);
-  const resolve = (blip: Element | undefined): string | null => {
-    const target = blip
-      ? rels.get(blip.getAttribute('r:embed') ?? '')?.target
-      : undefined;
-    return target && /\.(png|jpe?g)$/i.test(target) ? target : null;
-  };
-  const bg = descendants(doc, 'bg')[0];
-  const image = bg ? resolve(descendants(bg, 'blip')[0]) : null;
-  if (image) return image;
-  for (const pic of descendants(doc, 'pic')) {
-    const xfrm = descendants(pic, 'xfrm')[0];
-    const ext = xfrm ? named(xfrm, 'ext')[0] : undefined;
-    const off = xfrm ? named(xfrm, 'off')[0] : undefined;
-    const x = Number(off?.getAttribute('x') ?? 0);
-    const y = Number(off?.getAttribute('y') ?? 0);
-    const width = Number(ext?.getAttribute('cx') ?? 0);
-    const height = Number(ext?.getAttribute('cy') ?? 0);
-    const coveredWidth = Math.max(
-      0,
-      Math.min(size.width, x + width) - Math.max(0, x),
-    );
-    const coveredHeight = Math.max(
-      0,
-      Math.min(size.height, y + height) - Math.max(0, y),
-    );
-    if (ext && coveredWidth * coveredHeight >= size.width * size.height * 0.9) {
-      const found = resolve(descendants(pic, 'blip')[0]);
-      if (found) return found;
-    }
-  }
-  return null;
-}
-function background(
-  zip: PowerPointZip,
-  part: string,
-  size: {readonly width: number; readonly height: number},
-): string | null {
-  let current: string | undefined = part;
-  const visited = new Set<string>();
-  while (current && !visited.has(current)) {
-    visited.add(current);
-    const found = imageFromPart(zip, current, size);
-    if (found) return found;
-    const next: {target: string; type: string} | undefined = [
-      ...relationships(zip, current).values(),
-    ].find(rel => /\/(slideLayout|slideMaster)$/.test(rel.type));
-    current = next?.target;
-  }
-  return null;
-}
 /** Reads Office XML as data; embedded macros and non-slide content are ignored. */
 export function readPowerPoint(bytes: Buffer): PowerPointDeck {
   const zip = new PowerPointZip(bytes);
@@ -192,6 +84,7 @@ export function readPowerPoint(bytes: Buffer): PowerPointDeck {
   let characters = 0;
   let lineCount = 0;
   const slides: PowerPointSlide[] = [];
+  const layers = new PowerPointLayerReader(zip);
   for (const [index, id] of ids.entries()) {
     const slidePath = rels.get(id.getAttribute('r:id') ?? '')?.target;
     if (!slidePath) throw new Error('Missing PowerPoint slide');
@@ -211,11 +104,33 @@ export function readPowerPoint(bytes: Buffer): PowerPointDeck {
     ) {
       throw new Error('PowerPoint text exceeds its limit');
     }
+    const drawing = layers.read(slidePath, {width, height});
     slides.push({
       number: index + 1,
       shapes: slideShapes,
-      background: background(zip, slidePath, {width, height}),
+      background: drawing.layers.length > 0 ? drawing.key : null,
     });
   }
   return {slides};
+}
+
+/** Reads a selected original slide number into an on-demand canvas scene. */
+export function readPowerPointScene(
+  bytes: Buffer,
+  number: number,
+): PowerPointScene {
+  const zip = new PowerPointZip(bytes);
+  const part = 'ppt/presentation.xml';
+  const presentation = xml(zip, part);
+  const size = descendants(presentation, 'sldSz')[0];
+  const width = Number(size?.getAttribute('cx'));
+  const height = Number(size?.getAttribute('cy'));
+  if (!(width > 0 && height > 0)) {
+    throw new Error('Invalid PowerPoint slide size');
+  }
+  const id = descendants(presentation, 'sldId')[number - 1];
+  const path =
+    id && relationships(zip, part).get(id.getAttribute('r:id') ?? '')?.target;
+  if (!path) throw new Error('PowerPoint slide is unavailable');
+  return new PowerPointLayerReader(zip).scene(path, {width, height});
 }

@@ -86,6 +86,63 @@ function setup(windowMode: 'normal' | 'offscreen' = 'normal') {
 const readRequest = {source: 'file', encoding: 'auto'};
 
 describe('PowerPoint import', () => {
+  it('validates scene bytes and writes the composed image into the managed media path', async () => {
+    const {control, log} = setup();
+    electron.tempDir = await makeTempDir();
+    const scene = {key: 'a'.repeat(64), layers: [], pictures: [], skipped: 0};
+    const run = vi.fn(async (job: PowerPointJob): Promise<unknown> => {
+      if (job.kind === 'read') {
+        return {
+          digest: 'a'.repeat(64),
+          slides: [{number: 4, shapes: [], background: scene.key}],
+        };
+      }
+      if (job.kind === 'layers') return scene;
+      throw new Error('Unexpected worker job');
+    });
+    onTestFinished(
+      registerPowerPointImport(
+        {control, windowMode: 'normal', log},
+        {run, dispose: vi.fn()},
+      ),
+    );
+    electron.chooseFile.mockResolvedValueOnce({
+      canceled: false,
+      filePaths: ['example.pptx'],
+    });
+    await handler(powerpointEndpoints.read.channel)({}, undefined);
+    expect(
+      await handler(powerpointEndpoints.layers.channel)({}, {index: 0}),
+    ).toEqual(scene);
+    expect(run).toHaveBeenLastCalledWith({
+      kind: 'layers',
+      path: 'example.pptx',
+      digest: 'a'.repeat(64),
+      number: 4,
+    });
+    run.mockResolvedValueOnce({
+      ...scene,
+      layers: Array.from({length: 65}, () => ({})),
+    });
+    expect(
+      await handler(powerpointEndpoints.layers.channel)({}, {index: 0}),
+    ).toBeNull();
+    const image = Buffer.alloc(24);
+    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).copy(image);
+    image.write('IHDR', 12);
+    image.writeUInt32BE(1920, 16);
+    image.writeUInt32BE(1080, 20);
+    const path = await handler(powerpointEndpoints.background.channel)(
+      {},
+      {index: 0, image: {mime: 'image/png', bytes: new Uint8Array(image)}},
+    );
+    expect(typeof path).toBe('string');
+    expect(run).toHaveBeenCalledTimes(3);
+    expect(await handler(powerpointEndpoints.release.channel)({}, {path})).toBe(
+      true,
+    );
+    expect(await readdir(electron.tempDir)).toEqual([]);
+  });
   it('refuses the old PowerPoint format before reading it', async () => {
     const {control, log} = setup();
     onTestFinished(
@@ -109,7 +166,7 @@ describe('PowerPoint import', () => {
     electron.tempDir = await makeTempDir();
     const jobs = {
       run: vi.fn(async (job: PowerPointJob): Promise<unknown> => {
-        if (job.kind === 'match') return null;
+        if (job.kind === 'match' || job.kind === 'layers') return null;
         if (job.kind === 'read') {
           return {
             digest: 'a'.repeat(64),
@@ -180,7 +237,7 @@ describe('PowerPoint import', () => {
     });
     const jobs = {
       run: async (job: PowerPointJob): Promise<unknown> => {
-        if (job.kind === 'match') return null;
+        if (job.kind === 'match' || job.kind === 'layers') return null;
         if (job.kind === 'read') {
           return {
             digest: 'a'.repeat(64),

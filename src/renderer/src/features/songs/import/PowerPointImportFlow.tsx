@@ -3,6 +3,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {PowerPointSource} from '@core/schema/powerpointImport';
 import type {TextImportDraft} from '@core/schema/textImport';
 import {powerpointSlides} from '@core/songs/powerpointSlides';
+import {powerpointBackgroundIndex} from '@core/songs/powerpointBackgroundIndex';
 import {powerpointBackgroundName} from '@core/media/powerpointBackground';
 import {Dialog} from '@renderer/ui/Dialog';
 import {TextField} from '@renderer/ui';
@@ -11,6 +12,7 @@ import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import type {SongEditorStore} from '../editor/songEditorStore';
 import styles from './PowerPointImport.module.css';
+import {composePowerPointBackground} from './composePowerPointBackground';
 
 async function importBackground(
   api: LlpApi,
@@ -92,7 +94,12 @@ async function importSelectedBackground(
   try {
     await previous;
     if (!isActive()) return undefined;
-    const path = await api.powerpoint.background({index});
+    const scene = await api.powerpoint.layers({index});
+    if (!isActive()) return undefined;
+    if (!scene) throw new Error('Background layers unavailable');
+    const image = await composePowerPointBackground(scene);
+    if (!isActive()) return undefined;
+    const path = await api.powerpoint.background({index, image});
     if (!path) throw new Error('Background unavailable');
     try {
       if (!isActive()) return undefined;
@@ -219,22 +226,12 @@ function PowerPointDialog({
   const create = async (): Promise<void> => {
     setBusy(true);
     try {
-      const counts = new Map<string, {count: number; index: number}>();
-      range.forEach((slide, offset) => {
-        if (slide.background) {
-          const previous = counts.get(slide.background);
-          counts.set(slide.background, {
-            count: (previous?.count ?? 0) + 1,
-            index: previous?.index ?? start + offset,
-          });
-        }
-      });
-      const winner = [...counts.values()].sort((a, b) => b.count - a.count)[0];
+      const winner = powerpointBackgroundIndex(range);
       let background: TextImportDraft['background'];
-      if (winner) {
+      if (winner !== undefined) {
         background = await importSelectedBackground(
           api,
-          {index: winner.index, title: shownTitle},
+          {index: start + winner, title: shownTitle},
           () => active.current,
         );
       }

@@ -2,7 +2,7 @@ import {createHash} from 'node:crypto';
 import {open, writeFile} from 'node:fs/promises';
 import {parentPort, workerData} from 'node:worker_threads';
 import {POWERPOINT_IMPORT_LIMITS} from '@core/songs/textImportLimits';
-import {readPowerPoint} from './powerpointRead';
+import {readPowerPoint, readPowerPointScene} from './powerpointRead';
 import {PowerPointZip} from './powerpointZip';
 import type {PowerPointJob} from './powerpointJob';
 import {sameImage} from './matchImage';
@@ -18,6 +18,23 @@ function parseJob(value: unknown): PowerPointJob {
     throw new Error('Invalid PowerPoint worker request');
   }
   if (value.kind === 'read') return {kind: 'read', path: value.path};
+  if (
+    value.kind === 'layers' &&
+    'digest' in value &&
+    typeof value.digest === 'string' &&
+    'number' in value &&
+    typeof value.number === 'number' &&
+    Number.isSafeInteger(value.number) &&
+    value.number > 0 &&
+    value.number <= POWERPOINT_IMPORT_LIMITS.slides
+  ) {
+    return {
+      kind: 'layers',
+      path: value.path,
+      digest: value.digest,
+      number: value.number,
+    };
+  }
   if (
     value.kind === 'match' &&
     'candidates' in value &&
@@ -105,15 +122,24 @@ async function run(): Promise<void> {
   }
   const bytes = await readBounded(job.path);
   const digest = createHash('sha256').update(bytes).digest('hex');
-  if (job.kind === 'background' && digest !== job.digest) {
+  if (job.kind !== 'read' && digest !== job.digest) {
     throw new Error('PowerPoint file changed after preview');
+  }
+  if (job.kind === 'layers') {
+    parentPort?.postMessage(readPowerPointScene(bytes, job.number));
+    return;
   }
   const deck = readPowerPoint(bytes);
   if (job.kind === 'read') {
     parentPort?.postMessage({digest, slides: deck.slides});
     return;
   }
-  const part = deck.slides[job.index]?.background;
+  const slide = deck.slides[job.index];
+  const part =
+    slide &&
+    readPowerPointScene(bytes, slide.number).layers.find(
+      layer => layer.kind === 'picture',
+    )?.part;
   if (!part) throw new Error('PowerPoint background is unavailable');
   const image = new PowerPointZip(bytes).read(part);
   if (!image) throw new Error('PowerPoint background is unavailable');

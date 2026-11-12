@@ -950,13 +950,48 @@ other such slides are lyrics. Empty slides remain blank. A title uses at most
 two shapes, joining each shape's lines with spaces. 편집 opens the unsaved song
 editor; 저장 there adds the song to the library.
 
-For each slide, a background image is taken from its background fill or a
-picture covering at least 90% of the slide, searching the slide, layout and
-master in order. The most common JPEG or PNG in the selected range becomes the
-song background. Cropping is ignored. The image enters the media library when
-편집 is pressed and remains there even if the song is discarded. Text styling,
-positions, transitions and animations are not imported. The size limits are in
-the data specification.
+### Background
+
+The song background is one 1920 x 1080 picture of the selected slide's non-text
+content. The slide's own background takes precedence over the layout background,
+then the master background. Solid, gradient, picture fills and theme background
+references are resolved before drawing. Master shapes follow unless the slide or
+layout sets `showMasterSp` to false, then layout shapes, then slide shapes,
+preserving each shape tree's order and group transforms. Placeholders and shapes
+containing text are skipped.
+
+JPEG and PNG pictures retain their position, size, rotation, flips, source crop
+(including negative crop extensions), stretch fill rectangle, opacity,
+brightness, contrast and grayscale. Filled rectangles, rounded rectangles and
+ellipses retain solid or gradient fills and visible outlines. Linear gradients
+retain their angle, scaling and stop positions; path gradients are drawn as
+radial gradients. Theme scheme colors use the master's color mapping and any
+layout or slide override. Alpha, luminance, shade and tint transforms apply to
+fills and gradient stops. Other shape geometries are skipped and counted.
+
+Picture cropping uses the decoded bitmap's pixels before shape transforms; a
+horizontal flip mirrors the already cropped picture, so a left source crop
+removes the visual right side. Pictures use high quality downsampling, with no
+filter for unchanged luminance. Positive brightness moves colors toward white;
+negative brightness moves them toward black. Unscaled gradient angles are
+preserved in physical shape coordinates. An explicit `masterClrMapping` restores
+the master's mapping after any layout override.
+
+Each slide has a background key derived from its resolved background and
+non-text layers across the slide, layout and master. The most common key in the
+selected range wins; ties use the first occurrence. Its slide is composed as the
+song background. Slides with different keys still use that same song background.
+Backgrounds contain at most 64 layers; additional layers and pictures exceeding
+image bounds are omitted. Each encoded picture is limited to 32 MiB, 16384
+pixels per side and 64 megapixels, with 128 MiB of encoded pictures per
+background.
+
+Main reads only ZIP and XML data. Chromium's OffscreenCanvas draws the layer
+list and encodes JPEG at quality 0.92, or PNG when the composed picture has
+transparency at an edge. The composed image enters the media library when 편집
+is pressed and remains there even if the song is discarded. Text styling,
+transitions and animations are not imported. Other size limits are in the data
+specification.
 
 When a picture with identical bytes is already in the media library, the song
 reuses it. Otherwise the new media item is named from the song name followed by

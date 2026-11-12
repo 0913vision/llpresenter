@@ -4,6 +4,12 @@ import {Worker} from 'node:worker_threads';
 export type PowerPointJob =
   | {readonly kind: 'read'; readonly path: string}
   | {
+      readonly kind: 'layers';
+      readonly path: string;
+      readonly digest: string;
+      readonly number: number;
+    }
+  | {
       readonly kind: 'match';
       readonly path: string;
       readonly candidates: ReadonlyArray<{

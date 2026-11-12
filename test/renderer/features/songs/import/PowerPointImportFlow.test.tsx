@@ -10,6 +10,15 @@ import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixt
 import {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {PowerPointImportFlow} from '@renderer/features/songs/import/PowerPointImportFlow';
 
+vi.mock('@renderer/features/songs/import/composePowerPointBackground', () => ({
+  composePowerPointBackground: vi.fn(async () => ({
+    mime: 'image/png',
+    bytes: new Uint8Array([1]),
+  })),
+}));
+
+const mockScene = {key: 'a'.repeat(64), layers: [], pictures: [], skipped: 0};
+
 describe('PowerPoint import dialog', () => {
   it('reuses matching media instead of importing a second image', async () => {
     const fixture = editorFixture();
@@ -21,9 +30,11 @@ describe('PowerPoint import dialog', () => {
       value: [],
     }));
     const release = vi.fn(async () => true);
+    const background = vi.fn(async () => 'C:/temp/ppt.png');
     const api = mockLlpApi({
       ...fixture.api,
       powerpoint: {
+        layers: async () => mockScene,
         read: async () => ({
           ok: true,
           value: {
@@ -37,7 +48,7 @@ describe('PowerPoint import dialog', () => {
             ],
           },
         }),
-        background: async () => 'C:/temp/ppt.png',
+        background,
         match: async () => mediaId,
         release,
       },
@@ -60,6 +71,10 @@ describe('PowerPoint import dialog', () => {
       mediaId,
     );
     expect(importMedia).not.toHaveBeenCalled();
+    expect(background).toHaveBeenCalledWith({
+      index: 0,
+      image: {mime: 'image/png', bytes: new Uint8Array([1])},
+    });
     expect(release).toHaveBeenCalledWith({path: 'C:/temp/ppt.png'});
   });
 
@@ -73,6 +88,7 @@ describe('PowerPoint import dialog', () => {
     const api = mockLlpApi({
       ...fixture.api,
       powerpoint: {
+        layers: async () => mockScene,
         read: async () => ({
           ok: true,
           value: {
@@ -139,6 +155,7 @@ describe('PowerPoint import dialog', () => {
     const api = mockLlpApi({
       ...fixture.api,
       powerpoint: {
+        layers: async () => mockScene,
         read: async () => ({
           ok: true,
           value: {
@@ -197,6 +214,7 @@ describe('PowerPoint import dialog', () => {
     const api = mockLlpApi({
       ...fixture.api,
       powerpoint: {
+        layers: async () => mockScene,
         read: async () => ({
           ok: true,
           value: {
@@ -265,6 +283,7 @@ describe('PowerPoint import dialog', () => {
     const api = mockLlpApi({
       ...fixture.api,
       powerpoint: {
+        layers: async () => mockScene,
         read: async () => ({
           ok: true,
           value: {

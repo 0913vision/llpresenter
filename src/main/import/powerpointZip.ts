@@ -101,9 +101,10 @@ export class PowerPointZip {
     if (position !== end) throw new Error('Invalid PowerPoint directory');
   }
 
-  read(name: string): Buffer | undefined {
+  read(name: string, maximum = LIMITS.inflatedBytes): Buffer | undefined {
     const entry = this.entries.get(name);
     if (entry === undefined) return undefined;
+    if (entry.inflated > maximum) return undefined;
     const {offset} = entry;
     if (
       offset + 30 > this.bytes.length ||

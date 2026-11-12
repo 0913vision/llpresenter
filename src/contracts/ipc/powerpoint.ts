@@ -9,9 +9,17 @@ import {
   type PowerPointReadResult,
   type PowerPointBackgroundRequest,
   type PowerPointReleaseRequest,
+  parsePowerPointLayersRequest,
+  parsePowerPointLayersResult,
+  type PowerPointLayersRequest,
+  type PowerPointSceneResult,
 } from '@core/schema/powerpointImport';
 import type {MediaId} from '@core/schema/ids';
 export const powerpointEndpoints = {
+  layers: request<PowerPointLayersRequest, PowerPointSceneResult>(
+    'import:powerpoint:layers',
+    {request: parsePowerPointLayersRequest, reply: parsePowerPointLayersResult},
+  ),
   read: query<PowerPointReadResult>(
     'import:powerpoint:read',
     parsePowerPointReadResult,
@@ -37,6 +45,7 @@ export const powerpointEndpoints = {
 };
 export function powerpointApi(port: IpcPort) {
   return {
+    layers: port.request(powerpointEndpoints.layers),
     read: port.query(powerpointEndpoints.read),
     background: port.request(powerpointEndpoints.background),
     release: port.request(powerpointEndpoints.release),
