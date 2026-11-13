@@ -1,6 +1,13 @@
 import {cleanup} from '@testing-library/react';
 import {afterEach} from 'vitest';
 
+// NOTE(0913vision): jsdom has no image decode; tests can override this default.
+Object.defineProperty(HTMLImageElement.prototype, 'decode', {
+  configurable: true,
+  writable: true,
+  value: () => Promise.resolve(),
+});
+
 Object.defineProperty(globalThis, 'requestIdleCallback', {
   configurable: true,
   writable: true,

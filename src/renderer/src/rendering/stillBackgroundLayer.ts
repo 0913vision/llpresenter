@@ -82,25 +82,38 @@ export class StillBackgroundLayerView {
       this.stops[to] = loadBackgroundImage(image, {
         src,
         onReady: () => {
-          this.pending = false;
-          const outgoing = this.front;
-          this.front = to;
-          image.style.zIndex = '1';
-          this.images[outgoing].style.zIndex = '0';
-          const dissolve = transitions && this.dissolveMs > 0;
-          this.element.style.setProperty(
-            '--background-dissolve',
-            `${this.dissolveMs}ms`,
+          image.decode().then(
+            () => {
+              if (
+                generation !== this.generation ||
+                image.getAttribute('src') !== src
+              ) {
+                return;
+              }
+              this.pending = false;
+              const outgoing = this.front;
+              this.front = to;
+              image.style.zIndex = '1';
+              this.images[outgoing].style.zIndex = '0';
+              const dissolve = transitions && this.dissolveMs > 0;
+              this.element.style.setProperty(
+                '--background-dissolve',
+                `${this.dissolveMs}ms`,
+              );
+              image.classList.toggle(classes.dissolving, dissolve);
+              getComputedStyle(image).getPropertyValue('opacity');
+              image.classList.add(classes.shown);
+              if (dissolve) {
+                this.finish = setTimeout(() => {
+                  this.finish = null;
+                  this.clear(outgoing);
+                }, this.dissolveMs);
+              } else this.clear(outgoing);
+            },
+            () => {
+              if (image.getAttribute('src') === src) fail();
+            },
           );
-          image.classList.toggle(classes.dissolving, dissolve);
-          getComputedStyle(image).getPropertyValue('opacity');
-          image.classList.add(classes.shown);
-          if (dissolve) {
-            this.finish = setTimeout(() => {
-              this.finish = null;
-              this.clear(outgoing);
-            }, this.dissolveMs);
-          } else this.clear(outgoing);
         },
         onError: fail,
       });

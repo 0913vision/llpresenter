@@ -676,17 +676,28 @@ class PlaybackBackgroundLayerView {
     this.cancelFrame(index);
     this.cancelSeek();
     unload(this.videos[index]);
-    this.stopImages[index] = loadBackgroundImage(this.images[index], {
+    const image = this.images[index];
+    let active = true;
+    const fail = (): void => {
+      if (!active || image.getAttribute('src') !== src) return;
+      this.fail(index);
+      this.onError('could not load a background media file', {src});
+    };
+    const stop = loadBackgroundImage(image, {
       src,
       onReady: () => {
-        this.decoded[index] = true;
-        this.handlePlaying(index);
+        image.decode().then(() => {
+          if (!active || image.getAttribute('src') !== src) return;
+          this.decoded[index] = true;
+          this.handlePlaying(index);
+        }, fail);
       },
-      onError: () => {
-        this.fail(index);
-        this.onError('could not load a background media file', {src});
-      },
+      onError: fail,
     });
+    this.stopImages[index] = () => {
+      active = false;
+      stop();
+    };
     return true;
   }
 

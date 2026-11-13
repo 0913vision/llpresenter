@@ -2,7 +2,10 @@ import {afterEach, expect, it, vi} from 'vitest';
 import {BackgroundLayerView} from '@renderer/rendering/backgroundLayer';
 import {classes} from '@renderer/rendering/classes';
 
-afterEach(() => vi.useRealTimers());
+afterEach(() => {
+  vi.restoreAllMocks();
+  vi.useRealTimers();
+});
 
 function setup() {
   const parent = document.createElement('div');
@@ -21,13 +24,14 @@ function setup() {
   return {parent, view, onError, first, second};
 }
 
-it('creates no video, retains a same-media still, and updates its element fit', () => {
+it('creates no video, retains a same-media still, and updates its element fit', async () => {
   const create = vi.spyOn(document, 'createElement');
   const {parent, view, second} = setup();
   view.show({startedAt: 0, mediaId: 'video', loop: true});
   expect(view.ready()).toBe(false);
   expect(second.src).toBe('https://thumbnail.test/video.jpg');
   second.dispatchEvent(new Event('load'));
+  await Promise.resolve();
   expect(view.ready()).toBe(true);
   view.show({
     startedAt: 0,
@@ -44,15 +48,17 @@ it('creates no video, retains a same-media still, and updates its element fit', 
   view.dispose();
 });
 
-it('keeps the old still until the incoming one loads and releases it after the dissolve', () => {
+it('keeps the old still until the incoming one loads and releases it after the dissolve', async () => {
   vi.useFakeTimers();
   const {view, first, second} = setup();
   view.show({startedAt: 0, mediaId: 'first', loop: true}, false);
   second.dispatchEvent(new Event('load'));
+  await Promise.resolve();
   view.show({startedAt: 0, mediaId: 'second', loop: true});
   expect(second.classList.contains(classes.shown)).toBe(true);
   expect(first.classList.contains(classes.shown)).toBe(false);
   first.dispatchEvent(new Event('load'));
+  await Promise.resolve();
   expect(first.style.zIndex).toBe('1');
   expect(second.style.zIndex).toBe('0');
   vi.runAllTimers();
@@ -61,16 +67,18 @@ it('keeps the old still until the incoming one loads and releases it after the d
   view.dispose();
 });
 
-it('cancels superseded loads and bounds images, snapshots, and disposal timers', () => {
+it('cancels superseded loads and bounds images, snapshots, and disposal timers', async () => {
   vi.useFakeTimers();
   const {parent, view, first, second} = setup();
   view.show({startedAt: 0, mediaId: 'first', loop: true}, false);
   second.dispatchEvent(new Event('load'));
+  await Promise.resolve();
   for (let at = 0; at < 100; at++) {
     view.show({startedAt: 0, mediaId: `video-${at}`, loop: true});
   }
   expect(first.src).toBe('https://thumbnail.test/video-99.jpg');
   first.dispatchEvent(new Event('load'));
+  await Promise.resolve();
   const next = document.createElement('div');
   view.moveTo(next);
   view.moveTo(parent);
@@ -83,6 +91,31 @@ it('cancels superseded loads and bounds images, snapshots, and disposal timers',
   expect(first.hasAttribute('src')).toBe(false);
   expect(second.hasAttribute('src')).toBe(false);
   expect(vi.getTimerCount()).toBe(0);
+});
+
+it('waits for preview decode and ignores stale or rejected decodes', async () => {
+  const {view, second, onError} = setup();
+  view.show({startedAt: 0, mediaId: 'first', loop: true}, false);
+  let resolveDecode = (): void => {};
+  second.decode = () =>
+    new Promise<void>(resolve => {
+      resolveDecode = resolve;
+    });
+  second.dispatchEvent(new Event('load'));
+  expect(view.ready()).toBe(false);
+  expect(second.classList.contains(classes.shown)).toBe(false);
+  view.show(null);
+  resolveDecode();
+  await Promise.resolve();
+  expect(second.classList.contains(classes.shown)).toBe(false);
+  expect(onError).not.toHaveBeenCalled();
+  view.show({startedAt: 0, mediaId: 'second', loop: true}, false);
+  second.decode = () => Promise.reject(new Error('decode failed'));
+  second.dispatchEvent(new Event('load'));
+  await Promise.resolve();
+  expect(view.ready()).toBe(true);
+  expect(onError).toHaveBeenCalledOnce();
+  view.dispose();
 });
 
 it('reports a missing thumbnail once to its new owner without trying to play the file', () => {

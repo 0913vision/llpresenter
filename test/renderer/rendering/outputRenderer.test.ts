@@ -316,7 +316,9 @@ describe('OutputRenderer', () => {
       await Promise.resolve();
       const image = parent.querySelector<HTMLImageElement>('img[src]');
       if (image === null) throw new Error('expected a still background');
+      image.decode = vi.fn().mockResolvedValue(undefined);
       image.dispatchEvent(new Event('load'));
+      await Promise.resolve();
       const background = parent.querySelector<HTMLElement>(
         '[data-layer="background"]',
       );

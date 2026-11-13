@@ -155,8 +155,9 @@ export class ThemeCompositionView {
       this.page.root.style.backgroundColor = theme.emptyColor;
     }
     this.draw(rebuilt);
-    if (frame.standby || frame.transitions === false) this.releaseLeaving();
-    else if ((rebuilt || pendingSlide) && this.leaving !== null) {
+    if (frame.standby || (frame.transitions === false && this.ready())) {
+      this.releaseLeaving();
+    } else if ((rebuilt || pendingSlide) && this.leaving !== null) {
       this.awaitIncoming(frame);
     }
     const ticks =

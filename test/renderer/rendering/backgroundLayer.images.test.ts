@@ -1,4 +1,4 @@
-import {describe, expect, it, vi} from 'vitest';
+import {afterEach, describe, expect, it, vi} from 'vitest';
 import type {MediaLayer} from '@core/live/state';
 import {installMockClock} from '@fixtures/mockClock';
 import {
@@ -14,6 +14,10 @@ import {
   isShown,
   playsOf,
 } from '@fixtures/renderer/rendering/backgroundLayerFixtures';
+
+afterEach(() => {
+  vi.restoreAllMocks();
+});
 
 const SUNSET: MediaLayer = {
   mediaId: '7a2d3b9f-4c5e-4f60-9b7c-8d9e0f1a2b3c',
@@ -52,6 +56,7 @@ describe.each<RenderMode>(['output'])(
       expect(image.getAttribute('src')).toBe(urlOf(SUNSET.mediaId));
       expect(isShown(image)).toBe(false);
       image.dispatchEvent(new Event('load'));
+      await Promise.resolve();
       expect(isShown(image)).toBe(true);
       expect(image.classList.contains(classes.dissolving)).toBe(true);
       await clock.advance(BACKGROUND_DISSOLVE_MS + BACKGROUND_RELEASE_DELAY_MS);
@@ -65,6 +70,37 @@ describe.each<RenderMode>(['output'])(
       view.dispose();
     });
 
+    it('waits for decode, ignores superseded results, and reports decode failures', async () => {
+      const {parent, view, videos, onError} = setUp(mode);
+      view.show(SUNSET);
+      refuseVideoSource(videos[1]);
+      const image = incomingImage(parent);
+      let resolveDecode = (): void => {};
+      image.decode = () =>
+        new Promise<void>(resolve => {
+          resolveDecode = resolve;
+        });
+      image.dispatchEvent(new Event('load'));
+      expect(view.ready()).toBe(false);
+      expect(isShown(image)).toBe(false);
+      view.show(null);
+      resolveDecode();
+      await Promise.resolve();
+      expect(isShown(image)).toBe(false);
+      expect(onError).not.toHaveBeenCalled();
+      view.show(SUNSET);
+      const video = videos.find(value => value.hasAttribute('src'));
+      if (video === undefined) throw new Error('Missing video');
+      refuseVideoSource(video);
+      const next = incomingImage(parent);
+      next.decode = () => Promise.reject(new Error('decode failed'));
+      next.dispatchEvent(new Event('load'));
+      await Promise.resolve();
+      expect(view.ready()).toBe(true);
+      expect(onError).toHaveBeenCalledOnce();
+      view.dispose();
+    });
+
     it('also accepts an image when play rejects before the video error event', async () => {
       vi.mocked(HTMLMediaElement.prototype.play).mockRejectedValueOnce(
         new DOMException('No supported video source', 'NotSupportedError'),
@@ -74,6 +110,7 @@ describe.each<RenderMode>(['output'])(
       await Promise.resolve();
       const image = incomingImage(parent);
       image.dispatchEvent(new Event('load'));
+      await Promise.resolve();
       videos[1].dispatchEvent(new Event('error'));
       expect(isShown(image)).toBe(true);
       expect(onError).not.toHaveBeenCalled();
@@ -93,6 +130,7 @@ describe.each<RenderMode>(['output'])(
       expect(isShown(image)).toBe(false);
 
       image.dispatchEvent(new Event('load'));
+      await Promise.resolve();
       expect(image.style.zIndex).toBe('1');
       expect(videos[1].style.zIndex).toBe('0');
       await clock.advance(BACKGROUND_DISSOLVE_MS + BACKGROUND_RELEASE_DELAY_MS);
@@ -108,6 +146,7 @@ describe.each<RenderMode>(['output'])(
       refuseVideoSource(videos[1]);
       const image = incomingImage(parent);
       image.dispatchEvent(new Event('load'));
+      await Promise.resolve();
       await clock.advance(BACKGROUND_DISSOLVE_MS + BACKGROUND_RELEASE_DELAY_MS);
       view.show({...SUNSET});
       expect(incomingImage(parent)).toBe(image);
@@ -171,6 +210,7 @@ describe.each<RenderMode>(['output'])(
       refuseVideoSource(videos[1]);
       const previous = incomingImage(parent);
       previous.dispatchEvent(new Event('load'));
+      await Promise.resolve();
       await clock.advance(BACKGROUND_DISSOLVE_MS + BACKGROUND_RELEASE_DELAY_MS);
 
       const nextId = 'morning-image';
@@ -182,6 +222,7 @@ describe.each<RenderMode>(['output'])(
       if (next === null) throw new Error('expected the next still image');
       expect(isShown(previous)).toBe(true);
       next.dispatchEvent(new Event('load'));
+      await Promise.resolve();
       await clock.advance(BACKGROUND_DISSOLVE_MS + BACKGROUND_RELEASE_DELAY_MS);
       expect(isShown(next)).toBe(true);
       expect(previous.hasAttribute('src')).toBe(false);

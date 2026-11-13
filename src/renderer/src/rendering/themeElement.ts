@@ -84,6 +84,8 @@ export class ThemeElementView {
   private readonly text: SlideLayerView | null;
   private media: BackgroundLayerView | null = null;
   private readonly image: HTMLImageElement | null;
+  private imageReady = true;
+  private imageGeneration = 0;
   private readonly options: RenderLayerOptions;
   private readonly gaps: ThemeGaps;
   private shownText: string | null = null;
@@ -212,6 +214,7 @@ export class ThemeElementView {
     this.image =
       element.kind === 'image' ? document.createElement('img') : null;
     if (element.kind === 'image' && this.image !== null) {
+      this.imageReady = false;
       this.image.alt = '';
       Object.assign(this.image.style, {
         width: '100%',
@@ -219,17 +222,45 @@ export class ThemeElementView {
         objectFit: mediaObjectFit(element.fit),
       });
       this.image.onerror = () => {
+        this.imageGeneration++;
+        this.imageReady = true;
         setPlaybackProblem(this.box, 'media-missing', true);
         this.gaps.missing('media', element.mediaId);
         if (this.image !== null) this.image.hidden = true;
       };
       this.image.onload = () => {
-        setPlaybackProblem(this.box, 'media-missing', false);
-        if (this.image !== null) this.image.hidden = false;
+        const image = this.image;
+        if (image === null) return;
+        const generation = ++this.imageGeneration;
+        const src = image.getAttribute('src');
+        this.imageReady = false;
+        image.decode().then(
+          () => {
+            if (
+              generation !== this.imageGeneration ||
+              image.getAttribute('src') !== src
+            ) {
+              return;
+            }
+            this.imageReady = true;
+            setPlaybackProblem(this.box, 'media-missing', false);
+            image.hidden = false;
+          },
+          () => {
+            if (
+              generation !== this.imageGeneration ||
+              image.getAttribute('src') !== src
+            ) {
+              return;
+            }
+            image.onerror?.(new Event('error'));
+          },
+        );
       };
       try {
         this.image.src = options.mediaUrl(element.mediaId);
       } catch {
+        this.imageReady = true;
         setPlaybackProblem(this.box, 'media-missing', true);
         this.gaps.missing('media', element.mediaId);
         this.image.hidden = true;
@@ -641,7 +672,7 @@ export class ThemeElementView {
   }
 
   ready(): boolean {
-    return (this.image?.complete ?? true) && (this.media?.ready() ?? true);
+    return this.imageReady && (this.media?.ready() ?? true);
   }
 
   /** Retains a matching player's decoder and playback position across themes. */
@@ -676,6 +707,7 @@ export class ThemeElementView {
   }
 
   dispose(): void {
+    this.imageGeneration++;
     this.media?.dispose();
     this.text?.dispose();
     if (this.image !== null) {

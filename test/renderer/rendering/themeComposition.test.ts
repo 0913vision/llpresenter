@@ -969,6 +969,83 @@ describe('theme composition drawing', () => {
     view.dispose();
   });
 
+  it('keeps the old page until its replacement picture decodes', async () => {
+    const {root, view} = setup();
+    const picture: ThemeElement = {
+      ...themeElementBase(31),
+      kind: 'image',
+      mediaId,
+      fit: 'fit',
+      radius: 0,
+    };
+    view.render(song, {
+      ...frame([{...themeElementBase(), kind: 'currentText'}]),
+      transitions: false,
+    });
+    vi.advanceTimersByTime(32);
+    const oldPage = root.querySelector<HTMLElement>('[data-theme-page]');
+    view.render(song, {
+      ...frame([picture], {
+        themeId: createThemeId('00000000-0000-4000-8000-000000000502'),
+      }),
+      transitions: false,
+    });
+    const image = root.querySelector('img');
+    if (image === null) throw new Error('Missing picture');
+    let resolveDecode = (): void => {};
+    image.decode = () =>
+      new Promise<void>(resolve => {
+        resolveDecode = resolve;
+      });
+    image.dispatchEvent(new Event('load'));
+    const incoming = [
+      ...root.querySelectorAll<HTMLElement>('[data-theme-page]'),
+    ].at(-1);
+    expect(view.ready()).toBe(false);
+    vi.advanceTimersByTime(1000);
+    expect(incoming?.style.opacity).toBe('0');
+    expect(root.contains(oldPage)).toBe(true);
+    resolveDecode();
+    await Promise.resolve();
+    expect(view.ready()).toBe(true);
+    vi.advanceTimersByTime(32);
+    expect(incoming?.style.opacity).toBe('1');
+    vi.advanceTimersByTime(1);
+    expect(root.contains(oldPage)).toBe(false);
+    view.dispose();
+  });
+
+  it('reports a rejected theme picture decode and ignores a decode after disposal', async () => {
+    const {root, view, onError} = setup();
+    const picture: ThemeElement = {
+      ...themeElementBase(31),
+      kind: 'image',
+      mediaId,
+      fit: 'fit',
+      radius: 0,
+    };
+    view.render(song, frame([picture]));
+    const image = root.querySelector('img');
+    if (image === null) throw new Error('Missing picture');
+    image.decode = () => Promise.reject(new Error('decode failed'));
+    image.dispatchEvent(new Event('load'));
+    await Promise.resolve();
+    expect(view.ready()).toBe(true);
+    expect(image.hidden).toBe(true);
+    expect(onError).toHaveBeenCalled();
+    let rejectDecode: (error: Error) => void = () => {};
+    image.decode = () =>
+      new Promise<void>((_resolve, reject) => {
+        rejectDecode = reject;
+      });
+    image.dispatchEvent(new Event('load'));
+    view.dispose();
+    onError.mockClear();
+    rejectDecode(new Error('stale'));
+    await Promise.resolve();
+    expect(onError).not.toHaveBeenCalled();
+  });
+
   it('reports active resource failures without output text and retires recovered or removed owners', async () => {
     const {root, view} = setup();
     const report = vi.fn();
@@ -996,6 +1073,7 @@ describe('theme composition drawing', () => {
     ]);
     expect(root.textContent).toBe('Fallback text');
     image?.dispatchEvent(new Event('load'));
+    await Promise.resolve();
     expect(image?.hidden).toBe(false);
     view.render(song, {...frame(elements), fonts: [], transitions: false});
     expect(report).toHaveBeenLastCalledWith(['font-missing']);
@@ -1080,7 +1158,7 @@ describe('theme composition drawing', () => {
   });
   it.each(['output', 'preview'] as const)(
     'keeps a background video below later current text in %s',
-    mode => {
+    async mode => {
       const root = document.createElement('div');
       const view = new ThemeCompositionView(root, {
         textStyle: DEFAULT_TEXT_STYLE,
@@ -1109,6 +1187,7 @@ describe('theme composition drawing', () => {
         throw new Error('Missing composition');
       }
       video.dispatchEvent(new Event(mode === 'preview' ? 'load' : 'playing'));
+      await Promise.resolve();
       expect(video.style.zIndex).toBe('1');
       expect(
         background.compareDocumentPosition(lyrics) &

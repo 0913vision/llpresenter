@@ -201,6 +201,8 @@ colors), 12.
 
 ## Outputting a 슬라이드
 
+A new page appears only when its pictures are ready to draw.
+
 ### When the operator clicks a 슬라이드
 
 1. The 슬라이드 becomes the live 슬라이드. There is always one live 슬라이드 or
