@@ -18,6 +18,23 @@ describe('NDI frame pacing', () => {
     vi.advanceTimersByTime(1000);
     expect(send).toHaveBeenCalledTimes(30);
   });
+  it.each([
+    [30000, 1001],
+    [30, 1],
+    [60000, 1001],
+    [60, 1],
+  ])('uses the declared %s/%s rate', (n, d) => {
+    vi.useFakeTimers();
+    const send = vi.fn();
+    const pacer = createPacer(send, {n, d});
+    pacer.sent();
+    const delay = Math.ceil((1000 * d) / n);
+    vi.advanceTimersByTime(delay - 1);
+    expect(send).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+    expect(send).toHaveBeenCalledOnce();
+    pacer.stop();
+  });
   it('restarts the interval after a new frame', () => {
     vi.useFakeTimers();
     const send = vi.fn();

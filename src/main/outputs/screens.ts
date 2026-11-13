@@ -17,6 +17,7 @@ export interface OutputScreen {
   readonly target?: 'ndi';
   readonly ndi?: {
     readonly sourceName?: string;
+    readonly fps?: 29.97 | 30 | 59.94 | 60;
     readonly hardwareAcceleration?: boolean;
   };
   /** The monitor of a full screen output, or null while unassigned. */

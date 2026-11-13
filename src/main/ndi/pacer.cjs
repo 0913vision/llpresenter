@@ -1,8 +1,6 @@
-const {FRAME_RATE_N, FRAME_RATE_D} = require('./ndi-library.cjs');
-
 // NOTE(0913vision): Each paint resets the interval; late timers skip missed slots.
-function createPacer(send) {
-  const interval = (1000 * FRAME_RATE_D) / FRAME_RATE_N;
+function createPacer(send, rate = {n: 30, d: 1}) {
+  const interval = (1000 * rate.d) / rate.n;
   let timer = null;
   let due = 0;
   function schedule() {

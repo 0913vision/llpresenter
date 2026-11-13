@@ -2,7 +2,7 @@ const {createPacer} = require('./pacer.cjs');
 const {Buffer} = require('node:buffer');
 const process = require('node:process');
 const {create} = require('./d3d.cjs');
-const {openReal} = require('./ndi-library.cjs');
+const {openReal, frameRate} = require('./ndi-library.cjs');
 const {applyDirty} = require('./dirty.cjs');
 const DXGI_FORMAT_R8G8B8A8_UNORM = 28;
 const DXGI_FORMAT_B8G8R8A8_UNORM = 87;
@@ -10,7 +10,7 @@ const frame = Buffer.alloc(1920 * 1080 * 4);
 let reader;
 let sender;
 let hasFrame = false;
-const pacer = createPacer(() => sender.send(frame));
+const pacer = createPacer(() => sender.send(frame), frameRate());
 try {
   require('koffi');
   process.parentPort.postMessage({type: 'native-loaded'});

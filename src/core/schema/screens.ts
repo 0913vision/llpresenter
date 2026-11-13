@@ -44,6 +44,10 @@ export const NDI_DEFAULT_SOURCE_NAME = 'LOVELIGHT 방송 화면';
 /** Default for an NDI screen without a stored acceleration preference. */
 export const NDI_DEFAULT_HARDWARE_ACCELERATION = true;
 
+/** Supported NDI frame rates and the default for existing screens. */
+export const NDI_FRAME_RATES = [29.97, 30, 59.94, 60] as const;
+export const NDI_DEFAULT_FPS = 30;
+
 /** Maximum NDI source-name length in characters. */
 export const NDI_SOURCE_NAME_MAX = 64;
 
@@ -52,7 +56,7 @@ const ndiSchema = jsonObject({
     v.pipe(v.string(), v.maxLength(NDI_SOURCE_NAME_MAX)),
   ),
   resolution: v.exactOptional(pixelSize),
-  fps: v.exactOptional(positiveNumber),
+  fps: v.exactOptional(v.picklist(NDI_FRAME_RATES)),
   alpha: v.exactOptional(v.boolean()),
   hardwareAcceleration: v.exactOptional(v.boolean()),
   networkInterface: v.exactOptional(v.string()),

@@ -21,7 +21,10 @@ describe('NDI utility sender', () => {
     const mockedRequire = (name: string): unknown => {
       switch (name) {
         case './ndi-library.cjs':
-          return {openReal: () => ({send, sync, close})};
+          return {
+            openReal: () => ({send, sync, close}),
+            frameRate: () => ({n: 30, d: 1}),
+          };
         case './pacer.cjs':
           return {createPacer};
         case './dirty.cjs':

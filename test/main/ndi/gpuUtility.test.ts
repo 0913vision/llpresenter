@@ -40,7 +40,10 @@ describe('GPU NDI utility', () => {
         case './d3d.cjs':
           return {create: () => ({read, close: closeReader})};
         case './ndi-library.cjs':
-          return {openReal: () => ({send, sync, close})};
+          return {
+            openReal: () => ({send, sync, close}),
+            frameRate: () => ({n: 30, d: 1}),
+          };
         case './pacer.cjs':
           return {createPacer};
         case './dirty.cjs':

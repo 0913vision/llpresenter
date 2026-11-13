@@ -341,7 +341,18 @@ describe('the screen properties', () => {
           ?.hardwareAcceleration,
       ).toBe(false),
     );
-    expect(screen.getByText('30fps')).toBeTruthy();
+    const fps = screen.getByRole('button', {name: /\uD504\uB808\uC784 \uC218/});
+    expect(fps.textContent).toContain('30');
+    await user.click(fps);
+    for (const value of ['29.97', '30', '59.94', '60']) {
+      expect(screen.getByRole('menuitemradio', {name: value})).toBeTruthy();
+    }
+    await user.click(screen.getByRole('menuitemradio', {name: '60'}));
+    await waitFor(() =>
+      expect(
+        savedScreens().find(item => item.id === CAPTIONS_ID)?.ndi?.fps,
+      ).toBe(60),
+    );
   });
 
   it('saves a new name when the field is left', async () => {

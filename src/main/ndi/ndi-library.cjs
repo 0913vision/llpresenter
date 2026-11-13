@@ -2,8 +2,18 @@
 const process = require('node:process');
 const path = require('node:path');
 const fs = require('node:fs');
-const FRAME_RATE_N = 30;
-const FRAME_RATE_D = 1;
+function frameRate(env = process.env) {
+  switch (env.LLP_NDI_FPS) {
+    case '29.97':
+      return {n: 30000, d: 1001};
+    case '59.94':
+      return {n: 60000, d: 1001};
+    case '60':
+      return {n: 60, d: 1};
+    default:
+      return {n: 30, d: 1};
+  }
+}
 
 function runtimePath(env = process.env) {
   const dir = env.NDI_RUNTIME_DIR_V6;
@@ -19,10 +29,10 @@ function sourceName(env = process.env) {
 function openReal(env = process.env) {
   const dll = runtimePath(env);
   if (!dll || !fs.existsSync(dll)) throw new Error('NDI_RUNTIME_MISSING');
-  return openBinding(require('koffi'), dll, sourceName(env));
+  return openBinding(require('koffi'), dll, sourceName(env), frameRate(env));
 }
 
-function openBinding(koffi, dll, name = null) {
+function openBinding(koffi, dll, name = null, rate = frameRate()) {
   const lib = koffi.load(dll);
   const createSettings = koffi.struct({
     p_ndi_name: 'const char *',
@@ -74,8 +84,8 @@ function openBinding(koffi, dll, name = null) {
         xres: 1920,
         yres: 1080,
         FourCC: 0x41524742,
-        frame_rate_N: FRAME_RATE_N,
-        frame_rate_D: FRAME_RATE_D,
+        frame_rate_N: rate.n,
+        frame_rate_D: rate.d,
         picture_aspect_ratio: 16 / 9,
         frame_format_type: 1,
         timecode: 9223372036854775807n,
@@ -97,6 +107,5 @@ module.exports = {
   runtimePath,
   sourceName,
   openReal,
-  FRAME_RATE_N,
-  FRAME_RATE_D,
+  frameRate,
 };

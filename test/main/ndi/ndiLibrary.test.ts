@@ -2,6 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {join} from 'node:path';
 import {
   openReal,
+  frameRate,
   runtimePath,
   sourceName,
 } from '../../../src/main/ndi/ndi-library.cjs';
@@ -28,5 +29,20 @@ describe('NDI runtime discovery', () => {
     expect(() =>
       openReal({NDI_RUNTIME_DIR_V6: join('missing', 'runtime')}),
     ).toThrow('NDI_RUNTIME_MISSING');
+  });
+});
+
+describe('NDI frame rates', () => {
+  it.each([
+    [undefined, 30, 1],
+    ['29.97', 30000, 1001],
+    ['30', 30, 1],
+    ['59.94', 60000, 1001],
+    ['60', 60, 1],
+  ] as const)('maps %s to %s/%s', (fps, n, d) => {
+    expect(frameRate(fps === undefined ? {} : {LLP_NDI_FPS: fps})).toEqual({
+      n,
+      d,
+    });
   });
 });

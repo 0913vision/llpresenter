@@ -1,3 +1,4 @@
+import {NDI_DEFAULT_FPS} from '@core/schema/screens';
 import type {JSX} from 'react';
 import {controlConflictReason} from '@core/screens/screenRows';
 import {useOutputStatuses} from '@renderer/features/screens/useOutputStatuses';
@@ -21,7 +22,9 @@ export function StatusBar({
     if (status === undefined || status.placement === 'off') return [];
     const problems: string[] = [];
     if (status.placement === 'ndi') {
-      problems.push(`${screen.statusLabel} NDI 30fps`);
+      problems.push(
+        `${screen.statusLabel} NDI ${screen.ndiFps ?? NDI_DEFAULT_FPS}fps`,
+      );
     }
     if (status.controlConflict) {
       problems.push(

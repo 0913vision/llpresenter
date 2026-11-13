@@ -3,6 +3,8 @@ import {useMemo, useState, type JSX} from 'react';
 import type {MonitorInfo, MonitorList} from '@core/schema/monitors';
 import {
   NDI_DEFAULT_HARDWARE_ACCELERATION,
+  NDI_DEFAULT_FPS,
+  NDI_FRAME_RATES,
   NDI_DEFAULT_SOURCE_NAME,
   NDI_SOURCE_NAME_MAX,
   type Screen,
@@ -134,7 +136,26 @@ function NdiRows({
         )}
       </PropertyRow>
       <PropertyValue label="해상도" value="1920 × 1080" />
-      <PropertyValue label="프레임 수" value="30fps" />
+      <PropertyRow label="프레임 수">
+        {({controlId}) => (
+          <SelectMenu
+            id={controlId}
+            disabled={reason !== undefined}
+            title={reason}
+            block
+            menuLabel="프레임 수"
+            options={NDI_FRAME_RATES.map(fps => ({
+              value: String(fps),
+              label: String(fps),
+            }))}
+            value={String(screen.ndi?.fps ?? NDI_DEFAULT_FPS)}
+            onChange={value => {
+              const fps = NDI_FRAME_RATES.find(rate => String(rate) === value);
+              if (fps !== undefined) change({ndi: {...screen.ndi, fps}});
+            }}
+          />
+        )}
+      </PropertyRow>
       <PropertyRow label="알파 채널">
         {({controlId}) => (
           <Checkbox

@@ -1,6 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {
   NDI_DEFAULT_HARDWARE_ACCELERATION,
+  NDI_DEFAULT_FPS,
   parseScreens,
   serializeScreens,
 } from '@core/schema/screens';
@@ -157,6 +158,25 @@ describe('parseScreens', () => {
       );
     },
   );
+  it.each([29.97, 30, 59.94, 60])('accepts NDI fps %s', fps => {
+    expectRoundTrip(codec, withScreen({...mainScreen(), ndi: {fps}}));
+  });
+  it.each([0, 24, 29.98, 120, '30'])('rejects NDI fps %s', fps => {
+    expectInvalidField(
+      codec,
+      withScreen({...mainScreen(), ndi: {fps}}),
+      'screens.0.ndi.fps',
+    );
+  });
+  it('defaults missing NDI fps to 30', () => {
+    const result = parseScreens(
+      JSON.stringify(withScreen({...mainScreen(), ndi: {}})),
+      'screens.json',
+    );
+    if (!result.ok) throw new Error('screen did not parse');
+    expect(result.value.data.screens[0]?.ndi?.fps ?? NDI_DEFAULT_FPS).toBe(30);
+  });
+
   it('limits the NDI source name to 64 characters', () => {
     expectRoundTrip(
       codec,

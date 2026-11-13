@@ -201,19 +201,19 @@ defaults off for every method and can be enabled in the screen's properties
 ### NDI properties
 
 The 방송 screen offers NDI and 캡처용 창, defaulting to NDI. Its 출력 group
-shows the source name, 1920×1080 resolution, 30 fps, and alpha on. The source
-name can be edited. The 하드웨어 가속 checkbox defaults on and restarts the NDI
-sender when changed. If shared textures fail, the sender falls back to the
-bitmap path with one notice. The network interface and NDI group remain later
-work (09).
+shows the source name, 1920×1080 resolution, a selectable frame rate (29.97, 30,
+59.94, or 60 fps; default 30), and alpha on. The source name can be edited. The
+하드웨어 가속 checkbox defaults on and restarts the NDI sender when changed. If
+shared textures fail, the sender falls back to the bitmap path with one notice.
+The network interface and NDI group remain later work (09).
 
-| Group              | Row                                                                                                                                                                                                             |
-| ------------------ | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 출력               | 방식: NDI, 소스 이름 (source name, "LOVELIGHT 방송 화면"), 해상도, 프레임 수 (frame rate, 30fps), 알파 채널 (alpha channel), 미리보기 배경 (preview background: 초록 green, 검정 black, 체크 무늬 checkerboard) |
-| 네트워크 (network) | 보낼 곳 (network interface, "이더넷 192.168.0.12"), NDI 그룹 (NDI group, "public")                                                                                                                              |
+| Group              | Row                                                                                                                                                                                                                                               |
+| ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 출력               | 방식: NDI, 소스 이름 (source name, "LOVELIGHT 방송 화면"), 해상도, 프레임 수 (frame rate: 29.97, 30, 59.94, or 60; default 30 fps), 알파 채널 (alpha channel), 미리보기 배경 (preview background: 초록 green, 검정 black, 체크 무늬 checkerboard) |
+| 네트워크 (network) | 보낼 곳 (network interface, "이더넷 192.168.0.12"), NDI 그룹 (NDI group, "public")                                                                                                                                                                |
 
-The status bar shows "방송 화면 NDI 30fps" while sending. The display layout
-receiver count remains later work.
+The status bar shows the broadcast screen name, NDI, and the selected frame rate
+while sending. The display layout receiver count remains later work.
 
 ### Preview background of the 방송 화면
 

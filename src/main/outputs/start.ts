@@ -1,3 +1,4 @@
+import {NDI_DEFAULT_FPS} from '@core/schema/screens';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import type {SettingsEdit} from '@core/schema/settingsDocuments';
 import type {EditResult} from '@core/schema/contentEdit';
@@ -174,9 +175,10 @@ export function startOutputs({
     screenId => screens.list().some(({id}) => id === screenId),
     log,
   );
-  frameRates.setTarget(screenId =>
-    screens.list().find(({id}) => id === screenId)?.target === 'ndi' ? 30 : 60,
-  );
+  frameRates.setTarget(screenId => {
+    const screen = screens.list().find(({id}) => id === screenId);
+    return screen?.target === 'ndi' ? (screen.ndi?.fps ?? NDI_DEFAULT_FPS) : 60;
+  });
   const board = new OutputStatusBoard({
     screenStates: () => outputs.screenStates(),
     frameRate: screenId => frameRates.current(screenId),

@@ -1,4 +1,4 @@
-import type {Screen} from '@core/schema/screens';
+import {NDI_DEFAULT_FPS, type Screen} from '@core/schema/screens';
 import type {MonitorList} from '@core/schema/monitors';
 import {monitorAssignment} from '@core/screens/monitorAssignment';
 import {SCREEN_KIND_ORDER} from '@core/screens/screens';
@@ -10,6 +10,7 @@ export interface ScreenSummary {
   readonly icon: string;
   readonly toolbarLabel: string;
   readonly statusLabel: string;
+  readonly ndiFps?: number;
   readonly target: string;
   readonly targetKind: PreviewTarget['kind'];
   /** Draws the empty picture green (the 방송 화면). */
@@ -39,6 +40,7 @@ export function summarizeScreens(
             : 'mplay',
         toolbarLabel: screen.name,
         statusLabel: screen.name,
+        ndiFps: screen.ndi?.fps ?? NDI_DEFAULT_FPS,
         target:
           screen.method === 'fullscreen'
             ? display === undefined

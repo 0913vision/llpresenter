@@ -5,3 +5,4 @@ export function openReal(env?: NodeJS.ProcessEnv): {
   sync(): void;
   close(): void;
 };
+export function frameRate(env?: NodeJS.ProcessEnv): {n: number; d: number};

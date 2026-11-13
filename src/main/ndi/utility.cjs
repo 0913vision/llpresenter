@@ -1,5 +1,5 @@
 const {createPacer} = require('./pacer.cjs');
-const {openReal} = require('./ndi-library.cjs');
+const {openReal, frameRate} = require('./ndi-library.cjs');
 const process = require('node:process');
 const {Buffer} = require('node:buffer');
 const {setInterval, clearInterval} = require('node:timers');
@@ -7,7 +7,7 @@ const {applyDirty} = require('./dirty.cjs');
 const frame = Buffer.alloc(1920 * 1080 * 4);
 let hasFrame = false;
 let heartbeat;
-const pacer = createPacer(() => sender.send(frame));
+const pacer = createPacer(() => sender.send(frame), frameRate());
 let sender;
 try {
   require('koffi');

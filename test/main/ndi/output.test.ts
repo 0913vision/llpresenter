@@ -204,6 +204,29 @@ describe('NDI output handle', () => {
     expect(next.failure).toHaveBeenCalledOnce();
     next.handle.destroy();
   });
+  it.each([false, true])(
+    'sets paint rate and restarts on fps change (GPU: %s)',
+    gpu => {
+      const {handle, win, worker, screen} = setup(gpu);
+      handle.showCapture({x: 0, y: 0, width: 1, height: 1});
+      expect(win.webContents.setFrameRate).toHaveBeenLastCalledWith(30);
+      for (const [fps, paint] of [
+        [29.97, 30],
+        [30, 30],
+        [59.94, 60],
+        [60, 60],
+      ] as const) {
+        const previous = worker();
+        handle.configure({...screen, ndi: {hardwareAcceleration: gpu, fps}});
+        expect(previous.postMessage).toHaveBeenCalledWith({type: 'stop'});
+        expect(win.webContents.setFrameRate).toHaveBeenLastCalledWith(paint);
+      }
+      const count = mocks.fork.mock.calls.length;
+      handle.configure({...screen, ndi: {hardwareAcceleration: gpu, fps: 60}});
+      expect(mocks.fork).toHaveBeenCalledTimes(count);
+      handle.destroy();
+    },
+  );
   it('restarts only when the source name changes and stops on hide and destroy', () => {
     const {handle, worker, screen} = setup();
     handle.showCapture({x: 0, y: 0, width: 1, height: 1});
