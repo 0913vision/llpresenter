@@ -15,7 +15,7 @@ it('resolves every Sunday theme image and the dark standby alternative without a
       ),
     ),
   );
-  expect(pictures).toHaveLength(9);
+  expect(pictures).toHaveLength(7);
   expect(referenced.has(SUNDAY_STANDBY_PICTURE_IDS.serviceTimesBright)).toBe(
     true,
   );
@@ -26,8 +26,6 @@ it('resolves every Sunday theme image and the dark standby alternative without a
   expect(THEME_BACKGROUNDS.map(picture => picture.name)).toEqual([
     '광고 배경',
     '말씀 배경',
-    '설교 제목 배경',
-    '설교 제목 두 줄 배경',
     '예배 안내 배경 (밝게)',
     '예배 안내 배경 (어둡게)',
     '예배 준비 배경',

@@ -1,5 +1,9 @@
 import {describe, expect, it, vi} from 'vitest';
-import {fitFontSize, fitTextInFrame} from '@renderer/rendering/fitText';
+import {
+  fitFontSize,
+  fitTextInFrame,
+  fitsLineLimit,
+} from '@renderer/rendering/fitText';
 
 it('keeps four wrapped rows at theme size until the actual frame overflows', () => {
   const measure = (size: number) => ({width: size * 8, height: size * 4 * 1.4});
@@ -49,4 +53,18 @@ describe('fitFontSize', () => {
     fitFontSize(84, fits);
     expect(fits.mock.calls.length).toBeLessThanOrEqual(9);
   });
+});
+
+it('fits a long wrapped title to two line boxes at the fitted size', () => {
+  const size = fitFontSize(140, candidate => {
+    const lines = candidate > 80 ? 3 : 2;
+    return fitsLineLimit(lines * candidate * 1.19, candidate, {
+      lineHeight: 1.19,
+      limit: 2,
+    });
+  });
+  expect(size).toBe(80);
+  expect(fitsLineLimit(3 * 140 * 1.19, 140, {lineHeight: 1.19, limit: 2})).toBe(
+    false,
+  );
 });

@@ -85,7 +85,26 @@ export function pasteThemeElements(
 ): readonly ThemeElement[] | undefined {
   if (ids.length !== pasted.length) return undefined;
   const next = [...elements];
+  const remap = new Map<ThemeElementId, ThemeElementId>();
   for (const [position, source] of pasted.entries()) {
+    const replacement = canRepeatThemeElement(source.kind)
+      ? undefined
+      : elements.find(element => element.kind === source.kind);
+    const id = replacement?.id ?? ids[position];
+    if (id === undefined) return undefined;
+    remap.set(source.id, id);
+  }
+  for (const [position, original] of pasted.entries()) {
+    const source =
+      original.kind === 'box' && original.follow !== undefined
+        ? {
+            ...original,
+            follow: {
+              ...original.follow,
+              elements: original.follow.elements.map(id => remap.get(id) ?? id),
+            },
+          }
+        : original;
     const id = ids[position];
     if (id === undefined) return undefined;
     const index = canRepeatThemeElement(source.kind)

@@ -8,6 +8,7 @@ import {
   type SyntheticEvent,
 } from 'react';
 import type {ThemeElement, ThemeText} from '@core/schema/themes';
+import type {ElementFrame} from '@core/canvas/frameEdit';
 import type {ThemeBackground} from '@core/schema/themeBackground';
 import {mediaObjectFit} from '@core/media/objectFit';
 import {THEME_LIMITS, type ThemeElementKind} from '@core/themes/elementRules';
@@ -16,7 +17,7 @@ import {continuationText} from '@core/bible/split/continuation';
 import {contSizeOf} from '@core/bible/split/layout';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {fontFamilyFor} from './slideLayer';
-import {fitTextInFrame} from './fitText';
+import {fitTextInFrame, fitsLineLimit} from './fitText';
 import {stageClockText, STAGE_TICK_MS} from './stageClock';
 import {fillTimerTokens, type RenderTimers} from './timerTokens';
 import styles from './ThemePicture.module.css';
@@ -26,6 +27,8 @@ import {bulletTextStyle, textParagraphs} from './textParagraphs';
 import {resolveTextTracking} from '@core/themes/textTracking';
 import {themeTextVAlign} from '@core/themes/textAlignment';
 import {TextFitCache} from './textFitCache';
+import {measureTextInk} from './textInk';
+import {positionFollowingBoxes} from './themeFollow';
 
 const textFits = new TextFitCache();
 
@@ -86,12 +89,15 @@ function ThemeTextBox({
       return;
     }
     const fit = (): void => {
+      target.style.maxHeight = '';
+      target.style.overflow = '';
       const size = textFits.fit(
         JSON.stringify([
           content,
           element.frame.w,
           element.frame.h,
           element.text,
+          element.fitLines,
         ]),
         () =>
           fitTextInFrame(
@@ -102,12 +108,24 @@ function ThemeTextBox({
             },
             candidate => {
               target.style.fontSize = `${candidate}px`;
-              return {width: target.scrollWidth, height: target.scrollHeight};
+              const exceedsLines = !fitsLineLimit(
+                target.offsetHeight,
+                candidate,
+                {lineHeight: element.text.lineHeight, limit: element.fitLines},
+              );
+              return {
+                width: target.scrollWidth,
+                height: exceedsLines ? Infinity : target.scrollHeight,
+              };
             },
           ),
         target.ownerDocument.fonts,
       );
       target.style.fontSize = `${size}px`;
+      if (element.fitLines !== undefined) {
+        target.style.maxHeight = `${size * element.text.lineHeight * element.fitLines}px`;
+        target.style.overflow = 'hidden';
+      }
     };
     fit();
     if (typeof target.ownerDocument.fonts === 'undefined') return;
@@ -138,6 +156,7 @@ function ThemeTextBox({
     >
       <div
         ref={block}
+        data-theme-text=""
         className={styles.text}
         style={{
           ...textEffects(
@@ -146,6 +165,9 @@ function ThemeTextBox({
             measured?.continued ?? false,
           ),
           fontSize: element.text.size,
+          ...(element.stack === undefined
+            ? {}
+            : {wordBreak: 'keep-all', overflowWrap: 'break-word'}),
         }}
       >
         {measured === undefined
@@ -319,6 +341,7 @@ export function ThemePicture({
   media,
   measuredText,
   measuredNextText,
+  onResolvedFrames,
 }: {
   readonly elements: readonly ThemeElement[];
   readonly background: ThemeBackground;
@@ -328,7 +351,101 @@ export function ThemePicture({
   /** Already measured output rows, drawn at the theme size without fitting or wrapping. */
   readonly measuredText?: MeasuredText | undefined;
   readonly measuredNextText?: MeasuredText | undefined;
+  readonly onResolvedFrames?:
+    ((frames: Readonly<Record<string, ElementFrame>>) => void) | undefined;
 }): JSX.Element {
+  const reference = useRef<HTMLDivElement>(null);
+  useLayoutEffect(() => {
+    const root = reference.current;
+    if (
+      root === null ||
+      !elements.some(
+        element =>
+          (hasThemeText(element) && element.stack !== undefined) ||
+          (element.kind === 'box' && element.follow !== undefined),
+      )
+    ) {
+      return;
+    }
+    const position = (): void => {
+      const scale = root.getBoundingClientRect().width / THEME_LIMITS.width;
+      if (!(scale > 0)) return;
+      const resolved: Record<string, ElementFrame> = {};
+      const views = elements.flatMap(element => {
+        const node = Array.from(root.children).find(
+          child =>
+            child instanceof HTMLElement &&
+            child.dataset['themeElement'] === element.id,
+        );
+        if (!(node instanceof HTMLElement)) return [];
+        node.style.top = `${element.frame.y}px`;
+        resolved[element.id] = {
+          ...element.frame,
+          h:
+            element.kind === 'box'
+              ? (element.drawHeight ?? element.frame.h)
+              : element.frame.h,
+        };
+        return [
+          {
+            element,
+            setY(y: number) {
+              node.style.top = `${y}px`;
+              resolved[element.id] = {
+                ...element.frame,
+                y,
+                h:
+                  element.kind === 'box'
+                    ? (element.drawHeight ?? element.frame.h)
+                    : element.frame.h,
+              };
+            },
+            textBounds(ink = false) {
+              const block =
+                node.querySelector<HTMLElement>('[data-theme-text]');
+              if (block === null) return undefined;
+              const bounds = ink
+                ? measureTextInk(block)
+                : block.getBoundingClientRect();
+              if (bounds === undefined) return undefined;
+              const origin = root.getBoundingClientRect().top;
+              return {
+                top: (bounds.top - origin) / scale,
+                bottom: (bounds.bottom - origin) / scale,
+              };
+            },
+          },
+        ];
+      });
+      positionFollowingBoxes(views);
+      onResolvedFrames?.(resolved);
+    };
+    position();
+    let mounted = true;
+    const svg = root.closest('svg');
+    const observer =
+      typeof ResizeObserver === 'undefined' || svg === null
+        ? undefined
+        : new ResizeObserver(() => {
+            if (mounted) position();
+          });
+    if (svg !== null) observer?.observe(svg);
+    if (typeof root.ownerDocument.fonts !== 'undefined') {
+      if (root.ownerDocument.fonts.status === 'loading') {
+        void root.ownerDocument.fonts.ready.then(
+          () => {
+            if (mounted) position();
+          },
+          (error: unknown) =>
+            console.error('Could not load thumbnail fonts', error),
+        );
+      }
+    }
+    return () => {
+      mounted = false;
+      observer?.disconnect();
+    };
+  }, [elements, samples, measuredText, measuredNextText, onResolvedFrames]);
   return (
     <svg
       className={styles.picture}
@@ -338,6 +455,7 @@ export function ThemePicture({
     >
       <foreignObject width={THEME_LIMITS.width} height={THEME_LIMITS.height}>
         <div
+          ref={reference}
           className={styles.reference}
           style={{width: THEME_LIMITS.width, height: THEME_LIMITS.height}}
         >
@@ -349,12 +467,16 @@ export function ThemePicture({
             return (
               <div
                 key={element.id}
+                data-theme-element={element.id}
                 className={styles.element}
                 style={{
                   left: element.frame.x,
                   top: element.frame.y,
                   width: element.frame.w,
-                  height: element.frame.h,
+                  height:
+                    element.kind === 'box'
+                      ? (element.drawHeight ?? element.frame.h)
+                      : element.frame.h,
                 }}
               >
                 {box?.on === true ? (

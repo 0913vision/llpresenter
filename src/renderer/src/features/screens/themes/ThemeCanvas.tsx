@@ -1,7 +1,15 @@
 import {useSelectionDelete} from '@renderer/ui/useSelectionDelete';
 import {selectionLabel} from '@renderer/ui/selectionDrag';
 import type {Notice} from '@renderer/ui/notices';
-import {useEffect, useLayoutEffect, useRef, useState, type JSX} from 'react';
+import {
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type JSX,
+} from 'react';
+import type {ElementFrame} from '@core/canvas/frameEdit';
 import {emptyScreenColor} from '@core/screens/emptyColor';
 import {resolveThemeScreen} from '@core/themes/resolve';
 import {reorderThemeSelection} from '@core/themes/elementEdits';
@@ -177,6 +185,36 @@ function ThemeCanvas({
   readonly onMenu: (id: string | null, anchor: MenuAnchor) => void;
 }): JSX.Element | null {
   const host = useRef<HTMLDivElement>(null);
+  const context = `${model.theme?.id}:${model.screen?.id}`;
+  const [measuredFrames, setMeasuredFrames] = useState<{
+    context: string;
+    frames: Readonly<Record<string, ElementFrame>>;
+  } | null>(null);
+  const receiveFrames = useCallback(
+    (frames: Readonly<Record<string, ElementFrame>>) => {
+      setMeasuredFrames(previous => {
+        const keys = Object.keys(frames);
+        if (
+          previous?.context === context &&
+          keys.length === Object.keys(previous.frames).length &&
+          keys.every(id => {
+            const before = previous.frames[id];
+            const after = frames[id];
+            return (
+              before?.x === after?.x &&
+              before?.y === after?.y &&
+              before?.w === after?.w &&
+              before?.h === after?.h
+            );
+          })
+        ) {
+          return previous;
+        }
+        return {context, frames};
+      });
+    },
+    [context],
+  );
   useEffect(() => {
     const request = model.focusRequest;
     if (request === null) return;
@@ -262,6 +300,18 @@ function ThemeCanvas({
       <CanvasEditor
         key={`${model.theme.id}:${model.screen.id}`}
         value={{...themeCanvasBounds, contained: true, elements}}
+        hitPriority={Object.fromEntries(
+          elements.flatMap(element =>
+            element.kind === 'box' && element.follow !== undefined
+              ? [[element.id, 1]]
+              : [],
+          ),
+        )}
+        resolvedFrames={
+          measuredFrames?.context === context
+            ? measuredFrames.frames
+            : undefined
+        }
         label="테마"
         selected={
           model.selectedIds.length === 1 ? (model.selectedIds[0] ?? null) : null
@@ -281,6 +331,7 @@ function ThemeCanvas({
             background={background}
             samples={themeSamples}
             timers={model.renderTimers}
+            onResolvedFrames={receiveFrames}
           />
         )}
         actions={{

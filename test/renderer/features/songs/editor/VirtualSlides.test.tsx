@@ -59,12 +59,12 @@ describe('virtual editor slides', () => {
     vi.stubGlobal(
       'ResizeObserver',
       class {
-        constructor(callback: () => void) {
-          resize = callback;
+        constructor(private readonly callback: () => void) {}
+        observe(target: Element): void {
+          if (target.hasAttribute('data-slide-columns')) resize = this.callback;
         }
-        observe() {}
-        unobserve() {}
-        disconnect() {}
+        unobserve(): void {}
+        disconnect(): void {}
       },
     );
     try {

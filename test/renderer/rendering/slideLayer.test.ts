@@ -2,7 +2,10 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {SlideLayer} from '@core/live/state';
 import {classes} from '@renderer/rendering/classes';
 import {DEFAULT_TEXT_STYLE, scaleFor} from '@core/themes/textStyle';
-import {SlideLayerView} from '@renderer/rendering/slideLayer';
+import {
+  SlideLayerView,
+  unshiftTextBounds,
+} from '@renderer/rendering/slideLayer';
 import {SLIDE_DISSOLVE_MS} from '@renderer/rendering/slideLayer';
 import bulletStyles from '@renderer/rendering/bulletText.module.css';
 
@@ -606,3 +609,70 @@ it('preserves a fitted text cap through refitting and rescaling', () => {
   expect(view.fittedSize()).toBe(40);
   view.dispose();
 });
+
+it.each([-1080, 1080])(
+  'removes a vertical push of %i px from incoming text bounds',
+  offset => {
+    expect(
+      unshiftTextBounds({top: 410 + offset, bottom: 680 + offset}, offset),
+    ).toEqual({top: 410, bottom: 680});
+  },
+);
+
+it('fits a long automatically wrapped title into at most two visual lines', () => {
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(1720);
+  vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(800);
+  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(1000);
+  const measuredHeight = function (this: HTMLElement): number {
+    const size = Number.parseFloat(this.style.fontSize) || 1;
+    return Math.round((size > 80 ? 3 : 2) * size * 1.19);
+  };
+  vi.spyOn(HTMLElement.prototype, 'offsetHeight', 'get').mockImplementation(
+    measuredHeight,
+  );
+  vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(
+    measuredHeight,
+  );
+  const parent = document.createElement('div');
+  const view = new SlideLayerView(parent, {
+    ...DEFAULT_TEXT_STYLE,
+    size: 140,
+    lineHeight: 1.19,
+  });
+  view.setFitLines(2);
+  view.show({...VERSE, lines: ['A long sermon title '.repeat(30)]}, false);
+  expect(view.fittedSize()).toBe(80);
+  const block = parent.querySelector<HTMLElement>(
+    `.${classes.shown} .${classes.block}`,
+  );
+  expect(Number.parseFloat(block?.style.maxHeight ?? '0')).toBeCloseTo(190.4);
+  expect(block?.style.overflow).toBe('hidden');
+  view.dispose();
+});
+
+it.each([-1080, 1080])(
+  'measures a pushed incoming page without its %i px transform',
+  offset => {
+    const {view, shownPage} = setUp();
+    view.show(VERSE, false);
+    const page = shownPage();
+    const block = page?.querySelector<HTMLElement>(`.${classes.block}`);
+    if (!page || !block) throw Error('Missing incoming text');
+    page.style.transform = `matrix(1, 0, 0, 1, 0, ${offset})`;
+    vi.spyOn(block, 'getBoundingClientRect').mockReturnValue(
+      new DOMRect(0, 410 + offset, 1720, 270),
+    );
+    vi.stubGlobal(
+      'DOMMatrixReadOnly',
+      class {
+        m42 = offset;
+      },
+    );
+    try {
+      expect(view.lineBoxBounds()).toEqual({top: 410, bottom: 680});
+    } finally {
+      view.dispose();
+      vi.unstubAllGlobals();
+    }
+  },
+);

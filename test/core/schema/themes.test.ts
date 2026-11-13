@@ -46,6 +46,52 @@ const file = {
 };
 
 describe('theme element properties', () => {
+  it('validates optional text stacks and box followers', () => {
+    const textElement = {
+      ...element,
+      fitLines: 2,
+      stack: {group: 'title', center: 540, ink: true},
+    };
+    const box = {
+      ...element,
+      kind: 'box',
+      drawHeight: 4,
+      follow: {elements: [uuid(1)], side: 'above', gap: 112.1, snap: true},
+    };
+    expect(v.safeParse(themeElementSchema, textElement).success).toBe(true);
+    expect(v.safeParse(themeElementSchema, box).success).toBe(true);
+    for (const fitLines of [0, -1, 1.5, null]) {
+      expect(
+        v.safeParse(themeElementSchema, {...textElement, fitLines}).success,
+      ).toBe(false);
+    }
+    for (const stack of [
+      {group: '', center: 540},
+      {group: 'title', center: -1},
+      {group: 'title', center: 540, ink: 'yes'},
+      null,
+    ]) {
+      expect(
+        v.safeParse(themeElementSchema, {...textElement, stack}).success,
+      ).toBe(false);
+    }
+    for (const drawHeight of [0, -1, null]) {
+      expect(
+        v.safeParse(themeElementSchema, {...box, drawHeight}).success,
+      ).toBe(false);
+    }
+    for (const follow of [
+      {elements: [], side: 'above', gap: 1},
+      {elements: [uuid(1)], side: 'left', gap: 1},
+      {elements: [uuid(1)], side: 'below', gap: -1},
+      {elements: [uuid(1)], side: 'below', gap: 1, snap: 'yes'},
+      null,
+    ]) {
+      expect(v.safeParse(themeElementSchema, {...box, follow}).success).toBe(
+        false,
+      );
+    }
+  });
   it('accepts only the optional Sunday song title layout selector', () => {
     for (const songTitle of ['sunday', 'sunday-light']) {
       expect(

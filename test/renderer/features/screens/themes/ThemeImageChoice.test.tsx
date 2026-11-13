@@ -53,9 +53,9 @@ it('offers only built-in backgrounds before user images, searches both groups an
   expect(screen.queryByText('기본 배경')).toBeNull();
   expect(screen.getAllByRole('option')).toHaveLength(1);
   await user.clear(search);
-  await user.type(search, '설교 제목 두 줄');
+  await user.type(search, '말씀 배경');
   fireEvent.keyDown(search, {key: 'Enter'});
-  expect(change).toHaveBeenCalledExactlyOnceWith(THEME_BACKGROUNDS[3]?.id);
+  expect(change).toHaveBeenCalledExactlyOnceWith(THEME_BACKGROUNDS[1]?.id);
 });
 
 it('names an embedded decoration without offering it as an image choice', async () => {
@@ -73,5 +73,5 @@ it('names an embedded decoration without offering it as an image choice', async 
   expect(button.textContent).toBe(decoration.name);
   await userEvent.click(button);
   expect(screen.queryByRole('option', {name: decoration.name})).toBeNull();
-  expect(screen.getAllByRole('option')).toHaveLength(7);
+  expect(screen.getAllByRole('option')).toHaveLength(5);
 });

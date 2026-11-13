@@ -1,6 +1,4 @@
 import scripture from './assets/scripture-82.png?asset';
-import sermonTitle from './assets/sermon-title-81.png?asset';
-import sermonTwoLines from './assets/sermon-title-two-lines.png?asset';
 import notice from './assets/notice-122.png?asset';
 import noticeDivider from './assets/notice-divider.png?asset';
 import serviceTimes from './assets/service-times-142.png?asset';
@@ -20,8 +18,6 @@ import {SECTION_RULES_ID} from '@core/themes/sundaySections';
 const files = new Map([
   [SUNDAY_NOTICE_PICTURE_ID, notice],
   [SUNDAY_PICTURE_IDS.scripture, scripture],
-  [SUNDAY_PICTURE_IDS.sermon, sermonTitle],
-  [SUNDAY_PICTURE_IDS.sermonTwoLines, sermonTwoLines],
   [SUNDAY_STANDBY_PICTURE_IDS.serviceTimes, serviceTimes],
   [SUNDAY_STANDBY_PICTURE_IDS.serviceTimesBright, serviceTimesBright],
   [SUNDAY_STANDBY_PICTURE_IDS.preparation, preparation],

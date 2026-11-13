@@ -7,6 +7,7 @@ import type {ThemeScreenLayout} from '@core/schema/themes';
 import {classes} from './classes';
 import type {RenderFrame, RenderLayerOptions} from './layer';
 import {ThemeElementView} from './themeElement';
+import {positionFollowingBoxes} from './themeFollow';
 import {ThemeGaps} from './themeGaps';
 import {setPlaybackProblem} from './playbackProblem';
 import {OUTPUT_TRANSITIONS} from './transitions';
@@ -14,7 +15,7 @@ import {SlideAnimation} from './slideAnimation';
 import {THEME_LIMITS} from '@core/themes/elementRules';
 import {themeBackgroundStyle} from './themeBackground';
 import {songTitleLayout} from '@core/themes/songTitle';
-import {themeElementMedia} from '@core/themes/content';
+import {isThemeTextElement, themeElementMedia} from '@core/themes/content';
 import {BROADCAST_BAND_ID} from '@core/themes/broadcastBand';
 import {isSectionTheme} from '@core/themes/sundaySections';
 import {
@@ -403,6 +404,13 @@ export class ThemeCompositionView {
         .find(view => view.element.kind === 'background')
         ?.remaining();
     for (const view of page.elements) {
+      if (
+        (isThemeTextElement(view.element) &&
+          view.element.stack !== undefined) ||
+        (view.element.kind === 'box' && view.element.follow !== undefined)
+      ) {
+        view.setY(view.element.frame.y);
+      }
       try {
         view.render(
           content.layers,
@@ -415,6 +423,7 @@ export class ThemeCompositionView {
         this.gaps.failed(view.element.id, error);
       }
     }
+    positionFollowingBoxes(page.elements);
     const sectionStage =
       content.frame.screen?.kind === 'stage' &&
       isSectionTheme(content.frame.theme?.themeId);

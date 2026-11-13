@@ -1,5 +1,6 @@
 import type {SlideLayer} from '@core/live/state';
-import {fitTextInFrame} from './fitText';
+import {fitTextInFrame, fitsLineLimit} from './fitText';
+import {measureTextInk} from './textInk';
 import {classes} from './classes';
 import {TEXT_EFFECTS, type TextStyle} from '@core/themes/textStyle';
 import type {SlideTransition} from '@core/schema/slideTransition';
@@ -242,10 +243,15 @@ export function measureSlideText(
   };
 }
 
-/**
- * The lyrics layer. Two pages take turns so a new 장 dissolves over the last
- * one; their rows are reused from 장 to 장.
- */
+/** Removes the active page translation from measured bounds. */
+export function unshiftTextBounds(
+  bounds: {top: number; bottom: number},
+  offset: number,
+): {top: number; bottom: number} {
+  return {top: bounds.top - offset, bottom: bounds.bottom - offset};
+}
+
+/** Two pages take turns rendering and transitioning slide text. */
 export class SlideLayerView {
   private readonly element = document.createElement('div');
   private readonly pages: readonly [Page, Page];
@@ -255,6 +261,7 @@ export class SlideLayerView {
   private maximumSize: number | undefined;
   private targetSize: number | undefined;
   private minimumSize: number | undefined;
+  private fitLines: number | undefined;
   private lineMode: 'normal' | 'song' | 'bar' = 'normal';
   private dissolveMs: number = SLIDE_DISSOLVE_MS;
   private effect: SlideTransition | undefined;
@@ -395,6 +402,33 @@ export class SlideLayerView {
     return Number.parseFloat(this.pages[this.front].block.style.fontSize);
   }
 
+  lineBoxBounds(): {top: number; bottom: number} | undefined {
+    if (this.current === null) return undefined;
+    const rect = this.pages[this.front].block.getBoundingClientRect();
+    return unshiftTextBounds(rect, this.transitionOffset());
+  }
+
+  private transitionOffset(): number {
+    const transform = getComputedStyle(
+      this.pages[this.front].element,
+    ).transform;
+    if (!transform || transform === 'none') return 0;
+    const matrix = new DOMMatrixReadOnly(transform);
+    const rect = this.element.getBoundingClientRect();
+    const scale =
+      this.element.clientWidth > 0 ? rect.width / this.element.clientWidth : 1;
+    return matrix.m42 * scale;
+  }
+
+  inkBounds(): {top: number; bottom: number} | undefined {
+    if (this.current === null) return undefined;
+    const block = this.pages[this.front].block;
+    const bounds = measureTextInk(block);
+    if (bounds === undefined) return undefined;
+    const offset = this.transitionOffset();
+    return unshiftTextBounds(bounds, offset);
+  }
+
   capSize(maximum: number | undefined): void {
     this.maximumSize = maximum === undefined ? undefined : maximum / this.scale;
     if (this.current !== null) this.fit(this.pages[this.front]);
@@ -413,6 +447,10 @@ export class SlideLayerView {
     if (mode === this.lineMode) return;
     this.lineMode = mode;
     if (this.current !== null) this.fit(this.pages[this.front]);
+  }
+
+  setFitLines(limit: number | undefined): void {
+    this.fitLines = limit;
   }
 
   setMinimumSize(minimum: number | undefined): void {
@@ -449,6 +487,8 @@ export class SlideLayerView {
   private fit(page: Page): void {
     this.applyTracking(page);
     const {element, block} = page;
+    block.style.maxHeight = '';
+    block.style.overflow = '';
     const size = (this.targetSize ?? this.style.size) * this.scale;
     const markers = block.querySelectorAll<HTMLElement>(
       '[data-bible-continuation]',
@@ -485,6 +525,7 @@ export class SlideLayerView {
         page.continued,
         page.biblePart,
         this.lineMode,
+        this.fitLines,
         this.targetSize,
         this.style,
         this.scale,
@@ -495,7 +536,14 @@ export class SlideLayerView {
         block.style.whiteSpace = this.lineMode === 'normal' ? '' : 'pre';
         const fitted = fitTextInFrame({size, width, height}, px => {
           setSize(px);
-          return {width: block.scrollWidth, height: block.scrollHeight};
+          const exceedsLines = !fitsLineLimit(block.offsetHeight, px, {
+            lineHeight: this.style.lineHeight,
+            limit: this.fitLines,
+          });
+          return {
+            width: block.scrollWidth,
+            height: exceedsLines ? Infinity : block.scrollHeight,
+          };
         });
         return fitted;
       },
@@ -516,5 +564,9 @@ export class SlideLayerView {
         Math.min(fontSize, (this.maximumSize ?? Infinity) * this.scale),
       ),
     );
+    if (this.fitLines !== undefined) {
+      block.style.maxHeight = `${Number.parseFloat(block.style.fontSize) * this.style.lineHeight * this.fitLines}px`;
+      block.style.overflow = 'hidden';
+    }
   }
 }

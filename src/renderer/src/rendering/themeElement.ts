@@ -81,6 +81,7 @@ const SLIDE_ELEMENT_KINDS: readonly string[] = [
 /** One persistent element with owned text pages, images, and video decoders. */
 export class ThemeElementView {
   private readonly box = document.createElement('div');
+  private y = 0;
   private readonly text: SlideLayerView | null;
   private media: BackgroundLayerView | null = null;
   private readonly image: HTMLImageElement | null;
@@ -115,6 +116,7 @@ export class ThemeElementView {
     this.options = options;
     this.gaps = gaps;
     const {frame} = element;
+    this.y = frame.y;
     this.previewMaxLines =
       options.biblePreview?.elementId === element.id
         ? options.biblePreview.maxLines
@@ -124,7 +126,7 @@ export class ThemeElementView {
       left: `${frame.x}px`,
       top: `${frame.y}px`,
       width: `${frame.w}px`,
-      height: `${frame.h}px`,
+      height: `${element.kind === 'box' ? (element.drawHeight ?? frame.h) : frame.h}px`,
       overflow: 'hidden',
       isolation: 'isolate',
     });
@@ -208,6 +210,7 @@ export class ThemeElementView {
         block.style.textShadow = shadow;
       }
     }
+    if (isThemeTextElement(element)) this.text?.setFitLines(element.fitLines);
     if (element.minimumTextSize !== undefined) {
       this.text?.setMinimumSize(element.minimumTextSize);
     }
@@ -653,6 +656,24 @@ export class ThemeElementView {
     this.shownSlideKey = slideKey;
     this.shownContinued = continued;
     this.shownBiblePart = biblePart;
+  }
+
+  textBounds(ink = false): {top: number; bottom: number} | undefined {
+    const bounds = ink ? this.text?.inkBounds() : this.text?.lineBoxBounds();
+    const box = this.box.getBoundingClientRect();
+    const scale = box.width / this.element.frame.w;
+    if (bounds === undefined || scale <= 0) return undefined;
+    return {
+      top: this.y + (bounds.top - box.top) / scale,
+      bottom: this.y + (bounds.bottom - box.top) / scale,
+    };
+  }
+
+  setY(y: number): void {
+    this.y = y;
+    const gridY = Math.round(y * 64) / 64;
+    this.box.style.top = `${gridY}px`;
+    this.box.style.transform = `translateY(${y - gridY}px)`;
   }
 
   fittedTextSize(): number | undefined {

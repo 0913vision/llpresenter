@@ -162,3 +162,29 @@ it.each([
     ).toEqual(expected.map(elementId));
   },
 );
+
+it('remaps follower targets when pasting a sermon layout, including replaced unique elements', () => {
+  const theme = createDefaultThemes().themes.find(t =>
+    t.id.endsWith('000000000106'),
+  );
+  const layout =
+    theme?.screens[createScreenId('00000000-0000-4000-8000-000000000001')];
+  if (!layout) throw Error('Missing layout');
+  const copied = parseThemeClipboard(serializeThemeClipboard(layout.elements));
+  if (!copied) throw Error('Missing clipboard');
+  const existing = element('currentText', 90);
+  const pasted = pasteThemeElements(
+    [existing],
+    copied,
+    copied.map((_, i) => elementId(100 + i)),
+  );
+  if (!pasted) throw Error('Missing pasted elements');
+  const reference = pasted.find(e => e.kind === 'itemName');
+  const title = pasted.find(e => e.kind === 'currentText');
+  const bars = pasted.filter(e => e.kind === 'box');
+  expect(title?.id).toBe(existing.id);
+  expect(bars).toHaveLength(2);
+  for (const bar of bars) {
+    expect(bar.follow?.elements).toEqual([reference?.id, title?.id]);
+  }
+});

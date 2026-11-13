@@ -364,9 +364,9 @@ For scripture slides, a new library's 말씀 theme uses a replaceable teal pictu
 with editable NanumSquare Bold verse text and the whole passage range on the
 audience screen (12). To author a sermon title with the same look, add a blank
 슬라이드 item, name it with the passage range, enter the title as the slide
-text, and choose 설교 제목 or 설교 제목 (두 줄). The second theme accepts a
-title with a line break. These themes use the existing item fields; they do not
-change the Bible passage or the stored verses.
+text, and choose the sermon title theme. The title wraps automatically to two
+lines. This theme uses the existing item fields; it does not change the Bible
+passage or the stored verses.
 
 To show the preparation screen, add a 빈 슬라이드 item with one empty slide and
 choose 예배 준비. Its two audience messages are editable 글 elements in the

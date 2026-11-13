@@ -72,6 +72,8 @@ export interface CanvasEditorProps<T extends CanvasElement> {
   readonly snapGrid: boolean;
   readonly setSnapGrid: (value: boolean) => void;
   readonly toolbar?: ReactNode;
+  readonly resolvedFrames?: Readonly<Record<string, ElementFrame>> | undefined;
+  readonly hitPriority?: Readonly<Record<string, number>> | undefined;
   readonly getElementLabel: (element: T) => string;
   readonly renderContent: (elements: readonly T[]) => ReactNode;
 }
@@ -120,6 +122,8 @@ export function CanvasEditor<T extends CanvasElement>({
   snapGrid,
   setSnapGrid,
   toolbar,
+  resolvedFrames,
+  hitPriority,
   getElementLabel,
   renderContent,
 }: CanvasEditorProps<T>): JSX.Element {
@@ -510,44 +514,48 @@ export function CanvasEditor<T extends CanvasElement>({
                 )}
               </div>
             )}
-            {picture.elements.map(element => (
-              <div
-                key={element.id}
-                className={`${styles.element} ${selected === element.id || selectedIds?.includes(element.id) ? styles.selected : ''}`}
-                style={{
-                  left: `${(100 * element.frame.x) / layout.width}%`,
-                  top: `${(100 * element.frame.y) / layout.height}%`,
-                  width: `${(100 * element.frame.w) / layout.width}%`,
-                  height: `${(100 * element.frame.h) / layout.height}%`,
-                }}
-                data-canvas-element={element.id}
-              >
-                <button
-                  className={styles.move}
-                  aria-label={getElementLabel(element)}
-                  aria-pressed={
-                    selected === element.id ||
-                    selectedIds?.includes(element.id) === true
-                  }
-                  onClick={() => {
-                    if (!draggedClick.current) select(element.id);
-                    draggedClick.current = false;
+            {picture.elements.map(element => {
+              const frame = resolvedFrames?.[element.id] ?? element.frame;
+              return (
+                <div
+                  key={element.id}
+                  className={`${styles.element} ${selected === element.id || selectedIds?.includes(element.id) ? styles.selected : ''}`}
+                  style={{
+                    left: `${(100 * frame.x) / layout.width}%`,
+                    top: `${(100 * frame.y) / layout.height}%`,
+                    width: `${(100 * frame.w) / layout.width}%`,
+                    height: `${(100 * frame.h) / layout.height}%`,
+                    zIndex: hitPriority?.[element.id],
                   }}
-                  onPointerDown={event => start(event, element, 'move')}
-                />
-                {selected !== element.id || readOnly
-                  ? null
-                  : resizeHandles.map(handle => (
-                      <button
-                        key={handle}
-                        className={styles.handle}
-                        data-handle={handle}
-                        aria-label={`${element.name} ${handleNames[handle]} 크기 조절`}
-                        onPointerDown={event => start(event, element, handle)}
-                      />
-                    ))}
-              </div>
-            ))}
+                  data-canvas-element={element.id}
+                >
+                  <button
+                    className={styles.move}
+                    aria-label={getElementLabel(element)}
+                    aria-pressed={
+                      selected === element.id ||
+                      selectedIds?.includes(element.id) === true
+                    }
+                    onClick={() => {
+                      if (!draggedClick.current) select(element.id);
+                      draggedClick.current = false;
+                    }}
+                    onPointerDown={event => start(event, element, 'move')}
+                  />
+                  {selected !== element.id || readOnly
+                    ? null
+                    : resizeHandles.map(handle => (
+                        <button
+                          key={handle}
+                          className={styles.handle}
+                          data-handle={handle}
+                          aria-label={`${element.name} ${handleNames[handle]} 크기 조절`}
+                          onPointerDown={event => start(event, element, handle)}
+                        />
+                      ))}
+                </div>
+              );
+            })}
           </div>
         </div>
       </div>

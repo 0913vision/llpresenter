@@ -3,8 +3,6 @@ import type {ThemeScreenLayout, ThemeText} from '../schema/themes';
 
 export const SUNDAY_PICTURE_IDS = {
   scripture: createMediaId('00000000-0000-4000-8000-000000000381'),
-  sermon: createMediaId('00000000-0000-4000-8000-000000000382'),
-  sermonTwoLines: createMediaId('00000000-0000-4000-8000-000000000383'),
 } as const;
 
 const id = (number: number) =>
@@ -74,24 +72,34 @@ export function sundayScriptureLayout(): ThemeScreenLayout {
   };
 }
 
-export function sermonTitleLayout(twoLines = false): ThemeScreenLayout {
+export function sermonTitleLayout(): ThemeScreenLayout {
+  const stack = {group: 'sermon-title', center: 540, ink: true};
+  const elements = [id(8), id(3)];
+  const gap = 98.55;
   return {
     mode: {kind: 'own'},
     elements: [
       {
         id: id(1),
         kind: 'image',
-        mediaId: twoLines
-          ? SUNDAY_PICTURE_IDS.sermonTwoLines
-          : SUNDAY_PICTURE_IDS.sermon,
+        mediaId: SUNDAY_PICTURE_IDS.scripture,
         frame: {x: 0, y: 0, w: 1920, h: 1080},
         fit: 'stretch',
         radius: 0,
       },
+      ...(['above', 'below'] as const).map((side, index) => ({
+        id: id(10 + index),
+        kind: 'box' as const,
+        drawHeight: 4,
+        frame: {x: 542, y: index === 0 ? 289 : 787, w: 837, h: 8},
+        box: {on: true, fill: '#737D87', opacity: 100, radius: 0},
+        follow: {elements, side, gap, snap: true},
+      })),
       {
         id: id(8),
         kind: 'itemName',
-        frame: {x: 260, y: twoLines ? 264 : 356, w: 1400, h: 150},
+        stack,
+        frame: {x: 260, y: 356, w: 1400, h: 150},
         text: {
           ...text,
           font: 'KoPubWorldDotum',
@@ -106,12 +114,9 @@ export function sermonTitleLayout(twoLines = false): ThemeScreenLayout {
       {
         id: id(3),
         kind: 'currentText',
-        frame: {
-          x: 100,
-          y: twoLines ? 390 : 483,
-          w: 1720,
-          h: twoLines ? 390 : 220,
-        },
+        fitLines: 2,
+        stack,
+        frame: {x: 100, y: 509.7, w: 1720, h: 390},
         text: {
           ...text,
           font: 'KoPubWorldDotum',
@@ -119,7 +124,7 @@ export function sermonTitleLayout(twoLines = false): ThemeScreenLayout {
           tracking: -6,
           lineHeight: 1.19,
           align: 'center',
-          vAlign: 'middle',
+          vAlign: 'top',
           maxLines: 2,
         },
       },

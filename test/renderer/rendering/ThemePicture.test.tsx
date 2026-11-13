@@ -8,12 +8,15 @@ import {
 } from '@core/schema/ids';
 import {newThemeElement} from '@core/themes/newElement';
 import type {ThemeElement} from '@core/schema/themes';
+import type {ElementFrame} from '@core/canvas/frameEdit';
 import {SlideLayerView} from '@renderer/rendering/slideLayer';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {classes} from '@renderer/rendering/classes';
 import {stageClockText} from '@renderer/rendering/stageClock';
 import {fillTimerTokens} from '@renderer/rendering/timerTokens';
 import {ThemePicture} from '@renderer/rendering/ThemePicture';
+import {sermonTitleLayout} from '@core/themes/sundayScripture';
+import * as ink from '@renderer/rendering/textInk';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import bulletStyles from '@renderer/rendering/bulletText.module.css';
 import {ThemeCompositionView} from '@renderer/rendering/themeComposition';
@@ -31,6 +34,7 @@ vi.mock('@renderer/rendering/timerTokens', () => ({
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  vi.unstubAllGlobals();
   vi.useRealTimers();
   vi.clearAllMocks();
 });
@@ -435,4 +439,127 @@ it('binds clock formatting and timer identity through the shared renderers and r
   expect(stageClockText).toHaveBeenLastCalledWith(43, '12h', undefined);
   view.unmount();
   expect(vi.getTimerCount()).toBe(0);
+});
+
+it('positions two-line sermon preview bars using the same followers as output', () => {
+  const layout = sermonTitleLayout();
+  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
+    function (this: HTMLElement) {
+      if (this.hasAttribute('data-theme-text')) {
+        const node = this.closest<HTMLElement>('[data-theme-element]');
+        const y = Number.parseFloat(node?.style.top ?? '0');
+        const title =
+          node?.dataset['themeElement']?.endsWith('000000000003') === true;
+        return new DOMRect(
+          0,
+          y + (title ? 0 : 23.4),
+          1720,
+          title ? 333.2 : 103.2,
+        );
+      }
+      return new DOMRect(0, 0, 1920, 1080);
+    },
+  );
+  vi.spyOn(ink, 'measureTextInk').mockImplementation(block => {
+    const rect = block.getBoundingClientRect();
+    return {top: rect.top + 8, bottom: rect.bottom - 20};
+  });
+  const picture = render(
+    <ThemePicture
+      elements={layout.elements}
+      background="#000000"
+      samples={{itemName: 'Reference', currentText: 'Two lines'}}
+    />,
+  );
+  const bars = layout.elements.filter(element => element.kind === 'box');
+  const nodes = bars.map(bar =>
+    picture.container.querySelector<HTMLElement>(
+      `[data-theme-element="${bar.id}"]`,
+    ),
+  );
+  expect(nodes.map(node => node?.style.height)).toEqual(['4px', '4px']);
+  expect(nodes.map(node => node?.style.top)).toEqual(['206px', '870px']);
+});
+
+it('repositions a hidden preview when its canvas becomes visible', () => {
+  let observed = false;
+  let notify = (): void => {};
+  class Observer implements ResizeObserver {
+    constructor(private readonly callback: ResizeObserverCallback) {
+      observed = true;
+      notify = () => this.callback([], this);
+    }
+    observe(): void {}
+    unobserve(): void {}
+    disconnect(): void {}
+  }
+  vi.stubGlobal('ResizeObserver', Observer);
+  let width = 0;
+  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
+    function (this: HTMLElement) {
+      if (this.hasAttribute('data-theme-text')) {
+        const node = this.closest<HTMLElement>('[data-theme-element]');
+        const y = Number.parseFloat(node?.style.top ?? '0');
+        const title =
+          node?.dataset['themeElement']?.endsWith('000000000003') === true;
+        return new DOMRect(
+          0,
+          y + (title ? 0 : 23.4),
+          1720,
+          title ? 333.2 : 103.2,
+        );
+      }
+      return new DOMRect(0, 0, width, 1080);
+    },
+  );
+  vi.spyOn(ink, 'measureTextInk').mockImplementation(block => {
+    const rect = block.getBoundingClientRect();
+    return {top: rect.top + 8, bottom: rect.bottom - 20};
+  });
+  const layout = sermonTitleLayout();
+  const frames =
+    vi.fn<(frames: Readonly<Record<string, ElementFrame>>) => void>();
+  const view = render(
+    <ThemePicture
+      elements={layout.elements}
+      background="#000000"
+      samples={{itemName: 'Reference', currentText: 'Two lines'}}
+      onResolvedFrames={frames}
+    />,
+  );
+  expect(observed).toBe(true);
+  expect(frames).not.toHaveBeenCalled();
+  width = 1920;
+  act(() => notify());
+  const bars = layout.elements.filter(element => element.kind === 'box');
+  expect(
+    bars.map(
+      bar =>
+        view.container.querySelector<HTMLElement>(
+          `[data-theme-element="${bar.id}"]`,
+        )?.style.top,
+    ),
+  ).toEqual(['206px', '870px']);
+  expect(frames.mock.lastCall?.[0][bars[0]?.id ?? '']).toMatchObject({
+    y: 206,
+    h: 4,
+  });
+});
+
+it('does not observe size for a preview without dynamic positioning', () => {
+  const observe = vi.fn();
+  class Observer implements ResizeObserver {
+    observe = observe;
+    unobserve(): void {}
+    disconnect(): void {}
+  }
+  vi.stubGlobal('ResizeObserver', Observer);
+  render(
+    <ThemePicture
+      elements={[element('currentText', 998)]}
+      background="#000000"
+      samples={{currentText: 'Ordinary slide'}}
+    />,
+  );
+  expect(observe).not.toHaveBeenCalled();
 });

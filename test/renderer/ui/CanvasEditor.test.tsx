@@ -33,12 +33,16 @@ function setup(
     selectedIds = [],
     minimumSize = 20,
     contained = false,
+    resolvedFrames,
+    hitPriority,
   }: {
     fieldFrames?: readonly ElementFrame[];
     footer?: 'frames' | 'zoom';
     selectedIds?: readonly string[];
     minimumSize?: number;
     contained?: boolean;
+    resolvedFrames?: Readonly<Record<string, ElementFrame>>;
+    hitPriority?: Readonly<Record<string, number>>;
   } = {},
 ) {
   let current: CanvasDocument<CanvasElement> = {
@@ -108,6 +112,8 @@ function setup(
     return (
       <CanvasEditor
         value={value}
+        resolvedFrames={resolvedFrames}
+        hitPriority={hitPriority}
         label="테스트"
         selected={selected}
         selectedIds={selectedIds}
@@ -529,4 +535,23 @@ it('cancels a draft on Escape and keeps read-only elements selectable', async ()
     key: 'ArrowUp',
   });
   expect(readOnly.edit).not.toHaveBeenCalled();
+});
+
+it('selects a dynamic element at the drawn position and outlines its resolved frame', () => {
+  const frame = {x: 542, y: 206, w: 837, h: 4};
+  const {view} = setup('editable', Promise.resolve(), {
+    resolvedFrames: {first: frame},
+    hitPriority: {first: 1},
+  });
+  const outline = view.container.querySelector<HTMLElement>(
+    '[data-canvas-element="first"]',
+  );
+  if (!outline) throw Error('Missing outline');
+  expect(outline.style.top).toBe(`${(100 * 206) / 1080}%`);
+  expect(outline.style.height).toBe(`${(100 * 4) / 1080}%`);
+  expect(outline.style.zIndex).toBe('1');
+  const button = screen.getByRole('button', {name: '요소'});
+  fireEvent.click(button);
+  expect(button.getAttribute('aria-pressed')).toBe('true');
+  expect(outline.querySelectorAll('[data-handle]')).toHaveLength(8);
 });

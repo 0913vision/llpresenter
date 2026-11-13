@@ -123,6 +123,14 @@ function textElement<TKind extends string, TEntries extends v.ObjectEntries>(
     ...base,
     kind: v.literal(kind),
     text: themeTextSchema,
+    fitLines: v.exactOptional(maxLines),
+    stack: v.exactOptional(
+      jsonObject({
+        group: nonBlankText,
+        center: range(0, THEME_LIMITS.height),
+        ink: v.exactOptional(v.boolean()),
+      }),
+    ),
     box: textBox,
     ...extra,
   });
@@ -176,6 +184,15 @@ export const themeElementSchema = v.pipe(
     v.looseObject({
       ...base,
       kind: v.literal('box'),
+      drawHeight: v.exactOptional(range(1, THEME_LIMITS.height)),
+      follow: v.exactOptional(
+        jsonObject({
+          elements: v.pipe(v.array(themeElementIdSchema), v.minLength(1)),
+          side: v.picklist(['above', 'below']),
+          gap: nonNegativeNumber,
+          snap: v.exactOptional(v.boolean()),
+        }),
+      ),
       box: jsonObject({...boxEntries, radius}),
     }),
   ]),

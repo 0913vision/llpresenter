@@ -44,3 +44,15 @@ export function fitFontSize(
   }
   return fitting;
 }
+
+/** Whether the laid-out line boxes fit a configured line count. */
+export function fitsLineLimit(
+  height: number,
+  size: number,
+  options: {lineHeight: number; limit: number | undefined},
+): boolean {
+  return (
+    options.limit === undefined ||
+    height <= size * options.lineHeight * options.limit + 1
+  );
+}

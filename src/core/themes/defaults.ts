@@ -419,18 +419,18 @@ export function createDefaultThemes(
       builtInTheme('ad', screens),
       lightSongTheme(builtInTheme('song', screens), screens),
       creedPrayerTheme(builtInTheme('bible', screens), screens),
-      ...[false, true].map((twoLines, index): Theme => ({
-        id: createThemeId(uuid(106 + index)),
-        name: twoLines ? '설교 제목 (두 줄)' : '설교 제목',
+      {
+        id: createThemeId(uuid(106)),
+        name: '설교 제목',
         screens: Object.fromEntries(
           screens.map(screen => [
             screen.id,
             screen.kind === 'audience'
-              ? sermonTitleLayout(twoLines)
+              ? sermonTitleLayout()
               : layoutFor(screen, 'bible'),
           ]),
         ),
-      })),
+      },
       ...SECTION_THEMES.map(({id, color}) => ({
         id,
         name: `구역 이름 ${color}`,

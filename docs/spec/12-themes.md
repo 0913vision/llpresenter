@@ -573,14 +573,13 @@ as every settings file does (02).
   layouts. Adding a prayer installs this theme if an older catalog lacks it,
   without replacing saved themes. Its background ID always resolves to the
   bundled 말씀 asset.
-- 설교 제목 and 설교 제목 (두 줄) are additional themes, not kind defaults. In a
-  blank 슬라이드 item, set the item name to the passage range and the slide text
-  to the sermon title, with a line break for the two-line layout. Choose the
-  corresponding theme. The audience picture contains the rules; 항목 이름 uses
-  white KoPubWorldDotum Medium 86 px with 6 px tracking and 현재 가사 uses Bold
-  140 px with -6 px tracking, centered between the rules. Other screens retain
-  their 말씀 layout. The picture and both text elements remain editable in the
-  normal theme editor.
+- The sermon title theme is an additional theme, not a kind default. Set the
+  blank slide item name to the passage range and the slide text to the title.
+  Audience bars follow the visible letter ink with equal gaps above and below;
+  titles wrap automatically to at most two lines, retaining 162 px between the
+  reference and title first-line centers. The reference uses KoPubWorldDotum
+  Medium 86 px and the title Bold 140 px. Other screens retain their Bible
+  layout.
 - `defaults.blank` selects 말씀 and `defaults.ad` selects 광고 in a new
   `themes.json`. Both can be changed like the other kind defaults.
 - On 청중 화면 the 광고 theme uses a shipped 1920 x 1080 blue-purple picture and
@@ -668,12 +667,11 @@ for renaming or deletion. No old-data migration is provided before the first
 release.
 
 The theme editor's image picker lists a 기본 배경 group before user 미디어: 광고
-배경, 말씀 배경, 설교 제목 배경, 설교 제목 두 줄 배경, 예배 안내 배경 (밝게),
-예배 안내 배경 (어둡게), and 예배 준비 배경. Search and keyboard selection reach
-both groups. Adding or replacing an image uses the selected asset ID without
-importing it. 광고 사선 and 구역 이름 선 remain embedded decorations in their
-themes and never appear as choices. Their existing elements still show the
-correct picture name.
+배경, 말씀 배경, 예배 안내 배경 (밝게), 예배 안내 배경 (어둡게), and 예배 준비
+배경. Search and keyboard selection reach both groups. Adding or replacing an
+image uses the selected asset ID without importing it. 광고 사선 and 구역 이름
+선 remain embedded decorations in their themes and never appear as choices.
+Their existing elements still show the correct picture name.
 
 ## Where the rest of the spec uses 테마
 

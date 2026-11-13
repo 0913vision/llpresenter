@@ -189,7 +189,6 @@ it('makes a valid file with built-in themes and a standby clock and timer on sta
     '찬양 (밝은 배경)',
     '사도신경, 주기도문',
     '설교 제목',
-    '설교 제목 (두 줄)',
     '구역 이름 청록',
     '구역 이름 적갈',
     '구역 이름 초록',
@@ -289,42 +288,31 @@ it('omits liturgy names and keeps the four-line verse box and other scripture sc
   }
 });
 
-it('offers one- and two-line sermon titles using item names and ordinary slide text', () => {
+it('offers one sermon title theme with automatic bars', () => {
   const file = createDefaultThemes();
-  const audience = createScreenId(STARTER_SCREEN_IDS.main);
-  for (const [name, mediaId, height] of [
-    ['설교 제목', SUNDAY_PICTURE_IDS.sermon, 220],
-    ['설교 제목 (두 줄)', SUNDAY_PICTURE_IDS.sermonTwoLines, 390],
-  ] as const) {
-    const theme = file.themes.find(theme => theme.name === name);
-    expect(theme?.screens[audience]?.elements).toMatchObject([
-      {kind: 'image', mediaId},
-      {
-        kind: 'itemName',
-        text: {font: 'KoPubWorldDotum', weight: 500, size: 86, tracking: 6},
-      },
-      {
-        kind: 'currentText',
-        frame: {h: height},
-        text: {
-          font: 'KoPubWorldDotum',
-          weight: 700,
-          size: 140,
-          tracking: -6,
-          align: 'center',
-          vAlign: 'middle',
-        },
-      },
-    ]);
-    expect(
-      theme?.screens[createScreenId(STARTER_SCREEN_IDS.broadcast)],
-    ).toEqual(
-      builtInTheme('blank').screens[
-        createScreenId(STARTER_SCREEN_IDS.broadcast)
-      ],
-    );
-    expect(theme?.screens[createScreenId(STARTER_SCREEN_IDS.stage)]).toEqual(
-      builtInTheme('blank').screens[createScreenId(STARTER_SCREEN_IDS.stage)],
+  const theme = file.themes.find(theme => theme.name === '설교 제목');
+  expect(file.themes.some(theme => theme.name === '설교 제목 (두 줄)')).toBe(
+    false,
+  );
+  expect(
+    theme?.screens[createScreenId(STARTER_SCREEN_IDS.main)]?.elements,
+  ).toMatchObject([
+    {kind: 'image', mediaId: SUNDAY_PICTURE_IDS.scripture},
+    {kind: 'box', follow: {side: 'above', gap: 98.55}},
+    {kind: 'box', follow: {side: 'below', gap: 98.55}},
+    {kind: 'itemName', stack: {group: 'sermon-title', center: 540}},
+    {
+      kind: 'currentText',
+      stack: {group: 'sermon-title', center: 540},
+      text: {size: 140, maxLines: 2},
+    },
+  ]);
+  for (const screen of [
+    STARTER_SCREEN_IDS.broadcast,
+    STARTER_SCREEN_IDS.stage,
+  ]) {
+    expect(theme?.screens[createScreenId(screen)]).toEqual(
+      builtInTheme('blank').screens[createScreenId(screen)],
     );
   }
 });
