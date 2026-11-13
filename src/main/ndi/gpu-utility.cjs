@@ -1,3 +1,4 @@
+const {createPacer} = require('./pacer.cjs');
 const {Buffer} = require('node:buffer');
 const process = require('node:process');
 const {create} = require('./d3d.cjs');
@@ -9,6 +10,7 @@ const frame = Buffer.alloc(1920 * 1080 * 4);
 let reader;
 let sender;
 let hasFrame = false;
+const pacer = createPacer(() => sender.send(frame));
 try {
   require('koffi');
   process.parentPort.postMessage({type: 'native-loaded'});
@@ -24,13 +26,10 @@ try {
 process.parentPort.on('message', event => {
   const msg = event.data;
   if (msg.type === 'stop') {
+    pacer.stop();
     sender?.close();
     reader?.close();
     process.exit(0);
-  }
-  if (msg.type === 'repeat' && sender && hasFrame) {
-    sender.send(frame);
-    return;
   }
   if (msg.type !== 'frame' || !reader || !sender) return;
   try {
@@ -54,6 +53,7 @@ process.parentPort.on('message', event => {
     hasFrame = true;
     process.parentPort.postMessage({type: 'copied'});
     sender.send(frame);
+    pacer.sent();
   } catch (error) {
     process.parentPort.postMessage({
       type: 'error',

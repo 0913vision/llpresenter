@@ -141,7 +141,7 @@ describe('NDI output handle', () => {
     expect(failure).toHaveBeenCalledExactlyOnceWith(screen.id, false);
     handle.destroy();
   });
-  it('keeps alive only after a frame has been sent and one second has elapsed', () => {
+  it('does not send keepalive messages after a frame', () => {
     const {handle, win, worker, image} = setup();
     handle.showCapture({x: 0, y: 0, width: 1, height: 1});
     worker().emit('message', {type: 'ready'});
@@ -157,8 +157,52 @@ describe('NDI output handle', () => {
     vi.advanceTimersByTime(999);
     expect(worker().postMessage).toHaveBeenCalledTimes(1);
     vi.advanceTimersByTime(1);
-    expect(worker().postMessage).toHaveBeenLastCalledWith({type: 'repeat'});
+    expect(worker().postMessage).toHaveBeenCalledTimes(1);
     handle.destroy();
+  });
+  it('detects a stalled idle sender and keeps the frame watchdog independent', () => {
+    const {handle, win, worker, failure, screen, image} = setup();
+    handle.showCapture({x: 0, y: 0, width: 1, height: 1});
+    const process = worker();
+    process.emit('message', {type: 'ready'});
+    win.webContents.emit(
+      'paint',
+      {},
+      {x: 0, y: 0, width: 1, height: 1},
+      image(),
+    );
+    process.emit('message', {type: 'sent'});
+    vi.advanceTimersByTime(4000);
+    process.emit('message', {type: 'heartbeat'});
+    vi.advanceTimersByTime(4000);
+    expect(failure).not.toHaveBeenCalled();
+    expect(process.postMessage).toHaveBeenCalledTimes(1);
+    vi.advanceTimersByTime(1000);
+    expect(failure).toHaveBeenCalledExactlyOnceWith(screen.id, false);
+    handle.destroy();
+
+    const next = setup();
+    next.handle.showCapture({x: 0, y: 0, width: 1, height: 1});
+    const worker2 = next.worker();
+    worker2.emit('message', {type: 'ready'});
+    next.win.webContents.emit(
+      'paint',
+      {},
+      {x: 0, y: 0, width: 1, height: 1},
+      next.image(),
+    );
+    worker2.emit('message', {type: 'sent'});
+    next.win.webContents.emit(
+      'paint',
+      {},
+      {x: 0, y: 0, width: 1, height: 1},
+      next.image(),
+    );
+    vi.advanceTimersByTime(4000);
+    worker2.emit('message', {type: 'heartbeat'});
+    vi.advanceTimersByTime(1000);
+    expect(next.failure).toHaveBeenCalledOnce();
+    next.handle.destroy();
   });
   it('restarts only when the source name changes and stops on hide and destroy', () => {
     const {handle, worker, screen} = setup();

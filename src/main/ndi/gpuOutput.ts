@@ -24,7 +24,6 @@ import {
 const GPU_TIMEOUT_MS = 5000;
 const GPU_STOP_TIMEOUT_MS = 2000;
 const GPU_MISSING_TIMEOUT_MS = 2000;
-const GPU_KEEPALIVE_MS = 1000;
 
 type GpuTextureFrame = TextureFrame & {
   readonly texture: OffscreenSharedTexture;
@@ -148,23 +147,16 @@ function gpuHandle(
   let ready = false;
   let seenTexture = false;
   let closed = false;
-  let last = 0;
-  let frames = 0;
-  let keepalive: ReturnType<typeof setInterval> | null = null;
   let timeout: ReturnType<typeof setTimeout> | null = null;
   let missingSince: number | null = null;
   const clear = (destroyWindow = false): void => {
-    if (keepalive !== null) clearInterval(keepalive);
     if (timeout !== null) clearTimeout(timeout);
     missingSince = null;
-    keepalive = null;
     timeout = null;
     const old = child;
     child = null;
     ready = false;
     seenTexture = false;
-    frames = 0;
-    last = 0;
     const outstanding = queue.clear();
     const finish = (): void => {
       outstanding?.texture.release();
@@ -302,10 +294,7 @@ function gpuHandle(
       if (m.type === 'copied') {
         if (timeout !== null) clearTimeout(timeout);
         timeout = null;
-        if (queue.acknowledge()) {
-          last = Date.now();
-          frames++;
-        }
+        queue.acknowledge();
       }
       if (m.type === 'error') {
         if (m.message?.includes('NDI_RUNTIME_MISSING')) {
@@ -320,18 +309,6 @@ function gpuHandle(
         fail(`utility exited ${code}`);
       }
     });
-    keepalive = setInterval(() => {
-      if (
-        ready &&
-        !queue.busy &&
-        frames > 0 &&
-        child &&
-        Date.now() - last >= GPU_KEEPALIVE_MS
-      ) {
-        child.postMessage({type: 'repeat'});
-        last = Date.now();
-      }
-    }, GPU_KEEPALIVE_MS);
   };
   return {
     configure: next => {

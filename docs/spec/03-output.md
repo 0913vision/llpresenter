@@ -490,6 +490,9 @@ Source: `Overlays`, `ShowH` (target screens in the showing list), product log
 
 ## 방송 화면
 
+- NDI output sends steadily at 30 frames per second, repeating the last picture
+  while it is still.
+
 - The app doesn't broadcast. It makes only the 방송 화면 screen. OBS takes it
   and lays it over the camera picture.
 - The default themes draw their built-in broadcast look over the screen's

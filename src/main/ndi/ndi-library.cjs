@@ -2,6 +2,8 @@
 const process = require('node:process');
 const path = require('node:path');
 const fs = require('node:fs');
+const FRAME_RATE_N = 30;
+const FRAME_RATE_D = 1;
 
 function runtimePath(env = process.env) {
   const dir = env.NDI_RUNTIME_DIR_V6;
@@ -72,8 +74,8 @@ function openBinding(koffi, dll, name = null) {
         xres: 1920,
         yres: 1080,
         FourCC: 0x41524742,
-        frame_rate_N: 30,
-        frame_rate_D: 1,
+        frame_rate_N: FRAME_RATE_N,
+        frame_rate_D: FRAME_RATE_D,
         picture_aspect_ratio: 16 / 9,
         frame_format_type: 1,
         timecode: 9223372036854775807n,
@@ -91,4 +93,10 @@ function openBinding(koffi, dll, name = null) {
   };
 }
 
-module.exports = {runtimePath, sourceName, openReal};
+module.exports = {
+  runtimePath,
+  sourceName,
+  openReal,
+  FRAME_RATE_N,
+  FRAME_RATE_D,
+};

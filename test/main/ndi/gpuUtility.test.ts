@@ -1,3 +1,4 @@
+import {createPacer} from '../../../src/main/ndi/pacer.cjs';
 import {EventEmitter} from 'node:events';
 import {readFileSync} from 'node:fs';
 import {runInNewContext} from 'node:vm';
@@ -5,6 +6,7 @@ import {describe, expect, it, vi} from 'vitest';
 
 describe('GPU NDI utility', () => {
   it('copies using the fake native reader, acknowledges, and sends one persistent frame', () => {
+    vi.useFakeTimers();
     const port = new EventEmitter();
     const postMessage = vi.fn<(message: {type: string}) => void>();
     Object.assign(port, {postMessage});
@@ -39,6 +41,8 @@ describe('GPU NDI utility', () => {
           return {create: () => ({read, close: closeReader})};
         case './ndi-library.cjs':
           return {openReal: () => ({send, sync, close})};
+        case './pacer.cjs':
+          return {createPacer};
         case './dirty.cjs':
           return {applyDirty};
         case 'node:buffer':
@@ -69,8 +73,14 @@ describe('GPU NDI utility', () => {
     expect(postMessage.mock.invocationCallOrder[copied]).toBeLessThan(
       send.mock.invocationCallOrder[0] ?? 0,
     );
+    vi.advanceTimersByTime(34);
+    expect(send).toHaveBeenCalledTimes(3);
+    expect(send.mock.calls[1]?.[0]).toBe(send.mock.calls[2]?.[0]);
     port.emit('message', {data: {type: 'stop'}});
     expect(closeReader).toHaveBeenCalledOnce();
     expect(close).toHaveBeenCalledOnce();
+    vi.advanceTimersByTime(1000);
+    expect(send).toHaveBeenCalledTimes(3);
+    vi.useRealTimers();
   });
 });

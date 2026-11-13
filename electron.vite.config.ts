@@ -39,6 +39,7 @@ export default defineConfig({
           mkdirSync(target, {recursive: true});
           for (const file of [
             'utility.cjs',
+            'pacer.cjs',
             'ndi-library.cjs',
             'dirty.cjs',
             'gpu-utility.cjs',

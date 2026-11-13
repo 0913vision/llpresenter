@@ -128,16 +128,12 @@ function createBitmapOutput(
   let inFlight = false;
   let pending: {dirty: Rectangle; image: NativeImage} | null = null;
   let closed = false;
-  let lastSent = 0;
-  let hasFrame = false;
-  let timer: ReturnType<typeof setInterval> | null = null;
   let watchdog: ReturnType<typeof setTimeout> | null = null;
+  let heartbeatWatchdog: ReturnType<typeof setTimeout> | null = null;
   const sendFrame = (dirty: Rectangle, image: NativeImage): void => {
     if (child === null) return;
     const data = image.crop(dirty).toBitmap();
     inFlight = true;
-    hasFrame = true;
-    lastSent = Date.now();
     sendMessage(child, {type: 'frame', data: {...dirty, data}});
   };
   win.webContents.on('paint', (_event, dirty, image) => {
@@ -166,16 +162,15 @@ function createBitmapOutput(
     pending = {image, dirty: unionDirty(previous, dirty)};
   });
   const stop = (exited = false): void => {
-    if (timer !== null) clearInterval(timer);
     if (watchdog !== null) clearTimeout(watchdog);
-    timer = null;
     watchdog = null;
+    if (heartbeatWatchdog !== null) clearTimeout(heartbeatWatchdog);
+    heartbeatWatchdog = null;
     const old = child;
     child = null;
     ready = false;
     inFlight = false;
     pending = null;
-    hasFrame = false;
     if (old === null || exited) return;
     const killTimer = setTimeout(() => old.kill(), NDI_STOP_TIMEOUT_MS);
     killTimer.unref();
@@ -209,6 +204,13 @@ function createBitmapOutput(
       fail(worker, false, error);
     }
   };
+  const monitorHeartbeat = (worker: UtilityProcess): void => {
+    if (heartbeatWatchdog !== null) clearTimeout(heartbeatWatchdog);
+    heartbeatWatchdog = setTimeout(
+      () => fail(worker, false, 'sender heartbeat timed out'),
+      NDI_SEND_TIMEOUT_MS,
+    );
+  };
   const begin = (): void => {
     if (closed || child !== null) return;
     const worker = utilityProcess.fork(join(__dirname, 'ndi/utility.cjs'), [], {
@@ -230,6 +232,7 @@ function createBitmapOutput(
         win.webContents.invalidate();
       }
       if (message.type === 'sent') {
+        if (heartbeatWatchdog === null) monitorHeartbeat(worker);
         if (watchdog !== null) clearTimeout(watchdog);
         watchdog = null;
         inFlight = false;
@@ -238,6 +241,9 @@ function createBitmapOutput(
           pending = null;
           sendFrame(dirty, image);
         }
+      }
+      if (message.type === 'heartbeat' && heartbeatWatchdog !== null) {
+        monitorHeartbeat(worker);
       }
       if (message.type === 'error') {
         fail(
@@ -253,20 +259,6 @@ function createBitmapOutput(
       stop(true);
       onFailure(current.id, false);
     });
-    timer = setInterval(() => {
-      if (
-        !ready ||
-        inFlight ||
-        !hasFrame ||
-        child === null ||
-        Date.now() - lastSent < 1000
-      ) {
-        return;
-      }
-      inFlight = true;
-      lastSent = Date.now();
-      sendMessage(child, {type: 'repeat'});
-    }, 1000);
   };
   return {
     configure: next => {
