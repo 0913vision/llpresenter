@@ -1,4 +1,8 @@
-﻿.picture {
+.panel {
+  flex: 1 1 0;
+}
+
+.picture {
   position: relative;
   overflow: hidden;
   width: 100%;
