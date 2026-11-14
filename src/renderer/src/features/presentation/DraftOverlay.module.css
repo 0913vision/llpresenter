@@ -28,10 +28,6 @@
   margin: 0;
   font: var(--type-heading);
 }
-.eyebrow {
-  color: var(--text-3);
-  font: var(--type-caption);
-}
 .symbol {
   display: grid;
   width: var(--size-window-control-width);
@@ -47,13 +43,9 @@
   color: var(--text-3);
   font: var(--type-caption);
 }
-.description {
-  margin: var(--space-20) 0 var(--space-16);
-  color: var(--text-2);
-  font: var(--type-label);
-}
 .content {
   min-width: 0;
+  margin-top: var(--space-24);
 }
 .number {
   display: flex;
@@ -120,10 +112,6 @@
 .backdrop[data-variant='b'] .dismiss {
   position: absolute;
   opacity: 0;
-}
-.backdrop[data-variant='b'] .description {
-  margin: var(--space-12) 0 var(--space-24);
-  text-align: center;
 }
 .backdrop[data-variant='b'] .number {
   justify-content: center;

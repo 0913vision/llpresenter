@@ -34,17 +34,9 @@ export function DraftOverlay({
           <div className={styles.symbol} aria-hidden="true">
             {kind === 'bible' ? '성' : '#'}
           </div>
-          <div>
-            <div className={styles.eyebrow}>바로 실행</div>
-            <h2>{kind === 'bible' ? '성경 구절' : '슬라이드 이동'}</h2>
-          </div>
+          <h2>{kind === 'bible' ? '성경 구절' : '슬라이드 이동'}</h2>
           <span className={styles.dismiss}>ESC</span>
         </header>
-        <p className={styles.description}>
-          {kind === 'bible'
-            ? '찾을 말씀의 책과 장, 절을 입력하세요.'
-            : '예배 순서의 슬라이드 번호를 입력하세요.'}
-        </p>
         <div className={styles.content}>{children}</div>
         <footer className={styles.footer}>
           <span>
