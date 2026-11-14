@@ -318,7 +318,11 @@ it('previews the opening song title after a preceding item', () => {
     tile: title,
     kind: 'song',
   });
-  expect(layer?.next).toMatchObject({itemKind: 'song', lines: ['Song title']});
+  expect(layer?.next).toMatchObject({
+    itemKind: 'song',
+    titleSlide: true,
+    lines: ['Song title'],
+  });
 });
 
 it('previews only the opening card name while retaining the card subtitle on output', () => {

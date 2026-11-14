@@ -304,10 +304,10 @@ export class ThemeElementView {
     const currentLabel = slide?.label?.trim();
     const nextLabel = next?.label?.trim();
     const cue = currentEmpty
-      ? ((currentLabel === '' ? undefined : currentLabel) ??
+      ? ((currentLabel ? `(${currentLabel})` : undefined) ??
         (element.fallbackText?.trim() ? undefined : '(\uc5c6\uc74c)'))
       : nextEmpty
-        ? ((nextLabel === '' ? undefined : nextLabel) ?? '(\uc5c6\uc74c)')
+        ? ((nextLabel ? `(${nextLabel})` : undefined) ?? '(\uc5c6\uc74c)')
         : undefined;
     this.text?.setMinimumSize(
       stage && element.kind === 'nextText'
@@ -501,8 +501,24 @@ export class ThemeElementView {
                 : {}),
             },
           };
+    const nextTitleSlide =
+      frame.screen?.kind === 'stage' &&
+      element.kind === 'nextText' &&
+      flowedLayers.slide?.next?.titleSlide === true;
+    const displayLayers = nextTitleSlide
+      ? {
+          ...flowedLayers,
+          slide: {
+            ...flowedLayers.slide,
+            next: {
+              ...flowedLayers.slide.next,
+              lines: flowedLayers.slide.next.lines.slice(0, 1),
+            },
+          },
+        }
+      : flowedLayers;
     const text = themeElementText(element, {
-      layers: flowedLayers,
+      layers: displayLayers,
       item,
       stageMessage: frame.stageMessage,
       clock:
@@ -516,6 +532,14 @@ export class ThemeElementView {
       timer,
       videoTimeLeft: remainingText(videoRemaining),
     });
+    if (
+      frame.screen?.kind === 'stage' &&
+      element.kind === 'nextText' &&
+      slide?.next?.label?.trim() === '\uc804\uc8fc' &&
+      text?.trim()
+    ) {
+      return `${text} (\uc804\uc8fc)`;
+    }
     if (element.id === SECTION_NAME_ID && slide?.sectionCard !== undefined) {
       return slide.sectionCard.name;
     }

@@ -326,6 +326,7 @@ function nextKey(next: NextSlide | null | undefined): string {
         next.lines,
         next.continued ?? null,
         next.biblePart ?? null,
+        next.titleSlide ?? null,
       ]);
 }
 

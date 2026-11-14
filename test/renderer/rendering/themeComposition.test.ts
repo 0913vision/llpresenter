@@ -2307,7 +2307,7 @@ it.each(['output', 'preview'] as const)(
         `[data-kind="currentText"] .${classes.shown} .${classes.block}`,
       );
     view.render(empty, stage);
-    expect(current()?.textContent).toBe('Interlude');
+    expect(current()?.textContent).toBe('(Interlude)');
     expect(current()?.style.color).toBe('rgb(180, 180, 180)');
     expect(
       root.querySelector(`[data-kind="nextText"] .${classes.shown}`)
@@ -2334,7 +2334,7 @@ it.each(['output', 'preview'] as const)(
       transitions: false,
       screen: {id: THEME_MAIN, kind: 'stage'},
     });
-    expect(current()?.textContent.trim()).toBe('Interlude');
+    expect(current()?.textContent.trim()).toBe('(Interlude)');
     expect(current()?.style.color).toBe('rgb(180, 180, 180)');
     view.render(empty, {...frame(elements), transitions: false});
     expect(current()?.textContent.trim()).toBe('');
@@ -2514,12 +2514,57 @@ it('shows an empty stage next slide cue and preserves labels and other screens',
     slide: {...slide, next: {label: 'Interlude', lines: [' ']}},
   };
   show('stage');
-  expect(text()).toBe('Interlude');
+  expect(text()).toBe('(Interlude)');
   layers = {
     ...layers,
     slide: {...slide, next: {label: null, lines: [' ']}},
   };
   show('audience');
   expect(text().trim()).toBe('');
+  view.dispose();
+});
+
+it('shows stage prelude and interlude labels and omits a title slide subtitle', () => {
+  const {root, view} = setup();
+  const elements: ThemeElement[] = [
+    {...themeElementBase(31), kind: 'nextText'},
+  ];
+  const slide = song.slide;
+  if (slide === null) throw Error('Missing slide');
+  const draw = (
+    next: NonNullable<typeof slide.next>,
+    screen: 'stage' | 'audience',
+  ) => {
+    view.render(
+      {...song, slide: {...slide, next}},
+      {
+        ...frame(elements),
+        screen: {id: THEME_MAIN, kind: screen},
+        transitions: false,
+      },
+    );
+    return (
+      root.querySelector(`[data-kind="nextText"] .${classes.shown}`)
+        ?.textContent ?? ''
+    );
+  };
+  expect(draw({label: '\uc804\uc8fc', lines: ['\ucc2c\uc591']}, 'stage')).toBe(
+    '\ucc2c\uc591 (\uc804\uc8fc)',
+  );
+  expect(draw({label: '\uac04\uc8fc', lines: []}, 'stage')).toBe(
+    '(\uac04\uc8fc)',
+  );
+  expect(
+    draw(
+      {label: null, titleSlide: true, lines: ['\ucc2c\uc591', 'English title']},
+      'stage',
+    ),
+  ).toBe('\ucc2c\uc591');
+  expect(
+    draw(
+      {label: null, titleSlide: true, lines: ['\ucc2c\uc591', 'English title']},
+      'audience',
+    ),
+  ).toContain('English title');
   view.dispose();
 });
