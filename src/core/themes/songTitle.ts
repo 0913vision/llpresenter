@@ -70,6 +70,7 @@ export function songTitleLayout(
       (line, index) => {
         const firstRun = line.runs[0];
         const size = firstRun?.size ?? titleText.size;
+        const {paragraphGap: _paragraphGap, ...positionedLine} = line;
         return {
           id: createThemeElementId(
             `00000000-0000-4001-8000-${String(index + 1).padStart(12, '0')}`,
@@ -93,7 +94,7 @@ export function songTitleLayout(
             font: firstRun?.font ?? titleText.font,
             weight: firstRun?.weight ?? titleText.weight,
           },
-          lyricFormat: {lines: [line]},
+          lyricFormat: {lines: [positionedLine]},
         };
       },
     );

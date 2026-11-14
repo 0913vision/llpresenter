@@ -135,6 +135,11 @@ export class ThemeCompositionView {
             line.runs.map(run => run.text).join('') === slide.lines[index],
         )
       ) {
+        const firstLine = slide.lyricFormat.lines[0];
+        const importedTop =
+          firstLine?.runs.map(run => run.text).join('') === slide.lines[0]
+            ? firstLine?.top
+            : undefined;
         frame = {
           ...frame,
           theme: {
@@ -143,7 +148,15 @@ export class ThemeCompositionView {
               ...frame.theme.layout,
               elements: frame.theme.layout.elements.map(element =>
                 element.kind === 'currentText'
-                  ? {...element, frame: {...element.frame, x: 0, w: 1920}}
+                  ? {
+                      ...element,
+                      frame: {
+                        ...element.frame,
+                        x: 0,
+                        w: 1920,
+                        y: importedTop ?? element.frame.y,
+                      },
+                    }
                   : element,
               ),
             },
