@@ -39,7 +39,6 @@ export function createNdiOutput(
     log: Logger;
     onFailure: (id: string, missing: boolean) => void;
     onGpuFallback?: () => void;
-    onGpuRecovered?: () => void;
   },
 ): OutputWindowHandle {
   let current = screen;

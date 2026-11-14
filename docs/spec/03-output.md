@@ -514,8 +514,8 @@ Source: `Overlays`, `ShowH` (target screens in the showing list), product log
   short pause; other GPU failures use the bitmap sender immediately. While on
   bitmap, the app retries shared textures in the background, keeps the same NDI
   sender during recovery, and returns to GPU input after a frame is sent. It
-  shows one notice only after 60 seconds on bitmap and clears it on recovery,
-  without changing the saved option. A GPU utility crash first falls back to the
+  retries silently without changing the saved option. A GPU utility crash first
+  falls back to the
   bitmap sender, not the capture window.
 - An unavailable NDI Runtime is remembered until the method is toggled or the
   app restarts.

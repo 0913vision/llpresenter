@@ -19,7 +19,6 @@ const appProblemSchema = v.pipe(
     v.object({kind: v.literal('ndi-runtime-missing')}),
     v.object({kind: v.literal('ndi-failed')}),
     v.object({kind: v.literal('ndi-gpu-fallback')}),
-    v.object({kind: v.literal('ndi-gpu-recovered')}),
     v.object({
       kind: v.literal('macro-dropped'),
       macroId: macroIdSchema,

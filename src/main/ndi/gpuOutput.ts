@@ -34,12 +34,10 @@ interface Options {
   log: Logger;
   onFailure: (id: string, missing: boolean) => void;
   onGpuFallback?: () => void;
-  onGpuRecovered?: () => void;
 }
 
 // NOTE(0913vision): Let the old utility's stop deadline finish before retrying.
 const START_RETRY_MS = 2500;
-const NOTICE_DELAY_MS = 60_000;
 const RETRY_DELAYS_MS = [5000, 15_000, 60_000, 120_000] as const;
 const startupFailure = (reason: unknown): boolean =>
   reason === 'no shared texture paint' ||
@@ -57,23 +55,14 @@ export function createGpuOutput(
   let mode: 'gpu' | 'waiting' | 'bitmap' = 'gpu';
   let startupRetried = false;
   let retryIndex = 0;
-  let noticeShown = false;
   let retryTimer: ReturnType<typeof setTimeout> | null = null;
-  let noticeTimer: ReturnType<typeof setTimeout> | null = null;
   let probe: OutputWindowHandle | null = null;
   let sink: BitmapSender | null = null;
   let capture = {x: 0, y: 0, width: NDI_FRAME_WIDTH, height: NDI_FRAME_HEIGHT};
   let delegate: OutputWindowHandle;
   const clearTimers = (): void => {
     if (retryTimer !== null) clearTimeout(retryTimer);
-    if (noticeTimer !== null) clearTimeout(noticeTimer);
     retryTimer = null;
-    noticeTimer = null;
-  };
-  const clearNotice = (): void => {
-    if (!noticeShown) return;
-    noticeShown = false;
-    options.onGpuRecovered?.();
   };
   const scheduleProbe = (): void => {
     if (
@@ -112,13 +101,6 @@ export function createGpuOutput(
     delegate.configure(current);
     delegate.showCapture(capture);
     retryIndex = 0;
-    noticeTimer = setTimeout(() => {
-      noticeTimer = null;
-      if (active && mode === 'bitmap' && !closed) {
-        noticeShown = true;
-        options.onGpuFallback?.();
-      }
-    }, NOTICE_DELAY_MS);
     scheduleProbe();
   };
   const makeGpu = (background: boolean): OutputWindowHandle => {
@@ -162,7 +144,6 @@ export function createGpuOutput(
       delegate = candidate;
       mode = 'gpu';
       clearTimers();
-      clearNotice();
       startupRetried = false;
     };
     const candidate = gpuHandle(
@@ -239,16 +220,7 @@ export function createGpuOutput(
       }
       if (sink && sink !== delegate) sink.showCapture(bounds, top);
       delegate.showCapture(bounds, top);
-      if (mode === 'bitmap' && !noticeShown) {
-        noticeTimer ??= setTimeout(() => {
-          noticeTimer = null;
-          if (active && mode === 'bitmap' && !closed) {
-            noticeShown = true;
-            options.onGpuFallback?.();
-          }
-        }, NOTICE_DELAY_MS);
-        scheduleProbe();
-      }
+      if (mode === 'bitmap') scheduleProbe();
     },
     prepareForMonitorRemoval: () => delegate.prepareForMonitorRemoval(),
     bringToFront: () => delegate.bringToFront(),
@@ -260,7 +232,6 @@ export function createGpuOutput(
       probe = null;
       sink?.setGpuInput(false);
       if (sink && sink !== delegate) sink.hide();
-      clearNotice();
       delegate.hide();
     },
     reload: () => delegate.reload(),
@@ -273,7 +244,6 @@ export function createGpuOutput(
       probe?.destroy();
       probe = null;
       if (sink && sink !== delegate) sink.destroy();
-      clearNotice();
       delegate.destroy();
     },
   };

@@ -58,7 +58,6 @@ function setup(gpu: boolean | 'absent' = false) {
   });
   const failure = vi.fn();
   const fallback = vi.fn();
-  const recovered = vi.fn();
   const handle = createNdiOutput(
     screen,
     {onRendererGone: vi.fn(), onCloseRequested: vi.fn()},
@@ -66,7 +65,6 @@ function setup(gpu: boolean | 'absent' = false) {
       log: recordingLogger(),
       onFailure: failure,
       onGpuFallback: fallback,
-      onGpuRecovered: recovered,
     },
   );
   const win = mocks.windows.at(-1);
@@ -80,7 +78,7 @@ function setup(gpu: boolean | 'absent' = false) {
     getSize: () => ({width: 1920, height: 1080}),
     crop: vi.fn(() => ({toBitmap: () => Buffer.alloc(4)})),
   });
-  return {screen, failure, fallback, recovered, handle, win, worker, image};
+  return {screen, failure, fallback, handle, win, worker, image};
 }
 
 beforeEach(() => {
@@ -355,8 +353,8 @@ describe('GPU NDI output', () => {
     expect(mocks.workers).toHaveLength(3);
     handle.destroy();
   });
-  it('shows a persistent fallback after 60 seconds and clears it after recovery', () => {
-    const {handle, worker, fallback, recovered} = setup(true);
+  it('retries silently beyond 60 seconds and recovers', () => {
+    const {handle, worker, fallback} = setup(true);
     handle.showCapture(full);
     worker().emit('message', {type: 'error', message: 'GPU failure'});
     const bitmap = worker();
@@ -368,7 +366,7 @@ describe('GPU NDI output', () => {
     vi.advanceTimersByTime(39999);
     expect(fallback).not.toHaveBeenCalled();
     vi.advanceTimersByTime(1);
-    expect(fallback).toHaveBeenCalledOnce();
+    expect(fallback).not.toHaveBeenCalled();
     vi.advanceTimersByTime(20000);
     const candidate = worker();
     const probeWindow = mocks.windows.at(-1);
@@ -381,7 +379,6 @@ describe('GPU NDI output', () => {
       data: Buffer.alloc(1920 * 1080 * 4),
     });
     bitmap.emit('message', {type: 'sent'});
-    expect(recovered).toHaveBeenCalledOnce();
     handle.destroy();
   });
   it('cancels retries and notices when hidden', () => {
@@ -411,7 +408,7 @@ describe('GPU NDI output', () => {
     worker().emit('exit', 0);
     expect(b.release).toHaveBeenCalledOnce();
   });
-  it('falls back immediately and delays the notice after a GPU error', () => {
+  it('falls back immediately without a notice after a GPU error', () => {
     const {handle, worker, fallback} = setup(true);
     handle.showCapture(full);
     const gpuWorker = worker();
@@ -421,7 +418,7 @@ describe('GPU NDI output', () => {
     expect(mocks.windows).toHaveLength(2);
     expect(mocks.workers).toHaveLength(2);
     vi.advanceTimersByTime(60_000);
-    expect(fallback).toHaveBeenCalledOnce();
+    expect(fallback).not.toHaveBeenCalled();
     handle.destroy();
   });
   it('continues after queue overflow when painting stops', () => {
