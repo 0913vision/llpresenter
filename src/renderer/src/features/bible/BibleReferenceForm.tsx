@@ -97,6 +97,9 @@ export function BibleReferenceForm(
   const [pointed, setPointed] = useState(-1);
   const [keyboardPointed, setKeyboardPointed] = useState<number | null>(null);
   const [blocked, setBlocked] = useState<ReferencePart | null>(null);
+  // NOTE(0913vision): Korean input still composes "합" when Tab is pressed, so
+  // the book is completed after the IME commits, as with a plain Tab.
+  const tabAfterComposition = useRef(false);
   const [recent, setRecent] = useState<{
     readonly provided: TranslationId | undefined;
     readonly value: RecentPassage;
@@ -357,9 +360,18 @@ export function BibleReferenceForm(
     part: ReferencePart,
     event: KeyboardEvent<HTMLInputElement>,
   ): void => {
-    if (isComposing(event) || event.altKey || event.ctrlKey || event.metaKey) {
+    if (isComposing(event)) {
+      if (
+        part === 'book' &&
+        !event.shiftKey &&
+        (event.key === 'Tab' || event.nativeEvent.code === 'Tab')
+      ) {
+        event.preventDefault();
+        tabAfterComposition.current = true;
+      }
       return;
     }
+    if (event.altKey || event.ctrlKey || event.metaKey) return;
     if (event.key === 'Escape' && expanded) {
       pendingSubmit.current = null;
       event.preventDefault();
@@ -537,6 +549,12 @@ export function BibleReferenceForm(
           }}
           onCompositionStart={() => {
             advancedBook.current = null;
+            tabAfterComposition.current = false;
+          }}
+          onCompositionEnd={() => {
+            if (!tabAfterComposition.current) return;
+            tabAfterComposition.current = false;
+            advanceBook();
           }}
           disabled={props.translation === undefined}
           invalid={reason('book') !== undefined}

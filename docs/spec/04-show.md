@@ -826,13 +826,15 @@ name. Chapter and verse bounds always use the built-in GAE number table.
   pointed, forward Tab moves on like in any field, because there is nothing to
   complete (lead decision, November 2). With text in 책, forward Tab or Enter
   completes an exact match or a sole candidate to the full name and moves to 장.
-  With several candidates and no exact match, completion stays until an
-  arrow-key selection is made. As in copible, Tab gives the exact name priority
-  over a highlighted partial match; a click or Enter selects a highlighted
-  suggestion. Matching partial names are not errors. Only an unmatched name has
-  a red ring with a plain Korean tooltip reason. `ckd` and `ckdtprl` complete to
-  창세기; `chd` means 총 and has no match, as in copible. A valid full name in
-  an installed translation is never marked red.
+  Tab pressed while Korean input is still composing (합) does the same once the
+  IME commits the syllable, so 합 then Tab gives 하박국 and moves to 장. With
+  several candidates and no exact match, completion stays until an arrow-key
+  selection is made. As in copible, Tab gives the exact name priority over a
+  highlighted partial match; a click or Enter selects a highlighted suggestion.
+  Matching partial names are not errors. Only an unmatched name has a red ring
+  with a plain Korean tooltip reason. `ckd` and `ckdtprl` complete to 창세기;
+  `chd` means 총 and has no match, as in copible. A valid full name in an
+  installed translation is never marked red.
 - Up from no highlight leaves it unselected; Up from the first row clears the
   highlight. Down from no highlight selects the first row. An ambiguous book
   still blocks Tab after Up clears its selection.
