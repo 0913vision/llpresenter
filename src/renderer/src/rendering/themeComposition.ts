@@ -179,7 +179,7 @@ export class ThemeCompositionView {
     ) {
       this.page.root.style.backgroundColor = theme.emptyColor;
     }
-    this.draw(rebuilt);
+    this.draw();
     if (frame.standby || (frame.transitions === false && this.ready())) {
       this.releaseLeaving();
     } else if ((rebuilt || pendingSlide) && this.leaving !== null) {
@@ -423,7 +423,7 @@ export class ThemeCompositionView {
     this.animation = requestAnimationFrame(check);
   }
 
-  private draw(rebuilt = false): void {
+  private draw(): void {
     const page = this.page;
     const content = this.content;
     if (page === null || content === null) return;
@@ -454,9 +454,8 @@ export class ThemeCompositionView {
       try {
         view.render(
           content.layers,
-          rebuilt || this.leaving !== null
-            ? {...content.frame, transitions: false}
-            : content.frame,
+          // NOTE(0913vision): Page transitions own the mask, so children cut.
+          {...content.frame, transitions: false},
           video,
         );
       } catch (error) {

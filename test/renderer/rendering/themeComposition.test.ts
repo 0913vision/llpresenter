@@ -141,6 +141,37 @@ afterEach(() => {
 });
 
 describe('theme composition drawing', () => {
+  it.each(['same', 'different'] as const)(
+    'uses one full-page wipe with %s background',
+    background => {
+      const {root, view} = setup();
+      const render = vi.spyOn(ThemeElementView.prototype, 'render');
+      const base = frame([
+        {...themeElementBase(), kind: 'background', fit: 'fill', radius: 0},
+        {...themeElementBase(31), kind: 'currentText'},
+      ]);
+      const effect = {kind: 'wipe' as const, sec: 1};
+      if (song.slide === null) throw new Error('Missing slide');
+      view.render(song, {...base, slideTransition: effect});
+      const incoming = {
+        ...song,
+        slide: {...song.slide, position: 1, lines: ['Next']},
+        ...(background === 'same' ? {} : {media: null}),
+      };
+      view.render(incoming, {...base, slideTransition: effect});
+      const pages = root.querySelectorAll<HTMLElement>('[data-theme-page]');
+      expect(pages).toHaveLength(2);
+      for (const page of pages) {
+        expect(page.querySelector('[data-kind="background"]')).not.toBeNull();
+        expect(page.querySelector('[data-kind="currentText"]')).not.toBeNull();
+      }
+      expect(
+        render.mock.calls.every(([, frame]) => frame.transitions === false),
+      ).toBe(true);
+      view.dispose();
+    },
+  );
+
   it('transitions whole pages between items sharing a background', () => {
     const {root, view} = setup();
     const base = frame([

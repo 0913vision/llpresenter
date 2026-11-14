@@ -25,12 +25,14 @@ describe('SlideAnimation', () => {
       1,
       [
         {
+          opacity: 1,
           maskImage: inverse,
           maskSize: '285% 100%',
           maskPosition: '0% 0%',
           maskRepeat: 'no-repeat',
         },
         {
+          opacity: 1,
           maskImage: inverse,
           maskSize: '285% 100%',
           maskPosition: '100% 0%',
@@ -203,12 +205,14 @@ describe('SlideAnimation', () => {
         1,
         [
           {
+            opacity: 1,
             maskImage: inverseMask,
             maskSize: size,
             maskPosition: from,
             maskRepeat: 'no-repeat',
           },
           {
+            opacity: 1,
             maskImage: inverseMask,
             maskSize: size,
             maskPosition: to,

@@ -82,12 +82,14 @@ export class SlideAnimation {
         const inverseMask = `linear-gradient(to ${wipe.direction}, transparent 0%, transparent 35.087719%, black 64.912281%, black 100%)`;
         outgoing = [
           {
+            opacity: 1,
             maskImage: inverseMask,
             maskSize: wipe.size,
             maskPosition: wipe.from,
             maskRepeat: 'no-repeat',
           },
           {
+            opacity: 1,
             maskImage: inverseMask,
             maskSize: wipe.size,
             maskPosition: wipe.to,
