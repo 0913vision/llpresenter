@@ -37,9 +37,9 @@ export const STAGE_BAR_GROUP_TOP_WITH_MESSAGE = 2;
 
 export const STARTER_STAGE_ELEMENTS = [
   element('currentLabel', [865, 26, 190, 48]),
-  element('stageMessage', [770, 53, 490, 42]),
-  element('timer', [1640, 20, 220, 65]),
-  element('clock', [1460, 982, 400, 80]),
+  element('stageMessage', [770, 53, 400, 42]),
+  element('timer', [1210, 20, 220, 65]),
+  element('clock', [1460, 20, 400, 80]),
   element('currentSlide', [154, 130, 1612, 568]),
   element('nextSlide', [154, 706, 1612, 272]),
 ] as const;

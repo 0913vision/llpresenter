@@ -722,9 +722,9 @@ slide label stays centered and is omitted when it repeats the item name, even
 though the item name is not shown. Bible slides instead show the same full
 passage reference and reference display setting as the audience, centered in a
 1612 px frame at 48 px #E6E6E6, on one line and shrunk to fit. A stage message
-moves the label up to make room; the timer remains at the upper right. A 60 px
-#E6E6E6 clock showing hours, minutes, and seconds sits at the bottom right in
-frame (1460, 982, 400, 80), clear of the next preview in frame (154, 706, 1612,
+moves the label up to make room; the timer sits to the left of the clock. A 60
+px #E6E6E6 clock showing hours, minutes, and seconds sits at the top right in
+frame (1460, 20, 400, 80), clear of the next preview in frame (154, 706, 1612,
 272). Current and next lyrics have approximately eight percent side margins and
 1.2 line height. White centered current text occupies the large area above a
 bottom-aligned yellow centered next preview. A section-card next preview shows
@@ -776,9 +776,9 @@ the next item.
 ### 이미지 슬라이드
 
 The built-in 이미지 슬라이드 theme displays a slide picture fitted within a
-black canvas on 청중 and 무대 screens. 방송 screens are transparent and have no
-elements. PowerPoint picture imports use this theme with their privately owned
-slide pictures.
+black canvas on 청중 and 무대 screens; the stage also shows its clock. 방송
+screens are transparent and have no elements. PowerPoint picture imports use
+this theme with their privately owned slide pictures.
 
 A theme may set a slide transition in the theme editor. The built-in scripture
 theme uses a 0.7 second wipe, the creed and prayer theme uses a 0.5 second wipe,
@@ -797,3 +797,7 @@ show the label alone in parentheses.
 Stage title slides and section cards show only their Korean title, without the
 English subtitle. The creed and prayer theme uses 104 px left-aligned current
 text with the next line and clock clear.
+
+The stage advertisement title is bold yellow at the audience title size, with
+its white left-aligned body below at the audience body size. The stage clock is
+at the top right in all built-in stage layouts.

@@ -198,6 +198,9 @@ it('makes a valid file with built-in themes and a standby clock and timer on sta
   const stage =
     defaults.standby.screens[createScreenId(STARTER_SCREEN_IDS.stage)];
   expect(stage?.elements.map(e => e.kind)).toEqual(['clock', 'timer']);
+  expect(stage?.elements[0]).toMatchObject({
+    frame: {x: 1460, y: 20, w: 400, h: 80},
+  });
   for (const theme of [defaults.standby, ...defaults.themes]) {
     const clocks = Object.values(theme.screens).flatMap(layout =>
       layout.elements.filter(e => e.kind === 'clock'),
@@ -212,12 +215,17 @@ it('shows image slides on audience and stage but not broadcast', () => {
   );
   expect(theme).toBeDefined();
   const layouts = theme?.screens;
-  for (const screen of [STARTER_SCREEN_IDS.main, STARTER_SCREEN_IDS.stage]) {
-    expect(layouts?.[createScreenId(screen)]).toMatchObject({
-      background: '#000000',
-      elements: [{kind: 'media', fit: 'fit'}],
-    });
-  }
+  expect(layouts?.[createScreenId(STARTER_SCREEN_IDS.main)]).toMatchObject({
+    background: '#000000',
+    elements: [{kind: 'media', fit: 'fit'}],
+  });
+  expect(layouts?.[createScreenId(STARTER_SCREEN_IDS.stage)]).toMatchObject({
+    background: '#000000',
+    elements: [
+      {kind: 'media', fit: 'fit'},
+      {kind: 'clock', frame: {x: 1460, y: 20}},
+    ],
+  });
   expect(
     layouts?.[createScreenId(STARTER_SCREEN_IDS.broadcast)]?.elements,
   ).toEqual([]);
@@ -356,6 +364,33 @@ it('uses the standard stage layout and links broadcast ads', () => {
       element => element.kind === 'currentText',
     ),
   ).toMatchObject({text: {size: 86, align: 'left'}});
+  const title = ad?.screens[stage]?.elements.find(
+    element => element.kind === 'slideName',
+  );
+  const body = ad?.screens[stage]?.elements.find(
+    element => element.kind === 'currentText',
+  );
+  expect(title).toMatchObject({
+    text: {
+      font: 'KoPubWorldDotum',
+      weight: 700,
+      size: 108,
+      color: STAGE_COLORS.next,
+      align: 'left',
+    },
+  });
+  expect(body).toMatchObject({
+    text: {
+      font: 'KoPubWorldDotum',
+      weight: 500,
+      size: 86,
+      color: '#FFFFFF',
+      align: 'left',
+      lineHeight: 128 / 86,
+    },
+  });
+  if (!title || !body) throw Error('Missing notice text');
+  expect(title.frame.y + title.frame.h).toBeLessThanOrEqual(body.frame.y);
   expect(builtInTheme('ad')).toEqual(ad);
   expect(builtInTheme('blank')).toEqual(builtInTheme('bible'));
 });
@@ -479,7 +514,7 @@ it('removes the band, stage item title and position from every built-in stage la
   }
 });
 
-it('keeps the label centered and the clock below the lyric frames', () => {
+it('keeps the label centered and the clock above the lyric frames', () => {
   const stage = createScreenId(STARTER_SCREEN_IDS.stage);
   const elements = builtInTheme('song').screens[stage]?.elements ?? [];
   const label = elements.find(element => element.kind === 'label');
@@ -497,17 +532,17 @@ it('keeps the label centered and the clock below the lyric frames', () => {
   expect(label.frame.x + label.frame.w / 2).toBe(REFERENCE_SCREEN.width / 2);
   expect(label.frame.y + label.frame.h / 2).toBe(50);
   const timer = elements.find(element => element.kind === 'timer');
-  expect(timer?.frame.x).toBe(1640);
+  expect(timer?.frame.x).toBe(1210);
   expect(timer?.frame.y).toBe(20);
   expect(next.text.size).toBe(80);
   expect(next.frame.y - (current.frame.y + current.frame.h)).toBe(8);
   expect(next.frame.h).toBeGreaterThanOrEqual((170 * 2 * 2 * 1.2) / 3);
 
   expect(clock.text).toMatchObject({size: 60, color: '#E6E6E6'});
-  expect(clock.frame).toEqual({x: 1460, y: 982, w: 400, h: 80});
+  expect(clock.frame).toEqual({x: 1460, y: 20, w: 400, h: 80});
   expect(current.frame).toEqual({x: 154, y: 130, w: 1612, h: 568});
   expect(next.frame).toEqual({x: 154, y: 706, w: 1612, h: 272});
-  expect(clock.frame.y).toBeGreaterThanOrEqual(next.frame.y + next.frame.h);
+  expect(clock.frame.y + clock.frame.h).toBeLessThanOrEqual(current.frame.y);
   expect(clock.frame.x + clock.frame.w).toBeLessThanOrEqual(
     REFERENCE_SCREEN.width,
   );
@@ -543,13 +578,13 @@ it('shows preparation text on stage only while its blank slide is live', () => {
 it('uses the stage clock and next preview geometry across built-in themes', () => {
   const stage = createScreenId(STARTER_SCREEN_IDS.stage);
   for (const theme of createDefaultThemes().themes) {
-    if (theme.id === IMAGE_SLIDES_THEME_ID) continue;
     const elements = theme.screens[stage]?.elements ?? [];
     const clock = elements.find(element => element.kind === 'clock');
     expect(clock).toMatchObject({
-      frame: {x: 1460, y: 982, w: 400, h: 80},
+      frame: {x: 1460, y: 20, w: 400, h: 80},
       text: {size: 60, color: '#E6E6E6'},
     });
+    if (theme.id === IMAGE_SLIDES_THEME_ID) continue;
     expect(elements.find(element => element.kind === 'nextText')).toMatchObject(
       {
         frame: {y: 706, h: 272},
@@ -630,7 +665,7 @@ it('matches each audience text size without overlapping stage next and clock', (
     }
     expect(current.text.size).toBe(audienceText.text.size);
     expect(current.frame.y + current.frame.h).toBeLessThanOrEqual(next.frame.y);
-    expect(next.frame.y + next.frame.h).toBeLessThanOrEqual(clock.frame.y);
+    expect(clock.frame.y + clock.frame.h).toBeLessThanOrEqual(current.frame.y);
   }
 });
 

@@ -84,6 +84,9 @@ export function imageSlidesLayout(kind: Screen['kind']): ThemeScreenLayout {
         fit: 'fit',
         radius: 0,
       },
+      ...(kind === 'stage'
+        ? stageElements().filter(element => element.kind === 'clock')
+        : []),
     ],
   };
 }
@@ -173,14 +176,23 @@ function stageElements(kind: ThemeItemKind = 'song'): ThemeElement[] {
           text: {
             ...text,
             size: kind === 'bible' ? 104 : kind === 'ad' ? 86 : 108,
-            lineHeight: 1.2,
+            ...(kind === 'ad'
+              ? {font: 'KoPubWorldDotum', weight: 500, lineHeight: 128 / 86}
+              : {}),
+            ...(kind === 'ad' ? {} : {lineHeight: 1.2}),
             maxLines: 4,
             ...(kind === 'bible' || kind === 'ad'
               ? {align: 'left' as const, vAlign: 'top' as const}
               : {}),
           },
           ...(kind === 'bible' || kind === 'ad'
-            ? {frame: {...base.frame, y: 230, h: 468}}
+            ? {
+                frame: {
+                  ...base.frame,
+                  y: kind === 'ad' ? 240 : 230,
+                  h: kind === 'ad' ? 458 : 468,
+                },
+              }
             : {}),
         };
       case 'nextSlide':
@@ -217,9 +229,12 @@ function stageElements(kind: ThemeItemKind = 'song'): ThemeElement[] {
     elements.push({
       id: createThemeElementId(uuid(9)),
       kind: 'slideName',
-      frame: {x: 154, y: 130, w: 1612, h: 90},
+      frame: {x: 154, y: 110, w: 1612, h: 120},
       text: {
         ...text,
+        font: 'KoPubWorldDotum',
+        weight: 700,
+        color: STAGE_COLORS.next,
         size: 108,
         align: 'left',
         vAlign: 'middle',
@@ -374,7 +389,13 @@ export function legacySectionLayout(screen: ThemeScreen): ThemeScreenLayout {
         elements: layout.elements.map(element =>
           element.kind === 'currentText'
             ? {...element, text: {...element.text, size: 170}}
-            : element,
+            : element.kind === 'clock'
+              ? {...element, frame: {x: 1460, y: 982, w: 400, h: 80}}
+              : element.kind === 'timer'
+                ? {...element, frame: {x: 1640, y: 20, w: 220, h: 65}}
+                : element.kind === 'stageMessage'
+                  ? {...element, frame: {x: 770, y: 53, w: 490, h: 42}}
+                  : element,
         ),
       };
 }
