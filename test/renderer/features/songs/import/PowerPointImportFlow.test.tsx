@@ -21,6 +21,64 @@ vi.mock('@renderer/features/songs/import/composePowerPointBackground', () => ({
 const mockScene = {key: 'a'.repeat(64), layers: [], pictures: [], skipped: 0};
 
 describe('PowerPoint import dialog', () => {
+  it.each([
+    {first: 0, last: 8, winner: 0},
+    {first: 7, last: 11, winner: 9},
+    {first: 8, last: 0, winner: 0},
+  ])(
+    'chooses the most common background in the selected slides: $first to $last',
+    async ({first, last, winner}) => {
+      const fixture = editorFixture();
+      const store = new SongEditorStore(fixture.api, vi.fn());
+      onTestFinished(() => store.dispose());
+      const mediaId = createMediaId('00000000-0000-4000-8000-000000000123');
+      const layers = vi.fn(async () => mockScene);
+      const onEdit = vi.fn();
+      const api = mockLlpApi({
+        ...fixture.api,
+        powerpoint: {
+          read: async () => ({
+            ok: true,
+            value: {
+              fileName: 'deck.pptx',
+              widescreen: true,
+              slides: Array.from({length: 31}, (_, index) => ({
+                number: index + 1,
+                background: index < 9 ? 'sky-layout' : 'field-layout',
+                shapes: [{body: true, lines: [`Slide ${index + 1}`]}],
+              })),
+            },
+          }),
+          layers,
+          background: async () => 'C:/temp/ppt.png',
+          match: async () => mediaId,
+          release: async () => true,
+        },
+      });
+      render(
+        <PowerPointImportFlow
+          api={api}
+          store={store}
+          onDone={vi.fn()}
+          onEdit={onEdit}
+          onProblem={vi.fn()}
+        />,
+      );
+      const options = await screen.findAllByRole('option');
+      const start = options[first];
+      const end = options[last];
+      if (!start || !end) throw new Error('Missing slide option');
+      fireEvent.click(start);
+      fireEvent.click(end, {shiftKey: true});
+      fireEvent.click(screen.getByRole('button', {name: '편집'}));
+      await waitFor(() => expect(onEdit).toHaveBeenCalledOnce());
+      expect(layers).toHaveBeenCalledWith({index: winner});
+      expect(
+        store.getSnapshot().session?.history.snapshot.song.background,
+      ).toBe(mediaId);
+    },
+  );
+
   it('reuses matching media instead of importing a second image', async () => {
     const fixture = editorFixture();
     const store = new SongEditorStore(fixture.api, vi.fn());

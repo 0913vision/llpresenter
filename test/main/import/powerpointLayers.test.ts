@@ -2,6 +2,7 @@ import {describe, expect, it} from 'vitest';
 import {powerpointArchive} from '@fixtures/main/import/powerpointArchive';
 import {PowerPointZip} from '@main/import/powerpointZip';
 import {PowerPointLayerReader} from '@main/import/powerpointLayers';
+import {powerpointBackgroundIndex} from '@core/songs/powerpointBackgroundIndex';
 
 const ns = 'xmlns:p="urn:p" xmlns:a="urn:a" xmlns:r="urn:r"';
 const solid = (color: string) =>
@@ -45,6 +46,59 @@ function read(parts: Record<string, string>) {
 }
 
 describe('PowerPoint background layers', () => {
+  it('uses only the slide’s layout picture and preserves its asymmetric crop', () => {
+    const picture = (id: string, image: string) =>
+      `<p:pic><p:nvPicPr><p:cNvPr id="${id}"/></p:nvPicPr><p:blipFill><a:blip r:embed="${image}"><a:extLst><a:ext><a14:imgProps xmlns:a14="urn:a14" r:embed="effect"/></a:ext></a:extLst></a:blip><a:srcRect t="15039" b="9960"/><a:stretch/></p:blipFill><p:spPr>${xfrm}</p:spPr></p:pic>`;
+    const parts: Record<string, string> = fixture(
+      root('sld'),
+      root('sldLayout', picture('sky', 'sky')),
+      root('sldMaster', shape('master'), bg('ffffff')),
+    );
+    parts['ppt/slideLayouts/_rels/l.xml.rels'] = relations(
+      rel('../slideMasters/m.xml', 'slideMaster') +
+        rel('../media/sky.jpg', 'image', 'sky') +
+        rel('../media/effect.wdp', 'image', 'effect'),
+    );
+    parts['ppt/slideLayouts/other.xml'] = root(
+      'sldLayout',
+      picture('field', 'field'),
+    );
+    parts['ppt/slideLayouts/_rels/other.xml.rels'] = relations(
+      rel('../media/field.png', 'image', 'field'),
+    );
+    parts['ppt/slides/field.xml'] = root('sld');
+    parts['ppt/slides/_rels/field.xml.rels'] = relations(
+      rel('../slideLayouts/other.xml', 'slideLayout'),
+    );
+    const result = read(parts);
+    expect(result.layers.map(layer => layer.id)).toEqual([
+      'background',
+      'ppt/slideMasters/m.xml:master',
+      'ppt/slideLayouts/l.xml:sky',
+    ]);
+    expect(result.layers[2]).toMatchObject({
+      kind: 'picture',
+      part: 'ppt/media/sky.jpg',
+      crop: {left: 0, top: 0.15039, right: 0, bottom: 0.0996},
+      stretch: {left: 0, top: 0, right: 0, bottom: 0},
+    });
+    const reader = new PowerPointLayerReader(
+      new PowerPointZip(powerpointArchive(parts)),
+    );
+    const field = reader.read('ppt/slides/field.xml', {
+      width: 100,
+      height: 100,
+    });
+    expect(field.layers).toContainEqual(
+      expect.objectContaining({kind: 'picture', part: 'ppt/media/field.png'}),
+    );
+    const slides = [result, result, field, field, field].map(layer => ({
+      background: layer.key,
+    }));
+    expect(powerpointBackgroundIndex(slides)).toBe(2);
+    expect(powerpointBackgroundIndex(slides.slice(0, 2))).toBe(0);
+  });
+
   it('restores the master mapping when the slide explicitly rejects a layout override', () => {
     const fill = '<a:solidFill><a:schemeClr val="bg1"/></a:solidFill>';
     const slide = root('sld', shape('scheme', fill));
