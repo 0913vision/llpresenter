@@ -311,9 +311,7 @@ export class ThemeElementView {
       slide.picture === undefined &&
       slide.sectionCard === undefined &&
       item?.contentCleared !== true &&
-      !(slide.titleSlide ? slide.lines.slice(0, 1) : slide.lines).some(
-        line => line.trim() !== '',
-      );
+      !slide.lines.some(line => line.trim() !== '');
     const next = slide?.next;
     const nextEmpty =
       stage &&
@@ -321,9 +319,7 @@ export class ThemeElementView {
       !finalBible &&
       next !== undefined &&
       !next.title?.trim() &&
-      !(next.titleSlide ? next.lines.slice(0, 1) : next.lines).some(
-        line => line.trim() !== '',
-      );
+      !next.lines.some(line => line.trim() !== '');
     const rawCurrentLabel = slide?.label?.trim();
     const rawNextLabel = next?.label?.trim();
     const currentLabel =
@@ -520,7 +516,7 @@ export class ThemeElementView {
       slide?.titleSlide &&
       element.kind === 'currentText'
     ) {
-      const title = slide.lines[0] ?? '';
+      const title = slide.lines.join('\n');
       const label = slide.label?.trim();
       return label && title.trim() && (slide.kind ?? item?.kind) !== 'bible'
         ? stageLabeledText(title, label, true)
@@ -581,24 +577,8 @@ export class ThemeElementView {
                 : {}),
             },
           };
-    const nextTitleSlide =
-      frame.screen?.kind === 'stage' &&
-      element.kind === 'nextText' &&
-      flowedLayers.slide?.next?.titleSlide === true;
-    const displayLayers = nextTitleSlide
-      ? {
-          ...flowedLayers,
-          slide: {
-            ...flowedLayers.slide,
-            next: {
-              ...flowedLayers.slide.next,
-              lines: flowedLayers.slide.next.lines.slice(0, 1),
-            },
-          },
-        }
-      : flowedLayers;
     const text = themeElementText(element, {
-      layers: displayLayers,
+      layers: flowedLayers,
       item,
       stageMessage: frame.stageMessage,
       clock:

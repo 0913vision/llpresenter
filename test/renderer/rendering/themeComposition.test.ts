@@ -2669,7 +2669,7 @@ it('shows an empty stage next slide cue and preserves labels and other screens',
   view.dispose();
 });
 
-it('shows stage prelude and interlude labels and omits a title slide subtitle', () => {
+it('shows stage prelude and interlude labels and both lines of the next title slide', () => {
   const {root, view} = setup();
   const elements: ThemeElement[] = [
     {...themeElementBase(31), kind: 'nextText'},
@@ -2708,7 +2708,7 @@ it('shows stage prelude and interlude labels and omits a title slide subtitle', 
       {label: null, titleSlide: true, lines: ['\ucc2c\uc591', 'English title']},
       'stage',
     ),
-  ).toBe('\ucc2c\uc591');
+  ).toContain('English title');
   expect(
     draw(
       {label: null, titleSlide: true, lines: ['\ucc2c\uc591', 'English title']},
@@ -2718,7 +2718,7 @@ it('shows stage prelude and interlude labels and omits a title slide subtitle', 
   view.dispose();
 });
 
-it('shows only Korean title or section name on stage and retains audience subtitle', () => {
+it('shows both title lines on stage while retaining the section name', () => {
   const {root, view} = setup();
   const elements: ThemeElement[] = [
     {...themeElementBase(), kind: 'currentText'},
@@ -2730,10 +2730,10 @@ it('shows only Korean title or section name on stage and retains audience subtit
     slide: {
       ...song.slide,
       titleSlide: true as const,
-      lines: ['Korean title', 'English subtitle'],
+      lines: ['새찬송가 91장', '슬픈 마음 있는 사람'],
     },
   };
-  const draw = (layers: LiveLayers, kind: 'stage' | 'audience') =>
+  const draw = (layers: LiveLayers, kind: 'stage' | 'audience' | 'broadcast') =>
     view.render(layers, {
       ...frame(elements),
       screen: {id: THEME_MAIN, kind},
@@ -2743,9 +2743,14 @@ it('shows only Korean title or section name on stage and retains audience subtit
     root.querySelector(`[data-kind="currentText"] .${classes.shown}`)
       ?.textContent ?? '';
   draw(title, 'stage');
-  expect(current()).toBe('Korean title');
+  expect(current()).toContain('새찬송가 91장');
+  expect(current()).toContain('슬픈 마음 있는 사람');
   draw(title, 'audience');
-  expect(current()).toContain('English subtitle');
+  expect(current()).toContain('새찬송가 91장');
+  expect(current()).toContain('슬픈 마음 있는 사람');
+  draw(title, 'broadcast');
+  expect(current()).toContain('새찬송가 91장');
+  expect(current()).toContain('슬픈 마음 있는 사람');
   const card = {
     ...song,
     slide: {
