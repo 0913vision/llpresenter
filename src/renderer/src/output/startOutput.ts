@@ -302,21 +302,21 @@ export function startOutput({
       const old = latest?.layers.slide;
       const slide = state.layers.slide;
       const effect = effectFor(state);
-      const audience =
-        latest !== null && frames.frame(latest)?.screen?.kind === 'audience';
+      const audience = latest !== null && frames.screenKind() === 'audience';
       const changed =
         slide !== null &&
         (old?.itemId !== slide.itemId || old.position !== slide.position);
-      const capture =
-        audience &&
-        enabled() &&
-        !revealPending &&
-        changed &&
-        effect !== undefined &&
-        effect.kind !== 'none' &&
-        renderer !== null;
+      const currentRenderer = renderer;
       const epoch = ++snapshotEpoch;
-      if (!capture) {
+      if (
+        !audience ||
+        !enabled() ||
+        revealPending ||
+        !changed ||
+        effect === undefined ||
+        effect.kind === 'none' ||
+        currentRenderer === null
+      ) {
         if (changed || !audience || state.outputs[screenId] !== true) {
           snapshotMode = false;
           snapshot?.clear();
@@ -324,7 +324,6 @@ export function startOutput({
         applyState(state);
         return;
       }
-      const currentRenderer = renderer;
       snapshot ??= new SnapshotTransition(
         root,
         currentRenderer.transitionSurface(),
