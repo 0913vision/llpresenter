@@ -1,3 +1,4 @@
+import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
 import {
   PREPARATION_THEME_ID,
   sundayPreparationLayout,
