@@ -167,6 +167,7 @@ export function sectionOtherLayout(
           ...element,
           kind: 'itemName' as const,
           frame: {...element.frame, y: 220, h: 260},
+          text: {...element.text, size: 170},
         },
       ];
     }),

@@ -68,3 +68,18 @@ it('fits a long wrapped title to two line boxes at the fitted size', () => {
     false,
   );
 });
+
+it('keeps short text at its 120 px limit and shrinks long text', () => {
+  expect(
+    fitTextInFrame({size: 120, width: 500, height: 200}, () => ({
+      width: 10,
+      height: 10,
+    })),
+  ).toBe(120);
+  expect(
+    fitTextInFrame({size: 120, width: 500, height: 200}, size => ({
+      width: size * 10,
+      height: size,
+    })),
+  ).toBeLessThan(120);
+});

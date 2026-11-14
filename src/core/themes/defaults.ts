@@ -153,7 +153,7 @@ function stageElements(): ThemeElement[] {
         return {
           ...base,
           kind: 'currentText',
-          text: {...text, size: 170, lineHeight: 1.2, maxLines: 4},
+          text: {...text, size: 120, lineHeight: 1.2, maxLines: 4},
         };
       case 'nextSlide':
         return {
@@ -305,7 +305,17 @@ export function legacySectionLayout(screen: ThemeScreen): ThemeScreenLayout {
   if (screen.kind === 'broadcast') {
     return {mode: {kind: 'own'}, elements: audienceElements(true, 'blank')};
   }
-  return layoutFor(screen, 'blank');
+  const layout = layoutFor(screen, 'blank');
+  return screen.kind !== 'stage'
+    ? layout
+    : {
+        ...layout,
+        elements: layout.elements.map(element =>
+          element.kind === 'currentText'
+            ? {...element, text: {...element.text, size: 170}}
+            : element,
+        ),
+      };
 }
 
 /** Builds a fallback for the configured screens, including newly added screen IDs. */

@@ -88,7 +88,7 @@ it('places song lyrics near the top while retaining the starter broadcast styles
   );
   expect(current?.text).toMatchObject({
     font: STARTER_TEXT_STYLE.font,
-    size: 170,
+    size: 120,
     weight: STARTER_TEXT_STYLE.weight,
     vAlign: STARTER_TEXT_STYLE.vAlign,
   });
@@ -532,5 +532,16 @@ it('uses the stage clock and next preview geometry across built-in themes', () =
         frame: {y: 706, h: 272},
       },
     );
+  }
+});
+
+it('limits current text to 120 px in every built-in stage layout', () => {
+  const stage = createScreenId(STARTER_SCREEN_IDS.stage);
+  for (const theme of createDefaultThemes().themes) {
+    for (const element of theme.screens[stage]?.elements ?? []) {
+      if (element.kind === 'currentText') {
+        expect(element.text.size).toBeLessThanOrEqual(120);
+      }
+    }
   }
 });

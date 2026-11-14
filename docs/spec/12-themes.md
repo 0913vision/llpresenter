@@ -759,3 +759,6 @@ muted cue, or the song title when the label is empty. Stage previews show the
 same cue; audience output remains background only. On the built-in broadcast
 layout, an empty song slide shows only the song title; it shows nothing if the
 title is absent, and never falls back to the label.
+
+Built-in stage current text uses at most 120 px; short text does not grow beyond
+this size, and longer text shrinks to fit. Saved user edits remain unchanged.
