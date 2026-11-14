@@ -336,7 +336,7 @@ describe('theme composition drawing', () => {
     },
   );
   it.each([
-    {caption: 'band', transparent: true, shadow: '6px'},
+    {caption: 'band', transparent: true, shadow: '2px 6px'},
     {caption: 'text', transparent: true, shadow: '24px'},
     {caption: 'band', transparent: false, shadow: '2px 2px 0'},
     {caption: 'text', transparent: false, shadow: '2px 2px 0'},
@@ -365,13 +365,17 @@ describe('theme composition drawing', () => {
         `[data-theme-element="${BROADCAST_LOOK_SONG_ID}"] .${classes.block}`,
       );
       expect(text?.style.textShadow).toContain(shadow);
+      if (caption === 'band' && transparent) {
+        expect(text?.style.textShadow).toMatch(/^0(?:px)? 2px 6px/);
+        expect(text?.style.textShadow).toContain('80%');
+      }
       const panel = root.querySelector<HTMLElement>(
         `[data-theme-element="${BROADCAST_LOOK_BAND_ID}"] > div`,
       );
       if (caption === 'band' && panel) {
         expect(panel.style.background).toContain('linear-gradient');
-        if (transparent) expect(panel.style.background).toContain('0.65');
-        else expect(panel.style.background).not.toContain('0.65');
+        if (transparent) expect(panel.style.background).toContain('0.88');
+        else expect(panel.style.background).not.toContain('0.88');
       }
       view.dispose();
     },

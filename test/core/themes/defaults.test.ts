@@ -57,7 +57,7 @@ it('places song lyrics near the top while retaining the starter broadcast styles
     ],
   });
   expect(theme.screens[broadcast]?.elements).toMatchObject([
-    {kind: 'box', box: {fill: '#000000', opacity: 65}},
+    {kind: 'box', box: {fill: '#000000', opacity: 88}},
     {
       kind: 'currentText',
       text: {

@@ -199,7 +199,7 @@ export class ThemeElementView {
       const shadow = capture
         ? `${glass.songTextShadowOffset}px ${glass.songTextShadowOffset}px 0 ${glass.shadowColor}`
         : element.broadcastSong === 'bandText'
-          ? `0 0 ${glass.songBandShadowBlur}px color-mix(in srgb, ${glass.shadowColor} ${glass.songBandShadowOpacity}%, transparent)`
+          ? `0 ${glass.songTextShadowOffset}px ${glass.songBandShadowBlur}px color-mix(in srgb, ${glass.shadowColor} ${glass.songBandShadowOpacity}%, transparent)`
           : `${glass.songTextShadowOffset}px ${glass.songTextShadowOffset}px ${glass.songTextShadowBlur}px color-mix(in srgb, ${glass.shadowColor} ${glass.songTextShadowOpacity}%, transparent), 0 0 ${glass.songGlowBlur}px color-mix(in srgb, ${glass.shadowColor} ${glass.songGlowOpacity}%, transparent)`;
       for (const block of textParent.querySelectorAll<HTMLElement>(
         `.${classes.block}`,
