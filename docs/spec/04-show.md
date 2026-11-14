@@ -1180,3 +1180,7 @@ text also uses its audience weight.
 
 On stage title slides, only the prelude, interlude and outro labels are shown
 after the title; other labels are omitted.
+
+On the last slide of a service Bible item directly adjacent to a sermon-title
+theme item, the stage next line shows the sermon title; other Bible items retain
+the empty next line.

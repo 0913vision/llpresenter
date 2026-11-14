@@ -40,6 +40,22 @@ describe('parseLiveCommand', () => {
     ).toBe(false);
   });
 
+  it('validates the sermon-title stage preview marker', () => {
+    const command = {
+      type: 'stage.next.set',
+      itemId: 'bible',
+      position: 1,
+      next: {label: null, lines: ['Title'], sermonTitle: true},
+    };
+    expect(parseLiveCommand(command)).toEqual({ok: true, value: command});
+    expect(
+      parseLiveCommand({
+        ...command,
+        next: {...command.next, sermonTitle: false},
+      }).ok,
+    ).toBe(false);
+  });
+
   it('checks explicit continuation metadata on the current and next Bible parts', () => {
     const slide = {
       itemId: 'bible',

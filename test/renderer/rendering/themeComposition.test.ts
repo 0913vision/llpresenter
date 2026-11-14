@@ -2743,3 +2743,37 @@ it.each(['\uc804\uc8fc', '\uac04\uc8fc', '\ud6c4\uc8fc'])(
     view.dispose();
   },
 );
+
+it('shows only an adjacent sermon title on stage after the last Bible slide', () => {
+  const {root, view} = setup();
+  const elements: ThemeElement[] = [
+    {...themeElementBase(31), kind: 'nextText'},
+  ];
+  if (song.slide === null) throw Error('Missing slide');
+  const layers: LiveLayers = {
+    ...song,
+    slide: {
+      ...song.slide,
+      kind: 'bible',
+      position: 1,
+      sequenceLength: 2,
+      next: {label: null, lines: ['Sermon title'], sermonTitle: true},
+    },
+  };
+  const draw = (kind: 'stage' | 'audience') =>
+    view.render(layers, {
+      ...frame(elements),
+      screen: {id: THEME_MAIN, kind},
+      transitions: false,
+    });
+  const next = () =>
+    root.querySelector(`[data-kind="nextText"] .${classes.shown}`)
+      ?.textContent ?? '';
+  draw('stage');
+  expect(next()).toBe('Sermon title');
+  draw('audience');
+  expect(
+    root.querySelector<HTMLElement>('[data-kind="nextText"]')?.hidden,
+  ).toBe(true);
+  view.dispose();
+});

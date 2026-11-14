@@ -4,6 +4,7 @@ import {emptyLiveState, type LiveState} from '@core/live/state';
 import {bibleSource} from '@core/bible/source';
 import {sectionCardOf} from '@core/services/sectionCards';
 import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
+import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
 import {createSongSlideId, createSongId} from '@core/schema/ids';
 import {lookupRequest} from '@fixtures/core/bibleLookups';
 import {formLookupReply} from '@fixtures/core/bibleReplies';
@@ -259,6 +260,84 @@ describe('show state', () => {
     sent.length = 0;
     outputTile({itemId: 'psalm-23', index: 2});
     expect(slides().at(-1)?.slide.next).toBeUndefined();
+  });
+
+  it.each(['before', 'after'] as const)(
+    'shows the adjacent sermon title on the last Bible slide when it is %s',
+    position => {
+      const bible = {kind: 'bible' as const, id: 'psalm-23', title: 'Passage'};
+      const sermon = {
+        kind: 'slides' as const,
+        id: 'sermon',
+        title: 'Sermon',
+        form: 'blank' as const,
+        theme: SERMON_TITLE_THEME_ID,
+      };
+      useShow.setState(state => ({
+        rows: position === 'before' ? [sermon, bible] : [bible, sermon],
+        tiles: {
+          ...state.tiles,
+          sermon: [
+            {
+              label: null,
+              labelColor: 'none',
+              lines: ['Sermon title', 'English subtitle'],
+            },
+          ],
+        },
+      }));
+      setAtLastSlide('stop');
+      outputTile({itemId: 'psalm-23', index: 2});
+      expect(slides().at(-1)?.slide.next).toEqual({
+        label: null,
+        lines: ['Sermon title'],
+        sermonTitle: true,
+      });
+      outputTile({itemId: 'psalm-23', index: 1});
+      expect(slides().at(-1)?.slide.next).not.toHaveProperty('sermonTitle');
+      setLive('psalm-23', 2);
+      applyService({
+        ...sampleService,
+        revision: 3,
+        rows: position === 'before' ? [sermon, bible] : [bible, sermon],
+        tiles: {
+          ...sampleService.tiles,
+          sermon: [
+            {
+              label: null,
+              labelColor: 'none',
+              lines: ['Updated title', 'English'],
+            },
+          ],
+        },
+      });
+      expect(sent.at(-1)).toMatchObject({
+        type: 'stage.next.set',
+        next: {lines: ['Updated title'], sermonTitle: true},
+      });
+    },
+  );
+
+  it('does not add a sermon preview when a Bible item is not adjacent to the sermon', () => {
+    useShow.setState(state => ({
+      rows: [
+        {kind: 'bible', id: 'psalm-23', title: 'Passage'},
+        {kind: 'header', id: 'gap', title: 'Gap'},
+        {
+          kind: 'slides',
+          id: 'sermon',
+          title: 'Sermon',
+          form: 'blank',
+          theme: SERMON_TITLE_THEME_ID,
+        },
+      ],
+      tiles: {
+        ...state.tiles,
+        sermon: [{label: null, labelColor: 'none', lines: ['Title']}],
+      },
+    }));
+    outputTile({itemId: 'psalm-23', index: 2});
+    expect(slides().at(-1)?.slide.next).not.toHaveProperty('sermonTitle');
   });
 
   it('updates the stage preview when continuous navigation changes while a slide is live', () => {

@@ -4,6 +4,7 @@ import type {SingleLiveCommand} from '@core/live/commands';
 import {findSlideHotKey} from '@core/services/slideHotKeys';
 import {parseServiceItemId} from '@core/schema/ids';
 import type {ShowService} from '@core/schema/showService';
+import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
 import {
   type ItemId,
   type SlideTile,
@@ -249,6 +250,38 @@ export function outputTile(
   }
 }
 
+/** Finds the adjacent sermon title for the last slide of a service Bible item. */
+function sermonNext(cursor: TileCursor): NextSlide | undefined {
+  const view = useShow.getState();
+  const index = view.rows.findIndex(row => row.id === cursor.itemId);
+  const row = view.rows[index];
+  if (
+    row?.kind !== 'bible' ||
+    cursor.index !== tilesOf(cursor.itemId).length - 1
+  ) {
+    return undefined;
+  }
+  const neighbors = [view.rows[index + 1], view.rows[index - 1]];
+  const sermon = neighbors.find(
+    candidate =>
+      candidate !== undefined &&
+      (candidate.kind === 'slides' || candidate.kind === 'song') &&
+      candidate.theme === SERMON_TITLE_THEME_ID,
+  );
+  if (sermon === undefined) return undefined;
+  const tile = tilesOf(sermon.id).find(
+    value =>
+      value.sectionCard === undefined &&
+      value.lines.some(line => line.trim() !== ''),
+  );
+  const title = tile?.lines
+    .join('\n')
+    .split('\n')
+    .find(line => line.trim() !== '')
+    ?.trim();
+  return title ? {label: null, lines: [title], sermonTitle: true} : undefined;
+}
+
 /** Builds the same following item that the next-slide command will open. */
 function stageSlideOf(cursor: TileCursor) {
   const view = useShow.getState();
@@ -286,7 +319,11 @@ function stageSlideOf(cursor: TileCursor) {
               }),
           ...(after === undefined ? {} : {after}),
         };
-  return slideLayerOf(cursor, tilesOf, following);
+  const slide = slideLayerOf(cursor, tilesOf, following);
+  const sermon = sermonNext(cursor);
+  return slide === null || sermon === undefined
+    ? slide
+    : {...slide, next: sermon};
 }
 
 interface SongOutput {
@@ -367,6 +404,7 @@ function nextKey(next: NextSlide | null | undefined): string {
         next.continued ?? null,
         next.biblePart ?? null,
         next.titleSlide ?? null,
+        next.sermonTitle ?? null,
       ]);
 }
 
@@ -394,8 +432,15 @@ function refreshStageNext(): void {
           : row.kind;
   const afterCard =
     cursor === null ? undefined : tilesOf(cursor.itemId)[cursor.index + 1];
+  const live = liveCursor();
+  const sermon = sermonNext(
+    live?.itemId === slide.itemId
+      ? live
+      : {itemId: slide.itemId, index: slide.position},
+  );
   const next =
-    tile === undefined
+    sermon ??
+    (tile === undefined
       ? null
       : nextSlideOf(tile, kind, {
           title: row?.title,
@@ -404,7 +449,7 @@ function refreshStageNext(): void {
             cursor === null
               ? undefined
               : noticeNumber(tilesOf(cursor.itemId), cursor.index),
-        });
+        }));
   const key = nextKey(next);
   if (
     pendingStageNext !== undefined &&
