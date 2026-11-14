@@ -78,6 +78,7 @@ export function showBiblePassage(
           verseNumbers: prepared.verseNumbers,
           reference: prepared.reference,
           translationName: prepared.translationName,
+          transition: prepared.transition,
           enteredRef: prepared.enteredRef,
           enteredTranslation: prepared.enteredTranslation,
           review: true,

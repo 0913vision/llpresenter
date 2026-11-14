@@ -62,6 +62,7 @@ const bibleReferenceSchema = v.pipe(
     verseNumbers: v.exactOptional(v.boolean()),
     translationName: v.exactOptional(v.boolean()),
     reference: v.exactOptional(bibleReferenceFrequencySchema),
+    transition: v.exactOptional(slideTransitionSchema),
     theme: v.exactOptional(themeIdSchema),
     transitions: v.exactOptional(biblePartTransitionsSchema),
     passage: v.exactOptional(

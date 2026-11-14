@@ -88,6 +88,7 @@ describe('quick execution', () => {
             type: 'slide.show',
             slide: {
               position: 0,
+              transition: {kind: 'wipe', dir: 'left', sec: 0.7},
               lines: [
                 `${numbers ? '16 ' : ''}Invented book 43, chapter 3, verse 16`,
               ],

@@ -1,5 +1,6 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {LiveState} from '@core/live/state';
+import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
 import {
   isKnownQuickItem,
   type KnownQuickItem,
@@ -105,6 +106,7 @@ export function quickRunner(api: LlpApi, onProblem: (notice: Notice) => void) {
           const display = {
             verseNumbers: item.ref.verseNumbers,
             review: false,
+            transition: QUICK_BIBLE_TRANSITION,
           };
           openBiblePassage(reply.result.value, display);
           selectTile(0);

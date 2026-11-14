@@ -147,6 +147,16 @@ describe('BibleQuickField', () => {
       });
     }
     await waitFor(() => expect(currentRef()).toBe('요한복음 3:16-18'));
+    expect(
+      useShow
+        .getState()
+        .bibleSource?.tiles.every(
+          tile =>
+            tile.transition?.kind === 'wipe' &&
+            tile.transition.dir === 'left' &&
+            tile.transition.sec === 0.7,
+        ),
+    ).toBe(true);
     const typed = useShow.getState().bibleSource;
     const grown = await passage('요한복음 3:16-19');
     act(() =>

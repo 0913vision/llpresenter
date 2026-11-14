@@ -240,6 +240,9 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
               verseNumbers: item.bible.verseNumbers,
               translationName: item.bible.translationName,
               reference: item.bible.reference,
+              ...(item.bible.transition === undefined
+                ? {}
+                : {transition: item.bible.transition}),
               ...(item.bibleTransitions === undefined
                 ? {}
                 : {transitions: item.bibleTransitions}),

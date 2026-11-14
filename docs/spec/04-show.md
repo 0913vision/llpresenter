@@ -1050,6 +1050,11 @@ integration use this contract, with a distinct cancellable ID per lookup.
 - Buttons: 앞 절 추가 (add the previous verse), 뒤 절 추가 (add the next verse),
   예배 순서에 넣기 (add to the 예배 순서), and 바로 띄우기 (show now, outputs
   the selected 슬라이드; the primary button).
+- Bible passages opened or shown from 퀵 실행 use a 0.7-second wipe to the left
+  on every part, including the first slide and split verses. Inserting the
+  passage into the service retains that default; existing service items are not
+  changed. Per-slide transition edits still take precedence. Audience uses the
+  wipe; stage and broadcast cut immediately.
 - 앞 절 추가 and 뒤 절 추가 extend the preview's range by one verse, using its
   translation's chapter counts. They can cross chapters within the book,
   following

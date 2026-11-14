@@ -3,6 +3,7 @@ import type {TranslationId} from '../schema/ids';
 import type {BiblePassage} from '../schema/biblePassage';
 import {bibleVerseTiles} from './bibleTiles';
 import type {SlideTile} from '../presentation/model';
+import type {SlideTransition} from '../schema/slideTransition';
 
 export interface BibleDisplayOptions {
   readonly verseNumbers: boolean;
@@ -12,6 +13,7 @@ export interface BibleDisplayOptions {
 }
 
 export interface BiblePreviewOptions extends BibleDisplayOptions {
+  readonly transition?: SlideTransition | undefined;
   readonly review?: boolean | undefined;
   readonly enteredRef?: string | undefined;
   readonly enteredTranslation?: TranslationId | undefined;
@@ -49,12 +51,20 @@ export function bibleSource(
     reference,
     translationName,
     review: options.review ?? true,
+    ...(options.transition === undefined
+      ? {}
+      : {transition: options.transition}),
     ...(options.enteredRef === undefined
       ? {}
       : {enteredRef: options.enteredRef}),
     ...(options.enteredTranslation === undefined
       ? {}
       : {enteredTranslation: options.enteredTranslation}),
-    tiles: bibleVerseTiles(passage, {verseNumbers, reference, translationName}),
+    tiles: bibleVerseTiles(passage, {
+      verseNumbers,
+      reference,
+      translationName,
+      transition: options.transition,
+    }),
   };
 }

@@ -10,6 +10,7 @@ import {themeElementBase} from '@fixtures/core/themeOutput';
 import {themeElementText} from '@core/themes/content';
 import {emptyLayers} from '@core/live/state';
 import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
+import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
 
 it('keeps the item range in Bible preview compositions without replacing individual verse metadata', () => {
   const passage = panelPassage();
@@ -98,6 +99,69 @@ it('labels split verse parts and leaves an unsplit verse unnumbered', () => {
     projection.tiles.slice(0, split.length).map(tile => tile.label),
   ).toEqual(split.map(part => `\uD5693:17 (${part.part})`));
   expect(projection.tiles.at(-1)?.label).toBe('\uD5693:18');
+});
+
+it('applies the quick default to every split part and preserves per-part overrides', () => {
+  const passage = {
+    ...panelPassage(),
+    ref: '하박국 3:17',
+    displayRef: '하박국 3:17',
+    verses: [{chapter: 3, verse: 17, text: MOCK_LONG_VERSE}],
+  };
+  const source = {
+    id: 'quick',
+    kind: 'bible' as const,
+    source: 'external' as const,
+    passage,
+    verseNumbers: true,
+    translationName: false,
+    reference: 'every' as const,
+    transition: QUICK_BIBLE_TRANSITION,
+  };
+  const options = {
+    element: {...themeElementBase(), kind: 'currentText' as const},
+    layout: mockSplitLayout(),
+  };
+  const quick = projectBible(source, options);
+  if (!quick) throw Error('Expected projection');
+  expect(quick.tiles.length).toBeGreaterThan(1);
+  expect(
+    quick.tiles.every(
+      tile =>
+        JSON.stringify(tile.transition) ===
+        JSON.stringify({kind: 'wipe', dir: 'left', sec: 0.7}),
+    ),
+  ).toBe(true);
+  const overridden = projectBible(
+    {
+      ...source,
+      transitions: [
+        {
+          verse: {
+            translation: passage.translation,
+            book: 35,
+            chapter: 3,
+            verse: 17,
+          },
+          part: 2,
+          transition: {kind: 'none', sec: 0.7},
+        },
+      ],
+    },
+    options,
+  );
+  expect(overridden?.tiles[0]?.transition).toEqual({
+    kind: 'wipe',
+    dir: 'left',
+    sec: 0.7,
+  });
+  expect(overridden?.tiles[1]?.transition).toEqual({kind: 'none', sec: 0.7});
+  const {transition: _default, ...oldSource} = source;
+  expect(
+    projectBible({...oldSource, source: 'service'}, options)?.tiles.every(
+      tile => tile.transition === undefined,
+    ),
+  ).toBe(true);
 });
 
 it('keeps an assigned label while numbering the parts of an inserted verse', () => {

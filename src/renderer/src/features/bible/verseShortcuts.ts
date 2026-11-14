@@ -83,6 +83,9 @@ export async function outputAdjacentBibleVerse(
       translationName:
         source?.translationName ??
         (row?.kind === 'bible' ? row.bible?.translationName : undefined),
+      transition:
+        source?.transition ??
+        (row?.kind === 'bible' ? row.bible?.transition : undefined),
       enteredRef: source?.enteredRef ?? passage.ref,
       enteredTranslation: source?.enteredTranslation ?? passage.translation,
     });

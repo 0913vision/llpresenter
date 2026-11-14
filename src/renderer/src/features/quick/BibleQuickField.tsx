@@ -1,4 +1,5 @@
 import {withLiveBible} from '@core/bible/liveTranslation';
+import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
 import {useRef} from 'react';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useEffect, useState, type JSX} from 'react';
@@ -97,7 +98,11 @@ export function BibleQuickField({
                 equivalent.translation &&
               display !== null
             ) {
-              openBiblePassage(equivalent, {...display, review: false});
+              openBiblePassage(equivalent, {
+                ...display,
+                review: false,
+                transition: QUICK_BIBLE_TRANSITION,
+              });
             } else {
               useShow.setState({
                 bibleSource: {...source, enteredRef: undefined},
@@ -107,7 +112,11 @@ export function BibleQuickField({
         }}
         onPreview={passage => {
           if (display !== null) {
-            openBiblePassage(passage, {...display, review: false});
+            openBiblePassage(passage, {
+              ...display,
+              review: false,
+              transition: QUICK_BIBLE_TRANSITION,
+            });
           }
         }}
         onShow={passage => {
@@ -125,6 +134,7 @@ export function BibleQuickField({
           showBiblePassage(expanded ? prepared.passage : passage, {
             ...options,
             review: false,
+            transition: QUICK_BIBLE_TRANSITION,
           });
         }}
       />

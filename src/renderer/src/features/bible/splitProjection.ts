@@ -10,6 +10,7 @@ import type {BibleCutsFile} from '@core/schema/bibleCuts';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import type {BiblePassage} from '@core/schema/biblePassage';
 import type {BiblePartTransition} from '@core/schema/service';
+import type {SlideTransition} from '@core/schema/slideTransition';
 import {biblePartEffect} from '@core/bible/partTransitions';
 import {createScreenId, type ThemeId} from '@core/schema/ids';
 import type {ThemeScreen} from '@core/themes/defaults';
@@ -40,6 +41,7 @@ export interface SplitAppearance {
 interface SplitOptions {
   readonly background?: string;
   readonly transitions?: readonly BiblePartTransition[];
+  readonly transition?: SlideTransition;
   readonly id: string;
   readonly verseNumbers: boolean;
   readonly reference: BiblePassage['reference'];
@@ -115,6 +117,9 @@ export function splitSourceFor(
       translationName: external.translationName ?? false,
       source: 'external',
       review: external.review !== false,
+      ...(external.transition === undefined
+        ? {}
+        : {transition: external.transition}),
     };
   }
   const row = view.rows.find(row => row.id === itemId);
@@ -145,6 +150,9 @@ export function splitSourceFor(
     verseNumbers: row.bible.verseNumbers ?? true,
     reference: row.bible.reference ?? 'every',
     translationName: row.bible.translationName ?? false,
+    ...(row.bible.transition === undefined
+      ? {}
+      : {transition: row.bible.transition}),
     ...(row.bible.transitions === undefined
       ? {}
       : {transitions: row.bible.transitions}),
@@ -215,11 +223,9 @@ export function projectBible(
       continued: part.continued,
       biblePart: part.part,
       ...(() => {
-        const transition = biblePartEffect(
-          source.transitions,
-          part.reference,
-          part.part,
-        );
+        const transition =
+          biblePartEffect(source.transitions, part.reference, part.part) ??
+          source.transition;
         return transition === undefined ? {} : {transition};
       })(),
       ...(source.reference === 'every' ||
@@ -272,6 +278,7 @@ export class BibleProjections {
       cached.source.reference === source.reference &&
       cached.source.translationName === source.translationName &&
       cached.source.transitions === source.transitions &&
+      cached.source.transition === source.transition &&
       cached.source.review === source.review
     ) {
       return cached;

@@ -83,7 +83,8 @@ export function OtherSlideInspector({
   const part = index >= 0 ? projection?.partsByTile[index] : undefined;
   const transition =
     bible && part != null
-      ? biblePartEffect(item.bibleTransitions, part.reference, part.part)
+      ? (biblePartEffect(item.bibleTransitions, part.reference, part.part) ??
+        item.bible.transition)
       : card?.transition;
   const changeTransition = (next: SlideTransition | undefined): void => {
     if (item === null || service === null) return;
@@ -106,7 +107,10 @@ export function OtherSlideInspector({
           const updated = setBiblePartEffect(
             current.bibleTransitions,
             {verse: part.reference, part: part.part},
-            next,
+            next ??
+              (current.bible.transition === undefined
+                ? undefined
+                : {kind: 'none', sec: current.bible.transition.sec}),
           );
           const {bibleTransitions: _old, ...rest} = current;
           return {
