@@ -162,7 +162,7 @@ export class ThemeElementView {
         bottom: '100%',
         left: '0',
         width: '100%',
-        color: '#ffffff',
+        color: STAGE_COLORS.next,
         fontFamily: 'NanumSquare, sans-serif',
         fontSize: '40px',
         lineHeight: '1.2',
