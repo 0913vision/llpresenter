@@ -962,14 +962,15 @@ tables, charts, notes and comments are ignored. Line breaks and XML entities are
 decoded, trailing whitespace is removed, and empty lines are dropped.
 
 The preview starts with all slides selected. Click a slide and Shift-click
-another to select an inclusive range. The default name is its first title line,
-or the file name without extension. Body placeholders supply lyrics and take
-precedence over decorative text. A slide with other text is a title when it is
-the first slide with text in the range, or repeats that title's first line;
-other such slides are lyrics. Empty slides remain blank. A title uses at most
-two shapes, retaining each shape's paragraphs as separate lines with their
-positions and formatting. 편집 opens the unsaved song editor; 저장 there adds
-the song to the library.
+another to select an inclusive range. The default name joins the first title
+shape's lines with spaces, excluding any second shape used as a subtitle; if
+there is no title, it uses the file name without extension. Body placeholders
+supply lyrics and take precedence over decorative text. A slide with other text
+is a title when it is the first slide with text in the range, or repeats that
+title's first line; other such slides are lyrics. Empty slides remain blank. A
+title uses at most two shapes, retaining each shape's paragraphs as separate
+lines with their positions and formatting. 편집 opens the unsaved song editor;
+저장 there adds the song to the library.
 
 가사 and 배경 are selected by default. At least one remains selected. 가사 alone
 opens a song without importing media; 배경 alone imports the selected range
