@@ -22,6 +22,7 @@ import styles from './SongEditor.module.css';
 import {SlideTransitionMark} from '@renderer/ui/SlideTransitionMark';
 import {EditorSlideNumber} from './EditorSlideNumber';
 import plate from './EditorSlidePlate.module.css';
+import field from '@renderer/ui/TextField.module.css';
 import {SONG_LIMITS} from '@core/schema/song';
 import type {SlideCardRenderer} from './SlideCardRenderer';
 
@@ -308,7 +309,7 @@ export const SongBlock = memo(
                     ? `제목 및 부제: 두 줄, 각 ${SONG_LIMITS.titleLine}자`
                     : undefined
                 }
-                className={styles.lyrics}
+                className={`${field.textarea} ${styles.lyrics}`}
                 value={slide.lines.join('\n')}
                 data-empty={slide.lines.join('\n') === '' || undefined}
                 rows={Math.max(1, slide.lines.length)}

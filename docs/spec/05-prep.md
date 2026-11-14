@@ -218,8 +218,10 @@ not dim when focus leaves. 진행 retains its existing thumbnail style.
   clipboard, drag, and undo implementation. Table-grid edits save through the
   same item writer; opening and returning from the editor retains its history.
 - Enter or forward Tab in a song title or slides item name commits the name and
-  puts the caret in the first slide's text field. Empty song text fields have a
-  visible field fill and border, without instructional text.
+  puts the caret in the first slide's text field. Song lyric fields have a
+  visible fill, border and focus ring and grow with their contents. Clicking the
+  surrounding row selects slides, including Ctrl and Shift selection; clicks
+  inside the field edit text. Empty fields have no instructional text.
 
 ### 오버레이 on 슬라이드
 

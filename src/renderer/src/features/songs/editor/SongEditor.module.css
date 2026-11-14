@@ -71,6 +71,7 @@
 .text {
   display: flex;
   flex-direction: column;
+  align-items: flex-start;
   gap: var(--space-8);
   min-width: 0;
 }
@@ -105,25 +106,19 @@
 
 .lyrics {
   box-sizing: border-box;
-  width: 100%;
-  min-width: 0;
-  padding: 0;
-  border: 0;
-  outline: none;
-  background: transparent;
-  color: var(--text);
-  font: var(--type-body);
-  resize: none;
+  width: fit-content;
+  min-width: min(100%, var(--size-field-title));
+  max-width: 100%;
+  min-height: var(--size-control-md);
+  max-height: none;
+  box-shadow: inset 0 0 0 var(--radius-hairline) var(--line-control);
 }
 
-.lyrics:focus-visible {
-  outline: none;
+.lyrics:hover:not([readonly]):not(:focus) {
+  box-shadow: inset 0 0 0 var(--radius-hairline) var(--line-control-hover);
 }
-.lyrics[data-empty] {
-  min-height: var(--size-control-md);
-  border-radius: var(--radius-sm);
-  box-shadow: inset 0 0 0 var(--radius-hairline) var(--line-control);
-  background: var(--bg-control);
+.lyrics:focus {
+  box-shadow: var(--ring-field-focus);
 }
 
 .splitButton {
@@ -155,12 +150,11 @@
   position: relative;
 }
 .block[data-grid] .lyrics {
+  width: 100%;
   field-sizing: content;
   max-height: none;
   overflow: hidden;
   min-height: calc(var(--size-control-md) * 2);
-  background: var(--bg-control);
-  padding: var(--space-4);
   white-space: pre-wrap;
 }
 

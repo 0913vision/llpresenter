@@ -243,6 +243,27 @@ describe('song editor view', () => {
     expect(input.value.length).toBe(length + 1);
   });
 
+  it('selects rows from the area beside the lyric field and keeps field clicks for editing', async () => {
+    const {session} = await editorSetup();
+    const rows = [
+      ...document.querySelectorAll<HTMLElement>('[data-editor-block]'),
+    ];
+    const first = rows[0]?.querySelector<HTMLElement>('[data-grid-text]');
+    const second = rows[1]?.querySelector<HTMLElement>('[data-grid-text]');
+    if (!first || !second) throw Error('Missing text areas');
+    fireEvent.click(first);
+    fireEvent.click(second, {ctrlKey: true});
+    expect(session.slideModel.getSnapshot().selection.ids.size).toBe(2);
+    fireEvent.click(first);
+    fireEvent.click(second, {shiftKey: true});
+    expect(session.slideModel.getSnapshot().selection.ids.size).toBe(2);
+    fireEvent.click(first);
+    const field = second.querySelector('textarea');
+    if (!field) throw Error('Missing lyric field');
+    fireEvent.click(field, {ctrlKey: true});
+    expect(session.slideModel.getSnapshot().selection.ids.size).toBe(1);
+  });
+
   it('adds, edits, undoes and deletes a title while keeping repeat insertion available', async () => {
     const {session, user} = await editorSetup();
     const before = session.history.snapshot.song.slides;

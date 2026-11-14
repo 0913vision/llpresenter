@@ -18,10 +18,12 @@ function Fixture({
   mode = 'list',
   scale = 100,
   heights,
+  fieldPadding = 0,
 }: {
   readonly mode?: 'list' | 'grid';
   readonly scale?: number;
   readonly heights?: ReadonlyArray<number | undefined> | undefined;
+  readonly fieldPadding?: number;
   readonly slides: readonly WindowSlideItem[];
   readonly selected: number;
 }) {
@@ -47,7 +49,11 @@ function Fixture({
           >
             <textarea
               aria-label={`Row ${index}`}
-              style={{lineHeight: '20px'}}
+              style={{
+                lineHeight: '20px',
+                padding: `${fieldPadding}px 0`,
+                border: 0,
+              }}
               defaultValue={slides[index]?.lines.join('\n')}
             />
           </div>
@@ -78,6 +84,27 @@ function observer() {
 }
 
 describe('song block window measurements', () => {
+  it('accounts for field padding for tall lyrics without adding gaps after short rows', () => {
+    const measured = observer();
+    render(
+      <Fixture
+        slides={[
+          {lines: ['one']},
+          {lines: ['one', 'two', 'three']},
+          {lines: ['next']},
+        ]}
+        selected={0}
+        fieldPadding={8}
+      />,
+    );
+    act(() => measured.resize());
+    expect(
+      screen.getByRole('textbox', {name: 'Row 1'}).parentElement?.style.top,
+    ).toBe('65px');
+    expect(
+      screen.getByRole('textbox', {name: 'Row 2'}).parentElement?.style.top,
+    ).toBe('170px');
+  });
   it('aligns a four-line and a six-line grid cell and preserves scrolling as the row grows', () => {
     const measured = observer();
     const slides = [
