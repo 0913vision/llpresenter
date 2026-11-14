@@ -10,12 +10,25 @@ const frame = Buffer.alloc(1920 * 1080 * 4);
 let reader;
 let sender;
 let hasFrame = false;
+let announced = false;
+const probe = process.env?.LLP_NDI_PROBE === '1';
 const pacer = createPacer(() => sender.send(frame), frameRate());
 try {
   require('koffi');
   process.parentPort.postMessage({type: 'native-loaded'});
   reader = create();
-  sender = openReal();
+  sender = probe
+    ? {
+        sync() {},
+        send(data) {
+          process.parentPort.postMessage({
+            type: 'pixels',
+            data,
+          });
+        },
+        close() {},
+      }
+    : openReal();
   process.parentPort.postMessage({type: 'ready'});
 } catch (error) {
   process.parentPort.postMessage({
@@ -53,7 +66,11 @@ process.parentPort.on('message', event => {
     hasFrame = true;
     process.parentPort.postMessage({type: 'copied'});
     sender.send(frame);
-    pacer.sent();
+    if (!announced) {
+      announced = true;
+      process.parentPort.postMessage({type: 'live'});
+    }
+    if (!probe) pacer.sent();
   } catch (error) {
     process.parentPort.postMessage({
       type: 'error',

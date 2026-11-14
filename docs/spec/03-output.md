@@ -510,9 +510,12 @@ Source: `Overlays`, `ShowH` (target screens in the showing list), product log
   compatible version, DistroAV, and the NDI Runtime. Network controls and the
   display layout receiver count remain later work (09).
 - NDI hardware acceleration is optional and on by default. When enabled, shared
-  GPU textures go to the sender utility; if unavailable, the output uses the
-  bitmap path and shows one notice without changing the saved option. A GPU
-  utility crash first falls back to the bitmap sender, not the capture window.
+  GPU textures go to the sender utility. A startup timeout retries once after a
+  short pause; other GPU failures use the bitmap sender immediately. While on
+  bitmap, the app retries shared textures in the background, keeps the same NDI
+  sender during recovery, and returns to GPU input after a frame is sent. It
+  retries silently without changing the saved option. A GPU utility crash first
+  falls back to the bitmap sender, not the capture window.
 - An unavailable NDI Runtime is remembered until the method is toggled or the
   app restarts.
 

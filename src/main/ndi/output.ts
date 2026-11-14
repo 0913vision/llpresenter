@@ -25,6 +25,12 @@ import {NDI_FRAME_WIDTH, NDI_FRAME_HEIGHT} from './textureQueue';
 export const NDI_SEND_TIMEOUT_MS = 5000;
 export const NDI_STOP_TIMEOUT_MS = 2000;
 
+/** Retains the original sender while accepting frames from a GPU capture. */
+export interface BitmapSender extends OutputWindowHandle {
+  setGpuInput(enabled: boolean): void;
+  submitGpuPixels(data: Uint8Array, sent: () => void): void;
+}
+
 /** Creates an offscreen output whose sender is isolated in a utility process. */
 export function createNdiOutput(
   screen: OutputScreen,
@@ -91,7 +97,7 @@ function createBitmapOutput(
   screen: OutputScreen,
   events: OutputWindowEvents,
   options: {log: Logger; onFailure: (id: string, missing: boolean) => void},
-): OutputWindowHandle {
+): BitmapSender {
   const {log, onFailure} = options;
   const win = new BrowserWindow({
     show: false,
@@ -130,6 +136,9 @@ function createBitmapOutput(
   let ready = false;
   let inFlight = false;
   let pending: {dirty: Rectangle; image: NativeImage} | null = null;
+  let gpuInput = false;
+  let pendingGpu: {data: Uint8Array; sent: () => void} | null = null;
+  let gpuSent: (() => void) | null = null;
   let closed = false;
   let watchdog: ReturnType<typeof setTimeout> | null = null;
   let heartbeatWatchdog: ReturnType<typeof setTimeout> | null = null;
@@ -139,11 +148,37 @@ function createBitmapOutput(
     inFlight = true;
     sendMessage(child, {type: 'frame', data: {...dirty, data}});
   };
+  const sendGpu = (): void => {
+    if (
+      !gpuInput ||
+      pendingGpu === null ||
+      child === null ||
+      !ready ||
+      inFlight
+    ) {
+      return;
+    }
+    const next = pendingGpu;
+    pendingGpu = null;
+    gpuSent = next.sent;
+    inFlight = true;
+    sendMessage(child, {
+      type: 'frame',
+      data: {
+        x: 0,
+        y: 0,
+        width: NDI_FRAME_WIDTH,
+        height: NDI_FRAME_HEIGHT,
+        data: Buffer.from(next.data),
+      },
+    });
+  };
   win.webContents.on('paint', (_event, dirty, image) => {
     if (
       child === null ||
       closed ||
       !ready ||
+      gpuInput ||
       dirty.width <= 0 ||
       dirty.height <= 0
     ) {
@@ -174,6 +209,8 @@ function createBitmapOutput(
     ready = false;
     inFlight = false;
     pending = null;
+    pendingGpu = null;
+    gpuSent = null;
     if (old === null || exited) return;
     const killTimer = setTimeout(() => old.kill(), NDI_STOP_TIMEOUT_MS);
     killTimer.unref();
@@ -234,13 +271,18 @@ function createBitmapOutput(
       if (message.type === 'ready') {
         ready = true;
         win.webContents.invalidate();
+        sendGpu();
       }
       if (message.type === 'sent') {
         if (heartbeatWatchdog === null) monitorHeartbeat(worker);
         if (watchdog !== null) clearTimeout(watchdog);
         watchdog = null;
         inFlight = false;
-        if (pending !== null) {
+        const done = gpuSent;
+        gpuSent = null;
+        done?.();
+        if (gpuInput) sendGpu();
+        else if (pending !== null) {
           const {dirty, image} = pending;
           pending = null;
           sendFrame(dirty, image);
@@ -265,6 +307,19 @@ function createBitmapOutput(
     });
   };
   return {
+    setGpuInput: enabled => {
+      gpuInput = enabled;
+      pending = null;
+      if (!enabled) {
+        pendingGpu = null;
+        win.webContents.invalidate();
+      }
+    },
+    submitGpuPixels: (data, sent) => {
+      if (data.byteLength !== NDI_FRAME_WIDTH * NDI_FRAME_HEIGHT * 4) return;
+      pendingGpu = {data, sent};
+      sendGpu();
+    },
     configure: next => {
       const changed =
         next.ndi?.sourceName !== current.ndi?.sourceName ||
