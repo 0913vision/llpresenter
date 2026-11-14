@@ -83,6 +83,7 @@ describe('SlideLayerView', () => {
     try {
       const {view, shownPage} = setUp();
       view.setLineMode('song');
+      view.setBalanceWrap(true);
       view.show(VERSE, false);
       const block = shownPage()?.querySelector<HTMLElement>(
         `.${classes.block}`,
@@ -93,16 +94,30 @@ describe('SlideLayerView', () => {
         return (Number.parseFloat(this.style.fontSize) || 0) * 10;
       });
       view.show(
-        {...VERSE, itemId: 'long-line', lines: ['A much longer line']},
+        {
+          ...VERSE,
+          itemId: 'long-line',
+          lines: ['A much longer line', 'another line'],
+        },
         false,
       );
       expect(
         shownPage()?.querySelector<HTMLElement>(`.${classes.block}`)?.style,
-      ).toMatchObject({fontSize: '72px', whiteSpace: ''});
+      ).toMatchObject({
+        fontSize: '72px',
+        whiteSpace: '',
+        textWrap: 'balance',
+        wordBreak: 'keep-all',
+        overflowWrap: 'normal',
+      });
+      expect(
+        shownPage()?.querySelector(`.${classes.block}`)?.children,
+      ).toHaveLength(2);
+      view.setBalanceWrap(false);
       view.setLineMode('bar');
       expect(
         shownPage()?.querySelector<HTMLElement>(`.${classes.block}`)?.style,
-      ).toMatchObject({fontSize: '20px', whiteSpace: 'pre'});
+      ).toMatchObject({fontSize: '20px', whiteSpace: 'pre', textWrap: ''});
       view.dispose();
     } finally {
       height.mockRestore();
@@ -121,6 +136,7 @@ describe('SlideLayerView', () => {
     const parent = document.createElement('div');
     const view = new SlideLayerView(parent, {...DEFAULT_TEXT_STYLE, size: 108});
     view.setLineMode('lyrics');
+    view.setBalanceWrap(true);
     view.show(
       {
         ...VERSE,
@@ -151,10 +167,12 @@ describe('SlideLayerView', () => {
       fontSize: '76px',
       wordBreak: 'keep-all',
       overflowWrap: 'normal',
+      textWrap: 'balance',
     });
     expect(shown()?.textContent).toContain('\uadf8\u00a0\ubd84\uc758');
     expect(shown()?.textContent).toContain('\ud558\ub098\u00a0\ub098');
     view.setLineMode('normal');
+    view.setBalanceWrap(false);
     expect(shown()?.style.overflowWrap).toBe('');
     expect(shown()?.textContent).toBe(
       '\uadf8 \ubd84\uc758 \ud558\ub098 \ub098 \ub2e4\ub978 \ub9d0',

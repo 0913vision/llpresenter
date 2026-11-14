@@ -367,6 +367,15 @@ export class ThemeElementView {
           line.runs.map(run => run.text).join('') ===
           importedSlide.lines[index],
       ) === true;
+    this.text?.setBalanceWrap(
+      isSong &&
+        (stage ||
+          (frame.screen?.kind === 'audience' &&
+            element.kind === 'currentText')) &&
+        (element.kind === 'nextText'
+          ? next?.titleSlide !== true
+          : slide?.titleSlide !== true),
+    );
     this.text?.setLineMode(
       (element.broadcastSongTitle !== undefined &&
         element.broadcastSongTitleWrap === false) ||

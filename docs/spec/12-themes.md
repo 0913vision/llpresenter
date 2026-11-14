@@ -772,10 +772,12 @@ Edited text without matching imported formatting uses the theme.
 
 On the stage, song source lines stay whole at the largest fitting size down to
 72 px at 1920 x 1080, two thirds of the church deck's 108 px lyric size; longer
-lines wrap at spaces at that minimum. Next text stays at least 48 px, two thirds
-of 72 px, matching the existing next-text size ratio. Bible parts on stage and
-broadcast join the audience rows with spaces and wrap within their own text
-frames; the stage next-verse preview does the same, left-aligned like the
+lines wrap at word boundaries at that minimum. Each wrapped source line is
+balanced independently on stage and when audience lyrics fall back to wrapping,
+without removing authored line breaks. Next text stays at least 48 px, two
+thirds of 72 px, matching the existing next-text size ratio. Bible parts on
+stage and broadcast join the audience rows with spaces and wrap within their own
+text frames; the stage next-verse preview does the same, left-aligned like the
 current verse. Song lines retain their author-entered breaks. Other prose
 continues to wrap. When continuous next-item navigation is enabled, the stage
 next preview follows the same next-item selection and skips the same rows as the
