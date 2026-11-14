@@ -218,9 +218,18 @@ function PowerPointDialog({
     [source, start, finish],
   );
   const slides = useMemo(() => powerpointSlides(range), [range]);
-  const defaultTitle =
-    slides.find(slide => 'titleSlide' in slide && slide.titleSlide)?.lines[0] ??
-    source.fileName.replace(/\.[^.]+$/, '');
+  const titleIndex = slides.findIndex(
+    slide => 'titleSlide' in slide && slide.titleSlide,
+  );
+  const titleLines = range[titleIndex]?.shapes[0]?.lines;
+  const shapeTitle = titleLines
+    ?.map(line => line.trim())
+    .filter(Boolean)
+    .join(' ');
+  let defaultTitle = source.fileName.replace(/\.[^.]+$/, '');
+  if (shapeTitle !== undefined && shapeTitle.length > 0) {
+    defaultTitle = shapeTitle;
+  }
   const shownTitle = title ?? defaultTitle;
   const allSlides = powerpointSlides(source.slides);
   const edit = (draft: TextImportDraft): void => {

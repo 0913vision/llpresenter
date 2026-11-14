@@ -22,6 +22,107 @@ const mockScene = {key: 'a'.repeat(64), layers: [], pictures: [], skipped: 0};
 
 describe('PowerPoint import dialog', () => {
   it.each([
+    {
+      name: 'one-box hymn',
+      shapes: [
+        {
+          body: false,
+          lines: ['새찬송가 91장', '슬픈 마음 있는 사람'],
+          lyricFormat: {
+            lines: [
+              {
+                boxWidth: 1733,
+                top: 154,
+                runs: [{text: '새찬송가 91장', size: 88}],
+              },
+              {
+                boxWidth: 1733,
+                top: 269,
+                runs: [{text: '슬픈 마음 있는 사람', size: 120}],
+              },
+            ],
+          },
+        },
+      ],
+      expected: '새찬송가 91장 슬픈 마음 있는 사람',
+      lines: ['새찬송가 91장', '슬픈 마음 있는 사람'],
+    },
+    {
+      name: 'two-box song',
+      shapes: [
+        {
+          body: false,
+          lines: ['아름다운 나라'],
+          lyricFormat: {
+            lines: [
+              {
+                boxWidth: 1106,
+                top: 176,
+                runs: [{text: '아름다운 나라', size: 120}],
+              },
+            ],
+          },
+        },
+        {
+          body: false,
+          lines: ['Kingdom Beautiful'],
+          lyricFormat: {
+            lines: [
+              {
+                boxWidth: 1416,
+                top: 343,
+                runs: [{text: 'Kingdom Beautiful', size: 64}],
+              },
+            ],
+          },
+        },
+      ],
+      expected: '아름다운 나라',
+      lines: ['아름다운 나라', 'Kingdom Beautiful'],
+    },
+  ])(
+    'names $name from its first title box and keeps the formatted slide',
+    async ({shapes, expected, lines}) => {
+      const fixture = editorFixture();
+      const store = new SongEditorStore(fixture.api, vi.fn());
+      onTestFinished(() => store.dispose());
+      const onEdit = vi.fn();
+      const api = mockLlpApi({
+        ...fixture.api,
+        powerpoint: {
+          read: async () => ({
+            ok: true,
+            value: {
+              fileName: 'deck.pptx',
+              widescreen: true,
+              slides: [{number: 1, background: null, shapes}],
+            },
+          }),
+        },
+      });
+      render(
+        <PowerPointImportFlow
+          api={api}
+          store={store}
+          onDone={vi.fn()}
+          onEdit={onEdit}
+          onProblem={vi.fn()}
+        />,
+      );
+      const title = await screen.findByRole('textbox', {name: '제목'});
+      expect(title).toHaveProperty('value', expected);
+      fireEvent.click(screen.getByRole('button', {name: '편집'}));
+      await waitFor(() => expect(onEdit).toHaveBeenCalledOnce());
+      const song = store.getSnapshot().session?.history.snapshot.song;
+      expect(song?.title).toBe(expected);
+      expect(song?.slides[0]).toMatchObject({
+        titleSlide: true,
+        lines,
+        lyricFormat: {lines: shapes.flatMap(shape => shape.lyricFormat.lines)},
+      });
+    },
+  );
+  it.each([
     {first: 0, last: 8, winner: 0},
     {first: 7, last: 11, winner: 9},
     {first: 8, last: 0, winner: 0},
