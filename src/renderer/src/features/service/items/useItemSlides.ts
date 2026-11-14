@@ -11,6 +11,7 @@ import {useItemMedia} from './useItemSources';
 export interface ItemSlide {
   readonly titleSlide?: true;
   readonly titleLayout?: import('@core/schema/songTitleLayout').SongTitleLayout;
+  readonly lyricFormat?: import('@core/schema/songLyricFormat').SongLyricFormat;
   readonly text: string;
   readonly label: string | undefined;
   readonly color: LabelColor;
@@ -50,6 +51,9 @@ export function useItemSlides(
           ...(slide.titleLayout === undefined
             ? {}
             : {titleLayout: slide.titleLayout}),
+          ...(slide.lyricFormat === undefined
+            ? {}
+            : {lyricFormat: slide.lyricFormat}),
           label: slide.label,
           color:
             editorState.labels?.value.labels.find(

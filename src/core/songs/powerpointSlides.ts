@@ -1,6 +1,9 @@
+import type {SongLyricFormat} from '../schema/songLyricFormat';
+
 export interface PowerPointShape {
   readonly body: boolean;
   readonly lines: readonly string[];
+  readonly lyricFormat?: SongLyricFormat;
 }
 export interface PowerPointSlide {
   readonly number: number;
@@ -21,15 +24,39 @@ export function powerpointSlides(slides: readonly PowerPointSlide[]) {
     if (all.length === 0) return {lines: []};
     const first = !firstText;
     firstText = true;
-    if (body.length > 0) return {lines: body};
-    if (first || (firstTitle !== undefined && all[0] === firstTitle)) {
-      const title = slide.shapes
-        .slice(0, 2)
-        .map(shape => shape.lines.join(' '));
-      if (first) firstTitle = all[0];
-      return {titleSlide: true as const, lines: title};
+    if (body.length > 0) {
+      const selected = slide.shapes.filter(shape => shape.body);
+      const formats = selected.flatMap(shape => shape.lyricFormat?.lines ?? []);
+      return {
+        lines: body,
+        ...(formats.length === body.length
+          ? {lyricFormat: {lines: formats}}
+          : {}),
+      };
     }
-    return {lines: all};
+    if (first || (firstTitle !== undefined && all[0] === firstTitle)) {
+      const selected = slide.shapes.slice(0, 2);
+      const title = selected.flatMap(shape => shape.lines);
+      const formats = selected.flatMap(shape => shape.lyricFormat?.lines ?? []);
+      if (first) firstTitle = all[0];
+      return {
+        titleSlide: true as const,
+        lines: title,
+        ...(formats.length === title.length &&
+        formats.every(
+          (line, i) => line.runs.map(run => run.text).join('') === title[i],
+        )
+          ? {lyricFormat: {lines: formats}}
+          : {}),
+      };
+    }
+    const formats = slide.shapes.flatMap(
+      shape => shape.lyricFormat?.lines ?? [],
+    );
+    return {
+      lines: all,
+      ...(formats.length === all.length ? {lyricFormat: {lines: formats}} : {}),
+    };
   });
 }
 

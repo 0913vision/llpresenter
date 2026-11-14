@@ -1,3 +1,4 @@
+import {songLyricFormatSchema} from './songLyricFormat';
 import {songTitleLayoutSchema} from './songTitleLayout';
 import {MEDIA_LIMITS} from './mediaList';
 import {slideTransitionSchema} from './slideTransition';
@@ -145,6 +146,7 @@ export const showTileSchema = v.pipe(
     lines: v.array(v.string()),
     titleSlide: v.exactOptional(v.literal(true)),
     titleLayout: v.exactOptional(songTitleLayoutSchema),
+    lyricFormat: v.exactOptional(songLyricFormatSchema),
     reference: v.exactOptional(liveTextSchema),
     name: v.exactOptional(liveTextSchema),
     picture: v.exactOptional(mediaIdSchema),

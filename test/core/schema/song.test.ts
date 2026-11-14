@@ -57,6 +57,18 @@ describe('song slide deck contract', () => {
       );
     }
   });
+  it('retains more than two imported title paragraphs with bounded formatting', () => {
+    const lines = ['First', 'Second', 'Third'];
+    const lyricFormat = {
+      lines: lines.map(text => ({boxWidth: 1000, runs: [{text, size: 80}]})),
+    };
+    const input = song([{...slide(), titleSlide: true, lines, lyricFormat}]);
+    const read = expectSuccess(parse(input));
+    expect(
+      JSON.parse(expectSuccess(serializeSong(read.data, 'song.llsong'))),
+    ).toEqual(input);
+  });
+
   it('rejects invalid flags and oversized title text at any position', () => {
     const title = {...slide(), titleSlide: true};
     for (const slides of [

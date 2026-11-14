@@ -750,6 +750,11 @@ theme and their overlay ranges follow their content positions.
 On a stage section card the next text follows the fitted Korean item name, not
 its subtitle.
 
+On audience output, imported PowerPoint lyric runs use their source font, size,
+tracking and paragraph spacing; imported lyrics fit across the full 1920 px
+slide width. Imported title slides retain each title line's original position
+and formatting. Edited text without matching imported formatting uses the theme.
+
 On the stage, song source lines stay whole at the largest fitting size down to
 72 px at 1920 x 1080, two thirds of the church deck's 108 px lyric size; longer
 lines wrap at spaces at that minimum. Next text stays at least 48 px, two thirds

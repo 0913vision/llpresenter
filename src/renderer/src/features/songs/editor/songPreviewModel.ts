@@ -123,6 +123,9 @@ export function selectedPreview(
       ...(slide.titleLayout === undefined
         ? {}
         : {titleLayout: slide.titleLayout}),
+      ...(slide.lyricFormat === undefined
+        ? {}
+        : {lyricFormat: slide.lyricFormat}),
       label: rawLabel === undefined || rawLabel === '' ? null : rawLabel,
     };
   };
@@ -149,6 +152,9 @@ export function selectedPreview(
       ...(slide.titleLayout === undefined
         ? {}
         : {titleLayout: slide.titleLayout}),
+      ...(slide.lyricFormat === undefined
+        ? {}
+        : {lyricFormat: slide.lyricFormat}),
       ...(transition === undefined ? {} : {transition}),
       ...(next === undefined ? {} : {next}),
     },

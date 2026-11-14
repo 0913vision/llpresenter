@@ -1,3 +1,4 @@
+import type {SongLyricFormat} from '@core/schema/songLyricFormat';
 import type {SlideLayer} from '@core/live/state';
 import {fitTextInFrame, fitsLineLimit} from './fitText';
 import {measureTextInk} from './textInk';
@@ -22,9 +23,16 @@ export const STAGE_NEXT_MIN_SIZE = 48;
 
 const FALLBACK_FONTS = "'Pretendard Variable', sans-serif";
 
+/** Canonical family used for PowerPoint's Korean NanumSquare face names. */
+export function canonicalFontName(font: string): string {
+  return /^\ub098\ub214\uc2a4\ud018\uc5b4(?: (?:ExtraBold|Bold))?$/u.test(font)
+    ? 'NanumSquare'
+    : font;
+}
+
 /** A CSS font family for a saved font name, with Pretendard as the fallback. */
 export function fontFamilyFor(font: string): string {
-  const escaped = font.replace(
+  const escaped = canonicalFontName(font).replace(
     /["\\\p{Cc}]/gu,
     character => `\\${character.charCodeAt(0).toString(16)} `,
   );
@@ -71,6 +79,7 @@ interface Page {
   lines: readonly string[];
   continued: boolean;
   biblePart: number | undefined;
+  lyricFormat?: SongLyricFormat | undefined;
 }
 
 function sameSlide(a: SlideLayer | null, b: SlideLayer | null): boolean {
@@ -80,6 +89,7 @@ function sameSlide(a: SlideLayer | null, b: SlideLayer | null): boolean {
     a.position === b.position &&
     a.continued === b.continued &&
     a.biblePart === b.biblePart &&
+    JSON.stringify(a.lyricFormat) === JSON.stringify(b.lyricFormat) &&
     a.lines.length === b.lines.length &&
     a.lines.every((line, index) => line === b.lines[index])
   );
@@ -140,7 +150,11 @@ function writeLines(
     continued = false,
     bullets = false,
     biblePart,
+    keepWords = false,
+    lyricFormat,
   }: {
+    readonly keepWords?: boolean;
+    readonly lyricFormat?: SongLyricFormat | undefined;
     readonly continued?: boolean | undefined;
     readonly bullets?: boolean | undefined;
     readonly biblePart?: number | undefined;
@@ -150,11 +164,15 @@ function writeLines(
   page.continued = continued;
   page.biblePart = biblePart;
   const {block} = page;
+  block.dataset['keepWords'] = String(keepWords);
+  page.lyricFormat =
+    lyricFormat?.lines.length === lines.length ? lyricFormat : undefined;
   if (bullets && biblePart === undefined) lines = textParagraphs(lines);
   lines.forEach((line, index) => {
     const row =
       block.children.item(index) ??
       block.appendChild(document.createElement('div'));
+    row.removeAttribute('style');
     const startsParagraph =
       biblePart === undefined || (biblePart === 1 && index === 0);
     row.classList.toggle(
@@ -166,8 +184,38 @@ function writeLines(
       bullets && !startsParagraph,
     );
     const run = continuationText(line, continued && index === lines.length - 1);
+    const body = keepWords
+      ? run.body
+          .replace(/(^|\s)([\uAC00-\uD7A3]) (?=\S)/gu, '$1$2\u00a0')
+          .replace(/(\S) ([\uAC00-\uD7A3])(?=\s|$)/gu, '$1\u00a0$2')
+      : run.body;
     row.textContent =
-      run.body.length > 0 ? run.body : run.marker === '' ? NO_BREAK_SPACE : '';
+      body.length > 0 ? body : run.marker === '' ? NO_BREAK_SPACE : '';
+    const entry = page.lyricFormat?.lines[index];
+    const formatted =
+      entry?.runs.map(part => part.text).join('') === line ? entry : undefined;
+    if (formatted !== undefined && !bullets) {
+      let offset = 0;
+      row.replaceChildren(
+        ...formatted.runs.map(run => {
+          const span = document.createElement('span');
+          span.textContent = body.slice(offset, offset + run.text.length);
+          offset += run.text.length;
+          if (run.weight !== undefined) {
+            span.style.fontWeight = String(run.weight);
+          }
+          if (run.font !== undefined) {
+            span.style.fontFamily = fontFamilyFor(run.font);
+            if (run.font === '\ub098\ub214\uc2a4\ud018\uc5b4 ExtraBold') {
+              span.style.fontWeight = '800';
+            } else if (run.font === '\ub098\ub214\uc2a4\ud018\uc5b4 Bold') {
+              span.style.fontWeight = '700';
+            }
+          }
+          return span;
+        }),
+      );
+    }
     if (bullets && startsParagraph && line.trim() !== '') {
       const marker = document.createElement('span');
       marker.className = bulletStyles.marker ?? '';
@@ -281,7 +329,7 @@ export class SlideLayerView {
   private targetSize: number | undefined;
   private minimumSize: number | undefined;
   private fitLines: number | undefined;
-  private lineMode: 'normal' | 'song' | 'bar' = 'normal';
+  private lineMode: 'normal' | 'song' | 'lyrics' | 'bar' = 'normal';
   private dissolveMs: number = SLIDE_DISSOLVE_MS;
   private effect: SlideTransition | undefined;
   private readonly animation = new SlideAnimation();
@@ -319,6 +367,7 @@ export class SlideLayerView {
       continued: slide.continued,
       bullets: this.style.bullets,
       biblePart: slide.biblePart,
+      lyricFormat: slide.lyricFormat,
     });
     this.fit(next);
     this.element.classList.toggle(classes.instant, !transitions);
@@ -343,6 +392,7 @@ export class SlideLayerView {
       continued: this.current.continued,
       bullets: this.style.bullets,
       biblePart: this.current.biblePart,
+      lyricFormat: this.current.lyricFormat,
     });
     this.fit(front);
   }
@@ -462,7 +512,7 @@ export class SlideLayerView {
   }
 
   /** Keep source lines intact unless a song would become too small. */
-  setLineMode(mode: 'normal' | 'song' | 'bar'): void {
+  setLineMode(mode: 'normal' | 'song' | 'lyrics' | 'bar'): void {
     if (mode === this.lineMode) return;
     this.lineMode = mode;
     if (this.current !== null) this.fit(this.pages[this.front]);
@@ -514,6 +564,44 @@ export class SlideLayerView {
     );
     const setSize = (px: number): void => {
       block.style.fontSize = `${px}px`;
+      page.lyricFormat?.lines.forEach((line, index) => {
+        if (line.runs.map(part => part.text).join('') !== page.lines[index]) {
+          return;
+        }
+        const row = block.children.item(index);
+        if (!(row instanceof HTMLElement)) return;
+        const factor = (px / size) * this.scale;
+        const runSizes = line.runs.flatMap(run =>
+          run.size === undefined ? [] : [run.size],
+        );
+        row.style.fontSize = runSizes.length
+          ? `${Math.max(...runSizes) * factor}px`
+          : '';
+        row.style.maxWidth = `${1920 * this.scale}px`;
+        row.style.marginLeft =
+          this.style.align === 'center' || this.style.align === 'right'
+            ? 'auto'
+            : '';
+        row.style.marginRight = this.style.align === 'center' ? 'auto' : '';
+        row.style.marginTop = line.paragraphGap
+          ? `${line.paragraphGap * factor}px`
+          : '';
+        if (line.spacing?.kind === 'ratio') {
+          row.style.lineHeight = String(line.spacing.value);
+        } else if (line.spacing?.kind === 'pixels') {
+          row.style.lineHeight = `${line.spacing.value * factor}px`;
+        }
+        line.runs.forEach((run, at) => {
+          const span = row.children.item(at);
+          if (!(span instanceof HTMLElement)) return;
+          if (run.size !== undefined) {
+            span.style.fontSize = `${run.size * factor}px`;
+          }
+          if (run.tracking !== undefined) {
+            span.style.letterSpacing = `${run.tracking * factor}px`;
+          }
+        });
+      });
       for (const marker of markers) {
         marker.style.fontSize = `${contSizeOf({size: px / this.scale}) * this.scale}px`;
       }
@@ -541,6 +629,7 @@ export class SlideLayerView {
     const fontSize = cache.fit(
       JSON.stringify([
         page.lines,
+        page.lyricFormat,
         page.continued,
         page.biblePart,
         this.lineMode,
@@ -574,11 +663,28 @@ export class SlideLayerView {
         this.maximumSize ?? Infinity,
         this.targetSize ?? Infinity,
       ) * this.scale;
-    const wraps = this.lineMode === 'song' && fontSize < songMinimum;
+    const minimum =
+      this.lineMode === 'lyrics' ? Math.ceil(size * 0.7) : songMinimum;
+    const wraps =
+      (this.lineMode === 'song' || this.lineMode === 'lyrics') &&
+      fontSize < minimum;
+    const keepWords = this.lineMode === 'lyrics' && wraps;
+    if ((block.dataset['keepWords'] === 'true') !== keepWords) {
+      writeLines(page, page.lines, {
+        continued: page.continued,
+        bullets: this.style.bullets,
+        biblePart: page.biblePart,
+        keepWords,
+        lyricFormat: page.lyricFormat,
+      });
+      block.dataset['keepWords'] = String(keepWords);
+    }
     block.style.whiteSpace = this.lineMode === 'normal' || wraps ? '' : 'pre';
+    block.style.wordBreak = keepWords ? 'keep-all' : '';
+    block.style.overflowWrap = keepWords ? 'normal' : '';
     setSize(
       Math.max(
-        wraps ? songMinimum : 0,
+        wraps ? minimum : 0,
         (this.minimumSize ?? 0) * this.scale,
         Math.min(fontSize, (this.maximumSize ?? Infinity) * this.scale),
       ),

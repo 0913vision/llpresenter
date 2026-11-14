@@ -1,3 +1,4 @@
+import type {SongLyricFormat} from '@core/schema/songLyricFormat';
 import {BROADCAST_LOOK_GEOMETRY as glass} from '@core/themes/broadcastLook';
 import type {LiveLayers, MediaLayer} from '@core/live/state';
 import {mediaObjectFit} from '@core/media/objectFit';
@@ -13,7 +14,11 @@ import {
   themeOverlay,
 } from '@core/themes/content';
 import {BackgroundLayerView} from './backgroundLayer';
-import {SlideLayerView, STAGE_NEXT_MIN_SIZE} from './slideLayer';
+import {
+  canonicalFontName,
+  SlideLayerView,
+  STAGE_NEXT_MIN_SIZE,
+} from './slideLayer';
 import {classes} from './classes';
 import {stageClockText} from './stageClock';
 import {fillTimerTokens} from './timerTokens';
@@ -107,6 +112,7 @@ export class ThemeElementView {
   private shownSlideKey: string | null = null;
   private shownContinued = false;
   private shownBiblePart: number | undefined;
+  private shownLyricFormat = '';
   private readonly previewMaxLines: number | undefined;
   private mediaId: string | null = null;
   private mediaStartedAt: number | null = null;
@@ -356,14 +362,28 @@ export class ThemeElementView {
       (element.kind === 'nextText' ||
         (element.kind === 'currentText' &&
           layers.slide?.sectionCard === undefined));
+    const importedSlide = layers.slide;
+    const importedLyrics =
+      importedSlide?.lyricFormat?.lines.length ===
+        importedSlide?.lines.length &&
+      importedSlide?.lyricFormat?.lines.some(
+        (line, index) =>
+          line.runs.map(run => run.text).join('') ===
+          importedSlide.lines[index],
+      ) === true;
     this.text?.setLineMode(
       (element.broadcastSongTitle !== undefined &&
         element.broadcastSongTitleWrap === false) ||
         (stage && isBar)
         ? 'bar'
-        : stage && isSong
-          ? 'song'
-          : 'normal',
+        : isSong &&
+            element.kind === 'currentText' &&
+            frame.screen?.kind === 'audience' &&
+            importedLyrics
+          ? 'lyrics'
+          : stage && isSong
+            ? 'song'
+            : 'normal',
     );
     if (element.kind === 'media' || element.kind === 'background') {
       const media = themeElementMedia(element.kind, {layers, item});
@@ -407,6 +427,13 @@ export class ThemeElementView {
         frame,
         {
           cue: cue !== undefined,
+          lyricFormat:
+            frame.screen?.kind === 'audience'
+              ? (element.lyricFormat ??
+                (isSong && element.kind === 'currentText'
+                  ? layers.slide?.lyricFormat
+                  : undefined))
+              : undefined,
           vAlign:
             cue !== undefined
               ? 'middle'
@@ -680,10 +707,12 @@ export class ThemeElementView {
     {
       continued = false,
       biblePart,
+      lyricFormat,
       vAlign,
       cue = false,
     }: {
       readonly continued?: boolean;
+      readonly lyricFormat?: SongLyricFormat | undefined;
       readonly biblePart?: number | undefined;
       readonly vAlign?: TextStyle['vAlign'] | undefined;
       readonly cue?: boolean;
@@ -699,14 +728,11 @@ export class ThemeElementView {
     let style: TextStyle = DEFAULT_TEXT_STYLE;
     if (isThemeTextElement(this.element)) {
       const textStyle = this.element.text;
+      const fontName = canonicalFontName(textStyle.font);
       const known = frame.fonts?.some(
-        font =>
-          font.family === textStyle.font ||
-          font.aliases.includes(textStyle.font),
+        font => font.family === fontName || font.aliases.includes(fontName),
       );
-      const bundled = ['Pretendard', 'Pretendard Variable'].includes(
-        textStyle.font,
-      );
+      const bundled = ['Pretendard', 'Pretendard Variable'].includes(fontName);
       setPlaybackProblem(
         this.box,
         'font-missing',
@@ -719,8 +745,7 @@ export class ThemeElementView {
         ...textStyle,
         ...(cue ? {color: STAGE_COLORS.muted, align: 'center' as const} : {}),
         vAlign: vAlign ?? textStyle.vAlign,
-        font:
-          known === false && !bundled ? 'Pretendard Variable' : textStyle.font,
+        font: known === false && !bundled ? 'Pretendard Variable' : fontName,
         margin: 0,
         maxLines:
           'maxLines' in textStyle && typeof textStyle.maxLines === 'number'
@@ -752,7 +777,9 @@ export class ThemeElementView {
       slideKey === this.shownSlideKey &&
       text === this.shownText &&
       continued === this.shownContinued &&
-      biblePart === this.shownBiblePart
+      biblePart === this.shownBiblePart &&
+      (lyricFormat === undefined ? '' : JSON.stringify(lyricFormat)) ===
+        this.shownLyricFormat
     ) {
       return;
     }
@@ -771,6 +798,7 @@ export class ThemeElementView {
               label: null,
               lines: text.split('\n'),
               continued,
+              ...(lyricFormat === undefined ? {} : {lyricFormat}),
               ...(biblePart === undefined ? {} : {biblePart}),
             },
         frame.transitions !== false &&
@@ -781,6 +809,8 @@ export class ThemeElementView {
     this.shownSlideKey = slideKey;
     this.shownContinued = continued;
     this.shownBiblePart = biblePart;
+    this.shownLyricFormat =
+      lyricFormat === undefined ? '' : JSON.stringify(lyricFormat);
   }
 
   textBounds(ink = false): {top: number; bottom: number} | undefined {

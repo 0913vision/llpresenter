@@ -81,6 +81,9 @@ function InspectorContent({
               ...(slide.titleLayout === undefined
                 ? {}
                 : {titleLayout: slide.titleLayout}),
+              ...(slide.lyricFormat === undefined
+                ? {}
+                : {lyricFormat: slide.lyricFormat}),
             }}
           />
         )}

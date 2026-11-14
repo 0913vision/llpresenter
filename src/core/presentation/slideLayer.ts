@@ -145,6 +145,7 @@ export function slideLayerOf(
     lines: tile.lines,
     ...(tile.sectionCard === undefined ? {} : {sectionCard: tile.sectionCard}),
     ...(tile.titleSlide === undefined ? {} : {titleSlide: tile.titleSlide}),
+    ...(tile.lyricFormat === undefined ? {} : {lyricFormat: tile.lyricFormat}),
     ...(tile.titleLayout === undefined ? {} : {titleLayout: tile.titleLayout}),
     ...(tile.transition === undefined ? {} : {transition: tile.transition}),
     ...(tile.name === undefined ? {} : {name: tile.name}),

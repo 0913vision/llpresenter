@@ -45,16 +45,21 @@ function lines(shape: Element): string[] {
   }
   return result;
 }
-function shapes(tree: Element): PowerPointShape[] {
+function shapes(
+  tree: Element,
+  format: (shape: Element) => PowerPointShape['lyricFormat'],
+): PowerPointShape[] {
   return children(tree).flatMap(shape => {
-    if (shape.localName === 'grpSp') return shapes(shape);
+    if (shape.localName === 'grpSp') return shapes(shape, format);
     if (shape.localName !== 'sp') return [];
     const text = lines(shape);
     if (text.length === 0) return [];
     const ph = descendants(shape, 'ph')[0];
     const type = ph?.getAttribute('type') ?? '';
+    const lyricFormat = format(shape);
     return [
       {
+        ...(lyricFormat === undefined ? {} : {lyricFormat}),
         body:
           ph !== undefined &&
           (type === '' || type === 'body' || type === 'obj'),
@@ -97,7 +102,9 @@ export function readPowerPoint(bytes: Buffer): PowerPointDeck {
     const slide = xml(zip, slidePath);
     if (slide.documentElement.getAttribute('show') === '0') continue;
     const tree = descendants(slide, 'spTree')[0];
-    const slideShapes = tree ? shapes(tree) : [];
+    const slideShapes = tree
+      ? shapes(tree, shape => layers.lyricFormat(slidePath, shape, width))
+      : [];
     for (const shape of slideShapes) {
       for (const line of shape.lines) {
         characters += line.length;

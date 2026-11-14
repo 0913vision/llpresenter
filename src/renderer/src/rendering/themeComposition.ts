@@ -120,6 +120,37 @@ export class ThemeCompositionView {
         },
       };
     }
+    if (
+      frame.theme !== undefined &&
+      frame.screen?.kind === 'audience' &&
+      frame.theme.item?.kind === 'song'
+    ) {
+      const slide = frame.slide ?? layers.slide;
+      if (
+        slide?.lyricFormat !== undefined &&
+        slide.titleSlide !== true &&
+        slide.lyricFormat.lines.length === slide.lines.length &&
+        slide.lyricFormat.lines.some(
+          (line, index) =>
+            line.runs.map(run => run.text).join('') === slide.lines[index],
+        )
+      ) {
+        frame = {
+          ...frame,
+          theme: {
+            ...frame.theme,
+            layout: {
+              ...frame.theme.layout,
+              elements: frame.theme.layout.elements.map(element =>
+                element.kind === 'currentText'
+                  ? {...element, frame: {...element.frame, x: 0, w: 1920}}
+                  : element,
+              ),
+            },
+          },
+        };
+      }
+    }
     this.gaps.follow(frame);
     this.content = {layers, frame};
     const theme = frame.theme;

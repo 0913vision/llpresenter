@@ -1,3 +1,4 @@
+import type {SongLyricFormat} from '../schema/songLyricFormat';
 import {DEFAULT_SONG_TITLE_LAYOUT} from '../schema/songTitleLayout';
 import type {SlideLayer} from '../live/state';
 import {createThemeElementId, createThemeId} from '../schema/ids';
@@ -37,6 +38,7 @@ export type ResolvedThemeElement = ThemeElement & {
   readonly broadcastText?: string;
   readonly broadcastSongTitle?: string;
   readonly broadcastSongTitleWrap?: boolean;
+  readonly lyricFormat?: SongLyricFormat;
 };
 
 /** Resolves the Sunday title in the same composition for output and thumbnails. */
@@ -54,6 +56,54 @@ export function songTitleLayout(
   const lyrics = layout.elements.find(
     element => element.kind === 'currentText',
   );
+  const imported = slide.lyricFormat;
+  if (
+    imported?.lines.length === slide.lines.length &&
+    imported.lines.every(
+      (line, index) =>
+        line.runs.map(run => run.text).join('') === slide.lines[index],
+    )
+  ) {
+    const color =
+      lyrics?.kind === 'currentText' ? lyrics.text.color : titleText.color;
+    const formatted: ResolvedThemeElement[] = imported.lines.map(
+      (line, index) => {
+        const firstRun = line.runs[0];
+        const size = firstRun?.size ?? titleText.size;
+        return {
+          id: createThemeElementId(
+            `00000000-0000-4001-8000-${String(index + 1).padStart(12, '0')}`,
+          ),
+          kind: 'text',
+          clearTarget: 'slide',
+          content: slide.lines[index] ?? '',
+          frame: {
+            x: line.left ?? 0,
+            y: line.top ?? (index === 0 ? 181 : 345),
+            w: line.boxWidth,
+            h: Math.min(
+              1080 - (line.top ?? (index === 0 ? 181 : 345)),
+              Math.max(90, size * 1.5),
+            ),
+          },
+          text: {
+            ...titleText,
+            color,
+            size,
+            font: firstRun?.font ?? titleText.font,
+            weight: firstRun?.weight ?? titleText.weight,
+          },
+          lyricFormat: {lines: [line]},
+        };
+      },
+    );
+    return {
+      ...layout,
+      elements: layout.elements.flatMap(element =>
+        element.kind === 'currentText' ? formatted : [element],
+      ),
+    };
+  }
   const spacing = {...DEFAULT_SONG_TITLE_LAYOUT, ...slide.titleLayout};
   const text = {
     ...titleText,

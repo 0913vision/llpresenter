@@ -117,7 +117,13 @@ cataloged.
 PowerPoint import caps the source at 512 MiB, 10,000 ZIP entries, 16 MiB per
 inflated XML part, 1 GiB total inflated data, and 5,000 slides. The text import
 text limits also apply. The reader rejects encrypted, damaged, or oversized
-files and does not execute macros.
+files and does not execute macros. Imported lyric slides may carry optional
+`lyricFormat.lines`, each with its source box width, paragraph spacing and
+ordered text runs containing optional font, weight, size and tracking in
+1920-wide canvas units. Lines may retain their original left and top positions
+for title slides. A slide is limited to 1,000 formatted lines, 256 runs per
+line, 5,000 runs and 200,000 run characters in total. The format travels with
+song slides, show tiles and live output; changed text uses the theme instead.
 
 ## Service file (`.llservice`)
 
@@ -1271,10 +1277,11 @@ decision "복구는 출력 상태만", `Recovery` (three restore rows), product 
 versions 61 and 62.
 
 Song slides may carry `titleSlide: true` at any position, including repeated
-opening and closing titles. Each title slide's `lines` contains at most two
-strings of at most 512 characters without embedded newlines. Existing slides
-need no migration. The marker is retained in service decks, show tiles, and the
-live slide payload.
+opening and closing titles. Unformatted title slides contain at most two
+`lines`; imported formatted title slides contain at most 1,000. Each line
+contains at most 512 characters without embedded newlines. Existing slides need
+no migration. The marker is retained in service decks, show tiles, and the live
+slide payload.
 
 Optional
 `titleLayout: {titleTracking, subtitleTracking, titleTop?, subtitleTop?}` stores

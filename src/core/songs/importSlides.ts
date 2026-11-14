@@ -10,6 +10,9 @@ export function importSlides(
   return slides.map(slide => ({
     id: createSongSlideId(newId()),
     lines: [...slide.lines],
+    ...(slide.lyricFormat === undefined
+      ? {}
+      : {lyricFormat: slide.lyricFormat}),
     ...(slide.titleSlide === undefined ? {} : {titleSlide: slide.titleSlide}),
     ...(slide.label === undefined || slide.label.trim() === ''
       ? {}

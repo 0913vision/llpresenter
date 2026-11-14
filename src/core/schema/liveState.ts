@@ -1,3 +1,4 @@
+import {songLyricFormatSchema} from './songLyricFormat';
 import {sectionCardSchema} from './service';
 import {songTitleLayoutSchema} from './songTitleLayout';
 import {slideTransitionSchema} from './slideTransition';
@@ -125,6 +126,7 @@ export const layerSchemas = {
     ),
     titleSlide: v.exactOptional(v.literal(true)),
     titleLayout: v.exactOptional(songTitleLayoutSchema),
+    lyricFormat: v.exactOptional(songLyricFormatSchema),
     continued: v.exactOptional(v.boolean()),
     reference: v.exactOptional(liveTextSchema),
     name: v.exactOptional(liveTextSchema),
