@@ -35,7 +35,7 @@ export class SlideAnimation {
   play(old: HTMLElement, next: HTMLElement, effect: SlideTransition): void {
     this.cancel();
     old.style.transition = next.style.transition = 'none';
-    old.style.opacity = '0';
+    old.style.opacity = effect.kind === 'wipe' ? '1' : '0';
     next.style.opacity = '1';
     old.style.zIndex = '0';
     next.style.zIndex = '1';
@@ -98,10 +98,10 @@ export class SlideAnimation {
       }
     }
     const timing = {duration: effect.sec * 1000, easing: 'linear'};
-    this.animations = [
-      old.animate(outgoing, timing),
-      next.animate(incoming, timing),
-    ];
+    this.animations =
+      effect.kind === 'wipe'
+        ? [next.animate(incoming, timing)]
+        : [old.animate(outgoing, timing), next.animate(incoming, timing)];
   }
 
   finished(): Promise<void> | null {

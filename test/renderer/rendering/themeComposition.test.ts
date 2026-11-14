@@ -302,7 +302,7 @@ describe('theme composition drawing', () => {
         Object.defineProperty(page, 'animate', {value: animate});
       }
       vi.advanceTimersByTime(32);
-      expect(animate).toHaveBeenCalledTimes(2);
+      expect(animate).toHaveBeenCalledTimes(1);
       expect(animate).toHaveBeenLastCalledWith(expect.any(Array), {
         duration: 1000,
         easing: 'linear',
@@ -1646,7 +1646,7 @@ describe('theme composition drawing', () => {
         });
       }
       vi.advanceTimersByTime(1000);
-      expect(animate).toHaveBeenCalledTimes(2);
+      expect(animate).toHaveBeenCalledTimes(1);
       expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(2);
       view.render(incoming, {...incomingFrame, stageMessage: 'Unrelated'});
       expect(cancel).not.toHaveBeenCalled();
@@ -1665,7 +1665,7 @@ describe('theme composition drawing', () => {
         },
       });
 
-      expect(cancel).toHaveBeenCalledTimes(2);
+      expect(cancel).toHaveBeenCalledTimes(1);
       if (kind === 'none') {
         expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(1);
         expect(text('currentText')).toBe('Next lyrics');
