@@ -69,10 +69,7 @@ class SplitSearch {
     const out: Token[] = [];
     for (const token of tokens) {
       this.checkTokenBudget(out.length);
-      if (
-        layoutText(token.text, this.layout, true).nLines <=
-        this.layout.spec.maxLines
-      ) {
+      if (layoutText(token.text, this.layout, true).fits) {
         out.push(token);
         continue;
       }
@@ -120,7 +117,7 @@ class SplitSearch {
       const end = ends[middle] ?? tokenEnd;
       if (
         layoutText(this.text.slice(start, end), this.layout, end < tokenEnd)
-          .nLines <= this.layout.spec.maxLines
+          .fits
       ) {
         best = middle;
         low = middle + 1;

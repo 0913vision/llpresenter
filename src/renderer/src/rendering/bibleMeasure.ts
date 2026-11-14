@@ -1,5 +1,6 @@
 import {
   CONT_MARKER,
+  layoutText,
   type Measure,
   type SplitLayout,
   type SplitSpec,
@@ -86,6 +87,7 @@ export function measureBibleLines(
 export function bibleMeasure(
   element: BibleTextElement,
   context: BibleFontMeasure,
+  stage = false,
 ): SplitLayout {
   const {text, frame} = element;
   const indent = text.bullets ? text.size * bulletIndent(text) : 0;
@@ -95,10 +97,12 @@ export function bibleMeasure(
     tracking: text.tracking ?? 0,
     markerTracking: text.tracking ?? 0,
     width: frame.w - indent,
-    maxLines: Math.min(
-      text.maxLines,
-      Math.floor((frame.h + 1) / (text.size * text.lineHeight)),
-    ),
+    maxLines: stage
+      ? Math.floor(frame.h / (text.size * text.lineHeight))
+      : Math.min(
+          text.maxLines,
+          Math.floor((frame.h + 1) / (text.size * text.lineHeight)),
+        ),
   };
   const widthOf: TextWidth = (value, size) => {
     context.font = `${text.weight} ${size}px ${fontFamilyFor(text.font)}`;
@@ -123,6 +127,30 @@ export function bibleMeasure(
         },
         widthOf,
       );
+    },
+  };
+}
+
+/** Preserve audience wrapping while requiring every stage layout to fit too. */
+export function bibleScreenMeasure(
+  audience: BibleTextElement,
+  stages: readonly BibleTextElement[],
+  context: BibleFontMeasure,
+): SplitLayout {
+  const primary = bibleMeasure(audience, context);
+  const others = stages.map(element => bibleMeasure(element, context, true));
+  return {
+    ...primary,
+    measure: (value, options) => {
+      const result = primary.measure(value, options);
+      return {
+        ...result,
+        fits:
+          result.fits &&
+          others.every(
+            layout => layoutText(value, layout, options.marker !== '').fits,
+          ),
+      };
     },
   };
 }

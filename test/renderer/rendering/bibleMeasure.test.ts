@@ -1,9 +1,13 @@
 import {describe, expect, it} from 'vitest';
 import {
   bibleMeasure,
+  bibleScreenMeasure,
   measureBibleLines,
 } from '@renderer/rendering/bibleMeasure';
 import {themeElementBase} from '@fixtures/core/themeOutput';
+import {layoutText} from '@core/bible/split/layout';
+import {splitVerse} from '@core/bible/split/splitter';
+import {planSlides} from '@core/bible/split/manualSplit';
 
 const spec = {
   font: 'Mock font',
@@ -196,4 +200,40 @@ describe('theme Bible text measurement', () => {
     expect(measured.fits).toBe(true);
     expect(context.font).toContain('600 36px "Sample font"');
   });
+});
+
+it('splits when four audience lines need five stage lines and rechecks saved cuts', () => {
+  const base = themeElementBase();
+  const audience = {
+    ...base,
+    kind: 'currentText' as const,
+    frame: {x: 0, y: 0, w: 20, h: 40},
+    text: {...base.text, size: 10, lineHeight: 1, tracking: 0, maxLines: 4},
+  };
+  const stage = {
+    ...audience,
+    frame: {...audience.frame, w: 14},
+    text: {...audience.text, maxLines: 1},
+  };
+  const canvas = {
+    font: '',
+    measureText: (text: string) => ({width: text.length}),
+  };
+  const text = 'aaaaa bbbbb ccccc ddddd eeeee fffff ggggg hhhhh iiiii jjjjj';
+  const audienceLayout = bibleMeasure(audience, canvas);
+  const stageLayout = bibleMeasure(stage, canvas, true);
+  const both = bibleScreenMeasure(audience, [stage], canvas);
+  expect(layoutText(text, audienceLayout).nLines).toBe(4);
+  expect(layoutText(text, stageLayout).nLines).toBe(5);
+  expect(planSlides(text, [], both).ok).toBe(false);
+  const result = splitVerse(text, both);
+  expect(result.nSlides).toBeGreaterThan(1);
+  for (const chunk of result.chunks) {
+    expect(layoutText(chunk.text, audienceLayout, chunk.continued).fits).toBe(
+      true,
+    );
+    expect(layoutText(chunk.text, stageLayout, chunk.continued).fits).toBe(
+      true,
+    );
+  }
 });

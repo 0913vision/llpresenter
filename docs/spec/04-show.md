@@ -989,13 +989,16 @@ integration use this contract, with a distinct cancellable ID per lookup.
     preview.
   - Each verse starts a new slide. A long verse splits by Copible 1.6's boundary
     scores and global minimum-slide DP, using the theme's 현재 가사 font, size,
-    box width and height, and 성경 분할 줄 수 (`maxLines`). The font is measured
-    at its configured size rather than shrunk to avoid splitting. This applies
-    to saved 성경 구절 items and the 진행 Bible panel, including next/previous
-    navigation. Unmeasured fallback slides follow the same verse boundary rule.
-    The legacy `two` and `fit` packing values remain readable but never combine
-    verses; new passages store `verse`, and there is no packing preference (02,
-    10).
+    box width and height, and 성경 분할 줄 수 (`maxLines`). Each part must also
+    fit every stage screen current-text element at its own font, tracking and
+    frame width, with a line budget of floor(frame height / line height).
+    Broadcast wraps independently and does not constrain the split. The font is
+    measured at its configured size rather than shrunk to avoid splitting. This
+    applies to saved 성경 구절 items and the 진행 Bible panel, including
+    next/previous navigation. Unmeasured fallback slides follow the same verse
+    boundary rule. The legacy `two` and `fit` packing values remain readable but
+    never combine verses; new passages store `verse`, and there is no packing
+    preference (02, 10).
   - Every non-last part ends with ` (계속)`, two steps smaller on the PowerPoint
     size list. Numbering, when enabled for a multi-verse passage, appears only
     on the first part of each verse and is included in measurement. A single

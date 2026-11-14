@@ -231,7 +231,7 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
     'draws the measured Bible rows at the theme size in the %s tiles',
     async workspace => {
       const layout = mockSplitLayout();
-      vi.spyOn(bibleRendering, 'bibleMeasure').mockReturnValue(layout);
+      vi.spyOn(bibleRendering, 'bibleScreenMeasure').mockReturnValue(layout);
       setup();
       const api = window.llp;
       if (api === undefined) throw Error('Missing API');
@@ -346,7 +346,7 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
   it.each(['click', 'Enter'])(
     'outputs a saved quick Bible item by %s without AI or review',
     async activation => {
-      vi.spyOn(bibleRendering, 'bibleMeasure').mockReturnValue(
+      vi.spyOn(bibleRendering, 'bibleScreenMeasure').mockReturnValue(
         mockSplitLayout(),
       );
       const f = setup();
@@ -470,7 +470,9 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
     view.unmount();
   });
   it('opens after the first AI verse, shows a pending next page, and preserves the 400ms guard', async () => {
-    vi.spyOn(bibleRendering, 'bibleMeasure').mockReturnValue(mockSplitLayout());
+    vi.spyOn(bibleRendering, 'bibleScreenMeasure').mockReturnValue(
+      mockSplitLayout(),
+    );
     const f = setup();
     const api = window.llp;
     if (api === undefined) throw Error('Missing API');
@@ -531,7 +533,9 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
   });
 
   it('refines with automatic review disabled, and Ctrl E reuses the current cuts without AI', async () => {
-    vi.spyOn(bibleRendering, 'bibleMeasure').mockReturnValue(mockSplitLayout());
+    vi.spyOn(bibleRendering, 'bibleScreenMeasure').mockReturnValue(
+      mockSplitLayout(),
+    );
     setup();
     const api = window.llp;
     if (api === undefined) throw Error('Missing API');

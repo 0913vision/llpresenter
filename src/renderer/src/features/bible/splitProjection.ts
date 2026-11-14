@@ -20,7 +20,7 @@ import {SHOW_SERVICE_LIMITS} from '@core/schema/showService';
 import {resolveItemTheme, resolveThemeScreen} from '@core/themes/resolve';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {
-  bibleMeasure,
+  bibleScreenMeasure,
   type BibleTextElement,
   type BibleFontMeasure,
 } from '@renderer/rendering/bibleMeasure';
@@ -292,9 +292,17 @@ export class BibleProjections {
       (element): element is BibleTextElement => element.kind === 'currentText',
     );
     if (element === undefined) return null;
+    const stages = screens.flatMap(stage =>
+      stage.kind === 'stage'
+        ? resolveThemeScreen(theme, stage.id, screens).layout.elements.filter(
+            (candidate): candidate is BibleTextElement =>
+              candidate.kind === 'currentText',
+          )
+        : [],
+    );
     const projected = projectBible(source, {
       element,
-      layout: bibleMeasure(element, this.context.canvas),
+      layout: bibleScreenMeasure(element, stages, this.context.canvas),
       saved: this.context.saved,
       refined:
         source.review === false

@@ -10,6 +10,8 @@ import {themeElementBase} from '@fixtures/core/themeOutput';
 import {themeElementText} from '@core/themes/content';
 import {emptyLayers} from '@core/live/state';
 import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
+import {bibleMeasure} from '@renderer/rendering/bibleMeasure';
+import {layoutText} from '@core/bible/split/layout';
 
 it('keeps the item range in Bible preview compositions without replacing individual verse metadata', () => {
   const passage = panelPassage();
@@ -138,4 +140,42 @@ it('keeps an assigned label while numbering the parts of an inserted verse', () 
     parts.map((_, index) => `Chorus (${index + 1})`),
   );
   expect(parts.every(tile => tile.slideLabel === 'Chorus')).toBe(true);
+});
+
+it('uses the resolved stage theme as a splitting constraint', () => {
+  const canvas = {
+    font: '',
+    measureText: (text: string) => ({width: text.length * 30}),
+  };
+  const text = Array.from(
+    {length: 34},
+    () => '\uac00\ub098\ub2e4\ub77c\ub9c8',
+  ).join(' ');
+  const passage = {...panelPassage(), verses: [{chapter: 3, verse: 16, text}]};
+  const projection = new BibleProjections({
+    themes: null,
+    screens: undefined,
+    saved: undefined,
+    canvas,
+  }).get({
+    id: 'stage',
+    kind: 'bible',
+    source: 'external',
+    passage,
+    verseNumbers: true,
+    translationName: false,
+    reference: 'every',
+    review: false,
+  });
+  if (!projection) throw Error('Expected projection');
+  expect(layoutText(text, bibleMeasure(projection.element, canvas)).fits).toBe(
+    true,
+  );
+  expect(layoutText(text, projection.layout).fits).toBe(false);
+  expect(projection.parts.length).toBeGreaterThan(1);
+  for (const part of projection.parts) {
+    expect(layoutText(part.text, projection.layout, part.continued).fits).toBe(
+      true,
+    );
+  }
 });
