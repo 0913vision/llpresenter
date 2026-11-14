@@ -369,6 +369,36 @@ describe('built-in broadcast look', () => {
       textOnly.elements.some(e => e.id === BROADCAST_LOOK_SONG_TITLE_ID),
     ).toBe(false);
   });
+  it('shows the small song title only when the band is showing lyrics', () => {
+    const layout = builtInTheme('song').screens[screen];
+    if (!layout) throw Error('missing song');
+    const song = {...item, kind: 'song' as const, title: '임재'};
+    for (const current of [
+      {...slide, lines: []},
+      {
+        ...slide,
+        titleSlide: true as const,
+        lines: ['임재', '하늘의 문을 여소서'],
+      },
+      {...slide, lines: ['임재']},
+    ]) {
+      const result = fitBroadcastLook(layout, current, song);
+      expect(
+        result.elements.some(e => e.id === BROADCAST_LOOK_SONG_TITLE_ID),
+      ).toBe(false);
+      const body = element(result, BROADCAST_LOOK_SONG_ID);
+      if (!('broadcastText' in body)) throw Error('Missing broadcast text');
+      expect(body.broadcastText).toContain('임재');
+    }
+    const lyric = fitBroadcastLook(
+      layout,
+      {...slide, lines: ['이곳에 임재하소서']},
+      song,
+    );
+    expect(element(lyric, BROADCAST_LOOK_SONG_TITLE_ID)).toMatchObject({
+      content: '임재',
+    });
+  });
   it('switches per screen between the band and text-only captions', () => {
     const layout = builtInTheme('song').screens[screen];
     if (!layout) throw Error('missing song');

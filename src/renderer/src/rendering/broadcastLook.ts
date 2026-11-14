@@ -254,8 +254,9 @@ function fitSong(
     e => e.id === BROADCAST_LOOK_SONG_ID && e.kind === 'currentText',
   );
   if (body?.kind !== 'currentText') return layout;
+  const intent = broadcastIntent(slide, item);
   const raw =
-    broadcastIntent(slide, item).songTitle ??
+    intent.songTitle ??
     themeElementText(body, {layers: {...emptyLayers(), slide}, item}) ??
     '';
   let value = raw;
@@ -287,7 +288,13 @@ function fitSong(
           ?.trim() ?? '')
       : '';
   const titleSpace =
-    caption === 'band' && title !== ''
+    caption === 'band' &&
+    title !== '' &&
+    slide?.titleSlide !== true &&
+    intent.songTitle === undefined &&
+    value.trim().replace(/\s+/gu, ' ') !==
+      (item?.title ?? '').trim().replace(/\s+/gu, ' ') &&
+    value.trim().replace(/\s+/gu, ' ') !== title.replace(/\s+/gu, ' ')
       ? geometry.songTitleHeight + geometry.songTitleGap
       : 0;
   const elements = layout.elements.map((e): ResolvedThemeElement => {
