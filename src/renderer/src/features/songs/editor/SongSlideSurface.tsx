@@ -40,6 +40,7 @@ export function SongSlideSurface<T extends SlideListItem>({
   onEdit,
   onHotKey,
   extraMenu,
+  onAdd,
   blocked = false,
   editLabel = windowCommandLabels.editSong,
   leadingCard,
@@ -56,6 +57,7 @@ export function SongSlideSurface<T extends SlideListItem>({
   readonly onEdit?: ((index: number) => void) | undefined;
   readonly onHotKey?: ((index: number) => void) | undefined;
   readonly extraMenu?: (index: number) => readonly MenuEntry[];
+  readonly onAdd?: ((index: number) => void) | undefined;
   readonly blocked?: boolean;
   readonly editLabel?: string;
 }): JSX.Element {
@@ -97,6 +99,7 @@ export function SongSlideSurface<T extends SlideListItem>({
   };
   const [menu, setMenu] = useState<MenuAnchor | null>(null);
   const [menuIndex, setMenuIndex] = useState(0);
+  const [addIndex, setAddIndex] = useState(0);
   const [labelAnchor, setLabelAnchor] = useState<HTMLElement | null>(null);
   const labelAfterMenu = useMenuHandoff(menu !== null, setLabelAnchor);
   const surfaceRef = useRef<HTMLDivElement>(null);
@@ -319,6 +322,17 @@ export function SongSlideSurface<T extends SlideListItem>({
     },
   ]);
   const entries: readonly MenuEntry[] = [
+    ...(onAdd === undefined
+      ? []
+      : [
+          {
+            kind: 'item' as const,
+            id: 'add-slide',
+            label: '슬라이드 추가',
+            ...menuAvailability(pasteReason),
+            onSelect: () => onAdd(addIndex),
+          },
+        ]),
     ...(view.selection.ids.size <= 1 ? (extraMenu?.(menuIndex) ?? []) : []),
     ...(onHotKey === undefined || view.selection.ids.size !== 1
       ? []
@@ -611,6 +625,11 @@ export function SongSlideSurface<T extends SlideListItem>({
               .slideIndex ?? session.selectedOccurrence,
           ),
         );
+        setAddIndex(
+          targetSlide === undefined
+            ? view.slides.length
+            : view.slides.indexOf(targetSlide) + 1,
+        );
       }}
       onKeyDown={event => {
         if (
@@ -753,6 +772,11 @@ export function SongSlideSurface<T extends SlideListItem>({
             : null;
         const id = row?.dataset.songSlide;
         const slide = view.slides.find(slide => slide.id === id);
+        setAddIndex(
+          slide === undefined
+            ? view.slides.length
+            : view.slides.indexOf(slide) + 1,
+        );
         setMenuIndex(
           Number(row?.dataset.slideIndex ?? session.selectedOccurrence),
         );

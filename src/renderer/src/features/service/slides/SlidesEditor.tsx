@@ -477,6 +477,10 @@ function SlidesEditorBody({
             onBack={onBack}
             leadingCard={leadingCard}
             renderCard={renderCard}
+            onAdd={index => {
+              draft.selectRows({type: 'gap', index});
+              if (draft.insert([newTextSlide(item.slides.form)])) update();
+            }}
             renderRow={(slide, index) => (
               <>
                 <div className={styles.thumbnail} data-editor-thumbnail>
@@ -511,22 +515,14 @@ function SlidesEditorBody({
             )}
           >
             <div className={styles.add}>
-              {addCard}
               <Button
                 variant="ghost"
                 icon="plus"
-                disabled={rows.length >= SLIDES_LIMIT}
-                onClick={() => {
-                  draft.insert([newTextSlide(item.slides.form)]);
-                  update();
-                }}
-              >
-                글 추가
-              </Button>
-              <Button
-                variant="ghost"
-                icon="plus"
-                disabled={rows.length >= SLIDES_LIMIT}
+                disabled={
+                  model.stopped ||
+                  model.session?.readOnly === true ||
+                  rows.length >= SLIDES_LIMIT
+                }
                 onClick={event => showPicker(event.currentTarget)}
               >
                 그림 추가
@@ -535,7 +531,11 @@ function SlidesEditorBody({
                 <Button
                   variant="ghost"
                   icon="plus"
-                  disabled={rows.length >= SLIDES_LIMIT}
+                  disabled={
+                    model.stopped ||
+                    model.session?.readOnly === true ||
+                    rows.length >= SLIDES_LIMIT
+                  }
                   onClick={() => setBibleDialog({})}
                 >
                   성경 구절 추가…
@@ -547,7 +547,26 @@ function SlidesEditorBody({
         <PanelFooter
           end={<SlideSurfaceView ui={api.ui} />}
           count={rows.length + (leadingCard === undefined ? 0 : 1)}
-        />
+        >
+          {addCard}
+          <Button
+            variant="ghost"
+            icon="plus"
+            disabled={
+              model.stopped ||
+              model.session?.readOnly === true ||
+              bibleDialog !== null ||
+              picker !== null ||
+              rows.length >= SLIDES_LIMIT
+            }
+            onClick={() => {
+              draft.insert([newTextSlide(item.slides.form)]);
+              update();
+            }}
+          >
+            슬라이드 추가
+          </Button>
+        </PanelFooter>
       </div>
       {onBack !== undefined ? null : (
         <div className={styles.side}>

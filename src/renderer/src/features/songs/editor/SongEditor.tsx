@@ -106,6 +106,14 @@ export function SongEditor({
             className={styles.surface}
             onBack={onBack}
             blocked={state.busy}
+            onAdd={index => {
+              state.session?.select({
+                block: Math.max(0, index - 1),
+                start: 0,
+                end: 0,
+              });
+              state.session?.edit({type: 'insert'});
+            }}
             extraMenu={index => [
               {
                 kind: 'item',
@@ -138,7 +146,6 @@ export function SongEditor({
               session={state.session}
               renderCard={renderCard}
               leadingCard={leadingCard}
-              addCard={addCard}
             />
           </SongSlideSurface>
           <PanelFooter
@@ -147,7 +154,22 @@ export function SongEditor({
               slideCountOf(state.session.history.snapshot.song) +
               (leadingCard === undefined ? 0 : 1)
             }
-          />
+          >
+            <Button
+              variant="ghost"
+              icon="plus"
+              disabled={
+                state.busy ||
+                state.session.readOnly ||
+                state.session.history.snapshot.song.slides.length >=
+                  SONG_LIMITS.slides
+              }
+              onClick={() => state.session?.edit({type: 'insert'})}
+            >
+              슬라이드 추가
+            </Button>
+            {addCard}
+          </PanelFooter>
         </div>
       )}
     </section>
@@ -159,13 +181,11 @@ function SongBlocks({
   session,
   renderCard,
   leadingCard,
-  addCard,
 }: {
   readonly store: SongEditorStore;
   readonly session: SongSession;
   readonly renderCard?: SlideCardRenderer<EditorSlideItem> | undefined;
   readonly leadingCard?: LeadingSlideCard | undefined;
-  readonly addCard?: ReactNode;
 }): JSX.Element {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const {song, selection} = session.history.snapshot;
@@ -451,17 +471,6 @@ function SongBlocks({
             ?.focus();
         }}
       />
-      <div className={styles.addRow}>
-        <Button
-          variant="ghost"
-          icon="plus"
-          disabled={state.busy || session.readOnly}
-          onClick={() => session.edit({type: 'insert'})}
-        >
-          슬라이드 추가
-        </Button>
-        {addCard}
-      </div>
       {menu === null ? null : (
         <LabelMenu
           store={store}

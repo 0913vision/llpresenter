@@ -185,6 +185,43 @@ function savedItem(f: ReturnType<typeof setup>): SlidesItem {
 }
 
 describe('automatic inline slides editor', () => {
+  it('keeps add in the footer and inserts after a row or at the end', async () => {
+    const f = setup('blank');
+    try {
+      const add = await screen.findByRole('button', {name: '슬라이드 추가'});
+      expect(add.closest('footer')).not.toBeNull();
+      const first = f.view.container.querySelector('[data-slide-id]');
+      if (first === null) throw Error('Missing slide');
+      fireEvent.contextMenu(first);
+      fireEvent.click(screen.getByRole('menuitem', {name: '슬라이드 추가'}));
+      await waitFor(() =>
+        expect(
+          f.view.container.querySelectorAll('[data-slide-id]'),
+        ).toHaveLength(3),
+      );
+      const rows = f.view.container.querySelectorAll('[data-slide-id]');
+      expect(rows[2]?.getAttribute('data-slide-id')).toBe(
+        '00000000-0000-4000-8000-000000000005',
+      );
+      fireEvent.contextMenu(
+        screen.getByRole('group', {name: '슬라이드 편집 명령'}),
+      );
+      fireEvent.click(screen.getByRole('menuitem', {name: '슬라이드 추가'}));
+      await waitFor(() =>
+        expect(
+          f.view.container.querySelectorAll('[data-slide-id]'),
+        ).toHaveLength(4),
+      );
+      expect(
+        f.view.container
+          .querySelectorAll('[data-slide-id]')[2]
+          ?.getAttribute('data-slide-id'),
+      ).toBe('00000000-0000-4000-8000-000000000005');
+    } finally {
+      f.view.unmount();
+      await f.session.dispose();
+    }
+  });
   it('applies a catalog label to selected text and image slides from the shared menu', async () => {
     const f = setup('blank', undefined, true);
     try {
@@ -264,9 +301,7 @@ describe('automatic inline slides editor', () => {
         );
         if (firstRow === null) throw new Error('Missing first slide');
         fireEvent.click(firstRow);
-        fireEvent.click(
-          screen.getByRole('button', {name: '\uAE00 \uCD94\uAC00'}),
-        );
+        fireEvent.click(screen.getByRole('button', {name: '???? ??'}));
         await act(async () => {
           await pendingWritesOf(f.api).settleDrafts();
         });
