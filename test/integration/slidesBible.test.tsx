@@ -52,7 +52,9 @@ import {
 import {SUNDAY_ID} from '@fixtures/main/store/testFiles';
 
 vi.mock('@renderer/features/songs/editor/SongPreview', () => ({
-  Picture: () => <div />,
+  Picture: ({layers, appearance}: {layers: unknown; appearance: unknown}) => (
+    <div data-preview={JSON.stringify({layers, appearance})} />
+  ),
 }));
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
@@ -401,14 +403,17 @@ it('inserts the reviewed range after selection as one undo step, saves reference
         5,
       ),
     );
-    const verseThumbnail = view.container.querySelector(
-      '[data-slide-id] [data-measured-line]',
-    );
-    expect(verseThumbnail).not.toBeNull();
-    expect(verseThumbnail?.parentElement?.style.fontSize).toBe('36px');
-    expect(verseThumbnail?.closest('svg')?.getAttribute('viewBox')).toBe(
-      '0 0 1920 1080',
-    );
+    await waitFor(() => {
+      const previews = Array.from(
+        view.container.querySelectorAll<HTMLElement>(
+          '[data-slide-id] [data-preview]',
+        ),
+        element => element.dataset['preview'] ?? '',
+      );
+      const verse = previews.find(preview => preview.includes('"biblePart":'));
+      expect(verse).toContain('"lines":["');
+      expect(verse).toContain('"size":36');
+    });
     await waitFor(() => expect(f.content).toHaveBeenCalledOnce());
     const selected = view.container.querySelector<HTMLElement>(
       '[data-selected=true][data-slide-id]',

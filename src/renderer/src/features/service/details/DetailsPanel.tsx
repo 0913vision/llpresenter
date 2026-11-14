@@ -202,7 +202,7 @@ function DetailsPanelContent({
       ? state.song?.history.snapshot.song.theme
       : undefined);
   const bibleAppearance =
-    bible && projection?.appearance.theme.item
+    bible && projection?.appearance?.theme.item
       ? previewAppearance({
           role,
           screenId,

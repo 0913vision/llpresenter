@@ -13,6 +13,7 @@ import {useShow} from '@renderer/session/show';
 
 vi.mock('@renderer/platform/useSettingsDocument', () => ({
   useSettingsDocument: () => null,
+  useApiSettingsDocument: () => null,
 }));
 vi.mock('@renderer/rendering/SlidePicture', () => ({
   SlidePicture: ({

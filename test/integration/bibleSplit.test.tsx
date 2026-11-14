@@ -1,3 +1,4 @@
+import * as v from 'valibot';
 import {
   lastLiveCommand,
   liveCommands,
@@ -60,7 +61,10 @@ import {quickDocument} from '@fixtures/renderer/features/tools/quickTesting';
 
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
-    render = vi.fn();
+    constructor(private readonly parent: HTMLElement) {}
+    render = vi.fn((layers: unknown, frame: unknown) => {
+      this.parent.dataset['preview'] = JSON.stringify({layers, frame});
+    });
     dispose = vi.fn();
   },
 }));
@@ -314,6 +318,39 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
           .chunks[0]?.lines;
         await waitFor(() => {
           const first = screen.getAllByRole('option')[0];
+          if (workspace !== 'show') {
+            const preview = first?.querySelector<HTMLElement>('[data-preview]');
+            const raw: unknown = JSON.parse(
+              preview?.dataset['preview'] ?? '{}',
+            );
+            const data = v.parse(
+              v.object({
+                layers: v.object({
+                  slide: v.object({lines: v.array(v.string())}),
+                }),
+                frame: v.object({
+                  theme: v.object({
+                    layout: v.object({
+                      elements: v.array(
+                        v.object({
+                          kind: v.string(),
+                          text: v.optional(v.object({size: v.number()})),
+                        }),
+                      ),
+                    }),
+                  }),
+                }),
+              }),
+              raw,
+            );
+            expect(data.layers.slide.lines).toEqual(expected);
+            expect(
+              data.frame.theme.layout.elements.find(
+                element => element.kind === 'currentText',
+              )?.text?.size,
+            ).toBe(36);
+            return;
+          }
           const rows = first?.querySelectorAll<HTMLElement>(
             '[data-measured-line]',
           );

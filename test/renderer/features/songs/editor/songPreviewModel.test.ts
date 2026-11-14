@@ -38,7 +38,9 @@ describe('local song preview model', () => {
           screens: screens.value,
           item,
         });
-        expect(preview.theme).toMatchObject(live.screens[preview.screen.id]);
+        const composition = live.screens[preview.screen.id];
+        if (composition === undefined) throw new Error('Missing composition');
+        expect(preview.theme).toMatchObject(composition);
         expect(preview.theme.themeId).toBe(live.themeId);
       }
     },

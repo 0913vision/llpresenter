@@ -13,7 +13,7 @@ import {
 } from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
-import {emptyLayers} from '@core/live/state';
+import {emptyLayers, type LiveLayers} from '@core/live/state';
 import type {Label} from '@core/schema/labels';
 import type {ShowTile} from '@core/schema/showService';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
@@ -237,7 +237,7 @@ export function ContentPreviewFrame({
   const block = songPicture?.block ?? 0;
   const background = songPicture?.background;
   const nextBlock = songPicture?.nextBlock;
-  const layers = useMemo(
+  const layers = useMemo<LiveLayers>(
     () =>
       mediaPicture !== undefined
         ? {
