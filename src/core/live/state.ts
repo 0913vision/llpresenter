@@ -56,6 +56,7 @@ export interface NextSlide {
   readonly continued?: boolean;
   readonly biblePart?: number;
   readonly titleSlide?: true;
+  readonly sermonTitle?: true;
 }
 
 /** The slide on output: a service item, its position in the arrangement, and what to draw. */

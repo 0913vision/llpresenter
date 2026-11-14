@@ -500,11 +500,19 @@ export class ThemeElementView {
         : title;
     }
     if (
+      frame.screen?.kind !== 'stage' &&
+      slide?.next?.sermonTitle &&
+      (element.kind === 'nextText' || element.kind === 'nextLabel')
+    ) {
+      return null;
+    }
+    if (
       frame.screen?.kind === 'stage' &&
       (element.kind === 'nextText' || element.kind === 'nextLabel') &&
       (slide?.kind ?? item?.kind) === 'bible' &&
       slide?.sequenceLength !== undefined &&
-      slide.position >= slide.sequenceLength - 1
+      slide.position >= slide.sequenceLength - 1 &&
+      (element.kind === 'nextLabel' || slide.next?.sermonTitle !== true)
     ) {
       return null;
     }

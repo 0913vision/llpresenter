@@ -15,7 +15,11 @@ import type {
 } from '../schema/themes';
 import {STARTER_SCREEN_IDS} from '../screens/screens';
 import {THEME_LIMITS, themeItemKinds, type ThemeItemKind} from './elementRules';
-import {sundayScriptureLayout, sermonTitleLayout} from './sundayScripture';
+import {
+  sundayScriptureLayout,
+  sermonTitleLayout,
+  SERMON_TITLE_THEME_ID,
+} from './sundayScripture';
 import {sundayNoticeLayout} from './sundayNotice';
 import {
   SECTION_THEMES,
@@ -455,7 +459,7 @@ export function createDefaultThemes(
         ),
       },
       {
-        id: createThemeId(uuid(106)),
+        id: SERMON_TITLE_THEME_ID,
         name: '설교 제목',
         screens: Object.fromEntries(
           screens.map(screen => [
