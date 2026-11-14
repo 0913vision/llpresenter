@@ -351,12 +351,12 @@ it('offers one sermon title theme with automatic bars', () => {
   const stage = theme?.screens[createScreenId(STARTER_SCREEN_IDS.stage)];
   expect(
     stage?.elements.find(element => element.kind === 'itemName'),
-  ).toMatchObject({frame: {y: 245, h: 90}, text: {size: 66, align: 'center'}});
+  ).toMatchObject({frame: {y: 245, h: 90}, text: {size: 42, align: 'center'}});
   expect(
     stage?.elements.find(element => element.kind === 'currentText'),
   ).toMatchObject({
     frame: {y: 345},
-    text: {size: 104, align: 'center', maxLines: 4},
+    text: {size: 68, align: 'center', maxLines: 4},
   });
   expect(
     stage?.elements.filter(

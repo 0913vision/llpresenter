@@ -203,7 +203,7 @@ export function sermonTitleStageLayout(
               frame: {x: 154, y: 245, w: 1612, h: 90},
               text: {
                 ...text,
-                size: 66,
+                size: 42,
                 tracking: 0,
                 lineHeight: 1.2,
                 align: 'center' as const,
@@ -215,6 +215,7 @@ export function sermonTitleStageLayout(
               frame: {...element.frame, y: 345, h: 330},
               text: {
                 ...element.text,
+                size: 68,
                 align: 'center' as const,
                 vAlign: 'top' as const,
               },
