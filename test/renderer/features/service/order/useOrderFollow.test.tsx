@@ -28,6 +28,24 @@ afterEach(() => {
 });
 
 describe('service order follow', () => {
+  it('positions the item immediately on entry without a smooth scroll', () => {
+    const view = render(<Harness target="last" enabled={false} />);
+    const viewport = view.getByTestId('viewport');
+    Object.defineProperty(viewport, 'clientHeight', {value: 400});
+    const scrollTo = vi.fn();
+    viewport.scrollTo = scrollTo;
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
+      function (this: HTMLElement) {
+        return DOMRect.fromRect({
+          top: this === viewport ? 0 : 690,
+          height: this === viewport ? 400 : 20,
+        });
+      },
+    );
+    view.rerender(<Harness target="last" />);
+    expect(viewport.scrollTop).toBe(540);
+    expect(scrollTo).not.toHaveBeenCalled();
+  });
   it('positions an out-of-band item at 40% and leaves an item already in the band', () => {
     const view = render(<Harness target={null} />);
     const viewport = view.getByTestId('viewport');
@@ -60,11 +78,17 @@ describe('service order follow', () => {
     vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
       function (this: HTMLElement) {
         return DOMRect.fromRect({
-          top: this === viewport ? 0 : 690,
+          top:
+            this === viewport
+              ? 0
+              : this.dataset['orderId'] === 'first'
+                ? 150
+                : 690,
           height: this === viewport ? 400 : 20,
         });
       },
     );
+    view.rerender(<Harness target="first" />);
     fireEvent.wheel(viewport);
     view.rerender(<Harness target="last" />);
     expect(scrollTo).not.toHaveBeenCalled();

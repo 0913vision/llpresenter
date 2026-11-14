@@ -5,13 +5,19 @@ const BAND_START = 0.3;
 const BAND_END = 0.55;
 const TARGET = 0.4;
 
-function follow(list: HTMLElement | null, id: string | null): void {
+function follow(
+  list: HTMLElement | null,
+  id: string | null,
+  initial: boolean,
+): boolean {
   const viewport = list?.parentElement;
-  if (!list || !viewport || id === null || viewport.clientHeight <= 0) return;
+  if (!list || !viewport || id === null || viewport.clientHeight <= 0) {
+    return false;
+  }
   const row = Array.from(
     list.querySelectorAll<HTMLElement>('[data-order-id]'),
   ).find(element => element.dataset['orderId'] === id);
-  if (!row) return;
+  if (!row) return false;
   const bounds = row.getBoundingClientRect();
   const relative =
     (bounds.top + bounds.bottom) / 2 - viewport.getBoundingClientRect().top;
@@ -19,15 +25,17 @@ function follow(list: HTMLElement | null, id: string | null): void {
     relative >= viewport.clientHeight * BAND_START &&
     relative <= viewport.clientHeight * BAND_END
   ) {
-    return;
+    return true;
   }
   const top = Math.max(
     0,
     viewport.scrollTop + relative - viewport.clientHeight * TARGET,
   );
   if (Math.abs(top - viewport.scrollTop) >= 1) {
-    viewport.scrollTo({top, behavior: 'smooth'});
+    if (initial) viewport.scrollTop = top;
+    else viewport.scrollTo({top, behavior: 'smooth'});
   }
+  return true;
 }
 
 /** Follows the live order item without overriding an operator's recent scroll. */
@@ -45,6 +53,7 @@ export function useOrderFollow(
 ): void {
   const pausedUntil = useRef(0);
   const dragging = useRef(false);
+  const positioned = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const current = useRef<() => void>(() => undefined);
   useLayoutEffect(() => {
@@ -87,12 +96,15 @@ export function useOrderFollow(
       timer.current = undefined;
       dragging.current = false;
       pausedUntil.current = 0;
+      positioned.current = false;
     };
   }, [enabled, list]);
   useLayoutEffect(() => {
     current.current = () => {
       if (enabled && !dragging.current && Date.now() >= pausedUntil.current) {
-        follow(list.current, target);
+        if (follow(list.current, target, !positioned.current)) {
+          positioned.current = true;
+        }
       }
     };
     current.current();
