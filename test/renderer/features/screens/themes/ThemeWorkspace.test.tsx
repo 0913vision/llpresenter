@@ -46,9 +46,11 @@ function setup({
   oldStandby = false,
   screenOrder,
   userThemes = 0,
+  userDefault = false,
 }: {
   readonly idle?: boolean;
   readonly userThemes?: number;
+  readonly userDefault?: boolean;
   /** A 대기 화면 saved before it had any screen layout. */
   readonly oldStandby?: boolean;
   readonly services?: Partial<LlpApi['services']>;
@@ -57,6 +59,15 @@ function setup({
   const defaults = createDefaultThemes();
   const initial = settingsDocument('themes', {
     ...defaults,
+    ...(userDefault
+      ? {
+          defaults: {
+            ...defaults.defaults,
+            bible: createThemeId('11111111-1111-4111-8111-000000000000'),
+            blank: createThemeId('11111111-1111-4111-8111-000000000000'),
+          },
+        }
+      : {}),
     themes: [
       ...defaults.themes,
       ...Array.from({length: userThemes}, (_, index) => ({
@@ -261,7 +272,7 @@ it('duplicates the focused 테마 with Ctrl D, the way its 복제 row does', asy
 });
 
 it('asks before every 테마 delete, says where a 테마 is the default, and keeps it on cancel', async () => {
-  const {value} = setup();
+  const {value} = setup({userThemes: 1, userDefault: true});
   const themes = await screen.findByRole('listbox', {name: '테마'});
   fireEvent.contextMenu(within(themes).getByRole('option', {name: '찬양'}), {
     clientX: 10,
@@ -278,16 +289,34 @@ it('asks before every 테마 delete, says where a 테마 is the default, and kee
   fireEvent.click(within(unused).getByRole('button', {name: '취소'}));
   expect(value().themes.some(theme => theme.name === '찬양 복사본')).toBe(true);
 
-  fireEvent.contextMenu(within(themes).getByRole('option', {name: '말씀'}), {
-    clientX: 10,
-    clientY: 10,
-  });
+  const current = within(themes).getByRole('option', {name: '찬양 복사본'});
+  current.focus();
+  fireEvent.keyDown(current, {key: 'End'});
+  fireEvent.contextMenu(
+    await within(themes).findByRole('option', {name: 'User 0'}),
+    {
+      clientX: 10,
+      clientY: 10,
+    },
+  );
   fireEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
   const used = await screen.findByRole('alertdialog');
   expect(used.textContent).toContain('쓰는 곳: 성경, 빈 슬라이드 기본');
   fireEvent.click(within(used).getByRole('button', {name: '삭제'}));
   await waitFor(() =>
-    expect(value().themes.some(theme => theme.name === '말씀')).toBe(false),
+    expect(value().themes.some(theme => theme.name === 'User 0')).toBe(false),
+  );
+});
+
+it('shows why a built-in theme cannot be deleted', async () => {
+  setup();
+  const themes = await screen.findByRole('listbox', {name: '테마'});
+  fireEvent.contextMenu(within(themes).getByRole('option', {name: '찬양'}));
+  const remove = await screen.findByRole('menuitem', {name: '삭제'});
+  expect(remove.getAttribute('aria-disabled')).toBe('true');
+  await userEvent.hover(remove);
+  expect((await screen.findByRole('tooltip')).textContent).toContain(
+    '기본 테마',
   );
 });
 
@@ -301,9 +330,12 @@ it('says the use of a 테마 cannot be checked instead of showing no use', async
     clientX: 10,
     clientY: 10,
   });
+  fireEvent.click(await screen.findByRole('menuitem', {name: '복제'}));
+  const copied = await screen.findByRole('option', {name: '찬양 복사본'});
+  fireEvent.contextMenu(copied, {clientX: 10, clientY: 10});
   fireEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
   const question = await screen.findByRole('alertdialog');
-  expect(question.textContent).toContain('‘찬양’ 테마를 삭제할까요?');
+  expect(question.textContent).toContain('‘찬양 복사본’ 테마를 삭제할까요?');
   expect(question.textContent).toContain('쓰는 곳 확인 실패');
   expect(question.textContent).not.toContain('쓰는 곳: 예배');
   expect(screen.queryAllByRole('alert')).toEqual([]);

@@ -110,7 +110,7 @@ it('dispatches rename, delete and drag reorder for the selected theme', () => {
   fireEvent.dragStart(source, {dataTransfer});
   fireEvent.dragOver(target, {dataTransfer, clientY: 0});
   fireEvent.drop(target, {dataTransfer, clientY: 0});
-  expect(move).toHaveBeenCalledWith('a', null);
+  expect(move).toHaveBeenCalledWith('a', 'b');
 });
 
 it('bounds a thousand rows while Home and End select and focus the full model', async () => {
