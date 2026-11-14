@@ -623,6 +623,30 @@ describe('theme composition drawing', () => {
     },
   );
 
+  it.each([
+    {kind: 'audience', expected: true},
+    {kind: 'stage', expected: true},
+    {kind: 'broadcast', expected: false},
+  ] as const)(
+    'balances song lyric wraps only for audience and stage: $kind',
+    ({kind, expected}) => {
+      const spy = vi.spyOn(SlideLayerView.prototype, 'setBalanceWrap');
+      const {view} = setup();
+      const element: ThemeElement = {
+        ...themeElementBase(),
+        kind: 'currentText',
+      };
+      view.render(song, {
+        ...frame([element]),
+        screen: {id: THEME_MAIN, kind},
+        transitions: false,
+      });
+      expect(spy).toHaveBeenCalledWith(expected);
+      view.dispose();
+      spy.mockRestore();
+    },
+  );
+
   it('uses the full slide width only for formatted audience song lyrics', () => {
     const {root, view} = setup();
     const element: ThemeElement = {

@@ -330,6 +330,7 @@ export class SlideLayerView {
   private minimumSize: number | undefined;
   private fitLines: number | undefined;
   private lineMode: 'normal' | 'song' | 'lyrics' | 'bar' = 'normal';
+  private balanceWrap = false;
   private dissolveMs: number = SLIDE_DISSOLVE_MS;
   private effect: SlideTransition | undefined;
   private readonly animation = new SlideAnimation();
@@ -518,6 +519,13 @@ export class SlideLayerView {
     if (this.current !== null) this.fit(this.pages[this.front]);
   }
 
+  /** Balance each authored lyric line if it wraps. */
+  setBalanceWrap(balance: boolean): void {
+    if (this.balanceWrap === balance) return;
+    this.balanceWrap = balance;
+    if (this.current !== null) this.fit(this.pages[this.front]);
+  }
+
   setFitLines(limit: number | undefined): void {
     this.fitLines = limit;
   }
@@ -558,6 +566,12 @@ export class SlideLayerView {
     const {element, block} = page;
     block.style.maxHeight = '';
     block.style.overflow = '';
+    block.style.textWrap =
+      this.balanceWrap && this.lineMode === 'normal' ? 'balance' : '';
+    block.style.wordBreak =
+      this.balanceWrap && this.lineMode === 'normal' ? 'keep-all' : '';
+    block.style.overflowWrap =
+      this.balanceWrap && this.lineMode === 'normal' ? 'normal' : '';
     const size = (this.targetSize ?? this.style.size) * this.scale;
     const markers = block.querySelectorAll<HTMLElement>(
       '[data-bible-continuation]',
@@ -633,6 +647,7 @@ export class SlideLayerView {
         page.continued,
         page.biblePart,
         this.lineMode,
+        this.balanceWrap,
         this.fitLines,
         this.targetSize,
         this.style,
@@ -668,7 +683,10 @@ export class SlideLayerView {
     const wraps =
       (this.lineMode === 'song' || this.lineMode === 'lyrics') &&
       fontSize < minimum;
-    const keepWords = this.lineMode === 'lyrics' && wraps;
+    const keepWords =
+      (this.lineMode === 'lyrics' ||
+        (this.balanceWrap && this.lineMode === 'song')) &&
+      wraps;
     if ((block.dataset['keepWords'] === 'true') !== keepWords) {
       writeLines(page, page.lines, {
         continued: page.continued,
@@ -680,8 +698,10 @@ export class SlideLayerView {
       block.dataset['keepWords'] = String(keepWords);
     }
     block.style.whiteSpace = this.lineMode === 'normal' || wraps ? '' : 'pre';
-    block.style.wordBreak = keepWords ? 'keep-all' : '';
-    block.style.overflowWrap = keepWords ? 'normal' : '';
+    const balance = this.balanceWrap && (wraps || this.lineMode === 'normal');
+    block.style.textWrap = balance ? 'balance' : '';
+    block.style.wordBreak = keepWords || balance ? 'keep-all' : '';
+    block.style.overflowWrap = keepWords || balance ? 'normal' : '';
     setSize(
       Math.max(
         wraps ? minimum : 0,
