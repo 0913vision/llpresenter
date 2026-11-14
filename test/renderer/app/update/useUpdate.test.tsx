@@ -1,11 +1,4 @@
-import {
-  act,
-  cleanup,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-} from '@testing-library/react';
+import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import type {UpdateSnapshot} from '@core/schema/update';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
@@ -73,42 +66,40 @@ describe('update presentation', () => {
     });
     expect(view.resume).toHaveBeenCalledOnce();
   });
-  it('keeps the downloaded install question out of live output, then offers install and later', async () => {
-    const snapshot: UpdateSnapshot = {
-      revision: 1,
-      status: {kind: 'downloaded', version: '1.2.3'},
-      visible: true,
-      outputsOn: true,
-      busy: false,
-    };
-    const view = setup(snapshot);
-    await waitFor(() => expect(screen.getByRole('alert')).toBeDefined());
-    expect(screen.queryByRole('alertdialog')).toBeNull();
-    expect(screen.queryByRole('button', {name: '설치'})).toBeNull();
-    view.push({...snapshot, revision: 2, outputsOn: false});
-    expect(screen.getByRole('alertdialog').textContent).toContain('1.2.3');
-    fireEvent.click(screen.getByRole('button', {name: '나중에'}));
-    expect(view.send).toHaveBeenCalledWith({revision: 2, action: 'later'});
-    fireEvent.click(screen.getByRole('button', {name: '설치'}));
-    expect(view.send).toHaveBeenCalledWith({revision: 2, action: 'install'});
-  });
-  it('allows a download from a live notice and displays percent without a dialog', async () => {
+  it('offers an update with an output warning on a manual check', async () => {
     const snapshot: UpdateSnapshot = {
       revision: 1,
       status: {kind: 'available', version: '1.2.3'},
       visible: true,
       outputsOn: true,
       busy: false,
+      notice: false,
     };
     const view = setup(snapshot);
-    fireEvent.click(await screen.findByRole('button', {name: '내려받기'}));
+    const dialog = await screen.findByRole('alertdialog');
+    expect(dialog.textContent).toContain('1.2.3');
+    expect(dialog.textContent).toContain(
+      '\uD654\uBA74\uC774 \uAEBC\uC9C0\uACE0',
+    );
+    fireEvent.click(
+      screen.getByRole('button', {name: '\uC5C5\uB370\uC774\uD2B8'}),
+    );
     expect(view.send).toHaveBeenCalledWith({revision: 1, action: 'download'});
-    view.push({
-      ...snapshot,
-      revision: 2,
-      status: {kind: 'downloading', version: '1.2.3', percent: 38},
-    });
-    expect(screen.getByRole('alert').textContent).toContain('38%');
+  });
+  it('shows a dismissible launch notice without an update action', async () => {
+    const snapshot: UpdateSnapshot = {
+      revision: 1,
+      status: {kind: 'available', version: '1.2.3'},
+      visible: true,
+      outputsOn: true,
+      busy: false,
+      notice: true,
+    };
+    setup(snapshot);
+    expect((await screen.findByRole('alert')).textContent).toContain('1.2.3');
     expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(
+      screen.queryByRole('button', {name: '\uC5C5\uB370\uC774\uD2B8'}),
+    ).toBeNull();
   });
 });

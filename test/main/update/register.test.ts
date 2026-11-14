@@ -50,6 +50,8 @@ function setup(enabled = true) {
     quitForUpdate: vi.fn<() => Promise<boolean>>().mockResolvedValue(true),
   };
   const stop = registerUpdates({
+    prepareRestart: () => Promise.resolve(true),
+    cancelRestart: () => Promise.resolve(),
     savePending: () => Promise.resolve(true),
     verifyClean: () => Promise.resolve(true),
     resumeAfterCancelledInstall: vi.fn(),
@@ -65,7 +67,7 @@ function setup(enabled = true) {
     sender: control.webContents,
     senderFrame: control.webContents.mainFrame,
   };
-  return {ready, stop, control, event};
+  return {ready, stop, control, event, shutdown};
 }
 
 describe('update registration', () => {

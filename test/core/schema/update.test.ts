@@ -3,7 +3,9 @@ import {
   parseUpdateAction,
   parseUpdateSnapshot,
   parseUpdateVersion,
+  parseUpdateRestart,
 } from '@core/schema/update';
+import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 
 const snapshot = {revision: 1, visible: true, outputsOn: false, busy: false};
 
@@ -27,6 +29,7 @@ describe('update payloads', () => {
     {...snapshot, status: {kind: 'unknown'}},
     {...snapshot, revision: -1, status: {kind: 'idle'}},
     {...snapshot, visible: 'yes', status: {kind: 'idle'}},
+    {...snapshot, notice: 'yes', status: {kind: 'idle'}},
     {...snapshot, status: {kind: 'downloaded', version: 'x'.repeat(65)}},
     {...snapshot, status: {kind: 'error', reason: 'x'.repeat(241)}},
     ...[-1, 101, NaN, Infinity, 1.5].map(percent => ({
@@ -57,5 +60,18 @@ describe('update payloads', () => {
   it('rejects version strings containing paths or markup', () => {
     expect(parseUpdateVersion('../1.2.3').ok).toBe(false);
     expect(parseUpdateVersion('<b>1.2.3</b>').ok).toBe(false);
+  });
+  it('validates restart screen identifiers and their count', () => {
+    const id = '00000000-0000-4000-8000-000000000001';
+    expect(parseUpdateRestart({version: '1.2.3', screens: [id]}).ok).toBe(true);
+    expect(
+      parseUpdateRestart({version: '1.2.3', screens: ['invalid']}).ok,
+    ).toBe(false);
+    expect(
+      parseUpdateRestart({
+        version: '1.2.3',
+        screens: Array(LIVE_STATE_LIMITS.outputs + 1).fill(id),
+      }).ok,
+    ).toBe(false);
   });
 });

@@ -212,8 +212,8 @@ README.
   a passage problem and can be retried.
 - Features that need the network aren't needed for a service. If they fail,
   nothing else is affected.
-- Updates never install or open a dialog while any output is on. Manual checks
-  can show nonmodal results and download while live. Don't run large backups
+- Updates only install after an operator confirms. A manual update can turn off
+  active outputs and restore them after restarting. Don't run large backups
   during a service. See 08 and "App updates" below.
 
 Source: product log (offline Bible data preferred), `docs/TECH.md` principle 5.
@@ -223,33 +223,21 @@ Source: product log (offline Bible data preferred), `docs/TECH.md` principle 5.
 - Only packaged Windows apps check the repository's public GitHub Releases,
   without a token. Development runs and tests never check. Draft releases are
   invisible to installed apps.
-- After the control service and output preparation finish, one launch check runs
-  silently, off the launch path. A newer published version downloads in the
-  background. Latest-version results and launch errors only enter the app log;
-  offline operation is normal.
-- **도움말 > 업데이트 확인** runs a manual check. A check or download already in
-  progress gives a notice without starting another. A newer version asks
-  **내려받기** or **나중에**, and downloading shows percent. A latest-version
-  result includes the installed version. A manual failure gives a short reason;
-  technical details go to the local app log only.
-- No update dialog appears while any output is on. A question already open
-  disappears if output turns on, and waits for every output to turn off. A
-  manual live check uses a nonmodal notice, including a download action and
-  progress. The installation question always waits for outputs to be off.
-- Once downloaded, the app asks whether to install the named version, with
-  **설치** and **나중에**. **설치** uses normal save, output shutdown, and
-  recovery cleanup before the updater installs silently and restarts the app.
-  Failed or incomplete cleanup prevents installation. A completed update restart
-  has no crash recovery prompt. Installation requires an explicit successful
-  renderer flush and a bounded durability check for app.json, content, settings,
-  and media before stores are disposed. A forced close, missing reply, failed
-  write, or save timeout cancels installation; unsaved stores remain available
-  for retry. Failures during the subsequent final shutdown saves also prevent
-  the installer from running.
-- **나중에** never installs on quit (`autoInstallOnAppQuit: false`). The next
-  manual check offers the downloaded version again; the next launch checks the
-  published release and reuses the updater's cached download. Installation is
-  always an operator click between services, never an automatic restart.
+- After control service and output preparation finish, one quiet launch check
+  runs off the launch path. A newer release shows a dismissible nonmodal notice
+  with its version. Latest-version results and launch errors go only to the log.
+  A launch check never downloads or installs an update.
+- **도움말 > 업데이트 확인** checks on request. A newer version offers
+  **업데이트** or **나중에** in the app's dialog. When outputs are on, the same
+  dialog says they turn off during the update and return after restart. Nothing
+  downloads or changes outputs before the operator confirms. A manual failure
+  gives a short reason; technical details remain in the local log.
+- After confirmation, download progress is shown and the app saves pending
+  edits, records the active outputs, shuts down, installs, and restarts. The
+  same service reopens and precisely those outputs turn on, independently of the
+  ordinary launch-output preference. Failed or incomplete saves or recovery
+  cleanup prevent installation. A completed update restart has no crash recovery
+  prompt. A cancelled update never installs on quit.
 - The installer keeps the existing app-data and library roots. Uninstalling
   removes installed program files and shortcuts, never app data or backups.
 
