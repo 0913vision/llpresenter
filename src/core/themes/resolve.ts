@@ -128,8 +128,9 @@ function resolvedBibleStageLayout(
     !previous ||
     !updated ||
     !layout.elements.some(element => sameJson(element, previous))
-  )
-    {return layout;}
+  ) {
+    return layout;
+  }
   return {
     ...layout,
     elements: layout.elements.map(element =>
