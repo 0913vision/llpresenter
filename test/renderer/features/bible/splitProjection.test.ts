@@ -1,5 +1,10 @@
 import {expect, it} from 'vitest';
-import {BibleProjections} from '@renderer/features/bible/splitProjection';
+import {
+  BibleProjections,
+  projectBible,
+} from '@renderer/features/bible/splitProjection';
+import {mockSplitLayout, MOCK_LONG_VERSE} from '@fixtures/core/bibleSplit';
+import {themeElementBase} from '@fixtures/core/themeOutput';
 import {themeElementText} from '@core/themes/content';
 import {emptyLayers} from '@core/live/state';
 import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
@@ -63,27 +68,27 @@ it('labels split verse parts and leaves an unsplit verse unnumbered', () => {
       {
         chapter: 3,
         verse: 17,
-        text: 'alpha beta gamma delta epsilon zeta eta theta iota kappa',
+        text: MOCK_LONG_VERSE,
       },
       {chapter: 3, verse: 18, text: 'short'},
     ],
   };
-  const projections = new BibleProjections({
-    themes: null,
-    screens: undefined,
-    saved: undefined,
-    canvas: {font: '', measureText: text => ({width: text.length * 100})},
-  });
-  const projection = projections.get({
-    id: 'labels',
-    kind: 'bible',
-    source: 'external',
-    passage,
-    verseNumbers: true,
-    translationName: false,
-    reference: 'every',
-    review: false,
-  });
+  const projection = projectBible(
+    {
+      id: 'labels',
+      kind: 'bible',
+      source: 'external',
+      passage,
+      verseNumbers: true,
+      translationName: false,
+      reference: 'every',
+      review: false,
+    },
+    {
+      element: {...themeElementBase(), kind: 'currentText'},
+      layout: mockSplitLayout(),
+    },
+  );
   if (!projection) throw Error('Expected projection');
   const split = projection.parts.filter(part => part.reference.verse === 17);
   expect(split.length).toBeGreaterThan(1);

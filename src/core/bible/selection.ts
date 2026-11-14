@@ -1,9 +1,19 @@
+import {labelEdge} from './bibleTiles';
 import type {SlideTile} from '../presentation/model';
 
 export interface BiblePartIdentity {
   readonly label: SlideTile['label'];
   readonly part: number;
   readonly sourceSlideId?: SlideTile['sourceSlideId'];
+}
+
+function sameVerseLabel(
+  left: SlideTile['label'],
+  right: SlideTile['label'],
+): boolean {
+  return (
+    (labelEdge(left, 'first') ?? left) === (labelEdge(right, 'first') ?? right)
+  );
 }
 
 /** Finds a verse's part after a projection change, clamping a removed part. */
@@ -15,7 +25,7 @@ export function biblePartIndex(
   tiles.forEach((tile, index) => {
     if (
       sourceSlideId === undefined
-        ? tile.label === label
+        ? sameVerseLabel(tile.label, label)
         : tile.sourceSlideId === sourceSlideId
     ) {
       indices.push(index);
@@ -33,7 +43,7 @@ export function retainedBibleSelection(
   const current = previous[selected];
   const first = previous.findIndex(tile =>
     current?.sourceSlideId === undefined
-      ? tile.label === current?.label
+      ? sameVerseLabel(tile.label, current?.label ?? null)
       : tile.sourceSlideId === current.sourceSlideId,
   );
   return (

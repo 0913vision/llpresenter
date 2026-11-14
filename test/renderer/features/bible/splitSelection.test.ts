@@ -27,3 +27,15 @@ it('retains the verse part after prepending slides and clamps a reduced part cou
   ).toBe(0);
   expect(retainedBibleSelection(previous, 2, [])).toBe(0);
 });
+
+it('keeps verse selection when part numbers appear or disappear', () => {
+  const previous = [tile('\uC6943:16'), tile('\uC6943:17')];
+  const split = [
+    {...tile('\uC6943:16 (1)'), biblePart: 1},
+    {...tile('\uC6943:16 (2)'), biblePart: 2},
+    {...tile('\uC6943:17 (1)'), biblePart: 1},
+    {...tile('\uC6943:17 (2)'), biblePart: 2},
+  ];
+  expect(retainedBibleSelection(previous, 1, split)).toBe(2);
+  expect(retainedBibleSelection(split, 3, previous)).toBe(1);
+});

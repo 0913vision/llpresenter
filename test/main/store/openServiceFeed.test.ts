@@ -102,7 +102,11 @@ describe('OpenServiceFeed', () => {
       await feed.dispose();
       return labels;
     };
-    expect(await labelsOf()).toEqual(['3:16', '3:17', '3:18']);
+    expect(await labelsOf()).toEqual([
+      '\uC6943:16',
+      '\uC6943:17',
+      '\uC6943:18',
+    ]);
   });
 
   it('discards a superseded saved-passage read and publishes only the latest service content', async () => {

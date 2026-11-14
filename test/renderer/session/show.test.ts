@@ -672,12 +672,12 @@ describe('Bible passages', () => {
     outputNext();
     expect(slides().at(-1)).toMatchObject({
       type: 'slide.show',
-      slide: {itemId: grown.id, position: 3, label: '3:18'},
+      slide: {itemId: grown.id, position: 3, label: '\uC6943:18'},
     });
     outputPrevious();
     expect(slides().at(-1)).toMatchObject({
       type: 'slide.show',
-      slide: {itemId: grown.id, position: 1, label: '3:16'},
+      slide: {itemId: grown.id, position: 1, label: '\uC6943:16'},
     });
   });
 

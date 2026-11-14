@@ -206,9 +206,12 @@ describe('saved Bible passage resolution', () => {
     expect(bible.lookup).toHaveBeenCalledOnce();
     expect([...result.tiles.keys()]).toEqual(rows.map(row => row.id));
     expect(result.tiles.get(rows[0]?.id ?? '')).toMatchObject([
-      {label: '3:16', lines: ['16 Invented book 43, chapter 3, verse 16']},
-      {label: '3:17'},
-      {label: '3:18'},
+      {
+        label: '\uC6943:16',
+        lines: ['16 Invented book 43, chapter 3, verse 16'],
+      },
+      {label: '\uC6943:17'},
+      {label: '\uC6943:18'},
     ]);
     expect(result.tiles.get(rows[1]?.id ?? '')?.[0]?.lines).toEqual([
       'Invented book 43, chapter 3, verse 16',

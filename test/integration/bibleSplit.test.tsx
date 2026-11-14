@@ -576,7 +576,7 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
       const id = useShow.getState().openItemId;
       if (id === null) throw Error('Missing source');
       const before = tilesOf(id);
-      expect(before[1]).toMatchObject({label: '3:16', biblePart: 2});
+      expect(before[1]).toMatchObject({label: '\uC6943:16 (2)', biblePart: 2});
       act(() => useShow.setState({selectedTile: 1}));
       view.rerender(<span>준비</span>);
       expect(tilesOf(id)).toHaveLength(passage.verses.length);
@@ -584,11 +584,11 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
       view.rerender(<ShowShortcuts onProblem={vi.fn()} />);
       await waitFor(() => expect(tilesOf(id).length).toBe(before.length));
       const index = changedWhileAway
-        ? before.findIndex(tile => tile.label === '3:17')
+        ? before.findIndex(tile => tile.label === '\uC6943:17')
         : 1;
       expect(useShow.getState().selectedTile).toBe(index);
       expect(tilesOf(id)[index]).toMatchObject({
-        label: changedWhileAway ? '3:17' : '3:16',
+        label: changedWhileAway ? '\uC6943:17' : '\uC6943:16 (2)',
         biblePart: changedWhileAway ? 1 : 2,
       });
       expect(fixture.send).not.toHaveBeenCalled();
@@ -640,7 +640,7 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
       await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
       const id = useShow.getState().openItemId;
       if (id === null) throw Error('Missing source');
-      const before = tilesOf(id).findIndex(tile => tile.label === '3:17');
+      const before = tilesOf(id).findIndex(tile => tile.label === '\uC6943:17');
       act(() => outputTile({itemId: id, index: before}));
       const command = lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]);
       if (command?.type !== 'slide.show') throw Error('Missing live slide');
@@ -681,7 +681,7 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
         ),
       );
       await waitFor(() =>
-        expect(tilesOf(id).findIndex(tile => tile.label === '3:17')).toBe(
+        expect(tilesOf(id).findIndex(tile => tile.label === '\uC6943:17')).toBe(
           before + 1,
         ),
       );
@@ -696,7 +696,7 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
         lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]),
       ).toMatchObject({
         type: 'slide.show',
-        slide: {label: '3:18', biblePart: 1},
+        slide: {label: '\uC6943:18', biblePart: 1},
       });
       view.unmount();
     },
