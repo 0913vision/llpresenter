@@ -66,7 +66,9 @@ export function BibleQuickField({
       stopSelection();
     };
   }, [api.settings]);
-  const translations = withLiveBible(document?.value.translations ?? []);
+  const translations = document
+    ? withLiveBible(document.value.translations)
+    : [];
   return (
     <div ref={root}>
       <BibleReferenceField

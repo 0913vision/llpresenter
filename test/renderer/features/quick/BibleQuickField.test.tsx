@@ -255,7 +255,7 @@ describe('BibleQuickField', () => {
       }),
     );
     await act(async () => finish(bibleDocument()));
-    expect(screen.getByRole<HTMLInputElement>('combobox').disabled).toBe(true);
+    expect(screen.getByRole<HTMLInputElement>('combobox').disabled).toBe(false);
     view.unmount();
     expect(fixture.listenerCount()).toBe(0);
   });
