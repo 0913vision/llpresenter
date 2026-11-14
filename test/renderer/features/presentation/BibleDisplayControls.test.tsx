@@ -166,7 +166,7 @@ describe('Bible preview display controls', () => {
     );
     expect(currentSource().verseNumbers).toBe(false);
     expect(currentSource().tiles[useShow.getState().selectedTile]?.label).toBe(
-      '3:17',
+      '\uC6943:17',
     );
     expect(fixture.lookup).toHaveBeenCalledExactlyOnceWith({
       translation: alternate,
@@ -210,7 +210,7 @@ describe('Bible preview display controls', () => {
       );
       expect(
         currentSource().tiles[useShow.getState().selectedTile]?.label,
-      ).toBe(selected === 17 ? '3:18' : '3:17');
+      ).toBe(selected === 17 ? '\uC6943:18' : '\uC6943:17');
     },
   );
 

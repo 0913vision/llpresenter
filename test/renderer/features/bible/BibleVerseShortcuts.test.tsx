@@ -191,7 +191,7 @@ describe('Bible verse shortcuts', () => {
     await outputAdjacentBibleVerse('next');
     expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])).toMatchObject({
       type: 'slide.show',
-      slide: {position: 1, label: '3:16'},
+      slide: {position: 1, label: '\uC6943:16'},
     });
   });
   it('extends to the previous passage edge from the first verse instead of outputting the card', async () => {
@@ -200,7 +200,7 @@ describe('Bible verse shortcuts', () => {
     expect(fixture.lookup).toHaveBeenCalled();
     expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])).toMatchObject({
       type: 'slide.show',
-      slide: {label: '3:15'},
+      slide: {label: '\uC6943:15'},
     });
   });
 
@@ -255,7 +255,7 @@ describe('Bible verse shortcuts', () => {
       '요한복음 3:16-20',
     );
     expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])).toMatchObject({
-      slide: {label: '3:20'},
+      slide: {label: '\uC6943:20'},
     });
   });
   it.each([true, false])(
@@ -275,7 +275,7 @@ describe('Bible verse shortcuts', () => {
         type: 'slide.show',
         slide: {
           position: 3,
-          label: '3:19',
+          label: '\uC6943:19',
           lines: [
             `${verseNumbers ? '19 ' : ''}Invented book 43, chapter 3, verse 19`,
           ],
@@ -285,8 +285,8 @@ describe('Bible verse shortcuts', () => {
   );
 
   it.each([
-    {direction: 'next', label: '3:18'},
-    {direction: 'previous', label: '3:16'},
+    {direction: 'next', label: '\uC6943:18'},
+    {direction: 'previous', label: '\uC6943:16'},
   ] as const)(
     'outputs the $direction verse inside the passage without adding one',
     async ({direction, label}) => {
@@ -312,7 +312,7 @@ describe('Bible verse shortcuts', () => {
     expect(useShow.getState().rows).toBe(fixture.rows);
     expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])).toMatchObject({
       type: 'slide.show',
-      slide: {label: '3:18'},
+      slide: {label: '\uC6943:18'},
     });
   });
 
@@ -323,7 +323,7 @@ describe('Bible verse shortcuts', () => {
     expect(useShow.getState().rows).toBe(fixture.rows);
     expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])).toMatchObject({
       type: 'slide.show',
-      slide: {label: '3:19'},
+      slide: {label: '\uC6943:19'},
     });
     expect(edit).not.toHaveBeenCalled();
   });
@@ -335,7 +335,7 @@ describe('Bible verse shortcuts', () => {
     expect(useShow.getState().rows).toBe(fixture.rows);
     expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])).toMatchObject({
       type: 'slide.show',
-      slide: {label: '3:19'},
+      slide: {label: '\uC6943:19'},
     });
   });
 
@@ -351,7 +351,7 @@ describe('Bible verse shortcuts', () => {
       ).toMatchObject({
         type: 'slide.show',
         slide: {
-          label: `3:${verse}`,
+          label: `\uC6943:${verse}`,
           lines: [`Invented book 43, chapter 3, verse ${verse}`],
         },
       });
@@ -392,7 +392,7 @@ describe('Bible verse shortcuts', () => {
       ).toMatchObject({
         type: 'slide.show',
         slide: {
-          label: `3:${verse}`,
+          label: `\uC6943:${verse}`,
           lines: [`Invented book 43, chapter 3, verse ${verse}`],
         },
       });

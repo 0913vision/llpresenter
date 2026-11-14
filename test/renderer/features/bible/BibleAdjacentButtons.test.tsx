@@ -116,7 +116,7 @@ describe('adjacent Bible verses', () => {
       const view = useShow.getState();
       expect(view.selectedTile).toBe(2);
       expect(view.bibleSource?.verseNumbers).toBe(verseNumbers);
-      expect(view.bibleSource?.tiles[2]?.label).toBe('3:17');
+      expect(view.bibleSource?.tiles[2]?.label).toBe('\uC6943:17');
       expect(view.bibleSource?.tiles[2]?.lines[0]).toBe(
         `${verseNumbers ? '17 ' : ''}Invented book 43, chapter 3, verse 17`,
       );

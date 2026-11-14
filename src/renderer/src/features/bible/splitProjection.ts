@@ -209,7 +209,7 @@ export function projectBible(
         : '';
     const reference = `${name} ${part.reference.chapter}:${part.reference.verse}${translation}`;
     return {
-      label: `${part.reference.chapter}:${part.reference.verse}`,
+      label: `${book.koreanShort}${part.reference.chapter}:${part.reference.verse}${part.partCount > 1 ? ` (${part.part})` : ''}`,
       labelColor: NO_LABEL_COLOR,
       lines: part.lines ?? bibleOutputLines(prefix + part.display),
       continued: part.continued,

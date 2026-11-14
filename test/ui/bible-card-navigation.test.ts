@@ -112,18 +112,18 @@ it(
     await page.keyboard.press('Shift+ArrowLeft');
     expect((await live()).label).toBe('Card');
     await page.keyboard.press('Shift+ArrowRight');
-    await waitLabel('3:16');
+    await waitLabel('\uC6943:16');
     await page.keyboard.press('ArrowLeft');
     await waitLabel('Card');
     await page.keyboard.press('ArrowRight');
-    await waitLabel('3:16');
+    await waitLabel('\uC6943:16');
     await page.keyboard.press('Shift+ArrowLeft');
-    await waitLabel('3:15');
+    await waitLabel('\uC6943:15');
     await order.getByRole('option', {name: '요한복음 3:16~17'}).click();
     await grid.getByRole('option').last().click();
-    await waitLabel('3:17');
+    await waitLabel('\uC6943:17');
     await page.keyboard.press('Shift+ArrowRight');
-    await waitLabel('3:18');
+    await waitLabel('\uC6943:18');
     await order.getByRole('option', {name: '요한복음 3:16~17'}).click();
     await page.keyboard.press('Control+ArrowDown');
     await expect
@@ -172,7 +172,7 @@ it(
       .toBeGreaterThanOrEqual(4);
     expect((await live()).label).toBe('Card');
     await grid.getByRole('option').nth(1).click();
-    await waitLabel('3:16');
+    await waitLabel('\uC6943:16 (1)');
     await page.keyboard.press('Control+E');
     const splitDialog = page.getByRole('dialog', {
       name: '\uc808 \ub098\ub204\uae30',
@@ -184,7 +184,7 @@ it(
     await expect
       .poll(() => grid.getByRole('option').count(), {timeout: 30000})
       .toBe(3);
-    expect((await live()).label).toBe('3:16');
+    expect((await live()).label).toBe('\uC6943:16 (1)');
     await grid.getByRole('option').first().click();
     await waitLabel('Card');
     await page.evaluate(

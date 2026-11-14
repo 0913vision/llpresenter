@@ -117,7 +117,7 @@ describe('quick execution', () => {
       });
       expect(
         useShow.getState().bibleSource?.tiles.map(tile => tile.label),
-      ).toEqual(['3:16', '3:17', '3:18']);
+      ).toEqual(['\uC6943:16', '\uC6943:17', '\uC6943:18']);
       expect(fixture.send).toHaveBeenCalledOnce();
       expect(problem).not.toHaveBeenCalled();
     },

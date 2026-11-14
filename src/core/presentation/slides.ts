@@ -33,7 +33,9 @@ export function projectSlides(
         ...(slide.transition === undefined
           ? {}
           : {transition: slide.transition}),
-        label: label ?? `${slide.verse.chapter}:${slide.verse.verse}`,
+        label:
+          label ??
+          `${book?.koreanShort ?? ''}${reference.chapter}:${reference.verse}`,
         labelColor,
         ...assigned,
         lines: verse === undefined ? [] : bibleOutputLines(verse.text),
