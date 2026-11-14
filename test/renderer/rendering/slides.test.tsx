@@ -154,9 +154,7 @@ it.each(['audience', 'stage', 'broadcast'] as const)(
         expect(
           root.querySelector('[data-kind="currentText"]')?.textContent,
         ).toContain(body);
-        expect(preview.container.textContent).toContain(
-          audienceLayout ? body : slide.lines.join('\n'),
-        );
+        expect(preview.container.textContent).toContain(body);
         if (audienceLayout) {
           expect(
             root.querySelector('[data-kind="slideNumber"]')?.textContent,
