@@ -275,6 +275,9 @@ export function ContentPreviewFrame({
                 ...(tilePicture.tile.titleSlide === undefined
                   ? {}
                   : {titleSlide: tilePicture.tile.titleSlide}),
+                ...(tilePicture.tile.titleLineCount === undefined
+                  ? {}
+                  : {titleLineCount: tilePicture.tile.titleLineCount}),
                 ...(tilePicture.tile.titleLayout === undefined
                   ? {}
                   : {titleLayout: tilePicture.tile.titleLayout}),

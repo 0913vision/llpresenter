@@ -124,6 +124,9 @@ export function selectedPreview(
     return {
       lines: slide.lines,
       ...(slide.titleSlide === undefined ? {} : {titleSlide: slide.titleSlide}),
+      ...(slide.titleLineCount === undefined
+        ? {}
+        : {titleLineCount: slide.titleLineCount}),
       ...(slide.titleLayout === undefined
         ? {}
         : {titleLayout: slide.titleLayout}),
@@ -153,6 +156,9 @@ export function selectedPreview(
       label: slide.label,
       lines: slide.lines,
       ...(slide.titleSlide === undefined ? {} : {titleSlide: slide.titleSlide}),
+      ...(slide.titleLineCount === undefined
+        ? {}
+        : {titleLineCount: slide.titleLineCount}),
       ...(slide.titleLayout === undefined
         ? {}
         : {titleLayout: slide.titleLayout}),

@@ -35,6 +35,7 @@ export const songSlideSchema = jsonObject({
   id: songSlideIdSchema,
   lines: v.array(v.string()),
   titleSlide: v.exactOptional(v.literal(true)),
+  titleLineCount: v.exactOptional(v.pipe(positiveInteger, v.maxValue(1000))),
   titleLayout: v.exactOptional(songTitleLayoutSchema),
   lyricFormat: v.exactOptional(songLyricFormatSchema),
   label: v.exactOptional(
@@ -58,7 +59,11 @@ export const songSlidesSchema = v.pipe(
       slides.every(
         slide =>
           slide.titleSlide === undefined ||
-          (slide.lines.length <= (slide.lyricFormat === undefined ? 2 : 1000) &&
+          (slide.lines.length <=
+            (slide.lyricFormat === undefined &&
+            slide.titleLineCount === undefined
+              ? 2
+              : 1000) &&
             slide.lines.every(
               line =>
                 line.length <= SONG_LIMITS.titleLine && !/[\r\n]/.test(line),

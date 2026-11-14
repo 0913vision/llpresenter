@@ -40,6 +40,9 @@ export function nextSlideOf(
     ...(tile.continued === undefined ? {} : {continued: tile.continued}),
     ...(tile.biblePart === undefined ? {} : {biblePart: tile.biblePart}),
     ...(tile.titleSlide === undefined ? {} : {titleSlide: tile.titleSlide}),
+    ...(tile.titleLineCount === undefined
+      ? {}
+      : {titleLineCount: tile.titleLineCount}),
   };
 }
 
@@ -145,6 +148,9 @@ export function slideLayerOf(
     lines: tile.lines,
     ...(tile.sectionCard === undefined ? {} : {sectionCard: tile.sectionCard}),
     ...(tile.titleSlide === undefined ? {} : {titleSlide: tile.titleSlide}),
+    ...(tile.titleLineCount === undefined
+      ? {}
+      : {titleLineCount: tile.titleLineCount}),
     ...(tile.lyricFormat === undefined ? {} : {lyricFormat: tile.lyricFormat}),
     ...(tile.titleLayout === undefined ? {} : {titleLayout: tile.titleLayout}),
     ...(tile.transition === undefined ? {} : {transition: tile.transition}),

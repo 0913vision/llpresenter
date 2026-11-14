@@ -10,6 +10,7 @@ import {useItemMedia} from './useItemSources';
 
 export interface ItemSlide {
   readonly titleSlide?: true;
+  readonly titleLineCount?: number;
   readonly titleLayout?: import('@core/schema/songTitleLayout').SongTitleLayout;
   readonly lyricFormat?: import('@core/schema/songLyricFormat').SongLyricFormat;
   readonly text: string;
@@ -48,6 +49,9 @@ export function useItemSlides(
           ...(slide.titleSlide === undefined
             ? {}
             : {titleSlide: slide.titleSlide}),
+          ...(slide.titleLineCount === undefined
+            ? {}
+            : {titleLineCount: slide.titleLineCount}),
           ...(slide.titleLayout === undefined
             ? {}
             : {titleLayout: slide.titleLayout}),

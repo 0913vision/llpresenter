@@ -2669,7 +2669,7 @@ it('shows an empty stage next slide cue and preserves labels and other screens',
   view.dispose();
 });
 
-it('shows stage prelude and interlude labels and both lines of the next title slide', () => {
+it('shows only the main title box in the stage next preview', () => {
   const {root, view} = setup();
   const elements: ThemeElement[] = [
     {...themeElementBase(31), kind: 'nextText'},
@@ -2708,13 +2708,41 @@ it('shows stage prelude and interlude labels and both lines of the next title sl
       {label: null, titleSlide: true, lines: ['\ucc2c\uc591', 'English title']},
       'stage',
     ),
-  ).toContain('English title');
+  ).not.toContain('English title');
+  expect(
+    draw(
+      {
+        label: null,
+        titleSlide: true,
+        titleLineCount: 2,
+        lines: ['새찬송가 91장', '슬픈 마음 있는 사람', 'English'],
+      },
+      'stage',
+    ),
+  ).toContain('슬픈 마음 있는 사람');
+  expect(
+    draw(
+      {
+        label: null,
+        titleSlide: true,
+        titleLineCount: 2,
+        lines: ['새찬송가 91장', '슬픈 마음 있는 사람', 'English'],
+      },
+      'stage',
+    ),
+  ).not.toContain('English');
   expect(
     draw(
       {label: null, titleSlide: true, lines: ['\ucc2c\uc591', 'English title']},
       'audience',
     ),
   ).toContain('English title');
+  expect(
+    draw(
+      {label: null, titleSlide: true, lines: ['임재', '하늘의 문을 여소서']},
+      'stage',
+    ),
+  ).toContain('하늘의 문을 여소서');
   view.dispose();
 });
 
@@ -2730,6 +2758,7 @@ it('shows both title lines on stage while retaining the section name', () => {
     slide: {
       ...song.slide,
       titleSlide: true as const,
+      titleLineCount: 2,
       lines: ['새찬송가 91장', '슬픈 마음 있는 사람'],
     },
   };
@@ -2745,6 +2774,31 @@ it('shows both title lines on stage while retaining the section name', () => {
   draw(title, 'stage');
   expect(current()).toContain('새찬송가 91장');
   expect(current()).toContain('슬픈 마음 있는 사람');
+  const separate = {
+    ...title,
+    slide: {
+      ...title.slide,
+      titleLineCount: 1,
+      lines: ['날마다 숨쉬는 순간마다', 'Day by Day'],
+    },
+  };
+  draw(separate, 'stage');
+  expect(current()).toContain('날마다 숨쉬는 순간마다');
+  expect(current()).not.toContain('Day by Day');
+  draw(separate, 'broadcast');
+  expect(current()).toContain('날마다 숨쉬는 순간마다');
+  expect(current()).not.toContain('Day by Day');
+  draw(separate, 'audience');
+  expect(current()).toContain('Day by Day');
+  const koreanSubtitle = {
+    ...separate,
+    slide: {...separate.slide, lines: ['임재', '하늘의 문을 여소서']},
+  };
+  for (const kind of ['stage', 'broadcast'] as const) {
+    draw(koreanSubtitle, kind);
+    expect(current()).toContain('임재');
+    expect(current()).toContain('하늘의 문을 여소서');
+  }
   draw(title, 'audience');
   expect(current()).toContain('새찬송가 91장');
   expect(current()).toContain('슬픈 마음 있는 사람');

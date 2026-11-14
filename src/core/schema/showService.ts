@@ -146,6 +146,7 @@ export const showTileSchema = v.pipe(
     labelColor: labelColorSchema,
     lines: v.array(v.string()),
     titleSlide: v.exactOptional(v.literal(true)),
+    titleLineCount: v.exactOptional(v.pipe(positiveInteger, v.maxValue(1000))),
     titleLayout: v.exactOptional(songTitleLayoutSchema),
     lyricFormat: v.exactOptional(songLyricFormatSchema),
     reference: v.exactOptional(liveTextSchema),
