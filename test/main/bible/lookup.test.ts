@@ -1,3 +1,4 @@
+import {BIBLE_VERSE_COUNTS} from '@core/bible/bibleVerseCounts';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {unlink, writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
@@ -85,14 +86,15 @@ describe('Bible lookup session', () => {
     const answer = await session.lookup(request('요한복음'));
     expect(answer.bounds).toEqual({
       bookId: 43,
-      chapterVerses: Array.from({length: 21}, (_, index) =>
-        index === 2 ? 36 : 8,
-      ),
+      chapterVerses: BIBLE_VERSE_COUNTS[42],
     });
     expect(answer.result.ok).toBe(false);
     expect(read).not.toHaveBeenCalled();
     expect((await session.lookup(request('베'))).bounds).toBeUndefined();
-    expect((await session.lookup(request('창세기'))).bounds).toBeUndefined();
+    expect(
+      (await session.lookup(request('\ucd9c\uc560\uad7d\uae30'))).bounds
+        ?.bookId,
+    ).toBe(2);
   });
 
   it.each([

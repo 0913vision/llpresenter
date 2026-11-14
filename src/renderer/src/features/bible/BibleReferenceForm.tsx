@@ -1,4 +1,5 @@
 import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
+import {BIBLE_VERSE_COUNTS} from '@core/bible/bibleVerseCounts';
 import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
 import {
   useEffect,
@@ -60,12 +61,7 @@ const ignorePreview = (): void => undefined;
 const LIVE_BOUNDS = new Map(
   BIBLE_BOOKS.map(book => [
     book.id,
-    {
-      bookId: book.id,
-      chapterVerses: Array<number>(book.chapters).fill(
-        BIBLE_LOOKUP_LIMITS.verses,
-      ),
-    },
+    {bookId: book.id, chapterVerses: BIBLE_VERSE_COUNTS[book.id - 1] ?? []},
   ]),
 );
 
@@ -151,12 +147,7 @@ export function BibleReferenceForm(
     onPreview: ignorePreview,
   });
   const metadataBounds =
-    metadata?.bounds ??
-    (metadata?.effectiveTranslation === LIVE_BIBLE_ID &&
-    metadataBook !== undefined
-      ? LIVE_BOUNDS.get(metadataBook.id)
-      : undefined);
-  const bookUnavailable = metadata !== null && metadataBounds === undefined;
+    metadataBook === undefined ? undefined : LIVE_BOUNDS.get(metadataBook.id);
   useEffect(() => {
     const target = advancedBook.current;
     if (target === null) return;
@@ -164,17 +155,8 @@ export function BibleReferenceForm(
       advancedBook.current = null;
       return;
     }
-    if (metadata === null) return;
     advancedBook.current = null;
-    const field = root.current?.querySelector<HTMLInputElement>(
-      '[data-reference-part="chapter"]',
-    );
-    if (metadataBounds === undefined && document.activeElement === field) {
-      root.current
-        ?.querySelector<HTMLInputElement>('[role="combobox"]')
-        ?.focus();
-    }
-  }, [bookId, chapterFocus, metadata, metadataBounds, translation]);
+  }, [bookId, chapterFocus, translation]);
   const reconciled = reconcileReferenceFields(fields, metadataBounds);
   if (reconciled !== fields) setFields(reconciled);
   const state = referenceFieldsState(reconciled, metadataBounds);
@@ -293,7 +275,6 @@ export function BibleReferenceForm(
   };
   const reason = (part: ReferencePart): string | undefined => {
     if (part === 'book') {
-      if (bookUnavailable) return '이 역본에 없는 책';
       return fields.book.trim() !== '' && books.length === 0
         ? '입력한 이름과 일치하는 성경 책이 없습니다'
         : undefined;
@@ -310,11 +291,6 @@ export function BibleReferenceForm(
   const advanceBook = (): void => {
     const candidate = metadataBook;
     if (!candidate) {
-      setBlocked('book');
-      return;
-    }
-    if (bookUnavailable) {
-      if (candidate.id !== book?.id) choose(candidate.korean);
       setBlocked('book');
       return;
     }

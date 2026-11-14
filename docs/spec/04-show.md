@@ -799,7 +799,7 @@ that ProPresenter's Edit mode has the same behavior.
 
 Book suggestions use the full canonical metadata even when the selected file is
 missing or partial. When the live translation answers, the Bible input shows its
-name, and missing chapter bounds use the same full book metadata.
+name. Chapter and verse bounds always use the built-in GAE number table.
 
 ### Finding a passage
 
@@ -819,21 +819,20 @@ name, and missing chapter bounds use the same full book metadata.
   With several candidates and no exact match, completion stays until an
   arrow-key selection is made. As in copible, Tab gives the exact name priority
   over a highlighted partial match; a click or Enter selects a highlighted
-  suggestion. Matching partial names are not errors. Only an unmatched name or a
-  book absent from the selected installed translation has a red ring with a
-  plain Korean tooltip reason. `ckd` and `ckdtprl` complete to 창세기; `chd`
-  means 총 and has no match, as in copible. A valid full name in an installed
-  translation is never marked red.
+  suggestion. Matching partial names are not errors. Only an unmatched name has
+  a red ring with a plain Korean tooltip reason. `ckd` and `ckdtprl` complete to
+  창세기; `chd` means 총 and has no match, as in copible. A valid full name in
+  an installed translation is never marked red.
 - Up from no highlight leaves it unselected; Up from the first row clears the
   highlight. Down from no highlight selects the first row. An ambiguous book
   still blocks Tab after Up clears its selection.
 - 장 is enabled only for a resolved book; 시작절 requires a valid 장 and loaded
   verse bounds; 끝절 requires a valid 시작절. An invalid book clears 장, 시작절,
   and 끝절; an invalid 장 clears 시작절 and 끝절; an invalid 시작절 clears 끝절.
-  Pending or stale metadata disables dependent fields without erasing their
-  values. All three number fields accept only ASCII digits or empty input,
-  including pasted values. Navigation, editing shortcuts, and IME control keys
-  keep their normal behavior.
+  These bounds are available without waiting for a translation file or lookup.
+  All three number fields accept only ASCII digits or empty input, including
+  pasted values. Navigation, editing shortcuts, and IME control keys keep their
+  normal behavior.
 - With all four reference fields empty, Tab leaves 책 and skips the disabled
   numeric fields, so the rest of 진행 stays reachable without entering a
   passage; Shift Tab returns to 책. Once input begins, forward Tab and Enter

@@ -898,7 +898,8 @@ For a file containing only book 57, which has one chapter, its table is
 
 - Launch reads the four-byte length, exactly the header bytes, and the file's
   size. It validates installed headers without reading chapter blocks. Book
-  completion uses "Book metadata"; chapter and verse bounds use the table.
+  completion uses "Book metadata"; entry bounds use the built-in GAE number
+  table.
 - Validate metadata, `format`, version, installed ID, book ordering and chapter
   counts before publishing an index. Offsets and sums must be safe integers. The
   first offset is zero, each subsequent block starts at the previous end, and
@@ -973,9 +974,9 @@ whole chapters and ranges across chapters.
   verse. An end below 시작절 remains invalid and blocks lookup.
 - Optional `bounds` in a Bible lookup reply contains `bookId` and
   `chapterVerses`, one positive verse-slot count per chapter, including omitted
-  verses. A book-only request returns this from the installed header without
-  reading chapter text. Bounds are capped at 150 chapters and 40,000 slots per
-  chapter. The form ignores bounds for another book or translation.
+  verses. A book-only request returns this from the built-in GAE number table
+  without reading chapter text, regardless of the selected translation. The
+  field uses the same fixed table without waiting for a reply.
 - A successful lookup carries optional `translationLabel` for screen references,
   taken from the installed translation's `shortName`, capped at 256 characters.
   The passage's `translationName` option controls whether it is drawn (04).
