@@ -22,6 +22,11 @@ export type BlockCommand =
   | {readonly type: 'label'; readonly name: string | undefined}
   | {readonly type: 'title'; readonly title: string; readonly index?: number}
   | {
+      readonly type: 'title-slide';
+      readonly block: number;
+      readonly enabled: boolean;
+    }
+  | {
       readonly type: 'title-layout';
       readonly block: number;
       readonly layout: SongTitleLayout;

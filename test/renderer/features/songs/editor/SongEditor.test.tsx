@@ -286,6 +286,46 @@ describe('song editor view', () => {
     act(() => session.commandSlides({type: 'delete'}));
     expect(session.history.snapshot.song.slides).toEqual(before);
   });
+  it('toggles the selected slide as a title without changing its lyrics or label, and supports undo', async () => {
+    const {session, user} = await editorSetup();
+    const original = session.history.snapshot.song.slides[0];
+    if (!original) throw new Error('Missing first slide');
+    const toggle = screen.getByRole('checkbox', {name: '제목 슬라이드'});
+    expect(toggle.getAttribute('aria-checked')).toBe('false');
+    await user.click(toggle);
+    expect(session.history.snapshot.song.slides[0]).toEqual({
+      ...original,
+      titleSlide: true,
+    });
+    expect(toggle.getAttribute('aria-checked')).toBe('true');
+    act(() => session.edit('undo'));
+    expect(session.history.snapshot.song.slides[0]).toEqual(original);
+    act(() => session.edit('redo'));
+    expect(session.history.snapshot.song.slides[0]).toEqual({
+      ...original,
+      titleSlide: true,
+    });
+    await user.click(toggle);
+    expect(session.history.snapshot.song.slides[0]).toEqual(original);
+  });
+  it('does not discard extra lyric lines when enabling a title slide', async () => {
+    const {session} = await editorSetup();
+    act(() =>
+      session.edit({
+        type: 'text',
+        text: '첫 줄\n둘째 줄\n셋째 줄',
+        start: 0,
+        end: 0,
+      }),
+    );
+    const toggle = screen.getByRole('checkbox', {name: '제목 슬라이드'});
+    expect(toggle.getAttribute('aria-disabled')).toBe('true');
+    expect(session.history.snapshot.song.slides[0]?.lines).toEqual([
+      '첫 줄',
+      '둘째 줄',
+      '셋째 줄',
+    ]);
+  });
   it.each(['number', 'thumbnail', 'margin'])(
     'keeps slide shortcuts active after clicking the row %s from a text field',
     async place => {

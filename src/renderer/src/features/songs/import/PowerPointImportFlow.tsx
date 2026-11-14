@@ -217,12 +217,16 @@ function PowerPointDialog({
     () => source.slides.slice(start, finish + 1),
     [source, start, finish],
   );
-  const slides = useMemo(() => powerpointSlides(range), [range]);
+  const fileTitle = source.fileName.replace(/\.[^.]+$/, '');
+  const slides = useMemo(
+    () => powerpointSlides(range, title ?? fileTitle),
+    [range, title, fileTitle],
+  );
   const defaultTitle =
     slides.find(slide => 'titleSlide' in slide && slide.titleSlide)?.lines[0] ??
-    source.fileName.replace(/\.[^.]+$/, '');
+    fileTitle;
   const shownTitle = title ?? defaultTitle;
-  const allSlides = powerpointSlides(source.slides);
+  const allSlides = powerpointSlides(source.slides, shownTitle);
   const edit = (draft: TextImportDraft): void => {
     const previous = store.getSnapshot().session;
     store.openImported(draft);

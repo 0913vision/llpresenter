@@ -964,6 +964,12 @@ other such slides are lyrics. Empty slides remain blank. A title uses at most
 two shapes, joining each shape's lines with spaces. 편집 opens the unsaved song
 editor; 저장 there adds the song to the library.
 
+The first slide with body text is also a title when its text matches the file
+stem or chosen song name after whitespace is removed, or when it is a single
+line of at most 40 non-whitespace characters that the next nonempty slide does
+not continue. Its existing label remains attached. Title slide limits still
+apply; longer lyrics remain unchanged.
+
 가사 and 배경 are selected by default. At least one remains selected. 가사 alone
 opens a song without importing media; 배경 alone imports the selected range
 background into media with 가져오기 and opens no editor. When the slide ratio
@@ -1182,14 +1188,17 @@ line follows the copy name while a customized line is preserved.
 The song editor slide menu offers 제목 슬라이드 추가. It inserts the current
 song title at the insertion caret, after the targeted slide, or at the start
 when nothing is selected. Titles may repeat anywhere, including the last slide.
-The existing text field edits the title on its first line and an optional
-subtitle on its second line, each at most 512 characters. A single selected
-title exposes 제목 자간 and 부제 자간 in px, saved per slide. Defaults are 0 and
-24; each accepts -20 to 200. Ordinary move, duplicate, copy, paste, delete and
-undo apply, retaining text and spacing. Splitting a title or merging across
-either side of a title is refused. Title slides have no special transition
-default; use the existing 슬라이드 전환 control to choose a slow transition when
-desired. Library and service-local decks preserve every title.
+The 제목 슬라이드 checkbox changes the selected slide between title and lyrics
+without changing its text or label, and supports undo. A slide with more than
+two lines or a line longer than 512 characters must be shortened first. The
+existing text field edits the title on its first line and an optional subtitle
+on its second line, each at most 512 characters. A single selected title exposes
+제목 자간 and 부제 자간 in px, saved per slide. Defaults are 0 and 24; each
+accepts -20 to 200. Ordinary move, duplicate, copy, paste, delete and undo
+apply, retaining text and spacing. Splitting a title or merging across either
+side of a title is refused. Title slides have no special transition default; use
+the existing 슬라이드 전환 control to choose a slow transition when desired.
+Library and service-local decks preserve every title.
 
 ### Theme element selection commands
 

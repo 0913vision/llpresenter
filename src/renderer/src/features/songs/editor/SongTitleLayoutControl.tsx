@@ -2,6 +2,8 @@ import {useSyncExternalStore, type JSX} from 'react';
 import {DEFAULT_SONG_TITLE_LAYOUT} from '@core/schema/songTitleLayout';
 import {THEME_LIMITS} from '@core/themes/elementRules';
 import {NumberField} from '@renderer/ui/NumberField';
+import {Checkbox} from '@renderer/ui/Checkbox';
+import {SONG_LIMITS} from '@core/schema/song';
 import {isComposing} from '@renderer/ui/ime';
 import type {SongSession} from './songSession';
 import styles from './SongTitleLayoutControl.module.css';
@@ -21,7 +23,12 @@ export function SongTitleLayoutControl({
     view.selection.ids.has(slide.id),
   );
   const slide = view.slides[block];
-  if (view.selection.ids.size !== 1 || !slide?.titleSlide) return null;
+  if (view.selection.ids.size !== 1 || !slide) return null;
+  const tooLong =
+    slide.lines.length > 2 ||
+    slide.lines.some(
+      line => line.length > SONG_LIMITS.titleLine || /[\r\n]/.test(line),
+    );
   const labels = {
     titleTracking: '제목 자간',
     subtitleTracking: '부제 자간',
@@ -50,45 +57,67 @@ export function SongTitleLayoutControl({
         session.edit(key === 'y' || event.shiftKey ? 'redo' : 'undo');
       }}
     >
-      {(
-        [
-          'titleTracking',
-          'subtitleTracking',
-          'titleTop',
-          'subtitleTop',
-        ] as const
-      ).map(key => (
-        <label key={key} className={styles.field}>
-          {labels[key]}
-          <NumberField
-            aria-label={labels[key]}
-            value={spacing[key]}
-            min={key.endsWith('Top') ? 0 : THEME_LIMITS.tracking.min}
-            max={
-              key === 'titleTop'
-                ? THEME_LIMITS.height - 160
-                : key === 'subtitleTop'
-                  ? THEME_LIMITS.height - 90
-                  : THEME_LIMITS.tracking.max
-            }
-            unit="px"
-            updateOn="commit"
-            disabled={disabled || session.readOnly}
-            onChange={value =>
-              session.edit({
-                type: 'title-layout',
-                block,
-                layout: {
-                  ...slide.titleLayout,
-                  titleTracking: spacing.titleTracking,
-                  subtitleTracking: spacing.subtitleTracking,
-                  [key]: value,
-                },
-              })
-            }
-          />
-        </label>
-      ))}
+      <label className={styles.field}>
+        <Checkbox
+          aria-label="제목 슬라이드"
+          checked={slide.titleSlide === true}
+          disabled={
+            disabled ||
+            session.readOnly ||
+            (slide.titleSlide !== true && tooLong)
+          }
+          title={
+            tooLong && slide.titleSlide !== true
+              ? '제목 슬라이드는 두 줄 이하로 입력하세요'
+              : undefined
+          }
+          onChange={enabled =>
+            session.edit({type: 'title-slide', block, enabled})
+          }
+        />
+        제목 슬라이드
+      </label>
+      {slide.titleSlide !== true
+        ? null
+        : (
+            [
+              'titleTracking',
+              'subtitleTracking',
+              'titleTop',
+              'subtitleTop',
+            ] as const
+          ).map(key => (
+            <label key={key} className={styles.field}>
+              {labels[key]}
+              <NumberField
+                aria-label={labels[key]}
+                value={spacing[key]}
+                min={key.endsWith('Top') ? 0 : THEME_LIMITS.tracking.min}
+                max={
+                  key === 'titleTop'
+                    ? THEME_LIMITS.height - 160
+                    : key === 'subtitleTop'
+                      ? THEME_LIMITS.height - 90
+                      : THEME_LIMITS.tracking.max
+                }
+                unit="px"
+                updateOn="commit"
+                disabled={disabled || session.readOnly}
+                onChange={value =>
+                  session.edit({
+                    type: 'title-layout',
+                    block,
+                    layout: {
+                      ...slide.titleLayout,
+                      titleTracking: spacing.titleTracking,
+                      subtitleTracking: spacing.subtitleTracking,
+                      [key]: value,
+                    },
+                  })
+                }
+              />
+            </label>
+          ))}
     </div>
   );
 }

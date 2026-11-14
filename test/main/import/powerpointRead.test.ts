@@ -58,6 +58,28 @@ const slide = (content: string, extra = '', attrs = '') =>
   `<p:sld ${ns} ${attrs}><p:cSld>${extra}<p:spTree>${content}</p:spTree></p:cSld></p:sld>`;
 
 describe('PowerPoint XML reader', () => {
+  it('recognizes a first title stored in the same body placeholder as lyrics', () => {
+    const parts = {
+      'ppt/presentation.xml': `<p:presentation ${ns}><p:sldIdLst><p:sldId r:id="r1"/><p:sldId r:id="r2"/></p:sldIdLst><p:sldSz cx="1600" cy="900"/></p:presentation>`,
+      'ppt/_rels/presentation.xml.rels': rels(
+        rel('r1', 'slides/slide1.xml', 'slide') +
+          rel('r2', 'slides/slide2.xml', 'slide'),
+      ),
+      'ppt/slides/slide1.xml': slide(shape('은혜로다', '<p:ph idx="1"/>')),
+      'ppt/slides/slide2.xml': slide(
+        shape('시작됐네 우리 주님의 능력이', '<p:ph idx="1"/>'),
+      ),
+    };
+    const deck = readPowerPoint(archive(parts));
+    expect(deck.slides[0]?.shapes[0]).toMatchObject({
+      body: true,
+      lines: ['은혜로다'],
+    });
+    expect(powerpointSlides(deck.slides, '은혜로다')).toEqual([
+      {titleSlide: true, lines: ['은혜로다']},
+      {lines: ['시작됐네 우리 주님의 능력이']},
+    ]);
+  });
   it('reads titles, grouped body, breaks, blanks, hidden slides and inherited backgrounds', () => {
     const title = shape('Title') + shape('Subtitle');
     const body = `<p:grpSp><p:sp><p:nvSpPr><p:nvPr><p:ph idx="1"/></p:nvPr></p:nvSpPr><p:txBody><a:p><a:r><a:t>First &amp; line</a:t></a:r><a:br/><a:r><a:t>Second  </a:t></a:r></a:p></p:txBody></p:sp></p:grpSp>`;

@@ -21,6 +21,55 @@ vi.mock('@renderer/features/songs/import/composePowerPointBackground', () => ({
 const mockScene = {key: 'a'.repeat(64), layers: [], pictures: [], skipped: 0};
 
 describe('PowerPoint import dialog', () => {
+  it('reclassifies the first body slide when the operator chooses its text as the song name', async () => {
+    const fixture = editorFixture();
+    const store = new SongEditorStore(fixture.api, vi.fn());
+    onTestFinished(() => store.dispose());
+    const title = '가'.repeat(45);
+    const api = mockLlpApi({
+      ...fixture.api,
+      powerpoint: {
+        read: async () => ({
+          ok: true,
+          value: {
+            fileName: '다른 이름.pptx',
+            widescreen: true,
+            slides: [
+              {
+                number: 1,
+                background: null,
+                shapes: [{body: true, lines: [title]}],
+              },
+              {
+                number: 2,
+                background: null,
+                shapes: [{body: true, lines: [`${title} 다음`]}],
+              },
+            ],
+          },
+        }),
+      },
+    });
+    const onEdit = vi.fn();
+    render(
+      <PowerPointImportFlow
+        api={api}
+        store={store}
+        onDone={vi.fn()}
+        onEdit={onEdit}
+        onProblem={vi.fn()}
+      />,
+    );
+    await screen.findByRole('dialog', {name: 'PowerPoint 가져오기'});
+    fireEvent.change(screen.getByRole('textbox', {name: '제목'}), {
+      target: {value: title},
+    });
+    fireEvent.click(screen.getByRole('button', {name: '편집'}));
+    await waitFor(() => expect(onEdit).toHaveBeenCalledOnce());
+    expect(
+      store.getSnapshot().session?.history.snapshot.song.slides[0],
+    ).toMatchObject({titleSlide: true, lines: [title]});
+  });
   it('reuses matching media instead of importing a second image', async () => {
     const fixture = editorFixture();
     const store = new SongEditorStore(fixture.api, vi.fn());

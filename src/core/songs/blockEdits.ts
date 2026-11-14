@@ -28,6 +28,35 @@ export function editBlocks(
   command: BlockCommand,
 ): BlockSnapshot {
   const {song, selection} = snapshot;
+  if (command.type === 'title-slide') {
+    const slide = song.slides[command.block];
+    if (
+      slide === undefined ||
+      (slide.titleSlide === true) === command.enabled
+    ) {
+      return snapshot;
+    }
+    if (
+      command.enabled &&
+      (slide.lines.length > 2 ||
+        slide.lines.some(
+          line => line.length > SONG_LIMITS.titleLine || /[\r\n]/.test(line),
+        ))
+    ) {
+      return snapshot;
+    }
+    const {titleSlide: _titleSlide, ...rest} = slide;
+    const next = command.enabled ? {...rest, titleSlide: true as const} : rest;
+    return blockSnapshot(
+      {
+        ...song,
+        slides: song.slides.map((entry, index) =>
+          index === command.block ? next : entry,
+        ),
+      },
+      selection,
+    );
+  }
   if (command.type === 'title-layout') {
     const slide = song.slides[command.block];
     if (
