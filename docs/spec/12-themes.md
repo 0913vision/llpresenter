@@ -627,10 +627,8 @@ as every settings file does (02).
   slides use the same full-screen composition. NDI retains the translucent box;
   the green capture window draws its frame and panel opaque without a shadow.
   Only the built-in element IDs use this fit.
-- The stage screen retains its advertisement layout: a #141c2e full-screen box,
-  a 24 px #e6b54a left bar, fixed heading, covering media, the 132 px slide name
-  and 60 px body. The default advertisement item's 8-second advance and loop
-  remain unchanged (05).
+- The 광고 theme uses the standard built-in stage layout on 무대 화면. The
+  default advertisement item's 8-second advance and loop remain unchanged (05).
 - Item settings warn when a screen's resolved theme lacks 현재 가사 for text,
   슬라이드 이름 for an 광고 name, or 미디어 for a picture. Linked screens use
   the source screen's elements when checking.

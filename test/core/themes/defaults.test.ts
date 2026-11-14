@@ -324,7 +324,7 @@ it('offers one sermon title theme with automatic bars', () => {
   }
 });
 
-it('defaults blank slides to 말씀 and retains the broadcast and stage ad frames', () => {
+it('uses the standard stage layout and links broadcast ads', () => {
   const file = createDefaultThemes();
   expect(file.defaults.blank).toBe(file.defaults.bible);
   const ad = file.themes.find(theme => theme.id === file.defaults.ad);
@@ -333,38 +333,8 @@ it('defaults blank slides to 말씀 and retains the broadcast and stage ad frame
     mode: {kind: 'same', screen: createScreenId(STARTER_SCREEN_IDS.main)},
     elements: [],
   });
-  for (const screen of [STARTER_SCREEN_IDS.stage]) {
-    const layout = ad?.screens[createScreenId(screen)];
-    if (layout === undefined) throw Error('Expected ad layout');
-    expect(layout.elements.map(element => element.kind)).toEqual([
-      'box',
-      'box',
-      'text',
-      'media',
-      'slideName',
-      'currentText',
-    ]);
-    expect(layout.elements[0]).toMatchObject({
-      frame: {x: 0, y: 0, w: 1920, h: 1080},
-      box: {fill: '#141c2e'},
-    });
-    expect(layout.elements[1]).toMatchObject({
-      frame: {w: 24},
-      box: {fill: '#e6b54a'},
-    });
-    expect(layout.elements[2]).toMatchObject({
-      content: '교회 소식',
-      frame: {x: 150, y: 190},
-    });
-    expect(layout.elements[3]).toMatchObject({
-      fit: 'fill',
-      frame: {w: 1920, h: 1080},
-    });
-    expect(layout.elements[4]).toMatchObject({text: {size: 132, weight: 800}});
-    expect(layout.elements[5]).toMatchObject({
-      text: {size: 60, weight: 400, color: '#c9d1e0'},
-    });
-  }
+  const stage = createScreenId(STARTER_SCREEN_IDS.stage);
+  expect(ad?.screens[stage]).toEqual(builtInTheme('song').screens[stage]);
   expect(builtInTheme('ad')).toEqual(ad);
   expect(builtInTheme('blank')).toEqual(builtInTheme('bible'));
 });
@@ -553,10 +523,6 @@ it('uses the stage clock and next preview geometry across built-in themes', () =
   for (const theme of createDefaultThemes().themes) {
     const elements = theme.screens[stage]?.elements ?? [];
     const clock = elements.find(element => element.kind === 'clock');
-    if (clock === undefined) {
-      expect(theme.id).toBe(builtInTheme('ad').id);
-      continue;
-    }
     expect(clock).toMatchObject({
       frame: {x: 1460, y: 982, w: 400, h: 80},
       text: {size: 60, color: '#E6E6E6'},

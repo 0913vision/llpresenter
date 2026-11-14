@@ -100,7 +100,10 @@ it.each(['audience', 'stage', 'broadcast'] as const)(
       const preview = render(
         <SlidePicture layout={layout} slide={slide} item={frame.theme.item} />,
       );
-      if (index === 1) {
+      if (index === 1 && !audienceLayout) {
+        expect(root.querySelector('[data-kind="media"]')).toBeNull();
+        expect(preview.container.querySelector('img')).toBeNull();
+      } else if (index === 1) {
         expect(
           root.querySelector('[data-kind="media"] img')?.getAttribute('src'),
         ).toBe(mediaUrl(SLIDE_PICTURE));
@@ -155,7 +158,7 @@ it.each(['audience', 'stage', 'broadcast'] as const)(
             root.querySelector('[data-kind="slideNumber"]')?.textContent,
           ).toContain(String(slide.textSlideNumber));
         }
-        if (index === 0) {
+        if (index === 0 && audienceLayout) {
           expect(
             root.querySelector('[data-kind="slideName"]')?.textContent,
           ).toContain('Meeting');
