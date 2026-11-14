@@ -654,6 +654,9 @@ as every settings file does (02).
   KR Black 80 px with 12 px tracking; the verse uses KoPubWorldDotum Medium 36
   px. All text is white without shadow or outline. 무대 화면 keeps its clock and
   timer, and 방송 화면 stays empty.
+- A 빈 슬라이드 item may reference the current 대기 화면 theme directly; live
+  output and previews resolve its current per-screen layouts, including edits
+  and the 무대 fallback, without copying them into the item.
 - 예배 준비 is an additional normal theme for a 빈 슬라이드 item with one empty
   slide, not a kind default or the 대기 화면. Its audience picture has the
   bracket frame over a teal gradient (angle 135, 0% #002E38, 100% #00768C). Two

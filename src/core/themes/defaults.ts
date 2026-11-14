@@ -287,6 +287,22 @@ export function standbyLayoutOf(
   );
 }
 
+/** The current standby with the stage fallback resolved for each screen. */
+export function withStageStandby(
+  standby: Theme,
+  screens: ReadonlyArray<Pick<Screen, 'id' | 'kind'>>,
+): Theme {
+  return {
+    ...standby,
+    screens: Object.fromEntries(
+      screens.flatMap(screen => {
+        const layout = standbyLayoutOf(standby, screen);
+        return layout === undefined ? [] : [[screen.id, layout]];
+      }),
+    ),
+  };
+}
+
 function preparationStageLayout(screen: ThemeScreen): ThemeScreenLayout {
   const layout = layoutFor(screen, 'blank');
   const fallbackText = sundayPreparationLayout()

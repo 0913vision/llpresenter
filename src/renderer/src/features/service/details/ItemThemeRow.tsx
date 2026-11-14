@@ -127,6 +127,7 @@ export function ItemThemeRow({
     file?.themes.some(entry => entry.id === defaultId) === true;
   const defaultValue = hasDefault ? (defaultId ?? '') : '';
   const hasSelected =
+    file?.standby.id === item.theme ||
     file?.themes.some(entry => entry.id === item.theme) === true;
   const lock =
     reason ??
@@ -149,6 +150,9 @@ export function ItemThemeRow({
               ...(hasDefault || defaultTheme === undefined
                 ? []
                 : [{value: '', label: defaultTheme.name, meta: '기본'}]),
+              ...(file
+                ? [{value: file.standby.id, label: file.standby.name}]
+                : []),
               ...(file?.themes ?? []).map(entry => ({
                 value: entry.id,
                 label: entry.name,
@@ -162,7 +166,10 @@ export function ItemThemeRow({
                 editorTask(items.setTheme(undefined, file));
                 return;
               }
-              const selected = file?.themes.find(entry => entry.id === value);
+              const selected =
+                file?.standby.id === value
+                  ? file.standby
+                  : file?.themes.find(entry => entry.id === value);
               if (selected !== undefined) {
                 editorTask(
                   items.setTheme(

@@ -21,7 +21,10 @@ export function itemThemeCell(
 ): ItemThemeCell | undefined {
   const kind = itemThemeKind(item);
   if (kind === undefined) return undefined;
-  const chosen = file?.themes.find(theme => theme.id === item.theme);
+  const chosen =
+    file?.standby.id === item.theme
+      ? file?.standby
+      : file?.themes.find(theme => theme.id === item.theme);
   const theme = resolveItemTheme({
     file,
     kind,

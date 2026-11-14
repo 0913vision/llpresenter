@@ -12,10 +12,13 @@ import {
   createPaletteItem,
   isPaletteKey,
   PALETTE_SECTIONS,
+  ORDER_ELEMENTS,
 } from '@renderer/features/service/items/paletteItems';
 import {newLiturgyItem} from '@core/services/liturgy';
 import {newSectionItem} from '@core/services/sectionCards';
 import {createServiceItemId} from '@core/schema/ids';
+import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
+import {settingsDocument} from '@fixtures/core/settingsDocument';
 vi.mock('@renderer/features/service/items/quickAddSection', () => ({
   prepareSection: vi.fn(async (section: SundaySection) =>
     newSectionItem(createServiceItemId(crypto.randomUUID()), section),
@@ -31,6 +34,32 @@ vi.mock('@renderer/features/service/items/quickAddLiturgy', () => ({
   ),
 }));
 describe('palette items', () => {
+  it('creates one empty slide referencing the current standby theme', async () => {
+    expect(ORDER_ELEMENTS.at(-1)).toMatchObject({
+      id: 'waiting-screen',
+      label: '대기 화면',
+    });
+    const themes = createDefaultThemes();
+    const base = mockLlpApi();
+    window.llp = mockLlpApi({
+      settings: {
+        get: request =>
+          request.name === 'themes'
+            ? Promise.resolve(settingsDocument('themes', themes))
+            : base.settings.get(request),
+      },
+    });
+    try {
+      const item = await createPaletteItem('waiting-screen');
+      expect(item).toMatchObject({
+        theme: themes.standby.id,
+        slides: {form: 'blank', name: '대기 화면', slides: [{text: ''}]},
+      });
+      expect(isPaletteKey('waiting-screen')).toBe(true);
+    } finally {
+      delete window.llp;
+    }
+  });
   it('orders cards without the duplicate creed and advertisement', () => {
     const names = PALETTE_SECTIONS.map(section => section.name);
     expect(names.slice(0, 4)).toEqual([

@@ -21,6 +21,7 @@ export const ORDER_ELEMENTS = [
   {id: 'ad', label: '광고', icon: iconByKind.slides},
   {id: 'blank', label: '빈 슬라이드', icon: iconByKind.slides},
   {id: 'header', label: '구역', icon: 'folder'},
+  {id: 'waiting-screen', label: '대기 화면', icon: iconByKind.slides},
 ] as const;
 export type OrderElementId = (typeof ORDER_ELEMENTS)[number]['id'];
 export type PaletteKey = OrderElementId | `card:${string}`;
@@ -57,6 +58,18 @@ export async function createPaletteItem(
   const id = createServiceItemId(crypto.randomUUID());
   if (key === 'header') return {id, header: '새 구역'};
   if (key === 'standby') return newSundayPreparation(id);
+  if (key === 'waiting-screen') {
+    const api = window.llp;
+    if (api === undefined) throw new Error('App API unavailable');
+    const themes = await api.settings.get({name: 'themes'});
+    if (themes.name !== 'themes') throw new Error('Standby theme unavailable');
+    const blank = newSlidesItem('blank', id);
+    return {
+      ...blank,
+      theme: themes.value.standby.id,
+      slides: {...blank.slides, name: '대기 화면'},
+    };
+  }
   if (key === 'blank') return newSlidesItem('blank', id);
   if (key === 'ad' || key === 'creed') {
     const section = SUNDAY_SECTIONS.find(

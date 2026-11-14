@@ -52,4 +52,15 @@ describe('preparation palette', () => {
     expect(setData).toHaveBeenCalledWith(ELEMENT_DRAG_MIME, 'bible');
     expect(dataTransfer.effectAllowed).toBe('copy');
   });
+  it('offers the standby screen as the last order element for keyboard, double click and drag', () => {
+    render(<Palette library={null} />);
+    const standby = screen.getByRole('button', {name: '대기 화면'});
+    fireEvent.keyDown(standby, {key: 'Enter'});
+    fireEvent.doubleClick(standby);
+    expect(insert).toHaveBeenCalledTimes(2);
+    expect(insert).toHaveBeenCalledWith('waiting-screen');
+    const setData = vi.fn();
+    fireEvent.dragStart(standby, {dataTransfer: {setData, effectAllowed: ''}});
+    expect(setData).toHaveBeenCalledWith(ELEMENT_DRAG_MIME, 'waiting-screen');
+  });
 });
