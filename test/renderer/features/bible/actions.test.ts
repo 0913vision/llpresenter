@@ -222,9 +222,9 @@ describe('Bible slide source', () => {
     window.llp = fixture.api;
     openBiblePassage(panelPassage());
     expect(shownTiles(useShow.getState())?.map(tile => tile.label)).toEqual([
-      '3:16',
-      '3:17',
-      '3:18',
+      '\uC6943:16',
+      '\uC6943:17',
+      '\uC6943:18',
     ]);
     expect(fixture.send).not.toHaveBeenCalled();
     selectTile(1);
@@ -235,12 +235,12 @@ describe('Bible slide source', () => {
         itemId: useShow.getState().openItemId,
         position: 1,
         sequenceLength: 3,
-        label: '3:17',
+        label: '\uC6943:17',
         reference: '요한복음 3:17',
         kind: 'bible',
         title: panelPassage().displayRef,
         lines: ['17 Invented verse 17'],
-        next: {label: '3:18', lines: ['18 Invented verse 18']},
+        next: {label: '\uC6943:18', lines: ['18 Invented verse 18']},
       },
     });
     openBiblePassage({

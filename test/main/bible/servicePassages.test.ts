@@ -165,9 +165,21 @@ describe('saved Bible passage resolution', () => {
       });
       return result.tiles.get(row.id)?.map(tile => tile.label);
     };
-    expect(await built('verse')).toEqual(['3:16', '3:17', '3:18']);
-    expect(await built('two')).toEqual(['3:16', '3:17', '3:18']);
-    expect(await built('fit')).toEqual(['3:16', '3:17', '3:18']);
+    expect(await built('verse')).toEqual([
+      '\uC6943:16',
+      '\uC6943:17',
+      '\uC6943:18',
+    ]);
+    expect(await built('two')).toEqual([
+      '\uC6943:16',
+      '\uC6943:17',
+      '\uC6943:18',
+    ]);
+    expect(await built('fit')).toEqual([
+      '\uC6943:16',
+      '\uC6943:17',
+      '\uC6943:18',
+    ]);
   });
   it('exposes normalized identity only for successfully resolved saved items', async () => {
     const bible = fixture();

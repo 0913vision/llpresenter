@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import {describe, expect, it} from 'vitest';
 import {bibleVerseTiles, labelEdge} from '@core/bible/bibleTiles';
+import {passageBook} from '@core/bible/adjacentVerses';
 import {bibleSource} from '@core/bible/source';
 import {translationIdSchema} from '@core/schema/ids';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
@@ -58,13 +59,11 @@ describe('bibleVerseTiles reference', () => {
         `${localized} 4:1 (KJV)`,
         `${localized} 4:2 (KJV)`,
       ]);
-      expect(tiles.map(tile => tile.label)).toEqual([
-        '3:16',
-        '3:17',
-        '3:18',
-        '4:1',
-        '4:2',
-      ]);
+      expect(tiles.map(tile => tile.label)).toEqual(
+        ['3:16', '3:17', '3:18', '4:1', '4:2'].map(
+          ref => `${passageBook(value)?.koreanShort}${ref}`,
+        ),
+      );
       expect(bibleVerseTiles(value, {reference: 'first'})[0]?.reference).toBe(
         `${localized} 3:16`,
       );
@@ -99,11 +98,11 @@ describe('bibleVerseTiles reference', () => {
           ),
         );
         expect(tiles.map(tile => tile.label)).toEqual([
-          '3:34',
-          '3:35',
-          '3:36',
-          '4:1',
-          '4:2',
+          '\uC6943:34',
+          '\uC6943:35',
+          '\uC6943:36',
+          '\uC6944:1',
+          '\uC6944:2',
         ]);
       }
     },
@@ -168,11 +167,11 @@ describe('bibleVerseTiles split', () => {
   it('makes a slide of each verse by default, as before', () => {
     const tiles = bibleVerseTiles(JOHN, {reference: 'every'});
     expect(tiles.map(tile => tile.label)).toEqual([
-      '3:34',
-      '3:35',
-      '3:36',
-      '4:1',
-      '4:2',
+      '\uC6943:34',
+      '\uC6943:35',
+      '\uC6943:36',
+      '\uC6944:1',
+      '\uC6944:2',
     ]);
     expect(tiles[0]?.lines).toEqual(['34 a']);
   });
@@ -182,11 +181,11 @@ describe('bibleVerseTiles split', () => {
     split => {
       const tiles = bibleVerseTiles(JOHN, {reference: 'last', split});
       expect(tiles.map(tile => tile.label)).toEqual([
-        '3:34',
-        '3:35',
-        '3:36',
-        '4:1',
-        '4:2',
+        '\uC6943:34',
+        '\uC6943:35',
+        '\uC6943:36',
+        '\uC6944:1',
+        '\uC6944:2',
       ]);
       expect(tiles.map(tile => tile.lines)).toEqual([
         ['34 a'],
@@ -215,7 +214,11 @@ describe('bibleVerseTiles split', () => {
       ]),
       {verseNumbers: false, reference: 'every', split: 'fit'},
     );
-    expect(tiles.map(tile => tile.label)).toEqual(['1:1', '1:2', '1:4']);
+    expect(tiles.map(tile => tile.label)).toEqual([
+      '\uC6941:1',
+      '\uC6941:2',
+      '\uC6941:4',
+    ]);
     expect(tiles[1]?.lines.join('')).toBe(long);
   });
 });
@@ -272,6 +275,12 @@ describe('labelEdge', () => {
       '4:2',
     ]);
     expect(labelEdge('3:34-36', 'last')).toBe('3:36');
+  });
+
+  it('reads short book labels, split parts and ranges', () => {
+    expect(labelEdge('\uD5693:17 (2)', 'first')).toBe('3:17');
+    expect(labelEdge('\uD5693:17-18', 'last')).toBe('3:18');
+    expect(labelEdge('\uD5693:17-4:2', 'last')).toBe('4:2');
   });
 
   it('has no edge for no label', () => {

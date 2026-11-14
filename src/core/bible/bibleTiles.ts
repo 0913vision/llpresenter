@@ -1,3 +1,4 @@
+import {passageBook} from './adjacentVerses';
 import {NO_LABEL_COLOR} from '../labels/colors';
 import type {BibleLookupPassage} from '../schema/bibleLookup';
 import type {BiblePassage} from '../schema/biblePassage';
@@ -26,7 +27,8 @@ export function labelEdge(
   label: string | null | undefined,
   edge: 'first' | 'last',
 ): string | undefined {
-  const [from, to] = label?.split(/[-~\uFF5E]/u) ?? [];
+  const reference = label?.match(/\d+:\d+(?:[-~\uFF5E](?:\d+:)?\d+)?/u)?.[0];
+  const [from, to] = reference?.split(/[-~\uFF5E]/u) ?? [];
   if (edge === 'first' || to === undefined) return from;
   return to.includes(':') ? to : `${from?.split(':')[0]}:${to}`;
 }
@@ -55,13 +57,14 @@ export function bibleVerseTiles(
     translationName = false,
     reference = 'none',
   } = options;
+  const shortBook = passageBook(passage)?.koreanShort ?? '';
   const book = passage.displayRef.replace(/\s+\d.*$/u, '');
   const translation =
     translationName && passage.translationLabel
       ? ` (${passage.translationLabel})`
       : '';
   return passage.verses.map((verse, index) => ({
-    label: `${verse.chapter}:${verse.verse}`,
+    label: `${shortBook}${verse.chapter}:${verse.verse}`,
     labelColor: NO_LABEL_COLOR,
     ...(reference === 'every' ||
     (reference === 'first' && index === 0) ||

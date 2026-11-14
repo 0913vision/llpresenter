@@ -1020,9 +1020,10 @@ integration use this contract, with a distinct cancellable ID per lookup.
     `요한복음 3:16~18 (개역한글)`. It draws wherever the reference draws, on the
     same slides. The default is off, set in 환경설정 > 성경 > 새 구절.
 - Bible 슬라이드 grid: each 슬라이드 shows its verse numbers and text, and the
-  band keeps the short reference (`3:16`, `3:16~18`, or `3:34~4:2`) in 진행 and
-  준비. Clicking a tile outputs that 슬라이드 at once. The next and previous
-  keys work within the passage.
+  band shows the Korean short book name and reference (`합3:17`, `합3:17-18`). A
+  verse split across slides adds its part number (`합3:17 (1)`, `합3:17 (2)`) in
+  진행 and 준비. Clicking a tile outputs that 슬라이드 at once. The next and
+  previous keys work within the passage.
 - 화면별 보기 (per-screen view, "1 / 3"): shows how the selected 슬라이드 looks
   on the 청중 화면 and the 방송 화면, with the screen name, target, and style
   name.

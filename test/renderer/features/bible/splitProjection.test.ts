@@ -52,3 +52,43 @@ it('keeps the item range in Bible preview compositions without replacing individ
     ).toBe(passage.displayRef);
   }
 });
+
+it('labels split verse parts and leaves an unsplit verse unnumbered', () => {
+  const original = panelPassage();
+  const passage = {
+    ...original,
+    ref: '\uD558\uBC15\uAD6D 3:17-18',
+    displayRef: '\uD558\uBC15\uAD6D 3:17-18',
+    verses: [
+      {
+        chapter: 3,
+        verse: 17,
+        text: 'alpha beta gamma delta epsilon zeta eta theta iota kappa',
+      },
+      {chapter: 3, verse: 18, text: 'short'},
+    ],
+  };
+  const projections = new BibleProjections({
+    themes: null,
+    screens: undefined,
+    saved: undefined,
+    canvas: {font: '', measureText: text => ({width: text.length * 100})},
+  });
+  const projection = projections.get({
+    id: 'labels',
+    kind: 'bible',
+    source: 'external',
+    passage,
+    verseNumbers: true,
+    translationName: false,
+    reference: 'every',
+    review: false,
+  });
+  if (!projection) throw Error('Expected projection');
+  const split = projection.parts.filter(part => part.reference.verse === 17);
+  expect(split.length).toBeGreaterThan(1);
+  expect(
+    projection.tiles.slice(0, split.length).map(tile => tile.label),
+  ).toEqual(split.map(part => `\uD5693:17 (${part.part})`));
+  expect(projection.tiles.at(-1)?.label).toBe('\uD5693:18');
+});
