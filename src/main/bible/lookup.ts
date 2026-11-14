@@ -55,6 +55,7 @@ export class BibleLookupSession {
   private readonly cache = new BibleChapterCache();
   private readonly warnedFiles = new Set<string>();
   private translationsKey: string | null = null;
+  private defaultTranslation: string | undefined;
   private pending: Promise<void> = Promise.resolve();
   private waiting = 0;
   private disposed = false;
@@ -74,12 +75,15 @@ export class BibleLookupSession {
   lookup(
     request: BibleLookupRequest,
     cacheOnly = false,
+    operatorLookup = false,
   ): Promise<BibleLookupReply> {
     if (this.disposed || this.waiting >= BIBLE_LOOKUP_LIMITS.pending) {
       return Promise.reject(new Error('Bible lookup is unavailable'));
     }
     this.waiting++;
-    const answer = this.pending.then(() => this.resolve(request, cacheOnly));
+    const answer = this.pending.then(() =>
+      this.resolve(request, {cacheOnly, operatorLookup}),
+    );
     this.pending = answer.then(
       () => {
         this.waiting--;
@@ -110,6 +114,9 @@ export class BibleLookupSession {
     if (document?.name !== 'bible') {
       return null;
     }
+    this.defaultTranslation =
+      document.value.translations.find(item => item.default)?.id ??
+      document.value.translations[0]?.id;
     const key = JSON.stringify(
       document.value.translations.map(({id, file}) => ({id, file})),
     );
@@ -143,18 +150,44 @@ export class BibleLookupSession {
 
   private async resolve(
     request: BibleLookupRequest,
-    cacheOnly: boolean,
+    {
+      cacheOnly,
+      operatorLookup,
+    }: {readonly cacheOnly: boolean; readonly operatorLookup: boolean},
   ): Promise<BibleLookupReply> {
     const library = await this.refresh();
     if (!library) throw new Error('Bible settings are unavailable');
-    const result = await library.resolve(
-      request.translation,
-      request.input,
-      cacheOnly,
-    );
-    const candidates = await suggestions(request, library);
     const [, name = ''] = BOOK_PREFIX.exec(request.input.trim()) ?? [];
-    const bounds = library.bounds(request.translation, name);
+    const matches = matchBooks(name);
+    const missingBook =
+      matches.length === 1 &&
+      library.bounds(request.translation, name) === undefined;
+    const target =
+      request.translation !== LIVE_BIBLE_ID &&
+      (cacheOnly || operatorLookup) &&
+      (!library.hasTranslation(request.translation) ||
+        missingBook ||
+        (operatorLookup &&
+          request.translation === this.defaultTranslation &&
+          !library.complete(request.translation)))
+        ? LIVE_BIBLE_ID
+        : request.translation;
+    let result = await library.resolve(target, request.input, cacheOnly);
+    if (
+      !result.ok &&
+      result.error.code === 'translation' &&
+      target !== LIVE_BIBLE_ID &&
+      (cacheOnly || operatorLookup) &&
+      !library.hasTranslation(target)
+    ) {
+      result = await library.resolve(LIVE_BIBLE_ID, request.input, cacheOnly);
+    }
+    const effective = result.ok ? result.value.translation : target;
+    const candidates = await suggestions(
+      {...request, translation: effective},
+      library,
+    );
+    const bounds = library.bounds(effective, name);
     this.ensureOpen();
     const reply = parseBibleLookupReply(request, {
       ...request,

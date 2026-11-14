@@ -782,6 +782,11 @@ files.
 
 ## Bible translations
 
+For an operator lookup, an unavailable or incomplete configured default uses the
+built-in live translation. A lookup for a book absent from the chosen
+translation also uses the live translation. Saved items retain their stored
+translation and use cached live chapters when that translation lacks the book.
+
 - The built-in GAE translation temporarily fetches requested chapters live from
   the Korean Bible Society. It is the fallback when no translation is installed.
   Fetched text stays in the session's in-memory chapter cache and is never saved

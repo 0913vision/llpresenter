@@ -1,6 +1,6 @@
 import * as v from 'valibot';
 import type {ReadonlyKnown} from './fileFormat';
-import {translationIdSchema} from './ids';
+import {LIVE_BIBLE_ID, translationIdSchema} from './ids';
 import {parsePayload, payloadObject, plainObject} from './payload';
 import {nonBlankText, positiveInteger} from './primitives';
 
@@ -124,7 +124,9 @@ export function parseBibleLookupReply(
   if (
     reply.input !== request.input ||
     reply.translation !== request.translation ||
-    (reply.result.ok && reply.result.value.translation !== request.translation)
+    (reply.result.ok &&
+      reply.result.value.translation !== request.translation &&
+      reply.result.value.translation !== LIVE_BIBLE_ID)
   ) {
     return {
       ok: false,
