@@ -123,7 +123,7 @@ it(
     await grid.getByRole('option').last().click();
     await waitLabel('\uC6943:17');
     await page.keyboard.press('Shift+ArrowRight');
-    await waitLabel('\uC6943:18');
+    await waitLabel('\uC6943:18 (1)');
     await order.getByRole('option', {name: '요한복음 3:16~17'}).click();
     await page.keyboard.press('Control+ArrowDown');
     await expect
