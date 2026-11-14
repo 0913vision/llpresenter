@@ -778,5 +778,5 @@ elements. PowerPoint picture imports use this theme with their privately owned
 slide pictures.
 
 A theme may set a slide transition in the theme editor. The built-in scripture
-theme and the creed and prayer theme use a 0.7 second wipe; the sermon title
-theme and seven section title themes use a 1 second wipe.
+theme uses a 0.7 second wipe, the creed and prayer theme uses a 0.5 second wipe,
+and the sermon title theme and seven section title themes use a 1 second wipe.

@@ -572,7 +572,7 @@ it('sets wipe transitions on scripture and title themes', () => {
   const file = createDefaultThemes();
   expect(
     file.themes.find(theme => theme.id === CREED_PRAYER_THEME_ID)?.transition,
-  ).toEqual({kind: 'wipe', sec: 0.7});
+  ).toEqual({kind: 'wipe', sec: 0.5});
   expect(file.themes.find(theme => theme.name === '말씀')?.transition).toEqual({
     kind: 'wipe',
     sec: 0.7,
