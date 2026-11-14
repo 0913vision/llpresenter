@@ -10,7 +10,7 @@ it('shows one shared cancel action for Delete and Escape', () => {
       25
     </DraftOverlay>,
   );
-  const text = screen.getByRole('status').textContent?.replace(/\s+/gu, ' ');
+  const text = screen.getByRole('status').textContent.replace(/\s+/gu, ' ');
   expect(text).toContain('Enter 이동');
   expect(text).toContain('Delete, Esc 취소');
   expect(text).not.toContain('전체 지우기');
