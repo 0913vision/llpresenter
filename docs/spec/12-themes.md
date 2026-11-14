@@ -583,7 +583,7 @@ as every settings file does (02).
   Medium 86 px and the title Bold 140 px. 방송 uses the section-card black
   gradient band, expanded upward for two centered lines: the smaller passage
   above the larger sermon title. 무대 centers the smaller passage above the
-  title at 42 px and 68 px respectively and retains its clock and next-slide
+  title at 52 px and 83 px respectively and retains its clock and next-slide
   areas. Unedited saved sermon screens receive these layouts; individually
   customized screens are preserved.
 - `defaults.blank` selects 말씀 and `defaults.ad` selects 광고 in a new
