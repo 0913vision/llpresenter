@@ -319,7 +319,11 @@ function PowerPointDialog({
                 aria-label="배경"
                 checked={background}
                 disabled={!backgroundAvailable}
-                title={source.widescreen ? undefined : '16:9 슬라이드만'}
+                title={
+                  source.widescreen
+                    ? '선택한 슬라이드에서 가장 많이 사용된 배경'
+                    : '16:9 슬라이드만'
+                }
                 onChange={value => {
                   if (value || lyrics) setBackground(value);
                 }}
