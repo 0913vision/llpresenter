@@ -105,6 +105,34 @@ describe('built-in broadcast look', () => {
       expect(element(bible, BROADCAST_TEXT_ID)).toMatchObject({text: {size}});
     }
   });
+  it('shows the entire Bible item range above each verse', () => {
+    const layout = builtInTheme('bible').screens[screen];
+    if (!layout) throw Error('missing Bible layout');
+    for (const reference of [
+      'Habakkuk 3:17',
+      'Habakkuk 3:18',
+      'Habakkuk 3:19',
+    ]) {
+      const result = fitBroadcastLook(
+        layout,
+        {...slide, reference},
+        {...item, kind: 'bible', title: 'Habakkuk 3:17~19'},
+      );
+      expect(element(result, BROADCAST_REFERENCE_ID)).toMatchObject({
+        broadcastText: 'Habakkuk 3:17~19',
+        runtimeHidden: false,
+      });
+    }
+    const fallback = fitBroadcastLook(
+      layout,
+      {...slide, reference: 'Habakkuk 3:18'},
+      {id: 'item', kind: 'bible', source: 'service'},
+    );
+    expect(element(fallback, BROADCAST_REFERENCE_ID)).toMatchObject({
+      broadcastText: 'Habakkuk 3:18',
+    });
+  });
+
   it('uses the tallest Bible part for every slide in the same item', () => {
     const rows = (element: HTMLElement): number =>
       element.textContent.includes('tall') ? 3 : 1;
@@ -413,10 +441,10 @@ describe('built-in broadcast look', () => {
     );
     expect(element(longer, BROADCAST_LOOK_CARD_ID).frame.w).toBe(856);
   });
-  it('leaves unrelated layouts untouched and links advertisements to the audience', () => {
+  it('leaves unrelated layouts untouched and keeps advertisements empty', () => {
     const layout = builtInTheme('ad').screens[screen];
     expect(layout).toEqual({
-      mode: {kind: 'same', screen: createScreenId(STARTER_SCREEN_IDS.main)},
+      mode: {kind: 'own'},
       elements: [],
     });
     if (!layout) throw Error('missing ad');

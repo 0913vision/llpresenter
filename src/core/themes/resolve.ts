@@ -7,6 +7,7 @@ import {
   builtInTheme,
   legacySectionLayout,
   IMAGE_SLIDES_THEME_ID,
+  AD_THEME_ID,
   imageSlidesLayout,
   type ThemeScreen,
 } from './defaults';
@@ -106,6 +107,21 @@ export function resolveThemeScreen(
           layout: imageSlidesLayout(screen.kind),
         };
       }
+    }
+    if (
+      destination.kind === 'broadcast' &&
+      current === screenId &&
+      theme.id === AD_THEME_ID &&
+      theme.edited !== true &&
+      saved?.mode.kind === 'same' &&
+      saved.elements.length === 0 &&
+      screens.find(screen => screen.kind === 'audience')?.id ===
+        saved.mode.screen
+    ) {
+      return {
+        sourceScreenId: current,
+        layout: {mode: {kind: 'own'}, elements: []},
+      };
     }
     const implicit =
       saved === undefined ? implicitScreenLayout(current, screens) : undefined;
