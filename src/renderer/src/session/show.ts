@@ -13,7 +13,7 @@ import {
   adjacentItem,
   liveItem,
   nextTileAtLast,
-  previousTile,
+  previousTileAtFirst,
   type SequenceState,
 } from '@core/presentation/navigation';
 import {
@@ -62,10 +62,19 @@ export function tilesOf(itemId: ItemId): readonly SlideTile[] {
 
 /** The tile on output, taken from the live slide layer. */
 export function liveCursor(): TileCursor | null {
-  return projectedLiveCursor(
-    useShow.getState(),
-    useLive.getState().state?.layers.slide ?? null,
+  const view = useShow.getState();
+  const state = useLive.getState().state;
+  const slide = projectedLiveCursor(view, state?.layers.slide ?? null);
+  if (slide !== null) return slide;
+  const item = state?.themeItem;
+  const media = state?.layers.media;
+  if (item?.kind !== 'media' || item.contentCleared || media == null) {
+    return null;
+  }
+  const index = tilesForView(view, item.id).findIndex(
+    tile => tile.media?.mediaId === media.mediaId,
   );
+  return index < 0 ? null : {itemId: item.id, index};
 }
 
 // NOTE(0913vision): A Bible passage that grew around the live verse is a new
@@ -402,7 +411,15 @@ export function outputNext(): void {
 }
 
 export function outputPrevious(): void {
-  outputIfPresent(previousTile(sequenceState()));
+  const cursor = previousTileAtFirst(
+    sequenceState(),
+    useShow.getState().rows,
+    atLastSlide,
+  );
+  if (cursor !== null && cursor.itemId !== liveCursor()?.itemId) {
+    openItem(cursor.itemId);
+  }
+  outputIfPresent(cursor);
 }
 
 /** Outputs the first or last tile of the open presentation without wrapping. */

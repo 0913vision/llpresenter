@@ -71,6 +71,27 @@ export function previousTile(state: SequenceState): TileCursor | null {
   return {itemId: live.itemId, index: live.index - 1};
 }
 
+/** Moves to the previous item's last tile when continuous navigation is enabled. */
+export function previousTileAtFirst(
+  state: SequenceState,
+  rows: readonly ServiceRow[],
+  atLast: 'stop' | 'nextItem',
+): TileCursor | null {
+  const tile = previousTile(state);
+  if (tile !== null || atLast === 'stop' || state.live?.index !== 0) {
+    return tile;
+  }
+  const item = adjacentItem({
+    rows,
+    tilesOf: state.tilesOf,
+    current: state.live.itemId,
+    direction: 'previous',
+  });
+  return item === null
+    ? null
+    : {itemId: item, index: state.tilesOf(item).length - 1};
+}
+
 function canOutput(row: ServiceRow, tilesOf: TilesOf): row is ItemRow {
   return isItemRow(row) && tilesOf(row.id).length > 0;
 }

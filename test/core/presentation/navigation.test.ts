@@ -6,6 +6,7 @@ import {
   nextTile,
   nextTileAtLast,
   previousTile,
+  previousTileAtFirst,
   type SequenceState,
 } from '@core/presentation/navigation';
 
@@ -244,4 +245,28 @@ describe('liveItem', () => {
       liveItem({rows, live: {itemId: 'gone', index: 0}, current: 'a'}),
     ).toBeNull();
   });
+});
+
+it('continues to the previous output item only when enabled', () => {
+  const live = {itemId: 'b', index: 0};
+  expect(previousTileAtFirst(stateOf({live}), rows, 'stop')).toBeNull();
+  expect(previousTileAtFirst(stateOf({live}), rows, 'nextItem')).toEqual({
+    itemId: 'a',
+    index: 3,
+  });
+  expect(
+    previousTileAtFirst(
+      stateOf({live: {itemId: 'a', index: 0}}),
+      rows,
+      'nextItem',
+    ),
+  ).toBeNull();
+  expect(
+    previousTileAtFirst(
+      stateOf({live: {itemId: 'b', index: 1}}),
+      rows,
+      'nextItem',
+    ),
+  ).toEqual({itemId: 'b', index: 0});
+  expect(previousTileAtFirst(stateOf({}), rows, 'nextItem')).toBeNull();
 });

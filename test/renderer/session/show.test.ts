@@ -159,6 +159,52 @@ describe('show state', () => {
     expect(command?.slide.next).toBeUndefined();
   });
 
+  it('continues to the last slide of the previous item when enabled', () => {
+    setLive('song-river', 0);
+    openItem('song-river');
+    outputPrevious();
+    expect(slides()).toHaveLength(0);
+    setAtLastSlide('nextItem');
+    outputPrevious();
+    expect(slides().at(-1)).toMatchObject({
+      slide: {itemId: 'song-morning', position: 3},
+    });
+    expect(useShow.getState().openItemId).toBe('song-morning');
+  });
+
+  it('continues backwards through a live media item to the previous song', () => {
+    const media = {mediaId: 'media-one', loop: false};
+    useShow.setState(state => ({
+      rows: [
+        {kind: 'song', id: 'song-morning', title: 'A'},
+        {kind: 'media', id: 'countdown', title: 'M'},
+        {kind: 'song', id: 'song-river', title: 'B'},
+      ],
+      tiles: {
+        ...state.tiles,
+        countdown: [{label: null, labelColor: 'none', lines: [], media}],
+      },
+    }));
+    setLive('song-river', 0);
+    openItem('song-river');
+    setAtLastSlide('nextItem');
+    outputPrevious();
+    const command = sent.at(-1);
+    if (command?.type !== 'live.batch') throw Error('Missing media batch');
+    expect(command.commands).toContainEqual({type: 'media.show', media});
+    useLive.setState({
+      state: {
+        ...emptyLiveState(),
+        themeItem: {id: 'countdown', kind: 'media', source: 'service'},
+        layers: {...emptyLiveState().layers, media: {...media, startedAt: 0}},
+      },
+    });
+    outputPrevious();
+    expect(slides().at(-1)).toMatchObject({
+      slide: {itemId: 'song-morning', position: 3},
+    });
+  });
+
   it('skips headers on the way to the next Bible item and leaves the end empty', () => {
     setAtLastSlide('nextItem');
     outputTile({itemId: 'song-river', index: 2});

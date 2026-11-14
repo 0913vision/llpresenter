@@ -1150,3 +1150,7 @@ theme, including consecutive Bible slides and split verses.
 
 On stage, an empty current or next slide without a label shows (\uc5c6\uc74c); a
 labeled empty slide shows its label.
+
+With continuous item navigation enabled, previous on the first slide goes live
+on the previous outputtable item's last slide, skipping section rows and empty
+items. Otherwise previous stops at the first slide.
