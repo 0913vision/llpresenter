@@ -627,7 +627,12 @@ as every settings file does (02).
   title starts with its 새찬송가 number from the song's title slide when
   present; no English subtitle is appended. The small title is omitted on title
   slides and whenever the band itself shows the song name. Text-only captions
-  have no title label. The capture fallback uses an unblurred hard shadow.
+  have no title label. The capture fallback uses an unblurred hard shadow. title
+  starts with its 새찬송가 number from the song name or title slide when
+  present; a name starting with just the number and 장 gets the 새찬송가 prefix
+  without repeating its number. No English subtitle is appended. Text-only
+  captions have no title label. The capture fallback uses an unblurred hard
+  shadow.
 - Broadcast section cards use a 102 px horizontal black fade from y=888 to
   y=990: transparent at x=160 and x=1760, 88% black from x=480 to x=1440. The
   Korean item name alone is centered in white Pretendard Variable bold 64 px
