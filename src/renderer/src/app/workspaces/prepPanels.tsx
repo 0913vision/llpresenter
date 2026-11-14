@@ -118,21 +118,36 @@ function SongCardInspector({prep}: {readonly prep: PrepBinding}): ReactNode {
     prep.editor.subscribe,
     prep.editor.getSnapshot,
   );
-  const model = editorState.session?.slideModel;
+  const session = editorState.session;
+  const model = session?.slideModel;
   const selection = useSyncExternalStore(
     model?.subscribe ?? noSubscribe,
     () => model?.getSnapshot().selection.ids.size ?? 0,
   );
   if (
-    editorState.session?.itemSession &&
+    session?.itemSession &&
     itemState.item !== null &&
     hasSectionCard(itemState.item) &&
-    itemState.position === 0 &&
+    itemState.cardSelected &&
     selection === 0
   ) {
-    return <OtherSlideInspector items={prep.items} editor={prep.editor} />;
+    return (
+      <OtherSlideInspector
+        items={prep.items}
+        editor={prep.editor}
+        cardTransition={
+          session.slideModel.getSnapshot().context?.cardTransition
+        }
+        changeSelected={change => session.changeItemTransitions(change, true)}
+        applyAll={transition =>
+          session.changeItemTransitions(transition, true, true)
+        }
+      />
+    );
   }
-  return <SlideInspector store={prep.editor} />;
+  return (
+    <SlideInspector store={prep.editor} cardSelected={itemState.cardSelected} />
+  );
 }
 
 function ItemCardBinding({

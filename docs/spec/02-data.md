@@ -590,18 +590,15 @@ Every song slide and service slide (text, picture, or verse) may store an
 optional `transition`: `{kind, sec, dir?}`. `kind` is `none`, `dissolve`,
 `push`, or `wipe`; `sec` is a finite number from 0.1 through 10. `dir` is
 permitted only for `push` and `wipe`: `left`, `right`, `up`, or `down`; absent
-uses `left`. An absent transition inherits the output default; explicit `none`
-overrides it. Existing song content and unknown fields survive saves unchanged.
-The editor's 기본값 action removes this field rather than storing a sentinel.
-Selection and apply-all changes use one atomic slide-history step each.
+uses `left`. An absent transition means no effect. Existing song content and
+unknown fields survive saves unchanged. Selection and apply-all changes use one
+atomic slide-history step each.
 
-`output.transition.between` and `.within` store the same transition object.
-Their defaults are `{kind: 'dissolve', sec: 0.5}` and
-`{kind: 'none', sec: 0.2}`. They replace the previous `slide` setting without a
-migration or legacy reader. `output.transition.media` remains an optional object
-with optional `kind` (`none` or `dissolve`, default `dissolve`) and `seconds`
-(0.1 to 3, default 0.5). An out-of-range background time is dropped on read and
-uses its default.
+The legacy `output.transition.between` and `.within` fields may remain in saved
+preferences but do not choose slide effects. `output.transition.media` remains
+an optional object with optional `kind` (`none` or `dissolve`, default
+`dissolve`) and `seconds` (0.1 to 3, default 0.5). An out-of-range background
+time is dropped on read and uses its default.
 
 `show.audio.transitionSeconds` (0 to 5, default 0.5) and
 `show.audio.fadeOutSeconds` (0.5 to 10, default 3) are optional numbers in

@@ -20,10 +20,10 @@ replace say so in a note.
 
 ### Slide transitions
 
-Slides use their own saved transition; an absent transition means ??. The slide
-inspector provides the same effect, direction, and time controls for every slide
-kind. Selecting several slides applies one choice to the selection, and ?? ??
-applies it to all slides in the item (05).
+Slides use their own saved transition; an absent transition means no effect. The
+slide inspector provides the same effect, direction, and time controls for every
+slide kind. Selecting several slides applies one choice to the selection, and
+apply all applies it to all slides in the item (05).
 
 ### Layout and navigation
 
