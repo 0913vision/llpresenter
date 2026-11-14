@@ -13,3 +13,28 @@
   overflow: auto;
   scrollbar-gutter: stable;
 }
+
+.dropBefore,
+.dropAfter {
+  position: relative;
+}
+
+.dropBefore::after,
+.dropAfter::after {
+  position: absolute;
+  z-index: 1;
+  right: 0;
+  left: 0;
+  height: 2px;
+  background: var(--selection);
+  content: '';
+  pointer-events: none;
+}
+
+.dropBefore::after {
+  top: 0;
+}
+
+.dropAfter::after {
+  bottom: 0;
+}

@@ -17,6 +17,7 @@ export const themeProblems: Readonly<Record<ThemeEditProblem, string>> = {
   full: '테마나 화면은 더 만들 수 없습니다',
   'duplicate-id': '테마 추가 실패',
   standby: '대기 화면에서는 쓸 수 없습니다',
+  'built-in': '기본 테마는 삭제할 수 없습니다',
   'confirmation-required': '테마 삭제 확인 필요',
   elements: '이 화면에는 추가할 수 없는 요소입니다',
   link: '연결할 수 없는 화면입니다',

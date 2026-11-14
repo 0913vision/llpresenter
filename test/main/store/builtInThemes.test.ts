@@ -6,6 +6,40 @@ import {settingsCodecs} from '@main/store/settingsCodecs';
 import {isBuiltInThemeId} from '@core/themes/builtInIds';
 import oldStage from '@fixtures/core/themes/old-stage.json';
 
+it('persists the order of built-in and user themes across reloads', () => {
+  const file = createDefaultThemes();
+  const user = {
+    id: createThemeId('11111111-1111-4111-8111-111111111111'),
+    name: 'User',
+    screens: {},
+  };
+  const ordered = [user, ...file.themes.slice().reverse()];
+  const saved = settingsCodecs.themes.serialize(
+    {...file, themes: ordered, themeOrder: ordered.map(theme => theme.id)},
+    'themes.json',
+  );
+  expect(saved.ok).toBe(true);
+  if (!saved.ok) return;
+  const loaded = settingsCodecs.themes.parse(saved.value, 'themes.json');
+  expect(loaded.ok).toBe(true);
+  if (loaded.ok) {
+    expect(loaded.value.data.themes.map(theme => theme.id)).toEqual(
+      ordered.map(theme => theme.id),
+    );
+  }
+});
+
+it('rejects duplicate IDs in the persisted theme order', () => {
+  const file = createDefaultThemes();
+  const id = file.themes[0]?.id;
+  if (id === undefined) throw Error('Missing built-in theme');
+  const parsed = settingsCodecs.themes.parse(
+    JSON.stringify({...file, themeOrder: [id, id]}),
+    'themes.json',
+  );
+  expect(parsed.ok).toBe(false);
+});
+
 it('replaces old built-ins and stores only edited built-ins and user themes', () => {
   const defaults = createDefaultThemes();
   const [song, bible] = defaults.themes;
