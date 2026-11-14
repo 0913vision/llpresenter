@@ -7,6 +7,9 @@ import type {ContentStore} from './contentStore';
 import {buildShowService, songBackgroundId} from './showService';
 import {resolveServicePassages} from '../bible/servicePassages';
 import type {BibleLookupSession} from '../bible/lookup';
+import type {BibleProjectionPayload} from '@core/schema/bibleProjection';
+import type {SettingsReader} from '@core/schema/settingsReader';
+import type {ShowTile} from '@core/schema/showService';
 
 const FIRST_REVISION = 1;
 
@@ -19,6 +22,43 @@ export interface OpenServiceSources {
   readonly bible?: Pick<BibleLookupSession, 'lookup'>;
   /** The media list, for the names of media items. */
   readonly mediaItems?: () => readonly MediaItem[];
+  readonly settings?: SettingsReader | null;
+}
+
+function matchingVerses(
+  original: readonly ShowTile[],
+  parts: readonly ShowTile[],
+): boolean {
+  let index = 0;
+  const content = (tile: ShowTile): string =>
+    tile.lines.join('').replace(/\s|\(계속\)/gu, '');
+  const verses = original.filter(tile => tile.sectionCard === undefined);
+  for (const verse of verses) {
+    let text = '';
+    let count = 0;
+    let continued = true;
+    while (continued) {
+      const part = parts[index++];
+      if (
+        !part ||
+        part.sectionCard !== undefined ||
+        part.biblePart !== ++count
+      ) {
+        return false;
+      }
+      text += content(part);
+      continued = part.continued === true;
+    }
+    const full = content(verse);
+    const number = verse.label?.match(/:(\d+)$/u)?.[1];
+    if (
+      text !== full &&
+      !(verses.length === 1 && number !== undefined && full === number + text)
+    ) {
+      return false;
+    }
+  }
+  return index === parts.length;
 }
 
 /**
@@ -35,6 +75,8 @@ export class OpenServiceFeed {
   private refreshing: Promise<void> | null = null;
   private disposed = false;
   private initialized = false;
+  private readonly bibleProjections = new Map<string, BibleProjectionPayload>();
+  private originalTiles: ShowService['tiles'] = {};
 
   constructor(
     private readonly sources: OpenServiceSources,
@@ -44,6 +86,38 @@ export class OpenServiceFeed {
 
   current(): ShowService | null {
     return this.shown;
+  }
+
+  private validProjection(next: BibleProjectionPayload): boolean {
+    const service =
+      this.sources.serviceId === null
+        ? undefined
+        : this.sources.content.storedService(this.sources.serviceId);
+    const item = service?.data.order.find(item => item.id === next.itemId);
+    const settings = this.sources.settings;
+    return (
+      service?.data.id === next.serviceId &&
+      service.revision === next.revision &&
+      item !== undefined &&
+      isItemOfKind(item, 'bible') &&
+      settings?.get('themes').revision === next.measurement.themes &&
+      settings.get('screens').revision === next.measurement.screens &&
+      settings.get('bibleCuts').revision === next.measurement.bibleCuts
+    );
+  }
+
+  acceptBibleProjection(next: BibleProjectionPayload): void {
+    if (this.disposed || !this.validProjection(next)) return;
+    const original = this.originalTiles[next.itemId];
+    if (original === undefined || !matchingVerses(original, next.tiles)) return;
+    if (
+      JSON.stringify(this.bibleProjections.get(next.itemId)) ===
+      JSON.stringify(next)
+    ) {
+      return;
+    }
+    this.bibleProjections.set(next.itemId, next);
+    this.refresh().catch(this.reportError);
   }
 
   /** Rechecks background files and sends the projection only when it changed. */
@@ -125,7 +199,7 @@ export class OpenServiceFeed {
       if (song === undefined) continue;
       await check(songBackgroundId(item, song.data));
     }
-    return buildShowService({
+    const built = buildShowService({
       service,
       serviceRevision: service.revision,
       songs,
@@ -146,5 +220,24 @@ export class OpenServiceFeed {
             ),
           }),
     });
+    this.originalTiles = built.tiles;
+    const tiles = {...built.tiles};
+    for (const [id, projection] of this.bibleProjections) {
+      const original = tiles[id];
+      if (
+        !this.validProjection(projection) ||
+        original === undefined ||
+        !matchingVerses(original, projection.tiles)
+      ) {
+        this.bibleProjections.delete(id);
+        continue;
+      }
+      const first = original[0];
+      tiles[id] =
+        first?.sectionCard === undefined
+          ? projection.tiles
+          : [first, ...projection.tiles];
+    }
+    return {...built, tiles};
   }
 }

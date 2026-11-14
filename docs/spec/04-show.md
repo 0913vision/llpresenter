@@ -996,6 +996,10 @@ integration use this contract, with a distinct cancellable ID per lookup.
     The legacy `two` and `fit` packing values remain readable but never combine
     verses; new passages store `verse`, and there is no packing preference (02,
     10).
+  - The open service publishes the same measured Bible parts to its service
+    projection, so preparation, navigation, and output use the same labels and
+    cuts. Changes to the passage, theme, screens, or confirmed cuts replace the
+    measured projection; a stale measurement is never reused.
   - Every non-last part ends with ` (계속)`, two steps smaller on the PowerPoint
     size list. Numbering, when enabled for a multi-verse passage, appears only
     on the first part of each verse and is included in measurement. A single

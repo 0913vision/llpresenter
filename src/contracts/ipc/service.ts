@@ -6,11 +6,13 @@ import {
 import {parseShowService, type ShowService} from '@core/schema/showService';
 import {message, push, query, request, signal, type IpcPort} from './endpoint';
 import {parseSlidesProjection} from '@core/schema/slidesProjection';
+import {parseBibleProjection} from '@core/schema/bibleProjection';
 
 /** The calls about the open 예배 순서 as 진행 shows it. */
 export const serviceEndpoints = {
   ready: signal('service:ready'),
   slidesProjection: message('service:slides-projection', parseSlidesProjection),
+  bibleProjection: message('service:bible-projection', parseBibleProjection),
   get: query<ShowService | null>('service:get', parseShowService),
   open: request<ServiceOpenRequest, ShowService | null>('service:open', {
     request: parseServiceOpenRequest,
@@ -24,6 +26,7 @@ export function serviceApi(port: IpcPort) {
   return {
     ready: port.signal(serviceEndpoints.ready),
     slidesProjection: port.message(serviceEndpoints.slidesProjection),
+    bibleProjection: port.message(serviceEndpoints.bibleProjection),
     /**
      * Reads the open 예배 순서 as 진행 shows it, or `null` when none is open.
      * It waits while the main process reads the data at launch. Rejects, after

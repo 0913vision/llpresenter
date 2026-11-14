@@ -55,6 +55,7 @@ import styles from './App.module.css';
 import {useLaunchReady} from './useLaunchReady';
 import {UPDATE_NOTICE_KEY, useUpdate} from './update/useUpdate';
 import {addNotice} from '@renderer/ui/notices';
+import {BibleServiceProjection} from '@renderer/features/bible/BibleServiceProjection';
 
 const noEditorSubscription = (): (() => void) => () => undefined;
 
@@ -165,6 +166,7 @@ function ControlApp({
         : undefined;
   const content = (
     <div className={styles.app} data-size={sizeClass}>
+      <BibleServiceProjection />
       <ToolObjectShortcuts api={session.api} onProblem={session.report} />
       <QuickObjectShortcuts api={session.api} onProblem={session.report} />
       <AudioShortcuts onProblem={session.report} />

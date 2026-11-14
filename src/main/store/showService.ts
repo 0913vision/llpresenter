@@ -228,6 +228,9 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
     return {
       kind: 'bible',
       id,
+      ...(sources.serviceRevision === undefined
+        ? {}
+        : {sourceRevision: sources.serviceRevision}),
       title: displayReference(item.bible.ref),
       ...(bible === undefined
         ? {}

@@ -170,6 +170,15 @@ it(
     await expect
       .poll(() => grid.getByRole('option').count(), {timeout: 30000})
       .toBeGreaterThanOrEqual(4);
+    await expect
+      .poll(
+        () =>
+          page.evaluate<string[]>(
+            `window.llp.service.get().then(s => s.tiles['${CARD}'].map(t => t.label))`,
+          ),
+        {timeout: 30000},
+      )
+      .toEqual(['Card', '\uC6943:16 (1)', '\uC6943:16 (2)', '\uC6943:17']);
     expect((await live()).label).toBe('Card');
     await grid.getByRole('option').nth(1).click();
     await waitLabel('\uC6943:16 (1)');
@@ -184,6 +193,15 @@ it(
     await expect
       .poll(() => grid.getByRole('option').count(), {timeout: 30000})
       .toBe(3);
+    await expect
+      .poll(
+        () =>
+          page.evaluate<string[]>(
+            `window.llp.service.get().then(s => s.tiles['${CARD}'].map(t => t.label))`,
+          ),
+        {timeout: 30000},
+      )
+      .toEqual(['Card', '\uC6943:16', '\uC6943:17']);
     expect((await live()).label).toBe('\uC6943:16 (1)');
     await grid.getByRole('option').first().click();
     await waitLabel('Card');
