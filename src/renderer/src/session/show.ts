@@ -250,7 +250,7 @@ export function outputTile(
   }
 }
 
-/** Finds the adjacent sermon title for the last slide of a service Bible item. */
+/** Finds the preceding sermon title for the last slide of a service Bible item. */
 function sermonNext(cursor: TileCursor): NextSlide | undefined {
   const view = useShow.getState();
   const index = view.rows.findIndex(row => row.id === cursor.itemId);
@@ -261,14 +261,14 @@ function sermonNext(cursor: TileCursor): NextSlide | undefined {
   ) {
     return undefined;
   }
-  const neighbors = [view.rows[index + 1], view.rows[index - 1]];
-  const sermon = neighbors.find(
-    candidate =>
-      candidate !== undefined &&
-      (candidate.kind === 'slides' || candidate.kind === 'song') &&
-      candidate.theme === SERMON_TITLE_THEME_ID,
-  );
-  if (sermon === undefined) return undefined;
+  const sermon = view.rows[index - 1];
+  if (
+    sermon === undefined ||
+    (sermon.kind !== 'slides' && sermon.kind !== 'song') ||
+    sermon.theme !== SERMON_TITLE_THEME_ID
+  ) {
+    return undefined;
+  }
   const tile = tilesOf(sermon.id).find(
     value =>
       value.sectionCard === undefined &&

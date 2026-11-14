@@ -263,7 +263,7 @@ describe('show state', () => {
   });
 
   it.each(['before', 'after'] as const)(
-    'shows the adjacent sermon title on the last Bible slide when it is %s',
+    'only previews a sermon that comes %s the Bible item',
     position => {
       const bible = {kind: 'bible' as const, id: 'psalm-23', title: 'Passage'};
       const sermon = {
@@ -288,14 +288,19 @@ describe('show state', () => {
       }));
       setAtLastSlide('stop');
       outputTile({itemId: 'psalm-23', index: 2});
-      expect(slides().at(-1)?.slide.next).toEqual({
-        label: null,
-        lines: ['Sermon title'],
-        sermonTitle: true,
-      });
+      if (position === 'before') {
+        expect(slides().at(-1)?.slide.next).toEqual({
+          label: null,
+          lines: ['Sermon title'],
+          sermonTitle: true,
+        });
+      } else {
+        expect(slides().at(-1)?.slide.next).toBeUndefined();
+      }
       outputTile({itemId: 'psalm-23', index: 1});
       expect(slides().at(-1)?.slide.next).not.toHaveProperty('sermonTitle');
       setLive('psalm-23', 2);
+      sent.length = 0;
       applyService({
         ...sampleService,
         revision: 3,
@@ -311,10 +316,20 @@ describe('show state', () => {
           ],
         },
       });
-      expect(sent.at(-1)).toMatchObject({
-        type: 'stage.next.set',
-        next: {lines: ['Updated title'], sermonTitle: true},
-      });
+      if (position === 'before') {
+        expect(sent.at(-1)).toMatchObject({
+          type: 'stage.next.set',
+          next: {lines: ['Updated title'], sermonTitle: true},
+        });
+      } else {
+        expect(
+          sent.some(
+            command =>
+              command.type === 'stage.next.set' &&
+              command.next?.sermonTitle === true,
+          ),
+        ).toBe(false);
+      }
     },
   );
 
