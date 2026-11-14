@@ -1128,7 +1128,7 @@ keys are changed are in 10, "Shortcut system".
 | Ctrl 1                                           | Audience screen outputs (청중 화면 and 방송 화면) on or off              | Follows ProPresenter (Toggle Output Screens, S1; S4 p. 172)                              |
 | Ctrl 2                                           | 무대 화면 output on or off                                               | Follows ProPresenter (Toggle Stage Display Screens, S1)                                  |
 | Alt S, Ctrl M, Ctrl Shift C, Ctrl Shift P, Alt C | The 무대, 메시지, 타이머, and 그래픽 tabs, and the action palette        | Follows ProPresenter (S1)                                                                |
-| Ctrl Alt B                                       | The Bible field in 퀵 실행                                               | Follows ProPresenter (Open Bibles Mode, S1)                                              |
+| Ctrl B                                           | The Bible field in 퀵 실행                                               | Ctrl B; ProPresenter uses Ctrl Alt B (Open Bibles Mode)                                  |
 | Slide hot key (a bare letter or digit)           | Its particular source slide in the open song, first projected occurrence | Follows ProPresenter per-slide assignment (S4 p. 58); S26 user decision; no default keys |
 | A key set for a 테마, 그래픽, 매크로, or 타이머  | That object's command                                                    | No default keys; follows ProPresenter's Key Mappings for 그래픽 and 매크로 (S2, S3)      |
 
