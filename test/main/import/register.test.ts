@@ -374,6 +374,7 @@ describe('text import IPC registration', () => {
       expect.anything(),
     );
     expect(electron.chooseFile).toHaveBeenCalledExactlyOnceWith(control, {
+      defaultPath: electron.tempDir,
       properties: ['openFile'],
       filters: [{name: '텍스트 파일', extensions: ['txt']}],
     });

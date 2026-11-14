@@ -360,11 +360,13 @@ function start(): void {
         log,
       });
       const stopTextImport = registerTextImport({
+        uiState: appConfig,
         control: win,
         windowMode,
         log,
       });
       const stopPowerPointImport = registerPowerPointImport({
+        uiState: appConfig,
         control: win,
         windowMode,
         log,

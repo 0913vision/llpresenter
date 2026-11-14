@@ -15,11 +15,14 @@ import type {WindowMode} from '../windows/testWindows';
 import {convertTextImport} from '@core/songs/textImport';
 import {readTextImport, type TextImportInputs} from './read';
 import {TEXT_IMPORT_LIMITS} from '@core/songs/textImportLimits';
+import type {UiStateFields} from '../store/appConfigFile';
+import {pickerFolder, rememberPickerFile} from './pickerFolder';
 
 export interface TextImportRegistration {
   readonly control: BrowserWindow;
   readonly windowMode: WindowMode;
   readonly log: Logger;
+  readonly uiState?: UiStateFields;
 }
 
 function invalidRequest(
@@ -36,6 +39,7 @@ function invalidRequest(
 function nativeInputs({
   control,
   windowMode,
+  uiState,
 }: TextImportRegistration): TextImportInputs {
   return {
     chooseFile: async () => {
@@ -47,10 +51,13 @@ function nativeInputs({
         throw new Error('The file dialog is unavailable');
       }
       const selected = await dialog.showOpenDialog(control, {
+        defaultPath: await pickerFolder(uiState, 'textImportFolder'),
         properties: ['openFile'],
         filters: [{name: '텍스트 파일', extensions: ['txt']}],
       });
-      return selected.canceled ? null : (selected.filePaths[0] ?? null);
+      if (selected.canceled) return null;
+      rememberPickerFile(uiState, 'textImportFolder', selected.filePaths[0]);
+      return selected.filePaths[0] ?? null;
     },
     readClipboard: () => clipboard.readText(),
   };

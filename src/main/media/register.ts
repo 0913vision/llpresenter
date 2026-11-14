@@ -1,8 +1,6 @@
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {randomUUID} from 'node:crypto';
-import {dirname, isAbsolute} from 'node:path';
 import {
-  app,
   dialog,
   ipcMain,
   shell,
@@ -22,6 +20,7 @@ import {broadcast} from '../store/contentChannels';
 import type {MediaBackendPort} from '../store/mediaChannels';
 import type {UiStateFields} from '../store/appConfigFile';
 import {realPathInside} from '../windows/insideRoots';
+import {pickerFolder, rememberPickerFile} from '../import/pickerFolder';
 import type {WindowMode} from '../windows/testWindows';
 import type {MediaAnalysis} from './analysis';
 import {MediaImporter, type ImportStore} from './mediaImporter';
@@ -67,21 +66,21 @@ function importDialog(
   return async () => {
     const parent = dialogParent(options, 'import');
     if (parent === null) return [];
-    const remembered = options.uiState.read().mediaImportFolder;
-    const defaultPath =
-      remembered !== undefined && isAbsolute(remembered)
-        ? remembered
-        : app.getPath('videos');
+    const defaultPath = await pickerFolder(
+      options.uiState,
+      'mediaImportFolder',
+    );
     const chosen = await dialog.showOpenDialog(parent, {
       defaultPath,
       properties: ['openFile', 'multiSelections'],
       filters: mediaDialogFilters(),
     });
     if (chosen.canceled) return [];
-    const first = chosen.filePaths[0];
-    if (first !== undefined && isAbsolute(first)) {
-      options.uiState.change({mediaImportFolder: dirname(first)});
-    }
+    rememberPickerFile(
+      options.uiState,
+      'mediaImportFolder',
+      chosen.filePaths[0],
+    );
     return chosen.filePaths;
   };
 }
@@ -93,10 +92,17 @@ function relinkDialog(
     const parent = dialogParent(options, 'relink');
     if (parent === null) return null;
     const chosen = await dialog.showOpenDialog(parent, {
+      defaultPath: await pickerFolder(options.uiState, 'mediaRelinkFolder'),
       properties: ['openFile'],
       filters: mediaDialogFilters([kind]),
     });
-    return chosen.canceled ? null : (chosen.filePaths[0] ?? null);
+    if (chosen.canceled) return null;
+    rememberPickerFile(
+      options.uiState,
+      'mediaRelinkFolder',
+      chosen.filePaths[0],
+    );
+    return chosen.filePaths[0] ?? null;
   };
 }
 

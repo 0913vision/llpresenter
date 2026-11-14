@@ -58,7 +58,7 @@ vi.mock('electron', () => ({
     }
   },
   dialog: {showOpenDialog: electron.showOpenDialog},
-  app: {getPath: () => join('D:', 'videos')},
+  app: {getPath: () => join('D:', 'documents')},
   shell: {showItemInFolder: electron.showItemInFolder},
   ipcMain: {
     handle: (channel: string, handler: () => unknown) => {
@@ -261,7 +261,7 @@ describe('media backend registration', () => {
   });
 
   it.each([undefined, '', 'relative/folder'])(
-    'uses the local videos folder instead of shell defaults for %s',
+    'uses Documents instead of shell defaults for %s',
     async folder => {
       const {port, handlers} = mockPort();
       electron.showOpenDialog.mockResolvedValue({
@@ -280,7 +280,7 @@ describe('media backend registration', () => {
       );
       expect(electron.showOpenDialog).toHaveBeenCalledWith(
         expect.anything(),
-        expect.objectContaining({defaultPath: join('D:', 'videos')}),
+        expect.objectContaining({defaultPath: join('D:', 'documents')}),
       );
       await stop();
     },

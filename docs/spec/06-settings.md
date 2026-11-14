@@ -346,3 +346,7 @@ default keys.
 Source: `Shortcuts`, `Prefs`, `KeyCap` README, `SegmentedControl` README (filter
 counts), `ClearButton` README, `Main` decision "단축키", product log (퀵 실행
 shortcuts deferred), 10.
+
+Each open-file picker remembers the folder of its last selected file across
+restarts. When that folder is unavailable or unset, the picker opens Documents;
+canceling leaves its remembered folder unchanged.

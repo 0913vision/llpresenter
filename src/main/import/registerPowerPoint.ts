@@ -18,6 +18,7 @@ import {PowerPointJobs} from './powerpointJob';
 import type {MediaStore} from '../store/mediaStore';
 import {createMediaId} from '@core/schema/ids';
 import {boundedPowerPointImage} from './powerpointImage';
+import {pickerFolder, rememberPickerFile} from './pickerFolder';
 
 const MAX_TEMP_FILES = 2;
 
@@ -96,11 +97,16 @@ export function registerPowerPointImport(
           path = process.env[TEST_IMPORT_FILE_VARIABLE];
         } else {
           const chosen = await dialog.showOpenDialog(context.control, {
+            defaultPath: await pickerFolder(
+              context.uiState,
+              'powerpointImportFolder',
+            ),
             properties: ['openFile'],
             filters: [{name: 'PowerPoint', extensions: ['pptx', 'pptm']}],
           });
           if (chosen.canceled) return {ok: true, value: null};
           path = chosen.filePaths[0];
+          rememberPickerFile(context.uiState, 'powerpointImportFolder', path);
         }
         if (!path) throw new Error('파일을 열 수 없습니다.');
         if (extname(path).toLowerCase() === '.ppt') {

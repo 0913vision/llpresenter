@@ -1242,3 +1242,7 @@ reorders slides. Existing insertion, deletion, clipboard, and text editing
 commands apply in both views. In grid view, text fields grow to show all wrapped
 lines without an inner scrollbar. Cells in the same grid row have the height of
 the tallest cell; typing retains the caret and surface scroll position.
+
+Each open-file picker remembers the folder of its last selected file across
+restarts. When that folder is unavailable or unset, the picker opens Documents;
+canceling leaves its remembered folder unchanged.
