@@ -6,7 +6,6 @@ import type {TextStyle} from '@core/themes/textStyle';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {themeTextVAlign} from '@core/themes/textAlignment';
 import {STAGE_COLORS} from '@core/themes/stageColors';
-import {emptySongSlideText} from '@core/presentation/emptySongSlide';
 import {
   isThemeTextElement,
   themeElementText,
@@ -281,11 +280,34 @@ export class ThemeElementView {
     }
     const item = frame.theme?.item ?? null;
     const stage = frame.screen?.kind === 'stage';
-    const cue =
+    const slide = layers.slide;
+    const finalBible =
+      (slide?.kind ?? item?.kind) === 'bible' &&
+      slide?.sequenceLength !== undefined &&
+      slide.position >= slide.sequenceLength - 1;
+    const currentEmpty =
       stage &&
-      frame.theme?.layout.stageBar === 'message-row' &&
-      element.kind === 'currentText'
-        ? emptySongSlideText(layers.slide, item, 'label')
+      element.kind === 'currentText' &&
+      slide !== null &&
+      slide.picture === undefined &&
+      slide.sectionCard === undefined &&
+      item?.contentCleared !== true &&
+      !slide.lines.some(line => line.trim() !== '');
+    const next = slide?.next;
+    const nextEmpty =
+      stage &&
+      element.kind === 'nextText' &&
+      !finalBible &&
+      next !== undefined &&
+      !next.title?.trim() &&
+      !next.lines.some(line => line.trim() !== '');
+    const currentLabel = slide?.label?.trim();
+    const nextLabel = next?.label?.trim();
+    const cue = currentEmpty
+      ? ((currentLabel === '' ? undefined : currentLabel) ??
+        (element.fallbackText?.trim() ? undefined : '(\uc5c6\uc74c)'))
+      : nextEmpty
+        ? ((nextLabel === '' ? undefined : nextLabel) ?? '(\uc5c6\uc74c)')
         : undefined;
     this.text?.setMinimumSize(
       stage && element.kind === 'nextText'

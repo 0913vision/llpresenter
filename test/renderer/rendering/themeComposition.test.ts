@@ -2314,7 +2314,18 @@ it.each(['output', 'preview'] as const)(
         ?.textContent,
     ).toBe('Invented next');
     view.render({...empty, slide: {...empty.slide, label: null}}, stage);
-    expect(current()?.textContent).toBe('Item name');
+    expect(current()?.textContent).toBe('(\uc5c6\uc74c)');
+    view.render(
+      {...empty, slide: {...empty.slide, label: null}},
+      {
+        ...stage,
+        theme: {
+          ...stage.theme,
+          item: {id: 'invented', kind: 'blank', source: 'service'},
+        },
+      },
+    );
+    expect(current()?.textContent).toBe('(\uc5c6\uc74c)');
     view.render(song, stage);
     expect(current()?.textContent).toBe('Invented line');
     expect(current()?.style.color).not.toBe('rgb(180, 180, 180)');
@@ -2323,8 +2334,8 @@ it.each(['output', 'preview'] as const)(
       transitions: false,
       screen: {id: THEME_MAIN, kind: 'stage'},
     });
-    expect(current()?.textContent.trim()).toBe('');
-    expect(current()?.style.color).not.toBe('rgb(180, 180, 180)');
+    expect(current()?.textContent.trim()).toBe('Interlude');
+    expect(current()?.style.color).toBe('rgb(180, 180, 180)');
     view.render(empty, {...frame(elements), transitions: false});
     expect(current()?.textContent.trim()).toBe('');
     view.dispose();
@@ -2474,4 +2485,41 @@ it('refits the current Bible item when output fonts finish loading', () => {
     if (descriptor === undefined) Reflect.deleteProperty(document, 'fonts');
     else Object.defineProperty(document, 'fonts', descriptor);
   }
+});
+
+it('shows an empty stage next slide cue and preserves labels and other screens', () => {
+  const {root, view} = setup();
+  const elements: ThemeElement[] = [
+    {...themeElementBase(31), kind: 'nextText'},
+  ];
+  const slide = song.slide;
+  if (slide === null) throw Error('Missing slide');
+  let layers: LiveLayers = {
+    ...song,
+    slide: {...slide, next: {label: null, lines: [' ']}},
+  };
+  const show = (kind: 'stage' | 'audience') =>
+    view.render(layers, {
+      ...frame(elements),
+      screen: {id: THEME_MAIN, kind},
+      transitions: false,
+    });
+  const text = () =>
+    root.querySelector(`[data-kind="nextText"] .${classes.shown}`)
+      ?.textContent ?? '';
+  show('stage');
+  expect(text()).toBe('(\uc5c6\uc74c)');
+  layers = {
+    ...layers,
+    slide: {...slide, next: {label: 'Interlude', lines: [' ']}},
+  };
+  show('stage');
+  expect(text()).toBe('Interlude');
+  layers = {
+    ...layers,
+    slide: {...slide, next: {label: null, lines: [' ']}},
+  };
+  show('audience');
+  expect(text().trim()).toBe('');
+  view.dispose();
 });

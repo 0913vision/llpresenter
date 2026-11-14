@@ -1147,3 +1147,6 @@ transition and then the global between-item or within-item preference.
 Slide transitions apply only to audience screens. Stage and broadcast slide
 changes cut immediately. A theme transition applies to every slide using that
 theme, including consecutive Bible slides and split verses.
+
+On stage, an empty current or next slide without a label shows (\uc5c6\uc74c); a
+labeled empty slide shows its label.

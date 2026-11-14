@@ -761,7 +761,7 @@ selection and skips the same rows as the next-slide command. A title counts as
 one of the two next-preview lines.
 
 In the built-in stage layout, an empty song slide shows its label as a centered
-muted cue, or the song title when the label is empty. Stage previews show the
+muted cue, or (\uc5c6\uc74c) when the label is empty. Stage previews show the
 same cue; audience output remains background only. On the built-in broadcast
 layout, an empty song slide shows only the song title; it shows nothing if the
 title is absent, and never falls back to the label.
@@ -782,3 +782,6 @@ slide pictures.
 A theme may set a slide transition in the theme editor. The built-in scripture
 theme uses a 0.7 second wipe, the creed and prayer theme uses a 0.5 second wipe,
 and the sermon title theme and seven section title themes use a 1 second wipe.
+
+On stage, an empty current or next slide without a label shows (\uc5c6\uc74c); a
+labeled empty slide shows its label.
