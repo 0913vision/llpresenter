@@ -241,6 +241,38 @@ describe('theme composition drawing', () => {
     },
   );
 
+  it('retains both pages while a wipe is paused beyond its nominal duration', async () => {
+    const {root, view} = setup();
+    const base = frame([{...themeElementBase(), kind: 'currentText'}]);
+    const effect = {kind: 'wipe' as const, sec: 1};
+    view.render(song, {...base, slideTransition: effect});
+    if (song.slide === null) throw new Error('Missing slide');
+    view.render(
+      {...song, slide: {...song.slide, position: 1, lines: ['Next']}},
+      {...base, slideTransition: effect},
+    );
+    let finish = (): void => undefined;
+    const finished = new Promise<void>(resolve => {
+      finish = resolve;
+    });
+    for (const page of root.querySelectorAll<HTMLElement>(
+      '[data-theme-page]',
+    )) {
+      Object.defineProperty(page, 'animate', {
+        value: vi.fn(() => ({cancel: vi.fn(), finished})),
+      });
+    }
+    vi.advanceTimersByTime(32);
+    vi.advanceTimersByTime(2000);
+    expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(2);
+    finish();
+    await finished;
+    await Promise.resolve();
+    await Promise.resolve();
+    expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(1);
+    view.dispose();
+  });
+
   it('keeps the new broadcast look on transparent NDI output', () => {
     const root = document.createElement('div');
     const view = new ThemeCompositionView(root, {

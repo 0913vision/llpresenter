@@ -408,7 +408,17 @@ export class ThemeCompositionView {
         this.leaving.root.style.transition = `opacity ${duration}ms linear`;
         this.leaving.root.style.opacity = '0';
       }
-      this.releaseTimer = setTimeout(() => this.releaseLeaving(), duration);
+      const finished = this.slideAnimation.finished();
+      if (finished === null) {
+        this.releaseTimer = setTimeout(() => this.releaseLeaving(), duration);
+      } else {
+        finished.then(
+          () => {
+            if (this.page === page) this.releaseLeaving();
+          },
+          () => undefined,
+        );
+      }
     };
     this.animation = requestAnimationFrame(check);
   }

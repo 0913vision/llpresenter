@@ -75,6 +75,67 @@ describe('SlideAnimation', () => {
       5,
     );
     expect(edgeAt(1)).toBeCloseTo(0, 5);
+    const opaqueEdgeAt = (progress: number) =>
+      size * (1 - Number(stops[1]) / 100) + (1 - size) * progress;
+    expect(opaqueEdgeAt(0.7)).toBeCloseTo(0.555, 5);
+    expect(opaqueEdgeAt(1)).toBeCloseTo(0, 5);
+  });
+  it('samples a paused wipe at fixed animation times without finishing early', () => {
+    const old = document.createElement('div');
+    const next = document.createElement('div');
+    const animations: Array<{
+      currentTime: number;
+      pause: () => void;
+      cancel: () => void;
+    }> = [];
+    const animate = vi.fn(() => {
+      const animation = {currentTime: 0, pause: vi.fn(), cancel: vi.fn()};
+      animations.push(animation);
+      return animation;
+    });
+    Object.defineProperty(old, 'animate', {value: animate});
+    Object.defineProperty(next, 'animate', {value: animate});
+    Object.defineProperty(document, 'getAnimations', {
+      configurable: true,
+      value: () => animations,
+    });
+    try {
+      const view = new SlideAnimation();
+      view.play(old, next, {kind: 'wipe', dir: 'left', sec: 1});
+      document.getAnimations().forEach(animation => animation.pause());
+      const sample = (time: number, x: number): number => {
+        document.getAnimations().forEach(animation => {
+          animation.currentTime = time;
+        });
+        const progress = (animations[1]?.currentTime ?? 0) / 1000;
+        return Math.max(0, Math.min(1, (x + 1.85 * progress - 1) / 0.85));
+      };
+      expect([sample(250, 0.1), sample(250, 0.5), sample(250, 0.9)]).toEqual([
+        0,
+        0,
+        expect.closeTo(0.42647, 4),
+      ]);
+      expect([sample(500, 0.1), sample(500, 0.5), sample(500, 0.9)]).toEqual([
+        expect.closeTo(0.02941, 4),
+        expect.closeTo(0.5, 4),
+        expect.closeTo(0.97059, 4),
+      ]);
+      expect([sample(750, 0.1), sample(750, 0.5), sample(750, 0.9)]).toEqual([
+        expect.closeTo(0.57353, 4),
+        1,
+        1,
+      ]);
+      expect(sample(700, 0)).toBeLessThan(1);
+      expect(sample(1000, 0)).toBeCloseTo(1);
+      expect(
+        animations.every(
+          animation => vi.mocked(animation.pause).mock.calls.length === 1,
+        ),
+      ).toBe(true);
+      view.cancel();
+    } finally {
+      Reflect.deleteProperty(document, 'getAnimations');
+    }
   });
   it.each([
     ['left', 'translateX(100%)', 'translateX(-100%)'],

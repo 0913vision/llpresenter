@@ -104,6 +104,18 @@ export class SlideAnimation {
     ];
   }
 
+  finished(): Promise<void> | null {
+    const completions: Array<Promise<unknown>> = [];
+    for (const animation of this.animations) {
+      const completion: unknown = Reflect.get(animation, 'finished');
+      if (!(completion instanceof Promise)) return null;
+      completions.push(completion);
+    }
+    return completions.length === 0
+      ? null
+      : Promise.all(completions).then(() => undefined);
+  }
+
   cancel(): void {
     for (const animation of this.animations) animation.cancel();
     this.animations = [];
