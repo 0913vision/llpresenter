@@ -3,7 +3,7 @@ import {styleBroadcastGlass} from '@renderer/rendering/themeElement';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {createScreenId} from '@core/schema/ids';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
-import {builtInTheme, createDefaultThemes} from '@core/themes/defaults';
+import {builtInTheme} from '@core/themes/defaults';
 import {SECTION_THEME_ID} from '@core/themes/sundaySections';
 import {
   BROADCAST_REFERENCE_ID,
@@ -14,6 +14,7 @@ import {
   BROADCAST_LOOK_TAB_ID,
   BROADCAST_LOOK_SONG_ID,
   BROADCAST_LOOK_CARD_ID,
+  broadcastLookLayout,
 } from '@core/themes/broadcastLook';
 import {
   fitBroadcastLook as fitLook,
@@ -153,10 +154,7 @@ describe('built-in broadcast look', () => {
   });
   it('reports an unavailable canvas context instead of silently using zero widths', () => {
     vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
-    const layout = createDefaultThemes().themes.find(
-      t => t.id === SECTION_THEME_ID,
-    )?.screens[screen];
-    if (!layout) throw Error('missing card');
+    const layout = broadcastLookLayout('card');
     expect(() =>
       fitLook(
         layout,
@@ -318,11 +316,8 @@ describe('built-in broadcast look', () => {
       broadcastText: '',
     });
   });
-  it('sizes section cards to their longest text and renders the English uppercase', () => {
-    const layout = createDefaultThemes().themes.find(
-      t => t.id === SECTION_THEME_ID,
-    )?.screens[screen];
-    if (!layout) throw Error('missing card');
+  it('sizes the glass card layout to its longest text and renders the English uppercase', () => {
+    const layout = broadcastLookLayout('card');
     const current = {
       ...slide,
       sectionCard: {

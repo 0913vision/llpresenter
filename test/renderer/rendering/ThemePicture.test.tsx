@@ -16,6 +16,10 @@ import {stageClockText} from '@renderer/rendering/stageClock';
 import {fillTimerTokens} from '@renderer/rendering/timerTokens';
 import {ThemePicture} from '@renderer/rendering/ThemePicture';
 import {sermonTitleLayout} from '@core/themes/sundayScripture';
+import {
+  SECTION_BAND_ID,
+  sectionBroadcastLayout,
+} from '@core/themes/sectionBroadcast';
 import * as ink from '@renderer/rendering/textInk';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import bulletStyles from '@renderer/rendering/bulletText.module.css';
@@ -562,4 +566,23 @@ it('does not observe size for a preview without dynamic positioning', () => {
     />,
   );
   expect(observe).not.toHaveBeenCalled();
+});
+
+it('shows the fixed fading section band in the theme editor preview', () => {
+  const layout = sectionBroadcastLayout();
+  const view = render(
+    <ThemePicture
+      elements={layout.elements}
+      background="#000000"
+      samples={{itemName: 'Praise', currentText: 'Praise'}}
+    />,
+  );
+  const band = view.container.querySelector<HTMLElement>(
+    `[data-theme-element="${SECTION_BAND_ID}"]`,
+  );
+  expect(band?.style.top).toBe('848px');
+  expect(band?.style.height).toBe('192px');
+  expect(band?.firstElementChild?.getAttribute('style')).toContain(
+    'linear-gradient',
+  );
 });

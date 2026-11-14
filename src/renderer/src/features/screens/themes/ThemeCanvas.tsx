@@ -18,6 +18,7 @@ import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
 import {contextMenuAnchor, isContextMenuKey} from '@renderer/ui/contextMenu';
 import {ThemePicture} from '@renderer/rendering/ThemePicture';
+import {SECTION_BAND_ID} from '@core/themes/sectionBroadcast';
 import {
   ThemeElements,
   droppedThemeKind,
@@ -174,6 +175,11 @@ export const themeSamples = {
   label: '1절',
   nextLabel: '후렴',
 };
+const sectionBandSamples = {
+  ...themeSamples,
+  itemName: '사도신경',
+  currentText: "Apostle's Creed",
+};
 
 function ThemeCanvas({
   model,
@@ -329,7 +335,11 @@ function ThemeCanvas({
           <ThemePicture
             elements={values}
             background={background}
-            samples={themeSamples}
+            samples={
+              values.some(element => element.id === SECTION_BAND_ID)
+                ? sectionBandSamples
+                : themeSamples
+            }
             timers={model.renderTimers}
             onResolvedFrames={receiveFrames}
           />

@@ -32,6 +32,7 @@ import {SONG_THEME_ID} from './songTitle';
 import {lightSongTheme} from './lightSong';
 import {broadcastBandLayout} from './broadcastBand';
 import {broadcastLookLayout} from './broadcastLook';
+import {sectionBroadcastLayout} from './sectionBroadcast';
 
 export type ThemeScreen = Pick<Screen, 'id' | 'kind' | 'method'>;
 
@@ -377,7 +378,7 @@ export function createDefaultThemes(
             screen.kind === 'audience'
               ? sundaySectionLayout(color)
               : screen.kind === 'broadcast'
-                ? broadcastLookLayout('card')
+                ? sectionBroadcastLayout()
                 : sectionOtherLayout(layoutFor(screen, 'blank'), screen.kind),
           ]),
         ),

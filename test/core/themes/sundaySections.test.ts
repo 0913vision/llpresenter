@@ -16,6 +16,12 @@ import {createScreenId} from '@core/schema/ids';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {resolveTextTracking} from '@core/themes/textTracking';
 import {builtInTheme} from '@core/themes/defaults';
+import {
+  SECTION_BAND_ID,
+  SECTION_NAME_ID,
+  SECTION_ENGLISH_ID,
+} from '@core/themes/sectionBroadcast';
+import {themeTextVAlign} from '@core/themes/textAlignment';
 
 it('lists the section cards in service order with per-color gradient themes', () => {
   expect(
@@ -110,18 +116,37 @@ it('adds an editable section theme without changing the kind defaults or other s
   const broadcast =
     theme?.screens[createScreenId(STARTER_SCREEN_IDS.broadcast)];
   expect(broadcast?.elements).toMatchObject([
-    {kind: 'box', box: {fill: '#FEFDF9', opacity: 90}},
     {
-      kind: 'itemName',
-      text: {
-        font: 'Pretendard Variable',
-        size: 52,
-        weight: 700,
-        align: 'left',
-      },
+      id: SECTION_BAND_ID,
+      kind: 'box',
+      frame: {x: 0, y: 848, w: 1920, h: 192},
+      box: {fill: '#000000', opacity: 65},
     },
-    {kind: 'currentText', text: {size: 28, weight: 600}},
+    {
+      id: SECTION_NAME_ID,
+      kind: 'itemName',
+      centerWhenTextEmpty: true,
+      text: {size: 52, align: 'center', color: '#FFFFFF'},
+    },
+    {
+      id: SECTION_ENGLISH_ID,
+      kind: 'currentText',
+      text: {size: 28, align: 'center', color: '#FFFFFF'},
+    },
   ]);
+  const name = broadcast?.elements.find(
+    element => element.id === SECTION_NAME_ID,
+  );
+  if (name?.kind !== 'itemName') throw Error('Missing section title');
+  expect(themeTextVAlign(name, 'Praise')).toBe('top');
+  expect(themeTextVAlign(name, '')).toBe('middle');
+  for (const section of SECTION_THEMES) {
+    expect(
+      defaults.themes.find(item => item.id === section.id)?.screens[
+        createScreenId(STARTER_SCREEN_IDS.broadcast)
+      ],
+    ).toEqual(broadcast);
+  }
   const stage = createScreenId(STARTER_SCREEN_IDS.stage);
   const stageLayout = theme?.screens[stage];
   const ordinaryStage = builtInTheme('song').screens[stage];

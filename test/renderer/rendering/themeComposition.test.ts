@@ -37,6 +37,12 @@ import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
 import {ThemeElementView} from '@renderer/rendering/themeElement';
 import {followPlaybackProblems} from '@renderer/rendering/playbackProblem';
 import {SECTION_THEME_ID} from '@core/themes/sundaySections';
+import {
+  SECTION_BAND_ID,
+  SECTION_NAME_ID,
+  SECTION_ENGLISH_ID,
+  sectionBroadcastLayout,
+} from '@core/themes/sectionBroadcast';
 
 function builtInTheme(kind: ThemeItemKind): Theme {
   const theme = currentBuiltInTheme(kind);
@@ -2179,3 +2185,51 @@ it.each(['output', 'preview'] as const)(
     view.dispose();
   },
 );
+
+it('renders the section title and English in a fixed translucent NDI band', () => {
+  const {root, view} = setup(true);
+  const active = frame(sectionBroadcastLayout().elements, {
+    item: {
+      id: 'invented',
+      kind: 'blank',
+      source: 'service',
+      title: 'Section name',
+    },
+  });
+  const screen = {
+    id: THEME_MAIN,
+    kind: 'broadcast' as const,
+    method: 'ndi' as const,
+  };
+  const draw = (english: string) =>
+    view.render(
+      {
+        ...song,
+        slide: {
+          ...song.slide,
+          itemId: 'invented',
+          position: 0,
+          label: null,
+          lines: [english],
+        },
+      },
+      {...active, screen, transitions: false},
+    );
+  const element = (id: string) =>
+    root.querySelector<HTMLElement>(`[data-theme-element="${id}"]`);
+  draw('Praise');
+  expect(element(SECTION_BAND_ID)?.style.top).toBe('848px');
+  expect(element(SECTION_BAND_ID)?.style.height).toBe('192px');
+  expect(
+    element(SECTION_BAND_ID)?.firstElementChild?.getAttribute('style'),
+  ).toContain('0.65');
+  expect(element(SECTION_NAME_ID)?.textContent).toContain('Section name');
+  expect(element(SECTION_ENGLISH_ID)?.textContent).toContain('Praise');
+  draw('');
+  expect(element(SECTION_BAND_ID)?.style.top).toBe('848px');
+  expect(
+    element(SECTION_NAME_ID)?.querySelector<HTMLElement>(`.${classes.shown}`)
+      ?.style.justifyContent,
+  ).toBe('center');
+  view.dispose();
+});

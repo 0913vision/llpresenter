@@ -22,6 +22,12 @@ import type {RenderFrame, RenderLayerOptions} from './layer';
 import type {ThemeGaps} from './themeGaps';
 import {setPlaybackProblem} from './playbackProblem';
 import {broadcastBibleFlow} from './broadcastBibleFlow';
+import {
+  SECTION_BAND_ID,
+  SECTION_NAME_ID,
+  SECTION_ENGLISH_ID,
+} from '@core/themes/sectionBroadcast';
+import {songBandGradient} from './songBandGradient';
 
 function fillColor(fill: string, opacity: number): string {
   const [red, green, blue] = [1, 3, 5].map(at =>
@@ -167,17 +173,8 @@ export class ThemeElementView {
         styleBroadcastGlass(background, element.broadcastGlass, capture);
         this.box.style.overflow = 'visible';
       }
-      if (element.broadcastSong === 'band') {
-        const pct = (x: number): number =>
-          Math.round((x / glass.screenWidth) * 100_000) / 1000;
-        const start = pct(glass.songBandFadeStart);
-        const end = pct(glass.songBandFadeEnd);
-        const black = capture
-          ? glass.shadowColor
-          : fillColor(glass.shadowColor, glass.songBandOpacity);
-        background.style.background = capture
-          ? `linear-gradient(90deg, transparent ${start}%, ${black} ${start}%, ${black} ${end}%, transparent ${end}%)`
-          : `linear-gradient(90deg, transparent ${start}%, ${black} ${pct(glass.songBandSolidStart)}%, ${black} ${pct(glass.songBandSolidEnd)}%, transparent ${end}%)`;
+      if (element.broadcastSong === 'band' || element.id === SECTION_BAND_ID) {
+        background.style.background = songBandGradient(capture);
         background.style.borderRadius = '0';
       }
       this.box.append(background);
@@ -387,6 +384,13 @@ export class ThemeElementView {
         },
       );
     }
+    if (
+      [SECTION_BAND_ID, SECTION_NAME_ID, SECTION_ENGLISH_ID].includes(
+        element.id,
+      )
+    ) {
+      this.box.hidden = layers.slide === null || item?.contentCleared === true;
+    }
     this.setClearOpacity(frame.clearOpacity);
     if (
       element.broadcastSong === 'bandText' ||
@@ -400,6 +404,9 @@ export class ThemeElementView {
     const {element} = this;
     const target =
       element.clearTarget === 'slide' ||
+      [SECTION_BAND_ID, SECTION_NAME_ID, SECTION_ENGLISH_ID].includes(
+        element.id,
+      ) ||
       SLIDE_ELEMENT_KINDS.includes(element.kind)
         ? 'slide'
         : element.kind === 'media' || element.kind === 'background'
@@ -484,6 +491,12 @@ export class ThemeElementView {
       timer,
       videoTimeLeft: remainingText(videoRemaining),
     });
+    if (element.id === SECTION_NAME_ID && slide?.sectionCard !== undefined) {
+      return slide.sectionCard.name;
+    }
+    if (element.id === SECTION_ENGLISH_ID && slide?.sectionCard !== undefined) {
+      return slide.sectionCard.english;
+    }
     if (element.broadcastText !== undefined) return element.broadcastText;
     if (element.broadcastSongTitle !== undefined) {
       return element.broadcastSongTitle;

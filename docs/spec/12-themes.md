@@ -620,9 +620,10 @@ as every settings file does (02).
   plus a 24 px glow at 55%. All song lines use the same style. An empty song
   slide uses its title, not its label. The capture fallback uses an opaque black
   band with hard ends or an unblurred hard shadow.
-- Section cards use a bottom-left glass box at x=58, bottom y=1026, sized to the
-  wider line with 28 px padding; the Korean name is dark bold 52 px and the
-  uppercase English line is #6B6B6B semibold 28 px.
+- Section cards use the song band's black fade across a fixed 1920 x 192 px
+  strip from y=848 to y=1040. The Korean item name is centered in white bold 52
+  px with the English slide text centered underneath at 28 px; when English is
+  empty the name is centered alone. NDI remains transparent outside the band.
 - The broadcast 광고 theme links to the 청중 화면, so text notices and picture
   slides use the same full-screen composition. NDI retains the translucent box;
   the green capture window draws its frame and panel opaque without a shadow.
