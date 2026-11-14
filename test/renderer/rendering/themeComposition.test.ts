@@ -2601,7 +2601,7 @@ it('shows only Korean title or section name on stage and retains audience subtit
     root.querySelector(`[data-kind="currentText"] .${classes.shown}`)
       ?.textContent ?? '';
   draw(title, 'stage');
-  expect(current()).toBe('(Verse) Korean title');
+  expect(current()).toBe('Korean title');
   draw(title, 'audience');
   expect(current()).toContain('English subtitle');
   const card = {
@@ -2624,7 +2624,7 @@ it('shows only Korean title or section name on stage and retains audience subtit
   view.dispose();
 });
 
-it('places stage labels before lyrics and after title slides in current and next text', () => {
+it('places ordinary stage labels before lyrics and omits them on titles', () => {
   const {root, view} = setup();
   const elements: ThemeElement[] = [
     {...themeElementBase(), kind: 'currentText'},
@@ -2661,8 +2661,8 @@ it('places stage labels before lyrics and after title slides in current and next
   expect(text('currentText')).toBe('(Verse) Current');
   expect(text('nextText')).toBe('(Outro) Next');
   draw(true, 'stage');
-  expect(text('currentText')).toBe('(Verse) Current');
-  expect(text('nextText')).toBe('(Outro) Next');
+  expect(text('currentText')).toBe('Current');
+  expect(text('nextText')).toBe('Next');
   draw(false, 'audience');
   expect(text('currentText')).toBe('Current');
   expect(text('nextText')).toBe('Next');

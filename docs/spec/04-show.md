@@ -1169,3 +1169,6 @@ text with the next line and clock clear.
 
 Stage current and next text use the matching audience theme font family; current
 text also uses its audience weight.
+
+On stage title slides, only the prelude, interlude and outro labels are shown
+after the title; other labels are omitted.
