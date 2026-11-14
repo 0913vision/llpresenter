@@ -5,9 +5,31 @@ import {
   parsePowerPointReleaseRequest,
   parsePowerPointMatchResult,
   parsePowerPointScene,
+  parsePowerPointImageExportResult,
+  parsePowerPointImageExportProgress,
 } from '@core/schema/powerpointImport';
 
 describe('PowerPoint import IPC', () => {
+  it('validates exported image paths and progress', () => {
+    expect(
+      parsePowerPointImageExportResult({
+        ok: true,
+        value: {fileName: 'a.pptx', slides: [{path: 'temp/a.png', number: 2}]},
+      }).ok,
+    ).toBe(true);
+    expect(
+      parsePowerPointImageExportResult({
+        ok: true,
+        value: {fileName: 'a.pptx', slides: [{path: 'temp/a.png', number: 0}]},
+      }).ok,
+    ).toBe(false);
+    expect(parsePowerPointImageExportProgress({done: -1, total: 2}).ok).toBe(
+      false,
+    );
+    expect(parsePowerPointImageExportProgress({done: 1, total: 2}).ok).toBe(
+      true,
+    );
+  });
   it('accepts a valid retained deck and selection', () => {
     expect(
       parsePowerPointReadResult({

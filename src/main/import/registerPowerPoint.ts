@@ -1,6 +1,6 @@
 import {app, dialog, ipcMain} from 'electron';
-import {open, unlink} from 'node:fs/promises';
-import {basename, extname, join} from 'node:path';
+import {open, unlink, mkdtemp, rm, stat} from 'node:fs/promises';
+import {basename, dirname, extname, join} from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {powerpointEndpoints} from '@contracts/ipc/powerpoint';
 import {
@@ -18,6 +18,7 @@ import {PowerPointJobs} from './powerpointJob';
 import type {MediaStore} from '../store/mediaStore';
 import {createMediaId} from '@core/schema/ids';
 import {boundedPowerPointImage} from './powerpointImage';
+import {PowerPointImagesJob} from './powerpointImages';
 
 const MAX_TEMP_FILES = 2;
 
@@ -38,6 +39,9 @@ export function registerPowerPointImport(
   const isDisposed = (): boolean => disposed;
   const tempFiles = new Set<string>();
   const extracting = new Set<string>();
+  const imageJobs = new PowerPointImagesJob();
+  let imagesBusy = false;
+  const imageDirectories = new Set<string>();
   const release = async (path: string): Promise<boolean> => {
     if (!tempFiles.has(path)) return false;
     try {
@@ -51,12 +55,115 @@ export function registerPowerPointImport(
         }
       });
       tempFiles.delete(path);
+      const directory = dirname(path);
+      if (
+        imageDirectories.has(directory) &&
+        ![...tempFiles].some(file => dirname(file) === directory)
+      ) {
+        await rm(directory, {recursive: true, force: true});
+        imageDirectories.delete(directory);
+      }
       return true;
     } catch (error) {
       context.log.warn('could not remove PowerPoint temporary image', error);
       return false;
     }
   };
+  ipcMain.handle(powerpointEndpoints.cancelImages.channel, () => {
+    if (!imagesBusy) return false;
+    imageJobs.cancel();
+    return true;
+  });
+  ipcMain.handle(powerpointEndpoints.images.channel, async event => {
+    if (imagesBusy || disposed) {
+      return {ok: false, message: 'PowerPoint 파일을 읽는 중입니다.'};
+    }
+    imagesBusy = true;
+    let directory: string | null = null;
+    try {
+      let path: string | undefined;
+      if (context.windowMode === 'offscreen') {
+        path = process.env[TEST_IMPORT_FILE_VARIABLE];
+      } else {
+        const chosen = await dialog.showOpenDialog(context.control, {
+          properties: ['openFile'],
+          filters: [{name: 'PowerPoint', extensions: ['pptx', 'pptm']}],
+        });
+        if (chosen.canceled) return {ok: true, value: null};
+        path = chosen.filePaths[0];
+      }
+      if (!path) throw new Error('Missing PowerPoint file');
+      if (extname(path).toLowerCase() === '.ppt') {
+        return {
+          ok: false,
+          message:
+            'PowerPoint 97-2003 파일은 가져올 수 없습니다. PowerPoint에서 .pptx로 저장한 뒤 가져오십시오.',
+        };
+      }
+      if (!['.pptx', '.pptm'].includes(extname(path).toLowerCase())) {
+        throw new Error('Unsupported PowerPoint file');
+      }
+      const workDirectory = await mkdtemp(
+        join(app.getPath('temp'), 'llp-ppt-'),
+      );
+      directory = workDirectory;
+      const slides: Array<{path: string; number: number}> = [];
+      let expected = 0;
+      const ok = await imageJobs.run(
+        path,
+        workDirectory,
+        (done, total, number) => {
+          if (
+            done !== slides.length + 1 ||
+            total > 200 ||
+            done > total ||
+            number < 1 ||
+            (expected !== 0 && total !== expected)
+          ) {
+            return;
+          }
+          expected = total;
+          slides.push({
+            path: join(
+              workDirectory,
+              `llp-ppt-${String(done).padStart(4, '0')}.png`,
+            ),
+            number,
+          });
+          if (!event.sender.isDestroyed()) {
+            event.sender.send(powerpointEndpoints.imageProgress.channel, {
+              done,
+              total,
+            });
+          }
+        },
+      );
+      if (
+        !ok ||
+        slides.length === 0 ||
+        slides.length !== expected ||
+        isDisposed()
+      ) {
+        throw new Error('PowerPoint image export failed');
+      }
+      await Promise.all(slides.map(slide => stat(slide.path)));
+      for (const slide of slides) tempFiles.add(slide.path);
+      imageDirectories.add(workDirectory);
+      directory = null;
+      return {ok: true, value: {fileName: basename(path), slides}};
+    } catch (error) {
+      context.log.warn('could not export PowerPoint images', error);
+      return {
+        ok: false,
+        message: 'PowerPoint가 있어야 이미지로 가져올 수 있습니다.',
+      };
+    } finally {
+      if (directory !== null) {
+        await rm(directory, {recursive: true, force: true});
+      }
+      imagesBusy = false;
+    }
+  });
   ipcMain.handle(
     powerpointEndpoints.layers.channel,
     async (_event, value: unknown) => {
@@ -250,14 +357,20 @@ export function registerPowerPointImport(
   return () => {
     if (disposed) return;
     disposed = true;
+    imageJobs.cancel();
     jobs.dispose();
     ipcMain.removeHandler(powerpointEndpoints.read.channel);
     ipcMain.removeHandler(powerpointEndpoints.layers.channel);
     ipcMain.removeHandler(powerpointEndpoints.background.channel);
     ipcMain.removeHandler(powerpointEndpoints.release.channel);
     ipcMain.removeHandler(powerpointEndpoints.match.channel);
+    ipcMain.removeHandler(powerpointEndpoints.images.channel);
+    ipcMain.removeHandler(powerpointEndpoints.cancelImages.channel);
     for (const path of tempFiles) {
       if (!extracting.has(path)) release(path).catch(() => undefined);
+    }
+    for (const directory of imageDirectories) {
+      rm(directory, {recursive: true, force: true}).catch(() => undefined);
     }
   };
 }

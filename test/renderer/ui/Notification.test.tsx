@@ -105,6 +105,19 @@ describe('NotificationCard', () => {
     expect(onClose).toHaveBeenCalledOnce();
   });
 
+  it('keeps persistent information available until replaced', async () => {
+    const clock = installMockClock();
+    const onClose = vi.fn<(key: string) => void>();
+    render(
+      <NotificationCard
+        notice={{...back, persistent: true}}
+        onClose={onClose}
+      />,
+    );
+    await letTimePass(clock, NOTICE_LIFETIME_MS * 2);
+    expect(onClose).not.toHaveBeenCalled();
+  });
+
   it('waits while the pointer is over it and counts six seconds again after', async () => {
     const clock = installMockClock();
     const onClose = vi.fn<(key: string) => void>();

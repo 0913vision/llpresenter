@@ -214,6 +214,42 @@ const releaseRequest = payloadObject({
   path: v.pipe(v.string(), v.minLength(1)),
 });
 const matchResult = v.nullable(mediaIdSchema);
+const imageExportProgress = payloadObject({
+  done: nonNegativeInteger,
+  total: nonNegativeInteger,
+});
+const imageExportResult = v.variant('ok', [
+  v.object({
+    ok: v.literal(true),
+    value: v.nullable(
+      payloadObject({
+        fileName: v.string(),
+        slides: v.pipe(
+          v.array(
+            payloadObject({path: v.string(), number: positiveSlideNumber()}),
+          ),
+          v.maxLength(200),
+        ),
+      }),
+    ),
+  }),
+  v.object({ok: v.literal(false), message: v.string()}),
+]);
+
+function positiveSlideNumber() {
+  return v.pipe(v.number(), v.integer(), v.minValue(1));
+}
+
+export type PowerPointImageExportResult = v.InferOutput<
+  typeof imageExportResult
+>;
+export type PowerPointImageExportProgress = v.InferOutput<
+  typeof imageExportProgress
+>;
+export const parsePowerPointImageExportResult = (value: unknown) =>
+  checkPart(imageExportResult, value);
+export const parsePowerPointImageExportProgress = (value: unknown) =>
+  checkPart(imageExportProgress, value);
 export type PowerPointReadResult = v.InferOutput<typeof result>;
 export type PowerPointSource = v.InferOutput<typeof source>;
 export type PowerPointBackgroundRequest = v.InferOutput<

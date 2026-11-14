@@ -1,4 +1,4 @@
-import {query, request, type IpcPort} from './endpoint';
+import {query, request, push, type IpcPort} from './endpoint';
 import {
   parsePowerPointReadResult,
   parsePowerPointBackgroundRequest,
@@ -13,9 +13,25 @@ import {
   parsePowerPointLayersResult,
   type PowerPointLayersRequest,
   type PowerPointSceneResult,
+  parsePowerPointImageExportResult,
+  parsePowerPointImageExportProgress,
+  type PowerPointImageExportResult,
+  type PowerPointImageExportProgress,
 } from '@core/schema/powerpointImport';
 import type {MediaId} from '@core/schema/ids';
 export const powerpointEndpoints = {
+  images: query<PowerPointImageExportResult>(
+    'import:powerpoint:images',
+    parsePowerPointImageExportResult,
+  ),
+  cancelImages: query<boolean>(
+    'import:powerpoint:images:cancel',
+    parsePowerPointReleaseResult,
+  ),
+  imageProgress: push<PowerPointImageExportProgress>(
+    'import:powerpoint:images:progress',
+    parsePowerPointImageExportProgress,
+  ),
   layers: request<PowerPointLayersRequest, PowerPointSceneResult>(
     'import:powerpoint:layers',
     {request: parsePowerPointLayersRequest, reply: parsePowerPointLayersResult},
@@ -45,6 +61,9 @@ export const powerpointEndpoints = {
 };
 export function powerpointApi(port: IpcPort) {
   return {
+    images: port.query(powerpointEndpoints.images),
+    cancelImages: port.query(powerpointEndpoints.cancelImages),
+    subscribeImageProgress: port.subscribe(powerpointEndpoints.imageProgress),
     layers: port.request(powerpointEndpoints.layers),
     read: port.query(powerpointEndpoints.read),
     background: port.request(powerpointEndpoints.background),

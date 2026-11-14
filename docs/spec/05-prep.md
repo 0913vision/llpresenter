@@ -932,12 +932,22 @@ Source: `ImportMenu`, `ImportText`, `ImportEdit`, `ImportSave`, `Prefs`
 (가져오기), `AlertDialog` README, `TextField` README, product log versions 57
 and 59.
 
+## PowerPoint picture import
+
+파일 > 가져오기 > PowerPoint를 이미지로 opens a `.pptx` or `.pptm` file in
+PowerPoint with macros disabled. Hidden slides are skipped; each visible slide
+is exported as a 1920 × 1080 PNG, imported to the media library, and placed in
+one 빈 슬라이드 item after the selected service row (or at the end). The item
+uses 이미지 슬라이드. The operator sees export progress and may cancel. If
+PowerPoint is unavailable or export fails, the app reports the failure without
+adding an item.
+
 ## PowerPoint import
 
-The picker accepts `.pptx` and `.pptm`; old `.ppt` files are refused with a
-message. Files are read as ZIP and XML data, without starting PowerPoint or
-running macros. Hidden slides are skipped, and the remaining slides retain their
-original slide numbers. Shapes are read in slide order, including groups;
+The 슬라이드로 picker accepts `.pptx` and `.pptm`; old `.ppt` files are refused
+with a message. Files are read as ZIP and XML data, without starting PowerPoint
+or running macros. Hidden slides are skipped, and the remaining slides retain
+their original slide numbers. Shapes are read in slide order, including groups;
 tables, charts, notes and comments are ignored. Line breaks and XML entities are
 decoded, trailing whitespace is removed, and empty lines are dropped.
 

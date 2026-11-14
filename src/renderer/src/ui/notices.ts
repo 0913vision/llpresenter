@@ -20,6 +20,8 @@ export interface Notice {
   readonly title: string;
   /** When, in 24-hour time without seconds, such as 11:24. */
   readonly time: string;
+  /** Keeps an in-progress notice available until it is replaced or dismissed. */
+  readonly persistent?: boolean | undefined;
   /** The current state, such as 모니터 3 → 창으로 표시 중, one value per entry. */
   readonly meta?: readonly string[] | undefined;
   readonly actions?: readonly NoticeAction[] | undefined;

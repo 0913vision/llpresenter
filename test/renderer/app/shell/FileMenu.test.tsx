@@ -174,6 +174,7 @@ describe('the 파일 menu', () => {
   it.each([
     {source: 'file', name: '텍스트 파일'},
     {source: 'clipboard', name: '클립보드 텍스트'},
+    {source: 'powerpoint-images', name: 'PowerPoint를 이미지로'},
   ])(
     'mounts the $source import entry and closes both menus',
     async ({source, name}) => {

@@ -15,6 +15,7 @@ import {createScreenId} from '@core/schema/ids';
 import {
   builtInTheme,
   createDefaultThemes,
+  IMAGE_SLIDES_THEME_ID,
   standbyStageLayout,
 } from '@core/themes/defaults';
 import {resolveThemeOutput} from '@core/themes/output';
@@ -188,6 +189,7 @@ it('makes a valid file with built-in themes and a standby clock and timer on sta
     '광고',
     '찬양 (밝은 배경)',
     '사도신경, 주기도문',
+    '이미지 슬라이드',
     '설교 제목',
     '구역 이름 청록',
     '구역 이름 적갈',
@@ -207,6 +209,23 @@ it('makes a valid file with built-in themes and a standby clock and timer on sta
     );
     expect(clocks.every(clock => clock.seconds === true)).toBe(true);
   }
+});
+
+it('shows image slides on audience and stage but not broadcast', () => {
+  const theme = createDefaultThemes().themes.find(
+    item => item.name === '이미지 슬라이드',
+  );
+  expect(theme).toBeDefined();
+  const layouts = theme?.screens;
+  for (const screen of [STARTER_SCREEN_IDS.main, STARTER_SCREEN_IDS.stage]) {
+    expect(layouts?.[createScreenId(screen)]).toMatchObject({
+      background: '#000000',
+      elements: [{kind: 'media', fit: 'fit'}],
+    });
+  }
+  expect(
+    layouts?.[createScreenId(STARTER_SCREEN_IDS.broadcast)]?.elements,
+  ).toEqual([]);
 });
 
 it('ships the audience scripture picture and editable typography without changing other screens', () => {
@@ -396,6 +415,7 @@ it('uses readable stage defaults and cover for built-in audience media', () => {
   const audience = createScreenId(STARTER_SCREEN_IDS.main);
   const stage = createScreenId(STARTER_SCREEN_IDS.stage);
   for (const theme of defaults.themes) {
+    if (theme.id === IMAGE_SLIDES_THEME_ID) continue;
     for (const element of theme.screens[audience]?.elements ?? []) {
       if (element.kind !== 'background' && element.kind !== 'media') continue;
       const sectionBackground =
@@ -521,6 +541,7 @@ it('shows preparation text on stage only while its blank slide is live', () => {
 it('uses the stage clock and next preview geometry across built-in themes', () => {
   const stage = createScreenId(STARTER_SCREEN_IDS.stage);
   for (const theme of createDefaultThemes().themes) {
+    if (theme.id === IMAGE_SLIDES_THEME_ID) continue;
     const elements = theme.screens[stage]?.elements ?? [];
     const clock = elements.find(element => element.kind === 'clock');
     expect(clock).toMatchObject({

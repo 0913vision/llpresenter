@@ -762,3 +762,9 @@ title is absent, and never falls back to the label.
 
 Built-in stage current text uses at most 120 px; short text does not grow beyond
 this size, and longer text shrinks to fit. Saved user edits remain unchanged.
+
+### 이미지 슬라이드
+
+The built-in 이미지 슬라이드 theme displays a slide picture fitted within a
+black canvas on 청중 and 무대 screens. 방송 screens are transparent and have no
+elements.

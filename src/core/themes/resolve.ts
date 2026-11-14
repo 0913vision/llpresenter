@@ -3,7 +3,13 @@ import {isSectionTheme, sectionOtherLayout} from './sundaySections';
 import type {ScreenId, ThemeId} from '../schema/ids';
 import type {Screen} from '../schema/screens';
 import type {Theme, ThemeScreenLayout, ThemesFile} from '../schema/themes';
-import {builtInTheme, legacySectionLayout, type ThemeScreen} from './defaults';
+import {
+  builtInTheme,
+  legacySectionLayout,
+  IMAGE_SLIDES_THEME_ID,
+  imageSlidesLayout,
+  type ThemeScreen,
+} from './defaults';
 import {themeElementProblem, type ThemeItemKind} from './elementRules';
 import {SONG_THEME_ID} from './songTitle';
 
@@ -88,6 +94,19 @@ export function resolveThemeScreen(
     visited.add(current);
     if (!screens.some(screen => screen.id === current)) return empty;
     const saved = theme.screens[current];
+    if (
+      saved === undefined &&
+      theme.id === IMAGE_SLIDES_THEME_ID &&
+      theme.edited !== true
+    ) {
+      const screen = screens.find(candidate => candidate.id === current);
+      if (screen !== undefined) {
+        return {
+          sourceScreenId: current,
+          layout: imageSlidesLayout(screen.kind),
+        };
+      }
+    }
     const implicit =
       saved === undefined ? implicitScreenLayout(current, screens) : undefined;
     const layout =

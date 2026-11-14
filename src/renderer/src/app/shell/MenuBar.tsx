@@ -43,7 +43,7 @@ const VIEW_MENU = '보기';
 const NOT_YET_READ = '환경설정 불러오는 중';
 
 type ImportText = (
-  source: TextImportReadRequest['source'] | 'powerpoint',
+  source: TextImportReadRequest['source'] | 'powerpoint' | 'powerpoint-images',
 ) => void;
 type MenuName =
   | typeof FILE_MENU

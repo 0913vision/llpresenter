@@ -38,6 +38,7 @@ export type ThemeScreen = Pick<Screen, 'id' | 'kind' | 'method'>;
 
 const uuid = (index: number) =>
   `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
+export const IMAGE_SLIDES_THEME_ID = createThemeId(uuid(107));
 const themeIds = {
   song: SONG_THEME_ID,
   bible: createThemeId(uuid(102)),
@@ -70,6 +71,22 @@ const starterScreens: readonly ThemeScreen[] = [
   },
 ];
 const fullFrame = {x: 0, y: 0, w: THEME_LIMITS.width, h: THEME_LIMITS.height};
+export function imageSlidesLayout(kind: Screen['kind']): ThemeScreenLayout {
+  if (kind === 'broadcast') return {mode: {kind: 'own'}, elements: []};
+  return {
+    mode: {kind: 'own'},
+    background: '#000000',
+    elements: [
+      {
+        id: createThemeElementId(uuid(2)),
+        kind: 'media',
+        frame: fullFrame,
+        fit: 'fit',
+        radius: 0,
+      },
+    ],
+  };
+}
 const {
   margin,
   maxLines,
@@ -367,6 +384,13 @@ export function createDefaultThemes(
       builtInTheme('ad', screens),
       lightSongTheme(builtInTheme('song', screens), screens),
       creedPrayerTheme(builtInTheme('bible', screens), screens),
+      {
+        id: IMAGE_SLIDES_THEME_ID,
+        name: '이미지 슬라이드',
+        screens: Object.fromEntries(
+          screens.map(screen => [screen.id, imageSlidesLayout(screen.kind)]),
+        ),
+      },
       {
         id: createThemeId(uuid(106)),
         name: '설교 제목',

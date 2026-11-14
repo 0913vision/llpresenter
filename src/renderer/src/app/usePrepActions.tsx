@@ -1,3 +1,4 @@
+import {PowerPointImagesFlow} from './PowerPointImagesFlow';
 import {PowerPointImportFlow} from '@renderer/features/songs/import/PowerPointImportFlow';
 import {
   useCallback,
@@ -69,7 +70,9 @@ export interface PrepActions {
   readonly imported: boolean;
   readonly editingSong: boolean;
   readonly canImport: boolean;
-  readonly importText: (source: 'file' | 'clipboard' | 'powerpoint') => void;
+  readonly importText: (
+    source: 'file' | 'clipboard' | 'powerpoint' | 'powerpoint-images',
+  ) => void;
   /** 새 곡: opens 준비 and makes a song, as the library's plus does. */
   readonly newSong: () => void;
   readonly openSong: (songId: SongId, position?: number) => void;
@@ -93,7 +96,7 @@ export function usePrepActions({
   readonly onWorkspace: (workspace: Workspace) => void;
 }): PrepActions {
   const [importSource, setImportSource] = useState<
-    'file' | 'clipboard' | 'powerpoint' | null
+    'file' | 'clipboard' | 'powerpoint' | 'powerpoint-images' | null
   >(null);
   const closeImport = useCallback(() => setImportSource(null), []);
   const prepSelection = usePrepSelection();
@@ -135,7 +138,9 @@ export function usePrepActions({
     onWorkspace('prep');
     prepSelection.openSong(songId, position);
   };
-  const importText = (source: 'file' | 'clipboard' | 'powerpoint'): void => {
+  const importText = (
+    source: 'file' | 'clipboard' | 'powerpoint' | 'powerpoint-images',
+  ): void => {
     if (session.api === undefined || importSource !== null) return;
     session.startEditor();
     setImportSource(source);
@@ -298,7 +303,13 @@ export function usePrepActions({
             }}
           />
         ) : null}
-        {session.api && session.editor && importSource === 'powerpoint' ? (
+        {session.api && importSource === 'powerpoint-images' ? (
+          <PowerPointImagesFlow
+            api={session.api}
+            onDone={closeImport}
+            onProblem={session.report}
+          />
+        ) : session.api && session.editor && importSource === 'powerpoint' ? (
           <PowerPointImportFlow
             api={session.api}
             store={session.editor}
@@ -312,7 +323,8 @@ export function usePrepActions({
         ) : session.api &&
           session.editor &&
           importSource !== null &&
-          importSource !== 'powerpoint' ? (
+          importSource !== 'powerpoint' &&
+          importSource !== 'powerpoint-images' ? (
           <TextImportFlow
             api={session.api}
             store={session.editor}

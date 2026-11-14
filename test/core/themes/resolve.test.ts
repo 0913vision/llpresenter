@@ -15,7 +15,10 @@ import {
   resolveThemeScreen,
 } from '@core/themes/resolve';
 
-vi.mock('@core/themes/defaults', () => ({builtInTheme: vi.fn()}));
+vi.mock('@core/themes/defaults', async importOriginal => ({
+  ...(await importOriginal<typeof import('@core/themes/defaults')>()),
+  builtInTheme: vi.fn(),
+}));
 beforeEach(() => vi.clearAllMocks());
 
 const uuid = (n: number) =>

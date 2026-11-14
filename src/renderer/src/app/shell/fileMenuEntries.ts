@@ -11,7 +11,7 @@ import {
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 
 type ImportText = (
-  source: TextImportReadRequest['source'] | 'powerpoint',
+  source: TextImportReadRequest['source'] | 'powerpoint' | 'powerpoint-images',
 ) => void;
 
 interface FileMenuInput {
@@ -105,7 +105,15 @@ export function fileMenuEntries(input: FileMenuInput): readonly MenuEntry[] {
           ),
           onSelect: () => input.onImportText?.('powerpoint'),
         },
-        laterRow('powerpoint-images', 'PowerPoint를 이미지로…'),
+        {
+          kind: 'item',
+          id: 'powerpoint-images',
+          label: 'PowerPoint를 이미지로…',
+          ...menuAvailability(
+            input.onImportText === undefined ? NOT_YET : undefined,
+          ),
+          onSelect: () => input.onImportText?.('powerpoint-images'),
+        },
         laterRow('powerpoint-objects', 'PowerPoint를 개체와 글자로…'),
       ],
     },

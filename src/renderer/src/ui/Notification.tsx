@@ -59,7 +59,7 @@ function useHeld(): {
 function useLifetime(notice: Notice, held: boolean, close: () => void): void {
   const expire = useEffectEvent(close);
   useEffect(() => {
-    if (notice.kind !== 'info' || held) return undefined;
+    if (notice.kind !== 'info' || notice.persistent || held) return undefined;
     const timer = setTimeout(expire, NOTICE_LIFETIME_MS);
     return () => clearTimeout(timer);
   }, [notice, held]);
