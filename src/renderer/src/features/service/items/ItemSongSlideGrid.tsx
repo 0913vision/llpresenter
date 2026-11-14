@@ -125,6 +125,10 @@ function ItemSongTiles({
       session={session}
       onBack={onBack}
       store={editor}
+      onAdd={index => {
+        session.select({block: Math.max(0, index - 1), start: 0, end: 0});
+        session.edit({type: 'insert'});
+      }}
       onEdit={index => openItemSong({items, editor, position: index})}
       onHotKey={index =>
         openItemSong({items, editor, position: index, action: 'hot-key'})

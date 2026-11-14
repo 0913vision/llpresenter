@@ -74,6 +74,7 @@ export function SlideRows({
   children,
   session,
   onBack,
+  onAdd,
 }: {
   readonly draft: SlidesDraft;
   readonly store?: SongEditorStore | undefined;
@@ -85,9 +86,10 @@ export function SlideRows({
   /** Return a card body to replace the normal row or cell contents. */
   readonly renderCard?: SlideCardRenderer | undefined;
   readonly leadingCard?: LeadingSlideCard | undefined;
-  readonly children: ReactNode;
+  readonly children?: ReactNode;
   readonly session?: SlidesListSession | undefined;
   readonly onBack?: (() => void) | undefined;
+  readonly onAdd?: ((index: number) => void) | undefined;
 }): JSX.Element {
   const fallback = useMemo(
     () =>
@@ -160,6 +162,7 @@ export function SlideRows({
       report={commands.reportNotice}
       blocked={blocked}
       onBack={onBack}
+      onAdd={onAdd}
       className={styles.rowSurface}
     >
       <div

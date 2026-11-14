@@ -3,7 +3,11 @@ import {cardOffset} from '@core/services/sectionCards';
 import {sectionCardEntries} from '../items/sectionCardActions';
 import {type JSX, useEffect, useMemo, useSyncExternalStore} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import {SlidesDraft, type SlidesItem} from '@core/services/slidesEdits';
+import {
+  newTextSlide,
+  SlidesDraft,
+  type SlidesItem,
+} from '@core/services/slidesEdits';
 import {
   Button,
   Panel,
@@ -119,6 +123,10 @@ function SlidesItemTiles({
       <PanelBody variant="flush">
         <SongSlideSurface
           session={session}
+          onAdd={index => {
+            session.selectSlides({type: 'gap', index});
+            session.draft.insert([newTextSlide(item.slides.form)]);
+          }}
           store={store}
           report={session.reportNotice}
           editLabel="슬라이드 편집…"

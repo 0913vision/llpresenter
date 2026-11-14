@@ -58,6 +58,8 @@ describe('song editor view', () => {
       if (slides === null) throw Error('Missing slide');
       const add = screen.getByRole('button', {name: '슬라이드 추가'});
       const card = screen.getByRole('button', {name: '구역 이름'});
+      expect(add.closest('footer')).not.toBeNull();
+      expect(add.closest('[data-slide-columns]')).toBeNull();
       expect(
         slides.compareDocumentPosition(add) & Node.DOCUMENT_POSITION_FOLLOWING,
       ).toBeTruthy();
@@ -65,6 +67,23 @@ describe('song editor view', () => {
       seedSlideSurfaceView({});
     },
   );
+  it('adds after the clicked slide or at the end from empty space', async () => {
+    const {session, user, view} = await editorSetup();
+    const original = session.history.snapshot.song.slides.map(
+      slide => slide.id,
+    );
+    const row = view.container.querySelector('[data-editor-block="0"]');
+    if (row === null) throw Error('Missing slide');
+    fireEvent.contextMenu(row);
+    await user.click(screen.getByRole('menuitem', {name: '슬라이드 추가'}));
+    expect(session.history.snapshot.song.slides[2]?.id).toBe(original[1]);
+    fireEvent.contextMenu(
+      screen.getByRole('group', {name: '슬라이드 편집 명령'}),
+    );
+    await user.click(screen.getByRole('menuitem', {name: '슬라이드 추가'}));
+    expect(session.history.snapshot.song.slides).toHaveLength(4);
+    expect(session.history.snapshot.song.slides[2]?.id).toBe(original[1]);
+  });
   it.each(['list', 'grid'] as const)(
     'shows an independent leading card before song slides in %s',
     async mode => {
