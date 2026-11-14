@@ -120,7 +120,7 @@ export function SlideGrid({
   });
   const entryRef = useContext(ShowSlideEntry);
   const enter = useEffectEvent(() => {
-    if (liveIndex !== null) window.reveal(liveIndex);
+    if (liveIndex !== null) window.reveal();
     keeperRef.current
       ?.querySelector<HTMLElement>(GRID_SELECTOR)
       ?.focus({preventScroll: true});
