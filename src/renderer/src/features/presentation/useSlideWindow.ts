@@ -1,5 +1,6 @@
 import {
   useLayoutEffect,
+  useRef,
   useState,
   type KeyboardEvent,
   type RefObject,
@@ -10,18 +11,32 @@ import {hasModifier} from '@renderer/ui/modifierKeys';
 const OVERSCAN_ROWS = 1;
 const INITIAL_ROWS = 2;
 
-function reveal(
+function follow(
   viewport: HTMLElement | null | undefined,
   index: number,
   geometry: {tracks: number; stride: number; inset: number; rowGap: number},
 ): void {
-  if (!viewport || index < 0) return;
+  if (
+    !viewport ||
+    index < 0 ||
+    viewport.clientHeight <= 0 ||
+    geometry.stride <= 1
+  ) {
+    return;
+  }
   const {tracks, stride, inset, rowGap} = geometry;
   const top = Math.floor(index / tracks) * stride + inset;
-  const bottom = top + stride - rowGap;
-  if (top < viewport.scrollTop) viewport.scrollTop = top;
-  else if (bottom > viewport.scrollTop + viewport.clientHeight) {
-    viewport.scrollTop = Math.max(0, bottom - viewport.clientHeight);
+  const center = top + (stride - rowGap) / 2;
+  const relative = center - viewport.scrollTop;
+  if (
+    relative >= viewport.clientHeight * 0.3 &&
+    relative <= viewport.clientHeight * 0.55
+  ) {
+    return;
+  }
+  const target = Math.max(0, center - viewport.clientHeight * 0.4);
+  if (Math.abs(target - viewport.scrollTop) >= 1) {
+    viewport.scrollTo({top: target, behavior: 'smooth'});
   }
 }
 
@@ -55,11 +70,37 @@ export function useSlideWindow(
     rowGap: 0,
   });
   const [scrollTop, setScrollTop] = useState(0);
+  const pausedUntil = useRef(0);
+  const dragging = useRef(false);
+  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
+  const current = useRef<() => void>(() => undefined);
   useLayoutEffect(() => {
     const viewport = keeper.current?.parentElement;
     const grid = keeper.current?.querySelector<HTMLElement>('[role="listbox"]');
     if (!viewport || !grid) return;
     const scroll = (): void => setScrollTop(viewport.scrollTop);
+    const defer = (): void => {
+      pausedUntil.current = Date.now() + 1500;
+      if (timer.current !== undefined) clearTimeout(timer.current);
+      timer.current = setTimeout(() => {
+        timer.current = undefined;
+        if (!dragging.current) current.current();
+      }, 1500);
+    };
+    const down = (event: PointerEvent): void => {
+      if (event.target !== viewport && event.pointerType !== 'touch') return;
+      dragging.current = true;
+      defer();
+    };
+    const move = (): void => {
+      if (dragging.current) defer();
+    };
+    const up = (): void => {
+      if (dragging.current) {
+        dragging.current = false;
+        defer();
+      }
+    };
     const read = (): void => {
       const css = getComputedStyle(grid);
       const px = (name: string): number =>
@@ -78,10 +119,21 @@ export function useSlideWindow(
         : new ResizeObserver(read);
     observer?.observe(viewport);
     viewport.addEventListener('scroll', scroll, {passive: true});
+    viewport.addEventListener('wheel', defer, {passive: true});
+    viewport.addEventListener('pointerdown', down);
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+    window.addEventListener('pointercancel', up);
     read();
     return () => {
       observer?.disconnect();
       viewport.removeEventListener('scroll', scroll);
+      viewport.removeEventListener('wheel', defer);
+      viewport.removeEventListener('pointerdown', down);
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      window.removeEventListener('pointercancel', up);
+      if (timer.current !== undefined) clearTimeout(timer.current);
     };
   }, [keeper]);
   const tracks =
@@ -106,9 +158,20 @@ export function useSlideWindow(
   const start = first * tracks;
   const end = Math.min(count, (first + visible + OVERSCAN_ROWS * 2) * tracks);
   useLayoutEffect(() => {
-    if (live !== null) {
-      reveal(keeper.current?.parentElement, live, {tracks, stride, ...measure});
-    }
+    current.current = () => {
+      if (
+        live !== null &&
+        !dragging.current &&
+        Date.now() >= pausedUntil.current
+      ) {
+        follow(keeper.current?.parentElement, live, {
+          tracks,
+          stride,
+          ...measure,
+        });
+      }
+    };
+    current.current();
   }, [keeper, live, itemId, tracks, stride, measure]);
   const navigate = (event: KeyboardEvent<HTMLDivElement>): void => {
     if (isComposing(event) || hasModifier(event)) return;
@@ -130,17 +193,10 @@ export function useSlideWindow(
     event.stopPropagation();
     const next = current + delta;
     if (next < 0 || next >= count) return;
-    const viewport = keeper.current?.parentElement;
-    reveal(viewport, next, {tracks, stride, ...measure});
-    if (viewport) setScrollTop(viewport.scrollTop);
     onOutput(next);
   };
   return {
-    reveal: (index: number): void => {
-      const viewport = keeper.current?.parentElement;
-      reveal(viewport, index, {tracks, stride, ...measure});
-      if (viewport) setScrollTop(viewport.scrollTop);
-    },
+    reveal: (): void => current.current(),
     start,
     end,
     offset: first * stride,

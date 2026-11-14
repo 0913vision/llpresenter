@@ -1,5 +1,5 @@
 import {useRef, useState} from 'react';
-import {cleanup, fireEvent, render, screen} from '@testing-library/react';
+import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {useSlideWindow} from '@renderer/features/presentation/useSlideWindow';
 
@@ -9,11 +9,13 @@ function Grid({
   live = null,
   width = 676,
   tileWidth = 160,
+  itemId = 'song',
 }: {
   count?: number;
   live?: number | null;
   width?: number;
   tileWidth?: number;
+  itemId?: string;
 }) {
   const keeper = useRef<HTMLDivElement>(null);
   const [selected, setSelected] = useState(0);
@@ -24,7 +26,7 @@ function Grid({
     tileWidth,
     columns: 4,
     gap: 12,
-    itemId: 'song',
+    itemId,
     onOutput: index => {
       select(index);
       setSelected(index);
@@ -60,11 +62,19 @@ function Grid({
 
 beforeEach(() => {
   vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(360);
+  Object.defineProperty(HTMLElement.prototype, 'scrollTo', {
+    configurable: true,
+    value: vi.fn(function (this: HTMLElement, options: ScrollToOptions) {
+      this.scrollTop = options.top ?? 0;
+      this.dispatchEvent(new Event('scroll'));
+    }),
+  });
   select.mockClear();
 });
 afterEach(() => {
   cleanup();
   vi.restoreAllMocks();
+  vi.useRealTimers();
 });
 
 it('mounts only visible rows and a margin, including both ends while scrolling', () => {
@@ -84,13 +94,14 @@ it('mounts only visible rows and a margin, including both ends while scrolling',
 });
 
 it('navigates beyond the mounted window and leaves output keys to the dispatcher', () => {
-  render(<Grid live={23} />);
+  const view = render(<Grid live={23} />);
   const viewport = screen.getByTestId('viewport');
   fireEvent.scroll(viewport, {target: {scrollTop: 0}});
   const last = screen.getAllByRole('option').at(-1);
   if (!last) throw Error('Missing last mounted slide');
   fireEvent.keyDown(last, {key: 'ArrowDown'});
   expect(select).toHaveBeenLastCalledWith(27);
+  view.rerender(<Grid live={27} />);
   expect(
     screen.getByRole('option', {name: '28'}).getAttribute('aria-selected'),
   ).toBe('true');
@@ -104,6 +115,63 @@ it('navigates beyond the mounted window and leaves output keys to the dispatcher
     ctrlKey: true,
   });
   expect(select).toHaveBeenCalledTimes(1);
+});
+
+it('smoothly follows outside the middle band and preserves a position inside it', () => {
+  const view = render(<Grid />);
+  const scrollTo = vi.mocked(HTMLElement.prototype.scrollTo);
+  view.rerender(<Grid live={4} />);
+  expect(scrollTo).not.toHaveBeenCalled();
+  view.rerender(<Grid live={12} />);
+  expect(scrollTo).toHaveBeenLastCalledWith({top: 171, behavior: 'smooth'});
+  scrollTo.mockClear();
+  view.rerender(<Grid live={13} />);
+  expect(scrollTo).not.toHaveBeenCalled();
+  view.rerender(<Grid live={20} itemId="next" />);
+  expect(scrollTo).toHaveBeenLastCalledWith({top: 351, behavior: 'smooth'});
+});
+
+it('uses the same target in a single-column list', () => {
+  const view = render(<Grid width={160} />);
+  view.rerender(<Grid width={160} live={3} />);
+  expect(HTMLElement.prototype.scrollTo).toHaveBeenLastCalledWith({
+    top: 171,
+    behavior: 'smooth',
+  });
+});
+
+it('waits for the last wheel or scrollbar drag before following the latest live slide', () => {
+  vi.useFakeTimers();
+  const view = render(<Grid />);
+  const viewport = screen.getByTestId('viewport');
+  const scrollTo = vi.mocked(HTMLElement.prototype.scrollTo);
+  fireEvent.wheel(viewport);
+  view.rerender(<Grid live={12} />);
+  act(() => {
+    vi.advanceTimersByTime(1000);
+  });
+  fireEvent.wheel(viewport);
+  view.rerender(<Grid live={20} />);
+  act(() => {
+    vi.advanceTimersByTime(1499);
+  });
+  expect(scrollTo).not.toHaveBeenCalled();
+  act(() => {
+    vi.advanceTimersByTime(1);
+  });
+  expect(scrollTo).toHaveBeenLastCalledWith({top: 351, behavior: 'smooth'});
+  scrollTo.mockClear();
+  fireEvent.pointerDown(viewport);
+  view.rerender(<Grid live={40} />);
+  act(() => {
+    vi.advanceTimersByTime(2000);
+  });
+  expect(scrollTo).not.toHaveBeenCalled();
+  fireEvent.pointerUp(window);
+  act(() => {
+    vi.advanceTimersByTime(1500);
+  });
+  expect(scrollTo).toHaveBeenCalledOnce();
 });
 
 it('reveals a new live slide, adapts to zoom, and clamps after the list shrinks', () => {
