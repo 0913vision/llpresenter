@@ -26,6 +26,7 @@ vi.mock('@renderer/features/bible/useBibleProjections', () => ({
             {label: '1:1', labelColor: 'none', lines: ['첫 말씀']},
             {label: '1:2', labelColor: 'none', lines: ['둘째 말씀']},
           ],
+          partsByTile: [null, null],
           appearance: {theme: {layout: {}, emptyColor: '#000', item: null}},
         },
 }));
