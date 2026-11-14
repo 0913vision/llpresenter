@@ -79,6 +79,9 @@ function InspectorContent({
               ...(slide.titleSlide === undefined
                 ? {}
                 : {titleSlide: slide.titleSlide}),
+              ...(slide.titleLineCount === undefined
+                ? {}
+                : {titleLineCount: slide.titleLineCount}),
               ...(slide.titleLayout === undefined
                 ? {}
                 : {titleLayout: slide.titleLayout}),

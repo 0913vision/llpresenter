@@ -120,6 +120,9 @@ export function ItemSlideGrid({
             ...(songSlide.titleSlide === undefined
               ? {}
               : {titleSlide: songSlide.titleSlide}),
+            ...(songSlide.titleLineCount === undefined
+              ? {}
+              : {titleLineCount: songSlide.titleLineCount}),
             ...(songSlide.titleLayout === undefined
               ? {}
               : {titleLayout: songSlide.titleLayout}),

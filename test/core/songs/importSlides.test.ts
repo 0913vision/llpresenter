@@ -20,3 +20,17 @@ it('keeps each imported slide independent and copies mapped header names', () =>
     {id: fixtureSlideId(4), lines: ['d']},
   ]);
 });
+
+it('keeps the main title box line count in the saved slide', () => {
+  const slides = importSlides(
+    [
+      {
+        titleSlide: true,
+        titleLineCount: 2,
+        lines: ['Number', 'Title', 'Subtitle'],
+      },
+    ],
+    () => fixtureSlideId(1),
+  );
+  expect(slides[0]).toMatchObject({titleSlide: true, titleLineCount: 2});
+});

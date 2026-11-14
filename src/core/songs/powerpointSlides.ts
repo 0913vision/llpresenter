@@ -37,11 +37,13 @@ export function powerpointSlides(slides: readonly PowerPointSlide[]) {
     if (first || (firstTitle !== undefined && all[0] === firstTitle)) {
       const selected = slide.shapes.slice(0, 2);
       const title = selected.flatMap(shape => shape.lines);
+      const titleLineCount = selected[0]?.lines.length ?? 0;
       const formats = selected.flatMap(shape => shape.lyricFormat?.lines ?? []);
       if (first) firstTitle = all[0];
       return {
         titleSlide: true as const,
         lines: title,
+        ...(titleLineCount > 1 ? {titleLineCount} : {}),
         ...(formats.length === title.length &&
         formats.every(
           (line, i) => line.runs.map(run => run.text).join('') === title[i],
