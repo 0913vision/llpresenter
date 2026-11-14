@@ -383,7 +383,11 @@ row shows the kinds that use it as small tags. The live 테마's row shows LIVE 
 the left of those tags (user, October 31), because saving it changes the output
 at once. 복제 makes `<name> 복사본` (`복사본 2`, 3, … when taken). 삭제 asks
 first when a kind or an item uses the 테마; its items fall back to their kind's
-default. The 대기 화면 row has no 삭제 and no 기본으로 지정.
+default. The 대기 화면 row has no 기본으로 지정. Built-in themes, including 대기
+화면, cannot be deleted; 삭제 remains visible with the reason in its tooltip.
+Drag a theme row to reorder it with a drop line; the saved order is shared by
+theme pickers. F2 starts inline rename, Enter saves it and Esc cancels; Delete
+requests deletion of the selected theme.
 
 ## 오버레이
 
@@ -436,7 +440,9 @@ contains user themes and only built-in themes explicitly saved after editing,
 marked `edited: true`. Unmarked built-in entries are ignored and removed on
 load. An unedited `standby` is omitted from storage. Theme IDs and defaults
 remain stable, so existing item references continue to resolve. Up to 200 user
-themes may coexist with the built-in themes.
+themes may coexist with the built-in themes. `themeOrder` optionally stores the
+ordered theme IDs independently of built-in theme contents; newly introduced
+themes absent from that list are appended.
 
 | Field      | Type                                                   | Meaning                                                                    |
 | ---------- | ------------------------------------------------------ | -------------------------------------------------------------------------- |

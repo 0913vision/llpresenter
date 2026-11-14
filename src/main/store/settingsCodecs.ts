@@ -46,14 +46,22 @@ function parseStoredThemes(text: string, file: string) {
     isRecord(raw.standby) && raw.standby.edited === true
       ? raw.standby
       : builtIns.standby;
+  const merged = [
+    ...builtIns.themes.map(theme => overrides.get(theme.id) ?? theme),
+    ...saved.filter(theme => !isRecord(theme) || !isBuiltIn(theme.id)),
+  ];
+  const order = Array.isArray(raw.themeOrder) ? raw.themeOrder : [];
+  const positions = new Map(order.map((id, index) => [id, index]));
+  merged.sort((a, b) => {
+    const left = isRecord(a) ? positions.get(a.id) : undefined;
+    const right = isRecord(b) ? positions.get(b.id) : undefined;
+    return (left ?? order.length) - (right ?? order.length);
+  });
   return themes.parseThemes(
     JSON.stringify({
       ...raw,
       standby,
-      themes: [
-        ...builtIns.themes.map(theme => overrides.get(theme.id) ?? theme),
-        ...saved.filter(theme => !isRecord(theme) || !isBuiltIn(theme.id)),
-      ],
+      themes: merged,
     }),
     file,
   );

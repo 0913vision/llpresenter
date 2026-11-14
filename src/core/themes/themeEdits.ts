@@ -14,6 +14,7 @@ import {
 import {
   THEME_LIMITS,
   isStandbyElement,
+  themeItemKinds,
   themeElementProblem,
   type ThemeItemKind,
 } from './elementRules';
@@ -28,6 +29,7 @@ export type ThemeEditProblem =
   | 'full'
   | 'duplicate-id'
   | 'standby'
+  | 'built-in'
   | 'confirmation-required'
   | 'elements'
   | 'link'
@@ -47,6 +49,11 @@ export type ThemeListEdit =
     }
   | {readonly kind: 'duplicate'; readonly id: ThemeId; readonly source: ThemeId}
   | {readonly kind: 'rename'; readonly id: ThemeId; readonly name: string}
+  | {
+      readonly kind: 'move';
+      readonly id: ThemeId;
+      readonly before: ThemeId | null;
+    }
   | {
       readonly kind: 'default';
       readonly id: ThemeId;
@@ -161,6 +168,20 @@ export function editThemeList(
     };
   }
   if (theme.id === file.standby.id) return {ok: false, error: 'standby'};
+  if (edit.kind === 'move') {
+    if (edit.before === theme.id) return {ok: true, value: file};
+    const themes = file.themes.filter(value => value.id !== theme.id);
+    const index =
+      edit.before === null
+        ? themes.length
+        : themes.findIndex(value => value.id === edit.before);
+    if (index < 0) return {ok: false, error: 'missing'};
+    themes.splice(index, 0, theme);
+    return {
+      ok: true,
+      value: {...file, themes, themeOrder: themes.map(value => value.id)},
+    };
+  }
   if (edit.kind === 'default') {
     if (file.defaults[edit.itemKind] === theme.id) {
       const {[edit.itemKind]: previous, ...defaults} = file.defaults;
@@ -171,6 +192,7 @@ export function editThemeList(
       value: {...file, defaults: {...file.defaults, [edit.itemKind]: theme.id}},
     };
   }
+  if (isBuiltInThemeId(theme.id)) return {ok: false, error: 'built-in'};
   if (
     !edit.confirmed &&
     (Object.values(file.defaults).includes(theme.id) ||
@@ -179,7 +201,7 @@ export function editThemeList(
     return {ok: false, error: 'confirmation-required'};
   }
   let defaults = file.defaults;
-  for (const kind of ['song', 'bible', 'media'] as const) {
+  for (const kind of themeItemKinds) {
     if (defaults[kind] === theme.id) {
       const {[kind]: removed, ...rest} = defaults;
       defaults = rest;
@@ -191,6 +213,9 @@ export function editThemeList(
       ...file,
       defaults,
       themes: file.themes.filter(other => other.id !== theme.id),
+      ...(file.themeOrder === undefined
+        ? {}
+        : {themeOrder: file.themeOrder.filter(id => id !== theme.id)}),
     },
   };
 }

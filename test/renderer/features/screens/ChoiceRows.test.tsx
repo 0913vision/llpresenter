@@ -77,6 +77,42 @@ function setup({
   return {...render(<List />), select};
 }
 
+it('dispatches rename, delete and drag reorder for the selected theme', () => {
+  const choices = [
+    {id: 'a', name: 'A'},
+    {id: 'b', name: 'B'},
+  ];
+  const rename = vi.fn();
+  const remove = vi.fn();
+  const move = vi.fn();
+  render(
+    <ChoiceRows
+      choices={choices}
+      selected="a"
+      inUse={new Set()}
+      label="Themes"
+      renaming={null}
+      onSelect={vi.fn()}
+      onRename={rename}
+      onDelete={remove}
+      onMove={move}
+    />,
+  );
+  const first = screen.getByRole('option', {name: 'A'});
+  fireEvent.keyDown(first, {key: 'F2'});
+  fireEvent.keyDown(first, {key: 'Delete'});
+  expect(rename).toHaveBeenCalledWith(choices[0]);
+  expect(remove).toHaveBeenCalledWith(choices[0]);
+  const source = first.parentElement;
+  const target = screen.getByRole('option', {name: 'B'}).parentElement;
+  if (!source || !target) throw new Error('Missing row');
+  const dataTransfer = {effectAllowed: '', dropEffect: '', setData: vi.fn()};
+  fireEvent.dragStart(source, {dataTransfer});
+  fireEvent.dragOver(target, {dataTransfer, clientY: 0});
+  fireEvent.drop(target, {dataTransfer, clientY: 0});
+  expect(move).toHaveBeenCalledWith('a', null);
+});
+
 it('bounds a thousand rows while Home and End select and focus the full model', async () => {
   const view = setup();
   expect(screen.getAllByRole('option').length).toBeLessThan(30);

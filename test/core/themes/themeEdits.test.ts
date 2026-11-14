@@ -137,7 +137,13 @@ describe('theme lifecycle edits', () => {
   });
 
   it('confirms defaults and item references before deleting, preserving other defaults and standby', () => {
-    const {file, theme} = setup();
+    const initial = setup();
+    const userId = createThemeId('00000000-0000-4000-8000-000000000902');
+    const file = value(
+      editThemeList(initial.file, {kind: 'add', id: userId}, new Set()),
+    );
+    const theme = file.themes.find(value => value.id === userId);
+    if (!theme) throw new Error('Missing user theme');
     const assigned = value(
       editThemeList(
         file,
@@ -165,8 +171,21 @@ describe('theme lifecycle edits', () => {
       ),
     );
     expect(removed.themes.some(value => value.id === theme.id)).toBe(false);
-    expect(removed.defaults).not.toHaveProperty('song');
+    expect(removed.defaults.song).toBe(file.defaults.song);
     expect(removed.defaults.bible).toBe(file.defaults.bible);
+    const allDefaults = {
+      ...file,
+      defaults: {...file.defaults, blank: theme.id, ad: theme.id},
+    };
+    const removedDefaults = value(
+      editThemeList(
+        allDefaults,
+        {kind: 'delete', id: theme.id, confirmed: true},
+        new Set(),
+      ),
+    );
+    expect(removedDefaults.defaults).not.toHaveProperty('blank');
+    expect(removedDefaults.defaults).not.toHaveProperty('ad');
     const added = value(editThemeList(file, {kind: 'add', id}, new Set()));
     expect(editThemeList(added, {kind: 'delete', id}, new Set([id]))).toEqual({
       ok: false,
@@ -186,6 +205,26 @@ describe('theme lifecycle edits', () => {
         new Set(),
       ),
     ).toEqual({ok: false, error: 'standby'});
+  });
+
+  it('reorders themes and protects built-ins from deletion', () => {
+    const {file, theme} = setup();
+    const moved = value(
+      editThemeList(
+        file,
+        {kind: 'move', id: theme.id, before: null},
+        new Set(),
+      ),
+    );
+    expect(moved.themes.at(-1)?.id).toBe(theme.id);
+    expect(moved.themeOrder).toEqual(moved.themes.map(value => value.id));
+    expect(
+      editThemeList(
+        file,
+        {kind: 'delete', id: theme.id, confirmed: true},
+        new Set(),
+      ),
+    ).toEqual({ok: false, error: 'built-in'});
   });
 });
 
