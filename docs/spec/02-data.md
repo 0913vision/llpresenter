@@ -779,19 +779,14 @@ files.
 
 ## Bible translations
 
-- Version 1 bundles 개역한글 and KJV as offline translation files. 개역한글 is
-  the default. Don't include 개역개정 until the Korean Bible Society permits its
-  use.
-- Translations are prepared in advance and delivered with an app update. The
-  installed list in 환경설정 offers 기본으로 (make default); the app never
-  installs or removes translations (user decision, 2026-10-26). See 06.
-- The translation files are built once on the user's computer, from a one-time
-  crawl that runs slowly and within what the site allows, for the user's own use
-  only and never redistributed (user decision, 2026-10-25). No crawled text and
-  no file built from it is ever committed; the files live in the app data
-  folder.
-- Every Bible feature works without the network (01). The app never fetches
-  verse text.
+- The built-in GAE translation temporarily fetches requested chapters live from
+  the Korean Bible Society. It is the fallback when no translation is installed.
+  Fetched text stays in the session's in-memory chapter cache and is never saved
+  to disk or downloaded in bulk. A failed request shows the passage problem and
+  is retried on the next use.
+- Installed `.llbible` translations remain available without network access and
+  keep their existing default selection and file format. No Bible text is
+  committed to the repository.
 
 ### What comes from copible
 
@@ -801,8 +796,8 @@ The Bible behavior reference is Copible 1.6.0 (read-only source review, November
 - copible fetches verse text live, one chapter at a time, from the Korean Bible
   Society website (`https://www.bskorea.or.kr/bible/korbibReadpage.php` with
   `version=GAE`, in `src/data/bible-crawler.js`). `GAE` is 개역개정, the
-  translation this app excludes. It has no translation switcher or parallel
-  translation view.
+  translation used by the temporary live source. It has no translation switcher
+  or parallel translation view.
 - So this app defines its own translation file format (below), and the text of
   개역한글 and KJV comes from a public-domain source that the user chooses (see
   "Candidate text sources").
@@ -814,7 +809,7 @@ What this app reuses, ported to TypeScript with tests, without copying any text:
 | Book metadata   | 66 books with `id`, `korean`, `koreanShort`, `english`, `englishShort`, `testament`, `chapters` (`src/data/bible-metadata.js`)                                                                                     | The same shape ("Book metadata")                                                                    |
 | Book matching   | Exact matches on the four names; partial matches that compare Hangul by its letters (jamo) and also try the input as QWERTY typed with the Korean IME off, with es-hangul (`disassemble`, `convertQwertyToHangul`) | The same rules for the suggestions in the 퀵 실행 Bible field (04)                                  |
 | Reference entry | Four fields: book, chapter, required start verse, optional end verse in the same chapter                                                                                                                           | The same operator fields (04); stored/API references additionally accept the extended grammar below |
-| Live fetching   | The crawler above                                                                                                                                                                                                  | Not used                                                                                            |
+| Live fetching   | The crawler above                                                                                                                                                                                                  | Main-process chapter fetch with an in-memory cache                                                  |
 
 ### Book metadata (proposal)
 

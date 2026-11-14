@@ -423,10 +423,12 @@ writing rules.
   is off by default (03, "Rules for output windows").
 - Never ask for confirmation before an action that affects the output. Never
   block F1 to F6: they work with a dialog open and with a text field focused.
-- Never depend on the network. Bible texts, fonts, and icons are bundled. Media
-  are local files. The optional local AI chooser may contact only the IPv4
-  loopback HTTP server and never follow a redirect. Missing or failed AI uses
-  rules for that verse (04, "Local AI boundary chooser").
+- Keep fonts, icons, and media local. The temporary built-in GAE translation
+  fetches requested chapters from the Korean Bible Society and reports a passage
+  problem when offline; installed Bible files remain usable offline. The
+  optional local AI chooser may contact only the IPv4 loopback HTTP server and
+  never follow a redirect. Missing or failed AI uses rules for that verse (04,
+  "Local AI boundary chooser").
 - Never install an update, restart the app on its own, or show an update prompt
   while any output is on. The updater defers its questions until every output is
   off, and installs only after an explicit click and clean shutdown (01, "App

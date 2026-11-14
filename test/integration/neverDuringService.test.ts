@@ -43,20 +43,27 @@ describe('never during a service', () => {
     ).toEqual([]);
   });
 
-  it('allows only the loopback LLM transport and no remote address in the code', () => {
+  it('limits network access to the loopback LLM and the live Bible adapter', () => {
     const productCode = code.filter(file => !file.includes('gallery'));
     expect(
       mentions(
         /\bfetch\(|XMLHttpRequest|new WebSocket|net\.(request|fetch)|https?\.(get|request)\(/,
         productCode,
       ),
-    ).toEqual(['src/main/bible/llm/http.ts']);
+    ).toEqual(['src/main/bible/liveChapter.ts', 'src/main/bible/llm/http.ts']);
     expect(
       mentions(
         /https?:\/\/(?!localhost|127\.0\.0\.1|www\.w3\.org)/,
         productCode,
       ),
-    ).toEqual([]);
+    ).toEqual(['src/main/bible/liveChapter.ts']);
+    const adapter = readFileSync(
+      join(SOURCE, 'main/bible/liveChapter.ts'),
+      'utf8',
+    );
+    expect(adapter.match(/https?:\/\/[a-z0-9.-]+\/[^?`'"\s]+/g)).toEqual([
+      'https://www.bskorea.or.kr/bible/korbibReadpage.php',
+    ]);
   });
 
   it('lets no page load from a remote origin', () => {
