@@ -286,6 +286,12 @@ function fitSong(
           w: geometry.screenWidth,
           h: height + padding * 2,
         },
+        box: {
+          ...e.box,
+          on: true,
+          fill: geometry.shadowColor,
+          opacity: geometry.songBandOpacity,
+        },
         runtimeHidden: !visible || caption === 'text',
         clearTarget: 'slide',
         broadcastSong: 'band',

@@ -23,7 +23,6 @@ import type {ThemeGaps} from './themeGaps';
 import {setPlaybackProblem} from './playbackProblem';
 import {broadcastBibleFlow} from './broadcastBibleFlow';
 import {SECTION_BAND_ID, SECTION_NAME_ID} from '@core/themes/sectionBroadcast';
-import {songBandGradient} from './songBandGradient';
 import {sectionBandGradient} from './sectionBandGradient';
 
 function fillColor(fill: string, opacity: number): string {
@@ -170,11 +169,8 @@ export class ThemeElementView {
         styleBroadcastGlass(background, element.broadcastGlass, capture);
         this.box.style.overflow = 'visible';
       }
-      if (element.broadcastSong === 'band' || element.id === SECTION_BAND_ID) {
-        background.style.background =
-          element.id === SECTION_BAND_ID
-            ? sectionBandGradient
-            : songBandGradient(capture);
+      if (element.id === SECTION_BAND_ID) {
+        background.style.background = sectionBandGradient;
         background.style.borderRadius = '0';
       }
       this.box.append(background);

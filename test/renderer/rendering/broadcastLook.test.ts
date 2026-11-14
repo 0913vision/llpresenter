@@ -274,13 +274,22 @@ describe('built-in broadcast look', () => {
     const layout = builtInTheme('song').screens[screen];
     if (!layout) throw Error('missing song');
     const song = {...item, kind: 'song' as const, title: 'Song title'};
+    const savedLayout = {
+      ...layout,
+      elements: layout.elements.map(e =>
+        e.id === BROADCAST_LOOK_BAND_ID && e.kind === 'box'
+          ? {...e, box: {...e.box, opacity: 88}}
+          : e,
+      ),
+    };
     const result = fitBroadcastLook(
-      layout,
+      savedLayout,
       {...slide, lines: ['one', 'two']},
       song,
     );
     expect(element(result, BROADCAST_LOOK_BAND_ID)).toMatchObject({
       frame: {x: 0, w: 1920},
+      box: {fill: '#000000', opacity: 100},
       runtimeHidden: false,
     });
     expect(element(result, BROADCAST_LOOK_SONG_ID)).toMatchObject({

@@ -372,10 +372,9 @@ describe('theme composition drawing', () => {
       const panel = root.querySelector<HTMLElement>(
         `[data-theme-element="${BROADCAST_LOOK_BAND_ID}"] > div`,
       );
-      if (caption === 'band' && panel) {
-        expect(panel.style.background).toContain('linear-gradient');
-        if (transparent) expect(panel.style.background).toContain('0.88');
-        else expect(panel.style.background).not.toContain('0.88');
+      if (caption === 'band') {
+        expect(panel?.style.backgroundColor).toBe('rgb(0, 0, 0)');
+        expect(panel?.style.background).not.toContain('gradient');
       }
       view.dispose();
     },
