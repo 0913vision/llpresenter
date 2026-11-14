@@ -153,6 +153,7 @@ export function SlideTransitionControl({
           className={styles.time}
           aria-label={`${label} 시간`}
           value={value.sec}
+          formatValue={seconds => String(Math.round(seconds * 100) / 100)}
           {...SLIDE_TRANSITION_LIMITS}
           unit="초"
           disabled={disabled || !own || value.kind === 'none'}

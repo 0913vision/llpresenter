@@ -122,6 +122,11 @@ export class ScreenFrames {
     ];
   }
 
+  /** Current destination kind without evaluating a live frame. */
+  screenKind(): RenderScreen['kind'] | undefined {
+    return this.screen?.kind;
+  }
+
   /** The frame for a live state, or undefined until the screen is known. */
   frame(state: LiveState | null): RenderFrame | undefined {
     const {screen} = this;

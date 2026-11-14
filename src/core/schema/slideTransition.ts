@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import {jsonObject} from './primitives';
 import type {ReadonlyKnown} from './fileFormat';
 
-export const SLIDE_TRANSITION_LIMITS = {min: 0.1, max: 10, step: 0.1} as const;
+export const SLIDE_TRANSITION_LIMITS = {min: 0.1, max: 10, step: 0.01} as const;
 export const slideTransitionKindSchema = v.picklist([
   'none',
   'dissolve',

@@ -51,6 +51,13 @@ const control = await vi.hoisted(async () => {
 });
 vi.mock('electron', () => ({
   BrowserWindow: control.MockControl,
+  ipcMain: {
+    handle: (
+      channel: string,
+      handler: (event?: unknown, value?: unknown) => unknown,
+    ) => mocks.answers.set(channel, handler),
+    removeHandler: (channel: string) => mocks.answers.delete(channel),
+  },
   powerSaveBlocker: {
     start: mocks.start,
     stop: mocks.stop,

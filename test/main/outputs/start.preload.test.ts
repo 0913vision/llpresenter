@@ -12,6 +12,26 @@ import {MAIN, CAPTIONS} from '@fixtures/core/overlays';
 import {describe, expect, it} from 'vitest';
 
 describe('output windows at launch', () => {
+  it('captures only the requesting output window', async () => {
+    setup(undefined, 'offscreen', false);
+    const capture = mocks.answers.get(outputEndpoints.captureFrame.channel);
+    if (capture === undefined) throw Error('Missing capture handler');
+    const sender = {
+      isDestroyed: () => false,
+      getURL: () => 'file:///renderer/output.html?screen=audience',
+      capturePage: async () => ({
+        isEmpty: () => false,
+        toDataURL: () => 'data:image/png;base64,AA==',
+      }),
+    };
+    await expect(capture({sender})).resolves.toBe('data:image/png;base64,AA==');
+    await expect(
+      capture({
+        sender: {...sender, getURL: () => 'file:///renderer/index.html'},
+      }),
+    ).resolves.toBeNull();
+  });
+
   it('finishes preparation when visible and hidden outputs become ready across live versions', async () => {
     const {save, store, windows, onPrepared} = setup(
       undefined,

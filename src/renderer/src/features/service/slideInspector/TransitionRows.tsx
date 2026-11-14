@@ -43,8 +43,8 @@ function TimeField({
     if (draft === null) return;
     const parsed = Number(draft.trim());
     if (draft.trim() !== '' && Number.isFinite(parsed)) {
-      const {min, max, step} = SLIDE_TRANSITION_LIMITS;
-      onCommit(Math.min(max, Math.max(min, Math.round(parsed / step) * step)));
+      const {min, max} = SLIDE_TRANSITION_LIMITS;
+      onCommit(Math.min(max, Math.max(min, Math.round(parsed * 100) / 100)));
     }
     setDraft(null);
   };
@@ -56,7 +56,7 @@ function TimeField({
       inputMode="decimal"
       placeholder={mixed ? '혼합' : undefined}
       disabled={disabled}
-      value={draft ?? (mixed ? '' : String(value))}
+      value={draft ?? (mixed ? '' : String(Math.round(value * 100) / 100))}
       onChange={setDraft}
       onBlur={commit}
       onKeyDown={event => {

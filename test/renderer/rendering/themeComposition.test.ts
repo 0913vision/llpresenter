@@ -172,6 +172,45 @@ describe('theme composition drawing', () => {
     },
   );
 
+  it('preserves the outgoing picture without a separate fade during a background-changing wipe', () => {
+    const {root, view} = setup();
+    const elements: ThemeElement[] = [
+      {...themeElementBase(), kind: 'background', fit: 'fill', radius: 0},
+      {...themeElementBase(31), kind: 'currentText'},
+    ];
+    const effect = {kind: 'wipe' as const, dir: 'left' as const, sec: 1};
+    const base = frame(elements);
+    const initial = {...song, media: {mediaId, loop: true, startedAt: 1}};
+    view.render(initial, {...base, slideTransition: effect});
+    const outgoing = root.querySelector<HTMLElement>('[data-theme-page]');
+    if (outgoing === null || song.slide === null) {
+      throw Error('Missing outgoing page');
+    }
+    const oldText =
+      outgoing.querySelector<HTMLElement>('[data-kind="currentText"]') ??
+      outgoing.querySelector<HTMLElement>('[data-kind="text"]');
+    if (oldText === null) throw Error('Missing outgoing text');
+    const previousOpacity = oldText.style.opacity;
+    const nextId = createMediaId('00000000-0000-4000-8000-000000000602');
+    view.render(
+      {
+        ...initial,
+        slide: {...song.slide, itemId: 'new', lines: ['Next']},
+        media: {mediaId: nextId, loop: true, startedAt: 2},
+      },
+      {
+        ...base,
+        slideTransition: effect,
+        clearOpacity: {slide: 0.5, media: 0.5},
+      },
+    );
+    expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(2);
+    expect(oldText.style.opacity).toBe(previousOpacity);
+    const incoming = root.querySelectorAll<HTMLElement>('[data-theme-page]')[1];
+    expect(incoming?.style.transition).toBe('none');
+    view.dispose();
+  });
+
   it('transitions whole pages between items sharing a background', () => {
     const {root, view} = setup();
     const base = frame([
@@ -263,7 +302,7 @@ describe('theme composition drawing', () => {
         Object.defineProperty(page, 'animate', {value: animate});
       }
       vi.advanceTimersByTime(32);
-      expect(animate).toHaveBeenCalledTimes(2);
+      expect(animate).toHaveBeenCalledTimes(1);
       expect(animate).toHaveBeenLastCalledWith(expect.any(Array), {
         duration: 1000,
         easing: 'linear',
@@ -962,7 +1001,9 @@ describe('theme composition drawing', () => {
         ?.dispatchEvent(new Event('playing'));
       vi.advanceTimersByTime(32);
       expect(incoming?.style.opacity).toBe('1');
-      expect(animate).toHaveBeenCalledTimes(kind === 'none' ? 0 : 2);
+      expect(animate).toHaveBeenCalledTimes(
+        kind === 'none' ? 0 : kind === 'wipe' ? 1 : 2,
+      );
       if (kind !== 'none') {
         expect(animate).toHaveBeenLastCalledWith(expect.any(Array), {
           duration: 1200,
@@ -1607,7 +1648,7 @@ describe('theme composition drawing', () => {
         });
       }
       vi.advanceTimersByTime(1000);
-      expect(animate).toHaveBeenCalledTimes(2);
+      expect(animate).toHaveBeenCalledTimes(1);
       expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(2);
       view.render(incoming, {...incomingFrame, stageMessage: 'Unrelated'});
       expect(cancel).not.toHaveBeenCalled();
@@ -1626,7 +1667,7 @@ describe('theme composition drawing', () => {
         },
       });
 
-      expect(cancel).toHaveBeenCalledTimes(2);
+      expect(cancel).toHaveBeenCalledTimes(1);
       if (kind === 'none') {
         expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(1);
         expect(text('currentText')).toBe('Next lyrics');

@@ -194,3 +194,19 @@ export function parseOpenWindowResult(
 export function refuseOpenWindow(): OpenWindowResult {
   return {ok: false, error: {reason: 'failed'}};
 }
+
+/** A bounded PNG snapshot of the requesting output window. */
+export function parseOutputSnapshot(
+  value: unknown,
+): Result<string | null, PayloadError> {
+  return parsePayload(
+    v.nullable(
+      v.pipe(
+        v.string(),
+        v.maxLength(64_000_000),
+        v.startsWith('data:image/png;base64,'),
+      ),
+    ),
+    value,
+  );
+}

@@ -4,6 +4,7 @@ import {
   isRendererLogEntry,
   parseFrameRateReport,
   parseOutputHealthReport,
+  parseOutputSnapshot,
   parseRendererLogEntry,
   parseFrameReadyReport,
   parseFrameReadyReply,
@@ -188,4 +189,10 @@ describe('editor window targets', () => {
       error: {reason: 'failed'},
     });
   });
+});
+
+it('accepts a PNG output snapshot or null', () => {
+  expect(parseOutputSnapshot('data:image/png;base64,AA==').ok).toBe(true);
+  expect(parseOutputSnapshot(null).ok).toBe(true);
+  expect(parseOutputSnapshot('data:text/html,hello').ok).toBe(false);
 });

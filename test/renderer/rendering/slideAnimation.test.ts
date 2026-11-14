@@ -19,30 +19,10 @@ describe('SlideAnimation', () => {
   it('keeps the old page still while revealing the new page with a feathered mask', () => {
     const {view, old, next, animate} = setup();
     view.play(old, next, {kind: 'wipe', dir: 'left', sec: 1});
-    const inverse =
-      'linear-gradient(to left, transparent 0%, transparent 35.087719%, black 64.912281%, black 100%)';
+    expect(old.style.opacity).toBe('1');
+    expect(animate).toHaveBeenCalledTimes(1);
     expect(animate).toHaveBeenNthCalledWith(
       1,
-      [
-        {
-          opacity: 1,
-          maskImage: inverse,
-          maskSize: '285% 100%',
-          maskPosition: '0% 0%',
-          maskRepeat: 'no-repeat',
-        },
-        {
-          opacity: 1,
-          maskImage: inverse,
-          maskSize: '285% 100%',
-          maskPosition: '100% 0%',
-          maskRepeat: 'no-repeat',
-        },
-      ],
-      {duration: 1000, easing: 'linear'},
-    );
-    expect(animate).toHaveBeenNthCalledWith(
-      2,
       [
         {
           maskImage:
@@ -65,7 +45,7 @@ describe('SlideAnimation', () => {
   it('moves the feather across the whole screen over the whole duration', () => {
     const {view, old, next, animate} = setup();
     view.play(old, next, {kind: 'wipe', dir: 'left', sec: 1});
-    const frames = animate.mock.calls[1]?.[0];
+    const frames = animate.mock.calls[0]?.[0];
     if (!Array.isArray(frames)) throw new Error('Missing wipe keyframes');
     const first = frames[0];
     if (
@@ -125,7 +105,7 @@ describe('SlideAnimation', () => {
         document.getAnimations().forEach(animation => {
           animation.currentTime = time;
         });
-        const progress = (animations[1]?.currentTime ?? 0) / 1000;
+        const progress = (animations[0]?.currentTime ?? 0) / 1000;
         return Math.max(0, Math.min(1, (x + 1.85 * progress - 1) / 0.85));
       };
       expect([sample(250, 0.1), sample(250, 0.5), sample(250, 0.9)]).toEqual([
@@ -200,29 +180,10 @@ describe('SlideAnimation', () => {
       const {view, old, next, animate} = setup();
       view.play(old, next, {kind: 'wipe', dir, sec: 0.5});
       const maskImage = `linear-gradient(to ${direction}, black 0%, black 35.087719%, transparent 64.912281%, transparent 100%)`;
-      const inverseMask = `linear-gradient(to ${direction}, transparent 0%, transparent 35.087719%, black 64.912281%, black 100%)`;
+      expect(old.style.opacity).toBe('1');
+      expect(animate).toHaveBeenCalledTimes(1);
       expect(animate).toHaveBeenNthCalledWith(
         1,
-        [
-          {
-            opacity: 1,
-            maskImage: inverseMask,
-            maskSize: size,
-            maskPosition: from,
-            maskRepeat: 'no-repeat',
-          },
-          {
-            opacity: 1,
-            maskImage: inverseMask,
-            maskSize: size,
-            maskPosition: to,
-            maskRepeat: 'no-repeat',
-          },
-        ],
-        {duration: 500, easing: 'linear'},
-      );
-      expect(animate).toHaveBeenNthCalledWith(
-        2,
         [
           {
             maskImage,
