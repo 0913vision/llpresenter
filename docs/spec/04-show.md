@@ -1148,20 +1148,20 @@ Slide transitions apply only to audience screens. Stage and broadcast slide
 changes cut immediately. A theme transition applies to every slide using that
 theme, including consecutive Bible slides and split verses.
 
-On stage, an empty current or next slide without a label shows (\uc5c6\uc74c); a
-labeled empty slide shows its label.
+On stage, an empty current or next slide without a label shows (없음); a labeled
+empty slide shows its label.
 
 With continuous item navigation enabled, previous on the first slide goes live
 on the previous outputtable item's last slide, skipping section rows and empty
-items. Otherwise previous stops at the first slide. On stage, empty slide labels
-appear in parentheses; a next slide labeled \uc804\uc8fc appends (\uc804\uc8fc)
-to its text, and a next title slide omits its English subtitle.
+items. Otherwise previous stops at the first slide. A next title slide on stage
+omits its English subtitle.
 
 Previous uses the live slide position in service order even when the operator
 opened another item or used a quick-run song.
 
-On stage, next-slide text is followed by its label in parentheses; an empty
-labeled slide shows only the parenthesized label.
+On stage, the labels 전주, 간주 and 후주 follow the text in parentheses; other
+labels precede it. Empty slides show only the label. Bible verse labels are
+omitted.
 
 Stage title slides and section cards show only their Korean title, without the
 English subtitle. The creed and prayer theme uses 104 px left-aligned current
@@ -1172,4 +1172,10 @@ The built-in GAE translation fetches only requested chapters live from the
 Korean Bible Society. Chapter text is held only in the session memory cache; it
 is never saved to a file or downloaded in bulk. A failed fetch shows the
 existing problem state and is retried on the next use. Installed `.llbible`
-translations continue to work.
+translations continue to work. text with the next line and clock clear.
+
+Stage current and next text use the matching audience theme font family; current
+text also uses its audience weight.
+
+On stage title slides, only the prelude, interlude and outro labels are shown
+after the title; other labels are omitted.

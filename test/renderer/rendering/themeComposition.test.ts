@@ -2086,9 +2086,7 @@ it('reflows Bible parts independently on stage and broadcast, including the next
   for (const kind of ['stage', 'broadcast'] as const) {
     view.render(layers, {...bible, screen: {id: THEME_MAIN, kind}});
     expect(rows('currentText')).toEqual([current.join(' ')]);
-    expect(rows('nextText')).toEqual([
-      kind === 'stage' ? `${next.join(' ')} (11:30)` : next.join(' '),
-    ]);
+    expect(rows('nextText')).toEqual([next.join(' ')]);
     expect(
       root.querySelector<HTMLElement>('[data-kind="currentText"]')?.style
         .textWrap,
@@ -2112,7 +2110,10 @@ it('reflows Bible parts independently on stage and broadcast, including the next
     screen: {id: THEME_MAIN, kind: 'stage'},
     transitions: false,
   });
-  expect(rows('currentText')).toEqual(current);
+  expect(rows('currentText')).toEqual([
+    `(11:29) ${current[0]}`,
+    ...current.slice(1),
+  ]);
   expect(rows('nextText')).toEqual(next.slice(0, 2));
   expect(
     root.querySelector<HTMLElement>('[data-kind="currentText"]')?.style
@@ -2314,7 +2315,7 @@ it.each(['output', 'preview'] as const)(
     expect(
       root.querySelector(`[data-kind="nextText"] .${classes.shown}`)
         ?.textContent,
-    ).toBe('Invented next (Chorus)');
+    ).toBe('(Chorus) Invented next');
     view.render({...empty, slide: {...empty.slide, label: null}}, stage);
     expect(current()?.textContent).toBe('(\uc5c6\uc74c)');
     view.render(
@@ -2329,7 +2330,7 @@ it.each(['output', 'preview'] as const)(
     );
     expect(current()?.textContent).toBe('(\uc5c6\uc74c)');
     view.render(song, stage);
-    expect(current()?.textContent).toBe('Invented line');
+    expect(current()?.textContent).toBe('(Verse) Invented line');
     expect(current()?.style.color).not.toBe('rgb(180, 180, 180)');
     view.render(empty, {
       ...frame(elements),
@@ -2550,10 +2551,13 @@ it('shows stage prelude and interlude labels and omits a title slide subtitle', 
         ?.textContent ?? ''
     );
   };
-  expect(draw({label: '\uc804\uc8fc', lines: ['\ucc2c\uc591']}, 'stage')).toBe(
-    '\ucc2c\uc591 (\uc804\uc8fc)',
-  );
-  expect(draw({label: 'Verse', lines: ['Text']}, 'stage')).toBe('Text (Verse)');
+  expect(
+    draw(
+      {label: '\uc804\uc8fc', titleSlide: true, lines: ['\ucc2c\uc591']},
+      'stage',
+    ),
+  ).toBe('\ucc2c\uc591 (\uc804\uc8fc)');
+  expect(draw({label: 'Verse', lines: ['Text']}, 'stage')).toBe('(Verse) Text');
   expect(draw({label: '\uac04\uc8fc', lines: []}, 'stage')).toBe(
     '(\uac04\uc8fc)',
   );
@@ -2619,3 +2623,88 @@ it('shows only Korean title or section name on stage and retains audience subtit
   ).toBe('Korean section');
   view.dispose();
 });
+
+it('places ordinary stage labels before lyrics and omits them on titles', () => {
+  const {root, view} = setup();
+  const elements: ThemeElement[] = [
+    {...themeElementBase(), kind: 'currentText'},
+    {...themeElementBase(31), kind: 'nextText'},
+  ];
+  const slide = song.slide;
+  if (slide === null) throw Error('Missing slide');
+  const draw = (title: boolean, screen: 'stage' | 'audience') =>
+    view.render(
+      {
+        ...song,
+        slide: {
+          ...slide,
+          label: 'Verse',
+          ...(title ? {titleSlide: true as const} : {}),
+          lines: ['Current'],
+          next: {
+            label: 'Outro',
+            ...(title ? {titleSlide: true as const} : {}),
+            lines: ['Next'],
+          },
+        },
+      },
+      {
+        ...frame(elements),
+        screen: {id: THEME_MAIN, kind: screen},
+        transitions: false,
+      },
+    );
+  const text = (kind: string) =>
+    root.querySelector(`[data-kind="${kind}"] .${classes.shown}`)
+      ?.textContent ?? '';
+  draw(false, 'stage');
+  expect(text('currentText')).toBe('(Verse) Current');
+  expect(text('nextText')).toBe('(Outro) Next');
+  draw(true, 'stage');
+  expect(text('currentText')).toBe('Current');
+  expect(text('nextText')).toBe('Next');
+  draw(false, 'audience');
+  expect(text('currentText')).toBe('Current');
+  expect(text('nextText')).toBe('Next');
+  view.dispose();
+});
+
+it.each(['\uc804\uc8fc', '\uac04\uc8fc', '\ud6c4\uc8fc'])(
+  'puts %s after text for both title and lyric slides',
+  label => {
+    const {root, view} = setup();
+    const elements: ThemeElement[] = [
+      {...themeElementBase(), kind: 'currentText'},
+      {...themeElementBase(31), kind: 'nextText'},
+    ];
+    if (song.slide === null) throw Error('Missing slide');
+    for (const title of [false, true]) {
+      view.render(
+        {
+          ...song,
+          slide: {
+            ...song.slide,
+            label,
+            ...(title ? {titleSlide: true as const} : {}),
+            lines: ['Current'],
+            next: {label, lines: ['Next']},
+          },
+        },
+        {
+          ...frame(elements),
+          screen: {id: THEME_MAIN, kind: 'stage'},
+          transitions: false,
+        },
+      );
+      expect(
+        root.querySelector(`[data-kind="currentText"] .${classes.shown}`)
+          ?.textContent,
+      ).toBe(`Current (${label})`);
+      expect(
+        root.querySelector(`[data-kind="nextText"] .${classes.shown}`)
+          ?.textContent,
+      ).toBe(`Next (${label})`);
+    }
+    view.dispose();
+  },
+);

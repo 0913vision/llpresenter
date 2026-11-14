@@ -68,6 +68,19 @@ function remainingText(seconds: number | undefined): string | undefined {
   return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, '0')}`;
 }
 
+function isStageEndingLabel(label: string): boolean {
+  return ['\uc804\uc8fc', '\uac04\uc8fc', '\ud6c4\uc8fc'].includes(label);
+}
+
+function stageLabeledText(
+  text: string,
+  label: string,
+  titleSlide = false,
+): string {
+  if (isStageEndingLabel(label)) return `${text} (${label})`;
+  return titleSlide ? text : `(${label}) ${text}`;
+}
+
 /** The elements that show the lyrics: they follow the 슬라이드 전환. */
 const SLIDE_ELEMENT_KINDS: readonly string[] = [
   'currentText',
@@ -292,7 +305,9 @@ export class ThemeElementView {
       slide.picture === undefined &&
       slide.sectionCard === undefined &&
       item?.contentCleared !== true &&
-      !slide.lines.some(line => line.trim() !== '');
+      !(slide.titleSlide ? slide.lines.slice(0, 1) : slide.lines).some(
+        line => line.trim() !== '',
+      );
     const next = slide?.next;
     const nextEmpty =
       stage &&
@@ -300,9 +315,21 @@ export class ThemeElementView {
       !finalBible &&
       next !== undefined &&
       !next.title?.trim() &&
-      !next.lines.some(line => line.trim() !== '');
-    const currentLabel = slide?.label?.trim();
-    const nextLabel = next?.label?.trim();
+      !(next.titleSlide ? next.lines.slice(0, 1) : next.lines).some(
+        line => line.trim() !== '',
+      );
+    const rawCurrentLabel = slide?.label?.trim();
+    const rawNextLabel = next?.label?.trim();
+    const currentLabel =
+      slide?.titleSlide &&
+      rawCurrentLabel &&
+      !isStageEndingLabel(rawCurrentLabel)
+        ? undefined
+        : rawCurrentLabel;
+    const nextLabel =
+      next?.titleSlide && rawNextLabel && !isStageEndingLabel(rawNextLabel)
+        ? undefined
+        : rawNextLabel;
     const cue = currentEmpty
       ? ((currentLabel ? `(${currentLabel})` : undefined) ??
         (element.fallbackText?.trim() ? undefined : '(\uc5c6\uc74c)'))
@@ -466,7 +493,11 @@ export class ThemeElementView {
       slide?.titleSlide &&
       element.kind === 'currentText'
     ) {
-      return slide.lines[0] ?? '';
+      const title = slide.lines[0] ?? '';
+      const label = slide.label?.trim();
+      return label && title.trim() && (slide.kind ?? item?.kind) !== 'bible'
+        ? stageLabeledText(title, label, true)
+        : title;
     }
     if (
       frame.screen?.kind === 'stage' &&
@@ -546,13 +577,25 @@ export class ThemeElementView {
       timer,
       videoTimeLeft: remainingText(videoRemaining),
     });
-    if (
-      frame.screen?.kind === 'stage' &&
-      element.kind === 'nextText' &&
-      slide?.next?.label?.trim() &&
-      text?.trim()
-    ) {
-      return `${text} (${slide.next.label.trim()})`;
+    if (frame.screen?.kind === 'stage' && text?.trim()) {
+      if (
+        element.kind === 'currentText' &&
+        !currentBible &&
+        slide?.label?.trim()
+      ) {
+        return stageLabeledText(text, slide.label.trim());
+      }
+      if (
+        element.kind === 'nextText' &&
+        !nextBible &&
+        slide?.next?.label?.trim()
+      ) {
+        return stageLabeledText(
+          text,
+          slide.next.label.trim(),
+          slide.next.titleSlide === true,
+        );
+      }
     }
     if (element.id === SECTION_NAME_ID && slide?.sectionCard !== undefined) {
       return slide.sectionCard.name;
