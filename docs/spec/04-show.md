@@ -1148,20 +1148,19 @@ Slide transitions apply only to audience screens. Stage and broadcast slide
 changes cut immediately. A theme transition applies to every slide using that
 theme, including consecutive Bible slides and split verses.
 
-On stage, an empty current or next slide without a label shows (\uc5c6\uc74c); a
-labeled empty slide shows its label.
+On stage, an empty current or next slide without a label shows (없음); a labeled
+empty slide shows its label.
 
 With continuous item navigation enabled, previous on the first slide goes live
 on the previous outputtable item's last slide, skipping section rows and empty
-items. Otherwise previous stops at the first slide. On stage, empty slide labels
-appear in parentheses; a next slide labeled \uc804\uc8fc appends (\uc804\uc8fc)
-to its text, and a next title slide omits its English subtitle.
+items. Otherwise previous stops at the first slide. A next title slide on stage
+omits its English subtitle.
 
 Previous uses the live slide position in service order even when the operator
 opened another item or used a quick-run song.
 
-On stage, next-slide text is followed by its label in parentheses; an empty
-labeled slide shows only the parenthesized label.
+On stage, a lyric slide puts its parenthesized label before the text, a title
+slide puts it after the title, and an empty slide shows the label alone.
 
 Stage title slides and section cards show only their Korean title, without the
 English subtitle. The creed and prayer theme uses 104 px left-aligned current

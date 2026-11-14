@@ -761,10 +761,10 @@ selection and skips the same rows as the next-slide command. A title counts as
 one of the two next-preview lines.
 
 In the built-in stage layout, an empty song slide shows its label as a centered
-muted cue, or (\uc5c6\uc74c) when the label is empty. Stage previews show the
-same cue; audience output remains background only. On the built-in broadcast
-layout, an empty song slide shows only the song title; it shows nothing if the
-title is absent, and never falls back to the label.
+muted cue, or (없음) when the label is empty. Stage previews show the same cue;
+audience output remains background only. On the built-in broadcast layout, an
+empty song slide shows only the song title; it shows nothing if the title is
+absent, and never falls back to the label.
 
 Built-in stage current text uses the matching audience size: 108 px for songs,
 104 px for Bible and 86 px for ad bodies. Longer text shrinks to fit; Bible text
@@ -784,15 +784,13 @@ A theme may set a slide transition in the theme editor. The built-in scripture
 theme uses a 0.7 second wipe, the creed and prayer theme uses a 0.5 second wipe,
 and the sermon title theme and seven section title themes use a 1 second wipe.
 
-On stage, an empty current or next slide without a label shows (\uc5c6\uc74c); a
-labeled empty slide shows its label.
+On stage, an empty current or next slide without a label shows (없음); a labeled
+empty slide shows its label.
 
-On stage, empty slide labels appear in parentheses; a next slide labeled
-\uc804\uc8fc appends (\uc804\uc8fc) to its text, and a next title slide omits
-its English subtitle.
+On stage, a next title slide omits its English subtitle.
 
-On stage, next slide text is followed by its label in parentheses; empty slides
-show the label alone in parentheses.
+On stage, current and next lyric slides put their parenthesized label before the
+text; title slides put it after the title, and empty slides show it alone.
 
 Stage title slides and section cards show only their Korean title, without the
 English subtitle. The creed and prayer theme uses 104 px left-aligned current

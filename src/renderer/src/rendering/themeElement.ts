@@ -292,7 +292,9 @@ export class ThemeElementView {
       slide.picture === undefined &&
       slide.sectionCard === undefined &&
       item?.contentCleared !== true &&
-      !slide.lines.some(line => line.trim() !== '');
+      !(slide.titleSlide ? slide.lines.slice(0, 1) : slide.lines).some(
+        line => line.trim() !== '',
+      );
     const next = slide?.next;
     const nextEmpty =
       stage &&
@@ -300,7 +302,9 @@ export class ThemeElementView {
       !finalBible &&
       next !== undefined &&
       !next.title?.trim() &&
-      !next.lines.some(line => line.trim() !== '');
+      !(next.titleSlide ? next.lines.slice(0, 1) : next.lines).some(
+        line => line.trim() !== '',
+      );
     const currentLabel = slide?.label?.trim();
     const nextLabel = next?.label?.trim();
     const cue = currentEmpty
@@ -466,7 +470,9 @@ export class ThemeElementView {
       slide?.titleSlide &&
       element.kind === 'currentText'
     ) {
-      return slide.lines[0] ?? '';
+      const title = slide.lines[0] ?? '';
+      const label = slide.label?.trim();
+      return label && title.trim() ? `${title} (${label})` : title;
     }
     if (
       frame.screen?.kind === 'stage' &&
@@ -546,13 +552,16 @@ export class ThemeElementView {
       timer,
       videoTimeLeft: remainingText(videoRemaining),
     });
-    if (
-      frame.screen?.kind === 'stage' &&
-      element.kind === 'nextText' &&
-      slide?.next?.label?.trim() &&
-      text?.trim()
-    ) {
-      return `${text} (${slide.next.label.trim()})`;
+    if (frame.screen?.kind === 'stage' && text?.trim()) {
+      if (element.kind === 'currentText' && slide?.label?.trim()) {
+        return `(${slide.label.trim()}) ${text}`;
+      }
+      if (element.kind === 'nextText' && slide?.next?.label?.trim()) {
+        const label = slide.next.label.trim();
+        return slide.next.titleSlide
+          ? `${text} (${label})`
+          : `(${label}) ${text}`;
+      }
     }
     if (element.id === SECTION_NAME_ID && slide?.sectionCard !== undefined) {
       return slide.sectionCard.name;

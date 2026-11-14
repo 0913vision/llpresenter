@@ -2085,9 +2085,11 @@ it('reflows Bible parts independently on stage and broadcast, including the next
     );
   for (const kind of ['stage', 'broadcast'] as const) {
     view.render(layers, {...bible, screen: {id: THEME_MAIN, kind}});
-    expect(rows('currentText')).toEqual([current.join(' ')]);
+    expect(rows('currentText')).toEqual([
+      kind === 'stage' ? `(11:29) ${current.join(' ')}` : current.join(' '),
+    ]);
     expect(rows('nextText')).toEqual([
-      kind === 'stage' ? `${next.join(' ')} (11:30)` : next.join(' '),
+      kind === 'stage' ? `(11:30) ${next.join(' ')}` : next.join(' '),
     ]);
     expect(
       root.querySelector<HTMLElement>('[data-kind="currentText"]')?.style
@@ -2112,7 +2114,10 @@ it('reflows Bible parts independently on stage and broadcast, including the next
     screen: {id: THEME_MAIN, kind: 'stage'},
     transitions: false,
   });
-  expect(rows('currentText')).toEqual(current);
+  expect(rows('currentText')).toEqual([
+    `(11:29) ${current[0]}`,
+    ...current.slice(1),
+  ]);
   expect(rows('nextText')).toEqual(next.slice(0, 2));
   expect(
     root.querySelector<HTMLElement>('[data-kind="currentText"]')?.style
@@ -2314,7 +2319,7 @@ it.each(['output', 'preview'] as const)(
     expect(
       root.querySelector(`[data-kind="nextText"] .${classes.shown}`)
         ?.textContent,
-    ).toBe('Invented next (Chorus)');
+    ).toBe('(Chorus) Invented next');
     view.render({...empty, slide: {...empty.slide, label: null}}, stage);
     expect(current()?.textContent).toBe('(\uc5c6\uc74c)');
     view.render(
@@ -2329,7 +2334,7 @@ it.each(['output', 'preview'] as const)(
     );
     expect(current()?.textContent).toBe('(\uc5c6\uc74c)');
     view.render(song, stage);
-    expect(current()?.textContent).toBe('Invented line');
+    expect(current()?.textContent).toBe('(Verse) Invented line');
     expect(current()?.style.color).not.toBe('rgb(180, 180, 180)');
     view.render(empty, {
       ...frame(elements),
@@ -2550,10 +2555,13 @@ it('shows stage prelude and interlude labels and omits a title slide subtitle', 
         ?.textContent ?? ''
     );
   };
-  expect(draw({label: '\uc804\uc8fc', lines: ['\ucc2c\uc591']}, 'stage')).toBe(
-    '\ucc2c\uc591 (\uc804\uc8fc)',
-  );
-  expect(draw({label: 'Verse', lines: ['Text']}, 'stage')).toBe('Text (Verse)');
+  expect(
+    draw(
+      {label: '\uc804\uc8fc', titleSlide: true, lines: ['\ucc2c\uc591']},
+      'stage',
+    ),
+  ).toBe('\ucc2c\uc591 (\uc804\uc8fc)');
+  expect(draw({label: 'Verse', lines: ['Text']}, 'stage')).toBe('(Verse) Text');
   expect(draw({label: '\uac04\uc8fc', lines: []}, 'stage')).toBe(
     '(\uac04\uc8fc)',
   );
@@ -2617,5 +2625,50 @@ it('shows only Korean title or section name on stage and retains audience subtit
   expect(
     root.querySelector(`[data-kind="itemName"] .${classes.shown}`)?.textContent,
   ).toBe('Korean section');
+  view.dispose();
+});
+
+it('places stage labels before lyrics and after title slides in current and next text', () => {
+  const {root, view} = setup();
+  const elements: ThemeElement[] = [
+    {...themeElementBase(), kind: 'currentText'},
+    {...themeElementBase(31), kind: 'nextText'},
+  ];
+  const slide = song.slide;
+  if (slide === null) throw Error('Missing slide');
+  const draw = (title: boolean, screen: 'stage' | 'audience') =>
+    view.render(
+      {
+        ...song,
+        slide: {
+          ...slide,
+          label: 'Verse',
+          ...(title ? {titleSlide: true as const} : {}),
+          lines: ['Current'],
+          next: {
+            label: 'Outro',
+            ...(title ? {titleSlide: true as const} : {}),
+            lines: ['Next'],
+          },
+        },
+      },
+      {
+        ...frame(elements),
+        screen: {id: THEME_MAIN, kind: screen},
+        transitions: false,
+      },
+    );
+  const text = (kind: string) =>
+    root.querySelector(`[data-kind="${kind}"] .${classes.shown}`)
+      ?.textContent ?? '';
+  draw(false, 'stage');
+  expect(text('currentText')).toBe('(Verse) Current');
+  expect(text('nextText')).toBe('(Outro) Next');
+  draw(true, 'stage');
+  expect(text('currentText')).toBe('Current (Verse)');
+  expect(text('nextText')).toBe('Next (Outro)');
+  draw(false, 'audience');
+  expect(text('currentText')).toBe('Current');
+  expect(text('nextText')).toBe('Next');
   view.dispose();
 });
