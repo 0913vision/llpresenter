@@ -161,7 +161,7 @@ export const shortcutCommands: readonly ShortcutCommand[] = (
     ['tools.props', '그래픽', '진행 도구', ['show'], ['ctrl shift KeyP']],
     ['tools.macros', '매크로', '진행 도구', ['show'], []],
     ['tools.actionPalette', '동작 팔레트', '진행 도구', ['show'], ['alt KeyC']],
-    ['bible.focus', '성경 구절 찾기', '진행 도구', ['show'], ['ctrl alt KeyB']],
+    ['bible.focus', '성경 구절 찾기', '진행 도구', ['show'], ['ctrl KeyB']],
     [
       'audio.playPause',
       '오디오 재생 또는 일시 정지',

@@ -104,7 +104,7 @@ describe('buildRows', () => {
     ['tools.messages', 'Ctrl M'],
     ['tools.props', 'Ctrl Shift P'],
     ['tools.actionPalette', 'Alt C'],
-    ['bible.focus', 'Ctrl Alt B'],
+    ['bible.focus', 'Ctrl B'],
     ['audio.playPause', 'Alt P'],
     ['app.preferences', 'Ctrl ,'],
   ])('shows and restores the standard default for %s', (id, text) => {
