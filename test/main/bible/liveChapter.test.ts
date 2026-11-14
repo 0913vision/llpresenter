@@ -4,6 +4,8 @@ import {
   parseLiveChapter,
 } from '../../../src/main/bible/liveChapter';
 import {BibleChapterLibrary} from '../../../src/main/bible/chapterLibrary';
+import {BibleChapterCache} from '../../../src/main/bible/chapterCache';
+import {BibleLibrary} from '../../../src/main/bible/library';
 import {LIVE_BIBLE_ID} from '../../../src/core/bible/liveTranslation';
 
 const html =
@@ -54,5 +56,32 @@ describe('live Bible chapters', () => {
     ]);
     expect(fetch).toHaveBeenCalledTimes(2);
     library.clear();
+  });
+  it('reads only cached live chapters during service refresh', async () => {
+    const fetch = vi.fn().mockResolvedValue({ok: true, text: async () => html});
+    vi.stubGlobal('fetch', fetch);
+    const library = new BibleLibrary(new BibleChapterLibrary([], () => {}));
+    const input = '\uC694\uD55C\uBCF5\uC74C 15:1';
+    expect((await library.resolve(LIVE_BIBLE_ID, input, true)).ok).toBe(false);
+    expect(fetch).not.toHaveBeenCalled();
+    expect((await library.resolve(LIVE_BIBLE_ID, input)).ok).toBe(true);
+    expect((await library.resolve(LIVE_BIBLE_ID, input, true)).ok).toBe(true);
+    expect(fetch).toHaveBeenCalledTimes(1);
+    library.clear();
+  });
+  it('keeps fetched live chapters across cache pressure and library refresh', async () => {
+    const fetch = vi.fn().mockResolvedValue({ok: true, text: async () => html});
+    vi.stubGlobal('fetch', fetch);
+    const cache = new BibleChapterCache();
+    const first = new BibleChapterLibrary([], () => {}, cache);
+    for (let chapter = 1; chapter <= 33; chapter++) {
+      expect(await first.chapter(LIVE_BIBLE_ID, 1, chapter)).not.toBeNull();
+    }
+    first.clear(true);
+    const second = new BibleChapterLibrary([], () => {}, cache);
+    expect(second.cachedChapter(LIVE_BIBLE_ID, 1, 1)).not.toBeNull();
+    expect(await second.chapter(LIVE_BIBLE_ID, 1, 1)).not.toBeNull();
+    expect(fetch).toHaveBeenCalledTimes(33);
+    second.clear();
   });
 });

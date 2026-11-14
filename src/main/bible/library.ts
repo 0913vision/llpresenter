@@ -49,6 +49,7 @@ export class BibleLibrary {
   async resolve(
     translation: string,
     input: string,
+    cacheOnly = false,
   ): Promise<
     Result<
       ResolvedPassage & {readonly translationLabel: string},
@@ -77,11 +78,9 @@ export class BibleLibrary {
         verses: 1,
       }));
       for (let current = chapter; current <= endChapter; current++) {
-        const verses = await this.catalog.chapter(
-          translation,
-          book.id,
-          current,
-        );
+        const verses = cacheOnly
+          ? this.catalog.cachedChapter(translation, book.id, current)
+          : await this.catalog.chapter(translation, book.id, current);
         if (!verses) {
           return {
             ok: false,
@@ -99,8 +98,10 @@ export class BibleLibrary {
           id: LIVE_BIBLE_ID,
           language: 'ko',
           books: [{id: book.id, chapters}],
-          readChapter: (id, current) =>
-            this.catalog.chapter(translation, id, current),
+          readChapter: async (id, current) =>
+            cacheOnly
+              ? this.catalog.cachedChapter(translation, id, current)
+              : this.catalog.chapter(translation, id, current),
         },
         input,
       );
@@ -137,8 +138,8 @@ export class BibleLibrary {
       : result;
   }
 
-  clear(): void {
-    this.catalog.clear();
+  clear(preserveLive = false): void {
+    this.catalog.clear(preserveLive);
   }
 }
 

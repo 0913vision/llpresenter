@@ -424,8 +424,10 @@ writing rules.
 - Never ask for confirmation before an action that affects the output. Never
   block F1 to F6: they work with a dialog open and with a text field focused.
 - Keep fonts, icons, and media local. The temporary built-in GAE translation
-  fetches requested chapters from the Korean Bible Society and reports a passage
-  problem when offline; installed Bible files remain usable offline. The
+  fetches requested chapters from the Korean Bible Society only on an operator
+  lookup or insertion. Output and service refresh use cached chapters only.
+  Successful chapters remain cached for the session; an unavailable chapter
+  shows a passage problem. Installed Bible files remain usable offline. The
   optional local AI chooser may contact only the IPv4 loopback HTTP server and
   never follow a redirect. Missing or failed AI uses rules for that verse (04,
   "Local AI boundary chooser").

@@ -43,6 +43,7 @@ describe('never during a service', () => {
     ).toEqual([]);
   });
 
+  // NOTE(0913vision): Temporary user decision: only operator lookup or insertion fetches GAE chapters.
   it('limits network access to the loopback LLM and the live Bible adapter', () => {
     const productCode = code.filter(file => !file.includes('gallery'));
     expect(

@@ -1,3 +1,4 @@
+import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
 import {bibleVerseTiles} from '@core/bible/bibleTiles';
 import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
 import type {RecentPassage} from '@core/schema/bible';
@@ -58,7 +59,12 @@ export async function resolveServicePassages(
     const key = JSON.stringify(request.value);
     if (!resolved.has(key)) {
       try {
-        resolved.set(key, await bible.lookup(request.value));
+        resolved.set(
+          key,
+          await (translation === LIVE_BIBLE_ID
+            ? bible.lookup(request.value, true)
+            : bible.lookup(request.value)),
+        );
       } catch (error: unknown) {
         options.reportError(error);
         resolved.set(key, null);

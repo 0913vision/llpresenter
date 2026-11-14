@@ -12,6 +12,7 @@ import {
 
 export interface BibleChapterLibraryOptions {
   readonly folder: string;
+  readonly cache?: BibleChapterCache;
   readonly translations: readonly Translation[];
   readonly onProblem: (problem: FileError) => void;
 }
@@ -25,15 +26,15 @@ function fileProblem(file: string, error: unknown): FileError {
   };
 }
 
-/** Owns header indexes and a bounded global chapter cache for one load. */
+/** Owns translation indexes and the in-memory chapter cache. */
 export class BibleChapterLibrary {
   private readonly files = new Map<string, BibleChapterFile>();
-  private readonly cache = new BibleChapterCache();
   private closed = false;
 
   constructor(
     files: readonly BibleChapterFile[],
     private readonly onProblem: (problem: FileError) => void,
+    private readonly cache = new BibleChapterCache(),
   ) {
     for (const file of files) this.files.set(file.header.id, file);
   }
@@ -44,6 +45,16 @@ export class BibleChapterLibrary {
 
   header(translation: string) {
     return this.files.get(translation)?.header;
+  }
+
+  cachedChapter(
+    translation: string,
+    book: number,
+    chapter: number,
+  ): readonly string[] | null {
+    return this.closed
+      ? null
+      : (this.cache.read(translation, book, chapter) ?? null);
   }
 
   async chapter(
@@ -100,16 +111,18 @@ export class BibleChapterLibrary {
     return this.closed;
   }
 
-  clear(): void {
+  clear(preserveLive = false): void {
     this.closed = true;
     this.files.clear();
-    this.cache.clear();
+    if (preserveLive) this.cache.clearFiles();
+    else this.cache.clear();
   }
 }
 
 /** Loads only installed headers and reports each broken file once per load. */
 export async function loadBibleChapterLibrary({
   folder,
+  cache,
   translations,
   onProblem,
 }: BibleChapterLibraryOptions): Promise<BibleChapterLibrary> {
@@ -140,5 +153,5 @@ export async function loadBibleChapterLibrary({
       report(fileProblem(file, error));
     }
   }
-  return new BibleChapterLibrary(files, report);
+  return new BibleChapterLibrary(files, report, cache);
 }
