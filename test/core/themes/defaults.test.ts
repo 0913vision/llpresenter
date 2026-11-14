@@ -173,6 +173,10 @@ it('shows a small left-aligned Bible reference above its stage text', () => {
   expect(
     elements.find(element => element.kind === 'currentText'),
   ).toMatchObject({frame: {x: 154, y: 230}, text: {size: 104, align: 'left'}});
+  expect(elements.find(element => element.kind === 'nextText')).toMatchObject({
+    frame: {x: 154},
+    text: {align: 'left'},
+  });
 });
 
 it('makes a valid file with built-in themes and a standby clock and timer on stage', () => {

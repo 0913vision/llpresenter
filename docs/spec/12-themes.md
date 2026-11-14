@@ -755,11 +755,11 @@ On the stage, song source lines stay whole at the largest fitting size down to
 lines wrap at spaces at that minimum. Next text stays at least 48 px, two thirds
 of 72 px, matching the existing next-text size ratio. Bible parts on stage and
 broadcast join the audience rows with spaces and wrap within their own text
-frames; the stage next-verse preview does the same. Song lines retain their
-author-entered breaks. Other prose continues to wrap. When continuous next-item
-navigation is enabled, the stage next preview follows the same next-item
-selection and skips the same rows as the next-slide command. A title counts as
-one of the two next-preview lines.
+frames; the stage next-verse preview does the same, left-aligned like the
+current verse. Song lines retain their author-entered breaks. Other prose
+continues to wrap. When continuous next-item navigation is enabled, the stage
+next preview follows the same next-item selection and skips the same rows as the
+next-slide command. A title counts as one of the two next-preview lines.
 
 In the built-in stage layout, an empty song slide shows its label as a centered
 muted cue, or (없음) when the label is empty. Stage previews show the same cue;

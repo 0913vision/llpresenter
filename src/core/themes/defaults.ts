@@ -217,6 +217,7 @@ function stageElements(kind: ThemeItemKind = 'song'): ThemeElement[] {
             maxLines: 2,
             vAlign: 'bottom',
             color: STAGE_COLORS.next,
+            ...(kind === 'bible' ? {align: 'left' as const} : {}),
           },
         };
     }
