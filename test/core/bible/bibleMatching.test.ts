@@ -83,6 +83,17 @@ describe('four-field book candidates', () => {
 });
 
 describe('matchBooks', () => {
+  it('maps common English abbreviations before Korean keyboard matching', () => {
+    for (const [name, id] of [
+      ['Jn', 43],
+      ['Ex', 2],
+      ['Rom', 45],
+      ['1Co', 46],
+      ['2 Jn', 63],
+    ] as const) {
+      expect(matchBooks(name).map(book => book.id)).toEqual([id]);
+    }
+  });
   it('recognizes every full and short Korean and English name exactly', () => {
     for (const book of BIBLE_BOOKS) {
       for (const name of [

@@ -960,7 +960,9 @@ only; never commit Bible text or output derived from a crawl.
 The 진행 and 준비 reference form uses four shared fields: 책, 장, 시작절, and
 optional 끝절 (user decision, 2026-10-26). The form builds a normalized
 single-chapter reference for the grammar below; stored references still accept
-whole chapters and ranges across chapters.
+whole chapters and ranges across chapters. Typing a complete single-chapter
+reference in 책 and pressing Enter resolves it; Tab fills the numeric fields.
+Whole-chapter input retains its chapter reference.
 
 - 책 lists every Korean full-name or short-name jamo containment match and every
   English name or code containment match, including input interpreted as Korean
@@ -993,7 +995,10 @@ Stored references and the lookup API accept these forms. Each form has a colon
 form and a Korean form with 장 and 절; one reference uses one of them
 throughout, so a mixed reference such as "요 3:16-4장 2절" is invalid. Spaces
 between the book, the numbers, and the separators are optional ("요3:16",
-"요한복음3장16절"), and "~" works like "-" ("요 3:16~18").
+"요한복음3장16절"), and "~" works like "-" ("요 3:16~18"). Space-separated
+references such as "요 3 16" and "요 3 16 18" select one verse or a same-chapter
+range. Psalms also accepts 편 in place of 장, such as "시편 23편". Common
+English abbreviations such as Jn, Rom and 1Co are accepted.
 
 | Form                  | Colon form  | Korean form         | Meaning                      |
 | --------------------- | ----------- | ------------------- | ---------------------------- |

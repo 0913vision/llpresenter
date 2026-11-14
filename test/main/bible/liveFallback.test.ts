@@ -70,6 +70,32 @@ function request(input: string) {
   if (!parsed.ok) throw Error('Invalid request');
   return parsed.value;
 }
+it('resolves spaced references, psalm chapters and English abbreviations through the live source', async () => {
+  const html = `<div id="tdBible1">${Array.from({length: 36}, (_, index) => `<span><b class="number">${index + 1}</b>placeholder</span>`).join('')}</div>`;
+  const fetch = vi.fn().mockResolvedValue({ok: true, text: async () => html});
+  vi.stubGlobal('fetch', fetch);
+  const session = await setup(false);
+  try {
+    for (const [input, ref] of [
+      ['요 3 16', '요한복음 3:16'],
+      ['요한복음 3 16', '요한복음 3:16'],
+      ['요 3 16 18', '요한복음 3:16-18'],
+      ['롬 8 28', '로마서 8:28'],
+      ['시편 23편', '시편 23'],
+      ['Jn 3:16', '요한복음 3:16'],
+    ] as const) {
+      const result = await session.lookup(request(input), false, true);
+      expect(result.result).toMatchObject({
+        ok: true,
+        value: {ref, translation: LIVE_BIBLE_ID},
+      });
+      expect(result.suggestions[0]?.resolved?.ref).toBe(ref);
+    }
+    expect(fetch).toHaveBeenCalledTimes(3);
+  } finally {
+    session.dispose();
+  }
+});
 it.each([false, true])(
   'uses live translation for an unavailable or incomplete default: partial=%s',
   async partial => {

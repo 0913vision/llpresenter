@@ -13,6 +13,7 @@ import {
 } from 'react';
 import type {BibleLookupApi} from '@contracts/ipc/bible';
 import {exactBibleBook, findBibleBooks} from '@core/bible/bibleMatching';
+import {parseReference} from '@core/bible/reference';
 import {recentPassages} from '@core/bible/bibleRecents';
 import type {RecentPassage} from '@core/schema/bible';
 import {
@@ -275,7 +276,9 @@ export function BibleReferenceForm(
   };
   const reason = (part: ReferencePart): string | undefined => {
     if (part === 'book') {
-      return fields.book.trim() !== '' && books.length === 0
+      return fields.book.trim() !== '' &&
+        books.length === 0 &&
+        !parseReference(fields.book).ok
         ? '입력한 이름과 일치하는 성경 책이 없습니다'
         : undefined;
     }
@@ -296,6 +299,59 @@ export function BibleReferenceForm(
     }
     choose(candidate.korean);
     setChapterFocus({bookId: candidate.id, translation});
+  };
+  const acceptFullReference = (
+    event: KeyboardEvent<HTMLInputElement>,
+  ): boolean => {
+    const parsed = parseReference(event.currentTarget.value);
+    if (!parsed.ok || parsed.value.chapter !== parsed.value.endChapter) {
+      return false;
+    }
+    const reference = parsed.value;
+    const bounds = LIVE_BOUNDS.get(reference.book.id);
+    const last = bounds?.chapterVerses[reference.chapter - 1];
+    const next: ReferenceFields = {
+      book: reference.book.korean,
+      chapter: String(reference.chapter),
+      start: String(reference.verse ?? 1),
+      end: String(reference.endVerse ?? last ?? 1),
+    };
+    const parsedState = referenceFieldsState(next, bounds);
+    const input =
+      reference.verse === null && parsedState.input
+        ? `${reference.book.korean} ${reference.chapter}`
+        : parsedState.input;
+    const invalidPart: ReferencePart = parsedState.errors.chapter
+      ? 'chapter'
+      : parsedState.errors.start
+        ? 'start'
+        : 'end';
+    event.preventDefault();
+    event.stopPropagation();
+    props.onIntent?.();
+    props.onEdit?.(null);
+    setRecent(
+      reference.verse === null && input && translation !== undefined
+        ? {provided: props.translation, value: {ref: input, translation}}
+        : null,
+    );
+    setFields(next);
+    setOpen(false);
+    setBlocked(input ? null : invalidPart);
+    if (event.key === 'Enter' && input && translation !== undefined) {
+      pendingSubmit.current = {
+        input,
+        translation,
+        clampedEnd: parsedState.clampedEnd,
+        part: 'end',
+      };
+    } else {
+      pendingSubmit.current = null;
+      queueMicrotask(() =>
+        focusPart(root.current, input ? 'end' : invalidPart),
+      );
+    }
+    return true;
   };
   const onKeyDown = (
     part: ReferencePart,
@@ -319,6 +375,13 @@ export function BibleReferenceForm(
       return;
     }
     if (part === 'book') {
+      if (
+        (event.key === 'Enter' || (event.key === 'Tab' && !event.shiftKey)) &&
+        !event.repeat &&
+        acceptFullReference(event)
+      ) {
+        return;
+      }
       if (event.key === 'ArrowDown' || event.key === 'ArrowUp') {
         advancedBook.current = null;
         event.preventDefault();

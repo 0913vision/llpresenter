@@ -61,6 +61,28 @@ async function enterPassage(
 }
 
 describe('shared Bible reference form', () => {
+  it.each([
+    ['요 3 16', '요한복음 3:16'],
+    ['요한복음 3 16 18', '요한복음 3:16-18'],
+    ['Jn 3:16', '요한복음 3:16'],
+    ['시편 23편', '시편 23'],
+  ])(
+    'accepts a complete reference in the book field: %s',
+    async (input, ref) => {
+      const view = setup();
+      view.lookup.mockImplementation(request =>
+        formLookupReply(request, [19, 43]),
+      );
+      fireEvent.change(view.book, {target: {value: input}});
+      expect(view.book.getAttribute('aria-invalid')).toBeNull();
+      fireEvent.keyDown(view.book, {key: 'Enter', code: 'Enter'});
+      await waitFor(() =>
+        expect(view.onSubmit).toHaveBeenCalledExactlyOnceWith(
+          expect.objectContaining({ref}),
+        ),
+      );
+    },
+  );
   it('uses full book metadata when a live reply has no installed bounds', async () => {
     const view = setup();
     view.lookup.mockImplementation(async request => {

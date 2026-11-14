@@ -54,9 +54,11 @@ export interface BiblePassageSource extends Pick<
 
 const COLON =
   /^(.+?)\s*(\d+)(?:\s*:\s*(\d+)(?:\s*[-~\uFF5E]\s*(?:(\d+)\s*:\s*)?(\d+))?)?$/u;
-const KOREAN_CHAPTER = /^(.+?)\s*(\d+)\s*장$/u;
+const SPACE_VERSES =
+  /^((?:[1-3]\s*)?[\p{L}\p{M}]+(?:\s+[\p{L}\p{M}]+)*)\s*(\d+)\s+(\d+)(?:\s+(\d+))?$/u;
+const KOREAN_CHAPTER = /^(.+?)\s*(\d+)\s*[장편]$/u;
 const KOREAN_VERSES =
-  /^(.+?)\s*(\d+)\s*장\s*(\d+)(?:\s*[-~\uFF5E]\s*(\d+))?\s*절$/u;
+  /^(.+?)\s*(\d+)\s*[장편]\s*(\d+)(?:\s*[-~\uFF5E]\s*(\d+))?\s*절$/u;
 const KOREAN_CROSS =
   /^(.+?)\s*(\d+)\s*장\s*(\d+)\s*절\s*[-~\uFF5E]\s*(\d+)\s*장\s*(\d+)\s*절$/u;
 const BOOK_NAME = /^(?:[1-3]\s*)?[\p{L}\p{M}\s]+$/u;
@@ -73,7 +75,9 @@ function referenceParts(
 ): ReadonlyArray<string | undefined> | null {
   const text = input.trim();
   const colon = COLON.exec(text);
-  if (colon) return colon.slice(1);
+  if (colon && BOOK_NAME.test((colon[1] ?? '').trim())) return colon.slice(1);
+  const spaced = SPACE_VERSES.exec(text);
+  if (spaced) return [spaced[1], spaced[2], spaced[3], undefined, spaced[4]];
   const cross = KOREAN_CROSS.exec(text);
   if (cross) return cross.slice(1);
   const verses = KOREAN_VERSES.exec(text);
@@ -118,6 +122,9 @@ export function parseReference(
         suggestions: matches,
       },
     };
+  }
+  if (/\d\s*편/u.test(input) && book.id !== 19) {
+    return error('syntax', '구절을 찾을 수 없습니다');
   }
   return {ok: true, value: {book, chapter, verse, endChapter, endVerse}};
 }
