@@ -23,6 +23,7 @@ import type {
 } from '@renderer/features/songs/editor/songPreviewModel';
 
 interface PictureContext {
+  readonly thumbnail: boolean;
   readonly item: ServiceItem | null;
   readonly library: ShowLibrarySong | null;
   readonly song: SongSession | null;
@@ -49,6 +50,7 @@ function cardPicture(context: PictureContext): JSX.Element | undefined {
   return (
     <SlidePicture
       output
+      thumbnail={context.thumbnail}
       {...cardTheme}
       slide={
         stageSlideOf({itemId: item.id, index: 0}) ?? {
@@ -84,6 +86,7 @@ function biblePicture(
   return (
     <SlidePicture
       output
+      thumbnail={context.thumbnail}
       slide={slide}
       themeId={theme.themeId}
       screen={screen}
@@ -111,6 +114,7 @@ function songPicture(
   return (
     <SlidePicture
       output
+      thumbnail={context.thumbnail}
       {...theme}
       background={resolveSongSlideBackground(item.background, song?.background)}
       slide={
@@ -143,6 +147,7 @@ function libraryPicture(
   return (
     <SlidePicture
       output
+      thumbnail={context.thumbnail}
       {...theme}
       background={library.background?.mediaId}
       slide={{
@@ -174,6 +179,7 @@ function mediaPicture(
   return (
     <SlidePicture
       output
+      thumbnail={context.thumbnail}
       mediaOnly
       {...theme}
       background={item.media}
@@ -200,6 +206,7 @@ function fallbackBiblePicture(
   return (
     <SlidePicture
       output
+      thumbnail={context.thumbnail}
       {...theme}
       slide={{
         itemId: item.id,

@@ -250,9 +250,10 @@ function DetailsPanelContent({
     'service',
     {api, role, ...(screenId === undefined ? {} : {screenId})},
   );
-  const picture = (index: number): JSX.Element | undefined =>
+  const picture = (index: number, thumbnail = false): JSX.Element | undefined =>
     detailsPicture(
       {
+        thumbnail,
         item,
         library,
         song: state.song,
@@ -448,7 +449,7 @@ function DetailsPanelContent({
           onEdit={edit}
           labelAt={labelAt}
           colorAt={labelColorAt}
-          picture={picture}
+          picture={index => picture(index, true)}
         />
       )}
     </DetailsShell>
