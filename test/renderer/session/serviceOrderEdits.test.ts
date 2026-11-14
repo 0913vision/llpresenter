@@ -19,6 +19,8 @@ import {
   translationIdSchema,
 } from '@core/schema/ids';
 import {withStartField} from '@core/services/itemFieldChanges';
+import {newSectionCard} from '@core/services/sectionCards';
+import {createDefaultThemes} from '@core/themes/defaults';
 import {themeRequest} from '@renderer/features/service/items/itemAppearanceCommands';
 import {updateServiceItem} from '@renderer/session/serviceItemUpdate';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
@@ -685,6 +687,54 @@ describe('service order edits', () => {
       });
     }
     expect(memoOf()).toEqual(finished);
+  });
+
+  it('updates an item and its section card theme in one undo step, including default selection', async () => {
+    const {api, state, edits} = fixture();
+    if (state.document === null) throw Error('Missing service');
+    const originalCard = newSectionCard();
+    state.document = {
+      ...state.document,
+      service: {
+        ...state.document.service,
+        order: state.document.service.order.map(item =>
+          item.id === second
+            ? {...item, sectionCard: originalCard, theme: originalCard.theme}
+            : item,
+        ),
+      },
+    };
+    const file = createDefaultThemes();
+    const selected = createThemeId(THEME_ID);
+    const read = () =>
+      state.document?.service.order.find(item => item.id === second);
+    await updateServiceItem(api, {
+      serviceId,
+      itemId: second,
+      change: themeRequest(null, selected, file).change,
+    });
+    expect(read()).toMatchObject({
+      theme: selected,
+      sectionCard: {...originalCard, theme: selected},
+    });
+    expect(await edits.undo(serviceId)).toEqual({ok: true, value: true});
+    expect(read()).toMatchObject({
+      theme: originalCard.theme,
+      sectionCard: originalCard,
+    });
+    expect(edits.canUndo(serviceId)).toBe(false);
+    expect(await edits.redo(serviceId)).toEqual({ok: true, value: true});
+    expect(read()).toMatchObject({
+      theme: selected,
+      sectionCard: {theme: selected},
+    });
+    await updateServiceItem(api, {
+      serviceId,
+      itemId: second,
+      change: themeRequest(null, undefined, file).change,
+    });
+    expect(read()).not.toHaveProperty('theme');
+    expect(read()).toMatchObject({sectionCard: {theme: file.defaults.song}});
   });
 
   it('records a memo saved in one go as a single step and an unchanged save as none', async () => {

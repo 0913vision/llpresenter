@@ -65,12 +65,20 @@ export function mergeSlidesChanges(
     fresh.slides.slides,
   );
   const theme = mergeValue(base.theme, edited.theme, fresh.theme);
+  const cardTheme = mergeValue(
+    base.sectionCard?.theme,
+    edited.sectionCard?.theme,
+    fresh.sectionCard?.theme,
+  );
   if (
     name === MERGE_CONFLICT ||
     advance === MERGE_CONFLICT ||
     loop === MERGE_CONFLICT ||
     slides === MERGE_CONFLICT ||
-    theme === MERGE_CONFLICT
+    theme === MERGE_CONFLICT ||
+    cardTheme === MERGE_CONFLICT ||
+    (base.sectionCard?.theme !== edited.sectionCard?.theme &&
+      fresh.sectionCard === undefined)
   ) {
     return null;
   }
@@ -81,6 +89,9 @@ export function mergeSlidesChanges(
   else merged.slides.loop = loop;
   if (theme === undefined) delete merged.theme;
   else merged.theme = theme;
+  if (merged.sectionCard !== undefined && cardTheme !== undefined) {
+    merged.sectionCard = {...merged.sectionCard, theme: cardTheme};
+  }
   return merged;
 }
 

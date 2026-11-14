@@ -10,6 +10,7 @@ import {
 import type {LlpApi} from '@contracts/ipc/api';
 import {createSlideId, themeIdSchema} from '@core/schema/ids';
 import {parsePayload} from '@core/schema/payload';
+import {withItemTheme} from '@core/services/itemFieldChanges';
 import {SLIDES_LIMITS, type VerseSlide} from '@core/schema/service';
 import {BibleSlidesDialog} from '@renderer/features/bible/BibleSlidesDialog';
 import {useSlidesVerseProjection} from '@renderer/features/bible/useSlidesVerseProjection';
@@ -128,11 +129,10 @@ function SlidesHeader({
               })),
             ]}
             onChange={id => {
-              const next = {...item};
               const parsed = parsePayload(themeIdSchema, id);
-              if (id === '') delete next.theme;
-              else if (parsed.ok) next.theme = parsed.value;
-              draft.change(next);
+              if (id !== '' && !parsed.ok) return;
+              const chosen = parsed.ok ? parsed.value : undefined;
+              draft.change(withItemTheme(item, chosen, themes));
               update();
             }}
           />

@@ -159,7 +159,7 @@ export function ItemThemeRow({
             title={lock}
             onChange={value => {
               if (value === '') {
-                editorTask(items.setTheme(undefined));
+                editorTask(items.setTheme(undefined, file));
                 return;
               }
               const selected = file?.themes.find(entry => entry.id === value);
@@ -167,6 +167,7 @@ export function ItemThemeRow({
                 editorTask(
                   items.setTheme(
                     selected.id === defaultId ? undefined : selected.id,
+                    file,
                   ),
                 );
               }

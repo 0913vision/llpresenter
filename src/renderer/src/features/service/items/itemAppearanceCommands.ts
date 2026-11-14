@@ -6,22 +6,21 @@ import {
 import type {ThemeId} from '@core/schema/ids';
 import {checkPart} from '@core/schema/fileFormat';
 import {itemOverlaysSchema, type ItemOverlay} from '@core/schema/itemOverlays';
-import {isStartItem} from '@core/services/itemFieldChanges';
+import {isStartItem, withItemTheme} from '@core/services/itemFieldChanges';
+import type {ThemesFile} from '@core/schema/themes';
 import type {ItemEditRequest, ItemTarget} from './itemEditQueue';
 /** Captures the item theme override, preserving kind-default inheritance when omitted. */
 export function themeRequest(
   target: ItemTarget | null,
   theme: ThemeId | undefined,
+  themes?: ThemesFile | null,
 ): ItemEditRequest {
   return {
     target,
     failure: '테마 변경 실패',
     change: item => {
       if (!isStartItem(item)) return null;
-      const updated = {...item};
-      if (theme === undefined) delete updated.theme;
-      else updated.theme = theme;
-      return updated;
+      return withItemTheme(item, theme, themes);
     },
   };
 }

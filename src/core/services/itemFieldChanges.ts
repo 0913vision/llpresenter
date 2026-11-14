@@ -1,3 +1,8 @@
+import type {ThemeId} from '../schema/ids';
+import type {ThemesFile} from '../schema/themes';
+import {itemThemeKind} from '../themes/itemKind';
+import {resolveItemTheme} from '../themes/resolve';
+import {hasSectionCard} from './sectionCards';
 import {
   isItemOfKind,
   type ServiceItem,
@@ -47,4 +52,36 @@ export function withStartField(
     if (!isStartItem(item)) return null;
     return item[field] === value ? item : setStartField(item, field, value);
   };
+}
+
+/** Updates an item's theme and its section card in one item edit. */
+export function withItemTheme(
+  item: ServiceItemOf<'slides'>,
+  theme: ThemeId | undefined,
+  themes: ThemesFile | null | undefined,
+): ServiceItemOf<'slides'>;
+export function withItemTheme(
+  item: StartItem,
+  theme: ThemeId | undefined,
+  themes: ThemesFile | null | undefined,
+): StartItem;
+export function withItemTheme(
+  item: StartItem,
+  theme: ThemeId | undefined,
+  themes: ThemesFile | null | undefined,
+): StartItem {
+  const {theme: _previousTheme, ...withoutTheme} = item;
+  const updated = theme === undefined ? withoutTheme : {...withoutTheme, theme};
+  if (hasSectionCard(updated)) {
+    const kind = itemThemeKind(updated);
+    if (kind !== undefined) {
+      const effective =
+        theme ?? resolveItemTheme({file: themes, kind, source: 'external'}).id;
+      return {
+        ...updated,
+        sectionCard: {...updated.sectionCard, theme: effective},
+      };
+    }
+  }
+  return updated;
 }

@@ -80,7 +80,7 @@ export function ThemeCell({
         followsDefault: theme.followsDefault,
         themes,
         choose: value =>
-          editorTask(items.submitItemEdit(themeRequest(target, value))),
+          editorTask(items.submitItemEdit(themeRequest(target, value, themes))),
       })}
     />
   );

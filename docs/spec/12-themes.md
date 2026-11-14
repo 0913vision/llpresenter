@@ -521,6 +521,8 @@ as every settings file does (02).
   retain 152 px tracking; the other names use 52 px. These defaults apply to new
   themes; saved themes are not overwritten. Output, measurement and thumbnails
   share the overrides, including renaming and scaling.
+- Changing a service item's theme also updates its section card theme in the
+  same undo step, including when the item returns to its kind default.
 - Each section card selects its color's 구역 이름 theme, with no item background
   media. Its audience layout uses the matching `GRADIENT_PRESETS` gradient
   directly, including OKLCH mixing and dither. The seven generated section PNGs

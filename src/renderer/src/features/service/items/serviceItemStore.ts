@@ -1,3 +1,4 @@
+import type {ThemesFile} from '@core/schema/themes';
 import type {ServiceDocument} from '@core/schema/contentDocuments';
 import type {MediaId, ThemeId} from '@core/schema/ids';
 import type {ItemOverlay} from '@core/schema/itemOverlays';
@@ -120,8 +121,11 @@ export class ServiceItemStore {
     return this.edits.submit(request);
   }
   /** Omitting the theme follows the item's kind default. */
-  setTheme(theme: ThemeId | undefined): Promise<boolean> {
-    return this.submitItemEdit(themeRequest(this.target, theme));
+  setTheme(
+    theme: ThemeId | undefined,
+    themes?: ThemesFile | null,
+  ): Promise<boolean> {
+    return this.submitItemEdit(themeRequest(this.target, theme, themes));
   }
   /** Applies an overlay edit to the fresh captured item. */
   changeOverlays(

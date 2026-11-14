@@ -1,5 +1,7 @@
 import {describe, expect, it, vi} from 'vitest';
 import {createServiceItemId, createThemeId} from '@core/schema/ids';
+import {newSectionCard} from '@core/services/sectionCards';
+import {withItemTheme} from '@core/services/itemFieldChanges';
 import {
   newSlidesItem,
   newTextSlide,
@@ -36,6 +38,29 @@ describe('merge slides changes', () => {
     });
     expect(result).not.toHaveProperty('theme');
     expect(result?.slides).not.toHaveProperty('advance');
+  });
+
+  it('merges a card theme change with fresh card text and rejects competing card theme changes', () => {
+    const card = newSectionCard();
+    const base = {
+      ...newSlidesItem('blank', id),
+      sectionCard: card,
+      theme: card.theme,
+    };
+    const selected = createThemeId('00000000-0000-4000-8000-000000000002');
+    const edited = withItemTheme(base, selected, undefined);
+    const fresh = {...base, sectionCard: {...card, name: 'Fresh name'}};
+    expect(mergeSlidesChanges(base, edited, fresh)).toMatchObject({
+      theme: selected,
+      sectionCard: {name: 'Fresh name', theme: selected},
+    });
+    const other = createThemeId('00000000-0000-4000-8000-000000000003');
+    expect(
+      mergeSlidesChanges(base, edited, {
+        ...fresh,
+        sectionCard: {...fresh.sectionCard, theme: other},
+      }),
+    ).toBeNull();
   });
 
   it('accepts identical concurrent changes and refuses incompatible forms', () => {

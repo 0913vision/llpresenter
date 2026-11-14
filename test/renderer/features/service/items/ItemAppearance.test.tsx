@@ -21,6 +21,8 @@ import {checkPart} from '@core/schema/fileFormat';
 import {biblePassageSchema} from '@core/schema/biblePassage';
 import {createDefaultThemes} from '@core/themes/defaults';
 import {LIGHT_SONG_THEME_ID} from '@core/themes/lightSong';
+import {newSectionCard} from '@core/services/sectionCards';
+import {serviceOrderEditsFor} from '@renderer/session/serviceOrderEdits';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import type {Theme} from '@core/schema/themes';
 import {fixtureMedia} from '@fixtures/core/mediaList';
@@ -83,6 +85,7 @@ afterEach(() => {
 async function setup(
   themeFile = {...defaults, themes: [...defaults.themes, special]},
   slideCount = 3,
+  withCard = false,
 ) {
   mockMenuRowHeight();
   const fixture = itemFixture();
@@ -95,6 +98,9 @@ async function setup(
         row.id === fixtureItems.arranged
           ? {
               ...row,
+              ...(withCard
+                ? {sectionCard: newSectionCard(), theme: newSectionCard().theme}
+                : {}),
               slides: Array.from({length: slideCount}, (_, index) => ({
                 id: fixtureSlideId(index + 1),
                 lines: [`Item slide ${index + 1}`],
@@ -179,6 +185,30 @@ it('stores a chosen theme, follows its kind default again, and opens the theme w
     screen.getByRole('menuitemradio', {name: /^찬양(?:\s*기본)?$/}),
   );
   await waitFor(() => expect(stored()).not.toHaveProperty('theme'));
+});
+
+it('changes the section card with the selected item theme and undoes both together', async () => {
+  const {user, stored, api} = await setup(undefined, 3, true);
+  const original = newSectionCard();
+  await user.click(screen.getByRole('button', {name: '\ud14c\ub9c8'}));
+  await user.click(screen.getByRole('menuitemradio', {name: '\ud2b9\uc1a1'}));
+  await waitFor(() =>
+    expect(stored()).toMatchObject({
+      theme: SPECIAL,
+      sectionCard: {...original, theme: SPECIAL},
+    }),
+  );
+  await act(async () => {
+    expect((await serviceOrderEditsFor(api).undo(fixtureServiceId)).ok).toBe(
+      true,
+    );
+  });
+  await waitFor(() =>
+    expect(stored()).toMatchObject({
+      theme: original.theme,
+      sectionCard: original,
+    }),
+  );
 });
 
 function slides(): HTMLElement[] {
