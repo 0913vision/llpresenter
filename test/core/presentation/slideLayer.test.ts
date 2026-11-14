@@ -186,7 +186,7 @@ it('shows next slide titles before body for every source kind', () => {
         name: 'Notice title',
         lines: ['Body one\nBody two'],
       },
-      expected: 'Notice title\nBody one',
+      expected: '1. Notice title',
     },
     {
       name: 'titled blank slide',
@@ -321,7 +321,7 @@ it('previews the opening song title after a preceding item', () => {
   expect(layer?.next).toMatchObject({itemKind: 'song', lines: ['Song title']});
 });
 
-it('previews an opening card with the first content line while retaining the card subtitle on output', () => {
+it('previews only the opening card name while retaining the card subtitle on output', () => {
   const section = SUNDAY_SECTIONS[1];
   if (!section) throw Error('Missing section');
   const card = {
@@ -348,7 +348,7 @@ it('previews an opening card with the first content line while retaining the car
   );
   expect(slide?.next).toMatchObject({
     title: section.name,
-    lines: content.lines,
+    lines: [],
   });
   const stage = createScreenId(STARTER_SCREEN_IDS.stage);
   const element = builtInTheme('song').screens[stage]?.elements.find(
@@ -357,7 +357,7 @@ it('previews an opening card with the first content line while retaining the car
   if (element?.kind !== 'nextText') throw Error('Missing next text element');
   expect(
     themeElementText(element, {layers: {...emptyLayers(), slide}, item: null}),
-  ).toBe(`${section.name}\nFirst body line`);
+  ).toBe(section.name);
   const cardSlide = slideLayerOf({itemId: 'card', index: 0}, () => [
     card,
     content,
@@ -365,16 +365,12 @@ it('previews an opening card with the first content line while retaining the car
   expect(cardSlide?.lines).toEqual([section.english]);
 });
 
-it.each([
-  {name: 'Notice title', expected: 'Notice title'},
-  {name: '', expected: 'First body line'},
-  {name: '   ', expected: 'First body line'},
-  {name: undefined, expected: 'First body line'},
-])(
-  'uses the opening item slide title or its first body line: $name',
-  ({name, expected}) => {
+it.each([{name: 'Notice title'}, {name: ''}, {name: '   '}, {name: undefined}])(
+  'omits the following slide title and body from the card preview: $name',
+  ({name}) => {
     const section = SUNDAY_SECTIONS.find(value => value.english === 'Notice');
     if (!section) throw Error('Missing notice section');
+    expect(section.name).toBe('\uad11\uace0');
     const current = {
       label: null,
       labelColor: 'none' as const,
@@ -406,6 +402,29 @@ it.each([
         layers: {...emptyLayers(), slide},
         item: null,
       }),
-    ).toBe(`${section.name}\n${expected}`);
+    ).toBe(section.name);
   },
 );
+
+it('previews two numbered notices without their bodies or counting pictures', () => {
+  const common = {
+    kind: 'ad' as const,
+    label: null,
+    labelColor: 'none' as const,
+  };
+  const first = {...common, name: 'First notice', lines: ['First body']};
+  const picture = {
+    ...common,
+    picture: createMediaId('00000000-0000-4000-8000-000000000001'),
+    lines: [],
+  };
+  const second = {...common, name: 'Second notice', lines: ['Second body']};
+  const intro: SlideTile = {label: null, labelColor: 'none', lines: ['Intro']};
+  const deck = [intro, first, picture, second];
+  expect(
+    slideLayerOf({itemId: 'ad', index: 0}, () => deck)?.next,
+  ).toMatchObject({title: '1. First notice', lines: []});
+  expect(
+    slideLayerOf({itemId: 'ad', index: 2}, () => deck)?.next,
+  ).toMatchObject({title: '2. Second notice', lines: []});
+});

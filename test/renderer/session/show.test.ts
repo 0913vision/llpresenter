@@ -191,7 +191,7 @@ describe('show state', () => {
     });
   });
 
-  it('updates the next preview with an opening card and its first content line', () => {
+  it('updates the next preview with only the opening card name', () => {
     const section = SUNDAY_SECTIONS[1];
     if (!section) throw Error('Missing section');
     const card = {
@@ -212,11 +212,11 @@ describe('show state', () => {
     openItem('song-river');
     expect(sent.at(-1)).toMatchObject({
       type: 'stage.next.set',
-      next: {title: section.name, lines: body.lines},
+      next: {title: section.name, lines: []},
     });
   });
 
-  it('refreshes an opening card preview with its content slide title', () => {
+  it('omits the content slide title from an opening card preview', () => {
     const section = SUNDAY_SECTIONS[1];
     if (!section) throw Error('Missing section');
     const card = {
@@ -239,7 +239,30 @@ describe('show state', () => {
     openItem('song-river');
     expect(sent.at(-1)).toMatchObject({
       type: 'stage.next.set',
-      next: {title: section.name, lines: ['Notice title']},
+      next: {title: section.name, lines: []},
+    });
+  });
+
+  it('refreshes the next notice with its number and title only', () => {
+    const common = {
+      kind: 'ad' as const,
+      label: null,
+      labelColor: 'none' as const,
+    };
+    useShow.setState(state => ({
+      tiles: {
+        ...state.tiles,
+        'song-river': [
+          {...common, name: 'First', lines: ['First body']},
+          {...common, name: 'Second', lines: ['Second body']},
+        ],
+      },
+    }));
+    setLive('song-river', 0);
+    openItem('song-river');
+    expect(sent.at(-1)).toMatchObject({
+      type: 'stage.next.set',
+      next: {title: '2. Second', lines: []},
     });
   });
 

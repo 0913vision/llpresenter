@@ -16,7 +16,11 @@ import {
   previousTile,
   type SequenceState,
 } from '@core/presentation/navigation';
-import {nextSlideOf, slideLayerOf} from '@core/presentation/slideLayer';
+import {
+  nextSlideOf,
+  noticeNumber,
+  slideLayerOf,
+} from '@core/presentation/slideLayer';
 import {rememberBiblePassage} from '@renderer/session/recentWriter';
 import {sendLive, useLive} from './live';
 import {sendMediaOutput, sendSlideOutput} from './itemOutput';
@@ -228,6 +232,11 @@ function stageSlideOf(cursor: TileCursor) {
                 ? 'blank'
                 : row.kind,
           title: row.title,
+          ...(next === null
+            ? {}
+            : {
+                textSlideNumber: noticeNumber(tilesOf(next.itemId), next.index),
+              }),
           ...(after === undefined ? {} : {after}),
         };
   return slideLayerOf(cursor, tilesOf, following);
@@ -338,7 +347,14 @@ function refreshStageNext(): void {
   const next =
     tile === undefined
       ? null
-      : nextSlideOf(tile, kind, {title: row?.title, after: afterCard});
+      : nextSlideOf(tile, kind, {
+          title: row?.title,
+          after: afterCard,
+          textSlideNumber:
+            cursor === null
+              ? undefined
+              : noticeNumber(tilesOf(cursor.itemId), cursor.index),
+        });
   const key = nextKey(next);
   if (
     pendingStageNext !== undefined &&

@@ -10,32 +10,56 @@ export function nextSlideOf(
   context?: {
     readonly title?: string | undefined;
     readonly after?: SlideTile | undefined;
+    readonly textSlideNumber?: number | undefined;
   },
 ): NextSlide {
+  const notice =
+    tile.sectionCard === undefined &&
+    tile.kind === 'ad' &&
+    tile.picture === undefined;
   const title =
+    (notice && context?.textSlideNumber !== undefined
+      ? `${context.textSlideNumber}. ${tile.name ?? ''}`.trim()
+      : undefined) ??
     tile.sectionCard?.name ??
     tile.name ??
     (tile.media !== undefined || tile.picture !== undefined
       ? context?.title
       : undefined);
-  const after = context?.after;
-  const afterTitle = after?.name?.trim();
   return {
     label:
       tile.kind === undefined || tile.biblePart !== undefined
         ? tile.label
         : null,
-    lines:
-      tile.sectionCard === undefined
-        ? tile.lines
-        : afterTitle
-          ? [afterTitle]
-          : (after?.lines ?? []),
+    lines: tile.sectionCard === undefined && !notice ? tile.lines : [],
     ...(kind === undefined ? {} : {itemKind: kind}),
     ...(title === undefined || title.trim() === '' ? {} : {title}),
     ...(tile.continued === undefined ? {} : {continued: tile.continued}),
     ...(tile.biblePart === undefined ? {} : {biblePart: tile.biblePart}),
   };
+}
+
+/** Counts text notices without counting pictures or section cards. */
+export function noticeNumber(
+  tiles: readonly SlideTile[],
+  index: number,
+): number | undefined {
+  const tile = tiles[index];
+  if (
+    tile?.kind !== 'ad' ||
+    tile.picture !== undefined ||
+    tile.sectionCard !== undefined
+  ) {
+    return undefined;
+  }
+  return tiles
+    .slice(0, index + 1)
+    .filter(
+      value =>
+        value.kind === 'ad' &&
+        value.picture === undefined &&
+        value.sectionCard === undefined,
+    ).length;
 }
 
 type BibleItemSlides = NonNullable<SlideLayer['bibleItemSlides']>;
@@ -83,6 +107,7 @@ export function slideLayerOf(
     readonly kind: 'song' | 'bible' | 'blank' | 'ad' | 'media';
     readonly title?: string;
     readonly after?: SlideTile;
+    readonly textSlideNumber?: number | undefined;
   },
 ): SlideLayer | null {
   const tiles = tilesOf(cursor.itemId);
@@ -130,6 +155,10 @@ export function slideLayerOf(
             tiles[cursor.index + 1] === undefined ? following?.kind : undefined,
             {
               title: following?.title,
+              textSlideNumber:
+                tiles[cursor.index + 1] === undefined
+                  ? following?.textSlideNumber
+                  : noticeNumber(tiles, cursor.index + 1),
               after:
                 tiles[cursor.index + 1] === undefined
                   ? following?.after

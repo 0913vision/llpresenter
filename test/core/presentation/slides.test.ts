@@ -61,8 +61,11 @@ it.each(['blank', 'ad'] as const)(
     ).toMatchObject({
       picture: SLIDE_PICTURE,
       lines: [],
-      next: {lines: ['Last line']},
+      next: form === 'ad' ? {lines: [], title: '2.'} : {lines: ['Last line']},
     });
+    expect(
+      slideLayerOf({itemId: item.id, index: 2}, () => tiles)?.lines,
+    ).toEqual(['Last line']);
   },
 );
 
