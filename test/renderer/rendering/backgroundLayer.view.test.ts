@@ -1,7 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import {installMockClock} from '@fixtures/mockClock';
 import {
-  BACKGROUND_DISSOLVE_MS,
   BACKGROUND_RELEASE_DELAY_MS,
   VIDEO_FRAME_DEADLINE_MS,
 } from '@renderer/rendering/backgroundLayer';
@@ -222,7 +221,7 @@ describe('BackgroundLayerView', () => {
     const [spare, front] = videos;
     view.show(WARM_LIGHT);
     front.dispatchEvent(new Event('playing'));
-    await clock.advance(BACKGROUND_DISSOLVE_MS);
+    await clock.advance(500);
     expect(spare.getAttribute('src')).not.toBe(urlOf('warm-light'));
     await clock.advance(BACKGROUND_RELEASE_DELAY_MS);
     expect(spare.hasAttribute('src')).toBe(false);
@@ -237,7 +236,7 @@ describe('BackgroundLayerView', () => {
     const [spare, front] = videos;
     view.show(WARM_LIGHT);
     front.dispatchEvent(new Event('playing'));
-    await clock.advance(BACKGROUND_DISSOLVE_MS + BACKGROUND_RELEASE_DELAY_MS);
+    await clock.advance(500 + BACKGROUND_RELEASE_DELAY_MS);
 
     front.dispatchEvent(new Event('playing'));
     front.dispatchEvent(new Event('playing'));
@@ -357,7 +356,7 @@ describe('BackgroundLayerView', () => {
     const [spare, front] = videos;
     view.show(WARM_LIGHT);
     front.dispatchEvent(new Event('playing'));
-    await clock.advance(BACKGROUND_DISSOLVE_MS + BACKGROUND_RELEASE_DELAY_MS);
+    await clock.advance(500 + BACKGROUND_RELEASE_DELAY_MS);
     let decoded = (): void => {};
     Object.defineProperty(spare, 'requestVideoFrameCallback', {
       value: (callback: VideoFrameRequestCallback) => {

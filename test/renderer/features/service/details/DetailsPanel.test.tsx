@@ -230,7 +230,7 @@ it.each(['bible', 'ad', 'media', 'card'] as const)(
   },
 );
 
-it('edits a common transition and preserves differing per-slide transitions', async () => {
+it('does not offer an item-level transition', async () => {
   const f = itemFixture();
   useShow.setState({
     serviceId: fixtureServiceId,
@@ -251,52 +251,7 @@ it('edits a common transition and preserves differing per-slide transitions', as
     await waitFor(() =>
       expect(items.getSnapshot().item?.id).toBe(fixtureItems.arranged),
     );
-    const button = await screen.findByRole('button', {name: '전환'});
-    await userEvent.click(button);
-    await userEvent.click(screen.getByRole('menuitemradio', {name: '디졸브'}));
-    await waitFor(() => {
-      const item = f
-        .service()
-        .service.order.find(row => row.id === fixtureItems.arranged);
-      expect(
-        item &&
-          isItemOfKind(item, 'song') &&
-          item.slides.every(slide => slide.transition?.kind === 'dissolve'),
-      ).toBe(true);
-    });
-    const current = f.service();
-    const row = current.service.order.find(
-      item => item.id === fixtureItems.arranged,
-    );
-    if (row === undefined || !isItemOfKind(row, 'song')) {
-      throw new Error('Missing fixture');
-    }
-    f.pushService({
-      ...current,
-      revision: current.revision + 1,
-      service: {
-        ...current.service,
-        order: current.service.order.map(item =>
-          item.id === row.id
-            ? {
-                ...row,
-                slides: row.slides.map((slide, index) =>
-                  index === 0
-                    ? {...slide, transition: {kind: 'none', sec: 0.5}}
-                    : slide,
-                ),
-              }
-            : item,
-        ),
-      },
-    });
-    await waitFor(() =>
-      expect(
-        screen
-          .getByRole('button', {name: '전환'})
-          .getAttribute('aria-disabled'),
-      ).toBe('true'),
-    );
+    expect(screen.queryByRole('button', {name: '\uc804\ud658'})).toBeNull();
   } finally {
     view.unmount();
     items.dispose();

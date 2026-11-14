@@ -1709,7 +1709,8 @@ describe('theme composition drawing', () => {
     vi.advanceTimersByTime(32);
     expect(outgoing.style.opacity).toBe('0');
     expect(incoming.style.opacity).toBe('1');
-    expect(outgoing.style.transition).toBe(incoming.style.transition);
+    expect(outgoing.style.transition).toBe('opacity 0ms linear');
+    expect(incoming.style.transition).toBe('none');
     vi.advanceTimersByTime(500);
     expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(1);
     view.dispose();
@@ -1737,9 +1738,12 @@ describe('theme composition drawing', () => {
           lines: ['Incoming text'],
         },
       },
-      frame(elements, {
-        themeId: createThemeId('00000000-0000-4000-8000-000000000502'),
-      }),
+      {
+        ...frame(elements, {
+          themeId: createThemeId('00000000-0000-4000-8000-000000000502'),
+        }),
+        transitionTimes: {slideMs: 500, backgroundMs: 500},
+      },
     );
     const incoming = [
       ...root.querySelectorAll<HTMLElement>('[data-theme-page]'),
@@ -1910,12 +1914,12 @@ describe('theme composition drawing', () => {
       ),
     );
     expect(view.ready()).toBe(false);
-    view.render(
-      layers,
-      frame([background], {
+    view.render(layers, {
+      ...frame([background], {
         themeId: createThemeId('00000000-0000-4000-8000-000000000505'),
       }),
-    );
+      transitionTimes: {slideMs: 500, backgroundMs: 500},
+    });
     vi.advanceTimersByTime(250);
     expect(root.querySelector('video[src]')).toBe(video);
     expect(HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(plays);

@@ -326,7 +326,7 @@ describe('startOutput', () => {
     const incoming = root.querySelector('video[src]');
     if (incoming === null) throw new Error('Missing replacement background');
     incoming.dispatchEvent(new Event('playing'));
-    expect(incoming.classList.contains(classes.dissolving)).toBe(true);
+    expect(incoming.classList.contains(classes.dissolving)).toBe(false);
   });
 
   it('prepares paused off-output media and resumes the latest position without a dissolve', async () => {
@@ -431,7 +431,7 @@ describe('startOutput', () => {
     );
     if (incoming === undefined) throw new Error('Missing new background');
     incoming.dispatchEvent(new Event('playing'));
-    expect(incoming.classList.contains(classes.dissolving)).toBe(true);
+    expect(incoming.classList.contains(classes.dissolving)).toBe(false);
     current = {...current, version: 7, outputs: {[MAIN]: false}};
     receive(current);
     expect(root.children).not.toHaveLength(0);
