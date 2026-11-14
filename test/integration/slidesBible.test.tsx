@@ -56,6 +56,15 @@ vi.mock('@renderer/features/songs/editor/SongPreview', () => ({
     <div data-preview={JSON.stringify({layers, appearance})} />
   ),
 }));
+vi.mock('@renderer/rendering/OutputPreviewPicture', () => ({
+  OutputPreviewPicture: ({
+    layers,
+    appearance,
+  }: {
+    layers: unknown;
+    appearance: unknown;
+  }) => <div data-preview={JSON.stringify({layers, appearance})} />,
+}));
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
     render = vi.fn();

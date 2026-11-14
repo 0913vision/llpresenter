@@ -79,6 +79,8 @@ export function BibleItemPanel({
               const slide = slideLayerOf({itemId: item.id, index}, () => tiles);
               return appearance === undefined || slide === null ? undefined : (
                 <SlidePicture
+                  output
+                  thumbnail
                   slide={slide}
                   layout={appearance.theme.layout}
                   emptyColor={appearance.theme.emptyColor}

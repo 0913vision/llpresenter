@@ -22,6 +22,7 @@ export function SlidePicture({
   themeId,
   screen,
   mediaOnly = false,
+  thumbnail = false,
 }: {
   readonly slide: SlideLayer;
   readonly layout: ThemeScreenLayout;
@@ -32,6 +33,7 @@ export function SlidePicture({
   readonly themeId?: ThemeId | undefined;
   readonly screen?: RenderScreen | undefined;
   readonly mediaOnly?: boolean;
+  readonly thumbnail?: boolean;
 }): JSX.Element {
   if (output) {
     return (
@@ -44,6 +46,7 @@ export function SlidePicture({
         themeId={themeId}
         screen={screen}
         mediaOnly={mediaOnly}
+        thumbnail={thumbnail}
       />
     );
   }

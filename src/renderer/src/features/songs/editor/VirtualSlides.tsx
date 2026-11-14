@@ -379,6 +379,8 @@ export function VirtualSlides<T extends SlideListItem>({
                   canvasFor?.(number - 1) ??
                   (theme === undefined ? undefined : (
                     <SlidePicture
+                      output
+                      thumbnail
                       {...theme}
                       background={background}
                       slide={{

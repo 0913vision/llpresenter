@@ -6,11 +6,13 @@ import {OutputRenderer} from './outputRenderer';
 import {openPreviewMedia} from './previewMedia';
 import type {RenderScreen, ThemeFrame} from './layer';
 import styles from './OutputPreviewPicture.module.css';
+import {THEME_LIMITS} from '@core/themes/elementRules';
 
 /** A still, local composition drawn by the same renderer as output. */
 export function OutputPreviewPicture({
   layers,
   appearance,
+  thumbnail = false,
 }: {
   readonly layers: LiveLayers;
   readonly appearance: {
@@ -19,9 +21,23 @@ export function OutputPreviewPicture({
     readonly background: string;
     readonly checker: boolean;
   };
+  readonly thumbnail?: boolean;
 }): JSX.Element {
   const parent = useRef<HTMLDivElement>(null);
+  const viewport = useRef<HTMLDivElement>(null);
   const renderer = useRef<OutputRenderer | null>(null);
+  useLayoutEffect(() => {
+    const frame = viewport.current;
+    const canvas = parent.current;
+    if (!thumbnail || frame === null || canvas === null) return;
+    const resize = (): void => {
+      canvas.style.transform = `scale(${frame.clientWidth / THEME_LIMITS.width})`;
+    };
+    resize();
+    const observer = new ResizeObserver(resize);
+    observer.observe(frame);
+    return () => observer.disconnect();
+  }, [thumbnail]);
   const draw = useEffectEvent(() => {
     try {
       renderer.current?.render(layers, {
@@ -58,7 +74,7 @@ export function OutputPreviewPicture({
   }, [layers, appearance.screen, appearance.theme]);
   return (
     <div
-      ref={parent}
+      ref={viewport}
       className={styles.screen}
       style={{
         background:
@@ -67,6 +83,16 @@ export function OutputPreviewPicture({
             : appearance.background,
       }}
       data-checker={appearance.checker || undefined}
-    />
+    >
+      <div
+        ref={parent}
+        className={thumbnail ? styles.reference : styles.canvas}
+        style={
+          thumbnail
+            ? {width: THEME_LIMITS.width, height: THEME_LIMITS.height}
+            : undefined
+        }
+      />
+    </div>
   );
 }

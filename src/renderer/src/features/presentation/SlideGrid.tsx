@@ -203,13 +203,30 @@ export function SlideGrid({
                 selectionStyle="plate"
                 number={(offset ?? 0) + index + 1}
                 canvas={
-                  picture !== undefined ? undefined : tile.sectionCard !==
-                      undefined &&
+                  picture !== undefined &&
+                  theme !== undefined &&
+                  slide !== null ? (
+                    <SlidePicture
+                      output
+                      thumbnail
+                      mediaOnly
+                      {...theme}
+                      background={picture}
+                      slide={slide}
+                    />
+                  ) : tile.sectionCard !== undefined &&
                     cardTheme !== undefined &&
                     slide !== null ? (
-                    <SlidePicture {...cardTheme} slide={slide} />
+                    <SlidePicture
+                      output
+                      thumbnail
+                      {...cardTheme}
+                      slide={slide}
+                    />
                   ) : appearance !== undefined && slide !== null ? (
                     <SlidePicture
+                      output
+                      thumbnail
                       slide={slide}
                       layout={appearance.theme.layout}
                       emptyColor={appearance.theme.emptyColor}
@@ -217,7 +234,7 @@ export function SlideGrid({
                       background={appearance.background}
                     />
                   ) : theme === undefined || slide === null ? undefined : (
-                    <SlidePicture {...theme} slide={slide} />
+                    <SlidePicture output thumbnail {...theme} slide={slide} />
                   )
                 }
                 label={

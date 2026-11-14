@@ -3,3 +3,14 @@
   aspect-ratio: 16 / 9;
   overflow: hidden;
 }
+
+.canvas {
+  position: absolute;
+  inset: 0;
+}
+
+.reference {
+  position: absolute;
+  inset: 0 auto auto 0;
+  transform-origin: top left;
+}

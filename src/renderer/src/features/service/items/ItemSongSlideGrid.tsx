@@ -157,6 +157,7 @@ function ItemSongTiles({
           return slide === undefined || theme === undefined ? undefined : (
             <SlidePicture
               output
+              thumbnail
               {...theme}
               background={theme.background ?? session.background}
               slide={{

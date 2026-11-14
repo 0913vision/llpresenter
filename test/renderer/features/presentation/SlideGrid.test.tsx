@@ -3,7 +3,8 @@ import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {createMediaId} from '@core/schema/ids';
-import {thumbnailUrl} from '@contracts/ipc/mediaUrls';
+import type {ComponentProps} from 'react';
+import type {OutputPreviewPicture} from '@renderer/rendering/OutputPreviewPicture';
 import {applyService, openItem, useShow} from '@renderer/session/show';
 import {SlideGrid} from '@renderer/features/presentation/SlideGrid';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
@@ -12,6 +13,20 @@ import {projectSlides} from '@core/presentation/slides';
 import type {LiveCommand} from '@core/live/commands';
 import {useLive} from '@renderer/session/live';
 import {emptyLiveState} from '@core/live/state';
+
+vi.mock('@renderer/rendering/OutputPreviewPicture', () => ({
+  OutputPreviewPicture: ({
+    layers,
+    appearance,
+    thumbnail,
+  }: ComponentProps<typeof OutputPreviewPicture>) => (
+    <div
+      data-layers={JSON.stringify(layers)}
+      data-appearance={JSON.stringify(appearance)}
+      data-thumbnail={String(thumbnail)}
+    />
+  ),
+}));
 
 beforeEach(() => {
   useLive.setState({state: null});
@@ -85,11 +100,11 @@ function slide(index: number): HTMLElement {
 
 it('draws song thumbnails with the audience theme font and frame', () => {
   render(<SlideGrid columns={4} scalePercent={100} />);
-  const text = slide(0).querySelector<HTMLElement>('[style*="font-size"]');
-  expect(text?.style.fontSize).toBe('108px');
-  expect(text?.style.fontFamily).toContain('NanumSquare');
-  expect(text?.style.fontWeight).toBe('800');
-  expect(slide(0).querySelector('svg[viewBox="0 0 1920 1080"]')).not.toBeNull();
+  const picture = slide(0).querySelector<HTMLElement>('[data-appearance]');
+  expect(picture?.dataset['thumbnail']).toBe('true');
+  expect(picture?.dataset['appearance']).toContain('"size":108');
+  expect(picture?.dataset['appearance']).toContain('"font":"NanumSquare"');
+  expect(picture?.dataset['appearance']).toContain('"weight":800');
 });
 
 it.each([{key: 'ContextMenu'}, {key: 'F10', shiftKey: true}])(
@@ -145,9 +160,9 @@ it('shows the picture of a media tile, with the name in the band', () => {
   openItem('media-item');
   const {container} = render(<SlideGrid columns={4} scalePercent={100} />);
   expect(slide(0).getAttribute('aria-label')).toContain('카운트다운');
-  expect(container.querySelector('img')?.getAttribute('src')).toBe(
-    thumbnailUrl(media),
-  );
+  expect(
+    container.querySelector<HTMLElement>('[data-layers]')?.dataset['layers'],
+  ).toContain(media);
 });
 
 it('maps windowed clicks and menus to logical slide positions and keeps keyboard focus', () => {

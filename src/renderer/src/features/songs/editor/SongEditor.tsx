@@ -411,6 +411,7 @@ function SongBlocks({
                 theme === undefined ? undefined : (
                   <SlidePicture
                     output
+                    thumbnail
                     {...theme}
                     background={theme.background}
                     slide={{

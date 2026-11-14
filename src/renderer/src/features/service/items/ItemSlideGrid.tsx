@@ -111,6 +111,7 @@ export function ItemSlideGrid({
       return (
         <SlidePicture
           output
+          thumbnail
           {...songTheme}
           slide={{
             itemId: state.item?.id ?? 'thumbnail',
@@ -144,6 +145,7 @@ export function ItemSlideGrid({
     return appearance === undefined || layer === null ? undefined : (
       <SlidePicture
         output
+        thumbnail
         slide={layer}
         layout={appearance.theme.layout}
         emptyColor={appearance.theme.emptyColor}

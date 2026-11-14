@@ -209,11 +209,12 @@ service needs no confirmation), product log version 63.
 
 - For a song item, the grid shows its own slides in stored order. Repeated
   lyrics are independent slides with distinct IDs.
-- A tile is a 16:9 picture with an 이름표 band below it. The picture shows only
-  the 슬라이드's lines, not the song's background. The band shows the position
-  across the whole service (from 1) and the 이름표 name on a strip filled with
-  the 이름표 color. Bible verse labels and named or media slides also keep their
-  labels in the band. Without a label, the band shows only the number.
+- A tile is a 16:9 picture with an 이름표 band below it. The picture uses the
+  청중 output composition at output resolution, scaled to the tile, including
+  its resolved theme and background. The band shows the position across the
+  whole service (from 1) and the 이름표 name on a strip filled with the 이름표
+  color. Bible verse labels and named or media slides also keep their labels in
+  the band. Without a label, the band shows only the number.
 - Clicking a tile outputs that 슬라이드 at once (see 03). The live tile has a
   red ring around its picture: only that tile, not other tiles of the same
   슬라이드. There is no separate tile selection. Keyboard focus draws an accent

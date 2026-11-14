@@ -64,6 +64,7 @@ export function CardSlideBody({
           {theme === undefined ? null : (
             <SlidePicture
               output
+              thumbnail
               {...theme}
               slide={{
                 itemId,
