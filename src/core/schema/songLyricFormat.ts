@@ -22,6 +22,7 @@ const line = jsonObject({
   top: v.exactOptional(finite(0, 1080)),
   runs: v.pipe(v.array(run), v.minLength(1), v.maxLength(256)),
   spacing: v.exactOptional(spacing),
+  paragraphGap: v.exactOptional(finite(0, 2000)),
 });
 export const songLyricFormatSchema = v.pipe(
   jsonObject({

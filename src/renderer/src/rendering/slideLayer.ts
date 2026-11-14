@@ -571,12 +571,21 @@ export class SlideLayerView {
         const row = block.children.item(index);
         if (!(row instanceof HTMLElement)) return;
         const factor = (px / size) * this.scale;
+        const runSizes = line.runs.flatMap(run =>
+          run.size === undefined ? [] : [run.size],
+        );
+        row.style.fontSize = runSizes.length
+          ? `${Math.max(...runSizes) * factor}px`
+          : '';
         row.style.maxWidth = `${1920 * this.scale}px`;
         row.style.marginLeft =
           this.style.align === 'center' || this.style.align === 'right'
             ? 'auto'
             : '';
         row.style.marginRight = this.style.align === 'center' ? 'auto' : '';
+        row.style.marginTop = line.paragraphGap
+          ? `${line.paragraphGap * factor}px`
+          : '';
         if (line.spacing?.kind === 'ratio') {
           row.style.lineHeight = String(line.spacing.value);
         } else if (line.spacing?.kind === 'pixels') {

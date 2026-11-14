@@ -27,7 +27,7 @@ describe('PowerPoint lyric typography', () => {
       lines: [
         {
           boxWidth: 1600,
-          spacing: {kind: 'ratio', value: 1.25},
+          spacing: {kind: 'ratio', value: 1.5},
           runs: [
             {text: 'First ', size: 88, tracking: -6, font: 'Font A'},
             {text: 'second', size: 120, tracking: -4},
@@ -40,6 +40,43 @@ describe('PowerPoint lyric typography', () => {
         },
       ],
     });
+  });
+  it('uses single-line spacing and paragraph gaps from the master body style', () => {
+    const shape = element(
+      `<p:sp ${ns}><p:nvSpPr><p:nvPr><p:ph type="body" idx="1"/></p:nvPr></p:nvSpPr><p:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="12192000" cy="100"/></a:xfrm></p:spPr><p:txBody><a:bodyPr tIns="0"/><a:p><a:r><a:t>First</a:t></a:r></a:p><a:p><a:r><a:t>Second</a:t></a:r></a:p></p:txBody></p:sp>`,
+    );
+    const layout = element(
+      `<p:sldLayout ${ns}><p:sp><p:nvSpPr><p:nvPr><p:ph type="body" idx="1"/></p:nvPr></p:nvSpPr><p:txBody><a:lstStyle><a:lvl1pPr><a:defRPr sz="5400" spc="-150"/></a:lvl1pPr></a:lstStyle></p:txBody></p:sp></p:sldLayout>`,
+    );
+    const master = element(
+      `<p:sldMaster ${ns}><p:txStyles><p:bodyStyle><a:lvl1pPr><a:lnSpc><a:spcPct val="90000"/></a:lnSpc><a:spcBef><a:spcPts val="1000"/></a:spcBef></a:lvl1pPr></p:bodyStyle></p:txStyles></p:sldMaster>`,
+    );
+    const result = powerpointTextFormat(
+      shape,
+      {layout, master, theme: undefined},
+      12192000,
+    );
+    expect(result?.lines[0]).toMatchObject({
+      runs: [{size: 108, tracking: -3}],
+      spacing: {kind: 'ratio', value: 1.08},
+    });
+    expect(result?.lines[1]?.paragraphGap).toBe(20);
+    expect(result?.lines[1]?.top).toBeCloseTo(136.64);
+  });
+  it('adds the previous after and next before spacing only between paragraphs', () => {
+    const shape = element(
+      `<p:sp ${ns}><p:spPr><a:xfrm><a:ext cx="12192000" cy="100"/></a:xfrm></p:spPr><p:txBody><a:p><a:pPr><a:spcAft><a:spcPts val="500"/></a:spcAft><a:defRPr sz="5400"/></a:pPr><a:r><a:t>One</a:t></a:r><a:br/><a:r><a:t>Two</a:t></a:r></a:p><a:p><a:pPr><a:spcBef><a:spcPts val="1000"/></a:spcBef><a:defRPr sz="5400"/></a:pPr><a:r><a:t>Three</a:t></a:r></a:p></p:txBody></p:sp>`,
+    );
+    const result = powerpointTextFormat(
+      shape,
+      {layout: undefined, master: undefined, theme: undefined},
+      12192000,
+    );
+    expect(result?.lines.map(line => line.paragraphGap)).toEqual([
+      undefined,
+      undefined,
+      30,
+    ]);
   });
   it('retains imported paragraph and run formatting when creating song slides', () => {
     const lyricFormat = {

@@ -182,6 +182,7 @@ describe('SlideLayerView', () => {
       lines: [
         {
           boxWidth: 1500,
+          paragraphGap: 20,
           spacing: {kind: 'pixels' as const, value: 130},
           runs: [
             {text: 'One ', size: 72, tracking: -3, font: 'Arial'},
@@ -205,6 +206,42 @@ describe('SlideLayerView', () => {
     });
     if (!(row instanceof HTMLElement)) throw Error('Missing row');
     expect(row.style.lineHeight).toBe('130px');
+    expect(row.style.marginTop).toBe('20px');
+    view.show(
+      {
+        ...VERSE,
+        position: 3,
+        lines: ['First', 'Second'],
+        lyricFormat: {
+          lines: [
+            {
+              boxWidth: 1920,
+              spacing: {kind: 'ratio', value: 1.08},
+              runs: [{text: 'First', size: 108}],
+            },
+            {
+              boxWidth: 1920,
+              spacing: {kind: 'ratio', value: 1.08},
+              paragraphGap: 20,
+              runs: [{text: 'Second', size: 108}],
+            },
+          ],
+        },
+      },
+      false,
+    );
+    const rowsWithGap = block()?.children;
+    const firstRow = rowsWithGap?.[0];
+    const secondRow = rowsWithGap?.[1];
+    if (
+      !(firstRow instanceof HTMLElement) ||
+      !(secondRow instanceof HTMLElement)
+    ) {
+      throw Error('Missing formatted rows');
+    }
+    expect(firstRow.style.lineHeight).toBe('1.08');
+    expect(firstRow.style.fontSize).toBe('108px');
+    expect(secondRow.style.marginTop).toBe('20px');
     view.show({...VERSE, position: 1, lines: ['Edited'], lyricFormat}, false);
     expect(block()?.textContent).toBe('Edited');
     expect(block()?.querySelector('span')).toBeNull();

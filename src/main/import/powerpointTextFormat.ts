@@ -86,7 +86,9 @@ export function powerpointTextFormat(
       font?: string;
     }>;
     spacing?: {kind: 'ratio' | 'pixels'; value: number};
+    paragraphGap?: number;
   }> = [];
+  let previousAfter = 0;
   for (const [paragraphIndex, paragraph] of named(body, 'p').entries()) {
     const properties = child(paragraph, 'pPr');
     const level = Math.max(
@@ -116,19 +118,21 @@ export function powerpointTextFormat(
     const pct = child(spacingNode, 'spcPct')?.getAttribute('val');
     const pts = child(spacingNode, 'spcPts')?.getAttribute('val');
     const spacing = pct
-      ? {kind: 'ratio' as const, value: Number(pct) / 100000}
+      ? {kind: 'ratio' as const, value: (Number(pct) / 100000) * 1.2}
       : pts
         ? {kind: 'pixels' as const, value: (Number(pts) / 100) * points}
         : undefined;
-    const beforeNode = paragraphProps
-      .map(value => child(value, 'spcBef'))
-      .find(value => value !== undefined);
-    const beforeRatio =
-      Number(child(beforeNode, 'spcPct')?.getAttribute('val') ?? 0) / 100000;
-    const beforePoints =
-      (Number(child(beforeNode, 'spcPts')?.getAttribute('val') ?? 0) / 100) *
-      points;
-    if (top !== undefined && paragraphIndex > 0) top += beforePoints;
+    const paragraphSpacing = (name: string, size: number): number => {
+      const node = paragraphProps
+        .map(value => child(value, name))
+        .find(value => value !== undefined);
+      const pctValue = child(node, 'spcPct')?.getAttribute('val');
+      const ptsValue = child(node, 'spcPts')?.getAttribute('val');
+      return pctValue
+        ? (Number(pctValue) / 100000) * size * 1.2
+        : (Number(ptsValue ?? 0) / 100) * points;
+    };
+    let firstLine = true;
     let runs: Array<{
       text: string;
       size?: number;
@@ -142,9 +146,12 @@ export function powerpointTextFormat(
       }
       const last = runs[runs.length - 1];
       if (last) last.text = last.text.trimEnd();
-      if (top !== undefined && runs.length && beforeRatio > 0) {
-        top += Math.max(...runs.map(run => run.size ?? 0)) * beforeRatio;
-      }
+      const maxSize = Math.max(0, ...runs.map(run => run.size ?? 0));
+      const gap =
+        firstLine && paragraphIndex > 0
+          ? previousAfter + paragraphSpacing('spcBef', maxSize)
+          : 0;
+      if (top !== undefined && runs.length) top += gap;
       if (runs.length) {
         lines.push({
           boxWidth,
@@ -152,15 +159,18 @@ export function powerpointTextFormat(
           ...(top === undefined ? {} : {top}),
           runs,
           ...(spacing === undefined ? {} : {spacing}),
+          ...(gap === 0 ? {} : {paragraphGap: gap}),
         });
       }
       if (top !== undefined && runs.length) {
-        const maxSize = Math.max(...runs.map(run => run.size ?? 0));
         top +=
           spacing?.kind === 'pixels'
             ? spacing.value
             : maxSize * (spacing?.value ?? 1.2);
-        top += beforePoints;
+      }
+      if (runs.length) {
+        previousAfter = paragraphSpacing('spcAft', maxSize);
+        firstLine = false;
       }
       runs = [];
     };
