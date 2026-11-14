@@ -37,7 +37,7 @@ describe('service order follow', () => {
     vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
       function (this: HTMLElement) {
         return DOMRect.fromRect({
-          top: this === viewport ? 0 : 690,
+          y: this === viewport ? 0 : 690,
           height: this === viewport ? 400 : 20,
         });
       },
@@ -56,7 +56,7 @@ describe('service order follow', () => {
       function (this: HTMLElement) {
         const center = this.dataset['orderId'] === 'last' ? 700 : 160;
         return DOMRect.fromRect({
-          top: this === viewport ? 0 : center - 10,
+          y: this === viewport ? 0 : center - 10,
           height: this === viewport ? 400 : 20,
         });
       },
@@ -78,7 +78,7 @@ describe('service order follow', () => {
     vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockImplementation(
       function (this: HTMLElement) {
         return DOMRect.fromRect({
-          top:
+          y:
             this === viewport
               ? 0
               : this.dataset['orderId'] === 'first'

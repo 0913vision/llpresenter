@@ -63,9 +63,9 @@ function setLiveSlide(itemId: string, position: number): void {
 beforeEach(() => {
   sent.length = 0;
   installApi();
+  useLive.setState({state: null});
   seedSampleService();
   useShow.setState({openItemId: null, selectedTile: 0});
-  useLive.setState({state: null});
 });
 
 afterEach(() => {
