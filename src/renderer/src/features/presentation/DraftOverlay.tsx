@@ -35,7 +35,9 @@ export function DraftOverlay({
             {kind === 'bible' ? '성' : '#'}
           </div>
           <h2>{kind === 'bible' ? '성경 구절' : '슬라이드 이동'}</h2>
-          <span className={styles.dismiss}>ESC</span>
+          {kind === 'bible' ? (
+            <span className={styles.dismiss}>ESC</span>
+          ) : null}
         </header>
         <div className={styles.content}>{children}</div>
         <footer className={styles.footer}>
@@ -44,16 +46,18 @@ export function DraftOverlay({
           </span>
           {kind === 'number' ? (
             <span>
-              <kbd>Delete</kbd> 전체 지우기
+              <kbd>Delete</kbd>, <kbd>Esc</kbd> 취소
             </span>
           ) : (
-            <span>
-              <kbd>Tab</kbd> 다음 칸
-            </span>
+            <>
+              <span>
+                <kbd>Tab</kbd> 다음 칸
+              </span>
+              <span>
+                <kbd>Esc</kbd> 닫기
+              </span>
+            </>
           )}
-          <span>
-            <kbd>Esc</kbd> 닫기
-          </span>
         </footer>
       </section>
     </div>,

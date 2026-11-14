@@ -61,6 +61,16 @@ async function enterPassage(
 }
 
 describe('shared Bible reference form', () => {
+  it('completes 합 to 하박국 on Tab in the overlay', async () => {
+    const view = setup();
+    view.rerender(<BibleReferenceForm {...view.props} overlayLabels />);
+    fireEvent.change(view.book, {target: {value: '합'}});
+    fireEvent.keyDown(view.book, {key: 'Tab', code: 'Tab'});
+    await waitFor(() => {
+      expect(view.book.value).toBe('하박국');
+      expect(document.activeElement).toBe(view.chapter);
+    });
+  });
   it.each([
     ['요 3 16', '요한복음 3:16'],
     ['요한복음 3 16 18', '요한복음 3:16-18'],
