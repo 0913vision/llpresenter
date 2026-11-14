@@ -23,6 +23,7 @@ export function biblePartIndex(
 ): number | null {
   const indices: number[] = [];
   tiles.forEach((tile, index) => {
+    if (tile.sectionCard !== undefined) return;
     if (
       sourceSlideId === undefined
         ? sameVerseLabel(tile.label, label)
@@ -41,10 +42,16 @@ export function retainedBibleSelection(
   next: readonly SlideTile[],
 ): number {
   const current = previous[selected];
-  const first = previous.findIndex(tile =>
-    current?.sourceSlideId === undefined
-      ? sameVerseLabel(tile.label, current?.label ?? null)
-      : tile.sourceSlideId === current.sourceSlideId,
+  if (current?.sectionCard !== undefined) {
+    const card = next.findIndex(tile => tile.sectionCard !== undefined);
+    return card < 0 ? Math.max(0, Math.min(selected, next.length - 1)) : card;
+  }
+  const first = previous.findIndex(
+    tile =>
+      tile.sectionCard === undefined &&
+      (current?.sourceSlideId === undefined
+        ? sameVerseLabel(tile.label, current?.label ?? null)
+        : tile.sourceSlideId === current.sourceSlideId),
   );
   return (
     (first < 0 || current === undefined

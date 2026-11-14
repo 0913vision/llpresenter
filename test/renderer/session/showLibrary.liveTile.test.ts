@@ -2,7 +2,7 @@ import * as v from 'valibot';
 import {describe, expect, it} from 'vitest';
 import type {SlideLayer} from '@core/live/state';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
-import {translationIdSchema} from '@core/schema/ids';
+import {createThemeId, translationIdSchema} from '@core/schema/ids';
 import {bibleSource, type BibleSource} from '@core/bible/source';
 import {liveTileIndex} from '@renderer/session/showLibrary';
 import {useShow, type ShowView} from '@renderer/session/showStore';
@@ -82,6 +82,54 @@ describe('liveTileIndex', () => {
     expect(liveTileIndex(view(projected, projected), slide)).toBe(4);
     const reduced = {...projected, tiles: projected.tiles.slice(0, -1)};
     expect(liveTileIndex(view(reduced, reduced), slide)).toBe(3);
+  });
+
+  it('resolves the live verse part instead of a section card named for that verse', () => {
+    const projected = {
+      ...live,
+      tiles: [
+        {
+          label: '\uC694\uD55C\uBCF5\uC74C 3:16',
+          labelColor: 'none' as const,
+          lines: [],
+          sectionCard: {
+            name: 'Sample',
+            english: 'Sample',
+            theme: createThemeId('00000000-0000-4000-8000-000000000111'),
+          },
+        },
+        {
+          label: '\uC6943:16 (1)',
+          labelColor: 'none' as const,
+          lines: [],
+          biblePart: 1,
+        },
+        {
+          label: '\uC6943:16 (2)',
+          labelColor: 'none' as const,
+          lines: [],
+          biblePart: 2,
+        },
+      ],
+    };
+    expect(
+      liveTileIndex(view(projected, projected), {
+        itemId: live.id,
+        position: 1,
+        label: '\uC6943:16 (1)',
+        biblePart: 1,
+        lines: [],
+      }),
+    ).toBe(1);
+    expect(
+      liveTileIndex(view(projected, projected), {
+        itemId: live.id,
+        position: 2,
+        label: '\uC6943:16 (2)',
+        biblePart: 2,
+        lines: [],
+      }),
+    ).toBe(2);
   });
 
   it('returns the live position of the open item', () => {
