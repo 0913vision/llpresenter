@@ -85,7 +85,11 @@ export function SongSlideSurface<T extends SlideListItem>({
     cardSelection.documentId === session.slideDocumentId &&
     cardSelection.selected;
   const selectCard = (preserve = false): void => {
-    if (leadingCard === undefined || leadingSelected) return;
+    if (leadingCard === undefined) return;
+    if (leadingSelected) {
+      if (!preserve) session.selectSlides({type: 'clear'});
+      return;
+    }
     if (!preserve) session.selectSlides({type: 'clear'});
     setCardSelection({documentId: session.slideDocumentId, selected: true});
     leadingCard.onSelectChange?.(true);
