@@ -9,6 +9,8 @@ import {
 import type {BibleCutsFile} from '@core/schema/bibleCuts';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import type {BiblePassage} from '@core/schema/biblePassage';
+import type {BiblePartTransition} from '@core/schema/service';
+import {biblePartEffect} from '@core/bible/partTransitions';
 import {createScreenId, type ThemeId} from '@core/schema/ids';
 import type {ThemeScreen} from '@core/themes/defaults';
 import type {ThemesFile} from '@core/schema/themes';
@@ -37,6 +39,7 @@ export interface SplitAppearance {
 
 interface SplitOptions {
   readonly background?: string;
+  readonly transitions?: readonly BiblePartTransition[];
   readonly id: string;
   readonly verseNumbers: boolean;
   readonly reference: BiblePassage['reference'];
@@ -142,6 +145,9 @@ export function splitSourceFor(
     verseNumbers: row.bible.verseNumbers ?? true,
     reference: row.bible.reference ?? 'every',
     translationName: row.bible.translationName ?? false,
+    ...(row.bible.transitions === undefined
+      ? {}
+      : {transitions: row.bible.transitions}),
     source: 'service',
     ...(row.bible.theme === undefined ? {} : {theme: row.bible.theme}),
   };
@@ -208,6 +214,14 @@ export function projectBible(
       lines: part.lines ?? bibleOutputLines(prefix + part.display),
       continued: part.continued,
       biblePart: part.part,
+      ...(() => {
+        const transition = biblePartEffect(
+          source.transitions,
+          part.reference,
+          part.part,
+        );
+        return transition === undefined ? {} : {transition};
+      })(),
       ...(source.reference === 'every' ||
       (source.reference === 'first' && index === 0) ||
       (source.reference === 'last' && index === parts.length - 1)
@@ -257,6 +271,7 @@ export class BibleProjections {
       cached.source.verseNumbers === source.verseNumbers &&
       cached.source.reference === source.reference &&
       cached.source.translationName === source.translationName &&
+      cached.source.transitions === source.transitions &&
       cached.source.review === source.review
     ) {
       return cached;

@@ -9,6 +9,7 @@ import {biblePartSchema, mediaChoiceSchema} from './liveState';
 import {BIBLE_LOOKUP_LIMITS, bibleLookupPassageSchema} from './bibleLookup';
 import {
   bibleVerseReferenceSchema,
+  biblePartTransitionsSchema,
   sectionCardSchema,
   SLIDES_LIMITS,
 } from './service';
@@ -61,6 +62,7 @@ const bibleReferenceSchema = v.pipe(
     translationName: v.exactOptional(v.boolean()),
     reference: v.exactOptional(bibleReferenceFrequencySchema),
     theme: v.exactOptional(themeIdSchema),
+    transitions: v.exactOptional(biblePartTransitionsSchema),
     passage: v.exactOptional(
       v.pipe(
         bibleLookupPassageSchema,

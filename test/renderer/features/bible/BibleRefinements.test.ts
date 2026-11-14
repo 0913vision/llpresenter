@@ -180,3 +180,23 @@ describe('Bible refinement run', () => {
     expect(f.api.chooseBoundary).not.toHaveBeenCalled();
   });
 });
+
+it('projects an effect onto the same verse part after splitting', () => {
+  const {projection} = setup();
+  if (projection.source.kind !== 'bible' || projection.parts[0] === undefined) {
+    throw Error('Missing Bible part');
+  }
+  const first = projection.parts[0];
+  const effect = {kind: 'wipe' as const, sec: 0.7};
+  const again = projectBible(
+    {
+      ...projection.source,
+      transitions: [
+        {verse: first.reference, part: first.part, transition: effect},
+      ],
+    },
+    {element: projection.element, layout: projection.layout},
+  );
+  expect(again?.tiles[0]?.transition).toEqual(effect);
+  expect(again?.tiles[1]?.transition).toBeUndefined();
+});
