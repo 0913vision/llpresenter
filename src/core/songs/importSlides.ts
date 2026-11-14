@@ -14,6 +14,9 @@ export function importSlides(
       ? {}
       : {lyricFormat: slide.lyricFormat}),
     ...(slide.titleSlide === undefined ? {} : {titleSlide: slide.titleSlide}),
+    ...(slide.titleLineCount === undefined
+      ? {}
+      : {titleLineCount: slide.titleLineCount}),
     ...(slide.label === undefined || slide.label.trim() === ''
       ? {}
       : {label: slide.label.trim()}),

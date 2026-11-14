@@ -56,6 +56,7 @@ export interface NextSlide {
   readonly continued?: boolean;
   readonly biblePart?: number;
   readonly titleSlide?: true;
+  readonly titleLineCount?: number;
   readonly sermonTitle?: true;
 }
 
@@ -69,6 +70,7 @@ export interface SlideLayer {
   readonly sectionCard?: SectionCard;
   readonly sequenceLength?: number;
   readonly titleSlide?: true;
+  readonly titleLineCount?: number;
   readonly titleLayout?: import('../schema/songTitleLayout').SongTitleLayout;
   readonly lyricFormat?: import('../schema/songLyricFormat').SongLyricFormat;
   readonly transition?: import('../schema/slideTransition').SlideTransition;

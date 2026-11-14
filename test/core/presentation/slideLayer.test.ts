@@ -25,6 +25,28 @@ const tiles: Readonly<Record<string, readonly SlideTile[]>> = {
 const tilesOf = (itemId: string): readonly SlideTile[] => tiles[itemId] ?? [];
 
 describe('slideLayerOf', () => {
+  it('carries the main title box line count for current and next slides', () => {
+    const deck: readonly SlideTile[] = [
+      {
+        label: null,
+        labelColor: 'none',
+        titleSlide: true,
+        titleLineCount: 2,
+        lines: ['Hymn number', 'Hymn title', 'Subtitle'],
+      },
+      {
+        label: null,
+        labelColor: 'none',
+        titleSlide: true,
+        titleLineCount: 2,
+        lines: ['Next number', 'Next title'],
+      },
+    ];
+    expect(slideLayerOf({itemId: 'song', index: 0}, () => deck)).toMatchObject({
+      titleLineCount: 2,
+      next: {titleLineCount: 2},
+    });
+  });
   it('carries title identity into output without turning the next lyric into a title', () => {
     const deck: readonly SlideTile[] = [
       {

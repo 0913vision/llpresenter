@@ -60,6 +60,9 @@ export const nextSlideSchema = payloadObject({
   continued: v.exactOptional(v.boolean()),
   biblePart: v.exactOptional(biblePartSchema),
   titleSlide: v.exactOptional(v.literal(true)),
+  titleLineCount: v.exactOptional(
+    v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(1000)),
+  ),
   sermonTitle: v.exactOptional(v.literal(true)),
 });
 
@@ -125,6 +128,9 @@ export const layerSchemas = {
       v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(10_000)),
     ),
     titleSlide: v.exactOptional(v.literal(true)),
+    titleLineCount: v.exactOptional(
+      v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(1000)),
+    ),
     titleLayout: v.exactOptional(songTitleLayoutSchema),
     lyricFormat: v.exactOptional(songLyricFormatSchema),
     continued: v.exactOptional(v.boolean()),
