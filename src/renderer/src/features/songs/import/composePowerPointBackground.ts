@@ -71,7 +71,10 @@ function paint(
   return gradient;
 }
 
-function shapePath(context: Context, layer: Shape): void {
+function shapePath(
+  context: Context,
+  layer: Pick<Shape, 'geometry' | 'radius' | 'matrix'>,
+): void {
   context.beginPath();
   switch (layer.geometry) {
     case 'ellipse':
@@ -134,8 +137,11 @@ async function drawPicture(
     if (sourceWidth <= 0 || sourceHeight <= 0 || width <= 0 || height <= 0) {
       return;
     }
-    context.beginPath();
-    context.rect(0, 0, 1, 1);
+    shapePath(context, {
+      geometry: layer.geometry ?? 'rect',
+      radius: layer.radius ?? 0,
+      matrix: layer.matrix,
+    });
     context.clip();
     context.globalAlpha = layer.alpha;
     context.imageSmoothingEnabled = true;
@@ -144,6 +150,10 @@ async function drawPicture(
       powerpointPictureFilters(layer)
         .map(filter => `${filter.kind}(${filter.amount})`)
         .join(' ') || 'none';
+    if (layer.tile) {
+      drawTile(context, bitmap, layer);
+      return;
+    }
     context.drawImage(
       bitmap,
       bitmap.width * layer.crop.left,
@@ -158,6 +168,75 @@ async function drawPicture(
   } finally {
     bitmap.close();
   }
+}
+
+function drawTile(context: Context, bitmap: ImageBitmap, layer: Picture): void {
+  const tile = layer.tile;
+  if (!tile) return;
+  const flipX = tile.flip === 'x' || tile.flip === 'xy';
+  const flipY = tile.flip === 'y' || tile.flip === 'xy';
+  const factor = Math.min(
+    1,
+    4096 / (bitmap.width * (flipX ? 2 : 1)),
+    4096 / (bitmap.height * (flipY ? 2 : 1)),
+  );
+  const tileWidth = Math.max(1, Math.floor(bitmap.width * factor));
+  const tileHeight = Math.max(1, Math.floor(bitmap.height * factor));
+  const canvas = new OffscreenCanvas(
+    tileWidth * (flipX ? 2 : 1),
+    tileHeight * (flipY ? 2 : 1),
+  );
+  const tileContext = canvas.getContext('2d');
+  if (!tileContext) throw new Error('PowerPoint tile canvas is unavailable');
+  for (let y = 0; y < (flipY ? 2 : 1); y++) {
+    for (let x = 0; x < (flipX ? 2 : 1); x++) {
+      tileContext.setTransform(
+        x ? -1 : 1,
+        0,
+        0,
+        y ? -1 : 1,
+        x ? tileWidth * 2 : 0,
+        y ? tileHeight * 2 : 0,
+      );
+      tileContext.drawImage(
+        bitmap,
+        bitmap.width * layer.crop.left,
+        bitmap.height * layer.crop.top,
+        bitmap.width * (1 - layer.crop.left - layer.crop.right),
+        bitmap.height * (1 - layer.crop.top - layer.crop.bottom),
+        0,
+        0,
+        tileWidth,
+        tileHeight,
+      );
+    }
+  }
+  const pattern = context.createPattern(canvas, 'repeat');
+  if (!pattern) throw new Error('PowerPoint tile pattern is unavailable');
+  const width = bitmap.width * tile.scaleX;
+  const height = bitmap.height * tile.scaleY;
+  const horizontal = ['tr', 'r', 'br'].includes(tile.align)
+    ? 1
+    : ['t', 'ctr', 'b'].includes(tile.align)
+      ? 0.5
+      : 0;
+  const vertical = ['bl', 'b', 'br'].includes(tile.align)
+    ? 1
+    : ['l', 'ctr', 'r'].includes(tile.align)
+      ? 0.5
+      : 0;
+  pattern.setTransform(
+    new DOMMatrix([
+      (tile.scaleX * bitmap.width) / tileWidth,
+      0,
+      0,
+      (tile.scaleY * bitmap.height) / tileHeight,
+      (1 - width) * horizontal + tile.offsetX,
+      (1 - height) * vertical + tile.offsetY,
+    ]),
+  );
+  context.fillStyle = pattern;
+  context.fillRect(0, 0, 1, 1);
 }
 
 function transparentEdge(context: Context): boolean {

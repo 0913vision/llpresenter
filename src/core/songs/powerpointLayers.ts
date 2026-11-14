@@ -55,6 +55,17 @@ export type PowerPointLayer =
       readonly brightness: number;
       readonly contrast: number;
       readonly grayscale: boolean;
+      readonly geometry?: 'rect' | 'roundRect' | 'ellipse';
+      readonly radius?: number;
+      readonly tile?: {
+        readonly scaleX: number;
+        readonly scaleY: number;
+        readonly offsetX: number;
+        readonly offsetY: number;
+        readonly flip: 'none' | 'x' | 'y' | 'xy';
+        readonly align:
+          'tl' | 't' | 'tr' | 'l' | 'ctr' | 'r' | 'bl' | 'b' | 'br';
+      };
     }
   | {
       readonly kind: 'shape';

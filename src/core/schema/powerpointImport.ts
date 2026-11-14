@@ -120,6 +120,36 @@ const layer = v.pipe(
       brightness: signedFraction,
       contrast: signedFraction,
       grayscale: v.boolean(),
+      geometry: v.exactOptional(v.picklist(['rect', 'roundRect', 'ellipse'])),
+      radius: v.exactOptional(v.pipe(fraction, v.maxValue(0.5))),
+      tile: v.exactOptional(
+        payloadObject({
+          scaleX: v.pipe(
+            finiteNumber,
+            v.minValue(Number.MIN_VALUE),
+            v.maxValue(952500),
+          ),
+          scaleY: v.pipe(
+            finiteNumber,
+            v.minValue(Number.MIN_VALUE),
+            v.maxValue(952500),
+          ),
+          offsetX: v.pipe(finiteNumber, v.minValue(-100), v.maxValue(100)),
+          offsetY: v.pipe(finiteNumber, v.minValue(-100), v.maxValue(100)),
+          flip: v.picklist(['none', 'x', 'y', 'xy']),
+          align: v.picklist([
+            'tl',
+            't',
+            'tr',
+            'l',
+            'ctr',
+            'r',
+            'bl',
+            'b',
+            'br',
+          ]),
+        }),
+      ),
     }),
     v.object({
       kind: v.literal('shape'),

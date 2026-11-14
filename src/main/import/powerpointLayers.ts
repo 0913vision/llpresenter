@@ -307,7 +307,22 @@ export class PowerPointLayerReader {
       const id = `${context.scope}:${descendants(shape, 'cNvPr')[0]?.getAttribute('id') ?? ''}`;
       if (shape.localName === 'pic') {
         const fill = named(shape, 'blipFill')[0];
-        append(fill ? this.picture(fill, {...context, matrix}, id) : null);
+        const ext = xfrm && named(xfrm, 'ext')[0];
+        append(
+          fill
+            ? this.picture(
+                fill,
+                {...context, matrix},
+                {
+                  id,
+                  size: {
+                    width: numberAttribute(ext, 'cx', 1),
+                    height: numberAttribute(ext, 'cy', 1),
+                  },
+                },
+              )
+            : null,
+        );
         continue;
       }
       const geometry = named(props, 'prstGeom')[0]?.getAttribute('prst');
@@ -319,10 +334,22 @@ export class PowerPointLayerReader {
         skipped++;
         continue;
       }
+      const blipFill = named(props, 'blipFill')[0];
+      const explicitFill = children(props).find(child =>
+        child.localName.endsWith('Fill'),
+      );
+      if (
+        explicitFill &&
+        !['noFill', 'solidFill', 'gradFill', 'blipFill'].includes(
+          explicitFill.localName,
+        )
+      ) {
+        skipped++;
+      }
       const fill = this.shapeFill(shape, props, context);
       const line = named(props, 'ln')[0];
       const lineFill = line ? readFill(line, context.palette) : null;
-      if (!fill && !lineFill) continue;
+      if (!fill && !lineFill && !blipFill) continue;
       const adjustment = descendants(props, 'gd').find(
         gd => gd.getAttribute('name') === 'adj',
       );
@@ -333,15 +360,29 @@ export class PowerPointLayerReader {
       const ext = xfrm && named(xfrm, 'ext')[0];
       const width = numberAttribute(ext, 'cx', 1);
       const height = numberAttribute(ext, 'cy', 1);
+      const shapeRadius = Math.max(
+        0,
+        Math.min(0.5, Number.isFinite(radius) ? radius : 1 / 6),
+      );
+      if (blipFill) {
+        const picture = this.picture(
+          blipFill,
+          {...context, matrix},
+          {id, size: {width, height}},
+        );
+        if (picture?.kind === 'picture') {
+          append({...picture, geometry, radius: shapeRadius});
+        } else {
+          skipped++;
+        }
+      }
+      if (!fill && !lineFill) continue;
       append({
         kind: 'shape',
         id,
         matrix,
         geometry,
-        radius: Math.max(
-          0,
-          Math.min(0.5, Number.isFinite(radius) ? radius : 1 / 6),
-        ),
+        radius: shapeRadius,
         fill,
         outline: lineFill
           ? {
@@ -360,7 +401,9 @@ export class PowerPointLayerReader {
     props: Element,
     context: Context,
   ): PowerPointFill | null {
-    if (named(props, 'noFill').length) return null;
+    if (children(props).some(child => child.localName.endsWith('Fill'))) {
+      return readFill(props, context.palette);
+    }
     const fill = readFill(props, context.palette);
     if (fill) return fill;
     const style = named(shape, 'style')[0];
@@ -398,7 +441,11 @@ export class PowerPointLayerReader {
     });
     const blipFill = props && named(props, 'blipFill')[0];
     if (blipFill) {
-      return this.picture(blipFill, {...context, matrix}, 'background');
+      return this.picture(
+        blipFill,
+        {...context, matrix},
+        {id: 'background', size},
+      );
     }
     let fill = props ? readFill(props, context.palette) : null;
     const ref = named(bg, 'bgRef')[0];
@@ -433,7 +480,13 @@ export class PowerPointLayerReader {
   private picture(
     fill: Element,
     context: Context,
-    id: string,
+    {
+      id,
+      size,
+    }: {
+      readonly id: string;
+      readonly size: {readonly width: number; readonly height: number};
+    },
   ): PowerPointLayer | null {
     const blip = named(fill, 'blip')[0];
     const part = context.part.rels.get(
@@ -442,6 +495,11 @@ export class PowerPointLayerReader {
     if (!blip || !part || !/\.(png|jpe?g)$/i.test(part)) return null;
     const stretch = named(fill, 'stretch')[0];
     const lum = named(blip, 'lum')[0];
+    const tile = named(fill, 'tile')[0];
+    const flip = tile?.getAttribute('flip');
+    const align = tile?.getAttribute('algn');
+    const bounded = (value: number, min: number, max: number) =>
+      Math.max(min, Math.min(max, value));
     return {
       kind: 'picture',
       id,
@@ -460,6 +518,51 @@ export class PowerPointLayerReader {
       brightness: numberAttribute(lum, 'bright') / 100000,
       contrast: numberAttribute(lum, 'contrast') / 100000,
       grayscale: named(blip, 'grayscl').length > 0,
+      ...(tile && size.width > 0 && size.height > 0
+        ? {
+            tile: {
+              scaleX:
+                (bounded(
+                  numberAttribute(tile, 'sx', 100000) / 100000,
+                  0.001,
+                  100,
+                ) *
+                  9525) /
+                size.width,
+              scaleY:
+                (bounded(
+                  numberAttribute(tile, 'sy', 100000) / 100000,
+                  0.001,
+                  100,
+                ) *
+                  9525) /
+                size.height,
+              offsetX: bounded(
+                numberAttribute(tile, 'tx') / size.width,
+                -100,
+                100,
+              ),
+              offsetY: bounded(
+                numberAttribute(tile, 'ty') / size.height,
+                -100,
+                100,
+              ),
+              flip:
+                flip === 'x' || flip === 'y' || flip === 'xy' ? flip : 'none',
+              align:
+                align === 't' ||
+                align === 'tr' ||
+                align === 'l' ||
+                align === 'ctr' ||
+                align === 'r' ||
+                align === 'bl' ||
+                align === 'b' ||
+                align === 'br'
+                  ? align
+                  : 'tl',
+            },
+          }
+        : {}),
     };
   }
 }

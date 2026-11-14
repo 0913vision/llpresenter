@@ -27,6 +27,8 @@ function mockCanvas(alpha: number) {
     clip: vi.fn(),
     drawImage: vi.fn(),
     fill: vi.fn(),
+    fillRect: vi.fn(),
+    createPattern: vi.fn(() => ({setTransform: vi.fn()})),
     stroke: vi.fn(),
     ellipse: vi.fn(),
     roundRect: vi.fn(),
@@ -168,6 +170,48 @@ describe('PowerPoint canvas composition', () => {
     expect(context.imageSmoothingEnabled).toBe(true);
     expect(context.imageSmoothingQuality).toBe('high');
     expect(bitmap.close).toHaveBeenCalledOnce();
+  });
+
+  it('clips and repeats a tiled picture inside its shape', async () => {
+    const {context} = mockCanvas(255);
+    vi.stubGlobal('DOMMatrix', vi.fn());
+    vi.stubGlobal(
+      'createImageBitmap',
+      vi.fn(async () => ({width: 2, height: 2, close: vi.fn()})),
+    );
+    const layer = picture.layers[0];
+    if (layer?.kind !== 'picture') throw new Error('Expected picture');
+    await composePowerPointBackground({
+      ...picture,
+      layers: [
+        {
+          ...layer,
+          geometry: 'ellipse',
+          tile: {
+            scaleX: 0.1,
+            scaleY: 0.1,
+            offsetX: 0,
+            offsetY: 0,
+            flip: 'xy',
+            align: 'tl',
+          },
+        },
+      ],
+    });
+    expect(context.drawImage).toHaveBeenCalledWith(
+      expect.anything(),
+      0.2,
+      -0.2,
+      1.4,
+      2.2,
+      0,
+      0,
+      2,
+      2,
+    );
+    expect(context.ellipse).toHaveBeenCalled();
+    expect(context.createPattern).toHaveBeenCalled();
+    expect(context.fillRect).toHaveBeenCalledWith(0, 0, 1, 1);
   });
 
   it('keeps an unscaled 45 degree gradient diagonal in physical pixels on a 2:1 shape', async () => {

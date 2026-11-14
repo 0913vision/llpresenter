@@ -180,6 +180,59 @@ describe('PowerPoint background layers', () => {
     expect(layer?.matrix.e).toBeCloseTo(96);
   });
 
+  it('keeps picture fills and never substitutes a style for an explicit fill', () => {
+    const style =
+      '<p:style><a:fillRef idx="1"><a:schemeClr val="accent2"/></a:fillRef></p:style>';
+    const styled = (fill: string) =>
+      shape('s', fill).replace('</p:sp>', `${style}</p:sp>`);
+    const parts = fixture(
+      root(
+        'sld',
+        styled(
+          '<a:blipFill><a:blip r:embed="photo"><a:alphaModFix amt="6000"/></a:blip><a:tile sx="50000" flip="xy" algn="br"/></a:blipFill>',
+        ),
+        bg('992651'),
+      ),
+    );
+    parts['ppt/theme/t.xml'] = parts['ppt/theme/t.xml'].replace(
+      '<a:bgFillStyleLst>',
+      '<a:fillStyleLst><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:fillStyleLst><a:bgFillStyleLst>',
+    );
+    const result = read(parts);
+    expect(result.layers[0]).toMatchObject({
+      fill: {color: {r: 153 / 255, g: 38 / 255, b: 81 / 255}},
+    });
+    expect(result.layers[1]).toMatchObject({
+      kind: 'picture',
+      geometry: 'rect',
+      alpha: 0.06,
+      tile: {flip: 'xy', align: 'br'},
+    });
+    parts['ppt/slides/s.xml'] = root('sld', styled('<a:pattFill/>'));
+    expect(read(parts)).toMatchObject({layers: [], skipped: 1});
+    parts['ppt/slides/s.xml'] = root('sld', styled(''));
+    expect(read(parts).layers[0]).toMatchObject({
+      fill: {kind: 'solid', color: {r: 32 / 255}},
+    });
+    parts['ppt/slides/s.xml'] = root(
+      'sld',
+      styled('<a:blipFill><a:blip r:embed="photo"/><a:stretch/></a:blipFill>'),
+    );
+    expect(read(parts).layers[0]).toMatchObject({
+      kind: 'picture',
+      geometry: 'rect',
+    });
+    parts['ppt/slides/s.xml'] = root(
+      'sld',
+      '',
+      '<p:bg><p:bgPr><a:blipFill><a:blip r:embed="photo"/><a:tile/></a:blipFill></p:bgPr></p:bg>',
+    );
+    expect(read(parts).layers[0]).toMatchObject({
+      kind: 'picture',
+      tile: {align: 'tl'},
+    });
+  });
+
   it('transforms grouped geometry and skips text, placeholders and unsupported geometry', () => {
     const group = `<p:grpSp><p:grpSpPr><a:xfrm><a:off x="10" y="20"/><a:ext cx="40" cy="60"/><a:chOff x="0" y="0"/><a:chExt cx="100" cy="100"/></a:xfrm></p:grpSpPr>${shape('group')}</p:grpSp>`;
     const text = shape('text').replace(

@@ -981,6 +981,11 @@ radial gradients. Theme scheme colors use the master's color mapping and any
 layout or slide override. Alpha, luminance, shade and tint transforms apply to
 fills and gradient stops. Other shape geometries are skipped and counted.
 
+Picture fills on rectangles, rounded rectangles and ellipses are clipped to
+their shape. Picture fills and slide backgrounds can stretch or tile the image,
+with tile scaling, alignment, offset and alternating flips. Unsupported explicit
+shape fills are skipped and counted instead of using a theme fill.
+
 Picture cropping uses the decoded bitmap's pixels before shape transforms; a
 horizontal flip mirrors the already cropped picture, so a left source crop
 removes the visual right side. Pictures use high quality downsampling, with no

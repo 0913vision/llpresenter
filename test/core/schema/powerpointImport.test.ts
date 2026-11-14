@@ -123,6 +123,48 @@ describe('PowerPoint drawing data IPC', () => {
     ).toBe(true);
   });
 
+  it('preserves bounded picture geometry and tile fields', () => {
+    const tile = {
+      scaleX: 0.01,
+      scaleY: 0.02,
+      offsetX: -0.5,
+      offsetY: 0.5,
+      flip: 'xy',
+      align: 'br',
+    };
+    const filled = {...picture, geometry: 'roundRect', radius: 0.2, tile};
+    const result = parsePowerPointScene({...scene, layers: [filled]});
+    expect(result.ok).toBe(true);
+    if (result.ok) {
+      expect(result.value.layers[0]).toMatchObject({
+        geometry: 'roundRect',
+        radius: 0.2,
+        tile,
+      });
+    }
+    expect(
+      parsePowerPointScene({
+        ...scene,
+        layers: [{...filled, tile: {...tile, scaleX: Infinity}}],
+      }).ok,
+    ).toBe(false);
+    expect(
+      parsePowerPointScene({
+        ...scene,
+        layers: [{...filled, tile: {...tile, offsetX: 101}}],
+      }).ok,
+    ).toBe(false);
+    expect(
+      parsePowerPointScene({
+        ...scene,
+        layers: [{...filled, geometry: 'triangle'}],
+      }).ok,
+    ).toBe(false);
+    expect(
+      parsePowerPointScene({...scene, layers: [{...filled, radius: 0.6}]}).ok,
+    ).toBe(false);
+  });
+
   it('rejects excess layers, missing parts, repeated parts and invalid bytes', () => {
     expect(
       parsePowerPointScene({
