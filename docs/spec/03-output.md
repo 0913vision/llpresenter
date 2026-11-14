@@ -274,16 +274,18 @@ Transitions play on output and its live preview in 진행. Every editing preview
 including text, selection, theme and transition-setting changes. Editing never
 replays an effect or sends output commands (05).
 
-- Each incoming slide's own transition wins over the output defaults. Otherwise,
-  changing item identity uses `output.transition.between` (dissolve, 0.5 s),
-  while navigating within the same item uses `.within` (none). This applies to
-  songs, Bible, sermon, blank slides, and announcements on every screen kind.
-  Jumping backwards or to another slide of the same item still uses `within`.
+- Each incoming slide's own transition wins over its theme transition and the
+  output defaults. Otherwise, changing item identity uses
+  `output.transition.between` (dissolve, 0.5 s), while navigating within the
+  same item uses `.within` (none). This applies to songs, Bible, sermon, blank
+  slides, and announcements on audience screens. Jumping backwards or to another
+  slide of the same item still uses `within`.
 - Effects are none, dissolve, push, and wipe. Push moves both old and new pages
-  in the chosen direction. Wipe keeps their positions fixed and replaces the old
-  page across a hard moving edge. Both have left, right, up, and down
-  directions. Times range from 0.1 to 10 seconds, including a manually chosen
-  four-second title slide. None keeps its time but does not animate.
+  in the chosen direction. Wipe keeps the old page still and reveals the new
+  page over it with a linear blend ramp about 0.85 times the screen width or
+  height. Both have left, right, up, and down directions. Times range from 0.1
+  to 10 seconds, including a manually chosen four-second title slide. None keeps
+  its time but does not animate.
 - The same compositor timing drives dissolve, push, and wipe. A running effect
   retains its selected duration; settings changes apply at the next slide. A new
   slide interrupts the previous effect, reusing two pages. Clearing, standby,
@@ -291,10 +293,10 @@ replays an effect or sends output commands (05).
 - Lyric elements (current and next lyrics, reference, slide name and number,
   current and next labels) follow the slide effect. When a new slide changes its
   item, song or theme background, the background and text share one effect,
-  duration and start time after the incoming picture is ready. An unchanged
-  background keeps its player and position without restarting or flashing.
-  Independent media cues retain the media transition, including a cue that
-  changes the theme. A whole-composition transition has no second child effect.
+  duration and start time after the incoming picture is ready. Slides sharing a
+  background also transition as whole pages. Independent media cues retain the
+  media transition, including a cue that changes the theme. A whole-composition
+  transition has no second child effect.
 - Clears retain their own instant/fade behavior. Messages and other text
   elements retain their 0.2-second dissolve.
 
@@ -688,3 +690,7 @@ heartbeat, preserving the existing silent-renderer recovery.
 
 Source: `PreviewFrame` README, `Prefs` (미리보기 30fps), `StatusBar` README,
 `docs/TECH.md` performance.
+
+Slide transitions apply only to audience screens. Stage and broadcast slide
+changes cut immediately. A theme transition applies to every slide using that
+theme, including consecutive Bible slides and split verses.

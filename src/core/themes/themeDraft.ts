@@ -15,6 +15,7 @@ import {
 export interface ThemeDraft {
   readonly themeId: ThemeId;
   readonly screens: Theme['screens'];
+  readonly transition?: Theme['transition'];
 }
 
 /** The saved file as the editor shows it: the draft layouts replace the saved ones. */
@@ -26,11 +27,17 @@ export function withDraft(
   if (
     draft === null ||
     theme === undefined ||
-    theme.screens === draft.screens
+    (theme.screens === draft.screens &&
+      sameJson(theme.transition, draft.transition))
   ) {
     return file;
   }
-  return replaceTheme(file, {...theme, screens: draft.screens});
+  const {transition: _transition, ...rest} = theme;
+  return replaceTheme(file, {
+    ...rest,
+    screens: draft.screens,
+    ...(draft.transition === undefined ? {} : {transition: draft.transition}),
+  });
 }
 
 /**
@@ -49,13 +56,17 @@ export function editDraft(
   const shown = withDraft(saved, draft?.themeId === themeId ? draft : null);
   const result = transform(shown);
   if (!result.ok) return result;
-  const screens = findTheme(result.value, themeId)?.screens;
-  if (screens === undefined) return {ok: false, error: 'missing'};
-  const base = findTheme(saved, themeId)?.screens;
+  const changed = findTheme(result.value, themeId);
+  if (changed === undefined) return {ok: false, error: 'missing'};
+  const screens = changed.screens;
+  const base = findTheme(saved, themeId);
+  const transition = changed.transition;
   return {
     ok: true,
     value:
-      screens === base || sameJson(screens, base) ? null : {themeId, screens},
+      sameJson(screens, base?.screens) && sameJson(transition, base?.transition)
+        ? null
+        : {themeId, screens, ...(transition === undefined ? {} : {transition})},
   };
 }
 
@@ -66,13 +77,9 @@ export function commitDraft(
 ): ThemeEditResult {
   const theme = findTheme(saved, draft.themeId);
   if (theme === undefined) return {ok: false, error: 'missing'};
-  return {
-    ok: true,
-    value: replaceTheme(
-      saved,
-      markBuiltInEdited({...theme, screens: draft.screens}),
-    ),
-  };
+  const shown = findTheme(withDraft(saved, draft), draft.themeId);
+  if (shown === undefined) return {ok: false, error: 'missing'};
+  return {ok: true, value: replaceTheme(saved, markBuiltInEdited(shown))};
 }
 
 /** Adds a new theme made from the draft layouts and leaves the saved one as it was. */

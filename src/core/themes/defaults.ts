@@ -344,6 +344,9 @@ export function builtInTheme(
   return {
     id: themeIds[fallbackKind],
     name: names[fallbackKind],
+    ...(fallbackKind === 'bible'
+      ? {transition: {kind: 'wipe' as const, sec: 0.7}}
+      : {}),
     screens: Object.fromEntries(
       screens.map(screen => [
         screen.id,
@@ -393,6 +396,7 @@ export function createDefaultThemes(
       },
       {
         id: createThemeId(uuid(106)),
+        transition: {kind: 'wipe', sec: 1},
         name: '설교 제목',
         screens: Object.fromEntries(
           screens.map(screen => [
@@ -405,6 +409,7 @@ export function createDefaultThemes(
       },
       ...SECTION_THEMES.map(({id, color}) => ({
         id,
+        transition: {kind: 'wipe' as const, sec: 1},
         name: `구역 이름 ${color}`,
         screens: Object.fromEntries(
           screens.map(screen => [

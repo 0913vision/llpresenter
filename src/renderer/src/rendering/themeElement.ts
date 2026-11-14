@@ -662,7 +662,8 @@ export class ThemeElementView {
               continued,
               ...(biblePart === undefined ? {} : {biblePart}),
             },
-        frame.transitions !== false,
+        frame.transitions !== false &&
+          (frame.screen === undefined || frame.screen.kind === 'audience'),
       );
     }
     this.shownText = text;

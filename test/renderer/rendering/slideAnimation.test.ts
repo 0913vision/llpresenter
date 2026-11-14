@@ -7,31 +7,74 @@ function setup() {
   const old = document.createElement('div');
   const next = document.createElement('div');
   const cancel = vi.fn();
-  const animate = vi.fn(() => ({cancel}));
+  const animate = vi.fn((...args: Parameters<HTMLElement['animate']>) => {
+    return {cancel, count: args.length};
+  });
   Object.defineProperty(old, 'animate', {value: animate});
   Object.defineProperty(next, 'animate', {value: animate});
   return {old, next, cancel, animate, view: new SlideAnimation()};
 }
 
 describe('SlideAnimation', () => {
-  it('aligns separated theme boxes to one screen-wide wipe and push', () => {
+  it('keeps the old page still while revealing the new page with a feathered mask', () => {
     const {view, old, next, animate} = setup();
-    view.setFrame({x: 100, y: 200, w: 800, h: 400});
     view.play(old, next, {kind: 'wipe', dir: 'left', sec: 1});
+    expect(animate).toHaveBeenNthCalledWith(1, [{opacity: 1}, {opacity: 1}], {
+      duration: 1000,
+      easing: 'linear',
+    });
     expect(animate).toHaveBeenNthCalledWith(
       2,
       [
-        {clipPath: 'inset(-200px -1020px -480px 1820px)'},
-        {clipPath: 'inset(-200px -1020px -480px -100px)'},
+        {
+          maskImage:
+            'linear-gradient(to left, black 0%, black 35.087719%, transparent 64.912281%, transparent 100%)',
+          maskSize: '285% 100%',
+          maskPosition: '0% 0%',
+          maskRepeat: 'no-repeat',
+        },
+        {
+          maskImage:
+            'linear-gradient(to left, black 0%, black 35.087719%, transparent 64.912281%, transparent 100%)',
+          maskSize: '285% 100%',
+          maskPosition: '100% 0%',
+          maskRepeat: 'no-repeat',
+        },
       ],
       {duration: 1000, easing: 'linear'},
     );
-    view.play(old, next, {kind: 'push', dir: 'up', sec: 1});
-    expect(animate).toHaveBeenNthCalledWith(
-      4,
-      [{transform: 'translateY(1080px)'}, {transform: 'translate(0)'}],
-      {duration: 1000, easing: 'linear'},
+  });
+  it('moves the feather across the whole screen over the whole duration', () => {
+    const {view, old, next, animate} = setup();
+    view.play(old, next, {kind: 'wipe', dir: 'left', sec: 1});
+    const frames = animate.mock.calls[1]?.[0];
+    if (!Array.isArray(frames)) throw new Error('Missing wipe keyframes');
+    const first = frames[0];
+    if (
+      first === undefined ||
+      typeof first.maskImage !== 'string' ||
+      typeof first.maskSize !== 'string'
+    ) {
+      throw new Error('Missing mask');
+    }
+    const stops = /black ([\d.]+)%, transparent ([\d.]+)%/.exec(
+      first.maskImage,
     );
+    if (!stops) throw new Error('Missing feather stops');
+    const size = Number.parseFloat(first.maskSize) / 100;
+    const transparentStop = Number(stops[2]) / 100;
+    const edgeAt = (progress: number) =>
+      Math.max(
+        0,
+        Math.min(1, size * (1 - transparentStop) + (1 - size) * progress),
+      );
+    expect(edgeAt(0)).toBeCloseTo(1, 5);
+    expect(edgeAt(0.5)).toBeCloseTo(0.075, 5);
+    expect((size * (Number(stops[2]) - Number(stops[1]))) / 100).toBeCloseTo(
+      0.85,
+      5,
+    );
+    expect(edgeAt(1)).toBeCloseTo(0, 5);
   });
   it.each([
     ['left', 'translateX(100%)', 'translateX(-100%)'],
@@ -59,28 +102,43 @@ describe('SlideAnimation', () => {
     },
   );
   it.each([
-    ['left', 'inset(0 0 0 100%)', 'inset(0 100% 0 0)'],
-    ['right', 'inset(0 100% 0 0)', 'inset(0 0 0 100%)'],
-    ['up', 'inset(100% 0 0 0)', 'inset(0 0 100% 0)'],
-    ['down', 'inset(0 0 100% 0)', 'inset(100% 0 0 0)'],
+    [
+      'left',
+      {direction: 'left', size: '285% 100%', from: '0% 0%', to: '100% 0%'},
+    ],
+    [
+      'right',
+      {direction: 'right', size: '285% 100%', from: '100% 0%', to: '0% 0%'},
+    ],
+    ['up', {direction: 'top', size: '100% 285%', from: '0% 0%', to: '0% 100%'}],
+    [
+      'down',
+      {direction: 'bottom', size: '100% 285%', from: '0% 100%', to: '0% 0%'},
+    ],
   ] as const)(
-    'wipes a complementary hard edge %s without moving either page',
-    (dir, incoming, outgoing) => {
+    'reveals the incoming page in direction %s',
+    (dir, {direction, size, from, to}) => {
       const {view, old, next, animate} = setup();
       view.play(old, next, {kind: 'wipe', dir, sec: 0.5});
-      expect(animate.mock.calls).toEqual([
+      const maskImage = `linear-gradient(to ${direction}, black 0%, black 35.087719%, transparent 64.912281%, transparent 100%)`;
+      expect(animate).toHaveBeenNthCalledWith(
+        2,
         [
-          [
-            {clipPath: 'inset(0)', opacity: 1},
-            {clipPath: outgoing, opacity: 1},
-          ],
-          {duration: 500, easing: 'linear'},
+          {
+            maskImage,
+            maskSize: size,
+            maskPosition: from,
+            maskRepeat: 'no-repeat',
+          },
+          {
+            maskImage,
+            maskSize: size,
+            maskPosition: to,
+            maskRepeat: 'no-repeat',
+          },
         ],
-        [
-          [{clipPath: incoming}, {clipPath: 'inset(0)'}],
-          {duration: 500, easing: 'linear'},
-        ],
-      ]);
+        {duration: 500, easing: 'linear'},
+      );
     },
   );
   it('cancels both pages on interruption, cuts, and disposal', () => {

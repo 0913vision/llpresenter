@@ -58,6 +58,7 @@ export function resolveThemeOutput({
         }));
   return {
     themeId: theme.id,
+    ...(theme.transition === undefined ? {} : {transition: theme.transition}),
     revision,
     missing: missing.slice(0, 2),
     screens: Object.fromEntries(

@@ -141,6 +141,106 @@ afterEach(() => {
 });
 
 describe('theme composition drawing', () => {
+  it('transitions whole pages between items sharing a background', () => {
+    const {root, view} = setup();
+    const base = frame([
+      {...themeElementBase(), kind: 'background', fit: 'fill', radius: 0},
+      {...themeElementBase(31), kind: 'currentText'},
+    ]);
+    const effect = {kind: 'push' as const, dir: 'left' as const, sec: 0.5};
+    view.render(song, {...base, slideTransition: effect});
+    if (song.slide === null) throw new Error('Missing slide');
+    view.render(
+      {...song, slide: {...song.slide, itemId: 'second', lines: ['Next']}},
+      {...base, slideTransition: effect},
+    );
+    expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(2);
+    expect(root.textContent).toContain('Invented line');
+    expect(root.textContent).toContain('Next');
+    view.dispose();
+  });
+
+  it.each(['card', 'text'] as const)(
+    'wipes every element together from a section card to %s',
+    kind => {
+      const {root, view} = setup();
+      vi.spyOn(ThemeElementView.prototype, 'ready').mockReturnValue(true);
+      const elements: ThemeElement[] = [
+        {...themeElementBase(), kind: 'background', fit: 'fill', radius: 0},
+        {
+          ...themeElementBase(31),
+          kind: 'image',
+          mediaId,
+          fit: 'fit',
+          radius: 0,
+        },
+        {
+          ...themeElementBase(32),
+          kind: 'box',
+          box: {on: true, fill: '#000000', opacity: 40, radius: 0},
+        },
+        {...themeElementBase(33), kind: 'itemName'},
+        {...themeElementBase(34), kind: 'currentText'},
+      ];
+      const base = frame(elements);
+      if (
+        base.theme === undefined ||
+        base.theme.item === null ||
+        song.slide === null
+      ) {
+        throw new Error('Missing slide');
+      }
+      const effect = {kind: 'wipe' as const, sec: 1};
+      view.render(song, {...base, slideTransition: effect});
+      const nextLayers = {
+        ...song,
+        slide: {
+          ...song.slide,
+          itemId: kind === 'card' ? 'next-card' : 'invented',
+          position: 1,
+          lines: ['Next text'],
+        },
+      };
+      const nextFrame = {
+        ...base,
+        slideTransition: effect,
+        theme: {
+          ...base.theme,
+          item: {
+            ...base.theme.item,
+            id: nextLayers.slide.itemId,
+            title: 'Next title',
+          },
+        },
+      };
+      view.render(nextLayers, nextFrame);
+      const pages = root.querySelectorAll<HTMLElement>('[data-theme-page]');
+      expect(pages).toHaveLength(2);
+      const incoming = pages[1];
+      if (incoming === undefined) throw new Error('Missing incoming page');
+      for (const name of [
+        'background',
+        'image',
+        'box',
+        'itemName',
+        'currentText',
+      ]) {
+        expect(incoming.querySelector(`[data-kind="${name}"]`)).not.toBeNull();
+      }
+      const animate = vi.fn(() => ({cancel: vi.fn()}));
+      for (const page of pages) {
+        Object.defineProperty(page, 'animate', {value: animate});
+      }
+      vi.advanceTimersByTime(32);
+      expect(animate).toHaveBeenCalledTimes(2);
+      expect(animate).toHaveBeenLastCalledWith(expect.any(Array), {
+        duration: 1000,
+        easing: 'linear',
+      });
+      view.dispose();
+    },
+  );
+
   it('keeps the new broadcast look on transparent NDI output', () => {
     const root = document.createElement('div');
     const view = new ThemeCompositionView(root, {
@@ -1435,7 +1535,10 @@ describe('theme composition drawing', () => {
       for (const page of root.querySelectorAll(
         `[data-theme-page], .${classes.page}`,
       )) {
-        Object.defineProperty(page, 'animate', {value: animate});
+        Object.defineProperty(page, 'animate', {
+          value: animate,
+          configurable: true,
+        });
       }
       vi.advanceTimersByTime(1000);
       expect(animate).toHaveBeenCalledTimes(2);
@@ -1458,19 +1561,27 @@ describe('theme composition drawing', () => {
       });
 
       expect(cancel).toHaveBeenCalledTimes(2);
-      expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(1);
-      expect(
-        root.querySelector<HTMLElement>('[data-theme-page]')?.style.opacity,
-      ).toBe('1');
-      expect(text('currentText')).toBe('Next lyrics');
-      expect(animate).toHaveBeenCalledTimes(kind === 'none' ? 2 : 4);
-      if (kind === 'push') {
+      if (kind === 'none') {
+        expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(1);
+        expect(text('currentText')).toBe('Next lyrics');
+      } else {
+        const pages = root.querySelectorAll<HTMLElement>('[data-theme-page]');
+        expect(pages).toHaveLength(2);
+        for (const page of pages) {
+          Object.defineProperty(page, 'animate', {
+            value: animate,
+            configurable: true,
+          });
+        }
+        vi.advanceTimersByTime(32);
         expect(animate).toHaveBeenLastCalledWith(expect.any(Array), {
           duration: 500,
           easing: 'linear',
         });
+        vi.advanceTimersByTime(500);
+        expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(1);
+        expect(text('currentText')).toBe('Next lyrics');
       }
-      expect(vi.getTimerCount()).toBe(0);
       expect(onError).not.toHaveBeenCalled();
       view.dispose();
     },

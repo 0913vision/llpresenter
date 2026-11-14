@@ -75,3 +75,19 @@ it.each(['none', 'dissolve', 'push', 'wipe'] as const)(
     }
   },
 );
+
+it('chooses slide then theme then global transitions', () => {
+  const theme = {kind: 'wipe' as const, sec: 0.7};
+  const own = {kind: 'push' as const, sec: 1};
+  expect(
+    slideTransitionFor(defaults, 'song', {...slide, themeTransition: theme}),
+  ).toEqual(theme);
+  expect(
+    slideTransitionFor(defaults, 'song', {
+      ...slide,
+      transition: own,
+      themeTransition: theme,
+    }),
+  ).toEqual(own);
+  expect(slideTransitionFor(defaults, 'song', slide)).toEqual(defaults.within);
+});

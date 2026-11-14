@@ -1,3 +1,4 @@
+import {slideTransitionSchema} from './slideTransition';
 import {userThemeCount} from '../themes/builtInIds';
 import * as v from 'valibot';
 import {
@@ -230,6 +231,7 @@ export const themeClipboardSchema = jsonObject({
 });
 
 export const themeSchema = jsonObject({
+  transition: v.exactOptional(slideTransitionSchema),
   edited: v.exactOptional(v.boolean()),
   id: themeIdSchema,
   name: v.pipe(nonBlankText, v.maxLength(THEME_LIMITS.name)),

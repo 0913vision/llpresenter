@@ -9,6 +9,7 @@ import {
   themeScreens,
   THEME_MAIN,
   THEME_STAGE,
+  THEME_CAPTURE,
 } from '@fixtures/core/themeOutput';
 import {DEFAULT_MESSAGE_STYLE} from '@core/schema/messages';
 import {ScreenFrames} from '@renderer/rendering/screenFrames';
@@ -376,4 +377,76 @@ it('holds the selected effect across redraws and applies new defaults only to th
     kind: 'dissolve',
     sec: 0.5,
   });
+});
+
+it.each([THEME_STAGE, THEME_CAPTURE])(
+  'cuts slide changes on stage and broadcast %s',
+  async screenId => {
+    const {frames, state, onChange} = setup(screenId);
+    await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(4));
+    if (state.themeOutput === undefined) throw new Error('Missing theme');
+    const current: LiveState = {
+      ...state,
+      themeOutput: {...state.themeOutput, transition: {kind: 'wipe', sec: 0.7}},
+      layers: {
+        ...state.layers,
+        slide: {
+          itemId: 'bible',
+          position: 0,
+          label: null,
+          lines: ['Verse'],
+          transition: {kind: 'push', sec: 1},
+        },
+      },
+    };
+    expect(frames.frame(current)).toMatchObject({
+      slideTransition: {kind: 'none'},
+      transitionTimes: {slideMs: 0},
+    });
+    const next: LiveState = {
+      ...current,
+      layers: {
+        ...current.layers,
+        slide: {itemId: 'bible', position: 1, label: null, lines: ['Next']},
+      },
+    };
+    expect(frames.frame(next)).toMatchObject({
+      slideTransition: {kind: 'none'},
+      transitionTimes: {slideMs: 0},
+    });
+  },
+);
+
+it('uses the scripture theme wipe for consecutive slides and split verses', async () => {
+  const {frames, state, onChange} = setup();
+  await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(4));
+  if (state.themeOutput === undefined) throw new Error('Missing theme');
+  const themeOutput = {
+    ...state.themeOutput,
+    transition: {kind: 'wipe' as const, sec: 0.7},
+  };
+  for (const [position, biblePart] of [
+    [0, 1],
+    [1, 2],
+    [2, 1],
+  ] as const) {
+    const current: LiveState = {
+      ...state,
+      themeOutput,
+      layers: {
+        ...state.layers,
+        slide: {
+          itemId: 'bible',
+          position,
+          biblePart,
+          label: null,
+          lines: ['Verse'],
+        },
+      },
+    };
+    expect(frames.frame(current)).toMatchObject({
+      slideTransition: {kind: 'wipe', sec: 0.7},
+      transitionTimes: {slideMs: 700},
+    });
+  }
 });

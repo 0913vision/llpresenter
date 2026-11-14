@@ -134,7 +134,13 @@ export class ThemeCompositionView {
           item: this.page.frame.theme?.item ?? null,
         })?.mediaId;
     const rebuilt =
-      signature !== this.page?.signature || (slideChanged && backgroundChanged);
+      signature !== this.page?.signature ||
+      (slideChanged && backgroundChanged && !this.preparing) ||
+      (slideChanged &&
+        !this.preparing &&
+        frame.transitions !== false &&
+        frame.slideTransition !== undefined &&
+        frame.slideTransition.kind !== 'none');
     let pendingSlide = false;
     if (rebuilt) this.build(signature, frame, layers);
     else if (this.leaving !== null && this.page !== null) {
@@ -328,9 +334,15 @@ export class ThemeCompositionView {
       this.leaving = old;
       this.preparing = true;
       page.style.opacity = '0';
-      for (const incoming of elements) {
-        for (const previous of old.elements) {
-          incoming.retainMedia(previous, layers, frame);
+      if (
+        frame.transitions === false ||
+        frame.slideTransition === undefined ||
+        frame.slideTransition.kind === 'none'
+      ) {
+        for (const incoming of elements) {
+          old.elements.forEach(previous =>
+            incoming.retainMedia(previous, layers, frame),
+          );
         }
       }
     }

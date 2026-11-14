@@ -1140,3 +1140,10 @@ In the 준비 palette, Ctrl Z from the 곡 tab undoes the latest 예배 순서 e
 
 On the last slide of a Bible item, the stage next-slide preview is empty even
 when next-item navigation is enabled.
+
+When a slide comes live, its transition takes precedence, followed by its theme
+transition and then the global between-item or within-item preference.
+
+Slide transitions apply only to audience screens. Stage and broadcast slide
+changes cut immediately. A theme transition applies to every slide using that
+theme, including consecutive Bible slides and split verses.

@@ -8,7 +8,7 @@ import {
   withDraft,
   type ThemeDraft,
 } from './themeDraft';
-import {editThemeLayout, findTheme} from './themeEdits';
+import {editThemeLayout, findTheme, replaceTheme} from './themeEdits';
 
 const main = {
   id: createScreenId('00000000-0000-4000-8000-000000000001'),
@@ -52,6 +52,27 @@ describe('theme draft', () => {
       value: saved,
     }));
     expect(reverted).toEqual({ok: true, value: null});
+  });
+
+  it('keeps transition edits in a draft, commits them and copies them', () => {
+    const {saved, theme} = setup();
+    const transition = {kind: 'wipe' as const, sec: 0.7};
+    const edited = editDraft(
+      {saved, draft: null, themeId: theme.id},
+      shown => ({ok: true, value: replaceTheme(shown, {...theme, transition})}),
+    );
+    if (!edited.ok || edited.value === null) throw new Error('No draft');
+    expect(
+      findTheme(withDraft(saved, edited.value), theme.id)?.transition,
+    ).toEqual(transition);
+    const committed = commitDraft(saved, edited.value);
+    if (!committed.ok) throw new Error('No commit');
+    expect(findTheme(committed.value, theme.id)?.transition).toEqual(
+      transition,
+    );
+    const copied = saveDraftAs(saved, edited.value, {id: copyId, name: 'Copy'});
+    if (!copied.ok) throw new Error('No copy');
+    expect(findTheme(copied.value, copyId)?.transition).toEqual(transition);
   });
 
   it('refuses an edit that the theme rules reject and keeps the draft', () => {

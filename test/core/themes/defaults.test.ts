@@ -1,3 +1,4 @@
+import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
 import {
   PREPARATION_THEME_ID,
   sundayPreparationLayout,
@@ -565,4 +566,38 @@ it('limits current text to 120 px in every built-in stage layout', () => {
       }
     }
   }
+});
+
+it('sets wipe transitions on scripture and title themes', () => {
+  const file = createDefaultThemes();
+  expect(
+    file.themes.find(theme => theme.id === CREED_PRAYER_THEME_ID)?.transition,
+  ).toEqual({kind: 'wipe', sec: 0.7});
+  expect(file.themes.find(theme => theme.name === '말씀')?.transition).toEqual({
+    kind: 'wipe',
+    sec: 0.7,
+  });
+  expect(
+    file.themes.find(theme => theme.name === '설교 제목')?.transition,
+  ).toEqual({kind: 'wipe', sec: 1});
+  const sections = file.themes.filter(theme =>
+    theme.name.startsWith('구역 이름 '),
+  );
+  expect(sections).toHaveLength(7);
+  expect(
+    sections.every(
+      theme => theme.transition?.kind === 'wipe' && theme.transition.sec === 1,
+    ),
+  ).toBe(true);
+  expect(v.safeParse(themesSchema, file).success).toBe(true);
+  const scripture = file.themes.find(theme => theme.name === '말씀');
+  expect(
+    v.safeParse(themesSchema, {
+      ...file,
+      themes: [
+        ...file.themes.filter(theme => theme !== scripture),
+        {...scripture, transition: {kind: 'wipe', sec: 11}},
+      ],
+    }).success,
+  ).toBe(false);
 });

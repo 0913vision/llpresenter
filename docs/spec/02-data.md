@@ -1280,3 +1280,7 @@ titleTop from 0 to 920 (default 181), subtitleTop from 0 to 990 (default 345).
 Absence uses 0 px for the title and 24 px for the subtitle. It travels with the
 title marker through service decks, clipboard copies, show tiles, and live
 payloads; ordinary lyric slides ignore it.
+
+Themes may store an optional slide transition with the same bounded kind,
+direction and duration as a slide transition. User theme transitions are
+retained when saved.

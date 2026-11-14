@@ -14,11 +14,11 @@ const TRAVEL = {
   up: ['translateY(100%)', 'translateY(-100%)'],
   down: ['translateY(-100%)', 'translateY(100%)'],
 } as const;
-const EDGE = {
-  left: ['inset(0 0 0 100%)', 'inset(0 100% 0 0)'],
-  right: ['inset(0 100% 0 0)', 'inset(0 0 0 100%)'],
-  up: ['inset(100% 0 0 0)', 'inset(0 0 100% 0)'],
-  down: ['inset(0 0 100% 0)', 'inset(100% 0 0 0)'],
+const WIPE = {
+  left: {direction: 'left', size: '285% 100%', from: '0% 0%', to: '100% 0%'},
+  right: {direction: 'right', size: '285% 100%', from: '100% 0%', to: '0% 0%'},
+  up: {direction: 'top', size: '100% 285%', from: '0% 0%', to: '0% 100%'},
+  down: {direction: 'bottom', size: '100% 285%', from: '0% 100%', to: '0% 0%'},
 } as const;
 
 /** Owns at most two compositor animations, including interruption and disposal. */
@@ -62,7 +62,6 @@ export class SlideAnimation {
               `translateY(${THEME_LIMITS.height}px)`,
             ],
           }[dir];
-    const edge = this.frame === undefined ? EDGE[dir] : this.screenEdge(dir);
     let outgoing: Keyframe[];
     let incoming: Keyframe[];
     switch (effect.kind) {
@@ -77,13 +76,26 @@ export class SlideAnimation {
         ];
         incoming = [{transform: travel[0]}, {transform: 'translate(0)'}];
         break;
-      case 'wipe':
-        outgoing = [
-          {clipPath: edge[2] ?? 'inset(0)', opacity: 1},
-          {clipPath: edge[1], opacity: 1},
+      case 'wipe': {
+        const wipe = WIPE[dir];
+        const maskImage = `linear-gradient(to ${wipe.direction}, black 0%, black 35.087719%, transparent 64.912281%, transparent 100%)`;
+        outgoing = [{opacity: 1}, {opacity: 1}];
+        incoming = [
+          {
+            maskImage,
+            maskSize: wipe.size,
+            maskPosition: wipe.from,
+            maskRepeat: 'no-repeat',
+          },
+          {
+            maskImage,
+            maskSize: wipe.size,
+            maskPosition: wipe.to,
+            maskRepeat: 'no-repeat',
+          },
         ];
-        incoming = [{clipPath: edge[0]}, {clipPath: edge[3] ?? 'inset(0)'}];
         break;
+      }
     }
     const timing = {duration: effect.sec * 1000, easing: 'linear'};
     this.animations = [
@@ -95,54 +107,5 @@ export class SlideAnimation {
   cancel(): void {
     for (const animation of this.animations) animation.cancel();
     this.animations = [];
-  }
-
-  private screenEdge(
-    dir: NonNullable<SlideTransition['dir']>,
-  ): readonly [string, string, string, string] {
-    const {x, y, w, h} = this.frame ?? {
-      x: 0,
-      y: 0,
-      w: THEME_LIMITS.width,
-      h: THEME_LIMITS.height,
-    };
-    const {width, height} = THEME_LIMITS;
-    const inset = ([top, right, bottom, left]: readonly [
-      number,
-      number,
-      number,
-      number,
-    ]): string => `inset(${top}px ${right}px ${bottom}px ${left}px)`;
-    const full = inset([-y, x + w - width, y + h - height, -x]);
-    switch (dir) {
-      case 'left':
-        return [
-          inset([-y, x + w - width, y + h - height, width - x]),
-          inset([-y, x + w, y + h - height, -x]),
-          full,
-          full,
-        ];
-      case 'right':
-        return [
-          inset([-y, x + w, y + h - height, -x]),
-          inset([-y, x + w - width, y + h - height, width - x]),
-          full,
-          full,
-        ];
-      case 'up':
-        return [
-          inset([height - y, x + w - width, y + h - height, -x]),
-          inset([-y, x + w - width, y + h, -x]),
-          full,
-          full,
-        ];
-      case 'down':
-        return [
-          inset([-y, x + w - width, y + h, -x]),
-          inset([height - y, x + w - width, y + h - height, -x]),
-          full,
-          full,
-        ];
-    }
   }
 }

@@ -30,10 +30,15 @@ export function transitionTimes(
 export function slideTransitionFor(
   defaults: Preferences['output']['transition'],
   previousItemId: string | null,
-  slide: Pick<SlideLayer, 'itemId' | 'transition'> | null,
+  slide:
+    | (Pick<SlideLayer, 'itemId' | 'transition'> & {
+        readonly themeTransition?: SlideTransition;
+      })
+    | null,
 ): SlideTransition {
   return (
     slide?.transition ??
+    slide?.themeTransition ??
     (slide !== null && slide.itemId === previousItemId
       ? defaults.within
       : defaults.between)
