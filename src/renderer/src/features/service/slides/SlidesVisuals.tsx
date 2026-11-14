@@ -254,7 +254,8 @@ export function SlidesPreview({
             disabled={part === 0}
             onClick={() => setChosenPart({id: slide.id, index: part - 1})}
           >
-            ?댁쟾 遺遺?          </Button>
+            ?댁쟾 遺遺?{' '}
+          </Button>
           <span>
             {part + 1} / {count}
           </span>
@@ -262,7 +263,8 @@ export function SlidesPreview({
             disabled={part + 1 >= count}
             onClick={() => setChosenPart({id: slide.id, index: part + 1})}
           >
-            ?ㅼ쓬 遺遺?          </Button>
+            ?ㅼ쓬 遺遺?{' '}
+          </Button>
         </div>
       )}
     </RolePreview>

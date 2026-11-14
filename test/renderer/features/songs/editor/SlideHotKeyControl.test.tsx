@@ -5,6 +5,7 @@ import {SlideInspector} from '@renderer/features/service/slideInspector/SlideIns
 
 vi.mock('@renderer/platform/useSettingsDocument', () => ({
   useSettingsDocument: () => null,
+  useApiSettingsDocument: () => null,
 }));
 vi.mock('@renderer/features/songs/editor/SongPreview', () => ({
   Picture: () => <div />,

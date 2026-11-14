@@ -75,12 +75,10 @@ function biblePicture(
   ) {
     return undefined;
   }
-  const slide =
-    stageSlideOf({itemId: item.id, index}) ??
-    slideLayerOf(
-      {itemId: item.id, index: index - offset},
-      () => bibleTiles ?? projection.tiles,
-    );
+  const slide = slideLayerOf(
+    {itemId: item.id, index: index - offset},
+    () => bibleTiles ?? projection.tiles,
+  );
   if (slide === null) return undefined;
   const {theme, screen} = bibleAppearance ?? projection.appearance;
   return (

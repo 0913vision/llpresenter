@@ -32,6 +32,14 @@ function nestedArrays(depth: number): unknown {
 }
 
 describe('escapeKeys and restoreKeys', () => {
+  it('preserves binary data when escaping keys', () => {
+    const bytes = new Uint8Array([1, 2, 3]);
+    const original = {bytes, constructor: 'value'};
+    const copy = escaped(original);
+    expect(copy).toMatchObject({bytes});
+    restoreKeys(copy);
+    expect(copy).toEqual(original);
+  });
   it('round-trips every key and keeps the key order', () => {
     const original = parseJson(DANGEROUS_JSON);
 
