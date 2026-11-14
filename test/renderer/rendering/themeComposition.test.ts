@@ -2249,3 +2249,44 @@ it('renders only the section name in the fading NDI band', () => {
   expect(root.textContent).not.toContain('English title');
   view.dispose();
 });
+
+it('hides the next item on stage only at the end of a Bible item', () => {
+  const {root, view} = setup();
+  const slide = song.slide;
+  if (slide === null) throw Error('Missing slide');
+  const elements: ThemeElement[] = [
+    {...themeElementBase(31), kind: 'nextText'},
+    {...themeElementBase(32), kind: 'nextLabel'},
+  ];
+  const render = (
+    kind: 'bible' | 'song',
+    position: number,
+    screen: 'stage' | 'audience',
+  ) => {
+    view.render(
+      {...song, slide: {...slide, kind, position, sequenceLength: 2}},
+      {
+        ...frame(elements, {item: {id: 'invented', kind, source: 'service'}}),
+        screen: {id: THEME_MAIN, kind: screen},
+        transitions: false,
+      },
+    );
+  };
+  const nextText = () =>
+    root.querySelector(`[data-kind="nextText"] .${classes.shown}`)
+      ?.textContent ?? '';
+  const nextLabel = () =>
+    root.querySelector(`[data-kind="nextLabel"] .${classes.shown}`)
+      ?.textContent ?? '';
+  render('bible', 0, 'stage');
+  expect(nextText()).toContain('Invented next');
+  expect(nextLabel()).toContain('Chorus');
+  render('bible', 1, 'stage');
+  expect(nextText()).not.toContain('Invented next');
+  expect(nextLabel()).not.toContain('Chorus');
+  render('song', 1, 'stage');
+  expect(nextText()).toContain('Invented next');
+  render('bible', 1, 'audience');
+  expect(nextText()).toContain('Invented next');
+  view.dispose();
+});

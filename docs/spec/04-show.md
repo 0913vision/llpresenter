@@ -1137,3 +1137,6 @@ the opening card. Item navigation and restoration include the card.
 When an opening Bible card is live, the previous-verse key does nothing.
 
 In the 준비 palette, Ctrl Z from the 곡 tab undoes the latest 예배 순서 edit.
+
+On the last slide of a Bible item, the stage next-slide preview is empty even
+when next-item navigation is enabled.

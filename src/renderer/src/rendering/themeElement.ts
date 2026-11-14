@@ -436,6 +436,15 @@ export class ThemeElementView {
         : undefined;
     const item = frame.theme?.item ?? null;
     const slide = layers.slide;
+    if (
+      frame.screen?.kind === 'stage' &&
+      (element.kind === 'nextText' || element.kind === 'nextLabel') &&
+      (slide?.kind ?? item?.kind) === 'bible' &&
+      slide?.sequenceLength !== undefined &&
+      slide.position >= slide.sequenceLength - 1
+    ) {
+      return null;
+    }
     const reflow =
       frame.screen?.kind === 'stage' || frame.screen?.kind === 'broadcast';
     const currentBible =
