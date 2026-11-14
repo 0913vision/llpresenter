@@ -119,6 +119,35 @@ describe('song editor view', () => {
     },
   );
 
+  it('selects a leading card together with a song slide and clears the slide on a plain card click', async () => {
+    const {store, session, user, view} = await editorSetup();
+    const onSelectChange = vi.fn();
+    view.rerender(
+      <SongEditor
+        store={store}
+        leadingCard={{
+          label: 'Section',
+          mixedSelection: true,
+          render: () => <span>Section</span>,
+          onDelete: vi.fn(),
+          onSelectChange,
+        }}
+      />,
+    );
+    const card = screen.getByLabelText('Section');
+    const row = view.container.querySelector<HTMLElement>('[data-song-slide]');
+    if (row === null) throw Error('Missing song slide');
+    await user.click(card);
+    expect(session.slideModel.getSnapshot().selection.ids.size).toBe(0);
+    await user.keyboard('[ControlLeft>]');
+    await user.click(row);
+    await user.keyboard('[/ControlLeft]');
+    expect(onSelectChange).toHaveBeenLastCalledWith(true);
+    expect(session.slideModel.getSnapshot().selection.ids.size).toBe(1);
+    await user.click(card);
+    expect(session.slideModel.getSnapshot().selection.ids.size).toBe(0);
+  });
+
   it('renders a custom card with editable fields in both views', async () => {
     const {store, session, user, view} = await editorSetup();
     const renderCard = (_slide: unknown, index: number, mode: string) =>
