@@ -31,10 +31,8 @@ export function OtherSlideInspector({
   readonly items: ServiceItemStore;
   readonly editor: SongEditorStore;
 }): JSX.Element {
-  const {item, service, position, busy, bibleSelection} = useSyncExternalStore(
-    items.subscribe,
-    items.getSnapshot,
-  );
+  const {item, service, position, busy, bibleSelection, bibleCardSelected} =
+    useSyncExternalStore(items.subscribe, items.getSnapshot);
   const bible = item !== null && isItemOfKind(item, 'bible');
   const media = useItemMedia(
     editor.api.media,
@@ -81,18 +79,21 @@ export function OtherSlideInspector({
       : undefined;
   const appearance = projection?.appearance;
   const part = index >= 0 ? projection?.partsByTile[index] : undefined;
-  const transition =
-    bible && part != null
-      ? biblePartEffect(item.bibleTransitions, part.reference, part.part)
-      : card?.transition;
   const selectedParts =
-    (bible && position !== 0) || (bible && card === undefined)
+    bible && (bibleSelection.length > 0 || card === undefined)
       ? (bibleSelection.length > 0 ? bibleSelection : [index])
           .map(selectedIndex => projection?.partsByTile[selectedIndex])
           .filter(part => part != null)
       : [];
-  const values =
-    bible && selectedParts.length > 0
+  const selectedCard =
+    bible && bibleCardSelected && hasSectionCard(item)
+      ? item.sectionCard
+      : card;
+  const values = [
+    ...(selectedCard === undefined
+      ? []
+      : [selectedCard.transition ?? {kind: 'none' as const, sec: 0.5}]),
+    ...(bible
       ? selectedParts.map(
           selectedPart =>
             biblePartEffect(
@@ -101,12 +102,16 @@ export function OtherSlideInspector({
               selectedPart.part,
             ) ?? {kind: 'none' as const, sec: 0.5},
         )
-      : [transition ?? {kind: 'none' as const, sec: 0.5}];
+      : []),
+  ];
   const value = values[0] ?? {kind: 'none' as const, sec: 0.5};
   const mixed = values.some(
     entry => JSON.stringify(entry) !== JSON.stringify(value),
   );
-  const changeTransition = (next: SlideTransition, all = false): void => {
+  const changeTransition = (
+    next: SlideTransition | number,
+    all = false,
+  ): void => {
     if (item === null || service === null) return;
     editorTask(
       items.submitItemEdit({
@@ -114,11 +119,20 @@ export function OtherSlideInspector({
         failure: '\uc804\ud658 \uc800\uc7a5 \uc2e4\ud328',
         change: current => {
           let updated = current;
-          if ((all || card !== undefined) && hasSectionCard(updated)) {
-            updated = {
-              ...updated,
-              sectionCard: {...updated.sectionCard, transition: next},
-            };
+          if ((all || selectedCard !== undefined) && hasSectionCard(updated)) {
+            const old = updated.sectionCard.transition;
+            const effect =
+              typeof next === 'number'
+                ? old === undefined
+                  ? undefined
+                  : {...old, sec: next}
+                : next;
+            if (effect !== undefined) {
+              updated = {
+                ...updated,
+                sectionCard: {...updated.sectionCard, transition: effect},
+              };
+            }
           }
           if (isItemOfKind(updated, 'bible')) {
             const parts = all
@@ -126,11 +140,24 @@ export function OtherSlideInspector({
               : selectedParts;
             let transitions = updated.bibleTransitions ?? [];
             for (const entry of parts) {
-              transitions = setBiblePartEffect(
+              const old = biblePartEffect(
                 transitions,
-                {verse: entry.reference, part: entry.part},
-                next,
+                entry.reference,
+                entry.part,
               );
+              const effect =
+                typeof next === 'number'
+                  ? old === undefined
+                    ? undefined
+                    : {...old, sec: next}
+                  : next;
+              if (effect !== undefined) {
+                transitions = setBiblePartEffect(
+                  transitions,
+                  {verse: entry.reference, part: entry.part},
+                  effect,
+                );
+              }
             }
             return {...updated, bibleTransitions: transitions};
           }
@@ -217,25 +244,52 @@ export function OtherSlideInspector({
             </div>
           </>
         )}
-        {(card !== undefined || part != null) && service !== null ? (
-          <TransitionPicker
-            value={value}
-            allowAll={bible || applyAll !== undefined}
-            mixed={mixed}
-            disabled={busy || service.access !== 'editable'}
-            selectionKey={selectedParts
-              .map(
-                entry =>
-                  `${entry.reference.book}:${entry.reference.chapter}:${entry.reference.verse}:${entry.part}`,
-              )
-              .join(',')}
-            onChange={changeTransition}
-            onSeconds={sec => changeTransition({...value, sec})}
-            onApplyAll={() => {
-              if (applyAll === undefined) changeTransition(value, true);
-              else applyAll(value);
+        {(selectedCard !== undefined ||
+          part != null ||
+          selectedParts.length > 0) &&
+        service !== null ? (
+          <div
+            onKeyDown={event => {
+              if (
+                !bible ||
+                busy ||
+                service.access !== 'editable' ||
+                event.nativeEvent.isComposing ||
+                event.altKey ||
+                !(event.ctrlKey || event.metaKey)
+              ) {
+                return;
+              }
+              const key = event.key.toLowerCase();
+              if (key !== 'z' && key !== 'y') return;
+              event.preventDefault();
+              event.stopPropagation();
+              editorTask(
+                items.replayItemEdit(
+                  key === 'y' || event.shiftKey ? 'redo' : 'undo',
+                ),
+              );
             }}
-          />
+          >
+            <TransitionPicker
+              value={value}
+              allowAll={bible || applyAll !== undefined}
+              mixed={mixed}
+              disabled={busy || service.access !== 'editable'}
+              selectionKey={selectedParts
+                .map(
+                  entry =>
+                    `${entry.reference.book}:${entry.reference.chapter}:${entry.reference.verse}:${entry.part}`,
+                )
+                .join(',')}
+              onChange={changeTransition}
+              onSeconds={sec => changeTransition(sec)}
+              onApplyAll={() => {
+                if (applyAll === undefined) changeTransition(value, true);
+                else applyAll(value);
+              }}
+            />
+          </div>
         ) : null}
       </PanelBody>
     </Panel>

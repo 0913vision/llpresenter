@@ -13,6 +13,8 @@ export interface SlideListSession<T extends SlideListItem> {
   readonly slideIntent: number;
   readonly selectedOccurrence: number;
   readonly readOnly: boolean;
+  readonly canUndo?: boolean;
+  readonly canRedo?: boolean;
   selectSlides(action: SlideSelectionAction<T['id']>): void;
   commandSlides(command: SlideListCommand<T>): void;
   copySlides(): string | null;

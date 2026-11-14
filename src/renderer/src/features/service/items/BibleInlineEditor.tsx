@@ -149,6 +149,7 @@ function BibleEditorContent({
       <SongSlideSurface
         session={session}
         leadingCard={card}
+        mixedLeadingSelection
         contentReadOnly
         onBack={onBack}
         className={styles.surface}
