@@ -39,12 +39,13 @@ export type ThemeScreen = Pick<Screen, 'id' | 'kind' | 'method'>;
 const uuid = (index: number) =>
   `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
 export const IMAGE_SLIDES_THEME_ID = createThemeId(uuid(107));
+export const AD_THEME_ID = createThemeId(uuid(105));
 const themeIds = {
   song: SONG_THEME_ID,
   bible: createThemeId(uuid(102)),
   media: createThemeId(uuid(104)),
   blank: createThemeId(uuid(102)),
-  ad: createThemeId(uuid(105)),
+  ad: AD_THEME_ID,
 };
 const names = {
   song: '찬양',
@@ -339,11 +340,10 @@ function audienceElements(
 function layoutFor(
   screen: ThemeScreen,
   kind: ThemeItemKind,
-  audienceId = createScreenId(STARTER_SCREEN_IDS.main),
 ): ThemeScreenLayout {
   if (screen.kind === 'broadcast') {
     if (kind === 'ad') {
-      return {mode: {kind: 'same', screen: audienceId}, elements: []};
+      return {mode: {kind: 'own'}, elements: []};
     }
     if (kind === 'media') return broadcastBandLayout(kind, basicText);
     return broadcastLookLayout(kind === 'song' ? 'song' : 'plain');
@@ -415,14 +415,7 @@ export function builtInTheme(
     id: themeIds[fallbackKind],
     name: names[fallbackKind],
     screens: Object.fromEntries(
-      screens.map(screen => [
-        screen.id,
-        layoutFor(
-          screen,
-          fallbackKind,
-          screens.find(candidate => candidate.kind === 'audience')?.id,
-        ),
-      ]),
+      screens.map(screen => [screen.id, layoutFor(screen, fallbackKind)]),
     ),
   };
 }

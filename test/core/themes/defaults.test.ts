@@ -12,7 +12,7 @@ import {
   STARTER_STAGE_ELEMENTS,
 } from '@core/themes/starterLayout';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
-import {createScreenId} from '@core/schema/ids';
+import {createScreenId, createThemeId} from '@core/schema/ids';
 import {
   builtInTheme,
   createDefaultThemes,
@@ -20,6 +20,7 @@ import {
   standbyStageLayout,
 } from '@core/themes/defaults';
 import {resolveThemeOutput} from '@core/themes/output';
+import {resolveThemeScreen} from '@core/themes/resolve';
 import {themeItemKinds} from '@core/themes/elementRules';
 import {themesSchema} from '@core/schema/themes';
 import {SUNDAY_PICTURE_IDS} from '@core/themes/sundayScripture';
@@ -346,13 +347,13 @@ it('offers one sermon title theme with automatic bars', () => {
   }
 });
 
-it('uses the standard stage layout and links broadcast ads', () => {
+it('uses the standard stage layout and leaves broadcast ads empty', () => {
   const file = createDefaultThemes();
   expect(file.defaults.blank).toBe(file.defaults.bible);
   const ad = file.themes.find(theme => theme.id === file.defaults.ad);
   expect(ad?.name).toBe('광고');
   expect(ad?.screens[createScreenId(STARTER_SCREEN_IDS.broadcast)]).toEqual({
-    mode: {kind: 'same', screen: createScreenId(STARTER_SCREEN_IDS.main)},
+    mode: {kind: 'own'},
     elements: [],
   });
   const stage = createScreenId(STARTER_SCREEN_IDS.stage);
@@ -393,6 +394,41 @@ it('uses the standard stage layout and links broadcast ads', () => {
   expect(title.frame.y + title.frame.h).toBeLessThanOrEqual(body.frame.y);
   expect(builtInTheme('ad')).toEqual(ad);
   expect(builtInTheme('blank')).toEqual(builtInTheme('bible'));
+});
+
+it('resolves untouched saved ad links as empty while preserving edited or copied themes', () => {
+  const audience = createScreenId(STARTER_SCREEN_IDS.main);
+  const broadcast = createScreenId(STARTER_SCREEN_IDS.broadcast);
+  const screens = [
+    {id: audience, kind: 'audience'},
+    {id: broadcast, kind: 'broadcast'},
+  ] as const;
+  const ad = builtInTheme('ad');
+  const legacy = {
+    ...ad,
+    screens: {
+      ...ad.screens,
+      [broadcast]: {
+        mode: {kind: 'same' as const, screen: audience},
+        elements: [],
+      },
+    },
+  };
+  expect(resolveThemeScreen(legacy, broadcast, screens)).toEqual({
+    sourceScreenId: broadcast,
+    layout: {mode: {kind: 'own'}, elements: []},
+  });
+  expect(
+    resolveThemeScreen({...legacy, edited: true}, broadcast, screens)
+      .sourceScreenId,
+  ).toBe(audience);
+  expect(
+    resolveThemeScreen(
+      {...legacy, id: createThemeId('90000000-0000-4000-8000-000000000010')},
+      broadcast,
+      screens,
+    ).sourceScreenId,
+  ).toBe(audience);
 });
 
 it('makes the audience notice an editable picture, number, name and bulleted body with a covering picture layer', () => {

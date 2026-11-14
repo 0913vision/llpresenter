@@ -142,7 +142,9 @@ function fitBand(
   );
   const reference =
     bible && referenceElement
-      ? (themeElementText(referenceElement, content) ?? '')
+      ? item?.title?.trim()
+        ? item.title
+        : (themeElementText(referenceElement, content) ?? '')
       : '';
   const fitted = fittedText({
     element: body,
@@ -233,6 +235,7 @@ function fitBand(
           h: geometry.headerHeight,
         },
         text: {...e.text, vAlign: 'middle'},
+        broadcastText: reference,
         runtimeHidden: !visible || !reference.trim(),
       };
     }

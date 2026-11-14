@@ -629,10 +629,11 @@ as every settings file does (02).
   with a 0 2px 6px black 80% shadow, in the frame (230, 900, 1460, 90). NDI
   remains transparent outside the fade. Section cards never show an English line
   on broadcast.
-- The broadcast 광고 theme links to the 청중 화면, so text notices and picture
-  slides use the same full-screen composition. NDI retains the translucent box;
-  the green capture window draws its frame and panel opaque without a shadow.
-  Only the built-in element IDs use this fit.
+- The built-in advertisement theme has an empty broadcast layout; NDI sends a
+  transparent frame. Untouched saved built-in audience links resolve empty,
+  while explicitly edited themes retain their layouts. On broadcast, Bible
+  reference headers show the item's complete passage range instead of the
+  current verse.
 - The 광고 stage layout shows a left-aligned title above its body. The default
   advertisement item advances manually with looping off (05).
 - Item settings warn when a screen's resolved theme lacks 현재 가사 for text,

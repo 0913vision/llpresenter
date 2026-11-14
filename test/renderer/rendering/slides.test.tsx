@@ -56,7 +56,7 @@ it.each(['audience', 'stage', 'broadcast'] as const)(
         : [{id, kind, method: 'fullscreen' as const}];
     const theme = builtInTheme('ad', screens);
     const {layout, sourceScreenId} = resolveThemeScreen(theme, id, screens);
-    const audienceLayout = kind !== 'stage';
+    const audienceLayout = kind === 'audience';
     const tiles = projectSlides(slidesItem());
     const root = document.createElement('div');
     const view = new ThemeCompositionView(root, {
@@ -100,7 +100,11 @@ it.each(['audience', 'stage', 'broadcast'] as const)(
       const preview = render(
         <SlidePicture layout={layout} slide={slide} item={frame.theme.item} />,
       );
-      if (index === 1 && !audienceLayout) {
+      if (kind === 'broadcast') {
+        expect(root.querySelector('[data-kind]')).toBeNull();
+        expect(preview.container.textContent).toBe('');
+        expect(preview.container.querySelector('img')).toBeNull();
+      } else if (index === 1 && !audienceLayout) {
         expect(root.querySelector('[data-kind="media"]')).toBeNull();
         expect(preview.container.querySelector('img')).toBeNull();
       } else if (index === 1) {
