@@ -156,6 +156,7 @@ it('edits the selected slides and shows mixed transitions', async () => {
   expect(time).toHaveProperty('placeholder', '혼합');
   await user.clear(time);
   await user.type(time, '2{Enter}');
+  expect(document.activeElement).not.toBe(time);
   expect(
     session.history.snapshot.song.slides.map(slide => slide.transition),
   ).toEqual([{kind: 'wipe', sec: 2, dir: 'left'}, undefined]);

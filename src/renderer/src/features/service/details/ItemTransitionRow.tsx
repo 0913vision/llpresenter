@@ -8,9 +8,8 @@ import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import {INITIAL_SLIDE_EFFECT} from '@renderer/features/songs/editor/slideTransitionSelection';
 import type {ServiceItemStore} from '../items/serviceItemStore';
 
-type Effect = 'default' | SlideTransition['kind'];
+type Effect = SlideTransition['kind'];
 const options = [
-  {value: 'default', label: '기본값'},
   ...SLIDE_EFFECTS.map(([value, label]) => ({value, label})),
 ] as const;
 
@@ -72,7 +71,6 @@ export function ItemTransitionRow({
             readonly transition?: SlideTransition;
           } => {
             const {transition: old, ...rest} = slide;
-            if (kind === 'default') return rest;
             const base = old ?? INITIAL_SLIDE_EFFECT;
             const transition: SlideTransition = {
               kind,
@@ -104,7 +102,7 @@ export function ItemTransitionRow({
           block
           menuLabel="전환"
           options={options}
-          value={first?.kind ?? 'default'}
+          value={first?.kind ?? 'none'}
           disabled={lock !== undefined}
           title={lock}
           onChange={change}

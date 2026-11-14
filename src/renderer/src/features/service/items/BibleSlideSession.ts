@@ -38,13 +38,16 @@ export class BibleSlideSession implements SlideListSession<BibleSlide> {
         maxSlides: Math.max(tiles.length, 1),
       },
     });
-    const selected = Math.max(
-      0,
-      options.items.getSnapshot().position - options.offset,
-    );
-    const slide = this.slideModel.getSnapshot().slides[selected];
-    if (slide !== undefined) {
-      this.slideModel.select({type: 'click', id: slide.id});
+    const savedSelection = options.items.getSnapshot().bibleSelection;
+    const selected =
+      savedSelection.length > 0
+        ? savedSelection
+        : [Math.max(0, options.items.getSnapshot().position - options.offset)];
+    for (const index of selected) {
+      const slide = this.slideModel.getSnapshot().slides[index];
+      if (slide !== undefined) {
+        this.slideModel.select({type: 'click', id: slide.id, ctrl: true});
+      }
     }
   }
   get readOnly(): boolean {
@@ -56,7 +59,9 @@ export class BibleSlideSession implements SlideListSession<BibleSlide> {
   }
   selectSlides(action: SlideSelectionAction<string>): void {
     this.slideModel.select(action);
-    const focus = this.slideModel.getSnapshot().selection.focus;
+    const selection = this.slideModel.getSnapshot().selection;
+    this.options.items.setBibleSelection([...selection.ids].map(Number));
+    const focus = selection.focus;
     if (focus?.kind === 'slide') {
       this.options.items.selectPosition(Number(focus.id) + this.options.offset);
     }

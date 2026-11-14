@@ -19,10 +19,7 @@ import {
   applySlideTransitionToAll,
 } from '@renderer/features/songs/editor/slideTransitionSelection';
 
-const effects = [
-  {value: 'default', label: '기본값'},
-  ...SLIDE_EFFECTS.map(([value, label]) => ({value, label})),
-] as const;
+const effects = SLIDE_EFFECTS.map(([value, label]) => ({value, label}));
 const directions = SLIDE_DIRECTIONS.map(([value, , label]) => ({value, label}));
 
 function TimeField({
@@ -62,7 +59,12 @@ function TimeField({
       onKeyDown={event => {
         if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
           event.preventDefault();
-          commit();
+          event.currentTarget.blur();
+          document
+            .querySelector<HTMLElement>(
+              '[data-song-slide][aria-selected="true"], [data-leading-card][aria-selected="true"], [data-song-slide]',
+            )
+            ?.focus();
         } else if (event.key === 'Escape') {
           event.preventDefault();
           event.stopPropagation();
@@ -78,7 +80,9 @@ export function TransitionRows<T extends SlideListItem>({
   session,
   disabled,
   song = false,
+  onApplyAll,
 }: {
+  readonly onApplyAll?: ((transition: SlideTransition) => void) | undefined;
   readonly session: SlideListSession<T>;
   readonly disabled: boolean;
   readonly song?: boolean;
@@ -95,6 +99,51 @@ export function TransitionRows<T extends SlideListItem>({
   const set = (transition: SlideTransition | undefined): void =>
     session.commandSlides({type: 'transition', transition});
   return (
+    <TransitionPicker
+      value={value}
+      mixed={mixed}
+      disabled={locked}
+      selectionKey={selected.map(slide => slide.id).join(',')}
+      onChange={set}
+      onSeconds={sec =>
+        session.commandSlides({type: 'transition-seconds', sec})
+      }
+      onApplyAll={() => {
+        if (onApplyAll === undefined) {
+          applySlideTransitionToAll(session, first ?? value);
+        } else {
+          onApplyAll(first ?? value);
+        }
+      }}
+      song={song}
+    />
+  );
+}
+
+export function TransitionPicker({
+  value,
+  mixed,
+  disabled,
+  selectionKey,
+  onChange,
+  onSeconds,
+  onApplyAll,
+  song = false,
+  allowAll = true,
+}: {
+  readonly allowAll?: boolean;
+  readonly value: SlideTransition;
+  readonly mixed: boolean;
+  readonly disabled: boolean;
+  readonly selectionKey: string;
+  readonly onChange: (transition: SlideTransition) => void;
+  readonly onSeconds: (seconds: number) => void;
+  readonly onApplyAll: () => void;
+  readonly song?: boolean;
+}): JSX.Element {
+  const locked = disabled;
+  const set = onChange;
+  return (
     <PropertyGroup title="전환">
       <PropertyRow label="효과">
         {({controlId}) => (
@@ -103,20 +152,17 @@ export function TransitionRows<T extends SlideListItem>({
             aria-label="효과"
             block
             disabled={locked}
-            value={mixed ? undefined : (first?.kind ?? 'default')}
+            value={mixed ? undefined : value.kind}
             valueText={mixed ? '혼합' : undefined}
             options={effects}
             onChange={kind => {
-              if (kind === 'default') set(undefined);
-              else {
-                set({
-                  kind,
-                  sec: value.sec,
-                  ...(kind === 'push' || kind === 'wipe'
-                    ? {dir: value.dir ?? 'left'}
-                    : {}),
-                });
-              }
+              set({
+                kind,
+                sec: value.sec,
+                ...(kind === 'push' || kind === 'wipe'
+                  ? {dir: value.dir ?? 'left'}
+                  : {}),
+              });
             }}
           />
         )}
@@ -142,17 +188,12 @@ export function TransitionRows<T extends SlideListItem>({
       <PropertyRow label="시간">
         {({controlId}) => (
           <TimeField
-            key={selected.map(slide => slide.id).join(',')}
+            key={selectionKey}
             id={controlId}
             value={value.sec}
             mixed={mixed}
-            disabled={
-              locked ||
-              (!mixed && (first === undefined || value.kind === 'none'))
-            }
-            onCommit={sec =>
-              session.commandSlides({type: 'transition-seconds', sec})
-            }
+            disabled={locked || (!mixed && value.kind === 'none')}
+            onCommit={onSeconds}
           />
         )}
       </PropertyRow>
@@ -161,8 +202,8 @@ export function TransitionRows<T extends SlideListItem>({
           <Button
             className={styles.full}
             size="md"
-            disabled={locked || mixed}
-            onClick={() => applySlideTransitionToAll(session, first)}
+            disabled={locked || mixed || !allowAll}
+            onClick={onApplyAll}
           >
             {song ? '이 곡 전체에 적용' : '전체 슬라이드에 적용'}
           </Button>

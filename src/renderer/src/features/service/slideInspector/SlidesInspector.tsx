@@ -1,4 +1,5 @@
 import {useSyncExternalStore, type JSX} from 'react';
+import type {SlideTransition} from '@core/schema/slideTransition';
 import type {LlpApi} from '@contracts/ipc/api';
 import {useItemMedia} from '../items/useItemSources';
 import {useSlidesVerseProjection} from '../../bible/useSlidesVerseProjection';
@@ -19,7 +20,9 @@ import styles from './SlideInspector.module.css';
 export function SlidesInspector({
   api,
   session,
+  onApplyAll,
 }: {
+  readonly onApplyAll?: ((transition: SlideTransition) => void) | undefined;
   readonly api: LlpApi;
   readonly session: SlidesListSession;
 }): JSX.Element {
@@ -57,7 +60,11 @@ export function SlidesInspector({
               </span>
             </div>
             <Properties>
-              <TransitionRows session={session} disabled={false} />
+              <TransitionRows
+                session={session}
+                disabled={false}
+                onApplyAll={onApplyAll}
+              />
             </Properties>
           </div>
         )}

@@ -14,18 +14,11 @@ export type SlideTransitionChange = (
 function EffectPicture({
   kind,
 }: {
-  readonly kind: SlideTransition['kind'] | 'default';
+  readonly kind: SlideTransition['kind'];
 }): JSX.Element {
   return (
     <svg viewBox="0 0 44 30" aria-hidden="true">
-      <rect
-        x="4"
-        y="5"
-        width="36"
-        height="20"
-        rx="2"
-        className={kind === 'default' ? styles.inherited : styles.old}
-      />
+      <rect x="4" y="5" width="36" height="20" rx="2" className={styles.old} />
       {kind === 'none' ? <path d="M9 25 35 5" className={styles.edge} /> : null}
       {kind === 'dissolve' ? (
         <rect
@@ -63,7 +56,6 @@ export function SlideTransitionControl({
   onChange,
   label,
   disabled = false,
-  inherit,
   mixed = false,
   children,
 }: {
@@ -71,32 +63,16 @@ export function SlideTransitionControl({
   readonly onChange: (update: SlideTransitionChange) => void;
   readonly label: string;
   readonly disabled?: boolean;
-  readonly inherit?: {
-    readonly selected: boolean;
-    readonly onSelect: () => void;
-  };
   readonly mixed?: boolean;
   readonly children?: ReactNode;
 }): JSX.Element {
-  const own = inherit?.selected !== true && !mixed;
+  const own = !mixed;
   const directional = own && (value.kind === 'push' || value.kind === 'wipe');
   return (
     <div className={styles.controls} role="group" aria-label={label}>
       <div className={styles.group}>
         {inherit === undefined ? null : <span>효과</span>}
         <div className={styles.gallery} role="group" aria-label="효과">
-          {inherit === undefined ? null : (
-            <button
-              type="button"
-              className={styles.tile}
-              disabled={disabled}
-              aria-pressed={inherit.selected && !mixed}
-              onClick={inherit.onSelect}
-            >
-              <EffectPicture kind="default" />
-              <span>기본값</span>
-            </button>
-          )}
           {SLIDE_EFFECTS.map(([kind, name]) => (
             <button
               key={kind}

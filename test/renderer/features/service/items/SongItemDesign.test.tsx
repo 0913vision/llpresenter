@@ -25,6 +25,7 @@ function setup(readOnly = false) {
     song: null,
     songStatus: null,
     position: 0,
+    bibleSelection: [],
     busy: false,
   };
   const mockItems = {
