@@ -515,8 +515,7 @@ Source: `Overlays`, `ShowH` (target screens in the showing list), product log
   bitmap, the app retries shared textures in the background, keeps the same NDI
   sender during recovery, and returns to GPU input after a frame is sent. It
   retries silently without changing the saved option. A GPU utility crash first
-  falls back to the
-  bitmap sender, not the capture window.
+  falls back to the bitmap sender, not the capture window.
 - An unavailable NDI Runtime is remembered until the method is toggled or the
   app restarts.
 
