@@ -547,7 +547,10 @@ standalone card it changes the section; the row is deleted to remove the card.
 슬라이드 shows the item's pictures in a grid with a remembered, independently
 adjustable thumbnail size; selection is local and a double click opens the
 editor at that slide. The item keeps its own slide count, theme and slides even
-when its library source changes. The picture and both tabs share one scroll.
+when its library source changes. The picture and both tabs share one scroll. The
+screen selector chooses any configured output screen for the picture and slide
+tiles, using the same theme, content, screen correction and NDI transparency as
+its output. The first audience screen is selected initially.
 
 ### What belongs to the service and what belongs to the song
 

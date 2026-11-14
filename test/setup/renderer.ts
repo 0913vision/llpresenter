@@ -1,6 +1,16 @@
 import {cleanup} from '@testing-library/react';
 import {afterEach} from 'vitest';
 
+Object.defineProperty(globalThis, 'ResizeObserver', {
+  configurable: true,
+  writable: true,
+  value: class {
+    observe(): void {}
+    unobserve(): void {}
+    disconnect(): void {}
+  },
+});
+
 // NOTE(0913vision): jsdom has no image decode; tests can override this default.
 Object.defineProperty(HTMLImageElement.prototype, 'decode', {
   configurable: true,

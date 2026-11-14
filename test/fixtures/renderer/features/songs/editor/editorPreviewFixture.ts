@@ -14,7 +14,12 @@ export function editorPreviewFixture() {
       screens: Object.entries(STARTER_SCREEN_IDS).map(([role, id]) => ({
         id,
         name: role,
-        kind: role === 'stage' ? 'stage' : 'audience',
+        kind:
+          role === 'stage'
+            ? 'stage'
+            : role === 'broadcast'
+              ? 'broadcast'
+              : 'audience',
         method: role === 'broadcast' ? 'capture' : 'fullscreen',
       })),
     },

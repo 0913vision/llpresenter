@@ -13,7 +13,7 @@ import {
 } from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
-import {emptyLayers} from '@core/live/state';
+import {emptyLayers, type LiveLayers} from '@core/live/state';
 import type {Label} from '@core/schema/labels';
 import type {ShowTile} from '@core/schema/showService';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
@@ -99,6 +99,7 @@ export function Picture({
     if (parent.current === null) return;
     const previewMedia = openPreviewMedia(window.llp);
     const view = new OutputRenderer(parent.current, {
+      transparent: appearance.screen.method === 'ndi',
       textStyle: DEFAULT_TEXT_STYLE,
       mediaUrl,
       previewMedia,
@@ -112,11 +113,16 @@ export function Picture({
       view.dispose();
       previewMedia?.dispose();
     };
-  }, []);
+  }, [appearance.screen.method]);
   useLayoutEffect(() => {
     draw();
   }, [layers, appearance.screen, appearance.theme]);
-  const style: ScreenStyle = {'--output-background': appearance.background};
+  const style: ScreenStyle = {
+    '--output-background':
+      appearance.screen.method === 'ndi'
+        ? 'transparent'
+        : appearance.background,
+  };
   return (
     <div
       ref={parent}
@@ -186,16 +192,29 @@ export function ContentPreviewFrame({
             title: picture.song.title,
           } as const)
         : undefined);
+    const card =
+      picture !== null && 'tile' in picture
+        ? picture.tile.sectionCard
+        : undefined;
+    const activeItem =
+      card === undefined || localItem === undefined
+        ? localItem
+        : {
+            ...localItem,
+            kind: 'blank' as const,
+            title: card.name,
+            theme: card.theme,
+          };
     const appearanceOf = (of: PreviewRole) =>
       previewAppearance({
         role: of,
         themes: documents.themes,
         screens: documents.screens,
         item:
-          localItem === undefined
+          activeItem === undefined
             ? undefined
             : {
-                ...localItem,
+                ...activeItem,
                 ...(picture === null
                   ? {}
                   : {slidePosition: picture.position - 1}),
@@ -218,7 +237,7 @@ export function ContentPreviewFrame({
   const block = songPicture?.block ?? 0;
   const background = songPicture?.background;
   const nextBlock = songPicture?.nextBlock;
-  const layers = useMemo(
+  const layers = useMemo<LiveLayers>(
     () =>
       mediaPicture !== undefined
         ? {
@@ -238,6 +257,21 @@ export function ContentPreviewFrame({
                 position: tilePicture.position - 1,
                 label: tilePicture.tile.label,
                 lines: tilePicture.tile.lines,
+                ...(tilePicture.tile.sectionCard === undefined
+                  ? {}
+                  : {sectionCard: tilePicture.tile.sectionCard}),
+                ...(tilePicture.tile.name === undefined
+                  ? {}
+                  : {name: tilePicture.tile.name}),
+                ...(tilePicture.tile.picture === undefined
+                  ? {}
+                  : {picture: tilePicture.tile.picture}),
+                ...(tilePicture.tile.kind === undefined
+                  ? {}
+                  : {kind: tilePicture.tile.kind}),
+                ...(tilePicture.tile.sourceSlideId === undefined
+                  ? {}
+                  : {sourceSlideId: tilePicture.tile.sourceSlideId}),
                 ...(tilePicture.tile.titleSlide === undefined
                   ? {}
                   : {titleSlide: tilePicture.tile.titleSlide}),
@@ -268,6 +302,17 @@ export function ContentPreviewFrame({
                       },
                     }),
               },
+              ...(tilePicture.tile.picture === undefined
+                ? {}
+                : {
+                    media: {
+                      mediaId: tilePicture.tile.picture,
+                      loop: false,
+                      startedAt: 0,
+                      itemId: tilePicture.itemId,
+                      slidePicture: true,
+                    },
+                  }),
             }
           : song === undefined
             ? emptyLayers()

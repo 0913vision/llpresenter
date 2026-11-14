@@ -7,9 +7,10 @@ import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
 import {emptyLayers, type LiveLayers} from '@core/live/state';
 import type {Slide, SlidesItem} from '@core/services/slidesEdits';
 import {slideLayerOf} from '@core/presentation/slideLayer';
+import {projectSlides} from '@core/presentation/slides';
+import {withSectionCard} from '@core/services/sectionCards';
 import type {BibleProjection} from '@renderer/features/bible/splitProjection';
 import {useSlidesVerseProjection} from '@renderer/features/bible/useSlidesVerseProjection';
-import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {Button} from '@renderer/ui/Button';
 import {Picture} from '@renderer/features/songs/editor/SongPreview';
 import {
@@ -24,12 +25,12 @@ export function slideBand(slide: Slide, media: readonly MediaItem[]): string {
   if (slide.label !== undefined) return slide.label;
   if ('verse' in slide) {
     const book = BIBLE_BOOKS.find(book => book.id === slide.verse.book);
-    return `${book?.korean ?? '성경'} ${slide.verse.chapter}:${slide.verse.verse}`;
+    return `${book?.korean ?? '?깃꼍'} ${slide.verse.chapter}:${slide.verse.verse}`;
   }
   if ('media' in slide) {
     const file = media.find(file => file.id === slide.media);
     if (file?.internal === true) return '';
-    return file?.file.split(/[\\/]/).at(-1) ?? file?.name ?? '미디어 없음';
+    return file?.file.split(/[\\/]/).at(-1) ?? file?.name ?? '誘몃뵒???놁쓬';
   }
   return slide.name ?? slide.text.split('\n')[0] ?? '';
 }
@@ -48,8 +49,12 @@ export function useSlidesItemWithBackground(draftItem: SlidesItem): SlidesItem {
 export function useSlidesAppearance(
   api: Pick<LlpApi, 'settings'>,
   item: SlidesItem,
-  role: PreviewRole = 'audience',
+  options: {
+    readonly role?: PreviewRole;
+    readonly screenId?: string | undefined;
+  } = {},
 ) {
+  const {role = 'audience', screenId} = options;
   const themes = useItemSettings(api.settings, 'themes');
   const screens = useItemSettings(api.settings, 'screens');
   const themeFile =
@@ -60,6 +65,7 @@ export function useSlidesAppearance(
     () =>
       previewAppearance({
         role,
+        screenId,
         themes: themeFile,
         screens: screenFile,
         item: {
@@ -69,7 +75,7 @@ export function useSlidesAppearance(
           title: item.slides.name,
         },
       }),
-    [role, themeFile, screenFile, item],
+    [role, screenId, themeFile, screenFile, item],
   );
   return {appearance, themes: themeFile};
 }
@@ -110,45 +116,24 @@ export function slideLayers(
             },
     };
   }
-  const slide = item.slides.slides[index];
-  if (slide === undefined) return emptyLayers();
-  const next = item.slides.slides[index + 1];
-  const background = 'media' in slide ? slide.media : item.background;
+  const tiles = withSectionCard(item.sectionCard, projectSlides(item));
+  const position = index + (item.sectionCard === undefined ? 0 : 1);
+  const slide = slideLayerOf({itemId: item.id, index: position}, () => tiles);
+  if (slide === null) return emptyLayers();
+  const background = slide.picture ?? item.background;
   return {
     ...emptyLayers(),
-    slide: {
-      itemId: item.id,
-      position: index,
-      ...(slide.transition === undefined ? {} : {transition: slide.transition}),
-      ...(item.slides.form === 'ad' && 'text' in slide
-        ? {
-            textSlideNumber: item.slides.slides
-              .slice(0, index + 1)
-              .filter(slide => 'text' in slide).length,
-          }
-        : {}),
-      label: slide.label ?? null,
-      lines: 'text' in slide ? slide.text.split('\n') : [],
-      ...('text' in slide && slide.name !== undefined
-        ? {name: slide.name}
-        : {}),
-      ...(next === undefined
-        ? {}
-        : {
-            next: {
-              label: next.label ?? null,
-              lines: 'text' in next ? next.text.split('\n') : [],
-            },
-          }),
-    },
+    slide,
     media:
       background === undefined
         ? null
         : {
             mediaId: background,
-            loop: true,
+            loop: slide.picture === undefined,
             startedAt: 0,
-            ...('media' in slide ? {itemId: item.id, slidePicture: true} : {}),
+            ...(slide.picture === undefined
+              ? {}
+              : {itemId: item.id, slidePicture: true}),
           },
   };
 }
@@ -159,19 +144,20 @@ export function SlidesCanvas({
   appearance,
   projection,
   part,
-  thumbnail = false,
+  outputSlide,
 }: {
   readonly item: SlidesItem;
   readonly index: number;
   readonly appearance: ReturnType<typeof previewAppearance>;
   readonly projection?: BibleProjection | null;
   readonly part?: number;
+  readonly outputSlide?: import('@core/live/state').SlideLayer | null;
   readonly thumbnail?: boolean;
 }): JSX.Element {
-  const layers = useMemo(
-    () => slideLayers(item, index, {projection, part}),
-    [item, index, projection, part],
-  );
+  const layers = useMemo(() => {
+    const result = slideLayers(item, index, {projection, part});
+    return outputSlide == null ? result : {...result, slide: outputSlide};
+  }, [item, index, projection, part, outputSlide]);
   const host = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(
     typeof IntersectionObserver === 'undefined',
@@ -191,17 +177,7 @@ export function SlidesCanvas({
   }, []);
   return (
     <div ref={host} className={styles.canvas}>
-      {visible && thumbnail && layers.slide?.biblePart !== undefined ? (
-        <SlidePicture
-          slide={layers.slide}
-          layout={appearance.theme.layout}
-          emptyColor={appearance.theme.emptyColor}
-          item={appearance.theme.item}
-          background={layers.media?.mediaId}
-        />
-      ) : visible ? (
-        <Picture layers={layers} appearance={appearance} />
-      ) : null}
+      {visible ? <Picture layers={layers} appearance={appearance} /> : null}
     </div>
   );
 }
@@ -223,9 +199,9 @@ export function SlidesPreview({
 }): JSX.Element {
   const [role, setRole] = useState<PreviewRole>('audience');
   const appearances = {
-    audience: useSlidesAppearance(api, item, 'audience').appearance,
-    stage: useSlidesAppearance(api, item, 'stage').appearance,
-    broadcast: useSlidesAppearance(api, item, 'broadcast').appearance,
+    audience: useSlidesAppearance(api, item, {role: 'audience'}).appearance,
+    stage: useSlidesAppearance(api, item, {role: 'stage'}).appearance,
+    broadcast: useSlidesAppearance(api, item, {role: 'broadcast'}).appearance,
   };
   const appearance = appearances[role];
   const slide = item.slides.slides[selected];
@@ -278,7 +254,7 @@ export function SlidesPreview({
             disabled={part === 0}
             onClick={() => setChosenPart({id: slide.id, index: part - 1})}
           >
-            이전 부분
+            ?댁쟾 遺遺?{' '}
           </Button>
           <span>
             {part + 1} / {count}
@@ -287,7 +263,7 @@ export function SlidesPreview({
             disabled={part + 1 >= count}
             onClick={() => setChosenPart({id: slide.id, index: part + 1})}
           >
-            다음 부분
+            ?ㅼ쓬 遺遺?{' '}
           </Button>
         </div>
       )}

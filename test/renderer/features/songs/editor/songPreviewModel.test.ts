@@ -1,5 +1,7 @@
 import {describe, expect, it} from 'vitest';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
+import {createScreenId} from '@core/schema/ids';
+import {resolveThemeOutput} from '@core/themes/output';
 import {
   editorDeckSong,
   editorSong,
@@ -11,6 +13,105 @@ import {
 } from '@renderer/features/songs/editor/songPreviewModel';
 
 describe('local song preview model', () => {
+  it.each(['song', 'bible', 'blank', 'ad', 'media'] as const)(
+    'uses the live composition for %s on all screen roles',
+    kind => {
+      const {themes, screens} = editorPreviewFixture();
+      const theme = themes.value.themes[0];
+      if (theme === undefined) throw new Error('Missing theme');
+      const item = {
+        id: 'prepared',
+        kind,
+        source: 'service' as const,
+        theme: theme.id,
+      };
+      const live = resolveThemeOutput({
+        file: themes.value,
+        screens: screens.value.screens,
+        item,
+        revision: 0,
+      });
+      for (const role of ['audience', 'stage', 'broadcast'] as const) {
+        const preview = previewAppearance({
+          role,
+          themes: themes.value,
+          screens: screens.value,
+          item,
+        });
+        const composition = live.screens[preview.screen.id];
+        if (composition === undefined) throw new Error('Missing composition');
+        expect(preview.theme).toMatchObject(composition);
+        expect(preview.theme.themeId).toBe(live.themeId);
+      }
+    },
+  );
+  it('uses the configured screen when its starter screen has been replaced', () => {
+    const {themes, screens} = editorPreviewFixture();
+    const id = createScreenId('00000000-0000-4000-8000-000000000099');
+    const replaced = {
+      ...screens.value,
+      screens: screens.value.screens.map(screen =>
+        screen.kind === 'broadcast'
+          ? {...screen, id, method: 'ndi' as const}
+          : screen,
+      ),
+    };
+    expect(
+      previewAppearance({
+        role: 'broadcast',
+        themes: themes.value,
+        screens: replaced,
+      }).screen,
+    ).toMatchObject({id, method: 'ndi'});
+  });
+  it('resolves a second screen of the same kind independently', () => {
+    const {themes, screens} = editorPreviewFixture();
+    const original = screens.value.screens.find(
+      screen => screen.kind === 'audience',
+    );
+    if (!original) throw new Error('Missing audience screen');
+    const extra = {
+      ...original,
+      id: createScreenId('00000000-0000-4000-8000-000000000098'),
+    };
+    const value = {
+      ...screens.value,
+      screens: [...screens.value.screens, extra],
+    };
+    expect(
+      previewAppearance({
+        role: 'audience',
+        screenId: extra.id,
+        themes: themes.value,
+        screens: value,
+      }).screen.id,
+    ).toBe(extra.id);
+  });
+  it('keeps the configured caption and picture correction for output', () => {
+    const {themes, screens} = editorPreviewFixture();
+    const configured = {
+      ...screens.value,
+      screens: screens.value.screens.map(screen =>
+        screen.kind === 'broadcast'
+          ? {
+              ...screen,
+              songCaption: 'text' as const,
+              edgeMargin: 5,
+              offset: {x: 12, y: -3},
+            }
+          : screen,
+      ),
+    };
+    const preview = previewAppearance({
+      role: 'broadcast',
+      themes: themes.value,
+      screens: configured,
+    });
+    expect(preview.screen).toMatchObject({
+      songCaption: 'text',
+      correction: {edgeMargin: 5, offset: {x: 12, y: -3}},
+    });
+  });
   it('retains the selected title identity and its song background', () => {
     const song = editorDeckSong(1).song;
     const first = song.slides[0];

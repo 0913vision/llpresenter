@@ -13,9 +13,13 @@ import type {RenderFrame} from '@renderer/rendering/layer';
 
 const drawing = vi.hoisted(() => ({
   render: vi.fn<(layers: LiveLayers, frame?: RenderFrame) => void>(),
+  options: vi.fn(),
 }));
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
+    constructor(_parent: HTMLElement, options: {transparent?: boolean}) {
+      drawing.options(options);
+    }
     render = drawing.render;
     dispose = vi.fn();
   },
@@ -23,9 +27,88 @@ vi.mock('@renderer/rendering/outputRenderer', () => ({
 
 afterEach(() => {
   drawing.render.mockClear();
+  drawing.options.mockClear();
 });
 
 describe('SongPreviewFrame', () => {
+  it('renders an NDI preview with the same transparent output mode', async () => {
+    const fixture = editorFixture();
+    const {themes, screens} = editorPreviewFixture();
+    const ndi = {
+      ...screens,
+      value: {
+        ...screens.value,
+        screens: screens.value.screens.map(screen =>
+          screen.kind === 'broadcast'
+            ? {...screen, method: 'ndi' as const}
+            : screen,
+        ),
+      },
+    };
+    vi.spyOn(fixture.api.settings, 'get').mockImplementation(async ({name}) =>
+      name === 'screens' ? ndi : themes,
+    );
+    render(
+      <SongPreviewFrame
+        settings={fixture.api.settings}
+        labels={[]}
+        picture={{
+          itemId: 'item',
+          position: 1,
+          total: 1,
+          tile: {label: null, labelColor: 'none', lines: ['Text']},
+        }}
+      />,
+    );
+    await waitFor(() =>
+      expect(drawing.options).toHaveBeenCalledWith(
+        expect.objectContaining({transparent: true}),
+      ),
+    );
+  });
+  it('uses the section card theme and content instead of the item theme', async () => {
+    const fixture = editorFixture();
+    const {themes, screens} = editorPreviewFixture();
+    const cardTheme = themes.value.themes[0];
+    const itemTheme = themes.value.themes[1];
+    if (!cardTheme || !itemTheme) throw new Error('Missing themes');
+    vi.spyOn(fixture.api.settings, 'get').mockImplementation(async ({name}) =>
+      name === 'screens' ? screens : themes,
+    );
+    const card = {name: 'Section', english: 'Section EN', theme: cardTheme.id};
+    render(
+      <SongPreviewFrame
+        settings={fixture.api.settings}
+        labels={[]}
+        item={{
+          id: 'item',
+          kind: 'song',
+          source: 'service',
+          theme: itemTheme.id,
+        }}
+        picture={{
+          itemId: 'item',
+          position: 1,
+          total: 1,
+          tile: {
+            label: card.name,
+            labelColor: 'none',
+            lines: [card.english],
+            sectionCard: card,
+          },
+        }}
+      />,
+    );
+    await waitFor(() =>
+      expect(
+        drawing.render.mock.calls.some(
+          ([layers, frame]) =>
+            layers.slide?.sectionCard?.name === card.name &&
+            frame?.theme?.themeId === cardTheme.id,
+        ),
+      ).toBe(true),
+    );
+  });
   it('redraws edited text and selection immediately even when a slide has a long transition', async () => {
     const fixture = editorFixture();
     const {themes, screens} = editorPreviewFixture();

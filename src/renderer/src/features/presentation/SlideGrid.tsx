@@ -203,9 +203,10 @@ export function SlideGrid({
                 selectionStyle="plate"
                 number={(offset ?? 0) + index + 1}
                 canvas={
-                  tile.sectionCard !== undefined &&
-                  cardTheme !== undefined &&
-                  slide !== null ? (
+                  picture !== undefined ? undefined : tile.sectionCard !==
+                      undefined &&
+                    cardTheme !== undefined &&
+                    slide !== null ? (
                     <SlidePicture {...cardTheme} slide={slide} />
                   ) : appearance !== undefined && slide !== null ? (
                     <SlidePicture

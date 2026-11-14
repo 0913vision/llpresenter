@@ -55,13 +55,17 @@ describe('workspace slide header connection', () => {
       />,
     );
     const panel = within(screen.getByRole('region', {name: '슬라이드'}));
+    const background = panel.getByRole('button', {name: 'Background fixture'});
+    const header = background.parentElement;
+    if (header === null) throw new Error('Missing slide header');
+    const headerContents = within(header);
     expect(
-      panel.getByText(
+      headerContents.getByText(
         sampleService.rows.find(row => row.id === 'song-morning')?.title ?? '',
       ),
     ).toBeDefined();
     expect(panel.getByText('4개')).toBeDefined();
-    fireEvent.click(panel.getByRole('button', {name: 'Background fixture'}));
+    fireEvent.click(background);
     expect(onProblem).toHaveBeenCalledWith(problem);
     const base = emptyLiveState();
     act(() =>
@@ -80,7 +84,7 @@ describe('workspace slide header connection', () => {
         },
       }),
     );
-    expect(panel.getByText('2 / 4')).toBeDefined();
+    expect(headerContents.getByText('2 / 4')).toBeDefined();
     expect(
       panel.getByRole('button', {name: 'Background fixture'}),
     ).toBeDefined();
