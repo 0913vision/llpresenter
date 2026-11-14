@@ -231,6 +231,7 @@ function DetailsPanelContent({
         },
     library === null ? 'service' : 'external',
     {
+      api,
       role,
       ...(screenId === undefined ? {} : {screenId}),
       ...(itemTheme === undefined ? {} : {theme: itemTheme}),
@@ -247,7 +248,7 @@ function DetailsPanelContent({
           theme: card.theme,
         },
     'service',
-    {role, ...(screenId === undefined ? {} : {screenId})},
+    {api, role, ...(screenId === undefined ? {} : {screenId})},
   );
   const picture = (index: number): JSX.Element | undefined =>
     detailsPicture(

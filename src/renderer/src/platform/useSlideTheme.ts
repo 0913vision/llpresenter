@@ -4,7 +4,8 @@ import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {createScreenId, type ThemeId} from '@core/schema/ids';
 import type {ItemRow} from '@core/presentation/model';
 import type {Screen} from '@core/schema/screens';
-import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
+import type {LlpApi} from '@contracts/ipc/api';
+import {useApiSettingsDocument} from '@renderer/platform/useSettingsDocument';
 
 export function useSlideTheme(
   row: ItemRow | undefined,
@@ -13,20 +14,22 @@ export function useSlideTheme(
     readonly role?: 'audience' | 'stage' | 'broadcast';
     readonly theme?: ThemeId;
     readonly screenId?: string;
+    readonly api?: LlpApi;
   } = {},
 ) {
   const enabled =
     row?.kind === 'slides' || row?.kind === 'song' || row?.kind === 'media';
-  const file = useSettingsDocument(
-    enabled ? 'themes' : null,
-    '테마',
-    undefined,
-  );
-  const screens = useSettingsDocument(
-    enabled ? 'screens' : null,
-    '화면',
-    undefined,
-  );
+  const api = options.api ?? window.llp;
+  const file = useApiSettingsDocument({
+    api,
+    name: enabled ? 'themes' : null,
+    title: '테마',
+  });
+  const screens = useApiSettingsDocument({
+    api,
+    name: enabled ? 'screens' : null,
+    title: '화면',
+  });
   if (row?.kind !== 'slides' && row?.kind !== 'song' && row?.kind !== 'media') {
     return undefined;
   }
