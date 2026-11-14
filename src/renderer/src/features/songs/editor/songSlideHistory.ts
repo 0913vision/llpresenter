@@ -1,5 +1,6 @@
 import {followTitle} from '@core/songs/newSongTitle';
 import type {Song, SongSlide} from '@core/schema/song';
+import type {SlideTransition} from '@core/schema/slideTransition';
 import type {SongSlideSource} from '@core/schema/showService';
 import {
   blockSnapshot,
@@ -26,17 +27,25 @@ export function songSlideClipboardFor(
   return clipboard;
 }
 
+export interface SongSlideContext {
+  readonly cardTransition?: SlideTransition | null;
+}
+
 /** Adapts text rows and persistence to the shared slide selection and history. */
 export class SongSlideHistory {
-  readonly model: SlideListModel<SongSlide>;
+  readonly model: SlideListModel<SongSlide, SongSlideContext>;
   private value: BlockSnapshot;
   private typing: {readonly id: string; readonly time: number} | undefined;
 
   constructor(
     song: Song,
     readonly clipboard = new SlideListClipboard<SongSlide>(),
-    minimum: 0 | 1 = 1,
+    options: {
+      readonly minimum?: 0 | 1;
+      readonly cardTransition?: SlideTransition | null | undefined;
+    } = {},
   ) {
+    const {minimum = 1, cardTransition} = options;
     this.value = blockSnapshot(song);
     this.model = new SlideListModel({
       slides: song.slides,
@@ -44,6 +53,7 @@ export class SongSlideHistory {
         minimum: song.slides.length === 0 ? 0 : minimum,
       }),
       clipboard,
+      context: cardTransition === undefined ? {} : {cardTransition},
     });
     const first = song.slides[0];
     if (first !== undefined) this.model.select({type: 'click', id: first.id});
@@ -129,6 +139,7 @@ export class SongSlideHistory {
           );
     this.model.edit(
       {
+        ...(state.context === undefined ? {} : {context: state.context}),
         slides: next.song.slides,
         selection,
         ...(slide === undefined

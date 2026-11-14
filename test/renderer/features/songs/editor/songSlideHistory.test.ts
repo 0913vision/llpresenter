@@ -4,6 +4,17 @@ import {SongSlideHistory} from '@renderer/features/songs/editor/songSlideHistory
 import {SlideListClipboard} from '@renderer/features/songs/editor/slideListModel';
 import type {SongSlide} from '@core/schema/song';
 import {SongSession} from '@renderer/features/songs/editor/songSession';
+import {
+  itemSongContent,
+  loadItemSong,
+} from '@renderer/features/songs/editor/itemSongSession';
+import {
+  fixtureItems,
+  fixtureServiceId,
+  itemFixture,
+} from '@fixtures/renderer/features/service/items/itemFixture';
+import {isItemOfKind} from '@core/schema/service';
+import {newSectionCard} from '@core/services/sectionCards';
 
 describe('song rows using shared slide history', () => {
   it('keeps item selection and undo when unrelated service fields advance the accepted revision', async () => {
@@ -34,6 +45,99 @@ describe('song rows using shared slide history', () => {
     expect(model.getSnapshot().selection).toBe(selection);
     session.edit('undo');
     expect(session.history.snapshot.song.slides).toEqual(before);
+    session.discard();
+  });
+  it('applies a transition to the card and selected song slides in one undo step', () => {
+    const document = {...editorDeckSong(2), itemCardTransition: null};
+    const session = new SongSession({
+      document,
+      api: {
+        edit: async () => ({
+          ok: true,
+          value: {id: document.song.id, revision: 2},
+        }),
+      },
+      itemSession: true,
+      persistence: 'manual',
+      changed: vi.fn(),
+      problem: vi.fn(),
+    });
+    const second = session.slideModel.getSnapshot().slides[1];
+    if (second === undefined) throw Error('Missing second slide');
+    session.selectSlides({type: 'click', id: second.id, ctrl: true});
+    session.changeItemTransitions({kind: 'push', dir: 'left', sec: 1}, true);
+    expect(session.slideModel.getSnapshot().context?.cardTransition).toEqual({
+      kind: 'push',
+      dir: 'left',
+      sec: 1,
+    });
+    expect(
+      session.slideModel
+        .getSnapshot()
+        .slides.map(slide => slide.transition?.kind),
+    ).toEqual(['push', 'push', undefined]);
+    session.edit('undo');
+    expect(session.slideModel.getSnapshot().context?.cardTransition).toBeNull();
+    expect(
+      session.slideModel
+        .getSnapshot()
+        .slides.every(slide => slide.transition === undefined),
+    ).toBe(true);
+    session.edit('redo');
+    expect(session.slideModel.getSnapshot().context?.cardTransition?.kind).toBe(
+      'push',
+    );
+    session.discard();
+  });
+  it('persists and undoes card and song slide transitions in a single item update', async () => {
+    const fixture = itemFixture();
+    const service = fixture.service();
+    const item = service.service.order.find(
+      entry => entry.id === fixtureItems.arranged,
+    );
+    if (item === undefined || !isItemOfKind(item, 'song')) {
+      throw Error('Missing song item');
+    }
+    fixture.pushService({
+      ...service,
+      service: {
+        ...service.service,
+        order: [{...item, sectionCard: newSectionCard()}],
+      },
+    });
+    const target = {serviceId: fixtureServiceId, itemId: item.id};
+    const document = await loadItemSong(fixture.api, target, item.song);
+    if (document === null) throw Error('Missing item document');
+    const session = new SongSession({
+      document,
+      api: itemSongContent(fixture.api, target, item.song),
+      itemSession: true,
+      persistence: 'manual',
+      changed: vi.fn(),
+      problem: vi.fn(),
+    });
+    session.changeItemTransitions({kind: 'dissolve', sec: 1}, true, true);
+    expect(await session.commit()).toBe(true);
+    const saved = fixture.service().service.order[0];
+    if (saved === undefined || !isItemOfKind(saved, 'song')) {
+      throw Error('Missing song item');
+    }
+    expect(saved).toMatchObject({
+      sectionCard: {transition: {kind: 'dissolve'}},
+    });
+    expect(
+      saved.slides.every(slide => slide.transition?.kind === 'dissolve'),
+    ).toBe(true);
+    session.edit('undo');
+    expect(await session.commit()).toBe(true);
+    expect(fixture.service().service.order[0]).not.toHaveProperty(
+      'sectionCard.transition',
+    );
+    const undone = fixture.service().service.order[0];
+    if (undone === undefined || !isItemOfKind(undone, 'song')) {
+      throw Error('Missing song item');
+    }
+    expect(undone.slides[0]).not.toHaveProperty('transition');
     session.discard();
   });
   it('coalesces typing and restores the text caret around structural edits in one history', () => {

@@ -274,12 +274,8 @@ Transitions play on output and its live preview in 진행. Every editing preview
 including text, selection, theme and transition-setting changes. Editing never
 replays an effect or sends output commands (05).
 
-- Each incoming slide's own transition wins over its theme transition and the
-  output defaults. Otherwise, changing item identity uses
-  `output.transition.between` (dissolve, 0.5 s), while navigating within the
-  same item uses `.within` (none). This applies to songs, Bible, sermon, blank
-  slides, and announcements on audience screens. Jumping backwards or to another
-  slide of the same item still uses `within`.
+- Each incoming slide uses its own transition; an absent transition cuts
+  immediately. This applies across item boundaries and within each item.
 - Effects are none, dissolve, push, and wipe. Push moves both old and new pages
   in the chosen direction. Wipe keeps the old page still and reveals the new
   page over it with a linear blend ramp about 0.85 times the screen width or

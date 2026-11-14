@@ -5,8 +5,10 @@ import type {SongSlideSource} from '@core/schema/showService';
 import {type Song, type SongSlide} from '@core/schema/song';
 import type {BlockCommand, BlockSelection} from '@core/songs/blockEdits';
 import {SongSlideHistory} from './songSlideHistory';
+import {ITEM_CARD_TRANSITION} from './itemCardTransition';
 import type {SlideListClipboard} from './slideListModel';
 import type {SlideListCommand} from '@core/songs/slideListEdits';
+import type {SlideTransition} from '@core/schema/slideTransition';
 import type {SlideSelectionAction} from '@core/songs/slideListSelection';
 import {SongTitleDraft} from '@core/songs/songTitle';
 
@@ -53,7 +55,7 @@ export class SongSession {
   private backgroundEdited = false;
 
   constructor(private readonly options: SessionOptions) {
-    this.history = this.makeHistory(options.document.song);
+    this.history = this.makeHistory(options.document.song, options.document);
     this.title = new SongTitleDraft(
       options.document.song.title,
       options.isDuplicateTitle,
@@ -236,6 +238,46 @@ export class SongSession {
     this.options.changed();
   }
 
+  /** Changes the card and selected item slides as one history step. */
+  changeItemTransitions(
+    change: SlideTransition | number,
+    cardSelected: boolean,
+    all = false,
+  ): void {
+    if (!this.acceptsEdits || !this.itemSession) return;
+    this.intent++;
+    const state = this.history.model.getSnapshot();
+    const update = (
+      old: SlideTransition | undefined,
+    ): SlideTransition | undefined =>
+      typeof change === 'number'
+        ? old === undefined
+          ? undefined
+          : {...old, sec: change}
+        : change;
+    const oldCard = state.context?.cardTransition;
+    const card =
+      oldCard === undefined || (!cardSelected && !all)
+        ? oldCard
+        : (update(oldCard ?? undefined) ?? null);
+    const slides = state.slides.map(slide => {
+      if (!all && !state.selection.ids.has(slide.id)) return slide;
+      const effect = update(slide.transition);
+      return effect === undefined ? slide : {...slide, transition: effect};
+    });
+    this.history.endTyping();
+    const result = this.history.model.edit({
+      ...state,
+      slides,
+      context: card === undefined ? {} : {cardTransition: card},
+    });
+    if (result.ok && result.value) {
+      this.dirty = true;
+      this.endTyping();
+      this.options.changed();
+    }
+  }
+
   /** Commits one slide key through the session's existing lock, history and save path. */
   setSlideHotKey(source: SongSlideSource, code: string | undefined): boolean {
     if (!this.acceptsEdits || !this.history.setSlideHotKey(source, code)) {
@@ -251,13 +293,17 @@ export class SongSession {
   edit(command: BlockCommand | 'undo' | 'redo'): void {
     if (!this.acceptsEdits) return;
     this.intent++;
-    const previous = this.history.snapshot.song;
+    const previous = this.history.model.getContent();
     if (command === 'undo') this.history.undo();
     else if (command === 'redo') this.history.redo();
     else {
       this.history.apply(command);
     }
-    if (previous !== this.history.snapshot.song) {
+    const current = this.history.model.getContent();
+    if (
+      previous.slides !== current.slides ||
+      previous.context !== current.context
+    ) {
       this.dirty = true;
       if (this.history.inTypingGroup) this.persistence.schedule();
       else this.endTyping();
@@ -275,6 +321,8 @@ export class SongSession {
       this.itemSession &&
       this.clean &&
       document.revision >= this.document.revision &&
+      JSON.stringify(document.itemCardTransition) ===
+        JSON.stringify(this.document.itemCardTransition) &&
       JSON.stringify(document.song.slides) ===
         JSON.stringify(this.document.song.slides)
     ) {
@@ -365,6 +413,13 @@ export class SongSession {
     return {
       ...baseSong,
       ...draft,
+      ...(this.itemSession &&
+      this.history.model.getSnapshot().context?.cardTransition !== undefined
+        ? {
+            [ITEM_CARD_TRANSITION]:
+              this.history.model.getSnapshot().context?.cardTransition,
+          }
+        : {}),
       title,
       slides: followTitle(draft.slides, this.title.nextValue, title),
       ...(this.background === undefined ? {} : {background: this.background}),
@@ -382,7 +437,20 @@ export class SongSession {
       this.title.reason === undefined ? this.title.value : undefined;
     const background = this.background;
 
-    return {song, draft, lyricsDirty, titleDraft, background};
+    return {
+      song,
+      draft,
+      lyricsDirty,
+      titleDraft,
+      background,
+      ...(this.itemSession &&
+      this.history.model.getSnapshot().context?.cardTransition !== undefined
+        ? {
+            itemCardTransition:
+              this.history.model.getSnapshot().context?.cardTransition,
+          }
+        : {}),
+    };
   }
 
   private acknowledgeDraft(
@@ -399,7 +467,7 @@ export class SongSession {
 
   private installDraft(document: EditorSongDocument): void {
     this.intent++;
-    this.history = this.makeHistory(document.song);
+    this.history = this.makeHistory(document.song, document);
     this.title = new SongTitleDraft(
       document.song.title,
       this.options.isDuplicateTitle,
@@ -409,11 +477,15 @@ export class SongSession {
     this.dirty = false;
   }
 
-  private makeHistory(song: Song): SongSlideHistory {
-    return new SongSlideHistory(
-      song,
-      this.options.clipboard,
-      this.options.itemSession ? 0 : 1,
-    );
+  private makeHistory(
+    song: Song,
+    document: EditorSongDocument,
+  ): SongSlideHistory {
+    return new SongSlideHistory(song, this.options.clipboard, {
+      minimum: this.options.itemSession ? 0 : 1,
+      cardTransition: this.options.itemSession
+        ? document.itemCardTransition
+        : undefined,
+    });
   }
 }

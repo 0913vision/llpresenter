@@ -26,7 +26,12 @@ export function OtherSlideInspector({
   items,
   editor,
   applyAll,
+  changeSelected,
+  cardTransition,
 }: {
+  readonly changeSelected?:
+    ((change: SlideTransition | number) => void) | undefined;
+  readonly cardTransition?: SlideTransition | null | undefined;
   readonly applyAll?: ((transition: SlideTransition) => void) | undefined;
   readonly items: ServiceItemStore;
   readonly editor: SongEditorStore;
@@ -90,7 +95,11 @@ export function OtherSlideInspector({
   const values = [
     ...(selectedCard === undefined
       ? []
-      : [selectedCard.transition ?? {kind: 'none' as const, sec: 0.5}]),
+      : [
+          (cardTransition === undefined
+            ? selectedCard.transition
+            : cardTransition) ?? {kind: 'none' as const, sec: 0.5},
+        ]),
     ...(bible
       ? selectedParts.map(
           selectedPart =>
@@ -111,6 +120,10 @@ export function OtherSlideInspector({
     all = false,
   ): void => {
     if (item === null || service === null) return;
+    if (!all && changeSelected !== undefined) {
+      changeSelected(next);
+      return;
+    }
     editorTask(
       items.submitItemEdit({
         target: {serviceId: service.service.id, itemId: item.id},
@@ -186,10 +199,33 @@ export function OtherSlideInspector({
                 }}
               />
             </div>
-            <MediaProperties
-              item={file}
-              disabled={media.document?.access !== 'editable'}
-            />
+            <div
+              onKeyDownCapture={event => {
+                if (
+                  event.key !== 'Enter' ||
+                  event.nativeEvent.isComposing ||
+                  event.ctrlKey ||
+                  event.metaKey ||
+                  event.altKey ||
+                  !(event.target instanceof HTMLInputElement)
+                ) {
+                  return;
+                }
+                event.preventDefault();
+                event.stopPropagation();
+                event.target.blur();
+                document
+                  .querySelector<HTMLElement>(
+                    '[data-song-slide][aria-selected="true"], [data-song-slide]',
+                  )
+                  ?.focus();
+              }}
+            >
+              <MediaProperties
+                item={file}
+                disabled={media.document?.access !== 'editable'}
+              />
+            </div>
           </>
         )}
         {card === undefined ||
@@ -249,7 +285,7 @@ export function OtherSlideInspector({
           <div
             onKeyDown={event => {
               if (
-                !bible ||
+                (!bible && changeSelected === undefined) ||
                 busy ||
                 service.access !== 'editable' ||
                 event.nativeEvent.isComposing ||
@@ -262,11 +298,9 @@ export function OtherSlideInspector({
               if (key !== 'z' && key !== 'y') return;
               event.preventDefault();
               event.stopPropagation();
-              editorTask(
-                items.replayItemEdit(
-                  key === 'y' || event.shiftKey ? 'redo' : 'undo',
-                ),
-              );
+              const action = key === 'y' || event.shiftKey ? 'redo' : 'undo';
+              if (bible) editorTask(items.replayItemEdit(action));
+              else editor.getSnapshot().session?.edit(action);
             }}
           >
             <TransitionPicker

@@ -2,7 +2,7 @@ import {useState, useSyncExternalStore, type JSX} from 'react';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {useSongSlideAppearance} from '@renderer/features/songs/editor/useSongSlideAppearance';
 import {LabelMenu} from '@renderer/features/songs/editor/LabelMenu';
-import {TransitionRows} from './TransitionRows';
+import {TransitionPicker, TransitionRows} from './TransitionRows';
 import {slideTransitionUndo} from '@renderer/features/songs/editor/slideTransitionSelection';
 import type {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {Button} from '@renderer/ui/Button';
@@ -14,7 +14,9 @@ import styles from './SlideInspector.module.css';
 /** Local inspection of the current song slide and its shared selection. */
 export function SlideInspector({
   store,
+  cardSelected = false,
 }: {
+  readonly cardSelected?: boolean;
   readonly store: SongEditorStore;
 }): JSX.Element {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
@@ -28,6 +30,7 @@ export function SlideInspector({
             store={store}
             session={session}
             busy={state.busy}
+            cardSelected={cardSelected}
           />
         )}
       </PanelBody>
@@ -39,7 +42,9 @@ function InspectorContent({
   store,
   session,
   busy,
+  cardSelected,
 }: {
+  readonly cardSelected: boolean;
   readonly store: SongEditorStore;
   readonly session: NonNullable<
     ReturnType<SongEditorStore['getSnapshot']>['session']
@@ -59,6 +64,21 @@ function InspectorContent({
   const slide = snapshot.song.slides[snapshot.selection.block];
   const label = selected[0]?.label;
   const mixedLabel = selected.some(item => item.label !== label);
+  const card =
+    session.itemSession && cardSelected
+      ? view.context?.cardTransition
+      : undefined;
+  const effects = [
+    ...(card === undefined ? [] : [card ?? {kind: 'none' as const, sec: 0.5}]),
+    ...selected.map(
+      item => item.transition ?? {kind: 'none' as const, sec: 0.5},
+    ),
+  ];
+  const effect = effects[0] ?? {kind: 'none' as const, sec: 0.5};
+  const mixedEffect = effects.some(
+    value => JSON.stringify(value) !== JSON.stringify(effect),
+  );
+
   if (selected.length === 0) return null;
   return (
     <div
@@ -125,7 +145,32 @@ function InspectorContent({
             )}
           </PropertyRow>
         </PropertyGroup>
-        <TransitionRows session={session} disabled={busy} song />
+        {card === undefined ? (
+          <TransitionRows
+            session={session}
+            disabled={busy}
+            song
+            onApplyAll={
+              session.itemSession
+                ? transition =>
+                    session.changeItemTransitions(transition, true, true)
+                : undefined
+            }
+          />
+        ) : (
+          <TransitionPicker
+            value={effect}
+            mixed={mixedEffect}
+            disabled={busy || session.readOnly}
+            selectionKey={selected.map(item => item.id).join(',')}
+            onChange={transition =>
+              session.changeItemTransitions(transition, true)
+            }
+            onSeconds={seconds => session.changeItemTransitions(seconds, true)}
+            onApplyAll={() => session.changeItemTransitions(effect, true, true)}
+            song
+          />
+        )}
         <PropertyGroup>
           <PropertyRow label="단축키">
             {() => (

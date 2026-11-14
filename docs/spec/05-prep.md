@@ -1180,9 +1180,9 @@ ordinary text, label, order, save, and clipboard edits (02).
 
 - The selected slides' transition settings are in the right inspector. Effect,
   direction and duration change the selected slides together; applying to all
-  slides is a single undo step. The default removes the override, and thumbnails
-  mark explicit effects. Mixed selections show their differing values, and
-  read-only or blocked sessions cannot edit them.
+  slides is a single undo step. None selects a cut, and thumbnails mark explicit
+  effects. Mixed selections show their differing values, and read-only or
+  blocked sessions cannot edit them.
 - The local preview redraws immediately without animation when typing, selecting
   slides, editing a theme or changing effects. Effect settings remain editable
   metadata; they play only on output and its live preview in 진행 (03).
@@ -1203,9 +1203,9 @@ subtitle on its second line, each at most 512 characters. A single selected
 title exposes 제목 자간 and 부제 자간 in px, saved per slide. Defaults are 0 and
 24; each accepts -20 to 200. Ordinary move, duplicate, copy, paste, delete and
 undo apply, retaining text and spacing. Splitting a title or merging across
-either side of a title is refused. Title slides have no special transition
-default; use the existing 슬라이드 전환 control to choose a slow transition when
-desired. Library and service-local decks preserve every title.
+either side of a title is refused. Title slides use the same 슬라이드 전환
+control to choose a slow transition when desired. Library and service-local
+decks preserve every title.
 
 ### Theme element selection commands
 
@@ -1241,14 +1241,14 @@ its draft selection. Slide-item records do not have song labels or slide
 hotkeys.
 
 For a mixed transition selection, changing the duration updates each explicit
-transition without replacing its effect or direction; slides using the inherited
-default keep that default. The 슬라이드 속성 panel supports undo and redo for
+transition without replacing its effect or direction; slides without a saved
+transition remain unchanged. The 슬라이드 속성 panel supports undo and redo for
 its edits.
 
 슬라이드 속성 is blank when the song or slide-item selection is empty. For a
 media item it shows the image or video thumbnail and the existing media property
-rows. For a Bible item it shows the selected local verse picture and label only;
-Bible items have no transition row.
+rows. For a Bible item it shows the selected local verse picture and label, with
+the same transition rows and selection behavior.
 
 ### Slide surface views
 

@@ -1,5 +1,6 @@
 import {act, fireEvent, render, screen, within} from '@testing-library/react';
 import {expect, it, vi} from 'vitest';
+import userEvent from '@testing-library/user-event';
 import {editorSetup} from '@fixtures/renderer/features/songs/editor/editorTesting';
 import {SlideInspector} from '@renderer/features/service/slideInspector/SlideInspector';
 import {seedSlideSurfaceView} from '@renderer/features/songs/editor/SlideSurfaceView';
@@ -249,4 +250,48 @@ it('treats omitted direction and left as the same transition', async () => {
     '밀어내기',
   );
   view.unmount();
+});
+
+it('edits an item song card together with selected lyrics in one undo step', async () => {
+  const {store, first, api} = await editorSetup();
+  const itemDocument = {
+    ...first,
+    itemCardTransition: null,
+    itemTarget: {serviceId: fixtureServiceId, itemId: fixtureItems.arranged},
+    song: {...first.song, id: createSongId(fixtureItems.arranged)},
+  };
+  act(() =>
+    store.open(itemDocument, {
+      content: {
+        ...api.content,
+        edit: async () => ({
+          ok: true,
+          value: {id: itemDocument.song.id, revision: 2},
+        }),
+      },
+    }),
+  );
+  const session = store.getSnapshot().session;
+  if (session === null) throw Error('Missing item session');
+  const inspector = render(<SlideInspector store={store} cardSelected />);
+  await userEvent.click(
+    within(inspector.container).getByLabelText('\uD6A8\uACFC'),
+  );
+  await userEvent.click(
+    within(document.body).getByRole('menuitemradio', {
+      name: '\uB514\uC878\uBE0C',
+    }),
+  );
+  expect(
+    session.slideModel.getSnapshot().context?.cardTransition,
+  ).toMatchObject({kind: 'dissolve'});
+  expect(session.slideModel.getSnapshot().slides[0]?.transition?.kind).toBe(
+    'dissolve',
+  );
+  act(() => session.edit('undo'));
+  expect(session.slideModel.getSnapshot().context?.cardTransition).toBeNull();
+  expect(
+    session.slideModel.getSnapshot().slides[0]?.transition,
+  ).toBeUndefined();
+  inspector.unmount();
 });
