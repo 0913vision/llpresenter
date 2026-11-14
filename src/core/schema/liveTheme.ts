@@ -19,6 +19,7 @@ export const liveThemeItemSchema = payloadObject({
   source: v.picklist(['service', 'external']),
   theme: v.exactOptional(themeIdSchema),
   title: v.exactOptional(liveTextSchema),
+  broadcastSongTitle: v.exactOptional(liveTextSchema),
   memo: v.exactOptional(liveTextSchema),
   overlays: v.exactOptional(itemOverlaysSchema),
   cardOffset: v.exactOptional(v.literal(1)),

@@ -10,6 +10,7 @@ import {itemThemeKind} from '@core/themes/itemKind';
 import type {DataStore} from '../store/register';
 import type {Logger} from '../log';
 import {ThemeRuntime} from './themeRuntime';
+import {broadcastSongTitle} from '@core/songs/broadcastSongTitle';
 import {dispatchLogged, type LiveStore} from './store';
 
 /** Connects current service items and theme settings, releasing both on shutdown. */
@@ -46,6 +47,14 @@ export function registerThemeOutput({
                   kind: 'song',
                   source: 'external',
                   title: song.title.slice(0, LIVE_STATE_LIMITS.textCharacters),
+                  ...(broadcastSongTitle(song) === song.title
+                    ? {}
+                    : {
+                        broadcastSongTitle: broadcastSongTitle(song).slice(
+                          0,
+                          LIVE_STATE_LIMITS.textCharacters,
+                        ),
+                      }),
                 };
           }
           const serviceId = content.openServiceId;
@@ -58,6 +67,9 @@ export function registerThemeOutput({
           if (entry === undefined) return undefined;
           const kind = itemThemeKind(entry);
           if (kind === undefined) return undefined;
+          const song = isItemOfKind(entry, 'song')
+            ? content.song(entry.song)?.song
+            : undefined;
           const title = isItemOfKind(entry, 'slides')
             ? entry.slides.name
             : isItemOfKind(entry, 'song')
@@ -82,6 +94,14 @@ export function registerThemeOutput({
             ...(title === undefined
               ? {}
               : {title: title.slice(0, LIVE_STATE_LIMITS.textCharacters)}),
+            ...(song === undefined || broadcastSongTitle(song) === song.title
+              ? {}
+              : {
+                  broadcastSongTitle: broadcastSongTitle(song).slice(
+                    0,
+                    LIVE_STATE_LIMITS.textCharacters,
+                  ),
+                }),
             ...('memo' in entry && typeof entry.memo === 'string'
               ? {memo: entry.memo.slice(0, LIVE_STATE_LIMITS.textCharacters)}
               : {}),
