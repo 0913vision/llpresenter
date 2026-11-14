@@ -58,6 +58,7 @@ export const nextSlideSchema = payloadObject({
   lines: slideLinesSchema,
   continued: v.exactOptional(v.boolean()),
   biblePart: v.exactOptional(biblePartSchema),
+  titleSlide: v.exactOptional(v.literal(true)),
 });
 
 /** A background media choice, as `media.show` carries it. */

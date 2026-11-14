@@ -26,6 +26,20 @@ describe('parseLiveCommand', () => {
     ).toBe(false);
   });
 
+  it('preserves title-slide metadata in stage updates and rejects invalid values', () => {
+    const command = {
+      type: 'stage.next.set',
+      itemId: 'item',
+      position: 0,
+      next: {label: null, lines: ['Title', 'Subtitle'], titleSlide: true},
+    };
+    expect(parseLiveCommand(command)).toEqual({ok: true, value: command});
+    expect(
+      parseLiveCommand({...command, next: {...command.next, titleSlide: false}})
+        .ok,
+    ).toBe(false);
+  });
+
   it('checks explicit continuation metadata on the current and next Bible parts', () => {
     const slide = {
       itemId: 'bible',

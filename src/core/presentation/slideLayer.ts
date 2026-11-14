@@ -36,6 +36,7 @@ export function nextSlideOf(
     ...(title === undefined || title.trim() === '' ? {} : {title}),
     ...(tile.continued === undefined ? {} : {continued: tile.continued}),
     ...(tile.biblePart === undefined ? {} : {biblePart: tile.biblePart}),
+    ...(tile.titleSlide === undefined ? {} : {titleSlide: tile.titleSlide}),
   };
 }
 
