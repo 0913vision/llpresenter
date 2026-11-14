@@ -17,11 +17,11 @@ export function creedPrayerLayout(): ThemeScreenLayout {
         return element.kind === 'currentText'
           ? {
               ...element,
-              frame: {...element.frame, x: 122, y: 95, w: 1676},
+              frame: {...element.frame, x: 129, y: 95, w: 1676},
               text: {
                 ...element.text,
                 maxLines: 4,
-                align: 'center',
+                align: 'left',
                 lineHeight: 137 / 104,
               },
             }

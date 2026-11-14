@@ -568,8 +568,8 @@ as every settings file does (02).
 - 사도신경, 주기도문 is an additional built-in theme. Its 청중 화면 shares the
   말씀 background asset without a title or scripture reference. Both 사도신경
   and 주기도문 omit their names. 현재 가사 uses NanumSquare Bold 104 px, -3 px
-  tracking, 137 px line spacing, centered/top alignment, and at most four lines
-  in the verse box at x 122, y 95, width 1676 px. 방송 화면 and 무대 화면 retain
+  tracking, 137 px line spacing, left/top alignment, and at most four lines in
+  the verse box at x 129, y 95, width 1676 px. 방송 화면 and 무대 화면 retain
   the 말씀 layouts. Adding a prayer installs this theme if an older catalog
   lacks it, without replacing saved themes. Its background ID always resolves to
   the bundled 말씀 asset.

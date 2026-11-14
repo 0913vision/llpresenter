@@ -275,12 +275,12 @@ it('omits liturgy names and keeps the four-line verse box and other scripture sc
   expect(
     audience?.elements.find(element => element.kind === 'currentText'),
   ).toMatchObject({
-    frame: {x: 122, y: 95, w: 1676, h: 750},
+    frame: {x: 129, y: 95, w: 1676, h: 750},
     text: {
       maxLines: 4,
       size: 104,
       tracking: -3,
-      align: 'center',
+      align: 'left',
       vAlign: 'top',
       lineHeight: 137 / 104,
     },
