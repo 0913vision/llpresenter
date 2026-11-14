@@ -18,19 +18,12 @@ replace say so in a note.
 
 ## The 화면 설정 window and 테마 workspace
 
-### Slide transition defaults
+### Slide transitions
 
-환경설정 > 출력 > 전환 has two slide rows, matching the approved transition
-draft: 곡이 바뀔 때 and 곡 안에서 넘길 때. Each shows four illustrated tiles
-(없음, 디졸브, 밀어내기, 닦아내기), four direction arrows, and 시간. Direction
-arrows are enabled only for 밀어내기 and 닦아내기. Time stays visible, gray, and
-disabled for 없음; otherwise it accepts 0.1 to 10 seconds. Defaults are 디졸브
-0.5 seconds between items and 없음 within an item. The rows apply to every item
-kind. The existing 배경 row remains unchanged. A slide's saved effect overrides
-these defaults. Changes apply to the next transition without restarting one
-already running. The old single 슬라이드 setting is replaced without migration.
-The editor's 기본값 tile removes its per-slide override and follows these rows;
-it does not change either global default (05).
+Slides use their own saved transition; an absent transition means ??. The slide
+inspector provides the same effect, direction, and time controls for every slide
+kind. Selecting several slides applies one choice to the selection, and ?? ??
+applies it to all slides in the item (05).
 
 ### Layout and navigation
 

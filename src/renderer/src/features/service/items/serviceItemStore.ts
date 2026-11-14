@@ -48,6 +48,7 @@ export interface ServiceItemState {
    * thumbnails, and preview. Readers clamp it to the order's length.
    */
   readonly position: number;
+  readonly bibleSelection: readonly number[];
   readonly busy: boolean;
 }
 const NO_ITEM: ServiceItemState = {
@@ -56,6 +57,7 @@ const NO_ITEM: ServiceItemState = {
   song: null,
   songStatus: null,
   position: 0,
+  bibleSelection: [],
   busy: false,
 };
 const RETRY_READ_LABEL = '다시 불러오기';
@@ -76,6 +78,7 @@ export class ServiceItemStore {
   private readonly stopWrites: () => void;
   private target: ItemTarget | null = null;
   private position = 0;
+  private bibleSelection: readonly number[] = [];
   private alive = true;
   private state = NO_ITEM;
   readonly memoRoomReason = TOO_MANY_DRAFTS;
@@ -107,6 +110,7 @@ export class ServiceItemStore {
     if (!this.alive || sameTarget(target, this.target)) return;
     this.target = target;
     this.position = 0;
+    this.bibleSelection = [];
     this.source.show(target);
   }
   /** Selects a place in the order without changing the output. */
@@ -114,6 +118,10 @@ export class ServiceItemStore {
     if (!this.alive || !Number.isInteger(index) || index < 0) return;
     if (index === this.position) return;
     this.position = index;
+    this.publish();
+  }
+  setBibleSelection(indices: readonly number[]): void {
+    this.bibleSelection = indices;
     this.publish();
   }
   /** Submits a captured field request through the single item-write queue. */
@@ -197,6 +205,7 @@ export class ServiceItemStore {
       song,
       songStatus,
       position: this.position,
+      bibleSelection: this.bibleSelection,
       busy: this.edits.busy,
     };
     for (const listener of this.listeners) listener();

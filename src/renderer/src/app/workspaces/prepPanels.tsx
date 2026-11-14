@@ -53,6 +53,7 @@ import {isItemOfKind} from '@core/schema/service';
 import {AddSectionCard} from '@renderer/features/service/items/AddSectionCard';
 import itemCardStyles from './ItemCardBinding.module.css';
 import {hasSectionCard} from '@core/services/sectionCards';
+import type {SlideTransition} from '@core/schema/slideTransition';
 
 function SlidesCardInspector({prep}: {readonly prep: PrepBinding}): ReactNode {
   const state = useSyncExternalStore(
@@ -64,17 +65,73 @@ function SlidesCardInspector({prep}: {readonly prep: PrepBinding}): ReactNode {
     model?.subscribe ?? noSubscribe,
     () => model?.getSnapshot().selection.ids.size ?? 0,
   );
+  const applyAll = (transition: SlideTransition): void => {
+    const session = prep.slides?.session;
+    if (session === undefined || session === null || session.readOnly) return;
+    const item = session.draft.snapshot.item;
+    session.draft.change(
+      {
+        ...item,
+        ...(item.sectionCard === undefined
+          ? {}
+          : {sectionCard: {...item.sectionCard, transition}}),
+        slides: {
+          ...item.slides,
+          slides: item.slides.slides.map(slide => ({...slide, transition})),
+        },
+      },
+      session.draft.snapshot.selected,
+      'transition-all',
+    );
+    session.draft.endTyping();
+  };
   if (
     state.item !== null &&
     hasSectionCard(state.item) &&
     state.position === 0 &&
     selection === 0
   ) {
-    return <OtherSlideInspector items={prep.items} editor={prep.editor} />;
+    return (
+      <OtherSlideInspector
+        items={prep.items}
+        editor={prep.editor}
+        applyAll={applyAll}
+      />
+    );
   }
   return prep.slides?.session ? (
-    <SlidesInspector api={prep.api} session={prep.slides.session} />
+    <SlidesInspector
+      api={prep.api}
+      session={prep.slides.session}
+      onApplyAll={applyAll}
+    />
   ) : null;
+}
+
+function SongCardInspector({prep}: {readonly prep: PrepBinding}): ReactNode {
+  const itemState = useSyncExternalStore(
+    prep.items.subscribe,
+    prep.items.getSnapshot,
+  );
+  const editorState = useSyncExternalStore(
+    prep.editor.subscribe,
+    prep.editor.getSnapshot,
+  );
+  const model = editorState.session?.slideModel;
+  const selection = useSyncExternalStore(
+    model?.subscribe ?? noSubscribe,
+    () => model?.getSnapshot().selection.ids.size ?? 0,
+  );
+  if (
+    editorState.session?.itemSession &&
+    itemState.item !== null &&
+    hasSectionCard(itemState.item) &&
+    itemState.position === 0 &&
+    selection === 0
+  ) {
+    return <OtherSlideInspector items={prep.items} editor={prep.editor} />;
+  }
+  return <SlideInspector store={prep.editor} />;
 }
 
 function ItemCardBinding({
@@ -304,7 +361,7 @@ function prepPanelParts({
           ) : prep.slides?.session ? (
             <SlidesCardInspector prep={prep} />
           ) : (
-            <SlideInspector store={prep.editor} />
+            <SongCardInspector prep={prep} />
           )}
         </EditorBackgroundDrop>
       ),

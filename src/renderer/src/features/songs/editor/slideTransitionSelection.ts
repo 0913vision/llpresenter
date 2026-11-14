@@ -8,7 +8,7 @@ import type {SlideListSession} from '@renderer/features/songs/editor/slideListSe
 import {isComposing} from '@renderer/ui/ime';
 
 export const INITIAL_SLIDE_EFFECT: SlideTransition = {
-  kind: 'dissolve',
+  kind: 'none',
   sec: 0.5,
 };
 export function selectedSlideTransition(
@@ -21,7 +21,7 @@ export function selectedSlideTransition(
   const key = (effect: SlideTransition | undefined): string =>
     JSON.stringify(
       effect === undefined
-        ? null
+        ? ['none', 0.5, 'left']
         : [effect.kind, effect.sec, effect.dir ?? 'left'],
     );
   const mixed = selected.some(slide => key(slide.transition) !== key(current));
