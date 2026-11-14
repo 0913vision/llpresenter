@@ -351,8 +351,9 @@ describe('show state', () => {
         sermon: [{label: null, labelColor: 'none', lines: ['Title']}],
       },
     }));
+    setAtLastSlide('stop');
     outputTile({itemId: 'psalm-23', index: 2});
-    expect(slides().at(-1)?.slide.next).not.toHaveProperty('sermonTitle');
+    expect(slides().at(-1)?.slide.next).toBeUndefined();
   });
 
   it('updates the stage preview when continuous navigation changes while a slide is live', () => {
