@@ -4,7 +4,7 @@ export {LIVE_BIBLE_ID} from '../schema/ids';
 
 export const LIVE_BIBLE: Translation = {
   id: LIVE_BIBLE_ID,
-  name: '개역개정',
+  name: '개역개정 (실시간)',
   lang: 'ko',
   file: 'bsk-gae.llbible',
   default: false,

@@ -15,7 +15,7 @@ export function BibleQuickAdd({
   const defaults = useBibleDefaults();
   const insert = (value: BibleLookupPassage | null): void => {
     if (value === null || defaults === null) return;
-    onInsert(value.ref, defaults);
+    onInsert(value.ref, {...defaults, translation: value.translation});
     onClose();
   };
   return window.llp === undefined ? null : (

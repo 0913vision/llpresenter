@@ -1,3 +1,4 @@
+import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
 import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
 import {parseReference} from '@core/bible/reference';
 import {BIBLE_LOOKUP_LIMITS} from '@core/schema/bibleLookup';
@@ -20,6 +21,26 @@ export class BibleLibrary {
 
   get translations() {
     return this.catalog.translations;
+  }
+
+  complete(translation: string): boolean {
+    const header = this.catalog.header(translation);
+    return (
+      header !== undefined &&
+      BIBLE_BOOKS.every(book =>
+        header.books.some(
+          entry =>
+            entry.id === book.id && entry.chapters.length === book.chapters,
+        ),
+      )
+    );
+  }
+
+  hasTranslation(translation: string): boolean {
+    return (
+      translation === LIVE_BIBLE_ID ||
+      this.catalog.header(translation) !== undefined
+    );
   }
 
   /** Reads verse slots from the installed header, including omitted verses. */

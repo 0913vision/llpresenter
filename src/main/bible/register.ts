@@ -21,7 +21,7 @@ export function registerBible({
         throw new Error('Invalid Bible lookup request');
       }
       try {
-        return await session.lookup(request.value);
+        return await session.lookup(request.value, false, true);
       } catch (error: unknown) {
         log.error('could not look up a Bible passage', error);
         throw new Error('Could not look up a Bible passage', {cause: error});
