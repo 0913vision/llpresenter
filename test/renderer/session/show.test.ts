@@ -262,6 +262,88 @@ describe('show state', () => {
     expect(slides().at(-1)?.slide.next).toBeUndefined();
   });
 
+  it('labels only a different, non-sermon next Bible passage', () => {
+    const passage = {
+      kind: 'bible' as const,
+      id: 'psalm-23',
+      title: '\uC2DC\uD3B8 23:1~3',
+    };
+    const other = {
+      kind: 'bible' as const,
+      id: 'other',
+      title: '\uBBFC\uC218\uAE30 12:3',
+    };
+    const sermon = {
+      kind: 'slides' as const,
+      id: 'sermon',
+      title: 'Sermon',
+      form: 'blank' as const,
+      theme: SERMON_TITLE_THEME_ID,
+    };
+    useShow.setState(state => ({
+      rows: [passage, other],
+      tiles: {...state.tiles, other: state.tiles['psalm-23'] ?? []},
+    }));
+    setAtLastSlide('nextItem');
+    outputTile({itemId: 'psalm-23', index: 1});
+    expect(slides().at(-1)?.slide.next?.stageReference).toBeUndefined();
+    outputTile({itemId: 'psalm-23', index: 2});
+    expect(slides().at(-1)?.slide.next?.stageReference).toBe(
+      '\uBBFC\uC218\uAE30 12:3',
+    );
+    setLive('psalm-23', 2);
+    sent.length = 0;
+    applyService({
+      ...sampleService,
+      rows: [passage, other],
+      tiles: {
+        ...sampleService.tiles,
+        other: sampleService.tiles['psalm-23'] ?? [],
+      },
+    });
+    expect(sent.at(-1)).toMatchObject({
+      type: 'stage.next.set',
+      next: {stageReference: '\uBBFC\uC218\uAE30 12:3'},
+    });
+    useShow.setState({rows: [passage, sermon, other]});
+    outputTile({itemId: 'sermon', index: 0});
+    useShow.setState(state => ({
+      rows: [passage, other, sermon, {...other, id: 'sermon-passage'}],
+      tiles: {...state.tiles, 'sermon-passage': state.tiles.other ?? []},
+    }));
+    outputTile({itemId: 'psalm-23', index: 2});
+    expect(slides().at(-1)?.slide.next?.stageReference).toBeUndefined();
+    useShow.setState({
+      rows: [passage, {kind: 'song', id: 'song-river', title: 'Sermon'}],
+    });
+    outputTile({itemId: 'psalm-23', index: 2});
+    expect(slides().at(-1)?.slide.next?.stageReference).toBeUndefined();
+  });
+
+  it('recognizes scripture decks named for a passage after a different sermon title', () => {
+    const title = {
+      kind: 'slides' as const,
+      id: 'song-river',
+      title: '\uB9C8\uD0DC\uBCF5\uC74C 11:29~30',
+      form: 'blank' as const,
+      theme: SERMON_TITLE_THEME_ID,
+    };
+    const scripture = {
+      kind: 'slides' as const,
+      id: 'psalm-23',
+      title: '\uBBFC\uC218\uAE30 12:3',
+      form: 'blank' as const,
+    };
+    useShow.setState({rows: [title, scripture]});
+    setAtLastSlide('nextItem');
+    outputTile({itemId: 'song-river', index: 2});
+    expect(slides().at(-1)?.slide.next?.stageReference).toBe(
+      '\uBBFC\uC218\uAE30 12:3',
+    );
+    outputTile({itemId: 'psalm-23', index: 0});
+    expect(slides().at(-1)?.slide.next?.stageReference).toBeUndefined();
+  });
+
   it.each(['before', 'after'] as const)(
     'only previews a sermon that comes %s the Bible item',
     position => {

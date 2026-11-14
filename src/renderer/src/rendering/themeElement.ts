@@ -104,6 +104,7 @@ const SLIDE_ELEMENT_KINDS: readonly string[] = [
 /** One persistent element with owned text pages, images, and video decoders. */
 export class ThemeElementView {
   private readonly box = document.createElement('div');
+  private readonly stageReference = document.createElement('div');
   private y = 0;
   private readonly text: SlideLayerView | null;
   private media: BackgroundLayerView | null = null;
@@ -154,6 +155,23 @@ export class ThemeElementView {
       overflow: 'hidden',
       isolation: 'isolate',
     });
+    if (element.kind === 'nextText') {
+      this.box.style.overflow = 'visible';
+      Object.assign(this.stageReference.style, {
+        position: 'absolute',
+        bottom: '100%',
+        left: '0',
+        width: '100%',
+        color: '#ffffff',
+        fontFamily: 'NanumSquare, sans-serif',
+        fontSize: '40px',
+        lineHeight: '1.2',
+        textAlign: element.text.align,
+        pointerEvents: 'none',
+      });
+      this.stageReference.dataset['stageNextReference'] = '';
+      this.box.append(this.stageReference);
+    }
     this.box.dataset['themeElement'] = element.id;
     this.box.dataset['kind'] = element.kind;
     let textParent = this.box;
@@ -321,6 +339,8 @@ export class ThemeElementView {
           : slide.lines
       ).some(line => line.trim() !== '');
     const next = slide?.next;
+    this.stageReference.textContent =
+      stage && element.kind === 'nextText' ? (next?.stageReference ?? '') : '';
     const nextEmpty =
       stage &&
       element.kind === 'nextText' &&
@@ -452,11 +472,16 @@ export class ThemeElementView {
                   : undefined))
               : undefined,
           vAlign:
-            cue !== undefined
-              ? 'middle'
-              : isThemeTextElement(element)
-                ? themeTextVAlign(element, layers.slide?.lines.join('\n') ?? '')
-                : undefined,
+            stage && element.kind === 'nextText'
+              ? 'top'
+              : cue !== undefined
+                ? 'middle'
+                : isThemeTextElement(element)
+                  ? themeTextVAlign(
+                      element,
+                      layers.slide?.lines.join('\n') ?? '',
+                    )
+                  : undefined,
           continued:
             (element.kind === 'currentText'
               ? layers.slide?.continued
@@ -559,7 +584,8 @@ export class ThemeElementView {
       (slide?.kind ?? item?.kind) === 'bible' &&
       slide?.sequenceLength !== undefined &&
       slide.position >= slide.sequenceLength - 1 &&
-      (element.kind === 'nextLabel' || slide.next?.sermonTitle !== true)
+      (element.kind === 'nextLabel' ||
+        (slide.next?.sermonTitle !== true && slide.next?.itemKind !== 'bible'))
     ) {
       return null;
     }
@@ -788,7 +814,10 @@ export class ThemeElementView {
       if (frame.slideTransition !== undefined) {
         this.text.setTransition(frame.slideTransition, this.element.frame);
         this.box.style.overflow =
-          frame.slideTransition.kind === 'push' ? 'visible' : 'hidden';
+          frame.slideTransition.kind === 'push' ||
+          (frame.screen?.kind === 'stage' && this.element.kind === 'nextText')
+            ? 'visible'
+            : 'hidden';
       }
     }
     const slideKey =

@@ -1,3 +1,5 @@
+import {parseReference} from '@core/bible/reference';
+import type {ShowRow} from '@core/schema/showService';
 import type {Preferences} from '@core/schema/preferences';
 import type {NextSlide, SlideLayer} from '@core/live/state';
 import type {SingleLiveCommand} from '@core/live/commands';
@@ -283,6 +285,68 @@ function sermonNext(cursor: TileCursor): NextSlide | undefined {
   return title ? {label: null, lines: [title], sermonTitle: true} : undefined;
 }
 
+/** The imported scripture decks are blank-slide items named for their passage. */
+function passageKey(row: ShowRow | undefined): string | undefined {
+  if (row === undefined || (row.kind !== 'bible' && row.kind !== 'slides')) {
+    return undefined;
+  }
+  if (row.kind === 'slides' && row.theme === SERMON_TITLE_THEME_ID) {
+    return undefined;
+  }
+  const parsed = parseReference(
+    row.kind === 'bible' ? (row.bible?.ref ?? row.title) : row.title,
+  );
+  if (!parsed.ok) return undefined;
+  const {book, chapter, verse, endChapter, endVerse} = parsed.value;
+  return JSON.stringify([book.id, chapter, verse, endChapter, endVerse]);
+}
+
+/** Labels a different Bible passage, except the service's sermon passage. */
+function stageReference(
+  live: TileCursor,
+  next: TileCursor | null,
+): string | undefined {
+  if (next === null) return undefined;
+  const rows = useShow.getState().rows;
+  const nextIndex = rows.findIndex(row => row.id === next.itemId);
+  const target = rows[nextIndex];
+  const key = passageKey(target);
+  if (key === undefined || target === undefined) return undefined;
+  const current = rows.find(row => row.id === live.itemId);
+  if (passageKey(current) === key) return undefined;
+  const sermonPassage = rows.some((row, index) => {
+    if (
+      (row.kind !== 'song' && row.kind !== 'slides') ||
+      row.theme !== SERMON_TITLE_THEME_ID
+    ) {
+      return false;
+    }
+    const title = parseReference(row.title);
+    const titleKey = title.ok
+      ? JSON.stringify([
+          title.value.book.id,
+          title.value.chapter,
+          title.value.verse,
+          title.value.endChapter,
+          title.value.endVerse,
+        ])
+      : undefined;
+    return titleKey === undefined
+      ? passageKey(rows[index + 1]) === key
+      : titleKey === key;
+  });
+  return sermonPassage ? undefined : target.title;
+}
+
+function withStageReference(
+  next: NextSlide | null | undefined,
+  reference: string | undefined,
+): NextSlide | null | undefined {
+  return next == null || reference === undefined
+    ? next
+    : {...next, stageReference: reference};
+}
+
 /** Builds the same following item that the next-slide command will open. */
 export function stageSlideOf(cursor: TileCursor) {
   const view = useShow.getState();
@@ -322,9 +386,13 @@ export function stageSlideOf(cursor: TileCursor) {
         };
   const slide = slideLayerOf(cursor, tilesOf, following);
   const sermon = sermonNext(cursor);
-  return slide === null || sermon === undefined
-    ? slide
-    : {...slide, next: sermon};
+  if (slide === null) return null;
+  const projected = sermon ?? slide.next;
+  const labeled = withStageReference(
+    projected,
+    sermon === undefined ? stageReference(cursor, next) : undefined,
+  );
+  return labeled == null ? slide : {...slide, next: labeled};
 }
 
 interface SongOutput {
@@ -406,6 +474,7 @@ function nextKey(next: NextSlide | null | undefined): string {
         next.biblePart ?? null,
         next.titleSlide ?? null,
         next.sermonTitle ?? null,
+        next.stageReference ?? null,
       ]);
 }
 
@@ -440,7 +509,7 @@ function refreshStageNext(): void {
   const afterCard =
     cursor === null ? undefined : tilesOf(cursor.itemId)[cursor.index + 1];
   const sermon = sermonNext(live);
-  const next =
+  const projectedNext =
     sermon ??
     (tile === undefined
       ? null
@@ -452,6 +521,11 @@ function refreshStageNext(): void {
               ? undefined
               : noticeNumber(tilesOf(cursor.itemId), cursor.index),
         }));
+  const next =
+    withStageReference(
+      projectedNext,
+      sermon === undefined ? stageReference(live, cursor) : undefined,
+    ) ?? null;
   const key = nextKey(next);
   if (
     pendingStageNext !== undefined &&

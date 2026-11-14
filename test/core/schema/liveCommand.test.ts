@@ -40,6 +40,22 @@ describe('parseLiveCommand', () => {
     ).toBe(false);
   });
 
+  it('validates the bounded stage passage reference', () => {
+    const command = {
+      type: 'stage.next.set',
+      itemId: 'item',
+      position: 0,
+      next: {label: null, lines: ['Next'], stageReference: 'Numbers 12:3'},
+    };
+    expect(parseLiveCommand(command)).toEqual({ok: true, value: command});
+    for (const stageReference of [null, 1, 'x'.repeat(100_000)]) {
+      expect(
+        parseLiveCommand({...command, next: {...command.next, stageReference}})
+          .ok,
+      ).toBe(false);
+    }
+  });
+
   it('validates the sermon-title stage preview marker', () => {
     const command = {
       type: 'stage.next.set',

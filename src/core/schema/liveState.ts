@@ -64,6 +64,7 @@ export const nextSlideSchema = payloadObject({
     v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(1000)),
   ),
   sermonTitle: v.exactOptional(v.literal(true)),
+  stageReference: v.exactOptional(liveTextSchema),
 });
 
 /** A background media choice, as `media.show` carries it. */
