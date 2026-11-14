@@ -12,6 +12,7 @@ export type SlideCardRenderer<T = Slide> = (
 /** An item-owned card preceding its content slides. */
 export interface LeadingSlideCard {
   readonly label?: string | undefined;
+  readonly mixedSelection?: boolean;
   readonly render: (mode: SlideSurfaceMode) => ReactNode;
   readonly onDelete: () => void;
   readonly onSelectChange?: ((selected: boolean) => void) | undefined;

@@ -31,7 +31,7 @@ export function OtherSlideInspector({
   readonly items: ServiceItemStore;
   readonly editor: SongEditorStore;
 }): JSX.Element {
-  const {item, service, position, busy, bibleSelection, bibleCardSelected} =
+  const {item, service, position, busy, bibleSelection, cardSelected} =
     useSyncExternalStore(items.subscribe, items.getSnapshot);
   const bible = item !== null && isItemOfKind(item, 'bible');
   const media = useItemMedia(
@@ -86,9 +86,7 @@ export function OtherSlideInspector({
           .filter(part => part != null)
       : [];
   const selectedCard =
-    bible && bibleCardSelected && hasSectionCard(item)
-      ? item.sectionCard
-      : card;
+    bible && cardSelected && hasSectionCard(item) ? item.sectionCard : card;
   const values = [
     ...(selectedCard === undefined
       ? []

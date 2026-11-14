@@ -50,7 +50,7 @@ export interface ServiceItemState {
    */
   readonly position: number;
   readonly bibleSelection: readonly number[];
-  readonly bibleCardSelected: boolean;
+  readonly cardSelected: boolean;
   readonly busy: boolean;
 }
 const NO_ITEM: ServiceItemState = {
@@ -60,7 +60,7 @@ const NO_ITEM: ServiceItemState = {
   songStatus: null,
   position: 0,
   bibleSelection: [],
-  bibleCardSelected: false,
+  cardSelected: false,
   busy: false,
 };
 const RETRY_READ_LABEL = '다시 불러오기';
@@ -82,7 +82,7 @@ export class ServiceItemStore {
   private target: ItemTarget | null = null;
   private position = 0;
   private bibleSelection: readonly number[] = [];
-  private bibleCardSelected = false;
+  private cardSelected = false;
   private alive = true;
   private state = NO_ITEM;
   readonly memoRoomReason = TOO_MANY_DRAFTS;
@@ -115,7 +115,7 @@ export class ServiceItemStore {
     this.target = target;
     this.position = 0;
     this.bibleSelection = [];
-    this.bibleCardSelected = false;
+    this.cardSelected = false;
     this.source.show(target);
   }
   /** Selects a place in the order without changing the output. */
@@ -125,9 +125,9 @@ export class ServiceItemStore {
     this.position = index;
     this.publish();
   }
-  setBibleCardSelected(selected: boolean): void {
-    if (this.bibleCardSelected === selected) return;
-    this.bibleCardSelected = selected;
+  setCardSelected(selected: boolean): void {
+    if (this.cardSelected === selected) return;
+    this.cardSelected = selected;
     this.publish();
   }
   setBibleSelection(indices: readonly number[]): void {
@@ -235,7 +235,7 @@ export class ServiceItemStore {
       songStatus,
       position: this.position,
       bibleSelection: this.bibleSelection,
-      bibleCardSelected: this.bibleCardSelected,
+      cardSelected: this.cardSelected,
       busy: this.edits.busy,
     };
     for (const listener of this.listeners) listener();

@@ -104,6 +104,7 @@ function SlidesCardInspector({prep}: {readonly prep: PrepBinding}): ReactNode {
       api={prep.api}
       session={prep.slides.session}
       onApplyAll={applyAll}
+      cardSelected={state.cardSelected}
     />
   ) : null;
 }

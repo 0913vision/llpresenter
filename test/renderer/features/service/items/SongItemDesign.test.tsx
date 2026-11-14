@@ -26,7 +26,7 @@ function setup(readOnly = false) {
     songStatus: null,
     position: 0,
     bibleSelection: [],
-    bibleCardSelected: false,
+    cardSelected: false,
     busy: false,
   };
   const mockItems = {

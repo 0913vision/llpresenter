@@ -12,7 +12,7 @@ import {
 import type {SlidesListSession} from '../slides/slidesListSession';
 import {Panel, PanelBody} from '@renderer/ui/Panel';
 import {Properties} from '@renderer/ui/PropertyRow';
-import {TransitionRows} from './TransitionRows';
+import {TransitionPicker, TransitionRows} from './TransitionRows';
 import {slideTransitionUndo} from '@renderer/features/songs/editor/slideTransitionSelection';
 import styles from './SlideInspector.module.css';
 
@@ -21,7 +21,9 @@ export function SlidesInspector({
   api,
   session,
   onApplyAll,
+  cardSelected = false,
 }: {
+  readonly cardSelected?: boolean;
   readonly onApplyAll?: ((transition: SlideTransition) => void) | undefined;
   readonly api: LlpApi;
   readonly session: SlidesListSession;
@@ -36,6 +38,56 @@ export function SlidesInspector({
   const {appearance} = useSlidesAppearance(api, item);
   const {projection} = useSlidesVerseProjection(api, item);
   const slide = view.slides[selected];
+  const card = cardSelected ? draftItem.sectionCard : undefined;
+  const selectedSlides = view.slides.filter(entry =>
+    view.selection.ids.has(entry.id),
+  );
+  const effects = [
+    ...(card === undefined
+      ? []
+      : [card.transition ?? {kind: 'none' as const, sec: 0.5}]),
+    ...selectedSlides.map(
+      entry => entry.transition ?? {kind: 'none' as const, sec: 0.5},
+    ),
+  ];
+  const value = effects[0] ?? {kind: 'none' as const, sec: 0.5};
+  const mixed = effects.some(
+    effect => JSON.stringify(effect) !== JSON.stringify(value),
+  );
+  const applySelected = (change: SlideTransition | number): void => {
+    const current = session.draft.snapshot.item;
+    const update = (
+      old: SlideTransition | undefined,
+    ): SlideTransition | undefined =>
+      typeof change === 'number'
+        ? old === undefined
+          ? undefined
+          : {...old, sec: change}
+        : change;
+    const cardEffect = update(current.sectionCard?.transition);
+    const sectionCard =
+      current.sectionCard === undefined ||
+      !cardSelected ||
+      cardEffect === undefined
+        ? current.sectionCard
+        : {...current.sectionCard, transition: cardEffect};
+    const slides = current.slides.slides.map(entry => {
+      if (!view.selection.ids.has(entry.id)) return entry;
+      const next = update(entry.transition);
+      return next === undefined ? entry : {...entry, transition: next};
+    });
+    session.draft.change(
+      {
+        ...current,
+        ...(sectionCard === undefined ? {} : {sectionCard}),
+        slides: {...current.slides, slides},
+      },
+      selected,
+      'transition-selected',
+    );
+    session.draft.endTyping();
+  };
+
   return (
     <Panel label="슬라이드 속성">
       <PanelBody>
@@ -60,11 +112,24 @@ export function SlidesInspector({
               </span>
             </div>
             <Properties>
-              <TransitionRows
-                session={session}
-                disabled={false}
-                onApplyAll={onApplyAll}
-              />
+              {card === undefined ? (
+                <TransitionRows
+                  session={session}
+                  disabled={false}
+                  onApplyAll={onApplyAll}
+                />
+              ) : (
+                <TransitionPicker
+                  value={value}
+                  mixed={mixed}
+                  disabled={session.readOnly}
+                  selectionKey={selectedSlides.map(entry => entry.id).join(',')}
+                  onChange={applySelected}
+                  onSeconds={applySelected}
+                  onApplyAll={() => onApplyAll?.(value)}
+                  allowAll={onApplyAll !== undefined}
+                />
+              )}
             </Properties>
           </div>
         )}

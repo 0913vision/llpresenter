@@ -1,5 +1,6 @@
 import {useSyncExternalStore} from 'react';
 import {hasSectionCard} from '@core/services/sectionCards';
+import {isItemOfKind} from '@core/schema/service';
 import type {LeadingSlideCard} from '@renderer/features/songs/editor';
 import {CardSlideBody} from './CardSlideBody';
 import {saveCard, saveField} from './sectionCardActions';
@@ -25,6 +26,7 @@ export function useLeadingItemCard(
   const card = item.sectionCard;
   const disabled = busy || service.access === 'readOnly';
   return {
+    mixedSelection: isItemOfKind(item, 'bible') || isItemOfKind(item, 'slides'),
     label: '구역 이름',
     render: mode => (
       <CardSlideBody
@@ -45,7 +47,7 @@ export function useLeadingItemCard(
       }
     },
     onSelectChange: selected => {
-      if ('bible' in item) items.setBibleCardSelected(selected);
+      items.setCardSelected(selected);
       items.selectPosition(selected ? 0 : 1);
     },
   };

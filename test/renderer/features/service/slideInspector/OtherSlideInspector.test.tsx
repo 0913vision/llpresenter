@@ -179,7 +179,7 @@ it('shows the Bible opening card and offsets verse positions past it', async () 
 it('applies one transition to a Bible card and selected parts and undoes them together', async () => {
   const {view, items, editor} = await setup('bible-card');
   act(() => {
-    items.setBibleCardSelected(true);
+    items.setCardSelected(true);
     items.setBibleSelection([0, 1]);
     items.selectPosition(1);
   });

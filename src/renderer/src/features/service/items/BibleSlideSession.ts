@@ -43,7 +43,7 @@ export class BibleSlideSession implements SlideListSession<BibleSlide> {
     const selected =
       savedSelection.length > 0
         ? savedSelection
-        : options.items.getSnapshot().bibleCardSelected
+        : options.items.getSnapshot().cardSelected
           ? []
           : [
               Math.max(
