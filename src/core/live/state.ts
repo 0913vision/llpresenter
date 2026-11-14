@@ -52,6 +52,7 @@ export interface NextSlide {
   /** Optional title displayed before the next slide body. */
   readonly title?: string;
   readonly label: string | null;
+  readonly labelContinued?: true;
   readonly lines: readonly string[];
   readonly continued?: boolean;
   readonly biblePart?: number;
@@ -84,6 +85,7 @@ export interface SlideLayer {
   readonly biblePart?: number;
   readonly sourceSlideId?: SlideId;
   readonly label: string | null;
+  readonly labelContinued?: true;
   readonly lines: readonly string[];
   readonly continued?: boolean;
   /** A Bible reference, separate from the operator's slide label. */

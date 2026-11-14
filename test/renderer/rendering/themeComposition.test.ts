@@ -2472,7 +2472,7 @@ it.each(['output', 'preview'] as const)(
     );
     expect(current()?.textContent).toBe('(\uc5c6\uc74c)');
     view.render(song, stage);
-    expect(current()?.textContent).toBe('(Verse) Invented line');
+    expect(current()?.textContent).toBe('Invented line');
     expect(current()?.style.color).not.toBe('rgb(180, 180, 180)');
     view.render(empty, {
       ...frame(elements),
@@ -2805,7 +2805,11 @@ it('places ordinary stage labels before lyrics and omits them on titles', () => 
     root.querySelector(`[data-kind="${kind}"] .${classes.shown}`)
       ?.textContent ?? '';
   draw(false, 'stage');
-  expect(text('currentText')).toBe('(Verse) Current');
+  expect(text('currentText')).toBe('Current');
+  expect(
+    root.querySelector('[data-kind="currentText"] [data-stage-prefix]')
+      ?.textContent,
+  ).toBe('(Verse)');
   expect(text('nextText')).toBe('(Outro) Next');
   draw(true, 'stage');
   expect(text('currentText')).toBe('Current');
@@ -2855,6 +2859,69 @@ it.each(['\uc804\uc8fc', '\uac04\uc8fc', '\ud6c4\uc8fc'])(
     view.dispose();
   },
 );
+
+it('suppresses labels carried over from the preceding slide on stage', () => {
+  const {root, view} = setup();
+  if (song.slide === null) throw Error('Missing slide');
+  const elements: ThemeElement[] = [
+    {...themeElementBase(), kind: 'currentText'},
+    {...themeElementBase(31), kind: 'nextText'},
+  ];
+  view.render(
+    {
+      ...song,
+      slide: {
+        ...song.slide,
+        label: '1절',
+        labelContinued: true,
+        lines: ['Current'],
+        next: {label: '1절', labelContinued: true, lines: ['Next']},
+      },
+    },
+    {
+      ...frame(elements),
+      screen: {id: THEME_MAIN, kind: 'stage'},
+      transitions: false,
+    },
+  );
+  expect(
+    root
+      .querySelector('[data-kind="currentText"] [data-stage-prefix]')
+      ?.hasAttribute('hidden'),
+  ).toBe(true);
+  expect(
+    root.querySelector(`[data-kind="currentText"] .${classes.shown}`)
+      ?.textContent,
+  ).toBe('Current');
+  expect(
+    root.querySelector(`[data-kind="nextText"] .${classes.shown}`)?.textContent,
+  ).toBe('Next');
+  view.render(
+    {
+      ...song,
+      slide: {
+        ...song.slide,
+        label: '간주',
+        labelContinued: true,
+        lines: ['Current'],
+        next: {label: '후렴', lines: ['Next']},
+      },
+    },
+    {
+      ...frame(elements),
+      screen: {id: THEME_MAIN, kind: 'stage'},
+      transitions: false,
+    },
+  );
+  expect(
+    root.querySelector(`[data-kind="currentText"] .${classes.shown}`)
+      ?.textContent,
+  ).toBe('Current');
+  expect(
+    root.querySelector(`[data-kind="nextText"] .${classes.shown}`)?.textContent,
+  ).toBe('(후렴) Next');
+  view.dispose();
+});
 
 it('shows only an adjacent sermon title on stage after the last Bible slide', () => {
   const {root, view} = setup();

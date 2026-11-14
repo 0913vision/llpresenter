@@ -100,6 +100,7 @@ const SLIDE_ELEMENT_KINDS: readonly string[] = [
 /** One persistent element with owned text pages, images, and video decoders. */
 export class ThemeElementView {
   private readonly box = document.createElement('div');
+  private readonly stagePrefix = document.createElement('div');
   private y = 0;
   private readonly text: SlideLayerView | null;
   private media: BackgroundLayerView | null = null;
@@ -171,6 +172,17 @@ export class ThemeElementView {
       textParent.append(guide);
     }
     parent.append(this.box);
+    this.stagePrefix.hidden = true;
+    this.stagePrefix.dataset['stagePrefix'] = '';
+    Object.assign(this.stagePrefix.style, {
+      position: 'absolute',
+      left: '0',
+      width: '100%',
+      fontSize: '40px',
+      lineHeight: '48px',
+      color: STAGE_COLORS.muted,
+      pointerEvents: 'none',
+    });
     const fill =
       element.kind === 'box' || isThemeTextElement(element)
         ? element.box
@@ -320,8 +332,10 @@ export class ThemeElementView {
       next !== undefined &&
       !next.title?.trim() &&
       !next.lines.some(line => line.trim() !== '');
-    const rawCurrentLabel = slide?.label?.trim();
-    const rawNextLabel = next?.label?.trim();
+    const rawCurrentLabel = slide?.labelContinued
+      ? undefined
+      : slide?.label?.trim();
+    const rawNextLabel = next?.labelContinued ? undefined : next?.label?.trim();
     const currentLabel =
       slide?.titleSlide &&
       rawCurrentLabel &&
@@ -452,6 +466,43 @@ export class ThemeElementView {
         },
       );
     }
+    const prefix =
+      stage &&
+      (slide?.kind ?? item?.kind) !== 'bible' &&
+      element.kind === 'currentText' &&
+      slide?.titleSlide !== true &&
+      slide?.sectionCard === undefined &&
+      slide?.labelContinued !== true &&
+      slide?.lines.some(line => line.trim()) &&
+      rawCurrentLabel &&
+      !isStageEndingLabel(rawCurrentLabel)
+        ? rawCurrentLabel
+        : undefined;
+    if (
+      stage &&
+      element.kind === 'currentText' &&
+      !this.stagePrefix.isConnected
+    ) {
+      this.box.append(this.stagePrefix);
+    }
+    this.stagePrefix.hidden = prefix === undefined;
+    if (prefix === undefined) this.stagePrefix.textContent = '';
+    if (prefix !== undefined && isThemeTextElement(element)) {
+      this.stagePrefix.textContent = `(${prefix})`;
+      this.stagePrefix.style.textAlign = element.text.align;
+      this.stagePrefix.style.fontFamily = element.text.font;
+      const bounds = this.text?.lineBoxBounds();
+      const box = this.box.getBoundingClientRect();
+      const scale = box.width / element.frame.w;
+      this.stagePrefix.style.top = `${bounds && scale > 0 ? (bounds.top - box.top) / scale - 56 : 0}px`;
+      this.box.style.overflow = 'visible';
+    } else if (
+      stage &&
+      element.kind === 'currentText' &&
+      this.previewMaxLines === undefined
+    ) {
+      this.box.style.overflow = 'hidden';
+    }
     if ([SECTION_BAND_ID, SECTION_NAME_ID].includes(element.id)) {
       this.box.hidden = layers.slide === null || item?.contentCleared === true;
     }
@@ -517,7 +568,7 @@ export class ThemeElementView {
       element.kind === 'currentText'
     ) {
       const title = slide.lines.join('\n');
-      const label = slide.label?.trim();
+      const label = slide.labelContinued ? undefined : slide.label?.trim();
       return label && title.trim() && (slide.kind ?? item?.kind) !== 'bible'
         ? stageLabeledText(title, label, true)
         : title;
@@ -596,13 +647,17 @@ export class ThemeElementView {
       if (
         element.kind === 'currentText' &&
         !currentBible &&
+        slide?.labelContinued !== true &&
         slide?.label?.trim()
       ) {
-        return stageLabeledText(text, slide.label.trim());
+        return isStageEndingLabel(slide.label.trim())
+          ? stageLabeledText(text, slide.label.trim())
+          : text;
       }
       if (
         element.kind === 'nextText' &&
         !nextBible &&
+        slide?.next?.labelContinued !== true &&
         slide?.next?.label?.trim()
       ) {
         return stageLabeledText(

@@ -28,6 +28,23 @@ function busyState(): LiveState {
 }
 
 describe('parseLiveState', () => {
+  it('accepts only the true continuation marker on current and next labels', () => {
+    const state = busyState();
+    const withMarker = (marker: unknown) => ({
+      ...state,
+      layers: {
+        ...state.layers,
+        slide: {
+          ...state.layers.slide,
+          labelContinued: marker,
+          next: {label: '1절', lines: ['Next'], labelContinued: marker},
+        },
+      },
+    });
+    expect(parseLiveState(withMarker(true)).ok).toBe(true);
+    expect(parseLiveState(withMarker(false)).ok).toBe(false);
+    expect(parseLiveState(withMarker('yes')).ok).toBe(false);
+  });
   it('validates the bounded Bible item slide sequence', () => {
     const state = busyState();
     const withSlides = (bibleItemSlides: unknown) => ({

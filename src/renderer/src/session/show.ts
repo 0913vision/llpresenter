@@ -399,6 +399,7 @@ function nextKey(next: NextSlide | null | undefined): string {
     ? 'null'
     : JSON.stringify([
         next.label,
+        next.labelContinued ?? null,
         next.title ?? null,
         next.itemKind ?? null,
         next.lines,
@@ -444,6 +445,10 @@ function refreshStageNext(): void {
     (tile === undefined
       ? null
       : nextSlideOf(tile, kind, {
+          previous:
+            cursor !== null && cursor.itemId === slide.itemId
+              ? tilesOf(cursor.itemId)[cursor.index - 1]
+              : undefined,
           title: row?.title,
           after: afterCard,
           textSlideNumber:

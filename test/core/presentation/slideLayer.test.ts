@@ -25,6 +25,30 @@ const tiles: Readonly<Record<string, readonly SlideTile[]>> = {
 const tilesOf = (itemId: string): readonly SlideTile[] => tiles[itemId] ?? [];
 
 describe('slideLayerOf', () => {
+  it('marks repeated labels within an item on both current and next slides', () => {
+    const deck: SlideTile[] = [
+      {label: '1절', labelColor: 'none', lines: ['first']},
+      {label: '1절', labelColor: 'none', lines: ['second']},
+      {label: '후렴', labelColor: 'none', lines: ['third']},
+    ];
+    expect(slideLayerOf({itemId: 'song', index: 0}, () => deck)).toMatchObject({
+      next: {labelContinued: true},
+    });
+    expect(slideLayerOf({itemId: 'song', index: 1}, () => deck)).toMatchObject({
+      labelContinued: true,
+      next: {label: '후렴'},
+    });
+    expect(
+      slideLayerOf({itemId: 'song', index: 2}, () => deck)?.labelContinued,
+    ).toBeUndefined();
+    const last = deck[2];
+    if (last === undefined) throw Error('Missing tile');
+    const following = slideLayerOf({itemId: 'song', index: 2}, () => deck, {
+      tile: last,
+      kind: 'song',
+    });
+    expect(following?.next?.labelContinued).toBeUndefined();
+  });
   it('carries title identity into output without turning the next lyric into a title', () => {
     const deck: readonly SlideTile[] = [
       {

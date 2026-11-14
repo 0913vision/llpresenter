@@ -3,6 +3,23 @@ import type {SlideTile, TileCursor} from './model';
 import type {TilesOf} from './navigation';
 import {LIVE_STATE_LIMITS} from '../schema/liveLimits';
 
+function tileLabel(tile: SlideTile): string | null {
+  return tile.sectionCard !== undefined
+    ? null
+    : (tile.slideLabel ??
+        (tile.kind === undefined || tile.biblePart !== undefined
+          ? tile.label
+          : null));
+}
+
+function continuesLabel(
+  tile: SlideTile,
+  previous: SlideTile | undefined,
+): boolean {
+  const label = tileLabel(tile)?.trim();
+  return Boolean(label && previous && label === tileLabel(previous)?.trim());
+}
+
 /** Projects a tile into the live stage preview payload. */
 export function nextSlideOf(
   tile: SlideTile,
@@ -11,6 +28,7 @@ export function nextSlideOf(
     readonly title?: string | undefined;
     readonly after?: SlideTile | undefined;
     readonly textSlideNumber?: number | undefined;
+    readonly previous?: SlideTile | undefined;
   },
 ): NextSlide {
   const notice =
@@ -27,13 +45,10 @@ export function nextSlideOf(
       ? context?.title
       : undefined);
   return {
-    label:
-      tile.sectionCard !== undefined
-        ? null
-        : (tile.slideLabel ??
-          (tile.kind === undefined || tile.biblePart !== undefined
-            ? tile.label
-            : null)),
+    label: tileLabel(tile),
+    ...(continuesLabel(tile, context?.previous)
+      ? {labelContinued: true as const}
+      : {}),
     lines: tile.sectionCard === undefined && !notice ? tile.lines : [],
     ...(kind === undefined ? {} : {itemKind: kind}),
     ...(title === undefined || title.trim() === '' ? {} : {title}),
@@ -142,6 +157,9 @@ export function slideLayerOf(
       (tile.kind === undefined || tile.biblePart !== undefined
         ? tile.label
         : null),
+    ...(continuesLabel(tile, tiles[cursor.index - 1])
+      ? {labelContinued: true as const}
+      : {}),
     lines: tile.lines,
     ...(tile.sectionCard === undefined ? {} : {sectionCard: tile.sectionCard}),
     ...(tile.titleSlide === undefined ? {} : {titleSlide: tile.titleSlide}),
@@ -160,6 +178,8 @@ export function slideLayerOf(
             next,
             tiles[cursor.index + 1] === undefined ? following?.kind : undefined,
             {
+              previous:
+                tiles[cursor.index + 1] === undefined ? undefined : tile,
               title: following?.title,
               textSlideNumber:
                 tiles[cursor.index + 1] === undefined
