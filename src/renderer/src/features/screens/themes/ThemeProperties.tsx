@@ -1,12 +1,6 @@
 import type {JSX} from 'react';
 import {THEME_LIMITS} from '@core/themes/elementRules';
-import {
-  editThemeLayout,
-  findTheme,
-  replaceTheme,
-} from '@core/themes/themeEdits';
-import type {SlideTransition} from '@core/schema/slideTransition';
-import {SlideTransitionControl} from '@renderer/ui/SlideTransitionControl';
+import {editThemeLayout} from '@core/themes/themeEdits';
 import {resolveThemeScreen} from '@core/themes/resolve';
 import {emptyScreenColor} from '@core/screens/emptyColor';
 import {ThemePicture} from '@renderer/rendering/ThemePicture';
@@ -163,47 +157,8 @@ function ThemeScreenProperties({
           value={`${THEME_LIMITS.width} × ${THEME_LIMITS.height}`}
         />
       </PropertyGroup>
-      <ThemeTransitionProperties model={model} />
       <ThemeBibleSplitProperties model={model} />
     </Properties>
-  );
-}
-
-function ThemeTransitionProperties({
-  model,
-}: {
-  readonly model: ThemeModel;
-}): JSX.Element | null {
-  const theme = model.theme;
-  if (theme === undefined) return null;
-  const fallback: SlideTransition = {kind: 'dissolve', sec: 0.5};
-  const set = (transition: SlideTransition | undefined): void => {
-    model.edit(theme.id, file => {
-      const current = findTheme(file, theme.id);
-      if (current === undefined) return {ok: false, error: 'missing'};
-      const {transition: _transition, ...rest} = current;
-      return {
-        ok: true,
-        value: replaceTheme(file, {
-          ...rest,
-          ...(transition === undefined ? {} : {transition}),
-        }),
-      };
-    });
-  };
-  return (
-    <PropertyGroup title="전환">
-      <SlideTransitionControl
-        label="테마 전환"
-        value={theme.transition ?? fallback}
-        disabled={model.reason !== undefined}
-        inherit={{
-          selected: theme.transition === undefined,
-          onSelect: () => set(undefined),
-        }}
-        onChange={update => set(update(theme.transition ?? fallback))}
-      />
-    </PropertyGroup>
   );
 }
 

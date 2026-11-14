@@ -1,93 +1,99 @@
 import {describe, expect, it} from 'vitest';
 import {
   DEFAULT_TRANSITION_TIMES,
-  transitionTimes,
   slideTransitionFor,
+  transitionTimes,
 } from '@core/output/transitions';
 import {defaultPreferences} from '@core/schema/preferences';
 
-function withTransition(
-  slide: {kind: 'none' | 'dissolve'; sec: number},
-  media: {kind: 'none' | 'dissolve'; seconds: number},
-) {
-  return {
-    output: {
-      transition: {
-        between: slide,
-        within: defaultPreferences.output.transition.within,
-        media,
-      },
-    },
-  };
-}
-
-describe('transitionTimes', () => {
-  it('reads the defaults as the 500 ms between items and for backgrounds', () => {
-    expect(transitionTimes(defaultPreferences)).toEqual(
-      DEFAULT_TRANSITION_TIMES,
-    );
-    expect(DEFAULT_TRANSITION_TIMES).toEqual({slideMs: 500, backgroundMs: 500});
-  });
-
-  it('turns seconds into milliseconds for a dissolve', () => {
-    expect(
-      transitionTimes(
-        withTransition(
-          {kind: 'dissolve', sec: 1.5},
-          {kind: 'dissolve', seconds: 3},
-        ),
-      ),
-    ).toEqual({slideMs: 1500, backgroundMs: 3000});
-  });
-
-  it('makes 없음 a cut whatever the seconds are, each part on its own', () => {
-    expect(
-      transitionTimes(
-        withTransition(
-          {kind: 'none', sec: 1},
-          {kind: 'dissolve', seconds: 0.1},
-        ),
-      ),
-    ).toEqual({slideMs: 0, backgroundMs: 100});
-  });
-});
-
 const defaults = defaultPreferences.output.transition;
 const slide = {itemId: 'song', position: 1, label: null, lines: ['New']};
-it('uses item identity, not slide position, to choose defaults', () => {
-  const firstSlide = {...slide, position: 0};
-  expect(slideTransitionFor(defaults, 'other', slide)).toEqual(
-    defaults.between,
-  );
-  expect(slideTransitionFor(defaults, 'song', firstSlide)).toEqual(
-    defaults.within,
-  );
-  expect(slideTransitionFor(defaults, null, slide)).toEqual(defaults.between);
-});
-it.each(['none', 'dissolve', 'push', 'wipe'] as const)(
-  'lets a slide override both defaults with %s',
-  kind => {
-    const transition = {kind, sec: 2};
-    for (const previous of ['song', 'other', null]) {
+
+describe('per-slide transitions', () => {
+  it('cuts without an assigned slide effect, regardless of saved preferences or theme', () => {
+    expect(DEFAULT_TRANSITION_TIMES).toEqual({slideMs: 0, backgroundMs: 0});
+    expect(
+      slideTransitionFor(defaults, 'song', {
+        ...slide,
+        themeTransition: {kind: 'wipe', sec: 1},
+      }),
+    ).toEqual({kind: 'none', sec: 0.5});
+  });
+  it.each(['none', 'dissolve', 'push', 'wipe'] as const)(
+    'uses %s for the incoming slide and background',
+    kind => {
+      const effect = {kind, sec: 1.5};
       expect(
-        slideTransitionFor(defaults, previous, {...slide, transition}),
-      ).toEqual(transition);
-    }
+        slideTransitionFor(defaults, 'other', {...slide, transition: effect}),
+      ).toEqual(effect);
+      const ms = kind === 'none' ? 0 : 1500;
+      expect(transitionTimes(defaultPreferences, effect)).toEqual({
+        slideMs: ms,
+        backgroundMs: ms,
+      });
+    },
+  );
+});
+
+describe('backward transitions', () => {
+  it.each([
+    ['left', 'right'],
+    ['right', 'left'],
+    ['up', 'down'],
+    ['down', 'up'],
+  ] as const)('reverses a wipe from %s to %s', (dir, opposite) => {
+    expect(
+      slideTransitionFor(defaults, 'song', {
+        ...slide,
+        transition: {kind: 'dissolve', sec: 1},
+        reverseTransition: {kind: 'wipe', dir, sec: 2},
+      }),
+    ).toEqual({kind: 'wipe', dir: opposite, sec: 2});
+  });
+  it.each(['none', 'dissolve', 'push'] as const)(
+    'reverses %s without using the target slide effect',
+    kind => {
+      expect(
+        slideTransitionFor(defaults, 'song', {
+          ...slide,
+          transition: {kind: 'wipe', sec: 1},
+          reverseTransition: {kind, sec: 2},
+        }),
+      ).toEqual(
+        kind === 'push' ? {kind, sec: 2, dir: 'right'} : {kind, sec: 2},
+      );
+    },
+  );
+  it('cuts when the slide being left has no transition', () => {
+    expect(
+      slideTransitionFor(defaults, 'song', {
+        ...slide,
+        transition: {kind: 'wipe', sec: 1},
+        reverseTransition: null,
+      }),
+    ).toEqual({kind: 'none', sec: 0.5});
+  });
+});
+
+it.each(['left', 'right', 'up', 'down'] as const)(
+  'plays the reverse of a %s push with its original duration',
+  dir => {
+    const opposite = {
+      left: 'right',
+      right: 'left',
+      up: 'down',
+      down: 'up',
+    } as const;
+    const outgoing = {kind: 'push' as const, dir, sec: 1.5};
+    expect(
+      slideTransitionFor(defaults, 'other', {
+        ...slide,
+        transition: {kind: 'wipe', sec: 3},
+        reverseTransition: outgoing,
+      }),
+    ).toEqual({kind: 'push', dir: opposite[dir], sec: 1.5});
+    expect(
+      slideTransitionFor(defaults, 'other', {...slide, transition: outgoing}),
+    ).toEqual(outgoing);
   },
 );
-
-it('chooses slide then theme then global transitions', () => {
-  const theme = {kind: 'wipe' as const, sec: 0.7};
-  const own = {kind: 'push' as const, sec: 1};
-  expect(
-    slideTransitionFor(defaults, 'song', {...slide, themeTransition: theme}),
-  ).toEqual(theme);
-  expect(
-    slideTransitionFor(defaults, 'song', {
-      ...slide,
-      transition: own,
-      themeTransition: theme,
-    }),
-  ).toEqual(own);
-  expect(slideTransitionFor(defaults, 'song', slide)).toEqual(defaults.within);
-});

@@ -333,8 +333,12 @@ export function refreshLibrarySong(
 export async function outputLibraryTile(
   cursor: TileCursor,
   request: number,
-  commandVersion: number,
+  options: {
+    readonly commandVersion: number;
+    readonly reverseTransition?: SlideLayer['reverseTransition'];
+  },
 ): Promise<void> {
+  const {commandVersion, reverseTransition} = options;
   const initial = useShow.getState();
   const api = window.llp;
   if (!api || !isLibrarySource(initial, cursor.itemId)) return;
@@ -368,5 +372,8 @@ export async function outputLibraryTile(
   }
   const slide = slideLayerOf(cursor, itemId => tilesForView(latest, itemId));
   if (!slide) return;
-  sendSlideOutput(slide, latest.librarySong.background);
+  sendSlideOutput(
+    reverseTransition === undefined ? slide : {...slide, reverseTransition},
+    latest.librarySong.background,
+  );
 }

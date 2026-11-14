@@ -19,6 +19,9 @@ describe('built-in liturgy slides', () => {
         expect(item.slides.advance).toBeUndefined();
         expect(item.slides.loop).toBeUndefined();
         const slides = item.slides.slides;
+        expect(slides.every(slide => slide.transition === undefined)).toBe(
+          true,
+        );
         expect(new Set(slides.map(slide => slide.id)).size).toBe(slides.length);
         const texts = slides.map(slide => {
           if (!('text' in slide)) throw new Error('Expected a text slide');

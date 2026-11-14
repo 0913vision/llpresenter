@@ -1,7 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import {installMockClock} from '@fixtures/mockClock';
 import {
-  BACKGROUND_DISSOLVE_MS,
   BACKGROUND_RELEASE_DELAY_MS,
   type RenderMode,
   MIN_SEEK_SECONDS,
@@ -59,7 +58,7 @@ describe('BackgroundLayerView handovers', () => {
     front.dispatchEvent(new Event('ended'));
     expect(playsOf(front)).toBe(2);
     expect(playsOf(spare)).toBe(0);
-    await clock.advance(BACKGROUND_DISSOLVE_MS + BACKGROUND_RELEASE_DELAY_MS);
+    await clock.advance(500 + BACKGROUND_RELEASE_DELAY_MS);
     front.dispatchEvent(new Event('ended'));
     expect(playsOf(spare)).toBe(0);
     expect(spare.hasAttribute('src')).toBe(false);

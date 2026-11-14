@@ -8,41 +8,42 @@ export interface TransitionTimes {
   readonly backgroundMs: number;
 }
 
-function millisecondsOf({
-  kind,
-  seconds,
-}: Preferences['output']['transition']['media']): number {
-  return kind === 'none' ? 0 : Math.round(seconds * 1000);
+/** Slide and background change together, using only the incoming slide. */
+export function transitionTimes(
+  _preferences: Pick<Preferences, 'output'>,
+  slide: SlideTransition = {kind: 'none', sec: 0.5},
+): TransitionTimes {
+  const ms = slide.kind === 'none' ? 0 : Math.round(slide.sec * 1000);
+  return {slideMs: ms, backgroundMs: ms};
 }
 
-/** The times of the 슬라이드 전환 and the 배경 전환 of 환경설정. */
-export function transitionTimes(
-  preferences: Pick<Preferences, 'output'>,
-  slide = preferences.output.transition.between,
-): TransitionTimes {
-  const {media} = preferences.output.transition;
-  return {
-    slideMs: slide.kind === 'none' ? 0 : Math.round(slide.sec * 1000),
-    backgroundMs: millisecondsOf(media),
-  };
+/** A slide without an assigned effect cuts, independently of old settings. */
+export function reverseSlideTransition(
+  effect: SlideTransition | null,
+): SlideTransition {
+  if (effect === null) return {kind: 'none', sec: 0.5};
+  if (effect.kind !== 'push' && effect.kind !== 'wipe') return effect;
+  const opposite = {
+    left: 'right',
+    right: 'left',
+    up: 'down',
+    down: 'up',
+  } as const;
+  return {...effect, dir: opposite[effect.dir ?? 'left']};
 }
 
 export function slideTransitionFor(
-  defaults: Preferences['output']['transition'],
-  previousItemId: string | null,
+  _defaults: Preferences['output']['transition'],
+  _previousItemId: string | null,
   slide:
-    | (Pick<SlideLayer, 'itemId' | 'transition'> & {
+    | (Pick<SlideLayer, 'itemId' | 'transition' | 'reverseTransition'> & {
         readonly themeTransition?: SlideTransition;
       })
     | null,
 ): SlideTransition {
-  return (
-    slide?.transition ??
-    slide?.themeTransition ??
-    (slide !== null && slide.itemId === previousItemId
-      ? defaults.within
-      : defaults.between)
-  );
+  return slide?.reverseTransition !== undefined
+    ? reverseSlideTransition(slide.reverseTransition)
+    : (slide?.transition ?? {kind: 'none', sec: 0.5});
 }
 
 /** What 환경설정 says when nothing is stored: the one place the defaults are read. */

@@ -141,6 +141,37 @@ afterEach(() => {
 });
 
 describe('theme composition drawing', () => {
+  it.each(['same', 'different'] as const)(
+    'uses one full-page wipe with %s background',
+    background => {
+      const {root, view} = setup();
+      const render = vi.spyOn(ThemeElementView.prototype, 'render');
+      const base = frame([
+        {...themeElementBase(), kind: 'background', fit: 'fill', radius: 0},
+        {...themeElementBase(31), kind: 'currentText'},
+      ]);
+      const effect = {kind: 'wipe' as const, sec: 1};
+      if (song.slide === null) throw new Error('Missing slide');
+      view.render(song, {...base, slideTransition: effect});
+      const incoming = {
+        ...song,
+        slide: {...song.slide, position: 1, lines: ['Next']},
+        ...(background === 'same' ? {} : {media: null}),
+      };
+      view.render(incoming, {...base, slideTransition: effect});
+      const pages = root.querySelectorAll<HTMLElement>('[data-theme-page]');
+      expect(pages).toHaveLength(2);
+      for (const page of pages) {
+        expect(page.querySelector('[data-kind="background"]')).not.toBeNull();
+        expect(page.querySelector('[data-kind="currentText"]')).not.toBeNull();
+      }
+      expect(
+        render.mock.calls.every(([, frame]) => frame.transitions === false),
+      ).toBe(true);
+      view.dispose();
+    },
+  );
+
   it('transitions whole pages between items sharing a background', () => {
     const {root, view} = setup();
     const base = frame([
@@ -1678,7 +1709,8 @@ describe('theme composition drawing', () => {
     vi.advanceTimersByTime(32);
     expect(outgoing.style.opacity).toBe('0');
     expect(incoming.style.opacity).toBe('1');
-    expect(outgoing.style.transition).toBe(incoming.style.transition);
+    expect(outgoing.style.transition).toBe('opacity 0ms linear');
+    expect(incoming.style.transition).toBe('none');
     vi.advanceTimersByTime(500);
     expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(1);
     view.dispose();
@@ -1706,9 +1738,12 @@ describe('theme composition drawing', () => {
           lines: ['Incoming text'],
         },
       },
-      frame(elements, {
-        themeId: createThemeId('00000000-0000-4000-8000-000000000502'),
-      }),
+      {
+        ...frame(elements, {
+          themeId: createThemeId('00000000-0000-4000-8000-000000000502'),
+        }),
+        transitionTimes: {slideMs: 500, backgroundMs: 500},
+      },
     );
     const incoming = [
       ...root.querySelectorAll<HTMLElement>('[data-theme-page]'),
@@ -1879,12 +1914,12 @@ describe('theme composition drawing', () => {
       ),
     );
     expect(view.ready()).toBe(false);
-    view.render(
-      layers,
-      frame([background], {
+    view.render(layers, {
+      ...frame([background], {
         themeId: createThemeId('00000000-0000-4000-8000-000000000505'),
       }),
-    );
+      transitionTimes: {slideMs: 500, backgroundMs: 500},
+    });
     vi.advanceTimersByTime(250);
     expect(root.querySelector('video[src]')).toBe(video);
     expect(HTMLMediaElement.prototype.play).toHaveBeenCalledTimes(plays);

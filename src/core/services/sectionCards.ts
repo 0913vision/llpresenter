@@ -87,6 +87,7 @@ export function withSectionCard(
       labelColor: 'none',
       lines: [card.english],
       sectionCard: card,
+      ...(card.transition === undefined ? {} : {transition: card.transition}),
     },
     ...tiles.slice(tiles[0]?.sectionCard === undefined ? 0 : 1),
   ];

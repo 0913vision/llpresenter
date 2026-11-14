@@ -19,10 +19,28 @@ describe('SlideAnimation', () => {
   it('keeps the old page still while revealing the new page with a feathered mask', () => {
     const {view, old, next, animate} = setup();
     view.play(old, next, {kind: 'wipe', dir: 'left', sec: 1});
-    expect(animate).toHaveBeenNthCalledWith(1, [{opacity: 1}, {opacity: 1}], {
-      duration: 1000,
-      easing: 'linear',
-    });
+    const inverse =
+      'linear-gradient(to left, transparent 0%, transparent 35.087719%, black 64.912281%, black 100%)';
+    expect(animate).toHaveBeenNthCalledWith(
+      1,
+      [
+        {
+          opacity: 1,
+          maskImage: inverse,
+          maskSize: '285% 100%',
+          maskPosition: '0% 0%',
+          maskRepeat: 'no-repeat',
+        },
+        {
+          opacity: 1,
+          maskImage: inverse,
+          maskSize: '285% 100%',
+          maskPosition: '100% 0%',
+          maskRepeat: 'no-repeat',
+        },
+      ],
+      {duration: 1000, easing: 'linear'},
+    );
     expect(animate).toHaveBeenNthCalledWith(
       2,
       [
@@ -182,6 +200,27 @@ describe('SlideAnimation', () => {
       const {view, old, next, animate} = setup();
       view.play(old, next, {kind: 'wipe', dir, sec: 0.5});
       const maskImage = `linear-gradient(to ${direction}, black 0%, black 35.087719%, transparent 64.912281%, transparent 100%)`;
+      const inverseMask = `linear-gradient(to ${direction}, transparent 0%, transparent 35.087719%, black 64.912281%, black 100%)`;
+      expect(animate).toHaveBeenNthCalledWith(
+        1,
+        [
+          {
+            opacity: 1,
+            maskImage: inverseMask,
+            maskSize: size,
+            maskPosition: from,
+            maskRepeat: 'no-repeat',
+          },
+          {
+            opacity: 1,
+            maskImage: inverseMask,
+            maskSize: size,
+            maskPosition: to,
+            maskRepeat: 'no-repeat',
+          },
+        ],
+        {duration: 500, easing: 'linear'},
+      );
       expect(animate).toHaveBeenNthCalledWith(
         2,
         [

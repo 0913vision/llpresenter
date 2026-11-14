@@ -70,6 +70,9 @@ export interface SlideLayer {
   readonly titleSlide?: true;
   readonly titleLayout?: import('../schema/songTitleLayout').SongTitleLayout;
   readonly transition?: import('../schema/slideTransition').SlideTransition;
+  /** Effect of the slide being left by an explicit previous command. */
+  readonly reverseTransition?:
+    import('../schema/slideTransition').SlideTransition | null;
   readonly picture?: MediaId;
   readonly itemId: string;
   readonly position: number;

@@ -73,6 +73,35 @@ export const bibleVerseReferenceSchema = jsonObject({
   verse: v.pipe(positiveInteger, v.maxValue(BIBLE_LOOKUP_LIMITS.verses)),
 });
 
+/** A saved effect belongs to a stable verse and one-based split part. */
+export const biblePartTransitionSchema = jsonObject({
+  verse: bibleVerseReferenceSchema,
+  part: v.pipe(positiveInteger, v.maxValue(10_000)),
+  transition: slideTransitionSchema,
+});
+export const biblePartTransitionsSchema = v.pipe(
+  v.array(biblePartTransitionSchema),
+  v.maxLength(10_000),
+  v.check(
+    entries =>
+      new Set(
+        entries.map(entry =>
+          JSON.stringify([
+            entry.verse.translation,
+            entry.verse.book,
+            entry.verse.chapter,
+            entry.verse.verse,
+            entry.part,
+          ]),
+        ),
+      ).size === entries.length,
+    'Duplicate Bible part transition',
+  ),
+);
+export type BiblePartTransition = ReadonlyKnown<
+  v.InferOutput<typeof biblePartTransitionSchema>
+>;
+
 export const verseSlideSchema = jsonObject({
   id: slideIdSchema,
   verse: bibleVerseReferenceSchema,
@@ -148,6 +177,7 @@ export const sectionCardSchema = jsonObject({
   ),
   english: slideTextSchema,
   theme: themeIdSchema,
+  transition: v.exactOptional(slideTransitionSchema),
 });
 
 export type SectionCard = ReadonlyKnown<
@@ -180,6 +210,7 @@ const itemSchemas = {
     ...itemFields,
     sectionCard: v.exactOptional(sectionCardSchema),
     bible: biblePassageSchema,
+    bibleTransitions: v.exactOptional(biblePartTransitionsSchema),
     ...startFields,
   }),
   slides: jsonObject({

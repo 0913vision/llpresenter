@@ -1,5 +1,11 @@
 import {useSyncExternalStore, type JSX} from 'react';
 import {isItemOfKind} from '@core/schema/service';
+import {biblePartEffect, setBiblePartEffect} from '@core/bible/partTransitions';
+import type {SlideTransition} from '@core/schema/slideTransition';
+import {SlideTransitionControl} from '@renderer/ui/SlideTransitionControl';
+import {Button} from '@renderer/ui/Button';
+import {PropertyGroup} from '@renderer/ui/PropertyRow';
+import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import {cardOffset, hasSectionCard} from '@core/services/sectionCards';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
@@ -25,7 +31,7 @@ export function OtherSlideInspector({
   readonly items: ServiceItemStore;
   readonly editor: SongEditorStore;
 }): JSX.Element {
-  const {item, service, position} = useSyncExternalStore(
+  const {item, service, position, busy} = useSyncExternalStore(
     items.subscribe,
     items.getSnapshot,
   );
@@ -74,6 +80,43 @@ export function OtherSlideInspector({
       ? media.document?.value.items.find(entry => entry.id === item.media)
       : undefined;
   const appearance = projection?.appearance;
+  const part = index >= 0 ? projection?.partsByTile[index] : undefined;
+  const transition =
+    bible && part != null
+      ? biblePartEffect(item.bibleTransitions, part.reference, part.part)
+      : card?.transition;
+  const changeTransition = (next: SlideTransition | undefined): void => {
+    if (item === null || service === null) return;
+    editorTask(
+      items.submitItemEdit({
+        target: {serviceId: service.service.id, itemId: item.id},
+        failure: '\uc804\ud658 \uc800\uc7a5 \uc2e4\ud328',
+        change: current => {
+          if (card !== undefined && hasSectionCard(current)) {
+            const {transition: _old, ...rest} = current.sectionCard;
+            return {
+              ...current,
+              sectionCard: {
+                ...rest,
+                ...(next === undefined ? {} : {transition: next}),
+              },
+            };
+          }
+          if (part == null || !isItemOfKind(current, 'bible')) return null;
+          const updated = setBiblePartEffect(
+            current.bibleTransitions,
+            {verse: part.reference, part: part.part},
+            next,
+          );
+          const {bibleTransitions: _old, ...rest} = current;
+          return {
+            ...rest,
+            ...(updated.length === 0 ? {} : {bibleTransitions: updated}),
+          };
+        },
+      }),
+    );
+  };
   return (
     <Panel label="슬라이드 속성">
       <PanelBody>
@@ -148,6 +191,28 @@ export function OtherSlideInspector({
             </div>
           </>
         )}
+        {(card !== undefined || part != null) && service !== null ? (
+          <PropertyGroup title={'\uc804\ud658'}>
+            <SlideTransitionControl
+              label={'\uc2ac\ub77c\uc774\ub4dc \uc804\ud658'}
+              value={transition ?? {kind: 'none', sec: 0.5}}
+              disabled={busy || service.access !== 'editable'}
+              onChange={update =>
+                changeTransition(update(transition ?? {kind: 'none', sec: 0.5}))
+              }
+            />
+            <Button
+              disabled={
+                busy ||
+                service.access !== 'editable' ||
+                transition === undefined
+              }
+              onClick={() => changeTransition(undefined)}
+            >
+              {'\uc804\ud658 \uc81c\uac70'}
+            </Button>
+          </PropertyGroup>
+        ) : null}
       </PanelBody>
     </Panel>
   );

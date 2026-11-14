@@ -638,82 +638,10 @@ describe('PreferencesView', () => {
     });
   });
 
-  describe('the 전환 rows of the 출력 page', () => {
-    const times = (label: string) =>
-      screen.queryByRole('spinbutton', {name: label});
-
-    it('shows independent defaults and a disabled time for none', async () => {
-      await mount();
-      await openPage('출력');
-      const between = screen.getByRole('group', {name: '곡이 바뀔 때'});
-      const inside = screen.getByRole('group', {name: '곡 안에서 넘길 때'});
-      expect(
-        within(between)
-          .getByRole('button', {name: '디졸브'})
-          .getAttribute('aria-pressed'),
-      ).toBe('true');
-      expect(
-        within(inside)
-          .getByRole('button', {name: '없음'})
-          .getAttribute('aria-pressed'),
-      ).toBe('true');
-      expect(times('곡이 바뀔 때 시간')).toHaveProperty('value', '0.5');
-      expect(times('곡 안에서 넘길 때 시간')).toHaveProperty('disabled', true);
-      expect(times('배경 시간')).toHaveProperty('value', '0.5');
-    });
-
-    it('keeps a none time visible and disables direction', async () => {
-      await mount({
-        stored: {
-          ...STORED,
-          output: {transition: {between: {kind: 'none', sec: 1}}},
-        },
-      });
-      await openPage('출력');
-      const group = screen.getByRole('group', {name: '곡이 바뀔 때'});
-      expect(
-        within(group)
-          .getByRole('button', {name: '없음'})
-          .getAttribute('aria-pressed'),
-      ).toBe('true');
-      expect(times('곡이 바뀔 때 시간')).toHaveProperty('disabled', true);
-      expect(times('곡이 바뀔 때 시간')).toHaveProperty('value', '1.0');
-      expect(
-        within(group).getByRole('button', {name: '왼쪽으로'}),
-      ).toHaveProperty('disabled', true);
-      expect(times('배경 시간')).not.toBeNull();
-    });
-
-    it('saves 없음 at once and keeps the seconds and the other fields', async () => {
-      await mount({
-        stored: {
-          ...STORED,
-          output: {transition: {between: {kind: 'wipe', dir: 'up', sec: 1.5}}},
-        },
-      });
-      await openPage('출력');
-      const group = screen.getByRole('group', {name: '곡이 바뀔 때'});
-      expect(within(group).getByRole('button', {name: '위로'})).toHaveProperty(
-        'disabled',
-        false,
-      );
-      await userEvent.click(within(group).getByRole('button', {name: '없음'}));
-      await waitFor(() => expect(edit).toHaveBeenCalledOnce());
-      expect(written().output).toEqual({
-        transition: {between: {sec: 1.5, kind: 'none'}},
-      });
-      expect(written()).toMatchObject(UNKNOWN_FIELDS);
-    });
-
-    it('saves a time within its range when it is committed', async () => {
-      await mount();
-      await openPage('출력');
-      const field = screen.getByRole('spinbutton', {name: '배경 시간'});
-      fireEvent.change(field, {target: {value: '2.5'}});
-      fireEvent.keyDown(field, {key: 'Enter'});
-      await waitFor(() => expect(edit).toHaveBeenCalledOnce());
-      expect(written().output?.transition?.media?.seconds).toBe(2.5);
-    });
+  it('does not offer global slide transitions in output settings', async () => {
+    await mount();
+    await openPage('\uCD9C\uB825');
+    expect(screen.queryByRole('group', {name: '\uC804\uD658'})).toBeNull();
   });
 
   it('writes the 저장 backup rows', async () => {
