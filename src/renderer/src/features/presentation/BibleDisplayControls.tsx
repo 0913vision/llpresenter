@@ -1,3 +1,4 @@
+import {withLiveBible} from '@core/bible/liveTranslation';
 import {useEffect, useRef, useState, type JSX} from 'react';
 import type {TranslationId} from '@core/schema/ids';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
@@ -39,7 +40,7 @@ export function BibleDisplayControls({
       owner.active = false;
     };
   }, []);
-  const translations = document?.value.translations ?? [];
+  const translations = withLiveBible(document?.value.translations ?? []);
   const changeTranslation = async (
     translation: TranslationId,
   ): Promise<void> => {

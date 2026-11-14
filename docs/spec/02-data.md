@@ -1280,3 +1280,11 @@ titleTop from 0 to 920 (default 181), subtitleTop from 0 to 990 (default 345).
 Absence uses 0 px for the title and 24 px for the subtitle. It travels with the
 title marker through service decks, clipboard copies, show tiles, and live
 payloads; ordinary lyric slides ignore it.
+
+????? ?? ?? ???? ???????? ??? ?? ????? ????. ??? ??? ??? ? ???? ???? ??? ?????
+
+The built-in GAE translation fetches only requested chapters live from the
+Korean Bible Society. Chapter text is held only in the session memory cache; it
+is never saved to a file or downloaded in bulk. A failed fetch shows the
+existing problem state and is retried on the next use. Installed `.llbible`
+translations continue to work.

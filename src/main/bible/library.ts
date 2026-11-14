@@ -1,3 +1,5 @@
+import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
+import {parseReference} from '@core/bible/reference';
 import {BIBLE_LOOKUP_LIMITS} from '@core/schema/bibleLookup';
 import type {Result} from '@core/common/result';
 import {exactBibleBook, matchBooks} from '@core/bible/bibleMatching';
@@ -25,6 +27,14 @@ export class BibleLibrary {
     const matches = matchBooks(name);
     const book =
       exactBibleBook(name) ?? (matches.length === 1 ? matches[0] : undefined);
+    if (translation === LIVE_BIBLE_ID && book) {
+      return {
+        bookId: book.id,
+        chapterVerses: Array<number>(book.chapters).fill(
+          BIBLE_LOOKUP_LIMITS.verses,
+        ),
+      };
+    }
     const indexed = this.catalog
       .header(translation)
       ?.books.find(entry => entry.id === book?.id);
@@ -45,6 +55,59 @@ export class BibleLibrary {
       ReferenceProblem
     >
   > {
+    if (translation === LIVE_BIBLE_ID) {
+      const parsed = parseReference(input);
+      if (!parsed.ok) return parsed;
+      const {book, chapter, endChapter} = parsed.value;
+      if (chapter > book.chapters || endChapter > book.chapters) {
+        return {
+          ok: false,
+          error: {code: 'chapter', message: '이 역본에 없는 장입니다'},
+        };
+      }
+      if (endChapter < chapter) {
+        return {
+          ok: false,
+          error: {code: 'reversed', message: '끝 절이 시작 절보다 앞입니다'},
+        };
+      }
+      const chapters = Array.from({length: book.chapters}, () => ({
+        offset: 0,
+        bytes: 1,
+        verses: 1,
+      }));
+      for (let current = chapter; current <= endChapter; current++) {
+        const verses = await this.catalog.chapter(
+          translation,
+          book.id,
+          current,
+        );
+        if (!verses) {
+          return {
+            ok: false,
+            error: {
+              code: 'translation',
+              message:
+                '성경 본문을 받지 못했습니다. 인터넷 연결을 확인해 주십시오.',
+            },
+          };
+        }
+        chapters[current - 1] = {offset: 0, bytes: 1, verses: verses.length};
+      }
+      const result = await resolvePassage(
+        {
+          id: LIVE_BIBLE_ID,
+          language: 'ko',
+          books: [{id: book.id, chapters}],
+          readChapter: (id, current) =>
+            this.catalog.chapter(translation, id, current),
+        },
+        input,
+      );
+      return result.ok
+        ? {ok: true, value: {...result.value, translationLabel: '개역개정'}}
+        : result;
+    }
     const header = this.catalog.header(translation);
     if (!header) {
       return {

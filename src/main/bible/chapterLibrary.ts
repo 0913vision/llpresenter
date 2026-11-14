@@ -1,3 +1,5 @@
+import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
+import {fetchLiveChapter} from './liveChapter';
 import {basename, extname, join} from 'node:path';
 import type {Translation} from '@core/schema/bible';
 import type {FileError} from '@core/schema/fileFormat';
@@ -49,6 +51,21 @@ export class BibleChapterLibrary {
     book: number,
     chapter: number,
   ): Promise<readonly string[] | null> {
+    if (translation === LIVE_BIBLE_ID) {
+      if (this.closed) return null;
+      const cached = this.cache.read(translation, book, chapter);
+      if (cached) return cached;
+      const verses = await fetchLiveChapter(book, chapter);
+      if (!verses || this.isClosed()) return null;
+      this.cache.store({
+        translation,
+        book,
+        chapter,
+        bytes: Buffer.byteLength(JSON.stringify(verses)),
+        verses,
+      });
+      return verses;
+    }
     const indexed = this.files.get(translation);
     const entry = indexed?.header.books
       .find(candidate => candidate.id === book)
@@ -77,6 +94,10 @@ export class BibleChapterLibrary {
       }
       return null;
     }
+  }
+
+  private isClosed(): boolean {
+    return this.closed;
   }
 
   clear(): void {

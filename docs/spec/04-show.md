@@ -1137,3 +1137,11 @@ the opening card. Item navigation and restoration include the card.
 When an opening Bible card is live, the previous-verse key does nothing.
 
 In the 준비 palette, Ctrl Z from the 곡 tab undoes the latest 예배 순서 edit.
+
+????? ?? ?? ???? ???????? ??? ?? ????? ????. ??? ??? ??? ? ???? ???? ??? ?????
+
+The built-in GAE translation fetches only requested chapters live from the
+Korean Bible Society. Chapter text is held only in the session memory cache; it
+is never saved to a file or downloaded in bulk. A failed fetch shows the
+existing problem state and is retried on the next use. Installed `.llbible`
+translations continue to work.
