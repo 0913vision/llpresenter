@@ -19,8 +19,19 @@ import {useShow} from '@renderer/session/show';
 import {isItemOfKind} from '@core/schema/service';
 
 vi.mock('@renderer/rendering/SlidePicture', () => ({
-  SlidePicture: ({slide}: {slide: {sectionCard?: {name: string}}}) => (
-    <div data-testid="picture" data-card={slide.sectionCard?.name} />
+  SlidePicture: ({
+    slide,
+    screen,
+  }: {
+    slide: {sectionCard?: {name: string}; titleSlide?: boolean};
+    screen?: {kind: string};
+  }) => (
+    <div
+      data-testid="picture"
+      data-card={slide.sectionCard?.name}
+      data-title-slide={slide.titleSlide}
+      data-screen={screen?.kind}
+    />
   ),
 }));
 vi.mock('@renderer/rendering/outputRenderer', () => ({
@@ -31,6 +42,85 @@ vi.mock('@renderer/rendering/outputRenderer', () => ({
 }));
 afterEach(() => {
   useShow.setState({serviceId: null, openItemId: null, tiles: {}});
+});
+
+it('switches the prepared picture to the chosen output screen', async () => {
+  const f = itemFixture();
+  useShow.setState({
+    serviceId: fixtureServiceId,
+    openItemId: fixtureItems.arranged,
+  });
+  const editor = new SongEditorStore(f.api, vi.fn());
+  const items = new ServiceItemStore(f.api, editor, vi.fn());
+  const view = render(
+    <DetailsPanel
+      sizeClass="normal"
+      target={{kind: 'item', itemId: fixtureItems.arranged}}
+      api={f.api}
+      editor={editor}
+      items={items}
+    />,
+  );
+  try {
+    await screen.findByTestId('picture');
+    await userEvent.click(await screen.findByRole('radio', {name: '방송'}));
+    await waitFor(() =>
+      expect(screen.getByTestId('picture').getAttribute('data-screen')).toBe(
+        'broadcast',
+      ),
+    );
+  } finally {
+    view.unmount();
+    items.dispose();
+    await editor.dispose();
+  }
+});
+
+it('preserves a song title slide in the prepared picture', async () => {
+  const f = itemFixture();
+  const document = f.service();
+  f.pushService({
+    ...document,
+    service: {
+      ...document.service,
+      order: document.service.order.map(item =>
+        item.id === fixtureItems.arranged && isItemOfKind(item, 'song')
+          ? {
+              ...item,
+              slides: item.slides.map((slide, index) =>
+                index === 0 ? {...slide, titleSlide: true as const} : slide,
+              ),
+            }
+          : item,
+      ),
+    },
+  });
+  useShow.setState({
+    serviceId: fixtureServiceId,
+    openItemId: fixtureItems.arranged,
+  });
+  const editor = new SongEditorStore(f.api, vi.fn());
+  const items = new ServiceItemStore(f.api, editor, vi.fn());
+  const view = render(
+    <DetailsPanel
+      sizeClass="normal"
+      target={{kind: 'item', itemId: fixtureItems.arranged}}
+      api={f.api}
+      editor={editor}
+      items={items}
+    />,
+  );
+  try {
+    await waitFor(() =>
+      expect(
+        screen.getByTestId('picture').getAttribute('data-title-slide'),
+      ).toBe('true'),
+    );
+  } finally {
+    view.unmount();
+    items.dispose();
+    await editor.dispose();
+  }
 });
 
 it('updates the first picture when a section is chosen', async () => {

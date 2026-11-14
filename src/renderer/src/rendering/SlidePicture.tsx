@@ -7,6 +7,9 @@ import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {ThemePicture} from './ThemePicture';
 import {songTitleLayout} from '@core/themes/songTitle';
+import {OutputSlidePicture} from './OutputSlidePicture';
+import type {ThemeId} from '@core/schema/ids';
+import type {RenderScreen} from './layer';
 
 /** Shared slide canvas for presentation tiles, item previews, and slide editors. */
 export function SlidePicture({
@@ -15,13 +18,35 @@ export function SlidePicture({
   emptyColor = '#000000',
   item = null,
   background,
+  output = false,
+  themeId,
+  screen,
+  mediaOnly = false,
 }: {
   readonly slide: SlideLayer;
   readonly layout: ThemeScreenLayout;
   readonly emptyColor?: string;
   readonly item?: LiveThemeItem | null;
   readonly background?: string | undefined;
+  readonly output?: boolean;
+  readonly themeId?: ThemeId | undefined;
+  readonly screen?: RenderScreen | undefined;
+  readonly mediaOnly?: boolean;
 }): JSX.Element {
+  if (output) {
+    return (
+      <OutputSlidePicture
+        slide={slide}
+        layout={sourceLayout}
+        emptyColor={emptyColor}
+        item={item}
+        background={background}
+        themeId={themeId}
+        screen={screen}
+        mediaOnly={mediaOnly}
+      />
+    );
+  }
   const layout = songTitleLayout(sourceLayout, slide);
   const layers = {...emptyLayers(), slide};
   const samples = Object.fromEntries(

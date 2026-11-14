@@ -390,6 +390,7 @@ function SongBlocks({
               canvas={
                 theme === undefined ? undefined : (
                   <SlidePicture
+                    output
                     {...theme}
                     background={theme.background}
                     slide={{

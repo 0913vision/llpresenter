@@ -63,6 +63,7 @@ export function CardSlideBody({
         <div className={styles.canvas}>
           {theme === undefined ? null : (
             <SlidePicture
+              output
               {...theme}
               slide={{
                 itemId,

@@ -357,6 +357,27 @@ describe('buildShowService', () => {
     expect(missing).not.toHaveProperty('background');
   });
 
+  it('uses the song theme unless the service item overrides it', () => {
+    const songTheme = createThemeId('00000000-0000-4000-8000-000000000301');
+    const itemTheme = createThemeId('00000000-0000-4000-8000-000000000302');
+    const song = loadedSong({...hymnOne(), theme: songTheme});
+    const show = buildShowService({
+      service: loadedService([
+        {id: itemId(1), song: HYMN_ONE_ID, slides: song.data.slides},
+        {
+          id: itemId(2),
+          song: HYMN_ONE_ID,
+          slides: song.data.slides,
+          theme: itemTheme,
+        },
+      ]),
+      songs: new Map([[HYMN_ONE_ID, song]]),
+      labels: [],
+      revision: 1,
+    });
+    expect(show.rows).toMatchObject([{theme: songTheme}, {theme: itemTheme}]);
+  });
+
   it('marks an unavailable default without removing the lyrics', () => {
     const show = buildShowService({
       service: loadedService([

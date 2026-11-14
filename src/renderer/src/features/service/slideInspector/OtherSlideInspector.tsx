@@ -152,6 +152,7 @@ export function OtherSlideInspector({
             <div className={styles.picture} data-background-picture>
               <div className={styles.canvas}>
                 <SlidePicture
+                  output
                   {...cardTheme}
                   slide={{
                     itemId: item.id,
@@ -176,6 +177,9 @@ export function OtherSlideInspector({
             <div className={styles.picture} data-background-picture>
               <div className={styles.canvas}>
                 <SlidePicture
+                  output
+                  themeId={appearance.theme.themeId}
+                  screen={appearance.screen}
                   slide={layer}
                   layout={appearance.theme.layout}
                   emptyColor={appearance.theme.emptyColor}

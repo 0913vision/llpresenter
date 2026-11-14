@@ -289,6 +289,7 @@ function songRow(
     return {kind: 'song', id, title: '', problem: 'missing-song'};
   }
   const {title} = song.data;
+  const theme = item.theme ?? song.data.theme;
   const mediaId = songBackgroundId(item, song.data);
   const background =
     mediaId === undefined ? undefined : sources.backgrounds.get(mediaId);
@@ -308,7 +309,7 @@ function songRow(
     kind: 'song',
     id,
     title,
-    ...(item.theme === undefined ? {} : {theme: item.theme}),
+    ...(theme === undefined ? {} : {theme}),
     ...(problem === undefined ? {} : {problem}),
     ...(background === undefined ? {} : {background}),
     ...(missingBackgroundName === undefined ? {} : {missingBackgroundName}),

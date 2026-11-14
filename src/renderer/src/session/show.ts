@@ -284,7 +284,7 @@ function sermonNext(cursor: TileCursor): NextSlide | undefined {
 }
 
 /** Builds the same following item that the next-slide command will open. */
-function stageSlideOf(cursor: TileCursor) {
+export function stageSlideOf(cursor: TileCursor) {
   const view = useShow.getState();
   const next = nextTileAtLast(
     {live: cursor, openItemId: cursor.itemId, tilesOf},

@@ -1,6 +1,6 @@
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
-import {createMediaId, createThemeId} from '@core/schema/ids';
+import {createMediaId, createSongId, createThemeId} from '@core/schema/ids';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
 import {overlaySettings} from '@fixtures/core/overlays';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
@@ -135,6 +135,21 @@ describe('registerThemeOutput item resolver', () => {
     expect(item(itemId(67))?.cardOffset).toBe(1);
     expect(item(itemId(68))?.cardOffset).toBe(1);
     expect(item(SONG_ITEM)?.cardOffset).toBeUndefined();
+  });
+
+  it('uses a song theme only when the service item has no override', async () => {
+    const result = setup();
+    const song = result.content.song(createSongId(HYMN_ONE_ID));
+    if (song === null) throw new Error('Missing song');
+    const fallback = createThemeId('00000000-0000-4000-8000-000000000302');
+    await result.content.apply({
+      type: 'song.update',
+      song: {...song.song, theme: fallback},
+      baseRevision: song.revision,
+    });
+    const item = await resolver(result);
+    expect(item(itemId(66))?.theme).toBe(fallback);
+    expect(item(SONG_ITEM)?.theme).toBe(THEME);
   });
 
   it('names a Bible item by its reference', async () => {

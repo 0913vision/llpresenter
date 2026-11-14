@@ -69,6 +69,7 @@ function InspectorContent({
       <div className={styles.picture} data-background-picture>
         {appearance === undefined || slide === undefined ? null : (
           <SlidePicture
+            output
             {...appearance}
             slide={{
               itemId: snapshot.song.id,

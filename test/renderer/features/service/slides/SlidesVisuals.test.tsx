@@ -6,6 +6,49 @@ import {
 } from '@core/schema/ids';
 import {newSlidesItem} from '@core/services/slidesEdits';
 import {slideLayers} from '@renderer/features/service/slides/SlidesVisuals';
+import {projectSlides} from '@core/presentation/slides';
+import {slideLayerOf} from '@core/presentation/slideLayer';
+import {withSectionCard} from '@core/services/sectionCards';
+import {createThemeId} from '@core/schema/ids';
+
+it.each(['blank', 'ad'] as const)(
+  'uses the live slide projection for %s text and pictures, including a section card',
+  form => {
+    const item = newSlidesItem(
+      form,
+      createServiceItemId('00000000-0000-4000-8000-000000000001'),
+    );
+    const deck = {
+      ...item,
+      sectionCard: {
+        name: 'Section',
+        english: 'Section',
+        theme: createThemeId('00000000-0000-4000-8000-000000000111'),
+      },
+      slides: {
+        ...item.slides,
+        form,
+        slides: [
+          {
+            id: createSlideId('00000000-0000-4000-8000-000000000011'),
+            name: 'Title',
+            text: 'First\nSecond',
+          },
+          {
+            id: createSlideId('00000000-0000-4000-8000-000000000012'),
+            media: createMediaId('00000000-0000-4000-8000-000000000021'),
+          },
+        ],
+      },
+    };
+    const tiles = withSectionCard(deck.sectionCard, projectSlides(deck));
+    for (const index of [0, 1]) {
+      expect(slideLayers(deck, index).slide).toEqual(
+        slideLayerOf({itemId: deck.id, index: index + 1}, () => tiles),
+      );
+    }
+  },
+);
 
 it('previews text-only notice numbers without numbering pictures or blank slides', () => {
   const item = newSlidesItem(

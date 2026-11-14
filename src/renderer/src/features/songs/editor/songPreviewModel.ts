@@ -6,6 +6,7 @@ import type {ThemesFile} from '@core/schema/themes';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
 import type {Screen, ScreensFile} from '@core/schema/screens';
 import type {RenderScreen, ThemeFrame} from '@renderer/rendering/layer';
+import {resolveRenderScreen} from '@renderer/rendering/screenIdentity';
 import {themeBackgroundColor} from '@renderer/rendering/themeBackground';
 import {resolveThemeOutput} from '@core/themes/output';
 import type {Song} from '@core/schema/song';
@@ -34,15 +35,18 @@ export function previewAppearance({
   themes,
   screens,
   item = {id: 'preview', kind: 'song', source: 'external'},
+  screenId,
 }: {
   readonly role: PreviewRole;
   readonly themes: ThemesFile | undefined;
   readonly screens: ScreensFile | undefined;
   readonly item?: LiveThemeItem | undefined;
+  readonly screenId?: string | undefined;
 }) {
-  const configured = screens?.screens.find(
-    screen => screen.id === STARTER_ID_OF_ROLE[role],
-  );
+  const configured =
+    screens?.screens.find(
+      screen => screen.id === screenId && screen.kind === role,
+    ) ?? screens?.screens.find(screen => screen.kind === role);
   const starter = parsePayload(screenIdSchema, STARTER_ID_OF_ROLE[role]);
   if (!starter.ok) throw new Error('Invalid starter screen');
   const target: Screen = configured ?? {
@@ -70,7 +74,7 @@ export function previewAppearance({
     missing: output.missing,
     item,
   };
-  const screen: RenderScreen = {
+  const screen: RenderScreen = resolveRenderScreen(target.id, all) ?? {
     id: target.id,
     kind: target.kind,
     method: target.method,

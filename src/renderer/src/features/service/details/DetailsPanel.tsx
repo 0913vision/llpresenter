@@ -23,6 +23,9 @@ import type {SongEditorStore} from '@renderer/features/songs/editor';
 import type {ServiceItemStore} from '../items/serviceItemStore';
 import {useItemSlides} from '../items/useItemSlides';
 import {useItemMedia} from '../items/useItemSources';
+import {useItemSettings} from '../items/useItemSources';
+import {previewAppearance} from '@renderer/features/songs/editor/songPreviewModel';
+import {SegmentedControl} from '@renderer/ui/SegmentedControl';
 import {slideBand} from '../slides/SlidesVisuals';
 import {
   detailsHeading,
@@ -111,6 +114,7 @@ function DetailsPanelContent({
   const [tab, setTab] = useState<'info' | 'slides'>('info');
   const [loadedLibrary, setLibrary] = useState<ShowLibrarySong | null>(null);
   const [selected, setSelected] = useState(0);
+  const [selectedScreen, setSelectedScreen] = useState<string | null>(null);
   const songId = target?.kind === 'song' ? target.songId : null;
   useEffect(() => {
     let active = true;
@@ -141,10 +145,34 @@ function DetailsPanelContent({
     target?.kind === 'item' && state.item?.id === target.itemId
       ? state.item
       : null;
+  const projectedTiles = useShow(view =>
+    item === null ? undefined : view.tiles[item.id],
+  );
   const card =
     item !== null && hasSectionCard(item) ? item.sectionCard : undefined;
   const offset = card === undefined ? 0 : 1;
   const bible = item !== null && isItemOfKind(item, 'bible');
+  const themeSettings = useItemSettings(api.settings, 'themes', bible);
+  const screenSettings = useItemSettings(api.settings, 'screens');
+  const screens =
+    screenSettings.document?.name === 'screens'
+      ? screenSettings.document.value.screens
+      : [];
+  const targetScreen =
+    screens.find(screen => screen.id === selectedScreen) ??
+    screens.find(screen => screen.kind === 'audience') ??
+    screens[0];
+  const role = targetScreen?.kind ?? 'audience';
+  const screenId = targetScreen?.id;
+  const choices = screens.map(screen => ({
+    value: screen.id,
+    label:
+      screens.filter(other => other.kind === screen.kind).length === 1
+        ? ({audience: '청중', stage: '무대', broadcast: '방송'} as const)[
+            screen.kind
+          ]
+        : screen.name,
+  }));
   const projection = useBibleTileProjection({
     itemId: bible ? item.id : null,
     ...(service === null ? {} : {serviceId: service.service.id}),
@@ -168,16 +196,45 @@ function DetailsPanelContent({
         ? media.document?.value.items.find(file => file.id === item.media)?.name
         : undefined,
   });
+  const itemTheme =
+    item?.theme ??
+    (item !== null && isItemOfKind(item, 'song')
+      ? state.song?.history.snapshot.song.theme
+      : undefined);
+  const bibleAppearance =
+    bible && projection?.appearance.theme.item
+      ? previewAppearance({
+          role,
+          screenId,
+          themes:
+            themeSettings.document?.name === 'themes'
+              ? themeSettings.document.value
+              : undefined,
+          screens:
+            screenSettings.document?.name === 'screens'
+              ? screenSettings.document.value
+              : undefined,
+          item: {
+            ...projection.appearance.theme.item,
+            ...(item.theme === undefined ? {} : {theme: item.theme}),
+          },
+        })
+      : undefined;
   const theme = useSlideTheme(
     item === null && library === null
       ? undefined
       : {
           id: item?.id ?? library?.songId ?? '',
-          kind: 'song',
+          kind: item !== null && isItemOfKind(item, 'media') ? 'media' : 'song',
           title,
-          ...(item?.theme === undefined ? {} : {theme: item.theme}),
+          ...(itemTheme === undefined ? {} : {theme: itemTheme}),
         },
     library === null ? 'service' : 'external',
+    {
+      role,
+      ...(screenId === undefined ? {} : {screenId}),
+      ...(itemTheme === undefined ? {} : {theme: itemTheme}),
+    },
   );
   const cardTheme = useSlideTheme(
     card === undefined || item === null
@@ -189,6 +246,8 @@ function DetailsPanelContent({
           title: card.name,
           theme: card.theme,
         },
+    'service',
+    {role, ...(screenId === undefined ? {} : {screenId})},
   );
   const picture = (index: number): JSX.Element | undefined =>
     detailsPicture(
@@ -197,6 +256,10 @@ function DetailsPanelContent({
         library,
         song: state.song,
         raw,
+        projectedTiles,
+        role,
+        screenId,
+        bibleAppearance,
         card,
         offset,
         theme,
@@ -333,6 +396,15 @@ function DetailsPanelContent({
       }
     >
       <div className={styles.picture}>{picture(0)}</div>
+      {targetScreen === undefined ? null : (
+        <SegmentedControl
+          label="미리보기 화면"
+          fill
+          options={choices}
+          value={targetScreen.id}
+          onChange={setSelectedScreen}
+        />
+      )}
       {count === 0 ? null : (
         <SlideThumbnailBand
           number={1}

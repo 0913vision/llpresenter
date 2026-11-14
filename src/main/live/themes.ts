@@ -70,6 +70,7 @@ export function registerThemeOutput({
           const song = isItemOfKind(entry, 'song')
             ? content.song(entry.song)?.song
             : undefined;
+          const theme = entry.theme ?? song?.theme;
           const title = isItemOfKind(entry, 'slides')
             ? entry.slides.name
             : isItemOfKind(entry, 'song')
@@ -90,7 +91,7 @@ export function registerThemeOutput({
             cardOffset(entry)
               ? {cardOffset: 1 as const}
               : {}),
-            ...(entry.theme === undefined ? {} : {theme: entry.theme}),
+            ...(theme === undefined ? {} : {theme}),
             ...(title === undefined
               ? {}
               : {title: title.slice(0, LIVE_STATE_LIMITS.textCharacters)}),
