@@ -5,7 +5,8 @@ import {parsePayload} from '@core/schema/payload';
 import type {ThemesFile} from '@core/schema/themes';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
 import type {Screen, ScreensFile} from '@core/schema/screens';
-import type {RenderScreen, ThemeFrame} from '@renderer/rendering/layer';
+import type {ThemeFrame} from '@renderer/rendering/layer';
+import {resolveRenderScreen} from '@core/screens/renderScreen';
 import {themeBackgroundColor} from '@renderer/rendering/themeBackground';
 import {resolveThemeOutput} from '@core/themes/output';
 import type {Song} from '@core/schema/song';
@@ -40,9 +41,9 @@ export function previewAppearance({
   readonly screens: ScreensFile | undefined;
   readonly item?: LiveThemeItem | undefined;
 }) {
-  const configured = screens?.screens.find(
-    screen => screen.id === STARTER_ID_OF_ROLE[role],
-  );
+  const configured =
+    screens?.screens.find(screen => screen.id === STARTER_ID_OF_ROLE[role]) ??
+    screens?.screens.find(screen => screen.kind === role);
   const starter = parsePayload(screenIdSchema, STARTER_ID_OF_ROLE[role]);
   if (!starter.ok) throw new Error('Invalid starter screen');
   const target: Screen = configured ?? {
@@ -70,11 +71,8 @@ export function previewAppearance({
     missing: output.missing,
     item,
   };
-  const screen: RenderScreen = {
-    id: target.id,
-    kind: target.kind,
-    method: target.method,
-  };
+  const screen = resolveRenderScreen(target.id, all);
+  if (screen === undefined) throw new Error('Missing preview screen');
   const themeName = themes?.themes.find(
     entry => entry.id === output.themeId,
   )?.name;
@@ -95,7 +93,7 @@ export function previewAppearance({
       composition.layout.background,
       composition.emptyColor,
     ),
-    checker: false,
+    checker: screen.method === 'ndi',
   };
 }
 

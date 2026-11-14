@@ -14,6 +14,7 @@ import {useGridMeasure} from '@renderer/ui/useGridMeasure';
 import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
+import {resolveSongSlideBackground} from '@renderer/features/songs/editor/useSongSlideAppearance';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {OverlayWarning} from '../details/ItemThemeRow';
@@ -110,7 +111,14 @@ export function ItemSlideGrid({
     if (songTheme !== undefined && songSlide !== undefined) {
       return (
         <SlidePicture
+          exact
           {...songTheme}
+          background={resolveSongSlideBackground(
+            state.item !== null && isItemOfKind(state.item, 'song')
+              ? state.item.background
+              : undefined,
+            state.song?.background,
+          )}
           slide={{
             itemId: state.item?.id ?? 'thumbnail',
             position: index,
@@ -136,7 +144,10 @@ export function ItemSlideGrid({
           );
     return appearance === undefined || layer === null ? undefined : (
       <SlidePicture
+        exact
         slide={layer}
+        screen={appearance.screen}
+        themeId={appearance.theme.themeId}
         layout={appearance.theme.layout}
         emptyColor={appearance.theme.emptyColor}
         item={appearance.theme.item}

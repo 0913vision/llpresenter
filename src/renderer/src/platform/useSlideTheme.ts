@@ -4,12 +4,13 @@ import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {createScreenId} from '@core/schema/ids';
 import type {ItemRow} from '@core/presentation/model';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
+import {resolveRenderScreen} from '@core/screens/renderScreen';
 
 export function useSlideTheme(
   row: ItemRow | undefined,
   source: 'service' | 'external' = 'service',
 ) {
-  const enabled = row?.kind === 'slides' || row?.kind === 'song';
+  const enabled = row !== undefined && row.kind !== 'unknown';
   const file = useSettingsDocument(
     enabled ? 'themes' : null,
     '테마',
@@ -20,8 +21,14 @@ export function useSlideTheme(
     '화면',
     undefined,
   );
-  if (row?.kind !== 'slides' && row?.kind !== 'song') return undefined;
+  if (row === undefined || row.kind === 'unknown') return undefined;
   const kind = row.kind === 'slides' ? row.form : row.kind;
+  const themeId =
+    row.kind === 'bible'
+      ? row.bible?.theme
+      : 'theme' in row
+        ? row.theme
+        : undefined;
   const targets = screens?.value.screens ?? [
     {
       id: createScreenId(STARTER_SCREEN_IDS.main),
@@ -36,11 +43,17 @@ export function useSlideTheme(
     file: file?.value,
     kind,
     source,
-    ...(row.theme === undefined ? {} : {theme: row.theme}),
+    ...(themeId === undefined ? {} : {theme: themeId}),
     screens: targets,
   });
   const resolved = resolveThemeScreen(theme, screen.id, targets);
   return {
+    themeId: theme.id,
+    screen: resolveRenderScreen(screen.id, screens?.value.screens ?? []) ?? {
+      id: screen.id,
+      kind: screen.kind,
+      method: screen.method,
+    },
     layout: resolved.layout,
     emptyColor: emptyScreenColor(
       targets.find(target => target.id === resolved.sourceScreenId) ?? screen,
@@ -51,6 +64,6 @@ export function useSlideTheme(
       source,
       title: row.title,
     } as const,
-    background: row.background?.mediaId,
+    background: 'background' in row ? row.background.mediaId : undefined,
   };
 }

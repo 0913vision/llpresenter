@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
+import {resolveRenderScreen} from '@renderer/rendering/screenIdentity';
 import {
   editorDeckSong,
   editorSong,
@@ -81,6 +82,39 @@ describe('local song preview model', () => {
         screens: screens.value,
       }).background,
     ).toBe('#00B140');
+  });
+
+  it('uses the live screen identity and NDI transparency for configured output', () => {
+    const {themes, screens} = editorPreviewFixture();
+    const configured = {
+      ...screens.value,
+      screens: screens.value.screens.map(screen =>
+        screen.id === STARTER_SCREEN_IDS.broadcast
+          ? {
+              ...screen,
+              kind: 'broadcast' as const,
+              method: 'ndi' as const,
+              songCaption: 'text' as const,
+              edgeMargin: 5,
+              offset: {x: 8, y: -4},
+            }
+          : screen,
+      ),
+    };
+    const appearance = previewAppearance({
+      role: 'broadcast',
+      themes: themes.value,
+      screens: configured,
+    });
+    expect(appearance.screen).toEqual(
+      resolveRenderScreen(STARTER_SCREEN_IDS.broadcast, configured.screens),
+    );
+    expect(appearance.screen).toMatchObject({
+      method: 'ndi',
+      songCaption: 'text',
+      correction: {edgeMargin: 5, offset: {x: 8, y: -4}},
+    });
+    expect(appearance.checker).toBe(true);
   });
 
   it('passes a service item theme override through to the theme output', () => {

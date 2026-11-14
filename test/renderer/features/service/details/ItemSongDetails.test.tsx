@@ -18,10 +18,14 @@ vi.mock('@renderer/rendering/SlidePicture', () => ({
     slide,
     background,
   }: {
-    slide: {lines: readonly string[]};
+    slide: {lines: readonly string[]; titleSlide?: true};
     background?: string;
   }) => (
-    <div data-testid="details-picture" data-background={background}>
+    <div
+      data-testid="details-picture"
+      data-background={background}
+      data-title-slide={slide.titleSlide ? 'true' : undefined}
+    >
       {slide.lines.join(' ')}
     </div>
   ),
@@ -106,6 +110,56 @@ it('resolves the detail picture background from the item before the library song
     );
     await waitFor(() =>
       expect(picture().getAttribute('data-background')).toBeNull(),
+    );
+  } finally {
+    view.unmount();
+    items.dispose();
+    await editor.dispose();
+    useShow.setState({serviceId: null, openItemId: null});
+  }
+});
+
+it('keeps the title-slide flag in the selected song picture', async () => {
+  const f = itemFixture();
+  const service = f.service();
+  f.pushService({
+    ...service,
+    service: {
+      ...service.service,
+      order: service.service.order.map(item =>
+        item.id === fixtureItems.arranged && isItemOfKind(item, 'song')
+          ? {
+              ...item,
+              slides: item.slides.map((slide, index) =>
+                index === 0 ? {...slide, titleSlide: true as const} : slide,
+              ),
+            }
+          : item,
+      ),
+    },
+  });
+  useShow.setState({
+    serviceId: fixtureServiceId,
+    openItemId: fixtureItems.arranged,
+  });
+  const editor = new SongEditorStore(f.api, vi.fn());
+  const items = new ServiceItemStore(f.api, editor, vi.fn());
+  const view = render(
+    <DetailsPanel
+      sizeClass="normal"
+      target={{kind: 'item', itemId: fixtureItems.arranged}}
+      api={f.api}
+      items={items}
+      editor={editor}
+    />,
+  );
+  try {
+    await waitFor(() =>
+      expect(
+        within(view.container)
+          .getAllByTestId('details-picture')[0]
+          ?.getAttribute('data-title-slide'),
+      ).toBe('true'),
     );
   } finally {
     view.unmount();

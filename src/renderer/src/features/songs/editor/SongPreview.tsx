@@ -103,6 +103,7 @@ export function Picture({
       mediaUrl,
       previewMedia,
       mode: 'preview',
+      transparent: appearance.screen.method === 'ndi',
       onError: (message, error) => console.error(message, error),
     });
     renderer.current = view;
@@ -112,7 +113,7 @@ export function Picture({
       view.dispose();
       previewMedia?.dispose();
     };
-  }, []);
+  }, [appearance.screen.method]);
   useLayoutEffect(() => {
     draw();
   }, [layers, appearance.screen, appearance.theme]);

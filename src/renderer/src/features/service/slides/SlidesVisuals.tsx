@@ -7,6 +7,8 @@ import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
 import {emptyLayers, type LiveLayers} from '@core/live/state';
 import type {Slide, SlidesItem} from '@core/services/slidesEdits';
 import {slideLayerOf} from '@core/presentation/slideLayer';
+import {cardOffset, withSectionCard} from '@core/services/sectionCards';
+import {projectSlides} from '@core/presentation/slides';
 import type {BibleProjection} from '@renderer/features/bible/splitProjection';
 import {useSlidesVerseProjection} from '@renderer/features/bible/useSlidesVerseProjection';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
@@ -109,45 +111,26 @@ export function slideLayers(
             },
     };
   }
-  const slide = item.slides.slides[index];
-  if (slide === undefined) return emptyLayers();
-  const next = item.slides.slides[index + 1];
-  const background = 'media' in slide ? slide.media : item.background;
+  const tiles = withSectionCard(item.sectionCard, projectSlides(item));
+  const slide = slideLayerOf(
+    {itemId: item.id, index: index + cardOffset(item)},
+    () => tiles,
+  );
+  if (slide === null) return emptyLayers();
+  const background = slide.picture ?? item.background;
   return {
     ...emptyLayers(),
-    slide: {
-      itemId: item.id,
-      position: index,
-      ...(slide.transition === undefined ? {} : {transition: slide.transition}),
-      ...(item.slides.form === 'ad' && 'text' in slide
-        ? {
-            textSlideNumber: item.slides.slides
-              .slice(0, index + 1)
-              .filter(slide => 'text' in slide).length,
-          }
-        : {}),
-      label: null,
-      lines: 'text' in slide ? slide.text.split('\n') : [],
-      ...('text' in slide && slide.name !== undefined
-        ? {name: slide.name}
-        : {}),
-      ...(next === undefined
-        ? {}
-        : {
-            next: {
-              label: null,
-              lines: 'text' in next ? next.text.split('\n') : [],
-            },
-          }),
-    },
+    slide,
     media:
       background === undefined
         ? null
         : {
             mediaId: background,
-            loop: true,
+            loop: slide.picture === undefined,
             startedAt: 0,
-            ...('media' in slide ? {itemId: item.id, slidePicture: true} : {}),
+            ...(slide.picture === undefined
+              ? {}
+              : {itemId: item.id, slidePicture: true}),
           },
   };
 }
@@ -192,6 +175,9 @@ export function SlidesCanvas({
     <div ref={host} className={styles.canvas}>
       {visible && thumbnail && layers.slide?.biblePart !== undefined ? (
         <SlidePicture
+          exact
+          screen={appearance.screen}
+          themeId={appearance.theme.themeId}
           slide={layers.slide}
           layout={appearance.theme.layout}
           emptyColor={appearance.theme.emptyColor}

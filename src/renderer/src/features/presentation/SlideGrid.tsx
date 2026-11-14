@@ -195,17 +195,20 @@ export function SlideGrid({
                   tile.sectionCard !== undefined &&
                   cardTheme !== undefined &&
                   slide !== null ? (
-                    <SlidePicture {...cardTheme} slide={slide} />
+                    <SlidePicture exact {...cardTheme} slide={slide} />
                   ) : appearance !== undefined && slide !== null ? (
                     <SlidePicture
+                      exact
                       slide={slide}
+                      screen={appearance.screen}
+                      themeId={appearance.theme.themeId}
                       layout={appearance.theme.layout}
                       emptyColor={appearance.theme.emptyColor}
                       item={appearance.theme.item}
                       background={appearance.background}
                     />
                   ) : theme === undefined || slide === null ? undefined : (
-                    <SlidePicture {...theme} slide={slide} />
+                    <SlidePicture exact {...theme} slide={slide} />
                   )
                 }
                 label={

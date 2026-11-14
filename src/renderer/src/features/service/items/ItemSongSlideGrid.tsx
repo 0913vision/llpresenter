@@ -152,6 +152,7 @@ function ItemSongTiles({
           const slide = view.slides[index];
           return slide === undefined || theme === undefined ? undefined : (
             <SlidePicture
+              exact
               {...theme}
               background={theme.background ?? session.background}
               slide={{

@@ -6,7 +6,13 @@ import type {RenderFrame} from '@renderer/rendering/layer';
 import {editorSetup} from '@fixtures/renderer/features/songs/editor/editorTesting';
 import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {editorPreviewFixture} from '@fixtures/renderer/features/songs/editor/editorPreviewFixture';
-import {SongPreviewPanel} from '@renderer/features/songs/editor/SongPreview';
+import {
+  Picture,
+  SongPreviewPanel,
+} from '@renderer/features/songs/editor/SongPreview';
+import {previewAppearance} from '@renderer/features/songs/editor/songPreviewModel';
+import {emptyLayers} from '@core/live/state';
+import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 
 const drawing = vi.hoisted(() => ({
   render: vi.fn<(layers: LiveLayers, frame?: RenderFrame) => void>(),
@@ -24,6 +30,30 @@ vi.mock('@renderer/rendering/outputRenderer', () => ({
 }));
 
 describe('song editor right panels', () => {
+  it('uses a transparent renderer for NDI previews', () => {
+    const {themes, screens} = editorPreviewFixture();
+    const configured = {
+      ...screens.value,
+      screens: screens.value.screens.map(screen =>
+        screen.id === STARTER_SCREEN_IDS.broadcast
+          ? {...screen, kind: 'broadcast' as const, method: 'ndi' as const}
+          : screen,
+      ),
+    };
+    const appearance = previewAppearance({
+      role: 'broadcast',
+      themes: themes.value,
+      screens: configured,
+    });
+    const view = render(
+      <Picture layers={emptyLayers()} appearance={appearance} />,
+    );
+    expect(drawing.create.mock.lastCall?.[0]).toMatchObject({
+      transparent: true,
+      mode: 'preview',
+    });
+    view.unmount();
+  });
   it('previews the next slide in deck order and clears it at the end', async () => {
     const {session, store, user, first} = await editorSetup();
     render(<SongPreviewPanel store={store} />);

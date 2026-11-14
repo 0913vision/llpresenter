@@ -171,12 +171,14 @@ function DetailsPanelContent({
   const theme = useSlideTheme(
     item === null && library === null
       ? undefined
-      : {
-          id: item?.id ?? library?.songId ?? '',
-          kind: 'song',
-          title,
-          ...(item?.theme === undefined ? {} : {theme: item.theme}),
-        },
+      : item !== null && isItemOfKind(item, 'media')
+        ? {id: item.id, kind: 'media', title}
+        : {
+            id: item?.id ?? library?.songId ?? '',
+            kind: 'song',
+            title,
+            ...(item?.theme === undefined ? {} : {theme: item.theme}),
+          },
     library === null ? 'service' : 'external',
   );
   const cardTheme = useSlideTheme(

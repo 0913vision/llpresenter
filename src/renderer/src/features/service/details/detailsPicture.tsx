@@ -38,6 +38,7 @@ function cardPicture(context: PictureContext): JSX.Element | undefined {
   }
   return (
     <SlidePicture
+      exact
       {...cardTheme}
       slide={{
         itemId: item.id,
@@ -70,8 +71,12 @@ function biblePicture(
   const {theme} = projection.appearance;
   return (
     <SlidePicture
+      exact
       slide={slide}
+      screen={projection.appearance.screen}
+      themeId={theme.themeId}
       layout={theme.layout}
+      background={projection.appearance.background}
       emptyColor={theme.emptyColor}
       item={theme.item}
     />
@@ -90,6 +95,7 @@ function songPicture(
   if (slide === undefined) return undefined;
   return (
     <SlidePicture
+      exact
       {...theme}
       background={resolveSongSlideBackground(item.background, song?.background)}
       slide={{
@@ -97,6 +103,12 @@ function songPicture(
         position: index,
         label: slide.label ?? null,
         lines: slide.text.split('\n'),
+        ...(slide.titleSlide === undefined
+          ? {}
+          : {titleSlide: slide.titleSlide}),
+        ...(slide.titleLayout === undefined
+          ? {}
+          : {titleLayout: slide.titleLayout}),
       }}
     />
   );
@@ -113,6 +125,7 @@ function libraryPicture(
   }
   return (
     <SlidePicture
+      exact
       {...theme}
       background={library.background?.mediaId}
       slide={{
@@ -120,6 +133,12 @@ function libraryPicture(
         position: index,
         label: slide.label,
         lines: slide.lines,
+        ...(slide.titleSlide === undefined
+          ? {}
+          : {titleSlide: slide.titleSlide}),
+        ...(slide.titleLayout === undefined
+          ? {}
+          : {titleLayout: slide.titleLayout}),
       }}
     />
   );
@@ -137,6 +156,7 @@ function mediaPicture(
   if (slide === undefined) return undefined;
   return (
     <SlidePicture
+      exact
       {...theme}
       background={item.media}
       slide={{
@@ -161,6 +181,7 @@ function fallbackBiblePicture(
   if (slide === undefined) return undefined;
   return (
     <SlidePicture
+      exact
       {...theme}
       slide={{
         itemId: item.id,
