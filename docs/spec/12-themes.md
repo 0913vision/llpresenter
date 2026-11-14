@@ -624,9 +624,11 @@ as every settings file does (02).
   55%. All song lines use the same style. An empty song slide uses its title,
   not its label. The band grows upward to show the song's library title at its
   top left in lighter 28 px text, keeping the lyric position fixed. A hymn's
-  title starts with its 새찬송가 number from the song's title slide when
-  present; no English subtitle is appended. Text-only captions have no title
-  label. The capture fallback uses an unblurred hard shadow.
+  title starts with its 새찬송가 number from the song name or title slide when
+  present; a name starting with just the number and 장 gets the 새찬송가 prefix
+  without repeating its number. No English subtitle is appended. Text-only
+  captions have no title label. The capture fallback uses an unblurred hard
+  shadow.
 - Broadcast section cards use a 102 px horizontal black fade from y=888 to
   y=990: transparent at x=160 and x=1760, 88% black from x=480 to x=1440. The
   Korean item name alone is centered in white Pretendard Variable bold 64 px

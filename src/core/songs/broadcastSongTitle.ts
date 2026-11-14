@@ -6,6 +6,11 @@ export function broadcastSongTitle(
 ): string {
   const title = song.title.split(/\r?\n/u)[0]?.trim() ?? '';
   if (/^새찬송가\s*\d+\s*장(?:\s|$)/u.test(title)) return title;
+  const titledNumber = /^(\d+)\s*장(?:\s|$)/u.exec(title)?.[1];
+  if (titledNumber !== undefined) {
+    const rest = title.replace(/^\d+\s*장\s*/u, '');
+    return `새찬송가 ${titledNumber}장${rest ? ` ${rest}` : ''}`;
+  }
   const lines = song.slides
     .filter(slide => slide.titleSlide === true)
     .flatMap(slide => slide.lines);
