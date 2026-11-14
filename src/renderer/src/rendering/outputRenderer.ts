@@ -200,6 +200,11 @@ export class OutputRenderer {
     );
   }
 
+  /** The single full-screen surface used for picture transitions. */
+  transitionSurface(): HTMLElement {
+    return this.root;
+  }
+
   /** Whether frame-rate sampling has moving content to measure. */
   moving(): boolean {
     const animations =

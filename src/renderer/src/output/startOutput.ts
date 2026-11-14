@@ -3,6 +3,9 @@ import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {RENDERER_LOG_LIMITS} from '@core/schema/ipcPayloads';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {OutputRenderer} from '../rendering/outputRenderer';
+import {SnapshotTransition} from './snapshotTransition';
+import {reverseSlideTransition} from '@core/output/transitions';
+import type {SlideTransition} from '@core/schema/slideTransition';
 import type {LiveState} from '@core/live/state';
 import {ScreenFrames} from '../rendering/screenFrames';
 import {startFrameRateMeter, type FrameRateMeter} from './frameRateMeter';
@@ -98,6 +101,9 @@ export function startOutput({
   };
   const stopCatching = catchUncaughtErrors(report);
   let renderer: OutputRenderer | null = null;
+  let snapshot: SnapshotTransition | null = null;
+  let snapshotMode = false;
+  let snapshotEpoch = 0;
   let hasFrame = false;
   let latest: LiveState | null = null;
   let stopped = false;
@@ -131,7 +137,7 @@ export function startOutput({
         ...frame,
         standby: !enabled(),
         ...(!enabled() ? {clearEffects: []} : {}),
-        transitions: enabled() && !revealPending,
+        transitions: enabled() && !revealPending && !snapshotMode,
       });
       hasFrame = true;
       drawCount += 1;
@@ -258,35 +264,114 @@ export function startOutput({
   // NOTE(0913vision): The main process takes reports as signs of life, so
   // the meter starts only
   // once the first state is drawn.
+  const applyState = (state: LiveState): void => {
+    const wasEnabled = enabled();
+    latest = state;
+    if (wasEnabled !== enabled()) {
+      enableEpoch += 1;
+      revealPending = true;
+      lastAttempt = -Infinity;
+      lastReady = false;
+    }
+    renderer ??= new OutputRenderer(root, {
+      transparent: ndi,
+      textStyle: DEFAULT_TEXT_STYLE,
+      mediaUrl,
+      onError: report,
+    });
+    const content = drawnContent(state);
+    if (content !== drawnState || wasEnabled !== enabled()) {
+      drawnState = content;
+      draw();
+    }
+    reportFrameRates();
+    watchReadiness();
+  };
+  const effectFor = (state: LiveState): SlideTransition | undefined => {
+    const slide = state.layers.slide;
+    if (slide === null) return undefined;
+    return slide.reverseTransition !== undefined
+      ? reverseSlideTransition(slide.reverseTransition)
+      : slide.transition;
+  };
+  const currentSnapshot = (epoch: number): boolean =>
+    !stopped && epoch === snapshotEpoch;
   const stopFollowing = followLiveState(
     api.live,
     state => {
-      const wasEnabled = enabled();
-      latest = state;
-      if (wasEnabled !== enabled()) {
-        enableEpoch += 1;
-        revealPending = true;
-        lastAttempt = -Infinity;
-        lastReady = false;
+      const old = latest?.layers.slide;
+      const slide = state.layers.slide;
+      const effect = effectFor(state);
+      const audience =
+        latest !== null && frames.frame(latest)?.screen?.kind === 'audience';
+      const changed =
+        slide !== null &&
+        (old?.itemId !== slide.itemId || old.position !== slide.position);
+      const capture =
+        audience &&
+        enabled() &&
+        !revealPending &&
+        changed &&
+        effect !== undefined &&
+        effect.kind !== 'none' &&
+        renderer !== null;
+      const epoch = ++snapshotEpoch;
+      if (!capture) {
+        if (changed || !audience || state.outputs[screenId] !== true) {
+          snapshotMode = false;
+          snapshot?.clear();
+        }
+        applyState(state);
+        return;
       }
-      renderer ??= new OutputRenderer(root, {
-        transparent: ndi,
-        textStyle: DEFAULT_TEXT_STYLE,
-        mediaUrl,
-        onError: report,
-      });
-      const content = drawnContent(state);
-      if (content !== drawnState || wasEnabled !== enabled()) {
-        drawnState = content;
-        draw();
-      }
-      reportFrameRates();
-      watchReadiness();
+      const currentRenderer = renderer;
+      snapshot ??= new SnapshotTransition(
+        root,
+        currentRenderer.transitionSurface(),
+      );
+      const picture = snapshot;
+      void api.output
+        .captureFrame()
+        .then(async data => {
+          if (!currentSnapshot(epoch)) return;
+          if (
+            data === null ||
+            !(await picture.prepare(data)) ||
+            !currentSnapshot(epoch)
+          ) {
+            if (currentSnapshot(epoch)) {
+              snapshotMode = true;
+              snapshot?.clear();
+              applyState(state);
+              snapshotMode = false;
+            }
+            return;
+          }
+          snapshotMode = true;
+          applyState(state);
+          picture.play(
+            effect,
+            () => currentRenderer.ready(),
+            () => {
+              snapshotMode = false;
+            },
+          );
+        })
+        .catch((error: unknown) => {
+          if (!currentSnapshot(epoch)) return;
+          report('could not capture the outgoing slide', error);
+          snapshotMode = true;
+          snapshot?.clear();
+          applyState(state);
+          snapshotMode = false;
+        });
     },
     report,
   );
   return () => {
     stopped = true;
+    snapshotEpoch += 1;
+    snapshot?.clear();
     if (readyTimer !== null) clearTimeout(readyTimer);
     window.removeEventListener('resize', resized);
     root.removeEventListener('pointerdown', raise);

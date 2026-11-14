@@ -2,7 +2,7 @@ import {NDI_DEFAULT_FPS} from '@core/schema/screens';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import type {SettingsEdit} from '@core/schema/settingsDocuments';
 import type {EditResult} from '@core/schema/contentEdit';
-import type {BrowserWindow} from 'electron';
+import {ipcMain, type BrowserWindow} from 'electron';
 import {outputEndpoints} from '@contracts/ipc/output';
 import {MONITOR_LIST_MAX} from '@core/schema/monitors';
 import {createElectronDisplaySource} from '../displays/electronSource';
@@ -246,6 +246,22 @@ export function startOutputs({
     guardTestPatterns({control, store, log}),
     () => numbers.dispose(),
     stopRetaining,
+    (() => {
+      ipcMain.handle(outputEndpoints.captureFrame.channel, async event => {
+        const sender = event.sender;
+        if (sender.isDestroyed() || !sender.getURL().includes('/output.html')) {
+          return null;
+        }
+        try {
+          const image = await sender.capturePage();
+          return image.isEmpty() ? null : image.toDataURL();
+        } catch (error) {
+          log.warn('could not capture output transition frame', error);
+          return null;
+        }
+      });
+      return () => ipcMain.removeHandler(outputEndpoints.captureFrame.channel);
+    })(),
     answerWindows(outputEndpoints.frameReady.channel, (_event, value) => {
       const report = parseFrameReadyReport(value);
       if (!report.ok) {
