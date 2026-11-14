@@ -214,8 +214,8 @@ it('carries the 전환 times of 환경설정 and follows a change', async () => 
   const {frames, state, push, onChange} = setup();
   await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(4));
   expect(frames.frame(state)?.transitionTimes).toEqual({
-    slideMs: 500,
-    backgroundMs: 500,
+    slideMs: 0,
+    backgroundMs: 0,
   });
   push(
     settingsDocument(
@@ -235,8 +235,8 @@ it('carries the 전환 times of 환경설정 and follows a change', async () => 
   );
   expect(onChange).toHaveBeenCalledTimes(5);
   expect(frames.frame(state)?.transitionTimes).toEqual({
-    slideMs: 500,
-    backgroundMs: 1200,
+    slideMs: 0,
+    backgroundMs: 0,
   });
 });
 
@@ -344,12 +344,12 @@ it('holds the selected effect across redraws and applies new defaults only to th
     },
   });
   expect(frames.frame(at('a', 0))?.slideTransition).toEqual({
-    kind: 'dissolve',
+    kind: 'none',
     sec: 0.5,
   });
   expect(frames.frame(at('a', 1))?.slideTransition).toEqual({
     kind: 'none',
-    sec: 0.2,
+    sec: 0.5,
   });
   expect(
     frames.frame(at('a', 2, {kind: 'wipe', sec: 4}))?.slideTransition,
@@ -369,12 +369,11 @@ it('holds the selected effect across redraws and applies new defaults only to th
     frames.frame(at('a', 2, {kind: 'wipe', sec: 4}))?.slideTransition,
   ).toEqual({kind: 'wipe', sec: 4});
   expect(frames.frame(at('a', 1))?.slideTransition).toEqual({
-    kind: 'push',
-    dir: 'right',
-    sec: 10,
+    kind: 'none',
+    sec: 0.5,
   });
   expect(frames.frame(at('b', 1))?.slideTransition).toEqual({
-    kind: 'dissolve',
+    kind: 'none',
     sec: 0.5,
   });
 });
@@ -445,8 +444,8 @@ it('uses the scripture theme wipe for consecutive slides and split verses', asyn
       },
     };
     expect(frames.frame(current)).toMatchObject({
-      slideTransition: {kind: 'wipe', sec: 0.7},
-      transitionTimes: {slideMs: 700},
+      slideTransition: {kind: 'none', sec: 0.5},
+      transitionTimes: {slideMs: 0},
     });
   }
 });

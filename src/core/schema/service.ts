@@ -139,6 +139,7 @@ export const sectionCardSchema = jsonObject({
   ),
   english: slideTextSchema,
   theme: themeIdSchema,
+  transition: v.exactOptional(slideTransitionSchema),
 });
 
 export type SectionCard = ReadonlyKnown<

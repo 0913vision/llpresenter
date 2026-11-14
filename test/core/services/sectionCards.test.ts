@@ -176,3 +176,11 @@ it('treats an explicitly undefined card as absent', () => {
   expect(cardOffset({sectionCard: undefined})).toBe(0);
   expect(cardOffset({cardOffset: 1})).toBe(1);
 });
+
+it('projects the opening card transition onto its slide tile', () => {
+  const card = {
+    ...newSectionCard(),
+    transition: {kind: 'wipe' as const, sec: 1},
+  };
+  expect(withSectionCard(card, [])[0]?.transition).toEqual(card.transition);
+});

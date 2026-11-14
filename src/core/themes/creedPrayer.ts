@@ -36,7 +36,6 @@ export function creedPrayerTheme(
 ): Theme {
   return {
     ...scripture,
-    transition: {kind: 'wipe', sec: 0.5},
     id: CREED_PRAYER_THEME_ID,
     name: '사도신경, 주기도문',
     screens: {

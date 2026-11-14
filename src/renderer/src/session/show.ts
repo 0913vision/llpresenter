@@ -1,5 +1,5 @@
 import type {Preferences} from '@core/schema/preferences';
-import type {NextSlide} from '@core/live/state';
+import type {NextSlide, SlideLayer} from '@core/live/state';
 import type {SingleLiveCommand} from '@core/live/commands';
 import {findSlideHotKey} from '@core/services/slideHotKeys';
 import {parseServiceItemId} from '@core/schema/ids';
@@ -165,11 +165,18 @@ function outputOtherTile(cursor: TileCursor): boolean {
 }
 
 /** Outputs a tile and shows it selected in the 장 panel. */
-export function outputTile(cursor: TileCursor): void {
+export function outputTile(
+  cursor: TileCursor,
+  reverseTransition?: SlideLayer['reverseTransition'],
+): void {
   if (tilesOf(cursor.itemId)[cursor.index]?.verse !== undefined) return;
   if (outputOtherTile(cursor)) return;
-  const slide = stageSlideOf(cursor);
-  if (!slide) return;
+  const projected = stageSlideOf(cursor);
+  if (!projected) return;
+  const slide =
+    reverseTransition === undefined
+      ? projected
+      : {...projected, reverseTransition};
   const request = beginOutputRequest();
   const live = useLive.getState();
   const previousItem =
@@ -181,13 +188,15 @@ export function outputTile(cursor: TileCursor): void {
     previousItem !== cursor.itemId &&
     window.llp
   ) {
-    outputLibraryTile(cursor, request, live.commandVersion).catch(
-      (cause: unknown) =>
-        window.llp?.log.write({
-          level: 'error',
-          message: 'Could not output the library song tile',
-          detail: cause instanceof Error ? cause.message : String(cause),
-        }),
+    outputLibraryTile(cursor, request, {
+      commandVersion: live.commandVersion,
+      reverseTransition,
+    }).catch((cause: unknown) =>
+      window.llp?.log.write({
+        level: 'error',
+        message: 'Could not output the library song tile',
+        detail: cause instanceof Error ? cause.message : String(cause),
+      }),
     );
     return;
   }
@@ -202,6 +211,7 @@ export function outputTile(cursor: TileCursor): void {
       request,
       commandVersion: live.commandVersion,
       serviceId: useShow.getState().serviceId,
+      reverseTransition,
     }).catch((error: unknown) =>
       window.llp?.log.write({
         level: 'error',
@@ -284,6 +294,7 @@ interface SongOutput {
   readonly request: number;
   readonly commandVersion: number;
   readonly serviceId: string | null;
+  readonly reverseTransition?: SlideLayer['reverseTransition'];
 }
 
 async function outputSongTile({
@@ -291,6 +302,7 @@ async function outputSongTile({
   request,
   commandVersion,
   serviceId,
+  reverseTransition,
 }: SongOutput): Promise<void> {
   let service: ShowService | null = null;
   try {
@@ -318,7 +330,7 @@ async function outputSongTile({
   if (!slide) return;
   const row = useShow.getState().rows.find(row => row.id === cursor.itemId);
   sendSlideOutput(
-    slide,
+    reverseTransition === undefined ? slide : {...slide, reverseTransition},
     row?.kind === 'song' ? row.background : undefined,
     startServiceItem(cursor.itemId),
   );
@@ -448,7 +460,12 @@ export function outputPrevious(): void {
   if (cursor !== null && cursor.itemId !== liveCursor()?.itemId) {
     openItem(cursor.itemId);
   }
-  outputIfPresent(cursor);
+  if (cursor !== null) {
+    outputTile(
+      cursor,
+      useLive.getState().state?.layers.slide?.transition ?? null,
+    );
+  }
 }
 
 /** Outputs the first or last tile of the open presentation without wrapping. */

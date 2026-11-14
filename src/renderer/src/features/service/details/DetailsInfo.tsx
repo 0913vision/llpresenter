@@ -24,7 +24,6 @@ import {useServiceSongMenu} from '../order/useServiceSongMenu';
 import {songUsage} from '@renderer/features/songs/editor/songUsage';
 import {Tooltip} from '@renderer/ui/Tooltip';
 import {ItemCardRow} from '../items/ItemCardRow';
-import {ItemTransitionRow} from './ItemTransitionRow';
 import styles from './DetailsInfo.module.css';
 
 interface DetailsInfoData {
@@ -112,14 +111,6 @@ export function DetailsInfo({
               lockReason={reason}
               macroId={item.macro}
             />
-            {isItemOfKind(item, 'song') || isItemOfKind(item, 'slides') ? (
-              <ItemTransitionRow
-                item={item}
-                serviceId={service.service.id}
-                items={items}
-                reason={reason}
-              />
-            ) : null}
             <ItemCardRow items={items} item={item} reason={reason} />
             <PropertyRow label="메모" alignTop>
               {() => (

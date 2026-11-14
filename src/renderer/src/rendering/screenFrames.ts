@@ -38,7 +38,10 @@ export class ScreenFrames {
   private preferences = defaultPreferences;
   private previousSlide: SlideLayer | null = null;
   private previousItemId: string | null = null;
-  private effect = defaultPreferences.output.transition.between;
+  private effect: import('@core/schema/slideTransition').SlideTransition = {
+    kind: 'none',
+    sec: 0.5,
+  };
   private readonly stops: ReadonlyArray<() => void>;
   private readonly timerClock: MainTimerClock;
 
