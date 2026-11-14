@@ -8,6 +8,7 @@ import {
   type ReactNode,
   type RefObject,
 } from 'react';
+import type {SongEditorStore} from '../../songs/editor/songEditorStore';
 import type {Slide, SlidesDraft} from '@core/services/slidesEdits';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {SongSlideSurface} from '../../songs/editor/SongSlideSurface';
@@ -63,6 +64,7 @@ export function MeasuredRow({
 
 export function SlideRows({
   draft,
+  store,
   blocked,
   report,
   list: listRef,
@@ -74,6 +76,7 @@ export function SlideRows({
   onBack,
 }: {
   readonly draft: SlidesDraft;
+  readonly store?: SongEditorStore | undefined;
   readonly blocked: boolean;
   readonly update: () => void;
   readonly report: (message: string) => void;
@@ -152,6 +155,7 @@ export function SlideRows({
   return (
     <SongSlideSurface
       session={commands}
+      store={store}
       leadingCard={leadingCard}
       report={commands.reportNotice}
       blocked={blocked}

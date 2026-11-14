@@ -3,7 +3,7 @@ import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import type {VerseSlide} from '@core/schema/service';
 import type {SlidesItem} from '@core/services/slidesEdits';
-import {projectSlides} from '@core/presentation/slides';
+import {colorSlideLabels, projectSlides} from '@core/presentation/slides';
 import {createBibleMeasureContext} from '@renderer/rendering/bibleMeasure';
 import {BibleProjections} from './splitProjection';
 
@@ -59,10 +59,13 @@ export async function loadSlidesProjection(
   const references = item.slides.slides.filter(
     (slide): slide is VerseSlide => 'verse' in slide,
   );
-  const [themes, screens, cuts, passages] = await Promise.all([
+  const [themes, screens, cuts, labels, passages] = await Promise.all([
     api.settings.get({name: 'themes'}),
     api.settings.get({name: 'screens'}),
     api.settings.get({name: 'bibleCuts'}),
+    item.slides.slides.some(slide => slide.label !== undefined)
+      ? api.settings.get({name: 'labels'}).catch(() => null)
+      : Promise.resolve(null),
     loadVersePassages(api.bible, references, isCurrent),
   ]);
   if (!isCurrent()) return null;
@@ -86,7 +89,15 @@ export async function loadSlidesProjection(
   }).get({
     kind: 'slides',
     id: item.id,
-    input: projectSlides(item, undefined, passages),
+    input: colorSlideLabels(
+      projectSlides(item, undefined, passages),
+      new Map(
+        (labels?.name === 'labels' ? labels.value.labels : []).map(label => [
+          label.name,
+          label.color,
+        ]),
+      ),
+    ),
     verseNumbers: true,
     reference: 'every',
     translationName: false,

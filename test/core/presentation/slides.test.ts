@@ -1,5 +1,9 @@
 import {expect, it} from 'vitest';
-import {projectSlides, slidesOutput} from '@core/presentation/slides';
+import {
+  colorSlideLabels,
+  projectSlides,
+  slidesOutput,
+} from '@core/presentation/slides';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import {slidesItem, SLIDE_PICTURE, SLIDES_ITEM} from '@fixtures/core/slides';
@@ -113,3 +117,44 @@ it('projects a title on a blank text slide for the next preview', () => {
   };
   expect(projectSlides(titled)[0]?.name).toBe('Title');
 });
+
+it.each(['blank', 'ad'] as const)(
+  'projects assigned labels and colors on %s text and image slides',
+  form => {
+    const item = slidesItem(form);
+    const labeled = {
+      ...item,
+      slides: {
+        ...item.slides,
+        slides: item.slides.slides.map((slide, index) => ({
+          ...slide,
+          label: index === 0 ? 'Verse' : 'Chorus',
+        })),
+      },
+    };
+    const tiles = colorSlideLabels(
+      projectSlides(labeled),
+      new Map([
+        ['Verse', '#FF0000'],
+        ['Chorus', '#0000FF'],
+      ]),
+    );
+    expect(tiles[0]).toMatchObject({
+      label: 'Verse',
+      slideLabel: 'Verse',
+      labelColor: '#FF0000',
+    });
+    expect(tiles[1]).toMatchObject({
+      label: 'Chorus',
+      slideLabel: 'Chorus',
+      labelColor: '#0000FF',
+      picture: SLIDE_PICTURE,
+    });
+    expect(
+      slideLayerOf({itemId: item.id, index: 0}, () => tiles),
+    ).toMatchObject({label: 'Verse', next: {label: 'Chorus'}});
+    expect(
+      slideLayerOf({itemId: item.id, index: 1}, () => tiles),
+    ).toMatchObject({label: 'Chorus'});
+  },
+);

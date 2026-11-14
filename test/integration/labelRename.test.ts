@@ -42,6 +42,7 @@ function setup({
   readOnlyLabels = false,
   includeItems = false,
   readOnlyService = false,
+  includeSlides = false,
 } = {}) {
   const writes: string[] = [];
   const texts = new Map<string, string>();
@@ -140,8 +141,24 @@ function setup({
       ],
     },
   ];
-  const service = serviceFile(SUNDAY, items);
-  const template = templateFile(items);
+  const serviceItems = includeSlides
+    ? [
+        ...items,
+        {
+          id: itemId(82),
+          slides: {
+            form: 'blank',
+            name: 'Slides',
+            slides: [
+              {id: fixtureSlideId(82), text: 'Text', label: 'Before'},
+              {id: fixtureSlideId(83), media: itemId(83), label: 'Before'},
+            ],
+          },
+        },
+      ]
+    : items;
+  const service = serviceFile(SUNDAY, serviceItems);
+  const template = templateFile(serviceItems);
   const content = new ContentStore({
     settings,
     locations,
@@ -170,6 +187,20 @@ function setup({
 }
 
 describe('renaming a label in the label list and in every song', () => {
+  it('renames labels on text and picture slides in services and templates', async () => {
+    const {content, settings} = setup({
+      includeItems: true,
+      includeSlides: true,
+    });
+    expect(await content.renameLabel(settings, rename)).toMatchObject({
+      ok: true,
+    });
+    const expected = {slides: {slides: [{label: 'After'}, {label: 'After'}]}};
+    expect(content.service(SUNDAY)?.service.order[1]).toMatchObject(expected);
+    expect(content.template(TEMPLATE)?.template.order[1]).toMatchObject(
+      expected,
+    );
+  });
   it('renames matching tags across independent service and template decks while preserving their lyrics and IDs', async () => {
     const {content, settings, events} = setup({includeItems: true});
     expect(

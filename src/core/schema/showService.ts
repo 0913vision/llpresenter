@@ -138,6 +138,7 @@ export const showTileSchema = v.pipe(
   payloadObject({
     sectionCard: v.exactOptional(sectionCardSchema),
     label: v.nullable(v.string()),
+    slideLabel: v.exactOptional(v.pipe(v.string(), v.maxLength(64))),
     labelColor: labelColorSchema,
     lines: v.array(v.string()),
     titleSlide: v.exactOptional(v.literal(true)),

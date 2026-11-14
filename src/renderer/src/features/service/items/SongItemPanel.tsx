@@ -59,6 +59,7 @@ export function ServiceItemPanel({
     return (
       <SlidesItemPanel
         api={editor.api}
+        store={editor}
         items={items}
         item={item}
         openEditor={window.llp?.slidesEditor.open}

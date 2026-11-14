@@ -1,3 +1,4 @@
+import type {SongEditorStore} from '../../songs/editor/songEditorStore';
 import {
   useEffect,
   useLayoutEffect,
@@ -33,7 +34,7 @@ import {useShow} from '@renderer/session/show';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {isComposing} from '@renderer/ui/ime';
-import {useItemMedia} from '../items/useItemSources';
+import {useItemMedia, useItemSettings} from '../items/useItemSources';
 import {
   SlidesCanvas,
   SlidesPreview,
@@ -253,6 +254,7 @@ function SlideFields({
 export function SlidesEditor({
   api,
   model,
+  store,
   onBack,
   renderCard,
   leadingCard,
@@ -260,6 +262,7 @@ export function SlidesEditor({
 }: {
   readonly api: LlpApi;
   readonly model: SlidesEditorModel;
+  readonly store?: SongEditorStore | undefined;
   readonly onBack?: (() => void) | undefined;
   readonly renderCard?: SlideCardRenderer | undefined;
   readonly leadingCard?: LeadingSlideCard | undefined;
@@ -272,6 +275,7 @@ export function SlidesEditor({
       key={draft.snapshot.item.id}
       api={api}
       model={model}
+      store={store}
       draft={draft}
       onBack={onBack}
       renderCard={renderCard}
@@ -284,6 +288,7 @@ export function SlidesEditor({
 function SlidesEditorBody({
   api,
   model,
+  store,
   onBack,
   draft,
   renderCard,
@@ -292,6 +297,7 @@ function SlidesEditorBody({
 }: {
   readonly api: LlpApi;
   readonly model: SlidesEditorModel;
+  readonly store?: SongEditorStore | undefined;
   readonly onBack?: (() => void) | undefined;
   readonly draft: SlidesDraft;
   readonly renderCard?: SlideCardRenderer | undefined;
@@ -319,6 +325,12 @@ function SlidesEditorBody({
       run: () => editorTask(model.flush()),
     },
   ]);
+  const labelsDoc = useItemSettings(
+    api.settings,
+    'labels',
+    store !== undefined,
+  ).document;
+  const labels = labelsDoc?.name === 'labels' ? labelsDoc.value.labels : [];
   const mediaSource = useItemMedia(api.media);
   const media = mediaSource.document?.value.items ?? [];
   const {appearance, themes} = useSlidesAppearance(api, item);
@@ -451,6 +463,7 @@ function SlidesEditorBody({
         >
           <SlideRows
             draft={draft}
+            store={store}
             blocked={
               model.stopped ||
               model.session?.readOnly === true ||
@@ -480,6 +493,9 @@ function SlidesEditorBody({
                   <SlideThumbnailBand
                     number={index + 1 + (leadingCard === undefined ? 0 : 1)}
                     label={slideBand(slide, media)}
+                    labelColor={
+                      labels.find(label => label.name === slide.label)?.color
+                    }
                   />
                 </div>
                 <SlideFields

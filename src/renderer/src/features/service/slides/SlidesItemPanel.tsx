@@ -1,3 +1,4 @@
+import type {SongEditorStore} from '../../songs/editor/songEditorStore';
 import {cardOffset} from '@core/services/sectionCards';
 import {sectionCardEntries} from '../items/sectionCardActions';
 import {type JSX, useEffect, useMemo, useSyncExternalStore} from 'react';
@@ -13,7 +14,7 @@ import {
   PanelTitle,
 } from '@renderer/ui';
 import type {ServiceItemStore} from '../items/serviceItemStore';
-import {useItemMedia} from '../items/useItemSources';
+import {useItemMedia, useItemSettings} from '../items/useItemSources';
 import {SlidesCanvas, slideBand, useSlidesAppearance} from './SlidesVisuals';
 import {useSlidesVerseProjection} from '@renderer/features/bible/useSlidesVerseProjection';
 import {SongSlideSurface} from '../../songs/editor/SongSlideSurface';
@@ -24,12 +25,14 @@ import styles from '../../songs/editor/SongPanels.module.css';
 
 export function SlidesItemPanel({
   api,
+  store,
   items,
   item,
   openEditor,
   controller,
 }: {
   readonly api: Pick<LlpApi, 'settings' | 'media' | 'bible'>;
+  readonly store?: SongEditorStore | undefined;
   readonly items: ServiceItemStore;
   readonly item: SlidesItem;
   readonly openEditor: LlpApi['slidesEditor']['open'] | undefined;
@@ -51,6 +54,7 @@ export function SlidesItemPanel({
   return session === null ? null : (
     <SlidesItemTiles
       api={api}
+      store={store}
       items={items}
       session={session}
       openEditor={openEditor}
@@ -60,16 +64,24 @@ export function SlidesItemPanel({
 
 function SlidesItemTiles({
   api,
+  store,
   items,
   session,
   openEditor,
 }: {
   readonly api: Pick<LlpApi, 'settings' | 'media' | 'bible'>;
+  readonly store?: SongEditorStore | undefined;
   readonly items: ServiceItemStore;
   readonly session: SlidesListSession;
   readonly openEditor: LlpApi['slidesEditor']['open'] | undefined;
 }): JSX.Element {
   const {service} = useSyncExternalStore(items.subscribe, items.getSnapshot);
+  const labelsDoc = useItemSettings(
+    api.settings,
+    'labels',
+    store !== undefined,
+  ).document;
+  const labels = labelsDoc?.name === 'labels' ? labelsDoc.value.labels : [];
   const view = useSyncExternalStore(
     session.slideModel.subscribe,
     session.slideModel.getSnapshot,
@@ -107,6 +119,7 @@ function SlidesItemTiles({
       <PanelBody variant="flush">
         <SongSlideSurface
           session={session}
+          store={store}
           report={session.reportNotice}
           editLabel="슬라이드 편집…"
           className={styles.slideSurface}
@@ -122,7 +135,7 @@ function SlidesItemTiles({
               })),
             }}
             numbers={view.slides.map((_, i) => i + (1 + cardOffset(item)))}
-            labels={[]}
+            labels={labels}
             selected={selected}
             baseline={2}
             scale={100}

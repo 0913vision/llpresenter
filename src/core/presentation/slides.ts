@@ -1,6 +1,6 @@
 import type {LiveBatch, SingleLiveCommand} from '../live/commands';
 import type {MediaChoice, SlideLayer} from '../live/state';
-import {NO_LABEL_COLOR} from '../labels/colors';
+import {NO_LABEL_COLOR, type LabelColor} from '../labels/colors';
 import type {MediaItem} from '../schema/mediaList';
 import type {ServiceItemOf} from '../schema/service';
 import type {ShowTile} from '../schema/showService';
@@ -15,6 +15,9 @@ export function projectSlides(
   passages: ReadonlyMap<string, BibleLookupPassage> = new Map(),
 ): readonly ShowTile[] {
   return item.slides.slides.map(slide => {
+    const label = slide.label;
+    const labelColor = NO_LABEL_COLOR;
+    const assigned = label === undefined ? {} : {slideLabel: label};
     if ('verse' in slide) {
       const reference = slide.verse;
       const verse = passages
@@ -30,8 +33,9 @@ export function projectSlides(
         ...(slide.transition === undefined
           ? {}
           : {transition: slide.transition}),
-        label: `${slide.verse.chapter}:${slide.verse.verse}`,
-        labelColor: NO_LABEL_COLOR,
+        label: label ?? `${slide.verse.chapter}:${slide.verse.verse}`,
+        labelColor,
+        ...assigned,
         lines: verse === undefined ? [] : bibleOutputLines(verse.text),
         reference: `${book?.korean ?? '성경'} ${reference.chapter}:${reference.verse}`,
         verse: {reference, ...(verse === undefined ? {} : {text: verse.text})},
@@ -46,10 +50,13 @@ export function projectSlides(
           ? {}
           : {transition: slide.transition}),
         label:
-          picture?.internal === true
+          label ??
+          (picture?.internal === true
             ? ''
-            : (picture?.file.split(/[\\/]/).at(-1) ?? '찾을 수 없는 그림'),
-        labelColor: NO_LABEL_COLOR,
+            : (picture?.file.split(/[\\/]/).at(-1) ??
+              '\ucc3e\uc744 \uc218 \uc5c6\ub294 \uadf8\ub9bc')),
+        labelColor,
+        ...assigned,
         lines: [],
         picture: slide.media,
         kind: item.slides.form,
@@ -61,13 +68,29 @@ export function projectSlides(
       sourceSlideId: slide.id,
       ...(slide.transition === undefined ? {} : {transition: slide.transition}),
       label:
-        item.slides.form === 'ad' ? (name ?? '') : (text.split('\n')[0] ?? ''),
-      labelColor: NO_LABEL_COLOR,
+        label ??
+        (item.slides.form === 'ad'
+          ? (name ?? '')
+          : (text.split('\n')[0] ?? '')),
+      labelColor,
+      ...assigned,
       lines: [text],
       kind: item.slides.form,
       ...(name === undefined ? {} : {name}),
     };
   });
+}
+
+/** Resolves catalog colors without changing the source slide labels. */
+export function colorSlideLabels(
+  tiles: readonly ShowTile[],
+  colors: ReadonlyMap<string, LabelColor>,
+): readonly ShowTile[] {
+  return tiles.map(tile =>
+    tile.slideLabel === undefined
+      ? tile
+      : {...tile, labelColor: colors.get(tile.slideLabel) ?? NO_LABEL_COLOR},
+  );
 }
 
 /** Sends a slide picture or item background and its text in one transaction. */

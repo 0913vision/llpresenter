@@ -24,7 +24,7 @@ import {
 } from './ids';
 import {itemOverlaysSchema, songItemOverlaysSchema} from './itemOverlays';
 import {LIVE_STATE_LIMITS} from './liveLimits';
-import {SONG_NAME_MAX_LENGTH, songSlidesSchema} from './song';
+import {SONG_LIMITS, SONG_NAME_MAX_LENGTH, songSlidesSchema} from './song';
 import type {MigrationStep} from './migration';
 import {
   jsonObject,
@@ -55,6 +55,12 @@ export const SLIDES_LIMITS = {
 } as const;
 
 const slideNameSchema = v.pipe(v.string(), v.maxLength(SLIDES_LIMITS.name));
+const slideLabelSchema = v.pipe(
+  v.string(),
+  v.trim(),
+  v.minLength(1),
+  v.maxLength(SONG_LIMITS.label),
+);
 const slideTextSchema = v.pipe(v.string(), v.maxLength(SLIDES_LIMITS.text));
 
 export const bibleVerseReferenceSchema = jsonObject({
@@ -70,6 +76,7 @@ export const bibleVerseReferenceSchema = jsonObject({
 export const verseSlideSchema = jsonObject({
   id: slideIdSchema,
   verse: bibleVerseReferenceSchema,
+  label: v.exactOptional(slideLabelSchema),
   transition: v.exactOptional(slideTransitionSchema),
 });
 
@@ -83,12 +90,14 @@ export const slideSchema = v.pipe(
           jsonObject({
             id: slideIdSchema,
             text: slideTextSchema,
+            label: v.exactOptional(slideLabelSchema),
             transition: v.exactOptional(slideTransitionSchema),
             name: v.exactOptional(slideNameSchema),
           }),
           jsonObject({
             id: slideIdSchema,
             media: mediaIdSchema,
+            label: v.exactOptional(slideLabelSchema),
             transition: v.exactOptional(slideTransitionSchema),
           }),
         ]),

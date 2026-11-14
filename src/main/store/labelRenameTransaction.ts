@@ -53,8 +53,10 @@ export async function prepareLabelRename(
     .filter(song => song.data.slides.some(slide => slide.label === edit.from))
     .sort((a, b) => a.data.id.localeCompare(b.data.id));
   const usesLabel = (item: ServiceItem): boolean =>
-    isItemOfKind(item, 'song') &&
-    item.slides.some(slide => slide.label === edit.from);
+    (isItemOfKind(item, 'song') &&
+      item.slides.some(slide => slide.label === edit.from)) ||
+    (isItemOfKind(item, 'slides') &&
+      item.slides.slides.some(slide => slide.label === edit.from));
   const services = context.services
     .all()
     .filter(document => document.data.order.some(usesLabel));
@@ -106,7 +108,17 @@ export async function prepareLabelRename(
             slide.label === edit.from ? {...slide, label: name} : slide,
           ),
         }
-      : item;
+      : isItemOfKind(item, 'slides')
+        ? {
+            ...item,
+            slides: {
+              ...item.slides,
+              slides: item.slides.slides.map(slide =>
+                slide.label === edit.from ? {...slide, label: name} : slide,
+              ),
+            },
+          }
+        : item;
   const changedServices = services.map(document =>
     context.services.replace(document, {
       ...document.data,

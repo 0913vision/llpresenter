@@ -1,5 +1,10 @@
 import {describe, expect, it, vi} from 'vitest';
-import {createServiceItemId, createThemeId} from '@core/schema/ids';
+import {
+  createMediaId,
+  createSlideId,
+  createServiceItemId,
+  createThemeId,
+} from '@core/schema/ids';
 import {newSectionCard} from '@core/services/sectionCards';
 import {withItemTheme} from '@core/services/itemFieldChanges';
 import {
@@ -173,4 +178,28 @@ it('creates advertisements with manual advance and looping off', () => {
   const item = newSlidesItem('ad', id);
   expect(item.slides.advance).toBeUndefined();
   expect(item.slides.loop ?? false).toBe(false);
+});
+
+it('applies and removes a label on multiple selected text and picture slides', () => {
+  const first = newSlidesItem('blank', id);
+  const draft = new SlidesDraft(first);
+  const picture = {
+    id: createSlideId('00000000-0000-4000-8000-000000000055'),
+    media: createMediaId('00000000-0000-4000-8000-000000000056'),
+  };
+  draft.add(picture);
+  const text = draft.snapshot.item.slides.slides[0];
+  if (!text) throw Error('Missing slide');
+  draft.selectRows({type: 'click', id: text.id});
+  draft.selectRows({type: 'click', id: picture.id, ctrl: true});
+  expect(draft.commandRows({type: 'label', label: 'Verse'})).toBe(true);
+  expect(draft.snapshot.item.slides.slides.map(slide => slide.label)).toEqual([
+    'Verse',
+    'Verse',
+  ]);
+  expect(draft.commandRows({type: 'label', label: undefined})).toBe(true);
+  expect(draft.snapshot.item.slides.slides.map(slide => slide.label)).toEqual([
+    undefined,
+    undefined,
+  ]);
 });

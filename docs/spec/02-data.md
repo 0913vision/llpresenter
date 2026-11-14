@@ -212,13 +212,16 @@ that stored range inactive. Other item kinds retain numeric ranges.
 | `advance` | Positive finite seconds        | No       | Automatic advance interval. Absent: manual.         |
 | `loop`    | Boolean                        | No       | Repeat after the last slide. Absent: off.           |
 
-Each slide is `{id, text, name?}`, `{id, media}`, or `{id, verse}`, never mixed.
-`id` is a lowercase UUID v4, unique within this item, with the separate
-`SlideId` type. Text is a string of at most 4,000 characters, following the live
-song text cap. An optional slide `name` is at most 512 characters, following the
-song title cap, and is allowed only for `ad` text slides. Even an empty name is
-invalid on a `blank` slide. `media` is a media ID, never a file path. Empty text
-and names are allowed. Unknown fields survive at every level.
+Each slide is `{id, text, name?, label?}`, `{id, media, label?}`, or
+`{id, verse, label?}`, never mixed. The optional `label` is the same trimmed,
+nonblank name of at most 64 characters used by songs; it is distinct from the
+advertisement slide name. `id` is a lowercase UUID v4, unique within this item,
+with the separate `SlideId` type. Text is a string of at most 4,000 characters,
+following the live song text cap. An optional slide `name` is at most 512
+characters, following the song title cap, and is allowed only for `ad` text
+slides. Even an empty name is invalid on a `blank` slide. `media` is a media ID,
+never a file path. Empty text and names are allowed. Unknown fields survive at
+every level.
 
 Only `blank` items may hold a verse slide. Its `verse` is
 `{translation, book, chapter, verse}`: an installed translation ID (at most 256

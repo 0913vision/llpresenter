@@ -15,6 +15,7 @@ export function SlidesEditorHarness({
     <>
       <SlidesEditor
         api={session.api}
+        store={session.editor}
         model={model}
         onBack={() => model.requestLeave(() => undefined)}
       />

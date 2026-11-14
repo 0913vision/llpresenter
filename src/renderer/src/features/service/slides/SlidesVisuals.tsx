@@ -21,6 +21,7 @@ import {useItemSettings} from '../items/useItemSources';
 import styles from './SlidesEditor.module.css';
 
 export function slideBand(slide: Slide, media: readonly MediaItem[]): string {
+  if (slide.label !== undefined) return slide.label;
   if ('verse' in slide) {
     const book = BIBLE_BOOKS.find(book => book.id === slide.verse.book);
     return `${book?.korean ?? '성경'} ${slide.verse.chapter}:${slide.verse.verse}`;
@@ -126,7 +127,7 @@ export function slideLayers(
               .filter(slide => 'text' in slide).length,
           }
         : {}),
-      label: null,
+      label: slide.label ?? null,
       lines: 'text' in slide ? slide.text.split('\n') : [],
       ...('text' in slide && slide.name !== undefined
         ? {name: slide.name}
@@ -135,7 +136,7 @@ export function slideLayers(
         ? {}
         : {
             next: {
-              label: null,
+              label: next.label ?? null,
               lines: 'text' in next ? next.text.split('\n') : [],
             },
           }),

@@ -3,7 +3,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import type {VerseSlide} from '@core/schema/service';
 import type {SlidesItem} from '@core/services/slidesEdits';
-import {projectSlides} from '@core/presentation/slides';
+import {colorSlideLabels, projectSlides} from '@core/presentation/slides';
 import {createBibleMeasureContext} from '@renderer/rendering/bibleMeasure';
 import {useApiSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {BibleProjections} from './splitProjection';
@@ -36,6 +36,14 @@ export function useSlidesVerseProjection(
     api,
     name: active ? 'screens' : null,
     title: '화면',
+  });
+  const labels = useApiSettingsDocument({
+    api,
+    name:
+      active && item.slides.slides.some(slide => slide.label !== undefined)
+        ? 'labels'
+        : null,
+    title: '\uc774\ub984\ud45c',
   });
   const cuts = useApiSettingsDocument({
     api,
@@ -112,7 +120,14 @@ export function useSlidesVerseProjection(
       {
         kind: 'slides',
         id: item.id,
-        input: projectSlides(item, undefined, loaded.passages),
+        input: colorSlideLabels(
+          projectSlides(item, undefined, loaded.passages),
+          new Map(
+            (labels?.name === 'labels' ? labels.value.labels : []).map(
+              label => [label.name, label.color],
+            ),
+          ),
+        ),
         verseNumbers: true,
         reference: 'every',
         translationName: false,
@@ -130,6 +145,7 @@ export function useSlidesVerseProjection(
     themes,
     screens,
     cuts,
+    labels,
     item,
     refinementRevision,
   ]);

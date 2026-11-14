@@ -28,10 +28,12 @@ export function nextSlideOf(
       : undefined);
   return {
     label:
-      tile.sectionCard === undefined &&
-      (tile.kind === undefined || tile.biblePart !== undefined)
-        ? tile.label
-        : null,
+      tile.sectionCard !== undefined
+        ? null
+        : (tile.slideLabel ??
+          (tile.kind === undefined || tile.biblePart !== undefined
+            ? tile.label
+            : null)),
     lines: tile.sectionCard === undefined && !notice ? tile.lines : [],
     ...(kind === undefined ? {} : {itemKind: kind}),
     ...(title === undefined || title.trim() === '' ? {} : {title}),
@@ -136,9 +138,10 @@ export function slideLayerOf(
       ? {}
       : {sourceSlideId: tile.sourceSlideId}),
     label:
-      tile.kind === undefined || tile.biblePart !== undefined
+      tile.slideLabel ??
+      (tile.kind === undefined || tile.biblePart !== undefined
         ? tile.label
-        : null,
+        : null),
     lines: tile.lines,
     ...(tile.sectionCard === undefined ? {} : {sectionCard: tile.sectionCard}),
     ...(tile.titleSlide === undefined ? {} : {titleSlide: tile.titleSlide}),

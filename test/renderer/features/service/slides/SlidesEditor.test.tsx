@@ -63,6 +63,7 @@ afterEach(cleanup);
 function setup(
   form: 'blank' | 'ad' = 'ad',
   slides?: SlidesItem['slides']['slides'],
+  withLabels = false,
 ) {
   const item: SlidesItem = {
     ...newSlidesItem(form, itemId),
@@ -154,6 +155,7 @@ function setup(
     },
   });
   const session = new ControlSession(api);
+  if (withLabels) session.startEditor();
   const view = render(<SlidesEditorHarness session={session} />);
   return {
     api,
@@ -183,6 +185,34 @@ function savedItem(f: ReturnType<typeof setup>): SlidesItem {
 }
 
 describe('automatic inline slides editor', () => {
+  it('applies a catalog label to selected text and image slides from the shared menu', async () => {
+    const f = setup('blank', undefined, true);
+    try {
+      await screen.findByRole('textbox', {name: '\uAE00'});
+      const rows = document.querySelectorAll<HTMLElement>('[data-slide-id]');
+      if (!rows[0] || !rows[1]) throw Error('Missing slide rows');
+      fireEvent.click(rows[0]);
+      fireEvent.click(rows[1], {ctrlKey: true});
+      fireEvent.contextMenu(rows[1]);
+      fireEvent.click(
+        await screen.findByRole('menuitem', {name: '\uC774\uB984\uD45C'}),
+      );
+      const choice = await screen.findByRole('menuitemradio', {
+        name: '1\uC808',
+      });
+      fireEvent.click(choice);
+      await waitFor(() =>
+        expect(savedItem(f).slides.slides.map(slide => slide.label)).toEqual([
+          '1\uC808',
+          '1\uC808',
+        ]),
+      );
+    } finally {
+      f.view.unmount();
+      await f.session.dispose();
+    }
+  });
+
   it('places the view switch and grid size control in the slide footer', async () => {
     seedSlideSurfaceView({});
     const f = setup('blank');

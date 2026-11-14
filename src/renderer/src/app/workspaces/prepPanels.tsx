@@ -239,6 +239,7 @@ function prepPanelParts({
               {(card, addCard) => (
                 <SlidesEditor
                   api={prep.api}
+                  store={prep.editor}
                   model={slides}
                   onBack={back}
                   leadingCard={card}

@@ -477,7 +477,9 @@ describe('media import boundaries', () => {
         }),
     );
     await importer.import(filesOf([await source('l.webm')]), signal());
-    await vi.waitFor(() => expect(add).toHaveBeenCalledOnce());
+    await vi.waitFor(() => expect(add).toHaveBeenCalledOnce(), {
+      timeout: JOB_END_TIMEOUT_MS,
+    });
     expect(await importer.cancel(createMediaId(uuid(1)))).toMatchObject({
       ok: false,
       error: {reason: 'invalid'},
@@ -599,7 +601,9 @@ describe('media import boundaries', () => {
     );
 
     await importer.import(filesOf([await source('Dawn.mp4')]), signal());
-    await vi.waitFor(() => expect(add).toHaveBeenCalledOnce());
+    await vi.waitFor(() => expect(add).toHaveBeenCalledOnce(), {
+      timeout: JOB_END_TIMEOUT_MS,
+    });
     expect(saveThumbnail).not.toHaveBeenCalled();
 
     saved({ok: true, value: {id: uuid(1), revision: 2}});

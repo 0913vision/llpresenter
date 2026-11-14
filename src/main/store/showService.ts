@@ -18,7 +18,7 @@ import {
   type ShowService,
   type ShowTile,
 } from '@core/schema/showService';
-import {projectSlides} from '@core/presentation/slides';
+import {colorSlideLabels, projectSlides} from '@core/presentation/slides';
 import type {ServicePassages} from '../bible/servicePassages';
 
 export {SHOW_SERVICE_LIMITS} from '@core/schema/showService';
@@ -87,7 +87,7 @@ export function buildShowService({
     itemTiles[itemId] = tiles;
   }
   for (const item of order) {
-    const tiles = otherTiles(item, {backgrounds, media, passages});
+    const tiles = otherTiles(item, {backgrounds, media, passages, colors});
     if (tiles !== undefined) itemTiles[item.id] = tiles;
   }
   for (const item of order) {
@@ -142,6 +142,7 @@ function mediaTitle(media: MediaItem): string {
 }
 
 interface OtherSources {
+  readonly colors: ReadonlyMap<string, LabelColor>;
   readonly backgrounds: ReadonlyMap<string, MediaChoice>;
   readonly media: ReadonlyMap<string, MediaItem> | undefined;
   readonly passages: ServicePassages | undefined;
@@ -152,10 +153,13 @@ interface OtherSources {
  */
 function otherTiles(
   item: ServiceItem,
-  {backgrounds, media, passages}: OtherSources,
+  {backgrounds, media, passages, colors}: OtherSources,
 ): readonly ShowTile[] | undefined {
   if (isItemOfKind(item, 'slides')) {
-    return projectSlides(item, media, passages?.slides?.get(item.id));
+    return colorSlideLabels(
+      projectSlides(item, media, passages?.slides?.get(item.id)),
+      colors,
+    );
   }
   if (isItemOfKind(item, 'media')) {
     if (media === undefined) return undefined;
