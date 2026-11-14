@@ -69,6 +69,7 @@ it('preserves imported title lines and their individual positions', () => {
         boxWidth: 1733.5,
         left: 93.25,
         top: 280.9,
+        paragraphGap: 20,
         runs: [{text: 'Title', size: 120, tracking: -3}],
       },
     ],
@@ -92,6 +93,8 @@ it('preserves imported title lines and their individual positions', () => {
     },
     {content: 'Title', frame: {y: 280.9}, text: {size: 120}},
   ]);
+  const second = result.elements.filter(element => element.kind === 'text')[1];
+  expect(second).not.toHaveProperty('lyricFormat.lines.0.paragraphGap');
 });
 
 it('retains dark title composition through copying, saving, and item selection', () => {

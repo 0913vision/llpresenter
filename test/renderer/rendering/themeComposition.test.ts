@@ -633,7 +633,9 @@ describe('theme composition drawing', () => {
     };
     const active = frame([element]);
     const lyricFormat = {
-      lines: [{boxWidth: 500, runs: [{text: 'Invented line', size: 108}]}],
+      lines: [
+        {boxWidth: 500, top: 154.6, runs: [{text: 'Invented line', size: 108}]},
+      ],
     };
     if (song.slide === null) throw Error('Missing song slide');
     const formatted = {...song, slide: {...song.slide, lyricFormat}};
@@ -642,9 +644,19 @@ describe('theme composition drawing', () => {
       root.querySelector<HTMLElement>('[data-kind="currentText"]');
     expect(box()?.style.left).toBe('0px');
     expect(box()?.style.width).toBe('1920px');
+    expect(box()?.style.top).toBe('154.6px');
+    for (const kind of ['stage', 'broadcast'] as const) {
+      view.render(formatted, {
+        ...active,
+        screen: {id: THEME_MAIN, kind},
+        transitions: false,
+      });
+      expect(box()?.style.top).toBe('141px');
+    }
     view.render(song, {...active, transitions: false});
     expect(box()?.style.left).toBe('132px');
     expect(box()?.style.width).toBe('1656px');
+    expect(box()?.style.top).toBe('141px');
     view.dispose();
   });
 
