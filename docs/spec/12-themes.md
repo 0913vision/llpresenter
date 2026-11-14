@@ -742,12 +742,13 @@ title; other titled next slides show their title and body; an untitled slide
 shows its body alone. The next preview shows at most two source lines and
 targets two thirds of the fitted current size, with enough height for two lines
 at that size. Section cards center their Korean name above the same next preview
-without the English subtitle. The stage notice retains its church news card.
-These defaults apply to new libraries; existing layouts are unchanged. Built-in
-audience background and media elements start at 채우기 (cover); their editable
-theme-element 맞춤 wins over the media property's 맞춤 when rendered through
-that element. The media properties panel explains this precedence in a tooltip.
-Existing libraries are unchanged.
+without the English subtitle. The stage notice body uses the same disc bullets
+and hanging indent as the audience notice, with one bullet per nonempty body
+line; its title remains separate. These defaults apply to new libraries;
+existing layouts are unchanged. Built-in audience background and media elements
+start at 채우기 (cover); their editable theme-element 맞춤 wins over the media
+property's 맞춤 when rendered through that element. The media properties panel
+explains this precedence in a tooltip. Existing libraries are unchanged.
 
 The section gradient layout retains 늘리기 for its background element.
 

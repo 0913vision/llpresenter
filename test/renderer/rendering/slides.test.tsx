@@ -148,15 +148,11 @@ it.each(['audience', 'stage', 'broadcast'] as const)(
         ).toBe(mediaUrl(SLIDE_PICTURE));
       } else {
         const paragraphs = slide.lines.join('\n').split('\n');
-        const body = paragraphs
-          .map(line => (audienceLayout ? `•${line}` : line))
-          .join('');
+        const body = paragraphs.map(line => `\u2022${line}`).join('');
         expect(
           root.querySelector('[data-kind="currentText"]')?.textContent,
         ).toContain(body);
-        expect(preview.container.textContent).toContain(
-          audienceLayout ? body : slide.lines.join('\n'),
-        );
+        expect(preview.container.textContent).toContain(body);
         if (audienceLayout) {
           expect(
             root.querySelector('[data-kind="slideNumber"]')?.textContent,

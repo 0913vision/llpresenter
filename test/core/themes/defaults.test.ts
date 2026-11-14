@@ -392,12 +392,26 @@ it('uses the standard stage layout and leaves broadcast ads empty', () => {
       color: '#FFFFFF',
       align: 'left',
       lineHeight: 128 / 86,
+      bullets: true,
+      bulletStyle: 'disc',
     },
   });
   if (!title || !body) throw Error('Missing notice text');
   expect(title.frame.y + title.frame.h).toBeLessThanOrEqual(body.frame.y);
   expect(builtInTheme('ad')).toEqual(ad);
   expect(builtInTheme('blank')).toEqual(builtInTheme('bible'));
+});
+
+it('keeps bullets out of ordinary built-in stage text', () => {
+  const stage = createScreenId(STARTER_SCREEN_IDS.stage);
+  for (const kind of ['song', 'blank', 'bible'] as const) {
+    const body = builtInTheme(kind).screens[stage]?.elements.find(
+      element => element.kind === 'currentText',
+    );
+    expect(body?.kind === 'currentText' && body.text.bullets === true).toBe(
+      false,
+    );
+  }
 });
 
 it('resolves untouched saved ad links as empty while preserving edited or copied themes', () => {
