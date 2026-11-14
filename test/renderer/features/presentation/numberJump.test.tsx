@@ -112,6 +112,26 @@ it('builds multi-digit numbers without firing a digit slide hotkey', () => {
   });
 });
 
+it.each(['Delete', 'Escape'])(
+  '%s cancels without output or changing the open slide',
+  cancel => {
+    render(<Harness />);
+    const before = {
+      item: useShow.getState().openItemId,
+      index: useShow.getState().selectedTile,
+    };
+    key('2');
+    key('5');
+    key(cancel);
+    expect(screen.queryByRole('status')).toBeNull();
+    expect(send).not.toHaveBeenCalled();
+    expect(useShow.getState()).toMatchObject({
+      openItemId: before.item,
+      selectedTile: before.index,
+    });
+  },
+);
+
 it('recalculates positions when service order and tile counts change', () => {
   const view = useShow.getState();
   expect(serviceSlideAt(view, 6)).toEqual({itemId: 'song-river', index: 0});
