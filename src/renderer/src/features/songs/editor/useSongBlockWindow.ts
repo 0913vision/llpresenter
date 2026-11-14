@@ -21,8 +21,15 @@ interface Measure {
   readonly line: number;
   readonly minimum: number;
   readonly inset: number;
+  readonly inputChrome: number;
 }
-const EMPTY: Measure = {viewport: 0, line: 1, minimum: 1, inset: 0};
+const EMPTY: Measure = {
+  viewport: 0,
+  line: 1,
+  minimum: 1,
+  inset: 0,
+  inputChrome: 0,
+};
 
 export interface WindowSlideItem {
   readonly lines: readonly string[];
@@ -78,6 +85,17 @@ export function useSongBlockWindow(
       const px = (name: string): number =>
         Number.parseFloat(css.getPropertyValue(name)) || 0;
       const line = Number.parseFloat(getComputedStyle(input).lineHeight);
+      const inputCss = getComputedStyle(input);
+      const inputChrome = [
+        'padding-top',
+        'padding-bottom',
+        'border-top-width',
+        'border-bottom-width',
+      ].reduce(
+        (sum, name) =>
+          sum + (Number.parseFloat(inputCss.getPropertyValue(name)) || 0),
+        0,
+      );
       if (!Number.isFinite(line) || line <= 0) return;
       const thumbnail = block.querySelector<HTMLElement>(
         '[data-editor-thumbnail]',
@@ -87,6 +105,7 @@ export function useSongBlockWindow(
         viewport: node.clientHeight,
         line,
         minimum: Math.max(px('--size-control-xs'), thumbnailHeight),
+        inputChrome,
         inset:
           px('padding-top') +
           px('padding-bottom') +
@@ -148,7 +167,8 @@ export function useSongBlockWindow(
             measure.inset +
               Math.max(
                 measure.minimum,
-                measure.line * Math.max(1, slide.lines.length),
+                measure.line * Math.max(1, slide.lines.length) +
+                  measure.inputChrome,
               )),
       );
     }
