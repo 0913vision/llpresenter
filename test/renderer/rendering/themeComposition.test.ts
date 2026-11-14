@@ -635,6 +635,7 @@ describe('theme composition drawing', () => {
     const lyricFormat = {
       lines: [{boxWidth: 500, runs: [{text: 'Invented line', size: 108}]}],
     };
+    if (song.slide === null) throw Error('Missing song slide');
     const formatted = {...song, slide: {...song.slide, lyricFormat}};
     view.render(formatted, {...active, transitions: false});
     const box = () =>
