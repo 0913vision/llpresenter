@@ -1225,6 +1225,9 @@ independently. The standalone 구역 이름 item remains available.
 Adding or removing an opening card leaves overlay ranges attached to their
 content slides; the card itself does not display those overlays.
 
+Slide thumbnails in item lists and song and Bible editors use the audience
+output compositor at thumbnail scale, preserving its layout and line breaks.
+
 Slide thumbnail captions in grids and editor rows are attached strips showing
 number and label name on the label color, or only the number on a neutral fill
 when unlabeled. Preparation slide thumbnails and editor rows do not show a live

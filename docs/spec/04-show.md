@@ -233,6 +233,10 @@ service needs no confirmation), product log version 63.
   number of columns changes. Save the percentage per size class, not a column
   count. 10 defines the mapping, storage, and reasons.
 
+Slide thumbnails draw the audience composition at a reduced scale, using the
+same theme, layout, wrapping, and content as live output. The grid virtualizes
+unseen tiles and reuses unchanged compositions and text-fit measurements.
+
 ### Panel keyboard order
 
 After the toolbar (workspace tabs, 검색, 테마, 청중, 무대, 방송), Tab visits: 1

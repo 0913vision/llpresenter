@@ -83,13 +83,15 @@ function slide(index: number): HTMLElement {
   return tile;
 }
 
-it('draws song thumbnails with the audience theme font and frame', () => {
+it('draws song thumbnails through the audience output compositor', () => {
   render(<SlideGrid columns={4} scalePercent={100} />);
-  const text = slide(0).querySelector<HTMLElement>('[style*="font-size"]');
-  expect(text?.style.fontSize).toBe('108px');
-  expect(text?.style.fontFamily).toContain('NanumSquare');
-  expect(text?.style.fontWeight).toBe('800');
-  expect(slide(0).querySelector('svg[viewBox="0 0 1920 1080"]')).not.toBeNull();
+  const text = slide(0).querySelector<HTMLElement>('[data-kind="currentText"]');
+  expect(text).not.toBeNull();
+  const block = text?.querySelector<HTMLElement>('[style*="font-family"]');
+  expect(block?.style.fontFamily).toContain('NanumSquare');
+  expect(block?.style.fontWeight).toBe('800');
+  expect(slide(0).querySelector('[data-layer="lyrics"]')).not.toBeNull();
+  expect(slide(0).querySelector('svg[viewBox="0 0 1920 1080"]')).toBeNull();
 });
 
 it.each([{key: 'ContextMenu'}, {key: 'F10', shiftKey: true}])(
