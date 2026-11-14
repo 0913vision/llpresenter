@@ -1,5 +1,6 @@
 import {describe, expect, it, vi} from 'vitest';
 import {createMediaId} from '@core/schema/ids';
+import {isItemOfKind} from '@core/schema/service';
 import type {MediaItem} from '@core/schema/mediaList';
 import type {OtherItemChoices} from '@renderer/features/service/items/quickAddItems';
 import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
@@ -153,9 +154,18 @@ describe('quick add other items', () => {
           form,
           name: form === 'ad' ? '광고' : '빈 슬라이드',
           slides: [{text: '', ...(form === 'ad' ? {name: ''} : {})}],
-          ...(form === 'ad' ? {advance: 8, loop: true} : {}),
         },
       });
+      const item = onInsert.mock.calls[0]?.[0];
+      if (
+        item === undefined ||
+        typeof item === 'function' ||
+        !isItemOfKind(item, 'slides')
+      ) {
+        throw Error('Missing slides');
+      }
+      expect(item.slides.advance).toBeUndefined();
+      expect(item.slides.loop ?? false).toBe(false);
     },
   );
 

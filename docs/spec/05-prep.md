@@ -123,9 +123,9 @@ not dim when focus leaves. 진행 retains its existing thumbnail style.
   selected row, selects the item, and opens 슬라이드 편집. Without a selection
   it appends. 빈 슬라이드 starts with one empty text slide and manual advance.
   Its editor puts the caret in slide 1's text field, ready to type. 광고 starts
-  with one empty named text slide, 8-second advance, and 반복 enabled. Its
-  default audience theme has the blue-purple notice picture with a fixed slash,
-  an automatic text-slide number, the slide name, and a bulleted body (12).
+  with one empty named text slide, manual advance, and 반복 off. Its default
+  audience theme has the blue-purple notice picture with a fixed slash, an
+  automatic text-slide number, the slide name, and a bulleted body (12).
   Operators enter plain body lines; the theme adds hanging bullets. Picture
   slides cover the frame and do not consume a notice number.
 - Both forms use the same slides icon. The table shows the editable item name,

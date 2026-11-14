@@ -102,7 +102,6 @@ export function newSlidesItem(
       form,
       name: form === 'ad' ? '광고' : '빈 슬라이드',
       slides: [newTextSlide(form)],
-      ...(form === 'ad' ? {advance: 8, loop: true} : {}),
     },
   };
 }

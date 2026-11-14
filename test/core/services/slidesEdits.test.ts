@@ -14,6 +14,7 @@ describe('merge slides changes', () => {
   it('clears locally removed optional fields while retaining fresh unrelated item and slides properties', () => {
     const base = {
       ...newSlidesItem('ad', id),
+      slides: {...newSlidesItem('ad', id).slides, advance: 8},
       theme: createThemeId('00000000-0000-4000-8000-000000000002'),
     };
     const {theme, ...withoutTheme} = base;
@@ -141,4 +142,10 @@ describe('slides draft', () => {
     empty.undo();
     expect(empty.dirty).toBe(false);
   });
+});
+
+it('creates advertisements with manual advance and looping off', () => {
+  const item = newSlidesItem('ad', id);
+  expect(item.slides.advance).toBeUndefined();
+  expect(item.slides.loop ?? false).toBe(false);
 });
