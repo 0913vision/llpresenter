@@ -1,5 +1,6 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {expect, it, vi} from 'vitest';
+import userEvent from '@testing-library/user-event';
 import {
   createServiceItemId,
   createThemeId,
@@ -26,7 +27,15 @@ vi.mock('@renderer/features/bible/useBibleProjections', () => ({
             {label: '1:1', labelColor: 'none', lines: ['첫 말씀']},
             {label: '1:2', labelColor: 'none', lines: ['둘째 말씀']},
           ],
-          partsByTile: [null, null],
+          partsByTile: [1, 2].map(verse => ({
+            reference: {translation: 'sample', book: 1, chapter: 1, verse},
+            part: 1,
+            partCount: 1,
+            text: 'text',
+            display: 'text',
+            continued: false,
+            manual: false,
+          })),
           appearance: {theme: {layout: {}, emptyColor: '#000', item: null}},
         },
 }));
@@ -105,7 +114,7 @@ async function setup(
   act(() => items.show({serviceId: fixtureServiceId, itemId}));
   const view = render(<OtherSlideInspector items={items} editor={editor} />);
   await waitFor(() => expect(items.getSnapshot().item).not.toBeNull());
-  return {view, items, editor};
+  return {view, items, editor, fixture};
 }
 it('shows the card-only slide item in the inspector', async () => {
   const {view, items, editor} = await setup('slide-card');
@@ -139,11 +148,11 @@ it.each(['image', 'video'] as const)(
     await editor.dispose();
   },
 );
-it('shows only the selected Bible picture and label, with no transition row', async () => {
+it('shows the selected Bible picture, label and transition picker', async () => {
   const {view, items, editor} = await setup('bible');
   expect(screen.getByTestId('bible-picture')).toBeTruthy();
   expect(screen.getAllByText('1:1')).toHaveLength(2);
-  expect(screen.queryByText('전환')).toBeNull();
+  expect(screen.getByLabelText('\uD6A8\uACFC')).toBeTruthy();
   act(() => items.show(null));
   expect(screen.queryByTestId('bible-picture')).toBeNull();
   expect(screen.queryByText('1:1')).toBeNull();
@@ -162,6 +171,37 @@ it('shows the Bible opening card and offsets verse positions past it', async () 
   expect(screen.queryByTestId('card-picture')).toBeNull();
   act(() => items.selectPosition(2));
   expect(screen.getByTestId('bible-picture').textContent).toBe('1:2');
+  view.unmount();
+  items.dispose();
+  await editor.dispose();
+});
+
+it('applies one transition to a Bible card and selected parts and undoes them together', async () => {
+  const {view, items, editor} = await setup('bible-card');
+  act(() => {
+    items.setBibleCardSelected(true);
+    items.setBibleSelection([0, 1]);
+    items.selectPosition(1);
+  });
+  await userEvent.click(screen.getByLabelText('\uD6A8\uACFC'));
+  await userEvent.click(
+    screen.getByRole('menuitemradio', {name: '\uB514\uC878\uBE0C'}),
+  );
+  await waitFor(() => {
+    expect(items.getSnapshot().item).toMatchObject({
+      sectionCard: {transition: {kind: 'dissolve'}},
+      bibleTransitions: [
+        {part: 1, transition: {kind: 'dissolve'}},
+        {part: 1, transition: {kind: 'dissolve'}},
+      ],
+    });
+  });
+  await act(() => items.replayItemEdit('undo'));
+  await waitFor(() => {
+    const item = items.getSnapshot().item;
+    expect(item).not.toHaveProperty('sectionCard.transition');
+    expect(item).not.toHaveProperty('bibleTransitions');
+  });
   view.unmount();
   items.dispose();
   await editor.dispose();

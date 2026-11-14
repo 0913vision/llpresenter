@@ -45,11 +45,13 @@ export function SongSlideSurface<T extends SlideListItem>({
   editLabel = windowCommandLabels.editSong,
   leadingCard,
   contentReadOnly = false,
+  mixedLeadingSelection = false,
 }: {
   readonly session: SlideListSession<T>;
   readonly children: ReactNode;
   readonly leadingCard?: LeadingSlideCard | undefined;
   readonly contentReadOnly?: boolean | undefined;
+  readonly mixedLeadingSelection?: boolean;
   readonly className?: string | undefined;
   readonly onBack?: (() => void) | undefined;
   readonly store?: SongEditorStore | undefined;
@@ -82,9 +84,9 @@ export function SongSlideSurface<T extends SlideListItem>({
     leadingCard !== undefined &&
     cardSelection.documentId === session.slideDocumentId &&
     cardSelection.selected;
-  const selectCard = (): void => {
+  const selectCard = (preserve = false): void => {
     if (leadingCard === undefined || leadingSelected) return;
-    session.selectSlides({type: 'clear'});
+    if (!preserve) session.selectSlides({type: 'clear'});
     setCardSelection({documentId: session.slideDocumentId, selected: true});
     leadingCard.onSelectChange?.(true);
     const viewport = surfaceRef.current?.querySelector<HTMLElement>(
@@ -96,6 +98,20 @@ export function SongSlideSurface<T extends SlideListItem>({
     if (!leadingSelected) return;
     setCardSelection({documentId: session.slideDocumentId, selected: false});
     leadingCard.onSelectChange?.(false);
+  };
+  const extendLeadingRange = (shift: boolean): void => {
+    if (
+      !mixedLeadingSelection ||
+      !leadingSelected ||
+      !shift ||
+      view.selection.ids.size > 0
+    ) {
+      return;
+    }
+    const first = view.slides[0];
+    if (first !== undefined) {
+      session.selectSlides({type: 'click', id: first.id});
+    }
   };
   const [menu, setMenu] = useState<MenuAnchor | null>(null);
   const [menuIndex, setMenuIndex] = useState(0);
@@ -302,7 +318,9 @@ export function SongSlideSurface<T extends SlideListItem>({
       when: owns,
       unavailable: () =>
         editReason ??
-        (view.canUndo ? undefined : '실행 취소할 변경이 없습니다'),
+        ((session.canUndo ?? view.canUndo)
+          ? undefined
+          : '실행 취소할 변경이 없습니다'),
       run: () => {
         surfaceRef.current?.focus();
         session.edit('undo');
@@ -314,7 +332,9 @@ export function SongSlideSurface<T extends SlideListItem>({
       when: owns,
       unavailable: () =>
         editReason ??
-        (view.canRedo ? undefined : '다시 실행할 변경이 없습니다'),
+        ((session.canRedo ?? view.canRedo)
+          ? undefined
+          : '다시 실행할 변경이 없습니다'),
       run: () => {
         surfaceRef.current?.focus();
         session.edit('redo');
@@ -421,7 +441,7 @@ export function SongSlideSurface<T extends SlideListItem>({
       label: '실행 취소',
       meta: 'Ctrl Z',
       ...menuAvailability(
-        !view.canUndo
+        !(session.canUndo ?? view.canUndo)
           ? '실행 취소할 변경이 없습니다'
           : readOnly
             ? NEWER_FILE_REASON
@@ -436,7 +456,7 @@ export function SongSlideSurface<T extends SlideListItem>({
       label: '다시 실행',
       meta: 'Ctrl Y',
       ...menuAvailability(
-        !view.canRedo
+        !(session.canRedo ?? view.canRedo)
           ? '다시 실행할 변경이 없습니다'
           : readOnly
             ? NEWER_FILE_REASON
@@ -502,12 +522,18 @@ export function SongSlideSurface<T extends SlideListItem>({
             event.target instanceof Element &&
             event.target.closest('[data-leading-card]') !== null
           ) {
-            selectCard();
+            if (!mixedLeadingSelection) selectCard();
           } else if (
             event.target instanceof Element &&
             event.target.closest('[data-song-slide], [data-slide-gap]') !== null
           ) {
-            clearCard();
+            extendLeadingRange(event.shiftKey);
+            if (
+              !mixedLeadingSelection ||
+              !(event.ctrlKey || event.metaKey || event.shiftKey)
+            ) {
+              clearCard();
+            }
           }
           focusList(event.target);
         }
@@ -519,7 +545,25 @@ export function SongSlideSurface<T extends SlideListItem>({
           event.target instanceof Element &&
           event.target.closest('[data-leading-card]') !== null
         ) {
-          selectCard();
+          const toggle =
+            mixedLeadingSelection && (event.ctrlKey || event.metaKey);
+          if (toggle && leadingSelected) {
+            clearCard();
+          } else {
+            if (
+              mixedLeadingSelection &&
+              event.shiftKey &&
+              view.slides[0] !== undefined &&
+              view.selection.ids.size > 0
+            ) {
+              session.selectSlides({
+                type: 'click',
+                id: view.slides[0].id,
+                shift: true,
+              });
+            }
+            selectCard(mixedLeadingSelection && (toggle || event.shiftKey));
+          }
           if (
             !isInTextEntry(event.target) &&
             event.target.closest('button') === null
@@ -530,7 +574,12 @@ export function SongSlideSurface<T extends SlideListItem>({
           event.target instanceof Element &&
           event.target.closest('[data-song-slide], [data-slide-gap]') !== null
         ) {
-          clearCard();
+          if (
+            !mixedLeadingSelection ||
+            !(event.ctrlKey || event.metaKey || event.shiftKey)
+          ) {
+            clearCard();
+          }
         }
         focusList(event.target);
       }}

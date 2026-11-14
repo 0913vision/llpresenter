@@ -45,6 +45,7 @@ export function useLeadingItemCard(
       }
     },
     onSelectChange: selected => {
+      if ('bible' in item) items.setBibleCardSelected(selected);
       items.selectPosition(selected ? 0 : 1);
     },
   };

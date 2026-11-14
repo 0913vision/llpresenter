@@ -119,6 +119,22 @@ it('shows an editable card and read-only Bible verses in both views', async () =
   await userEvent.click(screen.getByRole('button', {name: '목록'}));
   expect(within(toolbar).queryByRole('spinbutton')).toBeNull();
   await waitFor(() => expect(screen.getByText('First verse')).toBeDefined());
+  await userEvent.click(cardRow());
+  await userEvent.keyboard('[ControlLeft>]');
+  await userEvent.click(screen.getByText('First verse'));
+  await userEvent.keyboard('[/ControlLeft]');
+  expect(items.getSnapshot().bibleCardSelected).toBe(true);
+  expect(items.getSnapshot().bibleSelection).toEqual([0]);
+  await userEvent.keyboard('[ControlLeft>]');
+  await userEvent.click(cardRow());
+  await userEvent.keyboard('[/ControlLeft]');
+  expect(items.getSnapshot().bibleCardSelected).toBe(false);
+  await userEvent.click(cardRow());
+  await userEvent.keyboard('[ShiftLeft>]');
+  await userEvent.click(screen.getByText('Second verse'));
+  await userEvent.keyboard('[/ShiftLeft]');
+  expect(items.getSnapshot().bibleCardSelected).toBe(true);
+  expect(items.getSnapshot().bibleSelection).toEqual([0, 1]);
   await userEvent.click(screen.getByText('First verse'));
   await userEvent.keyboard('{ArrowLeft}{Delete}');
   await waitFor(() =>
