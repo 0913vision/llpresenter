@@ -178,7 +178,6 @@ export const themeSamples = {
 const sectionBandSamples = {
   ...themeSamples,
   itemName: '사도신경',
-  currentText: "Apostle's Creed",
 };
 
 function ThemeCanvas({

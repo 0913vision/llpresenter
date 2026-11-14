@@ -40,7 +40,6 @@ import {SECTION_THEME_ID} from '@core/themes/sundaySections';
 import {
   SECTION_BAND_ID,
   SECTION_NAME_ID,
-  SECTION_ENGLISH_ID,
   sectionBroadcastLayout,
 } from '@core/themes/sectionBroadcast';
 
@@ -2186,7 +2185,7 @@ it.each(['output', 'preview'] as const)(
   },
 );
 
-it('renders the section title and English in a fixed translucent NDI band', () => {
+it('renders only the section name in the fading NDI band', () => {
   const {root, view} = setup(true);
   const active = frame(sectionBroadcastLayout().elements, {
     item: {
@@ -2201,7 +2200,9 @@ it('renders the section title and English in a fixed translucent NDI band', () =
     kind: 'broadcast' as const,
     method: 'ndi' as const,
   };
-  const draw = (english: string) =>
+  const element = (id: string) =>
+    root.querySelector<HTMLElement>(`[data-theme-element="${id}"]`);
+  for (const english of ['Praise', '']) {
     view.render(
       {
         ...song,
@@ -2215,21 +2216,36 @@ it('renders the section title and English in a fixed translucent NDI band', () =
       },
       {...active, screen, transitions: false},
     );
-  const element = (id: string) =>
-    root.querySelector<HTMLElement>(`[data-theme-element="${id}"]`);
-  draw('Praise');
-  expect(element(SECTION_BAND_ID)?.style.top).toBe('848px');
-  expect(element(SECTION_BAND_ID)?.style.height).toBe('192px');
-  expect(
-    element(SECTION_BAND_ID)?.firstElementChild?.getAttribute('style'),
-  ).toContain('0.65');
-  expect(element(SECTION_NAME_ID)?.textContent).toContain('Section name');
-  expect(element(SECTION_ENGLISH_ID)?.textContent).toContain('Praise');
-  draw('');
-  expect(element(SECTION_BAND_ID)?.style.top).toBe('848px');
-  expect(
-    element(SECTION_NAME_ID)?.querySelector<HTMLElement>(`.${classes.shown}`)
-      ?.style.justifyContent,
-  ).toBe('center');
+    expect(element(SECTION_BAND_ID)?.style.top).toBe('888px');
+    expect(element(SECTION_BAND_ID)?.style.height).toBe('102px');
+    expect(
+      element(SECTION_BAND_ID)?.firstElementChild?.getAttribute('style'),
+    ).toContain('8.33333');
+    expect(
+      element(SECTION_BAND_ID)?.firstElementChild?.getAttribute('style'),
+    ).toContain('0.88');
+    expect(element(SECTION_NAME_ID)?.textContent).toContain('Section name');
+    expect(root.textContent).not.toContain('Praise');
+  }
+  view.render(
+    {
+      ...song,
+      slide: {
+        ...song.slide,
+        itemId: 'invented',
+        position: 0,
+        label: null,
+        lines: [],
+        sectionCard: {
+          name: 'Card name',
+          english: 'English title',
+          theme: SECTION_THEME_ID,
+        },
+      },
+    },
+    {...active, screen, transitions: false},
+  );
+  expect(element(SECTION_NAME_ID)?.textContent).toContain('Card name');
+  expect(root.textContent).not.toContain('English title');
   view.dispose();
 });

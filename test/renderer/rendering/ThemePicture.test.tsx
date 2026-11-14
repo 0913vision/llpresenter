@@ -574,15 +574,15 @@ it('shows the fixed fading section band in the theme editor preview', () => {
     <ThemePicture
       elements={layout.elements}
       background="#000000"
-      samples={{itemName: 'Praise', currentText: 'Praise'}}
+      samples={{itemName: 'Section name', currentText: 'English title'}}
     />,
   );
   const band = view.container.querySelector<HTMLElement>(
     `[data-theme-element="${SECTION_BAND_ID}"]`,
   );
-  expect(band?.style.top).toBe('848px');
-  expect(band?.style.height).toBe('192px');
-  expect(band?.firstElementChild?.getAttribute('style')).toContain(
-    'linear-gradient',
-  );
+  expect(band?.style.top).toBe('888px');
+  expect(band?.style.height).toBe('102px');
+  expect(band?.firstElementChild?.getAttribute('style')).toContain('8.33333');
+  expect(view.container.textContent).toContain('Section name');
+  expect(view.container.textContent).not.toContain('English title');
 });

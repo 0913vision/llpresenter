@@ -28,7 +28,7 @@ import {resolveTextTracking} from '@core/themes/textTracking';
 import {themeTextVAlign} from '@core/themes/textAlignment';
 import {TextFitCache} from './textFitCache';
 import {SECTION_BAND_ID} from '@core/themes/sectionBroadcast';
-import {songBandGradient} from './songBandGradient';
+import {sectionBandGradient} from './sectionBandGradient';
 import {measureTextInk} from './textInk';
 import {positionFollowingBoxes} from './themeFollow';
 
@@ -487,7 +487,7 @@ export function ThemePicture({
                     style={{
                       backgroundColor: box.fill,
                       ...(element.id === SECTION_BAND_ID
-                        ? {background: songBandGradient(false)}
+                        ? {background: sectionBandGradient}
                         : {}),
                       opacity:
                         element.id === SECTION_BAND_ID ? 1 : box.opacity / 100,

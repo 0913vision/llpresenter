@@ -16,12 +16,7 @@ import {createScreenId} from '@core/schema/ids';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {resolveTextTracking} from '@core/themes/textTracking';
 import {builtInTheme} from '@core/themes/defaults';
-import {
-  SECTION_BAND_ID,
-  SECTION_NAME_ID,
-  SECTION_ENGLISH_ID,
-} from '@core/themes/sectionBroadcast';
-import {themeTextVAlign} from '@core/themes/textAlignment';
+import {SECTION_BAND_ID, SECTION_NAME_ID} from '@core/themes/sectionBroadcast';
 
 it('lists the section cards in service order with per-color gradient themes', () => {
   expect(
@@ -119,27 +114,23 @@ it('adds an editable section theme without changing the kind defaults or other s
     {
       id: SECTION_BAND_ID,
       kind: 'box',
-      frame: {x: 0, y: 848, w: 1920, h: 192},
-      box: {fill: '#000000', opacity: 65},
+      frame: {x: 0, y: 888, w: 1920, h: 102},
+      box: {fill: '#000000', opacity: 88},
     },
     {
       id: SECTION_NAME_ID,
       kind: 'itemName',
-      centerWhenTextEmpty: true,
-      text: {size: 52, align: 'center', color: '#FFFFFF'},
-    },
-    {
-      id: SECTION_ENGLISH_ID,
-      kind: 'currentText',
-      text: {size: 28, align: 'center', color: '#FFFFFF'},
+      frame: {x: 230, y: 900, w: 1460, h: 90},
+      text: {
+        size: 64,
+        weight: 700,
+        align: 'center',
+        color: '#FFFFFF',
+        shadow: {on: true, opacity: 80, angle: 90, blur: 6, distance: 2},
+      },
     },
   ]);
-  const name = broadcast?.elements.find(
-    element => element.id === SECTION_NAME_ID,
-  );
-  if (name?.kind !== 'itemName') throw Error('Missing section title');
-  expect(themeTextVAlign(name, 'Praise')).toBe('top');
-  expect(themeTextVAlign(name, '')).toBe('middle');
+  expect(broadcast?.elements).toHaveLength(2);
   for (const section of SECTION_THEMES) {
     expect(
       defaults.themes.find(item => item.id === section.id)?.screens[
@@ -205,7 +196,7 @@ it('widens short Unicode names, preserves their center, and leaves other text un
   });
 });
 
-it('shows both card lines on audience and broadcast and only Korean on stage for embedded and standalone cards', () => {
+it('shows both card lines on audience and only Korean on broadcast and stage for embedded and standalone cards', () => {
   const file = createDefaultThemes();
   const theme = file.themes.find(value => value.id === SECTION_THEME_ID);
   if (theme === undefined) throw Error('missing section theme');
@@ -243,7 +234,7 @@ it('shows both card lines on audience and broadcast and only Korean on stage for
     const broadcast = resolveThemeScreen(theme, screens[1].id, screens).layout;
     expect(
       broadcast.elements.map(element => themeElementText(element, content)),
-    ).toEqual([null, card.name, card.english]);
+    ).toEqual([null, card.name]);
     const stage = resolveThemeScreen(theme, screens[2].id, screens).layout;
     const title = stage.elements.find(element => element.kind === 'itemName');
     const english = stage.elements.find(

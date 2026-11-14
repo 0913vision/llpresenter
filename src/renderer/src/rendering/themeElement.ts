@@ -22,12 +22,9 @@ import type {RenderFrame, RenderLayerOptions} from './layer';
 import type {ThemeGaps} from './themeGaps';
 import {setPlaybackProblem} from './playbackProblem';
 import {broadcastBibleFlow} from './broadcastBibleFlow';
-import {
-  SECTION_BAND_ID,
-  SECTION_NAME_ID,
-  SECTION_ENGLISH_ID,
-} from '@core/themes/sectionBroadcast';
+import {SECTION_BAND_ID, SECTION_NAME_ID} from '@core/themes/sectionBroadcast';
 import {songBandGradient} from './songBandGradient';
+import {sectionBandGradient} from './sectionBandGradient';
 
 function fillColor(fill: string, opacity: number): string {
   const [red, green, blue] = [1, 3, 5].map(at =>
@@ -174,7 +171,10 @@ export class ThemeElementView {
         this.box.style.overflow = 'visible';
       }
       if (element.broadcastSong === 'band' || element.id === SECTION_BAND_ID) {
-        background.style.background = songBandGradient(capture);
+        background.style.background =
+          element.id === SECTION_BAND_ID
+            ? sectionBandGradient
+            : songBandGradient(capture);
         background.style.borderRadius = '0';
       }
       this.box.append(background);
@@ -384,11 +384,7 @@ export class ThemeElementView {
         },
       );
     }
-    if (
-      [SECTION_BAND_ID, SECTION_NAME_ID, SECTION_ENGLISH_ID].includes(
-        element.id,
-      )
-    ) {
+    if ([SECTION_BAND_ID, SECTION_NAME_ID].includes(element.id)) {
       this.box.hidden = layers.slide === null || item?.contentCleared === true;
     }
     this.setClearOpacity(frame.clearOpacity);
@@ -404,9 +400,7 @@ export class ThemeElementView {
     const {element} = this;
     const target =
       element.clearTarget === 'slide' ||
-      [SECTION_BAND_ID, SECTION_NAME_ID, SECTION_ENGLISH_ID].includes(
-        element.id,
-      ) ||
+      [SECTION_BAND_ID, SECTION_NAME_ID].includes(element.id) ||
       SLIDE_ELEMENT_KINDS.includes(element.kind)
         ? 'slide'
         : element.kind === 'media' || element.kind === 'background'
@@ -493,9 +487,6 @@ export class ThemeElementView {
     });
     if (element.id === SECTION_NAME_ID && slide?.sectionCard !== undefined) {
       return slide.sectionCard.name;
-    }
-    if (element.id === SECTION_ENGLISH_ID && slide?.sectionCard !== undefined) {
-      return slide.sectionCard.english;
     }
     if (element.broadcastText !== undefined) return element.broadcastText;
     if (element.broadcastSongTitle !== undefined) {
