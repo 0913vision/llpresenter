@@ -55,7 +55,9 @@ export function PropDialog({
     initial?.content.kind === 'image' ? initial.content.media : undefined,
   );
   const [targets, setTargets] = useState(initial?.targets ?? []);
-  const images = media.filter(item => item.kind === 'image');
+  const images = media.filter(
+    item => item.kind === 'image' && item.internal !== true,
+  );
   const selectedMedia = images.find(item => item.id === mediaId);
   const content: Prop['content'] | undefined =
     kind === 'text'

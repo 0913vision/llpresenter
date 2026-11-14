@@ -63,6 +63,23 @@ const lists = mediaDocument([mediaItem(1), mediaItem(2), mediaItem(3)], 1, {
 });
 
 describe('media grid entries', () => {
+  it('hides owned slide pictures from all media and playlists', () => {
+    const document = mediaDocument(
+      [{...mediaItem(1), internal: true}, mediaItem(2)],
+      1,
+      {
+        playlists: [
+          {id: playlistId(1), name: 'list', items: [mediaId(1), mediaId(2)]},
+        ],
+      },
+    );
+    expect(shape(mediaEntries(view(document), ALL_MEDIA))).toEqual([
+      ['media', mediaId(2), undefined],
+    ]);
+    expect(
+      shape(mediaEntries(view(document), {kind: 'media', id: playlistId(1)})),
+    ).toEqual([['media', mediaId(2), undefined]]);
+  });
   it('lists every item, then the files not in the list yet', () => {
     expect(
       shape(

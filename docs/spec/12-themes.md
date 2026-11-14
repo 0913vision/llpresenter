@@ -774,7 +774,8 @@ the next item.
 
 The built-in 이미지 슬라이드 theme displays a slide picture fitted within a
 black canvas on 청중 and 무대 screens. 방송 screens are transparent and have no
-elements.
+elements. PowerPoint picture imports use this theme with their privately owned
+slide pictures.
 
 A theme may set a slide transition in the theme editor. The built-in scripture
 theme and the creed and prayer theme use a 0.7 second wipe; the sermon title

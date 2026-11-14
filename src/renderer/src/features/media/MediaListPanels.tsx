@@ -225,7 +225,9 @@ export function MediaListsPanel(): JSX.Element {
   const {view, choice, choose} = useMediaView();
   const editing = usePlaylistEditing('media');
   const {create, disabledReason} = useCreate('media', editing.startRename);
-  const items = view.document?.value.items.length ?? 0;
+  const items =
+    view.document?.value.items.filter(item => item.internal !== true).length ??
+    0;
   const playlists = view.document?.value.playlists ?? [];
   return (
     <Panel label="미디어" className={styles.panel}>

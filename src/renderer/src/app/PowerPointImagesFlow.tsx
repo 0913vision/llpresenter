@@ -1,100 +1,12 @@
 import {useEffect} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {MediaId} from '@core/schema/ids';
 import {powerpointImageItem} from '@core/services/powerpointImages';
-import {SLIDES_LIMITS} from '@core/schema/service';
 import {useShow} from '@renderer/session/show';
 import {
   asServiceId,
   editApplied,
 } from '@renderer/features/service/list/serviceEdits';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
-
-export async function importPictures(
-  api: LlpApi,
-  slides: ReadonlyArray<{path: string; number: number}>,
-  name: string,
-): Promise<MediaId[]> {
-  const phases = new Map<string, string>();
-  let changed = (): void => undefined;
-  const unsubscribe = api.media.subscribeImports(event => {
-    phases.set(event.mediaId, event.phase);
-    changed();
-  });
-  try {
-    const result = await api.media.import({
-      source: {kind: 'files', paths: slides.map(slide => slide.path)},
-      playlist: null,
-    });
-    if (!result.ok) {
-      throw new Error('Media import failed');
-    }
-    const jobs = result.value;
-    const incomplete = jobs.length !== slides.length;
-    for (const job of jobs) {
-      if (!phases.has(job.mediaId)) phases.set(job.mediaId, job.phase);
-    }
-    let cancelling = false;
-    await new Promise<void>(resolve => {
-      changed = () => {
-        const states = jobs.map(job => phases.get(job.mediaId));
-        const terminal = (state: string | undefined): boolean =>
-          state === 'complete' || state === 'failed' || state === 'cancelled';
-        if (
-          !cancelling &&
-          (incomplete ||
-            states.some(state => state === 'failed' || state === 'cancelled'))
-        ) {
-          cancelling = true;
-          for (const job of jobs) {
-            if (!terminal(phases.get(job.mediaId))) {
-              api.media
-                .edit({type: 'media.import.cancel', mediaId: job.mediaId})
-                .catch(() => undefined);
-            }
-          }
-        }
-        if (states.every(terminal)) resolve();
-      };
-      changed();
-    });
-    if (
-      incomplete ||
-      jobs.some(job => phases.get(job.mediaId) !== 'complete')
-    ) {
-      throw new Error('Media import failed');
-    }
-    for (const [index, job] of jobs.entries()) {
-      await renamePicture(
-        api,
-        job.mediaId,
-        `${name} ${slides[index]?.number ?? index + 1}`.slice(0, 120),
-      );
-    }
-    return jobs.map(job => job.mediaId);
-  } finally {
-    unsubscribe();
-  }
-}
-
-async function renamePicture(
-  api: LlpApi,
-  mediaId: MediaId,
-  name: string,
-): Promise<void> {
-  for (let attempt = 0; attempt < 3; attempt++) {
-    const document = await api.media.get();
-    const result = await api.media.edit({
-      type: 'media.properties.update',
-      mediaId,
-      changes: {name},
-      baseRevision: document.revision,
-    });
-    if (result.ok || result.error.reason === 'write-failed') return;
-    if (result.error.reason !== 'stale') throw new Error('Media rename failed');
-  }
-  throw new Error('Media rename failed');
-}
 
 /** Imports a complete deck before modifying the service. */
 export function PowerPointImagesFlow({
@@ -171,10 +83,12 @@ export function PowerPointImagesFlow({
         const {fileName, slides} = result.value;
         try {
           if (stopped()) return;
-          const name = fileName
-            .replace(/\.[^.]+$/, '')
-            .slice(0, SLIDES_LIMITS.name);
-          const media = await importPictures(api, slides, name);
+          notify('PowerPoint 이미지를 추가하는 중', 'info');
+          const stored = await api.powerpoint.storeImages({
+            paths: slides.map(slide => slide.path),
+          });
+          if (!stored.ok) throw new Error(stored.message);
+          const media = stored.value;
           if (stopped()) return;
           for (let attempt = 0; attempt < 3; attempt++) {
             if (stopped()) return;

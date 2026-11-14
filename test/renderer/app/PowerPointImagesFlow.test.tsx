@@ -2,14 +2,10 @@ import {act, render, waitFor} from '@testing-library/react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {createMediaId} from '@core/schema/ids';
 import type {ServiceDocument} from '@core/schema/contentDocuments';
-import type {MediaImportProgress} from '@core/schema/mediaEdit';
 import type {PowerPointImageExportResult} from '@core/schema/powerpointImport';
 import {pastDocument} from '@fixtures/core/serviceList';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {
-  PowerPointImagesFlow,
-  importPictures,
-} from '@renderer/app/PowerPointImagesFlow';
+import {PowerPointImagesFlow} from '@renderer/app/PowerPointImagesFlow';
 import {useShow} from '@renderer/session/show';
 import type {Notice} from '@renderer/ui/notices';
 
@@ -36,6 +32,48 @@ function cancelFrom(
 }
 
 describe('PowerPoint image cancellation', () => {
+  it('stores an entire deck in one batch and adds one item', async () => {
+    const slides = Array.from({length: 51}, (_, index) => ({
+      path: `C:/temp/${index}.png`,
+      number: index + 1,
+    }));
+    const ids = slides.map((_, index) =>
+      createMediaId(
+        `00000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+      ),
+    );
+    const storeImages = vi.fn(async () => ({ok: true as const, value: ids}));
+    const importMedia = vi.fn();
+    const editMedia = vi.fn();
+    const edit = vi.fn(async () => ({
+      ok: true as const,
+      value: {id: pastDocument.service.id, revision: 2},
+    }));
+    const onDone = vi.fn();
+    const api = mockLlpApi({
+      powerpoint: {
+        images: async () => ({
+          ok: true,
+          value: {fileName: 'deck.pptx', slides},
+        }),
+        storeImages,
+      },
+      media: {import: importMedia, edit: editMedia},
+      services: {get: async () => pastDocument},
+      content: {edit},
+    });
+    render(
+      <PowerPointImagesFlow api={api} onDone={onDone} onProblem={vi.fn()} />,
+    );
+    await waitFor(() => expect(onDone).toHaveBeenCalledOnce());
+    expect(storeImages).toHaveBeenCalledOnce();
+    expect(storeImages).toHaveBeenCalledWith({
+      paths: slides.map(slide => slide.path),
+    });
+    expect(edit).toHaveBeenCalledOnce();
+    expect(importMedia).not.toHaveBeenCalled();
+    expect(editMedia).not.toHaveBeenCalled();
+  });
   it('releases exported files if cancellation races a successful export', async () => {
     let finish: (result: PowerPointImageExportResult) => void = () => undefined;
     const pending = new Promise<PowerPointImageExportResult>(resolve => {
@@ -76,21 +114,8 @@ describe('PowerPoint image cancellation', () => {
           ok: true,
           value: {fileName: 'deck.pptx', slides: [slide]},
         }),
+        storeImages: async () => ({ok: true, value: [first]}),
         release,
-      },
-      media: {
-        import: async () => ({
-          ok: true,
-          value: [
-            {
-              mediaId: first,
-              fileName: 'slide.png',
-              phase: 'complete',
-              percent: 100,
-            },
-          ],
-        }),
-        edit: async () => ({ok: true, value: null}),
       },
       services: {get: getService},
       content: {edit},
@@ -108,59 +133,36 @@ describe('PowerPoint image cancellation', () => {
     expect(edit).not.toHaveBeenCalled();
   });
 
-  it('cancels and waits for other imports before rejecting', async () => {
-    let progress: (event: MediaImportProgress) => void = () => undefined;
-    const cancel = vi.fn(async () => ({ok: true as const, value: null}));
-    const api = mockLlpApi({
-      media: {
-        import: async () => ({
-          ok: true,
-          value: [
-            {mediaId: first, fileName: 'a.png', phase: 'queued', percent: 0},
-            {mediaId: second, fileName: 'b.png', phase: 'queued', percent: 0},
-          ],
-        }),
-        edit: cancel,
-        subscribeImports: listener => {
-          progress = listener;
-          return () => undefined;
-        },
-      },
-    });
-    let settled = false;
-    const result = importPictures(
-      api,
-      [slide, {...slide, path: 'C:/temp/b.png'}],
-      'deck',
-    ).then(
-      () => {
-        settled = true;
-        return true;
-      },
-      () => {
-        settled = true;
-        return false;
+  it('releases temporary exports when cancellation races storage', async () => {
+    let finish: (value: {ok: true; value: Array<typeof first>}) => void = () =>
+      undefined;
+    const pending = new Promise<{ok: true; value: Array<typeof first>}>(
+      resolve => {
+        finish = resolve;
       },
     );
-    await act(async () => undefined);
-    progress({
-      mediaId: first,
-      fileName: 'a.png',
-      phase: 'failed',
-      percent: 0,
-      message: 'failed',
+    const storeImages = vi.fn(() => pending);
+    const release = vi.fn(async () => true);
+    const edit = vi.fn();
+    const api = mockLlpApi({
+      powerpoint: {
+        images: async () => ({
+          ok: true,
+          value: {fileName: 'deck.pptx', slides: [slide]},
+        }),
+        storeImages,
+        release,
+      },
+      content: {edit},
     });
-    expect(cancel).toHaveBeenCalledWith({
-      type: 'media.import.cancel',
-      mediaId: second,
-    });
-    expect(settled).toBe(false);
-    progress({
-      mediaId: second,
-      fileName: 'b.png',
-      phase: 'cancelled',
-      percent: 0,
-    });
-    expect(await result).toBe(false);
+    const report = vi.fn<(notice: Notice) => void>();
+    render(
+      <PowerPointImagesFlow api={api} onDone={vi.fn()} onProblem={report} />,
+    );
+    await waitFor(() => expect(storeImages).toHaveBeenCalledOnce());
+    cancelFrom(report);
+    await act(async () => finish({ok: true, value: [first, second]}));
+    await waitFor(() => expect(release).toHaveBeenCalledOnce());
+    expect(edit).not.toHaveBeenCalled();
   });
 });

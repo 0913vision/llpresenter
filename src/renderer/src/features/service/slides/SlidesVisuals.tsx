@@ -27,6 +27,7 @@ export function slideBand(slide: Slide, media: readonly MediaItem[]): string {
   }
   if ('media' in slide) {
     const file = media.find(file => file.id === slide.media);
+    if (file?.internal === true) return '';
     return file?.file.split(/[\\/]/).at(-1) ?? file?.name ?? '미디어 없음';
   }
   return slide.name ?? slide.text.split('\n')[0] ?? '';

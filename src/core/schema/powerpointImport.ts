@@ -218,6 +218,26 @@ const imageExportProgress = payloadObject({
   done: nonNegativeInteger,
   total: nonNegativeInteger,
 });
+const ownedImagesRequest = payloadObject({
+  paths: v.pipe(v.array(v.string()), v.minLength(1), v.maxLength(200)),
+});
+const ownedImagesResult = v.variant('ok', [
+  v.object({
+    ok: v.literal(true),
+    value: v.pipe(v.array(mediaIdSchema), v.minLength(1), v.maxLength(200)),
+  }),
+  v.object({ok: v.literal(false), message: v.string()}),
+]);
+export type PowerPointOwnedImagesRequest = v.InferOutput<
+  typeof ownedImagesRequest
+>;
+export type PowerPointOwnedImagesResult = v.InferOutput<
+  typeof ownedImagesResult
+>;
+export const parsePowerPointOwnedImagesRequest = (value: unknown) =>
+  checkPart(ownedImagesRequest, value);
+export const parsePowerPointOwnedImagesResult = (value: unknown) =>
+  checkPart(ownedImagesResult, value);
 const imageExportResult = v.variant('ok', [
   v.object({
     ok: v.literal(true),

@@ -45,7 +45,10 @@ export function projectSlides(
         ...(slide.transition === undefined
           ? {}
           : {transition: slide.transition}),
-        label: picture?.file.split(/[\\/]/).at(-1) ?? '찾을 수 없는 그림',
+        label:
+          picture?.internal === true
+            ? ''
+            : (picture?.file.split(/[\\/]/).at(-1) ?? '찾을 수 없는 그림'),
         labelColor: NO_LABEL_COLOR,
         lines: [],
         picture: slide.media,

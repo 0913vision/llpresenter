@@ -59,7 +59,10 @@ export function SongBackground({
     };
   }, [api, retry]);
   const items = useMemo(
-    () => state.doc?.value.items.filter(item => item.kind !== 'audio') ?? [],
+    () =>
+      state.doc?.value.items.filter(
+        item => item.kind !== 'audio' && item.internal !== true,
+      ) ?? [],
     [state.doc],
   );
   const selected = items.find(item => item.id === session.background);

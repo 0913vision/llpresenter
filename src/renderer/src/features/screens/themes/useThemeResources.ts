@@ -103,6 +103,9 @@ export function useThemeResources(
           wall: Date.now(),
         },
     },
-    images: media?.value.items.filter(item => item.kind === 'image') ?? [],
+    images:
+      media?.value.items.filter(
+        item => item.kind === 'image' && item.internal !== true,
+      ) ?? [],
   };
 }

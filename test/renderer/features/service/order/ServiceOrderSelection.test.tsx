@@ -1,7 +1,9 @@
 import {act, fireEvent, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 import {useShow} from '@renderer/session/show';
+import {createMediaId} from '@core/schema/ids';
+import {powerpointImageItem} from '@core/services/powerpointImages';
 import {
   setup,
   firstId,
@@ -11,6 +13,21 @@ import {
 } from '@fixtures/renderer/features/service/order/serviceOrderEditingFixtures';
 
 describe.each(['show', 'prep'] as const)('%s service selection', workspace => {
+  it('restores a deleted PowerPoint picture item and its media reference on undo', async () => {
+    const mediaId = createMediaId('00000000-0000-4000-8000-000000000011');
+    const item = {...powerpointImageItem('deck.pptx', [mediaId]), id: firstId};
+    const {api, document, list} = setup(workspace, false, {firstItem: item});
+    const mediaEdit = vi.spyOn(api.media, 'edit');
+    const first = screen.getByRole('option', {name: '첫 곡'});
+    fireEvent.contextMenu(first);
+    await userEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
+    await waitFor(() =>
+      expect(document().service.order).not.toContainEqual(item),
+    );
+    fireEvent.keyDown(list(), {key: 'z', code: 'KeyZ', ctrlKey: true});
+    await waitFor(() => expect(document().service.order).toContainEqual(item));
+    expect(mediaEdit).not.toHaveBeenCalled();
+  });
   it('moves the selected items with Alt arrows in one undo step', async () => {
     const {ids, list} = setup(workspace);
     const first = screen.getByRole('option', {name: '첫 곡'});

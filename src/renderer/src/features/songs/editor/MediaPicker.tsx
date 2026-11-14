@@ -47,7 +47,10 @@ function targetFor(
   }
 }
 
-export type MediaPickerItem = Pick<MediaItem, 'id' | 'name' | 'kind'>;
+export type MediaPickerItem = Pick<
+  MediaItem,
+  'id' | 'name' | 'kind' | 'internal'
+>;
 
 interface PickerProps {
   readonly allowNone?: boolean;
@@ -86,7 +89,7 @@ export function MediaPicker({
   const searchable = useMemo(
     () =>
       [...(leadingGroup?.items ?? []), ...items]
-        .filter(item => item.kind !== 'audio')
+        .filter(item => item.kind !== 'audio' && item.internal !== true)
         .map(item => ({item, name: searchName(mediaName(item))})),
     [items, leadingGroup],
   );

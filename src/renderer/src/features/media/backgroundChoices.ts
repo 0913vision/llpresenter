@@ -14,7 +14,7 @@ export function mediaName(media: Pick<MediaItem, 'name'>): string {
 export function backgroundMedia(
   items: readonly MediaItem[],
 ): readonly MediaItem[] {
-  return items.filter(item => item.kind !== 'audio');
+  return items.filter(item => item.kind !== 'audio' && item.internal !== true);
 }
 
 /** The effective background name, including missing and empty references. */

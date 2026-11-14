@@ -67,6 +67,7 @@ const mediaItemSchema = v.pipe(
     id: mediaIdSchema,
     name: mediaName,
     kind: v.picklist(['video', 'image', 'audio']),
+    internal: v.exactOptional(v.literal(true)),
     file: nonBlankText,
     size: nonNegativeInteger,
     duration: v.exactOptional(seconds),

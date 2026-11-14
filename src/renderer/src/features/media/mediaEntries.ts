@@ -62,7 +62,8 @@ export function mediaEntries(
   {document, jobs, destinations}: MediaLibraryView,
   choice: MediaListChoice,
 ): readonly MediaEntry[] {
-  const items = document?.value.items ?? [];
+  const items =
+    document?.value.items.filter(item => item.internal !== true) ?? [];
   const copying = new Map(jobs.map(job => [job.mediaId, job.percent]));
   const playlist = chosenPlaylist(document, choice);
   const byId = new Map(items.map(item => [item.id, item]));

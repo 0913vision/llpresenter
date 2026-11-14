@@ -936,9 +936,11 @@ and 59.
 
 파일 > 가져오기 > PowerPoint를 이미지로 opens a `.pptx` or `.pptm` file in
 PowerPoint with macros disabled. Hidden slides are skipped; each visible slide
-is exported as a 1920 × 1080 PNG, imported to the media library, and placed in
-one 빈 슬라이드 item after the selected service row (or at the end). The item
-uses 이미지 슬라이드. The operator sees export progress and may cancel. If
+is exported as a 1920 × 1080 PNG and placed in one 빈 슬라이드 item after the
+selected service row (or at the end). Its pictures are private to the item and
+its copies and never appear in media lists. Private pictures are retained after
+deletion so undo and clipboard copies remain usable. Slide labels are empty. The
+item uses 이미지 슬라이드. The operator sees export progress and may cancel. If
 PowerPoint is unavailable or export fails, the app reports the failure without
 adding an item.
 

@@ -26,7 +26,10 @@ export interface MacroTargetSources {
   readonly macros: {readonly macros: readonly Named[]};
   readonly media: {
     readonly items: ReadonlyArray<
-      Named & {readonly kind: 'audio' | 'video' | 'image'}
+      Named & {
+        readonly kind: 'audio' | 'video' | 'image';
+        readonly internal?: true;
+      }
     >;
     readonly audioPlaylists: readonly Named[];
   };
@@ -73,7 +76,11 @@ export function buildMacroTargets(source: MacroTargetSources): {
           clearTarget: 'prop' as const,
         })),
       ],
-      media: choices(source.media.items.filter(item => item.kind !== 'audio')),
+      media: choices(
+        source.media.items.filter(
+          item => item.kind !== 'audio' && item.internal !== true,
+        ),
+      ),
       prop: choices(source.props.props),
       message: source.messages.templates.map(({id, name, text}) => ({
         id,

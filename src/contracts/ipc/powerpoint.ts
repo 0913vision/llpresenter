@@ -17,9 +17,20 @@ import {
   parsePowerPointImageExportProgress,
   type PowerPointImageExportResult,
   type PowerPointImageExportProgress,
+  parsePowerPointOwnedImagesRequest,
+  parsePowerPointOwnedImagesResult,
+  type PowerPointOwnedImagesRequest,
+  type PowerPointOwnedImagesResult,
 } from '@core/schema/powerpointImport';
 import type {MediaId} from '@core/schema/ids';
 export const powerpointEndpoints = {
+  storeImages: request<
+    PowerPointOwnedImagesRequest,
+    PowerPointOwnedImagesResult
+  >('import:powerpoint:images:store', {
+    request: parsePowerPointOwnedImagesRequest,
+    reply: parsePowerPointOwnedImagesResult,
+  }),
   images: query<PowerPointImageExportResult>(
     'import:powerpoint:images',
     parsePowerPointImageExportResult,
@@ -61,6 +72,7 @@ export const powerpointEndpoints = {
 };
 export function powerpointApi(port: IpcPort) {
   return {
+    storeImages: port.request(powerpointEndpoints.storeImages),
     images: port.query(powerpointEndpoints.images),
     cancelImages: port.query(powerpointEndpoints.cancelImages),
     subscribeImageProgress: port.subscribe(powerpointEndpoints.imageProgress),

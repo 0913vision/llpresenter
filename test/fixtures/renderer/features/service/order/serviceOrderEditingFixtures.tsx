@@ -7,6 +7,7 @@ import {render, screen} from '@testing-library/react';
 import {beforeEach, vi} from 'vitest';
 import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import type {ServiceDocument} from '@core/schema/contentDocuments';
+import type {ServiceItem} from '@core/schema/service';
 import {
   createServiceId,
   createServiceItemId,
@@ -46,6 +47,7 @@ export function setup(
     secondSection?: boolean;
     missingSong?: boolean;
     unheaded?: boolean;
+    firstItem?: ServiceItem;
   } = {},
 ) {
   let document: ServiceDocument = {
@@ -57,7 +59,7 @@ export function setup(
       date: '2026-10-26T09:00',
       order: [
         ...(extra.unheaded ? [] : [{id: headerId, header: '제목'}]),
-        {slides: [], id: firstId, song: songId},
+        extra.firstItem ?? {slides: [], id: firstId, song: songId},
         {slides: [], id: lastId, song: songId},
         ...(extra.secondSection
           ? [{id: secondHeaderId, header: '마무리'}]
