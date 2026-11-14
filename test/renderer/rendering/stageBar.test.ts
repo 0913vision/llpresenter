@@ -24,18 +24,26 @@ it('centers the stage bar group until a message needs the lower row', () => {
   expect(stageBarLayout(layout, {stage: false, message: 'Cue'})).toBe(layout);
 });
 
-it('fits the Bible reference in a centered stage frame', () => {
+it('keeps the Bible reference left-aligned above the text with a stage message', () => {
   const layout =
     builtInTheme('bible').screens[createScreenId(STARTER_SCREEN_IDS.stage)];
   if (!layout) throw Error('Missing stage layout');
   const item = {id: 'bible', kind: 'bible', source: 'service'} as const;
-  const label = stageBarLayout(layout, {
-    stage: true,
-    message: null,
-    item,
-  }).elements.find(element => element.kind === 'label');
-  expect(label).toMatchObject({
-    frame: {x: 154, y: 26, w: 1612, h: 58},
-    text: {size: 48, color: '#E6E6E6', align: 'center'},
-  });
+  for (const message of [null, 'Cue']) {
+    const resolved = stageBarLayout(layout, {stage: true, message, item});
+    const reference = resolved.elements.find(
+      element => element.kind === 'reference',
+    );
+    const current = resolved.elements.find(
+      element => element.kind === 'currentText',
+    );
+    expect(reference).toMatchObject({
+      frame: {x: 154, y: 130, w: 1612, h: 90},
+      text: {size: 48, align: 'left'},
+    });
+    if (!reference || !current) throw Error('Missing Bible text');
+    expect(reference.frame.y + reference.frame.h).toBeLessThanOrEqual(
+      current.frame.y,
+    );
+  }
 });

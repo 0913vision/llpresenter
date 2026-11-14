@@ -115,7 +115,7 @@ export class ThemeCompositionView {
                 item: frame.theme.item,
               },
             ),
-            slide,
+            frame.screen?.kind === 'stage' ? null : slide,
           ),
         },
       };

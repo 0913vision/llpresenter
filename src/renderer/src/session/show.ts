@@ -93,6 +93,34 @@ function sequenceState(): SequenceState {
   return {tilesOf, live, openItemId: view.openItemId};
 }
 
+/** Resolves a live quick-run library slide to its service-order position. */
+function previousSequenceState(): SequenceState {
+  const state = sequenceState();
+  const actual = liveCursor();
+  const view = useShow.getState();
+  if (actual === null) return state;
+  if (
+    view.rows.some(row => row.kind !== 'header' && row.id === actual.itemId)
+  ) {
+    return {...state, live: actual};
+  }
+  if (!isLibrarySource(view, actual.itemId)) return state;
+  const source = view.librarySong.tiles[actual.index]?.sourceSlide;
+  if (source === undefined) return state;
+  const matches = view.rows.flatMap(row => {
+    if (row.kind !== 'song') return [];
+    return tilesOf(row.id).flatMap((tile, index) =>
+      tile.sourceSlide?.songId === source.songId &&
+      tile.sourceSlide.slideId === source.slideId
+        ? [{itemId: row.id, index}]
+        : [],
+    );
+  });
+  const match =
+    matches.find(value => value.itemId === view.openItemId) ?? matches[0];
+  return match === undefined ? state : {...state, live: match};
+}
+
 /**
  * Opens an item in the 장 panel and selects its first tile. Opening the item
  * that is already open keeps its tile selection.
@@ -413,7 +441,7 @@ export function outputNext(): void {
 
 export function outputPrevious(): void {
   const cursor = previousTileAtFirst(
-    sequenceState(),
+    previousSequenceState(),
     useShow.getState().rows,
     atLastSlide,
   );

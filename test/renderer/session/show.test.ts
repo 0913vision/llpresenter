@@ -450,6 +450,47 @@ describe('show state', () => {
     });
   });
 
+  it('uses the live slide order even when another item is open', () => {
+    setLive('song-morning', 3);
+    openItem('song-river');
+    outputPrevious();
+    expect(slides().at(-1)).toMatchObject({
+      slide: {itemId: 'song-morning', position: 2},
+    });
+  });
+
+  it('uses the service order for a quick-run library song', () => {
+    const songId = createSongId('30000000-0000-4000-8000-000000000001');
+    const sourceTiles = (sampleService.tiles['song-morning'] ?? []).map(
+      (tile, index) => ({
+        ...tile,
+        sourceSlide: {
+          songId,
+          slideId: createSongSlideId(
+            `a0000000-0000-4000-8000-${String(index + 1).padStart(12, '0')}`,
+          ),
+        },
+      }),
+    );
+    useShow.setState(state => ({
+      tiles: {...state.tiles, 'song-morning': sourceTiles},
+      librarySong: {
+        songId,
+        songRevision: 1,
+        title: 'Song',
+        readOnly: false,
+        tiles: sourceTiles,
+        jumpKeys: {},
+      },
+      openItemId: `library:${songId}`,
+    }));
+    setLive(`library:${songId}`, 2);
+    outputPrevious();
+    expect(slides().at(-1)).toMatchObject({
+      slide: {itemId: 'song-morning', position: 1},
+    });
+  });
+
   it('outputs the tile before the live one with previous', () => {
     setLive('song-morning', 2);
     outputPrevious();

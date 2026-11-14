@@ -28,7 +28,8 @@ export function nextSlideOf(
       : undefined);
   return {
     label:
-      tile.kind === undefined || tile.biblePart !== undefined
+      tile.sectionCard === undefined &&
+      (tile.kind === undefined || tile.biblePart !== undefined)
         ? tile.label
         : null,
     lines: tile.sectionCard === undefined && !notice ? tile.lines : [],

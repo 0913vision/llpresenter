@@ -90,7 +90,7 @@ it('places song lyrics near the top while retaining the starter broadcast styles
   );
   expect(current?.text).toMatchObject({
     font: STARTER_TEXT_STYLE.font,
-    size: 120,
+    size: 108,
     weight: STARTER_TEXT_STYLE.weight,
     vAlign: STARTER_TEXT_STYLE.vAlign,
   });
@@ -162,22 +162,16 @@ it('adds a reference only for Bible layouts and adapts to configured screen IDs'
   ).toBe(false);
 });
 
-it('gives the capture Bible a readable left-aligned reference', () => {
-  const id = createScreenId(STARTER_SCREEN_IDS.broadcast);
-  const bible = builtInTheme('bible').screens[id];
+it('shows a small left-aligned Bible reference above its stage text', () => {
+  const stage = createScreenId(STARTER_SCREEN_IDS.stage);
+  const elements = builtInTheme('bible').screens[stage]?.elements ?? [];
+  expect(elements.find(element => element.kind === 'reference')).toMatchObject({
+    frame: {x: 154, y: 130},
+    text: {size: 48, align: 'left'},
+  });
   expect(
-    bible?.elements.find(element => element.kind === 'reference'),
-  ).toMatchObject({text: {size: 30, align: 'left'}});
-});
-
-it('gives the 무대 화면 of the Bible 테마 no reference and the same element kinds as the song 테마', () => {
-  const id = createScreenId(STARTER_SCREEN_IDS.stage);
-  const kinds = (kind: 'bible' | 'song') =>
-    (builtInTheme(kind).screens[id]?.elements ?? []).map(
-      element => element.kind,
-    );
-  expect(kinds('bible')).not.toContain('reference');
-  expect(kinds('bible')).toEqual(kinds('song'));
+    elements.find(element => element.kind === 'currentText'),
+  ).toMatchObject({frame: {x: 154, y: 230}, text: {size: 104, align: 'left'}});
 });
 
 it('makes a valid file with built-in themes and a standby clock and timer on stage', () => {
@@ -354,7 +348,14 @@ it('uses the standard stage layout and links broadcast ads', () => {
     elements: [],
   });
   const stage = createScreenId(STARTER_SCREEN_IDS.stage);
-  expect(ad?.screens[stage]).toEqual(builtInTheme('song').screens[stage]);
+  expect(
+    ad?.screens[stage]?.elements.find(element => element.kind === 'slideName'),
+  ).toMatchObject({text: {size: 108, align: 'left'}});
+  expect(
+    ad?.screens[stage]?.elements.find(
+      element => element.kind === 'currentText',
+    ),
+  ).toMatchObject({text: {size: 86, align: 'left'}});
   expect(builtInTheme('ad')).toEqual(ad);
   expect(builtInTheme('blank')).toEqual(builtInTheme('bible'));
 });
@@ -600,4 +601,54 @@ it('sets wipe transitions on scripture and title themes', () => {
       ],
     }).success,
   ).toBe(false);
+});
+
+it('matches each audience text size without overlapping stage next and clock', () => {
+  const stage = createScreenId(STARTER_SCREEN_IDS.stage);
+  const audience = createScreenId(STARTER_SCREEN_IDS.main);
+  for (const kind of ['song', 'bible', 'ad'] as const) {
+    const theme = builtInTheme(kind);
+    const current = theme.screens[stage]?.elements.find(
+      element => element.kind === 'currentText',
+    );
+    const next = theme.screens[stage]?.elements.find(
+      element => element.kind === 'nextText',
+    );
+    const clock = theme.screens[stage]?.elements.find(
+      element => element.kind === 'clock',
+    );
+    const audienceText = theme.screens[audience]?.elements.find(
+      element => element.kind === 'currentText',
+    );
+    if (
+      current?.kind !== 'currentText' ||
+      next?.kind !== 'nextText' ||
+      clock?.kind !== 'clock' ||
+      audienceText?.kind !== 'currentText'
+    ) {
+      throw Error('Missing default text');
+    }
+    expect(current.text.size).toBe(audienceText.text.size);
+    expect(current.frame.y + current.frame.h).toBeLessThanOrEqual(next.frame.y);
+    expect(next.frame.y + next.frame.h).toBeLessThanOrEqual(clock.frame.y);
+  }
+});
+
+it('uses the Bible-sized left-aligned stage layout for the creed theme', () => {
+  const file = createDefaultThemes();
+  const creed = file.themes.find(theme => theme.id === CREED_PRAYER_THEME_ID);
+  const stage = createScreenId(STARTER_SCREEN_IDS.stage);
+  const audience = createScreenId(STARTER_SCREEN_IDS.main);
+  const current = creed?.screens[stage]?.elements.find(
+    element => element.kind === 'currentText',
+  );
+  const audienceText = creed?.screens[audience]?.elements.find(
+    element => element.kind === 'currentText',
+  );
+  if (current?.kind !== 'currentText' || audienceText?.kind !== 'currentText') {
+    throw Error('Missing creed text');
+  }
+  expect(current.text).toMatchObject({size: 104, align: 'left'});
+  expect(current.text.size).toBe(audienceText.text.size);
+  expect(creed?.screens[stage]).toEqual(builtInTheme('bible').screens[stage]);
 });

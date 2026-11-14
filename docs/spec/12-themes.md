@@ -633,8 +633,8 @@ as every settings file does (02).
   slides use the same full-screen composition. NDI retains the translucent box;
   the green capture window draws its frame and panel opaque without a shadow.
   Only the built-in element IDs use this fit.
-- The 광고 theme uses the standard built-in stage layout on 무대 화면. The
-  default advertisement item advances manually with looping off (05).
+- The 광고 stage layout shows a left-aligned title above its body. The default
+  advertisement item advances manually with looping off (05).
 - Item settings warn when a screen's resolved theme lacks 현재 가사 for text,
   슬라이드 이름 for an 광고 name, or 미디어 for a picture. Linked screens use
   the source screen's elements when checking.
@@ -766,8 +766,9 @@ same cue; audience output remains background only. On the built-in broadcast
 layout, an empty song slide shows only the song title; it shows nothing if the
 title is absent, and never falls back to the label.
 
-Built-in stage current text uses at most 120 px; short text does not grow beyond
-this size, and longer text shrinks to fit. Saved user edits remain unchanged.
+Built-in stage current text uses the matching audience size: 108 px for songs,
+104 px for Bible and 86 px for ad bodies. Longer text shrinks to fit; Bible text
+is left-aligned beneath a smaller reference. Saved user edits remain unchanged.
 
 On the last slide of a Bible item, stage next-slide elements show nothing for
 the next item.
@@ -789,3 +790,10 @@ labeled empty slide shows its label.
 On stage, empty slide labels appear in parentheses; a next slide labeled
 \uc804\uc8fc appends (\uc804\uc8fc) to its text, and a next title slide omits
 its English subtitle.
+
+On stage, next slide text is followed by its label in parentheses; empty slides
+show the label alone in parentheses.
+
+Stage title slides and section cards show only their Korean title, without the
+English subtitle. The creed and prayer theme uses 104 px left-aligned current
+text with the next line and clock clear.

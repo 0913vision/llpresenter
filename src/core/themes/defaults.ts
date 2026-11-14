@@ -108,7 +108,7 @@ const audienceReferenceFrame = {
   y: lyricFrame.y + lyricFrame.h - referenceHeight,
   h: referenceHeight,
 };
-function stageElements(): ThemeElement[] {
+function stageElements(kind: ThemeItemKind = 'song'): ThemeElement[] {
   const text: ThemeText = {
     ...basicText,
     shadow: {...basicText.shadow, on: false},
@@ -121,7 +121,7 @@ function stageElements(): ThemeElement[] {
     currentSlide: 7,
     nextSlide: 8,
   };
-  return STARTER_STAGE_ELEMENTS.map((element): ThemeElement => {
+  const elements = STARTER_STAGE_ELEMENTS.map((element): ThemeElement => {
     const base = {
       id: createThemeElementId(uuid(ids[element.kind])),
       frame: {...element.frame},
@@ -170,7 +170,18 @@ function stageElements(): ThemeElement[] {
         return {
           ...base,
           kind: 'currentText',
-          text: {...text, size: 120, lineHeight: 1.2, maxLines: 4},
+          text: {
+            ...text,
+            size: kind === 'bible' ? 104 : kind === 'ad' ? 86 : 108,
+            lineHeight: 1.2,
+            maxLines: 4,
+            ...(kind === 'bible' || kind === 'ad'
+              ? {align: 'left' as const, vAlign: 'top' as const}
+              : {}),
+          },
+          ...(kind === 'bible' || kind === 'ad'
+            ? {frame: {...base.frame, y: 230, h: 468}}
+            : {}),
         };
       case 'nextSlide':
         return {
@@ -188,6 +199,37 @@ function stageElements(): ThemeElement[] {
         };
     }
   });
+  if (kind === 'bible') {
+    elements.push({
+      id: createThemeElementId(uuid(9)),
+      kind: 'reference',
+      source: 'item',
+      frame: {x: 154, y: 130, w: 1612, h: 90},
+      text: {
+        ...text,
+        size: 48,
+        align: 'left',
+        vAlign: 'middle',
+        lineHeight: 1.1,
+      },
+    });
+  } else if (kind === 'ad') {
+    elements.push({
+      id: createThemeElementId(uuid(9)),
+      kind: 'slideName',
+      frame: {x: 154, y: 130, w: 1612, h: 90},
+      text: {
+        ...text,
+        size: 108,
+        align: 'left',
+        vAlign: 'middle',
+        lineHeight: 1.1,
+      },
+    });
+  }
+  return kind === 'bible'
+    ? elements.filter(element => element.kind !== 'label')
+    : elements;
 }
 
 /**
@@ -293,7 +335,9 @@ function layoutFor(
     return sundayNoticeLayout();
   }
   const elements =
-    screen.kind === 'stage' ? stageElements() : audienceElements(false, kind);
+    screen.kind === 'stage'
+      ? stageElements(kind)
+      : audienceElements(false, kind);
   if (kind === 'bible' && screen.kind !== 'stage') {
     elements.push({
       id: createThemeElementId(uuid(8)),

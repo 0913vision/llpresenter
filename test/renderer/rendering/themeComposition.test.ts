@@ -2086,7 +2086,9 @@ it('reflows Bible parts independently on stage and broadcast, including the next
   for (const kind of ['stage', 'broadcast'] as const) {
     view.render(layers, {...bible, screen: {id: THEME_MAIN, kind}});
     expect(rows('currentText')).toEqual([current.join(' ')]);
-    expect(rows('nextText')).toEqual([next.join(' ')]);
+    expect(rows('nextText')).toEqual([
+      kind === 'stage' ? `${next.join(' ')} (11:30)` : next.join(' '),
+    ]);
     expect(
       root.querySelector<HTMLElement>('[data-kind="currentText"]')?.style
         .textWrap,
@@ -2312,7 +2314,7 @@ it.each(['output', 'preview'] as const)(
     expect(
       root.querySelector(`[data-kind="nextText"] .${classes.shown}`)
         ?.textContent,
-    ).toBe('Invented next');
+    ).toBe('Invented next (Chorus)');
     view.render({...empty, slide: {...empty.slide, label: null}}, stage);
     expect(current()?.textContent).toBe('(\uc5c6\uc74c)');
     view.render(
@@ -2551,6 +2553,7 @@ it('shows stage prelude and interlude labels and omits a title slide subtitle', 
   expect(draw({label: '\uc804\uc8fc', lines: ['\ucc2c\uc591']}, 'stage')).toBe(
     '\ucc2c\uc591 (\uc804\uc8fc)',
   );
+  expect(draw({label: 'Verse', lines: ['Text']}, 'stage')).toBe('Text (Verse)');
   expect(draw({label: '\uac04\uc8fc', lines: []}, 'stage')).toBe(
     '(\uac04\uc8fc)',
   );
@@ -2566,5 +2569,53 @@ it('shows stage prelude and interlude labels and omits a title slide subtitle', 
       'audience',
     ),
   ).toContain('English title');
+  view.dispose();
+});
+
+it('shows only Korean title or section name on stage and retains audience subtitle', () => {
+  const {root, view} = setup();
+  const elements: ThemeElement[] = [
+    {...themeElementBase(), kind: 'currentText'},
+    {...themeElementBase(31), kind: 'itemName'},
+  ];
+  if (song.slide === null) throw Error('Missing slide');
+  const title = {
+    ...song,
+    slide: {
+      ...song.slide,
+      titleSlide: true as const,
+      lines: ['Korean title', 'English subtitle'],
+    },
+  };
+  const draw = (layers: LiveLayers, kind: 'stage' | 'audience') =>
+    view.render(layers, {
+      ...frame(elements),
+      screen: {id: THEME_MAIN, kind},
+      transitions: false,
+    });
+  const current = () =>
+    root.querySelector(`[data-kind="currentText"] .${classes.shown}`)
+      ?.textContent ?? '';
+  draw(title, 'stage');
+  expect(current()).toBe('Korean title');
+  draw(title, 'audience');
+  expect(current()).toContain('English subtitle');
+  const card = {
+    ...song,
+    slide: {
+      ...song.slide,
+      sectionCard: {
+        name: 'Korean section',
+        english: 'English section',
+        theme: themeId,
+      },
+      lines: ['English section'],
+    },
+  };
+  draw(card, 'stage');
+  expect(current()).toBe('Korean section');
+  expect(
+    root.querySelector(`[data-kind="itemName"] .${classes.shown}`)?.textContent,
+  ).toBe('Korean section');
   view.dispose();
 });

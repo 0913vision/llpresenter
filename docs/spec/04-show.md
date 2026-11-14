@@ -1156,3 +1156,13 @@ on the previous outputtable item's last slide, skipping section rows and empty
 items. Otherwise previous stops at the first slide. On stage, empty slide labels
 appear in parentheses; a next slide labeled \uc804\uc8fc appends (\uc804\uc8fc)
 to its text, and a next title slide omits its English subtitle.
+
+Previous uses the live slide position in service order even when the operator
+opened another item or used a quick-run song.
+
+On stage, next-slide text is followed by its label in parentheses; an empty
+labeled slide shows only the parenthesized label.
+
+Stage title slides and section cards show only their Korean title, without the
+English subtitle. The creed and prayer theme uses 104 px left-aligned current
+text with the next line and clock clear.

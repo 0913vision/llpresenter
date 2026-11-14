@@ -456,6 +456,20 @@ export class ThemeElementView {
     const slide = layers.slide;
     if (
       frame.screen?.kind === 'stage' &&
+      slide?.sectionCard !== undefined &&
+      (element.kind === 'itemName' || element.kind === 'currentText')
+    ) {
+      return slide.sectionCard.name;
+    }
+    if (
+      frame.screen?.kind === 'stage' &&
+      slide?.titleSlide &&
+      element.kind === 'currentText'
+    ) {
+      return slide.lines[0] ?? '';
+    }
+    if (
+      frame.screen?.kind === 'stage' &&
       (element.kind === 'nextText' || element.kind === 'nextLabel') &&
       (slide?.kind ?? item?.kind) === 'bible' &&
       slide?.sequenceLength !== undefined &&
@@ -535,10 +549,10 @@ export class ThemeElementView {
     if (
       frame.screen?.kind === 'stage' &&
       element.kind === 'nextText' &&
-      slide?.next?.label?.trim() === '\uc804\uc8fc' &&
+      slide?.next?.label?.trim() &&
       text?.trim()
     ) {
-      return `${text} (\uc804\uc8fc)`;
+      return `${text} (${slide.next.label.trim()})`;
     }
     if (element.id === SECTION_NAME_ID && slide?.sectionCard !== undefined) {
       return slide.sectionCard.name;
