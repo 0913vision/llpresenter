@@ -863,10 +863,11 @@ name. Chapter and verse bounds always use the built-in GAE number table.
   of the 슬라이드 panel in the center column.
 - Enter from 끝절 outputs the current valid passage, as 바로 띄우기 does. Enter
   from 책, 장, and 시작절 completes that field and moves to the next one without
-  output, even when a valid preview already exists. A pending lookup, invalid
-  reference, repeated Enter, or composition Enter cannot output. The four fields
-  build a range within one chapter; stored references and recent passages retain
-  the full grammar in 02.
+  output, even when a valid preview already exists. A complete reference typed
+  into 책 is an exception: Enter resolves and outputs it after lookup, and Tab
+  fills the fields. A pending lookup, invalid reference, repeated Enter, or
+  composition Enter cannot output. The four fields build a range within one
+  chapter; stored references and recent passages retain the full grammar in 02.
 - 준비 항목 추가 성경 구절 opens a small 성경 구절 dialog with the same fields.
   Enter from 끝절 inserts the current passage item using the opening's default
   translation and verse-number preference. 추가 performs the same insertion; it
