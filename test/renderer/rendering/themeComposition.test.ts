@@ -1001,7 +1001,9 @@ describe('theme composition drawing', () => {
         ?.dispatchEvent(new Event('playing'));
       vi.advanceTimersByTime(32);
       expect(incoming?.style.opacity).toBe('1');
-      expect(animate).toHaveBeenCalledTimes(kind === 'none' ? 0 : 2);
+      expect(animate).toHaveBeenCalledTimes(
+        kind === 'none' ? 0 : kind === 'wipe' ? 1 : 2,
+      );
       if (kind !== 'none') {
         expect(animate).toHaveBeenLastCalledWith(expect.any(Array), {
           duration: 1200,
