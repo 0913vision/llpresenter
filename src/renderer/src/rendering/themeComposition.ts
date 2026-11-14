@@ -384,7 +384,10 @@ export class ThemeCompositionView {
               ? 0
               : effect.sec * 1000
             : (frame.transitionTimes?.slideMs ?? OUTPUT_TRANSITIONS.slideMs);
-    page.root.style.transition = `opacity ${duration}ms linear`;
+    page.root.style.transition =
+      effect !== undefined && effect.kind !== 'none'
+        ? 'none'
+        : `opacity ${duration}ms linear`;
     // NOTE(0913vision): A newly inserted page needs its zero-opacity style
     // committed before rAF; otherwise Chromium paints its first frame opaque.
     getComputedStyle(page.root).getPropertyValue('opacity');
@@ -427,14 +430,12 @@ export class ThemeCompositionView {
     const page = this.page;
     const content = this.content;
     if (page === null || content === null) return;
-    for (const view of this.leaving?.elements ?? []) {
-      view.setClearOpacity({
-        ...content.frame.clearOpacity,
-        slide:
-          content.layers.slide === null
-            ? 0
-            : (content.frame.clearOpacity?.slide ?? 1),
-      });
+    // NOTE(0913vision): Keep the outgoing slide as one frozen picture while a
+    // new slide replaces it; clear fades still apply when content is cleared.
+    if (content.layers.slide === null) {
+      for (const view of this.leaving?.elements ?? []) {
+        view.setClearOpacity({...content.frame.clearOpacity, slide: 0});
+      }
     }
     page.layers = content.layers;
     page.frame = content.frame;

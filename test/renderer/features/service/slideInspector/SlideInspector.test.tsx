@@ -173,6 +173,28 @@ it('edits the selected slides and shows mixed transitions', async () => {
   view.unmount();
 });
 
+it('stores and displays transition seconds without floating-point noise', async () => {
+  const {store, session, user} = await editorSetup();
+  const view = render(<SlideInspector store={store} />);
+  const panel = within(view.container);
+  await user.click(panel.getByLabelText('\ud6a8\uacfc'));
+  await user.click(
+    within(document.body).getByRole('menuitemradio', {
+      name: '\ub2e6\uc544\ub0b4\uae30',
+    }),
+  );
+  const time = panel.getByLabelText('\uc804\ud658 \uc2dc\uac04');
+  await user.clear(time);
+  await user.type(time, '0.7{Enter}');
+  expect(session.history.snapshot.song.slides[0]?.transition?.sec).toBe(0.7);
+  expect(time).toHaveProperty('value', '0.7');
+  await user.clear(time);
+  await user.type(time, '0.73{Enter}');
+  expect(session.history.snapshot.song.slides[0]?.transition?.sec).toBe(0.73);
+  expect(time).toHaveProperty('value', '0.73');
+  view.unmount();
+});
+
 it('applies a label choice to each selected slide', async () => {
   const {store, session, user} = await editorSetup();
   const view = render(<SlideInspector store={store} />);
