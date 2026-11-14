@@ -414,7 +414,13 @@ function refreshStageNext(): void {
   const slide = useLive.getState().state?.layers.slide;
   if (slide === null || slide === undefined) return;
   const view = useShow.getState();
-  const cursor = nextTileAtLast(sequenceState(), view.rows, atLastSlide);
+  const live = projectedLiveCursor(view, slide);
+  if (live === null) return;
+  const cursor = nextTileAtLast(
+    {tilesOf, live, openItemId: live.itemId},
+    view.rows,
+    atLastSlide,
+  );
   const tile =
     cursor === null ? undefined : tilesOf(cursor.itemId)[cursor.index];
   const row =
@@ -433,12 +439,7 @@ function refreshStageNext(): void {
           : row.kind;
   const afterCard =
     cursor === null ? undefined : tilesOf(cursor.itemId)[cursor.index + 1];
-  const live = liveCursor();
-  const sermon = sermonNext(
-    live?.itemId === slide.itemId
-      ? live
-      : {itemId: slide.itemId, index: slide.position},
-  );
+  const sermon = sermonNext(live);
   const next =
     sermon ??
     (tile === undefined

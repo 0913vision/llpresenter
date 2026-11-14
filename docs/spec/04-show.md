@@ -1159,6 +1159,10 @@ When an opening Bible card is live, the previous-verse key does nothing.
 
 In the 준비 palette, Ctrl Z from the 곡 tab undoes the latest 예배 순서 edit.
 
+Stage and broadcast next-slide elements follow the live slide and its item, not
+the item or slide being browsed in Show or Prep. Continuous navigation may
+preview the first slide of the next service item when the live item ends.
+
 On the last slide of a Bible item, the stage next-slide preview is empty even
 when next-item navigation is enabled.
 

@@ -389,7 +389,8 @@ describe('show state', () => {
     useShow.setState(state => ({
       tiles: {...state.tiles, 'song-river': [card, body]},
     }));
-    setLive('song-morning', 1);
+    setLive('song-morning', 3);
+    setAtLastSlide('nextItem');
     openItem('song-river');
     expect(sent.at(-1)).toMatchObject({
       type: 'stage.next.set',
@@ -416,7 +417,8 @@ describe('show state', () => {
     useShow.setState(state => ({
       tiles: {...state.tiles, 'song-river': [card, body]},
     }));
-    setLive('song-morning', 1);
+    setLive('song-morning', 3);
+    setAtLastSlide('nextItem');
     openItem('song-river');
     expect(sent.at(-1)).toMatchObject({
       type: 'stage.next.set',
@@ -447,19 +449,47 @@ describe('show state', () => {
     });
   });
 
-  it('updates stage next when the open item changes without changing the live slide', () => {
+  it('keeps stage next anchored to the live slide while browsing another item', () => {
     setLive('song-morning', 1);
-    openItem('song-river');
+    openItem('song-morning');
     expect(sent.at(-1)).toMatchObject({
       type: 'stage.next.set',
       itemId: 'song-morning',
       position: 1,
+      next: {lines: sampleService.tiles['song-morning']?.[2]?.lines},
+    });
+    sent.length = 0;
+    openItem('song-river');
+    selectTile(1);
+    expect(sent.filter(command => command.type === 'stage.next.set')).toEqual(
+      [],
+    );
+    expect(slides()).toEqual([]);
+    outputTile({itemId: 'song-river', index: 0});
+    expect(slides().at(-1)).toMatchObject({
+      slide: {
+        itemId: 'song-river',
+        next: {lines: sampleService.tiles['song-river']?.[1]?.lines},
+      },
+    });
+  });
+
+  it('keeps the next service item anchored to the last live slide while browsing', () => {
+    setLive('song-morning', 3);
+    setAtLastSlide('nextItem');
+    expect(sent.at(-1)).toMatchObject({
+      type: 'stage.next.set',
+      itemId: 'song-morning',
       next: {
         itemKind: 'song',
         lines: sampleService.tiles['song-river']?.[0]?.lines,
       },
     });
-    expect(slides()).toEqual([]);
+    sent.length = 0;
+    openItem('psalm-23');
+    expect(sent.filter(command => command.type === 'stage.next.set')).toEqual(
+      [],
+    );
   });
 
   it('queues the latest continuous preference even before the live state echoes', () => {
