@@ -12,8 +12,16 @@ $settingsCaptured = $false
 try {
   try { $powerpoint = [Runtime.InteropServices.Marshal]::GetActiveObject('PowerPoint.Application') }
   catch {
-    if (Get-Process POWERPNT -ErrorAction SilentlyContinue) { throw 'Running PowerPoint is unavailable for automation' }
-    $powerpoint = New-Object -ComObject PowerPoint.Application
+    if (Get-Process POWERPNT -ErrorAction SilentlyContinue) {
+      [Console]::Out.WriteLine('FAILURE unresponsive')
+      throw 'Running PowerPoint is unavailable for automation'
+    }
+    if ($null -eq [Type]::GetTypeFromProgID('PowerPoint.Application')) {
+      [Console]::Out.WriteLine('FAILURE unavailable')
+      throw 'PowerPoint is not installed'
+    }
+    try { $powerpoint = New-Object -ComObject PowerPoint.Application }
+    catch { [Console]::Out.WriteLine('FAILURE unresponsive'); throw }
     $created = $true
     [IO.File]::WriteAllText((Join-Path $env:LLP_PPT_DIRECTORY 'created'), '1')
   }
@@ -90,6 +98,9 @@ try {
 
 const TIMEOUT_MS = 120_000;
 
+export type PowerPointImagesResult =
+  'ok' | 'cancelled' | 'unavailable' | 'unresponsive' | 'file';
+
 /** Runs PowerPoint invisibly and reports completed visible slides. */
 export class PowerPointImagesJob {
   private child: ChildProcess | null = null;
@@ -114,8 +125,8 @@ export class PowerPointImagesJob {
     path: string,
     directory: string,
     progress: (done: number, total: number, number: number) => void,
-  ): Promise<boolean> {
-    if (this.child) return Promise.resolve(false);
+  ): Promise<PowerPointImagesResult> {
+    if (this.child) return Promise.resolve('unresponsive');
     this.cancelled = false;
     this.directory = directory;
     return new Promise(resolve => {
@@ -146,6 +157,8 @@ export class PowerPointImagesJob {
       let output = '';
       let settled = false;
       let forced = false;
+      let timedOut = false;
+      let failure: PowerPointImagesResult = 'file';
       let cleanupStarted = false;
       let killWait: ReturnType<typeof setTimeout> | null = null;
       const cleanup = (): void => {
@@ -178,11 +191,11 @@ export class PowerPointImagesJob {
         );
         const limit = setTimeout(() => {
           helper.kill();
-          finish(false);
+          finish('unresponsive');
         }, 5000);
         const complete = (): void => {
           clearTimeout(limit);
-          finish(false);
+          finish('unresponsive');
         };
         helper.once('error', complete);
         helper.once('close', complete);
@@ -193,11 +206,14 @@ export class PowerPointImagesJob {
         child.kill();
         killWait = setTimeout(cleanup, 1000);
       };
-      const cleanupTimer = setTimeout(() => this.cancel(), TIMEOUT_MS - 5000);
+      const cleanupTimer = setTimeout(() => {
+        timedOut = true;
+        this.cancel();
+      }, TIMEOUT_MS - 5000);
       const timer = setTimeout(() => {
         this.forceStop?.();
       }, TIMEOUT_MS);
-      const finish = (ok: boolean): void => {
+      const finish = (result: PowerPointImagesResult): void => {
         if (settled) return;
         settled = true;
         clearTimeout(cleanupTimer);
@@ -208,7 +224,9 @@ export class PowerPointImagesJob {
         this.forceStop = null;
         if (this.child === child) this.child = null;
         this.directory = null;
-        resolve(ok && !this.cancelled);
+        resolve(
+          timedOut ? 'unresponsive' : this.cancelled ? 'cancelled' : result,
+        );
       };
       child.stdout.setEncoding('utf8');
       child.stdout.on('data', (chunk: string) => {
@@ -216,6 +234,8 @@ export class PowerPointImagesJob {
         const lines = output.split(/\r?\n/);
         output = lines.pop() ?? '';
         for (const line of lines) {
+          if (line === 'FAILURE unavailable') failure = 'unavailable';
+          else if (line === 'FAILURE unresponsive') failure = 'unresponsive';
           const match = /^PROGRESS (\d+) (\d+) (\d+)$/.exec(line);
           if (match) {
             progress(Number(match[1]), Number(match[2]), Number(match[3]));
@@ -223,11 +243,11 @@ export class PowerPointImagesJob {
         }
       });
       child.once('error', () => {
-        if (!forced) finish(false);
+        if (!forced) finish('unresponsive');
       });
       child.once('close', code => {
         if (forced) cleanup();
-        else finish(code === 0);
+        else finish(code === 0 ? 'ok' : failure);
       });
     });
   }

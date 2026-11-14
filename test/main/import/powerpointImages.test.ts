@@ -71,8 +71,24 @@ describe('PowerPoint image export', () => {
     child.stdout.emit('data', 'PROGRESS 1 2 3\n');
     expect(progress).toHaveBeenCalledWith(1, 2, 3);
     child.emit('close', 1);
-    expect(await result).toBe(false);
+    expect(await result).toBe('file');
   });
+  it.each([
+    ['FAILURE unavailable\n', 'unavailable'],
+    ['FAILURE unresponsive\n', 'unresponsive'],
+    ['', 'file'],
+  ] as const)(
+    'reports the PowerPoint failure marker %s',
+    async (line, expected) => {
+      const job = new PowerPointImagesJob();
+      const result = job.run('temporary.pptx', 'temp', vi.fn());
+      const child = mocks.children[0];
+      if (!child) throw new Error('Missing child');
+      child.stdout.emit('data', line);
+      child.emit('close', 1);
+      expect(await result).toBe(expected);
+    },
+  );
   it('requests cooperative cleanup on cancel and kills a timed-out child', async () => {
     vi.useFakeTimers();
     const job = new PowerPointImagesJob();
@@ -82,7 +98,7 @@ describe('PowerPoint image export', () => {
     job.cancel();
     expect(mocks.writeFileSync).toHaveBeenCalledOnce();
     first.emit('close', 0);
-    expect(await cancelled).toBe(false);
+    expect(await cancelled).toBe('cancelled');
     const timed = job.run('deck.pptx', 'temp', vi.fn());
     const second = mocks.children[1];
     if (!second) throw new Error('Missing child');
@@ -102,6 +118,6 @@ describe('PowerPoint image export', () => {
       "Join-Path $env:LLP_PPT_DIRECTORY 'created'",
     );
     helper.emit('close', 0);
-    expect(await timed).toBe(false);
+    expect(await timed).toBe('unresponsive');
   });
 });

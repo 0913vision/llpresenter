@@ -20,7 +20,10 @@ import {PowerPointJobs} from './powerpointJob';
 import type {MediaStore} from '../store/mediaStore';
 import {createMediaId} from '@core/schema/ids';
 import {boundedPowerPointImage} from './powerpointImage';
-import {PowerPointImagesJob} from './powerpointImages';
+import {
+  PowerPointImagesJob,
+  type PowerPointImagesResult,
+} from './powerpointImages';
 
 const MAX_TEMP_FILES = 2;
 
@@ -33,6 +36,10 @@ export function registerPowerPointImport(
     > | null>;
   },
   jobs: Pick<PowerPointJobs, 'run' | 'dispose'> = new PowerPointJobs(),
+  imageJobs: Pick<
+    PowerPointImagesJob,
+    'run' | 'cancel'
+  > = new PowerPointImagesJob(),
 ): () => void {
   let retained: {
     path: string;
@@ -45,8 +52,9 @@ export function registerPowerPointImport(
   const isDisposed = (): boolean => disposed;
   const tempFiles = new Set<string>();
   const extracting = new Set<string>();
-  const imageJobs = new PowerPointImagesJob();
   let imagesBusy = false;
+  let imagesCancelled = false;
+  const isImagesCancelled = (): boolean => imagesCancelled;
   const imageDirectories = new Set<string>();
   const release = async (path: string): Promise<boolean> => {
     if (!tempFiles.has(path)) return false;
@@ -150,6 +158,7 @@ export function registerPowerPointImport(
   );
   ipcMain.handle(powerpointEndpoints.cancelImages.channel, () => {
     if (!imagesBusy) return false;
+    imagesCancelled = true;
     imageJobs.cancel();
     return true;
   });
@@ -158,7 +167,9 @@ export function registerPowerPointImport(
       return {ok: false, message: 'PowerPoint 파일을 읽는 중입니다.'};
     }
     imagesBusy = true;
+    imagesCancelled = false;
     let directory: string | null = null;
+    let failure: PowerPointImagesResult = 'file';
     try {
       let path: string | undefined;
       if (context.windowMode === 'offscreen') {
@@ -186,10 +197,16 @@ export function registerPowerPointImport(
         join(app.getPath('temp'), 'llp-ppt-'),
       );
       directory = workDirectory;
+      const copy = join(
+        workDirectory,
+        `presentation${extname(path).toLowerCase()}`,
+      );
+      await copyFile(path, copy, fsConstants.COPYFILE_EXCL);
+      if (isImagesCancelled() || isDisposed()) return {ok: true, value: null};
       const slides: Array<{path: string; number: number}> = [];
       let expected = 0;
-      const ok = await imageJobs.run(
-        path,
+      const result = await imageJobs.run(
+        copy,
         workDirectory,
         (done, total, number) => {
           if (
@@ -217,8 +234,13 @@ export function registerPowerPointImport(
           }
         },
       );
+      await rm(copy, {force: true});
+      if (result === 'cancelled' || isImagesCancelled() || isDisposed()) {
+        return {ok: true, value: null};
+      }
+      failure = result === 'ok' ? 'file' : result;
       if (
-        !ok ||
+        result !== 'ok' ||
         slides.length === 0 ||
         slides.length !== expected ||
         isDisposed()
@@ -234,7 +256,12 @@ export function registerPowerPointImport(
       context.log.warn('could not export PowerPoint images', error);
       return {
         ok: false,
-        message: 'PowerPoint가 있어야 이미지로 가져올 수 있습니다.',
+        message:
+          failure === 'unavailable'
+            ? 'PowerPoint가 설치되어 있지 않습니다.'
+            : failure === 'unresponsive'
+              ? 'PowerPoint가 응답하지 않습니다.'
+              : 'PowerPoint 파일을 읽을 수 없습니다.',
       };
     } finally {
       if (directory !== null) {

@@ -1,5 +1,5 @@
-import {readdir, writeFile} from 'node:fs/promises';
-import {join} from 'node:path';
+import {readdir, readFile, writeFile} from 'node:fs/promises';
+import {basename, dirname, join} from 'node:path';
 import {BrowserWindow} from 'electron';
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import {libraryEndpoints} from '@contracts/ipc/library';
@@ -86,6 +86,146 @@ function setup(windowMode: 'normal' | 'offscreen' = 'normal') {
 const readRequest = {source: 'file', encoding: 'auto'};
 
 describe('PowerPoint import', () => {
+  it('exports an ASCII-named copy and removes it while retaining the original and exported slides', async () => {
+    const {control, log} = setup();
+    electron.tempDir = await makeTempDir();
+    const source = join(electron.tempDir, '열린 파일.PPTM');
+    await writeFile(source, 'original deck');
+    const images = {
+      run: vi.fn(
+        async (
+          path: string,
+          directory: string,
+          progress: (done: number, total: number, number: number) => void,
+        ) => {
+          expect(path).not.toBe(source);
+          expect(basename(path)).toBe('presentation.pptm');
+          expect(await readFile(path, 'utf8')).toBe('original deck');
+          await writeFile(join(directory, 'llp-ppt-0001.png'), 'slide');
+          progress(1, 1, 1);
+          return 'ok' as const;
+        },
+      ),
+      cancel: vi.fn(),
+    };
+    const jobs = {run: vi.fn(async () => null), dispose: vi.fn()};
+    onTestFinished(
+      registerPowerPointImport(
+        {control, windowMode: 'normal', log},
+        jobs,
+        images,
+      ),
+    );
+    electron.chooseFile.mockResolvedValueOnce({
+      canceled: false,
+      filePaths: [source],
+    });
+    const event = {sender: {isDestroyed: () => false, send: vi.fn()}};
+    const result = await handler(powerpointEndpoints.images.channel)(
+      event,
+      undefined,
+    );
+    expect(result).toMatchObject({
+      ok: true,
+      value: {fileName: '열린 파일.PPTM', slides: [{number: 1}]},
+    });
+    const exported = images.run.mock.calls[0]?.[0];
+    if (!exported) throw new Error('Missing temporary copy');
+    expect(await readdir(dirname(exported))).toEqual(['llp-ppt-0001.png']);
+    expect(await readFile(source, 'utf8')).toBe('original deck');
+    expect(
+      await handler(powerpointEndpoints.release.channel)(
+        {},
+        {path: join(dirname(exported), 'llp-ppt-0001.png')},
+      ),
+    ).toBe(true);
+    expect(await readdir(electron.tempDir)).toEqual(['열린 파일.PPTM']);
+  });
+
+  it.each([
+    ['unavailable', 'PowerPoint가 설치되어 있지 않습니다.'],
+    ['unresponsive', 'PowerPoint가 응답하지 않습니다.'],
+    ['file', 'PowerPoint 파일을 읽을 수 없습니다.'],
+  ] as const)(
+    'reports %s and removes the temporary copy',
+    async (failure, message) => {
+      const {control, log} = setup();
+      electron.tempDir = await makeTempDir();
+      const source = join(electron.tempDir, 'original.pptx');
+      await writeFile(source, 'deck');
+      const images = {run: vi.fn(async () => failure), cancel: vi.fn()};
+      const jobs = {run: vi.fn(async () => null), dispose: vi.fn()};
+      onTestFinished(
+        registerPowerPointImport(
+          {control, windowMode: 'normal', log},
+          jobs,
+          images,
+        ),
+      );
+      electron.chooseFile.mockResolvedValueOnce({
+        canceled: false,
+        filePaths: [source],
+      });
+      expect(
+        await handler(powerpointEndpoints.images.channel)({}, undefined),
+      ).toEqual({ok: false, message});
+      expect(await readdir(electron.tempDir)).toEqual(['original.pptx']);
+    },
+  );
+
+  it('does not launch PowerPoint if cancellation occurs while choosing the file', async () => {
+    const {control, log} = setup();
+    electron.tempDir = await makeTempDir();
+    const source = join(electron.tempDir, 'original.pptx');
+    await writeFile(source, 'deck');
+    let choose: (selection: Selection) => void = () => undefined;
+    electron.chooseFile.mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          choose = resolve;
+        }),
+    );
+    const images = {run: vi.fn(async () => 'ok' as const), cancel: vi.fn()};
+    const jobs = {run: vi.fn(async () => null), dispose: vi.fn()};
+    onTestFinished(
+      registerPowerPointImport(
+        {control, windowMode: 'normal', log},
+        jobs,
+        images,
+      ),
+    );
+    const pending = handler(powerpointEndpoints.images.channel)({}, undefined);
+    expect(
+      await handler(powerpointEndpoints.cancelImages.channel)({}, undefined),
+    ).toBe(true);
+    choose({canceled: false, filePaths: [source]});
+    expect(await pending).toEqual({ok: true, value: null});
+    expect(images.run).not.toHaveBeenCalled();
+    expect(await readdir(electron.tempDir)).toEqual(['original.pptx']);
+  });
+
+  it('reports an unreadable source without starting PowerPoint', async () => {
+    const {control, log} = setup();
+    electron.tempDir = await makeTempDir();
+    const images = {run: vi.fn(async () => 'ok' as const), cancel: vi.fn()};
+    const jobs = {run: vi.fn(async () => null), dispose: vi.fn()};
+    onTestFinished(
+      registerPowerPointImport(
+        {control, windowMode: 'normal', log},
+        jobs,
+        images,
+      ),
+    );
+    electron.chooseFile.mockResolvedValueOnce({
+      canceled: false,
+      filePaths: [join(electron.tempDir, 'missing.pptx')],
+    });
+    expect(
+      await handler(powerpointEndpoints.images.channel)({}, undefined),
+    ).toEqual({ok: false, message: 'PowerPoint 파일을 읽을 수 없습니다.'});
+    expect(images.run).not.toHaveBeenCalled();
+    expect(await readdir(electron.tempDir)).toEqual([]);
+  });
   it('validates scene bytes and writes the composed image into the managed media path', async () => {
     const {control, log} = setup();
     electron.tempDir = await makeTempDir();
