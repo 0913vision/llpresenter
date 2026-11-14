@@ -250,6 +250,7 @@ export function outputTile(
   }
 }
 
+// NOTE(0913vision): TEMPORARY rule for the 2026-11-15 service; replace by grouping the sermon passage with the 설교 제목 item (user request)
 /** Finds the preceding sermon title for the last slide of a service Bible item. */
 function sermonNext(cursor: TileCursor): NextSlide | undefined {
   const view = useShow.getState();

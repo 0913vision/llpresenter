@@ -807,6 +807,7 @@ yellow at the audience title size, with its white left-aligned body below at the
 audience body size. The stage clock is at the top right in all built-in stage
 layouts.
 
-On the last slide of a service Bible item directly following a sermon-title
-theme item, the stage next line shows the sermon title; other Bible items retain
-the empty next line.
+TEMPORARY for the 2026-11-15 service: on the last slide of a service Bible item
+directly following a sermon-title theme item, the stage next line shows the
+sermon title; other Bible items retain the empty next line. Replace this rule by
+grouping the sermon passage with the sermon title item.
