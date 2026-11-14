@@ -133,6 +133,7 @@ async function createContent(
       content,
       backgroundOf: library.backgroundOf,
       bible,
+      settings,
       mediaItems: () => media?.get().value.items ?? [],
     },
     service => broadcast(serviceEndpoints.changed.channel, service, log),
@@ -140,7 +141,11 @@ async function createContent(
   );
   const removeSettingsListener =
     settings?.subscribe(document => {
-      if (document.name === 'labels' || document.name === 'bible') {
+      if (
+        ['labels', 'bible', 'themes', 'screens', 'bibleCuts'].includes(
+          document.name,
+        )
+      ) {
         feed
           .refresh()
           .catch((error: unknown) =>

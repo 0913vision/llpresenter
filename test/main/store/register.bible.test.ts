@@ -83,6 +83,7 @@ describe('registerStore', () => {
       {
         kind: 'bible',
         id: itemId(60),
+        sourceRevision: 1,
         title: '요한복음 3:16~18',
         bible: {
           ref: '요한복음 3:16-18',
@@ -106,6 +107,7 @@ describe('registerStore', () => {
       {
         kind: 'bible',
         id: itemId(61),
+        sourceRevision: 1,
         title: '창세기 1:1',
         problem: 'missing-bible',
       },

@@ -115,6 +115,7 @@ const showRowSchema = v.pipe(
       kind: v.literal('bible'),
       id,
       title: v.string(),
+      sourceRevision: v.exactOptional(positiveInteger),
       problem: v.exactOptional(v.picklist(showRowProblems)),
       bible: v.exactOptional(bibleReferenceSchema),
     }),

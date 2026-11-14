@@ -17,10 +17,15 @@ import {
   type BibleLookupReply,
 } from '@core/schema/bibleLookup';
 import {createServiceItemId} from '@core/schema/ids';
+import {parseBibleProjection} from '@core/schema/bibleProjection';
+import type {SettingsReader} from '@core/schema/settingsReader';
+import {settingsDocument} from '@fixtures/core/settingsDocument';
+import {defaultPreferences} from '@core/schema/preferences';
 
 async function setUp(
   backgroundOf: OpenServiceSources['backgroundOf'] = async () => null,
   bible?: OpenServiceSources['bible'],
+  settings?: SettingsReader,
 ) {
   const parsed = parseService(
     JSON.stringify(service(SUNDAY_ID, '2026-11-01T11:00', [])),
@@ -49,6 +54,7 @@ async function setUp(
       content,
       backgroundOf,
       ...(bible === undefined ? {} : {bible}),
+      ...(settings === undefined ? {} : {settings}),
     },
     push,
     report,
@@ -59,6 +65,115 @@ async function setUp(
 }
 
 describe('OpenServiceFeed', () => {
+  it('publishes measured cuts and rejects stale or incomplete projections', async () => {
+    const request = parseBibleLookupRequest({
+      translation: 'sample',
+      input: '요한복음 3:16-18',
+    });
+    if (!request.ok) throw new Error('Invalid fixture');
+    const lookup = vi
+      .fn<NonNullable<OpenServiceSources['bible']>['lookup']>()
+      .mockResolvedValue({
+        ...request.value,
+        suggestions: [],
+        result: {
+          ok: true,
+          value: {
+            translation: request.value.translation,
+            ref: request.value.input,
+            displayRef: request.value.input,
+            verses: [16, 17, 18].map(verse => ({
+              chapter: 3,
+              verse,
+              text: 'alpha beta',
+            })),
+          },
+        },
+      });
+    let revision = 1;
+    const settings: SettingsReader = {
+      get: () => settingsDocument('bibleCuts', {entries: {}}, revision),
+      preferences: () => defaultPreferences,
+      subscribe: () => () => undefined,
+    };
+    const {feed, content, current} = await setUp(undefined, {lookup}, settings);
+    const id = createServiceItemId(itemId(62));
+    content.storedService.mockReturnValue({
+      ...current,
+      data: {
+        ...current.data,
+        order: [
+          {
+            id,
+            bible: {
+              translation: request.value.translation,
+              ref: request.value.input,
+              split: 'fit',
+              reference: 'every',
+              verseNumbers: true,
+              translationName: false,
+            },
+          },
+        ],
+      },
+    });
+    await feed.refresh();
+    const original = feed.current()?.tiles[id];
+    if (
+      original?.length !== 3 ||
+      !original[0] ||
+      !original[1] ||
+      !original[2]
+    ) {
+      throw Error('Missing fixture');
+    }
+    const projection = parseBibleProjection({
+      serviceId: SUNDAY_ID,
+      itemId: id,
+      revision: 1,
+      measurement: {themes: 1, screens: 1, bibleCuts: 1},
+      tiles: [
+        {
+          ...original[0],
+          label: '요3:16 (1)',
+          lines: ['16 alpha (계속)'],
+          biblePart: 1,
+          continued: true,
+        },
+        {
+          ...original[0],
+          label: '요3:16 (2)',
+          lines: ['beta'],
+          biblePart: 2,
+          continued: false,
+        },
+        {...original[1], biblePart: 1, continued: false},
+        {...original[2], biblePart: 1, continued: false},
+      ],
+    });
+    if (!projection.ok) throw Error('Invalid projection');
+    feed.acceptBibleProjection({...projection.value, revision: 2});
+    await feed.refresh();
+    expect(feed.current()?.tiles[id]).toHaveLength(3);
+    feed.acceptBibleProjection({
+      ...projection.value,
+      tiles: projection.value.tiles.slice(0, 3),
+    });
+    await feed.refresh();
+    expect(feed.current()?.tiles[id]).toHaveLength(3);
+    feed.acceptBibleProjection(projection.value);
+    await feed.refresh();
+    expect(feed.current()?.tiles[id]?.map(tile => tile.label)).toEqual([
+      '요3:16 (1)',
+      '요3:16 (2)',
+      '요3:17',
+      '요3:18',
+    ]);
+    revision = 2;
+    await feed.refresh();
+    expect(feed.current()?.tiles[id]).toHaveLength(3);
+    await feed.dispose();
+  });
   it('starts each verse on a slide for a legacy 들어가는 만큼 passage', async () => {
     const request = parseBibleLookupRequest({
       translation: 'sample',
