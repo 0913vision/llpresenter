@@ -10,6 +10,7 @@ import {beginOutputRequest} from '@renderer/session/showOutput';
 import {BibleReferenceField} from '../bible/BibleReferenceField';
 import {openBiblePassage, showBiblePassage} from '../bible/actions';
 import {useBibleDisplayDefaults} from '../bible/useBibleDisplayDefaults';
+import {DraftOverlay, draftOverlay} from '../presentation/DraftOverlay';
 
 /** The quick-panel mount; previewing never writes output or recent history. */
 export function BibleQuickField({
@@ -22,10 +23,14 @@ export function BibleQuickField({
   readonly onIntent?: (() => void) | undefined;
 }): JSX.Element {
   const root = useRef<HTMLDivElement>(null);
+  const [overlayOpen, setOverlayOpen] = useState(false);
   useWindowShortcuts([
     {
       id: 'bible.focus',
-      run: () => root.current?.querySelector('input')?.focus(),
+      run: () => {
+        if (draftOverlay !== null) setOverlayOpen(true);
+        else root.current?.querySelector('input')?.focus();
+      },
     },
   ]);
   const display = useBibleDisplayDefaults(api.preferences);
@@ -34,6 +39,9 @@ export function BibleQuickField({
     {name: 'bible'}
   > | null>(null);
   const [session, setSession] = useState(0);
+  useEffect(() => {
+    if (overlayOpen) root.current?.querySelector('input')?.focus();
+  }, [overlayOpen]);
   useEffect(() => {
     let active = true;
     const accept = (next: SettingsDocument): void => {
@@ -69,9 +77,10 @@ export function BibleQuickField({
   const translations = document
     ? withLiveBible(document.value.translations)
     : [];
-  return (
+  const field = (
     <div ref={root}>
       <BibleReferenceField
+        overlayLabels={overlayOpen}
         key={`${selectionVersion}:${session}`}
         api={api.bible}
         translation={
@@ -80,6 +89,7 @@ export function BibleQuickField({
             : (translations.find(item => item.default) ?? translations[0])?.id
         }
         recents={document?.value.recents ?? []}
+        onEscape={overlayOpen ? () => setOverlayOpen(false) : undefined}
         onIntent={() => {
           beginOutputRequest();
           onIntent?.();
@@ -126,8 +136,16 @@ export function BibleQuickField({
             ...options,
             review: false,
           });
+          if (overlayOpen) setOverlayOpen(false);
         }}
       />
     </div>
+  );
+  return draftOverlay !== null && overlayOpen ? (
+    <DraftOverlay kind="bible" onClose={() => setOverlayOpen(false)}>
+      {field}
+    </DraftOverlay>
+  ) : (
+    field
   );
 }

@@ -37,6 +37,8 @@ import {
 import styles from './BibleReferenceField.module.css';
 
 export interface BibleReferenceFormProps {
+  /** Shows field names inside the temporary overlay draft. */
+  readonly overlayLabels?: boolean;
   readonly api: BibleLookupApi;
   readonly translation: TranslationId | undefined;
   readonly onPreview: (passage: BibleLookupPassage) => void;
@@ -508,9 +510,10 @@ export function BibleReferenceForm(
     >
       <div ref={bookAnchor} className={styles.book}>
         <TextField
-          size="sm"
+          size={props.overlayLabels ? 'md' : 'sm'}
           block
           icon="book"
+          affix={props.overlayLabels ? '책' : undefined}
           clearable
           autoFocus={props.autoFocus}
           aria-label="책"
@@ -546,8 +549,9 @@ export function BibleReferenceForm(
       {NUMBER_PARTS.map(part => (
         <TextField
           key={part}
-          size="sm"
+          size={props.overlayLabels ? 'md' : 'sm'}
           block
+          affix={props.overlayLabels ? LABELS[part] : undefined}
           inputMode="numeric"
           aria-label={LABELS[part]}
           placeholder={LABELS[part]}

@@ -24,6 +24,7 @@ import {useSlideWindow} from './useSlideWindow';
 import {ShowSlideEntry} from './showPanelNavigation';
 import {serviceSlideOffset} from './serviceSlideNumbers';
 import {useNumberJump} from './numberJump';
+import {draftOverlay} from './DraftOverlay';
 
 const GRID_SELECTOR = '[role="listbox"]';
 
@@ -160,7 +161,7 @@ export function SlideGrid({
       onKeyDownCapture={window.navigate}
       style={{height: window.height}}
     >
-      {pendingNumber === '' ? null : (
+      {pendingNumber === '' || draftOverlay !== null ? null : (
         <div className={styles.numberJump} role="status">
           슬라이드 {pendingNumber}
         </div>
