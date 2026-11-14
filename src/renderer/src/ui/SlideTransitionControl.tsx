@@ -71,7 +71,6 @@ export function SlideTransitionControl({
   return (
     <div className={styles.controls} role="group" aria-label={label}>
       <div className={styles.group}>
-        {inherit === undefined ? null : <span>효과</span>}
         <div className={styles.gallery} role="group" aria-label="효과">
           {SLIDE_EFFECTS.map(([kind, name]) => (
             <button

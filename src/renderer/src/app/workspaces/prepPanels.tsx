@@ -360,8 +360,10 @@ function prepPanelParts({
             <OtherSlideInspector items={prep.items} editor={prep.editor} />
           ) : prep.slides?.session ? (
             <SlidesCardInspector prep={prep} />
-          ) : (
+          ) : prep.editor.getSnapshot().session?.itemSession ? (
             <SongCardInspector prep={prep} />
+          ) : (
+            <SlideInspector store={prep.editor} />
           )}
         </EditorBackgroundDrop>
       ),
