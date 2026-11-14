@@ -17,6 +17,7 @@ import {
 import {useAtLastSlide} from './useAtLastSlide';
 import {useSlideHotKeys} from './useSlideHotKeys';
 import {outputAdjacentBibleVerse} from '../bible/verseShortcuts';
+import {useNumberJumpKeys} from './numberJump';
 
 const commands: readonly WindowShortcut[] = [
   {id: 'show.next', run: () => outputNext()},
@@ -157,6 +158,7 @@ function clearPendingClick(event: Event): void {
 
 /** Listens for the live keys while the 진행 workspace is shown. */
 export function useShowKeys(): void {
+  useNumberJumpKeys();
   useSlideHotKeys();
   useAtLastSlide();
   useWindowShortcuts(commands);

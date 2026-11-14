@@ -211,9 +211,9 @@ service needs no confirmation), product log version 63.
   lyrics are independent slides with distinct IDs.
 - A tile is a 16:9 picture with an 이름표 band below it. The picture shows only
   the 슬라이드's lines, not the song's background. The band shows the position
-  in the sequence (from 1) and the 이름표 name on a strip filled with the 이름표
-  color. Bible verse labels and named or media slides also keep their labels in
-  the band. Without a label, the band shows only the number.
+  across the whole service (from 1) and the 이름표 name on a strip filled with
+  the 이름표 color. Bible verse labels and named or media slides also keep their
+  labels in the band. Without a label, the band shows only the number.
 - Clicking a tile outputs that 슬라이드 at once (see 03). The live tile has a
   red ring around its picture: only that tile, not other tiles of the same
   슬라이드. There is no separate tile selection. Keyboard focus draws an accent
@@ -276,9 +276,15 @@ source was found.
 - → ← Space Page Up Page Down output the next and previous 슬라이드 even while
   the 슬라이드 grid or the 예배 순서 list has focus, as ProPresenter does after
   a click on a slide (S4 p. 70). The grid outputs one row away with ↑ and ↓;
-  Enter does nothing (10). With no live slide, ? outputs slide 1 and ? does
-  nothing. At the first row ? stays; at the last row ? stays if a full row step
-  would exceed the slide count, including a partial last row.
+  Enter without a pending number does nothing (10). With no live slide, ?
+  outputs slide 1 and ? does nothing. At the first row ? stays; at the last row
+  ? stays if a full row step would exceed the slide count, including a partial
+  last row.
+- Outside text fields, digits show a pending service-wide slide number above the
+  grid. Enter outputs that numbered slide, or clears an invalid number without
+  output. Delete or Escape clears the number; Backspace removes its last digit.
+  Other shortcuts clear it and keep their usual action. Digits take precedence
+  over digit-assigned slide hot keys in 진행.
 - A mouse click in 진행 moves keyboard focus only to a text field, the 슬라이드
   grid, or the 예배 순서 list. A click on any other button or tile, such as a
   매크로 or a 그래픽, leaves keyboard focus where it was (10). So after a click

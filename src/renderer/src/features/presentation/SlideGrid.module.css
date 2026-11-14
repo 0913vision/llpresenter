@@ -2,6 +2,22 @@
   position: relative;
 }
 
+.numberJump {
+  position: sticky;
+  z-index: 2;
+  top: var(--space-8);
+  width: max-content;
+  max-width: 100%;
+  margin: 0 auto;
+  padding: var(--space-6) var(--space-12);
+  border-radius: var(--radius-md);
+  background: var(--bg-raised);
+  color: var(--text);
+  box-shadow: var(--shadow-popover);
+  font: var(--type-label);
+  pointer-events: none;
+}
+
 .window {
   position: absolute;
   right: 0;

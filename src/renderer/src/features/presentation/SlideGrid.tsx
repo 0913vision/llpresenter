@@ -22,6 +22,8 @@ import {useBibleTileProjection} from '../bible/useBibleProjections';
 import styles from './SlideGrid.module.css';
 import {useSlideWindow} from './useSlideWindow';
 import {ShowSlideEntry} from './showPanelNavigation';
+import {serviceSlideOffset} from './serviceSlideNumbers';
+import {useNumberJump} from './numberJump';
 
 const GRID_SELECTOR = '[role="listbox"]';
 
@@ -41,6 +43,10 @@ export function SlideGrid({
   onOpenPrep,
 }: SlideGridProps): JSX.Element {
   const openItemId = useShow(view => view.openItemId);
+  const offset = useShow(view =>
+    openItemId === null ? null : serviceSlideOffset(view, openItemId),
+  );
+  const pendingNumber = useNumberJump(state => state.value);
   const tiles = useShow(shownTiles);
   const row = useShow(view => view.rows.find(value => value.id === openItemId));
   const librarySong = useShow(view => view.librarySong);
@@ -154,6 +160,11 @@ export function SlideGrid({
       onKeyDownCapture={window.navigate}
       style={{height: window.height}}
     >
+      {pendingNumber === '' ? null : (
+        <div className={styles.numberJump} role="status">
+          슬라이드 {pendingNumber}
+        </div>
+      )}
       <div className={styles.window} style={{top: window.offset}}>
         <ThumbnailGrid
           workspace="show"
@@ -190,7 +201,7 @@ export function SlideGrid({
               <SlideThumbnail
                 key={index}
                 selectionStyle="plate"
-                number={index + 1}
+                number={(offset ?? 0) + index + 1}
                 canvas={
                   tile.sectionCard !== undefined &&
                   cardTheme !== undefined &&
