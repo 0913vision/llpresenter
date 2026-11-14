@@ -4,13 +4,85 @@ import type {Theme} from '@core/schema/themes';
 import {
   THEME_MAIN,
   THEME_CAPTURE,
+  THEME_STAGE,
   themeFile,
   themeScreens,
+  fixedThemeText,
 } from '@fixtures/core/themeOutput';
 import {resolveThemeOutput} from '@core/themes/output';
 import {SUNDAY_STANDBY_PICTURE_IDS} from '@core/themes/sundayStandby';
+import {resolveItemTheme, resolveThemeScreen} from '@core/themes/resolve';
+import {itemThemeCell} from '@core/themes/itemThemeCell';
+import {createServiceItemId} from '@core/schema/ids';
+import {newSlidesItem} from '@core/services/slidesEdits';
 
 describe('published theme compositions', () => {
+  it('uses the edited standby for an explicit item on every screen and in previews', () => {
+    const initial = themeFile();
+    const main = initial.standby.screens[THEME_MAIN];
+    if (!main) throw Error('Missing standby');
+    const edited = {
+      ...initial,
+      standby: {
+        ...initial.standby,
+        screens: {
+          ...initial.standby.screens,
+          [THEME_MAIN]: {
+            ...main,
+            elements: [...main.elements, fixedThemeText('edited')],
+          },
+        },
+      },
+    };
+    const item = {
+      id: 'waiting',
+      kind: 'blank' as const,
+      source: 'service' as const,
+      theme: edited.standby.id,
+    };
+    const live = resolveThemeOutput({
+      file: edited,
+      screens: themeScreens,
+      item,
+      revision: 2,
+    });
+    const idle = resolveThemeOutput({
+      file: edited,
+      screens: themeScreens,
+      item: null,
+      revision: 2,
+    });
+    expect(live.missing).toEqual([]);
+    expect(live.screens).toEqual(idle.screens);
+    expect(live.screens[THEME_MAIN]?.layout.elements).toContainEqual(
+      fixedThemeText('edited'),
+    );
+    expect(
+      live.screens[THEME_STAGE]?.layout.elements.map(element => element.kind),
+    ).toEqual(['clock', 'timer']);
+    expect(live.screens[THEME_CAPTURE]?.layout.elements).toEqual([]);
+    const preview = resolveItemTheme({
+      file: edited,
+      kind: 'blank',
+      source: 'service',
+      theme: edited.standby.id,
+      screens: themeScreens,
+    });
+    expect(
+      resolveThemeScreen(preview, THEME_MAIN, themeScreens).layout,
+    ).toEqual(live.screens[THEME_MAIN]?.layout);
+    const serviceItem = {
+      ...newSlidesItem(
+        'blank',
+        createServiceItemId('00000000-0000-4000-8000-000000000001'),
+      ),
+      theme: edited.standby.id,
+    };
+    expect(itemThemeCell(serviceItem, edited)).toEqual({
+      name: edited.standby.name,
+      followsDefault: false,
+    });
+  });
   it('publishes the resolved theme transition to output', () => {
     const file = themeFile();
     const theme = file.themes[0];

@@ -88,11 +88,15 @@ describe('order external drops', () => {
     expect(screen.getByText('two|null')).toBeTruthy();
     drag(row, 'drop', {dataTransfer, clientY: 101});
     expect(onElement).toHaveBeenCalledWith('standby', 'two');
+    const waiting = transfer(ELEMENT_DRAG_MIME, 'waiting-screen');
+    drag(row, 'dragover', {dataTransfer: waiting, clientY: 101});
+    drag(row, 'drop', {dataTransfer: waiting, clientY: 101});
+    expect(onElement).toHaveBeenLastCalledWith('waiting-screen', 'two');
     fireEvent.drop(row, {
       dataTransfer: transfer(ELEMENT_DRAG_MIME, 'unknown'),
       clientY: 101,
     });
-    expect(onElement).toHaveBeenCalledTimes(1);
+    expect(onElement).toHaveBeenCalledTimes(2);
   });
   it('distinguishes a media drop on the row from its edge', () => {
     const onElement = vi.fn(),

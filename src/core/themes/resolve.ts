@@ -9,6 +9,7 @@ import {
   IMAGE_SLIDES_THEME_ID,
   AD_THEME_ID,
   imageSlidesLayout,
+  withStageStandby,
   type ThemeScreen,
 } from './defaults';
 import {themeElementProblem, type ThemeItemKind} from './elementRules';
@@ -24,6 +25,11 @@ interface ItemThemeRequest {
 
 export function resolveItemTheme(request: ItemThemeRequest): Theme {
   const {file, kind, source, theme, screens} = request;
+  if (source === 'service' && file && theme === file.standby.id) {
+    return screens === undefined
+      ? file.standby
+      : withStageStandby(file.standby, screens);
+  }
   const own =
     source === 'service'
       ? file?.themes.find(entry => entry.id === theme)
