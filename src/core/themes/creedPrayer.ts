@@ -17,8 +17,13 @@ export function creedPrayerLayout(): ThemeScreenLayout {
         return element.kind === 'currentText'
           ? {
               ...element,
-              frame: {...element.frame, x: 129, w: 1676},
-              text: {...element.text, maxLines: 4},
+              frame: {...element.frame, x: 122, y: 95, w: 1676},
+              text: {
+                ...element.text,
+                maxLines: 4,
+                align: 'center',
+                lineHeight: 137 / 104,
+              },
             }
           : element;
       }),
