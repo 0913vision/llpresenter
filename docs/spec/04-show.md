@@ -797,6 +797,10 @@ that ProPresenter's Edit mode has the same behavior.
 
 ## Bible passages
 
+Book suggestions use the full canonical metadata even when the selected file is
+missing or partial. When the live translation answers, the Bible input shows its
+name, and missing chapter bounds use the same full book metadata.
+
 ### Finding a passage
 
 - The 퀵 실행 Bible input has four fields, 책, 장, 시작절, and optional 끝절

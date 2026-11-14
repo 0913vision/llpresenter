@@ -1,3 +1,5 @@
+import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
+import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
 import {
   useEffect,
   useEffectEvent,
@@ -55,6 +57,17 @@ const LABELS = {
   end: '끝절',
 } as const;
 const ignorePreview = (): void => undefined;
+const LIVE_BOUNDS = new Map(
+  BIBLE_BOOKS.map(book => [
+    book.id,
+    {
+      bookId: book.id,
+      chapterVerses: Array<number>(book.chapters).fill(
+        BIBLE_LOOKUP_LIMITS.verses,
+      ),
+    },
+  ]),
+);
 
 function focusPart(root: HTMLElement | null, part: ReferencePart): void {
   const field = root?.querySelector<HTMLInputElement>(
@@ -137,7 +150,13 @@ export function BibleReferenceForm(
     input: metadataBook?.korean ?? '',
     onPreview: ignorePreview,
   });
-  const bookUnavailable = metadata !== null && metadata.bounds === undefined;
+  const metadataBounds =
+    metadata?.bounds ??
+    (metadata?.effectiveTranslation === LIVE_BIBLE_ID &&
+    metadataBook !== undefined
+      ? LIVE_BOUNDS.get(metadataBook.id)
+      : undefined);
+  const bookUnavailable = metadata !== null && metadataBounds === undefined;
   useEffect(() => {
     const target = advancedBook.current;
     if (target === null) return;
@@ -150,15 +169,15 @@ export function BibleReferenceForm(
     const field = root.current?.querySelector<HTMLInputElement>(
       '[data-reference-part="chapter"]',
     );
-    if (metadata.bounds === undefined && document.activeElement === field) {
+    if (metadataBounds === undefined && document.activeElement === field) {
       root.current
         ?.querySelector<HTMLInputElement>('[role="combobox"]')
         ?.focus();
     }
-  }, [bookId, chapterFocus, metadata, translation]);
-  const reconciled = reconcileReferenceFields(fields, metadata?.bounds);
+  }, [bookId, chapterFocus, metadata, metadataBounds, translation]);
+  const reconciled = reconcileReferenceFields(fields, metadataBounds);
   if (reconciled !== fields) setFields(reconciled);
-  const state = referenceFieldsState(reconciled, metadata?.bounds);
+  const state = referenceFieldsState(reconciled, metadataBounds);
   const reply = useBibleLookup({
     ...props,
     translation,
@@ -219,17 +238,14 @@ export function BibleReferenceForm(
   const change = (part: ReferencePart, value: string): void => {
     const nextFields = reconcileReferenceFields(
       changeReferenceField(fields, part, value),
-      metadata?.bounds,
+      metadataBounds,
     );
     if (nextFields === fields && value !== fields[part]) return;
     pendingSubmit.current = null;
     advancedBook.current = null;
     props.onIntent?.();
     if (nextFields !== fields || selectedRecent !== undefined) {
-      const nextInput = referenceFieldsState(
-        nextFields,
-        metadata?.bounds,
-      ).input;
+      const nextInput = referenceFieldsState(nextFields, metadataBounds).input;
       props.onEdit?.(
         nextInput !== '' && nextInput === (selectedRecent?.ref ?? state.input)
           ? (passage ?? null)
@@ -408,7 +424,7 @@ export function BibleReferenceForm(
     // NOTE(0913vision): The last change can still be batched while the lookup
     // and its rendered result refer to the previous value.
     const currentFields = readReferenceFields(root.current, fields);
-    const currentState = referenceFieldsState(currentFields, metadata?.bounds);
+    const currentState = referenceFieldsState(currentFields, metadataBounds);
     const input = selectedRecent?.ref ?? currentState.input;
     if (passage && reply?.input === input) {
       pendingSubmit.current = null;
@@ -512,6 +528,12 @@ export function BibleReferenceForm(
           invalidReason={reason(part)}
         />
       ))}
+      {(passage?.translation ?? metadata?.effectiveTranslation) ===
+      LIVE_BIBLE_ID ? (
+        <span className={styles.translation} role="status">
+          {'\uac1c\uc5ed\uac1c\uc815 (\uc2e4\uc2dc\uac04)'}
+        </span>
+      ) : null}
       {expanded ? (
         <BibleSuggestions
           id={listId}

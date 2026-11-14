@@ -17,6 +17,7 @@ import {Dialog} from '@renderer/ui/Dialog';
 import {formLookupReply} from '@fixtures/core/bibleReplies';
 import {lookupRequest} from '@fixtures/core/bibleLookups';
 import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
+import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
 
 beforeEach(() => {
   HTMLElement.prototype.scrollIntoView = vi.fn();
@@ -60,6 +61,24 @@ async function enterPassage(
 }
 
 describe('shared Bible reference form', () => {
+  it('uses full book metadata when a live reply has no installed bounds', async () => {
+    const view = setup();
+    view.lookup.mockImplementation(async request => {
+      const reply = await formLookupReply(
+        request,
+        BIBLE_BOOKS.map(book => book.id),
+      );
+      const {bounds: _bounds, ...withoutBounds} = reply;
+      return {...withoutBounds, effectiveTranslation: LIVE_BIBLE_ID};
+    });
+    fireEvent.change(view.book, {target: {value: '\ud569'}});
+    expect(view.book.getAttribute('aria-invalid')).toBeNull();
+    fireEvent.change(view.chapter, {target: {value: '3'}});
+    await waitFor(() => expect(view.start.disabled).toBe(false));
+    expect(screen.getByRole('status').textContent).toBe(
+      '\uac1c\uc5ed\uac1c\uc815 (\uc2e4\uc2dc\uac04)',
+    );
+  });
   it.each(['-', '~', '\uFF5E'])(
     'accepts a typed and pasted chapter and verse range with %s',
     async separator => {

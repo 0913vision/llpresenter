@@ -27,6 +27,20 @@ function parsedRequest() {
 }
 
 describe('Bible lookup payloads', () => {
+  it('accepts the live translation as the effective source and rejects unrelated sources', () => {
+    expect(
+      parseBibleLookupReply(parsedRequest(), {
+        ...reply,
+        effectiveTranslation: 'bsk-gae',
+      }).ok,
+    ).toBe(true);
+    expect(
+      parseBibleLookupReply(parsedRequest(), {
+        ...reply,
+        effectiveTranslation: 'other',
+      }).ok,
+    ).toBe(false);
+  });
   it('accepts bounded translation labels for screen references', () => {
     const value = {...reply.result.value, translationLabel: '개역한글'};
     expect(

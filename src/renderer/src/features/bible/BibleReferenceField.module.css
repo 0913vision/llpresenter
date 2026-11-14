@@ -8,6 +8,12 @@
   gap: var(--space-6);
 }
 
+.translation {
+  grid-column: 1 / -1;
+  color: var(--text-3);
+  font: var(--type-caption);
+}
+
 .book {
   grid-column: 1 / -1;
   min-width: 0;

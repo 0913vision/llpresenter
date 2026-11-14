@@ -77,7 +77,10 @@ const COPIBLE_CODES: Readonly<Record<number, string>> = {
 };
 
 function normalize(text: string): string {
-  return text.normalize('NFC').toLowerCase().replace(/\s+/gu, '');
+  return text
+    .normalize('NFKC')
+    .toLowerCase()
+    .replace(/[\s\u200b-\u200d\u2060\ufeff]+/gu, '');
 }
 
 function letters(text: string): string {

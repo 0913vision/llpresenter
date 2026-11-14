@@ -191,6 +191,7 @@ export class BibleLookupSession {
     this.ensureOpen();
     const reply = parseBibleLookupReply(request, {
       ...request,
+      effectiveTranslation: effective,
       suggestions: candidates,
       ...(bounds === undefined ? {} : {bounds}),
       result,

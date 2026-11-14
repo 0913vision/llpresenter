@@ -63,6 +63,7 @@ const problemSchema = payloadObject({
 const replySchema = payloadObject({
   input: referenceText,
   translation: translationId,
+  effectiveTranslation: v.exactOptional(translationId),
   bounds: v.exactOptional(
     payloadObject({
       bookId: v.pipe(positiveInteger, v.maxValue(BIBLE_LOOKUP_LIMITS.books)),
@@ -124,6 +125,9 @@ export function parseBibleLookupReply(
   if (
     reply.input !== request.input ||
     reply.translation !== request.translation ||
+    (reply.effectiveTranslation !== undefined &&
+      reply.effectiveTranslation !== request.translation &&
+      reply.effectiveTranslation !== LIVE_BIBLE_ID) ||
     (reply.result.ok &&
       reply.result.value.translation !== request.translation &&
       reply.result.value.translation !== LIVE_BIBLE_ID)
