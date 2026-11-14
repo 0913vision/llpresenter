@@ -94,6 +94,19 @@ export class ThemeCompositionView {
 
   render(layers: LiveLayers, frame: RenderFrame): void {
     this.input = {layers, frame};
+    const original = frame.slide ?? layers.slide;
+    if (
+      frame.screen?.kind === 'broadcast' &&
+      original?.titleSlide === true &&
+      (frame.theme?.item?.kind ?? original.kind) === 'song'
+    ) {
+      const slide = {
+        ...original,
+        lines: original.lines.slice(0, original.titleLineCount ?? 1),
+      };
+      layers = {...layers, slide};
+      if (frame.slide !== undefined) frame = {...frame, slide};
+    }
     if (frame.theme !== undefined) {
       const slide = frame.slide ?? layers.slide;
       frame = {

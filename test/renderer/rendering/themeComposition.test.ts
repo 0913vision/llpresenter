@@ -2779,6 +2779,11 @@ it('shows both title lines on stage while retaining the section name', () => {
   draw(separate, 'stage');
   expect(current()).toContain('날마다 숨쉬는 순간마다');
   expect(current()).not.toContain('Day by Day');
+  draw(separate, 'broadcast');
+  expect(current()).toContain('날마다 숨쉬는 순간마다');
+  expect(current()).not.toContain('Day by Day');
+  draw(separate, 'audience');
+  expect(current()).toContain('Day by Day');
   draw(title, 'audience');
   expect(current()).toContain('새찬송가 91장');
   expect(current()).toContain('슬픈 마음 있는 사람');
