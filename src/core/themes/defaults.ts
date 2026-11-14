@@ -297,7 +297,7 @@ function audienceElements(
     {
       id: createThemeElementId(uuid(3)),
       kind: 'currentText',
-      frame: sundaySong ? {x: 132, y: 141, w: 1656, h: 411} : textFrame,
+      frame: sundaySong ? {x: 14, y: 141, w: 1892, h: 411} : textFrame,
       text: sundaySong
         ? {
             ...basicText,

@@ -540,16 +540,16 @@ as every settings file does (02).
 - In new libraries, 찬양 on 청중 화면 uses white NanumSquare ExtraBold
   (weight 800) at 108 px, centered horizontally and top aligned, with -3 px
   tracking, 137 px line spacing, and no shadow or outline. Its text frame is
-  (132, 141, 1656, 411), leaving room for three lines at the same size and
-  pitch; the first line's ink starts near y=157. Missing fonts fall back to
-  Pretendard. The theme inherits 화면 기본; each song keeps its own background
-  picture through the normal background and media elements. The broadcast screen
-  uses the new lower third, the stage uses the new-library stage layout below,
-  and saved themes are not migrated.
+  (14, 141, 1892, 411), the full PowerPoint lyric box minus its insets, leaving
+  room for three lines at the same size and pitch; the first line's ink starts
+  near y=157. Missing fonts fall back to Pretendard. The theme inherits 화면
+  기본; each song keeps its own background picture through the normal background
+  and media elements. The broadcast screen uses the new lower third, the stage
+  uses the new-library stage layout below, and saved themes are not migrated.
 - New libraries also include 찬양 (밝은 배경) in the same theme list. Its
   audience lyrics use black (#000000) in the wider frame (36, 141, 1848, 411),
   with the same typography as 찬양. Its title and optional subtitle are also
-  black. The white 찬양 frame stays (132, 141, 1656, 411). It keeps the song's
+  black. The white 찬양 frame stays (14, 141, 1892, 411). It keeps the song's
   normal picture over a white (#FFFFFF) background and the existing broadcast
   and stage layouts. Operators pick this variant explicitly; the song default
   and saved catalogs are unchanged.

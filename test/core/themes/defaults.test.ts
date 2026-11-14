@@ -40,7 +40,7 @@ it('places song lyrics near the top while retaining the starter broadcast styles
       {kind: 'media'},
       {
         kind: 'currentText',
-        frame: {x: 132, y: 141, w: 1656, h: 411},
+        frame: {x: 14, y: 141, w: 1892, h: 411},
         text: {
           font: 'NanumSquare',
           weight: 800,

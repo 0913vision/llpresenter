@@ -314,9 +314,9 @@ it('shows clean geometry after selection and preserves explicitly typed precisio
   const {value} = setup();
   fireEvent.click(await screen.findByRole('button', {name: '현재 가사'}));
   for (const [name, shown] of [
-    ['X', '132'],
+    ['X', '14'],
     ['Y', '141'],
-    ['W', '1656'],
+    ['W', '1892'],
     ['H', '411'],
   ] as const) {
     expect(screen.getByRole('spinbutton', {name})).toHaveProperty(
@@ -325,15 +325,15 @@ it('shows clean geometry after selection and preserves explicitly typed precisio
     );
   }
   const x = screen.getByRole('spinbutton', {name: 'X'});
-  fireEvent.change(x, {target: {value: '115.253'}});
+  fireEvent.change(x, {target: {value: '15.253'}});
   fireEvent.keyDown(x, {key: 'Enter'});
   await saveEdits();
   await waitFor(() => {
     const current = value().themes[0]?.screens[MAIN]?.elements.find(
       element => element.kind === 'currentText',
     );
-    expect(current?.frame.x).toBe(115.253);
-    expect(x).toHaveProperty('value', '115.3');
+    expect(current?.frame.x).toBe(15.253);
+    expect(x).toHaveProperty('value', '15.3');
   });
 });
 
@@ -910,7 +910,7 @@ it('marks standby as live while the output is idle', async () => {
   ).not.toContain('LIVE');
 });
 
-const EDITED_X = 120;
+const EDITED_X = 10;
 const SERVICE_ID = '00000000-0000-4000-8000-000000000010';
 const itemId = (index: number) =>
   `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;

@@ -38,7 +38,7 @@ it('offers native-width dark audience lyrics while retaining the white song fram
         ?.screens[screen.id]?.elements.find(
           element => element.kind === 'currentText',
         )?.frame,
-    ).toEqual({x: 132, y: 141, w: 1656, h: 411});
+    ).toEqual({x: 14, y: 141, w: 1892, h: 411});
     expect(variant?.elements).toEqual(
       original?.elements.map(element =>
         element.kind === 'currentText'
