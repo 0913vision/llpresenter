@@ -301,7 +301,7 @@ describe('automatic inline slides editor', () => {
         );
         if (firstRow === null) throw new Error('Missing first slide');
         fireEvent.click(firstRow);
-        fireEvent.click(screen.getByRole('button', {name: '???? ??'}));
+        fireEvent.click(screen.getByRole('button', {name: '슬라이드 추가'}));
         await act(async () => {
           await pendingWritesOf(f.api).settleDrafts();
         });
