@@ -14,6 +14,12 @@ import {
 } from './problemNotices';
 
 function problemGroup(problem: AppProblem): string {
+  if (
+    problem.kind === 'ndi-gpu-fallback' ||
+    problem.kind === 'ndi-gpu-recovered'
+  ) {
+    return 'ndi-gpu';
+  }
   if (problem.kind === 'protection-write') {
     return `${problem.kind}:${problem.target}`;
   }
@@ -67,6 +73,9 @@ export function useProblemNotices(
             time: noticeTime(),
             title: '하드웨어 가속을 쓸 수 없어 일반 방식으로 보냅니다',
           });
+          return;
+        case 'ndi-gpu-recovered':
+          close('ndi-gpu-fallback');
           return;
         case 'ndi-failed':
           show({
@@ -138,7 +147,8 @@ export function useProblemNotices(
       if (
         (problem.kind === 'protection-write' ||
           problemGroup(problem) === 'save' ||
-          problemGroup(problem) === 'backup') &&
+          problemGroup(problem) === 'backup' ||
+          problemGroup(problem) === 'ndi-gpu') &&
         pushed.has(problemGroup(problem))
       ) {
         return;

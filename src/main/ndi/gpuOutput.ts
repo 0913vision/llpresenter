@@ -9,6 +9,7 @@ import {
 import {join} from 'node:path';
 import type {Logger} from '../log';
 import type {OutputScreen} from '../outputs/screens';
+import type {BitmapSender} from './output';
 import type {
   OutputWindowEvents,
   OutputWindowHandle,
@@ -33,40 +34,189 @@ interface Options {
   log: Logger;
   onFailure: (id: string, missing: boolean) => void;
   onGpuFallback?: () => void;
+  onGpuRecovered?: () => void;
 }
-/** Creates the shared-texture sender and falls back to bitmap on GPU failure. */
+
+// NOTE(0913vision): Let the old utility's stop deadline finish before retrying.
+const START_RETRY_MS = 2500;
+const NOTICE_DELAY_MS = 60_000;
+const RETRY_DELAYS_MS = [5000, 15_000, 60_000, 120_000] as const;
+const startupFailure = (reason: unknown): boolean =>
+  reason === 'no shared texture paint' ||
+  reason === 'GPU utility startup timeout';
+
+/** Keeps bitmap output live while checking whether shared textures have recovered. */
 export function createGpuOutput(
   screen: OutputScreen,
   events: OutputWindowEvents,
-  {options, bitmap}: {options: Options; bitmap: () => OutputWindowHandle},
+  {options, bitmap}: {options: Options; bitmap: () => BitmapSender},
 ): OutputWindowHandle {
   let active = false;
+  let closed = false;
   let current = screen;
-  let switched = false;
+  let mode: 'gpu' | 'waiting' | 'bitmap' = 'gpu';
+  let startupRetried = false;
+  let retryIndex = 0;
+  let noticeShown = false;
+  let retryTimer: ReturnType<typeof setTimeout> | null = null;
+  let noticeTimer: ReturnType<typeof setTimeout> | null = null;
+  let probe: OutputWindowHandle | null = null;
+  let sink: BitmapSender | null = null;
   let capture = {x: 0, y: 0, width: NDI_FRAME_WIDTH, height: NDI_FRAME_HEIGHT};
   let delegate: OutputWindowHandle;
-  const fallback = (reason: unknown): void => {
-    if (switched) return;
-    switched = true;
+  const clearTimers = (): void => {
+    if (retryTimer !== null) clearTimeout(retryTimer);
+    if (noticeTimer !== null) clearTimeout(noticeTimer);
+    retryTimer = null;
+    noticeTimer = null;
+  };
+  const clearNotice = (): void => {
+    if (!noticeShown) return;
+    noticeShown = false;
+    options.onGpuRecovered?.();
+  };
+  const scheduleProbe = (): void => {
+    if (
+      !active ||
+      closed ||
+      mode !== 'bitmap' ||
+      retryTimer !== null ||
+      probe !== null
+    ) {
+      return;
+    }
+    const delay =
+      RETRY_DELAYS_MS[Math.min(retryIndex, RETRY_DELAYS_MS.length - 1)] ??
+      120_000;
+    retryIndex++;
+    retryTimer = setTimeout(() => {
+      retryTimer = null;
+      if (!active || closed || mode !== 'bitmap') return;
+      options.log.info('retrying NDI hardware acceleration');
+      const candidate = makeGpu(true);
+      probe = candidate;
+      candidate.showCapture(capture);
+    }, delay);
+  };
+  const enterBitmap = (reason: unknown): void => {
+    if (mode === 'bitmap' || closed || !active) return;
+    mode = 'bitmap';
     options.log.warn(
       'NDI shared texture unavailable; using bitmap output',
       reason,
     );
-    options.onGpuFallback?.();
     delegate.destroy();
-    delegate = bitmap();
+    sink ??= bitmap();
+    sink.setGpuInput(false);
+    delegate = sink;
     delegate.configure(current);
-    if (active) delegate.showCapture(capture);
+    delegate.showCapture(capture);
+    retryIndex = 0;
+    noticeTimer = setTimeout(() => {
+      noticeTimer = null;
+      if (active && mode === 'bitmap' && !closed) {
+        noticeShown = true;
+        options.onGpuFallback?.();
+      }
+    }, NOTICE_DELAY_MS);
+    scheduleProbe();
   };
-  delegate = gpuHandle(screen, events, {
-    log: options.log,
-    fallback,
-    runtimeMissing: () => options.onFailure(current.id, true),
-  });
+  const makeGpu = (background: boolean): OutputWindowHandle => {
+    let isProbe = background;
+    const failed = (reason: unknown): void => {
+      if (closed || !active) return;
+      if (isProbe) {
+        if (probe !== candidate) return;
+        probe = null;
+        sink?.setGpuInput(false);
+        candidate.destroy();
+        scheduleProbe();
+        return;
+      }
+      if (delegate !== candidate || mode !== 'gpu') return;
+      if (startupFailure(reason) && !startupRetried) {
+        startupRetried = true;
+        mode = 'waiting';
+        candidate.destroy();
+        retryTimer = setTimeout(() => {
+          retryTimer = null;
+          if (!active || closed || mode !== 'waiting') return;
+          mode = 'gpu';
+          delegate = makeGpu(false);
+          delegate.showCapture(capture);
+        }, START_RETRY_MS);
+      } else enterBitmap(reason);
+    };
+    const promote = (): void => {
+      if (
+        !isProbe ||
+        probe !== candidate ||
+        !active ||
+        mode !== 'bitmap' ||
+        closed
+      ) {
+        return;
+      }
+      probe = null;
+      isProbe = false;
+      delegate = candidate;
+      mode = 'gpu';
+      clearTimers();
+      clearNotice();
+      startupRetried = false;
+    };
+    const candidate = gpuHandle(
+      current,
+      background
+        ? {
+            ...events,
+            onRendererGone: details => {
+              if (isProbe) failed(details);
+              else events.onRendererGone(details);
+            },
+          }
+        : events,
+      {
+        log: options.log,
+        fallback: failed,
+        runtimeMissing: () => {
+          if (isProbe) failed('NDI runtime missing');
+          else options.onFailure(current.id, true);
+        },
+        live: () => {
+          if (!background && delegate === candidate) startupRetried = false;
+        },
+        ...(background
+          ? {
+              pixels: (data: Uint8Array, release: () => void) => {
+                if (
+                  !sink ||
+                  !active ||
+                  closed ||
+                  (isProbe ? probe !== candidate : delegate !== candidate)
+                ) {
+                  release();
+                  return;
+                }
+                sink.setGpuInput(true);
+                sink.submitGpuPixels(data, () => {
+                  release();
+                  promote();
+                });
+              },
+            }
+          : {}),
+      },
+    );
+    return candidate;
+  };
+  delegate = makeGpu(false);
   return {
     configure: next => {
       current = next;
       delegate.configure(next);
+      if (sink && sink !== delegate) sink.configure(next);
+      probe?.configure(next);
     },
     prepare: (bounds, kind) => delegate.prepare(bounds, kind),
     requestFrame: () => delegate.requestFrame(),
@@ -83,13 +233,34 @@ export function createGpuOutput(
     showCapture: (bounds, top) => {
       active = true;
       capture = bounds;
+      if (mode === 'waiting') {
+        mode = 'gpu';
+        delegate = makeGpu(false);
+      }
+      if (sink && sink !== delegate) sink.showCapture(bounds, top);
       delegate.showCapture(bounds, top);
+      if (mode === 'bitmap' && !noticeShown) {
+        noticeTimer ??= setTimeout(() => {
+          noticeTimer = null;
+          if (active && mode === 'bitmap' && !closed) {
+            noticeShown = true;
+            options.onGpuFallback?.();
+          }
+        }, NOTICE_DELAY_MS);
+        scheduleProbe();
+      }
     },
     prepareForMonitorRemoval: () => delegate.prepareForMonitorRemoval(),
     bringToFront: () => delegate.bringToFront(),
     bounds: () => delegate.bounds(),
     hide: () => {
       active = false;
+      clearTimers();
+      probe?.destroy();
+      probe = null;
+      sink?.setGpuInput(false);
+      if (sink && sink !== delegate) sink.hide();
+      clearNotice();
       delegate.hide();
     },
     reload: () => delegate.reload(),
@@ -97,10 +268,17 @@ export function createGpuOutput(
     ping: () => delegate.ping(),
     destroy: () => {
       active = false;
+      closed = true;
+      clearTimers();
+      probe?.destroy();
+      probe = null;
+      if (sink && sink !== delegate) sink.destroy();
+      clearNotice();
       delegate.destroy();
     },
   };
 }
+
 function gpuHandle(
   initial: OutputScreen,
   events: OutputWindowEvents,
@@ -108,10 +286,14 @@ function gpuHandle(
     log,
     fallback,
     runtimeMissing,
+    live,
+    pixels,
   }: {
     log: Logger;
     fallback: (reason: unknown) => void;
     runtimeMissing: () => void;
+    live: () => void;
+    pixels?: ((data: Uint8Array, release: () => void) => void) | undefined;
   },
 ): OutputWindowHandle {
   const win = new BrowserWindow({
@@ -253,6 +435,18 @@ function gpuHandle(
       fail('unsupported texture handle or pixel format');
       return;
     }
+    if (
+      pixels &&
+      !seenTexture &&
+      (dirty.x !== 0 ||
+        dirty.y !== 0 ||
+        dirty.width !== NDI_FRAME_WIDTH ||
+        dirty.height !== NDI_FRAME_HEIGHT)
+    ) {
+      texture.release();
+      win.webContents.invalidate();
+      return;
+    }
     if (!queue.busy && timeout !== null) {
       clearTimeout(timeout);
       timeout = null;
@@ -273,6 +467,7 @@ function gpuHandle(
         serviceName: 'GPU NDI output',
         env: {
           ...process.env,
+          LLP_NDI_PROBE: pixels ? '1' : '0',
           LLP_NDI_FPS: String(current.ndi?.fps ?? NDI_DEFAULT_FPS),
           LLP_NDI_DEFAULT_SOURCE_NAME: NDI_DEFAULT_SOURCE_NAME,
           LLP_NDI_SOURCE_NAME:
@@ -285,27 +480,43 @@ function gpuHandle(
     }
     child = worker;
     startWatchdog('GPU utility startup timeout');
-    worker.on('message', (m: {type: string; message?: string}) => {
-      if (child !== worker) return;
-      if (m.type === 'native-loaded') log.info('NDI native module loaded');
-      if (m.type === 'ready') {
-        if (timeout !== null) clearTimeout(timeout);
-        ready = true;
-        startWatchdog('no shared texture paint');
-        win.webContents.invalidate();
-      }
-      if (m.type === 'copied') {
-        if (timeout !== null) clearTimeout(timeout);
-        timeout = null;
-        queue.acknowledge();
-      }
-      if (m.type === 'error') {
-        if (m.message?.includes('NDI_RUNTIME_MISSING')) {
-          clear();
-          runtimeMissing();
-        } else fail(m.message);
-      }
-    });
+    worker.on(
+      'message',
+      (m: {type: string; message?: string; data?: Uint8Array}) => {
+        if (child !== worker) return;
+        if (m.type === 'native-loaded') log.info('NDI native module loaded');
+        if (m.type === 'ready') {
+          if (timeout !== null) clearTimeout(timeout);
+          ready = true;
+          startWatchdog('no shared texture paint');
+          win.webContents.invalidate();
+        }
+        if (m.type === 'live') live();
+        if (m.type === 'pixels' && pixels) {
+          if (
+            !(m.data instanceof Uint8Array) ||
+            m.data.byteLength !== NDI_FRAME_WIDTH * NDI_FRAME_HEIGHT * 4
+          ) {
+            fail('invalid GPU frame');
+            return;
+          }
+          pixels(m.data, () => {
+            queue.acknowledge();
+          });
+        }
+        if (m.type === 'copied') {
+          if (timeout !== null) clearTimeout(timeout);
+          timeout = null;
+          if (!pixels) queue.acknowledge();
+        }
+        if (m.type === 'error') {
+          if (m.message?.includes('NDI_RUNTIME_MISSING')) {
+            clear();
+            runtimeMissing();
+          } else fail(m.message);
+        }
+      },
+    );
     worker.on('exit', code => {
       if (child === worker) {
         child = null;

@@ -190,6 +190,7 @@ export function startOutputs({
       mode: windowMode,
       control,
     });
+  const gpuFallbacks = new Set<string>();
   const targetRegistry = {
     fullscreen: makeWindowTarget,
     window: makeWindowTarget,
@@ -197,7 +198,18 @@ export function startOutputs({
     ndi: (screen: OutputScreen, events: OutputWindowEvents) =>
       createNdiOutput(screen, events, {
         log,
-        onGpuFallback: () => problems?.report({kind: 'ndi-gpu-fallback'}),
+        onGpuFallback: () => {
+          gpuFallbacks.add(screen.id);
+          if (gpuFallbacks.size === 1) {
+            problems?.report({kind: 'ndi-gpu-fallback'});
+          }
+        },
+        onGpuRecovered: () => {
+          gpuFallbacks.delete(screen.id);
+          if (gpuFallbacks.size === 0) {
+            problems?.report({kind: 'ndi-gpu-recovered'});
+          }
+        },
         onFailure: (id, missing) => {
           if (missing) problems?.report({kind: 'ndi-runtime-missing'});
           else problems?.report({kind: 'ndi-failed'});

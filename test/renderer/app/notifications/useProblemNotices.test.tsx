@@ -81,6 +81,24 @@ describe('useProblemNotices', () => {
       title: '하드웨어 가속을 쓸 수 없어 일반 방식으로 보냅니다',
     });
   });
+  it('clears the GPU fallback notice on recovery', async () => {
+    const {target, push} = setup();
+    await act(async () => undefined);
+    push({kind: 'ndi-gpu-fallback'});
+    push({kind: 'ndi-gpu-recovered'});
+    expect(target.dismiss).toHaveBeenCalledWith('ndi-gpu-fallback');
+  });
+  it('does not resurrect a stale GPU warning after recovery', async () => {
+    let resolve: (problems: readonly AppProblem[]) => void = () => undefined;
+    const pending = new Promise<readonly AppProblem[]>(done => {
+      resolve = done;
+    });
+    const {target, push} = setup(pending);
+    push({kind: 'ndi-gpu-recovered'});
+    await act(async () => resolve([{kind: 'ndi-gpu-fallback'}]));
+    expect(target.report).not.toHaveBeenCalled();
+    expect(target.dismiss).toHaveBeenCalledWith('ndi-gpu-fallback');
+  });
   it('shows protection warnings independently and clears each after recovery', async () => {
     const {target, push} = setup();
     await act(async () => undefined);

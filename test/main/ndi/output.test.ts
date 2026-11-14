@@ -58,10 +58,16 @@ function setup(gpu: boolean | 'absent' = false) {
   });
   const failure = vi.fn();
   const fallback = vi.fn();
+  const recovered = vi.fn();
   const handle = createNdiOutput(
     screen,
     {onRendererGone: vi.fn(), onCloseRequested: vi.fn()},
-    {log: recordingLogger(), onFailure: failure, onGpuFallback: fallback},
+    {
+      log: recordingLogger(),
+      onFailure: failure,
+      onGpuFallback: fallback,
+      onGpuRecovered: recovered,
+    },
   );
   const win = mocks.windows.at(-1);
   if (!win) throw new Error('Missing window');
@@ -74,7 +80,7 @@ function setup(gpu: boolean | 'absent' = false) {
     getSize: () => ({width: 1920, height: 1080}),
     crop: vi.fn(() => ({toBitmap: () => Buffer.alloc(4)})),
   });
-  return {screen, failure, fallback, handle, win, worker, image};
+  return {screen, failure, fallback, recovered, handle, win, worker, image};
 }
 
 beforeEach(() => {
@@ -294,6 +300,101 @@ describe('GPU NDI output', () => {
     };
   }
   const full = {x: 0, y: 0, width: 1920, height: 1080};
+  it('retries a startup timeout once before using bitmap', () => {
+    const {handle, worker, fallback} = setup(true);
+    handle.showCapture(full);
+    worker().emit('message', {type: 'ready'});
+    vi.advanceTimersByTime(5000);
+    expect(mocks.workers).toHaveLength(1);
+    vi.advanceTimersByTime(2500);
+    expect(mocks.workers).toHaveLength(2);
+    worker().emit('message', {type: 'ready'});
+    vi.advanceTimersByTime(5000);
+    expect(mocks.windows).toHaveLength(3);
+    expect(fallback).not.toHaveBeenCalled();
+    handle.destroy();
+  });
+  it('keeps bitmap sending until the GPU probe sends its first frame', () => {
+    const {handle, worker} = setup(true);
+    handle.showCapture(full);
+    worker().emit('message', {type: 'error', message: 'GPU failure'});
+    const bitmap = worker();
+    bitmap.emit('message', {type: 'ready'});
+    vi.advanceTimersByTime(5000);
+    const candidate = worker();
+    const probeWindow = mocks.windows.at(-1);
+    if (!probeWindow) throw new Error('Missing GPU probe');
+    candidate.emit('message', {type: 'ready'});
+    const partial = texture();
+    probeWindow.webContents.emit(
+      'paint',
+      {texture: partial},
+      {x: 0, y: 0, width: 1, height: 1},
+      {},
+    );
+    expect(partial.release).toHaveBeenCalledOnce();
+    expect(candidate.postMessage).not.toHaveBeenCalledWith(
+      expect.objectContaining({type: 'frame'}),
+    );
+    const frame = texture();
+    probeWindow.webContents.emit('paint', {texture: frame}, full, {});
+    candidate.emit('message', {type: 'copied'});
+    candidate.emit('message', {
+      type: 'pixels',
+      data: Buffer.alloc(1920 * 1080 * 4),
+    });
+    expect(bitmap.postMessage).toHaveBeenCalledWith(
+      expect.objectContaining({type: 'frame'}),
+    );
+    expect(bitmap.postMessage).not.toHaveBeenCalledWith({type: 'stop'});
+    expect(frame.release).not.toHaveBeenCalled();
+    bitmap.emit('message', {type: 'sent'});
+    expect(frame.release).toHaveBeenCalledOnce();
+    expect(bitmap.postMessage).not.toHaveBeenCalledWith({type: 'stop'});
+    candidate.emit('message', {type: 'error', message: 'GPU failed again'});
+    expect(mocks.workers).toHaveLength(3);
+    handle.destroy();
+  });
+  it('shows a persistent fallback after 60 seconds and clears it after recovery', () => {
+    const {handle, worker, fallback, recovered} = setup(true);
+    handle.showCapture(full);
+    worker().emit('message', {type: 'error', message: 'GPU failure'});
+    const bitmap = worker();
+    bitmap.emit('message', {type: 'ready'});
+    vi.advanceTimersByTime(5000);
+    worker().emit('message', {type: 'error', message: 'GPU failure'});
+    vi.advanceTimersByTime(15000);
+    worker().emit('message', {type: 'error', message: 'GPU failure'});
+    vi.advanceTimersByTime(39999);
+    expect(fallback).not.toHaveBeenCalled();
+    vi.advanceTimersByTime(1);
+    expect(fallback).toHaveBeenCalledOnce();
+    vi.advanceTimersByTime(20000);
+    const candidate = worker();
+    const probeWindow = mocks.windows.at(-1);
+    if (!probeWindow) throw new Error('Missing GPU probe');
+    candidate.emit('message', {type: 'ready'});
+    probeWindow.webContents.emit('paint', {texture: texture()}, full, {});
+    candidate.emit('message', {type: 'copied'});
+    candidate.emit('message', {
+      type: 'pixels',
+      data: Buffer.alloc(1920 * 1080 * 4),
+    });
+    bitmap.emit('message', {type: 'sent'});
+    expect(recovered).toHaveBeenCalledOnce();
+    handle.destroy();
+  });
+  it('cancels retries and notices when hidden', () => {
+    const {handle, worker, fallback} = setup(true);
+    handle.showCapture(full);
+    worker().emit('message', {type: 'error', message: 'GPU failure'});
+    const count = mocks.workers.length;
+    handle.hide();
+    vi.advanceTimersByTime(180_000);
+    expect(mocks.workers).toHaveLength(count);
+    expect(fallback).not.toHaveBeenCalled();
+    handle.destroy();
+  });
   it('keeps a texture until copy acknowledgement and until worker exit on stop', () => {
     const {handle, win, worker} = setup(true);
     handle.showCapture(full);
@@ -310,15 +411,17 @@ describe('GPU NDI output', () => {
     worker().emit('exit', 0);
     expect(b.release).toHaveBeenCalledOnce();
   });
-  it('falls back and reports one notice after a GPU error', () => {
+  it('falls back immediately and delays the notice after a GPU error', () => {
     const {handle, worker, fallback} = setup(true);
     handle.showCapture(full);
     const gpuWorker = worker();
     gpuWorker.emit('message', {type: 'error', message: 'open failed'});
     gpuWorker.emit('message', {type: 'error', message: 'open failed'});
-    expect(fallback).toHaveBeenCalledOnce();
+    expect(fallback).not.toHaveBeenCalled();
     expect(mocks.windows).toHaveLength(2);
     expect(mocks.workers).toHaveLength(2);
+    vi.advanceTimersByTime(60_000);
+    expect(fallback).toHaveBeenCalledOnce();
     handle.destroy();
   });
   it('continues after queue overflow when painting stops', () => {
@@ -365,14 +468,16 @@ describe('GPU NDI output', () => {
     bad.textureInfo.handle.ntHandle = Buffer.alloc(1);
     win.webContents.emit('paint', {texture: bad}, full, {});
     expect(bad.release).toHaveBeenCalledOnce();
-    expect(fallback).toHaveBeenCalledOnce();
+    expect(fallback).not.toHaveBeenCalled();
+    expect(mocks.windows).toHaveLength(2);
     handle.destroy();
   });
   it('falls back once if the GPU utility crashes', () => {
     const {handle, worker, fallback} = setup(true);
     handle.showCapture(full);
     worker().emit('exit', 1);
-    expect(fallback).toHaveBeenCalledOnce();
+    expect(fallback).not.toHaveBeenCalled();
+    expect(mocks.windows).toHaveLength(2);
     handle.destroy();
   });
   it('starts with acceleration when the option is absent', () => {
