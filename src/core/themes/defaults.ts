@@ -46,11 +46,12 @@ const uuid = (index: number) =>
   `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
 export const IMAGE_SLIDES_THEME_ID = createThemeId(uuid(107));
 export const AD_THEME_ID = createThemeId(uuid(105));
+export const BIBLE_THEME_ID = createThemeId(uuid(102));
 const themeIds = {
   song: SONG_THEME_ID,
-  bible: createThemeId(uuid(102)),
+  bible: BIBLE_THEME_ID,
   media: createThemeId(uuid(104)),
-  blank: createThemeId(uuid(102)),
+  blank: BIBLE_THEME_ID,
   ad: AD_THEME_ID,
 };
 const names = {
@@ -235,10 +236,10 @@ function stageElements(kind: ThemeItemKind = 'song'): ThemeElement[] {
       id: createThemeElementId(uuid(9)),
       kind: 'reference',
       source: 'item',
-      frame: {x: 154, y: 130, w: 1612, h: 90},
+      frame: {x: 154, y: 120, w: 1612, h: 104},
       text: {
         ...text,
-        size: 48,
+        size: 72,
         align: 'left',
         vAlign: 'middle',
         lineHeight: 1.1,
@@ -425,7 +426,20 @@ export function sermonTitleScreenLayout(
 export function legacySermonTitleLayout(
   screen: ThemeScreen,
 ): ThemeScreenLayout {
-  return layoutFor(screen, 'bible');
+  const layout = layoutFor(screen, 'bible');
+  if (screen.kind !== 'stage') return layout;
+  return {
+    ...layout,
+    elements: layout.elements.map(element =>
+      element.kind === 'reference'
+        ? {
+            ...element,
+            frame: {...element.frame, y: 130, h: 90},
+            text: {...element.text, size: 48},
+          }
+        : element,
+    ),
+  };
 }
 
 /** The former unmodified section layout, used only when resolving saved defaults. */

@@ -167,8 +167,8 @@ it('shows a small left-aligned Bible reference above its stage text', () => {
   const stage = createScreenId(STARTER_SCREEN_IDS.stage);
   const elements = builtInTheme('bible').screens[stage]?.elements ?? [];
   expect(elements.find(element => element.kind === 'reference')).toMatchObject({
-    frame: {x: 154, y: 130},
-    text: {size: 48, align: 'left'},
+    frame: {x: 154, y: 120, h: 104},
+    text: {size: 72, align: 'left'},
   });
   expect(
     elements.find(element => element.kind === 'currentText'),
@@ -351,10 +351,13 @@ it('offers one sermon title theme with automatic bars', () => {
   const stage = theme?.screens[createScreenId(STARTER_SCREEN_IDS.stage)];
   expect(
     stage?.elements.find(element => element.kind === 'itemName'),
-  ).toMatchObject({text: {size: 48, align: 'center'}});
+  ).toMatchObject({frame: {y: 245, h: 90}, text: {size: 66, align: 'center'}});
   expect(
     stage?.elements.find(element => element.kind === 'currentText'),
-  ).toMatchObject({text: {size: 104, align: 'center'}});
+  ).toMatchObject({
+    frame: {y: 345},
+    text: {size: 104, align: 'center', maxLines: 4},
+  });
   expect(
     stage?.elements.filter(
       element => element.kind === 'clock' || element.kind === 'nextText',

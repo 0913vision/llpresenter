@@ -200,10 +200,10 @@ export function sermonTitleStageLayout(
             {
               id: id(13),
               kind: 'itemName' as const,
-              frame: {x: 154, y: 260, w: 1612, h: 72},
+              frame: {x: 154, y: 245, w: 1612, h: 90},
               text: {
                 ...text,
-                size: 48,
+                size: 66,
                 tracking: 0,
                 lineHeight: 1.2,
                 align: 'center' as const,

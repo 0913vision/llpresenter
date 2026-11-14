@@ -12,6 +12,7 @@ import {
   withStageStandby,
   sermonTitleScreenLayout,
   legacySermonTitleLayout,
+  BIBLE_THEME_ID,
   type ThemeScreen,
 } from './defaults';
 import {themeElementProblem, type ThemeItemKind} from './elementRules';
@@ -106,6 +107,37 @@ function resolvedSermonLayout(
     : layout;
 }
 
+function resolvedBibleStageLayout(
+  theme: Theme,
+  layout: ThemeScreenLayout,
+  source: Pick<Screen, 'id' | 'kind'> | undefined,
+): ThemeScreenLayout {
+  if (theme.id !== BIBLE_THEME_ID || source?.kind !== 'stage') return layout;
+  const screen = {
+    id: source.id,
+    kind: source.kind,
+    method: 'fullscreen' as const,
+  };
+  const previous = legacySermonTitleLayout(screen).elements.find(
+    element => element.kind === 'reference',
+  );
+  const updated = builtInTheme('bible', [screen]).screens[
+    source.id
+  ]?.elements.find(element => element.kind === 'reference');
+  if (
+    !previous ||
+    !updated ||
+    !layout.elements.some(element => sameJson(element, previous))
+  )
+    {return layout;}
+  return {
+    ...layout,
+    elements: layout.elements.map(element =>
+      sameJson(element, previous) ? updated : element,
+    ),
+  };
+}
+
 export interface ResolvedThemeScreen {
   readonly sourceScreenId: ScreenId;
   readonly layout: ThemeScreenLayout;
@@ -177,6 +209,7 @@ export function resolveThemeScreen(
         resolved = {...layout, songTitle: 'sunday'};
       }
       resolved = resolvedSectionLayout(theme, resolved, source);
+      resolved = resolvedBibleStageLayout(theme, resolved, source);
       return themeElementProblem(resolved.elements, destination.kind) ===
         undefined
         ? {sourceScreenId: current, layout: resolved}

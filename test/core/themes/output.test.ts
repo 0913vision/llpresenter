@@ -17,8 +17,45 @@ import {createServiceItemId} from '@core/schema/ids';
 import {newSlidesItem} from '@core/services/slidesEdits';
 import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
 import {legacySermonTitleLayout} from '@core/themes/defaults';
+import {BIBLE_THEME_ID} from '@core/themes/defaults';
 
 describe('published theme compositions', () => {
+  it('updates an untouched saved Bible stage reference without replacing other edits', () => {
+    const file = themeFile();
+    const theme = file.themes.find(entry => entry.id === BIBLE_THEME_ID);
+    const stage = themeScreens.find(screen => screen.id === THEME_STAGE);
+    if (!theme || !stage) throw Error('Missing Bible stage');
+    const old = legacySermonTitleLayout(stage);
+    const edited = {
+      ...theme,
+      edited: true,
+      screens: {...theme.screens, [stage.id]: {...old, background: '#112233'}},
+    };
+    const resolved = resolveThemeScreen(edited, stage.id, themeScreens).layout;
+    expect(resolved.background).toBe('#112233');
+    expect(
+      resolved.elements.find(element => element.kind === 'reference'),
+    ).toMatchObject({frame: {y: 120, h: 104}, text: {size: 72}});
+    const custom = {
+      ...edited,
+      screens: {
+        ...edited.screens,
+        [stage.id]: {
+          ...old,
+          elements: old.elements.map(element =>
+            element.kind === 'reference'
+              ? {...element, text: {...element.text, size: 60}}
+              : element,
+          ),
+        },
+      },
+    };
+    expect(
+      resolveThemeScreen(custom, stage.id, themeScreens).layout.elements.find(
+        element => element.kind === 'reference',
+      ),
+    ).toMatchObject({text: {size: 60}});
+  });
   it('updates untouched legacy sermon screens while preserving edited layouts', () => {
     const file = themeFile();
     const theme = file.themes.find(entry => entry.id === SERMON_TITLE_THEME_ID);
