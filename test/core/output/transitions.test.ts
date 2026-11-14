@@ -74,3 +74,26 @@ describe('backward transitions', () => {
     ).toEqual({kind: 'none', sec: 0.5});
   });
 });
+
+it.each(['left', 'right', 'up', 'down'] as const)(
+  'plays the reverse of a %s push with its original duration',
+  dir => {
+    const opposite = {
+      left: 'right',
+      right: 'left',
+      up: 'down',
+      down: 'up',
+    } as const;
+    const outgoing = {kind: 'push' as const, dir, sec: 1.5};
+    expect(
+      slideTransitionFor(defaults, 'other', {
+        ...slide,
+        transition: {kind: 'wipe', sec: 3},
+        reverseTransition: outgoing,
+      }),
+    ).toEqual({kind: 'push', dir: opposite[dir], sec: 1.5});
+    expect(
+      slideTransitionFor(defaults, 'other', {...slide, transition: outgoing}),
+    ).toEqual(outgoing);
+  },
+);

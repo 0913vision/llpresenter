@@ -159,6 +159,46 @@ describe('show state', () => {
     expect(command?.slide.next).toBeUndefined();
   });
 
+  it('uses the current slide effect when going back but the target effect on a direct click', () => {
+    const target = {kind: 'wipe' as const, dir: 'left' as const, sec: 3};
+    const leaving = {kind: 'push' as const, dir: 'right' as const, sec: 1.5};
+    useShow.setState(state => ({
+      tiles: {
+        ...state.tiles,
+        'song-morning': (state.tiles['song-morning'] ?? []).map(
+          (tile, index) => (index === 0 ? {...tile, transition: target} : tile),
+        ),
+      },
+    }));
+    setLive('song-morning', 1);
+    const state = useLive.getState().state;
+    if (state?.layers.slide == null) {
+      throw Error('Missing live slide');
+    }
+    useLive.setState({
+      state: {
+        ...state,
+        layers: {
+          ...state.layers,
+          slide: {...state.layers.slide, transition: leaving},
+        },
+      },
+    });
+    openItem('song-morning');
+    outputPrevious();
+    expect(slides().at(-1)?.slide).toMatchObject({
+      position: 0,
+      transition: target,
+      reverseTransition: leaving,
+    });
+    outputTile({itemId: 'song-morning', index: 0});
+    expect(slides().at(-1)?.slide).toMatchObject({
+      position: 0,
+      transition: target,
+    });
+    expect(slides().at(-1)?.slide.reverseTransition).toBeUndefined();
+  });
+
   it('continues to the last slide of the previous item when enabled', () => {
     setLive('song-river', 0);
     openItem('song-river');
