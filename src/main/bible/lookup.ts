@@ -1,3 +1,5 @@
+import {BibleChapterCache} from './chapterCache';
+import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {
   BIBLE_LOOKUP_LIMITS,
@@ -25,7 +27,11 @@ async function suggestions(request: BibleLookupRequest, library: BibleLibrary) {
   for (const book of matchBooks(name)) {
     const input = `${book.korean} ${range.trim()}`.trim();
     if (input.length > BIBLE_LOOKUP_LIMITS.input) continue;
-    const result = await library.resolve(request.translation, input);
+    const result = await library.resolve(
+      request.translation,
+      input,
+      request.translation === LIVE_BIBLE_ID,
+    );
     candidates.push({
       bookId: book.id,
       name: book.korean,
@@ -46,6 +52,7 @@ async function suggestions(request: BibleLookupRequest, library: BibleLibrary) {
 /** Primes header indexes at startup and caps serialized lookup work. */
 export class BibleLookupSession {
   private library: BibleLibrary | null = null;
+  private readonly cache = new BibleChapterCache();
   private readonly warnedFiles = new Set<string>();
   private translationsKey: string | null = null;
   private pending: Promise<void> = Promise.resolve();
@@ -64,12 +71,15 @@ export class BibleLookupSession {
     );
   }
 
-  lookup(request: BibleLookupRequest): Promise<BibleLookupReply> {
+  lookup(
+    request: BibleLookupRequest,
+    cacheOnly = false,
+  ): Promise<BibleLookupReply> {
     if (this.disposed || this.waiting >= BIBLE_LOOKUP_LIMITS.pending) {
       return Promise.reject(new Error('Bible lookup is unavailable'));
     }
     this.waiting++;
-    const answer = this.pending.then(() => this.resolve(request));
+    const answer = this.pending.then(() => this.resolve(request, cacheOnly));
     this.pending = answer.then(
       () => {
         this.waiting--;
@@ -107,6 +117,7 @@ export class BibleLookupSession {
       this.needsRefresh = false;
       const loaded = await loadBibleLibrary({
         folder: this.options.folder,
+        cache: this.cache,
         translations: document.value.translations,
         onProblem: problem => {
           this.needsRefresh = true;
@@ -123,7 +134,7 @@ export class BibleLookupSession {
         loaded.clear();
         this.ensureOpen();
       }
-      this.library?.clear();
+      this.library?.clear(true);
       this.library = loaded;
       this.translationsKey = key;
     }
@@ -132,10 +143,15 @@ export class BibleLookupSession {
 
   private async resolve(
     request: BibleLookupRequest,
+    cacheOnly: boolean,
   ): Promise<BibleLookupReply> {
     const library = await this.refresh();
     if (!library) throw new Error('Bible settings are unavailable');
-    const result = await library.resolve(request.translation, request.input);
+    const result = await library.resolve(
+      request.translation,
+      request.input,
+      cacheOnly,
+    );
     const candidates = await suggestions(request, library);
     const [, name = ''] = BOOK_PREFIX.exec(request.input.trim()) ?? [];
     const bounds = library.bounds(request.translation, name);

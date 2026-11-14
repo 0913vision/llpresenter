@@ -1,3 +1,4 @@
+import {withLiveBible} from '@core/bible/liveTranslation';
 import {useRef} from 'react';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useEffect, useState, type JSX} from 'react';
@@ -65,7 +66,9 @@ export function BibleQuickField({
       stopSelection();
     };
   }, [api.settings]);
-  const translations = document?.value.translations ?? [];
+  const translations = document
+    ? withLiveBible(document.value.translations)
+    : [];
   return (
     <div ref={root}>
       <BibleReferenceField

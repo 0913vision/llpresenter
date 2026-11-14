@@ -1,3 +1,5 @@
+import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
+import {fetchLiveChapter} from './liveChapter';
 import {basename, extname, join} from 'node:path';
 import type {Translation} from '@core/schema/bible';
 import type {FileError} from '@core/schema/fileFormat';
@@ -10,6 +12,7 @@ import {
 
 export interface BibleChapterLibraryOptions {
   readonly folder: string;
+  readonly cache?: BibleChapterCache;
   readonly translations: readonly Translation[];
   readonly onProblem: (problem: FileError) => void;
 }
@@ -23,15 +26,15 @@ function fileProblem(file: string, error: unknown): FileError {
   };
 }
 
-/** Owns header indexes and a bounded global chapter cache for one load. */
+/** Owns translation indexes and the in-memory chapter cache. */
 export class BibleChapterLibrary {
   private readonly files = new Map<string, BibleChapterFile>();
-  private readonly cache = new BibleChapterCache();
   private closed = false;
 
   constructor(
     files: readonly BibleChapterFile[],
     private readonly onProblem: (problem: FileError) => void,
+    private readonly cache = new BibleChapterCache(),
   ) {
     for (const file of files) this.files.set(file.header.id, file);
   }
@@ -44,11 +47,36 @@ export class BibleChapterLibrary {
     return this.files.get(translation)?.header;
   }
 
+  cachedChapter(
+    translation: string,
+    book: number,
+    chapter: number,
+  ): readonly string[] | null {
+    return this.closed
+      ? null
+      : (this.cache.read(translation, book, chapter) ?? null);
+  }
+
   async chapter(
     translation: string,
     book: number,
     chapter: number,
   ): Promise<readonly string[] | null> {
+    if (translation === LIVE_BIBLE_ID) {
+      if (this.closed) return null;
+      const cached = this.cache.read(translation, book, chapter);
+      if (cached) return cached;
+      const verses = await fetchLiveChapter(book, chapter);
+      if (!verses || this.isClosed()) return null;
+      this.cache.store({
+        translation,
+        book,
+        chapter,
+        bytes: Buffer.byteLength(JSON.stringify(verses)),
+        verses,
+      });
+      return verses;
+    }
     const indexed = this.files.get(translation);
     const entry = indexed?.header.books
       .find(candidate => candidate.id === book)
@@ -79,16 +107,22 @@ export class BibleChapterLibrary {
     }
   }
 
-  clear(): void {
+  private isClosed(): boolean {
+    return this.closed;
+  }
+
+  clear(preserveLive = false): void {
     this.closed = true;
     this.files.clear();
-    this.cache.clear();
+    if (preserveLive) this.cache.clearFiles();
+    else this.cache.clear();
   }
 }
 
 /** Loads only installed headers and reports each broken file once per load. */
 export async function loadBibleChapterLibrary({
   folder,
+  cache,
   translations,
   onProblem,
 }: BibleChapterLibraryOptions): Promise<BibleChapterLibrary> {
@@ -119,5 +153,5 @@ export async function loadBibleChapterLibrary({
       report(fileProblem(file, error));
     }
   }
-  return new BibleChapterLibrary(files, report);
+  return new BibleChapterLibrary(files, report, cache);
 }

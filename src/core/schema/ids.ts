@@ -88,6 +88,8 @@ export function createScreenId(uuid: string): ScreenId {
 }
 export type TranslationId = v.InferOutput<typeof translationIdSchema>;
 
+export const LIVE_BIBLE_ID = v.parse(translationIdSchema, 'bsk-gae');
+
 /** Checks a message style ID received from a view. */
 export function parseMessageStyleId(value: unknown) {
   return parsePayload(messageStyleIdSchema, value);

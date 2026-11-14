@@ -207,8 +207,9 @@ README.
 
 ### No network during a service
 
-- Every feature that a service needs works without the internet. The app bundles
-  the Bible texts, fonts, and icons. Media are files on this computer.
+- Fonts, icons, media, and installed Bible files are local. The temporary
+  built-in GAE translation fetches chapters online; an unavailable chapter shows
+  a passage problem and can be retried.
 - Features that need the network aren't needed for a service. If they fail,
   nothing else is affected.
 - Updates never install or open a dialog while any output is on. Manual checks

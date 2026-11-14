@@ -1,4 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
+import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
 import {
   parseBibleLookupRequest,
   type BibleLookupReply,
@@ -47,6 +48,22 @@ function fixture() {
 }
 
 describe('saved Bible passage resolution', () => {
+  it('uses cache-only lookup for live translations during service refresh', async () => {
+    const item = items('\uC694\uD55C\uBCF5\uC74C 3:16')[0];
+    if (!item || !isItemOfKind(item, 'bible')) {
+      throw Error('Missing Bible fixture');
+    }
+    const bible = fixture();
+    await resolveServicePassages(
+      [{...item, bible: {...item.bible, translation: LIVE_BIBLE_ID}}],
+      bible,
+      {reportError: bible.report},
+    );
+    expect(bible.lookup).toHaveBeenCalledWith(
+      {translation: LIVE_BIBLE_ID, input: item.bible.ref},
+      true,
+    );
+  });
   it('resolves reference-only verse slots, deduplicates repeated verses and retains them beside an unavailable verse', async () => {
     const item = slidesBibleItem();
     const bible = fixture();

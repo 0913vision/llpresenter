@@ -156,7 +156,11 @@ describe('ServiceOrderList', () => {
     const row = screen.getByRole('option', {name: /시편 1:1/u});
     fireEvent.click(row);
     expect(useShow.getState().openItemId).toBe('missing-passage');
-    expect(within(row).getByLabelText('성경 구절 없음')).toBeTruthy();
+    expect(
+      within(row).getByLabelText(
+        '성경 본문을 받지 못했습니다. 인터넷 연결을 확인해 주십시오.',
+      ),
+    ).toBeTruthy();
     expect(sent).toHaveLength(0);
   });
 

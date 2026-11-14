@@ -1,4 +1,5 @@
 import {createThemeId} from '@core/schema/ids';
+import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
 import {lastLiveCommand} from '@fixtures/renderer/session/liveCommands';
 import {act, cleanup} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
@@ -168,6 +169,20 @@ async function savedWithCard(position: number) {
 }
 
 describe('Bible verse shortcuts', () => {
+  it('does not fetch a new live chapter when output reaches the passage edge', async () => {
+    const fixture = await setup();
+    const source = useShow.getState().bibleSource;
+    if (!source) throw Error('Missing Bible source');
+    useShow.setState({
+      bibleSource: {
+        ...source,
+        passage: {...source.passage, translation: LIVE_BIBLE_ID},
+      },
+    });
+    await outputAdjacentBibleVerse('next');
+    expect(fixture.lookup).not.toHaveBeenCalled();
+    expect(fixture.send).not.toHaveBeenCalled();
+  });
   it('does nothing for previous verse from the card and advances to the first verse', async () => {
     const fixture = await savedWithCard(0);
     await outputAdjacentBibleVerse('previous');

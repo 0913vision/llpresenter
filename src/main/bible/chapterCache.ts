@@ -1,3 +1,5 @@
+import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
+
 export const BIBLE_CHAPTER_CACHE_LIMIT = 32;
 export const BIBLE_CHAPTER_CACHE_MAX_BYTES = 8_388_608;
 
@@ -13,7 +15,7 @@ function cacheKey(translation: string, book: number, chapter: number): string {
   return JSON.stringify([translation, book, chapter]);
 }
 
-/** A single LRU budget shared by all translations in one library session. */
+/** Installed chapters share an LRU budget; live chapters remain for the session. */
 export class BibleChapterCache {
   private readonly entries = new Map<string, CachedBibleChapter>();
   private bytes = 0;
@@ -36,12 +38,16 @@ export class BibleChapterCache {
     const key = cacheKey(entry.translation, entry.book, entry.chapter);
     this.remove(key);
     this.entries.set(key, entry);
-    this.bytes += entry.bytes;
+    if (entry.translation !== LIVE_BIBLE_ID) this.bytes += entry.bytes;
     while (
-      this.entries.size > BIBLE_CHAPTER_CACHE_LIMIT ||
+      [...this.entries.values()].filter(
+        item => item.translation !== LIVE_BIBLE_ID,
+      ).length > BIBLE_CHAPTER_CACHE_LIMIT ||
       this.bytes > BIBLE_CHAPTER_CACHE_MAX_BYTES
     ) {
-      const oldest = this.entries.keys().next().value;
+      const oldest = [...this.entries].find(
+        ([, item]) => item.translation !== LIVE_BIBLE_ID,
+      )?.[0];
       if (oldest === undefined) break;
       this.remove(oldest);
     }
@@ -53,6 +59,12 @@ export class BibleChapterCache {
     }
   }
 
+  clearFiles(): void {
+    for (const [key, entry] of this.entries) {
+      if (entry.translation !== LIVE_BIBLE_ID) this.remove(key);
+    }
+  }
+
   clear(): void {
     this.entries.clear();
     this.bytes = 0;
@@ -61,7 +73,7 @@ export class BibleChapterCache {
   private remove(key: string): void {
     const entry = this.entries.get(key);
     if (!entry) return;
-    this.bytes -= entry.bytes;
+    if (entry.translation !== LIVE_BIBLE_ID) this.bytes -= entry.bytes;
     this.entries.delete(key);
   }
 }

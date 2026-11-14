@@ -70,7 +70,8 @@ import styles from './ServiceOrderList.module.css';
 
 const problemTips: Readonly<Record<RowProblem, string>> = {
   'missing-song': '곡 파일을 찾을 수 없습니다',
-  'missing-bible': '성경 구절 없음',
+  'missing-bible':
+    '성경 본문을 받지 못했습니다. 인터넷 연결을 확인해 주십시오.',
   'missing-background': '배경 파일을 찾을 수 없습니다',
   'missing-media': '미디어 파일을 찾을 수 없습니다',
   'unknown-kind': '아직 없는 기능',

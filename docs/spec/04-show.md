@@ -1165,4 +1165,11 @@ labeled slide shows only the parenthesized label.
 
 Stage title slides and section cards show only their Korean title, without the
 English subtitle. The creed and prayer theme uses 104 px left-aligned current
-text with the next line and clock clear.
+text with the next line and clock clear. ????? ?? ?? ???? ???????? ??? ?? ?????
+????. ??? ??? ??? ? ???? ???? ??? ?????
+
+The built-in GAE translation fetches only requested chapters live from the
+Korean Bible Society. Chapter text is held only in the session memory cache; it
+is never saved to a file or downloaded in bulk. A failed fetch shows the
+existing problem state and is retried on the next use. Installed `.llbible`
+translations continue to work.
