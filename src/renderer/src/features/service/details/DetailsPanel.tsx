@@ -51,7 +51,7 @@ function DetailsShell({
   readonly footer?: ReactNode;
 }): JSX.Element {
   return (
-    <Panel label="세부정보">
+    <Panel label="세부정보" className={styles.panel}>
       <PanelBody>{children}</PanelBody>
       {footer}
     </Panel>
