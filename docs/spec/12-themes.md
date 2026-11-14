@@ -789,9 +789,13 @@ empty slide shows its label.
 
 On stage, a next title slide omits its English subtitle.
 
-On stage, current and next lyric slides put their parenthesized label before the
-text; title slides put it after the title, and empty slides show it alone.
+On stage, the labels 전주, 간주 and 후주 follow the text in parentheses; other
+labels precede it. Empty slides show only the label. Bible verse labels are
+omitted.
 
 Stage title slides and section cards show only their Korean title, without the
 English subtitle. The creed and prayer theme uses 104 px left-aligned current
 text with the next line and clock clear.
+
+Stage current and next text use the matching audience theme font family; current
+text also uses its audience weight.

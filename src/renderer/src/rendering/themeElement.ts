@@ -68,6 +68,13 @@ function remainingText(seconds: number | undefined): string | undefined {
   return `${Math.floor(whole / 60)}:${String(whole % 60).padStart(2, '0')}`;
 }
 
+function stageLabeledText(text: string, label: string): string {
+  const after = ['\uc804\uc8fc', '\uac04\uc8fc', '\ud6c4\uc8fc'].includes(
+    label,
+  );
+  return after ? `${text} (${label})` : `(${label}) ${text}`;
+}
+
 /** The elements that show the lyrics: they follow the 슬라이드 전환. */
 const SLIDE_ELEMENT_KINDS: readonly string[] = [
   'currentText',
@@ -472,7 +479,9 @@ export class ThemeElementView {
     ) {
       const title = slide.lines[0] ?? '';
       const label = slide.label?.trim();
-      return label && title.trim() ? `${title} (${label})` : title;
+      return label && title.trim() && (slide.kind ?? item?.kind) !== 'bible'
+        ? stageLabeledText(title, label)
+        : title;
     }
     if (
       frame.screen?.kind === 'stage' &&
@@ -553,14 +562,19 @@ export class ThemeElementView {
       videoTimeLeft: remainingText(videoRemaining),
     });
     if (frame.screen?.kind === 'stage' && text?.trim()) {
-      if (element.kind === 'currentText' && slide?.label?.trim()) {
-        return `(${slide.label.trim()}) ${text}`;
+      if (
+        element.kind === 'currentText' &&
+        !currentBible &&
+        slide?.label?.trim()
+      ) {
+        return stageLabeledText(text, slide.label.trim());
       }
-      if (element.kind === 'nextText' && slide?.next?.label?.trim()) {
-        const label = slide.next.label.trim();
-        return slide.next.titleSlide
-          ? `${text} (${label})`
-          : `(${label}) ${text}`;
+      if (
+        element.kind === 'nextText' &&
+        !nextBible &&
+        slide?.next?.label?.trim()
+      ) {
+        return stageLabeledText(text, slide.next.label.trim());
       }
     }
     if (element.id === SECTION_NAME_ID && slide?.sectionCard !== undefined) {

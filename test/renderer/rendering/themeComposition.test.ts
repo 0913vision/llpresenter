@@ -2085,12 +2085,8 @@ it('reflows Bible parts independently on stage and broadcast, including the next
     );
   for (const kind of ['stage', 'broadcast'] as const) {
     view.render(layers, {...bible, screen: {id: THEME_MAIN, kind}});
-    expect(rows('currentText')).toEqual([
-      kind === 'stage' ? `(11:29) ${current.join(' ')}` : current.join(' '),
-    ]);
-    expect(rows('nextText')).toEqual([
-      kind === 'stage' ? `(11:30) ${next.join(' ')}` : next.join(' '),
-    ]);
+    expect(rows('currentText')).toEqual([current.join(' ')]);
+    expect(rows('nextText')).toEqual([next.join(' ')]);
     expect(
       root.querySelector<HTMLElement>('[data-kind="currentText"]')?.style
         .textWrap,
@@ -2665,10 +2661,50 @@ it('places stage labels before lyrics and after title slides in current and next
   expect(text('currentText')).toBe('(Verse) Current');
   expect(text('nextText')).toBe('(Outro) Next');
   draw(true, 'stage');
-  expect(text('currentText')).toBe('Current (Verse)');
-  expect(text('nextText')).toBe('Next (Outro)');
+  expect(text('currentText')).toBe('(Verse) Current');
+  expect(text('nextText')).toBe('(Outro) Next');
   draw(false, 'audience');
   expect(text('currentText')).toBe('Current');
   expect(text('nextText')).toBe('Next');
   view.dispose();
 });
+
+it.each(['\uc804\uc8fc', '\uac04\uc8fc', '\ud6c4\uc8fc'])(
+  'puts %s after text for both title and lyric slides',
+  label => {
+    const {root, view} = setup();
+    const elements: ThemeElement[] = [
+      {...themeElementBase(), kind: 'currentText'},
+      {...themeElementBase(31), kind: 'nextText'},
+    ];
+    if (song.slide === null) throw Error('Missing slide');
+    for (const title of [false, true]) {
+      view.render(
+        {
+          ...song,
+          slide: {
+            ...song.slide,
+            label,
+            ...(title ? {titleSlide: true as const} : {}),
+            lines: ['Current'],
+            next: {label, lines: ['Next']},
+          },
+        },
+        {
+          ...frame(elements),
+          screen: {id: THEME_MAIN, kind: 'stage'},
+          transitions: false,
+        },
+      );
+      expect(
+        root.querySelector(`[data-kind="currentText"] .${classes.shown}`)
+          ?.textContent,
+      ).toBe(`Current (${label})`);
+      expect(
+        root.querySelector(`[data-kind="nextText"] .${classes.shown}`)
+          ?.textContent,
+      ).toBe(`Next (${label})`);
+    }
+    view.dispose();
+  },
+);

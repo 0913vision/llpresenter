@@ -89,9 +89,9 @@ it('places song lyrics near the top while retaining the starter broadcast styles
     element => element.kind === 'currentText',
   );
   expect(current?.text).toMatchObject({
-    font: STARTER_TEXT_STYLE.font,
+    font: 'NanumSquare',
     size: 108,
-    weight: STARTER_TEXT_STYLE.weight,
+    weight: 800,
     vAlign: STARTER_TEXT_STYLE.vAlign,
   });
 });
@@ -628,7 +628,12 @@ it('matches each audience text size without overlapping stage next and clock', (
     ) {
       throw Error('Missing default text');
     }
-    expect(current.text.size).toBe(audienceText.text.size);
+    expect(current.text).toMatchObject({
+      size: audienceText.text.size,
+      font: audienceText.text.font,
+      weight: audienceText.text.weight,
+    });
+    expect(next.text.font).toBe(audienceText.text.font);
     expect(current.frame.y + current.frame.h).toBeLessThanOrEqual(next.frame.y);
     expect(next.frame.y + next.frame.h).toBeLessThanOrEqual(clock.frame.y);
   }

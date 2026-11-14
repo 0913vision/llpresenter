@@ -113,6 +113,8 @@ function stageElements(kind: ThemeItemKind = 'song'): ThemeElement[] {
     ...basicText,
     shadow: {...basicText.shadow, on: false},
   };
+  const contentFont = kind === 'ad' ? 'KoPubWorldDotum' : 'NanumSquare';
+  const contentWeight = kind === 'ad' ? 500 : kind === 'bible' ? 700 : 800;
   const ids = {
     currentLabel: 2,
     stageMessage: 3,
@@ -172,6 +174,8 @@ function stageElements(kind: ThemeItemKind = 'song'): ThemeElement[] {
           kind: 'currentText',
           text: {
             ...text,
+            font: contentFont,
+            weight: contentWeight,
             size: kind === 'bible' ? 104 : kind === 'ad' ? 86 : 108,
             lineHeight: 1.2,
             maxLines: 4,
@@ -190,6 +194,7 @@ function stageElements(kind: ThemeItemKind = 'song'): ThemeElement[] {
           lineLimit: 2,
           text: {
             ...text,
+            font: contentFont,
             size: 80,
             lineHeight: 1.2,
             maxLines: 2,

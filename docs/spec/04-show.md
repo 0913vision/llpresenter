@@ -1159,9 +1159,13 @@ omits its English subtitle.
 Previous uses the live slide position in service order even when the operator
 opened another item or used a quick-run song.
 
-On stage, a lyric slide puts its parenthesized label before the text, a title
-slide puts it after the title, and an empty slide shows the label alone.
+On stage, the labels 전주, 간주 and 후주 follow the text in parentheses; other
+labels precede it. Empty slides show only the label. Bible verse labels are
+omitted.
 
 Stage title slides and section cards show only their Korean title, without the
 English subtitle. The creed and prayer theme uses 104 px left-aligned current
 text with the next line and clock clear.
+
+Stage current and next text use the matching audience theme font family; current
+text also uses its audience weight.
