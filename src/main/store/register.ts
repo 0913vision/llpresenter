@@ -138,10 +138,10 @@ export function registerStore({
       log,
     }));
   const bibleReader: Pick<BibleLookupSession, 'lookup'> = {
-    lookup: (request, cacheOnly) =>
+    lookup: (request, cacheOnly, operatorLookup) =>
       bibleClosed
         ? Promise.reject(new Error('Bible lookup is unavailable'))
-        : openBible().lookup(request, cacheOnly),
+        : openBible().lookup(request, cacheOnly, operatorLookup),
   };
   const opened = openContent(loading, log, {
     settings,
