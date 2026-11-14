@@ -49,7 +49,7 @@ describe('PowerPoint background layers', () => {
   it('uses only the slide’s layout picture and preserves its asymmetric crop', () => {
     const picture = (id: string, image: string) =>
       `<p:pic><p:nvPicPr><p:cNvPr id="${id}"/></p:nvPicPr><p:blipFill><a:blip r:embed="${image}"><a:extLst><a:ext><a14:imgProps xmlns:a14="urn:a14" r:embed="effect"/></a:ext></a:extLst></a:blip><a:srcRect t="15039" b="9960"/><a:stretch/></p:blipFill><p:spPr>${xfrm}</p:spPr></p:pic>`;
-    const parts = fixture(
+    const parts: Record<string, string> = fixture(
       root('sld'),
       root('sldLayout', picture('sky', 'sky')),
       root('sldMaster', shape('master'), bg('ffffff')),
