@@ -74,6 +74,7 @@ interface SlideSource {
     readonly lines: readonly string[];
     readonly titleSlide?: true;
     readonly titleLayout?: import('@core/schema/songTitleLayout').SongTitleLayout;
+    readonly lyricFormat?: import('@core/schema/songLyricFormat').SongLyricFormat;
     readonly transition?: import('@core/schema/slideTransition').SlideTransition;
   }>;
 }
@@ -390,6 +391,9 @@ export function VirtualSlides<T extends SlideListItem>({
                         ...(slide.titleLayout === undefined
                           ? {}
                           : {titleLayout: slide.titleLayout}),
+                        ...(slide.lyricFormat === undefined
+                          ? {}
+                          : {lyricFormat: slide.lyricFormat}),
                       }}
                     />
                   ))

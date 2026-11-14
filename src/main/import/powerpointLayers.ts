@@ -1,3 +1,4 @@
+import {powerpointTextFormat} from './powerpointTextFormat';
 import {createHash} from 'node:crypto';
 import {
   POWERPOINT_BACKGROUND_LIMITS as LIMITS,
@@ -100,6 +101,21 @@ export class PowerPointLayerReader {
       if (part.root.localName === 'sldMaster') masterMapping = new Map(mapping);
     }
     return {colors, mapping};
+  }
+
+  lyricFormat(path: string, shape: Element, width: number) {
+    const slide = this.part(path);
+    const layout = this.related(slide, 'slideLayout');
+    const master = this.related(layout, 'slideMaster');
+    return powerpointTextFormat(
+      shape,
+      {
+        layout: layout?.root,
+        master: master?.root,
+        theme: this.related(master, 'theme')?.root,
+      },
+      width,
+    );
   }
 
   lyricColor(path: string): number | null {

@@ -1,3 +1,4 @@
+import {songLyricFormatSchema} from './songLyricFormat';
 import * as v from 'valibot';
 import {checkPart} from './fileFormat';
 import {payloadObject, plainObject} from './payload';
@@ -11,6 +12,7 @@ import {
 
 const shape = payloadObject({
   body: v.boolean(),
+  lyricFormat: v.exactOptional(songLyricFormatSchema),
   lines: v.pipe(
     v.array(v.pipe(v.string(), v.maxLength(TEXT_IMPORT_LIMITS.characters))),
     v.maxLength(TEXT_IMPORT_LIMITS.lines),

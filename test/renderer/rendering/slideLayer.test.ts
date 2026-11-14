@@ -4,6 +4,7 @@ import {classes} from '@renderer/rendering/classes';
 import {DEFAULT_TEXT_STYLE, scaleFor} from '@core/themes/textStyle';
 import {
   SlideLayerView,
+  fontFamilyFor,
   unshiftTextBounds,
 } from '@renderer/rendering/slideLayer';
 import {SLIDE_DISSOLVE_MS} from '@renderer/rendering/slideLayer';
@@ -106,6 +107,122 @@ describe('SlideLayerView', () => {
     } finally {
       height.mockRestore();
     }
+  });
+
+  it('fits the church lyric uniformly before allowing Korean word-boundary wrapping', () => {
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(1656);
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(411);
+    const width = vi
+      .spyOn(HTMLElement.prototype, 'scrollWidth', 'get')
+      .mockImplementation(function (this: HTMLElement) {
+        return (Number.parseFloat(this.style.fontSize) || 0) * 17;
+      });
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(274);
+    const parent = document.createElement('div');
+    const view = new SlideLayerView(parent, {...DEFAULT_TEXT_STYLE, size: 108});
+    view.setLineMode('lyrics');
+    view.show(
+      {
+        ...VERSE,
+        lines: [
+          '\uadf8\ub9ac\uc2a4\ub3c4 \uc548\uc5d0\uc11c \uc740\ud61c\uc758 \ud48d\uc131\ud558\uc2ec\uc744 \ub530\ub77c',
+          '\uadf8 \ubd84\uc758 \ud53c\ub85c \uc8c4\uc0ac\ud568 \uc5bb\uc2b5\ub2c8\ub2e4',
+        ],
+      },
+      false,
+    );
+    const shown = () =>
+      parent.querySelector<HTMLElement>(`.${classes.shown} .${classes.block}`);
+    expect(shown()?.style.whiteSpace).toBe('pre');
+    expect(shown()?.style.fontSize).toBe('97px');
+    expect(shown()?.children).toHaveLength(2);
+    width.mockImplementation(function (this: HTMLElement) {
+      return (Number.parseFloat(this.style.fontSize) || 0) * 30;
+    });
+    view.show(
+      {
+        ...VERSE,
+        itemId: 'longer',
+        lines: ['\uadf8 \ubd84\uc758 \ud558\ub098 \ub098 \ub2e4\ub978 \ub9d0'],
+      },
+      false,
+    );
+    expect(shown()?.style).toMatchObject({
+      fontSize: '76px',
+      wordBreak: 'keep-all',
+      overflowWrap: 'normal',
+    });
+    expect(shown()?.textContent).toContain('\uadf8\u00a0\ubd84\uc758');
+    expect(shown()?.textContent).toContain('\ud558\ub098\u00a0\ub098');
+    view.setLineMode('normal');
+    expect(shown()?.style.overflowWrap).toBe('');
+    expect(shown()?.textContent).toBe(
+      '\uadf8 \ubd84\uc758 \ud558\ub098 \ub098 \ub2e4\ub978 \ub9d0',
+    );
+    view.dispose();
+  });
+
+  it('maps the imported Korean NanumSquare family to the installed family', () => {
+    expect(fontFamilyFor('\ub098\ub214\uc2a4\ud018\uc5b4 ExtraBold')).toContain(
+      '"NanumSquare"',
+    );
+    expect(fontFamilyFor('\ub098\ub214\uc2a4\ud018\uc5b4 Bold')).toContain(
+      '"NanumSquare"',
+    );
+  });
+
+  it('renders imported run typography and drops it when the authored text changes', () => {
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(1656);
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(411);
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(1000);
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(100);
+    const {view, shownPage} = setUp();
+    view.setLineMode('lyrics');
+    const lyricFormat = {
+      lines: [
+        {
+          boxWidth: 1500,
+          spacing: {kind: 'pixels' as const, value: 130},
+          runs: [
+            {text: 'One ', size: 72, tracking: -3, font: 'Arial'},
+            {text: 'two', size: 90, tracking: 1},
+          ],
+        },
+      ],
+    };
+    view.show({...VERSE, lines: ['One two'], lyricFormat}, false);
+    const block = () =>
+      shownPage()?.querySelector<HTMLElement>(`.${classes.block}`);
+    const row = block()?.firstElementChild;
+    const runs = row?.querySelectorAll<HTMLElement>('span');
+    expect(runs?.[0]?.style).toMatchObject({
+      fontSize: '72px',
+      letterSpacing: '-3px',
+    });
+    expect(runs?.[1]?.style).toMatchObject({
+      fontSize: '90px',
+      letterSpacing: '1px',
+    });
+    if (!(row instanceof HTMLElement)) throw Error('Missing row');
+    expect(row.style.lineHeight).toBe('130px');
+    view.show({...VERSE, position: 1, lines: ['Edited'], lyricFormat}, false);
+    expect(block()?.textContent).toBe('Edited');
+    expect(block()?.querySelector('span')).toBeNull();
+    const firstLine = lyricFormat.lines[0];
+    if (firstLine === undefined) throw Error('Missing formatting');
+    const mixed = {
+      lines: [firstLine, {boxWidth: 1500, runs: [{text: 'Keep', size: 77}]}],
+    };
+    view.show(
+      {...VERSE, position: 2, lines: ['Edited', 'Keep'], lyricFormat: mixed},
+      false,
+    );
+    const rows = block()?.children;
+    expect(rows?.[0]?.querySelector('span')).toBeNull();
+    expect(rows?.[1]?.querySelector<HTMLElement>('span')?.style.fontSize).toBe(
+      '77px',
+    );
+    view.dispose();
   });
 
   it('uses the same fitted size for both next preview lines', () => {

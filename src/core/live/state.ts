@@ -70,6 +70,7 @@ export interface SlideLayer {
   readonly sequenceLength?: number;
   readonly titleSlide?: true;
   readonly titleLayout?: import('../schema/songTitleLayout').SongTitleLayout;
+  readonly lyricFormat?: import('../schema/songLyricFormat').SongLyricFormat;
   readonly transition?: import('../schema/slideTransition').SlideTransition;
   /** Effect of the slide being left by an explicit previous command. */
   readonly reverseTransition?:

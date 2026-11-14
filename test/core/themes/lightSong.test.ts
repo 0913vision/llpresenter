@@ -53,6 +53,47 @@ it('offers native-width dark audience lyrics while retaining the white song fram
   }
 });
 
+it('preserves imported title lines and their individual positions', () => {
+  const theme = builtInTheme('song', themeScreens);
+  const layout = theme.screens[THEME_MAIN];
+  if (layout === undefined) throw Error('Missing audience layout');
+  const lyricFormat = {
+    lines: [
+      {
+        boxWidth: 1733.5,
+        left: 93.25,
+        top: 161.7,
+        runs: [{text: 'Hymn 7', size: 88, tracking: 0}],
+      },
+      {
+        boxWidth: 1733.5,
+        left: 93.25,
+        top: 280.9,
+        runs: [{text: 'Title', size: 120, tracking: -3}],
+      },
+    ],
+  };
+  const slide = {
+    itemId: 'hymn',
+    position: 0,
+    label: null,
+    titleSlide: true as const,
+    lines: ['Hymn 7', 'Title'],
+    lyricFormat,
+  };
+  const result = songTitleLayout(layout, slide);
+  expect(
+    result.elements.filter(element => element.kind === 'text'),
+  ).toMatchObject([
+    {
+      content: 'Hymn 7',
+      frame: {x: 93.25, y: 161.7, w: 1733.5},
+      text: {size: 88},
+    },
+    {content: 'Title', frame: {y: 280.9}, text: {size: 120}},
+  ]);
+});
+
 it('retains dark title composition through copying, saving, and item selection', () => {
   const file = createDefaultThemes(themeScreens);
   const light = file.themes.find(theme => theme.id === LIGHT_SONG_THEME_ID);

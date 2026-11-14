@@ -35,6 +35,7 @@ import {MAX_THEME_GAPS} from '@renderer/rendering/themeGaps';
 import {bibleVerseTiles} from '@core/bible/bibleTiles';
 import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
 import {ThemeElementView} from '@renderer/rendering/themeElement';
+import {SlideLayerView} from '@renderer/rendering/slideLayer';
 import {followPlaybackProblems} from '@renderer/rendering/playbackProblem';
 import {SECTION_THEME_ID} from '@core/themes/sundaySections';
 import {
@@ -594,6 +595,58 @@ describe('theme composition drawing', () => {
       }
     },
   );
+  it.each([
+    {screenKind: 'audience', itemKind: 'song', mode: 'normal'},
+    {screenKind: 'stage', itemKind: 'song', mode: 'song'},
+    {screenKind: 'broadcast', itemKind: 'song', mode: 'normal'},
+    {screenKind: 'audience', itemKind: 'bible', mode: 'normal'},
+  ] as const)(
+    'retains existing fitting for unformatted text',
+    ({screenKind, itemKind, mode}) => {
+      const spy = vi.spyOn(SlideLayerView.prototype, 'setLineMode');
+      const {view} = setup();
+      const element: ThemeElement = {
+        ...themeElementBase(),
+        kind: 'currentText',
+        text: {...DEFAULT_THEME_TEXT, maxLines: 2},
+      };
+      const active = frame([element]);
+      if (!active.theme?.item) throw Error('Missing theme item');
+      view.render(song, {
+        ...active,
+        screen: {id: THEME_MAIN, kind: screenKind},
+        theme: {...active.theme, item: {...active.theme.item, kind: itemKind}},
+        transitions: false,
+      });
+      expect(spy).toHaveBeenCalledWith(mode);
+      view.dispose();
+    },
+  );
+
+  it('uses the full slide width only for formatted audience song lyrics', () => {
+    const {root, view} = setup();
+    const element: ThemeElement = {
+      ...themeElementBase(),
+      kind: 'currentText',
+      frame: {x: 132, y: 141, w: 1656, h: 411},
+      text: {...DEFAULT_THEME_TEXT, maxLines: 2},
+    };
+    const active = frame([element]);
+    const lyricFormat = {
+      lines: [{boxWidth: 500, runs: [{text: 'Invented line', size: 108}]}],
+    };
+    const formatted = {...song, slide: {...song.slide, lyricFormat}};
+    view.render(formatted, {...active, transitions: false});
+    const box = () =>
+      root.querySelector<HTMLElement>('[data-kind="currentText"]');
+    expect(box()?.style.left).toBe('0px');
+    expect(box()?.style.width).toBe('1920px');
+    view.render(song, {...active, transitions: false});
+    expect(box()?.style.left).toBe('132px');
+    expect(box()?.style.width).toBe('1656px');
+    view.dispose();
+  });
+
   it('renders the title in the broadcast band for an empty song slide', () => {
     const layout =
       builtInTheme('song').screens[

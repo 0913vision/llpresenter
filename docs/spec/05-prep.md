@@ -966,8 +966,9 @@ or the file name without extension. Body placeholders supply lyrics and take
 precedence over decorative text. A slide with other text is a title when it is
 the first slide with text in the range, or repeats that title's first line;
 other such slides are lyrics. Empty slides remain blank. A title uses at most
-two shapes, joining each shape's lines with spaces. 편집 opens the unsaved song
-editor; 저장 there adds the song to the library.
+two shapes, retaining each shape's paragraphs as separate lines with their
+positions and formatting. 편집 opens the unsaved song editor; 저장 there adds
+the song to the library.
 
 가사 and 배경 are selected by default. At least one remains selected. 가사 alone
 opens a song without importing media; 배경 alone imports the selected range
@@ -978,8 +979,11 @@ composed.
 The imported song uses the built-in light-background song theme when the most
 common resolved body lyric color in the selected range has relative luminance
 below 0.5. Otherwise it uses the normal song theme. Slide, layout and master
-text styles and theme color mappings supply the color; text formatting itself is
-not imported. A service item added from the song keeps its selected theme.
+text styles and theme color mappings supply the color. Body lyric typography
+resolves size, tracking, line spacing and font from runs, paragraphs, layout and
+master; box widths, title positions and point values are converted to 1920-wide
+canvas units. Unformatted or subsequently edited lines use the selected theme. A
+service item added from the song keeps its selected theme.
 
 ### Background
 

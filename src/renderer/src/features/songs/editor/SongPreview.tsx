@@ -244,6 +244,9 @@ export function ContentPreviewFrame({
                 ...(tilePicture.tile.titleLayout === undefined
                   ? {}
                   : {titleLayout: tilePicture.tile.titleLayout}),
+                ...(tilePicture.tile.lyricFormat === undefined
+                  ? {}
+                  : {lyricFormat: tilePicture.tile.lyricFormat}),
                 ...(tilePicture.tile.transition === undefined
                   ? {}
                   : {transition: tilePicture.tile.transition}),

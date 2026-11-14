@@ -1,3 +1,4 @@
+import {songLyricFormatSchema} from './songLyricFormat';
 import * as v from 'valibot';
 import type {Result} from '../common/result';
 import {mediaIdSchema, themeIdSchema} from './ids';
@@ -21,6 +22,7 @@ export const importSlideSchema = jsonObject({
   label: v.exactOptional(v.string()),
   lines: v.array(v.string()),
   titleSlide: v.exactOptional(v.literal(true)),
+  lyricFormat: v.exactOptional(songLyricFormatSchema),
   section: v.exactOptional(nonNegativeInteger),
 });
 

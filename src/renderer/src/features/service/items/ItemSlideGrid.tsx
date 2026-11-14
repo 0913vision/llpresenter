@@ -122,6 +122,9 @@ export function ItemSlideGrid({
             ...(songSlide.titleLayout === undefined
               ? {}
               : {titleLayout: songSlide.titleLayout}),
+            ...(songSlide.lyricFormat === undefined
+              ? {}
+              : {lyricFormat: songSlide.lyricFormat}),
           }}
         />
       );
