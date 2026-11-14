@@ -13,6 +13,7 @@ import {
   BROADCAST_LOOK_BAND_ID,
   BROADCAST_LOOK_TAB_ID,
   BROADCAST_LOOK_SONG_ID,
+  BROADCAST_LOOK_SONG_TITLE_ID,
   BROADCAST_LOOK_CARD_ID,
   broadcastLookLayout,
 } from '@core/themes/broadcastLook';
@@ -332,6 +333,41 @@ describe('built-in broadcast look', () => {
     expect(element(empty, BROADCAST_LOOK_BAND_ID)).toMatchObject({
       runtimeHidden: true,
     });
+  });
+  it('keeps lyric placement while adding the song title above it in the band', () => {
+    const layout = builtInTheme('song').screens[screen];
+    if (!layout) throw Error('missing song');
+    const song = {
+      ...item,
+      kind: 'song' as const,
+      title: '슬픈 마음 있는 사람',
+      broadcastSongTitle: '새찬송가 91장 슬픈 마음 있는 사람',
+    };
+    const without = fitBroadcastLook(
+      layout,
+      {...slide, lines: ['첫째 줄', '둘째 줄']},
+      {...song, title: '', broadcastSongTitle: ''},
+    );
+    const withTitle = fitBroadcastLook(
+      layout,
+      {...slide, lines: ['첫째 줄', '둘째 줄']},
+      song,
+    );
+    expect(element(withTitle, BROADCAST_LOOK_SONG_ID).frame).toEqual(
+      element(without, BROADCAST_LOOK_SONG_ID).frame,
+    );
+    const band = element(withTitle, BROADCAST_LOOK_BAND_ID).frame;
+    const baseline = element(without, BROADCAST_LOOK_BAND_ID).frame;
+    expect(band.y + band.h).toBe(baseline.y + baseline.h);
+    expect(band.y).toBeLessThan(baseline.y);
+    expect(element(withTitle, BROADCAST_LOOK_SONG_TITLE_ID)).toMatchObject({
+      content: '새찬송가 91장 슬픈 마음 있는 사람',
+      text: {size: 28, align: 'left'},
+    });
+    const textOnly = fitLook(layout, slide, {item: song, songCaption: 'text'});
+    expect(
+      textOnly.elements.some(e => e.id === BROADCAST_LOOK_SONG_TITLE_ID),
+    ).toBe(false);
   });
   it('switches per screen between the band and text-only captions', () => {
     const layout = builtInTheme('song').screens[screen];

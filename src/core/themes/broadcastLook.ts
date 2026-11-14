@@ -18,6 +18,9 @@ export const BROADCAST_LOOK_CARD_ID = createThemeElementId(
 export const BROADCAST_LOOK_TAB_ID = createThemeElementId(
   '00000000-0000-4000-8000-000000000485',
 );
+export const BROADCAST_LOOK_SONG_TITLE_ID = createThemeElementId(
+  '00000000-0000-4000-8000-000000000486',
+);
 /** Sizes, colors and effects for the built-in broadcast glass box at 1920×1080. */
 export const BROADCAST_LOOK_GEOMETRY = {
   screenWidth: 1920,
@@ -59,6 +62,9 @@ export const BROADCAST_LOOK_GEOMETRY = {
   songBandBottom: 1040,
   songTextBottom: 1004,
   songBandPadding: 26,
+  songTitleSize: 28,
+  songTitleHeight: 35,
+  songTitleGap: 10,
   songBandOpacity: 91,
   songBandShadowBlur: 6,
   songBandShadowOpacity: 80,

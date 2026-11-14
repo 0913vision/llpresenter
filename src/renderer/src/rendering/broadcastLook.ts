@@ -14,6 +14,7 @@ import {
   BROADCAST_LOOK_SONG_ID,
   BROADCAST_LOOK_CARD_ID,
   BROADCAST_LOOK_TAB_ID,
+  BROADCAST_LOOK_SONG_TITLE_ID,
   BROADCAST_LOOK_GEOMETRY as geometry,
 } from '@core/themes/broadcastLook';
 import {measureSlideText} from './slideLayer';
@@ -279,15 +280,25 @@ function fitSong(
     color: geometry.headerTextColor,
   };
   const effect = caption === 'band' ? ('bandText' as const) : ('text' as const);
+  const title =
+    item?.kind === 'song'
+      ? ((item.broadcastSongTitle ?? item.title ?? '')
+          .split(/\r?\n/u)[0]
+          ?.trim() ?? '')
+      : '';
+  const titleSpace =
+    caption === 'band' && title !== ''
+      ? geometry.songTitleHeight + geometry.songTitleGap
+      : 0;
   const elements = layout.elements.map((e): ResolvedThemeElement => {
     if (e.id === BROADCAST_LOOK_BAND_ID && e.kind === 'box') {
       return {
         ...e,
         frame: {
           x: 0,
-          y: top - padding,
+          y: top - padding - titleSpace,
           w: geometry.screenWidth,
-          h: height + padding * 2,
+          h: height + padding * 2 + titleSpace,
         },
         box: {
           ...e.box,
@@ -312,6 +323,30 @@ function fitSong(
     }
     return e;
   });
+  if (titleSpace > 0) {
+    elements.push({
+      id: BROADCAST_LOOK_SONG_TITLE_ID,
+      kind: 'text',
+      content: visible ? title : '',
+      clearTarget: 'slide',
+      runtimeHidden: !visible,
+      frame: {
+        x: geometry.songX,
+        y: top - titleSpace,
+        w: geometry.songWidth,
+        h: geometry.songTitleHeight,
+      },
+      text: {
+        ...body.text,
+        size: geometry.songTitleSize,
+        weight: 500,
+        align: 'left',
+        vAlign: 'top',
+        color: '#CCCCCC',
+        lineHeight: 1.25,
+      },
+    });
+  }
   return {...layout, elements};
 }
 
