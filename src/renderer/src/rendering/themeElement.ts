@@ -458,7 +458,11 @@ export class ThemeElementView {
       (slide.next.biblePart !== undefined ||
         (slide.next.itemKind ?? slide.kind ?? item?.kind) === 'bible');
     this.box.style.textWrap =
-      reflow && (currentBible || nextBible) ? 'balance' : '';
+      reflow &&
+      (currentBible || nextBible) &&
+      !(frame.screen.kind === 'broadcast' && currentBible)
+        ? 'balance'
+        : '';
     const flowedLayers =
       !reflow || slide === null
         ? layers

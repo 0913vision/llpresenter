@@ -105,6 +105,63 @@ describe('built-in broadcast look', () => {
       expect(element(bible, BROADCAST_TEXT_ID)).toMatchObject({text: {size}});
     }
   });
+  it('uses the tallest Bible part for every slide in the same item', () => {
+    const rows = (element: HTMLElement): number =>
+      element.textContent.includes('tall') ? 3 : 1;
+    mockBroadcastRect(rows);
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(
+      function (this: HTMLElement) {
+        return Math.ceil(
+          rows(this) * Number.parseFloat(this.style.fontSize) * 1.35,
+        );
+      },
+    );
+    const bibleItemSlides = [
+      {lines: ['short']},
+      {lines: ['tall']},
+      {lines: ['other']},
+    ];
+    const results = bibleItemSlides.map((part, position) =>
+      fitBroadcastLook(
+        plain(),
+        {...slide, position, lines: part.lines, bibleItemSlides},
+        item,
+      ),
+    );
+    const boxes = results.map(
+      result => element(result, BROADCAST_LOOK_BAND_ID).frame,
+    );
+    const bodies = results.map(
+      result => element(result, BROADCAST_TEXT_ID).frame,
+    );
+    expect(boxes.map(box => box.h)).toEqual([
+      boxes[0]?.h,
+      boxes[0]?.h,
+      boxes[0]?.h,
+    ]);
+    expect(boxes.map(box => box.y + box.h)).toEqual([1026, 1026, 1026]);
+    expect(bodies.map(body => body.y)).toEqual([
+      bodies[0]?.y,
+      bodies[0]?.y,
+      bodies[0]?.y,
+    ]);
+    const withoutGroup = fitBroadcastLook(
+      plain(),
+      {...slide, lines: ['short']},
+      item,
+    );
+    expect(element(withoutGroup, BROADCAST_LOOK_BAND_ID).frame.h).toBeLessThan(
+      boxes[0]?.h ?? 0,
+    );
+    const nonBible = fitBroadcastLook(
+      plain(),
+      {...slide, lines: ['short'], bibleItemSlides},
+      {...item, kind: 'blank'},
+    );
+    expect(element(nonBible, BROADCAST_LOOK_BAND_ID).frame.h).toBe(
+      element(withoutGroup, BROADCAST_LOOK_BAND_ID).frame.h - 48,
+    );
+  });
   it('grows the box for one, three and four rows and shrinks after three', () => {
     const rows = [1, 3, 4].map(count =>
       fitBroadcastLook(

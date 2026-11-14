@@ -50,6 +50,20 @@ export class ThemeCompositionView {
   private preparing = false;
   private readonly slideAnimation: SlideAnimation;
   private content: {layers: LiveLayers; frame: RenderFrame} | null = null;
+  private input: {layers: LiveLayers; frame: RenderFrame} | null = null;
+  private readonly onFontsLoaded = (): void => {
+    const input = this.input;
+    if (input === null || input.frame.screen?.kind !== 'broadcast') return;
+    const slide = input.frame.slide ?? input.layers.slide;
+    if (
+      slide?.bibleItemSlides === undefined ||
+      (input.frame.theme?.item?.kind ?? slide.kind) !== 'bible'
+    ) {
+      return;
+    }
+    this.bandFit = null;
+    this.render(input.layers, input.frame);
+  };
   private bandFit: {
     key: string;
     layout: ThemeScreenLayout;
@@ -73,9 +87,13 @@ export class ThemeCompositionView {
     this.root.hidden = true;
     parent.append(this.root);
     this.gaps = new ThemeGaps(options.onError);
+    if (typeof document.fonts !== 'undefined') {
+      document.fonts.addEventListener('loadingdone', this.onFontsLoaded);
+    }
   }
 
   render(layers: LiveLayers, frame: RenderFrame): void {
+    this.input = {layers, frame};
     if (frame.theme !== undefined) {
       const slide = frame.slide ?? layers.slide;
       frame = {
@@ -591,7 +609,11 @@ export class ThemeCompositionView {
   }
 
   dispose(): void {
+    if (typeof document.fonts !== 'undefined') {
+      document.fonts.removeEventListener('loadingdone', this.onFontsLoaded);
+    }
     this.clear();
+    this.input = null;
     this.content = null;
     this.bandFit = null;
     this.root.remove();

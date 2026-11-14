@@ -6,6 +6,9 @@ export const LIVE_STATE_LIMITS = {
   bytes: 4 * 1024 * 1024,
   textCharacters: 4000,
   slideLines: 1000,
+  bibleItemSlides: 10_000,
+  bibleItemLines: 20_000,
+  bibleItemCharacters: 200_000,
   outputs: 200,
 } as const;
 

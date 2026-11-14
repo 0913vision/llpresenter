@@ -192,7 +192,11 @@ function writeLines(
 export function measureSlideText(
   lines: readonly string[],
   style: TextStyle,
-  {width, unwrapped = false}: {width: number; unwrapped?: boolean},
+  {
+    width,
+    unwrapped = false,
+    continued = false,
+  }: {width: number; unwrapped?: boolean; continued?: boolean},
 ): {
   height: (size: number) => number;
   /** No empty-text fallback: an empty broadcast box is hidden. */
@@ -214,26 +218,41 @@ export function measureSlideText(
   page.element.style.position = 'relative';
   page.element.style.inset = 'auto';
   page.block.style.width = '100%';
+  const {spacing, indent} = resolveTextTracking(
+    style,
+    lines.join('\n'),
+    continued,
+  );
+  page.block.style.letterSpacing = `${spacing}px`;
+  page.block.style.textIndent = `${indent}px`;
   if (unwrapped) page.block.style.whiteSpace = 'pre';
   host.append(page.element);
   document.body.append(host);
   try {
-    writeLines(page, lines);
+    writeLines(page, lines, {continued});
   } catch (error) {
     host.remove();
     throw error;
   }
+  const setSize = (size: number): void => {
+    page.block.style.fontSize = `${size}px`;
+    for (const marker of page.block.querySelectorAll<HTMLElement>(
+      '[data-bible-continuation]',
+    )) {
+      marker.style.fontSize = `${contSizeOf({size})}px`;
+    }
+  };
   return {
     width: size => {
-      page.block.style.fontSize = `${size}px`;
+      setSize(size);
       return page.block.scrollWidth;
     },
     layoutHeight: size => {
-      page.block.style.fontSize = `${size}px`;
+      setSize(size);
       return page.block.getBoundingClientRect().height;
     },
     height: size => {
-      page.block.style.fontSize = `${size}px`;
+      setSize(size);
       const measured = page.block.scrollHeight;
       return measured === 0 && lines.every(line => line.trim() === '')
         ? lines.length * size * style.lineHeight

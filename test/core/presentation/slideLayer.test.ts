@@ -133,7 +133,16 @@ describe('slideLayerOf', () => {
       continued: true,
       biblePart: 1,
       next: {continued: false, biblePart: 2},
+      bibleItemSlides: [
+        {lines: ['\uac00\ub098 (\uacc4\uc18d)'], continued: true},
+        {lines: ['\ub2e4\ub77c'], continued: false},
+      ],
     });
+    expect(
+      slideLayerOf({itemId: 'bible', index: 0}, () => parts)?.bibleItemSlides,
+    ).toBe(
+      slideLayerOf({itemId: 'bible', index: 1}, () => parts)?.bibleItemSlides,
+    );
   });
 
   it('carries an explicit Bible reference without treating song labels as references', () => {

@@ -63,14 +63,19 @@ function fittedText({
   value,
   width,
   song,
+  continued = false,
 }: {
   element: TextElement;
   value: string;
   width: number;
   song: boolean;
+  continued?: boolean;
 }): {size: number; height: number} {
   const style = {...DEFAULT_TEXT_STYLE, ...element.text, margin: 0};
-  const measure = measureSlideText(value.split('\n'), style, {width});
+  const measure = measureSlideText(value.split('\n'), style, {
+    width,
+    continued,
+  });
   let size: number = song ? geometry.songSize : geometry.bodySize;
   try {
     // NOTE(0913vision): Glyph ink may overflow a line box without adding a row.
@@ -139,12 +144,31 @@ function fitBand(
     bible && referenceElement
       ? (themeElementText(referenceElement, content) ?? '')
       : '';
-  const {size, height} = fittedText({
+  const fitted = fittedText({
     element: body,
     value,
     width: geometry.bodyWidth,
     song: false,
+    continued: bible && slide?.continued === true,
   });
+  const size = fitted.size;
+  const height =
+    bible && slide?.bibleItemSlides !== undefined
+      ? slide.bibleItemSlides.reduce(
+          (maximum, part) =>
+            Math.max(
+              maximum,
+              fittedText({
+                element: body,
+                value: broadcastBibleFlow(part.lines.join('\n')),
+                width: geometry.bodyWidth,
+                song: false,
+                continued: part.continued === true,
+              }).height,
+            ),
+          fitted.height,
+        )
+      : fitted.height;
   const hasHeader = bible;
   const bandHeight =
     height +
@@ -194,7 +218,7 @@ function fitBand(
           w: geometry.bodyWidth,
           h: height,
         },
-        text: {...e.text, size},
+        text: {...e.text, size, ...(bible ? {vAlign: 'top' as const} : {})},
         minimumTextSize: size,
         broadcastBibleFlow: bible,
       };

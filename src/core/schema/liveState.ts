@@ -89,6 +89,34 @@ export const layerSchemas = {
     label: v.nullable(liveTextSchema),
     lines: slideLinesSchema,
     sectionCard: v.exactOptional(sectionCardSchema),
+    bibleItemSlides: v.exactOptional(
+      v.pipe(
+        v.array(
+          payloadObject({
+            lines: slideLinesSchema,
+            continued: v.exactOptional(v.boolean()),
+          }),
+        ),
+        v.minLength(1),
+        v.maxLength(LIVE_STATE_LIMITS.bibleItemSlides),
+        v.check(
+          slides =>
+            slides.reduce((sum, slide) => sum + slide.lines.length, 0) <=
+            LIVE_STATE_LIMITS.bibleItemLines,
+          'Too many Bible item lines',
+        ),
+        v.check(
+          slides =>
+            slides.reduce(
+              (sum, slide) =>
+                sum +
+                slide.lines.reduce((total, line) => total + line.length, 0),
+              0,
+            ) <= LIVE_STATE_LIMITS.bibleItemCharacters,
+          'Bible item text exceeds the live-state budget',
+        ),
+      ),
+    ),
     sequenceLength: v.exactOptional(
       v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(10_000)),
     ),

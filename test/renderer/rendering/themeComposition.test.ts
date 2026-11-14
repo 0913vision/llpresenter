@@ -2055,7 +2055,7 @@ it('reflows Bible parts independently on stage and broadcast, including the next
     expect(
       root.querySelector<HTMLElement>('[data-kind="currentText"]')?.style
         .textWrap,
-    ).toBe('balance');
+    ).toBe(kind === 'stage' ? 'balance' : '');
     expect(
       root.querySelector<HTMLElement>('[data-kind="nextText"]')?.style.textWrap,
     ).toBe('balance');
@@ -2400,4 +2400,43 @@ it('hides the next item on stage only at the end of a Bible item', () => {
   render('bible', 1, 'audience');
   expect(nextText()).toContain('Invented next');
   view.dispose();
+});
+
+it('refits the current Bible item when output fonts finish loading', () => {
+  const descriptor = Object.getOwnPropertyDescriptor(document, 'fonts');
+  const fonts = new EventTarget();
+  Object.defineProperty(document, 'fonts', {configurable: true, value: fonts});
+  const {view} = setup();
+  const renderSpy = vi.spyOn(view, 'render');
+  const active = frame(broadcastLookLayout('plain').elements, {
+    item: {id: 'invented', kind: 'bible', source: 'service'},
+  });
+  const layers: LiveLayers = {
+    ...song,
+    slide: {
+      ...song.slide,
+      itemId: 'invented',
+      position: 0,
+      label: null,
+      lines: ['Verse'],
+      kind: 'bible',
+      bibleItemSlides: [{lines: ['Verse']}, {lines: ['Longer verse']}],
+    },
+  };
+  try {
+    view.render(layers, {
+      ...active,
+      screen: {id: THEME_MAIN, kind: 'broadcast'},
+      transitions: false,
+    });
+    fonts.dispatchEvent(new Event('loadingdone'));
+    expect(renderSpy).toHaveBeenCalledTimes(2);
+    view.dispose();
+    fonts.dispatchEvent(new Event('loadingdone'));
+    expect(renderSpy).toHaveBeenCalledTimes(2);
+  } finally {
+    view.dispose();
+    if (descriptor === undefined) Reflect.deleteProperty(document, 'fonts');
+    else Object.defineProperty(document, 'fonts', descriptor);
+  }
 });

@@ -1,6 +1,7 @@
 import type {NextSlide, SlideLayer} from '../live/state';
 import type {SlideTile, TileCursor} from './model';
 import type {TilesOf} from './navigation';
+import {LIVE_STATE_LIMITS} from '../schema/liveLimits';
 
 /** Projects a tile into the live stage preview payload. */
 export function nextSlideOf(
@@ -37,6 +38,39 @@ export function nextSlideOf(
   };
 }
 
+type BibleItemSlides = NonNullable<SlideLayer['bibleItemSlides']>;
+const bibleGroups = new WeakMap<readonly SlideTile[], BibleItemSlides | null>();
+
+function bibleGroup(tiles: readonly SlideTile[]): BibleItemSlides | undefined {
+  if (bibleGroups.has(tiles)) return bibleGroups.get(tiles) ?? undefined;
+  const parts = tiles.filter(part => part.biblePart !== undefined);
+  const lines = parts.reduce((sum, part) => sum + part.lines.length, 0);
+  const characters = parts.reduce(
+    (sum, part) =>
+      sum + part.lines.reduce((total, line) => total + line.length, 0),
+    0,
+  );
+  const group =
+    parts.length > 0 &&
+    parts.length <= LIVE_STATE_LIMITS.bibleItemSlides &&
+    lines <= LIVE_STATE_LIMITS.bibleItemLines &&
+    characters <= LIVE_STATE_LIMITS.bibleItemCharacters &&
+    parts.every(
+      part =>
+        part.lines.length <= LIVE_STATE_LIMITS.slideLines &&
+        part.lines.every(
+          line => line.length <= LIVE_STATE_LIMITS.textCharacters,
+        ),
+    )
+      ? parts.map(part => ({
+          lines: part.lines,
+          ...(part.continued === undefined ? {} : {continued: part.continued}),
+        }))
+      : undefined;
+  bibleGroups.set(tiles, group ?? null);
+  return group;
+}
+
 /**
  * The 장 layer that outputting a tile sends, or null when the tile is missing.
  * It carries the item's next tile for the 무대 화면, and none after the last.
@@ -55,10 +89,13 @@ export function slideLayerOf(
   const tile = tiles[cursor.index];
   if (!tile) return null;
   const next = tiles[cursor.index + 1] ?? following?.tile;
+  const bibleItemSlides =
+    tile.biblePart === undefined ? undefined : bibleGroup(tiles);
   return {
     itemId: cursor.itemId,
     position: cursor.index,
     sequenceLength: tiles.length,
+    ...(bibleItemSlides === undefined ? {} : {bibleItemSlides}),
     ...(tile.kind === 'ad' && tile.picture === undefined
       ? {
           textSlideNumber: tiles

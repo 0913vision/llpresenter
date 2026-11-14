@@ -608,9 +608,11 @@ as every settings file does (02).
   growing upward. Dark #1F1F1F bold 55 px text starts at x=90 with 1.35 line
   height; after three lines it shrinks to 48 px and the box grows to show text,
   shrinking further if necessary to stay within the 900 px body height. Bible
-  source breaks are rejoined and wrapped to this width. Bible alone has a 48 px
-  brown-to-transparent header strip with white bold 30 px reference; plain text
-  has no strip. Empty text has no box.
+  source breaks are rejoined and wrapped to the full text width without
+  balancing. A Bible item's box uses the tallest measured slide for every part
+  of the item, with text top-aligned and the box anchored at the same bottom
+  edge. Bible alone has a 48 px brown-to-transparent header strip with white
+  bold 30 px reference; plain text has no strip. Empty text has no box.
 - Each broadcast screen chooses its song caption. The default band fades from
   transparent at x=160 to black at 65% from x=560 to 1360, and out by x=1760;
   its bottom is y=1040 and it has 26 px vertical padding. Text-only has no band

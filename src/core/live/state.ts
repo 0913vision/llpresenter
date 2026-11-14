@@ -59,6 +59,11 @@ export interface NextSlide {
 
 /** The slide on output: a service item, its position in the arrangement, and what to draw. */
 export interface SlideLayer {
+  /** The Bible item's complete projected parts, for item-wide broadcast fitting. */
+  readonly bibleItemSlides?: ReadonlyArray<{
+    readonly lines: readonly string[];
+    readonly continued?: boolean;
+  }>;
   readonly sectionCard?: SectionCard;
   readonly sequenceLength?: number;
   readonly titleSlide?: true;

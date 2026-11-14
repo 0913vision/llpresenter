@@ -28,6 +28,30 @@ function busyState(): LiveState {
 }
 
 describe('parseLiveState', () => {
+  it('validates the bounded Bible item slide sequence', () => {
+    const state = busyState();
+    const withSlides = (bibleItemSlides: unknown) => ({
+      ...state,
+      layers: {
+        ...state.layers,
+        slide: {...state.layers.slide, bibleItemSlides},
+      },
+    });
+    const sequence = [{lines: ['First'], continued: true}, {lines: ['Second']}];
+    expect(parseLiveState(withSlides(sequence))).toMatchObject({
+      ok: true,
+      value: {layers: {slide: {bibleItemSlides: sequence}}},
+    });
+    for (const invalid of [
+      [],
+      [{lines: ['x'], continued: 'yes'}],
+      [{lines: Array(51).fill('x'.repeat(4000))}],
+      Array(21).fill({lines: Array(1000).fill('')}),
+      Array(LIVE_STATE_LIMITS.bibleItemSlides + 1).fill({lines: ['x']}),
+    ]) {
+      expect(parseLiveState(withSlides(invalid)).ok).toBe(false);
+    }
+  });
   it('preserves bounded title layout on a later live title and rejects invalid positions', () => {
     const state = busyState();
     const titleLayout = {
