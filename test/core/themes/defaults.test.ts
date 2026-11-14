@@ -341,14 +341,32 @@ it('offers one sermon title theme with automatic bars', () => {
       text: {size: 140, maxLines: 2},
     },
   ]);
-  for (const screen of [
-    STARTER_SCREEN_IDS.broadcast,
-    STARTER_SCREEN_IDS.stage,
-  ]) {
-    expect(theme?.screens[createScreenId(screen)]).toEqual(
-      builtInTheme('blank').screens[createScreenId(screen)],
-    );
-  }
+  const broadcast =
+    theme?.screens[createScreenId(STARTER_SCREEN_IDS.broadcast)];
+  expect(broadcast?.elements).toMatchObject([
+    {kind: 'box', frame: {y: 790, h: 200}, box: {fill: '#000000', opacity: 88}},
+    {kind: 'itemName', frame: {y: 823}, text: {size: 38, align: 'center'}},
+    {kind: 'currentText', text: {size: 64, align: 'center'}},
+  ]);
+  const stage = theme?.screens[createScreenId(STARTER_SCREEN_IDS.stage)];
+  expect(
+    stage?.elements.find(element => element.kind === 'itemName'),
+  ).toMatchObject({text: {size: 48, align: 'center'}});
+  expect(
+    stage?.elements.find(element => element.kind === 'currentText'),
+  ).toMatchObject({text: {size: 104, align: 'center'}});
+  expect(
+    stage?.elements.filter(
+      element => element.kind === 'clock' || element.kind === 'nextText',
+    ),
+  ).toEqual(
+    builtInTheme('bible').screens[
+      createScreenId(STARTER_SCREEN_IDS.stage)
+    ]?.elements.filter(
+      element => element.kind === 'clock' || element.kind === 'nextText',
+    ),
+  );
+  expect(v.safeParse(themesSchema, file).success).toBe(true);
 });
 
 it('uses the standard stage layout and leaves broadcast ads empty', () => {

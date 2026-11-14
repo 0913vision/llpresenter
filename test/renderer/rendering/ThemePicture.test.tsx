@@ -15,9 +15,13 @@ import {classes} from '@renderer/rendering/classes';
 import {stageClockText} from '@renderer/rendering/stageClock';
 import {fillTimerTokens} from '@renderer/rendering/timerTokens';
 import {ThemePicture} from '@renderer/rendering/ThemePicture';
-import {sermonTitleLayout} from '@core/themes/sundayScripture';
+import {
+  sermonTitleLayout,
+  sermonTitleBroadcastLayout,
+} from '@core/themes/sundayScripture';
 import {
   SECTION_BAND_ID,
+  SERMON_TITLE_BAND_ID,
   sectionBroadcastLayout,
 } from '@core/themes/sectionBroadcast';
 import * as ink from '@renderer/rendering/textInk';
@@ -585,4 +589,24 @@ it('shows the fixed fading section band in the theme editor preview', () => {
   expect(band?.firstElementChild?.getAttribute('style')).toContain('8.33333');
   expect(view.container.textContent).toContain('Section name');
   expect(view.container.textContent).not.toContain('English title');
+});
+
+it('shows the same gradient and both sermon text fields in the broadcast preview', () => {
+  const layout = sermonTitleBroadcastLayout();
+  const view = render(
+    <ThemePicture
+      elements={layout.elements}
+      background="#000000"
+      samples={{
+        itemName: '마태복음 11:29~30',
+        currentText: '동행의 열매 : 온유',
+      }}
+    />,
+  );
+  const band = view.container.querySelector<HTMLElement>(
+    `[data-theme-element="${SERMON_TITLE_BAND_ID}"]`,
+  );
+  expect(band?.firstElementChild?.getAttribute('style')).toContain('8.33333');
+  expect(view.container.textContent).toContain('마태복음 11:29~30');
+  expect(view.container.textContent).toContain('동행의 열매 : 온유');
 });

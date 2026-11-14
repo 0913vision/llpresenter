@@ -3,7 +3,12 @@ import {
   createThemeElementId,
   createThemeId,
 } from '../schema/ids';
-import type {ThemeScreenLayout, ThemeText} from '../schema/themes';
+import type {
+  ThemeElement,
+  ThemeScreenLayout,
+  ThemeText,
+} from '../schema/themes';
+import {SERMON_TITLE_BAND_ID} from './sectionBroadcast';
 
 export const SERMON_TITLE_THEME_ID = createThemeId(
   '00000000-0000-4000-8000-000000000106',
@@ -137,5 +142,84 @@ export function sermonTitleLayout(): ThemeScreenLayout {
         },
       },
     ],
+  };
+}
+
+/** Broadcast title and passage over the same fade as section cards. */
+export function sermonTitleBroadcastLayout(): ThemeScreenLayout {
+  return {
+    mode: {kind: 'own'},
+    elements: [
+      {
+        id: SERMON_TITLE_BAND_ID,
+        kind: 'box',
+        frame: {x: 0, y: 790, w: 1920, h: 200},
+        box: {on: true, fill: '#000000', opacity: 88, radius: 0},
+      },
+      {
+        id: id(13),
+        kind: 'itemName',
+        frame: {x: 160, y: 823, w: 1600, h: 56},
+        text: {
+          ...text,
+          size: 38,
+          tracking: 0,
+          lineHeight: 1.2,
+          align: 'center',
+          vAlign: 'middle',
+        },
+      },
+      {
+        id: id(3),
+        kind: 'currentText',
+        frame: {x: 160, y: 865, w: 1600, h: 112},
+        text: {
+          ...text,
+          size: 64,
+          tracking: 0,
+          lineHeight: 1.2,
+          align: 'center',
+          vAlign: 'middle',
+          maxLines: 2,
+        },
+      },
+    ],
+  };
+}
+
+/** Retain stage controls and next text while centering the passage and title. */
+export function sermonTitleStageLayout(
+  base: ThemeScreenLayout,
+): ThemeScreenLayout {
+  return {
+    ...base,
+    elements: base.elements.flatMap((element): ThemeElement[] =>
+      element.kind !== 'currentText'
+        ? [element]
+        : [
+            {
+              id: id(13),
+              kind: 'itemName' as const,
+              frame: {x: 154, y: 260, w: 1612, h: 72},
+              text: {
+                ...text,
+                size: 48,
+                tracking: 0,
+                lineHeight: 1.2,
+                align: 'center' as const,
+                vAlign: 'middle' as const,
+              },
+            },
+            {
+              ...element,
+              frame: {...element.frame, y: 345, h: 330},
+              text: {
+                ...element.text,
+                align: 'center' as const,
+                vAlign: 'top' as const,
+              },
+            },
+          ],
+    ),
   };
 }

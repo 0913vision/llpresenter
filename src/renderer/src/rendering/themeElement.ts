@@ -27,7 +27,10 @@ import type {RenderFrame, RenderLayerOptions} from './layer';
 import type {ThemeGaps} from './themeGaps';
 import {setPlaybackProblem} from './playbackProblem';
 import {broadcastBibleFlow} from './broadcastBibleFlow';
-import {SECTION_BAND_ID, SECTION_NAME_ID} from '@core/themes/sectionBroadcast';
+import {
+  SECTION_NAME_ID,
+  isSectionBandGradient,
+} from '@core/themes/sectionBroadcast';
 import {sectionBandGradient} from './sectionBandGradient';
 
 function fillColor(fill: string, opacity: number): string {
@@ -188,7 +191,7 @@ export class ThemeElementView {
         styleBroadcastGlass(background, element.broadcastGlass, capture);
         this.box.style.overflow = 'visible';
       }
-      if (element.id === SECTION_BAND_ID) {
+      if (isSectionBandGradient(element.id)) {
         background.style.background = sectionBandGradient;
         background.style.borderRadius = '0';
       }
@@ -470,7 +473,7 @@ export class ThemeElementView {
         },
       );
     }
-    if ([SECTION_BAND_ID, SECTION_NAME_ID].includes(element.id)) {
+    if (isSectionBandGradient(element.id) || element.id === SECTION_NAME_ID) {
       this.box.hidden = layers.slide === null || item?.contentCleared === true;
     }
     this.setClearOpacity(frame.clearOpacity);
@@ -486,7 +489,8 @@ export class ThemeElementView {
     const {element} = this;
     const target =
       element.clearTarget === 'slide' ||
-      [SECTION_BAND_ID, SECTION_NAME_ID].includes(element.id) ||
+      isSectionBandGradient(element.id) ||
+      element.id === SECTION_NAME_ID ||
       SLIDE_ELEMENT_KINDS.includes(element.kind)
         ? 'slide'
         : element.kind === 'media' || element.kind === 'background'

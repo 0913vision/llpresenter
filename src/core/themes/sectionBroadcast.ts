@@ -7,6 +7,14 @@ export const SECTION_BAND_ID = createThemeElementId(
 export const SECTION_NAME_ID = createThemeElementId(
   '00000000-0000-4000-8000-000000000487',
 );
+export const SERMON_TITLE_BAND_ID = createThemeElementId(
+  '00000000-0000-4000-8000-000000000488',
+);
+
+/** Both section and sermon bands use the same broadcast fade. */
+export function isSectionBandGradient(id: string): boolean {
+  return id === SECTION_BAND_ID || id === SERMON_TITLE_BAND_ID;
+}
 
 const text: ThemeText = {
   font: 'Pretendard Variable',

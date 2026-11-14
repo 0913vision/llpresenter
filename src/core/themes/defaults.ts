@@ -18,6 +18,8 @@ import {THEME_LIMITS, themeItemKinds, type ThemeItemKind} from './elementRules';
 import {
   sundayScriptureLayout,
   sermonTitleLayout,
+  sermonTitleBroadcastLayout,
+  sermonTitleStageLayout,
   SERMON_TITLE_THEME_ID,
 } from './sundayScripture';
 import {sundayNoticeLayout} from './sundayNotice';
@@ -408,6 +410,24 @@ function layoutFor(
   };
 }
 
+/** Resolve the sermon title's own layout for each screen. */
+export function sermonTitleScreenLayout(
+  screen: ThemeScreen,
+): ThemeScreenLayout {
+  return screen.kind === 'audience'
+    ? sermonTitleLayout()
+    : screen.kind === 'broadcast'
+      ? sermonTitleBroadcastLayout()
+      : sermonTitleStageLayout(layoutFor(screen, 'bible'));
+}
+
+/** Former sermon title layout used to recognize untouched saved screens. */
+export function legacySermonTitleLayout(
+  screen: ThemeScreen,
+): ThemeScreenLayout {
+  return layoutFor(screen, 'bible');
+}
+
 /** The former unmodified section layout, used only when resolving saved defaults. */
 export function legacySectionLayout(screen: ThemeScreen): ThemeScreenLayout {
   if (screen.kind === 'broadcast') {
@@ -485,12 +505,7 @@ export function createDefaultThemes(
         id: SERMON_TITLE_THEME_ID,
         name: '설교 제목',
         screens: Object.fromEntries(
-          screens.map(screen => [
-            screen.id,
-            screen.kind === 'audience'
-              ? sermonTitleLayout()
-              : layoutFor(screen, 'bible'),
-          ]),
+          screens.map(screen => [screen.id, sermonTitleScreenLayout(screen)]),
         ),
       },
       ...SECTION_THEMES.map(({id, color}) => ({

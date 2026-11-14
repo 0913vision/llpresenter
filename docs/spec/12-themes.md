@@ -580,8 +580,11 @@ as every settings file does (02).
   Audience bars follow the visible letter ink with equal gaps above and below;
   titles wrap automatically to at most two lines, retaining 162 px between the
   reference and title first-line centers. The reference uses KoPubWorldDotum
-  Medium 86 px and the title Bold 140 px. Other screens retain their Bible
-  layout.
+  Medium 86 px and the title Bold 140 px. 방송 uses the section-card black
+  gradient band, expanded upward for two centered lines: the smaller passage
+  above the larger sermon title. 무대 centers the smaller passage above the
+  title and retains its clock and next-slide areas. Unedited saved sermon
+  screens receive these layouts; individually customized screens are preserved.
 - `defaults.blank` selects 말씀 and `defaults.ad` selects 광고 in a new
   `themes.json`. Both can be changed like the other kind defaults.
 - On 청중 화면 the 광고 theme uses a shipped 1920 x 1080 blue-purple picture and

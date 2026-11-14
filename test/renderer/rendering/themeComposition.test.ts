@@ -142,6 +142,52 @@ afterEach(() => {
 });
 
 describe('theme composition drawing', () => {
+  it.each(['stage', 'broadcast'] as const)(
+    'draws a centered sermon passage above its title on %s',
+    kind => {
+      const {root, view} = setup();
+      const screenId = createScreenId(STARTER_SCREEN_IDS[kind]);
+      const theme = createDefaultThemes().themes.find(
+        entry => entry.name === '설교 제목',
+      );
+      const layout = theme?.screens[screenId];
+      if (!theme || !layout || song.slide === null) {
+        throw Error('Missing sermon layout');
+      }
+      const active = frame(layout.elements, {
+        themeId: theme.id,
+        layout,
+        item: {
+          id: 'invented',
+          kind: 'blank',
+          source: 'service',
+          title: '마태복음 11:29~30',
+        },
+      });
+      view.render(
+        {
+          ...song,
+          slide: {...song.slide, label: null, lines: ['동행의 열매 : 온유']},
+        },
+        {...active, screen: {id: screenId, kind}, transitions: false},
+      );
+      expect(
+        root.querySelector(`[data-kind="itemName"] .${classes.shown}`)
+          ?.textContent,
+      ).toBe('마태복음 11:29~30');
+      expect(
+        root.querySelector(`[data-kind="currentText"] .${classes.shown}`)
+          ?.textContent,
+      ).toBe('동행의 열매 : 온유');
+      if (kind === 'broadcast') {
+        expect(
+          root.querySelector<HTMLElement>('[data-kind="box"] > div')?.style
+            .background,
+        ).toContain('linear-gradient');
+      }
+      view.dispose();
+    },
+  );
   it.each(['same', 'different'] as const)(
     'uses one full-page wipe with %s background',
     background => {

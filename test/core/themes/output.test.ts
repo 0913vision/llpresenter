@@ -15,8 +15,70 @@ import {resolveItemTheme, resolveThemeScreen} from '@core/themes/resolve';
 import {itemThemeCell} from '@core/themes/itemThemeCell';
 import {createServiceItemId} from '@core/schema/ids';
 import {newSlidesItem} from '@core/services/slidesEdits';
+import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
+import {legacySermonTitleLayout} from '@core/themes/defaults';
 
 describe('published theme compositions', () => {
+  it('updates untouched legacy sermon screens while preserving edited layouts', () => {
+    const file = themeFile();
+    const theme = file.themes.find(entry => entry.id === SERMON_TITLE_THEME_ID);
+    const broadcast = themeScreens.find(screen => screen.id === THEME_CAPTURE);
+    const stage = themeScreens.find(screen => screen.id === THEME_STAGE);
+    if (!theme || !broadcast || !stage) throw Error('Missing sermon screens');
+    const legacy = {
+      ...theme,
+      edited: true,
+      screens: {
+        ...theme.screens,
+        [broadcast.id]: legacySermonTitleLayout(broadcast),
+        [stage.id]: legacySermonTitleLayout(stage),
+      },
+    };
+    const request = {
+      file: {
+        ...file,
+        themes: file.themes.map(entry =>
+          entry.id === theme.id ? legacy : entry,
+        ),
+      },
+      screens: themeScreens,
+      item: {
+        id: 'sermon',
+        kind: 'blank' as const,
+        source: 'service' as const,
+        theme: theme.id,
+        title: '마태복음 11:29~30',
+      },
+      revision: 1,
+    };
+    const output = resolveThemeOutput(request);
+    expect(output.screens[THEME_MAIN]?.layout).toEqual(
+      theme.screens[THEME_MAIN],
+    );
+    expect(output.screens[THEME_CAPTURE]?.layout).toEqual(
+      theme.screens[THEME_CAPTURE],
+    );
+    expect(output.screens[THEME_STAGE]?.layout).toEqual(
+      theme.screens[THEME_STAGE],
+    );
+    const custom = {
+      ...legacy,
+      screens: {
+        ...legacy.screens,
+        [broadcast.id]: {mode: {kind: 'own' as const}, elements: []},
+      },
+    };
+    const customOutput = resolveThemeOutput({
+      ...request,
+      file: {
+        ...file,
+        themes: file.themes.map(entry =>
+          entry.id === theme.id ? custom : entry,
+        ),
+      },
+    });
+    expect(customOutput.screens[THEME_CAPTURE]?.layout.elements).toEqual([]);
+  });
   it('uses the edited standby for an explicit item on every screen and in previews', () => {
     const initial = themeFile();
     const main = initial.standby.screens[THEME_MAIN];

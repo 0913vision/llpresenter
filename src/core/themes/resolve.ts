@@ -10,10 +10,13 @@ import {
   AD_THEME_ID,
   imageSlidesLayout,
   withStageStandby,
+  sermonTitleScreenLayout,
+  legacySermonTitleLayout,
   type ThemeScreen,
 } from './defaults';
 import {themeElementProblem, type ThemeItemKind} from './elementRules';
 import {SONG_THEME_ID} from './songTitle';
+import {SERMON_TITLE_THEME_ID} from './sundayScripture';
 
 interface ItemThemeRequest {
   readonly file: ThemesFile | null | undefined;
@@ -75,6 +78,31 @@ function resolvedSectionLayout(
   });
   return sameJson(layout, legacy)
     ? sectionOtherLayout(layout, source.kind)
+    : layout;
+}
+
+function resolvedSermonLayout(
+  theme: Theme,
+  layout: ThemeScreenLayout,
+  source: Pick<Screen, 'id' | 'kind'> | undefined,
+): ThemeScreenLayout {
+  if (
+    theme.id !== SERMON_TITLE_THEME_ID ||
+    !source ||
+    source.kind === 'audience'
+  ) {
+    return layout;
+  }
+  const screen = {
+    id: source.id,
+    kind: source.kind,
+    method:
+      source.kind === 'broadcast'
+        ? ('capture' as const)
+        : ('fullscreen' as const),
+  };
+  return sameJson(layout, legacySermonTitleLayout(screen))
+    ? sermonTitleScreenLayout(screen)
     : layout;
 }
 
@@ -140,7 +168,7 @@ export function resolveThemeScreen(
     }
     if (layout.mode.kind === 'own') {
       const source = screens.find(screen => screen.id === current);
-      let resolved = layout;
+      let resolved = resolvedSermonLayout(theme, layout, source);
       if (
         source?.kind === 'audience' &&
         theme.id === SONG_THEME_ID &&
