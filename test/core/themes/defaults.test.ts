@@ -392,6 +392,8 @@ it('uses the standard stage layout and leaves broadcast ads empty', () => {
       color: '#FFFFFF',
       align: 'left',
       lineHeight: 128 / 86,
+      bullets: true,
+      bulletStyle: 'disc',
     },
   });
   if (!title || !body) throw Error('Missing notice text');

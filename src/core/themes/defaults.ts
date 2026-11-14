@@ -186,7 +186,13 @@ function stageElements(kind: ThemeItemKind = 'song'): ThemeElement[] {
             weight: contentWeight,
             size: kind === 'bible' ? 104 : kind === 'ad' ? 86 : 108,
             ...(kind === 'ad'
-              ? {font: 'KoPubWorldDotum', weight: 500, lineHeight: 128 / 86}
+              ? {
+                  font: 'KoPubWorldDotum',
+                  weight: 500,
+                  lineHeight: 128 / 86,
+                  bullets: true,
+                  bulletStyle: 'disc' as const,
+                }
               : {}),
             ...(kind === 'ad' ? {} : {lineHeight: 1.2}),
             maxLines: 4,
