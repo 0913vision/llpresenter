@@ -525,6 +525,23 @@ describe('shared Bible reference form', () => {
     },
   );
 
+  it('completes a book typed with Korean input when Tab arrives during composition', async () => {
+    const view = setup();
+    view.lookup.mockImplementation(() => new Promise(() => undefined));
+    await view.user.type(view.book, '합');
+    expect(
+      fireEvent.keyDown(view.book, {
+        key: 'Process',
+        code: 'Tab',
+        isComposing: true,
+      }),
+    ).toBe(false);
+    expect(document.activeElement).toBe(view.book);
+    fireEvent.compositionEnd(view.book);
+    await waitFor(() => expect(view.book.value).toBe('하박국'));
+    await waitFor(() => expect(document.activeElement).toBe(view.chapter));
+  });
+
   it('keeps all matches beyond eight and lets a click complete a book and move to 장 without output', async () => {
     const view = setup();
     await view.user.type(view.book, '서');
