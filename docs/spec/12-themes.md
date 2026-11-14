@@ -615,14 +615,14 @@ as every settings file does (02).
   of the item, with text top-aligned and the box anchored at the same bottom
   edge. Bible alone has a 48 px brown-to-transparent header strip with white
   bold 30 px reference; plain text has no strip. Empty text has no box.
-- Each broadcast screen chooses its song caption. The default band is solid
-  opaque black across the full 1920 px width; its bottom is y=1040 and it has 26
-  px vertical padding. Text-only has no band and its last line ends at y=1004.
-  Both use centered white bold 56 px text, 1.25 line height and at most two
-  lines, shrinking to fit. The band text has a 0 2px 6px black shadow at 80%;
-  text-only uses a 4 px shadow at 80% and 2 px offset plus a 24 px glow at 55%.
-  All song lines use the same style. An empty song slide uses its title, not its
-  label. The capture fallback uses an unblurred hard shadow.
+- Each broadcast screen chooses its song caption. The default band is flat black
+  at 91% opacity across the full 1920 px width; its bottom is y=1040 and it has
+  26 px vertical padding. Text-only has no band and its last line ends at
+  y=1004. Both use centered white bold 56 px text, 1.25 line height and at most
+  two lines, shrinking to fit. The band text has a 0 2px 6px black shadow at
+  80%; text-only uses a 4 px shadow at 80% and 2 px offset plus a 24 px glow at
+  55%. All song lines use the same style. An empty song slide uses its title,
+  not its label. The capture fallback uses an unblurred hard shadow.
 - Broadcast section cards use a 102 px horizontal black fade from y=888 to
   y=990: transparent at x=160 and x=1760, 88% black from x=480 to x=1440. The
   Korean item name alone is centered in white Pretendard Variable bold 64 px

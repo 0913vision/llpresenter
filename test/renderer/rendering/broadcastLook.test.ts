@@ -278,7 +278,7 @@ describe('built-in broadcast look', () => {
       ...layout,
       elements: layout.elements.map(e =>
         e.id === BROADCAST_LOOK_BAND_ID && e.kind === 'box'
-          ? {...e, box: {...e.box, opacity: 88}}
+          ? {...e, box: {...e.box, opacity: 100}}
           : e,
       ),
     };
@@ -289,7 +289,7 @@ describe('built-in broadcast look', () => {
     );
     expect(element(result, BROADCAST_LOOK_BAND_ID)).toMatchObject({
       frame: {x: 0, w: 1920},
-      box: {fill: '#000000', opacity: 100},
+      box: {fill: '#000000', opacity: 91},
       runtimeHidden: false,
     });
     expect(element(result, BROADCAST_LOOK_SONG_ID)).toMatchObject({
