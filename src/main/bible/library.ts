@@ -1,4 +1,5 @@
 import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
+import {BIBLE_VERSE_COUNTS} from '@core/bible/bibleVerseCounts';
 import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
 import {parseReference} from '@core/bible/reference';
 import {BIBLE_LOOKUP_LIMITS} from '@core/schema/bibleLookup';
@@ -43,28 +44,23 @@ export class BibleLibrary {
     );
   }
 
-  /** Reads verse slots from the installed header, including omitted verses. */
-  bounds(translation: string, name: string) {
+  hasBook(translation: string, book: number): boolean {
+    return (
+      translation === LIVE_BIBLE_ID ||
+      this.catalog
+        .header(translation)
+        ?.books.some(entry => entry.id === book) === true
+    );
+  }
+
+  /** Returns canonical GAE verse bounds regardless of installed files. */
+  bounds(_translation: string, name: string) {
     const matches = matchBooks(name);
     const book =
       exactBibleBook(name) ?? (matches.length === 1 ? matches[0] : undefined);
-    if (translation === LIVE_BIBLE_ID && book) {
-      return {
-        bookId: book.id,
-        chapterVerses: Array<number>(book.chapters).fill(
-          BIBLE_LOOKUP_LIMITS.verses,
-        ),
-      };
-    }
-    const indexed = this.catalog
-      .header(translation)
-      ?.books.find(entry => entry.id === book?.id);
-    return indexed
-      ? {
-          bookId: indexed.id,
-          chapterVerses: indexed.chapters.map(chapter => chapter.verses),
-        }
-      : undefined;
+    const chapterVerses =
+      book === undefined ? undefined : BIBLE_VERSE_COUNTS[book.id - 1];
+    return book && chapterVerses ? {bookId: book.id, chapterVerses} : undefined;
   }
 
   async resolve(

@@ -24,6 +24,11 @@ describe('live Bible chapters', () => {
       ),
     ).toEqual(['one']);
   });
+  it('parses the site structure after malformed earlier markup', () => {
+    const html =
+      '<!doctype html><html><head><title>Example</title></head><body><a><div>heading</div></a><div id="tdBible1"><span><b class="number">1</b>alpha<font class="name">beta</font>gamma</span></div></body></html>';
+    expect(parseLiveChapter(html)).toEqual(['alphabetagamma']);
+  });
   it('handles HTTP, network and missing verse failures', async () => {
     const fetch = vi
       .fn()

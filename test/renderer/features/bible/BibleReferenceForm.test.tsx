@@ -285,31 +285,19 @@ describe('shared Bible reference form', () => {
     },
   );
 
-  it('keeps Tab on an ambiguous arrow pick absent from the installed translation', async () => {
+  it('accepts an ambiguous book absent from the installed translation', async () => {
     const view = setup();
     view.lookup.mockImplementation(request => formLookupReply(request, [43]));
-    await view.user.type(view.book, '베');
-    await view.user.keyboard('{ArrowDown}');
-    await waitFor(() =>
-      expect(
-        document.getElementById(
-          view.book.getAttribute('aria-describedby') ?? '',
-        )?.textContent,
-      ).toBe('이 역본에 없는 책'),
-    );
-    await view.user.tab();
-    expect(view.book.value).toBe('에베소서');
-    expect(document.activeElement).toBe(view.book);
-    expect(
-      document.getElementById(view.book.getAttribute('aria-describedby') ?? '')
-        ?.textContent,
-    ).toBe('이 역본에 없는 책');
-    expect(view.onPreview).not.toHaveBeenCalled();
+    await view.user.type(view.book, '\ubca0');
+    await view.user.keyboard('{ArrowDown}{Tab}');
+    expect(view.book.value).toBe('\uc5d0\ubca0\uc18c\uc11c');
+    expect(document.activeElement).toBe(view.chapter);
+    expect(view.book.getAttribute('aria-invalid')).toBeNull();
     expect(view.onSubmit).not.toHaveBeenCalled();
   });
 
   it.each([true, false])(
-    'completes an ambiguous pick immediately while pending and returns focus only for an unavailable reply, available %s',
+    'completes an ambiguous pick using static metadata while the reply is pending, available %s',
     async available => {
       const view = setup();
       let finish: (reply: BibleLookupReply) => void = () => undefined;
@@ -333,10 +321,8 @@ describe('shared Bible reference form', () => {
           ),
         ),
       );
-      expect(document.activeElement).toBe(available ? view.chapter : view.book);
-      expect(view.book.getAttribute('aria-invalid')).toBe(
-        available ? null : 'true',
-      );
+      expect(document.activeElement).toBe(view.chapter);
+      expect(view.book.getAttribute('aria-invalid')).toBeNull();
     },
   );
 
@@ -373,7 +359,7 @@ describe('shared Bible reference form', () => {
       if (action === 'translation') {
         view.rerender(<BibleReferenceForm {...view.props} />);
         await waitFor(() =>
-          expect(view.book.getAttribute('aria-invalid')).toBe('true'),
+          expect(view.book.getAttribute('aria-invalid')).toBeNull(),
         );
       }
       expect(document.activeElement).toBe(focus);
@@ -383,25 +369,18 @@ describe('shared Bible reference form', () => {
     },
   );
 
-  it('keeps Tab on a canonical book absent from the selected translation', async () => {
+  it('accepts a canonical book absent from the installed translation', async () => {
     const view = setup();
-    fireEvent.change(view.book, {target: {value: '시'}});
-    await waitFor(() =>
-      expect(view.book.getAttribute('aria-invalid')).toBe('true'),
-    );
-    expect(
-      document.getElementById(view.book.getAttribute('aria-describedby') ?? '')
-        ?.textContent,
-    ).toBe('이 역본에 없는 책');
+    fireEvent.change(view.book, {target: {value: '\uc2dc'}});
+    expect(view.book.getAttribute('aria-invalid')).toBeNull();
     await view.user.click(view.book);
     await view.user.tab();
-    expect(document.activeElement).toBe(view.book);
-    expect(view.book.value).toBe('시');
-    expect(view.onPreview).not.toHaveBeenCalled();
+    expect(document.activeElement).toBe(view.chapter);
+    expect(view.book.value).toBe('\uc2dc\ud3b8');
     expect(view.onSubmit).not.toHaveBeenCalled();
   });
 
-  it('completes immediately while book availability is pending, then blocks Tab after an unavailable reply', async () => {
+  it('completes using static metadata even if an installed translation has no book', async () => {
     const view = setup();
     let finish: (reply: BibleLookupReply) => void = () => undefined;
     view.lookup.mockImplementationOnce(
@@ -416,10 +395,10 @@ describe('shared Bible reference form', () => {
     expect(view.book.value).toBe('시편');
     expect(document.activeElement).toBe(view.chapter);
     await act(async () => finish(await formLookupReply(lookupRequest('시편'))));
-    expect(view.book.getAttribute('aria-invalid')).toBe('true');
+    expect(view.book.getAttribute('aria-invalid')).toBeNull();
     await view.user.click(view.book);
     await view.user.tab();
-    expect(document.activeElement).toBe(view.book);
+    expect(document.activeElement).toBe(view.chapter);
     expect(view.onPreview).not.toHaveBeenCalled();
     expect(view.onSubmit).not.toHaveBeenCalled();
   });
@@ -734,7 +713,7 @@ describe('shared Bible reference form', () => {
     expect(view.onSubmit).not.toHaveBeenCalled();
   });
 
-  it('cannot use old bounds or a passage while a different translation is pending', async () => {
+  it('keeps static bounds but does not use an old passage while a different translation is pending', async () => {
     const view = setup();
     await enterPassage(view);
     await waitFor(() => expect(view.onPreview).toHaveBeenCalled());
@@ -750,8 +729,8 @@ describe('shared Bible reference form', () => {
       <BibleReferenceForm {...view.props} translation={other.translation} />,
     );
     expect(view.start.value).toBe('16');
-    expect(view.start.disabled).toBe(true);
-    expect(view.end.disabled).toBe(true);
+    expect(view.start.disabled).toBe(false);
+    expect(view.end.disabled).toBe(false);
     fireEvent.keyDown(view.end, {key: 'Enter'});
     expect(view.onSubmit).not.toHaveBeenCalled();
     await act(async () => finish(await formLookupReply(other)));
@@ -762,6 +741,12 @@ describe('shared Bible reference form', () => {
     );
     expect(view.start.disabled).toBe(false);
     expect(view.end.disabled).toBe(false);
+    await waitFor(() =>
+      expect(view.onSubmit).toHaveBeenCalledWith(
+        expect.objectContaining({translation: other.translation}),
+      ),
+    );
+    view.onSubmit.mockClear();
     view.rerender(
       <BibleReferenceForm {...view.props} translation={undefined} />,
     );
@@ -802,7 +787,7 @@ describe('Bible reference form readiness', () => {
     return onReady;
   }
 
-  it('reports no ready passage after an unavailable arrow pick replaces a valid one', async () => {
+  it('clears the ready passage when a new book replaces a valid one', async () => {
     const view = setup();
     const onReady = ready(view);
     view.lookup.mockImplementation(request => formLookupReply(request, [43]));
@@ -813,9 +798,7 @@ describe('Bible reference form readiness', () => {
     await view.user.type(view.book, '베');
     await view.user.keyboard('{ArrowDown}{Tab}');
 
-    await waitFor(() =>
-      expect(view.book.getAttribute('aria-invalid')).toBe('true'),
-    );
+    expect(view.book.getAttribute('aria-invalid')).toBeNull();
     expect(view.book.value).toBe('에베소서');
     await waitFor(() => expect(onReady).toHaveBeenLastCalledWith(null));
   });

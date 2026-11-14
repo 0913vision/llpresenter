@@ -159,9 +159,9 @@ export class BibleLookupSession {
     if (!library) throw new Error('Bible settings are unavailable');
     const [, name = ''] = BOOK_PREFIX.exec(request.input.trim()) ?? [];
     const matches = matchBooks(name);
+    const book = matches.length === 1 ? matches[0] : undefined;
     const missingBook =
-      matches.length === 1 &&
-      library.bounds(request.translation, name) === undefined;
+      book !== undefined && !library.hasBook(request.translation, book.id);
     const target =
       request.translation !== LIVE_BIBLE_ID &&
       (cacheOnly || operatorLookup) &&
