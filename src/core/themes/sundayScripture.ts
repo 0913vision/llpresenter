@@ -74,7 +74,7 @@ export function sundayScriptureLayout(): ThemeScreenLayout {
         id: id(3),
         kind: 'currentText',
         frame: {x: 130.6, y: 248, w: 1660, h: 750},
-        text: {...text, maxLines: 5},
+        text: {...text, maxLines: 4},
       },
     ],
   };

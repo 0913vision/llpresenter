@@ -561,7 +561,7 @@ as every settings file does (02).
 - 말씀 on 청중 화면 uses its full-screen teal picture, white NanumSquare Bold
   text without outline or shadow: an item-range 성경 출처 at 72 px, and 현재
   가사 at 104 px, left/top aligned, with -3 px tracking and 150 px line spacing.
-  The text frame starts at (130.6, 248), is 1660 x 750, and has a five-line
+  The text frame starts at (130.6, 248), is 1660 x 750, and has a four-line
   Bible split budget. Missing fonts fall back to Pretendard. The broadcast
   screen uses the lower third and the stage uses the new-library stage layout
   below. The normal 배경 and 미디어 elements above the shipped picture retain

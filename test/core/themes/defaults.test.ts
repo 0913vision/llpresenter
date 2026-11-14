@@ -263,7 +263,7 @@ it('ships the audience scripture picture and editable typography without changin
         size: 104,
         tracking: -3,
         lineHeight: 150 / 104,
-        maxLines: 5,
+        maxLines: 4,
         align: 'left',
         vAlign: 'top',
         shadow: {on: false},
