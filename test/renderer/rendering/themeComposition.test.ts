@@ -2601,7 +2601,7 @@ it('shows only Korean title or section name on stage and retains audience subtit
     root.querySelector(`[data-kind="currentText"] .${classes.shown}`)
       ?.textContent ?? '';
   draw(title, 'stage');
-  expect(current()).toBe('Korean title');
+  expect(current()).toBe('(Verse) Korean title');
   draw(title, 'audience');
   expect(current()).toContain('English subtitle');
   const card = {
