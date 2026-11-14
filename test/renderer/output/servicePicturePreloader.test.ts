@@ -6,7 +6,12 @@ it('discards an old render after the service changes and preloads the new slide'
   const rows: readonly ServiceRow[] = [
     {kind: 'song', id: 'song', title: 'Song'},
   ];
-  const tile: SlideTile = {label: null, labelColor: 'none', lines: ['first']};
+  const tile: SlideTile = {
+    label: null,
+    labelColor: 'none',
+    lines: ['first'],
+    transition: {kind: 'wipe', sec: 1},
+  };
   let finish: (picture: string | null) => void = () => undefined;
   const render = vi
     .fn()
@@ -28,4 +33,18 @@ it('discards an old render after the service changes and preloads the new slide'
   expect(render).toHaveBeenCalledTimes(2);
   preloader.dispose();
   expect(preloader.get({itemId: 'song', index: 0})).toBeUndefined();
+});
+
+it('does not render a cut slide outside the selected transition pairs', async () => {
+  const rows: readonly ServiceRow[] = [
+    {kind: 'song', id: 'song', title: 'Song'},
+  ];
+  const tile: SlideTile = {label: null, labelColor: 'none', lines: []};
+  const render = vi.fn(async () => 'picture');
+  const preloader = new ServicePicturePreloader(render);
+  preloader.refresh(rows, {song: [tile]});
+  preloader.request({itemId: 'song', index: 0});
+  await Promise.resolve();
+  expect(render).not.toHaveBeenCalled();
+  preloader.dispose();
 });

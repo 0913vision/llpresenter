@@ -1,4 +1,4 @@
-import {servicePicturePlan} from '@core/presentation/transitionPictures';
+import {transitionPicturePlan} from '@core/presentation/transitionPictures';
 import type {ServiceRow, SlideTile, TileCursor} from '@core/presentation/model';
 import {TransitionPictureCache} from './transitionPictureCache';
 
@@ -9,6 +9,7 @@ const keyOf = (cursor: TileCursor): string =>
 export class ServicePicturePreloader {
   private readonly pictures = new TransitionPictureCache();
   private queue: TileCursor[] = [];
+  private eligible = new Set<string>();
   private generation = 0;
   private busy = false;
   private inFlight: string | null = null;
@@ -25,7 +26,8 @@ export class ServicePicturePreloader {
     if (this.disposed) return;
     this.generation += 1;
     this.pictures.clear();
-    this.queue = [...servicePicturePlan(rows, tiles)];
+    this.queue = [...transitionPicturePlan(rows, tiles)];
+    this.eligible = new Set(this.queue.map(keyOf));
     this.pump();
   }
 
@@ -34,7 +36,13 @@ export class ServicePicturePreloader {
   }
 
   request(cursor: TileCursor): void {
-    if (this.disposed || this.get(cursor) !== undefined) return;
+    if (
+      this.disposed ||
+      !this.eligible.has(keyOf(cursor)) ||
+      this.get(cursor) !== undefined
+    ) {
+      return;
+    }
     const key = keyOf(cursor);
     if (
       this.inFlight !== key &&
@@ -49,6 +57,7 @@ export class ServicePicturePreloader {
     this.disposed = true;
     this.generation += 1;
     this.queue = [];
+    this.eligible.clear();
     this.pictures.clear();
   }
 
