@@ -3,6 +3,7 @@ import {BROADCAST_LOOK_GEOMETRY as glass} from '@core/themes/broadcastLook';
 import type {LiveLayers, MediaLayer} from '@core/live/state';
 import {mediaObjectFit} from '@core/media/objectFit';
 import type {ResolvedThemeElement} from '@core/themes/songTitle';
+import {songTitleLines} from '@core/presentation/songTitleLines';
 import type {TextStyle} from '@core/themes/textStyle';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {themeTextVAlign} from '@core/themes/textAlignment';
@@ -313,7 +314,7 @@ export class ThemeElementView {
       item?.contentCleared !== true &&
       !(
         slide.titleSlide
-          ? slide.lines.slice(0, slide.titleLineCount ?? 1)
+          ? songTitleLines(slide.lines, slide.titleLineCount)
           : slide.lines
       ).some(line => line.trim() !== '');
     const next = slide?.next;
@@ -325,7 +326,7 @@ export class ThemeElementView {
       !next.title?.trim() &&
       !(
         next.titleSlide
-          ? next.lines.slice(0, next.titleLineCount ?? 1)
+          ? songTitleLines(next.lines, next.titleLineCount)
           : next.lines
       ).some(line => line.trim() !== '');
     const rawCurrentLabel = slide?.label?.trim();
@@ -524,7 +525,9 @@ export class ThemeElementView {
       slide?.titleSlide &&
       element.kind === 'currentText'
     ) {
-      const title = slide.lines.slice(0, slide.titleLineCount ?? 1).join('\n');
+      const title = songTitleLines(slide.lines, slide.titleLineCount).join(
+        '\n',
+      );
       const label = slide.label?.trim();
       return label && title.trim() && (slide.kind ?? item?.kind) !== 'bible'
         ? stageLabeledText(title, label, true)
@@ -596,9 +599,9 @@ export class ThemeElementView {
             ...flowedLayers.slide,
             next: {
               ...flowedLayers.slide.next,
-              lines: flowedLayers.slide.next.lines.slice(
-                0,
-                flowedLayers.slide.next.titleLineCount ?? 1,
+              lines: songTitleLines(
+                flowedLayers.slide.next.lines,
+                flowedLayers.slide.next.titleLineCount,
               ),
             },
           },

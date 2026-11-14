@@ -2737,6 +2737,12 @@ it('shows only the main title box in the stage next preview', () => {
       'audience',
     ),
   ).toContain('English title');
+  expect(
+    draw(
+      {label: null, titleSlide: true, lines: ['임재', '하늘의 문을 여소서']},
+      'stage',
+    ),
+  ).toContain('하늘의 문을 여소서');
   view.dispose();
 });
 
@@ -2784,6 +2790,15 @@ it('shows both title lines on stage while retaining the section name', () => {
   expect(current()).not.toContain('Day by Day');
   draw(separate, 'audience');
   expect(current()).toContain('Day by Day');
+  const koreanSubtitle = {
+    ...separate,
+    slide: {...separate.slide, lines: ['임재', '하늘의 문을 여소서']},
+  };
+  for (const kind of ['stage', 'broadcast'] as const) {
+    draw(koreanSubtitle, kind);
+    expect(current()).toContain('임재');
+    expect(current()).toContain('하늘의 문을 여소서');
+  }
   draw(title, 'audience');
   expect(current()).toContain('새찬송가 91장');
   expect(current()).toContain('슬픈 마음 있는 사람');

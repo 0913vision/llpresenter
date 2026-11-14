@@ -15,6 +15,7 @@ import {SlideAnimation} from './slideAnimation';
 import {THEME_LIMITS} from '@core/themes/elementRules';
 import {themeBackgroundStyle} from './themeBackground';
 import {songTitleLayout} from '@core/themes/songTitle';
+import {songTitleLines} from '@core/presentation/songTitleLines';
 import {isThemeTextElement, themeElementMedia} from '@core/themes/content';
 import {BROADCAST_BAND_ID} from '@core/themes/broadcastBand';
 import {isSectionTheme} from '@core/themes/sundaySections';
@@ -102,7 +103,7 @@ export class ThemeCompositionView {
     ) {
       const slide = {
         ...original,
-        lines: original.lines.slice(0, original.titleLineCount ?? 1),
+        lines: songTitleLines(original.lines, original.titleLineCount),
       };
       layers = {...layers, slide};
       if (frame.slide !== undefined) frame = {...frame, slide};
