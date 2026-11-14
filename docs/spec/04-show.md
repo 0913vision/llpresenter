@@ -41,6 +41,12 @@ Source: `Main` decisions "진행 화면은 절충안" and "작업 공간 세 개
 
 ## 예배 순서 panel
 
+On entering 진행, the order list follows the live item, or the last selected
+item when none is live. It keeps an item already in the middle band in place;
+otherwise it scrolls toward 40% of the viewport height. While 진행 is open, it
+also follows changes to the live item after a 1.5-second pause from manual
+scrolling. Following never changes selection, focus, or output.
+
 ### Header
 
 - The open service's name replaces the generic visible label, followed by a down

@@ -37,6 +37,7 @@ import {hasModifier} from '@renderer/ui/modifierKeys';
 import {useMovedRowFocus} from './useMovedRowFocus';
 import {useOrderEditFocus} from './useOrderEditFocus';
 import {useOrderResizeFocus} from './useOrderResizeFocus';
+import {useOrderFollow} from './useOrderFollow';
 import {serviceRowLabel} from './serviceRowLabel';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {openSongEditorWindow} from '@renderer/features/songs/editor/openWindow';
@@ -343,6 +344,14 @@ export function ServiceOrderList({
     onProblem,
   );
   const listRef = useRef<HTMLDivElement>(null);
+  const followId = rows.some(row => row.id === liveItemId)
+    ? liveItemId
+    : openItemId;
+  useOrderFollow(listRef, {
+    target: followId,
+    enabled: workspace === 'show',
+    rows,
+  });
   useOrderResizeFocus(listRef);
   const editFocus = useOrderEditFocus({
     list: listRef,
