@@ -42,6 +42,7 @@ export interface TileOptions {
   readonly reference?: BiblePassage['reference'];
   /** Legacy packing value; each verse starts a slide regardless of this value. */
   readonly split?: BiblePassage['split'];
+  readonly transition?: BiblePassage['transition'] | undefined;
 }
 
 /**
@@ -66,6 +67,9 @@ export function bibleVerseTiles(
   return passage.verses.map((verse, index) => ({
     label: `${shortBook}${verse.chapter}:${verse.verse}`,
     labelColor: NO_LABEL_COLOR,
+    ...(options.transition === undefined
+      ? {}
+      : {transition: options.transition}),
     ...(reference === 'every' ||
     (reference === 'first' && index === 0) ||
     (reference === 'last' && index === passage.verses.length - 1)

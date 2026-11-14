@@ -114,6 +114,7 @@ export async function resolveServicePassages(
         reference: item.bible.reference,
         translationName: item.bible.translationName,
         split: item.bible.split,
+        transition: item.bible.transition,
       }),
     );
     const {ref, translation} = passage;

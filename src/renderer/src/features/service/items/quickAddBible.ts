@@ -11,6 +11,7 @@ export interface PassageDefaults {
   readonly split?: BiblePassage['split'];
   readonly reference?: BiblePassage['reference'];
   readonly translationName?: boolean;
+  readonly transition?: BiblePassage['transition'] | undefined;
 }
 
 /** A passage item with the default settings of a new Bible item (spec 05). */
@@ -21,6 +22,7 @@ export function passageItem(
     verseNumbers,
     reference = 'every',
     translationName = false,
+    transition,
   }: PassageDefaults,
 ): ServiceItem {
   return {
@@ -32,6 +34,7 @@ export function passageItem(
       reference,
       verseNumbers,
       translationName,
+      ...(transition === undefined ? {} : {transition}),
     },
   };
 }

@@ -53,6 +53,7 @@ export function BibleInsertButton({
             translation: source.passage.translation,
             verseNumbers: source.verseNumbers,
             reference: source.reference,
+            transition: source.transition,
           }),
         );
       });

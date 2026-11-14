@@ -69,6 +69,7 @@ export function BibleAdjacentButtons({
         verseNumbers: source.verseNumbers,
         reference: source.reference,
         translationName: source.translationName,
+        transition: source.transition,
         enteredRef: source.enteredRef ?? source.passage.ref,
         enteredTranslation:
           source.enteredTranslation ?? source.passage.translation,

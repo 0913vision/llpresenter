@@ -394,7 +394,7 @@ it.each([THEME_STAGE, THEME_CAPTURE])(
           position: 0,
           label: null,
           lines: ['Verse'],
-          transition: {kind: 'push', sec: 1},
+          transition: {kind: 'wipe', dir: 'left', sec: 0.7},
         },
       },
     };
@@ -406,7 +406,13 @@ it.each([THEME_STAGE, THEME_CAPTURE])(
       ...current,
       layers: {
         ...current.layers,
-        slide: {itemId: 'bible', position: 1, label: null, lines: ['Next']},
+        slide: {
+          itemId: 'bible',
+          position: 1,
+          label: null,
+          lines: ['Next'],
+          transition: {kind: 'wipe', dir: 'left', sec: 0.7},
+        },
       },
     };
     expect(frames.frame(next)).toMatchObject({
@@ -415,6 +421,31 @@ it.each([THEME_STAGE, THEME_CAPTURE])(
     });
   },
 );
+
+it('applies the quick Bible wipe entering the first slide and advancing to a split part', async () => {
+  const {frames, state, onChange} = setup();
+  await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(4));
+  for (const position of [0, 1]) {
+    const current: LiveState = {
+      ...state,
+      layers: {
+        ...state.layers,
+        slide: {
+          itemId: 'bible',
+          position,
+          biblePart: position + 1,
+          label: null,
+          lines: ['Verse'],
+          transition: {kind: 'wipe', dir: 'left', sec: 0.7},
+        },
+      },
+    };
+    expect(frames.frame(current)).toMatchObject({
+      slideTransition: {kind: 'wipe', dir: 'left', sec: 0.7},
+      transitionTimes: {slideMs: 700},
+    });
+  }
+});
 
 it('uses the scripture theme wipe for consecutive slides and split verses', async () => {
   const {frames, state, onChange} = setup();

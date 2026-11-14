@@ -16,6 +16,7 @@ import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
 import {openBiblePassage} from '@renderer/features/bible/actions';
 import {panelApi, panelPassage} from '@fixtures/contracts/ipc/bibleApi';
+import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
 
 afterEach(() => {
   delete window.llp;
@@ -106,6 +107,21 @@ function setup(
     button: screen.getByRole('button', {name: '예배 순서에 넣기'}),
   };
 }
+
+it('retains the quick-run transition on the inserted Bible item', async () => {
+  const view = setup();
+  act(() =>
+    openBiblePassage(panelPassage(), {
+      verseNumbers: true,
+      transition: QUICK_BIBLE_TRANSITION,
+    }),
+  );
+  await view.user.click(view.button);
+  await waitFor(() => expect(view.service().service.order).toHaveLength(6));
+  expect(view.service().service.order[3]).toMatchObject({
+    bible: {transition: {kind: 'wipe', dir: 'left', sec: 0.7}},
+  });
+});
 
 it('retains the selected empty section through successive previews and remembers only the inserted normalized reference', async () => {
   const view = setup();
