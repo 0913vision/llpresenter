@@ -45,7 +45,7 @@ export function SongSlideSurface<T extends SlideListItem>({
   editLabel = windowCommandLabels.editSong,
   leadingCard,
   contentReadOnly = false,
-  mixedLeadingSelection = false,
+  mixedLeadingSelection = leadingCard?.mixedSelection ?? false,
 }: {
   readonly session: SlideListSession<T>;
   readonly children: ReactNode;
