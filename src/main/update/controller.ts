@@ -11,7 +11,10 @@ interface UpdateOptions {
   readonly version: string;
   readonly outputsOn: () => boolean;
   readonly changed: (snapshot: UpdateSnapshot) => void;
-  readonly installAfterShutdown: (install: () => void) => Promise<boolean>;
+  readonly installAfterShutdown: (
+    install: () => void,
+    version: string,
+  ) => Promise<boolean>;
   readonly log: Logger;
 }
 
@@ -56,6 +59,7 @@ export class UpdateController {
       visible: this.visible,
       outputsOn: this.options.outputsOn(),
       busy: this.busy,
+      notice: !this.manual,
     };
   }
 
@@ -78,11 +82,6 @@ export class UpdateController {
       }
       return;
     }
-    if (manual && this.status.kind === 'downloaded') {
-      this.visible = true;
-      this.publish();
-      return;
-    }
     const updater = this.options.updater;
     this.manual = manual;
     if (updater === null) {
@@ -96,8 +95,7 @@ export class UpdateController {
       if (version === null) {
         this.set({kind: 'latest', version: this.options.version}, this.manual);
       } else {
-        this.set({kind: 'available', version}, this.manual);
-        if (!this.manual) await this.download(version);
+        this.set({kind: 'available', version}, true);
       }
     } catch (error) {
       this.failed(error);
@@ -112,6 +110,8 @@ export class UpdateController {
       this.publish();
     } else if (
       request.action === 'download' &&
+      this.manual &&
+      this.visible &&
       this.status.kind === 'available'
     ) {
       this.download(this.status.version).catch((error: unknown) =>
@@ -119,8 +119,9 @@ export class UpdateController {
       );
     } else if (
       request.action === 'install' &&
-      this.status.kind === 'downloaded' &&
-      !this.options.outputsOn()
+      this.manual &&
+      this.visible &&
+      this.status.kind === 'downloaded'
     ) {
       this.install(this.status.version).catch((error: unknown) =>
         this.failed(error),
@@ -157,7 +158,10 @@ export class UpdateController {
         }
         this.set({kind: 'downloading', version, percent}, this.visible);
       });
-      if (!this.disposed) this.set({kind: 'downloaded', version}, true);
+      if (!this.disposed) {
+        this.set({kind: 'downloaded', version}, true);
+        await this.install(version);
+      }
     } catch (error) {
       this.failed(error);
     }
@@ -166,8 +170,9 @@ export class UpdateController {
   private async install(version: string): Promise<void> {
     this.set({kind: 'installing', version}, false);
     try {
-      const accepted = await this.options.installAfterShutdown(() =>
-        this.options.updater?.install(),
+      const accepted = await this.options.installAfterShutdown(
+        () => this.options.updater?.install(),
+        version,
       );
       if (!accepted && !this.disposed) {
         this.set({kind: 'downloaded', version}, true);

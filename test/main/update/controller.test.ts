@@ -40,25 +40,24 @@ function setup() {
 }
 
 describe('UpdateController', () => {
-  it('checks only once at launch, silently downloads, then offers the version', async () => {
-    const {controller, updater, options} = setup();
+  it('checks once at launch and only offers a notice', async () => {
+    const {controller, updater, act} = setup();
     controller.launch();
     controller.launch();
-    expect(controller.get().visible).toBe(false);
     await vi.waitFor(() =>
-      expect(controller.get().status.kind).toBe('downloaded'),
+      expect(controller.get().status.kind).toBe('available'),
     );
-    expect(updater.check).toHaveBeenCalledOnce();
-    expect(updater.download).toHaveBeenCalledOnce();
-    expect(
-      options.changed.mock.calls
-        .slice(0, -1)
-        .every(([state]) => !state.visible),
-    ).toBe(true);
     expect(controller.get()).toMatchObject({
       visible: true,
+      notice: true,
       status: {version: '0.60.0'},
     });
+    expect(updater.check).toHaveBeenCalledOnce();
+    act('download');
+    expect(updater.download).not.toHaveBeenCalled();
+    act('dismiss');
+    expect(controller.get().visible).toBe(false);
+    expect(updater.install).not.toHaveBeenCalled();
   });
 
   it.each(['latest', 'offline'] as const)(
@@ -73,18 +72,21 @@ describe('UpdateController', () => {
     },
   );
 
-  it('requires a manual download click and publishes percentage progress', async () => {
-    const {controller, updater, act, options} = setup();
+  it('downloads and installs after an explicit manual confirmation', async () => {
+    const {controller, updater, act, options, live} = setup();
     updater.download.mockImplementation(async progress => {
       progress(42);
     });
+    live(true);
     await controller.check();
-    expect(controller.get().status.kind).toBe('available');
+    expect(controller.get()).toMatchObject({
+      status: {kind: 'available'},
+      notice: false,
+      outputsOn: true,
+    });
     expect(updater.download).not.toHaveBeenCalled();
     act('download');
-    await vi.waitFor(() =>
-      expect(controller.get().status.kind).toBe('downloaded'),
-    );
+    await vi.waitFor(() => expect(updater.install).toHaveBeenCalledOnce());
     expect(
       options.changed.mock.calls.some(
         ([state]) =>
@@ -145,67 +147,36 @@ describe('UpdateController', () => {
     },
   );
 
-  it('retains the install question while output is on and rejects forged install clicks', async () => {
-    const {controller, updater, act, live} = setup();
-    live(true);
-    await controller.check(false);
-    expect(controller.get()).toMatchObject({
-      outputsOn: true,
-      visible: true,
-      status: {kind: 'downloaded'},
-    });
-    act('install');
-    expect(updater.install).not.toHaveBeenCalled();
-    live(false);
-    expect(controller.get()).toMatchObject({outputsOn: false, visible: true});
-    act('install');
-    await vi.waitFor(() => expect(updater.install).toHaveBeenCalledOnce());
-  });
-
-  it('allows a manual download during output without installing', async () => {
-    const {controller, updater, act, live} = setup();
-    live(true);
-    await controller.check();
-    expect(controller.get().status.kind).toBe('available');
-    act('download');
-    await vi.waitFor(() =>
-      expect(controller.get().status.kind).toBe('downloaded'),
-    );
-    expect(updater.install).not.toHaveBeenCalled();
-  });
-
-  it('later never installs on dispose and manual check offers the cached download again', async () => {
+  it('requires a fresh manual check after dismissing the launch notice', async () => {
     const {controller, updater, act} = setup();
     await controller.check(false);
-    act('later');
-    expect(controller.get().visible).toBe(false);
+    act('dismiss');
     await controller.check();
     expect(controller.get()).toMatchObject({
       visible: true,
-      status: {kind: 'downloaded'},
+      notice: false,
+      status: {kind: 'available'},
     });
-    expect(updater.check).toHaveBeenCalledOnce();
-    act('later');
-    controller.dispose();
+    expect(updater.check).toHaveBeenCalledTimes(2);
     expect(updater.install).not.toHaveBeenCalled();
   });
 
   it('rejects stale actions and restores the question when shutdown is cancelled', async () => {
     const {controller, options, updater, act, live} = setup();
-    await controller.check(false);
+    await controller.check();
     const revision = controller.get().revision;
     live(true);
-    live(false);
-    controller.act({action: 'install', revision});
-    expect(updater.install).not.toHaveBeenCalled();
+    controller.act({action: 'download', revision});
+    expect(updater.download).not.toHaveBeenCalled();
     options.installAfterShutdown.mockResolvedValue(false);
-    act('install');
+    act('download');
     await vi.waitFor(() =>
       expect(controller.get()).toMatchObject({
         visible: true,
         status: {kind: 'downloaded'},
       }),
     );
+    expect(updater.install).not.toHaveBeenCalled();
   });
 
   it('does not check for disabled builds or after disposal', async () => {

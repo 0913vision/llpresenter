@@ -2,6 +2,11 @@ import {app, ipcMain, type BrowserWindow, type IpcMainEvent} from 'electron';
 import {serviceEndpoints} from '@contracts/ipc/service';
 import {LaunchIdle} from './store/launchIdle';
 import {registerUpdates, updatesAllowed} from './update/register';
+import {
+  cancelRestartOutputs,
+  restoreRestartOutputs,
+  saveRestartOutputs,
+} from './update/restartOutputs';
 import {recoveryMarkerRemoved} from './update/recovery';
 import {join} from 'node:path';
 import {isAnyOutputOn} from '@core/live/state';
@@ -135,6 +140,11 @@ function start(): void {
     .then(async () => {
       const recoveryFolder = join(app.getPath('userData'), RECOVERY_FOLDER);
       const session = await openRecoverySession({folder: recoveryFolder, log});
+      if (session.crashed) {
+        await cancelRestartOutputs(recoveryFolder).catch((error: unknown) =>
+          log.warn('Could not discard update restart screens', error),
+        );
+      }
       const appConfig = await openAppConfig({
         file: join(app.getPath('userData'), UI_STATE_FILE),
         log,
@@ -335,6 +345,16 @@ function start(): void {
         verifyClean: () => recoveryMarkerRemoved(recoveryFolder),
         savePending: dataStore.savePending,
         resumeAfterCancelledInstall: () => closing.resume(),
+        prepareRestart: async version => {
+          await store.settled();
+          return saveRestartOutputs({
+            folder: recoveryFolder,
+            version,
+            state: store.state,
+            log,
+          });
+        },
+        cancelRestart: () => cancelRestartOutputs(recoveryFolder),
         enabled: updatesAllowed({
           packaged: app.isPackaged,
           platform: process.platform,
@@ -409,8 +429,23 @@ function start(): void {
         store,
         sources: recoverySources(dataStore, log),
         record: recoveryRecord,
-        showOutputsOnLaunch: () =>
-          showOutputsOnLaunch({store, settings: dataStore.settings, log}),
+        showOutputsOnLaunch: async () => {
+          const restored = await restoreRestartOutputs({
+            folder: recoveryFolder,
+            crashed: session.crashed,
+            version: app.getVersion(),
+            settings: dataStore.settings,
+            store,
+            log,
+          });
+          if (!restored) {
+            await showOutputsOnLaunch({
+              store,
+              settings: dataStore.settings,
+              log,
+            });
+          }
+        },
         runStartupMacros: macros.startFresh,
         log,
       });

@@ -20,7 +20,7 @@ function titleOf(status: UpdateStatus): string {
     case 'checking':
       return '업데이트 확인 중';
     case 'available':
-      return `새 버전 ${status.version}을 내려받으시겠습니까?`;
+      return `새 버전 ${status.version}이 있습니다`;
     case 'downloading':
       return `업데이트 내려받는 중 ${status.percent}%`;
     case 'downloaded':
@@ -90,37 +90,26 @@ export function useUpdate(
   const meta = status.kind === 'error' ? [status.reason] : [];
   const download = status.kind === 'available';
   const install = status.kind === 'downloaded';
+  if ((download || install) && outputsOn && !snapshot.notice) {
+    meta.push('업데이트 중 화면이 꺼지고 다시 시작하면 복원됩니다');
+  }
   if (
-    outputsOn ||
+    (snapshot.notice === true && download) ||
     status.kind === 'checking' ||
     status.kind === 'downloading'
   ) {
     const notice: Notice = {
       key: UPDATE_NOTICE_KEY,
-      kind:
-        download || install || status.kind === 'downloading'
-          ? 'warning'
-          : 'info',
+      kind: 'info',
       icon: 'info',
       title:
         status.kind === 'available'
-          ? `새 버전 ${status.version} 사용 가능`
+          ? `새 버전이 있습니다 (${status.version})`
           : status.kind === 'downloaded'
             ? `새 버전 ${status.version} 내려받기 완료`
             : title,
       time: noticeTime(),
       meta,
-      ...(download
-        ? {
-            actions: [
-              {
-                icon: 'download',
-                label: '내려받기',
-                onSelect: () => act('download'),
-              },
-            ],
-          }
-        : {}),
     };
     return {dialog: null, notice, dismiss};
   }
@@ -137,7 +126,7 @@ export function useUpdate(
           : {})}
         actions={[
           {
-            label: download ? '내려받기' : install ? '설치' : '확인',
+            label: download || install ? '업데이트' : '확인',
             primary: true,
             escape: !download && !install,
             onSelect: () =>

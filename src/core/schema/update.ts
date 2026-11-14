@@ -1,5 +1,7 @@
 import * as v from 'valibot';
 import {parsePayload, payloadObject, plainObject} from './payload';
+import {screenIdSchema} from './ids';
+import {LIVE_STATE_LIMITS} from './liveLimits';
 
 /** One update operation and one visible result, with bounded IPC strings. */
 export const UPDATE_LIMITS = {version: 64, reason: 240, percent: 100} as const;
@@ -52,10 +54,18 @@ const snapshot = payloadObject({
   visible: v.boolean(),
   outputsOn: v.boolean(),
   busy: v.boolean(),
+  notice: v.exactOptional(v.boolean()),
 });
 const action = payloadObject({
   revision,
   action: v.picklist(['download', 'install', 'later', 'dismiss']),
+});
+const restart = payloadObject({
+  version,
+  screens: v.pipe(
+    v.array(screenIdSchema),
+    v.maxLength(LIVE_STATE_LIMITS.outputs),
+  ),
 });
 
 export type UpdateStatus = Readonly<v.InferOutput<typeof status>>;
@@ -73,4 +83,8 @@ export function parseUpdateAction(value: unknown) {
 /** Checks the only release metadata the app exposes to its windows. */
 export function parseUpdateVersion(value: unknown) {
   return parsePayload(version, value);
+}
+
+export function parseUpdateRestart(value: unknown) {
+  return parsePayload(restart, value);
 }
