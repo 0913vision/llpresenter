@@ -65,7 +65,7 @@ export function projectSlidesBible(
       partsByTile.push(part);
       tiles.push({
         ...tile,
-        label: `${BIBLE_BOOKS.find(book => book.id === part.reference.book)?.koreanShort ?? ''}${part.reference.chapter}:${part.reference.verse}${part.partCount > 1 ? ` (${part.part})` : ''}`,
+        label: `${tile.slideLabel ?? `${BIBLE_BOOKS.find(book => book.id === part.reference.book)?.koreanShort ?? ''}${part.reference.chapter}:${part.reference.verse}`}${part.partCount > 1 ? ` (${part.part})` : ''}`,
         lines:
           part.lines ??
           bibleOutputLines((part.part === 1 ? prefix : '') + part.display),

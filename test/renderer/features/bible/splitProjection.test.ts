@@ -1,3 +1,5 @@
+import {projectSlides} from '@core/presentation/slides';
+import {slidesBibleItem, slidesBiblePassages} from '@fixtures/core/slidesBible';
 import {expect, it} from 'vitest';
 import {
   BibleProjections,
@@ -96,4 +98,44 @@ it('labels split verse parts and leaves an unsplit verse unnumbered', () => {
     projection.tiles.slice(0, split.length).map(tile => tile.label),
   ).toEqual(split.map(part => `\uD5693:17 (${part.part})`));
   expect(projection.tiles.at(-1)?.label).toBe('\uD5693:18');
+});
+
+it('keeps an assigned label while numbering the parts of an inserted verse', () => {
+  const item = slidesBibleItem();
+  const labeled = {
+    ...item,
+    slides: {
+      ...item.slides,
+      slides: item.slides.slides.map(slide =>
+        'verse' in slide ? {...slide, label: 'Chorus'} : slide,
+      ),
+    },
+  };
+  const input = projectSlides(labeled, undefined, slidesBiblePassages(item));
+  const first = input.find(tile => tile.verse !== undefined);
+  expect(first?.label).toBe('Chorus');
+  const projection = projectBible(
+    {
+      id: item.id,
+      kind: 'slides',
+      source: 'service',
+      input,
+      verseNumbers: true,
+      translationName: false,
+      reference: 'every',
+    },
+    {
+      element: {...themeElementBase(), kind: 'currentText'},
+      layout: mockSplitLayout(),
+    },
+  );
+  if (!projection) throw Error('Expected projection');
+  const parts = projection.tiles.filter(
+    tile => tile.sourceSlideId === first?.sourceSlideId,
+  );
+  expect(parts.length).toBeGreaterThan(1);
+  expect(parts.map(tile => tile.label)).toEqual(
+    parts.map((_, index) => `Chorus (${index + 1})`),
+  );
+  expect(parts.every(tile => tile.slideLabel === 'Chorus')).toBe(true);
 });
