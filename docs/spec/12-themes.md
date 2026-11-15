@@ -583,8 +583,9 @@ as every settings file does (02).
   Medium 86 px and the title Bold 140 px. 방송 uses the section-card black
   gradient band, expanded upward for two centered lines: the smaller passage
   above the larger sermon title. 무대 centers the smaller passage above the
-  title and retains its clock and next-slide areas. Unedited saved sermon
-  screens receive these layouts; individually customized screens are preserved.
+  title at 52 px and 83 px respectively and retains its clock and next-slide
+  areas. Unedited saved sermon screens receive these layouts; individually
+  customized screens are preserved.
 - `defaults.blank` selects 말씀 and `defaults.ad` selects 광고 in a new
   `themes.json`. Both can be changed like the other kind defaults.
 - On 청중 화면 the 광고 theme uses a shipped 1920 x 1080 blue-purple picture and
@@ -737,27 +738,28 @@ the blank-item default theme, as for any missing item theme.
 New-library stage layouts omit the item name, position and dark top band. The
 slide label stays centered and is omitted when it repeats the item name, even
 though the item name is not shown. Bible slides instead show the same full
-passage reference and reference display setting as the audience, centered in a
-1612 px frame at 48 px #E6E6E6, on one line and shrunk to fit. A stage message
-moves the label up to make room; the timer sits to the left of the clock. A 60
-px #E6E6E6 clock showing hours, minutes, and seconds sits at the top right in
-frame (1460, 20, 400, 80), clear of the next preview in frame (154, 706, 1612,
-272). Current and next lyrics have approximately eight percent side margins and
-1.2 line height. White centered current text occupies the large area above a
-bottom-aligned yellow centered next preview. A section-card next preview shows
-only its Korean name; its English subtitle appears on the audience and broadcast
-card itself. An advertisement next slide shows only its text-slide number and
-title; other titled next slides show their title and body; an untitled slide
-shows its body alone. The next preview shows at most two source lines and
-targets two thirds of the fitted current size, with enough height for two lines
-at that size. Section cards center their Korean name above the same next preview
-without the English subtitle. The stage notice body uses the same disc bullets
-and hanging indent as the audience notice, with one bullet per nonempty body
-line; its title remains separate. These defaults apply to new libraries;
-existing layouts are unchanged. Built-in audience background and media elements
-start at 채우기 (cover); their editable theme-element 맞춤 wins over the media
-property's 맞춤 when rendered through that element. The media properties panel
-explains this precedence in a tooltip. Existing libraries are unchanged.
+passage reference and reference display setting as the audience, left-aligned in
+a 1612 px frame at 72 px white, on one line and shrunk to fit above the verse. A
+stage message moves the label up to make room; the timer sits to the left of the
+clock. A 60 px #E6E6E6 clock showing hours, minutes, and seconds sits at the top
+right in frame (1460, 20, 400, 80), clear of the next preview in frame (154,
+706, 1612, 272). Current and next lyrics have approximately eight percent side
+margins and 1.2 line height. White centered current text occupies the large area
+above a bottom-aligned yellow centered next preview. A section-card next preview
+shows only its Korean name; its English subtitle appears on the audience and
+broadcast card itself. An advertisement next slide shows only its text-slide
+number and title; other titled next slides show their title and body; an
+untitled slide shows its body alone. The next preview shows at most two source
+lines and targets two thirds of the fitted current size, with enough height for
+two lines at that size. Section cards center their Korean name above the same
+next preview without the English subtitle. The stage notice body uses the same
+disc bullets and hanging indent as the audience notice, with one bullet per
+nonempty body line; its title remains separate. These defaults apply to new
+libraries; existing layouts are unchanged. Built-in audience background and
+media elements start at 채우기 (cover); their editable theme-element 맞춤 wins
+over the media property's 맞춤 when rendered through that element. The media
+properties panel explains this precedence in a tooltip. Existing libraries are
+unchanged.
 
 The section gradient layout retains 늘리기 for its background element.
 

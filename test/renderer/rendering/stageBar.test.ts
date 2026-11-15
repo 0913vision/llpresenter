@@ -38,8 +38,8 @@ it('keeps the Bible reference left-aligned above the text with a stage message',
       element => element.kind === 'currentText',
     );
     expect(reference).toMatchObject({
-      frame: {x: 154, y: 130, w: 1612, h: 90},
-      text: {size: 48, align: 'left'},
+      frame: {x: 154, y: 120, w: 1612, h: 104},
+      text: {size: 72, align: 'left'},
     });
     if (!reference || !current) throw Error('Missing Bible text');
     expect(reference.frame.y + reference.frame.h).toBeLessThanOrEqual(
