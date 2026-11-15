@@ -1,5 +1,7 @@
 import type {JSX} from 'react';
 import type {ServiceItem} from '@core/schema/service';
+import {defaultSlideTransitions} from '@core/schema/preferences';
+import type {SlideTransition} from '@core/schema/slideTransition';
 import {
   canHaveSectionCard,
   isStandaloneCard,
@@ -60,18 +62,45 @@ export function ItemCardRow({
             if (next === value) return;
             const section = SUNDAY_SECTIONS.find(entry => entry.name === next);
             const own = custom.find(entry => `custom:${entry.id}` === next);
-            saveCard(
-              items,
-              own
-                ? {
-                    name: own.name,
-                    english: own.english,
-                    theme: SECTION_THEME_ID,
-                  }
-                : section === undefined
-                  ? undefined
-                  : sectionCardOf(section),
-            );
+            const apply = (existing: SlideTransition | undefined): void => {
+              if (items.getSnapshot().item?.id !== item.id) return;
+              saveCard(
+                items,
+                own
+                  ? {
+                      name: own.name,
+                      english: own.english,
+                      theme: SECTION_THEME_ID,
+                      ...(existing === undefined ? {} : {transition: existing}),
+                    }
+                  : section === undefined
+                    ? undefined
+                    : (() => {
+                        const {transition: _default, ...card} =
+                          sectionCardOf(section);
+                        return {
+                          ...card,
+                          ...(existing === undefined
+                            ? {}
+                            : {transition: existing}),
+                        };
+                      })(),
+              );
+            };
+            if (
+              item.sectionCard !== undefined ||
+              (own === undefined && section === undefined)
+            ) {
+              apply(item.sectionCard?.transition);
+            } else if (window.llp === undefined) {
+              apply(defaultSlideTransitions.section);
+            } else {
+              void window.llp.preferences.get().then(
+                preferences => apply(preferences.show.slideDefaults.section),
+                (error: unknown) =>
+                  console.error('Could not read transition defaults', error),
+              );
+            }
           }}
         />
       )}

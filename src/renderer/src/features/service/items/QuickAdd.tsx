@@ -11,7 +11,7 @@ import {menuButtonProps} from '@renderer/ui/menuButton';
 import type {Notice} from '@renderer/ui/notices';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {otherItemEntries} from './quickAddItems';
-import {passageItem, type PassageDefaults} from './quickAddBible';
+import {passageItemWithParts, type PassageDefaults} from './quickAddBible';
 import {BibleQuickAdd} from './BibleQuickAdd';
 import {SongPicker} from './SongPicker';
 import {quickAddBefore} from '@core/services/quickAddPosition';
@@ -47,8 +47,10 @@ export function ServiceQuickAdd({
           : undefined;
   const disabled = reason !== undefined || editing.busy;
   const insertPassage = (ref: string, defaults: PassageDefaults): void => {
-    const passage = passageItem(ref, defaults);
-    insertItem(passage);
+    const api = window.llp;
+    if (api !== undefined) {
+      insertItem(() => passageItemWithParts(ref, defaults, api));
+    }
   };
   const insertSong = (song: SongId): void => {
     setChoosingSong(false);

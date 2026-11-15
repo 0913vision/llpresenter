@@ -9,7 +9,10 @@ export async function prepareSection(
 ): Promise<ServiceItemOf<'slides'>> {
   const api = window.llp;
   if (api === undefined) throw new Error('App API unavailable');
-  const themes = await api.settings.get({name: 'themes'});
+  const [themes, preferences] = await Promise.all([
+    api.settings.get({name: 'themes'}),
+    api.preferences.get(),
+  ]);
   if (themes.name !== 'themes') throw new Error('Section themes unavailable');
   if (!themes.value.themes.some(theme => theme.id === section.theme)) {
     const screens = await api.settings.get({name: 'screens'});
@@ -28,5 +31,9 @@ export async function prepareSection(
     });
     if (!result.ok) throw new Error('Could not add the section theme');
   }
-  return newSectionItem(createServiceItemId(crypto.randomUUID()), section);
+  return newSectionItem(
+    createServiceItemId(crypto.randomUUID()),
+    section,
+    preferences.show.slideDefaults.section,
+  );
 }

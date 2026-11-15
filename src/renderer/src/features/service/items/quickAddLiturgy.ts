@@ -9,6 +9,8 @@ import {
   CREED_PRAYER_THEME_ID,
   creedPrayerTheme,
 } from '@core/themes/creedPrayer';
+import {sectionCardOf} from '@core/services/sectionCards';
+import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
 
 export async function prepareLiturgy(
   kind: LiturgyKind,
@@ -16,13 +18,10 @@ export async function prepareLiturgy(
 ) {
   const api = window.llp;
   if (api === undefined) throw new Error('App API unavailable');
-  const item = newLiturgyItem(createServiceItemId(crypto.randomUUID()), {
-    kind,
-    translation,
-  });
-  const [themes, screens] = await Promise.all([
+  const [themes, screens, preferences] = await Promise.all([
     api.settings.get({name: 'themes'}),
     api.settings.get({name: 'screens'}),
+    api.preferences.get(),
   ]);
   if (themes.name !== 'themes' || screens.name !== 'screens') {
     throw new Error('Liturgy settings unavailable');
@@ -45,5 +44,19 @@ export async function prepareLiturgy(
     });
     if (!result.ok) throw new Error('Could not add the liturgy theme');
   }
-  return item;
+  const section = SUNDAY_SECTIONS.find(entry => entry.name === '사도신경');
+  if (section === undefined) throw Error('Missing liturgy section');
+  const item = newLiturgyItem(createServiceItemId(crypto.randomUUID()), {
+    kind,
+    translation,
+    transition: preferences.show.slideDefaults[kind],
+  });
+  const card =
+    kind === 'prayer'
+      ? {...section, name: '주기도문', english: "The Lord's Prayer"}
+      : section;
+  return {
+    ...item,
+    sectionCard: sectionCardOf(card, preferences.show.slideDefaults.section),
+  };
 }

@@ -8,7 +8,7 @@ import {useOrderFull} from '@renderer/session/orderFull';
 import type {PaletteEditing} from './PaletteEditing';
 import {SermonQuickAdd} from './SermonQuickAdd';
 import {BibleQuickAdd} from './BibleQuickAdd';
-import {passageItem, type PassageDefaults} from './quickAddBible';
+import {passageItemWithParts, type PassageDefaults} from './quickAddBible';
 import {createPaletteItem, isPaletteKey} from './paletteItems';
 import {rememberBiblePassage} from '@renderer/session/recentWriter';
 
@@ -62,15 +62,31 @@ export function usePaletteInsert(editing: PaletteEditing | null) {
         <SermonQuickAdd
           onClose={() => setBible(null)}
           onInsert={(title, ref, defaults) => {
-            const passage = passageItem(ref, defaults);
-            if (!isItemOfKind(passage, 'bible')) return;
-            const item = {
-              id: passage.id,
-              sermon: {title, passage: passage.bible},
-            };
+            const api = window.llp;
+            if (api === undefined) return;
             const target = bible.before;
             setBible(null);
             editing.enqueueEdit(async (edits, id) => {
+              const passage = await passageItemWithParts(ref, defaults, api);
+              if (!isItemOfKind(passage, 'bible')) {
+                throw Error('Missing Bible passage');
+              }
+              const item = {
+                id: passage.id,
+                sermon: {
+                  title,
+                  passage: passage.bible,
+                  ...(defaults.sermonTitleTransition === undefined
+                    ? {}
+                    : {
+                        openingTransition: defaults.sermonTitleTransition,
+                        closingTransition: defaults.sermonTitleTransition,
+                      }),
+                },
+                ...(passage.bibleTransitions === undefined
+                  ? {}
+                  : {bibleTransitions: passage.bibleTransitions}),
+              };
               const result = await edits.insertItem(
                 id,
                 item,
@@ -87,10 +103,12 @@ export function usePaletteInsert(editing: PaletteEditing | null) {
         <BibleQuickAdd
           onClose={() => setBible(null)}
           onInsert={(ref: string, defaults: PassageDefaults) => {
-            const item = passageItem(ref, defaults);
+            const api = window.llp;
+            if (api === undefined) return;
             const target = bible.before;
             setBible(null);
             editing.enqueueEdit(async (edits, id) => {
+              const item = await passageItemWithParts(ref, defaults, api);
               const result = await edits.insertItem(
                 id,
                 item,

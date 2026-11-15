@@ -35,6 +35,7 @@ import {
   listWithUniqueIds,
   localDateTime,
   positiveInteger,
+  nonNegativeInteger,
   positiveSeconds,
   timeOfDay,
 } from './primitives';
@@ -255,6 +256,23 @@ const itemSchemas = {
     liturgy: jsonObject({
       kind: v.picklist(['creed', 'prayer']),
       translation: v.picklist(['new', 'old']),
+      transitions: v.exactOptional(
+        v.pipe(
+          v.array(
+            jsonObject({
+              index: v.pipe(nonNegativeInteger, v.maxValue(199)),
+              transition: slideTransitionSchema,
+            }),
+          ),
+          v.maxLength(200),
+          v.check(
+            entries =>
+              new Set(entries.map(entry => entry.index)).size ===
+              entries.length,
+            'Duplicate liturgy slide transition',
+          ),
+        ),
+      ),
     }),
     ...startFields,
   }),

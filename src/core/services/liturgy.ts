@@ -2,6 +2,8 @@ import {createSlideId, type ServiceItemId} from '../schema/ids';
 import type {ServiceItemOf} from '../schema/service';
 import {CREED_PRAYER_THEME_ID} from '../themes/creedPrayer';
 import {LITURGY_SLIDES} from './liturgySlides';
+import {defaultSlideTransitions} from '../schema/preferences';
+import type {SlideTransition} from '../schema/slideTransition';
 
 export const APOSTLES_CREED_NEW =
   '나는 전능하신 아버지 하나님, 천지의 창조주를 믿습니다. 나는 그의 유일하신 아들, 우리 주 예수 그리스도를 믿습니다. 그는 성령으로 잉태되어 동정녀 마리아에게서 나시고, 본디오 빌라도에게 고난을 받아 십자가에 못 박혀 죽으시고, 장사된 지 사흘 만에 죽은 자 가운데서 다시 살아나셨으며, 하늘에 오르시어 전능하신 아버지 하나님 우편에 앉아 계시다가, 거기로부터 살아 있는 자와 죽은 자를 심판하러 오십니다. 나는 성령을 믿으며, 거룩한 공교회와 성도의 교제와 죄를 용서받는 것과 몸의 부활과 영생을 믿습니다. 아멘.';
@@ -36,6 +38,12 @@ export function liturgyAsSlides(
             `${item.id.slice(0, -4)}${index.toString(16).padStart(4, '0')}`,
           ),
           text,
+          ...(() => {
+            const transition = liturgy.transitions?.find(
+              entry => entry.index === index,
+            )?.transition;
+            return transition === undefined ? {} : {transition};
+          })(),
         }),
       ),
     },
@@ -47,14 +55,23 @@ export function newLiturgyItem(
   {
     kind,
     translation,
+    transition,
   }: {
     readonly kind: LiturgyKind;
     readonly translation: LiturgyTranslation;
+    readonly transition?: SlideTransition;
   },
 ): ServiceItemOf<'liturgy'> {
   return {
     id,
     theme: CREED_PRAYER_THEME_ID,
-    liturgy: {kind, translation},
+    liturgy: {
+      kind,
+      translation,
+      transitions: LITURGY_SLIDES[kind][translation].map((_, index) => ({
+        index,
+        transition: transition ?? defaultSlideTransitions[kind],
+      })),
+    },
   };
 }

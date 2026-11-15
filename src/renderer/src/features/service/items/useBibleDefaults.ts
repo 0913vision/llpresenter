@@ -15,7 +15,12 @@ export function useBibleDefaults(): PassageDefaults | null {
       if (!current || translation === undefined || preferences === undefined) {
         return;
       }
-      setDefaults({translation, ...preferences.bible.defaults});
+      setDefaults({
+        translation,
+        ...preferences.bible.defaults,
+        transition: preferences.show.slideDefaults.bible,
+        sermonTitleTransition: preferences.show.slideDefaults.sermonTitle,
+      });
     };
     const removePreferences = api.preferences.subscribe(value => {
       preferences = value;

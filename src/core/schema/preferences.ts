@@ -57,6 +57,25 @@ const mediaTransitionSchema = jsonObject({
   seconds: v.exactOptional(transitionSeconds(TRANSITION_LIMITS.media)),
 });
 
+export const transitionDefaultKinds = [
+  'section',
+  'sermonTitle',
+  'creed',
+  'prayer',
+  'bible',
+] as const;
+export type TransitionDefaultKind = (typeof transitionDefaultKinds)[number];
+export type SlideTransitionDefaults = Readonly<
+  Record<TransitionDefaultKind, SlideTransition>
+>;
+export const defaultSlideTransitions: SlideTransitionDefaults = {
+  section: {kind: 'wipe', dir: 'left', sec: 1},
+  sermonTitle: {kind: 'wipe', dir: 'left', sec: 1},
+  creed: {kind: 'wipe', dir: 'left', sec: 0.7},
+  prayer: {kind: 'wipe', dir: 'left', sec: 0.7},
+  bible: {kind: 'wipe', dir: 'left', sec: 0.7},
+};
+
 /** The seconds the 오디오 rows allow (spec 10, 진행 page). */
 export const AUDIO_LIMITS = {
   transition: {min: 0, max: 5, step: 0.1},
@@ -134,6 +153,15 @@ export const preferencesSchema = jsonObject({
     jsonObject({
       atLastSlide: v.exactOptional(atLastSlideSchema),
       dimPastItems: v.exactOptional(v.boolean()),
+      slideDefaults: v.exactOptional(
+        jsonObject({
+          section: v.exactOptional(slideTransitionSchema),
+          sermonTitle: v.exactOptional(slideTransitionSchema),
+          creed: v.exactOptional(slideTransitionSchema),
+          prayer: v.exactOptional(slideTransitionSchema),
+          bible: v.exactOptional(slideTransitionSchema),
+        }),
+      ),
       audio: v.exactOptional(
         jsonObject({
           transitionSeconds: v.exactOptional(
@@ -223,9 +251,15 @@ type Complete<T> = T extends readonly unknown[]
 /** 환경설정 with every field present. */
 export type Preferences = Omit<
   Complete<PreferencesFile>,
-  'clearKeys' | 'output'
+  'clearKeys' | 'output' | 'show'
 > & {
   readonly clearKeys: NonNullable<PreferencesFile['clearKeys']>;
+  readonly show: Omit<
+    Complete<NonNullable<PreferencesFile['show']>>,
+    'slideDefaults'
+  > & {
+    readonly slideDefaults: SlideTransitionDefaults;
+  };
   readonly output: {
     readonly stageLyricLabelPosition: StageLyricLabelPosition;
     readonly transition: {
@@ -265,6 +299,7 @@ export const defaultPreferences: Preferences = {
   show: {
     atLastSlide: 'stop',
     dimPastItems: false,
+    slideDefaults: defaultSlideTransitions,
     audio: {transitionSeconds: 0.5, fadeOutSeconds: 3},
   },
   backup: {auto: true, keep: 30},
@@ -319,6 +354,10 @@ export function withPreferenceDefaults(stored: PreferencesFile): Preferences {
     show: {
       ...defaultPreferences.show,
       ...stored.show,
+      slideDefaults: {
+        ...defaultSlideTransitions,
+        ...stored.show?.slideDefaults,
+      },
       audio: {...defaultPreferences.show.audio, ...stored.show?.audio},
     },
     backup: {...defaultPreferences.backup, ...stored.backup},

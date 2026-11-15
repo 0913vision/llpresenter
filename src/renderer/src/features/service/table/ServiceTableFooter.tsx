@@ -13,7 +13,10 @@ import type {Notice} from '@renderer/ui/notices';
 import {BibleQuickAdd} from '../items/BibleQuickAdd';
 import {SongPicker} from '../items/SongPicker';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
-import {passageItem, type PassageDefaults} from '../items/quickAddBible';
+import {
+  passageItemWithParts,
+  type PassageDefaults,
+} from '../items/quickAddBible';
 import {otherItemEntries} from '../items/quickAddItems';
 import {useOtherSources} from '../items/useOtherSources';
 import {useServiceOrderEditing} from '../order/useServiceOrderEditing';
@@ -82,8 +85,12 @@ export function ServiceTableFooter({
       return result;
     });
   };
-  const appendPassage = (ref: string, defaults: PassageDefaults): void =>
-    append(passageItem(ref, defaults));
+  const appendPassage = (ref: string, defaults: PassageDefaults): void => {
+    const api = window.llp;
+    if (api !== undefined) {
+      append(() => passageItemWithParts(ref, defaults, api));
+    }
+  };
   const insertSong = (song: SongId): void => {
     setChoosingSong(false);
     editing.run((edits, id) => insertSelectedSong(edits, id, song));

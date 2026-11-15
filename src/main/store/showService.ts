@@ -163,11 +163,17 @@ function otherTiles(
 ): readonly ShowTile[] | undefined {
   if (isItemOfKind(item, 'liturgy')) {
     return LITURGY_SLIDES[item.liturgy.kind][item.liturgy.translation].map(
-      text => ({
+      (text, index) => ({
         label: text.split('\n')[0] ?? '',
         labelColor: NO_LABEL_COLOR,
         lines: [text],
         kind: 'blank' as const,
+        ...(() => {
+          const transition = item.liturgy.transitions?.find(
+            entry => entry.index === index,
+          )?.transition;
+          return transition === undefined ? {} : {transition};
+        })(),
       }),
     );
   }

@@ -7,9 +7,16 @@ import {
 } from '../schema/service';
 import type {ShowTile} from '../schema/showService';
 import {SECTION_THEME_ID, type SundaySection} from '../themes/sundaySections';
+import {defaultSlideTransitions} from '../schema/preferences';
+import type {SlideTransition} from '../schema/slideTransition';
 
-export function newSectionCard(): SectionCard {
-  return {name: '구역 이름', english: '', theme: SECTION_THEME_ID};
+export function newSectionCard(transition?: SlideTransition): SectionCard {
+  return {
+    name: '구역 이름',
+    english: '',
+    theme: SECTION_THEME_ID,
+    ...(transition === undefined ? {} : {transition}),
+  };
 }
 
 export function canHaveSectionCard(
@@ -47,11 +54,12 @@ export function isStandaloneCard(
 export function newSectionItem(
   id: ServiceItemId,
   section: SundaySection,
+  transition: SlideTransition = defaultSlideTransitions.section,
 ): ServiceItemOf<'slides'> {
   return {
     id,
     theme: section.theme,
-    sectionCard: sectionCardOf(section),
+    sectionCard: sectionCardOf(section, transition),
     slides: {
       form: 'blank',
       name: section.name,
@@ -61,8 +69,16 @@ export function newSectionItem(
 }
 
 /** A service-local opening card; the content keeps its own theme. */
-export function sectionCardOf(section: SundaySection) {
-  return {name: section.name, english: section.english, theme: section.theme};
+export function sectionCardOf(
+  section: SundaySection,
+  transition?: SlideTransition,
+) {
+  return {
+    name: section.name,
+    english: section.english,
+    theme: section.theme,
+    ...(transition === undefined ? {} : {transition}),
+  };
 }
 
 const projectedCards = new WeakMap<

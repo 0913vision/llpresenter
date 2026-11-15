@@ -67,6 +67,7 @@ it('ships the church order with fixed editable cards and empty places for local 
     english: "Apostle's Creed",
     theme: SUNDAY_SECTIONS.find(s => s.name === SUNDAY_SECTIONS[1]?.name)
       ?.theme,
+    transition: {kind: 'wipe', dir: 'left', sec: 1},
   });
   const notice = fixed.find(item => item.slides.form === 'ad');
   expect(notice).toMatchObject({
@@ -82,6 +83,7 @@ it('ships the church order with fixed editable cards and empty places for local 
     english: 'Notice',
     theme: SUNDAY_SECTIONS.find(s => s.name === SUNDAY_SECTIONS[11]?.name)
       ?.theme,
+    transition: {kind: 'wipe', dir: 'left', sec: 1},
   });
   expect(notice?.slides.slides).toHaveLength(1);
   const cards = fixed.filter(item =>
@@ -100,6 +102,7 @@ it('ships the church order with fixed editable cards and empty places for local 
       name: section?.name,
       english: section?.english,
       theme: section?.theme,
+      transition: {kind: 'wipe', dir: 'left', sec: 1},
     });
     expect(card.slides.advance).toBeUndefined();
     expect(card.slides.loop).toBeUndefined();
@@ -145,8 +148,9 @@ it.each(['new', 'old'] as const)(
       name: SUNDAY_SECTIONS[1]?.name,
       english: "Apostle's Creed",
       theme: SUNDAY_SECTIONS[1]?.theme,
+      transition: {kind: 'wipe', dir: 'left', sec: 1},
     });
-    expect(item.liturgy).toEqual({kind: 'creed', translation});
+    expect(item.liturgy).toMatchObject({kind: 'creed', translation});
     if (translation === 'new') {
       const template = sundayTemplate().order.find(
         entry =>
@@ -157,7 +161,10 @@ it.each(['new', 'old'] as const)(
         throw Error('Expected template creed');
       }
       expect(template.sectionCard).toEqual(item.sectionCard);
-      expect(template.liturgy).toEqual({kind: 'creed', translation: 'new'});
+      expect(template.liturgy).toMatchObject({
+        kind: 'creed',
+        translation: 'new',
+      });
     }
   },
 );

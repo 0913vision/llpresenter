@@ -188,12 +188,15 @@ export function BibleSlidesDialog({
       active.current = false;
     };
   }, []);
-  const choose = (passage: BibleLookupPassage): void => {
+  const choose = async (passage: BibleLookupPassage): Promise<void> => {
     const book = passageBook(passage);
     if (book === undefined) {
       setProblem('성경 구절 불러오기 실패');
       return;
     }
+    setLoading(true);
+    const preferences = await api.preferences.get();
+    if (!active.current) return;
     const added = passage.verses.map(verse => ({
       id: createSlideId(crypto.randomUUID()),
       verse: {
@@ -202,6 +205,7 @@ export function BibleSlidesDialog({
         chapter: verse.chapter,
         verse: verse.verse,
       },
+      transition: preferences.show.slideDefaults.bible,
     }));
     const at = Math.min(selected + 1, item.slides.slides.length);
     const target = {
@@ -263,7 +267,18 @@ export function BibleSlidesDialog({
         api={api.bible}
         translation={translation}
         limit={SLIDES_LIMITS.slides - item.slides.slides.length}
-        onChoose={choose}
+        onChoose={passage => {
+          void choose(passage).catch((error: unknown) => {
+            if (active.current) {
+              setLoading(false);
+              setProblem(
+                error instanceof Error
+                  ? error.message
+                  : '성경 구절 불러오기 실패',
+              );
+            }
+          });
+        }}
         onClose={cancel}
       />
     );

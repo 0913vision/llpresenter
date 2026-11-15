@@ -7,6 +7,7 @@ import {
 } from '@core/services/sectionCards';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import type {ServiceItemStore} from '../items/serviceItemStore';
+import {defaultSlideTransitions} from '@core/schema/preferences';
 
 export function sectionCardEntries(
   items: ServiceItemStore,
@@ -39,7 +40,31 @@ export function sectionCardEntries(
         kind: 'item' as const,
         id: `section:${section.name}`,
         label: section.name,
-        onSelect: () => saveCard(items, sectionCardOf(section)),
+        onSelect: () => {
+          const api = window.llp;
+          if (api === undefined) {
+            saveCard(
+              items,
+              sectionCardOf(section, defaultSlideTransitions.section),
+            );
+            return;
+          }
+          void api.preferences.get().then(
+            preferences => {
+              if (items.getSnapshot().item?.id === state.item?.id) {
+                saveCard(
+                  items,
+                  sectionCardOf(
+                    section,
+                    preferences.show.slideDefaults.section,
+                  ),
+                );
+              }
+            },
+            (error: unknown) =>
+              console.error('Could not read transition defaults', error),
+          );
+        },
       })),
     },
   ];
