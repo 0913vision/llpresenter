@@ -1309,7 +1309,7 @@ translations continue to work.
 
 A service may contain an additive `sermon` item with a non-empty, bounded
 `title` and one `passage` using the Bible passage object above. It has no
-subtitle. Optional original title data preserves an existing title item when
-the operator binds it to a passage, so splitting can restore that item. Other
-Bible display settings and transitions stay with the passage. Existing service
-items remain valid.
+subtitle. Optional original title data preserves an existing title item when the
+operator binds it to a passage, so splitting can restore that item. Other Bible
+display settings and transitions stay with the passage. Existing service items
+remain valid.
