@@ -53,6 +53,19 @@ afterEach(() => {
 });
 
 describe('quick panel integration', () => {
+  it('shows the already loaded quick items on the first render', () => {
+    const fixture = quickFixture();
+    window.llp = fixture.api;
+    render(
+      <QuickPanel
+        selectionVersion={0}
+        onProblem={vi.fn()}
+        initialDocument={quickDocument()}
+      />,
+    );
+    expect(screen.getByRole('button', {name: '저장된 곡'})).toBeTruthy();
+  });
+
   it('shows only a live quick passage and hides the black screen action', async () => {
     const fixture = quickFixture();
     window.llp = fixture.api;

@@ -233,7 +233,7 @@ export function SlideRows({
                 {gap(
                   index,
                   view.mode === 'grid' && position % columns === 0
-                    ? {insetInlineStart: 0}
+                    ? {insetInlineStart: 0, width: 'var(--space-14)'}
                     : undefined,
                 )}
                 <div

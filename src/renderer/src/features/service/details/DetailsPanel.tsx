@@ -1,5 +1,7 @@
 import {
   useEffect,
+  useLayoutEffect,
+  useRef,
   useState,
   useSyncExternalStore,
   type JSX,
@@ -63,6 +65,26 @@ function DetailsShell({
   );
 }
 
+function RetainedDetails({
+  pending,
+  content,
+}: {
+  readonly pending: boolean;
+  readonly content: JSX.Element;
+}): JSX.Element {
+  const last = useRef<JSX.Element | null>(null);
+  const [held, setHeld] = useState<JSX.Element | null>(null);
+  useLayoutEffect(() => {
+    if (pending) setHeld(last.current);
+    else last.current = content;
+  }, [pending, content]);
+  return (
+    <div className={styles.pending} inert={pending}>
+      {pending && held !== null ? held : content}
+    </div>
+  );
+}
+
 function openEditor(
   request: () => Promise<{readonly ok: boolean}>,
   notice: () => void,
@@ -83,14 +105,7 @@ interface DetailsPanelProps {
 }
 
 export function DetailsPanel(props: DetailsPanelProps): JSX.Element {
-  const target = props.target;
-  const key =
-    target === null
-      ? 'none'
-      : target.kind === 'item'
-        ? `item:${target.itemId}`
-        : `song:${target.songId}`;
-  return <DetailsPanelContent key={key} {...props} />;
+  return <DetailsPanelContent {...props} />;
 }
 
 function DetailsPanelContent({
@@ -113,9 +128,24 @@ function DetailsPanelContent({
   const state = useSyncExternalStore(items.subscribe, items.getSnapshot);
   const service = state.service;
   const raw = useItemSlides(items, editor);
-  const [tab, setTab] = useState<'info' | 'slides'>('info');
+  const detailsKey =
+    target === null
+      ? 'none'
+      : target.kind === 'item'
+        ? `item:${target.itemId}`
+        : `song:${target.songId}`;
+  const [tabState, setTabState] = useState<{
+    key: string;
+    value: 'info' | 'slides';
+  }>({key: detailsKey, value: 'info'});
+  const tab = tabState.key === detailsKey ? tabState.value : 'info';
   const [loadedLibrary, setLibrary] = useState<ShowLibrarySong | null>(null);
-  const [selected, setSelected] = useState(0);
+  const targetKey = target?.kind === 'song' ? target.songId : null;
+  const [selection, setSelection] = useState<{
+    key: SongId | null;
+    index: number;
+  }>({key: null, index: 0});
+  const selected = selection.key === targetKey ? selection.index : 0;
   const [selectedScreen, setSelectedScreen] = useState<string | null>(null);
   const songId = target?.kind === 'song' ? target.songId : null;
   useEffect(() => {
@@ -315,7 +345,7 @@ function DetailsPanelContent({
         'none');
   const select = (index: number): void => {
     if (item !== null) items.selectPosition(index);
-    else setSelected(index);
+    else setSelection({key: targetKey, index});
   };
   const edit = (index: number): void => {
     const fail = (): void =>
@@ -388,100 +418,126 @@ function DetailsPanelContent({
     openEditor(() => api.window.openSongEditor({songId: item.song}), fail);
   };
   if (item === null && library === null) {
-    return <DetailsShell />;
+    const deleted =
+      target?.kind === 'item' &&
+      service !== null &&
+      service.service.id === serviceId &&
+      !service.service.order.some(row => row.id === target.itemId);
+    return (
+      <RetainedDetails
+        pending={target !== null && !deleted}
+        content={<DetailsShell />}
+      />
+    );
   }
   if (item !== null && isItemOfKind(item, 'header')) {
     const itemCount = sectionItemCount(service?.service.order ?? [], item.id);
     return (
-      <DetailsShell>
-        <div className={styles.title} title={item.header}>
-          {item.header}
-        </div>
-        <div className={styles.meta}>구역, 항목 {itemCount}개</div>
-      </DetailsShell>
+      <RetainedDetails
+        pending={false}
+        content={
+          <DetailsShell>
+            <div className={styles.title} title={item.header}>
+              {item.header}
+            </div>
+            <div className={styles.meta}>구역, 항목 {itemCount}개</div>
+          </DetailsShell>
+        }
+      />
     );
   }
   return (
-    <DetailsShell
-      footer={
-        tab === 'slides' ? (
-          <PanelFooter
-            count={count}
-            end={
-              <ThumbnailSizeControl
-                compact
-                value={scale}
-                onChange={value => detailsScale.show(sizeClass, value)}
-                onCommit={value => detailsScale.save(sizeClass, value, api.ui)}
+    <RetainedDetails
+      pending={false}
+      content={
+        <DetailsShell
+          footer={
+            tab === 'slides' ? (
+              <PanelFooter
+                count={count}
+                end={
+                  <ThumbnailSizeControl
+                    compact
+                    value={scale}
+                    onChange={value => detailsScale.show(sizeClass, value)}
+                    onCommit={value =>
+                      detailsScale.save(sizeClass, value, api.ui)
+                    }
+                  />
+                }
               />
-            }
-          />
-        ) : null
-      }
-    >
-      <div className={styles.picture}>
-        {passageProblem === undefined ? (
-          picture(0)
-        ) : (
-          <BibleLoadNotice row={passageProblem} />
-        )}
-      </div>
-      {targetScreen === undefined ? null : (
-        <SegmentedControl
-          label="미리보기 화면"
-          fill
-          options={choices}
-          value={targetScreen.id}
-          onChange={setSelectedScreen}
-        />
-      )}
-      {count === 0 ? null : (
-        <SlideThumbnailBand
-          number={1}
-          label={labelAt(0)}
-          labelColor={labelColorAt(0)}
-        />
-      )}
-      <div className={styles.title} title={title}>
-        {title}
-      </div>
-      <div className={styles.meta}>
-        {title === '' || passageProblem !== undefined
-          ? ''
-          : detailsKindLine(item, kind, count)}
-      </div>
-      <PanelTabs tabs={tabs} value={tab} onChange={setTab} />
-      {tab === 'info' ? (
-        <DetailsInfo
-          details={{
-            item,
-            service,
-            state,
-            library,
-            media,
-            items,
-            editor,
-            reason,
-            api,
-            openSource,
-            edit,
-          }}
-        />
-      ) : (
-        <DetailsSlides
-          count={count}
-          scale={scale}
-          selected={Math.min(
-            Math.max(0, count - 1),
-            item === null ? selected : state.position,
+            ) : null
+          }
+        >
+          <div className={styles.picture}>
+            {passageProblem === undefined ? (
+              picture(0)
+            ) : (
+              <BibleLoadNotice row={passageProblem} />
+            )}
+          </div>
+          {targetScreen === undefined ? null : (
+            <SegmentedControl
+              label="미리보기 화면"
+              fill
+              options={choices}
+              value={targetScreen.id}
+              onChange={setSelectedScreen}
+            />
           )}
-          onSelect={select}
-          onEdit={edit}
-          labelAt={labelAt}
-          colorAt={labelColorAt}
-          picture={picture}
-        />
-      )}
-    </DetailsShell>
+          {count === 0 ? null : (
+            <SlideThumbnailBand
+              number={1}
+              label={labelAt(0)}
+              labelColor={labelColorAt(0)}
+            />
+          )}
+          <div className={styles.title} title={title}>
+            {title}
+          </div>
+          <div className={styles.meta}>
+            {title === '' || passageProblem !== undefined
+              ? ''
+              : detailsKindLine(item, kind, count)}
+          </div>
+          <PanelTabs
+            tabs={tabs}
+            value={tab}
+            onChange={value => setTabState({key: detailsKey, value})}
+          />
+          {tab === 'info' ? (
+            <DetailsInfo
+              details={{
+                item,
+                service,
+                state,
+                library,
+                media,
+                items,
+                editor,
+                reason,
+                api,
+                openSource,
+                edit,
+              }}
+            />
+          ) : (
+            <DetailsSlides
+              count={count}
+              scale={scale}
+              selected={Math.min(
+                Math.max(0, count - 1),
+                item === null ? selected : state.position,
+              )}
+              onSelect={select}
+              onEdit={edit}
+              labelAt={labelAt}
+              colorAt={labelColorAt}
+              picture={picture}
+            />
+          )}
+        </DetailsShell>
+      }
+    />
   );
 }

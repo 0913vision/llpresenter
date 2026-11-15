@@ -44,6 +44,43 @@ afterEach(() => {
   useShow.setState({serviceId: null, openItemId: null, tiles: {}});
 });
 
+it('keeps the previous details in place while the next item loads', async () => {
+  const f = itemFixture();
+  useShow.setState({serviceId: fixtureServiceId});
+  const editor = new SongEditorStore(f.api, vi.fn());
+  const items = new ServiceItemStore(f.api, editor, vi.fn());
+  const view = render(
+    <DetailsPanel
+      sizeClass="normal"
+      target={{kind: 'item', itemId: fixtureItems.arranged}}
+      api={f.api}
+      editor={editor}
+      items={items}
+    />,
+  );
+  try {
+    await screen.findByTestId('picture');
+    vi.spyOn(f.api.services, 'get').mockImplementation(
+      () => new Promise(() => {}),
+    );
+    view.rerender(
+      <DetailsPanel
+        sizeClass="normal"
+        target={{kind: 'item', itemId: fixtureItems.header}}
+        api={f.api}
+        editor={editor}
+        items={items}
+      />,
+    );
+    expect(screen.getByTestId('picture').closest('[inert]')).not.toBeNull();
+  } finally {
+    view.unmount();
+    items.dispose();
+    await editor.dispose();
+    vi.restoreAllMocks();
+  }
+});
+
 it('switches the prepared picture to the chosen output screen', async () => {
   const f = itemFixture();
   useShow.setState({

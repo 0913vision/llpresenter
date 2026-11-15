@@ -651,9 +651,6 @@ export function usePrepPanels({
           ? {
               embedded: (
                 <DetailsPanel
-                  key={
-                    selectedSong ?? (parsedItem.ok ? parsedItem.value : 'none')
-                  }
                   target={selectedTarget}
                   items={prep.items}
                   editor={prep.editor}

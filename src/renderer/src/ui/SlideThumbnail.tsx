@@ -41,6 +41,7 @@ export interface ThumbnailGridBaseProps extends TileListPosition {
    * `undefined`, the first thumbnail takes it.
    */
   readonly selected: number | undefined;
+  readonly preventSelectionScroll?: boolean | undefined;
   /** An arrow key moved the selection; in 준비, also a click, Enter, or Space. */
   readonly onSelect: (index: number) => void;
   readonly className?: string | undefined;
@@ -101,6 +102,7 @@ export function ThumbnailGrid(props: ThumbnailGridProps): JSX.Element {
       columns={fixedWidth === undefined ? columns : 'auto'}
       spaceKey={workspaceSpaceKey[workspace]}
       takesClickFocus
+      preventSelectionScroll={props.preventSelectionScroll}
       gridFocus={props.workspace === 'show' && props.gridFocus}
       arrowsMove="selection"
       selected={props.selected}

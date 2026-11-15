@@ -15,6 +15,10 @@ import {QuickPanel} from '@renderer/features/quick/QuickPanel';
 import {SongBackgroundControl} from '@renderer/features/service/details/SongBackgroundControl';
 import {ShowToolsPanel} from '@renderer/features/tools/ShowToolsPanel';
 import {useShow} from '@renderer/session/show';
+import {
+  useSettingsDocument,
+  type NamedDocument,
+} from '@renderer/platform/useSettingsDocument';
 import {isBibleSource} from '@renderer/session/showLibrary';
 import type {Notice} from '@renderer/ui/notices';
 import type {SizeClass} from '@renderer/ui/sizeClass';
@@ -49,6 +53,7 @@ function showPanelParts({
   bibleOpen,
   bibleSelection,
   onOpenPrep,
+  quickDocument,
 }: {
   readonly title: string;
   readonly sizeClass: SizeClass;
@@ -57,6 +62,7 @@ function showPanelParts({
   readonly bibleSelection: number;
   readonly onOpenPrep:
     ((itemId: string, position?: number) => void) | undefined;
+  readonly quickDocument: NamedDocument<'quick'> | null;
 }): PanelParts {
   switch (title) {
     case '빠른 실행':
@@ -66,6 +72,7 @@ function showPanelParts({
           <QuickPanel
             selectionVersion={bibleSelection}
             onProblem={onProblem ?? logPanelProblem}
+            initialDocument={quickDocument}
           />
         ),
       };
@@ -126,6 +133,7 @@ export function useShowPanels({
   readonly sidebarAction: ReactNode;
 }): WorkspacePanels {
   const [bibleSelection, setBibleSelection] = useState(0);
+  const quickDocument = useSettingsDocument('quick', '빠른 실행', onProblem);
   const bibleOpen = useShow(
     view => active && isBibleSource(view, view.openItemId),
   );
@@ -148,6 +156,7 @@ export function useShowPanels({
             bibleOpen,
             bibleSelection,
             onOpenPrep,
+            quickDocument,
           }),
   };
 }

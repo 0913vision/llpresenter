@@ -187,6 +187,7 @@ export function DetailsSlides({
       />
       <ThumbnailGrid
         workspace="prep"
+        preventSelectionScroll
         label="슬라이드"
         columns={range.columns}
         tileWidth={range.tileWidth}

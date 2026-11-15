@@ -38,9 +38,18 @@
   width: var(--space-8);
 }
 
-.gridGap[data-caret='true'],
-.gridGap[data-slide-drop] {
-  border-inline-start: var(--space-2) solid var(--accent);
+.gridGap::after {
+  display: block;
+  width: var(--space-2);
+  height: 100%;
+  margin-inline: auto;
+  content: '';
+}
+
+.gridGap[data-caret='true']::after,
+.gridGap[data-slide-drop]::after,
+.gridGap:hover::after {
+  background: var(--accent);
 }
 
 .lastGap {
