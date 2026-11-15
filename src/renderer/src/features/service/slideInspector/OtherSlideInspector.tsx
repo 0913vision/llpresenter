@@ -107,7 +107,8 @@ export function OtherSlideInspector({
               item.bibleTransitions,
               selectedPart.reference,
               selectedPart.part,
-            ) ?? item.bible.transition ?? {kind: 'none' as const, sec: 0.5},
+            ) ??
+            item.bible.transition ?? {kind: 'none' as const, sec: 0.5},
         )
       : []),
   ];
@@ -151,11 +152,9 @@ export function OtherSlideInspector({
               : selectedParts;
             let transitions = updated.bibleTransitions ?? [];
             for (const entry of parts) {
-              const old = biblePartEffect(
-                transitions,
-                entry.reference,
-                entry.part,
-              ) ?? updated.bible.transition;
+              const old =
+                biblePartEffect(transitions, entry.reference, entry.part) ??
+                updated.bible.transition;
               const effect =
                 typeof next === 'number'
                   ? old === undefined
@@ -173,7 +172,9 @@ export function OtherSlideInspector({
             const {bibleTransitions: _old, ...rest} = updated;
             return {
               ...rest,
-              ...(transitions.length === 0 ? {} : {bibleTransitions: transitions}),
+              ...(transitions.length === 0
+                ? {}
+                : {bibleTransitions: transitions}),
             };
           }
           return updated;
