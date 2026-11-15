@@ -24,7 +24,8 @@ export function StatusBar({
     const problems: string[] = [];
     if (status.placement === 'ndi') {
       problems.push(
-        `${screen.statusLabel} NDI ${screen.ndiFps ?? NDI_DEFAULT_FPS}fps · ${ndiAccelerationLabel(status)}`,
+        `${screen.statusLabel} NDI ${screen.ndiFps ?? NDI_DEFAULT_FPS}fps`,
+        ndiAccelerationLabel(status),
       );
     }
     if (status.controlConflict) {
@@ -55,8 +56,8 @@ export function StatusBar({
       ) : null}
       {saveState === 'saving' ? <span>저장을 시도하는 중...</span> : null}
       {saveState === 'failed' ? <span role="alert">저장하지 못함</span> : null}
-      {messages.map(message => (
-        <span key={message}>{message}</span>
+      {messages.map((message, index) => (
+        <span key={`${index}:${message}`}>{message}</span>
       ))}
     </footer>
   );

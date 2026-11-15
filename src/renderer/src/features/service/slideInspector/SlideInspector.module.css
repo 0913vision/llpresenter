@@ -21,6 +21,11 @@
   justify-content: flex-start;
 }
 
+.transitionRows {
+  display: grid;
+  gap: var(--space-8);
+}
+
 .mediaPicture {
   width: 100%;
   height: 100%;

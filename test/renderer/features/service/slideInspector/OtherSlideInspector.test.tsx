@@ -1,4 +1,5 @@
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
+import {readFileSync} from 'node:fs';
 import {expect, it, vi} from 'vitest';
 import userEvent from '@testing-library/user-event';
 import {
@@ -174,6 +175,29 @@ async function setup(
   await waitFor(() => expect(items.getSnapshot().item).not.toBeNull());
   return {view, items, editor, fixture};
 }
+it.each(['sermon', 'bible', 'bible-card', 'slide-card'] as const)(
+  'provides property layout and spacing for %s transition rows',
+  async kind => {
+    const {view, items, editor} = await setup(kind);
+    const group = screen.getByRole('group', {name: '전환'});
+    expect(group.closest('[class*="properties"]')).not.toBeNull();
+    const rows = group.querySelector('[class*="transitionRows"]');
+    expect(rows?.children).toHaveLength(4);
+    for (const row of Array.from(rows?.children ?? []).slice(0, 3)) {
+      expect(row.querySelector('label')).not.toBeNull();
+      expect(row.querySelector('label')?.nextElementSibling).not.toBeNull();
+    }
+    expect(
+      readFileSync(
+        'src/renderer/src/features/service/slideInspector/SlideInspector.module.css',
+        'utf8',
+      ),
+    ).toMatch(/\.transitionRows\s*\{[^}]*gap:\s*var\(--space-8\)/);
+    view.unmount();
+    items.dispose();
+    await editor.dispose();
+  },
+);
 it('saves opening and closing sermon title transitions independently', async () => {
   const {view, items, editor} = await setup('sermon');
   await userEvent.click(
