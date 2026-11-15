@@ -100,12 +100,16 @@ describe('ServiceOrderList', () => {
     const view = render(<ServiceOrderList workspace="show" />);
     expect(follow).toHaveBeenLastCalledWith(
       expect.anything(),
-      expect.objectContaining({target: selected, enabled: true}),
+      expect.objectContaining({
+        target: selected,
+        liveItemId: null,
+        enabled: true,
+      }),
     );
     act(() => setLiveSlide(live, 0));
     expect(follow).toHaveBeenLastCalledWith(
       expect.anything(),
-      expect.objectContaining({target: live, enabled: true}),
+      expect.objectContaining({target: live, liveItemId: live, enabled: true}),
     );
     view.rerender(<ServiceOrderList workspace="prep" />);
     expect(follow).toHaveBeenLastCalledWith(

@@ -46,9 +46,11 @@ in either workspace does not change the other's selection. On entering 진행, t
 order list follows the live item, or 진행's last selected item when none is
 live. It keeps an item already in the middle band in place; otherwise it sets
 the position before the first paint at 40% of the viewport height, without
-visible scrolling. While 진행 is open, it smoothly also follows changes to the
-live item after a 1.5-second pause from manual scrolling. Following never
-changes selection, focus, or output.
+visible scrolling. While 진행 is open, only a change of live item can move the
+list; if the new live row is outside the viewport, it is brought just into view
+immediately. Manual scrolling, selection changes, and service refreshes do not
+cause the list to return to the live row. Following never changes selection,
+focus, or output.
 
 ### Header
 
