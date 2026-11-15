@@ -133,7 +133,7 @@ export class OutputRenderer {
       this.options.transparent
         ? 'transparent'
         : frame.theme?.item?.contentCleared
-          ? '#000000'
+          ? (frame.screen?.emptyColor ?? '#000000')
           : ((frame.theme === undefined
               ? undefined
               : themeBackgroundColor(

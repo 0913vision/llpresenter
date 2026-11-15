@@ -60,7 +60,7 @@ describe('OutputRenderer', () => {
     kind => {
       const {parent, renderer} = setUp();
       const frame = {
-        screen: {id: MAIN, kind},
+        screen: {id: MAIN, kind, emptyColor: '#345678'},
         theme: {
           themeId: SONG_THEME_ID,
           revision: 1,
@@ -90,7 +90,7 @@ describe('OutputRenderer', () => {
       } satisfies RenderFrame;
       renderer.render(WITH_SLIDE, frame);
       const composition = parent.querySelector<HTMLElement>(
-        '[data-layer="theme"]',
+        '[data-theme-background]',
       );
       const root = parent.firstElementChild;
       if (!(root instanceof HTMLElement)) {
@@ -106,10 +106,14 @@ describe('OutputRenderer', () => {
       });
       expect(composition?.style.opacity).toBe('0');
       expect(root.style.getPropertyValue('--output-background')).toBe(
-        '#000000',
+        '#345678',
       );
       renderer.render(WITH_SLIDE, frame);
-      expect(composition?.style.opacity).toBe('1');
+      expect(
+        [...parent.querySelectorAll<HTMLElement>('[data-theme-background]')].at(
+          -1,
+        )?.style.opacity,
+      ).toBe('1');
       renderer.dispose();
     },
   );

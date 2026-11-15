@@ -30,6 +30,7 @@ interface ThemePage {
   layers: LiveLayers;
   frame: RenderFrame;
   readonly root: HTMLElement;
+  readonly background: HTMLElement;
   readonly canvas: HTMLElement;
   readonly elements: readonly ThemeElementView[];
   readonly ticking: readonly ThemeElementView[];
@@ -96,14 +97,6 @@ export class ThemeCompositionView {
 
   render(layers: LiveLayers, frame: RenderFrame): void {
     this.input = {layers, frame};
-    this.root.style.opacity = frame.theme?.item?.contentCleared
-      ? String(
-          Math.max(
-            frame.clearOpacity?.slide ?? 0,
-            frame.clearOpacity?.media ?? 0,
-          ),
-        )
-      : '1';
     const original = frame.slide ?? layers.slide;
     if (
       frame.screen?.kind === 'broadcast' &&
@@ -259,7 +252,7 @@ export class ThemeCompositionView {
       theme.layout.background === undefined &&
       !this.options.transparent
     ) {
-      this.page.root.style.backgroundColor = theme.emptyColor;
+      this.page.background.style.backgroundColor = theme.emptyColor;
     }
     this.draw();
     if (frame.standby || (frame.transitions === false && this.ready())) {
@@ -377,8 +370,11 @@ export class ThemeCompositionView {
     const page = document.createElement('div');
     page.dataset['themePage'] = theme.themeId;
     page.className = `${classes.layer} ${classes.instant}`;
+    const background = document.createElement('div');
+    background.dataset['themeBackground'] = '';
+    Object.assign(background.style, {position: 'absolute', inset: '0'});
     Object.assign(
-      page.style,
+      background.style,
       this.options.transparent
         ? {background: 'transparent'}
         : themeBackgroundStyle(theme.layout.background, theme.emptyColor),
@@ -392,7 +388,7 @@ export class ThemeCompositionView {
       height: `${THEME_LIMITS.height}px`,
       transformOrigin: 'center',
     });
-    page.append(canvas);
+    page.append(background, canvas);
     this.root.append(page);
     const elements: ThemeElementView[] = [];
     if (theme.layout.mode.kind === 'own') {
@@ -423,6 +419,7 @@ export class ThemeCompositionView {
       layers,
       frame,
       root: page,
+      background,
       canvas,
       elements,
       ticking: elements.filter(view =>
@@ -512,11 +509,26 @@ export class ThemeCompositionView {
     const page = this.page;
     const content = this.content;
     if (page === null || content === null) return;
+    const cleared = content.frame.theme?.item?.contentCleared === true;
+    const clearOpacity = cleared
+      ? Math.max(
+          content.frame.clearOpacity?.slide ?? 0,
+          content.frame.clearOpacity?.media ?? 0,
+        )
+      : 1;
+    page.background.style.opacity = String(clearOpacity);
     // NOTE(0913vision): Keep the outgoing slide as one frozen picture while a
     // new slide replaces it; clear fades still apply when content is cleared.
     if (content.layers.slide === null) {
+      if (this.leaving !== null && cleared) {
+        this.leaving.background.style.opacity = String(clearOpacity);
+      }
       for (const view of this.leaving?.elements ?? []) {
-        view.setClearOpacity({...content.frame.clearOpacity, slide: 0});
+        view.setClearOpacity(
+          {...content.frame.clearOpacity, slide: 0},
+          cleared ? clearOpacity : 1,
+          content.frame.screen?.kind === 'stage',
+        );
       }
     }
     page.layers = content.layers;
@@ -540,6 +552,11 @@ export class ThemeCompositionView {
           // NOTE(0913vision): Page transitions own the mask, so children cut.
           {...content.frame, transitions: false},
           video,
+        );
+        view.setClearOpacity(
+          content.frame.clearOpacity,
+          clearOpacity,
+          content.frame.screen?.kind === 'stage',
         );
       } catch (error) {
         this.gaps.failed(view.element.id, error);
