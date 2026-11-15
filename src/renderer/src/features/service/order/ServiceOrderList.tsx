@@ -38,6 +38,7 @@ import {useMovedRowFocus} from './useMovedRowFocus';
 import {useOrderEditFocus} from './useOrderEditFocus';
 import {useOrderResizeFocus} from './useOrderResizeFocus';
 import {useOrderFollow} from './useOrderFollow';
+import {usePrepOrderPosition} from './usePrepOrderPosition';
 import {serviceRowLabel} from './serviceRowLabel';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {openSongEditorWindow} from '@renderer/features/songs/editor/openWindow';
@@ -350,6 +351,11 @@ export function ServiceOrderList({
   useOrderFollow(listRef, {
     target: followId,
     enabled: workspace === 'show',
+    rows,
+  });
+  usePrepOrderPosition(listRef, {
+    target: openItemId,
+    enabled: workspace === 'prep',
     rows,
   });
   useOrderResizeFocus(listRef);
