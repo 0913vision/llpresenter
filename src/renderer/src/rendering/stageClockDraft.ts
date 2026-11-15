@@ -64,7 +64,7 @@ export function stageClockDraft(
       id: createThemeElementId('59900000-0000-4000-8000-000000000001'),
       kind: 'box',
       frame: {x: 0, y: 0, w: 1920, h: 100},
-      box: {on: true, fill: '#000000', opacity: 100},
+      box: {on: true, fill: '#000000', opacity: 100, radius: 0},
     });
   }
   return {...layout, elements};
