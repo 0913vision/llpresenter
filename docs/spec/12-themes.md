@@ -849,7 +849,8 @@ slide in that item. The top label also remains visible at the start, enlarged to
 64 px bold in an 80 px frame, including on continuation slides. Other labels
 precede the text. The yellow next text shows a label only when it differs from
 the preceding slide in that item. Empty slides show only the label. Bible verse
-labels are omitted.
+labels are omitted. When a song's prelude, interlude or outro cue is already
+appended to the current text, the top label is hidden to avoid repeating it.
 
 The output preference `output.stageLyricLabelPosition` chooses `line` (the
 behavior above, the default), `inline` (the changed song label precedes the
