@@ -89,7 +89,11 @@ export class IdentityDisplaySource implements DisplaySource {
     const stop = this.options.source.watch(change => {
       this.generation++;
       this.retried = false;
-      this.retainUnchanged(change);
+      if (change.kind === 'removed' && this.cache.has(change.id)) {
+        const retained = new Map(this.cache);
+        retained.delete(change.id);
+        this.cache = retained;
+      }
       this.controller?.abort();
       this.pending = true;
       this.known = false;
@@ -170,20 +174,6 @@ export class IdentityDisplaySource implements DisplaySource {
       sameRect(previous.bounds, display.bounds)
       ? this.cache.get(display.id)
       : undefined;
-  }
-
-  private retainUnchanged(change: DisplayChange): void {
-    const retained = new Map<number, MonitorIdentity>();
-    try {
-      for (const display of this.options.source.read()) {
-        if (change.kind === 'removed' && change.id === display.id) continue;
-        const identity = this.identityFor(display);
-        if (identity !== undefined) retained.set(display.id, identity);
-      }
-    } catch {
-      // NOTE(0913vision): Without current rectangles, no cached identity is safe.
-    }
-    this.cache = retained;
   }
 
   private warnFallback(error?: unknown): void {
