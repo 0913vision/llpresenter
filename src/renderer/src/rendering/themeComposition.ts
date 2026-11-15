@@ -1,5 +1,6 @@
 import {fitBroadcastLook, isBroadcastLook} from './broadcastLook';
 import {stageBarLayout} from './stageBar';
+import {stageClockDraft} from './stageClockDraft';
 import type {LiveLayers} from '@core/live/state';
 import type {SlideLayer} from '@core/live/state';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
@@ -177,6 +178,20 @@ export class ThemeCompositionView {
           },
         };
       }
+    }
+    if (frame.screen?.kind === 'stage' && frame.theme !== undefined) {
+      const draftVariant: unknown = import.meta.env.VITE_UI599_STAGE_VARIANT;
+      frame = {
+        ...frame,
+        theme: {
+          ...frame.theme,
+          layout: stageClockDraft(
+            frame.theme.layout,
+            frame.theme.themeId,
+            typeof draftVariant === 'string' ? draftVariant : undefined,
+          ),
+        },
+      };
     }
     this.gaps.follow(frame);
     this.content = {layers, frame};
