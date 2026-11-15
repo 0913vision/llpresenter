@@ -4,7 +4,8 @@ import {useNumberJump} from './numberJump';
 import styles from './DraftOverlay.module.css';
 
 const choice: unknown = import.meta.env.VITE_LLP_DRAFT_OVERLAY;
-export const draftOverlay = choice === 'a' || choice === 'b' ? choice : null;
+export const draftOverlay =
+  choice === 'a' || choice === 'b' || choice === 'c' ? choice : null;
 
 export function DraftOverlay({
   kind,
@@ -35,7 +36,7 @@ export function DraftOverlay({
             {kind === 'bible' ? '성' : '#'}
           </div>
           <h2>{kind === 'bible' ? '성경 구절' : '슬라이드 이동'}</h2>
-          {kind === 'bible' ? (
+          {kind === 'bible' && draftOverlay !== 'c' ? (
             <span className={styles.dismiss}>ESC</span>
           ) : null}
         </header>
