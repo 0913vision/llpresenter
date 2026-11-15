@@ -1,6 +1,8 @@
 import type {SlideTransition} from '@core/schema/slideTransition';
 import {THEME_LIMITS} from '@core/themes/elementRules';
 
+export const WIPE_DURATION_MS_PER_SECOND = 954;
+
 export interface SlideAnimationFrame {
   readonly x: number;
   readonly y: number;
@@ -14,30 +16,31 @@ const TRAVEL = {
   up: ['translateY(100%)', 'translateY(-100%)'],
   down: ['translateY(-100%)', 'translateY(100%)'],
 } as const;
+/** PowerPoint's feather starts outside and sweeps a 0.8-screen ramp in 95.4%. */
 const WIPE = {
   left: {
     direction: 'left',
     size: '300% 100%',
-    from: '1.5% 0%',
-    to: '98% 0%',
+    from: '-8% 0%',
+    to: '95% 0%',
   },
   right: {
     direction: 'right',
     size: '300% 100%',
-    from: '98.5% 0%',
-    to: '2% 0%',
+    from: '108% 0%',
+    to: '5% 0%',
   },
   up: {
     direction: 'top',
     size: '100% 300%',
-    from: '0% 1.5%',
-    to: '0% 98%',
+    from: '0% -8%',
+    to: '0% 95%',
   },
   down: {
     direction: 'bottom',
     size: '100% 300%',
-    from: '0% 98.5%',
-    to: '0% 2%',
+    from: '0% 108%',
+    to: '0% 5%',
   },
 } as const;
 
@@ -101,7 +104,7 @@ export class SlideAnimation {
         break;
       case 'wipe': {
         const wipe = WIPE[dir];
-        const maskImage = `linear-gradient(to ${wipe.direction}, black 0%, black 38.333333%, transparent 61.666667%, transparent 100%)`;
+        const maskImage = `linear-gradient(to ${wipe.direction}, black 0%, black 36.666667%, transparent 63.333333%, transparent 100%)`;
         outgoing = [{opacity: 1}, {opacity: 1}];
         incoming = [
           {
@@ -121,7 +124,9 @@ export class SlideAnimation {
       }
     }
     const timing = {
-      duration: effect.sec * (effect.kind === 'wipe' ? 830 : 1000),
+      duration:
+        effect.sec *
+        (effect.kind === 'wipe' ? WIPE_DURATION_MS_PER_SECOND : 1000),
       easing: 'linear',
     };
     this.animations =

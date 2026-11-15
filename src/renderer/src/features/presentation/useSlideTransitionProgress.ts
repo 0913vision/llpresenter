@@ -1,5 +1,6 @@
 import {useEffect, useState} from 'react';
 import {useLive} from '@renderer/session/live';
+import {WIPE_DURATION_MS_PER_SECOND} from '@renderer/rendering/slideAnimation';
 
 /** Follows the actual live slide transition using main's wall clock start. */
 export function useSlideTransitionProgress(): number | undefined {
@@ -12,7 +13,8 @@ export function useSlideTransitionProgress(): number | undefined {
   const duration =
     effect == null || effect.kind === 'none'
       ? 0
-      : effect.sec * (effect.kind === 'wipe' ? 830 : 1000);
+      : effect.sec *
+        (effect.kind === 'wipe' ? WIPE_DURATION_MS_PER_SECOND : 1000);
   const [now, setNow] = useState(() => Date.now());
   useEffect(() => {
     if (start === undefined || duration <= 0) return;
