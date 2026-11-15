@@ -10,6 +10,8 @@ export interface ShowView {
   readonly librarySong: ShowLibrarySong | null;
   readonly revision: number | null;
   readonly serviceId: string | null;
+  /** Changes whenever the open service identity changes. */
+  readonly serviceEpoch: number;
   readonly serviceName: string;
   readonly readOnly: boolean;
   readonly rows: readonly ServiceRow[];
@@ -32,6 +34,7 @@ export const noService = {
 
 export const useShow = create<ShowView>(() => ({
   ...noService,
+  serviceEpoch: 0,
   librarySong: null,
   bibleSource: null,
   liveBibleSource: null,

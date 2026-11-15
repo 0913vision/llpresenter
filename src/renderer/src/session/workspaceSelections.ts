@@ -3,7 +3,12 @@ import {librarySourceId} from './showLibrary';
 
 type Selection = Pick<
   ShowView,
-  'serviceId' | 'openItemId' | 'selectedTile' | 'librarySong' | 'bibleSource'
+  | 'serviceId'
+  | 'serviceEpoch'
+  | 'openItemId'
+  | 'selectedTile'
+  | 'librarySong'
+  | 'bibleSource'
 >;
 
 /** Keeps each workspace's selection while the shared view represents the visible one. */
@@ -16,6 +21,7 @@ export class WorkspaceSelections {
     const view = useShow.getState();
     this.saved[this.active] = {
       serviceId: view.serviceId,
+      serviceEpoch: view.serviceEpoch,
       openItemId: view.openItemId,
       selectedTile: view.selectedTile,
       librarySong: view.librarySong,
@@ -30,6 +36,7 @@ export class WorkspaceSelections {
     const isBible = id !== null && id === bible?.id;
     const exists =
       saved?.serviceId === view.serviceId &&
+      saved.serviceEpoch === view.serviceEpoch &&
       id !== null &&
       (isLibrary || isBible || view.rows.some(row => row.id === id));
     useShow.setState({

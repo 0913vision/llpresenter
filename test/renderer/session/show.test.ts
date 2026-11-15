@@ -121,6 +121,48 @@ describe('show state', () => {
     });
   });
 
+  it('clears the selection when a different service has the same item ids without changing output', () => {
+    useShow.setState({openItemId: 'song-morning', selectedTile: 2});
+    setLive('song-morning', 1);
+    const live = useLive.getState().state;
+    applyService({...sampleService, revision: 2});
+    expect(useShow.getState()).toMatchObject({
+      openItemId: 'song-morning',
+      selectedTile: 2,
+    });
+    sent.length = 0;
+    applyService({...sampleService, id: 'copy', revision: 1});
+    expect(useShow.getState()).toMatchObject({
+      openItemId: null,
+      selectedTile: 0,
+    });
+    expect(useLive.getState().state).toBe(live);
+    expect(sent).toEqual([]);
+  });
+
+  it('clears an open library song when the service changes', () => {
+    const songId = createSongId('30000000-0000-4000-8000-000000000001');
+    useShow.setState({
+      librarySong: {
+        songId,
+        songRevision: 1,
+        title: 'Song',
+        readOnly: false,
+        tiles: [],
+        jumpKeys: {},
+      },
+      openItemId: `library:${songId}`,
+      selectedTile: 1,
+    });
+    applyService({...sampleService, revision: 2});
+    expect(useShow.getState().openItemId).toBe(`library:${songId}`);
+    applyService({...sampleService, id: 'copy', revision: 1});
+    expect(useShow.getState()).toMatchObject({
+      openItemId: null,
+      selectedTile: 0,
+    });
+  });
+
   it('sends slide.show for a tile and shows it selected', () => {
     outputTile({itemId: 'song-morning', index: 1});
     expect(slides()).toEqual([
@@ -974,13 +1016,14 @@ describe('Bible passages', () => {
     });
   });
 
-  it('keeps an open passage, its 장 keys, and reveal across service refreshes', async () => {
+  it('keeps an open passage across refreshes and retains live passage keys after closing the service', async () => {
     const source = bibleSource(await passage('요한복음 3:16-18'));
     useShow.setState({bibleSource: source, openItemId: source.id});
 
     applyService({...sampleService, revision: 2});
-    applyService(null);
     expect(useShow.getState().openItemId).toBe(source.id);
+    applyService(null);
+    expect(useShow.getState().openItemId).toBeNull();
     setLive(source.id, 1);
     outputNext();
     outputPrevious();

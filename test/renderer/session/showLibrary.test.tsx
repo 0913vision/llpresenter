@@ -169,12 +169,11 @@ it('drops a pending library output after another source outputs', async () => {
   });
 });
 
-it('preserves the selected library source through service pushes and clamps refreshed selection', () => {
+it('preserves the selected library source on refresh and clears it when the service closes', () => {
   setup();
   openLibrarySong(song());
   selectTile(1);
   applyService({...sampleService, revision: 2, rows: []});
-  applyService(null);
   expect(useShow.getState()).toMatchObject({
     openItemId: itemId,
     selectedTile: 1,
@@ -185,6 +184,8 @@ it('preserves the selected library source through service pushes and clamps refr
     selectedTile: 0,
     librarySong: {songRevision: 3, tiles: []},
   });
+  applyService(null);
+  expect(useShow.getState()).toMatchObject({openItemId: null, selectedTile: 0});
   openItem('another-source');
   refreshLibrarySong(songId, null);
   expect(useShow.getState()).toMatchObject({
