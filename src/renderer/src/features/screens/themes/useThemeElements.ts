@@ -8,11 +8,39 @@ import {
   type FrameFieldChange,
 } from '@core/canvas/frameEdit';
 import {THEME_LIMITS, type ThemeElementKind} from '@core/themes/elementRules';
-import {changeThemeElement, editThemeElements} from '@core/themes/elementEdits';
+import {
+  changeThemeElement,
+  editThemeElements,
+  hasThemeText,
+} from '@core/themes/elementEdits';
 import {newThemeElement} from '@core/themes/newElement';
-import type {ThemeTarget} from '@core/themes/themeEdits';
+import {editThemeLayout, type ThemeTarget} from '@core/themes/themeEdits';
+import {sameJson} from '@core/common/sameJson';
+import {checkPart} from '@core/schema/fileFormat';
+import {themeElementSchema} from '@core/schema/themes';
+import {
+  BROADCAST_LOOK_BAND_ID,
+  BROADCAST_LOOK_TAB_ID,
+  BROADCAST_LOOK_SONG_ID,
+  BROADCAST_LOOK_SONG_TITLE_ID,
+  BROADCAST_LOOK_CARD_ID,
+} from '@core/themes/broadcastLook';
+import {
+  BROADCAST_TEXT_ID,
+  BROADCAST_REFERENCE_ID,
+} from '@core/themes/broadcastBand';
 import type {ThemeWrites} from './useThemeWrites';
 import type {ThemeSelection} from './useThemeSelection';
+
+const fittedIds: ReadonlySet<string> = new Set([
+  BROADCAST_LOOK_BAND_ID,
+  BROADCAST_LOOK_TAB_ID,
+  BROADCAST_LOOK_SONG_ID,
+  BROADCAST_LOOK_SONG_TITLE_ID,
+  BROADCAST_LOOK_CARD_ID,
+  BROADCAST_TEXT_ID,
+  BROADCAST_REFERENCE_ID,
+]);
 
 export const themeCanvasBounds = {
   width: THEME_LIMITS.width,
@@ -25,11 +53,16 @@ export interface ThemeAddPlacement {
   readonly point?: {readonly x: number; readonly y: number};
 }
 export function useThemeElements(
-  context: {target: ThemeTarget | undefined; elementReason: string | undefined},
+  context: {
+    target: ThemeTarget | undefined;
+    elementReason: string | undefined;
+    fittedBroadcast: boolean;
+    visibleElements: readonly ThemeElement[];
+  },
   writes: ThemeWrites,
   selection: ThemeSelection,
 ) {
-  const {target, elementReason} = context;
+  const {target, elementReason, fittedBroadcast, visibleElements} = context;
   const {edit, report} = writes;
   const {
     keepRatio,
@@ -54,7 +87,29 @@ export function useThemeElements(
     if (target === undefined) return;
     edit(
       target.theme,
-      value => editThemeElements(value, target, transform),
+      value =>
+        fittedBroadcast
+          ? editThemeLayout(value, target, layout => {
+              if (layout.mode.kind !== 'own') return undefined;
+              const next = transform(layout.elements);
+              if (!next) return undefined;
+              const ids = new Set<string>(next.map(element => element.id));
+              ids.add(BROADCAST_LOOK_SONG_TITLE_ID);
+              const broadcastEdits =
+                layout.broadcastEdits === undefined
+                  ? undefined
+                  : Object.fromEntries(
+                      Object.entries(layout.broadcastEdits).filter(([id]) =>
+                        ids.has(id),
+                      ),
+                    );
+              return {
+                ...layout,
+                elements: next,
+                ...(broadcastEdits === undefined ? {} : {broadcastEdits}),
+              };
+            })
+          : editThemeElements(value, target, transform),
       completed,
     );
   };
@@ -63,8 +118,52 @@ export function useThemeElements(
     id: string,
     transform: (element: ThemeElement) => unknown,
     completed?: (saved: boolean) => void,
-  ): void =>
-    elements(values => changeThemeElement(values, id, transform), completed);
+  ): void => {
+    if (!fittedBroadcast || !fittedIds.has(id) || target === undefined) {
+      elements(values => changeThemeElement(values, id, transform), completed);
+      return;
+    }
+    const before = visibleElements.find(element => element.id === id);
+    if (!before) return;
+    const parsed = checkPart(themeElementSchema, transform(before));
+    if (
+      !parsed.ok ||
+      parsed.value.id !== before.id ||
+      parsed.value.kind !== before.kind
+    ) {
+      return;
+    }
+    const after = parsed.value;
+    edit(
+      target.theme,
+      file =>
+        editThemeLayout(file, target, layout => {
+          const previous = layout.broadcastEdits?.[before.id];
+          const patch = {
+            ...previous,
+            ...(!sameJson(before.frame, after.frame)
+              ? {frame: after.frame}
+              : {}),
+            ...('text' in before &&
+            'text' in after &&
+            !sameJson(before.text, after.text)
+              ? {text: after.text}
+              : {}),
+            ...((before.kind === 'box' || hasThemeText(before)) &&
+            (after.kind === 'box' || hasThemeText(after)) &&
+            after.box !== undefined &&
+            !sameJson(before.box, after.box)
+              ? {box: after.box}
+              : {}),
+          };
+          return {
+            ...layout,
+            broadcastEdits: {...layout.broadcastEdits, [before.id]: patch},
+          };
+        }),
+      completed,
+    );
+  };
 
   const frame = (
     id: string,
@@ -158,6 +257,55 @@ export function useThemeElements(
       } else add(kind, options);
     },
     elements,
+    fittedBroadcast,
+    frames: (
+      frames: ReadonlyArray<{id: string; frame: ElementFrame}>,
+      completed?: (saved: boolean) => void,
+    ) => {
+      if (!fittedBroadcast) {
+        elements(
+          values =>
+            values.map(element => {
+              const next = frames.find(row => row.id === element.id);
+              return next ? {...element, frame: next.frame} : element;
+            }),
+          completed,
+        );
+        return;
+      }
+      if (!target) return;
+      edit(
+        target.theme,
+        file =>
+          editThemeLayout(file, target, layout => {
+            const broadcastEdits = {...layout.broadcastEdits};
+            for (const row of frames) {
+              const element = visibleElements.find(
+                value => value.id === row.id,
+              );
+              if (element && fittedIds.has(row.id)) {
+                broadcastEdits[element.id] = {
+                  ...broadcastEdits[element.id],
+                  frame: frameWithinBounds(row.frame, themeCanvasBounds),
+                };
+              }
+            }
+            const elements = layout.elements.map(element => {
+              const row = frames.find(
+                value => value.id === element.id && !fittedIds.has(value.id),
+              );
+              return row
+                ? {
+                    ...element,
+                    frame: frameWithinBounds(row.frame, themeCanvasBounds),
+                  }
+                : element;
+            });
+            return {...layout, elements, broadcastEdits};
+          }),
+        completed,
+      );
+    },
     property,
     frame,
     frameValue,
@@ -175,6 +323,12 @@ export function useThemeElements(
       })),
     add,
     remove: (ids: readonly string[]) => {
+      if (fittedBroadcast && ids.includes(BROADCAST_LOOK_SONG_TITLE_ID)) {
+        report(
+          '\uace1 \uc81c\ubaa9\uc740 \uc0ad\uc81c\ud560 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4',
+        );
+        return;
+      }
       const unchanged = guardInteraction();
       const deletesSelection = selectedIds.some(id => ids.includes(id));
       elements(

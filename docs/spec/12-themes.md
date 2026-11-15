@@ -823,6 +823,16 @@ load, a 107 item containing picture slides uses 108; other 107 items use the
 retired-theme fallback. The service file is updated on its next save. An edited
 legacy image theme is retained when recognizable.
 
+The theme editor displays the fitted built-in broadcast band, text and title
+using a representative slide, including the generated song title. Position, size
+and text-style edits for fitted elements are stored as optional per-element
+`broadcastEdits` in that theme's broadcast layout. Missing edits retain the
+computed defaults. Broadcast output uses the same fitting and overrides. The
+song band retains a fixed height across slides, its lyrics stay in the band, and
+the title remains at its top left without overlapping the lyric area. An edited
+Bible reference remains within its tab and the body fits below the tab. The
+overrides are limited to the screen element limit plus one generated title.
+
 A theme may set a slide transition in the theme editor. The built-in scripture
 theme uses a 0.7 second wipe, the creed and prayer theme uses a 0.5 second wipe,
 and the sermon title theme and seven section title themes use a 1 second wipe.

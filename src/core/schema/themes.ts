@@ -200,6 +200,22 @@ export const themeElementSchema = v.pipe(
 );
 
 export const themeScreenLayoutSchema = jsonObject({
+  // NOTE(0913vision): Missing overrides retain the runtime-fitted defaults.
+  broadcastEdits: v.exactOptional(
+    v.pipe(
+      jsonRecord(
+        themeElementIdSchema,
+        jsonObject({
+          frame: v.exactOptional(themeFrameSchema),
+          text: v.exactOptional(themeTextSchema),
+          box: v.exactOptional(
+            jsonObject({...boxEntries, radius: v.exactOptional(radius)}),
+          ),
+        }),
+      ),
+      v.maxEntries(THEME_LIMITS.elements + 1),
+    ),
+  ),
   stageBar: v.exactOptional(v.literal('message-row')),
   songTitle: v.exactOptional(v.picklist(['sunday', 'sunday-light'])),
   mode: v.pipe(

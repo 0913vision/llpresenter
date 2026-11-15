@@ -1,5 +1,6 @@
 import {useEffect, useLayoutEffect, useRef, useState} from 'react';
 import type {ScreenId, ThemeId} from '@core/schema/ids';
+import type {ThemeScreenLayout} from '@core/schema/themes';
 import {
   editThemeLayout,
   findTheme,
@@ -8,6 +9,12 @@ import {
 } from '@core/themes/themeEdits';
 import {withStageStandby} from '@core/themes/output';
 import {resolveThemeScreen} from '@core/themes/resolve';
+import {BIBLE_THEME_ID} from '@core/themes/defaults';
+import {BROADCAST_LOOK_SONG_ID} from '@core/themes/broadcastLook';
+import {
+  fitBroadcastLook,
+  isBroadcastLook,
+} from '@renderer/rendering/broadcastLook';
 import {
   pendingWritesOf,
   type DraftOutcome,
@@ -65,10 +72,20 @@ export function useThemeEditor(
       ? undefined
       : themeLayout(file, target);
 
-  const visibleElements =
+  const resolvedLayout =
     theme === undefined || screen === undefined
+      ? undefined
+      : resolveThemeScreen(theme, screen.id, screens).layout;
+  const fittedBroadcast =
+    screen?.kind === 'broadcast' &&
+    resolvedLayout !== undefined &&
+    isBroadcastLook(resolvedLayout);
+  const visibleElements =
+    resolvedLayout === undefined
       ? []
-      : resolveThemeScreen(theme, screen.id, screens).layout.elements;
+      : fittedBroadcast
+        ? sampleBroadcastLayout(resolvedLayout, theme?.id).elements
+        : resolvedLayout.elements;
 
   const scope =
     theme === undefined || screen === undefined
@@ -81,7 +98,11 @@ export function useThemeEditor(
       ? '직접 배치에서만 바꿀 수 있습니다'
       : undefined);
   const selection = useThemeSelection(scope, visibleElements);
-  const actions = useThemeElements({target, elementReason}, writes, selection);
+  const actions = useThemeElements(
+    {target, elementReason, fittedBroadcast, visibleElements},
+    writes,
+    selection,
+  );
   const {select} = selection;
   const flow = useThemeSaveFlow({
     dirtyThemeId: writes.dirtyThemeId,
@@ -174,5 +195,39 @@ export function useThemeEditor(
       }
     },
   };
+}
+
+/** Fit the same representative slide for both canvas and screen preview. */
+export function sampleBroadcastLayout(
+  layout: ThemeScreenLayout,
+  themeId: ThemeId | undefined,
+): ThemeScreenLayout {
+  const song = layout.elements.some(
+    element => element.id === BROADCAST_LOOK_SONG_ID,
+  );
+  const bible = themeId === BIBLE_THEME_ID;
+  const kind = song
+    ? ('song' as const)
+    : bible
+      ? ('bible' as const)
+      : ('blank' as const);
+  return fitBroadcastLook(
+    layout,
+    {
+      itemId: 'sample',
+      position: 0,
+      label: null,
+      kind,
+      lines: ['함께 노래합니다', '오늘도 빛을 비춥니다'],
+    },
+    {
+      item: {
+        id: 'sample',
+        kind,
+        source: 'service',
+        title: song ? '찬양 제목' : '요한복음 1:1',
+      },
+    },
+  );
 }
 export type ThemeModel = ReturnType<typeof useThemeEditor>;

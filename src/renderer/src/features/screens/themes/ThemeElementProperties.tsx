@@ -1,5 +1,10 @@
 import type {JSX} from 'react';
 import type {ThemeElement} from '@core/schema/themes';
+import {BROADCAST_LOOK_SONG_TITLE_ID} from '@core/themes/broadcastLook';
+import {
+  BROADCAST_REFERENCE_ID,
+  BROADCAST_TEXT_ID,
+} from '@core/themes/broadcastBand';
 import {THEME_LIMITS} from '@core/themes/elementRules';
 import {hasThemeText} from '@core/themes/elementEdits';
 import {GeometryField} from '@renderer/ui/GeometryField';
@@ -81,7 +86,8 @@ export function ThemeElementProperties({
             </PropertyRow>
           ))}
         </PropertyColumns>
-        {element.kind === 'itemName' ? (
+        {element.kind === 'itemName' &&
+        !(model.fittedBroadcast && element.id === BROADCAST_TEXT_ID) ? (
           <ThemeCheck
             label="가사 없을 때 가운데"
             checked={element.centerWhenTextEmpty ?? false}
@@ -95,7 +101,8 @@ export function ThemeElementProperties({
             }
           />
         ) : null}
-        {element.kind === 'reference' ? (
+        {element.kind === 'reference' &&
+        !(model.fittedBroadcast && element.id === BROADCAST_REFERENCE_ID) ? (
           <PropertyRow label="출처 내용">
             {({controlId}) => (
               <SelectMenu
@@ -113,7 +120,10 @@ export function ThemeElementProperties({
             )}
           </PropertyRow>
         ) : null}
-        {element.kind === 'text' ? (
+        {element.kind === 'text' &&
+        !(
+          model.fittedBroadcast && element.id === BROADCAST_LOOK_SONG_TITLE_ID
+        ) ? (
           <ThemeContent
             value={element.content}
             reason={reason}
