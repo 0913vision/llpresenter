@@ -132,6 +132,7 @@ function openRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {
 }
 
 function renameRow(input: ServiceOrderMenuInput): readonly MenuItem[] {
+  if (input.row.kind === 'slides' && input.row.liturgy !== undefined) return [];
   switch (input.row.kind) {
     case 'header':
     case 'slides':

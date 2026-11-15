@@ -15,6 +15,8 @@ import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {MediaProperties} from '@renderer/features/media/MediaPropertiesPanel';
 import {Panel, PanelBody} from '@renderer/ui/Panel';
 import {labelInk} from '@renderer/ui/labelInk';
+import {LITURGY} from '@core/services/liturgy';
+import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
 import type {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {useItemMedia} from '../items/useItemSources';
 import {savedPassageTiles} from '../items/bibleItemModel';
@@ -39,6 +41,25 @@ export function OtherSlideInspector({
   const {item, service, position, busy, bibleSelection, cardSelected} =
     useSyncExternalStore(items.subscribe, items.getSnapshot);
   const bible = item !== null && isItemOfKind(item, 'bible');
+  const liturgy = item !== null && isItemOfKind(item, 'liturgy') ? item : null;
+  const liturgyTiles = useShow(view =>
+    liturgy === null ? undefined : view.tiles[liturgy.id],
+  );
+  const liturgyLayer =
+    liturgy === null || liturgyTiles === undefined
+      ? null
+      : slideLayerOf({itemId: liturgy.id, index: position}, () => liturgyTiles);
+  const liturgyTheme = useSlideTheme(
+    liturgy === null
+      ? undefined
+      : {
+          kind: 'slides',
+          form: 'blank',
+          id: liturgy.id,
+          title: LITURGY[liturgy.liturgy.kind].name,
+          theme: liturgy.theme ?? CREED_PRAYER_THEME_ID,
+        },
+  );
   const media = useItemMedia(
     editor.api.media,
     item !== null && isItemOfKind(item, 'media'),
@@ -59,9 +80,11 @@ export function OtherSlideInspector({
       ? item.sectionCard
       : undefined;
   const count =
-    item !== null && isItemOfKind(item, 'slides')
-      ? item.slides.slides.length + 1
-      : tiles.length + 1;
+    liturgy !== null
+      ? (liturgyTiles?.length ?? 0)
+      : item !== null && isItemOfKind(item, 'slides')
+        ? item.slides.slides.length + 1
+        : tiles.length + 1;
   const cardTheme = useSlideTheme(
     card === undefined || item === null
       ? undefined
@@ -258,6 +281,24 @@ export function OtherSlideInspector({
             </div>
           </>
         )}
+        {card === undefined &&
+        liturgy !== null &&
+        liturgyLayer !== null &&
+        liturgyTheme !== undefined ? (
+          <>
+            <div className={styles.picture} data-background-picture>
+              <div className={styles.canvas}>
+                <SlidePicture output {...liturgyTheme} slide={liturgyLayer} />
+              </div>
+            </div>
+            <div className={styles.caption} style={labelInk('none')}>
+              {LITURGY[liturgy.liturgy.kind].name}
+              <span>
+                {position + 1} / {count}
+              </span>
+            </div>
+          </>
+        ) : null}
         {tile === undefined ||
         layer === null ||
         appearance === undefined ? null : (

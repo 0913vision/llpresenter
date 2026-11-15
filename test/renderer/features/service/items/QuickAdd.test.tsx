@@ -27,7 +27,7 @@ import {quickAddBefore} from '@core/services/quickAddPosition';
 import {formLookupReply} from '@fixtures/core/bibleReplies';
 import type {RecentPassage} from '@core/schema/bible';
 import {prepareLiturgy} from '@renderer/features/service/items/quickAddLiturgy';
-import {newSlidesItem} from '@core/services/slidesEdits';
+import {newLiturgyItem} from '@core/services/liturgy';
 import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
 import {isItemOfKind} from '@core/schema/service';
 
@@ -320,12 +320,12 @@ describe('항목 추가', () => {
       });
     },
   );
-  it('inserts a prepared liturgy after the selected item and opens its slide commands', async () => {
+  it('inserts a dedicated liturgy after the selected item without opening the generic slide editor', async () => {
     const {api, user, service} = setup();
-    const item = newSlidesItem(
-      'blank',
-      createServiceItemId(crypto.randomUUID()),
-    );
+    const item = newLiturgyItem(createServiceItemId(crypto.randomUUID()), {
+      kind: 'creed',
+      translation: 'old',
+    });
     vi.mocked(prepareLiturgy).mockResolvedValueOnce(item);
     const open = vi
       .spyOn(api.slidesEditor, 'open')
@@ -340,16 +340,17 @@ describe('항목 추가', () => {
     await user.click(screen.getByRole('button', {name: '항목 추가'}));
     await user.click(screen.getByRole('menuitem', {name: '사도신경'}));
     await user.click(await screen.findByRole('menuitem', {name: '옛 번역'}));
-    await waitFor(() => expect(open).toHaveBeenCalledOnce());
+    await waitFor(() =>
+      expect(service().service.order.some(row => row.id === item.id)).toBe(
+        true,
+      ),
+    );
     expect(prepareLiturgy).toHaveBeenCalledWith('creed', 'old');
     const order = service().service.order;
     const index = order.findIndex(row => row.id === fixtureItems.arranged);
     expect(order[index + 1]).toEqual(item);
     expect(order[index + 2]?.id).toBe(fixtureItems.plain);
-    expect(open).toHaveBeenCalledWith({
-      serviceId: fixtureServiceId,
-      itemId: item.id,
-    });
+    expect(open).not.toHaveBeenCalled();
   });
   it.each(['빈 슬라이드', '광고'])(
     'inserts %s immediately after the selection, selects it and opens its editor',

@@ -105,6 +105,12 @@ const showRowSchema = v.pipe(
       id,
       title: v.string(),
       form: v.picklist(['blank', 'ad']),
+      liturgy: v.exactOptional(
+        payloadObject({
+          kind: v.picklist(['creed', 'prayer']),
+          translation: v.picklist(['new', 'old']),
+        }),
+      ),
       sourceRevision: v.exactOptional(positiveInteger),
       theme: v.exactOptional(themeIdSchema),
       background: v.exactOptional(mediaChoiceSchema),

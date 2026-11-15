@@ -25,7 +25,12 @@ import {
 
 import {parseSong, type Song} from '@core/schema/song';
 import type {ServicePassages} from '@main/bible/servicePassages';
-import {createThemeId, translationIdSchema} from '@core/schema/ids';
+import {
+  createServiceItemId,
+  createThemeId,
+  translationIdSchema,
+} from '@core/schema/ids';
+import {liturgyAsSlides, newLiturgyItem} from '@core/services/liturgy';
 import {slidesItem, SLIDES_ITEM} from '@fixtures/core/slides';
 import {MOCK_LONG_VERSE} from '@fixtures/core/bibleSplit';
 import {
@@ -36,6 +41,37 @@ import {
 
 const MISSING_SONG_ID = '0f0f0f0f-0f0f-4f0f-8f0f-0f0f0f0f0f0f';
 const MEDIA_ID = '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293';
+
+it.each(['creed', 'prayer'] as const)(
+  'projects dedicated %s wording with the established slides and theme',
+  kind => {
+    for (const translation of ['new', 'old'] as const) {
+      const item = newLiturgyItem(createServiceItemId(itemId(1)), {
+        kind,
+        translation,
+      });
+      const render = (
+        source: typeof item | ReturnType<typeof liturgyAsSlides>,
+      ) =>
+        buildShowService({
+          service: loadedService([source]),
+          songs: new Map(),
+          labels: [],
+          revision: 1,
+        });
+      const actual = render(item);
+      const legacy = render(liturgyAsSlides(item));
+      expect(actual.rows[0]).toMatchObject({
+        kind: 'slides',
+        liturgy: {kind, translation},
+        theme: item.theme,
+      });
+      expect(actual.tiles[item.id]).toEqual(
+        legacy.tiles[item.id]?.map(({sourceSlideId: _source, ...tile}) => tile),
+      );
+    }
+  },
+);
 
 it.each(['song default', 'song override', 'slides'] as const)(
   'only warns for a missing referenced background in %s',
@@ -844,6 +880,33 @@ it('projects the section card before the sermon title and passage', () => {
     {sermonTitle: true, lines: ['Sermon']},
     {lines: ['Verse']},
   ]);
+});
+
+it('keeps an opening section card before dedicated liturgy content', () => {
+  const card = {
+    name: 'Section',
+    english: 'Section',
+    theme: createThemeId('00000000-0000-4000-8000-000000000111'),
+  };
+  const item = {
+    ...newLiturgyItem(createServiceItemId(itemId(1)), {
+      kind: 'creed',
+      translation: 'new',
+    }),
+    sectionCard: card,
+  };
+  const shown = buildShowService({
+    service: loadedService([item]),
+    songs: new Map(),
+    labels: [],
+    revision: 1,
+  });
+  expect(shown.tiles[item.id]).toHaveLength(6);
+  expect(shown.tiles[item.id]?.[0]).toMatchObject({
+    sectionCard: card,
+    lines: ['Section'],
+  });
+  expect(shown.tiles[item.id]?.[1]?.lines[0]).toContain('나는 전능하신');
 });
 
 it('reports the Bible tile limit when its opening card would exceed it', () => {

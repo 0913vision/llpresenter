@@ -14,7 +14,7 @@ import {
  */
 export type ServiceItemChange = (item: ServiceItem) => ServiceItem | null;
 
-const startKinds = ['song', 'bible', 'media', 'slides'] as const;
+const startKinds = ['song', 'bible', 'media', 'slides', 'liturgy'] as const;
 /** Item kinds that carry start actions, memos and appearance overrides. */
 export type StartItem = ServiceItemOf<(typeof startKinds)[number]>;
 type StartField = 'macro' | 'memo';

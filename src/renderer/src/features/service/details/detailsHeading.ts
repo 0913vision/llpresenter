@@ -3,6 +3,7 @@ import {isItemOfKind, type ServiceItem} from '@core/schema/service';
 import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
 import type {SongSession} from '@renderer/features/songs/editor/songSession';
 import type {ServiceItemId} from '@core/schema/ids';
+import {LITURGY} from '@core/services/liturgy';
 
 /** Counts items following a section header up to the next header. */
 export function sectionItemCount(
@@ -55,6 +56,13 @@ export function detailsHeading({
     return {title: library.title, kind: '곡', count: library.tiles.length};
   }
   if (item === null) return {title: '', kind: '', count: 0};
+  if (isItemOfKind(item, 'liturgy')) {
+    return {
+      title: LITURGY[item.liturgy.kind].name,
+      kind: '예식문',
+      count: rawCount + offset,
+    };
+  }
   if (isItemOfKind(item, 'song')) {
     return {
       title: song?.document.song.title ?? '없는 곡',

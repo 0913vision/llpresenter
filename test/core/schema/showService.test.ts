@@ -42,6 +42,22 @@ it('accepts an optional song theme and rejects malformed theme identities', () =
 });
 
 describe('parseShowService', () => {
+  it('validates the bounded liturgy identity on projected rows', () => {
+    const row = {
+      kind: 'slides',
+      id: 'liturgy',
+      title: 'Liturgy',
+      form: 'blank',
+    };
+    const parse = (liturgy: unknown) =>
+      parseShowService({...showService(), rows: [{...row, liturgy}]});
+    expect(parse({kind: 'creed', translation: 'new'}).ok).toBe(true);
+    expect(parse({kind: 'prayer', translation: 'old'}).ok).toBe(true);
+    expect(parse({kind: 'unknown', translation: 'new'}).ok).toBe(false);
+    expect(parse({kind: 'creed', translation: 'x'.repeat(10000)}).ok).toBe(
+      false,
+    );
+  });
   it.each(['song', 'slides'])(
     'bounds the missing background name on %s rows',
     kind => {

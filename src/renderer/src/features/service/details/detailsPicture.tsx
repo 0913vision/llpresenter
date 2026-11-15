@@ -1,4 +1,5 @@
 import type {JSX} from 'react';
+import {liturgyAsSlides} from '@core/services/liturgy';
 import {
   isItemOfKind,
   type SectionCard,
@@ -249,6 +250,18 @@ export function detailsPicture(
 ): JSX.Element | undefined {
   const {item, card, offset, editor, role, screenId} = context;
   if (card !== undefined && index === 0) return cardPicture(context);
+  if (item !== null && isItemOfKind(item, 'liturgy')) {
+    return (
+      <SlidesPicture
+        item={liturgyAsSlides(item)}
+        editor={editor}
+        index={index - offset}
+        role={role}
+        screenId={screenId}
+        outputSlide={stageSlideOf({itemId: item.id, index})}
+      />
+    );
+  }
   if (item !== null && isItemOfKind(item, 'slides')) {
     return (
       <SlidesPicture

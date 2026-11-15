@@ -1,5 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {sundayTemplate} from '@core/services/sundayTemplate';
+import {LITURGY} from '@core/services/liturgy';
 import {isItemOfKind} from '@core/schema/service';
 import {createMediaId, createSlideId} from '@core/schema/ids';
 import {newSlidesItem} from '@core/services/slidesEdits';
@@ -58,7 +59,9 @@ describe('treeRows', () => {
           ? item.header
           : isItemOfKind(item, 'slides')
             ? item.slides.name
-            : '',
+            : isItemOfKind(item, 'liturgy')
+              ? LITURGY[item.liturgy.kind].name
+              : '',
       ),
     );
     expect(

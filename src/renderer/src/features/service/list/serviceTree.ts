@@ -1,4 +1,5 @@
 import {displayReference} from '@core/bible/displayReference';
+import {LITURGY} from '@core/services/liturgy';
 import type {CheckState} from '@renderer/ui/Checkbox';
 import type {ServiceItemId} from '@core/schema/ids';
 import {slidesItemIcon} from '../order/serviceItemIcons';
@@ -50,6 +51,9 @@ function rowOf(
   }
   if (isItemOfKind(item, 'bible')) {
     return {label: displayReference(item.bible.ref), icon: icons.bible};
+  }
+  if (isItemOfKind(item, 'liturgy')) {
+    return {label: LITURGY[item.liturgy.kind].name, icon: 'monitor'};
   }
   if (isItemOfKind(item, 'slides')) {
     return {

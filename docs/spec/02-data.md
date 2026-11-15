@@ -301,9 +301,15 @@ sections remain grouping rows. The 사도신경 and 광고 items carry an option
 opening `sectionCard` with bounded `name`, `english`, and `theme` fields; their
 content and item theme remain independent. Other named sections retain
 standalone cards, and 말씀 remains empty. Existing data folders are unchanged.
-Song, Bible, and slides items may carry the same optional card without
+Song, Bible, slides, and liturgy items may carry the same optional card without
 migration. The card name must not be blank; unknown fields are preserved as for
 other data objects.
+
+사도신경 and 주기도문 use the dedicated `liturgy` item kind, with bounded `kind`
+(`creed` or `prayer`) and `translation` (`new` or `old`) choices. Their text and
+slide boundaries come from the corresponding fixed version rather than editable
+generic slides. The item retains its dedicated theme and optional section card;
+there is no legacy conversion for unreleased data.
 
 ## App-wide settings
 

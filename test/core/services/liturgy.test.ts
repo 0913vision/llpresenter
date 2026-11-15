@@ -9,24 +9,15 @@ const id = createServiceItemId('50000000-0000-4000-8000-000000000371');
 describe('built-in liturgy slides', () => {
   for (const kind of ['creed', 'prayer'] as const) {
     for (const translation of ['new', 'old'] as const) {
-      it(`preserves every word of ${kind} ${translation} in editable manual paragraphs`, () => {
+      it(`stores ${kind} ${translation} as a dedicated item with fixed paragraphs`, () => {
         const item = newLiturgyItem(id, {kind, translation});
         expect(item).toMatchObject({
           id,
           theme: CREED_PRAYER_THEME_ID,
-          slides: {form: 'blank', name: LITURGY[kind].name},
+          liturgy: {kind, translation},
         });
-        expect(item.slides.advance).toBeUndefined();
-        expect(item.slides.loop).toBeUndefined();
-        const slides = item.slides.slides;
-        expect(slides.every(slide => slide.transition === undefined)).toBe(
-          true,
-        );
-        expect(new Set(slides.map(slide => slide.id)).size).toBe(slides.length);
-        const texts = slides.map(slide => {
-          if (!('text' in slide)) throw new Error('Expected a text slide');
-          return slide.text;
-        });
+        expect(item).not.toHaveProperty('slides');
+        const texts = LITURGY_SLIDES[kind][translation];
         expect(texts.join(' ')).toBe(LITURGY[kind][translation]);
         expect(texts).toEqual(LITURGY_SLIDES[kind][translation]);
         for (const text of texts) {
