@@ -708,33 +708,38 @@ function keptSelection(
 /**
  * Shows the open 예배 순서 the main process sent, or none when it is null. A
  * revision older than the one shown is dropped. The open item and the selected
- * tile stay when the item is still there.
+ * tile stay on same-service refreshes when the item is still there.
  */
 export function applyService(service: ShowService | null): void {
   if (service === null) {
     const view = useShow.getState();
     const {openItemId, selectedTile} = view;
     const keepSource =
-      isLibrarySource(view, openItemId) || isBibleSource(view, openItemId);
+      view.serviceId === null &&
+      (isLibrarySource(view, openItemId) || isBibleSource(view, openItemId));
     useShow.setState({
       ...noService,
+      serviceEpoch: view.serviceEpoch + (view.serviceId === null ? 0 : 1),
       openItemId: keepSource ? openItemId : null,
       selectedTile: keepSource ? selectedTile : 0,
     });
     return;
   }
   if (isStale(service)) return;
+  const view = useShow.getState();
+  const changed = view.serviceId !== service.id;
   useShow.setState({
     revision: service.revision,
     serviceId: service.id,
+    serviceEpoch: view.serviceEpoch + (changed ? 1 : 0),
     serviceName: service.name,
     readOnly: service.readOnly,
     rows: service.rows,
     tiles: service.tiles,
     jumpKeys: service.jumpKeys,
-    ...keptSelection(service),
+    ...(changed ? {openItemId: null, selectedTile: 0} : keptSelection(service)),
   });
-  refreshStageNext();
+  if (!changed) refreshStageNext();
 }
 
 /**

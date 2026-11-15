@@ -172,6 +172,9 @@ README, `Main` decision "구성대로 진행".
   implemented yet. See 05.
 - Choosing another service makes it the current service at once. There is no
   confirmation, even during output.
+  - The open item and selected slide are cleared in both 준비 and 진행, even for
+    a library song or Bible passage. Refreshing the same service preserves its
+    selection.
   - The output doesn't change. The live 슬라이드, background, and 그래픽 stay on
     the screens until the operator clicks a 슬라이드 in the new service.
   - If the live 슬라이드 came from an item that isn't in the new service, no row
