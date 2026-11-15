@@ -350,8 +350,8 @@ export function ServiceOrderList({
     : openItemId;
   useOrderFollow(listRef, {
     target: followId,
+    liveItemId,
     enabled: workspace === 'show',
-    rows,
   });
   usePrepOrderPosition(listRef, {
     target: openItemId,
