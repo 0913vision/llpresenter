@@ -587,14 +587,13 @@ disable always on top for the affected output window and place it directly
 behind the control window without activating either window. Move the control
 window directly above the output window without activation (proposal, pending
 the user's confirmation on October 26). This happens on the disconnect event
-itself, before the 300 ms monitor-list settle wait. The settle wait only plans
-placement; the relocated full screen output stays behind the control window
-while monitors settle.
+itself, before the 300 ms monitor-list settle wait. Exclude the removed monitor
+immediately, report it missing and apply its configured fallback; coalesce later
+topology events before re-reading the monitor list.
 
 1. If the screen's 연결이 끊기면 (when disconnected) setting is 창으로 바꾸기
-   (switch to a window), after the settle wait move the same output into a
-   window on the control monitor and keep drawing. Content and playback position
-   don't break.
+   (switch to a window), move the same output immediately into a window on the
+   control monitor and keep drawing. Content and playback position don't break.
    - Place the fallback directly behind the control window without taking focus
      and with always on top disabled, including when only one monitor remains.
      After placement, the app never raises it automatically or restores this

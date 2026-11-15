@@ -256,10 +256,12 @@ export class OutputManager {
   }
 
   private monitorRemoved(monitorId: number): void {
-    if (this.disposed) return;
+    if (this.disposed || this.unsettledRemovals.has(monitorId)) return;
+    const affected = [...this.previousMonitors.values()].includes(monitorId);
+    if (!affected) return;
+    this.unsettledRemovals.add(monitorId);
     for (const [screenId, output] of this.windows) {
       if (this.previousMonitors.get(screenId) !== monitorId) continue;
-      this.unsettledRemovals.add(monitorId);
       try {
         output.prepareForMonitorRemoval();
       } catch (error) {
@@ -269,6 +271,7 @@ export class OutputManager {
         );
       }
     }
+    this.sync();
   }
 
   private sync(): void {
@@ -396,7 +399,9 @@ export class OutputManager {
 
   private surroundings(): Surroundings | null {
     const {displays, screens, controlBounds, log} = this.options;
-    const monitors = displays.monitors;
+    const monitors = displays.monitors.filter(
+      monitor => !this.unsettledRemovals.has(monitor.id),
+    );
     const controlMonitor = findControlMonitor(monitors, controlBounds());
     if (controlMonitor === null) {
       log.warn('no monitor to place the output windows on');
@@ -441,6 +446,14 @@ export class OutputManager {
 
   private apply(screen: OutputScreen, placement: Placement | null): void {
     const monitorId = this.previousMonitors.get(screen.id);
+    if (
+      this.unsettledRemovals.size > 0 &&
+      this.statuses.get(screen.id) === 'monitorMissing' &&
+      placement?.kind === 'window' &&
+      placement.reason === 'monitorMissing'
+    ) {
+      return;
+    }
     if (
       placement?.kind === 'fullscreen' &&
       monitorId !== undefined &&

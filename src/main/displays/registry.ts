@@ -37,6 +37,18 @@ export const DISPLAY_RETRY_MS = 1000;
 
 type ReadProblemLevel = 'warn' | 'error';
 
+/** Identity resolution can change without a physical topology change. */
+function withoutIdentity(monitors: readonly Monitor[]): readonly Monitor[] {
+  return monitors.map(
+    ({
+      identity: _identity,
+      identityPending: _pending,
+      identityUnknown: _unknown,
+      ...monitor
+    }) => monitor,
+  );
+}
+
 /** Keeps the list of connected monitors current and reports changes. */
 export class DisplayRegistry {
   private current: readonly Monitor[] = [];
@@ -103,8 +115,12 @@ export class DisplayRegistry {
     const changed = !sameMonitors(next, this.current);
     if (!changed && !this.removalPending) return;
     this.removalPending = false;
+    const topologyChanged = !sameMonitors(
+      withoutIdentity(next),
+      withoutIdentity(this.current),
+    );
     this.current = next;
-    if (changed) this.log.info('monitors changed', next);
+    if (topologyChanged) this.log.info('monitors changed', next);
     this.notify(next);
   }
 

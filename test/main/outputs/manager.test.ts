@@ -491,13 +491,22 @@ describe('OutputManager placement', () => {
 describe('OutputManager monitor removal', () => {
   it('demotes only the outputs on a removed monitor and holds their full screen placement until the monitors settle', () => {
     const main = screenOn(PROJECTOR);
-    const {store, displays} = setUp([main, screenOn(STAGE, {id: 'stage'})]);
+    const {store, displays, manager} = setUp([
+      main,
+      screenOn(STAGE, {id: 'stage'}),
+    ]);
     store.dispatch(turn(true));
     store.dispatch(turn(true, 'stage'));
 
     displays.remove(PROJECTOR.id);
     expect(outputOf('main').prepareForMonitorRemoval).toHaveBeenCalledOnce();
     expect(outputOf('stage').prepareForMonitorRemoval).not.toHaveBeenCalled();
+    expect(outputOf('main').update).toHaveBeenLastCalledWith(FALLBACK, main);
+    expect(manager.screenStates().get('main')?.placement).toBe(
+      'monitorMissing',
+    );
+    displays.remove(PROJECTOR.id);
+    expect(outputOf('main').prepareForMonitorRemoval).toHaveBeenCalledOnce();
     outputOf('main').update.mockClear();
     store.dispatch(turn(false, 'stage'));
     expect(outputOf('main').update).not.toHaveBeenCalled();
