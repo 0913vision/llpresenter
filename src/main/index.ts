@@ -59,6 +59,7 @@ import {
   type UserDataProblem,
 } from './userData';
 import {createControlWindow} from './windows/control';
+import {ControlHeartbeat} from './windows/controlHeartbeat';
 import {announceReloadAfterCrash} from './windows/reloadNotice';
 import {registerSettingsWindow} from './windows/settingsWindow';
 import {registerSongEditorWindow} from './windows/songEditor';
@@ -126,12 +127,16 @@ function bringBack(win: BrowserWindow | null, mode: WindowMode): void {
 
 function start(): void {
   let control: BrowserWindow | null = null;
+  let lastGpuState: {reason: string; exitCode: number} | null = null;
   const windowMode = windowModeFrom(process.env, app.isPackaged);
 
   app.on('second-instance', () => bringBack(control, windowMode));
-  app.on('child-process-gone', (_event, details) =>
-    log.error('child process gone', details),
-  );
+  app.on('child-process-gone', (_event, details) => {
+    if (details.type === 'GPU') {
+      lastGpuState = {reason: details.reason, exitCode: details.exitCode};
+    }
+    log.error('child process gone', details);
+  });
   app.on('window-all-closed', () => app.quit());
   const shutdown = new ShutdownCoordinator({app, log});
 
@@ -270,6 +275,13 @@ function start(): void {
       });
       const win = createControlWindow(log, windowMode, zoom);
       control = win;
+      const heartbeat = new ControlHeartbeat(
+        () => win.webContents.executeJavaScript('0'),
+        () => log.error('control window not responding', {lastGpuState}),
+      );
+      win.webContents.on('did-start-loading', () => heartbeat.stop());
+      win.webContents.on('did-finish-load', () => heartbeat.start());
+      win.once('closed', () => heartbeat.stop());
       const serviceReady = (event: IpcMainEvent, ...args: unknown[]): void => {
         if (
           event.sender !== win.webContents ||

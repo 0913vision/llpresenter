@@ -6,6 +6,7 @@ import {
 } from '@contracts/ipc/window';
 import type {PreferencePageId} from '@core/schema/preferencePages';
 import {guardTestPatterns} from '../outputs/testPatternGuard';
+import {logWindowResponsiveness} from './responsiveness';
 import {dispatchLogged} from '../live/store';
 import {registerControlClose, type ControlClose} from './controlClose';
 import {
@@ -190,6 +191,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
       ];
     }
     const win = createPreferencesWindow(this.options);
+    logWindowResponsiveness(win, 'settings', this.options.log);
     this.win = win;
     this.closing = registerControlClose({
       control: win,
