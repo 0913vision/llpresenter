@@ -359,10 +359,12 @@ describe('built-in broadcast look', () => {
     const band = element(withTitle, BROADCAST_LOOK_BAND_ID).frame;
     const baseline = element(without, BROADCAST_LOOK_BAND_ID).frame;
     expect(band.y + band.h).toBe(baseline.y + baseline.h);
-    expect(band.y).toBeLessThan(baseline.y);
+    expect(band.y).toBe(baseline.y - 58);
+    expect(band.h).toBe(baseline.h + 58);
     expect(element(withTitle, BROADCAST_LOOK_SONG_TITLE_ID)).toMatchObject({
       content: '새찬송가 91장 슬픈 마음 있는 사람',
-      text: {size: 28, align: 'left'},
+      frame: {x: 96, h: 50},
+      text: {size: 40, weight: 600, color: '#E6E6E6', align: 'left'},
     });
     const textOnly = fitLook(layout, slide, {item: song, songCaption: 'text'});
     expect(

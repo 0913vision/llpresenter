@@ -627,8 +627,8 @@ as every settings file does (02).
   80%; text-only uses a 4 px shadow at 80% and 2 px offset plus a 24 px glow at
   55%. All song lines use the same style. An empty song slide uses its title,
   not its label. The band grows upward to show the song's library title at its
-  top left in lighter 28 px text, keeping the lyric position fixed. A hymn's
-  title starts with its 새찬송가 number from the song's title slide when
+  at x=96 in lighter 40 px semibold text, keeping the lyric position fixed. A
+  hymn's title starts with its 새찬송가 number from the song's title slide when
   present; no English subtitle is appended. The small title is omitted on title
   slides and whenever the band itself shows the song name. Text-only captions
   have no title label. The capture fallback uses an unblurred hard shadow. title
