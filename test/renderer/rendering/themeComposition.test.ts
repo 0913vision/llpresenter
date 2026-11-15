@@ -141,6 +141,53 @@ afterEach(() => {
 });
 
 describe('theme composition drawing', () => {
+  it('keeps stage utilities visible through both clears and restores slide content', () => {
+    const {root, view, text} = setup();
+    const elements: ThemeElement[] = [
+      {...themeElementBase(30), kind: 'clock', clockFormat: '24h'},
+      {...themeElementBase(31), kind: 'timer'},
+      {...themeElementBase(32), kind: 'stageMessage'},
+      fixedThemeText(),
+    ];
+    const stage = {
+      ...frame(elements),
+      screen: {id: THEME_MAIN, kind: 'stage' as const},
+      stageMessage: 'Stage cue',
+      transitions: false,
+    };
+    view.render(song, stage);
+    const clock = root.querySelector<HTMLElement>('[data-kind="clock"]');
+    const timer = root.querySelector<HTMLElement>('[data-kind="timer"]');
+    const message = root.querySelector<HTMLElement>(
+      '[data-kind="stageMessage"]',
+    );
+    const fixed = root.querySelector<HTMLElement>('[data-kind="text"]');
+    expect(text('clock')).toBeTruthy();
+    expect(text('stageMessage')).toBe('Stage cue');
+    view.render({...song, slide: null}, stage);
+    expect(clock?.style.opacity).toBe('1');
+    expect(message?.style.opacity).toBe('1');
+    if (stage.theme === undefined || stage.theme.item === null) {
+      throw Error('Missing theme');
+    }
+    const cleared = {
+      ...stage,
+      theme: {
+        ...stage.theme,
+        item: {...stage.theme.item, contentCleared: true},
+      },
+    };
+    view.render(emptyLayers(), cleared);
+    expect(clock?.style.opacity).toBe('1');
+    expect(timer?.style.opacity).toBe('1');
+    expect(message?.style.opacity).toBe('1');
+    expect(text('clock')).toBeTruthy();
+    expect(text('stageMessage')).toBe('Stage cue');
+    expect(fixed?.style.opacity).toBe('0');
+    view.render(song, stage);
+    expect(fixed?.style.opacity).toBe('1');
+    view.dispose();
+  });
   it.each(['stage', 'broadcast'] as const)(
     'draws a centered sermon passage above its title on %s',
     kind => {
@@ -1615,15 +1662,15 @@ describe('theme composition drawing', () => {
         elements: kind === 'own' ? [fixedThemeText()] : [],
       };
       view.render(emptyLayers(), frame([], {layout}));
-      const page = root.querySelector<HTMLElement>('[data-theme-page]');
+      const page = root.querySelector<HTMLElement>('[data-theme-background]');
       expect(page?.style.backgroundColor).toBe('rgb(18, 52, 86)');
       view.render(emptyLayers(), frame([], {layout, emptyColor: '#654321'}));
-      expect(root.querySelector('[data-theme-page]')).toBe(page);
+      expect(root.querySelector('[data-theme-background]')).toBe(page);
       expect(page?.style.backgroundColor).toBe('rgb(101, 67, 33)');
       const override = {...layout, background: '#ABCDEF'};
       view.render(emptyLayers(), frame([], {layout: override}));
       const overridden = [
-        ...root.querySelectorAll<HTMLElement>('[data-theme-page]'),
+        ...root.querySelectorAll<HTMLElement>('[data-theme-background]'),
       ].at(-1);
       view.render(
         emptyLayers(),
@@ -1654,7 +1701,7 @@ describe('theme composition drawing', () => {
     expect(onError).toHaveBeenCalledTimes(1);
     view.dispose();
   });
-  it('draws bottom first, resolves live text sources, and retains only fixed text after clearing', () => {
+  it('hides the whole theme on clear all and restores it', () => {
     const {root, view, text} = setup();
     const elements: ThemeElement[] = [
       {
@@ -1709,6 +1756,16 @@ describe('theme composition drawing', () => {
     expect(root.querySelector<HTMLElement>('[data-kind="box"]')?.hidden).toBe(
       false,
     );
+    const background = root.querySelector<HTMLElement>(
+      '[data-theme-background]',
+    );
+    const box = root.querySelector<HTMLElement>('[data-kind="box"]');
+    expect(background?.style.opacity).toBe('0');
+    expect(box?.style.opacity).toBe('0');
+    view.render(song, frame(elements));
+    expect(background?.style.opacity).toBe('1');
+    expect(box?.style.opacity).toBe('1');
+    expect(text('currentText')).toBe('Invented line');
     view.dispose();
     expect(root.children).toHaveLength(0);
   });

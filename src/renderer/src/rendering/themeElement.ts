@@ -533,7 +533,11 @@ export class ThemeElementView {
     }
   }
 
-  setClearOpacity(clearOpacity: RenderFrame['clearOpacity']): void {
+  setClearOpacity(
+    clearOpacity: RenderFrame['clearOpacity'],
+    compositionOpacity = 1,
+    stage = false,
+  ): void {
     const {element} = this;
     const target =
       element.clearTarget === 'slide' ||
@@ -544,8 +548,15 @@ export class ThemeElementView {
         : element.kind === 'media' || element.kind === 'background'
           ? 'media'
           : undefined;
+    const stageUtility =
+      stage && ['clock', 'timer', 'stageMessage'].includes(element.kind);
     const opacity = String(
-      target === undefined ? 1 : (clearOpacity?.[target] ?? 1),
+      stageUtility
+        ? 1
+        : Math.min(
+            compositionOpacity,
+            target === undefined ? 1 : (clearOpacity?.[target] ?? 1),
+          ),
     );
     if (this.box.style.opacity !== opacity) this.box.style.opacity = opacity;
   }

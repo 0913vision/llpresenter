@@ -132,12 +132,14 @@ export class OutputRenderer {
     this.setBackground(
       this.options.transparent
         ? 'transparent'
-        : ((frame.theme === undefined
-            ? undefined
-            : themeBackgroundColor(
-                frame.theme.layout.background,
-                frame.theme.emptyColor,
-              )) ??
+        : frame.theme?.item?.contentCleared
+          ? (frame.screen?.emptyColor ?? '#000000')
+          : ((frame.theme === undefined
+              ? undefined
+              : themeBackgroundColor(
+                  frame.theme.layout.background,
+                  frame.theme.emptyColor,
+                )) ??
             frame.screen?.emptyColor ??
             (frame.screen?.method === 'capture' ? CHROMA_BACKGROUND : null)),
     );

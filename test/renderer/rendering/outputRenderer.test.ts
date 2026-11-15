@@ -55,6 +55,68 @@ function setUp({mode}: {mode?: RenderMode} = {}) {
 }
 
 describe('OutputRenderer', () => {
+  it.each(['audience', 'stage', 'broadcast'] as const)(
+    'clears and restores theme backgrounds, shapes, references and pictures on %s',
+    kind => {
+      const {parent, renderer} = setUp();
+      const frame = {
+        screen: {id: MAIN, kind, emptyColor: '#345678'},
+        theme: {
+          themeId: SONG_THEME_ID,
+          revision: 1,
+          missing: [],
+          sourceScreenId: MAIN,
+          emptyColor: '#123456',
+          item: {id: 'song', kind: 'song', source: 'service'},
+          layout: {
+            mode: {kind: 'own'},
+            background: '#00AABB',
+            elements: [
+              {
+                ...themeElementBase(31),
+                kind: 'background',
+                fit: 'fit',
+                radius: 0,
+              },
+              {
+                ...themeElementBase(32),
+                kind: 'box',
+                box: {on: true, fill: '#FFFFFF', opacity: 100, radius: 0},
+              },
+              {...themeElementBase(33), kind: 'reference'},
+            ],
+          },
+        },
+      } satisfies RenderFrame;
+      renderer.render(WITH_SLIDE, frame);
+      const composition = parent.querySelector<HTMLElement>(
+        '[data-theme-background]',
+      );
+      const root = parent.firstElementChild;
+      if (!(root instanceof HTMLElement)) {
+        throw new Error('Missing render root');
+      }
+      expect(composition?.style.opacity).toBe('1');
+      renderer.render(emptyLayers(), {
+        ...frame,
+        theme: {
+          ...frame.theme,
+          item: {...frame.theme.item, contentCleared: true},
+        },
+      });
+      expect(composition?.style.opacity).toBe('0');
+      expect(root.style.getPropertyValue('--output-background')).toBe(
+        '#345678',
+      );
+      renderer.render(WITH_SLIDE, frame);
+      expect(
+        [...parent.querySelectorAll<HTMLElement>('[data-theme-background]')].at(
+          -1,
+        )?.style.opacity,
+      ).toBe('1');
+      renderer.dispose();
+    },
+  );
   it('freezes animations and videos while preserving the outgoing DOM', () => {
     const {parent, renderer} = setUp();
     const surface = renderer.transitionSurface();
