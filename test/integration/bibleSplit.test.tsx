@@ -24,7 +24,6 @@ import {bibleVerseTiles} from '@core/bible/bibleTiles';
 import {emptyLiveState} from '@core/live/state';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import * as bibleRendering from '@renderer/rendering/bibleMeasure';
-import {classes} from '@renderer/rendering/classes';
 import type {Notice} from '@renderer/ui/notices';
 import {BibleSplitTools} from '@renderer/features/bible/BibleSplitTools';
 import {BibleQuickField} from '@renderer/features/quick/BibleQuickField';
@@ -319,48 +318,34 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
           .chunks[0]?.lines;
         await waitFor(() => {
           const first = screen.getAllByRole('option')[0];
-          if (workspace !== 'show') {
-            const preview = first?.querySelector<HTMLElement>('[data-preview]');
-            const raw: unknown = JSON.parse(
-              preview?.dataset['preview'] ?? '{}',
-            );
-            const data = v.parse(
-              v.object({
-                layers: v.object({
-                  slide: v.object({lines: v.array(v.string())}),
-                }),
-                frame: v.object({
-                  theme: v.object({
-                    layout: v.object({
-                      elements: v.array(
-                        v.object({
-                          kind: v.string(),
-                          text: v.optional(v.object({size: v.number()})),
-                        }),
-                      ),
-                    }),
+          const preview = first?.querySelector<HTMLElement>('[data-preview]');
+          const raw: unknown = JSON.parse(preview?.dataset['preview'] ?? '{}');
+          const data = v.parse(
+            v.object({
+              layers: v.object({
+                slide: v.object({lines: v.array(v.string())}),
+              }),
+              frame: v.object({
+                theme: v.object({
+                  layout: v.object({
+                    elements: v.array(
+                      v.object({
+                        kind: v.string(),
+                        text: v.optional(v.object({size: v.number()})),
+                      }),
+                    ),
                   }),
                 }),
               }),
-              raw,
-            );
-            expect(data.layers.slide.lines).toEqual(expected);
-            expect(
-              data.frame.theme.layout.elements.find(
-                element => element.kind === 'currentText',
-              )?.text?.size,
-            ).toBe(36);
-            return;
-          }
-          const rows = first?.querySelectorAll<HTMLElement>(
-            `[data-kind="currentText"] .${classes.shown} .${classes.block} > div`,
+            }),
+            raw,
           );
+          expect(data.layers.slide.lines).toEqual(expected);
           expect(
-            Array.from(rows ?? []).map(row =>
-              row.textContent.replaceAll('\u00a0', ' '),
-            ),
-          ).toEqual(expected);
-          expect(rows?.[0]?.parentElement?.style.fontSize).toBe('36px');
+            data.frame.theme.layout.elements.find(
+              element => element.kind === 'currentText',
+            )?.text?.size,
+          ).toBe(36);
         });
         if (workspace !== 'details') {
           expect(
