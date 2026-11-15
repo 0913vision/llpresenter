@@ -793,6 +793,59 @@ it('keeps a Bible card before the resolved verses and rejects invalid cards', ()
   ).toBe(false);
 });
 
+it('projects the section card before the sermon title and passage', () => {
+  const card = {
+    name: 'Section',
+    english: 'Section',
+    theme: createThemeId('00000000-0000-4000-8000-000000000111'),
+  };
+  const item = {
+    id: itemId(1),
+    sectionCard: card,
+    sermon: {
+      title: 'Sermon',
+      passage: {
+        translation: 'sample',
+        ref: 'John 3:16',
+        split: 'verse',
+        reference: 'every',
+        verseNumbers: true,
+        translationName: false,
+      },
+    },
+  };
+  const passages: ServicePassages = {
+    tiles: new Map([
+      [
+        item.id,
+        [
+          {
+            label: null,
+            labelColor: 'none',
+            lines: ['Sermon'],
+            sermonTitle: true,
+          },
+          {label: '3:16', labelColor: 'none', lines: ['Verse']},
+        ],
+      ],
+    ]),
+    references: new Map(),
+    unavailable: new Set(),
+  };
+  const shown = buildShowService({
+    service: loadedService([item]),
+    songs: new Map(),
+    labels: [],
+    revision: 1,
+    passages,
+  });
+  expect(shown.tiles[item.id]).toMatchObject([
+    {sectionCard: card},
+    {sermonTitle: true, lines: ['Sermon']},
+    {lines: ['Verse']},
+  ]);
+});
+
 it('reports the Bible tile limit when its opening card would exceed it', () => {
   const card = {
     name: 'Section',

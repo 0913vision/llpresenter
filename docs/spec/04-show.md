@@ -1240,9 +1240,11 @@ grouping the sermon passage with the sermon title item.
 
 ### Sermon element
 
-In ??, ?? adds a title and main Bible passage using the usual Bible reference
-fields. A directly adjacent sermon-title item and Bible passage can be bound as
-??, and the resulting item can be split again; both operations are undoable. The
-first slide uses the sermon-title theme and passage reference, followed by the
-Bible passage slides with their existing display settings. The stage treats the
-passage as the sermon passage when showing the next slide.
+In preparation, a sermon adds a title and main Bible passage using the usual
+Bible reference fields. A directly adjacent sermon-title item and Bible passage
+can be bound as one sermon, and the resulting item can be split again; both
+operations are undoable. An existing section card on the Bible item remains the
+first slide of the sermon and returns to the Bible item when split. The sermon
+title follows the card and uses the sermon-title theme and passage reference;
+Bible passage slides follow with their existing display settings. The stage
+treats the passage as the sermon passage when showing the next slide.

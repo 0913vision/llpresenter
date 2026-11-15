@@ -428,10 +428,7 @@ export class ServiceOrderEdits {
           'The adjacent sermon title and passage are unavailable',
         );
       }
-      const {bible: passage, sectionCard: _card, ...kept} = bible;
-      if (_card !== undefined) {
-        return refuse('invalid', 'The passage has a section card');
-      }
+      const {bible: passage, ...kept} = bible;
       const sermon = {
         ...kept,
         sermon: {

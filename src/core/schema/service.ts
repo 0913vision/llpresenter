@@ -230,6 +230,7 @@ const itemSchemas = {
   }),
   sermon: jsonObject({
     ...itemFields,
+    sectionCard: v.exactOptional(sectionCardSchema),
     sermon: jsonObject({
       title: sermonTitleSchema,
       passage: biblePassageSchema,
