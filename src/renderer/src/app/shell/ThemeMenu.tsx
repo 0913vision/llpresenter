@@ -27,6 +27,9 @@ export function ThemeMenu({
   const [anchor, setAnchor] = useState<HTMLButtonElement | null>(null);
   const document = useSettingsDocument('themes', '테마', onProblem);
   const currentId = useLive(view => view.state?.themeOutput?.themeId);
+  const sectionCard = useLive(
+    view => view.state?.layers.slide?.sectionCard !== undefined,
+  );
   const file = document?.value;
   const name = liveThemeName(file, currentId);
   const open = anchor !== null;
@@ -66,6 +69,7 @@ export function ThemeMenu({
           onClose={() => setAnchor(null)}
           entries={themeMenuEntries({
             themes: file?.themes ?? [],
+            sectionCard,
             current: currentId,
             choose: themeId => sendThemeChange(themeId, onProblem),
             edit: onEdit,

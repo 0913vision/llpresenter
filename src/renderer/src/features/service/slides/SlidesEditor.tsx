@@ -12,6 +12,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import {createSlideId, themeIdSchema} from '@core/schema/ids';
 import {parsePayload} from '@core/schema/payload';
 import {withItemTheme} from '@core/services/itemFieldChanges';
+import {canChooseItemTheme} from '@core/themes/sectionThemeChoices';
 import {SLIDES_LIMITS, type VerseSlide} from '@core/schema/service';
 import {BibleSlidesDialog} from '@renderer/features/bible/BibleSlidesDialog';
 import {useSlidesVerseProjection} from '@renderer/features/bible/useSlidesVerseProjection';
@@ -124,10 +125,12 @@ function SlidesHeader({
             valueText={themeName}
             options={[
               {value: '', label: '기본'},
-              ...(themes?.themes ?? []).map(theme => ({
-                value: theme.id,
-                label: theme.name,
-              })),
+              ...(themes?.themes ?? [])
+                .filter(theme => canChooseItemTheme(item, theme.id))
+                .map(theme => ({
+                  value: theme.id,
+                  label: theme.name,
+                })),
             ]}
             onChange={id => {
               const parsed = parsePayload(themeIdSchema, id);

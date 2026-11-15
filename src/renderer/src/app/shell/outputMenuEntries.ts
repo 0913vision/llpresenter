@@ -14,6 +14,7 @@ interface OutputMenuInput {
   readonly themes: ThemesFile | null;
   readonly themeId: ThemeId | undefined;
   readonly hasItem: boolean;
+  readonly sectionCard?: boolean | undefined;
   readonly warnings: readonly WarningScreen[];
   readonly onShowWarning: (id: string) => void;
   readonly onWorkspace: ((workspace: Workspace) => void) | undefined;

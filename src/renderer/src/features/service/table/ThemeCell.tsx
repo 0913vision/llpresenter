@@ -3,6 +3,7 @@ import type {ServiceItem} from '@core/schema/service';
 import type {ThemesFile} from '@core/schema/themes';
 import type {ThemeId} from '@core/schema/ids';
 import {itemThemeCell} from '@core/themes/itemThemeCell';
+import {canChooseItemTheme} from '@core/themes/sectionThemeChoices';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {themeRequest} from '../items/itemAppearanceCommands';
@@ -33,14 +34,16 @@ function themeEntries({
       checked: followsDefault,
       onSelect: () => choose(undefined),
     },
-    ...(themes?.themes ?? []).map((theme): MenuEntry => ({
-      kind: 'item',
-      id: theme.id,
-      label: theme.name,
-      check: 'radio',
-      checked: !followsDefault && item.theme === theme.id,
-      onSelect: () => choose(theme.id),
-    })),
+    ...(themes?.themes ?? [])
+      .filter(theme => canChooseItemTheme(item, theme.id))
+      .map((theme): MenuEntry => ({
+        kind: 'item',
+        id: theme.id,
+        label: theme.name,
+        check: 'radio',
+        checked: !followsDefault && item.theme === theme.id,
+        onSelect: () => choose(theme.id),
+      })),
   ];
 }
 

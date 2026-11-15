@@ -3,6 +3,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {ServiceItem} from '@core/schema/service';
 import {isItemOfKind} from '@core/schema/service';
 import {itemThemeKind} from '@core/themes/itemKind';
+import {canChooseItemTheme} from '@core/themes/sectionThemeChoices';
 import {missingSlideElements} from '@core/themes/slideElements';
 import {themeElementNames} from '@renderer/rendering/themeNames';
 import {resolveItemTheme, resolveThemeScreen} from '@core/themes/resolve';
@@ -153,11 +154,13 @@ export function ItemThemeRow({
               ...(file
                 ? [{value: file.standby.id, label: file.standby.name}]
                 : []),
-              ...(file?.themes ?? []).map(entry => ({
-                value: entry.id,
-                label: entry.name,
-                meta: entry.id === defaultId ? '기본' : undefined,
-              })),
+              ...(file?.themes ?? [])
+                .filter(entry => canChooseItemTheme(item, entry.id))
+                .map(entry => ({
+                  value: entry.id,
+                  label: entry.name,
+                  meta: entry.id === defaultId ? '기본' : undefined,
+                })),
             ]}
             disabled={lock !== undefined}
             title={lock}

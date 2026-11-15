@@ -265,6 +265,24 @@ export const themesSchema = v.pipe(
         'Too many user themes',
       ),
     ),
+    customSections: v.exactOptional(
+      v.pipe(
+        v.array(
+          jsonObject({
+            id: v.pipe(v.string(), v.uuid()),
+            name: v.pipe(nonBlankText, v.maxLength(128)),
+            english: v.pipe(v.string(), v.maxLength(256)),
+          }),
+        ),
+        v.maxLength(200),
+        v.check(
+          sections =>
+            new Set(sections.map(section => section.id)).size ===
+            sections.length,
+          'Duplicate section id',
+        ),
+      ),
+    ),
     themeOrder: v.exactOptional(
       v.pipe(
         v.array(themeIdSchema),

@@ -5,7 +5,8 @@ import {
   isStandaloneCard,
   sectionCardOf,
 } from '@core/services/sectionCards';
-import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
+import {SUNDAY_SECTIONS, SECTION_THEME_ID} from '@core/themes/sundaySections';
+import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {PropertyRow} from '@renderer/ui/PropertyRow';
 import type {ServiceItemStore} from './serviceItemStore';
@@ -21,9 +22,18 @@ export function ItemCardRow({
   readonly item: ServiceItem;
   readonly reason: string | undefined;
 }): JSX.Element | null {
+  const document = useSettingsDocument('themes', '테마', undefined);
   if (!canHaveSectionCard(item)) return null;
   const service = items.getSnapshot().service;
-  const value = item.sectionCard?.name ?? '';
+  const custom = document?.value.customSections ?? [];
+  const selected = custom.find(
+    entry =>
+      entry.name === item.sectionCard?.name &&
+      entry.english === item.sectionCard.english,
+  );
+  const value = selected
+    ? `custom:${selected.id}`
+    : (item.sectionCard?.name ?? '');
   return (
     <PropertyRow label="구역 이름">
       {({controlId}) => (
@@ -32,11 +42,15 @@ export function ItemCardRow({
           block
           menuLabel="구역 이름"
           value={value}
-          valueText={value || '없음'}
+          valueText={item.sectionCard?.name ?? '없음'}
           options={[
             ...(isStandaloneCard(item) ? [] : [{value: '', label: '없음'}]),
             ...SUNDAY_SECTIONS.map(section => ({
               value: section.name,
+              label: section.name,
+            })),
+            ...custom.map(section => ({
+              value: `custom:${section.id}`,
               label: section.name,
             })),
           ]}
@@ -45,9 +59,18 @@ export function ItemCardRow({
           onChange={next => {
             if (next === value) return;
             const section = SUNDAY_SECTIONS.find(entry => entry.name === next);
+            const own = custom.find(entry => `custom:${entry.id}` === next);
             saveCard(
               items,
-              section === undefined ? undefined : sectionCardOf(section),
+              own
+                ? {
+                    name: own.name,
+                    english: own.english,
+                    theme: SECTION_THEME_ID,
+                  }
+                : section === undefined
+                  ? undefined
+                  : sectionCardOf(section),
             );
           }}
         />

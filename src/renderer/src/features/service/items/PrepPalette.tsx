@@ -11,6 +11,7 @@ import {
   PALETTE_SECTIONS,
 } from './paletteItems';
 import {usePaletteInsert} from './usePaletteInsert';
+import {CustomSections} from './CustomSections';
 import styles from './PrepPalette.module.css';
 
 export function PrepPalette({
@@ -91,6 +92,10 @@ export function PrepPalette({
             {PALETTE_SECTIONS.map(section =>
               button(`card:${section.name}`, section.name),
             )}
+            <CustomSections
+              disabled={palette.disabled}
+              insert={palette.insert}
+            />
           </div>
         </PanelBody>
       ) : null}

@@ -7,7 +7,7 @@ import {
   newSundayCreed,
   newSundayPreparation,
 } from '@core/services/sundayTemplate';
-import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
+import {SUNDAY_SECTIONS, SECTION_THEME_ID} from '@core/themes/sundaySections';
 import {prepareSection} from './quickAddSection';
 import {prepareLiturgy} from './quickAddLiturgy';
 
@@ -25,7 +25,7 @@ export const ORDER_ELEMENTS = [
   {id: 'waiting-screen', label: '대기 화면', icon: iconByKind.slides},
 ] as const;
 export type OrderElementId = (typeof ORDER_ELEMENTS)[number]['id'];
-export type PaletteKey = OrderElementId | `card:${string}`;
+export type PaletteKey = OrderElementId | `card:${string}` | `custom:${string}`;
 const SUNDAY_ORDER = [
   '묵상기도',
   '회개와간구의기도',
@@ -49,7 +49,10 @@ export const PALETTE_SECTIONS = [
 export function isPaletteKey(key: string): key is PaletteKey {
   return (
     ORDER_ELEMENTS.some(item => item.id === key) ||
-    PALETTE_SECTIONS.some(section => `card:${section.name}` === key)
+    PALETTE_SECTIONS.some(section => `card:${section.name}` === key) ||
+    /^custom:[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/iu.test(
+      key,
+    )
   );
 }
 export async function createPaletteItem(
@@ -83,6 +86,18 @@ export async function createPaletteItem(
     return newSundayCreed(id, translation);
   }
   if (key === 'prayer') return prepareLiturgy('prayer', translation);
+  if (key.startsWith('custom:')) {
+    const api = window.llp;
+    if (api === undefined) throw new Error('App API unavailable');
+    const themes = await api.settings.get({name: 'themes'});
+    if (themes.name !== 'themes') throw new Error('Section themes unavailable');
+    const custom = themes.value.customSections?.find(
+      section => section.id === key.slice(7),
+    );
+    return custom === undefined
+      ? null
+      : prepareSection({...custom, color: '청록', theme: SECTION_THEME_ID});
+  }
   const section = PALETTE_SECTIONS.find(
     section => `card:${section.name}` === key,
   );
