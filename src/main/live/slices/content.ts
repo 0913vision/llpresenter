@@ -66,7 +66,8 @@ export const contentSlice = defineSlice({
         const incoming = command.slide;
         const changed =
           previous?.itemId !== incoming.itemId ||
-          previous.position !== incoming.position;
+          previous.position !== incoming.position ||
+          history.state.blackScreen === true;
         const effect =
           incoming.reverseTransition !== undefined
             ? incoming.reverseTransition
@@ -78,7 +79,7 @@ export const contentSlice = defineSlice({
             : !changed
               ? previous.transitionStartedAt
               : undefined;
-        const shown = setLayer(
+        let shown = setLayer(
           clearPreviousPicture(history, incoming),
           'slide',
           startedAt === undefined
@@ -87,6 +88,16 @@ export const contentSlice = defineSlice({
               : slide
             : {...slide, transitionStartedAt: startedAt},
         );
+        if (shown.state.blackScreen === true) {
+          shown = {
+            ...shown,
+            state: {
+              ...shown.state,
+              blackScreen: false,
+              version: shown.state.version + 1,
+            },
+          };
+        }
         const media = shown.state.layers.media;
         const library = context.audioMedia?.();
         // NOTE(0913vision): A background that left the library stays on screen
