@@ -31,6 +31,7 @@ const electron = await vi.hoisted(async () => {
     readonly setFullScreen = vi.fn();
     readonly isFullScreen = vi.fn(() => false);
     readonly setFocusable = vi.fn();
+    readonly setSkipTaskbar = vi.fn();
     readonly setMinimizable = vi.fn();
     readonly setMaximizable = vi.fn();
     readonly setResizable = vi.fn();
