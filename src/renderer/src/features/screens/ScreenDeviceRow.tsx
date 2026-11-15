@@ -22,13 +22,15 @@ export function ScreenDeviceRow({
     monitor => !monitor.hasMainWindow && monitor.id !== undefined,
   );
   const current = assigned ?? screen.display;
+  const disabledReason =
+    reason ?? (choices.length === 0 ? '다른 모니터가 없습니다' : undefined);
   return (
     <PropertyRow label="장치">
       {({controlId}) => (
         <SelectMenu
           id={controlId}
-          disabled={reason !== undefined}
-          title={reason}
+          disabled={disabledReason !== undefined}
+          title={disabledReason}
           block
           menuLabel="장치"
           value={current?.id?.toString()}

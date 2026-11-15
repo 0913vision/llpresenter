@@ -58,16 +58,18 @@ function setup({
   access = 'editable',
   beforeSave = () => Promise.resolve(),
   messageStyles = [],
+  monitorList = monitors,
 }: {
   readonly messageStyles?: readonly MessageStyle[];
   readonly access?: 'editable' | 'readOnly';
   readonly beforeSave?: () => Promise<void>;
+  readonly monitorList?: MonitorList;
 } = {}) {
   const edits: SettingsEdit[] = [];
   const onProblem = vi.fn();
   const listeners = new Set<(document: SettingsDocument) => void>();
   window.llp = mockLlpApi({
-    monitors: {get: () => Promise.resolve(monitors)},
+    monitors: {get: () => Promise.resolve(monitorList)},
     settings: {
       get: ({name}) =>
         Promise.resolve(
@@ -277,6 +279,25 @@ describe('the screen properties', () => {
         scaleFactor: 1,
       }),
     );
+  });
+
+  it('shows the current device and explains when no other monitor can be chosen', async () => {
+    const onlyMonitor = monitors[1];
+    if (onlyMonitor === undefined) throw new Error('Missing monitor');
+    const {edits} = setup({
+      monitorList: [{...onlyMonitor, screenIds: [MAIN_ID]}],
+    });
+    const device = await screen.findByRole('button', {name: '장치'});
+    await waitFor(() => expect(device.textContent).toContain('모니터 1'));
+    expect(device.textContent).toContain('Desk');
+    expect(device.getAttribute('aria-disabled')).toBe('true');
+    await userEvent.click(device);
+    expect(screen.queryByRole('menu')).toBeNull();
+    await hoverForTooltip(device);
+    expect(screen.getByRole('tooltip').textContent).toBe(
+      '다른 모니터가 없습니다',
+    );
+    expect(edits).toEqual([]);
   });
 
   it('hides the device row for capture windows', async () => {
