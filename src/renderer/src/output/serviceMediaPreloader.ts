@@ -4,9 +4,11 @@ import type {ShowService} from '@core/schema/showService';
 import type {MediaDocument} from '@core/schema/mediaEdit';
 import type {TileCursor} from '@core/presentation/model';
 import type {ThemesFile} from '@core/schema/themes';
+import type {ServiceDocument} from '@core/schema/contentDocuments';
 import {ServicePicturePreloader} from './servicePicturePreloader';
 
 const LOAD_DEADLINE_MS = 2000;
+const RETRY_MS = 5000;
 type Resource = HTMLImageElement | HTMLVideoElement;
 
 /** Keeps the service's slide media decoded without changing live output. */
@@ -14,10 +16,14 @@ export class ServiceMediaPreloader {
   private service: ShowService | null = null;
   private media: MediaDocument | null = null;
   private themes: ThemesFile | null = null;
+  private document: ServiceDocument | null = null;
+  private documentRequest = 0;
   private generation = 0;
   private disposed = false;
   private readonly resources = new Map<string, Resource>();
   private readonly sizes = new Map<string, number>();
+  private readonly versions = new Map<string, string>();
+  private readonly retries = new Map<string, ReturnType<typeof setTimeout>>();
   private bytes = 0;
   private readonly plan = new ServicePicturePreloader(
     cursor => this.prepare(cursor),
@@ -32,7 +38,12 @@ export class ServiceMediaPreloader {
     this.stops = [
       api.service.subscribe(value => {
         servicePush = true;
-        this.service = value;
+        this.setService(value);
+      }),
+      api.services.subscribe(change => {
+        if (change.serviceId !== this.service?.id) return;
+        this.documentRequest++;
+        this.document = change.document;
         this.refresh();
       }),
       api.media.subscribe(value => {
@@ -51,8 +62,7 @@ export class ServiceMediaPreloader {
       .get()
       .then(value => {
         if (!this.disposed && !servicePush) {
-          this.service = value;
-          this.refresh();
+          this.setService(value);
         }
       })
       .catch(() => undefined);
@@ -95,13 +105,44 @@ export class ServiceMediaPreloader {
     this.generation++;
     for (const stop of this.stops) stop();
     this.plan.dispose();
+    this.clearRetries();
     this.clearResources();
+  }
+
+  private setService(value: ShowService | null): void {
+    if (value?.id !== this.service?.id) this.document = null;
+    this.service = value;
+    const request = ++this.documentRequest;
+    this.refresh();
+    if (value === null) return;
+    void this.api.services
+      .get(value.id)
+      .then(document => {
+        if (this.disposed || request !== this.documentRequest) return;
+        this.document = document;
+        this.refresh();
+      })
+      .catch(() => undefined);
   }
 
   private refresh(): void {
     this.generation++;
-    this.clearResources();
+    this.clearRetries();
+    for (const id of this.resources.keys()) {
+      const item = this.media?.value.items.find(value => value.id === id);
+      if (
+        item === undefined ||
+        JSON.stringify(item) !== this.versions.get(id)
+      ) {
+        this.dropResource(id);
+      }
+    }
     this.plan.refresh(this.service?.rows ?? [], this.service?.tiles ?? {});
+  }
+
+  private clearRetries(): void {
+    for (const timer of this.retries.values()) clearTimeout(timer);
+    this.retries.clear();
   }
 
   private clearResources(): void {
@@ -117,6 +158,7 @@ export class ServiceMediaPreloader {
     }
     this.bytes -= this.sizes.get(id) ?? 0;
     this.sizes.delete(id);
+    this.versions.delete(id);
     this.resources.delete(id);
   }
 
@@ -124,16 +166,22 @@ export class ServiceMediaPreloader {
     const service = this.service;
     const row = service?.rows.find(value => value.id === cursor.itemId);
     const tile = service?.tiles[cursor.itemId]?.[cursor.index];
-    if (!row || !tile || !this.media) return null;
+    if (!row || !this.media) return null;
     const ids = new Set<string>();
-    if (tile.picture !== undefined) ids.add(tile.picture);
-    if (tile.media !== undefined) ids.add(tile.media.mediaId);
+    if (tile?.picture !== undefined) ids.add(tile.picture);
+    if (tile?.media !== undefined) ids.add(tile.media.mediaId);
     if ((row.kind === 'song' || row.kind === 'slides') && row.background) {
       ids.add(row.background.mediaId);
     }
+    const item = this.document?.service.order.find(
+      value => value.id === row.id,
+    );
+    for (const overlay of item?.overlays ?? []) {
+      if ('media' in overlay.content) ids.add(overlay.content.media);
+    }
     const kind = row.kind === 'slides' ? row.form : row.kind;
     const chosen =
-      tile.sectionCard?.theme ??
+      tile?.sectionCard?.theme ??
       (row.kind === 'song' || row.kind === 'slides' ? row.theme : undefined) ??
       (row.kind === 'bible' ? row.bible?.theme : undefined) ??
       (kind === 'song' ||
@@ -153,9 +201,22 @@ export class ServiceMediaPreloader {
     const ready = await Promise.all(
       [...ids].map(id => this.warm(id, generation)),
     );
-    return generation === this.generation && ready.every(Boolean)
-      ? JSON.stringify([...ids])
-      : null;
+    if (generation !== this.generation) return null;
+    if (ready.every(Boolean)) return JSON.stringify([...ids]);
+    const key = JSON.stringify(cursor);
+    if (!this.retries.has(key)) {
+      this.retries.set(
+        key,
+        setTimeout(() => {
+          this.retries.delete(key);
+          if (!this.disposed && generation === this.generation) {
+            this.plan.invalidate(cursor);
+            this.plan.request(cursor);
+          }
+        }, RETRY_MS),
+      );
+    }
+    return null;
   }
 
   private async warm(id: string, generation: number): Promise<boolean> {
@@ -203,6 +264,7 @@ export class ServiceMediaPreloader {
       const size = width * height * 4;
       this.resources.set(id, resource);
       this.sizes.set(id, size);
+      this.versions.set(id, JSON.stringify(item));
       this.bytes += size;
       return true;
     } catch {

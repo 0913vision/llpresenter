@@ -29,10 +29,13 @@ export class ServicePicturePreloader {
     this.pictures.clear();
     this.queue = this.allSlides
       ? rows.flatMap(row =>
-          (tiles[row.id] ?? []).map((_tile, index) => ({
-            itemId: row.id,
-            index,
-          })),
+          Array.from(
+            {length: Math.max((tiles[row.id] ?? []).length, 1)},
+            (_, index) => ({
+              itemId: row.id,
+              index,
+            }),
+          ),
         )
       : [...transitionPicturePlan(rows, tiles)];
     this.eligible = new Set(this.queue.map(keyOf));

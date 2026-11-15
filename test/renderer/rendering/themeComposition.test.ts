@@ -351,7 +351,7 @@ describe('theme composition drawing', () => {
       vi.advanceTimersByTime(32);
       expect(animate).toHaveBeenCalledTimes(1);
       expect(animate).toHaveBeenLastCalledWith(expect.any(Array), {
-        duration: 1000,
+        duration: 830,
         easing: 'linear',
       });
       view.dispose();
@@ -1142,7 +1142,7 @@ describe('theme composition drawing', () => {
       );
       if (kind !== 'none') {
         expect(animate).toHaveBeenLastCalledWith(expect.any(Array), {
-          duration: 1200,
+          duration: kind === 'wipe' ? 996 : 1200,
           easing: 'linear',
         });
         expect(root.contains(outgoing)).toBe(true);
