@@ -148,6 +148,7 @@ describe('startOutput', () => {
         await Promise.resolve();
         await pumpReadiness();
         await pumpReadiness();
+        play.mockClear();
         receive({
           ...SHOWING,
           version: current.version + 1,
@@ -162,8 +163,12 @@ describe('startOutput', () => {
             },
           },
         });
-        expect(play).toHaveBeenCalledOnce();
         expect(root.children).toHaveLength(2);
+        expect(play).toHaveBeenCalledWith(
+          root.children[0],
+          root.children[1],
+          expect.objectContaining({kind: 'wipe'}),
+        );
         const covers = root.querySelectorAll<HTMLElement>(
           '[data-black-screen]',
         );
