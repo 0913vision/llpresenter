@@ -530,7 +530,7 @@ export function applyBroadcastEdits(
           Math.min(lyricFrame.x, band.x + band.w - lyricWidth),
         )
       : lyricFrame?.x;
-  const elements = layout.elements.map(element => {
+  const elements = layout.elements.map((element): ResolvedThemeElement => {
     const edit = edits[element.id];
     let frame = edit?.frame ?? element.frame;
     if (
@@ -591,16 +591,24 @@ export function applyBroadcastEdits(
         ? {minimumTextSize: 0}
         : {}),
     };
+    if (changed.kind === 'currentText' || changed.kind === 'nextText') {
+      if (!edit?.text && !edit?.box) return changed;
+      return {
+        ...changed,
+        text: {...changed.text, ...edit.text, maxLines: changed.text.maxLines},
+        ...(edit.box ? {box: edit.box} : {}),
+        ...(changed.kind === 'currentText' &&
+        edit.text &&
+        !(frame.h < element.frame.h || frame.w < element.frame.w)
+          ? {minimumTextSize: edit.text.size}
+          : {}),
+      };
+    }
     if ('text' in changed && (edit?.text || edit?.box)) {
       return {
         ...changed,
         ...(edit.text ? {text: {...changed.text, ...edit.text}} : {}),
         ...(edit.box ? {box: edit.box} : {}),
-        ...(element.kind === 'currentText' &&
-        edit.text &&
-        !(frame.h < element.frame.h || frame.w < element.frame.w)
-          ? {minimumTextSize: edit.text.size}
-          : {}),
       };
     }
     if (changed.kind === 'box' && edit?.box) {
