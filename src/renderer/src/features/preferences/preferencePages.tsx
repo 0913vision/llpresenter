@@ -128,7 +128,7 @@ export function ServiceOrderPage({edits}: PageProps): JSX.Element | null {
 }
 
 const STAGE_LABEL_OPTIONS = [
-  {value: 'line', label: '가사 위 한 줄 (지금)'},
+  {value: 'line', label: '가사 위 한 줄'},
   {value: 'inline', label: '가사 앞에 붙이기'},
   {value: 'off', label: '표시 안 함'},
 ] as const;

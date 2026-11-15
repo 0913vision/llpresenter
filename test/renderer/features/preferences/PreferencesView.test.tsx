@@ -525,6 +525,11 @@ describe('PreferencesView', () => {
     await userEvent.click(
       screen.getByRole('button', {name: /무대 가사 이름표/}),
     );
+    expect(
+      await screen.findByRole('menuitemradio', {
+        name: /^가사 위 한 줄$/u,
+      }),
+    ).toBeDefined();
     await userEvent.click(
       await screen.findByRole('menuitemradio', {name: '가사 앞에 붙이기'}),
     );
