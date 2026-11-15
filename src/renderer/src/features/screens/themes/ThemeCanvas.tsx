@@ -30,6 +30,7 @@ import {ThemeImageDialog} from './ThemeImageDialog';
 import {ThemeSaveBar} from './ThemeSaveBar';
 import {ThemeSaveDialogs} from './ThemeSaveDialogs';
 import {themeElementNames} from './themeNames';
+import {themeSamplesFor} from './themeSamples';
 import {useThemeClipboard} from './useThemeClipboard';
 import {themeCanvasBounds, type ThemeModel} from './useThemeEditor';
 import styles from './Themes.module.css';
@@ -163,28 +164,6 @@ export function useThemeSurfaces(
     ),
   };
 }
-
-export const themeSamples = {
-  ...themeElementNames,
-  currentText: '함께 노래합니다\n오늘도 빛을 비춥니다',
-  nextText: '다음 이야기를 기다립니다',
-  clock: '09:41',
-  timer: '05:00',
-  videoTimeLeft: '02:30',
-  reference: '요한복음 1:1',
-  slideNumber: '1',
-  label: '1절',
-  nextLabel: '후렴',
-};
-const sectionBandSamples = {
-  ...themeSamples,
-  itemName: '사도신경',
-};
-export const sectionSamples = {
-  ...themeSamples,
-  itemName: '봉헌',
-  currentText: 'OFFERING',
-};
 
 function ThemeCanvas({
   model,
@@ -341,13 +320,10 @@ function ThemeCanvas({
           <ThemePicture
             elements={values}
             background={background}
-            samples={
-              sectionTheme
-                ? sectionSamples
-                : values.some(element => element.id === SECTION_BAND_ID)
-                  ? sectionBandSamples
-                  : themeSamples
-            }
+            samples={themeSamplesFor(
+              model.theme?.id,
+              values.some(element => element.id === SECTION_BAND_ID),
+            )}
             timers={model.renderTimers}
             fitItemNameFrame={sectionTheme}
             fitTextFrames

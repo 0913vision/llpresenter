@@ -3,7 +3,6 @@ import {THEME_LIMITS} from '@core/themes/elementRules';
 import {editThemeLayout} from '@core/themes/themeEdits';
 import {resolveThemeScreen} from '@core/themes/resolve';
 import {emptyScreenColor} from '@core/screens/emptyColor';
-import {isSectionTheme} from '@core/themes/sundaySections';
 import {ThemePicture} from '@renderer/rendering/ThemePicture';
 import {Panel, PanelHeader, PanelBody, PanelTabs} from '@renderer/ui/Panel';
 import {
@@ -18,7 +17,7 @@ import {withParticle} from '@renderer/ui/korean';
 import {ThemeBackgroundProperties} from './ThemeBackgroundProperties';
 import {ThemeElementProperties} from './ThemeElementProperties';
 import {ThemeNumber} from './ThemePropertyFields';
-import {sectionSamples, themeSamples} from './ThemeCanvas';
+import {themeSamplesFor} from './themeSamples';
 import {sampleBroadcastLayout, type ThemeModel} from './useThemeEditor';
 import {isBroadcastLook} from '@renderer/rendering/broadcastLook';
 import styles from './Themes.module.css';
@@ -71,11 +70,7 @@ export function ThemeProperties({
                         : resolved.layout.elements
                   }
                   background={color}
-                  samples={
-                    isSectionTheme(model.theme?.id)
-                      ? sectionSamples
-                      : themeSamples
-                  }
+                  samples={themeSamplesFor(model.theme?.id)}
                   timers={model.renderTimers}
                 />
               </span>
