@@ -141,6 +141,24 @@ afterEach(() => {
 });
 
 describe('song backgrounds on output', () => {
+  it('outputs the cached tile immediately and does not repeat an unchanged refresh', async () => {
+    let finish: (value: ShowService) => void = () => undefined;
+    getService.mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          finish = resolve;
+        }),
+    );
+    click('one');
+    expect(store.state.layers.slide?.itemId).toBe('one');
+    expect(store.state.layers.media?.mediaId).toBe('video');
+    expect(sent).toHaveLength(1);
+    finish(service);
+    await vi.waitFor(() => expect(getService).toHaveResolvedTimes(1));
+    await Promise.resolve();
+    expect(sent).toHaveLength(1);
+  });
+
   it('keeps the same media object and start time when another song uses it', async () => {
     click('one');
     await expectSlide('one');
@@ -200,9 +218,12 @@ describe('song backgrounds on output', () => {
     });
     sent.length = 0;
     click('one');
-    await expectSlide('one');
-    expect(store.state.layers.media).toBeNull();
-    expect(sent.map(command => command.type)).toEqual(['live.batch']);
+    expect(store.state.layers.media?.mediaId).toBe('video');
+    await vi.waitFor(() => expect(store.state.layers.media).toBeNull());
+    expect(sent.map(command => command.type)).toEqual([
+      'live.batch',
+      'live.batch',
+    ]);
     expect(useShow.getState().rows[0]).toMatchObject({
       problem: 'missing-background',
     });
@@ -218,8 +239,9 @@ describe('song backgrounds on output', () => {
     });
     getService.mockResolvedValue({...service, revision: 2});
     click('one');
-    await expectSlide('one');
-    expect(store.state.layers.media?.mediaId).toBe('video');
+    await vi.waitFor(() =>
+      expect(store.state.layers.media?.mediaId).toBe('video'),
+    );
     expect(useShow.getState().rows[0]).not.toHaveProperty('problem');
   });
 
@@ -235,7 +257,10 @@ describe('song backgrounds on output', () => {
     sendLive({type: 'layer.clear', target: 'all'});
     finish(service);
     await vi.waitFor(() => expect(getService).toHaveResolvedTimes(1));
-    expect(sent.map(command => command.type)).toEqual(['layer.clear']);
+    expect(sent.map(command => command.type)).toEqual([
+      'live.batch',
+      'layer.clear',
+    ]);
     expect(store.state.layers.slide).toBeNull();
     expect(store.state.layers.media).toBeNull();
   });
@@ -296,7 +321,7 @@ describe('song backgrounds on output', () => {
     getService.mockResolvedValue({...service, id: 'other'});
     click('one');
     await vi.waitFor(() => expect(getService).toHaveResolvedTimes(1));
-    expect(sent).toEqual([]);
+    expect(sent.map(command => command.type)).toEqual(['live.batch']);
     expect(useShow.getState().serviceId).toBe('service');
   });
 

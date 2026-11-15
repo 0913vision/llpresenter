@@ -148,7 +148,7 @@ describe('starting a service item', () => {
     ]);
   });
 
-  it('starts before background and lyrics after a successful asynchronous refresh', async () => {
+  it('starts before background and lyrics immediately, then avoids an unchanged refresh', async () => {
     const {sent, getService} = setup({
       ...service,
       rows: [
@@ -161,7 +161,11 @@ describe('starting a service item', () => {
       ],
     });
     outputTile({itemId: first, index: 0});
-    expect(sent).toEqual([]);
+    expect(sent.map(command => command.type)).toEqual([
+      'item.start',
+      'media.show',
+      'slide.show',
+    ]);
     await waitFor(() =>
       expect(sent.map(command => command.type)).toEqual([
         'item.start',
@@ -174,7 +178,7 @@ describe('starting a service item', () => {
     expect(sent.at(-1)?.type).toBe('slide.show');
   });
 
-  it('sends no start, background, or slide when the refreshed tile disappeared', async () => {
+  it('does not send a correction when a previously present tile disappears', async () => {
     const value = {
       ...service,
       rows: [
@@ -195,10 +199,17 @@ describe('starting a service item', () => {
         }),
     );
     outputTile({itemId: first, index: 1});
+    expect(sent.map(command => command.type)).toEqual([
+      'item.start',
+      'media.show',
+      'slide.show',
+    ]);
     finish({...value, revision: 2, tiles: {[first]: [tile]}});
     await waitFor(() => expect(useShow.getState().revision).toBe(2));
-    expect(sent).toEqual([]);
-    expect(useLive.getState().lastStartedItemId).toBeNull();
+    expect(sent).toHaveLength(3);
+    expect(useLive.getState().lastStartedItemId).toBe(first);
+    outputTile({itemId: first, index: 1});
+    expect(sent).toHaveLength(3);
   });
 
   it('does not start an item after a newer output supersedes its pending lookup', async () => {
@@ -227,6 +238,9 @@ describe('starting a service item', () => {
     finish(value);
     await waitFor(() => expect(getService).toHaveResolvedTimes(1));
     expect(sent.map(command => command.type)).toEqual([
+      'item.start',
+      'media.show',
+      'slide.show',
       'item.start',
       'layer.clear',
       'slide.show',

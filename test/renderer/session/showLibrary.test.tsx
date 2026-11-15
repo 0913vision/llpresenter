@@ -110,7 +110,15 @@ it('refreshes the source and outputs its background before lyrics without item.s
   ]);
 });
 
-it('validates a refreshed tile before changing either the background or lyrics', async () => {
+it('does nothing when the requested library tile is already missing', () => {
+  const {send, showSong} = setup();
+  openLibrarySong(song());
+  outputTile({itemId, index: 99});
+  expect(send).not.toHaveBeenCalled();
+  expect(showSong).not.toHaveBeenCalled();
+});
+
+it('does not send a late correction for a tile removed during refresh', async () => {
   const {send, showSong} = setup();
   let finish: (value: ShowLibrarySong) => void = () => undefined;
   showSong.mockImplementation(
@@ -121,6 +129,7 @@ it('validates a refreshed tile before changing either the background or lyrics',
   );
   openLibrarySong(song());
   outputTile({itemId, index: 1});
+  expect(send).toHaveBeenCalledTimes(1);
   finish(
     song({
       songRevision: 2,
@@ -130,7 +139,7 @@ it('validates a refreshed tile before changing either the background or lyrics',
   await waitFor(() =>
     expect(useShow.getState().librarySong?.songRevision).toBe(2),
   );
-  expect(send).not.toHaveBeenCalled();
+  expect(send).toHaveBeenCalledTimes(1);
 });
 
 it('drops a pending library output after another source outputs', async () => {
@@ -144,6 +153,8 @@ it('drops a pending library output after another source outputs', async () => {
   );
   openLibrarySong(song());
   outputTile({itemId, index: 0});
+  expect(send).toHaveBeenCalledTimes(1);
+  send.mockClear();
   outputTile({itemId: 'song-morning', index: 0});
   finish(song());
   await waitFor(() => expect(showSong).toHaveResolved());
@@ -194,13 +205,13 @@ it('preserves the selected library source on refresh and clears it when the serv
   });
 });
 
-it('does not output a source whose fresh read confirms deletion', async () => {
+it('does not correct an already output source when the fresh read confirms deletion', async () => {
   const {api, send} = setup();
   vi.spyOn(api.library, 'showSong').mockResolvedValueOnce(null);
   openLibrarySong(song());
   outputTile({itemId, index: 0});
   await waitFor(() => expect(useShow.getState().librarySong).toBeNull());
-  expect(send).not.toHaveBeenCalled();
+  expect(send).toHaveBeenCalledTimes(1);
 });
 
 it.each(['failure', 'timeout'] as const)(
@@ -220,6 +231,7 @@ it.each(['failure', 'timeout'] as const)(
     );
     openLibrarySong(song());
     outputTile({itemId, index: 0});
+    expect(send).toHaveBeenCalledTimes(1);
     refreshLibrarySong(
       songId,
       song({
@@ -234,13 +246,13 @@ it.each(['failure', 'timeout'] as const)(
       await vi.advanceTimersByTimeAsync(0);
     } else {
       await vi.advanceTimersByTimeAsync(1999);
-      expect(send).not.toHaveBeenCalled();
+      expect(send).toHaveBeenCalledTimes(1);
       await vi.advanceTimersByTimeAsync(1);
     }
-    expect(send).toHaveBeenCalledExactlyOnceWith({
+    expect(send).toHaveBeenCalledTimes(2);
+    expect(send).toHaveBeenLastCalledWith({
       type: 'live.batch',
       commands: [
-        {type: 'media.show', media: {mediaId, loop: true}},
         {
           type: 'slide.show',
           slide: {
@@ -257,7 +269,7 @@ it.each(['failure', 'timeout'] as const)(
     expect(vi.getTimerCount()).toBe(0);
     finish(song({songRevision: 3}));
     await vi.advanceTimersByTimeAsync(0);
-    expect(send).toHaveBeenCalledTimes(1);
+    expect(send).toHaveBeenCalledTimes(2);
     expect(useShow.getState().librarySong?.songRevision).toBe(2);
   },
 );
@@ -276,6 +288,7 @@ it.each(['failure', 'timeout'] as const)(
     );
     openLibrarySong(song());
     outputTile({itemId, index: 0});
+    send.mockClear();
     outputTile({itemId: 'song-morning', index: 0});
     if (mode === 'failure') {
       fail(new Error('Invented read failure'));
@@ -298,7 +311,7 @@ it.each(['failure', 'timeout'] as const)(
   },
 );
 
-it('does not output a cached tile removed while a failing lookup was pending', async () => {
+it('does not correct a cached tile removed while a failing lookup was pending', async () => {
   vi.useFakeTimers();
   const {send, showSong} = setup();
   let fail: (cause: Error) => void = () => undefined;
@@ -313,7 +326,7 @@ it('does not output a cached tile removed while a failing lookup was pending', a
   refreshLibrarySong(songId, song({songRevision: 2, tiles: []}));
   fail(new Error('Invented read failure'));
   await vi.advanceTimersByTimeAsync(0);
-  expect(send).not.toHaveBeenCalled();
+  expect(send).toHaveBeenCalledTimes(1);
   expect(vi.getTimerCount()).toBe(0);
 });
 
@@ -336,11 +349,10 @@ it('uses a newer retained tile without applying an older lookup background', asy
     }),
   );
   finish(song());
-  await waitFor(() => expect(send).toHaveBeenCalledTimes(1));
-  expect(send).toHaveBeenCalledExactlyOnceWith({
+  await waitFor(() => expect(send).toHaveBeenCalledTimes(2));
+  expect(send).toHaveBeenLastCalledWith({
     type: 'live.batch',
     commands: [
-      {type: 'media.show', media: {mediaId, loop: true}},
       {
         type: 'slide.show',
         slide: {

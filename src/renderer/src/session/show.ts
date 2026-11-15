@@ -1,7 +1,7 @@
 import {parseReference} from '@core/bible/reference';
 import type {ShowRow} from '@core/schema/showService';
 import type {Preferences} from '@core/schema/preferences';
-import type {NextSlide, SlideLayer} from '@core/live/state';
+import type {MediaChoice, NextSlide, SlideLayer} from '@core/live/state';
 import type {SingleLiveCommand} from '@core/live/commands';
 import {findSlideHotKey} from '@core/services/slideHotKeys';
 import {parseServiceItemId} from '@core/schema/ids';
@@ -26,7 +26,11 @@ import {
 } from '@core/presentation/slideLayer';
 import {rememberBiblePassage} from '@renderer/session/recentWriter';
 import {sendLive, useLive} from './live';
-import {sendMediaOutput, sendSlideOutput} from './itemOutput';
+import {
+  correctSlideOutput,
+  sendMediaOutput,
+  sendSlideOutput,
+} from './itemOutput';
 import {
   bibleSourceFor,
   isBibleSource,
@@ -190,10 +194,16 @@ export function outputTile(
     previousItem !== cursor.itemId &&
     window.llp
   ) {
+    const library = useShow.getState().librarySong;
+    if (library === null) return;
+    sendSlideOutput(slide, library.background);
     useShow.setState({openItemId: cursor.itemId, selectedTile: cursor.index});
     outputLibraryTile(cursor, request, {
-      commandVersion: live.commandVersion,
+      commandVersion: useLive.getState().commandVersion,
       reverseTransition,
+      initialSlide: slide,
+      initialBackground: library.background,
+      resolveSlide: () => stageSlideOf(cursor),
     }).catch((cause: unknown) =>
       window.llp?.log.write({
         level: 'error',
@@ -209,13 +219,16 @@ export function outputTile(
     (row.background !== undefined || row.problem === 'missing-background') &&
     window.llp !== undefined
   ) {
+    sendSlideOutput(slide, row.background, startServiceItem(cursor.itemId));
     useShow.setState({openItemId: cursor.itemId, selectedTile: cursor.index});
     outputSongTile({
       cursor,
       request,
-      commandVersion: live.commandVersion,
+      commandVersion: useLive.getState().commandVersion,
       serviceId: useShow.getState().serviceId,
       reverseTransition,
+      initialSlide: slide,
+      initialBackground: row.background,
     }).catch((error: unknown) =>
       window.llp?.log.write({
         level: 'error',
@@ -427,6 +440,8 @@ interface SongOutput {
   readonly commandVersion: number;
   readonly serviceId: string | null;
   readonly reverseTransition?: SlideLayer['reverseTransition'];
+  readonly initialSlide: SlideLayer;
+  readonly initialBackground: MediaChoice | undefined;
 }
 
 async function outputSongTile({
@@ -435,6 +450,8 @@ async function outputSongTile({
   commandVersion,
   serviceId,
   reverseTransition,
+  initialSlide,
+  initialBackground,
 }: SongOutput): Promise<void> {
   let service: ShowService | null = null;
   try {
@@ -461,11 +478,17 @@ async function outputSongTile({
   const slide = stageSlideOf(cursor);
   if (!slide) return;
   const row = useShow.getState().rows.find(row => row.id === cursor.itemId);
-  sendSlideOutput(
-    reverseTransition === undefined ? slide : {...slide, reverseTransition},
-    row?.kind === 'song' ? row.background : undefined,
-    startServiceItem(cursor.itemId),
-  );
+  const nextSlide =
+    reverseTransition === undefined ? slide : {...slide, reverseTransition};
+  const background = row?.kind === 'song' ? row.background : undefined;
+  const backgroundChanged =
+    JSON.stringify(background) !== JSON.stringify(initialBackground);
+  if (
+    backgroundChanged ||
+    JSON.stringify(nextSlide) !== JSON.stringify(initialSlide)
+  ) {
+    correctSlideOutput(nextSlide, {background, backgroundChanged});
+  }
 }
 
 function outputIfPresent(cursor: TileCursor | null): void {

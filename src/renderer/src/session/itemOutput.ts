@@ -40,6 +40,29 @@ export function sendSlideOutput(
   });
 }
 
+/** Updates a slide after a fresh read, replacing its background only if it changed. */
+export function correctSlideOutput(
+  slide: SlideLayer,
+  options: {background?: MediaChoice | undefined; backgroundChanged: boolean},
+): void {
+  const output = slidesOutput(
+    slide,
+    options.backgroundChanged ? options.background : undefined,
+  );
+  const clear =
+    options.backgroundChanged &&
+    options.background === undefined &&
+    slide.picture === undefined &&
+    slide.sectionCard === undefined;
+  sendLive({
+    type: 'live.batch',
+    commands: [
+      ...(clear ? [{type: 'layer.clear', target: 'media'} as const] : []),
+      ...output.commands,
+    ],
+  });
+}
+
 /** A direct media choice replaces slide text; background macros stay separate. */
 export function sendMediaOutput(
   media: MediaChoice,
