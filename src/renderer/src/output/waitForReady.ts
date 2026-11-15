@@ -1,15 +1,13 @@
-/** Wait for two consecutive frames with a complete incoming composition. */
-export function waitForPaint(
+/** Wait until the incoming composition has finished loading. */
+export function waitForReady(
   ready: () => boolean,
   reveal: () => void,
 ): () => void {
   let active = true;
-  let paints = 0;
   let frame = 0;
   const check = (): void => {
     if (!active) return;
-    paints = ready() ? paints + 1 : 0;
-    if (paints < 2) frame = requestAnimationFrame(check);
+    if (!ready()) frame = requestAnimationFrame(check);
     else {
       active = false;
       reveal();

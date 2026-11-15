@@ -5,7 +5,7 @@ import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {OutputRenderer} from '../rendering/outputRenderer';
 import {SlideAnimation} from '../rendering/slideAnimation';
 import {ServiceMediaPreloader} from './serviceMediaPreloader';
-import {waitForPaint} from './waitForPaint';
+import {waitForReady} from './waitForReady';
 import {reverseSlideTransition} from '@core/output/transitions';
 import type {SlideTransition} from '@core/schema/slideTransition';
 import type {LiveState} from '@core/live/state';
@@ -109,7 +109,7 @@ export function startOutput({
   let preloader: ServiceMediaPreloader | null = null;
   let snapshotMode = false;
   let snapshotEpoch = 0;
-  let cancelPaint: (() => void) | null = null;
+  let cancelReady: (() => void) | null = null;
   let hasFrame = false;
   let latest: LiveState | null = null;
   let stopped = false;
@@ -337,8 +337,8 @@ export function startOutput({
           ? ++snapshotEpoch
           : snapshotEpoch;
       if (changed || !audience || state.outputs[screenId] !== true) {
-        cancelPaint?.();
-        cancelPaint = null;
+        cancelReady?.();
+        cancelReady = null;
       }
       if (
         !audience ||
@@ -380,35 +380,36 @@ export function startOutput({
           snapshotMode = false;
         }
       };
-      cancelPaint = waitForPaint(
-        () => incoming === renderer && complete(),
-        () => {
-          if (stopped || epoch !== snapshotEpoch) return;
-          cancelPaint = null;
-          try {
-            animation.play(
-              currentRenderer.transitionSurface(),
-              surface,
-              effect,
-            );
-            surface.style.visibility = '';
-            const completion = animation.finished();
-            if (completion === null) finish();
-            else void completion.then(finish, () => undefined);
-          } catch (error) {
-            report('could not animate the incoming slide', error);
-            surface.style.visibility = '';
-            finish();
-          }
-        },
-      );
+      const reveal = (): void => {
+        if (stopped || epoch !== snapshotEpoch) return;
+        cancelReady = null;
+        try {
+          animation.play(currentRenderer.transitionSurface(), surface, effect);
+          surface.style.visibility = '';
+          const completion = animation.finished();
+          if (completion === null) finish();
+          else void completion.then(finish, () => undefined);
+        } catch (error) {
+          report('could not animate the incoming slide', error);
+          surface.style.visibility = '';
+          finish();
+        }
+      };
+      if (complete()) {
+        reveal();
+      } else {
+        cancelReady = waitForReady(
+          () => incoming === renderer && complete(),
+          reveal,
+        );
+      }
     },
     report,
   );
   return () => {
     stopped = true;
     snapshotEpoch += 1;
-    cancelPaint?.();
+    cancelReady?.();
     clearRetired();
     preloader?.dispose();
     if (readyTimer !== null) clearTimeout(readyTimer);

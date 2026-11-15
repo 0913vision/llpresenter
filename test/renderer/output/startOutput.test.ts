@@ -103,9 +103,13 @@ function setUp(live: Partial<LlpApi['live']> = {}) {
 }
 
 describe('startOutput', () => {
-  it.each(['standby', 'black'] as const)(
-    'keeps %s in the outgoing composition during a wipe',
-    async origin => {
+  it.each([
+    ['standby', false],
+    ['black', false],
+    ['standby', true],
+  ] as const)(
+    'keeps %s in the outgoing composition during a wipe (ready: %s)',
+    async (origin, alreadyReady) => {
       let receive: (state: LiveState) => void = () => undefined;
       const oldSlide = SHOWING.layers.slide;
       if (oldSlide === null) throw new Error('Missing slide');
@@ -128,7 +132,9 @@ describe('startOutput', () => {
       vi.spyOn(SlideAnimation.prototype, 'finished').mockReturnValue(
         new Promise(() => undefined),
       );
-      vi.spyOn(OutputRenderer.prototype, 'ready').mockReturnValue(true);
+      const ready = vi
+        .spyOn(OutputRenderer.prototype, 'ready')
+        .mockReturnValue(true);
       const render = vi.spyOn(OutputRenderer.prototype, 'render');
       const api = mockLlpApi({
         settings: {
@@ -152,6 +158,7 @@ describe('startOutput', () => {
         await pumpReadiness();
         await pumpReadiness();
         play.mockClear();
+        ready.mockReturnValue(alreadyReady);
         receive({
           ...SHOWING,
           version: current.version + 1,
@@ -175,9 +182,12 @@ describe('startOutput', () => {
           expect.anything(),
           expect.objectContaining({transitions: false}),
         );
-        expect(play).not.toHaveBeenCalled();
-        expect(incoming.style.visibility).toBe('hidden');
-        runFramesFor(FRAME_MS * 3);
+        if (!alreadyReady) {
+          expect(play).not.toHaveBeenCalled();
+          expect(incoming.style.visibility).toBe('hidden');
+          ready.mockReturnValue(true);
+          runFramesFor(FRAME_MS * 3);
+        }
         expect(play).toHaveBeenCalledWith(
           root.children[0],
           root.children[1],

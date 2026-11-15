@@ -1,12 +1,12 @@
 import type {SlideTransition} from '@core/schema/slideTransition';
 import {THEME_LIMITS} from '@core/themes/elementRules';
 
-export const WIPE_DURATION_MS_PER_SECOND = 954;
+export const WIPE_DURATION_MS_PER_SECOND = 922;
 const WIPE_STEPS = 32;
-const WIPE_START = 34;
-const WIPE_END = 66;
+const WIPE_START = 38;
+const WIPE_END = 62;
 
-function wipeMask(direction: string): string {
+export function wipeMask(direction: string): string {
   const stops = Array.from({length: WIPE_STEPS + 1}, (_, index) => {
     const t = index / WIPE_STEPS;
     const alpha = 1 - t * t * (3 - 2 * t);
@@ -29,31 +29,27 @@ const TRAVEL = {
   up: ['translateY(100%)', 'translateY(-100%)'],
   down: ['translateY(-100%)', 'translateY(100%)'],
 } as const;
-/** PowerPoint's feather starts outside and sweeps in 95.4% of the set time. */
+/** PowerPoint's feather begins at the edge and reaches halfway near 35% of the set time. */
 const WIPE = {
   left: {
     direction: 'left',
-    size: '300% 100%',
-    from: '-8% 0%',
-    to: '95% 0%',
+    from: '19.3333333333333% 0%',
+    to: '100% 0%',
   },
   right: {
     direction: 'right',
-    size: '300% 100%',
-    from: '108% 0%',
-    to: '5% 0%',
+    from: '80.6666666666667% 0%',
+    to: '0% 0%',
   },
   up: {
     direction: 'top',
-    size: '100% 300%',
-    from: '0% -8%',
-    to: '0% 95%',
+    from: '0% 19.3333333333333%',
+    to: '0% 100%',
   },
   down: {
     direction: 'bottom',
-    size: '100% 300%',
-    from: '0% 108%',
-    to: '0% 5%',
+    from: '0% 80.6666666666667%',
+    to: '0% 0%',
   },
 } as const;
 
@@ -61,6 +57,13 @@ const WIPE = {
 export class SlideAnimation {
   private animations: Animation[] = [];
   private frame: SlideAnimationFrame | undefined;
+  private wipe: {
+    wrapper: HTMLElement;
+    surface: HTMLElement;
+    width: string;
+    height: string;
+    willChange: string;
+  } | null = null;
 
   constructor(private readonly opaque = false) {}
 
@@ -118,34 +121,72 @@ export class SlideAnimation {
       case 'wipe': {
         const wipe = WIPE[dir];
         const maskImage = wipeMask(wipe.direction);
-        outgoing = [{opacity: 1}, {opacity: 1}];
-        incoming = [
-          {
-            maskImage,
-            maskSize: wipe.size,
-            maskPosition: wipe.from,
-            maskRepeat: 'no-repeat',
-          },
-          {
-            maskImage,
-            maskSize: wipe.size,
-            maskPosition: wipe.to,
-            maskRepeat: 'no-repeat',
-          },
+        const horizontal = dir === 'left' || dir === 'right';
+        const from = Number.parseFloat(
+          horizontal ? wipe.from : (wipe.from.split(' ')[1] ?? '0'),
+        );
+        const to = Number.parseFloat(
+          horizontal ? wipe.to : (wipe.to.split(' ')[1] ?? '0'),
+        );
+        const axis = horizontal ? 'X' : 'Y';
+        const wrapper = next.ownerDocument.createElement('div');
+        Object.assign(wrapper.style, {
+          position: 'absolute',
+          top: '0',
+          left: '0',
+          width: horizontal ? '400%' : '100%',
+          height: horizontal ? '100%' : '400%',
+          zIndex: '1',
+          maskImage,
+          maskSize: '100% 100%',
+          maskRepeat: 'no-repeat',
+          willChange: 'transform',
+          pointerEvents: 'none',
+        });
+        this.wipe = {
+          wrapper,
+          surface: next,
+          width: next.style.width,
+          height: next.style.height,
+          willChange: next.style.willChange,
+        };
+        next.parentNode?.insertBefore(wrapper, next);
+        wrapper.append(next);
+        next.style.width = horizontal ? '25%' : '100%';
+        next.style.height = horizontal ? '100%' : '25%';
+        next.style.willChange = 'transform';
+        const timing = {
+          duration: effect.sec * WIPE_DURATION_MS_PER_SECOND,
+          easing: 'linear',
+        };
+        this.animations = [
+          next.animate.call(
+            wrapper,
+            [
+              {transform: `translate${axis}(${(-3 * from) / 4}%)`},
+              {transform: `translate${axis}(${(-3 * to) / 4}%)`},
+            ],
+            timing,
+          ),
+          next.animate(
+            [
+              {transform: `translate${axis}(${3 * from}%)`},
+              {transform: `translate${axis}(${3 * to}%)`},
+            ],
+            timing,
+          ),
         ];
-        break;
+        return;
       }
     }
     const timing = {
-      duration:
-        effect.sec *
-        (effect.kind === 'wipe' ? WIPE_DURATION_MS_PER_SECOND : 1000),
+      duration: effect.sec * 1000,
       easing: 'linear',
     };
-    this.animations =
-      effect.kind === 'wipe'
-        ? [next.animate(incoming, timing)]
-        : [old.animate(outgoing, timing), next.animate(incoming, timing)];
+    this.animations = [
+      old.animate(outgoing, timing),
+      next.animate(incoming, timing),
+    ];
   }
 
   finished(): Promise<void> | null {
@@ -163,5 +204,14 @@ export class SlideAnimation {
   cancel(): void {
     for (const animation of this.animations) animation.cancel();
     this.animations = [];
+    if (this.wipe !== null) {
+      const {wrapper, surface, width, height, willChange} = this.wipe;
+      surface.style.width = width;
+      surface.style.height = height;
+      surface.style.willChange = willChange;
+      if (wrapper.parentNode !== null) wrapper.replaceWith(surface);
+      else if (surface.parentNode === wrapper) wrapper.removeChild(surface);
+      this.wipe = null;
+    }
   }
 }
