@@ -42,6 +42,7 @@ export const serviceItemKinds = [
   'header',
   'song',
   'bible',
+  'sermon',
   'slides',
   'media',
 ] as const;
@@ -195,17 +196,31 @@ const startFields = {
   memo: v.exactOptional(v.string()),
 };
 
+const songItemSchema = jsonObject({
+  ...itemFields,
+  overlays: v.exactOptional(songItemOverlaysSchema),
+  sectionCard: v.exactOptional(sectionCardSchema),
+  song: songIdSchema,
+  slides: songSlidesSchema,
+  background: v.exactOptional(mediaIdSchema),
+  ...startFields,
+});
+const slidesItemSchema = jsonObject({
+  ...itemFields,
+  sectionCard: v.exactOptional(sectionCardSchema),
+  slides: slidesSchema,
+  background: v.exactOptional(mediaIdSchema),
+  ...startFields,
+});
+const sermonTitleSchema = v.pipe(
+  v.string(),
+  v.trim(),
+  v.minLength(1),
+  v.maxLength(SLIDES_LIMITS.name),
+);
 const itemSchemas = {
   header: jsonObject({...itemFields, header: v.string()}),
-  song: jsonObject({
-    ...itemFields,
-    overlays: v.exactOptional(songItemOverlaysSchema),
-    sectionCard: v.exactOptional(sectionCardSchema),
-    song: songIdSchema,
-    slides: songSlidesSchema,
-    background: v.exactOptional(mediaIdSchema),
-    ...startFields,
-  }),
+  song: songItemSchema,
   bible: jsonObject({
     ...itemFields,
     sectionCard: v.exactOptional(sectionCardSchema),
@@ -213,13 +228,20 @@ const itemSchemas = {
     bibleTransitions: v.exactOptional(biblePartTransitionsSchema),
     ...startFields,
   }),
-  slides: jsonObject({
+  sermon: jsonObject({
     ...itemFields,
-    sectionCard: v.exactOptional(sectionCardSchema),
-    slides: slidesSchema,
-    background: v.exactOptional(mediaIdSchema),
+    sermon: jsonObject({
+      title: sermonTitleSchema,
+      passage: biblePassageSchema,
+      originalTitle: v.exactOptional(
+        v.union([songItemSchema, slidesItemSchema]),
+      ),
+      originalTitleText: v.exactOptional(sermonTitleSchema),
+    }),
+    bibleTransitions: v.exactOptional(biblePartTransitionsSchema),
     ...startFields,
   }),
+  slides: slidesItemSchema,
   media: jsonObject({...itemFields, media: mediaIdSchema, ...startFields}),
 };
 

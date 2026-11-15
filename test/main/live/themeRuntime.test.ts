@@ -1,3 +1,4 @@
+import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
 import {describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
@@ -113,6 +114,27 @@ function setup(
 }
 
 describe('main-process theme runtime', () => {
+  it('uses the sermon title theme for the first slide and returns to the Bible theme for the verse', () => {
+    const {store, dispatch, service} = setup();
+    const bibleTheme = service.theme;
+    dispatch({
+      type: 'slide.show',
+      slide: {
+        itemId: ITEM,
+        position: 0,
+        label: null,
+        lines: ['Sermon'],
+        sermonTitle: true,
+      },
+    });
+    expect(store.state.themeItem?.theme).toBe(SERMON_TITLE_THEME_ID);
+    dispatch({
+      type: 'slide.show',
+      slide: {itemId: ITEM, position: 1, label: null, lines: ['Verse']},
+    });
+    expect(store.state.themeItem?.theme).toBe(bibleTheme);
+  });
+
   it.each(['item.restore', 'clear.undo'] as const)(
     'restores only the stopped item through %s and resumes its media and overlay',
     type => {

@@ -48,6 +48,25 @@ function fixture() {
 }
 
 describe('saved Bible passage resolution', () => {
+  it('projects the sermon title first and then its ordinary Bible verse tiles', async () => {
+    const original = items('John 3:16-18')[0];
+    if (!original || !isItemOfKind(original, 'bible')) {
+      throw Error('Missing Bible');
+    }
+    const sermon: ServiceItem = {
+      id: original.id,
+      sermon: {title: 'Sermon', passage: original.bible},
+    };
+    const bible = fixture();
+    const result = await resolveServicePassages([sermon], bible, {
+      reportError: bible.report,
+    });
+    const tiles = result.tiles.get(sermon.id);
+    expect(tiles?.[0]).toMatchObject({sermonTitle: true, lines: ['Sermon']});
+    expect(tiles?.[1]?.lines.length).toBeGreaterThan(0);
+    expect(result.references.get(sermon.id)?.passage?.verses).toHaveLength(3);
+  });
+
   it('uses cache-only lookup for live translations during service refresh', async () => {
     const item = items('\uC694\uD55C\uBCF5\uC74C 3:16')[0];
     if (!item || !isItemOfKind(item, 'bible')) {

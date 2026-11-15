@@ -34,7 +34,9 @@ export function useItemSlides(
     savedPassageTiles(
       view,
       state.service?.service.id,
-      state.item !== null && isItemOfKind(state.item, 'bible')
+      state.item !== null &&
+        (isItemOfKind(state.item, 'bible') ||
+          isItemOfKind(state.item, 'sermon'))
         ? state.item.id
         : undefined,
     ),
@@ -66,6 +68,14 @@ export function useItemSlides(
           media: undefined,
         };
       });
+    }
+    if (isItemOfKind(item, 'sermon')) {
+      return bible.map(tile => ({
+        text: tile.lines.join('\n'),
+        label: tile.label ?? undefined,
+        color: tile.labelColor,
+        media: undefined,
+      }));
     }
     if (isItemOfKind(item, 'bible')) {
       return bibleEditorData(item, bible)

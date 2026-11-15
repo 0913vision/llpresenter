@@ -223,7 +223,13 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
             : {}),
     };
   }
-  if (isItemOfKind(item, 'bible')) {
+  if (isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon')) {
+    const settings = isItemOfKind(item, 'sermon')
+      ? item.sermon.passage
+      : item.bible;
+    const sermonTitle = isItemOfKind(item, 'sermon')
+      ? item.sermon.title
+      : undefined;
     const bible = sources.passages?.references.get(id);
     return {
       kind: 'bible',
@@ -231,18 +237,20 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
       ...(sources.serviceRevision === undefined
         ? {}
         : {sourceRevision: sources.serviceRevision}),
-      title: displayReference(item.bible.ref),
+      title: sermonTitle ?? displayReference(settings.ref),
+      ...(sermonTitle === undefined ? {} : {sermonTitle}),
       ...(bible === undefined
         ? {}
         : {
             bible: {
               ...bible,
-              verseNumbers: item.bible.verseNumbers,
-              translationName: item.bible.translationName,
-              reference: item.bible.reference,
-              ...(item.bible.transition === undefined
+              ...(sermonTitle === undefined ? {} : {sermonTitle}),
+              verseNumbers: settings.verseNumbers,
+              translationName: settings.translationName,
+              reference: settings.reference,
+              ...(settings.transition === undefined
                 ? {}
-                : {transition: item.bible.transition}),
+                : {transition: settings.transition}),
               ...(item.bibleTransitions === undefined
                 ? {}
                 : {transitions: item.bibleTransitions}),

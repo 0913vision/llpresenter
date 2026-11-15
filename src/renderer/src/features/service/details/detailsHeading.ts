@@ -69,6 +69,9 @@ export function detailsHeading({
       count: item.slides.slides.length + offset,
     };
   }
+  if (isItemOfKind(item, 'sermon')) {
+    return {title: item.sermon.title, kind: '\uc124\uad50', count: rawCount};
+  }
   if (isItemOfKind(item, 'bible')) {
     return {
       title: displayReference(item.bible.ref),

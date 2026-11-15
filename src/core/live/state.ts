@@ -73,6 +73,7 @@ export interface SlideLayer {
   }>;
   readonly sectionCard?: SectionCard;
   readonly sequenceLength?: number;
+  readonly sermonTitle?: true;
   readonly titleSlide?: true;
   readonly titleLineCount?: number;
   readonly titleLayout?: import('../schema/songTitleLayout').SongTitleLayout;

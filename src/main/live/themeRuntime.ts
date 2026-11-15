@@ -1,3 +1,4 @@
+import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
 import {cardOffset} from '@core/services/sectionCards';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import type {LiveCommand} from '@core/live/commands';
@@ -115,6 +116,9 @@ export class ThemeRuntime {
           item = withPlayback(this.options.item(item.id) ?? item, item);
         }
         {
+          if (command.slide.sermonTitle === true) {
+            item = {...item, theme: SERMON_TITLE_THEME_ID};
+          }
           if (command.slide.sectionCard !== undefined) {
             item = {
               ...item,

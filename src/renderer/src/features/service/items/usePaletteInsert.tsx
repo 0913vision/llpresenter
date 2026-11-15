@@ -6,6 +6,7 @@ import {useShow} from '@renderer/session/show';
 import {useHeaderRename} from '@renderer/session/headerRename';
 import {useOrderFull} from '@renderer/session/orderFull';
 import type {PaletteEditing} from './PaletteEditing';
+import {SermonQuickAdd} from './SermonQuickAdd';
 import {BibleQuickAdd} from './BibleQuickAdd';
 import {passageItem, type PassageDefaults} from './quickAddBible';
 import {createPaletteItem, isPaletteKey} from './paletteItems';
@@ -18,6 +19,7 @@ export function usePaletteInsert(editing: PaletteEditing | null) {
   const [bible, setBible] = useState<{
     before: string | null;
     serviceId: string;
+    kind: 'bible' | 'sermon';
   } | null>(null);
   const disabled = serviceId === null || readOnly || full || editing === null;
   const insert = (
@@ -39,8 +41,8 @@ export function usePaletteInsert(editing: PaletteEditing | null) {
       before === undefined
         ? quickAddBefore(snapshot.rows, snapshot.openItemId)
         : before;
-    if (key === 'bible') {
-      setBible({before: target, serviceId});
+    if (key === 'bible' || key === 'sermon') {
+      setBible({before: target, serviceId, kind: key});
       return;
     }
     editing.enqueueEdit(async (edits, id) => {
@@ -56,25 +58,52 @@ export function usePaletteInsert(editing: PaletteEditing | null) {
   };
   const dialog =
     bible?.serviceId === serviceId && !readOnly && editing !== null ? (
-      <BibleQuickAdd
-        onClose={() => setBible(null)}
-        onInsert={(ref: string, defaults: PassageDefaults) => {
-          const item = passageItem(ref, defaults);
-          const target = bible.before;
-          setBible(null);
-          editing.enqueueEdit(async (edits, id) => {
-            const result = await edits.insertItem(
-              id,
-              item,
-              target === null ? null : createServiceItemId(target),
-            );
-            if (result.ok && result.value && isItemOfKind(item, 'bible')) {
-              rememberBiblePassage(item.bible);
-            }
-            return result;
-          });
-        }}
-      />
+      bible.kind === 'sermon' ? (
+        <SermonQuickAdd
+          onClose={() => setBible(null)}
+          onInsert={(title, ref, defaults) => {
+            const passage = passageItem(ref, defaults);
+            if (!isItemOfKind(passage, 'bible')) return;
+            const item = {
+              id: passage.id,
+              sermon: {title, passage: passage.bible},
+            };
+            const target = bible.before;
+            setBible(null);
+            editing.enqueueEdit(async (edits, id) => {
+              const result = await edits.insertItem(
+                id,
+                item,
+                target === null ? null : createServiceItemId(target),
+              );
+              if (result.ok && result.value) {
+                rememberBiblePassage(passage.bible);
+              }
+              return result;
+            });
+          }}
+        />
+      ) : (
+        <BibleQuickAdd
+          onClose={() => setBible(null)}
+          onInsert={(ref: string, defaults: PassageDefaults) => {
+            const item = passageItem(ref, defaults);
+            const target = bible.before;
+            setBible(null);
+            editing.enqueueEdit(async (edits, id) => {
+              const result = await edits.insertItem(
+                id,
+                item,
+                target === null ? null : createServiceItemId(target),
+              );
+              if (result.ok && result.value && isItemOfKind(item, 'bible')) {
+                rememberBiblePassage(item.bible);
+              }
+              return result;
+            });
+          }}
+        />
+      )
     ) : null;
   return {insert, disabled, dialog};
 }

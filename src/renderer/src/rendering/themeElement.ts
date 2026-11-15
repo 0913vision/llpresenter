@@ -563,6 +563,13 @@ export class ThemeElementView {
     const slide = layers.slide;
     if (
       frame.screen?.kind === 'stage' &&
+      slide?.sermonTitle === true &&
+      element.kind === 'reference'
+    ) {
+      return null;
+    }
+    if (
+      frame.screen?.kind === 'stage' &&
       element.kind === 'nextLabel' &&
       slide?.next?.labelContinued &&
       (slide.next.itemKind ?? slide.kind ?? item?.kind) === 'song'

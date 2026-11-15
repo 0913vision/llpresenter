@@ -132,6 +132,7 @@ export const layerSchemas = {
     sequenceLength: v.exactOptional(
       v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(10_000)),
     ),
+    sermonTitle: v.exactOptional(v.literal(true)),
     titleSlide: v.exactOptional(v.literal(true)),
     titleLineCount: v.exactOptional(
       v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(1000)),

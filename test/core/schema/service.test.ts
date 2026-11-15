@@ -71,6 +71,29 @@ function withItem(item: object) {
 }
 
 describe('parseService', () => {
+  it('round-trips a bounded sermon with a title and Bible passage', () => {
+    const item = {id: itemId(41), sermon: {title: 'Sermon', passage: PASSAGE}};
+    const loaded = expectSuccess(parse(withItem(item)));
+    expect(loaded.data.order).toEqual([item]);
+    expect(loaded.data.order.map(serviceItemKind)).toEqual(['sermon']);
+    const saved = expectSuccess(serializeService(loaded.data, FILE));
+    expect(expectSuccess(parseService(saved, FILE)).data).toEqual(loaded.data);
+    for (const title of ['', '   ', 'x'.repeat(1001)]) {
+      expect(
+        parse(withItem({...item, sermon: {...item.sermon, title}})).ok,
+      ).toBe(false);
+    }
+    expect(
+      parse(
+        withItem({
+          ...item,
+          sermon: {...item.sermon, passage: {...PASSAGE, verseNumbers: 'yes'}},
+        }),
+      ).ok,
+    ).toBe(false);
+    expect(parse(withItem({...item, bible: PASSAGE})).ok).toBe(false);
+  });
+
   it('reads a service with every current item kind', () => {
     const loaded = expectSuccess(parse(sundayService()));
 

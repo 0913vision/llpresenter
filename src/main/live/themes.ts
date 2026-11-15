@@ -80,7 +80,9 @@ export function registerThemeOutput({
                     ?.name
                 : isItemOfKind(entry, 'bible')
                   ? displayReference(entry.bible.ref)
-                  : undefined;
+                  : isItemOfKind(entry, 'sermon')
+                    ? displayReference(entry.sermon.passage.ref)
+                    : undefined;
           return {
             id,
             kind,

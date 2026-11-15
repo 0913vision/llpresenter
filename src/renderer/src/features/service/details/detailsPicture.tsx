@@ -70,7 +70,7 @@ function biblePicture(
   const {item, projection, offset, bibleTiles, bibleAppearance} = context;
   if (
     item === null ||
-    !isItemOfKind(item, 'bible') ||
+    (!isItemOfKind(item, 'bible') && !isItemOfKind(item, 'sermon')) ||
     projection?.appearance === undefined
   ) {
     return undefined;
@@ -192,7 +192,11 @@ function fallbackBiblePicture(
   index: number,
 ): JSX.Element | undefined {
   const {item, raw, offset, theme} = context;
-  if (item === null || !isItemOfKind(item, 'bible') || theme === undefined) {
+  if (
+    item === null ||
+    (!isItemOfKind(item, 'bible') && !isItemOfKind(item, 'sermon')) ||
+    theme === undefined
+  ) {
     return undefined;
   }
   const slide = raw[index - offset];
@@ -257,7 +261,10 @@ export function detailsPicture(
       />
     );
   }
-  if (item !== null && isItemOfKind(item, 'bible')) {
+  if (
+    item !== null &&
+    (isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon'))
+  ) {
     return biblePicture(context, index) ?? fallbackBiblePicture(context, index);
   }
   if (item !== null && isItemOfKind(item, 'song')) {

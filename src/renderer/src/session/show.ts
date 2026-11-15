@@ -284,6 +284,9 @@ function sermonNext(cursor: TileCursor): NextSlide | undefined {
   ) {
     return undefined;
   }
+  if (row.bible?.sermonTitle !== undefined) {
+    return {label: null, lines: [row.bible.sermonTitle], sermonTitle: true};
+  }
   const sermon = view.rows[index - 1];
   if (
     sermon === undefined ||
@@ -330,11 +333,21 @@ function stageReference(
   const rows = useShow.getState().rows;
   const nextIndex = rows.findIndex(row => row.id === next.itemId);
   const target = rows[nextIndex];
+  if (target?.kind === 'bible' && target.sermonTitle !== undefined) {
+    return undefined;
+  }
   const key = passageKey(target);
   if (key === undefined || target === undefined) return undefined;
   const current = rows.find(row => row.id === live.itemId);
   if (passageKey(current) === key) return undefined;
   const sermonPassage = rows.some((row, index) => {
+    if (
+      row.kind === 'bible' &&
+      row.sermonTitle !== undefined &&
+      passageKey(row) === key
+    ) {
+      return true;
+    }
     if (
       (row.kind !== 'song' && row.kind !== 'slides') ||
       row.theme !== SERMON_TITLE_THEME_ID
