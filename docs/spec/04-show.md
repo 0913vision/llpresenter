@@ -282,20 +282,15 @@ The shortcut part of 10 is decided (2026-10-25): shortcuts follow ProPresenter
 where it has a key or a behavior, and 10's choice applies where no ProPresenter
 source was found.
 
-| Key                   | Action                                                                                    | Basis                                                                                         |
-| --------------------- | ----------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| ↑, ↓ (grid has focus) | Output one row from the live slide; without one, down outputs slide 1 and up does nothing | No separate selection (10)                                                                    |
-| →, Space, Page Down   | Output the next 슬라이드                                                                  | Follows ProPresenter for → (S1) and Space (S4 p. 70); Page Down for presentation remotes (10) |
-| ←, Page Up            | Output the previous 슬라이드                                                              | Follows ProPresenter for ← (S1); Page Up for presentation remotes (10)                        |
-| Slide hot key         | Output its particular source slide                                                        | Follows ProPresenter's individual slide hot keys (S4 p. 58; October 27 S26 decision; 10)      |
+| Key                    | Action                             | Basis                                                                                         |
+| ---------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------- |
+| →, ↓, Space, Page Down | Output the next 슬라이드           | Follows ProPresenter for → (S1) and Space (S4 p. 70); Page Down for presentation remotes (10) |
+| ←, ↑, Page Up          | Output the previous 슬라이드       | Follows ProPresenter for ← (S1); Page Up for presentation remotes (10)                        |
+| Slide hot key          | Output its particular source slide | Follows ProPresenter's individual slide hot keys (S4 p. 58; October 27 S26 decision; 10)      |
 
-- → ← Space Page Up Page Down output the next and previous 슬라이드 even while
-  the 슬라이드 grid or the 예배 순서 list has focus, as ProPresenter does after
-  a click on a slide (S4 p. 70). The grid outputs one row away with ↑ and ↓;
-  Enter without a pending number does nothing (10). With no live slide, ?
-  outputs slide 1 and ? does nothing. At the first row ? stays; at the last row
-  ? stays if a full row step would exceed the slide count, including a partial
-  last row.
+- In the slide grid, →, ↓, Space and Page Down output the next slide; ←, ↑ and
+  Page Up output the previous slide. The service order list keeps ↑ and ↓ for
+  selection; Enter in the grid without a pending number does nothing (10).
 - Outside text fields, digits show a pending service-wide slide number above the
   grid. Enter outputs that numbered slide, or clears an invalid number without
   output. Delete or Escape clears the number; Backspace removes its last digit.
@@ -1156,8 +1151,8 @@ keys are changed are in 10, "Shortcut system".
 
 | Key                                              | Action                                                                   | Basis                                                                                    |
 | ------------------------------------------------ | ------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------- |
-| →, Space, Page Down                              | Next 슬라이드                                                            | Follows ProPresenter (S1; S4 p. 70); Page Down for presentation remotes                  |
-| ←, Page Up                                       | Previous 슬라이드                                                        | Follows ProPresenter (S1); Page Up for presentation remotes                              |
+| →, ↓, Space, Page Down                           | Next 슬라이드                                                            | Follows ProPresenter (S1; S4 p. 70); Page Down for presentation remotes                  |
+| ←, ↑, Page Up                                    | Previous 슬라이드                                                        | Follows ProPresenter (S1); Page Up for presentation remotes                              |
 | Ctrl ↓, Ctrl ↑                                   | Select the next or previous item (다음 항목, 이전 항목)                  | No ProPresenter source found                                                             |
 | Ctrl L                                           | Open the item of the live 슬라이드 (출력 중인 항목 열기)                 | Follows ProPresenter (Show Triggered Presentation, S1)                                   |
 | Alt →, Alt ←                                     | Next or previous background in the shared media bin's playlist           | Follows ProPresenter (Next and Previous Background, S1)                                  |

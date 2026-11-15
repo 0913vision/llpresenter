@@ -1,12 +1,4 @@
-import {
-  useLayoutEffect,
-  useRef,
-  useState,
-  type KeyboardEvent,
-  type RefObject,
-} from 'react';
-import {isComposing} from '@renderer/ui/ime';
-import {hasModifier} from '@renderer/ui/modifierKeys';
+import {useLayoutEffect, useRef, useState, type RefObject} from 'react';
 
 const OVERSCAN_ROWS = 1;
 const INITIAL_ROWS = 2;
@@ -51,7 +43,6 @@ export function useSlideWindow(
     gap,
     live,
     itemId,
-    onOutput,
   }: {
     readonly count: number;
     readonly columns: number;
@@ -60,7 +51,6 @@ export function useSlideWindow(
     readonly gap: number;
     readonly live: number | null;
     readonly itemId: string | null;
-    readonly onOutput: (index: number) => void;
   },
 ) {
   const [measure, setMeasure] = useState({
@@ -173,34 +163,11 @@ export function useSlideWindow(
     };
     current.current();
   }, [keeper, live, itemId, tracks, stride, measure]);
-  const navigate = (event: KeyboardEvent<HTMLDivElement>): void => {
-    if (isComposing(event) || hasModifier(event)) return;
-    if (
-      !(event.target instanceof Element) ||
-      !event.target.closest('[role="listbox"]')
-    ) {
-      return;
-    }
-    const delta =
-      event.key === 'ArrowUp'
-        ? -tracks
-        : event.key === 'ArrowDown'
-          ? tracks
-          : undefined;
-    if (delta === undefined || count === 0) return;
-    const current = live ?? (delta > 0 ? -delta : 0);
-    event.preventDefault();
-    event.stopPropagation();
-    const next = current + delta;
-    if (next < 0 || next >= count) return;
-    onOutput(next);
-  };
   return {
     reveal: (): void => current.current(),
     start,
     end,
     offset: first * stride,
     height: Math.max(0, rows * stride - measure.rowGap) + measure.inset * 2,
-    navigate,
   };
 }

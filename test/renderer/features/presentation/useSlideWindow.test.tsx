@@ -1,9 +1,8 @@
-import {useRef, useState} from 'react';
+import {useRef} from 'react';
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {useSlideWindow} from '@renderer/features/presentation/useSlideWindow';
 
-const select = vi.fn();
 function Grid({
   count = 100,
   live = null,
@@ -18,7 +17,6 @@ function Grid({
   itemId?: string;
 }) {
   const keeper = useRef<HTMLDivElement>(null);
-  const [selected, setSelected] = useState(0);
   const window = useSlideWindow(keeper, {
     count,
     live,
@@ -27,18 +25,10 @@ function Grid({
     columns: 4,
     gap: 12,
     itemId,
-    onOutput: index => {
-      select(index);
-      setSelected(index);
-    },
   });
   return (
     <div data-testid="viewport">
-      <div
-        ref={keeper}
-        onKeyDownCapture={window.navigate}
-        style={{height: window.height}}
-      >
+      <div ref={keeper} style={{height: window.height}}>
         <div role="listbox" aria-label="Slides">
           {Array.from({length: window.end - window.start}, (_, local) => {
             const index = window.start + local;
@@ -46,7 +36,7 @@ function Grid({
               <button
                 key={index}
                 role="option"
-                aria-selected={selected === index}
+                aria-selected={false}
                 aria-posinset={index + 1}
                 aria-setsize={count}
               >
@@ -69,7 +59,6 @@ beforeEach(() => {
       this.dispatchEvent(new Event('scroll'));
     }),
   });
-  select.mockClear();
 });
 afterEach(() => {
   cleanup();
@@ -91,30 +80,6 @@ it('mounts only visible rows and a margin, including both ends while scrolling',
   ).toBe('100');
   fireEvent.scroll(viewport, {target: {scrollTop: 0}});
   expect(screen.getAllByRole('option')[0]?.textContent).toBe('1');
-});
-
-it('navigates beyond the mounted window and leaves output keys to the dispatcher', () => {
-  const view = render(<Grid live={23} />);
-  const viewport = screen.getByTestId('viewport');
-  fireEvent.scroll(viewport, {target: {scrollTop: 0}});
-  const last = screen.getAllByRole('option').at(-1);
-  if (!last) throw Error('Missing last mounted slide');
-  fireEvent.keyDown(last, {key: 'ArrowDown'});
-  expect(select).toHaveBeenLastCalledWith(27);
-  view.rerender(<Grid live={27} />);
-  expect(
-    screen.getByRole('option', {name: '28'}).getAttribute('aria-selected'),
-  ).toBe('true');
-  for (const key of ['ArrowLeft', 'ArrowRight', ' ', 'PageDown']) {
-    expect(
-      fireEvent.keyDown(screen.getByRole('option', {name: '28'}), {key}),
-    ).toBe(true);
-  }
-  fireEvent.keyDown(screen.getByRole('option', {name: '28'}), {
-    key: 'ArrowDown',
-    ctrlKey: true,
-  });
-  expect(select).toHaveBeenCalledTimes(1);
 });
 
 it('smoothly follows outside the middle band and preserves a position inside it', () => {
@@ -193,31 +158,4 @@ it('reveals a new live slide, adapts to zoom, and clamps after the list shrinks'
 it('keeps the initial unmeasured window bounded', () => {
   render(<Grid tileWidth={0} width={0} />);
   expect(screen.getAllByRole('option')).toHaveLength(16);
-});
-
-it.each([
-  {slide: '2', key: 'ArrowUp'},
-  {slide: '3', key: 'ArrowDown'},
-  {slide: '6', key: 'ArrowDown'},
-])(
-  'keeps slide $slide focused when $key has no destination in that column',
-  ({slide, key}) => {
-    render(<Grid count={6} live={Number(slide) - 1} />);
-    const option = screen.getByRole('option', {name: slide});
-    option.focus();
-    expect(fireEvent.keyDown(option, {key})).toBe(false);
-    expect(document.activeElement).toBe(option);
-    expect(select).not.toHaveBeenCalled();
-  },
-);
-
-it('moves into an incomplete final row when the destination exists', () => {
-  render(<Grid count={6} live={1} />);
-  fireEvent.keyDown(screen.getByRole('option', {name: '2'}), {
-    key: 'ArrowDown',
-  });
-  expect(select).toHaveBeenCalledExactlyOnceWith(5);
-  expect(
-    screen.getByRole('option', {name: '6'}).getAttribute('aria-selected'),
-  ).toBe('true');
 });

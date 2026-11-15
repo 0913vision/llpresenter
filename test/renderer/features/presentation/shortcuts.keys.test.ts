@@ -63,7 +63,7 @@ describe('handleShowKey Bible verse keys', () => {
 });
 
 describe('handleShowKey next and previous', () => {
-  it.each(['ArrowRight', 'Space', 'PageDown'])(
+  it.each(['ArrowRight', 'ArrowDown', 'Space', 'PageDown'])(
     'outputs the next 장 with %s',
     code => {
       expect(press(code).defaultPrevented).toBe(true);
@@ -71,17 +71,34 @@ describe('handleShowKey next and previous', () => {
     },
   );
 
-  it.each(['ArrowLeft', 'PageUp'])('outputs the previous 장 with %s', code => {
-    expect(press(code).defaultPrevented).toBe(true);
-    expect(showState.outputPrevious).toHaveBeenCalledTimes(1);
-  });
+  it.each(['ArrowLeft', 'ArrowUp', 'PageUp'])(
+    'outputs the previous 장 with %s',
+    code => {
+      expect(press(code).defaultPrevented).toBe(true);
+      expect(showState.outputPrevious).toHaveBeenCalledTimes(1);
+    },
+  );
 
   it('ignores other keys', () => {
-    press('ArrowUp');
-    press('ArrowDown');
     press('Enter');
     expect(showState.outputNext).not.toHaveBeenCalled();
     expect(showState.outputPrevious).not.toHaveBeenCalled();
+  });
+
+  it('routes up and down from the show slide grid but leaves order lists and text fields alone', () => {
+    const keeper = appendTo('div', {'data-show-slide-grid': 'true'});
+    const grid = keeper.appendChild(document.createElement('div'));
+    grid.setAttribute('role', 'listbox');
+    const order = appendTo('div', {role: 'listbox'});
+    const input = appendTo('input');
+    expect(press('ArrowDown', {}, grid).defaultPrevented).toBe(true);
+    expect(press('ArrowUp', {}, grid).defaultPrevented).toBe(true);
+    for (const target of [order, input]) {
+      expect(press('ArrowDown', {}, target).defaultPrevented).toBe(false);
+      expect(press('ArrowUp', {}, target).defaultPrevented).toBe(false);
+    }
+    expect(showState.outputNext).toHaveBeenCalledTimes(1);
+    expect(showState.outputPrevious).toHaveBeenCalledTimes(1);
   });
 
   it('runs a held key once and still swallows the repeats', () => {
