@@ -86,6 +86,9 @@ const appConfigSchema = jsonObject({
   prepMedia: v.exactOptional(v.boolean()),
   mediaBrowser: v.exactOptional(mediaBrowserSchema),
   mediaImportFolder: v.exactOptional(v.string()),
+  mediaRelinkFolder: v.exactOptional(v.string()),
+  textImportFolder: v.exactOptional(v.string()),
+  powerpointImportFolder: v.exactOptional(v.string()),
   lastBackupAt: v.exactOptional(timestamp),
 });
 

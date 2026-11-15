@@ -1295,3 +1295,7 @@ Korean Bible Society. Chapter text is held only in the session memory cache; it
 is never saved to a file or downloaded in bulk. A failed fetch shows the
 existing problem state and is retried on the next use. Installed `.llbible`
 translations continue to work.
+
+Each open-file picker remembers the folder of its last selected file across
+restarts. When that folder is unavailable or unset, the picker opens Documents;
+canceling leaves its remembered folder unchanged.

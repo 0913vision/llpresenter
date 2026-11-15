@@ -26,6 +26,9 @@ export type UiFields = Pick<
   | 'prepMedia'
   | 'mediaBrowser'
   | 'mediaImportFolder'
+  | 'mediaRelinkFolder'
+  | 'textImportFolder'
+  | 'powerpointImportFolder'
 >;
 
 /** The part of `app.json` that the UI state store reads and changes. */
@@ -167,6 +170,9 @@ export class AppConfigFile implements UiStateFields {
       prepMedia,
       mediaBrowser,
       mediaImportFolder,
+      mediaRelinkFolder,
+      textImportFolder,
+      powerpointImportFolder,
     } = this.config;
     return {
       ...(layout === undefined ? {} : {layout}),
@@ -177,6 +183,9 @@ export class AppConfigFile implements UiStateFields {
       ...(prepMedia === undefined ? {} : {prepMedia}),
       ...(mediaBrowser === undefined ? {} : {mediaBrowser}),
       ...(mediaImportFolder === undefined ? {} : {mediaImportFolder}),
+      ...(mediaRelinkFolder === undefined ? {} : {mediaRelinkFolder}),
+      ...(textImportFolder === undefined ? {} : {textImportFolder}),
+      ...(powerpointImportFolder === undefined ? {} : {powerpointImportFolder}),
     };
   }
 
