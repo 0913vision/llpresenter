@@ -88,10 +88,13 @@ describe('built-in broadcast look', () => {
     );
     const oneText = element(one, BROADCAST_LOOK_SONG_ID);
     const twoText = element(two, BROADCAST_LOOK_SONG_ID);
-    expect(oneText).toMatchObject({text: {size: 56}, frame: {h: 70}});
+    expect(oneText).toMatchObject({
+      text: {size: 56, vAlign: 'middle'},
+      frame: {h: 140},
+    });
     expect(twoText).toMatchObject({text: {size: 56}, frame: {h: 140}});
-    expect(element(two, BROADCAST_LOOK_BAND_ID).frame.h).toBeGreaterThan(
-      element(one, BROADCAST_LOOK_BAND_ID).frame.h,
+    expect(element(two, BROADCAST_LOOK_BAND_ID).frame).toEqual(
+      element(one, BROADCAST_LOOK_BAND_ID).frame,
     );
     for (const [rows, size] of [
       [2, 55],
@@ -187,29 +190,28 @@ describe('built-in broadcast look', () => {
       {...slide, lines: ['short'], bibleItemSlides},
       {...item, kind: 'blank'},
     );
-    expect(element(nonBible, BROADCAST_LOOK_BAND_ID).frame.h).toBe(
-      element(withoutGroup, BROADCAST_LOOK_BAND_ID).frame.h - 48,
-    );
+    expect(element(nonBible, BROADCAST_LOOK_BAND_ID).frame.h).toBe(271);
   });
-  it('grows the box for one, three and four rows and shrinks after three', () => {
-    const rows = [1, 3, 4].map(count =>
+  it('keeps the box fixed for one to three rows and expands for four', () => {
+    const rows = [1, 2, 3, 4].map(count =>
       fitBroadcastLook(
         plain(),
         {...slide, lines: Array(count).fill('one')},
         {...item, kind: 'blank'},
       ),
     );
-    const [one, three, four] = rows;
-    if (!one || !three || !four) throw Error('missing fitted rows');
-    const boxes = [one, three, four].map(layout =>
+    const [one, two, three, four] = rows;
+    if (!one || !two || !three || !four) throw Error('missing fitted rows');
+    const boxes = [one, two, three, four].map(layout =>
       element(layout, BROADCAST_LOOK_BAND_ID),
     );
-    const [first, third, fourth] = boxes;
-    if (!first || !third || !fourth) throw Error('missing boxes');
+    const [first, second, third, fourth] = boxes;
+    if (!first || !second || !third || !fourth) throw Error('missing boxes');
     expect(boxes.map(box => box.frame.y + box.frame.h)).toEqual([
-      1026, 1026, 1026,
+      1026, 1026, 1026, 1026,
     ]);
-    expect(third.frame.h).toBeGreaterThan(first.frame.h);
+    expect(second.frame).toEqual(first.frame);
+    expect(third.frame).toEqual(first.frame);
     expect(fourth.frame.h).toBeGreaterThan(third.frame.h);
     expect(element(three, BROADCAST_TEXT_ID)).toMatchObject({
       frame: {x: 90},
@@ -359,8 +361,16 @@ describe('built-in broadcast look', () => {
     const band = element(withTitle, BROADCAST_LOOK_BAND_ID).frame;
     const baseline = element(without, BROADCAST_LOOK_BAND_ID).frame;
     expect(band.y + band.h).toBe(baseline.y + baseline.h);
-    expect(band.y).toBe(baseline.y - 68);
-    expect(band.h).toBe(baseline.h + 68);
+    expect(band).toEqual(baseline);
+    const titleSlide = fitBroadcastLook(
+      layout,
+      {...slide, titleSlide: true, lines: ['Song']},
+      song,
+    );
+    expect(element(titleSlide, BROADCAST_LOOK_BAND_ID).frame).toEqual(band);
+    expect(
+      titleSlide.elements.some(e => e.id === BROADCAST_LOOK_SONG_TITLE_ID),
+    ).toBe(false);
     expect(element(withTitle, BROADCAST_LOOK_SONG_TITLE_ID)).toMatchObject({
       content: '새찬송가 91장 슬픈 마음 있는 사람',
       frame: {x: 96, h: 60},
