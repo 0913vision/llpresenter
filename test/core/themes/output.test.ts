@@ -16,7 +16,10 @@ import {itemThemeCell} from '@core/themes/itemThemeCell';
 import {createServiceItemId} from '@core/schema/ids';
 import {newSlidesItem} from '@core/services/slidesEdits';
 import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
-import {legacySermonTitleLayout} from '@core/themes/defaults';
+import {
+  IMAGE_SLIDES_THEME_ID,
+  legacySermonTitleLayout,
+} from '@core/themes/defaults';
 import {BIBLE_THEME_ID} from '@core/themes/defaults';
 
 describe('published theme compositions', () => {
@@ -355,6 +358,83 @@ describe('published theme compositions', () => {
         element => element.kind === 'currentText',
       ),
     ).toBe(true);
+  });
+
+  it('renders the retired sermon theme exactly like its replacement on every screen', () => {
+    const file = themeFile();
+    const retired = createThemeId('00000000-0000-4000-8000-000000000107');
+    const item = {
+      id: 'sermon',
+      kind: 'blank',
+      source: 'service',
+      title: '갈라디아서 5:25~26',
+    } as const;
+    const request = {file, screens: themeScreens, revision: 1};
+    const old = resolveThemeOutput({
+      ...request,
+      item: {...item, theme: retired},
+    });
+    const replacement = resolveThemeOutput({
+      ...request,
+      item: {...item, theme: SERMON_TITLE_THEME_ID},
+    });
+    expect(old.themeId).toBe(SERMON_TITLE_THEME_ID);
+    expect(old.screens).toEqual(replacement.screens);
+    expect(old.missing).toEqual([retired]);
+    for (const screen of themeScreens) {
+      expect(
+        old.screens[screen.id]?.layout.elements.some(
+          element =>
+            element.kind === 'itemName' || element.kind === 'currentText',
+        ),
+      ).toBe(true);
+    }
+  });
+
+  it('uses the item kind default when an unknown theme is missing', () => {
+    const file = themeFile();
+    const missing = createThemeId('00000000-0000-4000-8000-000000000999');
+    const item = {
+      id: 'song',
+      kind: 'song',
+      source: 'service',
+      theme: missing,
+    } as const;
+    const output = resolveThemeOutput({
+      file,
+      screens: themeScreens,
+      item,
+      revision: 1,
+    });
+    const expected = resolveThemeOutput({
+      file,
+      screens: themeScreens,
+      item: {id: item.id, kind: item.kind, source: item.source},
+      revision: 1,
+    });
+    expect(output.themeId).toBe(file.defaults.song);
+    expect(output.screens).toEqual(expected.screens);
+    expect(output.missing).toContain(missing);
+  });
+
+  it('keeps imported image slides on their distinct image theme', () => {
+    const file = themeFile();
+    const output = resolveThemeOutput({
+      file,
+      screens: themeScreens,
+      item: {
+        id: 'deck',
+        kind: 'blank',
+        source: 'service',
+        theme: IMAGE_SLIDES_THEME_ID,
+      },
+      revision: 1,
+    });
+    expect(output.themeId).toBe(IMAGE_SLIDES_THEME_ID);
+    expect(
+      output.screens[THEME_MAIN]?.layout.elements.map(element => element.kind),
+    ).toEqual(['media']);
+    expect(output.missing).toEqual([]);
   });
 
   it('uses built-in Bible references before themes load', () => {

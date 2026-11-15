@@ -5,6 +5,7 @@ import type {Screen} from '../schema/screens';
 import type {Theme, ThemeScreenLayout, ThemesFile} from '../schema/themes';
 import {
   builtInTheme,
+  createDefaultThemes,
   legacySectionLayout,
   IMAGE_SLIDES_THEME_ID,
   AD_THEME_ID,
@@ -18,6 +19,7 @@ import {
 import {themeElementProblem, type ThemeItemKind} from './elementRules';
 import {SONG_THEME_ID} from './songTitle';
 import {SERMON_TITLE_THEME_ID} from './sundayScripture';
+import {retiredThemeReplacement} from './retiredThemes';
 
 interface ItemThemeRequest {
   readonly file: ThemesFile | null | undefined;
@@ -38,8 +40,19 @@ export function resolveItemTheme(request: ItemThemeRequest): Theme {
     source === 'service'
       ? file?.themes.find(entry => entry.id === theme)
       : undefined;
+  const retired =
+    source === 'service' && theme !== undefined && own === undefined
+      ? retiredThemeReplacement(theme)
+      : undefined;
+  const replacement =
+    retired === undefined
+      ? undefined
+      : (file?.themes.find(entry => entry.id === retired) ??
+        createDefaultThemes(screens).themes.find(
+          entry => entry.id === retired,
+        ));
   const fallback = file?.themes.find(entry => entry.id === file.defaults[kind]);
-  return own ?? fallback ?? builtInTheme(kind, screens);
+  return own ?? replacement ?? fallback ?? builtInTheme(kind, screens);
 }
 
 const emptyLayout: ThemeScreenLayout = {mode: {kind: 'empty'}, elements: []};
