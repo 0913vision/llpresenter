@@ -27,7 +27,7 @@ retain the default ring style.
 - Selected: `selection` plate. Hover: `bg-raised`
   plate. Selection wins over hover and does not dim when focus leaves the list.
   The attached caption strip keeps `label-fill` and `label-ink`. Preparation grid plates have a `ring-selected` outline.
-- Live in Show: `ring-live` around the picture. Preparation does not display a live slide ring. Keyboard focus draws a 2px `accent`
+- Live in Show: `ring-live` around the picture and its attached number and label band. Preparation does not display a live slide ring. Keyboard focus draws a 2px `accent`
   outline 2px outside the plate, so neither the plate nor the live ring covers it.
 - Grid: number and label in a 24px color-filled strip attached to the picture;
   24px grid gaps leave room for the plates. No checkbox, including hover/focus.
