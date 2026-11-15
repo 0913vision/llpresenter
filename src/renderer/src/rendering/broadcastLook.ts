@@ -171,7 +171,16 @@ function fitBand(
             ),
           fitted.height,
         )
-      : fitted.height;
+      : bible
+        ? fitted.height
+        : Math.max(
+            fitted.height,
+            Math.ceil(
+              geometry.bodyPreferredLines *
+                geometry.bodySize *
+                geometry.bodyLineHeight,
+            ),
+          );
   const hasHeader = bible;
   const bandHeight =
     height +
@@ -263,12 +272,17 @@ function fitSong(
   if (value.split('\n').length > geometry.songLines) {
     value = value.replace(/\s*\n\s*/gu, ' ');
   }
-  const {size, height} = fittedText({
+  const fitted = fittedText({
     element: body,
     value,
     width: geometry.songWidth,
     song: true,
   });
+  const size = fitted.size;
+  const height =
+    caption === 'band'
+      ? geometry.songLines * geometry.songSize * geometry.songLineHeight
+      : fitted.height;
   const padding = caption === 'band' ? geometry.songBandPadding : 0;
   const bottom =
     caption === 'band' ? geometry.songBandBottom : geometry.songTextBottom;
@@ -279,6 +293,7 @@ function fitSong(
     size,
     align: 'center' as const,
     color: geometry.headerTextColor,
+    ...(caption === 'band' ? {vAlign: 'middle' as const} : {}),
   };
   const effect = caption === 'band' ? ('bandText' as const) : ('text' as const);
   const title =
@@ -287,16 +302,16 @@ function fitSong(
           .split(/\r?\n/u)[0]
           ?.trim() ?? '')
       : '';
-  const titleSpace =
+  const showTitle =
     caption === 'band' &&
     title !== '' &&
     slide?.titleSlide !== true &&
     intent.songTitle === undefined &&
     value.trim().replace(/\s+/gu, ' ') !==
       (item?.title ?? '').trim().replace(/\s+/gu, ' ') &&
-    value.trim().replace(/\s+/gu, ' ') !== title.replace(/\s+/gu, ' ')
-      ? geometry.songTitleHeight + geometry.songTitleGap
-      : 0;
+    value.trim().replace(/\s+/gu, ' ') !== title.replace(/\s+/gu, ' ');
+  const titleSpace =
+    caption === 'band' ? geometry.songTitleHeight + geometry.songTitleGap : 0;
   const elements = layout.elements.map((e): ResolvedThemeElement => {
     if (e.id === BROADCAST_LOOK_BAND_ID && e.kind === 'box') {
       return {
@@ -330,7 +345,7 @@ function fitSong(
     }
     return e;
   });
-  if (titleSpace > 0) {
+  if (showTitle) {
     elements.push({
       id: BROADCAST_LOOK_SONG_TITLE_ID,
       kind: 'text',
