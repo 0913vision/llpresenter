@@ -1,10 +1,10 @@
 import type {SlideTransition} from '@core/schema/slideTransition';
 import {THEME_LIMITS} from '@core/themes/elementRules';
 
-export const WIPE_DURATION_MS_PER_SECOND = 922;
+export const WIPE_DURATION_MS_PER_SECOND = 1000;
 const WIPE_STEPS = 32;
-const WIPE_START = 38;
-const WIPE_END = 62;
+const WIPE_START = 37.875;
+const WIPE_END = 62.125;
 
 export function wipeMask(direction: string): string {
   const stops = Array.from({length: WIPE_STEPS + 1}, (_, index) => {
@@ -29,27 +29,27 @@ const TRAVEL = {
   up: ['translateY(100%)', 'translateY(-100%)'],
   down: ['translateY(-100%)', 'translateY(100%)'],
 } as const;
-/** PowerPoint's feather begins at the edge and reaches halfway near 35% of the set time. */
+/** PowerPoint's feather traverses 2.02 screen widths over the set time. */
 const WIPE = {
   left: {
     direction: 'left',
-    from: '19.3333333333333% 0%',
-    to: '98% 0%',
+    from: '20% 0%',
+    to: '87.3333333333333% 0%',
   },
   right: {
     direction: 'right',
-    from: '80.6666666666667% 0%',
-    to: '2% 0%',
+    from: '80% 0%',
+    to: '12.6666666666667% 0%',
   },
   up: {
     direction: 'top',
-    from: '0% 19.3333333333333%',
-    to: '0% 98%',
+    from: '0% 20%',
+    to: '0% 87.3333333333333%',
   },
   down: {
     direction: 'bottom',
-    from: '0% 80.6666666666667%',
-    to: '0% 2%',
+    from: '0% 80%',
+    to: '0% 12.6666666666667%',
   },
 } as const;
 

@@ -83,23 +83,23 @@ describe('SlideAnimation', () => {
     if (!Array.isArray(inner)) throw new Error('Missing counter-motion');
     expect(
       Number.parseFloat(String(inner[0]?.transform).replace('translateX(', '')),
-    ).toBeCloseTo(58);
+    ).toBeCloseTo(60);
     expect(
       Number.parseFloat(String(inner[1]?.transform).replace('translateX(', '')),
-    ).toBeCloseTo(294);
+    ).toBeCloseTo(262);
     expect(animate.mock.calls[0]?.[1]).toEqual({
-      duration: 922,
+      duration: 1000,
       easing: 'linear',
       fill: 'both',
     });
   });
-  it('sweeps a 0.96-screen feather with the PowerPoint midpoint timing', () => {
+  it('sweeps a 0.97-screen feather over the full configured time', () => {
     const {view, old, next, animate} = setup();
     view.play(old, next, {kind: 'wipe', dir: 'left', sec: 0.7});
     const frames = animate.mock.calls[0]?.[0];
     if (!Array.isArray(frames)) throw new Error('Missing wipe keyframes');
     expect(animate.mock.calls[0]?.[1]).toEqual({
-      duration: 645.4,
+      duration: 700,
       easing: 'linear',
       fill: 'both',
     });
@@ -110,14 +110,42 @@ describe('SlideAnimation', () => {
     const from = offset(frames[0]);
     const to = offset(frames[1]);
     const center = (p: number) => 2 + from + (to - from) * p;
-    expect(center(0)).toBeCloseTo(1.42, 5);
-    expect(center(0.5)).toBeCloseTo(0.24, 5);
-    expect(center(1)).toBeCloseTo(-0.94, 5);
-    expect(
-      (4 * 0.922 * (center(0) - 0.5)) / (center(0) - center(1)),
-    ).toBeCloseTo(1.4, 1);
-    expect((4 * (62 - 38)) / 100).toBeCloseTo(0.96, 5);
+    expect(center(0)).toBeCloseTo(1.4, 5);
+    expect(center(0.5)).toBeCloseTo(0.39, 5);
+    expect(center(1)).toBeCloseTo(-0.62, 5);
+    expect((4 * (62.125 - 37.875)) / 100).toBeCloseTo(0.97, 5);
   });
+  it.each([
+    ['left', [1.4, 0.895, 0.39, -0.115, -0.62]],
+    ['up', [1.4, 0.895, 0.39, -0.115, -0.62]],
+    ['right', [-0.4, 0.105, 0.61, 1.115, 1.62]],
+    ['down', [-0.4, 0.105, 0.61, 1.115, 1.62]],
+  ] as const)(
+    'matches the measured centre trajectory in direction %s',
+    (direction, expected) => {
+      const {view, old, next, animate} = setup();
+      view.play(old, next, {kind: 'wipe', dir: direction, sec: 4});
+      const frames = animate.mock.calls[0]?.[0];
+      if (!Array.isArray(frames)) throw new Error('Missing wipe keyframes');
+      const offset = (frame: Keyframe | undefined) =>
+        (Number.parseFloat(
+          String(frame?.transform).replace(/^translate[XY]\(/, ''),
+        ) *
+          4) /
+        100;
+      const from = offset(frames[0]);
+      const to = offset(frames[1]);
+      for (const [index, value] of expected.entries()) {
+        const fraction = index / 4;
+        expect(2 + from + (to - from) * fraction).toBeCloseTo(value, 5);
+      }
+      expect(animate.mock.calls[0]?.[1]).toEqual({
+        duration: 4000,
+        easing: 'linear',
+        fill: 'both',
+      });
+    },
+  );
   it('uses a monotone smooth edge fitted to the PowerPoint four-second capture', () => {
     const {view, old, next} = setup();
     view.play(old, next, {kind: 'wipe', dir: 'left', sec: 4});
@@ -126,8 +154,8 @@ describe('SlideAnimation', () => {
       ...mask.matchAll(/rgba\(0, 0, 0, ([\d.]+)\) ([\d.]+)%/g),
     ].map(match => ({alpha: Number(match[1]), position: Number(match[2])}));
     expect(stops).toHaveLength(33);
-    expect(stops[0]).toEqual({alpha: 1, position: 38});
-    expect(stops.at(-1)).toEqual({alpha: 0, position: 62});
+    expect(stops[0]).toEqual({alpha: 1, position: 37.875});
+    expect(stops.at(-1)).toEqual({alpha: 0, position: 62.125});
     const slopes = stops
       .slice(1)
       .map((stop, index) => stop.alpha - (stops[index]?.alpha ?? 0));
@@ -146,7 +174,7 @@ describe('SlideAnimation', () => {
       0.85,
     ];
     const error = measured.reduce((sum, value, index) => {
-      const t = Math.max(0, Math.min(1, (index * 120 - 146) / (1920 * 0.96)));
+      const t = Math.max(0, Math.min(1, (index * 120 - 146) / (1920 * 0.97)));
       const position = t * (stops.length - 1);
       const lower = Math.floor(position);
       const upper = Math.min(stops.length - 1, lower + 1);
@@ -175,7 +203,7 @@ describe('SlideAnimation', () => {
         expect(local).toBeLessThan(4);
         const position =
           (direction === 'left' || direction === 'up' ? 4 - local : local) / 4;
-        expect(position).toBeLessThanOrEqual(0.38);
+        expect(position).toBeLessThanOrEqual(0.37875);
       }
     },
   );
@@ -260,7 +288,7 @@ describe('SlideAnimation', () => {
         ),
       ).toBe(true);
       expect(animate.mock.calls[0]?.[1]).toEqual({
-        duration: 461,
+        duration: 500,
         easing: 'linear',
         fill: 'both',
       });
