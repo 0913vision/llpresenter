@@ -15,10 +15,30 @@ const TRAVEL = {
   down: ['translateY(-100%)', 'translateY(100%)'],
 } as const;
 const WIPE = {
-  left: {direction: 'left', size: '285% 100%', from: '0% 0%', to: '100% 0%'},
-  right: {direction: 'right', size: '285% 100%', from: '100% 0%', to: '0% 0%'},
-  up: {direction: 'top', size: '100% 285%', from: '0% 0%', to: '0% 100%'},
-  down: {direction: 'bottom', size: '100% 285%', from: '0% 100%', to: '0% 0%'},
+  left: {
+    direction: 'left',
+    size: '300% 100%',
+    from: '1.5% 0%',
+    to: '98% 0%',
+  },
+  right: {
+    direction: 'right',
+    size: '300% 100%',
+    from: '98.5% 0%',
+    to: '2% 0%',
+  },
+  up: {
+    direction: 'top',
+    size: '100% 300%',
+    from: '0% 1.5%',
+    to: '0% 98%',
+  },
+  down: {
+    direction: 'bottom',
+    size: '100% 300%',
+    from: '0% 98.5%',
+    to: '0% 2%',
+  },
 } as const;
 
 /** Owns at most two compositor animations, including interruption and disposal. */
@@ -78,7 +98,7 @@ export class SlideAnimation {
         break;
       case 'wipe': {
         const wipe = WIPE[dir];
-        const maskImage = `linear-gradient(to ${wipe.direction}, black 0%, black 35.087719%, transparent 64.912281%, transparent 100%)`;
+        const maskImage = `linear-gradient(to ${wipe.direction}, black 0%, black 38.333333%, transparent 61.666667%, transparent 100%)`;
         outgoing = [{opacity: 1}, {opacity: 1}];
         incoming = [
           {
@@ -97,7 +117,10 @@ export class SlideAnimation {
         break;
       }
     }
-    const timing = {duration: effect.sec * 1000, easing: 'linear'};
+    const timing = {
+      duration: effect.sec * (effect.kind === 'wipe' ? 830 : 1000),
+      easing: 'linear',
+    };
     this.animations =
       effect.kind === 'wipe'
         ? [next.animate(incoming, timing)]

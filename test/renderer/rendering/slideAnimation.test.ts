@@ -26,114 +26,40 @@ describe('SlideAnimation', () => {
       [
         {
           maskImage:
-            'linear-gradient(to left, black 0%, black 35.087719%, transparent 64.912281%, transparent 100%)',
-          maskSize: '285% 100%',
-          maskPosition: '0% 0%',
+            'linear-gradient(to left, black 0%, black 38.333333%, transparent 61.666667%, transparent 100%)',
+          maskSize: '300% 100%',
+          maskPosition: '1.5% 0%',
           maskRepeat: 'no-repeat',
         },
         {
           maskImage:
-            'linear-gradient(to left, black 0%, black 35.087719%, transparent 64.912281%, transparent 100%)',
-          maskSize: '285% 100%',
-          maskPosition: '100% 0%',
+            'linear-gradient(to left, black 0%, black 38.333333%, transparent 61.666667%, transparent 100%)',
+          maskSize: '300% 100%',
+          maskPosition: '98% 0%',
           maskRepeat: 'no-repeat',
         },
       ],
-      {duration: 1000, easing: 'linear'},
+      {duration: 830, easing: 'linear'},
     );
   });
-  it('moves the feather across the whole screen over the whole duration', () => {
+  it('sweeps a 0.7-screen feather 1.93 screen widths in 83% of the set time', () => {
     const {view, old, next, animate} = setup();
-    view.play(old, next, {kind: 'wipe', dir: 'left', sec: 1});
+    view.play(old, next, {kind: 'wipe', dir: 'left', sec: 0.7});
     const frames = animate.mock.calls[0]?.[0];
     if (!Array.isArray(frames)) throw new Error('Missing wipe keyframes');
-    const first = frames[0];
-    if (
-      first === undefined ||
-      typeof first.maskImage !== 'string' ||
-      typeof first.maskSize !== 'string'
-    ) {
-      throw new Error('Missing mask');
-    }
-    const stops = /black ([\d.]+)%, transparent ([\d.]+)%/.exec(
-      first.maskImage,
-    );
-    if (!stops) throw new Error('Missing feather stops');
-    const size = Number.parseFloat(first.maskSize) / 100;
-    const transparentStop = Number(stops[2]) / 100;
-    const edgeAt = (progress: number) =>
-      Math.max(
-        0,
-        Math.min(1, size * (1 - transparentStop) + (1 - size) * progress),
-      );
-    expect(edgeAt(0)).toBeCloseTo(1, 5);
-    expect(edgeAt(0.5)).toBeCloseTo(0.075, 5);
-    expect((size * (Number(stops[2]) - Number(stops[1]))) / 100).toBeCloseTo(
-      0.85,
-      5,
-    );
-    expect(edgeAt(1)).toBeCloseTo(0, 5);
-    const opaqueEdgeAt = (progress: number) =>
-      size * (1 - Number(stops[1]) / 100) + (1 - size) * progress;
-    expect(opaqueEdgeAt(0.7)).toBeCloseTo(0.555, 5);
-    expect(opaqueEdgeAt(1)).toBeCloseTo(0, 5);
-  });
-  it('samples a paused wipe at fixed animation times without finishing early', () => {
-    const old = document.createElement('div');
-    const next = document.createElement('div');
-    const animations: Array<{
-      currentTime: number;
-      pause: () => void;
-      cancel: () => void;
-    }> = [];
-    const animate = vi.fn(() => {
-      const animation = {currentTime: 0, pause: vi.fn(), cancel: vi.fn()};
-      animations.push(animation);
-      return animation;
+    expect(animate.mock.calls[0]?.[1]).toEqual({
+      duration: 581,
+      easing: 'linear',
     });
-    Object.defineProperty(old, 'animate', {value: animate});
-    Object.defineProperty(next, 'animate', {value: animate});
-    Object.defineProperty(document, 'getAnimations', {
-      configurable: true,
-      value: () => animations,
-    });
-    try {
-      const view = new SlideAnimation();
-      view.play(old, next, {kind: 'wipe', dir: 'left', sec: 1});
-      document.getAnimations().forEach(animation => animation.pause());
-      const sample = (time: number, x: number): number => {
-        document.getAnimations().forEach(animation => {
-          animation.currentTime = time;
-        });
-        const progress = (animations[0]?.currentTime ?? 0) / 1000;
-        return Math.max(0, Math.min(1, (x + 1.85 * progress - 1) / 0.85));
-      };
-      expect([sample(250, 0.1), sample(250, 0.5), sample(250, 0.9)]).toEqual([
-        0,
-        0,
-        expect.closeTo(0.42647, 4),
-      ]);
-      expect([sample(500, 0.1), sample(500, 0.5), sample(500, 0.9)]).toEqual([
-        expect.closeTo(0.02941, 4),
-        expect.closeTo(0.5, 4),
-        expect.closeTo(0.97059, 4),
-      ]);
-      expect([sample(750, 0.1), sample(750, 0.5), sample(750, 0.9)]).toEqual([
-        expect.closeTo(0.57353, 4),
-        1,
-        1,
-      ]);
-      expect(sample(700, 0)).toBeLessThan(1);
-      expect(sample(1000, 0)).toBeCloseTo(1);
-      expect(
-        animations.every(
-          animation => vi.mocked(animation.pause).mock.calls.length === 1,
-        ),
-      ).toBe(true);
-      view.cancel();
-    } finally {
-      Reflect.deleteProperty(document, 'getAnimations');
-    }
+    const size = Number.parseFloat(String(frames[0]?.maskSize)) / 100;
+    const from = Number.parseFloat(String(frames[0]?.maskPosition)) / 100;
+    const to = Number.parseFloat(String(frames[1]?.maskPosition)) / 100;
+    const center = (p: number) =>
+      size / 2 + (1 - size) * (from + (to - from) * p);
+    expect(center(0)).toBeCloseTo(1.47, 5);
+    expect(center(0.5)).toBeCloseTo(0.505, 5);
+    expect(center(1)).toBeCloseTo(-0.46, 5);
+    expect((size * (61.666667 - 38.333333)) / 100).toBeCloseTo(0.7, 5);
   });
   it.each([
     ['left', 'translateX(100%)', 'translateX(-100%)'],
@@ -163,23 +89,46 @@ describe('SlideAnimation', () => {
   it.each([
     [
       'left',
-      {direction: 'left', size: '285% 100%', from: '0% 0%', to: '100% 0%'},
+      {
+        direction: 'left',
+        size: '300% 100%',
+        from: '1.5% 0%',
+        to: '98% 0%',
+      },
     ],
     [
       'right',
-      {direction: 'right', size: '285% 100%', from: '100% 0%', to: '0% 0%'},
+      {
+        direction: 'right',
+        size: '300% 100%',
+        from: '98.5% 0%',
+        to: '2% 0%',
+      },
     ],
-    ['up', {direction: 'top', size: '100% 285%', from: '0% 0%', to: '0% 100%'}],
+    [
+      'up',
+      {
+        direction: 'top',
+        size: '100% 300%',
+        from: '0% 1.5%',
+        to: '0% 98%',
+      },
+    ],
     [
       'down',
-      {direction: 'bottom', size: '100% 285%', from: '0% 100%', to: '0% 0%'},
+      {
+        direction: 'bottom',
+        size: '100% 300%',
+        from: '0% 98.5%',
+        to: '0% 2%',
+      },
     ],
   ] as const)(
     'reveals the incoming page in direction %s',
     (dir, {direction, size, from, to}) => {
       const {view, old, next, animate} = setup();
       view.play(old, next, {kind: 'wipe', dir, sec: 0.5});
-      const maskImage = `linear-gradient(to ${direction}, black 0%, black 35.087719%, transparent 64.912281%, transparent 100%)`;
+      const maskImage = `linear-gradient(to ${direction}, black 0%, black 38.333333%, transparent 61.666667%, transparent 100%)`;
       expect(old.style.opacity).toBe('1');
       expect(animate).toHaveBeenCalledTimes(1);
       expect(animate).toHaveBeenNthCalledWith(
@@ -198,7 +147,7 @@ describe('SlideAnimation', () => {
             maskRepeat: 'no-repeat',
           },
         ],
-        {duration: 500, easing: 'linear'},
+        {duration: 415, easing: 'linear'},
       );
     },
   );

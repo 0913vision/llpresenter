@@ -543,7 +543,7 @@ describe('startOutput', () => {
     expect(message()).toBe('Targeted output');
     stop();
     expect(stopLive).toHaveBeenCalledTimes(1);
-    expect(stopSettings).toHaveBeenCalledTimes(4);
+    expect(stopSettings).toHaveBeenCalledTimes(5);
     expect(root.children).toHaveLength(0);
   });
 

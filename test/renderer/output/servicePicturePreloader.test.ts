@@ -48,3 +48,33 @@ it('does not render a cut slide outside the selected transition pairs', async ()
   expect(render).not.toHaveBeenCalled();
   preloader.dispose();
 });
+
+it('prioritizes an eligible requested slide that is already queued', async () => {
+  const rows: readonly ServiceRow[] = [
+    {kind: 'song', id: 'song', title: 'Song'},
+  ];
+  const tile: SlideTile = {
+    label: null,
+    labelColor: 'none',
+    lines: [],
+    transition: {kind: 'wipe', sec: 1},
+  };
+  let finish: (picture: string | null) => void = () => undefined;
+  const render = vi
+    .fn()
+    .mockImplementationOnce(
+      () =>
+        new Promise<string | null>(resolve => {
+          finish = resolve;
+        }),
+    )
+    .mockResolvedValue('picture');
+  const preloader = new ServicePicturePreloader(render);
+  preloader.refresh(rows, {song: [tile, tile, tile]});
+  await vi.waitFor(() => expect(render).toHaveBeenCalledTimes(1));
+  preloader.request({itemId: 'song', index: 2});
+  finish('first');
+  await vi.waitFor(() => expect(render).toHaveBeenCalledTimes(3));
+  expect(render.mock.calls[1]?.[0]).toEqual({itemId: 'song', index: 2});
+  preloader.dispose();
+});
