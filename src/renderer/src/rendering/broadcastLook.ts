@@ -264,18 +264,39 @@ function fitSong(
   );
   if (body?.kind !== 'currentText') return layout;
   const intent = broadcastIntent(slide, item);
+  // NOTE(0913vision): 방송 shows nothing for an empty song slide and only the
+  // first line (the song title) for a title slide; decorative subtitles stay off.
   const raw =
-    intent.songTitle ??
-    themeElementText(body, {layers: {...emptyLayers(), slide}, item}) ??
-    '';
-  let value = raw;
+    themeElementText(body, {layers: {...emptyLayers(), slide}, item}) ?? '';
+  let value =
+    slide?.titleSlide === true ? (raw.split('\n')[0]?.trim() ?? '') : raw;
   if (value.split('\n').length > geometry.songLines) {
     value = value.replace(/\s*\n\s*/gu, ' ');
   }
+  const title =
+    item?.kind === 'song'
+      ? ((item.broadcastSongTitle ?? item.title ?? '')
+          .split(/\r?\n/u)[0]
+          ?.trim() ?? '')
+      : '';
+  const showTitle =
+    caption === 'band' &&
+    title !== '' &&
+    slide?.titleSlide !== true &&
+    intent.songTitle === undefined &&
+    value.trim().replace(/\s+/gu, ' ') !==
+      (item?.title ?? '').trim().replace(/\s+/gu, ' ') &&
+    value.trim().replace(/\s+/gu, ' ') !== title.replace(/\s+/gu, ' ');
+  // NOTE(0913vision): the title sits in the empty left part of the band, so the
+  // band keeps its height; the lyrics keep the screen center in a narrower box.
+  const lyricX = showTitle ? geometry.songTitleX + 364 : geometry.songX;
+  const lyricWidth = showTitle
+    ? geometry.screenWidth - 2 * lyricX
+    : geometry.songWidth;
   const fitted = fittedText({
     element: body,
     value,
-    width: geometry.songWidth,
+    width: lyricWidth,
     song: true,
   });
   const size = fitted.size;
@@ -296,22 +317,7 @@ function fitSong(
     ...(caption === 'band' ? {vAlign: 'middle' as const} : {}),
   };
   const effect = caption === 'band' ? ('bandText' as const) : ('text' as const);
-  const title =
-    item?.kind === 'song'
-      ? ((item.broadcastSongTitle ?? item.title ?? '')
-          .split(/\r?\n/u)[0]
-          ?.trim() ?? '')
-      : '';
-  const showTitle =
-    caption === 'band' &&
-    title !== '' &&
-    slide?.titleSlide !== true &&
-    intent.songTitle === undefined &&
-    value.trim().replace(/\s+/gu, ' ') !==
-      (item?.title ?? '').trim().replace(/\s+/gu, ' ') &&
-    value.trim().replace(/\s+/gu, ' ') !== title.replace(/\s+/gu, ' ');
-  const titleSpace =
-    caption === 'band' ? geometry.songTitleHeight + geometry.songTitleGap : 0;
+  const titleSpace = 0;
   const elements = layout.elements.map((e): ResolvedThemeElement => {
     if (e.id === BROADCAST_LOOK_BAND_ID && e.kind === 'box') {
       return {
@@ -336,7 +342,7 @@ function fitSong(
     if (e.id === BROADCAST_LOOK_SONG_ID && e.kind === 'currentText') {
       return {
         ...e,
-        frame: {x: geometry.songX, y: top, w: geometry.songWidth, h: height},
+        frame: {x: lyricX, y: top, w: lyricWidth, h: height},
         text,
         minimumTextSize: size,
         broadcastText: visible ? value : '',
@@ -354,16 +360,16 @@ function fitSong(
       runtimeHidden: !visible,
       frame: {
         x: geometry.songTitleX,
-        y: top - titleSpace,
-        w: geometry.songWidth,
-        h: geometry.songTitleHeight,
+        y: top,
+        w: 340,
+        h: height,
       },
       text: {
         ...body.text,
         size: geometry.songTitleSize,
         weight: 600,
         align: 'left',
-        vAlign: 'top',
+        vAlign: 'middle',
         color: '#E6E6E6',
         lineHeight: 1.25,
       },
