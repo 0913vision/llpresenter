@@ -33,6 +33,26 @@ it('retains an edited image theme that used the colliding retired ID', () => {
   }
 });
 
+it('keeps the image theme position when loading the former ID in theme order', () => {
+  const file = createDefaultThemes();
+  const legacy = createThemeId('00000000-0000-4000-8000-000000000107');
+  const order = file.themes.map(theme =>
+    theme.id === IMAGE_SLIDES_THEME_ID ? legacy : theme.id,
+  );
+  const result = settingsCodecs.themes.parse(
+    JSON.stringify({...file, themeOrder: order}),
+    'themes.json',
+  );
+  expect(result.ok).toBe(true);
+  if (!result.ok) throw Error('Could not load theme order');
+  expect(result.value.data.themes.map(theme => theme.id)).toEqual(
+    file.themes.map(theme => theme.id),
+  );
+  expect(result.value.data.themeOrder).toEqual(
+    file.themes.map(theme => theme.id),
+  );
+});
+
 it('persists the order of built-in and user themes across reloads', () => {
   const file = createDefaultThemes();
   const user = {

@@ -77,7 +77,14 @@ function parseStoredThemes(text: string, file: string) {
     ...builtIns.themes.map(theme => overrides.get(theme.id) ?? theme),
     ...saved.filter(theme => !isRecord(theme) || !isBuiltIn(theme.id)),
   ];
-  const order = Array.isArray(raw.themeOrder) ? raw.themeOrder : [];
+  const storedOrder: readonly unknown[] = Array.isArray(raw.themeOrder)
+    ? raw.themeOrder
+    : [];
+  const order = storedOrder.includes(IMAGE_SLIDES_THEME_ID)
+    ? storedOrder.filter(id => id !== LEGACY_IMAGE_SLIDES_THEME_ID)
+    : storedOrder.map(id =>
+        id === LEGACY_IMAGE_SLIDES_THEME_ID ? IMAGE_SLIDES_THEME_ID : id,
+      );
   const positions = new Map(order.map((id, index) => [id, index]));
   merged.sort((a, b) => {
     const left = isRecord(a) ? positions.get(a.id) : undefined;
@@ -89,6 +96,7 @@ function parseStoredThemes(text: string, file: string) {
       ...raw,
       standby,
       themes: merged,
+      ...(Array.isArray(raw.themeOrder) ? {themeOrder: order} : {}),
     }),
     file,
   );
