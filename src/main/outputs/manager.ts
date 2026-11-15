@@ -170,6 +170,15 @@ export class OutputManager {
     this.windows.get(screenId)?.retry();
   }
 
+  /** Rebuilds native output windows while retaining the live output switches. */
+  recreateWindows(): void {
+    if (this.disposed) return;
+    for (const output of this.windows.values()) output.dispose();
+    this.windows.clear();
+    this.targets.clear();
+    this.sync();
+  }
+
   /** 창 보기 for a screen whose output shows as a window. */
   showWindow(screenId: string): void {
     this.windows.get(screenId)?.bringToFront();

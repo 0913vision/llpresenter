@@ -250,6 +250,23 @@ beforeEach(() => {
 });
 
 describe('OutputManager placement', () => {
+  it('recreates output windows without changing the live switches', () => {
+    const {manager, store} = setUp();
+    store.dispatch(turn(true));
+    const old = outputOf('main');
+    const state = store.state;
+    store.dispatch.mockClear();
+    manager.recreateWindows();
+    expect(old.dispose).toHaveBeenCalledOnce();
+    expect(mocks.outputs).toHaveLength(2);
+    expect(mocks.outputs[1]?.update).toHaveBeenCalledWith(
+      fullScreenOn(PROJECTOR),
+      expect.anything(),
+    );
+    expect(store.state).toBe(state);
+    expect(store.dispatch).not.toHaveBeenCalled();
+    manager.dispose();
+  });
   it('replaces the target window and reports NDI when a screen changes target', () => {
     const initial = screenOn(PROJECTOR);
     const {manager, store, source} = setUp([initial]);
