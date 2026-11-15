@@ -8,9 +8,16 @@ import {
   type FrameFieldChange,
 } from '@core/canvas/frameEdit';
 import {THEME_LIMITS, type ThemeElementKind} from '@core/themes/elementRules';
-import {changeThemeElement, editThemeElements} from '@core/themes/elementEdits';
+import {
+  changeThemeElement,
+  editThemeElements,
+  hasThemeText,
+} from '@core/themes/elementEdits';
 import {newThemeElement} from '@core/themes/newElement';
-import type {ThemeTarget} from '@core/themes/themeEdits';
+import {editThemeLayout, type ThemeTarget} from '@core/themes/themeEdits';
+import {sameJson} from '@core/common/sameJson';
+import {checkPart} from '@core/schema/fileFormat';
+import {themeElementSchema} from '@core/schema/themes';
 import type {ThemeWrites} from './useThemeWrites';
 import type {ThemeSelection} from './useThemeSelection';
 
@@ -25,11 +32,16 @@ export interface ThemeAddPlacement {
   readonly point?: {readonly x: number; readonly y: number};
 }
 export function useThemeElements(
-  context: {target: ThemeTarget | undefined; elementReason: string | undefined},
+  context: {
+    target: ThemeTarget | undefined;
+    elementReason: string | undefined;
+    fittedBroadcast: boolean;
+    visibleElements: readonly ThemeElement[];
+  },
   writes: ThemeWrites,
   selection: ThemeSelection,
 ) {
-  const {target, elementReason} = context;
+  const {target, elementReason, fittedBroadcast, visibleElements} = context;
   const {edit, report} = writes;
   const {
     keepRatio,
@@ -63,8 +75,52 @@ export function useThemeElements(
     id: string,
     transform: (element: ThemeElement) => unknown,
     completed?: (saved: boolean) => void,
-  ): void =>
-    elements(values => changeThemeElement(values, id, transform), completed);
+  ): void => {
+    if (!fittedBroadcast || target === undefined) {
+      elements(values => changeThemeElement(values, id, transform), completed);
+      return;
+    }
+    const before = visibleElements.find(element => element.id === id);
+    if (!before) return;
+    const parsed = checkPart(themeElementSchema, transform(before));
+    if (
+      !parsed.ok ||
+      parsed.value.id !== before.id ||
+      parsed.value.kind !== before.kind
+    ) {
+      return;
+    }
+    const after = parsed.value;
+    edit(
+      target.theme,
+      file =>
+        editThemeLayout(file, target, layout => {
+          const previous = layout.broadcastEdits?.[before.id];
+          const patch = {
+            ...previous,
+            ...(!sameJson(before.frame, after.frame)
+              ? {frame: after.frame}
+              : {}),
+            ...('text' in before &&
+            'text' in after &&
+            !sameJson(before.text, after.text)
+              ? {text: after.text}
+              : {}),
+            ...((before.kind === 'box' || hasThemeText(before)) &&
+            (after.kind === 'box' || hasThemeText(after)) &&
+            after.box !== undefined &&
+            !sameJson(before.box, after.box)
+              ? {box: after.box}
+              : {}),
+          };
+          return {
+            ...layout,
+            broadcastEdits: {...layout.broadcastEdits, [before.id]: patch},
+          };
+        }),
+      completed,
+    );
+  };
 
   const frame = (
     id: string,
@@ -158,6 +214,44 @@ export function useThemeElements(
       } else add(kind, options);
     },
     elements,
+    fittedBroadcast,
+    frames: (
+      frames: ReadonlyArray<{id: string; frame: ElementFrame}>,
+      completed?: (saved: boolean) => void,
+    ) => {
+      if (!fittedBroadcast) {
+        elements(
+          values =>
+            values.map(element => {
+              const next = frames.find(row => row.id === element.id);
+              return next ? {...element, frame: next.frame} : element;
+            }),
+          completed,
+        );
+        return;
+      }
+      if (!target) return;
+      edit(
+        target.theme,
+        file =>
+          editThemeLayout(file, target, layout => {
+            const broadcastEdits = {...layout.broadcastEdits};
+            for (const row of frames) {
+              const element = visibleElements.find(
+                value => value.id === row.id,
+              );
+              if (element) {
+                broadcastEdits[element.id] = {
+                  ...broadcastEdits[element.id],
+                  frame: frameWithinBounds(row.frame, themeCanvasBounds),
+                };
+              }
+            }
+            return {...layout, broadcastEdits};
+          }),
+        completed,
+      );
+    },
     property,
     frame,
     frameValue,

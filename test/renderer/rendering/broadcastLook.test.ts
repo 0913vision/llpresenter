@@ -392,6 +392,38 @@ describe('built-in broadcast look', () => {
       textOnly.elements.some(e => e.id === BROADCAST_LOOK_SONG_TITLE_ID),
     ).toBe(false);
   });
+  it('persists a fixed song band and a separate title size across lyric slides', () => {
+    const layout = builtInTheme('song').screens[screen];
+    if (!layout) throw Error('missing song');
+    const song = {...item, kind: 'song' as const, title: 'Song title'};
+    const initial = fitBroadcastLook(layout, slide, song);
+    const band = element(initial, BROADCAST_LOOK_BAND_ID);
+    const title = element(initial, BROADCAST_LOOK_SONG_TITLE_ID);
+    if (title.kind !== 'text') throw Error('missing title');
+    const frame = {...band.frame, y: band.frame.y - 80, h: band.frame.h + 80};
+    const edited = {
+      ...layout,
+      broadcastEdits: {
+        [band.id]: {frame},
+        [title.id]: {text: {...title.text, size: 70}},
+      },
+    };
+    for (const current of [slide, {...slide, lines: ['another', 'verse']}]) {
+      const fitted = fitBroadcastLook(edited, current, song);
+      expect(element(fitted, BROADCAST_LOOK_BAND_ID).frame).toEqual(frame);
+      expect(element(fitted, BROADCAST_LOOK_SONG_TITLE_ID)).toMatchObject({
+        frame: {y: frame.y + 12},
+        text: {size: 70},
+      });
+      const lyric = element(fitted, BROADCAST_LOOK_SONG_ID).frame;
+      expect(lyric.y).toBeGreaterThanOrEqual(frame.y);
+      expect(lyric.y + lyric.h).toBeLessThanOrEqual(frame.y + frame.h);
+    }
+    expect(
+      element(fitBroadcastLook(layout, slide, song), BROADCAST_LOOK_BAND_ID)
+        .frame,
+    ).toEqual(band.frame);
+  });
   it('shows the small song title only when the band is showing lyrics', () => {
     const layout = builtInTheme('song').screens[screen];
     if (!layout) throw Error('missing song');
