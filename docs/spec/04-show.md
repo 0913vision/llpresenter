@@ -1250,4 +1250,6 @@ operations are undoable. An existing section card on the Bible item remains the
 first slide of the sermon and returns to the Bible item when split. The sermon
 title follows the card and uses the sermon-title theme and passage reference;
 Bible passage slides follow with their existing display settings. The stage
-treats the passage as the sermon passage when showing the next slide.
+treats the passage as the sermon passage when showing the next slide. Sermon
+title thumbnails and previews resolve the sermon-title theme for the selected
+screen. The service list counts the title and measured passage parts.

@@ -78,7 +78,11 @@ export function detailsHeading({
     };
   }
   if (isItemOfKind(item, 'sermon')) {
-    return {title: item.sermon.title, kind: '\uc124\uad50', count: rawCount};
+    return {
+      title: item.sermon.title,
+      kind: '\uc124\uad50',
+      count: rawCount + offset,
+    };
   }
   if (isItemOfKind(item, 'bible')) {
     return {

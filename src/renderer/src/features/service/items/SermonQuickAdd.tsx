@@ -6,6 +6,7 @@ import {Dialog} from '@renderer/ui/Dialog';
 import {TextField} from '@renderer/ui/TextField';
 import {useBibleDefaults} from './useBibleDefaults';
 import type {PassageDefaults} from './quickAddBible';
+import styles from './SermonQuickAdd.module.css';
 
 export function SermonQuickAdd({
   onInsert,
@@ -40,23 +41,25 @@ export function SermonQuickAdd({
         onSelect: () => choose(passage),
       }}
     >
-      <TextField
-        aria-label={'\uc81c\ubaa9'}
-        placeholder={'\uc81c\ubaa9'}
-        value={title}
-        onChange={setTitle}
-        maxLength={SLIDES_LIMITS.name}
-        block
-        autoFocus
-      />
-      <BibleReferenceForm
-        api={window.llp.bible}
-        translation={defaults?.translation}
-        onReady={setPassage}
-        onPreview={() => undefined}
-        onSubmit={choose}
-        onEscape={onClose}
-      />
+      <div className={styles.fields}>
+        <TextField
+          aria-label={'\uc81c\ubaa9'}
+          placeholder={'\uc81c\ubaa9'}
+          value={title}
+          onChange={setTitle}
+          maxLength={SLIDES_LIMITS.name}
+          block
+          autoFocus
+        />
+        <BibleReferenceForm
+          api={window.llp.bible}
+          translation={defaults?.translation}
+          onReady={setPassage}
+          onPreview={() => undefined}
+          onSubmit={choose}
+          onEscape={onClose}
+        />
+      </div>
     </Dialog>
   );
 }

@@ -18,6 +18,7 @@ import {isItemRow} from '@core/presentation/model';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
+import {sermonPreviewRow} from '@renderer/platform/sermonPreview';
 import {useBibleTileProjection} from '../bible/useBibleProjections';
 import styles from './SlideGrid.module.css';
 import {useSlideWindow} from './useSlideWindow';
@@ -77,6 +78,13 @@ export function SlideGrid({
           title: card.name,
           theme: card.theme,
         },
+  );
+  const sermonTheme = useSlideTheme(
+    row?.kind === 'bible' &&
+      row.sermonTitle !== undefined &&
+      row.bible !== undefined
+      ? sermonPreviewRow(row.id, row.bible.ref)
+      : undefined,
   );
   const bible = useBibleTileProjection({itemId: openItemId});
   const liveIndex = useLiveTileIndex();
@@ -207,6 +215,10 @@ export function SlideGrid({
                     cardTheme !== undefined &&
                     slide !== null ? (
                     <SlidePicture output {...cardTheme} slide={slide} />
+                  ) : tile.sermonTitle === true &&
+                    sermonTheme !== undefined &&
+                    slide !== null ? (
+                    <SlidePicture output {...sermonTheme} slide={slide} />
                   ) : appearance !== undefined && slide !== null ? (
                     <SlidePicture
                       output

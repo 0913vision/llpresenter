@@ -13,6 +13,7 @@ import {noticeTime} from '@renderer/ui/notices';
 import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
 import {useShow} from '@renderer/session/show';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
+import {sermonPreviewRow} from '@renderer/platform/sermonPreview';
 import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
 import {Panel, PanelBody, PanelFooter, PanelTabs} from '@renderer/ui/Panel';
 import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
@@ -239,6 +240,13 @@ function DetailsPanelContent({
       ...(itemTheme === undefined ? {} : {theme: itemTheme}),
     },
   );
+  const sermonTheme = useSlideTheme(
+    item !== null && isItemOfKind(item, 'sermon')
+      ? sermonPreviewRow(item.id, item.sermon.passage.ref)
+      : undefined,
+    'service',
+    {api, role, ...(screenId === undefined ? {} : {screenId})},
+  );
   const cardTheme = useSlideTheme(
     card === undefined || item === null
       ? undefined
@@ -267,6 +275,7 @@ function DetailsPanelContent({
         offset,
         theme,
         cardTheme,
+        sermonTheme,
         projection,
         bibleTiles,
         editor,

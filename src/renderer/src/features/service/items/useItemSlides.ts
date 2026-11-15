@@ -81,12 +81,14 @@ export function useItemSlides(
       });
     }
     if (isItemOfKind(item, 'sermon')) {
-      return bible.map(tile => ({
-        text: tile.lines.join('\n'),
-        label: tile.label ?? undefined,
-        color: tile.labelColor,
-        media: undefined,
-      }));
+      return bible
+        .filter(tile => tile.sectionCard === undefined)
+        .map(tile => ({
+          text: tile.lines.join('\n'),
+          label: tile.label ?? undefined,
+          color: tile.labelColor,
+          media: undefined,
+        }));
     }
     if (isItemOfKind(item, 'bible')) {
       return bibleEditorData(item, bible)
