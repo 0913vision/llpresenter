@@ -903,10 +903,40 @@ describe('PreferencesView', () => {
       expect(discovery.watch).toHaveBeenCalled();
       await userEvent.click(output);
       await screen.findByRole('menuitemradio', {name: 'Mixer (USB)'});
-      expect(discovery.enumerate.mock.calls.length).toBeGreaterThanOrEqual(2);
+      expect(discovery.enumerate.mock.calls.length).toBeGreaterThanOrEqual(1);
       expect(
         screen.getAllByRole('menuitemradio').map(row => row.textContent),
       ).toContain('Mixer (USB)');
+    });
+
+    it('keeps an open device menu stable while devices change', async () => {
+      const discovery = connect(MIXER);
+      await mount();
+      await openPage('\ubbf8\ub514\uc5b4');
+      await waitFor(() => expect(discovery.enumerate).toHaveBeenCalled());
+      await userEvent.click(
+        screen.getByRole('button', {name: /\ucd9c\ub825 \uc7a5\uce58/}),
+      );
+      await screen.findByRole('menuitemradio', {name: 'Mixer (USB)'});
+      discovery.enumerate.mockResolvedValue([
+        {kind: 'audiooutput', deviceId: 'new', label: 'New device'},
+      ]);
+      await act(async () => {
+        navigator.mediaDevices.dispatchEvent(new Event('devicechange'));
+      });
+      await waitFor(() =>
+        expect(discovery.enumerate.mock.calls.length).toBeGreaterThan(1),
+      );
+      expect(
+        screen.queryByRole('menuitemradio', {name: 'New device'}),
+      ).toBeNull();
+      await userEvent.keyboard('{Escape}');
+      await userEvent.click(
+        screen.getByRole('button', {name: /\ucd9c\ub825 \uc7a5\uce58/}),
+      );
+      expect(
+        await screen.findByRole('menuitemradio', {name: 'New device'}),
+      ).toBeDefined();
     });
 
     it('saves a chosen device with its label at once and keeps the other media settings', async () => {

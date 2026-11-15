@@ -1,4 +1,4 @@
-import type {JSX} from 'react';
+import {useState, type JSX} from 'react';
 import {resolveAudioSink, type AudioDevice} from '@core/media/audioOutput';
 import {DEFAULT_AUDIO_DEVICE} from '@core/schema/preferences';
 import {Icon} from '@renderer/ui/Icon';
@@ -26,7 +26,7 @@ export function DeviceRow({
   disabled,
   title,
   onChange,
-  onOpen,
+  loading,
 }: {
   readonly label: string;
   readonly choice: AudioDevice;
@@ -34,16 +34,33 @@ export function DeviceRow({
   readonly disabled?: boolean | undefined;
   readonly title?: string | undefined;
   readonly onChange: (device: AudioDevice) => void;
-  readonly onOpen?: (() => void) | undefined;
+  readonly loading?: boolean | undefined;
 }): JSX.Element {
-  const {missing, sinkId} = resolveAudioSink(choice, devices);
+  const [snapshot, setSnapshot] = useState<{
+    devices: readonly AudioDevice[];
+    loading: boolean;
+  } | null>(null);
+  const available = snapshot?.devices ?? devices;
+  const pending = snapshot?.loading ?? loading ?? false;
+  const {missing, sinkId} = resolveAudioSink(choice, available);
   const value = missing ? choice.id : sinkId;
   const options: Array<SelectOption<string>> = [
     {value: '', label: DEFAULT_DEVICE_TEXT},
-    ...devices.map(device => ({
+    ...available.map(device => ({
       value: device.id,
       label: device.label === '' ? NO_NAME : device.label,
     })),
+    ...(pending
+      ? [
+          {
+            value: '__loading__',
+            label: '\ubd88\ub7ec\uc624\ub294 \uc911...',
+            disabled: true as const,
+            title:
+              '\uc7a5\uce58 \ubaa9\ub85d\uc744 \ubd88\ub7ec\uc624\ub294 \uc911',
+          },
+        ]
+      : []),
     ...(missing
       ? [
           {
@@ -65,9 +82,10 @@ export function DeviceRow({
             title={title}
             options={options}
             value={value}
-            onOpen={onOpen}
+            onOpen={() => setSnapshot({devices, loading: loading ?? false})}
+            onClose={() => setSnapshot(null)}
             onChange={id => {
-              const device = devices.find(entry => entry.id === id);
+              const device = available.find(entry => entry.id === id);
               onChange(
                 device === undefined
                   ? DEFAULT_AUDIO_DEVICE

@@ -34,7 +34,7 @@ export function serviceApi(port: IpcPort) {
      * read is never taken for "no 예배 순서".
      */
     get: port.query(serviceEndpoints.get),
-    /** Saves the current service and opens another without changing live output; null means it stayed open. */
+    /** Saves the current service and opens another; a changed service returns output to standby. */
     open: port.request(serviceEndpoints.open),
     /**
      * Calls the listener when the open 예배 순서 changes, or another one opens.

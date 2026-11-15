@@ -181,10 +181,8 @@ README, `Main` decision "구성대로 진행".
   - The open item and selected slide are cleared in both 준비 and 진행, even for
     a library song or Bible passage. Refreshing the same service preserves its
     selection.
-  - The output doesn't change. The live 슬라이드, background, and 그래픽 stay on
-    the screens until the operator clicks a 슬라이드 in the new service.
-  - If the live 슬라이드 came from an item that isn't in the new service, no row
-    shows the LIVE badge.
+  - The active output item stops and the outputs return to the standby screen.
+    Opening the already-current service or a failed switch leaves output alone.
   - The app remembers the last opened service and opens it on the next launch
     (환경설정 option "시작할 때: 마지막 예배 열기").
 
@@ -734,15 +732,14 @@ row while it's on. Clicking it again turns it off.
 | ------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
 | Bible passage | 요한복음 3장 16절          | Opens the passage in the Bible panel and outputs its first 슬라이드 (proposal).                                                                                             | No                                    |
 | Song          | 주 하나님 지으신 모든 세계 | Opens the song in the 슬라이드 panel in its own slide order and outputs its first 슬라이드 (proposal). Doesn't add it to the 예배 순서 or change the background (proposal). | No                                    |
-| Black screen  | 검은 화면                  | Toggles an opaque black cover on audience and broadcast screens, keeping the live slide and audio running. Showing a slide removes the cover.                               | Yes                                   |
 | 그래픽        | 로고 화면 (logo screen)    | Turns that 그래픽 on or off.                                                                                                                                                | Yes                                   |
 | 타이머        | 타이머 1                   | Starts or resumes its own timer according to its kind. Clicking a running timer resets it; a clock click has no effect (see the kind rules above).                          | Yes, while running; never for a clock |
 | 매크로        |                            | Runs that 매크로 (proposal).                                                                                                                                                | No                                    |
 
 - The board's 축도 (benediction, 슬라이드 icon) is read as a short song made in
   the 라이브러리 (proposal, open question).
-- Period in 진행 toggles the same black cover; a second press restores the
-  current picture. The stage remains visible.
+- Period in progress invokes the same all-clear toggle as the clear row. Legacy
+  black quick items remain in storage but are hidden and cannot be added.
 
 ### Adding and editing (proposal)
 
@@ -750,7 +747,7 @@ No board shows how to add a 빠른 실행 item (open question). Version 1 works 
 this:
 
 - 빠른 실행 추가 opens a menu: add the item in the 슬라이드 panel (a song or
-  Bible passage), 그래픽 (submenu), 타이머, 매크로 (submenu), 검은 화면.
+  Bible passage), graphics (submenu), timer, or macro (submenu).
 - 타이머 opens a duration dialog with minutes and seconds. Both are whole
   numbers, minutes are nonnegative, seconds run from 0 to 59, and the total must
   be positive. An invalid value has the design system error ring and a reason in
@@ -839,8 +836,10 @@ name. Chapter and verse bounds always use the built-in GAE number table.
 
 - The 빠른 실행 Bible input has four fields, 책, 장, 시작절, and optional 끝절
   (user decision, October 26). 책 occupies the first row; the three number
-  fields share the next row so they also fit the narrow workspace. The same
-  component is used in 준비 항목 추가 성경 구절.
+  fields share the next row so they also fit the narrow workspace. Once book and
+  chapter are known, the end field placeholder is the last verse number. Ctrl B
+  opens the compact reference modal. The same component is used in 준비 항목
+  추가 성경 구절.
 - 책 lists every containment match in canonical order, using Korean full and
   short names by jamo, English names and codes, and IME-off QWERTY input (02).
   Current codes include `ezk`, `jol`, `jnh`, `nam`, `mrk`, `jhn`, and `php`; the

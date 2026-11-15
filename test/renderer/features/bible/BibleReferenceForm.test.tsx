@@ -88,6 +88,17 @@ describe('shared Bible reference form', () => {
     ).toBe('18');
   });
 
+  it('shows the chapter last verse as the end placeholder without filling it', async () => {
+    const view = setup();
+    expect(view.end.placeholder).toBe('\ub05d\uc808');
+    fireEvent.change(view.book, {target: {value: '\uc694'}});
+    fireEvent.change(view.chapter, {target: {value: '3'}});
+    await waitFor(() => expect(view.end.placeholder).toBe('36'));
+    expect(view.end.value).toBe('');
+    fireEvent.change(view.chapter, {target: {value: '1'}});
+    await waitFor(() => expect(view.end.placeholder).toBe('51'));
+  });
+
   it.each([
     ['요 3 16', '요한복음 3:16'],
     ['요한복음 3 16 18', '요한복음 3:16-18'],

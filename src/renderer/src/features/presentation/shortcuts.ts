@@ -17,7 +17,7 @@ import {
 import {useAtLastSlide} from './useAtLastSlide';
 import {useSlideHotKeys} from './useSlideHotKeys';
 import {outputAdjacentBibleVerse} from '../bible/verseShortcuts';
-import {sendLive} from '@renderer/session/live';
+import {clearLayer} from '@renderer/session/clear';
 import {
   canReturnFromQuickPassage,
   returnFromQuickPassage,
@@ -31,7 +31,7 @@ const commands: readonly WindowShortcut[] = [
     when: canReturnFromQuickPassage,
     run: returnFromQuickPassage,
   },
-  {id: 'show.black', run: () => sendLive({type: 'black.toggle'})},
+  {id: 'show.black', run: () => clearLayer('all')},
   {id: 'show.next', run: () => outputNext()},
   {id: 'show.previous', run: () => outputPrevious()},
   {id: 'show.first', run: () => outputBoundarySlide('first')},

@@ -15,6 +15,7 @@ import {beginOutputRequest} from '@renderer/session/showOutput';
 import {BibleReferenceField} from '../bible/BibleReferenceField';
 import {openBiblePassage, showBiblePassage} from '../bible/actions';
 import {focusSlideGrid} from '../presentation/focusSlideGrid';
+import {DraftOverlay} from '../presentation/DraftOverlay';
 import {useBibleDisplayDefaults} from '../bible/useBibleDisplayDefaults';
 
 /** The quick-panel mount; previewing never writes output or recent history. */
@@ -28,12 +29,16 @@ export function BibleQuickField({
   readonly onIntent?: (() => void) | undefined;
 }): JSX.Element {
   const root = useRef<HTMLDivElement>(null);
+  const [overlayOpen, setOverlayOpen] = useState(false);
   useWindowShortcuts([
     {
       id: 'bible.focus',
-      run: () => root.current?.querySelector('input')?.focus(),
+      run: () => setOverlayOpen(true),
     },
   ]);
+  useEffect(() => {
+    if (overlayOpen) root.current?.querySelector('input')?.focus();
+  }, [overlayOpen]);
   const display = useBibleDisplayDefaults(api.preferences);
   const [document, setDocument] = useState<Extract<
     SettingsDocument,
@@ -75,9 +80,11 @@ export function BibleQuickField({
   const translations = document
     ? withLiveBible(document.value.translations)
     : [];
-  return (
+  const field = (
     <div ref={root}>
       <BibleReferenceField
+        overlayLabels={overlayOpen}
+        onEscape={overlayOpen ? () => setOverlayOpen(false) : undefined}
         submitAnyField
         key={`${selectionVersion}:${session}`}
         api={api.bible}
@@ -143,10 +150,18 @@ export function BibleQuickField({
             review: false,
             transition: QUICK_BIBLE_TRANSITION,
           });
+          setOverlayOpen(false);
           finishQuickPassage();
           focusSlideGrid();
         }}
       />
     </div>
+  );
+  return overlayOpen ? (
+    <DraftOverlay kind="bible" onClose={() => setOverlayOpen(false)}>
+      {field}
+    </DraftOverlay>
+  ) : (
+    field
   );
 }

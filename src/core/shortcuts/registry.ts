@@ -137,7 +137,7 @@ export const shortcutCommands: readonly ShortcutCommand[] = (
     ['service.quickAdd', '항목 추가', '예배 순서', ['control'], []],
     [
       'show.black',
-      '\uac80\uc740 \ud654\uba74',
+      '\uc9c4\ud589 \ubaa8\ub450 \uc9c0\uc6b0\uae30',
       '\uc2ac\ub77c\uc774\ub4dc',
       ['show'],
       ['Period'],

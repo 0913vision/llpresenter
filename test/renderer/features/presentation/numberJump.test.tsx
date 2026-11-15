@@ -5,6 +5,7 @@ import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {openItem, useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
 import {SlideGrid} from '@renderer/features/presentation/SlideGrid';
+import {NumberJumpOverlay} from '@renderer/features/presentation/DraftOverlay';
 import {useNumberJumpKeys} from '@renderer/features/presentation/numberJump';
 import {useSlideHotKeys} from '@renderer/features/presentation/useSlideHotKeys';
 import type {LiveCommand} from '@core/live/commands';
@@ -20,6 +21,7 @@ function Harness() {
     <>
       <input aria-label="입력" />
       <SlideGrid columns={3} scalePercent={100} />
+      <NumberJumpOverlay />
     </>
   );
 }
@@ -47,7 +49,7 @@ it('numbers tiles across items and jumps to the same slide as a click', () => {
     /^2 /u,
   );
   key('6');
-  expect(screen.getByRole('status').textContent).toBe('슬라이드 6');
+  expect(screen.getByRole('status').textContent).toContain('슬라이드6');
   expect(send).not.toHaveBeenCalled();
   key('Enter');
   expect(screen.queryByRole('status')).toBeNull();
@@ -79,7 +81,7 @@ it('edits and cancels pending digits while preserving text editing and other key
   key('1');
   key('2');
   key('Backspace');
-  expect(screen.getByRole('status').textContent).toBe('슬라이드 1');
+  expect(screen.getByRole('status').textContent).toContain('슬라이드1');
   key('Delete');
   expect(screen.queryByRole('status')).toBeNull();
   key('9');
@@ -107,7 +109,7 @@ it('builds multi-digit numbers without firing a digit slide hotkey', () => {
   key('1');
   expect(send).not.toHaveBeenCalled();
   key('0');
-  expect(screen.getByRole('status').textContent).toBe('슬라이드 10');
+  expect(screen.getByRole('status').textContent).toContain('슬라이드10');
   key('Enter');
   expect(useShow.getState()).toMatchObject({
     openItemId: 'psalm-23',

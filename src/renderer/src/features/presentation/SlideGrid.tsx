@@ -25,7 +25,6 @@ import styles from './SlideGrid.module.css';
 import {useSlideWindow} from './useSlideWindow';
 import {ShowSlideEntry} from './showPanelNavigation';
 import {serviceSlideOffset} from './serviceSlideNumbers';
-import {useNumberJump} from './numberJump';
 import {useSlideTransitionProgress} from './useSlideTransitionProgress';
 
 const GRID_SELECTOR = '[role="listbox"]';
@@ -49,7 +48,6 @@ export function SlideGrid({
   const offset = useShow(view =>
     openItemId === null ? null : serviceSlideOffset(view, openItemId),
   );
-  const pendingNumber = useNumberJump(state => state.value);
   const tiles = useShow(shownTiles);
   const row = useShow(view => view.rows.find(value => value.id === openItemId));
   const librarySong = useShow(view => view.librarySong);
@@ -171,11 +169,7 @@ export function SlideGrid({
       {row !== undefined && row.kind !== 'header' ? (
         <BibleLoadNotice row={row} />
       ) : null}
-      {pendingNumber === '' ? null : (
-        <div className={styles.numberJump} role="status">
-          슬라이드 {pendingNumber}
-        </div>
-      )}
+
       <div className={styles.window} style={{top: window.offset}}>
         <ThumbnailGrid
           workspace="show"

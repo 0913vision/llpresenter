@@ -20,7 +20,13 @@ export const MAX_PENDING_SERVICE_SWITCHES = 16;
 export function registerServiceChannels(
   loading: Promise<ServiceSession | null>,
   appConfig: Pick<AppConfigFile, 'setLastServiceId' | 'flush'>,
-  log: Logger,
+  {
+    log,
+    onServiceChanged = () => undefined,
+  }: {
+    readonly log: Logger;
+    readonly onServiceChanged?: (() => void) | undefined;
+  },
 ) {
   let disposed = false;
   let switching: Promise<void> = Promise.resolve();
@@ -68,6 +74,7 @@ export function registerServiceChannels(
       pendingSwitches++;
       const result = switching
         .then(async (): Promise<ShowService | null> => {
+          const previousId = opened.feed.current()?.id;
           const changed = await opened.content.openService(
             request.value.serviceId,
             () => opened.feed.refresh(),
@@ -76,6 +83,7 @@ export function registerServiceChannels(
             log.warn('could not open a service', changed.error);
             return null;
           }
+          if (previousId !== request.value.serviceId) onServiceChanged();
           try {
             appConfig.setLastServiceId(request.value.serviceId);
             await appConfig.flush();

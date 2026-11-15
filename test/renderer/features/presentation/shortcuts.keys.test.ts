@@ -1,6 +1,8 @@
 import type {LiveCommand} from '@core/live/commands';
 import {describe, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
+import {emptyLiveState} from '@core/live/state';
+import {useLive} from '@renderer/session/live';
 import {setColumnDragActive} from '@renderer/platform/drag';
 import * as showState from '@renderer/session/show';
 import * as bibleKeys from '@renderer/features/bible/verseShortcuts';
@@ -64,10 +66,20 @@ describe('handleShowKey Bible verse keys', () => {
   });
 });
 
-describe('presenter black screen', () => {
-  it('toggles with period and leaves text fields alone', () => {
+describe('presenter clear all', () => {
+  it('uses the all-clear toggle with period and leaves text fields alone', () => {
     const send = vi.fn<(command: LiveCommand) => void>();
     window.llp = mockLlpApi({live: {send}});
+    const state = emptyLiveState();
+    useLive.setState({
+      state: {
+        ...state,
+        layers: {
+          ...state.layers,
+          slide: {itemId: 'test', position: 0, label: null, lines: ['test']},
+        },
+      },
+    });
     try {
       expect(press('Period', {}, appendTo('input')).defaultPrevented).toBe(
         false,
@@ -75,11 +87,12 @@ describe('presenter black screen', () => {
       expect(press('Period').defaultPrevented).toBe(true);
       expect(press('Period').defaultPrevented).toBe(true);
       expect(send.mock.calls.map(([command]) => command)).toEqual([
-        {type: 'black.toggle'},
-        {type: 'black.toggle'},
+        {type: 'layer.clear.toggle', target: 'all'},
+        {type: 'layer.clear.toggle', target: 'all'},
       ]);
     } finally {
       delete window.llp;
+      useLive.setState({state: null});
     }
   });
 });

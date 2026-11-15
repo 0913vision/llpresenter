@@ -28,6 +28,7 @@ import {BiblePage} from './BiblePage';
 import {ShortcutsPage} from './shortcuts/ShortcutsPage';
 import {useBibleEdits} from './useBibleEdits';
 import {usePreferenceEdits} from './usePreferenceEdits';
+import {useAudioOutputs} from './useAudioOutputs';
 import styles from './PreferencesView.module.css';
 import {LabelsPage} from './LabelsPage';
 import type {SongEditorStore} from '../songs/editor/songEditorStore';
@@ -70,6 +71,7 @@ function PreferencesContent({
   onPageSelect,
   viewRef,
 }: PreferencesViewProps & {readonly readiness: LoadReadiness}): JSX.Element {
+  const audioOutputs = useAudioOutputs();
   const [localPage, setPage] = useState<PreferencePageId>('general');
   const page = controlledRequest?.page ?? localPage;
   const [shortcutsPrepared, setShortcutsPrepared] = useState(false);
@@ -294,7 +296,9 @@ function PreferencesContent({
             <LabelsPage store={labelStore} managerRef={labelManager} />
           ) : null}
           {page === 'about' ? <AboutPage /> : null}
-          {page === 'media' ? <MediaPage edits={edits} /> : null}
+          {page === 'media' ? (
+            <MediaPage edits={edits} audioOutputs={audioOutputs} />
+          ) : null}
           {page === 'bible' ? <BiblePage edits={edits} bible={bible} /> : null}
         </Properties>
       </section>

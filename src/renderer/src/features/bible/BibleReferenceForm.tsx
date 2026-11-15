@@ -38,6 +38,7 @@ import styles from './BibleReferenceField.module.css';
 
 export interface BibleReferenceFormProps {
   readonly initialRef?: string | undefined;
+  readonly overlayLabels?: boolean;
   readonly api: BibleLookupApi;
   readonly translation: TranslationId | undefined;
   readonly onPreview: (passage: BibleLookupPassage) => void;
@@ -181,6 +182,10 @@ export function BibleReferenceForm(
   const reconciled = reconcileReferenceFields(fields, metadataBounds);
   if (reconciled !== fields) setFields(reconciled);
   const state = referenceFieldsState(reconciled, metadataBounds);
+  const chapterNumber = /^\d+$/u.test(reconciled.chapter)
+    ? Number(reconciled.chapter)
+    : 0;
+  const lastVerse = metadataBounds?.chapterVerses[chapterNumber - 1];
   const reply = useBibleLookup({
     ...props,
     translation,
@@ -557,14 +562,15 @@ export function BibleReferenceForm(
     >
       <div ref={bookAnchor} className={styles.book}>
         <TextField
-          size="sm"
+          size={props.overlayLabels ? 'md' : 'sm'}
           block
           icon="book"
+          affix={props.overlayLabels ? '\ucc45' : undefined}
           clearable
           autoFocus={props.autoFocus}
           aria-label="책"
           data-reference-part="book"
-          placeholder="책"
+          placeholder={props.overlayLabels ? '' : '\ucc45'}
           role="combobox"
           aria-autocomplete="list"
           aria-expanded={expanded}
@@ -601,11 +607,18 @@ export function BibleReferenceForm(
       {NUMBER_PARTS.map(part => (
         <TextField
           key={part}
-          size="sm"
+          size={props.overlayLabels ? 'md' : 'sm'}
           block
+          affix={props.overlayLabels ? LABELS[part] : undefined}
           inputMode="numeric"
           aria-label={LABELS[part]}
-          placeholder={LABELS[part]}
+          placeholder={
+            part === 'end' && lastVerse !== undefined
+              ? String(lastVerse)
+              : props.overlayLabels
+                ? ''
+                : LABELS[part]
+          }
           data-reference-part={part}
           maxLength={BIBLE_LOOKUP_LIMITS.input}
           value={fields[part]}

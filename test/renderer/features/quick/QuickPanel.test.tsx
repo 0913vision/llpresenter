@@ -53,7 +53,7 @@ afterEach(() => {
 });
 
 describe('quick panel integration', () => {
-  it('shows only a live quick passage separately from the black screen action', async () => {
+  it('shows only a live quick passage and hides the black screen action', async () => {
     const fixture = quickFixture();
     window.llp = fixture.api;
     const reply = lookupReply(lookupRequest('John 3:16'));
@@ -85,9 +85,10 @@ describe('quick panel integration', () => {
     expect(screen.getByRole('status').textContent).toBe(
       source.passage.displayRef,
     );
+    await screen.findByRole('button', {name: '\uc800\uc7a5\ub41c \uace1'});
     expect(
-      await screen.findByRole('button', {name: '\uac80\uc740 \ud654\uba74'}),
-    ).toBeTruthy();
+      screen.queryByRole('button', {name: '\uac80\uc740 \ud654\uba74'}),
+    ).toBeNull();
     act(() => useLive.setState({state}));
     expect(screen.queryByText(source.passage.displayRef)).toBeNull();
   });
@@ -186,7 +187,7 @@ describe('quick panel integration', () => {
     const panel = screen.getByRole('region', {name: '빠른 실행'});
     const list = within(panel).getByRole('group', {name: '빠른 실행 항목'});
     await waitFor(() =>
-      expect(within(list).getAllByRole('button')).toHaveLength(7),
+      expect(within(list).getAllByRole('button')).toHaveLength(6),
     );
     await waitFor(() =>
       expect(
@@ -206,9 +207,9 @@ describe('quick panel integration', () => {
       '로고 화면',
       '시작 카운트다운1:30',
       '시작 매크로',
-      '검은 화면',
       '새 버전 항목',
     ]);
+    expect(within(list).queryByRole('button', {name: '검은 화면'})).toBeNull();
     expect(within(panel).getByRole('combobox', {name: '책'})).toBeTruthy();
     expect(
       within(list)
@@ -224,7 +225,7 @@ describe('quick panel integration', () => {
     render(<QuickPanel selectionVersion={0} onProblem={vi.fn()} />);
     const panel = screen.getByRole('region', {name: '빠른 실행'});
     const list = within(panel).getByRole('group', {name: '빠른 실행 항목'});
-    const row = await within(list).findByRole('button', {name: '검은 화면'});
+    const row = await within(list).findByRole('button', {name: '저장된 곡'});
     row.focus();
     fireEvent.keyDown(row, {key: 'd', code: 'KeyD', ctrlKey: true});
     await waitFor(() => expect(fixture.edit).toHaveBeenCalledOnce());

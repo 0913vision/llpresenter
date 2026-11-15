@@ -63,10 +63,11 @@ function setup() {
     setLastServiceId: vi.fn<(id: ServiceId) => void>(),
     flush: vi.fn(() => Promise.resolve()),
   };
+  const onServiceChanged = vi.fn();
   const channels = registerServiceChannels(
     Promise.resolve({content: {openService}, feed}),
     config,
-    log,
+    {log, onServiceChanged},
   );
   onTestFinished(() => channels.dispose());
   /** Holds the next switch until the returned function is called. */
@@ -81,7 +82,7 @@ function setup() {
     });
     return () => release();
   };
-  return {openService, feed, config, channels, log, holdNext};
+  return {openService, feed, config, channels, log, holdNext, onServiceChanged};
 }
 
 const open = (serviceId: unknown) =>
@@ -99,6 +100,20 @@ describe('service open channels', () => {
     expect(config.setLastServiceId).toHaveBeenCalledExactlyOnceWith(SECOND);
     expect(config.flush).toHaveBeenCalledOnce();
     expect(feed.refresh).toHaveBeenCalled();
+  });
+
+  it('enters standby only after a different service opens successfully', async () => {
+    const {onServiceChanged, openService} = setup();
+    expect(await open(FIRST)).toEqual(shown(FIRST));
+    expect(onServiceChanged).not.toHaveBeenCalled();
+    openService.mockResolvedValueOnce({
+      ok: false,
+      error: {reason: 'not-found', message: 'Missing'},
+    });
+    expect(await open(SECOND)).toBeNull();
+    expect(onServiceChanged).not.toHaveBeenCalled();
+    expect(await open(SECOND)).toEqual(shown(SECOND));
+    expect(onServiceChanged).toHaveBeenCalledOnce();
   });
 
   it('reports remembering failures while returning the service that opened', async () => {
@@ -193,7 +208,7 @@ describe('service open channels', () => {
         finish = resolve;
       }),
       config,
-      recordingLogger(),
+      {log: recordingLogger()},
     );
     const reading = handler(serviceEndpoints.get.channel)({});
     const opening = open(SECOND);

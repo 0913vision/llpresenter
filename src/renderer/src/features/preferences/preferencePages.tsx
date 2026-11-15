@@ -17,7 +17,7 @@ import {
   ValueActionRow,
 } from './PreferenceRows';
 import {DeviceRow} from './DeviceRow';
-import {useAudioOutputs} from './useAudioOutputs';
+import type {useAudioOutputs} from './useAudioOutputs';
 import {useLibraryLocations} from './useLibraryLocations';
 import {useUiZoom} from './useUiZoom';
 
@@ -271,9 +271,14 @@ const FIT_OPTIONS = [
 ] as const;
 
 /** 미디어: 새 미디어, 소리. */
-export function MediaPage({edits}: PageProps): JSX.Element | null {
+export function MediaPage({
+  edits,
+  audioOutputs,
+}: PageProps & {
+  readonly audioOutputs: ReturnType<typeof useAudioOutputs>;
+}): JSX.Element | null {
   const {preferences, lockedReason, change} = edits;
-  const {devices, refresh: refreshDevices} = useAudioOutputs();
+  const {devices, loading} = audioOutputs;
   if (preferences === null) return null;
   const disabled = lockedReason !== undefined;
   const {defaults} = preferences.media;
@@ -326,7 +331,7 @@ export function MediaPage({edits}: PageProps): JSX.Element | null {
           disabled={disabled}
           title={lockedReason}
           choice={preferences.media.audioOutput}
-          onOpen={refreshDevices}
+          loading={loading}
           devices={devices}
           onChange={audioOutput =>
             change(stored => ({
@@ -340,7 +345,7 @@ export function MediaPage({edits}: PageProps): JSX.Element | null {
           disabled={disabled}
           title={lockedReason}
           choice={preferences.media.previewOutput}
-          onOpen={refreshDevices}
+          loading={loading}
           devices={devices}
           onChange={previewOutput =>
             change(stored => ({

@@ -1,3 +1,5 @@
+import {useAudioOutputs} from '@renderer/features/preferences/useAudioOutputs';
+import {NumberJumpOverlay} from '@renderer/features/presentation/DraftOverlay';
 import {ThemeLeaveGuard} from '@renderer/features/screens/themes/themeLeaveGuard';
 import {useMonitors} from '@renderer/features/screens/useMonitors';
 import {AudioShortcuts} from '@renderer/features/tools/AudioShortcuts';
@@ -94,6 +96,7 @@ function ControlApp({
   const serviceName = useShow(view => view.serviceName);
   const warningMap = useOutputWarnings(state => state.warnings);
   const warnings = useMemo(() => warningScreens(warningMap), [warningMap]);
+  useAudioOutputs();
   const [workspace, setWorkspace] = useState<WorkspaceId>('show');
   const [workspaceSelections] = useState(() => new WorkspaceSelections());
   const [focusSearch, setFocusSearch] = useState(false);
@@ -170,6 +173,7 @@ function ControlApp({
   const content = (
     <div className={styles.app} data-size={sizeClass}>
       <BibleServiceProjection />
+      <NumberJumpOverlay />
       <ToolObjectShortcuts api={session.api} onProblem={session.report} />
       <QuickObjectShortcuts api={session.api} onProblem={session.report} />
       <AudioShortcuts onProblem={session.report} />
