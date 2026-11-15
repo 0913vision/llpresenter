@@ -266,12 +266,12 @@ describe('built-in broadcast look', () => {
     const blank = fitBroadcastLook(plain(), slide, {...item, kind: 'blank'});
     const band = element(bible, BROADCAST_LOOK_BAND_ID);
     expect(element(bible, BROADCAST_LOOK_TAB_ID)).toMatchObject({
-      frame: {x: 64, y: band.frame.y + 6, h: 48},
+      frame: {x: 64, y: band.frame.y + 6, h: 58},
       runtimeHidden: false,
     });
     expect(element(bible, BROADCAST_REFERENCE_ID)).toMatchObject({
       frame: {x: 90},
-      text: {size: 30, color: '#FFFFFF'},
+      text: {size: 38, color: '#FFFFFF'},
     });
     expect(element(blank, BROADCAST_LOOK_TAB_ID)).toMatchObject({
       runtimeHidden: true,
@@ -359,12 +359,12 @@ describe('built-in broadcast look', () => {
     const band = element(withTitle, BROADCAST_LOOK_BAND_ID).frame;
     const baseline = element(without, BROADCAST_LOOK_BAND_ID).frame;
     expect(band.y + band.h).toBe(baseline.y + baseline.h);
-    expect(band.y).toBe(baseline.y - 58);
-    expect(band.h).toBe(baseline.h + 58);
+    expect(band.y).toBe(baseline.y - 68);
+    expect(band.h).toBe(baseline.h + 68);
     expect(element(withTitle, BROADCAST_LOOK_SONG_TITLE_ID)).toMatchObject({
       content: '새찬송가 91장 슬픈 마음 있는 사람',
-      frame: {x: 96, h: 50},
-      text: {size: 40, weight: 600, color: '#E6E6E6', align: 'left'},
+      frame: {x: 96, h: 60},
+      text: {size: 48, weight: 600, color: '#E6E6E6', align: 'left'},
     });
     const textOnly = fitLook(layout, slide, {item: song, songCaption: 'text'});
     expect(
@@ -490,14 +490,14 @@ describe('built-in broadcast look', () => {
     };
     const result = fitBroadcastLook(layout, current, {...item, kind: 'blank'});
     expect(element(result, BROADCAST_LOOK_CARD_ID)).toMatchObject({
-      frame: {x: 58, w: 276},
+      frame: {x: 58, w: 304},
       box: {fill: '#FEFDF9'},
     });
-    expect(element(result, BROADCAST_LOOK_CARD_ID).frame.w).toBe(276);
+    expect(element(result, BROADCAST_LOOK_CARD_ID).frame.w).toBe(304);
     expect(element(result, BROADCAST_REFERENCE_ID)).toMatchObject({
       kind: 'text',
       content: 'LONG SERMON',
-      text: {size: 28, weight: 600},
+      text: {size: 32, weight: 600},
     });
     const longer = fitBroadcastLook(
       layout,
@@ -507,7 +507,7 @@ describe('built-in broadcast look', () => {
       },
       {...item, kind: 'blank'},
     );
-    expect(element(longer, BROADCAST_LOOK_CARD_ID).frame.w).toBe(856);
+    expect(element(longer, BROADCAST_LOOK_CARD_ID).frame.w).toBe(884);
   });
   it('leaves unrelated layouts untouched and keeps advertisements empty', () => {
     const layout = builtInTheme('ad').screens[screen];
