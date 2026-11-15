@@ -275,6 +275,10 @@ function VersePicture({
   if (appearance === undefined || layer === null) return null;
   return (
     <SlidePicture
+      output
+      screen={appearance.screen}
+      themeId={appearance.theme.themeId}
+      background={appearance.background}
       slide={layer}
       layout={appearance.theme.layout}
       emptyColor={appearance.theme.emptyColor}

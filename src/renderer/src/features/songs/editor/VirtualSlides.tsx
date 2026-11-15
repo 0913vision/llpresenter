@@ -121,7 +121,8 @@ export function VirtualSlides<T extends SlideListItem>({
     {
       id: 'thumbnail',
       kind: 'song',
-      title: '',
+      title:
+        'title' in song && typeof song.title === 'string' ? song.title : '',
       ...(songTheme === undefined ? {} : {theme: songTheme}),
     },
     songTheme === undefined ? 'external' : 'service',
@@ -379,6 +380,7 @@ export function VirtualSlides<T extends SlideListItem>({
                   canvasFor?.(number - 1) ??
                   (theme === undefined ? undefined : (
                     <SlidePicture
+                      output
                       {...theme}
                       background={background}
                       slide={{
