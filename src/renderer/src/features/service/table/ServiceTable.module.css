@@ -54,7 +54,7 @@
 
 /* NOTE(0913vision): The row title and its marks sit after the number and the
    icon, and share the extra width with the cells. */
-.table .row > :has(> [id]) {
+.table .row > :has(> [id], > span > input[id]) {
   flex: var(--table-name-grow) 0 var(--table-name-min);
   min-width: 0;
 }

@@ -7,7 +7,10 @@ import {
   type QuickItem,
   type QuickItemKind,
 } from '@core/schema/quick';
-import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
+import {
+  useSettingsDocument,
+  type NamedDocument,
+} from '@renderer/platform/useSettingsDocument';
 import {useLive} from '@renderer/session/live';
 import {useShow} from '@renderer/session/show';
 import {bibleSourceFor} from '@renderer/session/showLibrary';
@@ -69,12 +72,19 @@ function quickLabel(item: QuickItem): string {
 export function QuickPanel({
   selectionVersion,
   onProblem,
+  initialDocument,
 }: {
   readonly selectionVersion: number;
   readonly onProblem: (notice: Notice) => void;
+  readonly initialDocument?: NamedDocument<'quick'> | null | undefined;
 }): JSX.Element | null {
   const api = window.llp;
-  const document = useSettingsDocument('quick', '빠른 실행', onProblem);
+  const loaded = useSettingsDocument(
+    initialDocument === undefined ? 'quick' : null,
+    '빠른 실행',
+    onProblem,
+  );
+  const document = initialDocument === undefined ? loaded : initialDocument;
   const timers = useQuickTimers(document, onProblem);
   const editing = useQuickEditing(api, onProblem);
   const locked = document?.access !== 'editable' || editing.busy;

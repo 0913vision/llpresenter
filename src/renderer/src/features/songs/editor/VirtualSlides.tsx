@@ -433,7 +433,7 @@ export function VirtualSlides<T extends SlideListItem>({
                   style={
                     (number - 1) % columns === 0
                       ? {insetInlineStart: 0}
-                      : undefined
+                      : {insetInlineStart: -measure.xGap, width: measure.xGap}
                   }
                   data-caret={list?.selection.caret === number - 1}
                   aria-label={`슬라이드 ${number} 앞에 삽입`}

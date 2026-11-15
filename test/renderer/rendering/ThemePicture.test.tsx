@@ -58,6 +58,31 @@ function element(kind: ThemeElement['kind'], index: number): ThemeElement {
   return value;
 }
 
+it('reports text ink bounds for the editor selection without changing the saved frame', () => {
+  const source = element('currentText', 992);
+  vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue(
+    DOMRect.fromRect({width: 1920, height: 1080}),
+  );
+  vi.spyOn(ink, 'measureTextInk').mockReturnValue({top: 110, bottom: 150});
+  const frames =
+    vi.fn<(value: Readonly<Record<string, ElementFrame>>) => void>();
+  render(
+    <ThemePicture
+      elements={[source]}
+      background="#000000"
+      samples={{currentText: 'Text'}}
+      fitTextFrames
+      onResolvedFrames={frames}
+    />,
+  );
+  expect(frames.mock.lastCall?.[0][source.id]).toMatchObject({
+    x: source.frame.x,
+    w: source.frame.w,
+    y: 102,
+    h: 56,
+  });
+});
+
 it('reuses a thumbnail fit on remount and refits changed text, frame, and style', () => {
   const source = element('currentText', 991);
   if (source.kind !== 'currentText') throw Error('Expected text');

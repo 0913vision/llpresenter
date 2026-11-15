@@ -410,6 +410,7 @@ export function ThemePicture({
   measuredNextText,
   onResolvedFrames,
   fitItemNameFrame = false,
+  fitTextFrames = false,
 }: {
   readonly elements: readonly ThemeElement[];
   readonly background: ThemeBackground;
@@ -422,6 +423,7 @@ export function ThemePicture({
   readonly onResolvedFrames?:
     ((frames: Readonly<Record<string, ElementFrame>>) => void) | undefined;
   readonly fitItemNameFrame?: boolean | undefined;
+  readonly fitTextFrames?: boolean | undefined;
 }): JSX.Element {
   const reference = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
@@ -429,6 +431,7 @@ export function ThemePicture({
     if (
       root === null ||
       (!fitItemNameFrame &&
+        !fitTextFrames &&
         !elements.some(
           element =>
             (hasThemeText(element) && element.stack !== undefined) ||
@@ -488,6 +491,28 @@ export function ThemePicture({
         ];
       });
       positionFollowingBoxes(views);
+      if (fitTextFrames) {
+        const origin = root.getBoundingClientRect();
+        for (const element of elements) {
+          if (!hasThemeText(element)) continue;
+          const node = Array.from(root.children).find(
+            child =>
+              child instanceof HTMLElement &&
+              child.dataset['themeElement'] === element.id,
+          );
+          const block = node?.querySelector<HTMLElement>('[data-theme-text]');
+          if (block === null || block === undefined) continue;
+          const bounds = measureTextInk(block);
+          const frame = resolved[element.id];
+          if (bounds === undefined || frame === undefined) continue;
+          const padding = 8;
+          resolved[element.id] = {
+            ...frame,
+            y: Math.max(0, (bounds.top - origin.top) / scale - padding),
+            h: (bounds.bottom - bounds.top) / scale + 2 * padding,
+          };
+        }
+      }
       if (fitItemNameFrame) {
         const origin = root.getBoundingClientRect();
         for (const element of elements) {
@@ -544,6 +569,7 @@ export function ThemePicture({
     measuredNextText,
     onResolvedFrames,
     fitItemNameFrame,
+    fitTextFrames,
   ]);
   return (
     <svg

@@ -18,7 +18,9 @@ type Handlers = Partial<
   Pick<TileListProps, 'onActivate' | 'onDoubleClick' | 'onMenu'>
 >;
 
-function Strip(handlers: Handlers): JSX.Element {
+function Strip(
+  handlers: Handlers & {readonly preventSelectionScroll?: boolean},
+): JSX.Element {
   const [selected, setSelected] = useState(0);
   return (
     <TileList
@@ -27,6 +29,7 @@ function Strip(handlers: Handlers): JSX.Element {
       columns={NAMES.length}
       spaceKey="pass"
       arrowsMove="selection"
+      preventSelectionScroll={handlers.preventSelectionScroll}
       selected={selected}
       onSelect={setSelected}
       onActivate={handlers.onActivate ?? (() => {})}
@@ -98,6 +101,15 @@ function tile(name: string): HTMLElement {
 }
 
 describe('TileList', () => {
+  it('keeps the viewport in place when focus follows a selected tile', async () => {
+    render(<Strip preventSelectionScroll />);
+    tile('따뜻한 빛').focus();
+    const focus = vi.spyOn(tile('새벽 하늘'), 'focus');
+    await userEvent.keyboard('{ArrowRight}');
+    expect(focus).toHaveBeenCalledWith({preventScroll: true});
+    focus.mockRestore();
+  });
+
   it('moves along a strip with ← and → only', async () => {
     render(<Strip />);
     tile('따뜻한 빛').focus();

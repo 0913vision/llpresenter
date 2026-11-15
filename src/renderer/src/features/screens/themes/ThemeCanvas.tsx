@@ -350,6 +350,7 @@ function ThemeCanvas({
             }
             timers={model.renderTimers}
             fitItemNameFrame={sectionTheme}
+            fitTextFrames
             onResolvedFrames={receiveFrames}
           />
         )}

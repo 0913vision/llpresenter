@@ -13,6 +13,7 @@ import {
 import type {SlideListItem} from '@core/songs/slideListEdits';
 import type {LeadingSlideCard} from './SlideCardRenderer';
 import {slideDropPosition} from './gridInsertionPosition';
+import {selectedSlideAnchor} from './selectedSlideAnchor';
 
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {isComposing} from '@renderer/ui/ime';
@@ -263,7 +264,10 @@ export function SongSlideSurface<T extends SlideListItem>({
         store === undefined
           ? '여기서는 쓸 수 없습니다'
           : (editReason ?? selectionReason),
-      run: () => setLabelAnchor(surfaceRef.current),
+      run: () =>
+        setLabelAnchor(
+          selectedSlideAnchor(surfaceRef.current, view.selection.focus),
+        ),
     },
     {
       id: 'edit.copy',
@@ -913,7 +917,7 @@ export function SongSlideSurface<T extends SlideListItem>({
           onChoose={label => session.commandSlides({type: 'label', label})}
           onClose={() => {
             setLabelAnchor(null);
-            labelAnchor.focus();
+            labelAnchor.focus({preventScroll: true});
           }}
         />
       )}

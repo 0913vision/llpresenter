@@ -203,9 +203,10 @@
 }
 
 .groupField {
-  flex: 1 1 auto;
+  flex: 0 1 auto;
   min-width: 0;
-  height: var(--size-row);
+  max-width: 100%;
+  height: 100%;
   max-height: 100%;
   padding: 0 var(--space-6);
   border: 0;
@@ -214,6 +215,16 @@
   box-shadow: var(--ring-field);
   color: var(--text);
   font: inherit;
+}
+
+.name:has(.groupField) {
+  align-self: stretch;
+}
+
+.groupField input {
+  field-sizing: content;
+  width: auto;
+  min-width: 1ch;
 }
 
 .groupRow {

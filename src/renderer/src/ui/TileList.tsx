@@ -77,6 +77,7 @@ export interface TileListBaseProps extends TileListPosition {
   readonly takesClickFocus?: boolean | undefined;
   /** Put the Tab stop on the whole grid instead of individual tiles. */
   readonly gridFocus?: boolean | undefined;
+  readonly preventSelectionScroll?: boolean | undefined;
   /** The index of the selected tile. */
   readonly selected: number | undefined;
   /** A click or Enter (and Space with `press`) on a tile that isn't disabled. */
@@ -147,6 +148,7 @@ function keepOneTabStop(list: HTMLElement, stop: number): void {
 function useFocusFollowsSelection(
   listRef: RefObject<HTMLDivElement | null>,
   selected: number | undefined,
+  preventScroll: boolean,
 ): void {
   useEffect(() => {
     const list = listRef.current;
@@ -154,8 +156,8 @@ function useFocusFollowsSelection(
       return;
     }
     const tile = tilesOf(list)[selected];
-    if (tile !== document.activeElement) tile?.focus();
-  }, [listRef, selected]);
+    if (tile !== document.activeElement) tile?.focus({preventScroll});
+  }, [listRef, selected, preventScroll]);
 }
 
 interface SpaceHandlers {
@@ -212,7 +214,11 @@ export function TileList(props: TileListProps): JSX.Element {
     ? (selected ?? 0)
     : Math.max(0, focusStop - offset);
   const positioned = useRef(false);
-  useFocusFollowsSelection(listRef, followsSelection ? selected : undefined);
+  useFocusFollowsSelection(
+    listRef,
+    followsSelection ? selected : undefined,
+    props.preventSelectionScroll === true,
+  );
   useLayoutEffect(() => {
     const list = listRef.current;
     if (list === null) return;

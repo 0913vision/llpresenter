@@ -245,7 +245,11 @@ export const SongBlock = memo(
         <button
           type="button"
           className={styles.gap}
-          style={grid && column === 0 ? {insetInlineStart: 0} : undefined}
+          style={
+            grid && column === 0
+              ? {insetInlineStart: 0, width: 'var(--space-14)'}
+              : undefined
+          }
           data-caret={caret}
           data-slide-gap={block}
           tabIndex={-1}
