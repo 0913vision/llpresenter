@@ -617,7 +617,7 @@ as every settings file does (02).
 - The built-in broadcast look uses Pretendard Variable and a rounded glass box
   with a 6 px #E8E8E8 frame at 45%, #FEFDF9 panel at 90%, and 16 px black shadow
   at 35%. Bible and plain text use a box from x=58 to 1862, bottom at y=1026,
-  growing upward. Dark #1F1F1F bold 55 px text starts at x=90 with 1.35 line
+  growing upward. Dark #1F1F1F bold 57 px text starts at x=90 with 1.35 line
   height; after three lines it shrinks to 48 px and the box grows to show text,
   shrinking further if necessary to stay within the 900 px body height. Bible
   source breaks are rejoined and wrapped to the full text width without
@@ -628,7 +628,7 @@ as every settings file does (02).
 - Each broadcast screen chooses its song caption. The default band is flat black
   at 91% opacity across the full 1920 px width; its bottom is y=1040 and it has
   26 px vertical padding. Text-only has no band and its last line ends at
-  y=1004. Both use centered white bold 56 px text, 1.25 line height and at most
+  y=1004. Both use centered white bold 67 px text, 1.25 line height and at most
   two lines, shrinking to fit. The band text has a 0 2px 6px black shadow at
   80%; text-only uses a 4 px shadow at 80% and 2 px offset plus a 24 px glow at
   55%. All song lines use the same style. An empty song slide uses its title,
