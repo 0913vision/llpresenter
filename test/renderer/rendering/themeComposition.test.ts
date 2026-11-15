@@ -410,6 +410,7 @@ describe('theme composition drawing', () => {
       expect(animate).toHaveBeenLastCalledWith(expect.any(Array), {
         duration: 922,
         easing: 'linear',
+        fill: 'both',
       });
       view.dispose();
     },
@@ -1199,6 +1200,7 @@ describe('theme composition drawing', () => {
         expect(animate).toHaveBeenLastCalledWith(expect.any(Array), {
           duration: kind === 'wipe' ? 1.2 * 922 : 1200,
           easing: 'linear',
+          ...(kind === 'wipe' ? {fill: 'both'} : {}),
         });
         expect(root.contains(outgoing)).toBe(true);
         vi.advanceTimersByTime(1200);

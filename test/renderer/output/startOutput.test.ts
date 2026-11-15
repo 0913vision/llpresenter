@@ -124,11 +124,14 @@ describe('startOutput', () => {
       };
       const defaults = mockLlpApi();
       const root = document.createElement('div');
-      const play = vi
-        .spyOn(SlideAnimation.prototype, 'play')
+      const prepare = vi
+        .spyOn(SlideAnimation.prototype, 'prepare')
         .mockImplementation((_old, next) => {
           expect(next.style.visibility).toBe('hidden');
         });
+      const start = vi
+        .spyOn(SlideAnimation.prototype, 'start')
+        .mockImplementation(() => undefined);
       vi.spyOn(SlideAnimation.prototype, 'finished').mockReturnValue(
         new Promise(() => undefined),
       );
@@ -157,7 +160,8 @@ describe('startOutput', () => {
         await Promise.resolve();
         await pumpReadiness();
         await pumpReadiness();
-        play.mockClear();
+        prepare.mockClear();
+        start.mockClear();
         ready.mockReturnValue(alreadyReady);
         receive({
           ...SHOWING,
@@ -183,17 +187,22 @@ describe('startOutput', () => {
           expect.objectContaining({transitions: false}),
         );
         if (!alreadyReady) {
-          expect(play).not.toHaveBeenCalled();
+          expect(prepare).not.toHaveBeenCalled();
           expect(incoming.style.visibility).toBe('hidden');
           ready.mockReturnValue(true);
-          runFramesFor(FRAME_MS * 3);
+          runFramesFor(0);
         }
-        expect(play).toHaveBeenCalledWith(
+        expect(prepare).toHaveBeenCalledWith(
           root.children[0],
           root.children[1],
           expect.objectContaining({kind: 'wipe'}),
         );
         expect(incoming.style.visibility).toBe('');
+        expect(start).not.toHaveBeenCalled();
+        runFramesFor(0);
+        expect(start).not.toHaveBeenCalled();
+        runFramesFor(0);
+        expect(start).toHaveBeenCalledOnce();
         const covers = root.querySelectorAll<HTMLElement>(
           '[data-black-screen]',
         );

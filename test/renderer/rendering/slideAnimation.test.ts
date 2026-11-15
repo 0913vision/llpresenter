@@ -18,6 +18,40 @@ function setup() {
 }
 
 describe('SlideAnimation', () => {
+  it('holds both wipe layers at the first frame until started', () => {
+    const parent = document.createElement('div');
+    const old = document.createElement('div');
+    const next = document.createElement('div');
+    parent.append(old, next);
+    const first = {
+      pause: vi.fn(),
+      play: vi.fn(),
+      cancel: vi.fn(),
+      currentTime: null,
+    };
+    const second = {
+      pause: vi.fn(),
+      play: vi.fn(),
+      cancel: vi.fn(),
+      currentTime: null,
+    };
+    const animate = vi
+      .fn()
+      .mockReturnValueOnce(first)
+      .mockReturnValueOnce(second);
+    Object.defineProperty(next, 'animate', {value: animate});
+    const view = new SlideAnimation(true);
+    view.prepare(old, next, {kind: 'wipe', sec: 4});
+    expect(first.pause).toHaveBeenCalledOnce();
+    expect(second.pause).toHaveBeenCalledOnce();
+    expect(first.currentTime).toBe(0);
+    expect(second.currentTime).toBe(0);
+    expect(first.play).not.toHaveBeenCalled();
+    view.start();
+    expect(first.play).toHaveBeenCalledOnce();
+    expect(second.play).toHaveBeenCalledOnce();
+    view.cancel();
+  });
   it('restores the incoming surface when a wipe is interrupted', () => {
     const {view, old, next, parent, cancel} = setup();
     next.style.width = '80%';
@@ -52,10 +86,11 @@ describe('SlideAnimation', () => {
     ).toBeCloseTo(58);
     expect(
       Number.parseFloat(String(inner[1]?.transform).replace('translateX(', '')),
-    ).toBeCloseTo(300);
+    ).toBeCloseTo(294);
     expect(animate.mock.calls[0]?.[1]).toEqual({
       duration: 922,
       easing: 'linear',
+      fill: 'both',
     });
   });
   it('sweeps a 0.96-screen feather with the PowerPoint midpoint timing', () => {
@@ -66,6 +101,7 @@ describe('SlideAnimation', () => {
     expect(animate.mock.calls[0]?.[1]).toEqual({
       duration: 645.4,
       easing: 'linear',
+      fill: 'both',
     });
     const offset = (frame: Keyframe | undefined) =>
       (Number.parseFloat(String(frame?.transform).replace('translateX(', '')) *
@@ -75,8 +111,8 @@ describe('SlideAnimation', () => {
     const to = offset(frames[1]);
     const center = (p: number) => 2 + from + (to - from) * p;
     expect(center(0)).toBeCloseTo(1.42, 5);
-    expect(center(0.5)).toBeCloseTo(0.21, 5);
-    expect(center(1)).toBeCloseTo(-1, 5);
+    expect(center(0.5)).toBeCloseTo(0.24, 5);
+    expect(center(1)).toBeCloseTo(-0.94, 5);
     expect(
       (4 * 0.922 * (center(0) - 0.5)) / (center(0) - center(1)),
     ).toBeCloseTo(1.4, 1);
@@ -121,6 +157,28 @@ describe('SlideAnimation', () => {
     }, 0);
     expect(Math.sqrt(error / measured.length)).toBeLessThan(0.01);
   });
+  it.each(['left', 'right', 'up', 'down'] as const)(
+    'ends the %s wipe with the full screen covered by opaque mask',
+    direction => {
+      const {view, old, next, animate} = setup();
+      view.play(old, next, {kind: 'wipe', dir: direction, sec: 4});
+      const frames = animate.mock.calls[0]?.[0];
+      if (!Array.isArray(frames)) throw new Error('Missing wipe keyframes');
+      const transform = String(frames[1]?.transform);
+      const percent = Number.parseFloat(
+        transform.replace(/^translate[XY]\(/, ''),
+      );
+      const offset = (percent * 4) / 100;
+      for (const edge of [0, 1]) {
+        const local = edge - offset;
+        expect(local).toBeGreaterThan(0);
+        expect(local).toBeLessThan(4);
+        const position =
+          (direction === 'left' || direction === 'up' ? 4 - local : local) / 4;
+        expect(position).toBeLessThanOrEqual(0.38);
+      }
+    },
+  );
   it.each([
     ['left', 'translateX(100%)', 'translateX(-100%)'],
     ['right', 'translateX(-100%)', 'translateX(100%)'],
@@ -191,9 +249,9 @@ describe('SlideAnimation', () => {
       const frames = animate.mock.calls[0]?.[0];
       if (!Array.isArray(frames)) throw new Error('Missing wipe keyframes');
       const maskImage = next.parentElement?.style.maskImage;
-      expect(maskImage).toMatch(
-        new RegExp(`^linear-gradient\\(to ${direction},`),
-      );
+      const reference = document.createElement('div');
+      reference.style.maskImage = wipeMask(direction);
+      expect(maskImage).toBe(reference.style.maskImage);
       expect(old.style.opacity).toBe('1');
       expect(animate).toHaveBeenCalledTimes(2);
       expect(
@@ -204,6 +262,7 @@ describe('SlideAnimation', () => {
       expect(animate.mock.calls[0]?.[1]).toEqual({
         duration: 461,
         easing: 'linear',
+        fill: 'both',
       });
     },
   );

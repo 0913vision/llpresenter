@@ -5,7 +5,7 @@ import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {OutputRenderer} from '../rendering/outputRenderer';
 import {SlideAnimation} from '../rendering/slideAnimation';
 import {ServiceMediaPreloader} from './serviceMediaPreloader';
-import {waitForReady} from './waitForReady';
+import {afterTwoFrames, waitForReady} from './waitForReady';
 import {reverseSlideTransition} from '@core/output/transitions';
 import type {SlideTransition} from '@core/schema/slideTransition';
 import type {LiveState} from '@core/live/state';
@@ -384,11 +384,37 @@ export function startOutput({
         if (stopped || epoch !== snapshotEpoch) return;
         cancelReady = null;
         try {
-          animation.play(currentRenderer.transitionSurface(), surface, effect);
-          surface.style.visibility = '';
-          const completion = animation.finished();
-          if (completion === null) finish();
-          else void completion.then(finish, () => undefined);
+          if (effect.kind === 'wipe') {
+            animation.prepare(
+              currentRenderer.transitionSurface(),
+              surface,
+              effect,
+            );
+            surface.style.visibility = '';
+            cancelReady = afterTwoFrames(() => {
+              if (stopped || epoch !== snapshotEpoch) return;
+              cancelReady = null;
+              try {
+                animation.start();
+                const completion = animation.finished();
+                if (completion === null) finish();
+                else void completion.then(finish, () => undefined);
+              } catch (error) {
+                report('could not start the incoming slide', error);
+                finish();
+              }
+            });
+          } else {
+            animation.play(
+              currentRenderer.transitionSurface(),
+              surface,
+              effect,
+            );
+            surface.style.visibility = '';
+            const completion = animation.finished();
+            if (completion === null) finish();
+            else void completion.then(finish, () => undefined);
+          }
         } catch (error) {
           report('could not animate the incoming slide', error);
           surface.style.visibility = '';

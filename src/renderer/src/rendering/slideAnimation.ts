@@ -34,22 +34,22 @@ const WIPE = {
   left: {
     direction: 'left',
     from: '19.3333333333333% 0%',
-    to: '100% 0%',
+    to: '98% 0%',
   },
   right: {
     direction: 'right',
     from: '80.6666666666667% 0%',
-    to: '0% 0%',
+    to: '2% 0%',
   },
   up: {
     direction: 'top',
     from: '0% 19.3333333333333%',
-    to: '0% 100%',
+    to: '0% 98%',
   },
   down: {
     direction: 'bottom',
     from: '0% 80.6666666666667%',
-    to: '0% 0%',
+    to: '0% 2%',
   },
 } as const;
 
@@ -158,6 +158,7 @@ export class SlideAnimation {
         const timing = {
           duration: effect.sec * WIPE_DURATION_MS_PER_SECOND,
           easing: 'linear',
+          fill: 'both' as const,
         };
         this.animations = [
           next.animate.call(
@@ -187,6 +188,18 @@ export class SlideAnimation {
       old.animate(outgoing, timing),
       next.animate(incoming, timing),
     ];
+  }
+
+  prepare(old: HTMLElement, next: HTMLElement, effect: SlideTransition): void {
+    this.play(old, next, effect);
+    for (const animation of this.animations) {
+      animation.pause();
+      animation.currentTime = 0;
+    }
+  }
+
+  start(): void {
+    for (const animation of this.animations) animation.play();
   }
 
   finished(): Promise<void> | null {

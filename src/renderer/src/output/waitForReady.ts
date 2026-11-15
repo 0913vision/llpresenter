@@ -19,3 +19,20 @@ export function waitForReady(
     cancelAnimationFrame(frame);
   };
 }
+
+/** Let a revealed surface reach the compositor before its animation starts. */
+export function afterTwoFrames(start: () => void): () => void {
+  let active = true;
+  let frame = requestAnimationFrame(() => {
+    if (!active) return;
+    frame = requestAnimationFrame(() => {
+      if (!active) return;
+      active = false;
+      start();
+    });
+  });
+  return () => {
+    active = false;
+    cancelAnimationFrame(frame);
+  };
+}
