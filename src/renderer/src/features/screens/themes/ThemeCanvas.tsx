@@ -251,7 +251,7 @@ function ThemeCanvas({
     resolved.layout.mode.kind === 'own'
       ? (resolved.layout.background ?? emptyScreenColor(source))
       : emptyScreenColor(source);
-  const elements = resolved.layout.elements.map(element => ({
+  const elements = model.visibleElements.map(element => ({
     ...element,
     name: themeElementNames[element.kind],
   }));
@@ -354,17 +354,7 @@ function ThemeCanvas({
           />
         )}
         actions={{
-          frames: (frames, completed) =>
-            model.elements(
-              values =>
-                values.map(element => {
-                  const next = frames.find(row => row.id === element.id);
-                  return next === undefined
-                    ? element
-                    : {...element, frame: next.frame};
-                }),
-              completed,
-            ),
+          frames: model.frames,
           frame: model.frame,
           frameValue: model.frameValue,
           nudge: model.nudge,
