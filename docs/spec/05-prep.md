@@ -132,12 +132,12 @@ not dim when focus leaves. 진행 retains its existing thumbnail style.
   automatic text-slide number, the slide name, and a bulleted body (12).
   Operators enter plain body lines; the theme adds hanging bullets. Picture
   slides cover the frame and do not consume a notice number.
-- Both forms use the same slides icon. The table shows the editable item name,
-  slide count, item theme or form default, background, start macro, and memo.
-  The right column shows the preview, item name, 슬라이드 편집… and themed
-  thumbnails. Item properties stay in table cells. It has no 순서 편집… action.
-  Their attached thumbnail strips show the number only; these slides have no
-  labels.
+- Both forms use the slides icon, except picture-only decks use the image icon.
+  The table shows the editable item name, slide count, item theme or form
+  default, background, start macro, and memo. The right column shows the
+  preview, item name, 슬라이드 편집… and themed thumbnails. Item properties stay
+  in table cells. It has no 순서 편집… action. Their attached thumbnail strips
+  show the number only; these slides have no labels.
 - Double-click or Enter on a blank, ad, or sermon slides item opens its editor
   in 준비's center. Existing 슬라이드 편집 requests use the same editor, with no
   separate window. The back button shows the service name. Esc in a slide text

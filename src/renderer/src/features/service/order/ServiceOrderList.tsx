@@ -1,4 +1,4 @@
-import {iconByKind} from './serviceItemIcons';
+import {serviceRowIcon} from './serviceItemIcons';
 import {useMediaOrderDrop} from './useMediaOrderDrop';
 import {usePaletteEditing} from '../items/PaletteEditing';
 import {usePaletteInsert} from '../items/usePaletteInsert';
@@ -217,7 +217,7 @@ function ItemRows({
                   : numbers.get(row.id)
               }
               className={navigator ? styles.navigatorRow : table?.rowClass}
-              icon={iconByKind[row.kind]}
+              icon={serviceRowIcon(row, tiles[row.id])}
               live={row.id === liveItemId}
               done={done.has(row.id)}
               meta={

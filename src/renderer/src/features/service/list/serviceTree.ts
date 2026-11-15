@@ -1,6 +1,7 @@
 import {displayReference} from '@core/bible/displayReference';
 import type {CheckState} from '@renderer/ui/Checkbox';
 import type {ServiceItemId} from '@core/schema/ids';
+import {slidesItemIcon} from '../order/serviceItemIcons';
 import {
   isItemOfKind,
   serviceItemKind,
@@ -55,7 +56,7 @@ function rowOf(
       label:
         item.slides.name ||
         (item.slides.form === 'ad' ? '광고' : '빈 슬라이드'),
-      icon: 'monitor',
+      icon: slidesItemIcon(item),
     };
   }
   const kind = serviceItemKind(item);

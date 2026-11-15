@@ -9,6 +9,7 @@ import {
 } from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
+import {createMediaId} from '@core/schema/ids';
 import {emptyLiveState} from '@core/live/state';
 import {SUNDAY_NOTICE_PICTURE_ID} from '@core/themes/sundayNotice';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
@@ -83,6 +84,34 @@ vi.mock('@renderer/ui/Icon', () => ({
 }));
 
 describe('ServiceOrderList', () => {
+  it.each(['show', 'prep'] as const)(
+    'shows image, text, and song icons in the %s order list',
+    workspace => {
+      useShow.setState({
+        rows: [
+          {kind: 'slides', form: 'blank', id: 'picture', title: 'Picture'},
+          {kind: 'slides', form: 'blank', id: 'text', title: 'Text'},
+          {kind: 'song', id: 'song', title: 'Song'},
+        ],
+        tiles: {
+          picture: [
+            {
+              label: null,
+              labelColor: 'none',
+              lines: [],
+              picture: createMediaId('00000000-0000-4000-8000-000000000001'),
+            },
+          ],
+          text: [{label: null, labelColor: 'none', lines: ['text']}],
+        },
+      });
+      iconRenders.length = 0;
+      render(<ServiceOrderList workspace={workspace} />);
+      expect(iconRenders).toEqual(
+        expect.arrayContaining(['image', 'monitor', 'song']),
+      );
+    },
+  );
   it('follows the live order item before the selected item only in show', () => {
     const follow = vi
       .spyOn(orderFollow, 'useOrderFollow')

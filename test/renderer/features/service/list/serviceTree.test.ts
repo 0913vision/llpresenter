@@ -1,6 +1,9 @@
 import {describe, expect, it} from 'vitest';
 import {sundayTemplate} from '@core/services/sundayTemplate';
 import {isItemOfKind} from '@core/schema/service';
+import {createMediaId, createSlideId} from '@core/schema/ids';
+import {newSlidesItem} from '@core/services/slidesEdits';
+import {fixtureItems} from '@fixtures/renderer/features/service/items/itemFixture';
 import {
   allState,
   checkAll,
@@ -29,6 +32,23 @@ function row(id: string): TreeRow {
 }
 
 describe('treeRows', () => {
+  it('shows an image icon for picture-only items in the service picker', () => {
+    const base = newSlidesItem('blank', fixtureItems.plain);
+    const slide = {
+      id: createSlideId('00000000-0000-4000-8000-000000000002'),
+      media: createMediaId('00000000-0000-4000-8000-000000000001'),
+    };
+    const picture = {...base, slides: {...base.slides, slides: [slide]}};
+    const mixed = {
+      ...base,
+      slides: {...base.slides, slides: [slide, {id: slide.id, text: 'text'}]},
+    };
+    const song = templateOrder[1];
+    if (song === undefined) throw new Error('Missing song fixture');
+    expect(
+      treeRows([picture, mixed, song], songTitles).map(row => row.icon),
+    ).toEqual(['image', 'monitor', 'song']);
+  });
   it('names all fixed Sunday template slides and retains its empty sermon section in a full selection', () => {
     const template = sundayTemplate();
     const sundayRows = treeRows(template.order, new Map());

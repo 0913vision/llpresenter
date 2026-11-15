@@ -72,6 +72,10 @@ changes selection, focus, or output.
 | Bible passage  | Book icon, passage name, for example 요한복음 3장 16절                                           | Selects the row and opens the passage's 슬라이드 in the 슬라이드 panel.                   |
 | Media          | Video icon, media name, for example 예배 전 카운트다운                                           | Selects the row and opens one media tile in the 슬라이드 panel.                           |
 
+An item with one or more slides, all pictures, uses the image icon in the order
+list and item picker. Empty, text, and mixed decks keep the slides icon; an
+opening section card does not change the content classification.
+
 - Clicking a row only selects it. The operator outputs by clicking a 슬라이드 in
   the 슬라이드 panel.
 - A 구역 can be empty and remains visible. In 진행 it is only a label: click and
