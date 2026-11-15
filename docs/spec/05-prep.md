@@ -12,6 +12,10 @@ Terms: 슬라이드 (slide), 예배 순서 (service order), 템플릿 (template)
 
 ## Layout
 
+On entering 준비, its service-order list is already positioned at 준비's own
+remembered selection before the first paint. A selection already visible stays
+in place; returning does not animate the list or change output.
+
 | Column | Panels                                                              | Source                  |
 | ------ | ------------------------------------------------------------------- | ----------------------- |
 | Left   | 예배 요소 / 곡                                                      | `Reflow`, `PrepService` |
