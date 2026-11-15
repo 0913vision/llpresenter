@@ -425,6 +425,24 @@ describe('built-in broadcast look', () => {
       element(before, BROADCAST_TEXT_ID).frame.y - 40,
     );
   });
+  it('keeps the lyric line budget when applying text style overrides', () => {
+    const layout = plain();
+    const fitted = fitBroadcastLook(layout, slide, item);
+    const body = element(fitted, BROADCAST_TEXT_ID);
+    if (body.kind !== 'currentText') throw Error('Missing body');
+    const changed = {
+      ...layout,
+      broadcastEdits: {[body.id]: {text: {...body.text, size: 70}}},
+    };
+    const result = element(
+      fitBroadcastLook(changed, slide, item),
+      BROADCAST_TEXT_ID,
+    );
+    expect(result).toMatchObject({
+      kind: 'currentText',
+      text: {size: 70, maxLines: body.text.maxLines},
+    });
+  });
   it('keeps a long Bible body below the header within an edited band', () => {
     const layout = plain();
     const bible = {...item, title: 'Reference'};
