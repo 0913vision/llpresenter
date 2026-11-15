@@ -2,9 +2,7 @@ import {useSyncExternalStore, type JSX} from 'react';
 import {isItemOfKind} from '@core/schema/service';
 import {biblePartEffect, setBiblePartEffect} from '@core/bible/partTransitions';
 import type {SlideTransition} from '@core/schema/slideTransition';
-import {SlideTransitionControl} from '@renderer/ui/SlideTransitionControl';
-import {Button} from '@renderer/ui/Button';
-import {PropertyGroup} from '@renderer/ui/PropertyRow';
+import {TransitionPicker} from './TransitionRows';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import {cardOffset, hasSectionCard} from '@core/services/sectionCards';
 import {slideLayerOf} from '@core/presentation/slideLayer';
@@ -27,14 +25,19 @@ import styles from './SlideInspector.module.css';
 export function OtherSlideInspector({
   items,
   editor,
+  applyAll,
+  changeSelected,
+  cardTransition,
 }: {
+  readonly changeSelected?:
+    ((change: SlideTransition | number) => void) | undefined;
+  readonly cardTransition?: SlideTransition | null | undefined;
+  readonly applyAll?: ((transition: SlideTransition) => void) | undefined;
   readonly items: ServiceItemStore;
   readonly editor: SongEditorStore;
 }): JSX.Element {
-  const {item, service, position, busy} = useSyncExternalStore(
-    items.subscribe,
-    items.getSnapshot,
-  );
+  const {item, service, position, busy, bibleSelection, cardSelected} =
+    useSyncExternalStore(items.subscribe, items.getSnapshot);
   const bible = item !== null && isItemOfKind(item, 'bible');
   const media = useItemMedia(
     editor.api.media,
@@ -81,42 +84,100 @@ export function OtherSlideInspector({
       : undefined;
   const appearance = projection?.appearance;
   const part = index >= 0 ? projection?.partsByTile[index] : undefined;
-  const transition =
-    bible && part != null
-      ? (biblePartEffect(item.bibleTransitions, part.reference, part.part) ??
-        item.bible.transition)
-      : card?.transition;
-  const changeTransition = (next: SlideTransition | undefined): void => {
+  const selectedParts =
+    bible && (bibleSelection.length > 0 || card === undefined)
+      ? (bibleSelection.length > 0 ? bibleSelection : [index])
+          .map(selectedIndex => projection?.partsByTile[selectedIndex])
+          .filter(part => part != null)
+      : [];
+  const selectedCard =
+    bible && cardSelected && hasSectionCard(item) ? item.sectionCard : card;
+  const values = [
+    ...(selectedCard === undefined
+      ? []
+      : [
+          (cardTransition === undefined
+            ? selectedCard.transition
+            : cardTransition) ?? {kind: 'none' as const, sec: 0.5},
+        ]),
+    ...(bible
+      ? selectedParts.map(
+          selectedPart =>
+            biblePartEffect(
+              item.bibleTransitions,
+              selectedPart.reference,
+              selectedPart.part,
+            ) ??
+            item.bible.transition ?? {kind: 'none' as const, sec: 0.5},
+        )
+      : []),
+  ];
+  const value = values[0] ?? {kind: 'none' as const, sec: 0.5};
+  const mixed = values.some(
+    entry => JSON.stringify(entry) !== JSON.stringify(value),
+  );
+  const changeTransition = (
+    next: SlideTransition | number,
+    all = false,
+  ): void => {
     if (item === null || service === null) return;
+    if (!all && changeSelected !== undefined) {
+      changeSelected(next);
+      return;
+    }
     editorTask(
       items.submitItemEdit({
         target: {serviceId: service.service.id, itemId: item.id},
         failure: '\uc804\ud658 \uc800\uc7a5 \uc2e4\ud328',
         change: current => {
-          if (card !== undefined && hasSectionCard(current)) {
-            const {transition: _old, ...rest} = current.sectionCard;
+          let updated = current;
+          if ((all || selectedCard !== undefined) && hasSectionCard(updated)) {
+            const old = updated.sectionCard.transition;
+            const effect =
+              typeof next === 'number'
+                ? old === undefined
+                  ? undefined
+                  : {...old, sec: next}
+                : next;
+            if (effect !== undefined) {
+              updated = {
+                ...updated,
+                sectionCard: {...updated.sectionCard, transition: effect},
+              };
+            }
+          }
+          if (isItemOfKind(updated, 'bible')) {
+            const parts = all
+              ? (projection?.partsByTile ?? []).filter(part => part != null)
+              : selectedParts;
+            let transitions = updated.bibleTransitions ?? [];
+            for (const entry of parts) {
+              const old =
+                biblePartEffect(transitions, entry.reference, entry.part) ??
+                updated.bible.transition;
+              const effect =
+                typeof next === 'number'
+                  ? old === undefined
+                    ? undefined
+                    : {...old, sec: next}
+                  : next;
+              if (effect !== undefined) {
+                transitions = setBiblePartEffect(
+                  transitions,
+                  {verse: entry.reference, part: entry.part},
+                  effect,
+                );
+              }
+            }
+            const {bibleTransitions: _old, ...rest} = updated;
             return {
-              ...current,
-              sectionCard: {
-                ...rest,
-                ...(next === undefined ? {} : {transition: next}),
-              },
+              ...rest,
+              ...(transitions.length === 0
+                ? {}
+                : {bibleTransitions: transitions}),
             };
           }
-          if (part == null || !isItemOfKind(current, 'bible')) return null;
-          const updated = setBiblePartEffect(
-            current.bibleTransitions,
-            {verse: part.reference, part: part.part},
-            next ??
-              (current.bible.transition === undefined
-                ? undefined
-                : {kind: 'none', sec: current.bible.transition.sec}),
-          );
-          const {bibleTransitions: _old, ...rest} = current;
-          return {
-            ...rest,
-            ...(updated.length === 0 ? {} : {bibleTransitions: updated}),
-          };
+          return updated;
         },
       }),
     );
@@ -143,10 +204,33 @@ export function OtherSlideInspector({
                 }}
               />
             </div>
-            <MediaProperties
-              item={file}
-              disabled={media.document?.access !== 'editable'}
-            />
+            <div
+              onKeyDownCapture={event => {
+                if (
+                  event.key !== 'Enter' ||
+                  event.nativeEvent.isComposing ||
+                  event.ctrlKey ||
+                  event.metaKey ||
+                  event.altKey ||
+                  !(event.target instanceof HTMLInputElement)
+                ) {
+                  return;
+                }
+                event.preventDefault();
+                event.stopPropagation();
+                event.target.blur();
+                document
+                  .querySelector<HTMLElement>(
+                    '[data-song-slide][aria-selected="true"], [data-song-slide]',
+                  )
+                  ?.focus();
+              }}
+            >
+              <MediaProperties
+                item={file}
+                disabled={media.document?.access !== 'editable'}
+              />
+            </div>
           </>
         )}
         {card === undefined ||
@@ -199,27 +283,50 @@ export function OtherSlideInspector({
             </div>
           </>
         )}
-        {(card !== undefined || part != null) && service !== null ? (
-          <PropertyGroup title={'\uc804\ud658'}>
-            <SlideTransitionControl
-              label={'\uc2ac\ub77c\uc774\ub4dc \uc804\ud658'}
-              value={transition ?? {kind: 'none', sec: 0.5}}
-              disabled={busy || service.access !== 'editable'}
-              onChange={update =>
-                changeTransition(update(transition ?? {kind: 'none', sec: 0.5}))
-              }
-            />
-            <Button
-              disabled={
+        {(selectedCard !== undefined ||
+          part != null ||
+          selectedParts.length > 0) &&
+        service !== null ? (
+          <div
+            onKeyDown={event => {
+              if (
+                (!bible && changeSelected === undefined) ||
                 busy ||
                 service.access !== 'editable' ||
-                transition === undefined
+                event.nativeEvent.isComposing ||
+                event.altKey ||
+                !(event.ctrlKey || event.metaKey)
+              ) {
+                return;
               }
-              onClick={() => changeTransition(undefined)}
-            >
-              {'\uc804\ud658 \uc81c\uac70'}
-            </Button>
-          </PropertyGroup>
+              const key = event.key.toLowerCase();
+              if (key !== 'z' && key !== 'y') return;
+              event.preventDefault();
+              event.stopPropagation();
+              const action = key === 'y' || event.shiftKey ? 'redo' : 'undo';
+              if (bible) editorTask(items.replayItemEdit(action));
+              else editor.getSnapshot().session?.edit(action);
+            }}
+          >
+            <TransitionPicker
+              value={value}
+              allowAll={bible || applyAll !== undefined}
+              mixed={mixed}
+              disabled={busy || service.access !== 'editable'}
+              selectionKey={selectedParts
+                .map(
+                  entry =>
+                    `${entry.reference.book}:${entry.reference.chapter}:${entry.reference.verse}:${entry.part}`,
+                )
+                .join(',')}
+              onChange={changeTransition}
+              onSeconds={sec => changeTransition(sec)}
+              onApplyAll={() => {
+                if (applyAll === undefined) changeTransition(value, true);
+                else applyAll(value);
+              }}
+            />
+          </div>
         ) : null}
       </PanelBody>
     </Panel>

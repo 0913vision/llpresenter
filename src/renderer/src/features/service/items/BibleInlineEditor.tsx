@@ -149,6 +149,7 @@ function BibleEditorContent({
       <SongSlideSurface
         session={session}
         leadingCard={card}
+        mixedLeadingSelection
         contentReadOnly
         onBack={onBack}
         className={styles.surface}
@@ -208,8 +209,12 @@ function BibleEditorContent({
                   <div
                     className={styles.row}
                     role="option"
-                    aria-selected={position === index}
-                    data-selected={position === index}
+                    aria-selected={session.slideModel
+                      .getSnapshot()
+                      .selection.ids.has(String(index - offset))}
+                    data-selected={session.slideModel
+                      .getSnapshot()
+                      .selection.ids.has(String(index - offset))}
                     aria-readonly={slide.readOnly}
                     data-song-slide={String(index - offset)}
                     data-slide-index={index - offset}

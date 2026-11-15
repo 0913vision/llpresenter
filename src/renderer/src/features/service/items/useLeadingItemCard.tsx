@@ -25,6 +25,7 @@ export function useLeadingItemCard(
   const card = item.sectionCard;
   const disabled = busy || service.access === 'readOnly';
   return {
+    mixedSelection: true,
     label: '구역 이름',
     render: mode => (
       <CardSlideBody
@@ -45,6 +46,7 @@ export function useLeadingItemCard(
       }
     },
     onSelectChange: selected => {
+      items.setCardSelected(selected);
       items.selectPosition(selected ? 0 : 1);
     },
   };

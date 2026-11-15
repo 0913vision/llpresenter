@@ -5,6 +5,7 @@ import type {ItemOverlay} from '@core/schema/itemOverlays';
 import type {ServiceItem} from '@core/schema/service';
 import type {SongSession} from '@renderer/features/songs/editor/songSession';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
+import {serviceOrderEditsFor} from '@renderer/session/serviceOrderEdits';
 import {
   ItemEditQueue,
   type ItemEditRequest,
@@ -48,6 +49,8 @@ export interface ServiceItemState {
    * thumbnails, and preview. Readers clamp it to the order's length.
    */
   readonly position: number;
+  readonly bibleSelection: readonly number[];
+  readonly cardSelected: boolean;
   readonly busy: boolean;
 }
 const NO_ITEM: ServiceItemState = {
@@ -56,6 +59,8 @@ const NO_ITEM: ServiceItemState = {
   song: null,
   songStatus: null,
   position: 0,
+  bibleSelection: [],
+  cardSelected: false,
   busy: false,
 };
 const RETRY_READ_LABEL = '다시 불러오기';
@@ -76,6 +81,8 @@ export class ServiceItemStore {
   private readonly stopWrites: () => void;
   private target: ItemTarget | null = null;
   private position = 0;
+  private bibleSelection: readonly number[] = [];
+  private cardSelected = false;
   private alive = true;
   private state = NO_ITEM;
   readonly memoRoomReason = TOO_MANY_DRAFTS;
@@ -107,6 +114,8 @@ export class ServiceItemStore {
     if (!this.alive || sameTarget(target, this.target)) return;
     this.target = target;
     this.position = 0;
+    this.bibleSelection = [];
+    this.cardSelected = false;
     this.source.show(target);
   }
   /** Selects a place in the order without changing the output. */
@@ -115,6 +124,34 @@ export class ServiceItemStore {
     if (index === this.position) return;
     this.position = index;
     this.publish();
+  }
+  setCardSelected(selected: boolean): void {
+    if (this.cardSelected === selected) return;
+    this.cardSelected = selected;
+    this.publish();
+  }
+  setBibleSelection(indices: readonly number[]): void {
+    this.bibleSelection = indices;
+    this.publish();
+  }
+  canUndoItemEdit(action: 'undo' | 'redo'): boolean {
+    const id = this.state.service?.service.id;
+    if (id === undefined || this.state.busy) return false;
+    const history = serviceOrderEditsFor(this.api);
+    return action === 'undo' ? history.canUndo(id) : history.canRedo(id);
+  }
+  async replayItemEdit(action: 'undo' | 'redo'): Promise<void> {
+    const id = this.state.service?.service.id;
+    if (id === undefined || this.state.busy) return;
+    const history = serviceOrderEditsFor(this.api);
+    const result = await (action === 'undo'
+      ? history.undo(id)
+      : history.redo(id));
+    if (!result.ok) {
+      this.problem(
+        '\uC804\uD658 \uBCC0\uACBD\uC744 \uB418\uB3CC\uB9AC\uC9C0 \uBABB\uD588\uC2B5\uB2C8\uB2E4',
+      );
+    }
   }
   /** Submits a captured field request through the single item-write queue. */
   submitItemEdit(request: ItemEditRequest): Promise<boolean> {
@@ -197,6 +234,8 @@ export class ServiceItemStore {
       song,
       songStatus,
       position: this.position,
+      bibleSelection: this.bibleSelection,
+      cardSelected: this.cardSelected,
       busy: this.edits.busy,
     };
     for (const listener of this.listeners) listener();

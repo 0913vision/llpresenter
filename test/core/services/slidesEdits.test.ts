@@ -68,6 +68,35 @@ describe('merge slides changes', () => {
     ).toBeNull();
   });
 
+  it('merges a card transition together with slide transitions without losing fresh card text', () => {
+    const base = {...newSlidesItem('blank', id), sectionCard: newSectionCard()};
+    const effect = {kind: 'wipe' as const, sec: 1, dir: 'left' as const};
+    const edited = {
+      ...base,
+      sectionCard: {...base.sectionCard, transition: effect},
+      slides: {
+        ...base.slides,
+        slides: base.slides.slides.map(slide => ({
+          ...slide,
+          transition: effect,
+        })),
+      },
+    };
+    const fresh = {...base, sectionCard: {...base.sectionCard, name: 'Fresh'}};
+    const merged = mergeSlidesChanges(base, edited, fresh);
+    expect(merged?.sectionCard).toMatchObject({
+      name: 'Fresh',
+      transition: effect,
+    });
+    expect(merged?.slides.slides[0]?.transition).toEqual(effect);
+    const draft = new SlidesDraft(base);
+    draft.change(edited, 0, 'transition-all');
+    draft.endTyping();
+    draft.undo();
+    expect(draft.snapshot.item.sectionCard?.transition).toBeUndefined();
+    expect(draft.snapshot.item.slides.slides[0]?.transition).toBeUndefined();
+  });
+
   it('accepts identical concurrent changes and refuses incompatible forms', () => {
     const base = newSlidesItem('ad', id);
     const edited = {...base, slides: {...base.slides, name: 'Same'}};

@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import {expect, it, vi} from 'vitest';
 import {createServiceItemId, createSlideId} from '@core/schema/ids';
 import {newSlidesItem, SlidesDraft} from '@core/services/slidesEdits';
+import {newSectionCard} from '@core/services/sectionCards';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {SlidesListSession} from '@renderer/features/service/slides/slidesListSession';
 import {SlidesInspector} from '@renderer/features/service/slideInspector/SlidesInspector';
@@ -101,4 +102,32 @@ it('shows the picture and transition control for a card-only slide item', async 
     within(document.body).getByRole('menuitemradio', {name: '밀어내기'}),
   );
   expect(draft.snapshot.item.slides.slides[0]?.transition?.kind).toBe('push');
+});
+
+it('applies one transition to a selected section card and slide and undoes both', async () => {
+  const item = newSlidesItem(
+    'blank',
+    createServiceItemId('00000000-0000-4000-8000-000000000199'),
+  );
+  const draft = new SlidesDraft({...item, sectionCard: newSectionCard()});
+  const session = new SlidesListSession(draft, {
+    locked: () => false,
+    problem: vi.fn(),
+  });
+  const view = render(
+    <SlidesInspector api={mockLlpApi()} session={session} cardSelected />,
+  );
+  await userEvent.click(within(view.container).getByLabelText('\uD6A8\uACFC'));
+  await userEvent.click(
+    within(document.body).getByRole('menuitemradio', {
+      name: '\uB514\uC878\uBE0C',
+    }),
+  );
+  expect(draft.snapshot.item.sectionCard?.transition?.kind).toBe('dissolve');
+  expect(draft.snapshot.item.slides.slides[0]?.transition?.kind).toBe(
+    'dissolve',
+  );
+  act(() => session.edit('undo'));
+  expect(draft.snapshot.item.sectionCard?.transition).toBeUndefined();
+  expect(draft.snapshot.item.slides.slides[0]?.transition).toBeUndefined();
 });

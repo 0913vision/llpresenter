@@ -1,4 +1,7 @@
 import type {LlpApi} from '@contracts/ipc/api';
+import {slideTransitionSchema} from '@core/schema/slideTransition';
+import {parsePayload} from '@core/schema/payload';
+import {ITEM_CARD_TRANSITION} from './itemCardTransition';
 import type {ServiceDocument} from '@core/schema/contentDocuments';
 import type {SongEditorTarget} from '@core/schema/ipcPayloads';
 import {createSongId} from '@core/schema/ids';
@@ -49,6 +52,9 @@ export function itemSongDocument(
   const {background: removed, ...song} = source;
   return {
     itemTarget: target,
+    ...(item.sectionCard === undefined
+      ? {}
+      : {itemCardTransition: item.sectionCard.transition ?? null}),
     ...(item.theme === undefined ? {} : {itemTheme: item.theme}),
     access: service.access,
     revision: service.revision,
@@ -99,10 +105,34 @@ export function itemSongContent(
           error: {reason: 'not-found', message: 'The item changed'},
         };
       }
+      const marker =
+        ITEM_CARD_TRANSITION in edit.song
+          ? edit.song[ITEM_CARD_TRANSITION]
+          : undefined;
+      const parsed =
+        marker === undefined || marker === null
+          ? undefined
+          : parsePayload(slideTransitionSchema, marker);
+      if (
+        (parsed !== undefined && !parsed.ok) ||
+        (marker !== undefined && item.sectionCard === undefined)
+      ) {
+        return {
+          ok: false,
+          error: {reason: 'invalid', message: 'The section card changed'},
+        };
+      }
+      let sectionCard = item.sectionCard;
+      if (marker !== undefined && sectionCard !== undefined) {
+        const {transition: _previous, ...rest} = sectionCard;
+        sectionCard =
+          parsed?.ok === true ? {...rest, transition: parsed.value} : rest;
+      }
       const {background: removed, ...kept} = item;
       const updated = {
         ...kept,
         slides: edit.song.slides,
+        ...(sectionCard === undefined ? {} : {sectionCard}),
         ...(edit.song.background === undefined
           ? {}
           : {background: edit.song.background}),
