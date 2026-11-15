@@ -353,7 +353,13 @@ function stageStandbyNext(live: TileCursor, next: TileCursor | null): boolean {
     const row = view.rows.find(entry => entry.id === next.itemId);
     return row?.kind === 'slides' && row.title === '\uB300\uAE30 \uD654\uBA74';
   }
-  if (live.index + 1 < tilesOf(live.itemId).length) return false;
+  const tiles = tilesOf(live.itemId);
+  if (tiles[live.index] === undefined || live.index + 1 < tiles.length) {
+    return false;
+  }
+  if (!view.rows.some(row => row.kind !== 'header' && row.id === live.itemId)) {
+    return false;
+  }
   return (
     adjacentItem({
       rows: view.rows,

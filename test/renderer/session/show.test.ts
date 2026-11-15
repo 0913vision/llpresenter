@@ -246,7 +246,7 @@ describe('show state', () => {
     });
   });
 
-  it('skips headers on the way to the next Bible item and leaves the end empty', () => {
+  it('skips headers on the way to the next Bible item and marks standby at the end', () => {
     setAtLastSlide('nextItem');
     outputTile({itemId: 'song-river', index: 2});
     expect(slides().at(-1)).toMatchObject({
@@ -259,7 +259,7 @@ describe('show state', () => {
     });
     sent.length = 0;
     outputTile({itemId: 'psalm-23', index: 2});
-    expect(slides().at(-1)?.slide.next).toBeUndefined();
+    expect(slides().at(-1)?.slide.next).toMatchObject({stageStandby: true});
   });
 
   it('labels only a different, non-sermon next Bible passage', () => {
@@ -565,6 +565,16 @@ describe('show state', () => {
       type: 'stage.next.set',
       next: {stageStandby: true},
     });
+  });
+
+  it('does not infer standby from an unavailable live projection', () => {
+    useShow.setState({tiles: {}});
+    setLive('song-morning', 0);
+    sent.length = 0;
+    openItem('song-morning');
+    expect(sent.filter(command => command.type === 'stage.next.set')).toEqual(
+      [],
+    );
   });
 
   it('keeps stage next anchored to the live slide while browsing another item', () => {
