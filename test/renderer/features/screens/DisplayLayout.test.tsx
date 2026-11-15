@@ -235,6 +235,9 @@ describe('the display layout', () => {
     await waitFor(() => expect(box(3).textContent).toContain('출력 미지정'));
     expect(box(3).textContent).toContain('모니터 3');
     expect(box(3).textContent).not.toContain('연결된 화면 없음');
+    expect(box(3).tagName).toBe('DIV');
+    fireEvent.click(box(3));
+    expect(useScreensSelection.getState().selection.id).toBeNull();
   });
 
   it('highlights the monitor of the selected screen', async () => {
@@ -309,21 +312,9 @@ describe('the display layout', () => {
         screen.getByRole('button', {name: '모니터 2 Second monitor'}),
       );
       expect(useScreensSelection.getState().selection.id).toBe(MAIN_ID);
-      await userEvent.click(
-        screen.getByRole('button', {name: '모니터 1 Wide monitor'}),
-      );
-      expect(box(1).getAttribute('aria-pressed')).toBe('true');
-      expect(box(2).getAttribute('aria-pressed')).toBe('false');
-      await userEvent.click(screen.getByRole('button', {name: '무대 화면'}));
-      await userEvent.click(
-        screen.getByRole('button', {name: '모니터 1 Wide monitor'}),
-      );
-      expect(
-        screen
-          .getByRole('button', {name: '무대 화면'})
-          .getAttribute('aria-pressed'),
-      ).toBe('false');
-      expect(box(1).getAttribute('aria-pressed')).toBe('true');
+      await userEvent.click(box(1));
+      expect(box(1).tagName).toBe('DIV');
+      expect(useScreensSelection.getState().selection.id).toBe(MAIN_ID);
       expect(edit).not.toHaveBeenCalled();
       expect(send).not.toHaveBeenCalled();
     },
@@ -351,7 +342,7 @@ describe('the display layout', () => {
       {...monitor(2, 1920), screenIds: []},
     ]);
     expect(box(1).getAttribute('aria-pressed')).toBe('true');
-    expect(box(2).getAttribute('aria-pressed')).toBe('false');
+    expect(box(2).getAttribute('aria-pressed')).toBeNull();
   });
 
   it('stops observing the panel when it unmounts', async () => {

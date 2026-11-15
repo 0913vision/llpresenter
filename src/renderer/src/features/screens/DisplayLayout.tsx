@@ -77,6 +77,41 @@ function MonitorView({
   readonly enabled: boolean;
   readonly onSelect: () => void;
 }): JSX.Element {
+  if (box.screens.length === 0) {
+    return (
+      <div
+        className={classNames(styles.monitor, styles.unassigned)}
+        data-monitor={box.number}
+        onDragOver={event => {
+          if (
+            !enabled ||
+            box.control ||
+            !event.dataTransfer.types.includes(SCREEN_DRAG_MIME)
+          ) {
+            return;
+          }
+          event.preventDefault();
+          event.dataTransfer.dropEffect = 'move';
+        }}
+        onDrop={onDrop}
+        style={{
+          left: percent(box.left),
+          top: percent(box.top),
+          width: percent(box.width),
+          height: percent(box.height),
+        }}
+      >
+        <span className={styles.number}>모니터 {box.number}</span>
+        <span>{box.name}</span>
+        <span>{box.resolution}</span>
+        {box.control ? (
+          <span className={styles.control}>{CONTROL_LABEL}</span>
+        ) : (
+          <span>출력 미지정</span>
+        )}
+      </div>
+    );
+  }
   return (
     <button
       type="button"
@@ -111,7 +146,6 @@ function MonitorView({
       {box.screens.length > 0 && (
         <span className={styles.screens}>{box.screens.join(', ')}</span>
       )}
-      {!box.control && box.screens.length === 0 && <span>출력 미지정</span>}
       {box.control && <span className={styles.control}>{CONTROL_LABEL}</span>}
     </button>
   );

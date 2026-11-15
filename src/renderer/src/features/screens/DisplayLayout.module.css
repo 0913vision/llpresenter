@@ -53,6 +53,10 @@
   text-overflow: ellipsis;
 }
 
+.unassigned {
+  cursor: default;
+}
+
 .monitor:focus-visible,
 .target:focus-visible {
   outline: none;
