@@ -75,7 +75,7 @@ function updated(
   return request.value;
 }
 
-describe('복제 of a 퀵 실행 항목', () => {
+describe('복제 of a 빠른 실행 항목', () => {
   const black = {id: uuid(7, 1), name: '검은 화면', kind: 'black'};
   const song = {
     id: uuid(7, 2),
@@ -239,10 +239,10 @@ describe('복제 of a 퀵 실행 항목', () => {
   });
 });
 
-describe('the reason a 퀵 실행 row cannot be copied', () => {
+describe('the reason a 빠른 실행 row cannot be copied', () => {
   const timer = quickItem('timer');
   const song = quickItem('song');
-  it('puts the lock first, then the full 퀵 실행 list, then the full 타이머 list for a 타이머 row only', () => {
+  it('puts the lock first, then the full 빠른 실행 list, then the full 타이머 list for a 타이머 row only', () => {
     const open = {locked: false, full: false, timersFull: false};
     expect(quickCopyReason(timer, open)).toBeUndefined();
     expect(quickCopyReason(timer, {...open, locked: true, full: true})).toBe(
@@ -250,7 +250,7 @@ describe('the reason a 퀵 실행 row cannot be copied', () => {
     );
     expect(
       quickCopyReason(timer, {...open, full: true, timersFull: true}),
-    ).toBe('퀵 실행 항목은 500개까지 추가할 수 있습니다');
+    ).toBe('빠른 실행 항목은 500개까지 추가할 수 있습니다');
     expect(quickCopyReason(timer, {...open, timersFull: true})).toBe(
       '타이머는 500개까지 추가할 수 있습니다',
     );

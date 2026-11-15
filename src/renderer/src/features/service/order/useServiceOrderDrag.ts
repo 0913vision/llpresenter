@@ -43,6 +43,7 @@ const BACKGROUND_BAND = {start: 0.25, end: 0.75};
 
 interface DragOptions {
   readonly enabled: boolean;
+  readonly allowReorder: boolean;
   readonly rows: readonly ServiceRow[];
   readonly onMove: (source: readonly string[], before: string | null) => void;
   readonly selected: ReadonlySet<string>;
@@ -68,6 +69,7 @@ export function serviceOrderRowId(target: EventTarget): string | null {
 /** Shares native drop handling and the design-system insertion line. */
 export function useServiceOrderDrag({
   enabled,
+  allowReorder,
   rows,
   onMove,
   selected,
@@ -171,7 +173,7 @@ export function useServiceOrderDrag({
       onClickCapture: click.props.onClickCapture,
       onDoubleClickCapture: click.props.onDoubleClickCapture,
       onDragStart: (event: DragEvent<HTMLElement>): void => {
-        if (!enabled) {
+        if (!enabled || !allowReorder) {
           event.preventDefault();
           return;
         }

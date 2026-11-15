@@ -274,7 +274,7 @@ export interface ListActionRowProps {
 }
 
 /**
- * A row that runs at once on a click, as in 퀵 실행. An item that turns on
+ * A row that runs at once on a click, as in 빠른 실행. An item that turns on
  * and off reports it with `aria-pressed` and a `live` bar on the left.
  */
 export function ListActionRow({

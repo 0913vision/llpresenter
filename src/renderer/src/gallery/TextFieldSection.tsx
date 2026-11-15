@@ -28,14 +28,14 @@ export function TextFieldSection(): JSX.Element {
         <SpecItem label="md 30, new service name" width={220}>
           <Field aria-label="이름" initial="주일 예배" />
         </SpecItem>
-        <SpecItem label="md 30, leading icon, 퀵 실행" width={252}>
+        <SpecItem label="md 30, leading icon, 빠른 실행" width={252}>
           <Field
             aria-label="성경 구절"
             icon="book"
             placeholder="요 3:16, 창 1:1-5"
           />
         </SpecItem>
-        <SpecItem label="sm 26, 퀵 실행 in a narrow window" width={192}>
+        <SpecItem label="sm 26, 빠른 실행 in a narrow window" width={192}>
           <Field
             aria-label="성경 구절"
             size="sm"

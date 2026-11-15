@@ -96,7 +96,7 @@ export function ButtonSection(): JSX.Element {
           <Button>저장 안 함</Button>
         </SpecItem>
         <SpecItem label="sm leading icon, left 8">
-          <Button icon="plus">가져오기</Button>
+          <Button icon="download">가져오기</Button>
         </SpecItem>
         <SpecItem label="sm ghost">
           <Button variant="ghost" icon="plus">

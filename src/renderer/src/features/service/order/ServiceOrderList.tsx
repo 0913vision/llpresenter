@@ -198,7 +198,7 @@ function ItemRows({
             key={row.id}
             data-order-id={row.id}
             data-media-drop={backgroundTarget === row.id ? '' : undefined}
-            draggable={editable}
+            draggable={editable && workspace === 'prep'}
           >
             {insertBefore === row.id ? <ListInsertLine /> : null}
             <ListRow
@@ -402,6 +402,7 @@ export function ServiceOrderList({
   });
   const {insertBefore, backgroundTarget, dragProps} = useServiceOrderDrag({
     enabled: editable,
+    allowReorder: workspace === 'prep',
     rows,
     selected: selection.selected,
     select: id => selection.replace([id], id),
@@ -638,13 +639,13 @@ export function ServiceOrderList({
     {
       id: 'list.moveUp',
       context: 'service',
-      when: ownsCommand,
+      when: event => workspace === 'prep' && ownsCommand(event),
       run: event => moveFromKey(event, 'up'),
     },
     {
       id: 'list.moveDown',
       context: 'service',
-      when: ownsCommand,
+      when: event => workspace === 'prep' && ownsCommand(event),
       run: event => moveFromKey(event, 'down'),
     },
     {
@@ -875,7 +876,11 @@ export function ServiceOrderList({
     ).length;
     return entries
       .filter(
-        entry => count === 1 || (entry.kind === 'item' && common.has(entry.id)),
+        entry =>
+          (workspace === 'prep' ||
+            entry.kind !== 'item' ||
+            (entry.id !== 'move-up' && entry.id !== 'move-down')) &&
+          (count === 1 || (entry.kind === 'item' && common.has(entry.id))),
       )
       .map(entry =>
         entry.kind !== 'item' ||
@@ -972,7 +977,7 @@ export function ServiceOrderList({
               key={group.id}
               data-order-id={group.id}
               className={table?.sectionClass}
-              draggable={editable}
+              draggable={editable && workspace === 'prep'}
               onDoubleClick={event => {
                 const row =
                   event.target instanceof Element

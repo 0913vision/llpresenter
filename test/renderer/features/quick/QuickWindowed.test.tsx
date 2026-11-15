@@ -63,7 +63,7 @@ it('bounds a long quick list and reaches its last row by keyboard', async () => 
   const {unmount} = render(
     <QuickPanel selectionVersion={0} onProblem={vi.fn()} />,
   );
-  const list = await screen.findByRole('group', {name: '퀵 실행 항목'});
+  const list = await screen.findByRole('group', {name: '빠른 실행 항목'});
   const viewport = list.parentElement;
   if (!viewport) throw new Error('Missing viewport');
   Object.defineProperty(viewport, 'clientHeight', {

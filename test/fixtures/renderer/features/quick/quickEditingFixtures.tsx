@@ -168,12 +168,12 @@ export function failPersistedEdit(
 }
 
 export async function openAddMenu(): Promise<void> {
-  const add = await screen.findByRole('button', {name: '퀵 실행 추가'});
+  const add = await screen.findByRole('button', {name: '빠른 실행 추가'});
   await waitFor(() =>
     expect(add.getAttribute('aria-disabled')).not.toBe('true'),
   );
   fireEvent.click(add);
-  await screen.findByRole('menu', {name: '퀵 실행 추가'});
+  await screen.findByRole('menu', {name: '빠른 실행 추가'});
 }
 
 beforeEach(() => {

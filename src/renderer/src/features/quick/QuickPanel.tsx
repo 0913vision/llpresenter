@@ -73,7 +73,7 @@ export function QuickPanel({
   readonly onProblem: (notice: Notice) => void;
 }): JSX.Element | null {
   const api = window.llp;
-  const document = useSettingsDocument('quick', '퀵 실행', onProblem);
+  const document = useSettingsDocument('quick', '빠른 실행', onProblem);
   const timers = useQuickTimers(document, onProblem);
   const editing = useQuickEditing(api, onProblem);
   const locked = document?.access !== 'editable' || editing.busy;
@@ -164,9 +164,9 @@ export function QuickPanel({
   );
   if (api === undefined) return null;
   return (
-    <Panel label="퀵 실행" className={styles.panel}>
+    <Panel label="빠른 실행" className={styles.panel}>
       <PanelHeader>
-        <PanelTitle title="퀵 실행" />
+        <PanelTitle title="빠른 실행" />
         <PanelActions>
           <QuickAdd
             api={api}
@@ -187,7 +187,7 @@ export function QuickPanel({
         <div
           {...drag.listProps}
           role="group"
-          aria-label="퀵 실행 항목"
+          aria-label="빠른 실행 항목"
           className={styles.list}
           style={{height: items.length * windowed.rowHeight}}
           onKeyDown={windowed.onKeyDown}

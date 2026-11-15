@@ -17,7 +17,7 @@ describe('quick editing', () => {
     const fixture = setup();
     fixture.mount();
     const first = await screen.findByRole('button', {name: '저장된 곡'});
-    const list = screen.getByRole('group', {name: '퀵 실행 항목'});
+    const list = screen.getByRole('group', {name: '빠른 실행 항목'});
     const height = fixture.current().value.items.length * 30;
     vi.spyOn(list, 'getBoundingClientRect').mockReturnValue(
       new DOMRect(0, 0, 200, height),

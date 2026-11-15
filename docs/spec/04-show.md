@@ -7,21 +7,21 @@ boards.
 
 Terms: 슬라이드 (slide), 예배 순서 (service order), 이름표 (label), 청중 화면
 (main screen), 무대 화면 (stage screen), 방송 화면 (broadcast captions), 진행
-도구 (show tools), 퀵 실행 (quick launch), 그래픽 (prop), 메시지 (message),
+도구 (show tools), 빠른 실행 (quick launch), 그래픽 (prop), 메시지 (message),
 타이머 (timer), 매크로 (macro), 라이브러리 (library), 준비 (Prep workspace).
 See 01.
 
 ## Layout
 
-| Column | Panels, top to bottom                                            | Source                   |
-| ------ | ---------------------------------------------------------------- | ------------------------ |
-| Left   | 예배 순서 (takes the remaining height), 퀵 실행 (content height) | `ShowH`, `Layout` README |
-| Center | 슬라이드 panel (remaining height)                                | `ShowH`, `Layout` README |
-| Right  | Preview, clear row, 진행 도구 (remaining height, at least 240)   | `ShowH`, `Layout` README |
+| Column | Panels, top to bottom                                              | Source                   |
+| ------ | ------------------------------------------------------------------ | ------------------------ |
+| Left   | 예배 순서 (takes the remaining height), 빠른 실행 (content height) | `ShowH`, `Layout` README |
+| Center | 슬라이드 panel (remaining height)                                  | `ShowH`, `Layout` README |
+| Right  | Preview, clear row, 진행 도구 (remaining height, at least 240)     | `ShowH`, `Layout` README |
 
 - The shared bottom 미디어 bin sits below the workspace columns when open; its
   own playlists, content and properties are described below.
-- 진행 has no 라이브러리. Its left column holds the 예배 순서 and 퀵 실행.
+- 진행 has no 라이브러리. Its left column holds the 예배 순서 and 빠른 실행.
 - Dragging column widths, remembering them per size class, and shrinking the
   preview when the window is too short follow the design system `Layout`
   document.
@@ -120,9 +120,9 @@ order, no row dims.
 
 ### Editing the 예배 순서 in 진행
 
-- In 진행, the operator can also drag rows to reorder them (a 구역 moves with
-  its items, 05) and add items with 항목 추가 (proposal: the header has an 항목
-  추가 button).
+- In 진행, items and sections cannot be reordered by dragging, keyboard, or the
+  context menu. Reordering remains available in 준비 (05). The operator can add
+  items with 항목 추가 (proposal: the header has an 항목 추가 button).
 - No board shows the row's right-click menu. Version 1 has "준비에서 열기" (open
   in 준비) and "삭제" (delete). Delete is immediate for one row and asks once
   with the selected count for more than one, and Ctrl Z or 편집 > 실행 취소
@@ -254,7 +254,7 @@ unseen tiles and reuses unchanged compositions and text-fit measurements.
 ### Panel keyboard order
 
 After the toolbar (workspace tabs, 검색, 테마, 청중, 무대, 방송), Tab visits: 1
-예배 순서, 2 슬라이드, 3 퀵 실행, 4 미리보기, 5 지우기, 6 진행 도구, 7 미디어.
+예배 순서, 2 슬라이드, 3 빠른 실행, 4 미리보기, 5 지우기, 6 진행 도구, 7 미디어.
 Shift Tab reverses the same sequence. Narrow layouts skip only controls that are
 absent or hidden; collapsed panels retain their expand button. Each list or grid
 is one Tab stop.
@@ -263,7 +263,7 @@ The 예배 순서 header controls precede its selected row. Tab from that row en
 the grid itself. Its arrows continue from the live slide when the open item is
 live. Shift Tab from the grid returns to the same order row. The grid's size
 slider and percentage follow immediately, then its other controls (including
-Bible display controls), before 퀵 실행. These moves only change focus, never
+Bible display controls), before 빠른 실행. These moves only change focus, never
 output. The order row also draws its usual inset accent focus outline.
 
 The seven panel destinations are separately assignable in 환경설정 > 단축키,
@@ -539,7 +539,7 @@ panel past the resizable border or disappears below that border.
 ### 타이머
 
 - Each timer has its own ID, configuration and running state. Starting, stopping
-  or resetting one timer never changes another. 퀵 실행, the timer tab, 그래픽
+  or resetting one timer never changes another. 빠른 실행, the timer tab, 그래픽
   tokens and the stage timer picker refer to that same timer by ID; the operator
   sees its name (user decision from the October 26 check).
 - One row per 타이머: an icon, the name and kind ("10:30까지" until 10:30,
@@ -592,7 +592,7 @@ panel past the resizable border or disappears below that border.
   "hours:minutes:seconds" (proposal).
 - 타이머 keep running regardless of clears. They show in 그래픽 text and in the
   타이머 element of a 테마.
-- Adding a timer from 퀵 실행 creates a new fixed-duration countdown after
+- Adding a timer from 빠른 실행 creates a new fixed-duration countdown after
   asking for minutes and seconds. Its initial name is 타이머 1, 타이머 2, and so
   on, using an unused number. The row's 이름 바꾸기 changes that timer's name
   too, so the 무대 tab shows the renamed timer. That picker continues selecting
@@ -606,8 +606,8 @@ panel past the resizable border or disappears below that border.
 - No board shows where to add or edit a 타이머. The app has a plus button in the
   tab and a right-click menu on each row (수정…, 복제, 이름 바꾸기, 삭제). 수정…
   opens 타이머 수정 with the saved kind and values; 저장 keeps the timer's id
-  and name, so every use (퀵 실행, 매크로, 무대 화면, 테마 elements) stays
-  linked, and a kind change is allowed. A 퀵 실행 row of a 타이머 has the same
+  and name, so every use (빠른 실행, 매크로, 무대 화면, 테마 elements) stays
+  linked, and a kind change is allowed. A 빠른 실행 row of a 타이머 has the same
   수정… for the timer it refers to (decided November 3). A new timer opens at
   5분 (our own default; ProPresenter's timer article names none) and a new 경과
   timer at 0.
@@ -692,11 +692,11 @@ tile at the end. See 07.
 Source: `Overlays` (tool controls), `Problems` (still background), `Macros`,
 `ClearButton` README, `MacroTile` README, `StatusMarks` README (count badge).
 
-## 퀵 실행
+## 빠른 실행
 
 ### Panel
 
-- Header: "퀵 실행" and 퀵 실행 추가 (add, plus icon).
+- Header: "빠른 실행" and 빠른 실행 추가 (add, plus icon).
 - Tool row: the four Bible reference fields 책, 장, 시작절, 끝절, with a book
   icon on 책. See "Bible passages".
 - List: one row per item, with a kind icon and a name. Rows show no shortcuts.
@@ -739,11 +739,11 @@ row while it's on. Clicking it again turns it off.
 
 ### Adding and editing (proposal)
 
-No board shows how to add a 퀵 실행 item (open question). Version 1 works like
+No board shows how to add a 빠른 실행 item (open question). Version 1 works like
 this:
 
-- 퀵 실행 추가 opens a menu: add the item in the 슬라이드 panel (a song or Bible
-  passage), 그래픽 (submenu), 타이머, 매크로 (submenu), 검은 화면.
+- 빠른 실행 추가 opens a menu: add the item in the 슬라이드 panel (a song or
+  Bible passage), 그래픽 (submenu), 타이머, 매크로 (submenu), 검은 화면.
 - 타이머 opens a duration dialog with minutes and seconds. Both are whole
   numbers, minutes are nonnegative, seconds run from 0 to 59, and the total must
   be positive. An invalid value has the design system error ring and a reason in
@@ -754,15 +754,13 @@ this:
   1, 타이머 2, and so on; 이름 바꾸기 renames the timer and its row together.
   These replace the earlier existing-timer submenu and pause toggle (user
   decision from the October 26 check).
-- The operator can also drag song and Bible passage rows from the 예배 순서 into
-  퀵 실행.
 - Dragging rows reorders them. The right-click menu has rename and delete.
 - A row takes a shortcut, `quick.<item ID>`, with no default key; the operator
   sets it in 환경설정 > 단축키 (10).
 
-Source: `ShowH`, `Compact`, `Problems`, `Bible` (퀵 실행 list), `ListRow` README
-(퀵 실행 on state), `Main` decisions "퀵 실행은 목록" and "단축키", product log
-(퀵 실행 shortcuts: no default keys).
+Source: `ShowH`, `Compact`, `Problems`, `Bible` (빠른 실행 list), `ListRow`
+README (빠른 실행 on state), `Main` decisions "빠른 실행은 목록" and "단축키",
+product log (빠른 실행 shortcuts: no default keys).
 
 ## Shared bottom 미디어 bin
 
@@ -832,7 +830,7 @@ name. Chapter and verse bounds always use the built-in GAE number table.
 
 ### Finding a passage
 
-- The 퀵 실행 Bible input has four fields, 책, 장, 시작절, and optional 끝절
+- The 빠른 실행 Bible input has four fields, 책, 장, 시작절, and optional 끝절
   (user decision, October 26). 책 occupies the first row; the three number
   fields share the next row so they also fit the narrow workspace. The same
   component is used in 준비 항목 추가 성경 구절.
@@ -1071,8 +1069,8 @@ integration use this contract, with a distinct cancellable ID per lookup.
 - Buttons: 앞 절 추가 (add the previous verse), 뒤 절 추가 (add the next verse),
   예배 순서에 넣기 (add to the 예배 순서), and 바로 띄우기 (show now, outputs
   the selected 슬라이드; the primary button).
-- Bible passages opened or shown from 퀵 실행 use a 0.7-second wipe to the left
-  on every part, including the first slide and split verses. Inserting the
+- Bible passages opened or shown from 빠른 실행 use a 0.7-second wipe to the
+  left on every part, including the first slide and split verses. Inserting the
   passage into the service retains that default; existing service items are not
   changed. Per-slide transition edits still take precedence. Audience uses the
   wipe; stage and broadcast cut immediately.
@@ -1117,7 +1115,7 @@ integration use this contract, with a distinct cancellable ID per lookup.
 - Choosing a row in the 예배 순서 closes the Bible panel and returns to the
   슬라이드 panel (proposal).
 
-Source: `Bible`, `TextField` README (퀵 실행 field), `Prefs` 성경 (Bible),
+Source: `Bible`, `TextField` README (빠른 실행 field), `Prefs` 성경 (Bible),
 `Main` board guide (성경 구절 띄우기), product log (copible, offline).
 
 ## Toolbar search (proposal)
@@ -1139,17 +1137,17 @@ this:
 
 The features are the same. Only the layout differs.
 
-| Element             | Narrow window                                                                                                                                                                                                            | Source                           |
-| ------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------- |
-| Toolbar             | Height 40, names to the right of icons, 미디어 as an icon only, search field 280                                                                                                                                         | `Compact`, `Toolbar` README      |
-| Columns             | Left 220, right 360                                                                                                                                                                                                      | `Layout` README                  |
-| Media strip         | Starts closed with no saved choice; a saved open choice wins                                                                                                                                                             | `Compact`                        |
-| 슬라이드 grid       | 3 columns by default                                                                                                                                                                                                     | `Compact`                        |
-| Clear row           | Icons only (names in tooltips), 모두 is 1.4 times as wide                                                                                                                                                                | `Compact`, `ClearButton` README  |
-| 진행 도구 tabs      | Fit complete labels from 오디오, 무대, 타이머, 메시지, 그래픽 and 매크로 to the actual panel width. Keep the selected tab visible; 더 보기 holds the others (B21).                                                       | `Compact`, `Layout` README       |
-| Small previews      | A row with 64 px pictures, name and target on two lines                                                                                                                                                                  | `Compact`, `PreviewFrame` README |
-| 퀵 실행 Bible field | Small fields, placeholders 책, 장, 시작절, 끝절                                                                                                                                                                          | `Compact`                        |
-| 예배 순서 header    | Adds 사이드바 접기 (collapse sidebar). Clicking it collapses the left column. A button at the edge of the collapsed column expands it again (proposal). The app remembers the collapsed state per size class (proposal). | `Compact`                        |
+| Element               | Narrow window                                                                                                                                                                                                            | Source                           |
+| --------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | -------------------------------- |
+| Toolbar               | Height 40, names to the right of icons, 미디어 as an icon only, search field 280                                                                                                                                         | `Compact`, `Toolbar` README      |
+| Columns               | Left 220, right 360                                                                                                                                                                                                      | `Layout` README                  |
+| Media strip           | Starts closed with no saved choice; a saved open choice wins                                                                                                                                                             | `Compact`                        |
+| 슬라이드 grid         | 3 columns by default                                                                                                                                                                                                     | `Compact`                        |
+| Clear row             | Icons only (names in tooltips), 모두 is 1.4 times as wide                                                                                                                                                                | `Compact`, `ClearButton` README  |
+| 진행 도구 tabs        | Fit complete labels from 오디오, 무대, 타이머, 메시지, 그래픽 and 매크로 to the actual panel width. Keep the selected tab visible; 더 보기 holds the others (B21).                                                       | `Compact`, `Layout` README       |
+| Small previews        | A row with 64 px pictures, name and target on two lines                                                                                                                                                                  | `Compact`, `PreviewFrame` README |
+| 빠른 실행 Bible field | Small fields, placeholders 책, 장, 시작절, 끝절                                                                                                                                                                          | `Compact`                        |
+| 예배 순서 header      | Adds 사이드바 접기 (collapse sidebar). Clicking it collapses the left column. A button at the edge of the collapsed column expands it again (proposal). The app remembers the collapsed state per size class (proposal). | `Compact`                        |
 
 Source: `Compact`, `Main` board guide (진행 화면 1366×768), design system README
 (window sizes and layout), `Layout` README.
@@ -1171,7 +1169,7 @@ keys are changed are in 10, "Shortcut system".
 | Ctrl 1                                           | Audience screen outputs (청중 화면 and 방송 화면) on or off              | Follows ProPresenter (Toggle Output Screens, S1; S4 p. 172)                              |
 | Ctrl 2                                           | 무대 화면 output on or off                                               | Follows ProPresenter (Toggle Stage Display Screens, S1)                                  |
 | Alt S, Ctrl M, Ctrl Shift C, Ctrl Shift P, Alt C | The 무대, 메시지, 타이머, and 그래픽 tabs, and the action palette        | Follows ProPresenter (S1)                                                                |
-| Ctrl B                                           | The Bible field in 퀵 실행                                               | Ctrl B; ProPresenter uses Ctrl Alt B (Open Bibles Mode)                                  |
+| Ctrl B                                           | The Bible field in 빠른 실행                                             | Ctrl B; ProPresenter uses Ctrl Alt B (Open Bibles Mode)                                  |
 | Slide hot key (a bare letter or digit)           | Its particular source slide in the open song, first projected occurrence | Follows ProPresenter per-slide assignment (S4 p. 58); S26 user decision; no default keys |
 | A key set for a 테마, 그래픽, 매크로, or 타이머  | That object's command                                                    | No default keys; follows ProPresenter's Key Mappings for 그래픽 and 매크로 (S2, S3)      |
 

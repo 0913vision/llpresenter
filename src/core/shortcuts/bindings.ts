@@ -26,7 +26,7 @@ export function objectShortcutCommand(
     theme: '테마',
     prop: '그래픽',
     macro: '매크로',
-    quick: '퀵 실행',
+    quick: '빠른 실행',
     'output.screen': '화면',
     'preview.focus': '미리보기',
     timer: '타이머',

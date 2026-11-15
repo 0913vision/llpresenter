@@ -13,7 +13,7 @@ export function useQuickEditing(
     onProblem,
     area: {
       key: 'quick',
-      label: '퀵 실행',
+      label: '빠른 실행',
       log: 'Could not edit the quick list',
     },
   });

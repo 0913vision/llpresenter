@@ -38,7 +38,7 @@ it('loads assigned quick items, checks availability, and cancels on document cha
   const api = mockLlpApi({log: {write: mockLog}});
   const onProblem = vi.fn();
   const view = render(<QuickObjectShortcuts api={api} onProblem={onProblem} />);
-  expect(mock.load).toHaveBeenLastCalledWith(null, '퀵 실행', onProblem);
+  expect(mock.load).toHaveBeenLastCalledWith(null, '빠른 실행', onProblem);
   const item = {id: 'macro', kind: 'macro', ref: 'target', name: 'Invented'};
   mock.bound = true;
   mock.load.mockReturnValue({

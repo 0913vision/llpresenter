@@ -15,7 +15,7 @@ function rowId(
 ): PanelRowId | undefined {
   if (workspace === 'show') {
     if (title === '예배 순서') return 'show.order';
-    if (title === '퀵 실행') return 'show.quick';
+    if (title === '빠른 실행') return 'show.quick';
     if (title === '미리보기') return 'show.preview';
     if (title === '진행 도구') return 'show.tools';
   }

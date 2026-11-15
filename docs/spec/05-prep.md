@@ -7,7 +7,7 @@ the shared bottom 미디어 bin.
 
 Terms: 슬라이드 (slide), 예배 순서 (service order), 템플릿 (template), 이름표
 (label), 라이브러리 (library), 매크로 (macro), 청중 화면 (main screen), 무대
-화면 (stage screen), 방송 화면 (broadcast captions), 진행 (Show workspace), 퀵
+화면 (stage screen), 방송 화면 (broadcast captions), 진행 (Show workspace), 빠른
 실행 (quick launch). See 01.
 
 ## Layout

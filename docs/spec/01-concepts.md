@@ -28,7 +28,7 @@ including the words the app must not use.
 | 방송 화면       | broadcast captions | The lower-third caption screen that OBS picks up.                                                                                 |
 | 테마            | theme              | A saved preset that lays out all three screens: 청중 화면, 무대 화면, and 방송 화면. Also the name of its workspace (see 12).     |
 | 진행 도구       | show tools         | The tabbed panel at the bottom right of the 진행 workspace.                                                                       |
-| 퀵 실행         | quick launch       | The list of frequent items at the bottom left of the 진행 workspace.                                                              |
+| 빠른 실행       | quick launch       | The list of frequent items at the bottom left of the 진행 workspace.                                                              |
 | 그래픽          | prop               | A logo, caption, or notice card that sits above the lyrics.                                                                       |
 | 메시지          | message            | A short text, such as a car number call, sent to chosen screens.                                                                  |
 | 타이머          | timer              | A countdown, elapsed time, or clock.                                                                                              |
@@ -123,7 +123,7 @@ Source: product log ("How to apply": main-process-owned live state),
 
 ### A click outputs at once
 
-- When the operator clicks a 슬라이드, a media tile, a 그래픽, a 퀵 실행 item,
+- When the operator clicks a 슬라이드, a media tile, a 그래픽, a 빠른 실행 item,
   or a 매크로, the app outputs or runs it at once, without asking. The app has
   no cue-then-take mode.
 - Actions that affect the output (clicking a 슬라이드, clearing, turning a
@@ -154,7 +154,7 @@ versions 61 and 63.
 
 - Red (`live`) marks only what is on the screens now: the live 슬라이드, the
   current background, 그래픽 that are on, the dot on an output toggle that is
-  on, the LIVE badge in the 예배 순서, a 퀵 실행 row that is on, and the stage
+  on, the LIVE badge in the 예배 순서, a 빠른 실행 row that is on, and the stage
   message.
 - Selection is blue, problems are amber, and healthy state is a green dot. Clear
   buttons, delete menu items, and problem notifications don't use red. The
@@ -183,11 +183,11 @@ and 61.
 
 ### Dragging rows
 
-- In every list (예배 순서, 퀵 실행, and the others), a dragged row lands by the
-  target row's midpoint: over its upper half the row goes above it, over its
+- In every list (예배 순서, 빠른 실행, and the others), a dragged row lands by
+  the target row's midpoint: over its upper half the row goes above it, over its
   lower half below it, so the top of a list is easy to reach.
 - Once the pointer passes the drag threshold, releasing never counts as a click,
-  so a drag can't select a row or run a 퀵 실행 action (user decision,
+  so a drag can't select a row or run a 빠른 실행 action (user decision,
   m3-check3).
 
 ### Windows only
@@ -272,7 +272,7 @@ Source: product log (offline Bible data preferred), `docs/TECH.md` principle 5.
 | Clearing              | Per-layer clears (S4 p. 25) and, since 7.7, Clear Groups (S3, S7).                                                                                   | Seven per-layer clears. To clear several layers at once, use a 매크로.                                                            |
 | Broadcast output      | NDI output screens (S4 p. 32).                                                                                                                       | NDI is the goal, with the capture window as fallback. Version 1 ships the capture window (see 09).                                |
 | Macro editing         | A macro's actions are edited from its right-click menu (S5). The Action Palette adds actions to slides (S4 p. 83).                                   | The same right-click menu, plus an action palette for 매크로 (our design).                                                        |
-| Bible                 | A separate Bible view (S4 pp. 16, 138).                                                                                                              | Search directly in the 퀵 실행 field (our design).                                                                                |
+| Bible                 | A separate Bible view (S4 pp. 16, 138).                                                                                                              | Search directly in the 빠른 실행 field (our design).                                                                              |
 | Crash                 | Saves every change automatically (S20).                                                                                                              | Same. On restart, only the output state is restored (our design).                                                                 |
 | Small screens         | The ^ button hides the Libraries and Playlists section (S4 p. 18), and the Media Bin can be hidden (p. 10). No source on a layout for small windows. | A separate layout for 1366 x 768 that collapses the left column (our design).                                                     |
 | Camera input          | Video inputs (USB, Thunderbolt, SDI, NDI, Syphon) are registered in Preferences > Input (S4 pp. 177 to 180).                                         | Added later the same way (see 09).                                                                                                |
@@ -369,7 +369,7 @@ All three workspaces use the same three-column frame (left, center, right). The
 
 | Workspace | Left column           | Center column                  | Right column                                            | Details |
 | --------- | --------------------- | ------------------------------ | ------------------------------------------------------- | ------- |
-| 진행      | 예배 순서, 퀵 실행    | 슬라이드 panel                 | Preview, clear row, 진행 도구                           | 04      |
+| 진행      | 예배 순서, 빠른 실행  | 슬라이드 panel                 | Preview, clear row, 진행 도구                           | 04      |
 | 준비      | 예배 순서, 라이브러리 | Song editor or 예배 순서 item. | Preview and 슬라이드 list, or preview and item settings | 05      |
 | 테마      | 테마 list, 요소       | 테마 canvas                    | 요소 and 화면 properties                                | 12      |
 
@@ -426,7 +426,7 @@ Source: `Main` decisions "화면 세 개" and "방송 화면은 NDI로", product
 | Screen                         | One output target (청중 화면, 무대 화면, 방송 화면).                                                              | App-wide settings                        | Screen ID                                         |
 | 테마                           | Per screen: 직접 배치 with its own elements, the same as another screen, or 비움 (12).                            | App-wide settings                        | 테마 ID                                           |
 | 매크로                         | A button that runs several actions. Grouped into collections.                                                     | App-wide settings                        | 매크로 ID                                         |
-| 퀵 실행 item                   | A frequent item on the 진행 workspace (a verse, a song, a black screen, a logo).                                  | App-wide settings                        | Item ID                                           |
+| 빠른 실행 item                 | A frequent item on the 진행 workspace (a verse, a song, a black screen, a logo).                                  | App-wide settings                        | Item ID                                           |
 | 메시지                         | A 메시지 sentence with blanks, such as "{차량 번호}" (car number).                                                | App-wide settings                        | Template ID                                       |
 | 그래픽                         | An element above the lyrics, such as a logo, a caption, or a notice card.                                         | App-wide settings                        | 그래픽 ID                                         |
 | 타이머                         | Time left until a set time, a fixed duration, time since a set time, or a clock.                                  | App-wide settings                        | 타이머 ID                                         |
@@ -452,7 +452,7 @@ Source: `Main` decisions "화면 세 개" and "방송 화면은 NDI로", product
   names its 테마 by ID (12).
 - 매크로 actions refer to 테마, media, 그래픽, 메시지, 타이머, audio playlists,
   and other 매크로 by ID.
-- A 퀵 실행 item points to a song, a Bible passage, a 그래픽, a 타이머, or a
+- A 빠른 실행 item points to a song, a Bible passage, a 그래픽, a 타이머, or a
   매크로. See 04.
 
 ### What belongs to a service, a song, or the app
@@ -463,7 +463,7 @@ Source: `Main` decisions "화면 세 개" and "방송 화면은 NDI로", product
 | Items and their order                 | Source slides (lines, optional hot key) | 테마                                    |
 | The 구성 name each song item picks    | Default background                      |                                         |
 | Background override of each song item | 구성 (names and source group orders)    | 매크로 and collections                  |
-| Start 매크로 of each song item        |                                         | 퀵 실행                                 |
+| Start 매크로 of each song item        |                                         | 빠른 실행                               |
 | Memo of each song item                |                                         | 메시지, 그래픽, 타이머                  |
 |                                       |                                         | 이름표 list (name, color)               |
 |                                       |                                         | 환경설정, shortcuts, Bible translations |

@@ -96,7 +96,9 @@ describe('quick editing', () => {
         shiftKey: true,
       });
       expect(
-        renderedToolMenuRows(screen.getByRole('menu', {name: '퀵 실행 항목'})),
+        renderedToolMenuRows(
+          screen.getByRole('menu', {name: '빠른 실행 항목'}),
+        ),
       ).toEqual(['실행', '|', '이름 바꾸기', '|', '복제', '|', '삭제']);
       const run = screen.getByRole('menuitem', {name: '실행'});
       expect(run.getAttribute('aria-disabled')).not.toBe('true');
@@ -216,7 +218,7 @@ describe('quick editing', () => {
     expect(fixture.current().value.items).toHaveLength(8);
     expect(fixture.edit).toHaveBeenCalledOnce();
     expect(fixture.problem).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({kind: 'warning', title: '퀵 실행 저장 실패'}),
+      expect.objectContaining({kind: 'warning', title: '빠른 실행 저장 실패'}),
     );
   });
 
@@ -330,10 +332,10 @@ describe('quick editing', () => {
     await act(async () => undefined);
     expect(
       screen
-        .getByRole('button', {name: '퀵 실행 추가'})
+        .getByRole('button', {name: '빠른 실행 추가'})
         .getAttribute('aria-disabled'),
     ).toBe('true');
-    expect(screen.queryByRole('menu', {name: '퀵 실행 추가'})).toBeNull();
+    expect(screen.queryByRole('menu', {name: '빠른 실행 추가'})).toBeNull();
     await act(async () => reading.resolve(quickDocument()));
     await opening;
     expect(screen.getByRole('menuitem', {name: '현재 항목 추가'})).toBeTruthy();

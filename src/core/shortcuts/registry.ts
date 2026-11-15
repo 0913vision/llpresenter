@@ -160,7 +160,7 @@ export const shortcutCommands: readonly ShortcutCommand[] = (
     ['workspace.themes', '테마 편집', '작업 공간', ['control'], []],
     ['panel.order', '예배 순서로', '패널 이동', ['show'], []],
     ['panel.slides', '슬라이드로', '패널 이동', ['show'], []],
-    ['panel.quick', '퀵 실행으로', '패널 이동', ['show'], []],
+    ['panel.quick', '빠른 실행으로', '패널 이동', ['show'], []],
     ['panel.preview', '미리보기로', '패널 이동', ['show'], []],
     ['panel.clear', '지우기로', '패널 이동', ['show'], []],
     ['panel.tools', '진행 도구로', '패널 이동', ['show'], []],

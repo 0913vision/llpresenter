@@ -25,6 +25,7 @@ function Harness({
 }) {
   const {dragProps, insertBefore, backgroundTarget} = useServiceOrderDrag({
     enabled: true,
+    allowReorder: true,
     rows,
     selected: new Set(),
     select: () => undefined,

@@ -26,7 +26,7 @@ import {
 import {SERVICE_ORDER, serviceOrderParts} from './serviceOrderPanel';
 
 const SHOW_COLUMNS = [
-  [SERVICE_ORDER, '퀵 실행'],
+  [SERVICE_ORDER, '빠른 실행'],
   ['슬라이드'],
   ['미리보기', '지우기', '진행 도구'],
 ] as const;
@@ -59,7 +59,7 @@ function showPanelParts({
     ((itemId: string, position?: number) => void) | undefined;
 }): PanelParts {
   switch (title) {
-    case '퀵 실행':
+    case '빠른 실행':
       return {
         size: 'content',
         embedded: (

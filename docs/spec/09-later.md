@@ -5,8 +5,8 @@ hooks that version 1 must leave open so that each feature can come later without
 restructuring. It ends with the ideas that the sources dropped, which aren't
 planned at all.
 
-Terms: 슬라이드 (slide), 방송 화면 (broadcast captions), 퀵 실행 (quick launch),
-매크로 (macro), 라이브러리 (library), 구성 (arrangement). See 01.
+Terms: 슬라이드 (slide), 방송 화면 (broadcast captions), 빠른 실행 (quick
+launch), 매크로 (macro), 라이브러리 (library), 구성 (arrangement). See 01.
 
 ## NDI network controls (later)
 

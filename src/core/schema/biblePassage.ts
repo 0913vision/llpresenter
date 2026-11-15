@@ -26,7 +26,7 @@ export const biblePassageSchema = jsonObject({
 });
 
 /**
- * A Bible passage as a 예배 순서 item or a 퀵 실행 item holds it: the
+ * A Bible passage as a 예배 순서 item or a 빠른 실행 item holds it: the
  * translation, the normalized reference, and how to split and label it.
  */
 export type BiblePassage = ReadonlyKnown<

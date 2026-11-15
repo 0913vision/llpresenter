@@ -326,7 +326,7 @@ export function ListRowSection(): JSX.Element {
             />
           </OneRowList>
         </SpecItem>
-        <SpecItem label="퀵 실행 on (showing now)" width={PANEL_WIDTH}>
+        <SpecItem label="빠른 실행 on (showing now)" width={PANEL_WIDTH}>
           <ListActionRow
             icon="prop"
             title="로고 화면"
@@ -402,14 +402,14 @@ export function ListRowSection(): JSX.Element {
           </ServiceOrderPanel>
         </SpecItem>
         <SpecItem
-          label="퀵 실행 (로고 화면 on, 검은 화면 hover)"
+          label="빠른 실행 (로고 화면 on, 검은 화면 hover)"
           pin="hover"
           pinIndex={QUICK_HOVER_INDEX}
           width={LIST_PANEL_WIDTH}
         >
           <ListPanel
-            tab="퀵 실행"
-            end={<AddAction label="퀵 실행 추가" />}
+            tab="빠른 실행"
+            end={<AddAction label="빠른 실행 추가" />}
             tools={
               <Stateful<string> initial="">
                 {(verse, setVerse) => (

@@ -12,6 +12,33 @@ import {
   transfer,
 } from '@fixtures/renderer/features/service/order/serviceOrderEditingFixtures';
 
+it('does not reorder show items or sections by drag, shortcuts, or menu', () => {
+  const {ids, api} = setup('show');
+  const first = screen.getByRole('option', {name: '첫 곡'});
+  const last = screen.getByRole('option', {name: '다음 곡'});
+  const header = screen.getByText('제목');
+  expect(first.closest('[data-order-id]')?.getAttribute('draggable')).toBe(
+    'false',
+  );
+  expect(header.closest('[data-order-id]')?.getAttribute('draggable')).toBe(
+    'false',
+  );
+  const dataTransfer = transfer();
+  fireEvent.dragStart(first, {dataTransfer});
+  fireEvent.drop(last, {dataTransfer});
+  fireEvent.dragStart(header, {dataTransfer});
+  fireEvent.drop(last, {dataTransfer});
+  fireEvent.keyDown(last, {key: 'ArrowUp', code: 'ArrowUp', altKey: true});
+  fireEvent.keyDown(first, {key: 'ArrowDown', code: 'ArrowDown', altKey: true});
+  fireEvent.contextMenu(first);
+  expect(
+    screen.queryByRole('menuitem', {name: /위로 옮기기|아래로 옮기기/}),
+  ).toBeNull();
+  expect(screen.getByRole('menuitem', {name: '복제'})).toBeDefined();
+  expect(ids()).toEqual([headerId, firstId, lastId]);
+  expect(api.content.edit).not.toHaveBeenCalled();
+});
+
 describe.each(['show', 'prep'] as const)('%s service selection', workspace => {
   it('restores a deleted PowerPoint picture item and its media reference on undo', async () => {
     const mediaId = createMediaId('00000000-0000-4000-8000-000000000011');
@@ -28,52 +55,66 @@ describe.each(['show', 'prep'] as const)('%s service selection', workspace => {
     await waitFor(() => expect(document().service.order).toContainEqual(item));
     expect(mediaEdit).not.toHaveBeenCalled();
   });
-  it('moves the selected items with Alt arrows in one undo step', async () => {
-    const {ids, list} = setup(workspace);
-    const first = screen.getByRole('option', {name: '첫 곡'});
-    const last = screen.getByRole('option', {name: '다음 곡'});
-    fireEvent.click(first);
-    fireEvent.click(last, {ctrlKey: true});
-    last.focus();
-    fireEvent.keyDown(last, {key: 'ArrowUp', code: 'ArrowUp', altKey: true});
-    await waitFor(() => expect(ids()).toEqual([firstId, lastId, headerId]));
-    fireEvent.keyDown(list(), {key: 'z', code: 'KeyZ', ctrlKey: true});
-    await waitFor(() => expect(ids()).toEqual([headerId, firstId, lastId]));
-  });
-  it('moves a focused item down with Alt Down', async () => {
-    const {ids} = setup(workspace);
-    const first = screen.getByRole('option', {name: '첫 곡'});
-    fireEvent.click(first);
-    first.focus();
-    fireEvent.keyDown(first, {
-      key: 'ArrowDown',
-      code: 'ArrowDown',
-      altKey: true,
-    });
-    await waitFor(() => expect(ids()).toEqual([headerId, lastId, firstId]));
-  });
-  it('disables a menu move at the end with its reason', async () => {
-    setup(workspace);
-    const last = screen.getByRole('option', {name: '다음 곡'});
-    fireEvent.contextMenu(last);
-    expect(
-      screen
-        .getByRole('menuitem', {name: /아래로 옮기기/})
-        .getAttribute('aria-disabled'),
-    ).toBe('true');
-  });
-  it('moves selected rows together from the menu and undoes in one step', async () => {
-    const {ids, list} = setup(workspace);
-    const first = screen.getByRole('option', {name: '첫 곡'});
-    const last = screen.getByRole('option', {name: '다음 곡'});
-    fireEvent.click(first);
-    fireEvent.click(last, {ctrlKey: true});
-    fireEvent.contextMenu(first);
-    await userEvent.click(screen.getByRole('menuitem', {name: /위로 옮기기/}));
-    await waitFor(() => expect(ids()).toEqual([firstId, lastId, headerId]));
-    fireEvent.keyDown(list(), {key: 'z', code: 'KeyZ', ctrlKey: true});
-    await waitFor(() => expect(ids()).toEqual([headerId, firstId, lastId]));
-  });
+  it.skipIf(workspace === 'show')(
+    'moves the selected items with Alt arrows in one undo step',
+    async () => {
+      const {ids, list} = setup(workspace);
+      const first = screen.getByRole('option', {name: '첫 곡'});
+      const last = screen.getByRole('option', {name: '다음 곡'});
+      fireEvent.click(first);
+      fireEvent.click(last, {ctrlKey: true});
+      last.focus();
+      fireEvent.keyDown(last, {key: 'ArrowUp', code: 'ArrowUp', altKey: true});
+      await waitFor(() => expect(ids()).toEqual([firstId, lastId, headerId]));
+      fireEvent.keyDown(list(), {key: 'z', code: 'KeyZ', ctrlKey: true});
+      await waitFor(() => expect(ids()).toEqual([headerId, firstId, lastId]));
+    },
+  );
+  it.skipIf(workspace === 'show')(
+    'moves a focused item down with Alt Down',
+    async () => {
+      const {ids} = setup(workspace);
+      const first = screen.getByRole('option', {name: '첫 곡'});
+      fireEvent.click(first);
+      first.focus();
+      fireEvent.keyDown(first, {
+        key: 'ArrowDown',
+        code: 'ArrowDown',
+        altKey: true,
+      });
+      await waitFor(() => expect(ids()).toEqual([headerId, lastId, firstId]));
+    },
+  );
+  it.skipIf(workspace === 'show')(
+    'disables a menu move at the end with its reason',
+    async () => {
+      setup(workspace);
+      const last = screen.getByRole('option', {name: '다음 곡'});
+      fireEvent.contextMenu(last);
+      expect(
+        screen
+          .getByRole('menuitem', {name: /아래로 옮기기/})
+          .getAttribute('aria-disabled'),
+      ).toBe('true');
+    },
+  );
+  it.skipIf(workspace === 'show')(
+    'moves selected rows together from the menu and undoes in one step',
+    async () => {
+      const {ids, list} = setup(workspace);
+      const first = screen.getByRole('option', {name: '첫 곡'});
+      const last = screen.getByRole('option', {name: '다음 곡'});
+      fireEvent.click(first);
+      fireEvent.click(last, {ctrlKey: true});
+      fireEvent.contextMenu(first);
+      await userEvent.click(
+        screen.getByRole('menuitem', {name: /위로 옮기기/}),
+      );
+      await waitFor(() => expect(ids()).toEqual([firstId, lastId, headerId]));
+      fireEvent.keyDown(list(), {key: 'z', code: 'KeyZ', ctrlKey: true});
+      await waitFor(() => expect(ids()).toEqual([headerId, firstId, lastId]));
+    },
+  );
   it('reports a stale confirmation through the host notification channel', async () => {
     const {ids, onProblem} = setup(workspace);
     const first = screen.getByRole('option', {name: '첫 곡'});
@@ -136,6 +177,7 @@ describe.each(['show', 'prep'] as const)('%s service selection', workspace => {
     expect(ids().slice(0, 3)).toEqual([headerId, firstId, lastId]);
     fireEvent.keyDown(list(), {key: 'z', code: 'KeyZ', ctrlKey: true});
     await waitFor(() => expect(ids()).toHaveLength(3));
+    if (workspace === 'show') return;
     fireEvent.click(first);
     fireEvent.click(last, {ctrlKey: true});
     const dataTransfer = transfer();

@@ -69,7 +69,6 @@ export function StageMessage({
           지우기
         </Button>
         <Button
-          variant="primary"
           disabled={reason !== undefined}
           title={reason}
           onClick={() => send(text)}

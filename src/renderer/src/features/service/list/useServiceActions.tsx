@@ -47,7 +47,7 @@ export function useServiceActions({
       kind: 'item',
       id: 'import-items',
       label: '다른 예배에서 가져오기',
-      icon: 'listplus',
+      icon: 'download',
       ...menuAvailability(hasService ? undefined : NO_SERVICE),
       onSelect: () => open('import'),
     },
