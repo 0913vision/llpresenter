@@ -200,6 +200,10 @@ not dim when focus leaves. 진행 retains its existing thumbnail style.
   picture IDs, ad names, and verse references. Structured rows paste between
   items of the same form; outside plain text (including copied song lines) makes
   text rows split at blank lines.
+- In list mode the caret and drop marker are horizontal between rows. In grid
+  mode they are vertical and span the tile height, before the target tile or
+  after the last tile, including at the beginning of a new row. The same rule
+  applies to song and slide-item editors.
 - Drag moves the whole selection in document order with a count badge. Delete
   outside a text field is immediate for one item; more than one asks once with
   the count. It removes the selection as one undo step. The row and gap context

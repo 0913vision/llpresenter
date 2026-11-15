@@ -18,6 +18,7 @@ import styles from './SlidesEditor.module.css';
 import {EditorSlideNumber} from '../../songs/editor/EditorSlideNumber';
 import plate from '../../songs/editor/EditorSlidePlate.module.css';
 import {useSongBlockWindow} from '../../songs/editor/useSongBlockWindow';
+import {gridInsertionPosition} from '../../songs/editor/gridInsertionPosition';
 import {useSlideSurfaceView} from '../../songs/editor/SlideSurfaceView';
 
 import {
@@ -137,10 +138,11 @@ export function SlideRows({
       viewportRef: listRef,
       heights,
     });
-  const gap = (index: number): ReactNode => (
+  const gap = (index: number, style?: CSSProperties): ReactNode => (
     <button
       type="button"
       className={styles.gap}
+      style={style}
       aria-label={`${index + 1}번째 위치에 삽입`}
       data-gap-index={index}
       data-slide-gap={index}
@@ -228,7 +230,12 @@ export function SlideRows({
                       : `${100 / columns}%`,
                 }}
               >
-                {gap(index)}
+                {gap(
+                  index,
+                  view.mode === 'grid' && position % columns === 0
+                    ? {insetInlineStart: 0}
+                    : undefined,
+                )}
                 <div
                   className={`${styles.row} ${plate.row} ${view.mode === 'grid' ? plate.grid : ''}`}
                   data-active={selection.ids.has(slide.id)}
@@ -280,8 +287,22 @@ export function SlideRows({
               </MeasuredRow>
             );
           })}
+          {view.mode === 'grid'
+            ? gap(
+                rows.length,
+                gridInsertionPosition({
+                  index: rows.length,
+                  count: rows.length,
+                  leading: leadingOffset,
+                  columns,
+                  width: cellWidth,
+                  columnGap,
+                  offsets,
+                }),
+              )
+            : null}
         </div>
-        {gap(rows.length)}
+        {view.mode === 'list' ? gap(rows.length) : null}
         {children}
       </div>
     </SongSlideSurface>

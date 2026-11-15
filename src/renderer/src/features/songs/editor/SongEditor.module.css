@@ -104,6 +104,25 @@
   content: '';
 }
 
+.blocks[data-view='grid'] .gap,
+.blocks[data-view='grid'] .endGap {
+  position: absolute;
+  inset-block: 0;
+  inset-inline: auto;
+  width: var(--space-8);
+  height: auto;
+  z-index: 1;
+}
+
+.blocks[data-view='grid'] .gap {
+  inset-inline-start: calc(-1 * var(--space-8));
+}
+
+.blocks[data-view='grid'] :is(.gap, .endGap)::after {
+  width: var(--space-2);
+  height: 100%;
+}
+
 .lyrics {
   box-sizing: border-box;
   width: fit-content;

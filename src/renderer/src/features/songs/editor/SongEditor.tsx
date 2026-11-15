@@ -27,6 +27,7 @@ import {
 import {PanelFooter} from '@renderer/ui/Panel';
 import {Button} from '@renderer/ui/Button';
 import {useSongBlockWindow} from './useSongBlockWindow';
+import {gridInsertionPosition} from './gridInsertionPosition';
 import {SongSlideSurface} from './SongSlideSurface';
 import {useSongSlideAppearance} from './useSongSlideAppearance';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
@@ -345,6 +346,35 @@ function SongBlocks({
     owner.requested = false;
     owner.target = 'lyrics';
   });
+  const endGap = (
+    <button
+      type="button"
+      className={styles.endGap}
+      data-slide-gap={slides.length}
+      tabIndex={-1}
+      data-caret={list.selection.caret === slides.length}
+      aria-label="마지막 슬라이드 뒤에 삽입"
+      style={
+        view.mode === 'grid'
+          ? gridInsertionPosition({
+              index: slides.length,
+              count: slides.length,
+              leading: leadingOffset,
+              columns,
+              width: cellWidth,
+              columnGap,
+              offsets,
+            })
+          : undefined
+      }
+      onClick={event => {
+        session.selectSlides({type: 'gap', index: slides.length});
+        event.currentTarget
+          .closest<HTMLElement>('[aria-label="슬라이드 편집 명령"]')
+          ?.focus();
+      }}
+    />
+  );
   return (
     <div
       ref={viewport}
@@ -460,21 +490,9 @@ function SongBlocks({
             />
           );
         })}
+        {view.mode === 'grid' ? endGap : null}
       </div>
-      <button
-        type="button"
-        className={styles.endGap}
-        data-slide-gap={slides.length}
-        tabIndex={-1}
-        data-caret={list.selection.caret === slides.length}
-        aria-label="마지막 슬라이드 뒤에 삽입"
-        onClick={event => {
-          session.selectSlides({type: 'gap', index: slides.length});
-          event.currentTarget
-            .closest<HTMLElement>('[aria-label="슬라이드 편집 명령"]')
-            ?.focus();
-        }}
-      />
+      {view.mode === 'list' ? endGap : null}
       {menu === null ? null : (
         <LabelMenu
           store={store}
