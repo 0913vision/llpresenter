@@ -42,10 +42,25 @@ function showMedia(
 
 /** Puts content on a layer: a slide, a background, or a message. */
 export const contentSlice = defineSlice({
-  commands: ['slide.show', 'stage.next.set', 'media.show', 'message.show'],
+  commands: [
+    'slide.show',
+    'stage.next.set',
+    'media.show',
+    'message.show',
+    'black.toggle',
+  ],
   initial: {layers: {slide: null, media: null, message: null}},
   reduce: (history, command, context) => {
     switch (command.type) {
+      case 'black.toggle':
+        return {
+          ...history,
+          state: {
+            ...history.state,
+            blackScreen: !history.state.blackScreen,
+            version: history.state.version + 1,
+          },
+        };
       case 'slide.show': {
         const shown = setLayer(
           clearPreviousPicture(history, command.slide),

@@ -184,6 +184,9 @@ export class ScreenFrames {
         : {kind: 'none' as const, sec: this.effect.sec};
     return {
       theme,
+      ...(state?.blackScreen === true && screen.kind !== 'stage'
+        ? {blackScreen: true}
+        : {}),
       ...(slide === null ? {} : {slide}),
       ...(this.fonts === undefined ? {} : {fonts: this.fonts}),
       ...(state?.stageTimerId === undefined

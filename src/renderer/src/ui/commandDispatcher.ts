@@ -76,6 +76,12 @@ function focusedControlOwnsKey(event: KeyboardEvent): boolean {
     return false;
   }
   if (event.ctrlKey || event.altKey || event.shiftKey) return false;
+  if (
+    ['ArrowUp', 'ArrowDown'].includes(event.code) &&
+    isInside(event.target, '[data-show-slide-grid="true"] [role="listbox"]')
+  ) {
+    return false;
+  }
   if (isInside(event.target, '[role="listbox"]')) {
     return ['ArrowUp', 'ArrowDown', 'Home', 'End', 'Enter'].includes(
       event.code,
@@ -143,6 +149,17 @@ export function dispatchShortcut(
   const workspace = document
     .querySelector('[data-workspace-layout]')
     ?.getAttribute('data-workspace-layout');
+  if (
+    workspace === 'show' &&
+    event.code === 'F5' &&
+    event.shiftKey &&
+    !event.ctrlKey &&
+    !event.altKey &&
+    !event.metaKey
+  ) {
+    event.preventDefault();
+    return;
+  }
   const focus = shortcutFocus(event);
   const priorities: readonly CommandPriority[] =
     priority === 'capture' ? ['clear', 'zoom'] : ['normal'];

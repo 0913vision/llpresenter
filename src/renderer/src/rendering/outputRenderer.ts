@@ -57,6 +57,7 @@ function createLayerBox(
  */
 export class OutputRenderer {
   private readonly root = document.createElement('div');
+  private readonly blackScreen = document.createElement('div');
   private readonly layers: readonly ActiveLayer[];
   private theme: ThemeCompositionView | null = null;
   private readonly resizeObserver: ResizeObserver | null;
@@ -78,6 +79,16 @@ export class OutputRenderer {
     this.root.className = classes.root;
     if (options.transparent) this.setBackground('transparent');
     this.layers = renderLayers.flatMap(layer => this.createLayer(layer));
+    Object.assign(this.blackScreen.style, {
+      position: 'absolute',
+      inset: '0',
+      background: '#000000',
+      zIndex: '1000',
+      pointerEvents: 'none',
+    });
+    this.blackScreen.dataset['blackScreen'] = '';
+    this.blackScreen.hidden = true;
+    this.root.append(this.blackScreen);
     parent.append(this.root);
     this.resizeObserver =
       typeof ResizeObserver === 'undefined'
@@ -116,6 +127,7 @@ export class OutputRenderer {
       propOpacity: fading.propOpacity,
     };
     this.testPattern = frame.testPattern === true;
+    this.blackScreen.hidden = frame.blackScreen !== true;
     this.root.classList.toggle(classes.instant, frame.transitions === false);
     this.setBackground(
       this.options.transparent

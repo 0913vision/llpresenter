@@ -1,3 +1,4 @@
+import {handleShowKey} from '@renderer/features/presentation/shortcuts';
 import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
@@ -14,6 +15,7 @@ import {useLive} from '@renderer/session/live';
 import {emptyLiveState} from '@core/live/state';
 
 beforeEach(() => {
+  window.addEventListener('keydown', handleShowKey);
   useLive.setState({state: null});
   seedSampleService();
   openItem('song-morning');
@@ -21,6 +23,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  window.removeEventListener('keydown', handleShowKey);
   cleanup();
   delete window.llp;
 });
@@ -195,9 +198,9 @@ it('maps windowed clicks and menus to logical slide positions and keeps keyboard
   );
   const grid = screen.getByRole('listbox', {name: '슬라이드'});
   grid.focus();
-  fireEvent.keyDown(grid, {key: 'ArrowDown'});
+  fireEvent.keyDown(grid, {key: 'ArrowDown', code: 'ArrowDown'});
   expect(document.activeElement).toBe(grid);
-  expectOutput(send.mock.calls.at(-1)?.[0], 19);
+  expectOutput(send.mock.calls.at(-1)?.[0], 16);
   expect(screen.queryByRole('option', {selected: true})).toBeNull();
   fireEvent.scroll(container, {target: {scrollTop: 24}});
   const last = screen.getAllByRole('option').at(-1);
@@ -218,7 +221,7 @@ it('maps windowed clicks and menus to logical slide positions and keeps keyboard
   });
 });
 
-it('outputs one row from the live slide, leaves Enter inert, and targets right-click', () => {
+it('outputs the previous slide, leaves Enter inert, and targets right-click', () => {
   const send = vi.fn<(command: LiveCommand) => void>();
   const onOpenPrep = vi.fn();
   window.llp = mockLlpApi({live: {send}});
@@ -253,8 +256,8 @@ it('outputs one row from the live slide, leaves Enter inert, and targets right-c
   ).toBe(true);
   fireEvent.keyDown(grid, {key: 'Enter'});
   expect(send).not.toHaveBeenCalled();
-  fireEvent.keyDown(grid, {key: 'ArrowUp'});
-  expectOutput(send.mock.calls.at(-1)?.[0], 0);
+  fireEvent.keyDown(grid, {key: 'ArrowUp', code: 'ArrowUp'});
+  expectOutput(send.mock.calls.at(-1)?.[0], 3);
   fireEvent.contextMenu(slide(2));
   fireEvent.click(
     screen.getByRole('menuitem', {name: windowCommandLabels.editSong}),
@@ -274,7 +277,7 @@ function expectOutput(
   });
 }
 
-it('tracks the live index for Bible position after click and row output', () => {
+it('tracks the live index for Bible position after click and next output', () => {
   const send = vi.fn<(command: LiveCommand) => void>();
   window.llp = mockLlpApi({live: {send}});
   render(<SlideGrid columns={2} scalePercent={100} />);
@@ -303,21 +306,21 @@ it('tracks the live index for Bible position after click and row output', () => 
   expect(useShow.getState().selectedTile).toBe(1);
   fireEvent.keyDown(
     screen.getByRole('listbox', {name: '\uc2ac\ub77c\uc774\ub4dc'}),
-    {key: 'ArrowDown'},
+    {key: 'ArrowDown', code: 'ArrowDown'},
   );
-  expectOutput(send.mock.calls.at(-1)?.[0], 3);
-  publish(3);
-  expect(useShow.getState().selectedTile).toBe(3);
+  expectOutput(send.mock.calls.at(-1)?.[0], 2);
+  publish(2);
+  expect(useShow.getState().selectedTile).toBe(2);
 });
 
-it('stays at row boundaries and starts at the first slide on down when nothing is live', () => {
+it('obeys slide boundaries and starts at the first slide on down when nothing is live', () => {
   const send = vi.fn<(command: LiveCommand) => void>();
   window.llp = mockLlpApi({live: {send}});
   render(<SlideGrid columns={3} scalePercent={100} />);
   const grid = screen.getByRole('listbox', {name: '\uc2ac\ub77c\uc774\ub4dc'});
-  fireEvent.keyDown(grid, {key: 'ArrowUp'});
+  fireEvent.keyDown(grid, {key: 'ArrowUp', code: 'ArrowUp'});
   expect(send).not.toHaveBeenCalled();
-  fireEvent.keyDown(grid, {key: 'ArrowDown'});
+  fireEvent.keyDown(grid, {key: 'ArrowDown', code: 'ArrowDown'});
   expectOutput(send.mock.calls.at(-1)?.[0], 0);
   const publish = (position: number): void => {
     const state = emptyLiveState();
@@ -340,10 +343,10 @@ it('stays at row boundaries and starts at the first slide on down when nothing i
   };
   publish(0);
   send.mockClear();
-  fireEvent.keyDown(grid, {key: 'ArrowUp'});
+  fireEvent.keyDown(grid, {key: 'ArrowUp', code: 'ArrowUp'});
   expect(send).not.toHaveBeenCalled();
   publish(3);
-  fireEvent.keyDown(grid, {key: 'ArrowDown'});
+  fireEvent.keyDown(grid, {key: 'ArrowDown', code: 'ArrowDown'});
   expect(send).not.toHaveBeenCalled();
 });
 
@@ -355,13 +358,13 @@ it('shows grid focus only after Tab entry, not pointer followed by arrows', () =
   fireEvent.pointerDown(slide(0));
   fireEvent.click(slide(0));
   expect(document.activeElement).toBe(grid);
-  fireEvent.keyDown(grid, {key: 'ArrowDown'});
+  fireEvent.keyDown(grid, {key: 'ArrowDown', code: 'ArrowDown'});
   expect(keeper?.getAttribute('data-tab-focus')).toBeNull();
   grid.blur();
   fireEvent.keyDown(document, {key: 'Tab'});
   fireEvent.focus(grid);
   expect(keeper?.getAttribute('data-tab-focus')).toBe('true');
-  fireEvent.keyDown(grid, {key: 'ArrowDown'});
+  fireEvent.keyDown(grid, {key: 'ArrowDown', code: 'ArrowDown'});
   expect(keeper?.getAttribute('data-tab-focus')).toBe('true');
   fireEvent.pointerDown(slide(0));
   expect(keeper?.getAttribute('data-tab-focus')).toBeNull();

@@ -160,6 +160,17 @@ describe('useClearKeys F1 to F6', () => {
     expect(clearState.clearLayer).toHaveBeenCalledWith(target);
   });
 
+  it('leaves Shift+F5 inert in show, even when reassigned to audio clear', () => {
+    appendTo('section', {'data-workspace-layout': 'show'});
+    commandBindingStore.set({'clear.audio': [{code: 'F5', mods: ['shift']}]});
+    try {
+      expect(press('F5', {shiftKey: true}).defaultPrevented).toBe(true);
+      expect(clearState.clearLayer).not.toHaveBeenCalled();
+    } finally {
+      commandBindingStore.set({});
+    }
+  });
+
   it('clear in a text field and during an IME composition', () => {
     press('F2', {}, appendTo('input'));
     press('F3', {isComposing: true}, appendTo('textarea'));

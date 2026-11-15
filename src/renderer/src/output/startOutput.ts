@@ -44,6 +44,7 @@ const MOTION_EVENTS = [
 function drawnContent(state: LiveState): string {
   return JSON.stringify([
     state.layers,
+    state.blackScreen,
     state.stageMessage,
     state.clearEffects,
     state.timers,

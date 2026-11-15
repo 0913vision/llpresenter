@@ -71,6 +71,17 @@ describe('OutputRenderer', () => {
     expect(surface.contains(video)).toBe(true);
     renderer.dispose();
   });
+  it('covers and uncovers the existing picture with an opaque black screen', () => {
+    const {parent, renderer} = setUp();
+    renderer.render(WITH_SLIDE, {blackScreen: true});
+    const cover = parent.querySelector<HTMLElement>('[data-black-screen]');
+    expect(cover?.hidden).toBe(false);
+    expect(cover?.style.background).toBe('rgb(0, 0, 0)');
+    renderer.render(WITH_SLIDE, {blackScreen: false});
+    expect(cover?.hidden).toBe(true);
+    renderer.dispose();
+  });
+
   it('fades both song title lines on F2, restores them, and leaves fixed content opaque', () => {
     vi.useFakeTimers();
     const {parent, renderer, onError} = setUp();

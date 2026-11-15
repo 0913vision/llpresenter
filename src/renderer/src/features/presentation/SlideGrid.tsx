@@ -120,9 +120,6 @@ export function SlideGrid({
     gap,
     live: liveIndex,
     itemId: openItemId,
-    onOutput: index => {
-      if (openItemId !== null) outputTile({itemId: openItemId, index});
-    },
   });
   const entryRef = useContext(ShowSlideEntry);
   const enter = useEffectEvent(() => {
@@ -157,7 +154,7 @@ export function SlideGrid({
           setShowFocus(false);
         }
       }}
-      onKeyDownCapture={window.navigate}
+      data-show-slide-grid="true"
       style={{height: window.height}}
     >
       {pendingNumber === '' ? null : (

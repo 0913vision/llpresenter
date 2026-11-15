@@ -95,7 +95,9 @@ export function ThumbnailGrid(props: ThumbnailGridProps): JSX.Element {
       positionOffset={props.positionOffset}
       setSize={props.setSize}
       orientation={props.orientation}
-      moves={workspaceMoves[workspace]}
+      moves={
+        workspace === 'show' && props.gridFocus ? {} : workspaceMoves[workspace]
+      }
       columns={fixedWidth === undefined ? columns : 'auto'}
       spaceKey={workspaceSpaceKey[workspace]}
       takesClickFocus

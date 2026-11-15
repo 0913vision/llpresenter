@@ -142,6 +142,7 @@ export interface LiveState {
   readonly stageMessage?: string | null;
   /** Increases by one on every change. Windows drop states older than the one they have. */
   readonly version: number;
+  readonly blackScreen?: boolean;
   readonly layers: LiveLayers;
   /** Output on or off per screen id. A missing screen is off. */
   readonly outputs: Readonly<Record<string, boolean>>;

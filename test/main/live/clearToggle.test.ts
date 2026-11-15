@@ -147,3 +147,14 @@ it('keeps a clear toggle capture when the stage preview changes', () => {
   store.dispatch({type: 'layer.clear.toggle', target: 'media'});
   expect(store.state.layers.media?.mediaId).toBe('background');
 });
+
+it('toggles black without changing the live slide, media, audio or overlays', () => {
+  const store = setup();
+  const layers = store.state.layers;
+  store.dispatch({type: 'black.toggle'});
+  expect(store.state.blackScreen).toBe(true);
+  expect(store.state.layers).toEqual(layers);
+  store.dispatch({type: 'black.toggle'});
+  expect(store.state.blackScreen).toBe(false);
+  expect(store.state.layers).toEqual(layers);
+});
