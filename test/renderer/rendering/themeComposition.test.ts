@@ -3026,6 +3026,91 @@ it('shows stage lyric labels on their own line only at their start', () => {
   view.dispose();
 });
 
+it.each(['\uc804\uc8fc', '\uac04\uc8fc', '\ud6c4\uc8fc'])(
+  'shows the %s cue once on song titles for all label positions',
+  label => {
+    const {root, view} = setup();
+    if (!song.slide) throw Error('Missing slide');
+    const slide = song.slide;
+    const elements: ThemeElement[] = [
+      {...themeElementBase(), kind: 'currentText'},
+      {...themeElementBase(32), kind: 'label'},
+    ];
+    const draw = (
+      position: 'line' | 'inline' | 'off',
+      title: boolean,
+      kind: 'song' | 'bible' = 'song',
+    ) =>
+      view.render(
+        {
+          ...song,
+          slide: {
+            ...slide,
+            kind,
+            label,
+            lines: ['Title'],
+            ...(title ? {titleSlide: true as const} : {}),
+          },
+        },
+        {
+          ...frame(elements),
+          screen: {id: THEME_MAIN, kind: 'stage'},
+          stageLyricLabelPosition: position,
+          transitions: false,
+        },
+      );
+    const text = (kind: string) =>
+      root.querySelector(`[data-kind="${kind}"] .${classes.shown}`)
+        ?.textContent ?? '';
+    for (const position of ['line', 'inline', 'off'] as const) {
+      draw(position, true);
+      expect(text('label')).toBe('');
+      expect(text('currentText')).toBe(
+        position === 'off' ? 'Title' : `Title (${label})`,
+      );
+    }
+    draw('line', false);
+    expect(text('label')).toBe('');
+    expect(text('currentText')).toBe(`Title (${label})`);
+    draw('line', true, 'bible');
+    expect(text('label')).toBe(label);
+    view.dispose();
+  },
+);
+
+it('keeps other song title labels in the top line', () => {
+  const {root, view} = setup();
+  if (!song.slide) throw Error('Missing slide');
+  view.render(
+    {
+      ...song,
+      slide: {
+        ...song.slide,
+        kind: 'song',
+        titleSlide: true,
+        label: 'Verse',
+        lines: ['Title'],
+      },
+    },
+    {
+      ...frame([
+        {...themeElementBase(), kind: 'currentText'},
+        {...themeElementBase(32), kind: 'label'},
+      ]),
+      screen: {id: THEME_MAIN, kind: 'stage'},
+      transitions: false,
+    },
+  );
+  expect(
+    root.querySelector(`[data-kind="label"] .${classes.shown}`)?.textContent,
+  ).toBe('Verse');
+  expect(
+    root.querySelector(`[data-kind="currentText"] .${classes.shown}`)
+      ?.textContent,
+  ).toBe('Title');
+  view.dispose();
+});
+
 it('uses the selected song label position without changing Bible labels', () => {
   const {root, view} = setup();
   if (song.slide === null) throw Error('Missing slide');

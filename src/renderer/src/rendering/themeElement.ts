@@ -583,6 +583,22 @@ export class ThemeElementView {
     }
     if (
       frame.screen?.kind === 'stage' &&
+      element.kind === 'label' &&
+      currentSong &&
+      slide !== null &&
+      slide.sectionCard === undefined &&
+      slide.label?.trim() &&
+      isStageEndingLabel(slide.label.trim()) &&
+      (slide.titleSlide
+        ? songTitleLines(slide.lines, slide.titleLineCount)
+        : slide.lines
+      ).some(line => line.trim()) &&
+      frame.theme?.layout.elements.some(value => value.kind === 'currentText')
+    ) {
+      return null;
+    }
+    if (
+      frame.screen?.kind === 'stage' &&
       slide?.sermonTitle === true &&
       element.kind === 'reference'
     ) {

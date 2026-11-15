@@ -1216,8 +1216,9 @@ Previous uses the live slide position in service order even when the operator
 opened another item or used a quick-run song.
 
 On stage, the labels 전주, 간주 and 후주 follow the text in parentheses; other
-labels precede it. Empty slides show only the label. Bible verse labels are
-omitted.
+labels precede it. When a prelude, interlude or outro cue is appended to song
+text, it is not repeated in the top label. Empty slides show only the label.
+Bible verse labels are omitted.
 
 Stage title slides and section cards show only their Korean title, without the
 English subtitle. The creed and prayer theme uses 104 px left-aligned current
