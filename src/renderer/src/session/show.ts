@@ -162,8 +162,8 @@ function outputOtherTile(cursor: TileCursor): boolean {
   const tile = tilesOf(cursor.itemId)[cursor.index];
   if (tile?.media === undefined) return false;
   beginOutputRequest();
-  useShow.setState({openItemId: cursor.itemId, selectedTile: cursor.index});
   sendMediaOutput(tile.media, startServiceItem(cursor.itemId));
+  useShow.setState({openItemId: cursor.itemId, selectedTile: cursor.index});
   return true;
 }
 
@@ -185,12 +185,12 @@ export function outputTile(
   const previousItem =
     live.lastStartedItemId ?? live.state?.layers.slide?.itemId;
   const row = useShow.getState().rows.find(row => row.id === cursor.itemId);
-  useShow.setState({openItemId: cursor.itemId, selectedTile: cursor.index});
   if (
     isLibrarySource(useShow.getState(), cursor.itemId) &&
     previousItem !== cursor.itemId &&
     window.llp
   ) {
+    useShow.setState({openItemId: cursor.itemId, selectedTile: cursor.index});
     outputLibraryTile(cursor, request, {
       commandVersion: live.commandVersion,
       reverseTransition,
@@ -209,6 +209,7 @@ export function outputTile(
     (row.background !== undefined || row.problem === 'missing-background') &&
     window.llp !== undefined
   ) {
+    useShow.setState({openItemId: cursor.itemId, selectedTile: cursor.index});
     outputSongTile({
       cursor,
       request,
@@ -227,16 +228,8 @@ export function outputTile(
   const view = useShow.getState();
   const source = bibleSourceFor(view, cursor.itemId);
   const liveItemId = live.state?.layers.slide?.itemId ?? null;
-  useShow.setState({
-    liveBibleSource: bibleSourceFor(view, liveItemId),
-    requestedBibleSource: source?.id === liveItemId ? null : source,
-  });
   if (row?.kind === 'slides') {
-    publishSlidesProjection(
-      useShow.getState(),
-      cursor.itemId,
-      tilesOf(cursor.itemId),
-    );
+    publishSlidesProjection(view, cursor.itemId, tilesOf(cursor.itemId));
   }
   sendSlideOutput(
     source === null
@@ -245,6 +238,12 @@ export function outputTile(
     row?.kind === 'slides' || row?.kind === 'song' ? row.background : undefined,
     startServiceItem(cursor.itemId),
   );
+  useShow.setState({
+    openItemId: cursor.itemId,
+    selectedTile: cursor.index,
+    liveBibleSource: bibleSourceFor(view, liveItemId),
+    requestedBibleSource: source?.id === liveItemId ? null : source,
+  });
   const passage =
     source?.passage ?? (row?.kind === 'bible' ? row.bible : undefined);
   if (passage !== undefined) {
@@ -601,10 +600,16 @@ export function outputNext(): void {
     useShow.getState().rows,
     atLastSlide,
   );
-  if (cursor !== null && cursor.itemId !== liveCursor()?.itemId) {
-    openItem(cursor.itemId);
-  }
+  const open =
+    cursor !== null &&
+    cursor.itemId !== liveCursor()?.itemId &&
+    cursor.itemId !== useShow.getState().openItemId;
   outputIfPresent(cursor);
+  if (open) {
+    if (useShow.getState().openItemId !== cursor.itemId) {
+      openItem(cursor.itemId);
+    } else refreshStageNext();
+  }
 }
 
 export function outputPrevious(): void {
@@ -613,14 +618,20 @@ export function outputPrevious(): void {
     useShow.getState().rows,
     atLastSlide,
   );
-  if (cursor !== null && cursor.itemId !== liveCursor()?.itemId) {
-    openItem(cursor.itemId);
-  }
+  const open =
+    cursor !== null &&
+    cursor.itemId !== liveCursor()?.itemId &&
+    cursor.itemId !== useShow.getState().openItemId;
   if (cursor !== null) {
     outputTile(
       cursor,
       useLive.getState().state?.layers.slide?.transition ?? null,
     );
+  }
+  if (open) {
+    if (useShow.getState().openItemId !== cursor.itemId) {
+      openItem(cursor.itemId);
+    } else refreshStageNext();
   }
 }
 

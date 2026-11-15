@@ -75,6 +75,44 @@ afterEach(() => {
 });
 
 describe('show state', () => {
+  it('sends the slide command before notifying show and live state subscribers', () => {
+    const events: string[] = [];
+    window.llp = mockLlpApi({
+      live: {send: () => events.push('command')},
+    });
+    setLive('song-morning', 0);
+    useShow.setState({openItemId: 'song-morning', selectedTile: 0});
+    const stopShow = useShow.subscribe(() => events.push('show'));
+    const stopLive = useLive.subscribe(() => events.push('live'));
+    try {
+      outputNext();
+      expect(events[0]).toBe('command');
+      expect(events).toContain('show');
+      expect(events).toContain('live');
+      expect(useShow.getState().selectedTile).toBe(1);
+    } finally {
+      stopShow();
+      stopLive();
+    }
+  });
+
+  it('sends the next item before opening its grid', () => {
+    const events: string[] = [];
+    window.llp = mockLlpApi({live: {send: () => events.push('command')}});
+    setAtLastSlide('nextItem');
+    setLive('song-morning', 3);
+    useShow.setState({openItemId: 'song-morning', selectedTile: 3});
+    events.length = 0;
+    const stop = useShow.subscribe(() => events.push('show'));
+    try {
+      outputNext();
+      expect(events[0]).toBe('command');
+      expect(useShow.getState().openItemId).toBe('song-river');
+    } finally {
+      stop();
+    }
+  });
+
   it.each([
     ['first', 0],
     ['last', 2],
