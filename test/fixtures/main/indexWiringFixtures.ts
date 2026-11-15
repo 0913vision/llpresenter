@@ -431,7 +431,7 @@ export async function startMain(): Promise<
   ) {
     throw new Error('no control window');
   }
-  return control;
+  return Object.assign(control, {webContents: control.webContents});
 }
 
 export function deferred(): {promise: Promise<void>; resolve: () => void} {
