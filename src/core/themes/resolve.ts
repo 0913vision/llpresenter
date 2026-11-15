@@ -102,9 +102,28 @@ function resolvedSermonLayout(
         ? ('capture' as const)
         : ('fullscreen' as const),
   };
-  return sameJson(layout, legacySermonTitleLayout(screen))
-    ? sermonTitleScreenLayout(screen)
-    : layout;
+  if (sameJson(layout, legacySermonTitleLayout(screen))) {
+    return sermonTitleScreenLayout(screen);
+  }
+  if (source.kind !== 'stage') return layout;
+  const current = sermonTitleScreenLayout(screen);
+  const changed = current.elements.filter(
+    element => element.kind === 'itemName' || element.kind === 'currentText',
+  );
+  return {
+    ...layout,
+    elements: layout.elements.map(element => {
+      const replacement = changed.find(
+        candidate => candidate.id === element.id,
+      );
+      if (!replacement || !('text' in replacement)) return element;
+      const previous = {
+        ...replacement,
+        text: {...replacement.text, align: 'center' as const},
+      };
+      return sameJson(element, previous) ? replacement : element;
+    }),
+  };
 }
 
 function resolvedBibleStageLayout(

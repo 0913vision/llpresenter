@@ -56,6 +56,55 @@ describe('published theme compositions', () => {
       ),
     ).toMatchObject({text: {size: 60}});
   });
+  it('left-aligns unchanged saved sermon stage text while preserving custom text', () => {
+    const file = themeFile();
+    const theme = file.themes.find(entry => entry.id === SERMON_TITLE_THEME_ID);
+    const stage = themeScreens.find(screen => screen.id === THEME_STAGE);
+    if (!theme || !stage) throw Error('Missing sermon stage');
+    const layout = theme.screens[stage.id];
+    if (!layout) throw Error('Missing stage layout');
+    const previous = {
+      ...layout,
+      elements: layout.elements.map(element =>
+        element.kind === 'itemName' || element.kind === 'currentText'
+          ? {...element, text: {...element.text, align: 'center' as const}}
+          : element,
+      ),
+    };
+    const saved = {
+      ...theme,
+      edited: true,
+      screens: {...theme.screens, [stage.id]: previous},
+    };
+    const result = resolveThemeScreen(saved, stage.id, themeScreens).layout;
+    expect(
+      result.elements.find(element => element.kind === 'itemName'),
+    ).toMatchObject({frame: {x: 154}, text: {size: 52, align: 'left'}});
+    expect(
+      result.elements.find(element => element.kind === 'currentText'),
+    ).toMatchObject({frame: {x: 154}, text: {size: 83, align: 'left'}});
+    const custom = {
+      ...saved,
+      screens: {
+        ...saved.screens,
+        [stage.id]: {
+          ...previous,
+          elements: previous.elements.map(element =>
+            element.kind === 'currentText'
+              ? {...element, text: {...element.text, size: 91}}
+              : element,
+          ),
+        },
+      },
+    };
+    const retained = resolveThemeScreen(custom, stage.id, themeScreens).layout;
+    expect(
+      retained.elements.find(element => element.kind === 'itemName'),
+    ).toMatchObject({text: {align: 'left'}});
+    expect(
+      retained.elements.find(element => element.kind === 'currentText'),
+    ).toMatchObject({text: {size: 91, align: 'center'}});
+  });
   it('updates untouched legacy sermon screens while preserving edited layouts', () => {
     const file = themeFile();
     const theme = file.themes.find(entry => entry.id === SERMON_TITLE_THEME_ID);
