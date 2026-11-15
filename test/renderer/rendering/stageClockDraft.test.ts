@@ -39,4 +39,28 @@ it('leaves normal builds untouched and makes both stage clock drafts', () => {
   expect(
     strip.elements.find(element => element.kind === 'clock')?.frame,
   ).toEqual(layout.elements.find(element => element.kind === 'clock')?.frame);
+  const compact = stageClockDraft(layout, theme.id, 'B2');
+  expect(
+    compact.elements.find(element => element.kind === 'media'),
+  ).toMatchObject({
+    frame: {x: 0, y: 64, w: 1920, h: 1016},
+    fit: 'fit',
+  });
+  expect(
+    compact.elements.find(element => element.kind === 'box'),
+  ).toMatchObject({
+    frame: {x: 0, y: 0, w: 1920, h: 64},
+  });
+  expect(
+    compact.elements.find(element => element.kind === 'clock'),
+  ).toMatchObject({
+    frame: {y: 4, h: 56},
+    text: {size: 44},
+  });
+  expect(
+    compact.elements.find(element => element.kind === 'timer'),
+  ).toMatchObject({
+    frame: {y: 4, h: 56},
+    text: {size: 36},
+  });
 });
