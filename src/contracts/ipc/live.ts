@@ -6,6 +6,10 @@ import {parseLiveState} from '@core/schema/liveState';
 import type {PayloadError} from '@core/schema/payload';
 import {parseTimerClockReading} from '@core/schema/timerState';
 import {
+  parseWallClockSample,
+  type WallClockSample,
+} from '@core/schema/wallClock';
+import {
   parseMediaProgress,
   type MediaProgress,
 } from '@core/schema/mediaProgress';
@@ -30,6 +34,11 @@ function parseLiveCommandParts(
 export const liveEndpoints = {
   get: query<LiveState>('live:get', parseLiveState),
   clock: query<number>('live:clock', parseTimerClockReading),
+  wallClock: query<WallClockSample>('live:wall-clock', parseWallClockSample),
+  wallClockChanged: push<WallClockSample>(
+    'live:wall-clock-changed',
+    parseWallClockSample,
+  ),
   command: partialMessage<LiveCommand>('live:command', parseLiveCommandParts),
   changed: push<LiveState>('live:changed', parseLiveState),
   mediaProgress: query<MediaProgress | null>(
@@ -69,6 +78,8 @@ export function liveApi(port: IpcPort) {
      * window can read 타이머 runs. Rejects, after logging, when the call fails.
      */
     clock: port.query(liveEndpoints.clock),
+    wallClock: port.query(liveEndpoints.wallClock),
+    subscribeWallClock: port.subscribe(liveEndpoints.wallClockChanged),
   };
 }
 

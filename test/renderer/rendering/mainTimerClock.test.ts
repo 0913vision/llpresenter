@@ -1,4 +1,6 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
+import type {WallClockSample} from '@core/schema/wallClock';
+import {stageClockText} from '@renderer/rendering/stageClock';
 import {MainTimerClock} from '@renderer/rendering/mainTimerClock';
 
 afterEach(() => {
@@ -6,6 +8,48 @@ afterEach(() => {
 });
 
 describe('MainTimerClock', () => {
+  it('redraws using main wall time and timezone after a clock jump', async () => {
+    vi.spyOn(performance, 'now').mockReturnValue(100);
+    let push: (value: WallClockSample) => void = () => {};
+    const changed = vi.fn();
+    const stop = vi.fn();
+    const clock = new MainTimerClock(() => Promise.resolve(1000), vi.fn(), {
+      read: () =>
+        Promise.resolve({
+          wall: Date.UTC(2026, 0, 1, 0),
+          monotonic: 1000,
+          timeZone: 'UTC',
+        }),
+      subscribe: listener => {
+        push = listener;
+        return stop;
+      },
+      onChange: changed,
+    });
+    await Promise.resolve();
+    expect(
+      stageClockText(clock.now().wall, '24h', {
+        seconds: true,
+        timeZone: clock.now().timeZone,
+      }),
+    ).toBe('00:00:00');
+    changed.mockClear();
+    push({
+      wall: Date.UTC(2026, 0, 1, 2),
+      monotonic: 1000,
+      timeZone: 'Asia/Seoul',
+    });
+    expect(changed).toHaveBeenCalledOnce();
+    expect(
+      stageClockText(clock.now().wall, '24h', {
+        seconds: true,
+        timeZone: clock.now().timeZone,
+      }),
+    ).toBe('11:00:00');
+    clock.dispose();
+    expect(stop).toHaveBeenCalledOnce();
+  });
+
   it("reads main's clock through the offset of one round trip's midpoint", async () => {
     const local = vi.spyOn(performance, 'now');
     local.mockReturnValueOnce(100).mockReturnValueOnce(140);

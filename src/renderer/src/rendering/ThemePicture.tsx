@@ -19,6 +19,8 @@ import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {fontFamilyFor} from './slideLayer';
 import {fitTextInFrame, fitsLineLimit} from './fitText';
 import {stageClockText, STAGE_TICK_MS} from './stageClock';
+import {MainTimerClock} from './mainTimerClock';
+import type {TimerNow} from '@core/timers/timerClock';
 import {fillTimerTokens, type RenderTimers} from './timerTokens';
 import styles from './ThemePicture.module.css';
 import {themeBackgroundStyle} from './themeBackground';
@@ -312,22 +314,46 @@ function ThemeTime({
   readonly timers: RenderTimers | undefined;
   readonly sample: string;
 }): JSX.Element {
-  const [now, setNow] = useState(() => ({timer: 0, wall: Date.now()}));
+  const [now, setNow] = useState<TimerNow>(() => ({
+    timer: 0,
+    wall: Date.now(),
+  }));
   useEffect(() => {
+    let fallback: MainTimerClock | undefined;
     const tick = (): void =>
       setNow(
-        timers?.now() ?? {
-          timer: performance.timeOrigin + performance.now(),
-          wall: Date.now(),
+        timers?.now() ??
+          fallback?.now() ?? {
+            timer: performance.timeOrigin + performance.now(),
+            wall: Date.now(),
+          },
+      );
+    const api = window.llp;
+    if (timers === undefined && api !== undefined) {
+      fallback = new MainTimerClock(
+        api.live.clock,
+        (message, error) =>
+          api.log.write({level: 'error', message, detail: String(error)}),
+        {
+          read: api.live.wallClock,
+          subscribe: api.live.subscribeWallClock,
+          onChange: tick,
         },
       );
+    }
     tick();
     const interval = setInterval(tick, STAGE_TICK_MS);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      fallback?.dispose();
+    };
   }, [timers]);
   const content =
     element.kind === 'clock'
-      ? stageClockText(now.wall, element.clockFormat, element.seconds)
+      ? stageClockText(now.wall, element.clockFormat, {
+          seconds: element.seconds ?? false,
+          timeZone: now.timeZone,
+        })
       : element.timerId === undefined || timers === undefined
         ? sample
         : fillTimerTokens(`{timer:${element.timerId}}`, timers, now);

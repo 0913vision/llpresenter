@@ -34,6 +34,14 @@ class TimerClock {
             message,
             detail: cause instanceof Error ? cause.message : String(cause),
           }),
+        {
+          read: this.api.live.wallClock,
+          subscribe: this.api.live.subscribeWallClock,
+          onChange: () => {
+            this.snapshot = this.now();
+            for (const notify of this.listeners) notify();
+          },
+        },
       );
       this.snapshot = this.now();
       this.interval = setInterval(() => {
@@ -46,6 +54,8 @@ class TimerClock {
       if (this.listeners.size === 0 && this.interval !== null) {
         clearInterval(this.interval);
         this.interval = null;
+        this.clock?.dispose();
+        this.clock = null;
       }
     };
   };

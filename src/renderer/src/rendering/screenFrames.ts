@@ -21,6 +21,7 @@ interface ScreenFramesOptions {
   readonly fonts?: LlpApi['fonts'];
   readonly settings: LlpApi['settings'];
   readonly clock: LlpApi['live']['clock'];
+  readonly wallClock?: Pick<LlpApi['live'], 'wallClock' | 'subscribeWallClock'>;
   readonly screenId: string;
   /** Called when the screen identity or timers change, to draw again. */
   readonly onChange: () => void;
@@ -48,7 +49,17 @@ export class ScreenFrames {
   constructor(options: ScreenFramesOptions) {
     this.transparent = options.transparent ?? false;
     const {settings, screenId, onError} = options;
-    this.timerClock = new MainTimerClock(options.clock, onError);
+    this.timerClock = new MainTimerClock(
+      options.clock,
+      onError,
+      options.wallClock === undefined
+        ? undefined
+        : {
+            read: options.wallClock.wallClock,
+            subscribe: options.wallClock.subscribeWallClock,
+            onChange: options.onChange,
+          },
+    );
     let pushedFonts = false;
     const receiveFonts = (value: FontCatalogSnapshot): void => {
       if (this.disposed) return;
@@ -214,6 +225,7 @@ export class ScreenFrames {
 
   dispose(): void {
     this.disposed = true;
+    this.timerClock.dispose();
     for (const stop of this.stops) stop();
   }
 }

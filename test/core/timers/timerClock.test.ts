@@ -163,6 +163,19 @@ describe('timerText', () => {
     ).toBe('-0:59');
   });
 
+  it('uses the main process timezone for clocks and wall-time targets', () => {
+    const now = {
+      timer: TIMER,
+      wall: Date.UTC(2026, 0, 1, 0, 0),
+      timeZone: 'Asia/Seoul',
+    };
+    expect(timerText(timer({kind: 'clock'}), undefined, now)).toBe('09:00:00');
+    expect(
+      timerText(timer({kind: 'countdownTo', time: '09:30'}), undefined, now),
+    ).toBe('30:00');
+    expect(localDay(now.wall, now.timeZone)).toBe(Date.UTC(2025, 11, 31, 15));
+  });
+
   it('shows a clock as 24-hour HH:mm:ss', () => {
     const clock = timer({kind: 'clock'});
     expect(timerText(clock, undefined, after(13 * HOUR + 5 * SECOND))).toBe(

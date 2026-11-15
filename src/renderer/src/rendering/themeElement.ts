@@ -687,7 +687,10 @@ export class ThemeElementView {
           ? stageClockText(
               frame.timers?.now().wall ?? Date.now(),
               element.clockFormat,
-              element.seconds,
+              {
+                seconds: element.seconds ?? false,
+                timeZone: frame.timers?.now().timeZone,
+              },
             )
           : undefined,
       timer,

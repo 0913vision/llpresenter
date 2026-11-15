@@ -61,6 +61,7 @@ export function ScreenPreview({
             fonts: api.fonts,
             settings: api.settings,
             clock: () => api.live.clock(),
+            wallClock: api.live,
             screenId,
             onChange: draw,
             onError: reportDrawingError,

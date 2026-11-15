@@ -109,6 +109,13 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
       send: () => undefined,
       subscribe: () => () => undefined,
       clock: () => Promise.resolve(performance.timeOrigin + performance.now()),
+      wallClock: () =>
+        Promise.resolve({
+          wall: Date.now(),
+          monotonic: performance.timeOrigin + performance.now(),
+          timeZone: 'UTC',
+        }),
+      subscribeWallClock: () => () => undefined,
       mediaProgress: () => Promise.resolve(null),
       subscribeMediaProgress: () => () => undefined,
       ...overrides.live,
