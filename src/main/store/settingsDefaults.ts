@@ -5,8 +5,6 @@ import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {createDefaultThemes} from '@core/themes/defaults';
 import {DEFAULT_LABELS} from './defaults';
 
-const uuid = (number: number): string =>
-  `00000000-0000-4000-8000-${String(number).padStart(12, '0')}`;
 const {main: MAIN, broadcast: CAPTIONS, stage: STAGE} = STARTER_SCREEN_IDS;
 const screen = (
   id: string,
@@ -40,7 +38,7 @@ export const settingsDefaults: Readonly<Record<SettingsName, object>> = {
     ],
   },
   macros: {macros: [], collections: []},
-  quick: {items: [{id: uuid(9), name: '검은 화면', kind: 'black'}]},
+  quick: {items: []},
   messages: {
     templates: [],
   },

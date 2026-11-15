@@ -45,6 +45,7 @@ export interface StoreRegistration {
   readonly launchIdle?: Promise<boolean>;
   /** Whether any output is on. A backup never starts while one is. */
   readonly isAnyOutputOn: () => boolean;
+  readonly onServiceChanged?: () => void;
   /** `app.json`, opened once at launch with `openAppConfig`. */
   readonly appConfig: AppConfigView &
     Pick<AppConfigFile, 'setLastServiceId' | 'flush' | 'savePending'>;
@@ -95,6 +96,7 @@ export function registerStore({
   log,
   launchIdle,
   isAnyOutputOn,
+  onServiceChanged,
   appConfig,
   context = electronLocationContext,
   problems,
@@ -200,7 +202,10 @@ export function registerStore({
     log,
   });
   const settingsAccess = createSettingsAccess(settings, log);
-  const serviceChannels = registerServiceChannels(opened, appConfig, log);
+  const serviceChannels = registerServiceChannels(opened, appConfig, {
+    log,
+    onServiceChanged,
+  });
   ipcMain.handle(settingsEndpoints.preferences.channel, async () => {
     const ready = await settings;
     return (

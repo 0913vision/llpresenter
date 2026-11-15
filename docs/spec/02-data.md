@@ -321,7 +321,7 @@ breaks, the other areas still work. File names and `format` values (proposal):
 | `screens.json`                        | `llsettings.screens`     | Screens                                             |
 | `themes.json`                         | `llsettings.themes`      | 테마, the 대기 화면, the default 테마 of each kind  |
 | `macros.json`                         | `llsettings.macros`      | 매크로 and collections                              |
-| `quick.json`                          | `llsettings.quick`       | 빠른 실행 items                                     |
+| `quick.json`                          | `llsettings.quick`       | Quick-run items                                     |
 | `messages.json`                       | `llsettings.messages`    | 메시지 and styles                                   |
 | `props.json`                          | `llsettings.props`       | 그래픽                                              |
 | `timers.json`                         | `llsettings.timers`      | 타이머                                              |
@@ -340,7 +340,7 @@ sections below don't say otherwise):
 | `screens.json`     | See "Screens" below.                                                                                                                  |
 | `themes.json`      | See "테마 (`themes.json`)" below.                                                                                                     |
 | `macros.json`      | No 매크로 and no collections. 모든 매크로 isn't stored; it always shows every 매크로 (07).                                            |
-| `quick.json`       | One item, 검은 화면 (`"black"`).                                                                                                      |
+| `quick.json`       | No items.                                                                                                                             |
 | `messages.json`    | No templates and no `messageStyles`.                                                                                                  |
 | `props.json`       | No 그래픽. The 검은 화면 is built in and isn't stored here (04).                                                                      |
 | `timers.json`      | No 타이머.                                                                                                                            |

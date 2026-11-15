@@ -53,7 +53,7 @@ function defaultName(document: SourceDocument | null): string {
 // create fails. When the items can't be copied, the empty service is deleted
 // again; if that fails too, it is opened, so the operator lands on it. A
 // service that is made is never made twice: every failure after the create
-// closes the dialog. Opening it doesn't touch the output.
+// closes the dialog. Opening a different service returns output to standby.
 async function createService({
   api,
   name,

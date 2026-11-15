@@ -197,7 +197,6 @@ function QuickAddMenu({
             ) ?? [],
           reason: macros === null ? '매크로 불러오는 중' : '매크로 없음',
         }),
-        entry('black', {kind: 'black', name: '검은 화면'}),
       ]}
     />
   );

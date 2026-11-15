@@ -181,6 +181,10 @@ function start(): void {
         log,
         launchIdle: launchIdle.ready,
         isAnyOutputOn: () => isAnyOutputOn(store.state),
+        onServiceChanged: () => {
+          if (store.state.blackScreen) store.dispatch({type: 'black.toggle'});
+          store.dispatch({type: 'item.stop'});
+        },
         appConfig,
         problems: problems.feed,
       });

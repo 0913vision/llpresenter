@@ -79,7 +79,13 @@ export function QuickPanel({
   const editing = useQuickEditing(api, onProblem);
   const locked = document?.access !== 'editable' || editing.busy;
   const full = (document?.value.items.length ?? 0) >= MAX_QUICK_ITEMS;
-  const items = document?.value.items ?? EMPTY_ITEMS;
+  const items = useMemo(
+    () =>
+      (document?.value.items ?? EMPTY_ITEMS).filter(
+        item => !isKnownQuickItem(item) || item.kind !== 'black',
+      ),
+    [document],
+  );
   const timersFull = timers.definitions.size >= MAX_TIMER_DEFINITIONS;
   const rowAt = (event: KeyboardEvent): QuickItem | undefined => {
     const id =

@@ -35,6 +35,7 @@ export interface SelectMenuProps<T extends string> extends Omit<
   readonly actions?: readonly SelectAction[] | undefined;
   /** Starts any deferred list preparation when the operator opens it. */
   readonly onOpen?: (() => void) | undefined;
+  readonly onClose?: (() => void) | undefined;
 }
 
 const NO_VALUE = '없음';
@@ -85,6 +86,7 @@ export function SelectMenu<T extends string>({
   menuLabel,
   actions = [],
   onOpen,
+  onClose,
   ...selectProps
 }: SelectMenuProps<T>): JSX.Element {
   const [trigger, setTrigger] = useState<HTMLButtonElement | null>(null);
@@ -100,6 +102,7 @@ export function SelectMenu<T extends string>({
         expanded={open}
         onExpandedChange={expanded => {
           if (expanded && !open) onOpen?.();
+          if (!expanded && open) onClose?.();
           setOpen(expanded);
         }}
       />
@@ -112,7 +115,10 @@ export function SelectMenu<T extends string>({
           ]}
           anchor={{kind: 'element', element: trigger}}
           minWidth={trigger.getBoundingClientRect().width}
-          onClose={() => setOpen(false)}
+          onClose={() => {
+            setOpen(false);
+            onClose?.();
+          }}
         />
       ) : null}
     </>
