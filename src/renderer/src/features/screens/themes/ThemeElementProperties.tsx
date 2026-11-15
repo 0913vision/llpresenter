@@ -113,7 +113,7 @@ export function ThemeElementProperties({
             )}
           </PropertyRow>
         ) : null}
-        {element.kind === 'text' ? (
+        {element.kind === 'text' && !model.fittedBroadcast ? (
           <ThemeContent
             value={element.content}
             reason={reason}

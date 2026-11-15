@@ -18,7 +18,8 @@ import {ThemeBackgroundProperties} from './ThemeBackgroundProperties';
 import {ThemeElementProperties} from './ThemeElementProperties';
 import {ThemeNumber} from './ThemePropertyFields';
 import {themeSamples} from './ThemeCanvas';
-import type {ThemeModel} from './useThemeEditor';
+import {sampleBroadcastLayout, type ThemeModel} from './useThemeEditor';
+import {isBroadcastLook} from '@renderer/rendering/broadcastLook';
 import styles from './Themes.module.css';
 
 export function ThemeProperties({
@@ -57,7 +58,17 @@ export function ThemeProperties({
             >
               <span className={styles.thumbnail}>
                 <ThemePicture
-                  elements={resolved?.layout.elements ?? []}
+                  elements={
+                    resolved === undefined
+                      ? []
+                      : screen.kind === 'broadcast' &&
+                          isBroadcastLook(resolved.layout)
+                        ? sampleBroadcastLayout(
+                            resolved.layout,
+                            model.theme?.id,
+                          ).elements
+                        : resolved.layout.elements
+                  }
                   background={color}
                   samples={themeSamples}
                   timers={model.renderTimers}

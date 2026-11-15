@@ -33,6 +33,8 @@ import {isSectionBandGradient} from '@core/themes/sectionBroadcast';
 import {sectionBandGradient} from './sectionBandGradient';
 import {measureTextInk} from './textInk';
 import {positionFollowingBoxes} from './themeFollow';
+import type {ResolvedThemeElement} from '@core/themes/songTitle';
+import {BROADCAST_LOOK_GEOMETRY as glass} from '@core/themes/broadcastLook';
 
 const textFits = new TextFitCache();
 
@@ -491,6 +493,8 @@ export function ThemePicture({
           style={{width: THEME_LIMITS.width, height: THEME_LIMITS.height}}
         >
           {elements.map(element => {
+            const resolved: ResolvedThemeElement = element;
+            const broadcastGlass = resolved.broadcastGlass;
             const box =
               element.kind === 'box' || hasThemeText(element)
                 ? element.box
@@ -515,13 +519,29 @@ export function ThemePicture({
                     className={styles.fill}
                     style={{
                       backgroundColor: box.fill,
+                      ...(broadcastGlass === 'header'
+                        ? {
+                            background: `linear-gradient(90deg, color-mix(in srgb, ${glass.headerColor} ${glass.headerOpacity}%, transparent), transparent ${glass.headerFade}%)`,
+                            borderRadius: `${glass.radius - glass.frameWidth}px ${glass.radius - glass.frameWidth}px 0 0`,
+                          }
+                        : broadcastGlass === 'panel'
+                          ? {
+                              border: `${glass.frameWidth}px solid color-mix(in srgb, ${glass.frameColor} ${glass.frameOpacity}%, transparent)`,
+                              boxSizing: 'border-box' as const,
+                              boxShadow: `0 0 ${glass.shadowBlur}px color-mix(in srgb, ${glass.shadowColor} ${glass.shadowOpacity}%, transparent)`,
+                            }
+                          : {}),
                       ...(isSectionBandGradient(element.id)
                         ? {background: sectionBandGradient}
                         : {}),
-                      opacity: isSectionBandGradient(element.id)
-                        ? 1
-                        : box.opacity / 100,
-                      borderRadius: box.radius ?? 0,
+                      opacity:
+                        isSectionBandGradient(element.id) ||
+                        broadcastGlass === 'header'
+                          ? 1
+                          : box.opacity / 100,
+                      ...(broadcastGlass === 'header'
+                        ? {}
+                        : {borderRadius: box.radius ?? 0}),
                     }}
                   />
                 ) : null}

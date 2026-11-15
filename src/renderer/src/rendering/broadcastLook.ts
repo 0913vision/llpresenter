@@ -480,11 +480,88 @@ export function fitBroadcastLook(
   },
 ): ThemeScreenLayout {
   if (!isBroadcastLook(layout)) return layout;
-  if (layout.elements.some(e => e.id === BROADCAST_LOOK_SONG_ID)) {
-    return fitSong(layout, slide, {item, caption: songCaption});
-  }
-  if (layout.elements.some(e => e.id === BROADCAST_LOOK_BAND_ID)) {
-    return fitBand(layout, slide, {item});
-  }
-  return fitCard(layout, slide, {item, widthOf: measureWidth});
+  const song = layout.elements.some(e => e.id === BROADCAST_LOOK_SONG_ID);
+  const fitted = song
+    ? fitSong(layout, slide, {item, caption: songCaption})
+    : layout.elements.some(e => e.id === BROADCAST_LOOK_BAND_ID)
+      ? fitBand(layout, slide, {item})
+      : fitCard(layout, slide, {item, widthOf: measureWidth});
+  return applyBroadcastEdits(fitted, song);
+}
+
+/** Apply saved per-theme geometry after the content-dependent defaults are fitted. */
+export function applyBroadcastEdits(
+  layout: ThemeScreenLayout,
+  song: boolean,
+): ThemeScreenLayout {
+  const edits = layout.broadcastEdits;
+  if (edits === undefined) return layout;
+  const oldBand = layout.elements.find(e => e.id === BROADCAST_LOOK_BAND_ID);
+  const newBand = oldBand === undefined ? undefined : edits[oldBand.id]?.frame;
+  const band = newBand ?? oldBand?.frame;
+  const delta = song && oldBand && newBand ? newBand.y - oldBand.frame.y : 0;
+  const lyric = layout.elements.find(e => e.id === BROADCAST_LOOK_SONG_ID);
+  const lyricFrame = lyric
+    ? (edits[lyric.id]?.frame ?? lyric.frame)
+    : undefined;
+  const elements = layout.elements.map(element => {
+    const edit = edits[element.id];
+    let frame = edit?.frame ?? element.frame;
+    if (
+      song &&
+      newBand &&
+      element.id !== BROADCAST_LOOK_BAND_ID &&
+      edit?.frame === undefined
+    ) {
+      frame = {
+        ...frame,
+        y: Math.max(
+          newBand.y,
+          Math.min(newBand.y + newBand.h - frame.h, frame.y + delta),
+        ),
+        h: Math.min(frame.h, newBand.h),
+      };
+    }
+    if (song && band && element.id !== BROADCAST_LOOK_BAND_ID) {
+      const h = Math.min(frame.h, band.h);
+      frame = {
+        ...frame,
+        h,
+        y: Math.max(band.y, Math.min(frame.y, band.y + band.h - h)),
+      };
+      if (element.id === BROADCAST_LOOK_SONG_TITLE_ID) {
+        const right = Math.min(
+          band.x + band.w,
+          lyricFrame?.x ?? band.x + band.w,
+        );
+        const w = Math.min(frame.w, Math.max(1, right - band.x));
+        frame = {
+          ...frame,
+          w,
+          x: Math.max(band.x, Math.min(frame.x, right - w)),
+          y: Math.min(band.y + 12, band.y + band.h - h),
+        };
+      }
+    }
+    const changed = {...element, frame};
+    if ('text' in changed && (edit?.text || edit?.box)) {
+      return {
+        ...changed,
+        ...(edit.text ? {text: {...changed.text, ...edit.text}} : {}),
+        ...(edit.box ? {box: edit.box} : {}),
+        ...(element.kind === 'currentText' && edit.text
+          ? {minimumTextSize: edit.text.size}
+          : {}),
+      };
+    }
+    if (changed.kind === 'box' && edit?.box) {
+      return {
+        ...changed,
+        box: {...changed.box, ...edit.box},
+        broadcastGlass: undefined,
+      };
+    }
+    return changed;
+  });
+  return {...layout, elements};
 }
