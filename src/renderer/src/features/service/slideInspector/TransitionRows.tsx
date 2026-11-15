@@ -143,92 +143,94 @@ export function TransitionPicker({
   const set = onChange;
   return (
     <PropertyGroup title="전환">
-      <PropertyRow label="효과">
-        {() => (
-          <div
-            className={transitionStyles.gallery}
-            role="group"
-            aria-label="효과"
-          >
-            {SLIDE_EFFECTS.map(([kind, label]) => (
-              <button
-                key={kind}
-                type="button"
-                className={transitionStyles.tile}
-                disabled={locked}
-                aria-pressed={!mixed && value.kind === kind}
-                onClick={() => {
-                  set({
-                    kind,
-                    sec: value.sec,
-                    ...(kind === 'push' || kind === 'wipe'
-                      ? {dir: value.dir ?? 'left'}
-                      : {}),
-                  });
-                }}
-              >
-                <EffectPicture kind={kind} />
-                <span>{label}</span>
-              </button>
-            ))}
-          </div>
-        )}
-      </PropertyRow>
-      <PropertyRow label="방향">
-        {() => (
-          <div
-            className={transitionStyles.directions}
-            role="group"
-            aria-label="방향"
-          >
-            {SLIDE_DIRECTIONS.map(([dir, arrow, label]) => (
-              <button
-                key={dir}
-                type="button"
-                aria-label={label}
-                title={label}
-                aria-pressed={
-                  !mixed &&
-                  (value.kind === 'push' || value.kind === 'wipe') &&
-                  (value.dir ?? 'left') === dir
-                }
-                disabled={
-                  locked ||
-                  mixed ||
-                  (value.kind !== 'push' && value.kind !== 'wipe')
-                }
-                onClick={() => set({...value, dir})}
-              >
-                {arrow}
-              </button>
-            ))}
-          </div>
-        )}
-      </PropertyRow>
-      <PropertyRow label="시간">
-        {({controlId}) => (
-          <TimeField
-            key={selectionKey}
-            id={controlId}
-            value={value.sec}
-            mixed={mixed}
-            disabled={locked || (!mixed && value.kind === 'none')}
-            onCommit={onSeconds}
-          />
-        )}
-      </PropertyRow>
-      <PropertyRow label="">
-        {() => (
-          <Button
-            className={styles.full}
-            size="md"
-            disabled={locked || mixed || !allowAll}
-            onClick={onApplyAll}
-          >
-            {song ? '이 곡 전체에 적용' : '전체 슬라이드에 적용'}
-          </Button>
-        )}
-      </PropertyRow>
+      <div className={styles.transitionRows}>
+        <PropertyRow label="효과">
+          {() => (
+            <div
+              className={transitionStyles.gallery}
+              role="group"
+              aria-label="효과"
+            >
+              {SLIDE_EFFECTS.map(([kind, label]) => (
+                <button
+                  key={kind}
+                  type="button"
+                  className={transitionStyles.tile}
+                  disabled={locked}
+                  aria-pressed={!mixed && value.kind === kind}
+                  onClick={() => {
+                    set({
+                      kind,
+                      sec: value.sec,
+                      ...(kind === 'push' || kind === 'wipe'
+                        ? {dir: value.dir ?? 'left'}
+                        : {}),
+                    });
+                  }}
+                >
+                  <EffectPicture kind={kind} />
+                  <span>{label}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </PropertyRow>
+        <PropertyRow label="방향">
+          {() => (
+            <div
+              className={transitionStyles.directions}
+              role="group"
+              aria-label="방향"
+            >
+              {SLIDE_DIRECTIONS.map(([dir, arrow, label]) => (
+                <button
+                  key={dir}
+                  type="button"
+                  aria-label={label}
+                  title={label}
+                  aria-pressed={
+                    !mixed &&
+                    (value.kind === 'push' || value.kind === 'wipe') &&
+                    (value.dir ?? 'left') === dir
+                  }
+                  disabled={
+                    locked ||
+                    mixed ||
+                    (value.kind !== 'push' && value.kind !== 'wipe')
+                  }
+                  onClick={() => set({...value, dir})}
+                >
+                  {arrow}
+                </button>
+              ))}
+            </div>
+          )}
+        </PropertyRow>
+        <PropertyRow label="시간">
+          {({controlId}) => (
+            <TimeField
+              key={selectionKey}
+              id={controlId}
+              value={value.sec}
+              mixed={mixed}
+              disabled={locked || (!mixed && value.kind === 'none')}
+              onCommit={onSeconds}
+            />
+          )}
+        </PropertyRow>
+        <PropertyRow label="">
+          {() => (
+            <Button
+              className={styles.full}
+              size="md"
+              disabled={locked || mixed || !allowAll}
+              onClick={onApplyAll}
+            >
+              {song ? '이 곡 전체에 적용' : '전체 슬라이드에 적용'}
+            </Button>
+          )}
+        </PropertyRow>
+      </div>
     </PropertyGroup>
   );
 }

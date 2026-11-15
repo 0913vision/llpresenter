@@ -36,9 +36,9 @@ describe('StatusBar', () => {
       },
     };
     const view = render(<StatusBar />);
-    expect(screen.getByRole('status').textContent).toContain(
-      'NDI 30fps · 하드웨어 가속',
-    );
+    expect(
+      Array.from(screen.getByRole('status').children, item => item.textContent),
+    ).toEqual(['방송 자막 NDI 30fps', '하드웨어 가속']);
     fixture.statuses = {
       stream: {
         ...fixture.statuses['stream'],
@@ -51,9 +51,9 @@ describe('StatusBar', () => {
       },
     };
     view.rerender(<StatusBar />);
-    expect(screen.getByRole('status').textContent).toContain(
-      'NDI 30fps · 하드웨어 가속 안 됨',
-    );
+    expect(
+      Array.from(screen.getByRole('status').children, item => item.textContent),
+    ).toEqual(['방송 자막 NDI 30fps', '하드웨어 가속 안 됨']);
   });
   it('shows identity fallback as quiet text and clears it when available', () => {
     identity.unavailable = true;

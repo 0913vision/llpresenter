@@ -15,6 +15,7 @@ import {sermonPreviewRow} from '@renderer/platform/sermonPreview';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {MediaProperties} from '@renderer/features/media/MediaPropertiesPanel';
 import {Panel, PanelBody} from '@renderer/ui/Panel';
+import {Properties} from '@renderer/ui/PropertyRow';
 import {labelInk} from '@renderer/ui/labelInk';
 import {LITURGY} from '@core/services/liturgy';
 import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
@@ -433,24 +434,26 @@ export function OtherSlideInspector({
               } else editor.getSnapshot().session?.edit(action);
             }}
           >
-            <TransitionPicker
-              value={value}
-              allowAll={bible || liturgy !== null || applyAll !== undefined}
-              mixed={mixed}
-              disabled={busy || service.access !== 'editable'}
-              selectionKey={selectedParts
-                .map(
-                  entry =>
-                    `${entry.reference.book}:${entry.reference.chapter}:${entry.reference.verse}:${entry.part}`,
-                )
-                .join(',')}
-              onChange={changeTransition}
-              onSeconds={sec => changeTransition(sec)}
-              onApplyAll={() => {
-                if (applyAll === undefined) changeTransition(value, true);
-                else applyAll(value);
-              }}
-            />
+            <Properties>
+              <TransitionPicker
+                value={value}
+                allowAll={bible || liturgy !== null || applyAll !== undefined}
+                mixed={mixed}
+                disabled={busy || service.access !== 'editable'}
+                selectionKey={selectedParts
+                  .map(
+                    entry =>
+                      `${entry.reference.book}:${entry.reference.chapter}:${entry.reference.verse}:${entry.part}`,
+                  )
+                  .join(',')}
+                onChange={changeTransition}
+                onSeconds={sec => changeTransition(sec)}
+                onApplyAll={() => {
+                  if (applyAll === undefined) changeTransition(value, true);
+                  else applyAll(value);
+                }}
+              />
+            </Properties>
           </div>
         ) : null}
       </PanelBody>
