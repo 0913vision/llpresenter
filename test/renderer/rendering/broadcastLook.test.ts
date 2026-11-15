@@ -425,6 +425,22 @@ describe('built-in broadcast look', () => {
       element(before, BROADCAST_TEXT_ID).frame.y - 40,
     );
   });
+  it('omits the glass rendering flag when a Bible band has an edited box', () => {
+    const layout = plain();
+    const bible = {...item, title: 'Reference'};
+    const band = element(
+      fitBroadcastLook(layout, slide, bible),
+      BROADCAST_LOOK_BAND_ID,
+    );
+    if (band.kind !== 'box') throw Error('Missing band');
+    const edited = {...layout, broadcastEdits: {[band.id]: {box: band.box}}};
+    const result = element(
+      fitBroadcastLook(edited, slide, bible),
+      BROADCAST_LOOK_BAND_ID,
+    );
+    expect(result).not.toHaveProperty('broadcastGlass');
+    expect(result).toMatchObject({kind: 'box', box: band.box});
+  });
   it('keeps the lyric line budget when applying text style overrides', () => {
     const layout = plain();
     const fitted = fitBroadcastLook(layout, slide, item);

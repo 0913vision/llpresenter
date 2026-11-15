@@ -612,10 +612,10 @@ export function applyBroadcastEdits(
       };
     }
     if (changed.kind === 'box' && edit?.box) {
+      const {broadcastGlass: _broadcastGlass, ...withoutGlass} = changed;
       return {
-        ...changed,
+        ...withoutGlass,
         box: {...changed.box, ...edit.box},
-        broadcastGlass: undefined,
       };
     }
     return changed;
