@@ -28,7 +28,6 @@ import {SlidesEditorHarness} from '@fixtures/renderer/features/service/slides/sl
 import {ControlSession} from '@renderer/app/controlSession';
 import {ShowShortcuts} from '@renderer/app/workspaces/showPanels';
 import {defaultPreferences} from '@core/schema/preferences';
-import * as bibleRendering from '@renderer/rendering/bibleMeasure';
 import {
   applyService,
   outputTile,
@@ -40,7 +39,7 @@ import {useLive} from '@renderer/session/live';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {themeFile, THEME_MAIN} from '@fixtures/core/themeOutput';
-import {mockSplitLayout, MOCK_LONG_VERSE} from '@fixtures/core/bibleSplit';
+import {MOCK_LONG_VERSE} from '@fixtures/core/bibleSplit';
 import {slidesItem, SLIDE_PICTURE} from '@fixtures/core/slides';
 import {
   slidesBibleItem,
@@ -342,10 +341,11 @@ async function chooseRange(
   );
   beforeAdd();
   fireEvent.click(add);
-  if (waitForCuts) await screen.findByRole('button', {name: 'A에서 자르기'});
-  return screen.findByRole('dialog', {
-    name: waitForCuts ? '절 나누기' : '성경 구절',
-  });
+  if (waitForCuts) {
+    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    return dialog;
+  }
+  return screen.findByRole('dialog');
 }
 
 it('inserts the range without review when automatic opening is off', async () => {
@@ -379,25 +379,13 @@ it('inserts the range without review when automatic opening is off', async () =>
   view.unmount();
 });
 
-it('inserts the reviewed range after selection as one undo step, saves references only, and reopens cuts with Ctrl E', async () => {
+it('inserts the automatically split range after selection as one undo step, saves references only, and reopens cuts with Ctrl E', async () => {
   const f = fixture(slidesItem('blank'), true);
   const session = new ControlSession(f.api);
   const view = render(<SlidesEditorHarness session={session} />);
   try {
-    const first = await chooseRange();
-    expect(first.textContent).toContain('1 / 2');
-    await act(async () =>
-      fireEvent.click(within(first).getByRole('button', {name: '확정'})),
-    );
-    await waitFor(() =>
-      expect(
-        screen.getByRole('dialog', {name: '절 나누기'}).textContent,
-      ).toContain('2 / 2'),
-    );
-    await act(async () =>
-      fireEvent.click(screen.getByRole('button', {name: '확정'})),
-    );
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    await chooseRange();
+    expect(screen.queryByRole('dialog')).toBeNull();
     await waitFor(() =>
       expect(view.container.querySelectorAll('[data-slide-id]')).toHaveLength(
         5,
@@ -451,27 +439,6 @@ it('inserts the reviewed range after selection as one undo step, saves reference
   }
 });
 
-it('cancels the pending insertion with Escape and keeps the original draft', async () => {
-  const f = fixture();
-  const session = new ControlSession(f.api);
-  const view = render(<SlidesEditorHarness session={session} />);
-  try {
-    await chooseRange();
-    fireEvent.keyDown(document.activeElement ?? document.body, {
-      code: 'Escape',
-      key: 'Escape',
-    });
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-    expect(view.container.querySelectorAll('[data-slide-id]')).toHaveLength(3);
-    expect(screen.queryByRole('button', {name: '저장'})).toBeNull();
-    expect(f.content).not.toHaveBeenCalled();
-    expect(f.send).not.toHaveBeenCalled();
-  } finally {
-    view.unmount();
-    await session.dispose();
-  }
-});
-
 it('discards a late lookup after cancelling the loading window', async () => {
   const f = fixture();
   const lookup = f.api.bible.lookup;
@@ -506,10 +473,9 @@ it('discards a late lookup after cancelling the loading window', async () => {
 });
 
 it.each([true, false])(
-  'cancels before the first AI result with automatic opening %s and discards the late result',
+  'accepts default cuts without waiting for AI with automatic opening %s',
   async autoOpen => {
     const f = fixture(slidesItem('blank'), true);
-    vi.spyOn(bibleRendering, 'bibleMeasure').mockReturnValue(mockSplitLayout());
     vi.spyOn(f.api.preferences, 'get').mockResolvedValue({
       ...defaultPreferences,
       bible: {...defaultPreferences.bible, splitEditorAutoOpen: autoOpen},
@@ -519,51 +485,20 @@ it.each([true, false])(
       available: true,
       reason: '',
     });
-    let release: (index: number) => void = () => undefined;
-    const held = new Promise<number>(resolve => {
-      release = resolve;
-    });
-    const chooser = vi
-      .spyOn(f.api.bible, 'chooseBoundary')
-      .mockReturnValue(held);
-    const cancel = vi.spyOn(f.api.bible, 'cancelBoundary');
+    const chooser = vi.spyOn(f.api.bible, 'chooseBoundary');
     const session = new ControlSession(f.api);
     const view = render(<SlidesEditorHarness session={session} />);
     try {
-      await chooseRange(false);
-      await waitFor(() => expect(chooser).toHaveBeenCalledOnce());
-      const loading = screen.getByRole('dialog', {name: '성경 구절'});
-      expect(within(loading).getByRole('status').textContent).toBe(
-        '불러오는 중',
-      );
-      expect(
-        within(loading)
-          .getByRole('button', {name: '확정'})
-          .getAttribute('aria-disabled'),
-      ).toBe('true');
-      expect(loading.contains(document.activeElement)).toBe(true);
-      fireEvent.keyDown(document.activeElement ?? document.body, {
-        code: 'Escape',
-        key: 'Escape',
-      });
-      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-      expect(cancel).toHaveBeenCalledExactlyOnceWith({
-        lookupId: chooser.mock.calls[0]?.[0].lookupId,
-      });
-      await act(async () => {
-        release(0);
-        await held;
-      });
+      await chooseRange();
       expect(screen.queryByRole('dialog')).toBeNull();
-      expect(chooser).toHaveBeenCalledOnce();
-      expect(view.container.querySelectorAll('[data-slide-id]')).toHaveLength(
-        3,
+      expect(chooser).not.toHaveBeenCalled();
+      await waitFor(() =>
+        expect(view.container.querySelectorAll('[data-slide-id]')).toHaveLength(
+          5,
+        ),
       );
-      expect(screen.queryByRole('button', {name: '저장'})).toBeNull();
-      expect(f.content).not.toHaveBeenCalled();
       expect(f.send).not.toHaveBeenCalled();
     } finally {
-      release(0);
       view.unmount();
       await session.dispose();
     }
@@ -598,11 +533,12 @@ it('presents mixed verse slots as parts and keeps repeated verses distinct in li
   useShow.setState({openItemId: f.item.id});
   const view = render(<ShowShortcuts onProblem={vi.fn()} />);
   try {
-    await screen.findByRole('dialog', {name: '절 나누기'});
-    await act(async () =>
-      fireEvent.click(screen.getByRole('button', {name: '확정'})),
+    await waitFor(() =>
+      expect(tilesOf(f.item.id).length).toBeGreaterThan(
+        f.item.slides.slides.length,
+      ),
     );
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    expect(screen.queryByRole('dialog')).toBeNull();
     const tiles = tilesOf(f.item.id);
     const at = tiles.findIndex(tile => tile.sourceSlideId === VERSE_SLIDE);
     act(() => outputTile({itemId: f.item.id, index: at}));

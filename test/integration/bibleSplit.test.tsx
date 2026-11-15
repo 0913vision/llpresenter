@@ -443,7 +443,7 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
             ([request]) => request.candidates.length > 1,
           ),
         ).toBe(true);
-        await screen.findByRole('dialog', {name: '절 나누기'});
+        expect(screen.queryByRole('dialog')).toBeNull();
       } finally {
         stop();
         view.unmount();
@@ -494,9 +494,9 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
     expect(screen.queryByRole('dialog')).toBeNull();
     view.unmount();
   });
-  it('opens after the first AI verse, shows a pending next page, and preserves the 400ms guard', async () => {
+  it('does not open review in show when AI refinement finishes', async () => {
     vi.spyOn(bibleRendering, 'bibleMeasure').mockReturnValue(mockSplitLayout());
-    const f = setup();
+    setup();
     const api = window.llp;
     if (api === undefined) throw Error('Missing API');
     vi.spyOn(api.bible, 'getLlmStatus').mockResolvedValue({
@@ -504,58 +504,15 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
       available: true,
       reason: '',
     });
-    let firstReady = (): void => undefined;
-    let secondReady = (): void => undefined;
-    const first = new Promise<void>(resolve => {
-      firstReady = resolve;
-    });
-    const second = new Promise<void>(resolve => {
-      secondReady = resolve;
-    });
-    const chooser = vi
-      .spyOn(api.bible, 'chooseBoundary')
-      .mockImplementation(async request => {
-        await (request.fullText === MOCK_LONG_VERSE ? first : second);
-        return 0;
-      });
-    const range = {
-      ...passage,
-      verses: [
-        {chapter: 3, verse: 16, text: MOCK_LONG_VERSE},
-        {chapter: 3, verse: 17, text: MOCK_LONG_VERSE.replace('작은', '멋진')},
-      ],
-    };
-    openBiblePassage(range, {verseNumbers: false});
+    const chooser = vi.spyOn(api.bible, 'chooseBoundary').mockResolvedValue(0);
+    openBiblePassage(passage, {verseNumbers: false});
     const view = render(<BibleSplitTools onProblem={vi.fn()} />);
     await waitFor(() => expect(chooser).toHaveBeenCalled());
-    expect(screen.queryByRole('dialog')).toBeNull();
-    await act(async () => firstReady());
-    await screen.findByText('1 / 2');
-    await act(async () =>
-      fireEvent.click(screen.getByRole('button', {name: '확정'})),
-    );
-    expect(screen.getByText('2 / 2')).toBeDefined();
-    expect(screen.getByRole('status', {name: 'AI 준비 중'})).toBeDefined();
-    await act(async () => secondReady());
-    await waitFor(() =>
-      expect(screen.queryByRole('status', {name: 'AI 준비 중'})).toBeNull(),
-    );
-    await act(async () =>
-      fireEvent.click(screen.getByRole('button', {name: '확정'})),
-    );
-    expect(screen.getByRole('dialog')).toBeDefined();
-    expect(f.edit).toHaveBeenCalledTimes(1);
-    await waitFor(async () => {
-      await act(async () =>
-        fireEvent.click(screen.getByRole('button', {name: '확정'})),
-      );
-      expect(screen.queryByRole('dialog')).toBeNull();
-    });
-    expect(f.edit).toHaveBeenCalledTimes(2);
+    expect(screen.queryByRole('dialog', {name: '? ???'})).toBeNull();
     view.unmount();
   });
 
-  it('refines with automatic review disabled, and Ctrl E reuses the current cuts without AI', async () => {
+  it('refines without automatic review, and manual editing reuses the current cuts without AI', async () => {
     vi.spyOn(bibleRendering, 'bibleMeasure').mockReturnValue(mockSplitLayout());
     setup();
     const api = window.llp;
@@ -576,7 +533,7 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
         {chapter: 3, verse: 16, text: MOCK_LONG_VERSE.replace('작은', '밝은')},
       ],
     });
-    const view = render(<ShowShortcuts onProblem={vi.fn()} />);
+    const view = render(<BibleSplitTools enableManual onProblem={vi.fn()} />);
     await waitFor(() => expect(chooser).toHaveBeenCalled());
     expect(screen.queryByRole('dialog')).toBeNull();
     const before = chooser.mock.calls.length;
@@ -593,11 +550,13 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
       const fixture = setup();
       openBiblePassage(passage);
       const view = render(<ShowShortcuts onProblem={vi.fn()} />);
-      await screen.findByRole('dialog', {name: '절 나누기'});
-      await act(async () =>
-        fireEvent.click(screen.getByRole('button', {name: '확정'})),
-      );
-      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+      await waitFor(() => {
+        const current = useShow.getState().openItemId;
+        expect(current === null ? 0 : tilesOf(current).length).toBeGreaterThan(
+          passage.verses.length,
+        );
+      });
+      expect(screen.queryByRole('dialog')).toBeNull();
       const id = useShow.getState().openItemId;
       if (id === null) throw Error('Missing source');
       const before = tilesOf(id);
@@ -657,10 +616,18 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
         });
         useShow.setState({openItemId: sourceId});
       } else openBiblePassage(extended);
-      const view = render(<BibleSplitTools onProblem={vi.fn()} />);
-      await screen.findByRole('dialog', {name: '절 나누기'});
+      const view = render(<BibleSplitTools enableManual onProblem={vi.fn()} />);
+      await waitFor(() => {
+        const current = useShow.getState().openItemId;
+        expect(current === null ? 0 : tilesOf(current).length).toBeGreaterThan(
+          passage.verses.length,
+        );
+      });
+      expect(screen.queryByRole('dialog')).toBeNull();
+      fireEvent.keyDown(document.body, {key: 'e', code: 'KeyE', ctrlKey: true});
+      await screen.findByRole('dialog');
       await act(async () =>
-        fireEvent.click(screen.getByRole('button', {name: '확정'})),
+        fireEvent.click(screen.getByRole('button', {name: '\uD655\uC815'})),
       );
       await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
       const id = useShow.getState().openItemId;
@@ -680,13 +647,13 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
         })),
       );
       fixture.send.mockClear();
-      const document = fixture.documents.get('bibleCuts');
+      const cutsDocument = fixture.documents.get('bibleCuts');
       const api = window.llp;
-      if (document?.name !== 'bibleCuts' || api === undefined) {
+      if (cutsDocument?.name !== 'bibleCuts' || api === undefined) {
         throw Error('Missing cuts API');
       }
       const cuts =
-        document.value.entries[passage.translation]?.['43:3:16']?.cuts;
+        cutsDocument.value.entries[passage.translation]?.['43:3:16']?.cuts;
       if (cuts === undefined || cuts.includes(1)) {
         throw Error('Unexpected initial cuts');
       }
@@ -772,92 +739,25 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
     expect(parseLiveCommand(command).ok).toBe(true);
     view.unmount();
   });
-  it('cancels the requested preview while retaining reference fields and returning focus to the end verse', async () => {
+  it('outputs a requested passage immediately without a split dialog', async () => {
     const fixture = setup();
-    const api = window.llp;
-    if (api === undefined) throw Error('Missing API');
     openBiblePassage(passage, {verseNumbers: true, review: false});
-    const view = render(
-      <>
-        <BibleQuickField api={api} />
-        <BibleSplitTools onProblem={vi.fn()} />
-      </>,
-    );
-    await waitFor(() =>
-      expect(
-        tilesOf(useShow.getState().openItemId ?? '').length,
-      ).toBeGreaterThan(2),
-    );
-    const book = screen.getByRole<HTMLInputElement>('combobox', {name: '책'});
-    const end = screen.getByRole<HTMLInputElement>('textbox', {name: '끝절'});
-    await waitFor(() => expect(book.disabled).toBe(false));
-    fireEvent.change(book, {target: {value: '요한복음'}});
-    await waitFor(() =>
-      expect(
-        screen.getByRole<HTMLInputElement>('textbox', {name: '장'}).disabled,
-      ).toBe(false),
-    );
-    fireEvent.change(screen.getByRole('textbox', {name: '장'}), {
-      target: {value: '3'},
+    const view = render(<BibleSplitTools onProblem={vi.fn()} />);
+    await waitFor(() => {
+      const id = useShow.getState().openItemId;
+      expect(id === null ? 0 : tilesOf(id).length).toBeGreaterThan(2);
     });
-    fireEvent.change(screen.getByRole('textbox', {name: '시작절'}), {
-      target: {value: '16'},
-    });
-    fireEvent.change(end, {target: {value: '17'}});
-    await waitFor(() => expect(end.disabled).toBe(false));
     act(() => showBiblePassage(passage));
-    await screen.findByRole('dialog', {name: '절 나누기'});
-    fireEvent.keyDown(document.activeElement ?? document.body, {
-      key: 'Escape',
-      code: 'Escape',
-    });
-    await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+    await waitFor(() => expect(fixture.send).toHaveBeenCalled());
+    expect(screen.queryByRole('dialog', {name: '? ???'})).toBeNull();
     expect(
-      screen.getByRole<HTMLInputElement>('combobox', {name: '책'}).value,
-    ).toBe('요한복음');
-    expect(
-      screen.getByRole<HTMLInputElement>('textbox', {name: '끝절'}).value,
-    ).toBe('17');
-    await waitFor(() => expect(document.activeElement).toBe(end));
-    expect(fixture.edit).not.toHaveBeenCalled();
-    expect(fixture.send).not.toHaveBeenCalled();
+      fixture.send.mock.calls.flatMap(([command]) => liveCommands(command)),
+    ).toContainEqual(expect.objectContaining({type: 'slide.show'}));
     view.unmount();
   });
-  it.each([false, true])(
-    'waits for review before output and respects interruption %s',
-    async interrupted => {
-      const fixture = setup();
-      openBiblePassage(passage, {verseNumbers: true, review: false});
-      const view = render(<BibleSplitTools onProblem={vi.fn()} />);
-      await waitFor(() => {
-        const id = useShow.getState().openItemId;
-        expect(id === null ? 0 : tilesOf(id).length).toBeGreaterThan(2);
-      });
-      expect(screen.queryByRole('dialog')).toBeNull();
-      act(() => showBiblePassage(passage));
-      await screen.findByRole('dialog', {name: '절 나누기'});
-      expect(fixture.send).not.toHaveBeenCalled();
-      if (interrupted) {
-        act(() =>
-          useLive.setState(state => ({
-            commandVersion: state.commandVersion + 1,
-          })),
-        );
-      }
-      await act(async () =>
-        fireEvent.click(screen.getByRole('button', {name: '확정'})),
-      );
-      await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-      const outputs = fixture.send.mock.calls
-        .flatMap(([command]) => liveCommands(command))
-        .filter(command => command.type === 'slide.show');
-      expect(outputs).toHaveLength(interrupted ? 0 : 1);
-      view.unmount();
-    },
-  );
 
   it.each(['saved', 'panel'] as const)(
-    'confirms %s verse cuts, reopens them with Ctrl E, and outputs the split part',
+    'manually confirms %s verse cuts and outputs the split part',
     async mode => {
       const fixture = setup();
       if (mode === 'saved') {
@@ -883,8 +783,16 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
         });
         useShow.setState({openItemId: sourceId});
       } else openBiblePassage(passage);
-      const view = render(<BibleSplitTools onProblem={vi.fn()} />);
-      await screen.findByRole('dialog', {name: '절 나누기'});
+      const view = render(<BibleSplitTools enableManual onProblem={vi.fn()} />);
+      await waitFor(() => {
+        const current = useShow.getState().openItemId;
+        expect(current === null ? 0 : tilesOf(current).length).toBeGreaterThan(
+          passage.verses.length,
+        );
+      });
+      expect(screen.queryByRole('dialog')).toBeNull();
+      fireEvent.keyDown(document.body, {key: 'e', code: 'KeyE', ctrlKey: true});
+      await screen.findByRole('dialog');
       const id = useShow.getState().openItemId;
       if (id === null) throw Error('Missing source');
       expect(tilesOf(id).length).toBeGreaterThan(passage.verses.length);
