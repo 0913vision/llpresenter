@@ -55,6 +55,22 @@ function setUp({mode}: {mode?: RenderMode} = {}) {
 }
 
 describe('OutputRenderer', () => {
+  it('freezes animations and videos while preserving the outgoing DOM', () => {
+    const {parent, renderer} = setUp();
+    const surface = renderer.transitionSurface();
+    const pause = vi.fn();
+    Object.defineProperty(surface, 'getAnimations', {
+      value: () => [{pause}],
+    });
+    const video = document.createElement('video');
+    surface.append(video);
+    renderer.freeze();
+    expect(pause).toHaveBeenCalledOnce();
+    expect(video.pause).toHaveBeenCalled();
+    expect(parent.contains(surface)).toBe(true);
+    expect(surface.contains(video)).toBe(true);
+    renderer.dispose();
+  });
   it('fades both song title lines on F2, restores them, and leaves fixed content opaque', () => {
     vi.useFakeTimers();
     const {parent, renderer, onError} = setUp();

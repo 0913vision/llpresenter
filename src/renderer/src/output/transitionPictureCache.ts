@@ -25,13 +25,13 @@ export class TransitionPictureCache {
   }
 
   put(key: string, picture: string): void {
-    this.remove(key);
+    this.delete(key);
     const bytes = picture.length * 2;
     if (bytes > this.maxBytes || this.maxEntries <= 0) return;
     while (this.size + bytes > this.maxBytes || this.count >= this.maxEntries) {
       const first = this.pictures.keys().next().value;
       if (first === undefined) break;
-      this.remove(first);
+      this.delete(first);
     }
     this.pictures.set(key, picture);
     this.size += bytes;
@@ -42,7 +42,7 @@ export class TransitionPictureCache {
     this.size = 0;
   }
 
-  private remove(key: string): void {
+  delete(key: string): void {
     const picture = this.pictures.get(key);
     if (picture === undefined) return;
     this.pictures.delete(key);

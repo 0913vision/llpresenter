@@ -205,6 +205,21 @@ export class OutputRenderer {
     return this.root;
   }
 
+  /** Keep the current composition in place while a new slide is revealed. */
+  freeze(): void {
+    if (this.fadeFrame !== null) cancelAnimationFrame(this.fadeFrame);
+    this.fadeFrame = null;
+    this.theme?.freeze();
+    const animations =
+      typeof this.root.getAnimations === 'function'
+        ? this.root.getAnimations({subtree: true})
+        : [];
+    for (const animation of animations) {
+      animation.pause();
+    }
+    for (const video of this.root.querySelectorAll('video')) video.pause();
+  }
+
   /** Whether frame-rate sampling has moving content to measure. */
   moving(): boolean {
     const animations =

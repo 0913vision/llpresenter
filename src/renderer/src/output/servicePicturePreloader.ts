@@ -17,6 +17,7 @@ export class ServicePicturePreloader {
 
   constructor(
     private readonly render: (cursor: TileCursor) => Promise<string | null>,
+    private readonly allSlides = false,
   ) {}
 
   refresh(
@@ -26,13 +27,27 @@ export class ServicePicturePreloader {
     if (this.disposed) return;
     this.generation += 1;
     this.pictures.clear();
-    this.queue = [...transitionPicturePlan(rows, tiles)];
+    this.queue = this.allSlides
+      ? rows.flatMap(row =>
+          Array.from(
+            {length: Math.max((tiles[row.id] ?? []).length, 1)},
+            (_, index) => ({
+              itemId: row.id,
+              index,
+            }),
+          ),
+        )
+      : [...transitionPicturePlan(rows, tiles)];
     this.eligible = new Set(this.queue.map(keyOf));
     this.pump();
   }
 
   get(cursor: TileCursor): string | undefined {
     return this.pictures.get(keyOf(cursor));
+  }
+
+  invalidate(cursor: TileCursor): void {
+    this.pictures.delete(keyOf(cursor));
   }
 
   request(cursor: TileCursor): void {
@@ -44,12 +59,9 @@ export class ServicePicturePreloader {
       return;
     }
     const key = keyOf(cursor);
-    if (
-      this.inFlight !== key &&
-      !this.queue.some(item => keyOf(item) === key)
-    ) {
-      this.queue.unshift(cursor);
-    }
+    const queued = this.queue.findIndex(item => keyOf(item) === key);
+    if (queued >= 0) this.queue.splice(queued, 1);
+    if (this.inFlight !== key) this.queue.unshift(cursor);
     this.pump();
   }
 

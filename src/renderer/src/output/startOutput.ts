@@ -3,7 +3,9 @@ import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {RENDERER_LOG_LIMITS} from '@core/schema/ipcPayloads';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {OutputRenderer} from '../rendering/outputRenderer';
-import {SnapshotTransition} from './snapshotTransition';
+import {SlideAnimation} from '../rendering/slideAnimation';
+import {ServiceMediaPreloader} from './serviceMediaPreloader';
+import {waitForPaint} from './waitForPaint';
 import {reverseSlideTransition} from '@core/output/transitions';
 import type {SlideTransition} from '@core/schema/slideTransition';
 import type {LiveState} from '@core/live/state';
@@ -101,9 +103,12 @@ export function startOutput({
   };
   const stopCatching = catchUncaughtErrors(report);
   let renderer: OutputRenderer | null = null;
-  let snapshot: SnapshotTransition | null = null;
+  const retired: OutputRenderer[] = [];
+  const animations: SlideAnimation[] = [];
+  let preloader: ServiceMediaPreloader | null = null;
   let snapshotMode = false;
   let snapshotEpoch = 0;
+  let cancelPaint: (() => void) | null = null;
   let hasFrame = false;
   let latest: LiveState | null = null;
   let stopped = false;
@@ -133,6 +138,12 @@ export function startOutput({
     try {
       const frame = frames.frame(latest);
       if (frame === undefined) return;
+      if (frame.screen?.kind === 'audience') {
+        preloader ??= new ServiceMediaPreloader(api);
+      } else if (frame.screen !== undefined && preloader !== null) {
+        preloader.dispose();
+        preloader = null;
+      }
       renderer.render(latest.layers, {
         ...frame,
         standby: !enabled(),
@@ -294,8 +305,10 @@ export function startOutput({
       ? reverseSlideTransition(slide.reverseTransition)
       : slide.transition;
   };
-  const currentSnapshot = (epoch: number): boolean =>
-    !stopped && epoch === snapshotEpoch;
+  const clearRetired = (): void => {
+    for (const previous of retired.splice(0)) previous.dispose();
+    for (const animation of animations.splice(0)) animation.cancel();
+  };
   const stopFollowing = followLiveState(
     api.live,
     state => {
@@ -307,7 +320,17 @@ export function startOutput({
         slide !== null &&
         (old?.itemId !== slide.itemId || old.position !== slide.position);
       const currentRenderer = renderer;
-      const epoch = ++snapshotEpoch;
+      if (changed) {
+        preloader?.request({itemId: slide.itemId, index: slide.position});
+      }
+      const epoch =
+        changed || !audience || state.outputs[screenId] !== true
+          ? ++snapshotEpoch
+          : snapshotEpoch;
+      if (changed || !audience || state.outputs[screenId] !== true) {
+        cancelPaint?.();
+        cancelPaint = null;
+      }
       if (
         !audience ||
         !enabled() ||
@@ -319,58 +342,72 @@ export function startOutput({
       ) {
         if (changed || !audience || state.outputs[screenId] !== true) {
           snapshotMode = false;
-          snapshot?.clear();
+          clearRetired();
+          if (currentRenderer !== null) {
+            currentRenderer.transitionSurface().style.visibility = '';
+          }
         }
         applyState(state);
         return;
       }
-      snapshot ??= new SnapshotTransition(
-        root,
-        currentRenderer.transitionSurface(),
-      );
-      const picture = snapshot;
-      void api.output
-        .captureFrame()
-        .then(async data => {
-          if (!currentSnapshot(epoch)) return;
-          if (
-            data === null ||
-            !(await picture.prepare(data)) ||
-            !currentSnapshot(epoch)
-          ) {
-            if (currentSnapshot(epoch)) {
-              snapshotMode = true;
-              snapshot?.clear();
-              applyState(state);
-              snapshotMode = false;
-            }
-            return;
-          }
-          snapshotMode = true;
-          applyState(state);
-          picture.play(
-            effect,
-            () => currentRenderer.ready(),
-            () => {
-              snapshotMode = false;
-            },
-          );
-        })
-        .catch((error: unknown) => {
-          if (!currentSnapshot(epoch)) return;
-          report('could not capture the outgoing slide', error);
-          snapshotMode = true;
-          snapshot?.clear();
-          applyState(state);
+      currentRenderer.freeze();
+      retired.push(currentRenderer);
+      renderer = new OutputRenderer(root, {
+        transparent: ndi,
+        textStyle: DEFAULT_TEXT_STYLE,
+        mediaUrl,
+        onError: report,
+      });
+      const incoming = renderer;
+      snapshotMode = true;
+      const surface = incoming.transitionSurface();
+      surface.style.visibility = 'hidden';
+      const animation = new SlideAnimation(true);
+      animations.push(animation);
+      try {
+        animation.play(currentRenderer.transitionSurface(), surface, effect);
+        if (effect.kind === 'push') animation.holdOutgoing();
+      } catch (error) {
+        report('could not animate the incoming slide', error);
+        applyState(state);
+        surface.style.visibility = '';
+        clearRetired();
+        snapshotMode = false;
+        return;
+      }
+      applyState(state);
+      let revealed = false;
+      let ended = false;
+      const finish = (): void => {
+        ended = true;
+        if (!stopped && epoch === snapshotEpoch && revealed) {
+          clearRetired();
           snapshotMode = false;
-        });
+        }
+      };
+      cancelPaint = waitForPaint(
+        () => incoming === renderer && complete(),
+        () => {
+          if (stopped || epoch !== snapshotEpoch) return;
+          cancelPaint = null;
+          revealed = true;
+          if (effect.kind === 'push') animation.resumeOutgoing();
+          surface.style.visibility = '';
+          if (ended) finish();
+        },
+      );
+      const completion = animation.finished();
+      if (completion === null) finish();
+      else void completion.then(finish, () => undefined);
     },
     report,
   );
   return () => {
     stopped = true;
     snapshotEpoch += 1;
-    snapshot?.clear();
+    cancelPaint?.();
+    clearRetired();
+    preloader?.dispose();
     if (readyTimer !== null) clearTimeout(readyTimer);
     window.removeEventListener('resize', resized);
     root.removeEventListener('pointerdown', raise);

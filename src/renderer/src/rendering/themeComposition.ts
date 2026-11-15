@@ -676,6 +676,21 @@ export class ThemeCompositionView {
     this.page = null;
   }
 
+  /** Stop internal updates without removing the current painted composition. */
+  freeze(): void {
+    if (this.ticker !== null) clearInterval(this.ticker);
+    this.ticker = null;
+    if (this.clockTicker !== null) clearTimeout(this.clockTicker);
+    this.clockTicker = null;
+    if (this.releaseTimer !== null) clearTimeout(this.releaseTimer);
+    this.releaseTimer = null;
+    if (this.animation !== null) cancelAnimationFrame(this.animation);
+    this.animation = null;
+    if (typeof document.fonts !== 'undefined') {
+      document.fonts.removeEventListener('loadingdone', this.onFontsLoaded);
+    }
+  }
+
   dispose(): void {
     if (typeof document.fonts !== 'undefined') {
       document.fonts.removeEventListener('loadingdone', this.onFontsLoaded);
