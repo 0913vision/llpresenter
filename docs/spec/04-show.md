@@ -704,6 +704,9 @@ Source: `Overlays` (tool controls), `Problems` (still background), `Macros`,
 - Tool row: the four Bible reference fields 책, 장, 시작절, 끝절, with a book
   icon on 책. See "Bible passages".
 - List: one row per item, with a kind icon and a name. Rows show no shortcuts.
+- While a quick Bible passage is live, its reference appears above the saved
+  quick items. Preview alone does not show it; the black screen remains its own
+  action.
 - A timer row shows its current value in place, using the same formatter and
   kind rules as the timer tab. A running non-clock row keeps the red bar. A
   finished 정지 countdown holds zero with the bar off until started or reset.
