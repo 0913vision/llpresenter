@@ -321,7 +321,7 @@ function ThemeCanvas({
             elements={values}
             background={background}
             samples={themeSamplesFor(
-              model.theme.id,
+              model.theme?.id,
               values.some(element => element.id === SECTION_BAND_ID),
             )}
             timers={model.renderTimers}
