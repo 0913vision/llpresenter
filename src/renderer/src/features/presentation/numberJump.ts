@@ -3,6 +3,7 @@ import {useEffect} from 'react';
 import {outputTile, useShow} from '@renderer/session/show';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {modalStack} from '@renderer/ui/modalStack';
+import {focusSlideGrid} from './focusSlideGrid';
 import {serviceSlideAt} from './serviceSlideNumbers';
 import {isColumnDragActive} from '@renderer/platform/drag';
 
@@ -70,7 +71,10 @@ export function handleNumberJump(event: KeyboardEvent): void {
     event.stopPropagation();
     const cursor = serviceSlideAt(useShow.getState(), Number(value));
     clear();
-    if (cursor !== null) outputTile(cursor);
+    if (cursor !== null) {
+      outputTile(cursor);
+      focusSlideGrid();
+    }
   } else if (event.key === 'Delete' || event.key === 'Escape') {
     event.preventDefault();
     event.stopPropagation();
