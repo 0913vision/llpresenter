@@ -405,7 +405,9 @@ vi.mock('@main/windows/control', () => ({
   },
 }));
 
-export async function startMain(): Promise<EventEmitter> {
+export async function startMain(): Promise<
+  EventEmitter & {webContents: EventEmitter}
+> {
   const before = new Set(process.listeners('uncaughtException'));
   const beforeRejections = new Set(process.listeners('unhandledRejection'));
   onTestFinished(() => {
@@ -422,7 +424,13 @@ export async function startMain(): Promise<EventEmitter> {
   await import('@main/index');
   await vi.waitFor(() => expect(mocks.opened.control).not.toBeNull());
   const control = mocks.opened.control;
-  if (!(control instanceof EventEmitter)) throw new Error('no control window');
+  if (
+    !(control instanceof EventEmitter) ||
+    !('webContents' in control) ||
+    !(control.webContents instanceof EventEmitter)
+  ) {
+    throw new Error('no control window');
+  }
   return control;
 }
 
