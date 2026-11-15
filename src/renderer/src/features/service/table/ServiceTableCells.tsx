@@ -1,4 +1,5 @@
 import {cardOffset} from '@core/services/sectionCards';
+import {LITURGY_SLIDES} from '@core/services/liturgySlides';
 import type {JSX} from 'react';
 import type {ItemRow} from '@core/presentation/model';
 import type {MediaId, SongId} from '@core/schema/ids';
@@ -102,11 +103,14 @@ export function ServiceTableCells({
       <span className={classNames(styles.cell, styles.slides)}>
         {item !== undefined && isItemOfKind(item, 'slides')
           ? item.slides.slides.length + cardOffset(item)
-          : row.kind === 'media'
-            ? ''
-            : song?.sectionCard !== undefined
-              ? song.slides.length + 1
-              : (detail ?? '')}
+          : item !== undefined && isItemOfKind(item, 'liturgy')
+            ? LITURGY_SLIDES[item.liturgy.kind][item.liturgy.translation]
+                .length + cardOffset(item)
+            : row.kind === 'media'
+              ? ''
+              : song?.sectionCard !== undefined
+                ? song.slides.length + 1
+                : (detail ?? '')}
       </span>
       {item === undefined ? (
         <span className={classNames(styles.cell, styles.theme)} />
