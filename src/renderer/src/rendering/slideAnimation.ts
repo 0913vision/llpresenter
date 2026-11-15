@@ -2,6 +2,19 @@ import type {SlideTransition} from '@core/schema/slideTransition';
 import {THEME_LIMITS} from '@core/themes/elementRules';
 
 export const WIPE_DURATION_MS_PER_SECOND = 954;
+const WIPE_STEPS = 32;
+const WIPE_START = 34;
+const WIPE_END = 66;
+
+function wipeMask(direction: string): string {
+  const stops = Array.from({length: WIPE_STEPS + 1}, (_, index) => {
+    const t = index / WIPE_STEPS;
+    const alpha = 1 - t * t * (3 - 2 * t);
+    const position = WIPE_START + (WIPE_END - WIPE_START) * t;
+    return `rgba(0, 0, 0, ${alpha.toFixed(5)}) ${position}%`;
+  });
+  return `linear-gradient(to ${direction}, ${stops.join(', ')})`;
+}
 
 export interface SlideAnimationFrame {
   readonly x: number;
@@ -16,7 +29,7 @@ const TRAVEL = {
   up: ['translateY(100%)', 'translateY(-100%)'],
   down: ['translateY(-100%)', 'translateY(100%)'],
 } as const;
-/** PowerPoint's feather starts outside and sweeps a 0.8-screen ramp in 95.4%. */
+/** PowerPoint's feather starts outside and sweeps in 95.4% of the set time. */
 const WIPE = {
   left: {
     direction: 'left',
@@ -104,7 +117,7 @@ export class SlideAnimation {
         break;
       case 'wipe': {
         const wipe = WIPE[dir];
-        const maskImage = `linear-gradient(to ${wipe.direction}, black 0%, black 36.666667%, transparent 63.333333%, transparent 100%)`;
+        const maskImage = wipeMask(wipe.direction);
         outgoing = [{opacity: 1}, {opacity: 1}];
         incoming = [
           {
@@ -145,23 +158,6 @@ export class SlideAnimation {
     return completions.length === 0
       ? null
       : Promise.all(completions).then(() => undefined);
-  }
-
-  /** Keep a push's old picture in place until the incoming picture is ready. */
-  holdOutgoing(): void {
-    this.animations[0]?.pause();
-  }
-
-  /** Bring the outgoing push up to the incoming animation's current time. */
-  resumeOutgoing(): void {
-    const [outgoing, incoming] = this.animations;
-    if (outgoing === undefined || incoming === undefined) return;
-    if (incoming.playState === 'finished') {
-      outgoing.finish();
-      return;
-    }
-    outgoing.currentTime = incoming.currentTime;
-    outgoing.play();
   }
 
   cancel(): void {

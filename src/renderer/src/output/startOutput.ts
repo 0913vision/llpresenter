@@ -373,23 +373,9 @@ export function startOutput({
       surface.style.visibility = 'hidden';
       const animation = new SlideAnimation(true);
       animations.push(animation);
-      try {
-        animation.play(currentRenderer.transitionSurface(), surface, effect);
-        if (effect.kind === 'push') animation.holdOutgoing();
-      } catch (error) {
-        report('could not animate the incoming slide', error);
-        applyState(state);
-        surface.style.visibility = '';
-        clearRetired();
-        snapshotMode = false;
-        return;
-      }
       applyState(state);
-      let revealed = false;
-      let ended = false;
       const finish = (): void => {
-        ended = true;
-        if (!stopped && epoch === snapshotEpoch && revealed) {
+        if (!stopped && epoch === snapshotEpoch) {
           clearRetired();
           snapshotMode = false;
         }
@@ -399,15 +385,23 @@ export function startOutput({
         () => {
           if (stopped || epoch !== snapshotEpoch) return;
           cancelPaint = null;
-          revealed = true;
-          if (effect.kind === 'push') animation.resumeOutgoing();
-          surface.style.visibility = '';
-          if (ended) finish();
+          try {
+            animation.play(
+              currentRenderer.transitionSurface(),
+              surface,
+              effect,
+            );
+            surface.style.visibility = '';
+            const completion = animation.finished();
+            if (completion === null) finish();
+            else void completion.then(finish, () => undefined);
+          } catch (error) {
+            report('could not animate the incoming slide', error);
+            surface.style.visibility = '';
+            finish();
+          }
         },
       );
-      const completion = animation.finished();
-      if (completion === null) finish();
-      else void completion.then(finish, () => undefined);
     },
     report,
   );

@@ -122,11 +122,14 @@ describe('startOutput', () => {
       const root = document.createElement('div');
       const play = vi
         .spyOn(SlideAnimation.prototype, 'play')
-        .mockImplementation(() => undefined);
+        .mockImplementation((_old, next) => {
+          expect(next.style.visibility).toBe('hidden');
+        });
       vi.spyOn(SlideAnimation.prototype, 'finished').mockReturnValue(
         new Promise(() => undefined),
       );
       vi.spyOn(OutputRenderer.prototype, 'ready').mockReturnValue(true);
+      const render = vi.spyOn(OutputRenderer.prototype, 'render');
       const api = mockLlpApi({
         settings: {
           get: ({name}) =>
@@ -164,11 +167,23 @@ describe('startOutput', () => {
           },
         });
         expect(root.children).toHaveLength(2);
+        const incoming = root.children[1];
+        if (!(incoming instanceof HTMLElement)) {
+          throw new Error('Missing incoming surface');
+        }
+        expect(render).toHaveBeenLastCalledWith(
+          expect.anything(),
+          expect.objectContaining({transitions: false}),
+        );
+        expect(play).not.toHaveBeenCalled();
+        expect(incoming.style.visibility).toBe('hidden');
+        runFramesFor(FRAME_MS * 3);
         expect(play).toHaveBeenCalledWith(
           root.children[0],
           root.children[1],
           expect.objectContaining({kind: 'wipe'}),
         );
+        expect(incoming.style.visibility).toBe('');
         const covers = root.querySelectorAll<HTMLElement>(
           '[data-black-screen]',
         );

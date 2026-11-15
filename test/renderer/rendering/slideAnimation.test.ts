@@ -16,49 +16,31 @@ function setup() {
 }
 
 describe('SlideAnimation', () => {
-  it('keeps the outgoing push still until the incoming picture is ready', () => {
-    const old = document.createElement('div');
-    const next = document.createElement('div');
-    const outgoing = {pause: vi.fn(), play: vi.fn(), currentTime: 0};
-    const incoming = {currentTime: 700, playState: 'running'};
-    Object.defineProperty(old, 'animate', {value: () => outgoing});
-    Object.defineProperty(next, 'animate', {value: () => incoming});
-    const view = new SlideAnimation(true);
-    view.play(old, next, {kind: 'push', dir: 'left', sec: 4});
-    view.holdOutgoing();
-    expect(outgoing.pause).toHaveBeenCalledOnce();
-    expect(old.style.opacity).toBe('1');
-    view.resumeOutgoing();
-    expect(outgoing.currentTime).toBe(700);
-    expect(outgoing.play).toHaveBeenCalledOnce();
-  });
   it('keeps the old page still while revealing the new page with a feathered mask', () => {
     const {view, old, next, animate} = setup();
     view.play(old, next, {kind: 'wipe', dir: 'left', sec: 1});
     expect(old.style.opacity).toBe('1');
     expect(animate).toHaveBeenCalledTimes(1);
-    expect(animate).toHaveBeenNthCalledWith(
-      1,
-      [
-        {
-          maskImage:
-            'linear-gradient(to left, black 0%, black 36.666667%, transparent 63.333333%, transparent 100%)',
-          maskSize: '300% 100%',
-          maskPosition: '-8% 0%',
-          maskRepeat: 'no-repeat',
-        },
-        {
-          maskImage:
-            'linear-gradient(to left, black 0%, black 36.666667%, transparent 63.333333%, transparent 100%)',
-          maskSize: '300% 100%',
-          maskPosition: '95% 0%',
-          maskRepeat: 'no-repeat',
-        },
-      ],
-      {duration: 954, easing: 'linear'},
-    );
+    const frames = animate.mock.calls[0]?.[0];
+    if (!Array.isArray(frames)) throw new Error('Missing wipe keyframes');
+    expect(frames[0]?.maskImage).toMatch(/^linear-gradient\(to left,/);
+    expect(frames[1]?.maskImage).toBe(frames[0]?.maskImage);
+    expect(frames[0]).toMatchObject({
+      maskSize: '300% 100%',
+      maskPosition: '-8% 0%',
+      maskRepeat: 'no-repeat',
+    });
+    expect(frames[1]).toMatchObject({
+      maskSize: '300% 100%',
+      maskPosition: '95% 0%',
+      maskRepeat: 'no-repeat',
+    });
+    expect(animate.mock.calls[0]?.[1]).toEqual({
+      duration: 954,
+      easing: 'linear',
+    });
   });
-  it('sweeps a 0.8-screen feather 2.06 screen widths in 95.4% of the set time', () => {
+  it('sweeps a 0.96-screen feather 2.06 screen widths in 95.4% of the set time', () => {
     const {view, old, next, animate} = setup();
     view.play(old, next, {kind: 'wipe', dir: 'left', sec: 0.7});
     const frames = animate.mock.calls[0]?.[0];
@@ -76,7 +58,48 @@ describe('SlideAnimation', () => {
     expect(center(0.5)).toBeCloseTo(0.63, 5);
     expect(center(1)).toBeCloseTo(-0.4, 5);
     expect(0.954 / Math.abs(center(1) - center(0))).toBeCloseTo(0.463, 2);
-    expect((size * (63.333333 - 36.666667)) / 100).toBeCloseTo(0.8, 5);
+    expect((size * (66 - 34)) / 100).toBeCloseTo(0.96, 5);
+  });
+  it('uses a monotone smooth edge fitted to the PowerPoint four-second capture', () => {
+    const {view, old, next, animate} = setup();
+    view.play(old, next, {kind: 'wipe', dir: 'left', sec: 4});
+    const frames = animate.mock.calls[0]?.[0];
+    if (!Array.isArray(frames)) throw new Error('Missing wipe keyframes');
+    const mask = String(frames[0]?.maskImage);
+    const stops = [
+      ...mask.matchAll(/rgba\(0, 0, 0, ([\d.]+)\) ([\d.]+)%/g),
+    ].map(match => ({alpha: Number(match[1]), position: Number(match[2])}));
+    expect(stops).toHaveLength(33);
+    expect(stops[0]).toEqual({alpha: 1, position: 34});
+    expect(stops.at(-1)).toEqual({alpha: 0, position: 66});
+    const slopes = stops
+      .slice(1)
+      .map((stop, index) => stop.alpha - (stops[index]?.alpha ?? 0));
+    expect(slopes.every(slope => slope <= 0)).toBe(true);
+    expect(Math.abs(slopes[0] ?? 1)).toBeLessThan(0.004);
+    expect(Math.abs(slopes.at(-1) ?? 1)).toBeLessThan(0.004);
+    expect(
+      slopes
+        .slice(1)
+        .every(
+          (slope, index) => Math.abs(slope - (slopes[index] ?? 0)) < 0.006,
+        ),
+    ).toBe(true);
+    const measured = [
+      0, 0, 0.02, 0.04, 0.09, 0.15, 0.23, 0.31, 0.4, 0.51, 0.61, 0.71, 0.79,
+      0.85,
+    ];
+    const error = measured.reduce((sum, value, index) => {
+      const t = Math.max(0, Math.min(1, (index * 120 - 146) / (1920 * 0.96)));
+      const position = t * (stops.length - 1);
+      const lower = Math.floor(position);
+      const upper = Math.min(stops.length - 1, lower + 1);
+      const alpha =
+        (stops[lower]?.alpha ?? 0) * (1 - (position - lower)) +
+        (stops[upper]?.alpha ?? 0) * (position - lower);
+      return sum + (1 - alpha - value) ** 2;
+    }, 0);
+    expect(Math.sqrt(error / measured.length)).toBeLessThan(0.01);
   });
   it.each([
     [1, 10, 0.0871],
@@ -171,7 +194,12 @@ describe('SlideAnimation', () => {
     (dir, {direction, size, from, to}) => {
       const {view, old, next, animate} = setup();
       view.play(old, next, {kind: 'wipe', dir, sec: 0.5});
-      const maskImage = `linear-gradient(to ${direction}, black 0%, black 36.666667%, transparent 63.333333%, transparent 100%)`;
+      const frames = animate.mock.calls[0]?.[0];
+      if (!Array.isArray(frames)) throw new Error('Missing wipe keyframes');
+      const maskImage = frames[0]?.maskImage;
+      expect(maskImage).toMatch(
+        new RegExp(`^linear-gradient\\(to ${direction},`),
+      );
       expect(old.style.opacity).toBe('1');
       expect(animate).toHaveBeenCalledTimes(1);
       expect(animate).toHaveBeenNthCalledWith(
