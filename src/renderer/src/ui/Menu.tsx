@@ -80,6 +80,7 @@ export function Menu({
     ? contextMenuEntries(suppliedEntries)
     : suppliedEntries;
   const catcher = useRef<HTMLDivElement>(null);
+  const closingFromAnchor = useRef(false);
   const outsideRename = useRef(false);
   const renaming = menuItems(entries).some(item => item.rename !== undefined);
   useEffect(() => {
@@ -139,6 +140,25 @@ export function Menu({
             outsideRename.current = true;
             return;
           }
+          if (anchor.kind === 'element') {
+            const bounds = anchor.element.getBoundingClientRect();
+            if (
+              event.clientX >= bounds.left &&
+              event.clientX <= bounds.right &&
+              event.clientY >= bounds.top &&
+              event.clientY <= bounds.bottom
+            ) {
+              closingFromAnchor.current = true;
+              return;
+            }
+          }
+          onClose('outside');
+        }}
+        onClick={event => {
+          if (!closingFromAnchor.current) return;
+          event.preventDefault();
+          event.stopPropagation();
+          closingFromAnchor.current = false;
           onClose('outside');
         }}
         onContextMenu={event => event.preventDefault()}

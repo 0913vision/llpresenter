@@ -62,9 +62,9 @@ they have the same limit. A 테마 sets the elements of each screen itself.
 
 | Element        | Content comes from                                                                                 | Screens        | Per screen |
 | -------------- | -------------------------------------------------------------------------------------------------- | -------------- | ---------- |
-| 현재 가사      | The live 슬라이드's text: lyrics or a Bible verse                                                  | All            | One        |
+| 현재 슬라이드 글      | The live 슬라이드's text: lyrics or a Bible verse                                                  | All            | One        |
 | 성경 출처      | The live Bible 슬라이드's reference, or its item's whole passage range                             | All            | One        |
-| 다음 가사      | The next 슬라이드's text                                                                           | All            | One        |
+| 다음 슬라이드 글      | The next 슬라이드's text                                                                           | All            | One        |
 | 이름표         | The live 슬라이드's 이름표                                                                         | All            | One        |
 | 다음 이름표    | The next 슬라이드's 이름표                                                                         | All            | One        |
 | 미디어         | The live 슬라이드 when it is a photo or a video                                                    | All            | One        |
@@ -85,7 +85,7 @@ they have the same limit. A 테마 sets the elements of each screen itself.
 - 무대 메시지 and 메모 exist only on the 무대 화면 so that the audience never
   sees them. The editor offers them only there, and a paste onto another screen
   is refused.
-- A Bible verse is a 슬라이드, so 현재 가사 shows it. Only 성경 출처 is extra.
+- A Bible verse is a 슬라이드, so 현재 슬라이드 글 shows it. Only 성경 출처 is extra.
 - 메시지 and 그래픽 are not elements. Each keeps its own appearance and the
   screens it is sent to, and they always draw on top of the 테마 in the order
   그래픽, 메시지. A 테마 can't hide them.
@@ -95,7 +95,7 @@ they have the same limit. A 테마 sets the elements of each screen itself.
   테마, so a 메시지 keeps its look when the item and its 테마 change (06; user
   decision, November 2).
 - When an item's content has no element to show it, for example a 곡 item whose
-  테마 has no 현재 가사 on the 청중 화면, the item's settings show a warning
+  테마 has no 현재 슬라이드 글 on the 청중 화면, the item's settings show a warning
   mark with the reason in its tooltip and a 테마 편집 button.
 
 ### Element properties
@@ -118,7 +118,7 @@ one-pixel increment (ten with Shift).
 | 짧은 글 자간        | Text elements                               | Off by default; 최대 글자 수 1 to 10, alternate 자간 -20 to 200 px                |
 | 글머리 기호         | Text elements                               | Checkbox, off by default; one hanging bullet per nonempty paragraph               |
 | 출처 내용           | 성경 출처                                   | 현재 절 (default), 항목 범위                                                      |
-| 가사 없을 때 가운데 | 항목 이름                                   | Checkbox, off by default; use the frame's vertical center when 현재 가사 is empty |
+| 가사 없을 때 가운데 | 항목 이름                                   | Checkbox, off by default; use the frame's vertical center when 현재 슬라이드 글 is empty |
 | 가로 정렬           | Text elements                               | 왼쪽, 가운데, 오른쪽                                                              |
 | 세로 위치           | Text elements                               | 위, 가운데, 아래                                                                  |
 | 성경 분할 줄 수     | Bible split-source text, in 화면 > 성경     | 1 to 12; Bible split budget at the configured size (04)                           |
@@ -127,7 +127,7 @@ one-pixel increment (ten with Shift).
 | 모서리              | 사각형, 이미지, 미디어, 배경                | 0 to 200                                                                          |
 | 맞춤                | 이미지, 미디어, 배경, 오버레이              | 맞추기, 채우기, 늘리기 (the media properties' 맞춤)                               |
 
-Text elements are 현재 가사, 성경 출처, 다음 가사, 이름표, 다음 이름표, 항목
+Text elements are 현재 슬라이드 글, 성경 출처, 다음 슬라이드 글, 이름표, 다음 이름표, 항목
 이름, 슬라이드 이름, 글, 시계, 타이머, 영상 남은 시간, 무대 메시지, and 메모.
 `slideName` has only the common text element properties.
 
@@ -221,7 +221,7 @@ until the operator or an action changes it (S4 pp. 37 to 38).
    top. The top of the list is in front.
 3. Draw 그래픽 and 메시지 above them, each only on the screens it was sent to.
 4. A cleared layer draws nothing in the elements that show it: 지우기 가사
-   empties 현재 가사, 다음 가사, 이름표, and 성경 출처; 지우기 미디어 empties
+   empties 현재 슬라이드 글, 다음 슬라이드 글, 이름표, and 성경 출처; 지우기 미디어 empties
    미디어 and 배경; 지우기 모두 empties every element that shows live content.
    Fixed elements (글, 이미지, 사각형, 시계) stay, so a cleared 청중 화면 can
    still show the church logo.
@@ -314,7 +314,7 @@ A gap never blanks a screen:
 
 - If the item's 테마 no longer exists, the screen uses its kind's default 테마.
 - If that is gone too, or `themes.json` can't be read or hasn't been read yet,
-  the screen uses the built-in 테마 of the kind: 현재 가사 full screen in the
+  the screen uses the built-in 테마 of the kind: 현재 슬라이드 글 full screen in the
   기본 text style over 배경, and 성경 출처 for Bible items.
 - A missing font draws in Pretendard; a missing image or media file draws
   nothing in its element and reports the problem once (08).
@@ -428,7 +428,7 @@ requests deletion of the selected theme.
   and nothing on the 방송 화면. The same screens show at launch when outputs
   turn on and nothing is live.
 - The 대기 화면 is edited in the same editor and can't be deleted. Elements that
-  show live content (현재 가사, 미디어, 오버레이, and the like) aren't offered
+  show live content (현재 슬라이드 글, 미디어, 오버레이, and the like) aren't offered
   on it.
 
 ## Data
@@ -575,7 +575,7 @@ as every settings file does (02).
   this theme by default.
 - 사도신경, 주기도문 is an additional built-in theme. Its 청중 화면 shares the
   말씀 background asset without a title or scripture reference. Both 사도신경
-  and 주기도문 omit their names. 현재 가사 uses NanumSquare Bold 104 px, -3 px
+  and 주기도문 omit their names. 현재 슬라이드 글 uses NanumSquare Bold 104 px, -3 px
   tracking, 137 px line spacing, left/top alignment, and at most four lines in
   the verse box at x 129, y 95, width 1676 px. 방송 화면 and 무대 화면 retain
   the 말씀 layouts. Adding a prayer installs this theme if an older catalog
@@ -599,7 +599,7 @@ as every settings file does (02).
   남보라 preset above with the output's OKLCH mixing and dither; the slash group
   includes an opaque triangle filled from the background picture at the same
   coordinates. Above the background are 배경 for an item override, 슬라이드
-  번호, the slash picture, 슬라이드 이름, 현재 가사, and full-screen 미디어 with
+  번호, the slash picture, 슬라이드 이름, 현재 슬라이드 글, and full-screen 미디어 with
   채우기 so picture slides cover the whole frame. All text is white
   KoPubWorldDotum without shadow or outline. The number is Bold 160 px with -6
   px tracking; the title is Bold 108 px with -3 px tracking; the body is Medium
@@ -656,7 +656,7 @@ as every settings file does (02).
   current verse.
 - The 광고 stage layout shows a left-aligned title above its body. The default
   advertisement item advances manually with looping off (05).
-- Item settings warn when a screen's resolved theme lacks 현재 가사 for text,
+- Item settings warn when a screen's resolved theme lacks 현재 슬라이드 글 for text,
   슬라이드 이름 for an 광고 name, or 미디어 for a picture. Linked screens use
   the source screen's elements when checking.
 - The other built-in defaults are 찬양 for 곡, 말씀 for 성경, and 영상 for
@@ -716,9 +716,9 @@ Their existing elements still show the correct picture name.
 ### Song title layout
 
 New 찬양 audience layouts carry optional `songTitle: "sunday"`. For a song title
-slide, the shared output and thumbnail composition replaces 현재 가사 with the
+slide, the shared output and thumbnail composition replaces 현재 슬라이드 글 with the
 editable title and subtitle lines over the same song background. Both lines
-inherit the replaced 현재 가사 element's text color. The title uses NanumSquare
+inherit the replaced 현재 슬라이드 글 element's text color. The title uses NanumSquare
 ExtraBold at 120 px, centered without shadow or outline, in frame (339, 181,
 1242, 160). The optional subtitle uses NanumSquare Regular at 64 px with default
 24 px tracking in frame (252, 345, 1416, 90). Lyric slides and the other screen

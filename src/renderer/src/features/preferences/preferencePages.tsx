@@ -273,14 +273,7 @@ const FIT_OPTIONS = [
 /** 미디어: 새 미디어, 소리. */
 export function MediaPage({edits}: PageProps): JSX.Element | null {
   const {preferences, lockedReason, change} = edits;
-  const [devicesRequested, setDevicesRequested] = useState(false);
-  const devices = useAudioOutputs(
-    undefined,
-    devicesRequested ||
-      (preferences !== null &&
-        (preferences.media.audioOutput.id !== '' ||
-          preferences.media.previewOutput.id !== '')),
-  );
+  const {devices, refresh: refreshDevices} = useAudioOutputs();
   if (preferences === null) return null;
   const disabled = lockedReason !== undefined;
   const {defaults} = preferences.media;
@@ -333,7 +326,7 @@ export function MediaPage({edits}: PageProps): JSX.Element | null {
           disabled={disabled}
           title={lockedReason}
           choice={preferences.media.audioOutput}
-          onOpen={() => setDevicesRequested(true)}
+          onOpen={refreshDevices}
           devices={devices}
           onChange={audioOutput =>
             change(stored => ({
@@ -347,7 +340,7 @@ export function MediaPage({edits}: PageProps): JSX.Element | null {
           disabled={disabled}
           title={lockedReason}
           choice={preferences.media.previewOutput}
-          onOpen={() => setDevicesRequested(true)}
+          onOpen={refreshDevices}
           devices={devices}
           onChange={previewOutput =>
             change(stored => ({

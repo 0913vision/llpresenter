@@ -894,11 +894,11 @@ describe('PreferencesView', () => {
       expect(
         screen.getByRole('button', {name: /미리 듣기 장치/}).textContent,
       ).toContain('Windows 기본 장치');
-      expect(discovery.enumerate).not.toHaveBeenCalled();
-      expect(discovery.watch).not.toHaveBeenCalled();
+      await waitFor(() => expect(discovery.enumerate).toHaveBeenCalled());
+      expect(discovery.watch).toHaveBeenCalled();
       await userEvent.click(output);
       await screen.findByRole('menuitemradio', {name: 'Mixer (USB)'});
-      expect(discovery.enumerate).toHaveBeenCalledOnce();
+      expect(discovery.enumerate.mock.calls.length).toBeGreaterThanOrEqual(2);
       expect(
         screen.getAllByRole('menuitemradio').map(row => row.textContent),
       ).toContain('Mixer (USB)');
@@ -914,6 +914,19 @@ describe('PreferencesView', () => {
       );
       expect(written().media).toMatchObject({audioOutput: MIXER});
       expect(written()).toMatchObject(UNKNOWN_FIELDS);
+    });
+
+    it('keeps the previous devices visible while an open refresh is pending', async () => {
+      const discovery = connect(MIXER);
+      await mount();
+      await openPage('미디어');
+      await waitFor(() => expect(discovery.enumerate).toHaveBeenCalled());
+      await Promise.resolve();
+      discovery.enumerate.mockImplementationOnce(() => new Promise(() => {}));
+      await userEvent.click(screen.getByRole('button', {name: /출력 장치/}));
+      expect(
+        screen.getByRole('menuitemradio', {name: 'Mixer (USB)'}),
+      ).toBeDefined();
     });
 
     it('saves the Windows default with an empty id and an empty label, no wording', async () => {

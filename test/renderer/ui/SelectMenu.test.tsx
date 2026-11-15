@@ -1,4 +1,4 @@
-import {render, screen} from '@testing-library/react';
+import {fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {beforeAll, describe, expect, it, vi} from 'vitest';
@@ -40,6 +40,28 @@ function trigger(): HTMLElement {
 }
 
 describe('SelectMenu', () => {
+  it('closes when the open trigger is clicked through the menu catcher', async () => {
+    render(<Autosave />);
+    vi.spyOn(trigger(), 'getBoundingClientRect').mockReturnValue({
+      x: 10,
+      y: 10,
+      left: 10,
+      top: 10,
+      right: 110,
+      bottom: 40,
+      width: 100,
+      height: 30,
+      toJSON: () => ({}),
+    });
+    await userEvent.click(trigger());
+    const menu = screen.getByRole('menu');
+    const catcher = menu.previousElementSibling;
+    if (catcher === null) throw Error('Missing menu catcher');
+    fireEvent.pointerDown(catcher, {clientX: 50, clientY: 20});
+    fireEvent.click(catcher, {clientX: 50, clientY: 20});
+    expect(screen.queryByRole('menu')).toBeNull();
+    expect(trigger().getAttribute('aria-expanded')).toBe('false');
+  });
   it('opens a list with a check mark before the current choice', async () => {
     render(<Autosave />);
     await userEvent.click(trigger());

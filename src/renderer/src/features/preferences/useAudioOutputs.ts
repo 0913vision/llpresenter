@@ -1,37 +1,37 @@
-import {useContext, useEffect, useState} from 'react';
-import {LoadReadinessContext} from '@renderer/ui/loadReadiness';
+import {useCallback, useEffect, useRef, useState} from 'react';
 import type {AudioDevice} from '@core/media/audioOutput';
 import {deviceApi, listAudioOutputs} from '@renderer/rendering/audioSink';
 
-/** The connected audio output devices, read again whenever the devices change. */
+let lastKnownOutputs: readonly AudioDevice[] = [];
+
+/** Keep the last successful list visible while refreshing connected devices. */
 export function useAudioOutputs(
   list: () => Promise<readonly AudioDevice[]> = listAudioOutputs,
-  enabled = true,
-): readonly AudioDevice[] {
-  const readiness = useContext(LoadReadinessContext);
-  const [devices, setDevices] = useState<readonly AudioDevice[]>([]);
+): {devices: readonly AudioDevice[]; refresh: () => void} {
+  const sequence = useRef(0);
+  const [devices, setDevices] = useState<readonly AudioDevice[]>(() =>
+    list === listAudioOutputs ? lastKnownOutputs : [],
+  );
+  const refresh = useCallback((): void => {
+    const request = ++sequence.current;
+    void list()
+      .then(found => {
+        if (sequence.current !== request) return;
+        if (list === listAudioOutputs) lastKnownOutputs = found;
+        setDevices(found);
+      })
+      .catch((error: unknown) => {
+        console.warn('Could not list the audio output devices', error);
+      });
+  }, [list]);
   useEffect(() => {
-    if (!enabled) return undefined;
-    let current = true;
-    const ready = readiness?.begin();
-    const refresh = (): void => {
-      list()
-        .then(found => {
-          if (current) setDevices(found);
-          ready?.();
-        })
-        .catch((error: unknown) => {
-          console.warn('Could not list the audio output devices', error);
-          ready?.();
-        });
-    };
+    const requests = sequence;
     refresh();
     deviceApi()?.addEventListener('devicechange', refresh);
     return () => {
-      current = false;
-      ready?.();
+      requests.current++;
       deviceApi()?.removeEventListener('devicechange', refresh);
     };
-  }, [list, readiness, enabled]);
-  return devices;
+  }, [refresh]);
+  return {devices, refresh};
 }

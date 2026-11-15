@@ -344,7 +344,9 @@ it('says the use of a 테마 cannot be checked instead of showing no use', async
 
 it('shows clean geometry after selection and preserves explicitly typed precision', async () => {
   const {value} = setup();
-  fireEvent.click(await screen.findByRole('button', {name: '현재 가사'}));
+  fireEvent.click(
+    await screen.findByRole('button', {name: '현재 슬라이드 글'}),
+  );
   for (const [name, shown] of [
     ['X', '14'],
     ['Y', '141'],
@@ -371,7 +373,9 @@ it('shows clean geometry after selection and preserves explicitly typed precisio
 
 it('can enable and remove short-text tracking without changing the ordinary spacing', async () => {
   const {value} = setup();
-  fireEvent.click(await screen.findByRole('button', {name: '현재 가사'}));
+  fireEvent.click(
+    await screen.findByRole('button', {name: '현재 슬라이드 글'}),
+  );
   fireEvent.click(screen.getByRole('checkbox', {name: '짧은 글 자간'}));
   await saveEdits();
   const current = () =>
@@ -396,7 +400,7 @@ it('can enable and remove short-text tracking without changing the ordinary spac
 
 it('adds and deletes elements with keyboard actions and saves checkbox/text properties', async () => {
   const {value} = setup();
-  await screen.findByRole('button', {name: '현재 가사'});
+  await screen.findByRole('button', {name: '현재 슬라이드 글'});
   const clock = screen.getByRole('button', {name: '시계'});
   fireEvent.click(clock);
   await saveEdits();
@@ -420,7 +424,7 @@ it('adds and deletes elements with keyboard actions and saves checkbox/text prop
       ),
     ).toBe(false),
   );
-  fireEvent.click(screen.getByRole('button', {name: '현재 가사'}));
+  fireEvent.click(screen.getByRole('button', {name: '현재 슬라이드 글'}));
   const outline = await screen.findByRole('checkbox', {name: '외곽선'});
   const before = outline.getAttribute('aria-checked') === 'true';
   fireEvent.click(outline);
@@ -456,13 +460,15 @@ it('adds and deletes elements with keyboard actions and saves checkbox/text prop
 it('edits the Bible split count from screen properties and keeps text properties free of split budgets', async () => {
   const {value} = setup();
   const themes = await screen.findByRole('listbox', {name: '테마'});
-  fireEvent.click(screen.getByRole('button', {name: '현재 가사'}));
+  fireEvent.click(screen.getByRole('button', {name: '현재 슬라이드 글'}));
   expect(
     screen.queryByRole('spinbutton', {name: '성경 분할 줄 수'}),
   ).toBeNull();
   const songBefore = value().themes[0];
   fireEvent.click(within(themes).getByRole('option', {name: '말씀'}));
-  fireEvent.click(await screen.findByRole('button', {name: '현재 가사'}));
+  fireEvent.click(
+    await screen.findByRole('button', {name: '현재 슬라이드 글'}),
+  );
   expect(
     screen.queryByRole('spinbutton', {name: '성경 분할 줄 수'}),
   ).toBeNull();
@@ -484,11 +490,13 @@ it('edits the Bible split count from screen properties and keeps text properties
   expect(
     screen.queryByRole('spinbutton', {name: '성경 분할 줄 수'}),
   ).toBeNull();
-  fireEvent.click(await screen.findByRole('button', {name: '현재 가사'}));
+  fireEvent.click(
+    await screen.findByRole('button', {name: '현재 슬라이드 글'}),
+  );
   expect(
     screen.queryByRole('spinbutton', {name: '성경 분할 줄 수'}),
   ).toBeNull();
-  fireEvent.click(screen.getByRole('button', {name: '다음 가사'}));
+  fireEvent.click(screen.getByRole('button', {name: '다음 슬라이드 글'}));
   expect(
     screen.queryByRole('spinbutton', {name: '성경 분할 줄 수'}),
   ).toBeNull();
@@ -560,7 +568,7 @@ it('saves a nondefault theme split budget shared by Bible and blank verse items 
   await screen.findByRole('listbox', {name: '테마'});
   expect(value().defaults.bible).not.toBe(theme.id);
   expect(value().defaults.blank).not.toBe(theme.id);
-  fireEvent.click(screen.getByRole('button', {name: '현재 가사'}));
+  fireEvent.click(screen.getByRole('button', {name: '현재 슬라이드 글'}));
   expect(
     screen.queryByRole('spinbutton', {name: '성경 분할 줄 수'}),
   ).toBeNull();
@@ -767,7 +775,7 @@ it('renders the edited background through a screen link and restores retained el
   const {value} = setup();
   await screen.findByLabelText('테마 캔버스');
   const canvas = () => screen.getByLabelText('테마 캔버스');
-  await screen.findByRole('button', {name: '현재 가사'});
+  await screen.findByRole('button', {name: '현재 슬라이드 글'});
   fireEvent.click(screen.getByRole('tab', {name: '화면'}));
   fireEvent.click(screen.getByRole('radio', {name: '단색'}));
   const background = screen.getByRole('textbox', {name: '색'});
@@ -821,7 +829,7 @@ it.each(['single', 'all'] as const)(
   'keeps the remaining %s selection when the row trash removes another element',
   async selection => {
     const {value} = setup();
-    await screen.findByRole('button', {name: '현재 가사'});
+    await screen.findByRole('button', {name: '현재 슬라이드 글'});
     const tile = screen.getByRole('button', {name: '시계'});
     tile.focus();
     await userEvent.keyboard('{Enter}');
@@ -835,7 +843,7 @@ it.each(['single', 'all'] as const)(
     );
     const clock = screen.getByRole('button', {name: '시계'});
     await waitFor(() => expect(document.activeElement).toBe(clock));
-    const current = screen.getByRole('button', {name: '현재 가사'});
+    const current = screen.getByRole('button', {name: '현재 슬라이드 글'});
     fireEvent.click(current);
     if (selection === 'all') {
       fireEvent.keyDown(current, {key: 'a', code: 'KeyA', ctrlKey: true});
@@ -865,7 +873,7 @@ it.each(['single', 'all'] as const)(
 
 it('shares the aspect-ratio toggle with numeric frame properties and commits multiline fixed text', async () => {
   const {value} = setup();
-  await screen.findByRole('button', {name: '현재 가사'});
+  await screen.findByRole('button', {name: '현재 슬라이드 글'});
   fireEvent.click(
     within(screen.getByRole('region', {name: '요소 추가'})).getByRole(
       'button',
@@ -893,7 +901,7 @@ it('shares the aspect-ratio toggle with numeric frame properties and commits mul
 it('selects every element and pastes the clipboard into another screen with retained position and appearance', async () => {
   const {value} = setup();
   const canvas = await screen.findByLabelText('테마 캔버스');
-  await screen.findByRole('button', {name: '현재 가사'});
+  await screen.findByRole('button', {name: '현재 슬라이드 글'});
   fireEvent.keyDown(canvas, {key: 'a', code: 'KeyA', ctrlKey: true});
   const elements = screen.getByRole('listbox', {name: '요소'});
   expect(
@@ -980,7 +988,9 @@ function servicesWithSongItems(count: number): Partial<LlpApi['services']> {
 }
 
 async function editCurrentTextX(x = EDITED_X) {
-  fireEvent.click(await screen.findByRole('button', {name: '현재 가사'}));
+  fireEvent.click(
+    await screen.findByRole('button', {name: '현재 슬라이드 글'}),
+  );
   const field = screen.getByRole('spinbutton', {name: 'X'});
   fireEvent.change(field, {target: {value: String(x)}});
   fireEvent.keyDown(field, {key: 'Enter'});
@@ -1018,7 +1028,7 @@ it('keeps edits in the working copy until 저장 asks before overwriting', async
 
 it('undoes and redoes a change of 방식 with Ctrl+Z and Ctrl+Y, and picking the old one back leaves no edit', async () => {
   const {edit} = setup();
-  await screen.findByRole('button', {name: '현재 가사'});
+  await screen.findByRole('button', {name: '현재 슬라이드 글'});
   const saveButton = await screen.findByRole('button', {name: '저장'});
   fireEvent.click(screen.getByRole('tab', {name: '화면'}));
   fireEvent.click(screen.getByRole('button', {name: '무대 화면 편집'}));
@@ -1168,7 +1178,7 @@ it('saves a copy from a theme with no edits', async () => {
 it('lets the shell leave at once with no edits and asks first with unsaved edits', async () => {
   const {edit, guard} = setup();
   const proceed = vi.fn();
-  await screen.findByRole('button', {name: '현재 가사'});
+  await screen.findByRole('button', {name: '현재 슬라이드 글'});
   act(() => guard.leave(proceed));
   expect(proceed).toHaveBeenCalledTimes(1);
   await editCurrentTextX();
@@ -1224,7 +1234,7 @@ it('shows, selects and edits the clock and timer of an older 대기 화면 witho
 
 it('reports a stale group deletion through the theme notice channel', async () => {
   const {report} = setup();
-  await screen.findByRole('button', {name: '현재 가사'});
+  await screen.findByRole('button', {name: '현재 슬라이드 글'});
   const target = screen.getByRole('button', {name: '무대 화면 편집'});
   const list = screen.getByRole('listbox', {name: '요소'});
   const [first, second] = within(list).getAllByRole('option');
@@ -1246,7 +1256,7 @@ it('reports a stale group deletion through the theme notice channel', async () =
 
 it('keeps a selected element set for context commands and confirms one deletion with one undo', async () => {
   setup();
-  await screen.findByRole('button', {name: '현재 가사'});
+  await screen.findByRole('button', {name: '현재 슬라이드 글'});
   const list = screen.getByRole('listbox', {name: '요소'});
   const [first, second] = within(list).getAllByRole('option');
   if (!first || !second) throw new Error('Missing elements');
@@ -1269,7 +1279,7 @@ it('keeps a selected element set for context commands and confirms one deletion 
 
 it('reorders a disjoint element selection from its menu and drag image without reversing it', async () => {
   setup();
-  await screen.findByRole('button', {name: '현재 가사'});
+  await screen.findByRole('button', {name: '현재 슬라이드 글'});
   const list = screen.getByRole('listbox', {name: '요소'});
   const [first, second, last] = within(list).getAllByRole('option');
   if (!first || !second || !last) throw new Error('Missing elements');

@@ -205,7 +205,8 @@
 .groupField {
   flex: 1 1 auto;
   min-width: 0;
-  height: var(--size-control-sm);
+  height: var(--size-row);
+  max-height: 100%;
   padding: 0 var(--space-6);
   border: 0;
   border-radius: var(--radius-sm);
