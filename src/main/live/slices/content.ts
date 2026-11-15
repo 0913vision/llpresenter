@@ -62,10 +62,30 @@ export const contentSlice = defineSlice({
           },
         };
       case 'slide.show': {
+        const previous = history.state.layers.slide;
+        const incoming = command.slide;
+        const changed =
+          previous?.itemId !== incoming.itemId ||
+          previous.position !== incoming.position;
+        const effect =
+          incoming.reverseTransition !== undefined
+            ? incoming.reverseTransition
+            : incoming.transition;
+        const {transitionStartedAt: _start, ...slide} = incoming;
+        const startedAt =
+          changed && effect != null && effect.kind !== 'none'
+            ? context.now
+            : !changed
+              ? previous.transitionStartedAt
+              : undefined;
         const shown = setLayer(
-          clearPreviousPicture(history, command.slide),
+          clearPreviousPicture(history, incoming),
           'slide',
-          command.slide,
+          startedAt === undefined
+            ? incoming.transitionStartedAt === undefined
+              ? incoming
+              : slide
+            : {...slide, transitionStartedAt: startedAt},
         );
         const media = shown.state.layers.media;
         const library = context.audioMedia?.();

@@ -9,6 +9,7 @@ import {useScreenSummaries} from '@renderer/platform/ScreenSummaries';
 import type {PreviewScreen} from '@renderer/ui/PreviewFrame';
 import {PreviewPanel as SharedPreviewPanel} from '@renderer/ui/PreviewPanel';
 import {ScreenPreview} from './ScreenPreview';
+import {useSlideTransitionProgress} from './useSlideTransitionProgress';
 import {MISSING_STILL_BACKGROUND_TIP} from '@renderer/platform/problemReasons';
 import {LiveMediaProgress} from './LiveMediaProgress';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
@@ -61,6 +62,7 @@ function PreviewPanelFrame({
   readonly stillScreens?: ReadonlySet<string>;
 }): JSX.Element {
   const largeScreenId = usePreview(view => view.largeScreenId);
+  const transitionProgress = useSlideTransitionProgress();
   const outputs = useOutputs();
   const summaries = useScreenSummaries();
   useWindowShortcuts(
@@ -82,6 +84,10 @@ function PreviewPanelFrame({
       },
       status: {kind: outputs[screen.id] === true ? 'on' : 'off'},
       chroma: screen.chroma,
+      transitionProgress:
+        (screen.kind ?? 'audience') === 'audience'
+          ? transitionProgress
+          : undefined,
       indicator: stillScreens.has(screen.id)
         ? {icon: 'pause', text: MISSING_STILL_BACKGROUND_TIP}
         : undefined,

@@ -337,6 +337,11 @@ Source: `ShowH` (슬라이드 grid, 9 tiles in item slide order, background sele
 `Problems` (missing background file and 다시 연결), `SlideThumbnail` README,
 `Slider` README, `Main` decision "구성대로 진행".
 
+During an audience slide transition, the audience preview caption reads 전환 중
+and a thin accent progress bar fills beneath it; the live slide thumbnail has
+the same bar. Both clear at the end, restart for a new slide, and stay hidden
+for cuts. Wipes use their actual 0.83-times playback duration.
+
 ## Preview panel
 
 진행 and 준비 use one preview panel: a plain 미리보기 title, the same screen
