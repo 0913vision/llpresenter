@@ -1,4 +1,5 @@
 import type {TimerNow} from '@core/timers/timerClock';
+import type {WallClockSample} from '@core/schema/wallClock';
 
 /**
  * Main's monotonic 타이머 clock as one window reads it: this window's own
@@ -9,15 +10,28 @@ import type {TimerNow} from '@core/timers/timerClock';
  */
 export class MainTimerClock {
   private offset = performance.timeOrigin;
+  private wallOffset: number | undefined;
+  private timeZone: string | undefined;
+  private stopWall: (() => void) | undefined;
+  private generation = 0;
+  private disposed = false;
 
   constructor(
     read: () => Promise<number>,
-    onError: (message: string, error: unknown) => void,
+    private readonly onError: (message: string, error: unknown) => void,
+    private readonly wall?: {
+      read: () => Promise<WallClockSample>;
+      subscribe: (listener: (value: WallClockSample) => void) => () => void;
+      onChange: () => void;
+    },
   ) {
+    this.resume();
     const before = performance.now();
     read().then(
       main => {
+        if (this.disposed) return;
         this.offset = main - (before + performance.now()) / 2;
+        this.wall?.onChange();
       },
       (error: unknown) => onError('could not read the 타이머 clock', error),
     );
@@ -25,6 +39,44 @@ export class MainTimerClock {
 
   readonly now = (): TimerNow => ({
     timer: performance.now() + this.offset,
-    wall: Date.now(),
+    wall:
+      this.wallOffset === undefined
+        ? Date.now()
+        : performance.now() + this.offset + this.wallOffset,
+    ...(this.timeZone === undefined ? {} : {timeZone: this.timeZone}),
   });
+  resume(): void {
+    const wall = this.wall;
+    if (wall === undefined || this.disposed || this.stopWall !== undefined) {
+      return;
+    }
+    const generation = ++this.generation;
+    let pushed = false;
+    const accept = (value: WallClockSample): void => {
+      if (this.disposed || generation !== this.generation) return;
+      this.wallOffset = value.wall - value.monotonic;
+      this.timeZone = value.timeZone;
+      wall.onChange();
+    };
+    this.stopWall = wall.subscribe(value => {
+      pushed = true;
+      accept(value);
+    });
+    wall.read().then(
+      value => {
+        if (!pushed) accept(value);
+      },
+      (error: unknown) => this.onError('could not read the wall clock', error),
+    );
+  }
+  suspend(): void {
+    this.generation++;
+    this.stopWall?.();
+    this.stopWall = undefined;
+  }
+
+  dispose(): void {
+    this.disposed = true;
+    this.suspend();
+  }
 }

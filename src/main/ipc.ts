@@ -19,6 +19,7 @@ import {
 } from './rendererMessages';
 import {allowsWindowAction, type WindowMode} from './windows/testWindows';
 import {startMediaProgress} from './live/mediaProgress';
+import {wallClockSample, startWallClockWatcher} from './live/wallClock';
 
 function isWindowAction(value: unknown): value is WindowAction {
   return windowActions.some(action => action === value);
@@ -158,6 +159,10 @@ export function registerIpc(
 ): () => void {
   ipcMain.handle(liveEndpoints.get.channel, () => store.state);
   ipcMain.handle(liveEndpoints.clock.channel, () => store.timerNow());
+  ipcMain.handle(liveEndpoints.wallClock.channel, () => wallClockSample());
+  const stopWallClock = startWallClockWatcher(value =>
+    sendToWindows(liveEndpoints.wallClockChanged.channel, value, log),
+  );
   ipcMain.handle(liveEndpoints.mediaProgress.channel, () =>
     store.mediaProgress(),
   );
@@ -241,9 +246,11 @@ export function registerIpc(
   return () => {
     unsubscribe();
     stopProgress();
+    stopWallClock();
     stopLogWrites();
     ipcMain.removeHandler(liveEndpoints.get.channel);
     ipcMain.removeHandler(liveEndpoints.clock.channel);
+    ipcMain.removeHandler(liveEndpoints.wallClock.channel);
     ipcMain.removeHandler(liveEndpoints.mediaProgress.channel);
     ipcMain.removeAllListeners(liveEndpoints.command.channel);
     ipcMain.removeHandler(windowEndpoints.appInfo.channel);

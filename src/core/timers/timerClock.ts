@@ -42,6 +42,7 @@ export function countdownRemainingMs(
 export interface TimerNow {
   readonly timer: number;
   readonly wall: number;
+  readonly timeZone?: string | undefined;
 }
 
 /**
@@ -56,7 +57,11 @@ export function countedMs(run: TimerRun | undefined, timerNow: number): number {
 }
 
 /** The local midnight, on the wall clock, of the day of `wall`. */
-export function localDay(wall: number): number {
+export function localDay(wall: number, timeZone?: string): number {
+  if (timeZone !== undefined) {
+    const {year, month, day} = zonedParts(wall, timeZone);
+    return zonedTime(Date.UTC(year, month - 1, day), timeZone);
+  }
   const date = new Date(wall);
   date.setHours(0, 0, 0, 0);
   return date.getTime();
@@ -98,7 +103,7 @@ export function timerText(
         Math.floor(timer.start + countedMs(run, now.timer) / MS_PER_SECOND),
       );
     case 'clock':
-      return clockText(now.wall);
+      return clockText(now.wall, now.timeZone);
     default: {
       const unknown: never = timer;
       return unknown;
@@ -116,6 +121,15 @@ export function timerTargetTime(
   now: TimerNow,
 ): number {
   const [hours = 0, minutes = 0] = timer.time.split(':').map(Number);
+  if (now.timeZone !== undefined) {
+    const parts = zonedParts(run?.day ?? now.wall, now.timeZone);
+    const [year = parts.year, month = parts.month, day = parts.day] =
+      timer.date === undefined ? [] : timer.date.split('-').map(Number);
+    return zonedTime(
+      Date.UTC(year, month - 1, day, hours, minutes),
+      now.timeZone,
+    );
+  }
   const date = new Date(run?.day ?? localDay(now.wall));
   if (timer.date !== undefined) {
     const [year = 0, month = 1, day = 1] = timer.date.split('-').map(Number);
@@ -123,6 +137,58 @@ export function timerTargetTime(
   }
   date.setHours(hours, minutes, 0, 0);
   return date.getTime();
+}
+
+function zonedParts(
+  wall: number,
+  timeZone: string,
+): {
+  year: number;
+  month: number;
+  day: number;
+  hour: number;
+  minute: number;
+  second: number;
+} {
+  const parts = new Intl.DateTimeFormat('en-GB', {
+    timeZone,
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  }).formatToParts(wall);
+  const part = (name: string): number =>
+    Number(parts.find(value => value.type === name)?.value);
+  return {
+    year: part('year'),
+    month: part('month'),
+    day: part('day'),
+    hour: part('hour'),
+    minute: part('minute'),
+    second: part('second'),
+  };
+}
+
+function zonedTime(target: number, timeZone: string): number {
+  let result = target;
+  for (let i = 0; i < 3; i++) {
+    const part = zonedParts(result, timeZone);
+    const observed = Date.UTC(
+      part.year,
+      part.month - 1,
+      part.day,
+      part.hour,
+      part.minute,
+      part.second,
+    );
+    const adjustment = target - observed;
+    if (adjustment === 0) break;
+    result += adjustment;
+  }
+  return result;
 }
 
 function twoDigits(value: number): string {
@@ -140,9 +206,18 @@ function durationText(signedSeconds: number): string {
     : `${sign}${hours}:${twoDigits(minutes)}:${rest}`;
 }
 
-function clockText(wall: number): string {
-  const date = new Date(wall);
-  return [date.getHours(), date.getMinutes(), date.getSeconds()]
-    .map(twoDigits)
-    .join(':');
+function clockText(wall: number, timeZone?: string): string {
+  if (timeZone === undefined) {
+    const date = new Date(wall);
+    return [date.getHours(), date.getMinutes(), date.getSeconds()]
+      .map(twoDigits)
+      .join(':');
+  }
+  return new Intl.DateTimeFormat('en-GB', {
+    timeZone,
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hourCycle: 'h23',
+  }).format(wall);
 }

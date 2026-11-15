@@ -164,6 +164,7 @@ export function startOutput({
     fonts: api.fonts,
     settings: api.settings,
     clock: () => api.live.clock(),
+    wallClock: api.live,
     screenId,
     onChange: draw,
     onError: report,

@@ -32,6 +32,7 @@ export function useThemeResources(
   const timerRuns = useLive(view => view.state?.timers);
 
   const timerClock = useRef<MainTimerClock | null>(null);
+  const [, setClockRevision] = useState(0);
 
   const reportRef = useRef(onProblem);
 
@@ -43,8 +44,14 @@ export function useThemeResources(
       () => api.live.clock(),
       (message, error) =>
         api.log.write({level: 'error', message, detail: String(error)}),
+      {
+        read: api.live.wallClock,
+        subscribe: api.live.subscribeWallClock,
+        onChange: () => setClockRevision(value => value + 1),
+      },
     );
     return () => {
+      timerClock.current?.dispose();
       timerClock.current = null;
     };
   }, [active, api]);
