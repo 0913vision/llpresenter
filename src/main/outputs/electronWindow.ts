@@ -2,6 +2,7 @@ import {BrowserWindow, screen as displays} from 'electron';
 import {centeredRect, sameRect, type Rect, type Size} from '../displays/rect';
 import {appIconPath} from '../windows/appIcon';
 import type {Logger} from '../log';
+import {logWindowResponsiveness} from '../windows/responsiveness';
 import {
   blockNavigation,
   loadPage,
@@ -294,6 +295,7 @@ export function createElectronOutputWindow(
 ): OutputWindowHandle {
   const {log, mode} = options;
   const win = createBrowserWindow(screen, mode);
+  logWindowResponsiveness(win, `output ${screen.id}`, log);
   let nativeFrame = {outer: win.getBounds(), content: win.getContentBounds()};
   const fitCapture = (bounds: Rect): Rect => {
     if (!win.isFullScreen()) {

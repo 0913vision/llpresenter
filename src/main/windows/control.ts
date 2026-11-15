@@ -5,6 +5,7 @@ import type {UiZoomRegistration} from '../store/uiZoom';
 import {audioMutedByDefault} from './audioPolicy';
 import {appIconPath} from './appIcon';
 import {reloadAfterCrash} from './crashReload';
+import {logWindowResponsiveness} from './responsiveness';
 import {blockNavigation, loadPage, preloadPath, type PageRequest} from './page';
 import {
   discardTestFrames,
@@ -57,6 +58,7 @@ export function createControlWindow(
     mode === 'offscreen' || audioMutedByDefault(process.env, app.isPackaged),
   );
   win.removeMenu();
+  logWindowResponsiveness(win, 'control', log);
   const sendFullScreen = (on: boolean): void => {
     if (win.isDestroyed() || win.webContents.isDestroyed()) return;
     win.webContents.send(windowEndpoints.fullScreenChanged.channel, on);

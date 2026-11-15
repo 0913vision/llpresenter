@@ -1,4 +1,4 @@
-import {app, ipcMain, type BrowserWindow, type IpcMainEvent} from 'electron';
+import {app, ipcMain, BrowserWindow, type IpcMainEvent} from 'electron';
 import {serviceEndpoints} from '@contracts/ipc/service';
 import {LaunchIdle} from './store/launchIdle';
 import {registerUpdates, updatesAllowed} from './update/register';
@@ -59,6 +59,8 @@ import {
   type UserDataProblem,
 } from './userData';
 import {createControlWindow} from './windows/control';
+import {ControlHeartbeat} from './windows/controlHeartbeat';
+import {GraphicsRecovery} from './windows/graphicsRecovery';
 import {announceReloadAfterCrash} from './windows/reloadNotice';
 import {registerSettingsWindow} from './windows/settingsWindow';
 import {registerSongEditorWindow} from './windows/songEditor';
@@ -126,12 +128,20 @@ function bringBack(win: BrowserWindow | null, mode: WindowMode): void {
 
 function start(): void {
   let control: BrowserWindow | null = null;
+  let lastGpuState: {reason: string; exitCode: number} | null = null;
+  let graphicsRecovery: GraphicsRecovery | undefined;
   const windowMode = windowModeFrom(process.env, app.isPackaged);
 
   app.on('second-instance', () => bringBack(control, windowMode));
-  app.on('child-process-gone', (_event, details) =>
-    log.error('child process gone', details),
-  );
+  app.on('child-process-gone', (_event, details) => {
+    if (details.type === 'GPU') {
+      lastGpuState = {reason: details.reason, exitCode: details.exitCode};
+      if (details.reason !== 'clean-exit') {
+        graphicsRecovery?.request('gpu-loss');
+      }
+    }
+    log.error('child process gone', details);
+  });
   app.on('window-all-closed', () => app.quit());
   const shutdown = new ShutdownCoordinator({app, log});
 
@@ -270,10 +280,70 @@ function start(): void {
       });
       const win = createControlWindow(log, windowMode, zoom);
       control = win;
+      let activeControl = win;
+      const controlRef = {
+        get webContents() {
+          return activeControl.webContents;
+        },
+      };
+      const watchControl = (watched: BrowserWindow): void => {
+        let scriptAnswered = false;
+        const heartbeat = new ControlHeartbeat(
+          () => {
+            scriptAnswered = false;
+            const answer = watched.webContents
+              .executeJavaScript('0')
+              .then(() => {
+                scriptAnswered = true;
+              });
+            if (
+              windowMode !== 'offscreen' &&
+              (!watched.isVisible() || watched.isMinimized())
+            ) {
+              return answer;
+            }
+            return Promise.all([
+              answer,
+              watched.webContents.capturePage({
+                x: 0,
+                y: 0,
+                width: 1,
+                height: 1,
+              }),
+            ]);
+          },
+          () => {
+            log.error('control window not responding', {lastGpuState});
+            if (scriptAnswered) {
+              const gpu = app
+                .getAppMetrics()
+                .find(process => process.type === 'GPU');
+              if (gpu !== undefined) {
+                try {
+                  process.kill(gpu.pid);
+                  return;
+                } catch (error) {
+                  log.warn('could not restart the stalled GPU process', error);
+                }
+              }
+            }
+            graphicsRecovery?.request('control-hang');
+          },
+        );
+        watched.webContents.on('did-start-loading', () => heartbeat.stop());
+        watched.webContents.on('did-finish-load', () => heartbeat.start());
+        watched.once('closed', () => heartbeat.stop());
+        watched.once('closed', () => {
+          if (control !== watched) return;
+          control = null;
+          app.quit();
+        });
+      };
+      watchControl(win);
       const serviceReady = (event: IpcMainEvent, ...args: unknown[]): void => {
         if (
-          event.sender !== win.webContents ||
-          event.senderFrame !== win.webContents.mainFrame ||
+          event.sender !== activeControl.webContents ||
+          event.senderFrame !== activeControl.webContents.mainFrame ||
           args.length !== 0
         ) {
           return;
@@ -291,18 +361,22 @@ function start(): void {
           ipcMain.removeListener(serviceEndpoints.ready.channel, serviceReady);
         },
       });
-      const stopReloadNotice = announceReloadAfterCrash(win.webContents, () =>
+      let stopReloadNotice = announceReloadAfterCrash(win.webContents, () =>
         problems.feed.report({kind: 'control-reloaded'}),
       );
       const settingsWindow = registerSettingsWindow({
-        control: win,
+        get control() {
+          return activeControl;
+        },
         zoom,
         mode: windowMode,
         log,
         screens: {store, config: appConfig},
       });
       const editorWindowContext = {
-        control: win,
+        get control() {
+          return activeControl;
+        },
         config: appConfig,
         zoom,
         mode: windowMode,
@@ -310,11 +384,17 @@ function start(): void {
       };
       const songEditorWindow = registerSongEditorWindow({
         ...editorWindowContext,
+        get control() {
+          return activeControl;
+        },
         hasSong: async id =>
           ((await dataStore.content)?.song(id) ?? null) !== null,
       });
       const slidesEditorWindow = registerSlidesEditorWindow({
         ...editorWindowContext,
+        get control() {
+          return activeControl;
+        },
         hasItem: async target => {
           const document = (await dataStore.content)?.service(target.serviceId);
           const item = document?.service.order.find(
@@ -327,8 +407,8 @@ function start(): void {
           );
         },
       });
-      const stopFonts = registerFonts(win, log, launchIdle.ready);
-      const closing = registerControlClose({control: win, log});
+      const stopFonts = registerFonts(controlRef, log, launchIdle.ready);
+      let closing = registerControlClose({control: win, log});
       shutdown.confirmWith(
         async requireSaved =>
           (await settingsWindow.close(requireSaved)) &&
@@ -336,7 +416,7 @@ function start(): void {
           (await closing.confirmClose(requireSaved)),
       );
       const stopUpdates = registerUpdates({
-        control: win,
+        control: controlRef,
         store,
         log,
         shutdown,
@@ -368,7 +448,9 @@ function start(): void {
         uiState: appConfig,
         port: dataStore.mediaBackend,
         media: dataStore.media,
-        control: win,
+        get control() {
+          return activeControl;
+        },
         windowMode,
         analysis,
         log,
@@ -381,13 +463,17 @@ function start(): void {
       });
       const stopTextImport = registerTextImport({
         uiState: appConfig,
-        control: win,
+        get control() {
+          return activeControl;
+        },
         windowMode,
         log,
       });
       const stopPowerPointImport = registerPowerPointImport({
         uiState: appConfig,
-        control: win,
+        get control() {
+          return activeControl;
+        },
         windowMode,
         log,
         media: dataStore.media,
@@ -399,16 +485,86 @@ function start(): void {
           source === 'audio' || store.state.outputs[source] === true,
         subscribe: changed => store.subscribe(changed),
       });
-      const outputs = startOutputs({
-        problems: problems.feed,
-        playbackProblems: playbackProblems.board,
-        onPrepared: () => launchIdle.outputsReady(),
-        store,
-        settings: dataStore.settings,
-        saveScreenSettings: dataStore.applySettingsEdit,
-        control: win,
-        log,
-        windowMode,
+      const makeOutputs = (owner: BrowserWindow) =>
+        startOutputs({
+          problems: problems.feed,
+          playbackProblems: playbackProblems.board,
+          onPrepared: () => launchIdle.outputsReady(),
+          store,
+          settings: dataStore.settings,
+          saveScreenSettings: dataStore.applySettingsEdit,
+          control: owner,
+          log,
+          windowMode,
+        });
+      let outputs = makeOutputs(win);
+      graphicsRecovery = new GraphicsRecovery(
+        async reason => {
+          const previous = activeControl;
+          const replacement = createControlWindow(log, windowMode, zoom);
+          if (!previous.isDestroyed() && !previous.isMaximized()) {
+            replacement.setBounds(previous.getBounds());
+          }
+          closing.dispose();
+          stopReloadNotice();
+          activeControl = replacement;
+          control = replacement;
+          settingsWindow.replaceControl(replacement);
+          closing = registerControlClose({control: replacement, log});
+          stopReloadNotice = announceReloadAfterCrash(
+            replacement.webContents,
+            () => problems.feed.report({kind: 'control-reloaded'}),
+          );
+          watchControl(replacement);
+          replacement.webContents.once('did-finish-load', () => {
+            problems.feed.report({kind: 'graphics-recovered'});
+          });
+          // NOTE(0913vision): The main live store retains the output switches and slide.
+          outputs.stop();
+          outputs = makeOutputs(replacement);
+          if (!previous.isDestroyed()) previous.destroy();
+          log.info('recreated windows after graphics failure', {reason});
+          await Promise.resolve();
+        },
+        error => log.error('could not recover graphics windows', error),
+      );
+      if (
+        windowMode === 'offscreen' &&
+        !app.isPackaged &&
+        process.env['LLP_TEST_GPU_CRASH'] === '1'
+      ) {
+        const crashGpu = (event: IpcMainEvent, kind: unknown): void => {
+          if (
+            event.sender !== activeControl.webContents ||
+            (kind !== 'crash' && kind !== 'hang')
+          ) {
+            return;
+          }
+          const hidden = new BrowserWindow({
+            show: false,
+            webPreferences: {offscreen: true},
+          });
+          hidden.webContents.once('render-process-gone', () => {
+            if (!hidden.isDestroyed()) hidden.destroy();
+          });
+          hidden.loadURL(`chrome://gpu${kind}`).catch((error: unknown) => {
+            log.info('GPU test navigation ended', {kind, error: String(error)});
+          });
+          setTimeout(() => {
+            if (!hidden.isDestroyed()) hidden.destroy();
+          }, 90000);
+        };
+        ipcMain.on('test:gpu-failure', crashGpu);
+        shutdown.add({
+          name: 'stop GPU test hook',
+          run: () => {
+            ipcMain.removeListener('test:gpu-failure', crashGpu);
+          },
+        });
+      }
+      shutdown.add({
+        name: 'stop graphics recovery',
+        run: () => graphicsRecovery?.stop(),
       });
       const stopAudio = registerAudioOutput({
         playbackProblems: playbackProblems.board,
@@ -466,7 +622,7 @@ function start(): void {
         log,
       );
       const stopSoakRecorder = registerSoakRecorder(log, {
-        frameRates: outputs.frameRates,
+        frameRates: () => outputs.frameRates(),
       });
       // NOTE(0913vision): SAVE_LIMIT_MS can end the process before the last
       // step removes session.lock. The next launch then takes it for a crash,
@@ -532,7 +688,7 @@ function start(): void {
         name: 'stop slides projection',
         run: slidesProjection.dispose,
       });
-      shutdown.add({name: 'stop the outputs', run: outputs.stop});
+      shutdown.add({name: 'stop the outputs', run: () => outputs.stop()});
       shutdown.add({name: 'save the UI state', run: () => ui.dispose()});
       shutdown.add({name: 'stop UI zoom', run: () => zoom.dispose()});
       shutdown.add({name: 'save app.json', run: () => appConfig.savePending()});
@@ -550,7 +706,7 @@ function start(): void {
       shutdown.add({name: 'stop the problem feed', run: problems.dispose});
       shutdown.add({
         name: 'stop the control reload notice',
-        run: stopReloadNotice,
+        run: () => stopReloadNotice(),
       });
       shutdown.add({name: 'remove the IPC channels', run: disposeIpc});
       shutdown.add({
@@ -564,10 +720,6 @@ function start(): void {
       shutdown.add({
         name: 'finish the recovery session',
         run: () => session.cleanExit(),
-      });
-      win.on('closed', () => {
-        control = null;
-        app.quit();
       });
       quitAfterSmokeTest(win, log, windowMode);
       log.info('started', {

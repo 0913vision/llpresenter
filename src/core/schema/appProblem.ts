@@ -37,6 +37,7 @@ const appProblemSchema = v.pipe(
       failed: v.boolean(),
     }),
     v.object({kind: v.literal('control-reloaded')}),
+    v.object({kind: v.literal('graphics-recovered')}),
     v.object({
       kind: v.literal('backup-failed'),
       name: v.pipe(nameSchema, v.nonEmpty()),

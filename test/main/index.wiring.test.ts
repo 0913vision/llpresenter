@@ -33,7 +33,10 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
   it('defers the updater until launch readiness and disposes it during shutdown', async () => {
     const control = await startMain();
     expect(mocks.updateContexts).toHaveLength(1);
-    expect(mocks.updateContexts[0]).toHaveProperty('control', control);
+    expect(mocks.updateContexts[0]).toHaveProperty(
+      'control.webContents',
+      control.webContents,
+    );
     expect(mocks.updateContexts[0]).toHaveProperty(
       'ready',
       expect.any(Promise),
@@ -77,7 +80,10 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
   it('registers fonts for the control window and stops enumeration before closing data', async () => {
     const control = await startMain();
     expect(mocks.fontContexts).toHaveLength(1);
-    expect(mocks.fontContexts[0]).toHaveProperty('control', control);
+    expect(mocks.fontContexts[0]).toHaveProperty(
+      'control.webContents',
+      control.webContents,
+    );
     expect(mocks.fontContexts[0]).toHaveProperty('log.warn');
     expect(mocks.fontContexts[0]).toHaveProperty('ready', expect.any(Promise));
     beforeQuit();
