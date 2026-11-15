@@ -264,10 +264,12 @@ function fitSong(
   );
   if (body?.kind !== 'currentText') return layout;
   const intent = broadcastIntent(slide, item);
-  // NOTE(0913vision): 방송 shows nothing for an empty song slide and only the
-  // first line (the song title) for a title slide; decorative subtitles stay off.
+  // NOTE(0913vision): an empty song slide shows the song title (the user's rule)
+  // and a title slide only its first line; decorative subtitles stay off.
   const raw =
-    themeElementText(body, {layers: {...emptyLayers(), slide}, item}) ?? '';
+    intent.songTitle ??
+    themeElementText(body, {layers: {...emptyLayers(), slide}, item}) ??
+    '';
   let value =
     slide?.titleSlide === true ? (raw.split('\n')[0]?.trim() ?? '') : raw;
   if (value.split('\n').length > geometry.songLines) {
