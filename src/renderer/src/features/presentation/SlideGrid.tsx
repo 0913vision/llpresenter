@@ -8,7 +8,11 @@ import {
   type JSX,
 } from 'react';
 import {outputTile, useShow} from '@renderer/session/show';
-import {shownTiles, useLiveTileIndex} from '@renderer/session/showLibrary';
+import {
+  isLibrarySource,
+  shownTiles,
+  useLiveTileIndex,
+} from '@renderer/session/showLibrary';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {SlideThumbnail, ThumbnailGrid, thumbnailWidth} from '@renderer/ui';
 import {useGridMeasure} from '@renderer/ui/useGridMeasure';
@@ -25,6 +29,7 @@ import {ShowSlideEntry} from './showPanelNavigation';
 import {serviceSlideOffset} from './serviceSlideNumbers';
 import {useNumberJump} from './numberJump';
 import {useSlideTransitionProgress} from './useSlideTransitionProgress';
+import {ContinuousSlideGrid} from './ContinuousSlideGrid';
 
 const GRID_SELECTOR = '[role="listbox"]';
 
@@ -39,6 +44,32 @@ export interface SlideGridProps {
 
 /** The 슬라이드 grid of the open item. A click outputs a tile. */
 export function SlideGrid({
+  columns,
+  scalePercent,
+  onOpenPrep,
+}: SlideGridProps): JSX.Element {
+  const serviceGrid = useShow(
+    view => view.serviceId !== null && !isLibrarySource(view, view.openItemId),
+  );
+  if (import.meta.env.VITE_LLP_CONTINUOUS_GRID === '1' && serviceGrid) {
+    return (
+      <ContinuousSlideGrid
+        columns={columns}
+        scalePercent={scalePercent}
+        onOpenPrep={onOpenPrep}
+      />
+    );
+  }
+  return (
+    <ItemSlideGrid
+      columns={columns}
+      scalePercent={scalePercent}
+      onOpenPrep={onOpenPrep}
+    />
+  );
+}
+
+function ItemSlideGrid({
   columns,
   scalePercent,
   onOpenPrep,

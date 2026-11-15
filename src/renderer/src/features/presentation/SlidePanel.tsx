@@ -4,6 +4,7 @@ import {useShow} from '@renderer/session/show';
 import {
   isLibrarySource,
   shownTiles,
+  tilesForView,
   useLiveTileIndex,
 } from '@renderer/session/showLibrary';
 import {
@@ -116,7 +117,18 @@ export function SlidePanelFooter({
 }: {
   readonly sizeClass: SizeClass;
 }): JSX.Element {
-  const count = useShow(view => shownTiles(view)?.length ?? 0);
+  const count = useShow(view =>
+    import.meta.env.VITE_LLP_CONTINUOUS_GRID === '1' &&
+    view.serviceId !== null &&
+    !isLibrarySource(view, view.openItemId)
+      ? view.rows.reduce(
+          (total, row) =>
+            total +
+            (row.kind === 'header' ? 0 : tilesForView(view, row.id).length),
+          0,
+        )
+      : (shownTiles(view)?.length ?? 0),
+  );
   return (
     <PanelFooter
       count={count}
