@@ -36,6 +36,7 @@ interface PictureContext {
   readonly offset: number;
   readonly theme: ReturnType<typeof useSlideTheme>;
   readonly cardTheme: ReturnType<typeof useSlideTheme>;
+  readonly sermonTheme: ReturnType<typeof useSlideTheme>;
   readonly projection: ReturnType<typeof useBibleTileProjection>;
   readonly bibleTiles:
     NonNullable<ReturnType<typeof useBibleTileProjection>>['tiles'] | undefined;
@@ -68,7 +69,8 @@ function biblePicture(
   context: PictureContext,
   index: number,
 ): JSX.Element | undefined {
-  const {item, projection, offset, bibleTiles, bibleAppearance} = context;
+  const {item, projection, offset, bibleTiles, bibleAppearance, sermonTheme} =
+    context;
   if (
     item === null ||
     (!isItemOfKind(item, 'bible') && !isItemOfKind(item, 'sermon')) ||
@@ -81,6 +83,9 @@ function biblePicture(
     () => bibleTiles ?? projection.tiles,
   );
   if (slide === null) return undefined;
+  if (slide.sermonTitle === true && sermonTheme !== undefined) {
+    return <SlidePicture output {...sermonTheme} slide={slide} />;
+  }
   const {theme, screen} = bibleAppearance ?? projection.appearance;
   return (
     <SlidePicture

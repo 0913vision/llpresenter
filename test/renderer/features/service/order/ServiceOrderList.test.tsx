@@ -27,6 +27,7 @@ import {
   seedSampleService,
 } from '@fixtures/renderer/session/sampleService';
 import {ServiceOrderList} from '@renderer/features/service/order/ServiceOrderList';
+import {setBibleTileResolver} from '@renderer/session/showLibrary';
 import * as orderFollow from '@renderer/features/service/order/useOrderFollow';
 import userEvent from '@testing-library/user-event';
 import {
@@ -84,6 +85,28 @@ vi.mock('@renderer/ui/Icon', () => ({
 }));
 
 describe('ServiceOrderList', () => {
+  it('counts measured sermon title and verse parts in the preparation list', () => {
+    const verse = {label: null, labelColor: 'none' as const, lines: ['Verse']};
+    const title = {...verse, lines: ['Sermon'], sermonTitle: true as const};
+    useShow.setState({
+      rows: [
+        {kind: 'bible', id: 'sermon', title: 'Sermon', sermonTitle: 'Sermon'},
+      ],
+      tiles: {sermon: [title, verse]},
+    });
+    setBibleTileResolver((_view, id) =>
+      id === 'sermon' ? [title, verse, verse, verse, verse] : null,
+    );
+    try {
+      render(<ServiceOrderList workspace="prep" />);
+      expect(
+        screen.getByText('\uc2ac\ub77c\uc774\ub4dc 5\uac1c'),
+      ).toBeDefined();
+    } finally {
+      setBibleTileResolver(null);
+    }
+  });
+
   it.each(['show', 'prep'] as const)(
     'shows image, text, and song icons in the %s order list',
     workspace => {

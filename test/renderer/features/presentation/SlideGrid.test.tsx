@@ -1,12 +1,22 @@
 import {handleShowKey} from '@renderer/features/presentation/shortcuts';
 import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
-import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {createMediaId} from '@core/schema/ids';
 import {thumbnailUrl} from '@contracts/ipc/mediaUrls';
 import {applyService, openItem, useShow} from '@renderer/session/show';
 import {SlideGrid} from '@renderer/features/presentation/SlideGrid';
+import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
+import {settingsDocument} from '@fixtures/core/settingsDocument';
+import {themeFile, themeScreens} from '@fixtures/core/themeOutput';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {slidesItem, SLIDES_ITEM} from '@fixtures/core/slides';
 import {projectSlides} from '@core/presentation/slides';
@@ -59,6 +69,67 @@ it('shows themed slides with ad names in their bands and sends picture slides on
     type: 'slide.show',
     slide: {position: 1},
   });
+});
+
+it('draws a sermon title tile with the sermon title theme and passage', async () => {
+  const passage = panelPassage();
+  const base = mockLlpApi();
+  window.llp = mockLlpApi({
+    settings: {
+      get: request => {
+        if (request.name === 'themes') {
+          return Promise.resolve(settingsDocument('themes', themeFile()));
+        }
+        if (request.name === 'screens') {
+          return Promise.resolve(
+            settingsDocument('screens', {screens: themeScreens}),
+          );
+        }
+        return base.settings.get(request);
+      },
+    },
+  });
+  applyService({
+    revision: 1,
+    id: 'sermon-service',
+    name: 'Service',
+    readOnly: false,
+    rows: [
+      {
+        kind: 'bible',
+        id: 'sermon',
+        title: 'Sermon',
+        sermonTitle: 'Sermon',
+        bible: {
+          translation: passage.translation,
+          ref: passage.ref,
+          sermonTitle: 'Sermon',
+        },
+      },
+    ],
+    tiles: {
+      sermon: [
+        {
+          label: null,
+          labelColor: 'none',
+          lines: ['Sermon'],
+          sermonTitle: true,
+          reference: passage.displayRef,
+        },
+      ],
+    },
+    jumpKeys: {},
+  });
+  openItem('sermon');
+  render(<SlideGrid columns={4} scalePercent={100} />);
+  await waitFor(() =>
+    expect(
+      slide(0).querySelector('[data-kind="itemName"]')?.textContent,
+    ).toContain(passage.ref.replace('-', '~')),
+  );
+  expect(
+    slide(0).querySelector('[data-kind="currentText"]')?.textContent,
+  ).toContain('Sermon');
 });
 
 it('shows a Bible verse label in the attached strip', () => {

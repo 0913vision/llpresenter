@@ -1,4 +1,7 @@
 import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
+import {tilesForView} from '@renderer/session/showLibrary';
+import {useBibleProjections} from '@renderer/features/bible/useBibleProjections';
+import {splitSourceFor} from '@renderer/features/bible/splitProjection';
 import {serviceRowIcon} from './serviceItemIcons';
 import {useMediaOrderDrop} from './useMediaOrderDrop';
 import {usePaletteEditing} from '../items/PaletteEditing';
@@ -190,7 +193,25 @@ function ItemRows({
     row: ServiceRow,
   ) => import('@renderer/ui/ListRow').GroupRename | undefined;
 }): JSX.Element {
-  const tiles = useShow(view => view.tiles);
+  const show = useShow(view => view);
+  const tiles = show.tiles;
+  const {projections, refinementRevision} = useBibleProjections({
+    enabled: items.some(
+      row => row.kind === 'bible' && row.sermonTitle !== undefined,
+    ),
+  });
+  const countOf = (row: ServiceRow): number => {
+    if (row.kind !== 'bible' || row.sermonTitle === undefined) {
+      return tiles[row.id]?.length ?? 0;
+    }
+    const source = splitSourceFor(show, row.id);
+    const measured =
+      source === null ? null : projections?.get(source, refinementRevision);
+    return measured == null
+      ? tilesForView(show, row.id).length
+      : measured.tiles.length +
+          (tiles[row.id]?.[0]?.sectionCard === undefined ? 0 : 1);
+  };
   return (
     <>
       {items.map(row =>
@@ -225,13 +246,13 @@ function ItemRows({
                 workspace !== 'prep' || table !== undefined || navigator
                   ? undefined
                   : ['song', 'bible'].includes(row.kind)
-                    ? `슬라이드 ${tiles[row.id]?.length ?? 0}개`
+                    ? `슬라이드 ${countOf(row)}개`
                     : durations[row.id]
               }
               cells={table?.cellsOf(
                 row,
                 ['song', 'bible'].includes(row.kind)
-                  ? String(tiles[row.id]?.length ?? 0)
+                  ? String(countOf(row))
                   : durations[row.id],
                 serviceRowLabel(row, numbers.get(row.id) ?? 1),
               )}
