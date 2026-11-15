@@ -553,6 +553,17 @@ export class ThemeElementView {
     const slide = layers.slide;
     if (
       frame.screen?.kind === 'stage' &&
+      element.kind === 'slideName' &&
+      (slide?.kind ?? item?.kind) === 'ad' &&
+      slide?.sectionCard === undefined &&
+      slide?.picture === undefined &&
+      slide?.textSlideNumber !== undefined &&
+      slide.name?.trim()
+    ) {
+      return `${slide.textSlideNumber}. ${slide.name}`;
+    }
+    if (
+      frame.screen?.kind === 'stage' &&
       slide?.sectionCard !== undefined &&
       (element.kind === 'itemName' || element.kind === 'currentText')
     ) {

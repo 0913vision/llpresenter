@@ -3046,3 +3046,34 @@ it('keeps the stage next reference above a top-aligned next text frame', () => {
   );
   view.dispose();
 });
+
+it('numbers current advertisement titles only on stage', () => {
+  const {root, view} = setup();
+  const elements: ThemeElement[] = [
+    {...themeElementBase(31), kind: 'slideName'},
+  ];
+  if (song.slide === null) throw Error('Missing slide');
+  for (const number of [1, 2]) {
+    const layers = {
+      ...song,
+      slide: {
+        ...song.slide,
+        kind: 'ad' as const,
+        name: 'Title',
+        textSlideNumber: number,
+      },
+    };
+    for (const kind of ['stage', 'audience', 'broadcast'] as const) {
+      view.render(layers, {
+        ...frame(elements),
+        screen: {id: THEME_MAIN, kind},
+        transitions: false,
+      });
+      const title = root.querySelector(
+        `[data-kind="slideName"] .${classes.shown}`,
+      )?.textContent;
+      expect(title).toBe(kind === 'stage' ? `${number}. Title` : 'Title');
+    }
+  }
+  view.dispose();
+});
