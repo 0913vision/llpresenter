@@ -10,6 +10,7 @@ import {
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {useLive} from '@renderer/session/live';
 import {useShow} from '@renderer/session/show';
+import {bibleSourceFor} from '@renderer/session/showLibrary';
 import {ListActionRow, ListInsertLine} from '@renderer/ui';
 import {
   Panel,
@@ -127,6 +128,10 @@ export function QuickPanel({
     onMove: moveItem,
   });
   const live = useLive(view => view.state);
+  const livePassage = useShow(view => {
+    const source = bibleSourceFor(view, live?.layers.slide?.itemId ?? null);
+    return source?.review === false ? source.passage.displayRef : null;
+  });
   const [activationVersion, setActivationVersion] = useState(0);
   const runner = useMemo(
     () => (api ? quickRunner(api, onProblem) : null),
@@ -184,6 +189,11 @@ export function QuickPanel({
         />
       </PanelTools>
       <PanelBody variant="flush">
+        {livePassage === null ? null : (
+          <div className={styles.livePassage} role="status">
+            {livePassage}
+          </div>
+        )}
         <div
           {...drag.listProps}
           role="group"

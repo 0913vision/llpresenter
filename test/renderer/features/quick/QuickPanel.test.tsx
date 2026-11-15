@@ -14,6 +14,7 @@ import {
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {BibleLookupReply} from '@core/schema/bibleLookup';
 import {emptyLiveState} from '@core/live/state';
+import {bibleSource} from '@core/bible/source';
 import {useLive} from '@renderer/session/live';
 import {openItem, useShow} from '@renderer/session/show';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
@@ -52,6 +53,45 @@ afterEach(() => {
 });
 
 describe('quick panel integration', () => {
+  it('shows only a live quick passage separately from the black screen action', async () => {
+    const fixture = quickFixture();
+    window.llp = fixture.api;
+    const reply = lookupReply(lookupRequest('John 3:16'));
+    if (!reply.result.ok) throw new Error('Missing passage');
+    const source = bibleSource(reply.result.value, {
+      verseNumbers: true,
+      review: false,
+    });
+    useShow.setState({bibleSource: source, openItemId: source.id});
+    render(<QuickPanel selectionVersion={0} onProblem={vi.fn()} />);
+    expect(screen.queryByText(source.passage.displayRef)).toBeNull();
+    const state = emptyLiveState();
+    act(() =>
+      useLive.setState({
+        state: {
+          ...state,
+          layers: {
+            ...state.layers,
+            slide: {
+              itemId: source.id,
+              position: 0,
+              label: null,
+              lines: ['Verse'],
+            },
+          },
+        },
+      }),
+    );
+    expect(screen.getByRole('status').textContent).toBe(
+      source.passage.displayRef,
+    );
+    expect(
+      await screen.findByRole('button', {name: '\uac80\uc740 \ud654\uba74'}),
+    ).toBeTruthy();
+    act(() => useLive.setState({state}));
+    expect(screen.queryByText(source.passage.displayRef)).toBeNull();
+  });
+
   it('formats a saved Bible reference name while preserving custom names and data', async () => {
     const fixture = quickFixture();
     const document = quickDocument();

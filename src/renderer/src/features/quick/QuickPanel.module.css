@@ -9,3 +9,7 @@
   inset-inline: 0;
   height: var(--size-row);
 }
+
+.livePassage {
+  padding: 0.4rem 0.75rem;
+}
