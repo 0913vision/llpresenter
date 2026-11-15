@@ -11,6 +11,7 @@ const log = badValueLog(ipcRenderer, outputEndpoints.log.channel);
 const port = createIpcPort(ipcRenderer, log);
 
 if (
+  typeof process !== 'undefined' &&
   process.env['LLP_TEST_WINDOWS'] === 'offscreen' &&
   process.env['LLP_TEST_GPU_CRASH'] === '1'
 ) {

@@ -164,7 +164,20 @@ describe('main entry lifecycle', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
   it("gives the soak recorder the outputs' frame rates", async () => {
     await startMain();
 
-    expect(mocks.soakSources).toEqual([{frameRates: mocks.frameRates}]);
+    expect(mocks.soakSources).toHaveLength(1);
+    const source = mocks.soakSources[0];
+    const hasFrameRates = (
+      value: unknown,
+    ): value is {frameRates: () => unknown} =>
+      typeof value === 'object' &&
+      value !== null &&
+      'frameRates' in value &&
+      typeof value.frameRates === 'function';
+    if (!hasFrameRates(source)) {
+      throw new Error('Missing frame rate source');
+    }
+    source.frameRates();
+    expect(mocks.frameRates).toHaveBeenCalledOnce();
   });
 
   it('lets the soak scenario change the live state', async () => {
