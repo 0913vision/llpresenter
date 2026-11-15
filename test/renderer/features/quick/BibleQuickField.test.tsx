@@ -1,3 +1,5 @@
+import {SlideGrid} from '@renderer/features/presentation/SlideGrid';
+import {handleShowKey} from '@renderer/features/presentation/shortcuts';
 import {lastLiveCommand} from '@fixtures/renderer/session/liveCommands';
 import {
   act,
@@ -55,10 +57,79 @@ beforeEach(() => {
 });
 afterEach(() => {
   cleanup();
+  window.removeEventListener('keydown', handleShowKey);
   delete window.llp;
 });
 
 describe('BibleQuickField', () => {
+  it('focuses the slide grid after Enter and ArrowRight outputs the next part', async () => {
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    window.addEventListener('keydown', handleShowKey);
+    render(
+      <>
+        <BibleQuickField api={fixture.api} />
+        <SlideGrid columns={4} scalePercent={100} />
+      </>,
+    );
+    const field = await book();
+    fireEvent.change(field, {target: {value: '\uc694'}});
+    for (const [label, value] of [
+      ['\uc7a5', '3'],
+      ['\uc2dc\uc791\uc808', '16'],
+      ['\ub05d\uc808', '18'],
+    ] as const) {
+      fireEvent.change(screen.getByRole('textbox', {name: label}), {
+        target: {value},
+      });
+    }
+    await waitFor(() =>
+      expect(currentRef()).toBe('\uc694\ud55c\ubcf5\uc74c 3:16-18'),
+    );
+    const end = screen.getByRole<HTMLInputElement>('textbox', {
+      name: '\ub05d\uc808',
+    });
+    end.focus();
+    fireEvent.keyDown(end, {key: 'Enter', code: 'Enter'});
+    const grid = screen.getByRole('listbox', {
+      name: '\uc2ac\ub77c\uc774\ub4dc',
+    });
+    expect(document.activeElement).toBe(grid);
+    expect(end.value).toBe('18');
+    const shown = lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]);
+    if (shown?.type !== 'slide.show') throw Error('Expected Bible output');
+    act(() =>
+      useLive.setState({
+        state: {
+          ...emptyLiveState(),
+          layers: {...emptyLiveState().layers, slide: shown.slide},
+        },
+      }),
+    );
+    fireEvent.keyDown(grid, {key: 'ArrowRight', code: 'ArrowRight'});
+    expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])).toMatchObject({
+      type: 'slide.show',
+      slide: {position: 1},
+    });
+  });
+
+  it('keeps focus in an invalid reference field', async () => {
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    render(
+      <>
+        <BibleQuickField api={fixture.api} />
+        <SlideGrid columns={4} scalePercent={100} />
+      </>,
+    );
+    const field = await book();
+    field.focus();
+    fireEvent.change(field, {target: {value: 'not-a-book'}});
+    fireEvent.keyDown(field, {key: 'Enter', code: 'Enter'});
+    expect(document.activeElement).toBe(field);
+    expect(fixture.send).not.toHaveBeenCalled();
+  });
+
   it('starts a new output request when a manual book edit starts', async () => {
     const fixture = panelApi();
     window.llp = fixture.api;

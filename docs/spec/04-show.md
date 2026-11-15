@@ -292,10 +292,11 @@ source was found.
   Page Up output the previous slide. The service order list keeps ↑ and ↓ for
   selection; Enter in the grid without a pending number does nothing (10).
 - Outside text fields, digits show a pending service-wide slide number above the
-  grid. Enter outputs that numbered slide, or clears an invalid number without
-  output. Delete or Escape clears the number; Backspace removes its last digit.
-  Other shortcuts clear it and keep their usual action. Digits take precedence
-  over digit-assigned slide hot keys in 진행.
+  grid. Enter outputs that numbered slide and focuses the slide grid, or clears
+  an invalid number without output. Delete or Escape clears the number;
+  Backspace removes its last digit. Other shortcuts clear it and keep their
+  usual action. Digits take precedence over digit-assigned slide hot keys in
+  진행.
 - A mouse click in 진행 moves keyboard focus only to a text field, the 슬라이드
   grid, or the 예배 순서 list. A click on any other button or tile, such as a
   매크로 or a 그래픽, leaves keyboard focus where it was (10). So after a click
@@ -879,13 +880,14 @@ name. Chapter and verse bounds always use the built-in GAE number table.
   passage. Editing any field starts a new manual reference.
 - As soon as the fields form a valid reference, the Bible panel opens in place
   of the 슬라이드 panel in the center column.
-- Enter from 끝절 outputs the current valid passage, as 바로 띄우기 does. Enter
-  from 책, 장, and 시작절 completes that field and moves to the next one without
-  output, even when a valid preview already exists. A complete reference typed
-  into 책 is an exception: Enter resolves and outputs it after lookup, and Tab
-  fills the fields. A pending lookup, invalid reference, repeated Enter, or
-  composition Enter cannot output. The four fields build a range within one
-  chapter; stored references and recent passages retain the full grammar in 02.
+- Enter from 끝절 outputs the current valid passage, as 바로 띄우기 does, and
+  focuses the slide grid. Invalid input keeps focus in the field. Enter from 책,
+  장, and 시작절 completes that field and moves to the next one without output,
+  even when a valid preview already exists. A complete reference typed into 책
+  is an exception: Enter resolves and outputs it after lookup, and Tab fills the
+  fields. A pending lookup, invalid reference, repeated Enter, or composition
+  Enter cannot output. The four fields build a range within one chapter; stored
+  references and recent passages retain the full grammar in 02.
 - 준비 항목 추가 성경 구절 opens a small 성경 구절 dialog with the same fields.
   Enter from 끝절 inserts the current passage item using the opening's default
   translation and verse-number preference. 추가 performs the same insertion; it

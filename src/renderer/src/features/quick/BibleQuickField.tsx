@@ -10,6 +10,7 @@ import {bibleSourceFor, isBibleSource} from '@renderer/session/showLibrary';
 import {beginOutputRequest} from '@renderer/session/showOutput';
 import {BibleReferenceField} from '../bible/BibleReferenceField';
 import {openBiblePassage, showBiblePassage} from '../bible/actions';
+import {focusSlideGrid} from '../presentation/focusSlideGrid';
 import {useBibleDisplayDefaults} from '../bible/useBibleDisplayDefaults';
 
 /** The quick-panel mount; previewing never writes output or recent history. */
@@ -136,6 +137,7 @@ export function BibleQuickField({
             review: false,
             transition: QUICK_BIBLE_TRANSITION,
           });
+          focusSlideGrid();
         }}
       />
     </div>
