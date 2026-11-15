@@ -36,27 +36,24 @@ function invalidRequest(
   };
 }
 
-function nativeInputs({
-  control,
-  windowMode,
-  uiState,
-}: TextImportRegistration): TextImportInputs {
+function nativeInputs(options: TextImportRegistration): TextImportInputs {
   return {
     chooseFile: async () => {
-      if (windowMode === 'offscreen') {
+      if (options.windowMode === 'offscreen') {
         const injected = process.env[TEST_IMPORT_FILE_VARIABLE];
         if (injected) return injected;
       }
-      if (windowMode === 'offscreen' || control.isDestroyed()) {
+      const control = options.control;
+      if (options.windowMode === 'offscreen' || control.isDestroyed()) {
         throw new Error('The file dialog is unavailable');
       }
       const selected = await dialog.showOpenDialog(control, {
-        defaultPath: await pickerFolder(uiState, 'textImportFolder'),
+        defaultPath: await pickerFolder(options.uiState, 'textImportFolder'),
         properties: ['openFile'],
         filters: [{name: '텍스트 파일', extensions: ['txt']}],
       });
       if (selected.canceled) return null;
-      rememberPickerFile(uiState, 'textImportFolder', selected.filePaths[0]);
+      rememberPickerFile(options.uiState, 'textImportFolder', selected.filePaths[0]);
       return selected.filePaths[0] ?? null;
     },
     readClipboard: () => clipboard.readText(),

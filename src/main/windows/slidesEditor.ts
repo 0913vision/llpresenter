@@ -18,10 +18,10 @@ interface SlidesEditorOptions {
 
 /** Routes existing slide editor requests to the control workspace. */
 export function registerSlidesEditorWindow(options: SlidesEditorOptions) {
-  const {control, log, hasItem} = options;
+  const {log, hasItem} = options;
   let target: SlidesEditorTarget | null = null;
   let disposed = false;
-  const isDisposed = (): boolean => disposed || control.isDestroyed();
+  const isDisposed = (): boolean => disposed || options.control.isDestroyed();
   const open = async (
     requested: SlidesEditorTarget,
   ): Promise<OpenWindowResult> => {
@@ -31,7 +31,10 @@ export function registerSlidesEditorWindow(options: SlidesEditorOptions) {
     }
     if (isDisposed()) return {ok: false, error: {reason: 'failed'}};
     target = requested;
-    control.webContents.send(slidesEditorEndpoints.retarget.channel, target);
+    options.control.webContents.send(
+      slidesEditorEndpoints.retarget.channel,
+      target,
+    );
     return {ok: true, value: undefined};
   };
   const endpoints = slidesEditorEndpoints;

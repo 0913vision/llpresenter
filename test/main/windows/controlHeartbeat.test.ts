@@ -4,6 +4,20 @@ import {ControlHeartbeat} from '@main/windows/controlHeartbeat';
 afterEach(() => vi.useRealTimers());
 
 describe('control heartbeat', () => {
+  it('retries transient capture errors without reporting a hang', async () => {
+    vi.useFakeTimers();
+    const ping = vi
+      .fn()
+      .mockRejectedValueOnce(new Error('capture unavailable'))
+      .mockResolvedValue(undefined);
+    const timeout = vi.fn();
+    const watch = new ControlHeartbeat(ping, timeout);
+    watch.start();
+    await vi.advanceTimersByTimeAsync(6000);
+    expect(ping.mock.calls.length).toBeGreaterThan(1);
+    expect(timeout).not.toHaveBeenCalled();
+    watch.stop();
+  });
   it('keeps checking an answering renderer without reporting a hang', async () => {
     vi.useFakeTimers();
     const ping = vi.fn().mockResolvedValue(undefined);

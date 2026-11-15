@@ -30,6 +30,7 @@ export interface SettingsWindowOptions extends SettingsWindowFrameOptions {
 export interface SettingsWindowRegistration {
   readonly close: (requireSaved?: boolean) => Promise<boolean>;
   readonly dispose: () => Promise<void>;
+  readonly replaceControl: (control: BrowserWindow) => void;
 }
 
 type Target = Pick<SettingsRequest, 'view' | 'page'>;
@@ -44,6 +45,7 @@ export function registerSettingsWindow(
 }
 
 class PreparedSettingsWindow implements SettingsWindowRegistration {
+  private control: BrowserWindow;
   private win: BrowserWindow | null = null;
   private closing: ControlClose | undefined;
   private stopPatterns: (() => void) | undefined;
@@ -66,6 +68,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
   };
 
   constructor(private readonly options: SettingsWindowOptions) {
+    this.control = options.control;
     ipcMain.on(windowEndpoints.openPreferences.channel, this.openPreferences);
     ipcMain.on(windowEndpoints.openPreferencesAt.channel, this.openAt);
     if (options.screens !== undefined) {
@@ -95,6 +98,24 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     }
   }
 
+  readonly replaceControl = (control: BrowserWindow): void => {
+    const previous = this.control;
+    previous.removeListener('closed', this.controlClosed);
+    if (!previous.webContents.isDestroyed()) {
+      previous.webContents.removeListener(
+        'did-finish-load',
+        this.scheduleWarmup,
+      );
+    }
+    this.control = control;
+    if (this.win !== null && !this.win.isDestroyed()) {
+      this.win.setParentWindow(control);
+    }
+    control.once('closed', this.controlClosed);
+    control.webContents.once('did-finish-load', this.scheduleWarmup);
+    if (!control.webContents.isLoadingMainFrame()) this.scheduleWarmup();
+  };
+
   private nextId(): number {
     return (this.request.requestId + 1) % PREFERENCES_REQUEST_LIMIT;
   }
@@ -120,7 +141,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     if (!this.wanted) {
       this.opener =
         this.options.mode === 'normal'
-          ? (BrowserWindow.getFocusedWindow() ?? this.options.control)
+          ? (BrowserWindow.getFocusedWindow() ?? this.control)
           : null;
     }
     this.wanted = true;
@@ -176,7 +197,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
   }
 
   private prepare(): void {
-    if (this.disposed || this.stopping || this.options.control.isDestroyed()) {
+    if (this.disposed || this.stopping || this.control.isDestroyed()) {
       return;
     }
     if (this.win !== null && !this.win.isDestroyed()) return;
@@ -264,7 +285,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
       if (request.view === 'screens' && this.options.screens !== undefined) {
         applyScreensBounds(win, this.options.screens.config, this.options.mode);
       } else {
-        const bounds = preferencesBounds(this.options.control);
+        const bounds = preferencesBounds(this.control);
         if (this.options.mode === 'normal' && win.isMaximized()) {
           win.unmaximize();
         }
@@ -464,13 +485,13 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     this.preferencesPage = 'general';
     this.requested = null;
     this.request = {...PREFERENCES, requestId: this.nextId(), preparing: true};
-    if (this.options.control.isDestroyed()) app.quit();
+    if (this.control.isDestroyed()) app.quit();
     else this.scheduleWarmup();
   };
 
   private readonly scheduleWarmup = (): void => {
     clearTimeout(this.warmup);
-    if (this.disposed || this.stopping || this.options.control.isDestroyed()) {
+    if (this.disposed || this.stopping || this.control.isDestroyed()) {
       return;
     }
     this.warmup = setTimeout(() => {
@@ -538,7 +559,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     ]) {
       ipcMain.removeHandler(endpoint.channel);
     }
-    const control = this.options.control;
+    const control = this.control;
     if (!control.isDestroyed()) {
       control.removeListener('closed', this.controlClosed);
       if (!control.webContents.isDestroyed()) {

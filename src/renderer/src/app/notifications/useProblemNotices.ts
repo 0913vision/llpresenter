@@ -113,6 +113,15 @@ export function useProblemNotices(
         case 'control-reloaded':
           show(controlReloadedCard(noticeTime()));
           return;
+        case 'graphics-recovered':
+          show({
+            key: 'graphics-recovered',
+            kind: 'info',
+            icon: 'refresh',
+            title: '화면을 다시 그렸습니다',
+            time: noticeTime(),
+          });
+          return;
         case 'backup-failed':
           show(backupFailedCard(problem, noticeTime()));
           return;

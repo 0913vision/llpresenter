@@ -9,6 +9,7 @@ export class ControlHeartbeat {
   private pending: {
     readonly generation: number;
     readonly since: number;
+    readonly inFlight: boolean;
   } | null = null;
   private generation = 0;
   private failed = false;
@@ -40,16 +41,22 @@ export class ControlHeartbeat {
       if (time - this.pending.since >= CONTROL_HEARTBEAT_TIMEOUT_MS) {
         this.failed = true;
         this.onTimeout();
+        return;
       }
-      return;
+      if (this.pending.inFlight) return;
     }
+    const since = this.pending?.since ?? time;
     const generation = ++this.generation;
-    this.pending = {generation, since: time};
+    this.pending = {generation, since, inFlight: true};
     Promise.resolve()
       .then(this.ping)
       .then(
         () => this.settle(generation),
-        () => undefined,
+        () => {
+          if (this.pending?.generation === generation && !this.failed) {
+            this.pending = {...this.pending, inFlight: false};
+          }
+        },
       );
   }
 
