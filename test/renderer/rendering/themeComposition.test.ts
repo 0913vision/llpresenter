@@ -3013,3 +3013,36 @@ it('shows only an adjacent sermon title on stage after the last Bible slide', ()
   ).toBe(true);
   view.dispose();
 });
+
+it('keeps the stage next reference above a top-aligned next text frame', () => {
+  const {root, view} = setup();
+  const elements: ThemeElement[] = [
+    {...themeElementBase(31), kind: 'nextText'},
+  ];
+  if (song.slide === null) throw Error('Missing slide');
+  const layers = {
+    ...song,
+    slide: {
+      ...song.slide,
+      next: {label: null, lines: ['Next'], stageReference: 'Numbers 12:3'},
+    },
+  };
+  view.render(layers, {
+    ...frame(elements),
+    screen: {id: THEME_MAIN, kind: 'stage'},
+    transitions: false,
+  });
+  const label = root.querySelector<HTMLElement>('[data-stage-next-reference]');
+  expect(label?.textContent).toBe('Numbers 12:3');
+  expect(label?.style.bottom).toBe('100%');
+  expect(label?.parentElement?.style.overflow).toBe('visible');
+  view.render(layers, {
+    ...frame(elements),
+    screen: {id: THEME_MAIN, kind: 'audience'},
+    transitions: false,
+  });
+  expect(root.querySelector('[data-stage-next-reference]')?.textContent).toBe(
+    '',
+  );
+  view.dispose();
+});
