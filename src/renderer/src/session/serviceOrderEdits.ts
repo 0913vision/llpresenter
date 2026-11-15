@@ -436,7 +436,12 @@ export class ServiceOrderEdits {
         ...kept,
         sermon: {
           title: name,
-          ...(titleTransition === undefined ? {} : {openingTransition: titleTransition, closingTransition: titleTransition}),
+          ...(titleTransition === undefined
+            ? {}
+            : {
+                openingTransition: titleTransition,
+                closingTransition: titleTransition,
+              }),
           passage,
           originalTitle: source,
           originalTitleText: name,

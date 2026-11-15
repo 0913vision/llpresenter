@@ -7,7 +7,7 @@ import {
 } from '@renderer/features/service/items/quickAddBible';
 import {isItemOfKind} from '@core/schema/service';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {MOCK_LONG_VERSE} from '@fixtures/core/bibleSplit';
+import {entryFor} from '@core/bible/split/splitCache';
 import * as bibleMeasure from '@renderer/rendering/bibleMeasure';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {createDefaultThemes} from '@core/themes/defaults';
@@ -84,10 +84,10 @@ describe('quick add Bible passages', () => {
     ]);
   });
 
-  it('records defaults for each measured split part before insertion', async () => {
+  it('records defaults for each saved split part before insertion', async () => {
     const canvas = {
       font: '',
-      measureText: (text: string) => ({width: text.length * 80}),
+      measureText: (text: string) => ({width: text.length}),
     };
     const getContext = vi
       .spyOn(bibleMeasure, 'createBibleMeasureContext')
@@ -104,7 +104,7 @@ describe('quick add Bible passages', () => {
             translation,
             ref: '하박국 3:17',
             displayRef: '하박국 3:17',
-            verses: [{chapter: 3, verse: 17, text: MOCK_LONG_VERSE}],
+            verses: [{chapter: 3, verse: 17, text: '처음 다음'}],
           },
         },
         mockLlpApi({
@@ -125,7 +125,17 @@ describe('quick add Bible passages', () => {
                   ],
                 });
               }
-              return settingsDocument('bibleCuts', {entries: {}});
+              return settingsDocument('bibleCuts', {
+                entries: {
+                  [translation]: {
+                    '35:3:17': entryFor(
+                      '처음 다음',
+                      [1],
+                      '2026-11-15T00:00:00.000Z',
+                    ),
+                  },
+                },
+              });
             },
           },
         }),
