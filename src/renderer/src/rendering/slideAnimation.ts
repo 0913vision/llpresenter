@@ -10,10 +10,12 @@ export function wipeMask(direction: string): string {
   const stops = Array.from({length: WIPE_STEPS + 1}, (_, index) => {
     const t = index / WIPE_STEPS;
     const alpha = 1 - t * t * (3 - 2 * t);
-    const position = WIPE_START + (WIPE_END - WIPE_START) * t;
-    return `rgba(0, 0, 0, ${alpha.toFixed(5)}) ${position}%`;
+    const position = Number(
+      (WIPE_START + (WIPE_END - WIPE_START) * t).toFixed(3),
+    );
+    return `rgba(0,0,0,${alpha.toFixed(5).replace(/^0/, '')}) ${position}%`;
   });
-  return `linear-gradient(to ${direction}, ${stops.join(', ')})`;
+  return `linear-gradient(to ${direction},${stops.join(',')})`;
 }
 
 export interface SlideAnimationFrame {

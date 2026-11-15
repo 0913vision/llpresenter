@@ -151,7 +151,7 @@ describe('SlideAnimation', () => {
     view.play(old, next, {kind: 'wipe', dir: 'left', sec: 4});
     const mask = wipeMask('left');
     const stops = [
-      ...mask.matchAll(/rgba\(0, 0, 0, ([\d.]+)\) ([\d.]+)%/g),
+      ...mask.matchAll(/rgba\(0,\s*0,\s*0,\s*([\d.]+)\) ([\d.]+)%/g),
     ].map(match => ({alpha: Number(match[1]), position: Number(match[2])}));
     expect(stops).toHaveLength(33);
     expect(stops[0]).toEqual({alpha: 1, position: 37.875});
@@ -233,67 +233,33 @@ describe('SlideAnimation', () => {
     },
   );
   it.each([
-    [
-      'left',
-      {
-        direction: 'left',
-        size: '300% 100%',
-        from: '-8% 0%',
-        to: '95% 0%',
-      },
-    ],
-    [
-      'right',
-      {
-        direction: 'right',
-        size: '300% 100%',
-        from: '108% 0%',
-        to: '5% 0%',
-      },
-    ],
-    [
-      'up',
-      {
-        direction: 'top',
-        size: '100% 300%',
-        from: '0% -8%',
-        to: '0% 95%',
-      },
-    ],
-    [
-      'down',
-      {
-        direction: 'bottom',
-        size: '100% 300%',
-        from: '0% 108%',
-        to: '0% 5%',
-      },
-    ],
-  ] as const)(
-    'reveals the incoming page in direction %s',
-    (dir, {direction}) => {
-      const {view, old, next, animate} = setup();
-      view.play(old, next, {kind: 'wipe', dir, sec: 0.5});
-      const frames = animate.mock.calls[0]?.[0];
-      if (!Array.isArray(frames)) throw new Error('Missing wipe keyframes');
-      const maskImage = next.parentElement?.style.maskImage;
-      const reference = document.createElement('div');
-      reference.style.maskImage = wipeMask(direction);
-      expect(maskImage).toBe(reference.style.maskImage);
-      expect(old.style.opacity).toBe('1');
-      expect(animate).toHaveBeenCalledTimes(2);
-      expect(
-        frames.every(frame =>
-          Object.keys(frame).every(key => key === 'transform'),
-        ),
-      ).toBe(true);
-      expect(animate.mock.calls[0]?.[1]).toEqual({
-        duration: 500,
-        easing: 'linear',
-        fill: 'both',
-      });
-    },
-  );
+    ['left', 'left'],
+    ['right', 'right'],
+    ['up', 'top'],
+    ['down', 'bottom'],
+  ] as const)('reveals the incoming page in direction %s', (dir, direction) => {
+    const {view, old, next, animate} = setup();
+    view.play(old, next, {kind: 'wipe', dir, sec: 0.5});
+    const frames = animate.mock.calls[0]?.[0];
+    if (!Array.isArray(frames)) throw new Error('Missing wipe keyframes');
+    const maskImage = next.parentElement?.style.maskImage;
+    const reference = document.createElement('div');
+    reference.style.maskImage = wipeMask(direction);
+    expect(reference.style.maskImage).not.toBe('');
+    expect(maskImage).toBe(reference.style.maskImage);
+    expect(old.style.opacity).toBe('1');
+    expect(animate).toHaveBeenCalledTimes(2);
+    expect(
+      frames.every(frame =>
+        Object.keys(frame).every(key => key === 'transform'),
+      ),
+    ).toBe(true);
+    expect(animate.mock.calls[0]?.[1]).toEqual({
+      duration: 500,
+      easing: 'linear',
+      fill: 'both',
+    });
+  });
   it('cancels both pages on interruption, cuts, and disposal', () => {
     const {view, old, next, animate, cancel} = setup();
     view.play(old, next, {kind: 'dissolve', sec: 0.5});
