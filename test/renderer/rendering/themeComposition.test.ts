@@ -1654,7 +1654,7 @@ describe('theme composition drawing', () => {
     expect(onError).toHaveBeenCalledTimes(1);
     view.dispose();
   });
-  it('draws bottom first, resolves live text sources, and retains only fixed text after clearing', () => {
+  it('hides the whole theme on clear all and restores it', () => {
     const {root, view, text} = setup();
     const elements: ThemeElement[] = [
       {
@@ -1709,6 +1709,11 @@ describe('theme composition drawing', () => {
     expect(root.querySelector<HTMLElement>('[data-kind="box"]')?.hidden).toBe(
       false,
     );
+    const composition = root.querySelector<HTMLElement>('[data-layer="theme"]');
+    expect(composition?.style.opacity).toBe('0');
+    view.render(song, frame(elements));
+    expect(composition?.style.opacity).toBe('1');
+    expect(text('currentText')).toBe('Invented line');
     view.dispose();
     expect(root.children).toHaveLength(0);
   });

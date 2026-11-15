@@ -96,6 +96,14 @@ export class ThemeCompositionView {
 
   render(layers: LiveLayers, frame: RenderFrame): void {
     this.input = {layers, frame};
+    this.root.style.opacity = frame.theme?.item?.contentCleared
+      ? String(
+          Math.max(
+            frame.clearOpacity?.slide ?? 0,
+            frame.clearOpacity?.media ?? 0,
+          ),
+        )
+      : '1';
     const original = frame.slide ?? layers.slide;
     if (
       frame.screen?.kind === 'broadcast' &&
