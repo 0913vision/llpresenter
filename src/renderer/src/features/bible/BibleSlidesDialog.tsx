@@ -5,7 +5,7 @@ import {createSlideId} from '@core/schema/ids';
 import {SLIDES_LIMITS, type VerseSlide} from '@core/schema/service';
 import type {SlidesItem} from '@core/services/slidesEdits';
 import {passageBook} from '@core/bible/adjacentVerses';
-import {versesToReview} from '@core/bible/split/splitVerses';
+import {cutsOfVerse, versesToReview} from '@core/bible/split/splitVerses';
 import {Dialog} from '@renderer/ui/Dialog';
 import {useBibleTranslation} from './useBibleTranslation';
 import {BiblePassageDialog} from './BiblePassageDialog';
@@ -13,10 +13,29 @@ import {SplitReview} from './SplitReview';
 import {verseKey} from './BibleRefinements';
 import {useBibleRefinement} from './useBibleRefinement';
 import {useBibleReviewPreference} from './useBibleReviewPreference';
-import {confirmBibleCuts} from './saveBibleCuts';
+import {confirmBibleCuts, confirmDefaultBibleCuts} from './saveBibleCuts';
 import {loadSlidesProjection} from './loadSlidesProjection';
 import {useSlidesVerseProjection} from './useSlidesVerseProjection';
 import type {BibleProjection} from './splitProjection';
+
+async function acceptDefaultCuts(
+  api: LlpApi,
+  projection: BibleProjection,
+  references: ReadonlyArray<VerseSlide['verse']>,
+): Promise<void> {
+  for (const reference of references) {
+    const verse = projection.verses.find(
+      value => verseKey(value.reference) === verseKey(reference),
+    );
+    if (verse !== undefined) {
+      await confirmDefaultBibleCuts(
+        api.settings,
+        verse,
+        cutsOfVerse(projection.parts, reference),
+      );
+    }
+  }
+}
 
 interface Review {
   readonly item: SlidesItem;
@@ -58,6 +77,7 @@ export function BibleSlidesDialog({
     review?.explicit === false ? refreshed : null,
   );
   const projection = refreshed ?? review?.projection;
+  const isActive = (): boolean => active.current;
   const cancel = (): void => {
     active.current = false;
     refinement.cancel();
@@ -100,16 +120,19 @@ export function BibleSlidesDialog({
       if (projection === null || !active.current) return;
       const references =
         explicit === undefined ? versesToReview(projection.parts) : [explicit];
-      if (references.length === 0) {
-        onInsert(added);
-        onClose();
+      if (explicit === undefined) {
+        await acceptDefaultCuts(api, projection, references);
+        if (isActive()) {
+          onInsert(added);
+          onClose();
+        }
       } else {
         setReview({
           item: target,
           projection,
           references,
           added,
-          explicit: explicit !== undefined,
+          explicit: true,
         });
       }
     } catch (error: unknown) {

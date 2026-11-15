@@ -261,7 +261,7 @@ function VerseSplitEditor(
     }
   };
   return (
-    <div onKeyDownCapture={keyDown}>
+    <div onKeyDownCapture={keyDown} style={{display: 'contents'}}>
       <Dialog
         title="절 나누기"
         subtitle={{text: props.label}}

@@ -60,6 +60,24 @@ async function openDialog(): Promise<void> {
   await userEvent.click(screen.getByRole('button', {name: '새 예배'}));
 }
 
+it('closes on an outside click when explicitly enabled', async () => {
+  const cancel = vi.fn();
+  render(
+    <Dialog
+      title="Edit"
+      size="s"
+      closeOnOutside
+      onCancel={cancel}
+      primary={{label: 'Save', onSelect: vi.fn()}}
+    >
+      <span>Content</span>
+    </Dialog>,
+  );
+  const dialog = screen.getByRole('dialog', {name: 'Edit'});
+  await userEvent.click(scrimOf(dialog));
+  expect(cancel).toHaveBeenCalledOnce();
+});
+
 function scrimOf(surface: HTMLElement): HTMLElement {
   const scrim = surface.parentElement;
   if (scrim === null) throw new Error('No scrim');

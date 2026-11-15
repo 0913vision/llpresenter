@@ -34,7 +34,15 @@ interface EditorSession {
 /** Installs one shared projection for saved Bible items, the panel, and live navigation. */
 export function BibleSplitTools({
   onProblem,
+  allowReview = false,
+  enableManual = false,
+  selectedIndex,
+  manualRequest = 0,
 }: {
+  readonly selectedIndex?: number | undefined;
+  readonly manualRequest?: number | undefined;
+  readonly allowReview?: boolean;
+  readonly enableManual?: boolean;
   readonly onProblem: (notice: Notice) => void;
 }): JSX.Element | null {
   const api = window.llp;
@@ -109,6 +117,7 @@ export function BibleSplitTools({
         const source = splitSourceFor(useShow.getState(), id);
         const requested = source === null ? null : projections?.get(source);
         if (
+          !allowReview ||
           requested == null ||
           requested.source.review === false ||
           autoOpen === false
@@ -126,11 +135,11 @@ export function BibleSplitTools({
         });
         return true;
       }),
-    [projections, autoOpen],
+    [projections, autoOpen, allowReview],
   );
   const selected = useShow(
     view =>
-      view.selectedTile -
+      (selectedIndex ?? view.selectedTile) -
       (view.openItemId !== null &&
       view.rows.find(row => row.id === view.openItemId)?.kind === 'bible' &&
       view.tiles[view.openItemId]?.[0]?.sectionCard !== undefined
@@ -185,6 +194,7 @@ export function BibleSplitTools({
     if (first === undefined || !refinement.pending.has(verseKey(first))) {
       setSeen(refinement.identity);
       if (
+        allowReview &&
         autoOpen &&
         references.length > 0 &&
         projection.source.review !== false &&
@@ -199,10 +209,31 @@ export function BibleSplitTools({
       }
     }
   }
+  const lastManualRequest = useRef(manualRequest);
+  useEffect(() => {
+    if (lastManualRequest.current === manualRequest) return;
+    lastManualRequest.current = manualRequest;
+    const part = projection?.partsByTile[selected];
+    if (!enableManual || projection === null || part == null) return;
+    refinement.cancel();
+    queueMicrotask(() => {
+      if (active.current) {
+        setSession({
+          source: projection,
+          references: [part.reference],
+          identity: refinement.identity,
+          automatic: false,
+        });
+      }
+    });
+  }, [manualRequest, enableManual, projection, selected, refinement]);
   useWindowShortcuts([
     {
       id: 'bible.splitEdit',
-      when: () => projection?.partsByTile[selected] != null && session === null,
+      when: () =>
+        enableManual &&
+        projection?.partsByTile[selected] != null &&
+        session === null,
       run: () => {
         const part = projection?.partsByTile[selected];
         if (projection !== null && part != null) {

@@ -61,6 +61,33 @@ async function enterPassage(
 }
 
 describe('shared Bible reference form', () => {
+  it('prefills the current passage in the book, chapter and verse fields', () => {
+    render(
+      <BibleReferenceForm
+        initialRef="John 3:16-18"
+        api={{lookup: vi.fn(formLookupReply)}}
+        translation={lookupRequest().translation}
+        onPreview={vi.fn()}
+        onSubmit={vi.fn()}
+      />,
+    );
+    expect(
+      screen.getByRole<HTMLInputElement>('combobox', {name: '\ucc45'}).value,
+    ).toBe('\uc694\ud55c\ubcf5\uc74c');
+    expect(
+      screen.getByRole<HTMLInputElement>('textbox', {name: '\uc7a5'}).value,
+    ).toBe('3');
+    expect(
+      screen.getByRole<HTMLInputElement>('textbox', {
+        name: '\uc2dc\uc791\uc808',
+      }).value,
+    ).toBe('16');
+    expect(
+      screen.getByRole<HTMLInputElement>('textbox', {name: '\ub05d\uc808'})
+        .value,
+    ).toBe('18');
+  });
+
   it.each([
     ['요 3 16', '요한복음 3:16'],
     ['요한복음 3 16 18', '요한복음 3:16-18'],

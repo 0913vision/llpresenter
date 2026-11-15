@@ -18,6 +18,8 @@ import {
   useSlideSurfaceView,
 } from '@renderer/features/songs/editor/SlideSurfaceView';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
+import {useSlideTheme} from '@renderer/platform/useSlideTheme';
+import {sermonPreviewRow} from '@renderer/platform/sermonPreview';
 import {LeadingSlideCardView} from '@renderer/features/songs/editor/LeadingSlideCardView';
 import {useSongBlockWindow} from '@renderer/features/songs/editor/useSongBlockWindow';
 import {SongSlideSurface} from '@renderer/features/songs/editor/SongSlideSurface';
@@ -38,7 +40,9 @@ export function BibleInlineEditor({
   ui,
   onBack,
   hideHeader = false,
+  onSplit,
 }: {
+  readonly onSplit?: (() => void) | undefined;
   readonly items: ServiceItemStore;
   readonly ui: Pick<UiApi, 'setLayout'>;
   readonly onBack: () => void;
@@ -47,7 +51,8 @@ export function BibleInlineEditor({
   const state = useSyncExternalStore(items.subscribe, items.getSnapshot);
   if (
     state.item === null ||
-    !isItemOfKind(state.item, 'bible') ||
+    (!isItemOfKind(state.item, 'bible') &&
+      !isItemOfKind(state.item, 'sermon')) ||
     state.service === null
   ) {
     return null;
@@ -62,6 +67,7 @@ export function BibleInlineEditor({
       ui={ui}
       onBack={onBack}
       hideHeader={hideHeader}
+      onSplit={onSplit}
     />
   );
 }
@@ -74,10 +80,12 @@ function BibleEditorContent({
   ui,
   onBack,
   hideHeader,
+  onSplit,
   locked,
 }: {
+  readonly onSplit?: (() => void) | undefined;
   readonly items: ServiceItemStore;
-  readonly item: ServiceItemOf<'bible'>;
+  readonly item: ServiceItemOf<'bible' | 'sermon'>;
   readonly serviceId: string;
   readonly position: number;
   readonly ui: Pick<UiApi, 'setLayout'>;
@@ -92,6 +100,11 @@ function BibleEditorContent({
     [item, saved, projection?.tiles],
   );
   const card = useLeadingItemCard(items, item.id);
+  const sermonTheme = useSlideTheme(
+    isItemOfKind(item, 'sermon')
+      ? sermonPreviewRow(item.id, item.sermon.passage.ref)
+      : undefined,
+  );
   const {mode, scale} = useSlideSurfaceView();
   const verses = useMemo(
     () =>
@@ -145,6 +158,16 @@ function BibleEditorContent({
           <Button onClick={onBack}>‹ 예배 순서</Button>
           <strong>{displayReference(data.reference.ref)}</strong>
         </header>
+      )}
+      {onSplit === undefined ? null : (
+        <Button
+          disabled={
+            locked || projection?.partsByTile[position - offset] == null
+          }
+          onClick={onSplit}
+        >
+          {'\uc808 \ub098\ub204\uae30'}
+        </Button>
       )}
       <SongSlideSurface
         session={session}
@@ -235,6 +258,7 @@ function BibleEditorContent({
                           index={index - offset}
                           verses={verses}
                           projection={projection}
+                          sermonTheme={sermonTheme}
                         />
                       </div>
                       <SlideThumbnailBand
@@ -269,7 +293,9 @@ function VersePicture({
   index,
   verses,
   projection,
+  sermonTheme,
 }: {
+  readonly sermonTheme: ReturnType<typeof useSlideTheme>;
   readonly itemId: string;
   readonly index: number;
   readonly verses: readonly ShowTile[];
@@ -277,6 +303,9 @@ function VersePicture({
 }): JSX.Element | null {
   const appearance = projection?.appearance;
   const layer = slideLayerOf({itemId, index}, () => verses);
+  if (layer?.sermonTitle === true && sermonTheme !== undefined) {
+    return <SlidePicture output {...sermonTheme} slide={layer} />;
+  }
   if (appearance === undefined || layer === null) return null;
   return (
     <SlidePicture

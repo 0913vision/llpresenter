@@ -1,6 +1,6 @@
 import type {LlpApi} from '@contracts/ipc/api';
 import type {VerseInput} from '@core/bible/split/splitVerses';
-import {entryFor, saveCuts} from '@core/bible/split/splitCache';
+import {entryFor, knownCutsFor, saveCuts} from '@core/bible/split/splitCache';
 
 /** Merges against a fresh revision so other windows' confirmations survive. */
 export async function confirmBibleCuts(
@@ -8,11 +8,34 @@ export async function confirmBibleCuts(
   verse: VerseInput,
   cuts: readonly number[],
 ): Promise<void> {
+  return saveConfirmedCuts(api, verse, {cuts, onlyIfMissing: false});
+}
+
+export async function confirmDefaultBibleCuts(
+  api: LlpApi['settings'],
+  verse: VerseInput,
+  cuts: readonly number[],
+): Promise<void> {
+  return saveConfirmedCuts(api, verse, {cuts, onlyIfMissing: true});
+}
+
+async function saveConfirmedCuts(
+  api: LlpApi['settings'],
+  verse: VerseInput,
+  options: {readonly cuts: readonly number[]; readonly onlyIfMissing: boolean},
+): Promise<void> {
+  const {cuts} = options;
   const entry = entryFor(verse.text, cuts, new Date().toISOString());
   for (let attempt = 0; attempt < 3; attempt++) {
     const document = await api.get({name: 'bibleCuts'});
     if (document.name !== 'bibleCuts' || document.access !== 'editable') {
       throw new Error('절 나누기 저장 실패');
+    }
+    if (
+      options.onlyIfMissing &&
+      knownCutsFor(document.value, verse.reference, verse.text) !== undefined
+    ) {
+      return;
     }
     const value = saveCuts(document.value, verse.reference, entry);
     if (value === null) throw new Error('구절이 너무 많아 저장할 수 없습니다');

@@ -37,6 +37,7 @@ import {
 import styles from './BibleReferenceField.module.css';
 
 export interface BibleReferenceFormProps {
+  readonly initialRef?: string | undefined;
   readonly api: BibleLookupApi;
   readonly translation: TranslationId | undefined;
   readonly onPreview: (passage: BibleLookupPassage) => void;
@@ -94,7 +95,21 @@ function readReferenceFields(
 export function BibleReferenceForm(
   props: BibleReferenceFormProps,
 ): JSX.Element {
-  const [fields, setFields] = useState(EMPTY_REFERENCE);
+  const [fields, setFields] = useState(() => {
+    const parsed =
+      props.initialRef === undefined ? null : parseReference(props.initialRef);
+    if (!parsed?.ok) return EMPTY_REFERENCE;
+    const value = parsed.value;
+    return {
+      book: value.book.korean,
+      chapter: String(value.chapter),
+      start: value.verse === null ? '' : String(value.verse),
+      end:
+        value.endVerse === null || value.endVerse === value.verse
+          ? ''
+          : String(value.endVerse),
+    };
+  });
   const [open, setOpen] = useState(false);
   const [pointed, setPointed] = useState(-1);
   const [keyboardPointed, setKeyboardPointed] = useState<number | null>(null);

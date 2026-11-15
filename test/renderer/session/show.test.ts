@@ -342,6 +342,46 @@ describe('show state', () => {
     expect(slides().at(-1)?.slide.next).toMatchObject({stageStandby: true});
   });
 
+  it('previews the closing sermon title after the last verse only', () => {
+    const id = 'sermon-item';
+    const passage = lookupRequest('John 3:16');
+    const title = {
+      label: null,
+      labelColor: 'none' as const,
+      lines: ['Sermon'],
+      sermonTitle: true as const,
+    };
+    useShow.setState({
+      rows: [
+        {
+          kind: 'bible',
+          id,
+          title: 'Sermon',
+          sermonTitle: 'Sermon',
+          bible: {
+            translation: passage.translation,
+            ref: passage.input,
+            sermonTitle: 'Sermon',
+          },
+        },
+      ],
+      tiles: {
+        [id]: [
+          title,
+          {label: '3:16', labelColor: 'none', lines: ['Verse']},
+          title,
+        ],
+      },
+    });
+    outputTile({itemId: id, index: 1});
+    expect(slides().at(-1)?.slide.next).toMatchObject({
+      sermonTitle: true,
+      lines: ['Sermon'],
+    });
+    outputTile({itemId: id, index: 2});
+    expect(slides().at(-1)?.slide.next?.sermonTitle).not.toBe(true);
+  });
+
   it('labels only a different, non-sermon next Bible passage', () => {
     const passage = {
       kind: 'bible' as const,

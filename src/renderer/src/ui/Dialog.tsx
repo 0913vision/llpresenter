@@ -32,6 +32,7 @@ export interface DialogProps {
   readonly height?: number | undefined;
   /** What [취소], the close button, and Esc do. */
   readonly onCancel: () => void;
+  readonly closeOnOutside?: boolean | undefined;
   readonly cancelLabel?: string | null | undefined;
   /** An auxiliary action at the left of the footer. */
   readonly footerStart?: ReactNode;
@@ -131,11 +132,24 @@ function keepFocusInModal(event: MouseEvent<HTMLDivElement>): void {
  */
 export function ModalScrim({
   children,
+  onOutside,
 }: {
   readonly children: ReactNode;
+  readonly onOutside?: (() => void) | undefined;
 }): JSX.Element {
   return createPortal(
-    <div className={styles.scrim} onMouseDown={keepFocusInModal}>
+    <div
+      className={styles.scrim}
+      onMouseDown={keepFocusInModal}
+      onClick={event => {
+        if (
+          event.target === event.currentTarget ||
+          event.target === event.currentTarget.firstElementChild
+        ) {
+          onOutside?.();
+        }
+      }}
+    >
       <div className={styles.frame}>{children}</div>
     </div>,
     layerContainer('dialog'),
@@ -153,6 +167,7 @@ export function Dialog({
   size,
   height,
   onCancel,
+  closeOnOutside = false,
   cancelLabel = CANCEL_LABEL,
   footerStart,
   headerEnd,
@@ -175,7 +190,7 @@ export function Dialog({
     initialFocus,
   });
   return (
-    <ModalScrim>
+    <ModalScrim onOutside={closeOnOutside ? onCancel : undefined}>
       <div
         ref={surface}
         role="dialog"

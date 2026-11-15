@@ -11,6 +11,7 @@ import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {useShow} from '@renderer/session/show';
 import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
+import {sermonPreviewRow} from '@renderer/platform/sermonPreview';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {MediaProperties} from '@renderer/features/media/MediaPropertiesPanel';
 import {Panel, PanelBody} from '@renderer/ui/Panel';
@@ -20,6 +21,7 @@ import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
 import type {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {useItemMedia} from '../items/useItemSources';
 import {savedPassageTiles} from '../items/bibleItemModel';
+import {SermonInlineEditor} from '../items/SermonInlineEditor';
 import type {ServiceItemStore} from '../items/serviceItemStore';
 import styles from './SlideInspector.module.css';
 
@@ -40,7 +42,15 @@ export function OtherSlideInspector({
 }): JSX.Element {
   const {item, service, position, busy, bibleSelection, cardSelected} =
     useSyncExternalStore(items.subscribe, items.getSnapshot);
-  const bible = item !== null && isItemOfKind(item, 'bible');
+  const bible =
+    item !== null &&
+    (isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon'));
+  const passage =
+    item !== null && isItemOfKind(item, 'sermon')
+      ? item.sermon.passage
+      : item !== null && isItemOfKind(item, 'bible')
+        ? item.bible
+        : undefined;
   const liturgy = item !== null && isItemOfKind(item, 'liturgy') ? item : null;
   const liturgyTiles = useShow(view =>
     liturgy === null ? undefined : view.tiles[liturgy.id],
@@ -84,7 +94,7 @@ export function OtherSlideInspector({
       ? (liturgyTiles?.length ?? 0)
       : item !== null && isItemOfKind(item, 'slides')
         ? item.slides.slides.length + 1
-        : tiles.length + 1;
+        : tiles.length + (item !== null && hasSectionCard(item) ? 1 : 0);
   const cardTheme = useSlideTheme(
     card === undefined || item === null
       ? undefined
@@ -95,6 +105,11 @@ export function OtherSlideInspector({
           title: card.name,
           theme: card.theme,
         },
+  );
+  const sermonTheme = useSlideTheme(
+    item !== null && isItemOfKind(item, 'sermon')
+      ? sermonPreviewRow(item.id, item.sermon.passage.ref)
+      : undefined,
   );
   const tile = index >= 0 ? tiles[index] : undefined;
   const layer =
@@ -113,6 +128,11 @@ export function OtherSlideInspector({
           .map(selectedIndex => projection?.partsByTile[selectedIndex])
           .filter(part => part != null)
       : [];
+  const selectedIndices = bibleSelection.length > 0 ? bibleSelection : [index];
+  const selectedTitles =
+    item !== null && isItemOfKind(item, 'sermon')
+      ? selectedIndices.filter(i => tiles[i]?.sermonTitle === true)
+      : [];
   const selectedCard =
     bible && cardSelected && hasSectionCard(item) ? item.sectionCard : card;
   const values = [
@@ -123,6 +143,9 @@ export function OtherSlideInspector({
             ? selectedCard.transition
             : cardTransition) ?? {kind: 'none' as const, sec: 0.5},
         ]),
+    ...selectedTitles.map(
+      i => tiles[i]?.transition ?? {kind: 'none' as const, sec: 0.5},
+    ),
     ...(bible
       ? selectedParts.map(
           selectedPart =>
@@ -131,7 +154,7 @@ export function OtherSlideInspector({
               selectedPart.reference,
               selectedPart.part,
             ) ??
-            item.bible.transition ?? {kind: 'none' as const, sec: 0.5},
+            passage?.transition ?? {kind: 'none' as const, sec: 0.5},
         )
       : []),
   ];
@@ -169,7 +192,13 @@ export function OtherSlideInspector({
               };
             }
           }
-          if (isItemOfKind(updated, 'bible')) {
+          if (
+            isItemOfKind(updated, 'bible') ||
+            isItemOfKind(updated, 'sermon')
+          ) {
+            const settings = isItemOfKind(updated, 'sermon')
+              ? updated.sermon.passage
+              : updated.bible;
             const parts = all
               ? (projection?.partsByTile ?? []).filter(part => part != null)
               : selectedParts;
@@ -177,7 +206,7 @@ export function OtherSlideInspector({
             for (const entry of parts) {
               const old =
                 biblePartEffect(transitions, entry.reference, entry.part) ??
-                updated.bible.transition;
+                settings.transition;
               const effect =
                 typeof next === 'number'
                   ? old === undefined
@@ -191,6 +220,21 @@ export function OtherSlideInspector({
                   effect,
                 );
               }
+            }
+            if (isItemOfKind(updated, 'sermon')) {
+              const indices = all ? [0, tiles.length - 1] : selectedTitles;
+              let sermon = updated.sermon;
+              for (const titleIndex of indices) {
+                const key =
+                  titleIndex === 0 ? 'openingTransition' : 'closingTransition';
+                const old = sermon[key];
+                const effect =
+                  typeof next === 'number'
+                    ? {...(old ?? {kind: 'none' as const, sec: 0.5}), sec: next}
+                    : next;
+                sermon = {...sermon, [key]: effect};
+              }
+              updated = {...updated, sermon};
             }
             const {bibleTransitions: _old, ...rest} = updated;
             return {
@@ -208,6 +252,9 @@ export function OtherSlideInspector({
   return (
     <Panel label="슬라이드 속성">
       <PanelBody>
+        {item !== null && isItemOfKind(item, 'sermon') ? (
+          <SermonInlineEditor items={items} />
+        ) : null}
         {file === undefined || file.kind === 'audio' ? null : (
           <>
             <div className={styles.picture} data-background-picture>
@@ -305,15 +352,19 @@ export function OtherSlideInspector({
           <>
             <div className={styles.picture} data-background-picture>
               <div className={styles.canvas}>
-                <SlidePicture
-                  output
-                  themeId={appearance.theme.themeId}
-                  screen={appearance.screen}
-                  slide={layer}
-                  layout={appearance.theme.layout}
-                  emptyColor={appearance.theme.emptyColor}
-                  item={appearance.theme.item}
-                />
+                {tile.sermonTitle === true && sermonTheme !== undefined ? (
+                  <SlidePicture output {...sermonTheme} slide={layer} />
+                ) : (
+                  <SlidePicture
+                    output
+                    themeId={appearance.theme.themeId}
+                    screen={appearance.screen}
+                    slide={layer}
+                    layout={appearance.theme.layout}
+                    emptyColor={appearance.theme.emptyColor}
+                    item={appearance.theme.item}
+                  />
+                )}
               </div>
             </div>
             <div className={styles.caption} style={labelInk(tile.labelColor)}>
@@ -326,7 +377,8 @@ export function OtherSlideInspector({
         )}
         {(selectedCard !== undefined ||
           part != null ||
-          selectedParts.length > 0) &&
+          selectedParts.length > 0 ||
+          selectedTitles.length > 0) &&
         service !== null ? (
           <div
             onKeyDown={event => {

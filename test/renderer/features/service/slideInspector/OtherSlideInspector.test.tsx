@@ -22,22 +22,59 @@ vi.mock('@renderer/features/bible/useBibleProjections', () => ({
   useBibleTileProjection: ({itemId}: {itemId: string | null}) =>
     itemId === null
       ? null
-      : {
-          tiles: [
-            {label: '1:1', labelColor: 'none', lines: ['첫 말씀']},
-            {label: '1:2', labelColor: 'none', lines: ['둘째 말씀']},
-          ],
-          partsByTile: [1, 2].map(verse => ({
-            reference: {translation: 'sample', book: 1, chapter: 1, verse},
-            part: 1,
-            partCount: 1,
-            text: 'text',
-            display: 'text',
-            continued: false,
-            manual: false,
-          })),
-          appearance: {theme: {layout: {}, emptyColor: '#000', item: null}},
-        },
+      : itemId.endsWith('000000000098')
+        ? {
+            tiles: [
+              {
+                label: null,
+                labelColor: 'none',
+                lines: ['Sermon'],
+                sermonTitle: true,
+              },
+              {label: '1:1', labelColor: 'none', lines: ['Verse']},
+              {
+                label: null,
+                labelColor: 'none',
+                lines: ['Sermon'],
+                sermonTitle: true,
+              },
+            ],
+            partsByTile: [
+              null,
+              {
+                reference: {
+                  translation: 'sample',
+                  book: 1,
+                  chapter: 1,
+                  verse: 1,
+                },
+                part: 1,
+                partCount: 1,
+                text: 'text',
+                display: 'text',
+                continued: false,
+                manual: false,
+              },
+              null,
+            ],
+            appearance: {theme: {layout: {}, emptyColor: '#000', item: null}},
+          }
+        : {
+            tiles: [
+              {label: '1:1', labelColor: 'none', lines: ['첫 말씀']},
+              {label: '1:2', labelColor: 'none', lines: ['둘째 말씀']},
+            ],
+            partsByTile: [1, 2].map(verse => ({
+              reference: {translation: 'sample', book: 1, chapter: 1, verse},
+              part: 1,
+              partCount: 1,
+              text: 'text',
+              display: 'text',
+              continued: false,
+              manual: false,
+            })),
+            appearance: {theme: {layout: {}, emptyColor: '#000', item: null}},
+          },
 }));
 vi.mock('@renderer/rendering/SlidePicture', () => ({
   SlidePicture: ({slide}: {slide: {label: string; sectionCard?: unknown}}) => (
@@ -63,47 +100,68 @@ vi.mock('@renderer/features/media/MediaPropertiesPanel', () => ({
 }));
 
 async function setup(
-  kind: 'image' | 'video' | 'bible' | 'bible-card' | 'slide-card',
+  kind: 'image' | 'video' | 'bible' | 'bible-card' | 'slide-card' | 'sermon',
 ) {
   const fixture = itemFixture();
   const old = fixture.service();
-  const itemId = createServiceItemId('50000000-0000-4000-8000-000000000099');
+  const itemId = createServiceItemId(
+    kind === 'sermon'
+      ? '50000000-0000-4000-8000-000000000098'
+      : '50000000-0000-4000-8000-000000000099',
+  );
   const item =
-    kind === 'bible' || kind === 'bible-card'
+    kind === 'sermon'
       ? {
           id: itemId,
-          ...(kind === 'bible-card'
-            ? {
-                sectionCard: {
-                  name: '예배 시작',
-                  english: 'WELCOME',
-                  theme: createThemeId('00000000-0000-4000-8000-000000000100'),
-                },
-              }
-            : {}),
-          bible: {
-            translation: parse(translationIdSchema, 'sample'),
-            ref: '창세기 1:1',
-            split: 'verse' as const,
-            reference: 'every' as const,
-            verseNumbers: true,
-            translationName: false,
+          sermon: {
+            title: 'Sermon',
+            passage: {
+              translation: parse(translationIdSchema, 'sample'),
+              ref: 'John 1:1',
+              split: 'verse' as const,
+              reference: 'every' as const,
+              verseNumbers: true,
+              translationName: false,
+            },
           },
         }
-      : kind === 'slide-card'
+      : kind === 'bible' || kind === 'bible-card'
         ? {
             id: itemId,
-            sectionCard: {
-              name: '예배 시작',
-              english: 'WELCOME',
-              theme: createThemeId('00000000-0000-4000-8000-000000000100'),
+            ...(kind === 'bible-card'
+              ? {
+                  sectionCard: {
+                    name: '예배 시작',
+                    english: 'WELCOME',
+                    theme: createThemeId(
+                      '00000000-0000-4000-8000-000000000100',
+                    ),
+                  },
+                }
+              : {}),
+            bible: {
+              translation: parse(translationIdSchema, 'sample'),
+              ref: '창세기 1:1',
+              split: 'verse' as const,
+              reference: 'every' as const,
+              verseNumbers: true,
+              translationName: false,
             },
-            slides: {form: 'blank' as const, name: 'Section', slides: []},
           }
-        : {
-            id: itemId,
-            media: kind === 'image' ? fixtureMedia.warm : fixtureMedia.dawn,
-          };
+        : kind === 'slide-card'
+          ? {
+              id: itemId,
+              sectionCard: {
+                name: '예배 시작',
+                english: 'WELCOME',
+                theme: createThemeId('00000000-0000-4000-8000-000000000100'),
+              },
+              slides: {form: 'blank' as const, name: 'Section', slides: []},
+            }
+          : {
+              id: itemId,
+              media: kind === 'image' ? fixtureMedia.warm : fixtureMedia.dawn,
+            };
   fixture.pushService({
     ...old,
     revision: old.revision + 1,
@@ -116,6 +174,37 @@ async function setup(
   await waitFor(() => expect(items.getSnapshot().item).not.toBeNull());
   return {view, items, editor, fixture};
 }
+it('saves opening and closing sermon title transitions independently', async () => {
+  const {view, items, editor} = await setup('sermon');
+  await userEvent.click(screen.getByLabelText('\ud6a8\uacfc'));
+  await userEvent.click(
+    screen.getByRole('menuitemradio', {name: '\ub514\uc878\ube0c'}),
+  );
+  await waitFor(() =>
+    expect(items.getSnapshot().item).toMatchObject({
+      sermon: {openingTransition: {kind: 'dissolve'}},
+    }),
+  );
+  act(() => {
+    items.setBibleSelection([2]);
+    items.selectPosition(2);
+  });
+  await userEvent.click(screen.getByLabelText('\ud6a8\uacfc'));
+  await userEvent.click(
+    screen.getByRole('menuitemradio', {name: '\ubc00\uc5b4\ub0b4\uae30'}),
+  );
+  await waitFor(() =>
+    expect(items.getSnapshot().item).toMatchObject({
+      sermon: {
+        openingTransition: {kind: 'dissolve'},
+        closingTransition: {kind: 'push'},
+      },
+    }),
+  );
+  view.unmount();
+  items.dispose();
+  await editor.dispose();
+});
 it('shows the card-only slide item in the inspector', async () => {
   const {view, items, editor} = await setup('slide-card');
   expect(screen.getByTestId('card-picture').textContent).toBe('예배 시작');

@@ -238,6 +238,8 @@ const itemSchemas = {
     sectionCard: v.exactOptional(sectionCardSchema),
     sermon: jsonObject({
       title: sermonTitleSchema,
+      openingTransition: v.exactOptional(slideTransitionSchema),
+      closingTransition: v.exactOptional(slideTransitionSchema),
       passage: biblePassageSchema,
       originalTitle: v.exactOptional(
         v.union([songItemSchema, slidesItemSchema]),

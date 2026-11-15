@@ -41,6 +41,8 @@ export interface SplitAppearance {
 interface SplitOptions {
   readonly background?: string;
   readonly sermonTitle?: string;
+  readonly sermonOpeningTransition?: SlideTransition;
+  readonly sermonClosingTransition?: SlideTransition;
   readonly transitions?: readonly BiblePartTransition[];
   readonly transition?: SlideTransition;
   readonly id: string;
@@ -151,6 +153,12 @@ export function splitSourceFor(
     ...(row.bible.sermonTitle === undefined
       ? {}
       : {sermonTitle: row.bible.sermonTitle}),
+    ...(row.bible.sermonOpeningTransition === undefined
+      ? {}
+      : {sermonOpeningTransition: row.bible.sermonOpeningTransition}),
+    ...(row.bible.sermonClosingTransition === undefined
+      ? {}
+      : {sermonClosingTransition: row.bible.sermonClosingTransition}),
     verseNumbers: row.bible.verseNumbers ?? true,
     reference: row.bible.reference ?? 'every',
     translationName: row.bible.translationName ?? false,
@@ -206,7 +214,12 @@ export function projectBible(
       prefix,
       refined: refined?.(verse, prefix),
     });
-    if (parts.length + next.length > SHOW_SERVICE_LIMITS.tiles) return capped;
+    if (
+      parts.length + next.length + (source.sermonTitle === undefined ? 0 : 2) >
+      SHOW_SERVICE_LIMITS.tiles
+    ) {
+      return capped;
+    }
     parts.push(...next);
   }
   const name = source.passage.displayRef.replace(/\s+\d.*$/u, '');
@@ -245,7 +258,8 @@ export function projectBible(
     layout,
     verses,
     parts,
-    partsByTile: source.sermonTitle === undefined ? parts : [null, ...parts],
+    partsByTile:
+      source.sermonTitle === undefined ? parts : [null, ...parts, null],
     tiles:
       source.sermonTitle === undefined
         ? tiles
@@ -256,8 +270,21 @@ export function projectBible(
               lines: [source.sermonTitle],
               reference: source.passage.displayRef,
               sermonTitle: true,
+              ...(source.sermonOpeningTransition === undefined
+                ? {}
+                : {transition: source.sermonOpeningTransition}),
             },
             ...tiles,
+            {
+              label: null,
+              labelColor: NO_LABEL_COLOR,
+              lines: [source.sermonTitle],
+              reference: source.passage.displayRef,
+              sermonTitle: true,
+              ...(source.sermonClosingTransition === undefined
+                ? {}
+                : {transition: source.sermonClosingTransition}),
+            },
           ],
     numbered: source.verseNumbers && verses.length > 1,
   };
@@ -289,6 +316,10 @@ export class BibleProjections {
       cached !== undefined &&
       sourceContent(cached.source) === sourceContent(source) &&
       cached.source.sermonTitle === source.sermonTitle &&
+      cached.source.sermonOpeningTransition ===
+        source.sermonOpeningTransition &&
+      cached.source.sermonClosingTransition ===
+        source.sermonClosingTransition &&
       cached.source.theme === source.theme &&
       cached.source.background === source.background &&
       cached.source.verseNumbers === source.verseNumbers &&

@@ -1,3 +1,4 @@
+import {AutoConfirmBible} from '@renderer/features/bible/AutoConfirmBible';
 import {PaletteEditingProvider} from '@renderer/features/service/items/PaletteEditing';
 import type {SongId} from '@core/schema/ids';
 import {Fragment, useCallback, useRef, type JSX} from 'react';
@@ -171,6 +172,9 @@ export function Workspace({
         mediaOpen && api !== undefined && styles.mediaOpen,
       )}
     >
+      {id === 'prep' ? (
+        <AutoConfirmBible onProblem={onProblem ?? logPanelProblem} />
+      ) : null}
       {id === 'show' ? (
         <ShowShortcuts onProblem={onProblem ?? logPanelProblem} />
       ) : null}
