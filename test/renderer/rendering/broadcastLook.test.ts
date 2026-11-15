@@ -405,11 +405,7 @@ describe('built-in broadcast look', () => {
       ).toBe(false);
       const body = element(result, BROADCAST_LOOK_SONG_ID);
       if (!('broadcastText' in body)) throw Error('Missing broadcast text');
-      if (current.lines.length === 0) {
-        expect(body.broadcastText).toBe('');
-      } else {
-        expect(body.broadcastText).toContain('임재');
-      }
+      expect(body.broadcastText).toContain('임재');
     }
     const lyric = fitBroadcastLook(
       layout,
@@ -480,7 +476,7 @@ describe('built-in broadcast look', () => {
       ).toHaveLength(0);
     }
   });
-  it('keeps an empty song slide empty even when the item has a title', () => {
+  it('shows the song title, never the empty slide label, and remains empty without a title', () => {
     const layout = builtInTheme('song').screens[screen];
     if (!layout) throw Error('missing song');
     const empty = {...slide, kind: 'song' as const, label: '간주', lines: []};
@@ -490,7 +486,7 @@ describe('built-in broadcast look', () => {
       title: '주 사랑',
     });
     expect(element(titled, BROADCAST_LOOK_SONG_ID)).toMatchObject({
-      broadcastText: '',
+      broadcastText: '주 사랑',
     });
     const untitled = fitBroadcastLook(layout, empty, {...item, kind: 'song'});
     expect(element(untitled, BROADCAST_LOOK_SONG_ID)).toMatchObject({
