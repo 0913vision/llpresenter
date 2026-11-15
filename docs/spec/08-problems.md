@@ -424,13 +424,13 @@ writing rules.
 - Never ask for confirmation before an action that affects the output. Never
   block F1 to F6: they work with a dialog open and with a text field focused.
 - Keep fonts, icons, and media local. The temporary built-in GAE translation
-  fetches requested chapters from the Korean Bible Society only on an operator
-  lookup or insertion. Output and service refresh use cached chapters only.
-  Successful chapters remain cached for the session; an unavailable chapter
-  shows a passage problem. Installed Bible files remain usable offline. The
-  optional local AI chooser may contact only the IPv4 loopback HTTP server and
-  never follow a redirect. Missing or failed AI uses rules for that verse (04,
-  "Local AI boundary chooser").
+  fetches requested chapters from the Korean Bible Society on an operator lookup
+  or in the background when opening a service whose saved chapters are missing.
+  Output uses cached chapters; successful chapters persist on disk. An
+  unavailable chapter shows a passage problem with retry. Installed Bible files
+  remain usable offline. The optional local AI chooser may contact only the IPv4
+  loopback HTTP server and never follow a redirect. Missing or failed AI uses
+  rules for that verse (04, "Local AI boundary chooser").
 - Never install an update, restart the app on its own, or show an update prompt
   while any output is on. The updater defers its questions until every output is
   off, and installs only after an explicit click and clean shutdown (01, "App

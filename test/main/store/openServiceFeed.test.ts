@@ -21,6 +21,7 @@ import {parseBibleProjection} from '@core/schema/bibleProjection';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {defaultPreferences} from '@core/schema/preferences';
+import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
 
 async function setUp(
   backgroundOf: OpenServiceSources['backgroundOf'] = async () => null,
@@ -65,6 +66,96 @@ async function setUp(
 }
 
 describe('OpenServiceFeed', () => {
+  it('opens immediately and refreshes a saved live sermon when background lookup finishes', async () => {
+    const request = parseBibleLookupRequest({
+      translation: LIVE_BIBLE_ID,
+      input: 'John 3:16',
+    });
+    if (!request.ok) throw Error('Invalid request');
+    let complete: ((reply: BibleLookupReply) => void) | undefined;
+    const success: BibleLookupReply = {
+      ...request.value,
+      suggestions: [],
+      result: {
+        ok: true,
+        value: {
+          translation: LIVE_BIBLE_ID,
+          ref: request.value.input,
+          displayRef: request.value.input,
+          verses: [{chapter: 3, verse: 16, text: 'Verse'}],
+        },
+      },
+    };
+    const failure: BibleLookupReply = {
+      ...request.value,
+      suggestions: [],
+      result: {ok: false, error: {code: 'translation', message: 'offline'}},
+    };
+    let cached = false;
+    const lookup = vi.fn(async () => (cached ? success : failure));
+    const background = vi.fn(
+      () =>
+        new Promise<BibleLookupReply>(resolve => {
+          complete = reply => {
+            cached = true;
+            resolve(reply);
+          };
+        }),
+    );
+    const parsed = parseService(
+      JSON.stringify(service(SUNDAY_ID, '2026-11-01T11:00', [])),
+      'service.llservice',
+    );
+    if (!parsed.ok) throw Error('Invalid service');
+    const id = createServiceItemId(itemId(80));
+    const doc = {
+      ...parsed.value,
+      file: 'service.llservice',
+      revision: 1,
+      data: {
+        ...parsed.value.data,
+        order: [
+          {
+            id,
+            sermon: {
+              title: 'Sermon',
+              passage: {
+                translation: LIVE_BIBLE_ID,
+                ref: request.value.input,
+                split: 'verse' as const,
+                reference: 'every' as const,
+                verseNumbers: true,
+                translationName: false,
+              },
+            },
+          },
+        ],
+      },
+    };
+    const push = vi.fn();
+    const feed = new OpenServiceFeed(
+      {
+        serviceId: SUNDAY_ID,
+        labels: [],
+        content: {storedService: () => doc, storedSongs: () => new Map()},
+        backgroundOf: async () => null,
+        bible: {lookup},
+        backgroundBible: {lookup: background},
+      },
+      push,
+      vi.fn(),
+    );
+    await feed.refresh();
+    expect(feed.current()?.rows[0]).toMatchObject({problem: 'loading-bible'});
+    expect(feed.current()?.tiles[id] ?? []).toEqual([]);
+    await vi.waitFor(() => expect(complete).toBeDefined());
+    complete?.(success);
+    await vi.waitFor(() => expect(feed.current()?.tiles[id]).toHaveLength(2));
+    expect(feed.current()?.rows[0]).not.toHaveProperty('problem');
+    expect(push).toHaveBeenCalled();
+    await feed.dispose();
+  });
+
   it('publishes measured cuts and rejects stale or incomplete projections', async () => {
     const request = parseBibleLookupRequest({
       translation: 'sample',

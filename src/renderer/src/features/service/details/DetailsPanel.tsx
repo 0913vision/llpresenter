@@ -15,6 +15,7 @@ import {useShow} from '@renderer/session/show';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {sermonPreviewRow} from '@renderer/platform/sermonPreview';
 import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjections';
+import {BibleLoadNotice} from '@renderer/features/bible/BibleLoadNotice';
 import {Panel, PanelBody, PanelFooter, PanelTabs} from '@renderer/ui/Panel';
 import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
 import type {SizeClass} from '@renderer/ui/sizeClass';
@@ -146,6 +147,15 @@ function DetailsPanelContent({
     target?.kind === 'item' && state.item?.id === target.itemId
       ? state.item
       : null;
+  const showRow = useShow(view =>
+    item === null ? undefined : view.rows.find(row => row.id === item.id),
+  );
+  const passageProblem =
+    showRow?.kind !== 'header' &&
+    (showRow?.problem === 'missing-bible' ||
+      showRow?.problem === 'loading-bible')
+      ? showRow
+      : undefined;
   const projectedTiles = useShow(view =>
     item === null ? undefined : view.tiles[item.id],
   );
@@ -409,7 +419,13 @@ function DetailsPanelContent({
         ) : null
       }
     >
-      <div className={styles.picture}>{picture(0)}</div>
+      <div className={styles.picture}>
+        {passageProblem === undefined ? (
+          picture(0)
+        ) : (
+          <BibleLoadNotice row={passageProblem} />
+        )}
+      </div>
       {targetScreen === undefined ? null : (
         <SegmentedControl
           label="미리보기 화면"
@@ -430,7 +446,9 @@ function DetailsPanelContent({
         {title}
       </div>
       <div className={styles.meta}>
-        {title === '' ? '' : detailsKindLine(item, kind, count)}
+        {title === '' || passageProblem !== undefined
+          ? ''
+          : detailsKindLine(item, kind, count)}
       </div>
       <PanelTabs tabs={tabs} value={tab} onChange={setTab} />
       {tab === 'info' ? (

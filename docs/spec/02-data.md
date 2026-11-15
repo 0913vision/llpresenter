@@ -798,9 +798,9 @@ translation and use cached live chapters when that translation lacks the book.
 
 - The built-in GAE translation temporarily fetches requested chapters live from
   the Korean Bible Society. It is the fallback when no translation is installed.
-  Fetched text stays in the session's in-memory chapter cache and is never saved
-  to disk or downloaded in bulk. A failed request shows the passage problem and
-  is retried on the next use.
+  Fetched chapters are cached in memory and as validated files under
+  `bible/live` for future sessions; the app does not download the Bible in bulk.
+  Missing service passages load in the background and offer retry after failure.
 - Installed `.llbible` translations remain available without network access and
   keep their existing default selection and file format. No Bible text is
   committed to the repository.
@@ -1306,9 +1306,9 @@ retained when saved. ????? ?? ?? ???? ???????? ??? ?? ????? ????. ??? ??? ??? ?
 ???? ???? ??? ?????
 
 The built-in GAE translation fetches only requested chapters live from the
-Korean Bible Society. Chapter text is held only in the session memory cache; it
-is never saved to a file or downloaded in bulk. A failed fetch shows the
-existing problem state and is retried on the next use. Installed `.llbible`
+Korean Bible Society. Requested chapters are cached in memory and on disk,
+validated when read, and are never downloaded in bulk. Missing service chapters
+load in the background; failure is shown with retry. Installed `.llbible`
 translations continue to work.
 
 ### Sermon item

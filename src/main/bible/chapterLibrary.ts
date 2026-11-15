@@ -1,5 +1,6 @@
 import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
 import {fetchLiveChapter} from './liveChapter';
+import {readLiveChapter, writeLiveChapter} from './liveChapterDisk';
 import {basename, extname, join} from 'node:path';
 import type {Translation} from '@core/schema/bible';
 import type {FileError} from '@core/schema/fileFormat';
@@ -30,12 +31,19 @@ function fileProblem(file: string, error: unknown): FileError {
 export class BibleChapterLibrary {
   private readonly files = new Map<string, BibleChapterFile>();
   private closed = false;
+  private readonly cache: BibleChapterCache;
+  private readonly folder: string | undefined;
 
   constructor(
     files: readonly BibleChapterFile[],
     private readonly onProblem: (problem: FileError) => void,
-    private readonly cache = new BibleChapterCache(),
+    options: {
+      readonly cache?: BibleChapterCache | undefined;
+      readonly folder?: string | undefined;
+    } = {},
   ) {
+    this.cache = options.cache ?? new BibleChapterCache();
+    this.folder = options.folder;
     for (const file of files) this.files.set(file.header.id, file);
   }
 
@@ -57,6 +65,27 @@ export class BibleChapterLibrary {
       : (this.cache.read(translation, book, chapter) ?? null);
   }
 
+  /** Reads session memory and then the validated on-disk live cache only. */
+  async cachedLiveChapter(
+    book: number,
+    chapter: number,
+  ): Promise<readonly string[] | null> {
+    const cached = this.cachedChapter(LIVE_BIBLE_ID, book, chapter);
+    if (cached !== null || this.closed || this.folder === undefined) {
+      return cached;
+    }
+    const verses = await readLiveChapter(this.folder, book, chapter);
+    if (verses === null || this.isClosed()) return null;
+    this.cache.store({
+      translation: LIVE_BIBLE_ID,
+      book,
+      chapter,
+      bytes: Buffer.byteLength(JSON.stringify(verses)),
+      verses,
+    });
+    return verses;
+  }
+
   async chapter(
     translation: string,
     book: number,
@@ -64,7 +93,7 @@ export class BibleChapterLibrary {
   ): Promise<readonly string[] | null> {
     if (translation === LIVE_BIBLE_ID) {
       if (this.closed) return null;
-      const cached = this.cache.read(translation, book, chapter);
+      const cached = await this.cachedLiveChapter(book, chapter);
       if (cached) return cached;
       const verses = await fetchLiveChapter(book, chapter);
       if (!verses || this.isClosed()) return null;
@@ -75,7 +104,10 @@ export class BibleChapterLibrary {
         bytes: Buffer.byteLength(JSON.stringify(verses)),
         verses,
       });
-      return verses;
+      if (this.folder !== undefined) {
+        await writeLiveChapter(this.folder, {book, chapter, verses});
+      }
+      return this.isClosed() ? null : verses;
     }
     const indexed = this.files.get(translation);
     const entry = indexed?.header.books
@@ -153,5 +185,5 @@ export async function loadBibleChapterLibrary({
       report(fileProblem(file, error));
     }
   }
-  return new BibleChapterLibrary(files, report, cache);
+  return new BibleChapterLibrary(files, report, {cache, folder});
 }

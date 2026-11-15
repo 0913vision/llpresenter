@@ -39,6 +39,7 @@ export async function openContent(
     readonly media: Promise<MediaStore | null>;
     readonly failures: SaveFailureSink;
     readonly bible: Pick<BibleLookupSession, 'lookup'>;
+    readonly backgroundBible?: Pick<BibleLookupSession, 'lookup'> | undefined;
   },
 ): Promise<OpenedContent | null> {
   const store = await loading;
@@ -51,6 +52,7 @@ export async function openContent(
       media: await readers.media,
       failures: readers.failures,
       bible: readers.bible,
+      backgroundBible: readers.backgroundBible,
     });
   } catch (error: unknown) {
     log.error('could not open the songs and 예배 순서', error);
@@ -66,11 +68,13 @@ async function createContent(
     media,
     failures,
     bible,
+    backgroundBible,
   }: {
     readonly settings: SettingsStore | null;
     readonly media: MediaStore | null;
     readonly failures: SaveFailureSink;
     readonly bible: Pick<BibleLookupSession, 'lookup'>;
+    readonly backgroundBible?: Pick<BibleLookupSession, 'lookup'> | undefined;
   },
 ): Promise<OpenedContent> {
   const search = await buildSongSearchIndex(
@@ -133,6 +137,7 @@ async function createContent(
       content,
       backgroundOf: library.backgroundOf,
       bible,
+      backgroundBible,
       settings,
       mediaItems: () => media?.get().value.items ?? [],
     },

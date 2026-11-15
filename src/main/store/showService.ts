@@ -1,3 +1,4 @@
+import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
 import {displayReference} from '@core/bible/displayReference';
 import {withSectionCard} from '@core/services/sectionCards';
 import {NO_LABEL_COLOR, type LabelColor} from '@core/labels/colors';
@@ -258,7 +259,12 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
     const sermonTitle = isItemOfKind(item, 'sermon')
       ? item.sermon.title
       : undefined;
-    const bible = sources.passages?.references.get(id);
+    const bible =
+      sources.passages?.references.get(id) ??
+      (sources.passages?.unavailable.has(id) &&
+      settings.translation === LIVE_BIBLE_ID
+        ? {translation: settings.translation, ref: settings.ref}
+        : undefined);
     return {
       kind: 'bible',
       id,
