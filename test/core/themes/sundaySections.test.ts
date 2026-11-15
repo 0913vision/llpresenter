@@ -114,15 +114,15 @@ it('adds an editable section theme without changing the kind defaults or other s
     {
       id: SECTION_BAND_ID,
       kind: 'box',
-      frame: {x: 0, y: 888, w: 1920, h: 102},
+      frame: {x: 0, y: 756, w: 1920, h: 234},
       box: {fill: '#000000', opacity: 88},
     },
     {
       id: SECTION_NAME_ID,
       kind: 'itemName',
-      frame: {x: 230, y: 900, w: 1460, h: 90},
+      frame: {x: 160, y: 818, w: 1600, h: 110},
       text: {
-        size: 64,
+        size: 88,
         weight: 700,
         align: 'center',
         color: '#FFFFFF',

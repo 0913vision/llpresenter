@@ -20,6 +20,23 @@ function setUp() {
 }
 
 describe('OutputStatusBoard', () => {
+  it('publishes actual NDI acceleration changes and their reason', () => {
+    const {board, states, listener} = setUp();
+    states.set('main', {placement: 'ndi', renderer: 'running'});
+    board.setNdiAcceleration('main', {ndiAcceleration: 'hardware'});
+    expect(board.snapshot()['main']).toMatchObject({
+      ndiAcceleration: 'hardware',
+    });
+    board.setNdiAcceleration('main', {
+      ndiAcceleration: 'bitmap',
+      ndiAccelerationReason: 'no-texture',
+    });
+    expect(board.snapshot()['main']).toMatchObject({
+      ndiAcceleration: 'bitmap',
+      ndiAccelerationReason: 'no-texture',
+    });
+    expect(listener).toHaveBeenCalledTimes(2);
+  });
   it('publishes availability changes while placement stays off', () => {
     const {board, states} = setUp();
     const listener = vi.fn();

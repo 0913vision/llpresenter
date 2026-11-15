@@ -198,7 +198,9 @@ shows the source name, 1920×1080 resolution, a selectable frame rate (29.97, 30
 59.94, or 60 fps; default 30), and alpha on. The source name can be edited. The
 하드웨어 가속 checkbox defaults on and restarts the NDI sender when changed. If
 shared textures fail, the sender falls back to the bitmap path with one notice.
-The network interface and NDI group remain later work (09).
+While NDI output is active, 화면 설정 shows its actual acceleration state and,
+when bitmap output is in use, why shared textures are not being used. The
+network interface and NDI group remain later work (09).
 
 | Group              | Row                                                                                                                                                                                                                                               |
 | ------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

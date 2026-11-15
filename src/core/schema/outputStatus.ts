@@ -43,6 +43,12 @@ const outputScreenStatusSchema = payloadObject({
     v.pipe(v.number(), v.finite(), v.minValue(0), v.maxValue(FRAME_RATE_MAX)),
   ),
   fpsLow: v.boolean(),
+  ndiAcceleration: v.exactOptional(
+    v.picklist(['pending', 'hardware', 'bitmap']),
+  ),
+  ndiAccelerationReason: v.exactOptional(
+    v.picklist(['disabled', 'no-texture', 'compositor', 'error']),
+  ),
   controlConflict: v.exactOptional(v.boolean()),
   monitorAvailable: v.exactOptional(v.boolean()),
   monitor: v.exactOptional(

@@ -21,6 +21,7 @@ import {blockNavigation, preloadPath, startLoading} from '../windows/page';
 import {unionDirty} from './rect';
 import {createGpuOutput} from './gpuOutput';
 import {NDI_FRAME_WIDTH, NDI_FRAME_HEIGHT} from './textureQueue';
+import type {OutputScreenStatus} from '@core/schema/outputStatus';
 
 export const NDI_SEND_TIMEOUT_MS = 5000;
 export const NDI_STOP_TIMEOUT_MS = 2000;
@@ -39,18 +40,32 @@ export function createNdiOutput(
     log: Logger;
     onFailure: (id: string, missing: boolean) => void;
     onGpuFallback?: () => void;
+    onAcceleration?: (
+      status: Pick<
+        OutputScreenStatus,
+        'ndiAcceleration' | 'ndiAccelerationReason'
+      >,
+    ) => void;
   },
 ): OutputWindowHandle {
   let current = screen;
   let active = false;
   let capture = {x: 0, y: 0, width: NDI_FRAME_WIDTH, height: NDI_FRAME_HEIGHT};
-  const create = (): OutputWindowHandle =>
-    (current.ndi?.hardwareAcceleration ?? NDI_DEFAULT_HARDWARE_ACCELERATION)
+  const create = (): OutputWindowHandle => {
+    const enabled =
+      current.ndi?.hardwareAcceleration ?? NDI_DEFAULT_HARDWARE_ACCELERATION;
+    options.onAcceleration?.(
+      enabled
+        ? {ndiAcceleration: 'pending'}
+        : {ndiAcceleration: 'bitmap', ndiAccelerationReason: 'disabled'},
+    );
+    return enabled
       ? createGpuOutput(current, events, {
           options,
           bitmap: () => createBitmapOutput(current, events, options),
         })
       : createBitmapOutput(current, events, options);
+  };
   let delegate = create();
   return {
     configure: next => {

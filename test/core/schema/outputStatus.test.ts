@@ -26,6 +26,24 @@ function statuses() {
 }
 
 describe('parseOutputStatuses', () => {
+  it('validates optional NDI acceleration states and reasons', () => {
+    const valid = {
+      main: {
+        ...statuses().main,
+        ndiAcceleration: 'bitmap',
+        ndiAccelerationReason: 'no-texture',
+      },
+    };
+    expect(parseOutputStatuses(valid).ok).toBe(true);
+    expect(
+      parseOutputStatuses({main: {...valid.main, ndiAcceleration: 'fast'}}).ok,
+    ).toBe(false);
+    expect(
+      parseOutputStatuses({
+        main: {...valid.main, ndiAccelerationReason: 'unknown'},
+      }).ok,
+    ).toBe(false);
+  });
   it('accepts optional availability independently of an off output', () => {
     const value = {stage: {...statuses().stage, monitorAvailable: true}};
     expect(parseOutputStatuses(value)).toEqual({ok: true, value});

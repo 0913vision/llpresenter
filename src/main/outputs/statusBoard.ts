@@ -19,6 +19,8 @@ function sameStatus(a: OutputScreenStatus, b: OutputScreenStatus): boolean {
     a.renderer === b.renderer &&
     a.fps === b.fps &&
     a.fpsLow === b.fpsLow &&
+    a.ndiAcceleration === b.ndiAcceleration &&
+    a.ndiAccelerationReason === b.ndiAccelerationReason &&
     a.monitor === b.monitor &&
     a.controlConflict === b.controlConflict &&
     a.monitorAvailable === b.monitorAvailable
@@ -46,9 +48,24 @@ function sameStatuses(a: OutputStatuses, b: OutputStatuses): boolean {
  */
 export class OutputStatusBoard {
   private announced: OutputStatuses = {};
+  private readonly acceleration = new Map<
+    string,
+    Pick<OutputScreenStatus, 'ndiAcceleration' | 'ndiAccelerationReason'>
+  >();
   private readonly listeners = new Set<StatusListener>();
 
   constructor(private readonly sources: StatusSources) {}
+
+  setNdiAcceleration(
+    screenId: string,
+    value: Pick<
+      OutputScreenStatus,
+      'ndiAcceleration' | 'ndiAccelerationReason'
+    >,
+  ): void {
+    this.acceleration.set(screenId, value);
+    this.refresh();
+  }
 
   snapshot(): OutputStatuses {
     const statuses: Record<string, OutputScreenStatus> = {};
@@ -64,6 +81,7 @@ export class OutputStatusBoard {
         renderer,
         fps: rate?.fps ?? null,
         fpsLow: rate?.status === 'low',
+        ...(placement === 'ndi' ? this.acceleration.get(screenId) : undefined),
         ...(monitor === undefined ? {} : {monitor}),
         ...(monitorAvailable === undefined ? {} : {monitorAvailable}),
       };

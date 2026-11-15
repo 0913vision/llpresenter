@@ -7,6 +7,7 @@ import {
   type OffscreenSharedTexture,
 } from 'electron';
 import {join} from 'node:path';
+import type {OutputScreenStatus} from '@core/schema/outputStatus';
 import type {Logger} from '../log';
 import type {OutputScreen} from '../outputs/screens';
 import type {BitmapSender} from './output';
@@ -34,6 +35,12 @@ interface Options {
   log: Logger;
   onFailure: (id: string, missing: boolean) => void;
   onGpuFallback?: () => void;
+  onAcceleration?: (
+    status: Pick<
+      OutputScreenStatus,
+      'ndiAcceleration' | 'ndiAccelerationReason'
+    >,
+  ) => void;
 }
 
 // NOTE(0913vision): Let the old utility's stop deadline finish before retrying.
@@ -54,6 +61,7 @@ export function createGpuOutput(
   let current = screen;
   let mode: 'gpu' | 'waiting' | 'bitmap' = 'gpu';
   let startupRetried = false;
+  let firstStartupFailure: unknown;
   let retryIndex = 0;
   let retryTimer: ReturnType<typeof setTimeout> | null = null;
   let probe: OutputWindowHandle | null = null;
@@ -90,6 +98,16 @@ export function createGpuOutput(
   const enterBitmap = (reason: unknown): void => {
     if (mode === 'bitmap' || closed || !active) return;
     mode = 'bitmap';
+    options.onAcceleration?.({
+      ndiAcceleration: 'bitmap',
+      ndiAccelerationReason:
+        reason === 'no shared texture paint' ||
+        reason === 'shared textures stopped arriving'
+          ? 'no-texture'
+          : reason === 'GPU compositing is unavailable'
+            ? 'compositor'
+            : 'error',
+    });
     options.log.warn(
       'NDI shared texture unavailable; using bitmap output',
       reason,
@@ -118,6 +136,7 @@ export function createGpuOutput(
       if (delegate !== candidate || mode !== 'gpu') return;
       if (startupFailure(reason) && !startupRetried) {
         startupRetried = true;
+        firstStartupFailure = reason;
         mode = 'waiting';
         candidate.destroy();
         retryTimer = setTimeout(() => {
@@ -127,7 +146,20 @@ export function createGpuOutput(
           delegate = makeGpu(false);
           delegate.showCapture(capture);
         }, START_RETRY_MS);
-      } else enterBitmap(reason);
+      } else {
+        if (startupRetried && firstStartupFailure !== reason) {
+          options.log.warn('NDI GPU retry failed', {
+            initial: firstStartupFailure,
+            retry: reason,
+          });
+        }
+        enterBitmap(
+          reason === 'GPU utility startup timeout' &&
+            firstStartupFailure === 'no shared texture paint'
+            ? firstStartupFailure
+            : reason,
+        );
+      }
     };
     const promote = (): void => {
       if (
@@ -143,8 +175,10 @@ export function createGpuOutput(
       isProbe = false;
       delegate = candidate;
       mode = 'gpu';
+      options.onAcceleration?.({ndiAcceleration: 'hardware'});
       clearTimers();
       startupRetried = false;
+      firstStartupFailure = undefined;
     };
     const candidate = gpuHandle(
       current,
@@ -165,7 +199,11 @@ export function createGpuOutput(
           else options.onFailure(current.id, true);
         },
         live: () => {
-          if (!background && delegate === candidate) startupRetried = false;
+          if (!background && delegate === candidate) {
+            startupRetried = false;
+            firstStartupFailure = undefined;
+            options.onAcceleration?.({ndiAcceleration: 'hardware'});
+          }
         },
         ...(background
           ? {
@@ -212,6 +250,9 @@ export function createGpuOutput(
       delegate.showWindowed(bounds, top);
     },
     showCapture: (bounds, top) => {
+      if (!active && mode !== 'bitmap') {
+        options.onAcceleration?.({ndiAcceleration: 'pending'});
+      }
       active = true;
       capture = bounds;
       if (mode === 'waiting') {
@@ -300,11 +341,16 @@ function gpuHandle(
   let child: UtilityProcess | null = null;
   let ready = false;
   let seenTexture = false;
+  let paintEvents = 0;
+  let bitmapPaints = 0;
   let closed = false;
   let timeout: ReturnType<typeof setTimeout> | null = null;
+  let paintRetry: ReturnType<typeof setInterval> | null = null;
   let missingSince: number | null = null;
   const clear = (destroyWindow = false): void => {
     if (timeout !== null) clearTimeout(timeout);
+    if (paintRetry !== null) clearInterval(paintRetry);
+    paintRetry = null;
     missingSince = null;
     timeout = null;
     const old = child;
@@ -344,7 +390,18 @@ function gpuHandle(
   ): ReturnType<typeof setTimeout> => setTimeout(() => fail(reason), delay);
   const startWatchdog = (reason: string): void => {
     if (timeout !== null) clearTimeout(timeout);
-    timeout = scheduleFailure(reason, GPU_TIMEOUT_MS);
+    if (reason === 'no shared texture paint') {
+      timeout = setTimeout(() => {
+        log.warn('NDI shared texture diagnostics', {
+          paintEvents,
+          bitmapPaints,
+          gpuCompositing: app.getGPUFeatureStatus().gpu_compositing,
+        });
+        fail(reason);
+      }, GPU_TIMEOUT_MS);
+    } else {
+      timeout = scheduleFailure(reason, GPU_TIMEOUT_MS);
+    }
   };
   const send = (frame: GpuTextureFrame): void => {
     if (!child) {
@@ -372,8 +429,10 @@ function gpuHandle(
   };
   const queue = new TextureQueue<GpuTextureFrame>({send});
   win.webContents.on('paint', (event, dirty) => {
+    paintEvents++;
     const texture = event.texture;
     if (!texture) {
+      bitmapPaints++;
       if (
         child &&
         ready &&
@@ -422,10 +481,14 @@ function gpuHandle(
       timeout = null;
     }
     seenTexture = true;
+    if (paintRetry !== null) clearInterval(paintRetry);
+    paintRetry = null;
     queue.push({texture, dirty});
   });
   const begin = (): void => {
     if (closed || child) return;
+    paintEvents = 0;
+    bitmapPaints = 0;
     if (app.getGPUFeatureStatus().gpu_compositing.startsWith('disabled')) {
       fail('GPU compositing is unavailable');
       return;
@@ -460,6 +523,10 @@ function gpuHandle(
           ready = true;
           startWatchdog('no shared texture paint');
           win.webContents.invalidate();
+          if (paintRetry !== null) clearInterval(paintRetry);
+          paintRetry = setInterval(() => {
+            if (!win.isDestroyed()) win.webContents.invalidate();
+          }, 250);
         }
         if (m.type === 'live') live();
         if (m.type === 'pixels' && pixels) {

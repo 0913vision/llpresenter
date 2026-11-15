@@ -30,7 +30,9 @@ import {resolveTextTracking} from '@core/themes/textTracking';
 import {themeTextVAlign} from '@core/themes/textAlignment';
 import {TextFitCache} from './textFitCache';
 import {isSectionBandGradient} from '@core/themes/sectionBroadcast';
-import {sectionBandGradient} from './sectionBandGradient';
+import {sectionBandGradient, sermonBandGradient} from './sectionBandGradient';
+import {SECTION_BAND_ID} from '@core/themes/sectionBroadcast';
+import {BROADCAST_LOOK_SONG_TITLE_ID} from '@core/themes/broadcastLook';
 import {measureTextInk} from './textInk';
 import {positionFollowingBoxes} from './themeFollow';
 import type {ResolvedThemeElement} from '@core/themes/songTitle';
@@ -109,6 +111,8 @@ function ThemeTextBox({
   readonly vAlign?: ThemeText['vAlign'];
 }): JSX.Element {
   const block = useRef<HTMLDivElement>(null);
+  const singleLine =
+    element.kind === 'text' && element.id === BROADCAST_LOOK_SONG_TITLE_ID;
   useLayoutEffect(() => {
     const target = block.current;
     if (target === null) return;
@@ -149,7 +153,8 @@ function ThemeTextBox({
           ),
         target.ownerDocument.fonts,
       );
-      target.style.fontSize = `${size}px`;
+      target.style.fontSize = `${singleLine ? Math.max(24, size) : size}px`;
+      if (singleLine) target.style.overflow = 'hidden';
       if (element.fitLines !== undefined) {
         target.style.maxHeight = `${size * element.text.lineHeight * element.fitLines}px`;
         target.style.overflow = 'hidden';
@@ -170,7 +175,7 @@ function ThemeTextBox({
     return () => {
       mounted = false;
     };
-  }, [element, content, measured]);
+  }, [element, content, measured, singleLine]);
   return (
     <div
       className={styles.textBox}
@@ -193,6 +198,13 @@ function ThemeTextBox({
             measured?.continued ?? false,
           ),
           fontSize: element.text.size,
+          ...(singleLine
+            ? {
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              }
+            : {}),
           ...(element.stack === undefined
             ? {}
             : {wordBreak: 'keep-all', overflowWrap: 'break-word'}),
@@ -586,7 +598,12 @@ export function ThemePicture({
                             }
                           : {}),
                       ...(isSectionBandGradient(element.id)
-                        ? {background: sectionBandGradient}
+                        ? {
+                            background:
+                              element.id === SECTION_BAND_ID
+                                ? sectionBandGradient
+                                : sermonBandGradient,
+                          }
                         : {}),
                       opacity:
                         isSectionBandGradient(element.id) ||

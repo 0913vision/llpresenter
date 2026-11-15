@@ -10,6 +10,10 @@ const mocks = await vi.hoisted(async () => {
     kill = vi.fn();
   }
   class Window extends EventEmitter {
+    constructor() {
+      super();
+      windows.push(this);
+    }
     webContents = Object.assign(new EventEmitter(), {
       setFrameRate: vi.fn(),
       invalidate: vi.fn(),
@@ -22,13 +26,14 @@ const mocks = await vi.hoisted(async () => {
     destroy = vi.fn();
   }
   const worker = new Worker();
+  const windows: Window[] = [];
   const queue = {
     busy: false,
     push: vi.fn(),
     clear: vi.fn(() => null),
     acknowledge: vi.fn(() => true),
   };
-  return {Worker, Window, worker, queue};
+  return {Worker, Window, worker, queue, windows};
 });
 vi.mock('electron', () => ({
   BrowserWindow: mocks.Window,
@@ -52,6 +57,7 @@ beforeEach(() => {
   vi.useFakeTimers();
   vi.clearAllMocks();
   mocks.worker.removeAllListeners();
+  mocks.windows.length = 0;
 });
 afterEach(() => {
   vi.clearAllTimers();
@@ -61,6 +67,7 @@ afterEach(() => {
 function setup() {
   const failure = vi.fn();
   const fallback = vi.fn();
+  const acceleration = vi.fn();
   const bitmap = vi.fn();
   const screen = fullScreenScreen({method: 'capture', target: 'ndi'});
   const handle = createGpuOutput(
@@ -71,14 +78,39 @@ function setup() {
         log: recordingLogger(),
         onFailure: failure,
         onGpuFallback: fallback,
+        onAcceleration: acceleration,
       },
       bitmap,
     },
   );
-  return {handle, failure, fallback, screen};
+  return {handle, failure, fallback, screen, acceleration};
 }
 
 describe('GPU sender lifecycle', () => {
+  it('reports hardware only when the GPU sender is live', () => {
+    const {handle, acceleration} = setup();
+    handle.showCapture({x: 0, y: 0, width: 1920, height: 1080});
+    expect(acceleration).toHaveBeenLastCalledWith({ndiAcceleration: 'pending'});
+    mocks.worker.emit('message', {type: 'ready'});
+    mocks.worker.emit('message', {type: 'live'});
+    expect(acceleration).toHaveBeenLastCalledWith({
+      ndiAcceleration: 'hardware',
+    });
+    handle.destroy();
+  });
+  it('requests further frames until the first shared texture arrives', () => {
+    const {handle} = setup();
+    handle.showCapture({x: 0, y: 0, width: 1920, height: 1080});
+    mocks.worker.emit('message', {type: 'ready'});
+    const win = mocks.windows[0];
+    if (!win) throw new Error('No GPU window');
+    expect(win.webContents.invalidate).toHaveBeenCalledTimes(1);
+    vi.advanceTimersByTime(750);
+    expect(win.webContents.invalidate).toHaveBeenCalledTimes(4);
+    handle.destroy();
+    vi.advanceTimersByTime(750);
+    expect(win.webContents.invalidate).toHaveBeenCalledTimes(4);
+  });
   it('clears the queue and reports a missing runtime without a GPU notice', () => {
     const {handle, failure, fallback, screen} = setup();
     handle.showCapture({x: 0, y: 0, width: 1920, height: 1080});
