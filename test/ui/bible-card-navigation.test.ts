@@ -183,12 +183,7 @@ it(
     await grid.getByRole('option').nth(1).click();
     await waitLabel('\uC6943:16 (1)');
     await page.keyboard.press('Control+E');
-    const splitDialog = page.getByRole('dialog', {
-      name: '\uc808 \ub098\ub204\uae30',
-    });
-    await splitDialog.waitFor({state: 'visible', timeout: 30000});
-    await page.keyboard.press('Escape');
-    await splitDialog.waitFor({state: 'hidden'});
+    expect(await page.getByRole('dialog').count()).toBe(0);
     await updateCut([]);
     await expect
       .poll(() => grid.getByRole('option').count(), {timeout: 30000})
