@@ -1,3 +1,5 @@
+import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
+import {beginQuickPassage, finishQuickPassage} from './quickReturn';
 import {parseReference} from '@core/bible/reference';
 import type {ShowRow} from '@core/schema/showService';
 import type {Preferences} from '@core/schema/preferences';
@@ -240,6 +242,11 @@ export function outputTile(
   }
   const view = useShow.getState();
   const source = bibleSourceFor(view, cursor.itemId);
+  const quickPassage =
+    source?.transition?.kind === QUICK_BIBLE_TRANSITION.kind &&
+    source.transition.dir === QUICK_BIBLE_TRANSITION.dir &&
+    source.transition.sec === QUICK_BIBLE_TRANSITION.sec;
+  if (quickPassage) beginQuickPassage();
   const liveItemId = live.state?.layers.slide?.itemId ?? null;
   if (row?.kind === 'slides') {
     publishSlidesProjection(view, cursor.itemId, tilesOf(cursor.itemId));
@@ -257,6 +264,7 @@ export function outputTile(
     liveBibleSource: bibleSourceFor(view, liveItemId),
     requestedBibleSource: source?.id === liveItemId ? null : source,
   });
+  if (quickPassage) finishQuickPassage();
   const passage =
     source?.passage ?? (row?.kind === 'bible' ? row.bible : undefined);
   if (passage !== undefined) {

@@ -1,3 +1,9 @@
+import {
+  beginQuickPassage,
+  finishQuickPassage,
+  canReturnFromQuickPassage,
+  returnFromQuickPassage,
+} from '@renderer/session/quickReturn';
 import {SlideGrid} from '@renderer/features/presentation/SlideGrid';
 import {handleShowKey} from '@renderer/features/presentation/shortcuts';
 import {lastLiveCommand} from '@fixtures/renderer/session/liveCommands';
@@ -62,6 +68,139 @@ afterEach(() => {
 });
 
 describe('BibleQuickField', () => {
+  it('does nothing when the preceding slide is missing or has been removed', async () => {
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    const bible = await passage('\uc694\ud55c\ubcf5\uc74c 3:16-18');
+    beginQuickPassage();
+    openBiblePassage(bible);
+    finishQuickPassage();
+    const quickId = useShow.getState().openItemId;
+    if (quickId === null) throw Error('Missing quick passage');
+    const quick = {itemId: quickId, position: 0, label: null, lines: ['Quick']};
+    act(() =>
+      useLive.setState({
+        state: {
+          ...emptyLiveState(),
+          layers: {...emptyLiveState().layers, slide: quick},
+        },
+      }),
+    );
+    expect(canReturnFromQuickPassage()).toBe(false);
+    returnFromQuickPassage();
+    expect(fixture.send).not.toHaveBeenCalled();
+    const song = {
+      itemId: 'song-morning',
+      position: 1,
+      label: null,
+      lines: ['Before'],
+    };
+    act(() =>
+      useLive.setState({
+        state: {
+          ...emptyLiveState(),
+          layers: {...emptyLiveState().layers, slide: song},
+        },
+      }),
+    );
+    beginQuickPassage();
+    openBiblePassage(bible);
+    finishQuickPassage();
+    act(() => {
+      useLive.setState({
+        state: {
+          ...emptyLiveState(),
+          layers: {...emptyLiveState().layers, slide: quick},
+        },
+      });
+      useShow.setState(view => ({
+        rows: view.rows.filter(row => row.id !== 'song-morning'),
+      }));
+    });
+    expect(canReturnFromQuickPassage()).toBe(false);
+    returnFromQuickPassage();
+    expect(fixture.send).not.toHaveBeenCalled();
+  });
+
+  it.each(['enter', 'click'] as const)(
+    'returns from quick %s output on Escape while text keeps Escape',
+    async method => {
+      const fixture = panelApi();
+      window.llp = fixture.api;
+      window.addEventListener('keydown', handleShowKey);
+      openItem('song-morning');
+      const before = {
+        itemId: 'song-morning',
+        position: 1,
+        label: null,
+        lines: ['Before'],
+      };
+      useLive.setState({
+        state: {
+          ...emptyLiveState(),
+          layers: {...emptyLiveState().layers, slide: before},
+        },
+      });
+      render(
+        <>
+          <BibleQuickField api={fixture.api} />
+          <SlideGrid columns={4} scalePercent={100} />
+        </>,
+      );
+      fireEvent.change(await book(), {target: {value: '\uc694'}});
+      fireEvent.change(screen.getByRole('textbox', {name: '\uc7a5'}), {
+        target: {value: '3'},
+      });
+      const start = screen.getByRole<HTMLInputElement>('textbox', {
+        name: '\uc2dc\uc791\uc808',
+      });
+      fireEvent.change(start, {target: {value: '16'}});
+      start.focus();
+      if (method === 'enter') {
+        fireEvent.keyDown(start, {key: 'Enter', code: 'Enter'});
+      } else {
+        await waitFor(() =>
+          expect(currentRef()).toBe('\uc694\ud55c\ubcf5\uc74c 3:16'),
+        );
+        fireEvent.click(screen.getByRole('option', {name: /\uc6943:16/}));
+      }
+      await waitFor(() =>
+        expect(
+          lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]),
+        ).toMatchObject({
+          type: 'slide.show',
+          slide: {itemId: 'bible:sample:\uc694\ud55c\ubcf5\uc74c 3:16'},
+        }),
+      );
+      const shown = lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]);
+      if (shown?.type !== 'slide.show') throw Error('Expected Bible output');
+      act(() =>
+        useLive.setState({
+          state: {
+            ...emptyLiveState(),
+            layers: {...emptyLiveState().layers, slide: shown.slide},
+          },
+        }),
+      );
+      const beforeCount = fixture.send.mock.calls.length;
+      start.focus();
+      fireEvent.keyDown(start, {key: 'Escape', code: 'Escape'});
+      expect(fixture.send.mock.calls).toHaveLength(beforeCount);
+      const grid = screen.getByRole('listbox', {
+        name: '\uc2ac\ub77c\uc774\ub4dc',
+      });
+      grid.focus();
+      fireEvent.keyDown(grid, {key: 'Escape', code: 'Escape'});
+      expect(
+        lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]),
+      ).toMatchObject({
+        type: 'slide.show',
+        slide: {itemId: 'song-morning', position: 1},
+      });
+      expect(useShow.getState().openItemId).toBe('song-morning');
+    },
+  );
+
   it.each(
     [
       ['start', '16', '', '\uc694\ud55c\ubcf5\uc74c 3:16'],

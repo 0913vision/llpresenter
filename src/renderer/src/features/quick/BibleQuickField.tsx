@@ -7,6 +7,10 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {useShow} from '@renderer/session/show';
 import {bibleSourceFor, isBibleSource} from '@renderer/session/showLibrary';
+import {
+  beginQuickPassage,
+  finishQuickPassage,
+} from '@renderer/session/quickReturn';
 import {beginOutputRequest} from '@renderer/session/showOutput';
 import {BibleReferenceField} from '../bible/BibleReferenceField';
 import {openBiblePassage, showBiblePassage} from '../bible/actions';
@@ -133,11 +137,13 @@ export function BibleQuickField({
             prepared?.passage.ref === passage.ref &&
             prepared.passage.translation === passage.translation;
           const options = expanded || samePassage ? prepared : display;
+          beginQuickPassage();
           showBiblePassage(expanded ? prepared.passage : passage, {
             ...options,
             review: false,
             transition: QUICK_BIBLE_TRANSITION,
           });
+          finishQuickPassage();
           focusSlideGrid();
         }}
       />

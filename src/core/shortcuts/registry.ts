@@ -96,6 +96,13 @@ export const shortcutCommands: readonly ShortcutCommand[] = (
       ['show'],
       ['ArrowLeft', 'ArrowUp', 'PageUp'],
     ],
+    [
+      'show.quickReturn',
+      '\uc774\uc804 \ucd9c\ub825 \ubcf5\uadc0',
+      '\uc2ac\ub77c\uc774\ub4dc',
+      ['show'],
+      [],
+    ],
     ['show.first', '첫 슬라이드', '슬라이드', ['show'], ['Home']],
     ['show.last', '마지막 슬라이드', '슬라이드', ['show'], ['End']],
     [
