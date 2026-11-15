@@ -409,7 +409,7 @@ describe('theme composition drawing', () => {
       vi.advanceTimersByTime(32);
       expect(animate).toHaveBeenCalledTimes(1);
       expect(animate).toHaveBeenLastCalledWith(expect.any(Array), {
-        duration: 830,
+        duration: 954,
         easing: 'linear',
       });
       view.dispose();

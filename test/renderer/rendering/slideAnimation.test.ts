@@ -42,29 +42,29 @@ describe('SlideAnimation', () => {
       [
         {
           maskImage:
-            'linear-gradient(to left, black 0%, black 38.333333%, transparent 61.666667%, transparent 100%)',
+            'linear-gradient(to left, black 0%, black 36.666667%, transparent 63.333333%, transparent 100%)',
           maskSize: '300% 100%',
-          maskPosition: '1.5% 0%',
+          maskPosition: '-8% 0%',
           maskRepeat: 'no-repeat',
         },
         {
           maskImage:
-            'linear-gradient(to left, black 0%, black 38.333333%, transparent 61.666667%, transparent 100%)',
+            'linear-gradient(to left, black 0%, black 36.666667%, transparent 63.333333%, transparent 100%)',
           maskSize: '300% 100%',
-          maskPosition: '98% 0%',
+          maskPosition: '95% 0%',
           maskRepeat: 'no-repeat',
         },
       ],
-      {duration: 830, easing: 'linear'},
+      {duration: 954, easing: 'linear'},
     );
   });
-  it('sweeps a 0.7-screen feather 1.93 screen widths in 83% of the set time', () => {
+  it('sweeps a 0.8-screen feather 2.06 screen widths in 95.4% of the set time', () => {
     const {view, old, next, animate} = setup();
     view.play(old, next, {kind: 'wipe', dir: 'left', sec: 0.7});
     const frames = animate.mock.calls[0]?.[0];
     if (!Array.isArray(frames)) throw new Error('Missing wipe keyframes');
     expect(animate.mock.calls[0]?.[1]).toEqual({
-      duration: 581,
+      duration: 667.8,
       easing: 'linear',
     });
     const size = Number.parseFloat(String(frames[0]?.maskSize)) / 100;
@@ -72,12 +72,38 @@ describe('SlideAnimation', () => {
     const to = Number.parseFloat(String(frames[1]?.maskPosition)) / 100;
     const center = (p: number) =>
       size / 2 + (1 - size) * (from + (to - from) * p);
-    expect(center(0)).toBeCloseTo(1.47, 5);
-    expect(center(0.5)).toBeCloseTo(0.505, 5);
-    expect(center(1)).toBeCloseTo(-0.46, 5);
-    expect(0.83 / Math.abs(center(1) - center(0))).toBeCloseTo(0.43, 2);
-    expect((size * (61.666667 - 38.333333)) / 100).toBeCloseTo(0.7, 5);
+    expect(center(0)).toBeCloseTo(1.66, 5);
+    expect(center(0.5)).toBeCloseTo(0.63, 5);
+    expect(center(1)).toBeCloseTo(-0.4, 5);
+    expect(0.954 / Math.abs(center(1) - center(0))).toBeCloseTo(0.463, 2);
+    expect((size * (63.333333 - 36.666667)) / 100).toBeCloseTo(0.8, 5);
   });
+  it.each([
+    [1, 10, 0.0871],
+    [1, 15, 0.4137],
+    [1, 19, 0.6762],
+    [1, 20, 0.8074],
+    [1, 22, 0.9387],
+    [0.7, 8, 0.148],
+    [0.7, 12, 0.5309],
+    [0.7, 16, 0.9059],
+  ])(
+    'keeps the %ss wipe at frame %i within one frame of the PowerPoint crossing',
+    (seconds, frame, powerpoint) => {
+      const {view, old, next, animate} = setup();
+      view.play(old, next, {kind: 'wipe', dir: 'right', sec: seconds});
+      const keyframes = animate.mock.calls[0]?.[0];
+      if (!Array.isArray(keyframes)) throw Error('Missing wipe keyframes');
+      const from = Number.parseFloat(String(keyframes[0]?.maskPosition)) / 100;
+      const to = Number.parseFloat(String(keyframes[1]?.maskPosition)) / 100;
+      const duration = seconds * 954;
+      const progress = Math.min(1, (frame * 1000) / 30 / duration);
+      const crossing = 1.5 - 2 * (from + (to - from) * progress);
+      expect(Math.abs(crossing - powerpoint)).toBeLessThan(
+        2.16 / (30 * seconds),
+      );
+    },
+  );
   it.each([
     ['left', 'translateX(100%)', 'translateX(-100%)'],
     ['right', 'translateX(-100%)', 'translateX(100%)'],
@@ -109,8 +135,8 @@ describe('SlideAnimation', () => {
       {
         direction: 'left',
         size: '300% 100%',
-        from: '1.5% 0%',
-        to: '98% 0%',
+        from: '-8% 0%',
+        to: '95% 0%',
       },
     ],
     [
@@ -118,8 +144,8 @@ describe('SlideAnimation', () => {
       {
         direction: 'right',
         size: '300% 100%',
-        from: '98.5% 0%',
-        to: '2% 0%',
+        from: '108% 0%',
+        to: '5% 0%',
       },
     ],
     [
@@ -127,8 +153,8 @@ describe('SlideAnimation', () => {
       {
         direction: 'top',
         size: '100% 300%',
-        from: '0% 1.5%',
-        to: '0% 98%',
+        from: '0% -8%',
+        to: '0% 95%',
       },
     ],
     [
@@ -136,8 +162,8 @@ describe('SlideAnimation', () => {
       {
         direction: 'bottom',
         size: '100% 300%',
-        from: '0% 98.5%',
-        to: '0% 2%',
+        from: '0% 108%',
+        to: '0% 5%',
       },
     ],
   ] as const)(
@@ -145,7 +171,7 @@ describe('SlideAnimation', () => {
     (dir, {direction, size, from, to}) => {
       const {view, old, next, animate} = setup();
       view.play(old, next, {kind: 'wipe', dir, sec: 0.5});
-      const maskImage = `linear-gradient(to ${direction}, black 0%, black 38.333333%, transparent 61.666667%, transparent 100%)`;
+      const maskImage = `linear-gradient(to ${direction}, black 0%, black 36.666667%, transparent 63.333333%, transparent 100%)`;
       expect(old.style.opacity).toBe('1');
       expect(animate).toHaveBeenCalledTimes(1);
       expect(animate).toHaveBeenNthCalledWith(
@@ -164,7 +190,7 @@ describe('SlideAnimation', () => {
             maskRepeat: 'no-repeat',
           },
         ],
-        {duration: 415, easing: 'linear'},
+        {duration: 477, easing: 'linear'},
       );
     },
   );
