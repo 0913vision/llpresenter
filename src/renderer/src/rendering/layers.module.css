@@ -72,6 +72,27 @@
   overflow-wrap: break-word;
 }
 
+/* Keep stage time readable over pictures without changing the text frame. */
+[data-stage-clock-backing] .block {
+  width: max-content;
+  max-width: 100%;
+  background: rgb(0 0 0 / 60%);
+  box-shadow: 0 0 0 10px rgb(0 0 0 / 60%);
+  border-radius: 2px;
+}
+
+[data-stage-clock-align='left'] .block {
+  align-self: flex-start;
+}
+
+[data-stage-clock-align='center'] .block {
+  align-self: center;
+}
+
+[data-stage-clock-align='right'] .block {
+  align-self: flex-end;
+}
+
 .bibleGuide {
   position: absolute;
   inset: 0;

@@ -93,7 +93,9 @@ export function imageSlidesLayout(kind: Screen['kind']): ThemeScreenLayout {
         radius: 0,
       },
       ...(kind === 'stage'
-        ? stageElements().filter(element => element.kind === 'clock')
+        ? stageElements().filter(
+            element => element.kind === 'clock' || element.kind === 'timer',
+          )
         : []),
     ],
   };

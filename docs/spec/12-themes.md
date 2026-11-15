@@ -804,9 +804,9 @@ the next item.
 ### 이미지 슬라이드
 
 The built-in 이미지 슬라이드 theme displays a slide picture fitted within a
-black canvas on 청중 and 무대 screens; the stage also shows its clock. 방송
-screens are transparent and have no elements. PowerPoint picture imports use
-this theme with their privately owned slide pictures.
+black canvas on 청중 and 무대 screens; the stage also shows its clock and timer.
+방송 screens are transparent and have no elements. PowerPoint picture imports
+use this theme with their privately owned slide pictures.
 
 A theme may set a slide transition in the theme editor. The built-in scripture
 theme uses a 0.7 second wipe, the creed and prayer theme uses a 0.5 second wipe,
@@ -832,7 +832,9 @@ On stage title slides, only the prelude, interlude and outro labels are shown
 after the title; other labels are omitted. The stage advertisement title is bold
 yellow at the audience title size, with its white left-aligned body below at the
 audience body size. The stage clock is at the top right in all built-in stage
-layouts.
+layouts. On stage, clock and timer text has a compact translucent dark backing
+without changing the text position, including on layouts with picture or media
+backgrounds. Audience and broadcast rendering are unchanged.
 
 TEMPORARY for the 2026-11-15 service: on the last slide of a service Bible item
 directly following a sermon-title theme item, the stage next line shows the

@@ -228,6 +228,7 @@ it('shows image slides on audience and stage but not broadcast', () => {
     background: '#000000',
     elements: [
       {kind: 'media', fit: 'fit'},
+      {kind: 'timer', frame: {x: 1210, y: 20}},
       {kind: 'clock', frame: {x: 1460, y: 20}},
     ],
   });

@@ -321,6 +321,18 @@ export class ThemeElementView {
     }
     const item = frame.theme?.item ?? null;
     const stage = frame.screen?.kind === 'stage';
+    const clockBacking =
+      stage && (element.kind === 'clock' || element.kind === 'timer');
+    this.box.toggleAttribute('data-stage-clock-backing', clockBacking);
+    if (clockBacking && isThemeTextElement(element)) {
+      this.box.dataset['stageClockAlign'] = element.text.align;
+      this.box.style.overflow = 'visible';
+    } else {
+      delete this.box.dataset['stageClockAlign'];
+      if (element.kind === 'clock' || element.kind === 'timer') {
+        this.box.style.overflow = 'hidden';
+      }
+    }
     const slide = layers.slide;
     const finalBible =
       (slide?.kind ?? item?.kind) === 'bible' &&

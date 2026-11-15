@@ -141,6 +141,38 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
+it.each(['stage', 'audience', 'broadcast'] as const)(
+  'scopes time backings to the stage on %s',
+  kind => {
+    const {root, view} = setup();
+    const clock: ThemeElement = {
+      ...themeElementBase(),
+      kind: 'clock',
+      clockFormat: '24h',
+    };
+    const timer: ThemeElement = {...themeElementBase(31), kind: 'timer'};
+    view.render(song, {
+      ...frame([clock, timer]),
+      screen: {id: THEME_MAIN, kind},
+      transitions: false,
+    });
+    for (const type of ['clock', 'timer']) {
+      const element = root.querySelector<HTMLElement>(`[data-kind="${type}"]`);
+      expect(element).not.toBeNull();
+      expect(element?.hasAttribute('data-stage-clock-backing')).toBe(
+        kind === 'stage',
+      );
+      expect(element?.style.left).toBe(
+        `${type === 'clock' ? clock.frame.x : timer.frame.x}px`,
+      );
+      expect(element?.style.top).toBe(
+        `${type === 'clock' ? clock.frame.y : timer.frame.y}px`,
+      );
+    }
+    view.dispose();
+  },
+);
+
 describe('theme composition drawing', () => {
   it.each(['stage', 'broadcast'] as const)(
     'draws a centered sermon passage above its title on %s',
