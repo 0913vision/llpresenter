@@ -87,7 +87,7 @@ describe('quick add Bible passages', () => {
   it('records defaults for each saved split part before insertion', async () => {
     const canvas = {
       font: '',
-      measureText: (text: string) => ({width: text.length}),
+      measureText: (text: string) => ({width: text.length * 10}),
     };
     const getContext = vi
       .spyOn(bibleMeasure, 'createBibleMeasureContext')

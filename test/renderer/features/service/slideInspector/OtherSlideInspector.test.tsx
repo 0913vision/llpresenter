@@ -176,9 +176,8 @@ async function setup(
 }
 it('saves opening and closing sermon title transitions independently', async () => {
   const {view, items, editor} = await setup('sermon');
-  await userEvent.click(screen.getByLabelText('\ud6a8\uacfc'));
   await userEvent.click(
-    screen.getByRole('menuitemradio', {name: '\ub514\uc878\ube0c'}),
+    screen.getByRole('button', {name: '\ub514\uc878\ube0c'}),
   );
   await waitFor(() =>
     expect(items.getSnapshot().item).toMatchObject({
@@ -189,9 +188,8 @@ it('saves opening and closing sermon title transitions independently', async () 
     items.setBibleSelection([2]);
     items.selectPosition(2);
   });
-  await userEvent.click(screen.getByLabelText('\ud6a8\uacfc'));
   await userEvent.click(
-    screen.getByRole('menuitemradio', {name: '\ubc00\uc5b4\ub0b4\uae30'}),
+    screen.getByRole('button', {name: '\ubc00\uc5b4\ub0b4\uae30'}),
   );
   await waitFor(() =>
     expect(items.getSnapshot().item).toMatchObject({
