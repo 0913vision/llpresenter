@@ -55,7 +55,10 @@ export class SlideAnimation {
   play(old: HTMLElement, next: HTMLElement, effect: SlideTransition): void {
     this.cancel();
     old.style.transition = next.style.transition = 'none';
-    old.style.opacity = effect.kind === 'wipe' ? '1' : '0';
+    old.style.opacity =
+      effect.kind === 'wipe' || (this.opaque && effect.kind !== 'none')
+        ? '1'
+        : '0';
     next.style.opacity = '1';
     old.style.zIndex = '0';
     next.style.zIndex = '1';
@@ -137,6 +140,23 @@ export class SlideAnimation {
     return completions.length === 0
       ? null
       : Promise.all(completions).then(() => undefined);
+  }
+
+  /** Keep a push's old picture in place until the incoming picture is ready. */
+  holdOutgoing(): void {
+    this.animations[0]?.pause();
+  }
+
+  /** Bring the outgoing push up to the incoming animation's current time. */
+  resumeOutgoing(): void {
+    const [outgoing, incoming] = this.animations;
+    if (outgoing === undefined || incoming === undefined) return;
+    if (incoming.playState === 'finished') {
+      outgoing.finish();
+      return;
+    }
+    outgoing.currentTime = incoming.currentTime;
+    outgoing.play();
   }
 
   cancel(): void {

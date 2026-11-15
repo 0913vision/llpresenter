@@ -16,6 +16,22 @@ function setup() {
 }
 
 describe('SlideAnimation', () => {
+  it('keeps the outgoing push still until the incoming picture is ready', () => {
+    const old = document.createElement('div');
+    const next = document.createElement('div');
+    const outgoing = {pause: vi.fn(), play: vi.fn(), currentTime: 0};
+    const incoming = {currentTime: 700, playState: 'running'};
+    Object.defineProperty(old, 'animate', {value: () => outgoing});
+    Object.defineProperty(next, 'animate', {value: () => incoming});
+    const view = new SlideAnimation(true);
+    view.play(old, next, {kind: 'push', dir: 'left', sec: 4});
+    view.holdOutgoing();
+    expect(outgoing.pause).toHaveBeenCalledOnce();
+    expect(old.style.opacity).toBe('1');
+    view.resumeOutgoing();
+    expect(outgoing.currentTime).toBe(700);
+    expect(outgoing.play).toHaveBeenCalledOnce();
+  });
   it('keeps the old page still while revealing the new page with a feathered mask', () => {
     const {view, old, next, animate} = setup();
     view.play(old, next, {kind: 'wipe', dir: 'left', sec: 1});

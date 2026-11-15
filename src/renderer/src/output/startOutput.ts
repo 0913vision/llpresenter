@@ -5,6 +5,7 @@ import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {OutputRenderer} from '../rendering/outputRenderer';
 import {SlideAnimation} from '../rendering/slideAnimation';
 import {ServiceMediaPreloader} from './serviceMediaPreloader';
+import {waitForPaint} from './waitForPaint';
 import {reverseSlideTransition} from '@core/output/transitions';
 import type {SlideTransition} from '@core/schema/slideTransition';
 import type {LiveState} from '@core/live/state';
@@ -107,6 +108,7 @@ export function startOutput({
   let preloader: ServiceMediaPreloader | null = null;
   let snapshotMode = false;
   let snapshotEpoch = 0;
+  let cancelPaint: (() => void) | null = null;
   let hasFrame = false;
   let latest: LiveState | null = null;
   let stopped = false;
@@ -325,6 +327,10 @@ export function startOutput({
         changed || !audience || state.outputs[screenId] !== true
           ? ++snapshotEpoch
           : snapshotEpoch;
+      if (changed || !audience || state.outputs[screenId] !== true) {
+        cancelPaint?.();
+        cancelPaint = null;
+      }
       if (
         !audience ||
         !enabled() ||
@@ -337,6 +343,9 @@ export function startOutput({
         if (changed || !audience || state.outputs[screenId] !== true) {
           snapshotMode = false;
           clearRetired();
+          if (currentRenderer !== null) {
+            currentRenderer.transitionSurface().style.visibility = '';
+          }
         }
         applyState(state);
         return;
@@ -357,6 +366,7 @@ export function startOutput({
       animations.push(animation);
       try {
         animation.play(currentRenderer.transitionSurface(), surface, effect);
+        if (effect.kind === 'push') animation.holdOutgoing();
       } catch (error) {
         report('could not animate the incoming slide', error);
         applyState(state);
@@ -366,34 +376,26 @@ export function startOutput({
         return;
       }
       applyState(state);
-      if (incoming.ready()) surface.style.visibility = '';
-      else {
-        const deadline = setTimeout(() => {
-          if (!stopped && epoch === snapshotEpoch) {
-            surface.style.visibility = '';
-          }
-        }, 400);
-        let paints = 0;
-        const reveal = (): void => {
-          if (stopped || epoch !== snapshotEpoch) {
-            clearTimeout(deadline);
-            return;
-          }
-          paints = incoming.ready() ? paints + 1 : 0;
-          if (paints >= 2 || surface.style.visibility === '') {
-            clearTimeout(deadline);
-            surface.style.visibility = '';
-          } else requestAnimationFrame(reveal);
-        };
-        requestAnimationFrame(reveal);
-      }
+      let revealed = false;
+      let ended = false;
       const finish = (): void => {
-        if (!stopped && epoch === snapshotEpoch) {
-          surface.style.visibility = '';
+        ended = true;
+        if (!stopped && epoch === snapshotEpoch && revealed) {
           clearRetired();
           snapshotMode = false;
         }
       };
+      cancelPaint = waitForPaint(
+        () => incoming === renderer && complete(),
+        () => {
+          if (stopped || epoch !== snapshotEpoch) return;
+          cancelPaint = null;
+          revealed = true;
+          if (effect.kind === 'push') animation.resumeOutgoing();
+          surface.style.visibility = '';
+          if (ended) finish();
+        },
+      );
       const completion = animation.finished();
       if (completion === null) finish();
       else void completion.then(finish, () => undefined);
@@ -403,6 +405,7 @@ export function startOutput({
   return () => {
     stopped = true;
     snapshotEpoch += 1;
+    cancelPaint?.();
     clearRetired();
     preloader?.dispose();
     if (readyTimer !== null) clearTimeout(readyTimer);
