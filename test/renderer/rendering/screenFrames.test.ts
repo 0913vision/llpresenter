@@ -80,6 +80,25 @@ function setup(screenId = THEME_MAIN, fonts?: FontsApi) {
   };
 }
 
+it('updates the stage lyric label setting on an active screen', async () => {
+  const {frames, state, push, onChange} = setup(THEME_STAGE);
+  await vi.waitFor(() => expect(onChange).toHaveBeenCalledTimes(4));
+  expect(frames.frame(state)?.stageLyricLabelPosition).toBe('line');
+  push(
+    settingsDocument(
+      'preferences',
+      {
+        format: 'llsettings.preferences',
+        schemaVersion: 1,
+        output: {stageLyricLabelPosition: 'off'},
+      },
+      2,
+    ),
+  );
+  expect(frames.frame(state)?.stageLyricLabelPosition).toBe('off');
+  expect(onChange).toHaveBeenCalledTimes(5);
+});
+
 it('withholds unverified absence from output fallback decisions and releases font subscriptions', async () => {
   let publish: (value: FontCatalogSnapshot) => void = () => undefined;
   const stop = vi.fn();

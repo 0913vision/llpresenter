@@ -42,6 +42,23 @@ describe('parsePreferences', () => {
       'bible.splitEditorAutoOpen',
     );
   });
+  it('defaults and validates the stage lyric label position', () => {
+    expect(
+      withPreferenceDefaults(parse(HEADER)).output.stageLyricLabelPosition,
+    ).toBe('line');
+    for (const stageLyricLabelPosition of ['line', 'inline', 'off']) {
+      const stored = {...HEADER, output: {stageLyricLabelPosition}};
+      expectRoundTrip(codec, stored);
+      expect(
+        withPreferenceDefaults(parse(stored)).output.stageLyricLabelPosition,
+      ).toBe(stageLyricLabelPosition);
+    }
+    expectInvalidField(
+      codec,
+      {...HEADER, output: {stageLyricLabelPosition: 'unknown'}},
+      'output.stageLyricLabelPosition',
+    );
+  });
   it('reads a file with only the header', () => {
     expectRoundTrip(codec, HEADER);
   });
