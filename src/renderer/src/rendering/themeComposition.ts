@@ -16,6 +16,7 @@ import {THEME_LIMITS} from '@core/themes/elementRules';
 import {themeBackgroundStyle} from './themeBackground';
 import {songTitleLayout} from '@core/themes/songTitle';
 import {songTitleLines} from '@core/presentation/songTitleLines';
+import {STAGE_LYRIC_LABEL_ID, stageLyricLabelLayout} from './stageLyricLabel';
 import {isThemeTextElement, themeElementMedia} from '@core/themes/content';
 import {BROADCAST_BAND_ID} from '@core/themes/broadcastBand';
 import {isSectionTheme} from '@core/themes/sundaySections';
@@ -177,6 +178,20 @@ export class ThemeCompositionView {
           },
         };
       }
+    }
+    if (frame.theme !== undefined && frame.screen?.kind === 'stage') {
+      const slide = frame.slide ?? layers.slide;
+      frame = {
+        ...frame,
+        theme: {
+          ...frame.theme,
+          layout: stageLyricLabelLayout(
+            frame.theme.layout,
+            slide,
+            (slide?.kind ?? frame.theme.item?.kind) === 'song',
+          ),
+        },
+      };
     }
     this.gaps.follow(frame);
     this.content = {layers, frame};
@@ -536,6 +551,18 @@ export class ThemeCompositionView {
         : page.elements
             .find(view => view.element.kind === 'currentText')
             ?.fittedTextSize();
+    const lyricLabel = page.elements.find(
+      view => view.element.id === STAGE_LYRIC_LABEL_ID,
+    );
+    if (lyricLabel !== undefined && currentSize !== undefined) {
+      lyricLabel.targetTextSize(currentSize);
+      const bounds = page.elements
+        .find(view => view.element.kind === 'currentText')
+        ?.textBounds();
+      if (bounds !== undefined) {
+        lyricLabel.setY(Math.max(0, bounds.top - lyricLabel.element.frame.h));
+      }
+    }
     const maximum =
       currentSize !== undefined && Number.isFinite(currentSize)
         ? currentSize * STAGE_NEXT_RATIO

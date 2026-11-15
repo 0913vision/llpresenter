@@ -22,6 +22,7 @@ import {
 } from './slideLayer';
 import {classes} from './classes';
 import {stageClockText} from './stageClock';
+import {STAGE_LYRIC_LABEL_ID} from './stageLyricLabel';
 import {fillTimerTokens} from './timerTokens';
 import type {RenderFrame, RenderLayerOptions} from './layer';
 import type {ThemeGaps} from './themeGaps';
@@ -353,7 +354,12 @@ export class ThemeElementView {
           : next.lines
       ).some(line => line.trim() !== '');
     const rawCurrentLabel = slide?.label?.trim();
-    const rawNextLabel = next?.label?.trim();
+    const repeatedNextSongLabel =
+      next?.labelContinued === true &&
+      (next.itemKind ?? slide?.kind ?? item?.kind) === 'song';
+    const rawNextLabel = repeatedNextSongLabel
+      ? undefined
+      : next?.label?.trim();
     const currentLabel =
       slide?.titleSlide &&
       rawCurrentLabel &&
@@ -557,6 +563,17 @@ export class ThemeElementView {
     const slide = layers.slide;
     if (
       frame.screen?.kind === 'stage' &&
+      element.kind === 'nextLabel' &&
+      slide?.next?.labelContinued &&
+      (slide.next.itemKind ?? slide.kind ?? item?.kind) === 'song'
+    ) {
+      return null;
+    }
+    if (element.id === STAGE_LYRIC_LABEL_ID) {
+      return slide?.label ? `(${slide.label.trim()})` : null;
+    }
+    if (
+      frame.screen?.kind === 'stage' &&
       element.kind === 'slideName' &&
       (slide?.kind ?? item?.kind) === 'ad' &&
       slide?.sectionCard === undefined &&
@@ -682,11 +699,21 @@ export class ThemeElementView {
         !currentBible &&
         slide?.label?.trim()
       ) {
+        if (
+          (slide.kind ?? item?.kind) === 'song' &&
+          !isStageEndingLabel(slide.label.trim())
+        ) {
+          return text;
+        }
         return stageLabeledText(text, slide.label.trim());
       }
       if (
         element.kind === 'nextText' &&
         !nextBible &&
+        !(
+          slide?.next?.labelContinued &&
+          (slide.next.itemKind ?? slide.kind ?? item?.kind) === 'song'
+        ) &&
         slide?.next?.label?.trim()
       ) {
         return stageLabeledText(

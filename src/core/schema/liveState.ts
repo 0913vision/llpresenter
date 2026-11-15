@@ -54,6 +54,7 @@ const slideLinesSchema = v.pipe(
 /** The next slide text and optional item kind, carried without changing live output. */
 export const nextSlideSchema = payloadObject({
   label: v.nullable(liveTextSchema),
+  labelContinued: v.exactOptional(v.literal(true)),
   title: v.exactOptional(liveTextSchema),
   itemKind: v.exactOptional(v.picklist(themeItemKinds)),
   lines: slideLinesSchema,
@@ -97,6 +98,7 @@ export const layerSchemas = {
     transitionStartedAt: v.exactOptional(v.pipe(v.number(), v.finite())),
     reverseTransition: v.exactOptional(v.nullable(slideTransitionSchema)),
     label: v.nullable(liveTextSchema),
+    labelContinued: v.exactOptional(v.literal(true)),
     lines: slideLinesSchema,
     sectionCard: v.exactOptional(sectionCardSchema),
     bibleItemSlides: v.exactOptional(

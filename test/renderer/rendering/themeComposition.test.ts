@@ -2314,6 +2314,7 @@ it('reflows Bible parts independently on stage and broadcast, including the next
     ...layers,
     slide: {
       ...layers.slide,
+      label: 'Verse',
       next: {label: null, lines: next, itemKind: 'song' as const},
     },
   };
@@ -2322,10 +2323,10 @@ it('reflows Bible parts independently on stage and broadcast, including the next
     screen: {id: THEME_MAIN, kind: 'stage'},
     transitions: false,
   });
-  expect(rows('currentText')).toEqual([
-    `(11:29) ${current[0]}`,
-    ...current.slice(1),
-  ]);
+  expect(rows('currentText')).toEqual(current);
+  expect(root.querySelector('[data-kind="label"]')?.textContent).toContain(
+    '(Verse)',
+  );
   expect(rows('nextText')).toEqual(next.slice(0, 2));
   expect(
     root.querySelector<HTMLElement>('[data-kind="currentText"]')?.style
@@ -2542,7 +2543,7 @@ it.each(['output', 'preview'] as const)(
     );
     expect(current()?.textContent).toBe('(\uc5c6\uc74c)');
     view.render(song, stage);
-    expect(current()?.textContent).toBe('(Verse) Invented line');
+    expect(current()?.textContent).toBe('Invented line');
     expect(current()?.style.color).not.toBe('rgb(180, 180, 180)');
     view.render(empty, {
       ...frame(elements),
@@ -2906,21 +2907,27 @@ it('shows both title lines on stage while retaining the section name', () => {
   view.dispose();
 });
 
-it('places ordinary stage labels before lyrics and omits them on titles', () => {
+it('shows stage lyric labels on their own line only at their start', () => {
   const {root, view} = setup();
   const elements: ThemeElement[] = [
     {...themeElementBase(), kind: 'currentText'},
     {...themeElementBase(31), kind: 'nextText'},
+    {...themeElementBase(32), kind: 'label'},
   ];
   const slide = song.slide;
   if (slide === null) throw Error('Missing slide');
-  const draw = (title: boolean, screen: 'stage' | 'audience') =>
+  const draw = (
+    title: boolean,
+    screen: 'stage' | 'audience',
+    continued = false,
+  ) =>
     view.render(
       {
         ...song,
         slide: {
           ...slide,
           label: 'Verse',
+          ...(continued ? {labelContinued: true as const} : {}),
           ...(title ? {titleSlide: true as const} : {}),
           lines: ['Current'],
           next: {
@@ -2940,7 +2947,18 @@ it('places ordinary stage labels before lyrics and omits them on titles', () => 
     root.querySelector(`[data-kind="${kind}"] .${classes.shown}`)
       ?.textContent ?? '';
   draw(false, 'stage');
-  expect(text('currentText')).toBe('(Verse) Current');
+  expect(text('currentText')).toBe('Current');
+  expect(text('label')).toBe('Verse');
+  expect(
+    Array.from(
+      root.querySelectorAll(`[data-kind="label"] .${classes.shown}`),
+    ).map(node => node.textContent),
+  ).toEqual(['Verse', '(Verse)']);
+  expect(text('nextText')).toBe('(Outro) Next');
+  draw(false, 'stage', true);
+  expect(text('currentText')).toBe('Current');
+  expect(text('label')).toBe('Verse');
+  expect(root.querySelectorAll('[data-kind="label"]')).toHaveLength(1);
   expect(text('nextText')).toBe('(Outro) Next');
   draw(true, 'stage');
   expect(text('currentText')).toBe('Current');
@@ -2948,6 +2966,70 @@ it('places ordinary stage labels before lyrics and omits them on titles', () => 
   draw(false, 'audience');
   expect(text('currentText')).toBe('Current');
   expect(text('nextText')).toBe('Next');
+  view.dispose();
+});
+
+it('omits a continuing next label on stage but shows a changed label', () => {
+  const {root, view} = setup();
+  if (song.slide === null) throw Error('Missing slide');
+  const slide = song.slide;
+  const draw = (continued: boolean) =>
+    view.render(
+      {
+        ...song,
+        slide: {
+          ...slide,
+          next: {
+            label: continued ? 'Verse' : 'Chorus',
+            lines: ['Next'],
+            ...(continued ? {labelContinued: true as const} : {}),
+          },
+        },
+      },
+      {
+        ...frame([
+          {...themeElementBase(31), kind: 'nextText'},
+          {...themeElementBase(32), kind: 'nextLabel'},
+        ]),
+        screen: {id: THEME_MAIN, kind: 'stage'},
+        transitions: false,
+      },
+    );
+  const text = (kind: string) =>
+    root.querySelector(`[data-kind="${kind}"] .${classes.shown}`)
+      ?.textContent ?? '';
+  draw(true);
+  expect(text('nextText')).toBe('Next');
+  expect(text('nextLabel').trim()).toBe('');
+  draw(false);
+  expect(text('nextText')).toBe('(Chorus) Next');
+  expect(text('nextLabel')).toBe('Chorus');
+  view.render(
+    {
+      ...song,
+      slide: {
+        ...slide,
+        kind: 'blank',
+        label: 'Section',
+        next: {
+          itemKind: 'blank',
+          label: 'Section',
+          labelContinued: true,
+          lines: ['Next'],
+        },
+      },
+    },
+    {
+      ...frame([
+        {...themeElementBase(31), kind: 'nextText'},
+        {...themeElementBase(32), kind: 'nextLabel'},
+      ]),
+      screen: {id: THEME_MAIN, kind: 'stage'},
+      transitions: false,
+    },
+  );
+  expect(text('nextText')).toBe('(Section) Next');
+  expect(text('nextLabel')).toBe('Section');
   view.dispose();
 });
 

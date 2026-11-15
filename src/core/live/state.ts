@@ -52,6 +52,8 @@ export interface NextSlide {
   /** Optional title displayed before the next slide body. */
   readonly title?: string;
   readonly label: string | null;
+  /** The next slide's label repeats the previous slide in the same item. */
+  readonly labelContinued?: true;
   readonly lines: readonly string[];
   readonly continued?: boolean;
   readonly biblePart?: number;
@@ -90,6 +92,8 @@ export interface SlideLayer {
   readonly biblePart?: number;
   readonly sourceSlideId?: SlideId;
   readonly label: string | null;
+  /** The current label repeats the preceding slide's label within this item. */
+  readonly labelContinued?: true;
   readonly lines: readonly string[];
   readonly continued?: boolean;
   /** A Bible reference, separate from the operator's slide label. */
