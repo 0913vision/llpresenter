@@ -330,6 +330,7 @@ export class SlideLayerView {
   private minimumSize: number | undefined;
   private fitLines: number | undefined;
   private lineMode: 'normal' | 'song' | 'lyrics' | 'bar' = 'normal';
+  private ellipsis = false;
   private balanceWrap = false;
   private dissolveMs: number = SLIDE_DISSOLVE_MS;
   private effect: SlideTransition | undefined;
@@ -519,6 +520,12 @@ export class SlideLayerView {
     if (this.current !== null) this.fit(this.pages[this.front]);
   }
 
+  setEllipsis(enabled: boolean): void {
+    if (enabled === this.ellipsis) return;
+    this.ellipsis = enabled;
+    if (this.current !== null) this.fit(this.pages[this.front]);
+  }
+
   /** Balance each authored lyric line if it wraps. */
   setBalanceWrap(balance: boolean): void {
     if (this.balanceWrap === balance) return;
@@ -656,6 +663,13 @@ export class SlideLayerView {
         height,
       ]),
       () => {
+        for (const row of Array.from(block.children)) {
+          if (row instanceof HTMLElement) {
+            row.style.overflow = '';
+            row.style.textOverflow = '';
+            row.style.whiteSpace = this.ellipsis ? 'nowrap' : '';
+          }
+        }
         block.style.whiteSpace = this.lineMode === 'normal' ? '' : 'pre';
         const fitted = fitTextInFrame({size, width, height}, px => {
           setSize(px);
@@ -709,6 +723,13 @@ export class SlideLayerView {
         Math.min(fontSize, (this.maximumSize ?? Infinity) * this.scale),
       ),
     );
+    for (const row of Array.from(block.children)) {
+      if (row instanceof HTMLElement) {
+        row.style.overflow = this.ellipsis ? 'hidden' : '';
+        row.style.textOverflow = this.ellipsis ? 'ellipsis' : '';
+        row.style.whiteSpace = this.ellipsis ? 'nowrap' : '';
+      }
+    }
     if (this.fitLines !== undefined) {
       block.style.maxHeight = `${Number.parseFloat(block.style.fontSize) * this.style.lineHeight * this.fitLines}px`;
       block.style.overflow = 'hidden';

@@ -19,7 +19,7 @@ export function isSectionBandGradient(id: string): boolean {
 const text: ThemeText = {
   font: 'Pretendard Variable',
   weight: 700,
-  size: 64,
+  size: 88,
   color: '#FFFFFF',
   align: 'center',
   vAlign: 'top',
@@ -44,13 +44,13 @@ export function sectionBroadcastLayout(): ThemeScreenLayout {
       {
         id: SECTION_BAND_ID,
         kind: 'box',
-        frame: {x: 0, y: 888, w: 1920, h: 102},
+        frame: {x: 0, y: 756, w: 1920, h: 234},
         box: {on: true, fill: '#000000', opacity: 88, radius: 0},
       },
       {
         id: SECTION_NAME_ID,
         kind: 'itemName',
-        frame: {x: 230, y: 900, w: 1460, h: 90},
+        frame: {x: 160, y: 818, w: 1600, h: 110},
         text,
       },
     ],

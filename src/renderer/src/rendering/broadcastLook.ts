@@ -357,7 +357,9 @@ function fitSong(
     elements.push({
       id: BROADCAST_LOOK_SONG_TITLE_ID,
       kind: 'text',
-      content: visible ? title : '',
+      content: visible ? title.replace(/\s+/gu, ' ').trim() : '',
+      broadcastSingleLine: true,
+      minimumTextSize: 24,
       clearTarget: 'slide',
       runtimeHidden: !visible,
       frame: {

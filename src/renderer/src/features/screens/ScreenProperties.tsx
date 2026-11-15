@@ -40,6 +40,8 @@ import {
 import {MessageStyleRow} from './MessageStyleRow';
 import {useScreenView, useScreensSelection} from './selection';
 import {useMonitors} from './useMonitors';
+import {useOutputStatuses} from './useOutputStatuses';
+import {ndiAccelerationLabel, ndiAccelerationReason} from './ndiAcceleration';
 import {useScreenEditor} from './useScreenEditor';
 import {useSettingsDocument} from '../../platform/useSettingsDocument';
 import {ScreenDeviceRow} from './ScreenDeviceRow';
@@ -89,6 +91,8 @@ function NdiRows({
   readonly reason: string | undefined;
 }): JSX.Element {
   const [draft, setDraft] = useState<string | null>(null);
+  const status = useOutputStatuses()[screen.id];
+  const accelerationReason = ndiAccelerationReason(status);
   const source = screen.ndi?.sourceName ?? NDI_DEFAULT_SOURCE_NAME;
   return (
     <>
@@ -135,6 +139,15 @@ function NdiRows({
           />
         )}
       </PropertyRow>
+      {status?.placement === 'ndi' ? (
+        <PropertyValue label="가속 상태" value={ndiAccelerationLabel(status)} />
+      ) : null}
+      {status?.placement === 'ndi' && accelerationReason ? (
+        <PropertyValue
+          label="가속을 사용하지 않는 이유"
+          value={accelerationReason}
+        />
+      ) : null}
       <PropertyValue label="해상도" value="1920 × 1080" />
       <PropertyRow label="프레임 수">
         {({controlId}) => (

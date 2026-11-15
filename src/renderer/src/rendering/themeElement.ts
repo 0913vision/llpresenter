@@ -29,10 +29,11 @@ import type {ThemeGaps} from './themeGaps';
 import {setPlaybackProblem} from './playbackProblem';
 import {broadcastBibleFlow} from './broadcastBibleFlow';
 import {
+  SECTION_BAND_ID,
   SECTION_NAME_ID,
   isSectionBandGradient,
 } from '@core/themes/sectionBroadcast';
-import {sectionBandGradient} from './sectionBandGradient';
+import {sectionBandGradient, sermonBandGradient} from './sectionBandGradient';
 
 function fillColor(fill: string, opacity: number): string {
   const [red, green, blue] = [1, 3, 5].map(at =>
@@ -211,7 +212,10 @@ export class ThemeElementView {
         this.box.style.overflow = 'visible';
       }
       if (isSectionBandGradient(element.id)) {
-        background.style.background = sectionBandGradient;
+        background.style.background =
+          element.id === SECTION_BAND_ID
+            ? sectionBandGradient
+            : sermonBandGradient;
         background.style.borderRadius = '0';
       }
       this.box.append(background);
@@ -426,8 +430,9 @@ export class ThemeElementView {
           : slide?.titleSlide !== true),
     );
     this.text?.setLineMode(
-      (element.broadcastSongTitle !== undefined &&
-        element.broadcastSongTitleWrap === false) ||
+      element.broadcastSingleLine === true ||
+        (element.broadcastSongTitle !== undefined &&
+          element.broadcastSongTitleWrap === false) ||
         (stage && isBar)
         ? 'bar'
         : isSong &&
@@ -439,6 +444,7 @@ export class ThemeElementView {
             ? 'song'
             : 'normal',
     );
+    this.text?.setEllipsis(element.broadcastSingleLine === true);
     if (element.kind === 'media' || element.kind === 'background') {
       const media = themeElementMedia(element.kind, {layers, item});
       this.showMedia(media, frame, element.fit);

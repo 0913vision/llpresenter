@@ -516,6 +516,8 @@ Source: `Overlays`, `ShowH` (target screens in the showing list), product log
   sender during recovery, and returns to GPU input after a frame is sent. It
   retries silently without changing the saved option. A GPU utility crash first
   falls back to the bitmap sender, not the capture window.
+- The status bar identifies the active NDI shared-texture or bitmap path; while
+  the sender is starting it says the acceleration state is being checked.
 - An unavailable NDI Runtime is remembered until the method is toggled or the
   app restarts.
 

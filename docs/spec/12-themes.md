@@ -647,10 +647,10 @@ as every settings file does (02).
   without repeating its number. No English subtitle is appended. Text-only
   captions have no title label. The capture fallback uses an unblurred hard
   shadow.
-- Broadcast section cards use a 102 px horizontal black fade from y=888 to
-  y=990: transparent at x=160 and x=1760, 88% black from x=480 to x=1440. The
-  Korean item name alone is centered in white Pretendard Variable bold 64 px
-  with a 0 2px 6px black 80% shadow, in the frame (230, 900, 1460, 90). NDI
+- Broadcast section cards use a 234 px horizontal black fade from y=756 to
+  y=990: transparent at the edges and 88% black from 18% to 82% of the width.
+  The Korean item name alone is centered in white Pretendard Variable bold 88 px
+  with a 0 2px 6px black 80% shadow, in the frame (160, 818, 1600, 110). NDI
   remains transparent outside the fade. Section cards never show an English line
   on broadcast.
 - The built-in advertisement theme has an empty broadcast layout; NDI sends a
@@ -829,9 +829,10 @@ and text-style edits for fitted elements are stored as optional per-element
 `broadcastEdits` in that theme's broadcast layout. Missing edits retain the
 computed defaults. Broadcast output uses the same fitting and overrides. The
 song band retains a fixed height across slides, its lyrics stay in the band, and
-the title remains at its top left without overlapping the lyric area. An edited
-Bible reference remains within its tab and the body fits below the tab. The
-overrides are limited to the screen element limit plus one generated title.
+the title remains at its top left without overlapping the lyric area. A song
+title stays on one line, fitting down to 24 px and then using an ellipsis. An
+edited Bible reference remains within its tab and the body fits below the tab.
+The overrides are limited to the screen element limit plus one generated title.
 
 A theme may set a slide transition in the theme editor. The built-in scripture
 theme uses a 0.7 second wipe, the creed and prayer theme uses a 0.5 second wipe,

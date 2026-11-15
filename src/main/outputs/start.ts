@@ -197,6 +197,7 @@ export function startOutputs({
     ndi: (screen: OutputScreen, events: OutputWindowEvents) =>
       createNdiOutput(screen, events, {
         log,
+        onAcceleration: value => board.setNdiAcceleration(screen.id, value),
         onFailure: (id, missing) => {
           if (missing) problems?.report({kind: 'ndi-runtime-missing'});
           else problems?.report({kind: 'ndi-failed'});

@@ -528,6 +528,25 @@ describe('built-in broadcast look', () => {
     expect(title.x + title.w).toBeLessThanOrEqual(lyric.x);
     expect(lyric.x + lyric.w).toBeLessThanOrEqual(frame.x + frame.w);
   });
+  it('limits long song captions to a single line with a readable minimum', () => {
+    const layout = builtInTheme('song').screens[screen];
+    if (!layout) throw Error('missing song');
+    const song = {
+      ...item,
+      kind: 'song' as const,
+      title: '아주 긴 노래 제목\n여러 줄로 보이지 않아야 합니다',
+    };
+    const title = element(
+      fitBroadcastLook(layout, slide, song),
+      BROADCAST_LOOK_SONG_TITLE_ID,
+    );
+    expect(title).toMatchObject({
+      kind: 'text',
+      broadcastSingleLine: true,
+      minimumTextSize: 24,
+      content: '아주 긴 노래 제목 여러 줄로 보이지 않아야 합니다',
+    });
+  });
   it('shows the small song title only when the band is showing lyrics', () => {
     const layout = builtInTheme('song').screens[screen];
     if (!layout) throw Error('missing song');

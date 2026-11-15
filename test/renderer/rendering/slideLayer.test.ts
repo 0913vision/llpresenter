@@ -118,6 +118,14 @@ describe('SlideLayerView', () => {
       expect(
         shownPage()?.querySelector<HTMLElement>(`.${classes.block}`)?.style,
       ).toMatchObject({fontSize: '20px', whiteSpace: 'pre', textWrap: ''});
+      view.setMinimumSize(24);
+      view.setEllipsis(true);
+      const bar = shownPage()?.querySelector<HTMLElement>(`.${classes.block}`);
+      expect(bar?.style.fontSize).toBe('24px');
+      expect(bar?.firstElementChild).toHaveProperty(
+        'style.textOverflow',
+        'ellipsis',
+      );
       view.dispose();
     } finally {
       height.mockRestore();

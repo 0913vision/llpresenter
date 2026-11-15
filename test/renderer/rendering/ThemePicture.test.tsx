@@ -584,9 +584,9 @@ it('shows the fixed fading section band in the theme editor preview', () => {
   const band = view.container.querySelector<HTMLElement>(
     `[data-theme-element="${SECTION_BAND_ID}"]`,
   );
-  expect(band?.style.top).toBe('888px');
-  expect(band?.style.height).toBe('102px');
-  expect(band?.firstElementChild?.getAttribute('style')).toContain('8.33333');
+  expect(band?.style.top).toBe('756px');
+  expect(band?.style.height).toBe('234px');
+  expect(band?.firstElementChild?.getAttribute('style')).toContain('18%');
   expect(view.container.textContent).toContain('Section name');
   expect(view.container.textContent).not.toContain('English title');
 });

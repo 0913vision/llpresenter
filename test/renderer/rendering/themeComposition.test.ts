@@ -2646,11 +2646,11 @@ it('renders only the section name in the fading NDI band', () => {
       },
       {...active, screen, transitions: false},
     );
-    expect(element(SECTION_BAND_ID)?.style.top).toBe('888px');
-    expect(element(SECTION_BAND_ID)?.style.height).toBe('102px');
+    expect(element(SECTION_BAND_ID)?.style.top).toBe('756px');
+    expect(element(SECTION_BAND_ID)?.style.height).toBe('234px');
     expect(
       element(SECTION_BAND_ID)?.firstElementChild?.getAttribute('style'),
-    ).toContain('8.33333');
+    ).toContain('18%');
     expect(
       element(SECTION_BAND_ID)?.firstElementChild?.getAttribute('style'),
     ).toContain('0.88');

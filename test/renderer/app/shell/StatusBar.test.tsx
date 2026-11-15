@@ -25,6 +25,36 @@ afterEach(() => {
 });
 
 describe('StatusBar', () => {
+  it('reports whether the active NDI path uses hardware acceleration', () => {
+    fixture.statuses = {
+      stream: {
+        placement: 'ndi',
+        renderer: 'running',
+        fps: 30,
+        fpsLow: false,
+        ndiAcceleration: 'hardware',
+      },
+    };
+    const view = render(<StatusBar />);
+    expect(screen.getByRole('status').textContent).toContain(
+      'NDI 30fps · 하드웨어 가속',
+    );
+    fixture.statuses = {
+      stream: {
+        ...fixture.statuses['stream'],
+        placement: 'ndi',
+        renderer: 'running',
+        fps: 30,
+        fpsLow: false,
+        ndiAcceleration: 'bitmap',
+        ndiAccelerationReason: 'no-texture',
+      },
+    };
+    view.rerender(<StatusBar />);
+    expect(screen.getByRole('status').textContent).toContain(
+      'NDI 30fps · 하드웨어 가속 안 됨',
+    );
+  });
   it('shows identity fallback as quiet text and clears it when available', () => {
     identity.unavailable = true;
     const {rerender} = render(<StatusBar />);

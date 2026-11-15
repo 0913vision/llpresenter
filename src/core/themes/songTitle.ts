@@ -38,6 +38,7 @@ export type ResolvedThemeElement = ThemeElement & {
   readonly broadcastText?: string;
   readonly broadcastSongTitle?: string;
   readonly broadcastSongTitleWrap?: boolean;
+  readonly broadcastSingleLine?: boolean;
   readonly lyricFormat?: SongLyricFormat;
 };
 

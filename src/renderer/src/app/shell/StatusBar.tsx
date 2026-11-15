@@ -2,6 +2,7 @@ import {NDI_DEFAULT_FPS} from '@core/schema/screens';
 import type {JSX} from 'react';
 import {controlConflictReason} from '@core/screens/screenRows';
 import {useOutputStatuses} from '@renderer/features/screens/useOutputStatuses';
+import {ndiAccelerationLabel} from '@renderer/features/screens/ndiAcceleration';
 import {useMonitors} from '@renderer/features/screens/useMonitors';
 import {useScreenSummaries} from '../../platform/ScreenSummaries';
 import styles from './StatusBar.module.css';
@@ -23,7 +24,7 @@ export function StatusBar({
     const problems: string[] = [];
     if (status.placement === 'ndi') {
       problems.push(
-        `${screen.statusLabel} NDI ${screen.ndiFps ?? NDI_DEFAULT_FPS}fps`,
+        `${screen.statusLabel} NDI ${screen.ndiFps ?? NDI_DEFAULT_FPS}fps · ${ndiAccelerationLabel(status)}`,
       );
     }
     if (status.controlConflict) {
