@@ -75,6 +75,7 @@ describe('SlideAnimation', () => {
     expect(center(0)).toBeCloseTo(1.47, 5);
     expect(center(0.5)).toBeCloseTo(0.505, 5);
     expect(center(1)).toBeCloseTo(-0.46, 5);
+    expect(0.83 / Math.abs(center(1) - center(0))).toBeCloseTo(0.43, 2);
     expect((size * (61.666667 - 38.333333)) / 100).toBeCloseTo(0.7, 5);
   });
   it.each([
