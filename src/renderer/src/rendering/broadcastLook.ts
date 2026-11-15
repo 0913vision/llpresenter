@@ -612,11 +612,8 @@ export function applyBroadcastEdits(
       };
     }
     if (changed.kind === 'box' && edit?.box) {
-      return {
-        ...changed,
-        box: {...changed.box, ...edit.box},
-        broadcastGlass: undefined,
-      };
+      const {broadcastGlass: _broadcastGlass, ...withoutGlass} = changed;
+      return {...withoutGlass, box: {...changed.box, ...edit.box}};
     }
     return changed;
   });

@@ -425,6 +425,21 @@ describe('built-in broadcast look', () => {
       element(before, BROADCAST_TEXT_ID).frame.y - 40,
     );
   });
+  it('uses an edited band fill without retaining the built-in glass effect', () => {
+    const layout = plain();
+    const before = fitBroadcastLook(layout, slide, item);
+    const panel = element(before, BROADCAST_LOOK_BAND_ID);
+    if (panel.kind !== 'box') throw Error('Missing band');
+    expect(panel).toHaveProperty('broadcastGlass', 'panel');
+    const box = {...panel.box, fill: '#123456'};
+    const result = fitBroadcastLook(
+      {...layout, broadcastEdits: {[panel.id]: {box}}},
+      slide,
+      item,
+    );
+    expect(element(result, panel.id)).toMatchObject({box: {fill: '#123456'}});
+    expect(element(result, panel.id)).not.toHaveProperty('broadcastGlass');
+  });
   it('keeps the lyric line budget when applying text style overrides', () => {
     const layout = plain();
     const fitted = fitBroadcastLook(layout, slide, item);
