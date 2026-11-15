@@ -57,7 +57,8 @@ export function saveCard(
         if (
           !isItemOfKind(current, 'song') &&
           !isItemOfKind(current, 'slides') &&
-          !isItemOfKind(current, 'bible')
+          !isItemOfKind(current, 'bible') &&
+          !isItemOfKind(current, 'sermon')
         ) {
           return null;
         }

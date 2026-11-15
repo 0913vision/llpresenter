@@ -94,7 +94,8 @@ export function buildShowService({
     if (
       (!isItemOfKind(item, 'song') &&
         !isItemOfKind(item, 'slides') &&
-        !isItemOfKind(item, 'bible')) ||
+        !isItemOfKind(item, 'bible') &&
+        !isItemOfKind(item, 'sermon')) ||
       item.sectionCard === undefined
     ) {
       continue;
