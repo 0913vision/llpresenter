@@ -499,27 +499,63 @@ export function applyBroadcastEdits(
   const oldBand = layout.elements.find(e => e.id === BROADCAST_LOOK_BAND_ID);
   const newBand = oldBand === undefined ? undefined : edits[oldBand.id]?.frame;
   const band = newBand ?? oldBand?.frame;
-  const delta = song && oldBand && newBand ? newBand.y - oldBand.frame.y : 0;
+  const delta = oldBand && newBand ? newBand.y - oldBand.frame.y : 0;
+  const tab = layout.elements.find(e => e.id === BROADCAST_LOOK_TAB_ID);
+  const tabOverride = tab && edits[tab.id]?.frame;
+  const tabFrame =
+    tab &&
+    (tabOverride ??
+      (newBand ? {...tab.frame, y: tab.frame.y + delta} : tab.frame));
   const lyric = layout.elements.find(e => e.id === BROADCAST_LOOK_SONG_ID);
   const lyricFrame = lyric
     ? (edits[lyric.id]?.frame ?? lyric.frame)
     : undefined;
+  const title = layout.elements.find(
+    e => e.id === BROADCAST_LOOK_SONG_TITLE_ID,
+  );
+  const titleFrame = title
+    ? (edits[title.id]?.frame ?? title.frame)
+    : undefined;
+  const lyricMinimumX = band
+    ? band.x + Math.min(titleFrame?.w ?? 0, Math.max(0, band.w - 8))
+    : 0;
+  const lyricWidth =
+    band && lyricFrame
+      ? Math.min(lyricFrame.w, band.x + band.w - lyricMinimumX)
+      : lyricFrame?.w;
+  const lyricX =
+    band && lyricFrame && lyricWidth !== undefined
+      ? Math.max(
+          lyricMinimumX,
+          Math.min(lyricFrame.x, band.x + band.w - lyricWidth),
+        )
+      : lyricFrame?.x;
   const elements = layout.elements.map(element => {
     const edit = edits[element.id];
     let frame = edit?.frame ?? element.frame;
     if (
-      song &&
       newBand &&
-      element.id !== BROADCAST_LOOK_BAND_ID &&
+      [
+        BROADCAST_LOOK_SONG_ID,
+        BROADCAST_LOOK_SONG_TITLE_ID,
+        BROADCAST_LOOK_TAB_ID,
+        BROADCAST_TEXT_ID,
+        BROADCAST_REFERENCE_ID,
+      ].includes(element.id) &&
       edit?.frame === undefined
     ) {
+      const y = Math.max(
+        newBand.y,
+        Math.min(newBand.y + newBand.h - 8, frame.y + delta),
+      );
+      frame = {...frame, y, h: Math.min(frame.h, newBand.y + newBand.h - y)};
+    }
+    if (!song && newBand && tabFrame && element.id === BROADCAST_REFERENCE_ID) {
+      const h = Math.min(frame.h, tabFrame.h);
       frame = {
         ...frame,
-        y: Math.max(
-          newBand.y,
-          Math.min(newBand.y + newBand.h - frame.h, frame.y + delta),
-        ),
-        h: Math.min(frame.h, newBand.h),
+        h,
+        y: Math.max(tabFrame.y, Math.min(frame.y, tabFrame.y + tabFrame.h - h)),
       };
     }
     if (song && band && element.id !== BROADCAST_LOOK_BAND_ID) {
@@ -529,11 +565,15 @@ export function applyBroadcastEdits(
         h,
         y: Math.max(band.y, Math.min(frame.y, band.y + band.h - h)),
       };
+      if (
+        element.id === BROADCAST_LOOK_SONG_ID &&
+        lyricX !== undefined &&
+        lyricWidth !== undefined
+      ) {
+        frame = {...frame, x: lyricX, w: lyricWidth};
+      }
       if (element.id === BROADCAST_LOOK_SONG_TITLE_ID) {
-        const right = Math.min(
-          band.x + band.w,
-          lyricFrame?.x ?? band.x + band.w,
-        );
+        const right = Math.min(band.x + band.w, lyricX ?? band.x + band.w);
         const w = Math.min(frame.w, Math.max(1, right - band.x));
         frame = {
           ...frame,
@@ -543,13 +583,22 @@ export function applyBroadcastEdits(
         };
       }
     }
-    const changed = {...element, frame};
+    const changed: ResolvedThemeElement = {
+      ...element,
+      frame,
+      ...(element.kind === 'currentText' &&
+      (frame.h < element.frame.h || frame.w < element.frame.w)
+        ? {minimumTextSize: 0}
+        : {}),
+    };
     if ('text' in changed && (edit?.text || edit?.box)) {
       return {
         ...changed,
         ...(edit.text ? {text: {...changed.text, ...edit.text}} : {}),
         ...(edit.box ? {box: edit.box} : {}),
-        ...(element.kind === 'currentText' && edit.text
+        ...(element.kind === 'currentText' &&
+        edit.text &&
+        !(frame.h < element.frame.h || frame.w < element.frame.w)
           ? {minimumTextSize: edit.text.size}
           : {}),
       };
