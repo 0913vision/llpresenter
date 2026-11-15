@@ -1,3 +1,4 @@
+import {handleShowKey} from '@renderer/features/presentation/shortcuts';
 import {lastLiveCommand} from '@fixtures/renderer/session/liveCommands';
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
@@ -47,6 +48,7 @@ beforeEach(() => {
 
 afterEach(() => {
   cleanup();
+  window.removeEventListener('keydown', handleShowKey);
   delete window.llp;
 });
 
@@ -165,19 +167,20 @@ describe('SlideGrid', () => {
     expect(document.activeElement).toBe(document.body);
   });
 
-  it('outputs a row from the live slide with up and down', () => {
+  it('outputs one slide from the live slide with up and down', () => {
+    window.addEventListener('keydown', handleShowKey);
     openItem('song-morning');
     setLiveSlide('song-morning', 0);
     render(<SlideGrid columns={2} scalePercent={100} />);
     const grid = screen.getByRole('listbox');
     grid.focus();
-    fireEvent.keyDown(grid, {key: 'ArrowDown'});
+    fireEvent.keyDown(grid, {key: 'ArrowDown', code: 'ArrowDown'});
     expect(lastLiveCommand(sent.at(-1))).toMatchObject({
       type: 'slide.show',
-      slide: {itemId: 'song-morning', position: 2},
+      slide: {itemId: 'song-morning', position: 1},
     });
-    act(() => setLiveSlide('song-morning', 2));
-    fireEvent.keyDown(grid, {key: 'ArrowUp'});
+    act(() => setLiveSlide('song-morning', 1));
+    fireEvent.keyDown(grid, {key: 'ArrowUp', code: 'ArrowUp'});
     expect(lastLiveCommand(sent.at(-1))).toMatchObject({
       type: 'slide.show',
       slide: {itemId: 'song-morning', position: 0},
