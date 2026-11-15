@@ -128,7 +128,17 @@ function DetailsPanelContent({
   const state = useSyncExternalStore(items.subscribe, items.getSnapshot);
   const service = state.service;
   const raw = useItemSlides(items, editor);
-  const [tab, setTab] = useState<'info' | 'slides'>('info');
+  const detailsKey =
+    target === null
+      ? 'none'
+      : target.kind === 'item'
+        ? `item:${target.itemId}`
+        : `song:${target.songId}`;
+  const [tabState, setTabState] = useState<{
+    key: string;
+    value: 'info' | 'slides';
+  }>({key: detailsKey, value: 'info'});
+  const tab = tabState.key === detailsKey ? tabState.value : 'info';
   const [loadedLibrary, setLibrary] = useState<ShowLibrarySong | null>(null);
   const targetKey = target?.kind === 'song' ? target.songId : null;
   const [selection, setSelection] = useState<{
@@ -490,7 +500,11 @@ function DetailsPanelContent({
               ? ''
               : detailsKindLine(item, kind, count)}
           </div>
-          <PanelTabs tabs={tabs} value={tab} onChange={setTab} />
+          <PanelTabs
+            tabs={tabs}
+            value={tab}
+            onChange={value => setTabState({key: detailsKey, value})}
+          />
           {tab === 'info' ? (
             <DetailsInfo
               details={{
