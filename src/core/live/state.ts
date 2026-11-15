@@ -52,6 +52,8 @@ export interface NextSlide {
   /** Optional title displayed before the next slide body. */
   readonly title?: string;
   readonly label: string | null;
+  /** The next slide's label repeats the previous slide in the same item. */
+  readonly labelContinued?: true;
   readonly lines: readonly string[];
   readonly continued?: boolean;
   readonly biblePart?: number;

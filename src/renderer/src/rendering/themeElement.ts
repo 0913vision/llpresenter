@@ -354,7 +354,7 @@ export class ThemeElementView {
           : next.lines
       ).some(line => line.trim() !== '');
     const rawCurrentLabel = slide?.label?.trim();
-    const rawNextLabel = next?.label?.trim();
+    const rawNextLabel = next?.labelContinued ? undefined : next?.label?.trim();
     const currentLabel =
       slide?.titleSlide &&
       rawCurrentLabel &&
@@ -556,6 +556,13 @@ export class ThemeElementView {
         : undefined;
     const item = frame.theme?.item ?? null;
     const slide = layers.slide;
+    if (
+      frame.screen?.kind === 'stage' &&
+      element.kind === 'nextLabel' &&
+      slide?.next?.labelContinued
+    ) {
+      return null;
+    }
     if (element.id === STAGE_LYRIC_LABEL_ID) {
       return slide?.label ? `(${slide.label.trim()})` : null;
     }
@@ -697,6 +704,7 @@ export class ThemeElementView {
       if (
         element.kind === 'nextText' &&
         !nextBible &&
+        !slide?.next?.labelContinued &&
         slide?.next?.label?.trim()
       ) {
         return stageLabeledText(

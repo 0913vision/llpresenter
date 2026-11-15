@@ -40,6 +40,27 @@ describe('slideLayerOf', () => {
     expect(
       slideLayerOf({itemId: 'song', index: 2}, () => deck)?.labelContinued,
     ).toBeUndefined();
+    expect(
+      slideLayerOf({itemId: 'song', index: 0}, () => deck)?.next,
+    ).toMatchObject({label: '1절', labelContinued: true});
+    expect(
+      slideLayerOf({itemId: 'song', index: 1}, () => deck)?.next,
+    ).toMatchObject({label: '후렴'});
+    expect(
+      slideLayerOf({itemId: 'song', index: 1}, () => deck)?.next
+        ?.labelContinued,
+    ).toBeUndefined();
+    const first = deck[0];
+    const following = deck[1];
+    if (first === undefined || following === undefined) {
+      throw Error('Missing slide');
+    }
+    const crossing = slideLayerOf({itemId: 'song', index: 0}, () => [first], {
+      tile: following,
+      kind: 'song',
+    });
+    expect(crossing?.next?.label).toBe('1절');
+    expect(crossing?.next?.labelContinued).toBeUndefined();
   });
   it('carries the main title box line count for current and next slides', () => {
     const deck: readonly SlideTile[] = [

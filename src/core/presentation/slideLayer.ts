@@ -3,6 +3,18 @@ import type {SlideTile, TileCursor} from './model';
 import type {TilesOf} from './navigation';
 import {LIVE_STATE_LIMITS} from '../schema/liveLimits';
 
+function repeatedLabel(
+  tile: SlideTile,
+  previous: SlideTile | undefined,
+): boolean {
+  const label =
+    tile.slideLabel ?? (tile.kind === undefined ? tile.label : null);
+  const prior =
+    previous?.slideLabel ??
+    (previous?.kind === undefined ? previous?.label : null);
+  return !!label?.trim() && label.trim() === prior?.trim();
+}
+
 /** Projects a tile into the live stage preview payload. */
 export function nextSlideOf(
   tile: SlideTile,
@@ -11,6 +23,7 @@ export function nextSlideOf(
     readonly title?: string | undefined;
     readonly after?: SlideTile | undefined;
     readonly textSlideNumber?: number | undefined;
+    readonly previous?: SlideTile | undefined;
   },
 ): NextSlide {
   const notice =
@@ -34,6 +47,9 @@ export function nextSlideOf(
           (tile.kind === undefined || tile.biblePart !== undefined
             ? tile.label
             : null)),
+    ...(repeatedLabel(tile, context?.previous)
+      ? {labelContinued: true as const}
+      : {}),
     lines: tile.sectionCard === undefined && !notice ? tile.lines : [],
     ...(kind === undefined ? {} : {itemKind: kind}),
     ...(title === undefined || title.trim() === '' ? {} : {title}),
@@ -120,12 +136,6 @@ export function slideLayerOf(
   const tiles = tilesOf(cursor.itemId);
   const tile = tiles[cursor.index];
   if (!tile) return null;
-  const previous = tiles[cursor.index - 1];
-  const tileLabel =
-    tile.slideLabel ?? (tile.kind === undefined ? tile.label : null);
-  const previousLabel =
-    previous?.slideLabel ??
-    (previous?.kind === undefined ? previous?.label : null);
   const next = tiles[cursor.index + 1] ?? following?.tile;
   const bibleItemSlides =
     tile.biblePart === undefined ? undefined : bibleGroup(tiles);
@@ -151,7 +161,7 @@ export function slideLayerOf(
       (tile.kind === undefined || tile.biblePart !== undefined
         ? tile.label
         : null),
-    ...(tileLabel?.trim() && tileLabel.trim() === previousLabel?.trim()
+    ...(repeatedLabel(tile, tiles[cursor.index - 1])
       ? {labelContinued: true as const}
       : {}),
     lines: tile.lines,
@@ -176,6 +186,8 @@ export function slideLayerOf(
             tiles[cursor.index + 1] === undefined ? following?.kind : undefined,
             {
               title: following?.title,
+              previous:
+                tiles[cursor.index + 1] === undefined ? undefined : tile,
               textSlideNumber:
                 tiles[cursor.index + 1] === undefined
                   ? following?.textSlideNumber

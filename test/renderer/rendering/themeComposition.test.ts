@@ -2968,6 +2968,44 @@ it('shows stage lyric labels on their own line only at their start', () => {
   view.dispose();
 });
 
+it('omits a continuing next label on stage but shows a changed label', () => {
+  const {root, view} = setup();
+  if (song.slide === null) throw Error('Missing slide');
+  const slide = song.slide;
+  const draw = (continued: boolean) =>
+    view.render(
+      {
+        ...song,
+        slide: {
+          ...slide,
+          next: {
+            label: continued ? 'Verse' : 'Chorus',
+            lines: ['Next'],
+            ...(continued ? {labelContinued: true as const} : {}),
+          },
+        },
+      },
+      {
+        ...frame([
+          {...themeElementBase(31), kind: 'nextText'},
+          {...themeElementBase(32), kind: 'nextLabel'},
+        ]),
+        screen: {id: THEME_MAIN, kind: 'stage'},
+        transitions: false,
+      },
+    );
+  const text = (kind: string) =>
+    root.querySelector(`[data-kind="${kind}"] .${classes.shown}`)
+      ?.textContent ?? '';
+  draw(true);
+  expect(text('nextText')).toBe('Next');
+  expect(text('nextLabel').trim()).toBe('');
+  draw(false);
+  expect(text('nextText')).toBe('(Chorus) Next');
+  expect(text('nextLabel')).toBe('Chorus');
+  view.dispose();
+});
+
 it.each(['\uc804\uc8fc', '\uac04\uc8fc', '\ud6c4\uc8fc'])(
   'puts %s after text for both title and lyric slides',
   label => {
