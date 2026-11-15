@@ -168,10 +168,10 @@ Ctrl 1, 무대 출력 켜기 Ctrl 2), `Recovery`.
 ### Slides items
 
 A 빈 슬라이드 or 광고 item sends its selected slide through the same live slide
-path as a song. Text fills 현재 슬라이드 글 and the following text slide fills 다음
-가사. An 광고 text slide's name fills 슬라이드 이름 on every screen. Picture
-slides have no text or name: their photo fills the 미디어 element, using its
-frame and 맞춤. Returning to text restores the item's 배경, or clears the
+path as a song. Text fills 현재 슬라이드 글 and the following text slide fills
+다음 가사. An 광고 text slide's name fills 슬라이드 이름 on every screen.
+Picture slides have no text or name: their photo fills the 미디어 element, using
+its frame and 맞춤. Returning to text restores the item's 배경, or clears the
 previous slide picture when the item has no 배경. The picture and slide content
 change together in one live transaction.
 
@@ -185,8 +185,8 @@ previews, including the picture's fit and the saved element order.
 The live 테마 lays out every screen (12). A screen draws, from the bottom up:
 
 1. The elements of its 테마, from the bottom of the element list to the top (12,
-   "Drawing a screen"). 배경, 미디어, 현재 슬라이드 글, and the other elements are
-   placed by the 테마, so their order is the element list order.
+   "Drawing a screen"). 배경, 미디어, 현재 슬라이드 글, and the other elements
+   are placed by the 테마, so their order is the element list order.
 2. 그래픽, then 메시지, above the elements, each only on the screens it was sent
    to (see "Where 메시지, 그래픽, and stage messages go"). A 테마 can't hide
    them.
@@ -221,8 +221,8 @@ A new page appears only when its pictures are ready to draw.
    change (proposal).
 3. For a song item, the app sets the background (see "Song item background
    rules").
-4. The 슬라이드 draws in the 현재 슬라이드 글 element of every screen whose 테마 has
-   one. If the lyrics layer was cleared, it shows again.
+4. The 슬라이드 draws in the 현재 슬라이드 글 element of every screen whose 테마
+   has one. If the lyrics layer was cleared, it shows again.
 
 - Clicking the live 슬라이드 again doesn't redraw it (proposal).
 - A 슬라이드 output from outside the 예배 순서 (빠른 실행, Bible passage,
@@ -231,8 +231,8 @@ A new page appears only when its pictures are ready to draw.
 
 ### Drawing text
 
-- Draw the 슬라이드's lines with the text properties of the 테마's 현재 슬라이드 글
-  element: font, weight, size, color, line spacing, horizontal alignment,
+- Draw the 슬라이드's lines with the text properties of the 테마's 현재 슬라이드
+  글 element: font, weight, size, color, line spacing, horizontal alignment,
   vertical position, shadow, and outline (12, "Element properties").
 - Line breaks are exactly as stored. A line wider than the area wraps at word
   boundaries (proposal).
@@ -532,8 +532,8 @@ The live 테마 lays out the 무대 화면 like the other screens (12). The 시�
 - The control window sends the next 슬라이드 with the live one, from the
   sequence it already walks, and main checks it like the rest of the command
   (lead decision, October 26). If the item deck changes while a 슬라이드 is
-  live, the 다음 슬라이드 글 and 다음 이름표 elements update with the next 슬라이드
-  sent.
+  live, the 다음 슬라이드 글 and 다음 이름표 elements update with the next
+  슬라이드 sent.
 
 Source: `Overlays` 무대 tab, 12.
 

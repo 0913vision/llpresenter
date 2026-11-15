@@ -140,9 +140,11 @@ export function Menu({
             outsideRename.current = true;
             return;
           }
-          if (anchor.kind === 'element') {
+          if (menubar === null && anchor.kind === 'element') {
             const bounds = anchor.element.getBoundingClientRect();
             if (
+              bounds.width > 0 &&
+              bounds.height > 0 &&
               event.clientX >= bounds.left &&
               event.clientX <= bounds.right &&
               event.clientY >= bounds.top &&

@@ -389,10 +389,10 @@ each preview follows ProPresenter's rule: it shows what goes out.
   between choosing a slide and showing it: a click shows the slide, and the
   active slide is outlined in the grid (guide pp. 12, 70).
 - No preview shows the next 슬라이드 as a separate picture. The next 슬라이드
-  appears only where the 테마 has a 다음 슬라이드 글 element on that screen, such as
-  the 무대 화면 and its preview (12). ProPresenter does the same: Next Slide is
-  a stage layout object (guide p. 41), and its main window has no next slide
-  preview (guide pp. 24 to 26).
+  appears only where the 테마 has a 다음 슬라이드 글 element on that screen,
+  such as the 무대 화면 and its preview (12). ProPresenter does the same: Next
+  Slide is a stage layout object (guide p. 41), and its main window has no next
+  slide preview (guide pp. 24 to 26).
 - A screen in 비움, or one whose 테마 has no element for some content, shows
   nothing of that content in its preview (12). A 그래픽 or 메시지 shows only on
   the screens it was sent to, in the output and in the preview alike.
@@ -1024,14 +1024,14 @@ integration use this contract, with a distinct cancellable ID per lookup.
     one when no later verse remains. A failed or superseded lookup keeps the old
     preview.
   - Each verse starts a new slide. A long verse splits by Copible 1.6's boundary
-    scores and global minimum-slide DP, using the theme's 현재 슬라이드 글 font, size,
-    box width and height, and 성경 분할 줄 수 (`maxLines`). The font is measured
-    at its configured size rather than shrunk to avoid splitting. This applies
-    to saved 성경 구절 items and the 진행 Bible panel, including next/previous
-    navigation. Unmeasured fallback slides follow the same verse boundary rule.
-    The legacy `two` and `fit` packing values remain readable but never combine
-    verses; new passages store `verse`, and there is no packing preference (02,
-    10).
+    scores and global minimum-slide DP, using the theme's 현재 슬라이드 글 font,
+    size, box width and height, and 성경 분할 줄 수 (`maxLines`). The font is
+    measured at its configured size rather than shrunk to avoid splitting. This
+    applies to saved 성경 구절 items and the 진행 Bible panel, including
+    next/previous navigation. Unmeasured fallback slides follow the same verse
+    boundary rule. The legacy `two` and `fit` packing values remain readable but
+    never combine verses; new passages store `verse`, and there is no packing
+    preference (02, 10).
   - The open service publishes the same measured Bible parts to its service
     projection, so preparation, navigation, and output use the same labels and
     cuts. Changes to the passage, theme, screens, or confirmed cuts replace the
@@ -1108,8 +1108,8 @@ integration use this contract, with a distinct cancellable ID per lookup.
   a tooltip, for example "구절을 찾을 수 없습니다" (passage not recognized)
   (proposal).
 - Bible 슬라이드 go to the lyrics layer. Output from the Bible panel counts as a
-  new item and uses the default 테마 of 성경, 말씀, with the 현재 슬라이드 글 and 성경
-  출처 elements (12).
+  new item and uses the default 테마 of 성경, 말씀, with the 현재 슬라이드 글
+  and 성경 출처 elements (12).
 - A passage that the operator outputs or adds to the 예배 순서 goes to the front
   of the recent list (up to 10, proposal). A passage that is already in the list
   (same reference and translation) moves to the front instead of appearing
