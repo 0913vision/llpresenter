@@ -53,7 +53,7 @@ afterEach(() => {
 });
 
 describe('quick panel integration', () => {
-  it('shows only a live quick passage separately from the black screen action', async () => {
+  it('shows only a live quick passage and hides the black screen action', async () => {
     const fixture = quickFixture();
     window.llp = fixture.api;
     const reply = lookupReply(lookupRequest('John 3:16'));
@@ -85,9 +85,10 @@ describe('quick panel integration', () => {
     expect(screen.getByRole('status').textContent).toBe(
       source.passage.displayRef,
     );
+    await screen.findByRole('button', {name: '\uc800\uc7a5\ub41c \uace1'});
     expect(
-      await screen.findByRole('button', {name: '\uac80\uc740 \ud654\uba74'}),
-    ).toBeTruthy();
+      screen.queryByRole('button', {name: '\uac80\uc740 \ud654\uba74'}),
+    ).toBeNull();
     act(() => useLive.setState({state}));
     expect(screen.queryByText(source.passage.displayRef)).toBeNull();
   });
