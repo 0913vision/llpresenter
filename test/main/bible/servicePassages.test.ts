@@ -55,14 +55,29 @@ describe('saved Bible passage resolution', () => {
     }
     const sermon: ServiceItem = {
       id: original.id,
-      sermon: {title: 'Sermon', passage: original.bible},
+      sermon: {
+        title: 'Sermon',
+        passage: original.bible,
+        openingTransition: {kind: 'wipe', dir: 'left', sec: 1},
+        closingTransition: {kind: 'dissolve', sec: 2},
+      },
     };
     const bible = fixture();
     const result = await resolveServicePassages([sermon], bible, {
       reportError: bible.report,
     });
     const tiles = result.tiles.get(sermon.id);
-    expect(tiles?.[0]).toMatchObject({sermonTitle: true, lines: ['Sermon']});
+    expect(tiles?.[0]).toMatchObject({
+      sermonTitle: true,
+      lines: ['Sermon'],
+      transition: {kind: 'wipe', sec: 1},
+    });
+    expect(tiles?.at(-1)).toMatchObject({
+      sermonTitle: true,
+      lines: ['Sermon'],
+      transition: {kind: 'dissolve', sec: 2},
+    });
+    expect(tiles).toHaveLength(5);
     expect(tiles?.[1]?.lines.length).toBeGreaterThan(0);
     expect(result.references.get(sermon.id)?.passage?.verses).toHaveLength(3);
   });

@@ -150,7 +150,9 @@ describe('OpenServiceFeed', () => {
     expect(feed.current()?.tiles[id] ?? []).toEqual([]);
     await vi.waitFor(() => expect(complete).toBeDefined());
     complete?.(success);
-    await vi.waitFor(() => expect(feed.current()?.tiles[id]).toHaveLength(2));
+    await vi.waitFor(() => expect(feed.current()?.tiles[id]).toHaveLength(3));
+    expect(feed.current()?.tiles[id]?.[0]).toMatchObject({sermonTitle: true});
+    expect(feed.current()?.tiles[id]?.[2]).toMatchObject({sermonTitle: true});
     expect(feed.current()?.rows[0]).not.toHaveProperty('problem');
     expect(push).toHaveBeenCalled();
     await feed.dispose();

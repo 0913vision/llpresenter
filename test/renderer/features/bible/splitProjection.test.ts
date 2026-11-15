@@ -215,6 +215,8 @@ it('preserves the sermon title before all measured Bible parts', () => {
       translationName: false,
       reference: 'every',
       sermonTitle: 'Sermon',
+      sermonOpeningTransition: {kind: 'wipe', dir: 'left', sec: 1},
+      sermonClosingTransition: {kind: 'dissolve', sec: 2},
     },
     {
       element: {...themeElementBase(), kind: 'currentText'},
@@ -225,6 +227,16 @@ it('preserves the sermon title before all measured Bible parts', () => {
     sermonTitle: true,
     lines: ['Sermon'],
   });
+  expect(projection?.tiles[0]?.transition).toMatchObject({
+    kind: 'wipe',
+    sec: 1,
+  });
+  expect(projection?.tiles.at(-1)).toMatchObject({
+    sermonTitle: true,
+    lines: ['Sermon'],
+    transition: {kind: 'dissolve', sec: 2},
+  });
+  expect(projection?.partsByTile.at(-1)).toBeNull();
   expect(projection?.partsByTile[0]).toBeNull();
   expect(projection?.tiles[1]?.biblePart).toBe(1);
 });

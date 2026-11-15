@@ -47,7 +47,7 @@ import styles from './OtherPrepEditor.module.css';
 import {DetailsPanel} from '@renderer/features/service/details/DetailsPanel';
 import {isLibrarySource, openLibrarySong} from '@renderer/session/showLibrary';
 import {useLeadingItemCard} from '@renderer/features/service/items/useLeadingItemCard';
-import {SermonInlineEditor} from '@renderer/features/service/items/SermonInlineEditor';
+import {BibleSplitTools} from '@renderer/features/bible/BibleSplitTools';
 import {BibleInlineEditor} from '@renderer/features/service/items/BibleInlineEditor';
 import type {LeadingSlideCard} from '@renderer/features/songs/editor';
 import type {ReactNode} from 'react';
@@ -400,10 +400,12 @@ function OtherPrepEditor({
   readonly onBack: () => void;
 }) {
   const serviceName = useShow(view => view.serviceName);
-  const item = useSyncExternalStore(
+  const itemState = useSyncExternalStore(
     prep.items.subscribe,
     prep.items.getSnapshot,
-  ).item;
+  );
+  const item = itemState.item;
+  const [manualSplitRequest, setManualSplitRequest] = useState(0);
   const root = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const escape = (event: KeyboardEvent): void => {
@@ -420,16 +422,25 @@ function OtherPrepEditor({
       <header className={headerStyles.header} data-inline="true">
         <SlidesBackButton serviceName={serviceName} onBack={onBack} />
       </header>
+      {item !== null &&
+      (isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon')) ? (
+        <BibleSplitTools
+          enableManual
+          selectedIndex={itemState.position}
+          manualRequest={manualSplitRequest}
+          onProblem={prep.items.reportNotice}
+        />
+      ) : null}
       {item !== null && isItemOfKind(item, 'liturgy') ? (
         <LiturgyEditor items={prep.items} />
-      ) : item !== null && isItemOfKind(item, 'sermon') ? (
-        <SermonInlineEditor items={prep.items} />
-      ) : item !== null && isItemOfKind(item, 'bible') ? (
+      ) : item !== null &&
+        (isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon')) ? (
         <BibleInlineEditor
           items={prep.items}
           ui={prep.api.ui}
           onBack={onBack}
           hideHeader
+          onSplit={() => setManualSplitRequest(value => value + 1)}
         />
       ) : (
         <ServiceItemPanel

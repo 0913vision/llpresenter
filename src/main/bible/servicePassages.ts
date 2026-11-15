@@ -106,7 +106,11 @@ export async function resolveServicePassages(
       ? item.sermon.passage
       : item.bible;
     const passage = await load(settings.translation, settings.ref);
-    if (passage === null || passage.verses.length > SHOW_SERVICE_LIMITS.tiles) {
+    if (
+      passage === null ||
+      passage.verses.length + (isItemOfKind(item, 'sermon') ? 2 : 0) >
+        SHOW_SERVICE_LIMITS.tiles
+    ) {
       unavailable.add(item.id);
       continue;
     }
@@ -119,6 +123,9 @@ export async function resolveServicePassages(
               lines: [item.sermon.title],
               reference: passage.displayRef,
               sermonTitle: true as const,
+              ...(item.sermon.openingTransition === undefined
+                ? {}
+                : {transition: item.sermon.openingTransition}),
             },
           ]
         : []),
@@ -129,6 +136,20 @@ export async function resolveServicePassages(
         split: settings.split,
         transition: settings.transition,
       }),
+      ...(isItemOfKind(item, 'sermon')
+        ? [
+            {
+              label: null,
+              labelColor: 'none' as const,
+              lines: [item.sermon.title],
+              reference: passage.displayRef,
+              sermonTitle: true as const,
+              ...(item.sermon.closingTransition === undefined
+                ? {}
+                : {transition: item.sermon.closingTransition}),
+            },
+          ]
+        : []),
     ]);
     const {ref, translation} = passage;
     references.set(item.id, {ref, translation, passage});

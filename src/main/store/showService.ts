@@ -279,6 +279,14 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
             bible: {
               ...bible,
               ...(sermonTitle === undefined ? {} : {sermonTitle}),
+              ...(isItemOfKind(item, 'sermon') &&
+              item.sermon.openingTransition !== undefined
+                ? {sermonOpeningTransition: item.sermon.openingTransition}
+                : {}),
+              ...(isItemOfKind(item, 'sermon') &&
+              item.sermon.closingTransition !== undefined
+                ? {sermonClosingTransition: item.sermon.closingTransition}
+                : {}),
               verseNumbers: settings.verseNumbers,
               translationName: settings.translationName,
               reference: settings.reference,

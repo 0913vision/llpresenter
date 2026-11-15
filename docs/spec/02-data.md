@@ -1317,6 +1317,7 @@ A service may contain an additive `sermon` item with a non-empty, bounded
 `title` and one `passage` using the Bible passage object above. It has no
 subtitle. Optional original title data preserves an existing title item when the
 operator binds it to a passage, so splitting can restore that item. Other Bible
-display settings and transitions stay with the passage. An optional section card
-is retained on the sermon item and returned to the Bible item when split.
-Existing service items remain valid.
+display settings and transitions stay with the passage. Optional opening and
+closing title transitions are stored separately. The same title appears before
+and after the passage. An optional section card is retained on the sermon item
+and returned to the Bible item when split. Existing service items remain valid.

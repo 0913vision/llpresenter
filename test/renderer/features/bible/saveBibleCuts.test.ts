@@ -1,11 +1,36 @@
 import {describe, expect, it, vi} from 'vitest';
-import {confirmBibleCuts} from '@renderer/features/bible/saveBibleCuts';
+import {
+  confirmBibleCuts,
+  confirmDefaultBibleCuts,
+} from '@renderer/features/bible/saveBibleCuts';
+import {entryFor} from '@core/bible/split/splitCache';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {lookupRequest} from '@fixtures/core/bibleLookups';
 import type {LlpApi} from '@contracts/ipc/api';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 
 describe('confirmed cut writes', () => {
+  it('does not replace an existing manual cut while accepting defaults', async () => {
+    const verse = {
+      reference: {
+        translation: lookupRequest().translation,
+        book: 43,
+        chapter: 3,
+        verse: 16,
+      },
+      text: 'One two three',
+    };
+    const saved = entryFor(verse.text, [1], '2026-11-01T00:00:00.000Z');
+    const get = vi.fn<LlpApi['settings']['get']>().mockResolvedValue(
+      settingsDocument('bibleCuts', {
+        entries: {[verse.reference.translation]: {'43:3:16': saved}},
+      }),
+    );
+    const edit = vi.fn<LlpApi['settings']['edit']>();
+    const api = {...mockLlpApi().settings, get, edit};
+    await confirmDefaultBibleCuts(api, verse, [2]);
+    expect(edit).not.toHaveBeenCalled();
+  });
   it('rereads after a stale edit and preserves another window confirmation', async () => {
     const first = settingsDocument('bibleCuts', {entries: {}});
     const second = settingsDocument(

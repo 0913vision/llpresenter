@@ -933,12 +933,11 @@ them to `bibleCuts.json`. New lookups, theme changes and closing review cancel
 remaining work and discard late results. A server becoming ready later does not
 restart an existing lookup.
 
-After opening a passage with unconfirmed split verses, 절 나누기 opens for each
-of them in order. Its subtitle shows only the verse reference. When several need
-review, the header shows `1 / 2`, `2 / 2` before the close button. No
-automatic-state label is shown. Ctrl E on a Bible slide reopens that verse from
-its current cuts, including a saved 성경 구절 item. This replaces Ctrl E's old
-준비 alias; Ctrl R still opens 준비.
+Preparation accepts measured default cuts automatically when a saved passage is
+added or changed, without replacing an existing confirmed cut. The operator can
+open ? ??? from the preparation slide editor. It never opens automatically in
+??, and quick output does not wait for review. The editor's subtitle shows the
+verse reference, and Ctrl E opens the selected verse in preparation.
 
 The text has labels between words, in Copible's order
 `asdfghjkl qwertyuiop zxcvbnm 1234567890`. Above 36 gaps, all labels have two
@@ -1250,7 +1249,8 @@ can be bound as one sermon, and the resulting item can be split again; both
 operations are undoable. An existing section card on the Bible item remains the
 first slide of the sermon and returns to the Bible item when split. The sermon
 title follows the card and uses the sermon-title theme and passage reference;
-Bible passage slides follow with their existing display settings. The stage
-treats the passage as the sermon passage when showing the next slide. Sermon
-title thumbnails and previews resolve the sermon-title theme for the selected
-screen. The service list counts the title and measured passage parts.
+Bible passage slides follow with their existing display settings, followed by
+the same sermon title again. The stage previews that closing title after the
+last verse. Both title slides have separately editable transitions. Sermon title
+thumbnails and previews resolve the sermon-title theme for the selected screen.
+The service list counts both title slides and measured passage parts.

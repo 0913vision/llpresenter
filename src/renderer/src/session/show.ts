@@ -284,9 +284,7 @@ function sermonNext(cursor: TileCursor): NextSlide | undefined {
   ) {
     return undefined;
   }
-  if (row.bible?.sermonTitle !== undefined) {
-    return {label: null, lines: [row.bible.sermonTitle], sermonTitle: true};
-  }
+  if (row.bible?.sermonTitle !== undefined) return undefined;
   const sermon = view.rows[index - 1];
   if (
     sermon === undefined ||
