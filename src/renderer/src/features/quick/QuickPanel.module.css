@@ -11,5 +11,5 @@
 }
 
 .livePassage {
-  padding: 0.4rem 0.75rem;
+  padding: var(--space-6) var(--space-12);
 }
