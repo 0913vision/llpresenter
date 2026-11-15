@@ -105,6 +105,15 @@ export const textImportLabelsSchema = v.picklist(['bracketLine', 'off']);
 export const textImportFirstLineSchema = v.picklist(['title', 'lyrics']);
 export const textImportEncodingSchema = v.picklist(['auto', 'utf-8', 'cp949']);
 
+export const stageLyricLabelPositionSchema = v.picklist([
+  'line',
+  'inline',
+  'off',
+]);
+export type StageLyricLabelPosition = v.InferOutput<
+  typeof stageLyricLabelPositionSchema
+>;
+
 export const preferencesSchema = jsonObject({
   format: v.literal(PREFERENCES_FORMAT),
   schemaVersion: positiveInteger,
@@ -143,6 +152,7 @@ export const preferencesSchema = jsonObject({
   ),
   output: v.exactOptional(
     jsonObject({
+      stageLyricLabelPosition: v.exactOptional(stageLyricLabelPositionSchema),
       transition: v.exactOptional(
         jsonObject({
           between: v.exactOptional(slideTransitionSchema),
@@ -217,6 +227,7 @@ export type Preferences = Omit<
 > & {
   readonly clearKeys: NonNullable<PreferencesFile['clearKeys']>;
   readonly output: {
+    readonly stageLyricLabelPosition: StageLyricLabelPosition;
     readonly transition: {
       readonly between: SlideTransition;
       readonly within: SlideTransition;
@@ -244,6 +255,7 @@ export const defaultPreferences: Preferences = {
   backupCopies: 10,
   showOnLaunch: false,
   output: {
+    stageLyricLabelPosition: 'line',
     transition: {
       between: {kind: 'dissolve', sec: 0.5},
       within: {kind: 'none', sec: 0.2},
@@ -287,6 +299,9 @@ export function withPreferenceDefaults(stored: PreferencesFile): Preferences {
     ...defaultPreferences,
     ...stored,
     output: {
+      stageLyricLabelPosition:
+        stored.output?.stageLyricLabelPosition ??
+        defaultPreferences.output.stageLyricLabelPosition,
       transition: {
         between:
           stored.output?.transition?.between ??

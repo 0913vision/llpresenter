@@ -188,7 +188,8 @@ export class ThemeCompositionView {
           layout: stageLyricLabelLayout(
             frame.theme.layout,
             slide,
-            (slide?.kind ?? frame.theme.item?.kind) === 'song',
+            (slide?.kind ?? frame.theme.item?.kind) === 'song' &&
+              (frame.stageLyricLabelPosition ?? 'line') === 'line',
           ),
         },
       };

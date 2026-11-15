@@ -194,6 +194,7 @@ export class ScreenFrames {
         ? this.effect
         : {kind: 'none' as const, sec: this.effect.sec};
     return {
+      stageLyricLabelPosition: this.preferences.output.stageLyricLabelPosition,
       theme,
       ...(state?.blackScreen === true && screen.kind !== 'stage'
         ? {blackScreen: true}

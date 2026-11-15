@@ -353,13 +353,20 @@ export class ThemeElementView {
           ? songTitleLines(next.lines, next.titleLineCount)
           : next.lines
       ).some(line => line.trim() !== '');
-    const rawCurrentLabel = slide?.label?.trim();
+    const hideSongLabel = frame.stageLyricLabelPosition === 'off';
+    const currentSong = (slide?.kind ?? item?.kind) === 'song';
+    const nextSong =
+      (next?.itemKind ?? slide?.kind ?? item?.kind) === 'song' &&
+      !next?.title?.trim();
+    const rawCurrentLabel =
+      hideSongLabel && currentSong ? undefined : slide?.label?.trim();
     const repeatedNextSongLabel =
       next?.labelContinued === true &&
       (next.itemKind ?? slide?.kind ?? item?.kind) === 'song';
-    const rawNextLabel = repeatedNextSongLabel
-      ? undefined
-      : next?.label?.trim();
+    const rawNextLabel =
+      repeatedNextSongLabel || (hideSongLabel && nextSong)
+        ? undefined
+        : next?.label?.trim();
     const currentLabel =
       slide?.titleSlide &&
       rawCurrentLabel &&
@@ -561,6 +568,19 @@ export class ThemeElementView {
         : undefined;
     const item = frame.theme?.item ?? null;
     const slide = layers.slide;
+    const currentSong = (slide?.kind ?? item?.kind) === 'song';
+    const nextSong =
+      (slide?.next?.itemKind ?? slide?.kind ?? item?.kind) === 'song' &&
+      !slide?.next?.title?.trim();
+    const labelMode = frame.stageLyricLabelPosition ?? 'line';
+    if (
+      frame.screen?.kind === 'stage' &&
+      labelMode === 'off' &&
+      ((element.kind === 'label' && currentSong && !slide?.sectionCard) ||
+        (element.kind === 'nextLabel' && nextSong))
+    ) {
+      return null;
+    }
     if (
       frame.screen?.kind === 'stage' &&
       slide?.sermonTitle === true &&
@@ -606,7 +626,10 @@ export class ThemeElementView {
         '\n',
       );
       const label = slide.label?.trim();
-      return label && title.trim() && (slide.kind ?? item?.kind) !== 'bible'
+      return label &&
+        title.trim() &&
+        (slide.kind ?? item?.kind) !== 'bible' &&
+        !(currentSong && labelMode === 'off')
         ? stageLabeledText(title, label, true)
         : title;
     }
@@ -709,17 +732,20 @@ export class ThemeElementView {
         !currentBible &&
         slide?.label?.trim()
       ) {
-        if (
-          (slide.kind ?? item?.kind) === 'song' &&
-          !isStageEndingLabel(slide.label.trim())
-        ) {
+        if (currentSong && labelMode === 'off') {
           return text;
+        }
+        if (currentSong && !isStageEndingLabel(slide.label.trim())) {
+          return labelMode === 'inline' && !slide.labelContinued
+            ? stageLabeledText(text, slide.label.trim())
+            : text;
         }
         return stageLabeledText(text, slide.label.trim());
       }
       if (
         element.kind === 'nextText' &&
         !nextBible &&
+        !(nextSong && labelMode === 'off') &&
         !(
           slide?.next?.labelContinued &&
           (slide.next.itemKind ?? slide.kind ?? item?.kind) === 'song'

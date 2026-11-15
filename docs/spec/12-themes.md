@@ -832,6 +832,15 @@ precede the text. The yellow next text shows a label only when it differs from
 the preceding slide in that item. Empty slides show only the label. Bible verse
 labels are omitted.
 
+The output preference `output.stageLyricLabelPosition` chooses `line` (the
+behavior above, the default), `inline` (the changed song label precedes the
+current lyric on the same line), or `off` (omit song labels from current and
+next text and their stage label elements). In `line` and `inline`, the top label
+remains. A label continuing from the preceding song slide is omitted from the
+lyric and next text. An empty song slide with labels off shows (없음). This
+preference does not change Bible or other item labels and updates live output
+and its previews when saved.
+
 Stage title slides and section cards show only their Korean title, without the
 English subtitle. The creed and prayer theme uses 104 px left-aligned current
 text with the next line and clock clear.

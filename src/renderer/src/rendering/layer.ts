@@ -44,6 +44,7 @@ export interface RenderScreen {
 }
 
 export interface RenderFrame {
+  readonly stageLyricLabelPosition?: import('@core/schema/preferences').StageLyricLabelPosition;
   readonly slide?: import('@core/live/state').SlideLayer;
   readonly slideTransition?: import('@core/schema/slideTransition').SlideTransition;
   readonly stageTimerId?: TimerId;

@@ -1017,6 +1017,10 @@ No execution history is kept. See 04, "Row states".
 | 전환  | 곡 안에서 넘길 때                  | Same controls; time stays visible and disabled for 없음; direction only for push/wipe | 없음          | `output.transition.within`                 | Next slide within item |         |
 | 전환  | 배경 (background transition)       | As above, 0.1 to 3.0 s                                                                | 디졸브, 0.5 s | `output.transition.media.kind`, `.seconds` | Next background        |         |
 
+The output page also offers `output.stageLyricLabelPosition`: `line` (default),
+`inline`, or `off` for song labels on stage. Changes apply immediately to live
+stage output and previews; missing values use `line`.
+
 - Which monitor an output uses, whether its window stays on top, and what
   happens when its cable is pulled are set per screen in 화면 설정, which shows
   both 항상 위 and 연결이 끊기면 where they apply.

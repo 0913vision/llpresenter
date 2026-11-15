@@ -3027,6 +3027,105 @@ it('shows stage lyric labels on their own line only at their start', () => {
   view.dispose();
 });
 
+it('uses the selected song label position without changing Bible labels', () => {
+  const {root, view} = setup();
+  if (song.slide === null) throw Error('Missing slide');
+  const slide = song.slide;
+  const elements: ThemeElement[] = [
+    {...themeElementBase(), kind: 'currentText'},
+    {...themeElementBase(31), kind: 'nextText'},
+    {...themeElementBase(32), kind: 'label'},
+    {...themeElementBase(33), kind: 'nextLabel'},
+  ];
+  const draw = (
+    position: 'line' | 'inline' | 'off',
+    continued = false,
+    bible = false,
+  ) =>
+    view.render(
+      {
+        ...song,
+        slide: {
+          ...slide,
+          kind: bible ? 'bible' : 'song',
+          label: 'Verse',
+          lines: ['Current'],
+          ...(continued ? {labelContinued: true as const} : {}),
+          next: {
+            itemKind: bible ? 'bible' : 'song',
+            label: 'Chorus',
+            lines: ['Next'],
+            ...(continued ? {labelContinued: true as const} : {}),
+          },
+        },
+      },
+      {
+        ...frame(elements),
+        screen: {id: THEME_MAIN, kind: 'stage'},
+        stageLyricLabelPosition: position,
+        transitions: false,
+      },
+    );
+  const text = (kind: string) =>
+    root.querySelector(`[data-kind="${kind}"] .${classes.shown}`)
+      ?.textContent ?? '';
+  draw('line');
+  expect(text('currentText')).toBe('Current');
+  expect(root.querySelectorAll('[data-kind="label"]')).toHaveLength(2);
+  expect(text('nextText')).toBe('(Chorus) Next');
+  draw('inline');
+  expect(text('currentText')).toBe('(Verse) Current');
+  expect(root.querySelectorAll('[data-kind="label"]')).toHaveLength(1);
+  expect(text('nextText')).toBe('(Chorus) Next');
+  draw('inline', true);
+  expect(text('currentText')).toBe('Current');
+  expect(text('nextText')).toBe('Next');
+  draw('off');
+  expect(text('currentText')).toBe('Current');
+  expect(text('nextText')).toBe('Next');
+  expect(text('label')).toBe('');
+  expect(text('nextLabel')).toBe('');
+  draw('off', false, true);
+  expect(text('label')).toBe('Verse');
+  view.dispose();
+});
+
+it('hides an empty song label only on stage when labels are off', () => {
+  const {root, view} = setup();
+  if (!song.slide) throw Error('Missing slide');
+  const layers = {
+    ...song,
+    slide: {
+      ...song.slide,
+      kind: 'song' as const,
+      lines: [],
+      label: 'Verse',
+      next: {itemKind: 'song' as const, label: 'Chorus', lines: []},
+    },
+  };
+  const elements: ThemeElement[] = [
+    {...themeElementBase(), kind: 'currentText'},
+    {...themeElementBase(31), kind: 'nextText'},
+  ];
+  const draw = (stageLyricLabelPosition: 'line' | 'off') =>
+    view.render(layers, {
+      ...frame(elements),
+      screen: {id: THEME_MAIN, kind: 'stage'},
+      stageLyricLabelPosition,
+      transitions: false,
+    });
+  const text = (kind: string) =>
+    root.querySelector(`[data-kind="${kind}"] .${classes.shown}`)
+      ?.textContent ?? '';
+  draw('line');
+  expect(text('currentText')).toBe('(Verse)');
+  expect(text('nextText')).toBe('(Chorus)');
+  draw('off');
+  expect(text('currentText')).toBe('(없음)');
+  expect(text('nextText')).toBe('(없음)');
+  view.dispose();
+});
+
 it('omits a continuing next label on stage but shows a changed label', () => {
   const {root, view} = setup();
   if (song.slide === null) throw Error('Missing slide');
