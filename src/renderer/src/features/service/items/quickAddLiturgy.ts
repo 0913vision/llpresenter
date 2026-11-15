@@ -11,11 +11,12 @@ import {
 } from '@core/themes/creedPrayer';
 import {sectionCardOf} from '@core/services/sectionCards';
 import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
+import type {ServiceItemOf} from '@core/schema/service';
 
 export async function prepareLiturgy(
   kind: LiturgyKind,
   translation: LiturgyTranslation,
-) {
+): Promise<ServiceItemOf<'liturgy'>> {
   const api = window.llp;
   if (api === undefined) throw new Error('App API unavailable');
   const [themes, screens, preferences] = await Promise.all([

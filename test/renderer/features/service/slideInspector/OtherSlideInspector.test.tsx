@@ -272,9 +272,8 @@ it('applies one transition to a Bible card and selected parts and undoes them to
     items.setBibleSelection([0, 1]);
     items.selectPosition(1);
   });
-  await userEvent.click(screen.getByLabelText('\uD6A8\uACFC'));
   await userEvent.click(
-    screen.getByRole('menuitemradio', {name: '\uB514\uC878\uBE0C'}),
+    screen.getByRole('button', {name: '\uB514\uC878\uBE0C'}),
   );
   await waitFor(() => {
     expect(items.getSnapshot().item).toMatchObject({

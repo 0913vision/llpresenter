@@ -9,6 +9,9 @@ import {isItemOfKind} from '@core/schema/service';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {MOCK_LONG_VERSE} from '@fixtures/core/bibleSplit';
 import * as bibleMeasure from '@renderer/rendering/bibleMeasure';
+import {settingsDocument} from '@fixtures/core/settingsDocument';
+import {createDefaultThemes} from '@core/themes/defaults';
+import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 
 const translation = v.parse(translationIdSchema, 'krv');
 
@@ -104,7 +107,28 @@ describe('quick add Bible passages', () => {
             verses: [{chapter: 3, verse: 17, text: MOCK_LONG_VERSE}],
           },
         },
-        mockLlpApi(),
+        mockLlpApi({
+          settings: {
+            get: async request => {
+              if (request.name === 'themes') {
+                return settingsDocument('themes', createDefaultThemes());
+              }
+              if (request.name === 'screens') {
+                return settingsDocument('screens', {
+                  screens: [
+                    {
+                      id: STARTER_SCREEN_IDS.main,
+                      name: '청중',
+                      kind: 'audience',
+                      method: 'fullscreen',
+                    },
+                  ],
+                });
+              }
+              return settingsDocument('bibleCuts', {entries: {}});
+            },
+          },
+        }),
       );
       if (!isItemOfKind(result, 'bible')) throw Error('Missing Bible item');
       expect(result.bibleTransitions?.length ?? 0).toBeGreaterThan(1);
