@@ -47,7 +47,7 @@ function Surface({
               </button>
             </div>
           </section>
-          <section data-panel="퀵 실행" hidden={hidden}>
+          <section data-panel="빠른 실행" hidden={hidden}>
             <input
               aria-label="책"
               onKeyDown={event => {

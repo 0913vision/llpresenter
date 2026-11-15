@@ -63,7 +63,9 @@ describe('useShowPanels', () => {
   it('gives the quick panel a new selection version each time a service row opens', () => {
     const result = panels();
     const version = () =>
-      propsOf(result.current.partsOf('퀵 실행').embedded)?.['selectionVersion'];
+      propsOf(result.current.partsOf('빠른 실행').embedded)?.[
+        'selectionVersion'
+      ];
     expect(version()).toBe(0);
 
     result.current.partsOf(SERVICE_ORDER);

@@ -123,7 +123,7 @@ export async function saveQuickEdit(
 }
 
 /**
- * A copy of a 퀵 실행 row of a 타이머 owns a new 타이머 (every timer is its
+ * A copy of a 빠른 실행 row of a 타이머 owns a new 타이머 (every timer is its
  * own): the 타이머 is copied first, then the row is added after the original
  * with the copy's name and its id. When the second write fails, the 타이머
  * copy is deleted again, as far as that works.

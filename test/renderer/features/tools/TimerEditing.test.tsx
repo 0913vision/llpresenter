@@ -179,7 +179,7 @@ const quickRow = (api: LlpApi, timer: Timer | undefined) => (
   </QuickRowEditor>
 );
 
-it('opens the timer a 퀵 실행 row refers to and saves it under the same id', async () => {
+it('opens the timer a 빠른 실행 row refers to and saves it under the same id', async () => {
   const f = setup();
   const timer: Timer = {
     id: createTimerId(id),
@@ -193,7 +193,7 @@ it('opens the timer a 퀵 실행 row refers to and saves it under the same id', 
     shiftKey: true,
   });
   expect(
-    renderedToolMenuRows(screen.getByRole('menu', {name: '퀵 실행 항목'})),
+    renderedToolMenuRows(screen.getByRole('menu', {name: '빠른 실행 항목'})),
   ).toEqual(['수정…', '이름 바꾸기', '|', '복제', '|', '삭제']);
   fireEvent.click(screen.getByRole('menuitem', {name: '수정…'}));
   await screen.findByRole('dialog', {name: '타이머 수정'});
@@ -208,7 +208,7 @@ it('opens the timer a 퀵 실행 row refers to and saves it under the same id', 
   ]);
 });
 
-it('says why a 퀵 실행 timer row cannot be edited when its timer is missing', () => {
+it('says why a 빠른 실행 timer row cannot be edited when its timer is missing', () => {
   setup();
   render(quickRow(window.llp ?? mockLlpApi(), undefined));
   fireEvent.keyDown(screen.getByRole('button', {name: '항목'}), {

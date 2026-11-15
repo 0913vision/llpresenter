@@ -6,7 +6,7 @@ import type {Notice} from '@renderer/ui/notices';
 import {TimerEditDialog} from './TimerEditDialog';
 
 /**
- * The 수정… row of a 타이머 and its dialog, for a 타이머 row and for a 퀵 실행
+ * The 수정… row of a 타이머 and its dialog, for a 타이머 row and for a 빠른 실행
  * row of a 타이머. The dialog opens once the menu has closed.
  *
  * @returns `open` for the row, `reason` when the 타이머 can't be edited (it

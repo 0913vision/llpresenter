@@ -6,8 +6,8 @@ layout, test pattern, output method), the 테마 workspace, the 환경설정
 
 Terms: 출력 (output), 슬라이드 (slide), 이름표 (label), 청중 화면 (main screen),
 무대 화면 (stage screen), 방송 화면 (broadcast captions), 진행 도구 (show
-tools), 퀵 실행 (quick launch), 그래픽 (prop), 메시지 (message), 타이머 (timer),
-라이브러리 (library), 진행 (Show workspace). See 01.
+tools), 빠른 실행 (quick launch), 그래픽 (prop), 메시지 (message), 타이머
+(timer), 라이브러리 (library), 진행 (Show workspace). See 01.
 
 The full shortcut system and a proposal for the 환경설정 pages are in
 [10-shortcuts-and-settings.md](10-shortcuts-and-settings.md). Its shortcut part
@@ -339,10 +339,10 @@ default keys.
 - The board shows 평상시 as Ctrl 1, 설교 as Alt 2, and 광고 as Alt 3. These are
   examples of changed shortcuts, and the Ctrl 1 example shows a conflict with
   출력 켜기.
-- The board also shows a 퀵 실행 group (검은 화면 Ctrl B, 로고 화면 with no
-  shortcut). The app lists each 퀵 실행 item under a 퀵 실행 group, with no
+- The board also shows a 빠른 실행 group (검은 화면 Ctrl B, 로고 화면 with no
+  shortcut). The app lists each 빠른 실행 item under a 빠른 실행 group, with no
   default key, so the board's Ctrl B is not a default (10).
 
 Source: `Shortcuts`, `Prefs`, `KeyCap` README, `SegmentedControl` README (filter
-counts), `ClearButton` README, `Main` decision "단축키", product log (퀵 실행
+counts), `ClearButton` README, `Main` decision "단축키", product log (빠른 실행
 shortcuts deferred), 10.

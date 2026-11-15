@@ -379,7 +379,7 @@ export function MediaView({
           />
           <PanelActions>
             <Button
-              icon="upload"
+              icon="download"
               disabled={importReason !== undefined}
               title={importReason}
               onClick={() => startImport()}
@@ -411,7 +411,7 @@ export function MediaView({
                 text="미디어 없음"
                 action={
                   <Button
-                    icon="upload"
+                    icon="download"
                     disabled={importReason !== undefined}
                     title={importReason}
                     onClick={() => startImport()}

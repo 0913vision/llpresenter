@@ -9,7 +9,7 @@ this document is a command that the main process handles.
 Terms: 출력 (output), 지우기 (clear), 슬라이드 (slide), 예배 순서 (service
 order), 이름표 (label), 청중 화면 (main screen), 무대 화면 (stage screen), 방송
 화면 (broadcast captions), 그래픽 (prop), 메시지 (message), 타이머 (timer),
-매크로 (macro), 진행 도구 (show tools), 퀵 실행 (quick launch), 진행 (Show
+매크로 (macro), 진행 도구 (show tools), 빠른 실행 (quick launch), 진행 (Show
 workspace), 준비 (Prep workspace), 화면 설정 (Screen settings workspace).
 
 ## Screens and output windows
@@ -221,9 +221,9 @@ A new page appears only when its pictures are ready to draw.
    one. If the lyrics layer was cleared, it shows again.
 
 - Clicking the live 슬라이드 again doesn't redraw it (proposal).
-- A 슬라이드 output from outside the 예배 순서 (퀵 실행, Bible passage, toolbar
-  search) doesn't start a 예배 순서 item. The LIVE badge in the 예배 순서
-  disappears (proposal).
+- A 슬라이드 output from outside the 예배 순서 (빠른 실행, Bible passage,
+  toolbar search) doesn't start a 예배 순서 item. The LIVE badge in the 예배
+  순서 disappears (proposal).
 
 ### Drawing text
 
@@ -466,11 +466,11 @@ supersedes the drafts' Ctrl Z binding and always-visible undo button.
 
 ## Where 메시지, 그래픽, and stage messages go
 
-| Content       | Sent to                                                            | Layer                               | Controlled from               |
-| ------------- | ------------------------------------------------------------------ | ----------------------------------- | ----------------------------- |
-| 메시지        | Chosen screens (모든 화면 all screens, 청중 화면, 무대, 방송 화면) | 메시지                              | 진행 도구 메시지 tab (see 04) |
-| 그래픽        | The screens set for each 그래픽                                    | 그래픽                              | 진행 도구 그래픽 tab, 퀵 실행 |
-| Stage message | 무대 화면                                                          | The 무대 메시지 element of the 테마 | 진행 도구 무대 tab            |
+| Content       | Sent to                                                            | Layer                               | Controlled from                 |
+| ------------- | ------------------------------------------------------------------ | ----------------------------------- | ------------------------------- |
+| 메시지        | Chosen screens (모든 화면 all screens, 청중 화면, 무대, 방송 화면) | 메시지                              | 진행 도구 메시지 tab (see 04)   |
+| 그래픽        | The screens set for each 그래픽                                    | 그래픽                              | 진행 도구 그래픽 tab, 빠른 실행 |
+| Stage message | 무대 화면                                                          | The 무대 메시지 element of the 테마 | 진행 도구 무대 tab              |
 
 - A screen shows one 메시지 at a time. Sending a new 메시지 to the same screen
   replaces the previous one (proposal).

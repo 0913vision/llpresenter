@@ -62,7 +62,7 @@ describe('shortcut registry', () => {
     expect(panels.map(command => command.name)).toEqual([
       '예배 순서로',
       '슬라이드로',
-      '퀵 실행으로',
+      '빠른 실행으로',
       '미리보기로',
       '지우기로',
       '진행 도구로',

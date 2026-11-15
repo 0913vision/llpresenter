@@ -7,20 +7,20 @@ marked as proposals.
 
 Terms: 슬라이드 (slide), 예배 순서 (service order), 템플릿 (template), 이름표
 (label), 라이브러리 (library), 매크로 (macro), 그래픽 (prop), 메시지 (message),
-타이머 (timer), 퀵 실행 (quick launch), 청중 화면 (main screen), 무대 화면
+타이머 (timer), 빠른 실행 (quick launch), 청중 화면 (main screen), 무대 화면
 (stage screen), 방송 화면 (broadcast captions). See 01 for the full list.
 
 ## Common rules
 
-| Rule           | Requirement                                                                                                                                                                                       | Source                                                           |
-| -------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
-| Encoding       | Files are UTF-8 JSON without a byte order mark. The chapter-based Bible container has the framing defined under "Bible translations".                                                             | `Main` song file sample; user decision, 2026-10-26               |
-| Header fields  | Each file's JSON header declares `format` (the file type) and `schemaVersion`. Most formats use version 1; the chapter-based Bible container uses version 2 and the prefix defined below.         | `Main` samples; user decision, 2026-10-26                        |
-| IDs            | Songs, 예배 순서, 템플릿, media, screens, 테마, 메시지 styles, 매크로, collections, 퀵 실행 items, 메시지, 그래픽, 타이머, and 예배 순서 items have a UUID v4 ID in lowercase. Never reuse an ID. | `Main` samples (song and media IDs). The rest is a proposal.     |
-| Unknown fields | When you read a file, keep every unknown field in memory and write it back unchanged. This also applies to nested objects (슬라이드, 구성, items).                                                | `Main` song file notes, product log 2026-10-24 (room for scores) |
-| Dates          | A service date is local time without a time zone, `YYYY-MM-DDTHH:mm`. Record timestamps such as `updatedAt` are ISO 8601 with a time zone offset (proposal).                                      | `Main` service sample                                            |
-| Paths          | Song and service files never contain file paths. They refer to media by ID only. File paths exist only in the media list.                                                                         | `Main` song file notes                                           |
-| Line endings   | Files use LF line endings (proposal).                                                                                                                                                             |                                                                  |
+| Rule           | Requirement                                                                                                                                                                                         | Source                                                           |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------- |
+| Encoding       | Files are UTF-8 JSON without a byte order mark. The chapter-based Bible container has the framing defined under "Bible translations".                                                               | `Main` song file sample; user decision, 2026-10-26               |
+| Header fields  | Each file's JSON header declares `format` (the file type) and `schemaVersion`. Most formats use version 1; the chapter-based Bible container uses version 2 and the prefix defined below.           | `Main` samples; user decision, 2026-10-26                        |
+| IDs            | Songs, 예배 순서, 템플릿, media, screens, 테마, 메시지 styles, 매크로, collections, 빠른 실행 items, 메시지, 그래픽, 타이머, and 예배 순서 items have a UUID v4 ID in lowercase. Never reuse an ID. | `Main` samples (song and media IDs). The rest is a proposal.     |
+| Unknown fields | When you read a file, keep every unknown field in memory and write it back unchanged. This also applies to nested objects (슬라이드, 구성, items).                                                  | `Main` song file notes, product log 2026-10-24 (room for scores) |
+| Dates          | A service date is local time without a time zone, `YYYY-MM-DDTHH:mm`. Record timestamps such as `updatedAt` are ISO 8601 with a time zone offset (proposal).                                        | `Main` service sample                                            |
+| Paths          | Song and service files never contain file paths. They refer to media by ID only. File paths exist only in the media list.                                                                           | `Main` song file notes                                           |
+| Line endings   | Files use LF line endings (proposal).                                                                                                                                                               |                                                                  |
 
 ## Folder layout (proposal)
 
@@ -315,7 +315,7 @@ breaks, the other areas still work. File names and `format` values (proposal):
 | `screens.json`                        | `llsettings.screens`     | Screens                                             |
 | `themes.json`                         | `llsettings.themes`      | 테마, the 대기 화면, the default 테마 of each kind  |
 | `macros.json`                         | `llsettings.macros`      | 매크로 and collections                              |
-| `quick.json`                          | `llsettings.quick`       | 퀵 실행 items                                       |
+| `quick.json`                          | `llsettings.quick`       | 빠른 실행 items                                     |
 | `messages.json`                       | `llsettings.messages`    | 메시지 and styles                                   |
 | `props.json`                          | `llsettings.props`       | 그래픽                                              |
 | `timers.json`                         | `llsettings.timers`      | 타이머                                              |
@@ -443,16 +443,16 @@ Saved themes without this option keep their alignment.
 | `.schedule`     | Object or absent                                                                                     | Run at a set time. See 07, open question. No board shows where to set it. | `MacroTile` README (schedule badge)       |
 | `collections[]` | Array                                                                                                | Collections: `id`, `name`, `macroIds[]`.                                  | `Macros` collection 주일 예배             |
 
-### 퀵 실행 (`quick.json`)
+### 빠른 실행 (`quick.json`)
 
 | Field          | Type                                                                     | Meaning                                                                                                                   | Source                                                                                                        |
 | -------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `items[]`      | Array                                                                    | The 퀵 실행 items, in display order.                                                                                      | `ShowH`                                                                                                       |
+| `items[]`      | Array                                                                    | The 빠른 실행 items, in display order.                                                                                    | `ShowH`                                                                                                       |
 | `.id`, `.name` | String                                                                   | ID and display name.                                                                                                      | `ShowH`                                                                                                       |
 | `.kind`        | `"song"` \| `"bible"` \| `"prop"` \| `"timer"` \| `"macro"` \| `"black"` | Kind (see 04).                                                                                                            | `ShowH` (verse, song, 검은 화면, 로고 화면, 시작 카운트다운, 축도). Value names and `"macro"` are a proposal. |
 | `.ref`         | String or object                                                         | What the item points to: a song ID, a Bible passage object, a 그래픽 ID, a 타이머 ID, or a 매크로 ID. `"black"` has none. | Proposal                                                                                                      |
 
-A 퀵 실행 item has a shortcut command, `quick.<item ID>`, with no default key;
+A 빠른 실행 item has a shortcut command, `quick.<item ID>`, with no default key;
 the operator sets it in 환경설정 > 단축키 (10).
 
 A newly added `timer` item creates its own timer in `timers.json` and saves that
@@ -533,7 +533,7 @@ or running state, including when durations match. The configured duration stays
 after a stop/reset. The October 27 modes add optional countdown fields and the
 distinct `elapsed` kind; earlier kinds and fields keep their original meaning.
 
-Names are for display in 퀵 실행, the timer tab and stage pickers. References
+Names are for display in 빠른 실행, the timer tab and stage pickers. References
 stay ID-based, so 이름 바꾸기 does not break a stage selection or a 그래픽
 token. Renaming from either a quick row or the timer tab applies the timer name
 and linked quick-row names together, preserving unknown fields and running
@@ -821,7 +821,7 @@ What this app reuses, ported to TypeScript with tests, without copying any text:
 | Part            | In copible                                                                                                                                                                                                         | In this app                                                                                         |
 | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
 | Book metadata   | 66 books with `id`, `korean`, `koreanShort`, `english`, `englishShort`, `testament`, `chapters` (`src/data/bible-metadata.js`)                                                                                     | The same shape ("Book metadata")                                                                    |
-| Book matching   | Exact matches on the four names; partial matches that compare Hangul by its letters (jamo) and also try the input as QWERTY typed with the Korean IME off, with es-hangul (`disassemble`, `convertQwertyToHangul`) | The same rules for the suggestions in the 퀵 실행 Bible field (04)                                  |
+| Book matching   | Exact matches on the four names; partial matches that compare Hangul by its letters (jamo) and also try the input as QWERTY typed with the Korean IME off, with es-hangul (`disassemble`, `convertQwertyToHangul`) | The same rules for the suggestions in the 빠른 실행 Bible field (04)                                |
 | Reference entry | Four fields: book, chapter, required start verse, optional end verse in the same chapter                                                                                                                           | The same operator fields (04); stored/API references additionally accept the extended grammar below |
 | Live fetching   | The crawler above                                                                                                                                                                                                  | Main-process chapter fetch with an in-memory cache                                                  |
 

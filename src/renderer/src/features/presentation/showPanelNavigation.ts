@@ -7,7 +7,7 @@ import {tabbableElements} from '@renderer/ui/useModal';
 const panels = [
   ['order', '예배 순서'],
   ['slides', '슬라이드'],
-  ['quick', '퀵 실행'],
+  ['quick', '빠른 실행'],
   ['preview', '미리보기'],
   ['clear', '지우기'],
   ['tools', '진행 도구'],
@@ -68,7 +68,7 @@ function entryStop(
   title: string,
 ): HTMLElement | undefined {
   const selector =
-    title === '퀵 실행'
+    title === '빠른 실행'
       ? '[data-quick-id]'
       : title === '미디어'
         ? '[aria-label="미디어 보기"] [role="listbox"]'

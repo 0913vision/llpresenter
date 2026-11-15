@@ -22,7 +22,7 @@ import {jsonObject, listWithUniqueIds, positiveInteger} from './primitives';
 
 export const MAX_QUICK_ITEMS = 500;
 
-/** The 퀵 실행 item kinds. `black` outputs a black screen and has no `ref`. */
+/** The 빠른 실행 item kinds. `black` outputs a black screen and has no `ref`. */
 export const quickItemKinds = [
   'song',
   'bible',
@@ -81,11 +81,11 @@ const quickFormat: FileFormat<typeof quickSchema> = {
   migrations: quickMigrations,
 };
 
-/** `quick.json`: the 퀵 실행 items in display order. */
+/** `quick.json`: the 빠른 실행 items in display order. */
 export type QuickFile = ReadonlyKnown<v.InferOutput<typeof quickSchema>>;
 
 /**
- * One 퀵 실행 item. An item of a kind this version doesn't know is kept with
+ * One 빠른 실행 item. An item of a kind this version doesn't know is kept with
  * only `id`, `name`, and `kind` typed; {@link isKnownQuickItem} tells them
  * apart.
  */

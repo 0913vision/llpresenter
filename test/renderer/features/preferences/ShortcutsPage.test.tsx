@@ -130,11 +130,11 @@ describe('ShortcutsPage', () => {
     },
   );
 
-  it('lists the commands in groups without a 퀵 실행 group', async () => {
+  it('lists the commands in groups without a 빠른 실행 group', async () => {
     await mount();
 
     expect(screen.getByRole('group', {name: '지우기'})).toBeTruthy();
-    expect(screen.queryByRole('group', {name: '퀵 실행'})).toBeNull();
+    expect(screen.queryByRole('group', {name: '빠른 실행'})).toBeNull();
     expect(within(rowOf(/가사 지우기/)).getByText('F2')).toBeTruthy();
   });
 

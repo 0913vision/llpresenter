@@ -207,7 +207,7 @@ export function withoutOverride(overrides: Overrides, id: string): Overrides {
 /**
  * The overrides without the commands the table shows, which return to their
  * defaults. Keys of every other command stay: commands this version doesn't
- * know, 퀵 실행, and objects the table doesn't list.
+ * know, 빠른 실행, and objects the table doesn't list.
  */
 export function withoutShownOverrides(
   overrides: Overrides,

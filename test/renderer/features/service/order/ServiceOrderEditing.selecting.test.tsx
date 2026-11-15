@@ -185,7 +185,7 @@ describe('service panel editing', () => {
   });
 
   it('reorders songs and headers, using the list tail to append', async () => {
-    const {api, send, list, ids} = setup();
+    const {api, send, list, ids} = setup('prep');
     const dataTransfer = transfer();
     fireEvent.dragStart(screen.getByRole('option', {name: '다음 곡'}), {
       dataTransfer,
@@ -230,7 +230,7 @@ describe('service panel editing', () => {
   });
 
   it('keeps focus on a moved item that crosses a section, so it can move again', async () => {
-    const {ids} = setup('show', false, {secondSection: true});
+    const {ids} = setup('prep', false, {secondSection: true});
     const last = screen.getByRole('option', {name: '다음 곡'});
     last.focus();
     fireEvent.keyDown(last, {
@@ -251,7 +251,7 @@ describe('service panel editing', () => {
   });
 
   it('keeps focus on the first item of a list without a section when it moves', async () => {
-    const {ids} = setup('show', false, {unheaded: true});
+    const {ids} = setup('prep', false, {unheaded: true});
     const first = screen.getByRole('option', {name: '첫 곡'});
     first.focus();
     fireEvent.keyDown(first, {
@@ -266,7 +266,7 @@ describe('service panel editing', () => {
   });
 
   it('leaves focus alone when the operator went to another field before a delayed move landed', async () => {
-    const {api, ids} = setup('show', false, {secondSection: true});
+    const {api, ids} = setup('prep', false, {secondSection: true});
     const original = vi.mocked(api.content.edit).getMockImplementation();
     if (original === undefined) throw new Error('Missing edit');
     let land: () => void = () => undefined;
@@ -365,7 +365,7 @@ describe('service panel editing', () => {
   });
 
   it('selects the drag source and ignores its release click without output', () => {
-    const {send} = setup();
+    const {send} = setup('prep');
     const row = screen.getByRole('option', {name: '다음 곡'});
     fireEvent.dragStart(row, {dataTransfer: transfer()});
     fireEvent.dragEnd(row);

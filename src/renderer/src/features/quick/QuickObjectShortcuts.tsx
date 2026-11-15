@@ -28,7 +28,7 @@ export function useQuickObjectShortcuts({
   const needs = useBoundCommands();
   const quick = useSettingsDocument(
     needs('quick.') ? 'quick' : null,
-    '퀵 실행',
+    '빠른 실행',
     onProblem,
   );
   const runner = useMemo(

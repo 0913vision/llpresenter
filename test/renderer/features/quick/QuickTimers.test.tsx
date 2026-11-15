@@ -120,7 +120,7 @@ describe('quick timers', () => {
     await waitFor(() =>
       expect(
         screen
-          .getByRole('button', {name: '퀵 실행 추가'})
+          .getByRole('button', {name: '빠른 실행 추가'})
           .getAttribute('aria-disabled'),
       ).not.toBe('true'),
     );

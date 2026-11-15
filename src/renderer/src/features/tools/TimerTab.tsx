@@ -114,7 +114,7 @@ export function TimerTab({
         <AlertDialog
           icon="timer"
           title={`‘${target.name || '이름 없음'}’ 타이머를 삭제할까요?`}
-          meta={['연결된 퀵 실행 항목도 삭제됩니다']}
+          meta={['연결된 빠른 실행 항목도 삭제됩니다']}
           onCancel={closeRemoval}
           cancelLabel={removal.busy ? '닫기' : undefined}
           actions={[

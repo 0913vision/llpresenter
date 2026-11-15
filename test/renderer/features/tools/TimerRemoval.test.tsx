@@ -45,7 +45,7 @@ it('asks before deleting and cancels without sending an edit', async () => {
   const f = setup();
   render(<TimerTab />);
   const dialog = await openRemoval();
-  expect(dialog.textContent).toContain('연결된 퀵 실행 항목도 삭제');
+  expect(dialog.textContent).toContain('연결된 빠른 실행 항목도 삭제');
   fireEvent.click(within(dialog).getByRole('button', {name: '취소'}));
   expect(screen.queryByRole('alertdialog')).toBeNull();
   expect(f.edit).not.toHaveBeenCalled();

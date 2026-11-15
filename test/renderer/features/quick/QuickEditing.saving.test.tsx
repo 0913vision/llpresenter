@@ -60,7 +60,7 @@ describe('quick editing', () => {
     expect(screen.getByDisplayValue('적용된 이름')).toBeDefined();
     expect(fixture.current().value.items[0]?.name).toBe('적용된 이름');
     expect(fixture.problem).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({kind: 'warning', title: '퀵 실행 저장 실패'}),
+      expect.objectContaining({kind: 'warning', title: '빠른 실행 저장 실패'}),
     );
     expect(fixture.edit).toHaveBeenCalledOnce();
   });
@@ -84,7 +84,7 @@ describe('quick editing', () => {
     expect(fixture.current().value.items).toHaveLength(8);
     expect(fixture.edit).toHaveBeenCalledOnce();
     expect(fixture.problem).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({kind: 'warning', title: '퀵 실행 저장 실패'}),
+      expect.objectContaining({kind: 'warning', title: '빠른 실행 저장 실패'}),
     );
   });
   it.each(['song', 'bible'] as const)(
@@ -233,7 +233,7 @@ describe('quick editing', () => {
     fireEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
     const question = await screen.findByRole('alertdialog');
     expect(question.textContent).toContain(
-      '‘새 이름’ 퀵 실행 항목을 삭제할까요?',
+      '‘새 이름’ 빠른 실행 항목을 삭제할까요?',
     );
     fireEvent.click(within(question).getByRole('button', {name: '취소'}));
     expect(screen.getByRole('button', {name: '새 이름'})).toBeDefined();
@@ -333,7 +333,7 @@ describe('quick editing', () => {
     );
     expect(fixture.problem).toHaveBeenCalledOnce();
     expect(
-      screen.getByRole('dialog', {name: '퀵 실행 이름 바꾸기'}),
+      screen.getByRole('dialog', {name: '빠른 실행 이름 바꾸기'}),
     ).toBeTruthy();
   });
 });

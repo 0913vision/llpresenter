@@ -157,7 +157,7 @@ function QuickAddMenu({
   });
   return (
     <Menu
-      label="퀵 실행 추가"
+      label="빠른 실행 추가"
       anchor={anchor}
       onClose={onClose}
       entries={[
@@ -221,7 +221,7 @@ export function QuickAdd({
     <>
       <IconButton
         icon="plus"
-        label="퀵 실행 추가"
+        label="빠른 실행 추가"
         menu
         expanded={open}
         disabled={locked}
@@ -261,7 +261,7 @@ export function QuickAdd({
   );
 }
 
-/** Why a 퀵 실행 row can't be copied now, for its menu row and Ctrl D. */
+/** Why a 빠른 실행 row can't be copied now, for its menu row and Ctrl D. */
 export function quickCopyReason(
   item: QuickItem,
   state: {
@@ -271,13 +271,13 @@ export function quickCopyReason(
   },
 ): string | undefined {
   if (state.locked) return toolMenuReason(state.locked);
-  if (state.full) return limitReason('퀵 실행 항목', MAX_QUICK_ITEMS);
+  if (state.full) return limitReason('빠른 실행 항목', MAX_QUICK_ITEMS);
   return item.kind === 'timer' && state.timersFull
     ? limitReason('타이머', MAX_TIMER_DEFINITIONS)
     : undefined;
 }
 
-/** Copies a 퀵 실행 row; a row of a 타이머 gets its own new 타이머. */
+/** Copies a 빠른 실행 row; a row of a 타이머 gets its own new 타이머. */
 export function duplicateQuickItem(item: QuickItem, save: Save): void {
   save({
     kind: 'duplicate',
@@ -312,7 +312,7 @@ export function QuickRowEditor({
   readonly timer?: Timer | undefined;
   readonly onProblem: (notice: Notice) => void;
   readonly locked: boolean;
-  /** Whether the list holds as many 퀵 실행 항목 as it may. */
+  /** Whether the list holds as many 빠른 실행 항목 as it may. */
   readonly full: boolean;
   /** Whether the 타이머 list is full, which stops a copy of a 타이머 row. */
   readonly timersFull: boolean;
@@ -363,7 +363,7 @@ export function QuickRowEditor({
       {menu ? (
         <Menu
           context
-          label="퀵 실행 항목"
+          label="빠른 실행 항목"
           anchor={menu}
           onClose={() => setMenu(null)}
           entries={[
@@ -399,7 +399,7 @@ export function QuickRowEditor({
       {deleting ? (
         <AlertDialog
           icon="bolt"
-          title={`‘${item.name}’ 퀵 실행 항목을 삭제할까요?`}
+          title={`‘${item.name}’ 빠른 실행 항목을 삭제할까요?`}
           onCancel={() => setDeleting(false)}
           actions={[
             {
@@ -419,7 +419,7 @@ export function QuickRowEditor({
       {change.dialog}
       {renaming ? (
         <RenameDialog
-          title="퀵 실행 이름 바꾸기"
+          title="빠른 실행 이름 바꾸기"
           name={item.name}
           locked={locked}
           maxLength={QUICK_NAME_LIMIT}

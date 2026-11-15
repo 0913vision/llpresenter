@@ -83,12 +83,12 @@ feature we lack), Moved, Removed.
   (`찬양 복사본` copies to `찬양 복사본 2`). 매크로 복제, 테마 복제, the 테마
   and 곡 다른 이름으로 저장 suggestions, and the 템플릿 saved beside one of the
   same name all follow it (`copyName`; B25 rule 5).
-- **Reordering:** A list the operator can arrange (the 예배 순서, the 퀵 실행
-  list, the 매크로 모음 list, the 이름표 chips) moves a row by one behavior: a
-  press moves 4 pixels before it becomes a drag, the drop place is drawn as one
-  insertion line (a marker before a chip), Esc puts the row back, and Alt ↑ and
-  Alt ↓ move the focused row by one place (Alt ← and Alt → for chips). Each list
-  keeps its own write (B25 rule 6; 10).
+- **Reordering:** A list the operator can arrange (the 준비 예배 순서, the 빠른
+  실행 list, the 매크로 모음 list, the 이름표 chips) moves a row by one
+  behavior: a press moves 4 pixels before it becomes a drag, the drop place is
+  drawn as one insertion line (a marker before a chip), Esc puts the row back,
+  and Alt ↑ and Alt ↓ move the focused row by one place (Alt ← and Alt → for
+  chips). Each list keeps its own write (B25 rule 6; 10).
 - **Separators:** Context separators divide nonempty command groups only.
 - **List-row rule:** Apply the context order above to named objects. Keep future
   features disabled with "아직 없는 기능"; built-in objects retain commands
@@ -117,7 +117,7 @@ first. A copy never holds live state: no running timer or content on output.
 | 메시지          | name, text, icon, targets, duration                                                       |                  |                                                                                                                                               |
 | 그래픽          | content (image or text and its style), target screens                                     | whether it is on |                                                                                                                                               |
 | 타이머          | kind and its time fields (duration, time and date, start value, 0 지나면)                 | the run          | A new timer has its own run and its own live-timer slot.                                                                                      |
-| 퀵 실행 항목    | name and what it opens (song, Bible passage, 그래픽, 매크로, 검은 화면) with the same ref |                  | A row of a 타이머 gets its own new 타이머 definition (the copy name on both), so the two rows never share one; the 타이머 is copied first.    |
+| 빠른 실행 항목  | name and what it opens (song, Bible passage, 그래픽, 매크로, 검은 화면) with the same ref |                  | A row of a 타이머 gets its own new 타이머 definition (the copy name on both), so the two rows never share one; the 타이머 is copied first.    |
 | 매크로 모음     | name and the same 매크로 (a 매크로 may be in several collections)                         |                  | The 매크로 are not copied.                                                                                                                    |
 | 매크로          | name, icon, color, actions, 시작할 때 실행                                                |                  | Built earlier.                                                                                                                                |
 | 테마            | all screens' layouts                                                                      |                  | Built earlier.                                                                                                                                |
@@ -270,11 +270,11 @@ bar handles.
 | 2     | 이름 바꾸기 | Today the name is changed inside 수정…. | Off    |
 | 3     | 삭제        | Deletes the template.                   | Now    |
 
-### 퀵 실행 추가
+### 빠른 실행 추가
 
-- Where: 진행 도구 > 퀵 실행 (QuickEditing)
-- Opens: Click + 퀵 실행 추가.
-- Purpose: Add one thing to 퀵 실행.
+- Where: 진행 도구 > 빠른 실행 (QuickEditing)
+- Opens: Click + 빠른 실행 추가.
+- Purpose: Add one thing to 빠른 실행.
 - PP: Our own feature; PP has none.
 
 | Group | Row                                    | Does                                          | Status |
@@ -284,9 +284,9 @@ bar handles.
 
 - 타이머 opens a dialog, so it reads 타이머….
 
-### 퀵 실행 항목 오른쪽 클릭
+### 빠른 실행 항목 오른쪽 클릭
 
-- Where: 진행 도구 > 퀵 실행
+- Where: 진행 도구 > 빠른 실행
 - Opens: Right-click on a row.
 - Purpose: Act on this one row.
 - PP: Our own feature.
@@ -344,7 +344,7 @@ bar handles.
 | header | 색 바꾸기                              | 구역 rows only (PP Change Color on a header).                                                                                                                     | Off    |
 | 3      | 복사 (Ctrl C), 붙여넣기 (Ctrl V)       | PP clipboard rows; the Windows build shows the keys at the right.                                                                                                 | Now    |
 | 3      | 복제 (Ctrl D)                          | Copies the item, or the whole 구역 with its items for a 구역 row, as one undo step (see "복제 by kind"). Ctrl D does the same in 준비 with the focus on the list. | Now    |
-| 3      | 위로 옮기기, 아래로 옮기기             | Moves selected item rows one position with Alt ↑ or Alt ↓, as one undo step. Section rows move by drag only.                                                      | Now    |
+| 3      | 위로 옮기기, 아래로 옮기기             | In 준비 only, moves selected item rows one position with Alt ↑ or Alt ↓, as one undo step. Section rows move by drag only.                                        | Now    |
 | 3      | 이름 바꾸기                            | 구역 rows (PP Rename on headers). A song, 성경, or 미디어 item has no name of its own (it shows its source's name), so its row stays disabled as Later.           | Now    |
 | 3      | 삭제                                   | Removes the item from the service. No icon, as in PP.                                                                                                             | Now    |
 | song   | 라이브러리에서 보기                    | Selects the song in the 라이브러리 (PP Show in Library).                                                                                                          | New    |

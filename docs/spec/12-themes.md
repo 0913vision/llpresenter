@@ -193,7 +193,7 @@ is no 다음 항목 이름 element.
 - When a 예배 순서 item's first 슬라이드 goes out, its 테마 applies to every
   screen, in the same batch as the item start (03, "When the operator clicks a
   슬라이드"). The start 매크로 runs before it, as today.
-- A 슬라이드 output from outside the 예배 순서 (퀵 실행, the Bible panel, the
+- A 슬라이드 output from outside the 예배 순서 (빠른 실행, the Bible panel, the
   toolbar search) counts as a new item: it uses the default 테마 of its kind and
   ends a 테마 picked by hand.
 - The 테마 stays until another item starts or the operator changes it by hand.
