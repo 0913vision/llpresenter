@@ -55,6 +55,7 @@ export function startLiveSync(): () => void {
 
 export function sendLive(command: LiveCommand): void {
   const commands = command.type === 'live.batch' ? command.commands : [command];
+  window.llp?.live.send(command);
   useLive.setState(view => {
     let {lastStartedItemId} = view;
     for (const child of commands) {
@@ -72,7 +73,6 @@ export function sendLive(command: LiveCommand): void {
       lastStartedItemId,
     };
   });
-  window.llp?.live.send(command);
 }
 
 /** The output on or off map. Re-renders only when an entry changes. */

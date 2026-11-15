@@ -1,13 +1,12 @@
-import type {SlideLayer} from '@core/live/state';
+import type {MediaChoice, SlideLayer} from '@core/live/state';
 import type {RecentPassage} from '@core/schema/bible';
 import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
 import {passageBook} from '@core/bible/adjacentVerses';
 import {biblePartIndex, retainedBibleSelection} from '@core/bible/selection';
 import type {BibleSource} from '@core/bible/source';
 import type {ItemId, SlideTile, TileCursor} from '@core/presentation/model';
-import {slideLayerOf} from '@core/presentation/slideLayer';
 import {useLive} from './live';
-import {sendSlideOutput} from './itemOutput';
+import {correctSlideOutput} from './itemOutput';
 import {
   beginOutputRequest,
   isOutputRequestCurrent,
@@ -336,9 +335,18 @@ export async function outputLibraryTile(
   options: {
     readonly commandVersion: number;
     readonly reverseTransition?: SlideLayer['reverseTransition'];
+    readonly initialSlide: SlideLayer;
+    readonly initialBackground: MediaChoice | undefined;
+    readonly resolveSlide: () => SlideLayer | null;
   },
 ): Promise<void> {
-  const {commandVersion, reverseTransition} = options;
+  const {
+    commandVersion,
+    reverseTransition,
+    initialSlide,
+    initialBackground,
+    resolveSlide,
+  } = options;
   const initial = useShow.getState();
   const api = window.llp;
   if (!api || !isLibrarySource(initial, cursor.itemId)) return;
@@ -370,10 +378,17 @@ export async function outputLibraryTile(
   ) {
     return;
   }
-  const slide = slideLayerOf(cursor, itemId => tilesForView(latest, itemId));
+  const slide = resolveSlide();
   if (!slide) return;
-  sendSlideOutput(
-    reverseTransition === undefined ? slide : {...slide, reverseTransition},
-    latest.librarySong.background,
-  );
+  const nextSlide =
+    reverseTransition === undefined ? slide : {...slide, reverseTransition};
+  const background = latest.librarySong.background;
+  const backgroundChanged =
+    JSON.stringify(background) !== JSON.stringify(initialBackground);
+  if (
+    backgroundChanged ||
+    JSON.stringify(nextSlide) !== JSON.stringify(initialSlide)
+  ) {
+    correctSlideOutput(nextSlide, {background, backgroundChanged});
+  }
 }
