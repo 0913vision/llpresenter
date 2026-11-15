@@ -158,3 +158,18 @@ it('toggles black without changing the live slide, media, audio or overlays', ()
   expect(store.state.blackScreen).toBe(false);
   expect(store.state.layers).toEqual(layers);
 });
+
+it('removes black when a slide is shown, including the same slide', () => {
+  const store = setup();
+  const audio = store.state.layers.audio;
+  const props = store.state.layers.prop;
+  store.dispatch({type: 'black.toggle'});
+  store.dispatch({
+    type: 'slide.show',
+    slide: {...slide, transition: {kind: 'wipe', dir: 'left', sec: 1}},
+  });
+  expect(store.state.blackScreen).toBe(false);
+  expect(store.state.layers.slide?.transitionStartedAt).toBe(1000);
+  expect(store.state.layers.audio).toBe(audio);
+  expect(store.state.layers.prop).toBe(props);
+});

@@ -12,6 +12,7 @@ import {SlideLayerView} from '@renderer/rendering/slideLayer';
 import {startOutput} from '@renderer/output/startOutput';
 import {ScreenFrames} from '@renderer/rendering/screenFrames';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
+import {SlideAnimation} from '@renderer/rendering/slideAnimation';
 import {MAIN, overlaySettings} from '@fixtures/core/overlays';
 import {parseLiveState} from '@core/schema/liveState';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
@@ -102,6 +103,84 @@ function setUp(live: Partial<LlpApi['live']> = {}) {
 }
 
 describe('startOutput', () => {
+  it.each(['standby', 'black'] as const)(
+    'keeps %s in the outgoing composition during a wipe',
+    async origin => {
+      let receive: (state: LiveState) => void = () => undefined;
+      const oldSlide = SHOWING.layers.slide;
+      if (oldSlide === null) throw new Error('Missing slide');
+      const current: LiveState = {
+        ...SHOWING,
+        ...(origin === 'black' ? {blackScreen: true} : {themeItem: null}),
+        layers: {
+          ...SHOWING.layers,
+          media: null,
+          slide: origin === 'standby' ? null : oldSlide,
+        },
+      };
+      const defaults = mockLlpApi();
+      const root = document.createElement('div');
+      const play = vi
+        .spyOn(SlideAnimation.prototype, 'play')
+        .mockImplementation(() => undefined);
+      vi.spyOn(SlideAnimation.prototype, 'finished').mockReturnValue(
+        new Promise(() => undefined),
+      );
+      vi.spyOn(OutputRenderer.prototype, 'ready').mockReturnValue(true);
+      const api = mockLlpApi({
+        settings: {
+          get: ({name}) =>
+            name === 'screens'
+              ? Promise.resolve(overlaySettings().reader.get(name))
+              : defaults.settings.get({name}),
+        },
+        live: {
+          get: async () => current,
+          subscribe: listener => {
+            receive = listener;
+            return () => undefined;
+          },
+        },
+        output: {reportReady: async () => true},
+      });
+      const stop = startOutput({root, api, screenId: MAIN_SCREEN});
+      try {
+        await Promise.resolve();
+        await pumpReadiness();
+        await pumpReadiness();
+        play.mockClear();
+        receive({
+          ...SHOWING,
+          version: current.version + 1,
+          blackScreen: false,
+          layers: {
+            ...SHOWING.layers,
+            media: null,
+            slide: {
+              ...oldSlide,
+              transition: {kind: 'wipe', dir: 'left', sec: 1},
+              transitionStartedAt: 1000,
+            },
+          },
+        });
+        expect(root.children).toHaveLength(2);
+        expect(play).toHaveBeenCalledWith(
+          root.children[0],
+          root.children[1],
+          expect.objectContaining({kind: 'wipe'}),
+        );
+        const covers = root.querySelectorAll<HTMLElement>(
+          '[data-black-screen]',
+        );
+        expect(covers).toHaveLength(2);
+        expect(covers[0]?.hidden).toBe(origin !== 'black');
+        expect(covers[1]?.hidden).toBe(true);
+      } finally {
+        stop();
+        vi.restoreAllMocks();
+      }
+    },
+  );
   it('requests hidden painting while animation frames stall, then stops when painted', async () => {
     vi.useFakeTimers({
       toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'],

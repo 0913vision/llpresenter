@@ -317,9 +317,16 @@ export function startOutput({
       const slide = state.layers.slide;
       const effect = effectFor(state);
       const audience = latest !== null && frames.screenKind() === 'audience';
+      const uncoveringBlack =
+        latest?.blackScreen === true &&
+        state.blackScreen !== true &&
+        slide?.transitionStartedAt !== undefined &&
+        slide.transitionStartedAt !== old?.transitionStartedAt;
       const changed =
         slide !== null &&
-        (old?.itemId !== slide.itemId || old.position !== slide.position);
+        (old?.itemId !== slide.itemId ||
+          old.position !== slide.position ||
+          uncoveringBlack);
       const currentRenderer = renderer;
       if (changed) {
         preloader?.request({itemId: slide.itemId, index: slide.position});

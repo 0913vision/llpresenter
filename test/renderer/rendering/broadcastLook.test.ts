@@ -324,7 +324,7 @@ describe('built-in broadcast look', () => {
       runtimeHidden: false,
     });
     expect(element(result, BROADCAST_LOOK_SONG_ID)).toMatchObject({
-      frame: {x: 160},
+      frame: {x: 460, w: 1000},
       text: {size: 56, align: 'center', color: '#FFFFFF'},
     });
     const empty = fitBroadcastLook(
@@ -336,7 +336,7 @@ describe('built-in broadcast look', () => {
       runtimeHidden: true,
     });
   });
-  it('keeps lyric placement while adding the song title above it in the band', () => {
+  it('keeps lyrics centered in a narrower box beside the song title', () => {
     const layout = builtInTheme('song').screens[screen];
     if (!layout) throw Error('missing song');
     const song = {
@@ -355,9 +355,14 @@ describe('built-in broadcast look', () => {
       {...slide, lines: ['첫째 줄', '둘째 줄']},
       song,
     );
-    expect(element(withTitle, BROADCAST_LOOK_SONG_ID).frame).toEqual(
-      element(without, BROADCAST_LOOK_SONG_ID).frame,
-    );
+    expect(element(withTitle, BROADCAST_LOOK_SONG_ID).frame).toMatchObject({
+      x: 460,
+      w: 1000,
+    });
+    expect(element(without, BROADCAST_LOOK_SONG_ID).frame).toMatchObject({
+      x: 160,
+      w: 1600,
+    });
     const band = element(withTitle, BROADCAST_LOOK_BAND_ID).frame;
     const baseline = element(without, BROADCAST_LOOK_BAND_ID).frame;
     expect(band.y + band.h).toBe(baseline.y + baseline.h);
@@ -373,7 +378,7 @@ describe('built-in broadcast look', () => {
     ).toBe(false);
     expect(element(withTitle, BROADCAST_LOOK_SONG_TITLE_ID)).toMatchObject({
       content: '새찬송가 91장 슬픈 마음 있는 사람',
-      frame: {x: 96, h: 60},
+      frame: {x: 96, h: 166},
       text: {size: 48, weight: 600, color: '#E6E6E6', align: 'left'},
     });
     const textOnly = fitLook(layout, slide, {item: song, songCaption: 'text'});
@@ -400,7 +405,11 @@ describe('built-in broadcast look', () => {
       ).toBe(false);
       const body = element(result, BROADCAST_LOOK_SONG_ID);
       if (!('broadcastText' in body)) throw Error('Missing broadcast text');
-      expect(body.broadcastText).toContain('임재');
+      if (current.lines.length === 0) {
+        expect(body.broadcastText).toBe('');
+      } else {
+        expect(body.broadcastText).toContain('임재');
+      }
     }
     const lyric = fitBroadcastLook(
       layout,
@@ -471,7 +480,7 @@ describe('built-in broadcast look', () => {
       ).toHaveLength(0);
     }
   });
-  it('shows the song title, never the empty slide label, and remains empty without a title', () => {
+  it('keeps an empty song slide empty even when the item has a title', () => {
     const layout = builtInTheme('song').screens[screen];
     if (!layout) throw Error('missing song');
     const empty = {...slide, kind: 'song' as const, label: '간주', lines: []};
@@ -481,7 +490,7 @@ describe('built-in broadcast look', () => {
       title: '주 사랑',
     });
     expect(element(titled, BROADCAST_LOOK_SONG_ID)).toMatchObject({
-      broadcastText: '주 사랑',
+      broadcastText: '',
     });
     const untitled = fitBroadcastLook(layout, empty, {...item, kind: 'song'});
     expect(element(untitled, BROADCAST_LOOK_SONG_ID)).toMatchObject({
