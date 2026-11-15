@@ -167,6 +167,7 @@ export const liveStateSchema = payloadObject({
   audioVolume: v.exactOptional(percent),
   stageMessage: v.exactOptional(v.nullable(liveNonBlankTextSchema)),
   version: count,
+  blackScreen: v.exactOptional(v.boolean()),
   layers: payloadObject({
     media: v.nullable(layerSchemas.media),
     slide: v.nullable(layerSchemas.slide),

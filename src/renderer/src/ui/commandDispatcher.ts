@@ -149,6 +149,17 @@ export function dispatchShortcut(
   const workspace = document
     .querySelector('[data-workspace-layout]')
     ?.getAttribute('data-workspace-layout');
+  if (
+    workspace === 'show' &&
+    event.code === 'F5' &&
+    event.shiftKey &&
+    !event.ctrlKey &&
+    !event.altKey &&
+    !event.metaKey
+  ) {
+    event.preventDefault();
+    return;
+  }
   const focus = shortcutFocus(event);
   const priorities: readonly CommandPriority[] =
     priority === 'capture' ? ['clear', 'zoom'] : ['normal'];

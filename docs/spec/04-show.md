@@ -719,15 +719,15 @@ row while it's on. Clicking it again turns it off.
 | ------------- | -------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------- |
 | Bible passage | 요한복음 3장 16절          | Opens the passage in the Bible panel and outputs its first 슬라이드 (proposal).                                                                                             | No                                    |
 | Song          | 주 하나님 지으신 모든 세계 | Opens the song in the 슬라이드 panel in its own slide order and outputs its first 슬라이드 (proposal). Doesn't add it to the 예배 순서 or change the background (proposal). | No                                    |
-| Black screen  | 검은 화면                  | Turns on or off a built-in 그래픽 that covers every audience screen with black (proposal).                                                                                  | Yes                                   |
+| Black screen  | 검은 화면                  | Toggles an opaque black cover on audience and broadcast screens, keeping the live slide and audio running.                                                                  | Yes                                   |
 | 그래픽        | 로고 화면 (logo screen)    | Turns that 그래픽 on or off.                                                                                                                                                | Yes                                   |
 | 타이머        | 타이머 1                   | Starts or resumes its own timer according to its kind. Clicking a running timer resets it; a clock click has no effect (see the kind rules above).                          | Yes, while running; never for a clock |
 | 매크로        |                            | Runs that 매크로 (proposal).                                                                                                                                                | No                                    |
 
 - The board's 축도 (benediction, 슬라이드 icon) is read as a short song made in
   the 라이브러리 (proposal, open question).
-- The black screen sits on the 그래픽 layer, so the 그래픽 clear (F4) also takes
-  it down (proposal).
+- Period in 진행 toggles the same black cover; a second press restores the
+  current picture. The stage remains visible.
 
 ### Adding and editing (proposal)
 

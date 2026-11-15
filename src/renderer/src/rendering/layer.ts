@@ -67,6 +67,7 @@ export interface RenderFrame {
   readonly timers?: RenderTimers;
   /** Covers the picture with the 테스트 패턴. */
   readonly testPattern?: boolean;
+  readonly blackScreen?: boolean;
 }
 
 export interface RenderLayerOptions {

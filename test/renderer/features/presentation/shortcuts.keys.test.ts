@@ -1,4 +1,6 @@
-import {describe, expect, it} from 'vitest';
+import type {LiveCommand} from '@core/live/commands';
+import {describe, expect, it, vi} from 'vitest';
+import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {setColumnDragActive} from '@renderer/platform/drag';
 import * as showState from '@renderer/session/show';
 import * as bibleKeys from '@renderer/features/bible/verseShortcuts';
@@ -59,6 +61,26 @@ describe('handleShowKey Bible verse keys', () => {
     expect(bibleKeys.outputAdjacentBibleVerse).toHaveBeenCalledExactlyOnceWith(
       'next',
     );
+  });
+});
+
+describe('presenter black screen', () => {
+  it('toggles with period and leaves text fields alone', () => {
+    const send = vi.fn<(command: LiveCommand) => void>();
+    window.llp = mockLlpApi({live: {send}});
+    try {
+      expect(press('Period', {}, appendTo('input')).defaultPrevented).toBe(
+        false,
+      );
+      expect(press('Period').defaultPrevented).toBe(true);
+      expect(press('Period').defaultPrevented).toBe(true);
+      expect(send.mock.calls.map(([command]) => command)).toEqual([
+        {type: 'black.toggle'},
+        {type: 'black.toggle'},
+      ]);
+    } finally {
+      delete window.llp;
+    }
   });
 });
 

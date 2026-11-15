@@ -9,6 +9,13 @@ import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 
 describe('parseLiveCommand', () => {
+  it('accepts the black screen toggle command', () => {
+    expect(parseLiveCommand({type: 'black.toggle'})).toEqual({
+      ok: true,
+      value: {type: 'black.toggle'},
+    });
+  });
+
   it('accepts bounded stage preview updates and rejects malformed payloads', () => {
     const command = {
       type: 'stage.next.set',

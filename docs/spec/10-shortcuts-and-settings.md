@@ -300,12 +300,13 @@ has no ProPresenter source, so this proposal's choice applies.
 - **Same path as clicks.** A shortcut sends the same command to the main process
   as the button it stands for (01). The result is the same wherever the command
   comes from.
-- **Bare letters and digits belong to source-slide hot keys.** Commands use a
-  modifier (Ctrl, Alt, Shift) or a non-character key (F1 to F12, arrows, Space,
-  Page Up, Page Down, Home, End, Delete). This follows ProPresenter, where slide
-  hot keys are single letters and Key Mappings need a modifier (S2, S4 p. 58).
-  It also means slide hot keys and commands can never collide, and typing in the
-  wrong place never outputs anything by a letter.
+- **Bare letters and digits belong to source-slide hot keys; Period toggles the
+  black screen in 진행.** Commands use a modifier (Ctrl, Alt, Shift) or a
+  non-character key (F1 to F12, arrows, Space, Page Up, Page Down, Home, End,
+  Delete). This follows ProPresenter, where slide hot keys are single letters
+  and Key Mappings need a modifier (S2, S4 p. 58). It also means slide hot keys
+  and commands can never collide, and typing in the wrong place never outputs
+  anything by a letter.
 - **Live keys stay where ProPresenter has them.** F1 to F6, →, ←, Space, Ctrl 1,
   and Ctrl 2 keep the ProPresenter keys (S1). Operators who move between the two
   apps keep their habits.
@@ -580,6 +581,7 @@ decision; no equivalent generic ProPresenter panel command is claimed.
 | Command         | ID              | Default                | ProPresenter        | Basis and reason                                                                                                                                                                          | Works in | Ver. |
 | --------------- | --------------- | ---------------------- | ------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | -------- | ---- |
 | 다음 슬라이드   | `show.next`     | →, ↓, Space, Page Down | →, Space (S4 p. 70) | Decided, follows ProPresenter for → and Space (S4 p. 70; Kept, 06). Page Down: no ProPresenter source found; presentation remotes send it (S16), and EasyWorship uses it to go live (S9). | 진행     | 1    |
+| 검은 화면       | `show.black`    | .                      | Period              | In 진행, toggle the black cover without changing slide or audio.                                                                                                                          | 진행     | 1    |
 | 이전 슬라이드   | `show.previous` | ←, ↑, Page Up          | ←                   | Decided, follows ProPresenter for ← (Kept, 06). Page Up: no ProPresenter source found; remotes send it (S16).                                                                             | 진행     | 1    |
 | 첫 슬라이드     | `show.first`    | Home                   | None found          | Decided: S22 Home, also S9. Outputs the first tile of the open presentation; focused text and lists keep Home.                                                                            | 진행     | 1    |
 | 마지막 슬라이드 | `show.last`     | End                    | None found          | Decided: S22 End, also S9. Outputs the last tile of the open presentation; focused text and lists keep End.                                                                               | 진행     | 1    |
@@ -843,6 +845,7 @@ same place. Native window and field keys are identified separately.
 | Key                           | Command                                                      | Where                                                          |
 | ----------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------- |
 | F1 to F6                      | 지우기 (모두, 가사, 미디어, 그래픽, 오디오, 메시지)          | Everywhere                                                     |
+| .                             | 검은 화면 on or off                                          | 진행, except text fields                                       |
 | →, ↓, Space, Page Down        | 다음 슬라이드                                                | 진행                                                           |
 | ←, ↑, Page Up                 | 이전 슬라이드                                                | 진행                                                           |
 | Home, End                     | 첫 슬라이드, 마지막 슬라이드                                 | 진행, except focused text and lists                            |
@@ -1569,3 +1572,6 @@ While a song editor is open, its 저장 binding takes precedence over a matching
 진행 workspace binding. The default Ctrl S saves the library song, or applies
 the imported/new draft; Ctrl Shift S opens 다른 이름으로 저장…. Outside text
 fields, Esc clears slide selection or caret first, then returns to the table.
+
+- Presenter Shift+F5 is ignored in 진행 and cannot clear audio; plain F5 remains
+  audio clear.

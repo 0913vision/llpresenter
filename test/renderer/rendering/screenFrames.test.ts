@@ -480,3 +480,21 @@ it('uses the scripture theme wipe for consecutive slides and split verses', asyn
     });
   }
 });
+
+it.each([
+  [THEME_MAIN, true],
+  [THEME_CAPTURE, true],
+  [THEME_STAGE, false],
+] as const)(
+  'routes black screen to audience and broadcast but leaves stage visible',
+  async (screenId, covered) => {
+    const {frames, state} = setup(screenId);
+    await vi.waitFor(() => expect(frames.frame(state)).toBeDefined());
+    expect(
+      frames.frame({...state, blackScreen: true})?.blackScreen === true,
+    ).toBe(covered);
+    expect(
+      frames.frame({...state, blackScreen: false})?.blackScreen,
+    ).toBeUndefined();
+  },
+);

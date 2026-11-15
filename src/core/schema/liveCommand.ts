@@ -45,6 +45,7 @@ const singleCommandOptions = [
   }),
   v.object({type: v.literal('clear.undo')}),
   v.object({type: v.literal('item.restore')}),
+  v.object({type: v.literal('black.toggle')}),
   v.object({
     type: v.literal('output.set'),
     screenId: screenIdSchema,

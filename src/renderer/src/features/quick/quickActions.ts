@@ -21,7 +21,6 @@ import {openBiblePassage, showBiblePassage} from '../bible/actions';
 
 export function quickItemUnavailable(item: QuickItem): string | undefined {
   if (!isKnownQuickItem(item)) return '아직 없는 기능';
-  if (item.kind === 'black') return '검은 화면을 쓸 수 없습니다';
   if (
     item.kind === 'bible' &&
     (item.ref.reference !== 'none' || item.ref.translationName)
@@ -43,7 +42,7 @@ export function quickItemOn(
     case 'timer':
       return live?.timers?.[item.ref]?.state === 'running';
     case 'black':
-      return false;
+      return live?.blackScreen === true;
     case 'song':
     case 'bible':
     case 'macro':
@@ -132,7 +131,8 @@ export function quickRunner(api: LlpApi, onProblem: (notice: Notice) => void) {
           sendLive({type: 'macro.run', macroId: item.ref});
           return;
         case 'black':
-          throw new Error('The built-in black prop is unavailable');
+          sendLive({type: 'black.toggle'});
+          return;
         default: {
           const unhandled: never = item;
           return unhandled;

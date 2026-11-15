@@ -17,9 +17,11 @@ import {
 import {useAtLastSlide} from './useAtLastSlide';
 import {useSlideHotKeys} from './useSlideHotKeys';
 import {outputAdjacentBibleVerse} from '../bible/verseShortcuts';
+import {sendLive} from '@renderer/session/live';
 import {useNumberJumpKeys} from './numberJump';
 
 const commands: readonly WindowShortcut[] = [
+  {id: 'show.black', run: () => sendLive({type: 'black.toggle'})},
   {id: 'show.next', run: () => outputNext()},
   {id: 'show.previous', run: () => outputPrevious()},
   {id: 'show.first', run: () => outputBoundarySlide('first')},
