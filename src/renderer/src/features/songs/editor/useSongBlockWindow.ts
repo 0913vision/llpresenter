@@ -55,9 +55,16 @@ export function useSongBlockWindow(
     readonly scale?: number;
     readonly viewportRef?: RefObject<HTMLDivElement | null>;
     readonly heights?: ReadonlyArray<number | undefined>;
+    readonly fallbackHeight?: number;
   } = {},
 ) {
-  const {menu, mode = 'list', scale = 100, heights} = options;
+  const {
+    menu,
+    mode = 'list',
+    scale = 100,
+    heights,
+    fallbackHeight = 0,
+  } = options;
   const localRef = useRef<HTMLDivElement>(null);
   const viewportRef = options.viewportRef ?? localRef;
   const [measure, setMeasure] = useState(EMPTY);
@@ -164,16 +171,19 @@ export function useSongBlockWindow(
         (result.at(-1) ?? 0) +
           (heights?.[index] ??
             measuredFallback ??
-            measure.inset +
-              Math.max(
-                measure.minimum,
-                measure.line * Math.max(1, slide.lines.length) +
-                  measure.inputChrome,
-              )),
+            Math.max(
+              fallbackHeight,
+              measure.inset +
+                Math.max(
+                  measure.minimum,
+                  measure.line * Math.max(1, slide.lines.length) +
+                    measure.inputChrome,
+                ),
+            )),
       );
     }
     return result;
-  }, [slides, measure, mode, cellWidth, columns, heights]);
+  }, [slides, measure, mode, cellWidth, columns, heights, fallbackHeight]);
   const total = offsets.at(-1) ?? 0;
   const first = Math.max(
     0,

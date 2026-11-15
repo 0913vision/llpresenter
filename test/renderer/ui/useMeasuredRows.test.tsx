@@ -1,6 +1,8 @@
-import {act, renderHook} from '@testing-library/react';
+import {act, render, renderHook} from '@testing-library/react';
+import {useRef} from 'react';
 import {expect, it, vi} from 'vitest';
 import {useMeasuredRows} from '@renderer/ui/useMeasuredRows';
+import {MeasuredRow} from '@renderer/features/service/slides/SlideRows';
 
 it('keeps current row heights and clears them when scope or viewport width changes', () => {
   let notify: (() => void) | undefined;
@@ -48,6 +50,62 @@ it('keeps current row heights and clears them when scope or viewport width chang
   } finally {
     unmount();
     expect(disconnect).toHaveBeenCalledOnce();
+    vi.unstubAllGlobals();
+  }
+});
+
+it('remeasures mounted rows when the viewport observer runs after row measurements', () => {
+  const observers = new Map<Element, () => void>();
+  class Observer implements ResizeObserver {
+    constructor(private readonly callback: ResizeObserverCallback) {}
+    observe = (node: Element): void => {
+      observers.set(node, () => this.callback([], this));
+    };
+    disconnect = (): void => undefined;
+    unobserve = (): void => undefined;
+  }
+  vi.stubGlobal('ResizeObserver', Observer);
+  let width = 400;
+  const widthSpy = vi
+    .spyOn(HTMLElement.prototype, 'clientWidth', 'get')
+    .mockImplementation(() => width);
+  const rectSpy = vi
+    .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+    .mockReturnValue(DOMRect.fromRect({height: 153}));
+  function Fixture() {
+    const viewport = useRef<HTMLDivElement>(null);
+    const {current, saveHeight} = useMeasuredRows('list', ['a', 'b'], viewport);
+    return (
+      <div
+        ref={viewport}
+        data-testid="viewport"
+        data-heights={JSON.stringify(current.values)}
+      >
+        {['a', 'b'].map(id => (
+          <MeasuredRow key={id} id={id} style={{}} onHeight={saveHeight}>
+            {id}
+          </MeasuredRow>
+        ))}
+      </div>
+    );
+  }
+  const view = render(<Fixture />);
+  try {
+    const viewport = view.getByTestId('viewport');
+    expect(JSON.parse(viewport.dataset['heights'] ?? '{}')).toEqual({
+      a: 153,
+      b: 153,
+    });
+    width = 394;
+    act(() => observers.get(viewport)?.());
+    expect(JSON.parse(viewport.dataset['heights'] ?? '{}')).toEqual({
+      a: 153,
+      b: 153,
+    });
+  } finally {
+    view.unmount();
+    widthSpy.mockRestore();
+    rectSpy.mockRestore();
     vi.unstubAllGlobals();
   }
 });
