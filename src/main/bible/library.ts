@@ -96,7 +96,7 @@ export class BibleLibrary {
       }));
       for (let current = chapter; current <= endChapter; current++) {
         const verses = cacheOnly
-          ? this.catalog.cachedChapter(translation, book.id, current)
+          ? await this.catalog.cachedLiveChapter(book.id, current)
           : await this.catalog.chapter(translation, book.id, current);
         if (!verses) {
           return {
@@ -117,7 +117,7 @@ export class BibleLibrary {
           books: [{id: book.id, chapters}],
           readChapter: async (id, current) =>
             cacheOnly
-              ? this.catalog.cachedChapter(translation, id, current)
+              ? this.catalog.cachedLiveChapter(id, current)
               : this.catalog.chapter(translation, id, current),
         },
         input,

@@ -18,6 +18,7 @@ export interface BibleLookupOptions {
   readonly folder: string;
   readonly settings: Promise<SettingsReader | null>;
   readonly log: Logger;
+  readonly cache?: BibleChapterCache;
 }
 
 async function suggestions(request: BibleLookupRequest, library: BibleLibrary) {
@@ -52,7 +53,7 @@ async function suggestions(request: BibleLookupRequest, library: BibleLibrary) {
 /** Primes header indexes at startup and caps serialized lookup work. */
 export class BibleLookupSession {
   private library: BibleLibrary | null = null;
-  private readonly cache = new BibleChapterCache();
+  private readonly cache: BibleChapterCache;
   private readonly warnedFiles = new Set<string>();
   private translationsKey: string | null = null;
   private defaultTranslation: string | undefined;
@@ -62,6 +63,7 @@ export class BibleLookupSession {
   private needsRefresh = false;
 
   constructor(private readonly options: BibleLookupOptions) {
+    this.cache = options.cache ?? new BibleChapterCache();
     this.pending = this.refresh().then(
       () => undefined,
       (error: unknown) => {

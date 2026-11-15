@@ -1292,9 +1292,9 @@ the tallest cell; typing retains the caret and surface scroll position.
 ????? ?? ?? ???? ???????? ??? ?? ????? ????. ??? ??? ??? ? ???? ???? ??? ?????
 
 The built-in GAE translation fetches only requested chapters live from the
-Korean Bible Society. Chapter text is held only in the session memory cache; it
-is never saved to a file or downloaded in bulk. A failed fetch shows the
-existing problem state and is retried on the next use. Installed `.llbible`
+Korean Bible Society. Requested chapters are cached in memory and on disk,
+validated when read, and are never downloaded in bulk. Missing service chapters
+load in the background; failure is shown with retry. Installed `.llbible`
 translations continue to work.
 
 Each open-file picker remembers the folder of its last selected file across

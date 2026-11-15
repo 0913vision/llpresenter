@@ -40,6 +40,7 @@ import {
 export const showRowProblems = [
   'missing-song',
   'missing-bible',
+  'loading-bible',
   'missing-background',
   'missing-media',
   'unknown-kind',

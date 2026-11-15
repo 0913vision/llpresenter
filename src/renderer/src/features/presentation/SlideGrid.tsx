@@ -20,6 +20,7 @@ import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {sermonPreviewRow} from '@renderer/platform/sermonPreview';
 import {useBibleTileProjection} from '../bible/useBibleProjections';
+import {BibleLoadNotice} from '../bible/BibleLoadNotice';
 import styles from './SlideGrid.module.css';
 import {useSlideWindow} from './useSlideWindow';
 import {ShowSlideEntry} from './showPanelNavigation';
@@ -167,6 +168,9 @@ export function SlideGrid({
       data-show-slide-grid="true"
       style={{height: window.height}}
     >
+      {row !== undefined && row.kind !== 'header' ? (
+        <BibleLoadNotice row={row} />
+      ) : null}
       {pendingNumber === '' ? null : (
         <div className={styles.numberJump} role="status">
           슬라이드 {pendingNumber}
