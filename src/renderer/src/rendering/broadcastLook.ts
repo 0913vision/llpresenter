@@ -338,7 +338,7 @@ function fitSong(
       clearTarget: 'slide',
       runtimeHidden: !visible,
       frame: {
-        x: geometry.songX,
+        x: geometry.songTitleX,
         y: top - titleSpace,
         w: geometry.songWidth,
         h: geometry.songTitleHeight,
@@ -346,10 +346,10 @@ function fitSong(
       text: {
         ...body.text,
         size: geometry.songTitleSize,
-        weight: 500,
+        weight: 600,
         align: 'left',
         vAlign: 'top',
-        color: '#CCCCCC',
+        color: '#E6E6E6',
         lineHeight: 1.25,
       },
     });
