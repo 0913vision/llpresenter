@@ -190,7 +190,7 @@ describe('built-in broadcast look', () => {
       {...slide, lines: ['short'], bibleItemSlides},
       {...item, kind: 'blank'},
     );
-    expect(element(nonBible, BROADCAST_LOOK_BAND_ID).frame.h).toBe(303);
+    expect(element(nonBible, BROADCAST_LOOK_BAND_ID).frame.h).toBe(279);
   });
   it('keeps the box fixed for one to three rows and expands for four', () => {
     const rows = [1, 2, 3, 4].map(count =>
@@ -214,7 +214,7 @@ describe('built-in broadcast look', () => {
     expect(third.frame).toEqual(first.frame);
     expect(fourth.frame.h).toBeGreaterThan(third.frame.h);
     expect(element(three, BROADCAST_TEXT_ID)).toMatchObject({
-      frame: {x: 138},
+      frame: {x: 90},
       text: {size: 57, color: '#1F1F1F'},
     });
     expect(element(four, BROADCAST_TEXT_ID)).toMatchObject({
@@ -268,12 +268,12 @@ describe('built-in broadcast look', () => {
     const blank = fitBroadcastLook(plain(), slide, {...item, kind: 'blank'});
     const band = element(bible, BROADCAST_LOOK_BAND_ID);
     expect(element(bible, BROADCAST_LOOK_TAB_ID)).toMatchObject({
-      frame: {x: 64, y: band.frame.y + 6, h: 78},
+      frame: {x: 64, y: band.frame.y + 6, h: 58},
       runtimeHidden: false,
     });
     expect(element(bible, BROADCAST_REFERENCE_ID)).toMatchObject({
-      frame: {x: 138},
-      text: {size: 47, color: '#FFFFFF'},
+      frame: {x: 90},
+      text: {size: 38, color: '#FFFFFF'},
     });
     expect(element(blank, BROADCAST_LOOK_TAB_ID)).toMatchObject({
       runtimeHidden: true,
@@ -324,7 +324,7 @@ describe('built-in broadcast look', () => {
       runtimeHidden: false,
     });
     expect(element(result, BROADCAST_LOOK_SONG_ID)).toMatchObject({
-      frame: {x: 472},
+      frame: {x: 460, w: 1000},
       text: {size: 67, align: 'center', color: '#FFFFFF'},
     });
     const empty = fitBroadcastLook(
@@ -355,12 +355,22 @@ describe('built-in broadcast look', () => {
       {...slide, lines: ['첫째 줄', '둘째 줄']},
       song,
     );
-    const lyricsWithTitle = element(withTitle, BROADCAST_LOOK_SONG_ID).frame;
-    const lyricsWithoutTitle = element(without, BROADCAST_LOOK_SONG_ID).frame;
-    expect(lyricsWithTitle.x + lyricsWithTitle.w / 2).toBe(960);
-    expect(lyricsWithTitle.w).toBeLessThan(lyricsWithoutTitle.w);
+    expect(element(withTitle, BROADCAST_LOOK_SONG_ID).frame).toMatchObject({
+      x: 460,
+      w: 1000,
+    });
+    expect(element(without, BROADCAST_LOOK_SONG_ID).frame).toMatchObject({
+      x: 160,
+      w: 1600,
+    });
     const band = element(withTitle, BROADCAST_LOOK_BAND_ID).frame;
     const baseline = element(without, BROADCAST_LOOK_BAND_ID).frame;
+    const lyrics = element(withTitle, BROADCAST_LOOK_SONG_ID).frame;
+    const title = element(withTitle, BROADCAST_LOOK_SONG_TITLE_ID).frame;
+    expect(title.x + title.w).toBeLessThanOrEqual(lyrics.x);
+    expect(title.y).toBe(band.y + 12);
+    expect(lyrics.y).toBeGreaterThanOrEqual(band.y);
+    expect(lyrics.y + lyrics.h).toBeLessThanOrEqual(band.y + band.h);
     expect(band.y + band.h).toBe(baseline.y + baseline.h);
     expect(band).toEqual(baseline);
     const titleSlide = fitBroadcastLook(
@@ -374,8 +384,8 @@ describe('built-in broadcast look', () => {
     ).toBe(false);
     expect(element(withTitle, BROADCAST_LOOK_SONG_TITLE_ID)).toMatchObject({
       content: '새찬송가 91장 슬픈 마음 있는 사람',
-      frame: {x: 108, h: 200.5},
-      text: {size: 88, weight: 600, color: '#E6E6E6', align: 'left'},
+      frame: {x: 96, h: 193.5},
+      text: {size: 48, weight: 600, color: '#E6E6E6', align: 'left'},
     });
     const textOnly = fitLook(layout, slide, {item: song, songCaption: 'text'});
     expect(
