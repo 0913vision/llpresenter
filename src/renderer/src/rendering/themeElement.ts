@@ -682,6 +682,11 @@ export class ThemeElementView {
         !currentBible &&
         slide?.label?.trim()
       ) {
+        const variant: unknown = import.meta.env.VITE_UI562B_STAGE_VARIANT;
+        if (variant === 'C') return text;
+        if (variant === 'B' && !isStageEndingLabel(slide.label.trim())) {
+          return `(${slide.label.trim()})\n${text}`;
+        }
         return stageLabeledText(text, slide.label.trim());
       }
       if (

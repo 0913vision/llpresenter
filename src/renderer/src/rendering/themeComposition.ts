@@ -178,6 +178,31 @@ export class ThemeCompositionView {
         };
       }
     }
+    const draftVariant: unknown = import.meta.env.VITE_UI562B_STAGE_VARIANT;
+    if (
+      draftVariant === 'C' &&
+      frame.theme !== undefined &&
+      frame.screen?.kind === 'stage'
+    ) {
+      frame = {
+        ...frame,
+        theme: {
+          ...frame.theme,
+          layout: {
+            ...frame.theme.layout,
+            elements: frame.theme.layout.elements.map(element =>
+              element.kind === 'label'
+                ? {
+                    ...element,
+                    frame: {...element.frame, y: 10, h: 80},
+                    text: {...element.text, size: 64, weight: 800},
+                  }
+                : element,
+            ),
+          },
+        },
+      };
+    }
     this.gaps.follow(frame);
     this.content = {layers, frame};
     const theme = frame.theme;
