@@ -81,12 +81,16 @@ it('survives a removal and twenty metrics events while identity lookup is slow o
   expect(windows.only(mainId).mode.kind).toBe('window');
   expect(windows.only(stageId).mode.kind).toBe('fullscreen');
   expect(windows.only(mainId).monitorRemovals).toBeLessThanOrEqual(2);
+  const moved = windows.only(mainId).placements.length;
+  const unaffected = windows.only(stageId).placements.length;
   for (let i = 0; i < 20; i++) {
     raw.emit();
     await vi.advanceTimersByTimeAsync(50);
   }
   expect(query).toHaveBeenCalledTimes(1);
   expect(read.mock.calls.length).toBe(reads);
+  expect(windows.only(mainId).placements).toHaveLength(moved);
+  expect(windows.only(stageId).placements).toHaveLength(unaffected);
   await vi.advanceTimersByTimeAsync(300);
   expect(query).toHaveBeenCalledTimes(2);
   expect(manager.screenStates().get(mainId)?.placement).toBe('monitorMissing');
