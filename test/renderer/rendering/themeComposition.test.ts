@@ -1200,7 +1200,7 @@ describe('theme composition drawing', () => {
       );
       if (kind !== 'none') {
         expect(animate).toHaveBeenLastCalledWith(expect.any(Array), {
-          duration: kind === 'wipe' ? 996 : 1200,
+          duration: kind === 'wipe' ? 1144.8 : 1200,
           easing: 'linear',
         });
         expect(root.contains(outgoing)).toBe(true);

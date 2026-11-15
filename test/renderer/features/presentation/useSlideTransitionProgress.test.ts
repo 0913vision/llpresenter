@@ -24,7 +24,7 @@ it('tracks the shortened wipe, restarts and hides for cuts', () => {
   useLive.setState({state: {...state, layers: {...state.layers, slide}}});
   const {result} = renderHook(() => useSlideTransitionProgress());
   act(() => {
-    vi.advanceTimersByTime(1660);
+    vi.advanceTimersByTime(1908);
   });
   expect(result.current).toBeCloseTo(0.5, 1);
   act(() =>
@@ -43,7 +43,7 @@ it('tracks the shortened wipe, restarts and hides for cuts', () => {
   });
   expect(result.current).toBeLessThan(0.02);
   act(() => {
-    vi.advanceTimersByTime(3400);
+    vi.advanceTimersByTime(3900);
   });
   expect(result.current).toBeUndefined();
   act(() =>
