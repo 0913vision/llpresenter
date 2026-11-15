@@ -151,7 +151,9 @@ function DetailsPanelContent({
   const card =
     item !== null && hasSectionCard(item) ? item.sectionCard : undefined;
   const offset = card === undefined ? 0 : 1;
-  const bible = item !== null && isItemOfKind(item, 'bible');
+  const bible =
+    item !== null &&
+    (isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon'));
   const themeSettings = useItemSettings(api.settings, 'themes', bible);
   const screenSettings = useItemSettings(api.settings, 'screens');
   const screens =

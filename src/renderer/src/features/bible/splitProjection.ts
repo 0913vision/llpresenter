@@ -40,6 +40,7 @@ export interface SplitAppearance {
 
 interface SplitOptions {
   readonly background?: string;
+  readonly sermonTitle?: string;
   readonly transitions?: readonly BiblePartTransition[];
   readonly transition?: SlideTransition;
   readonly id: string;
@@ -147,6 +148,9 @@ export function splitSourceFor(
     id: itemId,
     kind: 'bible',
     passage: row.bible.passage,
+    ...(row.bible.sermonTitle === undefined
+      ? {}
+      : {sermonTitle: row.bible.sermonTitle}),
     verseNumbers: row.bible.verseNumbers ?? true,
     reference: row.bible.reference ?? 'every',
     translationName: row.bible.translationName ?? false,
@@ -241,8 +245,20 @@ export function projectBible(
     layout,
     verses,
     parts,
-    partsByTile: parts,
-    tiles,
+    partsByTile: source.sermonTitle === undefined ? parts : [null, ...parts],
+    tiles:
+      source.sermonTitle === undefined
+        ? tiles
+        : [
+            {
+              label: null,
+              labelColor: NO_LABEL_COLOR,
+              lines: [source.sermonTitle],
+              reference: source.passage.displayRef,
+              sermonTitle: true,
+            },
+            ...tiles,
+          ],
     numbered: source.verseNumbers && verses.length > 1,
   };
 }
@@ -272,6 +288,7 @@ export class BibleProjections {
     if (
       cached !== undefined &&
       sourceContent(cached.source) === sourceContent(source) &&
+      cached.source.sermonTitle === source.sermonTitle &&
       cached.source.theme === source.theme &&
       cached.source.background === source.background &&
       cached.source.verseNumbers === source.verseNumbers &&

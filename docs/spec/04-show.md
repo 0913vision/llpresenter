@@ -1237,3 +1237,12 @@ TEMPORARY for the 2026-11-15 service: on the last slide of a service Bible item
 directly following a sermon-title theme item, the stage next line shows the
 sermon title; other Bible items retain the empty next line. Replace this rule by
 grouping the sermon passage with the sermon title item.
+
+### Sermon element
+
+In ??, ?? adds a title and main Bible passage using the usual Bible reference
+fields. A directly adjacent sermon-title item and Bible passage can be bound as
+??, and the resulting item can be split again; both operations are undoable. The
+first slide uses the sermon-title theme and passage reference, followed by the
+Bible passage slides with their existing display settings. The stage treats the
+passage as the sermon passage when showing the next slide.

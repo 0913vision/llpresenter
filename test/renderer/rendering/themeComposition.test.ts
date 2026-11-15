@@ -188,6 +188,64 @@ describe('theme composition drawing', () => {
       view.dispose();
     },
   );
+  it('shows a sermon element title with one stage reference aligned to the Bible text', () => {
+    const {root, view} = setup();
+    const screenId = createScreenId(STARTER_SCREEN_IDS.stage);
+    const theme = createDefaultThemes().themes.find(
+      entry => entry.name === '\uc124\uad50 \uc81c\ubaa9',
+    );
+    const layout = theme?.screens[screenId];
+    const bibleLayout = currentBuiltInTheme('bible').screens[screenId];
+    if (!theme || !layout || !bibleLayout || song.slide === null) {
+      throw Error('Missing stage layout');
+    }
+    const title = layout.elements.find(
+      element => element.kind === 'currentText',
+    );
+    const bible = bibleLayout.elements.find(
+      element => element.kind === 'currentText',
+    );
+    if (title?.kind !== 'currentText' || bible?.kind !== 'currentText') {
+      throw Error('Missing stage text');
+    }
+    expect(title.text.align).toBe('left');
+    expect(title.frame.x).toBe(bible.frame.x);
+    const active = frame(layout.elements, {
+      themeId: theme.id,
+      layout,
+      item: {
+        id: 'invented',
+        kind: 'bible',
+        source: 'service',
+        title: 'Matthew 11:29',
+      },
+    });
+    view.render(
+      {
+        ...song,
+        slide: {
+          ...song.slide,
+          sermonTitle: true,
+          reference: 'Matthew 11:29',
+          lines: ['Sermon'],
+        },
+      },
+      {...active, screen: {id: screenId, kind: 'stage'}, transitions: false},
+    );
+    expect(
+      root.querySelector(`[data-kind="itemName"] .${classes.shown}`)
+        ?.textContent,
+    ).toBe('Matthew 11:29');
+    expect(
+      root.querySelector(`[data-kind="reference"] .${classes.shown}`)
+        ?.textContent ?? '',
+    ).toBe('');
+    expect(
+      root.querySelector(`[data-kind="currentText"] .${classes.shown}`)
+        ?.textContent,
+    ).toBe('Sermon');
+    view.dispose();
+  });
   it.each(['same', 'different'] as const)(
     'uses one full-page wipe with %s background',
     background => {

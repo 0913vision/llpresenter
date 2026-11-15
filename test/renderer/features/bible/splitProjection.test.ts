@@ -203,3 +203,28 @@ it('keeps an assigned label while numbering the parts of an inserted verse', () 
   );
   expect(parts.every(tile => tile.slideLabel === 'Chorus')).toBe(true);
 });
+
+it('preserves the sermon title before all measured Bible parts', () => {
+  const projection = projectBible(
+    {
+      id: 'sermon',
+      kind: 'bible',
+      source: 'service',
+      passage: panelPassage(),
+      verseNumbers: true,
+      translationName: false,
+      reference: 'every',
+      sermonTitle: 'Sermon',
+    },
+    {
+      element: {...themeElementBase(), kind: 'currentText'},
+      layout: mockSplitLayout(),
+    },
+  );
+  expect(projection?.tiles[0]).toMatchObject({
+    sermonTitle: true,
+    lines: ['Sermon'],
+  });
+  expect(projection?.partsByTile[0]).toBeNull();
+  expect(projection?.tiles[1]?.biblePart).toBe(1);
+});

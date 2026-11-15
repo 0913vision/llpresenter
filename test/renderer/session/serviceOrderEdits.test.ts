@@ -1,3 +1,5 @@
+import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
+import {newSlidesItem} from '@core/services/slidesEdits';
 import {LIGHT_SONG_THEME_ID} from '@core/themes/lightSong';
 import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import * as v from 'valibot';
@@ -131,6 +133,47 @@ function fixture() {
 }
 
 describe('service order edits', () => {
+  it('binds and splits a sermon as undoable edits while preserving both original items', async () => {
+    const {edits, state} = fixture();
+    if (state.document === null) throw Error('Missing service');
+    const title = {
+      ...newSlidesItem('blank', first),
+      theme: SERMON_TITLE_THEME_ID,
+    };
+    const bible = {
+      id: second,
+      bible: {
+        translation: v.parse(translationIdSchema, 'sample'),
+        ref: 'John 3:16',
+        split: 'verse' as const,
+        reference: 'every' as const,
+        verseNumbers: true,
+        translationName: false,
+      },
+    };
+    state.document = {
+      ...state.document,
+      service: {...state.document.service, order: [title, bible]},
+    };
+    expect(await edits.bindSermon(serviceId, first, 'Sermon')).toMatchObject({
+      ok: true,
+      value: true,
+    });
+    expect(state.document.service.order).toMatchObject([
+      {id: second, sermon: {title: 'Sermon', passage: bible.bible}},
+    ]);
+    expect(await edits.undo(serviceId)).toMatchObject({ok: true, value: true});
+    expect(state.document.service.order).toEqual([title, bible]);
+    expect(await edits.redo(serviceId)).toMatchObject({ok: true, value: true});
+    expect(await edits.unbindSermon(serviceId, second)).toMatchObject({
+      ok: true,
+      value: true,
+    });
+    expect(state.document.service.order).toEqual([title, bible]);
+    expect(await edits.undo(serviceId)).toMatchObject({ok: true, value: true});
+    expect(state.document.service.order).toHaveLength(1);
+  });
+
   it('inserts a prepared Bible item at the end of a selected section', async () => {
     const {edits, ids, state} = fixture();
     if (state.document === null) throw new Error('Missing document');

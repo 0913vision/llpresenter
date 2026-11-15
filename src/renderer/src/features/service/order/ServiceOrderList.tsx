@@ -1,3 +1,4 @@
+import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
 import {serviceRowIcon} from './serviceItemIcons';
 import {useMediaOrderDrop} from './useMediaOrderDrop';
 import {usePaletteEditing} from '../items/PaletteEditing';
@@ -775,7 +776,67 @@ export function ServiceOrderList({
     if (row === undefined) return [];
     const ids = targets(target.id);
     const count = ids.length;
+    const index = rows.findIndex(value => value.id === target.id);
+    const next = rows[index + 1];
+    const title = useShow
+      .getState()
+      .tiles[target.id]?.find(
+        tile =>
+          tile.sectionCard === undefined &&
+          tile.lines.some(line => line.trim() !== ''),
+      )
+      ?.lines.join('\n')
+      .split('\n')
+      .find(line => line.trim() !== '')
+      ?.trim();
+    const bind =
+      workspace === 'prep' &&
+      editable &&
+      (row.kind === 'slides' || row.kind === 'song') &&
+      row.theme === SERMON_TITLE_THEME_ID &&
+      next?.kind === 'bible' &&
+      next.sermonTitle === undefined &&
+      title !== undefined;
+    const unbind =
+      workspace === 'prep' &&
+      editable &&
+      row.kind === 'bible' &&
+      row.sermonTitle !== undefined;
     const entries: readonly MenuEntry[] = [
+      ...(bind
+        ? [
+            {
+              kind: 'item' as const,
+              id: 'bind-sermon',
+              label: '\uc124\uad50\ub85c \ubb36\uae30',
+              onSelect: () => {
+                editorTask(
+                  editing.save((edits, id) =>
+                    edits.bindSermon(id, createServiceItemId(target.id), title),
+                  ),
+                );
+                setMenu(null);
+              },
+            },
+          ]
+        : []),
+      ...(unbind
+        ? [
+            {
+              kind: 'item' as const,
+              id: 'unbind-sermon',
+              label: '\uc124\uad50 \ud480\uae30',
+              onSelect: () => {
+                editorTask(
+                  editing.save((edits, id) =>
+                    edits.unbindSermon(id, createServiceItemId(target.id)),
+                  ),
+                );
+                setMenu(null);
+              },
+            },
+          ]
+        : []),
       ...serviceOrderMenuEntries({
         row,
         editable,

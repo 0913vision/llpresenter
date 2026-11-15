@@ -101,22 +101,35 @@ export async function resolveServicePassages(
       slides.set(item.id, found);
       continue;
     }
-    if (!isItemOfKind(item, 'bible')) continue;
-    const passage = await load(item.bible.translation, item.bible.ref);
+    if (!isItemOfKind(item, 'bible') && !isItemOfKind(item, 'sermon')) continue;
+    const settings = isItemOfKind(item, 'sermon')
+      ? item.sermon.passage
+      : item.bible;
+    const passage = await load(settings.translation, settings.ref);
     if (passage === null || passage.verses.length > SHOW_SERVICE_LIMITS.tiles) {
       unavailable.add(item.id);
       continue;
     }
-    tiles.set(
-      item.id,
-      bibleVerseTiles(passage, {
-        verseNumbers: item.bible.verseNumbers,
-        reference: item.bible.reference,
-        translationName: item.bible.translationName,
-        split: item.bible.split,
-        transition: item.bible.transition,
+    tiles.set(item.id, [
+      ...(isItemOfKind(item, 'sermon')
+        ? [
+            {
+              label: null,
+              labelColor: 'none' as const,
+              lines: [item.sermon.title],
+              reference: passage.displayRef,
+              sermonTitle: true as const,
+            },
+          ]
+        : []),
+      ...bibleVerseTiles(passage, {
+        verseNumbers: settings.verseNumbers,
+        reference: settings.reference,
+        translationName: settings.translationName,
+        split: settings.split,
+        transition: settings.transition,
       }),
-    );
+    ]);
     const {ref, translation} = passage;
     references.set(item.id, {ref, translation, passage});
   }

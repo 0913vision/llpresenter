@@ -1,3 +1,5 @@
+import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
+import {newSlidesItem} from '@core/services/slidesEdits';
 import {orderedSelection, moveSelection} from '@core/common/selectionOrder';
 import type {LlpApi} from '@contracts/ipc/api';
 import {copyName} from '@core/common/copyName';
@@ -402,6 +404,97 @@ export class ServiceOrderEdits {
         value: service.order.map(row =>
           row.id === itemId ? {...item, header} : row,
         ),
+      };
+    });
+  }
+
+  /** Converts adjacent title and Bible items in a single undoable edit. */
+  bindSermon(serviceId: ServiceId, titleId: ServiceItemId, title: string) {
+    return this.update(serviceId, service => {
+      const index = service.order.findIndex(item => item.id === titleId);
+      const source = service.order[index];
+      const bible = service.order[index + 1];
+      const name = title.trim();
+      if (
+        source === undefined ||
+        (!isItemOfKind(source, 'slides') && !isItemOfKind(source, 'song')) ||
+        source.theme !== SERMON_TITLE_THEME_ID ||
+        bible === undefined ||
+        !isItemOfKind(bible, 'bible') ||
+        name === ''
+      ) {
+        return refuse(
+          'invalid',
+          'The adjacent sermon title and passage are unavailable',
+        );
+      }
+      const {bible: passage, sectionCard: _card, ...kept} = bible;
+      if (_card !== undefined) {
+        return refuse('invalid', 'The passage has a section card');
+      }
+      const sermon = {
+        ...kept,
+        sermon: {
+          title: name,
+          passage,
+          originalTitle: source,
+          originalTitleText: name,
+        },
+      };
+      return {
+        ok: true,
+        value: [
+          ...service.order.slice(0, index),
+          sermon,
+          ...service.order.slice(index + 2),
+        ],
+      };
+    });
+  }
+
+  /** Restores the saved title and passage as one undoable edit. */
+  unbindSermon(serviceId: ServiceId, itemId: ServiceItemId) {
+    return this.update(serviceId, service => {
+      const index = service.order.findIndex(item => item.id === itemId);
+      const item = service.order[index];
+      if (item === undefined || !isItemOfKind(item, 'sermon')) {
+        return refuse('not-found', 'The sermon is unavailable');
+      }
+      if (service.order.length >= SERVICE_LIMITS.items) {
+        return refuse('invalid', 'The service is full');
+      }
+      const {sermon, ...kept} = item;
+      const origin = sermon.originalTitle;
+      const originalId = origin?.id;
+      const titleId =
+        originalId !== undefined &&
+        !service.order.some(row => row.id === originalId)
+          ? originalId
+          : createServiceItemId(crypto.randomUUID());
+      const fresh = newSlidesItem('blank', titleId);
+      const title =
+        origin !== undefined && sermon.title === sermon.originalTitleText
+          ? {...origin, id: titleId}
+          : {
+              ...fresh,
+              theme: SERMON_TITLE_THEME_ID,
+              slides: {
+                ...fresh.slides,
+                name: sermon.passage.ref,
+                slides: fresh.slides.slides.map(slide => ({
+                  ...slide,
+                  text: sermon.title,
+                })),
+              },
+            };
+      return {
+        ok: true,
+        value: [
+          ...service.order.slice(0, index),
+          title,
+          {...kept, bible: sermon.passage},
+          ...service.order.slice(index + 1),
+        ],
       };
     });
   }
