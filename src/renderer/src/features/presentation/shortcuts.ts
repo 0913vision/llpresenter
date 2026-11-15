@@ -18,9 +18,19 @@ import {useAtLastSlide} from './useAtLastSlide';
 import {useSlideHotKeys} from './useSlideHotKeys';
 import {outputAdjacentBibleVerse} from '../bible/verseShortcuts';
 import {sendLive} from '@renderer/session/live';
+import {
+  canReturnFromQuickPassage,
+  returnFromQuickPassage,
+} from '@renderer/session/quickReturn';
 import {useNumberJumpKeys} from './numberJump';
 
 const commands: readonly WindowShortcut[] = [
+  {
+    id: 'show.quickReturn',
+    fixedBindings: [{code: 'Escape', mods: []}],
+    when: canReturnFromQuickPassage,
+    run: returnFromQuickPassage,
+  },
   {id: 'show.black', run: () => sendLive({type: 'black.toggle'})},
   {id: 'show.next', run: () => outputNext()},
   {id: 'show.previous', run: () => outputPrevious()},

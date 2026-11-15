@@ -6,6 +6,10 @@ import {
   type KnownQuickItem,
   type QuickItem,
 } from '@core/schema/quick';
+import {
+  beginQuickPassage,
+  finishQuickPassage,
+} from '@renderer/session/quickReturn';
 import {sendLive, useLive} from '@renderer/session/live';
 import {sendSlideOutput} from '@renderer/session/itemOutput';
 import {selectTile, useShow} from '@renderer/session/show';
@@ -107,9 +111,11 @@ export function quickRunner(api: LlpApi, onProblem: (notice: Notice) => void) {
             review: false,
             transition: QUICK_BIBLE_TRANSITION,
           };
+          beginQuickPassage();
           openBiblePassage(reply.result.value, display);
           selectTile(0);
           showBiblePassage(reply.result.value, display);
+          finishQuickPassage();
           return;
         }
         case 'prop':
