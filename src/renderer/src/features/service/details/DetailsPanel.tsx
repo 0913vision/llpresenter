@@ -408,8 +408,16 @@ function DetailsPanelContent({
     openEditor(() => api.window.openSongEditor({songId: item.song}), fail);
   };
   if (item === null && library === null) {
+    const deleted =
+      target?.kind === 'item' &&
+      service !== null &&
+      service.service.id === serviceId &&
+      !service.service.order.some(row => row.id === target.itemId);
     return (
-      <RetainedDetails pending={target !== null} content={<DetailsShell />} />
+      <RetainedDetails
+        pending={target !== null && !deleted}
+        content={<DetailsShell />}
+      />
     );
   }
   if (item !== null && isItemOfKind(item, 'header')) {
