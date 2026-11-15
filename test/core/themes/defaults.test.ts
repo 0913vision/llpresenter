@@ -91,16 +91,14 @@ it('places song lyrics near the top while retaining the starter broadcast styles
   );
   expect(stageLabel).toMatchObject({
     hideWhenItemTitle: true,
+    frame: {y: 10, h: 80},
     text: {size: 64, weight: 800},
   });
   expect(
     builtInTheme('bible').screens[stage]?.elements.find(
       element => element.kind === 'label',
     ),
-  ).toMatchObject({
-    frame: {y: 26, h: 48},
-    text: {size: 40},
-  });
+  ).toBeUndefined();
   const current = theme.screens[stage]?.elements.find(
     element => element.kind === 'currentText',
   );
