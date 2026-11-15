@@ -11,7 +11,11 @@ import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {emptyLiveState} from '@core/live/state';
-import {createScreenId, createThemeId} from '@core/schema/ids';
+import {
+  createScreenId,
+  createThemeId,
+  createThemeElementId,
+} from '@core/schema/ids';
 import {createDefaultThemes} from '@core/themes/defaults';
 import {
   parseServiceDocument,
@@ -202,6 +206,44 @@ it.each(['청중 화면 편집', '무대 화면 편집', '방송 화면 편집']
     ).toHaveLength(1);
   },
 );
+
+it('saves fitted broadcast title movement and edits to added text separately', async () => {
+  const broadcast = createScreenId('00000000-0000-4000-8000-000000000002');
+  const titleId = createThemeElementId('00000000-0000-4000-8000-000000000486');
+  const {value} = setup({
+    screenOrder: [
+      {id: MAIN, name: 'Audience', kind: 'audience', method: 'fullscreen'},
+      {id: broadcast, name: 'Broadcast', kind: 'broadcast', method: 'capture'},
+      {id: STAGE, name: 'Stage', kind: 'stage', method: 'fullscreen'},
+    ],
+  });
+  fireEvent.click(
+    await screen.findByRole('button', {name: 'Broadcast \ud3b8\uc9d1'}),
+  );
+  const title = document.querySelector(
+    '[data-canvas-element="00000000-0000-4000-8000-000000000486"] > button',
+  );
+  if (!title) throw Error('Missing fitted title');
+  fireEvent.click(title);
+  const x = screen.getByRole('spinbutton', {name: 'X'});
+  fireEvent.change(x, {target: {value: '112'}});
+  fireEvent.keyDown(x, {key: 'Enter'});
+  await saveEdits();
+  expect(
+    value().themes[0]?.screens[broadcast]?.broadcastEdits?.[titleId]?.frame?.x,
+  ).toBe(112);
+  const palette = screen.getByRole('region', {
+    name: '\uc694\uc18c \ucd94\uac00',
+  });
+  fireEvent.click(within(palette).getByRole('button', {name: '\uae00\uc790'}));
+  const content = await screen.findByRole('textbox', {name: '\ub0b4\uc6a9'});
+  fireEvent.change(content, {target: {value: 'Custom text'}});
+  fireEvent.blur(content);
+  await saveEdits();
+  expect(value().themes[0]?.screens[broadcast]?.elements).toContainEqual(
+    expect.objectContaining({kind: 'text', content: 'Custom text'}),
+  );
+});
 
 it('keeps standby first and LIVE before kind tags, and saves theme duplication and inline rename', async () => {
   const {value, listeners} = setup();

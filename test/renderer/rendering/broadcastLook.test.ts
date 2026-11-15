@@ -392,6 +392,59 @@ describe('built-in broadcast look', () => {
       textOnly.elements.some(e => e.id === BROADCAST_LOOK_SONG_TITLE_ID),
     ).toBe(false);
   });
+  it('applies a resized Bible band and saved reference to the output', () => {
+    const layout = plain();
+    const bible = {...item, title: 'Reference'};
+    const before = fitBroadcastLook(layout, slide, bible);
+    const panel = element(before, BROADCAST_LOOK_BAND_ID);
+    const reference = element(before, BROADCAST_REFERENCE_ID);
+    const bandFrame = {
+      ...panel.frame,
+      y: panel.frame.y - 40,
+      h: panel.frame.h + 40,
+    };
+    const referenceFrame = {
+      ...reference.frame,
+      x: reference.frame.x + 20,
+      y: reference.frame.y,
+    };
+    const changed = {
+      ...layout,
+      broadcastEdits: {
+        [panel.id]: {frame: bandFrame},
+        [reference.id]: {frame: referenceFrame},
+      },
+    };
+    const fitted = fitBroadcastLook(changed, slide, bible);
+    expect(element(fitted, BROADCAST_LOOK_BAND_ID).frame).toEqual(bandFrame);
+    expect(element(fitted, BROADCAST_REFERENCE_ID).frame).toEqual({
+      ...referenceFrame,
+      y: reference.frame.y - 40,
+    });
+    expect(element(fitted, BROADCAST_TEXT_ID).frame.y).toBe(
+      element(before, BROADCAST_TEXT_ID).frame.y - 40,
+    );
+  });
+  it('keeps a long Bible body below the header within an edited band', () => {
+    const layout = plain();
+    const bible = {...item, title: 'Reference'};
+    const sample = fitBroadcastLook(layout, slide, bible);
+    const band = element(sample, BROADCAST_LOOK_BAND_ID);
+    const changed = {
+      ...layout,
+      broadcastEdits: {[band.id]: {frame: band.frame}},
+    };
+    const long = fitBroadcastLook(
+      changed,
+      {...slide, lines: ['first', 'second', 'third', 'fourth']},
+      bible,
+    );
+    const panel = element(long, BROADCAST_LOOK_BAND_ID).frame;
+    const tab = element(long, BROADCAST_LOOK_TAB_ID).frame;
+    const body = element(long, BROADCAST_TEXT_ID).frame;
+    expect(body.y).toBeGreaterThanOrEqual(tab.y + tab.h);
+    expect(body.y + body.h).toBeLessThanOrEqual(panel.y + panel.h);
+  });
   it('persists a fixed song band and a separate title size across lyric slides', () => {
     const layout = builtInTheme('song').screens[screen];
     if (!layout) throw Error('missing song');
@@ -423,6 +476,24 @@ describe('built-in broadcast look', () => {
       element(fitBroadcastLook(layout, slide, song), BROADCAST_LOOK_BAND_ID)
         .frame,
     ).toEqual(band.frame);
+  });
+  it('keeps both song elements within a narrower moved band', () => {
+    const layout = builtInTheme('song').screens[screen];
+    if (!layout) throw Error('missing song');
+    const song = {...item, kind: 'song' as const, title: 'Song title'};
+    const base = fitBroadcastLook(layout, slide, song);
+    const band = element(base, BROADCAST_LOOK_BAND_ID);
+    const frame = {...band.frame, x: 200, w: 1100};
+    const fitted = fitBroadcastLook(
+      {...layout, broadcastEdits: {[band.id]: {frame}}},
+      slide,
+      song,
+    );
+    const lyric = element(fitted, BROADCAST_LOOK_SONG_ID).frame;
+    const title = element(fitted, BROADCAST_LOOK_SONG_TITLE_ID).frame;
+    expect(title.x).toBeGreaterThanOrEqual(frame.x);
+    expect(title.x + title.w).toBeLessThanOrEqual(lyric.x);
+    expect(lyric.x + lyric.w).toBeLessThanOrEqual(frame.x + frame.w);
   });
   it('shows the small song title only when the band is showing lyrics', () => {
     const layout = builtInTheme('song').screens[screen];

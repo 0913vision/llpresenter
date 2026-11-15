@@ -134,6 +134,33 @@ describe('theme element properties', () => {
       }).success,
     ).toBe(false);
   });
+  it('caps broadcast overrides, including the generated song title', () => {
+    const entries = (count: number) =>
+      Object.fromEntries(
+        Array.from({length: count}, (_, i) => [
+          uuid(i + 1),
+          {frame: {x: 0, y: 0, w: 100, h: 100}},
+        ]),
+      );
+    expect(
+      v.safeParse(themeScreenLayoutSchema, {
+        ...layout,
+        broadcastEdits: entries(11),
+      }).success,
+    ).toBe(true);
+    expect(
+      v.safeParse(themeScreenLayoutSchema, {
+        ...layout,
+        broadcastEdits: entries(12),
+      }).success,
+    ).toBe(false);
+    expect(
+      v.safeParse(themeScreenLayoutSchema, {
+        ...layout,
+        broadcastEdits: {'not-an-id': {}},
+      }).success,
+    ).toBe(false);
+  });
   it('accepts only the optional Sunday song title layout selector', () => {
     for (const songTitle of ['sunday', 'sunday-light']) {
       expect(

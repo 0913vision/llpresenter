@@ -18,8 +18,29 @@ import {editThemeLayout, type ThemeTarget} from '@core/themes/themeEdits';
 import {sameJson} from '@core/common/sameJson';
 import {checkPart} from '@core/schema/fileFormat';
 import {themeElementSchema} from '@core/schema/themes';
+import {
+  BROADCAST_LOOK_BAND_ID,
+  BROADCAST_LOOK_TAB_ID,
+  BROADCAST_LOOK_SONG_ID,
+  BROADCAST_LOOK_SONG_TITLE_ID,
+  BROADCAST_LOOK_CARD_ID,
+} from '@core/themes/broadcastLook';
+import {
+  BROADCAST_TEXT_ID,
+  BROADCAST_REFERENCE_ID,
+} from '@core/themes/broadcastBand';
 import type {ThemeWrites} from './useThemeWrites';
 import type {ThemeSelection} from './useThemeSelection';
+
+const fittedIds: ReadonlySet<string> = new Set([
+  BROADCAST_LOOK_BAND_ID,
+  BROADCAST_LOOK_TAB_ID,
+  BROADCAST_LOOK_SONG_ID,
+  BROADCAST_LOOK_SONG_TITLE_ID,
+  BROADCAST_LOOK_CARD_ID,
+  BROADCAST_TEXT_ID,
+  BROADCAST_REFERENCE_ID,
+]);
 
 export const themeCanvasBounds = {
   width: THEME_LIMITS.width,
@@ -66,7 +87,29 @@ export function useThemeElements(
     if (target === undefined) return;
     edit(
       target.theme,
-      value => editThemeElements(value, target, transform),
+      value =>
+        fittedBroadcast
+          ? editThemeLayout(value, target, layout => {
+              if (layout.mode.kind !== 'own') return undefined;
+              const next = transform(layout.elements);
+              if (!next) return undefined;
+              const ids = new Set<string>(next.map(element => element.id));
+              ids.add(BROADCAST_LOOK_SONG_TITLE_ID);
+              const broadcastEdits =
+                layout.broadcastEdits === undefined
+                  ? undefined
+                  : Object.fromEntries(
+                      Object.entries(layout.broadcastEdits).filter(([id]) =>
+                        ids.has(id),
+                      ),
+                    );
+              return {
+                ...layout,
+                elements: next,
+                ...(broadcastEdits === undefined ? {} : {broadcastEdits}),
+              };
+            })
+          : editThemeElements(value, target, transform),
       completed,
     );
   };
@@ -76,7 +119,7 @@ export function useThemeElements(
     transform: (element: ThemeElement) => unknown,
     completed?: (saved: boolean) => void,
   ): void => {
-    if (!fittedBroadcast || target === undefined) {
+    if (!fittedBroadcast || !fittedIds.has(id) || target === undefined) {
       elements(values => changeThemeElement(values, id, transform), completed);
       return;
     }
@@ -240,14 +283,25 @@ export function useThemeElements(
               const element = visibleElements.find(
                 value => value.id === row.id,
               );
-              if (element) {
+              if (element && fittedIds.has(row.id)) {
                 broadcastEdits[element.id] = {
                   ...broadcastEdits[element.id],
                   frame: frameWithinBounds(row.frame, themeCanvasBounds),
                 };
               }
             }
-            return {...layout, broadcastEdits};
+            const elements = layout.elements.map(element => {
+              const row = frames.find(
+                value => value.id === element.id && !fittedIds.has(value.id),
+              );
+              return row
+                ? {
+                    ...element,
+                    frame: frameWithinBounds(row.frame, themeCanvasBounds),
+                  }
+                : element;
+            });
+            return {...layout, elements, broadcastEdits};
           }),
         completed,
       );
@@ -269,6 +323,12 @@ export function useThemeElements(
       })),
     add,
     remove: (ids: readonly string[]) => {
+      if (fittedBroadcast && ids.includes(BROADCAST_LOOK_SONG_TITLE_ID)) {
+        report(
+          '\uace1 \uc81c\ubaa9\uc740 \uc0ad\uc81c\ud560 \uc218 \uc5c6\uc2b5\ub2c8\ub2e4',
+        );
+        return;
+      }
       const unchanged = guardInteraction();
       const deletesSelection = selectedIds.some(id => ids.includes(id));
       elements(
