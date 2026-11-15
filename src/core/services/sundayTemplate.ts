@@ -9,6 +9,7 @@ import {PREPARATION_THEME_ID} from '../themes/sundayStandby';
 import {newLiturgyItem, type LiturgyTranslation} from './liturgy';
 import {newSectionItem, sectionCardOf} from './sectionCards';
 import {newSlidesItem} from './slidesEdits';
+import {defaultSlideTransitions} from '../schema/preferences';
 
 const itemId = () => createServiceItemId(crypto.randomUUID());
 
@@ -33,7 +34,7 @@ export function newSundayAnnouncement(id: ServiceItemId): ServiceItem {
   }
   return {
     ...notice,
-    sectionCard: sectionCardOf(section),
+    sectionCard: sectionCardOf(section, defaultSlideTransitions.section),
     slides: {
       ...notice.slides,
       slides: [{...slide, name: '광고 제목', text: '내용 1\n내용 2'}],
@@ -52,7 +53,7 @@ export function newSundayCreed(
   if (section === undefined) throw Error('Missing creed section');
   return {
     ...newLiturgyItem(id, {kind: 'creed', translation}),
-    sectionCard: sectionCardOf(section),
+    sectionCard: sectionCardOf(section, defaultSlideTransitions.section),
   };
 }
 

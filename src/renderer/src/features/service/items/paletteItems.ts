@@ -4,7 +4,6 @@ import type {ServiceItem} from '@core/schema/service';
 import {newSlidesItem} from '@core/services/slidesEdits';
 import {
   newSundayAnnouncement,
-  newSundayCreed,
   newSundayPreparation,
 } from '@core/services/sundayTemplate';
 import {SUNDAY_SECTIONS, SECTION_THEME_ID} from '@core/themes/sundaySections';
@@ -80,10 +79,19 @@ export async function createPaletteItem(
       section => section.name === (key === 'ad' ? '광고' : '사도신경'),
     );
     if (!section) throw new Error('Section card is unavailable');
-    await prepareSection(section);
-    if (key === 'ad') return newSundayAnnouncement(id);
-    await prepareLiturgy('creed', translation);
-    return newSundayCreed(id, translation);
+    const prepared = await prepareSection(section);
+    if (key === 'ad') {
+      if (prepared.sectionCard === undefined) {
+        throw Error('Missing section card');
+      }
+      return {...newSundayAnnouncement(id), sectionCard: prepared.sectionCard};
+    }
+    if (prepared.sectionCard === undefined) throw Error('Missing section card');
+    return {
+      ...(await prepareLiturgy('creed', translation)),
+      id,
+      sectionCard: prepared.sectionCard,
+    };
   }
   if (key === 'prayer') return prepareLiturgy('prayer', translation);
   if (key.startsWith('custom:')) {

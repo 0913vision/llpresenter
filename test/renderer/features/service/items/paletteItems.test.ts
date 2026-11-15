@@ -15,7 +15,9 @@ import {
   ORDER_ELEMENTS,
 } from '@renderer/features/service/items/paletteItems';
 import {newLiturgyItem} from '@core/services/liturgy';
-import {newSectionItem} from '@core/services/sectionCards';
+import {newSectionItem, sectionCardOf} from '@core/services/sectionCards';
+import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
+import {defaultSlideTransitions} from '@core/schema/preferences';
 import {createServiceItemId} from '@core/schema/ids';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
@@ -26,11 +28,21 @@ vi.mock('@renderer/features/service/items/quickAddSection', () => ({
 }));
 vi.mock('@renderer/features/service/items/quickAddLiturgy', () => ({
   prepareLiturgy: vi.fn(
-    async (kind: LiturgyKind, translation: LiturgyTranslation) =>
-      newLiturgyItem(createServiceItemId(crypto.randomUUID()), {
-        kind,
-        translation,
-      }),
+    async (kind: LiturgyKind, translation: LiturgyTranslation) => {
+      const section = SUNDAY_SECTIONS.find(entry => entry.name === '사도신경');
+      if (section === undefined) throw Error('Missing section');
+      const card =
+        kind === 'prayer'
+          ? {...section, name: '주기도문', english: "The Lord's Prayer"}
+          : section;
+      return {
+        ...newLiturgyItem(createServiceItemId(crypto.randomUUID()), {
+          kind,
+          translation,
+        }),
+        sectionCard: sectionCardOf(card, defaultSlideTransitions.section),
+      };
+    },
   ),
 }));
 describe('palette items', () => {
@@ -161,11 +173,14 @@ it('uses the shared section, liturgy and blank factories for every remaining ele
         createServiceItemId(crypto.randomUUID()),
         {kind, translation},
       );
-      if (kind === 'prayer') {
-        expect(withoutIds(actual)).toEqual(withoutIds(expected));
-      } else if (actual && isItemOfKind(actual, 'liturgy')) {
+      if (actual && isItemOfKind(actual, 'liturgy')) {
         const {sectionCard, ...content} = actual;
-        expect(sectionCard?.name).toBe('사도신경');
+        expect(sectionCard?.name).toBe(
+          kind === 'creed' ? '사도신경' : '주기도문',
+        );
+        expect(
+          kind !== 'prayer' || sectionCard?.english === "The Lord's Prayer",
+        ).toBe(true);
         expect(withoutIds(content)).toEqual(withoutIds(expected));
       } else throw new Error('Missing creed');
     }

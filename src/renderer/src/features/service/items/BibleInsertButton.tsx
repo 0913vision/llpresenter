@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import {passageItem} from '@renderer/features/service/items/quickAddBible';
+import {passageItemWithParts} from '@renderer/features/service/items/quickAddBible';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useShow} from '@renderer/session/show';
 import {Button} from '@renderer/ui/Button';
@@ -47,14 +47,17 @@ export function BibleInsertButton({
         // NOTE(0913vision): The preview picks the numbering and the reference;
         // loaded 환경설정 defaults give the translation name. New items always
         // start each verse anew. Until loaded, use the built-in defaults.
-        return Promise.resolve(
-          passageItem(source.passage.ref, {
+        return passageItemWithParts(
+          source.passage.ref,
+          {
             ...defaults,
             translation: source.passage.translation,
             verseNumbers: source.verseNumbers,
             reference: source.reference,
-            transition: source.transition,
-          }),
+            transition: source.transition ?? defaults?.transition,
+            passage: source.passage,
+          },
+          api,
         );
       });
       if (result.ok ? result.value : result.error.reason === 'write-failed') {

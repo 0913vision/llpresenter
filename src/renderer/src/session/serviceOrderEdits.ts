@@ -429,10 +429,19 @@ export class ServiceOrderEdits {
         );
       }
       const {bible: passage, ...kept} = bible;
+      const titleTransition = isItemOfKind(source, 'slides')
+        ? source.slides.slides[0]?.transition
+        : source.slides[0]?.transition;
       const sermon = {
         ...kept,
         sermon: {
           title: name,
+          ...(titleTransition === undefined
+            ? {}
+            : {
+                openingTransition: titleTransition,
+                closingTransition: titleTransition,
+              }),
           passage,
           originalTitle: source,
           originalTitleText: name,
@@ -481,6 +490,9 @@ export class ServiceOrderEdits {
                 slides: fresh.slides.slides.map(slide => ({
                   ...slide,
                   text: sermon.title,
+                  ...(sermon.openingTransition === undefined
+                    ? {}
+                    : {transition: sermon.openingTransition}),
                 })),
               },
             };

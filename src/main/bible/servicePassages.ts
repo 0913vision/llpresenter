@@ -1,5 +1,7 @@
 import {bibleVerseTiles} from '@core/bible/bibleTiles';
 import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
+import {passageBook} from '@core/bible/adjacentVerses';
+import {biblePartEffect} from '@core/bible/partTransitions';
 import type {RecentPassage} from '@core/schema/bible';
 import {
   parseBibleLookupRequest,
@@ -135,6 +137,21 @@ export async function resolveServicePassages(
         translationName: settings.translationName,
         split: settings.split,
         transition: settings.transition,
+      }).map((tile, index) => {
+        const verse = passage.verses[index];
+        const book = passageBook(passage);
+        if (verse === undefined || book === undefined) return tile;
+        const transition = biblePartEffect(
+          item.bibleTransitions,
+          {
+            translation: passage.translation,
+            book: book.id,
+            chapter: verse.chapter,
+            verse: verse.verse,
+          },
+          1,
+        );
+        return transition === undefined ? tile : {...tile, transition};
       }),
       ...(isItemOfKind(item, 'sermon')
         ? [

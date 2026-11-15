@@ -44,7 +44,10 @@ describe('section card', () => {
       createServiceItemId('55000000-0000-4000-8000-000000000001'),
       section,
     );
-    expect(item.sectionCard).toEqual(card);
+    expect(item.sectionCard).toEqual({
+      ...card,
+      transition: {kind: 'wipe', dir: 'left', sec: 1},
+    });
     expect(item.slides.slides).toEqual([]);
     expect(withSectionCard(item.sectionCard, [])).toHaveLength(1);
     expect(isStandaloneCard(item)).toBe(true);

@@ -141,17 +141,18 @@ it('edits the selected slides and shows mixed transitions', async () => {
   const view = render(<SlideInspector store={store} />);
   const panel = within(view.container);
   const effect = panel.getByLabelText('효과');
-  await user.click(effect);
-  await user.click(
-    within(document.body).getByRole('menuitemradio', {name: '닦아내기'}),
-  );
+  await user.click(within(effect).getByRole('button', {name: '닦아내기'}));
   expect(session.history.snapshot.song.slides[0]?.transition?.kind).toBe(
     'wipe',
   );
   const second = session.slideModel.getSnapshot().slides[1];
   if (!second) throw new Error('Missing second slide');
   act(() => session.selectSlides({type: 'click', id: second.id, ctrl: true}));
-  expect(effect.textContent).toBe('혼합');
+  expect(
+    within(effect)
+      .getAllByRole('button')
+      .every(button => button.getAttribute('aria-pressed') === 'false'),
+  ).toBe(true);
   const time = panel.getByLabelText('전환 시간');
   expect(time).toHaveProperty('value', '');
   expect(time).toHaveProperty('placeholder', '혼합');
@@ -165,10 +166,7 @@ it('edits the selected slides and shows mixed transitions', async () => {
   expect(session.history.snapshot.song.slides[0]?.transition?.sec).toBe(0.5);
   fireEvent.keyDown(time, {key: 'y', ctrlKey: true});
   expect(session.history.snapshot.song.slides[0]?.transition?.sec).toBe(2);
-  await user.click(effect);
-  await user.click(
-    within(document.body).getByRole('menuitemradio', {name: '디졸브'}),
-  );
+  await user.click(within(effect).getByRole('button', {name: '디졸브'}));
   expect(
     session.history.snapshot.song.slides.map(slide => slide.transition?.kind),
   ).toEqual(['dissolve', 'dissolve']);
@@ -180,9 +178,8 @@ it('stores and displays transition seconds without floating-point noise', async 
   const {store, session, user} = await editorSetup();
   const view = render(<SlideInspector store={store} />);
   const panel = within(view.container);
-  await user.click(panel.getByLabelText('\ud6a8\uacfc'));
   await user.click(
-    within(document.body).getByRole('menuitemradio', {
+    panel.getByRole('button', {
       name: '\ub2e6\uc544\ub0b4\uae30',
     }),
   );
@@ -246,9 +243,11 @@ it('treats omitted direction and left as the same transition', async () => {
     session.selectSlides({type: 'click', id: first.id, ctrl: true});
   });
   const view = render(<SlideInspector store={store} />);
-  expect(within(view.container).getByLabelText('효과').textContent).toBe(
-    '밀어내기',
-  );
+  expect(
+    within(view.container)
+      .getByRole('button', {name: '밀어내기'})
+      .getAttribute('aria-pressed'),
+  ).toBe('true');
   view.unmount();
 });
 
@@ -275,10 +274,7 @@ it('edits an item song card together with selected lyrics in one undo step', asy
   if (session === null) throw Error('Missing item session');
   const inspector = render(<SlideInspector store={store} cardSelected />);
   await userEvent.click(
-    within(inspector.container).getByLabelText('\uD6A8\uACFC'),
-  );
-  await userEvent.click(
-    within(document.body).getByRole('menuitemradio', {
+    within(inspector.container).getByRole('button', {
       name: '\uB514\uC878\uBE0C',
     }),
   );

@@ -667,6 +667,20 @@ describe('PreferencesView', () => {
     expect(screen.queryByRole('group', {name: '\uC804\uD658'})).toBeNull();
   });
 
+  it('edits a new-slide default without writing the other kinds', async () => {
+    await mount();
+    await openPage('출력');
+    await userEvent.click(screen.getByRole('button', {name: '성경 말씀 효과'}));
+    await userEvent.click(screen.getByRole('menuitemradio', {name: '디졸브'}));
+    await waitFor(() =>
+      expect(written().show?.slideDefaults?.bible).toEqual({
+        kind: 'dissolve',
+        sec: 0.7,
+      }),
+    );
+    expect(written().show?.slideDefaults?.section).toBeUndefined();
+  });
+
   it('writes the 저장 backup rows', async () => {
     await mount();
     await openPage('저장');

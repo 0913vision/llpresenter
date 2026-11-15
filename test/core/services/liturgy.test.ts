@@ -1,6 +1,6 @@
 import {describe, expect, it} from 'vitest';
 import {createServiceItemId} from '@core/schema/ids';
-import {LITURGY, newLiturgyItem} from '@core/services/liturgy';
+import {LITURGY, liturgyAsSlides, newLiturgyItem} from '@core/services/liturgy';
 import {LITURGY_SLIDES} from '@core/services/liturgySlides';
 import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
 
@@ -18,6 +18,12 @@ describe('built-in liturgy slides', () => {
         });
         expect(item).not.toHaveProperty('slides');
         const texts = LITURGY_SLIDES[kind][translation];
+        expect(item.liturgy.transitions).toEqual(
+          texts.map((_, index) => ({
+            index,
+            transition: {kind: 'wipe', dir: 'left', sec: 0.7},
+          })),
+        );
         expect(texts.join(' ')).toBe(LITURGY[kind][translation]);
         expect(texts).toEqual(LITURGY_SLIDES[kind][translation]);
         for (const text of texts) {
@@ -29,6 +35,33 @@ describe('built-in liturgy slides', () => {
       });
     }
   }
+  it('stores a chosen transition separately for every new paragraph', () => {
+    const transition = {kind: 'push', dir: 'right', sec: 1.25} as const;
+    const item = newLiturgyItem(id, {
+      kind: 'prayer',
+      translation: 'new',
+      transition,
+    });
+    expect(item.liturgy.transitions).toHaveLength(
+      LITURGY_SLIDES.prayer.new.length,
+    );
+    expect(
+      item.liturgy.transitions?.every(entry => entry.transition === transition),
+    ).toBe(true);
+    expect(
+      liturgyAsSlides(item).slides.slides.every(
+        slide => slide.transition === transition,
+      ),
+    ).toBe(true);
+  });
+  it('leaves existing liturgy without transitions untouched', () => {
+    const old = {id, liturgy: {kind: 'prayer', translation: 'new'}} as const;
+    expect(
+      liturgyAsSlides(old).slides.slides.every(
+        slide => slide.transition === undefined,
+      ),
+    ).toBe(true);
+  });
   it('keeps the five new creed passages with the two opening sentences together', () => {
     const slides = LITURGY_SLIDES.creed.new;
     expect(slides).toHaveLength(5);

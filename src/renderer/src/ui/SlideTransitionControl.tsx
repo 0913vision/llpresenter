@@ -11,7 +11,7 @@ export type SlideTransitionChange = (
   current: SlideTransition,
 ) => SlideTransition;
 
-function EffectPicture({
+export function EffectPicture({
   kind,
 }: {
   readonly kind: SlideTransition['kind'];

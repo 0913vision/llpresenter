@@ -58,10 +58,7 @@ it('tracks slide item selection and applies mixed transition edits', async () =>
     'placeholder',
     '혼합',
   );
-  await user.click(panel.getByLabelText('효과'));
-  await user.click(
-    within(document.body).getByRole('menuitemradio', {name: '디졸브'}),
-  );
+  await user.click(panel.getByRole('button', {name: '디졸브'}));
   expect(
     draft.snapshot.item.slides.slides.every(
       slide => slide.transition?.kind === 'dissolve',
@@ -97,10 +94,7 @@ it('shows the picture and transition control for a card-only slide item', async 
   const view = render(<SlidesInspector api={mockLlpApi()} session={session} />);
   const panel = within(view.container);
   expect(panel.getByTestId('picture').textContent).toBe('WELCOME');
-  await userEvent.click(panel.getByLabelText('효과'));
-  await userEvent.click(
-    within(document.body).getByRole('menuitemradio', {name: '밀어내기'}),
-  );
+  await userEvent.click(panel.getByRole('button', {name: '밀어내기'}));
   expect(draft.snapshot.item.slides.slides[0]?.transition?.kind).toBe('push');
 });
 
@@ -117,9 +111,8 @@ it('applies one transition to a selected section card and slide and undoes both'
   const view = render(
     <SlidesInspector api={mockLlpApi()} session={session} cardSelected />,
   );
-  await userEvent.click(within(view.container).getByLabelText('\uD6A8\uACFC'));
   await userEvent.click(
-    within(document.body).getByRole('menuitemradio', {
+    within(view.container).getByRole('button', {
       name: '\uB514\uC878\uBE0C',
     }),
   );

@@ -20,6 +20,9 @@ import {verseKey} from './BibleRefinements';
 import {useBibleRefinement} from './useBibleRefinement';
 import {useBibleReviewPreference} from './useBibleReviewPreference';
 import {confirmBibleCuts} from './saveBibleCuts';
+import {updateServiceItem} from '@renderer/session/serviceItemUpdate';
+import {isItemOfKind} from '@core/schema/service';
+import {biblePartEffect, setBiblePartEffect} from '@core/bible/partTransitions';
 import {useBibleProjections} from './useBibleProjections';
 import {installBibleReviewHandler} from './actions';
 
@@ -289,6 +292,47 @@ export function BibleSplitTools({
         const api = window.llp;
         if (api === undefined) throw new Error('절 나누기 저장 실패');
         await confirmBibleCuts(api.settings, verse, cuts);
+        const serviceId = useShow.getState().serviceId;
+        if (
+          current.source.source !== 'service' ||
+          current.source.kind !== 'bible' ||
+          serviceId === null
+        ) {
+          return;
+        }
+        const oldParts = current.parts.filter(
+          part =>
+            part.reference.translation === verse.reference.translation &&
+            part.reference.book === verse.reference.book &&
+            part.reference.chapter === verse.reference.chapter &&
+            part.reference.verse === verse.reference.verse,
+        ).length;
+        if (cuts.length + 1 <= oldParts) return;
+        const preferences = await api.preferences.get();
+        const result = await updateServiceItem(api, {
+          serviceId,
+          itemId: current.source.id,
+          change: item => {
+            if (!isItemOfKind(item, 'bible') && !isItemOfKind(item, 'sermon')) {
+              return null;
+            }
+            let transitions = item.bibleTransitions ?? [];
+            for (let part = oldParts + 1; part <= cuts.length + 1; part++) {
+              if (
+                biblePartEffect(transitions, verse.reference, part) ===
+                undefined
+              ) {
+                transitions = setBiblePartEffect(
+                  transitions,
+                  {verse: verse.reference, part},
+                  preferences.show.slideDefaults.bible,
+                );
+              }
+            }
+            return {...item, bibleTransitions: transitions};
+          },
+        });
+        if (!result.ok) throw Error('새 구절 전환 저장 실패');
       }}
       onComplete={() => {
         setSession(null);

@@ -52,6 +52,7 @@ export function OtherSlideInspector({
         ? item.bible
         : undefined;
   const liturgy = item !== null && isItemOfKind(item, 'liturgy') ? item : null;
+  const liturgyIndex = liturgy === null ? -1 : position - cardOffset(liturgy);
   const liturgyTiles = useShow(view =>
     liturgy === null ? undefined : view.tiles[liturgy.id],
   );
@@ -157,6 +158,13 @@ export function OtherSlideInspector({
             passage?.transition ?? {kind: 'none' as const, sec: 0.5},
         )
       : []),
+    ...(liturgy !== null && liturgyIndex >= 0
+      ? [
+          liturgy.liturgy.transitions?.find(
+            entry => entry.index === liturgyIndex,
+          )?.transition ?? {kind: 'none' as const, sec: 0.5},
+        ]
+      : []),
   ];
   const value = values[0] ?? {kind: 'none' as const, sec: 0.5};
   const mixed = values.some(
@@ -243,6 +251,28 @@ export function OtherSlideInspector({
                 ? {}
                 : {bibleTransitions: transitions}),
             };
+          }
+          if (isItemOfKind(updated, 'liturgy') && (liturgyIndex >= 0 || all)) {
+            const indices = all
+              ? (liturgyTiles ?? [])
+                  .slice(cardOffset(updated))
+                  .map((_, index) => index)
+              : [liturgyIndex];
+            let transitions = [...(updated.liturgy.transitions ?? [])];
+            for (const index of indices) {
+              const old = transitions.find(
+                entry => entry.index === index,
+              )?.transition;
+              const effect =
+                typeof next === 'number'
+                  ? {...(old ?? {kind: 'none' as const, sec: 0.5}), sec: next}
+                  : next;
+              transitions = [
+                ...transitions.filter(entry => entry.index !== index),
+                {index, transition: effect},
+              ];
+            }
+            return {...updated, liturgy: {...updated.liturgy, transitions}};
           }
           return updated;
         },
@@ -378,12 +408,13 @@ export function OtherSlideInspector({
         {(selectedCard !== undefined ||
           part != null ||
           selectedParts.length > 0 ||
-          selectedTitles.length > 0) &&
+          selectedTitles.length > 0 ||
+          (liturgy !== null && liturgyIndex >= 0)) &&
         service !== null ? (
           <div
             onKeyDown={event => {
               if (
-                (!bible && changeSelected === undefined) ||
+                (!bible && liturgy === null && changeSelected === undefined) ||
                 busy ||
                 service.access !== 'editable' ||
                 event.nativeEvent.isComposing ||
@@ -397,13 +428,14 @@ export function OtherSlideInspector({
               event.preventDefault();
               event.stopPropagation();
               const action = key === 'y' || event.shiftKey ? 'redo' : 'undo';
-              if (bible) editorTask(items.replayItemEdit(action));
-              else editor.getSnapshot().session?.edit(action);
+              if (bible || liturgy !== null) {
+                editorTask(items.replayItemEdit(action));
+              } else editor.getSnapshot().session?.edit(action);
             }}
           >
             <TransitionPicker
               value={value}
-              allowAll={bible || applyAll !== undefined}
+              allowAll={bible || liturgy !== null || applyAll !== undefined}
               mixed={mixed}
               disabled={busy || service.access !== 'editable'}
               selectionKey={selectedParts

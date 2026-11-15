@@ -24,6 +24,30 @@ function parse(json: unknown) {
 }
 
 describe('parsePreferences', () => {
+  it('uses bounded per-kind defaults and preserves custom choices', () => {
+    const defaults = withPreferenceDefaults(parse(HEADER)).show.slideDefaults;
+    expect(defaults.section).toEqual({kind: 'wipe', dir: 'left', sec: 1});
+    expect(defaults.sermonTitle).toEqual({kind: 'wipe', dir: 'left', sec: 1});
+    for (const kind of ['creed', 'prayer', 'bible'] as const) {
+      expect(defaults[kind]).toEqual({kind: 'wipe', dir: 'left', sec: 0.7});
+    }
+    const custom = {
+      ...HEADER,
+      show: {slideDefaults: {bible: {kind: 'dissolve', sec: 2}}},
+    };
+    expectRoundTrip(codec, custom);
+    expect(
+      withPreferenceDefaults(parse(custom)).show.slideDefaults.bible,
+    ).toEqual({kind: 'dissolve', sec: 2});
+    expect(
+      withPreferenceDefaults(parse(custom)).show.slideDefaults.section,
+    ).toEqual(defaults.section);
+    expectInvalidField(
+      codec,
+      {...HEADER, show: {slideDefaults: {bible: {kind: 'wipe', sec: 20}}}},
+      'show.slideDefaults.bible.sec',
+    );
+  });
   it('defaults Bible review on and round-trips an explicit false without dropping unknown fields', () => {
     expect(
       withPreferenceDefaults(parse(HEADER)).bible.splitEditorAutoOpen,

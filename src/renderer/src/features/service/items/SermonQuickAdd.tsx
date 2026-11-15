@@ -33,6 +33,7 @@ export function SermonQuickAdd({
       translation: unchanged
         ? initial.sermon.passage.translation
         : value.translation,
+      passage: value,
     });
   };
   if (window.llp === undefined) return null;

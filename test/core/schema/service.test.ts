@@ -71,6 +71,32 @@ function withItem(item: object) {
 }
 
 describe('parseService', () => {
+  it('validates individual liturgy transition slots', () => {
+    const entry = {index: 0, transition: {kind: 'wipe', dir: 'left', sec: 0.7}};
+    const item = {
+      id: itemId(43),
+      liturgy: {kind: 'prayer', translation: 'new', transitions: [entry]},
+    };
+    expect(expectSuccess(parse(withItem(item))).data.order[0]).toMatchObject(
+      item,
+    );
+    expect(
+      parse(
+        withItem({
+          ...item,
+          liturgy: {...item.liturgy, transitions: [entry, entry]},
+        }),
+      ).ok,
+    ).toBe(false);
+    expect(
+      parse(
+        withItem({
+          ...item,
+          liturgy: {...item.liturgy, transitions: [{...entry, index: 200}]},
+        }),
+      ).ok,
+    ).toBe(false);
+  });
   it('separates legacy image decks from the retired sermon theme in services and templates', () => {
     const old = '00000000-0000-4000-8000-000000000107';
     const replacement = '00000000-0000-4000-8000-000000000108';

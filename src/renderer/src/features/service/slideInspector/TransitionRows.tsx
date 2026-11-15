@@ -7,7 +7,8 @@ import type {SlideListItem} from '@core/songs/slideListEdits';
 import type {SlideListSession} from '@renderer/features/songs/editor/slideListSession';
 import {Button} from '@renderer/ui/Button';
 import {TextField} from '@renderer/ui/TextField';
-import {SelectMenu} from '@renderer/ui/SelectMenu';
+import {EffectPicture} from '@renderer/ui/SlideTransitionControl';
+import transitionStyles from '@renderer/ui/SlideTransitionControl.module.css';
 import {PropertyGroup, PropertyRow} from '@renderer/ui/PropertyRow';
 import styles from './SlideInspector.module.css';
 import {
@@ -18,9 +19,6 @@ import {
   selectedSlideTransition,
   applySlideTransitionToAll,
 } from '@renderer/features/songs/editor/slideTransitionSelection';
-
-const effects = SLIDE_EFFECTS.map(([value, label]) => ({value, label}));
-const directions = SLIDE_DIRECTIONS.map(([value, , label]) => ({value, label}));
 
 function TimeField({
   id,
@@ -146,43 +144,65 @@ export function TransitionPicker({
   return (
     <PropertyGroup title="전환">
       <PropertyRow label="효과">
-        {({controlId}) => (
-          <SelectMenu
-            id={controlId}
+        {() => (
+          <div
+            className={transitionStyles.gallery}
+            role="group"
             aria-label="효과"
-            block
-            disabled={locked}
-            value={mixed ? undefined : value.kind}
-            valueText={mixed ? '혼합' : undefined}
-            options={effects}
-            onChange={kind => {
-              set({
-                kind,
-                sec: value.sec,
-                ...(kind === 'push' || kind === 'wipe'
-                  ? {dir: value.dir ?? 'left'}
-                  : {}),
-              });
-            }}
-          />
+          >
+            {SLIDE_EFFECTS.map(([kind, label]) => (
+              <button
+                key={kind}
+                type="button"
+                className={transitionStyles.tile}
+                disabled={locked}
+                aria-pressed={!mixed && value.kind === kind}
+                onClick={() => {
+                  set({
+                    kind,
+                    sec: value.sec,
+                    ...(kind === 'push' || kind === 'wipe'
+                      ? {dir: value.dir ?? 'left'}
+                      : {}),
+                  });
+                }}
+              >
+                <EffectPicture kind={kind} />
+                <span>{label}</span>
+              </button>
+            ))}
+          </div>
         )}
       </PropertyRow>
       <PropertyRow label="방향">
-        {({controlId}) => (
-          <SelectMenu
-            id={controlId}
+        {() => (
+          <div
+            className={transitionStyles.directions}
+            role="group"
             aria-label="방향"
-            block
-            disabled={
-              locked ||
-              mixed ||
-              (value.kind !== 'push' && value.kind !== 'wipe')
-            }
-            value={mixed ? undefined : (value.dir ?? 'left')}
-            valueText={mixed ? '혼합' : undefined}
-            options={directions}
-            onChange={dir => set({...value, dir})}
-          />
+          >
+            {SLIDE_DIRECTIONS.map(([dir, arrow, label]) => (
+              <button
+                key={dir}
+                type="button"
+                aria-label={label}
+                title={label}
+                aria-pressed={
+                  !mixed &&
+                  (value.kind === 'push' || value.kind === 'wipe') &&
+                  (value.dir ?? 'left') === dir
+                }
+                disabled={
+                  locked ||
+                  mixed ||
+                  (value.kind !== 'push' && value.kind !== 'wipe')
+                }
+                onClick={() => set({...value, dir})}
+              >
+                {arrow}
+              </button>
+            ))}
+          </div>
         )}
       </PropertyRow>
       <PropertyRow label="시간">
