@@ -25,6 +25,8 @@ interface RegisterOptions {
   readonly verifyClean: () => Promise<boolean>;
   readonly savePending: () => Promise<boolean>;
   readonly resumeAfterCancelledInstall: () => void;
+  readonly prepareRestart: (version: string) => Promise<boolean>;
+  readonly cancelRestart: () => Promise<void>;
 }
 
 export function updatesAllowed(options: {
@@ -53,13 +55,30 @@ export function registerUpdates(options: RegisterOptions): () => void {
         log.warn('Could not send update state', error);
       }
     },
-    installAfterShutdown: async install => {
+    installAfterShutdown: async (install, version) => {
+      let cancelled = false;
+      const isCancelled = (): boolean => cancelled;
       const accepted = await options.shutdown.quitForUpdate(
         install,
-        () => !outputsOn(),
-        {savePending: options.savePending, verifyClean: options.verifyClean},
+        () => true,
+        {
+          savePending: async () => {
+            if (!(await options.savePending()) || isCancelled()) return false;
+            const prepared = await options.prepareRestart(version);
+            if (isCancelled()) {
+              await options.cancelRestart();
+              return false;
+            }
+            return prepared;
+          },
+          verifyClean: options.verifyClean,
+        },
       );
-      if (!accepted) options.resumeAfterCancelledInstall();
+      if (!accepted) {
+        cancelled = true;
+        await options.cancelRestart();
+        options.resumeAfterCancelledInstall();
+      }
       return accepted;
     },
   });
