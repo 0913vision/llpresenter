@@ -2314,6 +2314,7 @@ it('reflows Bible parts independently on stage and broadcast, including the next
     ...layers,
     slide: {
       ...layers.slide,
+      label: 'Verse',
       next: {label: null, lines: next, itemKind: 'song' as const},
     },
   };
@@ -2322,10 +2323,10 @@ it('reflows Bible parts independently on stage and broadcast, including the next
     screen: {id: THEME_MAIN, kind: 'stage'},
     transitions: false,
   });
-  expect(rows('currentText')).toEqual([
-    `(11:29) ${current[0]}`,
-    ...current.slice(1),
-  ]);
+  expect(rows('currentText')).toEqual(current);
+  expect(root.querySelector('[data-kind="label"]')?.textContent).toContain(
+    '(Verse)',
+  );
   expect(rows('nextText')).toEqual(next.slice(0, 2));
   expect(
     root.querySelector<HTMLElement>('[data-kind="currentText"]')?.style
@@ -3003,6 +3004,32 @@ it('omits a continuing next label on stage but shows a changed label', () => {
   draw(false);
   expect(text('nextText')).toBe('(Chorus) Next');
   expect(text('nextLabel')).toBe('Chorus');
+  view.render(
+    {
+      ...song,
+      slide: {
+        ...slide,
+        kind: 'blank',
+        label: 'Section',
+        next: {
+          itemKind: 'blank',
+          label: 'Section',
+          labelContinued: true,
+          lines: ['Next'],
+        },
+      },
+    },
+    {
+      ...frame([
+        {...themeElementBase(31), kind: 'nextText'},
+        {...themeElementBase(32), kind: 'nextLabel'},
+      ]),
+      screen: {id: THEME_MAIN, kind: 'stage'},
+      transitions: false,
+    },
+  );
+  expect(text('nextText')).toBe('(Section) Next');
+  expect(text('nextLabel')).toBe('Section');
   view.dispose();
 });
 

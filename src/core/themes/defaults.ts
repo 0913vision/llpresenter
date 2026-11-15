@@ -143,13 +143,13 @@ function stageElements(kind: ThemeItemKind = 'song'): ThemeElement[] {
       case 'currentLabel':
         return {
           ...base,
-          frame: {...base.frame, y: 10, h: 80},
+          frame: kind === 'song' ? {...base.frame, y: 10, h: 80} : base.frame,
           kind: 'label',
           hideWhenItemTitle: true,
           text: {
             ...text,
-            size: 64,
-            weight: 800,
+            size: kind === 'song' ? 64 : 40,
+            weight: kind === 'song' ? 800 : text.weight,
             lineHeight: 1.1,
             align: 'center',
           },

@@ -72,7 +72,11 @@ it('places song lyrics near the top while retaining the starter broadcast styles
   expect(theme.screens[main]?.background).toBeUndefined();
   expect(theme.screens[broadcast]?.background).toBeUndefined();
   expect(theme.screens[stage]?.elements.map(element => element.frame)).toEqual(
-    STARTER_STAGE_ELEMENTS.map(element => element.frame),
+    STARTER_STAGE_ELEMENTS.map(element =>
+      element.kind === 'currentLabel'
+        ? {...element.frame, y: 10, h: 80}
+        : element.frame,
+    ),
   );
   expect(theme.screens[stage]?.elements.map(element => element.kind)).toEqual([
     'label',
@@ -85,7 +89,18 @@ it('places song lyrics near the top while retaining the starter broadcast styles
   const stageLabel = theme.screens[stage]?.elements.find(
     element => element.kind === 'label',
   );
-  expect(stageLabel).toMatchObject({hideWhenItemTitle: true, text: {size: 40}});
+  expect(stageLabel).toMatchObject({
+    hideWhenItemTitle: true,
+    text: {size: 64, weight: 800},
+  });
+  expect(
+    builtInTheme('bible').screens[stage]?.elements.find(
+      element => element.kind === 'label',
+    ),
+  ).toMatchObject({
+    frame: {y: 26, h: 48},
+    text: {size: 40},
+  });
   const current = theme.screens[stage]?.elements.find(
     element => element.kind === 'currentText',
   );

@@ -354,7 +354,12 @@ export class ThemeElementView {
           : next.lines
       ).some(line => line.trim() !== '');
     const rawCurrentLabel = slide?.label?.trim();
-    const rawNextLabel = next?.labelContinued ? undefined : next?.label?.trim();
+    const repeatedNextSongLabel =
+      next?.labelContinued === true &&
+      (next.itemKind ?? slide?.kind ?? item?.kind) === 'song';
+    const rawNextLabel = repeatedNextSongLabel
+      ? undefined
+      : next?.label?.trim();
     const currentLabel =
       slide?.titleSlide &&
       rawCurrentLabel &&
@@ -559,7 +564,8 @@ export class ThemeElementView {
     if (
       frame.screen?.kind === 'stage' &&
       element.kind === 'nextLabel' &&
-      slide?.next?.labelContinued
+      slide?.next?.labelContinued &&
+      (slide.next.itemKind ?? slide.kind ?? item?.kind) === 'song'
     ) {
       return null;
     }
@@ -704,7 +710,10 @@ export class ThemeElementView {
       if (
         element.kind === 'nextText' &&
         !nextBible &&
-        !slide?.next?.labelContinued &&
+        !(
+          slide?.next?.labelContinued &&
+          (slide.next.itemKind ?? slide.kind ?? item?.kind) === 'song'
+        ) &&
         slide?.next?.label?.trim()
       ) {
         return stageLabeledText(
