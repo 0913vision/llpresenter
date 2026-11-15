@@ -187,7 +187,7 @@ export function sermonTitleBroadcastLayout(): ThemeScreenLayout {
   };
 }
 
-/** Retain stage controls and next text while centering the passage and title. */
+/** Retain stage controls and next text while left-aligning the passage and title. */
 export function sermonTitleStageLayout(
   base: ThemeScreenLayout,
 ): ThemeScreenLayout {
@@ -206,7 +206,7 @@ export function sermonTitleStageLayout(
                 size: 52,
                 tracking: 0,
                 lineHeight: 1.2,
-                align: 'center' as const,
+                align: 'left' as const,
                 vAlign: 'middle' as const,
               },
             },
@@ -216,7 +216,7 @@ export function sermonTitleStageLayout(
               text: {
                 ...element.text,
                 size: 83,
-                align: 'center' as const,
+                align: 'left' as const,
                 vAlign: 'top' as const,
               },
             },
