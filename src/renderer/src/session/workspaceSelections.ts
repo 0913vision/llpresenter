@@ -45,8 +45,7 @@ export class WorkspaceSelections {
         : {}),
       ...(exists && isBible
         ? {
-            bibleSource:
-              view.bibleSource?.id === id ? view.bibleSource : bible,
+            bibleSource: view.bibleSource?.id === id ? view.bibleSource : bible,
           }
         : {}),
     });
