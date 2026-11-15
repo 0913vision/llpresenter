@@ -62,6 +62,53 @@ afterEach(() => {
 });
 
 describe('BibleQuickField', () => {
+  it.each(
+    [
+      ['start', '16', '', '\uc694\ud55c\ubcf5\uc74c 3:16'],
+      ['start', '16', '18', '\uc694\ud55c\ubcf5\uc74c 3:16-18'],
+      ['chapter', '', '', '\uc694\ud55c\ubcf5\uc74c 3'],
+    ].map(([part, start, end, expected]) => ({part, start, end, expected})),
+  )(
+    'outputs directly from $part with the selected range',
+    async ({part, start, end, expected}) => {
+      const fixture = panelApi();
+      window.llp = fixture.api;
+      render(
+        <>
+          <BibleQuickField api={fixture.api} />
+          <SlideGrid columns={4} scalePercent={100} />
+        </>,
+      );
+      fireEvent.change(await book(), {target: {value: '\uc694'}});
+      const chapter = screen.getByRole<HTMLInputElement>('textbox', {
+        name: '\uc7a5',
+      });
+      const startField = screen.getByRole<HTMLInputElement>('textbox', {
+        name: '\uc2dc\uc791\uc808',
+      });
+      const endField = screen.getByRole<HTMLInputElement>('textbox', {
+        name: '\ub05d\uc808',
+      });
+      fireEvent.change(chapter, {target: {value: '3'}});
+      if (start) fireEvent.change(startField, {target: {value: start}});
+      if (end) fireEvent.change(endField, {target: {value: end}});
+      const target = part === 'chapter' ? chapter : startField;
+      target.focus();
+      fireEvent.keyDown(target, {key: 'Enter', code: 'Enter'});
+      await waitFor(() =>
+        expect(
+          lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]),
+        ).toMatchObject({
+          type: 'slide.show',
+          slide: {itemId: `bible:sample:${expected}`, position: 0},
+        }),
+      );
+      expect(document.activeElement).toBe(
+        screen.getByRole('listbox', {name: '\uc2ac\ub77c\uc774\ub4dc'}),
+      );
+    },
+  );
+
   it('focuses the slide grid after Enter and ArrowRight outputs the next part', async () => {
     const fixture = panelApi();
     window.llp = fixture.api;

@@ -880,14 +880,12 @@ name. Chapter and verse bounds always use the built-in GAE number table.
   passage. Editing any field starts a new manual reference.
 - As soon as the fields form a valid reference, the Bible panel opens in place
   of the 슬라이드 panel in the center column.
-- Enter from 끝절 outputs the current valid passage, as 바로 띄우기 does, and
-  focuses the slide grid. Invalid input keeps focus in the field. Enter from 책,
-  장, and 시작절 completes that field and moves to the next one without output,
-  even when a valid preview already exists. A complete reference typed into 책
-  is an exception: Enter resolves and outputs it after lookup, and Tab fills the
-  fields. A pending lookup, invalid reference, repeated Enter, or composition
-  Enter cannot output. The four fields build a range within one chapter; stored
-  references and recent passages retain the full grammar in 02.
+- In quick run, Enter in 장, 시작절 or 끝절 outputs a valid passage and focuses
+  the slide grid; Tab advances fields. An empty 끝절 selects the single starting
+  verse, and a chapter with no verse selects the whole chapter. Invalid input
+  stays in the field. A complete reference in 책 also submits after lookup. IME
+  composition Enter cannot output. Stored references and recent passages retain
+  the full grammar in 02.
 - 준비 항목 추가 성경 구절 opens a small 성경 구절 dialog with the same fields.
   Enter from 끝절 inserts the current passage item using the opening's default
   translation and verse-number preference. 추가 performs the same insertion; it
