@@ -26,6 +26,7 @@ import {
   warningScreens,
 } from '@renderer/platform/outputWarnings';
 import {useShow} from '@renderer/session/show';
+import {WorkspaceSelections} from '@renderer/session/workspaceSelections';
 import {
   PrepItemNavigation,
   WorkspaceNavigation,
@@ -94,6 +95,7 @@ function ControlApp({
   const warningMap = useOutputWarnings(state => state.warnings);
   const warnings = useMemo(() => warningScreens(warningMap), [warningMap]);
   const [workspace, setWorkspace] = useState<WorkspaceId>('show');
+  const [workspaceSelections] = useState(() => new WorkspaceSelections());
   const [focusSearch, setFocusSearch] = useState(false);
   const searchFocused = useCallback(() => setFocusSearch(false), []);
   const notices = useSyncExternalStore(session.subscribe, session.getNotices);
@@ -104,6 +106,7 @@ function ControlApp({
   const onWorkspace = (next: WorkspaceId): void => {
     const go = (): void => {
       if (next === 'prep') session.startEditor();
+      workspaceSelections.activate(next);
       setWorkspace(next);
     };
     if (

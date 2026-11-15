@@ -26,6 +26,7 @@ import {
   seedSampleService,
 } from '@fixtures/renderer/session/sampleService';
 import {ServiceOrderList} from '@renderer/features/service/order/ServiceOrderList';
+import * as orderFollow from '@renderer/features/service/order/useOrderFollow';
 import userEvent from '@testing-library/user-event';
 import {
   itemFixture,
@@ -62,9 +63,9 @@ function setLiveSlide(itemId: string, position: number): void {
 beforeEach(() => {
   sent.length = 0;
   installApi();
+  useLive.setState({state: null});
   seedSampleService();
   useShow.setState({openItemId: null, selectedTile: 0});
-  useLive.setState({state: null});
 });
 
 afterEach(() => {
@@ -82,6 +83,38 @@ vi.mock('@renderer/ui/Icon', () => ({
 }));
 
 describe('ServiceOrderList', () => {
+  it('follows the live order item before the selected item only in show', () => {
+    const follow = vi
+      .spyOn(orderFollow, 'useOrderFollow')
+      .mockImplementation(() => undefined);
+    const ids = useShow
+      .getState()
+      .rows.filter(row => row.kind !== 'header')
+      .map(row => row.id);
+    const selected = ids[0];
+    const live = ids[1];
+    if (selected === undefined || live === undefined) {
+      throw new Error('Missing service items');
+    }
+    useShow.setState({openItemId: selected});
+    const view = render(<ServiceOrderList workspace="show" />);
+    expect(follow).toHaveBeenLastCalledWith(
+      expect.anything(),
+      expect.objectContaining({target: selected, enabled: true}),
+    );
+    act(() => setLiveSlide(live, 0));
+    expect(follow).toHaveBeenLastCalledWith(
+      expect.anything(),
+      expect.objectContaining({target: live, enabled: true}),
+    );
+    view.rerender(<ServiceOrderList workspace="prep" />);
+    expect(follow).toHaveBeenLastCalledWith(
+      expect.anything(),
+      expect.objectContaining({enabled: false}),
+    );
+    expect(sent).toHaveLength(0);
+    follow.mockRestore();
+  });
   it.each(['blank', 'ad'] as const)(
     'opens the inline %s editor on double-click and Enter',
     async form => {

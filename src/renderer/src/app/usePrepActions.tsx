@@ -114,9 +114,9 @@ export function usePrepActions({
     onOpened: target => {
       prepSelection.clear();
       session.editor?.open(null);
+      onWorkspace('prep');
       openItem(target.itemId);
       session.items?.show(target);
-      onWorkspace('prep');
     },
   });
   const songOpen = useRef(0);
@@ -182,10 +182,18 @@ export function usePrepActions({
     target?: 'settings',
   ): void => {
     const request = ++songOpen.current;
+    const initial = useShow.getState();
+    const librarySong = isLibrarySource(initial, itemId)
+      ? initial.librarySong
+      : null;
     onWorkspace('prep');
     const open = (): void => {
       if (request !== songOpen.current) return;
       const view = useShow.getState();
+      if (librarySong !== null) {
+        prepSelection.openSong(librarySong.songId, position);
+        return;
+      }
       if (isLibrarySource(view, itemId)) {
         prepSelection.openSong(view.librarySong.songId, position);
         return;
@@ -294,12 +302,12 @@ export function usePrepActions({
             beforeLeave={slides.requestLeave}
             onOpen={target => {
               prepSelection.clear();
+              onWorkspace('prep');
               if (target.from !== undefined) {
                 openItem(target.from.itemId);
                 session.items?.show(target.from);
                 session.items?.selectPosition(target.block ?? 0);
               }
-              onWorkspace('prep');
             }}
           />
         ) : null}
