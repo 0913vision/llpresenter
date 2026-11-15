@@ -45,6 +45,8 @@ export interface BibleReferenceFormProps {
   readonly onEdit?:
     ((equivalent: BibleLookupPassage | null) => void) | undefined;
   readonly autoFocus?: boolean;
+  /** Submit from any field in quick run instead of advancing on Enter. */
+  readonly submitAnyField?: boolean;
   readonly recents?: readonly RecentPassage[];
   readonly onReady?: (passage: BibleLookupPassage | null) => void;
   /** In a dialog, Esc dismisses the form after closing book suggestions. */
@@ -251,13 +253,13 @@ export function BibleReferenceForm(
     change('book', name);
     setOpen(false);
   };
-  const chooseSuggestion = (item: BibleSuggestion): void => {
+  const chooseSuggestion = (item: BibleSuggestion, advance = true): void => {
     advancedBook.current = null;
     if (item.ref === undefined || item.translation === undefined) {
       choose(item.input);
       // NOTE(0913vision): A chosen book moves on to 장, as in copible, the
       // Bible reference app.
-      if (item.bookId !== undefined) {
+      if (advance && item.bookId !== undefined) {
         setChapterFocus({bookId: item.bookId, translation});
       }
       return;
@@ -459,10 +461,30 @@ export function BibleReferenceForm(
     const candidate =
       part === 'book' && expanded ? suggestions[pointed] : undefined;
     if (candidate) {
-      chooseSuggestion(candidate);
+      chooseSuggestion(candidate, !props.submitAnyField);
       return;
     }
-    if (selectedRecent === undefined && part !== 'end') {
+    if (
+      props.submitAnyField &&
+      part === 'chapter' &&
+      fields.start === '' &&
+      state.errors.chapter === undefined &&
+      book !== undefined &&
+      translation !== undefined
+    ) {
+      const input = `${book.korean} ${fields.chapter}`;
+      setRecent({
+        provided: props.translation,
+        value: {ref: input, translation},
+      });
+      pendingSubmit.current = {input, translation, clampedEnd: undefined, part};
+      return;
+    }
+    if (
+      !props.submitAnyField &&
+      selectedRecent === undefined &&
+      part !== 'end'
+    ) {
       if (part === 'book') {
         advanceBook();
       } else if (state.errors[part] === undefined) {

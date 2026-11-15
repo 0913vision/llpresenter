@@ -74,6 +74,7 @@ export function BibleQuickField({
   return (
     <div ref={root}>
       <BibleReferenceField
+        submitAnyField
         key={`${selectionVersion}:${session}`}
         api={api.bible}
         translation={
