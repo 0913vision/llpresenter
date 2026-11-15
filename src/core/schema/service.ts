@@ -47,6 +47,7 @@ export const serviceItemKinds = [
   'song',
   'bible',
   'sermon',
+  'liturgy',
   'slides',
   'media',
 ] as const;
@@ -244,6 +245,15 @@ const itemSchemas = {
       originalTitleText: v.exactOptional(sermonTitleSchema),
     }),
     bibleTransitions: v.exactOptional(biblePartTransitionsSchema),
+    ...startFields,
+  }),
+  liturgy: jsonObject({
+    ...itemFields,
+    sectionCard: v.exactOptional(sectionCardSchema),
+    liturgy: jsonObject({
+      kind: v.picklist(['creed', 'prayer']),
+      translation: v.picklist(['new', 'old']),
+    }),
     ...startFields,
   }),
   slides: slidesItemSchema,

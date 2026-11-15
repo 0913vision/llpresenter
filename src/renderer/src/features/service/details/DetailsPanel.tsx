@@ -333,7 +333,9 @@ function DetailsPanelContent({
       );
     } else if (
       item !== null &&
-      (isItemOfKind(item, 'bible') || isItemOfKind(item, 'media'))
+      (isItemOfKind(item, 'bible') ||
+        isItemOfKind(item, 'media') ||
+        isItemOfKind(item, 'liturgy'))
     ) {
       items.selectPosition(index);
       onOpenPrep?.(item.id);

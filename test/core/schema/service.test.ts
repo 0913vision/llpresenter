@@ -107,6 +107,48 @@ describe('parseService', () => {
       parsed.order,
     );
   });
+  it('accepts bounded liturgy kind and version choices and rejects mixed or invalid kinds', () => {
+    for (const kind of ['creed', 'prayer']) {
+      for (const translation of ['new', 'old']) {
+        const item = {id: itemId(42), liturgy: {kind, translation}};
+        const loaded = expectSuccess(parse(withItem(item)));
+        expect(loaded.data.order.map(serviceItemKind)).toEqual(['liturgy']);
+        expect(
+          expectSuccess(
+            parseService(
+              expectSuccess(serializeService(loaded.data, FILE)),
+              FILE,
+            ),
+          ).data,
+        ).toEqual(loaded.data);
+      }
+    }
+    expect(
+      parse(
+        withItem({
+          id: itemId(42),
+          liturgy: {kind: 'other', translation: 'new'},
+        }),
+      ).ok,
+    ).toBe(false);
+    expect(
+      parse(
+        withItem({
+          id: itemId(42),
+          liturgy: {kind: 'creed', translation: 'x'.repeat(10000)},
+        }),
+      ).ok,
+    ).toBe(false);
+    expect(
+      parse(
+        withItem({
+          id: itemId(42),
+          liturgy: {kind: 'creed', translation: 'new'},
+          bible: PASSAGE,
+        }),
+      ).ok,
+    ).toBe(false);
+  });
   it('round-trips a bounded sermon with a title and Bible passage', () => {
     const item = {id: itemId(41), sermon: {title: 'Sermon', passage: PASSAGE}};
     const loaded = expectSuccess(parse(withItem(item)));

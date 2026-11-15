@@ -14,17 +14,18 @@ export function newSectionCard(): SectionCard {
 
 export function canHaveSectionCard(
   item: ServiceItem,
-): item is ServiceItemOf<'song' | 'slides' | 'bible' | 'sermon'> {
+): item is ServiceItemOf<'song' | 'slides' | 'bible' | 'sermon' | 'liturgy'> {
   return (
     isItemOfKind(item, 'song') ||
     isItemOfKind(item, 'slides') ||
     isItemOfKind(item, 'bible') ||
-    isItemOfKind(item, 'sermon')
+    isItemOfKind(item, 'sermon') ||
+    isItemOfKind(item, 'liturgy')
   );
 }
 
 export function hasSectionCard(item: ServiceItem): item is ServiceItemOf<
-  'song' | 'slides' | 'bible' | 'sermon'
+  'song' | 'slides' | 'bible' | 'sermon' | 'liturgy'
 > & {
   readonly sectionCard: SectionCard;
 } {

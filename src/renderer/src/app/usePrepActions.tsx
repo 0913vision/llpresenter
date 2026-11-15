@@ -249,6 +249,7 @@ export function usePrepActions({
       if (view.serviceId !== null && row?.kind === 'slides') {
         session.items?.show({serviceId: view.serviceId, itemId});
         session.items?.selectPosition(position ?? 0);
+        if (row.liturgy !== undefined) return;
         session.api?.slidesEditor
           .open({
             serviceId: createServiceId(view.serviceId),

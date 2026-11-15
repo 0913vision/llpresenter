@@ -19,6 +19,29 @@ export const LITURGY = {
 export type LiturgyKind = keyof typeof LITURGY;
 export type LiturgyTranslation = 'new' | 'old';
 
+/** A transient rendering adapter; it is never persisted as the item. */
+export function liturgyAsSlides(
+  item: ServiceItemOf<'liturgy'>,
+): ServiceItemOf<'slides'> {
+  const {liturgy, ...common} = item;
+  return {
+    ...common,
+    theme: item.theme ?? CREED_PRAYER_THEME_ID,
+    slides: {
+      form: 'blank',
+      name: LITURGY[liturgy.kind].name,
+      slides: LITURGY_SLIDES[liturgy.kind][liturgy.translation].map(
+        (text, index) => ({
+          id: createSlideId(
+            `${item.id.slice(0, -4)}${index.toString(16).padStart(4, '0')}`,
+          ),
+          text,
+        }),
+      ),
+    },
+  };
+}
+
 export function newLiturgyItem(
   id: ServiceItemId,
   {
@@ -28,17 +51,10 @@ export function newLiturgyItem(
     readonly kind: LiturgyKind;
     readonly translation: LiturgyTranslation;
   },
-): ServiceItemOf<'slides'> {
+): ServiceItemOf<'liturgy'> {
   return {
     id,
     theme: CREED_PRAYER_THEME_ID,
-    slides: {
-      form: 'blank',
-      name: LITURGY[kind].name,
-      slides: LITURGY_SLIDES[kind][translation].map(text => ({
-        id: createSlideId(crypto.randomUUID()),
-        text,
-      })),
-    },
+    liturgy: {kind, translation},
   };
 }

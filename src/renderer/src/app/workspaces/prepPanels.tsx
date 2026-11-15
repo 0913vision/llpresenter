@@ -40,6 +40,7 @@ import {SlidesEditor} from '@renderer/features/service/slides/SlidesEditor';
 import type {SlidesEditorModel} from '@renderer/features/service/slides/useSlidesEditor';
 import {isEditorEscape} from '@renderer/features/songs/editor/editorEscape';
 import {SlidesBackButton} from '@renderer/features/service/slides/SlidesBackButton';
+import {LiturgyEditor} from '@renderer/features/service/items/LiturgyEditor';
 import {useShow} from '@renderer/session/show';
 import headerStyles from '@renderer/features/songs/editor/SongHeader.module.css';
 import styles from './OtherPrepEditor.module.css';
@@ -419,7 +420,9 @@ function OtherPrepEditor({
       <header className={headerStyles.header} data-inline="true">
         <SlidesBackButton serviceName={serviceName} onBack={onBack} />
       </header>
-      {item !== null && isItemOfKind(item, 'sermon') ? (
+      {item !== null && isItemOfKind(item, 'liturgy') ? (
+        <LiturgyEditor items={prep.items} />
+      ) : item !== null && isItemOfKind(item, 'sermon') ? (
         <SermonInlineEditor items={prep.items} />
       ) : item !== null && isItemOfKind(item, 'bible') ? (
         <BibleInlineEditor
@@ -610,8 +613,15 @@ export function usePrepPanels({
             onOpenPrep,
             onOpenOther: openOther,
             onNavigateEditor: (id, kind) => {
-              if (kind !== 'song' && kind !== 'slides') openOther(id);
-              else {
+              const row = useShow
+                .getState()
+                .rows.find(value => value.id === id);
+              if (
+                (row?.kind === 'slides' && row.liturgy !== undefined) ||
+                (kind !== 'song' && kind !== 'slides')
+              ) {
+                openOther(id);
+              } else {
                 leave(() => {
                   setOtherId(null);
                   onOpenPrep?.(id);

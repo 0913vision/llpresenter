@@ -79,12 +79,9 @@ describe('palette items', () => {
     const prayer = await createPaletteItem('prayer', 'old');
     expect(creed).toMatchObject({sectionCard: {name: '사도신경'}});
     expect(ad).toMatchObject({sectionCard: {name: '광고'}});
-    expect(prayer).toMatchObject({slides: {name: '주기도문'}});
-    if (!prayer || !isItemOfKind(prayer, 'slides')) {
-      throw new Error('Expected prayer slides');
-    }
-    const first = prayer.slides.slides[0];
-    expect(first && 'text' in first && first.text.length).toBeGreaterThan(20);
+    expect(prayer).toMatchObject({
+      liturgy: {kind: 'prayer', translation: 'old'},
+    });
     expect(await createPaletteItem('header')).toMatchObject({
       header: '새 구역',
     });
@@ -125,7 +122,11 @@ it.each([
   'builds %s exactly as the Sunday template does, except ids',
   async (key, name) => {
     const template = sundayTemplate().order.find(
-      item => isItemOfKind(item, 'slides') && item.slides.name === name,
+      item =>
+        (isItemOfKind(item, 'slides') && item.slides.name === name) ||
+        (isItemOfKind(item, 'liturgy') &&
+          name === '사도신경' &&
+          item.liturgy.kind === 'creed'),
     );
     expect(template).toBeDefined();
     expect(withoutIds(await createPaletteItem(key))).toEqual(
@@ -162,7 +163,7 @@ it('uses the shared section, liturgy and blank factories for every remaining ele
       );
       if (kind === 'prayer') {
         expect(withoutIds(actual)).toEqual(withoutIds(expected));
-      } else if (actual && isItemOfKind(actual, 'slides')) {
+      } else if (actual && isItemOfKind(actual, 'liturgy')) {
         const {sectionCard, ...content} = actual;
         expect(sectionCard?.name).toBe('사도신경');
         expect(withoutIds(content)).toEqual(withoutIds(expected));

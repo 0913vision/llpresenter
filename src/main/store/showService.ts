@@ -20,6 +20,9 @@ import {
 } from '@core/schema/showService';
 import {colorSlideLabels, projectSlides} from '@core/presentation/slides';
 import type {ServicePassages} from '../bible/servicePassages';
+import {LITURGY} from '@core/services/liturgy';
+import {LITURGY_SLIDES} from '@core/services/liturgySlides';
+import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
 
 export {SHOW_SERVICE_LIMITS} from '@core/schema/showService';
 
@@ -95,7 +98,8 @@ export function buildShowService({
       (!isItemOfKind(item, 'song') &&
         !isItemOfKind(item, 'slides') &&
         !isItemOfKind(item, 'bible') &&
-        !isItemOfKind(item, 'sermon')) ||
+        !isItemOfKind(item, 'sermon') &&
+        !isItemOfKind(item, 'liturgy')) ||
       item.sectionCard === undefined
     ) {
       continue;
@@ -156,6 +160,16 @@ function otherTiles(
   item: ServiceItem,
   {backgrounds, media, passages, colors}: OtherSources,
 ): readonly ShowTile[] | undefined {
+  if (isItemOfKind(item, 'liturgy')) {
+    return LITURGY_SLIDES[item.liturgy.kind][item.liturgy.translation].map(
+      text => ({
+        label: text.split('\n')[0] ?? '',
+        labelColor: NO_LABEL_COLOR,
+        lines: [text],
+        kind: 'blank' as const,
+      }),
+    );
+  }
   if (isItemOfKind(item, 'slides')) {
     return colorSlideLabels(
       projectSlides(item, media, passages?.slides?.get(item.id)),
@@ -186,6 +200,19 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
   }
   if (isItemOfKind(item, 'song')) {
     return songRow(item, sources.songs.get(item.song), sources);
+  }
+  if (isItemOfKind(item, 'liturgy')) {
+    return {
+      kind: 'slides',
+      id,
+      title: LITURGY[item.liturgy.kind].name,
+      form: 'blank',
+      liturgy: item.liturgy,
+      theme: item.theme ?? CREED_PRAYER_THEME_ID,
+      ...(sources.serviceRevision === undefined
+        ? {}
+        : {sourceRevision: sources.serviceRevision}),
+    };
   }
   if (isItemOfKind(item, 'slides')) {
     const background =

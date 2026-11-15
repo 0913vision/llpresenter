@@ -7,6 +7,7 @@ import {useShow} from '@renderer/session/show';
 import type {ServiceItemStore} from './serviceItemStore';
 import {bibleEditorData, savedPassageTiles} from './bibleItemModel';
 import {useItemMedia} from './useItemSources';
+import {LITURGY_SLIDES} from '@core/services/liturgySlides';
 
 export interface ItemSlide {
   readonly titleSlide?: true;
@@ -44,6 +45,16 @@ export function useItemSlides(
   const {item} = state;
   return useMemo(() => {
     if (item === null) return [];
+    if (isItemOfKind(item, 'liturgy')) {
+      return LITURGY_SLIDES[item.liturgy.kind][item.liturgy.translation].map(
+        text => ({
+          text,
+          label: text,
+          color: 'none' as const,
+          media: undefined,
+        }),
+      );
+    }
     if (isItemOfKind(item, 'song')) {
       return item.slides.map(slide => {
         return {

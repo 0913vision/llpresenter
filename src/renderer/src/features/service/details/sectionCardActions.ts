@@ -16,7 +16,9 @@ export function sectionCardEntries(
     state.item === null ||
     (!isItemOfKind(state.item, 'song') &&
       !isItemOfKind(state.item, 'slides') &&
-      !isItemOfKind(state.item, 'bible'))
+      !isItemOfKind(state.item, 'liturgy') &&
+      !isItemOfKind(state.item, 'bible') &&
+      !isItemOfKind(state.item, 'sermon'))
   ) {
     return [];
   }
@@ -58,7 +60,8 @@ export function saveCard(
           !isItemOfKind(current, 'song') &&
           !isItemOfKind(current, 'slides') &&
           !isItemOfKind(current, 'bible') &&
-          !isItemOfKind(current, 'sermon')
+          !isItemOfKind(current, 'sermon') &&
+          !isItemOfKind(current, 'liturgy')
         ) {
           return null;
         }

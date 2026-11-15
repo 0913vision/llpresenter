@@ -1,7 +1,8 @@
-import type {ServiceItem} from '../schema/service';
+import {isItemOfKind, type ServiceItem} from '../schema/service';
 import type {ThemesFile} from '../schema/themes';
 import {itemThemeKind} from './itemKind';
 import {resolveItemTheme} from './resolve';
+import {CREED_PRAYER_THEME_ID} from './creedPrayer';
 
 /** What the 테마 column of the 예배 순서 table shows for an item. */
 export interface ItemThemeCell {
@@ -29,7 +30,9 @@ export function itemThemeCell(
     file,
     kind,
     source: 'service',
-    ...(item.theme === undefined ? {} : {theme: item.theme}),
+    ...(item.theme === undefined && !isItemOfKind(item, 'liturgy')
+      ? {}
+      : {theme: item.theme ?? CREED_PRAYER_THEME_ID}),
   });
   return {name: theme.name, followsDefault: chosen === undefined};
 }

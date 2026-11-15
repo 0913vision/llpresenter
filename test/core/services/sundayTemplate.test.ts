@@ -7,7 +7,6 @@ import {
 } from '@core/schema/service';
 import {newSundayCreed, sundayTemplate} from '@core/services/sundayTemplate';
 import {createServiceItemId} from '@core/schema/ids';
-import {LITURGY_SLIDES} from '@core/services/liturgySlides';
 import {SUNDAY_SECTIONS, SECTION_THEMES} from '@core/themes/sundaySections';
 import {PREPARATION_THEME_ID} from '@core/themes/sundayStandby';
 import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
@@ -31,7 +30,11 @@ it('ships the church order with fixed editable cards and empty places for local 
     groups.map(group => [
       group.name,
       group.items.map(item =>
-        isItemOfKind(item, 'slides') ? item.slides.name : 'unexpected',
+        isItemOfKind(item, 'slides')
+          ? item.slides.name
+          : isItemOfKind(item, 'liturgy')
+            ? '사도신경'
+            : 'unexpected',
       ),
     ]),
   ).toEqual([
@@ -48,16 +51,17 @@ it('ships the church order with fixed editable cards and empty places for local 
     ['축도', ['축도']],
   ]);
   const fixed = template.order.filter(item => isItemOfKind(item, 'slides'));
-  expect(fixed).toHaveLength(10);
+  expect(fixed).toHaveLength(9);
   expect(template.order).toHaveLength(21);
   const preparation = fixed.find(item => item.theme === PREPARATION_THEME_ID);
   expect(preparation).toMatchObject({
     slides: {form: 'blank', name: '예배 준비', slides: [{text: ''}]},
   });
-  const creed = fixed.find(item => item.theme === CREED_PRAYER_THEME_ID);
-  expect(
-    creed?.slides.slides.map(slide => ('text' in slide ? slide.text : null)),
-  ).toEqual(LITURGY_SLIDES.creed.new);
+  const creed = template.order.find(item => isItemOfKind(item, 'liturgy'));
+  expect(creed).toMatchObject({
+    liturgy: {kind: 'creed', translation: 'new'},
+    theme: CREED_PRAYER_THEME_ID,
+  });
   expect(creed?.sectionCard).toEqual({
     name: SUNDAY_SECTIONS[1]?.name,
     english: "Apostle's Creed",
@@ -102,7 +106,10 @@ it('ships the church order with fixed editable cards and empty places for local 
   }
   expect(
     template.order.every(
-      item => isItemOfKind(item, 'header') || isItemOfKind(item, 'slides'),
+      item =>
+        isItemOfKind(item, 'header') ||
+        isItemOfKind(item, 'slides') ||
+        isItemOfKind(item, 'liturgy'),
     ),
   ).toBe(true);
   const encoded = serializeTemplate(template, 'sunday.llservice');
@@ -131,7 +138,7 @@ it.each(['new', 'old'] as const)(
   translation => {
     const id = createServiceItemId('00000000-0000-4000-8000-000000000987');
     const item = newSundayCreed(id, translation);
-    if (!isItemOfKind(item, 'slides')) throw Error('Expected creed slides');
+    if (!isItemOfKind(item, 'liturgy')) throw Error('Expected creed item');
     expect(item.id).toBe(id);
     expect(item.theme).toBe(CREED_PRAYER_THEME_ID);
     expect(item.sectionCard).toEqual({
@@ -139,24 +146,18 @@ it.each(['new', 'old'] as const)(
       english: "Apostle's Creed",
       theme: SUNDAY_SECTIONS[1]?.theme,
     });
-    expect(
-      item.slides.slides.map(slide => ('text' in slide ? slide.text : null)),
-    ).toEqual(LITURGY_SLIDES.creed[translation]);
+    expect(item.liturgy).toEqual({kind: 'creed', translation});
     if (translation === 'new') {
       const template = sundayTemplate().order.find(
         entry =>
-          isItemOfKind(entry, 'slides') &&
+          isItemOfKind(entry, 'liturgy') &&
           entry.theme === CREED_PRAYER_THEME_ID,
       );
-      if (!template || !isItemOfKind(template, 'slides')) {
+      if (!template || !isItemOfKind(template, 'liturgy')) {
         throw Error('Expected template creed');
       }
       expect(template.sectionCard).toEqual(item.sectionCard);
-      expect(
-        template.slides.slides.map(slide =>
-          'text' in slide ? slide.text : null,
-        ),
-      ).toEqual(LITURGY_SLIDES.creed.new);
+      expect(template.liturgy).toEqual({kind: 'creed', translation: 'new'});
     }
   },
 );

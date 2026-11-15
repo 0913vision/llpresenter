@@ -469,7 +469,8 @@ export function ServiceOrderList({
       rows.some(
         row =>
           row.id === target.id &&
-          (row.kind === 'header' || row.kind === 'slides'),
+          (row.kind === 'header' ||
+            (row.kind === 'slides' && row.liturgy === undefined)),
       )
     ) {
       setRenaming(target.id);
@@ -499,7 +500,13 @@ export function ServiceOrderList({
     row: ServiceRow,
   ): import('@renderer/ui/ListRow').GroupRename | undefined => {
     const api = window.llp;
-    if (row.kind !== 'slides' || api === undefined) return undefined;
+    if (
+      row.kind !== 'slides' ||
+      row.liturgy !== undefined ||
+      api === undefined
+    ) {
+      return undefined;
+    }
     return {
       validate: value =>
         value.trim().length > SLIDES_LIMITS.name
@@ -744,9 +751,13 @@ export function ServiceOrderList({
   };
   const openOrderEditor = (id: string | null): boolean => {
     if (workspace !== 'prep' || id === null || serviceId === null) return false;
-    const kind = rows.find(row => row.id === id)?.kind;
+    const row = rows.find(row => row.id === id);
+    const kind = row?.kind;
     if (kind === undefined || kind === 'header') return false;
-    if (kind !== 'song' && kind !== 'slides') {
+    if (
+      (row?.kind === 'slides' && row.liturgy !== undefined) ||
+      (kind !== 'song' && kind !== 'slides')
+    ) {
       onOpenOther?.(id);
       return true;
     }

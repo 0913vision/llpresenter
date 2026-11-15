@@ -116,12 +116,13 @@ not dim when focus leaves. 진행 retains its existing thumbnail style.
   preparation fails, no section item is inserted.
 - 항목 추가 also offers 사도신경 and 주기도문 submenus, each with 새 번역
   (Protestant 2004) and 옛 번역. All four insert after the selected row, or
-  append without a selection, using an editable 빈 슬라이드 item named for the
-  prayer, the 사도신경, 주기도문 theme, and manual advance. The editor opens
-  with the first slide selected. Bundled slides contain one paragraph each,
-  wrapping at spaces like 말씀 at 104 px; premeasured sentence boundaries (or
-  comma splits for sentences over four lines) are fixed in the content, with
-  아멘. attached to the final sentence and no runtime slide splitting.
+  append without a selection, using a dedicated liturgy item with a fixed kind
+  and version, the 사도신경, 주기도문 theme, and manual advance. Its editor
+  selects the version and previews the fixed paragraphs. Bundled slides contain
+  one paragraph each, wrapping at spaces like 말씀 at 104 px; premeasured
+  sentence boundaries (or comma splits for sentences over four lines) are fixed
+  for each version, with 아멘. attached to the final sentence and no runtime
+  slide splitting.
 
   사도신경 and 주기도문 are special liturgical items with their own dedicated
   theme. Preserve their special behavior rather than treating them as generic

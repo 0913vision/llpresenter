@@ -24,6 +24,7 @@ import {useServiceSongMenu} from '../order/useServiceSongMenu';
 import {songUsage} from '@renderer/features/songs/editor/songUsage';
 import {Tooltip} from '@renderer/ui/Tooltip';
 import {ItemCardRow} from '../items/ItemCardRow';
+import {LiturgyVersion} from '../items/LiturgyEditor';
 import styles from './DetailsInfo.module.css';
 
 interface DetailsInfoData {
@@ -83,6 +84,18 @@ export function DetailsInfo({
       <Properties className={styles.properties}>
         {item !== null && service !== null && isStartItem(item) ? (
           <PropertyGroup title="이번 예배">
+            {isItemOfKind(item, 'liturgy') ? (
+              <PropertyRow label="예식문 버전">
+                {() => (
+                  <LiturgyVersion
+                    items={items}
+                    item={item}
+                    serviceId={service.service.id}
+                    locked={reason !== undefined}
+                  />
+                )}
+              </PropertyRow>
+            ) : null}
             <ItemThemeRow
               api={editor.api.settings}
               items={items}
