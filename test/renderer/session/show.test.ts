@@ -246,7 +246,7 @@ describe('show state', () => {
     });
   });
 
-  it('skips headers on the way to the next Bible item and leaves the end empty', () => {
+  it('skips headers on the way to the next Bible item and marks standby at the end', () => {
     setAtLastSlide('nextItem');
     outputTile({itemId: 'song-river', index: 2});
     expect(slides().at(-1)).toMatchObject({
@@ -259,7 +259,7 @@ describe('show state', () => {
     });
     sent.length = 0;
     outputTile({itemId: 'psalm-23', index: 2});
-    expect(slides().at(-1)?.slide.next).toBeUndefined();
+    expect(slides().at(-1)?.slide.next).toMatchObject({stageStandby: true});
   });
 
   it('labels only a different, non-sermon next Bible passage', () => {
@@ -529,6 +529,52 @@ describe('show state', () => {
       type: 'stage.next.set',
       next: {title: '2. Second', lines: []},
     });
+  });
+
+  it('marks the standby item and the end of the service for the stage', () => {
+    useShow.setState(state => ({
+      rows: [
+        ...state.rows,
+        {
+          kind: 'slides',
+          id: 'waiting',
+          title: '\uB300\uAE30 \uD654\uBA74',
+          form: 'blank',
+        },
+      ],
+      tiles: {
+        ...state.tiles,
+        waiting: [{label: null, labelColor: 'none', lines: ['']}],
+      },
+    }));
+    setLive('song-morning', 3);
+    setAtLastSlide('nextItem');
+    useShow.setState(state => ({
+      rows: state.rows.filter(
+        row => row.id === 'song-morning' || row.id === 'waiting',
+      ),
+    }));
+    openItem('song-morning');
+    expect(sent.at(-1)).toMatchObject({
+      type: 'stage.next.set',
+      next: {stageStandby: true},
+    });
+    setLive('waiting', 0);
+    openItem('waiting');
+    expect(sent.at(-1)).toMatchObject({
+      type: 'stage.next.set',
+      next: {stageStandby: true},
+    });
+  });
+
+  it('does not infer standby from an unavailable live projection', () => {
+    useShow.setState({tiles: {}});
+    setLive('song-morning', 0);
+    sent.length = 0;
+    openItem('song-morning');
+    expect(sent.filter(command => command.type === 'stage.next.set')).toEqual(
+      [],
+    );
   });
 
   it('keeps stage next anchored to the live slide while browsing another item', () => {

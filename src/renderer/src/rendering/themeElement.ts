@@ -364,12 +364,16 @@ export class ThemeElementView {
       next?.titleSlide && rawNextLabel && !isStageEndingLabel(rawNextLabel)
         ? undefined
         : rawNextLabel;
-    const cue = currentEmpty
-      ? ((currentLabel ? `(${currentLabel})` : undefined) ??
-        (element.fallbackText?.trim() ? undefined : '(\uc5c6\uc74c)'))
-      : nextEmpty
-        ? ((nextLabel ? `(${nextLabel})` : undefined) ?? '(\uc5c6\uc74c)')
-        : undefined;
+    const standbyCue =
+      stage && element.kind === 'nextText' && next?.stageStandby === true;
+    const cue = standbyCue
+      ? '\uB300\uAE30 \uD654\uBA74'
+      : currentEmpty
+        ? ((currentLabel ? `(${currentLabel})` : undefined) ??
+          (element.fallbackText?.trim() ? undefined : '(\uc5c6\uc74c)'))
+        : nextEmpty
+          ? ((nextLabel ? `(${nextLabel})` : undefined) ?? '(\uc5c6\uc74c)')
+          : undefined;
     this.text?.setMinimumSize(
       stage && element.kind === 'nextText'
         ? Math.max(STAGE_NEXT_MIN_SIZE, element.minimumTextSize ?? 0)
@@ -803,7 +807,15 @@ export class ThemeElementView {
       }
       style = {
         ...textStyle,
-        ...(cue ? {color: STAGE_COLORS.muted, align: 'center' as const} : {}),
+        ...(cue
+          ? {
+              color:
+                this.element.kind === 'nextText'
+                  ? STAGE_COLORS.next
+                  : STAGE_COLORS.muted,
+              align: 'center' as const,
+            }
+          : {}),
         vAlign: vAlign ?? textStyle.vAlign,
         font: known === false && !bundled ? 'Pretendard Variable' : fontName,
         margin: 0,

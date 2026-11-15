@@ -347,6 +347,29 @@ function withStageReference(
     : {...next, stageReference: reference};
 }
 
+function stageStandbyNext(live: TileCursor, next: TileCursor | null): boolean {
+  const view = useShow.getState();
+  if (next !== null) {
+    const row = view.rows.find(entry => entry.id === next.itemId);
+    return row?.kind === 'slides' && row.title === '\uB300\uAE30 \uD654\uBA74';
+  }
+  const tiles = tilesOf(live.itemId);
+  if (tiles[live.index] === undefined || live.index + 1 < tiles.length) {
+    return false;
+  }
+  if (!view.rows.some(row => row.kind !== 'header' && row.id === live.itemId)) {
+    return false;
+  }
+  return (
+    adjacentItem({
+      rows: view.rows,
+      tilesOf,
+      current: live.itemId,
+      direction: 'next',
+    }) === null
+  );
+}
+
 /** Builds the same following item that the next-slide command will open. */
 export function stageSlideOf(cursor: TileCursor) {
   const view = useShow.getState();
@@ -387,7 +410,11 @@ export function stageSlideOf(cursor: TileCursor) {
   const slide = slideLayerOf(cursor, tilesOf, following);
   const sermon = sermonNext(cursor);
   if (slide === null) return null;
-  const projected = sermon ?? slide.next;
+  const projected =
+    sermon ??
+    (stageStandbyNext(cursor, next)
+      ? {label: null, lines: [], stageStandby: true as const}
+      : slide.next);
   const labeled = withStageReference(
     projected,
     sermon === undefined ? stageReference(cursor, next) : undefined,
@@ -475,6 +502,7 @@ function nextKey(next: NextSlide | null | undefined): string {
         next.titleSlide ?? null,
         next.sermonTitle ?? null,
         next.stageReference ?? null,
+        next.stageStandby ?? null,
       ]);
 }
 
@@ -511,16 +539,18 @@ function refreshStageNext(): void {
   const sermon = sermonNext(live);
   const projectedNext =
     sermon ??
-    (tile === undefined
-      ? null
-      : nextSlideOf(tile, kind, {
-          title: row?.title,
-          after: afterCard,
-          textSlideNumber:
-            cursor === null
-              ? undefined
-              : noticeNumber(tilesOf(cursor.itemId), cursor.index),
-        }));
+    (stageStandbyNext(live, cursor)
+      ? {label: null, lines: [], stageStandby: true as const}
+      : tile === undefined
+        ? null
+        : nextSlideOf(tile, kind, {
+            title: row?.title,
+            after: afterCard,
+            textSlideNumber:
+              cursor === null
+                ? undefined
+                : noticeNumber(tilesOf(cursor.itemId), cursor.index),
+          }));
   const next =
     withStageReference(
       projectedNext,

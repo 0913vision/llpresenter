@@ -2724,6 +2724,17 @@ it('shows an empty stage next slide cue and preserves labels and other screens',
       ?.textContent ?? '';
   show('stage');
   expect(text()).toBe('(\uc5c6\uc74c)');
+  expect(
+    root.querySelector<HTMLElement>(
+      `[data-kind="nextText"] .${classes.shown} .${classes.block}`,
+    )?.style.color,
+  ).toBe('rgb(255, 214, 107)');
+  layers = {
+    ...layers,
+    slide: {...slide, next: {label: null, lines: [], stageStandby: true}},
+  };
+  show('stage');
+  expect(text()).toBe('\uB300\uAE30 \uD654\uBA74');
   layers = {
     ...layers,
     slide: {...slide, next: {label: 'Interlude', lines: [' ']}},

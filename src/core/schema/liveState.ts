@@ -65,6 +65,7 @@ export const nextSlideSchema = payloadObject({
   ),
   sermonTitle: v.exactOptional(v.literal(true)),
   stageReference: v.exactOptional(liveTextSchema),
+  stageStandby: v.exactOptional(v.literal(true)),
 });
 
 /** A background media choice, as `media.show` carries it. */

@@ -59,6 +59,7 @@ export interface NextSlide {
   readonly titleLineCount?: number;
   readonly sermonTitle?: true;
   readonly stageReference?: string;
+  readonly stageStandby?: true;
 }
 
 /** The slide on output: a service item, its position in the arrangement, and what to draw. */
