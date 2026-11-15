@@ -76,6 +76,8 @@ export interface SlideLayer {
   readonly titleLayout?: import('../schema/songTitleLayout').SongTitleLayout;
   readonly lyricFormat?: import('../schema/songLyricFormat').SongLyricFormat;
   readonly transition?: import('../schema/slideTransition').SlideTransition;
+  /** Wall-clock start of the currently running audience slide transition. */
+  readonly transitionStartedAt?: number;
   /** Effect of the slide being left by an explicit previous command. */
   readonly reverseTransition?:
     import('../schema/slideTransition').SlideTransition | null;

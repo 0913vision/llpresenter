@@ -68,6 +68,38 @@ function randomCommand(random: () => number): LiveCommand {
 }
 
 describe('applyCommand', () => {
+  it('records and restarts transitions only when the live slide changes', () => {
+    const first = applyAt(
+      initialHistory(emptyLiveState()),
+      {
+        type: 'slide.show',
+        slide: {...slide(1), transition: {kind: 'wipe', sec: 4}},
+      },
+      NOW,
+    );
+    expect(first.state.layers.slide?.transitionStartedAt).toBe(NOW);
+    const same = applyAt(
+      first,
+      {
+        type: 'slide.show',
+        slide: {...slide(1), transition: {kind: 'wipe', sec: 4}},
+      },
+      LATER,
+    );
+    expect(same.state.layers.slide?.transitionStartedAt).toBe(NOW);
+    const next = applyAt(
+      same,
+      {
+        type: 'slide.show',
+        slide: {...slide(2), transition: {kind: 'dissolve', sec: 4}},
+      },
+      LATER,
+    );
+    expect(next.state.layers.slide?.transitionStartedAt).toBe(LATER);
+    const cut = applyAt(next, {type: 'slide.show', slide: slide(3)}, LATER);
+    expect(cut.state.layers.slide?.transitionStartedAt).toBeUndefined();
+  });
+
   it('returns the same history when the same slide object is shown again', () => {
     const shown = slide(1);
     const once = run([{type: 'slide.show', slide: shown}]);

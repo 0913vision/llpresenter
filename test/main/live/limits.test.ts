@@ -353,6 +353,18 @@ describe('live admission limits', () => {
       ),
     };
     expect(parseLiveCommand({type: 'slide.show', slide}).ok).toBe(true);
+    expect(
+      parseLiveCommand({
+        type: 'slide.show',
+        slide: {...slide, transitionStartedAt: 123},
+      }).ok,
+    ).toBe(true);
+    expect(
+      parseLiveCommand({
+        type: 'slide.show',
+        slide: {...slide, transitionStartedAt: Infinity},
+      }).ok,
+    ).toBe(false);
     const initial = {
       ...emptyLiveState(),
       layers: {...emptyLiveState().layers, slide},

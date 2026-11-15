@@ -24,6 +24,7 @@ import {useSlideWindow} from './useSlideWindow';
 import {ShowSlideEntry} from './showPanelNavigation';
 import {serviceSlideOffset} from './serviceSlideNumbers';
 import {useNumberJump} from './numberJump';
+import {useSlideTransitionProgress} from './useSlideTransitionProgress';
 
 const GRID_SELECTOR = '[role="listbox"]';
 
@@ -79,6 +80,7 @@ export function SlideGrid({
   );
   const bible = useBibleTileProjection({itemId: openItemId});
   const liveIndex = useLiveTileIndex();
+  const transitionProgress = useSlideTransitionProgress();
   useEffect(() => {
     if (liveIndex !== null) useShow.setState({selectedTile: liveIndex});
   }, [liveIndex, openItemId]);
@@ -237,6 +239,9 @@ export function SlideGrid({
                   picture === undefined ? undefined : thumbnailSrc(picture)
                 }
                 live={index === liveIndex}
+                transitionProgress={
+                  index === liveIndex ? transitionProgress : undefined
+                }
                 hotKey={tile.hotKey}
               />
             );

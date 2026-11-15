@@ -36,6 +36,7 @@ export interface PreviewScreen<Id extends string> {
   readonly status: PreviewStatus;
   /** Draws the frame in `chroma`, as the capture window of 방송 화면 does. */
   readonly chroma?: boolean | undefined;
+  readonly transitionProgress?: number | undefined;
   /** A picture-specific state, separate from whether the screen output is on. */
   readonly indicator?:
     {readonly icon: string; readonly text: string} | undefined;
@@ -168,7 +169,19 @@ function Caption<Id extends string>({
   }
   return (
     <div className={styles.caption}>
-      <span className={styles.name}>{screen.name}</span>
+      <span className={styles.name}>
+        {screen.transitionProgress === undefined
+          ? screen.name
+          : '\uC804\uD658 \uC911'}
+      </span>
+      {screen.transitionProgress === undefined ? null : (
+        <span aria-hidden="true" className={styles.transitionTrack}>
+          <span
+            className={styles.transitionFill}
+            style={{transform: `scaleX(${screen.transitionProgress})`}}
+          />
+        </span>
+      )}
       {screen.indicator === undefined ? null : (
         <PictureIndicator indicator={screen.indicator} />
       )}

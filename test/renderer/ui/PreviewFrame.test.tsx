@@ -76,6 +76,24 @@ function smallNames(): Array<string | null> {
 }
 
 describe('PreviewFrame', () => {
+  it('shows transition caption and progress on the audience screen only', () => {
+    render(
+      <PreviewFrame
+        screens={[{...main, transitionProgress: 0.5}, stage]}
+        big="main"
+        onBigChange={() => {}}
+        renderScreen={() => null}
+      />,
+    );
+    expect(screen.getByText('\uC804\uD658 \uC911')).toBeTruthy();
+    expect(
+      screen
+        .getByText('\uC804\uD658 \uC911')
+        .parentElement?.querySelector('[style*="scaleX(0.5)"]'),
+    ).not.toBeNull();
+    expect(screen.getByText('\uBB34\uB300 \uD654\uBA74')).toBeTruthy();
+  });
+
   it('does not switch previews on modified keyboard activation', () => {
     const onBigChange = vi.fn();
     render(<Preview onBigChange={onBigChange} />);

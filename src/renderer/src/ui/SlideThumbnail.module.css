@@ -179,3 +179,18 @@
   .thumb[data-selection-style='plate'][aria-selected='true']::before {
   box-shadow: var(--ring-selected);
 }
+
+.transitionTrack {
+  position: absolute;
+  inset: auto 0 0;
+  height: var(--space-2);
+  z-index: 2;
+  pointer-events: none;
+}
+.transitionFill {
+  display: block;
+  width: 100%;
+  height: 100%;
+  background: var(--accent);
+  transform-origin: left;
+}

@@ -142,6 +142,7 @@ export interface SlideThumbnailProps {
   readonly missingFile?: string | undefined;
   readonly selected?: boolean | undefined;
   readonly live?: boolean | undefined;
+  readonly transitionProgress?: number | undefined;
   /** Physical hot key code assigned to this slide, e.g. KeyA or Digit1. */
   readonly hotKey?: string | undefined;
 }
@@ -256,6 +257,7 @@ export const SlideThumbnail = memo(
     missingFile,
     selected = false,
     live = false,
+    transitionProgress,
     hotKey,
     transition,
     selectionStyle = 'ring',
@@ -295,6 +297,14 @@ export const SlideThumbnail = memo(
           label={label}
           labelColor={labelColor}
         />
+        {live && transitionProgress !== undefined ? (
+          <span aria-hidden="true" className={styles.transitionTrack}>
+            <span
+              className={styles.transitionFill}
+              style={{transform: `scaleX(${transitionProgress})`}}
+            />
+          </span>
+        ) : null}
         {tooltip}
       </button>
     );
