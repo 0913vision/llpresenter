@@ -66,7 +66,7 @@ export const BROADCAST_LOOK_GEOMETRY = {
   songTitleSize: 48,
   songTitleHeight: 60,
   songTitleGap: 8,
-  songBandOpacity: 91,
+  songBandOpacity: 70,
   songBandShadowBlur: 6,
   songBandShadowOpacity: 80,
   songTextShadowBlur: 4,
