@@ -44,7 +44,7 @@ it('holds one still under the incoming surface and removes it when the wipe comp
   frame(16);
   expect(still?.style.zIndex).toBe('0');
   expect(still?.style.opacity).toBe('1');
-  expect(animate).toHaveBeenCalledOnce();
+  expect(animate).toHaveBeenCalledTimes(2);
   finish();
   await finished;
   await Promise.resolve();
@@ -77,7 +77,7 @@ it('waits for two consecutive ready paints and caps preparation at 400ms', async
   vi.advanceTimersByTime(399);
   expect(animate).not.toHaveBeenCalled();
   vi.advanceTimersByTime(1);
-  expect(animate).toHaveBeenCalledOnce();
+  expect(animate).toHaveBeenCalledTimes(2);
   view.clear();
 });
 
@@ -127,7 +127,7 @@ it('animates two decoded pictures and restores live output only after completion
   ).toBe(true);
   expect(host.querySelectorAll('img')).toHaveLength(2);
   expect(surface.style.visibility).toBe('hidden');
-  expect(animate).toHaveBeenCalledOnce();
+  expect(animate).toHaveBeenCalledTimes(2);
   expect(liveAnimate).not.toHaveBeenCalled();
   finish();
   await finished;

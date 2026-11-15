@@ -103,9 +103,13 @@ function setUp(live: Partial<LlpApi['live']> = {}) {
 }
 
 describe('startOutput', () => {
-  it.each(['standby', 'black'] as const)(
-    'keeps %s in the outgoing composition during a wipe',
-    async origin => {
+  it.each([
+    ['standby', false],
+    ['black', false],
+    ['standby', true],
+  ] as const)(
+    'keeps %s in the outgoing composition during a wipe (ready: %s)',
+    async (origin, alreadyReady) => {
       let receive: (state: LiveState) => void = () => undefined;
       const oldSlide = SHOWING.layers.slide;
       if (oldSlide === null) throw new Error('Missing slide');
@@ -120,13 +124,21 @@ describe('startOutput', () => {
       };
       const defaults = mockLlpApi();
       const root = document.createElement('div');
-      const play = vi
-        .spyOn(SlideAnimation.prototype, 'play')
+      const prepare = vi
+        .spyOn(SlideAnimation.prototype, 'prepare')
+        .mockImplementation((_old, next) => {
+          expect(next.style.visibility).toBe('hidden');
+        });
+      const start = vi
+        .spyOn(SlideAnimation.prototype, 'start')
         .mockImplementation(() => undefined);
       vi.spyOn(SlideAnimation.prototype, 'finished').mockReturnValue(
         new Promise(() => undefined),
       );
-      vi.spyOn(OutputRenderer.prototype, 'ready').mockReturnValue(true);
+      const ready = vi
+        .spyOn(OutputRenderer.prototype, 'ready')
+        .mockReturnValue(true);
+      const render = vi.spyOn(OutputRenderer.prototype, 'render');
       const api = mockLlpApi({
         settings: {
           get: ({name}) =>
@@ -148,7 +160,9 @@ describe('startOutput', () => {
         await Promise.resolve();
         await pumpReadiness();
         await pumpReadiness();
-        play.mockClear();
+        prepare.mockClear();
+        start.mockClear();
+        ready.mockReturnValue(alreadyReady);
         receive({
           ...SHOWING,
           version: current.version + 1,
@@ -164,11 +178,31 @@ describe('startOutput', () => {
           },
         });
         expect(root.children).toHaveLength(2);
-        expect(play).toHaveBeenCalledWith(
+        const incoming = root.children[1];
+        if (!(incoming instanceof HTMLElement)) {
+          throw new Error('Missing incoming surface');
+        }
+        expect(render).toHaveBeenLastCalledWith(
+          expect.anything(),
+          expect.objectContaining({transitions: false}),
+        );
+        if (!alreadyReady) {
+          expect(prepare).not.toHaveBeenCalled();
+          expect(incoming.style.visibility).toBe('hidden');
+          ready.mockReturnValue(true);
+          runFramesFor(0);
+        }
+        expect(prepare).toHaveBeenCalledWith(
           root.children[0],
           root.children[1],
           expect.objectContaining({kind: 'wipe'}),
         );
+        expect(incoming.style.visibility).toBe('');
+        expect(start).not.toHaveBeenCalled();
+        runFramesFor(0);
+        expect(start).not.toHaveBeenCalled();
+        runFramesFor(0);
+        expect(start).toHaveBeenCalledOnce();
         const covers = root.querySelectorAll<HTMLElement>(
           '[data-black-screen]',
         );
