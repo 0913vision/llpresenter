@@ -43,6 +43,7 @@ class TimerClock {
           },
         },
       );
+      this.clock.resume();
       this.snapshot = this.now();
       this.interval = setInterval(() => {
         this.snapshot = this.now();
@@ -54,8 +55,7 @@ class TimerClock {
       if (this.listeners.size === 0 && this.interval !== null) {
         clearInterval(this.interval);
         this.interval = null;
-        this.clock?.dispose();
-        this.clock = null;
+        this.clock?.suspend();
       }
     };
   };

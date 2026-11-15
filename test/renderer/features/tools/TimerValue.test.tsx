@@ -79,6 +79,10 @@ describe('timer values and their shared clock', () => {
 
   it('shares one interval, releases its final listener and can start again', async () => {
     const f = fixture();
+    const stopWall = vi.fn();
+    const subscribeWall = vi
+      .spyOn(f.api.live, 'subscribeWallClock')
+      .mockReturnValue(stopWall);
     const value = <TimerValue api={f.api} timer={f.timer} run={f.run} />;
     const view = render(
       <>
@@ -92,10 +96,13 @@ describe('timer values and their shared clock', () => {
     expect(vi.getTimerCount()).toBe(1);
     view.unmount();
     expect(vi.getTimerCount()).toBe(0);
+    expect(stopWall).toHaveBeenCalledOnce();
     const again = render(value);
     expect(vi.getTimerCount()).toBe(1);
     expect(f.clock).toHaveBeenCalledOnce();
+    expect(subscribeWall).toHaveBeenCalledTimes(2);
     again.unmount();
+    expect(stopWall).toHaveBeenCalledTimes(2);
     expect(vi.getTimerCount()).toBe(0);
   });
 

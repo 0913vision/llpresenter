@@ -46,8 +46,20 @@ describe('MainTimerClock', () => {
         timeZone: clock.now().timeZone,
       }),
     ).toBe('11:00:00');
-    clock.dispose();
+    clock.suspend();
     expect(stop).toHaveBeenCalledOnce();
+    clock.resume();
+    changed.mockClear();
+    push({wall: Date.UTC(2026, 0, 1, 3), monotonic: 1000, timeZone: 'UTC'});
+    expect(changed).toHaveBeenCalledOnce();
+    expect(
+      stageClockText(clock.now().wall, '24h', {
+        seconds: true,
+        timeZone: clock.now().timeZone,
+      }),
+    ).toBe('03:00:00');
+    clock.dispose();
+    expect(stop).toHaveBeenCalledTimes(2);
   });
 
   it("reads main's clock through the offset of one round trip's midpoint", async () => {

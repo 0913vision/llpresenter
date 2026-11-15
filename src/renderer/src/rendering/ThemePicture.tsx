@@ -350,10 +350,13 @@ function ThemeTime({
   }, [timers]);
   const content =
     element.kind === 'clock'
-      ? stageClockText(now.wall, element.clockFormat, {
-          seconds: element.seconds ?? false,
-          timeZone: now.timeZone,
-        })
+      ? stageClockText(
+          now.wall,
+          element.clockFormat,
+          now.timeZone === undefined
+            ? element.seconds
+            : {seconds: element.seconds ?? false, timeZone: now.timeZone},
+        )
       : element.timerId === undefined || timers === undefined
         ? sample
         : fillTimerTokens(`{timer:${element.timerId}}`, timers, now);
