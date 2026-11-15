@@ -527,8 +527,7 @@ describe('PreferencesView', () => {
     );
     expect(
       await screen.findByRole('menuitemradio', {
-        name: '가사 위 한 줄',
-        exact: true,
+        name: /^가사 위 한 줄$/u,
       }),
     ).toBeDefined();
     await userEvent.click(
