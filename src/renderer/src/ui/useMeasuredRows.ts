@@ -1,4 +1,10 @@
-import {useCallback, useLayoutEffect, useState, type RefObject} from 'react';
+import {
+  useCallback,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type RefObject,
+} from 'react';
 import {
   reconcileSlideRowMeasurements,
   type SlideRowMeasurements,
@@ -24,8 +30,11 @@ export function useMeasuredRows(
   );
   const current = reconcileSlideRowMeasurements(cache, scope, ids);
   if (current !== cache) setCache(current);
+  const [generation, setGeneration] = useState(0);
+  const activeGeneration = useRef(0);
   const saveHeight = useCallback(
     (id: string, height: number) => {
+      if (generation !== activeGeneration.current) return;
       setCache(previous =>
         previous.scope !== scope ||
         !previous.ids.has(id) ||
@@ -34,7 +43,7 @@ export function useMeasuredRows(
           : {...previous, values: {...previous.values, [id]: height}},
       );
     },
-    [scope],
+    [scope, generation],
   );
   useLayoutEffect(() => {
     const viewport = viewportRef.current;
@@ -44,6 +53,8 @@ export function useMeasuredRows(
       if (viewport.clientWidth === width) return;
       width = viewport.clientWidth;
       setCache(previous => ({...previous, values: {}}));
+      activeGeneration.current += 1;
+      setGeneration(activeGeneration.current);
     });
     observer.observe(viewport);
     return () => observer.disconnect();

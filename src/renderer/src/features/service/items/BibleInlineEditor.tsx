@@ -150,6 +150,7 @@ function BibleEditorContent({
     scale,
     viewportRef,
     heights,
+    fallbackHeight: 180 * (9 / 16) + 28,
   });
   return (
     <section className={styles.editor} aria-label="성경 편집">
