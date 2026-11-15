@@ -27,7 +27,7 @@ export function stageLyricLabelLayout(
     element => element.kind === 'currentText',
   );
   if (current?.kind !== 'currentText') return layout;
-  const elements = layout.elements.filter(element => element.kind !== 'label');
+  const elements = [...layout.elements];
   if (!slide.labelContinued) {
     const height = current.text.size * current.text.lineHeight;
     const lines = Math.max(

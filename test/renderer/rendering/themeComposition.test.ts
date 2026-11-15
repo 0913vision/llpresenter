@@ -2947,12 +2947,17 @@ it('shows stage lyric labels on their own line only at their start', () => {
       ?.textContent ?? '';
   draw(false, 'stage');
   expect(text('currentText')).toBe('Current');
-  expect(text('label')).toBe('(Verse)');
-  expect(root.querySelectorAll('[data-kind="label"]')).toHaveLength(1);
+  expect(text('label')).toBe('Verse');
+  expect(
+    Array.from(
+      root.querySelectorAll(`[data-kind="label"] .${classes.shown}`),
+    ).map(node => node.textContent),
+  ).toEqual(['Verse', '(Verse)']);
   expect(text('nextText')).toBe('(Outro) Next');
   draw(false, 'stage', true);
   expect(text('currentText')).toBe('Current');
-  expect(text('label')).toBe('');
+  expect(text('label')).toBe('Verse');
+  expect(root.querySelectorAll('[data-kind="label"]')).toHaveLength(1);
   expect(text('nextText')).toBe('(Outro) Next');
   draw(true, 'stage');
   expect(text('currentText')).toBe('Current');

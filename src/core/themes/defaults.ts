@@ -143,9 +143,16 @@ function stageElements(kind: ThemeItemKind = 'song'): ThemeElement[] {
       case 'currentLabel':
         return {
           ...base,
+          frame: {...base.frame, y: 10, h: 80},
           kind: 'label',
           hideWhenItemTitle: true,
-          text: {...text, size: 40, lineHeight: 1.1, align: 'center'},
+          text: {
+            ...text,
+            size: 64,
+            weight: 800,
+            lineHeight: 1.1,
+            align: 'center',
+          },
         };
       case 'clock':
         return {
