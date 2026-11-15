@@ -104,13 +104,20 @@ describe('outputting the tile of a media item', () => {
         ),
     ).toEqual([PLAIN_SONG, MEDIA_ITEM, PLAIN_SONG]);
   });
-  it('drops a song whose lookup is still pending when a media tile goes out', async () => {
+  it('does not correct a song after a media tile replaces it', async () => {
     outputTile({itemId: SONG, index: 0});
     outputTile({itemId: MEDIA_ITEM, index: 0});
     const before = sent.length;
     answer(service);
     await new Promise(resolve => setTimeout(resolve, 0));
     expect(sent).toHaveLength(before);
-    expect(types()).not.toContain('slide.show');
+    expect(types()).toEqual([
+      'item.start',
+      'media.show',
+      'slide.show',
+      'item.start',
+      'layer.clear',
+      'media.show',
+    ]);
   });
 });

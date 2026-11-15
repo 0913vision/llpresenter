@@ -331,7 +331,11 @@ describe('song backgrounds on output', () => {
     click('one');
     await expectSlide('one');
     expect(store.state.layers.media?.mediaId).toBe('video');
-    expect(log).toHaveBeenCalledWith(expect.objectContaining({level: 'warn'}));
+    await vi.waitFor(() =>
+      expect(log).toHaveBeenCalledWith(
+        expect.objectContaining({level: 'warn'}),
+      ),
+    );
   });
 
   it('bounds a stuck lookup and outputs the cached item background', async () => {

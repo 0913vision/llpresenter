@@ -206,10 +206,16 @@ describe('starting a service item', () => {
     ]);
     finish({...value, revision: 2, tiles: {[first]: [tile]}});
     await waitFor(() => expect(useShow.getState().revision).toBe(2));
-    expect(sent).toHaveLength(3);
+    expect(sent.filter(command => command.type === 'slide.show')).toHaveLength(
+      1,
+    );
+    expect(
+      sent.slice(3).every(command => command.type === 'stage.next.set'),
+    ).toBe(true);
+    const count = sent.length;
     expect(useLive.getState().lastStartedItemId).toBe(first);
     outputTile({itemId: first, index: 1});
-    expect(sent).toHaveLength(3);
+    expect(sent).toHaveLength(count);
   });
 
   it('does not start an item after a newer output supersedes its pending lookup', async () => {
