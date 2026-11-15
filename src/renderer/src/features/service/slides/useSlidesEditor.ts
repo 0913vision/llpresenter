@@ -26,6 +26,7 @@ export function useSlidesEditor(
   options: {
     readonly beforeOpen?: (open: () => void) => void;
     readonly onOpened?: (target: SlidesEditorTarget) => void;
+    readonly onOpenFailed?: (target: SlidesEditorTarget) => void;
     readonly positionOf?: (target: SlidesEditorTarget) => number;
   } = {},
 ) {
@@ -92,6 +93,7 @@ export function useSlidesEditor(
             !isItemOfKind(item, 'slides')
           ) {
             problem('슬라이드 열기 실패');
+            latest.current.onOpenFailed?.(next);
             return;
           }
           const commands = pool.sessionFor(item, next);
@@ -105,6 +107,7 @@ export function useSlidesEditor(
           console.error('Could not open slides', error);
           if (turn === generation.current) {
             problem('슬라이드 열기 실패');
+            latest.current.onOpenFailed?.(next);
           }
         }
       };

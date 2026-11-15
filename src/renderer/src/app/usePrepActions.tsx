@@ -27,6 +27,7 @@ import {noticeTime} from '@renderer/ui/notices';
 import {InlineSongController} from '@renderer/features/songs/editor/InlineSongController';
 import type {SongEditorWindowModel} from '@renderer/features/songs/editor/useSongEditorWindow';
 import {useSlidesEditor} from '@renderer/features/service/slides/useSlidesEditor';
+import {reportPrepOpenFailure} from './prepOpenFailure';
 
 const noEditorSubscription = (): (() => void) => () => undefined;
 
@@ -102,6 +103,7 @@ export function usePrepActions({
   const prepSelection = usePrepSelection();
   const editorControls = useRef<SongEditorWindowModel | null>(null);
   const slides = useSlidesEditor(session.api, session.report, {
+    onOpenFailed: target => reportPrepOpenFailure(target.itemId),
     beforeOpen: open =>
       session.editor ? session.editor.requestLeave(open) : open(),
     positionOf: target => {
@@ -229,6 +231,7 @@ export function usePrepActions({
           isCurrent,
         ).catch(() => {
           if (!isCurrent()) return;
+          reportPrepOpenFailure(itemId);
           session.report({
             key: 'prep:song-open',
             kind: 'warning',
@@ -255,9 +258,10 @@ export function usePrepActions({
             serviceId: createServiceId(view.serviceId),
             itemId: createServiceItemId(itemId),
           })
-          .catch((error: unknown) =>
-            console.error('Could not open slides', error),
-          );
+          .catch((error: unknown) => {
+            reportPrepOpenFailure(itemId);
+            console.error('Could not open slides', error);
+          });
         return;
       }
       if (position !== undefined && view.serviceId !== null) {
