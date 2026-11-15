@@ -44,9 +44,9 @@ it('shows themed slides with ad names in their bands and sends picture slides on
   render(<SlideGrid columns={4} scalePercent={100} />);
   expect(screen.getAllByRole('option')).toHaveLength(3);
   expect(screen.getAllByRole('option')[0]?.textContent).toContain('Meeting');
-  expect(slide(0).querySelector('[class*="band"]')?.textContent).toContain(
-    'Meeting',
-  );
+  expect(
+    slide(0).querySelector(':scope > [class*="band"]')?.textContent,
+  ).toContain('Meeting');
   fireEvent.click(slide(1));
   expect(screen.queryByRole('option', {selected: true})).toBeNull();
   const command = send.mock.calls.at(-1)?.[0];
@@ -72,9 +72,9 @@ it('shows a Bible verse label in the attached strip', () => {
   });
   openItem('bible-item');
   render(<SlideGrid columns={4} scalePercent={100} />);
-  expect(slide(0).querySelector('[class*="band"]')?.textContent).toContain(
-    '3:16',
-  );
+  expect(
+    slide(0).querySelector(':scope > [class*="band"]')?.textContent,
+  ).toContain('3:16');
 });
 
 function slide(index: number): HTMLElement {

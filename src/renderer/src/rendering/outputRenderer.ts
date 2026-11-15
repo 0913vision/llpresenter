@@ -59,7 +59,7 @@ export class OutputRenderer {
   private readonly root = document.createElement('div');
   private readonly layers: readonly ActiveLayer[];
   private theme: ThemeCompositionView | null = null;
-  private readonly resizeObserver: ResizeObserver;
+  private readonly resizeObserver: ResizeObserver | null;
   private disposed = false;
   private background: string | null = null;
   private screen: RenderScreen | undefined;
@@ -79,8 +79,11 @@ export class OutputRenderer {
     if (options.transparent) this.setBackground('transparent');
     this.layers = renderLayers.flatMap(layer => this.createLayer(layer));
     parent.append(this.root);
-    this.resizeObserver = new ResizeObserver(() => this.rescale());
-    this.resizeObserver.observe(this.root);
+    this.resizeObserver =
+      typeof ResizeObserver === 'undefined'
+        ? null
+        : new ResizeObserver(() => this.rescale());
+    this.resizeObserver?.observe(this.root);
     this.rescale();
   }
 
@@ -177,7 +180,7 @@ export class OutputRenderer {
   dispose(): void {
     if (this.disposed) return;
     this.disposed = true;
-    this.resizeObserver.disconnect();
+    this.resizeObserver?.disconnect();
     if (this.fadeFrame !== null) cancelAnimationFrame(this.fadeFrame);
     this.fadeFrame = null;
     this.clearFades.dispose();

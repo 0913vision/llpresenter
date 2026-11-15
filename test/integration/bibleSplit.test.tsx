@@ -24,6 +24,7 @@ import {bibleVerseTiles} from '@core/bible/bibleTiles';
 import {emptyLiveState} from '@core/live/state';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import * as bibleRendering from '@renderer/rendering/bibleMeasure';
+import {classes} from '@renderer/rendering/classes';
 import type {Notice} from '@renderer/ui/notices';
 import {BibleSplitTools} from '@renderer/features/bible/BibleSplitTools';
 import {BibleQuickField} from '@renderer/features/quick/BibleQuickField';
@@ -352,11 +353,13 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
             return;
           }
           const rows = first?.querySelectorAll<HTMLElement>(
-            '[data-measured-line]',
+            `[data-kind="currentText"] .${classes.shown} .${classes.block} > div`,
           );
-          expect(Array.from(rows ?? []).map(row => row.textContent)).toEqual(
-            expected,
-          );
+          expect(
+            Array.from(rows ?? []).map(row =>
+              row.textContent.replaceAll('\u00a0', ' '),
+            ),
+          ).toEqual(expected);
           expect(rows?.[0]?.parentElement?.style.fontSize).toBe('36px');
         });
         if (workspace !== 'details') {
