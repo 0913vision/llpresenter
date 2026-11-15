@@ -95,11 +95,13 @@ describe('update presentation', () => {
       busy: false,
       notice: true,
     };
-    setup(snapshot);
-    expect((await screen.findByRole('alert')).textContent).toContain('1.2.3');
+    const view = setup(snapshot);
+    expect((await screen.findByRole('status')).textContent).toContain('1.2.3');
     expect(screen.queryByRole('alertdialog')).toBeNull();
     expect(
       screen.queryByRole('button', {name: '\uC5C5\uB370\uC774\uD2B8'}),
     ).toBeNull();
+    fireEvent.click(screen.getByRole('button', {name: '알림 닫기'}));
+    expect(view.send).toHaveBeenCalledWith({revision: 1, action: 'dismiss'});
   });
 });

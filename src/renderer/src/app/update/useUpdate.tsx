@@ -105,9 +105,7 @@ export function useUpdate(
       title:
         status.kind === 'available'
           ? `새 버전이 있습니다 (${status.version})`
-          : status.kind === 'downloaded'
-            ? `새 버전 ${status.version} 내려받기 완료`
-            : title,
+          : title,
       time: noticeTime(),
       meta,
     };
