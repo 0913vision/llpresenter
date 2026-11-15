@@ -12,6 +12,7 @@ import {
 } from 'react';
 import type {SlideListItem} from '@core/songs/slideListEdits';
 import type {LeadingSlideCard} from './SlideCardRenderer';
+import {slideDropPosition} from './gridInsertionPosition';
 
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {isComposing} from '@renderer/ui/ime';
@@ -193,14 +194,7 @@ export function SongSlideSurface<T extends SlideListItem>({
           )
         : null;
     if (node === null) return null;
-    if (node.dataset.slideGap !== undefined) {
-      return Number(node.dataset.slideGap);
-    }
-    const rect = node.getBoundingClientRect();
-    const after = node.hasAttribute('data-editor-block')
-      ? event.clientY > (rect.top + rect.bottom) / 2
-      : event.clientX > (rect.left + rect.right) / 2;
-    return Number(node.dataset.slideIndex) + (after ? 1 : 0);
+    return slideDropPosition(node, event.clientX, event.clientY);
   };
   const clearDrop = (): void => {
     surfaceRef.current

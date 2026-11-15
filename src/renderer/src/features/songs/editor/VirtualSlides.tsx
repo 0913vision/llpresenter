@@ -14,6 +14,7 @@ import {thumbnailWidth} from '@renderer/ui/thumbnailSize';
 import {isComposing} from '@renderer/ui/ime';
 import type {Song} from '@core/schema/song';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
+import {gridInsertionPosition} from './gridInsertionPosition';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import styles from './SongPanels.module.css';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
@@ -429,6 +430,11 @@ export function VirtualSlides<T extends SlideListItem>({
                   data-slide-gap={number - 1}
                   tabIndex={-1}
                   className={styles.gridGap}
+                  style={
+                    (number - 1) % columns === 0
+                      ? {insetInlineStart: 0}
+                      : undefined
+                  }
                   data-caret={list?.selection.caret === number - 1}
                   aria-label={`슬라이드 ${number} 앞에 삽입`}
                   onClick={event => {
@@ -448,6 +454,19 @@ export function VirtualSlides<T extends SlideListItem>({
           <button
             type="button"
             className={styles.lastGap}
+            style={gridInsertionPosition({
+              index: numbers.length,
+              count: numbers.length,
+              leading: 0,
+              columns,
+              width,
+              columnGap: measure.xGap,
+              offsets: Array.from(
+                {length: rows + 1},
+                (_, index) => index * stride,
+              ),
+              rowGap: measure.yGap,
+            })}
             data-slide-gap={numbers.length}
             tabIndex={-1}
             data-caret={list?.selection.caret === numbers.length}

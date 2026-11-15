@@ -101,6 +101,21 @@
 .gap[data-slide-drop]::after {
   background: var(--accent);
 }
+
+.rows[data-view='grid'] .gap {
+  position: absolute;
+  inset-block: 0;
+  inset-inline-start: calc(-1 * var(--space-8));
+  width: var(--space-8);
+  height: auto;
+  z-index: 1;
+}
+
+.rows[data-view='grid'] .gap::after {
+  width: var(--space-2);
+  height: 100%;
+  margin: 0;
+}
 .thumbnail {
   position: relative;
   height: fit-content;
