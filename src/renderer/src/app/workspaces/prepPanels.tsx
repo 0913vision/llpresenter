@@ -1,4 +1,5 @@
 import {useOtherSources} from '@renderer/features/service/items/useOtherSources';
+import {followPrepOpenFailures} from '../prepOpenFailure';
 import {EditorBackgroundDrop} from './EditorBackgroundDrop';
 import {PrepPalette} from '@renderer/features/service/items/PrepPalette';
 import {
@@ -476,6 +477,12 @@ export function usePrepPanels({
   readonly onShowInLibrary: ((songId: SongId) => void) | undefined;
 }): WorkspacePanels {
   const [otherId, setOtherId] = useState<string | null>(null);
+  const [switching, setSwitching] = useState<{
+    readonly editor: unknown;
+    readonly slides: unknown;
+    readonly closed: boolean;
+    readonly itemId: string;
+  } | null>(null);
   const leaveTurn = useRef(0);
   const otherService = useRef<string | null>(null);
   const serviceId = useShow(view => view.serviceId);
@@ -538,8 +545,54 @@ export function usePrepPanels({
           : 'library';
     },
   );
+  const editorSession = prep?.editor.getSnapshot().session ?? null;
+  const slidesDraft = prep?.slides?.draft ?? null;
+  useEffect(
+    () =>
+      followPrepOpenFailures(itemId => {
+        setSwitching(current => (current?.itemId === itemId ? null : current));
+      }),
+    [],
+  );
+  const switchingId = switching?.itemId;
+  useEffect(() => {
+    if (switchingId === undefined) return undefined;
+    const timer = setTimeout(() => {
+      if (
+        prep?.editor.getSnapshot().session == null &&
+        prep?.slides?.draft == null &&
+        otherId === null
+      ) {
+        setSwitching(current =>
+          current?.itemId === switchingId ? null : current,
+        );
+      }
+    }, 2000);
+    return () => clearTimeout(timer);
+  }, [switchingId, prep, otherId]);
   const hasDraft =
-    editorKind !== 'table' || prep?.slides?.draft != null || otherId !== null;
+    editorKind !== 'table' ||
+    slidesDraft !== null ||
+    otherId !== null ||
+    switching !== null;
+  if (
+    switching !== null &&
+    ((editorSession !== null &&
+      (switching.closed || editorSession !== switching.editor)) ||
+      (slidesDraft !== null &&
+        (switching.closed || slidesDraft !== switching.slides)) ||
+      otherId !== null)
+  ) {
+    setSwitching(null);
+  } else if (
+    switching !== null &&
+    !switching.closed &&
+    editorSession === null &&
+    slidesDraft === null &&
+    otherId === null
+  ) {
+    setSwitching({...switching, closed: true});
+  }
   const sources = useOtherSources(hasDraft);
   const editorId = useSyncExternalStore(
     prep?.editor.subscribe ?? noSubscribe,
@@ -550,8 +603,9 @@ export function usePrepPanels({
     const slides = prep?.slides?.draft;
     if (hasDraft) {
       const id = otherId ?? slides?.snapshot.item.id ?? editorId;
-      origin.current =
-        id === null ? null : {id, library: editorKind === 'library'};
+      if (id !== null) {
+        origin.current = {id, library: editorKind === 'library'};
+      }
       return;
     }
     const previous = origin.current;
@@ -600,6 +654,7 @@ export function usePrepPanels({
   };
   const back = (): void =>
     leave(() => {
+      setSwitching(null);
       setOtherId(null);
       prep?.editor.open(null);
     });
@@ -634,6 +689,12 @@ export function usePrepPanels({
                 openOther(id);
               } else {
                 leave(() => {
+                  setSwitching({
+                    editor: editorSession,
+                    slides: slidesDraft,
+                    closed: false,
+                    itemId: id,
+                  });
                   setOtherId(null);
                   onOpenPrep?.(id);
                 });

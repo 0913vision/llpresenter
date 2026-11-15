@@ -4,6 +4,7 @@ import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {useShow} from '@renderer/session/show';
 import {itemFixture} from '@fixtures/renderer/features/service/items/itemFixture';
 import {usePrepPanels} from '@renderer/app/workspaces/prepPanels';
+import {reportPrepOpenFailure} from '@renderer/app/prepOpenFailure';
 import {
   SERVICE_ORDER,
   serviceOrderParts,
@@ -155,6 +156,51 @@ describe('usePrepPanels', () => {
     act(() => allowLeave?.());
     expect(onOpenPrep).toHaveBeenCalledExactlyOnceWith('next-item');
   });
+
+  it('keeps the navigator layout while the next item editor opens', async () => {
+    const {fixture, editor, result} = setup();
+    act(() => editor.open(fixture.first, {content: fixture.api.content}));
+    vi.spyOn(editor, 'requestLeave').mockImplementation(action => action());
+    result.current.partsOf(SERVICE_ORDER);
+    const navigate =
+      vi.mocked(serviceOrderParts).mock.lastCall?.[0].onNavigateEditor;
+    await act(async () => navigate?.('next-item', 'song'));
+    act(() => editor.open(null));
+    expect(result.current.columns[1]).toEqual(['편집']);
+    result.current.partsOf(SERVICE_ORDER);
+    expect(vi.mocked(serviceOrderParts).mock.lastCall?.[0].navigator).toBe(
+      true,
+    );
+    act(() => editor.open(fixture.second, {content: fixture.api.content}));
+    expect(result.current.columns[1]).toEqual(['편집']);
+    act(() => editor.open(null));
+    await waitFor(() =>
+      expect(result.current.columns[1]).toEqual([SERVICE_ORDER]),
+    );
+  });
+
+  it.each(['error', 'timeout'] as const)(
+    'returns to the table when opening the next item fails by %s',
+    async failure => {
+      const {fixture, editor, result} = setup();
+      act(() => editor.open(fixture.first, {content: fixture.api.content}));
+      vi.spyOn(editor, 'requestLeave').mockImplementation(action => action());
+      result.current.partsOf(SERVICE_ORDER);
+      const navigate =
+        vi.mocked(serviceOrderParts).mock.lastCall?.[0].onNavigateEditor;
+      await act(async () => navigate?.('next-item', 'song'));
+      act(() => editor.open(null));
+      expect(result.current.columns[1]).toEqual(['편집']);
+      if (failure === 'error') {
+        act(() => reportPrepOpenFailure('next-item'));
+      } else {
+        await act(
+          async () => new Promise(resolve => setTimeout(resolve, 2100)),
+        );
+      }
+      expect(result.current.columns[1]).toEqual([SERVICE_ORDER]);
+    },
+  );
 
   it.each(['false', 'reject'] as const)(
     'reports a %s flush and stays on the item',
