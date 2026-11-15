@@ -313,14 +313,17 @@ not preset names or indices, so the rename does not change existing themes.
 
 A gap never blanks a screen:
 
-- If the item's 테마 no longer exists, the screen uses its kind's default 테마.
+- If the item's 테마 no longer exists, a retired built-in ID first resolves to
+  its replacement: the former two-line sermon title (107) uses 설교 제목 (106).
+  Otherwise the screen uses the item's kind's default 테마.
 - If that is gone too, or `themes.json` can't be read or hasn't been read yet,
   the screen uses the built-in 테마 of the kind: 현재 슬라이드 글 full screen in
   the 기본 text style over 배경, and 성경 출처 for Bible items.
 - A missing font draws in Pretendard; a missing image or media file draws
   nothing in its element and reports the problem once (08).
-- Each output window logs a missing 테마, font, or media once per screen and ID,
-  for a bounded number of gaps, and logs again after `themes.json` changes.
+- The main process logs each missing 테마 ID once per session. Each output
+  window logs missing fonts and media once per screen and ID, for a bounded
+  number of gaps, and logs them again after `themes.json` changes.
 
 ## The 테마 editor
 
@@ -814,7 +817,11 @@ the next item.
 The built-in 이미지 슬라이드 theme displays a slide picture fitted within a
 black canvas on 청중 and 무대 screens; the stage also shows its clock. 방송
 screens are transparent and have no elements. PowerPoint picture imports use
-this theme with their privately owned slide pictures.
+this theme with their privately owned slide pictures. The image theme uses ID
+108; earlier imports used 107, which collided with the retired sermon title. On
+load, a 107 item containing picture slides uses 108; other 107 items use the
+retired-theme fallback. The service file is updated on its next save. An edited
+legacy image theme is retained when recognizable.
 
 A theme may set a slide transition in the theme editor. The built-in scripture
 theme uses a 0.7 second wipe, the creed and prayer theme uses a 0.5 second wipe,

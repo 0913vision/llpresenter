@@ -50,10 +50,12 @@ function setup(
       throw new Error(`Unexpected settings: ${name}`);
     },
   };
+  const onMissingTheme = vi.fn();
   const runtime = new ThemeRuntime({
     settings,
     item: id => (id === ITEM ? service : undefined),
     onError: vi.fn(),
+    onMissingTheme,
   });
   let now = 1000;
   const store = new LiveStore(
@@ -90,6 +92,7 @@ function setup(
     dispatch,
     slide,
     service,
+    onMissingTheme,
     save: (next: LiveThemeItem) => {
       service = next;
     },
@@ -114,6 +117,22 @@ function setup(
 }
 
 describe('main-process theme runtime', () => {
+  it('reports each missing theme ID only once across slides and settings refreshes', () => {
+    const {slide, service, save, dispatch, onMissingTheme} = setup();
+    const missing = createThemeId('00000000-0000-4000-8000-000000000107');
+    save({...service, theme: missing});
+    slide();
+    slide(ITEM, undefined, 1);
+    dispatch({type: 'themes.refresh'});
+    slide(ITEM, undefined, 2);
+    expect(onMissingTheme).toHaveBeenCalledTimes(1);
+    expect(onMissingTheme).toHaveBeenCalledWith(missing);
+    const unknown = createThemeId('00000000-0000-4000-8000-000000000999');
+    save({...service, theme: unknown});
+    slide(ITEM, undefined, 3);
+    expect(onMissingTheme).toHaveBeenCalledTimes(2);
+    expect(onMissingTheme).toHaveBeenLastCalledWith(unknown);
+  });
   it('uses the sermon title theme for the first slide and returns to the Bible theme for the verse', () => {
     const {store, dispatch, service} = setup();
     const bibleTheme = service.theme;

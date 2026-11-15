@@ -115,6 +115,7 @@ export function registerThemeOutput({
         },
         onError: error =>
           log.warn('could not read theme output settings', error),
+        onMissingTheme: id => log.warn('missing theme; using fallback', {id}),
       });
       release = store.connectThemes(runtime);
       unsubscribe = settings.subscribe(document => {

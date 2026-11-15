@@ -31,7 +31,6 @@ import {
 import type {RenderFrame, ThemeFrame} from '@renderer/rendering/layer';
 import {ThemeCompositionView} from '@renderer/rendering/themeComposition';
 import {classes} from '@renderer/rendering/classes';
-import {MAX_THEME_GAPS} from '@renderer/rendering/themeGaps';
 import {bibleVerseTiles} from '@core/bible/bibleTiles';
 import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
 import {ThemeElementView} from '@renderer/rendering/themeElement';
@@ -2192,9 +2191,9 @@ describe('theme composition drawing', () => {
     for (let i = 0; i < 100; i++) {
       view.render(song, frame(elements, {missing: [`missing:${i}`]}));
     }
-    expect(onError).toHaveBeenCalledTimes(MAX_THEME_GAPS);
+    expect(onError).toHaveBeenCalledTimes(2);
     view.render(song, {...frame(elements, {revision: 2}), fonts: []});
-    expect(onError).toHaveBeenCalledTimes(MAX_THEME_GAPS + 1);
+    expect(onError).toHaveBeenCalledTimes(3);
     view.dispose();
     expect(image?.getAttribute('src')).toBeNull();
     expect(image?.onerror).toBeNull();

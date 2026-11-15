@@ -52,6 +52,7 @@ interface ThemeRuntimeOptions {
   readonly settings: Pick<SettingsReader, 'get'>;
   readonly item: (id: string) => LiveThemeItem | undefined;
   readonly onError: (error: unknown) => void;
+  readonly onMissingTheme?: (id: string) => void;
 }
 
 /** Resolves theme state inside the same admission boundary as the content command. */
@@ -61,6 +62,7 @@ export class ThemeRuntime {
   private revision = 0;
   private key: string | null = null;
   private output: ReturnType<typeof resolveThemeOutput> | undefined;
+  private readonly reportedMissingThemes = new Set<string>();
 
   constructor(private readonly options: ThemeRuntimeOptions) {
     this.refresh();
@@ -301,6 +303,13 @@ export class ThemeRuntime {
         mode,
         revision: this.revision,
       });
+      for (const id of this.output.missing) {
+        if (id.startsWith('default:') || this.reportedMissingThemes.has(id)) {
+          continue;
+        }
+        this.reportedMissingThemes.add(id);
+        this.options.onMissingTheme?.(id);
+      }
       this.key = key;
     }
     if (

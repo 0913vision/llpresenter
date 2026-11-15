@@ -1,4 +1,8 @@
 import {slideTransitionSchema} from './slideTransition';
+import {
+  IMAGE_SLIDES_THEME_ID,
+  LEGACY_IMAGE_SLIDES_THEME_ID,
+} from '../themes/imageThemeIds';
 import * as v from 'valibot';
 import type {Result} from '../common/result';
 import {isRecord} from '../common/guards';
@@ -319,7 +323,19 @@ export function parseService(
   text: string,
   file: string,
 ): Result<LoadedFile<Service>, FileError> {
-  return parseFile(serviceFormat, text, file);
+  const result = parseFile(serviceFormat, text, file);
+  return result.ok
+    ? {
+        ...result,
+        value: {
+          ...result.value,
+          data: {
+            ...result.value.data,
+            order: result.value.data.order.map(migrateImageTheme),
+          },
+        },
+      }
+    : result;
 }
 
 export function serializeService(
@@ -333,7 +349,30 @@ export function parseTemplate(
   text: string,
   file: string,
 ): Result<LoadedFile<Template>, FileError> {
-  return parseFile(templateFormat, text, file);
+  const result = parseFile(templateFormat, text, file);
+  return result.ok
+    ? {
+        ...result,
+        value: {
+          ...result.value,
+          data: {
+            ...result.value.data,
+            order: result.value.data.order.map(migrateImageTheme),
+          },
+        },
+      }
+    : result;
+}
+
+function migrateImageTheme(item: ServiceItem): ServiceItem {
+  if (
+    item.theme !== LEGACY_IMAGE_SLIDES_THEME_ID ||
+    !isItemOfKind(item, 'slides') ||
+    !item.slides.slides.some(slide => 'media' in slide)
+  ) {
+    return item;
+  }
+  return {...item, theme: IMAGE_SLIDES_THEME_ID};
 }
 
 export function serializeTemplate(

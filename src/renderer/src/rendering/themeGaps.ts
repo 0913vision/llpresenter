@@ -20,7 +20,6 @@ export class ThemeGaps {
       this.screen = screen;
       this.revision = revision;
     }
-    for (const id of frame.theme?.missing ?? []) this.missing('theme', id);
   }
 
   missing(kind: 'theme' | 'font' | 'media', id: string): void {

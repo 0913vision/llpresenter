@@ -44,7 +44,8 @@ export type ThemeScreen = Pick<Screen, 'id' | 'kind' | 'method'>;
 
 const uuid = (index: number) =>
   `00000000-0000-4000-8000-${String(index).padStart(12, '0')}`;
-export const IMAGE_SLIDES_THEME_ID = createThemeId(uuid(107));
+import {IMAGE_SLIDES_THEME_ID} from './imageThemeIds';
+export {IMAGE_SLIDES_THEME_ID} from './imageThemeIds';
 export const AD_THEME_ID = createThemeId(uuid(105));
 export const BIBLE_THEME_ID = createThemeId(uuid(102));
 const themeIds = {
