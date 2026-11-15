@@ -3,7 +3,7 @@ import {useEffect, useRef, useState, type JSX} from 'react';
 import {createThemeId, type ThemeId} from '@core/schema/ids';
 import type {Theme, ThemesFile} from '@core/schema/themes';
 import {THEME_LIMITS, themeItemKinds} from '@core/themes/elementRules';
-import {userThemeCount} from '@core/themes/builtInIds';
+import {isBuiltInThemeId, userThemeCount} from '@core/themes/builtInIds';
 import {editThemeList, type ThemeListEdit} from '@core/themes/themeEdits';
 import {countServiceItemUses} from '@renderer/features/service/serviceItemUsage';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
@@ -112,7 +112,15 @@ export function ThemeList({
     execute(edit).catch(model.reportError);
   };
   const requestDelete = (theme: Theme): void => {
-    if (checking || model.reason !== undefined || model.file === null) return;
+    if (
+      checking ||
+      model.reason !== undefined ||
+      model.file === null ||
+      theme.id === model.file.standby.id ||
+      isBuiltInThemeId(theme.id)
+    ) {
+      return;
+    }
     const api = window.llp;
     if (api === undefined) return;
     lookup.current?.abort();
@@ -214,21 +222,22 @@ export function ThemeList({
             ...available,
             onSelect: () => renameAfterMenu(target),
           },
-          ...(regular
-            ? ([
-                {kind: 'separator', id: 'delete-separator'},
-                {
-                  kind: 'item',
-                  id: 'delete',
-                  contextGroup: 'delete',
-                  label: '삭제',
-                  ...menuAvailability(
-                    model.reason ?? (checking ? USAGE_LOADING : undefined),
-                  ),
-                  onSelect: () => requestDelete(target),
-                },
-              ] as const)
-            : []),
+          {kind: 'separator', id: 'delete-separator'},
+          {
+            kind: 'item',
+            id: 'delete',
+            contextGroup: 'delete',
+            label: '삭제',
+            ...menuAvailability(
+              model.reason ??
+                (!regular || isBuiltInThemeId(target.id)
+                  ? themeProblems['built-in']
+                  : checking
+                    ? USAGE_LOADING
+                    : undefined),
+            ),
+            onSelect: () => requestDelete(target),
+          },
         ];
   const choices =
     model.file === null ? [] : [model.file.standby, ...model.file.themes];
@@ -265,6 +274,23 @@ export function ThemeList({
             const theme = choices.find(value => value.id === id);
             if (theme !== undefined) model.chooseTheme(theme.id);
           }}
+          canMove={theme =>
+            model.reason === undefined && theme.id !== model.file?.standby.id
+          }
+          onMove={(id, before) => {
+            const source = choices.find(theme => theme.id === id);
+            const target =
+              before === null
+                ? null
+                : choices.find(theme => theme.id === before);
+            if (source && target !== undefined) {
+              run({kind: 'move', id: source.id, before: target?.id ?? null});
+            }
+          }}
+          onRename={theme => {
+            if (model.reason === undefined) setRenaming(theme.id);
+          }}
+          onDelete={requestDelete}
           onMenu={(theme, anchor) => {
             model.chooseTheme(theme.id);
             setMenu({theme, anchor});

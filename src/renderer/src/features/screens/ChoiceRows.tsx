@@ -28,6 +28,10 @@ export function ChoiceRows<T extends Choice>({
   onSelect,
   onMenu,
   rowEnd,
+  onMove,
+  canMove,
+  onRename,
+  onDelete,
 }: {
   readonly choices: readonly T[];
   readonly warnings?: ReadonlyMap<string, string>;
@@ -42,9 +46,15 @@ export function ChoiceRows<T extends Choice>({
   readonly onSelect: (id: string) => void;
   readonly onMenu?: (choice: T, anchor: MenuAnchor) => void;
   readonly rowEnd?: (choice: T) => ReactNode;
+  readonly onMove?: (id: string, before: string | null) => void;
+  readonly canMove?: (choice: T) => boolean;
+  readonly onRename?: (choice: T) => void;
+  readonly onDelete?: (choice: T) => void;
 }): JSX.Element {
   const viewport = useRef<HTMLDivElement>(null);
   const focusNext = useRef<string | null>(null);
+  const dragged = useRef<string | null>(null);
+  const [drop, setDrop] = useState<{id: string; after: boolean} | null>(null);
   const [view, setView] = useState({top: 0, height: 0, row: 0});
   const measure = (): void => {
     const element = viewport.current;
@@ -114,6 +124,17 @@ export function ChoiceRows<T extends Choice>({
     ) {
       return;
     }
+    const selectedChoice = choices.find(choice => choice.id === selected);
+    if (
+      selectedChoice &&
+      ((event.key === 'F2' && onRename) || (event.key === 'Delete' && onDelete))
+    ) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (event.key === 'F2') onRename?.(selectedChoice);
+      else onDelete?.(selectedChoice);
+      return;
+    }
     const option =
       event.target instanceof Element
         ? event.target.closest<HTMLElement>('[role="option"][data-value]')
@@ -171,6 +192,55 @@ export function ChoiceRows<T extends Choice>({
         {choices.slice(start, end).map(choice => (
           <div
             key={choice.id}
+            className={
+              drop?.id === choice.id
+                ? drop.after
+                  ? styles.dropAfter
+                  : styles.dropBefore
+                : undefined
+            }
+            draggable={onMove !== undefined && (canMove?.(choice) ?? true)}
+            onDragStart={event => {
+              if (!onMove || canMove?.(choice) === false) return;
+              dragged.current = choice.id;
+              event.dataTransfer.effectAllowed = 'move';
+              event.dataTransfer.setData('text/plain', choice.id);
+            }}
+            onDragEnd={() => {
+              dragged.current = null;
+              setDrop(null);
+            }}
+            onDragOver={event => {
+              if (dragged.current === null || canMove?.(choice) === false) {
+                return;
+              }
+              event.preventDefault();
+              event.dataTransfer.dropEffect = 'move';
+              const rect = event.currentTarget.getBoundingClientRect();
+              setDrop({
+                id: choice.id,
+                after: event.clientY >= rect.top + rect.height / 2,
+              });
+            }}
+            onDrop={event => {
+              if (
+                !onMove ||
+                dragged.current === null ||
+                canMove?.(choice) === false
+              ) {
+                return;
+              }
+              event.preventDefault();
+              const rect = event.currentTarget.getBoundingClientRect();
+              const after = event.clientY >= rect.top + rect.height / 2;
+              const index = choices.findIndex(value => value.id === choice.id);
+              onMove(
+                dragged.current,
+                after ? (choices[index + 1]?.id ?? null) : choice.id,
+              );
+              dragged.current = null;
+              setDrop(null);
+            }}
             onContextMenu={event => {
               if (onMenu === undefined) return;
               event.preventDefault();

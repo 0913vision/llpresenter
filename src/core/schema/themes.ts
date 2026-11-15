@@ -265,6 +265,16 @@ export const themesSchema = v.pipe(
         'Too many user themes',
       ),
     ),
+    themeOrder: v.exactOptional(
+      v.pipe(
+        v.array(themeIdSchema),
+        v.maxLength(1000),
+        v.check(
+          ids => new Set(ids).size === ids.length,
+          'Duplicate theme order',
+        ),
+      ),
+    ),
     defaults: jsonObject({
       song: v.exactOptional(themeIdSchema),
       bible: v.exactOptional(themeIdSchema),
