@@ -159,8 +159,13 @@
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
 }
 
-.thumb[data-selection-style='plate'][data-state~='live'] .canvas {
+.thumb[data-selection-style='plate'][data-state~='live']::after {
+  position: absolute;
+  inset: 0;
+  border-radius: var(--radius-sm);
   box-shadow: var(--ring-live);
+  content: '';
+  pointer-events: none;
 }
 
 .thumb[data-selection-style='plate'] .band {
