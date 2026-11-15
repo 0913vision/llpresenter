@@ -531,6 +531,42 @@ describe('show state', () => {
     });
   });
 
+  it('marks the standby item and the end of the service for the stage', () => {
+    useShow.setState(state => ({
+      rows: [
+        ...state.rows,
+        {
+          kind: 'slides',
+          id: 'waiting',
+          title: '\uB300\uAE30 \uD654\uBA74',
+          form: 'blank',
+        },
+      ],
+      tiles: {
+        ...state.tiles,
+        waiting: [{label: null, labelColor: 'none', lines: ['']}],
+      },
+    }));
+    setLive('song-morning', 3);
+    setAtLastSlide('nextItem');
+    useShow.setState(state => ({
+      rows: state.rows.filter(
+        row => row.id === 'song-morning' || row.id === 'waiting',
+      ),
+    }));
+    openItem('song-morning');
+    expect(sent.at(-1)).toMatchObject({
+      type: 'stage.next.set',
+      next: {stageStandby: true},
+    });
+    setLive('waiting', 0);
+    openItem('waiting');
+    expect(sent.at(-1)).toMatchObject({
+      type: 'stage.next.set',
+      next: {stageStandby: true},
+    });
+  });
+
   it('keeps stage next anchored to the live slide while browsing another item', () => {
     setLive('song-morning', 1);
     openItem('song-morning');
