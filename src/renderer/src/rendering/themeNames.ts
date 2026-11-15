@@ -1,9 +1,9 @@
 import type {ThemeElementKind} from '@core/themes/elementRules';
 
 export const themeElementNames: Readonly<Record<ThemeElementKind, string>> = {
-  currentText: '현재 가사',
+  currentText: '현재 슬라이드 글',
   reference: '성경 출처',
-  nextText: '다음 가사',
+  nextText: '다음 슬라이드 글',
   label: '이름표',
   nextLabel: '다음 이름표',
   media: '미디어',

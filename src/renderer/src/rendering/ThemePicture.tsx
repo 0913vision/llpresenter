@@ -36,6 +36,28 @@ import {positionFollowingBoxes} from './themeFollow';
 
 const textFits = new TextFitCache();
 
+function textContentBounds(
+  block: HTMLElement,
+): {left: number; right: number; top: number; bottom: number} | undefined {
+  const range = document.createRange();
+  if (typeof range.getBoundingClientRect !== 'function') return undefined;
+  const walker = document.createTreeWalker(block, NodeFilter.SHOW_TEXT);
+  const rectangles: DOMRect[] = [];
+  for (let text = walker.nextNode(); text !== null; text = walker.nextNode()) {
+    if ((text.textContent ?? '').trim() === '') continue;
+    range.selectNodeContents(text);
+    const bounds = range.getBoundingClientRect();
+    if (bounds.width > 0 && bounds.height > 0) rectangles.push(bounds);
+  }
+  if (rectangles.length === 0) return undefined;
+  return {
+    left: Math.min(...rectangles.map(rect => rect.left)),
+    right: Math.max(...rectangles.map(rect => rect.right)),
+    top: Math.min(...rectangles.map(rect => rect.top)),
+    bottom: Math.max(...rectangles.map(rect => rect.bottom)),
+  };
+}
+
 function imageVisibility(event: SyntheticEvent<HTMLImageElement>): void {
   event.currentTarget.style.visibility = event.type === 'error' ? 'hidden' : '';
 }
@@ -373,6 +395,7 @@ export function ThemePicture({
   measuredText,
   measuredNextText,
   onResolvedFrames,
+  fitItemNameFrame = false,
 }: {
   readonly elements: readonly ThemeElement[];
   readonly background: ThemeBackground;
@@ -384,17 +407,19 @@ export function ThemePicture({
   readonly measuredNextText?: MeasuredText | undefined;
   readonly onResolvedFrames?:
     ((frames: Readonly<Record<string, ElementFrame>>) => void) | undefined;
+  readonly fitItemNameFrame?: boolean | undefined;
 }): JSX.Element {
   const reference = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
     const root = reference.current;
     if (
       root === null ||
-      !elements.some(
-        element =>
-          (hasThemeText(element) && element.stack !== undefined) ||
-          (element.kind === 'box' && element.follow !== undefined),
-      )
+      (!fitItemNameFrame &&
+        !elements.some(
+          element =>
+            (hasThemeText(element) && element.stack !== undefined) ||
+            (element.kind === 'box' && element.follow !== undefined),
+        ))
     ) {
       return;
     }
@@ -449,6 +474,28 @@ export function ThemePicture({
         ];
       });
       positionFollowingBoxes(views);
+      if (fitItemNameFrame) {
+        const origin = root.getBoundingClientRect();
+        for (const element of elements) {
+          if (element.kind !== 'itemName') continue;
+          const node = Array.from(root.children).find(
+            child =>
+              child instanceof HTMLElement &&
+              child.dataset['themeElement'] === element.id,
+          );
+          const block = node?.querySelector<HTMLElement>('[data-theme-text]');
+          if (block === null || block === undefined) continue;
+          const bounds = textContentBounds(block);
+          if (bounds === undefined) continue;
+          const padding = 8;
+          resolved[element.id] = {
+            x: Math.max(0, (bounds.left - origin.left) / scale - padding),
+            y: Math.max(0, (bounds.top - origin.top) / scale - padding),
+            w: (bounds.right - bounds.left) / scale + 2 * padding,
+            h: (bounds.bottom - bounds.top) / scale + 2 * padding,
+          };
+        }
+      }
       onResolvedFrames?.(resolved);
     };
     position();
@@ -476,7 +523,14 @@ export function ThemePicture({
       mounted = false;
       observer?.disconnect();
     };
-  }, [elements, samples, measuredText, measuredNextText, onResolvedFrames]);
+  }, [
+    elements,
+    samples,
+    measuredText,
+    measuredNextText,
+    onResolvedFrames,
+    fitItemNameFrame,
+  ]);
   return (
     <svg
       className={styles.picture}
