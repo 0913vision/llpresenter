@@ -53,7 +53,11 @@ function nativeInputs(options: TextImportRegistration): TextImportInputs {
         filters: [{name: '텍스트 파일', extensions: ['txt']}],
       });
       if (selected.canceled) return null;
-      rememberPickerFile(options.uiState, 'textImportFolder', selected.filePaths[0]);
+      rememberPickerFile(
+        options.uiState,
+        'textImportFolder',
+        selected.filePaths[0],
+      );
       return selected.filePaths[0] ?? null;
     },
     readClipboard: () => clipboard.readText(),
