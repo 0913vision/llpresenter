@@ -13,6 +13,8 @@ import {createServiceItemId, createSongId} from '@core/schema/ids';
 import {fixtureMedia, itemMedia} from '@fixtures/core/mediaList';
 import type {ServiceItem} from '@core/schema/service';
 import {newSlidesItem} from '@core/services/slidesEdits';
+import {newLiturgyItem} from '@core/services/liturgy';
+import {newSectionCard} from '@core/services/sectionCards';
 import {createDefaultThemes} from '@core/themes/defaults';
 import type {ItemEditRequest} from '@renderer/features/service/items/itemEditQueue';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
@@ -82,6 +84,27 @@ function setup({
 }
 
 afterEach(cleanup);
+
+it.each([
+  ['creed', 'new', 5],
+  ['creed', 'old', 5],
+  ['prayer', 'new', 5],
+  ['prayer', 'old', 4],
+] as const)(
+  'shows the slide count and empty background for %s %s',
+  (kind, translation, count) => {
+    const item = {
+      ...newLiturgyItem(ITEM_ID, {kind, translation}),
+      sectionCard: newSectionCard(),
+    };
+    setup({
+      item,
+      row: {kind: 'slides', form: 'blank', id: ITEM_ID, title: kind},
+    });
+    expect(screen.getByText(String(count + 1))).toBeTruthy();
+    expect(screen.getByText('없음')).toBeTruthy();
+  },
+);
 
 it.each(['blank', 'ad'] as const)(
   'shows %s slide count and editable theme, background, start and memo cells',

@@ -71,7 +71,14 @@ export function BackgroundCell({
   const selectedBackground = slidesItem?.background ?? playing;
   const shown =
     selectedBackground === undefined
-      ? {media: undefined, name: choose === undefined ? EMPTY : NONE}
+      ? {
+          media: undefined,
+          name:
+            choose === undefined &&
+            !(item !== undefined && isItemOfKind(item, 'liturgy'))
+              ? EMPTY
+              : NONE,
+        }
       : {
           media: selectedBackground,
           name:
