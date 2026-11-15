@@ -8,6 +8,7 @@ import {sendLive} from '@renderer/session/live';
 import type {JSX} from 'react';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {useLive, useOutputs} from '@renderer/session/live';
+import {isSectionTheme} from '@core/themes/sundaySections';
 import {Menu} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import {useScreenSummaries} from '../../platform/ScreenSummaries';
@@ -50,12 +51,16 @@ export function OutputMenuList({
   );
   const themeId = useLive(view => view.state?.themeOutput?.themeId);
   const hasItem = useLive(view => view.state?.themeItem != null);
+  const sectionCard = useLive(
+    view => view.state?.layers.slide?.sectionCard !== undefined,
+  );
   const entries = outputMenuEntries({
     screens,
     outputs,
     themes: themes?.value ?? null,
     themeId,
     hasItem,
+    sectionCard,
     warnings,
     onShowWarning,
     onWorkspace,
@@ -68,10 +73,12 @@ export function OutputMenuList({
       when: () => onWorkspace !== undefined,
       run: () => onWorkspace?.('screens'),
     },
-    ...(themes?.value.themes ?? []).map(theme => ({
-      id: `theme.${theme.id}`,
-      run: () => sendThemeChange(theme.id, onProblem),
-    })),
+    ...(themes?.value.themes ?? [])
+      .filter(theme => sectionCard || !isSectionTheme(theme.id))
+      .map(theme => ({
+        id: `theme.${theme.id}`,
+        run: () => sendThemeChange(theme.id, onProblem),
+      })),
     ...screens.map(screen => ({
       id: `output.screen.${screen.id}`,
       run: () => {

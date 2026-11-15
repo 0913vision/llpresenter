@@ -1,6 +1,7 @@
 import {NOT_IN_THIS_WINDOW} from '@renderer/platform/problemReasons';
 import type {ThemeId} from '@core/schema/ids';
 import type {Theme, ThemesFile} from '@core/schema/themes';
+import {isSectionTheme} from '@core/themes/sundaySections';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
 import {menuSeparator} from '@renderer/ui/menuRows';
 
@@ -22,22 +23,26 @@ export function themeMenuEntries({
   current,
   choose,
   edit,
+  sectionCard = false,
 }: {
   readonly themes: readonly Theme[];
   readonly current: ThemeId | null | undefined;
   readonly choose: (id: ThemeId) => void;
   readonly edit: (() => void) | undefined;
+  readonly sectionCard?: boolean | undefined;
 }): readonly MenuEntry[] {
   return [
-    ...themes.map((theme): MenuEntry => ({
-      kind: 'item',
-      id: theme.id,
-      command: `theme.${theme.id}`,
-      label: theme.name || '이름 없는 테마',
-      check: 'radio',
-      checked: theme.id === current,
-      onSelect: () => choose(theme.id),
-    })),
+    ...themes
+      .filter(theme => sectionCard || !isSectionTheme(theme.id))
+      .map((theme): MenuEntry => ({
+        kind: 'item',
+        id: theme.id,
+        command: `theme.${theme.id}`,
+        label: theme.name || '이름 없는 테마',
+        check: 'radio',
+        checked: theme.id === current,
+        onSelect: () => choose(theme.id),
+      })),
     menuSeparator('edit'),
     {
       kind: 'item',

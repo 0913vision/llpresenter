@@ -21,6 +21,7 @@ export interface ScreenOutputInput {
   readonly themes: ThemesFile | null;
   readonly themeId: ThemeId | undefined;
   readonly hasItem: boolean;
+  readonly sectionCard?: boolean | undefined;
   readonly onEditScreens: (() => void) | undefined;
   readonly onProblem: (notice: Notice) => void;
 }
@@ -58,6 +59,7 @@ export function screenOutputSections(
         loadSubmenu: () =>
           themeMenuEntries({
             themes: input.themes?.themes ?? [],
+            sectionCard: input.sectionCard,
             current: input.themeId,
             choose: themeId => sendThemeChange(themeId, input.onProblem),
             edit: onEditScreens,

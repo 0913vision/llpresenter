@@ -123,6 +123,10 @@ not dim when focus leaves. 진행 retains its existing thumbnail style.
   comma splits for sentences over four lines) are fixed in the content, with
   아멘. attached to the final sentence and no runtime slide splitting.
 
+  사도신경 and 주기도문 are special liturgical items with their own dedicated
+  theme. Preserve their special behavior rather than treating them as generic
+  text items.
+
 - 항목 추가 offers 빈 슬라이드 and 광고 before 미디어. Each inserts after the
   selected row, selects the item, and opens 슬라이드 편집. Without a selection
   it appends. 빈 슬라이드 starts with one empty text slide and manual advance.

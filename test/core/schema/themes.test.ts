@@ -45,6 +45,26 @@ const file = {
   defaults: {},
 };
 
+describe('custom section names', () => {
+  it('accepts bounded unique entries and rejects invalid entries', () => {
+    const section = {id: uuid(10), name: '기도', english: 'Prayer'};
+    expect(
+      v.safeParse(themesSchema, {...file, customSections: [section]}).success,
+    ).toBe(true);
+    for (const customSections of [
+      [section, section],
+      [{...section, id: 'invalid'}],
+      [{...section, name: ' '}],
+      [{...section, english: 'a'.repeat(257)}],
+      Array.from({length: 201}, (_, i) => ({...section, id: uuid(i + 10)})),
+    ]) {
+      expect(v.safeParse(themesSchema, {...file, customSections}).success).toBe(
+        false,
+      );
+    }
+  });
+});
+
 describe('theme element properties', () => {
   it('validates optional text stacks and box followers', () => {
     const textElement = {

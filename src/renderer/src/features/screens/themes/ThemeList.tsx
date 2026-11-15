@@ -4,6 +4,7 @@ import {createThemeId, type ThemeId} from '@core/schema/ids';
 import type {Theme, ThemesFile} from '@core/schema/themes';
 import {THEME_LIMITS, themeItemKinds} from '@core/themes/elementRules';
 import {isBuiltInThemeId, userThemeCount} from '@core/themes/builtInIds';
+import {isSectionTheme} from '@core/themes/sundaySections';
 import {editThemeList, type ThemeListEdit} from '@core/themes/themeEdits';
 import {countServiceItemUses} from '@renderer/features/service/serviceItemUsage';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
@@ -177,7 +178,7 @@ export function ThemeList({
     target === undefined
       ? []
       : [
-          ...(regular
+          ...(regular && !isSectionTheme(target.id)
             ? ([
                 {
                   kind: 'item',

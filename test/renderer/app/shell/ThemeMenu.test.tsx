@@ -11,6 +11,7 @@ import userEvent from '@testing-library/user-event';
 import {afterEach, expect, it, vi} from 'vitest';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {emptyLiveState} from '@core/live/state';
+import {isSectionTheme} from '@core/themes/sundaySections';
 import {themeFile} from '@fixtures/core/themeOutput';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
@@ -113,10 +114,17 @@ it('lists radio themes followed by a separator and editor, and waits for live ac
       ),
     ).map(row => row.getAttribute('role')),
   ).toEqual([
-    ...file.themes.map(() => 'menuitemradio'),
+    ...file.themes
+      .filter(theme => !isSectionTheme(theme.id))
+      .map(() => 'menuitemradio'),
     'separator',
     'menuitem',
   ]);
+  for (const theme of file.themes.filter(theme => isSectionTheme(theme.id))) {
+    expect(
+      within(menu).queryByRole('menuitemradio', {name: theme.name}),
+    ).toBeNull();
+  }
   expect(
     within(menu)
       .getByRole('menuitemradio', {name: first.name})
