@@ -534,7 +534,7 @@ describe('built-in broadcast look', () => {
     const song = {
       ...item,
       kind: 'song' as const,
-      title: '아주 긴 노래 제목\n여러 줄로 보이지 않아야 합니다',
+      title: '아주 긴 노래 제목 여러 줄로 보이지 않아야 합니다',
     };
     const title = element(
       fitBroadcastLook(layout, slide, song),

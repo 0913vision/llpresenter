@@ -23,4 +23,5 @@ export function ndiAccelerationReason(
     case undefined:
       return 'GPU 출력에 실패하여 비트맵 출력으로 전환했습니다';
   }
+  return undefined;
 }
