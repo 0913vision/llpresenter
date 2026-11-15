@@ -90,6 +90,8 @@ export interface SlideLayer {
   readonly biblePart?: number;
   readonly sourceSlideId?: SlideId;
   readonly label: string | null;
+  /** The current label repeats the preceding slide's label within this item. */
+  readonly labelContinued?: true;
   readonly lines: readonly string[];
   readonly continued?: boolean;
   /** A Bible reference, separate from the operator's slide label. */

@@ -25,6 +25,22 @@ const tiles: Readonly<Record<string, readonly SlideTile[]>> = {
 const tilesOf = (itemId: string): readonly SlideTile[] => tiles[itemId] ?? [];
 
 describe('slideLayerOf', () => {
+  it('marks a repeated label only within the same item', () => {
+    const deck: readonly SlideTile[] = [
+      {label: '1절', labelColor: 'none', lines: ['First']},
+      {label: '1절', labelColor: 'none', lines: ['Continued']},
+      {label: '후렴', labelColor: 'none', lines: ['Chorus']},
+    ];
+    expect(
+      slideLayerOf({itemId: 'song', index: 0}, () => deck)?.labelContinued,
+    ).toBeUndefined();
+    expect(
+      slideLayerOf({itemId: 'song', index: 1}, () => deck)?.labelContinued,
+    ).toBe(true);
+    expect(
+      slideLayerOf({itemId: 'song', index: 2}, () => deck)?.labelContinued,
+    ).toBeUndefined();
+  });
   it('carries the main title box line count for current and next slides', () => {
     const deck: readonly SlideTile[] = [
       {

@@ -120,6 +120,12 @@ export function slideLayerOf(
   const tiles = tilesOf(cursor.itemId);
   const tile = tiles[cursor.index];
   if (!tile) return null;
+  const previous = tiles[cursor.index - 1];
+  const tileLabel =
+    tile.slideLabel ?? (tile.kind === undefined ? tile.label : null);
+  const previousLabel =
+    previous?.slideLabel ??
+    (previous?.kind === undefined ? previous?.label : null);
   const next = tiles[cursor.index + 1] ?? following?.tile;
   const bibleItemSlides =
     tile.biblePart === undefined ? undefined : bibleGroup(tiles);
@@ -145,6 +151,9 @@ export function slideLayerOf(
       (tile.kind === undefined || tile.biblePart !== undefined
         ? tile.label
         : null),
+    ...(tileLabel?.trim() && tileLabel.trim() === previousLabel?.trim()
+      ? {labelContinued: true as const}
+      : {}),
     lines: tile.lines,
     ...(tile.sectionCard === undefined ? {} : {sectionCard: tile.sectionCard}),
     ...(tile.titleSlide === undefined ? {} : {titleSlide: tile.titleSlide}),

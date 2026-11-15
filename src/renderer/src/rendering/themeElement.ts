@@ -22,6 +22,7 @@ import {
 } from './slideLayer';
 import {classes} from './classes';
 import {stageClockText} from './stageClock';
+import {STAGE_LYRIC_LABEL_ID} from './stageLyricLabel';
 import {fillTimerTokens} from './timerTokens';
 import type {RenderFrame, RenderLayerOptions} from './layer';
 import type {ThemeGaps} from './themeGaps';
@@ -555,6 +556,9 @@ export class ThemeElementView {
         : undefined;
     const item = frame.theme?.item ?? null;
     const slide = layers.slide;
+    if (element.id === STAGE_LYRIC_LABEL_ID) {
+      return slide?.label ? `(${slide.label.trim()})` : null;
+    }
     if (
       frame.screen?.kind === 'stage' &&
       element.kind === 'slideName' &&
@@ -682,6 +686,12 @@ export class ThemeElementView {
         !currentBible &&
         slide?.label?.trim()
       ) {
+        if (
+          (slide.kind ?? item?.kind) === 'song' &&
+          !isStageEndingLabel(slide.label.trim())
+        ) {
+          return text;
+        }
         return stageLabeledText(text, slide.label.trim());
       }
       if (

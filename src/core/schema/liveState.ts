@@ -97,6 +97,7 @@ export const layerSchemas = {
     transitionStartedAt: v.exactOptional(v.pipe(v.number(), v.finite())),
     reverseTransition: v.exactOptional(v.nullable(slideTransitionSchema)),
     label: v.nullable(liveTextSchema),
+    labelContinued: v.exactOptional(v.literal(true)),
     lines: slideLinesSchema,
     sectionCard: v.exactOptional(sectionCardSchema),
     bibleItemSlides: v.exactOptional(

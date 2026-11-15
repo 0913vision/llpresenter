@@ -2542,7 +2542,7 @@ it.each(['output', 'preview'] as const)(
     );
     expect(current()?.textContent).toBe('(\uc5c6\uc74c)');
     view.render(song, stage);
-    expect(current()?.textContent).toBe('(Verse) Invented line');
+    expect(current()?.textContent).toBe('Invented line');
     expect(current()?.style.color).not.toBe('rgb(180, 180, 180)');
     view.render(empty, {
       ...frame(elements),
@@ -2906,21 +2906,27 @@ it('shows both title lines on stage while retaining the section name', () => {
   view.dispose();
 });
 
-it('places ordinary stage labels before lyrics and omits them on titles', () => {
+it('shows stage lyric labels on their own line only at their start', () => {
   const {root, view} = setup();
   const elements: ThemeElement[] = [
     {...themeElementBase(), kind: 'currentText'},
     {...themeElementBase(31), kind: 'nextText'},
+    {...themeElementBase(32), kind: 'label'},
   ];
   const slide = song.slide;
   if (slide === null) throw Error('Missing slide');
-  const draw = (title: boolean, screen: 'stage' | 'audience') =>
+  const draw = (
+    title: boolean,
+    screen: 'stage' | 'audience',
+    continued = false,
+  ) =>
     view.render(
       {
         ...song,
         slide: {
           ...slide,
           label: 'Verse',
+          ...(continued ? {labelContinued: true as const} : {}),
           ...(title ? {titleSlide: true as const} : {}),
           lines: ['Current'],
           next: {
@@ -2940,7 +2946,13 @@ it('places ordinary stage labels before lyrics and omits them on titles', () => 
     root.querySelector(`[data-kind="${kind}"] .${classes.shown}`)
       ?.textContent ?? '';
   draw(false, 'stage');
-  expect(text('currentText')).toBe('(Verse) Current');
+  expect(text('currentText')).toBe('Current');
+  expect(text('label')).toBe('(Verse)');
+  expect(root.querySelectorAll('[data-kind="label"]')).toHaveLength(1);
+  expect(text('nextText')).toBe('(Outro) Next');
+  draw(false, 'stage', true);
+  expect(text('currentText')).toBe('Current');
+  expect(text('label')).toBe('');
   expect(text('nextText')).toBe('(Outro) Next');
   draw(true, 'stage');
   expect(text('currentText')).toBe('Current');
