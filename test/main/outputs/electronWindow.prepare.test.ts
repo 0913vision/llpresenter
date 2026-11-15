@@ -28,8 +28,12 @@ describe('hidden output painting', () => {
       expect(win.setAspectRatio).toHaveBeenLastCalledWith(0);
       output.prepare(MONITOR, 'capture');
       expect(win.setAspectRatio).toHaveBeenLastCalledWith(0);
+      win.setSkipTaskbar.mockClear();
       output.prepare(MONITOR, 'fullscreen');
       expect(win.setAspectRatio).toHaveBeenLastCalledWith(0);
+      if (mode === 'normal') {
+        expect(win.setSkipTaskbar).toHaveBeenLastCalledWith(true);
+      } else expect(win.setSkipTaskbar).not.toHaveBeenCalled();
     },
   );
 
@@ -50,6 +54,8 @@ describe('hidden output painting', () => {
         full = next;
       });
       output.prepare(MONITOR, 'fullscreen');
+      expect(win.setFocusable).toHaveBeenCalledWith(false);
+      expect(win.setSkipTaskbar).toHaveBeenCalledWith(true);
       expect(win.setFullScreen).toHaveBeenCalledExactlyOnceWith(true);
       expect(win.showInactive).not.toHaveBeenCalled();
       expect(win.show).not.toHaveBeenCalled();

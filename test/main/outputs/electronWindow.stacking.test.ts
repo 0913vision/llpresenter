@@ -144,11 +144,32 @@ describe('createElectronOutputWindow normal', () => {
 
     output.showFullScreen(MONITOR, true);
 
-    expect(win.setFocusable).toHaveBeenCalledWith(true);
+    if (process.platform === 'win32') {
+      expect(win.setFocusable).toHaveBeenCalledWith(false);
+    }
+    expect(win.setSkipTaskbar).toHaveBeenCalledWith(true);
     expect(win.setFullScreen).toHaveBeenCalledWith(true);
     expect(win.setAlwaysOnTop).toHaveBeenCalledWith(true, 'screen-saver');
     expect(win.showInactive).toHaveBeenCalledTimes(1);
     expect(win.focus).not.toHaveBeenCalled();
+  });
+
+  it('restores taskbar visibility and focusability when fullscreen falls back to a window', async () => {
+    const clock = installMockClock();
+    const output = openOutput('normal');
+    const win = lastWindow();
+    output.showFullScreen(MONITOR, true);
+    expect(win.setSkipTaskbar).toHaveBeenLastCalledWith(true);
+    win.isFullScreen.mockReturnValue(true);
+    output.showWindowed(WINDOW_BOUNDS);
+    win.isFullScreen.mockReturnValue(false);
+    win.emit('leave-full-screen');
+    await clock.advance(0);
+    expect(win.setFocusable).toHaveBeenLastCalledWith(true);
+    expect(win.setSkipTaskbar).toHaveBeenLastCalledWith(false);
+    expect(win.setFocusable.mock.invocationCallOrder.at(-1)).toBeLessThan(
+      win.setSkipTaskbar.mock.invocationCallOrder.at(-1) ?? Infinity,
+    );
   });
 
   it('opens hidden with the normal window options', () => {

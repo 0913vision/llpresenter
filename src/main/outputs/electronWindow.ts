@@ -168,13 +168,15 @@ function presentOnScreen(
       const place = () => {
         profile('window');
         win.setAspectRatio(0);
-        win.setFocusable(true);
+        if (process.platform === 'win32') win.setFocusable(false);
+        win.setSkipTaskbar(true);
         // NOTE(0913vision): The keeper lets go while Windows moves the window
         // into full screen, so a level change mid-move is no loss.
         onTop.release();
         enterFullScreen(win, monitorBounds);
         orderWindow();
         showOnce();
+        win.setSkipTaskbar(true);
       };
       placement.fullscreen(place);
     },
@@ -186,6 +188,7 @@ function presentOnScreen(
         profile('window');
         win.setAspectRatio(WINDOW_ASPECT_RATIO);
         win.setFocusable(true);
+        win.setSkipTaskbar(false);
         const wantedBounds = unplacedBounds;
         if (wantedBounds !== null) {
           win.setContentBounds(wantedBounds);
@@ -195,6 +198,7 @@ function presentOnScreen(
         }
         unplacedBounds = null;
         showOnce();
+        win.setSkipTaskbar(false);
         orderWindow();
         if (wantedBounds === null) demoted = false;
       };
@@ -210,9 +214,11 @@ function presentOnScreen(
         profile('capture');
         win.setAspectRatio(0);
         win.setFocusable(true);
+        win.setSkipTaskbar(false);
         win.setContentBounds(bounds);
         placement.verifyContentBounds(bounds, orderWindow);
         showOnce();
+        win.setSkipTaskbar(false);
         orderWindow();
       });
     },
@@ -353,6 +359,10 @@ export function createElectronOutputWindow(
     },
     configure: screen => win.setTitle(screen.name),
     prepare: (bounds, kind) => {
+      if (mode === 'normal' && kind === 'fullscreen') {
+        if (process.platform === 'win32') win.setFocusable(false);
+        win.setSkipTaskbar(true);
+      }
       win.setAspectRatio(kind === 'window' ? WINDOW_ASPECT_RATIO : 0);
       win.setContentBounds(kind === 'capture' ? fitCapture(bounds) : bounds);
       // NOTE(0913vision): The first reveal must paint after native fullscreen

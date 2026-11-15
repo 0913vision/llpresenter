@@ -42,6 +42,8 @@ it('prepares and shows capture content with the native frame inside the work are
   );
   output.showCapture(planned);
   expect(win.setContentBounds).toHaveBeenLastCalledWith(fitted);
+  expect(win.setFocusable).toHaveBeenLastCalledWith(true);
+  expect(win.setSkipTaskbar).toHaveBeenLastCalledWith(false);
 });
 
 describe('createElectronOutputWindow hang handling', () => {
