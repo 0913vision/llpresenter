@@ -2,6 +2,7 @@ import {useEffect, useRef, type JSX} from 'react';
 import {emptyLayers} from '@core/live/state';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
+import {OUTPUT_REVEAL_DEADLINE_MS} from '@core/output/revealDeadline';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {openPreviewMedia} from '@renderer/rendering/previewMedia';
 import {ScreenFrames} from '@renderer/rendering/screenFrames';
@@ -35,20 +36,73 @@ export function ScreenPreview({
     const screen = screenRef.current;
     if (!screen) return undefined;
     const previewMedia = openPreviewMedia(window.llp);
-    const renderer = new OutputRenderer(screen, {
-      textStyle: DEFAULT_TEXT_STYLE,
-      mediaUrl,
-      previewMedia,
-      onError: reportDrawingError,
-      mode: 'preview',
-    });
+    interface View {
+      host: HTMLDivElement;
+      renderer: OutputRenderer;
+      key: string;
+    }
+    let front: View | null = null;
+    let pending: View | null = null;
+    let animation = 0;
+    let stopped = false;
+    const dispose = (view: View | null): void => {
+      view?.renderer.dispose();
+      view?.host.remove();
+    };
     let frames: ScreenFrames | null = null;
     const draw = (): void => {
       const state = useLive.getState().state;
       const layers = state?.layers ?? noLayers;
       try {
         const frame = frames?.frame(state);
-        if (frame !== undefined) renderer.render(layers, frame);
+        if (frame === undefined) return;
+        const instant = {...frame, transitions: false};
+        const key = JSON.stringify([layers, instant]);
+        if (pending?.key === key || (pending === null && front?.key === key)) {
+          return;
+        }
+        cancelAnimationFrame(animation);
+        dispose(pending);
+        pending = null;
+        if (front?.key === key) return;
+        const host = document.createElement('div');
+        Object.assign(host.style, {
+          position: 'absolute',
+          inset: '0',
+          visibility: 'hidden',
+        });
+        screen.append(host);
+        const renderer = new OutputRenderer(host, {
+          textStyle: DEFAULT_TEXT_STYLE,
+          mediaUrl,
+          previewMedia,
+          onError: reportDrawingError,
+          mode: 'preview',
+        });
+        const view: View = {host, renderer, key};
+        pending = view;
+        renderer.render(layers, instant);
+        const start = performance.now();
+        const check = (): void => {
+          if (stopped || pending !== view) return;
+          const expired =
+            performance.now() - start >= OUTPUT_REVEAL_DEADLINE_MS;
+          if (
+            (!renderer.ready() || document.fonts.status !== 'loaded') &&
+            !expired
+          ) {
+            animation = requestAnimationFrame(check);
+            return;
+          }
+          if (expired) renderer.revealIncomplete();
+          const previous = front;
+          previous?.host.remove();
+          host.style.visibility = 'visible';
+          front = view;
+          pending = null;
+          dispose(previous);
+        };
+        animation = requestAnimationFrame(check);
       } catch (error) {
         reportDrawingError('could not update the screen preview', error);
       }
@@ -72,8 +126,11 @@ export function ScreenPreview({
     });
     return () => {
       unsubscribe();
+      stopped = true;
+      cancelAnimationFrame(animation);
       frames?.dispose();
-      renderer.dispose();
+      dispose(pending);
+      dispose(front);
       previewMedia?.dispose();
     };
   }, [screenId]);
