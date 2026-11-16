@@ -50,6 +50,7 @@ export function assignScreenMonitor({
   observedScreens = screens,
 }: MonitorAssignmentInput): readonly Screen[] {
   if (
+    screens.some(screen => screen.id === screenId && screen.method === 'ndi') ||
     monitor.hasMainWindow ||
     monitor.id === undefined ||
     !screens.some(screen => screen.id === screenId)

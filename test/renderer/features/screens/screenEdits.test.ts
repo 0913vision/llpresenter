@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {createMessageStyleId} from '@core/schema/ids';
+import {createMessageStyleId, createScreenId} from '@core/schema/ids';
 import {
   alwaysOnTopOf,
   changeScreen,
@@ -19,12 +19,49 @@ function screens() {
 }
 
 describe('changeScreen', () => {
+  it('refuses to change the last screen of a kind', () => {
+    const before = screens();
+    expect(changeScreen(before, MAIN_ID, {kind: 'stage'})).toBe(before);
+  });
+
+  it('chooses valid methods and distinct NDI names', () => {
+    const before = screens();
+    const audience = before[0];
+    if (!audience) throw new Error('Missing audience');
+    const extra = {
+      ...audience,
+      id: createScreenId('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),
+    };
+    const changed = changeScreen([...before, extra], MAIN_ID, {
+      kind: 'broadcast',
+    });
+    expect(changed[0]?.method).toBe('capture');
+    const first = changeScreen(changed, MAIN_ID, {method: 'ndi'});
+    const second = changeScreen(first, CAPTIONS_ID, {method: 'ndi'});
+    expect(second[0]?.ndi?.sourceName).not.toBe(second[1]?.ndi?.sourceName);
+    const sourceName = second[0]?.ndi?.sourceName;
+    if (!sourceName) throw new Error('Missing NDI name');
+    const duplicate = changeScreen(second, CAPTIONS_ID, {ndi: {sourceName}});
+    expect(duplicate).toBe(second);
+  });
   it('gives a default-named screen the default name of its new kind', () => {
     const base = screens();
     const named = base.map(screen =>
       screen.id === MAIN_ID ? {...screen, name: '새 청중 화면 (2)'} : screen,
     );
-    const changed = changeScreen(named, MAIN_ID, {kind: 'broadcast'});
+    const first = named[0];
+    if (!first) throw new Error('Missing audience');
+    const changed = changeScreen(
+      [
+        ...named,
+        {
+          ...first,
+          id: createScreenId('aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa'),
+        },
+      ],
+      MAIN_ID,
+      {kind: 'broadcast'},
+    );
     expect(changed[0]?.name).toBe('새 방송 화면');
   });
 

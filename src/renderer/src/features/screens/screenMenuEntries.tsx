@@ -4,14 +4,12 @@ import type {MonitorInfo, MonitorList} from '@core/schema/monitors';
 import type {Screen} from '@core/schema/screens';
 import {Menu, type MenuProps} from '@renderer/ui/Menu';
 import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
-import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 import type {NewScreen} from './addScreen';
 import {monitorPixelSize, sizeText} from './displaySizes';
 import {displayLayout} from './layoutBoxes';
 import {MonitorThumbnail} from './MonitorThumbnail';
 
 export function screenAddMenuEntries({
-  kind,
   monitors,
   reason,
   add,
@@ -57,17 +55,6 @@ export function screenAddMenuEntries({
       ...menuAvailability(reason),
       onSelect: () => add('capture'),
     },
-    {kind: 'group', id: 'ndi', label: 'NDI'},
-    laterRow('new-ndi', '새 NDI', {submenu: true}),
-    {kind: 'group', id: 'placeholder', label: '자리 표시'},
-    laterRow('new-placeholder', '새 자리 표시', {submenu: true}),
-    ...(kind === 'audience'
-      ? [
-          menuSeparator('composite-separator'),
-          laterRow('grouped', '묶음…'),
-          laterRow('edge-blend', '가장자리 합성…'),
-        ]
-      : []),
   ];
 }
 

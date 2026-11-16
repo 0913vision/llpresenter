@@ -8,7 +8,7 @@ import {
   itemStopEntry,
 } from '@renderer/features/presentation/outputControlEntries';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
-import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
+import {menuSeparator} from '@renderer/ui/menuRows';
 import type {Notice} from '@renderer/ui/notices';
 import type {ScreenSummary} from '@renderer/platform/screens';
 import {sendThemeChange} from './themeActions';
@@ -84,7 +84,6 @@ export function screenOutputSections(
         id: 'broadcast-output',
         command: 'output.broadcast',
       },
-      laterRow('broadcast-settings', '방송 설정…'),
     ],
     settings: [
       menuSeparator('screens'),

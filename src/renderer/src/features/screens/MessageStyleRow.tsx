@@ -21,10 +21,11 @@ export function MessageStyleRow({
   readonly onChange: (id: MessageStyleId | null) => void;
   readonly onProblem: ((notice: Notice) => void) | undefined;
   readonly reason: string | undefined;
-}): JSX.Element {
+}): JSX.Element | null {
   const document = useSettingsDocument('messages', LOAD_TITLE, onProblem);
   const saved = document?.value.messageStyles ?? [];
   const current = resolveMessageStyle(saved, screen.messageStyleId);
+  if (saved.length === 0) return null;
   return (
     <PropertyRow label={LABEL}>
       {({controlId}) => (

@@ -14,6 +14,18 @@ function screens() {
 }
 
 describe('assignScreenMonitor', () => {
+  it('refuses to replace NDI with a monitor or release its current owner', () => {
+    const source = screens().map(screen =>
+      screen.id === STAGE_ID ? {...screen, method: 'ndi' as const} : screen,
+    );
+    expect(
+      assignScreenMonitor({
+        screens: source,
+        screenId: STAGE_ID,
+        monitor: projector,
+      }),
+    ).toBe(source);
+  });
   it('does not release another identified panel merely because its old numeric ID was reused', () => {
     const identity = {
       kind: 'windows',
