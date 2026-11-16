@@ -1,4 +1,12 @@
-import {act, fireEvent, screen, waitFor, within} from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
+import {SlideInspector} from '@renderer/features/service/slideInspector/SlideInspector';
 import {describe, expect, it, vi} from 'vitest';
 import {editorSong} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {SongEditor} from '@renderer/features/songs/editor/SongEditor';
@@ -716,7 +724,8 @@ describe('song editor view', () => {
 });
 
 it('adds a closing title at the end caret, edits its spacing, duplicates and undoes deletion', async () => {
-  const {session, user} = await editorSetup();
+  const {session, user, store} = await editorSetup();
+  render(<SlideInspector store={store} />);
   const original = session.history.snapshot.song.slides;
   await user.click(
     screen.getByRole('button', {name: '마지막 슬라이드 뒤에 삽입'}),

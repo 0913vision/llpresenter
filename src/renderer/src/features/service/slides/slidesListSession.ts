@@ -81,7 +81,6 @@ export class SlidesListSession implements SlideListSession<Slide> {
   pasteSlides(text?: string): void {
     if (this.readOnly) return;
     this.requestReveal();
-    this.invalidate();
     this.draft.endTyping();
     const result =
       text === undefined

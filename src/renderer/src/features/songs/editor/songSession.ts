@@ -221,10 +221,12 @@ export class SongSession {
 
   pasteSlides(text?: string): void {
     this.revealIntent++;
-    this.changeSlides(() =>
-      text === undefined
-        ? this.history.model.paste()
-        : this.history.model.pasteText(text),
+    this.changeSlides(
+      () =>
+        text === undefined
+          ? this.history.model.paste()
+          : this.history.model.pasteText(text),
+      false,
     );
   }
 

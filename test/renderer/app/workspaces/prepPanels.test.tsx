@@ -1,5 +1,6 @@
 import {act, render, renderHook, waitFor} from '@testing-library/react';
-import {isValidElement} from 'react';
+import {Children, isValidElement, type ReactNode} from 'react';
+import {EditorItemSettings} from '@renderer/app/workspaces/EditorItemSettings';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {useShow} from '@renderer/session/show';
 import {itemFixture} from '@fixtures/renderer/features/service/items/itemFixture';
@@ -286,10 +287,23 @@ describe('usePrepPanels', () => {
     await waitFor(() => expect(result.current.columns).not.toEqual(columns));
     expect(result.current.columns[2]).toEqual(['슬라이드 속성']);
     const panel = result.current.partsOf('슬라이드 속성').embedded;
+    expect(isValidElement<{children?: ReactNode}>(panel)).toBe(true);
+    if (
+      !isValidElement<{children?: ReactNode}>(panel) ||
+      !isValidElement<{children?: ReactNode}>(panel.props.children)
+    ) {
+      throw new Error('Missing inspector wrapper');
+    }
+    const children = Children.toArray(panel.props.children.props.children);
     expect(
-      isValidElement<{children?: unknown}>(panel) &&
-        isValidElement(panel.props.children) &&
-        panel.props.children.type === SlideInspector,
+      children.some(
+        child => isValidElement(child) && child.type === EditorItemSettings,
+      ),
+    ).toBe(true);
+    expect(
+      children.some(
+        child => isValidElement(child) && child.type === SlideInspector,
+      ),
     ).toBe(true);
     act(() => editor.open(null));
     await waitFor(() => expect(result.current.columns).toEqual(columns));
@@ -303,10 +317,23 @@ describe('usePrepPanels', () => {
     await act(async () => openOther?.('bible-item'));
     expect(result.current.columns[2]).toEqual(['슬라이드 속성']);
     const panel = result.current.partsOf('슬라이드 속성').embedded;
+    expect(isValidElement<{children?: ReactNode}>(panel)).toBe(true);
+    if (
+      !isValidElement<{children?: ReactNode}>(panel) ||
+      !isValidElement<{children?: ReactNode}>(panel.props.children)
+    ) {
+      throw new Error('Missing inspector wrapper');
+    }
+    const children = Children.toArray(panel.props.children.props.children);
     expect(
-      isValidElement<{children?: unknown}>(panel) &&
-        isValidElement(panel.props.children) &&
-        panel.props.children.type === OtherSlideInspector,
+      children.some(
+        child => isValidElement(child) && child.type === EditorItemSettings,
+      ),
+    ).toBe(true);
+    expect(
+      children.some(
+        child => isValidElement(child) && child.type === OtherSlideInspector,
+      ),
     ).toBe(true);
   });
 
