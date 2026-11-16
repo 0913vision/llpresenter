@@ -15,6 +15,8 @@ const drawing = vi.hoisted(() => ({
 }));
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
+    ready = () => true;
+    revealIncomplete = () => undefined;
     constructor(_parent: HTMLElement, options: OutputRendererOptions) {
       drawing.create(options);
     }

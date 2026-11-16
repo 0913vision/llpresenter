@@ -1,6 +1,13 @@
 import {handleShowKey} from '@renderer/features/presentation/shortcuts';
 import {lastLiveCommand} from '@fixtures/renderer/session/liveCommands';
-import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
+import {
+  act,
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import {emptyLiveState} from '@core/live/state';
@@ -108,16 +115,17 @@ describe('SlideGrid', () => {
     expect(other).toEqual([null, null, null]);
   });
 
-  it('keeps the focus in the grid when another item replaces the focused tile', () => {
+  it('keeps the focus in the grid when another item replaces the focused tile', async () => {
     openItem('song-morning');
     render(<SlideGrid columns={2} scalePercent={100} />);
     const grid = screen.getByRole('listbox');
     grid.focus();
     expect(document.activeElement).toBe(grid);
     act(() => openItem('song-river'));
-    const next = screen.getAllByRole('option');
-    expect(next).toHaveLength(3);
-    expect(document.activeElement).toBe(grid);
+    await waitFor(() => expect(screen.getAllByRole('option')).toHaveLength(3), {
+      timeout: 3000,
+    });
+    expect(document.activeElement).toBe(screen.getByRole('listbox'));
     expect(
       sent.filter(command => command.type !== 'stage.next.set'),
     ).toHaveLength(0);

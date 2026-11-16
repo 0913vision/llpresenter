@@ -15,6 +15,8 @@ import {mediaFixture} from '@fixtures/renderer/features/media/mediaTesting';
 
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
+    ready = () => true;
+    revealIncomplete = () => undefined;
     render = vi.fn();
     dispose = vi.fn();
   },

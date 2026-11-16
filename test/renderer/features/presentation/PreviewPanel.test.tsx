@@ -46,6 +46,8 @@ vi.mock('@renderer/rendering/screenFrames', () => ({
 
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
+    ready = () => true;
+    revealIncomplete = () => undefined;
     readonly render = vi.fn();
     readonly dispose = vi.fn();
     constructor(
@@ -259,17 +261,34 @@ describe('PreviewPanel pictures', () => {
     }
   });
 
-  it('follows a change of the live state on every renderer without remounting', () => {
+  it('stages a changed live state while retaining each screen container', async () => {
     setLayers({slide}, allOn);
-    render(<PreviewPanel />);
+    const view = render(<PreviewPanel />);
+    await act(
+      () =>
+        new Promise<void>(resolve => requestAnimationFrame(() => resolve())),
+    );
+    const screens = [...view.container.querySelectorAll('[data-screen]')];
+    const previous = created();
     act(() => setLayers({}, allOn));
-    for (const instance of created()) {
+    const incoming = created().slice(previous.length);
+    expect(incoming).toHaveLength(3);
+    for (const instance of incoming) {
       expect(instance.render).toHaveBeenLastCalledWith(
         expect.objectContaining({slide: null}),
         expect.anything(),
       );
     }
-    expect(created()).toHaveLength(3);
+    await act(
+      () =>
+        new Promise<void>(resolve => requestAnimationFrame(() => resolve())),
+    );
+    expect([...view.container.querySelectorAll('[data-screen]')]).toEqual(
+      screens,
+    );
+    for (const instance of previous) {
+      expect(instance.dispose).toHaveBeenCalledOnce();
+    }
   });
 
   it('waits for the first complete frame before drawing', () => {

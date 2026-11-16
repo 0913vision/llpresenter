@@ -27,6 +27,8 @@ const drawn = vi.hoisted(() => {
 
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
+    ready = () => true;
+    revealIncomplete = () => undefined;
     constructor(_parent: unknown, options: {mode?: string}) {
       drawn.created.push(options);
     }
@@ -210,8 +212,26 @@ describe('the output preview', () => {
   });
 
   it('keeps one preview drawing across the modes', async () => {
-    setup();
+    const document = screensDocument();
+    if (document.name !== 'screens') throw new Error('Missing screens');
+    setup(document);
     await screen.findByText('모니터 2 EPSON 프로젝터');
+    act(() =>
+      useLive.setState({
+        state: {
+          ...emptyLiveState(),
+          themeOutput: resolveThemeOutput({
+            file: null,
+            screens: document.value.screens,
+            item: null,
+            revision: 1,
+          }),
+        },
+      }),
+    );
+    await waitFor(() =>
+      expect(drawn.created.map(options => options.mode)).toEqual(['preview']),
+    );
 
     await choose('테스트 패턴');
     await choose('화면 내용');

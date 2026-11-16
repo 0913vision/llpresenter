@@ -37,6 +37,8 @@ vi.mock('@renderer/rendering/SlidePicture', () => ({
 }));
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
+    ready = () => true;
+    revealIncomplete = () => undefined;
     render = vi.fn();
     dispose = vi.fn();
   },

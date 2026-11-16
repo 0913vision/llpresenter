@@ -1,5 +1,11 @@
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import {cleanup, fireEvent, render, screen} from '@testing-library/react';
+import {
+  cleanup,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+} from '@testing-library/react';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {openItem, useShow} from '@renderer/session/show';
@@ -43,7 +49,7 @@ const key = (value: string) =>
     code: /^\d$/u.test(value) ? `Digit${value}` : value,
   });
 
-it('numbers tiles across items and jumps to the same slide as a click', () => {
+it('numbers tiles across items and jumps to the same slide as a click', async () => {
   render(<Harness />);
   expect(screen.getAllByRole('option')[0]?.getAttribute('aria-label')).toMatch(
     /^2 /u,
@@ -60,8 +66,12 @@ it('numbers tiles across items and jumps to the same slide as a click', () => {
     openItemId: 'song-river',
     selectedTile: 0,
   });
-  expect(screen.getAllByRole('option')[0]?.getAttribute('aria-label')).toMatch(
-    /^6 /u,
+  await waitFor(
+    () =>
+      expect(
+        screen.getAllByRole('option')[0]?.getAttribute('aria-label'),
+      ).toMatch(/^6 /u),
+    {timeout: 3000},
   );
   const sent = send.mock.calls.flatMap(([command]) =>
     command.type === 'live.batch' ? command.commands : [command],

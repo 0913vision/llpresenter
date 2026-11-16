@@ -1,66 +1,166 @@
-import {memo, useEffectEvent, useLayoutEffect, useRef, type JSX} from 'react';
+import {
+  memo,
+  useEffect,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type JSX,
+} from 'react';
 import type {LiveLayers} from '@core/live/state';
+import {OUTPUT_REVEAL_DEADLINE_MS} from '@core/output/revealDeadline';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {OutputRenderer} from './outputRenderer';
 import {openPreviewMedia} from './previewMedia';
+import {fontsLoading, previewReady} from './fontsLoading';
 import type {RenderScreen, ThemeFrame} from './layer';
 import styles from './OutputPreviewPicture.module.css';
 
+interface PictureProps {
+  readonly layers: LiveLayers;
+  readonly appearance: {
+    readonly screen: RenderScreen;
+    readonly theme: ThemeFrame;
+    readonly background: string;
+    readonly checker: boolean;
+  };
+}
+
+interface PictureView {
+  readonly host: HTMLDivElement;
+  readonly renderer: OutputRenderer;
+  readonly dispose: () => void;
+}
+
+const layouts = new WeakMap<object, string>();
+
+function layoutKey(layout: ThemeFrame['layout']): string {
+  let key = layouts.get(layout);
+  if (key === undefined) {
+    key = JSON.stringify(layout);
+    layouts.set(layout, key);
+  }
+  return key;
+}
+
+function pictureKey({layers, appearance}: PictureProps): string {
+  return JSON.stringify([
+    layers.slide,
+    layers.media,
+    appearance.screen,
+    appearance.theme.themeId,
+    appearance.theme.revision,
+    appearance.theme.item,
+    appearance.theme.emptyColor,
+    layoutKey(appearance.theme.layout),
+    appearance.background,
+    appearance.checker,
+  ]);
+}
+
 /** A still, local composition drawn by the same renderer as output. */
 export const OutputPreviewPicture = memo(
-  ({
-    layers,
-    appearance,
-  }: {
-    readonly layers: LiveLayers;
-    readonly appearance: {
-      readonly screen: RenderScreen;
-      readonly theme: ThemeFrame;
-      readonly background: string;
-      readonly checker: boolean;
-    };
-  }): JSX.Element => {
+  ({layers, appearance}: PictureProps): JSX.Element => {
     const parent = useRef<HTMLDivElement>(null);
-    const renderer = useRef<OutputRenderer | null>(null);
-    const draw = useEffectEvent(() => {
-      try {
-        renderer.current?.render(layers, {
-          screen: appearance.screen,
-          theme: appearance.theme,
-          transitions: false,
-          ...(layers.slide === null ? {} : {slide: layers.slide}),
-        });
-      } catch (error) {
-        console.error('Could not update preview', error);
-      }
-    });
+    const front = useRef<PictureView | null>(null);
+    const [near, setNear] = useState(
+      typeof IntersectionObserver === 'undefined',
+    );
+    useEffect(() => {
+      const node = parent.current;
+      if (node === null || typeof IntersectionObserver === 'undefined') return;
+      const observer = new IntersectionObserver(
+        entries => {
+          if (entries.some(entry => entry.isIntersecting)) {
+            setNear(true);
+            observer.disconnect();
+          }
+        },
+        {rootMargin: '200px'},
+      );
+      observer.observe(node);
+      return () => observer.disconnect();
+    }, []);
     useLayoutEffect(() => {
-      if (parent.current === null) return;
-      const previewMedia = openPreviewMedia(window.llp);
-      const view = new OutputRenderer(parent.current, {
+      const container = parent.current;
+      if (container === null || !near) return;
+      container.dataset['previewReady'] = 'false';
+      const host = document.createElement('div');
+      Object.assign(host.style, {
+        position: 'absolute',
+        inset: '0',
+        visibility: 'hidden',
+        background:
+          appearance.screen.method === 'ndi'
+            ? 'transparent'
+            : appearance.background,
+      });
+      container.append(host);
+      const media = openPreviewMedia(window.llp);
+      const renderer = new OutputRenderer(host, {
         transparent: appearance.screen.method === 'ndi',
         textStyle: DEFAULT_TEXT_STYLE,
         mediaUrl,
-        previewMedia,
+        previewMedia: media,
         mode: 'preview',
         onError: (message, error) => console.error(message, error),
       });
-      renderer.current = view;
-      draw();
-      return () => {
-        renderer.current = null;
-        view.dispose();
-        previewMedia?.dispose();
+      const view: PictureView = {
+        host,
+        renderer,
+        dispose: () => {
+          renderer.dispose();
+          media?.dispose();
+          host.remove();
+        },
       };
-    }, [appearance.screen.method]);
-    useLayoutEffect(() => {
-      draw();
-    }, [layers, appearance.screen, appearance.theme]);
+      let cancelled = false;
+      let frame = 0;
+      const started = performance.now();
+      renderer.render(layers, {
+        screen: appearance.screen,
+        theme: appearance.theme,
+        transitions: false,
+        ...(layers.slide === null ? {} : {slide: layers.slide}),
+      });
+      const check = (): void => {
+        if (cancelled) return;
+        const expired =
+          performance.now() - started >= OUTPUT_REVEAL_DEADLINE_MS;
+        if (
+          (!previewReady(renderer) || fontsLoading(document.fonts)) &&
+          !expired
+        ) {
+          frame = requestAnimationFrame(check);
+          return;
+        }
+        if (expired) renderer.revealIncomplete();
+        const previous = front.current;
+        previous?.host.remove();
+        host.style.visibility = 'visible';
+        front.current = view;
+        container.dataset['previewReady'] = 'true';
+        previous?.dispose();
+      };
+      frame = requestAnimationFrame(check);
+      return () => {
+        cancelled = true;
+        cancelAnimationFrame(frame);
+        if (front.current !== view) view.dispose();
+      };
+    }, [layers, appearance, near]);
+    useLayoutEffect(
+      () => () => {
+        front.current?.dispose();
+        front.current = null;
+      },
+      [],
+    );
     return (
       <div
         ref={parent}
         className={styles.screen}
+        data-preview-ready={near ? 'false' : 'deferred'}
         style={{
           background:
             appearance.screen.method === 'ndi'
@@ -71,5 +171,5 @@ export const OutputPreviewPicture = memo(
       />
     );
   },
-  (previous, next) => JSON.stringify(previous) === JSON.stringify(next),
+  (previous, next) => pictureKey(previous) === pictureKey(next),
 );

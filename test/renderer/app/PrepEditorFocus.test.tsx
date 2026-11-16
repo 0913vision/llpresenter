@@ -40,6 +40,8 @@ import {mockMenuRowHeight} from '@fixtures/renderer/features/songs/editor/editor
 
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
+    ready = () => true;
+    revealIncomplete = () => undefined;
     render = vi.fn();
     dispose = vi.fn();
   },

@@ -4,6 +4,7 @@ import {useShow} from '@renderer/session/show';
 import {
   isLibrarySource,
   shownTiles,
+  tilesForView,
   useLiveTileIndex,
 } from '@renderer/session/showLibrary';
 import {
@@ -21,6 +22,7 @@ import {useTooltip} from '@renderer/ui/Tooltip';
 import {SlideGrid} from './SlideGrid';
 import {READ_ONLY_TIP} from '../../platform/problemReasons';
 import styles from './SlidePanel.module.css';
+import {useVisibleSlideItem} from './visibleSlideItem';
 
 const PROBLEM_ICON_SIZE = 14;
 
@@ -50,7 +52,7 @@ export function SlidePanelMeta({
 }: {
   readonly onProblem?: ((notice: Notice) => void) | undefined;
 }): JSX.Element | null {
-  const openItemId = useShow(view => view.openItemId);
+  const openItemId = useVisibleSlideItem();
   const source = useShow(view =>
     isLibrarySource(view, openItemId) ? view.librarySong : null,
   );
@@ -68,7 +70,9 @@ export function SlidePanelMeta({
       ? view.librarySong.title
       : view.rows.find(row => row.id === openItemId)?.title,
   );
-  const count = useShow(view => shownTiles(view)?.length ?? 0);
+  const count = useShow(view =>
+    openItemId === null ? 0 : tilesForView(view, openItemId).length,
+  );
   const livePosition = useLiveTileIndex();
   if (title === undefined) return null;
   const position =

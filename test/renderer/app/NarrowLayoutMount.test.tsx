@@ -16,6 +16,8 @@ import {mockPanelTabWidths} from '@fixtures/renderer/ui/responsiveTabTesting';
 
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
+    ready = () => true;
+    revealIncomplete = () => undefined;
     render = vi.fn();
     dispose = vi.fn();
   },
