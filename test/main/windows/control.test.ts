@@ -5,12 +5,14 @@ import {appIconPath} from '@main/windows/appIcon';
 import {loadPage} from '@main/windows/page';
 import {CRASH_LIMIT, CRASH_PERIOD_MS} from '@main/outputs/restartBudget';
 import {audioMutedByDefault} from '@main/windows/audioPolicy';
+import {serviceEndpoints} from '@contracts/ipc/service';
 
 const electron = await vi.hoisted(async () => {
   const {EventEmitter} = await import('node:events');
   class MockBrowserWindow extends EventEmitter {
     readonly webContents = Object.assign(new EventEmitter(), {
       setAudioMuted: vi.fn(),
+      mainFrame: {},
     });
     readonly maximize = vi.fn();
     readonly show = vi.fn();
@@ -23,11 +25,17 @@ const electron = await vi.hoisted(async () => {
     }
   }
   const created: MockBrowserWindow[] = [];
-  return {MockBrowserWindow, created, app: {isPackaged: false}};
+  return {
+    MockBrowserWindow,
+    created,
+    app: {isPackaged: false},
+    ipcMain: new EventEmitter(),
+  };
 });
 
 vi.mock('electron', () => ({
   BrowserWindow: electron.MockBrowserWindow,
+  ipcMain: electron.ipcMain,
   app: electron.app,
   screen: {
     getPrimaryDisplay: () => ({workAreaSize: {width: 1920, height: 1080}}),
@@ -52,7 +60,11 @@ beforeEach(() => {
   electron.created.length = 0;
   electron.app.isPackaged = false;
 });
-afterEach(() => vi.unstubAllEnvs());
+afterEach(() => {
+  for (const win of electron.created) win.emit('closed');
+  electron.ipcMain.removeAllListeners();
+  vi.unstubAllEnvs();
+});
 
 describe('createControlWindow', () => {
   it('mutes, strips the menu, and attaches zoom before loading an offscreen window that never shows', () => {
@@ -84,13 +96,43 @@ describe('createControlWindow', () => {
     expect(win.maximize).not.toHaveBeenCalled();
   });
 
-  it('shows and maximizes the normal window once it is ready', () => {
-    createControlWindow(recordingLogger(), 'normal', {attachControl: vi.fn()});
+  it('shows the normal window only after paint, control data and outputs are ready', async () => {
+    let finish: (ready: boolean) => void = () => undefined;
+    const outputs = new Promise<boolean>(resolve => {
+      finish = resolve;
+    });
+    createControlWindow(recordingLogger(), 'normal', {
+      attachControl: vi.fn(),
+      outputsReady: outputs,
+    });
     const win = lastWindow();
     expect(win.options).not.toHaveProperty('webPreferences.offscreen');
     win.emit('ready-to-show');
+    expect(win.show).not.toHaveBeenCalled();
+    electron.ipcMain.emit(serviceEndpoints.ready.channel, {
+      sender: {},
+      senderFrame: {},
+    });
+    expect(win.show).not.toHaveBeenCalled();
+    electron.ipcMain.emit(serviceEndpoints.ready.channel, {
+      sender: win.webContents,
+      senderFrame: win.webContents.mainFrame,
+    });
+    expect(win.show).not.toHaveBeenCalled();
+    finish(true);
+    await Promise.resolve();
     expect(win.maximize).toHaveBeenCalledOnce();
     expect(win.show).toHaveBeenCalledOnce();
+  });
+
+  it('eventually shows a painted window if startup readiness does not arrive', () => {
+    vi.useFakeTimers();
+    createControlWindow(recordingLogger(), 'normal', {attachControl: vi.fn()});
+    const win = lastWindow();
+    win.emit('ready-to-show');
+    vi.advanceTimersByTime(15000);
+    expect(win.show).toHaveBeenCalledOnce();
+    vi.useRealTimers();
   });
 
   it('follows the sound policy in a normal window and always mutes an offscreen one', () => {

@@ -202,6 +202,26 @@ async function openPage(name: string): Promise<void> {
 }
 
 describe('PreferencesView', () => {
+  it('announces the requested page when the font API is unavailable', async () => {
+    const original = Object.getOwnPropertyDescriptor(document, 'fonts');
+    Reflect.deleteProperty(document, 'fonts');
+    const onReady = vi.fn();
+    const request = {requestId: 1, page: 'general'} as const;
+    try {
+      render(
+        <PreferencesView
+          onProblem={onProblem}
+          onReady={onReady}
+          request={request}
+        />,
+      );
+      await waitFor(() => expect(onReady).toHaveBeenCalledWith(request));
+    } finally {
+      if (original !== undefined) {
+        Object.defineProperty(document, 'fonts', original);
+      }
+    }
+  });
   it('uses the current shared-window request after the view resumes', async () => {
     const legacy = vi.fn(async () => 'general' as const);
     install({window: {preferencesPage: legacy}});

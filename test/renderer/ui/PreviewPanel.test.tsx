@@ -59,7 +59,11 @@ describe('shared preview panel', () => {
         caption={() => <span>선택한 슬라이드</span>}
       />,
     );
-    expect(view.container.querySelectorAll('[data-screen]')).toHaveLength(1);
+    expect(
+      view.container.querySelectorAll(
+        '[data-screen]:not([aria-hidden="true"])',
+      ),
+    ).toHaveLength(1);
     expect(screen.queryByRole('radiogroup')).toBeNull();
     expect(screen.queryByText('선택한 슬라이드')).toBeNull();
   });

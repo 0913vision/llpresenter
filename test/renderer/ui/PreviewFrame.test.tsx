@@ -175,8 +175,47 @@ describe('PreviewFrame', () => {
   it('shows only the big picture without the tile row', () => {
     const {container} = render(<Preview tiles={false} />);
     expect(screen.queryAllByRole('button')).toHaveLength(0);
-    expect(container.querySelectorAll('[data-screen]')).toHaveLength(1);
+    expect(container.querySelectorAll('[data-screen]')).toHaveLength(3);
+    expect(
+      container.querySelectorAll('[data-screen][aria-hidden="true"]'),
+    ).toHaveLength(2);
     expect(screen.getByText('청중 화면 출력')).toBeDefined();
+  });
+
+  it('keeps hidden pictures mounted when the large screen changes', () => {
+    const lifecycle: string[] = [];
+    function Output({name}: {readonly name: string}): JSX.Element {
+      useEffect(() => {
+        lifecycle.push(`mount ${name}`);
+        return () => {
+          lifecycle.push(`unmount ${name}`);
+        };
+      }, [name]);
+      return <span>{name}</span>;
+    }
+    const renderScreen = (shown: PreviewScreen<ScreenName>) => (
+      <Output name={shown.name} />
+    );
+    const {rerender} = render(
+      <PreviewFrame
+        screens={screens}
+        big="main"
+        tiles={false}
+        onBigChange={() => {}}
+        renderScreen={renderScreen}
+      />,
+    );
+    lifecycle.length = 0;
+    rerender(
+      <PreviewFrame
+        screens={screens}
+        big="stage"
+        tiles={false}
+        onBigChange={() => {}}
+        renderScreen={renderScreen}
+      />,
+    );
+    expect(lifecycle).toEqual([]);
   });
 
   it('draws the caption the owner asks for under the big picture only', () => {

@@ -271,6 +271,10 @@ export function ItemMemo({
   const hasRoom = useSyncExternalStore(items.subscribe, () =>
     items.hasMemoRoom(target),
   );
+  const activeItem = useSyncExternalStore(
+    items.subscribe,
+    () => items.getSnapshot().item?.id,
+  );
   const reason = lockReason ?? (hasRoom ? undefined : items.memoRoomReason);
   const [typed, setTyped] = useState<string | null>(null);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
@@ -288,6 +292,9 @@ export function ItemMemo({
     );
   };
   const flushOnLeave = useEffectEvent(save);
+  useEffect(() => {
+    if (activeItem !== target.itemId) flushOnLeave();
+  }, [activeItem, target.itemId]);
   useEffect(() => () => flushOnLeave(), []);
   return (
     <TextArea

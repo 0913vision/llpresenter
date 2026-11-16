@@ -191,9 +191,9 @@ export function useSourceLists(api: SourcesApi | undefined) {
 }
 
 /**
- * The chosen source's document: `null` while it loads, and `missing` when
- * it was deleted or couldn't be read. A later choice replaces an earlier read,
- * and so does a new `version`, such as the list row's name after a rename.
+ * The chosen source's document, retaining the previous document while a new
+ * read is pending. `missing` means the current source was deleted or could
+ * not be read. A later choice or version replaces an earlier read.
  */
 export function useSourceDocument(
   api: SourcesApi | undefined,
@@ -203,7 +203,7 @@ export function useSourceDocument(
   const key = source === null ? null : `${sourceKey(source)} ${version}`;
   // NOTE(0913vision): Each new choice gets the next read number, so a document
   // read for an earlier choice of the same source, as in A, B, then A again,
-  // never shows while the new read is on its way.
+  // cannot settle the new read.
   const [choice, setChoice] = useState({key, read: 0});
   if (choice.key !== key) setChoice({key, read: choice.read + 1});
   const [loaded, setLoaded] = useState<{
@@ -234,8 +234,12 @@ export function useSourceDocument(
       ? loaded
       : null;
   return {
-    document: current?.document ?? null,
+    document:
+      current === null && source !== null
+        ? (loaded?.document ?? null)
+        : (current?.document ?? null),
     missing: current !== null && current.document === null,
+    pending: source !== null && current === null,
   };
 }
 

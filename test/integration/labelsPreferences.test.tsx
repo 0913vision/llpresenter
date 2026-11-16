@@ -418,10 +418,10 @@ it('reports and dismisses a label save failure in the preferences window', async
   await user.click(await screen.findByRole('button', {name: '1절 색'}));
   const colors = await screen.findByRole('radiogroup', {name: '1절 색'});
   await user.click(within(colors).getByRole('radio', {name: '초록'}));
-  const notice = await screen.findByRole('alert');
+  const notice = await screen.findByRole('alert', {name: '이름표 변경 실패'});
   expect(within(notice).getByText('이름표 변경 실패')).toBeTruthy();
   await user.click(within(notice).getByRole('button', {name: '알림 닫기'}));
-  expect(screen.queryByRole('alert')).toBeNull();
+  expect(screen.queryByRole('alert', {name: '이름표 변경 실패'})).toBeNull();
 });
 
 it.each(['sidebar', 'request'] as const)(

@@ -3,7 +3,6 @@ import {LoadReadinessContext} from '@renderer/ui/loadReadiness';
 import type {PreferencePageId} from '@core/schema/preferencePages';
 import {UI_ZOOM} from '@core/schema/uiZoom';
 import {lastBackupText} from '@core/ui/lastBackupText';
-import type {Notice} from '@renderer/ui/notices';
 import {
   PropertyGroup,
   PropertyRow,
@@ -33,7 +32,7 @@ import {
 } from './PreferenceRows';
 import {DeviceRow} from './DeviceRow';
 import type {useAudioOutputs} from './useAudioOutputs';
-import {useLibraryLocations} from './useLibraryLocations';
+import type {LibraryLocationsState} from './useLibraryLocations';
 import {useUiZoom} from './useUiZoom';
 
 /** The pages of the 환경설정 list, in the order it shows them. */
@@ -250,14 +249,11 @@ export function OutputPage({edits}: PageProps): JSX.Element | null {
 /** 저장: 폴더, 백업, 이전 판. */
 export function StoragePage({
   edits,
-  onProblem,
-  onDismiss,
+  locations,
 }: PageProps & {
-  readonly onProblem: (notice: Notice) => void;
-  readonly onDismiss?: ((key: string) => void) | undefined;
+  readonly locations: LibraryLocationsState;
 }): JSX.Element | null {
   const {preferences, lockedReason, change} = edits;
-  const locations = useLibraryLocations(onProblem, onDismiss);
   if (preferences === null) return null;
   const disabled = lockedReason !== undefined;
   const {view} = locations;

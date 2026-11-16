@@ -22,6 +22,22 @@ afterEach(() => {
 });
 
 describe('useSettingsDocument', () => {
+  it('reports a reply for a different settings file as a failed read', async () => {
+    const onProblem = vi.fn();
+    window.llp = mockLlpApi({
+      settings: {
+        get: async () => settingsDocument('screens', {screens: []}, 1),
+      },
+    });
+    const view = renderHook(() =>
+      useSettingsDocument('timers', 'Timer', onProblem),
+    );
+    await act(async () => Promise.resolve());
+    expect(view.result.current).toBeNull();
+    expect(onProblem).toHaveBeenCalledWith(
+      expect.objectContaining({key: 'screens:load:timers'}),
+    );
+  });
   it('reads an explicitly supplied editor API without a global API and releases its feed', async () => {
     const stop = vi.fn();
     const document = settingsDocument('timers', {timers: []}, 3);

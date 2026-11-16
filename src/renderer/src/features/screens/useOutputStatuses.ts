@@ -1,4 +1,5 @@
-import {useEffect, useState} from 'react';
+import {useContext, useEffect, useState} from 'react';
+import {LoadReadinessContext} from '@renderer/ui/loadReadiness';
 import type {OutputStatuses} from '@core/schema/outputStatus';
 
 const noStatuses: OutputStatuses = {};
@@ -9,21 +10,26 @@ const noStatuses: OutputStatuses = {};
  */
 export function useOutputStatuses(): OutputStatuses {
   const [statuses, setStatuses] = useState<OutputStatuses>(noStatuses);
+  const readiness = useContext(LoadReadinessContext);
   useEffect(() => {
     const api = window.llp;
     if (api === undefined) return undefined;
+    const ready = readiness?.begin();
     let active = true;
     let pushed = false;
     const stop = api.output.subscribeStatus(next => {
       if (!active) return;
       pushed = true;
       setStatuses(next);
+      ready?.();
     });
     api.output.getStatus().then(
       next => {
         if (active && !pushed) setStatuses(next);
+        ready?.();
       },
       (cause: unknown) => {
+        ready?.();
         api.log.write({
           level: 'error',
           message: 'Could not read the output statuses',
@@ -33,8 +39,9 @@ export function useOutputStatuses(): OutputStatuses {
     );
     return () => {
       active = false;
+      ready?.();
       stop();
     };
-  }, []);
+  }, [readiness]);
   return statuses;
 }

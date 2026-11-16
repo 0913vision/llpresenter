@@ -2,13 +2,20 @@ import {act, fireEvent, render, screen, within} from '@testing-library/react';
 import {expect, it, vi} from 'vitest';
 import {editorSetup} from '@fixtures/renderer/features/songs/editor/editorTesting';
 import {SlideInspector} from '@renderer/features/service/slideInspector/SlideInspector';
+import {useContext, useLayoutEffect, useRef} from 'react';
+import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
 
 vi.mock('@renderer/platform/useSettingsDocument', () => ({
   useSettingsDocument: () => null,
   useApiSettingsDocument: () => null,
 }));
 vi.mock('@renderer/features/songs/editor/SongPreview', () => ({
-  Picture: () => <div />,
+  Picture: () => {
+    const ready = useContext(PictureReadiness);
+    const source = useRef({});
+    useLayoutEffect(() => ready?.(source.current), [ready]);
+    return <div />;
+  },
 }));
 
 async function setup() {
@@ -19,7 +26,7 @@ async function setup() {
     if (slide === undefined) throw Error('Missing slide');
     act(() => fixture.session.selectSlides({type: 'click', id: slide.id}));
     await fixture.user.click(
-      within(inspector.container).getByRole('button', {name: '설정…'}),
+      await within(inspector.container).findByRole('button', {name: '설정…'}),
     );
   };
   return {...fixture, inspector, open};

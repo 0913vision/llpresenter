@@ -1,4 +1,11 @@
-import {cleanup, render, screen, waitFor} from '@testing-library/react';
+import {
+  act,
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
@@ -7,7 +14,11 @@ import type {
   ChooseLocationResult,
   LocationsView,
 } from '@core/schema/libraryLocations';
-import type {SettingsDocument} from '@core/schema/settingsDocuments';
+import {
+  parseSettingsDocument,
+  type SettingsDocument,
+} from '@core/schema/settingsDocuments';
+import {createDefaultThemes} from '@core/themes/defaults';
 import {defaultPreferences} from '@core/schema/preferences';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {
@@ -47,8 +58,53 @@ function install(parts: {
   let pushLocations: (view: LocationsView) => void = () => undefined;
   let pushZoom: (percent: number) => void = () => undefined;
   const changeZoom = vi.fn(() => Promise.resolve(100));
+  const defaults = mockLlpApi();
+  const extra = new Map<string, SettingsDocument>();
+  for (const [name, value] of [
+    ['themes', createDefaultThemes()],
+    ['props', {format: 'llsettings.props', schemaVersion: 1, props: []}],
+    [
+      'macros',
+      {
+        format: 'llsettings.macros',
+        schemaVersion: 1,
+        macros: [],
+        collections: [],
+      },
+    ],
+    [
+      'shortcuts',
+      {format: 'llsettings.shortcuts', schemaVersion: 1, bindings: {}},
+    ],
+    [
+      'bible',
+      {
+        format: 'llsettings.bible',
+        schemaVersion: 1,
+        translations: [],
+        recents: [],
+      },
+    ],
+  ] as const) {
+    const parsed = parseSettingsDocument({
+      name,
+      value,
+      revision: 1,
+      access: 'editable',
+    });
+    if (!parsed.ok) throw new Error(`Invalid ${name} fixture`);
+    extra.set(name, parsed.value);
+  }
   window.llp = mockLlpApi({
-    settings: {get: () => Promise.resolve(document)},
+    settings: {
+      get: request => {
+        if (request.name === 'preferences') return Promise.resolve(document);
+        const found = extra.get(request.name);
+        return found === undefined
+          ? defaults.settings.get(request)
+          : Promise.resolve(found);
+      },
+    },
     locations: {
       get: () => Promise.resolve(parts.view ?? VIEW),
       subscribe: listener => {
@@ -97,6 +153,26 @@ afterEach(() => {
   onProblem.mockReset();
   onDismiss.mockReset();
   delete window.llp;
+});
+
+it('keeps the current page until its preloaded location data arrives', async () => {
+  install({});
+  let answer: (view: LocationsView) => void = () => undefined;
+  if (window.llp === undefined) throw new Error('Missing API');
+  vi.spyOn(window.llp.locations, 'get').mockImplementationOnce(
+    () =>
+      new Promise(resolve => {
+        answer = resolve;
+      }),
+  );
+  await mount();
+  await userEvent.click(screen.getByRole('option', {name: '저장'}));
+  expect(screen.getByRole('region', {name: '일반'})).toBeTruthy();
+  await act(async () => {
+    answer(VIEW);
+  });
+  expect(await screen.findByRole('region', {name: '저장'})).toBeTruthy();
+  expect(screen.getByDisplayValue(BACKUPS)).toBeTruthy();
 });
 
 describe('일반 > 화면 확대', () => {
@@ -234,7 +310,11 @@ describe('저장 > 폴더 and 백업', () => {
     install({});
     await mount('저장');
 
-    expect(await screen.findByText('없음')).toBeDefined();
+    expect(
+      await within(screen.getByRole('group', {name: '백업'})).findByText(
+        '없음',
+      ),
+    ).toBeDefined();
   });
 
   it('shows the time of the last backup', async () => {

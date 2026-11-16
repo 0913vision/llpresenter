@@ -119,7 +119,7 @@ export function useNewService({
   }, [lists.ready, firstTemplate]);
   const {source, version} = listedSource(lists, chosen, fallback);
   if (source !== chosen) setChosen(source);
-  const {document, missing} = useSourceDocument(api, source, version);
+  const {document, missing, pending} = useSourceDocument(api, source, version);
   const rows = useMemo(
     () => (document === null ? [] : treeRows(document.order, lists.songTitles)),
     [document, lists.songTitles],
@@ -130,14 +130,22 @@ export function useNewService({
     readonly key: string | null;
     readonly selection: TreeSelection;
   } | null>(null);
+  const [previousSelection, setPreviousSelection] =
+    useState<TreeSelection | null>(null);
   const selection =
-    picked?.key === key ? picked.selection : checkAll(rows, true);
-  const setSelection = (next: TreeSelection): void =>
-    setPicked({key, selection: next});
+    pending && previousSelection !== null
+      ? previousSelection
+      : picked?.key === key
+        ? picked.selection
+        : checkAll(rows, true);
+  const setSelection = (next: TreeSelection): void => {
+    if (!pending) setPicked({key, selection: next});
+  };
   // NOTE(0913vision): Changing sources checks every item again (spec 05),
   // also when the operator returns to a source they changed.
   const choose = (next: ServiceSource): void => {
     if (key === sourceKey(next)) return;
+    setPreviousSelection(selection);
     setChosen(next);
     setPicked(null);
   };
@@ -160,7 +168,7 @@ export function useNewService({
   }, []);
 
   const trimmed = name.trim();
-  const canCreate = document !== null && trimmed !== '' && !busy;
+  const canCreate = document !== null && !pending && trimmed !== '' && !busy;
   const create = (): void => {
     if (api === undefined || document === null || !canCreate) return;
     setBusy(true);
@@ -188,7 +196,7 @@ export function useNewService({
 
   return {
     lists,
-    source,
+    source: pending ? (document?.source ?? source) : source,
     choose,
     document,
     missing,

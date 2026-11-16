@@ -34,6 +34,7 @@ export function useServicePicker(onProblem: (notice: Notice) => void) {
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [entries, setEntries] = useState<readonly ServiceEntry[]>([]);
+  const [ready, setReady] = useState(false);
   const [busy, setBusy] = useState(false);
   const alive = useRef(false);
   const pending = useRef(false);
@@ -60,10 +61,14 @@ export function useServicePicker(onProblem: (notice: Notice) => void) {
       if (!active) return;
       pushed = true;
       setEntries(sorted(next));
+      setReady(true);
     });
     api.services.list().then(
       next => {
-        if (active && !pushed) setEntries(sorted(next));
+        if (active && !pushed) {
+          setEntries(sorted(next));
+          setReady(true);
+        }
       },
       (cause: unknown) => {
         api.log.write({
@@ -71,7 +76,10 @@ export function useServicePicker(onProblem: (notice: Notice) => void) {
           message: 'Could not load the service list',
           detail: cause instanceof Error ? cause.message : String(cause),
         });
-        if (active && !pushed) onProblem(problemNotice('load'));
+        if (active && !pushed) {
+          setReady(true);
+          onProblem(problemNotice('load'));
+        }
       },
     );
     return () => {
@@ -82,6 +90,7 @@ export function useServicePicker(onProblem: (notice: Notice) => void) {
 
   const close = (): void => {
     setOpen(false);
+    setReady(false);
     setEntries([]);
     setQuery('');
   };
@@ -143,5 +152,5 @@ export function useServicePicker(onProblem: (notice: Notice) => void) {
       entry.name.normalize('NFC').toLocaleLowerCase('ko').includes(text),
     );
   }, [entries, query]);
-  return {open, query, setQuery, visible, busy, toggle, close, select};
+  return {open, ready, query, setQuery, visible, busy, toggle, close, select};
 }

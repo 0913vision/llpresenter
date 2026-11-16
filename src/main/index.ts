@@ -281,7 +281,10 @@ function start(): void {
         thumbnail: analysis.thumbnailOf,
         log,
       });
-      const win = createControlWindow(log, windowMode, zoom);
+      const win = createControlWindow(log, windowMode, {
+        attachControl: contents => zoom.attachControl(contents),
+        outputsReady: launchIdle.ready,
+      });
       control = win;
       let activeControl = win;
       const controlRef = {
@@ -497,7 +500,10 @@ function start(): void {
       graphicsRecovery = new GraphicsRecovery(
         async reason => {
           const previous = activeControl;
-          const replacement = createControlWindow(log, windowMode, zoom);
+          const replacement = createControlWindow(log, windowMode, {
+            attachControl: contents => zoom.attachControl(contents),
+            outputsReady: launchIdle.ready,
+          });
           if (!previous.isDestroyed() && !previous.isMaximized()) {
             replacement.setBounds(previous.getBounds());
           }

@@ -51,7 +51,7 @@ export function useImportItems({
   }, [lists.ready, firstTemplate, firstService]);
   const {source, version} = listedSource(lists, chosen, fallback);
   if (source !== chosen) setChosen(source);
-  const {document, missing} = useSourceDocument(api, source, version);
+  const {document, missing, pending} = useSourceDocument(api, source, version);
   const rows = useMemo(
     () => (document === null ? [] : treeRows(document.order, lists.songTitles)),
     [document, lists.songTitles],
@@ -62,13 +62,22 @@ export function useImportItems({
     readonly key: string | null;
     readonly selection: TreeSelection;
   } | null>(null);
-  const selection = picked?.key === key ? picked.selection : NOTHING;
-  const setSelection = (next: TreeSelection): void =>
-    setPicked({key, selection: next});
+  const [previousSelection, setPreviousSelection] =
+    useState<TreeSelection | null>(null);
+  const selection =
+    pending && previousSelection !== null
+      ? previousSelection
+      : picked?.key === key
+        ? picked.selection
+        : NOTHING;
+  const setSelection = (next: TreeSelection): void => {
+    if (!pending) setPicked({key, selection: next});
+  };
   // NOTE(0913vision): Changing sources checks nothing (spec 05), also when
   // the operator returns to one they checked items in.
   const choose = (next: ServiceSource): void => {
     if (key === sourceKey(next)) return;
+    setPreviousSelection(selection);
     setChosen(next);
     setPicked(null);
   };
@@ -91,7 +100,11 @@ export function useImportItems({
       ? NONE_PICKED
       : undefined;
   const canImport =
-    serviceId !== null && document !== null && reason === undefined && !busy;
+    serviceId !== null &&
+    document !== null &&
+    !pending &&
+    reason === undefined &&
+    !busy;
   const importItems = (): void => {
     if (api === undefined || serviceId === null || !canImport) return;
     if (source === null || source.kind === 'empty') return;
@@ -146,7 +159,7 @@ export function useImportItems({
     lists,
     templates: lists.templates,
     services,
-    source,
+    source: pending ? (document?.source ?? source) : source,
     choose,
     document,
     missing,

@@ -26,7 +26,7 @@ export function useServicePickerMenu(onProblem: (notice: Notice) => void) {
   };
   const overlays = (
     <>
-      {picker.open && anchor ? (
+      {picker.open && picker.ready && anchor ? (
         <Menu
           label="예배 선택"
           anchor={{kind: 'element', element: anchor}}

@@ -1,7 +1,18 @@
 import {act, fireEvent, render, screen} from '@testing-library/react';
 import {SlideInspector} from '@renderer/features/service/slideInspector/SlideInspector';
-import {expect, it} from 'vitest';
+import {expect, it, vi} from 'vitest';
 import {editorSetup} from '@fixtures/renderer/features/songs/editor/editorTesting';
+import {useContext, useLayoutEffect, useRef} from 'react';
+import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
+
+vi.mock('@renderer/rendering/SlidePicture', () => ({
+  SlidePicture: () => {
+    const ready = useContext(PictureReadiness);
+    const source = useRef({});
+    useLayoutEffect(() => ready?.(source.current), [ready]);
+    return null;
+  },
+}));
 
 it.each([
   ['제목 자간', 'titleTracking', 0],
@@ -15,7 +26,7 @@ it.each([
     render(<SlideInspector store={store} />);
     act(() => session.edit({type: 'title', title: 'Invented title'}));
     const before = session.history.snapshot.song.slides;
-    const field = screen.getByRole('spinbutton', {name: label});
+    const field = await screen.findByRole('spinbutton', {name: label});
     await user.click(field);
     await user.keyboard('{ArrowUp}');
     const after = session.history.snapshot.song.slides;

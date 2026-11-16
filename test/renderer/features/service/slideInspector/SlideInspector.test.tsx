@@ -11,6 +11,8 @@ import {
   fixtureServiceId,
 } from '@fixtures/renderer/features/service/items/itemFixture';
 import {useShow} from '@renderer/session/show';
+import {useContext, useLayoutEffect, useRef} from 'react';
+import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
 
 vi.mock('@renderer/platform/useSettingsDocument', () => ({
   useSettingsDocument: () => null,
@@ -23,11 +25,18 @@ vi.mock('@renderer/rendering/SlidePicture', () => ({
   }: {
     slide: {lines: readonly string[]};
     background?: string;
-  }) => (
-    <div data-testid="picture" data-background={background}>
-      {slide.lines.join(' ')}
-    </div>
-  ),
+  }) => {
+    const ready = useContext(PictureReadiness);
+    const source = useRef({});
+    useLayoutEffect(() => {
+      ready?.(source.current);
+    }, [ready]);
+    return (
+      <div data-testid="picture" data-background={background}>
+        {slide.lines.join(' ')}
+      </div>
+    );
+  },
 }));
 
 it.each([
@@ -140,7 +149,7 @@ it('edits the selected slides and shows mixed transitions', async () => {
   const {store, session, user} = await editorSetup();
   const view = render(<SlideInspector store={store} />);
   const panel = within(view.container);
-  const effect = panel.getByLabelText('효과');
+  let effect = panel.getByLabelText('효과');
   await user.click(within(effect).getByRole('button', {name: '닦아내기'}));
   expect(session.history.snapshot.song.slides[0]?.transition?.kind).toBe(
     'wipe',
@@ -148,6 +157,7 @@ it('edits the selected slides and shows mixed transitions', async () => {
   const second = session.slideModel.getSnapshot().slides[1];
   if (!second) throw new Error('Missing second slide');
   act(() => session.selectSlides({type: 'click', id: second.id, ctrl: true}));
+  effect = panel.getByLabelText('효과');
   expect(
     within(effect)
       .getAllByRole('button')

@@ -1,4 +1,10 @@
-import {useSyncExternalStore, type JSX} from 'react';
+import {
+  useContext,
+  useEffect,
+  useRef,
+  useSyncExternalStore,
+  type JSX,
+} from 'react';
 import {isItemOfKind} from '@core/schema/service';
 import {biblePartEffect, setBiblePartEffect} from '@core/bible/partTransitions';
 import type {SlideTransition} from '@core/schema/slideTransition';
@@ -13,6 +19,9 @@ import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjectio
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {sermonPreviewRow} from '@renderer/platform/sermonPreview';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
+import {AtomicPictureContent} from '@renderer/rendering/AtomicPictureContent';
+import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
+import type {MediaItem} from '@core/schema/mediaList';
 import {MediaProperties} from '@renderer/features/media/MediaPropertiesPanel';
 import {Panel, PanelBody} from '@renderer/ui/Panel';
 import {Properties} from '@renderer/ui/PropertyRow';
@@ -25,6 +34,44 @@ import {savedPassageTiles} from '../items/bibleItemModel';
 import {SermonInlineEditor} from '../items/SermonInlineEditor';
 import type {ServiceItemStore} from '../items/serviceItemStore';
 import styles from './SlideInspector.module.css';
+
+function InspectorMediaPicture({
+  file,
+}: {
+  readonly file: MediaItem;
+}): JSX.Element {
+  const ready = useContext(PictureReadiness);
+  const source = useRef({});
+  const alive = useRef(true);
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
+  return (
+    <img
+      className={styles.mediaPicture}
+      src={file.kind === 'video' ? thumbnailSrc(file.id) : mediaUrl(file.id)}
+      alt=""
+      onError={event => {
+        event.currentTarget.style.visibility = 'hidden';
+        ready?.(source.current);
+      }}
+      onLoad={event => {
+        const image = event.currentTarget;
+        image.style.visibility = '';
+        if (ready === null) return;
+        const finish = (): void => {
+          if (alive.current) ready(source.current);
+        };
+        if (typeof image.decode === 'function') {
+          image.decode().then(finish, finish);
+        } else finish();
+      }}
+    />
+  );
+}
 
 /** The local selected Bible or media item, never the output. */
 export function OtherSlideInspector({
@@ -280,182 +327,215 @@ export function OtherSlideInspector({
       }),
     );
   };
+  const hasFile = file !== undefined && file.kind !== 'audio';
+  const hasCard =
+    card !== undefined && cardTheme !== undefined && item !== null;
+  const hasLiturgy =
+    card === undefined &&
+    liturgy !== null &&
+    liturgyLayer !== null &&
+    liturgyTheme !== undefined;
+  const hasBible =
+    tile !== undefined && layer !== null && appearance !== undefined;
+  const pictureCount = [hasFile, hasCard, hasLiturgy, hasBible].filter(
+    Boolean,
+  ).length;
   return (
     <Panel label="슬라이드 속성">
       <PanelBody>
-        {item !== null && isItemOfKind(item, 'sermon') ? (
-          <SermonInlineEditor items={items} />
-        ) : null}
-        {file === undefined || file.kind === 'audio' ? null : (
-          <>
-            <div className={styles.picture} data-background-picture>
-              <img
-                className={styles.mediaPicture}
-                src={
-                  file.kind === 'video'
-                    ? thumbnailSrc(file.id)
-                    : mediaUrl(file.id)
-                }
-                alt=""
-                onError={event => {
-                  event.currentTarget.style.visibility = 'hidden';
-                }}
-                onLoad={event => {
-                  event.currentTarget.style.visibility = '';
-                }}
-              />
-            </div>
-            <div
-              onKeyDownCapture={event => {
-                if (
-                  event.key !== 'Enter' ||
-                  event.nativeEvent.isComposing ||
-                  event.ctrlKey ||
-                  event.metaKey ||
-                  event.altKey ||
-                  !(event.target instanceof HTMLInputElement)
-                ) {
-                  return;
-                }
-                event.preventDefault();
-                event.stopPropagation();
-                event.target.blur();
-                document
-                  .querySelector<HTMLElement>(
-                    '[data-song-slide][aria-selected="true"], [data-song-slide]',
-                  )
-                  ?.focus();
-              }}
-            >
-              <MediaProperties
-                item={file}
-                disabled={media.document?.access !== 'editable'}
-              />
-            </div>
-          </>
-        )}
-        {card === undefined ||
-        cardTheme === undefined ||
-        item === null ? null : (
-          <>
-            <div className={styles.picture} data-background-picture>
-              <div className={styles.canvas}>
-                <SlidePicture
-                  output
-                  {...cardTheme}
-                  slide={{
-                    itemId: item.id,
-                    position: 0,
-                    label: card.name,
-                    lines: [card.english],
-                    sectionCard: card,
+        <AtomicPictureContent
+          identity={`${item?.id ?? 'none'}:${position}:${bibleSelection.join(',')}:${cardSelected}`}
+          pending={
+            (item !== null &&
+              isItemOfKind(item, 'media') &&
+              media.document === null &&
+              !media.failed) ||
+            (card !== undefined && cardTheme === undefined) ||
+            (card === undefined &&
+              liturgy !== null &&
+              (liturgyLayer === null || liturgyTheme === undefined)) ||
+            (tile !== undefined && (layer === null || appearance === undefined))
+          }
+          waitForPicture={pictureCount > 0}
+          pictureCount={pictureCount}
+          content={
+            <div>
+              {item !== null && isItemOfKind(item, 'sermon') ? (
+                <SermonInlineEditor items={items} />
+              ) : null}
+              {file === undefined || file.kind === 'audio' ? null : (
+                <>
+                  <div className={styles.picture} data-background-picture>
+                    <InspectorMediaPicture file={file} />
+                  </div>
+                  <div
+                    onKeyDownCapture={event => {
+                      if (
+                        event.key !== 'Enter' ||
+                        event.nativeEvent.isComposing ||
+                        event.ctrlKey ||
+                        event.metaKey ||
+                        event.altKey ||
+                        !(event.target instanceof HTMLInputElement)
+                      ) {
+                        return;
+                      }
+                      event.preventDefault();
+                      event.stopPropagation();
+                      event.target.blur();
+                      document
+                        .querySelector<HTMLElement>(
+                          '[data-song-slide][aria-selected="true"], [data-song-slide]',
+                        )
+                        ?.focus();
+                    }}
+                  >
+                    <MediaProperties
+                      item={file}
+                      disabled={media.document?.access !== 'editable'}
+                    />
+                  </div>
+                </>
+              )}
+              {card === undefined ||
+              cardTheme === undefined ||
+              item === null ? null : (
+                <>
+                  <div className={styles.picture} data-background-picture>
+                    <div className={styles.canvas}>
+                      <SlidePicture
+                        output
+                        {...cardTheme}
+                        slide={{
+                          itemId: item.id,
+                          position: 0,
+                          label: card.name,
+                          lines: [card.english],
+                          sectionCard: card,
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <div className={styles.caption} style={labelInk('none')}>
+                    {card.name}
+                    <span>1 / {count}</span>
+                  </div>
+                </>
+              )}
+              {card === undefined &&
+              liturgy !== null &&
+              liturgyLayer !== null &&
+              liturgyTheme !== undefined ? (
+                <>
+                  <div className={styles.picture} data-background-picture>
+                    <div className={styles.canvas}>
+                      <SlidePicture
+                        output
+                        {...liturgyTheme}
+                        slide={liturgyLayer}
+                      />
+                    </div>
+                  </div>
+                  <div className={styles.caption} style={labelInk('none')}>
+                    {LITURGY[liturgy.liturgy.kind].name}
+                    <span>
+                      {position + 1} / {count}
+                    </span>
+                  </div>
+                </>
+              ) : null}
+              {tile === undefined ||
+              layer === null ||
+              appearance === undefined ? null : (
+                <>
+                  <div className={styles.picture} data-background-picture>
+                    <div className={styles.canvas}>
+                      {tile.sermonTitle === true &&
+                      sermonTheme !== undefined ? (
+                        <SlidePicture output {...sermonTheme} slide={layer} />
+                      ) : (
+                        <SlidePicture
+                          output
+                          themeId={appearance.theme.themeId}
+                          screen={appearance.screen}
+                          slide={layer}
+                          layout={appearance.theme.layout}
+                          emptyColor={appearance.theme.emptyColor}
+                          item={appearance.theme.item}
+                        />
+                      )}
+                    </div>
+                  </div>
+                  <div
+                    className={styles.caption}
+                    style={labelInk(tile.labelColor)}
+                  >
+                    {tile.label ?? ''}
+                    <span>
+                      {index + 1} / {tiles.length}
+                    </span>
+                  </div>
+                </>
+              )}
+              {(selectedCard !== undefined ||
+                part != null ||
+                selectedParts.length > 0 ||
+                selectedTitles.length > 0 ||
+                (liturgy !== null && liturgyIndex >= 0)) &&
+              service !== null ? (
+                <div
+                  onKeyDown={event => {
+                    if (
+                      (!bible &&
+                        liturgy === null &&
+                        changeSelected === undefined) ||
+                      busy ||
+                      service.access !== 'editable' ||
+                      event.nativeEvent.isComposing ||
+                      event.altKey ||
+                      !(event.ctrlKey || event.metaKey)
+                    ) {
+                      return;
+                    }
+                    const key = event.key.toLowerCase();
+                    if (key !== 'z' && key !== 'y') return;
+                    event.preventDefault();
+                    event.stopPropagation();
+                    const action =
+                      key === 'y' || event.shiftKey ? 'redo' : 'undo';
+                    if (bible || liturgy !== null) {
+                      editorTask(items.replayItemEdit(action));
+                    } else editor.getSnapshot().session?.edit(action);
                   }}
-                />
-              </div>
+                >
+                  <Properties>
+                    <TransitionPicker
+                      value={value}
+                      allowAll={
+                        bible || liturgy !== null || applyAll !== undefined
+                      }
+                      mixed={mixed}
+                      disabled={busy || service.access !== 'editable'}
+                      selectionKey={selectedParts
+                        .map(
+                          entry =>
+                            `${entry.reference.book}:${entry.reference.chapter}:${entry.reference.verse}:${entry.part}`,
+                        )
+                        .join(',')}
+                      onChange={changeTransition}
+                      onSeconds={sec => changeTransition(sec)}
+                      onApplyAll={() => {
+                        if (applyAll === undefined) {
+                          changeTransition(value, true);
+                        } else applyAll(value);
+                      }}
+                    />
+                  </Properties>
+                </div>
+              ) : null}
             </div>
-            <div className={styles.caption} style={labelInk('none')}>
-              {card.name}
-              <span>1 / {count}</span>
-            </div>
-          </>
-        )}
-        {card === undefined &&
-        liturgy !== null &&
-        liturgyLayer !== null &&
-        liturgyTheme !== undefined ? (
-          <>
-            <div className={styles.picture} data-background-picture>
-              <div className={styles.canvas}>
-                <SlidePicture output {...liturgyTheme} slide={liturgyLayer} />
-              </div>
-            </div>
-            <div className={styles.caption} style={labelInk('none')}>
-              {LITURGY[liturgy.liturgy.kind].name}
-              <span>
-                {position + 1} / {count}
-              </span>
-            </div>
-          </>
-        ) : null}
-        {tile === undefined ||
-        layer === null ||
-        appearance === undefined ? null : (
-          <>
-            <div className={styles.picture} data-background-picture>
-              <div className={styles.canvas}>
-                {tile.sermonTitle === true && sermonTheme !== undefined ? (
-                  <SlidePicture output {...sermonTheme} slide={layer} />
-                ) : (
-                  <SlidePicture
-                    output
-                    themeId={appearance.theme.themeId}
-                    screen={appearance.screen}
-                    slide={layer}
-                    layout={appearance.theme.layout}
-                    emptyColor={appearance.theme.emptyColor}
-                    item={appearance.theme.item}
-                  />
-                )}
-              </div>
-            </div>
-            <div className={styles.caption} style={labelInk(tile.labelColor)}>
-              {tile.label ?? ''}
-              <span>
-                {index + 1} / {tiles.length}
-              </span>
-            </div>
-          </>
-        )}
-        {(selectedCard !== undefined ||
-          part != null ||
-          selectedParts.length > 0 ||
-          selectedTitles.length > 0 ||
-          (liturgy !== null && liturgyIndex >= 0)) &&
-        service !== null ? (
-          <div
-            onKeyDown={event => {
-              if (
-                (!bible && liturgy === null && changeSelected === undefined) ||
-                busy ||
-                service.access !== 'editable' ||
-                event.nativeEvent.isComposing ||
-                event.altKey ||
-                !(event.ctrlKey || event.metaKey)
-              ) {
-                return;
-              }
-              const key = event.key.toLowerCase();
-              if (key !== 'z' && key !== 'y') return;
-              event.preventDefault();
-              event.stopPropagation();
-              const action = key === 'y' || event.shiftKey ? 'redo' : 'undo';
-              if (bible || liturgy !== null) {
-                editorTask(items.replayItemEdit(action));
-              } else editor.getSnapshot().session?.edit(action);
-            }}
-          >
-            <Properties>
-              <TransitionPicker
-                value={value}
-                allowAll={bible || liturgy !== null || applyAll !== undefined}
-                mixed={mixed}
-                disabled={busy || service.access !== 'editable'}
-                selectionKey={selectedParts
-                  .map(
-                    entry =>
-                      `${entry.reference.book}:${entry.reference.chapter}:${entry.reference.verse}:${entry.part}`,
-                  )
-                  .join(',')}
-                onChange={changeTransition}
-                onSeconds={sec => changeTransition(sec)}
-                onApplyAll={() => {
-                  if (applyAll === undefined) changeTransition(value, true);
-                  else applyAll(value);
-                }}
-              />
-            </Properties>
-          </div>
-        ) : null}
+          }
+        />
       </PanelBody>
     </Panel>
   );

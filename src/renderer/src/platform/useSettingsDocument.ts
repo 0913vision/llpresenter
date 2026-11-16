@@ -72,7 +72,7 @@ export function useApiSettingsDocument<TName extends SettingsName>({
       ready?.();
     };
     const stop = api.settings.subscribe(accept);
-    api.settings.get({name}).then(accept, (cause: unknown) => {
+    const fail = (cause: unknown): void => {
       ready?.();
       api.log?.write({
         level: 'error',
@@ -87,7 +87,14 @@ export function useApiSettingsDocument<TName extends SettingsName>({
         title: `${title} 불러오기 실패`,
         time: noticeTime(),
       });
-    });
+    };
+    api.settings.get({name}).then(next => {
+      if (!isNamed(next, name)) {
+        fail(new Error(`Unexpected ${name} settings reply`));
+        return;
+      }
+      accept(next);
+    }, fail);
     return () => {
       active = false;
       ready?.();

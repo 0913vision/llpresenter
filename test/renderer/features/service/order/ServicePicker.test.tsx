@@ -78,6 +78,24 @@ afterEach(() => {
 });
 
 describe('service picker', () => {
+  it('waits for the list before showing the picker', async () => {
+    const {api, user} = setup();
+    let answer: (value: readonly ServiceEntry[]) => void = () => undefined;
+    vi.spyOn(api.services, 'list').mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          answer = resolve;
+        }),
+    );
+    await user.click(
+      screen.getByRole('button', {name: entries[1]?.name ?? ''}),
+    );
+    expect(screen.queryByRole('menu')).toBeNull();
+    await act(async () => {
+      answer(entries);
+    });
+    expect(await screen.findAllByRole('menuitemradio')).toHaveLength(3);
+  });
   it('lists every service, the separator and the new-service command in spec order', async () => {
     const {user} = setup();
     await openMenu(user);

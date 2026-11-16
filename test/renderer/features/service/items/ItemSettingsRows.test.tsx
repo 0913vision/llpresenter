@@ -61,6 +61,7 @@ async function setup(itemId: string = fixtureItems.arranged) {
     await editor.dispose();
   });
   await waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
+  await screen.findByRole('button', {name: '시작할 때'});
   const settings = screen.getByRole('region', {name: '세부정보'});
   await waitFor(() =>
     expect(

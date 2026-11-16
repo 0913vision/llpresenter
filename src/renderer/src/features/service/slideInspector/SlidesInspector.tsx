@@ -12,6 +12,7 @@ import {
 import type {SlidesListSession} from '../slides/slidesListSession';
 import {Panel, PanelBody} from '@renderer/ui/Panel';
 import {Properties} from '@renderer/ui/PropertyRow';
+import {AtomicPictureContent} from '@renderer/rendering/AtomicPictureContent';
 import {TransitionPicker, TransitionRows} from './TransitionRows';
 import {slideTransitionUndo} from '@renderer/features/songs/editor/slideTransitionSelection';
 import styles from './SlideInspector.module.css';
@@ -35,7 +36,7 @@ export function SlidesInspector({
   const {item: draftItem, selected} = session.draft.snapshot;
   const item = useSlidesItemWithBackground(draftItem);
   const media = useItemMedia(api.media).document?.value.items ?? [];
-  const {appearance} = useSlidesAppearance(api, item);
+  const {appearance, ready} = useSlidesAppearance(api, item);
   const {projection} = useSlidesVerseProjection(api, item);
   const slide = view.slides[selected];
   const card = cardSelected ? draftItem.sectionCard : undefined;
@@ -92,46 +93,55 @@ export function SlidesInspector({
     <Panel label="슬라이드 속성">
       <PanelBody>
         {view.selection.ids.size === 0 || slide === undefined ? null : (
-          <div
-            onKeyDown={event =>
-              slideTransitionUndo(event, session, session.readOnly)
+          <AtomicPictureContent
+            identity={`${item.id}:${selected}:${selectedSlides.map(entry => entry.id).join(',')}:${cardSelected}`}
+            pending={!ready}
+            waitForPicture
+            content={
+              <div
+                onKeyDown={event =>
+                  slideTransitionUndo(event, session, session.readOnly)
+                }
+              >
+                <div className={styles.picture} data-background-picture>
+                  <SlidesCanvas
+                    item={item}
+                    index={selected}
+                    appearance={appearance}
+                    projection={projection}
+                  />
+                </div>
+                <div className={styles.caption}>
+                  {slideBand(slide, media)}
+                  <span>
+                    {selected + 1} / {view.slides.length}
+                  </span>
+                </div>
+                <Properties>
+                  {card === undefined ? (
+                    <TransitionRows
+                      session={session}
+                      disabled={false}
+                      onApplyAll={onApplyAll}
+                    />
+                  ) : (
+                    <TransitionPicker
+                      value={value}
+                      mixed={mixed}
+                      disabled={session.readOnly}
+                      selectionKey={selectedSlides
+                        .map(entry => entry.id)
+                        .join(',')}
+                      onChange={applySelected}
+                      onSeconds={applySelected}
+                      onApplyAll={() => onApplyAll?.(value)}
+                      allowAll={onApplyAll !== undefined}
+                    />
+                  )}
+                </Properties>
+              </div>
             }
-          >
-            <div className={styles.picture} data-background-picture>
-              <SlidesCanvas
-                item={item}
-                index={selected}
-                appearance={appearance}
-                projection={projection}
-              />
-            </div>
-            <div className={styles.caption}>
-              {slideBand(slide, media)}
-              <span>
-                {selected + 1} / {view.slides.length}
-              </span>
-            </div>
-            <Properties>
-              {card === undefined ? (
-                <TransitionRows
-                  session={session}
-                  disabled={false}
-                  onApplyAll={onApplyAll}
-                />
-              ) : (
-                <TransitionPicker
-                  value={value}
-                  mixed={mixed}
-                  disabled={session.readOnly}
-                  selectionKey={selectedSlides.map(entry => entry.id).join(',')}
-                  onChange={applySelected}
-                  onSeconds={applySelected}
-                  onApplyAll={() => onApplyAll?.(value)}
-                  allowAll={onApplyAll !== undefined}
-                />
-              )}
-            </Properties>
-          </div>
+          />
         )}
       </PanelBody>
     </Panel>

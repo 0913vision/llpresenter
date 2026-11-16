@@ -13,9 +13,26 @@ import {
   fixtureServiceId,
 } from '@fixtures/renderer/features/service/items/itemFixture';
 import {fixtureMedia} from '@fixtures/core/mediaList';
+import {useContext, useLayoutEffect, useRef} from 'react';
+import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
 
+vi.mock('@renderer/rendering/outputRenderer', () => ({
+  OutputRenderer: class {
+    ready = () => true;
+    revealIncomplete = () => undefined;
+    render = vi.fn();
+    dispose = vi.fn();
+  },
+}));
 vi.mock('@renderer/features/songs/editor/SongPreview', () => ({
-  Picture: () => <div />,
+  Picture: () => {
+    const ready = useContext(PictureReadiness);
+    const source = useRef({});
+    useLayoutEffect(() => {
+      ready?.(source.current);
+    }, [ready]);
+    return <div />;
+  },
 }));
 afterEach(() => useShow.setState({serviceId: null, openItemId: null}));
 
@@ -64,8 +81,7 @@ it.each(['blank', 'ad'] as const)(
       />,
     );
     try {
-      await screen.findByText('이번 순서');
-      await userEvent.click(screen.getByRole('tab', {name: '슬라이드'}));
+      await userEvent.click(await screen.findByRole('tab', {name: '슬라이드'}));
       const grid = screen.getByRole('listbox', {name: '슬라이드'});
       const firstTile = await within(grid).findByRole('option', {
         name: form === 'ad' ? '1 소식 이름' : '1 첫 줄',

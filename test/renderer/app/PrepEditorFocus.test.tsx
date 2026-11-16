@@ -5,7 +5,8 @@ import {serviceOrderEditsFor} from '@renderer/session/serviceOrderEdits';
 
 import {ELEMENT_DRAG_MIME} from '@renderer/features/service/items/paletteItems';
 
-import {StrictMode} from 'react';
+import {StrictMode, useContext, useLayoutEffect, useRef} from 'react';
+import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
 import {
   act,
   cleanup,
@@ -46,7 +47,14 @@ vi.mock('@renderer/rendering/outputRenderer', () => ({
     dispose = vi.fn();
   },
 }));
-vi.mock('@renderer/rendering/SlidePicture', () => ({SlidePicture: () => null}));
+vi.mock('@renderer/rendering/SlidePicture', () => ({
+  SlidePicture: () => {
+    const ready = useContext(PictureReadiness);
+    const source = useRef({});
+    useLayoutEffect(() => ready?.(source.current), [ready]);
+    return null;
+  },
+}));
 
 const sessions: ControlSession[] = [];
 
@@ -257,6 +265,7 @@ it.each(['Bible item', 'Media item'] as const)(
     const f = setup();
     const send = vi.spyOn(f.api.live, 'send');
     await userEvent.click(screen.getByRole('option', {name}));
+    await screen.findByRole('tab', {name: '슬라이드'});
     const details = screen.getByRole('region', {name: '세부정보'});
     await userEvent.click(within(details).getByRole('tab', {name: '슬라이드'}));
     const grid = within(details).getByRole('listbox', {name: '슬라이드'});
@@ -422,7 +431,8 @@ it.each(['double-click', 'Enter'] as const)(
 it('selects the source slide and focuses commands after opening from the right grid', async () => {
   const f = setup();
   await userEvent.click(screen.getByRole('option', {name: /Service song/}));
-  const details = await screen.findByRole('region', {name: '세부정보'});
+  await screen.findByRole('tab', {name: '슬라이드'});
+  const details = screen.getByRole('region', {name: '세부정보'});
   await within(details).findByText(
     `곡, 슬라이드 ${f.first.song.slides.length}개`,
   );
@@ -460,6 +470,7 @@ it('shows a library song on a single click without opening its editor', async ()
   await userEvent.click(
     await within(library).findByRole('option', {name: f.first.song.title}),
   );
+  await screen.findByRole('tab', {name: '슬라이드'});
   const details = screen.getByRole('region', {name: '세부정보'});
   await within(details).findByText(
     `곡, 슬라이드 ${f.first.song.slides.length}개`,
