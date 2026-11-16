@@ -231,6 +231,7 @@ interface ScreenCellProps<Id extends string> {
   readonly caption?: ((screen: PreviewScreen<Id>) => ReactNode) | undefined;
   readonly overlay?: ReactNode;
   readonly onBigChange: (id: Id) => void;
+  readonly hidden: boolean;
 }
 
 // NOTE(0913vision): A screen's picture stays one element while it moves between
@@ -244,6 +245,7 @@ function ScreenCell<Id extends string>({
   caption,
   overlay,
   onBigChange,
+  hidden,
 }: ScreenCellProps<Id>): JSX.Element {
   const {targetProps, tooltip} = useTooltip(
     titleTooltip(previewReason(screen)),
@@ -262,8 +264,12 @@ function ScreenCell<Id extends string>({
         data-state={stateOf(screen.status)}
         data-screen={screen.id}
         data-role={role}
+        aria-hidden={hidden || undefined}
         className={large ? styles.main : styles.small}
-        style={{gridColumn: large ? '1 / -1' : column}}
+        style={{
+          gridColumn: large ? '1 / -1' : column,
+          display: hidden ? 'none' : undefined,
+        }}
       >
         <Frame
           screen={screen}
@@ -273,7 +279,7 @@ function ScreenCell<Id extends string>({
         />
         <Caption screen={screen} small={!large} custom={caption} />
       </div>
-      {large ? null : (
+      {large || hidden ? null : (
         <button
           {...targetProps}
           {...press}
@@ -321,12 +327,12 @@ export function PreviewFrame<Id extends string>({
     >
       {screens.map(screen => {
         const isBig = screen.id === big;
-        if (!isBig && !tiles) return null;
         return (
           <ScreenCell
             key={screen.id}
             screen={screen}
             role={isBig ? 'large' : 'small'}
+            hidden={!isBig && !tiles}
             column={isBig ? 1 : others.indexOf(screen) + 1}
             renderScreen={renderScreen}
             caption={caption}

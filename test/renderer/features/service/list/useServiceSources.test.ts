@@ -146,7 +146,11 @@ describe('useSourceDocument', () => {
       }),
     );
     const none = renderHook(() => useSourceDocument(api, null));
-    expect(none.result.current).toEqual({document: null, missing: false});
+    expect(none.result.current).toEqual({
+      document: null,
+      missing: false,
+      pending: false,
+    });
   });
 
   it('says a deleted source is missing', async () => {
@@ -182,7 +186,7 @@ describe('useSourceDocument', () => {
     expect(result.current.document?.source).toBe(past);
   });
 
-  it('shows nothing for A, B, then A again until the new read of A answers', async () => {
+  it('holds the last document for A, B, then A until the new read answers', async () => {
     const reads: Array<(document: TemplateDocument | null) => void> = [];
     const deferred = mockLlpApi({
       templates: {
@@ -206,12 +210,18 @@ describe('useSourceDocument', () => {
     expect(result.current.document?.name).toBe('주일 예배');
     rerender({source: past});
     rerender({source: template});
-    expect(result.current).toEqual({document: null, missing: false});
+    expect(result.current.document?.source).toBe(template);
+    expect(result.current.pending).toBe(true);
+    expect(result.current.missing).toBe(false);
     await act(async () => {
       reads[1]?.(null);
       await Promise.resolve();
     });
-    expect(result.current).toEqual({document: null, missing: true});
+    expect(result.current).toEqual({
+      document: null,
+      missing: true,
+      pending: false,
+    });
   });
 
   it('names each source by its kind and id', () => {

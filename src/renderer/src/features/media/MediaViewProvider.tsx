@@ -11,6 +11,7 @@ import {
   type ReactNode,
 } from 'react';
 import type {Notice} from '@renderer/ui/notices';
+import {LoadReadinessContext} from '@renderer/ui/loadReadiness';
 import type {MediaImportProgress} from '@core/schema/mediaEdit';
 import {WorkspaceNavigation} from '@renderer/platform/WorkspaceNavigation';
 import {ALL_MEDIA, chosenPlaylist, type MediaListChoice} from './mediaEntries';
@@ -119,6 +120,7 @@ export function MediaViewProvider({
 }: MediaViewProviderProps): JSX.Element {
   const report = useEffectEvent(onProblem);
   const [library] = useState(() => new MediaLibrary(api));
+  const readiness = use(LoadReadinessContext);
   const [choice, choose] = useState<MediaListChoice>(ALL_MEDIA);
   const [selected, select] = useState<string | null>(null);
   const navigate = use(WorkspaceNavigation);
@@ -127,15 +129,15 @@ export function MediaViewProvider({
     select(mediaId);
     navigate?.('prep');
   });
-  useEffect(
-    () =>
-      active
-        ? library.start(notice => {
-            report(notice);
-          })
-        : undefined,
-    [library, active],
-  );
+  useEffect(() => {
+    if (!active) return undefined;
+    const ready = readiness?.begin();
+    const stop = library.start(notice => report(notice), ready);
+    return () => {
+      stop();
+      ready?.();
+    };
+  }, [library, active, readiness]);
   const value = useMemo(
     () => ({library, choice, choose, selected, select, imported}),
     [library, choice, selected, imported],

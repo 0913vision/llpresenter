@@ -1,5 +1,6 @@
 import {
   memo,
+  useContext,
   useEffect,
   useLayoutEffect,
   useRef,
@@ -15,6 +16,7 @@ import {openPreviewMedia} from './previewMedia';
 import {fontsLoading, previewReady} from './fontsLoading';
 import type {RenderScreen, ThemeFrame} from './layer';
 import styles from './OutputPreviewPicture.module.css';
+import {PictureReadiness} from './PictureReadiness';
 
 interface PictureProps {
   readonly layers: LiveLayers;
@@ -62,6 +64,8 @@ function pictureKey({layers, appearance}: PictureProps): string {
 export const OutputPreviewPicture = memo(
   ({layers, appearance}: PictureProps): JSX.Element => {
     const parent = useRef<HTMLDivElement>(null);
+    const source = useRef({});
+    const onReady = useContext(PictureReadiness);
     const front = useRef<PictureView | null>(null);
     const [near, setNear] = useState(
       typeof IntersectionObserver === 'undefined',
@@ -83,7 +87,7 @@ export const OutputPreviewPicture = memo(
     }, []);
     useLayoutEffect(() => {
       const container = parent.current;
-      if (container === null || !near) return;
+      if (container === null || (!near && onReady === null)) return;
       container.dataset['previewReady'] = 'false';
       const host = document.createElement('div');
       Object.assign(host.style, {
@@ -129,7 +133,7 @@ export const OutputPreviewPicture = memo(
           performance.now() - started >= OUTPUT_REVEAL_DEADLINE_MS;
         if (
           (!previewReady(renderer) || fontsLoading(document.fonts)) &&
-          !expired
+          (!expired || onReady !== null)
         ) {
           frame = requestAnimationFrame(check);
           return;
@@ -141,6 +145,7 @@ export const OutputPreviewPicture = memo(
         front.current = view;
         container.dataset['previewReady'] = 'true';
         previous?.dispose();
+        onReady?.(source.current);
       };
       frame = requestAnimationFrame(check);
       return () => {
@@ -148,7 +153,7 @@ export const OutputPreviewPicture = memo(
         cancelAnimationFrame(frame);
         if (front.current !== view) view.dispose();
       };
-    }, [layers, appearance, near]);
+    }, [layers, appearance, near, onReady]);
     useLayoutEffect(
       () => () => {
         front.current?.dispose();

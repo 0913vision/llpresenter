@@ -119,35 +119,55 @@ export class MediaLibrary {
    *
    * @returns A function that stops following them. Always call it.
    */
-  start(onProblem: (notice: Notice) => void): () => void {
+  start(
+    onProblem: (notice: Notice) => void,
+    onInitialReady?: () => void,
+  ): () => void {
     let following = true;
     let missingPushed = false;
     let stampsPushed = false;
+    const waiting = new Set(['document', 'missing', 'stamps']);
+    const ready = (part: string): void => {
+      if (waiting.delete(part) && waiting.size === 0) onInitialReady?.();
+    };
     this.onProblem = onProblem;
     const {media} = this.api;
     const stops = [
       media.subscribe(document => {
-        if (following) this.accept(document);
+        if (following) {
+          this.accept(document);
+          ready('document');
+        }
       }),
       media.subscribeImports(progress => {
         if (following) this.follow(progress);
       }),
       media.subscribeMissing(missing => {
         missingPushed = true;
-        if (following) this.setMissing(missing);
+        if (following) {
+          this.setMissing(missing);
+          ready('missing');
+        }
       }),
       media.subscribeStamps(stamps => {
         stampsPushed = true;
-        if (following) this.setStamps(stamps);
+        if (following) {
+          this.setStamps(stamps);
+          ready('stamps');
+        }
       }),
     ];
     media.get().then(
       document => {
-        if (following) this.accept(document);
+        if (following) {
+          this.accept(document);
+          ready('document');
+        }
       },
       () => {
         if (following) {
           this.onProblem(warning('media-view:load', '미디어 불러오기 실패'));
+          ready('document');
         }
       },
     );
@@ -156,14 +176,20 @@ export class MediaLibrary {
     media.missing().then(
       missing => {
         if (following && !missingPushed) this.setMissing(missing);
+        if (following) ready('missing');
       },
-      () => undefined,
+      () => {
+        if (following) ready('missing');
+      },
     );
     media.stamps().then(
       stamps => {
         if (following && !stampsPushed) this.setStamps(stamps);
+        if (following) ready('stamps');
       },
-      () => undefined,
+      () => {
+        if (following) ready('stamps');
+      },
     );
     return () => {
       following = false;

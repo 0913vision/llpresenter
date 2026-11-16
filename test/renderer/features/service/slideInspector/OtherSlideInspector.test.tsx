@@ -17,6 +17,8 @@ import {
 import {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import {OtherSlideInspector} from '@renderer/features/service/slideInspector/OtherSlideInspector';
+import {useContext, useLayoutEffect, useRef} from 'react';
+import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
 
 vi.mock('@renderer/session/show', () => ({useShow: () => []}));
 vi.mock('@renderer/features/bible/useBibleProjections', () => ({
@@ -78,15 +80,22 @@ vi.mock('@renderer/features/bible/useBibleProjections', () => ({
           },
 }));
 vi.mock('@renderer/rendering/SlidePicture', () => ({
-  SlidePicture: ({slide}: {slide: {label: string; sectionCard?: unknown}}) => (
-    <div
-      data-testid={
-        slide.sectionCard === undefined ? 'bible-picture' : 'card-picture'
-      }
-    >
-      {slide.label}
-    </div>
-  ),
+  SlidePicture: ({slide}: {slide: {label: string; sectionCard?: unknown}}) => {
+    const ready = useContext(PictureReadiness);
+    const source = useRef({});
+    useLayoutEffect(() => {
+      ready?.(source.current);
+    }, [ready]);
+    return (
+      <div
+        data-testid={
+          slide.sectionCard === undefined ? 'bible-picture' : 'card-picture'
+        }
+      >
+        {slide.label}
+      </div>
+    );
+  },
 }));
 vi.mock('@renderer/platform/useSlideTheme', () => ({
   useSlideTheme: (item: unknown) =>
@@ -173,6 +182,15 @@ async function setup(
   act(() => items.show({serviceId: fixtureServiceId, itemId}));
   const view = render(<OtherSlideInspector items={items} editor={editor} />);
   await waitFor(() => expect(items.getSnapshot().item).not.toBeNull());
+  if (kind === 'image' || kind === 'video') {
+    await waitFor(() =>
+      expect(view.container.querySelector('[inert] img')).not.toBeNull(),
+    );
+    const image = view.container.querySelector('[inert] img');
+    if (image === null) throw new Error('Missing staged image');
+    fireEvent.load(image);
+    await waitFor(() => expect(image.closest('[inert]')).toBeNull());
+  }
   return {view, items, editor, fixture};
 }
 it.each(['sermon', 'bible', 'bible-card', 'slide-card'] as const)(

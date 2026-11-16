@@ -1,5 +1,6 @@
-import {app, BrowserWindow, screen} from 'electron';
+import {app, BrowserWindow, ipcMain, screen, type IpcMainEvent} from 'electron';
 import {windowEndpoints} from '@contracts/ipc/window';
+import {serviceEndpoints} from '@contracts/ipc/service';
 import type {Logger} from '../log';
 import type {UiZoomRegistration} from '../store/uiZoom';
 import {audioMutedByDefault} from './audioPolicy';
@@ -18,6 +19,7 @@ const MIN_HEIGHT = 720;
 const DEFAULT_WIDTH = 1920;
 const DEFAULT_HEIGHT = 1080;
 const BACKGROUND = '#0e0e0e';
+const STARTUP_TIMEOUT_MS = 15000;
 const CONTROL_PAGE: PageRequest = {name: 'index'};
 
 /**
@@ -27,7 +29,9 @@ const CONTROL_PAGE: PageRequest = {name: 'index'};
 export function createControlWindow(
   log: Logger,
   mode: WindowMode,
-  zoom: Pick<UiZoomRegistration, 'attachControl'>,
+  zoom: Pick<UiZoomRegistration, 'attachControl'> & {
+    readonly outputsReady?: Promise<boolean>;
+  },
 ): BrowserWindow {
   const area = screen.getPrimaryDisplay().workAreaSize;
   const {webPreferences: testPreferences, ...testOptions} =
@@ -71,13 +75,67 @@ export function createControlWindow(
   // NOTE(0913vision): The main process keeps the live state, so reloading the
   // control window loses nothing on output.
   reloadAfterCrash({win, page: CONTROL_PAGE, label: 'control', log});
-  win.once('ready-to-show', () => {
-    if (mode === 'offscreen') return;
-    const fitsScreen =
-      area.width <= DEFAULT_WIDTH && area.height <= DEFAULT_HEIGHT;
-    if (fitsScreen) win.maximize();
-    win.show();
-  });
+  if (mode === 'normal') {
+    let painted = false;
+    let dataReady = false;
+    let outputsPrepared = false;
+    let shown = false;
+    const show = (): void => {
+      if (
+        shown ||
+        !painted ||
+        !dataReady ||
+        !outputsPrepared ||
+        win.isDestroyed()
+      ) {
+        return;
+      }
+      shown = true;
+      clearTimeout(timeout);
+      ipcMain.removeListener(serviceEndpoints.ready.channel, onReady);
+      const fitsScreen =
+        area.width <= DEFAULT_WIDTH && area.height <= DEFAULT_HEIGHT;
+      if (fitsScreen) win.maximize();
+      win.show();
+    };
+    const onReady = (event: IpcMainEvent, ...args: unknown[]): void => {
+      if (
+        event.sender !== win.webContents ||
+        event.senderFrame !== win.webContents.mainFrame ||
+        args.length !== 0
+      ) {
+        return;
+      }
+      dataReady = true;
+      show();
+    };
+    const timeout = setTimeout(() => {
+      dataReady = true;
+      outputsPrepared = true;
+      show();
+    }, STARTUP_TIMEOUT_MS);
+    timeout.unref();
+    ipcMain.on(serviceEndpoints.ready.channel, onReady);
+    (zoom.outputsReady ?? Promise.resolve(true)).then(
+      () => {
+        outputsPrepared = true;
+        show();
+      },
+      (error: unknown) => {
+        log.warn('Could not confirm output readiness', error);
+        outputsPrepared = true;
+        show();
+      },
+    );
+    win.once('closed', () => {
+      clearTimeout(timeout);
+      ipcMain.removeListener(serviceEndpoints.ready.channel, onReady);
+    });
+    win.once('ready-to-show', () => {
+      painted = true;
+      show();
+    });
+  }
   loadPage(win, CONTROL_PAGE, log);
   return win;
 }

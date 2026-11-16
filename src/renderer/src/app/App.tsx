@@ -59,6 +59,7 @@ import {useLaunchReady} from './useLaunchReady';
 import {UPDATE_NOTICE_KEY, useUpdate} from './update/useUpdate';
 import {addNotice} from '@renderer/ui/notices';
 import {BibleServiceProjection} from '@renderer/features/bible/BibleServiceProjection';
+import {LoadReadiness, LoadReadinessContext} from '@renderer/ui/loadReadiness';
 
 const noEditorSubscription = (): (() => void) => () => undefined;
 
@@ -69,6 +70,17 @@ interface AppProps {
 }
 
 export function App(props: AppProps): JSX.Element {
+  const [readiness] = useState(() => new LoadReadiness());
+  return (
+    <LoadReadinessContext value={readiness}>
+      <AppContent {...props} readiness={readiness} />
+    </LoadReadinessContext>
+  );
+}
+
+function AppContent(
+  props: AppProps & {readonly readiness: LoadReadiness},
+): JSX.Element {
   const monitors = useMonitors();
   return (
     <ScreenSummariesProvider
@@ -84,7 +96,8 @@ function ControlApp({
   columnWidthStore,
   session,
   uiState = {},
-}: AppProps): JSX.Element {
+  readiness,
+}: AppProps & {readonly readiness: LoadReadiness}): JSX.Element {
   const recovery = useRecovery(session.api, session.report);
   const sizeClass = useSizeClass();
   const mediaStrip = useMediaStripVisibility(
@@ -158,7 +171,7 @@ function ControlApp({
   useEffect(() => watchInputModality(window), []);
   useOutputNotices(session.api, session);
   usePlaybackNotices(session.api, session);
-  useLaunchReady(session.api);
+  useLaunchReady(session.api, readiness);
   const saveFailed = useProblemNotices(session.api, session);
   const closeView = useSyncExternalStore(
     session.closeFlush?.subscribe ?? noEditorSubscription,

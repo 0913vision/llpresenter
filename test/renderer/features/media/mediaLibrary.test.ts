@@ -25,6 +25,24 @@ function setup(fixture = mediaFixture(mediaDocument([mediaItem(1)]))) {
 const JOB = {mediaId: mediaId(9), fileName: 'Invented.mp4'} as const;
 
 describe('media library for the media view', () => {
+  it('reports initial readiness after the media document and auxiliary reads answer', async () => {
+    const document = mediaDocument([mediaItem(1)]);
+    const fixture = mediaFixture(document);
+    let answer: (value: typeof document) => void = () => undefined;
+    vi.spyOn(fixture.api.media, 'get').mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          answer = resolve;
+        }),
+    );
+    const ready = vi.fn();
+    const stop = new MediaLibrary(fixture.api).start(vi.fn(), ready);
+    await Promise.resolve();
+    expect(ready).not.toHaveBeenCalled();
+    answer(document);
+    await vi.waitFor(() => expect(ready).toHaveBeenCalledOnce());
+    stop();
+  });
   it('retries a published playlist name until its applied revision is persisted', async () => {
     const list = (name: string, revision: number) =>
       mediaDocument([], revision, {

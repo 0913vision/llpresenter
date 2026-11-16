@@ -2,6 +2,7 @@ import {labelInk} from '@renderer/ui/labelInk';
 import type {Song} from '@core/schema/song';
 import {
   useEffect,
+  useContext,
   useEffectEvent,
   useLayoutEffect,
   useMemo,
@@ -21,6 +22,7 @@ import type {LiveThemeItem} from '@core/schema/liveTheme';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {slideCountOf} from '@core/songs/blockEdits';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
+import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
 import {openPreviewMedia} from '@renderer/rendering/previewMedia';
 import {RolePreview} from './RolePreview';
 import {
@@ -83,6 +85,8 @@ export function Picture({
 }): JSX.Element {
   const parent = useRef<HTMLDivElement>(null);
   const renderer = useRef<OutputRenderer | null>(null);
+  const source = useRef({});
+  const onReady = useContext(PictureReadiness);
   const draw = useEffectEvent(() => {
     try {
       renderer.current?.render(layers, {
@@ -117,6 +121,19 @@ export function Picture({
   useLayoutEffect(() => {
     draw();
   }, [layers, appearance.screen, appearance.theme]);
+  useLayoutEffect(() => {
+    if (onReady === null) return undefined;
+    let frame = 0;
+    let readyFrames = 0;
+    const check = (): void => {
+      if (renderer.current?.ready() === true) readyFrames++;
+      else readyFrames = 0;
+      if (readyFrames >= 2) onReady(source.current);
+      else frame = requestAnimationFrame(check);
+    };
+    frame = requestAnimationFrame(check);
+    return () => cancelAnimationFrame(frame);
+  }, [onReady, layers, appearance]);
   const style: ScreenStyle = {
     '--output-background':
       appearance.screen.method === 'ndi'

@@ -13,6 +13,8 @@ import {SongEditorStore} from '@renderer/features/songs/editor';
 import {useShow} from '@renderer/session/show';
 import {fixtureMedia} from '@fixtures/core/mediaList';
 import {isItemOfKind} from '@core/schema/service';
+import {useContext, useLayoutEffect, useRef} from 'react';
+import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
 
 vi.mock('@renderer/rendering/SlidePicture', () => ({
   SlidePicture: ({
@@ -21,11 +23,18 @@ vi.mock('@renderer/rendering/SlidePicture', () => ({
   }: {
     slide: {lines: readonly string[]};
     background?: string;
-  }) => (
-    <div data-testid="details-picture" data-background={background}>
-      {slide.lines.join(' ')}
-    </div>
-  ),
+  }) => {
+    const ready = useContext(PictureReadiness);
+    const source = useRef({});
+    useLayoutEffect(() => {
+      ready?.(source.current);
+    }, [ready]);
+    return (
+      <div data-testid="details-picture" data-background={background}>
+        {slide.lines.join(' ')}
+      </div>
+    );
+  },
 }));
 
 it('resolves the detail picture background from the item before the library song', async () => {

@@ -1,4 +1,4 @@
-import {useEffect, useRef, useState, type JSX} from 'react';
+import {useContext, useEffect, useRef, useState, type JSX} from 'react';
 import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
 import type {MediaItem} from '@core/schema/mediaList';
 import {Icon} from '@renderer/ui/Icon';
@@ -9,6 +9,7 @@ import {applySink, followAudioOutput} from '@renderer/rendering/audioSink';
 import {durationText} from './mediaEntries';
 import {DEFAULT_SPEED, MIN_SPEED, MAX_SPEED, shownProps} from './mediaProps';
 import styles from './MediaPreviewPlayer.module.css';
+import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
 
 const AUDIO_ICON_SIZE = 28;
 const MAX_VOLUME = 100;
@@ -93,6 +94,23 @@ export function MediaPreviewPlayer({
   onReveal,
 }: MediaPreviewPlayerProps): JSX.Element {
   const media = useRef<HTMLMediaElement | null>(null);
+  const pictureReady = useContext(PictureReadiness);
+  const pictureSource = useRef({});
+  const alive = useRef(true);
+  useEffect(() => {
+    alive.current = true;
+    return () => {
+      alive.current = false;
+    };
+  }, []);
+  const imageLoaded = (image: HTMLImageElement): void => {
+    if (pictureReady === null) return;
+    const done = (): void => {
+      if (alive.current) pictureReady(pictureSource.current);
+    };
+    if (typeof image.decode !== 'function') done();
+    else image.decode().then(done, done);
+  };
   const [playing, setPlaying] = useState(false);
   const [activated, setActivated] = useState(false);
   const requestedPlay = useRef(false);
@@ -198,10 +216,18 @@ export function MediaPreviewPlayer({
               className={styles.picture}
               src={thumbnailUrl(item.id)}
               alt=""
+              onLoad={event => imageLoaded(event.currentTarget)}
+              onError={() => pictureReady?.(pictureSource.current)}
             />
           )
         ) : item.kind === 'image' ? (
-          <img className={styles.picture} src={mediaUrl(item.id)} alt="" />
+          <img
+            className={styles.picture}
+            src={mediaUrl(item.id)}
+            alt=""
+            onLoad={event => imageLoaded(event.currentTarget)}
+            onError={() => pictureReady?.(pictureSource.current)}
+          />
         ) : (
           <>
             <Icon

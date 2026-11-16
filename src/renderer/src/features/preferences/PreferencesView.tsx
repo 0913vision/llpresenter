@@ -5,7 +5,6 @@ import {
   useState,
   useSyncExternalStore,
   useImperativeHandle,
-  Activity,
   type Ref,
   type JSX,
 } from 'react';
@@ -24,6 +23,7 @@ import {
   preferencePages,
   type PreferencePageId,
 } from './preferencePages';
+import {useLibraryLocations} from './useLibraryLocations';
 import {BiblePage} from './BiblePage';
 import {ShortcutsPage} from './shortcuts/ShortcutsPage';
 import {useBibleEdits} from './useBibleEdits';
@@ -74,8 +74,6 @@ function PreferencesContent({
   const audioOutputs = useAudioOutputs();
   const [localPage, setPage] = useState<PreferencePageId>('general');
   const page = controlledRequest?.page ?? localPage;
-  const [shortcutsPrepared, setShortcutsPrepared] = useState(false);
-  if (page === 'shortcuts' && !shortcutsPrepared) setShortcutsPrepared(true);
   const [localStarted, setStarted] = useState(false);
   const started = controlledRequest !== undefined || localStarted;
   const [pageRequest, setPageRequest] = useState(0);
@@ -95,7 +93,9 @@ function PreferencesContent({
   const currentPage = useRef(page);
   const labelManager = useRef<LabelManagerHandle>(null);
   const requestedPage = useRef<PreferencePageId | null>(null);
+  const stopPendingPage = useRef<(() => void) | null>(null);
   const settling = useRef(false);
+  useEffect(() => () => stopPendingPage.current?.(), []);
   useImperativeHandle(
     viewRef,
     () => ({
@@ -208,6 +208,7 @@ function PreferencesContent({
     };
   }, [pageRequest, onReady, controlledRequest]);
   const edits = usePreferenceEdits(onProblem);
+  const locations = useLibraryLocations(onProblem, onDismiss);
   const loaded = pending === 0 && (page !== 'labels' || labelsLoaded);
   useEffect(() => {
     if (
@@ -245,6 +246,23 @@ function PreferencesContent({
   }, [started, loaded, onReady, pageRequest, page, request, readiness]);
   const bible = useBibleEdits(onProblem);
   const current = preferencePages.find(entry => entry.id === page);
+  const choosePage = (next: PreferencePageId): void => {
+    stopPendingPage.current?.();
+    stopPendingPage.current = null;
+    const select = (): void => {
+      stopPendingPage.current?.();
+      stopPendingPage.current = null;
+      if (onPageSelect !== undefined) onPageSelect(next);
+      else requestPage(next);
+    };
+    if (readiness.getSnapshot() === 0 || next === page) {
+      select();
+      return;
+    }
+    stopPendingPage.current = readiness.subscribe(() => {
+      if (readiness.getSnapshot() === 0) select();
+    });
+  };
   return (
     <div className={styles.view}>
       <nav className={styles.nav} aria-label={NAV_LABEL}>
@@ -254,8 +272,7 @@ function PreferencesContent({
           onSelect={value => {
             const next = preferencePages.find(entry => entry.id === value);
             if (next !== undefined) {
-              if (onPageSelect !== undefined) onPageSelect(next.id);
-              else requestPage(next.id);
+              choosePage(next.id);
             }
           }}
         >
@@ -273,11 +290,9 @@ function PreferencesContent({
         {page === 'shortcuts' ? null : (
           <h1 className={styles.title}>{current?.label}</h1>
         )}
-        {shortcutsPrepared ? (
-          <Activity mode={page === 'shortcuts' ? 'visible' : 'hidden'}>
-            <ShortcutsPage onProblem={onProblem} />
-          </Activity>
-        ) : null}
+        <div hidden={page !== 'shortcuts'}>
+          <ShortcutsPage onProblem={onProblem} />
+        </div>
         <Properties
           placement="window"
           className={page === 'labels' ? styles.labels : undefined}
@@ -286,16 +301,14 @@ function PreferencesContent({
           {page === 'serviceOrder' ? <ServiceOrderPage edits={edits} /> : null}
           {page === 'output' ? <OutputPage edits={edits} /> : null}
           {page === 'storage' ? (
-            <StoragePage
-              edits={edits}
-              onProblem={onProblem}
-              onDismiss={onDismiss}
-            />
+            <StoragePage edits={edits} locations={locations} />
           ) : null}
           {page === 'labels' ? (
             <LabelsPage store={labelStore} managerRef={labelManager} />
           ) : null}
-          {page === 'about' ? <AboutPage /> : null}
+          <div hidden={page !== 'about'}>
+            <AboutPage />
+          </div>
           {page === 'media' ? (
             <MediaPage edits={edits} audioOutputs={audioOutputs} />
           ) : null}

@@ -18,6 +18,16 @@ import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStor
 import {SongEditorStore} from '@renderer/features/songs/editor';
 import {useShow} from '@renderer/session/show';
 import {isItemOfKind} from '@core/schema/service';
+import {useContext, useLayoutEffect, useRef} from 'react';
+import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
+
+const readiness = vi.hoisted<{
+  hold: boolean;
+  release: (() => void) | undefined;
+}>(() => ({
+  hold: false,
+  release: undefined,
+}));
 
 vi.mock('@renderer/rendering/SlidePicture', () => ({
   SlidePicture: ({
@@ -26,14 +36,23 @@ vi.mock('@renderer/rendering/SlidePicture', () => ({
   }: {
     slide: {sectionCard?: {name: string}; titleSlide?: boolean};
     screen?: {kind: string};
-  }) => (
-    <div
-      data-testid="picture"
-      data-card={slide.sectionCard?.name}
-      data-title-slide={slide.titleSlide}
-      data-screen={screen?.kind}
-    />
-  ),
+  }) => {
+    const ready = useContext(PictureReadiness);
+    const source = useRef({});
+    useLayoutEffect(() => {
+      if (readiness.hold && ready !== null) {
+        readiness.release = () => ready(source.current);
+      } else ready?.(source.current);
+    }, [ready]);
+    return (
+      <div
+        data-testid="picture"
+        data-card={slide.sectionCard?.name}
+        data-title-slide={slide.titleSlide}
+        data-screen={screen?.kind}
+      />
+    );
+  },
 }));
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
@@ -44,7 +63,45 @@ vi.mock('@renderer/rendering/outputRenderer', () => ({
   },
 }));
 afterEach(() => {
+  readiness.hold = false;
+  readiness.release = undefined;
   useShow.setState({serviceId: null, openItemId: null, tiles: {}});
+});
+
+it('keeps the previous picture and properties until the next picture is ready', async () => {
+  const f = itemFixture();
+  useShow.setState({serviceId: fixtureServiceId});
+  const editor = new SongEditorStore(f.api, vi.fn());
+  const items = new ServiceItemStore(f.api, editor, vi.fn());
+  const panel = (id: typeof fixtureItems.arranged) => (
+    <DetailsPanel
+      sizeClass="normal"
+      target={{kind: 'item', itemId: id}}
+      api={f.api}
+      editor={editor}
+      items={items}
+    />
+  );
+  const view = render(panel(fixtureItems.arranged));
+  try {
+    const picture = await screen.findByTestId('picture');
+    readiness.hold = true;
+    view.rerender(panel(fixtureItems.plain));
+    await waitFor(() => expect(readiness.release).toBeDefined());
+    const visible = screen.getByRole('region', {name: '세부정보'});
+    expect(within(visible).getByTestId('picture')).toBe(picture);
+    expect(picture.closest('[inert]')).not.toBeNull();
+    act(() => readiness.release?.());
+    expect(
+      within(screen.getByRole('region', {name: '세부정보'})).getByTestId(
+        'picture',
+      ),
+    ).not.toBe(picture);
+  } finally {
+    view.unmount();
+    items.dispose();
+    await editor.dispose();
+  }
 });
 
 it('keeps the previous details in place while the next item loads', async () => {
@@ -228,13 +285,11 @@ it('shows the first picture and resets the tab and selection when the item chang
     />,
   );
   try {
-    const panel = screen.getByRole('region', {name: '세부정보'});
-    await within(panel).findByText(
-      `곡, 슬라이드 ${f.first.song.slides.length}개`,
-    );
-    expect(within(panel).getByTestId('picture')).toBeTruthy();
-    await userEvent.click(within(panel).getByRole('tab', {name: '슬라이드'}));
-    const options = within(panel).getAllByRole('option');
+    const panel = () => screen.getByRole('region', {name: '세부정보'});
+    await screen.findByText(`곡, 슬라이드 ${f.first.song.slides.length}개`);
+    expect(within(panel()).getByTestId('picture')).toBeTruthy();
+    await userEvent.click(within(panel()).getByRole('tab', {name: '슬라이드'}));
+    const options = within(panel()).getAllByRole('option');
     if (options[1] === undefined) throw new Error('Expected two slides');
     await userEvent.click(options[1]);
     expect(items.getSnapshot().position).toBe(1);
@@ -371,7 +426,7 @@ it.each(['bible', 'ad', 'media', 'card'] as const)(
     );
     try {
       await waitFor(() => expect(items.getSnapshot().item?.id).toBe(source.id));
-      const panel = screen.getByRole('region', {name: '세부정보'});
+      const panel = () => screen.getByRole('region', {name: '세부정보'});
       const name =
         kind === 'bible'
           ? '성경'
@@ -380,15 +435,20 @@ it.each(['bible', 'ad', 'media', 'card'] as const)(
             : kind === 'media'
               ? '미디어'
               : '곡';
-      await within(panel).findByText(new RegExp(`^${name}, 슬라이드`));
+      await screen.findByRole('tab', {name: '정보'});
+      expect(
+        within(panel()).getByText(new RegExp(`^${name}, 슬라이드`)),
+      ).toBeTruthy();
       if (kind === 'card') {
         expect(
-          within(panel).getByTestId('picture').getAttribute('data-card'),
+          within(panel()).getByTestId('picture').getAttribute('data-card'),
         ).toBe('찬양');
       }
-      await userEvent.click(within(panel).getByRole('tab', {name: '슬라이드'}));
+      await userEvent.click(
+        within(panel()).getByRole('tab', {name: '슬라이드'}),
+      );
       expect(
-        within(panel).getByRole('listbox', {name: '슬라이드'}),
+        within(panel()).getByRole('listbox', {name: '슬라이드'}),
       ).toBeTruthy();
     } finally {
       view.unmount();
@@ -559,7 +619,7 @@ it('shows section item counts and restores item details when switching targets',
   const view = render(panelFor(section.id));
   const panel = () => screen.getByRole('region', {name: '세부정보'});
   const expectSection = async (name: string, count: number) => {
-    await within(panel()).findByText(`구역, 항목 ${count}개`);
+    await screen.findByText(`구역, 항목 ${count}개`);
     expect(within(panel()).getByText(name)).toBeTruthy();
     expect(panel().textContent).toBe(`${name}구역, 항목 ${count}개`);
     expect(within(panel()).queryByRole('tablist')).toBeNull();
@@ -572,9 +632,7 @@ it('shows section item counts and restores item details when switching targets',
     view.rerender(panelFor(empty.id));
     await expectSection('빈 구역', 0);
     view.rerender(panelFor(first.id));
-    await within(panel()).findByText(
-      `곡, 슬라이드 ${f.first.song.slides.length}개`,
-    );
+    await screen.findByText(`곡, 슬라이드 ${f.first.song.slides.length}개`);
     expect(within(panel()).getByTestId('picture')).toBeTruthy();
     expect(within(panel()).getByRole('tab', {name: '정보'})).toBeTruthy();
     expect(within(panel()).getByRole('tab', {name: '슬라이드'})).toBeTruthy();
@@ -612,9 +670,7 @@ it('shows an empty panel without selection and restores it after an item is clea
   try {
     expectEmpty();
     view.rerender(panelFor(true));
-    await within(panel()).findByText(
-      `곡, 슬라이드 ${f.first.song.slides.length}개`,
-    );
+    await screen.findByText(`곡, 슬라이드 ${f.first.song.slides.length}개`);
     expect(within(panel()).getByTestId('picture')).toBeTruthy();
     expect(within(panel()).getByRole('tab', {name: '정보'})).toBeTruthy();
     expect(within(panel()).getByRole('tab', {name: '슬라이드'})).toBeTruthy();
@@ -663,9 +719,7 @@ it('keeps the panel empty while an item loads and when the item is deleted', asy
     expectEmpty();
     await waitFor(() => expect(release).toBeDefined());
     await act(async () => release?.(document));
-    await within(panel()).findByText(
-      `곡, 슬라이드 ${f.first.song.slides.length}개`,
-    );
+    await screen.findByText(`곡, 슬라이드 ${f.first.song.slides.length}개`);
     expect(within(panel()).getByTestId('picture')).toBeTruthy();
     expect(within(panel()).getByRole('tab', {name: '정보'})).toBeTruthy();
     act(() =>
@@ -721,14 +775,14 @@ it('keeps the panel empty while a library song loads', async () => {
     />,
   );
   try {
-    const panel = screen.getByRole('region', {name: '세부정보'});
-    expect(panel.textContent).toBe('');
-    expect(panel.querySelector('[class*="picture"]')).toBeNull();
-    expect(within(panel).queryByRole('tablist')).toBeNull();
+    const panel = () => screen.getByRole('region', {name: '세부정보'});
+    expect(panel().textContent).toBe('');
+    expect(panel().querySelector('[class*="picture"]')).toBeNull();
+    expect(within(panel()).queryByRole('tablist')).toBeNull();
     await act(async () => release?.(result));
-    await within(panel).findByText(`곡, 슬라이드 ${result.tiles.length}개`);
-    expect(within(panel).getByRole('tab', {name: '정보'})).toBeTruthy();
-    expect(within(panel).getByRole('tab', {name: '슬라이드'})).toBeTruthy();
+    await screen.findByText(`곡, 슬라이드 ${result.tiles.length}개`);
+    expect(within(panel()).getByRole('tab', {name: '정보'})).toBeTruthy();
+    expect(within(panel()).getByRole('tab', {name: '슬라이드'})).toBeTruthy();
   } finally {
     view.unmount();
     items.dispose();

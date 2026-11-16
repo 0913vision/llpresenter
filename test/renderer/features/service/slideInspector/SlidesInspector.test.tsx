@@ -7,6 +7,8 @@ import {newSectionCard} from '@core/services/sectionCards';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {SlidesListSession} from '@renderer/features/service/slides/slidesListSession';
 import {SlidesInspector} from '@renderer/features/service/slideInspector/SlidesInspector';
+import {useContext, useLayoutEffect, useRef} from 'react';
+import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
 vi.mock('@renderer/features/service/items/useItemSources', () => ({
   useItemMedia: () => ({document: null}),
 }));
@@ -14,7 +16,7 @@ vi.mock('@renderer/features/bible/useSlidesVerseProjection', () => ({
   useSlidesVerseProjection: () => ({projection: null}),
 }));
 vi.mock('@renderer/features/service/slides/SlidesVisuals', () => ({
-  useSlidesAppearance: () => ({appearance: {}}),
+  useSlidesAppearance: () => ({appearance: {}, ready: true}),
   useSlidesItemWithBackground: (item: unknown) => item,
   slideBand: (slide: {text: string}) => slide.text,
   SlidesCanvas: ({
@@ -23,7 +25,14 @@ vi.mock('@renderer/features/service/slides/SlidesVisuals', () => ({
   }: {
     item: {slides: {slides: ReadonlyArray<{text: string}>}};
     index: number;
-  }) => <div data-testid="picture">{item.slides.slides[index]?.text}</div>,
+  }) => {
+    const ready = useContext(PictureReadiness);
+    const source = useRef({});
+    useLayoutEffect(() => {
+      ready?.(source.current);
+    }, [ready]);
+    return <div data-testid="picture">{item.slides.slides[index]?.text}</div>;
+  },
 }));
 it('tracks slide item selection and applies mixed transition edits', async () => {
   const item = newSlidesItem(

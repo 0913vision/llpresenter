@@ -1,8 +1,6 @@
 import {requestSongEditor} from '@renderer/features/songs/editor/songEditorRequests';
 import {
   useEffect,
-  useLayoutEffect,
-  useRef,
   useState,
   useSyncExternalStore,
   type JSX,
@@ -43,6 +41,7 @@ import {useItemTheme} from './ItemThemeRow';
 import {DetailsSlides} from './DetailsSlides';
 import {detailsScale} from '@renderer/platform/thumbnailScale';
 import styles from './DetailsPanel.module.css';
+import {AtomicPictureContent} from '@renderer/rendering/AtomicPictureContent';
 
 type Target =
   | {readonly kind: 'item'; readonly itemId: ServiceItemId}
@@ -64,26 +63,6 @@ function DetailsShell({
       <PanelBody>{children}</PanelBody>
       {footer}
     </Panel>
-  );
-}
-
-function RetainedDetails({
-  pending,
-  content,
-}: {
-  readonly pending: boolean;
-  readonly content: JSX.Element;
-}): JSX.Element {
-  const last = useRef<JSX.Element | null>(null);
-  const [held, setHeld] = useState<JSX.Element | null>(null);
-  useLayoutEffect(() => {
-    if (pending) setHeld(last.current);
-    else last.current = content;
-  }, [pending, content]);
-  return (
-    <div className={styles.pending} inert={pending}>
-      {pending && held !== null ? held : content}
-    </div>
   );
 }
 
@@ -423,7 +402,9 @@ function DetailsPanelContent({
       service.service.id === serviceId &&
       !service.service.order.some(row => row.id === target.itemId);
     return (
-      <RetainedDetails
+      <AtomicPictureContent
+        initial={<DetailsShell />}
+        identity={detailsKey}
         pending={target !== null && !deleted}
         content={<DetailsShell />}
       />
@@ -432,7 +413,9 @@ function DetailsPanelContent({
   if (item !== null && isItemOfKind(item, 'header')) {
     const itemCount = sectionItemCount(service?.service.order ?? [], item.id);
     return (
-      <RetainedDetails
+      <AtomicPictureContent
+        initial={<DetailsShell />}
+        identity={detailsKey}
         pending={false}
         content={
           <DetailsShell>
@@ -445,9 +428,16 @@ function DetailsPanelContent({
       />
     );
   }
+  const firstPicture = passageProblem === undefined ? picture(0) : undefined;
+  const waitForPicture = passageProblem === undefined && count > 0;
   return (
-    <RetainedDetails
+    <AtomicPictureContent
+      initial={<DetailsShell />}
+      identity={`${detailsKey}:${screenId ?? ''}`}
+      waitForPicture={waitForPicture}
       pending={
+        (screenSettings.document === null && !screenSettings.failed) ||
+        (waitForPicture && firstPicture === undefined) ||
         (item !== null && !themeData.ready) ||
         (item !== null &&
           isItemOfKind(item, 'song') &&
@@ -479,7 +469,7 @@ function DetailsPanelContent({
         >
           <div className={styles.picture}>
             {passageProblem === undefined ? (
-              picture(0)
+              firstPicture
             ) : (
               <BibleLoadNotice row={passageProblem} />
             )}

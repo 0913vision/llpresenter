@@ -78,7 +78,13 @@ export function useSlidesAppearance(
       }),
     [role, screenId, themeFile, screenFile, item],
   );
-  return {appearance, themes: themeFile};
+  return {
+    appearance,
+    themes: themeFile,
+    ready:
+      (themes.document !== null || themes.failed) &&
+      (screens.document !== null || screens.failed),
+  };
 }
 
 export function slideLayers(
