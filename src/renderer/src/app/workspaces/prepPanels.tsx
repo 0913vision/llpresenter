@@ -581,9 +581,13 @@ export function usePrepPanels({
       (switching.closed || editorSession !== switching.editor)) ||
       (slidesDraft !== null &&
         (switching.closed || slidesDraft !== switching.slides)) ||
-      otherId !== null)
+      (otherId !== null &&
+        switching.editor === null &&
+        switching.slides === null &&
+        switching.closed))
   ) {
     setSwitching(null);
+    setOtherId(null);
   } else if (
     switching !== null &&
     !switching.closed &&
@@ -621,7 +625,7 @@ export function usePrepPanels({
     row?.focus({preventScroll: true});
     row?.scrollIntoView({block: 'nearest'});
   }, [prep, hasDraft, editorId, editorKind, otherId]);
-  const leave = (next: () => void): void => {
+  const leave = (next: () => void, keepSlides = false): void => {
     if (!prep) return;
     const turn = ++leaveTurn.current;
     const reportFlush = (): void =>
@@ -641,7 +645,7 @@ export function usePrepPanels({
         }
         prep.editor.requestLeave(() => {
           if (turn !== leaveTurn.current) return;
-          if (prep.slides) prep.slides.requestLeave(next);
+          if (prep.slides && !keepSlides) prep.slides.requestLeave(next);
           else next();
         });
       },
@@ -695,9 +699,8 @@ export function usePrepPanels({
                     closed: false,
                     itemId: id,
                   });
-                  setOtherId(null);
                   onOpenPrep?.(id);
-                });
+                }, true);
               }
             },
             onShowInLibrary,

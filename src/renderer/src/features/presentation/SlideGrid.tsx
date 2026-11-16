@@ -204,7 +204,7 @@ export function SlideGrid({
               tile.biblePart === undefined ? undefined : bible?.appearance;
             return (
               <SlideThumbnail
-                key={index}
+                key={`${openItemId}:${index}`}
                 selectionStyle="plate"
                 number={(offset ?? 0) + index + 1}
                 canvas={

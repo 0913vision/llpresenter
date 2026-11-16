@@ -1,7 +1,10 @@
 import {useEffect, useRef, useState} from 'react';
-import type {SongDocument} from '@core/schema/contentDocuments';
+import type {
+  ServiceDocument,
+  SongDocument,
+} from '@core/schema/contentDocuments';
 import type {MediaDocument} from '@core/schema/mediaEdit';
-import type {MediaId, SongId} from '@core/schema/ids';
+import {parseMediaId, type MediaId, type SongId} from '@core/schema/ids';
 import {isItemOfKind, type ServiceItemOf} from '@core/schema/service';
 import {applyService, useShow} from '@renderer/session/show';
 import {sendLive, useLive} from '@renderer/session/live';
@@ -10,6 +13,7 @@ import {noticeTime, type Notice} from '@renderer/ui/notices';
 
 interface BackgroundView {
   readonly serviceId: string;
+  readonly service: ServiceDocument;
   readonly item: ServiceItemOf<'song'>;
   readonly song: SongDocument | null;
   readonly media: MediaDocument;
@@ -39,6 +43,9 @@ export function useSongBackground(onProblem: (notice: Notice) => void) {
     view.rows.some(row => row.id === itemId && row.kind === 'song'),
   );
   const [view, setView] = useState<BackgroundView | null>(null);
+  const row = useShow(state =>
+    state.rows.find(candidate => candidate.id === itemId),
+  );
   const [busy, setBusy] = useState(false);
   const pending = useRef(false);
   const reload = useRef((): void => undefined);
@@ -81,6 +88,7 @@ export function useSongBackground(onProblem: (notice: Notice) => void) {
         if (isCurrent(request)) {
           setView({
             serviceId,
+            service: document,
             item,
             song,
             media,
@@ -211,6 +219,28 @@ export function useSongBackground(onProblem: (notice: Notice) => void) {
       isSong && view?.serviceId === serviceId && view.item.id === itemId
         ? view
         : null,
+    provisional: (() => {
+      const document = view?.service;
+      const item =
+        document?.service.id === serviceId
+          ? document.service.order.find(candidate => candidate.id === itemId)
+          : undefined;
+      if (
+        !view ||
+        row?.kind !== 'song' ||
+        !item ||
+        !isItemOfKind(item, 'song')
+      ) {
+        return null;
+      }
+      const background = parseMediaId(row.background?.mediaId);
+      return {
+        media: view.media,
+        item,
+        background: background.ok ? background.value : undefined,
+        readOnly: document?.access === 'readOnly',
+      };
+    })(),
     busy,
     choose,
   };

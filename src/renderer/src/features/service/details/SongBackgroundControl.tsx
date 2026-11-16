@@ -169,7 +169,23 @@ export function SongBackgroundControl({
     return row?.kind === 'song' ? row.problem : undefined;
   });
   const {view} = background;
-  if (view === null) return null;
+  if (view === null) {
+    const pending = background.provisional;
+    if (pending === null) return null;
+    return (
+      <SongBackgroundSelect
+        items={pending.media.value.items}
+        selection={{
+          mediaId: pending.background,
+          inherited: pending.item.background === undefined,
+          missing: problem === 'missing-background',
+        }}
+        readOnly={pending.readOnly}
+        busy
+        onChoose={background.choose}
+      />
+    );
+  }
   return (
     <SongBackgroundSelect
       key={`${view.serviceId}:${view.item.id}:${view.readOnly}`}
