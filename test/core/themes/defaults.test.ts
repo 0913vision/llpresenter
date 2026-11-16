@@ -151,10 +151,10 @@ it.each(themeItemKinds.filter(kind => kind !== 'ad'))(
     expect(
       output.screens[id]?.layout.elements.map(element => element.kind),
     ).toEqual(
-      kind === 'bible' || kind === 'blank'
-        ? ['box', 'box', 'currentText', 'reference']
-        : kind === 'song'
-          ? ['box', 'currentText']
+      kind === 'media'
+        ? []
+        : kind === 'bible' || kind === 'blank'
+          ? ['box', 'box', 'currentText', 'reference']
           : ['box', 'currentText'],
     );
   },
@@ -594,14 +594,6 @@ it('removes the band, stage item title and position from every built-in stage la
     expect(
       layout.background === undefined || layout.background === '#000000',
     ).toBe(true);
-    expect(
-      layout.elements.filter(
-        element =>
-          element.kind === 'text' &&
-          (element.stageSource === 'stageItemName' ||
-            element.stageSource === 'stagePosition'),
-      ),
-    ).toEqual([]);
   }
 });
 

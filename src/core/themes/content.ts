@@ -120,16 +120,6 @@ export function themeElementText(
     case 'memo':
       return item?.contentCleared ? null : (item?.memo ?? null);
     case 'text':
-      if (element.stageSource === 'stageItemName') {
-        return item?.contentCleared
-          ? null
-          : (item?.title ?? slide?.title ?? null);
-      }
-      if (element.stageSource === 'stagePosition') {
-        return slide?.sequenceLength === undefined
-          ? null
-          : `${slide.position + 1} / ${slide.sequenceLength}`;
-      }
       return element.content;
     case 'clock':
       return content.clock ?? null;

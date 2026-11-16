@@ -218,12 +218,6 @@ it('limits built-in stage next lines and resolves stage bar data without changin
     kind: 'text',
     content: 'Literal',
   } as const;
-  expect(
-    themeElementText({...text, stageSource: 'stageItemName'}, {layers, item}),
-  ).toBe('Song');
-  expect(
-    themeElementText({...text, stageSource: 'stagePosition'}, {layers, item}),
-  ).toBe('2 / 6');
   expect(themeElementText(text, {layers, item})).toBe('Literal');
 });
 

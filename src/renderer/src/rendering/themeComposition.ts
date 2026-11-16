@@ -1,3 +1,4 @@
+import {isSectionTheme} from '@core/themes/sundaySections';
 import {fitBroadcastLook, isBroadcastLook} from './broadcastLook';
 import {stageBarLayout} from './stageBar';
 import type {LiveLayers} from '@core/live/state';
@@ -18,13 +19,6 @@ import {songTitleLayout} from '@core/themes/songTitle';
 import {songTitleLines} from '@core/presentation/songTitleLines';
 import {STAGE_LYRIC_LABEL_ID, stageLyricLabelLayout} from './stageLyricLabel';
 import {isThemeTextElement, themeElementMedia} from '@core/themes/content';
-import {BROADCAST_BAND_ID} from '@core/themes/broadcastBand';
-import {isSectionTheme} from '@core/themes/sundaySections';
-import {
-  fitBroadcastBand,
-  isBroadcastBandLayout,
-  withBroadcastBandVisibility,
-} from './broadcastBand';
 
 interface ThemePage {
   layers: LiveLayers;
@@ -300,7 +294,7 @@ export class ThemeCompositionView {
     }: {item: LiveThemeItem | null; songCaption: 'band' | 'text'},
   ): ThemeScreenLayout {
     const look = isBroadcastLook(layout);
-    if (!look && !isBroadcastBandLayout(layout)) {
+    if (!look) {
       this.bandFit = null;
       return layout;
     }
@@ -335,9 +329,7 @@ export class ThemeCompositionView {
       return previous.layout;
     }
     try {
-      const fitted = look
-        ? fitBroadcastLook(layout, slide, {item, songCaption})
-        : fitBroadcastBand(layout, slide, item);
+      const fitted = fitBroadcastLook(layout, slide, {item, songCaption});
       this.bandFit = {
         key,
         layout: fitted,
@@ -352,9 +344,7 @@ export class ThemeCompositionView {
       return fitted;
     } catch (error) {
       this.options.onError('could not fit the broadcast band', error);
-      return look
-        ? (previous?.layout ?? layout)
-        : withBroadcastBandVisibility(previous?.layout ?? layout, slide, item);
+      return previous?.layout ?? layout;
     }
   }
 
@@ -393,10 +383,7 @@ export class ThemeCompositionView {
     const elements: ThemeElementView[] = [];
     if (theme.layout.mode.kind === 'own') {
       for (const element of theme.layout.elements) {
-        if (
-          this.options.transparent &&
-          (element.kind === 'background' || element.id === BROADCAST_BAND_ID)
-        ) {
+        if (this.options.transparent && element.kind === 'background') {
           continue;
         }
         try {

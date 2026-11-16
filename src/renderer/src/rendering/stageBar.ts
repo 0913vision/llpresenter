@@ -28,10 +28,7 @@ export function stageBarLayout(
     ...layout,
     elements: layout.elements.map(element => {
       const group =
-        (element.kind === 'text' &&
-          (element.stageSource === 'stageItemName' ||
-            element.stageSource === 'stagePosition')) ||
-        (element.kind === 'label' && element.hideWhenItemTitle === true);
+        element.kind === 'label' && element.hideWhenItemTitle === true;
       if (
         element.kind === 'label' &&
         element.hideWhenItemTitle &&

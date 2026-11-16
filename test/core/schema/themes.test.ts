@@ -477,20 +477,19 @@ describe('theme element properties', () => {
     },
   );
 
-  it.each(['stageItemName', 'stagePosition', 'unknown'])(
-    'validates stage text source %s',
-    source => {
-      expect(
-        v.safeParse(themeElementSchema, {
-          ...element,
-          kind: 'text',
-          text,
-          content: '',
-          stageSource: source,
-        }).success,
-      ).toBe(source !== 'unknown');
-    },
-  );
+  it('loads old text elements with an ignored stage source and preserves other fields', () => {
+    const old = {
+      ...element,
+      kind: 'text',
+      text,
+      content: 'Literal',
+      stageSource: 'stageItemName',
+      extra: 'kept',
+    };
+    const result = v.safeParse(themeElementSchema, old);
+    expect(result.success).toBe(true);
+    if (result.success) expect(result.output).toEqual(old);
+  });
 
   it.each([true, false, 'yes'])(
     'validates the optional duplicate label setting %s',
