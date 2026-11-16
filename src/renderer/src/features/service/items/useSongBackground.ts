@@ -4,7 +4,7 @@ import type {
   SongDocument,
 } from '@core/schema/contentDocuments';
 import type {MediaDocument} from '@core/schema/mediaEdit';
-import type {MediaId, SongId} from '@core/schema/ids';
+import {parseMediaId, type MediaId, type SongId} from '@core/schema/ids';
 import {isItemOfKind, type ServiceItemOf} from '@core/schema/service';
 import {applyService, useShow} from '@renderer/session/show';
 import {sendLive, useLive} from '@renderer/session/live';
@@ -233,10 +233,11 @@ export function useSongBackground(onProblem: (notice: Notice) => void) {
       ) {
         return null;
       }
+      const background = parseMediaId(row.background?.mediaId);
       return {
         media: view.media,
         item,
-        background: row.background?.mediaId,
+        background: background.ok ? background.value : undefined,
         readOnly: document?.access === 'readOnly',
       };
     })(),

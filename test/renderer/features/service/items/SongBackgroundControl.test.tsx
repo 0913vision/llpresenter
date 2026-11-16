@@ -6,6 +6,7 @@ import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
 import {SUNDAY_NOTICE_PICTURE_ID} from '@core/themes/sundayNotice';
 import {
   createMediaId,
+  createServiceId,
   createServiceItemId,
   createSongId,
 } from '@core/schema/ids';
@@ -237,8 +238,21 @@ describe('slide-header background control', () => {
     const hook = vi.spyOn(backgroundHook, 'useSongBackground').mockReturnValue({
       busy: false,
       choose,
+      provisional: null,
       view: {
         serviceId: 'service',
+        service: {
+          service: {
+            format: 'llservice',
+            schemaVersion: 1,
+            id: createServiceId('00000000-0000-4000-8000-000000000001'),
+            name: 'Invented service',
+            date: '2026-10-26T09:00',
+            order: [],
+          },
+          revision: 1,
+          access: 'editable',
+        },
         item: {
           slides: [],
           id,
