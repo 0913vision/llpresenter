@@ -324,7 +324,7 @@ describe('built-in broadcast look', () => {
       runtimeHidden: false,
     });
     expect(element(result, BROADCAST_LOOK_SONG_ID)).toMatchObject({
-      frame: {x: 460, w: 1000},
+      frame: {x: 160, w: 1600},
       text: {size: 67, align: 'center', color: '#FFFFFF'},
     });
     const empty = fitBroadcastLook(
@@ -481,7 +481,11 @@ describe('built-in broadcast look', () => {
   it('persists a fixed song band and a separate title size across lyric slides', () => {
     const layout = builtInTheme('song').screens[screen];
     if (!layout) throw Error('missing song');
-    const song = {...item, kind: 'song' as const, title: 'Song title'};
+    const song = {
+      ...item,
+      kind: 'song' as const,
+      title: '새찬송가 91장 Song title',
+    };
     const initial = fitBroadcastLook(layout, slide, song);
     const band = element(initial, BROADCAST_LOOK_BAND_ID);
     const title = element(initial, BROADCAST_LOOK_SONG_TITLE_ID);
@@ -513,7 +517,11 @@ describe('built-in broadcast look', () => {
   it('keeps both song elements within a narrower moved band', () => {
     const layout = builtInTheme('song').screens[screen];
     if (!layout) throw Error('missing song');
-    const song = {...item, kind: 'song' as const, title: 'Song title'};
+    const song = {
+      ...item,
+      kind: 'song' as const,
+      title: '새찬송가 91장 Song title',
+    };
     const base = fitBroadcastLook(layout, slide, song);
     const band = element(base, BROADCAST_LOOK_BAND_ID);
     const frame = {...band.frame, x: 200, w: 1100};
@@ -534,7 +542,7 @@ describe('built-in broadcast look', () => {
     const song = {
       ...item,
       kind: 'song' as const,
-      title: '아주 긴 노래 제목 여러 줄로 보이지 않아야 합니다',
+      title: '새찬송가 91장 아주 긴 노래 제목 여러 줄로 보이지 않아야 합니다',
     };
     const title = element(
       fitBroadcastLook(layout, slide, song),
@@ -544,7 +552,7 @@ describe('built-in broadcast look', () => {
       kind: 'text',
       broadcastSingleLine: true,
       minimumTextSize: 24,
-      content: '아주 긴 노래 제목 여러 줄로 보이지 않아야 합니다',
+      content: '새찬송가 91장 아주 긴 노래 제목 여러 줄로 보이지 않아야 합니다',
     });
   });
   it('shows the small song title only when the band is showing lyrics', () => {
@@ -573,8 +581,12 @@ describe('built-in broadcast look', () => {
       {...slide, lines: ['이곳에 임재하소서']},
       song,
     );
-    expect(element(lyric, BROADCAST_LOOK_SONG_TITLE_ID)).toMatchObject({
-      content: '임재',
+    expect(
+      lyric.elements.some(e => e.id === BROADCAST_LOOK_SONG_TITLE_ID),
+    ).toBe(false);
+    expect(element(lyric, BROADCAST_LOOK_SONG_ID)).toMatchObject({
+      frame: {x: 160, w: 1600},
+      text: {align: 'center'},
     });
   });
   it('switches per screen between the band and text-only captions', () => {

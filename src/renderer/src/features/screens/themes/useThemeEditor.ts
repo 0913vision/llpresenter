@@ -225,7 +225,7 @@ export function sampleBroadcastLayout(
         id: 'sample',
         kind,
         source: 'service',
-        title: song ? '찬양 제목' : '요한복음 1:1',
+        title: song ? '새찬송가 91장 슬픈 마음 있는 사람' : '요한복음 1:1',
       },
     },
   );
