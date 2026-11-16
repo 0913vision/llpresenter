@@ -451,12 +451,15 @@ Saved themes without this option keep their alignment.
 
 ### 빠른 실행 (`quick.json`)
 
-| Field          | Type                                                                     | Meaning                                                                                                                   | Source                                                                                                        |
-| -------------- | ------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| `items[]`      | Array                                                                    | The 빠른 실행 items, in display order.                                                                                    | `ShowH`                                                                                                       |
-| `.id`, `.name` | String                                                                   | ID and display name.                                                                                                      | `ShowH`                                                                                                       |
-| `.kind`        | `"song"` \| `"bible"` \| `"prop"` \| `"timer"` \| `"macro"` \| `"black"` | Kind (see 04).                                                                                                            | `ShowH` (verse, song, 검은 화면, 로고 화면, 시작 카운트다운, 축도). Value names and `"macro"` are a proposal. |
-| `.ref`         | String or object                                                         | What the item points to: a song ID, a Bible passage object, a 그래픽 ID, a 타이머 ID, or a 매크로 ID. `"black"` has none. | Proposal                                                                                                      |
+| Field          | Type                                                        | Meaning                                                                                               | Source                                                                                                        |
+| -------------- | ----------------------------------------------------------- | ----------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `items[]`      | Array                                                       | The 빠른 실행 items, in display order.                                                                | `ShowH`                                                                                                       |
+| `.id`, `.name` | String                                                      | ID and display name.                                                                                  | `ShowH`                                                                                                       |
+| `.kind`        | `"song"` \| `"bible"` \| `"prop"` \| `"timer"` \| `"macro"` | Kind (see 04).                                                                                        | `ShowH` (verse, song, 검은 화면, 로고 화면, 시작 카운트다운, 축도). Value names and `"macro"` are a proposal. |
+| `.ref`         | String or object                                            | What the item points to: a song ID, a Bible passage object, a 그래픽 ID, a 타이머 ID, or a 매크로 ID. | Proposal                                                                                                      |
+
+Items with unknown kinds are skipped on read and omitted from the next save.
+Other fields on known items and the file are preserved.
 
 A 빠른 실행 item has a shortcut command, `quick.<item ID>`, with no default key;
 the operator sets it in 환경설정 > 단축키 (10).
@@ -527,8 +530,8 @@ Don't save whether a 타이머 is running or how much time is left. That is outp
 state (see the recovery record).
 
 Deleting a timer definition and its linked known quick timer rows is one
-targeted edit. Other definitions, opaque quick rows, prop text and unknown
-fields are preserved. Removed IDs are not reused. Live run/selection cleanup
+targeted edit. Other definitions, known quick rows, prop text and unknown fields
+are preserved. Removed IDs are not reused. Live run/selection cleanup
 follows 04.
 
 The quick timer flow in 04 uses the existing `countdown` shape: `.duration` is

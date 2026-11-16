@@ -1,10 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {
-  isKnownQuickItem,
-  parseQuick,
-  quickItemKinds,
-  serializeQuick,
-} from '@core/schema/quick';
+import {parseQuick, quickItemKinds, serializeQuick} from '@core/schema/quick';
 import {
   expectInvalidField,
   expectRoundTrip,
@@ -53,27 +48,22 @@ describe('parseQuick', () => {
     expectRoundTrip(codec, quickFile(everyItem()));
   });
 
-  it('preserves an old black item as an unknown kind', () => {
-    const old = quickFile([
-      {id: itemId(6), name: 'Black', kind: 'black', extra: true},
-    ]);
-    expectRoundTrip(codec, old);
+  it('skips old black and unknown items and omits them when saved', () => {
+    const known = everyItem()[0];
+    if (known === undefined) throw new Error('Missing known item');
+    const old = {
+      ...quickFile([
+        known,
+        {id: itemId(6), name: 'Black', kind: 'black', extra: true},
+        {id: itemId(7), name: 'Camera', kind: 'camera', ref: 2},
+      ]),
+      future: {keep: true},
+    };
     const loaded = expectSuccess(parseQuick(JSON.stringify(old), 'quick.json'));
-    const item = loaded.data.items[0];
-    expect(item).toBeDefined();
-    if (item === undefined) throw new Error('Missing item');
-    expect(isKnownQuickItem(item)).toBe(false);
-  });
-
-  it('keeps an item of an unknown kind and tells it apart', () => {
-    const camera = {id: itemId(7), name: '카메라', kind: 'camera', ref: 2};
-
-    const items = expectSuccess(
-      parseQuick(JSON.stringify(quickFile([camera])), 'quick.json'),
-    ).data.items;
-
-    expect(items.map(isKnownQuickItem)).toEqual([false]);
-    expectRoundTrip(codec, quickFile([camera]));
+    expect(loaded.data.items).toEqual([known]);
+    expect(loaded.dropped).toEqual([]);
+    const saved = expectSuccess(serializeQuick(loaded.data, 'quick.json'));
+    expect(JSON.parse(saved)).toEqual({...old, items: [known]});
   });
 
   it.each([
@@ -86,16 +76,6 @@ describe('parseQuick', () => {
       'a Bible item with a text ref',
       {id: itemId(1), name: '요 3:16', kind: 'bible', ref: '요 3:16'},
       'items.0.ref',
-    ],
-    [
-      'an unknown kind without an id',
-      {name: '카메라', kind: 'camera'},
-      'items.0.id',
-    ],
-    [
-      'an unknown kind without a name',
-      {id: itemId(1), kind: 'camera'},
-      'items.0.name',
     ],
   ])('rejects %s', (_name, item, field) => {
     expectInvalidField(codec, quickFile([item]), field);
