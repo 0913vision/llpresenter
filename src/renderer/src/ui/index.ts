@@ -6,10 +6,8 @@ export {
 } from './AlertDialog';
 export {Button, type ButtonProps, type ButtonVariant} from './Button';
 export {
-  CheckList,
   CheckRow,
   Checkbox,
-  type CheckListProps,
   type CheckRowProps,
   type CheckRowVariant,
   type CheckState,
@@ -18,11 +16,9 @@ export {
 export {
   ClearButton,
   ClearRow,
-  ClearUndo,
   clearLabel,
   defaultClearShortcut,
   type ClearButtonProps,
-  type ClearUndoProps,
 } from './ClearButton';
 export {
   CLICK_FOCUS_ATTRIBUTE,
@@ -49,14 +45,7 @@ export {
   type KeyComboProps,
   type KeyComboState,
 } from './KeyCap';
-export {
-  ArrangementStrip,
-  LabelSwatch,
-  LabelTag,
-  type ArrangementChip,
-  type ArrangementStripProps,
-  type LabelTagProps,
-} from './LabelChip';
+export {LabelSwatch, LabelTag, type LabelTagProps} from './LabelChip';
 export {
   LabelColorPicker,
   MacroColorPicker,
@@ -72,8 +61,6 @@ export {
   ListGroup,
   ListInsertLine,
   ListRow,
-  ListSlot,
-  ListSlotBox,
   type ListActionRowProps,
   type ListBoxProps,
   type ListRowProps,
@@ -94,12 +81,10 @@ export {
 } from './MacroTile';
 export {
   MediaGrid,
-  MediaStrip,
   MediaTile,
   copyingText,
   type MediaGridProps,
   type MediaListProps,
-  type MediaStripProps,
   type MediaTileProps,
 } from './MediaTile';
 export {
@@ -151,12 +136,10 @@ export {
   PanelFooter,
   PanelHeader,
   PanelMeta,
-  PanelSwitch,
   PanelTabs,
   PanelTitle,
   Panels,
   type PanelBodyVariant,
-  type PanelSwitchProps,
   type PanelTab,
   type PanelTabsProps,
 } from './Panel';

@@ -1,3 +1,4 @@
+import {requestSongEditor} from '@renderer/features/songs/editor/songEditorRequests';
 import {cardOffset} from '@core/services/sectionCards';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useEffect, useSyncExternalStore, type JSX} from 'react';
@@ -148,11 +149,9 @@ function SongItemView({
             session === null ? '라이브러리 곡을 찾을 수 없습니다' : undefined
           }
           onClick={() => {
-            window.llp?.window
-              .openSongEditor({songId: item.song})
-              .catch((error: unknown) =>
-                console.error('Could not open the source song', error),
-              );
+            requestSongEditor({songId: item.song}).catch((error: unknown) =>
+              console.error('Could not open the source song', error),
+            );
           }}
         >
           {session?.document.song.title ?? '없는 곡'}

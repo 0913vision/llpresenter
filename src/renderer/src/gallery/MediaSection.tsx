@@ -3,18 +3,12 @@ import blueRays from '../../../../design/system/upload/Media/blue-rays.jpg';
 import dawnSky from '../../../../design/system/upload/Media/dawn-sky.jpg';
 import starlight from '../../../../design/system/upload/Media/starlight.jpg';
 import warmLight from '../../../../design/system/upload/Media/warm-light.jpg';
-import {
-  MediaGrid,
-  MediaStrip,
-  MediaTile,
-  type MediaTileProps,
-} from '../ui/MediaTile';
+import {MediaGrid, MediaTile, type MediaTileProps} from '../ui/MediaTile';
 import {
   Panel,
   PanelBody,
   PanelFooter,
   PanelHeader,
-  PanelTabs,
   PanelTitle,
 } from '../ui/Panel';
 import {Slider} from '../ui/Slider';
@@ -28,7 +22,6 @@ const COLUMN_SUM = 10;
 const DEFAULT_SLIDER = 5;
 const COPY_PERCENT = 62;
 const MISSING_WARM = 'D:\\예배 미디어\\배경\\따뜻한 빛.mp4';
-const MISSING_WAVE = 'D:\\예배 미디어\\배경\\물결.mp4';
 
 const warm: MediaTileProps = {
   name: '따뜻한 빛',
@@ -95,14 +88,6 @@ const library: readonly MediaTileProps[] = [
   dawn,
   stars,
   {name: '부활절 배경.mp4', picture: dawnSky, copying: COPY_PERCENT},
-];
-
-const strip: readonly MediaTileProps[] = [
-  warm,
-  rays,
-  dawn,
-  stars,
-  {name: '물결', missingFile: MISSING_WAVE},
 ];
 
 function OneTile({
@@ -173,39 +158,6 @@ function TryGrid(): JSX.Element {
   );
 }
 
-function TryStrip(): JSX.Element {
-  const [selected, setSelected] = useState(0);
-  const [live, setLive] = useState(0);
-  return (
-    <Panel label="미디어">
-      <PanelHeader>
-        <PanelTabs
-          tabs={[{value: 'media', label: '미디어'}]}
-          value="media"
-          onChange={ignore}
-        />
-      </PanelHeader>
-      <PanelBody>
-        <MediaStrip
-          label="배경 영상"
-          selected={selected}
-          onSelect={setSelected}
-          onActivate={setLive}
-        >
-          {strip.map((media, index) => (
-            <MediaTile
-              key={media.name}
-              {...media}
-              selected={index === selected && index !== live}
-              live={index === live}
-            />
-          ))}
-        </MediaStrip>
-      </PanelBody>
-    </Panel>
-  );
-}
-
 export function MediaSection(): JSX.Element {
   return (
     <Section title="MediaTile">
@@ -227,11 +179,6 @@ export function MediaSection(): JSX.Element {
           width={PANEL_WIDTH}
         >
           <TryGrid />
-        </SpecItem>
-      </SpecGroup>
-      <SpecGroup title="진행 media strip, fixed tile width 150, one row, scrolls horizontally on overflow">
-        <SpecItem label="A click sends the media out" width={PANEL_WIDTH}>
-          <TryStrip />
         </SpecItem>
       </SpecGroup>
     </Section>

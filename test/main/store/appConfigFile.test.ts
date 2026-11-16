@@ -97,20 +97,6 @@ describe('openAppConfig with a broken app.json (qa C19)', () => {
     onTestFinished(() => reopened.dispose());
     expect(reopened.screensWindow).toEqual(placement);
   });
-  it('persists the editor window placements beside the screens window', async () => {
-    const file = await appJson();
-    const config = await openAppConfig({file, log: mockLog()});
-    onTestFinished(() => config.dispose());
-    const song = {x: 5, y: 6, width: 1000, height: 800, maximized: true};
-    config.setSongEditorWindow(song);
-    await config.flush();
-    expect(await readJson(file)).toMatchObject({
-      songEditorWindow: song,
-    });
-    const reopened = await openAppConfig({file, log: mockLog()});
-    onTestFinished(() => reopened.dispose());
-    expect(reopened.songEditorWindow).toEqual(song);
-  });
   it('keeps an invalid UTF-8 app.json unchanged after in-memory edits', async () => {
     const file = await appJson();
     const bytes = Buffer.concat([

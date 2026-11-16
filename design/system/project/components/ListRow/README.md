@@ -104,7 +104,6 @@ by default; when on, every row above the current output item dims by position.
 - `<ListRow variant="double" icon="cal" title="주일 예배" sub={['10월 25일 일요일', '항목 12개']} />`
 - `<ListRow toggle pressed icon="prop" title="로고 화면" />` (퀵 실행)
 - `<ListBox label="예배 순서" workspace="show" selected={id} onSelect={…}>…</ListBox>` for the 예배 순서 list of 진행; leave `workspace` out elsewhere, dialogs included.
-- `<ListGroup label="찬양">…</ListGroup>`, `<ListSlot icon="song" label="찬양" />`, `<ListInsertLine />`, `<ListDragGhost icon="song" title="주 하나님 지으신 모든 세계" adding />`
 - Make a row a `button` (or an element with `role="option"`), and give its state with `aria-selected`, `aria-pressed`, `disabled`/`aria-disabled`, and `data-state="live | done | warning"` (separate several values with spaces).
 - Classes: `ll-rowlist`, `ll-rowlist--inset`, `ll-row`, `ll-row--double`, `ll-row--ghost`, `ll-row__icon`, `ll-row__title`, `ll-row__meta`, `ll-row__warn`, `ll-row__lines`, `ll-row__sub`, `ll-row__slot`, `ll-row__slot-mark`, `ll-row__add`, `ll-row-group`, `ll-row-insert`.
 

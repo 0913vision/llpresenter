@@ -6,18 +6,6 @@
   outline: none;
 }
 
-.strip {
-  display: grid;
-  grid-auto-flow: column;
-  grid-auto-columns: var(--size-media-strip-tile);
-  gap: var(--space-12);
-  margin: calc(-1 * var(--space-4));
-  padding: var(--space-4);
-  overflow-x: auto;
-  overflow-y: hidden;
-  outline: none;
-}
-
 .tile {
   display: flex;
   flex-direction: column;

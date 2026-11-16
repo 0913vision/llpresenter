@@ -37,10 +37,6 @@ import {
   type PreferencesApi,
   type SettingsApi,
 } from './settings';
-import {
-  songEditorWindowApi,
-  type SongEditorWindowApi,
-} from './songEditorWindow';
 import {uiApi, type UiApi} from './ui';
 import {windowApi, type WindowApi} from './window';
 import {slidesEditorApi, type SlidesEditorApi} from './slidesEditor';
@@ -103,7 +99,6 @@ export interface LlpApi {
   readonly powerpoint: PowerPointApi;
   readonly recovery: RecoveryApi;
   readonly locations: LocationsApi;
-  readonly songEditorWindow: SongEditorWindowApi;
   readonly slidesEditor: SlidesEditorApi;
 }
 
@@ -145,7 +140,6 @@ export function llpApi(
     powerpoint: powerpointApi(port),
     recovery: recoveryApi(port),
     locations: locationsApi(port),
-    songEditorWindow: songEditorWindowApi(port),
     slidesEditor: custom.slidesEditor ?? slidesEditorApi(port),
   };
 }

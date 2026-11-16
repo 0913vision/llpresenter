@@ -1,3 +1,4 @@
+import * as songEditorRequests from '@renderer/features/songs/editor/songEditorRequests';
 import {MEDIA_DRAG_MIME} from '@renderer/features/media/mediaDrag';
 import {fixtureMedia} from '@fixtures/core/mediaList';
 import {serviceOrderEditsFor} from '@renderer/session/serviceOrderEdits';
@@ -17,7 +18,6 @@ import {
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {createServiceItemId, createThemeId} from '@core/schema/ids';
-import type {SongEditorTarget} from '@core/schema/ipcPayloads';
 import type {SlidesEditorTarget} from '@contracts/ipc/slidesEditor';
 import {newSlidesItem} from '@core/services/slidesEdits';
 import {
@@ -107,25 +107,13 @@ function setup(extraSlides = false, songCard = false) {
       ],
     },
   });
-  const songs = new Set<(target: SongEditorTarget | null) => void>();
+  vi.spyOn(songEditorRequests, 'requestSongEditor');
   const items = new Set<(target: SlidesEditorTarget | null) => void>();
-  vi.spyOn(f.api.songEditorWindow, 'onRetarget').mockImplementation(
-    listener => {
-      songs.add(listener);
-      return () => {
-        songs.delete(listener);
-      };
-    },
-  );
   vi.spyOn(f.api.slidesEditor, 'onRetarget').mockImplementation(listener => {
     items.add(listener);
     return () => {
       items.delete(listener);
     };
-  });
-  vi.spyOn(f.api.window, 'openSongEditor').mockImplementation(async target => {
-    for (const listener of songs) listener(target);
-    return {ok: true, value: undefined};
   });
   vi.spyOn(f.api.slidesEditor, 'open').mockImplementation(async target => {
     for (const listener of items) listener(target);
@@ -477,7 +465,7 @@ it('shows a library song on a single click without opening its editor', async ()
     `곡, 슬라이드 ${f.first.song.slides.length}개`,
   );
   expect(within(details).queryByRole('group', {name: '이번 예배'})).toBeNull();
-  expect(f.api.window.openSongEditor).not.toHaveBeenCalled();
+  expect(songEditorRequests.requestSongEditor).not.toHaveBeenCalled();
   expect(live).not.toHaveBeenCalled();
 });
 

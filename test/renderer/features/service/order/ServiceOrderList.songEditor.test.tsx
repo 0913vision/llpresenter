@@ -30,13 +30,15 @@ const service: ShowService = {
   jumpKeys: {},
 };
 
-const openSongEditor = vi.fn();
+const openSongEditor = vi.hoisted(() => vi.fn());
+vi.mock('@renderer/features/songs/editor/songEditorRequests', () => ({
+  requestSongEditor: openSongEditor,
+}));
 
 beforeEach(() => {
   openSongEditor.mockReset();
   openSongEditor.mockResolvedValue({ok: true, value: undefined});
   window.llp = mockLlpApi({
-    window: {openSongEditor},
     services: {
       get: async () =>
         expectSuccess(

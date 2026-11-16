@@ -2,7 +2,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {MediaId, ThemeId} from '@core/schema/ids';
 import type {Song} from '@core/schema/song';
 import type {SlideTransition} from '@core/schema/slideTransition';
-import type {SongEditorTarget} from '@core/schema/ipcPayloads';
+import type {SongEditorTarget} from '@renderer/features/songs/editor/songEditorRequests';
 import {TYPING_PAUSE_MS} from '@core/songs/songHistory';
 import {normalizeSongTitle} from '@core/songs/songTitle';
 import {editorTask} from './editorTask';

@@ -82,22 +82,22 @@ describe('parseAppConfig', () => {
       }),
     );
   });
-  it('reads the song editor window placement and unknown fields', () => {
-    const placement = {x: 10, y: 20, width: 900, height: 700, maximized: false};
-    const songEditorWindow = {...placement, future: 'kept'};
-    const loaded = expectSuccess(parse({...fullConfig(), songEditorWindow}));
-    expect(loaded.data.songEditorWindow).toEqual(songEditorWindow);
-    expect(expectSuccess(parse(fullConfig())).data.songEditorWindow).toBe(
-      undefined,
+  it('keeps an old song editor placement and other fields when loading', () => {
+    const songEditorWindow = {
+      x: 10,
+      y: 20,
+      width: 900,
+      height: 700,
+      maximized: false,
+      future: 'kept',
+    };
+    const original = {...fullConfig(), songEditorWindow};
+    const loaded = expectSuccess(parse(original));
+    expect(loaded.data).toMatchObject(original);
+    const serialized = expectSuccess(serializeAppConfig(loaded.data, FILE));
+    expect(expectSuccess(parseAppConfig(serialized, FILE)).data).toMatchObject(
+      original,
     );
-  });
-
-  it.each([
-    {songEditorWindow: {x: 0, y: 0, width: 0, height: 5, maximized: false}},
-    {songEditorWindow: {x: 'left', y: 0, width: 9, height: 5, maximized: true}},
-    {songEditorWindow: {x: 0, y: 0, width: 9, height: 5}},
-  ])('rejects an invalid editor window placement %j', change => {
-    expectFailure(parse({...fullConfig(), ...change}));
   });
 
   it.each([null, 42, {}, []])(

@@ -1,3 +1,4 @@
+import * as songEditorRequests from '@renderer/features/songs/editor/songEditorRequests';
 import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {
@@ -123,7 +124,7 @@ async function setup(
   });
   window.llp = fixture.api;
   const openWindow = vi
-    .spyOn(fixture.api.window, 'openSongEditor')
+    .spyOn(songEditorRequests, 'requestSongEditor')
     .mockResolvedValue({ok: true, value: undefined});
   const editor = new SongEditorStore(fixture.api, vi.fn());
   const problem = vi.fn();

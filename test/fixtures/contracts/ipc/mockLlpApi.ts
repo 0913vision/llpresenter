@@ -147,8 +147,6 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
       setVerboseLogging: () => undefined,
       verboseLogging: () => Promise.resolve(false),
       appInfo: () => Promise.resolve({name: 'LoveLight', version: '0.0.0'}),
-      openSongEditor: () =>
-        Promise.resolve({ok: false, error: {reason: 'not-implemented'}}),
       ...overrides.window,
     },
     ui: {
@@ -182,7 +180,6 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
       ...overrides.fonts,
     },
     output: {
-      captureFrame: () => Promise.resolve(null),
       reportPlaybackProblems: () => undefined,
       getPlaybackProblems: () => Promise.resolve([]),
       subscribePlaybackProblems: () => () => undefined,
@@ -295,11 +292,6 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
       choose: () => Promise.resolve({ok: false, error: {reason: 'canceled'}}),
       backUpNow: () => Promise.resolve({ok: true, value: undefined}),
       ...overrides.locations,
-    },
-    songEditorWindow: {
-      target: () => Promise.resolve(null),
-      onRetarget: () => () => undefined,
-      ...overrides.songEditorWindow,
     },
     slidesEditor: {
       open: () => Promise.resolve({ok: true, value: undefined}),

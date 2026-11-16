@@ -95,7 +95,7 @@ export function SlidePanelMeta({
                 const api = window.llp;
                 if (api === undefined) return;
                 editorTask(
-                  openSongEditorWindow(api, {songId: source.songId}, onProblem),
+                  openSongEditorWindow({songId: source.songId}, onProblem),
                 );
               }}
             >

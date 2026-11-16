@@ -283,31 +283,6 @@
   color: var(--text-2);
 }
 
-.slot {
-  --slot-height: var(--size-list-slot);
-
-  display: flex;
-  flex: 1 1 auto;
-  align-items: center;
-  gap: var(--space-10);
-  min-width: 0;
-  height: var(--slot-height);
-  padding: 0 var(--space-6);
-  border: 1px dashed var(--line-control);
-  border-radius: var(--radius-md);
-  color: var(--text-3);
-}
-
-.slot .icon {
-  color: var(--text-3);
-}
-
-.slotMark {
-  flex: none;
-  margin-left: auto;
-  font: var(--type-caption);
-}
-
 .insert {
   --insert-line-inset: var(--space-12);
   --insert-line-height: 2px;

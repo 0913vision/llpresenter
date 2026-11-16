@@ -1,3 +1,4 @@
+import {defaultPreferences} from '@core/schema/preferences';
 import type {BundledPicture} from './bundledPicture';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {basename} from 'node:path';
@@ -45,7 +46,7 @@ export async function openMediaStore(
   const copies = new RecoveryCopies({
     folder: store.locations.recovery,
     keep: () =>
-      settings?.preferences().backupCopies ?? store.preferences.backupCopies,
+      settings?.preferences().backupCopies ?? defaultPreferences.backupCopies,
   });
   const saver = new Saver({
     copies,

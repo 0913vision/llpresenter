@@ -7,14 +7,12 @@ import {
   ListGroup,
   ListInsertLine,
   ListRow,
-  ListSlot,
 } from '../ui/ListRow';
 import {
   Panel,
   PanelActions,
   PanelBody,
   PanelHeader,
-  PanelSwitch,
   PanelTabs,
   PanelTools,
 } from '../ui/Panel';
@@ -175,7 +173,7 @@ function ListPanel({
   children,
 }: {
   readonly tab: string;
-  readonly end: ReactNode;
+  readonly end?: ReactNode;
   readonly tools?: ReactNode;
   readonly children: ReactNode;
 }): JSX.Element {
@@ -200,20 +198,7 @@ function ServiceOrderPanel({
 }: {
   readonly children: ReactNode;
 }): JSX.Element {
-  return (
-    <ListPanel
-      tab="예배 순서"
-      end={
-        <PanelSwitch
-          value="주일 예배"
-          expanded={false}
-          onExpandedChange={ignore}
-        />
-      }
-    >
-      {children}
-    </ListPanel>
-  );
+  return <ListPanel tab="예배 순서">{children}</ListPanel>;
 }
 
 function AddAction({label}: {readonly label: string}): JSX.Element {
@@ -333,9 +318,6 @@ export function ListRowSection(): JSX.Element {
             pressed
             onPress={ignore}
           />
-        </SpecItem>
-        <SpecItem label="Empty slot" width={PANEL_WIDTH}>
-          <ListSlot icon="song" label="찬양" />
         </SpecItem>
       </SpecGroup>
       <SpecGroup

@@ -1,3 +1,4 @@
+import {requestSongEditor} from '@renderer/features/songs/editor/songEditorRequests';
 import {
   useEffect,
   useLayoutEffect,
@@ -358,7 +359,7 @@ function DetailsPanelContent({
       if (service === null) return;
       openEditor(
         () =>
-          api.window.openSongEditor({
+          requestSongEditor({
             songId: item.song,
             block: Math.max(0, index - offset),
             from: {serviceId: service.service.id, itemId: item.id},
@@ -389,7 +390,7 @@ function DetailsPanelContent({
     } else if (library !== null) {
       openEditor(
         () =>
-          api.window.openSongEditor({
+          requestSongEditor({
             songId: library.songId,
             block: index,
           }),
@@ -413,7 +414,7 @@ function DetailsPanelContent({
         title: '곡 열기 실패',
         time: noticeTime(),
       });
-    openEditor(() => api.window.openSongEditor({songId: item.song}), fail);
+    openEditor(() => requestSongEditor({songId: item.song}), fail);
   };
   if (item === null && library === null) {
     const deleted =

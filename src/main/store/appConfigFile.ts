@@ -145,17 +145,6 @@ export class AppConfigFile implements UiStateFields {
     this.scheduleSave();
   }
 
-  get songEditorWindow(): AppConfig['songEditorWindow'] {
-    return this.config.songEditorWindow;
-  }
-
-  setSongEditorWindow(
-    placement: NonNullable<AppConfig['songEditorWindow']>,
-  ): void {
-    this.config = {...this.config, songEditorWindow: placement};
-    this.scheduleSave();
-  }
-
   /** The folders 환경설정 stored for 곡, 미디어, and 백업; empty is the default. */
   get libraryLocations(): LocationFields {
     const {songsPath, mediaPath, backupPath} = this.config;

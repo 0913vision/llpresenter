@@ -1,3 +1,4 @@
+import type {Preferences} from '@core/schema/preferences';
 import type {FileError} from '@core/schema/fileFormat';
 import {settingsNames} from '@core/schema/settingsDocuments';
 import type {Logger} from '../log';
@@ -11,7 +12,7 @@ const MAX_LOGGED_PROBLEMS = 50;
 
 /** The parts of a loaded store that launch upkeep reads. */
 type UpkeepStore = Pick<LoadedStore, 'locations' | 'developmentFolder'> & {
-  readonly preferences: Pick<LoadedStore['preferences'], 'backup'>;
+  readonly preferences: Pick<Preferences, 'backup'>;
 };
 
 /** The parts of a loaded store that the startup log reads. */

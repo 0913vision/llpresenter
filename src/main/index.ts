@@ -63,7 +63,6 @@ import {ControlHeartbeat} from './windows/controlHeartbeat';
 import {GraphicsRecovery} from './windows/graphicsRecovery';
 import {announceReloadAfterCrash} from './windows/reloadNotice';
 import {registerSettingsWindow} from './windows/settingsWindow';
-import {registerSongEditorWindow} from './windows/songEditor';
 import {registerSlidesEditorWindow} from './windows/slidesEditor';
 import {isItemOfKind} from '@core/schema/service';
 import {registerAudioOutput} from './windows/audio';
@@ -387,14 +386,6 @@ function start(): void {
         mode: windowMode,
         log,
       };
-      const songEditorWindow = registerSongEditorWindow({
-        ...editorWindowContext,
-        get control() {
-          return activeControl;
-        },
-        hasSong: async id =>
-          ((await dataStore.content)?.song(id) ?? null) !== null,
-      });
       const slidesEditorWindow = registerSlidesEditorWindow({
         ...editorWindowContext,
         get control() {
@@ -666,10 +657,6 @@ function start(): void {
       shutdown.add({
         name: 'stop the location channels',
         run: stopLocations,
-      });
-      shutdown.add({
-        name: 'stop the song editor window',
-        run: songEditorWindow.dispose,
       });
       shutdown.add({
         name: 'stop the slides editor window',

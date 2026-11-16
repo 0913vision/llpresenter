@@ -175,12 +175,6 @@ vi.mock('@main/windows/settingsWindow', () => ({
     return {close: mocks.screensWindowClose, dispose: mocks.screensWindowStop};
   },
 }));
-vi.mock('@main/windows/songEditor', () => ({
-  registerSongEditorWindow: (context: unknown) => {
-    mocks.editorWindowContexts.push({name: 'song', context});
-    return {dispose: mocks.editorWindowStops.song};
-  },
-}));
 vi.mock('@main/windows/slidesEditor', () => ({
   registerSlidesEditorWindow: (context: unknown) => {
     mocks.editorWindowContexts.push({name: 'slides', context});

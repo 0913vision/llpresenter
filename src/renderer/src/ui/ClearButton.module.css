@@ -9,14 +9,6 @@
   background: var(--bg-panel);
 }
 
-.divider {
-  flex: none;
-  width: var(--size-hairline);
-  height: var(--size-clear-divider);
-  margin: 0 var(--space-4);
-  background: var(--line);
-}
-
 .button {
   --clear-all-share: 1.4;
 
@@ -52,10 +44,6 @@
   flex-grow: var(--clear-all-share);
 }
 
-.undo {
-  background: var(--bg-toolbar-hover);
-}
-
 .button:not([data-state='off']):is(:hover, :active) {
   background: var(--bg-control-hover);
 }
@@ -69,10 +57,6 @@
   color: var(--text-3);
 }
 
-.undo[data-state='off'] {
-  background: var(--bg-toolbar-hover);
-}
-
 .compact {
   padding: var(--space-6);
 }
@@ -84,9 +68,4 @@
 
 .compact .label {
   display: none;
-}
-
-.compact .divider {
-  height: var(--size-clear-divider-compact);
-  margin: 0 var(--space-2);
 }

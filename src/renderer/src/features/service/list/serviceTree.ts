@@ -16,8 +16,6 @@ export interface TreeRow {
   readonly label: string;
   /** The item's 16px kind icon, as the 예배 순서 list draws it. */
   readonly icon?: string | undefined;
-  /** The chosen 구성 of a song, such as 주일용. */
-  readonly detail?: string | undefined;
   /** The header the row sits under, if any. */
   readonly headerId?: ServiceItemId | undefined;
 }
@@ -41,7 +39,7 @@ const icons = {
 function rowOf(
   item: ServiceItem,
   songTitles: ReadonlyMap<string, string>,
-): Pick<TreeRow, 'label' | 'icon' | 'detail'> {
+): Pick<TreeRow, 'label' | 'icon'> {
   if (isItemOfKind(item, 'header')) return {label: item.header};
   if (isItemOfKind(item, 'song')) {
     return {

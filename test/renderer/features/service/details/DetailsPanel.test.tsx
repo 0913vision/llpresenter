@@ -1,3 +1,4 @@
+import * as songEditorRequests from '@renderer/features/songs/editor/songEditorRequests';
 import type {MediaDocument} from '@core/schema/mediaEdit';
 import {fixtureMedia} from '@fixtures/core/mediaList';
 import {
@@ -430,7 +431,7 @@ it('reports an editor opening failure through the item notice handler', async ()
     serviceId: fixtureServiceId,
     openItemId: fixtureItems.arranged,
   });
-  vi.spyOn(f.api.window, 'openSongEditor').mockRejectedValue(
+  vi.spyOn(songEditorRequests, 'requestSongEditor').mockRejectedValue(
     new Error('failed'),
   );
   const report = vi.fn();

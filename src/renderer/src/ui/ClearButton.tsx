@@ -10,8 +10,6 @@ import {useTooltip, withTooltipProps} from './Tooltip';
 import styles from './ClearButton.module.css';
 
 const ROW_NAME = '지우기';
-const UNDO_NAME = '되돌리기';
-const UNDO_LABEL = '되돌리기';
 const ICON_SIZE: IconSize = 18;
 const COMPACT_ICON_SIZE: IconSize = 16;
 
@@ -138,35 +136,5 @@ export function ClearButton({
       onPress={onClear}
       className={layer === 'all' ? styles.all : undefined}
     />
-  );
-}
-
-export interface ClearUndoProps {
-  /** Whether a 지우기 can be undone; only the last one can. */
-  readonly available: boolean;
-  readonly onUndo: () => void;
-  /** An explicitly assigned key; clear undo has no default shortcut. */
-  readonly shortcut?: string | undefined;
-}
-
-/** 되돌리기, after the divider at the end of the 지우기 row. */
-export function ClearUndo({
-  available,
-  onUndo,
-  shortcut,
-}: ClearUndoProps): JSX.Element {
-  return (
-    <>
-      <span aria-hidden="true" className={styles.divider} />
-      <ClearControl
-        name={UNDO_NAME}
-        icon="undo"
-        label={UNDO_LABEL}
-        shortcut={shortcut}
-        available={available}
-        onPress={onUndo}
-        className={styles.undo}
-      />
-    </>
   );
 }

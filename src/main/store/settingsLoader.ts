@@ -56,7 +56,7 @@ export async function loadSettingsArea(
   let access: FileAccess = 'editable';
   try {
     fallback = defaultDocument(name);
-    // NOTE(0913vision): Nest the loaded metadata so the M2 reader's data unwrap retains access.
+    // NOTE(0913vision): Nest the loaded metadata so the file reader's data unwrap retains access.
     const read = await readSettingsFile<LoadedFile<SettingsValue>>(
       location,
       (text, file) => {

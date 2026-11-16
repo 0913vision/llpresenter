@@ -316,6 +316,33 @@ describe('loadSettingsArea', () => {
 });
 
 describe('openSettingsStore', () => {
+  it('reads preferences and labels once through the settings store', async () => {
+    const folder = await makeTempDir();
+    const log = recordingLogger();
+    const appConfig = await openAppConfig({
+      file: join(folder, 'app.json'),
+      log,
+    });
+    onTestFinished(() => appConfig.dispose());
+    vi.mocked(readSettingsFile).mockClear();
+    const result = await loadStore({
+      documents: folder,
+      developmentFolder: folder,
+      appConfig,
+    });
+    if (!result.ok) throw new Error(result.error.message);
+    const store = await openSettingsStore(result.value, log);
+    onTestFinished(() => store.dispose());
+    for (const name of ['preferences', 'labels']) {
+      const file = settingsLocation(result.value.locations, name).file;
+      expect(
+        vi
+          .mocked(readSettingsFile)
+          .mock.calls.filter(([location]) => location.file === file),
+      ).toHaveLength(1);
+    }
+  });
+
   it('does not make an incompatible newer original editable through an older recovery copy', async () => {
     const folder = await makeTempDir();
     const log = recordingLogger();

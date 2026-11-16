@@ -8,7 +8,6 @@ import {
   ListDragGhost,
   ListGroup,
   ListRow,
-  ListSlot,
 } from '@renderer/ui/ListRow';
 import {
   pointAway,
@@ -238,13 +237,7 @@ describe('ListActionRow', () => {
   });
 });
 
-describe('ListSlot and ListDragGhost', () => {
-  it('names an empty slot by its type', () => {
-    render(<ListSlot icon="song" label="찬양" />);
-    expect(screen.getByText('빈 항목')).toBeDefined();
-    expect(screen.getByText('찬양')).toBeDefined();
-  });
-
+describe('ListDragGhost', () => {
   it('hides the drag ghost from assistive technology', () => {
     const {container} = render(
       <ListDragGhost icon="song" title="주 하나님 지으신 모든 세계" adding />,

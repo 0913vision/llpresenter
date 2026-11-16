@@ -24,7 +24,6 @@ export {ListBox, type ListBoxProps} from './ListBox';
 const ROW_ICON_SIZE = 16;
 const WARN_ICON_SIZE = 14;
 const ADD_ICON_SIZE = 12;
-const SLOT_MARK = '빈 항목';
 const MODIFIED_LABEL = '저장하지 않은 변경';
 export type GroupRename = RenameContract;
 
@@ -400,40 +399,6 @@ export function ListGroup({
         )}
       </div>
       {children}
-    </div>
-  );
-}
-
-/** The dashed box of a 템플릿 cell that isn't filled yet: 찬양 … 빈 항목. */
-export function ListSlotBox({
-  icon,
-  label,
-}: {
-  readonly icon?: string | undefined;
-  readonly label: string;
-}): JSX.Element {
-  return (
-    <span className={styles.slot}>
-      {icon === undefined ? null : (
-        <Icon name={icon} size={ROW_ICON_SIZE} className={styles.icon} />
-      )}
-      <span className={styles.title}>{label}</span>
-      <span className={styles.slotMark}>{SLOT_MARK}</span>
-    </span>
-  );
-}
-
-/** A row that holds only an empty slot box. */
-export function ListSlot({
-  icon,
-  label,
-}: {
-  readonly icon?: string | undefined;
-  readonly label: string;
-}): JSX.Element {
-  return (
-    <div className={styles.row}>
-      <ListSlotBox icon={icon} label={label} />
     </div>
   );
 }

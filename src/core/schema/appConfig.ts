@@ -79,7 +79,6 @@ const appConfigSchema = jsonObject({
   ),
   layout: v.exactOptional(appLayoutSchema),
   screensWindow: v.exactOptional(windowPlacementSchema),
-  songEditorWindow: v.exactOptional(windowPlacementSchema),
   preferencesWindow: v.exactOptional(windowPlacementSchema),
   preferencesPage: v.exactOptional(v.picklist(PREFERENCE_PAGE_IDS)),
   previewBig: v.exactOptional(screenIdSchema),

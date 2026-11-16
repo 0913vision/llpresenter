@@ -65,7 +65,6 @@ function TreeItem({
   readonly onFocus: (row: TreeRow) => void;
 }): JSX.Element {
   const labelId = useId();
-  const detailId = useId();
   const {level, position, size} = treePosition(rows, row);
   return (
     <div
@@ -75,7 +74,6 @@ function TreeItem({
       aria-setsize={size}
       aria-checked={checked}
       aria-labelledby={labelId}
-      aria-describedby={row.detail === undefined ? undefined : detailId}
       data-id={row.id}
       tabIndex={focusable ? 0 : -1}
       className={classNames(
@@ -104,11 +102,6 @@ function TreeItem({
       <span id={labelId} className={styles.label}>
         {row.label}
       </span>
-      {row.detail === undefined ? null : (
-        <span id={detailId} className={styles.meta}>
-          {row.detail}
-        </span>
-      )}
     </div>
   );
 }

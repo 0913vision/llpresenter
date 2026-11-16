@@ -42,13 +42,6 @@
   text-overflow: ellipsis;
 }
 
-.meta {
-  flex: none;
-  margin-left: auto;
-  color: var(--text-3);
-  font: var(--type-caption);
-}
-
 .empty {
   margin: 0;
   padding: var(--space-8) var(--space-14);

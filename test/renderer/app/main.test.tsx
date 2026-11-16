@@ -171,9 +171,9 @@ it('flushes focused property drafts and queued writes in the settings renderer b
   }
 });
 
-it.each([{name: 'screens', title: '화면 설정'}])(
-  'starts the $name window page without the application and releases it on pagehide',
-  async ({name, title}) => {
+it.each(['screens', 'preferences'])(
+  'starts the control app for the retired %s window path',
+  async name => {
     vi.resetModules();
     root.render.mockClear();
     root.unmount.mockClear();
@@ -190,12 +190,21 @@ it.each([{name: 'screens', title: '화면 설정'}])(
         await import('@renderer/app/main');
       });
       await waitFor(() => expect(root.render).toHaveBeenCalledOnce());
-      expect(document.title).toBe(title);
-      expect(stops.service).not.toHaveBeenCalled();
+      const tree: unknown = root.render.mock.calls[0]?.[0];
+      const {App} = await import('@renderer/app/App');
+      if (
+        !isValidElement<{children: ReactNode}>(tree) ||
+        !isValidElement(tree.props.children)
+      ) {
+        throw new Error('Missing application element');
+      }
+      expect(tree.props.children.type).toBe(App);
       window.dispatchEvent(new Event('pagehide'));
       expect(root.unmount).toHaveBeenCalledOnce();
       expect(stops.live).toHaveBeenCalledOnce();
+      expect(stops.service).toHaveBeenCalledOnce();
     } finally {
+      window.dispatchEvent(new Event('pagehide'));
       container.remove();
       delete window.llp;
       window.history.replaceState({}, '', originalUrl);

@@ -1,6 +1,5 @@
 import type {JSX} from 'react';
 import {
-  CheckList,
   CheckRow,
   Checkbox,
   type CheckRowProps,
@@ -78,7 +77,7 @@ export function CheckboxSection(): JSX.Element {
           label="Group rows, off, hover, focus, disabled"
           width={LIST_WIDTH}
         >
-          <CheckList label="가져올 항목">
+          <div data-label="가져올 항목">
             <Row variant="group" label="예배 전" initial="mixed" />
             <Row
               variant="list"
@@ -110,7 +109,7 @@ export function CheckboxSection(): JSX.Element {
               disabled
               initial={false}
             />
-          </CheckList>
+          </div>
         </SpecItem>
       </SpecGroup>
       <SpecGroup title="Rows with a value, 출력 상태 복구" surface="dialog">
