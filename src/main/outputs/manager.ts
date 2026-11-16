@@ -115,6 +115,7 @@ export class OutputManager {
   private previousMonitors: ReadonlyMap<string, number> = new Map();
   private readonly assignmentListeners = new Set<() => void>();
   private readonly monitorNumbers = new Map<string, number>();
+  private readonly loggedMatches = new Set<string>();
   private readonly unsettledRemovals = new Set<number>();
   private stops: ReadonlyArray<() => void> = [];
   private lastOutputs: LiveState['outputs'] | null = null;
@@ -132,10 +133,17 @@ export class OutputManager {
       }),
       displays.subscribeRemoved(id => this.monitorRemoved(id)),
       ...(this.options.screens.subscribe
-        ? [this.options.screens.subscribe(() => this.sync())]
+        ? [
+            this.options.screens.subscribe(() =>
+              this.sync(this.unloggedEnabledScreens()),
+            ),
+          ]
         : []),
     ];
-    this.sync();
+    this.sync(
+      Object.values(store.state.outputs).some(on => on) &&
+        !displays.monitors.some(monitor => monitor.identityPending === true),
+    );
   }
 
   /** Replans outputs after the control window changes monitors. */
@@ -261,11 +269,37 @@ export class OutputManager {
     this.unsettledRemovals.clear();
   }
 
+  private unloggedEnabledScreens(): ReadonlySet<string> | false {
+    if (
+      this.options.displays.monitors.some(
+        monitor => monitor.identityPending === true,
+      )
+    ) {
+      return false;
+    }
+    const pending = new Set(
+      this.options.screens
+        .list()
+        .filter(
+          screen =>
+            this.options.store.state.outputs[screen.id] === true &&
+            !this.loggedMatches.has(screen.id),
+        )
+        .map(screen => screen.id),
+    );
+    return pending.size > 0 ? pending : false;
+  }
+
   private handleLiveState(state: LiveState): void {
     // NOTE(0913vision): A 장 or a clear doesn't change the output switches,
     // and the reducer keeps the same object then, so the windows stay put.
     if (state.outputs === this.lastOutputs) return;
-    this.sync();
+    const enabled = new Set(
+      Object.keys(state.outputs).filter(
+        id => state.outputs[id] === true && this.lastOutputs?.[id] !== true,
+      ),
+    );
+    this.sync(enabled.size > 0 ? enabled : false);
   }
 
   private monitorRemoved(monitorId: number): void {
@@ -287,7 +321,7 @@ export class OutputManager {
     this.sync();
   }
 
-  private sync(logMatches = false): void {
+  private sync(logMatches: boolean | ReadonlySet<string> = false): void {
     if (this.disposed) return;
     const screens = this.options.screens.list();
     this.removeWindowsNotIn(screens);
@@ -306,7 +340,12 @@ export class OutputManager {
       ? new Map<string, MatchDiagnostic>()
       : undefined;
     const surroundings = this.surroundings(diagnostics);
-    if (logMatches) this.logMonitorMatches(screens, surroundings, diagnostics);
+    if (logMatches) {
+      this.logMonitorMatches(screens, surroundings, {
+        diagnostics,
+        selection: logMatches,
+      });
+    }
     if (surroundings === null) {
       this.withoutMonitors(screens);
       return;
@@ -442,10 +481,21 @@ export class OutputManager {
   private logMonitorMatches(
     screens: readonly OutputScreen[],
     surroundings: Surroundings | null,
-    diagnostics: ReadonlyMap<string, MatchDiagnostic> | undefined,
+    {
+      diagnostics,
+      selection,
+    }: {
+      diagnostics: ReadonlyMap<string, MatchDiagnostic> | undefined;
+      selection: true | ReadonlySet<string>;
+    },
   ): void {
     for (const screen of screens) {
-      if (this.options.store.state.outputs[screen.id] !== true) continue;
+      if (
+        this.options.store.state.outputs[screen.id] !== true ||
+        (selection !== true && !selection.has(screen.id))
+      ) {
+        continue;
+      }
       const monitor = surroundings?.assigned.get(screen.id);
       const match = diagnostics?.get(screen.id);
       const detail =
@@ -476,6 +526,7 @@ export class OutputManager {
                 : {}),
             };
       this.options.log.info('output monitor match', detail);
+      this.loggedMatches.add(screen.id);
     }
   }
 
