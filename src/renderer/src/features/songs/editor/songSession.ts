@@ -39,6 +39,7 @@ export class SongSession {
   background: MediaId | undefined;
   private dirty = false;
   private intent = 0;
+  revealIntent = 0;
   get slideIntent(): number {
     return this.intent;
   }
@@ -198,6 +199,9 @@ export class SongSession {
   }
 
   commandSlides(command: SlideListCommand<SongSlide>): void {
+    if (command.type === 'duplicate' || command.type === 'move') {
+      this.revealIntent++;
+    }
     this.changeSlides(() => this.history.model.command(command));
   }
 
@@ -216,12 +220,11 @@ export class SongSession {
   }
 
   pasteSlides(text?: string): void {
-    this.changeSlides(
-      () =>
-        text === undefined
-          ? this.history.model.paste()
-          : this.history.model.pasteText(text),
-      false,
+    this.revealIntent++;
+    this.changeSlides(() =>
+      text === undefined
+        ? this.history.model.paste()
+        : this.history.model.pasteText(text),
     );
   }
 
@@ -292,6 +295,12 @@ export class SongSession {
 
   edit(command: BlockCommand | 'undo' | 'redo'): void {
     if (!this.acceptsEdits) return;
+    if (
+      typeof command !== 'string' &&
+      ['insert', 'title', 'split', 'paste'].includes(command.type)
+    ) {
+      this.revealIntent++;
+    }
     this.intent++;
     const previous = this.history.model.getContent();
     if (command === 'undo') this.history.undo();

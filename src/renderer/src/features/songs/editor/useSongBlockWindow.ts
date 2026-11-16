@@ -207,55 +207,6 @@ export function useSongBlockWindow(
   if (menu !== undefined && menu >= 0 && menu < slides.length) {
     indices.add(menu);
   }
-  const lastReveal = useRef<{
-    selected: number;
-    columns: number;
-    cellWidth: number;
-    viewportHeight: number;
-    mode: SlideSurfaceMode;
-  } | null>(null);
-  useLayoutEffect(() => {
-    const previous = lastReveal.current;
-    const next = {
-      selected,
-      columns,
-      cellWidth,
-      viewportHeight: measure.viewport,
-      mode,
-    };
-    if (
-      mode === 'grid' &&
-      previous !== null &&
-      previous.mode === mode &&
-      previous.selected === next.selected &&
-      previous.columns === next.columns &&
-      previous.cellWidth === next.cellWidth &&
-      previous.viewportHeight === next.viewportHeight
-    ) {
-      return;
-    }
-    lastReveal.current = next;
-    const node = viewportRef.current;
-    const row = Math.floor(selected / columns);
-    const top = offsets[row];
-    const bottom = offsets[row + 1];
-    if (node === null || top === undefined || bottom === undefined) return;
-    if (top < node.scrollTop) node.scrollTop = top;
-    else if (bottom > node.scrollTop + node.clientHeight) {
-      node.scrollTop =
-        bottom - top > node.clientHeight
-          ? top
-          : Math.max(0, bottom - node.clientHeight);
-    }
-  }, [
-    selected,
-    offsets,
-    columns,
-    viewportRef,
-    cellWidth,
-    measure.viewport,
-    mode,
-  ]);
   return {
     viewport: viewportRef,
     total,

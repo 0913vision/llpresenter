@@ -10,6 +10,7 @@ import {
 import type {LlpApi} from '@contracts/ipc/api';
 import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
 import type {MediaDocument} from '@core/schema/mediaEdit';
+import type {MediaId} from '@core/schema/ids';
 import type {ServiceItemOf} from '@core/schema/service';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
@@ -94,7 +95,10 @@ export function ItemBackgroundRow({
   item,
   session,
   mediaDocument,
+  setBackground,
 }: RowState & {
+  readonly setBackground?:
+    ((id: MediaId | null) => Promise<boolean>) | undefined;
   readonly item: ServiceItemOf<'song' | 'slides'>;
   readonly session?: SongSession;
   readonly mediaDocument?: FollowedDocument<MediaDocument>;
@@ -165,7 +169,11 @@ export function ItemBackgroundRow({
               query={query}
               onQueryChange={setQuery}
               onSelect={choice =>
-                editorTask(items.setBackground(choice ?? null))
+                editorTask(
+                  (setBackground ?? items.setBackground.bind(items))(
+                    choice ?? null,
+                  ),
+                )
               }
               onClose={restore => {
                 setOpen(false);

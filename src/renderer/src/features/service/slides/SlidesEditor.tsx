@@ -113,66 +113,66 @@ function SlidesHeader({
             }}
           />
         </div>
-      </header>
-      <div className={styles.settings}>
-        <span className={styles.setting}>
-          <span>테마</span>
-          <SelectMenu
-            aria-label="테마"
-            disabled={disabled}
-            size="sm"
-            value={item.theme ?? ''}
-            valueText={themeName}
-            options={[
-              {value: '', label: '기본'},
-              ...(themes?.themes ?? [])
-                .filter(theme => canChooseItemTheme(item, theme.id))
-                .map(theme => ({
-                  value: theme.id,
-                  label: theme.name,
+        <div className={styles.settings}>
+          <span className={styles.setting}>
+            <span>테마</span>
+            <SelectMenu
+              aria-label="테마"
+              disabled={disabled}
+              size="sm"
+              value={item.theme ?? ''}
+              valueText={themeName}
+              options={[
+                {value: '', label: '기본'},
+                ...(themes?.themes ?? [])
+                  .filter(theme => canChooseItemTheme(item, theme.id))
+                  .map(theme => ({
+                    value: theme.id,
+                    label: theme.name,
+                  })),
+              ]}
+              onChange={id => {
+                const parsed = parsePayload(themeIdSchema, id);
+                if (id !== '' && !parsed.ok) return;
+                const chosen = parsed.ok ? parsed.value : undefined;
+                draft.change(withItemTheme(item, chosen, themes));
+                update();
+              }}
+            />
+          </span>
+          <span className={styles.setting}>
+            <span>넘기기</span>
+            <SelectMenu
+              aria-label="넘기기"
+              disabled={disabled}
+              size="sm"
+              value={String(item.slides.advance ?? '')}
+              options={[
+                {value: '', label: '손으로'},
+                ...ADVANCES.map(seconds => ({
+                  value: String(seconds),
+                  label: `${seconds}초마다`,
                 })),
-            ]}
-            onChange={id => {
-              const parsed = parsePayload(themeIdSchema, id);
-              if (id !== '' && !parsed.ok) return;
-              const chosen = parsed.ok ? parsed.value : undefined;
-              draft.change(withItemTheme(item, chosen, themes));
-              update();
-            }}
-          />
-        </span>
-        <span className={styles.setting}>
-          <span>넘기기</span>
-          <SelectMenu
-            aria-label="넘기기"
-            disabled={disabled}
-            size="sm"
-            value={String(item.slides.advance ?? '')}
-            options={[
-              {value: '', label: '손으로'},
-              ...ADVANCES.map(seconds => ({
-                value: String(seconds),
-                label: `${seconds}초마다`,
-              })),
-            ]}
-            onChange={value => {
-              const slides = {...item.slides};
-              if (value === '') delete slides.advance;
-              else slides.advance = Number(value);
-              change(slides);
-            }}
-          />
-        </span>
-        <span className={styles.setting}>
-          <Checkbox
-            aria-label="반복"
-            disabled={disabled}
-            checked={item.slides.loop ?? false}
-            onChange={loop => change({...item.slides, loop})}
-          />
-          <span>반복</span>
-        </span>
-      </div>
+              ]}
+              onChange={value => {
+                const slides = {...item.slides};
+                if (value === '') delete slides.advance;
+                else slides.advance = Number(value);
+                change(slides);
+              }}
+            />
+          </span>
+          <span className={styles.setting}>
+            <Checkbox
+              aria-label="반복"
+              disabled={disabled}
+              checked={item.slides.loop ?? false}
+              onChange={loop => change({...item.slides, loop})}
+            />
+            <span>반복</span>
+          </span>
+        </div>
+      </header>
     </>
   );
 }
@@ -361,7 +361,7 @@ function SlidesEditorBody({
     restoreBibleFocus.current = false;
     const row =
       rowList.current?.querySelectorAll<HTMLElement>('[data-slide-id]')[at];
-    row?.focus();
+    row?.focus({preventScroll: true});
   }, [bibleDialog, at]);
   useLayoutEffect(() => {
     if (!focusAfterRemove.current) return;
@@ -373,7 +373,7 @@ function SlidesEditorBody({
         : rowList.current?.querySelector<HTMLElement>(
             `[data-gap-index="${caret}"]`,
           );
-    (target ?? rowList.current)?.focus();
+    (target ?? rowList.current)?.focus({preventScroll: true});
   });
   const showPicker = (anchor: HTMLElement, slideId?: string): void => {
     setQuery('');
@@ -482,6 +482,7 @@ function SlidesEditorBody({
             renderCard={renderCard}
             onAdd={index => {
               draft.selectRows({type: 'gap', index});
+              model.session?.requestReveal();
               if (draft.insert([newTextSlide(item.slides.form)])) update();
             }}
             renderRow={(slide, index) => (
@@ -563,6 +564,7 @@ function SlidesEditorBody({
               rows.length >= SLIDES_LIMIT
             }
             onClick={() => {
+              model.session?.requestReveal();
               draft.insert([newTextSlide(item.slides.form)]);
               update();
             }}
@@ -591,6 +593,7 @@ function SlidesEditorBody({
             ? {}
             : {reference: bibleDialog.reference})}
           onInsert={slides => {
+            model.session?.requestReveal();
             if (draft.insert(slides)) {
               update();
             }
@@ -610,6 +613,7 @@ function SlidesEditorBody({
           onSelect={id => {
             if (id === undefined) return;
             if (picker.slideId === undefined) {
+              model.session?.requestReveal();
               draft.insert([
                 {id: createSlideId(crypto.randomUUID()), media: id},
               ]);

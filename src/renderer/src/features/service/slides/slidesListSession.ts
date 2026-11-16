@@ -7,6 +7,7 @@ import type {Notice} from '@renderer/ui/notices';
 /** Borrows the draft's only model for the shared row and grid command surface. */
 export class SlidesListSession implements SlideListSession<Slide> {
   private intent = 0;
+  revealIntent = 0;
   constructor(
     readonly draft: SlidesDraft,
     private host: {
@@ -44,6 +45,9 @@ export class SlidesListSession implements SlideListSession<Slide> {
   get readOnly(): boolean {
     return this.host.locked();
   }
+  requestReveal(): void {
+    this.revealIntent++;
+  }
   invalidate(): void {
     this.intent++;
   }
@@ -54,6 +58,9 @@ export class SlidesListSession implements SlideListSession<Slide> {
   commandSlides(command: SlideListCommand<Slide>): void {
     if (this.readOnly) return;
     this.invalidate();
+    if (command.type === 'duplicate' || command.type === 'move') {
+      this.requestReveal();
+    }
     if (!this.draft.commandRows(command)) {
       this.host.problem('슬라이드를 변경할 수 없습니다');
     }
@@ -73,6 +80,8 @@ export class SlidesListSession implements SlideListSession<Slide> {
   }
   pasteSlides(text?: string): void {
     if (this.readOnly) return;
+    this.requestReveal();
+    this.invalidate();
     this.draft.endTyping();
     const result =
       text === undefined

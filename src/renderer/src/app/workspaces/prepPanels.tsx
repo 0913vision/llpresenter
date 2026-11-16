@@ -1,6 +1,7 @@
 import {useOtherSources} from '@renderer/features/service/items/useOtherSources';
 import {followPrepOpenFailures} from '../prepOpenFailure';
 import {EditorBackgroundDrop} from './EditorBackgroundDrop';
+import {EditorItemSettings} from './EditorItemSettings';
 import {PrepPalette} from '@renderer/features/service/items/PrepPalette';
 import {
   useEffect,
@@ -57,6 +58,8 @@ import {AddSectionCard} from '@renderer/features/service/items/AddSectionCard';
 import itemCardStyles from './ItemCardBinding.module.css';
 import {hasSectionCard} from '@core/services/sectionCards';
 import type {SlideTransition} from '@core/schema/slideTransition';
+import {LITURGY} from '@core/services/liturgy';
+import {displayReference} from '@core/bible/displayReference';
 
 function SlidesCardInspector({prep}: {readonly prep: PrepBinding}): ReactNode {
   const state = useSyncExternalStore(
@@ -375,15 +378,22 @@ function prepPanelParts({
           editor={prep.editor}
           sources={sources}
         >
-          {otherEditor ? (
-            <OtherSlideInspector items={prep.items} editor={prep.editor} />
-          ) : prep.slides?.session ? (
-            <SlidesCardInspector prep={prep} />
-          ) : prep.editor.getSnapshot().session?.itemSession ? (
-            <SongCardInspector prep={prep} />
-          ) : (
-            <SlideInspector store={prep.editor} />
-          )}
+          <div className={styles.inspector}>
+            <EditorItemSettings
+              items={prep.items}
+              editor={prep.editor}
+              flushSlides={() => prep.slides?.flush() ?? Promise.resolve(true)}
+            />
+            {otherEditor ? (
+              <OtherSlideInspector items={prep.items} editor={prep.editor} />
+            ) : prep.slides?.session ? (
+              <SlidesCardInspector prep={prep} />
+            ) : prep.editor.getSnapshot().session?.itemSession ? (
+              <SongCardInspector prep={prep} />
+            ) : (
+              <SlideInspector store={prep.editor} />
+            )}
+          </div>
         </EditorBackgroundDrop>
       ),
     };
@@ -422,6 +432,13 @@ function OtherPrepEditor({
     <div ref={root} className={styles.root}>
       <header className={headerStyles.header} data-inline="true">
         <SlidesBackButton serviceName={serviceName} onBack={onBack} />
+        {item === null ? null : isItemOfKind(item, 'liturgy') ? (
+          <strong>{LITURGY[item.liturgy.kind].name}</strong>
+        ) : isItemOfKind(item, 'bible') ? (
+          <strong>{displayReference(item.bible.ref)}</strong>
+        ) : isItemOfKind(item, 'sermon') ? (
+          <strong>{displayReference(item.sermon.passage.ref)}</strong>
+        ) : null}
       </header>
       {item !== null &&
       (isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon')) ? (
@@ -433,7 +450,7 @@ function OtherPrepEditor({
         />
       ) : null}
       {item !== null && isItemOfKind(item, 'liturgy') ? (
-        <LiturgyEditor items={prep.items} />
+        <LiturgyEditor items={prep.items} ui={prep.api.ui} />
       ) : item !== null &&
         (isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon')) ? (
         <BibleInlineEditor
@@ -443,7 +460,8 @@ function OtherPrepEditor({
           hideHeader
           onSplit={() => setManualSplitRequest(value => value + 1)}
         />
-      ) : (
+      ) : item !== null &&
+        (isItemOfKind(item, 'song') || isItemOfKind(item, 'slides')) ? null : (
         <ServiceItemPanel
           items={prep.items}
           editor={prep.editor}

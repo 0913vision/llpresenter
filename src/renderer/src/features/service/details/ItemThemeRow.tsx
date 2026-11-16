@@ -1,6 +1,8 @@
 import {useContext, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {ServiceItem} from '@core/schema/service';
+import type {ThemeId} from '@core/schema/ids';
+import type {ThemesFile} from '@core/schema/themes';
 import {isItemOfKind} from '@core/schema/service';
 import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
 import {itemThemeKind} from '@core/themes/itemKind';
@@ -133,7 +135,14 @@ export function ItemThemeRow({
   item,
   reason,
   themeData,
+  setTheme,
 }: {
+  readonly setTheme?:
+    | ((
+        theme: ThemeId | undefined,
+        file: ThemesFile | null,
+      ) => Promise<boolean>)
+    | undefined;
   readonly api: LlpApi['settings'];
   readonly items: ServiceItemStore;
   readonly item: ServiceItem;
@@ -190,7 +199,9 @@ export function ItemThemeRow({
             title={lock}
             onChange={value => {
               if (value === '') {
-                editorTask(items.setTheme(undefined, file));
+                editorTask(
+                  (setTheme ?? items.setTheme.bind(items))(undefined, file),
+                );
                 return;
               }
               const selected =
@@ -199,7 +210,7 @@ export function ItemThemeRow({
                   : file?.themes.find(entry => entry.id === value);
               if (selected !== undefined) {
                 editorTask(
-                  items.setTheme(
+                  (setTheme ?? items.setTheme.bind(items))(
                     selected.id === defaultId ? undefined : selected.id,
                     file,
                   ),

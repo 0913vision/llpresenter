@@ -11,6 +11,7 @@ import {labelInk} from '@renderer/ui/labelInk';
 import {Panel, PanelBody} from '@renderer/ui/Panel';
 import {Properties, PropertyGroup, PropertyRow} from '@renderer/ui/PropertyRow';
 import styles from './SlideInspector.module.css';
+import {SongTitleLayoutControl} from '@renderer/features/songs/editor/SongTitleLayoutControl';
 
 /** Local inspection of the current song slide and its shared selection. */
 export function SlideInspector({
@@ -127,6 +128,7 @@ function InspectorContent({
           {snapshot.selection.block + 1} / {view.slides.length}
         </span>
       </div>
+      <SongTitleLayoutControl session={session} disabled={busy} />
       <Properties>
         <PropertyGroup>
           <PropertyRow label="이름표">

@@ -95,10 +95,6 @@ export function SongSlideSurface<T extends SlideListItem>({
     if (!preserve) session.selectSlides({type: 'clear'});
     setCardSelection({documentId: session.slideDocumentId, selected: true});
     leadingCard.onSelectChange?.(true);
-    const viewport = surfaceRef.current?.querySelector<HTMLElement>(
-      '[data-slide-columns]',
-    );
-    if (viewport !== null && viewport !== undefined) viewport.scrollTop = 0;
   };
   const clearCard = (): void => {
     if (!leadingSelected) return;

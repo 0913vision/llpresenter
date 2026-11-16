@@ -4,7 +4,7 @@ import {THEME_LIMITS} from '@core/themes/elementRules';
 import {NumberField} from '@renderer/ui/NumberField';
 import {isComposing} from '@renderer/ui/ime';
 import type {SongSession} from './songSession';
-import styles from './SongTitleLayoutControl.module.css';
+import {PropertyGroup, PropertyRow} from '@renderer/ui/PropertyRow';
 
 export function SongTitleLayoutControl({
   session,
@@ -31,7 +31,6 @@ export function SongTitleLayoutControl({
   const spacing = {...DEFAULT_SONG_TITLE_LAYOUT, ...slide.titleLayout};
   return (
     <div
-      className={styles.spacing}
       onKeyDown={event => {
         if (
           event.defaultPrevented ||
@@ -50,45 +49,48 @@ export function SongTitleLayoutControl({
         session.edit(key === 'y' || event.shiftKey ? 'redo' : 'undo');
       }}
     >
-      {(
-        [
-          'titleTracking',
-          'subtitleTracking',
-          'titleTop',
-          'subtitleTop',
-        ] as const
-      ).map(key => (
-        <label key={key} className={styles.field}>
-          {labels[key]}
-          <NumberField
-            aria-label={labels[key]}
-            value={spacing[key]}
-            min={key.endsWith('Top') ? 0 : THEME_LIMITS.tracking.min}
-            max={
-              key === 'titleTop'
-                ? THEME_LIMITS.height - 160
-                : key === 'subtitleTop'
-                  ? THEME_LIMITS.height - 90
-                  : THEME_LIMITS.tracking.max
-            }
-            unit="px"
-            updateOn="commit"
-            disabled={disabled || session.readOnly}
-            onChange={value =>
-              session.edit({
-                type: 'title-layout',
-                block,
-                layout: {
-                  ...slide.titleLayout,
-                  titleTracking: spacing.titleTracking,
-                  subtitleTracking: spacing.subtitleTracking,
-                  [key]: value,
-                },
-              })
-            }
-          />
-        </label>
-      ))}
+      <PropertyGroup title="제목 배치">
+        {(
+          [
+            'titleTracking',
+            'subtitleTracking',
+            'titleTop',
+            'subtitleTop',
+          ] as const
+        ).map(key => (
+          <PropertyRow key={key} label={labels[key]}>
+            {() => (
+              <NumberField
+                aria-label={labels[key]}
+                value={spacing[key]}
+                min={key.endsWith('Top') ? 0 : THEME_LIMITS.tracking.min}
+                max={
+                  key === 'titleTop'
+                    ? THEME_LIMITS.height - 160
+                    : key === 'subtitleTop'
+                      ? THEME_LIMITS.height - 90
+                      : THEME_LIMITS.tracking.max
+                }
+                unit="px"
+                updateOn="commit"
+                disabled={disabled || session.readOnly}
+                onChange={value =>
+                  session.edit({
+                    type: 'title-layout',
+                    block,
+                    layout: {
+                      ...slide.titleLayout,
+                      titleTracking: spacing.titleTracking,
+                      subtitleTracking: spacing.subtitleTracking,
+                      [key]: value,
+                    },
+                  })
+                }
+              />
+            )}
+          </PropertyRow>
+        ))}
+      </PropertyGroup>
     </div>
   );
 }
