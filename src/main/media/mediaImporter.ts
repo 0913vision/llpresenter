@@ -65,6 +65,9 @@ export interface MediaImporterOptions {
     jpeg: Uint8Array,
     file: string,
   ) => Promise<void>;
+  readonly savePreviewThumbnail?:
+    | ((mediaId: MediaId, png: Uint8Array, file: string) => Promise<void>)
+    | undefined;
   readonly log: Logger;
   readonly copy?: (options: CopyOptions) => ReturnType<typeof copyWithProgress>;
   /** The 새 미디어 defaults, read once per admitted request like the copy choice. */
@@ -332,6 +335,7 @@ export class MediaImporter {
       file: placed.file,
       kind: job.kind,
       thumbnail: true,
+      ...(job.kind === 'image' ? {includePreview: true} : {}),
       signal: job.abort.signal,
     });
     if (cancelled(job)) {
@@ -358,6 +362,13 @@ export class MediaImporter {
       await this.options.saveThumbnail(
         job.mediaId,
         facts.thumbnail,
+        placed.file,
+      );
+    }
+    if (outcome === COMPLETE && facts.previewThumbnail !== undefined) {
+      await this.options.savePreviewThumbnail?.(
+        job.mediaId,
+        facts.previewThumbnail,
         placed.file,
       );
     }

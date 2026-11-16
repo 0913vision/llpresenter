@@ -32,6 +32,7 @@ export interface AnalysisJob {
   readonly kind: 'video' | 'audio' | 'image';
   readonly thumbnail: PixelSize | null;
   readonly preserveAspect?: boolean;
+  readonly includePreview?: boolean;
 }
 
 const analysisReplySchema = v.pipe(
@@ -45,11 +46,14 @@ const analysisReplySchema = v.pipe(
       thumbnail: v.exactOptional(
         v.pipe(
           v.string(),
-          v.check(
-            value =>
-              value.startsWith(THUMBNAIL_DATA_URL_PREFIX) ||
-              value.startsWith(PREVIEW_DATA_URL_PREFIX),
-          ),
+          v.startsWith(THUMBNAIL_DATA_URL_PREFIX),
+          v.maxLength(MAX_THUMBNAIL_DATA_URL_LENGTH),
+        ),
+      ),
+      previewThumbnail: v.exactOptional(
+        v.pipe(
+          v.string(),
+          v.startsWith(PREVIEW_DATA_URL_PREFIX),
           v.maxLength(MAX_THUMBNAIL_DATA_URL_LENGTH),
         ),
       ),

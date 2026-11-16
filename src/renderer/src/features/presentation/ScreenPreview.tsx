@@ -34,7 +34,7 @@ export function ScreenPreview({
   useEffect(() => {
     const screen = screenRef.current;
     if (!screen) return undefined;
-    const previewMedia = openPreviewMedia(window.llp, true);
+    const previewMedia = openPreviewMedia(window.llp);
     const renderer = new OutputRenderer(screen, {
       textStyle: DEFAULT_TEXT_STYLE,
       mediaUrl,

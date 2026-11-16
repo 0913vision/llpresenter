@@ -81,7 +81,7 @@ describe('media analysis', () => {
         ok: true,
         width: 400,
         height: 800,
-        thumbnail: 'data:image/png;base64,AAEC',
+        previewThumbnail: 'data:image/png;base64,AAEC',
       });
     expect(
       await analyser.analyse({
@@ -92,7 +92,11 @@ describe('media analysis', () => {
       }),
     ).toEqual({
       kind: 'read',
-      facts: {width: 400, height: 800, thumbnail: Buffer.from([0, 1, 2])},
+      facts: {
+        width: 400,
+        height: 800,
+        previewThumbnail: Buffer.from([0, 1, 2]),
+      },
     });
     expect(pages[0]?.run.mock.calls[0]?.[0]).toMatchObject({
       kind: 'image',

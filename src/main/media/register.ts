@@ -43,7 +43,10 @@ export interface MediaBackendRegistration {
   readonly control: BrowserWindow;
   readonly windowMode: WindowMode;
   /** Analysis and thumbnails for imports; their owner disposes them. */
-  readonly analysis: Pick<MediaAnalysis, 'analyse' | 'saveThumbnail'>;
+  readonly analysis: Pick<
+    MediaAnalysis,
+    'analyse' | 'saveThumbnail' | 'savePreviewThumbnail'
+  >;
   readonly log: Logger;
   readonly uiState: UiStateFields;
   readonly settings?: Promise<Pick<SettingsReader, 'preferences'> | null>;
@@ -229,6 +232,7 @@ export function registerMediaBackend(
     createId: () => createMediaId(randomUUID()),
     analyse: options.analysis.analyse,
     saveThumbnail: options.analysis.saveThumbnail,
+    savePreviewThumbnail: options.analysis.savePreviewThumbnail,
     log: options.log,
     // NOTE(0913vision): without a settings store a new import takes the built-in defaults.
     defaults: async () =>

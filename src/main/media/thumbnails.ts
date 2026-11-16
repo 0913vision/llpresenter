@@ -188,9 +188,15 @@ export class Thumbnails {
     ) {
       return null;
     }
-    if (analysis.kind === 'read' && analysis.facts.thumbnail !== undefined) {
+    const thumbnail =
+      analysis.kind === 'read'
+        ? this.options.preserveAspect
+          ? analysis.facts.previewThumbnail
+          : analysis.facts.thumbnail
+        : undefined;
+    if (thumbnail !== undefined) {
       return this.keep(picture, mediaId, {
-        jpeg: analysis.facts.thumbnail,
+        jpeg: thumbnail,
         stamp,
       });
     }

@@ -35,6 +35,19 @@ describe('media analysis replies', () => {
     });
   });
 
+  it('accepts PNG previews separately from JPEG tile thumbnails', () => {
+    expect(
+      parseAnalysisReply({
+        ok: true,
+        thumbnail: THUMBNAIL,
+        previewThumbnail: 'data:image/png;base64,AAAA',
+      }).ok,
+    ).toBe(true);
+    expect(parseAnalysisReply({ok: true, previewThumbnail: THUMBNAIL}).ok).toBe(
+      false,
+    );
+  });
+
   it('reads why a file could not be read', () => {
     expect(
       parseAnalysisReply({ok: false, reason: 'decode', message: 'Invented'}),

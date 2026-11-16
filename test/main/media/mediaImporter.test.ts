@@ -526,6 +526,37 @@ describe('media import boundaries', () => {
     );
   });
 
+  it('prepares and saves the uncropped preview before an image import completes', async () => {
+    const savePreviewThumbnail = vi.fn<
+      (id: MediaId, png: Uint8Array, file: string) => Promise<void>
+    >(() => Promise.resolve());
+    const {importer, reports, analyse, media, source, items} = await setup({
+      savePreviewThumbnail,
+    });
+    analyse.mockResolvedValue({
+      kind: 'read',
+      facts: {
+        width: 800,
+        height: 1600,
+        thumbnail: Buffer.from([1]),
+        previewThumbnail: Buffer.from([2]),
+      },
+    });
+    await importer.import(filesOf([await source('Portrait.png')]), signal());
+    await ended(reports, 1);
+    expect(analyse.mock.calls[0]?.[0]).toMatchObject({
+      kind: 'image',
+      thumbnail: true,
+      includePreview: true,
+    });
+    expect(savePreviewThumbnail).toHaveBeenCalledExactlyOnceWith(
+      uuid(1),
+      Buffer.from([2]),
+      join(media, 'Portrait.png'),
+    );
+    expect(items[0]).not.toHaveProperty('previewThumbnail');
+  });
+
   it('fails a file the decoders refuse and removes its copy', async () => {
     const {importer, reports, items, analyse, media, source, log} =
       await setup();

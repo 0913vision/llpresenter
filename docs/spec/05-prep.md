@@ -1147,10 +1147,11 @@ README, `StatusMarks` README (progress bar), `Slider` README, `docs/TECH.md`
 media. Existing media features move into the bin; the layout move does not
 expand the feature-freeze scope.
 
-Media tiles use cached 16:9 thumbnails and mount near the viewport. Larger media
-and background previews use a separate bounded image that preserves the whole
-source aspect ratio and transparency. Image analysis runs outside the control
-renderer and the main process; output playback keeps the original file.
+Media tiles use cached 16:9 thumbnails and mount near the viewport. Media
+properties and preparation previews use a separate bounded image that preserves
+the whole source aspect ratio and transparency. Imports prepare both caches
+before completing. Image analysis runs outside the control renderer and the main
+process; live screen previews and output playback retain the original image.
 
 ### Slide transition metadata
 

@@ -172,7 +172,7 @@ async function analyseAudio(
 }
 
 async function analyseImage(
-  {url, thumbnail, preserveAspect}: AnalysisJob,
+  {url, thumbnail, preserveAspect, includePreview}: AnalysisJob,
   dom: AnalysisDom,
 ): Promise<AnalysisReply> {
   const image = dom.createImage();
@@ -186,27 +186,32 @@ async function analyseImage(
     }
     const size = pixelSize(image.naturalWidth, image.naturalHeight);
     if (thumbnail === null || size === null) return {ok: true, ...size};
-    if (preserveAspect) {
-      const factor = Math.min(
-        1,
-        thumbnail.width / size.width,
-        thumbnail.height / size.height,
-      );
-      const target = {
-        width: Math.max(1, Math.round(size.width * factor)),
-        height: Math.max(1, Math.round(size.height * factor)),
-      };
-      const data = dom.drawThumbnail(
-        image,
-        {x: 0, y: 0, width: size.width, height: size.height},
-        {...target, format: 'png'},
-      );
-      return {ok: true, ...size, ...(data === null ? {} : {thumbnail: data})};
+    const normal = preserveAspect
+      ? {}
+      : thumbnailOf(dom, image, {picture: size, size: thumbnail});
+    if (!preserveAspect && !includePreview) {
+      return {ok: true, ...size, ...normal};
     }
+    const bound = preserveAspect ? thumbnail : {width: 960, height: 540};
+    const factor = Math.min(
+      1,
+      bound.width / size.width,
+      bound.height / size.height,
+    );
+    const target = {
+      width: Math.max(1, Math.round(size.width * factor)),
+      height: Math.max(1, Math.round(size.height * factor)),
+    };
+    const data = dom.drawThumbnail(
+      image,
+      {x: 0, y: 0, width: size.width, height: size.height},
+      {...target, format: 'png'},
+    );
     return {
       ok: true,
       ...size,
-      ...thumbnailOf(dom, image, {picture: size, size: thumbnail}),
+      ...normal,
+      ...(data === null ? {} : {previewThumbnail: data}),
     };
   } finally {
     image.removeAttribute('src');

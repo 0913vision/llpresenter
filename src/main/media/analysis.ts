@@ -30,6 +30,11 @@ export interface MediaAnalysis {
   /** A media item's thumbnail file, for the media scheme. */
   readonly thumbnailOf: (mediaId: string) => Promise<string | null>;
   readonly previewThumbnailOf: (mediaId: string) => Promise<string | null>;
+  readonly savePreviewThumbnail: (
+    mediaId: MediaId,
+    png: Uint8Array,
+    file: string,
+  ) => Promise<void>;
   /** Keeps the thumbnail an import made from a file, while the item has it. */
   readonly saveThumbnail: (
     mediaId: MediaId,
@@ -85,6 +90,8 @@ export function startMediaAnalysis({
     previewThumbnailOf: mediaId => previews.thumbnailOf(mediaId),
     saveThumbnail: (mediaId, jpeg, file) =>
       thumbnails.save(mediaId, jpeg, file),
+    savePreviewThumbnail: (mediaId, png, file) =>
+      previews.save(mediaId, png, file),
     dispose: () => {
       thumbnails.dispose();
       previews.dispose();

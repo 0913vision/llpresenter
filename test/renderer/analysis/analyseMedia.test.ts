@@ -204,13 +204,30 @@ describe('media analysis page', () => {
     fire(images[0], 'load');
     expect(await reply).toMatchObject({
       ok: true,
-      thumbnail: 'data:image/png;base64,AAAA',
+      previewThumbnail: 'data:image/png;base64,AAAA',
     });
     expect(drawThumbnail).toHaveBeenCalledExactlyOnceWith(
       images[0],
       {x: 0, y: 0, width: 800, height: 1600},
       {width: 270, height: 540, format: 'png'},
     );
+  });
+
+  it('builds the tile and uncropped preview from one image load during import', async () => {
+    const {dom, images, drawThumbnail} = mockDom();
+    drawThumbnail
+      .mockReturnValueOnce('data:image/jpeg;base64,AAAA')
+      .mockReturnValueOnce('data:image/png;base64,BBBB');
+    const reply = analyseMedia({...job('image'), includePreview: true}, dom);
+    define(images[0] ?? {}, {naturalWidth: 800, naturalHeight: 1600});
+    fire(images[0], 'load');
+    expect(await reply).toMatchObject({
+      ok: true,
+      thumbnail: 'data:image/jpeg;base64,AAAA',
+      previewThumbnail: 'data:image/png;base64,BBBB',
+    });
+    expect(images).toHaveLength(1);
+    expect(drawThumbnail).toHaveBeenCalledTimes(2);
   });
 
   it('answers an image it cannot decode', async () => {

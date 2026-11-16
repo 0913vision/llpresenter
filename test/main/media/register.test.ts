@@ -81,6 +81,8 @@ vi.mock('electron', () => ({
 const analysis = {
   analyse: vi.fn<(request: AnalysisRequest) => Promise<Analysis>>(),
   saveThumbnail: vi.fn<(mediaId: MediaId, jpeg: Uint8Array) => Promise<void>>(),
+  savePreviewThumbnail:
+    vi.fn<(mediaId: MediaId, png: Uint8Array) => Promise<void>>(),
 };
 
 beforeEach(() => {
@@ -88,6 +90,8 @@ beforeEach(() => {
   analysis.analyse.mockResolvedValue({kind: 'read', facts: {}});
   analysis.saveThumbnail.mockReset();
   analysis.saveThumbnail.mockResolvedValue(undefined);
+  analysis.savePreviewThumbnail.mockReset();
+  analysis.savePreviewThumbnail.mockResolvedValue(undefined);
   electron.showOpenDialog.mockReset();
   electron.send.mockReset();
   electron.showItemInFolder.mockReset();

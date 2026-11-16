@@ -36,6 +36,7 @@ export interface MediaFacts {
   readonly height?: number;
   /** A JPEG at {@link THUMBNAIL_SIZE}. */
   readonly thumbnail?: Uint8Array;
+  readonly previewThumbnail?: Uint8Array;
 }
 
 /**
@@ -58,6 +59,7 @@ export interface AnalysisRequest {
   readonly kind: MediaKind;
   readonly thumbnail: boolean;
   readonly preserveAspect?: boolean;
+  readonly includePreview?: boolean;
   readonly priority?: boolean;
   /** Stops waiting for the analysis; a running one still finishes in the page. */
   readonly signal?: AbortSignal;
@@ -92,11 +94,19 @@ function analysisOf(reply: AnalysisReply): Analysis {
   if (!reply.ok) {
     return {kind: 'cant-play', reason: reply.reason, message: reply.message};
   }
-  const {ok: _ok, thumbnail, ...measured} = reply;
+  const {ok: _ok, thumbnail, previewThumbnail, ...measured} = reply;
   return {
     kind: 'read',
     facts: {
       ...measured,
+      ...(previewThumbnail === undefined
+        ? {}
+        : {
+            previewThumbnail: Buffer.from(
+              previewThumbnail.slice(previewThumbnail.indexOf(',') + 1),
+              'base64',
+            ),
+          }),
       ...(thumbnail === undefined
         ? {}
         : {
@@ -223,6 +233,7 @@ export class MediaAnalyser {
                 : THUMBNAIL_SIZE
               : null,
             ...(request.preserveAspect ? {preserveAspect: true} : {}),
+            ...(request.includePreview ? {includePreview: true} : {}),
           },
           active.signal,
         ),

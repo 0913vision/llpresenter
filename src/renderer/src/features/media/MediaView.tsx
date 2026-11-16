@@ -9,7 +9,10 @@ import {
   type DragEvent,
   type JSX,
 } from 'react';
-import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
+import {
+  previewThumbnailSrc,
+  thumbnailSrc,
+} from '@contracts/ipc/thumbnailRevisions';
 import {mediaLoops} from '@core/media/mediaEndRule';
 import {createServiceItemId, type MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
@@ -93,6 +96,43 @@ function nameOf(entry: MediaEntry): string {
     : entry.item.name || UNNAMED_MEDIA;
 }
 
+const PREVIEW_CACHE_LIMIT = 24;
+const previewImages = new Map<string, HTMLImageElement>();
+
+/** Warms only mounted image tiles so their properties picture is ready on selection. */
+function useWarmPreview(entry: MediaEntry, missing: boolean): void {
+  const id =
+    entry.kind === 'copy' ||
+    entry.item.kind !== 'image' ||
+    entry.copying !== undefined ||
+    missing
+      ? null
+      : entry.item.id;
+  const src = id === null ? null : previewThumbnailSrc(id);
+  useEffect(() => {
+    if (src === null) return;
+    const old = previewImages.get(src);
+    if (old !== undefined) {
+      previewImages.delete(src);
+      previewImages.set(src, old);
+      return;
+    }
+    const image = new Image();
+    image.decoding = 'async';
+    image.src = src;
+    previewImages.set(src, image);
+    if (previewImages.size > PREVIEW_CACHE_LIMIT) {
+      const oldest = previewImages.keys().next();
+      if (!oldest.done) previewImages.delete(oldest.value);
+    }
+    if (typeof image.decode === 'function') {
+      image.decode().catch(() => {
+        if (previewImages.get(src) === image) previewImages.delete(src);
+      });
+    }
+  }, [src]);
+}
+
 function EntryTile({
   entry,
   missing,
@@ -104,6 +144,7 @@ function EntryTile({
   readonly live: boolean;
   readonly selected: boolean;
 }): JSX.Element {
+  useWarmPreview(entry, missing);
   if (entry.kind === 'copy') {
     return <MediaTile name={nameOf(entry)} copying={entry.job.percent} />;
   }

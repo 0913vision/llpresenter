@@ -181,7 +181,8 @@ Each registry entry registers a type name, a data format (schema), a renderer
   and licensing).
 - Images are decoded in the analysis renderer. A capped tile cache stores
   cropped 16:9 JPEGs; a separate bounded PNG cache retains the entire image and
-  transparency for the control window's larger previews.
+  transparency for media properties and preparation previews. Imports prepare
+  both in one analysis; live screen previews retain the original image.
 
 ## Quality bar
 
