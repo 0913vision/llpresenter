@@ -2,10 +2,8 @@ import {fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {useState, type JSX} from 'react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {CLICK_FOCUS_SELECTOR} from '@renderer/ui/clickFocus';
 import {
   MediaGrid,
-  MediaStrip,
   MediaTile,
   copyingText,
   type MediaTileProps,
@@ -31,14 +29,16 @@ const library: readonly MediaTileProps[] = [
 
 function one(props: MediaTileProps): HTMLElement {
   render(
-    <MediaStrip
+    <MediaGrid
+      columns={2}
+      onOutput={() => {}}
       label="배경 영상"
       selected={undefined}
       onSelect={() => {}}
       onActivate={() => {}}
     >
       <MediaTile {...props} />
-    </MediaStrip>,
+    </MediaGrid>,
   );
   return screen.getByRole('option');
 }
@@ -178,39 +178,13 @@ describe('MediaGrid', () => {
   });
 });
 
-describe('MediaStrip', () => {
-  it('sends out on a click and Enter but passes Space on', async () => {
-    const onActivate = vi.fn<(index: number) => void>();
-    render(
-      <MediaStrip
-        label="미디어"
-        selected={0}
-        onSelect={() => {}}
-        onActivate={onActivate}
-      >
-        {library.map((media, index) => (
-          <MediaTile key={media.name} {...media} selected={index === 0} />
-        ))}
-      </MediaStrip>,
-    );
-    await userEvent.click(tile('새벽 하늘'));
-    tile('따뜻한 빛').focus();
-    await userEvent.keyboard('{Enter} ');
-    expect(onActivate.mock.calls).toEqual([[1], [0]]);
-    expect(tile('새벽 하늘').closest(CLICK_FOCUS_SELECTOR)).toBe(null);
-    expect(
-      screen
-        .getByRole('listbox', {name: '미디어'})
-        .getAttribute('data-workspace'),
-    ).toBe('show');
-  });
-});
-
 describe('MediaTile drag', () => {
   it('is draggable only when the host takes the drag', () => {
     const onDragStart = vi.fn();
     render(
-      <MediaStrip
+      <MediaGrid
+        columns={2}
+        onOutput={() => {}}
         label="미디어"
         selected={0}
         onSelect={() => {}}
@@ -218,7 +192,7 @@ describe('MediaTile drag', () => {
       >
         <MediaTile name="끌 수 있음" onDragStart={onDragStart} />
         <MediaTile name="고정" />
-      </MediaStrip>,
+      </MediaGrid>,
     );
     fireEvent.dragStart(tile('끌 수 있음'));
     expect(onDragStart).toHaveBeenCalledOnce();

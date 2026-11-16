@@ -1,3 +1,4 @@
+import * as songEditorRequests from '@renderer/features/songs/editor/songEditorRequests';
 import {StrictMode} from 'react';
 import {
   cleanup,
@@ -82,7 +83,7 @@ afterEach(async () => {
 it('opens the library song inline and releases every listener', async () => {
   const fixture = mountPrep();
   const openWindow = vi
-    .spyOn(fixture.api.window, 'openSongEditor')
+    .spyOn(songEditorRequests, 'requestSongEditor')
     .mockResolvedValue({ok: true, value: undefined});
   fireEvent.click(screen.getByRole('tab', {name: '곡'}));
   const library = screen.getByRole('region', {name: '라이브러리'});

@@ -1,3 +1,4 @@
+import {DEFAULT_LABELS} from '@main/store/defaults';
 import {join} from 'node:path';
 import {expect, it, onTestFinished, vi} from 'vitest';
 import {makeTempDir} from '@fixtures/tempDir';
@@ -41,7 +42,7 @@ it('logs a reader that fails to open and returns no content', async () => {
   ]);
 });
 
-it('falls back to the loaded store labels and media backgrounds while the settings and the media list are missing', async () => {
+it('falls back to default labels and loaded media backgrounds while the settings and the media list are missing', async () => {
   const {store, log, readers} = await setup();
   const background = vi
     .spyOn(store.media, 'backgroundOf')
@@ -53,7 +54,7 @@ it('falls back to the loaded store labels and media backgrounds while the settin
     await opened.content.flush();
     opened.content.dispose();
   });
-  expect(opened.library.labels).toBe(store.labels);
+  expect(opened.library.labels).toBe(DEFAULT_LABELS);
   expect(await opened.library.backgroundOf('invented-media')).toBeNull();
   expect(background).toHaveBeenCalledWith('invented-media');
 });

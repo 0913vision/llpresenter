@@ -8,7 +8,6 @@ import {
   parseFrameReadyReport,
   parseFrameReadyReply,
   parseOpenWindowResult,
-  parseSongEditorTarget,
   refuseOpenWindow,
 } from '@core/schema/ipcPayloads';
 import {MAIN_SCREEN} from '@fixtures/core/screenIds';
@@ -139,36 +138,6 @@ describe('parseFrameRateReport', () => {
 });
 
 describe('editor window targets', () => {
-  const SERVICE = 'a41e0c52-7e1f-4a2b-8c3d-4e5f60718293';
-  const ITEM = '00000000-0000-4000-8000-000000000001';
-  const SONG = '6f1c2a9e-4b7d-4c1a-9e2f-0123456789ab';
-
-  it('accepts a song editor target with and without its options', () => {
-    expect(parseSongEditorTarget({songId: SONG})).toEqual({
-      ok: true,
-      value: {songId: SONG},
-    });
-    const full = {
-      songId: SONG,
-      block: 2,
-      action: 'hot-key',
-      from: {serviceId: SERVICE, itemId: ITEM},
-      focusTitle: true,
-    };
-    expect(parseSongEditorTarget(full)).toEqual({ok: true, value: full});
-  });
-
-  it.each([
-    {songId: 'x'},
-    {songId: SONG, block: -1},
-    {songId: SONG, block: 1.5},
-    {songId: SONG, action: 'delete-song'},
-    {songId: SONG, from: {serviceId: SERVICE}},
-    {songId: SONG, focusTitle: 'yes'},
-  ])('refuses the song editor target %j', value => {
-    expect(parseSongEditorTarget(value).ok).toBe(false);
-  });
-
   it('reads a window answer and refuses an unknown reason', () => {
     expect(parseOpenWindowResult({ok: true})).toEqual({
       ok: true,

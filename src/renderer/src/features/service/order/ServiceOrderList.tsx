@@ -758,7 +758,6 @@ export function ServiceOrderList({
     if (api !== undefined && serviceId !== null) {
       editorTask(
         openSongEditorWindow(
-          api,
           {
             songId,
             from: {

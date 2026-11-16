@@ -330,15 +330,11 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
       zoom: mocks.zoom,
       mode: 'normal',
     });
-    expect(mocks.editorWindowContexts).toEqual([
-      {name: 'song', context},
-      {name: 'slides', context},
-    ]);
+    expect(mocks.editorWindowContexts).toEqual([{name: 'slides', context}]);
     beforeQuit();
     await vi.waitFor(() =>
-      expect(mocks.editorWindowStops.song).toHaveBeenCalledOnce(),
+      expect(mocks.editorWindowStops.slides).toHaveBeenCalledOnce(),
     );
-    expect(mocks.editorWindowStops.slides).toHaveBeenCalledOnce();
     await vi.waitFor(() =>
       expect(mocks.electron.app.quit).toHaveBeenCalledOnce(),
     );

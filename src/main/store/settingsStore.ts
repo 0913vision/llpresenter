@@ -342,17 +342,18 @@ export class SettingsStore implements SettingsReader {
   }
 }
 
-/** Loads each area independently and creates only missing files through the M2 saver. */
+/** Loads each area independently and creates only missing files through the saver. */
 export async function openSettingsStore(
   store: LoadedStore,
   log: Logger,
   failures?: SaveFailureSink,
 ): Promise<SettingsStore> {
   let opened: SettingsStore | null = null;
+  let startupPreferences = defaultPreferences;
   const copies = new RecoveryCopies({
     folder: store.locations.recovery,
     keep: () =>
-      opened?.preferences().backupCopies ?? store.preferences.backupCopies,
+      opened?.preferences().backupCopies ?? startupPreferences.backupCopies,
   });
   const saver = new Saver({
     copies,
@@ -362,9 +363,17 @@ export async function openSettingsStore(
   });
   const documents = new Map<SettingsName, SettingsDocument>();
   const problems: SettingsProblem[] = [];
-  for (const name of settingsNames) {
+  for (const name of [
+    'preferences',
+    ...settingsNames.filter(name => name !== 'preferences'),
+  ] as const) {
     const area = await loadSettingsArea(name, store.locations, saver);
-    if (area.document !== null) documents.set(name, area.document);
+    if (area.document !== null) {
+      documents.set(name, area.document);
+      if (area.document.name === 'preferences') {
+        startupPreferences = withPreferenceDefaults(area.document.value);
+      }
+    }
     if (area.problem !== null) {
       problems.push(area.problem);
       log.warn('skipped a data file or a part of one', area.problem.error);

@@ -14,7 +14,7 @@ import type {MenuAvailability} from './menuModel';
 import {menuButtonProps} from './menuButton';
 import {useButtonPress} from './press';
 import {useRovingSelection} from './roving';
-import {titleTooltip, useTooltip, withTooltipProps} from './Tooltip';
+import {titleTooltip, useTooltip} from './Tooltip';
 import {TruncatedText} from './TruncatedText';
 import styles from './Panel.module.css';
 
@@ -305,52 +305,6 @@ export function PanelTitle({
       <TruncatedText text={title} className={styles.titleText} />
       {meta === undefined ? null : <PanelMeta>{meta}</PanelMeta>}
     </div>
-  );
-}
-
-export interface PanelSwitchProps {
-  /** The current service name. */
-  readonly value: string;
-  /** Whether the service list is open. */
-  readonly expanded: boolean;
-  readonly onExpandedChange: (expanded: boolean) => void;
-  readonly disabled?: boolean | undefined;
-  readonly title?: string | undefined;
-}
-
-/**
- * The service switcher after the 예배 순서 tab: a click, Enter, Space, or
- * the down arrow opens the service list below it.
- */
-export function PanelSwitch({
-  value,
-  expanded,
-  onExpandedChange,
-  disabled = false,
-  title,
-}: PanelSwitchProps): JSX.Element {
-  const {targetProps, tooltip} = useTooltip(titleTooltip(title));
-  const menuProps = menuButtonProps({expanded, onExpandedChange, disabled});
-  const {onBlur: pressBlur, ...press} = useButtonPress({
-    disabled,
-    onPress: menuProps.onClick,
-    onKeyDown: menuProps.onKeyDown,
-  });
-  return (
-    <>
-      <button
-        {...withTooltipProps({onBlur: pressBlur}, targetProps)}
-        {...menuProps}
-        {...press}
-        type="button"
-        aria-disabled={disabled ? true : undefined}
-        className={styles.switch}
-      >
-        {value}
-        <Icon name="down" size={SWITCH_CHEVRON_SIZE} />
-      </button>
-      {tooltip}
-    </>
   );
 }
 

@@ -1,6 +1,6 @@
 import {useLayoutEffect, useRef, type RefObject, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {SongEditorTarget} from '@core/schema/ipcPayloads';
+import type {SongEditorTarget} from '@renderer/features/songs/editor/songEditorRequests';
 import type {Notice} from '@renderer/ui/notices';
 import {SongSaveDialogs} from './SongSaveDialogs';
 import type {SongEditorStore} from './songEditorStore';

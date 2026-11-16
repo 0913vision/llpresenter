@@ -3,7 +3,7 @@ import {slideTransitionSchema} from '@core/schema/slideTransition';
 import {parsePayload} from '@core/schema/payload';
 import {ITEM_CARD_TRANSITION} from './itemCardTransition';
 import type {ServiceDocument} from '@core/schema/contentDocuments';
-import type {SongEditorTarget} from '@core/schema/ipcPayloads';
+import type {SongEditorTarget} from '@renderer/features/songs/editor/songEditorRequests';
 import {createSongId} from '@core/schema/ids';
 import {isItemOfKind} from '@core/schema/service';
 import type {Song} from '@core/schema/song';

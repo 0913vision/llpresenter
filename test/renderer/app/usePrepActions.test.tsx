@@ -1,3 +1,4 @@
+import * as songEditorRequests from '@renderer/features/songs/editor/songEditorRequests';
 import {
   act,
   cleanup,
@@ -164,7 +165,7 @@ function setupServiceSong() {
     })),
   };
   const open = vi
-    .spyOn(fixture.api.window, 'openSongEditor')
+    .spyOn(songEditorRequests, 'requestSongEditor')
     .mockResolvedValue({ok: true, value: undefined});
   return {...fixture, ...setup(fixture.api), open};
 }

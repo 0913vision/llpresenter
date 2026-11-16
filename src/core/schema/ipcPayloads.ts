@@ -1,6 +1,5 @@
 import * as v from 'valibot';
 import type {Result} from '../common/result';
-import {serviceIdSchema, serviceItemIdSchema, songIdSchema} from './ids';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
 
 /** The highest frame rate a window may report. */
@@ -110,49 +109,6 @@ export function parseFrameRateReport(
 
 export function isFrameRateReport(value: unknown): value is FrameRateReport {
   return parseFrameRateReport(value).ok;
-}
-
-const songItemTargetSchema = payloadObject({
-  serviceId: serviceIdSchema,
-  itemId: serviceItemIdSchema,
-});
-
-/** What the 곡 편집 window can start with besides the song. */
-export const songEditorActions = ['hot-key'] as const;
-
-export type SongEditorWindowAction = (typeof songEditorActions)[number];
-
-/** The most slides a window can be asked to select. */
-export const SONG_EDITOR_BLOCK_MAX = 100_000;
-
-const songEditorTargetSchema = payloadObject({
-  songId: songIdSchema,
-  block: v.exactOptional(
-    v.pipe(
-      v.number(),
-      v.integer(),
-      v.minValue(0),
-      v.maxValue(SONG_EDITOR_BLOCK_MAX),
-    ),
-  ),
-  action: v.exactOptional(v.picklist(songEditorActions)),
-  from: v.exactOptional(songItemTargetSchema),
-  focusTitle: v.exactOptional(v.boolean()),
-});
-
-/**
- * The song, and where in it, that the 곡 편집 window opens. `from` names the
- * 예배 순서 item it was opened from, which 다른 이름으로 저장 switches.
- * `focusTitle` puts the cursor in the title field, for a song just made.
- */
-export type SongEditorTarget = Readonly<
-  v.InferOutput<typeof songEditorTargetSchema>
->;
-
-export function parseSongEditorTarget(
-  value: unknown,
-): Result<SongEditorTarget, PayloadError> {
-  return parsePayload(songEditorTargetSchema, value);
 }
 
 export const openWindowFailures = [

@@ -16,7 +16,6 @@ export interface TreeRow {
   readonly label: string;
   /** The item's 16px kind icon, as the 예배 순서 list draws it. */
   readonly icon?: string | undefined;
-  /** The chosen 구성 of a song, such as 주일용. */
   /** The header the row sits under, if any. */
   readonly headerId?: ServiceItemId | undefined;
 }

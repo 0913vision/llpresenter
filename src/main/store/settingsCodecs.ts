@@ -132,7 +132,7 @@ function codec<T extends SettingsValue>(
   };
 }
 
-/** Reuses file validation, migration and serialization from the M2 store. */
+/** Reuses file validation, migration and serialization from the file schemas. */
 export const settingsCodecs = {
   screens: codec(
     'llsettings.screens',

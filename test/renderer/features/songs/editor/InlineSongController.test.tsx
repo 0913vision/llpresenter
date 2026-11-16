@@ -1,8 +1,9 @@
+import {requestSongEditor} from '@renderer/features/songs/editor/songEditorRequests';
 import {createRef} from 'react';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {expect, it, vi} from 'vitest';
 import userEvent from '@testing-library/user-event';
-import type {SongEditorTarget} from '@core/schema/ipcPayloads';
+import type {SongEditorTarget} from '@renderer/features/songs/editor/songEditorRequests';
 import {createSongId} from '@core/schema/ids';
 import {
   fixtureItems,
@@ -72,15 +73,6 @@ it('leaves a lyric field with Escape before guarding a dirty library song exit',
 
 it('follows an item target only after accepting the current library draft leave question', async () => {
   const fixture = itemFixture();
-  const listeners = new Set<(target: SongEditorTarget | null) => void>();
-  vi.spyOn(fixture.api.songEditorWindow, 'onRetarget').mockImplementation(
-    listener => {
-      listeners.add(listener);
-      return () => {
-        listeners.delete(listener);
-      };
-    },
-  );
   const store = new SongEditorStore(fixture.api, vi.fn(), 'manual');
   const opened = vi.fn();
   const view = render(
@@ -111,7 +103,9 @@ it('follows an item target only after accepting the current library draft leave 
     };
     const retarget = (): void => {
       act(() => {
-        for (const listener of listeners) listener(target);
+        requestSongEditor(target).catch((error: unknown) =>
+          console.error(error),
+        );
       });
     };
     retarget();
@@ -131,5 +125,4 @@ it('follows an item target only after accepting the current library draft leave 
     view.unmount();
     await store.dispose();
   }
-  expect(listeners.size).toBe(0);
 });

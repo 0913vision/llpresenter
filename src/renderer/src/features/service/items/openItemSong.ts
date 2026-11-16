@@ -1,7 +1,8 @@
+import {requestSongEditor} from '@renderer/features/songs/editor/songEditorRequests';
 import {cardOffset} from '@core/services/sectionCards';
 import {isItemOfKind} from '@core/schema/service';
 import type {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
-import type {SongEditorWindowAction} from '@core/schema/ipcPayloads';
+import type {SongEditorTarget} from '@renderer/features/songs/editor/songEditorRequests';
 import type {ServiceItemStore} from './serviceItemStore';
 
 /**
@@ -16,17 +17,16 @@ export function openItemSong({
   readonly items: ServiceItemStore;
   readonly editor: SongEditorStore;
   readonly position?: number;
-  readonly action?: SongEditorWindowAction;
+  readonly action?: SongEditorTarget['action'];
 }): void {
   const {position: selected, service, item} = items.getSnapshot();
   if (item === null || service === null || !isItemOfKind(item, 'song')) return;
-  window.llp?.window
-    .openSongEditor({
-      songId: item.song,
-      block: position ?? Math.max(0, selected - cardOffset(item)),
-      ...(action === undefined ? {} : {action}),
-      from: {serviceId: service.service.id, itemId: item.id},
-    })
+  requestSongEditor({
+    songId: item.song,
+    block: position ?? Math.max(0, selected - cardOffset(item)),
+    ...(action === undefined ? {} : {action}),
+    from: {serviceId: service.service.id, itemId: item.id},
+  })
     .then(result => {
       if (!result.ok) {
         console.error('Could not open the song editor', result.error.reason);

@@ -1,13 +1,6 @@
 import type {Result} from '@core/common/result';
 import type {FileError, LoadedFile} from '@core/schema/fileFormat';
-import {parseLabels, type Label} from '@core/schema/labels';
 import {parseMediaList} from '@core/schema/mediaList';
-import {
-  defaultPreferences,
-  parsePreferences,
-  withPreferenceDefaults,
-  type Preferences,
-} from '@core/schema/preferences';
 import {
   parseService,
   parseTemplate,
@@ -16,7 +9,7 @@ import {
 } from '@core/schema/service';
 import {parseSong, type Song} from '@core/schema/song';
 import type {AppConfigFile} from './appConfigFile';
-import {DEFAULT_LABELS, EMPTY_MEDIA_LIST} from './defaults';
+import {EMPTY_MEDIA_LIST} from './defaults';
 import {loadFolder, type StoredFile} from './library';
 import {
   buildMediaLibrary,
@@ -32,8 +25,6 @@ import {
 import {readSettingsFile, settingsLocation} from './settingsFile';
 import {initialTemplates} from './initialTemplates';
 
-const LABELS_AREA = 'labels';
-const PREFERENCES_AREA = 'preferences';
 const MEDIA_AREA = 'media';
 const SONG_EXTENSION = '.llsong';
 const SERVICE_EXTENSION = '.llservice';
@@ -64,9 +55,6 @@ export interface LoadedStore {
   readonly services: ReadonlyMap<string, StoredFile<Service>>;
   /** The 템플릿, by template id, read-only like the songs. */
   readonly templates: ReadonlyMap<string, StoredFile<Template>>;
-  readonly labels: readonly Label[];
-  /** 환경설정, with the default for every field the file doesn't set. */
-  readonly preferences: Preferences;
   /** The file of each media id from `media.json`, and the media folders. */
   readonly media: MediaLibrary;
   /**
@@ -78,25 +66,9 @@ export interface LoadedStore {
   readonly problems: readonly FileError[];
 }
 
-interface LabelsRead {
-  readonly labels: readonly Label[];
-  readonly problems: readonly FileError[];
-}
-
-interface PreferencesRead {
-  readonly preferences: Preferences;
-  readonly problems: readonly FileError[];
-}
-
 type DataRead = Pick<
   LoadedStore,
-  | 'songs'
-  | 'services'
-  | 'templates'
-  | 'labels'
-  | 'preferences'
-  | 'media'
-  | 'problems'
+  'songs' | 'services' | 'templates' | 'media' | 'problems'
 >;
 
 /**
@@ -157,52 +129,23 @@ export function chooseOpenService(
 }
 
 async function readData(locations: DataLocations): Promise<DataRead> {
-  const [songs, services, templates, labels, preferences, media] =
-    await Promise.all([
-      loadFolder(locations.songs, SONG_EXTENSION, parseSong),
-      loadFolder(locations.services, SERVICE_EXTENSION, parseService),
-      loadFolder(locations.templates, SERVICE_EXTENSION, parseTemplate),
-      readLabels(locations),
-      readPreferences(locations),
-      readMedia(locations),
-    ]);
+  const [songs, services, templates, media] = await Promise.all([
+    loadFolder(locations.songs, SONG_EXTENSION, parseSong),
+    loadFolder(locations.services, SERVICE_EXTENSION, parseService),
+    loadFolder(locations.templates, SERVICE_EXTENSION, parseTemplate),
+    readMedia(locations),
+  ]);
   return {
     songs: songs.items,
     services: services.items,
     templates: templates.items,
-    labels: labels.labels,
-    preferences: preferences.preferences,
     media: media.library,
     problems: [
       ...songs.problems,
       ...services.problems,
       ...templates.problems,
-      ...labels.problems,
-      ...preferences.problems,
       ...media.problems,
     ],
-  };
-}
-
-async function readLabels(locations: DataLocations): Promise<LabelsRead> {
-  const {data, problems} = await readSettingsFile(
-    settingsLocation(locations, LABELS_AREA),
-    parseLabels,
-  );
-  return {labels: data?.labels ?? DEFAULT_LABELS, problems};
-}
-
-async function readPreferences(
-  locations: DataLocations,
-): Promise<PreferencesRead> {
-  const {data, problems} = await readSettingsFile(
-    settingsLocation(locations, PREFERENCES_AREA),
-    parsePreferences,
-  );
-  return {
-    preferences:
-      data === null ? defaultPreferences : withPreferenceDefaults(data),
-    problems,
   };
 }
 

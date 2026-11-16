@@ -79,10 +79,9 @@ describe('treeRows', () => {
   });
   it('labels every kind and puts items under the header before them', () => {
     expect(
-      rows.map(({label, icon, detail, header, headerId}) => ({
+      rows.map(({label, icon, header, headerId}) => ({
         label,
         icon,
-        detail,
         header,
         headerId,
       })),

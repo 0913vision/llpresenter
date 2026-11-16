@@ -1,3 +1,4 @@
+import {subscribeSongEditor} from './songEditorRequests';
 import {titleSlidesForCopy} from '@core/songs/newSongTitle';
 import {createSongId} from '@core/schema/ids';
 import {loadItemSong, itemSongContent} from './itemSongSession';
@@ -10,7 +11,7 @@ import {
 } from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {SongId} from '@core/schema/ids';
-import type {SongEditorTarget} from '@core/schema/ipcPayloads';
+import type {SongEditorTarget} from '@renderer/features/songs/editor/songEditorRequests';
 import {withServiceItemSong} from '@core/songs/itemSong';
 import {copyTitle} from '@core/songs/songTitle';
 import {
@@ -183,22 +184,10 @@ export function useSongEditorWindow(
     followLatest.current = follow;
   });
 
-  useEffect(() => {
-    let current = true;
-    api.songEditorWindow
-      .target()
-      .then(target => {
-        if (current) followLatest.current(target);
-      })
-      .catch((error: unknown) => console.error('No song target', error));
-    const stop = api.songEditorWindow.onRetarget(target =>
-      followLatest.current(target),
-    );
-    return () => {
-      current = false;
-      stop();
-    };
-  }, [api]);
+  useEffect(
+    () => subscribeSongEditor(target => followLatest.current(target)),
+    [],
+  );
 
   useEffect(
     () =>

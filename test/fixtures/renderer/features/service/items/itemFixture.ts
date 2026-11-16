@@ -1,3 +1,4 @@
+import * as songEditorRequests from '@renderer/features/songs/editor/songEditorRequests';
 import {onTestFinished, vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
 import {
@@ -182,6 +183,6 @@ export function spyOnSongEditorWindow(api: LlpApi) {
     delete window.llp;
   });
   return vi
-    .spyOn(api.window, 'openSongEditor')
+    .spyOn(songEditorRequests, 'requestSongEditor')
     .mockResolvedValue({ok: true, value: undefined});
 }

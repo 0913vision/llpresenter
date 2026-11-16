@@ -1,3 +1,5 @@
+import {DEFAULT_LABELS} from './defaults';
+import {defaultPreferences} from '@core/schema/preferences';
 import {serviceEndpoints} from '@contracts/ipc/service';
 import type {BibleLookupSession} from '../bible/lookup';
 import type {Logger} from '../log';
@@ -83,7 +85,7 @@ async function createContent(
   const copies = new RecoveryCopies({
     folder: store.locations.recovery,
     keep: () =>
-      settings?.preferences().backupCopies ?? store.preferences.backupCopies,
+      settings?.preferences().backupCopies ?? defaultPreferences.backupCopies,
   });
   const saver = new Saver({
     copies,
@@ -120,7 +122,9 @@ async function createContent(
     song: id => content.song(id),
     get labels() {
       const document = settings?.get('labels');
-      return document?.name === 'labels' ? document.value.labels : store.labels;
+      return document?.name === 'labels'
+        ? document.value.labels
+        : DEFAULT_LABELS;
     },
     backgroundOf: id => media?.backgroundOf(id) ?? store.media.backgroundOf(id),
     backgroundName: id =>

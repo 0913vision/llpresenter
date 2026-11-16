@@ -3,10 +3,8 @@ import {join} from 'node:path';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {makeTempDir} from '@fixtures/tempDir';
 import {parseSong} from '@core/schema/song';
-import {defaultPreferences} from '@core/schema/preferences';
 import type {Logger} from '@main/log';
 import {openAppConfig} from '@main/store/appConfigFile';
-import {DEFAULT_LABELS} from '@main/store/defaults';
 import {loadStore, type LoadedStore} from '@main/store/fileStore';
 import {DATA_FOLDER_NAME} from '@main/store/locations';
 import {
@@ -75,8 +73,6 @@ describe('loadStore', () => {
     expect([...store.templates.values()].map(({data}) => data)).toMatchObject([
       {name: '주일 2부 예배', time: '11:30'},
     ]);
-    expect(store.labels).toEqual(DEFAULT_LABELS);
-    expect(store.preferences).toEqual(defaultPreferences);
     expect(store.openServiceId).toBeNull();
     expect(store.problems).toEqual([]);
   });
@@ -109,19 +105,11 @@ describe('loadStore', () => {
         {slides: [], id: itemId(1), song: HYMN_ONE_ID},
       ]),
     );
-    await writeJson(join(root, 'Settings', 'labels.json'), {
-      format: 'llsettings.labels',
-      schemaVersion: 1,
-      labels: [{name: '후렴', color: '#D6B35F', key: 'KeyC'}],
-    });
 
     const store = await loadedStore(context);
 
     expect(store.songs.get(HYMN_ONE_ID)?.data.title).toBe('만복의 근원 하나님');
     expect(store.services.get(SUNDAY_ID)?.data.order).toHaveLength(1);
-    expect(store.labels).toEqual([
-      {name: '후렴', color: '#D6B35F', key: 'KeyC'},
-    ]);
     expect(store.openServiceId).toBe(SUNDAY_ID);
     expect(store.problems).toEqual([]);
   });
@@ -263,57 +251,6 @@ describe('loadStore', () => {
     ]);
   });
 
-  it('uses the default 이름표 when labels.json is broken, and reports it', async () => {
-    const context = await developmentContext();
-    await writeJson(
-      join(dataRoot(context), 'Settings', 'labels.json'),
-      '{"labels": ',
-    );
-
-    const store = await loadedStore(context);
-
-    expect(store.labels).toEqual(DEFAULT_LABELS);
-    expect(store.problems).toEqual([expect.objectContaining({kind: 'json'})]);
-  });
-
-  it('runs a broken labels.json from its newest recovery copy', async () => {
-    const context = await developmentContext();
-    const root = dataRoot(context);
-    await writeJson(join(root, 'Settings', 'labels.json'), '{"labels": ');
-    await writeJson(
-      join(root, '.recovery', 'settings', 'labels', '2026-10-25.json'),
-      {
-        format: 'llsettings.labels',
-        schemaVersion: 1,
-        labels: [{name: '후렴', color: '#D6B35F', key: 'KeyC'}],
-      },
-    );
-
-    const store = await loadedStore(context);
-
-    expect(store.labels).toEqual([
-      {name: '후렴', color: '#D6B35F', key: 'KeyC'},
-    ]);
-    expect(store.problems).toEqual([expect.objectContaining({kind: 'json'})]);
-  });
-
-  it('reads 환경설정 with the defaults for the fields it leaves out', async () => {
-    const context = await developmentContext();
-    await writeJson(join(dataRoot(context), 'Settings', 'preferences.json'), {
-      format: 'llsettings.preferences',
-      schemaVersion: 1,
-      backup: {keep: 5},
-    });
-
-    const store = await loadedStore(context);
-
-    expect(store.preferences.backup).toEqual({auto: true, keep: 5});
-    expect(store.preferences.backupCopies).toBe(
-      defaultPreferences.backupCopies,
-    );
-    expect(store.problems).toEqual([]);
-  });
-
   it('finds media files from media.json in the media folder', async () => {
     const context = await developmentContext();
     const root = dataRoot(context);
@@ -340,21 +277,5 @@ describe('loadStore', () => {
     );
     expect(store.media.roots).toEqual([join(root, 'Media')]);
     expect(store.problems).toEqual([]);
-  });
-
-  it('reports a jump key that labels.json drops', async () => {
-    const context = await developmentContext();
-    await writeJson(join(dataRoot(context), 'Settings', 'labels.json'), {
-      format: 'llsettings.labels',
-      schemaVersion: 1,
-      labels: [{name: '후렴', color: '#D6B35F', key: 'C'}],
-    });
-
-    const store = await loadedStore(context);
-
-    expect(store.labels).toEqual([{name: '후렴', color: '#D6B35F', key: null}]);
-    expect(store.problems).toEqual([
-      expect.objectContaining({kind: 'invalid', field: 'labels.0.key'}),
-    ]);
   });
 });

@@ -12,7 +12,6 @@ import {
   PanelFooter,
   PanelHeader,
   PanelMeta,
-  PanelSwitch,
   PanelTabs,
   PanelTitle,
   type PanelTab,
@@ -114,26 +113,9 @@ const tabStates: readonly TabState[] = [
   {label: 'Disabled', selected: false, disabled: true},
 ];
 
-interface SwitchState {
-  readonly label: string;
-  readonly expanded?: boolean;
-  readonly pin?: SpecPin;
-  readonly disabled?: boolean;
-}
-
-const switchStates: readonly SwitchState[] = [
-  {label: 'Default'},
-  {label: 'Hover', pin: 'hover'},
-  {label: 'Open, pressed', expanded: true},
-  {label: 'Focus', pin: 'focus'},
-  {label: 'Disabled', disabled: true},
-];
-
 function ServiceHeader({
-  state,
   withActions = false,
 }: {
-  readonly state: SwitchState;
   readonly withActions?: boolean;
 }): JSX.Element {
   return (
@@ -144,16 +126,6 @@ function ServiceHeader({
           value="order"
           onChange={ignore}
         />
-        <Stateful<boolean> initial={state.expanded ?? false}>
-          {(expanded, setExpanded) => (
-            <PanelSwitch
-              value="주일 예배"
-              expanded={expanded}
-              disabled={state.disabled}
-              onExpandedChange={setExpanded}
-            />
-          )}
-        </Stateful>
         {withActions ? (
           <PanelActions>
             <IconButton icon="plus" label="항목 추가" />
@@ -181,7 +153,7 @@ export function PanelSection(): JSX.Element {
     <Section title="Panel">
       <SpecGroup title="Header 34px" alignTop>
         <SpecItem label="Tab + service switcher + controls" width={280}>
-          <ServiceHeader state={{label: ''}} withActions />
+          <ServiceHeader withActions />
         </SpecItem>
         <SpecItem label="Tab + footer count" width={280}>
           <Panel label="라이브러리">
@@ -318,19 +290,6 @@ export function PanelSection(): JSX.Element {
               selected={state.selected}
               disabled={state.disabled}
             />
-          </SpecItem>
-        ))}
-      </SpecGroup>
-      <SpecGroup title="Service switcher button">
-        {switchStates.map(state => (
-          <SpecItem
-            key={state.label}
-            label={state.label}
-            pin={state.pin}
-            pinIndex={1}
-            width={166}
-          >
-            <ServiceHeader state={state} />
           </SpecItem>
         ))}
       </SpecGroup>

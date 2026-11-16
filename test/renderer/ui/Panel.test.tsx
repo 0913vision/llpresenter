@@ -8,7 +8,6 @@ import {
   PanelBody,
   PanelFooter,
   PanelHeader,
-  PanelSwitch,
   PanelTabs,
   PanelTitle,
   type PanelTab,
@@ -177,49 +176,6 @@ describe('PanelTabs with a 더 보기 group', () => {
   it('draws no button when no tab is left over', () => {
     render(<NarrowTools more={[]} />);
     expect(screen.queryByRole('button', {name: '더 보기'})).toBeNull();
-  });
-});
-
-function Switcher({
-  onExpandedChange = () => {},
-  disabled = false,
-}: {
-  readonly onExpandedChange?: (expanded: boolean) => void;
-  readonly disabled?: boolean;
-}): JSX.Element {
-  const [expanded, setExpanded] = useState(false);
-  return (
-    <PanelSwitch
-      value="주일 예배"
-      expanded={expanded}
-      disabled={disabled}
-      onExpandedChange={next => {
-        setExpanded(next);
-        onExpandedChange(next);
-      }}
-    />
-  );
-}
-
-describe('PanelSwitch', () => {
-  it('opens the service list on click and with the down arrow', async () => {
-    const onExpandedChange = vi.fn();
-    render(<Switcher onExpandedChange={onExpandedChange} />);
-    const button = screen.getByRole('button', {name: '주일 예배'});
-    expect(button.getAttribute('aria-haspopup')).toBe('menu');
-    await userEvent.click(button);
-    expect(button.getAttribute('aria-expanded')).toBe('true');
-    await userEvent.click(button);
-    await userEvent.keyboard('{ArrowDown}');
-    expect(onExpandedChange.mock.calls).toEqual([[true], [false], [true]]);
-  });
-
-  it('ignores presses while disabled', async () => {
-    const onExpandedChange = vi.fn();
-    render(<Switcher onExpandedChange={onExpandedChange} disabled />);
-    await userEvent.click(screen.getByRole('button', {name: '주일 예배'}));
-    await userEvent.keyboard('{ArrowDown}');
-    expect(onExpandedChange).not.toHaveBeenCalled();
   });
 });
 

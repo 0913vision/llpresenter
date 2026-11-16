@@ -2,7 +2,6 @@ import {BibleChapterCache} from '../bible/chapterCache';
 import {appEndpoints} from '@contracts/ipc/app';
 import {settingsEndpoints} from '@contracts/ipc/settings';
 import {backupFailedProblem, type AppProblem} from '@core/schema/appProblem';
-import {defaultPreferences} from '@core/schema/preferences';
 import type {EditResult} from '@core/schema/contentEdit';
 import type {SettingsEdit} from '@core/schema/settingsDocuments';
 import type {SettingsReader} from '@core/schema/settingsReader';
@@ -39,6 +38,7 @@ import {registerSettingsChannels} from './settingsChannels';
 import {openSettingsStore, type SettingsProblemListener} from './settingsStore';
 import {SkippedFiles, startSkippedFileProblems} from './skippedFiles';
 import {contentProblems, logLoadedStore, upkeepAtLaunch} from './storeUpkeep';
+import {defaultPreferences} from '@core/schema/preferences';
 
 export interface StoreRegistration {
   readonly log: Logger;
@@ -208,9 +208,7 @@ export function registerStore({
   });
   ipcMain.handle(settingsEndpoints.preferences.channel, async () => {
     const ready = await settings;
-    return (
-      ready?.preferences() ?? (await loading)?.preferences ?? defaultPreferences
-    );
+    return ready?.preferences() ?? defaultPreferences;
   });
   const removeMediaUses = registerMediaUses(
     {media, settings, content: opened},
@@ -234,7 +232,12 @@ export function registerStore({
   const removeBackupProblem = problems.addStanding(() =>
     backupProblem === null ? [] : [backupProblem],
   );
-  const upkeep = upkeepAtLaunch(loading, isAnyOutputOn, {
+  const upkeepStore = Promise.all([loading, settings]).then(([store, ready]) =>
+    store === null
+      ? null
+      : {...store, preferences: ready?.preferences() ?? defaultPreferences},
+  );
+  const upkeep = upkeepAtLaunch(upkeepStore, isAnyOutputOn, {
     log,
     ...(launchIdle === undefined ? {} : {launchIdle}),
     onBackupFailed: folder => {

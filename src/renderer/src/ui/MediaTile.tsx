@@ -13,12 +13,7 @@ import {Icon} from './Icon';
 import type {MenuAnchor} from './Menu';
 import {MissingFileMark, missingFileText} from './MissingFile';
 import {Progress, progressPercent} from './StatusMarks';
-import {
-  gridMoves,
-  stripMoves,
-  TileList,
-  type TileListPosition,
-} from './TileList';
+import {gridMoves, TileList, type TileListPosition} from './TileList';
 import {titleTooltip, useTooltip} from './Tooltip';
 import styles from './MediaTile.module.css';
 
@@ -324,40 +319,6 @@ export function MediaGrid(props: MediaGridProps): JSX.Element {
       setSize={props.setSize}
       className={classNames(styles.grid, props.className)}
       style={style}
-    >
-      {props.children}
-    </TileList>
-  );
-}
-
-/**
- * A windowed host mounts part of a long strip and names the mounted tiles'
- * places in the full list with the position props.
- */
-export type MediaStripProps = MediaListProps & TileListPosition;
-
-/**
- * The media strip of 진행 (`ll-media-strip`): one row of 150px tiles that
- * scrolls sideways. A click doesn't take keyboard focus there, so → and Space
- * still go to 다음 슬라이드.
- */
-export function MediaStrip(props: MediaStripProps): JSX.Element {
-  return (
-    <TileList
-      workspace="show"
-      label={props.label}
-      moves={stripMoves}
-      columns={1}
-      spaceKey="pass"
-      arrowsMove="selection"
-      selected={props.selected}
-      onSelect={props.onSelect}
-      onActivate={props.onActivate}
-      onMenu={props.onMenu}
-      positionOffset={props.positionOffset}
-      setSize={props.setSize}
-      orientation={props.orientation}
-      className={classNames(styles.strip, props.className)}
     >
       {props.children}
     </TileList>

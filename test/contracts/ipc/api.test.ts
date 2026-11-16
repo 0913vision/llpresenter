@@ -14,7 +14,6 @@ import {outputEndpoints} from '@contracts/ipc/output';
 import {recoveryEndpoints} from '@contracts/ipc/recovery';
 import {serviceEndpoints} from '@contracts/ipc/service';
 import {settingsEndpoints} from '@contracts/ipc/settings';
-import {songEditorWindowEndpoints} from '@contracts/ipc/songEditorWindow';
 import {slidesEditorEndpoints} from '@contracts/ipc/slidesEditor';
 import {uiEndpoints} from '@contracts/ipc/ui';
 import {windowEndpoints} from '@contracts/ipc/window';
@@ -42,7 +41,6 @@ const DECLARED = [
   windowEndpoints,
   outputEndpoints,
   locationsEndpoints,
-  songEditorWindowEndpoints,
   slidesEditorEndpoints,
 ].flatMap(endpointsIn);
 

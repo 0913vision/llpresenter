@@ -100,7 +100,7 @@ for an empty media grid). There is no icon art and no second sentence.
 
 - `<Panel label="예배 순서" tabs={[{ id: 'order', label: '예배 순서' }]} switcher={<ServiceSwitch value="주일 예배" />} actions={<IconButton icon="plus" label="항목 추가" />}>…</Panel>`
 - `<Panel title="만복의 근원 하나님" meta="2 / 9" actions={<Select size="sm" media={thumb} value="따뜻한 빛" />} footer={<SliderRow icon="grid" />}>`
-- Parts: `<PanelTabs>`, `<PanelSwitch>`, `<PanelTools>`, `<PanelBody variant="list" | "grid" | "flush">`, `<PanelFooter count={9}>`.
+- Parts: `<PanelTabs>`, `<PanelTools>`, `<PanelBody variant="list" | "grid" | "flush">`, `<PanelFooter count={9}>`.
 - Classes: `ll-panels`, `ll-panels--column`, `ll-panels--window`, `ll-panel`, `ll-panel__header`, `ll-panel__tabs`, `ll-panel__tab`, `ll-panel__title`, `ll-panel__title-text`, `ll-panel__meta`, `ll-panel__switch`, `ll-panel__actions`, `ll-panel__tools`, `ll-panel__body`, `ll-panel__body--list`, `ll-panel__body--flush`, `ll-panel__footer`, `ll-panel__footer-end`.
 - The header is 34px including the 1px line, with `box-sizing: border-box`.
 

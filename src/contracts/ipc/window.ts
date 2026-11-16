@@ -1,11 +1,4 @@
 import type {Result} from '@core/common/result';
-import {
-  parseOpenWindowResult,
-  parseSongEditorTarget,
-  refuseOpenWindow,
-  type OpenWindowResult,
-  type SongEditorTarget,
-} from '@core/schema/ipcPayloads';
 import type {PayloadError} from '@core/schema/payload';
 import {
   PREFERENCE_PAGE_IDS,
@@ -220,14 +213,6 @@ export const windowEndpoints = {
   fullScreen: query<boolean>('window:full-screen', parseOnOff),
   fullScreenChanged: push<boolean>('window:full-screen:changed', parseOnOff),
   editText: message<TextEditAction>('window:edit-text', parseTextEditAction),
-  openSongEditor: request<SongEditorTarget, OpenWindowResult>(
-    'window:open-song-editor',
-    {
-      request: parseSongEditorTarget,
-      reply: parseOpenWindowResult,
-      refuse: refuseOpenWindow,
-    },
-  ),
 };
 
 /** The title bar part of `window.llp`. */
@@ -276,7 +261,6 @@ export function windowApi(port: IpcPort) {
     /** Runs a text editing action on the focused field of the calling window. */
     editText: port.message(windowEndpoints.editText),
     /** Opens or retargets the 곡 편집 window on a song. */
-    openSongEditor: port.request(windowEndpoints.openSongEditor),
   };
 }
 

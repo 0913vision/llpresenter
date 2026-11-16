@@ -1,3 +1,4 @@
+import * as songEditorRequests from '@renderer/features/songs/editor/songEditorRequests';
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
@@ -238,7 +239,7 @@ describe('SlidePanel with a library source', () => {
   it('opens the library song editor to replace a missing background', () => {
     const api = mockLlpApi();
     window.llp = api;
-    const open = vi.spyOn(api.window, 'openSongEditor');
+    const open = vi.spyOn(songEditorRequests, 'requestSongEditor');
     const source = librarySong({
       problem: 'missing-background',
       missingBackgroundName: 'Warm light',

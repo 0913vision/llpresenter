@@ -1,3 +1,4 @@
+import * as songEditorRequests from '@renderer/features/songs/editor/songEditorRequests';
 import {act, render, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {expect, it, vi} from 'vitest';
@@ -122,7 +123,7 @@ it('selects item slides locally, opens the clicked slide, and keeps its independ
     openItemId: fixtureItems.arranged,
   });
   const open = vi
-    .spyOn(f.api.window, 'openSongEditor')
+    .spyOn(songEditorRequests, 'requestSongEditor')
     .mockResolvedValue({ok: true, value: undefined});
   const output = vi.spyOn(f.api.live, 'send');
   const editor = new SongEditorStore(f.api, vi.fn());

@@ -1,3 +1,4 @@
+import {requestSongEditor} from '@renderer/features/songs/editor/songEditorRequests';
 import {PowerPointImagesFlow} from './PowerPointImagesFlow';
 import {PowerPointImportFlow} from '@renderer/features/songs/import/PowerPointImportFlow';
 import {
@@ -57,7 +58,7 @@ async function openServiceSong(
       ? contentPosition(item, target.position)
       : item.slides.findIndex(slide => slide.id === target.source?.slideId);
   if (block < 0) throw new Error('The source slide is no longer available');
-  const opened = await api.window.openSongEditor({
+  const opened = await requestSongEditor({
     songId: item.song,
     block,
     from: {serviceId: service.service.id, itemId: item.id},

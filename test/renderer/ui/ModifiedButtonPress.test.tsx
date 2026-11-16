@@ -7,7 +7,6 @@ import {ClearButton} from '@renderer/ui/ClearButton';
 import {IconButton} from '@renderer/ui/IconButton';
 import {ListActionRow} from '@renderer/ui/ListRow';
 import {OutputToggle} from '@renderer/ui/OutputToggle';
-import {PanelSwitch} from '@renderer/ui/Panel';
 import {Select} from '@renderer/ui/Select';
 import {ToolbarButton} from '@renderer/ui/ToolbarButton';
 import {
@@ -67,17 +66,6 @@ const controls = [
     name: 'select',
     render: (press: () => void) => (
       <Select
-        value="선택"
-        title="설명"
-        expanded={false}
-        onExpandedChange={press}
-      />
-    ),
-  },
-  {
-    name: 'panel switch',
-    render: (press: () => void) => (
-      <PanelSwitch
         value="선택"
         title="설명"
         expanded={false}
