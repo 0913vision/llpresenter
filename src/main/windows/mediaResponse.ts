@@ -4,6 +4,7 @@ import {extname} from 'node:path';
 import {
   analysisTokenFromUrl,
   mediaIdFromUrl,
+  previewThumbnailIdFromUrl,
   thumbnailIdFromUrl,
   thumbnailRevisionFromUrl,
 } from '@contracts/ipc/mediaUrls';
@@ -136,6 +137,7 @@ export interface MediaHandlerOptions {
   readonly analysisFile?: (token: string) => string | null;
   /** A media item's thumbnail file, made when needed; null when it has none. */
   readonly thumbnail?: (mediaId: string) => Promise<string | null>;
+  readonly previewThumbnail?: (mediaId: string) => Promise<string | null>;
   readonly log: Logger;
 }
 
@@ -206,6 +208,13 @@ export function createMediaHandler(
   return async request => {
     const token = analysisTokenFromUrl(request.url);
     if (token !== null) return serveAnalysisFile(token, request, options);
+    const previewId = previewThumbnailIdFromUrl(request.url);
+    if (previewId !== null) {
+      return serveThumbnail(previewId, request, {
+        ...options,
+        thumbnail: options.previewThumbnail ?? (() => Promise.resolve(null)),
+      });
+    }
     const thumbnailId = thumbnailIdFromUrl(request.url);
     if (thumbnailId !== null) {
       return serveThumbnail(thumbnailId, request, options);

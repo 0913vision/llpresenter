@@ -120,12 +120,8 @@ function Copying({
   );
 }
 
-// NOTE(0913vision): A picture whose address names a revision (`?v=`) never
-// changes, so its image element is kept after its tile goes, and the next tile
-// with the same address takes the element back before it paints. A grid that
-// mounts again (the 미디어 panel unfolding) then draws its pictures in its
-// first frame, and nothing is fetched again. Pictures without a revision are
-// plain elements that load off the paint, so a long grid does not stall.
+// NOTE(0913vision): Revisioned thumbnails are retained for reuse. Async
+// decoding lets the fixed-size frame paint while the image is prepared.
 const KEPT_PICTURE = /\?v=[0-9a-f]+$/;
 const KEPT_LIMIT = 600;
 const keptPictures = new Map<string, HTMLImageElement>();
@@ -134,8 +130,9 @@ const inUse = new Set<HTMLImageElement>();
 function newPicture(src: string): HTMLImageElement {
   const image = new Image();
   image.alt = '';
-  image.decoding = 'sync';
+  image.decoding = 'async';
   image.src = src;
+  if (typeof image.decode === 'function') image.decode().catch(() => undefined);
   image.addEventListener('error', () => {
     if (keptPictures.get(src) === image) keptPictures.delete(src);
   });

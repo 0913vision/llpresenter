@@ -21,7 +21,7 @@ export interface AnalysisDom {
   readonly drawThumbnail: (
     source: HTMLVideoElement | HTMLImageElement,
     crop: Crop,
-    size: PixelSize,
+    size: PixelSize & {readonly format?: 'png'},
   ) => string | null;
 }
 
@@ -36,7 +36,7 @@ const MEDIA_ERROR_REASONS: Readonly<Record<number, AnalysisFailureReason>> = {
 export function drawOnCanvas(
   source: HTMLVideoElement | HTMLImageElement,
   crop: Crop,
-  size: PixelSize,
+  size: PixelSize & {readonly format?: 'png'},
 ): string | null {
   const canvas = document.createElement('canvas');
   canvas.width = size.width;
@@ -54,7 +54,9 @@ export function drawOnCanvas(
     size.width,
     size.height,
   );
-  return canvas.toDataURL('image/jpeg', THUMBNAIL_QUALITY);
+  return size.format === 'png'
+    ? canvas.toDataURL('image/png')
+    : canvas.toDataURL('image/jpeg', THUMBNAIL_QUALITY);
 }
 
 /** The analysis page's own elements and canvas. */
@@ -170,11 +172,12 @@ async function analyseAudio(
 }
 
 async function analyseImage(
-  {url, thumbnail}: AnalysisJob,
+  {url, thumbnail, preserveAspect}: AnalysisJob,
   dom: AnalysisDom,
 ): Promise<AnalysisReply> {
   const image = dom.createImage();
   image.crossOrigin = 'anonymous';
+  image.decoding = 'async';
   try {
     const loaded = settle(image, 'load');
     image.src = url;
@@ -183,6 +186,23 @@ async function analyseImage(
     }
     const size = pixelSize(image.naturalWidth, image.naturalHeight);
     if (thumbnail === null || size === null) return {ok: true, ...size};
+    if (preserveAspect) {
+      const factor = Math.min(
+        1,
+        thumbnail.width / size.width,
+        thumbnail.height / size.height,
+      );
+      const target = {
+        width: Math.max(1, Math.round(size.width * factor)),
+        height: Math.max(1, Math.round(size.height * factor)),
+      };
+      const data = dom.drawThumbnail(
+        image,
+        {x: 0, y: 0, width: size.width, height: size.height},
+        {...target, format: 'png'},
+      );
+      return {ok: true, ...size, ...(data === null ? {} : {thumbnail: data})};
+    }
     return {
       ok: true,
       ...size,

@@ -189,6 +189,30 @@ describe('media analysis page', () => {
     expect(images[0]?.hasAttribute('src')).toBe(false);
   });
 
+  it('keeps the whole image and transparency in a bounded preview', async () => {
+    const {dom, images, drawThumbnail} = mockDom();
+    drawThumbnail.mockReturnValue('data:image/png;base64,AAAA');
+    const reply = analyseMedia(
+      {
+        ...job('image'),
+        thumbnail: {width: 960, height: 540},
+        preserveAspect: true,
+      },
+      dom,
+    );
+    define(images[0] ?? {}, {naturalWidth: 800, naturalHeight: 1600});
+    fire(images[0], 'load');
+    expect(await reply).toMatchObject({
+      ok: true,
+      thumbnail: 'data:image/png;base64,AAAA',
+    });
+    expect(drawThumbnail).toHaveBeenCalledExactlyOnceWith(
+      images[0],
+      {x: 0, y: 0, width: 800, height: 1600},
+      {width: 270, height: 540, format: 'png'},
+    );
+  });
+
   it('answers an image it cannot decode', async () => {
     const {dom, images} = mockDom();
     const reply = analyseMedia(job('image'), dom);

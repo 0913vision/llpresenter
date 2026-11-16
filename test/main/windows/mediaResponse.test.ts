@@ -2,7 +2,12 @@ import {createReadStream} from 'node:fs';
 import {writeFile} from 'node:fs/promises';
 import {join} from 'node:path';
 import {describe, expect, it, vi} from 'vitest';
-import {analysisUrl, mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
+import {
+  analysisUrl,
+  mediaUrl,
+  thumbnailUrl,
+  previewThumbnailUrl,
+} from '@contracts/ipc/mediaUrls';
 import {makeTempDir} from '@fixtures/tempDir';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {
@@ -252,6 +257,27 @@ describe('createMediaHandler', () => {
       404,
     );
     expect(log.messages('warn')).toEqual(['could not serve a thumbnail']);
+  });
+
+  it('serves an aspect-preserving preview from its separate cache', async () => {
+    const folder = await makeTempDir();
+    const file = join(folder, 'preview.png');
+    await writeFile(file, CONTENT);
+    const handle = createMediaHandler({
+      resolvePath: async () => null,
+      mediaRoots: () => [],
+      previewThumbnail: async id => (id === 'dawn' ? file : null),
+      log: recordingLogger(),
+    });
+    const response = await handle(
+      new Request(previewThumbnailUrl('dawn', 'abcd')),
+    );
+    expect(response.status).toBe(200);
+    expect(response.headers.get('content-type')).toBe('image/png');
+    expect(response.headers.get('cache-control')).toBe(
+      'public, max-age=31536000, immutable',
+    );
+    expect(await response.text()).toBe(CONTENT);
   });
 
   it('answers 400 for a URL that is not a media URL', async () => {

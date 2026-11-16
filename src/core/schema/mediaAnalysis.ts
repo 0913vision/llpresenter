@@ -3,14 +3,15 @@ import type {PixelSize} from '../media/coverCrop';
 import {parsePayload, plainObject} from './payload';
 import {pixelCount, seconds} from './primitives';
 
-/** The longest thumbnail the analysis page may answer, as a JPEG data URL. */
-export const MAX_THUMBNAIL_DATA_URL_LENGTH = 512 * 1024;
+/** The longest thumbnail the analysis page may answer as a data URL. */
+export const MAX_THUMBNAIL_DATA_URL_LENGTH = 4 * 1024 * 1024;
 
 /** The longest decoder message the analysis page may answer. */
 export const MAX_ANALYSIS_MESSAGE_LENGTH = 500;
 
-/** The thumbnail's data URL prefix: thumbnails are JPEG. */
+/** The data URL prefixes used for tile JPEGs and uncropped PNG previews. */
 export const THUMBNAIL_DATA_URL_PREFIX = 'data:image/jpeg;base64,';
+export const PREVIEW_DATA_URL_PREFIX = 'data:image/png;base64,';
 
 /** Why the analysis page couldn't read a file, after the media error codes. */
 export const analysisFailureReasons = [
@@ -30,6 +31,7 @@ export interface AnalysisJob {
   readonly url: string;
   readonly kind: 'video' | 'audio' | 'image';
   readonly thumbnail: PixelSize | null;
+  readonly preserveAspect?: boolean;
 }
 
 const analysisReplySchema = v.pipe(
@@ -43,7 +45,11 @@ const analysisReplySchema = v.pipe(
       thumbnail: v.exactOptional(
         v.pipe(
           v.string(),
-          v.startsWith(THUMBNAIL_DATA_URL_PREFIX),
+          v.check(
+            value =>
+              value.startsWith(THUMBNAIL_DATA_URL_PREFIX) ||
+              value.startsWith(PREVIEW_DATA_URL_PREFIX),
+          ),
           v.maxLength(MAX_THUMBNAIL_DATA_URL_LENGTH),
         ),
       ),

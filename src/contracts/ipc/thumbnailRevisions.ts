@@ -1,6 +1,6 @@
 import {thumbnailRevision} from '@core/media/thumbnailRevision';
 import type {MediaItem} from '@core/schema/mediaList';
-import {thumbnailUrl} from './mediaUrls';
+import {previewThumbnailUrl, thumbnailUrl} from './mediaUrls';
 
 // NOTE(0913vision): Every picture that draws a thumbnail knows only the media
 // id, while the revision comes from the item's file and the time main read for
@@ -35,4 +35,16 @@ export function thumbnailSrc(mediaId: string): string {
     return thumbnailUrl(mediaId);
   }
   return thumbnailUrl(mediaId, thumbnailRevision({...item, modified}));
+}
+
+/** An aspect-preserving still, invalidated with the same source revision. */
+export function previewThumbnailSrc(mediaId: string): string {
+  const item = items.get(mediaId);
+  const modified = stamps.get(mediaId);
+  return previewThumbnailUrl(
+    mediaId,
+    item === undefined || modified === undefined
+      ? undefined
+      : thumbnailRevision({...item, modified}),
+  );
 }

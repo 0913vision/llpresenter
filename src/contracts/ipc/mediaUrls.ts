@@ -4,6 +4,7 @@ export const MEDIA_SCHEME = 'llp-media';
 const MEDIA_HOST = 'media';
 const ANALYSIS_HOST = 'analysis';
 const THUMBNAIL_HOST = 'thumbnail';
+const PREVIEW_HOST = 'preview-thumbnail';
 const MEDIA_PROTOCOL = `${MEDIA_SCHEME}:`;
 
 /** The URL of a library media file: `llp-media://media/<encoded id>`. */
@@ -31,11 +32,30 @@ export function thumbnailUrl(mediaId: string, revision?: string): string {
   return revision === undefined ? base : `${base}?v=${revision}`;
 }
 
+/** The uncropped, bounded image used in large control previews. */
+export function previewThumbnailUrl(
+  mediaId: string,
+  revision?: string,
+): string {
+  const base = `${MEDIA_SCHEME}://${PREVIEW_HOST}/${encodeURIComponent(mediaId)}`;
+  return revision === undefined ? base : `${base}?v=${revision}`;
+}
+
+/** The media id in an aspect-preserving preview URL. */
+export function previewThumbnailIdFromUrl(url: string): string | null {
+  return idFromUrl(url, PREVIEW_HOST, true);
+}
+
 const REVISION_QUERY = /^\?v=([0-9a-f]{1,16})$/;
 
 /** The revision in a thumbnail URL, or `null` when it has none. */
 export function thumbnailRevisionFromUrl(url: string): string | null {
-  if (thumbnailIdFromUrl(url) === null) return null;
+  if (
+    thumbnailIdFromUrl(url) === null &&
+    previewThumbnailIdFromUrl(url) === null
+  ) {
+    return null;
+  }
   return REVISION_QUERY.exec(new URL(url).search)?.[1] ?? null;
 }
 

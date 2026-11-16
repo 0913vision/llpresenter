@@ -179,8 +179,9 @@ Each registry entry registers a type name, a data format (schema), a renderer
   Rejected: container parsers in the utility process (a dozen parsers, and a
   codec name only guesses at playability) and ffprobe or ffmpeg binaries (size
   and licensing).
-- Images are measured and scaled in main with Electron's `nativeImage`, at the
-  tile size, into the capped thumbnail cache.
+- Images are decoded in the analysis renderer. A capped tile cache stores
+  cropped 16:9 JPEGs; a separate bounded PNG cache retains the entire image and
+  transparency for the control window's larger previews.
 
 ## Quality bar
 

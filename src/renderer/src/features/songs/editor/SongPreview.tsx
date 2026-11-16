@@ -97,7 +97,7 @@ export function Picture({
   });
   useLayoutEffect(() => {
     if (parent.current === null) return;
-    const previewMedia = openPreviewMedia(window.llp);
+    const previewMedia = openPreviewMedia(window.llp, true);
     const view = new OutputRenderer(parent.current, {
       transparent: appearance.screen.method === 'ndi',
       textStyle: DEFAULT_TEXT_STYLE,

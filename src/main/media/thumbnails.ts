@@ -52,6 +52,7 @@ export interface ThumbnailsOptions {
   readonly analyse: (request: AnalysisRequest) => Promise<Analysis>;
   readonly source: Promise<ThumbnailSource | null>;
   readonly log: Logger;
+  readonly preserveAspect?: boolean;
 }
 
 /**
@@ -160,6 +161,7 @@ export class Thumbnails {
       source === null ||
       item === undefined ||
       item.kind === 'audio' ||
+      (this.options.preserveAspect === true && item.kind !== 'image') ||
       file === null
     ) {
       return null;
@@ -177,6 +179,8 @@ export class Thumbnails {
       file: picture.file,
       kind: picture.kind,
       thumbnail: true,
+      priority: true,
+      ...(this.options.preserveAspect ? {preserveAspect: true} : {}),
     });
     if (
       this.disposed ||

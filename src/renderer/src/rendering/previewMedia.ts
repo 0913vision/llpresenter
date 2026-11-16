@@ -1,5 +1,9 @@
 import type {LlpApi} from '@contracts/ipc/api';
-import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
+import {mediaUrl} from '@contracts/ipc/mediaUrls';
+import {
+  previewThumbnailSrc,
+  thumbnailSrc,
+} from '@contracts/ipc/thumbnailRevisions';
 import type {MediaLayer} from '@core/live/state';
 import type {MediaDocument} from '@core/schema/mediaEdit';
 import type {MediaItem} from '@core/schema/mediaList';
@@ -56,14 +60,18 @@ class PreviewMediaLibrary implements PreviewMediaSource {
     this.unlock();
   }
 
-  async url(mediaId: string): Promise<string> {
+  async url(mediaId: string, bounded = false): Promise<string> {
     this.start();
     await this.ready;
     const item = this.stopped ? undefined : this.items.get(mediaId);
     if (item === undefined || item.kind === 'audio') {
       throw new Error('No preview picture for this media');
     }
-    return item.kind === 'video' ? thumbnailUrl(mediaId) : mediaUrl(mediaId);
+    return item.kind === 'video'
+      ? thumbnailSrc(mediaId)
+      : bounded
+        ? previewThumbnailSrc(mediaId)
+        : mediaUrl(mediaId);
   }
 
   /** Live countdowns read main's samples; preparation stills keep their start. */
@@ -101,9 +109,10 @@ const libraries = new WeakMap<
   {library: PreviewMediaLibrary; users: number}
 >();
 
-/** Images retain their original pixels; only videos use the media-bin still. */
+/** Control previews can opt into uncropped, bounded stills; slide pictures retain their source. */
 export function openPreviewMedia(
   api: LlpApi | undefined,
+  bounded = false,
 ): (PreviewMediaSource & {readonly dispose: () => void}) | undefined {
   if (api === undefined) return undefined;
   let shared = libraries.get(api);
@@ -115,7 +124,7 @@ export function openPreviewMedia(
   entry.users++;
   let active = true;
   return {
-    url: id => entry.library.url(id),
+    url: id => entry.library.url(id, bounded),
     remaining: media => entry.library.remaining(media),
     dispose: () => {
       if (!active) return;

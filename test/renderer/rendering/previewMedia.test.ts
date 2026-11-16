@@ -5,6 +5,7 @@ import {
   mediaItem,
 } from '@fixtures/renderer/features/media/mediaTesting';
 import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
+import {previewThumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {openPreviewMedia} from '@renderer/rendering/previewMedia';
 import type {MediaProgress} from '@core/schema/mediaProgress';
 import type {MediaDocument} from '@core/schema/mediaEdit';
@@ -50,6 +51,20 @@ it('shares a metadata feed, preserves image files, and uses cached stills only f
   second.dispose();
   expect(stop).toHaveBeenCalledOnce();
   expect(stopProgress).toHaveBeenCalledOnce();
+});
+
+it('uses a bounded image only for opted-in control previews', async () => {
+  const image = mediaItem(1, {kind: 'image', file: 'portrait.png'});
+  const api = mockLlpApi({media: {get: async () => mediaDocument([image])}});
+  const bounded = openPreviewMedia(api, true);
+  const slide = openPreviewMedia(api);
+  if (bounded === undefined || slide === undefined) {
+    throw new Error('Missing source');
+  }
+  expect(await bounded.url(image.id)).toBe(previewThumbnailSrc(image.id));
+  expect(await slide.url(image.id)).toBe(mediaUrl(image.id));
+  bounded.dispose();
+  slide.dispose();
 });
 
 it('keeps a newer main progress push when the initial progress query finishes later', async () => {

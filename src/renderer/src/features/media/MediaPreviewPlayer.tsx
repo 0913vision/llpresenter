@@ -1,5 +1,9 @@
 import {useEffect, useRef, useState, type JSX} from 'react';
-import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
+import {mediaUrl} from '@contracts/ipc/mediaUrls';
+import {
+  previewThumbnailSrc,
+  thumbnailSrc,
+} from '@contracts/ipc/thumbnailRevisions';
 import type {MediaItem} from '@core/schema/mediaList';
 import {Icon} from '@renderer/ui/Icon';
 import {IconButton} from '@renderer/ui/IconButton';
@@ -190,18 +194,23 @@ export function MediaPreviewPlayer({
             <video
               {...events}
               className={styles.picture}
-              poster={thumbnailUrl(item.id)}
+              poster={thumbnailSrc(item.id)}
               playsInline
             />
           ) : (
             <img
               className={styles.picture}
-              src={thumbnailUrl(item.id)}
+              src={thumbnailSrc(item.id)}
               alt=""
             />
           )
         ) : item.kind === 'image' ? (
-          <img className={styles.picture} src={mediaUrl(item.id)} alt="" />
+          <img
+            className={styles.picture}
+            src={previewThumbnailSrc(item.id)}
+            decoding="async"
+            alt=""
+          />
         ) : (
           <>
             <Icon

@@ -1,7 +1,6 @@
 import type {PixelSize} from '@core/media/coverCrop';
 import {MEDIA_LIMITS} from '@core/schema/mediaList';
 import {
-  THUMBNAIL_DATA_URL_PREFIX,
   parseAnalysisReply,
   type AnalysisFailureReason,
   type AnalysisJob,
@@ -58,6 +57,8 @@ export interface AnalysisRequest {
   readonly file: string;
   readonly kind: MediaKind;
   readonly thumbnail: boolean;
+  readonly preserveAspect?: boolean;
+  readonly priority?: boolean;
   /** Stops waiting for the analysis; a running one still finishes in the page. */
   readonly signal?: AbortSignal;
 }
@@ -70,11 +71,6 @@ export interface MediaAnalyserOptions {
    */
   readonly openPage: (signal: AbortSignal) => Promise<AnalysisPage>;
   readonly files: AnalysisFiles;
-  /** Measures an image in main; null when it can't read it. */
-  readonly measureImage: (
-    file: string,
-    thumbnail: PixelSize | null,
-  ) => MediaFacts | null;
   readonly log: Logger;
   readonly timeoutMs?: number;
   readonly idleCloseMs?: number;
@@ -105,7 +101,7 @@ function analysisOf(reply: AnalysisReply): Analysis {
         ? {}
         : {
             thumbnail: Buffer.from(
-              thumbnail.slice(THUMBNAIL_DATA_URL_PREFIX.length),
+              thumbnail.slice(thumbnail.indexOf(',') + 1),
               'base64',
             ),
           }),
@@ -114,8 +110,8 @@ function analysisOf(reply: AnalysisReply): Analysis {
 }
 
 /**
- * Analyses media files one at a time (`docs/TECH.md`, "Media"). Images that `nativeImage` reads are measured in
- * main; video, audio, and other images go to the hidden analysis page, which
+ * Analyses media files one at a time (`docs/TECH.md`, "Media"). Image,
+ * video and audio decoding run in the hidden analysis page, which
  * opens on demand, gets {@link ANALYSIS_TIMEOUT_MS} per file, and closes after
  * {@link ANALYSIS_IDLE_CLOSE_MS} with nothing to read. At most
  * {@link MAX_QUEUED_ANALYSES} files wait.
@@ -137,12 +133,6 @@ export class MediaAnalyser {
   analyse(request: AnalysisRequest): Promise<Analysis> {
     if (this.disposed) {
       return Promise.resolve(unavailable('Media analysis is closed'));
-    }
-    if (request.kind === 'image') {
-      const measured = this.measure(request);
-      if (measured !== null) {
-        return Promise.resolve({kind: 'read', facts: measured});
-      }
     }
     if (this.queue.length >= MAX_QUEUED_ANALYSES) {
       return Promise.resolve(unavailable('Too many files wait for analysis'));
@@ -166,7 +156,11 @@ export class MediaAnalyser {
         return;
       }
       signal?.addEventListener('abort', stop, {once: true});
-      this.queue.push(waiting);
+      const nextNormal = request.priority
+        ? this.queue.findIndex(entry => !entry.request.priority)
+        : -1;
+      if (nextNormal < 0) this.queue.push(waiting);
+      else this.queue.splice(nextNormal, 0, waiting);
       this.pump();
     });
   }
@@ -181,21 +175,6 @@ export class MediaAnalyser {
     }
     this.active?.abort();
     this.closePage();
-  }
-
-  private measure(request: AnalysisRequest): MediaFacts | null {
-    try {
-      return this.options.measureImage(
-        request.file,
-        request.thumbnail ? THUMBNAIL_SIZE : null,
-      );
-    } catch (error: unknown) {
-      this.options.log.warn('could not measure an image', {
-        file: request.file,
-        error,
-      });
-      return null;
-    }
   }
 
   private pump(): void {
@@ -238,7 +217,12 @@ export class MediaAnalyser {
           {
             url: lent.url,
             kind: request.kind,
-            thumbnail: request.thumbnail ? THUMBNAIL_SIZE : null,
+            thumbnail: request.thumbnail
+              ? request.preserveAspect
+                ? {width: 960, height: 540}
+                : THUMBNAIL_SIZE
+              : null,
+            ...(request.preserveAspect ? {preserveAspect: true} : {}),
           },
           active.signal,
         ),

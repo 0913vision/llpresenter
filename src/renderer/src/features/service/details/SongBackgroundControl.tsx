@@ -1,6 +1,6 @@
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useId, useState, type JSX} from 'react';
-import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
+import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import type {MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
 import {useShow} from '@renderer/session/show';
@@ -26,7 +26,8 @@ function Picture({media}: {readonly media: MediaItem}): JSX.Element {
   return (
     <img
       className={styles.picture}
-      src={media.kind === 'video' ? thumbnailUrl(media.id) : mediaUrl(media.id)}
+      src={thumbnailSrc(media.id)}
+      decoding="async"
       alt=""
     />
   );

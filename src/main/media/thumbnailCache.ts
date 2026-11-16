@@ -18,11 +18,12 @@ export interface ThumbnailCacheOptions {
   readonly log: Logger;
   /** {@link MAX_CACHED_THUMBNAILS} by default. */
   readonly maxEntries?: number;
+  readonly extension?: '.jpg' | '.png';
 }
 
-function mediaIdOf(fileName: string): MediaId | null {
-  if (!fileName.endsWith(EXTENSION)) return null;
-  const id = parseMediaId(fileName.slice(0, -EXTENSION.length));
+function mediaIdOf(fileName: string, extension: string): MediaId | null {
+  if (!fileName.endsWith(extension)) return null;
+  const id = parseMediaId(fileName.slice(0, -extension.length));
   return id.ok ? id.value : null;
 }
 
@@ -125,7 +126,10 @@ export class ThumbnailCache {
   }
 
   private pathOf(mediaId: MediaId): string {
-    return join(this.options.folder, `${mediaId}${EXTENSION}`);
+    return join(
+      this.options.folder,
+      `${mediaId}${this.options.extension ?? EXTENSION}`,
+    );
   }
 
   private stampPathOf(mediaId: MediaId): string {
@@ -170,7 +174,7 @@ export class ThumbnailCache {
     }
     const found: Array<{readonly id: MediaId; readonly time: number}> = [];
     for (const name of names) {
-      const id = mediaIdOf(name);
+      const id = mediaIdOf(name, this.options.extension ?? EXTENSION);
       if (id === null) continue;
       try {
         found.push({id, time: (await stat(this.pathOf(id))).mtimeMs});

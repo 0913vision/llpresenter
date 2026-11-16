@@ -6,6 +6,8 @@ import {
   mediaIdFromUrl,
   mediaUrl,
   thumbnailIdFromUrl,
+  previewThumbnailIdFromUrl,
+  previewThumbnailUrl,
   thumbnailRevisionFromUrl,
   thumbnailUrl,
 } from '@contracts/ipc/mediaUrls';
@@ -60,6 +62,14 @@ describe('thumbnail URLs', () => {
     expect(mediaIdFromUrl(thumbnailUrl(id))).toBeNull();
     expect(thumbnailIdFromUrl(mediaUrl(id))).toBeNull();
     expect(thumbnailRevisionFromUrl(thumbnailUrl(id))).toBeNull();
+  });
+
+  it('keeps aspect-preserving preview URLs distinct and revisioned', () => {
+    const id = '00000000-0000-4000-8000-000000000002';
+    const url = previewThumbnailUrl(id, '0a1b2c3d');
+    expect(previewThumbnailIdFromUrl(url)).toBe(id);
+    expect(thumbnailIdFromUrl(url)).toBeNull();
+    expect(thumbnailRevisionFromUrl(url)).toBe('0a1b2c3d');
   });
 
   it('carries a revision as a hex query that no other media URL takes', () => {

@@ -35,6 +35,16 @@ describe('thumbnail cache', () => {
     expect(await cache.fileOf(mediaId(2))).toBeNull();
   });
 
+  it('retains PNG previews independently across launches', async () => {
+    const {folder, log} = await setup();
+    const cache = new ThumbnailCache({folder, log, extension: '.png'});
+    const file = await cache.put(mediaId(1), JPEG, 'source');
+    expect(file).toBe(join(folder, `${mediaId(1)}.png`));
+    const reopened = new ThumbnailCache({folder, log, extension: '.png'});
+    expect(await reopened.fileOf(mediaId(1))).toBe(file);
+    expect(await reopened.stampOf(mediaId(1))).toBe('source');
+  });
+
   it('keeps the stamp of the file a thumbnail was made from, and drops it with the thumbnail', async () => {
     const {folder, cache} = await setup();
     await cache.put(mediaId(1), JPEG, '8:1700000000000');

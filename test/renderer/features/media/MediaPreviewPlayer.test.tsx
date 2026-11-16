@@ -12,6 +12,7 @@ import {
   resetTooltips,
 } from '@fixtures/renderer/ui/tooltipTesting';
 import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
+import {previewThumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import type {MediaItem} from '@core/schema/mediaList';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {MediaPreviewPlayer} from '@renderer/features/media/MediaPreviewPlayer';
@@ -284,7 +285,7 @@ describe('media preview player', () => {
   it('shows an image without a play button, and a missing file without playing', () => {
     const image = player(mediaItem(1, {kind: 'image', file: 'notice.png'}));
     expect(image.container.querySelector('img')?.getAttribute('src')).toBe(
-      mediaUrl(mediaId(1)),
+      previewThumbnailSrc(mediaId(1)),
     );
     expect(screen.queryByRole('button', {name: '재생'})).toBeNull();
     image.unmount();

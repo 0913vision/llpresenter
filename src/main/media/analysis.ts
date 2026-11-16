@@ -1,8 +1,8 @@
+import {join} from 'node:path';
 import type {MediaId} from '@core/schema/ids';
 import type {Logger} from '../log';
 import {AnalysisFiles} from './analysisFiles';
 import {openAnalysisPage} from './analysisPage';
-import {measureImage} from './measureImage';
 import {
   MediaAnalyser,
   type Analysis,
@@ -29,6 +29,7 @@ export interface MediaAnalysis {
   readonly analyse: (request: AnalysisRequest) => Promise<Analysis>;
   /** A media item's thumbnail file, for the media scheme. */
   readonly thumbnailOf: (mediaId: string) => Promise<string | null>;
+  readonly previewThumbnailOf: (mediaId: string) => Promise<string | null>;
   /** Keeps the thumbnail an import made from a file, while the item has it. */
   readonly saveThumbnail: (
     mediaId: MediaId,
@@ -52,7 +53,6 @@ export function startMediaAnalysis({
   const analyser = new MediaAnalyser({
     openPage: signal => openAnalysisPage(log, signal),
     files,
-    measureImage,
     log,
   });
   const thumbnails = new Thumbnails({
@@ -61,6 +61,20 @@ export function startMediaAnalysis({
     source: media,
     log,
   });
+  const previews = new Thumbnails({
+    cache: new ThumbnailCache({
+      folder: join(thumbnailFolder, 'previews'),
+      extension: '.png',
+      log,
+    }),
+    analyse: request => analyser.analyse(request),
+    source: media,
+    log,
+    preserveAspect: true,
+  });
+  previews
+    .start()
+    .catch((error: unknown) => log.error('could not follow previews', error));
   thumbnails.start().catch((error: unknown) => {
     log.error('could not follow the media list for thumbnails', error);
   });
@@ -68,10 +82,12 @@ export function startMediaAnalysis({
     lentFile: token => files.fileOf(token),
     analyse: request => analyser.analyse(request),
     thumbnailOf: mediaId => thumbnails.thumbnailOf(mediaId),
+    previewThumbnailOf: mediaId => previews.thumbnailOf(mediaId),
     saveThumbnail: (mediaId, jpeg, file) =>
       thumbnails.save(mediaId, jpeg, file),
     dispose: () => {
       thumbnails.dispose();
+      previews.dispose();
       analyser.dispose();
     },
   };

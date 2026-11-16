@@ -119,6 +119,7 @@ describe('media thumbnails', () => {
       file,
       kind: 'image',
       thumbnail: true,
+      priority: true,
     });
     change(new Map());
     expect(cache.remove).not.toHaveBeenCalled();
@@ -132,6 +133,7 @@ describe('media thumbnails', () => {
       file: 'D:/media/dawn.mp4',
       kind: 'video',
       thumbnail: true,
+      priority: true,
     });
     expect(kept.get(VIDEO)).toEqual(JPEG);
     expect(await thumbnails.thumbnailOf(VIDEO)).toBe(`cache/${VIDEO}.jpg`);

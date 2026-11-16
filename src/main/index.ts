@@ -279,6 +279,7 @@ function start(): void {
         mediaRoots: dataStore.mediaRoots,
         analysisFile: analysis.lentFile,
         thumbnail: analysis.thumbnailOf,
+        previewThumbnail: analysis.previewThumbnailOf,
         log,
       });
       const win = createControlWindow(log, windowMode, zoom);

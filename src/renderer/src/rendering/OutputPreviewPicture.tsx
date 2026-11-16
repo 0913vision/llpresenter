@@ -1,9 +1,17 @@
-import {memo, useEffectEvent, useLayoutEffect, useRef, type JSX} from 'react';
+import {
+  memo,
+  useContext,
+  useEffectEvent,
+  useLayoutEffect,
+  useRef,
+  type JSX,
+} from 'react';
 import type {LiveLayers} from '@core/live/state';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {OutputRenderer} from './outputRenderer';
 import {openPreviewMedia} from './previewMedia';
+import {PreviewBounds} from './previewBounds';
 import type {RenderScreen, ThemeFrame} from './layer';
 import styles from './OutputPreviewPicture.module.css';
 
@@ -21,6 +29,7 @@ export const OutputPreviewPicture = memo(
       readonly checker: boolean;
     };
   }): JSX.Element => {
+    const bounded = useContext(PreviewBounds);
     const parent = useRef<HTMLDivElement>(null);
     const renderer = useRef<OutputRenderer | null>(null);
     const draw = useEffectEvent(() => {
@@ -37,7 +46,7 @@ export const OutputPreviewPicture = memo(
     });
     useLayoutEffect(() => {
       if (parent.current === null) return;
-      const previewMedia = openPreviewMedia(window.llp);
+      const previewMedia = openPreviewMedia(window.llp, bounded);
       const view = new OutputRenderer(parent.current, {
         transparent: appearance.screen.method === 'ndi',
         textStyle: DEFAULT_TEXT_STYLE,
@@ -53,7 +62,7 @@ export const OutputPreviewPicture = memo(
         view.dispose();
         previewMedia?.dispose();
       };
-    }, [appearance.screen.method]);
+    }, [appearance.screen.method, bounded]);
     useLayoutEffect(() => {
       draw();
     }, [layers, appearance.screen, appearance.theme]);

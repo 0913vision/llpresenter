@@ -39,6 +39,7 @@ import {
 } from './detailsHeading';
 import {detailsPicture} from './detailsPicture';
 import {DetailsInfo} from './DetailsInfo';
+import {PreviewBounds} from '@renderer/rendering/previewBounds';
 import {useItemTheme} from './ItemThemeRow';
 import {DetailsSlides} from './DetailsSlides';
 import {detailsScale} from '@renderer/platform/thumbnailScale';
@@ -478,11 +479,13 @@ function DetailsPanelContent({
           }
         >
           <div className={styles.picture}>
-            {passageProblem === undefined ? (
-              picture(0)
-            ) : (
-              <BibleLoadNotice row={passageProblem} />
-            )}
+            <PreviewBounds.Provider value>
+              {passageProblem === undefined ? (
+                picture(0)
+              ) : (
+                <BibleLoadNotice row={passageProblem} />
+              )}
+            </PreviewBounds.Provider>
           </div>
           {targetScreen === undefined ? null : (
             <SegmentedControl

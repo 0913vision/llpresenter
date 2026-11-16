@@ -1,7 +1,6 @@
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {installMockClock} from '@fixtures/mockClock';
 import {analysisTokenFromUrl} from '@contracts/ipc/mediaUrls';
-import type {PixelSize} from '@core/media/coverCrop';
 import {
   THUMBNAIL_DATA_URL_PREFIX,
   type AnalysisJob,
@@ -15,7 +14,6 @@ import {
   MediaAnalyser,
   THUMBNAIL_SIZE,
   type AnalysisPage,
-  type MediaFacts,
 } from '@main/media/mediaAnalyser';
 
 interface MockPage {
@@ -38,16 +36,13 @@ function setup() {
     pages.push(page);
     return Promise.resolve(page);
   });
-  const measureImage = vi.fn<
-    (file: string, thumbnail: PixelSize | null) => MediaFacts | null
-  >(() => null);
   const files = new AnalysisFiles();
   const log = recordingLogger();
-  const analyser = new MediaAnalyser({openPage, files, measureImage, log});
+  const analyser = new MediaAnalyser({openPage, files, log});
   onTestFinished(() => {
     analyser.dispose();
   });
-  return {analyser, pages, answers, openPage, measureImage, files, log};
+  return {analyser, pages, answers, openPage, files, log};
 }
 
 function held() {
@@ -67,14 +62,43 @@ function expectFileGivenBack(files: AnalysisFiles): void {
 }
 
 describe('media analysis', () => {
-  it('measures an image in main without opening the page', async () => {
-    const {analyser, openPage, measureImage} = setup();
-    measureImage.mockReturnValue({width: 400, height: 300});
+  it('reads images in the analysis renderer with a bounded thumbnail', async () => {
+    const {analyser, pages, answers} = setup();
+    answers.next = () => Promise.resolve({ok: true, width: 400, height: 300});
     expect(
       await analyser.analyse({file: 'a.png', kind: 'image', thumbnail: true}),
     ).toEqual({kind: 'read', facts: {width: 400, height: 300}});
-    expect(measureImage).toHaveBeenCalledWith('a.png', THUMBNAIL_SIZE);
-    expect(openPage).not.toHaveBeenCalled();
+    expect(pages[0]?.run.mock.calls[0]?.[0]).toMatchObject({
+      kind: 'image',
+      thumbnail: THUMBNAIL_SIZE,
+    });
+  });
+
+  it('decodes an aspect-preserving PNG preview from the analysis page', async () => {
+    const {analyser, pages, answers} = setup();
+    answers.next = () =>
+      Promise.resolve({
+        ok: true,
+        width: 400,
+        height: 800,
+        thumbnail: 'data:image/png;base64,AAEC',
+      });
+    expect(
+      await analyser.analyse({
+        file: 'portrait.png',
+        kind: 'image',
+        thumbnail: true,
+        preserveAspect: true,
+      }),
+    ).toEqual({
+      kind: 'read',
+      facts: {width: 400, height: 800, thumbnail: Buffer.from([0, 1, 2])},
+    });
+    expect(pages[0]?.run.mock.calls[0]?.[0]).toMatchObject({
+      kind: 'image',
+      preserveAspect: true,
+      thumbnail: {width: 960, height: 540},
+    });
   });
 
   it('reads a video in the page from a lent file and gives the file back', async () => {
@@ -106,20 +130,6 @@ describe('media analysis', () => {
     expect(files.fileOf(token)).toBeNull();
   });
 
-  it('sends an image that main cannot read, or that throws, to the page', async () => {
-    const {analyser, pages, measureImage, log} = setup();
-    await analyser.analyse({file: 'a.webp', kind: 'image', thumbnail: false});
-    measureImage.mockImplementation(() => {
-      throw new Error('Invented decoder failure');
-    });
-    await analyser.analyse({file: 'b.gif', kind: 'image', thumbnail: false});
-    expect(pages[0]?.run.mock.calls.map(([job]) => job.kind)).toEqual([
-      'image',
-      'image',
-    ]);
-    expect(log.messages('warn')).toEqual(['could not measure an image']);
-  });
-
   it("answers the decoder's refusal as a file that can't play", async () => {
     const {analyser, answers} = setup();
     answers.next = () =>
@@ -144,6 +154,29 @@ describe('media analysis', () => {
     expect(await two).toEqual({kind: 'read', facts: {}});
     expect(pages).toHaveLength(1);
     expect(pages[0]?.run).toHaveBeenCalledTimes(2);
+  });
+
+  it('prioritizes visible thumbnail requests over queued imports', async () => {
+    const {analyser, answers, pages, files} = setup();
+    const first = held();
+    const order: string[] = [];
+    answers.next = job => {
+      order.push(
+        files.fileOf(analysisTokenFromUrl(job.url) ?? '') ?? 'missing',
+      );
+      return order.length === 1 ? first.promise : Promise.resolve({ok: true});
+    };
+    const running = analyser.analyse({...VIDEO, file: 'running'});
+    const queued = analyser.analyse({...VIDEO, file: 'import'});
+    const visible = analyser.analyse({
+      ...VIDEO,
+      file: 'visible',
+      priority: true,
+    });
+    await vi.waitFor(() => expect(pages[0]?.run).toHaveBeenCalledOnce());
+    first.release({ok: true});
+    await Promise.all([running, queued, visible]);
+    expect(order).toEqual(['running', 'visible', 'import']);
   });
 
   it('closes the page after the idle time and opens a new one when needed', async () => {
@@ -278,7 +311,6 @@ describe('media analysis', () => {
         });
       },
       files,
-      measureImage: () => null,
       log: recordingLogger(),
     });
     const result = analyser.analyse(VIDEO);
