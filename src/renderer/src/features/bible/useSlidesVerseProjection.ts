@@ -17,7 +17,6 @@ export function useSlidesVerseProjection(
   item: SlidesItem,
   enabled = true,
 ) {
-  const slideBibleDefaults = useBibleDisplayDefaults(window.llp?.preferences);
   const refinementRevision = useSyncExternalStore(
     bibleRefinements.subscribe,
     bibleRefinements.getSnapshot,
@@ -29,6 +28,9 @@ export function useSlidesVerseProjection(
   const [request, setRequest] = useState({key, references});
   if (request.key !== key) setRequest({key, references});
   const active = enabled && references.length > 0;
+  const slideBibleDefaults = useBibleDisplayDefaults(
+    active ? window.llp?.preferences : undefined,
+  );
   const themes = useApiSettingsDocument({
     api,
     name: active ? 'themes' : null,

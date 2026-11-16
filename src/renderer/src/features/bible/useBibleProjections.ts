@@ -15,7 +15,18 @@ export function useBibleProjections({
   readonly enabled?: boolean;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
 } = {}) {
-  const slideBibleDefaults = useBibleDisplayDefaults(window.llp?.preferences);
+  const hasSlideVerses = useShow(
+    view =>
+      enabled &&
+      view.rows.some(
+        row =>
+          row.kind === 'slides' &&
+          view.tiles[row.id]?.some(tile => tile.verse !== undefined),
+      ),
+  );
+  const slideBibleDefaults = useBibleDisplayDefaults(
+    hasSlideVerses ? window.llp?.preferences : undefined,
+  );
   const refinementRevision = useSyncExternalStore(
     bibleRefinements.subscribe,
     bibleRefinements.getSnapshot,
