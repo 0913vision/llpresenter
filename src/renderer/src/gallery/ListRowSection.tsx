@@ -419,11 +419,7 @@ export function ListRowSection(): JSX.Element {
                     title="주 하나님 지으신 모든 세계"
                     onPress={ignore}
                   />
-                  <ListActionRow
-                    icon="music"
-                    title="찬양"
-                    onPress={ignore}
-                  />
+                  <ListActionRow icon="music" title="찬양" onPress={ignore} />
                   <ListActionRow
                     icon="prop"
                     title="로고 화면"

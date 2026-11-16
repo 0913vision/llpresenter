@@ -52,8 +52,8 @@ the font guidance only if it is missing.
 - Write documents, code comments, test names, log messages, and commit messages
   in English.
 - Keep product UI strings in Korean. Use the glossary in the design system
-  README (출력, 슬라이드, 예배 순서, 템플릿, 이름표, 지우기, 청중 화면,
-  무대 화면, 방송 화면, 테마, 진행 도구, 빠른 실행).
+  README (출력, 슬라이드, 예배 순서, 템플릿, 이름표, 지우기, 청중 화면, 무대
+  화면, 방송 화면, 테마, 진행 도구, 빠른 실행).
 - Never use middle dots (·) or em dashes (—) anywhere.
 - Don't put explanatory sentences in the UI. Show state with shape and color,
   and give reasons in tooltips.

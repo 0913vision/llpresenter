@@ -490,7 +490,7 @@ together. Other quick item names remain independent (user decision, October 26).
 | `.align`          | `"left"` \| `"center"`                          | Horizontal alignment.                                                                            |
 | `.vAlign`         | `"top"` \| `"middle"` \| `"bottom"`             | Vertical position.                                                                               |
 | `.lineHeight`     | Number above 0                                  | Line spacing, for example 1.4.                                                                   |
-| `.maxLines`       | Integer, 1 or more                              | Bible verse splitting line count; it does not cap text height.                                                                                   |
+| `.maxLines`       | Integer, 1 or more                              | Bible verse splitting line count; it does not cap text height.                                   |
 | `.margin`         | Number (%), 0 to 100                            | Margin.                                                                                          |
 | `.outline`        | `{ on, width, color }`                          | `width` 1 to 10 px, `color` `#RRGGBB`.                                                           |
 | `.shadow`         | `{ on, blur, distance, angle, opacity, color }` | `blur` 0 to 40, `distance` 0 to 20, `angle` 0 to 360, `opacity` 0 to 100 (%), `color` `#RRGGBB`. |
