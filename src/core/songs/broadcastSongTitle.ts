@@ -1,11 +1,15 @@
 import type {Song} from '../schema/song';
 
+export function isBroadcastHymnTitle(title: string): boolean {
+  return /^새찬송가\s*\d+\s*장(?:\s|$)/u.test(title);
+}
+
 /** The song name and, when present on its title slide, its hymn number. */
 export function broadcastSongTitle(
   song: Pick<Song, 'title' | 'slides'>,
 ): string {
   const title = song.title.split(/\r?\n/u)[0]?.trim() ?? '';
-  if (/^새찬송가\s*\d+\s*장(?:\s|$)/u.test(title)) return title;
+  if (isBroadcastHymnTitle(title)) return title;
   const titledNumber = /^(\d+)\s*장(?:\s|$)/u.exec(title)?.[1];
   if (titledNumber !== undefined) {
     const rest = title.replace(/^\d+\s*장\s*/u, '');

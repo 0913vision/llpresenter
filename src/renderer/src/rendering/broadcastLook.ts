@@ -1,3 +1,4 @@
+import {isBroadcastHymnTitle} from '@core/songs/broadcastSongTitle';
 import type {SlideLayer} from '@core/live/state';
 import {emptyLayers} from '@core/live/state';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
@@ -283,6 +284,7 @@ function fitSong(
       : '';
   const showTitle =
     caption === 'band' &&
+    isBroadcastHymnTitle(title) &&
     title !== '' &&
     slide?.titleSlide !== true &&
     intent.songTitle === undefined &&
