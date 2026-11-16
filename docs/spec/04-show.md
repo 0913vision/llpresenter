@@ -318,9 +318,10 @@ source was found.
   once), next on the last tile starts the next item that can output on its first
   tile, with that item's start 매크로 and 테마, and opens it in the 슬라이드
   panel, as 다음 항목 and then → do. 구역 rows and items without a 슬라이드 are
-  skipped, and on the last item next does nothing. Every command that means next
-  슬라이드 follows this (the → key, Space, Page Down). On the first tile,
-  previous does nothing (proposal).
+  skipped, and on the last item next does nothing. At the end of a Bible item
+  that is also the last service item, the stage next text stays empty. Every
+  command that means next 슬라이드 follows this (the → key, Space, Page Down).
+  On the first tile, previous does nothing (proposal).
 - A slide hot key outputs its identified `{songId, slideId}` in the open item
   deck, independently of label names. Further presses target that same slide.
   Direct library playback uses the library deck.
@@ -337,6 +338,13 @@ entering the editor never outputs a slide.
 If the operator edits the lyrics of a song on output in 준비, the output screens
 don't change until the next 슬라이드 goes out (proposal). The tiles in the
 슬라이드 panel change at once.
+
+The LIVE outline follows the same source slide through text edits and
+insertions. Deleting the live slide or its service item leaves output unchanged
+and removes the outline; stage next and the next command continue with the
+deleted slide's first surviving successor. Undo restores the outline when the
+source slide returns. This applies to song, Bible, sermon, and liturgy decks,
+including edits made in preparation.
 
 Source: `ShowH` (슬라이드 grid, 9 tiles in item slide order, background select),
 `Problems` (missing background file and 다시 연결), `SlideThumbnail` README,

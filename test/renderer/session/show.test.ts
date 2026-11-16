@@ -5,7 +5,8 @@ import {bibleSource} from '@core/bible/source';
 import {sectionCardOf} from '@core/services/sectionCards';
 import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
 import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
-import {createSongSlideId, createSongId} from '@core/schema/ids';
+import {createSongSlideId, createSongId, createSlideId} from '@core/schema/ids';
+import {liveTileIndex} from '@renderer/session/showLibrary';
 import {lookupRequest} from '@fixtures/core/bibleLookups';
 import {formLookupReply} from '@fixtures/core/bibleReplies';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
@@ -75,6 +76,204 @@ afterEach(() => {
 });
 
 describe('show state', () => {
+  it.each(['song', 'slides', 'bible'] as const)(
+    'keeps output, identity and next truthful when a live %s slide is edited, moved, deleted and restored',
+    kind => {
+      const songId = createSongId('30000000-0000-4000-8000-000000000001');
+      const tiles = [0, 1, 2].map(index => ({
+        label: `verse ${index}`,
+        labelColor: 'none' as const,
+        lines: [`line ${index}`],
+        ...(kind === 'song'
+          ? {
+              sourceSlide: {
+                songId,
+                slideId: createSongSlideId(
+                  `30000000-0000-4000-8000-00000000000${index + 1}`,
+                ),
+              },
+            }
+          : {
+              sourceSlideId: createSlideId(
+                `40000000-0000-4000-8000-00000000000${index + 1}`,
+              ),
+              ...(kind === 'bible' ? {biblePart: 1} : {}),
+            }),
+      }));
+      const [first, second, third] = tiles;
+      if (!first || !second || !third) throw Error('Missing tiles');
+      const row =
+        kind === 'song'
+          ? ({kind, id: 'deck', title: 'Deck'} as const)
+          : kind === 'bible'
+            ? ({kind, id: 'deck', title: 'Deck'} as const)
+            : ({kind, id: 'deck', title: 'Deck', form: 'blank'} as const);
+      const service = {
+        ...sampleService,
+        rows: [
+          row,
+          {kind: 'song' as const, id: 'following', title: 'Following'},
+        ],
+        tiles: {deck: tiles, following: [first]},
+      };
+      applyService({...service, revision: 2});
+      useShow.setState({openItemId: 'deck'});
+      setLive('deck', 1);
+      const live = useLive.getState().state;
+      if (!live) throw Error('Missing live state');
+      const edited = {...second, lines: ['edited']};
+      const inserted = {
+        label: null,
+        labelColor: 'none' as const,
+        lines: ['inserted'],
+      };
+      const changedNext = {...third, lines: ['updated next']};
+      const moved = [inserted, first, edited, changedNext];
+      applyService({
+        ...service,
+        revision: 3,
+        tiles: {...service.tiles, deck: moved},
+      });
+      expect(liveTileIndex(useShow.getState(), live.layers.slide)).toBe(2);
+      expect(useLive.getState().state).toBe(live);
+      expect(sent.at(-1)).toMatchObject({
+        type: 'stage.next.set',
+        next: {lines: ['updated next']},
+      });
+      sent.length = 0;
+      applyService({
+        ...service,
+        revision: 4,
+        tiles: {...service.tiles, deck: [inserted, first, changedNext]},
+      });
+      expect(liveTileIndex(useShow.getState(), live.layers.slide)).toBeNull();
+      expect(useLive.getState().state).toBe(live);
+      expect(sent.filter(command => command.type === 'stage.next.set')).toEqual(
+        [],
+      );
+      outputNext();
+      expect(slides().at(-1)).toMatchObject({
+        slide: {itemId: 'deck', position: 2, lines: ['updated next']},
+      });
+      applyService({
+        ...service,
+        revision: 5,
+        tiles: {...service.tiles, deck: moved},
+      });
+      expect(liveTileIndex(useShow.getState(), live.layers.slide)).toBe(2);
+    },
+  );
+
+  it('continues to the following item after deleting the live item and restores its marker on undo', () => {
+    const songId = createSongId('30000000-0000-4000-8000-000000000001');
+    const tiles = [0, 1].map(index => ({
+      label: null,
+      labelColor: 'none' as const,
+      lines: [`line ${index}`],
+      sourceSlide: {
+        songId,
+        slideId: createSongSlideId(
+          `30000000-0000-4000-8000-00000000000${index + 1}`,
+        ),
+      },
+    }));
+    const [first] = tiles;
+    if (!first) throw Error('Missing tile');
+    const service = {
+      ...sampleService,
+      rows: [
+        {kind: 'song' as const, id: 'deck', title: 'Deck'},
+        {kind: 'song' as const, id: 'following', title: 'Following'},
+      ],
+      tiles: {deck: tiles, following: [first]},
+    };
+    applyService({...service, revision: 2});
+    useShow.setState({openItemId: 'deck'});
+    setLive('deck', 1);
+    const live = useLive.getState().state;
+    if (!live) throw Error('Missing live state');
+    applyService({
+      ...service,
+      revision: 3,
+      rows: service.rows.slice(1),
+      tiles: {following: [first]},
+    });
+    expect(useLive.getState().state).toBe(live);
+    expect(sent.at(-1)).toMatchObject({
+      type: 'stage.next.set',
+      next: {lines: ['line 0']},
+    });
+    outputNext();
+    expect(slides().at(-1)).toMatchObject({
+      slide: {itemId: 'following', position: 0},
+    });
+    applyService({...service, revision: 4});
+    useShow.setState({openItemId: 'deck'});
+    expect(liveTileIndex(useShow.getState(), live.layers.slide)).toBe(1);
+  });
+
+  it.each(['bible', 'sermon', 'liturgy'] as const)(
+    'retains and restores a removed %s item without slide IDs',
+    kind => {
+      const row =
+        kind === 'liturgy'
+          ? {
+              kind: 'slides' as const,
+              id: 'deck',
+              title: 'Liturgy',
+              form: 'blank' as const,
+              liturgy: {kind: 'creed' as const, translation: 'new' as const},
+            }
+          : {
+              kind: 'bible' as const,
+              id: 'deck',
+              title: 'Passage',
+              ...(kind === 'sermon' ? {sermonTitle: 'Sermon'} : {}),
+            };
+      const first = {
+        label: 'first',
+        labelColor: 'none' as const,
+        lines: ['first'],
+      };
+      const second = {
+        label: 'second',
+        labelColor: 'none' as const,
+        lines: ['second'],
+      };
+      const service = {
+        ...sampleService,
+        rows: [
+          row,
+          {kind: 'song' as const, id: 'following', title: 'Following'},
+        ],
+        tiles: {deck: [first, second], following: [first]},
+      };
+      applyService({...service, revision: 2});
+      useShow.setState({openItemId: 'deck'});
+      setLive('deck', 1);
+      const live = useLive.getState().state;
+      if (!live) throw Error('Missing live state');
+      applyService({
+        ...service,
+        revision: 3,
+        rows: service.rows.slice(1),
+        tiles: {following: [first]},
+      });
+      expect(useLive.getState().state).toBe(live);
+      expect(sent.at(-1)).toMatchObject({
+        type: 'stage.next.set',
+        next: {lines: ['first']},
+      });
+      outputNext();
+      expect(slides().at(-1)).toMatchObject({
+        slide: {itemId: 'following', position: 0},
+      });
+      applyService({...service, revision: 4});
+      useShow.setState({openItemId: 'deck'});
+      expect(liveTileIndex(useShow.getState(), live.layers.slide)).toBe(1);
+    },
+  );
+
   it('sends the slide command before notifying show and live state subscribers', () => {
     const events: string[] = [];
     window.llp = mockLlpApi({
@@ -325,7 +524,7 @@ describe('show state', () => {
     });
   });
 
-  it('skips headers on the way to the next Bible item and marks standby at the end', () => {
+  it('skips headers on the way to the next Bible item and leaves its end blank', () => {
     setAtLastSlide('nextItem');
     outputTile({itemId: 'song-river', index: 2});
     expect(slides().at(-1)).toMatchObject({
@@ -338,7 +537,7 @@ describe('show state', () => {
     });
     sent.length = 0;
     outputTile({itemId: 'psalm-23', index: 2});
-    expect(slides().at(-1)?.slide.next).toMatchObject({stageStandby: true});
+    expect(slides().at(-1)?.slide.next).toBeUndefined();
   });
 
   it('previews the closing sermon title after the last verse only', () => {

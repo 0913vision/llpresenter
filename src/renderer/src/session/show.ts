@@ -1,3 +1,4 @@
+import {rememberLiveAnchor, resolveLiveAnchor} from './liveAnchor';
 import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
 import {beginQuickPassage, finishQuickPassage} from './quickReturn';
 import {parseReference} from '@core/bible/reference';
@@ -384,6 +385,8 @@ function stageStandbyNext(live: TileCursor, next: TileCursor | null): boolean {
     const row = view.rows.find(entry => entry.id === next.itemId);
     return row?.kind === 'slides' && row.title === '\uB300\uAE30 \uD654\uBA74';
   }
+  const row = view.rows.find(entry => entry.id === live.itemId);
+  if (row?.kind === 'bible') return false;
   const tiles = tilesOf(live.itemId);
   if (tiles[live.index] === undefined || live.index + 1 < tiles.length) {
     return false;
@@ -554,12 +557,16 @@ function refreshStageNext(): void {
   if (slide === null || slide === undefined) return;
   const view = useShow.getState();
   const live = projectedLiveCursor(view, slide);
-  if (live === null) return;
-  const cursor = nextTileAtLast(
-    {tilesOf, live, openItemId: live.itemId},
-    view.rows,
-    atLastSlide,
-  );
+  const anchor = resolveLiveAnchor(view, slide);
+  if (live === null && anchor === null) return;
+  const cursor =
+    live === null
+      ? (anchor?.next ?? null)
+      : nextTileAtLast(
+          {tilesOf, live, openItemId: live.itemId},
+          view.rows,
+          atLastSlide,
+        );
   const tile =
     cursor === null ? undefined : tilesOf(cursor.itemId)[cursor.index];
   const row =
@@ -578,10 +585,10 @@ function refreshStageNext(): void {
           : row.kind;
   const afterCard =
     cursor === null ? undefined : tilesOf(cursor.itemId)[cursor.index + 1];
-  const sermon = sermonNext(live);
+  const sermon = live === null ? undefined : sermonNext(live);
   const projectedNext =
     sermon ??
-    (stageStandbyNext(live, cursor)
+    (live !== null && stageStandbyNext(live, cursor)
       ? {label: null, lines: [], stageStandby: true as const}
       : tile === undefined
         ? null
@@ -600,7 +607,9 @@ function refreshStageNext(): void {
   const next =
     withStageReference(
       projectedNext,
-      sermon === undefined ? stageReference(live, cursor) : undefined,
+      sermon === undefined && live !== null
+        ? stageReference(live, cursor)
+        : undefined,
     ) ?? null;
   const key = nextKey(next);
   if (
@@ -637,11 +646,15 @@ function refreshStageNext(): void {
  * 다음 항목 and then → do.
  */
 export function outputNext(): void {
-  const cursor = nextTileAtLast(
-    sequenceState(),
-    useShow.getState().rows,
-    atLastSlide,
-  );
+  const view = useShow.getState();
+  const slide = useLive.getState().state?.layers.slide;
+  const anchor = slide == null ? null : resolveLiveAnchor(view, slide);
+  const cursor =
+    anchor !== null &&
+    anchor.live === null &&
+    (view.openItemId === null || view.openItemId === slide?.itemId)
+      ? anchor.next
+      : nextTileAtLast(sequenceState(), view.rows, atLastSlide);
   const open =
     cursor !== null &&
     cursor.itemId !== liveCursor()?.itemId &&
@@ -786,6 +799,9 @@ export function applyService(service: ShowService | null): void {
   if (isStale(service)) return;
   const view = useShow.getState();
   const changed = view.serviceId !== service.id;
+  if (!changed) {
+    rememberLiveAnchor(view, useLive.getState().state?.layers.slide ?? null);
+  }
   useShow.setState({
     revision: service.revision,
     serviceId: service.id,
@@ -831,6 +847,9 @@ export function startServiceSync(): () => void {
       refreshStageNext();
     }
   });
+  const unsubscribeShow = useShow.subscribe((next, previous) => {
+    if (next.librarySong !== previous.librarySong) refreshStageNext();
+  });
   const unsubscribe = api.service.subscribe(service => {
     if (stopped) return;
     pushed = true;
@@ -848,6 +867,7 @@ export function startServiceSync(): () => void {
   return () => {
     stopped = true;
     unsubscribeLive();
+    unsubscribeShow();
     unsubscribe();
   };
 }
