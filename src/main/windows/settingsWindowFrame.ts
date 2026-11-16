@@ -1,6 +1,7 @@
 import {BrowserWindow, screen} from 'electron';
 import type {UiZoomRegistration} from '../store/uiZoom';
 import type {Logger} from '../log';
+import type {AppConfig} from '@core/schema/appConfig';
 import {blockNavigation, loadPage, preloadPath} from './page';
 import {reloadAfterCrash} from './crashReload';
 import {appIconPath} from './appIcon';
@@ -22,10 +23,19 @@ export interface SettingsWindowFrameOptions {
 }
 
 /** Fits the fixed preferences dialog to its control window's monitor. */
-export function preferencesBounds(control: BrowserWindow) {
+export function preferencesBounds(
+  control: BrowserWindow,
+  saved?: AppConfig['preferencesWindow'],
+) {
   const area = screen.getDisplayMatching(control.getBounds()).workArea;
-  const width = Math.min(area.width, PREFERENCES_WIDTH);
-  const height = Math.min(area.height, PREFERENCES_HEIGHT);
+  const width = Math.min(
+    area.width,
+    Math.max(PREFERENCES_WIDTH, saved?.width ?? PREFERENCES_WIDTH),
+  );
+  const height = Math.min(
+    area.height,
+    Math.max(PREFERENCES_HEIGHT, saved?.height ?? PREFERENCES_HEIGHT),
+  );
   return {
     width,
     height,

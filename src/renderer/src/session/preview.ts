@@ -1,5 +1,7 @@
 import {create} from 'zustand';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
+import {parseScreenId} from '@core/schema/ids';
+import type {UiState} from '@core/schema/uiState';
 
 // NOTE(0913vision): The screen whose preview is large at the start. The other
 // screens are small tiles.
@@ -16,9 +18,11 @@ export const usePreview = create<PreviewView>(() => ({
 /** Makes a screen's preview the large one. The large one becomes small. */
 export function showLarge(screenId: string): void {
   usePreview.setState({largeScreenId: screenId});
+  const parsed = parseScreenId(screenId);
+  if (parsed.ok) window.llp?.ui.setRememberedView({previewBig: parsed.value});
 }
-
-// TODO(0913vision): Remember the large screen in `app.json` (`previewBig`)
-// once the screens come from `screens.json` with their real ids (M3-D2 in
-// docs/plans/m3-breakdown.md). Never save a placeholder id such as `main`:
-// `previewBig` must be a screen id, so `app.json` would fail its check.
+export function seedPreview(state: UiState): void {
+  usePreview.setState({
+    largeScreenId: state.previewBig ?? DEFAULT_LARGE_SCREEN_ID,
+  });
+}

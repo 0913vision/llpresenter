@@ -120,6 +120,28 @@ export function useMacroPanel({
     ],
   }));
   const [mode, setMode] = useState<MacroViewMode>('grid');
+  const touchedView = useRef(false);
+  const touchedCollection = useRef(false);
+  useEffect(() => {
+    let active = true;
+    window.llp?.ui
+      .get()
+      .then(state => {
+        if (!active) return;
+        if (!touchedView.current && state.macroView !== undefined) {
+          setMode(state.macroView);
+        }
+        if (!touchedCollection.current && state.macroCollection !== undefined) {
+          setCollection(state.macroCollection);
+        }
+      })
+      .catch((error: unknown) =>
+        console.error('Could not restore macro view', error),
+      );
+    return () => {
+      active = false;
+    };
+  }, []);
   const [menu, setMenu] = useState<{
     item: Macro;
     anchor: MenuAnchor;
@@ -240,9 +262,16 @@ export function useMacroPanel({
     };
     revision.current++;
     setCollection(item.id);
+    touchedCollection.current = true;
+    const at = revision.current;
     collectionCreation.create(
       item,
-      collectionEdit.run({kind: 'add', collection: item}),
+      collectionEdit.run({kind: 'add', collection: item}).then(saved => {
+        if (saved && at === revision.current) {
+          window.llp?.ui.setRememberedView({macroCollection: item.id});
+        }
+        return saved;
+      }),
       () =>
         setCollection(current => (current === item.id ? collection : current)),
     );
@@ -376,11 +405,15 @@ export function useMacroPanel({
   };
   const selectCollection = (id: MacroCollection['id'] | undefined): void => {
     revision.current++;
+    touchedCollection.current = true;
     setCollection(id);
+    window.llp?.ui.setRememberedView({macroCollection: id ?? null});
   };
   const changeMode = (value: MacroViewMode): void => {
     revision.current++;
+    touchedView.current = true;
     setMode(value);
+    window.llp?.ui.setRememberedView({macroView: value});
   };
   const openMenu = (
     item: Macro,
@@ -460,6 +493,10 @@ export function useMacroPanel({
   const deleteCollection = (): void => {
     if (collectionDialog?.kind !== 'delete') return;
     commitCollection({kind: 'delete', id: collectionDialog.item.id}, () => {
+      if (collection === collectionDialog.item.id) {
+        touchedCollection.current = true;
+        window.llp?.ui.setRememberedView({macroCollection: null});
+      }
       setCollection(current =>
         current === collectionDialog.item.id ? undefined : current,
       );

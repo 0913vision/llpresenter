@@ -13,6 +13,7 @@ import type {MigrationStep} from './migration';
 import {UI_ZOOM, uiZoomPercentSchema} from './uiZoom';
 import {mediaBrowserSchema} from './mediaBrowser';
 import {panelRowsSchema} from './panelRows';
+import {PREFERENCE_PAGE_IDS} from './preferencePages';
 import {
   jsonObject,
   nonNegativeNumber,
@@ -79,9 +80,14 @@ const appConfigSchema = jsonObject({
   layout: v.exactOptional(appLayoutSchema),
   screensWindow: v.exactOptional(windowPlacementSchema),
   songEditorWindow: v.exactOptional(windowPlacementSchema),
+  preferencesWindow: v.exactOptional(windowPlacementSchema),
+  preferencesPage: v.exactOptional(v.picklist(PREFERENCE_PAGE_IDS)),
   previewBig: v.exactOptional(screenIdSchema),
   macroView: v.exactOptional(v.picklist(['grid', 'list'])),
   macroCollection: v.exactOptional(macroCollectionIdSchema),
+  showToolTab: v.exactOptional(
+    v.picklist(['audio', 'stage', 'timer', 'message', 'prop', 'macro']),
+  ),
   mediaStrip: v.exactOptional(v.boolean()),
   prepMedia: v.exactOptional(v.boolean()),
   mediaBrowser: v.exactOptional(mediaBrowserSchema),

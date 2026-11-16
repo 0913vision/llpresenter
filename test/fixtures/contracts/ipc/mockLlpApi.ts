@@ -157,6 +157,7 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
       setMediaStrip: () => undefined,
       setPrepMedia: () => undefined,
       setMediaBrowser: () => undefined,
+      setRememberedView: () => undefined,
       getZoom: () => Promise.resolve(UI_ZOOM.defaultPercent),
       getZoomFactor: () => UI_ZOOM_FACTOR.default,
       changeZoom: () => Promise.resolve(UI_ZOOM.defaultPercent),

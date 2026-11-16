@@ -3,6 +3,7 @@ import {
   parseLayoutChange,
   parseMediaStripChange,
   parsePrepMediaChange,
+  parseRememberedViewChange,
   type UiState,
 } from '@core/schema/uiState';
 import {parseMediaBrowserChange} from '@core/schema/mediaBrowser';
@@ -25,14 +26,44 @@ export class UiStateStore {
 
   /** The UI state for the control window. */
   get state(): UiState {
-    const {layout, mediaStrip, prepMedia, mediaBrowser} =
-      this.options.fields.read();
+    const {
+      layout,
+      mediaStrip,
+      prepMedia,
+      mediaBrowser,
+      previewBig,
+      macroView,
+      macroCollection,
+      showToolTab,
+    } = this.options.fields.read();
     return {
       ...(layout === undefined ? {} : {layout}),
       ...(mediaStrip === undefined ? {} : {mediaStrip}),
       ...(prepMedia === undefined ? {} : {prepMedia}),
       ...(mediaBrowser === undefined ? {} : {mediaBrowser}),
+      ...(previewBig === undefined ? {} : {previewBig}),
+      ...(macroView === undefined ? {} : {macroView}),
+      ...(macroCollection === undefined ? {} : {macroCollection}),
+      ...(showToolTab === undefined ? {} : {showToolTab}),
     };
+  }
+
+  setRememberedView(value: unknown): void {
+    const change = parseRememberedViewChange(value);
+    if (!change.ok) {
+      this.options.log.warn(
+        'dropped a malformed remembered view',
+        change.error,
+      );
+      return;
+    }
+    const {macroCollection, ...rest} = change.value;
+    this.options.fields.change({
+      ...rest,
+      ...(macroCollection === undefined
+        ? {}
+        : {macroCollection: macroCollection ?? undefined}),
+    });
   }
 
   /**

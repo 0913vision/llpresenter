@@ -5,6 +5,7 @@ import {recordingLogger} from '@fixtures/main/displays/testing';
 import {loadPage} from '@main/windows/page';
 import {emptyLiveState} from '@core/live/state';
 import {registerSettingsWindow} from '@main/windows/settingsWindow';
+import {preferencesBounds} from '@main/windows/settingsWindowFrame';
 import type {ScreensWindowConfig} from '@main/windows/screens';
 import {
   PREFERENCES_HEIGHT,
@@ -134,6 +135,64 @@ beforeEach(() => {
 });
 
 afterEach(() => vi.useRealTimers());
+
+it('restores the saved preferences size within the current display', () => {
+  const control = new BrowserWindow();
+  expect(
+    preferencesBounds(control, {
+      x: 0,
+      y: 0,
+      width: 1400,
+      height: 900,
+      maximized: false,
+    }),
+  ).toMatchObject({width: 1400, height: 900});
+  expect(
+    preferencesBounds(control, {
+      x: 0,
+      y: 0,
+      width: 5000,
+      height: 5000,
+      maximized: false,
+    }),
+  ).toMatchObject({width: 1920, height: 1080});
+});
+
+it('opens the remembered preferences page and saves a later choice', async () => {
+  const control = new BrowserWindow();
+  const config = {
+    preferencesWindow: undefined,
+    preferencesPage: 'media' as const,
+    setPreferencesWindow: vi.fn(),
+    setPreferencesPage: vi.fn(),
+  };
+  const owner = registerSettingsWindow({
+    control,
+    zoom: {attachControl: vi.fn()},
+    mode: 'normal',
+    log: recordingLogger(),
+    config,
+  });
+  mocks.ipc.emit(CHANNEL);
+  const win = mocks.created.at(-1);
+  if (win === undefined) throw new Error('Missing settings window');
+  expect(
+    mocks.handlers.get(windowEndpoints.preferencesRequest.channel)?.(),
+  ).toMatchObject({page: 'media'});
+  await drawn(win);
+  win.emit('resize');
+  expect(config.setPreferencesWindow).toHaveBeenCalledWith({
+    x: 100,
+    y: 80,
+    width: 1400,
+    height: 800,
+    maximized: false,
+  });
+  mocks.ipc.emit(windowEndpoints.openPreferencesAt.channel, {}, 'shortcuts');
+  await drawn(win);
+  expect(config.setPreferencesPage).toHaveBeenLastCalledWith('shortcuts');
+  await owner.dispose();
+});
 
 async function drawn(win: (typeof mocks.created)[number]) {
   mocks.handlers.get(windowEndpoints.beginSettingsRequest.channel)?.(
@@ -729,7 +788,7 @@ describe('the shared prepared settings window', () => {
       height: 800,
       maximized: false,
     });
-    expect(win().setResizable).toHaveBeenLastCalledWith(false);
+    expect(win().setResizable).toHaveBeenLastCalledWith(true);
     await ready();
     expect(mocks.created).toHaveLength(2);
     expect(win().show).toHaveBeenCalledTimes(3);

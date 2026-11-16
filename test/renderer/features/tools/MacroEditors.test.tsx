@@ -17,6 +17,7 @@ import {
 import {useMacroPalette} from '@renderer/features/tools/state/macroPalette';
 import {
   firstMacro,
+  group,
   id,
   mockMacroPanel,
 } from '@fixtures/renderer/features/tools/macroPanelTesting';
@@ -50,6 +51,28 @@ async function mount() {
   await waitFor(() => expect(host.model.locked).toBe(false));
   return host;
 }
+
+it('restores and saves macro view and collection', async () => {
+  mockMacroPanel();
+  const api = window.llp;
+  if (api === undefined) throw new Error('Missing API');
+  const collection = (await import('@core/schema/ids')).parseMacroCollectionId(
+    group.id,
+  );
+  if (!collection.ok) throw new Error('Invalid collection');
+  vi.spyOn(api.ui, 'get').mockResolvedValue({
+    macroView: 'list',
+    macroCollection: collection.value,
+  });
+  const save = vi.spyOn(api.ui, 'setRememberedView');
+  const host = await mount();
+  await waitFor(() => expect(host.model.currentCollection).toBe(group.id));
+  expect(host.model.mode).toBe('list');
+  act(() => host.model.changeMode('grid'));
+  act(() => host.model.selectCollection(undefined));
+  expect(save).toHaveBeenCalledWith({macroView: 'grid'});
+  expect(save).toHaveBeenCalledWith({macroCollection: null});
+});
 
 it('opens eight color swatches at the macro anchor, restores focus, and saves a choice', async () => {
   const f = mockMacroPanel();
