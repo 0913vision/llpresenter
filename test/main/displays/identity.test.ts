@@ -1,6 +1,6 @@
 import {describe, expect, it, vi, afterEach} from 'vitest';
 import type {MonitorIdentity} from '@core/schema/monitorIdentity';
-import {assignMonitors} from '@main/displays/assign';
+import {assignMonitors, type DisplayRequest} from '@main/displays/assign';
 import {
   IdentityDisplaySource,
   joinMonitorIdentities,
@@ -64,6 +64,54 @@ describe('hardware assignment', () => {
       ).toBe(0);
     },
   );
+  it('reports the matching rule and a safe reason for unmatched assignments', () => {
+    const diagnostics = new Map<
+      string,
+      import('@main/displays/assign').MatchDiagnostic
+    >();
+    const legacy = {id: left.id, name: left.name, bounds: left.bounds};
+    const run = (
+      requests: readonly DisplayRequest[],
+      monitors: Array<typeof left>,
+    ) => {
+      diagnostics.clear();
+      assignMonitors(
+        {...inputs, requests, monitors: numberMonitors(monitors)},
+        diagnostics,
+      );
+      return diagnostics.get('main');
+    };
+    expect(run([request], [left])).toEqual({rule: 'identity', monitorId: 2});
+    expect(run([{screenId: 'main', display: legacy}], [left])).toEqual({
+      rule: 'saved id',
+      monitorId: 2,
+    });
+    expect(
+      run([{screenId: 'main', display: legacy}], [{...left, id: 8}]),
+    ).toEqual({rule: 'name and size', monitorId: 8});
+    expect(
+      run(
+        [{screenId: 'main', display: legacy}],
+        [{...left, id: 8, name: 'Other'}],
+      ),
+    ).toEqual({rule: 'exact rectangle', monitorId: 8});
+    expect(run([request], [{...left, identity: identity('OTHER')}])).toEqual({
+      reason: 'identity mismatch',
+    });
+    expect(run([{screenId: 'main', display: legacy}], [])).toEqual({
+      reason: 'no candidate',
+    });
+    expect(
+      run(
+        [{screenId: 'main', display: legacy}],
+        [
+          {...left, id: 8, bounds: {...left.bounds, x: 5000}},
+          {...right, id: 9},
+        ],
+      ),
+    ).toEqual({reason: 'ambiguous'});
+  });
+
   it('follows physical panels through reused IDs and changed ports', () => {
     const monitors = numberMonitors([
       {...left, id: 3, identity: identity('LEFT', 'new-left')},
@@ -316,6 +364,57 @@ describe('async identity cache', () => {
     await vi.advanceTimersByTimeAsync(1000);
     expect(listener).toHaveBeenCalledTimes(1);
   });
+  it('logs actual failures once per reason and the first success and recovery counts', async () => {
+    vi.useFakeTimers();
+    const raw = new MockDisplaySource(displayInfo({id: 2, x: 1920}));
+    const {MonitorQueryError} = await import('@main/displays/windowsMonitors');
+    const query = vi
+      .fn()
+      .mockRejectedValueOnce(new MonitorQueryError('timeout'))
+      .mockRejectedValueOnce(new MonitorQueryError('timeout'))
+      .mockRejectedValueOnce(new MonitorQueryError('invalid result'))
+      .mockResolvedValueOnce(native)
+      .mockResolvedValueOnce(native)
+      .mockRejectedValueOnce(new MonitorQueryError('WMI error'))
+      .mockResolvedValueOnce(native);
+    const log = recordingLogger();
+    const source = new IdentityDisplaySource({
+      source: raw,
+      query,
+      pixelBounds: entry => entry.bounds,
+      log,
+    });
+    const stop = source.watch(vi.fn());
+    expect(log.entries).toEqual([]);
+    await vi.advanceTimersByTimeAsync(0);
+    expect(log.entries).toEqual([
+      {
+        level: 'warn',
+        message: 'monitor identity query failed; using fallback matching',
+        detail: {reason: 'timeout'},
+      },
+    ]);
+    for (let i = 0; i < 6; i++) {
+      raw.emit();
+      await vi.advanceTimersByTimeAsync(300);
+    }
+    expect(log.messages('warn')).toHaveLength(3);
+    expect(log.entries.filter(entry => entry.level === 'info')).toEqual([
+      {
+        level: 'info',
+        message: 'monitor identity query succeeded',
+        detail: {identified: 1, total: 1},
+      },
+      {
+        level: 'info',
+        message: 'monitor identity query succeeded',
+        detail: {identified: 1, total: 1},
+      },
+    ]);
+    expect(JSON.stringify(log.entries)).not.toContain('LEFT');
+    stop();
+  });
+
   it('finishes pending status after failure and does not poll or repeat warnings', async () => {
     vi.useFakeTimers();
     const raw = new MockDisplaySource(displayInfo({id: 2}));

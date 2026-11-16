@@ -567,8 +567,10 @@ Source: `Overlays` 무대 tab, 12.
   opening a window or blocking startup.
 - If identity is not available yet, unsupported, failed or timed out, use the
   existing display ID and heuristic matching for all saved assignments, even
-  those with identity. Log the unknown state once per episode as a warning. Keep
-  a matched fullscreen output fullscreen while reading identity, including when
+  those with identity. Log each distinct query failure once until success; log
+  the first success and each recovery with identified and total counts. Log each
+  enabled output?s monitor match and rule after a settled monitor change. Keep a
+  matched fullscreen output fullscreen while reading identity, including when
   its ID, rectangle and scale remain unchanged after a topology event; retain
   the verified previous target ahead of a reused saved ID. Refine the assignment
   after a successful query; a confirmed mismatch is then missing. Limit each

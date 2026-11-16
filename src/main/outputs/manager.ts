@@ -1,5 +1,9 @@
 import type {LiveState} from '@core/live/state';
-import {assignMonitors, type DisplayRequest} from '../displays/assign';
+import {
+  assignMonitors,
+  type DisplayRequest,
+  type MatchDiagnostic,
+} from '../displays/assign';
 import {findControlMonitor, type Monitor} from '../displays/monitor';
 import type {Rect} from '../displays/rect';
 import type {MonitorRemovedListener} from '../displays/registry';
@@ -124,7 +128,7 @@ export class OutputManager {
       store.subscribe(state => this.handleLiveState(state)),
       displays.subscribe(() => {
         this.unsettledRemovals.clear();
-        this.sync();
+        this.sync(true);
       }),
       displays.subscribeRemoved(id => this.monitorRemoved(id)),
       ...(this.options.screens.subscribe
@@ -283,7 +287,7 @@ export class OutputManager {
     this.sync();
   }
 
-  private sync(): void {
+  private sync(logMatches = false): void {
     if (this.disposed) return;
     const screens = this.options.screens.list();
     this.removeWindowsNotIn(screens);
@@ -298,7 +302,11 @@ export class OutputManager {
         );
       }
     }
-    const surroundings = this.surroundings();
+    const diagnostics = logMatches
+      ? new Map<string, MatchDiagnostic>()
+      : undefined;
+    const surroundings = this.surroundings(diagnostics);
+    if (logMatches) this.logMonitorMatches(screens, surroundings, diagnostics);
     if (surroundings === null) {
       this.withoutMonitors(screens);
       return;
@@ -406,7 +414,9 @@ export class OutputManager {
     );
   }
 
-  private surroundings(): Surroundings | null {
+  private surroundings(
+    diagnostics?: Map<string, MatchDiagnostic>,
+  ): Surroundings | null {
     const {displays, screens, controlBounds, log} = this.options;
     const monitors = displays.monitors.filter(
       monitor => !this.unsettledRemovals.has(monitor.id),
@@ -416,13 +426,57 @@ export class OutputManager {
       log.warn('no monitor to place the output windows on');
       return null;
     }
-    const assigned = assignMonitors({
+    const input = {
       requests: displayRequests(screens.list()),
       monitors,
       controlMonitorId: controlMonitor.id,
       previous: this.previousMonitors,
-    });
+    };
+    const assigned =
+      diagnostics === undefined
+        ? assignMonitors(input)
+        : assignMonitors(input, diagnostics);
     return {assigned, controlMonitor};
+  }
+
+  private logMonitorMatches(
+    screens: readonly OutputScreen[],
+    surroundings: Surroundings | null,
+    diagnostics: ReadonlyMap<string, MatchDiagnostic> | undefined,
+  ): void {
+    for (const screen of screens) {
+      if (this.options.store.state.outputs[screen.id] !== true) continue;
+      const monitor = surroundings?.assigned.get(screen.id);
+      const match = diagnostics?.get(screen.id);
+      const detail =
+        monitor === undefined
+          ? {
+              screen: screen.id,
+              monitor: 'unmatched',
+              reason:
+                screen.method !== 'fullscreen' || screen.display === null
+                  ? 'not applicable'
+                  : match && 'reason' in match
+                    ? match.reason
+                    : 'no candidate',
+            }
+          : {
+              screen: screen.id,
+              monitor: monitor.id,
+              rule:
+                monitor.id === surroundings?.controlMonitor.id
+                  ? 'control conflict'
+                  : match && 'rule' in match
+                    ? match.rule
+                    : 'unknown',
+              ...(monitor.id === surroundings?.controlMonitor.id &&
+              match &&
+              'rule' in match
+                ? {matchedBy: match.rule}
+                : {}),
+            };
+      this.options.log.info('output monitor match', detail);
+    }
   }
 
   private rememberMonitors(assigned: ReadonlyMap<string, Monitor>): void {

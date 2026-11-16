@@ -506,6 +506,26 @@ describe('OutputManager placement', () => {
 });
 
 describe('OutputManager monitor removal', () => {
+  it('logs the settled disconnect and return with the actual assignment rule', async () => {
+    const actual = await vi.importActual<
+      typeof import('@main/displays/assign')
+    >('@main/displays/assign');
+    vi.mocked(assignMonitors).mockImplementation(actual.assignMonitors);
+    const {store, displays, log} = setUp([screenOn(PROJECTOR)]);
+    store.dispatch(turn(true));
+    displays.remove(PROJECTOR.id);
+    displays.change(monitorsOf(CONTROL, STAGE));
+    displays.change(MONITORS);
+    expect(
+      log.entries
+        .filter(entry => entry.message === 'output monitor match')
+        .map(entry => entry.detail),
+    ).toEqual([
+      {screen: 'main', monitor: 'unmatched', reason: 'no candidate'},
+      {screen: 'main', monitor: 2, rule: 'saved id'},
+    ]);
+  });
+
   it('demotes only the outputs on a removed monitor and holds their full screen placement until the monitors settle', () => {
     const main = screenOn(PROJECTOR);
     const {store, displays, manager} = setUp([
