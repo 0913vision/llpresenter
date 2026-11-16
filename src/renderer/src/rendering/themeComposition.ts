@@ -657,6 +657,18 @@ export class ThemeCompositionView {
     return this.page?.elements.every(view => view.ready()) ?? true;
   }
 
+  /** Identifies unready elements without exposing their content or media paths. */
+  unreadyElements(): ReadonlyArray<{kind: string; id: string}> {
+    return (this.page?.elements ?? [])
+      .filter(view => !view.ready())
+      .map(view => ({kind: view.element.kind, id: view.element.id}));
+  }
+
+  /** Show a partially prepared page when the outer transition times out. */
+  revealIncomplete(): void {
+    this.releaseLeaving();
+  }
+
   private releaseLeaving(): void {
     this.slideAnimation.cancel();
     if (this.page !== null) {

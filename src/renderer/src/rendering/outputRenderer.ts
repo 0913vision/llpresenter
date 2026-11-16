@@ -217,6 +217,21 @@ export class OutputRenderer {
     );
   }
 
+  /** Only identifiers and kinds are returned for diagnostics. */
+  unreadyElements(): ReadonlyArray<{kind: string; id: string | null}> {
+    if (this.disposed || this.testPattern) return [];
+    return [
+      ...(this.theme?.unreadyElements() ?? []),
+      ...this.layers.flatMap(({kind, hidden, view}) =>
+        !hidden && view.ready?.() === false ? [{kind, id: null}] : [],
+      ),
+    ];
+  }
+
+  revealIncomplete(): void {
+    this.theme?.revealIncomplete();
+  }
+
   /** The single full-screen surface used for picture transitions. */
   transitionSurface(): HTMLElement {
     return this.root;

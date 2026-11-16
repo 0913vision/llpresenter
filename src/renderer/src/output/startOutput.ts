@@ -6,6 +6,7 @@ import {OutputRenderer} from '../rendering/outputRenderer';
 import {SlideAnimation} from '../rendering/slideAnimation';
 import {ServiceMediaPreloader} from './serviceMediaPreloader';
 import {afterTwoFrames, waitForReady} from './waitForReady';
+import {OUTPUT_REVEAL_DEADLINE_MS} from '@core/output/revealDeadline';
 import {reverseSlideTransition} from '@core/output/transitions';
 import type {SlideTransition} from '@core/schema/slideTransition';
 import type {LiveState} from '@core/live/state';
@@ -380,6 +381,7 @@ export function startOutput({
           snapshotMode = false;
         }
       };
+      let timedOut = false;
       const reveal = (): void => {
         if (stopped || epoch !== snapshotEpoch) return;
         cancelReady = null;
@@ -391,7 +393,7 @@ export function startOutput({
               effect,
             );
             surface.style.visibility = '';
-            cancelReady = afterTwoFrames(() => {
+            const start = (): void => {
               if (stopped || epoch !== snapshotEpoch) return;
               cancelReady = null;
               try {
@@ -403,7 +405,9 @@ export function startOutput({
                 report('could not start the incoming slide', error);
                 finish();
               }
-            });
+            };
+            if (timedOut) start();
+            else cancelReady = afterTwoFrames(start);
           } else {
             animation.play(
               currentRenderer.transitionSurface(),
@@ -427,6 +431,16 @@ export function startOutput({
         cancelReady = waitForReady(
           () => incoming === renderer && complete(),
           reveal,
+          () => {
+            timedOut = true;
+            const elements = incoming.unreadyElements();
+            api.log.write({
+              level: 'warn',
+              message: `incoming slide not ready after ${OUTPUT_REVEAL_DEADLINE_MS} ms; showing it anyway`,
+              detail: JSON.stringify({screenId, elements, fontsReady}),
+            });
+            incoming.revealIncomplete();
+          },
         );
       }
     },

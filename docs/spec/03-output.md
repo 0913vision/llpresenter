@@ -296,7 +296,9 @@ replays an effect or sends output commands (05).
   duration and start time after the incoming picture is ready. Slides sharing a
   background also transition as whole pages. Independent media cues retain the
   media transition, including a cue that changes the theme. A whole-composition
-  transition has no second child effect.
+  transition has no second child effect. Wait at most 1500 ms for the incoming
+  slide; on timeout, log the unready element kinds and IDs and show the
+  available frame using the same effect.
 - Clears retain their own instant/fade behavior. Messages and other text
   elements retain their 0.2-second dissolve.
 

@@ -1,3 +1,5 @@
+import {OUTPUT_REVEAL_DEADLINE_MS} from '@core/output/revealDeadline';
+export {OUTPUT_REVEAL_DEADLINE_MS} from '@core/output/revealDeadline';
 import {sameRect, type Rect, type Size} from '../displays/rect';
 import type {FrameReadyReport} from '@core/schema/ipcPayloads';
 import type {Logger} from '../log';
@@ -71,9 +73,6 @@ export interface OutputWindowOptions {
   /** Hears every change of the renderer state. */
   readonly onRendererState?: (state: RendererState) => void;
 }
-
-/** A requested output reveals even if decoding, layout or renderer IPC stalls. */
-export const OUTPUT_REVEAL_DEADLINE_MS = 1500;
 
 /**
  * One screen's preloaded output window. It stays hidden until the current
