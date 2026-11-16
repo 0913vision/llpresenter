@@ -267,6 +267,44 @@ import {
 } from '@core/schema/ids';
 import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
 
+it('does not show a missing background while media metadata is loading', async () => {
+  const f = itemFixture();
+  const document = await f.api.media.get();
+  let finish: ((value: typeof document) => void) | undefined;
+  vi.spyOn(f.api.media, 'get').mockReturnValue(
+    new Promise(resolve => {
+      finish = resolve;
+    }),
+  );
+  useShow.setState({
+    serviceId: fixtureServiceId,
+    openItemId: fixtureItems.arranged,
+  });
+  const editor = new SongEditorStore(f.api, vi.fn());
+  const items = new ServiceItemStore(f.api, editor, vi.fn());
+  const view = render(
+    <DetailsPanel
+      sizeClass="normal"
+      target={{kind: 'item', itemId: fixtureItems.arranged}}
+      api={f.api}
+      editor={editor}
+      items={items}
+    />,
+  );
+  try {
+    await waitFor(() =>
+      expect(items.getSnapshot().item?.id).toBe(fixtureItems.arranged),
+    );
+    expect(screen.queryByText('배경 파일 없음')).toBeNull();
+    await act(async () => finish?.(document));
+    await screen.findByText(`곡, 슬라이드 ${f.first.song.slides.length}개`);
+  } finally {
+    view.unmount();
+    items.dispose();
+    await editor.dispose();
+  }
+});
+
 it.each(['bible', 'ad', 'media', 'card'] as const)(
   'shows %s details and its slides tab',
   async kind => {

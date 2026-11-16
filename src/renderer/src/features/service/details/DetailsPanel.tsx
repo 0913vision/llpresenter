@@ -38,6 +38,7 @@ import {
 } from './detailsHeading';
 import {detailsPicture} from './detailsPicture';
 import {DetailsInfo} from './DetailsInfo';
+import {useItemTheme} from './ItemThemeRow';
 import {DetailsSlides} from './DetailsSlides';
 import {detailsScale} from '@renderer/platform/thumbnailScale';
 import styles from './DetailsPanel.module.css';
@@ -127,7 +128,8 @@ function DetailsPanelContent({
   }, [items, serviceId, itemId]);
   const state = useSyncExternalStore(items.subscribe, items.getSnapshot);
   const service = state.service;
-  const raw = useItemSlides(items, editor);
+  const media = useItemMedia(editor.api.media);
+  const raw = useItemSlides(items, editor, media);
   const detailsKey =
     target === null
       ? 'none'
@@ -177,6 +179,7 @@ function DetailsPanelContent({
     target?.kind === 'item' && state.item?.id === target.itemId
       ? state.item
       : null;
+  const themeData = useItemTheme(api.settings, item);
   const showRow = useShow(view =>
     item === null ? undefined : view.rows.find(row => row.id === item.id),
   );
@@ -222,11 +225,6 @@ function DetailsPanelContent({
   });
   const bibleTiles = projection?.tiles.filter(
     tile => tile.sectionCard === undefined,
-  );
-  const media = useItemMedia(
-    editor.api.media,
-    item !== null &&
-      (isItemOfKind(item, 'media') || isItemOfKind(item, 'slides')),
   );
   const {title, kind, count} = detailsHeading({
     item: item !== null && isItemOfKind(item, 'header') ? null : item,
@@ -448,7 +446,16 @@ function DetailsPanelContent({
   }
   return (
     <RetainedDetails
-      pending={false}
+      pending={
+        (item !== null && !themeData.ready) ||
+        (item !== null &&
+          isItemOfKind(item, 'song') &&
+          state.songStatus === 'loading') ||
+        (item !== null &&
+          (isItemOfKind(item, 'song') || isItemOfKind(item, 'slides')) &&
+          media.document === null &&
+          !media.failed)
+      }
       content={
         <DetailsShell
           footer={
@@ -513,6 +520,7 @@ function DetailsPanelContent({
                 state,
                 library,
                 media,
+                themeData,
                 items,
                 editor,
                 reason,
