@@ -631,21 +631,15 @@ as every settings file does (02).
   bold 30 px reference; plain text has no strip. Empty text has no box.
 - Each broadcast screen chooses its song caption. The default band is flat black
   at 70% opacity across the full 1920 px width; its bottom is y=1040 and it has
-  26 px vertical padding. Text-only has no band and its last line ends at
-  y=1004. Both use centered white bold 67 px text, 1.25 line height and at most
-  two lines, shrinking to fit. The band text has a 0 2px 6px black shadow at
-  80%; text-only uses a 4 px shadow at 80% and 2 px offset plus a 24 px glow at
-  55%. All song lines use the same style. An empty song slide uses its title,
-  not its label. The band grows upward to show the song's library title at its
-  at x=96 in lighter 40 px semibold text, keeping the lyric position fixed. A
-  hymn's title starts with its 새찬송가 number from the song's title slide when
-  present; no English subtitle is appended. The small title is omitted on title
-  slides and whenever the band itself shows the song name. Text-only captions
-  have no title label. The capture fallback uses an unblurred hard shadow. title
-  starts with its 새찬송가 number from the song name or title slide when
-  present; a name starting with just the number and 장 gets the 새찬송가 prefix
-  without repeating its number. No English subtitle is appended. Text-only
-  captions have no title label. The capture fallback uses an unblurred hard
+  40 px vertical padding, giving a 260 px band for the two-line lyric box.
+  Text-only has no band and its last line ends at y=1004. Both use centered
+  white bold 72 px text, 1.25 line height and at most two lines, shrinking to
+  fit. The band text has a 0 2px 6px black shadow at 80%; text-only uses a 4 px
+  shadow at 80% and 2 px offset plus a 24 px glow at 55%. All song lines use the
+  same style. An empty song slide uses its title, not its label. Hymn lyric
+  slides show the normalized hymn title at x=96 in lighter 48 px semibold text;
+  ordinary song lyric slides have no small title. Title slides and text-only
+  captions have no small title. The capture fallback uses an unblurred hard
   shadow.
 - Broadcast section cards use a 234 px horizontal black fade from y=756 to
   y=990: transparent at the edges and 88% black from 18% to 82% of the width.
