@@ -496,8 +496,10 @@ Source: `Overlays`, `ShowH` (target screens in the showing list), product log
 
 ## 방송 화면
 
-- NDI output sends steadily at the selected frame rate (29.97, 30, 59.94, or 60
-  frames per second; default 30), repeating the last picture while it is still.
+- NDI output offers 29.97, 30, 59.94, or 60 frames per second (default 30).
+  While still, the sender repeats the last picture at the selected rate. Each
+  changed frame is sent immediately, so motion follows the whole-number paint
+  rate (30 or 60 fps), including when 29.97 or 59.94 is selected.
 
 - The app doesn't broadcast. It makes only the 방송 화면 screen. OBS takes it
   and lays it over the camera picture.

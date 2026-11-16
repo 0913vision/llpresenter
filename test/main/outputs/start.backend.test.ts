@@ -3,6 +3,7 @@ import {
   setup,
   loaded,
   mocks,
+  main,
 } from '@fixtures/main/outputs/startFixtures';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import {describe, expect, it, vi} from 'vitest';
@@ -11,7 +12,48 @@ import {LiveStore} from '@main/live/store';
 import {MAIN} from '@fixtures/core/overlays';
 import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 
+vi.mock('@main/ndi/output', () => ({
+  createNdiOutput: (
+    ...args: Parameters<NonNullable<typeof mocks.windows>['create']>
+  ) => {
+    if (mocks.windows === null) throw new Error('Missing windows');
+    return mocks.windows.create(...args);
+  },
+}));
+
 describe('saved output backend', () => {
+  it.each([
+    [60, true],
+    [29.97, false],
+  ] as const)(
+    'uses the NDI %s fps target for a reported 30 fps',
+    async (fps, low) => {
+      let now = 10000;
+      const clock = vi.spyOn(Date, 'now').mockImplementation(() => now);
+      try {
+        const {save, store} = setup();
+        save([{...main, kind: 'broadcast', method: 'ndi', ndi: {fps}}]);
+        await loaded();
+        store.dispatch({type: 'output.set', screenId: MAIN, on: true});
+        const report = () =>
+          mocks.handlers.get(outputEndpoints.frameRate.channel)?.(
+            {screenId: MAIN, fps: 30},
+            1,
+          );
+        report();
+        now += 2100;
+        report();
+        expect(
+          mocks.answers.get(outputEndpoints.status.channel)?.(),
+        ).toMatchObject({
+          [MAIN]: {fps: 30, fpsLow: low},
+        });
+      } finally {
+        clock.mockRestore();
+      }
+    },
+  );
+
   it('clears stale low FPS for idle health, preserves monitor loss, and measures motion again', async () => {
     let now = 10000;
     const clock = vi.spyOn(Date, 'now').mockImplementation(() => now);

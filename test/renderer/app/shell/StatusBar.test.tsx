@@ -6,6 +6,7 @@ import {StatusBar} from '@renderer/app/shell/StatusBar';
 
 const fixture = vi.hoisted((): {statuses: OutputStatuses} => ({statuses: {}}));
 const identity = vi.hoisted(() => ({unavailable: false}));
+const ndiRate = vi.hoisted((): {fps: number | undefined} => ({fps: undefined}));
 vi.mock('@renderer/features/screens/useMonitors', () => ({
   useMonitors: () => [{identityUnavailable: identity.unavailable}],
 }));
@@ -15,13 +16,18 @@ vi.mock('@renderer/features/screens/useOutputStatuses', () => ({
 vi.mock('@renderer/platform/ScreenSummaries', () => ({
   useScreenSummaries: () => [
     {id: 'stage', statusLabel: '\uBB34\uB300 \uD654\uBA74'},
-    {id: 'stream', statusLabel: '\uBC29\uC1A1 \uC790\uB9C9'},
+    {
+      id: 'stream',
+      statusLabel: '\uBC29\uC1A1 \uC790\uB9C9',
+      ndiFps: ndiRate.fps,
+    },
   ],
 }));
 afterEach(() => {
   cleanup();
   fixture.statuses = {};
   identity.unavailable = false;
+  ndiRate.fps = undefined;
 });
 
 describe('StatusBar', () => {
@@ -54,6 +60,16 @@ describe('StatusBar', () => {
     expect(
       Array.from(screen.getByRole('status').children, item => item.textContent),
     ).toEqual(['방송 자막 NDI 30fps', '하드웨어 가속 안 됨']);
+  });
+  it('shows the selected NDI frame rate in the status bar', () => {
+    ndiRate.fps = 59.94;
+    fixture.statuses = {
+      stream: {placement: 'ndi', renderer: 'running', fps: 30, fpsLow: false},
+    };
+    render(<StatusBar />);
+    expect(screen.getByRole('status').textContent).toContain(
+      '\uBC29\uC1A1 \uC790\uB9C9 NDI 59.94fps',
+    );
   });
   it('shows identity fallback as quiet text and clears it when available', () => {
     identity.unavailable = true;

@@ -1,6 +1,6 @@
+import {ndiFps, ndiPaintRate} from './frameRate';
 import {
   NDI_DEFAULT_HARDWARE_ACCELERATION,
-  NDI_DEFAULT_FPS,
   NDI_DEFAULT_SOURCE_NAME,
 } from '@core/schema/screens';
 import {
@@ -134,9 +134,7 @@ function createBitmapOutput(
   });
   win.setMinimumSize(NDI_FRAME_WIDTH, NDI_FRAME_HEIGHT);
   win.setContentSize(NDI_FRAME_WIDTH, NDI_FRAME_HEIGHT);
-  win.webContents.setFrameRate(
-    (screen.ndi?.fps ?? NDI_DEFAULT_FPS) > 30 ? 60 : 30,
-  );
+  win.webContents.setFrameRate(ndiPaintRate(ndiFps(screen)));
   const page = {name: 'output' as const, query: {screen: screen.id, ndi: '1'}};
   blockNavigation(win);
   win.on('page-title-updated', event => event.preventDefault());
@@ -272,7 +270,7 @@ function createBitmapOutput(
       serviceName: 'NDI output',
       env: {
         ...process.env,
-        LLP_NDI_FPS: String(current.ndi?.fps ?? NDI_DEFAULT_FPS),
+        LLP_NDI_FPS: String(ndiFps(current)),
         LLP_NDI_DEFAULT_SOURCE_NAME: NDI_DEFAULT_SOURCE_NAME,
         LLP_NDI_SOURCE_NAME: current.ndi?.sourceName ?? NDI_DEFAULT_SOURCE_NAME,
       },
@@ -336,18 +334,10 @@ function createBitmapOutput(
       sendGpu();
     },
     configure: next => {
+      const fpsChanged = ndiFps(next) !== ndiFps(current);
       const changed =
-        next.ndi?.sourceName !== current.ndi?.sourceName ||
-        (next.ndi?.fps ?? NDI_DEFAULT_FPS) !==
-          (current.ndi?.fps ?? NDI_DEFAULT_FPS);
-      if (
-        (next.ndi?.fps ?? NDI_DEFAULT_FPS) !==
-        (current.ndi?.fps ?? NDI_DEFAULT_FPS)
-      ) {
-        win.webContents.setFrameRate(
-          (next.ndi?.fps ?? NDI_DEFAULT_FPS) > 30 ? 60 : 30,
-        );
-      }
+        next.ndi?.sourceName !== current.ndi?.sourceName || fpsChanged;
+      if (fpsChanged) win.webContents.setFrameRate(ndiPaintRate(ndiFps(next)));
       current = next;
       if (changed && child !== null) {
         stop();
