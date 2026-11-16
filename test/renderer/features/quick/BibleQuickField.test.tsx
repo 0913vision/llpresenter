@@ -162,7 +162,9 @@ describe('BibleQuickField', () => {
         await waitFor(() =>
           expect(currentRef()).toBe('\uc694\ud55c\ubcf5\uc74c 3:16'),
         );
-        fireEvent.click(screen.getByRole('option', {name: /\uc6943:16/}));
+        fireEvent.click(
+          await screen.findByRole('option', {name: /\uc6943:16/}),
+        );
       }
       await waitFor(() =>
         expect(

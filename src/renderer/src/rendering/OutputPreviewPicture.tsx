@@ -12,7 +12,7 @@ import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {OutputRenderer} from './outputRenderer';
 import {openPreviewMedia} from './previewMedia';
-import {fontsLoading} from './fontsLoading';
+import {fontsLoading, previewReady} from './fontsLoading';
 import type {RenderScreen, ThemeFrame} from './layer';
 import styles from './OutputPreviewPicture.module.css';
 
@@ -127,7 +127,10 @@ export const OutputPreviewPicture = memo(
         if (cancelled) return;
         const expired =
           performance.now() - started >= OUTPUT_REVEAL_DEADLINE_MS;
-        if ((!renderer.ready() || fontsLoading(document.fonts)) && !expired) {
+        if (
+          (!previewReady(renderer) || fontsLoading(document.fonts)) &&
+          !expired
+        ) {
           frame = requestAnimationFrame(check);
           return;
         }

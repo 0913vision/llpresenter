@@ -61,6 +61,8 @@ import {quickDocument} from '@fixtures/renderer/features/tools/quickTesting';
 
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
+    ready = () => true;
+    revealIncomplete = () => undefined;
     constructor(private readonly parent: HTMLElement) {}
     render = vi.fn((layers: unknown, frame: unknown) => {
       this.parent.dataset['preview'] = JSON.stringify({layers, frame});

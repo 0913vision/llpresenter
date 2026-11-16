@@ -22,7 +22,15 @@ export function BufferedSlideGrid({
   const [visible, setVisible] = useState(itemKey);
   const [old, setOld] = useState(() => children);
   const stage = useRef<HTMLDivElement>(null);
+  const restoreFocus = useRef(false);
   if (visible === itemKey && old !== children) setOld(children);
+  useLayoutEffect(() => {
+    if (!restoreFocus.current || visible !== itemKey) return;
+    restoreFocus.current = false;
+    stage.current
+      ?.querySelector<HTMLElement>('[role="listbox"]')
+      ?.focus({preventScroll: true});
+  }, [visible, itemKey]);
   useLayoutEffect(() => {
     if (visible === itemKey) {
       onReveal?.(itemKey);
@@ -46,6 +54,10 @@ export function BufferedSlideGrid({
         (ready && !pending && complete) ||
         performance.now() - start >= OUTPUT_REVEAL_DEADLINE_MS
       ) {
+        restoreFocus.current =
+          stage.current?.previousElementSibling?.contains(
+            document.activeElement,
+          ) ?? false;
         setVisible(itemKey);
         onReveal?.(itemKey);
       } else {

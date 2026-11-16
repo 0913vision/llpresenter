@@ -426,7 +426,7 @@ it('obeys slide boundaries and starts at the first slide on down when nothing is
 it('shows grid focus only after Tab entry, not pointer followed by arrows', () => {
   render(<SlideGrid columns={4} scalePercent={100} />);
   const grid = screen.getByRole('listbox', {name: '\uc2ac\ub77c\uc774\ub4dc'});
-  const keeper = grid.parentElement?.parentElement;
+  const keeper = grid.closest('[data-show-slide-grid]');
   expect(keeper).not.toBeNull();
   fireEvent.pointerDown(slide(0));
   fireEvent.click(slide(0));

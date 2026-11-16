@@ -25,6 +25,8 @@ import type {Notice} from '@renderer/ui/notices';
 
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
+    ready = () => true;
+    revealIncomplete = () => undefined;
     render = vi.fn();
     dispose = vi.fn();
   },

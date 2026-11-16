@@ -93,30 +93,43 @@ describe('SlidePanelMeta', () => {
     expect(container.textContent).toBe('');
   });
 
-  it('shows the item name without a header count when the item is not live', () => {
-    openItem('song-morning');
-    render(<SlidePanelMeta />);
-    expect(screen.getByText('아침이 밝아 오네')).toBeTruthy();
-    expect(screen.queryByText('슬라이드 4개')).toBeNull();
-  });
-
-  it('shows the live position of the open item', () => {
-    openItem('song-morning');
-    setLiveSlide('song-morning', 1);
-    render(<SlidePanelMeta />);
-    expect(screen.getByText('2 / 4')).toBeTruthy();
-  });
-
-  it('follows the open item', () => {
+  it('shows the item name without a header count when the item is not live', async () => {
     openItem('song-morning');
     render(
       <>
         <SlidePanelMeta />
+        <SlidePanelBody sizeClass="normal" />
+      </>,
+    );
+    expect(await screen.findByText('아침이 밝아 오네')).toBeTruthy();
+    expect(screen.queryByText('슬라이드 4개')).toBeNull();
+  });
+
+  it('shows the live position of the open item', async () => {
+    openItem('song-morning');
+    setLiveSlide('song-morning', 1);
+    render(
+      <>
+        <SlidePanelMeta />
+        <SlidePanelBody sizeClass="normal" />
+      </>,
+    );
+    expect(await screen.findByText('2 / 4')).toBeTruthy();
+  });
+
+  it('follows the open item', async () => {
+    openItem('song-morning');
+    render(
+      <>
+        <SlidePanelMeta />
+        <SlidePanelBody sizeClass="normal" />
         <SlidePanelFooter sizeClass="normal" />
       </>,
     );
     act(() => openItem('song-river'));
-    expect(screen.getByText('맑은 시냇물')).toBeTruthy();
+    expect(
+      await screen.findByText('맑은 시냇물', {}, {timeout: 3000}),
+    ).toBeTruthy();
     expect(screen.getByText('3개')).toBeTruthy();
   });
 });

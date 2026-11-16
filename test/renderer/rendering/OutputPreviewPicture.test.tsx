@@ -11,6 +11,7 @@ vi.mock('@renderer/rendering/outputRenderer', () => ({
     render = renderOutput;
     dispose = disposeOutput;
     ready = () => true;
+    revealIncomplete = () => undefined;
   },
 }));
 vi.mock('@renderer/rendering/previewMedia', () => ({
