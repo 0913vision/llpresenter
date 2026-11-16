@@ -309,8 +309,8 @@ export function startOutput({
       : slide.transition;
   };
   const clearRetired = (): void => {
-    for (const previous of retired.splice(0)) previous.dispose();
     for (const animation of animations.splice(0)) animation.cancel();
+    for (const previous of retired.splice(0)) previous.dispose();
   };
   const stopFollowing = followLiveState(
     api.live,
@@ -329,7 +329,7 @@ export function startOutput({
         (old?.itemId !== slide.itemId ||
           old.position !== slide.position ||
           uncoveringBlack);
-      const currentRenderer = renderer;
+      let currentRenderer = renderer;
       if (changed) {
         preloader?.request({itemId: slide.itemId, index: slide.position});
       }
@@ -360,6 +360,15 @@ export function startOutput({
         applyState(state);
         return;
       }
+      // NOTE(0913vision): An interrupted unready slide must not replace the visible outgoing picture.
+      if (currentRenderer.transitionSurface().style.visibility === 'hidden') {
+        const visible = retired.pop();
+        if (visible !== undefined) {
+          currentRenderer.dispose();
+          currentRenderer = visible;
+        }
+      }
+      clearRetired();
       currentRenderer.freeze();
       retired.push(currentRenderer);
       renderer = new OutputRenderer(root, {
@@ -400,7 +409,7 @@ export function startOutput({
                 animation.start();
                 const completion = animation.finished();
                 if (completion === null) finish();
-                else void completion.then(finish, () => undefined);
+                else void completion.then(finish, finish);
               } catch (error) {
                 report('could not start the incoming slide', error);
                 finish();
@@ -417,7 +426,7 @@ export function startOutput({
             surface.style.visibility = '';
             const completion = animation.finished();
             if (completion === null) finish();
-            else void completion.then(finish, () => undefined);
+            else void completion.then(finish, finish);
           }
         } catch (error) {
           report('could not animate the incoming slide', error);
