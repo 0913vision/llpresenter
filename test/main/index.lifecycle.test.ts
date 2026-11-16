@@ -25,7 +25,9 @@ describe('main entry lifecycle', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
 
   it('passes the shared zoom registration only to the control window and disposes it before saving app.json', async () => {
     await startMain();
-    expect(mocks.zoomForControl).toEqual([mocks.zoom]);
+    expect(mocks.zoomForControl).toHaveLength(1);
+    expect(mocks.zoomForControl[0]).toHaveProperty('outputsReady');
+    expect(mocks.zoomForControl[0]).toHaveProperty('attachControl');
     beforeQuit();
     await vi.waitFor(() => expect(mocks.appConfig.flush).toHaveBeenCalled());
     expect(mocks.zoom.dispose).toHaveBeenCalledOnce();

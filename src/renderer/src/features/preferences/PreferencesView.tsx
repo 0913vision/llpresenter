@@ -36,6 +36,13 @@ import type {LabelManagerHandle} from '../songs/editor/LabelManager';
 
 const NAV_LABEL = '환경설정 항목';
 const noSubscribe = () => () => undefined;
+function preferencesFontsReady(): Promise<unknown> {
+  try {
+    return document.fonts.ready;
+  } catch {
+    return Promise.resolve();
+  }
+}
 
 interface PreferencesViewProps {
   readonly onProblem: (notice: Notice) => void;
@@ -232,7 +239,8 @@ function PreferencesContent({
       announced.current = request;
       onReady(request);
     };
-    document.fonts.ready.then(draw, (error: unknown) => {
+    const fontsReady = preferencesFontsReady();
+    fontsReady.then(draw, (error: unknown) => {
       window.llp?.log.write({
         level: 'error',
         message: 'Could not prepare preferences fonts',
@@ -243,7 +251,16 @@ function PreferencesContent({
     return () => {
       stopped = true;
     };
-  }, [started, loaded, onReady, pageRequest, page, request, readiness]);
+  }, [
+    started,
+    loaded,
+    onReady,
+    pageRequest,
+    page,
+    request,
+    readiness,
+    pending,
+  ]);
   const bible = useBibleEdits(onProblem);
   const current = preferencePages.find(entry => entry.id === page);
   const choosePage = (next: PreferencePageId): void => {
