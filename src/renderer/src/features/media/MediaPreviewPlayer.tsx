@@ -114,7 +114,7 @@ export function MediaPreviewPlayer({
   useEffect(() => {
     const element = media.current;
     if (element === null) return;
-    element.muted = !shown.audio;
+    element.muted = item.kind !== 'audio' && !shown.audio;
     element.volume = shown.volume / MAX_VOLUME;
     applyPlaybackRate(element, shown.speed);
   }, [item.kind, missing, shown.audio, shown.volume, shown.speed, activated]);

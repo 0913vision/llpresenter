@@ -399,3 +399,38 @@ describe('BackgroundLayerView', () => {
     expect(videos[0].hasAttribute('src')).toBe(false);
   });
 });
+
+it.each([true, false])('honors a video range with loop %s', loop => {
+  const {view, videos} = setUp();
+  const setter = Object.getOwnPropertyDescriptor(
+    HTMLMediaElement.prototype,
+    'currentTime',
+  )?.set;
+  if (setter === undefined) throw new Error('Missing currentTime setter');
+  vi.mocked(setter).mockRestore();
+  const video = videos[1];
+  Object.defineProperty(video, 'duration', {configurable: true, value: 30});
+  view.show(
+    {
+      ...WARM_LIGHT,
+      startedAt: Date.now(),
+      loop,
+      properties: {
+        in: 5,
+        out: 10,
+        speed: 1,
+        fit: 'fill',
+        volume: 100,
+        audio: false,
+      },
+    },
+    false,
+  );
+  video.dispatchEvent(new Event('loadedmetadata'));
+  expect(video.currentTime).toBeCloseTo(5, 1);
+  video.currentTime = 10;
+  video.dispatchEvent(new Event('timeupdate'));
+  expect(video.currentTime).toBe(loop ? 5 : 10);
+  if (!loop) expect(vi.mocked(video.pause)).toHaveBeenCalled();
+  view.dispose();
+});

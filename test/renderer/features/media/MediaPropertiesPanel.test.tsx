@@ -271,3 +271,13 @@ it('shows the fit precedence tooltip on keyboard focus', async () => {
   );
   match.mockRestore();
 });
+
+it('hides video-only controls for audio and retains volume', async () => {
+  setup();
+  const panel = await choose('Hymn');
+  expect(
+    within(panel).queryByRole('radiogroup', {name: '\ub05d\ub098\uba74'}),
+  ).toBeNull();
+  expect(within(panel).queryByRole('checkbox')).toBeNull();
+  expect(within(panel).getByRole('slider')).toHaveProperty('disabled', false);
+});

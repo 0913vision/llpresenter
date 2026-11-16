@@ -94,34 +94,22 @@ it('keeps output in the default group and service insertion beside library comma
 it('lists the media tile rows and icons in ProPresenter order', () => {
   const entries = mediaTileMenuEntries(entry, actions());
   expect(rows(entries)).toEqual([
-    '속성',
-    '전환 효과…',
+    '\uc18d\uc131',
     '|',
-    '동작',
-    '맞춤',
-    '알파',
+    '\ub9de\ucda4',
+    '\ub05d\ub098\uba74',
     '|',
-    '재생',
-    '반복',
-    '끝나면',
+    '\ubcf5\uc81c',
+    '\uc774\ub984 \ubc14\uafb8\uae30',
+    '\uc0ad\uc81c',
     '|',
-    '다음 항목',
-    '|',
-    '잘라내기',
-    '복사',
-    '붙여넣기',
-    '복제',
-    '이름 바꾸기',
-    '삭제',
-    '|',
-    '탐색기에서 보기',
-    '정리 기준',
+    '\ud0d0\uc0c9\uae30\uc5d0\uc11c \ubcf4\uae30',
   ]);
   expect(
     entries
       .filter(row => row.kind === 'item' && row.icon !== undefined)
       .map(row => row.id),
-  ).toEqual(['cut', 'copy', 'paste', 'duplicate', 'delete']);
+  ).toEqual(['duplicate', 'delete']);
   for (const row of entries) {
     if (
       row.kind === 'item' &&
@@ -149,15 +137,13 @@ it('lists the audio playlist item rows without icons', () => {
     actions({audioPlaylist: true, inPlaylist: true}),
   );
   expect(rows(entries)).toEqual([
-    '탐색기에서 보기',
-    '재생',
-    '효과음으로 지정',
+    '\ud0d0\uc0c9\uae30\uc5d0\uc11c \ubcf4\uae30',
     '|',
-    '속성',
-    '복제',
-    '이름 바꾸기',
+    '\uc18d\uc131',
+    '\ubcf5\uc81c',
+    '\uc774\ub984 \ubc14\uafb8\uae30',
     '|',
-    '삭제',
+    '\uc0ad\uc81c',
   ]);
   expect(
     entries.some(row => row.kind === 'item' && row.icon !== undefined),
@@ -168,12 +154,11 @@ it('keeps relink first, removal before delete, and only cancellation while copyi
   const handlers = actions({missing: true, inPlaylist: true});
   const entries = mediaTileMenuEntries(entry, handlers);
   expect(rows(entries).slice(0, 3)).toEqual(['다시 연결…', '|', '속성']);
-  expect(rows(entries).slice(-5)).toEqual([
+  expect(rows(entries).slice(-4)).toEqual([
     '재생목록에서 빼기',
     '삭제',
     '|',
     '탐색기에서 보기',
-    '정리 기준',
   ]);
   for (const id of ['relink', 'leave', 'delete']) {
     const row = entries.find(value => value.id === id);
@@ -295,7 +280,7 @@ it('shows the current 맞춤 and 끝나면 with a check and writes the property 
   pick(end, '반복');
   expect(setProps).toHaveBeenNthCalledWith(1, video.id, {fit: 'fit'});
   expect(setProps).toHaveBeenNthCalledWith(2, video.id, {end: 'loop'});
-  expect(choices(entries, 'loop').disabled).toBe(true);
+  expect(entries.some(row => row.id === 'loop')).toBe(false);
 });
 
 it('checks the defaults 채우기 and 반복 for a media with no properties', () => {

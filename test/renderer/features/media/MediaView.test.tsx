@@ -256,8 +256,6 @@ describe('media view', () => {
           item.getAttribute('role') === 'separator' ? '|' : item.textContent,
       ),
     ).toEqual([
-      '재생',
-      '효과음으로 지정',
       '속성',
       '이름 바꾸기',
       '|',
