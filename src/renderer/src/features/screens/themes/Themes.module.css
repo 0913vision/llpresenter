@@ -21,7 +21,8 @@
   container-type: inline-size;
 }
 .elementList {
-  flex: 0 1 auto;
+  /* NOTE(0913vision): Layout contents must not move the sidebar panels. */
+  flex: 0 1 calc(var(--size-row) * 8 + var(--size-panel-header));
   min-height: var(--size-panel-header);
   max-height: calc(var(--size-row) * 8 + var(--size-panel-header));
 }
