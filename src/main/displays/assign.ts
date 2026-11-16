@@ -28,9 +28,20 @@ export interface AssignmentInput {
   readonly previous: ReadonlyMap<string, number>;
 }
 
+export type MatchRule =
+  'identity' | 'saved id' | 'previous id' | 'name and size' | 'exact rectangle';
+export type UnmatchedReason =
+  | 'no candidate'
+  | 'ambiguous'
+  | 'taken by another screen'
+  | 'identity mismatch';
+export type MatchDiagnostic =
+  {rule: MatchRule; monitorId: number} | {reason: UnmatchedReason};
+
 type Matcher = (request: DisplayRequest, monitor: Monitor) => boolean;
 
 interface Pass {
+  readonly rule: MatchRule;
   readonly matches: Matcher;
   readonly allowsControlMonitor: boolean;
 }
@@ -38,19 +49,23 @@ interface Pass {
 function passes(previous: ReadonlyMap<string, number>): readonly Pass[] {
   return [
     {
+      rule: 'saved id',
       matches: ({display}, {id}) => display.id === id,
       allowsControlMonitor: true,
     },
     {
+      rule: 'previous id',
       matches: ({screenId}, {id}) => previous.get(screenId) === id,
       allowsControlMonitor: true,
     },
     {
+      rule: 'name and size',
       matches: ({display}, monitor) =>
         display.name === monitor.name && samePixelSize(display, monitor),
       allowsControlMonitor: false,
     },
     {
+      rule: 'exact rectangle',
       matches: ({display}, monitor) => sameRect(display.bounds, monitor.bounds),
       allowsControlMonitor: false,
     },
@@ -72,7 +87,13 @@ function samePixelSize(saved: SavedDisplay, current: Monitor): boolean {
 function matchUnambiguously(
   {requests, monitors, controlMonitorId}: AssignmentInput,
   pass: Pass,
-  assigned: Map<string, Monitor>,
+  {
+    assigned,
+    diagnostics,
+  }: {
+    assigned: Map<string, Monitor>;
+    diagnostics: Map<string, MatchDiagnostic> | undefined;
+  },
 ): void {
   const taken = new Set([...assigned.values()].map(({id}) => id));
   const free = monitors.filter(
@@ -93,6 +114,22 @@ function matchUnambiguously(
     const [only] = found;
     if (found.length === 1 && only !== undefined && wanted.get(only.id) === 1) {
       assigned.set(request.screenId, only);
+      diagnostics?.set(request.screenId, {rule: pass.rule, monitorId: only.id});
+    } else if (diagnostics !== undefined) {
+      const before = diagnostics.get(request.screenId);
+      if (
+        found.length > 1 ||
+        (only !== undefined && (wanted.get(only.id) ?? 0) > 1)
+      ) {
+        diagnostics.set(request.screenId, {reason: 'ambiguous'});
+      } else if (
+        before === undefined &&
+        monitors.some(
+          monitor => taken.has(monitor.id) && pass.matches(request, monitor),
+        )
+      ) {
+        diagnostics.set(request.screenId, {reason: 'taken by another screen'});
+      }
     }
   }
 }
@@ -106,6 +143,7 @@ function matchUnambiguously(
  */
 export function assignMonitors(
   input: AssignmentInput,
+  diagnostics?: Map<string, MatchDiagnostic>,
 ): ReadonlyMap<string, Monitor> {
   const assigned = new Map<string, Monitor>();
   const unknown = input.monitors.some(
@@ -119,6 +157,7 @@ export function assignMonitors(
   matchUnambiguously(
     input,
     {
+      rule: 'identity',
       matches: ({screenId, display}, monitor) => {
         const serial = monitorSerialKey(display.identity);
         return (
@@ -129,11 +168,12 @@ export function assignMonitors(
       },
       allowsControlMonitor: true,
     },
-    assigned,
+    {assigned, diagnostics},
   );
   matchUnambiguously(
     input,
     {
+      rule: 'identity',
       matches: ({screenId, display}, monitor) =>
         mayUseIdentity(screenId, monitor) &&
         display.identity !== undefined &&
@@ -142,7 +182,7 @@ export function assignMonitors(
           monitor.identity?.devicePath.toUpperCase(),
       allowsControlMonitor: true,
     },
-    assigned,
+    {assigned, diagnostics},
   );
   const requested = new Map<number, number>();
   for (const {display} of input.requests) {
@@ -164,7 +204,31 @@ export function assignMonitors(
   // the operator's window or over another screen's output when the real
   // monitor is unplugged.
   for (const pass of passes(input.previous)) {
-    matchUnambiguously(unique, pass, assigned);
+    matchUnambiguously(unique, pass, {assigned, diagnostics});
+  }
+  if (diagnostics !== undefined) {
+    for (const {screenId, display} of input.requests) {
+      if (assigned.has(screenId)) continue;
+      if (
+        requested.get(display.id) !== undefined &&
+        (requested.get(display.id) ?? 0) > 1
+      ) {
+        diagnostics.set(screenId, {reason: 'ambiguous'});
+      } else if (!diagnostics.has(screenId)) {
+        diagnostics.set(screenId, {
+          reason:
+            !unknown &&
+            display.identity !== undefined &&
+            passes(input.previous).some(pass =>
+              input.monitors.some(monitor =>
+                pass.matches({screenId, display}, monitor),
+              ),
+            )
+              ? 'identity mismatch'
+              : 'no candidate',
+        });
+      }
+    }
   }
   return assigned;
 }

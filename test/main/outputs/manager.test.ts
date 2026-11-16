@@ -139,8 +139,8 @@ function nextOutputs(
   return {...outputs, [command.screenId]: command.on};
 }
 
-function mockStore() {
-  let state: LiveState = emptyLiveState();
+function mockStore(outputs: LiveState['outputs'] = {}) {
+  let state: LiveState = {...emptyLiveState(), outputs};
   const listeners = new Set<(state: LiveState) => void>();
   return {
     get state() {
@@ -208,10 +208,12 @@ function outputOf(screenId: string) {
 function setUp(
   screens: readonly OutputScreen[] = [screenOn(PROJECTOR)],
   monitors: readonly Monitor[] = MONITORS,
+  options: {outputs?: LiveState['outputs']; screensReady?: boolean} = {},
 ) {
-  const store = mockStore();
+  const store = mockStore(options.outputs);
   const displays = new MockMonitorFeed(monitors);
   const source = new MockScreenSource(screens);
+  source.ready = options.screensReady ?? true;
   const log = recordingLogger();
   const onStatusChange = vi.fn();
   const manager = new OutputManager({
@@ -505,7 +507,138 @@ describe('OutputManager placement', () => {
   });
 });
 
+describe('OutputManager startup and output switch logging', () => {
+  it.each([true, false])(
+    'logs an enabled unmatched screen once when the startup identity query settles (failed: %s)',
+    async failed => {
+      const actual = await vi.importActual<
+        typeof import('@main/displays/assign')
+      >('@main/displays/assign');
+      vi.mocked(assignMonitors).mockImplementation(actual.assignMonitors);
+      const pending = monitorsOf(CONTROL).map(monitor => ({
+        ...monitor,
+        identityPending: true,
+        identityUnknown: true,
+      }));
+      const {displays, log, manager} = setUp([screenOn(PROJECTOR)], pending, {
+        outputs: {main: true},
+      });
+      const entries = () =>
+        log.entries
+          .filter(entry => entry.message === 'output monitor match')
+          .map(entry => entry.detail);
+      expect(entries()).toEqual([]);
+      displays.change(
+        pending.map(monitor => ({
+          ...monitor,
+          identityPending: false,
+          identityUnknown: failed,
+        })),
+      );
+      expect(entries()).toEqual([
+        {screen: 'main', monitor: 'unmatched', reason: 'no candidate'},
+      ]);
+      manager.dispose();
+    },
+  );
+
+  it('logs an already enabled output on the first sync when identity is settled', async () => {
+    const actual = await vi.importActual<
+      typeof import('@main/displays/assign')
+    >('@main/displays/assign');
+    vi.mocked(assignMonitors).mockImplementation(actual.assignMonitors);
+    const {log, manager} = setUp([screenOn(PROJECTOR)], monitorsOf(CONTROL), {
+      outputs: {main: true},
+    });
+    expect(
+      log.entries
+        .filter(entry => entry.message === 'output monitor match')
+        .map(entry => entry.detail),
+    ).toEqual([{screen: 'main', monitor: 'unmatched', reason: 'no candidate'}]);
+    manager.dispose();
+  });
+
+  it('logs an enabled screen when its settings arrive after the initial sync', async () => {
+    const actual = await vi.importActual<
+      typeof import('@main/displays/assign')
+    >('@main/displays/assign');
+    vi.mocked(assignMonitors).mockImplementation(actual.assignMonitors);
+    const {source, log, manager} = setUp([], monitorsOf(CONTROL), {
+      outputs: {main: true},
+      screensReady: false,
+    });
+    expect(
+      log
+        .messages('info')
+        .filter(message => message === 'output monitor match'),
+    ).toHaveLength(0);
+    source.ready = true;
+    source.announce([screenOn(PROJECTOR)]);
+    expect(
+      log.entries
+        .filter(entry => entry.message === 'output monitor match')
+        .map(entry => entry.detail),
+    ).toEqual([{screen: 'main', monitor: 'unmatched', reason: 'no candidate'}]);
+    source.announce([screenOn(PROJECTOR)]);
+    expect(
+      log
+        .messages('info')
+        .filter(message => message === 'output monitor match'),
+    ).toHaveLength(1);
+    manager.dispose();
+  });
+
+  it('logs only the screen newly turned on, including an unmatched monitor', async () => {
+    const actual = await vi.importActual<
+      typeof import('@main/displays/assign')
+    >('@main/displays/assign');
+    vi.mocked(assignMonitors).mockImplementation(actual.assignMonitors);
+    const {store, log, manager} = setUp(
+      [screenOn(PROJECTOR), screenOn(STAGE, {id: 'stage'})],
+      monitorsOf(CONTROL, STAGE),
+    );
+    store.dispatch(turn(true, 'stage'));
+    store.dispatch(turn(true));
+    expect(
+      log.entries
+        .filter(entry => entry.message === 'output monitor match')
+        .map(entry => entry.detail),
+    ).toEqual([
+      {screen: 'stage', monitor: 3, rule: 'saved id'},
+      {screen: 'main', monitor: 'unmatched', reason: 'no candidate'},
+    ]);
+    store.dispatch(turn(false));
+    expect(
+      log
+        .messages('info')
+        .filter(message => message === 'output monitor match'),
+    ).toHaveLength(2);
+    manager.dispose();
+  });
+});
+
 describe('OutputManager monitor removal', () => {
+  it('logs the settled disconnect and return with the actual assignment rule', async () => {
+    const actual = await vi.importActual<
+      typeof import('@main/displays/assign')
+    >('@main/displays/assign');
+    vi.mocked(assignMonitors).mockImplementation(actual.assignMonitors);
+    const {store, displays, log} = setUp([screenOn(PROJECTOR)]);
+    store.dispatch(turn(true));
+    displays.remove(PROJECTOR.id);
+    displays.change(monitorsOf(CONTROL, STAGE));
+    displays.change(MONITORS);
+    expect(
+      log.entries
+        .filter(entry => entry.message === 'output monitor match')
+        .map(entry => entry.detail),
+    ).toEqual([
+      {screen: 'main', monitor: 2, rule: 'saved id'},
+      {screen: 'main', monitor: 'unmatched', reason: 'no candidate'},
+      {screen: 'main', monitor: 2, rule: 'saved id'},
+    ]);
+  });
+
   it('demotes only the outputs on a removed monitor and holds their full screen placement until the monitors settle', () => {
     const main = screenOn(PROJECTOR);
     const {store, displays, manager} = setUp([

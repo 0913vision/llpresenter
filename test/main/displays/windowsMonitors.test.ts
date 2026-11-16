@@ -154,6 +154,24 @@ it.each(['bad JSON', '{"paths":"wrong","wmi":[]}'])(
   },
 );
 
+it.each([
+  [Object.assign(new Error('hidden detail'), {killed: true}), '', 'timeout'],
+  [
+    new Error('hidden detail'),
+    'Get-CimInstance: confidential path',
+    'WMI error',
+  ],
+  [new Error('hidden detail'), 'command failure', 'PowerShell error'],
+] as const)(
+  'classifies query failures safely',
+  async (error, stderr, reason) => {
+    native.exec.mockImplementation((...args) => args[3](error, '', stderr));
+    await expect(
+      readWindowsMonitors(new AbortController().signal),
+    ).rejects.toMatchObject({reason});
+  },
+);
+
 it('rejects timeout/abort/command failures without using partial output', async () => {
   native.exec.mockImplementation((...args) =>
     args[3](new Error('aborted'), '{"paths":[],"wmi":[]}', ''),
@@ -165,6 +183,6 @@ it('rejects timeout/abort/command failures without using partial output', async 
   vi.stubEnv('SystemRoot', undefined);
   await expect(
     readWindowsMonitors(new AbortController().signal),
-  ).rejects.toThrow('Windows directory unavailable');
+  ).rejects.toMatchObject({reason: 'Windows directory unavailable'});
   expect(native.exec).not.toHaveBeenCalled();
 });

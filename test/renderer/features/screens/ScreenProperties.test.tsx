@@ -544,7 +544,8 @@ describe('the screen properties', () => {
       const user = userEvent.setup();
       await nameField();
       expect(
-        screen.getByRole('button', {name: '메시지 스타일'}).textContent,
+        (await screen.findByRole('button', {name: '메시지 스타일'}))
+          .textContent,
       ).toContain('기본');
 
       await user.click(screen.getByRole('button', {name: '메시지 스타일'}));
@@ -565,7 +566,7 @@ describe('the screen properties', () => {
       const {edits} = setup({access: 'readOnly', messageStyles: [bigStyle]});
       const user = userEvent.setup();
       await nameField();
-      const row = screen.getByRole('button', {name: '메시지 스타일'});
+      const row = await screen.findByRole('button', {name: '메시지 스타일'});
 
       expect(row.getAttribute('aria-disabled')).toBe('true');
       await user.click(row);

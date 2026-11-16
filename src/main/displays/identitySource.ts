@@ -8,6 +8,7 @@ import {
 } from './registry';
 import {sameRect, type Rect} from './rect';
 import type {NativeMonitorIdentity} from '@core/schema/windowsMonitors';
+import {MonitorQueryError} from './windowsMonitors';
 
 interface IdentitySourceOptions {
   readonly source: DisplaySource;
@@ -64,7 +65,9 @@ export class IdentityDisplaySource implements DisplaySource {
   private controller: AbortController | undefined;
   private pending = true;
   private known = false;
-  private warned = false;
+  private readonly failures = new Set<string>();
+  private loggedSuccess = false;
+  private failedSinceSuccess = false;
   private retried = false;
   private stopped = false;
   private listener: ((change: DisplayChange) => void) | undefined;
@@ -85,7 +88,6 @@ export class IdentityDisplaySource implements DisplaySource {
 
   watch(listener: (change: DisplayChange) => void): () => void {
     this.listener = listener;
-    this.warnFallback();
     const stop = this.options.source.watch(change => {
       this.generation++;
       this.retried = false;
@@ -97,7 +99,6 @@ export class IdentityDisplaySource implements DisplaySource {
       this.controller?.abort();
       this.pending = true;
       this.known = false;
-      this.warnFallback();
       this.schedule(DISPLAY_SETTLE_MS);
       listener(change);
     });
@@ -148,11 +149,33 @@ export class IdentityDisplaySource implements DisplaySource {
       );
       this.verified = after;
       this.known = true;
-      this.warned = false;
+      if (!this.loggedSuccess || this.failedSinceSuccess) {
+        this.options.log.info('monitor identity query succeeded', {
+          identified: this.cache.size,
+          total: after.length,
+        });
+        this.loggedSuccess = true;
+      }
+      this.failedSinceSuccess = false;
+      this.failures.clear();
     } catch (error) {
       if (!this.isCurrent(generation)) return;
       this.known = false;
-      this.warnFallback(error);
+      const reason =
+        error instanceof MonitorQueryError
+          ? error.reason
+          : error instanceof Error &&
+              error.message === 'Monitor topology did not settle'
+            ? 'topology unsettled'
+            : 'query error';
+      this.failedSinceSuccess = true;
+      if (!this.failures.has(reason)) {
+        this.failures.add(reason);
+        this.options.log.warn(
+          'monitor identity query failed; using fallback matching',
+          {reason},
+        );
+      }
     } finally {
       this.controller = undefined;
       if (this.isCurrent(generation)) {
@@ -174,14 +197,5 @@ export class IdentityDisplaySource implements DisplaySource {
       sameRect(previous.bounds, display.bounds)
       ? this.cache.get(display.id)
       : undefined;
-  }
-
-  private warnFallback(error?: unknown): void {
-    if (this.warned) return;
-    this.warned = true;
-    this.options.log.warn(
-      'monitor identity unavailable; using fallback matching until a query succeeds',
-      error,
-    );
   }
 }
