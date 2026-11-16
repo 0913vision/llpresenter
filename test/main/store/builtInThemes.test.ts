@@ -37,10 +37,11 @@ it('loads and preserves an old user theme containing stage sources', () => {
   if (!saved.ok) return;
   const reloaded = settingsCodecs.themes.parse(saved.value, 'themes.json');
   expect(reloaded.ok).toBe(true);
-  if (reloaded.ok)
-    {expect(
+  if (reloaded.ok) {
+    expect(
       reloaded.value.data.themes.find(theme => theme.id === user.id),
-    ).toEqual(user);}
+    ).toEqual(user);
+  }
 });
 
 it('retains an edited image theme that used the colliding retired ID', () => {
