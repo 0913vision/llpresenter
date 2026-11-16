@@ -75,3 +75,30 @@ export function newLiturgyItem(
     },
   };
 }
+
+/** Preserve existing effects and initialize newly visible paragraphs from the existing effect. */
+export function withLiturgyTranslation(
+  item: ServiceItemOf<'liturgy'>,
+  translation: LiturgyTranslation,
+): ServiceItemOf<'liturgy'> {
+  const transitions = item.liturgy.transitions;
+  const fallback = transitions?.at(-1)?.transition;
+  const count = LITURGY_SLIDES[item.liturgy.kind][translation].length;
+  const next =
+    transitions === undefined || fallback === undefined
+      ? transitions
+      : [
+          ...transitions,
+          ...Array.from({length: count}, (_, index) => index)
+            .filter(index => !transitions.some(entry => entry.index === index))
+            .map(index => ({index, transition: fallback})),
+        ];
+  return {
+    ...item,
+    liturgy: {
+      ...item.liturgy,
+      translation,
+      ...(next === undefined ? {} : {transitions: next}),
+    },
+  };
+}

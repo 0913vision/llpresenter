@@ -2,6 +2,7 @@ import {useContext, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {ServiceItem} from '@core/schema/service';
 import {isItemOfKind} from '@core/schema/service';
+import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
 import {itemThemeKind} from '@core/themes/itemKind';
 import {canChooseItemTheme} from '@core/themes/sectionThemeChoices';
 import {missingSlideElements} from '@core/themes/slideElements';
@@ -29,6 +30,10 @@ export function useItemTheme(
   const targets =
     screens.document?.name === 'screens' ? screens.document.value.screens : [];
   const kind = item === null ? undefined : itemThemeKind(item);
+  const inheritedTheme =
+    item !== null && isItemOfKind(item, 'liturgy')
+      ? CREED_PRAYER_THEME_ID
+      : undefined;
   const theme =
     kind === undefined
       ? undefined
@@ -36,7 +41,9 @@ export function useItemTheme(
           file,
           kind,
           source: 'service',
-          ...(item?.theme === undefined ? {} : {theme: item.theme}),
+          ...((item?.theme ?? inheritedTheme) === undefined
+            ? {}
+            : {theme: item?.theme ?? CREED_PRAYER_THEME_ID}),
           screens: targets,
         });
   const missing =
@@ -56,7 +63,13 @@ export function useItemTheme(
   const defaultTheme =
     kind === undefined
       ? undefined
-      : resolveItemTheme({file, kind, source: 'external', screens: targets});
+      : resolveItemTheme({
+          file,
+          kind,
+          source: 'external',
+          screens: targets,
+          ...(inheritedTheme === undefined ? {} : {theme: inheritedTheme}),
+        });
   return {
     file,
     kind,
@@ -123,7 +136,11 @@ export function ItemThemeRow({
 }): JSX.Element {
   const {file, kind, theme, defaultTheme, loaded, failed, missingContent} =
     useItemTheme(api, item);
-  const defaultId = kind === undefined ? undefined : file?.defaults[kind];
+  const defaultId = isItemOfKind(item, 'liturgy')
+    ? CREED_PRAYER_THEME_ID
+    : kind === undefined
+      ? undefined
+      : file?.defaults[kind];
   const hasDefault =
     file?.themes.some(entry => entry.id === defaultId) === true;
   const defaultValue = hasDefault ? (defaultId ?? '') : '';

@@ -240,3 +240,32 @@ it('preserves the sermon title before all measured Bible parts', () => {
   expect(projection?.partsByTile[0]).toBeNull();
   expect(projection?.tiles[1]?.biblePart).toBe(1);
 });
+
+it('applies Bible display preferences to verse slides', () => {
+  const item = slidesBibleItem();
+  const projections = new BibleProjections({
+    themes: null,
+    screens: undefined,
+    saved: undefined,
+    canvas: {font: '', measureText: text => ({width: text.length * 30})},
+    slideBibleDefaults: {
+      verseNumbers: false,
+      reference: 'none',
+      translationName: true,
+    },
+  });
+  const projection = projections.get({
+    id: item.id,
+    kind: 'slides',
+    source: 'service',
+    input: projectSlides(item, undefined, slidesBiblePassages(item)),
+    verseNumbers: true,
+    reference: 'every',
+    translationName: false,
+  });
+  expect(projection?.source).toMatchObject({
+    verseNumbers: false,
+    reference: 'none',
+    translationName: true,
+  });
+});

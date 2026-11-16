@@ -4,6 +4,7 @@ import {createBibleMeasureContext} from '@renderer/rendering/bibleMeasure';
 import {useShow} from '@renderer/session/show';
 import type {Notice} from '@renderer/ui/notices';
 import {BibleProjections, splitSourceFor} from './splitProjection';
+import {useBibleDisplayDefaults} from './useBibleDisplayDefaults';
 import {bibleRefinements} from './BibleRefinements';
 
 /** Shares the output measurement rules and follows settings, fonts and unsaved cuts. */
@@ -14,6 +15,18 @@ export function useBibleProjections({
   readonly enabled?: boolean;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
 } = {}) {
+  const hasSlideVerses = useShow(
+    view =>
+      enabled &&
+      view.rows.some(
+        row =>
+          row.kind === 'slides' &&
+          view.tiles[row.id]?.some(tile => tile.verse !== undefined),
+      ),
+  );
+  const slideBibleDefaults = useBibleDisplayDefaults(
+    hasSlideVerses ? window.llp?.preferences : undefined,
+  );
   const refinementRevision = useSyncExternalStore(
     bibleRefinements.subscribe,
     bibleRefinements.getSnapshot,
@@ -63,8 +76,9 @@ export function useBibleProjections({
             screens: screens.value.screens,
             saved: saved.value,
             canvas: measurement.canvas,
+            slideBibleDefaults,
           }),
-    [themes, screens, saved, measurement],
+    [themes, screens, saved, measurement, slideBibleDefaults],
   );
   return {projections, themes, screens, saved, refinementRevision};
 }

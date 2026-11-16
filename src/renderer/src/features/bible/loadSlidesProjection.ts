@@ -59,15 +59,17 @@ export async function loadSlidesProjection(
   const references = item.slides.slides.filter(
     (slide): slide is VerseSlide => 'verse' in slide,
   );
-  const [themes, screens, cuts, labels, passages] = await Promise.all([
-    api.settings.get({name: 'themes'}),
-    api.settings.get({name: 'screens'}),
-    api.settings.get({name: 'bibleCuts'}),
-    item.slides.slides.some(slide => slide.label !== undefined)
-      ? api.settings.get({name: 'labels'}).catch(() => null)
-      : Promise.resolve(null),
-    loadVersePassages(api.bible, references, isCurrent),
-  ]);
+  const [themes, screens, cuts, labels, passages, preferences] =
+    await Promise.all([
+      api.settings.get({name: 'themes'}),
+      api.settings.get({name: 'screens'}),
+      api.settings.get({name: 'bibleCuts'}),
+      item.slides.slides.some(slide => slide.label !== undefined)
+        ? api.settings.get({name: 'labels'}).catch(() => null)
+        : Promise.resolve(null),
+      loadVersePassages(api.bible, references, isCurrent),
+      window.llp?.preferences.get(),
+    ]);
   if (!isCurrent()) return null;
   if (passages.size !== references.length) {
     throw Error('성경 구절 불러오기 실패');
@@ -86,6 +88,7 @@ export async function loadSlidesProjection(
     screens: screens.value.screens,
     saved: cuts.value,
     canvas,
+    slideBibleDefaults: preferences?.bible.defaults,
   }).get({
     kind: 'slides',
     id: item.id,

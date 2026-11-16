@@ -8,13 +8,14 @@ import type {Preferences} from '@core/schema/preferences';
  * replacing a push with a stale startup read.
  */
 export function useBibleDisplayDefaults(
-  api: LlpApi['preferences'],
+  api: LlpApi['preferences'] | undefined,
 ): BibleDisplayOptions | null {
   const [value, setValue] = useState<{
     readonly owner: LlpApi['preferences'];
     readonly display: BibleDisplayOptions;
   } | null>(null);
   useEffect(() => {
+    if (api === undefined) return undefined;
     let active = true;
     let pushed = false;
     const receive = (preferences: Preferences): void => {
@@ -49,5 +50,5 @@ export function useBibleDisplayDefaults(
       stop();
     };
   }, [api]);
-  return value?.owner === api ? value.display : null;
+  return value !== null && value.owner === api ? value.display : null;
 }

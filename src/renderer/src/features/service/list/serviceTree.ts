@@ -52,6 +52,9 @@ function rowOf(
   if (isItemOfKind(item, 'bible')) {
     return {label: displayReference(item.bible.ref), icon: icons.bible};
   }
+  if (isItemOfKind(item, 'sermon')) {
+    return {label: item.sermon.title, icon: icons.bible};
+  }
   if (isItemOfKind(item, 'liturgy')) {
     return {label: LITURGY[item.liturgy.kind].name, icon: 'monitor'};
   }

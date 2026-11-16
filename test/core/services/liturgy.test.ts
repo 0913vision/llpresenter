@@ -1,6 +1,11 @@
 import {describe, expect, it} from 'vitest';
 import {createServiceItemId} from '@core/schema/ids';
-import {LITURGY, liturgyAsSlides, newLiturgyItem} from '@core/services/liturgy';
+import {
+  LITURGY,
+  liturgyAsSlides,
+  newLiturgyItem,
+  withLiturgyTranslation,
+} from '@core/services/liturgy';
 import {LITURGY_SLIDES} from '@core/services/liturgySlides';
 import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
 
@@ -73,4 +78,21 @@ describe('built-in liturgy slides', () => {
     expect(slides[3]).toMatch(/^거기로부터 .*오십니다\.$/u);
     expect(slides[4]).toMatch(/^나는 성령을 믿으며, .*아멘\.$/u);
   });
+});
+
+it('retains the fifth prayer transition when switching back and forth', () => {
+  const old = newLiturgyItem(id, {
+    kind: 'prayer',
+    translation: 'old',
+    transition: {kind: 'dissolve', sec: 2},
+  });
+  const updated = withLiturgyTranslation(old, 'new');
+  expect(liturgyAsSlides(updated).slides.slides[4]?.transition).toEqual({
+    kind: 'dissolve',
+    sec: 2,
+  });
+  expect(
+    withLiturgyTranslation(withLiturgyTranslation(updated, 'old'), 'new')
+      .liturgy.transitions,
+  ).toEqual(updated.liturgy.transitions);
 });

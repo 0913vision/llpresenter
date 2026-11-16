@@ -1,6 +1,10 @@
 import {useSyncExternalStore, type JSX} from 'react';
 import {isItemOfKind, type ServiceItemOf} from '@core/schema/service';
-import {LITURGY, type LiturgyTranslation} from '@core/services/liturgy';
+import {
+  LITURGY,
+  withLiturgyTranslation,
+  type LiturgyTranslation,
+} from '@core/services/liturgy';
 import {LITURGY_SLIDES} from '@core/services/liturgySlides';
 import {SelectMenu} from '@renderer/ui/SelectMenu';
 import {Button} from '@renderer/ui/Button';
@@ -37,7 +41,7 @@ export function LiturgyVersion({
             failure: '예식문 버전 저장 실패',
             change: current =>
               isItemOfKind(current, 'liturgy')
-                ? {...current, liturgy: {...current.liturgy, translation}}
+                ? withLiturgyTranslation(current, translation)
                 : null,
           }),
         );
