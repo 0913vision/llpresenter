@@ -369,6 +369,7 @@ function start(): void {
         problems.feed.report({kind: 'control-reloaded'}),
       );
       const settingsWindow = registerSettingsWindow({
+        config: appConfig,
         get control() {
           return activeControl;
         },

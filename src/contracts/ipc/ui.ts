@@ -7,6 +7,8 @@ import {
   parseMediaStripChange,
   parsePrepMediaChange,
   parseUiState,
+  parseRememberedViewChange,
+  type RememberedViewChange,
   type LayoutChange,
   type MediaStripChange,
   type PrepMediaChange,
@@ -42,6 +44,10 @@ export const uiEndpoints = {
     'ui:media-browser:set',
     parseMediaBrowserChange,
   ),
+  setRememberedView: message<RememberedViewChange>(
+    'ui:remembered-view:set',
+    parseRememberedViewChange,
+  ),
   getZoom: query<number>('ui:zoom:get', parseUiZoomPercent),
   changeZoom: request<UiZoomCommand, number>('ui:zoom:change', {
     request: parseUiZoomCommand,
@@ -69,6 +75,7 @@ export function uiApi(port: IpcPort, platform: WindowPlatform) {
     setPrepMedia: port.message(uiEndpoints.setPrepMedia),
     /** Changes only the supplied media browser fields through app.json. */
     setMediaBrowser: port.message(uiEndpoints.setMediaBrowser),
+    setRememberedView: port.message(uiEndpoints.setRememberedView),
     /** Reads the computer-local UI zoom percentage (100 to 200, step 10). */
     getZoom: port.query(uiEndpoints.getZoom),
     /** Reads this window's actual zoom factor synchronously, bounded to 1 to 2. */

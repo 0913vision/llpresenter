@@ -2,6 +2,7 @@ import * as v from 'valibot';
 import type {Result} from '../common/result';
 import {appLayoutSchema, sizeClasses, type AppConfig} from './appConfig';
 import {mediaBrowserSchema} from './mediaBrowser';
+import {screenIdSchema, macroCollectionIdSchema} from './ids';
 import {panelRowsChangeSchema} from './panelRows';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
 
@@ -55,7 +56,34 @@ const uiStateSchema = payloadObject({
   mediaStrip: v.exactOptional(v.boolean()),
   prepMedia: v.exactOptional(v.boolean()),
   mediaBrowser: v.exactOptional(mediaBrowserSchema),
+  previewBig: v.exactOptional(screenIdSchema),
+  macroView: v.exactOptional(v.picklist(['grid', 'list'])),
+  macroCollection: v.exactOptional(macroCollectionIdSchema),
+  showToolTab: v.exactOptional(
+    v.picklist(['audio', 'stage', 'timer', 'message', 'prop', 'macro']),
+  ),
 });
+
+const rememberedViewChangeSchema = v.pipe(
+  payloadObject({
+    previewBig: v.exactOptional(screenIdSchema),
+    macroView: v.exactOptional(v.picklist(['grid', 'list'])),
+    macroCollection: v.exactOptional(v.nullable(macroCollectionIdSchema)),
+    showToolTab: v.exactOptional(
+      v.picklist(['audio', 'stage', 'timer', 'message', 'prop', 'macro']),
+    ),
+  }),
+  v.check(
+    value => Object.keys(value).length > 0,
+    'Expected a remembered view change',
+  ),
+);
+export type RememberedViewChange = Readonly<
+  v.InferOutput<typeof rememberedViewChangeSchema>
+>;
+export function parseRememberedViewChange(value: unknown) {
+  return parsePayload(rememberedViewChangeSchema, value);
+}
 
 const mediaStripChangeSchema = payloadObject({visible: v.boolean()});
 
@@ -65,7 +93,14 @@ const mediaStripChangeSchema = payloadObject({visible: v.boolean()});
  */
 export type UiState = Pick<
   AppConfig,
-  'layout' | 'mediaStrip' | 'prepMedia' | 'mediaBrowser'
+  | 'layout'
+  | 'mediaStrip'
+  | 'prepMedia'
+  | 'mediaBrowser'
+  | 'previewBig'
+  | 'macroView'
+  | 'macroCollection'
+  | 'showToolTab'
 >;
 
 /** One boolean choice; no collection or unconstrained numeric payload. */

@@ -3,6 +3,7 @@ import type {AppLayout} from '@core/schema/appConfig';
 import type {UiFields, UiStateFields} from '@main/store/appConfigFile';
 import type {Logger} from '@main/log';
 import {UiStateStore} from '@main/uiState/uiStateStore';
+import {createScreenId} from '@core/schema/ids';
 
 interface Harness {
   readonly store: UiStateStore;
@@ -36,6 +37,24 @@ const layout: AppLayout = {
 };
 
 describe('UiStateStore state', () => {
+  it('validates and preserves remembered screen, macro and tool choices', () => {
+    const {store, changes, warnings} = createHarness();
+    const screen = createScreenId('00000000-0000-4000-8000-000000000001');
+    const collection = '00000000-0000-4000-8000-000000000002';
+    store.setRememberedView({previewBig: screen});
+    store.setRememberedView({macroView: 'list', macroCollection: collection});
+    store.setRememberedView({showToolTab: 'timer'});
+    expect(store.state).toMatchObject({
+      previewBig: screen,
+      macroView: 'list',
+      macroCollection: collection,
+      showToolTab: 'timer',
+    });
+    store.setRememberedView({macroCollection: null});
+    expect(changes.at(-1)).toEqual({macroCollection: undefined});
+    store.setRememberedView({showToolTab: 'wrong'});
+    expect(warnings).toHaveLength(1);
+  });
   it('gives an empty state when there is no layout', () => {
     expect(createHarness().store.state).toEqual({});
   });
@@ -104,7 +123,7 @@ describe('panel visibility state', () => {
     });
     store.setMediaStrip({visible: false});
     expect(changes).toEqual([{mediaStrip: false}]);
-    expect(store.state).toEqual({layout, mediaStrip: false});
+    expect(store.state).toEqual({layout, mediaStrip: false, macroView: 'list'});
   });
 
   it('drops malformed media messages without changing state', () => {

@@ -5,6 +5,7 @@ import {
   type SettingsRequest,
 } from '@contracts/ipc/window';
 import type {PreferencePageId} from '@core/schema/preferencePages';
+import type {AppConfigFile} from '../store/appConfigFile';
 import {guardTestPatterns} from '../outputs/testPatternGuard';
 import {logWindowResponsiveness} from './responsiveness';
 import {dispatchLogged} from '../live/store';
@@ -21,6 +22,13 @@ import {
 } from './screens';
 
 export interface SettingsWindowOptions extends SettingsWindowFrameOptions {
+  readonly config?: Pick<
+    AppConfigFile,
+    | 'preferencesWindow'
+    | 'setPreferencesWindow'
+    | 'preferencesPage'
+    | 'setPreferencesPage'
+  >;
   readonly screens?: {
     readonly config: ScreensWindowConfig;
     readonly store: Parameters<typeof guardTestPatterns>[0]['store'];
@@ -69,6 +77,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
 
   constructor(private readonly options: SettingsWindowOptions) {
     this.control = options.control;
+    this.preferencesPage = options.config?.preferencesPage ?? 'general';
     ipcMain.on(windowEndpoints.openPreferences.channel, this.openPreferences);
     ipcMain.on(windowEndpoints.openPreferencesAt.channel, this.openAt);
     if (options.screens !== undefined) {
@@ -285,13 +294,19 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
       if (request.view === 'screens' && this.options.screens !== undefined) {
         applyScreensBounds(win, this.options.screens.config, this.options.mode);
       } else {
-        const bounds = preferencesBounds(this.control);
+        const bounds = preferencesBounds(
+          this.control,
+          this.options.config?.preferencesWindow,
+        );
         if (this.options.mode === 'normal' && win.isMaximized()) {
           win.unmaximize();
         }
-        win.setResizable(false);
+        win.setResizable(true);
         win.setMaximizable(false);
-        win.setMinimumSize(bounds.width, bounds.height);
+        win.setMinimumSize(
+          Math.min(bounds.width, 1040),
+          Math.min(bounds.height, 800),
+        );
         win.setBounds(bounds);
       }
       win.setTitle(request.view === 'screens' ? '화면 설정' : '환경설정');
@@ -319,6 +334,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     if (this.wanted) {
       if (this.request.view === 'preferences') {
         this.preferencesPage = this.request.page;
+        this.options.config?.setPreferencesPage(this.preferencesPage);
       }
       await this.reveal();
       return;
@@ -419,17 +435,27 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     if (
       this.applyingGeometry ||
       !this.wanted ||
-      this.geometryView !== 'screens' ||
       this.win === null ||
-      this.options.screens === undefined
+      (this.geometryView !== 'screens' && this.geometryView !== 'preferences')
     ) {
       return;
     }
-    rememberScreensWindow(
-      this.win,
-      this.options.screens.config,
-      this.options.mode,
-    );
+    if (this.geometryView === 'screens' && this.options.screens !== undefined) {
+      rememberScreensWindow(
+        this.win,
+        this.options.screens.config,
+        this.options.mode,
+      );
+    } else if (
+      this.geometryView === 'preferences' &&
+      this.options.mode === 'normal' &&
+      !this.win.isDestroyed()
+    ) {
+      this.options.config?.setPreferencesWindow({
+        ...this.win.getNormalBounds(),
+        maximized: false,
+      });
+    }
   };
 
   private readonly hide = (): void => {
@@ -482,7 +508,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     this.win = null;
     this.presented = null;
     this.wanted = false;
-    this.preferencesPage = 'general';
+    this.preferencesPage = this.options.config?.preferencesPage ?? 'general';
     this.requested = null;
     this.request = {...PREFERENCES, requestId: this.nextId(), preparing: true};
     if (this.control.isDestroyed()) app.quit();

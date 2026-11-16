@@ -35,6 +35,45 @@ async function readJson(file: string): Promise<unknown> {
   return JSON.parse(await readFile(file, 'utf8'));
 }
 
+it('persists remembered views and preferences across reopen, including clearing a collection', async () => {
+  const file = await appJson();
+  const config = await openAppConfig({file, log: mockLog()});
+  const store = new UiStateStore({fields: config, log: mockLog()});
+  store.setRememberedView({
+    previewBig: '00000000-0000-4000-8000-000000000001',
+    macroView: 'list',
+    macroCollection: '00000000-0000-4000-8000-000000000002',
+    showToolTab: 'timer',
+  });
+  config.setPreferencesPage('media');
+  config.setPreferencesWindow({
+    x: 1,
+    y: 2,
+    width: 1300,
+    height: 900,
+    maximized: false,
+  });
+  await config.flush();
+  const reopened = await openAppConfig({file, log: mockLog()});
+  expect(reopened.read()).toMatchObject({
+    macroView: 'list',
+    showToolTab: 'timer',
+    macroCollection: '00000000-0000-4000-8000-000000000002',
+    previewBig: '00000000-0000-4000-8000-000000000001',
+  });
+  expect(reopened.preferencesPage).toBe('media');
+  expect(reopened.preferencesWindow?.width).toBe(1300);
+  new UiStateStore({fields: reopened, log: mockLog()}).setRememberedView({
+    macroCollection: null,
+  });
+  await reopened.flush();
+  const final = await openAppConfig({file, log: mockLog()});
+  expect(final.read().macroCollection).toBeUndefined();
+  config.dispose();
+  reopened.dispose();
+  final.dispose();
+});
+
 describe('openAppConfig with a broken app.json (qa C19)', () => {
   it('persists the screen settings window without overwriting other UI fields', async () => {
     const file = await appJson();

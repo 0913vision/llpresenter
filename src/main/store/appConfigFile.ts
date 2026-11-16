@@ -3,6 +3,7 @@ import type {FileError} from '@core/schema/fileFormat';
 import type {ServiceId} from '@core/schema/ids';
 import {UI_ZOOM} from '@core/schema/uiZoom';
 import type {LibraryLocationField} from '@core/schema/libraryLocations';
+import type {PreferencePageId} from '@core/schema/preferencePages';
 import type {Logger} from '../log';
 import {writeFileAtomically} from './atomicWrite';
 import {Autosave} from './autosave';
@@ -21,7 +22,7 @@ export type UiFields = Pick<
   | 'layout'
   | 'previewBig'
   | 'macroView'
-  | 'macroCollection'
+  | 'showToolTab'
   | 'mediaStrip'
   | 'prepMedia'
   | 'mediaBrowser'
@@ -29,7 +30,7 @@ export type UiFields = Pick<
   | 'mediaRelinkFolder'
   | 'textImportFolder'
   | 'powerpointImportFolder'
->;
+> & {readonly macroCollection?: AppConfig['macroCollection'] | undefined};
 
 /** The part of `app.json` that the UI state store reads and changes. */
 export interface UiStateFields {
@@ -124,6 +125,26 @@ export class AppConfigFile implements UiStateFields {
     this.scheduleSave();
   }
 
+  get preferencesWindow(): AppConfig['preferencesWindow'] {
+    return this.config.preferencesWindow;
+  }
+
+  setPreferencesWindow(
+    placement: NonNullable<AppConfig['preferencesWindow']>,
+  ): void {
+    this.config = {...this.config, preferencesWindow: placement};
+    this.scheduleSave();
+  }
+
+  get preferencesPage(): AppConfig['preferencesPage'] {
+    return this.config.preferencesPage;
+  }
+
+  setPreferencesPage(page: PreferencePageId): void {
+    this.config = {...this.config, preferencesPage: page};
+    this.scheduleSave();
+  }
+
   get songEditorWindow(): AppConfig['songEditorWindow'] {
     return this.config.songEditorWindow;
   }
@@ -166,6 +187,7 @@ export class AppConfigFile implements UiStateFields {
       previewBig,
       macroView,
       macroCollection,
+      showToolTab,
       mediaStrip,
       prepMedia,
       mediaBrowser,
@@ -179,6 +201,7 @@ export class AppConfigFile implements UiStateFields {
       ...(previewBig === undefined ? {} : {previewBig}),
       ...(macroView === undefined ? {} : {macroView}),
       ...(macroCollection === undefined ? {} : {macroCollection}),
+      ...(showToolTab === undefined ? {} : {showToolTab}),
       ...(mediaStrip === undefined ? {} : {mediaStrip}),
       ...(prepMedia === undefined ? {} : {prepMedia}),
       ...(mediaBrowser === undefined ? {} : {mediaBrowser}),
@@ -190,7 +213,15 @@ export class AppConfigFile implements UiStateFields {
   }
 
   change(fields: UiFields): void {
-    this.config = {...this.config, ...fields};
+    const {macroCollection, ...otherFields} = fields;
+    const {macroCollection: previousCollection, ...config} = this.config;
+    const selected =
+      'macroCollection' in fields ? macroCollection : previousCollection;
+    this.config = {
+      ...config,
+      ...otherFields,
+      ...(selected === undefined ? {} : {macroCollection: selected}),
+    };
     this.scheduleSave();
   }
 

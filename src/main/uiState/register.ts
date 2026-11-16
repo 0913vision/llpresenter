@@ -35,6 +35,9 @@ export function registerUiState(
   ipcMain.on(uiEndpoints.setMediaBrowser.channel, (_event, value: unknown) =>
     store.setMediaBrowser(value),
   );
+  ipcMain.on(uiEndpoints.setRememberedView.channel, (_event, value: unknown) =>
+    store.setRememberedView(value),
+  );
 
   return {
     dispose: () => {
@@ -43,6 +46,7 @@ export function registerUiState(
       ipcMain.removeAllListeners(uiEndpoints.setMediaStrip.channel);
       ipcMain.removeAllListeners(uiEndpoints.setPrepMedia.channel);
       ipcMain.removeAllListeners(uiEndpoints.setMediaBrowser.channel);
+      ipcMain.removeAllListeners(uiEndpoints.setRememberedView.channel);
     },
   };
 }
