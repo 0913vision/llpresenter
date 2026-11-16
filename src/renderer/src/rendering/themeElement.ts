@@ -402,10 +402,7 @@ export class ThemeElementView {
         : item?.kind;
     const isBar =
       frame.theme?.layout.stageBar === 'message-row' &&
-      (element.kind === 'label' ||
-        (element.kind === 'text' &&
-          (element.stageSource === 'stageItemName' ||
-            element.stageSource === 'stagePosition')));
+      element.kind === 'label';
     const isSong =
       kind === 'song' &&
       (element.kind === 'nextText' ||

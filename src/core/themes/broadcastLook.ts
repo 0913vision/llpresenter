@@ -12,9 +12,6 @@ export const BROADCAST_LOOK_BAND_ID = createThemeElementId(
 export const BROADCAST_LOOK_SONG_ID = createThemeElementId(
   '00000000-0000-4000-8000-000000000483',
 );
-export const BROADCAST_LOOK_CARD_ID = createThemeElementId(
-  '00000000-0000-4000-8000-000000000484',
-);
 export const BROADCAST_LOOK_TAB_ID = createThemeElementId(
   '00000000-0000-4000-8000-000000000485',
 );
@@ -64,8 +61,6 @@ export const BROADCAST_LOOK_GEOMETRY = {
   songBandPadding: 40,
   songTitleX: 96,
   songTitleSize: 48,
-  songTitleHeight: 60,
-  songTitleGap: 8,
   songBandOpacity: 70,
   songBandShadowBlur: 6,
   songBandShadowOpacity: 80,
@@ -74,14 +69,6 @@ export const BROADCAST_LOOK_GEOMETRY = {
   songTextShadowOffset: 2,
   songGlowBlur: 24,
   songGlowOpacity: 55,
-  cardPadding: 42,
-  cardNameSize: 62,
-  cardNameHeight: 78,
-  cardEnglishSize: 32,
-  cardEnglishWeight: 600,
-  cardEnglishColor: '#6B6B6B',
-  cardEnglishGap: 0,
-  cardEnglishHeight: 40,
   measureTolerance: 1,
 } as const;
 const geometry = BROADCAST_LOOK_GEOMETRY;
@@ -118,14 +105,11 @@ const box = (id: typeof BROADCAST_LOOK_BAND_ID): ThemeElement => ({
   },
 });
 /** Built-in broadcast composition, fitted by the output renderer. */
-export function broadcastLookLayout(
-  kind: 'plain' | 'song' | 'card',
-): ThemeScreenLayout {
+export function broadcastLookLayout(kind: 'plain' | 'song'): ThemeScreenLayout {
   const elements: ThemeElement[] = [];
   if (kind === 'plain') {
     elements.push(box(BROADCAST_LOOK_BAND_ID), box(BROADCAST_LOOK_TAB_ID));
   }
-  if (kind === 'card') elements.push(box(BROADCAST_LOOK_CARD_ID));
   if (kind === 'song') {
     elements.push({
       id: BROADCAST_LOOK_BAND_ID,
@@ -139,53 +123,33 @@ export function broadcastLookLayout(
       },
     });
   }
-  if (kind === 'card') {
-    elements.push({
-      id: BROADCAST_TEXT_ID,
-      kind: 'itemName',
-      frame,
-      text: {...style, size: geometry.cardNameSize},
-    });
+  elements.push({
+    id: kind === 'song' ? BROADCAST_LOOK_SONG_ID : BROADCAST_TEXT_ID,
+    kind: 'currentText',
+    frame,
+    text:
+      kind === 'song'
+        ? {
+            ...style,
+            size: geometry.songSize,
+            align: 'center',
+            color: geometry.headerTextColor,
+            lineHeight: geometry.songLineHeight,
+            maxLines: geometry.songLines,
+          }
+        : style,
+  });
+  if (kind === 'plain') {
     elements.push({
       id: BROADCAST_REFERENCE_ID,
-      kind: 'currentText',
+      kind: 'reference',
       frame,
       text: {
         ...style,
-        size: geometry.cardEnglishSize,
-        color: geometry.cardEnglishColor,
-        weight: geometry.cardEnglishWeight,
+        size: geometry.tabTextSize,
+        color: geometry.headerTextColor,
       },
     });
-  } else {
-    elements.push({
-      id: kind === 'song' ? BROADCAST_LOOK_SONG_ID : BROADCAST_TEXT_ID,
-      kind: 'currentText',
-      frame,
-      text:
-        kind === 'song'
-          ? {
-              ...style,
-              size: geometry.songSize,
-              align: 'center',
-              color: geometry.headerTextColor,
-              lineHeight: geometry.songLineHeight,
-              maxLines: geometry.songLines,
-            }
-          : style,
-    });
-    if (kind === 'plain') {
-      elements.push({
-        id: BROADCAST_REFERENCE_ID,
-        kind: 'reference',
-        frame,
-        text: {
-          ...style,
-          size: geometry.tabTextSize,
-          color: geometry.headerTextColor,
-        },
-      });
-    }
   }
   return {mode: {kind: 'own'}, elements};
 }

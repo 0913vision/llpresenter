@@ -13,7 +13,6 @@ import {
 import {
   BROADCAST_LOOK_BAND_ID,
   BROADCAST_LOOK_SONG_ID,
-  BROADCAST_LOOK_CARD_ID,
   BROADCAST_LOOK_TAB_ID,
   BROADCAST_LOOK_SONG_TITLE_ID,
   BROADCAST_LOOK_GEOMETRY as geometry,
@@ -23,39 +22,13 @@ import {fitFontSize} from './fitText';
 import {broadcastIntent} from './broadcastBand';
 import {broadcastBibleFlow} from './broadcastBibleFlow';
 
-type MeasureWidth = (text: string, size: number, weight?: number) => number;
 type TextElement = Extract<ThemeElement, {kind: 'currentText'}>;
-
-// NOTE(0913vision): Each document owns its canvas context so tests and separate output windows never share a probe. A failed lookup is not cached.
-const contexts = new WeakMap<Document, CanvasRenderingContext2D>();
-function textWidth(
-  text: string,
-  size: number,
-  weight: number = geometry.bodyWeight,
-): number {
-  let context = contexts.get(document);
-  if (context === undefined) {
-    context = document.createElement('canvas').getContext('2d') ?? undefined;
-    if (context === undefined) {
-      throw new Error(
-        'Cannot measure broadcast text: canvas context unavailable',
-      );
-    }
-    contexts.set(document, context);
-  }
-  context.font = `${weight} ${size}px "Pretendard Variable"`;
-  return context.measureText(text).width;
-}
 
 export function isBroadcastLook(layout: ThemeScreenLayout): boolean {
   return (
     layout.mode.kind === 'own' &&
     layout.elements.some(e =>
-      [
-        BROADCAST_LOOK_BAND_ID,
-        BROADCAST_LOOK_SONG_ID,
-        BROADCAST_LOOK_CARD_ID,
-      ].includes(e.id),
+      [BROADCAST_LOOK_BAND_ID, BROADCAST_LOOK_SONG_ID].includes(e.id),
     )
   );
 }
@@ -384,102 +357,15 @@ function fitSong(
   return {...layout, elements};
 }
 
-function fitCard(
-  layout: ThemeScreenLayout,
-  slide: SlideLayer | null,
-  {item, widthOf}: {item: LiveThemeItem | null; widthOf: MeasureWidth},
-): ThemeScreenLayout {
-  const english = (
-    slide?.sectionCard?.english ??
-    slide?.lines.join(' ') ??
-    ''
-  ).toUpperCase();
-  const name = item?.contentCleared
-    ? ''
-    : (slide?.sectionCard?.name ?? item?.title ?? '');
-  const height =
-    geometry.cardPadding * 2 +
-    geometry.cardNameHeight +
-    (english ? geometry.cardEnglishGap + geometry.cardEnglishHeight : 0);
-  const width = Math.min(
-    geometry.screenWidth - geometry.panelX,
-    Math.ceil(
-      Math.max(
-        widthOf(name, geometry.cardNameSize),
-        widthOf(english, geometry.cardEnglishSize, geometry.cardEnglishWeight),
-      ) +
-        geometry.cardPadding * 2,
-    ),
-  );
-  const visible =
-    slide !== null &&
-    !item?.contentCleared &&
-    (name.trim() !== '' || english.trim() !== '');
-  const textWidth = width - geometry.cardPadding * 2;
-  const elements = layout.elements.map((e): ResolvedThemeElement => {
-    if (e.id === BROADCAST_LOOK_CARD_ID && e.kind === 'box') {
-      return {
-        ...e,
-        frame: {
-          x: geometry.panelX,
-          y: geometry.panelBottom - height,
-          w: width,
-          h: height,
-        },
-        broadcastGlass: 'panel',
-        runtimeHidden: !visible,
-        clearTarget: 'slide',
-      };
-    }
-    if (e.id === BROADCAST_TEXT_ID && e.kind === 'itemName') {
-      return {
-        ...e,
-        kind: 'text',
-        content: visible ? name : '',
-        clearTarget: 'slide',
-        frame: {
-          x: geometry.panelX + geometry.cardPadding,
-          y: geometry.panelBottom - height + geometry.cardPadding,
-          w: textWidth,
-          h: geometry.cardNameHeight,
-        },
-      };
-    }
-    if (e.id === BROADCAST_REFERENCE_ID && e.kind === 'currentText') {
-      return {
-        ...e,
-        kind: 'text',
-        content: visible ? english : '',
-        clearTarget: 'slide',
-        frame: {
-          x: geometry.panelX + geometry.cardPadding,
-          y:
-            geometry.panelBottom -
-            height +
-            geometry.cardPadding +
-            geometry.cardNameHeight +
-            geometry.cardEnglishGap,
-          w: textWidth,
-          h: geometry.cardEnglishHeight,
-        },
-      };
-    }
-    return e;
-  });
-  return {...layout, elements};
-}
-
 /** Fit only the built-in layout, leaving editable unrelated layouts untouched. */
 export function fitBroadcastLook(
   layout: ThemeScreenLayout,
   slide: SlideLayer | null,
   {
     item,
-    measureWidth = textWidth,
     songCaption = 'band',
   }: {
     item: LiveThemeItem | null;
-    measureWidth?: MeasureWidth;
     songCaption?: 'band' | 'text';
   },
 ): ThemeScreenLayout {
@@ -487,9 +373,7 @@ export function fitBroadcastLook(
   const song = layout.elements.some(e => e.id === BROADCAST_LOOK_SONG_ID);
   const fitted = song
     ? fitSong(layout, slide, {item, caption: songCaption})
-    : layout.elements.some(e => e.id === BROADCAST_LOOK_BAND_ID)
-      ? fitBand(layout, slide, {item})
-      : fitCard(layout, slide, {item, widthOf: measureWidth});
+    : fitBand(layout, slide, {item});
   return applyBroadcastEdits(fitted, song);
 }
 

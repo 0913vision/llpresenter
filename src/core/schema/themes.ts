@@ -160,9 +160,6 @@ export const themeElementSchema = v.pipe(
     textElement('slideNumber', {}),
     textElement('text', {
       content: v.string(),
-      stageSource: v.exactOptional(
-        v.picklist(['stageItemName', 'stagePosition']),
-      ),
     }),
     textElement('clock', {
       clockFormat: v.picklist(['24h', '12h']),

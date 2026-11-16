@@ -543,10 +543,9 @@ as every settings file does (02).
   묵상기도; the others use Apostle's Creed, Repentance Prayer, Praise, Corporate
   Prayer, Offering, Offering Prayer, Holy Communion, Blessing, Baptism,
   Supplication Prayer, Notice, Benediction. These themes are not kind defaults;
-  Broadcast shows the Korean name and uppercase English in its blue card; stage
-  shows only the Korean name as current text. Untouched saved section layouts
-  resolve the same way; edited layouts stay unchanged. The stage choice follows
-  the November 11 user decision.
+  Stage shows only the Korean name as current text. Untouched saved section
+  layouts resolve the same way; edited layouts stay unchanged. The stage choice
+  follows the November 11 user decision.
 - In new libraries, 찬양 on 청중 화면 uses white NanumSquare ExtraBold
   (weight 800) at 108 px, centered horizontally and top aligned, with -3 px
   tracking, 137 px line spacing, and no shadow or outline. Its text frame is

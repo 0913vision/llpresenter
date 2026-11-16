@@ -36,7 +36,6 @@ import {
 import {creedPrayerTheme} from './creedPrayer';
 import {SONG_THEME_ID} from './songTitle';
 import {lightSongTheme} from './lightSong';
-import {broadcastBandLayout} from './broadcastBand';
 import {broadcastLookLayout} from './broadcastLook';
 import {sectionBroadcastLayout} from './sectionBroadcast';
 
@@ -380,10 +379,9 @@ function layoutFor(
   kind: ThemeItemKind,
 ): ThemeScreenLayout {
   if (screen.kind === 'broadcast') {
-    if (kind === 'ad') {
+    if (kind === 'ad' || kind === 'media') {
       return {mode: {kind: 'own'}, elements: []};
     }
-    if (kind === 'media') return broadcastBandLayout(kind, basicText);
     return broadcastLookLayout(kind === 'song' ? 'song' : 'plain');
   }
   if (kind === 'bible' && screen.kind === 'audience') {

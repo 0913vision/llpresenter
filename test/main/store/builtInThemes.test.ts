@@ -9,6 +9,40 @@ import {settingsCodecs} from '@main/store/settingsCodecs';
 import {isBuiltInThemeId} from '@core/themes/builtInIds';
 import oldStage from '@fixtures/core/themes/old-stage.json';
 
+it('loads and preserves an old user theme containing stage sources', () => {
+  const defaults = createDefaultThemes();
+  const base = defaults.themes[0];
+  if (!base) throw Error('Missing theme');
+  const stageId = createScreenId('00000000-0000-4000-8000-000000000003');
+  const user = {
+    ...base,
+    id: createThemeId('11111111-1111-4111-8111-111111111111'),
+    name: 'Old user theme',
+    screens: {...base.screens, [stageId]: oldStage},
+  };
+  const loaded = settingsCodecs.themes.parse(
+    JSON.stringify({...defaults, themes: [user]}),
+    'themes.json',
+  );
+  expect(loaded.ok).toBe(true);
+  if (!loaded.ok) return;
+  expect(loaded.value.data.themes.find(theme => theme.id === user.id)).toEqual(
+    user,
+  );
+  const saved = settingsCodecs.themes.serialize(
+    loaded.value.data,
+    'themes.json',
+  );
+  expect(saved.ok).toBe(true);
+  if (!saved.ok) return;
+  const reloaded = settingsCodecs.themes.parse(saved.value, 'themes.json');
+  expect(reloaded.ok).toBe(true);
+  if (reloaded.ok)
+    {expect(
+      reloaded.value.data.themes.find(theme => theme.id === user.id),
+    ).toEqual(user);}
+});
+
 it('retains an edited image theme that used the colliding retired ID', () => {
   const file = createDefaultThemes();
   const image = file.themes.find(theme => theme.id === IMAGE_SLIDES_THEME_ID);

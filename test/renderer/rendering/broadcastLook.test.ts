@@ -4,7 +4,6 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {createScreenId} from '@core/schema/ids';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {builtInTheme} from '@core/themes/defaults';
-import {SECTION_THEME_ID} from '@core/themes/sundaySections';
 import {
   BROADCAST_REFERENCE_ID,
   BROADCAST_TEXT_ID,
@@ -14,8 +13,6 @@ import {
   BROADCAST_LOOK_TAB_ID,
   BROADCAST_LOOK_SONG_ID,
   BROADCAST_LOOK_SONG_TITLE_ID,
-  BROADCAST_LOOK_CARD_ID,
-  broadcastLookLayout,
 } from '@core/themes/broadcastLook';
 import {
   fitBroadcastLook as fitLook,
@@ -48,7 +45,7 @@ const fitBroadcastLook = (
   layout: ThemeScreenLayout,
   slide: SlideLayer | null,
   item: LiveThemeItem | null,
-) => fitLook(layout, slide, {item, measureWidth: text => text.length * 20});
+) => fitLook(layout, slide, {item});
 
 beforeEach(() => {
   mockBroadcastMeasure(1.35);
@@ -239,25 +236,6 @@ describe('built-in broadcast look', () => {
     expect(box.frame.y).toBeGreaterThanOrEqual(0);
     expect(box.frame.y + box.frame.h).toBe(1026);
     expect(body).toMatchObject({text: {size: 16}});
-  });
-  it('reports an unavailable canvas context instead of silently using zero widths', () => {
-    vi.spyOn(HTMLCanvasElement.prototype, 'getContext').mockReturnValue(null);
-    const layout = broadcastLookLayout('card');
-    expect(() =>
-      fitLook(
-        layout,
-        {
-          ...slide,
-          sectionCard: {
-            name: 'Sermon',
-            english: 'Sermon',
-            theme: SECTION_THEME_ID,
-          },
-        },
-        {item},
-      ),
-    ).toThrow('Cannot measure broadcast text: canvas context unavailable');
-    expect(document.body.querySelector('[data-slide-measure]')).toBeNull();
   });
   it('shows the strip inside the box only for Bible slides', () => {
     const bible = fitBroadcastLook(
@@ -665,37 +643,6 @@ describe('built-in broadcast look', () => {
     expect(element(untitled, BROADCAST_LOOK_SONG_ID)).toMatchObject({
       broadcastText: '',
     });
-  });
-  it('sizes the glass card layout to its longest text and renders the English uppercase', () => {
-    const layout = broadcastLookLayout('card');
-    const current = {
-      ...slide,
-      sectionCard: {
-        name: '설교',
-        english: 'long sermon',
-        theme: SECTION_THEME_ID,
-      },
-    };
-    const result = fitBroadcastLook(layout, current, {...item, kind: 'blank'});
-    expect(element(result, BROADCAST_LOOK_CARD_ID)).toMatchObject({
-      frame: {x: 58, w: 304},
-      box: {fill: '#FEFDF9'},
-    });
-    expect(element(result, BROADCAST_LOOK_CARD_ID).frame.w).toBe(304);
-    expect(element(result, BROADCAST_REFERENCE_ID)).toMatchObject({
-      kind: 'text',
-      content: 'LONG SERMON',
-      text: {size: 32, weight: 600},
-    });
-    const longer = fitBroadcastLook(
-      layout,
-      {
-        ...current,
-        sectionCard: {...current.sectionCard, english: 'a'.repeat(40)},
-      },
-      {...item, kind: 'blank'},
-    );
-    expect(element(longer, BROADCAST_LOOK_CARD_ID).frame.w).toBe(884);
   });
   it('leaves unrelated layouts untouched and keeps advertisements empty', () => {
     const layout = builtInTheme('ad').screens[screen];
