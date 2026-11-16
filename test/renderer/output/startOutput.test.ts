@@ -304,6 +304,154 @@ describe('startOutput', () => {
     }
   });
 
+  it.each(['rapid', 'rejected', 'same-slide', 'deadline', 'none'] as const)(
+    'releases retired output renderers after %s transitions',
+    async scenario => {
+      let receive: (state: LiveState) => void = () => undefined;
+      const oldSlide = SHOWING.layers.slide;
+      if (oldSlide === null) throw new Error('Missing slide');
+      const ready = vi
+        .spyOn(OutputRenderer.prototype, 'ready')
+        .mockReturnValue(true);
+      vi.spyOn(SlideAnimation.prototype, 'play').mockImplementation(
+        () => undefined,
+      );
+      const completions: Array<{resolve: () => void; reject: () => void}> = [];
+      vi.spyOn(SlideAnimation.prototype, 'finished').mockImplementation(
+        () =>
+          new Promise<void>((resolve, reject) => {
+            completions.push({
+              resolve,
+              reject: () => reject(new Error('cancelled')),
+            });
+          }),
+      );
+      const initial = {...SHOWING, layers: {...SHOWING.layers, media: null}};
+      const {root, stop} = setUp(
+        {
+          get: async () => initial,
+          subscribe: listener => {
+            receive = listener;
+            return () => undefined;
+          },
+        },
+        async () => true,
+      );
+      const next = (
+        version: number,
+        position: number,
+        kind: 'dissolve' | 'none' = 'dissolve',
+      ): LiveState => ({
+        ...initial,
+        version,
+        layers: {
+          ...initial.layers,
+          slide: {
+            ...oldSlide,
+            position,
+            lines: [`slide ${position}`],
+            transition: {kind, sec: 1},
+          },
+        },
+      });
+      try {
+        await Promise.resolve();
+        await pumpReadiness();
+        await pumpReadiness();
+        expect(root.children).toHaveLength(1);
+        if (scenario === 'deadline') {
+          vi.useFakeTimers({toFake: ['setTimeout', 'clearTimeout']});
+          ready.mockReturnValue(false);
+        }
+        receive(next(4, 1));
+        expect(root.children).toHaveLength(2);
+        if (scenario === 'rapid') {
+          receive(next(5, 2));
+          expect(root.children).toHaveLength(2);
+          completions[0]?.resolve();
+          await Promise.resolve();
+          expect(root.children).toHaveLength(2);
+          completions[1]?.resolve();
+        } else if (scenario === 'rejected') {
+          completions[0]?.reject();
+        } else if (scenario === 'same-slide') {
+          const same = next(5, 1);
+          receive({...same, stageMessage: 'changed'});
+          expect(root.children).toHaveLength(2);
+          completions[0]?.resolve();
+        } else if (scenario === 'deadline') {
+          vi.advanceTimersByTime(1500);
+          expect(completions).toHaveLength(1);
+          completions[0]?.resolve();
+        } else {
+          receive(next(5, 2, 'none'));
+        }
+        await Promise.resolve();
+        expect(root.children).toHaveLength(1);
+        expect(root.textContent).toContain(
+          scenario === 'rapid' || scenario === 'none' ? 'slide 2' : 'slide 1',
+        );
+      } finally {
+        stop();
+        vi.useRealTimers();
+        vi.restoreAllMocks();
+      }
+    },
+  );
+
+  it('keeps the visible outgoing picture when an unready transition is interrupted', async () => {
+    let receive: (state: LiveState) => void = () => undefined;
+    const oldSlide = SHOWING.layers.slide;
+    if (oldSlide === null) throw new Error('Missing slide');
+    const ready = vi
+      .spyOn(OutputRenderer.prototype, 'ready')
+      .mockReturnValue(true);
+    vi.spyOn(SlideAnimation.prototype, 'play').mockImplementation(
+      () => undefined,
+    );
+    vi.spyOn(SlideAnimation.prototype, 'finished').mockReturnValue(
+      new Promise(() => undefined),
+    );
+    const initial = {...SHOWING, layers: {...SHOWING.layers, media: null}};
+    const {root, stop} = setUp(
+      {
+        get: async () => initial,
+        subscribe: listener => {
+          receive = listener;
+          return () => undefined;
+        },
+      },
+      async () => true,
+    );
+    try {
+      await Promise.resolve();
+      await pumpReadiness();
+      await pumpReadiness();
+      const original = root.firstElementChild;
+      ready.mockReturnValue(false);
+      const next = (version: number, position: number): LiveState => ({
+        ...initial,
+        version,
+        layers: {
+          ...initial.layers,
+          slide: {
+            ...oldSlide,
+            position,
+            transition: {kind: 'dissolve', sec: 1},
+          },
+        },
+      });
+      receive(next(4, 1));
+      receive(next(5, 2));
+      expect(root.children).toHaveLength(2);
+      expect(root.firstElementChild).toBe(original);
+      expect(root.textContent).toContain(oldSlide.lines[0]);
+    } finally {
+      stop();
+      vi.restoreAllMocks();
+    }
+  });
+
   it('requests hidden painting while animation frames stall, then stops when painted', async () => {
     vi.useFakeTimers({
       toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'],
