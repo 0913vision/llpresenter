@@ -5,13 +5,12 @@ import {recordingLogger} from '@fixtures/main/displays/testing';
 import {loadPage} from '@main/windows/page';
 import {emptyLiveState} from '@core/live/state';
 import {registerSettingsWindow} from '@main/windows/settingsWindow';
-import {preferencesBounds} from '@main/windows/settingsWindowFrame';
-import type {ScreensWindowConfig} from '@main/windows/screens';
 import {
+  preferencesBounds,
   PREFERENCES_HEIGHT,
   PREFERENCES_WIDTH,
-  registerPreferencesWindow,
-} from '@main/windows/preferences';
+} from '@main/windows/settingsWindowFrame';
+import type {ScreensWindowConfig} from '@main/windows/screens';
 
 const mocks = await vi.hoisted(async () => {
   const {EventEmitter} = await import('node:events');
@@ -212,7 +211,7 @@ async function drawn(win: (typeof mocks.created)[number]) {
 function setup(mode: 'normal' | 'offscreen' = 'normal') {
   const control = new BrowserWindow();
   const zoom = {attachControl: vi.fn()};
-  const owner = registerPreferencesWindow({
+  const owner = registerSettingsWindow({
     control,
     zoom,
     mode,
@@ -301,7 +300,7 @@ describe('환경설정 window', () => {
   it('logs a request for an unknown page and opens nothing', () => {
     const log = recordingLogger();
     const control = new BrowserWindow();
-    registerPreferencesWindow({
+    registerSettingsWindow({
       control,
       zoom: {attachControl: vi.fn()},
       mode: 'normal',

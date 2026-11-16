@@ -5,7 +5,6 @@ import {
   type FontCatalogSnapshot,
 } from '@core/schema/fontCatalog';
 import {
-  parseOutputSnapshot,
   parseFrameRateReport,
   parseOutputHealthReport,
   parseFrameReadyReply,
@@ -36,10 +35,6 @@ import {
 
 /** The calls about output windows, monitors, fonts, and the log. */
 export const outputEndpoints = {
-  captureFrame: query<string | null>(
-    'output:capture-frame',
-    parseOutputSnapshot,
-  ),
   playbackReport: message<readonly PlaybackProblemKind[]>(
     'output:playback:report',
     parsePlaybackProblemReport,
@@ -96,7 +91,6 @@ export function outputApi(port: IpcPort) {
   const retry = port.message(outputEndpoints.retry);
   const showWindow = port.message(outputEndpoints.showWindow);
   return {
-    captureFrame: port.query(outputEndpoints.captureFrame),
     reportPlaybackProblems: port.message(outputEndpoints.playbackReport),
     getPlaybackProblems: port.query(outputEndpoints.playbackProblems),
     subscribePlaybackProblems: port.subscribe(outputEndpoints.playbackChanged),

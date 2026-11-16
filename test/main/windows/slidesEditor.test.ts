@@ -50,14 +50,6 @@ vi.mock('electron', () => ({
     }),
   },
 }));
-vi.mock('@main/windows/editorWindow', () => ({
-  createEditorWindow: (options: unknown) => {
-    const win = new mocks.MockWindow();
-    mocks.created.push(win);
-    mocks.options.push(options);
-    return win;
-  },
-}));
 vi.mock('@main/windows/controlClose', () => ({
   registerControlClose: () => ({
     confirmClose: mocks.confirm,

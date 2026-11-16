@@ -182,7 +182,6 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
       ...overrides.fonts,
     },
     output: {
-      captureFrame: () => Promise.resolve(null),
       reportPlaybackProblems: () => undefined,
       getPlaybackProblems: () => Promise.resolve([]),
       subscribePlaybackProblems: () => () => undefined,
