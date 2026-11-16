@@ -65,6 +65,18 @@ export function ThemeNumber({
   readonly reason: string | undefined;
   readonly change: (value: number) => void;
 }): JSX.Element {
+  const units: Readonly<Record<string, string>> = {
+    크기: 'px',
+    자간: 'px',
+    '짧은 글 자간 값': 'px',
+    두께: 'px',
+    흐림: 'px',
+    거리: 'px',
+    모서리: 'px',
+    각도: '도',
+    불투명도: '%',
+    '줄 간격': '배',
+  };
   return (
     <PropertyRow label={label}>
       {({controlId}) => (
@@ -74,6 +86,13 @@ export function ThemeNumber({
           min={min}
           max={max}
           step={step}
+          unit={units[label]}
+          {...(label === '줄 간격'
+            ? {
+                formatValue: (number: number) =>
+                  String(Math.round(number * 100) / 100),
+              }
+            : {})}
           updateOn="commit"
           readOnly={reason !== undefined}
           title={reason}

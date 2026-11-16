@@ -44,32 +44,35 @@ function TimeField({
     setDraft(null);
   };
   return (
-    <TextField
-      id={id}
-      aria-label="전환 시간"
-      block
-      inputMode="decimal"
-      placeholder={mixed ? '혼합' : undefined}
-      disabled={disabled}
-      value={draft ?? (mixed ? '' : String(Math.round(value * 100) / 100))}
-      onChange={setDraft}
-      onBlur={commit}
-      onKeyDown={event => {
-        if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
-          event.preventDefault();
-          event.currentTarget.blur();
-          document
-            .querySelector<HTMLElement>(
-              '[data-song-slide][aria-selected="true"], [data-leading-card][aria-selected="true"], [data-song-slide]',
-            )
-            ?.focus();
-        } else if (event.key === 'Escape') {
-          event.preventDefault();
-          event.stopPropagation();
-          setDraft(null);
-        }
-      }}
-    />
+    <span className={styles.timeField}>
+      <TextField
+        id={id}
+        aria-label="전환 시간"
+        block
+        inputMode="decimal"
+        placeholder={mixed ? '혼합' : undefined}
+        disabled={disabled}
+        value={draft ?? (mixed ? '' : String(Math.round(value * 100) / 100))}
+        onChange={setDraft}
+        onBlur={commit}
+        onKeyDown={event => {
+          if (event.key === 'Enter' && !event.nativeEvent.isComposing) {
+            event.preventDefault();
+            event.currentTarget.blur();
+            document
+              .querySelector<HTMLElement>(
+                '[data-song-slide][aria-selected="true"], [data-leading-card][aria-selected="true"], [data-song-slide]',
+              )
+              ?.focus();
+          } else if (event.key === 'Escape') {
+            event.preventDefault();
+            event.stopPropagation();
+            setDraft(null);
+          }
+        }}
+      />
+      <span>초</span>
+    </span>
   );
 }
 

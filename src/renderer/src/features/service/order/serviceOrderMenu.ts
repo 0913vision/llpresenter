@@ -65,7 +65,6 @@ function songEditRows({
       ),
       onSelect: editSong.editSong,
     },
-    menuSeparator('song-edit-end'),
   ];
 }
 
@@ -73,7 +72,7 @@ function openRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {
   const {row, openInPrep} = input;
   switch (row.kind) {
     case 'header':
-      return [laterRow('color', '색 바꾸기')];
+      return [];
     case 'song':
       return [
         {
@@ -99,7 +98,6 @@ function openRows(input: ServiceOrderMenuInput): readonly MenuEntry[] {
           onSelect: input.song?.reload,
         },
         ...songEditRows(input),
-        laterRow('destination', '출력할 화면', {submenu: true}),
         ...(openInPrep === undefined
           ? []
           : [
@@ -184,9 +182,8 @@ export function serviceOrderMenuEntries(
 ): readonly MenuEntry[] {
   const open = openRows(input);
   return [
-    laterRow('hide', '항목 숨기기'),
-    ...(open.length > 0 ? [menuSeparator('open-separator'), ...open] : []),
-    menuSeparator('clipboard-separator'),
+    ...open,
+    ...(open.length > 0 ? [menuSeparator('clipboard-separator')] : []),
     {
       kind: 'item',
       id: 'copy',

@@ -91,6 +91,21 @@ async function tile(name: string): Promise<HTMLElement> {
 }
 
 describe('media view', () => {
+  it('restores and saves the media tile size', async () => {
+    const fixture = mediaFixture();
+    vi.spyOn(fixture.api.ui, 'get').mockResolvedValue({
+      mediaBrowser: {columns: 3},
+    });
+    const save = vi.spyOn(fixture.api.ui, 'setMediaBrowser');
+    setup(fixture);
+    const slider = screen.getByRole('slider', {name: '타일 크기'});
+    await waitFor(() =>
+      expect(slider.getAttribute('aria-valuetext')).toBe('3열'),
+    );
+    fireEvent.change(slider, {target: {value: '6'}});
+    expect(save).toHaveBeenCalledWith({columns: 4});
+  });
+
   it('refuses a stale add callback when the media file becomes missing', async () => {
     const items = itemFixture();
     const media = mediaFixture(mediaDocument([mediaItem(1, {name: 'Dawn'})]));

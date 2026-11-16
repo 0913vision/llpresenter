@@ -75,7 +75,6 @@ const COMMANDS_WITHOUT_HANDLER: ReadonlySet<string> = new Set([
   'stageEditor.addElement',
   'stageEditor.fit',
   'tools.showing',
-  'ui.resetLayout',
 ]);
 
 /** The registry commands with a handler, then one command for each theme, 그래픽, 매크로, 타이머, and 화면. */

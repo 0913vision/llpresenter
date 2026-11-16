@@ -178,6 +178,27 @@ export function MediaView({
             : undefined;
   const imported = useMediaImportCompletion();
   const [columns, setColumns] = useState<number>();
+  const columnsChanged = useRef(false);
+  useEffect(() => {
+    let active = true;
+    window.llp?.ui
+      .get()
+      .then(state => {
+        if (
+          active &&
+          !columnsChanged.current &&
+          state.mediaBrowser?.columns !== undefined
+        ) {
+          setColumns(state.mediaBrowser.columns);
+        }
+      })
+      .catch((error: unknown) =>
+        console.error('Could not read media view size', error),
+      );
+    return () => {
+      active = false;
+    };
+  }, []);
   const [menu, setMenu] = useState<OpenMenu | null>(null);
   const [deleting, setDeleting] = useState<{
     readonly item: MediaItem;
@@ -472,9 +493,12 @@ export function MediaView({
                 (columns ?? DEFAULT_MEDIA_COLUMNS)
               }
               valueText={columns === undefined ? '자동 크기' : `${columns}열`}
-              onChange={size =>
-                setColumns(MIN_MEDIA_COLUMNS + MAX_MEDIA_COLUMNS - size)
-              }
+              onChange={size => {
+                const next = MIN_MEDIA_COLUMNS + MAX_MEDIA_COLUMNS - size;
+                columnsChanged.current = true;
+                setColumns(next);
+                window.llp?.ui.setMediaBrowser({columns: next});
+              }}
             />
           }
         >

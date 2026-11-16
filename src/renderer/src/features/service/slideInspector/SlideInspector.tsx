@@ -1,4 +1,5 @@
 import {useState, useSyncExternalStore, type JSX} from 'react';
+import {formatSlideHotKey} from '@renderer/ui/SlideThumbnail';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {useSongSlideAppearance} from '@renderer/features/songs/editor/useSongSlideAppearance';
 import {LabelMenu} from '@renderer/features/songs/editor/LabelMenu';
@@ -182,7 +183,9 @@ function InspectorContent({
               >
                 {selected.length > 1
                   ? '여러 슬라이드'
-                  : (slide?.hotKey ?? '설정…')}
+                  : slide?.hotKey === undefined
+                    ? '설정…'
+                    : formatSlideHotKey(slide.hotKey)}
               </Button>
             )}
           </PropertyRow>

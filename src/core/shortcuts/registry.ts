@@ -350,7 +350,6 @@ export const shortcutCommands: readonly ShortcutCommand[] = (
       ['control'],
       ['ctrl Digit0', 'ctrl Numpad0'],
     ],
-    ['ui.resetLayout', '화면 배치 기본값', '창과 메뉴', ['control'], []],
     [
       'bible.nextVerse',
       '다음 성경 구절',

@@ -60,6 +60,7 @@ export function ThemeElementProperties({
               {({controlId}) => (
                 <GeometryField
                   id={controlId}
+                  unit="px"
                   value={element.frame[field]}
                   min={
                     field === 'x' || field === 'y'

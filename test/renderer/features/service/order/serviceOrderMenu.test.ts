@@ -43,11 +43,8 @@ it('omits the unavailable editor group without an empty separator in prep', () =
   expect(
     entries.map(entry => (entry.kind === 'separator' ? '|' : entry.id)),
   ).toEqual([
-    'hide',
-    '|',
     'save-to-library',
     'reload-from-library',
-    'destination',
     '|',
     'copy',
     'paste',
@@ -72,6 +69,9 @@ it('explains protected edits and unavailable library actions', () => {
     remove: vi.fn(),
   };
   const header = menuItems(serviceOrderMenuEntries(input));
+  expect(
+    header.some(row => ['hide', 'color', 'destination'].includes(row.id)),
+  ).toBe(false);
   for (const id of ['rename', 'delete']) {
     expect(header.find(row => row.id === id)).toMatchObject({
       disabled: true,
@@ -84,6 +84,9 @@ it('explains protected edits and unavailable library actions', () => {
     row: {...input.row, kind: 'song' as const},
   };
   const missing = menuItems(serviceOrderMenuEntries(song));
+  expect(
+    missing.some(row => ['hide', 'color', 'destination'].includes(row.id)),
+  ).toBe(false);
   expect(missing.find(row => row.id === 'show-in-library')?.title).toBe(
     '이 창에서는 쓸 수 없음',
   );
@@ -122,15 +125,12 @@ it('puts the item editor after library transfer actions and runs it', () => {
   const ids = entries.map(entry =>
     entry.kind === 'separator' ? '|' : entry.id,
   );
-  expect(ids.slice(0, 8)).toEqual([
-    'hide',
-    '|',
+  expect(ids.slice(0, 5)).toEqual([
     'save-to-library',
     'reload-from-library',
     '|',
     'edit-song',
     '|',
-    'destination',
   ]);
   const rows = menuItems(entries);
   rows.find(row => row.id === 'edit-song')?.onSelect?.();
