@@ -509,13 +509,15 @@ Source: `Overlays`, `ShowH` (target screens in the showing list), product log
   built-in broadcast look retains its box, song caption and card. OBS needs a
   compatible version, DistroAV, and the NDI Runtime. Network controls and the
   display layout receiver count remain later work (09).
-- NDI hardware acceleration is optional and on by default. When enabled, shared
-  GPU textures go to the sender utility. A startup timeout retries once after a
-  short pause; other GPU failures use the bitmap sender immediately. While on
-  bitmap, the app retries shared textures in the background, keeps the same NDI
-  sender during recovery, and returns to GPU input after a frame is sent. It
-  retries silently without changing the saved option. A GPU utility crash first
-  falls back to the bitmap sender, not the capture window.
+- NDI hardware acceleration is optional and on by default. The offscreen GPU
+  capture stays stopped until the sender utility is ready, then starts with a
+  full capture frame; a fresh frame request restarts capture. Shared-texture
+  capture never uses `invalidate()`, which emits a bitmap paint. A utility
+  error, crash or startup timeout, unavailable GPU compositing, unsupported
+  texture, missing texture after capture starts, or textures stopping while
+  paint events continue switches to bitmap. While on bitmap, the app retries
+  shared textures in the background and keeps the same NDI sender until a GPU
+  frame is sent. Recovery does not change the saved option.
 - The status bar identifies the active NDI shared-texture or bitmap path; while
   the sender is starting it says the acceleration state is being checked.
 - An unavailable NDI Runtime is remembered until the method is toggled or the

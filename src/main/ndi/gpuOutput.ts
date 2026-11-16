@@ -43,12 +43,7 @@ interface Options {
   ) => void;
 }
 
-// NOTE(0913vision): Let the old utility's stop deadline finish before retrying.
-const START_RETRY_MS = 2500;
 const RETRY_DELAYS_MS = [5000, 15_000, 60_000, 120_000] as const;
-const startupFailure = (reason: unknown): boolean =>
-  reason === 'no shared texture paint' ||
-  reason === 'GPU utility startup timeout';
 
 /** Keeps bitmap output live while checking whether shared textures have recovered. */
 export function createGpuOutput(
@@ -59,9 +54,7 @@ export function createGpuOutput(
   let active = false;
   let closed = false;
   let current = screen;
-  let mode: 'gpu' | 'waiting' | 'bitmap' = 'gpu';
-  let startupRetried = false;
-  let firstStartupFailure: unknown;
+  let mode: 'gpu' | 'bitmap' = 'gpu';
   let retryIndex = 0;
   let retryTimer: ReturnType<typeof setTimeout> | null = null;
   let probe: OutputWindowHandle | null = null;
@@ -134,32 +127,7 @@ export function createGpuOutput(
         return;
       }
       if (delegate !== candidate || mode !== 'gpu') return;
-      if (startupFailure(reason) && !startupRetried) {
-        startupRetried = true;
-        firstStartupFailure = reason;
-        mode = 'waiting';
-        candidate.destroy();
-        retryTimer = setTimeout(() => {
-          retryTimer = null;
-          if (!active || closed || mode !== 'waiting') return;
-          mode = 'gpu';
-          delegate = makeGpu(false);
-          delegate.showCapture(capture);
-        }, START_RETRY_MS);
-      } else {
-        if (startupRetried && firstStartupFailure !== reason) {
-          options.log.warn('NDI GPU retry failed', {
-            initial: firstStartupFailure,
-            retry: reason,
-          });
-        }
-        enterBitmap(
-          reason === 'GPU utility startup timeout' &&
-            firstStartupFailure === 'no shared texture paint'
-            ? firstStartupFailure
-            : reason,
-        );
-      }
+      enterBitmap(reason);
     };
     const promote = (): void => {
       if (
@@ -177,8 +145,6 @@ export function createGpuOutput(
       mode = 'gpu';
       options.onAcceleration?.({ndiAcceleration: 'hardware'});
       clearTimers();
-      startupRetried = false;
-      firstStartupFailure = undefined;
     };
     const candidate = gpuHandle(
       current,
@@ -200,8 +166,6 @@ export function createGpuOutput(
         },
         live: () => {
           if (!background && delegate === candidate) {
-            startupRetried = false;
-            firstStartupFailure = undefined;
             options.onAcceleration?.({ndiAcceleration: 'hardware'});
           }
         },
@@ -255,10 +219,6 @@ export function createGpuOutput(
       }
       active = true;
       capture = bounds;
-      if (mode === 'waiting') {
-        mode = 'gpu';
-        delegate = makeGpu(false);
-      }
       if (sink && sink !== delegate) sink.showCapture(bounds, top);
       delegate.showCapture(bounds, top);
       if (mode === 'bitmap') scheduleProbe();
@@ -325,6 +285,7 @@ function gpuHandle(
       offscreen: {useSharedTexture: true},
     },
   });
+  win.webContents.stopPainting();
   win.setMinimumSize(NDI_FRAME_WIDTH, NDI_FRAME_HEIGHT);
   win.setContentSize(NDI_FRAME_WIDTH, NDI_FRAME_HEIGHT);
   win.webContents.setFrameRate(
@@ -341,22 +302,25 @@ function gpuHandle(
   let child: UtilityProcess | null = null;
   let ready = false;
   let seenTexture = false;
+  let requireFullFrame = false;
   let paintEvents = 0;
   let bitmapPaints = 0;
   let closed = false;
   let timeout: ReturnType<typeof setTimeout> | null = null;
-  let paintRetry: ReturnType<typeof setInterval> | null = null;
+  let captureTimeout: ReturnType<typeof setTimeout> | null = null;
   let missingSince: number | null = null;
   const clear = (destroyWindow = false): void => {
     if (timeout !== null) clearTimeout(timeout);
-    if (paintRetry !== null) clearInterval(paintRetry);
-    paintRetry = null;
+    if (captureTimeout !== null) clearTimeout(captureTimeout);
+    captureTimeout = null;
+    if (!win.isDestroyed()) win.webContents.stopPainting();
     missingSince = null;
     timeout = null;
     const old = child;
     child = null;
     ready = false;
     seenTexture = false;
+    requireFullFrame = false;
     const outstanding = queue.clear();
     const finish = (): void => {
       outstanding?.texture.release();
@@ -384,24 +348,25 @@ function gpuHandle(
   const fail = (reason: unknown): void => {
     if (!closed) fallback(reason);
   };
-  const scheduleFailure = (
-    reason: string,
-    delay: number,
-  ): ReturnType<typeof setTimeout> => setTimeout(() => fail(reason), delay);
   const startWatchdog = (reason: string): void => {
     if (timeout !== null) clearTimeout(timeout);
-    if (reason === 'no shared texture paint') {
-      timeout = setTimeout(() => {
-        log.warn('NDI shared texture diagnostics', {
-          paintEvents,
-          bitmapPaints,
-          gpuCompositing: app.getGPUFeatureStatus().gpu_compositing,
-        });
-        fail(reason);
-      }, GPU_TIMEOUT_MS);
-    } else {
-      timeout = scheduleFailure(reason, GPU_TIMEOUT_MS);
-    }
+    timeout = setTimeout(() => fail(reason), GPU_TIMEOUT_MS);
+  };
+  const restartCapture = (): void => {
+    if (closed || !child || !ready || win.isDestroyed()) return;
+    win.webContents.stopPainting();
+    requireFullFrame = true;
+    captureTimeout ??= setTimeout(() => {
+      captureTimeout = null;
+      if (win.isDestroyed() || !win.webContents.isPainting()) return;
+      log.warn('NDI shared texture diagnostics', {
+        paintEvents,
+        bitmapPaints,
+        gpuCompositing: app.getGPUFeatureStatus().gpu_compositing,
+      });
+      fail('no shared texture paint');
+    }, GPU_TIMEOUT_MS);
+    win.webContents.startPainting();
   };
   const send = (frame: GpuTextureFrame): void => {
     if (!child) {
@@ -465,15 +430,14 @@ function gpuHandle(
       return;
     }
     if (
-      pixels &&
-      !seenTexture &&
+      requireFullFrame &&
       (dirty.x !== 0 ||
         dirty.y !== 0 ||
         dirty.width !== NDI_FRAME_WIDTH ||
         dirty.height !== NDI_FRAME_HEIGHT)
     ) {
       texture.release();
-      win.webContents.invalidate();
+      restartCapture();
       return;
     }
     if (!queue.busy && timeout !== null) {
@@ -481,8 +445,9 @@ function gpuHandle(
       timeout = null;
     }
     seenTexture = true;
-    if (paintRetry !== null) clearInterval(paintRetry);
-    paintRetry = null;
+    requireFullFrame = false;
+    if (captureTimeout !== null) clearTimeout(captureTimeout);
+    captureTimeout = null;
     queue.push({texture, dirty});
   });
   const begin = (): void => {
@@ -521,12 +486,8 @@ function gpuHandle(
         if (m.type === 'ready') {
           if (timeout !== null) clearTimeout(timeout);
           ready = true;
-          startWatchdog('no shared texture paint');
-          win.webContents.invalidate();
-          if (paintRetry !== null) clearInterval(paintRetry);
-          paintRetry = setInterval(() => {
-            if (!win.isDestroyed()) win.webContents.invalidate();
-          }, 250);
+          timeout = null;
+          restartCapture();
         }
         if (m.type === 'live') live();
         if (m.type === 'pixels' && pixels) {
@@ -582,7 +543,7 @@ function gpuHandle(
       }
     },
     prepare: () => undefined,
-    requestFrame: () => win.webContents.invalidate(),
+    requestFrame: restartCapture,
     contentSize: () => ({width: NDI_FRAME_WIDTH, height: NDI_FRAME_HEIGHT}),
     setAlwaysOnTop: () => undefined,
     showFullScreen: () => undefined,
