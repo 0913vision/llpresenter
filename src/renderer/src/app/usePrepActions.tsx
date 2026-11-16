@@ -203,8 +203,8 @@ export function usePrepActions({
       }
       prepSelection.clear();
       openItem(itemId);
-      session.editor?.open(null);
       if (target === 'settings') {
+        session.editor?.open(null);
         slides.close();
         if (view.serviceId !== null) {
           session.items?.show({serviceId: view.serviceId, itemId});
@@ -216,11 +216,12 @@ export function usePrepActions({
         view.rows.some(row => row.id === itemId && row.kind === 'song')
       ) {
         const serviceId = view.serviceId;
+        const previousSession = session.editor?.getSnapshot().session;
         const isCurrent = (): boolean =>
           request === songOpen.current &&
           useShow.getState().serviceId === serviceId &&
           useShow.getState().openItemId === itemId &&
-          session.editor?.getSnapshot().session === null;
+          session.editor?.getSnapshot().session === previousSession;
         openServiceSong(
           session,
           {
@@ -245,6 +246,7 @@ export function usePrepActions({
       }
       const row = view.rows.find(row => row.id === itemId);
       if (view.serviceId !== null && row?.kind === 'bible') {
+        session.editor?.open(null);
         slides.close();
         session.items?.show({serviceId: view.serviceId, itemId});
         session.items?.selectPosition(position ?? 0);
@@ -266,6 +268,7 @@ export function usePrepActions({
         return;
       }
       if (position !== undefined && view.serviceId !== null) {
+        session.editor?.open(null);
         session.items?.show({serviceId: view.serviceId, itemId});
         session.items?.selectPosition(position);
       }
@@ -305,8 +308,8 @@ export function usePrepActions({
             api={session.api}
             report={session.report}
             controls={editorControls}
-            beforeLeave={slides.requestLeave}
             onOpen={target => {
+              slides.close();
               prepSelection.clear();
               onWorkspace('prep');
               if (target.from !== undefined) {
