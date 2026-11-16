@@ -12,11 +12,16 @@ import {DetailsPanel} from '@renderer/features/service/details/DetailsPanel';
 import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import {SongEditorStore} from '@renderer/features/songs/editor';
 import {useShow} from '@renderer/session/show';
+import {useContext, useLayoutEffect, useRef} from 'react';
+import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
 
 vi.mock('@renderer/rendering/SlidePicture', () => ({
-  SlidePicture: ({slide}: {slide: {lines: readonly string[]}}) => (
-    <div data-testid="picture">{slide.lines.join(' ')}</div>
-  ),
+  SlidePicture: ({slide}: {slide: {lines: readonly string[]}}) => {
+    const ready = useContext(PictureReadiness);
+    const source = useRef({});
+    useLayoutEffect(() => ready?.(source.current), [ready]);
+    return <div data-testid="picture">{slide.lines.join(' ')}</div>;
+  },
 }));
 afterEach(() =>
   useShow.setState({serviceId: null, openItemId: null, tiles: {}}),
@@ -82,6 +87,7 @@ it('keeps the first Bible picture while selecting slides locally and switching i
     await waitFor(() =>
       expect(items.getSnapshot().item?.id).toBe(fixtureItems.arranged),
     );
+    await screen.findByRole('tab', {name: '슬라이드'});
     const panel = screen.getByRole('region', {name: '세부정보'});
     expect(within(panel).getByTestId('picture').textContent).toContain(
       '16 Invented verse 16',

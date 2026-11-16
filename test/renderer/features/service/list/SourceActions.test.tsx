@@ -202,7 +202,9 @@ describe('the service source menu', () => {
         ),
       ).toEqual(['이름 바꾸기', '', '삭제']);
       expect(menu.querySelector('svg')).toBeNull();
-      expect(opener.getAttribute('aria-selected')).toBe('true');
+      await waitFor(() =>
+        expect(opener.getAttribute('aria-selected')).toBe('true'),
+      );
       expect(edits).toHaveLength(0);
       fireEvent.keyDown(menu, {key: 'Escape'});
       expect(screen.queryByRole('menu')).toBeNull();
