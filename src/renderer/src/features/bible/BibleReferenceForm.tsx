@@ -192,6 +192,8 @@ export function BibleReferenceForm(
     input: selectedRecent?.ref ?? state.input,
   });
   const passage = reply?.result.ok ? reply.result.value : undefined;
+  const liveTranslation =
+    (passage?.translation ?? metadata?.effectiveTranslation) === LIVE_BIBLE_ID;
   const pendingSubmit = useRef<{
     input: string;
     translation: TranslationId;
@@ -635,10 +637,14 @@ export function BibleReferenceForm(
           invalidReason={reason(part)}
         />
       ))}
-      {(passage?.translation ?? metadata?.effectiveTranslation) ===
-      LIVE_BIBLE_ID ? (
-        <span className={styles.translation} role="status">
-          {'\uac1c\uc5ed\uac1c\uc815 (\uc2e4\uc2dc\uac04)'}
+      {props.overlayLabels || liveTranslation ? (
+        <span
+          className={styles.translation}
+          role={liveTranslation ? 'status' : undefined}
+        >
+          {liveTranslation
+            ? '\uac1c\uc5ed\uac1c\uc815 (\uc2e4\uc2dc\uac04)'
+            : null}
         </span>
       ) : null}
       {expanded ? (

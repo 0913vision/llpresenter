@@ -1,6 +1,11 @@
 .panel {
   height: 100%;
 }
+.bibleField {
+  min-height: calc(
+    2 * var(--size-control-sm) + var(--space-6) + 2 * var(--space-8)
+  );
+}
 .list {
   position: relative;
 }
@@ -11,5 +16,7 @@
 }
 
 .livePassage {
+  box-sizing: border-box;
+  min-height: calc(var(--size-row) + var(--space-4));
   padding: var(--space-6) var(--space-12);
 }
