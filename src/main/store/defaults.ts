@@ -3,7 +3,7 @@ import type {MediaList} from '@core/schema/mediaList';
 
 /**
  * The 이름표 list before the operator changes it (`docs/spec/02-data.md`,
- * "이름표 list"). Jump keys start empty.
+ * "이름표 list").
  */
 export const DEFAULT_LABELS: readonly Label[] = [
   {name: '전주', color: '#7D8FD6'},

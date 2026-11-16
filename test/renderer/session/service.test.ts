@@ -39,7 +39,7 @@ afterEach(() => {
 });
 
 describe('applyService', () => {
-  it('shows the rows, tiles, jump keys, name, and read-only flag', () => {
+  it('shows the rows, tiles, name, and read-only flag', () => {
     applyService(serviceOf({readOnly: true}));
     expect(useShow.getState()).toMatchObject({
       revision: 1,

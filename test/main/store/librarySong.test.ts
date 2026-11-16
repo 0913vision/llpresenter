@@ -99,7 +99,7 @@ describe('library song projection', () => {
       }
     },
   );
-  it('uses file order, current label colors and first jump keys without a service item', async () => {
+  it('uses file order, current label colors without a service item', async () => {
     const source = sources();
     expect(await showLibrarySong(source, songId)).toEqual({
       songId,

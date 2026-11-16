@@ -52,7 +52,7 @@ export interface ProjectedSongTiles {
 
 /**
  * Turns the open 예배 순서 into what 진행 shows: a row per item, the tiles of
- * each song item in its 구성 order, and the 이름표 jump keys. Row ids are the
+ * each song item in order. Row ids are the
  * item ids, so the live state keeps pointing at the same item after a change.
  * A file from a newer app version shows as read-only.
  */
