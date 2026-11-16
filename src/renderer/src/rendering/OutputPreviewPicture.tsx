@@ -83,6 +83,7 @@ export const OutputPreviewPicture = memo(
     useLayoutEffect(() => {
       const container = parent.current;
       if (container === null || !near) return;
+      container.dataset['previewReady'] = 'false';
       const host = document.createElement('div');
       Object.assign(host.style, {
         position: 'absolute',
@@ -137,6 +138,7 @@ export const OutputPreviewPicture = memo(
         previous?.host.remove();
         host.style.visibility = 'visible';
         front.current = view;
+        container.dataset['previewReady'] = 'true';
         previous?.dispose();
       };
       frame = requestAnimationFrame(check);
@@ -157,6 +159,7 @@ export const OutputPreviewPicture = memo(
       <div
         ref={parent}
         className={styles.screen}
+        data-preview-ready={near ? 'false' : 'deferred'}
         style={{
           background:
             appearance.screen.method === 'ndi'

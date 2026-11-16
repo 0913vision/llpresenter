@@ -433,7 +433,7 @@ function SongBlocks({
           const slide = slides[block];
           return slide === undefined ? null : (
             <SongBlock
-              key={block}
+              key={slide.id}
               slide={slide}
               block={block}
               session={session}

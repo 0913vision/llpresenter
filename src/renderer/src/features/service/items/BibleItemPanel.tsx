@@ -67,6 +67,8 @@ export function BibleItemPanel({
       <PanelBody variant="flush">
         {children ?? (
           <VirtualSlides
+            itemKey={item.id}
+            contentReady={projection !== null}
             song={projected}
             numbers={numbers}
             labels={[]}

@@ -26,6 +26,8 @@ import {useSlideWindow} from './useSlideWindow';
 import {ShowSlideEntry} from './showPanelNavigation';
 import {serviceSlideOffset} from './serviceSlideNumbers';
 import {useSlideTransitionProgress} from './useSlideTransitionProgress';
+import {BufferedSlideGrid} from '@renderer/ui/BufferedSlideGrid';
+import {revealSlideItem} from './visibleSlideItem';
 
 const GRID_SELECTOR = '[role="listbox"]';
 
@@ -171,89 +173,99 @@ export function SlideGrid({
       ) : null}
 
       <div className={styles.window} style={{top: window.offset}}>
-        <ThumbnailGrid
-          workspace="show"
-          gridFocus
-          label="슬라이드"
-          columns={columns}
-          tileWidth={tileWidth}
-          positionOffset={window.start}
-          setSize={tiles?.length ?? 0}
-          selected={undefined}
-          onSelect={() => undefined}
-          onOutput={index => onOutput(window.start + index)}
-          onMenu={(index, anchor) => {
-            if (openItemId !== null) {
-              setMenu({
-                itemId: openItemId,
-                index: window.start + index,
-                anchor,
-              });
-            }
-          }}
-          className={styles.grid}
+        <BufferedSlideGrid
+          itemKey={openItemId ?? ''}
+          onReveal={revealSlideItem}
+          ready={
+            tiles !== undefined && (row?.kind !== 'bible' || bible !== null)
+          }
         >
-          {tiles?.slice(window.start, window.end).map((tile, local) => {
-            const index = window.start + local;
-            const picture = tile.media?.mediaId;
-            const slide =
-              openItemId === null
-                ? null
-                : slideLayerOf({itemId: openItemId, index}, () => tiles);
-            const appearance =
-              tile.biblePart === undefined ? undefined : bible?.appearance;
-            return (
-              <SlideThumbnail
-                key={`${openItemId}:${index}`}
-                selectionStyle="plate"
-                number={(offset ?? 0) + index + 1}
-                canvas={
-                  picture !== undefined ? undefined : tile.sectionCard !==
-                      undefined &&
-                    cardTheme !== undefined &&
-                    slide !== null ? (
-                    <SlidePicture output {...cardTheme} slide={slide} />
-                  ) : tile.sermonTitle === true &&
-                    sermonTheme !== undefined &&
-                    slide !== null ? (
-                    <SlidePicture output {...sermonTheme} slide={slide} />
-                  ) : appearance !== undefined && slide !== null ? (
-                    <SlidePicture
-                      output
-                      screen={appearance.screen}
-                      themeId={appearance.theme.themeId}
-                      slide={slide}
-                      layout={appearance.theme.layout}
-                      emptyColor={appearance.theme.emptyColor}
-                      item={appearance.theme.item}
-                      background={appearance.background}
-                    />
-                  ) : theme === undefined || slide === null ? undefined : (
-                    <SlidePicture output {...theme} slide={slide} />
-                  )
-                }
-                label={
-                  tile.label === '' ? undefined : (tile.label ?? undefined)
-                }
-                labelColor={tile.labelColor}
-                accessibleLabel={
-                  picture === undefined || tile.label
-                    ? undefined
-                    : tile.lines.join(' ')
-                }
-                text={picture === undefined ? tile.lines.join('\n') : undefined}
-                media={
-                  picture === undefined ? undefined : thumbnailSrc(picture)
-                }
-                live={index === liveIndex}
-                transitionProgress={
-                  index === liveIndex ? transitionProgress : undefined
-                }
-                hotKey={tile.hotKey}
-              />
-            );
-          })}
-        </ThumbnailGrid>
+          <ThumbnailGrid
+            workspace="show"
+            gridFocus
+            label="슬라이드"
+            columns={columns}
+            tileWidth={tileWidth}
+            positionOffset={window.start}
+            setSize={tiles?.length ?? 0}
+            selected={undefined}
+            onSelect={() => undefined}
+            onOutput={index => onOutput(window.start + index)}
+            onMenu={(index, anchor) => {
+              if (openItemId !== null) {
+                setMenu({
+                  itemId: openItemId,
+                  index: window.start + index,
+                  anchor,
+                });
+              }
+            }}
+            className={styles.grid}
+          >
+            {tiles?.slice(window.start, window.end).map((tile, local) => {
+              const index = window.start + local;
+              const picture = tile.media?.mediaId;
+              const slide =
+                openItemId === null
+                  ? null
+                  : slideLayerOf({itemId: openItemId, index}, () => tiles);
+              const appearance =
+                tile.biblePart === undefined ? undefined : bible?.appearance;
+              return (
+                <SlideThumbnail
+                  key={`${openItemId}:${index}`}
+                  selectionStyle="plate"
+                  number={(offset ?? 0) + index + 1}
+                  canvas={
+                    picture !== undefined ? undefined : tile.sectionCard !==
+                        undefined &&
+                      cardTheme !== undefined &&
+                      slide !== null ? (
+                      <SlidePicture output {...cardTheme} slide={slide} />
+                    ) : tile.sermonTitle === true &&
+                      sermonTheme !== undefined &&
+                      slide !== null ? (
+                      <SlidePicture output {...sermonTheme} slide={slide} />
+                    ) : appearance !== undefined && slide !== null ? (
+                      <SlidePicture
+                        output
+                        screen={appearance.screen}
+                        themeId={appearance.theme.themeId}
+                        slide={slide}
+                        layout={appearance.theme.layout}
+                        emptyColor={appearance.theme.emptyColor}
+                        item={appearance.theme.item}
+                        background={appearance.background}
+                      />
+                    ) : theme === undefined || slide === null ? undefined : (
+                      <SlidePicture output {...theme} slide={slide} />
+                    )
+                  }
+                  label={
+                    tile.label === '' ? undefined : (tile.label ?? undefined)
+                  }
+                  labelColor={tile.labelColor}
+                  accessibleLabel={
+                    picture === undefined || tile.label
+                      ? undefined
+                      : tile.lines.join(' ')
+                  }
+                  text={
+                    picture === undefined ? tile.lines.join('\n') : undefined
+                  }
+                  media={
+                    picture === undefined ? undefined : thumbnailSrc(picture)
+                  }
+                  live={index === liveIndex}
+                  transitionProgress={
+                    index === liveIndex ? transitionProgress : undefined
+                  }
+                  hotKey={tile.hotKey}
+                />
+              );
+            })}
+          </ThumbnailGrid>
+        </BufferedSlideGrid>
       </div>
       {menu !== null && menu.itemId === openItemId && tiles?.[menu.index] ? (
         <Menu

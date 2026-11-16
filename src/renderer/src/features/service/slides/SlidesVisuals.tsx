@@ -13,6 +13,7 @@ import type {BibleProjection} from '@renderer/features/bible/splitProjection';
 import {useSlidesVerseProjection} from '@renderer/features/bible/useSlidesVerseProjection';
 import {Button} from '@renderer/ui/Button';
 import {Picture} from '@renderer/features/songs/editor/SongPreview';
+import {OutputPreviewPicture} from '@renderer/rendering/OutputPreviewPicture';
 import {
   previewAppearance,
   type PreviewRole,
@@ -145,6 +146,7 @@ export function SlidesCanvas({
   projection,
   part,
   outputSlide,
+  thumbnail = false,
 }: {
   readonly item: SlidesItem;
   readonly index: number;
@@ -176,8 +178,18 @@ export function SlidesCanvas({
     return () => observer.disconnect();
   }, []);
   return (
-    <div ref={host} className={styles.canvas}>
-      {visible ? <Picture layers={layers} appearance={appearance} /> : null}
+    <div
+      ref={host}
+      className={styles.canvas}
+      data-preview-ready={visible ? undefined : 'deferred'}
+    >
+      {visible ? (
+        thumbnail ? (
+          <OutputPreviewPicture layers={layers} appearance={appearance} />
+        ) : (
+          <Picture layers={layers} appearance={appearance} />
+        )
+      ) : null}
     </div>
   );
 }
