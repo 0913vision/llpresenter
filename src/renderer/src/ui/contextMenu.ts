@@ -7,14 +7,23 @@ export type ContextMenuEvent =
 
 const marks = new WeakMap<HTMLElement, number>();
 
-export function contextMenuTarget(event: ContextMenuEvent): HTMLElement {
-  const row =
-    event.target instanceof Element
-      ? (event.target.closest<HTMLElement>(
-          '[data-order-id], [data-value], [role="option"], [role^="menuitem"], [role="radio"], [role="tab"], [role="group"][tabindex]',
-        ) ?? event.target.closest<HTMLElement>('button'))
-      : null;
-  return row ?? event.currentTarget;
+export function contextMenuTarget(
+  event: ContextMenuEvent,
+): HTMLElement | undefined {
+  if (!(event.target instanceof Element)) return undefined;
+  const row = event.target.closest<HTMLElement>(
+    '[data-menu-row], [data-order-id], [data-value], [role="option"], [role^="menuitem"], [role="radio"], [role="tab"]',
+  );
+  if (row !== null) return row;
+  const group = event.target.closest<HTMLElement>('[role="group"][tabindex]');
+  const rows =
+    '[data-menu-row], [data-order-id], [data-value], [role="option"]';
+  if (group !== null && !group.querySelector(rows)) return group;
+  const button = event.target.closest<HTMLElement>('button');
+  if (button !== null) return button;
+  return event.currentTarget.querySelector(rows)
+    ? undefined
+    : event.currentTarget;
 }
 
 export function markMenuTarget(target: HTMLElement): () => void {

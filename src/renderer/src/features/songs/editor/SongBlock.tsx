@@ -208,6 +208,7 @@ export const SongBlock = memo(
         data-active={active}
         data-focused={focused}
         data-editor-block={block}
+        data-menu-row
         data-song-slide={slide.id}
         data-slide-index={block}
         draggable={!locked}

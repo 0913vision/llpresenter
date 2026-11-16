@@ -116,6 +116,38 @@ it('leaves ordinary click menus unmarked', () => {
   expect(target.hasAttribute('data-menu-target')).toBe(false);
 });
 
+it('does not mark a row container when its empty area opens a menu', () => {
+  function Surface() {
+    const [anchor, setAnchor] = useState<MenuAnchor | null>(null);
+    return (
+      <>
+        <div
+          role="group"
+          tabIndex={0}
+          onContextMenu={event => {
+            event.preventDefault();
+            setAnchor(contextMenuAnchor(event));
+          }}
+        >
+          <div data-menu-row>Row</div>
+        </div>
+        {anchor && (
+          <Menu
+            label="Menu"
+            anchor={anchor}
+            entries={[]}
+            onClose={() => setAnchor(null)}
+          />
+        )}
+      </>
+    );
+  }
+  render(<Surface />);
+  const group = screen.getByRole('group');
+  fireEvent.contextMenu(group);
+  expect(group.hasAttribute('data-menu-target')).toBe(false);
+});
+
 it('keeps a shared target marked until all its menus release it', () => {
   const target = document.createElement('div');
   const release = markMenuTarget(target);

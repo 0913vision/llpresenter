@@ -25,7 +25,10 @@ export type {MenuSearch} from './MenuParts';
 export type MenuAnchor = (
   | {readonly kind: 'element'; readonly element: HTMLElement}
   | {readonly kind: 'point'; readonly point: Point}
-) & {readonly target?: HTMLElement | undefined};
+) & {
+  readonly target?: HTMLElement | undefined;
+  readonly targets?: readonly HTMLElement[] | undefined;
+};
 
 export interface MenuProps {
   readonly context?: boolean;
@@ -88,10 +91,11 @@ export function Menu({
     outsideRename.current = false;
     onClose('outside');
   }, [renaming, onClose]);
-  useLayoutEffect(
-    () => (anchor.target ? markMenuTarget(anchor.target) : undefined),
-    [anchor.target],
-  );
+  useLayoutEffect(() => {
+    const targets = anchor.targets ?? (anchor.target ? [anchor.target] : []);
+    const releases = targets.map(markMenuTarget);
+    return () => releases.forEach(release => release());
+  }, [anchor.target, anchor.targets]);
   const [menubar] = useState(() =>
     anchor.kind === 'element'
       ? anchor.element.closest('[role="menubar"]')

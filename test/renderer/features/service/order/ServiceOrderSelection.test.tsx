@@ -107,6 +107,9 @@ describe.each(['show', 'prep'] as const)('%s service selection', workspace => {
       fireEvent.click(first);
       fireEvent.click(last, {ctrlKey: true});
       fireEvent.contextMenu(first);
+      expect(first.hasAttribute('data-menu-target')).toBe(true);
+      expect(last.hasAttribute('data-menu-target')).toBe(true);
+      expect(list().hasAttribute('data-menu-target')).toBe(false);
       await userEvent.click(
         screen.getByRole('menuitem', {name: /위로 옮기기/}),
       );

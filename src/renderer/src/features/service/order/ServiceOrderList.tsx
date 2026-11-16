@@ -1011,6 +1011,23 @@ export function ServiceOrderList({
           anchor: {
             kind: 'point',
             target: contextMenuTarget(event),
+            targets: [
+              ...event.currentTarget.querySelectorAll<HTMLElement>(
+                '[data-order-id]',
+              ),
+            ]
+              .filter(row => {
+                const rowId = row.dataset.orderId;
+                return (
+                  rowId !== undefined &&
+                  (selection.selected.has(id)
+                    ? selection.selected.has(rowId)
+                    : rowId === id)
+                );
+              })
+              .map(
+                row => row.querySelector<HTMLElement>('[data-value]') ?? row,
+              ),
             point: {x: event.clientX, y: event.clientY},
           },
         });
@@ -1032,7 +1049,30 @@ export function ServiceOrderList({
           event.preventDefault();
           event.stopPropagation();
           if (!selection.selected.has(id)) selection.replace([id], id);
-          setMenu({id, serviceId, anchor: contextMenuAnchor(event)});
+          setMenu({
+            id,
+            serviceId,
+            anchor: {
+              ...contextMenuAnchor(event),
+              targets: [
+                ...event.currentTarget.querySelectorAll<HTMLElement>(
+                  '[data-order-id]',
+                ),
+              ]
+                .filter(row => {
+                  const rowId = row.dataset.orderId;
+                  return (
+                    rowId !== undefined &&
+                    (selection.selected.has(id)
+                      ? selection.selected.has(rowId)
+                      : rowId === id)
+                  );
+                })
+                .map(
+                  row => row.querySelector<HTMLElement>('[data-value]') ?? row,
+                ),
+            },
+          });
           return;
         }
       }}

@@ -325,6 +325,13 @@ it('outputs the previous slide, leaves Enter inert, and targets right-click', ()
   fireEvent.keyDown(grid, {key: 'ArrowUp', code: 'ArrowUp'});
   expectOutput(send.mock.calls.at(-1)?.[0], 3);
   fireEvent.contextMenu(slide(2));
+  expect(slide(2).hasAttribute('data-menu-target')).toBe(true);
+  expect(grid.hasAttribute('data-menu-target')).toBe(false);
+  expect(
+    screen
+      .getAllByRole('option')
+      .filter(tile => tile.hasAttribute('data-menu-target')),
+  ).toEqual([slide(2)]);
   fireEvent.click(
     screen.getByRole('menuitem', {name: windowCommandLabels.editSong}),
   );

@@ -1333,6 +1333,10 @@ it('reorders a disjoint element selection from its menu and drag image without r
   fireEvent.click(first);
   fireEvent.click(last, {ctrlKey: true});
   fireEvent.contextMenu(first);
+  expect(first.hasAttribute('data-menu-target')).toBe(true);
+  expect(last.hasAttribute('data-menu-target')).toBe(true);
+  expect(second.hasAttribute('data-menu-target')).toBe(false);
+  expect(list.hasAttribute('data-menu-target')).toBe(false);
   await userEvent.click(
     screen.getByRole('menuitem', {name: '2개 맨 앞으로 가져오기'}),
   );
