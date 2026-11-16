@@ -1,3 +1,4 @@
+import type {BibleDisplayOptions} from '@core/bible/source';
 import type {BibleSource} from '@core/bible/source';
 import {bibleOutputLines} from '@core/bible/bibleTiles';
 import {passageBook} from '@core/bible/adjacentVerses';
@@ -300,6 +301,7 @@ export class BibleProjections {
       readonly screens: readonly ThemeScreen[] | undefined;
       readonly saved: BibleCutsFile | undefined;
       readonly canvas: BibleFontMeasure;
+      readonly slideBibleDefaults?: BibleDisplayOptions | null | undefined;
     },
   ) {}
 
@@ -307,6 +309,15 @@ export class BibleProjections {
     source: SplitSource,
     revision = bibleRefinements.getSnapshot(),
   ): BibleProjection | null {
+    if (source.kind === 'slides' && this.context.slideBibleDefaults != null) {
+      const defaults = this.context.slideBibleDefaults;
+      source = {
+        ...source,
+        verseNumbers: defaults.verseNumbers,
+        reference: defaults.reference ?? 'every',
+        translationName: defaults.translationName ?? false,
+      };
+    }
     if (this.refinementRevision !== revision) {
       this.refinementRevision = revision;
       this.cache.clear();

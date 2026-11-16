@@ -205,3 +205,24 @@ describe('tree selection', () => {
     ]);
   });
 });
+
+it('shows sermon titles and the Bible icon in service pickers', () => {
+  const sermon = {
+    id: fixtureItems.plain,
+    sermon: {
+      title: 'A sermon',
+      passage: {
+        translation: 'sample',
+        ref: 'John 3:16',
+        split: 'verse',
+        reference: 'every',
+        verseNumbers: true,
+        translationName: false,
+      },
+    },
+  } as const;
+  expect(treeRows([sermon], new Map())[0]).toMatchObject({
+    label: 'A sermon',
+    icon: 'book',
+  });
+});

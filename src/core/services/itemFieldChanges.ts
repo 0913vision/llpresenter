@@ -1,6 +1,7 @@
 import type {ThemeId} from '../schema/ids';
 import type {ThemesFile} from '../schema/themes';
 import {itemThemeKind} from '../themes/itemKind';
+import {CREED_PRAYER_THEME_ID} from '../themes/creedPrayer';
 import {resolveItemTheme} from '../themes/resolve';
 import {hasSectionCard} from './sectionCards';
 import {
@@ -14,7 +15,14 @@ import {
  */
 export type ServiceItemChange = (item: ServiceItem) => ServiceItem | null;
 
-const startKinds = ['song', 'bible', 'media', 'slides', 'liturgy'] as const;
+const startKinds = [
+  'song',
+  'bible',
+  'sermon',
+  'media',
+  'slides',
+  'liturgy',
+] as const;
 /** Item kinds that carry start actions, memos and appearance overrides. */
 export type StartItem = ServiceItemOf<(typeof startKinds)[number]>;
 type StartField = 'macro' | 'memo';
@@ -76,7 +84,10 @@ export function withItemTheme(
     const kind = itemThemeKind(updated);
     if (kind !== undefined) {
       const effective =
-        theme ?? resolveItemTheme({file: themes, kind, source: 'external'}).id;
+        theme ??
+        (isItemOfKind(updated, 'liturgy')
+          ? CREED_PRAYER_THEME_ID
+          : resolveItemTheme({file: themes, kind, source: 'external'}).id);
       return {
         ...updated,
         sectionCard: {...updated.sectionCard, theme: effective},

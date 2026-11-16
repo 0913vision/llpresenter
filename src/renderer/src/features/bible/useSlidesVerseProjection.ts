@@ -8,6 +8,7 @@ import {createBibleMeasureContext} from '@renderer/rendering/bibleMeasure';
 import {useApiSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {BibleProjections} from './splitProjection';
 import {loadVersePassages} from './loadSlidesProjection';
+import {useBibleDisplayDefaults} from './useBibleDisplayDefaults';
 import {bibleRefinements} from './BibleRefinements';
 
 /** Resolves only the verse slots of a local draft, dropping stale lookup replies. */
@@ -16,6 +17,7 @@ export function useSlidesVerseProjection(
   item: SlidesItem,
   enabled = true,
 ) {
+  const slideBibleDefaults = useBibleDisplayDefaults(window.llp?.preferences);
   const refinementRevision = useSyncExternalStore(
     bibleRefinements.subscribe,
     bibleRefinements.getSnapshot,
@@ -116,6 +118,7 @@ export function useSlidesVerseProjection(
       screens: screenFile.value.screens,
       saved: cutFile.value,
       canvas: measurement.canvas,
+      slideBibleDefaults,
     }).get(
       {
         kind: 'slides',
@@ -148,6 +151,7 @@ export function useSlidesVerseProjection(
     labels,
     item,
     refinementRevision,
+    slideBibleDefaults,
   ]);
   return {
     projection,
