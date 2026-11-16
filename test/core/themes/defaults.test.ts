@@ -63,7 +63,7 @@ it('places song lyrics near the top while retaining the starter broadcast styles
       kind: 'currentText',
       text: {
         font: 'Pretendard Variable',
-        size: 67,
+        size: 72,
         weight: 700,
         align: 'center',
       },
