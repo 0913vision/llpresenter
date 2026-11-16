@@ -67,7 +67,28 @@ export function useThemeSurfaces(
   const clipboard = useThemeClipboard(surfaceModel);
   const onMenu = (id: string | null, anchor: MenuAnchor): void => {
     if (id !== null && !model.selectedIds.includes(id)) model.select(id);
-    setMenu({id, anchor});
+    const selected =
+      id !== null && model.selectedIds.includes(id)
+        ? model.selectedIds
+        : id === null
+          ? []
+          : [id];
+    const target = anchor.target;
+    const canvas = target?.closest('[data-canvas]');
+    const list = target?.closest('[role="listbox"]');
+    const targets = canvas
+      ? [
+          ...canvas.querySelectorAll<HTMLElement>('[data-canvas-element]'),
+        ].filter(row => selected.includes(row.dataset.canvasElement ?? ''))
+      : list
+        ? [...list.querySelectorAll<HTMLElement>('[data-value]')].filter(row =>
+            selected.includes(row.dataset.value ?? ''),
+          )
+        : undefined;
+    setMenu({
+      id,
+      anchor: targets === undefined ? anchor : {...anchor, targets},
+    });
   };
   const ids = new Set(model.selectedIds);
   const reorder = (

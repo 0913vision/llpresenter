@@ -421,6 +421,7 @@ export function VirtualSlides<T extends SlideListItem>({
               <div
                 key={start + index}
                 className={styles.editableTile}
+                data-menu-row
                 data-song-slide={own?.id}
                 data-slide-index={number - 1}
                 draggable={!session.readOnly}

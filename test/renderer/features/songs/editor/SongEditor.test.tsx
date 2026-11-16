@@ -67,6 +67,37 @@ describe('song editor view', () => {
       seedSlideSurfaceView({});
     },
   );
+  it.each(['list', 'grid'] as const)(
+    'marks only the menu selection in the %s editor',
+    async mode => {
+      seedSlideSurfaceView({layout: {normal: {editorSlideView: mode}}});
+      const {session, view} = await editorSetup();
+      act(() => {
+        for (let index = 0; index < 4; index++) session.edit({type: 'insert'});
+      });
+      const rows = [
+        ...view.container.querySelectorAll<HTMLElement>('[data-song-slide]'),
+      ];
+      expect(rows).toHaveLength(6);
+      const surface = rows[2]?.closest('[role="group"]');
+      if (!rows[1] || !rows[2] || !surface) throw Error('Missing slides');
+      fireEvent.contextMenu(rows[2]);
+      expect(rows.filter(row => row.hasAttribute('data-menu-target'))).toEqual([
+        rows[2],
+      ]);
+      expect(surface.hasAttribute('data-menu-target')).toBe(false);
+      fireEvent.keyDown(screen.getByRole('menu'), {key: 'Escape'});
+      fireEvent.click(rows[1]);
+      fireEvent.click(rows[2], {ctrlKey: true});
+      fireEvent.contextMenu(rows[2]);
+      expect(rows.filter(row => row.hasAttribute('data-menu-target'))).toEqual([
+        rows[1],
+        rows[2],
+      ]);
+      expect(surface.hasAttribute('data-menu-target')).toBe(false);
+      seedSlideSurfaceView({});
+    },
+  );
   it('adds after the clicked slide or at the end from empty space', async () => {
     const {session, user, view} = await editorSetup();
     const original = session.history.snapshot.song.slides.map(

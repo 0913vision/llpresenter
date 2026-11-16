@@ -120,6 +120,19 @@ export function SongSlideSurface<T extends SlideListItem>({
     }
   };
   const [menu, setMenu] = useState<MenuAnchor | null>(null);
+  const menuTargets = (
+    surface: HTMLElement,
+    id: string | undefined,
+  ): HTMLElement[] => {
+    if (id === undefined) return [];
+    const ids = view.selection.ids.has(id) ? view.selection.ids : new Set([id]);
+    return [
+      ...surface.querySelectorAll<HTMLElement>('[data-song-slide]'),
+    ].filter(
+      row =>
+        row.dataset.songSlide !== undefined && ids.has(row.dataset.songSlide),
+    );
+  };
   const [menuIndex, setMenuIndex] = useState(0);
   const [addIndex, setAddIndex] = useState(0);
   const [labelAnchor, setLabelAnchor] = useState<HTMLElement | null>(null);
@@ -669,7 +682,11 @@ export function SongSlideSurface<T extends SlideListItem>({
         ) {
           session.selectSlides({type: 'click', id: targetSlide.id});
         }
-        setMenu({kind: 'element', element: target, target});
+        setMenu({
+          kind: 'element',
+          element: target,
+          targets: menuTargets(event.currentTarget, targetId),
+        });
         setMenuIndex(
           Number(
             target.closest<HTMLElement>('[data-slide-index]')?.dataset
@@ -837,7 +854,10 @@ export function SongSlideSurface<T extends SlideListItem>({
         event.preventDefault();
         event.stopPropagation();
         surfaceRef.current?.focus({preventScroll: true});
-        setMenu(contextMenuAnchor(event));
+        setMenu({
+          ...contextMenuAnchor(event),
+          targets: menuTargets(event.currentTarget, id),
+        });
       }}
       onDragStart={event => {
         if (contentLocked || isInTextEntry(event.target)) {
