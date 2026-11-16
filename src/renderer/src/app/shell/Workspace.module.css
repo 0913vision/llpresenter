@@ -172,7 +172,8 @@
 }
 
 .fit {
-  flex: 0 1 auto;
+  /* NOTE(0913vision): Loaded preview content must not resize its neighbors. */
+  flex: 1 1 0;
   min-height: var(--preview-min-height);
   max-height: max(
     var(--preview-min-height),
@@ -182,6 +183,11 @@
 
 .fit[style*='height:'] {
   max-height: none;
+}
+
+.fit > section {
+  flex: 1;
+  min-height: 0;
 }
 
 .content .body,
