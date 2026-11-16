@@ -910,6 +910,36 @@ describe('theme composition drawing', () => {
     view.dispose();
   });
 
+  it('identifies an unready image and can reveal its partially prepared page', () => {
+    const {root, view} = setup();
+    const picture: ThemeElement = {
+      ...themeElementBase(31),
+      kind: 'image',
+      mediaId,
+      fit: 'fit',
+      radius: 0,
+    };
+    view.render(song, {
+      ...frame([{...themeElementBase(), kind: 'currentText'}]),
+      transitions: false,
+    });
+    view.render(song, {
+      ...frame([picture], {
+        themeId: createThemeId('00000000-0000-4000-8000-000000000502'),
+      }),
+      transitions: false,
+    });
+    const incoming = [
+      ...root.querySelectorAll<HTMLElement>('[data-theme-page]'),
+    ].at(-1);
+    expect(incoming?.style.opacity).toBe('0');
+    expect(view.unreadyElements()).toEqual([{kind: 'image', id: picture.id}]);
+    view.revealIncomplete();
+    expect(incoming?.style.opacity).toBe('1');
+    expect(root.querySelectorAll('[data-theme-page]')).toHaveLength(1);
+    view.dispose();
+  });
+
   it('reports a rejected theme picture decode and ignores a decode after disposal', async () => {
     const {root, view, onError} = setup();
     const picture: ThemeElement = {

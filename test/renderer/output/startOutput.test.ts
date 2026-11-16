@@ -80,7 +80,10 @@ beforeEach(() => {
   vi.spyOn(HTMLMediaElement.prototype, 'load').mockReturnValue(undefined);
 });
 
-function setUp(live: Partial<LlpApi['live']> = {}) {
+function setUp(
+  live: Partial<LlpApi['live']> = {},
+  reportReady?: () => Promise<boolean>,
+) {
   const root = document.createElement('div');
   const logs: RendererLogEntry[] = [];
   const rates: FrameRateReport[] = [];
@@ -95,7 +98,10 @@ function setUp(live: Partial<LlpApi['live']> = {}) {
       ...live,
     },
     log: {write: entry => logs.push(entry)},
-    output: {reportFrameRate: report => rates.push(report)},
+    output: {
+      reportFrameRate: report => rates.push(report),
+      ...(reportReady ? {reportReady} : {}),
+    },
   });
   const stop = startOutput({root, api, screenId: MAIN_SCREEN});
   onTestFinished(stop);
@@ -215,6 +221,89 @@ describe('startOutput', () => {
       }
     },
   );
+  it('warns with unready element IDs and reveals a timed-out wipe even without frames', async () => {
+    let receive: (state: LiveState) => void = () => undefined;
+    const oldSlide = SHOWING.layers.slide;
+    if (oldSlide === null) throw new Error('Missing slide');
+    const ready = vi
+      .spyOn(OutputRenderer.prototype, 'ready')
+      .mockReturnValue(true);
+    const unready = vi
+      .spyOn(OutputRenderer.prototype, 'unreadyElements')
+      .mockReturnValue([{kind: 'image', id: 'image-id'}]);
+    const prepare = vi
+      .spyOn(SlideAnimation.prototype, 'prepare')
+      .mockImplementation(() => undefined);
+    const start = vi
+      .spyOn(SlideAnimation.prototype, 'start')
+      .mockImplementation(() => undefined);
+    vi.spyOn(SlideAnimation.prototype, 'finished').mockReturnValue(
+      new Promise(() => undefined),
+    );
+    const {root, logs, stop} = setUp(
+      {
+        get: async () => ({
+          ...SHOWING,
+          layers: {...SHOWING.layers, media: null},
+        }),
+        subscribe: listener => {
+          receive = listener;
+          return () => undefined;
+        },
+      },
+      async () => true,
+    );
+    try {
+      await Promise.resolve();
+      await pumpReadiness();
+      await pumpReadiness();
+      vi.useFakeTimers({toFake: ['setTimeout', 'clearTimeout']});
+      ready.mockReturnValue(false);
+      const next = (version: number, position: number): LiveState => ({
+        ...SHOWING,
+        version,
+        layers: {
+          ...SHOWING.layers,
+          media: null,
+          slide: {
+            ...oldSlide,
+            position,
+            transition: {kind: 'wipe', dir: 'left', sec: 1},
+          },
+        },
+      });
+      receive(next(4, 1));
+      vi.advanceTimersByTime(1000);
+      receive(next(5, 2));
+      vi.advanceTimersByTime(1499);
+      expect(logs.filter(entry => entry.level === 'warn')).toHaveLength(0);
+      vi.advanceTimersByTime(1);
+      const warning = logs.filter(entry => entry.level === 'warn');
+      expect(warning).toHaveLength(1);
+      expect(warning[0]).toMatchObject({
+        message: 'incoming slide not ready after 1500 ms; showing it anyway',
+      });
+      expect(JSON.parse(warning[0]?.detail ?? '')).toMatchObject({
+        screenId: MAIN_SCREEN,
+        elements: [{kind: 'image', id: 'image-id'}],
+      });
+      expect(unready).toHaveBeenCalledOnce();
+      expect(prepare).toHaveBeenCalledOnce();
+      expect(start).toHaveBeenCalledOnce();
+      const incoming = root.lastElementChild;
+      if (!(incoming instanceof HTMLElement)) {
+        throw new Error('Missing incoming surface');
+      }
+      expect(incoming.style.visibility).toBe('');
+      vi.advanceTimersByTime(3000);
+      expect(logs.filter(entry => entry.level === 'warn')).toHaveLength(1);
+    } finally {
+      stop();
+      vi.useRealTimers();
+      vi.restoreAllMocks();
+    }
+  });
+
   it('requests hidden painting while animation frames stall, then stops when painted', async () => {
     vi.useFakeTimers({
       toFake: ['setTimeout', 'clearTimeout', 'setInterval', 'clearInterval'],
