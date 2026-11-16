@@ -44,6 +44,7 @@ const KIND_NAMES: Readonly<Record<MediaItem['kind'], string>> = {
 type Tab = 'props' | 'info';
 
 interface Editing {
+  readonly isAudio: boolean;
   readonly shown: ShownProps;
   readonly duration: number | undefined;
   readonly disabled: boolean;
@@ -94,26 +95,28 @@ function TimeField({
   );
 }
 
-function PlaybackGroup({shown, duration, disabled, change}: Editing) {
+function PlaybackGroup({shown, duration, disabled, change, isAudio}: Editing) {
   const stop = shown.stop ?? duration;
   return (
     <PropertyGroup title="재생">
-      <PropertyRow label="끝나면">
-        {({controlId, labelId}) => (
-          <SegmentedControl
-            id={controlId}
-            labelledBy={labelId}
-            fill
-            disabled={disabled}
-            options={[
-              {value: 'loop', label: '반복'},
-              {value: 'stop', label: '정지'},
-            ]}
-            value={shown.end}
-            onChange={end => change({end})}
-          />
-        )}
-      </PropertyRow>
+      {!isAudio && (
+        <PropertyRow label="끝나면">
+          {({controlId, labelId}) => (
+            <SegmentedControl
+              id={controlId}
+              labelledBy={labelId}
+              fill
+              disabled={disabled}
+              options={[
+                {value: 'loop', label: '반복'},
+                {value: 'stop', label: '정지'},
+              ]}
+              value={shown.end}
+              onChange={end => change({end})}
+            />
+          )}
+        </PropertyRow>
+      )}
       <PropertyRow label="구간">
         {({controlId}) => (
           <span className={styles.range}>
@@ -186,20 +189,22 @@ function ScreenGroup({shown, disabled, change}: Editing) {
   );
 }
 
-function SoundGroup({shown, disabled, change}: Editing) {
+function SoundGroup({shown, disabled, change, isAudio}: Editing) {
   const [dragging, setDragging] = useState<number | null>(null);
   return (
     <PropertyGroup title="소리">
-      <PropertyRow label="소리 켜기">
-        {({controlId}) => (
-          <Checkbox
-            id={controlId}
-            checked={shown.audio}
-            disabled={disabled}
-            onChange={audio => change({audio})}
-          />
-        )}
-      </PropertyRow>
+      {!isAudio && (
+        <PropertyRow label="소리 켜기">
+          {({controlId}) => (
+            <Checkbox
+              id={controlId}
+              checked={shown.audio}
+              disabled={disabled}
+              onChange={audio => change({audio})}
+            />
+          )}
+        </PropertyRow>
+      )}
       <PropertyRow label="음량">
         {() => (
           <Slider
@@ -209,8 +214,8 @@ function SoundGroup({shown, disabled, change}: Editing) {
             min={0}
             max={MAX_VOLUME}
             step={1}
-            disabled={disabled || !shown.audio}
-            title={shown.audio ? undefined : '소리 꺼짐'}
+            disabled={disabled || (!isAudio && !shown.audio)}
+            title={isAudio || shown.audio ? undefined : '소리 꺼짐'}
             value={dragging ?? shown.volume}
             valueText={`${Math.round(dragging ?? shown.volume)}%`}
             onChange={setDragging}
@@ -234,6 +239,7 @@ export function MediaProperties({
 }): JSX.Element {
   const {library} = useMediaView();
   const editing: Editing = {
+    isAudio: item.kind === 'audio',
     shown: shownProps(item),
     duration: item.duration,
     disabled,

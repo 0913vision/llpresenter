@@ -52,7 +52,9 @@ export function startOffsetSeconds(
   now: number,
 ): number {
   const offset = playbackOffsetSeconds(media, duration, now);
-  return offset < MIN_SEEK_SECONDS ? 0 : offset;
+  return offset < MIN_SEEK_SECONDS && (media.properties?.in ?? 0) === 0
+    ? 0
+    : offset;
 }
 
 function playbackOffsetSeconds(
@@ -61,8 +63,13 @@ function playbackOffsetSeconds(
   now: number,
 ): number {
   if (!Number.isFinite(duration) || duration <= 0) return 0;
+  const start = Math.min(media.properties?.in ?? 0, duration);
+  const end = Math.min(media.properties?.out ?? duration, duration);
+  const length = Math.max(0, end - start);
   const elapsed = backgroundElapsedSeconds(media, now);
-  return media.loop ? elapsed % duration : Math.min(elapsed, duration);
+  return media.loop && length > 0
+    ? start + (elapsed % length)
+    : Math.min(start + elapsed, end);
 }
 
 type VideoIndex = 0 | 1;
@@ -248,7 +255,10 @@ class PlaybackBackgroundLayerView {
     const video = this.videos[this.front];
     return this.current === null || !Number.isFinite(video.duration)
       ? undefined
-      : Math.max(0, video.duration - video.currentTime);
+      : Math.max(
+          0,
+          (this.current.properties?.out ?? video.duration) - video.currentTime,
+        );
   }
 
   dispose(): void {
@@ -388,7 +398,12 @@ class PlaybackBackgroundLayerView {
       !media.loop &&
       Number.isFinite(video.duration) &&
       video.duration > 0 &&
-      backgroundElapsedSeconds(media, Date.now()) >= video.duration
+      backgroundElapsedSeconds(media, Date.now()) >=
+        Math.max(
+          0,
+          Math.min(media.properties?.out ?? video.duration, video.duration) -
+            (media.properties?.in ?? 0),
+        )
     );
   }
 
@@ -458,7 +473,10 @@ class PlaybackBackgroundLayerView {
     video.style.objectFit = objectFit;
     this.images[index].style.objectFit = objectFit;
     try {
-      video.loop = this.current?.loop === true;
+      video.loop =
+        this.current?.loop === true &&
+        properties?.in === undefined &&
+        properties?.out === undefined;
       video.playbackRate = properties?.speed ?? 1;
       video.volume = ((properties?.volume ?? 100) / 100) * this.audioGain;
       video.muted =
@@ -521,12 +539,32 @@ class PlaybackBackgroundLayerView {
       const onEnded = (): void => this.handleEnded(at);
       const onPrepared = (): void => this.prepareFrame(at);
       const onError = (): void => this.handleError(at);
+      const onTimeUpdate = (): void => {
+        const media = this.current;
+        if (
+          media === null ||
+          !this.holdsCurrent(at) ||
+          this.held ||
+          this.standby
+        ) {
+          return;
+        }
+        const end = media.properties?.out;
+        if (end === undefined || video.currentTime < end) return;
+        if (media.loop) video.currentTime = media.properties?.in ?? 0;
+        else {
+          video.currentTime = end;
+          video.pause();
+        }
+      };
+      video.addEventListener('timeupdate', onTimeUpdate);
       video.addEventListener('playing', onPlaying);
       video.addEventListener('ended', onEnded);
       video.addEventListener('error', onError);
       video.addEventListener('loadeddata', onPrepared);
       video.addEventListener('seeked', onPrepared);
       return [
+        () => video.removeEventListener('timeupdate', onTimeUpdate),
         () => video.removeEventListener('playing', onPlaying),
         () => video.removeEventListener('ended', onEnded),
         () => video.removeEventListener('error', onError),
@@ -625,7 +663,7 @@ class PlaybackBackgroundLayerView {
   }
 
   private restart(video: HTMLVideoElement): void {
-    video.currentTime = 0;
+    video.currentTime = this.current?.properties?.in ?? 0;
     this.play(video);
   }
 

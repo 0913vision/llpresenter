@@ -84,7 +84,7 @@ export class AudioPlayer {
           this.report(new Error(`Audio failed: ${track.layer.mediaId}`));
         }
       });
-      this.listen(track, 'ended', () => {
+      const finish = (): void => {
         const playback = track.layer?.playback;
         if (
           track !== this.active ||
@@ -98,6 +98,18 @@ export class AudioPlayer {
         this.endedVersion = playback.trackVersion;
         if (this.manualFade !== null) this.finishManualFade(this.manualFade);
         else this.options.onNext(playback.trackVersion);
+      };
+      this.listen(track, 'ended', finish);
+      this.listen(track, 'timeupdate', () => {
+        const end = track.layer?.properties?.out;
+        if (
+          end !== undefined &&
+          track.element.currentTime >= end &&
+          track === this.active
+        ) {
+          track.element.pause();
+          finish();
+        }
       });
     }
   }
@@ -450,9 +462,12 @@ export class AudioPlayer {
       track.layer?.properties?.speed,
     );
     const duration = track.element.duration;
-    track.element.currentTime = Number.isFinite(duration)
-      ? Math.min(position, duration)
-      : position;
+    const start = track.layer?.properties?.in ?? 0;
+    const end = Math.min(
+      track.layer?.properties?.out ?? Infinity,
+      Number.isFinite(duration) ? duration : Infinity,
+    );
+    track.element.currentTime = Math.min(start + position, end);
   }
 
   private unload(track: Track): void {

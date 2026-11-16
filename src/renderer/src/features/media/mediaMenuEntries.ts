@@ -2,11 +2,7 @@ import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import type {MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
-import {
-  laterClipboardRows,
-  laterRow,
-  menuSeparator,
-} from '@renderer/ui/menuRows';
+import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
 import type {MediaEntry} from './mediaEntries';
 import {mediaAddAvailability} from '@renderer/platform/mediaAddAvailability';
 import {shownProps, type MediaProps} from './mediaProps';
@@ -132,10 +128,7 @@ function fitRow(item: MediaItem, actions: MediaTileActions): MenuEntry {
   });
 }
 
-/**
- * 끝나면 picks 반복 or 정지, the stored `end`. It covers looping too, until a
- * separate loop property exists; the 반복 row stays a later row.
- */
+/** Selects the stored end behavior. */
 function endRow(item: MediaItem, actions: MediaTileActions): MenuEntry {
   return choiceRow(item, actions, {
     id: 'end',
@@ -156,8 +149,6 @@ function audioRows(
 ): readonly MenuEntry[] {
   return [
     revealRow(item, actions),
-    laterRow('playback', '재생', {submenu: true}),
-    laterRow('sound-effect', '효과음으로 지정'),
     menuSeparator('properties-separator'),
     propertiesRow(item, actions),
     duplicateRow(item, actions),
@@ -173,19 +164,10 @@ function mediaRows(
 ): readonly MenuEntry[] {
   return [
     propertiesRow(item, actions),
-    laterRow('transition', '전환 효과…'),
     menuSeparator('behavior-separator'),
-    laterRow('behavior', '동작', {submenu: true}),
     fitRow(item, actions),
-    laterRow('alpha', '알파', {submenu: true}),
-    menuSeparator('playback-separator'),
-    laterRow('playback', '재생', {submenu: true}),
-    laterRow('loop', '반복', {submenu: true}),
     endRow(item, actions),
-    menuSeparator('next-separator'),
-    laterRow('next', '다음 항목', {submenu: true}),
     menuSeparator('clipboard-separator'),
-    ...laterClipboardRows(),
     duplicateRow(item, actions),
     renameRow(item, actions),
     ...(actions.inPlaylist
@@ -206,7 +188,6 @@ function mediaRows(
     menuSeparator('export-separator'),
     // NOTE(0913vision): Service insertion commands share this library/export group.
     revealRow(item, actions),
-    laterRow('cleanup', '정리 기준', {submenu: true}),
   ];
 }
 

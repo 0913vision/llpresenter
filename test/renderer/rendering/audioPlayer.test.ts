@@ -383,7 +383,7 @@ describe('AudioPlayer', () => {
     player.dispose();
     player.show(state(3));
     first.dispatchEvent(new Event('ended'));
-    expect(remove).toHaveBeenCalledTimes(3);
+    expect(remove).toHaveBeenCalledTimes(4);
     expect(root.children).toHaveLength(0);
     expect(onNext).not.toHaveBeenCalled();
   });
@@ -599,4 +599,33 @@ describe('AudioPlayer', () => {
       expect(first.hasAttribute('src')).toBe(false);
     });
   });
+});
+
+it('plays the selected audio range and advances at its end', async () => {
+  const {player, first, onNext} = setup();
+  const initial = state();
+  const layer = initial.layers.audio;
+  if (layer === null) throw new Error('Missing audio');
+  player.show({
+    ...initial,
+    layers: {
+      ...initial.layers,
+      audio: {
+        ...layer,
+        properties: {
+          in: 5,
+          out: 12,
+          speed: 1,
+          fit: 'fill',
+          volume: 100,
+          audio: true,
+        },
+      },
+    },
+  });
+  await ready(first);
+  expect(first.currentTime).toBe(9);
+  first.currentTime = 12;
+  first.dispatchEvent(new Event('timeupdate'));
+  expect(onNext).toHaveBeenCalledOnce();
 });

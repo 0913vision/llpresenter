@@ -24,13 +24,18 @@ export function backgroundProgress(
   if (item?.kind !== 'video') return null;
   const durationSeconds =
     item.duration !== undefined && item.duration > 0 ? item.duration : null;
+  const start = media.properties?.in ?? 0;
+  const end = Math.min(
+    media.properties?.out ?? Infinity,
+    durationSeconds ?? Infinity,
+  );
+  const length = end - start;
   const elapsed = backgroundElapsedSeconds(media, now);
-  const positionSeconds =
-    durationSeconds === null
-      ? elapsed
-      : media.loop
-        ? elapsed % durationSeconds
-        : Math.min(elapsed, durationSeconds);
+  const positionSeconds = !Number.isFinite(length)
+    ? start + elapsed
+    : media.loop && length > 0
+      ? start + (elapsed % length)
+      : Math.min(start + elapsed, end);
   return {
     mediaId: media.mediaId,
     startedAt: media.startedAt,
