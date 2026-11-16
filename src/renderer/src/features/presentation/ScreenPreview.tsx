@@ -5,6 +5,7 @@ import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {OUTPUT_REVEAL_DEADLINE_MS} from '@core/output/revealDeadline';
 import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {openPreviewMedia} from '@renderer/rendering/previewMedia';
+import {fontsLoading} from '@renderer/rendering/fontsLoading';
 import {ScreenFrames} from '@renderer/rendering/screenFrames';
 import {useLive} from '@renderer/session/live';
 import styles from './ScreenPreview.module.css';
@@ -87,10 +88,7 @@ export function ScreenPreview({
           if (stopped || pending !== view) return;
           const expired =
             performance.now() - start >= OUTPUT_REVEAL_DEADLINE_MS;
-          if (
-            (!renderer.ready() || document.fonts.status !== 'loaded') &&
-            !expired
-          ) {
+          if ((!renderer.ready() || fontsLoading(document.fonts)) && !expired) {
             animation = requestAnimationFrame(check);
             return;
           }
