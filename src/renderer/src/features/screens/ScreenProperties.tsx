@@ -34,6 +34,7 @@ import {
   OFFSET_LIMIT,
   alwaysOnTopOf,
   nameProblem,
+  lastOfKind,
   onDisconnectOf,
   type ScreenChange,
 } from '@core/screens/screenEdits';
@@ -83,10 +84,12 @@ type Change = (change: ScreenChange) => void;
 
 function NdiRows({
   screen,
+  screens,
   change,
   reason,
 }: {
   readonly screen: Screen;
+  readonly screens: readonly Screen[];
   readonly change: Change;
   readonly reason: string | undefined;
 }): JSX.Element {
@@ -94,6 +97,15 @@ function NdiRows({
   const status = useOutputStatuses()[screen.id];
   const accelerationReason = ndiAccelerationReason(status);
   const source = screen.ndi?.sourceName ?? NDI_DEFAULT_SOURCE_NAME;
+  const duplicate =
+    draft !== null &&
+    screens.some(
+      other =>
+        other.id !== screen.id &&
+        other.method === 'ndi' &&
+        (other.ndi?.sourceName ?? NDI_DEFAULT_SOURCE_NAME).trim() ===
+          draft.trim(),
+    );
   return (
     <>
       <PropertyRow label="소스 이름">
@@ -104,9 +116,13 @@ function NdiRows({
             maxLength={NDI_SOURCE_NAME_MAX}
             readOnly={reason !== undefined}
             value={draft ?? source}
+            invalid={duplicate}
+            invalidReason={
+              duplicate ? '같은 NDI 소스 이름이 있습니다' : undefined
+            }
             onChange={setDraft}
             onBlur={() => {
-              if (draft !== null && draft.trim() !== '') {
+              if (draft !== null && draft.trim() !== '' && !duplicate) {
                 change({ndi: {...screen.ndi, sourceName: draft.trim()}});
               }
               setDraft(null);
@@ -159,23 +175,13 @@ function NdiRows({
             menuLabel="프레임 수"
             options={NDI_FRAME_RATES.map(fps => ({
               value: String(fps),
-              label: String(fps),
+              label: `${fps} fps`,
             }))}
             value={String(screen.ndi?.fps ?? NDI_DEFAULT_FPS)}
             onChange={value => {
               const fps = NDI_FRAME_RATES.find(rate => String(rate) === value);
               if (fps !== undefined) change({ndi: {...screen.ndi, fps}});
             }}
-          />
-        )}
-      </PropertyRow>
-      <PropertyRow label="알파 채널">
-        {({controlId}) => (
-          <Checkbox
-            id={controlId}
-            checked
-            disabled
-            onChange={() => undefined}
           />
         )}
       </PropertyRow>
@@ -313,7 +319,7 @@ function CorrectionRows({
               id={controlId}
               readOnly={reason !== undefined}
               aria-disabled={reason !== undefined ? true : undefined}
-              title={reason}
+              title={reason ?? '1920 × 1080 화면 기준 px'}
               aria-label="가로 위치"
               value={offset.x}
               min={-OFFSET_LIMIT}
@@ -326,7 +332,7 @@ function CorrectionRows({
               aria-label="세로 위치"
               readOnly={reason !== undefined}
               aria-disabled={reason !== undefined ? true : undefined}
-              title={reason}
+              title={reason ?? '1920 × 1080 화면 기준 px'}
               value={offset.y}
               min={-OFFSET_LIMIT}
               max={OFFSET_LIMIT}
@@ -439,7 +445,19 @@ function PropertyRows({
               labelledBy={labelId}
               options={KIND_OPTIONS}
               value={screen.kind}
-              onChange={kind => change({kind})}
+              onChange={kind => {
+                if (kind !== screen.kind && lastOfKind(screens, screen)) {
+                  onProblem?.({
+                    key: 'screens:kind',
+                    kind: 'warning',
+                    icon: 'warning',
+                    title: '마지막 화면의 종류는 바꿀 수 없습니다',
+                    time: noticeTime(),
+                  });
+                  return;
+                }
+                change({kind});
+              }}
               fill
             />
           )}
@@ -494,7 +512,12 @@ function PropertyRows({
           reason={reason}
         />
         {screen.method === 'ndi' ? (
-          <NdiRows screen={screen} change={change} reason={reason} />
+          <NdiRows
+            screen={screen}
+            screens={screens}
+            change={change}
+            reason={reason}
+          />
         ) : null}
         <ResolutionRow
           screen={screen}
@@ -503,12 +526,14 @@ function PropertyRows({
           reason={reason}
         />
         <RefreshRateRow screen={screen} monitor={monitor} />
-        <ColorProperty
-          label="빈 화면 색"
-          value={emptyScreenColor(screen)}
-          reason={reason}
-          commit={emptyColor => change({emptyColor})}
-        />
+        {screen.method !== 'ndi' && (
+          <ColorProperty
+            label="빈 화면 색"
+            value={emptyScreenColor(screen)}
+            reason={reason}
+            commit={emptyColor => change({emptyColor})}
+          />
+        )}
       </PropertyGroup>
       {screen.method === 'ndi' ? null : (
         <StabilityRows screen={screen} change={change} reason={reason} />

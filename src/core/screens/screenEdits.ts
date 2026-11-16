@@ -1,3 +1,4 @@
+import {NDI_DEFAULT_SOURCE_NAME} from '../schema/screens';
 import type {Screen} from '../schema/screens';
 
 /** The most the 가장자리 여백 may be, in percent (spec 10, "Screens"). */
@@ -81,6 +82,27 @@ export function changeScreen(
   id: string,
   change: ScreenChange,
 ): readonly Screen[] {
+  const target = screens.find(screen => screen.id === id);
+  if (
+    target &&
+    change.kind &&
+    change.kind !== target.kind &&
+    lastOfKind(screens, target)
+  ) {
+    return screens;
+  }
+  if (
+    change.ndi?.sourceName &&
+    screens.some(
+      screen =>
+        screen.id !== id &&
+        screen.method === 'ndi' &&
+        (screen.ndi?.sourceName ?? NDI_DEFAULT_SOURCE_NAME).trim() ===
+          change.ndi?.sourceName?.trim(),
+    )
+  ) {
+    return screens;
+  }
   return screens.map(screen => {
     if (screen.id !== id) return screen;
     const {offset, messageStyleId, ...fields} = change;
@@ -90,9 +112,31 @@ export function changeScreen(
       kind !== screen.kind &&
       fields.name === undefined &&
       isDefaultName(screen.kind, screen.name);
+    const nextKind = kind ?? screen.kind;
+    let method = fields.method ?? screen.method;
+    if (nextKind === 'broadcast' && method !== 'ndi' && method !== 'capture') {
+      method = 'capture';
+    }
+    if (nextKind !== 'broadcast' && method === 'ndi') method = 'window';
+    const usedNames = new Set(
+      screens
+        .filter(other => other.id !== id && other.method === 'ndi')
+        .map(other => other.ndi?.sourceName ?? NDI_DEFAULT_SOURCE_NAME),
+    );
+    let sourceName = screen.ndi?.sourceName ?? NDI_DEFAULT_SOURCE_NAME;
+    if (method === 'ndi' && screen.method !== 'ndi') {
+      sourceName = NDI_DEFAULT_SOURCE_NAME;
+      for (let n = 2; usedNames.has(sourceName); n++) {
+        sourceName = `${NDI_DEFAULT_SOURCE_NAME} (${n})`;
+      }
+    }
     const updated = {
       ...withMessageStyle(screen, messageStyleId),
       ...fields,
+      method,
+      ...(method === 'ndi' && screen.method !== 'ndi'
+        ? {ndi: {...screen.ndi, sourceName}}
+        : {}),
       ...(renamed
         ? {
             name: defaultScreenName(

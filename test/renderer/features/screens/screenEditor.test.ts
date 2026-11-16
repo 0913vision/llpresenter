@@ -466,7 +466,7 @@ describe('ScreenEditor', () => {
     editor.adopt(screensAt(5));
     editor.adopt(screensAt(4));
 
-    await editor.change(MAIN_ID, {kind: 'stage'});
+    await editor.change(MAIN_ID, {name: '첫 화면'});
 
     expect(edits[0]).toMatchObject({baseRevision: 5});
   });
@@ -488,8 +488,8 @@ describe('ScreenEditor', () => {
     const {editor, edits, report} = setup([stale, saved(2)]);
     editor.adopt(screensAt(1));
 
-    await editor.change(MAIN_ID, {kind: 'stage'});
-    await editor.change(MAIN_ID, {kind: 'audience'});
+    await editor.change(MAIN_ID, {name: '첫 화면'});
+    await editor.change(MAIN_ID, {name: '두 번째 화면'});
 
     expect(report).toHaveBeenCalledWith('The screens changed');
     expect(
@@ -510,8 +510,8 @@ describe('ScreenEditor', () => {
     const {editor, edits, report} = setup([unwritten, saved(3)]);
     editor.adopt(screensAt(1));
 
-    await editor.change(MAIN_ID, {kind: 'stage'});
-    await editor.change(MAIN_ID, {kind: 'audience'});
+    await editor.change(MAIN_ID, {name: '첫 화면'});
+    await editor.change(MAIN_ID, {name: '두 번째 화면'});
 
     expect(report).toHaveBeenCalledWith('Could not write the screens');
     expect(edits[1]).toMatchObject({baseRevision: 2});
@@ -530,8 +530,8 @@ describe('ScreenEditor', () => {
     );
     editor.adopt(screensAt(1));
 
-    await editor.change(MAIN_ID, {kind: 'stage'});
-    await editor.change(MAIN_ID, {kind: 'audience'});
+    await editor.change(MAIN_ID, {name: '첫 화면'});
+    await editor.change(MAIN_ID, {name: '두 번째 화면'});
 
     expect(write).toHaveBeenCalledWith(
       expect.objectContaining({level: 'error', detail: 'no answer'}),

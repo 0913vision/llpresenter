@@ -45,7 +45,7 @@ it.each([false, true])(
       menuItems(screenEntries(input)).find(
         row => row.id === 'broadcast-settings',
       ),
-    ).toMatchObject({disabled: true, title: '아직 없는 기능'});
+    ).toBeUndefined();
     row?.onSelect?.();
     expect(send).toHaveBeenCalledExactlyOnceWith({
       type: 'live.batch',

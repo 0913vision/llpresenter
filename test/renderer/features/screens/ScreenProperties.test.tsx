@@ -366,9 +366,11 @@ describe('the screen properties', () => {
     expect(fps.textContent).toContain('30');
     await user.click(fps);
     for (const value of ['29.97', '30', '59.94', '60']) {
-      expect(screen.getByRole('menuitemradio', {name: value})).toBeTruthy();
+      expect(
+        screen.getByRole('menuitemradio', {name: `${value} fps`}),
+      ).toBeTruthy();
     }
-    await user.click(screen.getByRole('menuitemradio', {name: '60'}));
+    await user.click(screen.getByRole('menuitemradio', {name: '60 fps'}));
     await waitFor(() =>
       expect(
         savedScreens().find(item => item.id === CAPTIONS_ID)?.ndi?.fps,
@@ -470,18 +472,14 @@ describe('the screen properties', () => {
     expect(edits).toEqual([]);
   });
 
-  it('saves a change of kind and of 항상 위 at once', async () => {
-    const {savedScreens} = setup();
+  it('refuses to change the last screen of a kind', async () => {
+    const {onProblem, edits} = setup();
     const user = userEvent.setup();
     await nameField();
 
     await user.click(screen.getByRole('radio', {name: '무대'}));
-    await waitFor(() => expect(savedScreens()[0]?.kind).toBe('stage'));
-    expect(await nameField()).toHaveProperty('value', '청중 화면');
-    await user.click(screen.getByRole('checkbox'));
-
-    await waitFor(() => expect(savedScreens()[0]?.alwaysOnTop).toBe(true));
-    expect(savedScreens()[0]?.kind).toBe('stage');
+    expect(onProblem).toHaveBeenCalled();
+    expect(edits).toHaveLength(0);
   });
 
   it('saves 연결이 끊기면 only for a full screen', async () => {

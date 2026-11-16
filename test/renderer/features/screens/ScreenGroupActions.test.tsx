@@ -60,7 +60,7 @@ it.each(['audience', 'stage'] as const)(
     );
     fireEvent.click(screen.getByRole('button', {name: '새 화면 화면'}));
     const menu = screen.getByRole('menu');
-    for (const name of ['모니터', '창', 'NDI', '자리 표시']) {
+    for (const name of ['모니터', '창']) {
       expect(within(menu).getByRole('group', {name})).toBeDefined();
     }
     expect(
@@ -73,18 +73,13 @@ it.each(['audience', 'stage'] as const)(
       '모니터 2(1920×1080)',
       '새 창',
       '새 캡처 창',
-      '새 NDI',
-      '새 자리 표시',
-      ...(kind === 'audience' ? ['|', '묶음…', '가장자리 합성…'] : []),
     ]);
     for (const name of [
       '새 NDI',
       '새 자리 표시',
       ...(kind === 'audience' ? ['묶음…', '가장자리 합성…'] : []),
     ]) {
-      const row = within(menu).getByRole('menuitem', {name});
-      expect(row.getAttribute('aria-disabled')).toBe('true');
-      fireEvent.click(row);
+      expect(within(menu).queryByRole('menuitem', {name})).toBeNull();
     }
     expect(add).not.toHaveBeenCalled();
     const control = within(menu).getByRole('menuitem', {name: /모니터 1/});
