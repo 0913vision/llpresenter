@@ -10,6 +10,7 @@
 
 .translation {
   grid-column: 1 / -1;
+  min-height: 1lh;
   color: var(--text-3);
   font: var(--type-caption);
 }

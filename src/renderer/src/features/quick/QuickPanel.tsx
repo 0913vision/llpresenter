@@ -191,18 +191,21 @@ export function QuickPanel({
         </PanelActions>
       </PanelHeader>
       <PanelTools>
-        <BibleQuickField
-          api={api}
-          selectionVersion={selectionVersion + activationVersion}
-          onIntent={() => runner?.cancel()}
-        />
+        <div className={styles.bibleField}>
+          <BibleQuickField
+            api={api}
+            selectionVersion={selectionVersion + activationVersion}
+            onIntent={() => runner?.cancel()}
+          />
+        </div>
       </PanelTools>
       <PanelBody variant="flush">
-        {livePassage === null ? null : (
-          <div className={styles.livePassage} role="status">
-            {livePassage}
-          </div>
-        )}
+        <div
+          className={styles.livePassage}
+          role={livePassage === null ? undefined : 'status'}
+        >
+          {livePassage}
+        </div>
         <div
           {...drag.listProps}
           role="group"

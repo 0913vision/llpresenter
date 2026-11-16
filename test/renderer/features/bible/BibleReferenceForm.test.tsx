@@ -61,6 +61,34 @@ async function enterPassage(
 }
 
 describe('shared Bible reference form', () => {
+  it('keeps the live translation row in place while quick-run metadata loads', async () => {
+    const lookup = vi.fn(
+      async (request: Parameters<typeof formLookupReply>[0]) => {
+        const reply = await formLookupReply(
+          request,
+          BIBLE_BOOKS.map(book => book.id),
+        );
+        return {...reply, effectiveTranslation: LIVE_BIBLE_ID};
+      },
+    );
+    const view = render(
+      <BibleReferenceForm
+        overlayLabels
+        api={{lookup}}
+        translation={lookupRequest().translation}
+        onPreview={vi.fn()}
+        onSubmit={vi.fn()}
+      />,
+    );
+    const row = view.container.querySelector('[class*="translation"]');
+    expect(row).not.toBeNull();
+    expect(row?.textContent).toBe('');
+    fireEvent.change(screen.getByRole('combobox', {name: '책'}), {
+      target: {value: '요한복음'},
+    });
+    await waitFor(() => expect(screen.getByRole('status')).toBe(row));
+    expect(row?.textContent).toBe('개역개정 (실시간)');
+  });
   it('prefills the current passage in the book, chapter and verse fields', () => {
     render(
       <BibleReferenceForm
