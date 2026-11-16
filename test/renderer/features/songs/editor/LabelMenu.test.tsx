@@ -172,7 +172,6 @@ describe('song editor label menu', () => {
     expect(labels().value.labels.at(-1)).toEqual({
       name: '새 이름표 2',
       color: 'none',
-      key: null,
     });
   });
 

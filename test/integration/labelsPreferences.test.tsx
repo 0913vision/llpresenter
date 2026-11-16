@@ -196,7 +196,6 @@ it('edits the shared catalog from preferences while an editor dialog follows it'
   expect(f.labels().value.labels.at(-1)).toMatchObject({
     name: '새 이름표',
     color: 'none',
-    key: null,
   });
   expect(
     within(dialog).getByRole('textbox', {name: '새 이름표 이름'}),
