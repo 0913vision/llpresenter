@@ -1,4 +1,3 @@
-import {defaultPreferences, type Preferences} from '../schema/preferences';
 import type {SlideTransition} from '../schema/slideTransition';
 import type {SlideLayer} from '../live/state';
 
@@ -10,7 +9,6 @@ export interface TransitionTimes {
 
 /** Slide and background change together, using only the incoming slide. */
 export function transitionTimes(
-  _preferences: Pick<Preferences, 'output'>,
   slide: SlideTransition = {kind: 'none', sec: 0.5},
 ): TransitionTimes {
   const ms = slide.kind === 'none' ? 0 : Math.round(slide.sec * 1000);
@@ -33,13 +31,7 @@ export function reverseSlideTransition(
 }
 
 export function slideTransitionFor(
-  _defaults: Preferences['output']['transition'],
-  _previousItemId: string | null,
-  slide:
-    | (Pick<SlideLayer, 'itemId' | 'transition' | 'reverseTransition'> & {
-        readonly themeTransition?: SlideTransition;
-      })
-    | null,
+  slide: Pick<SlideLayer, 'itemId' | 'transition' | 'reverseTransition'> | null,
 ): SlideTransition {
   return slide?.reverseTransition !== undefined
     ? reverseSlideTransition(slide.reverseTransition)
@@ -47,5 +39,4 @@ export function slideTransitionFor(
 }
 
 /** What 환경설정 says when nothing is stored: the one place the defaults are read. */
-export const DEFAULT_TRANSITION_TIMES: TransitionTimes =
-  transitionTimes(defaultPreferences);
+export const DEFAULT_TRANSITION_TIMES: TransitionTimes = transitionTimes();

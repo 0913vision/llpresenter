@@ -7,7 +7,7 @@ import {
 } from '@renderer/features/songs/editor/LabelNameField';
 
 describe('label name reasons', () => {
-  const labels: readonly Label[] = [{name: '후렴', color: 'none', key: null}];
+  const labels: readonly Label[] = [{name: '후렴', color: 'none'}];
 
   it.each([
     ['', EMPTY_LABEL_NAME_REASON],

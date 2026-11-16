@@ -38,7 +38,6 @@ function shown(id: string): ShowService {
     readOnly: false,
     rows: [],
     tiles: {},
-    jumpKeys: {},
   };
 }
 

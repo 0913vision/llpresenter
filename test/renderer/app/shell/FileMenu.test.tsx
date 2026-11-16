@@ -63,7 +63,6 @@ describe('the 파일 menu', () => {
         readOnly: false,
         rows: [],
         tiles: {},
-        jumpKeys: {},
       };
       if (window.llp === undefined) throw new Error('Missing mock API');
       const list = vi.spyOn(window.llp.services, 'list').mockResolvedValue([

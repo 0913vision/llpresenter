@@ -4,13 +4,12 @@ import {revisionSchema} from './contentDocuments';
 import type {ReadonlyKnown} from './fileFormat';
 import {songIdSchema, type SongId} from './ids';
 import {mediaChoiceSchema} from './liveState';
-import {parsePayload, payloadObject, plainObject} from './payload';
+import {parsePayload, payloadObject} from './payload';
 import {showTileSchema} from './showService';
 
 export const SHOW_LIBRARY_SONG_LIMITS = {
   tiles: 10_000,
   linesPerTile: 1000,
-  jumpKeys: 200,
 } as const;
 
 const requestSchema = payloadObject({songId: songIdSchema});
@@ -29,11 +28,6 @@ const songSchema = payloadObject({
   tiles: v.pipe(
     v.array(tileSchema),
     v.maxLength(SHOW_LIBRARY_SONG_LIMITS.tiles),
-  ),
-  jumpKeys: v.pipe(
-    plainObject,
-    v.record(v.string(), v.string()),
-    v.maxEntries(SHOW_LIBRARY_SONG_LIMITS.jumpKeys),
   ),
   background: v.exactOptional(mediaChoiceSchema),
   missingBackgroundName: v.exactOptional(

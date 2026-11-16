@@ -24,7 +24,6 @@ export type UiFields = Pick<
   | 'macroView'
   | 'showToolTab'
   | 'mediaStrip'
-  | 'prepMedia'
   | 'mediaBrowser'
   | 'mediaImportFolder'
   | 'mediaRelinkFolder'
@@ -178,7 +177,6 @@ export class AppConfigFile implements UiStateFields {
       macroCollection,
       showToolTab,
       mediaStrip,
-      prepMedia,
       mediaBrowser,
       mediaImportFolder,
       mediaRelinkFolder,
@@ -192,7 +190,6 @@ export class AppConfigFile implements UiStateFields {
       ...(macroCollection === undefined ? {} : {macroCollection}),
       ...(showToolTab === undefined ? {} : {showToolTab}),
       ...(mediaStrip === undefined ? {} : {mediaStrip}),
-      ...(prepMedia === undefined ? {} : {prepMedia}),
       ...(mediaBrowser === undefined ? {} : {mediaBrowser}),
       ...(mediaImportFolder === undefined ? {} : {mediaImportFolder}),
       ...(mediaRelinkFolder === undefined ? {} : {mediaRelinkFolder}),

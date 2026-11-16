@@ -234,24 +234,6 @@ describe('published theme compositions', () => {
       followsDefault: false,
     });
   });
-  it('publishes the resolved theme transition to output', () => {
-    const file = themeFile();
-    const theme = file.themes[0];
-    if (theme === undefined) throw new Error('Missing theme');
-    const transition = {kind: 'wipe' as const, sec: 0.7};
-    const output = resolveThemeOutput({
-      file: {
-        ...file,
-        themes: [{...theme, transition}],
-        defaults: {...file.defaults, song: theme.id},
-      },
-      screens: themeScreens,
-      item: {id: 'song', kind: 'song', source: 'service'},
-      revision: 1,
-    });
-    expect(output.transition).toEqual(transition);
-  });
-
   it('resolves titles for saved built-in song themes while retaining lyric edits and other roles', () => {
     const file = themeFile();
     const song = file.themes.find(theme => theme.id === file.defaults.song);

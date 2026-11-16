@@ -53,7 +53,6 @@ export function quickDocument(
           ref: quickId(104),
         },
         {name: '시작 매크로', kind: 'macro', ref: quickId(105)},
-        {name: '검은 화면', kind: 'black'},
         {name: '새 버전 항목', kind: 'future', extension: true},
       ].map((item, index) => ({id: quickId(index + 1), ...item})),
     },
@@ -107,7 +106,6 @@ export function quickFixture() {
     title: '저장된 곡',
     readOnly: false,
     tiles: [{label: '절 1', labelColor: 'none', lines: ['Invented song']}],
-    jumpKeys: {},
     background: {mediaId: quickId(102), loop: true},
   });
   if (!song.ok || song.value === null) throw new Error('Invalid song fixture');

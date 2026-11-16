@@ -166,7 +166,6 @@ function setup(extraSlides = false, songCard = false) {
           }
         : {}),
     },
-    jumpKeys: {},
   });
   window.llp = f.api;
   const session = new ControlSession(f.api);
@@ -452,7 +451,6 @@ it('shows a library song on a single click without opening its editor', async ()
       labelColor: 'none' as const,
       lines: slide.lines,
     })),
-    jumpKeys: {},
   });
   const live = vi.spyOn(f.api.live, 'send');
   await userEvent.click(screen.getByRole('tab', {name: '곡'}));

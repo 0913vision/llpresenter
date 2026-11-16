@@ -15,7 +15,6 @@ import {
 export interface ThemeDraft {
   readonly themeId: ThemeId;
   readonly screens: Theme['screens'];
-  readonly transition?: Theme['transition'];
 }
 
 /** The saved file as the editor shows it: the draft layouts replace the saved ones. */
@@ -27,16 +26,13 @@ export function withDraft(
   if (
     draft === null ||
     theme === undefined ||
-    (theme.screens === draft.screens &&
-      sameJson(theme.transition, draft.transition))
+    theme.screens === draft.screens
   ) {
     return file;
   }
-  const {transition: _transition, ...rest} = theme;
   return replaceTheme(file, {
-    ...rest,
+    ...theme,
     screens: draft.screens,
-    ...(draft.transition === undefined ? {} : {transition: draft.transition}),
   });
 }
 
@@ -60,13 +56,9 @@ export function editDraft(
   if (changed === undefined) return {ok: false, error: 'missing'};
   const screens = changed.screens;
   const base = findTheme(saved, themeId);
-  const transition = changed.transition;
   return {
     ok: true,
-    value:
-      sameJson(screens, base?.screens) && sameJson(transition, base?.transition)
-        ? null
-        : {themeId, screens, ...(transition === undefined ? {} : {transition})},
+    value: sameJson(screens, base?.screens) ? null : {themeId, screens},
   };
 }
 

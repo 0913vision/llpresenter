@@ -24,7 +24,6 @@ describe('mockLlpApi', () => {
   it('provides media state defaults and supports partial UI overrides', () => {
     const setMediaBrowser = vi.fn();
     const api = mockLlpApi({ui: {setMediaBrowser}});
-    api.ui.setPrepMedia({visible: false});
     api.ui.setMediaBrowser({columns: 3});
     expect(setMediaBrowser).toHaveBeenCalledExactlyOnceWith({columns: 3});
   });

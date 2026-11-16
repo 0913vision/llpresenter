@@ -22,14 +22,13 @@ import {jsonObject, listWithUniqueIds, positiveInteger} from './primitives';
 
 export const MAX_QUICK_ITEMS = 500;
 
-/** The 빠른 실행 item kinds. `black` outputs a black screen and has no `ref`. */
+/** The 빠른 실행 item kinds. */
 export const quickItemKinds = [
   'song',
   'bible',
   'prop',
   'timer',
   'macro',
-  'black',
 ] as const;
 
 export type QuickItemKind = (typeof quickItemKinds)[number];
@@ -62,7 +61,6 @@ const itemSchemas = {
     kind: v.literal('macro'),
     ref: macroIdSchema,
   }),
-  black: jsonObject({...itemFields, kind: v.literal('black')}),
 };
 
 export const quickSchema = jsonObject({

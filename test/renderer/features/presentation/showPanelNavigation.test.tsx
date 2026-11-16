@@ -112,7 +112,6 @@ beforeEach(() => {
         lines: [`Slide ${index + 1}`],
       })),
     },
-    jumpKeys: {},
   });
   openItem('song');
   selectTile(2);
@@ -237,7 +236,6 @@ it.each([{selected: 2}, {selected: 65}])(
         readOnly: false,
         rows: [{id: 'song', kind: 'song', title: 'Song'}],
         tiles: {song: tilesOf('song').slice(0, 10)},
-        jumpKeys: {},
       }),
     );
     await user.tab();

@@ -4,9 +4,6 @@ import {translationIdSchema} from './ids';
 import {jsonObject, nonBlankText} from './primitives';
 import {slideTransitionSchema} from './slideTransition';
 
-/** Legacy packing values remain readable; every verse now starts a new slide. */
-export const bibleSplitSchema = v.picklist(['verse', 'two', 'fit']);
-
 /** Which slides of a passage show its reference. */
 export const bibleReferenceSchema = v.picklist([
   'every',
@@ -18,7 +15,7 @@ export const bibleReferenceSchema = v.picklist([
 export const biblePassageSchema = jsonObject({
   translation: translationIdSchema,
   ref: nonBlankText,
-  split: bibleSplitSchema,
+  split: v.string(),
   reference: bibleReferenceSchema,
   verseNumbers: v.boolean(),
   translationName: v.boolean(),

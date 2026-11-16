@@ -88,7 +88,6 @@ const appConfigSchema = jsonObject({
     v.picklist(['audio', 'stage', 'timer', 'message', 'prop', 'macro']),
   ),
   mediaStrip: v.exactOptional(v.boolean()),
-  prepMedia: v.exactOptional(v.boolean()),
   mediaBrowser: v.exactOptional(mediaBrowserSchema),
   mediaImportFolder: v.exactOptional(v.string()),
   mediaRelinkFolder: v.exactOptional(v.string()),

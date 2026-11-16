@@ -36,7 +36,6 @@ const service: ShowService = {
       },
     ],
   },
-  jumpKeys: {},
 };
 const sent: LiveCommand[] = [];
 let answer: (value: ShowService) => void = () => undefined;

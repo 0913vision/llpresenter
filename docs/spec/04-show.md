@@ -738,8 +738,7 @@ row while it's on. Clicking it again turns it off.
 
 - The board's 축도 (benediction, 슬라이드 icon) is read as a short song made in
   the 라이브러리 (proposal, open question).
-- Period in progress invokes the same all-clear toggle as the clear row. Legacy
-  black quick items remain in storage but are hidden and cannot be added.
+- Period in progress invokes the same all-clear toggle as the clear row.
 
 ### Adding and editing (proposal)
 

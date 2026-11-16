@@ -261,7 +261,7 @@ title, label, and Bible reference.
 | ----------------- | ---------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
 | `translation`     | String (translation ID)                        | Translation.                                                                                                                           |
 | `ref`             | String                                         | Normalized reference, for example "요한복음 3:16-18".                                                                                  |
-| `split`           | `"verse"` \| `"two"` \| `"fit"`                | Legacy packing field. Old values remain readable and preserved, but every verse starts a new slide (04). New passages store `"verse"`. |
+| `split`           | `"verse"`                                      | Legacy packing field. Old values remain readable and preserved, but every verse starts a new slide (04). New passages store `"verse"`. |
 | `reference`       | `"every"` \| `"first"` \| `"last"` \| `"none"` | Where the reference shows: every 슬라이드, first 슬라이드 only, last 슬라이드 only, or nowhere.                                        |
 | `verseNumbers`    | Boolean                                        | 절 번호 (verse numbers).                                                                                                               |
 | `translationName` | Boolean                                        | 역본 이름 (translation name).                                                                                                          |
@@ -556,21 +556,19 @@ unknown fields are preserved; stage and prop references continue resolving by ID
 
 ### 이름표 list (`labels.json`)
 
-| Field      | Type                                                                                                     | Meaning                                                                                                                                                      | Source                                                           |
-| ---------- | -------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------ | ---------------------------------------------------------------- |
-| `labels[]` | Array                                                                                                    | The 이름표 list, in the order of the 이름표 menu.                                                                                                            | `Reflow` 이름표 menu                                             |
-| `.name`    | String                                                                                                   | Name. Unique in the list.                                                                                                                                    | `Reflow`                                                         |
-| `.color`   | Six-digit `#RRGGBB`, or `"none"`                                                                         | Color.                                                                                                                                                       | `Reflow` color row, `LabelColorPicker` README                    |
-| `.key`     | A `KeyboardEvent.code` string for one letter or digit key, for example `"KeyC"` or `"Digit1"`, or `null` | Legacy label assignment retained when reading/writing existing settings. It does not assign a source-slide hot key; use `slides[].hotKey` (S26, October 27). | Earlier product log; superseded by the October 27 user decision. |
+| Field      | Type                             | Meaning                                           | Source                                        |
+| ---------- | -------------------------------- | ------------------------------------------------- | --------------------------------------------- |
+| `labels[]` | Array                            | The 이름표 list, in the order of the 이름표 menu. | `Reflow` 이름표 menu                          |
+| `.name`    | String                           | Name. Unique in the list.                         | `Reflow`                                      |
+| `.color`   | Six-digit `#RRGGBB`, or `"none"` | Color.                                            | `Reflow` color row, `LabelColorPicker` README |
 
 Defaults, in order: 전주 (`#7D8FD6`), 1절 to 4절 (`#5FB8C2`), 프리코러스
 (`#8FBF7A`), 후렴 (`#D6B35F`), 포스트코러스 (`#D68F5F`), 브리지 (`#A99AE0`),
 간주 (`#A3A3A3`), 후주 (`#7D8FD6`). Palette names are invalid; no legacy color
-reader or conversion is provided before the first release. New labels retain
-`key: null` for legacy compatibility. Source-slide hot keys start unassigned;
-these names do not generate assignments (October 27 S26 decision, 10). The board
-spells 브릿지 and the design system spells 브리지. This spec follows the design
-system.
+reader or conversion is provided before the first release. Source-slide hot keys
+start unassigned; these names do not generate assignments (October 27 S26
+decision, 10). The board spells 브릿지 and the design system spells 브리지. This
+spec follows the design system.
 
 ### 환경설정 (`preferences.json`)
 
@@ -631,8 +629,6 @@ source file.
 | 저장    | `backup.auto`                                                                               | Boolean, true                                       | 자동 백업 (automatic backup)                                                                                                                     | `Prefs`                   |
 | 저장    | `backup.keep`                                                                               | Integer, 30                                         | 보관 30개 (keep 30)                                                                                                                              | `Prefs`                   |
 | Bible   | `bible.defaults.reference`, `bible.defaults.verseNumbers`, `bible.defaults.translationName` | `every` \| `first` \| `last` \| `none`, true, false | 구절 표시, 절 번호, 역본 이름 of a new passage; a saved passage keeps its own values (`bible.verseNumbers` is now `bible.defaults.verseNumbers`) | `Prefs`                   |
-| Bible   | `bible.defaults.split`                                                                      | `verse` \| `two` \| `fit`, default `verse`          | Legacy field, retained on read/write but ignored. No preference row; new passages use `verse` (04, 10).                                          | `Prefs`                   |
-| Bible   | `bible.sourcePosition`                                                                      | `"bottomRight"`                                     | Unused: no 환경설정 row, nothing reads it. Kept so old files load.                                                                               | `Prefs`                   |
 | Import  | `import.txt.split`                                                                          | `"blankLine"` \| `"lineBreak"` \| `"symbol"`        | 슬라이드 나누기: 빈 줄 (split: blank line)                                                                                                       | `Prefs`, `ImportText`     |
 | Import  | `import.txt.labels`                                                                         | `"bracketLine"` \| `"off"`                          | 이름표: 대괄호 줄 (이름표: bracket lines)                                                                                                        | `Prefs`                   |
 | Import  | `import.txt.firstLine`                                                                      | `"title"` \| `"lyrics"`                             | 첫 줄: 제목 (first line: title)                                                                                                                  | `Prefs`                   |
@@ -718,11 +714,9 @@ classes' column widths and thumbnail percentages. The data store remains the
 only writer (`docs/TECH.md`, "Storage").
 
 Media browser UI choices are optional app-local fields. `mediaStrip` remembers
-the shared bottom bin's visibility in 진행 and 준비 (04). `prepMedia` is a
-legacy field from the separate 준비 media mode: preserve it on file round trips
-but do not use it or write new changes to it. `mediaBrowser.columns` keeps the
-media grid's integer column count, 2 to 8 (default 5), separately from lyric
-thumbnail scaling. `mediaBrowser.view` is `"grid"` or `"list"` (default
+the shared bottom bin's visibility in 진행 and 준비 (04). `mediaBrowser.columns`
+keeps the media grid's integer column count, 2 to 8 (default 5), separately from
+lyric thumbnail scaling. `mediaBrowser.view` is `"grid"` or `"list"` (default
 `"grid"`); audio playlists still display tracks as a list. Missing values use
 these UI defaults without adding fields to an unchanged file. Partial UI updates
 keep other fields and unknown metadata through the same writer.

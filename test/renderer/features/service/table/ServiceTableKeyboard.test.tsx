@@ -66,7 +66,6 @@ function setup(blank = false) {
               },
       ),
       tiles: {},
-      jumpKeys: {},
     });
   publish();
   const stop = api.services.subscribe(publish);

@@ -49,7 +49,6 @@ describe('bibleVerseTiles reference', () => {
       };
       const tiles = bibleVerseTiles(value, {
         reference: 'every',
-        split: 'two',
         translationName: true,
       });
       expect(tiles.map(tile => tile.reference)).toEqual([
@@ -75,11 +74,7 @@ describe('bibleVerseTiles reference', () => {
     reference => {
       const value = {...JOHN, translationLabel: '개역한글'};
       for (const translationName of [false, true]) {
-        const tiles = bibleVerseTiles(value, {
-          split: 'two',
-          reference,
-          translationName,
-        });
+        const tiles = bibleVerseTiles(value, {reference, translationName});
         const suffix = translationName ? ' (개역한글)' : '';
         const expected = [
           '요한복음 3:34',
@@ -118,9 +113,9 @@ describe('bibleVerseTiles reference', () => {
       bibleVerseTiles(value, {reference: 'every', translationName: true})[0]
         ?.reference,
     ).toBe('요한일서 3:34');
-    expect(
-      bibleVerseTiles(JOHN, {reference: 'every', split: 'fit'})[0]?.reference,
-    ).toBe('요한복음 3:34');
+    expect(bibleVerseTiles(JOHN, {reference: 'every'})[0]?.reference).toBe(
+      '요한복음 3:34',
+    );
   });
   it('shows the reference on every slide, as every passage did before', () => {
     expect(references('every')).toEqual([
@@ -176,34 +171,6 @@ describe('bibleVerseTiles split', () => {
     expect(tiles[0]?.lines).toEqual(['34 a']);
   });
 
-  it.each(['two', 'fit'] as const)(
-    'starts each verse anew for legacy %s packing',
-    split => {
-      const tiles = bibleVerseTiles(JOHN, {reference: 'last', split});
-      expect(tiles.map(tile => tile.label)).toEqual([
-        '\uC6943:34',
-        '\uC6943:35',
-        '\uC6943:36',
-        '\uC6944:1',
-        '\uC6944:2',
-      ]);
-      expect(tiles.map(tile => tile.lines)).toEqual([
-        ['34 a'],
-        ['35 b'],
-        ['36 c'],
-        ['1 d'],
-        ['2 e'],
-      ]);
-      expect(tiles.map(tile => tile.reference)).toEqual([
-        undefined,
-        undefined,
-        undefined,
-        undefined,
-        '요한복음 4:2',
-      ]);
-    },
-  );
-
   it('keeps long text intact within the verse fallback and skips omitted verses', () => {
     const long = 'x'.repeat(LIVE_STATE_LIMITS.textCharacters * 3);
     const tiles = bibleVerseTiles(
@@ -212,7 +179,7 @@ describe('bibleVerseTiles split', () => {
         [1, 2, long],
         [1, 4, 'c'],
       ]),
-      {verseNumbers: false, reference: 'every', split: 'fit'},
+      {verseNumbers: false, reference: 'every'},
     );
     expect(tiles.map(tile => tile.label)).toEqual([
       '\uC6941:1',

@@ -27,7 +27,6 @@ function projection(id: string = first): ShowService {
     readOnly: entries.find(entry => entry.id === id)?.access === 'readOnly',
     rows: [],
     tiles: {},
-    jumpKeys: {},
   };
 }
 function setup() {

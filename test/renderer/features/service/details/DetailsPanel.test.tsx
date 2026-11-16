@@ -699,7 +699,6 @@ it('keeps the panel empty while a library song loads', async () => {
       labelColor: 'none' as const,
       lines: slide.lines,
     })),
-    jumpKeys: {},
   };
   let release: ((value: typeof result) => void) | undefined;
   vi.spyOn(f.api.library, 'showSong').mockImplementation(

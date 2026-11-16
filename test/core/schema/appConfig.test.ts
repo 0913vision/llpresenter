@@ -91,7 +91,7 @@ describe('parseAppConfig', () => {
       maximized: false,
       future: 'kept',
     };
-    const original = {...fullConfig(), songEditorWindow};
+    const original = {...fullConfig(), songEditorWindow, prepMedia: true};
     const loaded = expectSuccess(parse(original));
     expect(loaded.data).toMatchObject(original);
     const serialized = expectSuccess(serializeAppConfig(loaded.data, FILE));

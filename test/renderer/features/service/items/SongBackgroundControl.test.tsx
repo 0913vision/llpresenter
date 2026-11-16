@@ -282,7 +282,6 @@ describe('slide-header background control', () => {
       readOnly: false,
       rows: [{kind: 'song', id, title: 'Invented song'}],
       tiles: {},
-      jumpKeys: {},
     });
     openItem(id);
     render(<SongBackgroundControl onProblem={onProblem} />);

@@ -54,7 +54,6 @@ const layoutChangeSchema = v.pipe(
 const uiStateSchema = payloadObject({
   layout: v.exactOptional(appLayoutSchema),
   mediaStrip: v.exactOptional(v.boolean()),
-  prepMedia: v.exactOptional(v.boolean()),
   mediaBrowser: v.exactOptional(mediaBrowserSchema),
   previewBig: v.exactOptional(screenIdSchema),
   macroView: v.exactOptional(v.picklist(['grid', 'list'])),
@@ -95,7 +94,6 @@ export type UiState = Pick<
   AppConfig,
   | 'layout'
   | 'mediaStrip'
-  | 'prepMedia'
   | 'mediaBrowser'
   | 'previewBig'
   | 'macroView'
@@ -110,13 +108,6 @@ export type MediaStripChange = Readonly<
 
 export function parseMediaStripChange(value: unknown) {
   return parsePayload(mediaStripChangeSchema, value);
-}
-
-export type PrepMediaChange = MediaStripChange;
-
-/** The independent 준비 toolbar media choice uses the same boolean boundary. */
-export function parsePrepMediaChange(value: unknown) {
-  return parseMediaStripChange(value);
 }
 
 /** Checks a `ui:get` reply on the receiving side. Never throws. */

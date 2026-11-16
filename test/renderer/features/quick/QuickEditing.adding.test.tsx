@@ -83,7 +83,7 @@ describe('quick editing', () => {
           onProblem={vi.fn()}
           full={false}
           timersFull={false}
-          item={quickItem('black')}
+          item={quickItem('macro')}
           locked={locked}
           save={save}
           activate={activate}
@@ -123,7 +123,7 @@ describe('quick editing', () => {
         onProblem={vi.fn()}
         full={false}
         timersFull={false}
-        item={quickItem('black')}
+        item={quickItem('macro')}
         locked={false}
         save={save}
       >
@@ -134,7 +134,7 @@ describe('quick editing', () => {
     fireEvent.keyDown(row, {key: 'F10', shiftKey: true});
     fireEvent.click(screen.getByRole('menuitem', {name: '복제'}));
     expect(save).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({kind: 'duplicate', id: quickItem('black').id}),
+      expect.objectContaining({kind: 'duplicate', id: quickItem('macro').id}),
     );
     view.unmount();
     render(
@@ -143,7 +143,7 @@ describe('quick editing', () => {
         onProblem={vi.fn()}
         full
         timersFull={false}
-        item={quickItem('black')}
+        item={quickItem('macro')}
         locked={false}
         save={save}
       >
@@ -178,7 +178,7 @@ describe('quick editing', () => {
         onProblem={vi.fn()}
         full={false}
         timersFull={false}
-        item={quickItem('black')}
+        item={quickItem('macro')}
         locked={false}
         save={vi.fn(async () => true)}
         onPinChange={onPinChange}
@@ -186,7 +186,7 @@ describe('quick editing', () => {
         <button>항목</button>
       </QuickRowEditor>,
     );
-    const {id} = quickItem('black');
+    const {id} = quickItem('macro');
 
     fireEvent.keyDown(screen.getByRole('button', {name: '항목'}), {
       key: 'F10',
@@ -215,7 +215,7 @@ describe('quick editing', () => {
     });
     fireEvent.click(screen.getByRole('button', {name: '추가'}));
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-    expect(fixture.current().value.items).toHaveLength(8);
+    expect(fixture.current().value.items).toHaveLength(7);
     expect(fixture.edit).toHaveBeenCalledOnce();
     expect(fixture.problem).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({kind: 'warning', title: '빠른 실행 저장 실패'}),
@@ -292,7 +292,7 @@ describe('quick editing', () => {
     await screen.findByRole('dialog', {name: '타이머 추가'});
     fireEvent.click(screen.getByRole('button', {name: '취소'}));
     expect(fixture.edit).not.toHaveBeenCalled();
-    expect(fixture.current().value.items).toHaveLength(7);
+    expect(fixture.current().value.items).toHaveLength(6);
   });
 
   it('renames the timer through its paired command without replacing settings', async () => {

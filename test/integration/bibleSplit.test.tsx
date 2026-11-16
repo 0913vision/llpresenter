@@ -282,7 +282,6 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
             },
           ],
           tiles: {[sourceId]: bibleVerseTiles(passage)},
-          jumpKeys: {},
         });
         useShow.setState({openItemId: sourceId});
       }
@@ -612,7 +611,6 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
             },
           ],
           tiles: {[sourceId]: bibleVerseTiles(extended)},
-          jumpKeys: {},
         });
         useShow.setState({openItemId: sourceId});
       } else openBiblePassage(extended);
@@ -779,7 +777,6 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
             },
           ],
           tiles: {[sourceId]: bibleVerseTiles(passage)},
-          jumpKeys: {},
         });
         useShow.setState({openItemId: sourceId});
       } else openBiblePassage(passage);

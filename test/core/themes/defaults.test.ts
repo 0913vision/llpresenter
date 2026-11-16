@@ -687,12 +687,6 @@ it('limits current text to 120 px in every built-in stage layout', () => {
   }
 });
 
-it('does not assign transitions to built-in themes', () => {
-  expect(
-    createDefaultThemes().themes.every(theme => theme.transition === undefined),
-  ).toBe(true);
-});
-
 it('matches each audience text size without overlapping stage next and clock', () => {
   const stage = createScreenId(STARTER_SCREEN_IDS.stage);
   const audience = createScreenId(STARTER_SCREEN_IDS.main);

@@ -44,7 +44,6 @@ describe('quick add Bible passages', () => {
       passageItem('요한복음 3:16', {
         translation,
         verseNumbers: true,
-        split: 'two',
         reference: 'last',
         translationName: true,
       }),

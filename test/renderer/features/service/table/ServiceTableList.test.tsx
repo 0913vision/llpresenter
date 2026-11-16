@@ -59,7 +59,6 @@ function setup(twoRows = false) {
         : []),
     ],
     tiles: {},
-    jumpKeys: {},
   });
   const edits: ContentEdit[] = [];
   const songDocument: SongDocument = {
@@ -177,7 +176,6 @@ it('shows 항목 없음 and keeps the adders for a service with no items', async
       readOnly: false,
       rows: [],
       tiles: {},
-      jumpKeys: {},
     }),
   );
 
@@ -276,7 +274,6 @@ it('keeps section options clear of the pinned header when ArrowUp selects them',
         {kind: 'song', id: SONG_ITEM, title: '첫 곡'},
       ],
       tiles: {},
-      jumpKeys: {},
     }),
   );
   const section = (await screen.findByRole('option', {name: '찬양'})).closest(

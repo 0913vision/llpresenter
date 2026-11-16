@@ -45,7 +45,6 @@ const projected: ShowLibrarySong = {
   title: '새벽빛',
   readOnly: false,
   tiles: [{label: null, labelColor: 'none', lines: ['창작한 슬라이드 줄']}],
-  jumpKeys: {},
 };
 const matches: readonly LibrarySearchMatch[] = [
   {songId, title: '새벽빛', slideCount: 1, match: {kind: 'title'}},

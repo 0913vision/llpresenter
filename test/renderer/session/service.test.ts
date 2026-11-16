@@ -26,7 +26,6 @@ function serviceOf(overrides: Partial<ShowService> = {}): ShowService {
         {label: '2절', labelColor: '#5FB8C2', lines: ['three']},
       ],
     },
-    jumpKeys: {KeyC: '후렴'},
     ...overrides,
   };
 }
@@ -47,7 +46,6 @@ describe('applyService', () => {
       serviceId: 'sunday',
       serviceName: '주일 예배',
       readOnly: true,
-      jumpKeys: {KeyC: '후렴'},
     });
     expect(useShow.getState().rows).toHaveLength(3);
     expect(useShow.getState().tiles['a']).toHaveLength(3);
@@ -140,7 +138,6 @@ describe('applyService', () => {
       readOnly: false,
       rows: [],
       tiles: {},
-      jumpKeys: {},
       openItemId: null,
     });
   });

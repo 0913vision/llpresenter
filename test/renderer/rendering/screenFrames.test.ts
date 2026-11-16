@@ -405,7 +405,6 @@ it.each([THEME_STAGE, THEME_CAPTURE])(
     if (state.themeOutput === undefined) throw new Error('Missing theme');
     const current: LiveState = {
       ...state,
-      themeOutput: {...state.themeOutput, transition: {kind: 'wipe', sec: 0.7}},
       layers: {
         ...state.layers,
         slide: {

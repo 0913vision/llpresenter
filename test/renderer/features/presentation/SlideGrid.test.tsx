@@ -51,7 +51,6 @@ it('shows themed slides with ad names in their bands and sends picture slides on
       {id: SLIDES_ITEM, kind: 'slides', form: 'ad', title: item.slides.name},
     ],
     tiles: {[SLIDES_ITEM]: projectSlides(item)},
-    jumpKeys: {},
   });
   openItem(SLIDES_ITEM);
   render(<SlideGrid columns={4} scalePercent={100} />);
@@ -118,7 +117,6 @@ it('draws a sermon title tile with the sermon title theme and passage', async ()
         },
       ],
     },
-    jumpKeys: {},
   });
   openItem('sermon');
   render(<SlideGrid columns={4} scalePercent={100} />);
@@ -142,7 +140,6 @@ it('shows a Bible verse label in the attached strip', () => {
     tiles: {
       'bible-item': [{label: '3:16', labelColor: 'none', lines: ['말씀']}],
     },
-    jumpKeys: {},
   });
   openItem('bible-item');
   render(<SlideGrid columns={4} scalePercent={100} />);
@@ -216,7 +213,6 @@ it('shows the picture of a media tile, with the name in the band', () => {
         },
       ],
     },
-    jumpKeys: {},
   });
   openItem('media-item');
   const {container} = render(<SlideGrid columns={4} scalePercent={100} />);
@@ -243,7 +239,6 @@ it('maps windowed clicks and menus to logical slide positions and keeps keyboard
         lines: [`Slide ${index + 1}`],
       })),
     },
-    jumpKeys: {},
   });
   openItem('long-song');
   const {container} = render(

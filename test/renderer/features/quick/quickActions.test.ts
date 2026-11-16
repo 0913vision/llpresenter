@@ -36,24 +36,6 @@ afterEach(() => {
 });
 
 describe('quick execution', () => {
-  it('toggles the same black screen command and tracks its live state', async () => {
-    const fixture = quickFixture();
-    window.llp = fixture.api;
-    const item = quickItem('black');
-    expect(quickItemUnavailable(item)).toBeUndefined();
-    expect(quickItemOn(item, emptyLiveState())).toBe(false);
-    expect(quickItemOn(item, {...emptyLiveState(), blackScreen: true})).toBe(
-      true,
-    );
-    const runner = quickRunner(fixture.api, vi.fn());
-    await runner.run(item);
-    await runner.run(item);
-    expect(fixture.send.mock.calls.map(([command]) => command)).toEqual([
-      {type: 'black.toggle'},
-      {type: 'black.toggle'},
-    ]);
-  });
-
   it('opens a song with its own background and first slide without a service edit', async () => {
     const fixture = quickFixture();
     window.llp = fixture.api;

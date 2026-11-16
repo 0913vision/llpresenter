@@ -80,7 +80,6 @@ function setup() {
     revision: document.revision,
     readOnly: false,
     tiles: {},
-    jumpKeys: {},
     rows: document.service.order.flatMap(item =>
       isItemOfKind(item, 'song')
         ? [

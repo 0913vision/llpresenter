@@ -1,9 +1,8 @@
-import {describe, expect, it} from 'vitest';
+import {describe, it} from 'vitest';
 import {parseLabels, serializeLabels} from '@core/schema/labels';
 import {
   expectInvalidField,
   expectRoundTrip,
-  expectSuccess,
 } from '@fixtures/core/schema/testHelpers';
 
 const codec = {parse: parseLabels, serialize: serializeLabels};
@@ -77,49 +76,6 @@ describe('parseLabels', () => {
     expectInvalidField(codec, withLabel(label), field);
   });
 
-  it.each([
-    ['a character instead of a code', 'C'],
-    ['a digit character', '1'],
-    ['an empty key', ''],
-    ['a key that is not a letter or digit', 'F5'],
-    ['a numpad digit', 'Numpad1'],
-    ['a lowercase code', 'keyc'],
-    ['a number', 1],
-  ])('drops only the jump key when it is %s', (_name, key) => {
-    const loaded = expectSuccess(
-      parseLabels(
-        JSON.stringify(
-          withLabelList([
-            {name: '후렴', color: '#D6B35F', key},
-            {name: '1절', color: '#5FB8C2', key: 'Digit1'},
-          ]),
-        ),
-        'labels.json',
-      ),
-    );
-
-    expect(loaded.data.labels).toEqual([
-      {name: '후렴', color: '#D6B35F', key: null},
-      {name: '1절', color: '#5FB8C2', key: 'Digit1'},
-    ]);
-    expect(loaded.dropped.map(({field}) => field)).toEqual(['labels.0.key']);
-    expect(loaded.dropped[0]?.message).not.toBe('');
-  });
-
-  it('gives a label without a key field no jump key', () => {
-    const loaded = expectSuccess(
-      parseLabels(
-        JSON.stringify(withLabel({name: '1절', color: '#5FB8C2'})),
-        'labels.json',
-      ),
-    );
-
-    expect(loaded.data.labels).toEqual([
-      {name: '1절', color: '#5FB8C2', key: null},
-    ]);
-    expect(loaded.dropped.map(({field}) => field)).toEqual(['labels.0.key']);
-  });
-
   it('rejects two labels with the same name', () => {
     const labels = {
       ...defaultLabels(),
@@ -130,20 +86,5 @@ describe('parseLabels', () => {
     };
 
     expectInvalidField(codec, labels, 'labels.1');
-  });
-});
-
-describe('serializeLabels', () => {
-  it('refuses to write an invalid jump key instead of turning it into none', () => {
-    const labels = expectSuccess(
-      parseLabels(JSON.stringify(defaultLabels()), 'labels.json'),
-    ).data;
-
-    const written = serializeLabels(
-      {...labels, labels: [{name: '후렴', color: '#D6B35F', key: 'C'}]},
-      'labels.json',
-    );
-
-    expect(written.ok ? undefined : written.error.field).toBe('labels.0.key');
   });
 });

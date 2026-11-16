@@ -76,7 +76,7 @@ describe('quick editing', () => {
     const source = current.value.items.at(-1);
     if (!source) throw new Error('Missing future row');
     const extra = {
-      ...quickItem('black'),
+      ...quickItem('macro'),
       id: createQuickItemId(quickId(88)),
       name: '다른 변경',
     };

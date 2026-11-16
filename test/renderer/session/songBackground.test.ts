@@ -38,7 +38,6 @@ const service: ShowService = {
     bible: [tile],
     quick: [tile],
   },
-  jumpKeys: {},
 };
 
 let now: number;

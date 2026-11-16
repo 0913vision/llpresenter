@@ -128,7 +128,6 @@ export function buildShowService({
     readOnly: service.access === 'readOnly',
     rows: order.map(item => rowOf(item, rowSources)),
     tiles: itemTiles,
-    jumpKeys: jumpKeysOf(labels),
   };
 }
 
@@ -414,16 +413,4 @@ export function songTiles(
   colors: ReadonlyMap<string, LabelColor>,
 ): ShowTile[] {
   return [...projectSongTiles(song, colors).tiles];
-}
-
-// NOTE(0913vision): When two 이름표 share a jump key, the one listed first in
-// the 이름표 menu keeps it.
-export function jumpKeysOf(labels: readonly Label[]): Record<string, string> {
-  const keys: Record<string, string> = {};
-  for (const {name, key} of labels) {
-    if (key !== null && !Object.hasOwn(keys, key)) {
-      keys[key] = name;
-    }
-  }
-  return keys;
 }

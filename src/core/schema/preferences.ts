@@ -16,7 +16,7 @@ import type {MigrationStep} from './migration';
 import {jsonObject, positiveInteger} from './primitives';
 import type {PayloadError} from './payload';
 import {clearFadeSchema} from './clearFade';
-import {bibleReferenceSchema, bibleSplitSchema} from './biblePassage';
+import {bibleReferenceSchema} from './biblePassage';
 import {slideTransitionSchema, type SlideTransition} from './slideTransition';
 
 const PREFERENCES_FORMAT = 'llsettings.preferences';
@@ -38,23 +38,6 @@ export const AUDIO_DEVICE_LIMIT = 200;
 export const audioDeviceSchema = jsonObject({
   id: v.pipe(v.string(), v.maxLength(AUDIO_DEVICE_LIMIT)),
   label: v.pipe(v.string(), v.maxLength(AUDIO_DEVICE_LIMIT)),
-});
-
-/** The seconds a 전환 may last, as 환경설정 allows them. */
-export const TRANSITION_LIMITS = {
-  media: {min: 0.1, max: 3, step: 0.1},
-} as const;
-
-/** How a slide or a background changes: not at all, or by a dissolve. */
-export const transitionKindSchema = v.picklist(['none', 'dissolve']);
-
-function transitionSeconds({min, max}: {min: number; max: number}) {
-  return v.pipe(v.number(), v.finite(), v.minValue(min), v.maxValue(max));
-}
-
-const mediaTransitionSchema = jsonObject({
-  kind: v.exactOptional(transitionKindSchema),
-  seconds: v.exactOptional(transitionSeconds(TRANSITION_LIMITS.media)),
 });
 
 export const transitionDefaultKinds = [
@@ -181,13 +164,6 @@ export const preferencesSchema = jsonObject({
   output: v.exactOptional(
     jsonObject({
       stageLyricLabelPosition: v.exactOptional(stageLyricLabelPositionSchema),
-      transition: v.exactOptional(
-        jsonObject({
-          between: v.exactOptional(slideTransitionSchema),
-          within: v.exactOptional(slideTransitionSchema),
-          media: v.exactOptional(mediaTransitionSchema),
-        }),
-      ),
     }),
   ),
   media: v.exactOptional(
@@ -201,14 +177,12 @@ export const preferencesSchema = jsonObject({
     jsonObject({
       defaults: v.exactOptional(
         jsonObject({
-          split: v.exactOptional(bibleSplitSchema),
           reference: v.exactOptional(bibleReferenceSchema),
           verseNumbers: optionalBoolean,
           translationName: optionalBoolean,
         }),
       ),
       splitEditorAutoOpen: optionalBoolean,
-      sourcePosition: v.exactOptional(v.picklist(['bottomRight'])),
     }),
   ),
   import: v.exactOptional(
@@ -262,14 +236,6 @@ export type Preferences = Omit<
   };
   readonly output: {
     readonly stageLyricLabelPosition: StageLyricLabelPosition;
-    readonly transition: {
-      readonly between: SlideTransition;
-      readonly within: SlideTransition;
-      readonly media: {
-        readonly kind: 'none' | 'dissolve';
-        readonly seconds: number;
-      };
-    };
   };
 };
 
@@ -290,11 +256,6 @@ export const defaultPreferences: Preferences = {
   showOnLaunch: false,
   output: {
     stageLyricLabelPosition: 'line',
-    transition: {
-      between: {kind: 'dissolve', sec: 0.5},
-      within: {kind: 'none', sec: 0.2},
-      media: {kind: 'dissolve', seconds: 0.5},
-    },
   },
   show: {
     atLastSlide: 'stop',
@@ -310,13 +271,11 @@ export const defaultPreferences: Preferences = {
   },
   bible: {
     defaults: {
-      split: 'verse',
       reference: 'every',
       verseNumbers: true,
       translationName: false,
     },
     splitEditorAutoOpen: true,
-    sourcePosition: 'bottomRight',
   },
   import: {
     txt: {
@@ -337,18 +296,6 @@ export function withPreferenceDefaults(stored: PreferencesFile): Preferences {
       stageLyricLabelPosition:
         stored.output?.stageLyricLabelPosition ??
         defaultPreferences.output.stageLyricLabelPosition,
-      transition: {
-        between:
-          stored.output?.transition?.between ??
-          defaultPreferences.output.transition.between,
-        within:
-          stored.output?.transition?.within ??
-          defaultPreferences.output.transition.within,
-        media: {
-          ...defaultPreferences.output.transition.media,
-          ...stored.output?.transition?.media,
-        },
-      },
     },
     general: {...defaultPreferences.general, ...stored.general},
     show: {
@@ -428,25 +375,6 @@ function dropValuesOutOfRange(
       kept = {...kept, [group]: inner.content};
       dropped.push(...inner.dropped);
     }
-  }
-  const output = kept['output'];
-  const transition = isRecord(output) ? output['transition'] : undefined;
-  if (isRecord(output) && isRecord(transition)) {
-    let changed = transition;
-    for (const [name, seconds] of [
-      ['media', transitionSeconds(TRANSITION_LIMITS.media)],
-    ] as const) {
-      const part = changed[name];
-      if (!isRecord(part)) continue;
-      const inner = withoutInvalid(
-        part,
-        {seconds},
-        `output.transition.${name}.`,
-      );
-      changed = {...changed, [name]: inner.content};
-      dropped.push(...inner.dropped);
-    }
-    kept = {...kept, output: {...output, transition: changed}};
   }
   const show = kept['show'];
   const audio = isRecord(show) ? show['audio'] : undefined;

@@ -29,9 +29,6 @@ export function registerUiState(
   ipcMain.on(uiEndpoints.setMediaStrip.channel, (_event, value: unknown) =>
     store.setMediaStrip(value),
   );
-  ipcMain.on(uiEndpoints.setPrepMedia.channel, (_event, value: unknown) =>
-    store.setPrepMedia(value),
-  );
   ipcMain.on(uiEndpoints.setMediaBrowser.channel, (_event, value: unknown) =>
     store.setMediaBrowser(value),
   );
@@ -44,7 +41,6 @@ export function registerUiState(
       ipcMain.removeHandler(uiEndpoints.get.channel);
       ipcMain.removeAllListeners(uiEndpoints.setLayout.channel);
       ipcMain.removeAllListeners(uiEndpoints.setMediaStrip.channel);
-      ipcMain.removeAllListeners(uiEndpoints.setPrepMedia.channel);
       ipcMain.removeAllListeners(uiEndpoints.setMediaBrowser.channel);
       ipcMain.removeAllListeners(uiEndpoints.setRememberedView.channel);
     },

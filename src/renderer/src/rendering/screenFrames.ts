@@ -149,18 +149,7 @@ export class ScreenFrames {
       slide?.position !== this.previousSlide?.position
     ) {
       this.effect = slideTransitionFor(
-        this.preferences.output.transition,
-        this.previousItemId,
-        slide === null
-          ? itemId === null
-            ? null
-            : {itemId}
-          : {
-              ...slide,
-              ...(state?.themeOutput?.transition === undefined
-                ? {}
-                : {themeTransition: state.themeOutput.transition}),
-            },
+        slide ?? (itemId === null ? null : {itemId}),
       );
     }
     this.previousSlide = slide;
@@ -205,7 +194,7 @@ export class ScreenFrames {
         ? {}
         : {stageTimerId: state.stageTimerId}),
       screen,
-      transitionTimes: transitionTimes(this.preferences, effect),
+      transitionTimes: transitionTimes(effect),
       slideTransition: effect,
       messageStyle,
       ...(band === undefined ? {} : {messageBand: band}),

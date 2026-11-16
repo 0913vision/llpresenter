@@ -142,9 +142,6 @@ export function useThemeDraft({saved, reason, change, report}: DraftWrites) {
         : {
             themeId,
             screens: original.screens,
-            ...(original.transition === undefined
-              ? {}
-              : {transition: original.transition}),
           };
     const copy = {id: createThemeId(crypto.randomUUID()), name};
     const written = await commit(value => saveDraftAs(value, current, copy));

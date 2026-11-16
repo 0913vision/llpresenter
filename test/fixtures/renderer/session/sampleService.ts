@@ -56,12 +56,6 @@ const sampleTiles: Readonly<Record<ItemId, readonly SlideTile[]>> = {
   countdown: [tile(null)],
 };
 
-const sampleJumpKeys: Readonly<Record<string, string>> = {
-  KeyC: '후렴',
-  Digit1: '1절',
-  Digit2: '2절',
-};
-
 export const sampleService: ShowService = {
   revision: 1,
   id: 'sample',
@@ -69,7 +63,6 @@ export const sampleService: ShowService = {
   readOnly: false,
   rows: sampleRows,
   tiles: sampleTiles,
-  jumpKeys: sampleJumpKeys,
 };
 
 /** Opens the invented sample service in the show store, for tests. */

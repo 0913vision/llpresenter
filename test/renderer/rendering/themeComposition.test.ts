@@ -1041,7 +1041,7 @@ describe('theme composition drawing', () => {
     ];
     const [tile] = bibleVerseTiles(
       {...panelPassage(), translationLabel: '개역한글'},
-      {reference: 'every', split: 'two', translationName: true},
+      {reference: 'every', translationName: true},
     );
     if (!tile) throw Error('Missing Bible tile');
     view.render(

@@ -40,7 +40,6 @@ function everyItem() {
     {id: itemId(3), name: '로고 화면', kind: 'prop', ref: LOGO_PROP},
     {id: itemId(4), name: '시작 카운트다운', kind: 'timer', ref: START_TIMER},
     {id: itemId(5), name: '축도', kind: 'macro', ref: BENEDICTION},
-    {id: itemId(6), name: '검은 화면', kind: 'black'},
   ];
 }
 
@@ -52,6 +51,18 @@ describe('parseQuick', () => {
   it('reads an item of every kind', () => {
     expect(everyItem().map(({kind}) => kind)).toEqual(quickItemKinds);
     expectRoundTrip(codec, quickFile(everyItem()));
+  });
+
+  it('preserves an old black item as an unknown kind', () => {
+    const old = quickFile([
+      {id: itemId(6), name: 'Black', kind: 'black', extra: true},
+    ]);
+    expectRoundTrip(codec, old);
+    const loaded = expectSuccess(parseQuick(JSON.stringify(old), 'quick.json'));
+    const item = loaded.data.items[0];
+    expect(item).toBeDefined();
+    if (item === undefined) throw new Error('Missing item');
+    expect(isKnownQuickItem(item)).toBe(false);
   });
 
   it('keeps an item of an unknown kind and tells it apart', () => {
