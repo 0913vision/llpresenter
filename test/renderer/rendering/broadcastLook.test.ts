@@ -320,7 +320,7 @@ describe('built-in broadcast look', () => {
     );
     expect(element(result, BROADCAST_LOOK_BAND_ID)).toMatchObject({
       frame: {x: 0, w: 1920},
-      box: {fill: '#000000', opacity: 91},
+      box: {fill: '#000000', opacity: 70},
       runtimeHidden: false,
     });
     expect(element(result, BROADCAST_LOOK_SONG_ID)).toMatchObject({

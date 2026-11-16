@@ -630,7 +630,7 @@ as every settings file does (02).
   edge. Bible alone has a 48 px brown-to-transparent header strip with white
   bold 30 px reference; plain text has no strip. Empty text has no box.
 - Each broadcast screen chooses its song caption. The default band is flat black
-  at 91% opacity across the full 1920 px width; its bottom is y=1040 and it has
+  at 70% opacity across the full 1920 px width; its bottom is y=1040 and it has
   26 px vertical padding. Text-only has no band and its last line ends at
   y=1004. Both use centered white bold 67 px text, 1.25 line height and at most
   two lines, shrinking to fit. The band text has a 0 2px 6px black shadow at
