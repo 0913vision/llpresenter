@@ -1,3 +1,4 @@
+import {rememberLiveAnchor, resolveLiveAnchor} from './liveAnchor';
 import type {MediaChoice, SlideLayer} from '@core/live/state';
 import type {RecentPassage} from '@core/schema/bible';
 import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
@@ -160,6 +161,8 @@ export function projectedLiveCursor(
   slide: SlideLayer | null,
 ): TileCursor | null {
   if (slide === null) return null;
+  const anchored = resolveLiveAnchor(view, slide);
+  if (anchored !== null) return anchored.live;
   const index =
     slide.biblePart === undefined && slide.sourceSlideId === undefined
       ? slide.position
@@ -314,6 +317,7 @@ export function refreshLibrarySong(
   ) {
     return;
   }
+  rememberLiveAnchor(current, useLive.getState().state?.layers.slide ?? null);
   const selected = isLibrarySource(current, current.openItemId);
   useShow.setState({
     librarySong: song,
