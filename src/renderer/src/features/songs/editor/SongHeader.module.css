@@ -1,10 +1,12 @@
 .header {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   flex: none;
   align-items: center;
   gap: var(--space-10);
-  min-height: var(--size-panel-header);
+  height: var(--size-panel-header);
+  box-sizing: border-box;
+  overflow: hidden;
   padding: var(--space-2) var(--space-14);
   row-gap: var(--space-4);
   border-bottom: var(--radius-hairline) solid var(--line);

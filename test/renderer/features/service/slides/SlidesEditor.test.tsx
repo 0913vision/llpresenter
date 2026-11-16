@@ -222,6 +222,48 @@ describe('automatic inline slides editor', () => {
       await f.session.dispose();
     }
   });
+  it('queues repeated slide pastes while an earlier copy is pending', async () => {
+    const f = setup('blank');
+    const user = userEvent.setup();
+    try {
+      await screen.findByRole('textbox', {name: '\uae00'});
+      const row =
+        f.view.container.querySelector<HTMLElement>('[data-slide-id]');
+      if (row === null) throw new Error('Missing row');
+      fireEvent.click(row);
+      let finish: (() => void) | undefined;
+      vi.spyOn(navigator.clipboard, 'writeText').mockImplementationOnce(
+        () =>
+          new Promise(resolve => {
+            finish = resolve;
+          }),
+      );
+      vi.spyOn(navigator.clipboard, 'readText').mockResolvedValue(
+        'Copied text',
+      );
+      await user.keyboard('{Control>}c{/Control}');
+      const surface = screen.getByRole('group', {
+        name: '\uc2ac\ub77c\uc774\ub4dc \ud3b8\uc9d1 \uba85\ub839',
+      });
+      act(() => {
+        fireEvent.keyDown(surface, {key: 'v', code: 'KeyV', ctrlKey: true});
+        fireEvent.keyDown(surface, {key: 'v', code: 'KeyV', ctrlKey: true});
+      });
+      await act(async () => finish?.());
+      await waitFor(() =>
+        expect(
+          f.view.container.querySelectorAll('[data-slide-id]'),
+        ).toHaveLength(4),
+      );
+      const ids = [
+        ...f.view.container.querySelectorAll<HTMLElement>('[data-slide-id]'),
+      ].map(row => row.dataset['slideId']);
+      expect(new Set(ids).size).toBe(ids.length);
+    } finally {
+      f.view.unmount();
+      await f.session.dispose();
+    }
+  });
   it('applies a catalog label to selected text and image slides from the shared menu', async () => {
     const f = setup('blank', undefined, true);
     try {
@@ -625,9 +667,15 @@ describe('automatic inline slides editor', () => {
       expect(
         within(header ?? document.body).getByRole('button', {name: /‹/}),
       ).toBeTruthy();
-      expect(header?.contains(screen.getByRole('button', {name: '테마'}))).toBe(
-        false,
-      );
+      expect(
+        within(header ?? document.body).getByRole('button', {name: '테마'}),
+      ).toBeTruthy();
+      expect(
+        within(header ?? document.body).getByRole('button', {name: '넘기기'}),
+      ).toBeTruthy();
+      expect(
+        within(header ?? document.body).getByRole('checkbox', {name: '반복'}),
+      ).toBeTruthy();
       await userEvent.click(name);
       await userEvent.keyboard(`{${key}}`);
       expect(document.activeElement).toBe(

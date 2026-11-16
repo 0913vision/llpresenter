@@ -156,7 +156,7 @@ describe('song block window measurements', () => {
     expect(viewport.scrollTop).toBe(42);
   });
 
-  it('windows 300 grid slides and reveals the selected cell at either zoom', () => {
+  it('windows 300 grid slides without scrolling to the selected cell', () => {
     const measured = observer();
     const slides = Array.from({length: 300}, () => ({lines: ['Slide']}));
     const view = render(<Fixture slides={slides} selected={0} mode="grid" />);
@@ -173,7 +173,7 @@ describe('song block window measurements', () => {
     expect(viewport.dataset['columns']).toBe('4');
     expect(screen.getAllByRole('textbox').length).toBeLessThan(40);
     view.rerender(<Fixture slides={slides} selected={120} mode="grid" />);
-    expect(viewport.scrollTop).toBeGreaterThan(0);
+    expect(viewport.scrollTop).toBe(0);
     expect(screen.getByRole('textbox', {name: 'Row 120'})).toBeDefined();
     fireEvent.scroll(viewport);
     expect(screen.getAllByRole('textbox').length).toBeLessThan(40);
@@ -184,7 +184,7 @@ describe('song block window measurements', () => {
     expect(screen.getByRole('textbox', {name: 'Row 120'})).toBeDefined();
   });
 
-  it('uses line counts and token metrics, reveals the final row, and disconnects its one observer', () => {
+  it('uses line counts and token metrics, retains scroll, and disconnects its one observer', () => {
     const measured = observer();
     const slides: readonly WindowSlideItem[] = [
       {lines: ['Short']},
@@ -207,7 +207,7 @@ describe('song block window measurements', () => {
     expect(screen.getByRole('textbox', {name: 'Row 26'})).toBeDefined();
     expect(screen.getAllByRole('textbox').length).toBeLessThanOrEqual(8);
     view.rerender(<Fixture slides={slides} selected={102} />);
-    expect(viewport.scrollTop).toBe(5191);
+    expect(viewport.scrollTop).toBe(1211);
     expect(screen.getByRole('textbox', {name: 'Row 102'})).toBeDefined();
     view.unmount();
     expect(measured.disconnect).toHaveBeenCalledOnce();

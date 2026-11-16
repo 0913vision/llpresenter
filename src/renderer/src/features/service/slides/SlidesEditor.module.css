@@ -38,9 +38,8 @@
   flex: none;
   align-items: center;
   gap: var(--space-14);
-  min-height: var(--size-panel-header);
-  padding: var(--space-4) var(--space-14);
-  border-bottom: var(--radius-hairline) solid var(--line);
+  min-height: 0;
+  padding: 0;
 }
 .setting {
   display: flex;

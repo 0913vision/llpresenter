@@ -20,6 +20,7 @@ import plate from '../../songs/editor/EditorSlidePlate.module.css';
 import {useSongBlockWindow} from '../../songs/editor/useSongBlockWindow';
 import {gridInsertionPosition} from '../../songs/editor/gridInsertionPosition';
 import {useSlideSurfaceView} from '../../songs/editor/SlideSurfaceView';
+import {useRevealInsertedSlide} from '../../songs/editor/useRevealInsertedSlide';
 
 import {
   LEADING_CARD_WINDOW_ITEM,
@@ -138,6 +139,15 @@ export function SlideRows({
       viewportRef: listRef,
       heights,
     });
+  useRevealInsertedSlide({
+    viewport: listRef,
+    ids: rows.map(slide => slide.id),
+    offsets,
+    columns,
+    leading: leadingOffset,
+    intent: commands.revealIntent,
+    selected: selection.ids,
+  });
   const gap = (index: number, style?: CSSProperties): ReactNode => (
     <button
       type="button"

@@ -43,6 +43,7 @@ import {
   type SlideCardRenderer,
 } from './SlideCardRenderer';
 import {LeadingSlideCardView} from './LeadingSlideCardView';
+import {useRevealInsertedSlide} from './useRevealInsertedSlide';
 
 /** Mount with a window-owned store; unmounting does not discard song history. */
 export function SongEditor({
@@ -195,7 +196,6 @@ function SongBlocks({
     session.history.model.getSnapshot,
   );
   const theme = useSongSlideAppearance(session);
-  const previousBlock = useRef(selection.block);
   const restoredSelection = useRef<{
     input: HTMLTextAreaElement | null | undefined;
     block: number;
@@ -252,6 +252,15 @@ function SongBlocks({
     scale: view.scale,
     viewportRef,
     ...(heights === undefined ? {} : {heights}),
+  });
+  useRevealInsertedSlide({
+    viewport,
+    ids,
+    offsets,
+    columns,
+    leading: leadingOffset,
+    intent: session.revealIntent,
+    selected: list.selection.ids,
   });
   const tab = (event: KeyboardEvent<HTMLDivElement>): void => {
     if (
@@ -317,9 +326,6 @@ function SongBlocks({
       previous.start !== selection.start ||
       previous.end !== selection.end;
     restoredSelection.current = {input, ...selection};
-    const changedBlock = previousBlock.current !== selection.block;
-    previousBlock.current = selection.block;
-    if (changedBlock) input?.scrollIntoView({block: 'nearest'});
     const ownsFocus =
       document.activeElement instanceof HTMLTextAreaElement &&
       owner.inputs.includes(document.activeElement);
@@ -341,7 +347,6 @@ function SongBlocks({
         input.setSelectionRange(selection.start, selection.end);
       }
       owner.restoring = false;
-      if (owner.requested) input.scrollIntoView({block: 'nearest'});
     }
     owner.requested = false;
     owner.target = 'lyrics';

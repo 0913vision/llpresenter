@@ -1,4 +1,5 @@
-import {act, fireEvent, screen} from '@testing-library/react';
+import {act, fireEvent, render, screen} from '@testing-library/react';
+import {SlideInspector} from '@renderer/features/service/slideInspector/SlideInspector';
 import {expect, it} from 'vitest';
 import {editorSetup} from '@fixtures/renderer/features/songs/editor/editorTesting';
 
@@ -10,7 +11,8 @@ it.each([
 ] as const)(
   'undoes and redoes %s without leaving the field',
   async (label, key, initial) => {
-    const {session, user} = await editorSetup();
+    const {session, user, store} = await editorSetup();
+    render(<SlideInspector store={store} />);
     act(() => session.edit({type: 'title', title: 'Invented title'}));
     const before = session.history.snapshot.song.slides;
     const field = screen.getByRole('spinbutton', {name: label});

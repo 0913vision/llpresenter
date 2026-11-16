@@ -162,6 +162,7 @@ function BibleEditorContent({
       )}
       {onSplit === undefined ? null : (
         <Button
+          className={styles.split}
           disabled={
             locked || projection?.partsByTile[position - offset] == null
           }

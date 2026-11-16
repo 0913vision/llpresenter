@@ -7,7 +7,10 @@ import {
   fixtureServiceId,
   itemFixture,
 } from '@fixtures/renderer/features/service/items/itemFixture';
-import {LiturgyEditor} from '@renderer/features/service/items/LiturgyEditor';
+import {
+  LiturgyEditor,
+  LiturgyVersion,
+} from '@renderer/features/service/items/LiturgyEditor';
 import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import {SongEditorStore} from '@renderer/features/songs/editor';
 
@@ -25,12 +28,25 @@ it.each(['creed', 'prayer'] as const)(
     const editor = new SongEditorStore(fixture.api, vi.fn());
     const items = new ServiceItemStore(fixture.api, editor, vi.fn());
     items.show({serviceId: fixtureServiceId, itemId: item.id});
-    const view = render(<LiturgyEditor items={items} />);
+    const view = render(
+      <>
+        <LiturgyEditor items={items} />
+        <LiturgyVersion
+          items={items}
+          item={item}
+          serviceId={fixtureServiceId}
+          locked={false}
+        />
+      </>,
+    );
     onTestFinished(async () => {
       view.unmount();
       items.dispose();
       await editor.dispose();
     });
+    expect(
+      await screen.findAllByRole('textbox', {name: /\uc608\uc2dd\ubb38/}),
+    ).not.toHaveLength(0);
     const user = userEvent.setup();
     await user.click(await screen.findByRole('button', {name: '예식문 버전'}));
     await user.click(screen.getByRole('menuitemradio', {name: '옛 번역'}));
