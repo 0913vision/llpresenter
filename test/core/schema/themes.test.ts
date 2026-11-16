@@ -45,6 +45,18 @@ const file = {
   defaults: {},
 };
 
+it('preserves a removed theme transition in an old file', () => {
+  const old = {
+    ...file,
+    themes: [{...theme, transition: {kind: 'wipe', sec: 1}}],
+  };
+  const parsed = expectSuccess(parseThemes(JSON.stringify(old), 'themes.json'));
+  expect(parsed.data).toEqual(old);
+  expect(
+    JSON.parse(expectSuccess(serializeThemes(parsed.data, 'themes.json'))),
+  ).toEqual(old);
+});
+
 describe('custom section names', () => {
   it('accepts bounded unique entries and rejects invalid entries', () => {
     const section = {id: uuid(10), name: '기도', english: 'Prayer'};

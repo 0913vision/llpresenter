@@ -19,7 +19,6 @@ export interface ShowView {
   readonly openItemId: ItemId | null;
   readonly selectedTile: number;
   /** Maps physical key codes to 이름표 names. */
-  readonly jumpKeys: Readonly<Record<string, string>>;
 }
 
 export const noService = {
@@ -29,7 +28,6 @@ export const noService = {
   readOnly: false,
   rows: [],
   tiles: {},
-  jumpKeys: {},
 } as const satisfies Partial<ShowView>;
 
 export const useShow = create<ShowView>(() => ({

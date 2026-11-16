@@ -90,7 +90,7 @@ async function setupSaved(
     bibleSource: null,
     openItemId: id,
     rows,
-    tiles: {[id]: bibleVerseTiles(fixture.passage, {verseNumbers, split})},
+    tiles: {[id]: bibleVerseTiles(fixture.passage, {verseNumbers})},
   });
   const state = emptyLiveState();
   useLive.setState({

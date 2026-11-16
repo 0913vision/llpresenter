@@ -43,7 +43,6 @@ function service(): ShowService {
       [saved]: bibleVerseTiles(passage, {verseNumbers: false}),
       [other]: bibleVerseTiles(otherPassage, {verseNumbers: false}),
     },
-    jumpKeys: {},
   };
 }
 

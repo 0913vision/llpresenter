@@ -26,7 +26,6 @@ function serviceOf(overrides: Partial<ShowService> = {}): ShowService {
         {label: '2절', labelColor: '#5FB8C2', lines: ['three']},
       ],
     },
-    jumpKeys: {KeyC: '후렴'},
     ...overrides,
   };
 }
@@ -40,14 +39,13 @@ afterEach(() => {
 });
 
 describe('applyService', () => {
-  it('shows the rows, tiles, jump keys, name, and read-only flag', () => {
+  it('shows the rows, tiles, name, and read-only flag', () => {
     applyService(serviceOf({readOnly: true}));
     expect(useShow.getState()).toMatchObject({
       revision: 1,
       serviceId: 'sunday',
       serviceName: '주일 예배',
       readOnly: true,
-      jumpKeys: {KeyC: '후렴'},
     });
     expect(useShow.getState().rows).toHaveLength(3);
     expect(useShow.getState().tiles['a']).toHaveLength(3);
@@ -140,7 +138,6 @@ describe('applyService', () => {
       readOnly: false,
       rows: [],
       tiles: {},
-      jumpKeys: {},
       openItemId: null,
     });
   });

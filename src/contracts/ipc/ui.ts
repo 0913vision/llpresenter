@@ -5,13 +5,11 @@ import {
 import {
   parseLayoutChange,
   parseMediaStripChange,
-  parsePrepMediaChange,
   parseUiState,
   parseRememberedViewChange,
   type RememberedViewChange,
   type LayoutChange,
   type MediaStripChange,
-  type PrepMediaChange,
   type UiState,
 } from '@core/schema/uiState';
 import {
@@ -35,10 +33,6 @@ export const uiEndpoints = {
   setMediaStrip: message<MediaStripChange>(
     'ui:media-strip:set',
     parseMediaStripChange,
-  ),
-  setPrepMedia: message<PrepMediaChange>(
-    'ui:prep-media:set',
-    parsePrepMediaChange,
   ),
   setMediaBrowser: message<MediaBrowserChange>(
     'ui:media-browser:set',
@@ -71,8 +65,6 @@ export function uiApi(port: IpcPort, platform: WindowPlatform) {
     setLayout: port.message(uiEndpoints.setLayout),
     /** Saves the media strip choice through the single app.json writer. */
     setMediaStrip: port.message(uiEndpoints.setMediaStrip),
-    /** Saves 준비's media mode independently of 진행's media strip. */
-    setPrepMedia: port.message(uiEndpoints.setPrepMedia),
     /** Changes only the supplied media browser fields through app.json. */
     setMediaBrowser: port.message(uiEndpoints.setMediaBrowser),
     setRememberedView: port.message(uiEndpoints.setRememberedView),

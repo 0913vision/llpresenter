@@ -78,15 +78,9 @@ describe('readSettingsFile', () => {
     const read = await readSettingsFile(location, parseLabels);
 
     expect(read.data?.labels).toEqual([
-      {name: '후렴', color: '#5FB8C2', key: null},
+      {name: '후렴', color: '#5FB8C2', key: 'C'},
     ]);
-    expect(read.problems).toEqual([
-      expect.objectContaining({
-        kind: 'invalid',
-        file: location.file,
-        field: 'labels.0.key',
-      }),
-    ]);
+    expect(read.problems).toEqual([]);
   });
 
   it('runs a broken file from its newest copy and keeps the file as it was', async () => {
@@ -136,12 +130,9 @@ describe('readSettingsFile', () => {
     const read = await readSettingsFile(location, parseLabels);
 
     expect(read.data?.labels).toEqual([
-      {name: '후렴', color: '#5FB8C2', key: null},
+      {name: '후렴', color: '#5FB8C2', key: 'C'},
     ]);
-    expect(read.problems).toMatchObject([
-      {kind: 'json', file: location.file},
-      {kind: 'invalid', file: copy, field: 'labels.0.key'},
-    ]);
+    expect(read.problems).toMatchObject([{kind: 'json', file: location.file}]);
   });
 
   it('passes over a copy that is broken too', async () => {

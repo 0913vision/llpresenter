@@ -40,8 +40,6 @@ export interface TileOptions {
   readonly translationName?: boolean;
   /** Which slides show the reference; none when absent. */
   readonly reference?: BiblePassage['reference'];
-  /** Legacy packing value; each verse starts a slide regardless of this value. */
-  readonly split?: BiblePassage['split'];
   readonly transition?: BiblePassage['transition'] | undefined;
 }
 

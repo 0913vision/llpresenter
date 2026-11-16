@@ -88,7 +88,6 @@ export function setup(
             },
       ),
       tiles: {},
-      jumpKeys: {},
     });
   const send = vi.fn();
   const api = mockLlpApi({

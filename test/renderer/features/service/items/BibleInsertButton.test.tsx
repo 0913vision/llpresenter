@@ -248,7 +248,6 @@ it('uses changed defaults after reopening the Bible panel and releases its subsc
         ...defaultPreferences.bible,
         defaults: {
           ...defaultPreferences.bible.defaults,
-          split: 'two',
           translationName: true,
         },
       },
@@ -286,7 +285,6 @@ it('uses preference changes before the initial read resolves and ignores its sta
         ...defaultPreferences.bible,
         defaults: {
           ...defaultPreferences.bible.defaults,
-          split: 'fit',
           reference: 'last',
           translationName: true,
         },

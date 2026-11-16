@@ -101,7 +101,7 @@ const keyBindingSchema = v.pipe(
   }),
   v.check(
     ({code, mods}) => mods.length > 0 || !CHARACTER_KEY.test(code),
-    'A letter or digit without a modifier is a label jump key, not a shortcut',
+    'A letter or digit without a modifier is reserved for slide keys',
   ),
   v.check(
     binding => !isReservedKey(binding),
@@ -149,7 +149,7 @@ export type ShortcutsFile = ReadonlyKnown<
 
 /**
  * One key combination: the physical key and its modifiers. A letter or digit
- * always has a modifier, because bare ones are 이름표 jump keys.
+ * always has a modifier, because bare ones are reserved for slide keys.
  */
 export type KeyBinding = ShortcutsFile['bindings'][string][number];
 

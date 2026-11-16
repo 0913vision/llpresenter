@@ -1,3 +1,4 @@
+import * as v from 'valibot';
 import {lastLiveCommand} from '@fixtures/renderer/session/liveCommands';
 import {
   act,
@@ -10,7 +11,7 @@ import {
 import {describe, expect, it, vi} from 'vitest';
 import type {EditResult} from '@core/schema/contentEdit';
 import {parseServiceDocument} from '@core/schema/contentDocuments';
-import {createQuickItemId} from '@core/schema/ids';
+import {macroIdSchema, createQuickItemId} from '@core/schema/ids';
 import {isKnownQuickItem} from '@core/schema/quick';
 import {useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
@@ -74,14 +75,18 @@ describe('quick editing', () => {
     await act(async () => {
       const adding = result.current.run({
         kind: 'add',
-        item: newQuickItem({kind: 'black', name: '검은 화면'}),
+        item: newQuickItem({
+          kind: 'macro',
+          name: 'Test',
+          ref: v.parse(macroIdSchema, quickId(105)),
+        }),
       });
       const flushing = pendingWritesOf(fixture.api).flush();
       accepted = await adding;
       expect(await flushing).toBe(true);
     });
     expect(accepted).toBe(true);
-    expect(fixture.current().value.items).toHaveLength(8);
+    expect(fixture.current().value.items).toHaveLength(7);
     expect(fixture.edit).toHaveBeenCalledOnce();
     expect(fixture.problem).toHaveBeenCalledExactlyOnceWith(
       expect.objectContaining({kind: 'warning', title: '빠른 실행 저장 실패'}),
@@ -261,7 +266,7 @@ describe('quick editing', () => {
           items: [
             ...fresh.value.items,
             {
-              ...quickItem('black'),
+              ...quickItem('macro'),
               id: createQuickItemId(quickId(88)),
               name: '다른 변경',
             },
@@ -294,7 +299,7 @@ describe('quick editing', () => {
       value: {
         ...full.value,
         items: Array.from({length: MAX_QUICK_ITEMS}, (_, index) => ({
-          ...quickItem('black'),
+          ...quickItem('macro'),
           id: createQuickItemId(quickId(index + 1)),
         })),
       },
@@ -302,7 +307,11 @@ describe('quick editing', () => {
     await expect(
       saveQuickEdit(fixture.api, {
         kind: 'add',
-        item: newQuickItem({kind: 'black', name: '검은 화면'}),
+        item: newQuickItem({
+          kind: 'macro',
+          name: 'Test',
+          ref: v.parse(macroIdSchema, quickId(105)),
+        }),
       }),
     ).rejects.toThrow();
     expect(fixture.edit).not.toHaveBeenCalled();

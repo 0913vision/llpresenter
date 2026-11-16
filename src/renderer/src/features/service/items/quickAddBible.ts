@@ -15,8 +15,6 @@ import {isItemOfKind} from '@core/schema/service';
 export interface PassageDefaults {
   readonly translation: BibleLookupReply['translation'];
   readonly verseNumbers: boolean;
-  /** Accepted from old preferences; new passages always start each verse anew. */
-  readonly split?: BiblePassage['split'];
   readonly reference?: BiblePassage['reference'];
   readonly translationName?: boolean;
   readonly transition?: BiblePassage['transition'] | undefined;

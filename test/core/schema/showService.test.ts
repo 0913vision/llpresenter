@@ -21,7 +21,6 @@ function showService() {
         {label: null, labelColor: 'none', lines: []},
       ],
     },
-    jumpKeys: {KeyC: '후렴'},
   };
 }
 

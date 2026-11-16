@@ -27,7 +27,6 @@ const service: ShowService = {
     {kind: 'media', id: MEDIA_ITEM, title: '배경 영상'},
   ],
   tiles: {},
-  jumpKeys: {},
 };
 
 const openSongEditor = vi.hoisted(() => vi.fn());

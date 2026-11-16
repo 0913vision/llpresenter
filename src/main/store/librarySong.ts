@@ -11,7 +11,7 @@ import {
 } from '@core/schema/showLibrarySong';
 import type {Song} from '@core/schema/song';
 import type {Logger} from '../log';
-import {jumpKeysOf, projectSongTiles} from './showService';
+import {projectSongTiles} from './showService';
 
 export interface LibrarySongDocument {
   readonly song: Song;
@@ -57,7 +57,6 @@ export async function showLibrarySong(
     title: song.title,
     readOnly: access === 'readOnly' || projected.capped,
     tiles: projected.tiles,
-    jumpKeys: jumpKeysOf(labels),
     ...(background === null ? {} : {background}),
     ...(missingBackgroundName === undefined ? {} : {missingBackgroundName}),
     ...(problem === undefined ? {} : {problem}),

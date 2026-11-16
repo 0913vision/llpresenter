@@ -18,7 +18,6 @@ it('starts the label menu with the ordered import labels and colors', () => {
     ['간주', '#A3A3A3'],
     ['후주', '#7D8FD6'],
   ]);
-  expect(DEFAULT_LABELS.every(label => label.key === null)).toBe(true);
 });
 
 describe('starter screen defaults', () => {

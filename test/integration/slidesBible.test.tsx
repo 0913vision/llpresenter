@@ -528,7 +528,6 @@ it('presents mixed verse slots as parts and keeps repeated verses distinct in li
         slidesBiblePassages(f.item),
       ),
     },
-    jumpKeys: {},
   });
   useShow.setState({openItemId: f.item.id});
   const view = render(<ShowShortcuts onProblem={vi.fn()} />);

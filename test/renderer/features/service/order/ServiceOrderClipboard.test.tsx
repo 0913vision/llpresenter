@@ -84,7 +84,6 @@ describe('service order clipboard commands', () => {
             : {kind: 'song', id: item.id, title: 'Projected song'},
         ),
         tiles: {},
-        jumpKeys: {},
       }),
     );
     await waitFor(() => expect(selectedIds()).toEqual([copy.id]));
@@ -136,7 +135,6 @@ describe('service order clipboard commands', () => {
           title: 'Pasted song',
         })),
         tiles: {},
-        jumpKeys: {},
       });
       return {
         ok: true,
@@ -151,7 +149,6 @@ describe('service order clipboard commands', () => {
         readOnly: false,
         rows: [],
         tiles: {},
-        jumpKeys: {},
       }),
     );
     view.rerender(<ServiceOrderList workspace="prep" />);

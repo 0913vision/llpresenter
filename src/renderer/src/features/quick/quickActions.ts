@@ -45,8 +45,6 @@ export function quickItemOn(
         : live?.layers.prop?.propId === item.ref;
     case 'timer':
       return live?.timers?.[item.ref]?.state === 'running';
-    case 'black':
-      return live?.blackScreen === true;
     case 'song':
     case 'bible':
     case 'macro':
@@ -135,9 +133,6 @@ export function quickRunner(api: LlpApi, onProblem: (notice: Notice) => void) {
           return;
         case 'macro':
           sendLive({type: 'macro.run', macroId: item.ref});
-          return;
-        case 'black':
-          sendLive({type: 'black.toggle'});
           return;
         default: {
           const unhandled: never = item;

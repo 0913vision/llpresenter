@@ -107,11 +107,6 @@ describe('parsePreferences', () => {
   it.each([
     ['a backup group that is an array', {backup: []}, 'backup'],
     [
-      'an unlisted source position',
-      {bible: {sourcePosition: 'topLeft'}},
-      'bible.sourcePosition',
-    ],
-    [
       'an unknown text encoding',
       {import: {txt: {encoding: 'euc-kr'}}},
       'import.txt.encoding',
@@ -385,60 +380,12 @@ describe('audio output choices', () => {
   });
 });
 
-describe('전환 settings', () => {
-  it('defaults to a short dissolve between items and none within', () => {
-    const {transition} = expectSuccess(parsePreferencesValue(HEADER)).output;
-    expect(transition.between).toEqual({kind: 'dissolve', sec: 0.5});
-    expect(transition.within).toEqual({kind: 'none', sec: 0.2});
-    expect(transition.media).toEqual({kind: 'dissolve', seconds: 0.5});
-  });
-  it('round-trips independent defaults and unknown fields', () => {
+describe('removed preference fields', () => {
+  it('preserves old fields without validating them', () => {
     expectRoundTrip(codec, {
       ...HEADER,
-      output: {
-        transition: {
-          between: {kind: 'wipe', dir: 'up', sec: 4, future: 1},
-          within: {kind: 'push', dir: 'right', sec: 0.1},
-          media: {kind: 'none', seconds: 3},
-        },
-      },
-    });
-  });
-  it.each(['between', 'within'])('refuses invalid %s defaults', part => {
-    expectInvalidField(
-      codec,
-      {
-        ...HEADER,
-        output: {
-          transition: {
-            [part]: {kind: 'zoom', sec: 1},
-          },
-        },
-      },
-      `output.transition.${part}.kind`,
-    );
-    expect(
-      serializePreferences(
-        {
-          ...HEADER,
-          output: {
-            transition: {
-              [part]: {kind: 'dissolve', sec: 10.1},
-            },
-          },
-        },
-        'preferences.json',
-      ).ok,
-    ).toBe(false);
-  });
-  it('keeps background range recovery', () => {
-    const stored = parse({
-      ...HEADER,
-      output: {transition: {media: {kind: 'none', seconds: 10}}},
-    });
-    expect(withPreferenceDefaults(stored).output.transition.media).toEqual({
-      kind: 'none',
-      seconds: 0.5,
+      output: {transition: {between: {kind: 'old'}, media: {seconds: 10}}},
+      bible: {sourcePosition: 'topLeft', defaults: {split: 'fit'}},
     });
   });
 });
@@ -525,7 +472,6 @@ describe('성경 새 구절 defaults', () => {
   it('start as a verse each, the reference on every slide, verse numbers on, no translation name', () => {
     expect(expectSuccess(parsePreferencesValue(HEADER)).bible.defaults).toEqual(
       {
-        split: 'verse',
         reference: 'every',
         verseNumbers: true,
         translationName: false,
@@ -552,7 +498,6 @@ describe('성경 새 구절 defaults', () => {
   });
 
   it.each([
-    ['split', 'three'],
     ['reference', 'middle'],
     ['verseNumbers', 'yes'],
     ['translationName', 1],

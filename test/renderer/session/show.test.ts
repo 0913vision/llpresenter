@@ -187,7 +187,6 @@ describe('show state', () => {
         title: 'Song',
         readOnly: false,
         tiles: [],
-        jumpKeys: {},
       },
       openItemId: `library:${songId}`,
       selectedTile: 1,
@@ -893,7 +892,6 @@ describe('show state', () => {
         title: 'Song',
         readOnly: false,
         tiles: sourceTiles,
-        jumpKeys: {},
       },
       openItemId: `library:${songId}`,
     }));

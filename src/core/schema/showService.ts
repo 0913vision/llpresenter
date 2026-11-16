@@ -213,7 +213,6 @@ const showServiceSchema = payloadObject({
       ),
     ),
   ),
-  jumpKeys: v.pipe(plainObject, v.record(v.string(), v.string())),
 });
 
 /**

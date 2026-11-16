@@ -15,7 +15,6 @@ const shown = {
   title: 'Invented song',
   readOnly: false,
   tiles: [tile],
-  jumpKeys: {Digit1: 'Verse'},
 };
 
 describe('standalone library song boundary', () => {
@@ -80,15 +79,6 @@ describe('standalone library song boundary', () => {
           ),
         },
       ],
-    },
-    {
-      ...shown,
-      jumpKeys: Object.fromEntries(
-        Array.from({length: SHOW_LIBRARY_SONG_LIMITS.jumpKeys + 1}, (_, i) => [
-          String(i),
-          'Label',
-        ]),
-      ),
     },
   ])('rejects malformed or oversized replies %#', value => {
     expect(parseShowLibrarySong(value).ok).toBe(false);

@@ -1,4 +1,3 @@
-import {slideTransitionSchema} from './slideTransition';
 import * as v from 'valibot';
 import {screenIdSchema, themeIdSchema} from './ids';
 import {
@@ -41,7 +40,6 @@ export const themeCompositionSchema = payloadObject({
 });
 
 export const liveThemeOutputSchema = payloadObject({
-  transition: v.exactOptional(slideTransitionSchema),
   themeId: themeIdSchema,
   revision: nonNegativeInteger,
   missing: v.pipe(v.array(liveNonBlankTextSchema), v.maxLength(2)),

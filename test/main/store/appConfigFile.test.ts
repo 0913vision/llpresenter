@@ -287,7 +287,6 @@ describe('openAppConfig', () => {
     const ui = new UiStateStore({fields: appConfig, log});
     ui.setMediaStrip({visible: false});
     ui.setLayout({sizeClass: 'normal', leftCollapsed: true});
-    ui.setPrepMedia({visible: true});
     ui.setMediaBrowser({view: 'list'});
     ui.setMediaBrowser({columns: 8});
     appConfig.setLastServiceId(SUNDAY);
@@ -296,7 +295,6 @@ describe('openAppConfig', () => {
     expect(await readJson(file)).toEqual({
       ...config,
       mediaStrip: false,
-      prepMedia: true,
       mediaBrowser: {...config.mediaBrowser, columns: 8, view: 'list'},
       lastServiceId: SUNDAY_ID,
       uiZoomPercent: 120,

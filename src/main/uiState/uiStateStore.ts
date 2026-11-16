@@ -2,7 +2,6 @@ import type {AppLayout} from '@core/schema/appConfig';
 import {
   parseLayoutChange,
   parseMediaStripChange,
-  parsePrepMediaChange,
   parseRememberedViewChange,
   type UiState,
 } from '@core/schema/uiState';
@@ -29,7 +28,6 @@ export class UiStateStore {
     const {
       layout,
       mediaStrip,
-      prepMedia,
       mediaBrowser,
       previewBig,
       macroView,
@@ -39,7 +37,6 @@ export class UiStateStore {
     return {
       ...(layout === undefined ? {} : {layout}),
       ...(mediaStrip === undefined ? {} : {mediaStrip}),
-      ...(prepMedia === undefined ? {} : {prepMedia}),
       ...(mediaBrowser === undefined ? {} : {mediaBrowser}),
       ...(previewBig === undefined ? {} : {previewBig}),
       ...(macroView === undefined ? {} : {macroView}),
@@ -94,18 +91,6 @@ export class UiStateStore {
       return;
     }
     this.options.fields.change({mediaStrip: change.value.visible});
-  }
-
-  setPrepMedia(value: unknown): void {
-    const change = parsePrepMediaChange(value);
-    if (!change.ok) {
-      this.options.log.warn(
-        'dropped a malformed prep media change',
-        change.error,
-      );
-      return;
-    }
-    this.options.fields.change({prepMedia: change.value.visible});
   }
 
   /** Merges only validated fields, preserving file metadata and concurrent UI choices. */

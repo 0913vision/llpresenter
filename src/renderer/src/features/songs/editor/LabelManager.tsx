@@ -116,9 +116,7 @@ export function LabelManager({
     while (labels.some(label => label.name === name)) {
       name = `새 이름표 ${suffix++}`;
     }
-    if (
-      await store.updateLabels([...labels, {name, color: 'none', key: null}])
-    ) {
+    if (await store.updateLabels([...labels, {name, color: 'none'}])) {
       setFocusRequest({name});
     }
   };

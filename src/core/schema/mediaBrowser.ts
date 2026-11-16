@@ -8,7 +8,6 @@ export const MEDIA_BROWSER = {
   maxColumns: 8,
   defaultColumns: 5,
   defaultView: 'grid',
-  defaultPrepMedia: false,
 } as const;
 
 const fields = {

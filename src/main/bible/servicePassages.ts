@@ -135,7 +135,6 @@ export async function resolveServicePassages(
         verseNumbers: settings.verseNumbers,
         reference: settings.reference,
         translationName: settings.translationName,
-        split: settings.split,
         transition: settings.transition,
       }).map((tile, index) => {
         const verse = passage.verses[index];

@@ -290,11 +290,6 @@ describe('parseService', () => {
       'order.0.memo',
     ],
     [
-      'a Bible passage with an unknown split',
-      {id: itemId(1), bible: {...PASSAGE, split: 'chapter'}},
-      'order.0.bible.split',
-    ],
-    [
       'a Bible passage without a reference',
       {id: itemId(1), bible: {...PASSAGE, ref: ''}},
       'order.0.bible.ref',
@@ -303,6 +298,11 @@ describe('parseService', () => {
     const error = expectFailure(parse(withItem(item)));
 
     expect(error).toMatchObject({kind: 'invalid', file: FILE, field});
+  });
+
+  it.each(['two', 'fit'])('preserves an old Bible split %s', split => {
+    const file = withItem({id: itemId(1), bible: {...PASSAGE, split}});
+    expect(expectSuccess(parse(file)).data).toEqual(file);
   });
 
   it('accepts a Bible passage that shows its reference on the last slide only', () => {

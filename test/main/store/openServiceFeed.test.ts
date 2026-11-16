@@ -201,7 +201,7 @@ describe('OpenServiceFeed', () => {
             bible: {
               translation: request.value.translation,
               ref: request.value.input,
-              split: 'fit',
+              split: 'verse',
               reference: 'every',
               verseNumbers: true,
               translationName: false,

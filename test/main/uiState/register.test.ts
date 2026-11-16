@@ -43,9 +43,6 @@ vi.mock('@main/uiState/uiStateStore', () => ({
     setMediaStrip(value: unknown) {
       this.calls.push(['setMediaStrip', value]);
     }
-    setPrepMedia(value: unknown) {
-      this.calls.push(['setPrepMedia', value]);
-    }
     setMediaBrowser(value: unknown) {
       this.calls.push(['setMediaBrowser', value]);
     }
@@ -75,7 +72,6 @@ describe('registerUiState', () => {
     expect(handlers.handle.has(uiEndpoints.get.channel)).toBe(false);
     expect(handlers.on.has(uiEndpoints.setLayout.channel)).toBe(false);
     expect(handlers.on.has(uiEndpoints.setMediaStrip.channel)).toBe(false);
-    expect(handlers.on.has(uiEndpoints.setPrepMedia.channel)).toBe(false);
     expect(handlers.on.has(uiEndpoints.setMediaBrowser.channel)).toBe(false);
   });
 
@@ -88,14 +84,12 @@ describe('registerUiState', () => {
 
     send(uiEndpoints.setLayout.channel, {sizeClass: 'narrow'});
     send(uiEndpoints.setMediaStrip.channel, {visible: false});
-    send(uiEndpoints.setPrepMedia.channel, {visible: true});
     send(uiEndpoints.setMediaBrowser.channel, {columns: 6});
 
     expect(store.options).toEqual({fields, log});
     expect(store.calls).toEqual([
       ['setLayout', {sizeClass: 'narrow'}],
       ['setMediaStrip', {visible: false}],
-      ['setPrepMedia', {visible: true}],
       ['setMediaBrowser', {columns: 6}],
     ]);
     expect(handlers.handle.get(uiEndpoints.get.channel)?.({})).toBe(

@@ -117,7 +117,6 @@ it('formats the kind line for every item kind and a library song', () => {
     title: 'Song',
     readOnly: false,
     tiles: [],
-    jumpKeys: {},
   };
   const heading = detailsHeading({
     item: null,

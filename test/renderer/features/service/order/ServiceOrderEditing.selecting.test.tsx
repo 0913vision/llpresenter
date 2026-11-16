@@ -330,7 +330,6 @@ describe('service panel editing', () => {
           {kind: 'song', id: firstId, title: '첫 곡'},
         ],
         tiles: {},
-        jumpKeys: {},
       });
       await Promise.resolve();
     });

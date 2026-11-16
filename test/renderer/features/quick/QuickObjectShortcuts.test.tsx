@@ -53,13 +53,9 @@ it('loads assigned quick items, checks availability, and cancels on document cha
   view.rerender(<QuickObjectShortcuts api={api} onProblem={onProblem} />);
   expect(mock.cancel).toHaveBeenCalledTimes(1);
   const commands = mock.register.mock.lastCall?.[0] ?? [];
-  expect(commands.map(command => command.id)).toEqual([
-    'quick.macro',
-    'quick.black',
-  ]);
+  expect(commands.map(command => command.id)).toEqual(['quick.macro']);
   const event = new KeyboardEvent('keydown');
   expect(commands[0]?.when?.(event)).toBe(true);
-  expect(commands[1]?.when?.(event)).toBe(false);
   commands[0]?.run(event);
   expect(mock.run).toHaveBeenCalledExactlyOnceWith(item);
   mock.run.mockRejectedValueOnce(new Error('Invented failure'));

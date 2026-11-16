@@ -38,7 +38,6 @@ const service: ShowService = {
     [third]: [tile],
     quick: [tile],
   },
-  jumpKeys: {},
 };
 
 function setup(value = service) {

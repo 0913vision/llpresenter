@@ -794,7 +794,6 @@ export function applyService(service: ShowService | null): void {
     readOnly: service.readOnly,
     rows: service.rows,
     tiles: service.tiles,
-    jumpKeys: service.jumpKeys,
     ...(changed ? {openItemId: null, selectedTile: 0} : keptSelection(service)),
   });
   if (!changed) refreshStageNext();

@@ -52,7 +52,7 @@ export interface ProjectedSongTiles {
 
 /**
  * Turns the open 예배 순서 into what 진행 shows: a row per item, the tiles of
- * each song item in its 구성 order, and the 이름표 jump keys. Row ids are the
+ * each song item in order. Row ids are the
  * item ids, so the live state keeps pointing at the same item after a change.
  * A file from a newer app version shows as read-only.
  */
@@ -128,7 +128,6 @@ export function buildShowService({
     readOnly: service.access === 'readOnly',
     rows: order.map(item => rowOf(item, rowSources)),
     tiles: itemTiles,
-    jumpKeys: jumpKeysOf(labels),
   };
 }
 
@@ -414,16 +413,4 @@ export function songTiles(
   colors: ReadonlyMap<string, LabelColor>,
 ): ShowTile[] {
   return [...projectSongTiles(song, colors).tiles];
-}
-
-// NOTE(0913vision): When two 이름표 share a jump key, the one listed first in
-// the 이름표 menu keeps it.
-export function jumpKeysOf(labels: readonly Label[]): Record<string, string> {
-  const keys: Record<string, string> = {};
-  for (const {name, key} of labels) {
-    if (key !== null && !Object.hasOwn(keys, key)) {
-      keys[key] = name;
-    }
-  }
-  return keys;
 }

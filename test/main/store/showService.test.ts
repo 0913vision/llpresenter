@@ -546,7 +546,7 @@ describe('buildShowService', () => {
           song: HYMN_ONE_ID,
         },
       ],
-      [{name: '1절', color: '#D07A8A', key: null}],
+      [{name: '1절', color: '#D07A8A'}],
     );
 
     expect(show.tiles[itemId(1)]?.map(({labelColor}) => labelColor)).toEqual([
@@ -554,20 +554,6 @@ describe('buildShowService', () => {
       'none',
       'none',
     ]);
-  });
-
-  it('maps each jump key to its 이름표, and the first wins a shared key', () => {
-    const show = build(
-      [],
-      [
-        {name: '1절', color: '#5FB8C2', key: 'Digit1'},
-        {name: '후렴', color: '#D6B35F', key: 'KeyC'},
-        {name: '브리지', color: '#A99AE0', key: 'KeyC'},
-        {name: '간주', color: '#A3A3A3', key: null},
-      ],
-    );
-
-    expect(show.jumpKeys).toEqual({Digit1: '1절', KeyC: '후렴'});
   });
 
   it('reads the item deck even after the library changes or disappears', () => {

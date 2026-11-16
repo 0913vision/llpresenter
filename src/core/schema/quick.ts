@@ -1,5 +1,6 @@
 import * as v from 'valibot';
 import type {Result} from '../common/result';
+import {isRecord} from '../common/guards';
 import {biblePassageSchema} from './biblePassage';
 import {
   parseFile,
@@ -22,14 +23,13 @@ import {jsonObject, listWithUniqueIds, positiveInteger} from './primitives';
 
 export const MAX_QUICK_ITEMS = 500;
 
-/** The 빠른 실행 item kinds. `black` outputs a black screen and has no `ref`. */
+/** The 빠른 실행 item kinds. */
 export const quickItemKinds = [
   'song',
   'bible',
   'prop',
   'timer',
   'macro',
-  'black',
 ] as const;
 
 export type QuickItemKind = (typeof quickItemKinds)[number];
@@ -62,7 +62,6 @@ const itemSchemas = {
     kind: v.literal('macro'),
     ref: macroIdSchema,
   }),
-  black: jsonObject({...itemFields, kind: v.literal('black')}),
 };
 
 export const quickSchema = jsonObject({
@@ -79,6 +78,7 @@ const quickFormat: FileFormat<typeof quickSchema> = {
   format: 'llsettings.quick',
   schema: quickSchema,
   migrations: quickMigrations,
+  prune: skipUnknownItems,
 };
 
 /** `quick.json`: the 빠른 실행 items in display order. */
@@ -110,5 +110,26 @@ export function serializeQuick(
   quick: QuickFile,
   file: string,
 ): Result<string, FileError> {
-  return serializeFile(quickFormat, quick, file);
+  return serializeFile(quickFormat, skipUnknownItems(quick).content, file);
+}
+
+/** Unknown quick kinds have no action in this version and are omitted on save. */
+function skipUnknownItems(content: Readonly<Record<string, unknown>>) {
+  const items = content['items'];
+  if (!Array.isArray(items)) return {content, dropped: []};
+  return {
+    content: {
+      ...content,
+      items: items.filter(item => {
+        if (!isRecord(item)) return true;
+        const kind = item['kind'];
+        return (
+          typeof kind !== 'string' ||
+          kind.trim() === '' ||
+          isKnownKind(quickItemKinds, kind)
+        );
+      }),
+    },
+    dropped: [],
+  };
 }

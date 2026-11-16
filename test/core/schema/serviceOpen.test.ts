@@ -15,7 +15,6 @@ const shown = {
   readOnly: false,
   rows: [],
   tiles: {},
-  jumpKeys: {},
 };
 
 describe('service.open boundary', () => {
