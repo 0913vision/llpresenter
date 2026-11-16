@@ -14,8 +14,16 @@ const mocks = await vi.hoisted(async () => {
     readonly kill = vi.fn();
   }
   class Window extends EventEmitter {
+    painting = true;
     readonly webContents = Object.assign(new EventEmitter(), {
       setFrameRate: vi.fn(),
+      stopPainting: vi.fn(() => {
+        this.painting = false;
+      }),
+      startPainting: vi.fn(() => {
+        this.painting = true;
+      }),
+      isPainting: vi.fn(() => this.painting),
       invalidate: vi.fn(),
       forcefullyCrashRenderer: vi.fn(),
       executeJavaScript: vi.fn(async () => 0),
@@ -298,17 +306,16 @@ describe('GPU NDI output', () => {
     };
   }
   const full = {x: 0, y: 0, width: 1920, height: 1080};
-  it('retries a startup timeout once before using bitmap', () => {
-    const {handle, worker, fallback} = setup(true);
+  it('falls back after a capture timeout without a startup retry', () => {
+    const {handle, worker, fallback, win} = setup(true);
     handle.showCapture(full);
+    expect(win.webContents.startPainting).not.toHaveBeenCalled();
     worker().emit('message', {type: 'ready'});
+    expect(win.webContents.startPainting).toHaveBeenCalledOnce();
     vi.advanceTimersByTime(5000);
-    expect(mocks.workers).toHaveLength(1);
-    vi.advanceTimersByTime(2500);
+    expect(mocks.windows).toHaveLength(2);
     expect(mocks.workers).toHaveLength(2);
-    worker().emit('message', {type: 'ready'});
-    vi.advanceTimersByTime(5000);
-    expect(mocks.windows).toHaveLength(3);
+    expect(win.webContents.invalidate).not.toHaveBeenCalled();
     expect(fallback).not.toHaveBeenCalled();
     handle.destroy();
   });
