@@ -269,7 +269,9 @@ export function startOutput({
     if (!enabled() && !revealPending) return;
     meter ??= startFrameRateMeter({
       onFrame: noteFrame,
-      active: () => revealPending || (enabled() && renderer?.moving() === true),
+      active: () =>
+        revealPending ||
+        (enabled() && (snapshotMode || renderer?.moving() === true)),
       reportIdle: () => api.output.reportHealth({screenId}),
       report: fps => api.output.reportFrameRate({screenId, fps}),
     });
@@ -333,11 +335,17 @@ export function startOutput({
       if (changed) {
         preloader?.request({itemId: slide.itemId, index: slide.position});
       }
-      const epoch =
-        changed || !audience || state.outputs[screenId] !== true
-          ? ++snapshotEpoch
-          : snapshotEpoch;
-      if (changed || !audience || state.outputs[screenId] !== true) {
+      const pictureChanged =
+        !changed &&
+        animations.some(animation => animation.isCapturedWipe()) &&
+        drawnContent(state) !== drawnState;
+      const interrupted =
+        changed ||
+        !audience ||
+        state.outputs[screenId] !== true ||
+        pictureChanged;
+      const epoch = interrupted ? ++snapshotEpoch : snapshotEpoch;
+      if (interrupted) {
         cancelReady?.();
         cancelReady = null;
       }
@@ -350,7 +358,7 @@ export function startOutput({
         effect.kind === 'none' ||
         currentRenderer === null
       ) {
-        if (changed || !audience || state.outputs[screenId] !== true) {
+        if (interrupted) {
           snapshotMode = false;
           clearRetired();
           if (currentRenderer !== null) {
@@ -381,13 +389,14 @@ export function startOutput({
       snapshotMode = true;
       const surface = incoming.transitionSurface();
       surface.style.visibility = 'hidden';
-      const animation = new SlideAnimation(true);
+      const animation = new SlideAnimation(true, ndi ? 'native' : 'gpu');
       animations.push(animation);
       applyState(state);
       const finish = (): void => {
         if (!stopped && epoch === snapshotEpoch) {
           clearRetired();
           snapshotMode = false;
+          meter?.refresh();
         }
       };
       let timedOut = false;
@@ -409,7 +418,12 @@ export function startOutput({
                 animation.start();
                 const completion = animation.finished();
                 if (completion === null) finish();
-                else void completion.then(finish, finish);
+                else {
+                  void completion.then(finish, (error: unknown) => {
+                    report('could not complete the incoming wipe', error);
+                    finish();
+                  });
+                }
               } catch (error) {
                 report('could not start the incoming slide', error);
                 finish();

@@ -399,6 +399,73 @@ describe('startOutput', () => {
     },
   );
 
+  it.each(['black', 'clear', 'message'] as const)(
+    'ends a captured wipe before applying a live %s change',
+    async change => {
+      let receive: (state: LiveState) => void = () => undefined;
+      const oldSlide = SHOWING.layers.slide;
+      if (oldSlide === null) throw new Error('Missing slide');
+      vi.spyOn(OutputRenderer.prototype, 'ready').mockReturnValue(true);
+      vi.spyOn(SlideAnimation.prototype, 'prepare').mockImplementation(
+        () => undefined,
+      );
+      vi.spyOn(SlideAnimation.prototype, 'isCapturedWipe').mockReturnValue(
+        true,
+      );
+      const cancel = vi.spyOn(SlideAnimation.prototype, 'cancel');
+      const initial = {...SHOWING, layers: {...SHOWING.layers, media: null}};
+      const {root, stop} = setUp(
+        {
+          get: async () => initial,
+          subscribe: listener => {
+            receive = listener;
+            return () => undefined;
+          },
+        },
+        async () => true,
+      );
+      try {
+        await Promise.resolve();
+        await pumpReadiness();
+        await pumpReadiness();
+        const next: LiveState = {
+          ...initial,
+          version: 4,
+          layers: {
+            ...initial.layers,
+            slide: {
+              ...oldSlide,
+              position: 1,
+              lines: ['incoming'],
+              transition: {kind: 'wipe', sec: 4},
+            },
+          },
+        };
+        receive(next);
+        expect(root.children).toHaveLength(2);
+        receive({
+          ...next,
+          version: 5,
+          ...(change === 'black' ? {blackScreen: true} : {}),
+          ...(change === 'clear'
+            ? {layers: {...next.layers, slide: null}}
+            : {}),
+          ...(change === 'message' ? {stageMessage: 'changed'} : {}),
+        });
+        expect(cancel).toHaveBeenCalled();
+        expect(root.children).toHaveLength(1);
+        if (change === 'black') {
+          expect(
+            root.querySelector<HTMLElement>('[data-black-screen]')?.hidden,
+          ).toBe(false);
+        }
+      } finally {
+        stop();
+        vi.restoreAllMocks();
+      }
+    },
+  );
+
   it('keeps the visible outgoing picture when an unready transition is interrupted', async () => {
     let receive: (state: LiveState) => void = () => undefined;
     const oldSlide = SHOWING.layers.slide;

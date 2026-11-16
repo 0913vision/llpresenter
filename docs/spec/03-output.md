@@ -282,14 +282,26 @@ replays an effect or sends output commands (05).
   immediately. This applies across item boundaries and within each item.
 - Effects are none, dissolve, push, and wipe. Push moves both old and new pages
   in the chosen direction. Wipe keeps the old page still and reveals the new
-  page over it with a linear blend ramp about 0.85 times the screen width or
-  height. Both have left, right, up, and down directions. Times range from 0.1
-  to 10 seconds, including a manually chosen four-second title slide. None keeps
-  its time but does not animate.
+  page over it with a 32-segment smooth feather 0.97 times the screen width or
+  height, traveling 2.02 screens over the configured time. Both have left,
+  right, up, and down directions. Times range from 0.1 to 10 seconds, including
+  a manually chosen four-second title slide. None keeps its time but does not
+  animate.
 - The same compositor timing drives dissolve, push, and wipe. A running effect
   retains its selected duration; settings changes apply at the next slide. A new
   slide interrupts the previous effect, reusing two pages. Clearing, standby,
   and disposal cancel their animations.
+- Opaque audience still-picture wipes capture the outgoing and ready incoming
+  DOM pictures once, then blend their GPU textures on one screen-sized canvas.
+  Progress uses the requestAnimationFrame timestamp; the two pictures stay still
+  and share one shader's feather. The pinned Chromium's DOM capture feature is
+  enabled only in output windows. Video, live canvas, clock/timer elements, or
+  unavailable capture/GPU support keeps the native masked wipe. A failed or lost
+  capture reveals the incoming picture, reports the error, and releases its
+  resources; a capture waits at most 1500 ms. Interruption and disposal cancel
+  pending captures and frames and release the GPU context. Changes to live
+  content, including clears, messages, and black screen, end a captured wipe
+  before applying the new state.
 - Lyric elements (current and next lyrics, reference, slide name and number,
   current and next labels) follow the slide effect. When a new slide changes its
   item, song or theme background, the background and text share one effect,

@@ -1,10 +1,14 @@
 import type {SlideTransition} from '@core/schema/slideTransition';
 import {THEME_LIMITS} from '@core/themes/elementRules';
+import {GpuWipe} from './gpuWipe';
+import {WIPE_PROFILE} from './wipeProfile';
 
 export const WIPE_DURATION_MS_PER_SECOND = 1000;
-const WIPE_STEPS = 32;
-const WIPE_START = 37.875;
-const WIPE_END = 62.125;
+const {
+  steps: WIPE_STEPS,
+  startPercent: WIPE_START,
+  endPercent: WIPE_END,
+} = WIPE_PROFILE;
 
 export function wipeMask(direction: string): string {
   const stops = Array.from({length: WIPE_STEPS + 1}, (_, index) => {
@@ -59,6 +63,7 @@ const WIPE = {
 export class SlideAnimation {
   private animations: Animation[] = [];
   private frame: SlideAnimationFrame | undefined;
+  private gpuWipe: GpuWipe | null = null;
   private wipe: {
     wrapper: HTMLElement;
     surface: HTMLElement;
@@ -67,7 +72,10 @@ export class SlideAnimation {
     willChange: string;
   } | null = null;
 
-  constructor(private readonly opaque = false) {}
+  constructor(
+    private readonly opaque = false,
+    private readonly wipeRenderer: 'native' | 'gpu' = 'native',
+  ) {}
 
   setFrame(frame: SlideAnimationFrame | undefined): void {
     this.frame = frame;
@@ -121,6 +129,10 @@ export class SlideAnimation {
         incoming = [{transform: travel[0]}, {transform: 'translate(0)'}];
         break;
       case 'wipe': {
+        if (this.wipeRenderer === 'gpu') {
+          this.gpuWipe = GpuWipe.create(old, next, effect);
+          if (this.gpuWipe !== null) return;
+        }
         const wipe = WIPE[dir];
         const maskImage = wipeMask(wipe.direction);
         const horizontal = dir === 'left' || dir === 'right';
@@ -194,6 +206,7 @@ export class SlideAnimation {
 
   prepare(old: HTMLElement, next: HTMLElement, effect: SlideTransition): void {
     this.play(old, next, effect);
+    this.gpuWipe?.pause();
     for (const animation of this.animations) {
       animation.pause();
       animation.currentTime = 0;
@@ -201,10 +214,12 @@ export class SlideAnimation {
   }
 
   start(): void {
+    this.gpuWipe?.start();
     for (const animation of this.animations) animation.play();
   }
 
   finished(): Promise<void> | null {
+    if (this.gpuWipe !== null) return this.gpuWipe.finished;
     const completions: Array<Promise<unknown>> = [];
     for (const animation of this.animations) {
       const completion: unknown = Reflect.get(animation, 'finished');
@@ -216,7 +231,13 @@ export class SlideAnimation {
       : Promise.all(completions).then(() => undefined);
   }
 
+  isCapturedWipe(): boolean {
+    return this.gpuWipe !== null;
+  }
+
   cancel(): void {
+    this.gpuWipe?.cancel();
+    this.gpuWipe = null;
     for (const animation of this.animations) animation.cancel();
     this.animations = [];
     if (this.wipe !== null) {

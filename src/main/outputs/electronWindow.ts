@@ -76,6 +76,10 @@ function createBrowserWindow(
       // NOTE(0913vision): An output keeps drawing at full rate even when
       // Windows reports it as covered or in the background.
       backgroundThrottling: false,
+      // NOTE(0913vision): Electron's pinned Chromium exposes DOM picture
+      // capture behind this flag. Only output windows use the GPU wipe;
+      // unsupported pictures keep the native animation.
+      enableBlinkFeatures: 'CanvasDrawElement',
       ...testPreferences,
     },
   });
