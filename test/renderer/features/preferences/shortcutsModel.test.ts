@@ -46,7 +46,6 @@ const HIDDEN = [
   'stageEditor.addElement',
   'stageEditor.fit',
   'tools.showing',
-  'ui.resetLayout',
 ];
 
 describe('allCommands', () => {
