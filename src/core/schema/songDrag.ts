@@ -12,7 +12,7 @@ const songDragPayloadSchema = payloadObject({
 
 /**
  * One library song dropped on the service. The receiver supplies the insertion
- * position or slot, default arrangement, no override, and no start macro.
+ * position, no override, and no start macro.
  */
 export type SongDragPayload = Readonly<
   v.InferOutput<typeof songDragPayloadSchema>

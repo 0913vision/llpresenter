@@ -29,7 +29,7 @@ export const themeGradientSchema = jsonObject({
   ),
 });
 
-/** Legacy hex colors remain solids; absence of the field inherits the screen. */
+/** Hex colors remain solids; absence of the field inherits the screen. */
 export const themeBackgroundSchema = v.union([hexColor, themeGradientSchema]);
 export type ThemeGradient = ReadonlyKnown<
   v.InferOutput<typeof themeGradientSchema>

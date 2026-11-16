@@ -434,7 +434,7 @@
 .ll-field__input:focus-visible { outline: none; }
 .ll-field__icon { flex: none; width: var(--size-icon-16); height: var(--size-icon-16); color: var(--text-3); }
 
-/* sm: panel headers, 퀵 실행 in a narrow window, palettes. The toolbar search stays md even in a narrow window */
+/* sm: panel headers, 빠른 실행 in a narrow window, palettes. The toolbar search stays md even in a narrow window */
 .ll-field--sm { height: var(--size-control-sm); padding: 0 var(--space-8); gap: var(--space-6); font: var(--type-label); }
 .ll-field--sm .ll-field__icon { width: var(--size-icon-14); height: var(--size-icon-14); }
 
@@ -751,7 +751,7 @@
 /* Controls on the right: sm controls only (icon button, secondary button, dropdown) */
 .ll-panel__actions { flex: none; display: flex; align-items: center; gap: var(--space-8); margin-left: auto; padding-left: var(--space-8); }
 
-/* Tool row: one search field row under the header (library, 퀵 실행) */
+/* Tool row: one search field row under the header (library, 빠른 실행) */
 .ll-panel__tools { flex: none; display: flex; gap: var(--space-8); padding: var(--space-8) var(--space-8) var(--space-6); }
 .ll-panel__tools > * { flex: 1 1 auto; min-width: 0; }
 .ll-panel__tools + .ll-panel__body--list { padding-top: 0; }
@@ -770,7 +770,7 @@
 }
 
 /* ---- 31-listrow.css ---- */
-/* 31 ListRow: one line (30), two lines (44), check row, empty slot row, group header, drop position, drag ghost row, 퀵 실행 on */
+/* 31 ListRow: one line (30), two lines (44), check row, empty slot row, group header, drop position, drag ghost row, 빠른 실행 on */
 
 .ll-rowlist { margin: 0; padding: 0; list-style: none; }
 /* Pick list in a dialog: rows are rounded two-line items */
@@ -798,7 +798,7 @@
 .ll-row[data-state~="done"] .ll-row__icon { color: var(--text-off); }
 .ll-row-group[data-state~="done"] { color: var(--text-off); }
 
-/* 퀵 실행 on: a prop or screen that is showing now */
+/* 빠른 실행 on: a prop or screen that is showing now */
 .ll-row[aria-pressed="true"] { background: var(--bg-control-hover); color: var(--text); box-shadow: inset 3px 0 0 var(--live); }
 .ll-row[aria-pressed="true"] .ll-row__icon { color: var(--text); }
 .ll-row[aria-pressed="true"] .ll-row__meta { color: var(--text-2); }

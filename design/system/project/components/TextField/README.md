@@ -1,11 +1,11 @@
 # TextField
 
-A field for typing text directly. Use it for search, Bible verses in 퀵 실행 (quick launch), names and titles, numbers, and notes.
+A field for typing text directly. Use it for search, Bible verses in 빠른 실행 (quick launch), names and titles, numbers, and notes.
 
 ## Where to use
 
 - The toolbar search field (곡, 가사, 초성), library search, finding a macro action, finding a command in Shortcuts
-- The Bible verse field in 퀵 실행 (요 3:16, 창 1:1-5), the verse field on the Bible verse screen
+- The Bible verse field in 빠른 실행 (요 3:16, 창 1:1-5), the verse field on the Bible verse screen
 - The name of a new service, the title in text import, the title in imported song editing (inside the panel header)
 - Number fields in Preferences and property fields (recovery copies, edge margin, size, line spacing), media range fields
 - Notes in item settings (multiline)
@@ -35,8 +35,8 @@ A field for typing text directly. Use it for search, Bible verses in 퀵 실행 
 
 | Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
-| md | 30 | `body` 16/22 | Dialogs, Preferences, property fields, toolbar search, search and 퀵 실행 in panels (regular window) |
-| sm | 26 | `label` 14/20 | Inside panel headers, 퀵 실행 in a narrow window (1366), macro action palette, key input field |
+| md | 30 | `body` 16/22 | Dialogs, Preferences, property fields, toolbar search, search and 빠른 실행 in panels (regular window) |
+| sm | 26 | `label` 14/20 | Inside panel headers, 빠른 실행 in a narrow window (1366), macro action palette, key input field |
 | Search | md or sm | Same | Leading magnifier, clear-text button when there is a value |
 | Number | md | `body`, right-aligned | Width 96, unit outside the field |
 | Title | 26 | `title` 18/26/600 | Panel header in imported song editing |
@@ -57,7 +57,7 @@ A field for typing text directly. Use it for search, Bible verses in 퀵 실행 
 - A click anywhere in the field (icon included) focuses the input.
 - Search field: filter the results on every keystroke. Esc clears the value if there is one, and releases focus if the field is empty. The clear-text button clears the value and keeps focus in the field.
 - Modified Esc passes through without clearing or leaving the search field.
-- 퀵 실행 field: Enter shows that verse. If the verse can't be recognized, show the error ring and give the reason in a tooltip.
+- 빠른 실행 field: Enter shows that verse. If the verse can't be recognized, show the error ring and give the reason in a tooltip.
 - Number field: `step` defaults to 1 and `largeStep` defaults to ten times `step`. Choose `largeStep` as a whole multiple of `step` so repeated movement stays on the same grid. Up and down arrows add or subtract one step; Shift uses `largeStep`. Arrows with Ctrl, Alt, or the Windows key remain with their other owner and do not change the value. Count in whole steps so 0.2 with step 0.1 becomes 0.3, without float drift. Round an off-step value or draft to the nearest whole step, apply the arrow movement, and then clamp the result to the range. With step 0.1, Arrow Down from max 0.28 and Arrow Up from min 0.12 both reach 0.2.
 - Number precision follows `step`, including trailing zeroes: step 0.1 displays "0.2", step 0.05 displays "1.40", and step 1 displays "10". Keep any extra digits the actual value needs: a clamped maximum of 0.28 with step 0.1 displays "0.28", including in `aria-valuetext`. An attached suffix follows those digits ("1.00×"); an external unit stays outside ("초").
 - Number typing accepts decimal digits, one ".", and a leading "-" for negative values in the range. Enter and blur round to the nearest zero-based step, then clamp to the range. Blank or invalid text restores the controlled value. `NumberField updateOn="commit"` buffers typing until Enter or blur and lets Escape cancel the draft; the default `change` mode reports valid in-range typing immediately and normalizes it at commit. A registered global shortcut commits a number draft before its action runs; editing shortcuts keep the draft. IME Enter remains with the composition. Slide-size percentages retain commit mode with step 1.
@@ -66,7 +66,7 @@ A field for typing text directly. Use it for search, Bible verses in 퀵 실행 
 - Key input field: when it gets focus, it records the next key combination pressed, F1 to F6 included, by physical key (`KeyboardEvent.code`). Esc cancels, Backspace removes the shortcut, and Tab or Shift Tab ends the recording and moves focus. A reserved key isn't recorded: the field keeps recording, shows the error ring, and gives the reason in a tooltip (see `KeyCap`). Keys with an empty `code` (한/영, 한자) aren't recorded.
 - React uses `ShortcutField` for a recording session, reusing `TextField` sm with `size-field-key` (160px). Its `onRecord` and `onCancel` callbacks let the caller return to key boxes. Tab ends on blur after native focus movement, never by removing the input on keydown. See `KeyCap` for the recording API and key names.
 - Tab order follows the order on screen. Take the clear-text button out of the tab order (`tabindex="-1"`). Esc does the same thing.
-- aria: give a field without a visible name (search, 퀵 실행) an `aria-label`. Mark an error with `aria-invalid="true"`, and link the reason to the tooltip text with `aria-describedby`.
+- aria: give a field without a visible name (search, 빠른 실행) an `aria-label`. Mark an error with `aria-invalid="true"`, and link the reason to the tooltip text with `aria-describedby`.
 
 ## Writing
 
@@ -86,9 +86,9 @@ A field for typing text directly. Use it for search, Bible verses in 퀵 실행 
 ## Changes from the drafts
 
 - Toolbar search field (ShowH, Reflow, PrepService, Screens, and all other boards): height 32 → 30, background #1c1c1c → `bg-well` + `ring-field`, radius 5 → 4, horizontal padding 12 → 10, magnifier 14 → 16. Compact: background and radius changed the same way, text 12 → 13.
-- 퀵 실행 and library search (ShowH, Bible, Problems, PrepService, Reflow, NewService, AddSongs, ServiceImport, ImportEdit, ImportSave): horizontal padding 6 → 10, gap between icon and text 10 → 8.
+- 빠른 실행 and library search (ShowH, Bible, Problems, PrepService, Reflow, NewService, AddSongs, ServiceImport, ImportEdit, ImportSave): horizontal padding 6 → 10, gap between icon and text 10 → 8.
 - AddSongsQuick search, Prefs/Shortcuts command search: icon 14 → 16, gap between icon and text 10 → 8.
-- Compact 퀵 실행 28 → sm 26 (horizontal padding 6 → 8, gap 8 → 6). Macros action search 28 → sm 26 (horizontal padding 6 → 8, gap 10 → 6).
+- Compact 빠른 실행 28 → sm 26 (horizontal padding 6 → 8, gap 8 → 6). Macros action search 28 → sm 26 (horizontal padding 6 → 8, gap 10 → 6).
 - Text fields and number fields in Prefs, Screens, ScreensNDI, StageEditor, Media, ImportText: height 28 → 30. Folder icon in the Prefs path field 14 → 16.
 - Shortcuts key input field: height 24 → 26.
 - PrepService notes: line height 20 → 18 (`body`).

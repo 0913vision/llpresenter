@@ -89,7 +89,7 @@ Each file is drawn in one ink (`currentColor`). Shown with `<img>`, an icon appe
 | frame.svg | frame-corners | 템플릿 (template), the 사각형 element |
 | translate.svg | translate | Bible version |
 | arrow.svg | arrow-right | Next step |
-| bookmark.svg | bookmark-simple | 퀵 실행 (quick launch) |
+| bookmark.svg | bookmark-simple | 빠른 실행 (quick launch) |
 | listplus.svg | list-plus | Add to list |
 | drives.svg | hard-drives | Storage device |
 | plugs.svg | plugs-connected | Connected |

@@ -28,7 +28,7 @@ import {
 
 const PANEL_WIDTH = 280;
 const LIST_PANEL_WIDTH = 296;
-// NOTE(0913vision): 검은 화면 comes after the tab, the add button, the verse
+// NOTE(0913vision): 찬양 comes after the tab, the add button, the verse
 // field, and two rows.
 const QUICK_HOVER_INDEX = 5;
 
@@ -384,7 +384,7 @@ export function ListRowSection(): JSX.Element {
           </ServiceOrderPanel>
         </SpecItem>
         <SpecItem
-          label="빠른 실행 (로고 화면 on, 검은 화면 hover)"
+          label="빠른 실행 (로고 화면 on, 찬양 hover)"
           pin="hover"
           pinIndex={QUICK_HOVER_INDEX}
           width={LIST_PANEL_WIDTH}
@@ -419,11 +419,7 @@ export function ListRowSection(): JSX.Element {
                     title="주 하나님 지으신 모든 세계"
                     onPress={ignore}
                   />
-                  <ListActionRow
-                    icon="monitor"
-                    title="검은 화면"
-                    onPress={ignore}
-                  />
+                  <ListActionRow icon="music" title="찬양" onPress={ignore} />
                   <ListActionRow
                     icon="prop"
                     title="로고 화면"

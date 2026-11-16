@@ -180,7 +180,7 @@ export class IdentityDisplaySource implements DisplaySource {
     if (this.warned) return;
     this.warned = true;
     this.options.log.warn(
-      'monitor identity unavailable; using legacy matching until a query succeeds',
+      'monitor identity unavailable; using fallback matching until a query succeeds',
       error,
     );
   }

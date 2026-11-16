@@ -64,7 +64,7 @@ export interface NextSlide {
   readonly stageStandby?: true;
 }
 
-/** The slide on output: a service item, its position in the arrangement, and what to draw. */
+/** The slide on output: a service item, its position in the slide sequence, and what to draw. */
 export interface SlideLayer {
   /** The Bible item's complete projected parts, for item-wide broadcast fitting. */
   readonly bibleItemSlides?: ReadonlyArray<{

@@ -1195,12 +1195,10 @@ preview the first slide of the next service item when the live item ends.
 On the last slide of a Bible item, the stage next-slide preview is empty even
 when next-item navigation is enabled.
 
-When a slide comes live, its transition takes precedence, followed by its theme
-transition and then the global between-item or within-item preference.
+When a slide comes live, it uses its own transition; an absent transition cuts.
 
 Slide transitions apply only to audience screens. Stage and broadcast slide
-changes cut immediately. A theme transition applies to every slide using that
-theme, including consecutive Bible slides and split verses.
+changes cut immediately.
 
 On stage, an empty current or next slide without a label shows (없음); a labeled
 empty slide shows its label.

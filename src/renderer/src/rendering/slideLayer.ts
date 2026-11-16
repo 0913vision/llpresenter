@@ -15,7 +15,7 @@ import {TextFitCache} from './textFitCache';
 
 const textFits = new WeakMap<Document, TextFitCache>();
 
-/** The dissolve between 장 (docs/spec/03-output.md, version 1 default). */
+/** Initial slide transition duration. */
 export const SLIDE_DISSOLVE_MS = 200;
 
 const MIN_STAGE_LYRIC_SIZE = 72;

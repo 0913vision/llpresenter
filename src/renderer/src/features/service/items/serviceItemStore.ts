@@ -41,12 +41,7 @@ export interface ServiceItemState {
   /** `null` when the item isn't a song item. */
   readonly songStatus: ItemSongStatus | null;
   /**
-   * The 구성 the item plays: its `arrangement` while the song has a 구성 of
-   * that name, else `undefined` for 기본 (spec 02).
-   */
-  /**
-   * The selected place in the order the item plays, shared by its chips,
-   * thumbnails, and preview. Readers clamp it to the order's length.
+   * The selected place in the order the item plays, shared by its thumbnails and preview. Readers clamp it to the order's length.
    */
   readonly position: number;
   readonly bibleSelection: readonly number[];

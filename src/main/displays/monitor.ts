@@ -7,7 +7,7 @@ export interface DisplayInfo {
   readonly identity?: MonitorIdentity;
   /** Identity is still being read; absence is not yet a confirmed disconnect. */
   readonly identityPending?: boolean;
-  /** No successful identity snapshot for this topology; use legacy matching. */
+  /** No successful identity snapshot for this topology; use fallback matching. */
   readonly identityUnknown?: boolean;
   /** The operating system's display id. */
   readonly id: number;

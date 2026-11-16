@@ -10,14 +10,14 @@ export interface SlideHotKeyAssignment {
   readonly slideNumber: number;
 }
 
-/** Source-slide details for the editor, counted once in master group order. */
+/** Source-slide details for the editor, in slide order. */
 export interface SlideHotKeyView {
   readonly slideNumber: number;
   readonly value: string | undefined;
   readonly otherAssignments: readonly SlideHotKeyAssignment[];
 }
 
-/** Resolves source identity without expanding repeated arrangement groups. */
+/** Resolves source slide identity. */
 export function slideHotKeyView(
   song: Song,
   source: SongSlideSource,

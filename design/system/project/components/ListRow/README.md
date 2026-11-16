@@ -15,11 +15,11 @@ section. The section row remains after content is added. There is no 빈 항목
 creation or fill flow in service orders or templates. Legacy file normalization
 belongs to the data reader, which converts those rows to named sections.
 
-One row of a list. The base is a 30px row with a 16px type icon, a 16px name, and 14px extra information on the right. This document also covers group headers, two-line items (52px), empty slots, drop positions, and the on row of 퀵 실행 (quick launch).
+One row of a list. The base is a 30px row with a 16px type icon, a 16px name, and 14px extra information on the right. This document also covers group headers, two-line items (52px), empty slots, drop positions, and the on row of 빠른 실행 (quick launch).
 
 ## Where to use
 
-- 예배 순서 (service order), library, 퀵 실행, the media library and playlists, the audio list
+- 예배 순서 (service order), library, 빠른 실행, the media library and playlists, the audio list
 - The pick list on the left of a dialog (new service, import from another service): two-line items
 - Cells of a 템플릿 (template) that aren't filled yet (the 예배 순서 of a new service): empty slots
 - Dragging from the library into the 예배 순서: drop position line, drag ghost row
@@ -52,7 +52,7 @@ One row of a list. The base is a 30px row with a 16px type icon, a 16px name, an
 
 | Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
-| One line | 30 | `body` 16/22 + `caption` 14/20 | 예배 순서, library, 퀵 실행, media lists |
+| One line | 30 | `body` 16/22 + `caption` 14/20 | 예배 순서, library, 빠른 실행, media lists |
 | Group header | 29 (10 + 14 + 5) | `caption-strong` 16/22/600 `text-3` | 예배 전, 찬양, 보관함, 재생목록, 템플릿, 지난 예배 |
 | Two lines | 52 | `body` + `caption` `text-3` | 템플릿 and past services in new service and import from another service |
 | Empty slot | 30 (box 24) | `body` `text-3` + `caption` | 템플릿 items of a new service |
@@ -72,7 +72,7 @@ One row of a list. The base is a 30px row with a 16px type icon, a 16px name, an
 | Live | `selection` if selected, otherwise transparent | Unchanged | LIVE badge on the right, `data-state="live"` |
 | Past item | Transparent | Name `text-3`, icon `text-off` | A row above the current output item when 지난 순서 흐리게 is on (off by default), `data-state="done"`; every kind uses position only |
 | Missing file | Unchanged | Unchanged | 14px `warning` icon after the name + tooltip |
-| 퀵 실행 on | `bg-control-hover` | Name and icon `text` | 3px `live` bar inside on the left, `aria-pressed="true"` |
+| 빠른 실행 on | `bg-control-hover` | Name and icon `text` | 3px `live` bar inside on the left, `aria-pressed="true"` |
 | Disabled | Transparent | Name, icon, and extra all `text-off` | No hover, reason in a tooltip |
 
 ## Behavior
@@ -86,7 +86,7 @@ by default; when on, every row above the current output item dims by position.
 - A list has `role="listbox"`, and each row has `role="option"` and `aria-selected`. Tab enters the list once, on the selected row or, with none selected, the first row, and Shift Tab leaves it (the list itself never takes focus); the up and down arrows move between rows, and Home and End go to the first and last rows. Group headers are skipped (a group has `role="group"` + `aria-labelledby`).
 - In the 진행 workspace, the 예배 순서 list keeps ↑, ↓, Home, End, and Enter. ←, →, Space, Page Up, and Page Down go to 다음 슬라이드 and 이전 슬라이드 even while the list has focus, as in ProPresenter. A click on a row gives the list keyboard focus, also in 진행.
 - A click on a row only selects it. A 예배 순서 row opens the 슬라이드 of that item in the 슬라이드 panel. For 출력 (output), the user clicks a 슬라이드.
-- A click on a 퀵 실행 row runs it at once. An item that turns on and off, such as a logo screen, reports its on state with `aria-pressed`, and a second click turns it off. While it is on, the `live` bar stays on the left.
+- A click on a 빠른 실행 row runs it at once. An item that turns on and off, such as a logo screen, reports its on state with `aria-pressed`, and a second click turns it off. While it is on, the `live` bar stays on the left.
 - Dragging: moving a row more than 4px starts a drag, and the drop position line snaps to the row boundary closest to the pointer. The spot right under a group header is also a drop position. Esc cancels.
 - Dropping a song on an empty slot fills that slot and turns it into a regular row.
 - When a name is truncated, show the full name in a tooltip.
@@ -102,14 +102,14 @@ by default; when on, every row above the current output item dims by position.
 
 - `<ListRow icon="song" title="만복의 근원 하나님" meta="슬라이드 9개" selected live warning="미디어 파일 없음" />`
 - `<ListRow variant="double" icon="cal" title="주일 예배" sub={['10월 25일 일요일', '항목 12개']} />`
-- `<ListRow toggle pressed icon="prop" title="로고 화면" />` (퀵 실행)
+- `<ListRow toggle pressed icon="prop" title="로고 화면" />` (빠른 실행)
 - `<ListBox label="예배 순서" workspace="show" selected={id} onSelect={…}>…</ListBox>` for the 예배 순서 list of 진행; leave `workspace` out elsewhere, dialogs included.
 - Make a row a `button` (or an element with `role="option"`), and give its state with `aria-selected`, `aria-pressed`, `disabled`/`aria-disabled`, and `data-state="live | done | warning"` (separate several values with spaces).
 - Classes: `ll-rowlist`, `ll-rowlist--inset`, `ll-row`, `ll-row--double`, `ll-row--ghost`, `ll-row__icon`, `ll-row__title`, `ll-row__meta`, `ll-row__warn`, `ll-row__lines`, `ll-row__sub`, `ll-row__slot`, `ll-row__slot-mark`, `ll-row__add`, `ll-row-group`, `ll-row-insert`.
 
 ## Changes from the drafts
 
-- ShowH, Compact 퀵 실행: background of the on row (로고 화면) #262626 → `bg-control-hover` (the on rule of ghost buttons). Off row text #cfcfcf → `text`, icon #8c8c8c → `text-2`. Right padding 12 → 14.
+- ShowH, Compact 빠른 실행: background of the on row (로고 화면) #262626 → `bg-control-hover` (the on rule of ghost buttons). Off row text #cfcfcf → `text`, icon #8c8c8c → `text-2`. Right padding 12 → 14.
 - Compact list rows: height 28, 12px text, icon 14, gap between icon and text 8, horizontal padding 12 → 30, 13px, 16, 10, 14. Group header padding 8 12 4 → 10 14 5. LIVE badge 15px/9px → `StatusMarks` badge.
 - NewService, ServiceImport left list: empty service row 36 → 30, group header top 12 → 10.
 - NewService empty slot: dashed line #4a4a4a → `line-control`.

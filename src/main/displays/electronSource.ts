@@ -22,7 +22,7 @@ function toDisplayInfo(display: Display, primaryId: number): DisplayInfo {
 export function createElectronDisplaySource(log: Logger): DisplaySource {
   if (process.platform !== 'win32') {
     log.warn(
-      'monitor identity unavailable on this platform; using legacy matching',
+      'monitor identity unavailable on this platform; using fallback matching',
     );
   }
   const source: DisplaySource = {
