@@ -18,7 +18,7 @@ export type ItemRow = Exclude<ShowRow, {kind: 'header'}>;
 
 export type ServiceRow = HeaderRow | ItemRow;
 
-/** One tile of the 장 grid: a 장 at its position in the 구성 (arrangement). */
+/** One tile of the 장 grid at its position in the slide sequence. */
 export type SlideTile = ShowTile;
 
 /** Where a tile sits: an item and the tile's index in the item's sequence. */

@@ -10,7 +10,7 @@ import {mediaObjectFit} from '@core/media/objectFit';
 import {StillBackgroundLayerView} from './stillBackgroundLayer';
 import type {PreviewMediaSource} from './previewMedia';
 
-/** The dissolve between backgrounds (docs/spec/03-output.md, version 1 default). */
+/** Initial background transition duration. */
 export const BACKGROUND_DISSOLVE_MS = OUTPUT_TRANSITIONS.backgroundMs;
 
 /**

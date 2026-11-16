@@ -53,7 +53,7 @@ Documents\LoveLight\                 data folder (default)
   changes a file name (proposal).
 - If `LLP_USER_DATA` is set for development, put both the app data folder and
   the data folder under it. This keeps several development sessions from sharing
-  one Documents folder. See `docs/WORKFLOW.md`.
+  one Documents folder.
 - When the operator changes the 곡 (songs) or 미디어 (media) location in
   환경설정 (Preferences), the stores keep their folders from launch, so the new
   folder applies at the next launch, and the row says "다음에 켤 때 적용" until
@@ -490,7 +490,7 @@ together. Other quick item names remain independent (user decision, October 26).
 | `.align`          | `"left"` \| `"center"`                          | Horizontal alignment.                                                                            |
 | `.vAlign`         | `"top"` \| `"middle"` \| `"bottom"`             | Vertical position.                                                                               |
 | `.lineHeight`     | Number above 0                                  | Line spacing, for example 1.4.                                                                   |
-| `.maxLines`       | Integer, 1 or more                              | Maximum lines.                                                                                   |
+| `.maxLines`       | Integer, 1 or more                              | Bible verse splitting line count; it does not cap text height.                                                                                   |
 | `.margin`         | Number (%), 0 to 100                            | Margin.                                                                                          |
 | `.outline`        | `{ on, width, color }`                          | `width` 1 to 10 px, `color` `#RRGGBB`.                                                           |
 | `.shadow`         | `{ on, blur, distance, angle, opacity, color }` | `blur` 0 to 40, `distance` 0 to 20, `angle` 0 to 360, `opacity` 0 to 100 (%), `color` `#RRGGBB`. |
@@ -600,11 +600,7 @@ uses `left`. An absent transition means no effect. Existing song content and
 unknown fields survive saves unchanged. Selection and apply-all changes use one
 atomic slide-history step each.
 
-The legacy `output.transition.between` and `.within` fields may remain in saved
-preferences but do not choose slide effects. `output.transition.media` remains
-an optional object with optional `kind` (`none` or `dissolve`, default
-`dissolve`) and `seconds` (0.1 to 3, default 0.5). An out-of-range background
-time is dropped on read and uses its default.
+Slide effects are stored on individual slides. A slide without an effect cuts.
 
 `show.audio.transitionSeconds` (0 to 5, default 0.5) and
 `show.audio.fadeOutSeconds` (0.5 to 10, default 3) are optional numbers in
@@ -1300,10 +1296,7 @@ Absence uses 0 px for the title and 24 px for the subtitle. It travels with the
 title marker through service decks, clipboard copies, show tiles, and live
 payloads; ordinary lyric slides ignore it.
 
-Themes may store an optional slide transition with the same bounded kind,
-direction and duration as a slide transition. User theme transitions are
-retained when saved. ????? ?? ?? ???? ???????? ??? ?? ????? ????. ??? ??? ??? ?
-???? ???? ??? ?????
+전환 효과는 각 슬라이드에 저장한다. 전환이 없는 슬라이드는 즉시 표시한다.
 
 The built-in GAE translation fetches only requested chapters live from the
 Korean Bible Society. Requested chapters are cached in memory and on disk,

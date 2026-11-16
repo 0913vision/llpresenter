@@ -48,7 +48,7 @@ export class SongHistory {
     this.typing = undefined;
   }
 
-  /** Assigns one grouped source slide's key as a separate undo step. */
+  /** Assigns one source slide's key as a separate undo step. */
   setSlideHotKey(source: SongSlideSource, code: string | undefined): boolean {
     const song = this.value.song;
     const result = assignSlideHotKey(song, source, code);

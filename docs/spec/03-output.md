@@ -696,5 +696,4 @@ Source: `PreviewFrame` README, `Prefs` (미리보기 30fps), `StatusBar` README,
 `docs/TECH.md` performance.
 
 Slide transitions apply only to audience screens. Stage and broadcast slide
-changes cut immediately. A theme transition applies to every slide using that
-theme, including consecutive Bible slides and split verses.
+changes cut immediately.

@@ -22,14 +22,14 @@ function Dropdown(
 
 const media = {kind: 'media', src: warmLight} as const;
 const MISSING_ARRANGEMENT_REASON =
-  '‘주일용’ 구성이 없어 기본 구성을 사용합니다';
+  '선택한 화면을 사용할 수 없습니다';
 
 export function SelectSection(): JSX.Element {
   return (
     <Section title="Select">
       <SpecGroup title="Sizes" surface="panel">
         <SpecItem label="sm 26, 14px, panel header">
-          <Dropdown size="sm" value="주일용" />
+          <Dropdown size="sm" value="청중 화면" />
         </SpecItem>
         <SpecItem label="md 30, 16px, Preferences, property fields" width={240}>
           <Dropdown block value="한국어" />
@@ -96,7 +96,7 @@ export function SelectSection(): JSX.Element {
           <div className={styles.reference}>
             <Dropdown
               size="sm"
-              aria-label="구성"
+              aria-label="화면"
               aria-description={MISSING_ARRANGEMENT_REASON}
               value="기본"
               title={MISSING_ARRANGEMENT_REASON}

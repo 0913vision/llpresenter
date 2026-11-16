@@ -1,6 +1,6 @@
 # Panel
 
-The basic surface of the window. It has a 34px header (tabs or a title, controls on the right), a scrolling body under it, and an optional 32px footer row. The 예배 순서 (service order), 퀵 실행 (quick launch), library, 슬라이드 (slide), media, preview, 진행 도구 (show tools), and item settings panels all use this frame.
+The basic surface of the window. It has a 34px header (tabs or a title, controls on the right), a scrolling body under it, and an optional 32px footer row. The 예배 순서 (service order), 빠른 실행 (quick launch), library, 슬라이드 (slide), media, preview, 진행 도구 (show tools), and item settings panels all use this frame.
 
 ## Where to use
 
@@ -37,11 +37,11 @@ The basic surface of the window. It has a 34px header (tabs or a title, controls
 
 | Name | Height | Text | Where to use |
 | --- | --- | --- | --- |
-| Tab header | 34 | `title` 18/26/600 | 예배 순서, 퀵 실행, library, media, preview, 진행 도구 |
+| Tab header | 34 | `title` 18/26/600 | 예배 순서, 빠른 실행, library, media, preview, 진행 도구 |
 | Tab + service switcher | 34 | Tab `title`, switcher `label` `text-3` | 예배 순서 |
 | Tab + footer count | 34 + 32 | `title`, footer `caption` `text-3` | 라이브러리 with 128개 below |
 | Title header | 34 | `title` 18/26/600 + `label` `text-3` | 슬라이드 panel (만복의 근원 하나님 2 / 9), 예배 순서 item, 배경 영상 |
-| Tool row | 44 (8 + 30 + 6) | `body` 16/22 | Library search, 퀵 실행 Bible verse |
+| Tool row | 44 (8 + 30 + 6) | `body` 16/22 | Library search, 빠른 실행 Bible verse |
 | Body | Remaining height | - | Lists (`--list`), thumbnail grid (padding 14) |
 | Footer row | 32 | `caption` 14/20 `text-3` | Count and thumbnail size in the 슬라이드 panel and media |
 
@@ -91,7 +91,7 @@ for an empty media grid). There is no icon art and no second sentence.
 
 ## Writing
 
-- Write tab and panel names as short nouns: "예배 순서", "퀵 실행", "라이브러리", "미리보기", "표시 중". Don't add verbs or descriptions.
+- Write tab and panel names as short nouns: "예배 순서", "빠른 실행", "라이브러리", "미리보기", "표시 중". Don't add verbs or descriptions.
 - Write the panel item count only in the bottom footer: "128개", "7개", or "0개". Do not repeat the item name or a capacity fraction. Preserve existing facts such as media size and keep the footer outside scrolling content.
 - Write a position as "current / total", with spaces around the slash: "2 / 9".
 - Don't write help text or state descriptions in a header.
@@ -108,7 +108,7 @@ for an empty media grid). There is no icon art and no second sentence.
 
 - Panel headers on all boards: 34px + 1px bottom line (35 in total) → 34 including the line.
 - ShowH 진행 도구 tabs: gap between tabs 14 → 18, header right padding 14 → 8, unselected tab weight 500 → 600.
-- Compact, all panel headers: padding left 12 and right 6 → 14, 8. 진행 도구 tab gap 12 → 18, unselected tab weight 500 → 600. Gap between the + button and the collapse button in the 예배 순서 header 0 → 8. 퀵 실행 tool row padding 6 6 4 → 8 8 6.
+- Compact, all panel headers: padding left 12 and right 6 → 14, 8. 진행 도구 tab gap 12 → 18, unselected tab weight 500 → 600. Gap between the + button and the collapse button in the 예배 순서 header 0 → 8. 빠른 실행 tool row padding 6 6 4 → 8 8 6.
 - Service switcher button (예배 순서 header in ShowH, PrepService, Reflow, ServiceSwitch, AddSongs, AddSongsQuick, Bible, ImportEdit, ImportSave, ImportText, NewService, ServiceImport, Problems): height 24 → 26 (sm).
 
 ## Unavailable reference counts

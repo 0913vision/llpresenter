@@ -17,7 +17,7 @@ export function transitionTimes(
   return {slideMs: ms, backgroundMs: ms};
 }
 
-/** A slide without an assigned effect cuts, independently of old settings. */
+/** A slide without an assigned effect cuts. */
 export function reverseSlideTransition(
   effect: SlideTransition | null,
 ): SlideTransition {

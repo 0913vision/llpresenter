@@ -19,7 +19,7 @@ All values are CSS pixels after Windows display scaling (the same as Electron DI
 - Minimum window: `window-min-width` 1280 × `window-min-height` 720.
 - From top to bottom: menu bar `size-menubar` (30), toolbar (regular window `size-toolbar` 56, narrow window `size-toolbar-compact` 40), work area, status bar `size-statusbar` (28). The background of the gaps between bars and panels is `bg-app`.
 - Work area: an upper row with left, center and right workspace columns, followed by the shared 미디어 bin when open. The bin spans all three columns in 진행 and 준비. Gaps at the window edges, between columns, between the two rows and between panels are `panel-gap` (4). Don't put a gap above or below the work area.
-- Left column: 예배 순서 (service order) (remaining height) + 퀵 실행 (quick launch) (content height). In the 준비 workspace: 예배 순서 + library.
+- Left column: 예배 순서 (service order) (remaining height) + 빠른 실행 (quick launch) (content height). In the 준비 workspace: 예배 순서 + library.
 - Center column: all remaining width, minimum 560. The 슬라이드 panel or 준비 source/item editor fills the upper row's height. The shared bin does not occupy the center column or replace the editor.
 - Right column: preview (content height) + 지우기 (clear) (content height) + 진행 도구 (show tools) (remaining height, minimum 240).
 - If the height runs short and the 진행 도구 would get smaller than 240, the preview panel shrinks. The large preview keeps 16:9, gets smaller to fit the height, and is centered. With the bin closed at 1280×720, this gives preview 306, 지우기 68, and 진행 도구 240, including two 4px gaps. With the bin open, reserve the upper row as defined below; preview content scrolls when its other controls cannot fit.

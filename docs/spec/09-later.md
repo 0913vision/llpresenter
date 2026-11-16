@@ -6,7 +6,7 @@ restructuring. It ends with the ideas that the sources dropped, which aren't
 planned at all.
 
 Terms: 슬라이드 (slide), 방송 화면 (broadcast captions), 빠른 실행 (quick
-launch), 매크로 (macro), 라이브러리 (library), 구성 (arrangement). See 01.
+launch), 매크로 (macro), 라이브러리 (library). See 01.
 
 ## NDI network controls (later)
 
@@ -133,7 +133,6 @@ them.
 | Idea                                                                                          | What replaced it                                               | Source                                   |
 | --------------------------------------------------------------------------------------------- | -------------------------------------------------------------- | ---------------------------------------- |
 | Cue-then-take output                                                                          | A click outputs at once                                        | product log version 61                   |
-| Loading a 구성 from past services                                                             | Named 구성 stored in the song                                  | product log version 61                   |
 | A service file that also holds screens, 테마, 매크로, and other settings (version 62 "scene") | App-wide settings, a 테마 per item or switched by start 매크로 | product log version 63                   |
 | A 다중 레이어 지우기 (Clear Groups) button                                                    | 매크로 with clear actions (see 07)                             | product log 2026-10-24, `Main` decisions |
 | Broadcast streaming and recording                                                             | OBS                                                            | product log 2026-10-23                   |

@@ -223,7 +223,7 @@ listed.
 ## `session-context.ts`
 
 The SessionStart hook in `.claude/settings.json`. It prints a session's role,
-notes, git state, and `docs/STATUS.md` at every start, resume, and compaction.
+notes, git state, and `STATUS.md` at every start, resume, and compaction.
 The lead owns it.
 
 ## Pre-push check

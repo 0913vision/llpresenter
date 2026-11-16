@@ -281,7 +281,7 @@ is 1536×864, and at 150% it is 1280×720. Design at 1920×1080 and 100%.
 
 - The three workspaces (진행, 준비, 화면 설정) share one three-column frame. The
   라이브러리 exists only in 준비; the left column of 진행 holds the 예배 순서
-  and 퀵 실행.
+  and 빠른 실행.
 - The minimum window is `window-min-width` × `window-min-height` (1280×720).
 - The center column takes the remaining width, at least `col-center-min` (560).
 - Dragging the 4px gap between columns changes the left column (200–400) and the
@@ -352,7 +352,7 @@ remaining space.
 | 청중 화면, 무대 화면, 방송 화면 | audience screen, stage screen, broadcast screen | The three output screens                                                |
 | 테마                          | theme                                         | A saved preset that sets what each of the three screens shows           |
 | 진행 도구                     | show tools                                    | The group of tabs at the bottom right of the 진행 workspace             |
-| 퀵 실행                       | quick launch                                  | Frequently used items at the bottom left of the 진행 workspace          |
+| 빠른 실행                       | quick launch                                  | Frequently used items at the bottom left of the 진행 workspace          |
 | 그래픽, 메시지, 타이머  | prop, message, timer                  | Layers placed over the lyrics                                           |
 | 라이브러리                    | library                                       | Where the source songs are kept                                         |
 | 매크로                        | macro                                         | A button that runs several actions at once                              |

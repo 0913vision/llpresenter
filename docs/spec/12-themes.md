@@ -827,9 +827,7 @@ title stays on one line, fitting down to 24 px and then using an ellipsis. An
 edited Bible reference remains within its tab and the body fits below the tab.
 The overrides are limited to the screen element limit plus one generated title.
 
-A theme may set a slide transition in the theme editor. The built-in scripture
-theme uses a 0.7 second wipe, the creed and prayer theme uses a 0.5 second wipe,
-and the sermon title theme and seven section title themes use a 1 second wipe.
+Transitions belong to individual slides, not themes.
 
 On stage, an empty current or next slide without a label shows (없음); a labeled
 empty slide shows its label.
