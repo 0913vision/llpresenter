@@ -70,9 +70,9 @@ export function ChoiceRows<T extends Choice>({
   };
   useLayoutEffect(() => {
     const element = viewport.current;
-    if (element === null || typeof ResizeObserver === 'undefined') {
-      return undefined;
-    }
+    if (element === null) return undefined;
+    measure();
+    if (typeof ResizeObserver === 'undefined') return undefined;
     const observer = new ResizeObserver(measure);
     observer.observe(element);
     return () => observer.disconnect();

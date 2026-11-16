@@ -9,6 +9,7 @@ import {
 } from '@fixtures/renderer/session/sampleService';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {Workspace} from '@renderer/app/shell/Workspace';
+import * as screensPanels from '@renderer/app/workspaces/screensPanels';
 import {renderWithScreenSummaries as render} from '@fixtures/renderer/platform/screenSummaries';
 import {mediaFixture} from '@fixtures/renderer/features/media/mediaTesting';
 
@@ -100,6 +101,35 @@ describe('Workspace service header', () => {
     expect(within(panel).getByRole('listbox').dataset['workspace']).toBe(
       'prep',
     );
+  });
+});
+
+describe('Workspace theme loading', () => {
+  it('keeps the previous workspace until theme panels are ready and honors a canceled switch', () => {
+    let ready = false;
+    vi.spyOn(screensPanels, 'useScreensPanels').mockImplementation(() => ({
+      ready,
+      columns: [['테마']],
+      partsOf: () => ({}),
+    }));
+    const store = createMemoryColumnWidthStore();
+    const view = render(
+      <Workspace id="prep" sizeClass="normal" store={store} />,
+    );
+    const workspace = (id: 'show' | 'prep' | 'screens') =>
+      view.rerender(<Workspace id={id} sizeClass="normal" store={store} />);
+    workspace('screens');
+    expect(gridOf(view.container).dataset['workspaceLayout']).toBe('prep');
+    workspace('show');
+    ready = true;
+    workspace('show');
+    expect(gridOf(view.container).dataset['workspaceLayout']).toBe('show');
+    ready = false;
+    workspace('screens');
+    expect(gridOf(view.container).dataset['workspaceLayout']).toBe('show');
+    ready = true;
+    workspace('screens');
+    expect(gridOf(view.container).dataset['workspaceLayout']).toBe('screens');
   });
 });
 

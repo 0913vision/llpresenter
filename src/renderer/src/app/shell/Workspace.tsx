@@ -1,7 +1,7 @@
 import {AutoConfirmBible} from '@renderer/features/bible/AutoConfirmBible';
 import {PaletteEditingProvider} from '@renderer/features/service/items/PaletteEditing';
 import type {SongId} from '@core/schema/ids';
-import {Fragment, useCallback, useRef, type JSX} from 'react';
+import {Fragment, useCallback, useRef, useState, type JSX} from 'react';
 import {MediaBin} from '@renderer/features/media/MediaBin';
 import type {MediaApi} from '@renderer/features/media/mediaLibrary';
 import {
@@ -93,10 +93,18 @@ export function Workspace({
   readonly themeLeave?: ThemeLeaveGuard | undefined;
 }): JSX.Element {
   const {gridRef, drag} = useColumnLayout(sizeClass, store);
-  const navigation = useShowPanelNavigation(gridRef, id === 'show');
-  const toggle = useSidebarToggle(id === 'show' ? sidebar : undefined);
+  const screens = useScreensPanels({
+    active: id === 'screens',
+    onProblem,
+    leaveGuard: themeLeave,
+  });
+  const [lastVisible, setLastVisible] = useState<WorkspaceId>('show');
+  const visibleId = id === 'screens' && !screens.ready ? lastVisible : id;
+  if (visibleId !== lastVisible) setLastVisible(visibleId);
+  const navigation = useShowPanelNavigation(gridRef, visibleId === 'show');
+  const toggle = useSidebarToggle(visibleId === 'show' ? sidebar : undefined);
   const show = useShowPanels({
-    active: id === 'show',
+    active: visibleId === 'show',
     sizeClass,
     onProblem,
     onOpenPrep,
@@ -115,16 +123,12 @@ export function Workspace({
     onOpenPrep,
     onShowInLibrary,
   });
-  const screens = useScreensPanels({
-    active: id === 'screens',
-    onProblem,
-    leaveGuard: themeLeave,
-  });
-  const panels = id === 'show' ? show : id === 'prep' ? prepPanels : screens;
+  const panels =
+    visibleId === 'show' ? show : visibleId === 'prep' ? prepPanels : screens;
   const hasMediaView = useHasMediaView();
   const {columns} = panels;
   const api = mediaApi ?? prep?.api ?? window.llp;
-  const mediaOpen = id !== 'screens' && mediaVisible;
+  const mediaOpen = visibleId !== 'screens' && mediaVisible;
   const mediaRows = useRowLayout({
     container: gridRef,
     store,
@@ -148,7 +152,7 @@ export function Workspace({
         </div>
       ) : (
         <PanelColumn
-          workspace={id}
+          workspace={visibleId}
           titles={titles}
           partsOf={panels.partsOf}
           store={store}
@@ -164,18 +168,18 @@ export function Workspace({
   const frame = (
     <main
       ref={gridRef}
-      data-workspace-layout={id}
+      data-workspace-layout={visibleId}
       onKeyDown={navigation.onKeyDown}
       className={classNames(
         styles.workspace,
-        id !== 'screens' && api !== undefined && styles.mediaAvailable,
+        visibleId !== 'screens' && api !== undefined && styles.mediaAvailable,
         mediaOpen && api !== undefined && styles.mediaOpen,
       )}
     >
-      {id === 'prep' ? (
+      {visibleId === 'prep' ? (
         <AutoConfirmBible onProblem={onProblem ?? logPanelProblem} />
       ) : null}
-      {id === 'show' ? (
+      {visibleId === 'show' ? (
         <ShowShortcuts onProblem={onProblem ?? logPanelProblem} />
       ) : null}
       <div
@@ -184,10 +188,10 @@ export function Workspace({
         className={classNames(
           styles.columns,
           toggle.collapsed && styles.leftCollapsed,
-          id === 'screens' && styles.screenSettings,
+          visibleId === 'screens' && styles.screenSettings,
         )}
       >
-        {id === 'prep' ? (
+        {visibleId === 'prep' ? (
           <PaletteEditingProvider onProblem={onProblem ?? ignoreProblem}>
             {panelColumns}
           </PaletteEditingProvider>
@@ -203,9 +207,9 @@ export function Workspace({
           disabled={!mediaRows.canResize(0)}
         />
       ) : null}
-      {id !== 'screens' && api !== undefined ? (
+      {visibleId !== 'screens' && api !== undefined ? (
         <MediaBin
-          workspace={id}
+          workspace={visibleId}
           open={mediaOpen}
           onOpenChange={onMediaOpenChange}
           onProblem={onProblem ?? ignoreProblem}
@@ -222,7 +226,7 @@ export function Workspace({
     ) : (
       <MediaViewProvider
         api={api}
-        active={id !== 'screens'}
+        active={visibleId !== 'screens'}
         onProblem={onProblem ?? ignoreProblem}
       >
         {frame}

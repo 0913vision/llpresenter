@@ -14,9 +14,10 @@ export function useScreensPanels({
   readonly active: boolean;
   readonly onProblem: ((notice: Notice) => void) | undefined;
   readonly leaveGuard?: ThemeLeaveGuard | undefined;
-}): WorkspacePanels {
+}): WorkspacePanels & {readonly ready: boolean} {
   const panels = useThemePanels(active, onProblem, leaveGuard);
   return {
+    ready: panels.ready,
     columns: COLUMNS,
     partsOf: title => ({
       embedded:

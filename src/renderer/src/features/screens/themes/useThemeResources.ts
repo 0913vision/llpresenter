@@ -9,16 +9,32 @@ export function useThemeResources(
   active: boolean,
   onProblem: ((notice: Notice) => void) | undefined,
 ) {
+  const [load, setLoad] = useState({
+    active,
+    themesFailed: false,
+    screensFailed: false,
+  });
+  if (load.active !== active) {
+    setLoad({active, themesFailed: false, screensFailed: false});
+  }
+  const reportLoad = (notice: Notice): void => {
+    if (notice.key === 'screens:load:themes') {
+      setLoad(previous => ({...previous, themesFailed: true}));
+    } else if (notice.key === 'screens:load:screens') {
+      setLoad(previous => ({...previous, screensFailed: true}));
+    }
+    onProblem?.(notice);
+  };
   const document = useSettingsDocument(
     active ? 'themes' : null,
     '테마',
-    onProblem,
+    reportLoad,
   );
 
   const screensDocument = useSettingsDocument(
     active ? 'screens' : null,
     '화면',
-    onProblem,
+    reportLoad,
   );
 
   const timers = useSettingsDocument(
@@ -98,6 +114,9 @@ export function useThemeResources(
     savedScreens.find(screen => screen.kind === 'audience') ?? savedScreens[0];
   return {
     document,
+    themesFailed: load.themesFailed,
+    screensReady:
+      screensDocument !== null || load.screensFailed || api === undefined,
     screens,
     bibleSplitScreen,
     timers: timers?.value.timers ?? [],

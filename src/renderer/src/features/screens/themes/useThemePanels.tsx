@@ -18,5 +18,13 @@ export function useThemePanels(
       ? model.file?.standby.id
       : undefined);
   const surfaces = useThemeSurfaces(model, liveId, onProblem);
-  return {...surfaces, right: <ThemeProperties model={model} />};
+  return {
+    ...surfaces,
+    ready:
+      ((model.document !== null && model.file !== null) ||
+        model.themesFailed ||
+        window.llp === undefined) &&
+      model.screensReady,
+    right: <ThemeProperties model={model} />,
+  };
 }
