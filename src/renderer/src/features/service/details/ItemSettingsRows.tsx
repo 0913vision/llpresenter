@@ -29,6 +29,7 @@ import type {ItemTarget, ServiceItemStore} from '../items/serviceItemStore';
 import {
   useFollowedDocument,
   type DocumentSource,
+  type FollowedDocument,
 } from '../items/useFollowedDocument';
 
 const NONE = '없음';
@@ -51,12 +52,12 @@ export function resolveMacro(
   return macros.find(macro => macro.id === reference);
 }
 
-function useMediaDocument(api: LlpApi['media']) {
+function useMediaDocument(api: LlpApi['media'], enabled: boolean) {
   const source = useMemo<DocumentSource<MediaDocument>>(
     () => ({read: () => api.get(), follow: accept => api.subscribe(accept)}),
     [api],
   );
-  return useFollowedDocument(source);
+  return useFollowedDocument(source, enabled);
 }
 
 function useMacros(api: LlpApi['settings']) {
@@ -92,11 +93,14 @@ export function ItemBackgroundRow({
   lockReason,
   item,
   session,
+  mediaDocument,
 }: RowState & {
   readonly item: ServiceItemOf<'song' | 'slides'>;
   readonly session?: SongSession;
+  readonly mediaDocument?: FollowedDocument<MediaDocument>;
 }): JSX.Element {
-  const media = useMediaDocument(api.media);
+  const ownMedia = useMediaDocument(api.media, mediaDocument === undefined);
+  const media = mediaDocument ?? ownMedia;
   const [button, setButton] = useState<HTMLButtonElement | null>(null);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');

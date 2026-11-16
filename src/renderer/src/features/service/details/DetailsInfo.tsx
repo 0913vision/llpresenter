@@ -17,7 +17,7 @@ import {
   type ServiceItemState,
   type ServiceItemStore,
 } from '../items/serviceItemStore';
-import {ItemThemeRow} from './ItemThemeRow';
+import {ItemThemeRow, type useItemTheme} from './ItemThemeRow';
 import {ItemBackgroundRow, ItemMemo, ItemStartRow} from './ItemSettingsRows';
 import type {useItemMedia} from '../items/useItemSources';
 import {useServiceSongMenu} from '../order/useServiceSongMenu';
@@ -33,6 +33,7 @@ interface DetailsInfoData {
   readonly state: ServiceItemState;
   readonly library: ShowLibrarySong | null;
   readonly media: ReturnType<typeof useItemMedia>;
+  readonly themeData: ReturnType<typeof useItemTheme>;
   readonly items: ServiceItemStore;
   readonly editor: SongEditorStore;
   readonly reason: string | undefined;
@@ -52,6 +53,7 @@ export function DetailsInfo({
     state,
     library,
     media,
+    themeData,
     items,
     editor,
     reason,
@@ -101,6 +103,7 @@ export function DetailsInfo({
               items={items}
               item={item}
               reason={reason}
+              themeData={themeData}
             />
             {isItemOfKind(item, 'song') && state.song !== null ? (
               <ItemBackgroundRow
@@ -109,6 +112,7 @@ export function DetailsInfo({
                 lockReason={reason}
                 item={item}
                 session={state.song}
+                mediaDocument={media}
               />
             ) : isItemOfKind(item, 'slides') ? (
               <ItemBackgroundRow
@@ -116,6 +120,7 @@ export function DetailsInfo({
                 api={editor.api}
                 lockReason={reason}
                 item={item}
+                mediaDocument={media}
               />
             ) : null}
             <ItemStartRow

@@ -22,9 +22,10 @@ import styles from '../items/ItemOverlays.module.css';
 export function useItemTheme(
   api: LlpApi['settings'],
   item: ServiceItem | null,
+  enabled = true,
 ) {
-  const themes = useItemSettings(api, 'themes');
-  const screens = useItemSettings(api, 'screens');
+  const themes = useItemSettings(api, 'themes', enabled);
+  const screens = useItemSettings(api, 'screens', enabled);
   const file =
     themes.document?.name === 'themes' ? themes.document.value : null;
   const targets =
@@ -83,6 +84,9 @@ export function useItemTheme(
         : missingSlideElements(item, theme, targets),
     loaded: themes.document !== null,
     failed: themes.failed,
+    ready:
+      (themes.document !== null || themes.failed) &&
+      (screens.document !== null || screens.failed),
   };
 }
 
@@ -128,14 +132,17 @@ export function ItemThemeRow({
   items,
   item,
   reason,
+  themeData,
 }: {
   readonly api: LlpApi['settings'];
   readonly items: ServiceItemStore;
   readonly item: ServiceItem;
   readonly reason: string | undefined;
+  readonly themeData?: ReturnType<typeof useItemTheme>;
 }): JSX.Element {
+  const ownTheme = useItemTheme(api, item, themeData === undefined);
   const {file, kind, theme, defaultTheme, loaded, failed, missingContent} =
-    useItemTheme(api, item);
+    themeData ?? ownTheme;
   const defaultId = isItemOfKind(item, 'liturgy')
     ? CREED_PRAYER_THEME_ID
     : kind === undefined

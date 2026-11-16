@@ -23,6 +23,7 @@ export interface ItemSlide {
 export function useItemSlides(
   items: ServiceItemStore,
   editor: SongEditorStore,
+  sharedMedia?: ReturnType<typeof useItemMedia>,
 ): readonly ItemSlide[] {
   const state = useSyncExternalStore(items.subscribe, items.getSnapshot);
   const editorState = useSyncExternalStore(
@@ -30,7 +31,11 @@ export function useItemSlides(
     editor.getSnapshot,
   );
   const needsMedia = state.item !== null && isItemOfKind(state.item, 'media');
-  const media = useItemMedia(editor.api.media, needsMedia);
+  const ownMedia = useItemMedia(
+    editor.api.media,
+    needsMedia && sharedMedia === undefined,
+  );
+  const media = sharedMedia ?? ownMedia;
   const bible = useShow(view =>
     savedPassageTiles(
       view,
