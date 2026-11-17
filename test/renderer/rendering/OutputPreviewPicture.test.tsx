@@ -109,6 +109,43 @@ it('reveals without a font set and ignores a frame after unmount', () => {
   }
 });
 
+it('shows a parked picture at once and replaces it with a fresh drawing', () => {
+  let callback: FrameRequestCallback | undefined;
+  const request = vi
+    .spyOn(window, 'requestAnimationFrame')
+    .mockImplementation(fn => {
+      callback = fn;
+      return 1;
+    });
+  try {
+    const shown = props();
+    const layers = {
+      ...shown.layers,
+      slide: {itemId: 'kept', position: 0, label: null, lines: ['Kept']},
+    };
+    const first = render(<OutputPreviewPicture {...shown} layers={layers} />);
+    actFrame(callback);
+    first.unmount();
+    renderOutput.mockClear();
+    disposeOutput.mockClear();
+    const again = render(<OutputPreviewPicture {...props()} layers={layers} />);
+    expect(
+      again.container.querySelector('[data-preview-ready="true"]'),
+    ).not.toBeNull();
+    expect(renderOutput).toHaveBeenCalledOnce();
+    expect(disposeOutput).not.toHaveBeenCalled();
+    actFrame(callback);
+    expect(disposeOutput).toHaveBeenCalledOnce();
+    again.unmount();
+    disposeOutput.mockClear();
+    const third = render(<OutputPreviewPicture {...props()} layers={layers} />);
+    third.unmount();
+    expect(disposeOutput).toHaveBeenCalledTimes(2);
+  } finally {
+    request.mockRestore();
+  }
+});
+
 function actFrame(callback: FrameRequestCallback | undefined): void {
   if (callback === undefined) throw new Error('No frame scheduled');
   callback(performance.now());

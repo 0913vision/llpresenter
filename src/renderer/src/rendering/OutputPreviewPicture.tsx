@@ -17,6 +17,7 @@ import {fontsLoading, previewReady} from './fontsLoading';
 import type {RenderScreen, ThemeFrame} from './layer';
 import styles from './OutputPreviewPicture.module.css';
 import {PictureReadiness} from './PictureReadiness';
+import {PicturePark} from './picturePark';
 
 interface PictureProps {
   readonly layers: LiveLayers;
@@ -29,10 +30,21 @@ interface PictureProps {
 }
 
 interface PictureView {
+  readonly key: string;
+  /** Drawn by this tile for its current props, not taken from the park. */
+  readonly checked: boolean;
   readonly host: HTMLDivElement;
   readonly renderer: OutputRenderer;
   readonly dispose: () => void;
 }
+
+// NOTE(0913vision): about two 진행 grids of tiles. A tile that mounts again with
+// the same picture key shows the parked view in its first frame, then always
+// draws again behind it and swaps, so anything the key misses (a media file's
+// fit, a font that arrived) is corrected within one drawing. Only views that
+// finished drawing for their own props are parked.
+const PARKED_PICTURES = 160;
+const parked = new PicturePark<PictureView>(PARKED_PICTURES);
 
 const layouts = new WeakMap<object, string>();
 
@@ -87,8 +99,23 @@ export const OutputPreviewPicture = memo(
     }, []);
     useLayoutEffect(() => {
       const container = parent.current;
-      if (container === null || (!near && onReady === null)) return;
-      container.dataset['previewReady'] = 'false';
+      if (container === null) return;
+      const key = pictureKey({layers, appearance});
+      if (front.current?.key === key && front.current.checked) {
+        container.dataset['previewReady'] = 'true';
+        return;
+      }
+      if (front.current === null) {
+        const kept = parked.take(key);
+        if (kept !== undefined) {
+          container.append(kept.host);
+          front.current = {...kept, checked: false};
+          onReady?.(source.current);
+        }
+      }
+      const shown = front.current?.key === key;
+      container.dataset['previewReady'] = shown ? 'true' : 'false';
+      if (!near && onReady === null) return;
       const host = document.createElement('div');
       Object.assign(host.style, {
         position: 'absolute',
@@ -110,6 +137,8 @@ export const OutputPreviewPicture = memo(
         onError: (message, error) => console.error(message, error),
       });
       const view: PictureView = {
+        key,
+        checked: true,
         host,
         renderer,
         dispose: () => {
@@ -156,8 +185,15 @@ export const OutputPreviewPicture = memo(
     }, [layers, appearance, near, onReady]);
     useLayoutEffect(
       () => () => {
-        front.current?.dispose();
+        const view = front.current;
         front.current = null;
+        if (view === null) return;
+        view.host.remove();
+        if (view.checked && previewReady(view.renderer)) {
+          parked.park(view.key, view);
+        } else {
+          view.dispose();
+        }
       },
       [],
     );
