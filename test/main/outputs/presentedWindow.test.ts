@@ -1,11 +1,20 @@
 import type {EventEmitter} from 'node:events';
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import {afterEach, describe, expect, it, vi, type Mock} from 'vitest';
 import type {OutputWindowHandle} from '@main/outputs/outputWindow';
 import type {OutputScreen} from '@main/outputs/screens';
 
+type PageContents = EventEmitter & {
+  readonly setFrameRate: Mock;
+  readonly stopPainting: Mock;
+  readonly startPainting: Mock;
+  readonly reload: Mock;
+  readonly forcefullyCrashRenderer: Mock;
+  readonly executeJavaScript: Mock;
+};
+
 interface PageRecord {
   readonly options: Record<string, unknown>;
-  readonly contents: EventEmitter & Record<string, unknown>;
+  readonly contents: PageContents;
   destroyed: boolean;
 }
 
@@ -24,8 +33,7 @@ const mocks = vi.hoisted(() => {
 vi.mock('electron', async () => {
   const {EventEmitter: Emitter} = await import('node:events');
   class MockBrowserWindow extends Emitter {
-    readonly webContents: InstanceType<typeof Emitter> &
-      Record<string, unknown>;
+    readonly webContents: PageContents;
     private destroyedFlag = false;
     private size = {width: 0, height: 0};
     constructor(options: Record<string, unknown>) {
@@ -36,7 +44,7 @@ vi.mock('electron', async () => {
         startPainting: vi.fn(),
         reload: vi.fn(),
         forcefullyCrashRenderer: vi.fn(),
-        executeJavaScript: vi.fn(async () => 0),
+        executeJavaScript: vi.fn().mockResolvedValue(0),
       });
       this.webContents = contents;
       const record = {options, contents, destroyed: false};
@@ -189,7 +197,7 @@ describe('a full screen output drawn by a presenter', () => {
       show: false,
       webPreferences: {offscreen: {useSharedTexture: true}},
     });
-    expect(page?.contents['setFrameRate']).toHaveBeenCalledWith(60);
+    expect(page?.contents.setFrameRate).toHaveBeenCalledWith(60);
     const child = spawned();
     expect(child.posted[0]).toEqual({
       type: 'open',
