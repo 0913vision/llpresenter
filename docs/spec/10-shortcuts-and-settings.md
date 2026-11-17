@@ -991,10 +991,11 @@ Rules for every row:
 
 #### 예배 순서 (Service order)
 
-| Row                 | Control                        | Default | Stored in                              | Applies                                 |
-| ------------------- | ------------------------------ | ------- | -------------------------------------- | --------------------------------------- |
-| 마지막 슬라이드에서 | Segmented: 멈춤, 다음 항목으로 | 멈춤    | `preferences.json` `show.atLastSlide`  | At once; shared with 보기 > 이어서 진행 |
-| 지난 순서 흐리게    | Checkbox                       | Off     | `preferences.json` `show.dimPastItems` | At once                                 |
+| Row                 | Control                        | Default | Stored in                                | Applies                                 |
+| ------------------- | ------------------------------ | ------- | ---------------------------------------- | --------------------------------------- |
+| 마지막 슬라이드에서 | Segmented: 멈춤, 다음 항목으로 | 멈춤    | `preferences.json` `show.atLastSlide`    | At once; shared with 보기 > 이어서 진행 |
+| 이어서 보여 주기    | Checkbox                       | Off     | `preferences.json` `show.continuousGrid` | At once; shared with View menu          |
+| 지난 순서 흐리게    | Checkbox                       | Off     | `preferences.json` `show.dimPastItems`   | At once                                 |
 
 When enabled, every row above the current output item dims by position,
 including section headings and every item kind. Going back restores later rows.

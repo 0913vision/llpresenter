@@ -126,6 +126,18 @@ export function ServiceOrderPage({edits}: PageProps): JSX.Element | null {
         }
       />
       <CheckboxRow
+        label="이어서 보여 주기"
+        disabled={lockedReason !== undefined}
+        title={lockedReason}
+        checked={preferences.show.continuousGrid}
+        onChange={continuousGrid =>
+          change(stored => ({
+            ...stored,
+            show: {...stored.show, continuousGrid},
+          }))
+        }
+      />
+      <CheckboxRow
         label="지난 순서 흐리게"
         disabled={lockedReason !== undefined}
         title={lockedReason}

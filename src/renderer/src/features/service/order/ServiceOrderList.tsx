@@ -49,6 +49,7 @@ import {openSongEditorWindow} from '@renderer/features/songs/editor/openWindow';
 import {clickFocusProps} from '@renderer/ui/clickFocus';
 import {useHeaderRename} from '@renderer/session/headerRename';
 import {openItem, useShow} from '@renderer/session/show';
+import {useVisibleSlideItem} from '@renderer/session/visibleSlideItem';
 import {useLive} from '@renderer/session/live';
 import {
   Button,
@@ -337,6 +338,11 @@ export function ServiceOrderList({
   const liveItemId = useLiveItemId();
   const preferences = useSettingsDocument('preferences', '환경설정', onProblem);
   const dimPastItems = preferences?.value.show?.dimPastItems === true;
+  const visibleSlideItem = useVisibleSlideItem();
+  const gridItemId =
+    workspace === 'show' && preferences?.value.show?.continuousGrid === true
+      ? visibleSlideItem
+      : openItemId;
   const done = useMemo(() => {
     const current = dimPastItems
       ? rows.findIndex(row => row.id === liveItemId)
@@ -397,7 +403,7 @@ export function ServiceOrderList({
   );
   const selection = useServiceItemSelection({
     serviceId,
-    cursor: openItemId,
+    cursor: gridItemId,
     ids: selectableIds,
     onSelect: itemId => {
       if (navigator) {
@@ -408,6 +414,9 @@ export function ServiceOrderList({
       } else {
         onOpenItem?.();
         openItem(itemId);
+        window.dispatchEvent(
+          new CustomEvent('show-grid-item', {detail: itemId}),
+        );
       }
     },
   });
@@ -1082,7 +1091,7 @@ export function ServiceOrderList({
         multiple
         workspace={workspace}
         label="예배 순서"
-        selected={openItemId ?? undefined}
+        selected={gridItemId ?? undefined}
         onSelect={selection.select}
       >
         {groupRows(rows).map(group =>

@@ -20,9 +20,11 @@ import type {Notice} from '@renderer/ui/notices';
 import {PanelFooter} from '@renderer/ui/Panel';
 import {useTooltip} from '@renderer/ui/Tooltip';
 import {SlideGrid} from './SlideGrid';
+import {ContinuousSlideGrid} from './ContinuousSlideGrid';
+import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {READ_ONLY_TIP} from '../../platform/problemReasons';
 import styles from './SlidePanel.module.css';
-import {useVisibleSlideItem} from './visibleSlideItem';
+import {useVisibleSlideItem} from '@renderer/session/visibleSlideItem';
 
 const PROBLEM_ICON_SIZE = 14;
 
@@ -35,10 +37,21 @@ export function SlidePanelBody({
   readonly onOpenPrep?:
     ((itemId: string, position?: number) => void) | undefined;
 }): JSX.Element {
+  const settings = useSettingsDocument('preferences', '환경설정', undefined);
+  const scalePercent = useThumbnailScale(sizeClass);
+  const isServiceItem = useShow(
+    view =>
+      view.openItemId === null ||
+      view.rows.some(row => row.id === view.openItemId),
+  );
+  const Grid =
+    settings?.value.show?.continuousGrid && isServiceItem
+      ? ContinuousSlideGrid
+      : SlideGrid;
   return (
-    <SlideGrid
+    <Grid
       columns={defaultThumbnailColumns[sizeClass]}
-      scalePercent={useThumbnailScale(sizeClass)}
+      scalePercent={scalePercent}
       onOpenPrep={onOpenPrep}
     />
   );

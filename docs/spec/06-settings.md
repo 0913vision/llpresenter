@@ -276,6 +276,10 @@ bar), `docs/TECH.md` operating rules.
 shares `show.atLastSlide` with 보기 > 이어서 진행; either change is reflected in
 the other at once.
 
+The independent `show.continuousGrid` checkbox is off by default and is shared
+with the View menu; it changes the show grid without changing the last-slide
+action (04).
+
 일반 > 화면 확대 is a select with the steps 100% to 200% in 10% steps, kept in
 step with the keys (Ctrl +, Ctrl -, Ctrl 0) and with every other control window.
 The zoom scales control windows; it never changes output rendering. Main applies

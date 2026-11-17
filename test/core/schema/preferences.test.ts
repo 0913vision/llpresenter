@@ -181,6 +181,21 @@ describe('the ranges of 환경설정', () => {
   });
 });
 
+describe('continuous grid preference', () => {
+  it('defaults off and is independent of last-slide navigation', () => {
+    expect(withPreferenceDefaults(parse(HEADER)).show.continuousGrid).toBe(
+      false,
+    );
+    const value = withPreferenceDefaults(
+      parse({...HEADER, show: {continuousGrid: true, atLastSlide: 'stop'}}),
+    );
+    expect(value.show).toMatchObject({
+      continuousGrid: true,
+      atLastSlide: 'stop',
+    });
+  });
+});
+
 describe('withPreferenceDefaults', () => {
   it.each([
     [{}, false],

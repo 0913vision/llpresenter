@@ -87,14 +87,16 @@ export function useBibleProjections({
 export function useBibleTileProjection({
   itemId,
   serviceId,
+  anyItem = false,
 }: {
   readonly itemId: string | null;
   readonly serviceId?: string;
+  readonly anyItem?: boolean;
 }) {
   const enabled = useShow(
     view =>
       itemId !== null &&
-      view.openItemId === itemId &&
+      (anyItem || view.openItemId === itemId) &&
       (serviceId === undefined || serviceId === view.serviceId) &&
       splitSourceFor(view, itemId) !== null,
   );
@@ -103,7 +105,7 @@ export function useBibleTileProjection({
     if (
       !enabled ||
       itemId === null ||
-      view.openItemId !== itemId ||
+      (!anyItem && view.openItemId !== itemId) ||
       (serviceId !== undefined && view.serviceId !== serviceId) ||
       projections === null
     ) {
