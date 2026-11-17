@@ -28,15 +28,37 @@ export function useGridMeasure(
 ): GridMeasure {
   const [measure, setMeasure] = useState(UNMEASURED);
   useLayoutEffect(() => {
-    const grid = container.current?.querySelector<HTMLElement>(selector);
-    if (!grid || typeof ResizeObserver === 'undefined') return;
+    const root = container.current;
+    if (!root || typeof ResizeObserver === 'undefined') return;
+    let grid: HTMLElement | null = null;
     const observer = new ResizeObserver(entries => {
-      const width = entries.at(-1)?.contentRect.width ?? 0;
-      const next = {width, gap: pixelsOf(getComputedStyle(grid).columnGap)};
+      const entry = entries.filter(each => each.target === grid).at(-1);
+      // NOTE(0913vision): a grid that left the document reports zero; the next grid measures.
+      if (!entry || !grid?.isConnected) return;
+      const next = {
+        width: entry.contentRect.width,
+        gap: pixelsOf(getComputedStyle(grid).columnGap),
+      };
       setMeasure(current => (sameMeasure(current, next) ? current : next));
     });
-    observer.observe(grid);
-    return () => observer.disconnect();
+    // NOTE(0913vision): a buffered grid replaces its grid element per item; follow the current one.
+    const attach = (): void => {
+      const found = root.querySelector<HTMLElement>(selector);
+      if (found === grid) return;
+      if (grid) observer.unobserve(grid);
+      grid = found;
+      if (grid) observer.observe(grid);
+    };
+    attach();
+    const swaps =
+      typeof MutationObserver === 'undefined'
+        ? undefined
+        : new MutationObserver(attach);
+    swaps?.observe(root, {childList: true, subtree: true});
+    return () => {
+      swaps?.disconnect();
+      observer.disconnect();
+    };
   }, [container, selector]);
   return measure;
 }

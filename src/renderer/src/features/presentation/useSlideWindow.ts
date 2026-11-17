@@ -64,10 +64,10 @@ export function useSlideWindow(
   const dragging = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const current = useRef<() => void>(() => undefined);
+  const remeasure = useRef<() => void>(() => undefined);
   useLayoutEffect(() => {
     const viewport = keeper.current?.parentElement;
-    const grid = keeper.current?.querySelector<HTMLElement>('[role="listbox"]');
-    if (!viewport || !grid) return;
+    if (!viewport) return;
     const scroll = (): void => setScrollTop(viewport.scrollTop);
     const defer = (): void => {
       pausedUntil.current = Date.now() + 1500;
@@ -92,17 +92,29 @@ export function useSlideWindow(
       }
     };
     const read = (): void => {
-      const css = getComputedStyle(grid);
+      // NOTE(0913vision): the buffered grid element changes per item; read the current one.
+      const grid =
+        keeper.current?.querySelector<HTMLElement>('[role="listbox"]') ?? null;
+      const css = grid === null ? null : getComputedStyle(grid);
       const px = (name: string): number =>
-        parseFloat(css.getPropertyValue(name)) || 0;
-      setMeasure({
+        parseFloat(css?.getPropertyValue(name) ?? '') || 0;
+      const next = {
         height: viewport.clientHeight,
         inset: px('padding-top'),
         band: px('--size-control-xs') + px('--space-6'),
         rowGap: px('row-gap'),
-      });
+      };
+      setMeasure(last =>
+        last.height === next.height &&
+        last.inset === next.inset &&
+        last.band === next.band &&
+        last.rowGap === next.rowGap
+          ? last
+          : next,
+      );
       scroll();
     };
+    remeasure.current = read;
     const observer =
       typeof ResizeObserver === 'undefined'
         ? undefined
@@ -124,8 +136,11 @@ export function useSlideWindow(
       window.removeEventListener('pointerup', up);
       window.removeEventListener('pointercancel', up);
       if (timer.current !== undefined) clearTimeout(timer.current);
+      remeasure.current = () => undefined;
     };
   }, [keeper]);
+  // NOTE(0913vision): a grid that mounts after the panel (or per item) is read once it is there.
+  useLayoutEffect(() => remeasure.current(), [itemId, count, tileWidth]);
   const tracks =
     tileWidth > 0
       ? Math.max(1, Math.floor((width + gap) / (tileWidth + gap)))
