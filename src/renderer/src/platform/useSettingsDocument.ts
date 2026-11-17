@@ -126,7 +126,5 @@ export function useApiSettingsDocument<TName extends SettingsName>({
       stop();
     };
   }, [name, title, request, api, readiness]);
-  return loaded?.request === request
-    ? loaded.document
-    : recalled(api, name);
+  return loaded?.request === request ? loaded.document : recalled(api, name);
 }
