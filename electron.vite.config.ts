@@ -47,6 +47,14 @@ export default defineConfig({
           ]) {
             copyFileSync(resolve('src/main/ndi', file), resolve(target, file));
           }
+          const presenter = resolve(mainOutputDir, 'presenter');
+          mkdirSync(presenter, {recursive: true});
+          for (const file of ['presenter-utility.cjs', 'd3dPresenter.cjs']) {
+            copyFileSync(
+              resolve('src/main/presenter', file),
+              resolve(presenter, file),
+            );
+          }
         },
       },
     ],

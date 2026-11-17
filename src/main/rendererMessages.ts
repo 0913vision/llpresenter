@@ -1,8 +1,10 @@
 import {
   parseFrameRateReport,
   parseOutputHealthReport,
+  parsePresenterTransition,
   parseRendererLogEntry,
   type FrameRateReport,
+  type PresenterTransition,
 } from '@core/schema/ipcPayloads';
 import {
   parseOutputRetryRequest,
@@ -137,6 +139,21 @@ function handleScreenRequest({
       return;
     }
     act(parsed.value.screenId);
+  };
+}
+
+/** Passes a slide transition for an output's presenter on. A malformed one is dropped and reported. */
+export function handlePresenterTransition(
+  receive: (report: PresenterTransition) => void,
+  log: Logger,
+): MessageHandler {
+  return value => {
+    const parsed = parsePresenterTransition(value);
+    if (!parsed.ok) {
+      log.warn('dropped a malformed presenter transition', parsed.error);
+      return;
+    }
+    receive(parsed.value);
   };
 }
 

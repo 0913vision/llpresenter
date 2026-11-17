@@ -1,6 +1,7 @@
 import * as v from 'valibot';
 import type {Result} from '../common/result';
 import {parsePayload, payloadObject, type PayloadError} from './payload';
+import {slideTransitionSchema} from './slideTransition';
 
 /** The highest frame rate a window may report. */
 export const FRAME_RATE_MAX = 240;
@@ -33,6 +34,22 @@ const frameRateReportSchema = payloadObject({
     v.maxValue(FRAME_RATE_MAX),
   ),
 });
+
+const presenterTransitionSchema = payloadObject({
+  screenId: v.pipe(v.string(), v.nonEmpty(), v.maxLength(200)),
+  transition: slideTransitionSchema,
+});
+
+/** A slide transition an output page hands to the presenter of its monitor. */
+export type PresenterTransition = Readonly<
+  v.InferOutput<typeof presenterTransitionSchema>
+>;
+
+export function parsePresenterTransition(
+  value: unknown,
+): Result<PresenterTransition, PayloadError> {
+  return parsePayload(presenterTransitionSchema, value);
+}
 
 const outputHealthReportSchema = payloadObject({
   screenId: v.pipe(v.string(), v.nonEmpty(), v.maxLength(200)),

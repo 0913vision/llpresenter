@@ -1,5 +1,9 @@
 import {afterEach, describe, expect, it, vi} from 'vitest';
-import {SlideAnimation, wipeMask} from '@renderer/rendering/slideAnimation';
+import {
+  handSlideTransitionsTo,
+  SlideAnimation,
+  wipeMask,
+} from '@renderer/rendering/slideAnimation';
 
 afterEach(() => vi.restoreAllMocks());
 
@@ -272,5 +276,43 @@ describe('SlideAnimation', () => {
     expect(old.style.opacity).toBe('0');
     view.cancel();
     expect(cancel).toHaveBeenCalledTimes(4);
+  });
+});
+
+describe('SlideAnimation with a presenter', () => {
+  afterEach(() => handSlideTransitionsTo(null));
+
+  it('hands a slide transition to the presenter and cuts to the new slide', () => {
+    const {old, next, animate, view} = setup();
+    const handoff = vi.fn();
+    handSlideTransitionsTo(handoff);
+    view.play(old, next, {kind: 'wipe', dir: 'left', sec: 4});
+    expect(handoff).toHaveBeenCalledWith({kind: 'wipe', dir: 'left', sec: 4});
+    expect(animate).not.toHaveBeenCalled();
+    expect(old.style.opacity).toBe('0');
+    expect(next.style.opacity).toBe('1');
+    expect(view.finished()).toBeNull();
+  });
+
+  it('keeps the old slide until a prepared transition starts', () => {
+    const {old, next, animate, view} = setup();
+    const handoff = vi.fn();
+    handSlideTransitionsTo(handoff);
+    view.prepare(old, next, {kind: 'dissolve', sec: 1});
+    expect(handoff).not.toHaveBeenCalled();
+    expect(old.style.opacity).toBe('1');
+    expect(next.style.opacity).toBe('0');
+    view.start();
+    expect(handoff).toHaveBeenCalledWith({kind: 'dissolve', sec: 1});
+    expect(next.style.opacity).toBe('1');
+    expect(animate).not.toHaveBeenCalled();
+  });
+
+  it('keeps a cut a cut', () => {
+    const {old, next, view} = setup();
+    const handoff = vi.fn();
+    handSlideTransitionsTo(handoff);
+    view.play(old, next, {kind: 'none', sec: 0.5});
+    expect(handoff).not.toHaveBeenCalled();
   });
 });
