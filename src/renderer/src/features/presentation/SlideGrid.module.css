@@ -55,7 +55,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 30px;
+  height: var(--size-row);
   border-bottom: 1px solid var(--border);
   color: var(--text-muted);
   font: var(--type-label);
@@ -64,7 +64,9 @@
 .continuousHeading {
   display: flex;
   align-items: center;
-  height: 37px;
+  height: calc(
+    var(--size-control-xs) + var(--space-10) + var(--space-group-label-bottom)
+  );
   padding: var(--space-10) 0 var(--space-group-label-bottom);
   color: var(--text-3);
   font: var(--type-caption-strong);
