@@ -70,6 +70,7 @@ const CreateWindowExW = user32.func('CreateWindowExW', 'void *', [
   'void *',
 ]);
 const DestroyWindow = user32.func('DestroyWindow', 'int', ['void *']);
+const LoadCursorW = user32.func('LoadCursorW', 'void *', ['void *', 'uintptr']);
 const ShowWindow = user32.func('ShowWindow', 'int', ['void *', 'int']);
 const SetWindowPos = user32.func('SetWindowPos', 'int', [
   'void *',
@@ -138,6 +139,7 @@ const D3DCompile = compiler.func('D3DCompile', 'int32', [
   outPtr,
 ]);
 
+const IDC_ARROW = 32512;
 const WS_POPUP = 0x80000000;
 const WS_EX_TOPMOST = 0x8;
 const WS_EX_TOOLWINDOW = 0x80;
@@ -294,7 +296,7 @@ function createPresenter({x, y, width, height, hz, topmost}) {
       cbWndExtra: 0,
       hInstance: instance,
       hIcon: null,
-      hCursor: null,
+      hCursor: LoadCursorW(null, IDC_ARROW),
       hbrBackground: null,
       lpszMenuName: null,
       lpszClassName: 'LoveLightOutput',
