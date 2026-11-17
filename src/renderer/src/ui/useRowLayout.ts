@@ -127,6 +127,29 @@ function writeRows(
 }
 
 /** Resizes adjacent flexible rows, retaining fixed controls and panel minimums. */
+function clearRows(parent: HTMLElement, rows: readonly Row[]): void {
+  parent.style.removeProperty('grid-template-rows');
+  rows.forEach(({element}) => {
+    element.style.removeProperty('flex');
+    element.style.removeProperty('height');
+    element.style.removeProperty('max-height');
+  });
+}
+
+function rowElements(parent: HTMLElement): HTMLElement[] {
+  return Array.from(parent.children).filter(
+    (element): element is HTMLElement =>
+      element instanceof HTMLElement &&
+      element.dataset['resizePanel'] !== undefined,
+  );
+}
+
+interface AppliedRows {
+  readonly parent: HTMLElement;
+  readonly rows: readonly Row[];
+  readonly deps: readonly unknown[];
+}
+
 export function useRowLayout({
   container,
   store,
@@ -149,11 +172,29 @@ export function useRowLayout({
   const begin = useRef<(index: number) => ResizeSession | undefined>(
     () => undefined,
   );
+  const applied = useRef<AppliedRows | null>(null);
   useLayoutEffect(() => {
     const parent = container.current;
+    const deps = [parent, store, sizeClass, layoutKey, fill, enabled];
+    // NOTE(0913vision): Rows shown again (진행 stays built while another
+    // workspace shows) keep their heights; the resize observer checks them in
+    // the first frame, before it paints, so showing them reads no layout
+    // first. Rows of another layout start again from their own sizes.
+    const last = applied.current;
+    const elements = parent ? rowElements(parent) : [];
+    const shownAgain =
+      last !== null &&
+      last.deps.every((value, index) => value === deps[index]) &&
+      last.rows.length === elements.length &&
+      last.rows.every((row, index) => row.element === elements[index]);
+    if (last !== null && !shownAgain) {
+      clearRows(last.parent, last.rows);
+      applied.current = null;
+    }
     if (!parent || !enabled) return undefined;
-    const rows = readRows(parent);
+    const rows = shownAgain ? last.rows : readRows(parent);
     if (rows.length < 2) return undefined;
+    applied.current = {parent, rows, deps};
     const lifetime: DragLifetime = {active: false, alive: true};
     const updateMovable = (): void => {
       const next = rows.slice(0, -1).map((_, index) => {
@@ -210,11 +251,11 @@ export function useRowLayout({
       );
       updateMovable();
     };
-    refit();
     const observer =
       typeof ResizeObserver === 'function'
         ? new ResizeObserver(refit)
         : undefined;
+    if (!shownAgain || observer === undefined) refit();
     observer?.observe(parent);
     window.addEventListener('resize', refit);
     begin.current = index =>
@@ -233,12 +274,6 @@ export function useRowLayout({
       begin.current = () => undefined;
       observer?.disconnect();
       window.removeEventListener('resize', refit);
-      parent.style.removeProperty('grid-template-rows');
-      rows.forEach(({element}) => {
-        element.style.removeProperty('flex');
-        element.style.removeProperty('height');
-        element.style.removeProperty('max-height');
-      });
     };
   }, [container, store, sizeClass, layoutKey, fill, enabled]);
   return {

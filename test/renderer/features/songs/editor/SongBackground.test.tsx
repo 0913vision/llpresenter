@@ -3,7 +3,7 @@ import {describe, expect, it, vi} from 'vitest';
 import {createMediaId} from '@core/schema/ids';
 import {parseMediaDocument, type MediaDocument} from '@core/schema/mediaEdit';
 import type {EditResult} from '@core/schema/contentEdit';
-import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
+import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {
   editorSetup,
@@ -104,7 +104,7 @@ describe('song header background connection', () => {
     const imageId = fixture.document.value.items[0]?.id;
     expect(documents.get(first.song.id)?.song.background).toBe(imageId);
     expect(trigger().querySelector('img')?.getAttribute('src')).toBe(
-      imageId === undefined ? undefined : mediaUrl(imageId),
+      imageId === undefined ? undefined : thumbnailSrc(imageId),
     );
     expect(document.activeElement).toBe(trigger());
     expect(trigger().getAttribute('aria-expanded')).toBe('false');
@@ -116,7 +116,7 @@ describe('song header background connection', () => {
     const video = trigger().querySelector('img');
     const videoId = fixture.document.value.items[1]?.id;
     expect(video?.getAttribute('src')).toBe(
-      videoId === undefined ? undefined : thumbnailUrl(videoId),
+      videoId === undefined ? undefined : thumbnailSrc(videoId),
     );
     expect(documents.get(first.song.id)?.song.background).toBe(
       fixture.document.value.items[1]?.id,

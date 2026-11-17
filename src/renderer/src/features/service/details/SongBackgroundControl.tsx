@@ -1,6 +1,6 @@
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useId, useState, type JSX} from 'react';
-import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
+import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import type {MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
 import {useShow} from '@renderer/session/show';
@@ -23,13 +23,7 @@ const ICON_SIZE = 14;
 const CHEVRON_SIZE = 12;
 
 function Picture({media}: {readonly media: MediaItem}): JSX.Element {
-  return (
-    <img
-      className={styles.picture}
-      src={media.kind === 'video' ? thumbnailUrl(media.id) : mediaUrl(media.id)}
-      alt=""
-    />
-  );
+  return <img className={styles.picture} src={thumbnailSrc(media.id)} alt="" />;
 }
 
 function BackgroundWarning({
@@ -168,6 +162,10 @@ export function SongBackgroundControl({
     const row = view.rows.find(row => row.id === view.openItemId);
     return row?.kind === 'song' ? row.problem : undefined;
   });
+  const projected = useShow(view => {
+    const row = view.rows.find(row => row.id === view.openItemId);
+    return row?.kind === 'song' ? row.background?.mediaId : undefined;
+  });
   const {view} = background;
   if (view === null) {
     const pending = background.provisional;
@@ -186,13 +184,25 @@ export function SongBackgroundControl({
       />
     );
   }
+  const read = view.item.background ?? view.song?.song.background;
+  // NOTE(0913vision): The song and item read here catch up with a change made
+  // in 준비 a few frames after 진행 shows again; the service projection is
+  // current, so its background shows from the first frame.
+  const projectedItem =
+    typeof projected === 'string'
+      ? view.media.value.items.find(item => item.id === projected)
+      : undefined;
+  const current =
+    projectedItem !== undefined && problem !== 'missing-background'
+      ? projectedItem.id
+      : read;
   return (
     <SongBackgroundSelect
       key={`${view.serviceId}:${view.item.id}:${view.readOnly}`}
       items={view.media.value.items}
       defaultMediaId={view.song?.song.background}
       selection={{
-        mediaId: view.item.background ?? view.song?.song.background,
+        mediaId: current,
         inherited: view.item.background === undefined,
         missing: problem === 'missing-background',
       }}

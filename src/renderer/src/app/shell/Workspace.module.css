@@ -28,7 +28,16 @@
   gap: 0;
 }
 
-.mediaOpen > .columns {
+/* NOTE(0913vision): The kept 진행 columns and the shown workspace's columns
+   share this one row, so the media border always resizes the same element. */
+.frames {
+  display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+}
+
+.mediaOpen > .frames {
   min-height: var(--workspace-upper-min-height);
 }
 

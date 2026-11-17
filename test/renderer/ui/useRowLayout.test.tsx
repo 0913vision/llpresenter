@@ -120,7 +120,7 @@ describe('useRowLayout', () => {
     h.unmount();
   });
 
-  it('releases observers, inline sizes, and the active session on unmount', () => {
+  it('releases observers and the active session on unmount', () => {
     const h = setup();
     const drag = h.result.current.begin(0);
     if (!drag) throw new Error('Missing drag');
@@ -128,7 +128,7 @@ describe('useRowLayout', () => {
     h.unmount();
     drag.move(50);
     drag.end();
-    expect(h.elements.every(element => element.style.height === '')).toBe(true);
+    expect(h.heights()).toEqual([320, 280]);
     expect(h.store.saveRows).not.toHaveBeenCalled();
   });
 });

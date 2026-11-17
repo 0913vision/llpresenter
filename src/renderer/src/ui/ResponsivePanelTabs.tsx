@@ -1,4 +1,5 @@
 import {useLayoutEffect, useRef, useState, type JSX} from 'react';
+import {flushSync} from 'react-dom';
 import {fitTabIndices} from '@core/common/fitTabs';
 import {
   PanelTabs,
@@ -30,6 +31,7 @@ export function ResponsivePanelTabs<T extends string>({
   const tabMeasure = useRef<HTMLDivElement>(null);
   const moreMeasure = useRef<HTMLSpanElement>(null);
   const [measurements, setMeasurements] = useState<Measurements | null>(null);
+  const measuredTabs = useRef<typeof tabs | null>(null);
   useLayoutEffect(() => {
     const container = host.current;
     const row = tabMeasure.current;
@@ -54,10 +56,20 @@ export function ResponsivePanelTabs<T extends string>({
           ? previous
           : next,
       );
+      measuredTabs.current = tabs;
     };
-    measure();
+    // NOTE(0913vision): Tabs shown again keep their widths; the first resize
+    // observation checks them in the frame, before it paints, so showing the
+    // panel reads no layout first.
+    const shownAgain = measuredTabs.current === tabs;
+    if (!shownAgain || typeof ResizeObserver === 'undefined') measure();
     if (typeof ResizeObserver === 'undefined') return;
-    const observer = new ResizeObserver(measure);
+    let first = shownAgain;
+    const observer = new ResizeObserver(() => {
+      if (first) flushSync(measure);
+      else measure();
+      first = false;
+    });
     observer.observe(container);
     observer.observe(row);
     observer.observe(more);

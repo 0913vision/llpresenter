@@ -20,9 +20,6 @@
   font: var(--type-toolbar-label);
   white-space: nowrap;
   user-select: none;
-  transition:
-    background-color var(--motion-hover),
-    color var(--motion-hover);
 }
 
 .iconSlot {
@@ -42,12 +39,17 @@
   text-overflow: ellipsis;
 }
 
+/* NOTE(0913vision): Only hover and press fade. A tab's selection and an
+   output's state show at once, in the frame of the click, both on the button
+   that takes them and on the one that loses them. */
 .button:not([aria-disabled='true'], [aria-selected='true']):hover {
   background: var(--bg-toolbar-hover);
+  transition: background-color var(--motion-hover);
 }
 
 .button:not([aria-disabled='true']):is(:active, [aria-expanded='true']) {
   background: var(--bg-raised);
+  transition: background-color var(--motion-hover);
 }
 
 .tab {
