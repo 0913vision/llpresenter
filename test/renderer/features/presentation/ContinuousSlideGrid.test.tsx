@@ -52,6 +52,7 @@ beforeEach(() => {
       {id: 'one', kind: 'song', title: 'First'},
       {id: 'header', kind: 'header', title: 'Section'},
       {id: 'two', kind: 'song', title: 'Second'},
+      {id: 'empty', kind: 'song', title: 'Empty'},
     ],
     tiles: {
       one: [{label: null, labelColor: 'none', lines: ['First slide']}],
@@ -82,7 +83,10 @@ it('windows ordered item bands, scrolls to a requested item, and outputs its til
   viewport.scrollTo = vi.fn();
   act(() => Observer.all.forEach(observer => observer.report()));
   expect(screen.getByText('First')).toBeTruthy();
-  expect(screen.getByText('Section')).toBeTruthy();
+  const heading = screen.getByRole('heading', {name: 'Section'});
+  expect(heading.textContent).toBe('Section');
+  expect(screen.getByText('Empty').parentElement?.textContent).toBe('Empty');
+  expect(screen.getByText('Second').parentElement?.textContent).toBe('Second1');
   expect(screen.getByText('Second')).toBeTruthy();
   expect(screen.getAllByRole('option')).toHaveLength(2);
   act(() => {

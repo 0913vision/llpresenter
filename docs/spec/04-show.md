@@ -332,8 +332,9 @@ source was found.
 
 The independent `show.continuousGrid` preference is off by default. When on, the
 show grid displays the service in order in one windowed grid. Each item starts
-on a new row with a band naming it and giving its slide count; headers and items
-without slides still have a band. Slide numbers remain service-wide. Selecting
+on a new row with a band naming it and giving its slide count. Service section
+headers use the order list's heading style without a count, and items without
+slides have a band without a count. Slide numbers remain service-wide. Selecting
 an order item smoothly scrolls to its band; the order selection follows the band
 at the top. Clicking a tile outputs it. When off, the grid shows only the open
 item. The grid smoothly follows the live tile when it leaves the middle of the

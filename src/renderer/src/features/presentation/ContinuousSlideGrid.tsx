@@ -33,6 +33,7 @@ import {ShowSlideEntry} from './showPanelNavigation';
 import styles from './SlideGrid.module.css';
 
 const BAND = 30;
+const HEADING = 37;
 const INSET = 14;
 
 interface Section {
@@ -53,7 +54,7 @@ function makeSections(
   for (const row of view.rows) {
     const itemTiles = row.kind === 'header' ? [] : tilesForView(view, row.id);
     const height =
-      BAND +
+      (row.kind === 'header' ? HEADING : BAND) +
       (itemTiles.length
         ? Math.ceil(itemTiles.length / tracks) * stride - rowGap + INSET
         : 0);
@@ -406,10 +407,22 @@ export function ContinuousSlideGrid({
               className={styles.continuousSection}
               style={{top: section.top, height: section.height}}
             >
-              <div className={styles.continuousBand}>
-                <span>{section.row.title}</span>
-                <span>{section.tiles.length}</span>
-              </div>
+              {section.row.kind === 'header' ? (
+                <div
+                  role="heading"
+                  aria-level={3}
+                  className={styles.continuousHeading}
+                >
+                  {section.row.title}
+                </div>
+              ) : (
+                <div className={styles.continuousBand}>
+                  <span>{section.row.title}</span>
+                  {section.tiles.length > 0 ? (
+                    <span>{section.tiles.length}</span>
+                  ) : null}
+                </div>
+              )}
               {end > start ? (
                 <div
                   style={{
