@@ -109,7 +109,17 @@ it('reveals without a font set and ignores a frame after unmount', () => {
   }
 });
 
-it('shows a parked picture at once and replaces it with a fresh drawing', () => {
+function keptLayers(line: string) {
+  return {
+    ...emptyLayers(),
+    slide: {itemId: 'kept', position: 0, label: null, lines: [line]},
+  };
+}
+
+function captureFrames(): {
+  readonly next: () => void;
+  readonly restore: () => void;
+} {
   let callback: FrameRequestCallback | undefined;
   const request = vi
     .spyOn(window, 'requestAnimationFrame')
@@ -117,14 +127,15 @@ it('shows a parked picture at once and replaces it with a fresh drawing', () => 
       callback = fn;
       return 1;
     });
+  return {next: () => actFrame(callback), restore: () => request.mockRestore()};
+}
+
+it('reuses a parked picture without drawing again when everything it read is unchanged', () => {
+  const frames = captureFrames();
   try {
-    const shown = props();
-    const layers = {
-      ...shown.layers,
-      slide: {itemId: 'kept', position: 0, label: null, lines: ['Kept']},
-    };
-    const first = render(<OutputPreviewPicture {...shown} layers={layers} />);
-    actFrame(callback);
+    const layers = keptLayers('Unchanged');
+    const first = render(<OutputPreviewPicture {...props()} layers={layers} />);
+    frames.next();
     first.unmount();
     renderOutput.mockClear();
     disposeOutput.mockClear();
@@ -132,17 +143,36 @@ it('shows a parked picture at once and replaces it with a fresh drawing', () => 
     expect(
       again.container.querySelector('[data-preview-ready="true"]'),
     ).not.toBeNull();
-    expect(renderOutput).toHaveBeenCalledOnce();
+    expect(renderOutput).not.toHaveBeenCalled();
     expect(disposeOutput).not.toHaveBeenCalled();
-    actFrame(callback);
-    expect(disposeOutput).toHaveBeenCalledOnce();
     again.unmount();
-    disposeOutput.mockClear();
-    const third = render(<OutputPreviewPicture {...props()} layers={layers} />);
-    third.unmount();
-    expect(disposeOutput).toHaveBeenCalledTimes(2);
   } finally {
-    request.mockRestore();
+    frames.restore();
+  }
+});
+
+it('draws anew when the font set changed while the picture was parked', () => {
+  const frames = captureFrames();
+  const fonts = Object.getOwnPropertyDescriptor(document, 'fonts');
+  try {
+    const layers = keptLayers('New fonts');
+    const first = render(<OutputPreviewPicture {...props()} layers={layers} />);
+    frames.next();
+    first.unmount();
+    Object.defineProperty(document, 'fonts', {
+      configurable: true,
+      value: {size: 99, status: 'loaded'},
+    });
+    renderOutput.mockClear();
+    disposeOutput.mockClear();
+    const again = render(<OutputPreviewPicture {...props()} layers={layers} />);
+    expect(disposeOutput).toHaveBeenCalledOnce();
+    expect(renderOutput).toHaveBeenCalledOnce();
+    again.unmount();
+  } finally {
+    if (fonts === undefined) Reflect.deleteProperty(document, 'fonts');
+    else Object.defineProperty(document, 'fonts', fonts);
+    frames.restore();
   }
 });
 

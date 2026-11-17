@@ -13,7 +13,7 @@ import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {OutputRenderer} from './outputRenderer';
 import {openPreviewMedia} from './previewMedia';
-import {fontsLoading, previewReady} from './fontsLoading';
+import {fontsLoading, fontsStamp, previewReady} from './fontsLoading';
 import type {RenderScreen, ThemeFrame} from './layer';
 import styles from './OutputPreviewPicture.module.css';
 import {PictureReadiness} from './PictureReadiness';
@@ -31,18 +31,21 @@ interface PictureProps {
 
 interface PictureView {
   readonly key: string;
-  /** Drawn by this tile for its current props, not taken from the park. */
-  readonly checked: boolean;
   readonly host: HTMLDivElement;
   readonly renderer: OutputRenderer;
+  /** What the drawing read beyond its key: media records and the font set. */
+  readonly inputs: () => string;
+  /** The inputs when the view was parked. */
+  stamp: string;
   readonly dispose: () => void;
 }
 
-// NOTE(0913vision): about two 진행 grids of tiles. A tile that mounts again with
-// the same picture key shows the parked view in its first frame, then always
-// draws again behind it and swaps, so anything the key misses (a media file's
-// fit, a font that arrived) is corrected within one drawing. Only views that
-// finished drawing for their own props are parked.
+// NOTE(0913vision): about two 진행 grids of tiles. A tile that mounts again
+// takes a parked view only when its key and every other input the drawing read
+// (the media records it asked for, the font set) are unchanged, so the parked
+// picture is exactly what a new drawing would show and nothing is drawn again;
+// otherwise the view is dropped and the tile draws anew. Only finished views
+// are parked.
 const PARKED_PICTURES = 160;
 const parked = new PicturePark<PictureView>(PARKED_PICTURES);
 
@@ -101,21 +104,23 @@ export const OutputPreviewPicture = memo(
       const container = parent.current;
       if (container === null) return;
       const key = pictureKey({layers, appearance});
-      if (front.current?.key === key && front.current.checked) {
+      if (front.current?.key === key) {
         container.dataset['previewReady'] = 'true';
         return;
       }
       if (front.current === null) {
         const kept = parked.take(key);
-        if (kept !== undefined) {
+        if (kept !== undefined && kept.stamp === kept.inputs()) {
           container.append(kept.host);
-          front.current = {...kept, checked: false};
+          front.current = kept;
+          container.dataset['previewReady'] = 'true';
           onReady?.(source.current);
+          return;
         }
+        kept?.dispose();
       }
-      const shown = front.current?.key === key;
-      container.dataset['previewReady'] = shown ? 'true' : 'false';
       if (!near && onReady === null) return;
+      container.dataset['previewReady'] = 'false';
       const host = document.createElement('div');
       Object.assign(host.style, {
         position: 'absolute',
@@ -128,19 +133,34 @@ export const OutputPreviewPicture = memo(
       });
       container.append(host);
       const media = openPreviewMedia(window.llp);
+      const asked = new Set<string>();
       const renderer = new OutputRenderer(host, {
         transparent: appearance.screen.method === 'ndi',
         textStyle: DEFAULT_TEXT_STYLE,
         mediaUrl,
-        previewMedia: media,
+        previewMedia:
+          media === undefined
+            ? undefined
+            : {
+                url: id => {
+                  asked.add(id);
+                  return media.url(id);
+                },
+                remaining: layer => media.remaining(layer),
+              },
         mode: 'preview',
         onError: (message, error) => console.error(message, error),
       });
       const view: PictureView = {
         key,
-        checked: true,
         host,
         renderer,
+        inputs: () =>
+          JSON.stringify([
+            fontsStamp(document.fonts),
+            media?.describe([...asked].sort()) ?? '',
+          ]),
+        stamp: '',
         dispose: () => {
           renderer.dispose();
           media?.dispose();
@@ -189,7 +209,8 @@ export const OutputPreviewPicture = memo(
         front.current = null;
         if (view === null) return;
         view.host.remove();
-        if (view.checked && previewReady(view.renderer)) {
+        if (previewReady(view.renderer) && !fontsLoading(document.fonts)) {
+          view.stamp = view.inputs();
           parked.park(view.key, view);
         } else {
           view.dispose();

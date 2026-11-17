@@ -15,8 +15,11 @@ export type NamedDocument<TName extends SettingsName> = Extract<
 
 type SettingsApi = Pick<LlpApi, 'settings'> & Partial<Pick<LlpApi, 'log'>>;
 
-// NOTE(0913vision): the newest document each window has seen, so a panel that
-// mounts again (진행 after 준비) draws with it at once while it reads again.
+// NOTE(0913vision): the newest document each window has seen, kept only while
+// at least one panel follows it. When the last follower leaves, the entry goes,
+// since nothing would hear a later change; so a remembered document is always
+// the current one, and a panel that mounts again (진행 after 준비) draws with
+// it at once.
 const seen = new WeakMap<SettingsApi, Map<SettingsName, SettingsDocument>>();
 
 function remember(api: SettingsApi, document: SettingsDocument): void {
@@ -26,6 +29,23 @@ function remember(api: SettingsApi, document: SettingsDocument): void {
   if (known === undefined || known.revision <= document.revision) {
     documents.set(document.name, document);
   }
+}
+
+const followers = new WeakMap<SettingsApi, Map<SettingsName, number>>();
+
+function follow(api: SettingsApi, name: SettingsName): () => void {
+  const counts = followers.get(api) ?? new Map<SettingsName, number>();
+  followers.set(api, counts);
+  counts.set(name, (counts.get(name) ?? 0) + 1);
+  return () => {
+    const left = (counts.get(name) ?? 1) - 1;
+    if (left > 0) {
+      counts.set(name, left);
+      return;
+    }
+    counts.delete(name);
+    seen.get(api)?.delete(name);
+  };
 }
 
 function recalled<TName extends SettingsName>(
@@ -97,6 +117,7 @@ export function useApiSettingsDocument<TName extends SettingsName>({
       ready?.();
     };
     const stop = api.settings.subscribe(accept);
+    const unfollow = follow(api, name);
     const fail = (cause: unknown): void => {
       ready?.();
       api.log?.write({
@@ -124,6 +145,7 @@ export function useApiSettingsDocument<TName extends SettingsName>({
       active = false;
       ready?.();
       stop();
+      unfollow();
     };
   }, [name, title, request, api, readiness]);
   return loaded?.request === request ? loaded.document : recalled(api, name);

@@ -11,6 +11,7 @@ import {useLive} from '@renderer/session/live';
 import {showLarge, usePreview} from '@renderer/session/preview';
 import {openItem, selectTile, useShow} from '@renderer/session/show';
 import {PreviewPanel} from '@renderer/features/presentation/PreviewPanel';
+import {releaseKeptDrawings} from '@renderer/rendering/keptDrawings';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {renderWithScreenSummaries as render} from '@fixtures/renderer/platform/screenSummaries';
 import {ScreenSummariesContext} from '@renderer/platform/ScreenSummaries';
@@ -315,22 +316,30 @@ describe('PreviewPanel pictures', () => {
     }
   });
 
-  it('disposes every renderer when the panel unmounts', () => {
+  it('keeps each screen drawing after the panel unmounts until it is released', () => {
     setLayers({}, allOn);
     const {unmount} = render(<PreviewPanel />);
     unmount();
+    for (const instance of created()) {
+      expect(instance.dispose).not.toHaveBeenCalled();
+    }
+    releaseKeptDrawings();
     for (const instance of created()) {
       expect(instance.dispose).toHaveBeenCalledTimes(1);
     }
   });
 
-  it('stops drawing after it unmounts', () => {
+  it('follows the live state after it unmounts and stops once released', () => {
     setLayers({}, allOn);
     const {unmount} = render(<PreviewPanel />);
     unmount();
     const before = drawCounts();
     act(() => setLayers({slide}, allOn));
-    expect(drawCounts()).toEqual(before);
+    expect(drawCounts()).not.toEqual(before);
+    releaseKeptDrawings();
+    const released = drawCounts();
+    act(() => setLayers({}, allOn));
+    expect(drawCounts()).toEqual(released);
   });
 
   it('sends a drawing error to the main log', () => {

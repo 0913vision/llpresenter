@@ -19,6 +19,7 @@ import type {MediaProgress} from '@core/schema/mediaProgress';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {BACKGROUND_DISSOLVE_MS} from '@renderer/rendering/backgroundLayer';
 import {classes} from '@renderer/rendering/classes';
+import {releaseKeptDrawings} from '@renderer/rendering/keptDrawings';
 import {useLive} from '@renderer/session/live';
 import {usePreview} from '@renderer/session/preview';
 import {PreviewPanel} from '@renderer/features/presentation/PreviewPanel';
@@ -182,6 +183,7 @@ describe('PreviewPanel real renderer lifecycle', () => {
     expect(container.querySelector('video')).toBeNull();
     expect(HTMLMediaElement.prototype.play).not.toHaveBeenCalled();
     unmount();
+    releaseKeptDrawings();
     expect(vi.getTimerCount()).toBe(0);
   });
 
@@ -263,6 +265,7 @@ describe('PreviewPanel real renderer lifecycle', () => {
     expect(window.llp?.live.send).not.toHaveBeenCalled();
 
     unmount();
+    releaseKeptDrawings();
     expect(pictures.every(image => !image.hasAttribute('src'))).toBe(true);
     expect(pictures.every(image => !image.isConnected)).toBe(true);
     expect(HTMLMediaElement.prototype.pause).not.toHaveBeenCalled();
