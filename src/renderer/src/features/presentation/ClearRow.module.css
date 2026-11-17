@@ -22,15 +22,18 @@
   background: var(--bg-control);
   color: var(--text);
   cursor: pointer;
-  transition: background var(--motion-hover);
 }
 
+/* NOTE(0913vision): Only hover and press fade; a state change (selected,
+   live, on, last run) shows at once, both where it starts and where it ends. */
 .button:hover {
   background: var(--bg-control-hover);
+  transition: background var(--motion-hover);
 }
 
 .button[aria-pressed='true'] {
   background: var(--bg-control-hover);
+  transition: none;
 }
 
 .button:focus-visible {
@@ -42,6 +45,7 @@
   background: var(--bg-control-off);
   color: var(--text-off);
   cursor: default;
+  transition: none;
 }
 
 .standby {

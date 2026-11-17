@@ -63,17 +63,18 @@
   text-align: center;
   vertical-align: var(--space-focus-preview-cell);
   cursor: pointer;
-  transition:
-    background var(--motion-hover),
-    opacity var(--motion-hover);
 }
+/* NOTE(0913vision): Only hover and press fade; a state change (selected,
+   live, on, last run) shows at once, both where it starts and where it ends. */
 .hint:hover:not(:disabled) {
   background: var(--bg-control-hover);
   color: var(--text);
+  transition: background var(--motion-hover);
 }
 .hint[aria-pressed='true'] {
   background: var(--accent-fill);
   color: var(--text-on-fill);
+  transition: none;
 }
 .hint[aria-pressed='true']:hover:not(:disabled) {
   background: var(--accent-fill-hover);

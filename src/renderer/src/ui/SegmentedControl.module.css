@@ -33,9 +33,6 @@
   font: var(--type-label);
   white-space: nowrap;
   user-select: none;
-  transition:
-    background-color var(--motion-hover),
-    color var(--motion-hover);
 }
 
 .fill .segment {
@@ -77,6 +74,9 @@
   ):hover {
   background: var(--bg-raised);
   color: var(--text-2);
+  transition:
+    background-color var(--motion-hover),
+    color var(--motion-hover);
 }
 
 .segment:not(
@@ -87,6 +87,9 @@
   ):active {
   background: var(--bg-control-hover);
   color: var(--text-2);
+  transition:
+    background-color var(--motion-hover),
+    color var(--motion-hover);
 }
 
 .segment:is(

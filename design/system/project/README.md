@@ -247,7 +247,10 @@ replaced by a system font.
   focuses as usual.
 - Hover and pressed backgrounds change over 100ms ease-out (`--motion-hover`),
   menus and tooltips fade over 120ms (`--motion-popover`), and dialogs fade over
-  160ms (`--motion-dialog`). There is no other motion.
+  160ms (`--motion-dialog`). There is no other motion. A state change (selected,
+  live, on or off, last run) shows at once, in the frame of the click or key, on
+  the control that takes it and on the one that loses it; so does the end of a
+  hover. The fade is declared in the hover and pressed rules only.
 - One rule for every modal surface (`Dialog`, `AlertDialog`): the scrim fades
   its backdrop and the surface fades in and scales from 0.97 to 1 over
   `--motion-dialog`, once, not nested. A modal closes at once, with no motion,
