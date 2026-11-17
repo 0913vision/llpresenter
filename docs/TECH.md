@@ -59,10 +59,12 @@ Main process
   Recovery record (writes the live output state to disk at short intervals)
 Control window (renderer): 진행, 준비, 화면 설정
 Output windows (renderer): 청중 화면, 무대 화면, 방송 화면 capture window, each
-  separate
+  separate. On Windows a full screen output draws its page offscreen and a
+  presenter shows it (see Performance)
 Media analysis window (hidden renderer, on demand): video and audio duration,
   playability, and video thumbnails, with the same Chromium decoder as output
-Utility process (utilityProcess): import conversion, NDI sending
+Utility process (utilityProcess): import conversion, NDI sending, output
+  presenters
 ```
 
 - The control window and the output windows don't change the live output state.
@@ -245,6 +247,13 @@ A pull request is approved only when it meets everything below
   and record it).
 - Output windows must hold 60 fps. If the fps in the status bar drops, find the
   cause.
+- A full screen output shows each frame at its own monitor's refresh. Chromium
+  paces every window by the primary display on Windows, so a full screen output
+  draws its page offscreen and a presenter (a utility process with its own
+  Direct3D 11 flip swap chain on that monitor) presents the frames and blends
+  slide transitions (wipe, push, dissolve) one step per vblank, like
+  PowerPoint's slide show. Window and capture placements, and any presenter
+  failure, use the ordinary output window.
 - Don't read or write files synchronously in the main process (except reading
   settings at startup).
 - The control window re-renders only what's needed. Select only the values you

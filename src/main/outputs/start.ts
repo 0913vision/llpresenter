@@ -17,6 +17,7 @@ import type {WindowMode} from '../windows/testWindows';
 import {
   handleFrameRate,
   handleOutputHealth,
+  handlePresenterTransition,
   handleRetryRequest,
   handleShowWindowRequest,
 } from '../rendererMessages';
@@ -24,6 +25,10 @@ import {createSettingsScreenSource} from './settingsScreens';
 import {createDefaultScreenSource} from './defaultScreens';
 import {createElectronWakeLock} from './electronWakeLock';
 import {createElectronOutputWindow} from './electronWindow';
+import {
+  createPresentedOutputWindow,
+  presentTransition,
+} from './presentedWindow';
 import {FrameRateTracker, type ScreenFrameRate} from './frameRates';
 import {OutputManager} from './manager';
 import {MonitorNumbers} from './monitorNumbers';
@@ -54,6 +59,11 @@ export interface OutputContext {
   readonly log: Logger;
   /** `offscreen` keeps the output windows off the screen (UI tests). */
   readonly windowMode: WindowMode;
+  /**
+   * Shows full screen outputs through a presenter at their monitor's own
+   * refresh, on Windows in the normal window mode.
+   */
+  readonly presenter?: boolean;
 }
 
 interface StatusPublishing {
@@ -161,6 +171,7 @@ export function startOutputs({
   control,
   log,
   windowMode,
+  presenter = false,
 }: OutputContext): RunningOutputs {
   let stopped = false;
   const displays = new DisplayRegistry(createElectronDisplaySource(log), log);
@@ -183,13 +194,35 @@ export function startOutputs({
     screenStates: () => outputs.screenStates(),
     frameRate: screenId => frameRates.current(screenId),
   });
-  const makeWindowTarget = (screen: OutputScreen, events: OutputWindowEvents) =>
+  const makeElectronWindow = (
+    screen: OutputScreen,
+    events: OutputWindowEvents,
+  ) =>
     createElectronOutputWindow(screen, events, {
       ...(playbackProblems === undefined ? {} : {playbackProblems}),
       log,
       mode: windowMode,
       control,
     });
+  // NOTE(0913vision): Full screen outputs show through a presenter at their
+  // monitor's own refresh on Windows; test windows stay offscreen Electron
+  // windows so nothing appears on screen.
+  const presented =
+    presenter &&
+    process.platform === 'win32' &&
+    windowMode === 'normal' &&
+    process.env['LLP_NO_PRESENTER'] !== '1';
+  const makeWindowTarget = (
+    screen: OutputScreen,
+    events: OutputWindowEvents,
+  ) =>
+    presented
+      ? createPresentedOutputWindow(screen, events, {
+          log,
+          ...(playbackProblems === undefined ? {} : {playbackProblems}),
+          window: () => makeElectronWindow(screen, events),
+        })
+      : makeElectronWindow(screen, events);
   const targetRegistry = {
     fullscreen: makeWindowTarget,
     window: makeWindowTarget,
@@ -269,6 +302,13 @@ export function startOutputs({
         outputs.frameReported(screenId);
         board.refresh();
       }, log),
+    ),
+    listenToWindows(
+      outputEndpoints.presenterTransition.channel,
+      handlePresenterTransition(
+        ({screenId, transition}) => presentTransition(screenId, transition),
+        log,
+      ),
     ),
     listenToWindows(
       outputEndpoints.frameRate.channel,

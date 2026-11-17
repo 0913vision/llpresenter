@@ -9,10 +9,12 @@ import {
   parseOutputHealthReport,
   parseFrameReadyReply,
   parseFrameReadyReport,
+  parsePresenterTransition,
   parseRendererLogEntry,
   type FrameRateReport,
   type OutputHealthReport,
   type FrameReadyReport,
+  type PresenterTransition,
   type RendererLogEntry,
 } from '@core/schema/ipcPayloads';
 import {parseMonitorList, type MonitorList} from '@core/schema/monitors';
@@ -55,6 +57,10 @@ export const outputEndpoints = {
   frameRate: message<FrameRateReport>(
     'output:frame-rate',
     parseFrameRateReport,
+  ),
+  presenterTransition: message<PresenterTransition>(
+    'output:presenter-transition',
+    parsePresenterTransition,
   ),
   frameReady: request<FrameReadyReport, boolean>('output:frame-ready', {
     request: parseFrameReadyReport,
@@ -101,6 +107,11 @@ export function outputApi(port: IpcPort) {
     reportHealth: port.message(outputEndpoints.health),
     /** Reports a drawn frame; false when main did not take it. */
     reportReady: port.request(outputEndpoints.frameReady),
+    /**
+     * Hands a slide transition to the presenter that shows this output on its
+     * monitor; the page cuts to the new slide right after it.
+     */
+    presentTransition: port.message(outputEndpoints.presenterTransition),
     /**
      * Reads the status of every screen's output once. Rejects, after logging,
      * when the call fails or the answer is malformed.

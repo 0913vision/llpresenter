@@ -495,6 +495,7 @@ function start(): void {
           control: owner,
           log,
           windowMode,
+          presenter: true,
         });
       let outputs = makeOutputs(win);
       graphicsRecovery = new GraphicsRecovery(

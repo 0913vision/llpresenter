@@ -18,6 +18,18 @@ export function wipeMask(direction: string): string {
   return `linear-gradient(to ${direction},${stops.join(',')})`;
 }
 
+let handoff: ((effect: SlideTransition) => void) | null = null;
+
+/**
+ * In an output shown through a presenter, slide transitions are blended there
+ * at the monitor's own refresh; the page hands each one over and cuts.
+ */
+export function handSlideTransitionsTo(
+  target: ((effect: SlideTransition) => void) | null,
+): void {
+  handoff = target;
+}
+
 export interface SlideAnimationFrame {
   readonly x: number;
   readonly y: number;
@@ -59,6 +71,11 @@ const WIPE = {
 export class SlideAnimation {
   private animations: Animation[] = [];
   private frame: SlideAnimationFrame | undefined;
+  private handedOff: {
+    old: HTMLElement;
+    next: HTMLElement;
+    effect: SlideTransition;
+  } | null = null;
   private wipe: {
     wrapper: HTMLElement;
     surface: HTMLElement;
@@ -73,8 +90,13 @@ export class SlideAnimation {
     this.frame = frame;
   }
 
-  play(old: HTMLElement, next: HTMLElement, effect: SlideTransition): void {
+  play(old: HTMLElement, next: HTMLElement, requested: SlideTransition): void {
     this.cancel();
+    let effect = requested;
+    if (handoff !== null && requested.kind !== 'none') {
+      handoff(requested);
+      effect = {kind: 'none', sec: requested.sec};
+    }
     old.style.transition = next.style.transition = 'none';
     old.style.opacity =
       effect.kind === 'wipe' || (this.opaque && effect.kind !== 'none')
@@ -193,6 +215,13 @@ export class SlideAnimation {
   }
 
   prepare(old: HTMLElement, next: HTMLElement, effect: SlideTransition): void {
+    if (handoff !== null && effect.kind !== 'none') {
+      this.cancel();
+      old.style.opacity = '1';
+      next.style.opacity = '0';
+      this.handedOff = {old, next, effect};
+      return;
+    }
     this.play(old, next, effect);
     for (const animation of this.animations) {
       animation.pause();
@@ -201,6 +230,12 @@ export class SlideAnimation {
   }
 
   start(): void {
+    const handed = this.handedOff;
+    if (handed !== null) {
+      this.handedOff = null;
+      this.play(handed.old, handed.next, handed.effect);
+      return;
+    }
     for (const animation of this.animations) animation.play();
   }
 
@@ -217,6 +252,7 @@ export class SlideAnimation {
   }
 
   cancel(): void {
+    this.handedOff = null;
     for (const animation of this.animations) animation.cancel();
     this.animations = [];
     if (this.wipe !== null) {
