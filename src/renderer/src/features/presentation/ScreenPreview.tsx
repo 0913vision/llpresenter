@@ -44,6 +44,7 @@ class ScreenDrawing {
   private container: HTMLElement;
   private size = {width: 0, height: 0};
   private holder: HTMLDivElement | null = null;
+  private readonly sizes: ResizeObserver | null;
   private front: View | null = null;
   private pending: View | null = null;
   private animation = 0;
@@ -59,7 +60,18 @@ class ScreenDrawing {
     container: HTMLElement,
   ) {
     this.container = container;
-    this.measure();
+    // NOTE(0913vision): The size is read from layout the browser does anyway,
+    // never asked for while 진행 is being put on the page.
+    this.sizes =
+      typeof ResizeObserver === 'undefined'
+        ? null
+        : new ResizeObserver(entries => {
+            const box = entries.at(-1)?.contentRect;
+            if (box !== undefined && box.width > 0 && box.height > 0) {
+              this.size = {width: box.width, height: box.height};
+            }
+          });
+    this.sizes?.observe(container);
     this.media = openPreviewMedia(api);
     this.frames =
       api === undefined
@@ -88,12 +100,12 @@ class ScreenDrawing {
     }
     this.holder?.remove();
     this.holder = null;
-    this.measure();
+    this.sizes?.observe(container);
   }
 
   detach(): void {
     this.attached = false;
-    this.measure();
+    this.sizes?.disconnect();
     const holder = document.createElement('div');
     holder.setAttribute('aria-hidden', 'true');
     Object.assign(holder.style, {
@@ -118,6 +130,7 @@ class ScreenDrawing {
     this.forget();
     this.stopLive();
     this.stopped = true;
+    this.sizes?.disconnect();
     cancelAnimationFrame(this.animation);
     this.frames?.dispose();
     release(this.pending);
@@ -127,11 +140,6 @@ class ScreenDrawing {
     this.media?.dispose();
     this.holder?.remove();
     this.holder = null;
-  }
-
-  private measure(): void {
-    const {width, height} = this.container.getBoundingClientRect();
-    if (width > 0 && height > 0) this.size = {width, height};
   }
 
   private draw(): void {
