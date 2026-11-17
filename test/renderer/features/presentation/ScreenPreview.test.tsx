@@ -96,3 +96,45 @@ it('keeps the last good preview after a frame error and draws a later good snaps
   );
   expect(view.container.textContent).toContain('Recovered preview');
 });
+
+function shownHost(container: HTMLElement): Element | null {
+  return container.querySelector('div[style*="visibility: visible"]');
+}
+
+it('shows the last picture of a screen at once when it mounts again on the same live state', async () => {
+  const first = render(<ScreenPreview screenId={MAIN_SCREEN} chroma={false} />);
+  await waitFor(() => expect(shownHost(first.container)).not.toBeNull());
+  first.unmount();
+  const again = render(<ScreenPreview screenId={MAIN_SCREEN} chroma={false} />);
+  expect(shownHost(again.container)?.textContent).toContain('Current frame');
+});
+
+it('draws again instead of reusing the picture when the live state changed meanwhile', async () => {
+  const first = render(<ScreenPreview screenId={MAIN_SCREEN} chroma={false} />);
+  await waitFor(() => expect(shownHost(first.container)).not.toBeNull());
+  first.unmount();
+  const state = useLive.getState().state;
+  if (state === null) throw new Error('Missing state');
+  useLive.setState({
+    state: {
+      ...state,
+      version: 2,
+      layers: {
+        ...state.layers,
+        slide: {
+          itemId: 'fixture',
+          position: 1,
+          label: null,
+          lines: ['Changed while away'],
+        },
+      },
+    },
+  });
+  const again = render(<ScreenPreview screenId={MAIN_SCREEN} chroma={false} />);
+  expect(again.container.textContent).not.toContain('Current frame');
+  await waitFor(() =>
+    expect(shownHost(again.container)?.textContent).toContain(
+      'Changed while away',
+    ),
+  );
+});

@@ -1,4 +1,4 @@
-import {useEffect, useRef, type JSX} from 'react';
+import {useEffect, useLayoutEffect, useRef, type JSX} from 'react';
 import {emptyLayers} from '@core/live/state';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
@@ -8,9 +8,51 @@ import {openPreviewMedia} from '@renderer/rendering/previewMedia';
 import {fontsLoading, previewReady} from '@renderer/rendering/fontsLoading';
 import {ScreenFrames} from '@renderer/rendering/screenFrames';
 import {useLive} from '@renderer/session/live';
+import type {LlpApi} from '@contracts/ipc/api';
 import styles from './ScreenPreview.module.css';
 
 const noLayers = emptyLayers();
+
+interface View {
+  host: HTMLDivElement;
+  renderer: OutputRenderer;
+  key: string;
+}
+
+interface ParkedView {
+  readonly view: View;
+  /** The live state the view showed; another one means it is out of date. */
+  readonly state: unknown;
+}
+
+// NOTE(0913vision): the last finished picture of each screen, kept while 진행
+// is away. It comes back only while the live state is the one it showed (its
+// clock keeps running meanwhile), and the preview always draws again behind
+// it and swaps, so a setting the live state does not carry is corrected
+// within one drawing.
+const parked = new WeakMap<LlpApi, Map<string, ParkedView>>();
+
+function park(api: LlpApi | undefined, screenId: string, view: View): void {
+  view.host.remove();
+  if (api === undefined || !previewReady(view.renderer)) {
+    view.renderer.dispose();
+    return;
+  }
+  const views = parked.get(api) ?? new Map<string, ParkedView>();
+  parked.set(api, views);
+  views.get(screenId)?.view.renderer.dispose();
+  views.set(screenId, {view, state: useLive.getState().state});
+}
+
+function unpark(api: LlpApi | undefined, screenId: string): View | null {
+  const views = api === undefined ? undefined : parked.get(api);
+  const kept = views?.get(screenId);
+  if (kept === undefined) return null;
+  views?.delete(screenId);
+  if (kept.state === useLive.getState().state) return kept.view;
+  kept.view.renderer.dispose();
+  return null;
+}
 
 function reportDrawingError(message: string, error: unknown): void {
   const detail = error instanceof Error ? (error.stack ?? error.message) : '';
@@ -32,17 +74,22 @@ export function ScreenPreview({
   readonly chroma: boolean;
 }): JSX.Element {
   const screenRef = useRef<HTMLDivElement>(null);
+  const kept = useRef<View | null>(null);
+
+  useLayoutEffect(() => {
+    const screen = screenRef.current;
+    const view = unpark(window.llp, screenId);
+    if (!screen || view === null) return;
+    screen.append(view.host);
+    kept.current = {...view, key: ''};
+  }, [screenId]);
 
   useEffect(() => {
     const screen = screenRef.current;
     if (!screen) return undefined;
     const previewMedia = openPreviewMedia(window.llp);
-    interface View {
-      host: HTMLDivElement;
-      renderer: OutputRenderer;
-      key: string;
-    }
-    let front: View | null = null;
+    let front: View | null = kept.current;
+    kept.current = null;
     let pending: View | null = null;
     let animation = 0;
     let stopped = false;
@@ -131,7 +178,7 @@ export function ScreenPreview({
       cancelAnimationFrame(animation);
       frames?.dispose();
       dispose(pending);
-      dispose(front);
+      if (front !== null) park(api, screenId, front);
       previewMedia?.dispose();
     };
   }, [screenId]);

@@ -109,7 +109,7 @@ it('reveals without a font set and ignores a frame after unmount', () => {
   }
 });
 
-it('shows a finished picture again at once after its tile remounts', () => {
+it('shows a parked picture at once and replaces it with a fresh drawing', () => {
   let callback: FrameRequestCallback | undefined;
   const request = vi
     .spyOn(window, 'requestAnimationFrame')
@@ -129,12 +129,18 @@ it('shows a finished picture again at once after its tile remounts', () => {
     renderOutput.mockClear();
     disposeOutput.mockClear();
     const again = render(<OutputPreviewPicture {...props()} layers={layers} />);
-    expect(renderOutput).not.toHaveBeenCalled();
-    expect(disposeOutput).not.toHaveBeenCalled();
     expect(
       again.container.querySelector('[data-preview-ready="true"]'),
     ).not.toBeNull();
+    expect(renderOutput).toHaveBeenCalledOnce();
+    expect(disposeOutput).not.toHaveBeenCalled();
+    actFrame(callback);
+    expect(disposeOutput).toHaveBeenCalledOnce();
     again.unmount();
+    disposeOutput.mockClear();
+    const third = render(<OutputPreviewPicture {...props()} layers={layers} />);
+    third.unmount();
+    expect(disposeOutput).toHaveBeenCalledTimes(2);
   } finally {
     request.mockRestore();
   }
