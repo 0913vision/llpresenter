@@ -53,6 +53,14 @@ export function useOrderFollow(
   },
 ): void {
   const previous = useRef<{liveItemId: string | null} | null>(null);
+  // NOTE(0913vision): Coming back to 진행 is an entry again, also when the
+  // list stayed built while another workspace showed.
+  useLayoutEffect(
+    () => () => {
+      previous.current = null;
+    },
+    [],
+  );
   useLayoutEffect(() => {
     if (!enabled) {
       previous.current = null;

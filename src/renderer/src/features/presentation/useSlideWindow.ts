@@ -1,4 +1,5 @@
 import {useLayoutEffect, useRef, useState, type RefObject} from 'react';
+import {flushSync} from 'react-dom';
 
 const OVERSCAN_ROWS = 1;
 const INITIAL_ROWS = 2;
@@ -6,7 +7,13 @@ const INITIAL_ROWS = 2;
 function follow(
   viewport: HTMLElement | null | undefined,
   index: number,
-  geometry: {tracks: number; stride: number; inset: number; rowGap: number},
+  geometry: {
+    tracks: number;
+    stride: number;
+    inset: number;
+    rowGap: number;
+    behavior: ScrollBehavior;
+  },
 ): void {
   if (
     !viewport ||
@@ -16,7 +23,7 @@ function follow(
   ) {
     return;
   }
-  const {tracks, stride, inset, rowGap} = geometry;
+  const {tracks, stride, inset, rowGap, behavior} = geometry;
   const top = Math.floor(index / tracks) * stride + inset;
   const center = top + (stride - rowGap) / 2;
   const relative = center - viewport.scrollTop;
@@ -28,7 +35,7 @@ function follow(
   }
   const target = Math.max(0, center - viewport.clientHeight * 0.4);
   if (Math.abs(target - viewport.scrollTop) >= 1) {
-    viewport.scrollTo({top: target, behavior: 'smooth'});
+    viewport.scrollTo({top: target, behavior});
   }
 }
 
@@ -63,8 +70,25 @@ export function useSlideWindow(
   const pausedUntil = useRef(0);
   const dragging = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const current = useRef<() => void>(() => undefined);
+  const current = useRef<(behavior?: ScrollBehavior) => void>(() => undefined);
+  const followed = useRef<{live: number | null; itemId: string | null} | null>(
+    null,
+  );
+  // NOTE(0913vision): Coming back to 진행 positions the grid again, also when
+  // it stayed built while another workspace showed.
+  useLayoutEffect(
+    () => () => {
+      followed.current = null;
+    },
+    [],
+  );
   const remeasure = useRef<() => void>(() => undefined);
+  const measured = useRef(false);
+  const read = useRef<{
+    itemId: string | null;
+    count: number;
+    tileWidth: number;
+  }>({itemId, count, tileWidth});
   useLayoutEffect(() => {
     const viewport = keeper.current?.parentElement;
     if (!viewport) return;
@@ -91,7 +115,7 @@ export function useSlideWindow(
         defer();
       }
     };
-    const read = (): void => {
+    const readNow = (sync: boolean): void => {
       // NOTE(0913vision): the buffered grid element changes per item; read the current one.
       const grid =
         keeper.current?.querySelector<HTMLElement>('[role="listbox"]') ?? null;
@@ -104,21 +128,34 @@ export function useSlideWindow(
         band: px('--size-control-xs') + px('--space-6'),
         rowGap: px('row-gap'),
       };
-      setMeasure(last =>
-        last.height === next.height &&
-        last.inset === next.inset &&
-        last.band === next.band &&
-        last.rowGap === next.rowGap
-          ? last
-          : next,
-      );
-      scroll();
+      const update = (): void => {
+        setMeasure(last =>
+          last.height === next.height &&
+          last.inset === next.inset &&
+          last.band === next.band &&
+          last.rowGap === next.rowGap
+            ? last
+            : next,
+        );
+        scroll();
+      };
+      if (sync) flushSync(update);
+      else update();
+      measured.current = true;
     };
-    remeasure.current = read;
+    remeasure.current = () => readNow(false);
+    // NOTE(0913vision): A grid shown again keeps its size; the first resize
+    // observation checks it in the frame, before it paints, so showing the
+    // grid reads no layout first.
+    const shownAgain = measured.current;
+    let first = shownAgain;
     const observer =
       typeof ResizeObserver === 'undefined'
         ? undefined
-        : new ResizeObserver(read);
+        : new ResizeObserver(() => {
+            readNow(first);
+            first = false;
+          });
     observer?.observe(viewport);
     viewport.addEventListener('scroll', scroll, {passive: true});
     viewport.addEventListener('wheel', defer, {passive: true});
@@ -126,7 +163,7 @@ export function useSlideWindow(
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
     window.addEventListener('pointercancel', up);
-    read();
+    if (!shownAgain || observer === undefined) readNow(false);
     return () => {
       observer?.disconnect();
       viewport.removeEventListener('scroll', scroll);
@@ -140,7 +177,19 @@ export function useSlideWindow(
     };
   }, [keeper]);
   // NOTE(0913vision): a grid that mounts after the panel (or per item) is read once it is there.
-  useLayoutEffect(() => remeasure.current(), [itemId, count, tileWidth]);
+  useLayoutEffect(() => {
+    const last = read.current;
+    read.current = {itemId, count, tileWidth};
+    if (
+      measured.current &&
+      last.itemId === itemId &&
+      last.count === count &&
+      last.tileWidth === tileWidth
+    ) {
+      return;
+    }
+    remeasure.current();
+  }, [itemId, count, tileWidth]);
   const tracks =
     tileWidth > 0
       ? Math.max(1, Math.floor((width + gap) / (tileWidth + gap)))
@@ -163,7 +212,7 @@ export function useSlideWindow(
   const start = first * tracks;
   const end = Math.min(count, (first + visible + OVERSCAN_ROWS * 2) * tracks);
   useLayoutEffect(() => {
-    current.current = () => {
+    current.current = (behavior = 'smooth') => {
       if (
         live !== null &&
         !dragging.current &&
@@ -173,10 +222,18 @@ export function useSlideWindow(
           tracks,
           stride,
           ...measure,
+          behavior,
         });
       }
     };
-    current.current();
+    // NOTE(0913vision): Only a new live tile scrolls smoothly. On entering
+    // 진행 and after a size change, the grid is in place before its first
+    // frame, without visible scrolling.
+    const last = followed.current;
+    followed.current = {live, itemId};
+    const moved =
+      last !== null && (last.live !== live || last.itemId !== itemId);
+    current.current(moved ? 'smooth' : 'instant');
   }, [keeper, live, itemId, tracks, stride, measure]);
   return {
     reveal: (): void => current.current(),

@@ -634,9 +634,13 @@ export function usePrepPanels({
     origin.current = null;
     if (previous === null) return;
     const label = previous.library ? '라이브러리 곡' : '예배 순서';
-    const list = document.querySelector<HTMLElement>(
-      `[data-workspace-layout="prep"] [role="listbox"][aria-label="${label}"]`,
-    );
+    // NOTE(0913vision): The kept 진행 list is inert and hidden; focus goes to
+    // the one on screen.
+    const list = [
+      ...document.querySelectorAll<HTMLElement>(
+        `[data-workspace-layout="prep"] [role="listbox"][aria-label="${label}"]`,
+      ),
+    ].find(element => element.closest('[inert]') === null);
     const row =
       list?.querySelector<HTMLElement>(`[data-value="${previous.id}"]`) ??
       list?.querySelector<HTMLElement>('[aria-selected="true"]');

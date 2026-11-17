@@ -1,18 +1,28 @@
-import {useLayoutEffect, type RefObject} from 'react';
+import {useLayoutEffect, useRef, type RefObject} from 'react';
 
 /** Reveals the focused row after its viewport shrinks, without moving focus. */
 export function useOrderResizeFocus(list: RefObject<HTMLElement | null>): void {
+  const found = useRef<HTMLElement | null>(null);
   useLayoutEffect(() => {
     const root = list.current;
     if (!root || typeof ResizeObserver === 'undefined') return;
-    let viewport = root.parentElement;
+    // NOTE(0913vision): A list shown again keeps the viewport it found, so
+    // showing it reads no styles before its first frame.
+    let viewport =
+      found.current !== null &&
+      found.current !== root &&
+      found.current.contains(root)
+        ? found.current
+        : root.parentElement;
     while (
       viewport &&
+      viewport !== found.current &&
       !/auto|scroll/.test(getComputedStyle(viewport).overflowY)
     ) {
       viewport = viewport.parentElement;
     }
     if (!viewport) return;
+    found.current = viewport;
     const scroll = viewport;
     const observer = new ResizeObserver(() => {
       const row = document.activeElement?.closest('[role="option"]');

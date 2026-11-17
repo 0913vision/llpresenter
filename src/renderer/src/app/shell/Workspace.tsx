@@ -2,6 +2,7 @@ import {AutoConfirmBible} from '@renderer/features/bible/AutoConfirmBible';
 import {PaletteEditingProvider} from '@renderer/features/service/items/PaletteEditing';
 import type {SongId} from '@core/schema/ids';
 import {
+  Activity,
   Fragment,
   useCallback,
   useEffect,
@@ -28,7 +29,7 @@ import type {SizeClass} from '../../ui/sizeClass';
 import type {Workspace as WorkspaceId} from './Toolbar';
 import {useColumnLayout} from './useColumnLayout';
 import type {SidebarCollapse} from './useSidebarCollapse';
-import {logPanelProblem} from './WorkspacePanel';
+import {logPanelProblem, type WorkspacePanels} from './WorkspacePanel';
 import {releaseKeptDrawings} from '@renderer/rendering/keptDrawings';
 import {PanelColumn} from './PanelColumn';
 import {ResizeGap} from '@renderer/ui/ResizeGap';
@@ -112,10 +113,16 @@ export function Workspace({
   const [lastVisible, setLastVisible] = useState<WorkspaceId>('show');
   const visibleId = id === 'screens' && !screens.ready ? lastVisible : id;
   if (visibleId !== lastVisible) setLastVisible(visibleId);
-  const navigation = useShowPanelNavigation(gridRef, visibleId === 'show');
-  const toggle = useSidebarToggle(visibleId === 'show' ? sidebar : undefined);
+  const showVisible = visibleId === 'show';
+  // NOTE(0913vision): 진행 stays built, hidden, while another workspace
+  // shows, so going back to 진행 shows its panels in the next frame instead of
+  // building them again.
+  const [showKept, setShowKept] = useState(showVisible);
+  if (showVisible && !showKept) setShowKept(true);
+  const navigation = useShowPanelNavigation(gridRef, showVisible);
+  const toggle = useSidebarToggle(sidebar);
   const show = useShowPanels({
-    active: visibleId === 'show',
+    active: showKept,
     sizeClass,
     onProblem,
     onOpenPrep,
@@ -134,10 +141,7 @@ export function Workspace({
     onOpenPrep,
     onShowInLibrary,
   });
-  const panels =
-    visibleId === 'show' ? show : visibleId === 'prep' ? prepPanels : screens;
   const hasMediaView = useHasMediaView();
-  const {columns} = panels;
   const api = mediaApi ?? prep?.api ?? window.llp;
   const mediaOpen = visibleId !== 'screens' && mediaVisible;
   const mediaRows = useRowLayout({
@@ -148,32 +152,63 @@ export function Workspace({
     enabled: mediaOpen && api !== undefined,
     fill: 'first',
   });
-  const panelColumns = columns.map((titles, column) => (
-    <Fragment key={column}>
-      {column === 1 && toggle.collapsed ? <div aria-hidden="true" /> : null}
-      {column > 0 && !(column === 1 && toggle.collapsed) ? (
-        <ColumnGap column={column === 1 ? 'left' : 'right'} drag={drag} />
-      ) : null}
-      {column === 0 && toggle.collapsed ? (
-        <div className={styles.column} data-panel="예배 순서">
-          <CollapsedSidebar
-            claimFocus={toggle.claimFocus}
-            onPress={button => toggle.toggle(false, button)}
+  const panelColumns = (
+    workspace: WorkspaceId,
+    {columns, partsOf}: WorkspacePanels,
+    collapsed: boolean,
+  ): JSX.Element[] =>
+    columns.map((titles, column) => (
+      <Fragment key={column}>
+        {column === 1 && collapsed ? <div aria-hidden="true" /> : null}
+        {column > 0 && !(column === 1 && collapsed) ? (
+          <ColumnGap column={column === 1 ? 'left' : 'right'} drag={drag} />
+        ) : null}
+        {column === 0 && collapsed ? (
+          <div className={styles.column} data-panel="예배 순서">
+            <CollapsedSidebar
+              claimFocus={toggle.claimFocus}
+              onPress={button => toggle.toggle(false, button)}
+            />
+          </div>
+        ) : (
+          <PanelColumn
+            workspace={workspace}
+            titles={titles}
+            partsOf={partsOf}
+            store={store}
+            sizeClass={sizeClass}
+            draft={columns[1]?.[0] === '편집'}
+            warningHeight={column === columns.length - 1 ? warningHeight : 0}
           />
-        </div>
-      ) : (
-        <PanelColumn
-          workspace={visibleId}
-          titles={titles}
-          partsOf={panels.partsOf}
-          store={store}
-          sizeClass={sizeClass}
-          draft={columns[1]?.[0] === '편집'}
-          warningHeight={column === columns.length - 1 ? warningHeight : 0}
-        />
+        )}
+      </Fragment>
+    ));
+  const columnFrame = (
+    workspace: WorkspaceId,
+    panels: WorkspacePanels,
+    {
+      collapsed,
+      visible,
+    }: {readonly collapsed: boolean; readonly visible: boolean},
+  ): JSX.Element => (
+    <div
+      data-size={sizeClass}
+      inert={!visible}
+      className={classNames(
+        styles.columns,
+        collapsed && styles.leftCollapsed,
+        workspace === 'screens' && styles.screenSettings,
       )}
-    </Fragment>
-  ));
+    >
+      {workspace === 'prep' ? (
+        <PaletteEditingProvider onProblem={onProblem ?? ignoreProblem}>
+          {panelColumns(workspace, panels, collapsed)}
+        </PaletteEditingProvider>
+      ) : (
+        panelColumns(workspace, panels, collapsed)
+      )}
+    </div>
+  );
   // TODO(0913vision): Let the shrink rule ignore the hidden left width while
   // the left column is collapsed; it still counts the saved width now.
   const frame = (
@@ -193,22 +228,25 @@ export function Workspace({
       {visibleId === 'show' ? (
         <ShowShortcuts onProblem={onProblem ?? logPanelProblem} />
       ) : null}
-      <div
-        data-resize-panel="media.upper"
-        data-size={sizeClass}
-        className={classNames(
-          styles.columns,
-          toggle.collapsed && styles.leftCollapsed,
-          visibleId === 'screens' && styles.screenSettings,
-        )}
-      >
-        {visibleId === 'prep' ? (
-          <PaletteEditingProvider onProblem={onProblem ?? ignoreProblem}>
-            {panelColumns}
-          </PaletteEditingProvider>
-        ) : (
-          panelColumns
-        )}
+      <div data-resize-panel="media.upper" className={styles.frames}>
+        {showKept ? (
+          <Activity mode={showVisible ? 'visible' : 'hidden'}>
+            {columnFrame('show', show, {
+              collapsed: toggle.collapsed,
+              visible: showVisible,
+            })}
+          </Activity>
+        ) : null}
+        {showVisible
+          ? null
+          : columnFrame(
+              visibleId,
+              visibleId === 'prep' ? prepPanels : screens,
+              {
+                collapsed: false,
+                visible: true,
+              },
+            )}
       </div>
       {mediaOpen && api !== undefined ? (
         <ResizeGap

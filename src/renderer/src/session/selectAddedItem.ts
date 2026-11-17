@@ -4,9 +4,14 @@ import {useShow} from './showStore';
 export function revealAddedItem(itemId: string): void {
   requestAnimationFrame(() => {
     if (useShow.getState().openItemId !== itemId) return;
+    // NOTE(0913vision): 진행 stays built, inert and hidden, while 준비 shows;
+    // only the list on screen scrolls.
     const rows = document.querySelectorAll<HTMLElement>('[data-order-id]');
     [...rows]
-      .find(row => row.dataset['orderId'] === itemId)
+      .find(
+        row =>
+          row.dataset['orderId'] === itemId && row.closest('[inert]') === null,
+      )
       ?.scrollIntoView({block: 'nearest'});
   });
 }

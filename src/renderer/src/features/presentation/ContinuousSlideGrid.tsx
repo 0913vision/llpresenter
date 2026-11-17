@@ -12,6 +12,7 @@ import {
   type ServiceRow,
   type SlideTile,
 } from '@core/presentation/model';
+import {flushSync} from 'react-dom';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {useLive} from '@renderer/session/live';
@@ -213,7 +214,21 @@ export function ContinuousSlideGrid({
   const pause = useRef(0);
   const dragging = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const followRef = useRef<() => void>(() => undefined);
+  const followRef = useRef<(behavior?: ScrollBehavior) => void>(
+    () => undefined,
+  );
+  const followed = useRef<{
+    item: string | undefined;
+    index: number | undefined;
+  } | null>(null);
+  // NOTE(0913vision): Coming back to 진행 positions the grid again, also when
+  // it stayed built while another workspace showed.
+  useLayoutEffect(
+    () => () => {
+      followed.current = null;
+    },
+    [],
+  );
   useLayoutEffect(() => {
     const viewport = keeper.current?.parentElement;
     const grid = keeper.current?.querySelector<HTMLElement>(
@@ -261,7 +276,8 @@ export function ContinuousSlideGrid({
         defer();
       }
     };
-    const observer = new ResizeObserver(read);
+    // NOTE(0913vision): A resize renders in its own frame, before it paints.
+    const observer = new ResizeObserver(() => flushSync(read));
     observer.observe(viewport);
     observer.observe(grid);
     viewport.addEventListener('scroll', read, {passive: true});
@@ -292,7 +308,7 @@ export function ContinuousSlideGrid({
   const total =
     (last?.top ?? INSET) + Math.max(last?.height ?? 0, metrics.height) + INSET;
   useLayoutEffect(() => {
-    followRef.current = () => {
+    followRef.current = (behavior = 'smooth') => {
       const viewport = keeper.current?.parentElement;
       const section = sections.find(value => value.row.id === cursorItem);
       if (
@@ -317,11 +333,18 @@ export function ContinuousSlideGrid({
       ) {
         viewport.scrollTo({
           top: Math.max(0, center - viewport.clientHeight * 0.4),
-          behavior: 'smooth',
+          behavior,
         });
       }
     };
-    followRef.current();
+    // NOTE(0913vision): Only a new live tile scrolls smoothly. On entering
+    // 진행 and after a size change, the grid is in place before its first
+    // frame, without visible scrolling.
+    const last = followed.current;
+    followed.current = {item: cursorItem, index: cursorIndex};
+    const moved =
+      last !== null && (last.item !== cursorItem || last.index !== cursorIndex);
+    followRef.current(moved ? 'smooth' : 'instant');
   }, [cursorItem, cursorIndex, sections, stride, tracks, metrics.rowGap]);
   useLayoutEffect(() => {
     if (initialized.current || tileWidth <= 0 || sections.length === 0) return;

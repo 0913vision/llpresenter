@@ -1,4 +1,5 @@
-import {useLayoutEffect, useState, type RefObject} from 'react';
+import {useLayoutEffect, useRef, useState, type RefObject} from 'react';
+import {flushSync} from 'react-dom';
 
 /** The usable width of a grid's content box and its column gap, in CSS px. */
 export interface GridMeasure {
@@ -27,6 +28,9 @@ export function useGridMeasure(
   selector: string,
 ): GridMeasure {
   const [measure, setMeasure] = useState(UNMEASURED);
+  // NOTE(0913vision): Only the observer sets the measure, so it keeps the
+  // latest one here too.
+  const latest = useRef(UNMEASURED);
   useLayoutEffect(() => {
     const root = container.current;
     if (!root || typeof ResizeObserver === 'undefined') return;
@@ -39,7 +43,11 @@ export function useGridMeasure(
         width: entry.contentRect.width,
         gap: pixelsOf(getComputedStyle(grid).columnGap),
       };
-      setMeasure(current => (sameMeasure(current, next) ? current : next));
+      if (sameMeasure(latest.current, next)) return;
+      latest.current = next;
+      // NOTE(0913vision): A new size renders in the frame of the change,
+      // before it paints, so the grid never shows a frame at the old size.
+      flushSync(() => setMeasure(next));
     });
     // NOTE(0913vision): a buffered grid replaces its grid element per item; follow the current one.
     const attach = (): void => {

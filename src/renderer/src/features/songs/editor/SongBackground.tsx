@@ -1,7 +1,7 @@
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useEffect, useId, useMemo, useRef, useState, type JSX} from 'react';
 import type {MediaDocument} from '@core/schema/mediaEdit';
-import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
+import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {Select} from '@renderer/ui/Select';
 import {MediaPicker, NONE_LABEL} from './MediaPicker';
 import type {SongEditorStore} from './songEditorStore';
@@ -105,10 +105,7 @@ export function SongBackground({
             ? undefined
             : {
                 kind: 'media',
-                src:
-                  selected.kind === 'video'
-                    ? thumbnailUrl(selected.id)
-                    : mediaUrl(selected.id),
+                src: thumbnailSrc(selected.id),
               }
         }
         title={reason}

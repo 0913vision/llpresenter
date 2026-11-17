@@ -1,4 +1,4 @@
-import {useLayoutEffect, useState, type RefObject} from 'react';
+import {useLayoutEffect, useRef, useState, type RefObject} from 'react';
 import {flushSync} from 'react-dom';
 
 /** The lengths around the pictures, in px where the panel body sits. */
@@ -151,12 +151,24 @@ export function usePreviewRoom(
   },
 ): boolean {
   const [room, setRoom] = useState(true);
+  const known = useRef<{
+    readonly tiles: number;
+    readonly extra: (anchor: HTMLElement) => number;
+    readonly room: boolean;
+  } | null>(null);
   useLayoutEffect(() => {
     const el = anchor.current;
     if (el === null) return undefined;
     const host = hostOf(el);
     if (host === null) return undefined;
-    let last: boolean | null = null;
+    // NOTE(0913vision): A panel shown again with the same tiles keeps its
+    // answer; the first resize observation checks it before the frame paints,
+    // so showing it reads no layout first.
+    const kept =
+      known.current?.tiles === tiles && known.current.extra === extra
+        ? known.current.room
+        : null;
+    let last: boolean | null = kept;
     const measure = (sync: boolean): void => {
       const next = withLengths(el, lengths => {
         const width = el.clientWidth - 2 * lengths.inset;
@@ -172,12 +184,15 @@ export function usePreviewRoom(
       // here would redraw the panel before its first frame for no change.
       if (next === null || next === last) return;
       last = next;
+      known.current = {tiles, extra, room: next};
       // NOTE(0913vision): A resize changes the tile row in the frame of the
       // resize, before it paints, so the picture never shows a second step.
       if (sync) flushSync(() => setRoom(next));
       else setRoom(next);
     };
-    measure(false);
+    if (kept === null || typeof ResizeObserver === 'undefined') {
+      measure(false);
+    }
     if (typeof ResizeObserver === 'undefined') return undefined;
     const observer = new ResizeObserver(() => measure(true));
     observer.observe(el);
