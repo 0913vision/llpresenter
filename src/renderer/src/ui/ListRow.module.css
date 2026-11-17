@@ -26,7 +26,6 @@
   color: var(--text);
   font: var(--type-body);
   text-align: left;
-  transition: background-color var(--motion-hover);
 }
 
 .inset > .row,
@@ -110,12 +109,15 @@
   align-items: center;
 }
 
+/* NOTE(0913vision): Only hover and press fade; a state change (selected,
+   live, on, last run) shows at once, both where it starts and where it ends. */
 .row:not(
     [aria-disabled='true'],
     [aria-selected='true'],
     [aria-pressed='true']
   ):hover {
   background: var(--bg-raised);
+  transition: background-color var(--motion-hover);
 }
 
 .row:not(
@@ -124,6 +126,7 @@
     [aria-pressed='true']
   ):active {
   background: var(--bg-control-hover);
+  transition: background-color var(--motion-hover);
 }
 
 .row:not([aria-disabled='true'], [aria-selected='true']):active .meta {

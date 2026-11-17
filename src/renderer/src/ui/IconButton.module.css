@@ -12,9 +12,6 @@
   color: var(--text-2);
   font: var(--type-label);
   user-select: none;
-  transition:
-    background-color var(--motion-hover),
-    color var(--motion-hover);
 }
 
 .md {
@@ -22,8 +19,13 @@
   height: var(--size-control-md);
 }
 
+/* NOTE(0913vision): Only hover and press fade; a state change (selected,
+   live, on, last run) shows at once, both where it starts and where it ends. */
 .button:not([aria-disabled='true']):hover {
   background: var(--bg-raised);
+  transition:
+    background-color var(--motion-hover),
+    color var(--motion-hover);
 }
 
 .button:not([aria-disabled='true']):active,
@@ -33,6 +35,16 @@
   ) {
   background: var(--bg-control-hover);
   color: var(--text);
+}
+
+.button:not([aria-disabled='true']):active {
+  transition:
+    background-color var(--motion-hover),
+    color var(--motion-hover);
+}
+
+.button[aria-pressed]:not(:active) {
+  transition: none;
 }
 
 .button[aria-disabled='true'] {

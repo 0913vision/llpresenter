@@ -44,9 +44,6 @@
   border-radius: var(--radius-tile);
   background: var(--label-fill);
   color: var(--label-ink);
-  transition:
-    box-shadow var(--motion-hover),
-    background-color var(--motion-hover);
 }
 
 .name {
@@ -76,11 +73,17 @@
   color: var(--text);
 }
 
+/* NOTE(0913vision): Only hover and press fade; a state change (selected,
+   live, on, last run) shows at once, both where it starts and where it ends. */
 .macro:hover .tile {
+  transition:
+    box-shadow var(--motion-hover),
+    background-color var(--motion-hover);
   box-shadow: var(--macro-gap-ring), var(--macro-hover-ring);
 }
 
 .macro[data-state~='last-run'] .tile {
+  transition: none;
   box-shadow: var(--macro-gap-ring), var(--macro-last-run-ring);
 }
 
@@ -90,6 +93,7 @@
 }
 
 .macro[aria-selected='true'] .tile {
+  transition: none;
   box-shadow: var(--macro-gap-ring), var(--macro-selected-ring);
 }
 
@@ -113,6 +117,7 @@
 }
 
 .new:hover .tile {
+  transition: background-color var(--motion-hover);
   background: var(--bg-raised);
   box-shadow: none;
 }
@@ -140,7 +145,6 @@
   color: var(--text);
   font: var(--type-body);
   text-align: left;
-  transition: background-color var(--motion-hover);
 }
 
 .swatch {
@@ -174,6 +178,7 @@
 }
 
 .row:hover {
+  transition: background-color var(--motion-hover);
   background: var(--bg-raised);
 }
 
@@ -182,6 +187,7 @@
 }
 
 .row[aria-selected='true'] {
+  transition: none;
   background: var(--selection);
 }
 

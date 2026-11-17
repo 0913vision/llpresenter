@@ -76,11 +76,13 @@
   color: var(--text-3);
   font: var(--type-title);
   white-space: nowrap;
-  transition: color var(--motion-hover);
 }
 
+/* NOTE(0913vision): Only hover and press fade; a state change (selected,
+   live, on, last run) shows at once, both where it starts and where it ends. */
 .tab:not([aria-disabled='true'], [aria-selected='true']):hover {
   color: var(--text-2);
+  transition: color var(--motion-hover);
 }
 
 .tab[aria-selected='true'] {
@@ -116,16 +118,17 @@
   color: var(--text-2);
   font: var(--type-label);
   white-space: nowrap;
-  transition: background-color var(--motion-hover);
 }
 
 .more:hover {
   background: var(--bg-raised);
+  transition: background-color var(--motion-hover);
 }
 
 .more:is(:active, [aria-expanded='true']) {
   background: var(--bg-control-hover);
   color: var(--text);
+  transition: background-color var(--motion-hover);
 }
 
 .more[data-active] {

@@ -27,7 +27,6 @@
   border-radius: var(--radius-md);
   overflow: hidden;
   background: var(--bg-well);
-  transition: box-shadow var(--motion-hover);
 }
 
 .picture {
@@ -93,15 +92,20 @@
   left: var(--space-6);
 }
 
+/* NOTE(0913vision): Only hover and press fade; a state change (selected,
+   live, on, last run) shows at once, both where it starts and where it ends. */
 .tile:hover .frame {
+  transition: box-shadow var(--motion-hover);
   box-shadow: var(--ring-hover);
 }
 
 .tile[aria-selected='true'] .frame {
+  transition: none;
   box-shadow: var(--ring-selected);
 }
 
 .tile[data-state~='live'] .frame {
+  transition: none;
   box-shadow: var(--ring-live);
 }
 
