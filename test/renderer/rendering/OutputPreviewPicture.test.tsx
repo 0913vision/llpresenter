@@ -109,6 +109,37 @@ it('reveals without a font set and ignores a frame after unmount', () => {
   }
 });
 
+it('shows a finished picture again at once after its tile remounts', () => {
+  let callback: FrameRequestCallback | undefined;
+  const request = vi
+    .spyOn(window, 'requestAnimationFrame')
+    .mockImplementation(fn => {
+      callback = fn;
+      return 1;
+    });
+  try {
+    const shown = props();
+    const layers = {
+      ...shown.layers,
+      slide: {itemId: 'kept', position: 0, label: null, lines: ['Kept']},
+    };
+    const first = render(<OutputPreviewPicture {...shown} layers={layers} />);
+    actFrame(callback);
+    first.unmount();
+    renderOutput.mockClear();
+    disposeOutput.mockClear();
+    const again = render(<OutputPreviewPicture {...props()} layers={layers} />);
+    expect(renderOutput).not.toHaveBeenCalled();
+    expect(disposeOutput).not.toHaveBeenCalled();
+    expect(
+      again.container.querySelector('[data-preview-ready="true"]'),
+    ).not.toBeNull();
+    again.unmount();
+  } finally {
+    request.mockRestore();
+  }
+});
+
 function actFrame(callback: FrameRequestCallback | undefined): void {
   if (callback === undefined) throw new Error('No frame scheduled');
   callback(performance.now());

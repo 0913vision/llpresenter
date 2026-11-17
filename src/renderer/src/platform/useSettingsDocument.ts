@@ -13,6 +13,30 @@ export type NamedDocument<TName extends SettingsName> = Extract<
   {name: TName}
 >;
 
+type SettingsApi = Pick<LlpApi, 'settings'> & Partial<Pick<LlpApi, 'log'>>;
+
+// NOTE(0913vision): the newest document each window has seen, so a panel that
+// mounts again (진행 after 준비) draws with it at once while it reads again.
+const seen = new WeakMap<SettingsApi, Map<SettingsName, SettingsDocument>>();
+
+function remember(api: SettingsApi, document: SettingsDocument): void {
+  const documents = seen.get(api) ?? new Map<SettingsName, SettingsDocument>();
+  seen.set(api, documents);
+  const known = documents.get(document.name);
+  if (known === undefined || known.revision <= document.revision) {
+    documents.set(document.name, document);
+  }
+}
+
+function recalled<TName extends SettingsName>(
+  api: SettingsApi | undefined,
+  name: TName | null,
+): NamedDocument<TName> | null {
+  if (api === undefined || name === null) return null;
+  const known = seen.get(api)?.get(name);
+  return known !== undefined && isNamed(known, name) ? known : null;
+}
+
 function isNamed<TName extends SettingsName>(
   document: SettingsDocument,
   name: TName,
@@ -26,8 +50,9 @@ function isNamed<TName extends SettingsName>(
  * subscription when the window leaves 화면 설정.
  * A null name disables its read and subscription.
  *
- * @returns The document, or `null` until the first read answers or when it
- * fails; a failure is logged and reported through `onProblem`.
+ * @returns The document; until the first read answers, the newest one this
+ * window has seen, or `null` when it has seen none. A failure is logged and
+ * reported through `onProblem`.
  */
 export function useSettingsDocument<TName extends SettingsName>(
   name: TName | null,
@@ -43,8 +68,7 @@ export function useApiSettingsDocument<TName extends SettingsName>({
   title,
   onProblem,
 }: {
-  readonly api:
-    (Pick<LlpApi, 'settings'> & Partial<Pick<LlpApi, 'log'>>) | undefined;
+  readonly api: SettingsApi | undefined;
   readonly name: TName | null;
   readonly title: string;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
@@ -68,6 +92,7 @@ export function useApiSettingsDocument<TName extends SettingsName>({
     const accept = (next: SettingsDocument): void => {
       if (!active || !isNamed(next, name) || next.revision <= revision) return;
       revision = next.revision;
+      remember(api, next);
       setLoaded({request, document: next});
       ready?.();
     };
@@ -101,5 +126,7 @@ export function useApiSettingsDocument<TName extends SettingsName>({
       stop();
     };
   }, [name, title, request, api, readiness]);
-  return loaded?.request === request ? loaded.document : null;
+  return loaded?.request === request
+    ? loaded.document
+    : recalled(api, name);
 }

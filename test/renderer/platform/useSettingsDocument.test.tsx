@@ -100,3 +100,28 @@ describe('useSettingsDocument', () => {
     expect(listeners.size).toBe(0);
   });
 });
+
+describe('a settings document mounted again', () => {
+  it('starts from the newest document the window has seen while it reads again', async () => {
+    const document = settingsDocument('timers', {timers: []}, 4);
+    const second = deferred<SettingsDocument>();
+    const get = vi
+      .fn<() => Promise<SettingsDocument>>()
+      .mockResolvedValueOnce(document)
+      .mockReturnValueOnce(second.promise);
+    const api = mockLlpApi({settings: {get, subscribe: () => () => undefined}});
+    const first = renderHook(() =>
+      useApiSettingsDocument({api, name: 'timers', title: '타이머'}),
+    );
+    await act(async () => Promise.resolve());
+    first.unmount();
+    const again = renderHook(() =>
+      useApiSettingsDocument({api, name: 'timers', title: '타이머'}),
+    );
+    expect(again.result.current).toEqual(document);
+    const newer = settingsDocument('timers', {timers: []}, 5);
+    await act(async () => second.resolve(newer));
+    expect(again.result.current).toEqual(newer);
+    again.unmount();
+  });
+});

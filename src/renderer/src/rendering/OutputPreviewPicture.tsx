@@ -17,6 +17,7 @@ import {fontsLoading, previewReady} from './fontsLoading';
 import type {RenderScreen, ThemeFrame} from './layer';
 import styles from './OutputPreviewPicture.module.css';
 import {PictureReadiness} from './PictureReadiness';
+import {PicturePark} from './picturePark';
 
 interface PictureProps {
   readonly layers: LiveLayers;
@@ -29,10 +30,16 @@ interface PictureProps {
 }
 
 interface PictureView {
+  readonly key: string;
   readonly host: HTMLDivElement;
   readonly renderer: OutputRenderer;
   readonly dispose: () => void;
 }
+
+// NOTE(0913vision): about two 진행 grids of tiles; a tile coming back with the
+// same picture takes its finished view instead of drawing it again.
+const PARKED_PICTURES = 160;
+const parked = new PicturePark<PictureView>(PARKED_PICTURES);
 
 const layouts = new WeakMap<object, string>();
 
@@ -87,7 +94,24 @@ export const OutputPreviewPicture = memo(
     }, []);
     useLayoutEffect(() => {
       const container = parent.current;
-      if (container === null || (!near && onReady === null)) return;
+      if (container === null) return;
+      const key = pictureKey({layers, appearance});
+      if (front.current?.key === key) {
+        container.dataset['previewReady'] = 'true';
+        return;
+      }
+      const kept = parked.take(key);
+      if (kept !== undefined) {
+        const previous = front.current;
+        previous?.host.remove();
+        container.append(kept.host);
+        front.current = kept;
+        container.dataset['previewReady'] = 'true';
+        previous?.dispose();
+        onReady?.(source.current);
+        return;
+      }
+      if (!near && onReady === null) return;
       container.dataset['previewReady'] = 'false';
       const host = document.createElement('div');
       Object.assign(host.style, {
@@ -110,6 +134,7 @@ export const OutputPreviewPicture = memo(
         onError: (message, error) => console.error(message, error),
       });
       const view: PictureView = {
+        key,
         host,
         renderer,
         dispose: () => {
@@ -156,8 +181,12 @@ export const OutputPreviewPicture = memo(
     }, [layers, appearance, near, onReady]);
     useLayoutEffect(
       () => () => {
-        front.current?.dispose();
+        const view = front.current;
         front.current = null;
+        if (view === null) return;
+        view.host.remove();
+        if (previewReady(view.renderer)) parked.park(view.key, view);
+        else view.dispose();
       },
       [],
     );
