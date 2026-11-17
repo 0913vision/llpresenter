@@ -1,14 +1,67 @@
 import {useLayoutEffect, useState, type RefObject} from 'react';
 import {flushSync} from 'react-dom';
 
-/** A length token in px, read where `el` sits. */
-function tokenPx(el: HTMLElement, token: string): number {
-  const probe = el.ownerDocument.createElement('div');
-  probe.style.cssText = `position:absolute;visibility:hidden;width:var(${token})`;
-  el.append(probe);
-  const px = probe.getBoundingClientRect().width;
-  probe.remove();
-  return px;
+/** The lengths around the pictures, in px where the panel body sits. */
+interface PanelLengths {
+  readonly header: number;
+  readonly inset: number;
+  readonly caption: number;
+  readonly smallCaption: number;
+  readonly rowGap: number;
+  readonly gap: number;
+  readonly smallMax: number;
+  readonly reserve: number;
+}
+
+const LENGTH_TOKENS: ReadonlyArray<readonly [keyof PanelLengths, string]> = [
+  ['header', '--size-panel-header'],
+  ['inset', '--panel-inset'],
+  ['caption', '--size-control-md'],
+  ['smallCaption', '--size-control-sm'],
+  ['rowGap', '--space-12'],
+  ['gap', '--space-8'],
+  ['smallMax', '--size-preview-small-max'],
+  ['reserve', '--preview-reserve'],
+];
+
+/**
+ * Reads the length tokens where `el` sits and hands them to `measure` while
+ * the probes are still in place. Every probe goes in before the first is read
+ * and they take no room, so the probes and what `measure` reads share one
+ * layout.
+ */
+function withLengths<T>(
+  el: HTMLElement,
+  measure: (lengths: PanelLengths) => T,
+): T {
+  const box = el.ownerDocument.createElement('div');
+  box.style.cssText =
+    'position:absolute;visibility:hidden;width:0;height:0;overflow:hidden';
+  const probes = LENGTH_TOKENS.map(([key, token]) => {
+    const probe = el.ownerDocument.createElement('div');
+    probe.style.cssText = `position:absolute;width:var(${token})`;
+    box.append(probe);
+    return [key, probe] as const;
+  });
+  el.append(box);
+  try {
+    const px = new Map(
+      probes.map(([key, probe]) => [key, probe.getBoundingClientRect().width]),
+    );
+    const length = (key: keyof PanelLengths): number => px.get(key) ?? 0;
+    return measure({
+      header: length('header'),
+      inset: length('inset'),
+      caption: length('caption'),
+      smallCaption: length('smallCaption'),
+      rowGap: length('rowGap'),
+      gap: length('gap'),
+      smallMax: length('smallMax'),
+      reserve: length('reserve'),
+    });
+  } finally {
+    box.remove();
+  }
 }
 
 /** What the large picture, the tile row, and what sits around them need. */
@@ -22,18 +75,11 @@ export interface PreviewNeed {
 }
 
 /** The height of a large picture with its caption, the tile row, and the panel around them. */
-export function previewHeightWith(
-  el: HTMLElement,
+function previewHeightWith(
+  {header, inset, caption, smallCaption, rowGap, gap, smallMax}: PanelLengths,
   need: PreviewNeed,
   withTiles: boolean,
 ): number {
-  const header = tokenPx(el, '--size-panel-header');
-  const inset = tokenPx(el, '--panel-inset');
-  const caption = tokenPx(el, '--size-control-md');
-  const smallCaption = tokenPx(el, '--size-control-sm');
-  const rowGap = tokenPx(el, '--space-12');
-  const gap = tokenPx(el, '--space-8');
-  const smallMax = tokenPx(el, '--size-preview-small-max');
   const big = (need.width * 9) / 16 + caption;
   let height = header + 2 * inset + big + need.extra;
   if (withTiles && need.tiles > 0) {
@@ -60,7 +106,7 @@ function hostOf(el: HTMLElement): HTMLElement | null {
  * heights of its neighbors (their heights do not depend on this panel's
  * content), and an ordinary panel, which fills its window, gets its own height.
  */
-function availableHeight(host: HTMLElement): number {
+function availableHeight(host: HTMLElement, reserve: number): number {
   const own = host.getBoundingClientRect().height;
   if (host.style.height !== '') return own;
   const column = host.parentElement;
@@ -73,7 +119,7 @@ function availableHeight(host: HTMLElement): number {
   const sharedLimit =
     style.getPropertyValue('--preview-reserve').trim() === ''
       ? height
-      : height - tokenPx(host, '--preview-reserve');
+      : height - reserve;
   for (const child of column.children) {
     if (child === host || !(child instanceof HTMLElement)) continue;
     const fixed =
@@ -110,16 +156,22 @@ export function usePreviewRoom(
     if (el === null) return undefined;
     const host = hostOf(el);
     if (host === null) return undefined;
+    let last: boolean | null = null;
     const measure = (sync: boolean): void => {
-      const inset = tokenPx(el, '--panel-inset');
-      const width = el.clientWidth - 2 * inset;
-      if (width <= 0) return;
-      const need = previewHeightWith(
-        el,
-        {width, tiles, extra: extra(el)},
-        true,
-      );
-      const next = availableHeight(host) >= need;
+      const next = withLengths(el, lengths => {
+        const width = el.clientWidth - 2 * lengths.inset;
+        if (width <= 0) return null;
+        const need = previewHeightWith(
+          lengths,
+          {width, tiles, extra: extra(el)},
+          true,
+        );
+        return availableHeight(host, lengths.reserve) >= need;
+      });
+      // NOTE(0913vision): An unchanged answer renders nothing; a forced render
+      // here would redraw the panel before its first frame for no change.
+      if (next === null || next === last) return;
+      last = next;
       // NOTE(0913vision): A resize changes the tile row in the frame of the
       // resize, before it paints, so the picture never shows a second step.
       if (sync) flushSync(() => setRoom(next));
