@@ -142,12 +142,14 @@ export function workspaceMenu({
   onWorkspace,
   onMedia,
   continuous,
+  continuousGrid,
   testPattern,
   fullScreen,
 }: {
   readonly onWorkspace: ((workspace: Workspace) => void) | undefined;
   readonly onMedia: (() => void) | undefined;
   readonly continuous: ContinuousRow;
+  readonly continuousGrid: ContinuousRow;
   readonly testPattern: MenuItem;
   readonly fullScreen: MenuItem;
 }): readonly MenuEntry[] {
@@ -165,6 +167,15 @@ export function workspaceMenu({
       checked: continuous.on,
       ...menuAvailability(continuous.reason),
       onSelect: continuous.toggle,
+    },
+    {
+      kind: 'item',
+      id: 'continuous-grid',
+      label: '이어서 보여 주기',
+      check: 'checkbox',
+      checked: continuousGrid.on,
+      ...menuAvailability(continuousGrid.reason),
+      onSelect: continuousGrid.toggle,
     },
     menuSeparator('slide-view'),
     laterRow('slide-view', '슬라이드 보기', {submenu: true}),

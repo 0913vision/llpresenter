@@ -27,7 +27,7 @@ import {ShowSlideEntry} from './showPanelNavigation';
 import {serviceSlideOffset} from './serviceSlideNumbers';
 import {useSlideTransitionProgress} from './useSlideTransitionProgress';
 import {BufferedSlideGrid} from '@renderer/ui/BufferedSlideGrid';
-import {revealSlideItem} from './visibleSlideItem';
+import {revealSlideItem} from '@renderer/session/visibleSlideItem';
 
 const GRID_SELECTOR = '[role="listbox"]';
 

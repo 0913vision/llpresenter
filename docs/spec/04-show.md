@@ -328,6 +328,18 @@ source was found.
 - Live commands run once per key press and ignore key repeat (decided, 10).
 - These keys don't work while a text field has focus (10, focus precedence).
 
+### Continuous slide grid
+
+The independent `show.continuousGrid` preference is off by default. When on, the
+show grid displays the service in order in one windowed grid. Each item starts
+on a new row with a band naming it and giving its slide count; headers and items
+without slides still have a band. Slide numbers remain service-wide. Selecting
+an order item smoothly scrolls to its band; the order selection follows the band
+at the top. Clicking a tile outputs it. When off, the grid shows only the open
+item. The grid smoothly follows the live tile when it leaves the middle of the
+viewport, including across items; operator scrolling or dragging pauses follow
+for 1.5 seconds. This choice does not change the last-slide action.
+
 ### Editing a song that is on output
 
 곡 편집 on a service item or slide switches to 준비 and opens that item's inline

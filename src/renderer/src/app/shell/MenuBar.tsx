@@ -378,6 +378,18 @@ export function MenuBar({
         },
       })),
   };
+  const continuousGridRow: ContinuousRow = {
+    on: preferences.preferences?.show.continuousGrid === true,
+    reason:
+      preferences.preferences === null
+        ? NOT_YET_READ
+        : preferences.lockedReason,
+    toggle: () =>
+      preferences.change(stored => ({
+        ...stored,
+        show: {...stored.show, continuousGrid: !stored.show?.continuousGrid},
+      })),
+  };
   const fullScreen = useFullScreen();
   const screens = useScreenSummaries();
   const outputs = useOutputs();
@@ -468,6 +480,7 @@ export function MenuBar({
               onWorkspace,
               onMedia,
               continuous: continuousRow,
+              continuousGrid: continuousGridRow,
               testPattern: testPatternRow({screens, outputs, patterns}),
               fullScreen: fullScreenRow(fullScreen),
             })

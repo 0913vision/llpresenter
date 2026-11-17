@@ -37,3 +37,31 @@
   outline: var(--space-2) solid var(--accent);
   outline-offset: calc(-1 * var(--space-2));
 }
+
+.measureGrid {
+  position: absolute;
+  visibility: hidden;
+  inset: 0 0 auto;
+  pointer-events: none;
+}
+
+.continuousSection {
+  position: absolute;
+  right: var(--panel-inset);
+  left: var(--panel-inset);
+}
+
+.continuousBand {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 30px;
+  border-bottom: 1px solid var(--border);
+  color: var(--text-muted);
+  font: var(--type-label);
+}
+
+.continuousTiles {
+  gap: var(--space-24);
+  padding: 0;
+}

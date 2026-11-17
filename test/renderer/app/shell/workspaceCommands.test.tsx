@@ -173,6 +173,7 @@ describe('workspaceMenu', () => {
           onWorkspace: undefined,
           onMedia: undefined,
           continuous,
+          continuousGrid: CONTINUOUS_OFF,
           testPattern: idleTestPattern,
           fullScreen: idleFullScreen,
         }),
@@ -194,12 +195,34 @@ describe('workspaceMenu', () => {
     });
   });
 
+  it('exposes a separate continuous grid check', () => {
+    const toggle = vi.fn();
+    const rows = menuItems(
+      workspaceMenu({
+        onWorkspace: undefined,
+        onMedia: undefined,
+        continuous: CONTINUOUS_OFF,
+        continuousGrid: {on: true, reason: undefined, toggle},
+        testPattern: idleTestPattern,
+        fullScreen: idleFullScreen,
+      }),
+    );
+    const grid = rows.find(row => row.id === 'continuous-grid');
+    expect(grid).toMatchObject({check: 'checkbox', checked: true});
+    expect(rows.find(row => row.id === 'continuous')).toMatchObject({
+      checked: false,
+    });
+    grid?.onSelect?.();
+    expect(toggle).toHaveBeenCalledOnce();
+  });
+
   it('explains unavailable workspace and media handlers', () => {
     const rows = menuItems(
       workspaceMenu({
         onWorkspace: undefined,
         onMedia: undefined,
         continuous: CONTINUOUS_OFF,
+        continuousGrid: CONTINUOUS_OFF,
         testPattern: idleTestPattern,
         fullScreen: idleFullScreen,
       }),
@@ -227,6 +250,7 @@ describe('workspaceMenu', () => {
       onWorkspace,
       onMedia: () => undefined,
       continuous: CONTINUOUS_OFF,
+      continuousGrid: CONTINUOUS_OFF,
       testPattern: idleTestPattern,
       fullScreen: idleFullScreen,
     });
@@ -243,6 +267,7 @@ describe('workspaceMenu', () => {
       onWorkspace,
       onMedia: undefined,
       continuous: CONTINUOUS_OFF,
+      continuousGrid: CONTINUOUS_OFF,
       testPattern: idleTestPattern,
       fullScreen: idleFullScreen,
     }).find(entry => entry.id === 'palette');
