@@ -4,6 +4,7 @@ import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {themeScreens} from '@fixtures/core/themeOutput';
 import {resolveThemeOutput} from '@core/themes/output';
 import {ScreenFrames} from '@renderer/rendering/screenFrames';
+import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {act, cleanup, render, waitFor} from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
@@ -102,6 +103,7 @@ function shownHost(container: HTMLElement): Element | null {
 }
 
 it('shows the last picture of a screen at once when it mounts again on the same live state', async () => {
+  vi.spyOn(OutputRenderer.prototype, 'ready').mockReturnValue(true);
   const first = render(<ScreenPreview screenId={MAIN_SCREEN} chroma={false} />);
   await waitFor(() => expect(shownHost(first.container)).not.toBeNull());
   first.unmount();
@@ -110,6 +112,7 @@ it('shows the last picture of a screen at once when it mounts again on the same 
 });
 
 it('draws again instead of reusing the picture when the live state changed meanwhile', async () => {
+  vi.spyOn(OutputRenderer.prototype, 'ready').mockReturnValue(true);
   const first = render(<ScreenPreview screenId={MAIN_SCREEN} chroma={false} />);
   await waitFor(() => expect(shownHost(first.container)).not.toBeNull());
   first.unmount();
