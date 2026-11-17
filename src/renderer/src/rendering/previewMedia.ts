@@ -86,6 +86,11 @@ class PreviewMediaLibrary implements PreviewMediaSource {
     return Math.max(0, reading.durationSeconds - reading.positionSeconds);
   }
 
+  /** The records of these media as this window knows them now. */
+  describe(ids: readonly string[]): string {
+    return JSON.stringify(ids.map(id => [id, this.items.get(id) ?? null]));
+  }
+
   dispose(): void {
     this.stopped = true;
     this.unsubscribe?.();
@@ -102,9 +107,12 @@ const libraries = new WeakMap<
 >();
 
 /** Images retain their original pixels; only videos use the media-bin still. */
-export function openPreviewMedia(
-  api: LlpApi | undefined,
-): (PreviewMediaSource & {readonly dispose: () => void}) | undefined {
+export function openPreviewMedia(api: LlpApi | undefined):
+  | (PreviewMediaSource & {
+      readonly describe: (ids: readonly string[]) => string;
+      readonly dispose: () => void;
+    })
+  | undefined {
   if (api === undefined) return undefined;
   let shared = libraries.get(api);
   if (shared === undefined) {
@@ -117,6 +125,7 @@ export function openPreviewMedia(
   return {
     url: id => entry.library.url(id),
     remaining: media => entry.library.remaining(media),
+    describe: ids => entry.library.describe(ids),
     dispose: () => {
       if (!active) return;
       active = false;

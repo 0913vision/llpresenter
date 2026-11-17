@@ -121,7 +121,7 @@ function queuedFrames(): () => void {
   };
 }
 
-async function shownThenUnmounted(): Promise<void> {
+it('keeps following the live state while no panel shows it and shows the current picture when it mounts again', async () => {
   vi.spyOn(OutputRenderer.prototype, 'ready').mockReturnValue(true);
   const flush = queuedFrames();
   const first = render(<ScreenPreview screenId={MAIN_SCREEN} chroma={false} />);
@@ -129,38 +129,43 @@ async function shownThenUnmounted(): Promise<void> {
     expect(first.container.textContent).toContain('Current frame'),
   );
   act(flush);
-  expect(shownHost(first.container)?.textContent).toContain('Current frame');
   first.unmount();
-}
-
-it('shows the last picture of a screen at once when it mounts again on the same live state', async () => {
-  await shownThenUnmounted();
-  const again = render(<ScreenPreview screenId={MAIN_SCREEN} chroma={false} />);
-  expect(shownHost(again.container)?.textContent).toContain('Current frame');
-});
-
-it('draws again instead of reusing the picture when the live state changed meanwhile', async () => {
-  await shownThenUnmounted();
   const state = useLive.getState().state;
   if (state === null) throw new Error('Missing state');
-  useLive.setState({
-    state: {
-      ...state,
-      version: 2,
-      layers: {
-        ...state.layers,
-        slide: {
-          itemId: 'fixture',
-          position: 1,
-          label: null,
-          lines: ['Changed while away'],
+  act(() =>
+    useLive.setState({
+      state: {
+        ...state,
+        version: 2,
+        layers: {
+          ...state.layers,
+          slide: {
+            itemId: 'fixture',
+            position: 1,
+            label: null,
+            lines: ['Changed while away'],
+          },
         },
       },
-    },
-  });
-  const again = render(<ScreenPreview screenId={MAIN_SCREEN} chroma={false} />);
-  expect(again.container.textContent).not.toContain('Current frame');
-  await waitFor(() =>
-    expect(again.container.textContent).toContain('Changed while away'),
+    }),
   );
+  act(flush);
+  const again = render(<ScreenPreview screenId={MAIN_SCREEN} chroma={false} />);
+  expect(shownHost(again.container)?.textContent).toContain(
+    'Changed while away',
+  );
+  expect(again.container.textContent).not.toContain('Current frame');
+});
+
+it('gives a second panel of the same screen its own drawing', async () => {
+  const first = render(<ScreenPreview screenId={MAIN_SCREEN} chroma={false} />);
+  const second = render(
+    <ScreenPreview screenId={MAIN_SCREEN} chroma={false} />,
+  );
+  await waitFor(() => {
+    expect(first.container.textContent).toContain('Current frame');
+    expect(second.container.textContent).toContain('Current frame');
+  });
+  second.unmount();
+  expect(first.container.textContent).toContain('Current frame');
 });

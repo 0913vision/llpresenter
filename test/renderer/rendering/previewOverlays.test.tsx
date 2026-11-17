@@ -10,6 +10,7 @@ import {ScreenPreview} from '@renderer/features/presentation/ScreenPreview';
 import {ScreenSummariesContext} from '@renderer/platform/ScreenSummaries';
 import {summarizeScreens} from '@renderer/platform/screens';
 import {classes} from '@renderer/rendering/classes';
+import {releaseKeptDrawings} from '@renderer/rendering/keptDrawings';
 
 beforeEach(() => {
   useLive.setState({state: null});
@@ -126,11 +127,13 @@ describe('preview overlay wiring', () => {
       ),
     ).toHaveLength(0);
     view.unmount();
+    expect(stopSettings).not.toHaveBeenCalled();
+    releaseKeptDrawings();
     expect(stopSettings).toHaveBeenCalledTimes(3 * SETTINGS_FEEDS_PER_PREVIEW);
     for (const remove of removals) expect(remove).toHaveBeenCalledTimes(1);
   });
 
-  it('switches identities without retaining the prior renderer or listener', async () => {
+  it('keeps the prior identity drawing when it switches and frees both on release', async () => {
     const {removals, stopSettings} = setup();
     const view = render(<ScreenPreview screenId={MAIN} chroma={false} />);
     await act(async () => {});
@@ -149,8 +152,9 @@ describe('preview overlay wiring', () => {
         `[data-kind="stageMessage"] .${classes.shown}`,
       )?.textContent,
     ).toBe('Stage cue');
-    expect(stopSettings).toHaveBeenCalledTimes(SETTINGS_FEEDS_PER_PREVIEW);
+    expect(stopSettings).not.toHaveBeenCalled();
     view.unmount();
+    releaseKeptDrawings();
     expect(stopSettings).toHaveBeenCalledTimes(2 * SETTINGS_FEEDS_PER_PREVIEW);
     for (const remove of removals) expect(remove).toHaveBeenCalledTimes(1);
   });

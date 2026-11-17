@@ -102,26 +102,45 @@ describe('useSettingsDocument', () => {
 });
 
 describe('a settings document mounted again', () => {
-  it('starts from the newest document the window has seen while it reads again', async () => {
+  it('starts from the newest document while another panel still follows it', async () => {
     const document = settingsDocument('timers', {timers: []}, 4);
-    const second = deferred<SettingsDocument>();
+    const later = deferred<SettingsDocument>();
     const get = vi
       .fn<() => Promise<SettingsDocument>>()
       .mockResolvedValueOnce(document)
-      .mockReturnValueOnce(second.promise);
+      .mockResolvedValueOnce(document)
+      .mockReturnValueOnce(later.promise);
     const api = mockLlpApi({settings: {get, subscribe: () => () => undefined}});
-    const first = renderHook(() =>
-      useApiSettingsDocument({api, name: 'timers', title: '타이머'}),
-    );
+    const useTimers = () =>
+      useApiSettingsDocument({api, name: 'timers', title: '타이머'});
+    const follower = renderHook(useTimers);
+    const first = renderHook(useTimers);
     await act(async () => Promise.resolve());
     first.unmount();
-    const again = renderHook(() =>
-      useApiSettingsDocument({api, name: 'timers', title: '타이머'}),
-    );
+    const again = renderHook(useTimers);
     expect(again.result.current).toEqual(document);
     const newer = settingsDocument('timers', {timers: []}, 5);
-    await act(async () => second.resolve(newer));
+    await act(async () => later.resolve(newer));
     expect(again.result.current).toEqual(newer);
+    again.unmount();
+    follower.unmount();
+  });
+
+  it('forgets the document once no panel follows it', async () => {
+    const document = settingsDocument('timers', {timers: []}, 4);
+    const later = deferred<SettingsDocument>();
+    const get = vi
+      .fn<() => Promise<SettingsDocument>>()
+      .mockResolvedValueOnce(document)
+      .mockReturnValueOnce(later.promise);
+    const api = mockLlpApi({settings: {get, subscribe: () => () => undefined}});
+    const useTimers = () =>
+      useApiSettingsDocument({api, name: 'timers', title: '타이머'});
+    const first = renderHook(useTimers);
+    await act(async () => Promise.resolve());
+    first.unmount();
+    const again = renderHook(useTimers);
+    expect(again.result.current).toBeNull();
     again.unmount();
   });
 });
