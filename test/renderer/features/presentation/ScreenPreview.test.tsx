@@ -98,24 +98,49 @@ it('keeps the last good preview after a frame error and draws a later good snaps
   expect(view.container.textContent).toContain('Recovered preview');
 });
 
-function shownHost(container: HTMLElement): Element | null {
-  return container.querySelector('div[style*="visibility: visible"]');
+function shownHost(container: HTMLElement): HTMLElement | null {
+  const screen = container.firstElementChild;
+  const hosts = screen === null ? [] : [...screen.children];
+  return (
+    hosts.find(
+      (host): host is HTMLElement =>
+        host instanceof HTMLElement && host.style.visibility === 'visible',
+    ) ?? null
+  );
+}
+
+function queuedFrames(): () => void {
+  const queued: FrameRequestCallback[] = [];
+  vi.spyOn(window, 'requestAnimationFrame').mockImplementation(callback => {
+    queued.push(callback);
+    return queued.length;
+  });
+  vi.spyOn(window, 'cancelAnimationFrame').mockImplementation(() => undefined);
+  return () => {
+    for (const callback of queued.splice(0)) callback(performance.now());
+  };
+}
+
+async function shownThenUnmounted(): Promise<void> {
+  vi.spyOn(OutputRenderer.prototype, 'ready').mockReturnValue(true);
+  const flush = queuedFrames();
+  const first = render(<ScreenPreview screenId={MAIN_SCREEN} chroma={false} />);
+  await waitFor(() =>
+    expect(first.container.textContent).toContain('Current frame'),
+  );
+  act(flush);
+  expect(shownHost(first.container)?.textContent).toContain('Current frame');
+  first.unmount();
 }
 
 it('shows the last picture of a screen at once when it mounts again on the same live state', async () => {
-  vi.spyOn(OutputRenderer.prototype, 'ready').mockReturnValue(true);
-  const first = render(<ScreenPreview screenId={MAIN_SCREEN} chroma={false} />);
-  await waitFor(() => expect(shownHost(first.container)).not.toBeNull());
-  first.unmount();
+  await shownThenUnmounted();
   const again = render(<ScreenPreview screenId={MAIN_SCREEN} chroma={false} />);
   expect(shownHost(again.container)?.textContent).toContain('Current frame');
 });
 
 it('draws again instead of reusing the picture when the live state changed meanwhile', async () => {
-  vi.spyOn(OutputRenderer.prototype, 'ready').mockReturnValue(true);
-  const first = render(<ScreenPreview screenId={MAIN_SCREEN} chroma={false} />);
-  await waitFor(() => expect(shownHost(first.container)).not.toBeNull());
-  first.unmount();
+  await shownThenUnmounted();
   const state = useLive.getState().state;
   if (state === null) throw new Error('Missing state');
   useLive.setState({
@@ -136,8 +161,6 @@ it('draws again instead of reusing the picture when the live state changed meanw
   const again = render(<ScreenPreview screenId={MAIN_SCREEN} chroma={false} />);
   expect(again.container.textContent).not.toContain('Current frame');
   await waitFor(() =>
-    expect(shownHost(again.container)?.textContent).toContain(
-      'Changed while away',
-    ),
+    expect(again.container.textContent).toContain('Changed while away'),
   );
 });
