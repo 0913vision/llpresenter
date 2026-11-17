@@ -2,7 +2,7 @@ import {cleanup, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import type {ComponentProps} from 'react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
+import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {SUNDAY_NOTICE_PICTURE_ID} from '@core/themes/sundayNotice';
 import {
   createMediaId,
@@ -81,7 +81,7 @@ describe('slide-header background control', () => {
   it('shows the inherited image and opens image/video choices with ArrowDown', async () => {
     const {container, onChoose, user} = setup();
     expect(container.querySelector('img')?.getAttribute('src')).toBe(
-      mediaUrl(image.id),
+      thumbnailSrc(image.id),
     );
     const button = screen.getByRole('button', {name: '배경 선택'});
     button.focus();
@@ -160,7 +160,7 @@ describe('slide-header background control', () => {
     });
     expect(container.querySelector('video')).toBeNull();
     expect(container.querySelector('img')?.getAttribute('src')).toBe(
-      thumbnailUrl(video.id),
+      thumbnailSrc(video.id),
     );
     rerender(
       <SongBackgroundSelect
@@ -170,7 +170,7 @@ describe('slide-header background control', () => {
       />,
     );
     expect(container.querySelector('img')?.getAttribute('src')).toBe(
-      mediaUrl(image.id),
+      thumbnailSrc(image.id),
     );
   });
 
