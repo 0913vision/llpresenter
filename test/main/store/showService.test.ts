@@ -32,7 +32,6 @@ import {
   translationIdSchema,
 } from '@core/schema/ids';
 import {liturgyAsSlides, newLiturgyItem} from '@core/services/liturgy';
-import {createMediaId} from '@core/schema/ids';
 import {slidesItem, SLIDES_ITEM} from '@fixtures/core/slides';
 import {MOCK_LONG_VERSE} from '@fixtures/core/bibleSplit';
 import {
