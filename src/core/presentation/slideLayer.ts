@@ -12,6 +12,12 @@ function repeatedLabel(
   const prior =
     previous?.slideLabel ??
     (previous?.kind === undefined ? previous?.label : null);
+  if (
+    (tile.titleSlide || previous?.titleSlide) &&
+    !['전주', '간주', '후주'].includes(label?.trim() ?? '')
+  ) {
+    return false;
+  }
   return !!label?.trim() && label.trim() === prior?.trim();
 }
 

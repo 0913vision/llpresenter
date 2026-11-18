@@ -40,6 +40,35 @@ it('does not treat a song background as a picture-only next slide', () => {
 });
 
 describe('slideLayerOf', () => {
+  it('starts a lyric label again after a title slide with the same name', () => {
+    for (const label of ['1절', '나의가사', 'Long custom label']) {
+      const deck: readonly SlideTile[] = [
+        {label, labelColor: 'none', titleSlide: true, lines: ['Title']},
+        {label, labelColor: 'none', lines: ['Lyric']},
+      ];
+      expect(
+        slideLayerOf({itemId: 'song', index: 0}, () => deck)?.next,
+      ).not.toHaveProperty('labelContinued');
+      expect(
+        slideLayerOf({itemId: 'song', index: 1}, () => deck),
+      ).not.toHaveProperty('labelContinued');
+    }
+  });
+  it.each(['전주', '간주', '후주'])(
+    'continues the %s cue across the title boundary',
+    label => {
+      const deck: readonly SlideTile[] = [
+        {label, labelColor: 'none', titleSlide: true, lines: ['Title']},
+        {label, labelColor: 'none', lines: ['Lyric']},
+      ];
+      expect(
+        slideLayerOf({itemId: 'song', index: 0}, () => deck)?.next,
+      ).toMatchObject({label, labelContinued: true});
+      expect(
+        slideLayerOf({itemId: 'song', index: 1}, () => deck),
+      ).toMatchObject({label, labelContinued: true});
+    },
+  );
   it('marks a repeated label only within the same item', () => {
     const deck: readonly SlideTile[] = [
       {label: '1절', labelColor: 'none', lines: ['First']},
