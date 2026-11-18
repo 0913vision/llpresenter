@@ -1,4 +1,11 @@
-import {act, fireEvent, screen, waitFor, within} from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  renderHook,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {
@@ -6,6 +13,7 @@ import {
   lyrics,
 } from '@fixtures/renderer/features/songs/editor/editorTesting';
 import {hoverForTooltip} from '@fixtures/renderer/ui/tooltipTesting';
+import {useCommandShortcuts} from '@renderer/ui/commandDispatcher';
 
 async function openMenu(user: Awaited<ReturnType<typeof editorSetup>>['user']) {
   await user.click(screen.getByRole('button', {name: '1절 1'}));
@@ -94,6 +102,35 @@ describe('song editor label menu', () => {
     await waitFor(() => expect(labels().value.labels[0]?.name).toBe('후렴'));
     expect(labelEdits).toHaveLength(1);
     expect(row.getAttribute('data-drop')).toBeNull();
+  });
+
+  it('releases shortcuts when the portaled manager closes mid-drag', async () => {
+    const {user} = await editorSetup();
+    const ran: string[] = [];
+    const owner = renderHook(() =>
+      useCommandShortcuts([
+        {id: 'library.newSong', run: () => ran.push('new')},
+      ]),
+    );
+    const dialog = await openManager(user);
+    const grip = within(dialog).getByRole('button', {name: '1절 순서 이동'});
+    fireEvent.dragStart(grip, {
+      dataTransfer: {setData: vi.fn(), effectAllowed: ''},
+    });
+    fireEvent.click(
+      within(dialog).getAllByRole('button', {name: '닫기'}).at(-1) ?? dialog,
+    );
+    await waitFor(() =>
+      expect(screen.queryByRole('dialog', {name: '이름표 관리'})).toBeNull(),
+    );
+    const menu = screen.getByRole('menu', {name: '이름표'});
+    fireEvent.blur(menu, {relatedTarget: document.body});
+    await waitFor(() =>
+      expect(screen.queryByRole('menu', {name: '이름표'})).toBeNull(),
+    );
+    fireEvent.keyDown(document.body, {key: 'n', code: 'KeyN', ctrlKey: true});
+    expect(ran).toEqual(['new']);
+    owner.unmount();
   });
 
   it('only offers selection and the single manager without row context menus', async () => {
