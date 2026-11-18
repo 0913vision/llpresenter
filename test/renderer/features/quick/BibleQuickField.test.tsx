@@ -88,6 +88,32 @@ describe('BibleQuickField', () => {
     expect(dialog.isConnected).toBe(false);
   });
 
+  it('leaves text editing keys to the field even when bound to the finder', async () => {
+    commandBindingStore.set({'bible.focus': [{code: 'Home', mods: ['ctrl']}]});
+    const fixture = panelApi();
+    render(<BibleQuickField api={fixture.api} />);
+    await book();
+    fireEvent.keyDown(document.body, {
+      code: 'Home',
+      key: 'Home',
+      ctrlKey: true,
+    });
+    const dialog = screen.getByRole('dialog');
+    const field = await book();
+    const event = new KeyboardEvent('keydown', {
+      code: 'Home',
+      key: 'Home',
+      ctrlKey: true,
+      bubbles: true,
+      cancelable: true,
+    });
+    act(() => {
+      field.dispatchEvent(event);
+    });
+    expect(dialog.isConnected).toBe(true);
+    expect(event.defaultPrevented).toBe(false);
+  });
+
   it('consumes a repeated binding without closing the finder', async () => {
     const fixture = panelApi();
     render(<BibleQuickField api={fixture.api} />);

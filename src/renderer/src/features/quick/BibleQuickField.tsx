@@ -2,7 +2,7 @@ import {withLiveBible} from '@core/bible/liveTranslation';
 import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
 import {useRef, useSyncExternalStore} from 'react';
 import {commandBindings} from '@core/shortcuts/bindings';
-import {matchesBinding} from '@core/shortcuts/matching';
+import {editsText, matchesBinding} from '@core/shortcuts/matching';
 import {commandBindingStore} from '@renderer/ui/commandBindings';
 import {isInputMethodKey} from '@renderer/ui/commandDispatcher';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
@@ -99,6 +99,7 @@ export function BibleQuickField({
         if (
           overlayOpen &&
           !isInputMethodKey(event.nativeEvent) &&
+          !editsText(event.nativeEvent) &&
           commandBindings('bible.focus', bindings).some(binding =>
             matchesBinding(event.nativeEvent, binding),
           )
