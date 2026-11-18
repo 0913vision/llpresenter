@@ -4,6 +4,8 @@ import {ContinuousSlideGrid} from '@renderer/features/presentation/ContinuousSli
 import {applyService, openItem, useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
+import {emptyLiveState} from '@core/live/state';
+import {liveReturn} from '@renderer/features/presentation/liveReturn';
 
 class Observer implements ResizeObserver {
   static all: Observer[] = [];
@@ -98,4 +100,74 @@ it('windows ordered item bands, scrolls to a requested item, and outputs its til
   fireEvent.click(second);
   expect(useShow.getState().openItemId).toBe('two');
   expect(send).toHaveBeenCalled();
+});
+
+function setLive(itemId: string): void {
+  const state = emptyLiveState();
+  act(() =>
+    useLive.setState({
+      state: {
+        ...state,
+        layers: {
+          ...state.layers,
+          slide: {
+            itemId,
+            position: 0,
+            label: null,
+            lines: ['Live'],
+          },
+        },
+      },
+    }),
+  );
+}
+
+function measuredViewport(): HTMLElement {
+  const {container} = render(
+    <ContinuousSlideGrid columns={4} scalePercent={100} />,
+  );
+  const viewport = container.querySelector<HTMLElement>(
+    '[data-show-slide-grid]',
+  )?.parentElement;
+  if (!viewport) throw new Error('Missing viewport');
+  Object.defineProperty(viewport, 'clientHeight', {value: 300});
+  viewport.scrollTo = vi.fn();
+  act(() => Observer.all.forEach(observer => observer.report()));
+  return viewport;
+}
+
+it('follows a key past the reading line during the wheel pause', () => {
+  setLive('one');
+  const viewport = measuredViewport();
+  vi.mocked(viewport.scrollTo).mockClear();
+  fireEvent.wheel(viewport);
+  fireEvent.keyDown(window, {key: 'ArrowDown', code: 'ArrowDown'});
+  setLive('two');
+  expect(viewport.scrollTo).toHaveBeenCalledWith(
+    expect.objectContaining({behavior: 'smooth'}),
+  );
+});
+
+it('does not follow an in-view click after a key press', () => {
+  setLive('one');
+  const viewport = measuredViewport();
+  vi.mocked(viewport.scrollTo).mockClear();
+  fireEvent.keyDown(window, {key: 'ArrowDown', code: 'ArrowDown'});
+  fireEvent.pointerDown(screen.getByText('Second'));
+  setLive('two');
+  expect(viewport.scrollTo).not.toHaveBeenCalled();
+});
+
+it('returns to the live tile after scrolling it out of view', () => {
+  setLive('one');
+  const viewport = measuredViewport();
+  fireEvent.wheel(viewport);
+  viewport.scrollTop = 400;
+  fireEvent.scroll(viewport);
+  expect(liveReturn.get()).toBe('away');
+  vi.mocked(viewport.scrollTo).mockClear();
+  act(() => liveReturn.go());
+  expect(viewport.scrollTo).toHaveBeenCalledWith(
+    expect.objectContaining({top: 0, behavior: 'smooth'}),
+  );
 });
