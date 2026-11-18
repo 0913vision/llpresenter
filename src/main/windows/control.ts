@@ -54,6 +54,7 @@ export function createControlWindow(
       contextIsolation: true,
       nodeIntegration: false,
       spellcheck: false,
+      enableBlinkFeatures: 'CanvasDrawElement',
       ...testPreferences,
     },
   });

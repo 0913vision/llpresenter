@@ -241,7 +241,7 @@ export function Workspace({
       {visibleId === 'show' ? (
         <ShowShortcuts onProblem={onProblem ?? logPanelProblem} />
       ) : null}
-      {!showVisible ? <OpenItemPrefetch /> : null}
+      <OpenItemPrefetch />
       {prep === undefined ? null : <TableDataKeeper api={prep.api} />}
       <div data-resize-panel="media.upper" className={styles.frames}>
         <div

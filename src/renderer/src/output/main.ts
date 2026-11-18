@@ -5,6 +5,7 @@ import {showMonitorNumber} from './monitorNumber';
 import {startOutput} from './startOutput';
 import {startAudio} from './startAudio';
 import {handSlideTransitionsTo} from '../rendering/slideAnimation';
+import {startPainter} from './painter';
 
 const SCREEN_PARAMETER = 'screen';
 const MONITOR_NUMBER_PARAMETER = 'monitor-number';
@@ -17,7 +18,9 @@ const audio = parameters.get('audio');
 const ndi = parameters.get('ndi') === '1';
 if (ndi) document.body.classList.add('ndi-transparent');
 const api = window.llp;
-if (root !== null && audio !== null && api !== undefined) {
+if (root !== null && parameters.get('painter') === '1') {
+  startPainter(root);
+} else if (root !== null && audio !== null && api !== undefined) {
   startAudio({root, api, muted: audio !== 'sound'});
 } else if (root !== null && monitorNumber !== null) {
   showMonitorNumber(root, monitorNumber, parameters.get('monitor-details'));

@@ -34,7 +34,6 @@ import {ShowSlideEntry} from './showPanelNavigation';
 import {serviceSlideOffset} from './serviceSlideNumbers';
 import {useSlideTransitionProgress} from './useSlideTransitionProgress';
 import {tilePicture} from './tilePicture';
-import {SlidePicturePrefetch} from './SlidePicturePrefetch';
 
 const GRID_SELECTOR = '[role="listbox"]';
 
@@ -189,7 +188,6 @@ export function SlideGrid({
         <BibleLoadNotice row={row} />
       ) : null}
 
-      <SlidePicturePrefetch openItemId={openItemId} />
       <div className={styles.window} style={{top: window.offset}}>
         <Suspense fallback={null}>
           <ThumbnailGrid

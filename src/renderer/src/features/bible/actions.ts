@@ -29,6 +29,7 @@ function samePassage(
 export function openBiblePassage(
   passage: BibleLookupPassage,
   options?: BiblePreviewOptions,
+  ready = false,
 ): void {
   const source = bibleSource(passage, options);
   const view = useShow.getState();
@@ -49,6 +50,7 @@ export function openBiblePassage(
         ? null
         : view.requestedBibleSource,
     openItemId: source.id,
+    readyItemId: ready ? source.id : null,
   };
   const nextTiles = tilesForView({...view, ...next}, source.id);
   useShow.setState({

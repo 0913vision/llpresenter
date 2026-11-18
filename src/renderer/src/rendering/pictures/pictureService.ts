@@ -1,394 +1,351 @@
-import type {LiveLayers} from '@core/live/state';
-import {OUTPUT_REVEAL_DEADLINE_MS} from '@core/output/revealDeadline';
-import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
-import {mediaUrl} from '@contracts/ipc/mediaUrls';
-import {fontsLoading, fontsStamp, previewReady} from '../fontsLoading';
-import type {RenderScreen, ThemeFrame} from '../layer';
-import {OutputRenderer} from '../outputRenderer';
-import {openPreviewMedia} from '../previewMedia';
+import type {PictureRequest} from '@core/schema/picture';
+import type {MediaDocument} from '@core/schema/mediaEdit';
+import type {FontCatalogSnapshot} from '@core/schema/fontCatalog';
+import type {SongSlideSource} from '@core/schema/showService';
+import {pictureKey} from '@core/output/pictureKey';
+import {themeOverlay} from '@core/themes/content';
+import {flushSync} from 'react-dom';
+import {LocalPicturePainter} from './localPicturePainter';
 
-/** What a picture shows: the layers and how the screen draws them. */
-export interface PictureSpec {
-  readonly layers: LiveLayers;
-  readonly appearance: {
-    readonly screen: RenderScreen;
-    readonly theme: ThemeFrame;
-    readonly background: string;
-    readonly checker: boolean;
-  };
+/** What the output compositor draws into a still. */
+export type PictureSpec = PictureRequest['spec'] & {
+  readonly songSource?: SongSlideSource | undefined;
+};
+
+type Listener = () => void;
+
+export interface PictureImage {
+  readonly source: string | HTMLCanvasElement;
+  readonly bytes: number;
 }
 
-/** Every picture is drawn at the output size and shown scaled. */
-export const DRAWING_WIDTH = 1920;
-export const DRAWING_HEIGHT = 1080;
-/** Finished pictures kept for reuse after their view leaves. */
-const KEPT_PICTURES = 240;
-
-interface Drawing {
-  readonly key: string;
-  readonly host: HTMLDivElement;
-  /** What the drawing read beyond its key: media records and the font set. */
-  readonly inputs: () => string;
-  readonly dispose: () => void;
-  stamp: string;
-}
-
-interface Pending {
-  readonly drawing: Drawing;
-  readonly renderer: OutputRenderer;
-  readonly started: number;
-  readonly finish: () => void;
-}
-
-/** Marks a promise settled, so React's `use` reads it without waiting. */
-function markSettled(promise: Promise<void>): void {
-  Reflect.set(promise, 'status', 'fulfilled');
-  Reflect.set(promise, 'value', undefined);
-}
-
-const layouts = new WeakMap<object, string>();
-
-function layoutKey(layout: ThemeFrame['layout']): string {
-  let key = layouts.get(layout);
-  if (key === undefined) {
-    key = JSON.stringify(layout);
-    layouts.set(layout, key);
-  }
-  return key;
-}
-
-/** The identity of a picture: equal keys draw the same picture. */
-export function pictureKey({layers, appearance}: PictureSpec): string {
-  return JSON.stringify([
-    layers.slide,
-    layers.media,
-    appearance.screen,
-    appearance.theme.themeId,
-    appearance.theme.revision,
-    appearance.theme.item,
-    appearance.theme.emptyColor,
-    layoutKey(appearance.theme.layout),
-    appearance.background,
-    appearance.checker,
-  ]);
-}
-
-function settled(): Promise<void> {
-  const done = Promise.resolve();
-  markSettled(done);
-  return done;
-}
-
-/**
- * Draws slide pictures out of sight, before any view shows them, and hands a
- * finished picture to the view that shows it. A view never shows a picture
- * while it draws: it waits (suspends) until the picture is finished, so the
- * frame that first shows a picture shows it complete.
- */
-export class PictureService {
-  private room: HTMLDivElement | null = null;
-  /** Finished pictures nobody shows, oldest first. */
-  private readonly free = new Map<string, Drawing[]>();
-  private freeCount = 0;
-  private readonly pending = new Set<Pending>();
-  /** Pictures on screen, by key, to copy when one key shows twice. */
-  private readonly shown = new Map<string, Drawing[]>();
-  private readonly waits = new Map<string, Promise<void>>();
-  private frame = 0;
+class Entry {
+  private readonly listeners = new Set<Listener>();
+  readonly ready: Promise<void>;
+  private finish = (): void => undefined;
+  image: PictureImage | undefined;
+  done = false;
+  editing = false;
 
   constructor(
-    private readonly options: {readonly waitForReady?: boolean} = {},
-  ) {}
-
-  /**
-   * Shows pictures as they draw instead of waiting for them and keeps none,
-   * where nothing is laid out or loaded (jsdom in tests).
-   */
-  readonly drawInPlace =
-    typeof navigator !== 'undefined' && navigator.userAgent.includes('jsdom');
-
-  /** Resolves once a finished picture for the spec is ready to be shown. */
-  whenDrawn(spec: PictureSpec): Promise<void> {
-    if (this.drawInPlace) return settled();
-    const key = pictureKey(spec);
-    if (this.hasFree(key)) return settled();
-    const waiting = this.waits.get(key);
-    if (waiting !== undefined) return waiting;
-    let finish = (): void => undefined;
-    const wait = new Promise<void>(resolve => {
-      finish = resolve;
+    readonly key: string,
+    readonly spec: PictureSpec,
+    readonly inputs: string,
+  ) {
+    this.ready = new Promise(resolve => {
+      this.finish = resolve;
     });
-    Reflect.set(wait, 'status', 'pending');
-    this.waits.set(key, wait);
-    this.draw(key, spec, () => {
-      markSettled(wait);
-      this.waits.delete(key);
-      finish();
-    });
-    return wait;
   }
 
-  /** Lets every drawing go, shown or kept. */
-  reset(): void {
-    cancelAnimationFrame(this.frame);
-    this.frame = 0;
-    for (const entry of this.pending) entry.drawing.dispose();
-    this.pending.clear();
-    for (const list of this.free.values()) {
-      for (const drawing of list) drawing.dispose();
+  readonly subscribe = (listener: Listener): (() => void) => {
+    this.listeners.add(listener);
+    return () => this.listeners.delete(listener);
+  };
+
+  readonly snapshot = (): boolean => this.done;
+
+  complete(image: PictureImage | undefined): void {
+    this.image = image;
+    this.done = true;
+    Reflect.set(this.ready, 'status', 'fulfilled');
+    Reflect.set(this.ready, 'value', undefined);
+    this.finish();
+    for (const listener of this.listeners) listener();
+  }
+}
+
+const ENTRY_LIMIT = 720;
+const BYTE_LIMIT = 48 * 1024 * 1024;
+const FOREGROUND_LIMIT = 2;
+
+/** Shares decoded sources and gives visible requests priority over preload. */
+class PictureService {
+  private readonly entries = new Map<string, Entry>();
+  private readonly foreground = new Set<Entry>();
+  private readonly background = new Set<Entry>();
+  private readonly inputListeners = new Set<Listener>();
+  private readonly pins = new Map<PictureImage, number>();
+  private media: MediaDocument | undefined;
+  private records = new Map<string, MediaDocument['value']['items'][number]>();
+  private fontStamp = '';
+  private fontUpdate = 0;
+  private initialized = false;
+  private inputsReady = Promise.resolve();
+  private active = 0;
+  private bytes = 0;
+  private scheduled = false;
+  private editorPainter: LocalPicturePainter | undefined;
+  private editing = Promise.resolve();
+
+  warmEditor(spec: PictureSpec): void {
+    if (!LocalPicturePainter.available()) return;
+    this.editing
+      .then(() => {
+        this.editorPainter ??= new LocalPicturePainter();
+        this.editorPainter.warm(spec);
+      })
+      .catch((error: unknown) => console.error(error));
+  }
+
+  readonly subscribeInputs = (listener: Listener): (() => void) => {
+    this.inputListeners.add(listener);
+    return () => this.inputListeners.delete(listener);
+  };
+
+  inputs(spec: PictureSpec): string {
+    this.initialize();
+    const ids = new Set<string>();
+    const mediaId = spec.layers.media?.mediaId;
+    if (mediaId !== undefined) ids.add(mediaId);
+    const {theme} = spec.appearance;
+    for (const element of theme.layout.elements) {
+      if (element.kind === 'image') ids.add(element.mediaId);
+      if (element.kind === 'overlay') {
+        const overlay = themeOverlay(
+          theme.item,
+          spec.layers,
+          theme.sourceScreenId,
+        );
+        const content = overlay?.content;
+        if (
+          content !== undefined &&
+          'media' in content &&
+          typeof content.media === 'string'
+        ) {
+          ids.add(content.media);
+        }
+      }
     }
-    this.free.clear();
-    this.freeCount = 0;
-    this.shown.clear();
-    this.waits.clear();
-    this.room?.remove();
-    this.room = null;
+    return JSON.stringify([
+      this.fontStamp,
+      [...ids].sort().map(id => [id, this.records.get(id) ?? null]),
+    ]);
   }
 
-  /** Draws pictures a view is likely to show next. */
+  request(
+    spec: PictureSpec,
+    inputs: string,
+    {
+      immediate = true,
+      editing = false,
+    }: {immediate?: boolean; editing?: boolean} = {},
+  ): Entry {
+    const key = JSON.stringify([pictureKey(spec), inputs]);
+    let entry = this.entries.get(key);
+    if (entry === undefined) {
+      entry = new Entry(key, spec, inputs);
+      if (
+        window.llp?.picture === undefined ||
+        typeof URL.createObjectURL !== 'function'
+      ) {
+        entry.complete(undefined);
+      } else {
+        this.background.add(entry);
+      }
+    } else {
+      this.entries.delete(key);
+    }
+    this.entries.set(key, entry);
+    entry.editing ||= editing;
+    if (immediate && this.background.delete(entry)) this.foreground.add(entry);
+    this.schedule();
+    return entry;
+  }
+
+  /** Resolves once the image has finished decoding. */
+  whenDrawn(spec: PictureSpec): Promise<void> {
+    return this.request(spec, this.inputs(spec)).ready;
+  }
+
+  /** Prepares pictures while leaving room for the current view. */
   prepare(specs: readonly PictureSpec[]): void {
     for (const spec of specs) {
-      this.whenDrawn(spec).catch(() => undefined);
+      this.request(spec, this.inputs(spec), {immediate: false});
     }
   }
 
-  /**
-   * Shows the spec's picture in the container, scaled to its size, and returns
-   * how to take it back. A finished picture shows at once; otherwise it draws
-   * in place, out of sight, and the picture it replaces stays until then.
-   */
-  show(
-    spec: PictureSpec,
-    container: HTMLElement,
-    replacing?: () => void,
-  ): () => void {
-    const key = pictureKey(spec);
-    const ready = this.takeFree(key) ?? this.copyShown(key);
-    const shown = ready ?? this.drawShown(key, spec, () => replacing?.());
-    if (ready !== undefined) replacing?.();
-    const onScreen = this.shown.get(key) ?? [];
-    this.shown.set(key, [...onScreen, shown]);
-    // NOTE(0913vision): The size arrives from the resize observer before the
-    // first paint; reading it here would lay the page out once per picture.
-    container.append(shown.host);
-    const observer =
-      typeof ResizeObserver === 'undefined'
-        ? null
-        : new ResizeObserver(entries => {
-            const width = entries.at(-1)?.contentRect.width ?? 0;
-            shown.host.style.transform = `scale(${width / DRAWING_WIDTH})`;
-          });
-    observer?.observe(container);
+  retain(image: PictureImage): () => void {
+    this.pins.set(image, (this.pins.get(image) ?? 0) + 1);
     return () => {
-      observer?.disconnect();
-      const rest = (this.shown.get(key) ?? []).filter(each => each !== shown);
-      if (rest.length === 0) this.shown.delete(key);
-      else this.shown.set(key, rest);
-      this.keep(shown);
+      const remaining = (this.pins.get(image) ?? 1) - 1;
+      if (remaining > 0) this.pins.set(image, remaining);
+      else this.pins.delete(image);
     };
   }
 
-  /**
-   * Draws a picture where it is shown, out of sight until finished: for a
-   * view that did not wait, such as tiles a scroll or a resize brings in.
-   */
-  private drawShown(
-    key: string,
-    spec: PictureSpec,
-    finished: () => void,
-  ): Drawing {
-    const {drawing, renderer} = this.start(key, spec);
-    drawing.host.style.visibility = 'hidden';
-    this.pending.add({
-      drawing,
-      renderer,
-      started: performance.now(),
-      finish: () => {
-        drawing.host.style.removeProperty('visibility');
-        finished();
-      },
-    });
-    this.schedule();
-    return drawing;
-  }
-
-  /** A still copy of a picture already on screen, for a key shown twice. */
-  private copyShown(key: string): Drawing | undefined {
-    const original = this.shown.get(key)?.[0];
-    if (original === undefined) return undefined;
-    const copy = original.host.cloneNode(true);
-    if (!(copy instanceof HTMLDivElement)) return undefined;
-    copy.style.removeProperty('transform');
-    return {
-      key,
-      host: copy,
-      inputs: original.inputs,
-      stamp: original.stamp,
-      dispose: () => copy.remove(),
+  private initialize(): void {
+    if (this.initialized) return;
+    this.initialized = true;
+    const api = window.llp;
+    if (api?.picture === undefined) return;
+    const notify = (): void => {
+      for (const listener of this.inputListeners) listener();
     };
-  }
-
-  private hasFree(key: string): boolean {
-    const list = this.free.get(key);
-    if (list === undefined) return false;
-    const valid = list.filter(drawing => drawing.stamp === drawing.inputs());
-    for (const stale of list.filter(drawing => !valid.includes(drawing))) {
-      stale.dispose();
-      this.freeCount -= 1;
-    }
-    if (valid.length === 0) this.free.delete(key);
-    else this.free.set(key, valid);
-    return valid.length > 0;
-  }
-
-  private takeFree(key: string): Drawing | undefined {
-    if (!this.hasFree(key)) return undefined;
-    const list = this.free.get(key) ?? [];
-    const drawing = list.pop();
-    if (list.length === 0) this.free.delete(key);
-    if (drawing !== undefined) this.freeCount -= 1;
-    return drawing;
-  }
-
-  private keep(drawing: Drawing): void {
-    if (this.drawInPlace) {
-      drawing.dispose();
-      return;
-    }
-    this.roomElement().append(drawing.host);
-    drawing.host.style.removeProperty('transform');
-    drawing.stamp = drawing.inputs();
-    const list = this.free.get(drawing.key) ?? [];
-    this.free.delete(drawing.key);
-    this.free.set(drawing.key, [...list, drawing]);
-    this.freeCount += 1;
-    while (this.freeCount > KEPT_PICTURES) {
-      const oldest = this.free.entries().next();
-      if (oldest.done === true) break;
-      const [key, drawings] = oldest.value;
-      const gone = drawings.shift();
-      if (drawings.length === 0) this.free.delete(key);
-      gone?.dispose();
-      this.freeCount -= 1;
-    }
-  }
-
-  private roomElement(): HTMLDivElement {
-    if (this.room !== null) return this.room;
-    const room = document.createElement('div');
-    room.dataset['pictureRoom'] = '';
-    room.inert = true;
-    room.setAttribute('aria-hidden', 'true');
-    Object.assign(room.style, {
-      position: 'fixed',
-      left: '0',
-      top: '0',
-      width: `${DRAWING_WIDTH}px`,
-      height: `${DRAWING_HEIGHT}px`,
-      opacity: '0',
-      pointerEvents: 'none',
-      overflow: 'hidden',
-      contain: 'strict',
-      zIndex: '-1',
-    });
-    document.body.append(room);
-    this.room = room;
-    return room;
-  }
-
-  private draw(key: string, spec: PictureSpec, finish: () => void): void {
-    const {drawing, renderer} = this.start(key, spec);
-    this.pending.add({
-      drawing,
-      renderer,
-      started: performance.now(),
-      finish: () => {
-        this.keep(drawing);
-        finish();
-      },
-    });
-    this.schedule();
-  }
-
-  private start(
-    key: string,
-    spec: PictureSpec,
-  ): {readonly drawing: Drawing; readonly renderer: OutputRenderer} {
-    const host = document.createElement('div');
-    Object.assign(host.style, {
-      position: 'absolute',
-      left: '0',
-      top: '0',
-      width: `${DRAWING_WIDTH}px`,
-      height: `${DRAWING_HEIGHT}px`,
-      transformOrigin: '0 0',
-      background:
-        spec.appearance.screen.method === 'ndi'
-          ? 'transparent'
-          : spec.appearance.background,
-    });
-    this.roomElement().append(host);
-    const media = openPreviewMedia(window.llp);
-    const asked = new Set<string>();
-    const renderer = new OutputRenderer(host, {
-      transparent: spec.appearance.screen.method === 'ndi',
-      textStyle: DEFAULT_TEXT_STYLE,
-      mediaUrl,
-      previewMedia:
-        media === undefined
-          ? undefined
-          : {
-              url: id => {
-                asked.add(id);
-                return media.url(id);
-              },
-              remaining: layer => media.remaining(layer),
-            },
-      mode: 'preview',
-      onError: (message, error) => console.error(message, error),
-    });
-    const drawing: Drawing = {
-      key,
-      host,
-      inputs: () =>
-        JSON.stringify([
-          fontsStamp(document.fonts),
-          media?.describe([...asked].sort()) ?? '',
-        ]),
-      stamp: '',
-      dispose: () => {
-        renderer.dispose();
-        media?.dispose();
-        host.remove();
-      },
+    const acceptMedia = (document: MediaDocument): void => {
+      if (
+        this.media !== undefined &&
+        document.revision <= this.media.revision
+      ) {
+        return;
+      }
+      this.media = document;
+      this.records = new Map(document.value.items.map(item => [item.id, item]));
+      notify();
     };
-    renderer.render(spec.layers, {
-      screen: spec.appearance.screen,
-      theme: spec.appearance.theme,
-      transitions: false,
-      ...(spec.layers.slide === null ? {} : {slide: spec.layers.slide}),
+    const acceptFonts = async (catalog: FontCatalogSnapshot): Promise<void> => {
+      const update = ++this.fontUpdate;
+      const bytes = new TextEncoder().encode(JSON.stringify(catalog.families));
+      const hash = await crypto.subtle.digest('SHA-256', bytes);
+      if (update === this.fontUpdate) {
+        this.fontStamp = Array.from(new Uint8Array(hash), value =>
+          value.toString(16).padStart(2, '0'),
+        ).join('');
+        notify();
+      }
+    };
+    api.media.subscribe(acceptMedia);
+    api.fonts.subscribe(catalog => {
+      acceptFonts(catalog).catch((error: unknown) => console.error(error));
     });
-    return {drawing, renderer};
+    this.inputsReady = Promise.all([
+      api.media.get().then(acceptMedia, () => undefined),
+      api.fonts
+        .snapshot()
+        .then(acceptFonts)
+        .catch(() => undefined),
+    ]).then(() => undefined);
   }
 
   private schedule(): void {
-    if (this.frame !== 0) return;
-    this.frame = requestAnimationFrame(() => {
-      this.frame = 0;
-      for (const entry of this.pending) {
-        const expired =
-          performance.now() - entry.started >= OUTPUT_REVEAL_DEADLINE_MS;
-        const ready =
-          previewReady(entry.renderer) && !fontsLoading(document.fonts);
-        if (!ready && (this.options.waitForReady === true || !expired)) {
-          continue;
-        }
-        if (!ready) entry.renderer.revealIncomplete();
-        this.pending.delete(entry);
-        entry.finish();
+    if (this.scheduled) return;
+    this.scheduled = true;
+    queueMicrotask(() => {
+      this.scheduled = false;
+      const queue =
+        this.foreground.size > 0 ? this.foreground : this.background;
+      const limit = queue === this.foreground ? FOREGROUND_LIMIT : 1;
+      while (this.active < limit) {
+        const entry = queue.values().next().value;
+        if (entry === undefined) return;
+        queue.delete(entry);
+        this.active++;
+        this.load(entry)
+          .finally(() => {
+            this.active--;
+            this.schedule();
+          })
+          .catch((error: unknown) => console.error(error));
       }
-      if (this.pending.size > 0) this.schedule();
     });
+  }
+
+  private async load(entry: Entry): Promise<void> {
+    try {
+      await this.inputsReady;
+      const inputs = this.inputs(entry.spec);
+      if (inputs !== entry.inputs) {
+        const next = this.request(entry.spec, inputs, {editing: entry.editing});
+        next.ready
+          .then(() => {
+            entry.complete(next.image);
+            this.entries.delete(entry.key);
+          })
+          .catch((error: unknown) => console.error(error));
+        return;
+      }
+      if (entry.editing && LocalPicturePainter.available()) {
+        const draw = this.editing.then(() => {
+          this.editorPainter ??= new LocalPicturePainter();
+          return this.editorPainter.paint(entry.spec);
+        });
+        this.editing = draw.then(
+          () => undefined,
+          () => undefined,
+        );
+        const canvas = await draw.catch(() => undefined);
+        if (canvas !== undefined) {
+          const bytes = canvas.width * canvas.height * 4;
+          this.bytes += bytes;
+          flushSync(() => entry.complete({source: canvas, bytes}));
+          requestIdleCallback(
+            () => this.remember(canvas, {spec: entry.spec, inputs}),
+            {timeout: 1000},
+          );
+          this.prune();
+          return;
+        }
+      }
+      const bytes = await window.llp?.picture.paint({spec: entry.spec, inputs});
+      if (bytes === undefined) {
+        entry.complete(undefined);
+        return;
+      }
+      const src = URL.createObjectURL(
+        new Blob([new Uint8Array(bytes)], {
+          type: bytes[0] === 0x89 ? 'image/png' : 'image/jpeg',
+        }),
+      );
+      const decoded = new Image();
+      decoded.src = src;
+      try {
+        await decoded.decode();
+      } catch (error) {
+        URL.revokeObjectURL(src);
+        throw error;
+      }
+      this.bytes += bytes.byteLength;
+      entry.complete({source: src, bytes: bytes.byteLength});
+    } catch (error) {
+      console.error('Picture preparation failed', error);
+      entry.complete(undefined);
+    }
+    this.prune();
+  }
+
+  private remember(canvas: HTMLCanvasElement, picture: PictureRequest): void {
+    const type =
+      picture.spec.appearance.screen.method === 'ndi'
+        ? 'image/png'
+        : 'image/jpeg';
+    try {
+      canvas.toBlob(
+        blob => {
+          if (blob === null) return;
+          blob
+            .arrayBuffer()
+            .then(buffer => {
+              window.llp?.picture.remember({
+                picture,
+                image: new Uint8Array(buffer),
+              });
+            })
+            .catch((error: unknown) => console.error(error));
+        },
+        type,
+        0.85,
+      );
+    } catch (error) {
+      console.error('Could not encode the edited picture', error);
+    }
+  }
+
+  private prune(): void {
+    for (const [key, entry] of this.entries) {
+      if (this.entries.size <= ENTRY_LIMIT && this.bytes <= BYTE_LIMIT) break;
+      if (
+        !entry.done ||
+        (entry.image !== undefined && this.pins.has(entry.image))
+      ) {
+        continue;
+      }
+      this.entries.delete(key);
+      if (entry.image !== undefined) {
+        this.bytes -= entry.image.bytes;
+        if (typeof entry.image.source === 'string') {
+          URL.revokeObjectURL(entry.image.source);
+        }
+      }
+    }
   }
 }
 

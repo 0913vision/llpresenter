@@ -2,29 +2,20 @@ import {labelInk} from '@renderer/ui/labelInk';
 import type {Song} from '@core/schema/song';
 import {
   useEffect,
-  useContext,
-  useEffectEvent,
-  useLayoutEffect,
   useMemo,
-  useRef,
   useState,
   useSyncExternalStore,
-  type CSSProperties,
   type JSX,
 } from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {emptyLayers, type LiveLayers} from '@core/live/state';
 import type {Label} from '@core/schema/labels';
 import type {ShowTile} from '@core/schema/showService';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
-import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {slideCountOf} from '@core/songs/blockEdits';
-import {OutputRenderer} from '@renderer/rendering/outputRenderer';
-import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
-import {openPreviewMedia} from '@renderer/rendering/previewMedia';
 import {RolePreview} from './RolePreview';
+import {Picture} from '@renderer/rendering/pictures/Picture';
 import {
   previewAppearance,
   selectedPreview,
@@ -71,83 +62,6 @@ function usePreviewSettings(api: LlpApi['settings']) {
     themes: documents.find(item => item.name === 'themes')?.value,
     screens: documents.find(item => item.name === 'screens')?.value,
   };
-}
-
-interface ScreenStyle extends CSSProperties {
-  readonly '--output-background': string;
-}
-export function Picture({
-  layers,
-  appearance,
-}: {
-  readonly layers: ReturnType<typeof selectedPreview>;
-  readonly appearance: ReturnType<typeof previewAppearance>;
-}): JSX.Element {
-  const parent = useRef<HTMLDivElement>(null);
-  const renderer = useRef<OutputRenderer | null>(null);
-  const source = useRef({});
-  const onReady = useContext(PictureReadiness);
-  const draw = useEffectEvent(() => {
-    try {
-      renderer.current?.render(layers, {
-        screen: appearance.screen,
-        theme: appearance.theme,
-        transitions: false,
-        ...(layers.slide === null ? {} : {slide: layers.slide}),
-      });
-    } catch (error) {
-      console.error('Could not update song preview', error);
-    }
-  });
-  useLayoutEffect(() => {
-    if (parent.current === null) return;
-    const previewMedia = openPreviewMedia(window.llp);
-    const view = new OutputRenderer(parent.current, {
-      transparent: appearance.screen.method === 'ndi',
-      textStyle: DEFAULT_TEXT_STYLE,
-      mediaUrl,
-      previewMedia,
-      mode: 'preview',
-      onError: (message, error) => console.error(message, error),
-    });
-    renderer.current = view;
-    draw();
-    return () => {
-      renderer.current = null;
-      view.dispose();
-      previewMedia?.dispose();
-    };
-  }, [appearance.screen.method]);
-  useLayoutEffect(() => {
-    draw();
-  }, [layers, appearance.screen, appearance.theme]);
-  useLayoutEffect(() => {
-    if (onReady === null) return undefined;
-    let frame = 0;
-    let readyFrames = 0;
-    const check = (): void => {
-      if (renderer.current?.ready() === true) readyFrames++;
-      else readyFrames = 0;
-      if (readyFrames >= 2) onReady(source.current);
-      else frame = requestAnimationFrame(check);
-    };
-    frame = requestAnimationFrame(check);
-    return () => cancelAnimationFrame(frame);
-  }, [onReady, layers, appearance]);
-  const style: ScreenStyle = {
-    '--output-background':
-      appearance.screen.method === 'ndi'
-        ? 'transparent'
-        : appearance.background,
-  };
-  return (
-    <div
-      ref={parent}
-      className={styles.screen}
-      style={style}
-      data-checker={appearance.checker || undefined}
-    />
-  );
 }
 
 /** One 슬라이드 of a song and its place in the order the panel shows. */
@@ -366,7 +280,15 @@ export function ContentPreviewFrame({
         picture === null ? (
           <div className={styles.screen} data-blank="" />
         ) : (
-          <Picture layers={layers} appearance={appearances[shown]} />
+          <Picture
+            layers={layers}
+            appearance={appearances[shown]}
+            songSource={
+              song?.slides[block] === undefined
+                ? tilePicture?.tile.sourceSlide
+                : {songId: song.id, slideId: song.slides[block].id}
+            }
+          />
         )
       }
       caption={() => (

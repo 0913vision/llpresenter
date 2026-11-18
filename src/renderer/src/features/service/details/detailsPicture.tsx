@@ -251,7 +251,6 @@ function SlidesPicture({
       index={index}
       appearance={appearance}
       outputSlide={outputSlide}
-      thumbnail
     />
   );
 }

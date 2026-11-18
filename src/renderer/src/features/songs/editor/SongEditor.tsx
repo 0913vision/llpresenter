@@ -446,7 +446,8 @@ function SongBlocks({
                 theme === undefined ? undefined : (
                   <SlidePicture
                     output
-                    liveText
+                    editing={selection.block === block}
+                    songSource={{songId: song.id, slideId: slide.id}}
                     {...theme}
                     background={slide.picture ?? theme.background}
                     slide={{

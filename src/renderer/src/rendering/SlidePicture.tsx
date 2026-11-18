@@ -1,6 +1,7 @@
 import type {JSX} from 'react';
 import {emptyLayers, type SlideLayer} from '@core/live/state';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
+import type {SongSlideSource} from '@core/schema/showService';
 import type {ThemeScreenLayout} from '@core/schema/themes';
 import {themeElementText} from '@core/themes/content';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
@@ -8,7 +9,7 @@ import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {ThemePicture} from './ThemePicture';
 import {songTitleLayout} from '@core/themes/songTitle';
 import {OutputSlidePicture} from './OutputSlidePicture';
-import type {ThemeId} from '@core/schema/ids';
+import type {ScreenId, ThemeId} from '@core/schema/ids';
 import type {RenderScreen} from './layer';
 import {usePrepPictureSwitch} from './PrepPictureSwitch';
 
@@ -22,10 +23,11 @@ export function SlidePicture({
   output = false,
   themeId,
   screen,
+  sourceScreenId,
+  songSource,
   mediaOnly = false,
   drawn,
-  prepareOnly = false,
-  liveText = false,
+  editing,
 }: {
   readonly slide: SlideLayer;
   readonly layout: ThemeScreenLayout;
@@ -35,12 +37,12 @@ export function SlidePicture({
   readonly output?: boolean;
   readonly themeId?: ThemeId | undefined;
   readonly screen?: RenderScreen | undefined;
+  readonly sourceScreenId?: ScreenId | undefined;
+  readonly songSource?: SongSlideSource | undefined;
   readonly mediaOnly?: boolean | undefined;
   /** Output pictures only: drawn through the picture service. */
   readonly drawn?: 'wait' | 'place' | undefined;
-  /** Output pictures only: drawn ahead, showing nothing. */
-  readonly prepareOnly?: boolean | undefined;
-  readonly liveText?: boolean | undefined;
+  readonly editing?: boolean | undefined;
 }): JSX.Element {
   const switching = usePrepPictureSwitch();
   if (output) {
@@ -53,13 +55,14 @@ export function SlidePicture({
         background={background}
         themeId={themeId}
         screen={screen}
+        sourceScreenId={sourceScreenId}
+        songSource={songSource}
         mediaOnly={mediaOnly}
         drawn={
           drawn ??
           (switching === undefined ? undefined : switching ? 'wait' : 'place')
         }
-        prepareOnly={prepareOnly}
-        liveText={liveText}
+        editing={editing}
       />
     );
   }

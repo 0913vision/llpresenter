@@ -4,18 +4,20 @@ import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {createScreenId, parseMediaId, type ThemeId} from '@core/schema/ids';
 import type {ItemRow} from '@core/presentation/model';
 import type {Screen} from '@core/schema/screens';
+import type {ThemesFile} from '@core/schema/themes';
 import type {LlpApi} from '@contracts/ipc/api';
 import {useApiSettingsDocument} from '@renderer/platform/useSettingsDocument';
+
+interface SlideThemeOptions {
+  readonly role?: 'audience' | 'stage' | 'broadcast';
+  readonly theme?: ThemeId;
+  readonly screenId?: string;
+}
 
 export function useSlideTheme(
   row: ItemRow | undefined,
   source: 'service' | 'external' = 'service',
-  options: {
-    readonly role?: 'audience' | 'stage' | 'broadcast';
-    readonly theme?: ThemeId;
-    readonly screenId?: string;
-    readonly api?: LlpApi;
-  } = {},
+  options: SlideThemeOptions & {readonly api?: LlpApi} = {},
 ) {
   const enabled =
     row?.kind === 'slides' || row?.kind === 'song' || row?.kind === 'media';
@@ -30,6 +32,28 @@ export function useSlideTheme(
     name: enabled ? 'screens' : null,
     title: '화면',
   });
+  return slideTheme(row, {
+    ...options,
+    source,
+    file: file?.value,
+    screens: screens?.value.screens,
+  });
+}
+
+/** Resolves a tile using the service's already-followed theme and screen settings. */
+export function slideTheme(
+  row: ItemRow | undefined,
+  {
+    source,
+    file,
+    screens,
+    ...options
+  }: SlideThemeOptions & {
+    readonly source: 'service' | 'external';
+    readonly file: ThemesFile | undefined;
+    readonly screens: readonly Screen[] | undefined;
+  },
+) {
   if (row?.kind !== 'slides' && row?.kind !== 'song' && row?.kind !== 'media') {
     return undefined;
   }
@@ -38,7 +62,7 @@ export function useSlideTheme(
   const ownTheme =
     options.theme ??
     (row.kind === 'song' || row.kind === 'slides' ? row.theme : undefined);
-  const targets: readonly Screen[] = screens?.value.screens ?? [
+  const targets: readonly Screen[] = screens ?? [
     {
       id: createScreenId(STARTER_SCREEN_IDS.main),
       name: '청중',
@@ -56,7 +80,7 @@ export function useSlideTheme(
     targets[0];
   if (screen === undefined) return undefined;
   const theme = resolveItemTheme({
-    file: file?.value,
+    file,
     kind,
     source,
     ...(ownTheme === undefined ? {} : {theme: ownTheme}),
@@ -77,6 +101,7 @@ export function useSlideTheme(
       : undefined;
   return {
     themeId: theme.id,
+    sourceScreenId: resolved.sourceScreenId,
     screen: {
       id: screen.id,
       name: screen.name,

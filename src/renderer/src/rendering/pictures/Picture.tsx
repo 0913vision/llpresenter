@@ -1,83 +1,131 @@
 import {
   memo,
   use,
-  useDeferredValue,
+  useCallback,
+  useContext,
+  useEffectEvent,
   useLayoutEffect,
-  useMemo,
   useRef,
+  useState,
+  useSyncExternalStore,
   type JSX,
 } from 'react';
-import type {LiveLayers} from '@core/live/state';
-import type {RenderScreen, ThemeFrame} from '../layer';
+import {PictureReadiness} from '../PictureReadiness';
+import {pictureKey} from '@core/output/pictureKey';
+import {pictures, type PictureImage, type PictureSpec} from './pictureService';
 import {
-  pictureKey,
-  pictures,
-  type PictureSpec,
-  type PictureService,
-} from './pictureService';
+  followSongPictureDraft,
+  songPictureDraft,
+} from '@core/presentation/songPictureDrafts';
 import styles from './Picture.module.css';
 
-interface PictureProps {
-  /**
-   * Waits for the drawing, holding the view that shows the picture: for a view
-   * switching to new content. Otherwise the picture draws where it shows.
-   */
+interface PictureProps extends PictureSpec {
+  /** Keeps the previous view until the new picture finishes decoding. */
   readonly wait?: boolean;
-  readonly service?: PictureService | undefined;
-  readonly layers: LiveLayers;
-  readonly appearance: {
-    readonly screen: RenderScreen;
-    readonly theme: ThemeFrame;
-    readonly background: string;
-    readonly checker: boolean;
-  };
+  readonly editing?: boolean;
 }
 
-/**
- * A slide picture that shows only once it is drawn. While it draws, the view
- * around it waits: a view switch keeps the previous view on screen, and a
- * picture whose content changes keeps its previous drawing until the new one
- * is finished.
- */
+function SlideImage({
+  source,
+}: {
+  readonly source: PictureImage['source'];
+}): JSX.Element {
+  const canvas = useRef<HTMLCanvasElement>(null);
+  useLayoutEffect(() => {
+    if (typeof source !== 'string') {
+      canvas.current?.getContext('2d')?.drawImage(source, 0, 0, 1280, 720);
+    }
+  }, [source]);
+  return typeof source === 'string' ? (
+    <img
+      className={styles.image}
+      src={source}
+      alt=""
+      decoding="async"
+      draggable={false}
+    />
+  ) : (
+    <canvas
+      ref={canvas}
+      className={styles.image}
+      width={1280}
+      height={720}
+      aria-hidden="true"
+    />
+  );
+}
+
+/** Displays a shared still, keeping the last decoded image during redraws. */
 export const Picture = memo(
   ({
     wait = false,
-    service = pictures,
+    editing = false,
     layers,
     appearance,
+    songSource,
   }: PictureProps): JSX.Element => {
-    const spec = useMemo<PictureSpec>(
-      () => ({layers, appearance}),
-      [layers, appearance],
+    const follow = useCallback(
+      (listener: () => void) => followSongPictureDraft(songSource, listener),
+      [songSource],
     );
-    const shown = useDeferredValue(spec);
-    if (wait && !service.drawInPlace) use(service.whenDrawn(shown));
-    const container = useRef<HTMLDivElement>(null);
-    const release = useRef<(() => void) | null>(null);
+    const draft = useSyncExternalStore(follow, () =>
+      songPictureDraft(songSource, layers.slide?.lines),
+    );
+    const spec = {
+      appearance,
+      layers:
+        layers.slide === null || draft === undefined
+          ? layers
+          : {
+              ...layers,
+              slide: {...layers.slide, lines: draft.lines},
+            },
+    };
+    const inputs = useSyncExternalStore(pictures.subscribeInputs, () =>
+      pictures.inputs(spec),
+    );
+    const [previous, setPrevious] = useState<PictureImage>();
+    const ticket = pictures.request(spec, inputs, {
+      editing: (editing || draft !== undefined) && previous !== undefined,
+    });
+    const done = useSyncExternalStore(ticket.subscribe, ticket.snapshot);
+    if (wait) use(ticket.ready);
+    const image = ticket.image ?? previous;
+    if (image !== previous) setPrevious(image);
+    const onReady = useContext(PictureReadiness);
+    const source = useRef({});
+    const warmEditor = useEffectEvent(() => pictures.warmEditor(spec));
     useLayoutEffect(() => {
-      const node = container.current;
-      if (node === null) return;
-      // NOTE(0913vision): The picture shown so far stays until the next one
-      // is finished, so a change shows as one swap.
-      release.current = service.show(shown, node, release.current ?? undefined);
-    }, [service, shown]);
+      if (editing) warmEditor();
+    }, [editing]);
+    useLayoutEffect(() => {
+      if (done) onReady?.(source.current);
+    }, [done, onReady]);
     useLayoutEffect(
-      () => () => {
-        release.current?.();
-        release.current = null;
-      },
-      [],
+      () => (image === undefined ? undefined : pictures.retain(image)),
+      [image],
     );
     return (
       <div
-        ref={container}
         className={styles.screen}
-        data-checker={shown.appearance.checker || undefined}
-      />
+        data-preview-ready={done ? 'true' : 'false'}
+        style={{
+          background:
+            appearance.screen.method === 'ndi'
+              ? 'transparent'
+              : appearance.background,
+        }}
+        data-checker={appearance.checker || undefined}
+      >
+        {image === undefined ? null : <SlideImage source={image.source} />}
+      </div>
     );
   },
   (previous, next) =>
     previous.wait === next.wait &&
-    previous.service === next.service &&
+    previous.editing === next.editing &&
+    previous.songSource?.songId === next.songSource?.songId &&
+    previous.songSource?.slideId === next.songSource?.slideId &&
+    previous.appearance.checker === next.appearance.checker &&
     pictureKey(previous) === pictureKey(next),
 );

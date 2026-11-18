@@ -47,6 +47,11 @@ export type MockLlpApiParts = {
  */
 export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
   return {
+    picture: {
+      paint: () => Promise.resolve(new Uint8Array()),
+      remember: () => undefined,
+      ...overrides.picture,
+    },
     powerpoint: {
       storeImages: () => Promise.resolve({ok: false, message: 'not available'}),
       images: () => Promise.resolve({ok: true, value: null}),

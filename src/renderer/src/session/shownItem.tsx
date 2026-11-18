@@ -23,9 +23,11 @@ export function ShownItemProvider({
   readonly shownItem?: string | null | undefined;
 }): JSX.Element {
   const requested = useShow(view => view.openItemId);
+  const ready = useShow(view => view.readyItemId);
   const shown = useDeferredValue(requested);
+  const readyItem = ready === requested ? requested : shown;
   return (
-    <ShownItem value={shownItem === undefined ? shown : shownItem}>
+    <ShownItem value={shownItem === undefined ? readyItem : shownItem}>
       {children}
     </ShownItem>
   );
