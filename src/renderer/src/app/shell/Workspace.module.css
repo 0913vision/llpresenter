@@ -46,6 +46,19 @@
   --slides-min-height: 220px;
   --settings-min-height: 80px;
   --preview-min-height: 132px;
+  --preview-picture: calc(var(--ll-col-right) - 2 * var(--panel-inset));
+  --item-preview-height-bare: calc(
+    var(--preview-picture) * 9 / 16 + var(--size-panel-header) + 2 *
+      var(--panel-inset) + var(--size-control-md)
+  );
+  --item-preview-height: calc(
+    var(--item-preview-height-bare) + var(--space-12) +
+      min(
+        (var(--preview-picture) - var(--space-8)) / 2,
+        var(--size-preview-small-max)
+      ) *
+      9 / 16 + var(--size-control-sm)
+  );
   --preview-reserve: calc(
     var(--tools-min-height) + var(--size-clear-button) + 2 * var(--space-8) +
       2 * var(--panel-gap)
@@ -80,20 +93,6 @@
   /* NOTE(0913vision): Item content must not redistribute these panel rows. The
      row holds the large picture with its caption, and the small tiles under it
      while the panel has room for them (a picker in the header otherwise). */
-  --preview-picture: calc(var(--ll-col-right) - 2 * var(--panel-inset));
-  --item-preview-height-bare: calc(
-    var(--preview-picture) * 9 / 16 + var(--size-panel-header) + 2 *
-      var(--panel-inset) + var(--size-control-md)
-  );
-  --item-preview-height: calc(
-    var(--item-preview-height-bare) + var(--space-12) +
-      min(
-        (var(--preview-picture) - var(--space-8)) / 2,
-        var(--size-preview-small-max)
-      ) *
-      9 / 16 + var(--size-control-sm)
-  );
-
   display: grid;
   /* NOTE(0913vision): The gaps between the panels are rows of their own. */
   grid-template-rows:
@@ -182,11 +181,11 @@
 
 .fit {
   /* NOTE(0913vision): Loaded preview content must not resize its neighbors. */
-  flex: 1 1 0;
+  flex: 1 1 var(--item-preview-height);
   min-height: var(--preview-min-height);
-  max-height: max(
-    var(--preview-min-height),
-    calc(100% - var(--preview-reserve))
+  max-height: min(
+    var(--item-preview-height),
+    max(var(--preview-min-height), calc(100% - var(--preview-reserve)))
   );
 }
 
@@ -205,7 +204,7 @@
 }
 
 .rest {
-  flex: 0 0 var(--tools-min-height);
+  flex: 1 0 var(--tools-min-height);
   min-height: var(--tools-min-height);
 }
 
