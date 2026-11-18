@@ -90,6 +90,7 @@ export function LiturgyEditor({
       items={items}
       item={item}
       position={state.position}
+      shownItem={state}
       ui={ui}
     />
   );
@@ -99,15 +100,17 @@ function LiturgyContent({
   items,
   item,
   position,
+  shownItem,
   ui,
 }: {
   readonly ui?: Pick<UiApi, 'setLayout'> | undefined;
   readonly items: ServiceItemStore;
   readonly item: ServiceItemOf<'liturgy'>;
   readonly position: number;
+  readonly shownItem: ReturnType<ServiceItemStore['getSnapshot']>;
 }): JSX.Element {
   const {mode} = useSlideSurfaceView();
-  const card = useLeadingItemCard(items, item.id);
+  const card = useLeadingItemCard(items, item.id, shownItem);
   const tiles = useShow(view => view.tiles[item.id]);
   const theme = useSlideTheme({
     kind: 'slides',

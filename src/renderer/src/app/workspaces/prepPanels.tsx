@@ -325,6 +325,8 @@ function prepPanelParts({
             items={prep.items}
             editor={prep.editor}
             sources={sources}
+            shownSession={songSession}
+            shownItem={itemState}
           >
             {itemState === null ? null : (
               <OtherPrepEditor
@@ -350,6 +352,8 @@ function prepPanelParts({
             items={prep.items}
             editor={prep.editor}
             sources={sources}
+            shownSession={songSession}
+            shownItem={itemState}
           >
             <ItemCardBinding
               items={prep.items}
@@ -377,6 +381,8 @@ function prepPanelParts({
           items={prep.items}
           editor={prep.editor}
           sources={sources}
+          shownSession={songSession}
+          shownItem={itemState}
         >
           <ItemCardBinding
             items={prep.items}
@@ -421,6 +427,8 @@ function prepPanelParts({
           items={prep.items}
           editor={prep.editor}
           sources={sources}
+          shownSession={songSession}
+          shownItem={itemState}
         >
           <div className={styles.inspector}>
             <EditorItemSettings
@@ -647,14 +655,6 @@ export function usePrepPanels({
     }
     setItemSnapshots(next);
   }
-  const retainedState =
-    otherId === null ? undefined : itemSnapshots.get(otherId);
-  const frameItem =
-    otherId !== null && currentItemId !== otherId
-      ? retainedState?.service?.service.id === serviceId
-        ? retainedState
-        : null
-      : itemState;
   const waitingForEditor =
     switching !== null &&
     editorSession === null &&
@@ -662,6 +662,18 @@ export function usePrepPanels({
     otherId === null;
   const requestedEditor = waitingForEditor ? switching.editor : editorSession;
   const requestedSlides = waitingForEditor ? switching.slides : slidesSession;
+  const frameItemId =
+    otherId ??
+    requestedSlides?.draft.snapshot.item.id ??
+    (requestedEditor?.itemSession ? requestedEditor.document.song.id : null);
+  const retainedState =
+    frameItemId === null ? undefined : itemSnapshots.get(frameItemId);
+  const frameItem =
+    frameItemId !== null && currentItemId !== frameItemId
+      ? retainedState?.service?.service.id === serviceId
+        ? retainedState
+        : null
+      : itemState;
   const requestedFrame = useMemo(
     () => ({
       editorSession: requestedEditor,

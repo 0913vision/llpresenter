@@ -1,3 +1,4 @@
+import {Suspense, startTransition, use, useState} from 'react';
 import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {useOtherSources} from '@renderer/features/service/items/useOtherSources';
 import {SlideInspector} from '@renderer/features/service/slideInspector/SlideInspector';
@@ -72,6 +73,8 @@ function setup(
         items={items}
         editor={editor}
         sources={mediaSources}
+        shownSession={session}
+        shownItem={items.getSnapshot()}
       >
         <div data-song-slide="s" data-testid="slide" />
         <div data-background-picture data-testid="picture" />
@@ -196,4 +199,51 @@ it('refuses a library song while its editor is busy', () => {
   fireEvent.drop(screen.getByTestId('picture'), {dataTransfer: transfer});
   expect(session.background).toBe(before);
   expect(reportNotice).toHaveBeenCalled();
+});
+
+it('does not drop on the incoming item while the outgoing picture is retained', () => {
+  const {items, editor, transfer, setBackground, view} = setup('song');
+  const outgoing = items.getSnapshot();
+  const incoming = {
+    ...outgoing,
+    item: newSlidesItem('blank', fixtureItems.lost),
+  };
+  const snapshot = vi.mocked(items.getSnapshot);
+  const pending = new Promise<void>(() => {});
+  function Picture({next}: {next: boolean}) {
+    if (next) use(pending);
+    return <div data-background-picture data-testid="pending-picture" />;
+  }
+  function Handoff() {
+    const mediaSources = useOtherSources(true);
+    const [next, setNext] = useState(false);
+    return (
+      <>
+        <button onClick={() => startTransition(() => setNext(true))}>
+          next
+        </button>
+        <Suspense fallback="loading">
+          <EditorBackgroundDrop
+            items={items}
+            editor={editor}
+            sources={mediaSources}
+            shownItem={next ? incoming : outgoing}
+            shownSession={null}
+          >
+            <Picture next={next} />
+          </EditorBackgroundDrop>
+        </Suspense>
+      </>
+    );
+  }
+  view.unmount();
+  render(<Handoff />);
+  act(() => {
+    snapshot.mockReturnValue(incoming);
+    fireEvent.click(screen.getByText('next'));
+  });
+  fireEvent.drop(screen.getByTestId('pending-picture'), {
+    dataTransfer: transfer,
+  });
+  expect(setBackground).not.toHaveBeenCalled();
 });
