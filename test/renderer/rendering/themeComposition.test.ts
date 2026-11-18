@@ -104,6 +104,62 @@ afterEach(() => {
 });
 
 describe('theme composition drawing', () => {
+  it('backs stage clock and timer only while a picture is the live content', () => {
+    const {root, view} = setup();
+    const elements: ThemeElement[] = [
+      {...themeElementBase(1), kind: 'clock', clockFormat: '24h'},
+      {...themeElementBase(2), kind: 'timer'},
+    ];
+    const stage = {
+      ...frame(elements),
+      screen: {id: THEME_MAIN, kind: 'stage' as const},
+      transitions: false,
+    };
+    if (song.slide === null || stage.theme === undefined) {
+      throw Error('Missing fixture');
+    }
+    const picture = {...song, slide: {...song.slide, picture: mediaId}};
+    const boxes = () => [
+      ...root.querySelectorAll<HTMLElement>(
+        '[data-kind="clock"], [data-kind="timer"]',
+      ),
+    ];
+    view.render(picture, stage);
+    expect(boxes()).toHaveLength(2);
+    expect(
+      boxes().every(box => box.hasAttribute('data-stage-picture-utility')),
+    ).toBe(true);
+    expect(boxes().every(box => box.style.overflow === 'visible')).toBe(true);
+    view.render(song, stage);
+    expect(
+      boxes().every(box => !box.hasAttribute('data-stage-picture-utility')),
+    ).toBe(true);
+    expect(boxes().every(box => box.style.overflow === 'hidden')).toBe(true);
+    view.render(picture, {
+      ...stage,
+      screen: {id: THEME_MAIN, kind: 'audience'},
+    });
+    expect(
+      boxes().every(box => !box.hasAttribute('data-stage-picture-utility')),
+    ).toBe(true);
+    const media = {
+      ...song,
+      slide: null,
+      media: {mediaId, loop: false, startedAt: 0},
+    };
+    view.render(media, {
+      ...stage,
+      theme: {
+        ...stage.theme,
+        item: {id: 'image', kind: 'media', source: 'service'},
+      },
+    });
+    expect(
+      boxes().every(box => box.hasAttribute('data-stage-media-utility')),
+    ).toBe(true);
+    view.dispose();
+  });
+
   it('draws a macro background over an explicit item background and holds it during a clear fade', () => {
     const {root, view, text} = setup();
     const current = {...themeElementBase(806), kind: 'currentText' as const};

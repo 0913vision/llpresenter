@@ -72,6 +72,15 @@
   overflow-wrap: break-word;
 }
 
+[data-stage-picture-utility] .block,
+[data-theme-page]:has([data-kind='media'] img.image.shown)
+  [data-stage-media-utility]
+  .block {
+  align-self: flex-end;
+  background: var(--output-black);
+  box-shadow: 0 0 0 6px var(--output-black);
+}
+
 .bibleGuide {
   position: absolute;
   inset: 0;
