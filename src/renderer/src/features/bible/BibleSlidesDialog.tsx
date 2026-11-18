@@ -5,7 +5,7 @@ import {createSlideId} from '@core/schema/ids';
 import {SLIDES_LIMITS, type VerseSlide} from '@core/schema/service';
 import type {SlidesItem} from '@core/services/slidesEdits';
 import {passageBook} from '@core/bible/adjacentVerses';
-import {cutsOfVerse, versesToReview} from '@core/bible/split/splitVerses';
+import {versesToReview} from '@core/bible/split/splitVerses';
 import {Dialog} from '@renderer/ui/Dialog';
 import {useBibleTranslation} from './useBibleTranslation';
 import {BiblePassageDialog} from './BiblePassageDialog';
@@ -13,29 +13,10 @@ import {SplitReview} from './SplitReview';
 import {verseKey} from './BibleRefinements';
 import {useBibleRefinement} from './useBibleRefinement';
 import {useBibleReviewPreference} from './useBibleReviewPreference';
-import {confirmBibleCuts, confirmDefaultBibleCuts} from './saveBibleCuts';
+import {confirmBibleCuts} from './saveBibleCuts';
 import {loadSlidesProjection} from './loadSlidesProjection';
 import {useSlidesVerseProjection} from './useSlidesVerseProjection';
 import type {BibleProjection} from './splitProjection';
-
-async function acceptDefaultCuts(
-  api: LlpApi,
-  projection: BibleProjection,
-  references: ReadonlyArray<VerseSlide['verse']>,
-): Promise<void> {
-  for (const reference of references) {
-    const verse = projection.verses.find(
-      value => verseKey(value.reference) === verseKey(reference),
-    );
-    if (verse !== undefined) {
-      await confirmDefaultBibleCuts(
-        api.settings,
-        verse,
-        cutsOfVerse(projection.parts, reference),
-      );
-    }
-  }
-}
 
 interface Review {
   readonly item: SlidesItem;
@@ -67,16 +48,15 @@ export function BibleSlidesDialog({
   const [loading, setLoading] = useState(reference !== undefined);
   const [problem, setProblem] = useState<string | null>(null);
   const active = useRef(true);
-  const {projection: refreshed} = useSlidesVerseProjection(
-    api,
-    review?.item ?? item,
-    review !== null,
-  );
+  const {projection: refreshed, failed: refreshFailed} =
+    useSlidesVerseProjection(api, review?.item ?? item, review !== null);
+  const projection =
+    refreshed ??
+    (review?.explicit || refreshFailed ? review?.projection : undefined);
   const refinement = useBibleRefinement(
     api.bible,
-    review?.explicit === false ? refreshed : null,
+    review?.explicit === false ? (refreshed ?? review.projection) : null,
   );
-  const projection = refreshed ?? review?.projection;
   const isActive = (): boolean => active.current;
   const cancel = (): void => {
     active.current = false;
@@ -88,13 +68,14 @@ export function BibleSlidesDialog({
       !active.current ||
       review === null ||
       review.explicit ||
-      refreshed === null ||
+      projection === undefined ||
       autoOpen !== false ||
       !refinement.initialized ||
       refinement.pending.size > 0
     ) {
       return;
     }
+    active.current = false;
     onInsert(review.added);
     onClose();
   }, [
@@ -104,7 +85,7 @@ export function BibleSlidesDialog({
     refinement.pending.size,
     onInsert,
     onClose,
-    refreshed,
+    projection,
   ]);
   const prepare = async (
     target: SlidesItem,
@@ -120,8 +101,7 @@ export function BibleSlidesDialog({
       if (projection === null || !active.current) return;
       const references =
         explicit === undefined ? versesToReview(projection.parts) : [explicit];
-      if (explicit === undefined) {
-        await acceptDefaultCuts(api, projection, references);
+      if (explicit === undefined && references.length === 0) {
         if (isActive()) {
           onInsert(added);
           onClose();
@@ -132,7 +112,7 @@ export function BibleSlidesDialog({
           projection,
           references,
           added,
-          explicit: true,
+          explicit: explicit !== undefined,
         });
       }
     } catch (error: unknown) {
@@ -231,7 +211,7 @@ export function BibleSlidesDialog({
   const awaitingRefinement =
     review !== null &&
     !review.explicit &&
-    (refreshed === null ||
+    (projection === undefined ||
       autoOpen !== true ||
       !refinement.initialized ||
       (review.references[0] !== undefined &&

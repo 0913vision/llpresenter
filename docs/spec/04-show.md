@@ -1033,11 +1033,11 @@ integration use this contract, with a distinct cancellable ID per lookup.
 
 - Header: the passage ("요한복음 3:16-18") and the 슬라이드 count ("슬라이드
   3개").
-- Settings row: the installed translation select (개역한글), 절 번호 (verse
-  numbers), and 역본 이름 (translation name).
-  - At the right, a 6px dot and AI 켜짐, AI 켜는 중, or AI 꺼짐 show the
-    optional chooser's state. Only a failed state has a tooltip containing its
-    reason; no explanatory helper text is shown.
+- Settings row: the installed translation select (개역한글) and AI status as one
+  group, followed by 절 번호 (verse numbers) and 역본 이름 (translation name).
+  - Beside the translation, a 6px dot and AI 켜짐, AI 켜는 중, or AI 꺼짐 show
+    the optional chooser's state. Only a failed state has a tooltip containing
+    its reason; no explanatory helper text is shown.
   - The installed translation, 절 번호, and 역본 이름 controls change this
     preview only; they do not change the defaults, saved items, or live output.
     A translation lookup retains the range and selected verse when available. If

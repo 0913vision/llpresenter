@@ -136,26 +136,32 @@ export function BibleDisplayControls({
           : problem;
   return (
     <div className={styles.options}>
-      <SelectMenu
-        aria-label="역본"
-        size="sm"
-        className={styles.translation}
-        value={source.passage.translation}
-        valueText={
-          translations.find(item => item.id === source.passage.translation)
-            ?.name ?? source.passage.translation
-        }
-        options={translations.map(item => ({value: item.id, label: item.name}))}
-        disabled={
-          !api || busy || document === null || translations.length === 0
-        }
-        title={reason}
-        onChange={translation => {
-          changeTranslation(translation).catch((cause: unknown) =>
-            console.error('Could not change the Bible preview', cause),
-          );
-        }}
-      />
+      <div className={styles.translationGroup}>
+        <SelectMenu
+          aria-label="역본"
+          size="sm"
+          className={styles.translation}
+          value={source.passage.translation}
+          valueText={
+            translations.find(item => item.id === source.passage.translation)
+              ?.name ?? source.passage.translation
+          }
+          options={translations.map(item => ({
+            value: item.id,
+            label: item.name,
+          }))}
+          disabled={
+            !api || busy || document === null || translations.length === 0
+          }
+          title={reason}
+          onChange={translation => {
+            changeTranslation(translation).catch((cause: unknown) =>
+              console.error('Could not change the Bible preview', cause),
+            );
+          }}
+        />
+        <BibleAiStatus api={api?.bible} />
+      </div>
       <CheckRow
         label="절 번호"
         checked={source.verseNumbers}
@@ -179,7 +185,6 @@ export function BibleDisplayControls({
           openBiblePassage(source.passage, {...source, translationName});
         }}
       />
-      <BibleAiStatus api={api?.bible} />
     </div>
   );
 }
