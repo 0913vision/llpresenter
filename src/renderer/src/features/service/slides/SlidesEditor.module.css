@@ -184,12 +184,6 @@
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-.add {
-  display: flex;
-  gap: var(--space-16);
-  padding: var(--space-12) var(--space-14);
-  padding-left: var(--slides-content-offset);
-}
 .preview {
   display: flex;
   flex: 1;
