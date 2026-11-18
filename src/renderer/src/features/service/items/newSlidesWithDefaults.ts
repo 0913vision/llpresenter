@@ -7,9 +7,11 @@ export async function newSlidesWithDefaults(
   id: SlidesItem['id'],
 ): Promise<SlidesItem> {
   const preferences = await window.llp?.preferences.get();
+  const transition = (preferences?.show.slideDefaults ??
+    defaultSlideTransitions)[form];
   return newSlidesItem(
     form,
     id,
-    (preferences?.show.slideDefaults ?? defaultSlideTransitions)[form],
+    transition.kind === 'none' ? undefined : transition,
   );
 }

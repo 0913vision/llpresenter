@@ -1,4 +1,5 @@
 import {useState, type JSX} from 'react';
+import {useSlideDefaults} from '@renderer/features/songs/editor/useSlideDefaults';
 import {createServiceItemId, type SongId} from '@core/schema/ids';
 import {isItemOfKind, type ServiceItem} from '@core/schema/service';
 import {useHeaderRename} from '@renderer/session/headerRename';
@@ -40,6 +41,7 @@ export function ServiceTableFooter({
   const [typingPassage, setTypingPassage] = useState(false);
   const [choosingSong, setChoosingSong] = useState(false);
   const sources = useOtherSources(open);
+  const slideDefaults = useSlideDefaults();
   const reason =
     serviceId === null
       ? NO_SERVICE_REASON
@@ -117,6 +119,7 @@ export function ServiceTableFooter({
           anchor={{kind: 'element', element: button}}
           onClose={() => setOpen(false)}
           entries={otherItemEntries({
+            slideDefaults,
             ...sources,
             onInsert: item => {
               setOpen(false);

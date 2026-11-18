@@ -97,17 +97,16 @@ export async function createPaletteItem(
       if (!isItemOfKind(announcement, 'slides')) {
         throw new Error('Invalid announcement');
       }
+      const transition = defaults?.show.slideDefaults.ad;
       return {
         ...announcement,
         slides: {
           ...announcement.slides,
-          slides: announcement.slides.slides.map(slide => ({
-            ...slide,
-            transition: defaults?.show.slideDefaults.ad ?? {
-              kind: 'none',
-              sec: 1,
-            },
-          })),
+          slides: announcement.slides.slides.map(slide =>
+            transition === undefined || transition.kind === 'none'
+              ? slide
+              : {...slide, transition},
+          ),
         },
         sectionCard: prepared.sectionCard,
       };

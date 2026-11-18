@@ -392,6 +392,7 @@ describe('PreferencesView', () => {
     expect(screen.getAllByRole('option').map(row => row.textContent)).toEqual([
       '일반',
       '진행',
+      '준비',
       '출력',
       '예배 순서',
       '저장',

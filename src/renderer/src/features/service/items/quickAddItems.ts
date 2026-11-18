@@ -8,7 +8,8 @@ import {
 } from '@renderer/features/media/backgroundChoices';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
-import {newSlidesWithDefaults} from './newSlidesWithDefaults';
+import {newSlidesItem} from '@core/services/slidesEdits';
+import type {SlideTransitionDefaults} from '@core/schema/preferences';
 import {LITURGY} from '@core/services/liturgy';
 import {prepareLiturgy} from './quickAddLiturgy';
 import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
@@ -19,6 +20,7 @@ const SECTION_NAME = '새 구역';
 
 export interface OtherItemChoices {
   readonly media: readonly MediaItem[];
+  readonly slideDefaults?: SlideTransitionDefaults;
   readonly missingMedia?: ReadonlySet<MediaId>;
   readonly mediaReady?: boolean;
   readonly mediaUnavailableReason?: string | undefined;
@@ -53,6 +55,7 @@ function submenu(
 
 /** Commands in the service order's other-items group. */
 export function otherItemEntries({
+  slideDefaults,
   media,
   missingMedia = new Set(),
   mediaReady = true,
@@ -82,7 +85,16 @@ export function otherItemEntries({
       id: `other:${form}`,
       label: form === 'ad' ? '광고' : '빈 슬라이드',
       icon: 'monitor',
-      onSelect: () => onInsert(() => newSlidesWithDefaults(form, newId())),
+      onSelect: () =>
+        onInsert(
+          newSlidesItem(
+            form,
+            newId(),
+            slideDefaults?.[form].kind === 'none'
+              ? undefined
+              : slideDefaults?.[form],
+          ),
+        ),
     })),
     ...(['creed', 'prayer'] as const).map(kind => ({
       kind: 'item' as const,

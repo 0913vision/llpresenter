@@ -6,6 +6,7 @@ import type {OtherItemChoices} from '@renderer/features/service/items/quickAddIt
 import type {MenuEntry, MenuItem} from '@renderer/ui/menuModel';
 import {otherItemEntries} from '@renderer/features/service/items/quickAddItems';
 import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
+import {defaultSlideTransitions} from '@core/schema/preferences';
 
 vi.mock('@renderer/features/service/items/quickAddLiturgy', () => ({
   prepareLiturgy: vi.fn(async (kind: string, translation: string) => ({
@@ -40,6 +41,26 @@ function build(onInsert: OtherItemChoices['onInsert']) {
 }
 
 describe('quick add other items', () => {
+  it('creates a blank item with the current transition default', () => {
+    const onInsert = vi.fn<OtherItemChoices['onInsert']>();
+    const transition = {kind: 'wipe', dir: 'up', sec: 2} as const;
+    const choices = otherItemEntries({
+      media,
+      onInsert,
+      onBible: vi.fn(),
+      slideDefaults: {...defaultSlideTransitions, blank: transition},
+    });
+    entry(choices, 'other:blank').onSelect?.();
+    const item = onInsert.mock.calls[0]?.[0];
+    if (
+      item === undefined ||
+      typeof item === 'function' ||
+      !isItemOfKind(item, 'slides')
+    ) {
+      throw new Error('Missing slides item');
+    }
+    expect(item.slides.slides[0]?.transition).toEqual(transition);
+  });
   it('disables and guards missing media even if an old callback is invoked', () => {
     const onInsert = vi.fn<OtherItemChoices['onInsert']>();
     let missing = false;
