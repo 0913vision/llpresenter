@@ -131,6 +131,16 @@ function shortcutFocus(event: KeyboardEvent): ShortcutFocus {
   return 'global';
 }
 
+/** Whether an input method owns the current key event. */
+export function isInputMethodKey(event: KeyboardEvent): boolean {
+  return (
+    composing ||
+    event.isComposing ||
+    event.key === 'Process' ||
+    modifiers.isInputMethod(event)
+  );
+}
+
 /** Dispatches registered commands after the focus owner has taken its keys. */
 export function dispatchShortcut(
   event: KeyboardEvent,
