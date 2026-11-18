@@ -2160,7 +2160,7 @@ it.each([undefined, '\uC804\uC8FC', '\uAC04\uC8FC', '\uD6C4\uC8FC'])(
           ...song.slide,
           titleSlide: true,
           lines: ['제목', '첫 가사'],
-          label,
+          label: label ?? null,
         },
       },
       {
