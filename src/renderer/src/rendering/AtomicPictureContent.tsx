@@ -69,6 +69,7 @@ export function AtomicPictureContent({
           }
           inert
           aria-hidden="true"
+          data-picture-staging=""
         >
           <PictureReadiness.Provider value={reveal}>
             {content}

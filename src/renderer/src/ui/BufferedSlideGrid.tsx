@@ -97,6 +97,7 @@ export function BufferedSlideGrid({
         ref={stage}
         aria-hidden={pending ? true : undefined}
         inert={pending}
+        data-picture-staging={pending ? '' : undefined}
         style={
           pending
             ? {

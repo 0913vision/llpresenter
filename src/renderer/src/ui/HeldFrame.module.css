@@ -1,0 +1,20 @@
+.frame,
+.live,
+.cover {
+  display: grid;
+  grid-template: minmax(0, 1fr) / minmax(0, 1fr);
+  min-width: 0;
+  min-height: 0;
+}
+
+/* NOTE(0913vision): The held copy lies under the live frame, which is see
+   through while it draws: nothing drawn above forces the copy into a layer of
+   its own, which would smooth its text differently. */
+.live,
+.cover {
+  grid-area: 1 / 1;
+}
+
+.cover:empty {
+  display: none;
+}

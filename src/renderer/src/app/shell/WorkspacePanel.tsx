@@ -2,6 +2,7 @@ import type {JSX, ReactNode} from 'react';
 import type {PanelRowId} from '@core/schema/panelRows';
 import {classNames} from '@renderer/ui/classNames';
 import type {Notice} from '@renderer/ui/notices';
+import type {FrameHold} from '@renderer/ui/HeldFrame';
 import styles from './Workspace.module.css';
 
 /** What a panel shows, by part. A workspace fills only the parts it needs. */
@@ -34,6 +35,8 @@ export interface PanelParts {
 export interface WorkspacePanels {
   readonly columns: ReadonlyArray<readonly string[]>;
   readonly partsOf: (title: string) => PanelParts;
+  /** What the panels show together; a change shows them all at once. */
+  readonly hold?: FrameHold | undefined;
 }
 
 /** Logs a panel problem when the workspace has no notification handler. */

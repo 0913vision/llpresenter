@@ -41,8 +41,10 @@ import {
 } from '@renderer/features/presentation/showPanelNavigation';
 import {OpenItemPrefetch} from '@renderer/features/presentation/SlidePicturePrefetch';
 import {TableDataKeeper} from '@renderer/features/service/table/useServiceTableData';
+import {HeldFrame, type FrameHold} from '@renderer/ui/HeldFrame';
 
 const ignoreProblem = (): void => undefined;
+const STILL: FrameHold = {identity: '', settled: true};
 
 // NOTE(0913vision): The button that replaces a pressed sidebar button takes
 // the keyboard focus only when the pressed one had it (a key press, not a
@@ -241,16 +243,13 @@ export function Workspace({
             })}
           </Activity>
         ) : null}
-        {showVisible
-          ? null
-          : columnFrame(
-              visibleId,
-              visibleId === 'prep' ? prepPanels : screens,
-              {
-                collapsed: false,
-                visible: true,
-              },
-            )}
+        {showVisible ? null : visibleId === 'prep' ? (
+          <HeldFrame key="prep" hold={prepPanels.hold ?? STILL}>
+            {columnFrame('prep', prepPanels, {collapsed: false, visible: true})}
+          </HeldFrame>
+        ) : (
+          columnFrame('screens', screens, {collapsed: false, visible: true})
+        )}
       </div>
       {mediaOpen && api !== undefined ? (
         <ResizeGap
