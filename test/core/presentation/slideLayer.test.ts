@@ -46,10 +46,12 @@ describe('slideLayerOf', () => {
         {label, labelColor: 'none', titleSlide: true, lines: ['Title']},
         {label, labelColor: 'none', lines: ['Lyric']},
       ];
-      expect(slideLayerOf({itemId: 'song', index: 0}, () => deck)?.next)
-        .not.toHaveProperty('labelContinued');
-      expect(slideLayerOf({itemId: 'song', index: 1}, () => deck))
-        .not.toHaveProperty('labelContinued');
+      expect(
+        slideLayerOf({itemId: 'song', index: 0}, () => deck)?.next,
+      ).not.toHaveProperty('labelContinued');
+      expect(
+        slideLayerOf({itemId: 'song', index: 1}, () => deck),
+      ).not.toHaveProperty('labelContinued');
     }
   });
   it('marks a repeated label only within the same item', () => {
