@@ -31,6 +31,7 @@ export function SidebarCollapseButton({
       ref={ref}
       icon="arrow"
       label="사이드바 접기"
+      data-preserve-click-focus
       className={styles.collapse}
       onClick={event => onPress(event.currentTarget)}
     />
@@ -49,6 +50,7 @@ export function CollapsedSidebar({
         ref={ref}
         icon="arrow"
         label="사이드바 펼치기"
+        data-preserve-click-focus
         onClick={event => onPress(event.currentTarget)}
       />
     </div>

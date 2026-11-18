@@ -179,7 +179,11 @@ export function handleShowFocusIn(event: FocusEvent): void {
     previousFocus !== document.body &&
     previousFocus !== click.control
   ) {
-    returnFocus(previousFocus);
+    if (click.control.closest('[data-preserve-click-focus]')) {
+      previousFocus.focus({preventScroll: true});
+    } else {
+      returnFocus(previousFocus);
+    }
   } else if (click.control instanceof HTMLElement) {
     returnFocus(null);
     if (document.activeElement === click.control) click.control.blur();
@@ -224,6 +228,7 @@ function returnAfterShowClick(event: MouseEvent): void {
     return;
   }
   const target = event.target;
+  if (target.closest('[data-preserve-click-focus]')) return;
   const show = document.querySelector('[data-workspace-layout="show"]');
   if (
     show === null ||
