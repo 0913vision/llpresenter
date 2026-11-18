@@ -2,16 +2,3 @@
   display: grid;
   gap: var(--space-6);
 }
-
-.title {
-  box-sizing: border-box;
-  width: 100%;
-  min-height: calc(2 * var(--size-control-md));
-  padding: var(--space-6) var(--space-8);
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  background: var(--bg-control);
-  color: var(--text);
-  font: var(--type-body);
-  resize: none;
-}

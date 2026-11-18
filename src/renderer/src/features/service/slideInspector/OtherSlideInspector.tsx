@@ -31,7 +31,6 @@ import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
 import type {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {useItemMedia} from '../items/useItemSources';
 import {savedPassageTiles} from '../items/bibleItemModel';
-import {SermonInlineEditor} from '../items/SermonInlineEditor';
 import type {ServiceItemStore} from '../items/serviceItemStore';
 import styles from './SlideInspector.module.css';
 
@@ -360,9 +359,6 @@ export function OtherSlideInspector({
           pictureCount={pictureCount}
           content={
             <div>
-              {item !== null && isItemOfKind(item, 'sermon') ? (
-                <SermonInlineEditor items={items} />
-              ) : null}
               {file === undefined || file.kind === 'audio' ? null : (
                 <>
                   <div className={styles.picture} data-background-picture>
