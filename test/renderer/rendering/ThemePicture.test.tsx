@@ -658,6 +658,9 @@ it('shows resource placeholders only in the theme editor', () => {
   expect(view.getByText('Background sample')).toBeTruthy();
   expect(view.getByText('Media sample')).toBeTruthy();
   expect(view.getByText('Overlay sample')).toBeTruthy();
+  expect(view.getByText('Background sample').style.paddingTop).toBe('16px');
+  expect(view.getByText('Media sample').style.paddingTop).toBe('72px');
+  expect(view.getByText('Overlay sample').style.paddingTop).toBe('128px');
   view.rerender(
     <ThemePicture elements={elements} background="#000000" samples={samples} />,
   );

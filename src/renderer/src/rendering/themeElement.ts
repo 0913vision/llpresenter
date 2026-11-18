@@ -1,3 +1,6 @@
+import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
+import {PREPARATION_THEME_ID} from '@core/themes/sundayStandby';
+import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
 import type {SongLyricFormat} from '@core/schema/songLyricFormat';
 import {BROADCAST_LOOK_GEOMETRY as glass} from '@core/themes/broadcastLook';
 import type {LiveLayers, MediaLayer} from '@core/live/state';
@@ -632,6 +635,16 @@ export class ThemeElementView {
         : slide.lines
       ).some(line => line.trim()) &&
       frame.theme?.layout.elements.some(value => value.kind === 'currentText')
+    ) {
+      return null;
+    }
+    if (
+      element.kind === 'reference' &&
+      frame.theme !== undefined &&
+      [CREED_PRAYER_THEME_ID, PREPARATION_THEME_ID, SERMON_TITLE_THEME_ID].some(
+        id => id === frame.theme?.themeId,
+      ) &&
+      (slide?.kind ?? item?.kind) !== 'bible'
     ) {
       return null;
     }

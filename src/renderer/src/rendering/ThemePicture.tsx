@@ -279,7 +279,10 @@ function contents(
     const source = context.media?.[element.kind];
     return source === undefined ? (
       context.showPlaceholders ? (
-        <div className={styles.placeholder} style={{fontSize: 36}}>
+        <div
+          className={styles.placeholder}
+          style={{fontSize: 36, paddingTop: element.kind === 'media' ? 72 : 16}}
+        >
           {samples[element.kind]}
         </div>
       ) : null
@@ -300,7 +303,10 @@ function contents(
   }
   if (element.kind === 'overlay' && context.showPlaceholders) {
     return (
-      <div className={styles.placeholder} style={{fontSize: 36}}>
+      <div
+        className={styles.placeholder}
+        style={{fontSize: 36, paddingTop: 128}}
+      >
         {samples.overlay}
       </div>
     );

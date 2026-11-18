@@ -876,11 +876,11 @@ lines and truncates longer text with an ellipsis. Saved `stageMessage` elements
 do not draw or appear in the editor. They are removed when that layout is
 edited.
 
-The default sermon title stage layout uses the item name for its passage and
-does not include a second reference element. The default creed and prayer
-layouts and preparation broadcast layout omit Bible reference elements their
-items do not use. The theme editor previews dynamic elements with representative
-content; the reference source preview distinguishes the current verse from the
-item range. Empty media and overlay slots show an editor-only placeholder.
-Section-card themes do not offer the reference source option because their items
-do not supply a Bible range.
+The default sermon title stage, creed and prayer stage and broadcast, and
+preparation broadcast layouts retain reference elements for Bible items. The
+sermon title stage hides the reference on title slides, and these layouts hide
+it for non-Bible content. The theme editor previews dynamic elements with
+representative content; the reference source preview distinguishes the current
+verse from the item range. Empty media and overlay slots show separate
+editor-only placeholders. Reference source remains editable on section themes,
+which can also be applied to Bible items.

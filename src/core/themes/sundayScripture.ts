@@ -193,36 +193,34 @@ export function sermonTitleStageLayout(
 ): ThemeScreenLayout {
   return {
     ...base,
-    elements: base.elements
-      .filter(element => element.kind !== 'reference')
-      .flatMap((element): ThemeElement[] =>
-        element.kind !== 'currentText'
-          ? [element]
-          : [
-              {
-                id: id(13),
-                kind: 'itemName' as const,
-                frame: {x: 154, y: 245, w: 1612, h: 90},
-                text: {
-                  ...text,
-                  size: 52,
-                  tracking: 0,
-                  lineHeight: 1.2,
-                  align: 'left' as const,
-                  vAlign: 'middle' as const,
-                },
+    elements: base.elements.flatMap((element): ThemeElement[] =>
+      element.kind !== 'currentText'
+        ? [element]
+        : [
+            {
+              id: id(13),
+              kind: 'itemName' as const,
+              frame: {x: 154, y: 245, w: 1612, h: 90},
+              text: {
+                ...text,
+                size: 52,
+                tracking: 0,
+                lineHeight: 1.2,
+                align: 'left' as const,
+                vAlign: 'middle' as const,
               },
-              {
-                ...element,
-                frame: {...element.frame, y: 345, h: 330},
-                text: {
-                  ...element.text,
-                  size: 83,
-                  align: 'left' as const,
-                  vAlign: 'top' as const,
-                },
+            },
+            {
+              ...element,
+              frame: {...element.frame, y: 345, h: 330},
+              text: {
+                ...element.text,
+                size: 83,
+                align: 'left' as const,
+                vAlign: 'top' as const,
               },
-            ],
-      ),
+            },
+          ],
+    ),
   };
 }

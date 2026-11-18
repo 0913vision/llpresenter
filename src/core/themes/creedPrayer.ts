@@ -41,25 +41,9 @@ export function creedPrayerTheme(
     screens: {
       ...scripture.screens,
       ...Object.fromEntries(
-        screens.flatMap(screen => {
-          if (screen.kind === 'audience') {
-            return [[screen.id, creedPrayerLayout()] as const];
-          }
-          const layout = scripture.screens[screen.id];
-          return layout === undefined
-            ? []
-            : [
-                [
-                  screen.id,
-                  {
-                    ...layout,
-                    elements: layout.elements.filter(
-                      element => element.kind !== 'reference',
-                    ),
-                  },
-                ] as const,
-              ];
-        }),
+        screens
+          .filter(screen => screen.kind === 'audience')
+          .map(screen => [screen.id, creedPrayerLayout()]),
       ),
     },
   };
