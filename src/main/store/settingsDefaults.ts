@@ -44,7 +44,7 @@ export const settingsDefaults: Readonly<Record<SettingsName, object>> = {
   },
   props: {props: []},
   timers: {timers: []},
-  labels: {labels: DEFAULT_LABELS},
+  labels: {labels: DEFAULT_LABELS, defaultVerseLabelVersion: 1},
   bibleCuts: {entries: {}},
   preferences: defaultPreferences,
   shortcuts: {bindings: {}},

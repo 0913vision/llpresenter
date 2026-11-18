@@ -559,19 +559,26 @@ unknown fields are preserved; stage and prop references continue resolving by ID
 
 ### 이름표 list (`labels.json`)
 
-| Field      | Type                             | Meaning                                           | Source                                        |
-| ---------- | -------------------------------- | ------------------------------------------------- | --------------------------------------------- |
-| `labels[]` | Array                            | The 이름표 list, in the order of the 이름표 menu. | `Reflow` 이름표 menu                          |
-| `.name`    | String                           | Name. Unique in the list.                         | `Reflow`                                      |
-| `.color`   | Six-digit `#RRGGBB`, or `"none"` | Color.                                            | `Reflow` color row, `LabelColorPicker` README |
+| Field                      | Type                             | Meaning                                           | Source                                        |
+| -------------------------- | -------------------------------- | ------------------------------------------------- | --------------------------------------------- |
+| `labels[]`                 | Array                            | The 이름표 list, in the order of the 이름표 menu. | `Reflow` 이름표 menu                          |
+| `.name`                    | String                           | Name. Unique in the list.                         | `Reflow`                                      |
+| `.color`                   | Six-digit `#RRGGBB`, or `"none"` | Color.                                            | `Reflow` color row, `LabelColorPicker` README |
+| `defaultVerseLabelVersion` | Optional positive integer        | Records the one-time addition of the 절 default.  | Startup                                       |
 
-Defaults, in order: 전주 (`#7D8FD6`), 1절 to 4절 (`#5FB8C2`), 프리코러스
+Defaults, in order: 전주 (`#7D8FD6`), 절 and 1절 to 4절 (`#5FB8C2`), 프리코러스
 (`#8FBF7A`), 후렴 (`#D6B35F`), 포스트코러스 (`#D68F5F`), 브리지 (`#A99AE0`),
 간주 (`#A3A3A3`), 후주 (`#7D8FD6`). Palette names are invalid; no legacy color
 reader or conversion is provided before the first release. Source-slide hot keys
 start unassigned; these names do not generate assignments (October 27 S26
 decision, 10). The board spells 브릿지 and the design system spells 브리지. This
 spec follows the design system.
+
+On first load of an editable existing catalog without
+`defaultVerseLabelVersion`, add 절 before 1절 if absent, retain every existing
+entry and unknown field, set the marker to 1, and save. An existing 절 keeps its
+color and position. After the marker is set, deleting 절 remains a user choice.
+A read-only or recovered catalog is not rewritten by this update.
 
 ### 환경설정 (`preferences.json`)
 

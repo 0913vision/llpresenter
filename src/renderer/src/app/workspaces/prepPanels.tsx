@@ -122,6 +122,7 @@ function SlidesCardInspector({
     <SlidesInspector
       api={prep.api}
       session={session}
+      store={prep.editor}
       onApplyAll={applyAll}
       cardSelected={state.cardSelected}
     />

@@ -7,6 +7,7 @@ import {DEFAULT_LABELS} from '@main/store/defaults';
 it('starts the label menu with the ordered import labels and colors', () => {
   expect(DEFAULT_LABELS.map(({name, color}) => [name, color])).toEqual([
     ['전주', '#7D8FD6'],
+    ['절', '#5FB8C2'],
     ['1절', '#5FB8C2'],
     ['2절', '#5FB8C2'],
     ['3절', '#5FB8C2'],

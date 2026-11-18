@@ -104,6 +104,60 @@ async function withParseFailure<T>(
 }
 
 describe('loadSettingsArea', () => {
+  it('adds the new default verse to an existing catalog once without replacing custom values', async () => {
+    const saver = mockSaver();
+    readsText(
+      JSON.stringify({
+        format: 'llsettings.labels',
+        schemaVersion: 1,
+        future: 'kept',
+        labels: [
+          {name: '전주', color: '#123456', extra: true},
+          {name: '1절', color: '#5FB8C2'},
+        ],
+      }),
+    );
+    const loaded = await loadSettingsArea('labels', locations, saver);
+    expect(loaded.problem).toBeNull();
+    expect(loaded.document?.value).toMatchObject({
+      defaultVerseLabelVersion: 1,
+      future: 'kept',
+      labels: [
+        {name: '전주', color: '#123456', extra: true},
+        {name: '절', color: '#5FB8C2'},
+        {name: '1절', color: '#5FB8C2'},
+      ],
+    });
+    expect(saver.save).toHaveBeenCalledOnce();
+  });
+
+  it('preserves an existing custom verse and never restores one removed after the upgrade', async () => {
+    const custom = {name: '절', color: '#123456'};
+    readsText(
+      JSON.stringify({
+        format: 'llsettings.labels',
+        schemaVersion: 1,
+        labels: [custom],
+      }),
+    );
+    const first = await loadSettingsArea('labels', locations, mockSaver());
+    expect(first.document?.value).toMatchObject({
+      labels: [custom],
+      defaultVerseLabelVersion: 1,
+    });
+    const saver = mockSaver();
+    readsText(
+      JSON.stringify({
+        format: 'llsettings.labels',
+        schemaVersion: 1,
+        labels: [],
+        defaultVerseLabelVersion: 1,
+      }),
+    );
+    const afterRemoval = await loadSettingsArea('labels', locations, saver);
+    expect(afterRemoval.document?.value).toMatchObject({labels: []});
+    expect(saver.save).not.toHaveBeenCalled();
+  });
   it('creates a missing file with the area defaults', async () => {
     const saver = mockSaver();
     readsNothing();
