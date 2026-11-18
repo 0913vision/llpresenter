@@ -59,6 +59,7 @@ describe('screen.testPattern.set', () => {
 
   it('replaces the pattern with a slide, standby, or clear', () => {
     const {store, set} = setup();
+    store.connectThemes({reduce: ({after}) => after});
     const slide = {itemId: 'item-1', position: 0, label: null, lines: ['줄']};
     set(MAIN, true);
     store.dispatch({type: 'slide.show', slide});
@@ -69,6 +70,16 @@ describe('screen.testPattern.set', () => {
     set(MAIN, true);
     store.dispatch({type: 'layer.clear', target: 'all'});
     expect(store.state.testPatterns ?? []).toEqual([]);
+  });
+
+  it('keeps the pattern when standby is rejected before themes are ready', () => {
+    const {store, set, skipped} = setup();
+    set(MAIN, true);
+    store.dispatch({type: 'item.stop'}, undefined, skipped);
+    expect(skipped).toHaveBeenCalledWith(
+      expect.objectContaining({reason: 'invalid-overlay'}),
+    );
+    expect(store.state.testPatterns).toEqual([MAIN]);
   });
 
   it('hides the pattern of a screen whose output turns off, and only then', () => {

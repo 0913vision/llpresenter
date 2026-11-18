@@ -295,10 +295,7 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     expect(mocks.screensWindowContexts).toEqual([
       expect.objectContaining({
         control: mocks.opened.control,
-        screens: {
-          store: mocks.outputContexts[0]?.store,
-          config: mocks.appConfig,
-        },
+        screens: {config: mocks.appConfig},
         zoom: mocks.zoom,
         mode: 'normal',
       }),
