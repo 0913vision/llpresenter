@@ -311,9 +311,9 @@ source was found.
   current item's sequence. If there is no live 슬라이드, or the item open in the
   슬라이드 panel isn't the current item, next outputs the first tile of the item
   in the 슬라이드 panel (decided, no ProPresenter source found; 10).
-- On the last tile, next does nothing with 마지막 슬라이드에서 다음 슬라이드:
-  정지, the default (decided, no ProPresenter source found; 10). To move on, the
-  operator picks the next item (다음 항목, Ctrl ↓) and presses →. With 다음 항목
+- On the last tile, next does nothing with 마지막 슬라이드에서: 멈춤, the
+  default (decided, no ProPresenter source found; 10). To move on, the operator
+  picks the next item (다음 항목, Ctrl ↓) and presses →. With 다음 항목
   (환경설정, or the check row 진행 > 마지막 슬라이드에서 다음 항목으로;
   `show.atLastSlide`, applied at once), next on the last tile starts the next
   item that can output on its first tile, with that item's start 매크로 and
