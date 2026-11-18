@@ -69,9 +69,22 @@ export const contentSlice = defineSlice({
           ...slide,
           title: command.title,
         });
+        const saved = history.undo?.layers.slide;
+        const undo =
+          history.undo !== null &&
+          saved?.itemId === slide.itemId &&
+          saved.position === slide.position
+            ? {
+                ...history.undo,
+                layers: {
+                  ...history.undo.layers,
+                  slide: {...saved, title: command.title},
+                },
+              }
+            : history.undo;
         return {
           ...updated,
-          undo: history.undo,
+          undo,
           state: {
             ...updated.state,
             canUndo: history.state.canUndo,
