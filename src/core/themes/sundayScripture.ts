@@ -153,13 +153,13 @@ export function sermonTitleBroadcastLayout(): ThemeScreenLayout {
       {
         id: SERMON_TITLE_BAND_ID,
         kind: 'box',
-        frame: {x: 0, y: 790, w: 1920, h: 200},
+        frame: {x: 0, y: 748, w: 1920, h: 242},
         box: {on: true, fill: '#000000', opacity: 88, radius: 0},
       },
       {
         id: id(13),
         kind: 'itemName',
-        frame: {x: 160, y: 823, w: 1600, h: 56},
+        frame: {x: 160, y: 781, w: 1600, h: 42},
         text: {
           ...text,
           size: 38,
@@ -172,7 +172,7 @@ export function sermonTitleBroadcastLayout(): ThemeScreenLayout {
       {
         id: id(3),
         kind: 'currentText',
-        frame: {x: 160, y: 865, w: 1600, h: 112},
+        frame: {x: 160, y: 826, w: 1600, h: 154},
         text: {
           ...text,
           size: 64,
