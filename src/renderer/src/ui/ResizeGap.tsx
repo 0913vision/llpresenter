@@ -1,5 +1,6 @@
 import {useEffect, useRef, type PointerEvent} from 'react';
 import {isCommandDragActive, setCommandDragActive} from './commandDrag';
+import {beginLayoutResize, endLayoutResize} from './layoutResize';
 import styles from './ResizeGap.module.css';
 
 export interface ResizeSession {
@@ -35,6 +36,7 @@ export function ResizeGap({
         current.session.end();
       } finally {
         setCommandDragActive(false);
+        endLayoutResize();
       }
     },
     [],
@@ -46,7 +48,11 @@ export function ResizeGap({
     if (current?.pointerId !== event.pointerId) return;
     active.current = null;
     setCommandDragActive(false);
-    current.session.end();
+    try {
+      current.session.end();
+    } finally {
+      endLayoutResize();
+    }
   };
   return (
     <div
@@ -71,6 +77,7 @@ export function ResizeGap({
         event.preventDefault();
         event.currentTarget.setPointerCapture(event.pointerId);
         setCommandDragActive(true);
+        beginLayoutResize();
         active.current = {
           session,
           pointerId: event.pointerId,

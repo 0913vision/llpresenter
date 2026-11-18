@@ -1,3 +1,7 @@
+import {
+  isLayoutResizeActive,
+  onLayoutResizeEnd,
+} from '@renderer/ui/layoutResize';
 import {flushSync} from 'react-dom';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {
@@ -126,10 +130,16 @@ export const SongBlock = memo(
       if (typeof ResizeObserver === 'undefined') return;
       // NOTE(0913vision): The rows below move in the frame the text grows in,
       // not one frame after it.
-      const observer = new ResizeObserver(() => flushSync(measure));
+      const observer = new ResizeObserver(() => {
+        if (!isLayoutResizeActive()) flushSync(measure);
+      });
+      const unlisten = onLayoutResizeEnd(measure);
       observer.observe(thumbnail);
       observer.observe(text);
-      return () => observer.disconnect();
+      return () => {
+        unlisten();
+        observer.disconnect();
+      };
     }, [grid, onMeasure, renderCard, slide.id]);
 
     const select = (input: HTMLTextAreaElement): void => {

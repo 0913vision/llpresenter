@@ -1,4 +1,8 @@
 import {
+  isLayoutResizeActive,
+  onLayoutResizeEnd,
+} from '@renderer/ui/layoutResize';
+import {
   useCallback,
   useLayoutEffect,
   useRef,
@@ -49,15 +53,22 @@ export function useMeasuredRows(
     const viewport = viewportRef.current;
     if (viewport === null || typeof ResizeObserver === 'undefined') return;
     let width = viewport.clientWidth;
-    const observer = new ResizeObserver(() => {
+    const read = () => {
       if (viewport.clientWidth === width) return;
       width = viewport.clientWidth;
       setCache(previous => ({...previous, values: {}}));
       activeGeneration.current += 1;
       setGeneration(activeGeneration.current);
+    };
+    const observer = new ResizeObserver(() => {
+      if (!isLayoutResizeActive()) read();
     });
+    const unlisten = onLayoutResizeEnd(read);
     observer.observe(viewport);
-    return () => observer.disconnect();
+    return () => {
+      unlisten();
+      observer.disconnect();
+    };
   }, [viewportRef]);
   return {current, saveHeight};
 }

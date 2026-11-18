@@ -1,3 +1,4 @@
+import {beginLayoutResize, endLayoutResize} from '@renderer/ui/layoutResize';
 import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
 import {act, fireEvent, render, screen} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
@@ -207,6 +208,12 @@ describe('SongBlock', () => {
       textHeight = 80;
       act(() => observer.fire());
       expect(onMeasure).toHaveBeenLastCalledWith(slide.id, 180);
+      beginLayoutResize();
+      textHeight = 95;
+      act(() => observer.fire());
+      expect(onMeasure).toHaveBeenLastCalledWith(slide.id, 180);
+      act(() => endLayoutResize());
+      expect(onMeasure).toHaveBeenLastCalledWith(slide.id, 195);
       expect(reads()).toBe(1);
       unmount();
     } finally {
