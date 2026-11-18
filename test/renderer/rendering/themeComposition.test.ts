@@ -252,6 +252,49 @@ describe('theme composition drawing', () => {
     ).toBe('Sermon');
     view.dispose();
   });
+  it.each(['stage', 'broadcast'] as const)(
+    'preserves a stored two-line sermon title on %s',
+    kind => {
+      const {root, view} = setup();
+      const screenId = createScreenId(STARTER_SCREEN_IDS[kind]);
+      const theme = createDefaultThemes().themes.find(
+        entry => entry.name === '설교 제목',
+      );
+      const layout = theme?.screens[screenId];
+      if (!theme || !layout || !song.slide) throw Error('Missing sermon');
+      const active = frame(layout.elements, {
+        themeId: theme.id,
+        layout,
+        item: {
+          id: 'invented',
+          kind: 'bible',
+          source: 'service',
+          title: '마태복음 11:29',
+        },
+      });
+      view.render(
+        {
+          ...song,
+          slide: {
+            ...song.slide,
+            kind: 'bible',
+            label: null,
+            sermonTitle: true,
+            lines: ['첫 번째 제목', '두 번째 제목'],
+          },
+        },
+        {...active, screen: {id: screenId, kind}, transitions: false},
+      );
+      const block = root.querySelector(
+        `[data-kind="currentText"] .${classes.shown} .${classes.block}`,
+      );
+      expect(block).not.toBeNull();
+      expect(
+        Array.from(block?.children ?? [], line => line.textContent).join('\n'),
+      ).toBe('첫 번째 제목\n두 번째 제목');
+      view.dispose();
+    },
+  );
   it.each(['same', 'different'] as const)(
     'uses one full-page wipe with %s background',
     background => {
