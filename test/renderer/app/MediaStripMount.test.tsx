@@ -112,6 +112,7 @@ it('finishes an import and opens prep after its media panel is collapsed', async
   await userEvent.click(mediaBinToggle());
   const media = await screen.findByRole('region', {name: '미디어 보관함'});
   const [button] = within(media).getAllByRole('button', {name: '가져오기'});
+  if (button === undefined) throw new Error('Media import button is missing');
   await waitFor(() => expect(button.getAttribute('aria-disabled')).toBeNull());
   await userEvent.click(button);
   expect(
