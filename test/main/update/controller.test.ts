@@ -40,6 +40,23 @@ function setup() {
 }
 
 describe('UpdateController', () => {
+  it('retries a failed download without asking for another check', async () => {
+    const {controller, updater, act} = setup();
+    updater.download.mockRejectedValueOnce(new Error('ENOTFOUND'));
+    await controller.check();
+    act('download');
+    await vi.waitFor(() =>
+      expect(controller.get().status).toMatchObject({
+        kind: 'error',
+        stage: 'download',
+        version: '0.60.0',
+      }),
+    );
+    act('retry');
+    await vi.waitFor(() => expect(updater.install).toHaveBeenCalledOnce());
+    expect(updater.check).toHaveBeenCalledOnce();
+    expect(updater.download).toHaveBeenCalledTimes(2);
+  });
   it('checks once at launch and only offers a notice', async () => {
     const {controller, updater, act} = setup();
     controller.launch();

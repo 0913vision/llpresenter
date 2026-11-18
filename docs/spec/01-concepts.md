@@ -231,12 +231,14 @@ Source: product log (offline Bible data preferred), `docs/TECH.md` principle 5.
   dialog says they turn off during the update and return after restart. Nothing
   downloads or changes outputs before the operator confirms. A manual failure
   gives a short reason; technical details remain in the local log.
-- After confirmation, download progress is shown and the app saves pending
-  edits, records the active outputs, shuts down, installs, and restarts. The
-  same service reopens and precisely those outputs turn on, independently of the
-  ordinary launch-output preference. Failed or incomplete saves or recovery
-  cleanup prevent installation. A completed update restart has no crash recovery
-  prompt. A cancelled update never installs on quit.
+- After confirmation, a dialog shows the version, download percentage, and the
+  download, installation preparation, and restart steps. Failures identify the
+  failed step and offer retry. The app saves pending edits, records the active
+  outputs, shuts down, installs, and restarts. The same service reopens and
+  precisely those outputs turn on, independently of the ordinary launch-output
+  preference. Failed or incomplete saves or recovery cleanup prevent
+  installation. A completed update restart has no crash recovery prompt. A
+  cancelled update never installs on quit.
 - The installer keeps the existing app-data and library roots. Uninstalling
   removes installed program files and shortcuts, never app data or backups.
 

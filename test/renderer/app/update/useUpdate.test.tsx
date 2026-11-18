@@ -46,6 +46,63 @@ function setup(snapshot: UpdateSnapshot) {
 }
 
 describe('update presentation', () => {
+  it('shows version, download progress and installation steps through restart', async () => {
+    const snapshot: UpdateSnapshot = {
+      revision: 1,
+      status: {kind: 'downloading', version: '1.2.3', percent: 42},
+      visible: true,
+      outputsOn: false,
+      busy: false,
+    };
+    const view = setup(snapshot);
+    const progress = await screen.findByRole('progressbar', {
+      name: '업데이트 내려받기',
+    });
+    expect(progress.getAttribute('aria-valuenow')).toBe('42');
+    expect(screen.getByRole('alertdialog').textContent).toContain('1.2.3');
+    expect(
+      screen
+        .getByText('내려받는 중')
+        .closest('li')
+        ?.getAttribute('aria-current'),
+    ).toBe('step');
+    view.push({
+      ...snapshot,
+      revision: 2,
+      status: {kind: 'installing', version: '1.2.3'},
+    });
+    expect(
+      screen.getByText('설치 준비').closest('li')?.getAttribute('aria-current'),
+    ).toBe('step');
+    view.push({
+      ...snapshot,
+      revision: 3,
+      status: {kind: 'restarting', version: '1.2.3'},
+    });
+    expect(
+      screen.getByText('다시 시작').closest('li')?.getAttribute('aria-current'),
+    ).toBe('step');
+  });
+  it('offers a retry after a download failure', async () => {
+    const snapshot: UpdateSnapshot = {
+      revision: 1,
+      status: {
+        kind: 'error',
+        stage: 'download',
+        version: '1.2.3',
+        reason: 'Offline',
+      },
+      visible: true,
+      outputsOn: false,
+      busy: false,
+    };
+    const view = setup(snapshot);
+    expect((await screen.findByRole('alertdialog')).textContent).toContain(
+      '내려받기 실패',
+    );
+    fireEvent.click(screen.getByRole('button', {name: '다시 시도'}));
+    expect(view.send).toHaveBeenCalledWith({revision: 1, action: 'retry'});
+  });
   it('resumes editing after an installation shutdown is cancelled', async () => {
     const snapshot: UpdateSnapshot = {
       revision: 1,
