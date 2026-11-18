@@ -339,6 +339,8 @@ function ThemeCanvas({
         getElementLabel={element => element.name}
         renderContent={values => (
           <ThemePicture
+            showPlaceholders
+            referenceItemSample={'\uc694\ud55c\ubcf5\uc74c 3:16-18'}
             elements={values}
             background={background}
             samples={themeSamplesFor(

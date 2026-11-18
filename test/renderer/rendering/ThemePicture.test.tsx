@@ -635,3 +635,59 @@ it('shows the same gradient and both sermon text fields in the broadcast preview
   expect(view.container.textContent).toContain('마태복음 11:29~30');
   expect(view.container.textContent).toContain('동행의 열매 : 온유');
 });
+
+it('shows resource placeholders only in the theme editor', () => {
+  const elements = [
+    element('background', 981),
+    element('media', 982),
+    element('overlay', 983),
+  ];
+  const samples = {
+    background: 'Background sample',
+    media: 'Media sample',
+    overlay: 'Overlay sample',
+  };
+  const view = render(
+    <ThemePicture
+      elements={elements}
+      background="#000000"
+      samples={samples}
+      showPlaceholders
+    />,
+  );
+  expect(view.getByText('Background sample')).toBeTruthy();
+  expect(view.getByText('Media sample')).toBeTruthy();
+  expect(view.getByText('Overlay sample')).toBeTruthy();
+  expect(view.getByText('Background sample').style.paddingTop).toBe('16px');
+  expect(view.getByText('Media sample').style.paddingTop).toBe('72px');
+  expect(view.getByText('Overlay sample').style.paddingTop).toBe('128px');
+  view.rerender(
+    <ThemePicture elements={elements} background="#000000" samples={samples} />,
+  );
+  expect(view.queryByText('Background sample')).toBeNull();
+  expect(view.queryByText('Media sample')).toBeNull();
+  expect(view.queryByText('Overlay sample')).toBeNull();
+});
+
+it('previews the selected reference source', () => {
+  const reference = element('reference', 984);
+  if (reference.kind !== 'reference') throw Error('Missing reference');
+  const view = render(
+    <ThemePicture
+      elements={[reference]}
+      background="#000000"
+      samples={{reference: 'Verse'}}
+      referenceItemSample="Passage"
+    />,
+  );
+  expect(view.getByText('Verse')).toBeTruthy();
+  view.rerender(
+    <ThemePicture
+      elements={[{...reference, source: 'item'}]}
+      background="#000000"
+      samples={{reference: 'Verse'}}
+      referenceItemSample="Passage"
+    />,
+  );
+  expect(view.getByText('Passage')).toBeTruthy();
+});

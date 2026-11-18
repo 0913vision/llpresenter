@@ -1,3 +1,6 @@
+import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
+import {PREPARATION_THEME_ID} from '@core/themes/sundayStandby';
+import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLayers, type LiveLayers} from '@core/live/state';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
@@ -188,6 +191,48 @@ describe('theme composition drawing', () => {
       view.dispose();
     },
   );
+  it.each([
+    [CREED_PRAYER_THEME_ID, 'stage'],
+    [CREED_PRAYER_THEME_ID, 'broadcast'],
+    [PREPARATION_THEME_ID, 'broadcast'],
+    [SERMON_TITLE_THEME_ID, 'stage'],
+  ] as const)('shows Bible references in theme %s on %s', (id, kind) => {
+    const {view, text} = setup();
+    const screenId = createScreenId(STARTER_SCREEN_IDS[kind]);
+    const theme = createDefaultThemes().themes.find(entry => entry.id === id);
+    const layout = theme?.screens[screenId];
+    if (!theme || !layout || song.slide === null) throw Error('Missing layout');
+    const item = {
+      id: 'invented',
+      kind: 'bible' as const,
+      source: 'service' as const,
+      title: 'Book 1:2',
+    };
+    const active = {
+      ...frame(layout.elements, {themeId: id, layout, item}),
+      screen: {id: screenId, kind},
+      transitions: false,
+    };
+    view.render(
+      {...song, slide: {...song.slide, kind: 'bible', reference: 'Book 1:2'}},
+      active,
+    );
+    expect(text('reference')).toBe('Book 1:2');
+    view.render(
+      {...song, slide: {...song.slide, kind: 'song', reference: 'Not Bible'}},
+      {
+        ...frame(layout.elements, {
+          themeId: id,
+          layout,
+          item: {...item, kind: 'song'},
+        }),
+        screen: {id: screenId, kind},
+        transitions: false,
+      },
+    );
+    expect(text('reference') ?? '').toBe('');
+    view.dispose();
+  });
   it('shows a sermon element title with one stage reference aligned to the Bible text', () => {
     const {root, view} = setup();
     const screenId = createScreenId(STARTER_SCREEN_IDS.stage);
