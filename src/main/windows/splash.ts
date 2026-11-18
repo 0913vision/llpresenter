@@ -1,14 +1,27 @@
 import {BrowserWindow, nativeImage} from 'electron';
-import {writeFileSync} from 'node:fs';
 import {appIconPath} from './appIcon';
 import type {WindowMode} from './testWindows';
 
+export type StartupStep =
+  'settings' | 'content' | 'window' | 'renderer' | 'paint';
+
+const steps: readonly StartupStep[] = [
+  'settings',
+  'content',
+  'window',
+  'renderer',
+  'paint',
+];
+const states = new WeakMap<
+  BrowserWindow,
+  {done: Set<StartupStep>; loaded: boolean}
+>();
+
+/** Shows the selected launch design while the control window starts. */
 export function createSplash(mode: WindowMode): BrowserWindow {
-  const started = process.hrtime.bigint();
-  const variant = process.env['LLP_SPLASH_VARIANT'] ?? 'a';
   const icon = nativeImage
     .createFromPath(appIconPath)
-    .resize({width: 72, height: 72})
+    .resize({width: 104, height: 104})
     .toDataURL();
   const window = new BrowserWindow({
     width: 560,
@@ -17,49 +30,44 @@ export function createSplash(mode: WindowMode): BrowserWindow {
     show: false,
     resizable: false,
     skipTaskbar: mode === 'offscreen',
-    backgroundColor: '#1c1c1c',
+    backgroundColor: '#1f4170',
     webPreferences: {offscreen: mode === 'offscreen', sandbox: true},
   });
-  if (process.env['LLP_SPLASH_TIMING'] === '1') {
-    console.info(
-      `Splash window created in ${Number(process.hrtime.bigint() - started) / 1e6} ms`,
-    );
-  }
-  const layouts: Record<string, string> = {
-    a: 'main{align-items:center;text-align:center} img{width:72px} h1{font-size:24px} footer{width:100%}',
-    b: 'main{align-items:flex-start;text-align:left} img{width:56px} h1{font-size:27px} footer{width:100%}',
-    c: 'main{align-items:center;text-align:center;background:linear-gradient(135deg,#1c1c1c,#1f4170)} img{width:64px} h1{font-size:22px} footer{width:70%}',
-  };
+  states.set(window, {done: new Set(), loaded: false});
   const html = `<!doctype html><html lang="ko"><meta charset="utf-8"><style>
-    *{box-sizing:border-box}body{margin:0;background:#1c1c1c;color:#ececec;font-family:Pretendard,"Malgun Gothic",sans-serif}main{height:300px;padding:34px 40px;display:flex;flex-direction:column;justify-content:center;gap:12px}h1{margin:0;font-weight:700}footer{margin-top:auto;color:#b4b4b4;font-size:13px}.track{height:3px;background:#3a3a3a;margin-top:12px;overflow:hidden}.bar{height:100%;width:38%;background:#3d8bf0;animation:load 1.4s infinite alternate ease-in-out}@keyframes load{from{transform:translateX(0)}to{transform:translateX(160%)}}${layouts[variant] ?? layouts.a}
-  </style><main><img src="${icon}"><h1>LoveLight Presenter</h1><footer>화면 준비 중<div class="track"><div class="bar"></div></div></footer></main></html>`;
+    *{box-sizing:border-box}body{margin:0;color:#fff;font-family:Pretendard,"Malgun Gothic",sans-serif;background:linear-gradient(135deg,#172f51,#24548d)}main{height:300px;display:flex;flex-direction:column;align-items:center;padding:20px 38px 24px}img{width:104px;height:104px}h1{margin:8px 0 0;font-size:29px;font-weight:700;letter-spacing:-.5px}footer{width:100%;margin-top:auto;font-size:13px;color:#e1eaf6}.track{height:4px;background:#ffffff42;margin-top:10px}.bar{height:100%;width:0;background:#fff}
+  </style><main><img src="${icon}" alt=""><h1>LoveLight Presenter</h1><footer><span id="status">설정 불러오는 중</span><div class="track" role="progressbar" aria-label="시작 진행률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><div class="bar"></div></div></footer></main></html>`;
+  window.webContents.once('did-finish-load', () => {
+    const state = states.get(window);
+    if (state === undefined) return;
+    state.loaded = true;
+    renderProgress(window, state.done);
+  });
   window
     .loadURL(`data:text/html;charset=utf-8,${encodeURIComponent(html)}`)
     .catch((error: unknown) => console.error('Could not load splash', error));
-  if (process.env['LLP_SPLASH_TIMING'] === '1') {
-    window.webContents.once('did-finish-load', () => {
-      console.info(
-        `Splash load took ${Number(process.hrtime.bigint() - started) / 1e6} ms`,
-      );
-    });
-  }
-  window.once('ready-to-show', () => {
-    if (process.env['LLP_SPLASH_TIMING'] === '1') {
-      console.info(`Splash ready at ${Math.round(process.uptime() * 1000)} ms`);
-      console.info(
-        `Splash creation took ${Number(process.hrtime.bigint() - started) / 1e6} ms`,
-      );
-    }
-    if (mode === 'normal') window.show();
-    else {
-      const path = process.env['LLP_SPLASH_CAPTURE'];
-      if (path) {
-        window.webContents.capturePage().then(
-          image => writeFileSync(path, image.toPNG()),
-          (error: unknown) => console.error('Could not capture splash', error),
-        );
-      }
-    }
-  });
+  if (mode === 'normal') window.once('ready-to-show', () => window.show());
   return window;
+}
+
+/** Records a completed startup milestone; out-of-order work is counted once. */
+export function completeSplashStep(
+  window: BrowserWindow,
+  step: StartupStep,
+): void {
+  const state = states.get(window);
+  if (state === undefined || window.isDestroyed()) return;
+  state.done.add(step);
+  if (state.loaded) renderProgress(window, state.done);
+}
+
+function renderProgress(window: BrowserWindow, done: Set<StartupStep>): void {
+  const percent = Math.round((done.size / steps.length) * 100);
+  const status = !done.has('settings')
+    ? '설정 불러오는 중'
+    : !done.has('content')
+      ? '예배 불러오는 중'
+      : '화면 준비 중';
+  const code = `document.getElementById('status').textContent=${JSON.stringify(status)};document.querySelector('.bar').style.width='${percent}%';document.querySelector('.track').setAttribute('aria-valuenow','${percent}')`;
+  window.webContents.executeJavaScript(code).catch(() => undefined);
 }

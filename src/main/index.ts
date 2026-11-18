@@ -72,7 +72,7 @@ import {registerControlClose} from './windows/controlClose';
 import {registerMediaScheme, serveMedia} from './windows/mediaProtocol';
 import {registerPictureChannels} from './windows/pictureChannels';
 import {windowModeFrom, type WindowMode} from './windows/testWindows';
-import {createSplash} from './windows/splash';
+import {completeSplashStep, createSplash} from './windows/splash';
 
 const BAD_ENVIRONMENT_EXIT_CODE = 1;
 const UI_STATE_FILE = 'app.json';
@@ -130,6 +130,7 @@ function bringBack(win: BrowserWindow | null, mode: WindowMode): void {
 
 function start(): void {
   let control: BrowserWindow | null = null;
+  let startupSplash: BrowserWindow | null = null;
   let lastGpuState: {reason: string; exitCode: number} | null = null;
   let graphicsRecovery: GraphicsRecovery | undefined;
   const windowMode = windowModeFrom(process.env, app.isPackaged);
@@ -151,6 +152,7 @@ function start(): void {
     .whenReady()
     .then(async () => {
       const splash = createSplash(windowMode);
+      startupSplash = splash;
       const stopPictureChannels = registerPictureChannels();
       shutdown.add({name: 'stop picture painter', run: stopPictureChannels});
       const recoveryFolder = join(app.getPath('userData'), RECOVERY_FOLDER);
@@ -193,6 +195,12 @@ function start(): void {
         appConfig,
         problems: problems.feed,
       });
+      dataStore.settings
+        .then(() => completeSplashStep(splash, 'settings'))
+        .catch((error: unknown) => log.error('settings startup failed', error));
+      dataStore.content
+        .then(() => completeSplashStep(splash, 'content'))
+        .catch((error: unknown) => log.error('content startup failed', error));
       const stopLaunchAtLogin = registerLaunchAtLogin({
         settings: dataStore.settings,
         applyEdit: dataStore.applySettingsEdit,
@@ -294,6 +302,11 @@ function start(): void {
           (await dataStore.settings)?.preferences().general.startMaximized ??
           true,
       });
+      completeSplashStep(splash, 'window');
+      win.webContents.once('did-finish-load', () =>
+        completeSplashStep(splash, 'renderer'),
+      );
+      win.once('ready-to-show', () => completeSplashStep(splash, 'paint'));
       const closeSplash = (): void => {
         if (!splash.isDestroyed()) splash.close();
       };
@@ -742,7 +755,13 @@ function start(): void {
         electron: process.versions.electron,
       });
     })
-    .catch((error: unknown) => log.error('failed to start', error));
+    .catch((error: unknown) => {
+      log.error('failed to start', error);
+      if (startupSplash !== null && !startupSplash.isDestroyed()) {
+        startupSplash.close();
+      }
+      app.quit();
+    });
 }
 
 // NOTE(0913vision): With a bad LLP_USER_DATA, the app quits instead of using

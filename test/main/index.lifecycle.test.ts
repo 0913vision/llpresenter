@@ -11,6 +11,18 @@ import {describe, expect, it, vi} from 'vitest';
 import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 
 describe('main entry lifecycle', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
+  it('reports real startup milestones to the splash', async () => {
+    const control = await startMain();
+    expect(mocks.splashStep).toHaveBeenCalledWith(mocks.splash, 'settings');
+    expect(mocks.splashStep).toHaveBeenCalledWith(mocks.splash, 'content');
+    expect(mocks.splashStep).toHaveBeenCalledWith(mocks.splash, 'window');
+    expect(mocks.splashStep).not.toHaveBeenCalledWith(mocks.splash, 'paint');
+    control.webContents.emit('did-finish-load');
+    control.emit('ready-to-show');
+    expect(mocks.splashStep).toHaveBeenCalledWith(mocks.splash, 'renderer');
+    expect(mocks.splashStep).toHaveBeenCalledWith(mocks.splash, 'paint');
+  });
+
   it('closes the splash when the control window shows', async () => {
     const control = await startMain();
     expect(mocks.splash.close).not.toHaveBeenCalled();
