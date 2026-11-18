@@ -2128,6 +2128,65 @@ it('fits the stage current text toward the audience rendered size', () => {
   view.dispose();
 });
 
+it.each([undefined, '\uC804\uC8FC', '\uAC04\uC8FC', '\uD6C4\uC8FC'])(
+  'matches audience title and subtitle sizes on stage with label %s',
+  label => {
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(1920);
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(
+      1080,
+    );
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(100);
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(100);
+    vi.spyOn(ThemeElementView.prototype, 'fittedTextSize').mockImplementation(
+      function (this: ThemeElementView) {
+        return this.element.kind === 'text' && this.element.content === '제목'
+          ? 120
+          : this.element.kind === 'text' && this.element.content === '첫 가사'
+            ? 64
+            : 108;
+      },
+    );
+    const {view, root} = setup();
+    const stageFrame = frame([{...themeElementBase(31), kind: 'currentText'}]);
+    const audienceFrame = frame([
+      {...themeElementBase(32), kind: 'currentText'},
+    ]);
+    if (!audienceFrame.theme) throw Error('Missing audience theme');
+    if (!song.slide) throw Error('Missing song');
+    view.render(
+      {
+        ...song,
+        slide: {
+          ...song.slide,
+          titleSlide: true,
+          lines: ['제목', '첫 가사'],
+          label: label ?? null,
+        },
+      },
+      {
+        ...stageFrame,
+        screen: {id: THEME_MAIN, kind: 'stage'},
+        audience: {
+          screen: {id: THEME_MAIN, kind: 'audience'},
+          theme: {
+            ...audienceFrame.theme,
+            layout: {...audienceFrame.theme.layout, songTitle: 'sunday'},
+          },
+        },
+      },
+    );
+    const rows = root.querySelectorAll<HTMLElement>(
+      `[data-kind="currentText"] .${classes.shown} .${classes.block} > div`,
+    );
+    expect([...rows].map(row => row.style.fontSize)).toEqual(['120px', '64px']);
+    expect([...rows].map(row => row.textContent)).toEqual([
+      '제목',
+      label ? `첫 가사 (${label})` : '첫 가사',
+    ]);
+    view.dispose();
+  },
+);
+
 it('keeps stage next text at least 48px even when the current text is smaller', () => {
   vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(200);
   vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(100);
