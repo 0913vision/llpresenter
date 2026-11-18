@@ -744,10 +744,13 @@ export class ThemeCompositionView {
     );
   }
 
-  rescale(): void {
+  rescale(
+    width = this.root.clientWidth,
+    height = this.root.clientHeight,
+  ): void {
     const scale = Math.min(
-      this.root.clientWidth / THEME_LIMITS.width,
-      this.root.clientHeight / THEME_LIMITS.height,
+      width / THEME_LIMITS.width,
+      height / THEME_LIMITS.height,
     );
     for (const page of [this.page, this.leaving]) {
       if (page !== null) {
