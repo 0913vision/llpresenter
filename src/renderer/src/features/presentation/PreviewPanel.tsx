@@ -4,7 +4,11 @@ import {
   useHasMediaView,
   useMediaView,
 } from '@renderer/features/media/MediaViewProvider';
-import {showLarge, usePreview} from '@renderer/session/preview';
+import {
+  setPreviewVisible,
+  showLarge,
+  usePreview,
+} from '@renderer/session/preview';
 import {useScreenSummaries} from '@renderer/platform/ScreenSummaries';
 import type {PreviewScreen} from '@renderer/ui/PreviewFrame';
 import {PreviewPanel as SharedPreviewPanel} from '@renderer/ui/PreviewPanel';
@@ -62,13 +66,17 @@ function PreviewPanelFrame({
   readonly stillScreens?: ReadonlySet<string>;
 }): JSX.Element {
   const largeScreenId = usePreview(view => view.largeScreenId);
+  const visible = usePreview(view => view.visible);
   const transitionProgress = useSlideTransitionProgress();
   const outputs = useOutputs();
   const summaries = useScreenSummaries();
   useWindowShortcuts(
     summaries.map(screen => ({
       id: `preview.focus.${screen.id}`,
-      run: () => showLarge(screen.id),
+      run: () => {
+        showLarge(screen.id);
+        if (!visible) setPreviewVisible(true);
+      },
     })),
   );
   const large = summaries.some(screen => screen.id === largeScreenId)
@@ -96,9 +104,14 @@ function PreviewPanelFrame({
   return (
     <SharedPreviewPanel
       screens={screens}
+      visible={visible}
+      onVisibleChange={setPreviewVisible}
       big={large}
       overlay={<LiveMediaProgress />}
-      onBigChange={showLarge}
+      onBigChange={id => {
+        showLarge(id);
+        if (!visible) setPreviewVisible(true);
+      }}
       renderScreen={renderScreen}
     />
   );

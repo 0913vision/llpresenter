@@ -84,7 +84,6 @@ describe('quick add other items', () => {
     ).toEqual([
       '곡…',
       '구역 추가',
-      '자리 표시 추가',
       '빈 항목 추가',
       '|',
       '빈 슬라이드',
@@ -102,7 +101,6 @@ describe('quick add other items', () => {
     ).toEqual([
       ['곡…', false],
       ['구역 추가', false],
-      ['자리 표시 추가', true],
       ['빈 항목 추가', true],
       ['빈 슬라이드', false],
       ['광고', false],

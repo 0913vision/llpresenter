@@ -8,7 +8,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLayers, emptyLiveState, type LiveLayers} from '@core/live/state';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {useLive} from '@renderer/session/live';
-import {showLarge, usePreview} from '@renderer/session/preview';
+import {seedPreview, showLarge, usePreview} from '@renderer/session/preview';
 import {openItem, selectTile, useShow} from '@renderer/session/show';
 import {PreviewPanel} from '@renderer/features/presentation/PreviewPanel';
 import {releaseKeptDrawings} from '@renderer/rendering/keptDrawings';
@@ -103,7 +103,7 @@ const slide = {itemId: 'a', position: 0, label: null, lines: ['x']};
 
 beforeEach(() => {
   instances.list.length = 0;
-  usePreview.setState({largeScreenId: MAIN_SCREEN});
+  usePreview.setState({largeScreenId: MAIN_SCREEN, visible: true});
   seedSampleService();
   useShow.setState({openItemId: null, selectedTile: 0});
   useLive.setState({state: null});
@@ -117,6 +117,20 @@ afterEach(() => {
 });
 
 describe('PreviewPanel layout', () => {
+  it('restores and saves whether the large preview is visible', () => {
+    const save = vi.fn();
+    window.llp = mockLlpApi({ui: {setRememberedView: save}});
+    seedPreview({previewBigVisible: false});
+    const {container} = render(<PreviewPanel />);
+    const hidden = screen.getByRole('button', {name: '큰 미리보기 보기'});
+    expect(container.querySelector('[data-role="large"]')).toBeNull();
+    fireEvent.click(hidden);
+    expect(save).toHaveBeenCalledWith({previewBigVisible: true});
+    expect(container.querySelector('[data-role="large"]')).not.toBeNull();
+    fireEvent.click(screen.getByRole('button', {name: '큰 미리보기 숨기기'}));
+    expect(save).toHaveBeenLastCalledWith({previewBigVisible: false});
+  });
+
   it('runs an assigned screen-preview shortcut through the same selection action without output', () => {
     const send = vi.fn();
     window.llp = mockLlpApi({live: {send}});

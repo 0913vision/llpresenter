@@ -181,7 +181,7 @@ it('shows 항목 없음 and keeps the adders for a service with no items', async
 
   expect((await screen.findByRole('status')).textContent).toBe('항목 없음');
   expect(screen.getByRole('button', {name: '항목'})).toBeDefined();
-  expect(screen.getByRole('button', {name: '구역'})).toBeDefined();
+  expect(screen.queryByRole('button', {name: '구역'})).toBeNull();
 });
 
 it('shows 예배 없음 with 새 예배… and no adders when no service is open', async () => {
@@ -203,7 +203,8 @@ it('adds a 구역 at the end of the table', async () => {
   const {edits} = setup();
   await screen.findByRole('option', {name: '첫 곡'});
 
-  await userEvent.click(screen.getByRole('button', {name: '구역'}));
+  await userEvent.click(screen.getByRole('button', {name: '항목'}));
+  await userEvent.click(screen.getByRole('menuitem', {name: '구역 추가'}));
 
   await waitFor(() => expect(edits).toHaveLength(1));
   const [command] = edits;

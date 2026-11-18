@@ -44,7 +44,7 @@ beforeEach(() => {
   vi.spyOn(HTMLMediaElement.prototype, 'play').mockResolvedValue(undefined);
   vi.spyOn(HTMLMediaElement.prototype, 'pause').mockReturnValue(undefined);
   vi.spyOn(HTMLMediaElement.prototype, 'load').mockReturnValue(undefined);
-  usePreview.setState({largeScreenId: MAIN_SCREEN});
+  usePreview.setState({largeScreenId: MAIN_SCREEN, visible: true});
   const themeItem = {
     id: 'preview-loop',
     kind: 'song',

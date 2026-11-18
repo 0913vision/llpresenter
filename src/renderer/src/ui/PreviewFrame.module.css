@@ -205,3 +205,14 @@
   background: var(--accent);
   transform-origin: left;
 }
+
+.withoutLarge {
+  grid-template-rows: auto;
+  align-content: start;
+  row-gap: 0;
+}
+
+.withoutLarge .small,
+.withoutLarge .hit {
+  grid-row: 1;
+}

@@ -42,18 +42,21 @@ describe('UiStateStore state', () => {
     const screen = createScreenId('00000000-0000-4000-8000-000000000001');
     const collection = '00000000-0000-4000-8000-000000000002';
     store.setRememberedView({previewBig: screen});
+    store.setRememberedView({previewBigVisible: false});
     store.setRememberedView({macroView: 'list', macroCollection: collection});
     store.setRememberedView({showToolTab: 'timer'});
     expect(store.state).toMatchObject({
       previewBig: screen,
+      previewBigVisible: false,
       macroView: 'list',
       macroCollection: collection,
       showToolTab: 'timer',
     });
     store.setRememberedView({macroCollection: null});
     expect(changes.at(-1)).toEqual({macroCollection: undefined});
+    store.setRememberedView({previewBigVisible: 'wrong'});
     store.setRememberedView({showToolTab: 'wrong'});
-    expect(warnings).toHaveLength(1);
+    expect(warnings).toHaveLength(2);
   });
   it('gives an empty state when there is no layout', () => {
     expect(createHarness().store.state).toEqual({});

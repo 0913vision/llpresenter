@@ -47,6 +47,7 @@ export interface PreviewFrameProps<Id extends string> {
   readonly screens: ReadonlyArray<PreviewScreen<Id>>;
   /** The screen shown large. */
   readonly big: Id;
+  readonly largeVisible?: boolean | undefined;
   /** The narrow window form keeps the same horizontal slot order. */
   readonly compact?: boolean | undefined;
   /** Content sizing preserves picture geometry inside a scrolling body. */
@@ -304,6 +305,7 @@ function ScreenCell<Id extends string>({
 export function PreviewFrame<Id extends string>({
   screens,
   big,
+  largeVisible = true,
   compact = false,
   sizing = 'fill',
   tiles = true,
@@ -312,7 +314,9 @@ export function PreviewFrame<Id extends string>({
   onBigChange,
   renderScreen,
 }: PreviewFrameProps<Id>): JSX.Element {
-  const others = screens.filter(screen => screen.id !== big);
+  const others = largeVisible
+    ? screens.filter(screen => screen.id !== big)
+    : screens;
   return (
     <div
       className={classNames(
@@ -320,13 +324,14 @@ export function PreviewFrame<Id extends string>({
         compact && styles.compact,
         sizing === 'content' && styles.content,
         !tiles && styles.single,
+        !largeVisible && styles.withoutLarge,
       )}
       style={{
         gridTemplateColumns: `repeat(${Math.max(1, tiles ? others.length : 1)}, minmax(var(--size-preview-compact), 1fr))`,
       }}
     >
       {screens.map(screen => {
-        const isBig = screen.id === big;
+        const isBig = largeVisible && screen.id === big;
         return (
           <ScreenCell
             key={screen.id}

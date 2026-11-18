@@ -75,7 +75,6 @@ export function otherItemEntries({
       label: '구역 추가',
       onSelect: () => onInsert({id: newId(), header: SECTION_NAME}),
     },
-    laterRow('other:placeholder', '자리 표시 추가'),
     laterRow('other:cue', '빈 항목 추가'),
     menuSeparator('other:items'),
     ...(['blank', 'ad'] as const).map(form => ({

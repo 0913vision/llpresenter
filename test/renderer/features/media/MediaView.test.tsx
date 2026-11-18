@@ -94,7 +94,7 @@ describe('media view', () => {
   it('restores and saves the media list view', async () => {
     const fixture = mediaFixture();
     vi.spyOn(fixture.api.ui, 'get').mockResolvedValue({
-      mediaBrowser: {view: 'list'},
+      mediaBrowser: {view: 'list', columns: 3},
     });
     const save = vi.spyOn(fixture.api.ui, 'setMediaBrowser');
     setup(fixture);
@@ -102,8 +102,12 @@ describe('media view', () => {
     await waitFor(() =>
       expect(toggle.getAttribute('aria-pressed')).toBe('true'),
     );
+    const slider = screen.getByRole('slider', {name: '타일 크기'});
+    expect(slider).toHaveProperty('disabled', true);
     fireEvent.click(toggle);
     expect(save).toHaveBeenCalledWith({view: 'grid'});
+    expect(slider).toHaveProperty('disabled', false);
+    expect(slider.getAttribute('aria-valuetext')).toBe('3열');
   });
 
   it('restores and saves the media tile size', async () => {

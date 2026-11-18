@@ -409,7 +409,7 @@ describe('PreferencesView', () => {
   it('saves the clear fade duration for the selected target', async () => {
     await mount();
     await openPage('진행');
-    const duration = screen.getByRole('spinbutton', {name: '전체 지우기 시간'});
+    const duration = screen.getByRole('spinbutton', {name: '모두 지우기 시간'});
     fireEvent.change(duration, {target: {value: '1.5'}});
     fireEvent.blur(duration);
     await waitFor(() => expect(edit).toHaveBeenCalledOnce());

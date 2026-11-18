@@ -56,6 +56,7 @@ const uiStateSchema = payloadObject({
   mediaStrip: v.exactOptional(v.boolean()),
   mediaBrowser: v.exactOptional(mediaBrowserSchema),
   previewBig: v.exactOptional(screenIdSchema),
+  previewBigVisible: v.exactOptional(v.boolean()),
   macroView: v.exactOptional(v.picklist(['grid', 'list'])),
   macroCollection: v.exactOptional(macroCollectionIdSchema),
   showToolTab: v.exactOptional(
@@ -66,6 +67,7 @@ const uiStateSchema = payloadObject({
 const rememberedViewChangeSchema = v.pipe(
   payloadObject({
     previewBig: v.exactOptional(screenIdSchema),
+    previewBigVisible: v.exactOptional(v.boolean()),
     macroView: v.exactOptional(v.picklist(['grid', 'list'])),
     macroCollection: v.exactOptional(v.nullable(macroCollectionIdSchema)),
     showToolTab: v.exactOptional(
@@ -96,6 +98,7 @@ export type UiState = Pick<
   | 'mediaStrip'
   | 'mediaBrowser'
   | 'previewBig'
+  | 'previewBigVisible'
   | 'macroView'
   | 'macroCollection'
   | 'showToolTab'

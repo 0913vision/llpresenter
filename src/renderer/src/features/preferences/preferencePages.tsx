@@ -2,6 +2,7 @@ import {useContext, useEffect, useState, type JSX} from 'react';
 import {LoadReadinessContext} from '@renderer/ui/loadReadiness';
 import type {PreferencePageId} from '@core/schema/preferencePages';
 import {CLEAR_FADE_LIMIT_MS, DEFAULT_CLEAR_FADE} from '@core/schema/clearFade';
+import {clearName} from '@renderer/ui/ClearButton';
 import {UI_ZOOM} from '@core/schema/uiZoom';
 import {lastBackupText} from '@core/ui/lastBackupText';
 import {
@@ -116,12 +117,12 @@ export function GeneralPage({edits}: PageProps): JSX.Element | null {
 }
 
 const CLEAR_TARGETS = [
-  ['all', '전체'],
-  ['slide', '슬라이드'],
-  ['media', '미디어'],
-  ['prop', '소품'],
-  ['audio', '오디오'],
-  ['message', '메시지'],
+  'all',
+  'slide',
+  'media',
+  'prop',
+  'audio',
+  'message',
 ] as const;
 
 export function ShowPage({edits}: PageProps): JSX.Element | null {
@@ -129,7 +130,8 @@ export function ShowPage({edits}: PageProps): JSX.Element | null {
   if (preferences === null) return null;
   return (
     <PropertyGroup title="지우기 페이드">
-      {CLEAR_TARGETS.map(([target, label]) => {
+      {CLEAR_TARGETS.map(target => {
+        const label = clearName(target);
         const value = preferences.clearKeys[target] ?? DEFAULT_CLEAR_FADE;
         const update = (next: typeof value): void =>
           change(stored => ({

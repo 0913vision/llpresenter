@@ -514,6 +514,8 @@ export function MediaView({
           end={
             <Slider
               label="타일 크기"
+              disabled={display === 'list'}
+              title={display === 'list' ? '격자 보기에서 조절' : undefined}
               icon="grid"
               width="compact"
               min={MIN_MEDIA_COLUMNS}

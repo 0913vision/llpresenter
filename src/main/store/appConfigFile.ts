@@ -21,6 +21,7 @@ export type UiFields = Pick<
   AppConfig,
   | 'layout'
   | 'previewBig'
+  | 'previewBigVisible'
   | 'macroView'
   | 'showToolTab'
   | 'mediaStrip'
@@ -173,6 +174,7 @@ export class AppConfigFile implements UiStateFields {
     const {
       layout,
       previewBig,
+      previewBigVisible,
       macroView,
       macroCollection,
       showToolTab,
@@ -186,6 +188,7 @@ export class AppConfigFile implements UiStateFields {
     return {
       ...(layout === undefined ? {} : {layout}),
       ...(previewBig === undefined ? {} : {previewBig}),
+      ...(previewBigVisible === undefined ? {} : {previewBigVisible}),
       ...(macroView === undefined ? {} : {macroView}),
       ...(macroCollection === undefined ? {} : {macroCollection}),
       ...(showToolTab === undefined ? {} : {showToolTab}),

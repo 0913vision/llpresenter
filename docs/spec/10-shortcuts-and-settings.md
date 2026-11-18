@@ -1575,10 +1575,13 @@ width. 보기 > 칸 배치 초기화 restores all column widths in every size cl
 screen settings, shortcuts, and about and update commands, following the user's
 choice and ProPresenter's application menu.
 
-The ?? page sets a clear fade duration for each clear target. Zero seconds
+The 진행 page sets a clear fade duration for each clear target. Zero seconds
 clears immediately. Message template editing sets the icon, target screens, and
 default display duration; the composer may change the targets and duration for
 one send. Text graphic editing sets its font, size, and color. Macro schedules
 are not a supported setting; unknown fields in existing files remain preserved.
 The media column count, list or grid view, and selected large preview screen are
 saved as the operator changes them.
+
+The large preview visibility is saved in `app.json` as `previewBigVisible` and
+restored at launch.
