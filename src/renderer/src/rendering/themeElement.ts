@@ -487,65 +487,60 @@ export class ThemeElementView {
         );
       }
     } else {
-      this.showText(
-        cue ?? this.textContent(layers, frame, videoRemaining),
-        frame,
-        {
-          cue: cue !== undefined,
-          lyricFormat:
-            stage &&
-            isSong &&
-            element.kind === 'currentText' &&
-            slide?.titleSlide &&
-            frame.stageTitleSizes
-              ? {
-                  lines: songTitleLines(slide.lines, slide.titleLineCount).map(
-                    (line, index) => ({
-                      boxWidth: 1920,
-                      runs: [
-                        {
-                          text: line,
-                          size:
-                            frame.stageTitleSizes?.[index] ??
-                            frame.stageTitleSizes?.at(-1) ??
-                            element.text.size,
-                        },
-                      ],
-                    }),
-                  ),
-                }
-              : frame.screen?.kind === 'audience'
-                ? (element.lyricFormat ??
-                  (isSong && element.kind === 'currentText'
-                    ? layers.slide?.lyricFormat
-                    : undefined))
+      const displayedText =
+        cue ?? this.textContent(layers, frame, videoRemaining);
+      this.showText(displayedText, frame, {
+        cue: cue !== undefined,
+        lyricFormat:
+          stage &&
+          isSong &&
+          element.kind === 'currentText' &&
+          slide?.titleSlide &&
+          frame.stageTitleSizes &&
+          displayedText !== null &&
+          cue === undefined
+            ? {
+                lines: displayedText.split('\n').map((line, index) => ({
+                  boxWidth: 1920,
+                  runs: [
+                    {
+                      text: line,
+                      size:
+                        frame.stageTitleSizes?.[index] ??
+                        frame.stageTitleSizes?.at(-1) ??
+                        element.text.size,
+                    },
+                  ],
+                })),
+              }
+            : frame.screen?.kind === 'audience'
+              ? (element.lyricFormat ??
+                (isSong && element.kind === 'currentText'
+                  ? layers.slide?.lyricFormat
+                  : undefined))
+              : undefined,
+        vAlign:
+          stage && element.kind === 'nextText'
+            ? 'top'
+            : cue !== undefined
+              ? 'middle'
+              : isThemeTextElement(element)
+                ? themeTextVAlign(element, layers.slide?.lines.join('\n') ?? '')
                 : undefined,
-          vAlign:
-            stage && element.kind === 'nextText'
-              ? 'top'
-              : cue !== undefined
-                ? 'middle'
-                : isThemeTextElement(element)
-                  ? themeTextVAlign(
-                      element,
-                      layers.slide?.lines.join('\n') ?? '',
-                    )
-                  : undefined,
-          continued:
-            (element.kind === 'currentText'
-              ? layers.slide?.continued
-              : element.kind === 'nextText'
-                ? layers.slide?.next?.continued
-                : false) === true,
-          biblePart:
-            element.kind === 'currentText'
-              ? (layers.slide?.biblePart ??
-                (this.previewMaxLines === undefined ? undefined : 1))
-              : element.kind === 'nextText'
-                ? layers.slide?.next?.biblePart
-                : undefined,
-        },
-      );
+        continued:
+          (element.kind === 'currentText'
+            ? layers.slide?.continued
+            : element.kind === 'nextText'
+              ? layers.slide?.next?.continued
+              : false) === true,
+        biblePart:
+          element.kind === 'currentText'
+            ? (layers.slide?.biblePart ??
+              (this.previewMaxLines === undefined ? undefined : 1))
+            : element.kind === 'nextText'
+              ? layers.slide?.next?.biblePart
+              : undefined,
+      });
     }
     if (isSectionBandGradient(element.id) || element.id === SECTION_NAME_ID) {
       this.box.hidden = layers.slide === null || item?.contentCleared === true;
