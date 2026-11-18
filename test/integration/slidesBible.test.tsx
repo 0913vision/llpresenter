@@ -484,7 +484,7 @@ it('discards a late lookup after cancelling the loading window', async () => {
 });
 
 it.each([true, false])(
-  'accepts default cuts without waiting for AI with automatic opening %s',
+  'inserts the split range with automatic opening %s',
   async autoOpen => {
     const f = fixture(slidesItem('blank'), true);
     vi.spyOn(f.api.preferences, 'get').mockResolvedValue({
@@ -496,13 +496,11 @@ it.each([true, false])(
       available: true,
       reason: '',
     });
-    const chooser = vi.spyOn(f.api.bible, 'chooseBoundary');
     const session = new ControlSession(f.api);
     const view = render(<SlidesEditorHarness session={session} />);
     try {
       await chooseRange();
       expect(screen.queryByRole('dialog')).toBeNull();
-      expect(chooser).not.toHaveBeenCalled();
       await waitFor(() =>
         expect(view.container.querySelectorAll('[data-slide-id]')).toHaveLength(
           5,

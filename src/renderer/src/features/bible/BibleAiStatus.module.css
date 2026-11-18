@@ -3,7 +3,6 @@
   flex: none;
   align-items: center;
   gap: var(--space-6);
-  margin-left: auto;
   color: var(--text-3);
   font: var(--type-label);
   white-space: nowrap;

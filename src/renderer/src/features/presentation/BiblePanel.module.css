@@ -23,6 +23,12 @@
 }
 
 .translation {
-  max-width: 50%;
+  min-width: 0;
+}
+
+.translationGroup {
+  display: flex;
+  align-items: center;
+  gap: var(--space-12);
   min-width: 0;
 }
