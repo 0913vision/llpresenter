@@ -289,12 +289,14 @@ source was found.
 | Key                    | Action                             | Basis                                                                                         |
 | ---------------------- | ---------------------------------- | --------------------------------------------------------------------------------------------- |
 | →, ↓, Space, Page Down | Output the next 슬라이드           | Follows ProPresenter for → (S1) and Space (S4 p. 70); Page Down for presentation remotes (10) |
+| Enter, keypad Enter    | Output the next 슬라이드           | Follows a PowerPoint show; fixed, not a bindable shortcut (10)                                |
 | ←, ↑, Page Up          | Output the previous 슬라이드       | Follows ProPresenter for ← (S1); Page Up for presentation remotes (10)                        |
 | Slide hot key          | Output its particular source slide | Follows ProPresenter's individual slide hot keys (S4 p. 58; October 27 S26 decision; 10)      |
 
 - In the slide grid, →, ↓, Space and Page Down output the next slide; ←, ↑ and
   Page Up output the previous slide. The service order list keeps ↑ and ↓ for
-  selection; Enter in the grid without a pending number does nothing (10).
+  selection; Enter or keypad Enter without a pending number outputs the next
+  slide while the slide grid or nothing has focus (10).
 - Outside text fields, digits show a pending service-wide slide number above the
   grid. Enter outputs that numbered slide and focuses the slide grid, or clears
   an invalid number without output. Delete or Escape clears the number;

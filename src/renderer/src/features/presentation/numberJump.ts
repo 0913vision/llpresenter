@@ -1,6 +1,6 @@
 import {create} from 'zustand';
 import {useEffect} from 'react';
-import {outputTile, useShow} from '@renderer/session/show';
+import {outputNext, outputTile, useShow} from '@renderer/session/show';
 import {isInTextEntry} from '@renderer/ui/textEntry';
 import {modalStack} from '@renderer/ui/modalStack';
 import {focusSlideGrid} from './focusSlideGrid';
@@ -65,7 +65,21 @@ export function handleNumberJump(event: KeyboardEvent): void {
     useNumberJump.setState({value: (value + event.key).slice(0, 15)});
     return;
   }
-  if (!value) return;
+  if (!value) {
+    // NOTE(0913vision): Like a PowerPoint show, Enter and the keypad Enter
+    // output the next slide while the slide grid or nothing has focus.
+    if (
+      event.key === 'Enter' &&
+      (event.target === document.body ||
+        (event.target instanceof Element &&
+          event.target.closest('[data-show-slide-grid="true"]') !== null))
+    ) {
+      event.preventDefault();
+      event.stopPropagation();
+      if (!event.repeat) outputNext();
+    }
+    return;
+  }
   if (event.key === 'Enter') {
     event.preventDefault();
     event.stopPropagation();
