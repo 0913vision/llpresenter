@@ -10,7 +10,8 @@ import {withinLookupTimeout} from '@renderer/session/showOutput';
 export const MAX_MESSAGE_TEMPLATES = 500;
 export const MESSAGE_NAME_LIMIT = 256;
 const SAVE_ATTEMPTS = 2;
-export type MessageFields = Pick<MessageTemplate, 'name' | 'text'>;
+export type MessageFields = Pick<MessageTemplate, 'name' | 'text'> &
+  Partial<Pick<MessageTemplate, 'icon' | 'targets' | 'duration'>>;
 export type MessageEdit =
   | {readonly kind: 'add'; readonly item: MessageTemplate}
   | {
@@ -37,8 +38,8 @@ export function messageTextReason(text: string): string | undefined {
 }
 export function newMessageTemplate(fields: MessageFields): MessageTemplate {
   return {
-    ...fields,
     icon: 'msg',
+    ...fields,
     id: createMessageTemplateId(crypto.randomUUID()),
   };
 }

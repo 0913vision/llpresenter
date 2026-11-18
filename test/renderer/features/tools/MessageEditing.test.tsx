@@ -171,6 +171,8 @@ it('adds a validated template and selects it without sending', async () => {
     name: '새 안내',
     text: '{이름} 안내석으로 와 주세요',
     icon: 'msg',
+    targets: 'all',
+    duration: null,
   });
   expect(fixture.send).not.toHaveBeenCalled();
 });
@@ -192,6 +194,22 @@ it('edits only name and sentence, preserving defaults and unknown fields', async
     text: '{차량} 이동해 주세요',
   });
   expect(fixture.send).not.toHaveBeenCalled();
+});
+
+it('saves message target defaults', async () => {
+  const fixture = setup();
+  render(<MessageTab />);
+  await openRow('수정…');
+  const dialog = screen.getByRole('dialog');
+  const targets = dialog.querySelector(
+    '[role="group"][aria-label="보낼 화면"]',
+  );
+  const all = targets?.querySelector('button');
+  if (!all) throw new Error('Missing target controls');
+  fireEvent.click(all);
+  fireEvent.click(button('저장'));
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+  expect(fixture.current().value.templates[0]?.targets).toBe('all');
 });
 
 it('opens the context menu by keyboard and asks before deleting', async () => {

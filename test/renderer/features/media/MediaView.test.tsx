@@ -91,6 +91,21 @@ async function tile(name: string): Promise<HTMLElement> {
 }
 
 describe('media view', () => {
+  it('restores and saves the media list view', async () => {
+    const fixture = mediaFixture();
+    vi.spyOn(fixture.api.ui, 'get').mockResolvedValue({
+      mediaBrowser: {view: 'list'},
+    });
+    const save = vi.spyOn(fixture.api.ui, 'setMediaBrowser');
+    setup(fixture);
+    const toggle = screen.getByRole('button', {name: '미디어 목록 보기'});
+    await waitFor(() =>
+      expect(toggle.getAttribute('aria-pressed')).toBe('true'),
+    );
+    fireEvent.click(toggle);
+    expect(save).toHaveBeenCalledWith({view: 'grid'});
+  });
+
   it('restores and saves the media tile size', async () => {
     const fixture = mediaFixture();
     vi.spyOn(fixture.api.ui, 'get').mockResolvedValue({

@@ -130,3 +130,15 @@
   outline: 2px solid var(--accent);
   outline-offset: var(--space-focus-outside-live-ring);
 }
+
+.tile[data-view='list'] {
+  flex-direction: row;
+  align-items: center;
+  height: var(--size-toolbar);
+}
+
+.tile[data-view='list'] .frame {
+  flex: none;
+  width: calc(var(--size-toolbar) * 16 / 9);
+  height: var(--size-toolbar);
+}

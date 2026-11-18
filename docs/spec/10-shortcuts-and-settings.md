@@ -1573,3 +1573,11 @@ width. 보기 > 칸 배치 초기화 restores all column widths in every size cl
 환경설정 opens from the LoveLight menu beside the window menu, together with
 screen settings, shortcuts, and about and update commands, following the user's
 choice and ProPresenter's application menu.
+
+The ?? page sets a clear fade duration for each clear target. Zero seconds
+clears immediately. Message template editing sets the icon, target screens, and
+default display duration; the composer may change the targets and duration for
+one send. Text graphic editing sets its font, size, and color. Macro schedules
+are not a supported setting; unknown fields in existing files remain preserved.
+The media column count, list or grid view, and selected large preview screen are
+saved as the operator changes them.

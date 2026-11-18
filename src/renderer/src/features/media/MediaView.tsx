@@ -98,19 +98,28 @@ function EntryTile({
   missing,
   live,
   selected,
+  display,
 }: {
   readonly entry: MediaEntry;
+  readonly display: 'grid' | 'list';
   readonly missing: boolean;
   readonly live: boolean;
   readonly selected: boolean;
 }): JSX.Element {
   if (entry.kind === 'copy') {
-    return <MediaTile name={nameOf(entry)} copying={entry.job.percent} />;
+    return (
+      <MediaTile
+        name={nameOf(entry)}
+        copying={entry.job.percent}
+        view={display}
+      />
+    );
   }
   const {item, copying} = entry;
   const showsPicture = item.kind !== 'audio' && !missing;
   return (
     <MediaTile
+      view={display}
       name={nameOf(entry)}
       picture={showsPicture ? thumbnailSrc(item.id) : undefined}
       duration={item.kind === 'image' ? undefined : durationText(item.duration)}
@@ -178,12 +187,21 @@ export function MediaView({
             : undefined;
   const imported = useMediaImportCompletion();
   const [columns, setColumns] = useState<number>();
+  const [display, setDisplay] = useState<'grid' | 'list'>('grid');
+  const displayChanged = useRef(false);
   const columnsChanged = useRef(false);
   useEffect(() => {
     let active = true;
     window.llp?.ui
       .get()
       .then(state => {
+        if (
+          active &&
+          !displayChanged.current &&
+          state.mediaBrowser?.view !== undefined
+        ) {
+          setDisplay(state.mediaBrowser.view);
+        }
         if (
           active &&
           !columnsChanged.current &&
@@ -400,6 +418,18 @@ export function MediaView({
           />
           <PanelActions>
             <Button
+              aria-label="미디어 목록 보기"
+              aria-pressed={display === 'list'}
+              onClick={() => {
+                const next = display === 'grid' ? 'list' : 'grid';
+                displayChanged.current = true;
+                setDisplay(next);
+                window.llp?.ui.setMediaBrowser({view: next});
+              }}
+            >
+              목록
+            </Button>
+            <Button
               icon="download"
               disabled={importReason !== undefined}
               title={importReason}
@@ -450,7 +480,8 @@ export function MediaView({
             label={title}
             count={entries.length}
             columns={columns ?? DEFAULT_MEDIA_COLUMNS}
-            fitHeight={columns === undefined}
+            view={display}
+            fitHeight={display === 'grid' && columns === undefined}
             selected={index < 0 ? undefined : index}
             onSelect={at => setSelected(entries[at]?.id ?? null)}
             onActivate={activate}
@@ -470,6 +501,7 @@ export function MediaView({
                 <EntryTile
                   key={entry.id}
                   entry={entry}
+                  display={display}
                   missing={missing(entry)}
                   live={liveId === entry.id}
                   selected={selected === entry.id}

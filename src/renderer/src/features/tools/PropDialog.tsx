@@ -2,11 +2,13 @@ import {useState, type JSX} from 'react';
 import {createPropId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
 import type {Prop} from '@core/schema/props';
+import {isLyricTextColor} from '@core/schema/textStyle';
 import type {Screen} from '@core/schema/screens';
 import {
   Button,
   Dialog,
   Properties,
+  NumberField,
   PropertyRow,
   SelectMenu,
   TextArea,
@@ -51,6 +53,9 @@ export function PropDialog({
   const [text, setText] = useState(
     initial?.content.kind === 'text' ? initial.content.text : '',
   );
+  const [textStyle, setTextStyle] = useState(() =>
+    initial?.content.kind === 'text' ? initial.content.style : DEFAULT_STYLE,
+  );
   const [mediaId, setMediaId] = useState(
     initial?.content.kind === 'image' ? initial.content.media : undefined,
   );
@@ -64,16 +69,20 @@ export function PropDialog({
       ? {
           kind: 'text',
           text,
-          style:
-            initial?.content.kind === 'text'
-              ? initial.content.style
-              : DEFAULT_STYLE,
+          style: textStyle,
         }
       : selectedMedia
         ? {kind: 'image', media: selectedMedia.id}
         : undefined;
   const prop = content ? {id, name, content, targets} : undefined;
-  const reason = prop ? propReason(prop) : '이미지를 골라야 저장할 수 있습니다';
+  const reason =
+    kind === 'text' && !textStyle.font.trim()
+      ? '글꼴을 입력해야 저장할 수 있습니다'
+      : kind === 'text' && !isLyricTextColor(textStyle.color)
+        ? '#RRGGBB 형식으로 입력'
+        : prop
+          ? propReason(prop)
+          : '이미지를 골라야 저장할 수 있습니다';
   return (
     <Dialog
       title={initial ? '그래픽 수정' : '그래픽 추가'}
@@ -152,6 +161,52 @@ export function PropDialog({
             )}
           </PropertyRow>
         )}
+        {kind === 'text' ? (
+          <>
+            <PropertyRow label="글꼴">
+              {({controlId}) => (
+                <TextField
+                  id={controlId}
+                  value={textStyle.font}
+                  readOnly={locked}
+                  onChange={font =>
+                    setTextStyle(current => ({...current, font}))
+                  }
+                />
+              )}
+            </PropertyRow>
+            <PropertyRow label="글자 크기">
+              {({controlId}) => (
+                <NumberField
+                  id={controlId}
+                  value={textStyle.size}
+                  min={1}
+                  max={1000}
+                  step={1}
+                  unit="px"
+                  disabled={locked}
+                  updateOn="commit"
+                  onChange={size =>
+                    setTextStyle(current => ({...current, size}))
+                  }
+                />
+              )}
+            </PropertyRow>
+            <PropertyRow label="글자 색">
+              {({controlId}) => (
+                <TextField
+                  id={controlId}
+                  value={textStyle.color}
+                  readOnly={locked}
+                  maxLength={7}
+                  onChange={color =>
+                    setTextStyle(current => ({...current, color}))
+                  }
+                />
+              )}
+            </PropertyRow>
+          </>
+        ) : null}
         <PropertyRow label="보낼 화면" alignTop>
           {() => (
             <div role="group" aria-label="보낼 화면">
