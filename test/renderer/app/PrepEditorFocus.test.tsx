@@ -286,6 +286,30 @@ it('does not open Save As for a retained song while 진행 is visible', async ()
   expect(f.session.editor?.getSnapshot().session).not.toBeNull();
 });
 
+it.each(['Service song', 'Sermon item', 'Bible item'])(
+  'leaves the previous service %s editor when the service changes',
+  async item => {
+    const f = setup();
+    const row = screen.getByRole('option', {name: new RegExp(item)});
+    await userEvent.click(row);
+    await userEvent.dblClick(row);
+    await screen.findByRole('button', {name: '‹ Service'});
+    act(() => {
+      useShow.setState({
+        serviceId: '50000000-0000-4000-8000-000000000123',
+        openItemId: null,
+        rows: [],
+      });
+    });
+    await waitFor(() =>
+      expect(screen.queryByRole('button', {name: '‹ Service'})).toBeNull(),
+    );
+    expect(f.session.editor?.getSnapshot().session).toBeNull();
+    expect(screen.queryByRole('region', {name: '곡 편집'})).toBeNull();
+    expect(screen.getByRole('listbox', {name: '예배 순서'})).toBeTruthy();
+  },
+);
+
 it.each(['double-click', 'Enter'] as const)(
   'focuses a service song opened by %s and restores its table row after Escape',
   async path => {
