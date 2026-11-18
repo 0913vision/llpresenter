@@ -89,7 +89,8 @@ export function registerPowerPointImport(
       'get' | 'folder' | 'add'
     > | null>;
   },
-  jobs: Pick<PowerPointJobs, 'run' | 'dispose'> = new PowerPointJobs(),
+  jobs: Pick<PowerPointJobs, 'run' | 'dispose'> &
+    Partial<Pick<PowerPointJobs, 'cancel'>> = new PowerPointJobs(),
   imageJobs: Pick<
     PowerPointImagesJob,
     'run' | 'cancel'
@@ -101,6 +102,8 @@ export function registerPowerPointImport(
     source: PowerPointSource;
   } | null = null;
   let busy = false;
+  let readCancelled = false;
+  const isReadCancelled = (): boolean => readCancelled;
   let drawingBusy = false;
   let disposed = false;
   const isDisposed = (): boolean => disposed;
@@ -356,11 +359,20 @@ export function registerPowerPointImport(
       }
     },
   );
+  ipcMain.handle(powerpointEndpoints.cancelRead.channel, () => {
+    if (!busy) return false;
+    readCancelled = true;
+    retained = null;
+    jobs.cancel?.('read');
+    return true;
+  });
   ipcMain.handle(
     powerpointEndpoints.read.channel,
     async (): Promise<PowerPointReadResult> => {
       if (busy) return {ok: false, message: 'PowerPoint 파일을 읽는 중입니다.'};
       busy = true;
+      readCancelled = false;
+      retained = null;
       try {
         let path: string | undefined;
         if (context.windowMode === 'offscreen') {
@@ -374,7 +386,9 @@ export function registerPowerPointImport(
             properties: ['openFile'],
             filters: [{name: 'PowerPoint', extensions: ['pptx', 'pptm']}],
           });
-          if (chosen.canceled) return {ok: true, value: null};
+          if (chosen.canceled || isReadCancelled()) {
+            return {ok: true, value: null};
+          }
           path = chosen.filePaths[0];
           rememberPickerFile(context.uiState, 'powerpointImportFolder', path);
         }
@@ -386,7 +400,9 @@ export function registerPowerPointImport(
               'PowerPoint 97-2003 파일은 가져올 수 없습니다. PowerPoint에서 .pptx로 저장한 뒤 가져오십시오.',
           };
         }
+        if (isReadCancelled()) return {ok: true, value: null};
         const result = await jobs.run({kind: 'read', path});
+        if (isReadCancelled()) return {ok: true, value: null};
         const sizeError = unsupportedSlideSize(result);
         if (sizeError !== null) {
           retained = null;
@@ -417,6 +433,7 @@ export function registerPowerPointImport(
         retained = {path, digest: result.digest, source: parsed.value.value};
         return parsed.value;
       } catch (error) {
+        if (isReadCancelled()) return {ok: true, value: null};
         context.log.warn('could not read PowerPoint', error);
         retained = null;
         return {
@@ -587,6 +604,7 @@ export function registerPowerPointImport(
     imageJobs.cancel();
     jobs.dispose();
     ipcMain.removeHandler(powerpointEndpoints.read.channel);
+    ipcMain.removeHandler(powerpointEndpoints.cancelRead.channel);
     ipcMain.removeHandler(powerpointEndpoints.layers.channel);
     ipcMain.removeHandler(powerpointEndpoints.background.channel);
     ipcMain.removeHandler(powerpointEndpoints.release.channel);

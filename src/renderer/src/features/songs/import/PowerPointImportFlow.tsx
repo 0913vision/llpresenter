@@ -10,7 +10,7 @@ import {LIGHT_SONG_THEME_ID} from '@core/themes/lightSong';
 import {powerpointBackgroundIndex} from '@core/songs/powerpointBackgroundIndex';
 import {powerpointBackgroundName} from '@core/media/powerpointBackground';
 import {Dialog} from '@renderer/ui/Dialog';
-import {Checkbox, TextField} from '@renderer/ui';
+import {Checkbox, Progress, TextField} from '@renderer/ui';
 import {SlideThumbnail} from '@renderer/ui/SlideThumbnail';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
@@ -202,12 +202,13 @@ export function PowerPointImportFlow({
 }): JSX.Element | null {
   const [source, setSource] = useState<PowerPointSource | null>(null);
   const pending = useRef<ReturnType<typeof api.powerpoint.read> | null>(null);
+  const cancelled = useRef(false);
   useEffect(() => {
     let active = true;
     pending.current ??= api.powerpoint.read();
     pending.current
       .then(result => {
-        if (!active) return;
+        if (!active || cancelled.current) return;
         if (!result.ok) {
           onProblem({
             key: 'powerpoint:read',
@@ -221,7 +222,7 @@ export function PowerPointImportFlow({
         else setSource(result.value);
       })
       .catch(() => {
-        if (active) {
+        if (active && !cancelled.current) {
           onProblem({
             key: 'powerpoint:read',
             kind: 'warning',
@@ -236,7 +237,26 @@ export function PowerPointImportFlow({
       active = false;
     };
   }, [api, onDone, onProblem]);
-  if (!source) return null;
+  if (!source) {
+    return (
+      <Dialog
+        title="PowerPoint 가져오기"
+        size="s"
+        onCancel={() => {
+          cancelled.current = true;
+          api.powerpoint
+            .cancelRead()
+            .catch((error: unknown) =>
+              console.error('PowerPoint read cancellation failed:', error),
+            );
+          onDone();
+        }}
+        primary={{label: '가져오기', disabled: true, onSelect: () => undefined}}
+      >
+        <Progress value={0} label="PowerPoint 읽는 중" />
+      </Dialog>
+    );
+  }
   return (
     <PowerPointDialog
       api={api}

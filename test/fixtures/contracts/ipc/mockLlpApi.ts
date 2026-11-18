@@ -54,6 +54,7 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
       subscribeImageProgress: () => () => undefined,
       layers: () => Promise.resolve(null),
       read: () => Promise.resolve({ok: true, value: null}),
+      cancelRead: () => Promise.resolve(false),
       background: () => Promise.resolve(null),
       release: () => Promise.resolve(true),
       match: () => Promise.resolve(null),

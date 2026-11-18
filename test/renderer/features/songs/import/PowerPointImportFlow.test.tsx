@@ -21,6 +21,50 @@ vi.mock('@renderer/features/songs/import/composePowerPointBackground', () => ({
 const mockScene = {key: 'a'.repeat(64), layers: [], pictures: [], skipped: 0};
 
 describe('PowerPoint import dialog', () => {
+  it('ignores a completed read after the operator cancels', async () => {
+    const fixture = editorFixture();
+    const store = new SongEditorStore(fixture.api, vi.fn());
+    onTestFinished(() => store.dispose());
+    let finish: (
+      value: Awaited<ReturnType<typeof fixture.api.powerpoint.read>>,
+    ) => void = () => undefined;
+    const cancelRead = vi.fn(async () => true);
+    const api = mockLlpApi({
+      ...fixture.api,
+      powerpoint: {
+        cancelRead,
+        read: () =>
+          new Promise(resolve => {
+            finish = resolve;
+          }),
+      },
+    });
+    const onDone = vi.fn();
+    render(
+      <PowerPointImportFlow
+        api={api}
+        store={store}
+        onDone={onDone}
+        onEdit={vi.fn()}
+        onProblem={vi.fn()}
+      />,
+    );
+    expect(
+      screen.getByRole('progressbar', {name: 'PowerPoint 읽는 중'}),
+    ).toBeTruthy();
+    fireEvent.click(screen.getByRole('button', {name: '취소'}));
+    expect(onDone).toHaveBeenCalledOnce();
+    expect(cancelRead).toHaveBeenCalledOnce();
+    await act(async () =>
+      finish({
+        ok: true,
+        value: {fileName: 'deck.pptx', widescreen: true, slides: []},
+      }),
+    );
+    expect(screen.queryByRole('textbox', {name: '제목'})).toBeNull();
+  });
+
+
   it('keeps successful decorations when a later layout needs fallback', async () => {
     const fixture = editorFixture();
     const store = new SongEditorStore(fixture.api, vi.fn());

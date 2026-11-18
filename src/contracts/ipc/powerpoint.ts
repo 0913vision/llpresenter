@@ -47,6 +47,10 @@ export const powerpointEndpoints = {
     'import:powerpoint:layers',
     {request: parsePowerPointLayersRequest, reply: parsePowerPointLayersResult},
   ),
+  cancelRead: query<boolean>(
+    'import:powerpoint:read:cancel',
+    parsePowerPointReleaseResult,
+  ),
   read: query<PowerPointReadResult>(
     'import:powerpoint:read',
     parsePowerPointReadResult,
@@ -78,6 +82,7 @@ export function powerpointApi(port: IpcPort) {
     subscribeImageProgress: port.subscribe(powerpointEndpoints.imageProgress),
     layers: port.request(powerpointEndpoints.layers),
     read: port.query(powerpointEndpoints.read),
+    cancelRead: port.query(powerpointEndpoints.cancelRead),
     background: port.request(powerpointEndpoints.background),
     release: port.request(powerpointEndpoints.release),
     match: port.request(powerpointEndpoints.match),

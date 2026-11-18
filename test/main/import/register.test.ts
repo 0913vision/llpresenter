@@ -86,6 +86,65 @@ function setup(windowMode: 'normal' | 'offscreen' = 'normal') {
 const readRequest = {source: 'file', encoding: 'auto'};
 
 describe('PowerPoint import', () => {
+  it('cancels a read while the file picker is open', async () => {
+    const {control, log} = setup();
+    let choose: (selection: Selection) => void = () => undefined;
+    electron.chooseFile.mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          choose = resolve;
+        }),
+    );
+    const jobs = {
+      run: vi.fn(async () => null),
+      cancel: vi.fn(),
+      dispose: vi.fn(),
+    };
+    onTestFinished(
+      registerPowerPointImport({control, windowMode: 'normal', log}, jobs),
+    );
+    const pending = handler(powerpointEndpoints.read.channel)({}, undefined);
+    await vi.waitFor(() => expect(electron.chooseFile).toHaveBeenCalled());
+    expect(
+      await handler(powerpointEndpoints.cancelRead.channel)({}, undefined),
+    ).toBe(true);
+    choose({canceled: false, filePaths: ['deck.pptx']});
+    expect(await pending).toEqual({ok: true, value: null});
+    expect(jobs.run).not.toHaveBeenCalled();
+    expect(jobs.cancel).toHaveBeenCalledWith('read');
+  });
+
+  it('discards a read that completes after cancellation', async () => {
+    const {control, log} = setup();
+    let finish: (value: unknown) => void = () => undefined;
+    const jobs = {
+      run: vi.fn(
+        () =>
+          new Promise<unknown>(resolve => {
+            finish = resolve;
+          }),
+      ),
+      cancel: vi.fn(),
+      dispose: vi.fn(),
+    };
+    onTestFinished(
+      registerPowerPointImport({control, windowMode: 'normal', log}, jobs),
+    );
+    electron.chooseFile.mockResolvedValueOnce({
+      canceled: false,
+      filePaths: ['deck.pptx'],
+    });
+    const pending = handler(powerpointEndpoints.read.channel)({}, undefined);
+    await vi.waitFor(() => expect(jobs.run).toHaveBeenCalledOnce());
+    expect(
+      await handler(powerpointEndpoints.cancelRead.channel)({}, undefined),
+    ).toBe(true);
+    finish({digest: 'a'.repeat(64), widescreen: true, slides: []});
+    expect(await pending).toEqual({ok: true, value: null});
+    expect(jobs.cancel).toHaveBeenCalledWith('read');
+  });
+
+
   it('refuses a non-16:9 deck before either import starts', async () => {
     const {control, log} = setup();
     electron.tempDir = await makeTempDir();
