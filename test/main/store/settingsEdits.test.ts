@@ -130,7 +130,7 @@ describe('settings edits and saves', () => {
     }
   });
 
-  it('broadcasts before disk work, debounces a burst, and refuses an older revision', async () => {
+  it('broadcasts before saving labels immediately and refuses an older revision', async () => {
     const {store, write} = setup();
     const listener = vi.fn<(document: SettingsDocument) => void>();
     const stop = store.subscribe(listener);
@@ -138,22 +138,19 @@ describe('settings edits and saves', () => {
     expect(store.get('labels').revision).toBe(2);
     expect(listener).toHaveBeenCalledOnce();
     expect(write).not.toHaveBeenCalled();
-    await vi.advanceTimersByTimeAsync(400);
     const second = store.apply(edit('Second', 2));
     expect(await store.apply(edit('Stale', 1))).toMatchObject({
       ok: false,
       error: {reason: 'stale'},
     });
-    await vi.advanceTimersByTimeAsync(499);
-    expect(write).not.toHaveBeenCalled();
-    await vi.advanceTimersByTimeAsync(1);
-    expect(write).toHaveBeenCalledOnce();
-    expect(write.mock.calls[0]?.[0].text).toContain('Second');
+    await vi.advanceTimersByTimeAsync(0);
     expect(await first).toEqual({ok: true, value: {id: 'labels', revision: 2}});
     expect(await second).toEqual({
       ok: true,
       value: {id: 'labels', revision: 3},
     });
+    expect(write).toHaveBeenCalledOnce();
+    expect(write.mock.calls[0]?.[0].text).toContain('Second');
     expect(listener.mock.calls.map(([document]) => document.revision)).toEqual([
       2, 3,
     ]);

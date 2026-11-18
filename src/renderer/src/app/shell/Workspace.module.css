@@ -260,3 +260,11 @@
   margin-left: auto;
   padding-left: var(--space-8);
 }
+
+/* NOTE(0913vision): Keep independent preparation panels from invalidating each other while a
+   resize is in progress; normal overlay behavior returns once it settles. */
+:global(html[data-layout-resizing])
+  .workspace[data-workspace-layout='prep']
+  [data-panel] {
+  contain: layout paint;
+}

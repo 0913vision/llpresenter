@@ -41,13 +41,17 @@ export class SettingsPersistence {
     );
   }
 
-  save(request: SaveRequest): Promise<WriteResult> {
+  save(request: SaveRequest, immediate = false): Promise<WriteResult> {
     const file = request.target.file;
     const pending = this.pending.get(file);
     const latest =
       pending === undefined ? pendingWrite(request) : {...pending, request};
     this.pending.set(file, latest);
-    this.autosave.schedule(file, () => this.writePending(file));
+    if (immediate) {
+      this.autosave.scheduleNow(file, () => this.writePending(file));
+    } else {
+      this.autosave.schedule(file, () => this.writePending(file));
+    }
     return latest.done;
   }
 

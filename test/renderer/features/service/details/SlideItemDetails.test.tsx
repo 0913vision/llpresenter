@@ -24,6 +24,16 @@ vi.mock('@renderer/rendering/outputRenderer', () => ({
     dispose = vi.fn();
   },
 }));
+vi.mock('@renderer/rendering/OutputPreviewPicture', () => ({
+  OutputPreviewPicture: () => {
+    const ready = useContext(PictureReadiness);
+    const source = useRef({});
+    useLayoutEffect(() => {
+      ready?.(source.current);
+    }, [ready]);
+    return <div />;
+  },
+}));
 vi.mock('@renderer/features/songs/editor/SongPreview', () => ({
   Picture: () => {
     const ready = useContext(PictureReadiness);

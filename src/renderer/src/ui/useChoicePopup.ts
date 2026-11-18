@@ -40,7 +40,7 @@ export function useChoicePopup({
   const close = useEffectEvent(onClose);
   useLayoutEffect(() => {
     const element = surface.current;
-    if (element === null) return;
+    if (element === null || element.hidden) return;
     element.style.maxHeight = `${maxPopoverHeight(viewportSize())}px`;
     placeFloating(element, size =>
       placeBelow(anchor.getBoundingClientRect(), size, viewportSize()),

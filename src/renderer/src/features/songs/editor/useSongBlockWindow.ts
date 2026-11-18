@@ -1,4 +1,8 @@
 import {
+  isLayoutResizeActive,
+  onLayoutResizeEnd,
+} from '@renderer/ui/layoutResize';
+import {
   useLayoutEffect,
   useMemo,
   useRef,
@@ -122,9 +126,15 @@ export function useSongBlockWindow(
     };
     read();
     if (typeof ResizeObserver === 'undefined') return;
-    const observer = new ResizeObserver(read);
+    const observer = new ResizeObserver(() => {
+      if (!isLayoutResizeActive()) read();
+    });
+    const unlisten = onLayoutResizeEnd(read);
     observer.observe(node);
-    return () => observer.disconnect();
+    return () => {
+      unlisten();
+      observer.disconnect();
+    };
   }, [viewportRef]);
   const cellWidth = thumbnailWidth({
     gridWidth: width,

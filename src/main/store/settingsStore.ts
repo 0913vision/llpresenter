@@ -253,6 +253,7 @@ export class SettingsStore implements SettingsReader {
     return this.commit({
       documents: [next],
       applied: {id: edit.name, revision: next.revision},
+      immediateLabelSave: edit.name === 'labels',
     });
   }
 
@@ -260,10 +261,12 @@ export class SettingsStore implements SettingsReader {
     documents,
     applied,
     completion = 'applied',
+    immediateLabelSave = false,
   }: {
     readonly documents: readonly SettingsDocument[];
     readonly applied: EditSuccess;
     readonly completion?: 'applied' | 'saved';
+    readonly immediateLabelSave?: boolean;
   }): Promise<EditResult> {
     const saving = this.options.saving;
     const saves = this.saves;
@@ -296,7 +299,9 @@ export class SettingsStore implements SettingsReader {
     for (const document of changes) {
       this.documents.set(document.name, document);
     }
-    const written = requests.map(request => saves.save(request));
+    const written = requests.map(request =>
+      saves.save(request, immediateLabelSave && request.target.id === 'labels'),
+    );
     for (const document of changes) this.announce(document);
     if (documents.length === 0 && completion === 'saved') {
       return saves.retryPending().then(results =>

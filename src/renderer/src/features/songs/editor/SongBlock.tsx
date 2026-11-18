@@ -1,3 +1,7 @@
+import {
+  isLayoutResizeActive,
+  onLayoutResizeEnd,
+} from '@renderer/ui/layoutResize';
 import {flushSync} from 'react-dom';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {
@@ -90,6 +94,7 @@ export const SongBlock = memo(
   }: BlockProps): JSX.Element => {
     const labelButtonRef = useRef<HTMLButtonElement | null>(null);
     const blockRef = useRef<HTMLDivElement>(null);
+    const chrome = useRef<{node: HTMLElement; height: number} | null>(null);
     useLayoutEffect(() => {
       const node = blockRef.current;
       if (!grid || node === null || onMeasure === undefined) return;
@@ -99,29 +104,42 @@ export const SongBlock = memo(
       const text = node.querySelector<HTMLElement>('[data-grid-text]');
       if (thumbnail === null || text === null) return;
       const measure = (): void => {
-        const css = getComputedStyle(node);
-        const px = (name: string): number =>
-          Number.parseFloat(css.getPropertyValue(name)) || 0;
-        const cellChromeHeight =
-          px('row-gap') +
-          px('padding-top') +
-          px('padding-bottom') +
-          px('border-top-width') +
-          px('border-bottom-width');
+        // NOTE(0913vision): The row's padding, gap and border use fixed tokens;
+        // only its thumbnail and text heights change while resizing or typing.
+        if (chrome.current?.node !== node) {
+          const css = getComputedStyle(node);
+          const px = (name: string): number =>
+            Number.parseFloat(css.getPropertyValue(name)) || 0;
+          chrome.current = {
+            node,
+            height:
+              px('row-gap') +
+              px('padding-top') +
+              px('padding-bottom') +
+              px('border-top-width') +
+              px('border-bottom-width'),
+          };
+        }
         const height =
           thumbnail.getBoundingClientRect().height +
           text.getBoundingClientRect().height +
-          cellChromeHeight;
+          chrome.current.height;
         if (height > 0) onMeasure(slide.id, Math.ceil(height));
       };
       measure();
       if (typeof ResizeObserver === 'undefined') return;
       // NOTE(0913vision): The rows below move in the frame the text grows in,
       // not one frame after it.
-      const observer = new ResizeObserver(() => flushSync(measure));
+      const observer = new ResizeObserver(() => {
+        if (!isLayoutResizeActive()) flushSync(measure);
+      });
+      const unlisten = onLayoutResizeEnd(measure);
       observer.observe(thumbnail);
       observer.observe(text);
-      return () => observer.disconnect();
+      return () => {
+        unlisten();
+        observer.disconnect();
+      };
     }, [grid, onMeasure, renderCard, slide.id]);
 
     const select = (input: HTMLTextAreaElement): void => {

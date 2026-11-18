@@ -89,7 +89,14 @@ export class OutputRenderer {
     this.resizeObserver =
       typeof ResizeObserver === 'undefined'
         ? null
-        : new ResizeObserver(() => this.rescale());
+        : new ResizeObserver(entries => {
+            const entry = entries[0];
+            if (entry === undefined) return;
+            this.rescale(
+              Math.round(entry.contentRect.width),
+              Math.round(entry.contentRect.height),
+            );
+          });
     this.resizeObserver?.observe(this.root);
     this.rescale();
   }
@@ -333,11 +340,13 @@ export class OutputRenderer {
     }
   }
 
-  private rescale(): void {
-    const {clientWidth, clientHeight} = this.root;
+  private rescale(
+    clientWidth = this.root.clientWidth,
+    clientHeight = this.root.clientHeight,
+  ): void {
     if (clientWidth === 0 || clientHeight === 0) return;
     const scale = scaleFor(clientWidth, clientHeight);
-    this.theme?.rescale();
+    this.theme?.rescale(clientWidth, clientHeight);
     this.scale = scale;
     for (const {kind, view} of this.layers) {
       this.attempt(kind, 'draw', () => view.rescale?.(scale));

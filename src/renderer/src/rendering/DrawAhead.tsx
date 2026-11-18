@@ -17,11 +17,13 @@ const ITEM_LIMIT_MS = 4000;
 
 function idle(run: () => void): () => void {
   if (typeof requestIdleCallback === 'function') {
+    const cancel = cancelIdleCallback.bind(globalThis);
     const handle = requestIdleCallback(run, {timeout: 200});
-    return () => cancelIdleCallback(handle);
+    return () => cancel(handle);
   }
+  const cancel = clearTimeout.bind(globalThis);
   const handle = setTimeout(run, 16);
-  return () => clearTimeout(handle);
+  return () => cancel(handle);
 }
 
 /**
@@ -60,8 +62,9 @@ export function DrawAhead({
   }, [shown, pictures.length]);
   useEffect(() => {
     if (pictures.length === 0) end();
+    const cancel = clearTimeout.bind(globalThis);
     const limit = setTimeout(end, ITEM_LIMIT_MS);
-    return () => clearTimeout(limit);
+    return () => cancel(limit);
   }, [pictures.length, end]);
   return (
     <PictureReadiness.Provider value={ready}>

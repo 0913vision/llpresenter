@@ -15,7 +15,11 @@ class MockResizeObserver {
   observed: Element | null = null;
   disconnected = false;
 
-  constructor(readonly callback: () => void) {
+  constructor(
+    readonly callback: (
+      entries: ReadonlyArray<{contentRect: {width: number; height: number}}>,
+    ) => void,
+  ) {
     MockResizeObserver.instances.push(this);
   }
 
@@ -457,8 +461,45 @@ describe('OutputRenderer', () => {
     vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(960);
     vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(540);
     setUp();
-    MockResizeObserver.instances[0]?.callback();
+    MockResizeObserver.instances[0]?.callback([
+      {contentRect: {width: 960, height: 540}},
+    ]);
     expect(rescale).toHaveBeenLastCalledWith(0.5);
+  });
+
+  it('uses observer dimensions for the renderer and theme without forcing layout', () => {
+    const {parent, renderer} = setUp();
+    const frame = {
+      screen: {id: MAIN, kind: 'audience'},
+      theme: {
+        themeId: SONG_THEME_ID,
+        revision: 1,
+        missing: [],
+        sourceScreenId: MAIN,
+        emptyColor: '#000000',
+        item: {id: 'song', kind: 'song', source: 'service'},
+        layout: {mode: {kind: 'own'}, elements: []},
+      },
+    } satisfies RenderFrame;
+    renderer.render(WITH_SLIDE, frame);
+    const root = parent.querySelector<HTMLElement>(`.${classes.root}`);
+    const theme = root?.querySelector<HTMLElement>('[data-layer="theme"]');
+    const canvas = theme?.querySelector<HTMLElement>(
+      '[data-theme-page] > div:last-child',
+    );
+    if (!root || !theme || !canvas) throw new Error('Missing theme');
+    const reads = [
+      vi.spyOn(root, 'clientWidth', 'get'),
+      vi.spyOn(root, 'clientHeight', 'get'),
+      vi.spyOn(theme, 'clientWidth', 'get'),
+      vi.spyOn(theme, 'clientHeight', 'get'),
+    ];
+    MockResizeObserver.instances[0]?.callback([
+      {contentRect: {width: 960.1, height: 540.1}},
+    ]);
+    for (const read of reads) expect(read).not.toHaveBeenCalled();
+    expect(canvas.style.transform).toBe('translate(-50%, -50%) scale(0.5)');
+    renderer.dispose();
   });
 
   it('sets the screen correction on the root once, and only for a new screen or size', () => {
@@ -510,7 +551,9 @@ describe('OutputRenderer', () => {
     const transformAt = (width: number, tall: number) => {
       size.mockReturnValue(width);
       height.mockReturnValue(tall);
-      MockResizeObserver.instances[0]?.callback();
+      MockResizeObserver.instances[0]?.callback([
+        {contentRect: {width, height: tall}},
+      ]);
       return root?.style.getPropertyValue('--picture-transform');
     };
     expect(transformAt(1920, 1080)).toBe('translate(40px, -20px) scale(1)');

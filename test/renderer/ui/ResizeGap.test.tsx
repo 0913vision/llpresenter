@@ -1,3 +1,4 @@
+import {isLayoutResizeActive} from '@renderer/ui/layoutResize';
 import {readFileSync} from 'node:fs';
 import {fireEvent, render} from '@testing-library/react';
 import {afterEach, describe, expect, it, vi} from 'vitest';
@@ -26,7 +27,9 @@ describe('ResizeGap', () => {
     gap.setPointerCapture = vi.fn();
     fireEvent.pointerDown(gap, {button: 0, pointerId: 1, clientX: 200});
     expect(dragging).toBe(true);
+    expect(isLayoutResizeActive()).toBe(true);
     first.unmount();
+    expect(isLayoutResizeActive()).toBe(false);
     expect(end).toHaveBeenCalledOnce();
     expect(dragging).toBe(false);
     expect(isCommandDragActive()).toBe(false);
@@ -61,6 +64,7 @@ describe('ResizeGap', () => {
     fireEvent.lostPointerCapture(gap, {pointerId: 1});
     expect(session.end).toHaveBeenCalledOnce();
     expect(isCommandDragActive()).toBe(false);
+    expect(isLayoutResizeActive()).toBe(false);
     unmount();
   });
 
