@@ -49,6 +49,7 @@ export async function prepareBiblePictures(
               emptyColor: theme.emptyColor,
               background,
             }),
+            `${id}:${index}`,
           ),
         ];
   });

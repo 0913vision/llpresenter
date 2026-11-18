@@ -4,6 +4,7 @@ import {useShallow} from 'zustand/react/shallow';
 import {interruptsSongOutput, type LiveCommand} from '@core/live/commands';
 import type {LiveState} from '@core/live/state';
 import {useShow} from './showStore';
+import {getCommittedShownItem} from './shownItem';
 
 interface LiveView {
   /** Null until the first state arrives, and always outside Electron. */
@@ -60,14 +61,28 @@ export function startLiveSync(): () => void {
   let lastVersion = -1;
   let stopped = false;
   const receive = (next: LiveState): void => {
-    if (stopped || next.version <= lastVersion) return;
+    if (stopped || next.version < lastVersion) return;
+    if (next.waitingForControl !== true) cancelAnimationFrame(presentation);
+    if (next.version === lastVersion) return;
     lastVersion = next.version;
+    const passage = useShow.getState().readyPassage;
+    const expected =
+      passage?.title === next.themeItem?.title ? passage?.id : undefined;
     accept(next);
-    cancelAnimationFrame(presentation);
     if (next.waitingForControl === true) {
-      presentation = requestAnimationFrame(() =>
-        api.live.controlFrameReady(next.version),
-      );
+      cancelAnimationFrame(presentation);
+      const acknowledge = (): void => {
+        if (
+          expected !== undefined &&
+          useShow.getState().openItemId === expected &&
+          getCommittedShownItem() !== expected
+        ) {
+          presentation = requestAnimationFrame(acknowledge);
+        } else {
+          api.live.controlFrameReady(next.version);
+        }
+      };
+      presentation = requestAnimationFrame(acknowledge);
     }
   };
   const unsubscribe = api.live.subscribe(receive);

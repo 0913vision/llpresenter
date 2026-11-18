@@ -19,6 +19,18 @@ export interface PictureImage {
   readonly bytes: number;
 }
 
+export interface PictureDisplay {
+  readonly picture: PictureImage;
+  readonly element: HTMLImageElement;
+  readonly consume: () => void;
+}
+
+interface DisplayTicket {
+  readonly ready: Promise<PictureDisplay | undefined>;
+  readonly done: boolean;
+  readonly display: PictureDisplay | undefined;
+}
+
 class Entry {
   private readonly listeners = new Set<Listener>();
   readonly ready: Promise<void>;
@@ -103,6 +115,7 @@ class PictureService {
   private readonly background = new Set<Entry>();
   private readonly inputListeners = new Set<Listener>();
   private readonly pins = new Map<PictureImage, number>();
+  private readonly displays = new WeakMap<Entry, Map<string, DisplayTicket>>();
   private media: MediaDocument | undefined;
   private records = new Map<string, MediaDocument['value']['items'][number]>();
   private fontStamp = '';
@@ -189,9 +202,62 @@ class PictureService {
   }
 
   /** Reports whether this attempt finished with a decoded image. */
-  whenDrawn(spec: PictureSpec): Promise<boolean> {
+  async whenDrawn(spec: PictureSpec, switchSlot?: string): Promise<boolean> {
     const entry = this.request(spec, this.inputs(spec));
-    return entry.available ? entry.attempt : Promise.resolve(false);
+    if (!entry.available || !(await entry.attempt)) return false;
+    if (switchSlot !== undefined) {
+      await this.prepareDisplay(entry, switchSlot).ready;
+    }
+    return true;
+  }
+
+  /** Decodes the exact element that will be attached during an item switch. */
+  prepareDisplay(entry: Entry, slot: string): DisplayTicket {
+    const displays =
+      this.displays.get(entry) ?? new Map<string, DisplayTicket>();
+    this.displays.set(entry, displays);
+    const earlier = displays.get(slot);
+    if (earlier !== undefined) return earlier;
+    let display: PictureDisplay | undefined;
+    let done = false;
+    const ticket = {
+      ready: entry.ready.then(async () => {
+        const picture = entry.image;
+        if (picture !== undefined && typeof picture.source === 'string') {
+          const release = this.retain(picture);
+          const element = await this.decodeDisplay(picture.source).finally(
+            release,
+          );
+          display = {picture, element, consume: () => displays.delete(slot)};
+        }
+        done = true;
+        return display;
+      }),
+      get done() {
+        return done;
+      },
+      get display() {
+        return display;
+      },
+    };
+    displays.set(slot, ticket);
+    return ticket;
+  }
+
+  private async decodeDisplay(url: string): Promise<HTMLImageElement> {
+    const element = new Image();
+    element.alt = '';
+    element.draggable = false;
+    element.decoding = 'sync';
+    element.src = url;
+    try {
+      await element.decode();
+      return element;
+    } catch (error) {
+      console.error('Could not decode a slide display', error);
+      await new Promise<void>(resolve => setTimeout(resolve, 250));
+      return this.decodeDisplay(url);
+    }
   }
 
   /** Prepares pictures while leaving room for the current view. */

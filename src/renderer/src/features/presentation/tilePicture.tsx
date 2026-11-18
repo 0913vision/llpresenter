@@ -25,7 +25,7 @@ export interface TileThemes {
   readonly cardTheme: SlideTheme;
   readonly sermonTheme: SlideTheme;
   readonly bibleAppearance: BibleAppearance | undefined;
-  readonly drawn?: 'wait' | 'place' | undefined;
+  readonly switchSlot?: string | undefined;
 }
 
 /** Resolves the three possible theme sources for a service item. */
@@ -105,6 +105,10 @@ export function tilePicture(
 ): ReactNode {
   const spec = tilePictureSpec(tile, slide, themes);
   return spec === undefined ? undefined : (
-    <Picture {...spec} wait={themes.drawn === 'wait'} />
+    <Picture
+      {...spec}
+      wait={themes.switchSlot !== undefined}
+      switchSlot={themes.switchSlot}
+    />
   );
 }

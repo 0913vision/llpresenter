@@ -1,8 +1,11 @@
-import {render, waitFor} from '@testing-library/react';
+import {act, render, waitFor, type RenderResult} from '@testing-library/react';
 import {expect, it, vi} from 'vitest';
+import {Suspense, useDeferredValue} from 'react';
 import {emptyLayers} from '@core/live/state';
 import {createScreenId, createThemeId} from '@core/schema/ids';
 import {OutputPreviewPicture} from '@renderer/rendering/OutputPreviewPicture';
+import {Picture} from '@renderer/rendering/pictures/Picture';
+import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 
 function props(line: string) {
   const screenId = createScreenId('00000000-0000-4000-8000-000000000001');
@@ -142,4 +145,68 @@ it('shares one decoded source between views and holds it until an edit is decode
       Object.defineProperty(URL, 'revokeObjectURL', revokeObjectURL);
     }
   }
+});
+
+it('commits a switch with the exact decoded element and its selection', async () => {
+  let finish = (): void => undefined;
+  const waiting = new Promise<void>(resolve => {
+    finish = resolve;
+  });
+  const elements: HTMLImageElement[] = [];
+  vi.stubGlobal(
+    'Image',
+    class extends Image {
+      constructor() {
+        super();
+        elements.push(this);
+      }
+    },
+  );
+  const decode = vi
+    .spyOn(HTMLImageElement.prototype, 'decode')
+    .mockResolvedValueOnce(undefined)
+    .mockResolvedValueOnce(undefined)
+    .mockResolvedValueOnce(undefined)
+    .mockReturnValueOnce(waiting);
+  vi.stubGlobal(
+    'URL',
+    class extends URL {
+      static override createObjectURL() {
+        return `blob:switch-${elements.length}`;
+      }
+    },
+  );
+  const paint = vi.fn().mockResolvedValue(new Uint8Array([0xff, 0xd8]));
+  vi.stubGlobal('llp', mockLlpApi({picture: {paint}}));
+
+  function Workspace({requested}: {readonly requested: string}) {
+    const shown = useDeferredValue(requested);
+    return (
+      <Suspense fallback={null}>
+        <span>{shown}</span>
+        <Picture key={shown} {...props(shown)} wait switchSlot={shown} />
+      </Suspense>
+    );
+  }
+
+  let view: RenderResult | undefined;
+  await act(async () => {
+    view = render(<Workspace requested="old selection" />);
+  });
+  if (view === undefined) throw new Error('Missing workspace');
+  const {container, rerender} = view;
+  await waitFor(() => {
+    expect(elements).toHaveLength(2);
+    expect(container.querySelector('img')).toBe(elements[1]);
+  });
+  await act(async () => rerender(<Workspace requested="new selection" />));
+  await waitFor(() => expect(decode).toHaveBeenCalledTimes(4));
+  expect(container.textContent).toBe('old selection');
+  expect(container.querySelector('img')).toBe(elements[1]);
+  await act(async () => finish());
+  await waitFor(() => {
+    expect(container.textContent).toBe('new selection');
+    expect(container.querySelector('img')).toBe(elements[3]);
+  });
+  expect(paint).toHaveBeenCalledTimes(2);
 });

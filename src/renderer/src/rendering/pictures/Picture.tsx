@@ -12,7 +12,12 @@ import {
 } from 'react';
 import {PictureReadiness} from '../PictureReadiness';
 import {pictureKey} from '@core/output/pictureKey';
-import {pictures, type PictureImage, type PictureSpec} from './pictureService';
+import {
+  pictures,
+  type PictureDisplay,
+  type PictureImage,
+  type PictureSpec,
+} from './pictureService';
 import {
   followSongPictureDraft,
   songPictureDraft,
@@ -22,6 +27,7 @@ import styles from './Picture.module.css';
 interface PictureProps extends PictureSpec {
   /** Keeps the previous view until the new picture finishes decoding. */
   readonly wait?: boolean;
+  readonly switchSlot?: string | undefined;
   readonly editing?: boolean;
 }
 
@@ -59,6 +65,7 @@ function SlideImage({
 export const Picture = memo(
   ({
     wait = false,
+    switchSlot,
     editing = false,
     layers,
     appearance,
@@ -85,14 +92,27 @@ export const Picture = memo(
       pictures.inputs(spec),
     );
     const [previous, setPrevious] = useState<PictureImage>();
+    const [displayed, setDisplayed] = useState<PictureDisplay>();
     const ticket = pictures.request(spec, inputs, {
       editing: (editing || draft !== undefined) && previous !== undefined,
     });
     useSyncExternalStore(ticket.subscribe, ticket.snapshot);
     const done = ticket.done;
-    if (wait && ticket.available && !done) use(ticket.ready);
     const image = ticket.image ?? previous;
-    if (image !== previous) setPrevious(image);
+    const attached = displayed?.picture === image ? displayed : undefined;
+    const prepared =
+      attached === undefined && switchSlot !== undefined && ticket.available
+        ? pictures.prepareDisplay(ticket, switchSlot)
+        : undefined;
+    const display = attached ?? prepared?.display;
+    const host = useRef<HTMLDivElement>(null);
+    useLayoutEffect(() => {
+      if (display === undefined) return;
+      const {element} = display;
+      host.current?.append(element);
+      display.consume();
+      return () => element.remove();
+    }, [display]);
     const onReady = useContext(PictureReadiness);
     const source = useRef({});
     const warmEditor = useEffectEvent(() => pictures.warmEditor(spec));
@@ -106,8 +126,14 @@ export const Picture = memo(
       () => (image === undefined ? undefined : pictures.retain(image)),
       [image],
     );
+    // NOTE(0913vision): Run every hook before a render waits for its picture.
+    if (prepared !== undefined && !prepared.done) use(prepared.ready);
+    else if (wait && ticket.available && !done) use(ticket.ready);
+    if (image !== previous) setPrevious(image);
+    if (display !== displayed) setDisplayed(display);
     return (
       <div
+        ref={host}
         className={styles.screen}
         data-preview-ready={ticket.available ? String(done) : undefined}
         style={{
@@ -118,12 +144,15 @@ export const Picture = memo(
         }}
         data-checker={appearance.checker || undefined}
       >
-        {image === undefined ? null : <SlideImage source={image.source} />}
+        {image === undefined || display !== undefined ? null : (
+          <SlideImage source={image.source} />
+        )}
       </div>
     );
   },
   (previous, next) =>
     previous.wait === next.wait &&
+    previous.switchSlot === next.switchSlot &&
     previous.editing === next.editing &&
     previous.songSource?.songId === next.songSource?.songId &&
     previous.songSource?.slideId === next.songSource?.slideId &&

@@ -6,7 +6,7 @@ import {
   type JSX,
   type ReactNode,
 } from 'react';
-import {useShow} from './show';
+import {useShow} from './showStore';
 import {useLive} from './live';
 
 const ShownItem = createContext<string | null | undefined>(undefined);
@@ -51,6 +51,10 @@ export function useShownItemId(): string | null {
 let committed: string | null = null;
 const listeners = new Set<() => void>();
 
+export function getCommittedShownItem(): string | null {
+  return committed;
+}
+
 /** Notes the item the 진행 grid shows on screen after a commit. */
 export function commitShownItem(itemId: string | null): void {
   if (committed === itemId) return;
@@ -60,11 +64,8 @@ export function commitShownItem(itemId: string | null): void {
 
 /** The item the 진행 grid showed in its last commit. */
 export function useCommittedShownItem(): string | null {
-  return useSyncExternalStore(
-    listener => {
-      listeners.add(listener);
-      return () => listeners.delete(listener);
-    },
-    () => committed,
-  );
+  return useSyncExternalStore(listener => {
+    listeners.add(listener);
+    return () => listeners.delete(listener);
+  }, getCommittedShownItem);
 }
