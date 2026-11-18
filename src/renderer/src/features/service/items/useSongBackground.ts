@@ -36,9 +36,13 @@ function notice(cause: 'load' | 'change' | 'save'): Notice {
 }
 
 /** Reads the selected song's background and changes only its service override. */
-export function useSongBackground(onProblem: (notice: Notice) => void) {
+export function useSongBackground(
+  onProblem: (notice: Notice) => void,
+  shownItemId?: string | null,
+) {
   const serviceId = useShow(view => view.serviceId);
-  const itemId = useShow(view => view.openItemId);
+  const openItemId = useShow(view => view.openItemId);
+  const itemId = shownItemId ?? openItemId;
   const isSong = useShow(view =>
     view.rows.some(row => row.id === itemId && row.kind === 'song'),
   );

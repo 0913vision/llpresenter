@@ -4,6 +4,7 @@ import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import type {MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
 import {useShow} from '@renderer/session/show';
+import {useVisibleSlideItem} from '@renderer/session/visibleSlideItem';
 import {Button, Icon} from '@renderer/ui';
 import {MediaPicker} from '@renderer/features/songs/editor/MediaPicker';
 import {openOnArrowDown} from '@renderer/ui/menuButton';
@@ -166,13 +167,16 @@ export function SongBackgroundControl({
 }: {
   readonly onProblem?: ((notice: Notice) => void) | undefined;
 }): JSX.Element | null {
-  const background = useSongBackground(onProblem);
+  // NOTE(0913vision): The picker follows the item the grid shows, like the
+  // title beside it, so it changes in the frame the grid changes.
+  const shown = useVisibleSlideItem();
+  const background = useSongBackground(onProblem, shown);
   const problem = useShow(view => {
-    const row = view.rows.find(row => row.id === view.openItemId);
+    const row = view.rows.find(row => row.id === (shown ?? view.openItemId));
     return row?.kind === 'song' ? row.problem : undefined;
   });
   const projected = useShow(view => {
-    const row = view.rows.find(row => row.id === view.openItemId);
+    const row = view.rows.find(row => row.id === (shown ?? view.openItemId));
     return row?.kind === 'song' ? row.background?.mediaId : undefined;
   });
   const {view} = background;
