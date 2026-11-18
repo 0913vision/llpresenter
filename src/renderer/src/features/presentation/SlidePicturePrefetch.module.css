@@ -1,0 +1,18 @@
+/* NOTE(0913vision): Pictures drawn ahead stay out of sight and out of the
+   layout of the grid; they only fill the picture park. */
+.ahead {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: var(--size-preview-small-max);
+  aspect-ratio: var(--aspect-output);
+  overflow: hidden;
+  visibility: hidden;
+  pointer-events: none;
+  contain: strict;
+}
+
+.picture {
+  position: absolute;
+  inset: 0;
+}
