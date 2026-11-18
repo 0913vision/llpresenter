@@ -46,6 +46,10 @@ vi.mock('@renderer/features/service/items/quickAddLiturgy', () => ({
   ),
 }));
 describe('palette items', () => {
+  it('distinguishes the sermon and Bible insert icons', () => {
+    expect(ORDER_ELEMENTS.find(item => item.id === 'sermon')?.icon).toBe('mic');
+    expect(ORDER_ELEMENTS.find(item => item.id === 'bible')?.icon).toBe('book');
+  });
   it('creates one empty slide referencing the current standby theme', async () => {
     expect(ORDER_ELEMENTS.at(-1)).toMatchObject({
       id: 'waiting-screen',

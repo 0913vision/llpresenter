@@ -205,7 +205,7 @@ describe('tree selection', () => {
   });
 });
 
-it('shows sermon titles and the Bible icon in service pickers', () => {
+it('shows sermon titles with the sermon icon in service pickers', () => {
   const sermon = {
     id: fixtureItems.plain,
     sermon: {
@@ -222,6 +222,6 @@ it('shows sermon titles and the Bible icon in service pickers', () => {
   } as const;
   expect(treeRows([sermon], new Map())[0]).toMatchObject({
     label: 'A sermon',
-    icon: 'book',
+    icon: 'mic',
   });
 });
