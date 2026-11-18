@@ -251,7 +251,7 @@ describe('built-in broadcast look', () => {
     });
     expect(element(bible, BROADCAST_REFERENCE_ID)).toMatchObject({
       frame: {x: 90},
-      text: {size: 40, color: '#FFFFFF'},
+      text: {size: 42, color: '#FFFFFF'},
     });
     expect(element(blank, BROADCAST_LOOK_TAB_ID)).toMatchObject({
       runtimeHidden: true,
