@@ -953,10 +953,11 @@ remaining work and discard late results. A server becoming ready later does not
 restart an existing lookup.
 
 Preparation accepts measured default cuts automatically when a saved passage is
-added or changed, without replacing an existing confirmed cut. The operator can
-open ? ??? from the preparation slide editor. It never opens automatically in
-??, and quick output does not wait for review. The editor's subtitle shows the
-verse reference, and Ctrl E opens the selected verse in preparation.
+added or changed, without replacing an existing confirmed cut. Defaults for
+several verses are saved in order without overwriting other edits. The operator
+can open ? ??? from the preparation slide editor. It never opens automatically
+in ??, and quick output does not wait for review. The editor's subtitle shows
+the verse reference, and Ctrl E opens the selected verse in preparation.
 
 The text has labels between words, in Copible's order
 `asdfghjkl qwertyuiop zxcvbnm 1234567890`. Above 36 gaps, all labels have two
@@ -967,6 +968,7 @@ word cuts after it. While typing a two-letter label, nonmatching keys fade and
 the typed prefix uses the accent color. Pressing the same gap removes it. An
 automatic gap is dismissed only when that gap itself is removed; removing an
 alternative user cut returns to the automatic cuts unless they were dismissed.
+Every available word gap can be cut; editing is not stopped by a history count.
 
 Ctrl Z or Backspace undoes, Ctrl Y or Ctrl Shift Z redoes. Enter or Space
 confirms only when every part fits; holding either key confirms once. Esc

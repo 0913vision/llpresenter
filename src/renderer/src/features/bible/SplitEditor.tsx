@@ -176,12 +176,8 @@ function VerseSplitEditor(
   const cut = (j: number): void => {
     if (locked.current) return;
     setBuffer('');
-    try {
-      edit(pressGap(history, j), j);
-      setProblem(undefined);
-    } catch {
-      setProblem('되돌릴 수 있는 횟수를 넘었습니다');
-    }
+    edit(pressGap(history, j), j);
+    setProblem(undefined);
   };
   const cancel = (): void => {
     if (!locked.current) props.onCancel();

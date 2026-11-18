@@ -34,17 +34,12 @@ export interface EditHistory {
   readonly future: readonly CutState[];
 }
 
-export const EDIT_HISTORY_LIMIT = 1_000;
-
 export const initialEditHistory = (auto: readonly number[]): EditHistory => ({
   past: [],
   present: initialCutState(auto),
   future: [],
 });
 export function pressGap(history: EditHistory, j: number): EditHistory {
-  if (history.past.length >= EDIT_HISTORY_LIMIT) {
-    throw new Error('Bible cut history limit exceeded');
-  }
   return {
     past: [...history.past, history.present],
     present: toggleCutState(history.present, j),

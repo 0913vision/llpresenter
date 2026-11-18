@@ -24,6 +24,16 @@ import {mockSplitLayout, MOCK_LONG_VERSE} from '@fixtures/core/bibleSplit';
 describe('copible manual cut planning', () => {
   const layout = mockSplitLayout();
 
+  it('lets the operator use every supported gap and undo beyond 1000 edits', () => {
+    let history = initialEditHistory([]);
+    for (let gap = 1; gap <= 1_295; gap++) history = pressGap(history, gap);
+    expect(effectiveCuts(history.present)).toHaveLength(1_295);
+    for (let gap = 1; gap <= 1_295; gap++) history = undoEdit(history);
+    expect(effectiveCuts(history.present)).toEqual([]);
+    for (let gap = 1; gap <= 1_295; gap++) history = redoEdit(history);
+    expect(effectiveCuts(history.present)).toHaveLength(1_295);
+  });
+
   it('uses the exact size ladder, two steps down including unlisted sizes', () => {
     expect([
       stepDownSize(36, 2),

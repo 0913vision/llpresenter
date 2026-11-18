@@ -10,6 +10,70 @@ import type {LlpApi} from '@contracts/ipc/api';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 
 describe('confirmed cut writes', () => {
+  it('serializes an eight-verse burst so each default keeps earlier cuts', async () => {
+    let current = settingsDocument('bibleCuts', {entries: {}});
+    const get = vi.fn<LlpApi['settings']['get']>(async () => current);
+    const edit = vi.fn<LlpApi['settings']['edit']>(async request => {
+      if (request.type !== 'settings.update' || request.name !== 'bibleCuts') {
+        throw new Error('Unexpected settings edit');
+      }
+      await Promise.resolve();
+      if (request.baseRevision !== current.revision) {
+        return {ok: false, error: {reason: 'stale', message: 'Stale'}};
+      }
+      current = settingsDocument(
+        'bibleCuts',
+        request.value,
+        current.revision + 1,
+      );
+      return {ok: true, value: {id: 'bibleCuts', revision: current.revision}};
+    });
+    const api = {...mockLlpApi().settings, get, edit};
+    const translation = lookupRequest().translation;
+    const verses = Array.from({length: 8}, (_, index) => ({
+      reference: {translation, book: 48, chapter: 5, verse: index + 1},
+      text: `가 나 다 ${index}`,
+    }));
+    await Promise.all(
+      verses.map(verse => confirmDefaultBibleCuts(api, verse, [1])),
+    );
+    expect(edit).toHaveBeenCalledTimes(8);
+    expect(current.name).toBe('bibleCuts');
+    if (current.name !== 'bibleCuts') {
+      throw new Error('Wrong settings document');
+    }
+    expect(Object.keys(current.value.entries[translation] ?? {})).toHaveLength(
+      8,
+    );
+  });
+  it('continues saving later defaults after a failed write', async () => {
+    const get = vi
+      .fn<LlpApi['settings']['get']>()
+      .mockResolvedValue(settingsDocument('bibleCuts', {entries: {}}));
+    const edit = vi
+      .fn<LlpApi['settings']['edit']>()
+      .mockResolvedValueOnce({
+        ok: false,
+        error: {reason: 'read-only', message: 'Blocked'},
+      })
+      .mockResolvedValueOnce({ok: true, value: {id: 'bibleCuts', revision: 2}});
+    const api = {...mockLlpApi().settings, get, edit};
+    const reference = {
+      translation: lookupRequest().translation,
+      book: 48,
+      chapter: 5,
+      verse: 1,
+    };
+    const first = confirmDefaultBibleCuts(api, {reference, text: '가 나'}, [1]);
+    const second = confirmDefaultBibleCuts(
+      api,
+      {reference: {...reference, verse: 2}, text: '다 라'},
+      [1],
+    );
+    await expect(first).rejects.toThrow('절 나누기 저장 실패');
+    await expect(second).resolves.toBeUndefined();
+    expect(edit).toHaveBeenCalledTimes(2);
+  });
   it('does not replace an existing manual cut while accepting defaults', async () => {
     const verse = {
       reference: {
