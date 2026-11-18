@@ -52,6 +52,7 @@ export function PanelColumn({
     sizeClass,
     layoutKey: `${workspace}:${titles.join()}`,
     fill: workspace === 'show' && titles[0] === '예배 순서' ? 'first' : 'last',
+    preserveCollapsed: workspace === 'show' && titles[0] === '미리보기',
   });
   return (
     <div

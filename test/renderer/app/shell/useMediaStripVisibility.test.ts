@@ -1,7 +1,6 @@
 import {act, renderHook} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import type {SizeClass} from '@renderer/ui/sizeClass';
 import {useMediaStripVisibility} from '@renderer/app/shell/useMediaStripVisibility';
 
 function setup(height: number, zoomFactor = 1) {
@@ -26,8 +25,8 @@ afterEach(() => {
 });
 
 it.each([
-  {sizeClass: 'normal', height: 900, visible: true},
-  {sizeClass: 'wide', height: 1080, visible: true},
+  {sizeClass: 'normal', height: 900, visible: false},
+  {sizeClass: 'wide', height: 1080, visible: false},
   {sizeClass: 'normal', height: 899, visible: false},
   {sizeClass: 'narrow', height: 1080, visible: false},
 ] as const)(
@@ -62,31 +61,15 @@ it.each([
   },
 );
 
-it.each([
-  {height: 750, factor: 1.2, visible: true},
-  {height: 749, factor: 1.2, visible: false},
-  {height: 450, factor: 2, visible: true},
-])(
-  'measures the height in DIP at CSS $height and factor $factor',
-  ({height, factor, visible}) => {
-    const {api} = setup(height, factor);
-    vi.stubGlobal('devicePixelRatio', 3);
-    const {result} = renderHook(() =>
-      useMediaStripVisibility('normal' satisfies SizeClass, undefined, api),
-    );
-    expect(result.current.visible).toBe(visible);
-  },
-);
-
-it('measures again after a zoom change and a resize without saving a choice', () => {
+it('keeps the default collapsed after a zoom change and resize without saving a choice', () => {
   const {api, getZoomFactor, save} = setup(750, 1.2);
   const {result} = renderHook(() =>
     useMediaStripVisibility('normal', undefined, api),
   );
-  expect(result.current.visible).toBe(true);
+  expect(result.current.visible).toBe(false);
   getZoomFactor.mockReturnValue(1.5);
   resizeTo(600);
-  expect(result.current.visible).toBe(true);
+  expect(result.current.visible).toBe(false);
   resizeTo(599);
   expect(result.current.visible).toBe(false);
   expect(save).not.toHaveBeenCalled();

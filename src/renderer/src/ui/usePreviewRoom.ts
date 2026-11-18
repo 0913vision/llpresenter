@@ -11,6 +11,7 @@ interface PanelLengths {
   readonly gap: number;
   readonly smallMax: number;
   readonly reserve: number;
+  readonly panelGap: number;
 }
 
 const LENGTH_TOKENS: ReadonlyArray<readonly [keyof PanelLengths, string]> = [
@@ -22,6 +23,7 @@ const LENGTH_TOKENS: ReadonlyArray<readonly [keyof PanelLengths, string]> = [
   ['gap', '--space-8'],
   ['smallMax', '--size-preview-small-max'],
   ['reserve', '--preview-reserve'],
+  ['panelGap', '--panel-gap'],
 ];
 
 /**
@@ -58,6 +60,7 @@ function withLengths<T>(
       gap: length('gap'),
       smallMax: length('smallMax'),
       reserve: length('reserve'),
+      panelGap: length('panelGap'),
     });
   } finally {
     box.remove();
@@ -106,11 +109,21 @@ function hostOf(el: HTMLElement): HTMLElement | null {
  * heights of its neighbors (their heights do not depend on this panel's
  * content), and an ordinary panel, which fills its window, gets its own height.
  */
-function availableHeight(host: HTMLElement, reserve: number): number {
+function availableHeight(host: HTMLElement, lengths: PanelLengths): number {
   const own = host.getBoundingClientRect().height;
   if (host.style.height !== '') return own;
   const column = host.parentElement;
   if (column === null || !host.hasAttribute('data-resize-panel')) return own;
+  const workspace = host.closest<HTMLElement>('[data-workspace-layout="show"]');
+  if (host.dataset['resizePanel'] === 'show.preview' && workspace !== null) {
+    return Math.max(
+      0,
+      workspace.clientHeight -
+        lengths.header -
+        lengths.panelGap -
+        lengths.reserve,
+    );
+  }
   const style = getComputedStyle(column);
   let height =
     column.clientHeight -
@@ -119,7 +132,7 @@ function availableHeight(host: HTMLElement, reserve: number): number {
   const sharedLimit =
     style.getPropertyValue('--preview-reserve').trim() === ''
       ? height
-      : height - reserve;
+      : height - lengths.reserve;
   for (const child of column.children) {
     if (child === host || !(child instanceof HTMLElement)) continue;
     const fixed =
@@ -178,7 +191,7 @@ export function usePreviewRoom(
           {width, tiles, extra: extra(el)},
           true,
         );
-        return availableHeight(host, lengths.reserve) >= need;
+        return availableHeight(host, lengths) >= need;
       });
       // NOTE(0913vision): An unchanged answer renders nothing; a forced render
       // here would redraw the panel before its first frame for no change.

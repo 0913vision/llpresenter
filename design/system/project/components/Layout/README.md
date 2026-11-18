@@ -83,7 +83,7 @@ the scrolling fallback, preserving the saved visibility choice.
 | Regular window | 1600–2399 | 56 `size-toolbar` | 280 `col-left` | 480 `col-right` | Open | All 8 | Two cells | Icon + name | 4 |
 | Wide window | 2400 or more | 56 | 320 | 560 | Open | All 8 | Two cells | Icon + name | 6 |
 
-The column widths of the wide window are `col-left-wide` (320) and `col-right-wide` (560), and the minimum center width is `col-center-min` (560). In the narrow window, "더 보기" (more) opens the tabs that do not fit as a menu.
+The column widths of the wide window are `col-left-wide` (320) and `col-right-wide` (640), and the minimum center width is `col-center-min` (560). In the narrow window, "더 보기" (more) opens the tabs that do not fit as a menu.
 
 | Screen | Scaling | CSS pixels | Class |
 |---|---|---|---|
@@ -126,12 +126,12 @@ type SizeClass = 'narrow' | 'normal' | 'wide'
 const sizeClass = (w: number): SizeClass => (w >= 2400 ? 'wide' : w >= 1600 ? 'normal' : 'narrow')
 const defaults = {
   narrow: { toolbar: 40, left: 220, right: 360, mediaStrip: false, columns: 3 },
-  normal: { toolbar: 56, left: 280, right: 480, mediaStrip: true, columns: 4 },
-  wide:   { toolbar: 56, left: 320, right: 560, mediaStrip: true, columns: 6 },
+  normal: { toolbar: 56, left: 280, right: 480, mediaStrip: false, columns: 4 },
+  wide:   { toolbar: 56, left: 320, right: 640, mediaStrip: false, columns: 6 },
 }
 const limits = { left: [200, 400], right: [320, 720], center: 560, toolsMin: 240 }
 const heightDip = window.innerHeight * uiZoomFactor
-const mediaStrip = settings.mediaStrip ?? (defaults[c].mediaStrip && heightDip >= 900)
+const mediaStrip = settings.mediaStrip ?? defaults[c].mediaStrip
 // Save: settings.layout[c] = { left, right, columns }
 ```
 

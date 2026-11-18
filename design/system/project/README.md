@@ -275,7 +275,7 @@ is 1536×864, and at 150% it is 1280×720. Design at 1920×1080 and 100%.
 | Window width              | 1280–1599                                       | 1600–2399                              | 2400 or more         |
 | Toolbar                   | `size-toolbar-compact` 40, name beside the icon | `size-toolbar` 56, name under the icon | Same as regular      |
 | Left column               | `col-left-compact` 220                          | `col-left` 280                         | `col-left-wide` 320  |
-| Right column              | `col-right-compact` 360                         | `col-right` 480                        | `col-right-wide` 560 |
+| Right column              | `col-right-compact` 360                         | `col-right` 480                        | `col-right-wide` 640 |
 | Default thumbnail columns | 3                                               | 4                                      | 6                    |
 | Media strip               | Starts closed                                   | Starts open                            | Starts open          |
 | 진행 도구 tabs            | 표시 중, 무대, 더 보기                          | All 8                                  | All 8                |

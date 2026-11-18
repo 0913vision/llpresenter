@@ -12,6 +12,7 @@ const TOKENS: Readonly<Record<string, number>> = {
   '--space-8': 8,
   '--size-preview-small-max': 160,
   '--preview-reserve': 316,
+  '--panel-gap': 4,
 };
 /**
  * Width 456: the large picture needs 456 * 9 / 16 + 30 = 286.5, two tiles of
@@ -87,6 +88,22 @@ function Anchor(): JSX.Element {
 }
 
 describe('usePreviewRoom', () => {
+  it.each([500, 700])(
+    'keeps the show preview tiles when the media bin leaves %i px',
+    columnHeight => {
+      render(
+        <div data-workspace-layout="show" data-ch="850">
+          <div data-ch={columnHeight} style={workspaceStyle}>
+            <div data-resize-panel="show.preview">
+              <Anchor />
+            </div>
+            <div data-resize-panel="show.tools" style={{minHeight: '240px'}} />
+          </div>
+        </div>,
+      );
+      expect(screen.getByText('tiles')).toBeDefined();
+    },
+  );
   it('uses the same reserved workspace height when the neighboring panels differ', () => {
     render(
       <div data-ch="760" style={workspaceStyle}>

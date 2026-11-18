@@ -7,9 +7,10 @@ afterEach(() => {
   document.body.replaceChildren();
 });
 
-function setup(fixed = false, minimum = false) {
+function setup(fixed = false, minimum = false, preserveCollapsed = false) {
   const parent = document.createElement('div');
   parent.style.setProperty('--panel-gap', '4px');
+  parent.style.setProperty('--size-panel-header', '34px');
   parent.style.display = 'flex';
   let height = fixed ? 616 : minimum ? 304 : 604;
   Object.defineProperty(parent, 'clientHeight', {get: () => height});
@@ -37,7 +38,15 @@ function setup(fixed = false, minimum = false) {
     parent.append(element);
     return element;
   });
-  document.body.append(parent);
+  if (preserveCollapsed) {
+    const workspace = document.createElement('main');
+    workspace.dataset['workspaceLayout'] = 'show';
+    Object.defineProperty(workspace, 'clientHeight', {value: 654});
+    workspace.append(parent);
+    document.body.append(workspace);
+  } else {
+    document.body.append(parent);
+  }
   let saved: PanelRows | undefined;
   const saveRows = vi.fn((_sizeClass: string, rows: PanelRows) => {
     saved = {...saved, ...rows};
@@ -51,6 +60,7 @@ function setup(fixed = false, minimum = false) {
       sizeClass: 'normal',
       layoutKey: 'test',
       fill: 'first',
+      preserveCollapsed,
     }),
   );
   const heights = () =>
@@ -71,6 +81,19 @@ function setup(fixed = false, minimum = false) {
 }
 
 describe('useRowLayout', () => {
+  it('keeps a dragged preview height when opening the media bin', () => {
+    const h = setup(true, false, true);
+    const drag = h.result.current.begin(0);
+    if (!drag) throw Error('Missing drag');
+    act(() => drag.move(30));
+    act(() => drag.end());
+    const collapsed = h.heights();
+    h.resize(436);
+    expect(h.heights()).toEqual(collapsed);
+    h.resize(616);
+    expect(h.heights()).toEqual(collapsed);
+    h.unmount();
+  });
   it('drags a row border, clamps both minimums, and saves only on release', () => {
     const h = setup();
     expect(h.result.current.canResize(0)).toBe(true);
