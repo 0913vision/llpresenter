@@ -3,13 +3,48 @@ import {
   confirmBibleCuts,
   confirmDefaultBibleCuts,
 } from '@renderer/features/bible/saveBibleCuts';
-import {entryFor} from '@core/bible/split/splitCache';
+import {entryFor, knownCutsFor} from '@core/bible/split/splitCache';
+import {parseBibleCuts, serializeBibleCuts} from '@core/schema/bibleCuts';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {lookupRequest} from '@fixtures/core/bibleLookups';
 import type {LlpApi} from '@contracts/ipc/api';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 
 describe('confirmed cut writes', () => {
+  it('confirms and reopens a verse with all 1,296 cuts', async () => {
+    let current = settingsDocument('bibleCuts', {entries: {}});
+    const get = vi.fn<LlpApi['settings']['get']>(async () => current);
+    const edit = vi.fn<LlpApi['settings']['edit']>(async request => {
+      if (request.type !== 'settings.update' || request.name !== 'bibleCuts') {
+        throw new Error('Unexpected settings edit');
+      }
+      current = settingsDocument(
+        'bibleCuts',
+        request.value,
+        current.revision + 1,
+      );
+      return {ok: true, value: {id: 'bibleCuts', revision: current.revision}};
+    });
+    const verse = {
+      reference: {
+        translation: lookupRequest().translation,
+        book: 43,
+        chapter: 3,
+        verse: 16,
+      },
+      text: Array.from({length: 1_297}, () => '가').join(' '),
+    };
+    const cuts = Array.from({length: 1_296}, (_, index) => index + 1);
+    await confirmBibleCuts({...mockLlpApi().settings, get, edit}, verse, cuts);
+    if (current.name !== 'bibleCuts') throw new Error('Wrong settings');
+    const serialized = serializeBibleCuts(current.value, 'bibleCuts.json');
+    if (!serialized.ok) throw new Error('Could not save cuts');
+    const reopened = parseBibleCuts(serialized.value, 'bibleCuts.json');
+    if (!reopened.ok) throw new Error('Could not reopen cuts');
+    expect(
+      knownCutsFor(reopened.value.data, verse.reference, verse.text),
+    ).toEqual(cuts);
+  });
   it('serializes an eight-verse burst so each default keeps earlier cuts', async () => {
     let current = settingsDocument('bibleCuts', {entries: {}});
     const get = vi.fn<LlpApi['settings']['get']>(async () => current);

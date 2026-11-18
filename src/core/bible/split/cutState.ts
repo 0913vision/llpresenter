@@ -28,10 +28,18 @@ export function toggleCutState(state: CutState, j: number): CutState {
   return {...state, user};
 }
 
+interface EditStep {
+  readonly gap: number;
+  readonly dismissedAuto: boolean;
+}
+
+/** Retains recent undo steps without limiting how many gaps can be edited. */
+export const EDIT_HISTORY_LIMIT = 2_048;
+
 export interface EditHistory {
-  readonly past: readonly CutState[];
+  readonly past: readonly EditStep[];
   readonly present: CutState;
-  readonly future: readonly CutState[];
+  readonly future: readonly EditStep[];
 }
 
 export const initialEditHistory = (auto: readonly number[]): EditHistory => ({
@@ -41,30 +49,42 @@ export const initialEditHistory = (auto: readonly number[]): EditHistory => ({
 });
 export function pressGap(history: EditHistory, j: number): EditHistory {
   return {
-    past: [...history.past, history.present],
+    past: [
+      ...history.past.slice(-(EDIT_HISTORY_LIMIT - 1)),
+      {
+        gap: j,
+        dismissedAuto:
+          isShowingAuto(history.present) && history.present.auto.includes(j),
+      },
+    ],
     present: toggleCutState(history.present, j),
     future: [],
   };
 }
 
 export function undoEdit(history: EditHistory): EditHistory {
-  const previous = history.past.at(-1);
-  return previous === undefined
-    ? history
-    : {
-        past: history.past.slice(0, -1),
-        present: previous,
-        future: [history.present, ...history.future],
-      };
+  const step = history.past.at(-1);
+  if (step === undefined) return history;
+  const state = history.present;
+  const user = state.user.includes(step.gap)
+    ? state.user.filter(gap => gap !== step.gap)
+    : [...state.user, step.gap].sort((a, b) => a - b);
+  return {
+    past: history.past.slice(0, -1),
+    present: step.dismissedAuto
+      ? {...state, user: [], dismissed: false}
+      : {...state, user},
+    future: [step, ...history.future],
+  };
 }
 
 export function redoEdit(history: EditHistory): EditHistory {
-  const next = history.future[0];
-  return next === undefined
+  const step = history.future[0];
+  return step === undefined
     ? history
     : {
-        past: [...history.past, history.present],
-        present: next,
+        past: [...history.past, step],
+        present: toggleCutState(history.present, step.gap),
         future: history.future.slice(1),
       };
 }

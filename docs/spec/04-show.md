@@ -969,6 +969,8 @@ the typed prefix uses the accent color. Pressing the same gap removes it. An
 automatic gap is dismissed only when that gap itself is removed; removing an
 alternative user cut returns to the automatic cuts unless they were dismissed.
 Every available word gap can be cut; editing is not stopped by a history count.
+Undo retains the most recent 2,048 edits; older undo steps are discarded while
+the current cuts remain editable.
 
 Ctrl Z or Backspace undoes, Ctrl Y or Ctrl Shift Z redoes. Enter or Space
 confirms only when every part fits; holding either key confirms once. Esc

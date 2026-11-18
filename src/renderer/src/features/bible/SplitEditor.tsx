@@ -246,7 +246,7 @@ function VerseSplitEditor(
       else {
         setBuffer(labels.some(label => label.startsWith(typed)) ? typed : '');
       }
-    } else if (event.code === 'Enter' || event.code === 'Space') {
+    } else if (event.key === 'Enter' || event.code === 'Space') {
       if (!event.repeat) confirm();
     } else if (event.code === 'Backspace') {
       if (buffer !== '') setBuffer('');

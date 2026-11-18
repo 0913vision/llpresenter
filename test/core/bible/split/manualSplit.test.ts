@@ -9,6 +9,7 @@ import {
 } from '@core/bible/split/manualSplit';
 import {
   effectiveCuts,
+  EDIT_HISTORY_LIMIT,
   hintCharFromEvent,
   hintLabels,
   initialCutState,
@@ -26,12 +27,26 @@ describe('copible manual cut planning', () => {
 
   it('lets the operator use every supported gap and undo beyond 1000 edits', () => {
     let history = initialEditHistory([]);
-    for (let gap = 1; gap <= 1_295; gap++) history = pressGap(history, gap);
-    expect(effectiveCuts(history.present)).toHaveLength(1_295);
-    for (let gap = 1; gap <= 1_295; gap++) history = undoEdit(history);
+    for (let gap = 1; gap <= 1_296; gap++) history = pressGap(history, gap);
+    expect(effectiveCuts(history.present)).toHaveLength(1_296);
+    for (let gap = 1; gap <= 1_296; gap++) history = undoEdit(history);
     expect(effectiveCuts(history.present)).toEqual([]);
-    for (let gap = 1; gap <= 1_295; gap++) history = redoEdit(history);
-    expect(effectiveCuts(history.present)).toHaveLength(1_295);
+    for (let gap = 1; gap <= 1_296; gap++) history = redoEdit(history);
+    expect(effectiveCuts(history.present)).toHaveLength(1_296);
+  });
+
+  it('bounds compact undo steps while accepting later edits', () => {
+    let history = initialEditHistory([2, 4]);
+    history = pressGap(history, 2);
+    expect(effectiveCuts(undoEdit(history).present)).toEqual([2, 4]);
+    for (let i = 0; i < EDIT_HISTORY_LIMIT + 100; i++) {
+      history = pressGap(history, 1);
+    }
+    expect(history.past).toHaveLength(EDIT_HISTORY_LIMIT);
+    expect(history.past[0]).toEqual({gap: 1, dismissedAuto: false});
+    history = pressGap(history, 1296);
+    expect(effectiveCuts(history.present)).toContain(1296);
+    expect(effectiveCuts(undoEdit(history).present)).not.toContain(1296);
   });
 
   it('uses the exact size ladder, two steps down including unlisted sizes', () => {

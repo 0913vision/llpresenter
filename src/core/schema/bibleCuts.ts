@@ -12,7 +12,7 @@ import {jsonObject, jsonRecord, positiveInteger, timestamp} from './primitives';
 export const BIBLE_CUTS_LIMITS = {
   translations: 200,
   entries: 40_000,
-  cuts: 1_295,
+  cuts: 1_296,
 } as const;
 
 const cutSchema = v.pipe(
