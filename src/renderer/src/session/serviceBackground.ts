@@ -1,5 +1,5 @@
 import type {MediaId} from '@core/schema/ids';
-import {isItemOfKind} from '@core/schema/service';
+import {isStartItem} from '@core/services/itemFieldChanges';
 import {pendingWritesOf} from '../platform/pendingWrites';
 import {
   updateServiceItem,
@@ -14,17 +14,39 @@ interface BackgroundChange {
   readonly mediaId: MediaId | null;
 }
 
-/** Sets a song item's override, or removes it with null for the song default. */
-export function backgroundChange(mediaId: MediaId | null): ServiceItemChange {
+export type ItemBackgroundChoice = MediaId | 'none' | null;
+
+/** Sets a background override, explicit absence, or default inheritance. */
+export function backgroundChange(
+  choice: ItemBackgroundChoice,
+): ServiceItemChange {
   return item => {
-    if (!isItemOfKind(item, 'song') && !isItemOfKind(item, 'slides')) {
-      return null;
-    }
-    if ((item.background ?? null) === mediaId) return item;
-    const updated = {...item};
-    if (mediaId === null) delete updated.background;
-    else updated.background = mediaId;
-    return updated;
+    if (!isStartItem(item)) return null;
+    if (
+      choice === 'none' &&
+      item.backgroundNone === true &&
+      item.background === undefined
+    )
+      {return item;}
+    if (
+      choice === null &&
+      item.backgroundNone !== true &&
+      item.background === undefined
+    )
+      {return item;}
+    if (
+      choice !== null &&
+      choice !== 'none' &&
+      item.backgroundNone !== true &&
+      item.background === choice
+    )
+      {return item;}
+    const {background: _background, backgroundNone: _none, ...updated} = item;
+    return choice === 'none'
+      ? {...updated, backgroundNone: true}
+      : choice === null
+        ? updated
+        : {...updated, background: choice};
   };
 }
 

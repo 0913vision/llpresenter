@@ -71,6 +71,27 @@ function withItem(item: object) {
 }
 
 describe('parseService', () => {
+  it('accepts per-item background overrides and rejects malformed choices', () => {
+    const items = [
+      {id: itemId(20), song: SONG_ID, slides: []},
+      {id: itemId(21), bible: PASSAGE},
+      {id: itemId(22), sermon: {title: 'Title', passage: PASSAGE}},
+      {id: itemId(23), liturgy: {kind: 'creed', translation: 'new'}},
+      {id: itemId(24), slides: {form: 'blank', name: 'Blank', slides: []}},
+      {id: itemId(25), media: MEDIA_ID},
+    ];
+    for (const item of items) {
+      expect(parse(withItem({...item, background: MEDIA_ID})).ok).toBe(true);
+      expect(parse(withItem({...item, backgroundNone: true})).ok).toBe(true);
+      expect(parse(withItem({...item, backgroundNone: 'yes'})).ok).toBe(false);
+      expect(parse(withItem({...item, background: 'invalid'})).ok).toBe(false);
+      expect(
+        parse(withItem({...item, background: MEDIA_ID, backgroundNone: true}))
+          .ok,
+      ).toBe(false);
+    }
+  });
+
   it('validates individual liturgy transition slots', () => {
     const entry = {index: 0, transition: {kind: 'wipe', dir: 'left', sec: 0.7}};
     const item = {

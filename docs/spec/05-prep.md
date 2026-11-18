@@ -1165,16 +1165,16 @@ media. Media dropped on an editor slide in list or grid view, or on the slide
 properties picture, sets the item background. For a service song item, its
 override takes precedence over the library default; in the library song editor,
 the current library draft takes precedence. The target is highlighted while
-dragging. Missing media, audio, and items without a background are refused with
-a reason. Dropping on an overlay clip continues to create or replace the
-overlay. Changes apply to the captured service item, never the library song or
-another service's deck. Pending lyric edits finish before appearance writes. A
-saved background change updates the editor's baseline without replacing lyric
-undo history or slide selection when the slide deck is unchanged. The separate
-editor window's preview uses the captured service item's theme and follows its
-changes, including a return to 기본. Read-only, blocked and saving states
-prevent changes. Changing item settings preserves slide selection and history.
-The library song editor retains its default background header control.
+dragging. Missing media and audio are refused with a reason. Dropping on an
+overlay clip continues to create or replace the overlay. Changes apply to the
+captured service item, never the library song or another service's deck. Pending
+lyric edits finish before appearance writes. A saved background change updates
+the editor's baseline without replacing lyric undo history or slide selection
+when the slide deck is unchanged. The separate editor window's preview uses the
+captured service item's theme and follows its changes, including a return to
+기본. Read-only, blocked and saving states prevent changes. Changing item
+settings preserves slide selection and history. The library song editor retains
+its default background header control.
 
 The grouping follows PowerPoint's Design tab (Themes followed by Format
 Background) and Google Slides' separate Theme and Background commands. Their
@@ -1298,3 +1298,9 @@ translations continue to work.
 Each open-file picker remembers the folder of its last selected file across
 restarts. When that folder is unavailable or unset, the picker opens Documents;
 canceling leaves its remembered folder unchanged.
+
+An item background override covers its theme background while preserving slide
+content. ?? removes the background, and ??? returns to the theme or song
+background. Full-screen image elements used as theme artwork count as
+background; other image elements remain. A media item retains its own media
+independently of its background.

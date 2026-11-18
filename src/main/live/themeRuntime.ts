@@ -37,12 +37,25 @@ function affectsTheme(command: LiveCommand): command is ThemeCommand {
 function withPlayback(
   saved: LiveThemeItem,
   live: LiveThemeItem,
+  now: number,
 ): LiveThemeItem {
-  const {contentCleared: _cleared, ...item} = saved;
+  const {
+    contentCleared: _cleared,
+    backgroundStartedAt: _backgroundStartedAt,
+    ...item
+  } = saved;
   const {startedAt, overlayStartedAt, slidePosition} = live;
+  const backgroundStartedAt =
+    saved.backgroundOverride?.kind !== 'media'
+      ? undefined
+      : JSON.stringify(saved.backgroundOverride) ===
+          JSON.stringify(live.backgroundOverride)
+        ? (live.backgroundStartedAt ?? now)
+        : now;
   return {
     ...item,
     ...(startedAt === undefined ? {} : {startedAt}),
+    ...(backgroundStartedAt === undefined ? {} : {backgroundStartedAt}),
     ...(overlayStartedAt === undefined ? {} : {overlayStartedAt}),
     ...(slidePosition === undefined ? {} : {slidePosition}),
   };
@@ -95,7 +108,15 @@ export class ThemeRuntime {
       case 'item.start':
         after = resetClearToggles(after);
         item = this.options.item(command.itemId) ?? item;
-        if (item !== null) item = {...item, startedAt: context.now};
+        if (item !== null) {
+          item = {
+            ...item,
+            startedAt: context.now,
+            ...(item.backgroundOverride?.kind === 'media'
+              ? {backgroundStartedAt: context.now}
+              : {}),
+          };
+        }
         mode = undefined;
         break;
       case 'slide.show':
@@ -115,7 +136,11 @@ export class ThemeRuntime {
           };
           mode = undefined;
         } else {
-          item = withPlayback(this.options.item(item.id) ?? item, item);
+          item = withPlayback(
+            this.options.item(item.id) ?? item,
+            item,
+            context.now,
+          );
         }
         {
           if (command.slide.sermonTitle === true) {
@@ -186,9 +211,42 @@ export class ThemeRuntime {
         break;
       case 'themes.refresh':
         this.refresh();
+        if (item !== null) {
+          const cleared = item.contentCleared;
+          item = withPlayback(
+            this.options.item(item.id) ?? item,
+            item,
+            context.now,
+          );
+          const slide = after.state.layers.slide;
+          if (slide?.itemId === item.id && slide.sermonTitle === true) {
+            item = {...item, theme: SERMON_TITLE_THEME_ID};
+          }
+          if (slide?.itemId === item.id && slide.sectionCard !== undefined) {
+            item = {
+              ...item,
+              kind: 'blank',
+              title: slide.sectionCard.name,
+              theme: slide.sectionCard.theme,
+            };
+          }
+          if (cleared) item = {...item, contentCleared: true};
+        }
         break;
       case 'layer.clear':
       case 'layer.clear.toggle':
+        if (
+          command.type === 'layer.clear.toggle' &&
+          command.target === 'media' &&
+          before.state.layers.media === null &&
+          after.state.layers.media !== null &&
+          before.clearSnapshots?.media !== undefined
+        ) {
+          item = this.resumedBackground(
+            item,
+            context.now - before.clearSnapshots.media.clearedAt,
+          );
+        }
         if (command.target === 'all' && item !== null) {
           const restored =
             command.type === 'layer.clear.toggle'
@@ -235,6 +293,15 @@ export class ThemeRuntime {
             context.now - before.undo.clearedAt,
           );
           mode = before.undo.themeMode;
+        } else if (
+          before.undo !== null &&
+          before.state.layers.media === null &&
+          after.state.layers.media !== null
+        ) {
+          item = this.resumedBackground(
+            item,
+            context.now - before.undo.clearedAt,
+          );
         }
         break;
       case 'item.restore': {
@@ -277,15 +344,28 @@ export class ThemeRuntime {
     return this.publish(after, item, mode);
   }
 
+  private resumedBackground(
+    item: LiveThemeItem | null,
+    elapsed: number,
+  ): LiveThemeItem | null {
+    return item?.backgroundStartedAt === undefined
+      ? item
+      : {
+          ...item,
+          backgroundStartedAt: item.backgroundStartedAt + Math.max(0, elapsed),
+        };
+  }
+
   private resumedItem(
     item: LiveThemeItem | null,
     elapsed: number,
   ): LiveThemeItem | null {
-    return item?.overlayStartedAt === undefined
-      ? item
+    const resumed = this.resumedBackground(item, elapsed);
+    return resumed?.overlayStartedAt === undefined
+      ? resumed
       : {
-          ...item,
-          overlayStartedAt: item.overlayStartedAt + Math.max(0, elapsed),
+          ...resumed,
+          overlayStartedAt: resumed.overlayStartedAt + Math.max(0, elapsed),
         };
   }
 
@@ -294,7 +374,13 @@ export class ThemeRuntime {
     item: LiveThemeItem | null,
     mode: LiveThemeMode | undefined,
   ): LiveHistory {
-    const key = JSON.stringify([item?.kind, item?.source, item?.theme, mode]);
+    const key = JSON.stringify([
+      item?.kind,
+      item?.source,
+      item?.theme,
+      item?.backgroundOverride,
+      mode,
+    ]);
     if (this.key !== key) {
       this.output = resolveThemeOutput({
         file: this.file,

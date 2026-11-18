@@ -1,5 +1,5 @@
 import * as v from 'valibot';
-import {screenIdSchema, themeIdSchema} from './ids';
+import {mediaIdSchema, screenIdSchema, themeIdSchema} from './ids';
 import {
   liveNonBlankTextSchema,
   liveTextSchema,
@@ -8,6 +8,7 @@ import {
 import {payloadObject} from './payload';
 import {hexColor, nonNegativeInteger} from './primitives';
 import {itemOverlaysSchema} from './itemOverlays';
+import {outputMediaPropertiesSchema} from './outputMedia';
 import {themeScreenLayoutSchema} from './themes';
 import {themeItemKinds} from '../themes/elementRules';
 import type {ReadonlyKnown} from './fileFormat';
@@ -17,6 +18,18 @@ export const liveThemeItemSchema = payloadObject({
   kind: v.picklist(themeItemKinds),
   source: v.picklist(['service', 'external']),
   theme: v.exactOptional(themeIdSchema),
+  backgroundOverride: v.exactOptional(
+    v.variant('kind', [
+      v.object({kind: v.literal('none')}),
+      v.object({
+        kind: v.literal('media'),
+        mediaId: mediaIdSchema,
+        loop: v.boolean(),
+        properties: v.exactOptional(outputMediaPropertiesSchema),
+      }),
+    ]),
+  ),
+  backgroundStartedAt: v.exactOptional(v.pipe(v.number(), v.finite())),
   title: v.exactOptional(liveTextSchema),
   broadcastSongTitle: v.exactOptional(liveTextSchema),
   memo: v.exactOptional(liveTextSchema),

@@ -19,6 +19,36 @@ describe('live theme payloads', () => {
       v.safeParse(liveThemeModeSchema, {kind: 'manual', id: 'invalid'}).success,
     ).toBe(false);
   });
+  it('validates background overrides and their playback clock', () => {
+    const item = {id: 'song', kind: 'song', source: 'service'};
+    expect(
+      v.safeParse(liveThemeItemSchema, {
+        ...item,
+        backgroundOverride: {kind: 'none'},
+      }).success,
+    ).toBe(true);
+    expect(
+      v.safeParse(liveThemeItemSchema, {
+        ...item,
+        backgroundOverride: {
+          kind: 'media',
+          mediaId: '00000000-0000-4000-8000-000000000601',
+          loop: true,
+        },
+        backgroundStartedAt: 1,
+      }).success,
+    ).toBe(true);
+    expect(
+      v.safeParse(liveThemeItemSchema, {
+        ...item,
+        backgroundOverride: {kind: 'media', mediaId: 'bad', loop: true},
+      }).success,
+    ).toBe(false);
+    expect(
+      v.safeParse(liveThemeItemSchema, {...item, backgroundStartedAt: 'now'})
+        .success,
+    ).toBe(false);
+  });
   it('preserves the independently retained slide position', () => {
     const item = {
       id: 'song',

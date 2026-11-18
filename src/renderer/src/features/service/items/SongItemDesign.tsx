@@ -120,7 +120,9 @@ export function SongItemDesign({
     themes.document?.name === 'themes' ? themes.document.value : null;
   const background =
     item !== undefined && isItemOfKind(item, 'song')
-      ? (item.background ?? source.song?.song.background)
+      ? item.backgroundNone === true
+        ? undefined
+        : (item.background ?? source.song?.song.background)
       : undefined;
   const failed = source.failed || themes.failed || media.failed;
   const reason =

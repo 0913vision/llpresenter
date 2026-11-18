@@ -8,6 +8,7 @@ import type {ThemeScreenLayout} from '@core/schema/themes';
 import {classes} from './classes';
 import type {RenderFrame, RenderLayerOptions} from './layer';
 import {ThemeElementView} from './themeElement';
+import {BackgroundLayerView} from './backgroundLayer';
 import {positionFollowingBoxes} from './themeFollow';
 import {ThemeGaps} from './themeGaps';
 import {setPlaybackProblem} from './playbackProblem';
@@ -27,6 +28,8 @@ interface ThemePage {
   readonly background: HTMLElement;
   readonly canvas: HTMLElement;
   readonly elements: readonly ThemeElementView[];
+  readonly itemBackground: BackgroundLayerView | null;
+  readonly itemBackgroundBox: HTMLElement | null;
   readonly ticking: readonly ThemeElementView[];
   readonly signature: string;
 }
@@ -281,7 +284,11 @@ export class ThemeCompositionView {
       this.clear();
       return;
     }
-    const signature = JSON.stringify([theme.themeId, theme.layout]);
+    const signature = JSON.stringify([
+      theme.themeId,
+      theme.layout,
+      theme.item?.backgroundOverride,
+    ]);
     const previous = this.page?.frame.slide ?? this.page?.layers.slide;
     const incoming = frame.slide ?? layers.slide;
     const slideChanged =
@@ -437,13 +444,21 @@ export class ThemeCompositionView {
     page.dataset['themePage'] = theme.themeId;
     page.className = `${classes.layer} ${classes.instant}`;
     const background = document.createElement('div');
+    const override = frame.theme?.item?.backgroundOverride;
     background.dataset['themeBackground'] = '';
-    Object.assign(background.style, {position: 'absolute', inset: '0'});
+    Object.assign(background.style, {
+      position: 'absolute',
+      inset: '0',
+      zIndex: '0',
+    });
     Object.assign(
       background.style,
       this.options.transparent
         ? {background: 'transparent'}
-        : themeBackgroundStyle(theme.layout.background, theme.emptyColor),
+        : themeBackgroundStyle(
+            override === undefined ? theme.layout.background : undefined,
+            theme.emptyColor,
+          ),
     );
     const canvas = document.createElement('div');
     Object.assign(canvas.style, {
@@ -453,13 +468,42 @@ export class ThemeCompositionView {
       width: `${THEME_LIMITS.width}px`,
       height: `${THEME_LIMITS.height}px`,
       transformOrigin: 'center',
+      zIndex: '1',
     });
-    page.append(background, canvas);
+    page.append(background);
+    const itemBackgroundBox =
+      override?.kind === 'media' ? document.createElement('div') : null;
+    if (itemBackgroundBox !== null) {
+      Object.assign(itemBackgroundBox.style, {
+        position: 'absolute',
+        inset: '0',
+      });
+      background.append(itemBackgroundBox);
+    }
+    const itemBackground =
+      itemBackgroundBox === null
+        ? null
+        : new BackgroundLayerView(itemBackgroundBox, {
+            ...this.options,
+            muted: true,
+          });
+    page.append(canvas);
     this.root.append(page);
     const elements: ThemeElementView[] = [];
     if (theme.layout.mode.kind === 'own') {
       for (const element of theme.layout.elements) {
         if (element.kind === 'stageMessage') continue;
+        if (
+          override !== undefined &&
+          (element.kind === 'background' ||
+            (element.kind === 'image' &&
+              element.frame.x === 0 &&
+              element.frame.y === 0 &&
+              element.frame.w === THEME_LIMITS.width &&
+              element.frame.h === THEME_LIMITS.height))
+        ) {
+          continue;
+        }
         if (this.options.transparent && element.kind === 'background') {
           continue;
         }
@@ -486,6 +530,8 @@ export class ThemeCompositionView {
       background,
       canvas,
       elements,
+      itemBackground,
+      itemBackgroundBox,
       ticking: elements.filter(view =>
         ['clock', 'timer', 'videoTimeLeft'].includes(view.element.kind),
       ),
@@ -597,6 +643,35 @@ export class ThemeCompositionView {
     }
     page.layers = content.layers;
     page.frame = content.frame;
+    const override = content.frame.theme?.item?.backgroundOverride;
+    const mediaVisible = content.layers.media !== null;
+    if (page.itemBackgroundBox !== null) {
+      page.itemBackgroundBox.style.opacity = String(
+        content.frame.clearOpacity?.media ?? (mediaVisible ? 1 : 0),
+      );
+    }
+    try {
+      page.itemBackground?.show(
+        override?.kind === 'media' &&
+          (mediaVisible || content.frame.clearOpacity?.media !== undefined)
+          ? {
+              mediaId: override.mediaId,
+              loop: override.loop,
+              ...(override.properties === undefined
+                ? {}
+                : {properties: override.properties}),
+              startedAt:
+                content.frame.theme?.item?.backgroundStartedAt ??
+                content.frame.theme?.item?.startedAt ??
+                0,
+            }
+          : null,
+        content.frame.transitions,
+        content.frame.standby,
+      );
+    } catch (error) {
+      this.gaps.failed('item-background', error);
+    }
     const video =
       page.elements.find(view => view.element.kind === 'media')?.remaining() ??
       page.elements
@@ -737,14 +812,24 @@ export class ThemeCompositionView {
   }
 
   ready(): boolean {
-    return this.page?.elements.every(view => view.ready()) ?? true;
+    return (
+      (this.page?.itemBackground?.ready() ?? true) &&
+      (this.page?.elements.every(view => view.ready()) ?? true)
+    );
   }
 
   /** Identifies unready elements without exposing their content or media paths. */
   unreadyElements(): ReadonlyArray<{kind: string; id: string}> {
-    return (this.page?.elements ?? [])
-      .filter(view => !view.ready())
-      .map(view => ({kind: view.element.kind, id: view.element.id}));
+    return [
+      ...(this.page?.itemBackground !== null &&
+      this.page?.itemBackground !== undefined &&
+      !this.page.itemBackground.ready()
+        ? [{kind: 'background', id: 'item-background'}]
+        : []),
+      ...(this.page?.elements ?? [])
+        .filter(view => !view.ready())
+        .map(view => ({kind: view.element.kind, id: view.element.id})),
+    ];
   }
 
   /** Show a partially prepared page when the outer transition times out. */
@@ -791,6 +876,11 @@ export class ThemeCompositionView {
   }
 
   private disposePage(page: ThemePage): void {
+    try {
+      page.itemBackground?.dispose();
+    } catch (error) {
+      this.gaps.failed('item-background', error);
+    }
     for (const view of page.elements) {
       try {
         view.dispose();

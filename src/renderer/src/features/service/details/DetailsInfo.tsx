@@ -105,24 +105,16 @@ export function DetailsInfo({
               reason={reason}
               themeData={themeData}
             />
-            {isItemOfKind(item, 'song') && state.song !== null ? (
-              <ItemBackgroundRow
-                items={items}
-                api={editor.api}
-                lockReason={reason}
-                item={item}
-                session={state.song}
-                mediaDocument={media}
-              />
-            ) : isItemOfKind(item, 'slides') ? (
-              <ItemBackgroundRow
-                items={items}
-                api={editor.api}
-                lockReason={reason}
-                item={item}
-                mediaDocument={media}
-              />
-            ) : null}
+            <ItemBackgroundRow
+              items={items}
+              api={editor.api}
+              lockReason={reason}
+              item={item}
+              {...(isItemOfKind(item, 'song') && state.song !== null
+                ? {session: state.song}
+                : {})}
+              mediaDocument={media}
+            />
             <ItemStartRow
               items={items}
               api={editor.api}

@@ -1312,3 +1312,8 @@ display settings and transitions stay with the passage. Optional opening and
 closing title transitions are stored separately. The same title appears before
 and after the passage. An optional section card is retained on the sermon item
 and returned to the Bible item when split. Existing service items remain valid.
+
+Service items that support appearance can carry an optional `background` media
+ID. `backgroundNone: true` explicitly removes the background; absence of both
+fields follows the song or theme default. A background edit writes at most one
+of those fields and leaves existing files without either field unchanged.

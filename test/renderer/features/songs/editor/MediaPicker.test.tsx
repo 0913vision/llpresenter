@@ -180,3 +180,30 @@ it('keeps grouped backgrounds keyboard reachable across the virtual user list', 
   fireEvent.keyDown(search, {key: 'Enter'});
   expect(onSelect).toHaveBeenCalledExactlyOnceWith(builtin.id);
 });
+
+it('offers separate inherited and empty background choices', () => {
+  const choose = vi.fn();
+  const none = vi.fn();
+  render(
+    <MediaPicker
+      anchor={document.createElement('button')}
+      items={[]}
+      selected={undefined}
+      query=""
+      onQueryChange={vi.fn()}
+      onSelect={choose}
+      onClose={vi.fn()}
+      defaultChoice={{label: 'Default', detail: 'Inherited'}}
+      explicitNone={{selected: true, onSelect: none}}
+    />,
+  );
+  expect(
+    screen.getByRole('option', {name: 'Default'}).getAttribute('aria-selected'),
+  ).toBe('false');
+  const empty = screen.getByRole('option', {name: '없음'});
+  expect(empty.getAttribute('aria-selected')).toBe('true');
+  fireEvent.click(empty);
+  expect(none).toHaveBeenCalledTimes(1);
+  fireEvent.click(screen.getByRole('option', {name: 'Default'}));
+  expect(choose).toHaveBeenCalledWith(undefined);
+});

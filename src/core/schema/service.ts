@@ -198,6 +198,8 @@ const itemFields = {
 };
 
 const startFields = {
+  background: v.exactOptional(mediaIdSchema),
+  backgroundNone: v.exactOptional(v.boolean()),
   macro: v.exactOptional(v.string()),
   memo: v.exactOptional(v.string()),
 };
@@ -208,14 +210,12 @@ const songItemSchema = jsonObject({
   sectionCard: v.exactOptional(sectionCardSchema),
   song: songIdSchema,
   slides: songSlidesSchema,
-  background: v.exactOptional(mediaIdSchema),
   ...startFields,
 });
 const slidesItemSchema = jsonObject({
   ...itemFields,
   sectionCard: v.exactOptional(sectionCardSchema),
   slides: slidesSchema,
-  background: v.exactOptional(mediaIdSchema),
   ...startFields,
 });
 const sermonTitleSchema = v.pipe(
@@ -295,6 +295,25 @@ export const SERVICE_LIMITS = {
 const orderSchema = v.pipe(
   listWithUniqueIds(serviceItemSchema),
   v.maxLength(SERVICE_LIMITS.items),
+  v.check(
+    items =>
+      items.every(
+        item =>
+          !(
+            ('song' in item ||
+              'slides' in item ||
+              'bible' in item ||
+              'sermon' in item ||
+              'liturgy' in item ||
+              'media' in item) &&
+            'backgroundNone' in item &&
+            item.backgroundNone === true &&
+            'background' in item &&
+            item.background !== undefined
+          ),
+      ),
+    'A background cannot be both selected and absent',
+  ),
 );
 
 /**

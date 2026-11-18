@@ -2,7 +2,7 @@ import {cardOffset} from '@core/services/sectionCards';
 import {LITURGY_SLIDES} from '@core/services/liturgySlides';
 import type {JSX} from 'react';
 import type {ItemRow} from '@core/presentation/model';
-import type {MediaId, SongId} from '@core/schema/ids';
+import type {SongId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
 import type {ServiceItem} from '@core/schema/service';
 import {isItemOfKind} from '@core/schema/service';
@@ -134,10 +134,11 @@ export function ServiceTableCells({
         }
         reason={reason}
         choose={
-          song === undefined &&
-          !(item !== undefined && isItemOfKind(item, 'slides'))
+          item === undefined || !isStartItem(item)
             ? undefined
-            : (mediaId: MediaId | null) =>
+            : (
+                mediaId: import('@renderer/session/serviceBackground').ItemBackgroundChoice,
+              ) =>
                 editorTask(
                   items.submitItemEdit(backgroundRequest(target, mediaId)),
                 )
