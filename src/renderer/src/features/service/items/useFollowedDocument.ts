@@ -35,34 +35,46 @@ interface Kept {
 // current revision, and it goes when its last holder leaves.
 const keptDocuments = new WeakMap<object, Map<string, Kept>>();
 
-function hold<T extends Revisioned>(source: DocumentSource<T>): () => void {
+interface Holding<T> {
+  /** Stores a document a holder read, when it is newer. */
+  readonly remember: (document: T) => void;
+  readonly release: () => void;
+}
+
+function notKept<T>(): Holding<T> {
+  return {remember: () => undefined, release: () => undefined};
+}
+
+function newer(kept: Kept, document: Revisioned): void {
+  if (kept.document === null || kept.document.revision < document.revision) {
+    kept.document = document;
+  }
+}
+
+// NOTE(0913vision): A kept document follows pushes itself, and takes the
+// reads its holders make; it reads nothing on its own.
+function hold<T extends Revisioned>(source: DocumentSource<T>): Holding<T> {
   const kept = source.kept;
-  if (kept === undefined) return () => undefined;
+  if (kept === undefined) return notKept<T>();
   const documents = keptDocuments.get(kept.owner) ?? new Map<string, Kept>();
   keptDocuments.set(kept.owner, documents);
   let entry = documents.get(kept.name);
   if (entry === undefined) {
     const created: Kept = {document: null, holders: 0, stop: () => undefined};
-    const accept = (document: T): void => {
-      if (
-        created.document === null ||
-        created.document.revision < document.revision
-      ) {
-        created.document = document;
-      }
-    };
-    created.stop = source.follow(accept);
-    source.read().then(accept, () => undefined);
+    created.stop = source.follow((document: T) => newer(created, document));
     documents.set(kept.name, created);
     entry = created;
   }
   const held = entry;
   held.holders += 1;
-  return () => {
-    held.holders -= 1;
-    if (held.holders > 0) return;
-    held.stop();
-    if (documents.get(kept.name) === held) documents.delete(kept.name);
+  return {
+    remember: document => newer(held, document),
+    release: () => {
+      held.holders -= 1;
+      if (held.holders > 0) return;
+      held.stop();
+      if (documents.get(kept.name) === held) documents.delete(kept.name);
+    },
   };
 }
 
@@ -102,10 +114,11 @@ export function useFollowedDocument<T extends Revisioned>(
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     if (!enabled) return undefined;
-    const release = hold(source);
+    const holding: Holding<T> = hold(source);
     let alive = true;
     const accept = (document: T): void => {
       if (!alive) return;
+      holding.remember(document);
       setState(current =>
         current.document !== null &&
         current.document.revision >= document.revision
@@ -125,7 +138,7 @@ export function useFollowedDocument<T extends Revisioned>(
     return () => {
       alive = false;
       stop();
-      release();
+      holding.release();
     };
   }, [source, attempt, enabled]);
   return {
