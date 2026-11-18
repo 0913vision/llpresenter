@@ -11,6 +11,7 @@ import {liveEndpoints} from '@contracts/ipc/live';
 import {mediaEndpoints} from '@contracts/ipc/media';
 import {locationsEndpoints} from '@contracts/ipc/locations';
 import {outputEndpoints} from '@contracts/ipc/output';
+import {pictureEndpoints} from '@contracts/ipc/picture';
 import {recoveryEndpoints} from '@contracts/ipc/recovery';
 import {serviceEndpoints} from '@contracts/ipc/service';
 import {settingsEndpoints} from '@contracts/ipc/settings';
@@ -40,6 +41,7 @@ const DECLARED = [
   uiEndpoints,
   windowEndpoints,
   outputEndpoints,
+  pictureEndpoints,
   locationsEndpoints,
   slidesEditorEndpoints,
 ].flatMap(endpointsIn);

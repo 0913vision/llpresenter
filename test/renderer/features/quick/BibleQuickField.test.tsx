@@ -34,6 +34,11 @@ import {
   isOutputRequestCurrent,
 } from '@renderer/session/showOutput';
 
+vi.mock(
+  '@renderer/rendering/pictures/Picture',
+  () => import('@fixtures/renderer/picture'),
+);
+
 async function passage(input: string) {
   const reply = await formLookupReply(lookupRequest(input));
   if (!reply.result.ok) throw Error('Invalid Bible passage fixture');

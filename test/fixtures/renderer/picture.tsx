@@ -18,7 +18,7 @@ export function Picture(spec: PictureSpec) {
   );
 }
 
-export function previewSpec(tile: HTMLElement | undefined) {
+export function previewSpec(tile: ParentNode | null | undefined) {
   const picture = tile?.querySelector<HTMLElement>('[data-preview-ready]');
   return picture == null ? undefined : specs.get(picture);
 }

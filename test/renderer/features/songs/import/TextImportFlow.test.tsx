@@ -10,6 +10,7 @@ import {
 } from '@testing-library/react';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import type {LlpApi} from '@contracts/ipc/api';
+import {parsePictureRequest} from '@core/schema/picture';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import type {Notice} from '@renderer/ui/notices';
 import type {TextImportReadResult} from '@core/schema/textImport';
@@ -40,6 +41,41 @@ function deferred<T>() {
     resolve = done;
   });
   return {promise, resolve};
+}
+
+function importPainter() {
+  let imageCount = 0;
+  vi.stubGlobal(
+    'URL',
+    class extends URL {
+      static override createObjectURL() {
+        return `blob:import-${++imageCount}`;
+      }
+      static override revokeObjectURL() {}
+    },
+  );
+  return vi.fn<LlpApi['picture']['paint']>(async request => {
+    const parsed = parsePictureRequest(request);
+    if (!parsed.ok) throw new Error(parsed.error.message);
+    return new Uint8Array([0x89, 0x50, 0x4e, 0x47]);
+  });
+}
+
+async function expectPreview(
+  paint: ReturnType<typeof importPainter>,
+  line: string,
+  previous?: string,
+): Promise<string> {
+  return waitFor(() => {
+    const tile = screen.getByRole('option', {name: new RegExp(line)});
+    const url = tile.querySelector('img')?.src;
+    expect(url).toMatch(/^blob:import-/u);
+    expect(url).not.toBe(previous);
+    expect(
+      paint.mock.calls.map(([request]) => request.spec.layers.slide?.lines),
+    ).toContainEqual([line]);
+    return url ?? '';
+  });
 }
 
 describe('text import flow', () => {
@@ -240,8 +276,10 @@ describe('text import flow', () => {
       ok: true as const,
       value: {id: 'preferences' as const, revision: 2},
     }));
+    const paint = importPainter();
     const api = mockLlpApi({
       ...f.api,
+      picture: {paint},
       textImport: {read, preview: async request => convertTextImport(request)},
       settings: {
         get: async () => ({
@@ -269,11 +307,11 @@ describe('text import flow', () => {
         />,
       );
     });
-    await screen.findByText('First reading');
+    const first = await expectPreview(paint, 'First reading');
     fireEvent.click(screen.getByRole('button', {name: '글자 인코딩'}));
     fireEvent.click(await screen.findByRole('menuitemradio', {name: 'CP949'}));
 
-    await screen.findByText('Second reading');
+    await expectPreview(paint, 'Second reading', first);
     expect(read).toHaveBeenLastCalledWith({
       source: 'file',
       encoding: 'cp949',
@@ -287,8 +325,10 @@ describe('text import flow', () => {
 
   function mountFile(read: LlpApi['textImport']['read']) {
     const f = fixture();
+    const paint = importPainter();
     const api = mockLlpApi({
       ...f.api,
+      picture: {paint},
       textImport: {
         read,
         preview: async request => convertTextImport(request),
@@ -310,7 +350,7 @@ describe('text import flow', () => {
         onProblem={f.problem}
       />,
     );
-    return {...f, onDone, onEdit};
+    return {...f, onDone, onEdit, paint};
   }
 
   const fileResult = (text: string): TextImportReadResult => ({
@@ -334,7 +374,7 @@ describe('text import flow', () => {
     expect(view.problem).not.toHaveBeenCalled();
     fireEvent.click(within(dialog).getByRole('button', {name: '다시 읽기'}));
 
-    await screen.findByText('Decoded line');
+    await expectPreview(view.paint, 'Decoded line');
     expect(read).toHaveBeenLastCalledWith({
       source: 'file',
       encoding: 'cp949',
@@ -367,10 +407,10 @@ describe('text import flow', () => {
   it('never applies an old reading: 편집 waits for the read and the latest read wins', async () => {
     const pending = deferred<TextImportReadResult>();
     const read = vi.fn(async (request: {encoding: string; again?: boolean}) =>
-      request.again === true ? pending.promise : fileResult('First reading'),
+      request.again === true ? pending.promise : fileResult('Initial reading'),
     );
     const view = mountFile(read);
-    await screen.findByText('First reading');
+    const initial = await expectPreview(view.paint, 'Initial reading');
     fireEvent.click(screen.getByRole('button', {name: '글자 인코딩'}));
     fireEvent.click(await screen.findByRole('menuitemradio', {name: 'CP949'}));
 
@@ -382,9 +422,9 @@ describe('text import flow', () => {
     expect(view.onEdit).not.toHaveBeenCalled();
     expect(view.onDone).not.toHaveBeenCalled();
 
-    await act(async () => pending.resolve(fileResult('Second reading')));
-    await screen.findByText('Second reading');
-    expect(screen.queryByText('First reading')).toBeNull();
+    await act(async () => pending.resolve(fileResult('Latest reading')));
+    await expectPreview(view.paint, 'Latest reading', initial);
+    expect(screen.queryByRole('option', {name: /Initial reading/u})).toBeNull();
     fireEvent.click(screen.getByRole('button', {name: '편집'}));
     expect(view.store.getSnapshot().imported).toBe(true);
     expect(view.onEdit).toHaveBeenCalledOnce();
