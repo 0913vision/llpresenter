@@ -1977,10 +1977,10 @@ it('keeps sermon title lines on stage and broadcast, including stage next text',
     slide: {
       itemId: 'invented',
       position: 0,
-      label: null,
+      label: 'Verse',
       lines,
       sermonTitle: true,
-      next: {label: null, lines, sermonTitle: true, itemKind: 'bible'},
+      next: {label: 'Verse', lines, sermonTitle: true, itemKind: 'bible'},
     },
   };
   const base = frame(elements);

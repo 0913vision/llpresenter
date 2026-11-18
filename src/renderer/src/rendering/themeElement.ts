@@ -716,7 +716,7 @@ export class ThemeElementView {
             ...layers,
             slide: {
               ...slide,
-              ...(currentBible && slide.sermonTitle !== true
+              ...(currentBible
                 ? {lines: [broadcastBibleFlow(slide.lines.join('\n'))]}
                 : {}),
               ...(nextBible
@@ -770,6 +770,7 @@ export class ThemeElementView {
       if (
         element.kind === 'currentText' &&
         !currentBible &&
+        slide?.sermonTitle !== true &&
         slide?.label?.trim()
       ) {
         if (currentSong && labelMode === 'off') {
@@ -785,6 +786,7 @@ export class ThemeElementView {
       if (
         element.kind === 'nextText' &&
         !nextBible &&
+        slide?.next?.sermonTitle !== true &&
         !(nextSong && labelMode === 'off') &&
         !(
           slide?.next?.labelContinued &&
