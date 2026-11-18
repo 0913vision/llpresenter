@@ -688,8 +688,13 @@ export function usePrepPanels({
     );
   };
   const leaveOldService = useEffectEvent((): void => {
-    if (!editorSession?.itemSession && slidesDraft === null && otherId === null)
-      {return;}
+    if (
+      !editorSession?.itemSession &&
+      slidesDraft === null &&
+      otherId === null
+    ) {
+      return;
+    }
     leave(() => {
       setSwitching(null);
       setOtherId(null);
