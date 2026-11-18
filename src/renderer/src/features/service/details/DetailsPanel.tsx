@@ -471,112 +471,112 @@ function DetailsPanelContent({
         ).filter(each => each !== undefined)
       : null;
   return (
-    <>
-      {ahead === null ? null : (
-        <AheadBox>
-          <DrawAhead
-            key={identity}
-            pictures={ahead}
-            onDone={() => setAheadDone(identity)}
-          />
-        </AheadBox>
-      )}
-      <AtomicPictureContent
-        initial={<DetailsShell />}
-        identity={identity}
-        waitForPicture={waitForPicture}
-        pending={pending}
-        content={
-          <DetailsShell
-            footer={
-              tab === 'slides' ? (
-                <PanelFooter
-                  count={count}
-                  end={
-                    <ThumbnailSizeControl
-                      compact
-                      value={scale}
-                      onChange={value => detailsScale.show(sizeClass, value)}
-                      onCommit={value =>
-                        detailsScale.save(sizeClass, value, api.ui)
-                      }
-                    />
-                  }
-                />
-              ) : null
-            }
-          >
-            <div className={styles.picture}>
-              {passageProblem === undefined ? (
-                firstPicture
-              ) : (
-                <BibleLoadNotice row={passageProblem} />
-              )}
-            </div>
-            {targetScreen === undefined ? null : (
-              <SegmentedControl
-                label="미리보기 화면"
-                fill
-                options={choices}
-                value={targetScreen.id}
-                onChange={setSelectedScreen}
-              />
-            )}
-            {count === 0 ? null : (
-              <SlideThumbnailBand
-                number={1}
-                label={labelAt(0)}
-                labelColor={labelColorAt(0)}
-              />
-            )}
-            <div className={styles.title} title={title}>
-              {title}
-            </div>
-            <div className={styles.meta}>
-              {title === '' || passageProblem !== undefined
-                ? ''
-                : detailsKindLine(item, kind, count)}
-            </div>
-            <PanelTabs
-              tabs={tabs}
-              value={tab}
-              onChange={value => setTabState({key: detailsKey, value})}
+    <AtomicPictureContent
+      initial={<DetailsShell />}
+      identity={identity}
+      aside={
+        ahead === null ? null : (
+          <AheadBox>
+            <DrawAhead
+              key={identity}
+              pictures={ahead}
+              onDone={() => setAheadDone(identity)}
             />
-            {tab === 'info' ? (
-              <DetailsInfo
-                details={{
-                  item,
-                  service,
-                  state,
-                  library,
-                  media,
-                  themeData,
-                  items,
-                  editor,
-                  reason,
-                  api,
-                  openSource,
-                  edit,
-                }}
-              />
-            ) : (
-              <DetailsSlides
+          </AheadBox>
+        )
+      }
+      waitForPicture={waitForPicture}
+      pending={pending}
+      content={
+        <DetailsShell
+          footer={
+            tab === 'slides' ? (
+              <PanelFooter
                 count={count}
-                scale={scale}
-                selected={Math.min(
-                  Math.max(0, count - 1),
-                  item === null ? selected : state.position,
-                )}
-                onSelect={select}
-                onEdit={edit}
-                labelAt={labelAt}
-                colorAt={labelColorAt}
-                picture={picture}
+                end={
+                  <ThumbnailSizeControl
+                    compact
+                    value={scale}
+                    onChange={value => detailsScale.show(sizeClass, value)}
+                    onCommit={value =>
+                      detailsScale.save(sizeClass, value, api.ui)
+                    }
+                  />
+                }
               />
+            ) : null
+          }
+        >
+          <div className={styles.picture}>
+            {passageProblem === undefined ? (
+              firstPicture
+            ) : (
+              <BibleLoadNotice row={passageProblem} />
             )}
-          </DetailsShell>
-        }
-      />
-    </>
+          </div>
+          {targetScreen === undefined ? null : (
+            <SegmentedControl
+              label="미리보기 화면"
+              fill
+              options={choices}
+              value={targetScreen.id}
+              onChange={setSelectedScreen}
+            />
+          )}
+          {count === 0 ? null : (
+            <SlideThumbnailBand
+              number={1}
+              label={labelAt(0)}
+              labelColor={labelColorAt(0)}
+            />
+          )}
+          <div className={styles.title} title={title}>
+            {title}
+          </div>
+          <div className={styles.meta}>
+            {title === '' || passageProblem !== undefined
+              ? ''
+              : detailsKindLine(item, kind, count)}
+          </div>
+          <PanelTabs
+            tabs={tabs}
+            value={tab}
+            onChange={value => setTabState({key: detailsKey, value})}
+          />
+          {tab === 'info' ? (
+            <DetailsInfo
+              details={{
+                item,
+                service,
+                state,
+                library,
+                media,
+                themeData,
+                items,
+                editor,
+                reason,
+                api,
+                openSource,
+                edit,
+              }}
+            />
+          ) : (
+            <DetailsSlides
+              count={count}
+              scale={scale}
+              selected={Math.min(
+                Math.max(0, count - 1),
+                item === null ? selected : state.position,
+              )}
+              onSelect={select}
+              onEdit={edit}
+              labelAt={labelAt}
+              colorAt={labelColorAt}
+              picture={picture}
+            />
+          )}
+        </DetailsShell>
+      }
+    />
   );
 }
