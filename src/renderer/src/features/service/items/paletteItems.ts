@@ -70,7 +70,14 @@ export async function createPaletteItem(
     return {
       ...blank,
       theme: themes.value.standby.id,
-      slides: {...blank.slides, name: '대기 화면'},
+      slides: {
+        ...blank.slides,
+        name: '대기 화면',
+        slides: blank.slides.slides.map(slide => ({
+          ...slide,
+          transition: {kind: 'wipe', dir: 'left', sec: 1},
+        })),
+      },
     };
   }
   if (key === 'blank') return newSlidesItem('blank', id);

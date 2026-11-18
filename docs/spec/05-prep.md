@@ -294,9 +294,10 @@ Source: `Reflow`, `PrepService`, `AddSongs`, `ListRow` README.
   the library; the foldable media bin remains available in the list and editor.
 - 순서 offers 예배 준비, 사도신경, 주기도문, 성경 구절, 광고, 빈 슬라이드, 구역,
   and 대기 화면. 대기 화면 adds a 빈 슬라이드 item with one empty slide
-  referencing the current 대기 화면 theme. Creeds and prayers use the new
-  translation by default; their context menu also offers the old translation.
-  사도신경 and 광고 include their section card.
+  referencing the current 대기 화면 theme. Its new slide starts with a 1-second
+  left wipe; existing slides retain their saved transitions. Creeds and prayers
+  use the new translation by default; their context menu also offers the old
+  translation. 사도신경 and 광고 include their section card.
 - 구역 이름 offers the remaining Sunday section cards as wrapping chips. Double
   click or Enter inserts an element after the current item or at the end of the
   selected section; dragging inserts at the order drop line. 성경 구절 opens the
