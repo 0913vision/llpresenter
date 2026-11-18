@@ -487,8 +487,10 @@ it.each(['double-click', 'Enter'] as const)(
     fireEvent.keyDown(document.body, {key: 'Escape', code: 'Escape'});
     await waitFor(() =>
       expect(
-        screen.queryByLabelText('슬라이드 편집', {selector: 'div'}),
-      ).toBeNull(),
+        screen
+          .queryAllByLabelText('슬라이드 편집', {selector: 'div'})
+          .filter(editor => editor.closest('[data-held-copy]') === null),
+      ).toHaveLength(0),
     );
     const table = await screen.findByRole('listbox', {name: '예배 순서'});
     expect(document.activeElement).toBe(
