@@ -199,7 +199,9 @@ describe('PreviewPanel layout', () => {
       if (!button) throw new Error(`Missing tile: ${id}`);
       fireEvent.click(button);
       expect(
-        screen.getAllByRole('button').map(slot => slot.dataset['previewSlot']),
+        Array.from(
+          container.querySelectorAll<HTMLElement>('[data-preview-slot]'),
+        ).map(slot => slot.dataset['previewSlot']),
       ).toEqual(order.filter(other => other !== id));
       expect(screensWithRole(container, 'large')).toEqual([id]);
       expect(screensWithRole(container, 'small')).toEqual(
@@ -238,7 +240,9 @@ describe('PreviewPanel states', () => {
     const {container} = render(<PreviewPanel />);
     const large = itemOf(container, MAIN_SCREEN);
     expect(large.getAttribute('data-state')).toBe('off');
-    expect(screen.queryByRole('button', {pressed: true})).toBeNull();
+    expect(
+      container.querySelector('[data-preview-slot][aria-pressed="true"]'),
+    ).toBeNull();
     expect(created()[0]?.render).toHaveBeenLastCalledWith(
       expect.objectContaining({slide}),
       expect.anything(),
@@ -402,7 +406,9 @@ describe('PreviewPanel screen list changes', () => {
       }
       const pictures = [...view.container.querySelectorAll('[data-screen]')];
       expect(pictures).toHaveLength(count);
-      expect(screen.getAllByRole('button')).toHaveLength(count - 1);
+      expect(
+        view.container.querySelectorAll('[data-preview-slot]'),
+      ).toHaveLength(count - 1);
 
       for (let round = 0; round < 20; round++) {
         fireEvent.click(
@@ -454,7 +460,12 @@ describe('PreviewPanel screen list changes', () => {
       </ScreenSummariesContext>,
     );
 
-    expect(screen.queryAllByRole('button')).toHaveLength(0);
+    expect(view.container.querySelectorAll('[data-preview-slot]')).toHaveLength(
+      0,
+    );
+    expect(
+      screen.getByRole('button', {name: '큰 미리보기 숨기기'}),
+    ).toBeDefined();
     expect(view.container.querySelectorAll('[data-screen]')).toHaveLength(0);
   });
 });
