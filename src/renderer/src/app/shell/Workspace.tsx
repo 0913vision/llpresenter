@@ -40,6 +40,7 @@ import {
   useShowPanelNavigation,
 } from '@renderer/features/presentation/showPanelNavigation';
 import {OpenItemPrefetch} from '@renderer/features/presentation/SlidePicturePrefetch';
+import {TableDataKeeper} from '@renderer/features/service/table/useServiceTableData';
 
 const ignoreProblem = (): void => undefined;
 
@@ -230,6 +231,7 @@ export function Workspace({
         <ShowShortcuts onProblem={onProblem ?? logPanelProblem} />
       ) : null}
       {showKept && !showVisible ? <OpenItemPrefetch /> : null}
+      {prep === undefined ? null : <TableDataKeeper api={prep.api} />}
       <div data-resize-panel="media.upper" className={styles.frames}>
         {showKept ? (
           <Activity mode={showVisible ? 'visible' : 'hidden'}>
