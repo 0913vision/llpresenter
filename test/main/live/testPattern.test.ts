@@ -71,17 +71,18 @@ describe('screen.testPattern.set', () => {
     expect(store.state.testPatterns ?? []).toEqual([]);
   });
 
-  it('replaces only stage patterns when a stage message is sent', () => {
+  it('keeps patterns when stage messages and patterns are sent in either order', () => {
     const {store, set} = setup();
     set(MAIN, true);
     set(STAGE, true);
     store.dispatch({type: 'stage.message.set', text: 'Stage message'});
     expect(store.state.stageMessage).toBe('Stage message');
-    expect(store.state.testPatterns).toEqual([MAIN]);
-    set(STAGE, true);
+    expect(store.state.testPatterns).toEqual([MAIN, STAGE]);
+    set(STAGE, false);
     store.dispatch({type: 'stage.message.set', text: 'Stage message'});
     expect(store.state.testPatterns).toEqual([MAIN]);
     set(STAGE, true);
+    expect(store.state.stageMessage).toBe('Stage message');
     store.dispatch({type: 'stage.message.set', text: null});
     expect(store.state.testPatterns).toEqual([MAIN, STAGE]);
   });

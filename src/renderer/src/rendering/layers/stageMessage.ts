@@ -2,7 +2,7 @@ import {defineLayer} from '../layer';
 
 export const stageMessageLayer = defineLayer({
   kind: 'stage-message',
-  order: 6,
+  order: 8,
   create: parent => {
     const band = document.createElement('div');
     band.dataset['stageMessageBand'] = '';
