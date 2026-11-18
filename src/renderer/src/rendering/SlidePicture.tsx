@@ -22,6 +22,8 @@ export function SlidePicture({
   themeId,
   screen,
   mediaOnly = false,
+  drawn,
+  prepareOnly = false,
 }: {
   readonly slide: SlideLayer;
   readonly layout: ThemeScreenLayout;
@@ -31,7 +33,11 @@ export function SlidePicture({
   readonly output?: boolean;
   readonly themeId?: ThemeId | undefined;
   readonly screen?: RenderScreen | undefined;
-  readonly mediaOnly?: boolean;
+  readonly mediaOnly?: boolean | undefined;
+  /** Output pictures only: drawn through the picture service. */
+  readonly drawn?: 'wait' | 'place' | undefined;
+  /** Output pictures only: drawn ahead, showing nothing. */
+  readonly prepareOnly?: boolean | undefined;
 }): JSX.Element {
   if (output) {
     return (
@@ -44,6 +50,8 @@ export function SlidePicture({
         themeId={themeId}
         screen={screen}
         mediaOnly={mediaOnly}
+        drawn={drawn}
+        prepareOnly={prepareOnly}
       />
     );
   }

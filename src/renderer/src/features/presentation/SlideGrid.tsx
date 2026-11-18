@@ -1,14 +1,22 @@
 import {
+  Suspense,
   useCallback,
   useContext,
   useEffect,
   useEffectEvent,
+  useLayoutEffect,
   useRef,
   useState,
   type JSX,
 } from 'react';
 import {outputTile, useShow} from '@renderer/session/show';
-import {shownTiles, useLiveTileIndex} from '@renderer/session/showLibrary';
+import {liveTileIndex, shownTilesFor} from '@renderer/session/showLibrary';
+import {useLive} from '@renderer/session/live';
+import {
+  commitShownItem,
+  useCommittedShownItem,
+  useShownItemId,
+} from '@renderer/session/shownItem';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {SlideThumbnail, ThumbnailGrid, thumbnailWidth} from '@renderer/ui';
 import {useGridMeasure} from '@renderer/ui/useGridMeasure';
@@ -25,7 +33,6 @@ import {useSlideWindow} from './useSlideWindow';
 import {ShowSlideEntry} from './showPanelNavigation';
 import {serviceSlideOffset} from './serviceSlideNumbers';
 import {useSlideTransitionProgress} from './useSlideTransitionProgress';
-import {BufferedSlideGrid} from '@renderer/ui/BufferedSlideGrid';
 import {tilePicture} from './tilePicture';
 import {SlidePicturePrefetch} from './SlidePicturePrefetch';
 import {revealSlideItem} from '@renderer/session/visibleSlideItem';
@@ -47,11 +54,11 @@ export function SlideGrid({
   scalePercent,
   onOpenPrep,
 }: SlideGridProps): JSX.Element {
-  const openItemId = useShow(view => view.openItemId);
+  const openItemId = useShownItemId();
   const offset = useShow(view =>
     openItemId === null ? null : serviceSlideOffset(view, openItemId),
   );
-  const tiles = useShow(shownTiles);
+  const tiles = useShow(view => shownTilesFor(view, openItemId));
   const row = useShow(view => view.rows.find(value => value.id === openItemId));
   const librarySong = useShow(view => view.librarySong);
   const theme = useSlideTheme(
@@ -88,8 +95,19 @@ export function SlideGrid({
       ? sermonPreviewRow(row.id, row.bible.ref)
       : undefined,
   );
-  const bible = useBibleTileProjection({itemId: openItemId});
-  const liveIndex = useLiveTileIndex();
+  const bible = useBibleTileProjection({itemId: openItemId, anyItem: true});
+  const liveSlide = useLive(view => view.state?.layers.slide ?? null);
+  const liveIndex = useShow(view =>
+    liveTileIndex({...view, openItemId}, liveSlide),
+  );
+  // NOTE(0913vision): Tiles of an item the grid switches to wait for their
+  // pictures, holding the grid as it was; tiles a scroll or resize brings in
+  // draw where they show.
+  const switching = useCommittedShownItem() !== openItemId;
+  useLayoutEffect(() => {
+    commitShownItem(openItemId);
+    revealSlideItem(openItemId ?? '');
+  }, [openItemId]);
   const transitionProgress = useSlideTransitionProgress();
   useEffect(() => {
     if (liveIndex !== null) useShow.setState({selectedTile: liveIndex});
@@ -175,13 +193,7 @@ export function SlideGrid({
 
       <SlidePicturePrefetch openItemId={openItemId} />
       <div className={styles.window} style={{top: window.offset}}>
-        <BufferedSlideGrid
-          itemKey={openItemId ?? ''}
-          onReveal={revealSlideItem}
-          ready={
-            tiles !== undefined && (row?.kind !== 'bible' || bible !== null)
-          }
-        >
+        <Suspense fallback={null}>
           <ThumbnailGrid
             workspace="show"
             gridFocus
@@ -221,6 +233,7 @@ export function SlideGrid({
                     cardTheme,
                     sermonTheme,
                     bibleAppearance: bible?.appearance,
+                    drawn: switching ? 'wait' : 'place',
                   })}
                   label={
                     tile.label === '' ? undefined : (tile.label ?? undefined)
@@ -246,7 +259,7 @@ export function SlideGrid({
               );
             })}
           </ThumbnailGrid>
-        </BufferedSlideGrid>
+        </Suspense>
       </div>
       {menu !== null && menu.itemId === openItemId && tiles?.[menu.index] ? (
         <Menu

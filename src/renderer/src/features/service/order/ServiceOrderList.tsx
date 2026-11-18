@@ -1,4 +1,5 @@
 import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
+import {useShownItemId} from '@renderer/session/shownItem';
 import {tilesForView} from '@renderer/session/showLibrary';
 import {useBibleProjections} from '@renderer/features/bible/useBibleProjections';
 import {splitSourceFor} from '@renderer/features/bible/splitProjection';
@@ -334,7 +335,7 @@ export function ServiceOrderList({
       ),
     [rows],
   );
-  const openItemId = useShow(view => view.openItemId);
+  const openItemId = useShownItemId();
   const liveItemId = useLiveItemId();
   const preferences = useSettingsDocument('preferences', '환경설정', onProblem);
   const dimPastItems = preferences?.value.show?.dimPastItems === true;

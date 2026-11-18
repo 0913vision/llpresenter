@@ -287,11 +287,19 @@ export function tilesForView(
   );
 }
 
+/** Selects a source's tiles without copying either projection. */
+export function shownTilesFor(
+  view: ShowView,
+  itemId: ItemId | null,
+): readonly SlideTile[] | undefined {
+  if (itemId === null) return undefined;
+  const tiles = tilesForView(view, itemId);
+  return tiles === noTiles ? undefined : tiles;
+}
+
 /** Selects the open source's tiles without copying either projection. */
 export function shownTiles(view: ShowView): readonly SlideTile[] | undefined {
-  if (view.openItemId === null) return undefined;
-  const tiles = tilesForView(view, view.openItemId);
-  return tiles === noTiles ? undefined : tiles;
+  return shownTilesFor(view, view.openItemId);
 }
 
 /** Opens a checked library projection without writing a service or output. */

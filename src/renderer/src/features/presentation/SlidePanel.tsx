@@ -3,7 +3,7 @@ import {defaultThumbnailColumns, type SizeClass} from '@renderer/ui/sizeClass';
 import {useShow} from '@renderer/session/show';
 import {
   isLibrarySource,
-  shownTiles,
+  shownTilesFor,
   tilesForView,
   useLiveTileIndex,
 } from '@renderer/session/showLibrary';
@@ -25,6 +25,7 @@ import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {READ_ONLY_TIP} from '../../platform/problemReasons';
 import styles from './SlidePanel.module.css';
 import {useVisibleSlideItem} from '@renderer/session/visibleSlideItem';
+import {useShownItemId} from '@renderer/session/shownItem';
 
 const PROBLEM_ICON_SIZE = 14;
 
@@ -133,7 +134,8 @@ export function SlidePanelFooter({
 }: {
   readonly sizeClass: SizeClass;
 }): JSX.Element {
-  const count = useShow(view => shownTiles(view)?.length ?? 0);
+  const shownItemId = useShownItemId();
+  const count = useShow(view => shownTilesFor(view, shownItemId)?.length ?? 0);
   return (
     <PanelFooter
       count={count}
