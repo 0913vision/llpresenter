@@ -213,10 +213,10 @@ export function ContinuousSlideGrid({
   });
   const pause = useRef(0);
   const dragging = useRef(false);
-  const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
-  const followRef = useRef<(behavior?: ScrollBehavior) => void>(
-    () => undefined,
-  );
+  const followRef = useRef<
+    (behavior?: ScrollBehavior, keyedDown?: boolean) => void
+  >(() => undefined);
+  const keyed = useRef(0);
   const followed = useRef<{
     item: string | undefined;
     index: number | undefined;
@@ -254,12 +254,10 @@ export function ContinuousSlideGrid({
           : next,
       );
     };
+    // NOTE(0913vision): Where the user scrolls, the grid stays; it follows
+    // the live slide again only when the live slide changes.
     const defer = (): void => {
       pause.current = Date.now() + 1500;
-      if (timer.current !== undefined) clearTimeout(timer.current);
-      timer.current = setTimeout(() => {
-        if (!dragging.current) followRef.current();
-      }, 1500);
     };
     const down = (event: PointerEvent): void => {
       if (event.target === viewport || event.pointerType === 'touch') {
@@ -282,6 +280,10 @@ export function ContinuousSlideGrid({
     observer.observe(grid);
     viewport.addEventListener('scroll', read, {passive: true});
     viewport.addEventListener('wheel', defer, {passive: true});
+    const key = (): void => {
+      keyed.current = Date.now();
+    };
+    window.addEventListener('keydown', key, true);
     viewport.addEventListener('pointerdown', down);
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
@@ -291,11 +293,11 @@ export function ContinuousSlideGrid({
       observer.disconnect();
       viewport.removeEventListener('scroll', read);
       viewport.removeEventListener('wheel', defer);
+      window.removeEventListener('keydown', key, true);
       viewport.removeEventListener('pointerdown', down);
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', up);
       window.removeEventListener('pointercancel', up);
-      if (timer.current !== undefined) clearTimeout(timer.current);
     };
   }, []);
   const stride =
@@ -308,7 +310,10 @@ export function ContinuousSlideGrid({
   const total =
     (last?.top ?? INSET) + Math.max(last?.height ?? 0, metrics.height) + INSET;
   useLayoutEffect(() => {
-    followRef.current = (behavior = 'smooth') => {
+    // NOTE(0913vision): The grid moves only when the live slide leaves the
+    // view, or when a key moves it further down past the reading line; a
+    // click or a scroll leaves the grid where the user put it.
+    followRef.current = (behavior = 'smooth', keyedDown = false) => {
       const viewport = keeper.current?.parentElement;
       const section = sections.find(value => value.row.id === cursorItem);
       if (
@@ -321,16 +326,16 @@ export function ContinuousSlideGrid({
       ) {
         return;
       }
-      const center =
-        section.top +
-        BAND +
-        Math.floor(cursorIndex / tracks) * stride +
-        (stride - metrics.rowGap) / 2;
-      const relative = center - viewport.scrollTop;
-      if (
-        relative < viewport.clientHeight * 0.3 ||
-        relative > viewport.clientHeight * 0.55
-      ) {
+      const top =
+        section.top + BAND + Math.floor(cursorIndex / tracks) * stride;
+      const bottom = top + stride - metrics.rowGap;
+      const center = (top + bottom) / 2;
+      const offscreen =
+        top < viewport.scrollTop ||
+        bottom > viewport.scrollTop + viewport.clientHeight;
+      const pastLine =
+        keyedDown && center - viewport.scrollTop > viewport.clientHeight * 0.55;
+      if (offscreen || pastLine) {
         viewport.scrollTo({
           top: Math.max(0, center - viewport.clientHeight * 0.4),
           behavior,
@@ -344,7 +349,17 @@ export function ContinuousSlideGrid({
     followed.current = {item: cursorItem, index: cursorIndex};
     const moved =
       last !== null && (last.item !== cursorItem || last.index !== cursorIndex);
-    followRef.current(moved ? 'smooth' : 'instant');
+    const order = (item: string | undefined): number =>
+      sections.findIndex(value => value.row.id === item);
+    const down =
+      last !== null &&
+      (order(cursorItem) > order(last.item) ||
+        (cursorItem === last.item &&
+          (cursorIndex ?? 0) > (last.index ?? Number.MAX_SAFE_INTEGER)));
+    followRef.current(
+      moved ? 'smooth' : 'instant',
+      moved && down && Date.now() - keyed.current < 1000,
+    );
   }, [cursorItem, cursorIndex, sections, stride, tracks, metrics.rowGap]);
   useLayoutEffect(() => {
     if (initialized.current || tileWidth <= 0 || sections.length === 0) return;
