@@ -500,7 +500,7 @@ describe('PreferencesView', () => {
     expect(edit).not.toHaveBeenCalled();
   });
 
-  it('has only 화면 확대 and Windows 시작할 때 실행 on the 일반 page', async () => {
+  it('shows zoom and startup choices on the general page', async () => {
     await mount();
 
     expect(screen.getByRole('button', {name: /화면 확대/})).toBeTruthy();
@@ -509,7 +509,12 @@ describe('PreferencesView', () => {
         .getByRole('checkbox', {name: 'Windows 시작할 때 실행'})
         .getAttribute('aria-checked'),
     ).toBe('false');
-    for (const gone of ['언어', '시작할 때', '복구 사본', '지우기 되돌리기']) {
+    expect(
+      screen
+        .getByRole('checkbox', {name: '시작할 때 최대화'})
+        .getAttribute('aria-checked'),
+    ).toBe('true');
+    for (const gone of ['언어', '복구 사본', '지우기 되돌리기']) {
       expect(screen.queryByText(new RegExp(`^${gone}`))).toBeNull();
     }
     expect(screen.queryAllByRole('spinbutton')).toHaveLength(0);

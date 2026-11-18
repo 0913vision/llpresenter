@@ -316,10 +316,9 @@ describe('the 편집 menu', () => {
 });
 
 describe('the 창 menu', () => {
-  it('runs the title bar actions and opens 환경설정', async () => {
+  it('runs the title bar actions', async () => {
     const control = vi.fn();
-    const openPreferences = vi.fn();
-    window.llp = mockLlpApi({window: {control, openPreferences}});
+    window.llp = mockLlpApi({window: {control}});
     const user = userEvent.setup();
     render(<MenuBar title="" />);
     let menu = await openMenu(user, '창');
@@ -327,25 +326,25 @@ describe('the 창 menu', () => {
       within(menu)
         .getAllByRole('menuitem')
         .map(row => row.textContent),
-    ).toEqual(['최소화', '최대화', '환경설정…Ctrl ,']);
+    ).toEqual(['최소화', '최대화']);
     await user.click(rowOf(menu, '최소화'));
     expect(control).toHaveBeenLastCalledWith('minimize');
     menu = await openMenu(user, '창');
     await user.click(rowOf(menu, '최대화'));
     expect(control).toHaveBeenLastCalledWith('toggle-maximize');
-    menu = await openMenu(user, '창');
-    await user.click(rowOf(menu, '환경설정…'));
-    expect(openPreferences).toHaveBeenCalledOnce();
   });
 });
 
-describe('the 도움말 menu', () => {
+describe('the LoveLight menu', () => {
   it('keeps 시작 안내 unavailable and enables logs, updates and version information', async () => {
     const user = userEvent.setup();
     render(<MenuBar title="" />);
     const menu = await openMenu(user, 'LoveLight');
     const rows = within(menu).getAllByRole('menuitem');
     expect(rows.map(row => row.textContent)).toEqual([
+      '환경설정…Ctrl ,',
+      '화면 설정…',
+      '단축키…',
       '시작 안내',
       '기록 폴더 열기',
       '업데이트 확인',
@@ -361,6 +360,26 @@ describe('the 도움말 menu', () => {
       shortcutCommands.find(command => command.id === 'app.checkUpdate')?.name,
     ).toBe(rowOf(menu, '업데이트 확인').textContent);
     expect(isOff(rowOf(menu, '버전 정보'))).toBe(false);
+  });
+
+  it('opens preferences, screen settings, and shortcuts', async () => {
+    const openPreferences = vi.fn();
+    const openScreens = vi.fn();
+    const openPreferencesAt = vi.fn();
+    window.llp = mockLlpApi({
+      window: {openPreferences, openScreens, openPreferencesAt},
+    });
+    const user = userEvent.setup();
+    render(<MenuBar title="" />);
+    let menu = await openMenu(user, 'LoveLight');
+    await user.click(rowOf(menu, '환경설정…'));
+    expect(openPreferences).toHaveBeenCalledOnce();
+    menu = await openMenu(user, 'LoveLight');
+    await user.click(rowOf(menu, '화면 설정…'));
+    expect(openScreens).toHaveBeenCalledOnce();
+    menu = await openMenu(user, 'LoveLight');
+    await user.click(rowOf(menu, '단축키…'));
+    expect(openPreferencesAt).toHaveBeenCalledExactlyOnceWith('shortcuts');
   });
 
   it('opens the log folder', async () => {
