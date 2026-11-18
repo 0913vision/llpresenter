@@ -739,6 +739,3 @@ shared with 환경설정 > 예배 순서.
 The 출력 menu offers 테스트 화면 with one command per screen. Selecting a screen
 enables its output and shows the test pattern (06); the next output or clear
 replaces it.
-
-The 진행 menu holds 마지막 슬라이드에서 다음 항목으로 and 이어서 보여 주기,
-shared with 환경설정 > 예배 순서.
