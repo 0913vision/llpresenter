@@ -30,24 +30,45 @@ async function readFacts(
   };
 }
 
-// NOTE(0913vision): The song facts a table read stay with the window and
+// NOTE(0913vision): The song facts a table read stay with the window while any
+// table holds them (the 준비 table data is held for the whole window) and
 // follow later song changes, so a table that mounts again (준비 after 진행)
 // shows each song's background in its first frame.
-const factMemory = new WeakMap<object, Map<SongId, SongFacts>>();
+interface FactMemory {
+  readonly facts: Map<SongId, SongFacts>;
+  holders: number;
+  stop: () => void;
+}
 
-function songFactMemory(api: Pick<LlpApi, 'songs'>): Map<SongId, SongFacts> {
-  const known = factMemory.get(api.songs);
-  if (known !== undefined) return known;
-  const memory = new Map<SongId, SongFacts>();
-  factMemory.set(api.songs, memory);
-  api.songs.subscribe(change => {
-    if (!memory.has(change.songId)) return;
-    readFacts(api, change.songId).then(
-      read => memory.set(change.songId, read),
-      () => memory.delete(change.songId),
-    );
-  });
-  return memory;
+const factMemory = new WeakMap<object, FactMemory>();
+
+function knownFacts(api: Pick<LlpApi, 'songs'>): Map<SongId, SongFacts> {
+  return factMemory.get(api.songs)?.facts ?? new Map<SongId, SongFacts>();
+}
+
+function holdFacts(api: Pick<LlpApi, 'songs'>): () => void {
+  let memory = factMemory.get(api.songs);
+  if (memory === undefined) {
+    const facts = new Map<SongId, SongFacts>();
+    const created: FactMemory = {facts, holders: 0, stop: () => undefined};
+    created.stop = api.songs.subscribe(change => {
+      if (!facts.has(change.songId)) return;
+      readFacts(api, change.songId).then(
+        read => facts.set(change.songId, read),
+        () => facts.delete(change.songId),
+      );
+    });
+    factMemory.set(api.songs, created);
+    memory = created;
+  }
+  const held = memory;
+  held.holders += 1;
+  return () => {
+    held.holders -= 1;
+    if (held.holders > 0) return;
+    held.stop();
+    if (factMemory.get(api.songs) === held) factMemory.delete(api.songs);
+  };
 }
 
 /**
@@ -60,7 +81,7 @@ function useSongFacts(
   songs: readonly SongId[],
 ): ReadonlyMap<SongId, SongFacts> {
   const [facts, setFacts] = useState<ReadonlyMap<SongId, SongFacts>>(() => {
-    const memory = songFactMemory(api);
+    const memory = knownFacts(api);
     return new Map(
       songs.flatMap(id => {
         const known = memory.get(id);
@@ -70,6 +91,7 @@ function useSongFacts(
   });
   useEffect(() => {
     let alive = true;
+    const release = holdFacts(api);
     const latest = new Map<SongId, number>();
     const wanted = new Set(songs);
     const refresh = (id: SongId): void => {
@@ -77,7 +99,7 @@ function useSongFacts(
       latest.set(id, turn);
       readFacts(api, id)
         .then(read => {
-          songFactMemory(api).set(id, read);
+          factMemory.get(api.songs)?.facts.set(id, read);
           if (!alive || latest.get(id) !== turn) return;
           // NOTE(0913vision): Songs that no item uses any more leave the map
           // with the next read, so a table that stays open keeps no old facts.
@@ -101,6 +123,7 @@ function useSongFacts(
     return () => {
       alive = false;
       stop();
+      release();
     };
   }, [api, songs]);
   return useMemo(

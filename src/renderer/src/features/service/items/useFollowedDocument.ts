@@ -5,9 +5,8 @@ interface Revisioned {
 }
 
 /**
- * A document the window keeps current while it runs: `owner` is the API part
- * it comes from, and `name` tells it apart there. A name that ends in `:` and
- * an id (`service:<id>`) keeps only the newest id of its kind.
+ * A document the window keeps current while any panel holds it: `owner` is
+ * the API part it comes from, and `name` tells it apart there.
  */
 export interface KeptName<T extends Revisioned> {
   readonly owner: object;
@@ -25,51 +24,46 @@ export interface DocumentSource<T extends Revisioned> {
 
 interface Kept {
   document: Revisioned | null;
+  holders: number;
   stop: () => void;
 }
 
 // NOTE(0913vision): A panel that mounts again (준비 after 진행) draws with the
 // documents it showed before, in its first frame, instead of empty cells for a
-// moment. The window keeps following each kept document after its panels
-// leave, so what it keeps is always the current revision.
+// moment. A kept document is followed while any panel holds it (the 준비
+// table data is held for the whole window), so what it keeps is always the
+// current revision, and it goes when its last holder leaves.
 const keptDocuments = new WeakMap<object, Map<string, Kept>>();
 
-function keep<T extends Revisioned>(
-  source: DocumentSource<T>,
-): Kept | undefined {
+function hold<T extends Revisioned>(source: DocumentSource<T>): () => void {
   const kept = source.kept;
-  if (kept === undefined) return undefined;
+  if (kept === undefined) return () => undefined;
   const documents = keptDocuments.get(kept.owner) ?? new Map<string, Kept>();
   keptDocuments.set(kept.owner, documents);
-  const found = documents.get(kept.name);
-  if (found !== undefined) return found;
-  const kind = kept.name.includes(':')
-    ? kept.name.slice(0, kept.name.indexOf(':') + 1)
-    : null;
-  if (kind !== null) {
-    for (const [name, other] of documents) {
-      if (name.startsWith(kind)) {
-        other.stop();
-        documents.delete(name);
+  let entry = documents.get(kept.name);
+  if (entry === undefined) {
+    const created: Kept = {document: null, holders: 0, stop: () => undefined};
+    const accept = (document: T): void => {
+      if (
+        created.document === null ||
+        created.document.revision < document.revision
+      ) {
+        created.document = document;
       }
-    }
+    };
+    created.stop = source.follow(accept);
+    source.read().then(accept, () => undefined);
+    documents.set(kept.name, created);
+    entry = created;
   }
-  const entry: Kept = {document: null, stop: () => undefined};
-  const accept = (document: T): void => {
-    if (
-      entry.document === null ||
-      entry.document.revision < document.revision
-    ) {
-      entry.document = document;
-    }
+  const held = entry;
+  held.holders += 1;
+  return () => {
+    held.holders -= 1;
+    if (held.holders > 0) return;
+    held.stop();
+    if (documents.get(kept.name) === held) documents.delete(kept.name);
   };
-  entry.stop = source.follow(accept);
-  documents.set(kept.name, entry);
-  source.read().then(accept, () => {
-    entry.stop();
-    if (documents.get(kept.name) === entry) documents.delete(kept.name);
-  });
-  return entry;
 }
 
 function keptDocument<T extends Revisioned>(
@@ -108,7 +102,7 @@ export function useFollowedDocument<T extends Revisioned>(
   const [attempt, setAttempt] = useState(0);
   useEffect(() => {
     if (!enabled) return undefined;
-    keep(source);
+    const release = hold(source);
     let alive = true;
     const accept = (document: T): void => {
       if (!alive) return;
@@ -131,6 +125,7 @@ export function useFollowedDocument<T extends Revisioned>(
     return () => {
       alive = false;
       stop();
+      release();
     };
   }, [source, attempt, enabled]);
   return {
