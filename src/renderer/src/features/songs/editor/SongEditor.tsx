@@ -27,7 +27,7 @@ import {
 import {PanelFooter} from '@renderer/ui/Panel';
 import {Button} from '@renderer/ui/Button';
 import {useSongBlockWindow} from './useSongBlockWindow';
-import {gridInsertionPosition} from './gridInsertionPosition';
+import {visibleGridInsertionPosition} from './gridInsertionPosition';
 import {SongSlideSurface} from './SongSlideSurface';
 import {useSongSlideAppearance} from './useSongSlideAppearance';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
@@ -109,11 +109,7 @@ export function SongEditor({
             onBack={onBack}
             blocked={state.busy}
             onAdd={index => {
-              state.session?.select({
-                block: Math.max(0, index - 1),
-                start: 0,
-                end: 0,
-              });
+              state.session?.selectSlides({type: 'gap', index});
               state.session?.edit({type: 'insert'});
             }}
             extraMenu={index => [
@@ -361,7 +357,7 @@ function SongBlocks({
       aria-label="마지막 슬라이드 뒤에 삽입"
       style={
         view.mode === 'grid'
-          ? gridInsertionPosition({
+          ? visibleGridInsertionPosition({
               index: slides.length,
               count: slides.length,
               leading: leadingOffset,

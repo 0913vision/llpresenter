@@ -114,7 +114,13 @@ export class SongSlideHistory {
       this.model.command({type: 'label', label: command.name});
       return this.snapshot;
     }
-    const next = editBlocks(before, command);
+    const caret = this.model.getSnapshot().selection.caret;
+    const next = editBlocks(
+      before,
+      command.type === 'insert' && command.index === undefined && caret !== null
+        ? {...command, index: caret}
+        : command,
+    );
     if (next.song === before.song) {
       this.select(next.selection);
       return this.snapshot;

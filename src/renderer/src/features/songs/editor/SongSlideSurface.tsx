@@ -13,7 +13,7 @@ import {
 } from 'react';
 import type {SlideListItem} from '@core/songs/slideListEdits';
 import type {LeadingSlideCard} from './SlideCardRenderer';
-import {slideDropPosition} from './gridInsertionPosition';
+import {emptySlideGap, slideDropPosition} from './gridInsertionPosition';
 import {selectedSlideAnchor} from './selectedSlideAnchor';
 
 import {isInTextEntry} from '@renderer/ui/textEntry';
@@ -553,6 +553,47 @@ export function SongSlideSurface<T extends SlideListItem>({
       onClickCapture={event => {
         dragClick.props.onClickCapture(event);
         if (event.defaultPrevented) return;
+        if (
+          event.button === 0 &&
+          !event.ctrlKey &&
+          !event.metaKey &&
+          !event.shiftKey &&
+          !event.altKey &&
+          event.target instanceof Element
+        ) {
+          const viewport = event.target.closest<HTMLElement>(
+            '[data-view], [data-editor="true"]',
+          );
+          const slide = event.target.closest('[data-song-slide]');
+          const occupied = event.target.closest(
+            '[data-slide-gap], [data-leading-card], button, input, textarea, select, [contenteditable="true"]',
+          );
+          const emptyPlate =
+            slide !== null &&
+            slide === event.target &&
+            slide.getBoundingClientRect().width > 0 &&
+            slide.getBoundingClientRect().height > 0;
+          if (
+            viewport !== null &&
+            occupied === null &&
+            (slide === null || emptyPlate) &&
+            event.currentTarget.contains(viewport)
+          ) {
+            clearCard();
+            session.selectSlides({
+              type: 'gap',
+              index: emptySlideGap(viewport, {
+                x: event.clientX,
+                y: event.clientY,
+                count: view.slides.length,
+              }),
+            });
+            surfaceRef.current?.focus({preventScroll: true});
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+          }
+        }
         if (
           event.target instanceof Element &&
           event.target.closest('[data-leading-card]') !== null

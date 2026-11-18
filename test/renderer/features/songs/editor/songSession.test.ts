@@ -70,6 +70,18 @@ describe('slide deck sessions', () => {
     session.edit({type: 'insert'});
     expect(session.history.snapshot.song.slides).toMatchObject([{lines: []}]);
   });
+  it.each([0, 1, 3])('inserts at the selected gap %i', index => {
+    const {session} = deck();
+    const before = session.history.snapshot.song.slides;
+    session.selectSlides({type: 'gap', index});
+    session.edit({type: 'insert'});
+    const after = session.history.snapshot.song.slides;
+    expect(after).toHaveLength(4);
+    expect(after[index]?.lines).toEqual([]);
+    expect(
+      after.filter(slide => before.some(old => old.id === slide.id)),
+    ).toEqual(before);
+  });
 });
 
 describe('manual song sessions', () => {

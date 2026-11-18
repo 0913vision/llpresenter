@@ -14,7 +14,7 @@ import {thumbnailWidth} from '@renderer/ui/thumbnailSize';
 import {isComposing} from '@renderer/ui/ime';
 import type {Song} from '@core/schema/song';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
-import {gridInsertionPosition} from './gridInsertionPosition';
+import {visibleGridInsertionPosition} from './gridInsertionPosition';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {BufferedSlideGrid} from '@renderer/ui/BufferedSlideGrid';
 import styles from './SongPanels.module.css';
@@ -375,9 +375,11 @@ export function VirtualSlides<T extends SlideListItem>({
           >
             {numbers.slice(start, end).map((number, index) => {
               const slides = song.slides;
-              const slide = slides[number - 1];
+              const at = start + index;
+              const sourceIndex = session === undefined ? number - 1 : at;
+              const slide = slides[sourceIndex];
               if (slide === undefined) return null;
-              const own = list?.slides[number - 1];
+              const own = list?.slides[at];
               const thumbnail = (
                 <SlideThumbnail
                   key={own?.id ?? start + index}
@@ -390,7 +392,7 @@ export function VirtualSlides<T extends SlideListItem>({
                   }
                   text={slide.lines.join('\n')}
                   canvas={
-                    canvasFor?.(number - 1) ??
+                    canvasFor?.(sourceIndex) ??
                     (theme === undefined ? undefined : (
                       <SlidePicture
                         output
@@ -398,7 +400,7 @@ export function VirtualSlides<T extends SlideListItem>({
                         background={slide.picture ?? background}
                         slide={{
                           itemId: 'thumbnail',
-                          position: number - 1,
+                          position: sourceIndex,
                           label: slide.label ?? null,
                           lines: slide.lines,
                           ...(slide.titleSlide === undefined
@@ -435,23 +437,23 @@ export function VirtualSlides<T extends SlideListItem>({
                   className={styles.editableTile}
                   data-menu-row
                   data-song-slide={own?.id}
-                  data-slide-index={number - 1}
+                  data-slide-index={at}
                   draggable={!session.readOnly}
                 >
                   <button
                     type="button"
-                    data-slide-gap={number - 1}
+                    data-slide-gap={at}
                     tabIndex={-1}
                     className={styles.gridGap}
                     style={
-                      (number - 1) % columns === 0
+                      at % columns === 0
                         ? {insetInlineStart: 0}
                         : {insetInlineStart: -measure.xGap, width: measure.xGap}
                     }
-                    data-caret={list?.selection.caret === number - 1}
+                    data-caret={list?.selection.caret === at}
                     aria-label={`슬라이드 ${number} 앞에 삽입`}
                     onClick={event => {
-                      session.selectSlides({type: 'gap', index: number - 1});
+                      session.selectSlides({type: 'gap', index: at});
                       event.currentTarget
                         .closest<HTMLElement>(
                           '[aria-label="슬라이드 편집 명령"]',
@@ -470,7 +472,7 @@ export function VirtualSlides<T extends SlideListItem>({
           <button
             type="button"
             className={styles.lastGap}
-            style={gridInsertionPosition({
+            style={visibleGridInsertionPosition({
               index: numbers.length,
               count: numbers.length,
               leading: 0,

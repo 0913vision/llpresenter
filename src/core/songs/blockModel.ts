@@ -26,7 +26,8 @@ export type BlockCommand =
       readonly block: number;
       readonly layout: SongTitleLayout;
     }
-  | {readonly type: 'enter' | 'split' | 'insert' | 'merge'};
+  | {readonly type: 'insert'; readonly index?: number}
+  | {readonly type: 'enter' | 'split' | 'merge'};
 
 export const normalize = (text: string): string => text.replace(/\r\n?/g, '\n');
 export const BLANK_LINES = /\n(?:[^\S\n]*\n)+/g;

@@ -18,7 +18,7 @@ import styles from './SlidesEditor.module.css';
 import {EditorSlideNumber} from '../../songs/editor/EditorSlideNumber';
 import plate from '../../songs/editor/EditorSlidePlate.module.css';
 import {useSongBlockWindow} from '../../songs/editor/useSongBlockWindow';
-import {gridInsertionPosition} from '../../songs/editor/gridInsertionPosition';
+import {visibleGridInsertionPosition} from '../../songs/editor/gridInsertionPosition';
 import {useSlideSurfaceView} from '../../songs/editor/SlideSurfaceView';
 import {useRevealInsertedSlide} from '../../songs/editor/useRevealInsertedSlide';
 
@@ -300,15 +300,18 @@ export function SlideRows({
           {view.mode === 'grid'
             ? gap(
                 rows.length,
-                gridInsertionPosition({
-                  index: rows.length,
-                  count: rows.length,
-                  leading: leadingOffset,
-                  columns,
-                  width: cellWidth,
-                  columnGap,
-                  offsets,
-                }),
+                visibleGridInsertionPosition(
+                  {
+                    index: rows.length,
+                    count: rows.length,
+                    leading: leadingOffset,
+                    columns,
+                    width: cellWidth,
+                    columnGap,
+                    offsets,
+                  },
+                  28,
+                ),
               )
             : null}
         </div>

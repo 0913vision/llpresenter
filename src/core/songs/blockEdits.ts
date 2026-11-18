@@ -73,12 +73,22 @@ export function editBlocks(
     );
   }
   const {block, start, end} = selection;
-  const slide = song.slides[block];
-  if (slide === undefined) {
-    return command.type === 'insert' && song.slides.length === 0
-      ? blockSnapshot({...song, slides: [{id: newSongSlideId(), lines: []}]})
-      : snapshot;
+  if (command.type === 'insert') {
+    const index = command.index ?? (song.slides.length === 0 ? 0 : block + 1);
+    if (
+      !Number.isInteger(index) ||
+      index < 0 ||
+      index > song.slides.length ||
+      song.slides.length >= SONG_LIMITS.slides
+    ) {
+      return snapshot;
+    }
+    const slides = [...song.slides];
+    slides.splice(index, 0, {id: newSongSlideId(), lines: []});
+    return blockSnapshot({...song, slides}, {block: index, start: 0, end: 0});
   }
+  const slide = song.slides[block];
+  if (slide === undefined) return snapshot;
   if (command.type === 'label') {
     const result = setSlideLabels(song.slides, [slide.id], command.name);
     return result.ok
@@ -136,15 +146,6 @@ export function editBlocks(
             ),
           },
       {block, start: caret.start, end: caret.end},
-    );
-  }
-  if (command.type === 'insert') {
-    if (song.slides.length >= SONG_LIMITS.slides) return snapshot;
-    const slides = [...song.slides];
-    slides.splice(block + 1, 0, {id: newSongSlideId(), lines: []});
-    return blockSnapshot(
-      {...song, slides},
-      {block: block + 1, start: 0, end: 0},
     );
   }
   const insertion = command.type === 'paste' ? normalize(command.text) : '';
