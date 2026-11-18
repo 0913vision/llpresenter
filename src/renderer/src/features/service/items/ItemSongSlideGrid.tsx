@@ -12,6 +12,7 @@ import {
   loadItemSong,
 } from '@renderer/features/songs/editor/itemSongSession';
 import {SongSlideSurface} from '@renderer/features/songs/editor/SongSlideSurface';
+import {useSlideDefaults} from '@renderer/features/songs/editor/useSlideDefaults';
 import {VirtualSlides} from '@renderer/features/songs/editor/VirtualSlides';
 import {useThumbnailScale} from '@renderer/platform/thumbnailScale';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
@@ -96,6 +97,11 @@ function ItemSongTiles({
     session.history.model.getSnapshot,
   );
   const state = useSyncExternalStore(editor.subscribe, editor.getSnapshot);
+  const slideDefaults = useSlideDefaults();
+  useEffect(
+    () => session.setSlideDefaults(slideDefaults),
+    [session, slideDefaults],
+  );
   const scale = useThumbnailScale('normal');
   const row = useShow(view => {
     const row = view.rows.find(row => row.id === item.id);

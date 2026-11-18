@@ -42,6 +42,10 @@ describe('parsePreferences', () => {
 
   it('uses bounded per-kind defaults and preserves custom choices', () => {
     const defaults = withPreferenceDefaults(parse(HEADER)).show.slideDefaults;
+    expect(defaults.songTitle).toEqual({kind: 'wipe', dir: 'left', sec: 4});
+    expect(defaults.song.kind).toBe('none');
+    expect(defaults.blank.kind).toBe('none');
+    expect(defaults.ad.kind).toBe('none');
     expect(defaults.section).toEqual({kind: 'wipe', dir: 'left', sec: 1});
     expect(defaults.sermonTitle).toEqual({kind: 'wipe', dir: 'left', sec: 1});
     for (const kind of ['creed', 'prayer', 'bible'] as const) {

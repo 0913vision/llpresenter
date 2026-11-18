@@ -9,6 +9,10 @@ import {ITEM_CARD_TRANSITION} from './itemCardTransition';
 import type {SlideListClipboard} from './slideListModel';
 import type {SlideListCommand} from '@core/songs/slideListEdits';
 import type {SlideTransition} from '@core/schema/slideTransition';
+import {
+  defaultSlideTransitions,
+  type SlideTransitionDefaults,
+} from '@core/schema/preferences';
 import type {SlideSelectionAction} from '@core/songs/slideListSelection';
 import {SongTitleDraft} from '@core/songs/songTitle';
 import {
@@ -38,6 +42,10 @@ interface SessionOptions {
 
 /** Owns lyric history and drafts, borrowing its private persistence coordinator. */
 export class SongSession {
+  private slideDefaults: SlideTransitionDefaults = defaultSlideTransitions;
+  setSlideDefaults(defaults: SlideTransitionDefaults): void {
+    this.slideDefaults = defaults;
+  }
   history: SongSlideHistory;
   title: SongTitleDraft;
   background: MediaId | undefined;
@@ -325,7 +333,19 @@ export class SongSession {
     if (command === 'undo') this.history.undo();
     else if (command === 'redo') this.history.redo();
     else {
-      this.history.apply(command);
+      this.history.apply(
+        command.type === 'title'
+          ? {
+              ...command,
+              transition: command.transition ?? this.slideDefaults.songTitle,
+            }
+          : command.type === 'insert'
+            ? {
+                ...command,
+                transition: command.transition ?? this.slideDefaults.song,
+              }
+            : command,
+      );
     }
     const current = this.history.model.getContent();
     if (previous.slides !== current.slides) {

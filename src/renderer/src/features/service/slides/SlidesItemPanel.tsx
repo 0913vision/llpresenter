@@ -1,4 +1,5 @@
 import type {SongEditorStore} from '../../songs/editor/songEditorStore';
+import {useSlideDefaults} from '../../songs/editor/useSlideDefaults';
 import {cardOffset} from '@core/services/sectionCards';
 import {sectionCardEntries} from '../items/sectionCardActions';
 import {type JSX, useEffect, useMemo, useSyncExternalStore} from 'react';
@@ -79,6 +80,7 @@ function SlidesItemTiles({
   readonly session: SlidesListSession;
   readonly openEditor: LlpApi['slidesEditor']['open'] | undefined;
 }): JSX.Element {
+  const slideDefaults = useSlideDefaults();
   const {service} = useSyncExternalStore(items.subscribe, items.getSnapshot);
   const labelsDoc = useItemSettings(
     api.settings,
@@ -125,7 +127,9 @@ function SlidesItemTiles({
           session={session}
           onAdd={index => {
             session.selectSlides({type: 'gap', index});
-            session.draft.insert([newTextSlide(item.slides.form)]);
+            session.draft.insert([
+              newTextSlide(item.slides.form, slideDefaults[item.slides.form]),
+            ]);
           }}
           store={store}
           report={session.reportNotice}

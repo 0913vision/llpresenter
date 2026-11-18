@@ -1,7 +1,8 @@
 import {iconByKind, SERMON_ICON} from '../order/serviceItemIcons';
 import {createServiceItemId} from '@core/schema/ids';
-import type {ServiceItem} from '@core/schema/service';
+import {isItemOfKind, type ServiceItem} from '@core/schema/service';
 import {newSlidesItem} from '@core/services/slidesEdits';
+import {newSlidesWithDefaults} from './newSlidesWithDefaults';
 import {
   newSundayAnnouncement,
   newSundayPreparation,
@@ -80,7 +81,7 @@ export async function createPaletteItem(
       },
     };
   }
-  if (key === 'blank') return newSlidesItem('blank', id);
+  if (key === 'blank') return newSlidesWithDefaults('blank', id);
   if (key === 'ad' || key === 'creed') {
     const section = SUNDAY_SECTIONS.find(
       section => section.name === (key === 'ad' ? '광고' : '사도신경'),
@@ -91,7 +92,25 @@ export async function createPaletteItem(
       if (prepared.sectionCard === undefined) {
         throw Error('Missing section card');
       }
-      return {...newSundayAnnouncement(id), sectionCard: prepared.sectionCard};
+      const defaults = await window.llp?.preferences.get();
+      const announcement = newSundayAnnouncement(id);
+      if (!isItemOfKind(announcement, 'slides')) {
+        throw new Error('Invalid announcement');
+      }
+      return {
+        ...announcement,
+        slides: {
+          ...announcement.slides,
+          slides: announcement.slides.slides.map(slide => ({
+            ...slide,
+            transition: defaults?.show.slideDefaults.ad ?? {
+              kind: 'none',
+              sec: 1,
+            },
+          })),
+        },
+        sectionCard: prepared.sectionCard,
+      };
     }
     if (prepared.sectionCard === undefined) throw Error('Missing section card');
     return {

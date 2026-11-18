@@ -10,6 +10,7 @@ import {
   type Song,
 } from '@core/schema/song';
 import {freeTitle, normalizeSongTitle} from './contentEdits';
+import {defaultSlideTransitions} from '@core/schema/preferences';
 import type {ContentCommandContext, ContentHandlers} from './contentCommands';
 
 const NEW_SONG_TITLE = '새 곡';
@@ -94,6 +95,9 @@ class SongContentCommands {
       this.context.songs.all().map(({data}) => normalizeSongTitle(data.title)),
     );
     const title = freeTitle(NEW_SONG_TITLE, titles);
+    const defaults =
+      this.context.settings?.preferences().show.slideDefaults ??
+      defaultSlideTransitions;
     const song: Song = {
       format: 'llsong',
       schemaVersion: SONG_SCHEMA_VERSION,
@@ -104,8 +108,13 @@ class SongContentCommands {
           id: createSongSlideId(this.context.newId()),
           titleSlide: true,
           lines: [title],
+          transition: defaults.songTitle,
         },
-        {id: createSongSlideId(this.context.newId()), lines: []},
+        {
+          id: createSongSlideId(this.context.newId()),
+          lines: [],
+          transition: defaults.song,
+        },
       ],
     };
     const file = join(this.context.locations.songs, `${id}${SONG_EXTENSION}`);

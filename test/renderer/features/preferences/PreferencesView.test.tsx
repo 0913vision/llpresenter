@@ -709,7 +709,7 @@ describe('PreferencesView', () => {
 
   it('edits a new-slide default without writing the other kinds', async () => {
     await mount();
-    await openPage('출력');
+    await openPage('준비');
     await userEvent.click(screen.getByRole('button', {name: '성경 말씀 효과'}));
     await userEvent.click(screen.getByRole('menuitemradio', {name: '디졸브'}));
     await waitFor(() =>
@@ -719,6 +719,26 @@ describe('PreferencesView', () => {
       }),
     );
     expect(written().show?.slideDefaults?.section).toBeUndefined();
+  });
+
+  it('shows preparation transition defaults and saves a direction', async () => {
+    await mount();
+    await openPage('준비');
+    expect(screen.getByRole('button', {name: '곡 제목 효과'})).toBeDefined();
+    expect(
+      screen
+        .getByRole('button', {name: '곡 방향'})
+        .getAttribute('aria-disabled'),
+    ).toBe('true');
+    await userEvent.click(screen.getByRole('button', {name: '곡 제목 방향'}));
+    await userEvent.click(screen.getByRole('menuitemradio', {name: '→'}));
+    await waitFor(() =>
+      expect(written().show?.slideDefaults?.songTitle).toEqual({
+        kind: 'wipe',
+        dir: 'right',
+        sec: 4,
+      }),
+    );
   });
 
   it('writes the 저장 backup rows', async () => {

@@ -8,7 +8,7 @@ import {
 } from '@renderer/features/media/backgroundChoices';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
-import {newSlidesItem} from '@core/services/slidesEdits';
+import {newSlidesWithDefaults} from './newSlidesWithDefaults';
 import {LITURGY} from '@core/services/liturgy';
 import {prepareLiturgy} from './quickAddLiturgy';
 import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
@@ -82,7 +82,7 @@ export function otherItemEntries({
       id: `other:${form}`,
       label: form === 'ad' ? '광고' : '빈 슬라이드',
       icon: 'monitor',
-      onSelect: () => onInsert(newSlidesItem(form, newId())),
+      onSelect: () => onInsert(() => newSlidesWithDefaults(form, newId())),
     })),
     ...(['creed', 'prayer'] as const).map(kind => ({
       kind: 'item' as const,

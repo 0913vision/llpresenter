@@ -65,7 +65,14 @@ export function editBlocks(
         ...song,
         slides: [
           ...song.slides.slice(0, index),
-          {id: newSongSlideId(), titleSlide: true, lines: [command.title]},
+          {
+            id: newSongSlideId(),
+            titleSlide: true,
+            lines: [command.title],
+            ...(command.transition === undefined
+              ? {}
+              : {transition: command.transition}),
+          },
           ...song.slides.slice(index),
         ],
       },
@@ -84,7 +91,13 @@ export function editBlocks(
       return snapshot;
     }
     const slides = [...song.slides];
-    slides.splice(index, 0, {id: newSongSlideId(), lines: []});
+    slides.splice(index, 0, {
+      id: newSongSlideId(),
+      lines: [],
+      ...(command.transition === undefined
+        ? {}
+        : {transition: command.transition}),
+    });
     return blockSnapshot({...song, slides}, {block: index, start: 0, end: 0});
   }
   const slide = song.slides[block];

@@ -275,10 +275,19 @@ export function useSongEditorWindow(
       if (session === null) return false;
       if (from.current !== undefined && !(await session.commit())) return false;
       const source = session.draftSong();
+      const slides = titleSlidesForCopy(source, title, () =>
+        crypto.randomUUID(),
+      );
+      const transition = (await api.preferences.get()).show.slideDefaults
+        .songTitle;
       const draft = {
         ...source,
         title,
-        slides: titleSlidesForCopy(source, title, () => crypto.randomUUID()),
+        slides: source.slides[0]?.titleSlide
+          ? slides
+          : slides.map((slide, index) =>
+              index === 0 ? {...slide, transition} : slide,
+            ),
       };
       const result = await api.content.edit({type: 'song.saveAs', song: draft});
       if (!result.ok) {

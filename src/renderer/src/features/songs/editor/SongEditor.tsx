@@ -1,5 +1,6 @@
 import {
   useCallback,
+  useEffect,
   useLayoutEffect,
   useMemo,
   useRef,
@@ -12,6 +13,7 @@ import {
 import {LabelMenu} from './LabelMenu';
 import {SongEditorRibbon, type SongDesignRenderer} from './SongEditorRibbon';
 import {SongBlock, type EditorFocus} from './SongBlock';
+import {useSlideDefaults} from './useSlideDefaults';
 import {SongHeader} from './SongHeader';
 import type {SongEditorStore} from './songEditorStore';
 import type {SongSession} from './songSession';
@@ -75,6 +77,11 @@ export function SongEditor({
   const current = useSyncExternalStore(store.subscribe, store.getSnapshot);
   const state =
     shownSession === undefined ? current : {...current, session: shownSession};
+  const slideDefaults = useSlideDefaults();
+  useEffect(
+    () => state.session?.setSlideDefaults(slideDefaults),
+    [state.session, slideDefaults],
+  );
   const serviceName = useShow(view => view.serviceName);
   const root = useRef<HTMLElement>(null);
   useEditorFocus(root, state.session, {onBack, request: state.openRequest});

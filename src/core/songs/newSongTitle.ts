@@ -1,5 +1,6 @@
 import {createSongSlideId} from '../schema/ids';
 import type {Song, SongSlide} from '../schema/song';
+import {defaultSlideTransitions} from '../schema/preferences';
 
 /** Updates a title line only while it matches the previous song title. */
 export function followTitle(
@@ -26,7 +27,12 @@ export function titleSlidesForCopy(
   const first = song.slides[0];
   if (!first?.titleSlide) {
     return [
-      {id: createSongSlideId(newId()), titleSlide: true, lines: [title]},
+      {
+        id: createSongSlideId(newId()),
+        titleSlide: true,
+        lines: [title],
+        transition: defaultSlideTransitions.songTitle,
+      },
       ...song.slides,
     ];
   }

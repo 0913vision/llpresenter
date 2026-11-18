@@ -4,6 +4,18 @@ import {blockSnapshot} from '@core/songs/blockModel';
 import {editBlocks} from '@core/songs/blockEdits';
 
 describe('slide text editing', () => {
+  it('stores the requested default on newly inserted slides', () => {
+    const before = blockSnapshot(sampleSong(), {block: 0, start: 0, end: 0});
+    const transition = {kind: 'wipe', dir: 'right', sec: 4} as const;
+    expect(
+      editBlocks(before, {type: 'title', title: 'Title', transition}).song
+        .slides[0]?.transition,
+    ).toEqual(transition);
+    expect(
+      editBlocks(before, {type: 'insert', transition}).song.slides[1]
+        ?.transition,
+    ).toEqual(transition);
+  });
   it('inserts editable opening and closing titles without a special transition', () => {
     const before = blockSnapshot(sampleSong(), {block: 2, start: 0, end: 0});
     const after = editBlocks(before, {type: 'title', title: 'Invented title'});
