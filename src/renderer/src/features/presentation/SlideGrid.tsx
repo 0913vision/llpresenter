@@ -16,7 +16,6 @@ import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {slideMenuEntries} from '@renderer/features/songs/editor/slideMenuEntries';
 import {isItemRow} from '@core/presentation/model';
 import {slideLayerOf} from '@core/presentation/slideLayer';
-import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {sermonPreviewRow} from '@renderer/platform/sermonPreview';
 import {useBibleTileProjection} from '../bible/useBibleProjections';
@@ -27,6 +26,8 @@ import {ShowSlideEntry} from './showPanelNavigation';
 import {serviceSlideOffset} from './serviceSlideNumbers';
 import {useSlideTransitionProgress} from './useSlideTransitionProgress';
 import {BufferedSlideGrid} from '@renderer/ui/BufferedSlideGrid';
+import {tilePicture} from './tilePicture';
+import {SlidePicturePrefetch} from './SlidePicturePrefetch';
 import {revealSlideItem} from '@renderer/session/visibleSlideItem';
 
 const GRID_SELECTOR = '[role="listbox"]';
@@ -172,6 +173,7 @@ export function SlideGrid({
         <BibleLoadNotice row={row} />
       ) : null}
 
+      <SlidePicturePrefetch openItemId={openItemId} />
       <div className={styles.window} style={{top: window.offset}}>
         <BufferedSlideGrid
           itemKey={openItemId ?? ''}
@@ -209,38 +211,17 @@ export function SlideGrid({
                 openItemId === null
                   ? null
                   : slideLayerOf({itemId: openItemId, index}, () => tiles);
-              const appearance =
-                tile.biblePart === undefined ? undefined : bible?.appearance;
               return (
                 <SlideThumbnail
                   key={`${openItemId}:${index}`}
                   selectionStyle="plate"
                   number={(offset ?? 0) + index + 1}
-                  canvas={
-                    picture !== undefined ? undefined : tile.sectionCard !==
-                        undefined &&
-                      cardTheme !== undefined &&
-                      slide !== null ? (
-                      <SlidePicture output {...cardTheme} slide={slide} />
-                    ) : tile.sermonTitle === true &&
-                      sermonTheme !== undefined &&
-                      slide !== null ? (
-                      <SlidePicture output {...sermonTheme} slide={slide} />
-                    ) : appearance !== undefined && slide !== null ? (
-                      <SlidePicture
-                        output
-                        screen={appearance.screen}
-                        themeId={appearance.theme.themeId}
-                        slide={slide}
-                        layout={appearance.theme.layout}
-                        emptyColor={appearance.theme.emptyColor}
-                        item={appearance.theme.item}
-                        background={appearance.background}
-                      />
-                    ) : theme === undefined || slide === null ? undefined : (
-                      <SlidePicture output {...theme} slide={slide} />
-                    )
-                  }
+                  canvas={tilePicture(tile, slide, {
+                    theme,
+                    cardTheme,
+                    sermonTheme,
+                    bibleAppearance: bible?.appearance,
+                  })}
                   label={
                     tile.label === '' ? undefined : (tile.label ?? undefined)
                   }
