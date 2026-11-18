@@ -4,6 +4,8 @@ import type {ServiceDocument} from '@core/schema/contentDocuments';
 import type {MediaId, SongId} from '@core/schema/ids';
 import {isItemOfKind} from '@core/schema/service';
 import {useShow} from '@renderer/session/show';
+import {keepThumbnails} from '@renderer/ui/keptThumbnails';
+import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import type {ServiceItem} from '@core/schema/service';
 import type {ThemesFile} from '@core/schema/themes';
 import {useFollowedDocument} from '../items/useFollowedDocument';
@@ -204,6 +206,13 @@ export function useServiceTableData(api: TableApi, serviceId: string | null) {
  */
 export function TableDataKeeper({api}: {readonly api: TableApi}): null {
   const serviceId = useShow(view => view.serviceId);
-  useServiceTableData(api, serviceId);
+  const {media} = useServiceTableData(api, serviceId);
+  useEffect(() => {
+    keepThumbnails(
+      media
+        .filter(item => item.kind !== 'audio')
+        .map(item => thumbnailSrc(item.id)),
+    );
+  }, [media]);
   return null;
 }
