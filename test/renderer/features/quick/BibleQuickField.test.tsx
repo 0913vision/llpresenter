@@ -26,6 +26,7 @@ import {formLookupReply} from '@fixtures/core/bibleReplies';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {openBiblePassage} from '@renderer/features/bible/actions';
 import {BibleQuickField} from '@renderer/features/quick/BibleQuickField';
+import {commandBindingStore} from '@renderer/ui/commandBindings';
 import {useLive} from '@renderer/session/live';
 import {openItem, useShow} from '@renderer/session/show';
 import {
@@ -63,11 +64,77 @@ beforeEach(() => {
 });
 afterEach(() => {
   cleanup();
+  commandBindingStore.set({});
   window.removeEventListener('keydown', handleShowKey);
   delete window.llp;
 });
 
 describe('BibleQuickField', () => {
+  it.each([
+    {code: 'KeyB', key: 'b', ctrlKey: true},
+    {code: 'F8', key: 'F8', ctrlKey: false},
+  ])('closes the finder from its focused field with its binding', async key => {
+    if (key.code === 'F8') {
+      commandBindingStore.set({'bible.focus': [{code: 'F8', mods: []}]});
+    }
+    const fixture = panelApi();
+    render(<BibleQuickField api={fixture.api} />);
+    await book();
+    fireEvent.keyDown(document.body, key);
+    const dialog = screen.getByRole('dialog');
+    const field = await book();
+    expect(document.activeElement).toBe(field);
+    fireEvent.keyDown(field, key);
+    expect(dialog.isConnected).toBe(false);
+  });
+
+  it('consumes a repeated binding without closing the finder', async () => {
+    const fixture = panelApi();
+    render(<BibleQuickField api={fixture.api} />);
+    await book();
+    fireEvent.keyDown(document.body, {code: 'KeyB', key: 'b', ctrlKey: true});
+    const field = await book();
+    const event = new KeyboardEvent('keydown', {
+      code: 'KeyB',
+      key: 'b',
+      ctrlKey: true,
+      repeat: true,
+      bubbles: true,
+      cancelable: true,
+    });
+    act(() => {
+      field.dispatchEvent(event);
+    });
+    expect(event.defaultPrevented).toBe(true);
+    expect(screen.getByRole('dialog')).toBeTruthy();
+  });
+
+  it('leaves the finder open for input method keys', async () => {
+    const fixture = panelApi();
+    render(<BibleQuickField api={fixture.api} />);
+    await book();
+    fireEvent.keyDown(document.body, {code: 'KeyB', key: 'b', ctrlKey: true});
+    const field = await book();
+    fireEvent.keyDown(field, {
+      code: 'KeyB',
+      key: 'b',
+      ctrlKey: true,
+      isComposing: true,
+    });
+    fireEvent.keyDown(field, {code: 'KeyB', key: 'Process', ctrlKey: true});
+    fireEvent.compositionStart(field);
+    fireEvent.keyDown(field, {code: 'KeyB', key: 'b', ctrlKey: true});
+    fireEvent.compositionEnd(field);
+    fireEvent.keyDown(field, {
+      code: 'ControlRight',
+      key: 'Control',
+      ctrlKey: true,
+    });
+    fireEvent.keyDown(field, {code: 'KeyB', key: 'b', ctrlKey: true});
+    fireEvent.keyUp(field, {code: 'ControlRight', key: 'Control'});
+    expect(screen.getByRole('dialog')).toBeTruthy();
+  });
+
   it('does nothing when the preceding slide is missing or has been removed', async () => {
     const fixture = panelApi();
     window.llp = fixture.api;

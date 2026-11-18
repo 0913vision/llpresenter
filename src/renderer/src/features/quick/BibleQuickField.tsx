@@ -4,6 +4,7 @@ import {useRef, useSyncExternalStore} from 'react';
 import {commandBindings} from '@core/shortcuts/bindings';
 import {matchesBinding} from '@core/shortcuts/matching';
 import {commandBindingStore} from '@renderer/ui/commandBindings';
+import {isInputMethodKey} from '@renderer/ui/commandDispatcher';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useEffect, useState, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
@@ -97,13 +98,14 @@ export function BibleQuickField({
         // the key that opened it closes it from inside, also while typing.
         if (
           overlayOpen &&
+          !isInputMethodKey(event.nativeEvent) &&
           commandBindings('bible.focus', bindings).some(binding =>
             matchesBinding(event.nativeEvent, binding),
           )
         ) {
           event.preventDefault();
           event.stopPropagation();
-          setOverlayOpen(false);
+          if (!event.repeat) setOverlayOpen(false);
         }
       }}
     >
