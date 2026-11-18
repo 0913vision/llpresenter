@@ -7,6 +7,7 @@ function repeatedLabel(
   tile: SlideTile,
   previous: SlideTile | undefined,
 ): boolean {
+  if (tile.titleSlide || previous?.titleSlide) return false;
   const label =
     tile.slideLabel ?? (tile.kind === undefined ? tile.label : null);
   const prior =
