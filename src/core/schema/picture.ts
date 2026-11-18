@@ -4,6 +4,7 @@ import {screenIdSchema, themeIdSchema} from './ids';
 import {liveThemeItemSchema} from './liveTheme';
 import {themeScreenLayoutSchema} from './themes';
 import {parsePayload, payloadObject} from './payload';
+import type {ReadonlyKnown} from './fileFormat';
 
 /** Bounds the serialized request before it is queued for the painter. */
 export const MAX_PICTURE_REQUEST_BYTES = 1_000_000;
@@ -64,9 +65,7 @@ export const pictureRequestSchema = v.pipe(
   ),
 );
 
-type Immutable<T> = {readonly [Key in keyof T]: Immutable<T[Key]>};
-
-export type PictureRequest = Immutable<
+export type PictureRequest = ReadonlyKnown<
   v.InferOutput<typeof pictureRequestSchema>
 >;
 
