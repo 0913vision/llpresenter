@@ -108,9 +108,15 @@ it('dispatches rename, delete and drag reorder for the selected theme', () => {
   if (!source || !target) throw new Error('Missing row');
   const dataTransfer = {effectAllowed: '', dropEffect: '', setData: vi.fn()};
   fireEvent.dragStart(source, {dataTransfer});
-  fireEvent.dragOver(target, {dataTransfer, clientY: 0});
-  fireEvent.drop(target, {dataTransfer, clientY: 0});
-  expect(move).toHaveBeenCalledWith('a', 'b');
+  fireEvent.dragOver(source, {dataTransfer});
+  expect(source.className).not.toMatch(/dropBefore|dropAfter/);
+  fireEvent.drop(source, {dataTransfer});
+  expect(move).not.toHaveBeenCalled();
+  fireEvent.dragStart(target, {dataTransfer});
+  fireEvent.dragOver(source, {dataTransfer});
+  expect(source.className).toMatch(/dropBefore/);
+  fireEvent.drop(source, {dataTransfer});
+  expect(move).toHaveBeenCalledExactlyOnceWith('b', 'a');
 });
 
 it('bounds a thousand rows while Home and End select and focus the full model', async () => {

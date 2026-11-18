@@ -1,3 +1,4 @@
+import {isUnchangedSelectionMove} from '@core/common/selectionOrder';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {contextMenuTarget, isContextMenuKey} from '@renderer/ui/contextMenu';
 import {
@@ -130,6 +131,21 @@ function CollectionPopover({
       },
     );
   };
+  const unchanged = (before: MacroCollection['id'] | undefined): boolean => {
+    if (dragging.current === null) return false;
+    const index =
+      before === undefined
+        ? collections.length
+        : collections.findIndex(item => item.id === before);
+    return (
+      index >= 0 &&
+      isUnchangedSelectionMove(
+        collections.map(item => item.id),
+        new Set([dragging.current]),
+        index,
+      )
+    );
+  };
   const move = (
     event: DragEvent,
     before: MacroCollection['id'] | undefined,
@@ -138,9 +154,10 @@ function CollectionPopover({
     if (locked || id === null) return;
     event.preventDefault();
     event.stopPropagation();
+    const noChange = unchanged(before);
     dragging.current = null;
     setInsertBefore(undefined);
-    save({kind: 'move', id, before});
+    if (!noChange) save({kind: 'move', id, before});
   };
   const rows = [{id: ALL, name: '모든 매크로'}, ...collections];
   return (
@@ -188,7 +205,7 @@ function CollectionPopover({
                 if (!locked && dragging.current !== null) {
                   event.preventDefault();
                   event.dataTransfer.dropEffect = 'move';
-                  setInsertBefore(null);
+                  setInsertBefore(unchanged(undefined) ? undefined : null);
                 }
               }}
               onDragLeave={event => {
@@ -240,7 +257,10 @@ function CollectionPopover({
                         event.preventDefault();
                         event.stopPropagation();
                         event.dataTransfer.dropEffect = 'move';
-                        setInsertBefore(item?.id ?? collections[0]?.id ?? null);
+                        const before = item?.id ?? collections[0]?.id;
+                        setInsertBefore(
+                          unchanged(before) ? undefined : (before ?? null),
+                        );
                       }}
                       onDrop={event =>
                         move(event, item?.id ?? collections[0]?.id)

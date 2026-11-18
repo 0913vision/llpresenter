@@ -1,3 +1,4 @@
+import {isUnchangedSelectionMove} from '@core/common/selectionOrder';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {
   useEffect,
@@ -187,7 +188,16 @@ export function LabelManager({
             }
             event.preventDefault();
             event.dataTransfer.dropEffect = 'move';
-            setDropIndex(dropPosition(event, index));
+            const position = dropPosition(event, index);
+            setDropIndex(
+              isUnchangedSelectionMove(
+                rows.map(row => row.label.name),
+                new Set([dragging.current]),
+                position,
+              )
+                ? null
+                : position,
+            );
           }}
           onDragLeave={event => {
             if (!(
@@ -213,6 +223,15 @@ export function LabelManager({
               label => label.name === name,
             );
             const insertion = dropPosition(event, index);
+            if (
+              isUnchangedSelectionMove(
+                currentLabels().map(label => label.name),
+                new Set([name]),
+                insertion,
+              )
+            ) {
+              return;
+            }
             move(name, insertion - (source < insertion ? 1 : 0));
           }}
         >

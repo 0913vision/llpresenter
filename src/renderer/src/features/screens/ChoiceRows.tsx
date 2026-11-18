@@ -1,3 +1,4 @@
+import {isUnchangedSelectionMove} from '@core/common/selectionOrder';
 import {contextMenuTarget, openMenuFromKey} from '@renderer/ui/contextMenu';
 import {
   useLayoutEffect,
@@ -217,10 +218,19 @@ export function ChoiceRows<T extends Choice>({
               event.preventDefault();
               event.dataTransfer.dropEffect = 'move';
               const rect = event.currentTarget.getBoundingClientRect();
-              setDrop({
-                id: choice.id,
-                after: event.clientY >= rect.top + rect.height / 2,
-              });
+              const after = event.clientY >= rect.top + rect.height / 2;
+              const index =
+                choices.findIndex(value => value.id === choice.id) +
+                (after ? 1 : 0);
+              setDrop(
+                isUnchangedSelectionMove(
+                  choices.map(value => value.id),
+                  new Set([dragged.current]),
+                  index,
+                )
+                  ? null
+                  : {id: choice.id, after},
+              );
             }}
             onDrop={event => {
               if (
@@ -234,10 +244,17 @@ export function ChoiceRows<T extends Choice>({
               const rect = event.currentTarget.getBoundingClientRect();
               const after = event.clientY >= rect.top + rect.height / 2;
               const index = choices.findIndex(value => value.id === choice.id);
-              onMove(
-                dragged.current,
-                after ? (choices[index + 1]?.id ?? null) : choice.id,
+              const unchanged = isUnchangedSelectionMove(
+                choices.map(value => value.id),
+                new Set([dragged.current]),
+                index + (after ? 1 : 0),
               );
+              if (!unchanged) {
+                onMove(
+                  dragged.current,
+                  after ? (choices[index + 1]?.id ?? null) : choice.id,
+                );
+              }
               dragged.current = null;
               setDrop(null);
             }}

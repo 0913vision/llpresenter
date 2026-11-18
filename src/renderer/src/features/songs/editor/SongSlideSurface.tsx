@@ -1,3 +1,4 @@
+import {isUnchangedSelectionMove} from '@core/common/selectionOrder';
 import {useSelectionDelete} from '@renderer/ui/useSelectionDelete';
 import {selectionLabel, selectionDragImage} from '@renderer/ui/selectionDrag';
 import {
@@ -894,7 +895,14 @@ export function SongSlideSurface<T extends SlideListItem>({
           event.preventDefault();
           clearDrop();
           const index = insertionIndex(event);
-          if (index !== null) {
+          if (
+            index !== null &&
+            !isUnchangedSelectionMove(
+              view.slides.map(slide => slide.id),
+              view.selection.ids,
+              index,
+            )
+          ) {
             surfaceRef.current
               ?.querySelector(`[data-slide-gap="${index}"]`)
               ?.setAttribute('data-slide-drop', '');
@@ -911,7 +919,17 @@ export function SongSlideSurface<T extends SlideListItem>({
         }
         const index = insertionIndex(event);
         clearDrop();
-        if (index === null || !Number.isInteger(index)) return;
+        if (
+          index === null ||
+          !Number.isInteger(index) ||
+          isUnchangedSelectionMove(
+            view.slides.map(slide => slide.id),
+            view.selection.ids,
+            index,
+          )
+        ) {
+          return;
+        }
         event.preventDefault();
         event.stopPropagation();
         session.commandSlides({type: 'move', index});

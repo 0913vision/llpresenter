@@ -416,6 +416,35 @@ describe('slide row editing surface', () => {
   });
 
   it.each(['list', 'grid'] as const)(
+    'hides insertion markers at the selected slide in %s',
+    mode => {
+      seedSlideSurfaceView({layout: {normal: {editorSlideView: mode}}});
+      const draft = makeDraft();
+      render(<Harness draft={draft} />);
+      fireEvent.click(row(1));
+      const transfer = {
+        ...clipboard(),
+        types: ['application/x-llp-song-slide-move'],
+      };
+      fireEvent.dragStart(row(1), {dataTransfer: transfer});
+      for (const gap of [1, 2]) {
+        const node = document.querySelector<HTMLElement>(
+          `[data-slide-gap="${gap}"]`,
+        );
+        if (!node) throw Error('Missing slide gap');
+        fireEvent.dragOver(node, {dataTransfer: transfer});
+        expect(node.hasAttribute('data-slide-drop')).toBe(false);
+      }
+      const target = document.querySelector<HTMLElement>(
+        '[data-slide-gap="0"]',
+      );
+      if (!target) throw Error('Missing slide gap');
+      fireEvent.dragOver(target, {dataTransfer: transfer});
+      expect(target.hasAttribute('data-slide-drop')).toBe(true);
+    },
+  );
+
+  it.each(['list', 'grid'] as const)(
     'moves the disjoint selection in %s without replacing identities',
     mode => {
       seedSlideSurfaceView({layout: {normal: {editorSlideView: mode}}});
