@@ -12,7 +12,7 @@ import {
 import type {SlidesListSession} from '../slides/slidesListSession';
 import {Panel, PanelBody} from '@renderer/ui/Panel';
 import {Properties} from '@renderer/ui/PropertyRow';
-import {AtomicPictureContent} from '@renderer/rendering/AtomicPictureContent';
+import {PrepInspectorContent} from './PrepInspectorContent';
 import {TransitionPicker, TransitionRows} from './TransitionRows';
 import {slideTransitionUndo} from '@renderer/features/songs/editor/slideTransitionSelection';
 import styles from './SlideInspector.module.css';
@@ -93,7 +93,7 @@ export function SlidesInspector({
     <Panel label="슬라이드 속성">
       <PanelBody>
         {view.selection.ids.size === 0 || slide === undefined ? null : (
-          <AtomicPictureContent
+          <PrepInspectorContent
             identity={`${item.id}:${selected}:${selectedSlides.map(entry => entry.id).join(',')}:${cardSelected}`}
             pending={!ready}
             waitForPicture

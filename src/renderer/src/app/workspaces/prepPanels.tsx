@@ -5,7 +5,9 @@ import {EditorItemSettings} from './EditorItemSettings';
 import {PrepPalette} from '@renderer/features/service/items/PrepPalette';
 import {
   useEffect,
+  useDeferredValue,
   useLayoutEffect,
+  useMemo,
   useState,
   useRef,
   useSyncExternalStore,
@@ -22,7 +24,12 @@ import {SlidesInspector} from '@renderer/features/service/slideInspector/SlidesI
 import {OtherSlideInspector} from '@renderer/features/service/slideInspector/OtherSlideInspector';
 import {SermonInlineEditor} from '@renderer/features/service/items/SermonInlineEditor';
 import {ServiceItemPanel} from '@renderer/features/service/items/SongItemPanel';
-import type {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
+import type {
+  ServiceItemStore,
+  ServiceItemState,
+} from '@renderer/features/service/items/serviceItemStore';
+import type {SongSession} from '@renderer/features/songs/editor/songSession';
+import type {SlidesListSession} from '@renderer/features/service/slides/slidesListSession';
 import {
   SongEditor,
   type SongEditorStore,
@@ -61,20 +68,24 @@ import {hasSectionCard} from '@core/services/sectionCards';
 import type {SlideTransition} from '@core/schema/slideTransition';
 import {LITURGY} from '@core/services/liturgy';
 import {displayReference} from '@core/bible/displayReference';
+import {pictures} from '@renderer/rendering/pictures/pictureService';
 
-function SlidesCardInspector({prep}: {readonly prep: PrepBinding}): ReactNode {
-  const state = useSyncExternalStore(
-    prep.items.subscribe,
-    prep.items.getSnapshot,
-  );
-  const model = prep.slides?.session?.slideModel;
+function SlidesCardInspector({
+  prep,
+  session,
+  state,
+}: {
+  readonly prep: PrepBinding;
+  readonly session: SlidesListSession;
+  readonly state: ServiceItemState;
+}): ReactNode {
+  const model = session.slideModel;
   const selection = useSyncExternalStore(
-    model?.subscribe ?? noSubscribe,
-    () => model?.getSnapshot().selection.ids.size ?? 0,
+    model.subscribe,
+    () => model.getSnapshot().selection.ids.size,
   );
   const applyAll = (transition: SlideTransition): void => {
-    const session = prep.slides?.session;
-    if (session === undefined || session === null || session.readOnly) return;
+    if (session.readOnly) return;
     const item = session.draft.snapshot.item;
     session.draft.change(
       {
@@ -102,37 +113,37 @@ function SlidesCardInspector({prep}: {readonly prep: PrepBinding}): ReactNode {
       <OtherSlideInspector
         items={prep.items}
         editor={prep.editor}
+        shownItem={state}
         applyAll={applyAll}
       />
     );
   }
-  return prep.slides?.session ? (
+  return (
     <SlidesInspector
       api={prep.api}
-      session={prep.slides.session}
+      session={session}
       onApplyAll={applyAll}
       cardSelected={state.cardSelected}
     />
-  ) : null;
+  );
 }
 
-function SongCardInspector({prep}: {readonly prep: PrepBinding}): ReactNode {
-  const itemState = useSyncExternalStore(
-    prep.items.subscribe,
-    prep.items.getSnapshot,
-  );
-  const editorState = useSyncExternalStore(
-    prep.editor.subscribe,
-    prep.editor.getSnapshot,
-  );
-  const session = editorState.session;
-  const model = session?.slideModel;
+function SongCardInspector({
+  prep,
+  session,
+  itemState,
+}: {
+  readonly prep: PrepBinding;
+  readonly session: SongSession;
+  readonly itemState: ServiceItemState;
+}): ReactNode {
+  const model = session.slideModel;
   const selection = useSyncExternalStore(
-    model?.subscribe ?? noSubscribe,
-    () => model?.getSnapshot().selection.ids.size ?? 0,
+    model.subscribe,
+    () => model.getSnapshot().selection.ids.size,
   );
   if (
-    session?.itemSession &&
+    session.itemSession &&
     itemState.item !== null &&
     hasSectionCard(itemState.item) &&
     itemState.cardSelected &&
@@ -142,6 +153,7 @@ function SongCardInspector({prep}: {readonly prep: PrepBinding}): ReactNode {
       <OtherSlideInspector
         items={prep.items}
         editor={prep.editor}
+        shownItem={itemState}
         cardTransition={
           session.slideModel.getSnapshot().context?.cardTransition
         }
@@ -153,17 +165,23 @@ function SongCardInspector({prep}: {readonly prep: PrepBinding}): ReactNode {
     );
   }
   return (
-    <SlideInspector store={prep.editor} cardSelected={itemState.cardSelected} />
+    <SlideInspector
+      store={prep.editor}
+      shownSession={session}
+      cardSelected={itemState.cardSelected}
+    />
   );
 }
 
 function ItemCardBinding({
   items,
   itemId,
+  shownItem,
   children,
 }: {
   readonly items: ServiceItemStore;
   readonly itemId: string | undefined;
+  readonly shownItem: ServiceItemState | null;
   readonly children: (
     card: LeadingSlideCard | undefined,
     addCard: ReactNode,
@@ -175,13 +193,17 @@ function ItemCardBinding({
       items.show({serviceId, itemId});
     }
   }, [items, itemId, serviceId]);
-  const card = useLeadingItemCard(items, itemId);
+  const card = useLeadingItemCard(items, itemId, shownItem ?? undefined);
   return (
     <div className={itemCardStyles.root}>
       {children(
         card,
         itemId === undefined ? null : (
-          <AddSectionCard items={items} itemId={itemId} />
+          <AddSectionCard
+            items={items}
+            itemId={itemId}
+            shownItem={shownItem ?? undefined}
+          />
         ),
       )}
     </div>
@@ -273,6 +295,9 @@ function prepPanelParts({
   sizeClass,
   onSelectSong,
   sources,
+  songSession,
+  slidesSession,
+  itemState,
 }: {
   readonly sources: ReturnType<typeof useOtherSources>;
   readonly title: string;
@@ -283,6 +308,9 @@ function prepPanelParts({
   readonly onProblem: ((notice: Notice) => void) | undefined;
   readonly sizeClass: SizeClass;
   readonly onSelectSong: (id: SongId) => void;
+  readonly songSession: SongSession | null;
+  readonly slidesSession: SlidesListSession | null;
+  readonly itemState: ServiceItemState | null;
 }): PanelParts {
   if (!prep) return {};
   const back = onBack;
@@ -297,24 +325,40 @@ function prepPanelParts({
             items={prep.items}
             editor={prep.editor}
             sources={sources}
+            shownSession={songSession}
+            shownItem={itemState}
           >
-            <OtherPrepEditor prep={prep} sizeClass={sizeClass} onBack={back} />
+            {itemState === null ? null : (
+              <OtherPrepEditor
+                prep={prep}
+                itemState={itemState}
+                sizeClass={sizeClass}
+                onBack={back}
+              />
+            )}
           </EditorBackgroundDrop>
         ),
       };
     }
-    if (prep.slides?.draft !== null && prep.slides !== undefined) {
-      const slides = prep.slides;
+    if (slidesSession !== null && prep.slides !== undefined) {
+      const slides = {
+        ...prep.slides,
+        session: slidesSession,
+        draft: slidesSession.draft,
+      };
       return {
         embedded: (
           <EditorBackgroundDrop
             items={prep.items}
             editor={prep.editor}
             sources={sources}
+            shownSession={songSession}
+            shownItem={itemState}
           >
             <ItemCardBinding
               items={prep.items}
-              itemId={prep.slides.draft.snapshot.item.id}
+              itemId={slidesSession.draft.snapshot.item.id}
+              shownItem={itemState}
             >
               {(card, addCard) => (
                 <SlidesEditor
@@ -337,18 +381,22 @@ function prepPanelParts({
           items={prep.items}
           editor={prep.editor}
           sources={sources}
+          shownSession={songSession}
+          shownItem={itemState}
         >
           <ItemCardBinding
             items={prep.items}
+            shownItem={itemState}
             itemId={
-              prep.editor.getSnapshot().session?.itemSession === true
-                ? prep.editor.getSnapshot().session?.document.song.id
+              songSession?.itemSession === true
+                ? songSession.document.song.id
                 : undefined
             }
           >
             {(card, addCard) => (
               <SongEditor
                 store={prep.editor}
+                shownSession={songSession}
                 leadingCard={card}
                 addCard={addCard}
                 ui={prep.api.ui}
@@ -359,6 +407,7 @@ function prepPanelParts({
                   prep.controls === undefined ? null : (
                     <InlineSongActions
                       store={prep.editor}
+                      shownSession={songSession}
                       controlsRef={prep.controls}
                       onProblem={onProblem ?? ignoreProblem}
                     />
@@ -378,21 +427,37 @@ function prepPanelParts({
           items={prep.items}
           editor={prep.editor}
           sources={sources}
+          shownSession={songSession}
+          shownItem={itemState}
         >
           <div className={styles.inspector}>
             <EditorItemSettings
               items={prep.items}
               editor={prep.editor}
+              shownItem={itemState ?? undefined}
+              shownSession={songSession}
               flushSlides={() => prep.slides?.flush() ?? Promise.resolve(true)}
             />
             {otherEditor ? (
-              <OtherSlideInspector items={prep.items} editor={prep.editor} />
-            ) : prep.slides?.session ? (
-              <SlidesCardInspector prep={prep} />
-            ) : prep.editor.getSnapshot().session?.itemSession ? (
-              <SongCardInspector prep={prep} />
+              <OtherSlideInspector
+                items={prep.items}
+                editor={prep.editor}
+                shownItem={itemState ?? undefined}
+              />
+            ) : slidesSession && itemState ? (
+              <SlidesCardInspector
+                prep={prep}
+                session={slidesSession}
+                state={itemState}
+              />
+            ) : songSession?.itemSession && itemState ? (
+              <SongCardInspector
+                prep={prep}
+                session={songSession}
+                itemState={itemState}
+              />
             ) : (
-              <SlideInspector store={prep.editor} />
+              <SlideInspector store={prep.editor} shownSession={songSession} />
             )}
           </div>
         </EditorBackgroundDrop>
@@ -404,18 +469,16 @@ function prepPanelParts({
 
 function OtherPrepEditor({
   prep,
+  itemState,
   sizeClass,
   onBack,
 }: {
   readonly prep: PrepBinding;
+  readonly itemState: ServiceItemState;
   readonly sizeClass: SizeClass;
   readonly onBack: () => void;
 }) {
   const serviceName = useShow(view => view.serviceName);
-  const itemState = useSyncExternalStore(
-    prep.items.subscribe,
-    prep.items.getSnapshot,
-  );
   const item = itemState.item;
   const [manualSplitRequest, setManualSplitRequest] = useState(0);
   const root = useRef<HTMLDivElement>(null);
@@ -442,7 +505,7 @@ function OtherPrepEditor({
         ) : null}
       </header>
       {item !== null && isItemOfKind(item, 'sermon') ? (
-        <SermonInlineEditor items={prep.items} />
+        <SermonInlineEditor items={prep.items} shownItem={itemState} />
       ) : null}
       {item !== null &&
       (isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon')) ? (
@@ -454,11 +517,16 @@ function OtherPrepEditor({
         />
       ) : null}
       {item !== null && isItemOfKind(item, 'liturgy') ? (
-        <LiturgyEditor items={prep.items} ui={prep.api.ui} />
+        <LiturgyEditor
+          items={prep.items}
+          shownItem={itemState}
+          ui={prep.api.ui}
+        />
       ) : item !== null &&
         (isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon')) ? (
         <BibleInlineEditor
           items={prep.items}
+          shownItem={itemState}
           ui={prep.api.ui}
           onBack={onBack}
           hideHeader
@@ -502,8 +570,8 @@ export function usePrepPanels({
 }): WorkspacePanels {
   const [otherId, setOtherId] = useState<string | null>(null);
   const [switching, setSwitching] = useState<{
-    readonly editor: unknown;
-    readonly slides: unknown;
+    readonly editor: SongSession | null;
+    readonly slides: SlidesListSession | null;
     readonly closed: boolean;
     readonly itemId: string;
   } | null>(null);
@@ -560,19 +628,71 @@ export function usePrepPanels({
       : parsedItem.ok
         ? {kind: 'item' as const, itemId: parsedItem.value}
         : null;
-  const editorKind = useSyncExternalStore(
+  const editorSession = useSyncExternalStore(
     prep?.editor.subscribe ?? noSubscribe,
-    () => {
-      const session = prep?.editor.getSnapshot().session;
-      return session == null
-        ? 'table'
-        : session.itemSession
-          ? 'item'
-          : 'library';
-    },
+    () => prep?.editor.getSnapshot().session ?? null,
   );
-  const editorSession = prep?.editor.getSnapshot().session ?? null;
   const slidesDraft = prep?.slides?.draft ?? null;
+  const slidesSession = prep?.slides?.session ?? null;
+  const itemState = useSyncExternalStore(
+    prep?.items.subscribe ?? noSubscribe,
+    () => prep?.items.getSnapshot() ?? null,
+  );
+  const [itemSnapshots, setItemSnapshots] = useState(
+    () => new Map<string, ServiceItemState>(),
+  );
+  const currentItemId = itemState?.item?.id;
+  if (
+    currentItemId !== undefined &&
+    itemState !== null &&
+    itemSnapshots.get(currentItemId) !== itemState
+  ) {
+    const next = new Map(itemSnapshots);
+    next.set(currentItemId, itemState);
+    if (next.size > 16) {
+      const oldest = next.keys().next().value;
+      if (oldest !== undefined) next.delete(oldest);
+    }
+    setItemSnapshots(next);
+  }
+  const waitingForEditor =
+    switching !== null &&
+    editorSession === null &&
+    slidesSession === null &&
+    otherId === null;
+  const requestedEditor = waitingForEditor ? switching.editor : editorSession;
+  const requestedSlides = waitingForEditor ? switching.slides : slidesSession;
+  const frameItemId =
+    otherId ??
+    requestedSlides?.draft.snapshot.item.id ??
+    (requestedEditor?.itemSession ? requestedEditor.document.song.id : null);
+  const retainedState =
+    frameItemId === null ? undefined : itemSnapshots.get(frameItemId);
+  const frameItem =
+    frameItemId !== null && currentItemId !== frameItemId
+      ? retainedState?.service?.service.id === serviceId
+        ? retainedState
+        : null
+      : itemState;
+  const requestedFrame = useMemo(
+    () => ({
+      editorSession: requestedEditor,
+      slidesSession: requestedSlides,
+      otherId,
+      itemState: frameItem,
+    }),
+    [requestedEditor, requestedSlides, otherId, frameItem],
+  );
+  const deferred = useDeferredValue(requestedFrame);
+  // NOTE(0913vision): With no drawing room, pictures draw in place and no
+  // background preparation can delay the frame.
+  const shown = pictures.drawInPlace ? requestedFrame : deferred;
+  const editorKind =
+    shown.editorSession === null
+      ? 'table'
+      : shown.editorSession.itemSession
+        ? 'item'
+        : 'library';
   useEffect(
     () =>
       followPrepOpenFailures(itemId => {
@@ -598,15 +718,15 @@ export function usePrepPanels({
   }, [switchingId, prep, otherId]);
   const hasDraft =
     editorKind !== 'table' ||
-    slidesDraft !== null ||
-    otherId !== null ||
+    shown.slidesSession !== null ||
+    shown.otherId !== null ||
     switching !== null;
   if (
     switching !== null &&
     ((editorSession !== null &&
       (switching.closed || editorSession !== switching.editor)) ||
-      (slidesDraft !== null &&
-        (switching.closed || slidesDraft !== switching.slides)) ||
+      (slidesSession !== null &&
+        (switching.closed || slidesSession !== switching.slides)) ||
       (otherId !== null &&
         switching.editor === null &&
         switching.slides === null &&
@@ -624,15 +744,15 @@ export function usePrepPanels({
     setSwitching({...switching, closed: true});
   }
   const sources = useOtherSources(hasDraft);
-  const editorId = useSyncExternalStore(
-    prep?.editor.subscribe ?? noSubscribe,
-    () => prep?.editor.getSnapshot().session?.document.song.id ?? null,
-  );
   const origin = useRef<{id: string; library: boolean} | null>(null);
   useLayoutEffect(() => {
-    const slides = prep?.slides?.draft;
+    const slides = shown.slidesSession?.draft;
     if (hasDraft) {
-      const id = otherId ?? slides?.snapshot.item.id ?? editorId;
+      const id =
+        shown.otherId ??
+        slides?.snapshot.item.id ??
+        shown.editorSession?.document.song.id ??
+        null;
       if (id !== null) {
         origin.current = {id, library: editorKind === 'library'};
       }
@@ -654,7 +774,7 @@ export function usePrepPanels({
       list?.querySelector<HTMLElement>('[aria-selected="true"]');
     row?.focus({preventScroll: true});
     row?.scrollIntoView({block: 'nearest'});
-  }, [prep, hasDraft, editorId, editorKind, otherId]);
+  }, [hasDraft, shown, editorKind]);
   const leave = (next: () => void, keepSlides = false): void => {
     if (!prep) return;
     const turn = ++leaveTurn.current;
@@ -699,20 +819,16 @@ export function usePrepPanels({
       setOtherId(id);
     });
   const shownItem =
-    otherId ??
-    slidesDraft?.snapshot.item.id ??
-    (editorKind === 'item' ? editorId : null);
+    shown.otherId ??
+    shown.slidesSession?.draft.snapshot.item.id ??
+    (editorKind === 'item'
+      ? (shown.editorSession?.document.song.id ?? null)
+      : null);
   return {
-    // NOTE(0913vision): Opening an item, moving to another one while editing
-    // and going back each show the new panels in one frame, once the editor,
-    // its tiles and the inspector are drawn, never a panel at a time.
-    hold: {
-      identity: hasDraft ? `edit:${selectedItem ?? ''}` : 'table',
-      settled:
-        !hasDraft ||
-        editorKind === 'library' ||
-        (switching === null && shownItem === selectedItem),
-    },
+    shownItem: hasDraft && editorKind !== 'library' ? shownItem : selectedItem,
+    pictureIdentity: hasDraft
+      ? `edit:${editorKind}:${shownItem ?? shown.editorSession?.document.song.id ?? ''}`
+      : 'table',
     columns: hasDraft
       ? editorKind === 'library'
         ? [PREP_COLUMNS[0], PREP_DRAFT_COLUMNS[1], PREP_DRAFT_COLUMNS[2]]
@@ -739,7 +855,7 @@ export function usePrepPanels({
                 leave(() => {
                   setSwitching({
                     editor: editorSession,
-                    slides: slidesDraft,
+                    slides: slidesSession,
                     closed: false,
                     itemId: id,
                   });
@@ -772,7 +888,10 @@ export function usePrepPanels({
               title,
               prep,
               hasDraft,
-              otherEditor: otherId !== null,
+              otherEditor: shown.otherId !== null,
+              songSession: shown.editorSession,
+              slidesSession: shown.slidesSession,
+              itemState: shown.itemState,
               onBack: back,
               onProblem,
               sizeClass,

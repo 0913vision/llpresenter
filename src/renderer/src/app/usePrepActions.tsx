@@ -30,7 +30,7 @@ import {InlineSongController} from '@renderer/features/songs/editor/InlineSongCo
 import type {SongEditorWindowModel} from '@renderer/features/songs/editor/useSongEditorWindow';
 import {useSlidesEditor} from '@renderer/features/service/slides/useSlidesEditor';
 import {reportPrepOpenFailure} from './prepOpenFailure';
-import {drawnPictures} from '@renderer/ui/HeldFrame';
+import {drawnPictures} from '@renderer/rendering/drawnPictures';
 
 const noEditorSubscription = (): (() => void) => () => undefined;
 const PREP_REVEAL_WAIT_MS = 10_000;

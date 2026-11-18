@@ -1,7 +1,6 @@
 import {useState, useSyncExternalStore, type JSX} from 'react';
 import {formatSlideHotKey} from '@renderer/ui/SlideThumbnail';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
-import {AtomicPictureContent} from '@renderer/rendering/AtomicPictureContent';
 import {useSongSlideAppearance} from '@renderer/features/songs/editor/useSongSlideAppearance';
 import {LabelMenu} from '@renderer/features/songs/editor/LabelMenu';
 import {TransitionPicker, TransitionRows} from './TransitionRows';
@@ -17,13 +16,16 @@ import {SongTitleLayoutControl} from '@renderer/features/songs/editor/SongTitleL
 /** Local inspection of the current song slide and its shared selection. */
 export function SlideInspector({
   store,
+  shownSession,
   cardSelected = false,
 }: {
   readonly cardSelected?: boolean;
   readonly store: SongEditorStore;
+  readonly shownSession?:
+    ReturnType<SongEditorStore['getSnapshot']>['session'] | undefined;
 }): JSX.Element {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
-  const session = state.session;
+  const session = shownSession === undefined ? state.session : shownSession;
   return (
     <Panel label="슬라이드 속성">
       <PanelBody>
@@ -84,143 +86,130 @@ function InspectorContent({
 
   if (selected.length === 0) return null;
   return (
-    <AtomicPictureContent
-      identity={`${session.slideDocumentId}:${snapshot.selection.block}:${selected.map(item => item.id).join(',')}:${cardSelected}`}
-      pending={appearance === undefined || slide === undefined}
-      waitForPicture
-      content={
-        <div
-          onKeyDown={event =>
-            slideTransitionUndo(event, session, busy || session.readOnly)
-          }
-        >
-          <div className={styles.picture} data-background-picture>
-            {appearance === undefined || slide === undefined ? null : (
-              <SlidePicture
-                output
-                liveText
-                {...appearance}
-                background={slide.picture ?? appearance.background}
-                slide={{
-                  itemId: snapshot.song.id,
-                  position: snapshot.selection.block,
-                  lines: slide.lines,
-                  label: slide.label ?? null,
-                  ...(slide.titleSlide === undefined
-                    ? {}
-                    : {titleSlide: slide.titleSlide}),
-                  ...(slide.titleLineCount === undefined
-                    ? {}
-                    : {titleLineCount: slide.titleLineCount}),
-                  ...(slide.titleLayout === undefined
-                    ? {}
-                    : {titleLayout: slide.titleLayout}),
-                  ...(slide.lyricFormat === undefined
-                    ? {}
-                    : {lyricFormat: slide.lyricFormat}),
-                }}
-              />
-            )}
-          </div>
-          <div
-            className={styles.caption}
-            style={labelInk(
-              store
-                .getSnapshot()
-                .labels?.value.labels.find(entry => entry.name === slide?.label)
-                ?.color ?? 'none',
-            )}
-          >
-            {slide?.label ?? ''}
-            <span>
-              {snapshot.selection.block + 1} / {view.slides.length}
-            </span>
-          </div>
-          <SongTitleLayoutControl session={session} disabled={busy} />
-          <Properties>
-            <PropertyGroup>
-              <PropertyRow label="이름표">
-                {() => (
-                  <Button
-                    size="md"
-                    className={styles.full}
-                    disabled={busy || session.readOnly || selected.length === 0}
-                    onClick={event => setAnchor(event.currentTarget)}
-                  >
-                    {mixedLabel
-                      ? '혼합'
-                      : label === undefined || label === ''
-                        ? '없음'
-                        : label}
-                  </Button>
-                )}
-              </PropertyRow>
-            </PropertyGroup>
-            {card === undefined ? (
-              <TransitionRows
-                session={session}
-                disabled={busy}
-                song
-                onApplyAll={
-                  session.itemSession
-                    ? transition =>
-                        session.changeItemTransitions(transition, true, true)
-                    : undefined
-                }
-              />
-            ) : (
-              <TransitionPicker
-                value={effect}
-                mixed={mixedEffect}
-                disabled={busy || session.readOnly}
-                selectionKey={selected.map(item => item.id).join(',')}
-                onChange={transition =>
-                  session.changeItemTransitions(transition, true)
-                }
-                onSeconds={seconds =>
-                  session.changeItemTransitions(seconds, true)
-                }
-                onApplyAll={() =>
-                  session.changeItemTransitions(effect, true, true)
-                }
-                song
-              />
-            )}
-            <PropertyGroup>
-              <PropertyRow label="단축키">
-                {() => (
-                  <Button
-                    size="md"
-                    className={styles.full}
-                    disabled={busy || session.readOnly || selected.length !== 1}
-                    onClick={() => store.requestAction('hot-key')}
-                  >
-                    {selected.length > 1
-                      ? '여러 슬라이드'
-                      : slide?.hotKey === undefined
-                        ? '설정…'
-                        : formatSlideHotKey(slide.hotKey)}
-                  </Button>
-                )}
-              </PropertyRow>
-            </PropertyGroup>
-          </Properties>
-          {anchor === null ? null : (
-            <LabelMenu
-              store={store}
-              anchor={anchor}
-              selected={mixedLabel ? undefined : label}
-              onChoose={name =>
-                session.commandSlides({type: 'label', label: name})
-              }
-              onClose={restore => {
-                setAnchor(null);
-                if (restore) anchor.focus();
-              }}
-            />
-          )}
-        </div>
+    <div
+      onKeyDown={event =>
+        slideTransitionUndo(event, session, busy || session.readOnly)
       }
-    />
+    >
+      <div className={styles.picture} data-background-picture>
+        {appearance === undefined || slide === undefined ? null : (
+          <SlidePicture
+            output
+            liveText
+            {...appearance}
+            background={slide.picture ?? appearance.background}
+            slide={{
+              itemId: snapshot.song.id,
+              position: snapshot.selection.block,
+              lines: slide.lines,
+              label: slide.label ?? null,
+              ...(slide.titleSlide === undefined
+                ? {}
+                : {titleSlide: slide.titleSlide}),
+              ...(slide.titleLineCount === undefined
+                ? {}
+                : {titleLineCount: slide.titleLineCount}),
+              ...(slide.titleLayout === undefined
+                ? {}
+                : {titleLayout: slide.titleLayout}),
+              ...(slide.lyricFormat === undefined
+                ? {}
+                : {lyricFormat: slide.lyricFormat}),
+            }}
+          />
+        )}
+      </div>
+      <div
+        className={styles.caption}
+        style={labelInk(
+          store
+            .getSnapshot()
+            .labels?.value.labels.find(entry => entry.name === slide?.label)
+            ?.color ?? 'none',
+        )}
+      >
+        {slide?.label ?? ''}
+        <span>
+          {snapshot.selection.block + 1} / {view.slides.length}
+        </span>
+      </div>
+      <SongTitleLayoutControl session={session} disabled={busy} />
+      <Properties>
+        <PropertyGroup>
+          <PropertyRow label="이름표">
+            {() => (
+              <Button
+                size="md"
+                className={styles.full}
+                disabled={busy || session.readOnly || selected.length === 0}
+                onClick={event => setAnchor(event.currentTarget)}
+              >
+                {mixedLabel
+                  ? '혼합'
+                  : label === undefined || label === ''
+                    ? '없음'
+                    : label}
+              </Button>
+            )}
+          </PropertyRow>
+        </PropertyGroup>
+        {card === undefined ? (
+          <TransitionRows
+            session={session}
+            disabled={busy}
+            song
+            onApplyAll={
+              session.itemSession
+                ? transition =>
+                    session.changeItemTransitions(transition, true, true)
+                : undefined
+            }
+          />
+        ) : (
+          <TransitionPicker
+            value={effect}
+            mixed={mixedEffect}
+            disabled={busy || session.readOnly}
+            selectionKey={selected.map(item => item.id).join(',')}
+            onChange={transition =>
+              session.changeItemTransitions(transition, true)
+            }
+            onSeconds={seconds => session.changeItemTransitions(seconds, true)}
+            onApplyAll={() => session.changeItemTransitions(effect, true, true)}
+            song
+          />
+        )}
+        <PropertyGroup>
+          <PropertyRow label="단축키">
+            {() => (
+              <Button
+                size="md"
+                className={styles.full}
+                disabled={busy || session.readOnly || selected.length !== 1}
+                onClick={() => store.requestAction('hot-key')}
+              >
+                {selected.length > 1
+                  ? '여러 슬라이드'
+                  : slide?.hotKey === undefined
+                    ? '설정…'
+                    : formatSlideHotKey(slide.hotKey)}
+              </Button>
+            )}
+          </PropertyRow>
+        </PropertyGroup>
+      </Properties>
+      {anchor === null ? null : (
+        <LabelMenu
+          store={store}
+          anchor={anchor}
+          selected={mixedLabel ? undefined : label}
+          onChoose={name => session.commandSlides({type: 'label', label: name})}
+          onClose={restore => {
+            setAnchor(null);
+            if (restore) anchor.focus();
+          }}
+        />
+      )}
+    </div>
   );
 }

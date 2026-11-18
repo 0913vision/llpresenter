@@ -21,7 +21,7 @@ import type {SongDocument} from '@core/schema/contentDocuments';
 import {ControlSession} from '@renderer/app/controlSession';
 import {usePrepActions} from '@renderer/app/usePrepActions';
 import {InlineSongController} from '@renderer/features/songs/editor/InlineSongController';
-import * as heldFrame from '@renderer/ui/HeldFrame';
+import * as heldFrame from '@renderer/rendering/drawnPictures';
 
 const mock = vi.hoisted(() => {
   const state = {hasEditor: true, imported: false, library: false};

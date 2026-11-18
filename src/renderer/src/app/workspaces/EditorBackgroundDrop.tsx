@@ -3,6 +3,8 @@ import {useEffect, useRef, type DragEvent, type ReactNode} from 'react';
 import {hasMediaDrag, readMediaDrag} from '@renderer/features/media/mediaDrag';
 import {useOtherSources} from '@renderer/features/service/items/useOtherSources';
 import type {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
+import type {SongSession} from '@renderer/features/songs/editor/songSession';
+import type {ServiceItemState} from '@renderer/features/service/items/serviceItemStore';
 import type {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {noticeTime} from '@renderer/ui/notices';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
@@ -14,10 +16,14 @@ export function EditorBackgroundDrop({
   editor,
   children,
   sources,
+  shownSession,
+  shownItem,
 }: {
   readonly items: ServiceItemStore;
   readonly editor: SongEditorStore;
   readonly children: ReactNode;
+  readonly shownSession: SongSession | null;
+  readonly shownItem: ServiceItemState | null;
   readonly sources: ReturnType<typeof useOtherSources>;
 }) {
   const marked = useRef<HTMLElement | null>(null);
@@ -99,7 +105,8 @@ export function EditorBackgroundDrop({
         }
         const editorState = editor.getSnapshot();
         const session = editorState.session;
-        if (session !== null && !session.itemSession) {
+        if (shownSession !== null && !shownSession.itemSession) {
+          if (session !== shownSession) return;
           const locked = session.readOnly || editorState.busy;
           if (locked) {
             problem('지금은 편집할 수 없습니다');
@@ -107,6 +114,13 @@ export function EditorBackgroundDrop({
           return;
         }
         const state = items.getSnapshot();
+        if (
+          shownItem?.item?.id !== state.item?.id ||
+          shownItem?.service?.service.id !== state.service?.service.id ||
+          (shownSession !== null && session !== shownSession)
+        ) {
+          return;
+        }
         if (
           state.item === null ||
           (!isItemOfKind(state.item, 'song') &&

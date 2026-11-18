@@ -40,11 +40,10 @@ import {
 } from '@renderer/features/presentation/showPanelNavigation';
 import {OpenItemPrefetch} from '@renderer/features/presentation/SlidePicturePrefetch';
 import {TableDataKeeper} from '@renderer/features/service/table/useServiceTableData';
-import {HeldFrame, type FrameHold} from '@renderer/ui/HeldFrame';
+import {PrepPictureSwitch} from '@renderer/rendering/PrepPictureSwitch';
 import {ShownItemProvider} from '@renderer/session/shownItem';
 
 const ignoreProblem = (): void => undefined;
-const STILL: FrameHold = {identity: '', settled: true};
 
 // NOTE(0913vision): The button that replaces a pressed sidebar button takes
 // the keyboard focus only when the pressed one had it (a key press, not a
@@ -255,25 +254,27 @@ export function Workspace({
             visibleId !== 'prep' && styles.hiddenFrame,
           )}
           data-prep-frame
-          data-prep-item={prepItemId ?? undefined}
+          data-prep-item={prepPanels.shownItem ?? prepItemId ?? undefined}
           data-prep-settled={
-            prepPanels.hold?.settled === true ? 'true' : 'false'
+            prepPanels.pictureIdentity?.startsWith('edit:') ? 'true' : 'false'
           }
           inert={visibleId !== 'prep'}
           aria-hidden={visibleId !== 'prep'}
         >
-          <HeldFrame
-            key="prep"
-            hold={prepPanels.hold ?? STILL}
-            active={visibleId === 'prep'}
+          <ShownItemProvider
+            shownItem={
+              prepPanels.shownItem === undefined
+                ? prepItemId
+                : prepPanels.shownItem
+            }
           >
-            <ShownItemProvider shownItem={prepItemId}>
+            <PrepPictureSwitch identity={prepPanels.pictureIdentity ?? 'table'}>
               {columnFrame('prep', prepPanels, {
                 collapsed: false,
                 visible: visibleId === 'prep',
               })}
-            </ShownItemProvider>
-          </HeldFrame>
+            </PrepPictureSwitch>
+          </ShownItemProvider>
         </div>
         {visibleId === 'screens' ? (
           <div className={styles.frameSlot}>

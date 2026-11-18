@@ -9,11 +9,10 @@ import type {ServiceItemStore} from './serviceItemStore';
 export function useLeadingItemCard(
   items: ServiceItemStore,
   itemId: string | undefined,
+  shownItem?: ReturnType<ServiceItemStore['getSnapshot']>,
 ): LeadingSlideCard | undefined {
-  const {item, service, busy} = useSyncExternalStore(
-    items.subscribe,
-    items.getSnapshot,
-  );
+  const current = useSyncExternalStore(items.subscribe, items.getSnapshot);
+  const {item, service, busy} = shownItem ?? current;
   if (
     item === null ||
     item.id !== itemId ||

@@ -19,7 +19,7 @@ import {useBibleTileProjection} from '@renderer/features/bible/useBibleProjectio
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {sermonPreviewRow} from '@renderer/platform/sermonPreview';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
-import {AtomicPictureContent} from '@renderer/rendering/AtomicPictureContent';
+import {PrepInspectorContent} from './PrepInspectorContent';
 import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
 import type {MediaItem} from '@core/schema/mediaList';
 import {MediaProperties} from '@renderer/features/media/MediaPropertiesPanel';
@@ -30,7 +30,7 @@ import {LITURGY} from '@core/services/liturgy';
 import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
 import type {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {useItemMedia} from '../items/useItemSources';
-import {savedPassageTiles} from '../items/bibleItemModel';
+import {savedItemTiles, savedPassageTiles} from '../items/bibleItemModel';
 import type {ServiceItemStore} from '../items/serviceItemStore';
 import styles from './SlideInspector.module.css';
 
@@ -79,6 +79,7 @@ export function OtherSlideInspector({
   applyAll,
   changeSelected,
   cardTransition,
+  shownItem,
 }: {
   readonly changeSelected?:
     ((change: SlideTransition | number) => void) | undefined;
@@ -86,9 +87,11 @@ export function OtherSlideInspector({
   readonly applyAll?: ((transition: SlideTransition) => void) | undefined;
   readonly items: ServiceItemStore;
   readonly editor: SongEditorStore;
+  readonly shownItem?: ReturnType<ServiceItemStore['getSnapshot']> | undefined;
 }): JSX.Element {
+  const current = useSyncExternalStore(items.subscribe, items.getSnapshot);
   const {item, service, position, busy, bibleSelection, cardSelected} =
-    useSyncExternalStore(items.subscribe, items.getSnapshot);
+    shownItem ?? current;
   const bible =
     item !== null &&
     (isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon'));
@@ -123,9 +126,16 @@ export function OtherSlideInspector({
     item !== null && isItemOfKind(item, 'media'),
   );
   const raw = useShow(view =>
-    savedPassageTiles(view, service?.service.id, bible ? item.id : undefined),
+    shownItem === undefined
+      ? savedPassageTiles(
+          view,
+          service?.service.id,
+          bible ? item.id : undefined,
+        )
+      : savedItemTiles(view, service?.service.id, bible ? item.id : undefined),
   );
   const projection = useBibleTileProjection({
+    anyItem: shownItem !== undefined,
     itemId: bible ? item.id : null,
     ...(service === null ? {} : {serviceId: service.service.id}),
   });
@@ -342,7 +352,7 @@ export function OtherSlideInspector({
   return (
     <Panel label="슬라이드 속성">
       <PanelBody>
-        <AtomicPictureContent
+        <PrepInspectorContent
           identity={`${item?.id ?? 'none'}:${position}:${bibleSelection.join(',')}:${cardSelected}`}
           pending={
             (item !== null &&

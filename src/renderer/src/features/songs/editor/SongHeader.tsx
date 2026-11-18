@@ -47,13 +47,14 @@ export function SongHeader({
     if (
       input === undefined ||
       input === null ||
+      state.session !== session ||
       !store.consumeTitleFocus(state.titleFocus)
     ) {
       return;
     }
     input.focus();
     input.select();
-  }, [store, state.titleFocus]);
+  }, [store, session, state.session, state.titleFocus]);
   return (
     <header className={styles.header}>
       {back}

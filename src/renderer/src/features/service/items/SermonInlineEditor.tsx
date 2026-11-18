@@ -50,10 +50,13 @@ function SermonTitleField({
 /** Edit title and passage with the same fields used when adding a sermon. */
 export function SermonInlineEditor({
   items,
+  shownItem,
 }: {
   readonly items: ServiceItemStore;
+  readonly shownItem?: ReturnType<ServiceItemStore['getSnapshot']> | undefined;
 }): JSX.Element | null {
-  const state = useSyncExternalStore(items.subscribe, items.getSnapshot);
+  const current = useSyncExternalStore(items.subscribe, items.getSnapshot);
+  const state = shownItem ?? current;
   const [editing, setEditing] = useState(false);
   const item = state.item;
   if (

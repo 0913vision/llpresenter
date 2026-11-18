@@ -1,6 +1,7 @@
-import {render, screen, waitFor} from '@testing-library/react';
+import {act, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {expect, it, onTestFinished, vi} from 'vitest';
+import {createThemeId} from '@core/schema/ids';
 import {newLiturgyItem} from '@core/services/liturgy';
 import {
   fixtureItems,
@@ -59,3 +60,53 @@ it.each(['creed', 'prayer'] as const)(
     expect(send).not.toHaveBeenCalled();
   },
 );
+
+it('keeps the displayed liturgy section card after the store retargets', async () => {
+  const fixture = itemFixture();
+  const item = {
+    ...newLiturgyItem(fixtureItems.plain, {kind: 'creed', translation: 'new'}),
+    sectionCard: {
+      name: 'Retained card',
+      english: 'Section',
+      theme: createThemeId('00000000-0000-4000-8000-000000000111'),
+    },
+  };
+  const document = fixture.service();
+  fixture.pushService({
+    ...document,
+    service: {
+      ...document.service,
+      order: [
+        item,
+        ...document.service.order.filter(entry => entry.id !== item.id),
+      ],
+    },
+  });
+  const editor = new SongEditorStore(fixture.api, vi.fn());
+  const items = new ServiceItemStore(fixture.api, editor, vi.fn());
+  items.show({serviceId: fixtureServiceId, itemId: item.id});
+  await waitFor(() => expect(items.getSnapshot().item?.id).toBe(item.id));
+  const shown = items.getSnapshot();
+  const view = render(<LiturgyEditor items={items} shownItem={shown} />);
+  onTestFinished(async () => {
+    view.unmount();
+    items.dispose();
+    await editor.dispose();
+  });
+  expect(
+    screen.getByRole<HTMLInputElement>('textbox', {
+      name: '\uad6c\uc5ed \uc774\ub984',
+    }).value,
+  ).toBe('Retained card');
+  act(() =>
+    items.show({serviceId: fixtureServiceId, itemId: fixtureItems.arranged}),
+  );
+  await waitFor(() =>
+    expect(items.getSnapshot().item?.id).toBe(fixtureItems.arranged),
+  );
+  expect(
+    screen.getByRole<HTMLInputElement>('textbox', {
+      name: '\uad6c\uc5ed \uc774\ub984',
+    }).value,
+  ).toBe('Retained card');
+});

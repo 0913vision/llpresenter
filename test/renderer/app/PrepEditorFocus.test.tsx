@@ -417,7 +417,10 @@ it('switches from a song to a Bible item and back to a song', async () => {
   setup();
   await userEvent.dblClick(screen.getByRole('option', {name: /Service song/}));
   await waitFor(() => expect(document.activeElement).toBe(commandList()));
-  await userEvent.click(screen.getByRole('option', {name: 'Bible item'}));
+  const next = screen.getByRole('option', {name: 'Bible item'});
+  expect(fireEvent.mouseDown(next, {button: 0})).toBe(false);
+  expect(document.activeElement).toBe(commandList());
+  await userEvent.click(next);
   await screen.findByRole('button', {name: '‹ Service'});
   await userEvent.click(screen.getByRole('option', {name: /Service song/}));
   await waitFor(() => expect(document.activeElement).toBe(commandList()));
@@ -587,6 +590,58 @@ it('keeps Ctrl N in the title and enters the first slide text with Enter', async
   expect(document.activeElement).toBe(
     screen.getByRole('textbox', {name: '슬라이드 1 제목 및 부제'}),
   );
+});
+
+it('keeps the song settings paired while the slides editor is still opening', async () => {
+  const f = setup();
+  await userEvent.dblClick(screen.getByRole('option', {name: /Service song/}));
+  await screen.findByRole('region', {name: '\uace1 \ud3b8\uc9d1'});
+  const session = f.session.editor?.getSnapshot().session;
+  let finish: (() => void) | undefined;
+  vi.mocked(f.api.slidesEditor.open).mockImplementation(
+    () =>
+      new Promise(resolve => {
+        finish = () => resolve({ok: true, value: undefined});
+      }),
+  );
+  const settings = screen.getByRole('group', {
+    name: '\uc774\ubc88 \uc608\ubc30',
+  });
+  const before = settings.textContent;
+  await userEvent.click(screen.getByRole('option', {name: /Sermon item/}));
+  await waitFor(() =>
+    expect(f.session.items?.getSnapshot().item?.id).toBe(fixtureItems.lost),
+  );
+  expect(f.session.editor?.getSnapshot().session).toBe(session);
+  expect(
+    screen.getByRole('region', {name: '\uace1 \ud3b8\uc9d1'}),
+  ).toBeTruthy();
+  expect(
+    screen.getByRole('group', {name: '\uc774\ubc88 \uc608\ubc30'}).textContent,
+  ).toBe(before);
+  act(() => finish?.());
+});
+
+it('focuses the new song title when Ctrl N replaces an existing song', async () => {
+  const f = setup();
+  await userEvent.dblClick(screen.getByRole('option', {name: /Service song/}));
+  await waitFor(() =>
+    expect(f.session.editor?.getSnapshot().session?.itemSession).toBe(true),
+  );
+  const previous = f.session.editor?.getSnapshot().session;
+  await userEvent.keyboard('{Control>}n{/Control}');
+  await waitFor(() =>
+    expect(f.session.editor?.getSnapshot().session).not.toBe(previous),
+  );
+  await waitFor(() =>
+    expect(document.activeElement).toBe(
+      screen.getByRole('textbox', {name: '\uace1 \uc81c\ubaa9'}),
+    ),
+  );
+  expect(
+    screen.getByRole<HTMLInputElement>('textbox', {name: '\uace1 \uc81c\ubaa9'})
+      .readOnly,
+  ).toBe(false);
 });
 
 it('starts a new blank item in slide 1 text, then reopens it on list commands', async () => {

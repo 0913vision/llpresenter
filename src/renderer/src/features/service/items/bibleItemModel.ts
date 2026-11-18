@@ -11,9 +11,18 @@ export function savedPassageTiles(
   serviceId: string | undefined,
   itemId: string | undefined,
 ): readonly ShowTile[] {
-  return itemId !== undefined &&
-    view.serviceId === serviceId &&
-    view.openItemId === itemId
+  return view.openItemId === itemId
+    ? savedItemTiles(view, serviceId, itemId)
+    : NO_TILES;
+}
+
+/** Keeps a shown editor's tiles while another item is being requested. */
+export function savedItemTiles(
+  view: Pick<ShowView, 'serviceId' | 'tiles'>,
+  serviceId: string | undefined,
+  itemId: string | undefined,
+): readonly ShowTile[] {
+  return itemId !== undefined && view.serviceId === serviceId
     ? (view.tiles[itemId] ?? NO_TILES)
     : NO_TILES;
 }

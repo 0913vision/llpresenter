@@ -5,30 +5,41 @@ import type {Notice} from '@renderer/ui/notices';
 import {useServiceSongMenu} from '@renderer/features/service/order/useServiceSongMenu';
 import type {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import type {SongEditorWindowModel} from '@renderer/features/songs/editor/useSongEditorWindow';
+import {usePrepPictureSwitch} from '@renderer/rendering/PrepPictureSwitch';
+import {pictures} from '@renderer/rendering/pictures/pictureService';
 
 export function InlineSongActions({
   store,
+  shownSession,
   controlsRef,
   onProblem,
 }: {
   readonly store: SongEditorStore;
+  readonly shownSession?:
+    ReturnType<SongEditorStore['getSnapshot']>['session'] | undefined;
   readonly controlsRef: RefObject<SongEditorWindowModel | null>;
   readonly onProblem: (notice: Notice) => void;
 }): JSX.Element | null {
-  const {session, busy, imported} = useSyncExternalStore(
-    store.subscribe,
-    store.getSnapshot,
-  );
+  const {
+    session: currentSession,
+    busy,
+    imported,
+  } = useSyncExternalStore(store.subscribe, store.getSnapshot);
+  const session = shownSession === undefined ? currentSession : shownSession;
   const serviceId = useShow(view => view.serviceId);
+  const switching = usePrepPictureSwitch();
   const itemId = session?.itemSession ? session.document.song.id : null;
   const target = useMemo(
     () =>
       session?.itemSession && itemId !== null ? {id: itemId, serviceId} : null,
     [session, itemId, serviceId],
   );
-  const menu = useServiceSongMenu(target, onProblem, async () => {
-    if (session === null || !(await session.flush())) return null;
-    return session.document.revision;
+  const menu = useServiceSongMenu(target, onProblem, {
+    beforeSave: async () => {
+      if (session === null || !(await session.flush())) return null;
+      return session.document.revision;
+    },
+    wait: switching === true && !pictures.drawInPlace,
   });
   if (session === null || imported) return null;
   if (session.itemSession) {

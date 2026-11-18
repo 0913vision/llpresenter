@@ -10,6 +10,7 @@ import {songTitleLayout} from '@core/themes/songTitle';
 import {OutputSlidePicture} from './OutputSlidePicture';
 import type {ThemeId} from '@core/schema/ids';
 import type {RenderScreen} from './layer';
+import {usePrepPictureSwitch} from './PrepPictureSwitch';
 
 /** Shared slide canvas for presentation tiles, item previews, and slide editors. */
 export function SlidePicture({
@@ -41,6 +42,7 @@ export function SlidePicture({
   readonly prepareOnly?: boolean | undefined;
   readonly liveText?: boolean | undefined;
 }): JSX.Element {
+  const switching = usePrepPictureSwitch();
   if (output) {
     return (
       <OutputSlidePicture
@@ -52,7 +54,10 @@ export function SlidePicture({
         themeId={themeId}
         screen={screen}
         mediaOnly={mediaOnly}
-        drawn={drawn}
+        drawn={
+          drawn ??
+          (switching === undefined ? undefined : switching ? 'wait' : 'place')
+        }
         prepareOnly={prepareOnly}
         liveText={liveText}
       />
