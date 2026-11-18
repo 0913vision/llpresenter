@@ -16,6 +16,10 @@ export interface TileThemes {
   readonly cardTheme: SlideTheme;
   readonly sermonTheme: SlideTheme;
   readonly bibleAppearance: BibleAppearance | undefined;
+  /** Draws through the picture service: waiting for it, or in place. */
+  readonly drawn?: 'wait' | 'place' | undefined;
+  /** Only draws each picture ahead, showing nothing. */
+  readonly prepareOnly?: boolean;
 }
 
 /**
@@ -26,20 +30,45 @@ export interface TileThemes {
 export function tilePicture(
   tile: SlideTile,
   slide: SlideLayer | null,
-  {theme, cardTheme, sermonTheme, bibleAppearance}: TileThemes,
+  {
+    theme,
+    cardTheme,
+    sermonTheme,
+    bibleAppearance,
+    drawn,
+    prepareOnly,
+  }: TileThemes,
 ): ReactNode {
   if (tile.media?.mediaId !== undefined || slide === null) return undefined;
   if (tile.sectionCard !== undefined && cardTheme !== undefined) {
-    return <SlidePicture output {...cardTheme} slide={slide} />;
+    return (
+      <SlidePicture
+        output
+        drawn={drawn}
+        prepareOnly={prepareOnly}
+        {...cardTheme}
+        slide={slide}
+      />
+    );
   }
   if (tile.sermonTitle === true && sermonTheme !== undefined) {
-    return <SlidePicture output {...sermonTheme} slide={slide} />;
+    return (
+      <SlidePicture
+        output
+        drawn={drawn}
+        prepareOnly={prepareOnly}
+        {...sermonTheme}
+        slide={slide}
+      />
+    );
   }
   const appearance = tile.biblePart === undefined ? undefined : bibleAppearance;
   if (appearance !== undefined) {
     return (
       <SlidePicture
         output
+        drawn={drawn}
+        prepareOnly={prepareOnly}
         screen={appearance.screen}
         themeId={appearance.theme.themeId}
         slide={slide}
@@ -51,6 +80,12 @@ export function tilePicture(
     );
   }
   return theme === undefined ? undefined : (
-    <SlidePicture output {...theme} slide={slide} />
+    <SlidePicture
+      output
+      drawn={drawn}
+      prepareOnly={prepareOnly}
+      {...theme}
+      slide={slide}
+    />
   );
 }

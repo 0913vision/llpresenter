@@ -5,7 +5,7 @@ import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {useShow} from '@renderer/session/show';
 import {tilesForView} from '@renderer/session/showLibrary';
 import type {ShowView} from '@renderer/session/showStore';
-import {AheadBox, DrawAhead} from '@renderer/rendering/DrawAhead';
+import {AheadBox} from '@renderer/rendering/DrawAhead';
 import {tilePicture} from './tilePicture';
 
 /** More than the first screen of a grid at any size. */
@@ -66,13 +66,19 @@ function AheadItem({
               cardTheme,
               sermonTheme: undefined,
               bibleAppearance: undefined,
+              prepareOnly: true,
             },
           ),
         )
         .filter(picture => picture !== undefined),
     [tiles, itemId, theme, cardTheme, limit],
   );
-  return <DrawAhead pictures={pictures} onDone={onDone} />;
+  // NOTE(0913vision): The picture service draws them out of sight; the next
+  // item starts at once.
+  useEffect(() => {
+    onDone();
+  }, [onDone, pictures]);
+  return <>{pictures}</>;
 }
 
 /**

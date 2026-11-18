@@ -96,6 +96,21 @@ function keepOneTabStop(list: HTMLElement, selected: string | undefined): void {
   }
 }
 
+function holdsOption(node: Node): boolean {
+  return (
+    node instanceof Element &&
+    (node.matches(ANY_OPTION) || node.querySelector(ANY_OPTION) !== null)
+  );
+}
+
+function movesTabStop(record: MutationRecord): boolean {
+  return (
+    record.type === 'attributes' ||
+    [...record.addedNodes].some(holdsOption) ||
+    [...record.removedNodes].some(holdsOption)
+  );
+}
+
 function useListBoxState(
   selected: string | undefined,
   onSelect: (value: string) => void,
@@ -126,7 +141,11 @@ function useOneTabStop(
     if (element === null) return;
     const update = (): void => keepOneTabStop(element, selection.get());
     update();
-    const observer = new MutationObserver(update);
+    // NOTE(0913vision): Only rows coming, going or changing move the tab
+    // stop; what is drawn inside a row (a slide picture) does not.
+    const observer = new MutationObserver(records => {
+      if (records.some(movesTabStop)) update();
+    });
     observer.observe(element, {
       childList: true,
       subtree: true,
