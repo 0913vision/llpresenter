@@ -109,7 +109,8 @@ function fitBand(
     e => e.id === BROADCAST_TEXT_ID && e.kind === 'currentText',
   );
   if (body?.kind !== 'currentText') return layout;
-  const bible = (item?.kind ?? slide?.kind) === 'bible';
+  const bible =
+    (item?.kind ?? slide?.kind) === 'bible' && slide?.sermonTitle !== true;
   const raw = themeElementText(body, content) ?? '';
   const value = bible ? broadcastBibleFlow(raw) : raw;
   const referenceElement = layout.elements.find(

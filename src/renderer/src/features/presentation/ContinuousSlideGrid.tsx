@@ -27,6 +27,7 @@ import {useGridMeasure} from '@renderer/ui/useGridMeasure';
 import {useBibleTileProjection} from '../bible/useBibleProjections';
 import {useSlideTransitionProgress} from './useSlideTransitionProgress';
 import {revealSlideItem} from '@renderer/session/visibleSlideItem';
+import {liveReturn} from './liveReturn';
 import type {SlideGridProps} from './SlideGrid';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {slideMenuEntries} from '@renderer/features/songs/editor/slideMenuEntries';
@@ -214,7 +215,7 @@ export function ContinuousSlideGrid({
   const pause = useRef(0);
   const dragging = useRef(false);
   const followRef = useRef<
-    (behavior?: ScrollBehavior, keyedDown?: boolean) => void
+    (behavior?: ScrollBehavior, keyed?: 'down' | 'other') => void
   >(() => undefined);
   const keyed = useRef(0);
   const followed = useRef<{
@@ -280,10 +281,18 @@ export function ContinuousSlideGrid({
     observer.observe(grid);
     viewport.addEventListener('scroll', read, {passive: true});
     viewport.addEventListener('wheel', defer, {passive: true});
-    const key = (): void => {
-      keyed.current = Date.now();
+    // NOTE(0913vision): Only a key press counts as keyboard navigation; any
+    // pointer press after it (a Shift+click, say) is a click again.
+    const key = (event: KeyboardEvent): void => {
+      if (!['Shift', 'Control', 'Alt', 'Meta'].includes(event.key)) {
+        keyed.current = Date.now();
+      }
+    };
+    const pointer = (): void => {
+      keyed.current = 0;
     };
     window.addEventListener('keydown', key, true);
+    window.addEventListener('pointerdown', pointer, true);
     viewport.addEventListener('pointerdown', down);
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
@@ -294,6 +303,7 @@ export function ContinuousSlideGrid({
       viewport.removeEventListener('scroll', read);
       viewport.removeEventListener('wheel', defer);
       window.removeEventListener('keydown', key, true);
+      window.removeEventListener('pointerdown', pointer, true);
       viewport.removeEventListener('pointerdown', down);
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', up);
@@ -313,7 +323,7 @@ export function ContinuousSlideGrid({
     // NOTE(0913vision): The grid moves only when the live slide leaves the
     // view, or when a key moves it further down past the reading line; a
     // click or a scroll leaves the grid where the user put it.
-    followRef.current = (behavior = 'smooth', keyedDown = false) => {
+    followRef.current = (behavior = 'smooth', keyed) => {
       const viewport = keeper.current?.parentElement;
       const section = sections.find(value => value.row.id === cursorItem);
       if (
@@ -321,7 +331,7 @@ export function ContinuousSlideGrid({
         !section ||
         cursorIndex === undefined ||
         dragging.current ||
-        Date.now() < pause.current ||
+        (keyed === undefined && Date.now() < pause.current) ||
         stride <= 1
       ) {
         return;
@@ -334,7 +344,8 @@ export function ContinuousSlideGrid({
         top < viewport.scrollTop ||
         bottom > viewport.scrollTop + viewport.clientHeight;
       const pastLine =
-        keyedDown && center - viewport.scrollTop > viewport.clientHeight * 0.55;
+        keyed === 'down' &&
+        center - viewport.scrollTop > viewport.clientHeight * 0.55;
       if (offscreen || pastLine) {
         viewport.scrollTo({
           top: Math.max(0, center - viewport.clientHeight * 0.4),
@@ -356,9 +367,10 @@ export function ContinuousSlideGrid({
       (order(cursorItem) > order(last.item) ||
         (cursorItem === last.item &&
           (cursorIndex ?? 0) > (last.index ?? Number.MAX_SAFE_INTEGER)));
+    const byKey = moved && Date.now() - keyed.current < 1000;
     followRef.current(
       moved ? 'smooth' : 'instant',
-      moved && down && Date.now() - keyed.current < 1000,
+      byKey ? (down ? 'down' : 'other') : undefined,
     );
   }, [cursorItem, cursorIndex, sections, stride, tracks, metrics.rowGap]);
   useLayoutEffect(() => {
@@ -407,6 +419,36 @@ export function ContinuousSlideGrid({
     }
   }, [sections, metrics.top]);
   useEffect(() => () => revealSlideItem(null), []);
+  // NOTE(0913vision): The view stays where the user scrolled; 현 위치로 in the
+  // footer brings the live slide back to the reading line.
+  const liveTile = useMemo(() => {
+    const section = sections.find(value => value.row.id === cursorItem);
+    if (!section || cursorIndex === undefined || stride <= 1) return null;
+    const top = section.top + BAND + Math.floor(cursorIndex / tracks) * stride;
+    return {top, bottom: top + stride - metrics.rowGap};
+  }, [sections, cursorItem, cursorIndex, stride, tracks, metrics.rowGap]);
+  useEffect(() => {
+    liveReturn.offer(() => {
+      const viewport = keeper.current?.parentElement;
+      if (!viewport || liveTile === null) return;
+      pause.current = 0;
+      viewport.scrollTo({
+        top: Math.max(
+          0,
+          (liveTile.top + liveTile.bottom) / 2 - viewport.clientHeight * 0.4,
+        ),
+        behavior: 'smooth',
+      });
+    });
+  }, [liveTile]);
+  useEffect(() => () => liveReturn.offer(null), []);
+  useEffect(() => {
+    liveReturn.report(
+      liveTile !== null &&
+        (liveTile.top < metrics.top ||
+          liveTile.bottom > metrics.top + metrics.height),
+    );
+  }, [liveTile, metrics.top, metrics.height]);
   return (
     <div
       ref={keeper}

@@ -707,14 +707,18 @@ export class ThemeElementView {
     }
     const reflow =
       frame.screen?.kind === 'stage' || frame.screen?.kind === 'broadcast';
+    // NOTE(0913vision): A sermon title keeps the lines the user typed; only
+    // verses flow as one text on 무대 and 방송.
     const currentBible =
       element.kind === 'currentText' &&
       slide?.sectionCard === undefined &&
+      slide?.sermonTitle !== true &&
       (slide?.biblePart !== undefined ||
         (slide?.kind ?? item?.kind) === 'bible');
     const nextBible =
       element.kind === 'nextText' &&
       slide?.next !== undefined &&
+      slide.next.sermonTitle !== true &&
       (slide.next.biblePart !== undefined ||
         (slide.next.itemKind ?? slide.kind ?? item?.kind) === 'bible');
     this.box.style.textWrap =
@@ -730,7 +734,7 @@ export class ThemeElementView {
             ...layers,
             slide: {
               ...slide,
-              ...(currentBible && slide.sermonTitle !== true
+              ...(currentBible
                 ? {lines: [broadcastBibleFlow(slide.lines.join('\n'))]}
                 : {}),
               ...(nextBible
@@ -784,6 +788,7 @@ export class ThemeElementView {
       if (
         element.kind === 'currentText' &&
         !currentBible &&
+        slide?.sermonTitle !== true &&
         slide?.label?.trim()
       ) {
         if (currentSong && labelMode === 'off') {
@@ -799,6 +804,7 @@ export class ThemeElementView {
       if (
         element.kind === 'nextText' &&
         !nextBible &&
+        slide?.next?.sermonTitle !== true &&
         !(nextSong && labelMode === 'off') &&
         !(
           slide?.next?.labelContinued &&

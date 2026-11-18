@@ -1965,6 +1965,46 @@ it('reflows Bible parts independently on stage and broadcast, including the next
   view.dispose();
 });
 
+it('keeps sermon title lines on stage and broadcast, including stage next text', () => {
+  const {root, view} = setup();
+  const elements: ThemeElement[] = [
+    {...themeElementBase(), kind: 'currentText'},
+    {...themeElementBase(31), kind: 'nextText', lineLimit: 2},
+  ];
+  const lines = ['Sermon title', 'English subtitle'];
+  const layers: LiveLayers = {
+    ...emptyLayers(),
+    slide: {
+      itemId: 'invented',
+      position: 0,
+      label: 'Verse',
+      lines,
+      sermonTitle: true,
+      next: {label: 'Verse', lines, sermonTitle: true, itemKind: 'bible'},
+    },
+  };
+  const base = frame(elements);
+  if (!base.theme?.item) throw Error('Missing item');
+  const bible = {
+    ...base,
+    theme: {...base.theme, item: {...base.theme.item, kind: 'bible' as const}},
+    transitions: false,
+  };
+  const rows = (kind: string) =>
+    Array.from(
+      root.querySelectorAll(
+        `[data-kind="${kind}"] .${classes.shown} .${classes.block} > div`,
+      ),
+      row => row.textContent,
+    );
+  for (const kind of ['stage', 'broadcast'] as const) {
+    view.render(layers, {...bible, screen: {id: THEME_MAIN, kind}});
+    expect(rows('currentText')).toEqual(lines);
+    if (kind === 'stage') expect(rows('nextText')).toEqual(lines);
+  }
+  view.dispose();
+});
+
 it('caps next text against the fitted current size for varied slide pairs', () => {
   const {view} = setup();
   const size = vi.spyOn(ThemeElementView.prototype, 'fittedTextSize');
