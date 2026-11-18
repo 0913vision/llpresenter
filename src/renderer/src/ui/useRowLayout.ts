@@ -157,6 +157,7 @@ export function useRowLayout({
   layoutKey,
   fill = 'last',
   enabled = true,
+  preserveCollapsed = false,
 }: {
   readonly container: RefObject<HTMLElement | null>;
   readonly store: RowSizeStore;
@@ -164,6 +165,7 @@ export function useRowLayout({
   readonly layoutKey: string;
   readonly fill?: 'first' | 'last';
   readonly enabled?: boolean;
+  readonly preserveCollapsed?: boolean;
 }): {
   begin(index: number): ResizeSession | undefined;
   canResize(index: number): boolean;
@@ -175,7 +177,15 @@ export function useRowLayout({
   const applied = useRef<AppliedRows | null>(null);
   useLayoutEffect(() => {
     const parent = container.current;
-    const deps = [parent, store, sizeClass, layoutKey, fill, enabled];
+    const deps = [
+      parent,
+      store,
+      sizeClass,
+      layoutKey,
+      fill,
+      enabled,
+      preserveCollapsed,
+    ];
     // NOTE(0913vision): Rows shown again (진행 stays built while another
     // workspace shows) keep their heights; the resize observer checks them in
     // the first frame, before it paints, so showing them reads no layout
@@ -233,8 +243,17 @@ export function useRowLayout({
       );
       const style = getComputedStyle(parent);
       const gap = parseFloat(style.getPropertyValue('--panel-gap')) || 0;
+      const workspace = preserveCollapsed
+        ? parent.closest<HTMLElement>('[data-workspace-layout="show"]')
+        : null;
+      const collapsedHeight =
+        workspace === null
+          ? 0
+          : workspace.clientHeight -
+            (parseFloat(style.getPropertyValue('--size-panel-header')) || 0) -
+            gap;
       const available =
-        parent.clientHeight -
+        Math.max(parent.clientHeight, collapsedHeight) -
         (rows.length - 1) * gap -
         (parseFloat(style.paddingTop) || 0) -
         (parseFloat(style.paddingBottom) || 0);
@@ -275,7 +294,15 @@ export function useRowLayout({
       observer?.disconnect();
       window.removeEventListener('resize', refit);
     };
-  }, [container, store, sizeClass, layoutKey, fill, enabled]);
+  }, [
+    container,
+    store,
+    sizeClass,
+    layoutKey,
+    fill,
+    enabled,
+    preserveCollapsed,
+  ]);
   return {
     begin: index => begin.current(index),
     canResize: index => movable[index] === true,
