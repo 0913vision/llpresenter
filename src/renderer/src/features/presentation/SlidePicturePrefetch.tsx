@@ -17,8 +17,10 @@ import type {ShowView} from '@renderer/session/showStore';
 import styles from './SlidePicturePrefetch.module.css';
 import {tilePicture} from './tilePicture';
 
-/** More than the first screen of a grid at any size, so the grid can show at once. */
+/** More than the first screen of a grid at any size. */
 const AHEAD_TILES = 24;
+/** The open item's tiles, drawn while 진행 is hidden: a whole item. */
+const OPEN_ITEM_TILES = 80;
 /** Pictures that start drawing in one idle moment. */
 const PER_STEP = 2;
 /** Waits this long after an item opens, so its own tiles draw first. */
@@ -50,9 +52,11 @@ function idle(run: () => void): () => void {
 function AheadItem({
   itemId,
   onDone,
+  limit = AHEAD_TILES,
 }: {
   readonly itemId: string;
   readonly onDone: () => void;
+  readonly limit?: number;
 }): JSX.Element {
   const tiles = useShow(view => tilesForView(view, itemId));
   const row = useShow(view => view.rows.find(value => value.id === itemId));
@@ -74,7 +78,7 @@ function AheadItem({
   const pictures = useMemo(
     () =>
       tiles
-        .slice(0, AHEAD_TILES)
+        .slice(0, limit)
         .map((tile: SlideTile, index) =>
           tilePicture(
             tile,
@@ -88,7 +92,7 @@ function AheadItem({
           ),
         )
         .filter(picture => picture !== undefined),
-    [tiles, itemId, theme, cardTheme],
+    [tiles, itemId, theme, cardTheme, limit],
   );
   const [shown, setShown] = useState(0);
   const finished = useRef(new Set<object>());
@@ -164,6 +168,59 @@ export function SlidePicturePrefetch({
   return (
     <div className={styles.ahead} aria-hidden="true" inert>
       <AheadItem key={itemId} itemId={itemId} onDone={next} />
+    </div>
+  );
+}
+
+const identities = new WeakMap<object, number>();
+let nextIdentity = 1;
+
+function identityOf(value: object | null | undefined): number {
+  if (value === null || value === undefined) return 0;
+  let found = identities.get(value);
+  if (found === undefined) {
+    found = nextIdentity++;
+    identities.set(value, found);
+  }
+  return found;
+}
+
+/**
+ * While 진행 stays hidden behind 준비 or 테마, draws the open item's first
+ * tiles again whenever what they show changes, a moment after the last change.
+ * 진행 then shows the changed tiles in its first frame, neither empty nor with
+ * their old pictures.
+ */
+export function OpenItemPrefetch(): JSX.Element | null {
+  const itemId = useShow(view => view.openItemId);
+  const tiles = useShow(view =>
+    itemId === null ? null : tilesForView(view, itemId),
+  );
+  const row = useShow(view => view.rows.find(value => value.id === itemId));
+  const theme = useSlideTheme(
+    row !== undefined && isItemRow(row) ? row : undefined,
+  );
+  const key =
+    itemId === null
+      ? ''
+      : `${itemId}:${identityOf(tiles)}:${identityOf(row)}:${identityOf(theme)}`;
+  const [due, setDue] = useState('');
+  const [drawn, setDrawn] = useState('');
+  useEffect(() => {
+    if (key === '') return undefined;
+    const timer = setTimeout(() => setDue(key), START_AFTER_MS);
+    return () => clearTimeout(timer);
+  }, [key]);
+  const done = useCallback(() => setDrawn(due), [due]);
+  if (itemId === null || due !== key || drawn === key) return null;
+  return (
+    <div className={styles.ahead} aria-hidden="true" inert>
+      <AheadItem
+        key={key}
+        itemId={itemId}
+        onDone={done}
+        limit={OPEN_ITEM_TILES}
+      />
     </div>
   );
 }

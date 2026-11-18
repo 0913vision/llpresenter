@@ -39,6 +39,7 @@ import {
   ShowSlideEntry,
   useShowPanelNavigation,
 } from '@renderer/features/presentation/showPanelNavigation';
+import {OpenItemPrefetch} from '@renderer/features/presentation/SlidePicturePrefetch';
 
 const ignoreProblem = (): void => undefined;
 
@@ -228,6 +229,7 @@ export function Workspace({
       {visibleId === 'show' ? (
         <ShowShortcuts onProblem={onProblem ?? logPanelProblem} />
       ) : null}
+      {showKept && !showVisible ? <OpenItemPrefetch /> : null}
       <div data-resize-panel="media.upper" className={styles.frames}>
         {showKept ? (
           <Activity mode={showVisible ? 'visible' : 'hidden'}>
