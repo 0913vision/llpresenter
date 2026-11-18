@@ -242,7 +242,15 @@ export class PowerPointLayerReader {
       skipped += unsupported;
     }
     const key = createHash('sha256')
-      .update(JSON.stringify(layers))
+      .update(
+        JSON.stringify([
+          master?.path,
+          layout?.path,
+          slide.root.getAttribute('showMasterSp'),
+          layout?.root.getAttribute('showMasterSp'),
+          layers,
+        ]),
+      )
       .digest('hex');
     return {key, layers, skipped};
   }

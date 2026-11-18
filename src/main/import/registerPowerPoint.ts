@@ -29,6 +29,58 @@ import {pickerFolder, rememberPickerFile} from './pickerFolder';
 
 const MAX_TEMP_FILES = 2;
 
+async function exportDecorations(
+  jobs: Pick<PowerPointImagesJob, 'run'>,
+  {
+    path,
+    directory,
+    number,
+    stopped,
+  }: {
+    readonly path: string;
+    readonly directory: string;
+    readonly number: number;
+    readonly stopped: () => boolean;
+  },
+): Promise<PowerPointImagesResult> {
+  let result: PowerPointImagesResult = 'file';
+  for (let attempt = 0; attempt < 3; attempt++) {
+    if (stopped()) return 'cancelled';
+    result = await jobs.run(
+      path,
+      directory,
+      Object.assign(() => undefined, {decorationSlide: number}),
+    );
+    if (result === 'ok' || result === 'unavailable' || result === 'cancelled') {
+      return result;
+    }
+    if (attempt < 2) await new Promise(resolve => setTimeout(resolve, 1000));
+  }
+  return result;
+}
+
+function unsupportedSlideSize(value: unknown): string | null {
+  if (typeof value !== 'object' || value === null || !('widescreen' in value)) {
+    throw new Error('Invalid PowerPoint worker result');
+  }
+  if (value.widescreen === true) return null;
+  if (
+    value.widescreen !== false ||
+    !('width' in value) ||
+    typeof value.width !== 'number' ||
+    !('height' in value) ||
+    typeof value.height !== 'number' ||
+    !Number.isFinite(value.width) ||
+    !Number.isFinite(value.height) ||
+    value.width <= 0 ||
+    value.height <= 0
+  ) {
+    throw new Error('Invalid PowerPoint slide size');
+  }
+  const cm = (size: number): string => (size / 360000).toFixed(2);
+  return `16:9만 가능 (${cm(value.width)}×${cm(value.height)}cm)`;
+}
+
 export function registerPowerPointImport(
   context: TextImportRegistration & {
     readonly media?: Promise<Pick<MediaStore, 'get' | 'fileOf'> | null>;
@@ -205,6 +257,10 @@ export function registerPowerPointImport(
       );
       await copyFile(path, copy, fsConstants.COPYFILE_EXCL);
       if (isImagesCancelled() || isDisposed()) return {ok: true, value: null};
+      const deck = await jobs.run({kind: 'size', path: copy});
+      if (isImagesCancelled() || isDisposed()) return {ok: true, value: null};
+      const sizeError = unsupportedSlideSize(deck);
+      if (sizeError !== null) return {ok: false, message: sizeError};
       const slides: Array<{path: string; number: number}> = [];
       let expected = 0;
       const result = await imageJobs.run(
@@ -331,6 +387,11 @@ export function registerPowerPointImport(
           };
         }
         const result = await jobs.run({kind: 'read', path});
+        const sizeError = unsupportedSlideSize(result);
+        if (sizeError !== null) {
+          retained = null;
+          return {ok: false, message: sizeError};
+        }
         if (
           disposed ||
           typeof result !== 'object' ||
@@ -376,6 +437,59 @@ export function registerPowerPointImport(
       const part = retained.source.slides[request.value.index]?.background;
       if (!part) return null;
       if (tempFiles.size >= MAX_TEMP_FILES || disposed) return null;
+      if (request.value.decoration === true) {
+        if (imagesBusy || drawingBusy) return null;
+        imagesBusy = true;
+        imagesCancelled = false;
+        let directory: string | null = null;
+        try {
+          const current = retained;
+          const slide = current.source.slides[request.value.index];
+          if (slide === undefined) return null;
+          directory = await mkdtemp(join(app.getPath('temp'), 'llp-ppt-'));
+          const copy = join(directory, `presentation${extname(current.path)}`);
+          await copyFile(current.path, copy, fsConstants.COPYFILE_EXCL);
+          await jobs.run({
+            kind: 'layers',
+            path: copy,
+            digest: current.digest,
+            number: slide.number,
+          });
+          if (isDisposed() || isImagesCancelled() || retained !== current) {
+            return null;
+          }
+          const result = await exportDecorations(imageJobs, {
+            path: copy,
+            directory,
+            number: slide.number,
+            stopped: () => isDisposed() || isImagesCancelled(),
+          });
+          if (
+            result !== 'ok' ||
+            isDisposed() ||
+            isImagesCancelled() ||
+            retained !== current
+          ) {
+            context.log.warn(`PowerPoint decoration export: ${result}`);
+            return null;
+          }
+          const path = join(directory, 'llp-ppt-0001.png');
+          await stat(path);
+          await rm(copy, {force: true});
+          tempFiles.add(path);
+          imageDirectories.add(directory);
+          directory = null;
+          return path;
+        } catch (error) {
+          context.log.warn('could not export PowerPoint decorations', error);
+          return null;
+        } finally {
+          if (directory !== null) {
+            await rm(directory, {recursive: true, force: true});
+          }
+          imagesBusy = false;
+        }
+      }
       const image = request.value.image;
       if (image && !boundedPowerPointImage(Buffer.from(image.bytes))) {
         return null;

@@ -86,6 +86,41 @@ function setup(windowMode: 'normal' | 'offscreen' = 'normal') {
 const readRequest = {source: 'file', encoding: 'auto'};
 
 describe('PowerPoint import', () => {
+  it('refuses a non-16:9 deck before either import starts', async () => {
+    const {control, log} = setup();
+    electron.tempDir = await makeTempDir();
+    const source = join(electron.tempDir, 'four-three.pptx');
+    await writeFile(source, 'deck');
+    const images = {run: vi.fn(async () => 'ok' as const), cancel: vi.fn()};
+    const jobs = {
+      run: vi.fn(async () => ({
+        widescreen: false,
+        width: 9144000,
+        height: 6858000,
+      })),
+      dispose: vi.fn(),
+    };
+    onTestFinished(
+      registerPowerPointImport(
+        {control, windowMode: 'normal', log},
+        jobs,
+        images,
+      ),
+    );
+    electron.chooseFile.mockResolvedValue({
+      canceled: false,
+      filePaths: [source],
+    });
+    const expected = {ok: false, message: '16:9만 가능 (25.40×19.05cm)'};
+    expect(
+      await handler(powerpointEndpoints.read.channel)({}, undefined),
+    ).toEqual(expected);
+    expect(
+      await handler(powerpointEndpoints.images.channel)({}, undefined),
+    ).toEqual(expected);
+    expect(images.run).not.toHaveBeenCalled();
+  });
+
   it('exports an ASCII-named copy and removes it while retaining the original and exported slides', async () => {
     const {control, log} = setup();
     electron.tempDir = await makeTempDir();
@@ -108,7 +143,10 @@ describe('PowerPoint import', () => {
       ),
       cancel: vi.fn(),
     };
-    const jobs = {run: vi.fn(async () => null), dispose: vi.fn()};
+    const jobs = {
+      run: vi.fn(async () => ({widescreen: true})),
+      dispose: vi.fn(),
+    };
     onTestFinished(
       registerPowerPointImport(
         {control, windowMode: 'normal', log},
@@ -154,7 +192,10 @@ describe('PowerPoint import', () => {
       const source = join(electron.tempDir, 'original.pptx');
       await writeFile(source, 'deck');
       const images = {run: vi.fn(async () => failure), cancel: vi.fn()};
-      const jobs = {run: vi.fn(async () => null), dispose: vi.fn()};
+      const jobs = {
+        run: vi.fn(async () => ({widescreen: true})),
+        dispose: vi.fn(),
+      };
       onTestFinished(
         registerPowerPointImport(
           {control, windowMode: 'normal', log},
@@ -307,7 +348,13 @@ describe('PowerPoint import', () => {
     electron.tempDir = await makeTempDir();
     const jobs = {
       run: vi.fn(async (job: PowerPointJob): Promise<unknown> => {
-        if (job.kind === 'match' || job.kind === 'layers') return null;
+        if (
+          job.kind === 'match' ||
+          job.kind === 'layers' ||
+          job.kind === 'size'
+        ) {
+          return null;
+        }
         if (job.kind === 'read') {
           return {
             digest: 'a'.repeat(64),
@@ -379,7 +426,13 @@ describe('PowerPoint import', () => {
     });
     const jobs = {
       run: async (job: PowerPointJob): Promise<unknown> => {
-        if (job.kind === 'match' || job.kind === 'layers') return null;
+        if (
+          job.kind === 'match' ||
+          job.kind === 'layers' ||
+          job.kind === 'size'
+        ) {
+          return null;
+        }
         if (job.kind === 'read') {
           return {
             digest: 'a'.repeat(64),

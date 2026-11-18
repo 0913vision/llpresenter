@@ -24,6 +24,7 @@ export const importSlideSchema = jsonObject({
   titleSlide: v.exactOptional(v.literal(true)),
   titleLineCount: v.exactOptional(v.pipe(positiveInteger, v.maxValue(1000))),
   lyricFormat: v.exactOptional(songLyricFormatSchema),
+  picture: v.exactOptional(mediaIdSchema),
   section: v.exactOptional(nonNegativeInteger),
 });
 

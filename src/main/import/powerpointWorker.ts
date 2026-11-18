@@ -2,7 +2,11 @@ import {createHash} from 'node:crypto';
 import {open, writeFile} from 'node:fs/promises';
 import {parentPort, workerData} from 'node:worker_threads';
 import {POWERPOINT_IMPORT_LIMITS} from '@core/songs/textImportLimits';
-import {readPowerPoint, readPowerPointScene} from './powerpointRead';
+import {
+  readPowerPoint,
+  readPowerPointScene,
+  readPowerPointSize,
+} from './powerpointRead';
 import {PowerPointZip} from './powerpointZip';
 import type {PowerPointJob} from './powerpointJob';
 import {sameImage} from './matchImage';
@@ -18,6 +22,7 @@ function parseJob(value: unknown): PowerPointJob {
     throw new Error('Invalid PowerPoint worker request');
   }
   if (value.kind === 'read') return {kind: 'read', path: value.path};
+  if (value.kind === 'size') return {kind: 'size', path: value.path};
   if (
     value.kind === 'layers' &&
     'digest' in value &&
@@ -121,6 +126,10 @@ async function run(): Promise<void> {
     return;
   }
   const bytes = await readBounded(job.path);
+  if (job.kind === 'size') {
+    parentPort?.postMessage(readPowerPointSize(bytes));
+    return;
+  }
   const digest = createHash('sha256').update(bytes).digest('hex');
   if (job.kind !== 'read' && digest !== job.digest) {
     throw new Error('PowerPoint file changed after preview');
@@ -135,6 +144,8 @@ async function run(): Promise<void> {
       digest,
       slides: deck.slides,
       widescreen: deck.widescreen,
+      width: deck.width,
+      height: deck.height,
     });
     return;
   }

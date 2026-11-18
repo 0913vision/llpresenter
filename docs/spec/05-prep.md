@@ -960,12 +960,15 @@ remain usable. Slide labels are empty. The item uses 이미지 슬라이드. The
 operator sees export progress and may cancel. If PowerPoint is not installed,
 does not respond, or cannot read the file, the app reports the cause without
 adding an item. The temporary copy is removed after the export finishes, fails,
-or is cancelled.
+or is cancelled. Files whose slide ratio differs from 16:9 by more than 1%
+are refused before export, with their dimensions and the supported ratio.
 
 ## PowerPoint import
 
 The 슬라이드로 picker accepts `.pptx` and `.pptm`; old `.ppt` files are refused
-with a message. Files are read as ZIP and XML data, without starting PowerPoint
+with a message. Files whose slide ratio differs from 16:9 by more than 1% are
+refused before import, with their dimensions and the supported ratio. Files are
+read as ZIP and XML data, without starting PowerPoint
 or running macros. Hidden slides are skipped, and the remaining slides retain
 their original slide numbers. Shapes are read in slide order, including groups;
 tables, charts, notes and comments are ignored. Line breaks and XML entities are
@@ -983,10 +986,8 @@ lines with their positions and formatting. 편집 opens the unsaved song editor;
 저장 there adds the song to the library.
 
 가사 and 배경 are selected by default. At least one remains selected. 가사 alone
-opens a song without importing media; 배경 alone imports the selected range
-background into media with 가져오기 and opens no editor. When the slide ratio
-differs from 16:9 by more than 1%, 배경 is disabled and no background picture is
-composed.
+opens a song without importing media; 배경 alone imports the selected range's
+backgrounds into media with 가져오기 and opens no editor.
 
 The imported song uses the built-in light-background song theme when the most
 common resolved body lyric color in the selected range has relative luminance
@@ -999,8 +1000,13 @@ service item added from the song keeps its selected theme.
 
 ### Background
 
-The song background is one 1920 x 1080 picture of the selected slide's non-text
-content. The slide's own background takes precedence over the layout background,
+When PowerPoint is available, each distinct slide look is exported as a 1920 ×
+1080 picture from a temporary copy, with the slide's own text and placeholders
+removed so its master, layout and non-text decorations are retained. Slides sharing a look reuse the
+picture. The slide text remains editable. If PowerPoint cannot export it, the
+following layer import supplies the background instead.
+
+The layer import draws non-text content. The slide's own background takes precedence over the layout background,
 then the master background. Solid, gradient, picture fills and theme background
 references are resolved before drawing. Master shapes follow unless the slide or
 layout sets `showMasterSp` to false, then layout shapes, then slide shapes,

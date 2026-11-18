@@ -91,8 +91,8 @@ describe('PowerPoint XML reader', () => {
     expect(deck.slides.map(s => s.background)).toEqual([
       expect.stringMatching(/^[a-f0-9]{64}$/),
       expect.stringMatching(/^[a-f0-9]{64}$/),
-      null,
-      null,
+      expect.stringMatching(/^[a-f0-9]{64}$/),
+      expect.stringMatching(/^[a-f0-9]{64}$/),
     ]);
     expect(powerpointSlides(deck.slides)).toEqual([
       {titleSlide: true, lines: ['Title', 'Subtitle']},

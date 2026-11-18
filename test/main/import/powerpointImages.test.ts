@@ -40,7 +40,7 @@ describe('PowerPoint image export', () => {
     );
     expect(POWERPOINT_IMAGE_SCRIPT).toContain('$powerpoint.DisplayAlerts = 1');
     expect(POWERPOINT_IMAGE_SCRIPT).toContain(
-      'Presentations.Open($env:LLP_PPT_SOURCE, -1, 0, 0)',
+      'Presentations.Open($env:LLP_PPT_SOURCE, $readOnly, 0, 0)',
     );
     expect(POWERPOINT_IMAGE_SCRIPT).toContain(
       'SlideShowTransition.Hidden -ne -1',
@@ -72,6 +72,19 @@ describe('PowerPoint image export', () => {
     expect(progress).toHaveBeenCalledWith(1, 2, 3);
     child.emit('close', 1);
     expect(await result).toBe('file');
+  });
+  it('exports decorations from an editable temporary presentation without saving it', async () => {
+    const job = new PowerPointImagesJob();
+    const progress = Object.assign(vi.fn(), {decorationSlide: 4});
+    const result = job.run('temporary.pptx', 'temp', progress);
+    expect(mocks.spawn).toHaveBeenCalledOnce();
+    expect(POWERPOINT_IMAGE_SCRIPT).toContain('$env:LLP_PPT_DECORATION_SLIDE');
+    expect(POWERPOINT_IMAGE_SCRIPT).toContain('Remove-SlideText $slide.Shapes');
+    expect(POWERPOINT_IMAGE_SCRIPT).not.toContain('.Save(');
+    const child = mocks.children[0];
+    if (!child) throw new Error('Missing child');
+    child.emit('close', 0);
+    expect(await result).toBe('ok');
   });
   it.each([
     ['FAILURE unavailable\n', 'unavailable'],

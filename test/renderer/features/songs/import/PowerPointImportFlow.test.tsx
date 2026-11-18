@@ -151,7 +151,8 @@ describe('PowerPoint import dialog', () => {
             },
           }),
           layers,
-          background: async () => 'C:/temp/ppt.png',
+          background: async request =>
+            request.decoration ? null : 'C:/temp/ppt.png',
           match: async () => mediaId,
           release: async () => true,
         },
@@ -179,6 +180,56 @@ describe('PowerPoint import dialog', () => {
       ).toBe(mediaId);
     },
   );
+
+  it('reuses each distinct layout picture for the matching slides', async () => {
+    const fixture = editorFixture();
+    const store = new SongEditorStore(fixture.api, vi.fn());
+    onTestFinished(() => store.dispose());
+    const first = createMediaId('00000000-0000-4000-8000-000000000123');
+    const second = createMediaId('00000000-0000-4000-8000-000000000124');
+    const background = vi.fn(
+      async ({index}: {index: number}) => `C:/temp/${index}.png`,
+    );
+    const api = mockLlpApi({
+      ...fixture.api,
+      powerpoint: {
+        read: async () => ({
+          ok: true,
+          value: {
+            fileName: 'deck.pptx',
+            widescreen: true,
+            slides: ['a', 'b', 'a'].map((key, index) => ({
+              number: index + 1,
+              background: key,
+              shapes: [{body: true, lines: [`Slide ${index + 1}`]}],
+            })),
+          },
+        }),
+        background,
+        match: async ({path}) => (path.endsWith('/0.png') ? first : second),
+        release: async () => true,
+      },
+    });
+    const onEdit = vi.fn();
+    render(
+      <PowerPointImportFlow
+        api={api}
+        store={store}
+        onDone={vi.fn()}
+        onEdit={onEdit}
+        onProblem={vi.fn()}
+      />,
+    );
+    await screen.findByRole('dialog', {name: 'PowerPoint 가져오기'});
+    fireEvent.click(screen.getByRole('button', {name: '편집'}));
+    await waitFor(() => expect(onEdit).toHaveBeenCalledOnce());
+    expect(background).toHaveBeenCalledTimes(2);
+    expect(
+      store
+        .getSnapshot()
+        .session?.history.snapshot.song.slides.map(slide => slide.picture),
+    ).toEqual([first, second, first]);
+  });
 
   it('reuses matching media instead of importing a second image', async () => {
     const fixture = editorFixture();
@@ -236,10 +287,7 @@ describe('PowerPoint import dialog', () => {
       LIGHT_SONG_THEME_ID,
     );
     expect(importMedia).not.toHaveBeenCalled();
-    expect(background).toHaveBeenCalledWith({
-      index: 0,
-      image: {mime: 'image/png', bytes: new Uint8Array([1])},
-    });
+    expect(background).toHaveBeenCalledWith({index: 0, decoration: true});
     expect(release).toHaveBeenCalledWith({path: 'C:/temp/ppt.png'});
   });
 
@@ -298,7 +346,7 @@ describe('PowerPoint import dialog', () => {
         }),
       );
       await waitFor(() => expect(onDone).toHaveBeenCalledOnce());
-      expect(layers).toHaveBeenCalledTimes(choice === 'background' ? 1 : 0);
+      expect(layers).not.toHaveBeenCalled();
       expect(onEdit).toHaveBeenCalledTimes(choice === 'lyrics' ? 1 : 0);
       if (choice === 'lyrics') {
         expect(

@@ -21,7 +21,15 @@ export function backgroundChange(mediaId: MediaId | null): ServiceItemChange {
       return null;
     }
     if ((item.background ?? null) === mediaId) return item;
-    const updated = {...item};
+    const updated = isItemOfKind(item, 'song')
+      ? {
+          ...item,
+          slides: item.slides.map(slide => {
+            const {picture: _picture, ...rest} = slide;
+            return rest;
+          }),
+        }
+      : {...item};
     if (mediaId === null) delete updated.background;
     else updated.background = mediaId;
     return updated;

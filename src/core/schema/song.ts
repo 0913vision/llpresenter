@@ -38,6 +38,7 @@ export const songSlideSchema = jsonObject({
   titleLineCount: v.exactOptional(v.pipe(positiveInteger, v.maxValue(1000))),
   titleLayout: v.exactOptional(songTitleLayoutSchema),
   lyricFormat: v.exactOptional(songLyricFormatSchema),
+  picture: v.exactOptional(mediaIdSchema),
   label: v.exactOptional(
     v.pipe(
       v.string(),

@@ -100,6 +100,7 @@ function InspectorContent({
                 output
                 liveText
                 {...appearance}
+                background={slide.picture ?? appearance.background}
                 slide={{
                   itemId: snapshot.song.id,
                   position: snapshot.selection.block,

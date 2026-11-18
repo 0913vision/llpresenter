@@ -106,9 +106,10 @@ export function slidesOutput(
       ? background
       : {
           mediaId: slide.picture,
-          loop: false,
-          itemId: slide.itemId,
-          slidePicture: true,
+          loop: slide.kind === undefined,
+          ...(slide.kind === undefined
+            ? {}
+            : {itemId: slide.itemId, slidePicture: true as const}),
         };
   if (slide.sectionCard !== undefined) {
     commands.push({type: 'layer.clear', target: 'media'});

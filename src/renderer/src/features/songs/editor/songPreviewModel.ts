@@ -148,6 +148,7 @@ export function selectedPreview(
   }
   const next = project(nextBlock);
   const transition = slides[block]?.transition;
+  const slideBackground = slides[block]?.picture ?? background;
   return {
     ...emptyLayers(),
     slide: {
@@ -169,8 +170,8 @@ export function selectedPreview(
       ...(next === undefined ? {} : {next}),
     },
     media:
-      background === undefined
+      slideBackground === undefined
         ? null
-        : {mediaId: background, loop: true, startedAt: 0},
+        : {mediaId: slideBackground, loop: true, startedAt: 0},
   };
 }

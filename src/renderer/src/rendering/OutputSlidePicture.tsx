@@ -45,9 +45,9 @@ function slideSpec({
           ? null
           : {
               mediaId,
-              loop: slide.picture === undefined,
+              loop: slide.picture === undefined || slide.kind === undefined,
               startedAt: 0,
-              ...(slide.picture === undefined
+              ...(slide.picture === undefined || slide.kind === undefined
                 ? {}
                 : {itemId: slide.itemId, slidePicture: true}),
             },

@@ -391,6 +391,7 @@ export function projectSongTiles(
           ? NO_LABEL_COLOR
           : (colors.get(slide.label) ?? NO_LABEL_COLOR),
       lines: slide.lines,
+      ...(slide.picture === undefined ? {} : {picture: slide.picture}),
       ...(slide.lyricFormat === undefined
         ? {}
         : {lyricFormat: slide.lyricFormat}),

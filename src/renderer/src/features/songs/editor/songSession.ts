@@ -143,6 +143,18 @@ export class SongSession {
 
   setBackground(id: MediaId | undefined): void {
     if (!this.acceptsEdits || this.background === id) return;
+    if (
+      this.history.snapshot.song.slides.some(
+        slide => slide.picture !== undefined,
+      )
+    ) {
+      this.history.model.mapSlides(slides =>
+        slides.map(slide => {
+          const {picture: _picture, ...rest} = slide;
+          return rest;
+        }),
+      );
+    }
     this.background = id;
     this.backgroundEdited = true;
     this.endTyping();

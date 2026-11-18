@@ -18,6 +18,7 @@ export function sendSlideOutput(
     slide.sectionCard === undefined &&
       (entering ||
         live.state?.layers.slide?.sectionCard !== undefined ||
+        live.state?.layers.slide?.picture !== undefined ||
         slide.kind === 'ad' ||
         slide.kind === 'blank')
       ? background
@@ -25,7 +26,7 @@ export function sendSlideOutput(
   );
   const clearBackground =
     slide.sectionCard === undefined &&
-    entering &&
+    (entering || live.state?.layers.slide?.picture !== undefined) &&
     background === undefined &&
     slide.picture === undefined;
   sendLive({
