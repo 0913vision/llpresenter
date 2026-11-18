@@ -54,6 +54,21 @@ describe('slideLayerOf', () => {
       ).not.toHaveProperty('labelContinued');
     }
   });
+  it.each(['전주', '간주', '후주'])(
+    'continues the %s cue across the title boundary',
+    label => {
+      const deck: readonly SlideTile[] = [
+        {label, labelColor: 'none', titleSlide: true, lines: ['Title']},
+        {label, labelColor: 'none', lines: ['Lyric']},
+      ];
+      expect(
+        slideLayerOf({itemId: 'song', index: 0}, () => deck)?.next,
+      ).toMatchObject({label, labelContinued: true});
+      expect(
+        slideLayerOf({itemId: 'song', index: 1}, () => deck),
+      ).toMatchObject({label, labelContinued: true});
+    },
+  );
   it('marks a repeated label only within the same item', () => {
     const deck: readonly SlideTile[] = [
       {label: '1절', labelColor: 'none', lines: ['First']},
