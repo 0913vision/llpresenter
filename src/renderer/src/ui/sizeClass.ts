@@ -21,7 +21,7 @@ export interface ColumnWidths {
 export const defaultColumns: Readonly<Record<SizeClass, ColumnWidths>> = {
   narrow: {left: 220, right: 360},
   normal: {left: 280, right: 480},
-  wide: {left: 320, right: 560},
+  wide: {left: 320, right: 640},
 };
 
 /** Default thumbnail columns of the 장 grid per size class (design system `Layout`). */

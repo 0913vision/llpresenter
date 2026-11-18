@@ -1,5 +1,6 @@
 .workspace {
   display: grid;
+  container-type: size;
   flex: 1;
   grid-template-rows: minmax(var(--workspace-upper-min-height), 1fr);
   min-height: 0;
@@ -190,6 +191,22 @@
 }
 
 .fit[style*='height:'] {
+  max-height: none;
+}
+
+/* NOTE(0913vision): Keep the show preview at its collapsed-media size; the column scrolls when
+   the open media bin leaves less room. Dragged panel heights remain explicit. */
+.column:has(> [data-resize-panel='show.preview'])
+  > .fit:not([style*='height:']) {
+  flex: 0 0
+    min(
+      var(--item-preview-height),
+      max(
+        var(--preview-min-height),
+        100cqh - var(--size-panel-header) - var(--panel-gap) -
+          var(--preview-reserve)
+      )
+    );
   max-height: none;
 }
 

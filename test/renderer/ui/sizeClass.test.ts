@@ -1,5 +1,5 @@
 import {describe, expect, it} from 'vitest';
-import {sizeClassFor} from '@renderer/ui/sizeClass';
+import {defaultColumns, sizeClassFor} from '@renderer/ui/sizeClass';
 
 describe('sizeClassFor', () => {
   it('switches classes at the boundaries', () => {
@@ -12,4 +12,8 @@ describe('sizeClassFor', () => {
     expect(sizeClassFor(2400)).toBe('wide');
     expect(sizeClassFor(2560)).toBe('wide');
   });
+});
+
+it('keeps the wide preview column near one quarter of a 2560px window', () => {
+  expect(defaultColumns.wide.right).toBe(640);
 });
