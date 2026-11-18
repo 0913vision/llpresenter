@@ -206,6 +206,15 @@ describe('the places that use a media item', () => {
     expect(
       countMediaUses(target, sources({themes: used, macros: macros.value})),
     ).toMatchObject({themes: 1, macros: 1});
+    const deletedTheme = used.themes[0];
+    if (deletedTheme === undefined) throw new Error('No used theme');
+    const deleted = {
+      ...used,
+      themes: used.themes.slice(1),
+      deletedThemes: [deletedTheme],
+    };
+    expect(countMediaUses(target, sources({themes: deleted})).themes).toBe(1);
+    expect(countMediaUses(other, sources({themes: deleted})).themes).toBe(0);
   });
 });
 

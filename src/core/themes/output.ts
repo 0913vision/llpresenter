@@ -37,9 +37,10 @@ export function resolveThemeOutput({
     requested !== undefined && file?.standby.id === requested
       ? withStageStandby(file.standby, screens)
       : (file?.themes.find(theme => theme.id === requested) ??
-        (mode?.kind === 'manual'
-          ? undefined
-          : file?.deletedThemes?.find(theme => theme.id === requested)));
+        (mode?.kind !== 'manual' ||
+        (item?.source === 'service' && item.theme === requested)
+          ? file?.deletedThemes?.find(theme => theme.id === requested)
+          : undefined));
   if (requested !== undefined && chosen === undefined) missing.push(requested);
   const defaultId = file?.defaults[kind];
   const hasRetiredReplacement =

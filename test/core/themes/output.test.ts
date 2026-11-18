@@ -59,6 +59,32 @@ describe('published theme compositions', () => {
       revision: 1,
     });
     expect(after).toEqual(before);
+    const manual = {kind: 'manual' as const, id: original.id};
+    const manualBefore = resolveThemeOutput({
+      file,
+      screens: themeScreens,
+      item,
+      mode: manual,
+      revision: 1,
+    });
+    const manualAfter = resolveThemeOutput({
+      file: deleted,
+      screens: themeScreens,
+      item,
+      mode: manual,
+      revision: 1,
+    });
+    expect(manualAfter).toEqual(manualBefore);
+    const differentItem = {...item, theme: file.defaults.bible};
+    const unrelatedOverride = resolveThemeOutput({
+      file: deleted,
+      screens: themeScreens,
+      item: differentItem,
+      mode: manual,
+      revision: 1,
+    });
+    expect(unrelatedOverride.themeId).not.toBe(original.id);
+    expect(unrelatedOverride.missing).toContain(original.id);
   });
   it('updates the former sermon broadcast layout but retains a custom layout', () => {
     const theme = themeFile().themes.find(

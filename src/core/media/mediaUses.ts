@@ -55,13 +55,16 @@ export function countMediaUses(
       ),
     0,
   );
-  const themes = [sources.themes.standby, ...sources.themes.themes].filter(
-    theme =>
-      Object.values(theme.screens).some(layout =>
-        layout.elements.some(
-          element => element.kind === 'image' && element.mediaId === mediaId,
-        ),
+  const themes = [
+    sources.themes.standby,
+    ...sources.themes.themes,
+    ...(sources.themes.deletedThemes ?? []),
+  ].filter(theme =>
+    Object.values(theme.screens).some(layout =>
+      layout.elements.some(
+        element => element.kind === 'image' && element.mediaId === mediaId,
       ),
+    ),
   ).length;
   const macros = sources.macros.macros.filter(macro =>
     macro.actions.some(action => 'media' in action && action.media === mediaId),
