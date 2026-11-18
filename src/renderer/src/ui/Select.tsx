@@ -67,7 +67,9 @@ function Lead({
         <Icon name={lead.icon} size={iconSize[size]} className={styles.icon} />
       );
     case 'media':
-      return <img className={styles.media} src={lead.src} alt="" />;
+      return (
+        <img className={styles.media} src={lead.src} alt="" decoding="sync" />
+      );
     case 'tile':
       return (
         <span

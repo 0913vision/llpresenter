@@ -29,7 +29,12 @@ function Shown({
   return (
     <>
       {media === undefined ? null : (
-        <img className={styles.thumb} src={thumbnailSrc(media)} alt="" />
+        <img
+          className={styles.thumb}
+          src={thumbnailSrc(media)}
+          alt=""
+          decoding="sync"
+        />
       )}
       <span className={styles.truncate}>{name}</span>
     </>

@@ -39,6 +39,12 @@ import {detailsPicture} from './detailsPicture';
 import {DetailsInfo} from './DetailsInfo';
 import {useItemTheme} from './ItemThemeRow';
 import {DetailsSlides} from './DetailsSlides';
+import {AheadBox, DrawAhead} from '@renderer/rendering/DrawAhead';
+
+/** The 슬라이드 tab tiles drawn ahead while 정보 shows: about a screen of them. */
+const DETAILS_AHEAD = 12;
+/** Drawing ahead starts this long after the panel shows an item. */
+const DETAILS_AHEAD_AFTER_MS = 400;
 import {detailsScale} from '@renderer/platform/thumbnailScale';
 import styles from './DetailsPanel.module.css';
 import {AtomicPictureContent} from '@renderer/rendering/AtomicPictureContent';
@@ -129,6 +135,8 @@ function DetailsPanelContent({
   }>({key: null, index: 0});
   const selected = selection.key === targetKey ? selection.index : 0;
   const [selectedScreen, setSelectedScreen] = useState<string | null>(null);
+  const [aheadDone, setAheadDone] = useState<string | null>(null);
+  const [aheadDue, setAheadDue] = useState<string | null>(null);
   const songId = target?.kind === 'song' ? target.songId : null;
   useEffect(() => {
     let active = true;
@@ -190,6 +198,14 @@ function DetailsPanelContent({
     screens[0];
   const role = targetScreen?.kind ?? 'audience';
   const screenId = targetScreen?.id;
+  const aheadIdentity = `${detailsKey}:${screenId ?? ''}`;
+  useEffect(() => {
+    const timer = setTimeout(
+      () => setAheadDue(aheadIdentity),
+      DETAILS_AHEAD_AFTER_MS,
+    );
+    return () => clearTimeout(timer);
+  }, [aheadIdentity]);
   const choices = screens.map(screen => ({
     value: screen.id,
     label:
@@ -430,23 +446,47 @@ function DetailsPanelContent({
   }
   const firstPicture = passageProblem === undefined ? picture(0) : undefined;
   const waitForPicture = passageProblem === undefined && count > 0;
+  const pending =
+    (screenSettings.document === null && !screenSettings.failed) ||
+    (waitForPicture && firstPicture === undefined) ||
+    (item !== null && !themeData.ready) ||
+    (item !== null &&
+      isItemOfKind(item, 'song') &&
+      state.songStatus === 'loading') ||
+    (item !== null &&
+      (isItemOfKind(item, 'song') || isItemOfKind(item, 'slides')) &&
+      media.document === null &&
+      !media.failed);
+  const identity = `${detailsKey}:${screenId ?? ''}`;
+  // NOTE(0913vision): While 정보 shows, the 슬라이드 tab's first tiles draw out
+  // of sight, so switching tabs shows every tile drawn, the first one too,
+  // whose picture the large preview above is using.
+  const ahead =
+    tab === 'info' &&
+    !pending &&
+    aheadDue === identity &&
+    aheadDone !== identity
+      ? Array.from({length: Math.min(count, DETAILS_AHEAD)}, (_, index) =>
+          picture(index),
+        ).filter(each => each !== undefined)
+      : null;
   return (
     <AtomicPictureContent
       initial={<DetailsShell />}
-      identity={`${detailsKey}:${screenId ?? ''}`}
-      waitForPicture={waitForPicture}
-      pending={
-        (screenSettings.document === null && !screenSettings.failed) ||
-        (waitForPicture && firstPicture === undefined) ||
-        (item !== null && !themeData.ready) ||
-        (item !== null &&
-          isItemOfKind(item, 'song') &&
-          state.songStatus === 'loading') ||
-        (item !== null &&
-          (isItemOfKind(item, 'song') || isItemOfKind(item, 'slides')) &&
-          media.document === null &&
-          !media.failed)
+      identity={identity}
+      aside={
+        ahead === null ? null : (
+          <AheadBox>
+            <DrawAhead
+              key={identity}
+              pictures={ahead}
+              onDone={() => setAheadDone(identity)}
+            />
+          </AheadBox>
+        )
       }
+      waitForPicture={waitForPicture}
+      pending={pending}
       content={
         <DetailsShell
           footer={

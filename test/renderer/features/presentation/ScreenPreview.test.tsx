@@ -104,7 +104,7 @@ function shownHost(container: HTMLElement): HTMLElement | null {
   return (
     hosts.find(
       (host): host is HTMLElement =>
-        host instanceof HTMLElement && host.style.visibility === 'visible',
+        host instanceof HTMLElement && host.style.visibility !== 'hidden',
     ) ?? null
   );
 }

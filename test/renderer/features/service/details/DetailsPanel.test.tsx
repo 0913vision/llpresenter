@@ -120,13 +120,13 @@ it('keeps the previous details in place while the next item loads', async () => 
   );
   try {
     await screen.findByTestId('picture');
-    vi.spyOn(f.api.services, 'get').mockImplementation(
+    vi.spyOn(f.api.songs, 'get').mockImplementation(
       () => new Promise(() => {}),
     );
     view.rerender(
       <DetailsPanel
         sizeClass="normal"
-        target={{kind: 'item', itemId: fixtureItems.header}}
+        target={{kind: 'item', itemId: fixtureItems.plain}}
         api={f.api}
         editor={editor}
         items={items}

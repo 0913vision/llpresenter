@@ -1,4 +1,4 @@
-import {useCallback, useRef, useState, type JSX} from 'react';
+import {useCallback, useRef, useState, type JSX, type ReactNode} from 'react';
 import {PictureReadiness} from './PictureReadiness';
 import styles from './AtomicPictureContent.module.css';
 
@@ -10,6 +10,7 @@ export function AtomicPictureContent({
   initial = null,
   waitForPicture = false,
   pictureCount = 1,
+  aside = null,
 }: {
   readonly identity: string;
   readonly pending: boolean;
@@ -17,6 +18,8 @@ export function AtomicPictureContent({
   readonly initial?: JSX.Element | null;
   readonly waitForPicture?: boolean;
   readonly pictureCount?: number;
+  /** Rendered beside the content, outside what is held and staged. */
+  readonly aside?: ReactNode;
 }): JSX.Element {
   const [displayed, setDisplayed] = useState<string | null>(null);
   const [held, setHeld] = useState<JSX.Element | null>(initial);
@@ -72,6 +75,7 @@ export function AtomicPictureContent({
           </PictureReadiness.Provider>
         </div>
       ) : null}
+      {aside}
     </div>
   );
 }
