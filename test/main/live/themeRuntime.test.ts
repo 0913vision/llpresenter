@@ -117,6 +117,110 @@ function setup(
 }
 
 describe('main-process theme runtime', () => {
+  it('keeps blackout and the live slide during background refresh', () => {
+    const {store, dispatch, slide, service, save} = setup();
+    slide();
+    dispatch({type: 'black.toggle'});
+    const before = store.state.layers.slide;
+    const mediaId = createMediaId('00000000-0000-4000-8000-000000000601');
+    save({
+      ...service,
+      backgroundOverride: {kind: 'media', mediaId, loop: true},
+    });
+    dispatch({type: 'media.show', media: {mediaId, loop: true}});
+    dispatch({type: 'themes.refresh'});
+    expect(store.state.blackScreen).toBe(true);
+    expect(store.state.layers.slide).toEqual(before);
+    expect(store.state.themeItem?.backgroundOverride).toMatchObject({mediaId});
+  });
+  it('refreshes a live background without losing playback position or clear state', () => {
+    const {store, dispatch, service, save, advance} = setup();
+    dispatch({type: 'item.start', itemId: ITEM});
+    const background = {
+      kind: 'media' as const,
+      mediaId: createMediaId('00000000-0000-4000-8000-000000000601'),
+      loop: true,
+    };
+    save({...service, backgroundOverride: background});
+    advance(100);
+    dispatch({type: 'themes.refresh'});
+    expect(store.state.themeItem).toMatchObject({
+      backgroundOverride: background,
+      backgroundStartedAt: 1100,
+      startedAt: 1000,
+    });
+    advance(50);
+    dispatch({type: 'themes.refresh'});
+    expect(store.state.themeItem?.backgroundStartedAt).toBe(1100);
+    dispatch({type: 'layer.clear', target: 'all'});
+    save({...service, backgroundOverride: {kind: 'none'}});
+    dispatch({type: 'themes.refresh'});
+    expect(store.state.themeItem).toMatchObject({
+      backgroundOverride: {kind: 'none'},
+      contentCleared: true,
+    });
+    expect(store.state.themeItem?.backgroundStartedAt).toBeUndefined();
+  });
+  it('pauses an item background clock across media clear and undo', () => {
+    const {store, dispatch, service, save, advance} = setup();
+    const mediaId = createMediaId('00000000-0000-4000-8000-000000000601');
+    save({
+      ...service,
+      backgroundOverride: {kind: 'media', mediaId, loop: true},
+    });
+    dispatch({type: 'item.start', itemId: ITEM});
+    dispatch({type: 'media.show', media: {mediaId, loop: true}});
+    advance(200);
+    dispatch({type: 'layer.clear', target: 'media'});
+    advance(300);
+    dispatch({type: 'clear.undo'});
+    expect(store.state.themeItem?.backgroundStartedAt).toBe(1300);
+    expect(store.state.layers.media?.startedAt).toBe(1300);
+  });
+  it('keeps section cards on their own background and restores the item override', () => {
+    const {store, dispatch, service, save} = setup();
+    const mediaId = createMediaId('00000000-0000-4000-8000-000000000601');
+    const override = {kind: 'media' as const, mediaId, loop: true};
+    save({...service, backgroundOverride: override, cardOffset: 1});
+    dispatch({type: 'item.start', itemId: ITEM});
+    const sectionCard = {
+      name: 'Section',
+      english: 'Section',
+      theme: createThemeId('00000000-0000-4000-8000-000000000301'),
+    };
+    dispatch({
+      type: 'slide.show',
+      slide: {itemId: ITEM, position: 0, label: null, lines: [], sectionCard},
+    });
+    expect(store.state.themeItem?.backgroundOverride).toBeUndefined();
+    dispatch({type: 'themes.refresh'});
+    expect(store.state.themeItem?.backgroundOverride).toBeUndefined();
+    dispatch({
+      type: 'slide.show',
+      slide: {itemId: ITEM, position: 1, label: null, lines: ['Content']},
+    });
+    expect(store.state.themeItem?.backgroundOverride).toEqual(override);
+  });
+  it('retains a sermon title theme when its background refreshes', () => {
+    const {store, dispatch, service, save} = setup();
+    dispatch({type: 'item.start', itemId: ITEM});
+    dispatch({
+      type: 'slide.show',
+      slide: {
+        itemId: ITEM,
+        position: 0,
+        label: null,
+        lines: ['Title'],
+        sermonTitle: true,
+      },
+    });
+    save({...service, backgroundOverride: {kind: 'none'}});
+    dispatch({type: 'themes.refresh'});
+    expect(store.state.themeItem).toMatchObject({
+      theme: SERMON_TITLE_THEME_ID,
+      backgroundOverride: {kind: 'none'},
+    });
+  });
   it('reports each missing theme ID only once across slides and settings refreshes', () => {
     const {slide, service, save, dispatch, onMissingTheme} = setup();
     const missing = createThemeId('00000000-0000-4000-8000-000000000107');

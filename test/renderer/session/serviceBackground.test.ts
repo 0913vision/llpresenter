@@ -235,3 +235,15 @@ describe('service song background edits', () => {
     });
   });
 });
+
+it('distinguishes an explicit empty background from inheritance', () => {
+  const {document} = setup();
+  const item = document.service.order.find(row => row.id === itemId);
+  if (item === undefined) throw Error('Missing item');
+  const none = backgroundChange('none')(item);
+  expect(none).toMatchObject({backgroundNone: true});
+  if (none === null) throw Error('Cannot set background');
+  expect(backgroundChange(null)(none)).toEqual(item);
+  expect(backgroundChange(mediaId)(none)).toMatchObject({background: mediaId});
+  expect(backgroundChange('none')({id: otherId, header: 'Header'})).toBeNull();
+});

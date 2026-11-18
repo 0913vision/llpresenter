@@ -1,9 +1,11 @@
 import {useState, type JSX} from 'react';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
+import type {ItemBackgroundChoice} from '@renderer/session/serviceBackground';
 import type {ItemRow} from '@core/presentation/model';
 import {parseMediaId, type MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
 import {isItemOfKind, type ServiceItem} from '@core/schema/service';
+import {isStartItem} from '@core/services/itemFieldChanges';
 import {
   backgroundName,
   SONG_DEFAULT_LABEL,
@@ -61,7 +63,7 @@ export function BackgroundCell({
   readonly songBackground: MediaId | undefined;
   readonly reason: string | undefined;
   /** Picks a file for this item, or the song's own with null; undefined for a kind that has none. */
-  readonly choose: ((mediaId: MediaId | null) => void) | undefined;
+  readonly choose: ((mediaId: ItemBackgroundChoice) => void) | undefined;
 }): JSX.Element {
   const [button, setButton] = useState<HTMLButtonElement | null>(null);
   const [open, setOpen] = useState(false);
@@ -70,10 +72,15 @@ export function BackgroundCell({
   const parsed =
     background === undefined ? undefined : parseMediaId(background.mediaId);
   const playing = parsed?.ok === true ? parsed.value : undefined;
-  const own = item !== undefined && 'background' in item;
+  const editable = item !== undefined && isStartItem(item) ? item : undefined;
+  const own =
+    editable?.background !== undefined || editable?.backgroundNone === true;
   const slidesItem =
     item !== undefined && isItemOfKind(item, 'slides') ? item : undefined;
-  const selectedBackground = slidesItem?.background ?? playing;
+  const selectedBackground =
+    editable?.backgroundNone === true
+      ? undefined
+      : (editable?.background ?? playing);
   const shown =
     selectedBackground === undefined
       ? {
@@ -132,10 +139,17 @@ export function BackgroundCell({
           label="배경 선택"
           anchor={button}
           items={media}
-          selected={own ? playing : undefined}
+          selected={editable?.background}
           defaultChoice={{
-            label: slidesItem === undefined ? SONG_DEFAULT_LABEL : NONE,
+            label:
+              item !== undefined && isItemOfKind(item, 'song')
+                ? SONG_DEFAULT_LABEL
+                : '테마 기본값',
             detail: backgroundName(media, songBackground),
+          }}
+          explicitNone={{
+            selected: editable?.backgroundNone === true,
+            onSelect: () => choose('none'),
           }}
           query={query}
           onQueryChange={setQuery}

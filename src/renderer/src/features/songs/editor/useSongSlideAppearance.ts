@@ -30,9 +30,12 @@ export function useSongSlideAppearance(session: SongSession) {
     ? undefined
     : {
         ...theme,
-        background: resolveSongSlideBackground(
-          session.itemSession ? theme.background : session.background,
-          session.itemSession ? session.background : theme.background,
-        ),
+        background:
+          itemRow?.backgroundNone === true
+            ? undefined
+            : resolveSongSlideBackground(
+                session.itemSession ? theme.background : session.background,
+                session.itemSession ? session.background : theme.background,
+              ),
       };
 }

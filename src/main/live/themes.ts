@@ -7,9 +7,12 @@ import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
 import {songIdSchema} from '@core/schema/ids';
 import {parsePayload} from '@core/schema/payload';
 import {itemThemeKind} from '@core/themes/itemKind';
+import {isStartItem} from '@core/services/itemFieldChanges';
 import type {DataStore} from '../store/register';
 import type {Logger} from '../log';
 import {ThemeRuntime} from './themeRuntime';
+import {mediaLoops} from '@core/media/mediaEndRule';
+import {outputMediaProperties} from '@core/schema/outputMedia';
 import {broadcastSongTitle} from '@core/songs/broadcastSongTitle';
 import {dispatchLogged, type LiveStore} from './store';
 
@@ -26,6 +29,7 @@ export function registerThemeOutput({
   let stopped = false;
   let release: (() => void) | undefined;
   let unsubscribe: (() => void) | undefined;
+  let unsubscribeMedia: (() => void) | undefined;
   Promise.all([data.content, data.settings, data.media])
     .then(([content, settings, media]) => {
       if (stopped || settings === null || content === null) return;
@@ -83,9 +87,31 @@ export function registerThemeOutput({
                   : isItemOfKind(entry, 'sermon')
                     ? displayReference(entry.sermon.passage.ref)
                     : undefined;
+          const backgroundId = isStartItem(entry)
+            ? entry.background
+            : undefined;
+          const background =
+            backgroundId === undefined
+              ? undefined
+              : media?.get().value.items.find(item => item.id === backgroundId);
+          const backgroundOverride =
+            isStartItem(entry) && entry.backgroundNone
+              ? {kind: 'none' as const}
+              : backgroundId === undefined
+                ? undefined
+                : {
+                    kind: 'media' as const,
+                    mediaId: backgroundId,
+                    loop:
+                      background === undefined ? false : mediaLoops(background),
+                    ...(background === undefined
+                      ? {}
+                      : {properties: outputMediaProperties(background)}),
+                  };
           return {
             id,
             kind,
+            ...(backgroundOverride === undefined ? {} : {backgroundOverride}),
             source: 'service',
             ...((isItemOfKind(entry, 'song') ||
               isItemOfKind(entry, 'slides') ||
@@ -127,6 +153,9 @@ export function registerThemeOutput({
           dispatchLogged(store, {type: 'themes.refresh'}, log);
         }
       });
+      unsubscribeMedia = media?.subscribe(() => {
+        if (!stopped) dispatchLogged(store, {type: 'themes.refresh'}, log);
+      });
       dispatchLogged(store, {type: 'themes.refresh'}, log);
     })
     .catch((error: unknown) =>
@@ -135,6 +164,7 @@ export function registerThemeOutput({
   return () => {
     stopped = true;
     unsubscribe?.();
+    unsubscribeMedia?.();
     release?.();
   };
 }

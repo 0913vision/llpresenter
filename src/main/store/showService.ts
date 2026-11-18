@@ -205,6 +205,20 @@ function otherTiles(
   return undefined;
 }
 
+function itemBackground(
+  item: ServiceItem,
+  sources: RowSources,
+): {background?: MediaChoice; backgroundNone?: true} {
+  if ('backgroundNone' in item && item.backgroundNone) {
+    return {backgroundNone: true};
+  }
+  const background =
+    'background' in item && typeof item.background === 'string'
+      ? sources.backgrounds.get(item.background)
+      : undefined;
+  return background === undefined ? {} : {background};
+}
+
 function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
   const {id} = item;
   if (isItemOfKind(item, 'header')) {
@@ -220,6 +234,7 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
       title: LITURGY[item.liturgy.kind].name,
       form: 'blank',
       liturgy: item.liturgy,
+      ...itemBackground(item, sources),
       theme: item.theme ?? CREED_PRAYER_THEME_ID,
       ...(sources.serviceRevision === undefined
         ? {}
@@ -244,7 +259,7 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
         ? {}
         : {sourceRevision: sources.serviceRevision}),
       ...(item.theme === undefined ? {} : {theme: item.theme}),
-      ...(background === undefined ? {} : {background}),
+      ...itemBackground(item, sources),
       ...(item.background !== undefined && background === undefined
         ? {
             problem: 'missing-background' as const,
@@ -279,6 +294,7 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
     return {
       kind: 'bible',
       id,
+      ...itemBackground(item, sources),
       ...(sources.serviceRevision === undefined
         ? {}
         : {sourceRevision: sources.serviceRevision}),
@@ -328,6 +344,7 @@ function rowOf(item: ServiceItem, sources: RowSources): ShowRow {
     return {
       kind: 'media',
       id,
+      ...itemBackground(item, sources),
       title: found === undefined ? '' : mediaTitle(found),
       ...problem,
     };
@@ -340,7 +357,9 @@ export function songBackgroundId(
   item: ServiceItemOf<'song'>,
   song: Song,
 ): string | undefined {
-  return item.background ?? song.background;
+  return item.backgroundNone === true
+    ? undefined
+    : (item.background ?? song.background);
 }
 
 function songRow(
@@ -376,6 +395,10 @@ function songRow(
     ...(theme === undefined ? {} : {theme}),
     ...(problem === undefined ? {} : {problem}),
     ...(background === undefined ? {} : {background}),
+    ...(item.background === undefined
+      ? {}
+      : {backgroundExplicit: true as const}),
+    ...(item.backgroundNone === true ? {backgroundNone: true as const} : {}),
     ...(missingBackgroundName === undefined ? {} : {missingBackgroundName}),
   };
 }

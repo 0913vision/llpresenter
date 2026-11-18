@@ -62,30 +62,19 @@ export function EditorItemSettings({
             items.submitItemEdit(themeRequest(target, theme, file))
           }
         />
-        {isItemOfKind(item, 'song') ? (
-          <ItemBackgroundRow
-            items={items}
-            api={editor.api}
-            lockReason={reason}
-            item={item}
-            setBackground={async id =>
-              (await flush()) &&
-              items.submitItemEdit(backgroundRequest(target, id))
-            }
-            {...(state.song === null ? {} : {session: state.song})}
-          />
-        ) : isItemOfKind(item, 'slides') ? (
-          <ItemBackgroundRow
-            items={items}
-            api={editor.api}
-            lockReason={reason}
-            item={item}
-            setBackground={async id =>
-              (await flush()) &&
-              items.submitItemEdit(backgroundRequest(target, id))
-            }
-          />
-        ) : null}
+        <ItemBackgroundRow
+          items={items}
+          api={editor.api}
+          lockReason={reason}
+          item={item}
+          setBackground={async id =>
+            (await flush()) &&
+            items.submitItemEdit(backgroundRequest(target, id))
+          }
+          {...(isItemOfKind(item, 'song') && state.song !== null
+            ? {session: state.song}
+            : {})}
+        />
       </PropertyGroup>
     </Properties>
   );

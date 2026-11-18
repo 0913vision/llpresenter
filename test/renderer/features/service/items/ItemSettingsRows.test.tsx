@@ -164,11 +164,11 @@ describe('항목 설정 이번 예배 and 메모', () => {
             ? '-'
             : row.getAttribute('aria-label'),
       ),
-    ).toEqual(['곡 기본값', '-', '따뜻한 빛', '새벽 하늘']);
+    ).toEqual(['곡 기본값', '없음', '-', '따뜻한 빛', '새벽 하늘']);
     expect(
       within(list).getByRole('option', {name: '곡 기본값'}).textContent,
     ).toBe('곡 기본값따뜻한 빛');
-    expect(within(list).queryByRole('option', {name: '없음'})).toBeNull();
+    expect(within(list).getByRole('option', {name: '없음'})).not.toBeNull();
     expect(screen.queryByRole('option', {name: '찬송 반주'})).toBeNull();
     await user.click(screen.getByRole('option', {name: '새벽 하늘'}));
     await waitFor(() =>
@@ -182,10 +182,16 @@ describe('항목 설정 이번 예배 and 메모', () => {
         name: '곡 기본값',
       }).textContent,
     ).toBe('곡 기본값따뜻한 빛');
+    await user.click(screen.getByRole('option', {name: '없음'}));
+    await waitFor(() =>
+      expect(stored(service, 1)).toMatchObject({backgroundNone: true}),
+    );
+    await user.click(background);
     await user.click(screen.getByRole('option', {name: '곡 기본값'}));
     await waitFor(() =>
       expect(stored(service, 1)).not.toHaveProperty('background'),
     );
+    expect(stored(service, 1)).not.toHaveProperty('backgroundNone');
     expect(document.activeElement).toBe(background);
   });
 

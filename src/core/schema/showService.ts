@@ -99,6 +99,8 @@ const showRowSchema = v.pipe(
       theme: v.exactOptional(themeIdSchema),
       problem: v.exactOptional(v.picklist(showRowProblems)),
       background: v.exactOptional(mediaChoiceSchema),
+      backgroundExplicit: v.exactOptional(v.literal(true)),
+      backgroundNone: v.exactOptional(v.literal(true)),
       missingBackgroundName: v.exactOptional(
         v.pipe(v.string(), v.maxLength(MEDIA_LIMITS.name)),
       ),
@@ -117,6 +119,7 @@ const showRowSchema = v.pipe(
       sourceRevision: v.exactOptional(positiveInteger),
       theme: v.exactOptional(themeIdSchema),
       background: v.exactOptional(mediaChoiceSchema),
+      backgroundNone: v.exactOptional(v.literal(true)),
       missingBackgroundName: v.exactOptional(
         v.pipe(v.string(), v.maxLength(MEDIA_LIMITS.name)),
       ),
@@ -125,6 +128,8 @@ const showRowSchema = v.pipe(
     v.object({
       kind: v.literal('bible'),
       id,
+      background: v.exactOptional(mediaChoiceSchema),
+      backgroundNone: v.exactOptional(v.literal(true)),
       title: v.string(),
       sermonTitle: v.exactOptional(v.pipe(nonBlankText, v.maxLength(1000))),
       sourceRevision: v.exactOptional(positiveInteger),
@@ -134,6 +139,8 @@ const showRowSchema = v.pipe(
     v.object({
       kind: v.picklist(['media', 'unknown']),
       id,
+      background: v.exactOptional(mediaChoiceSchema),
+      backgroundNone: v.exactOptional(v.literal(true)),
       title: v.string(),
       problem: v.exactOptional(v.picklist(showRowProblems)),
     }),

@@ -10,8 +10,8 @@ import {
 import type {LlpApi} from '@contracts/ipc/api';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import type {MediaDocument} from '@core/schema/mediaEdit';
-import type {MediaId} from '@core/schema/ids';
-import type {ServiceItemOf} from '@core/schema/service';
+import type {ItemBackgroundChoice} from '@renderer/session/serviceBackground';
+import type {StartItem} from '@core/services/itemFieldChanges';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
 import {TYPING_PAUSE_MS} from '@core/songs/songHistory';
@@ -121,8 +121,8 @@ export function ItemBackgroundRow({
   setBackground,
 }: RowState & {
   readonly setBackground?:
-    ((id: MediaId | null) => Promise<boolean>) | undefined;
-  readonly item: ServiceItemOf<'song' | 'slides'>;
+    ((id: ItemBackgroundChoice) => Promise<boolean>) | undefined;
+  readonly item: StartItem;
   readonly session?: SongSession;
   readonly mediaDocument?: FollowedDocument<MediaDocument>;
 }): JSX.Element {
@@ -131,8 +131,12 @@ export function ItemBackgroundRow({
   const [button, setButton] = useState<HTMLButtonElement | null>(null);
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
-  const mediaId = item.background ?? session?.background;
-  const inherited = session !== undefined && item.background === undefined;
+  const mediaId =
+    item.backgroundNone === true
+      ? undefined
+      : (item.background ?? session?.background);
+  const inherited =
+    item.backgroundNone !== true && item.background === undefined;
   const list = media.document?.value.items ?? [];
   const selected = backgroundMedia(list).find(entry => entry.id === mediaId);
   const reason =
@@ -152,7 +156,13 @@ export function ItemBackgroundRow({
             id={controlId}
             block
             value={backgroundName(list, mediaId)}
-            meta={inherited ? SONG_DEFAULT_LABEL : undefined}
+            meta={
+              inherited
+                ? session === undefined
+                  ? '테마 기본값'
+                  : SONG_DEFAULT_LABEL
+                : undefined
+            }
             lead={
               selected === undefined
                 ? undefined
@@ -178,14 +188,21 @@ export function ItemBackgroundRow({
               anchor={button}
               items={list}
               selected={item.background}
-              {...(session === undefined
-                ? {}
-                : {
-                    defaultChoice: {
-                      label: SONG_DEFAULT_LABEL,
-                      detail: backgroundName(list, session.background),
-                    },
-                  })}
+              defaultChoice={{
+                label:
+                  session === undefined ? '테마 기본값' : SONG_DEFAULT_LABEL,
+                detail:
+                  session === undefined
+                    ? ''
+                    : backgroundName(list, session.background),
+              }}
+              explicitNone={{
+                selected: item.backgroundNone === true,
+                onSelect: () =>
+                  editorTask(
+                    (setBackground ?? items.setBackground.bind(items))('none'),
+                  ),
+              }}
               query={query}
               onQueryChange={setQuery}
               onSelect={choice =>

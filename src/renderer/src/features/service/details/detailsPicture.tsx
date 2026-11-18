@@ -118,7 +118,11 @@ function songPicture(
     <SlidePicture
       output
       {...theme}
-      background={resolveSongSlideBackground(item.background, song?.background)}
+      background={
+        item.backgroundNone === true
+          ? undefined
+          : resolveSongSlideBackground(item.background, song?.background)
+      }
       slide={
         projected ?? {
           itemId: item.id,

@@ -56,6 +56,10 @@ interface PickerProps {
   readonly allowNone?: boolean;
   readonly label?: string;
   readonly defaultChoice?: {readonly label: string; readonly detail: string};
+  readonly explicitNone?: {
+    readonly selected: boolean;
+    readonly onSelect: () => void;
+  };
   readonly anchor: HTMLElement;
   readonly items: readonly MediaItem[];
   readonly leadingGroup?: {
@@ -75,6 +79,7 @@ export function MediaPicker({
   allowNone = true,
   label = '기본 배경',
   defaultChoice,
+  explicitNone,
   anchor,
   items,
   leadingGroup,
@@ -94,21 +99,24 @@ export function MediaPicker({
     [items, leadingGroup],
   );
   const hasDefault = allowNone || defaultChoice !== undefined;
+  const specialCount =
+    (hasDefault ? 1 : 0) + (explicitNone === undefined ? 0 : 1);
   const choices = useMemo(() => {
     const term = searchName(query);
     return [
       ...(hasDefault ? [undefined] : []),
+      ...(explicitNone === undefined ? [] : [null]),
       ...searchable
         .filter(({name}) => name.includes(term))
         .map(({item}) => item),
     ];
-  }, [searchable, query, hasDefault]);
+  }, [searchable, query, hasDefault, explicitNone]);
   const groups = useMemo(() => {
     const leadingIds = new Set(leadingGroup?.items.map(item => item.id));
     const leadingCount = choices.filter(
-      item => item !== undefined && leadingIds.has(item.id),
+      item => item != null && leadingIds.has(item.id),
     ).length;
-    const firstItem = hasDefault ? 1 : 0;
+    const firstItem = specialCount;
     return [
       ...(leadingGroup !== undefined && leadingCount > 0
         ? [{index: firstItem, label: leadingGroup.label}]
@@ -117,14 +125,20 @@ export function MediaPicker({
         ? [{index: firstItem + leadingCount, label: itemsLabel}]
         : []),
     ];
-  }, [choices, leadingGroup, itemsLabel, hasDefault]);
+  }, [choices, leadingGroup, itemsLabel, specialCount]);
   const [activeIndex, setActive] = useState(() =>
     searchName(query) === ''
       ? Math.max(
           0,
-          choices.findIndex(item => item?.id === selected),
+          choices.findIndex(item =>
+            item === null
+              ? explicitNone?.selected === true
+              : item === undefined
+                ? selected === undefined && explicitNone?.selected !== true
+                : item.id === selected,
+          ),
         )
-      : Math.max(0, Math.min(hasDefault ? 1 : 0, choices.length - 1)),
+      : Math.max(0, Math.min(specialCount, choices.length - 1)),
   );
   const active = Math.max(0, Math.min(activeIndex, choices.length - 1));
   const [top, setTop] = useState(0);
@@ -133,7 +147,8 @@ export function MediaPicker({
   const groupOffset = (index: number): number =>
     groups.filter(group => group.index <= index).length * row;
   const separator = useRef<HTMLDivElement>(null);
-  const separated = defaultChoice !== undefined && choices.length > 1;
+  const separated =
+    defaultChoice !== undefined && choices.length > specialCount;
   const viewport = useRef<HTMLDivElement>(null);
   const initialized = useRef(false);
   const id = useId();
@@ -167,17 +182,18 @@ export function MediaPicker({
         active === 0
           ? 0
           : active * row +
-            nextGap +
+            (active >= specialCount ? nextGap : 0) +
             groups.filter(group => group.index <= active).length * row;
       setTop(element.scrollTop);
     }
-  }, [active, row, surface, separated, gap, groups]);
+  }, [active, row, surface, separated, gap, groups, specialCount]);
   const point = (index: number): void => {
     setActive(index);
     const element = viewport.current;
     if (element === null) return;
     const height = element.clientHeight || row * VISIBLE_ROWS;
-    const y = index * row + (index > 0 ? gap : 0) + groupOffset(index);
+    const y =
+      index * row + (index >= specialCount ? gap : 0) + groupOffset(index);
     if (index === 0) element.scrollTop = 0;
     else if (y < element.scrollTop) element.scrollTop = y;
     else if (y + row > element.scrollTop + height) {
@@ -187,7 +203,8 @@ export function MediaPicker({
   };
   const choose = (index: number): void => {
     if (choices.length === 0) return;
-    onSelect(choices[index]?.id);
+    if (choices[index] === null) explicitNone?.onSelect();
+    else onSelect(choices[index]?.id);
     onClose(true);
   };
   const optionPress = useButtonPress<HTMLButtonElement>({
@@ -201,7 +218,7 @@ export function MediaPicker({
       hasDefault &&
         term !== '' &&
         searchable.some(({name}) => name.includes(term))
-        ? 1
+        ? specialCount
         : 0,
     );
     if (viewport.current !== null) viewport.current.scrollTop = 0;
@@ -222,33 +239,42 @@ export function MediaPicker({
     event.stopPropagation();
   };
   const start = Math.max(
-    hasDefault ? 1 : 0,
+    specialCount,
     Math.floor(row > 0 ? Math.max(0, top - gap) / row : 0) -
       groups.length -
       OVERSCAN,
   );
   const visible = choices.slice(
     start,
-    start + VISIBLE_ROWS + OVERSCAN * 2 - (hasDefault ? 1 : 0),
+    start + VISIBLE_ROWS + OVERSCAN * 2 - specialCount,
   );
   const activeId =
-    (hasDefault && active === 0 && top < row) ||
+    (active < specialCount &&
+      active * row >= top &&
+      active * row < top + row * VISIBLE_ROWS) ||
     (active >= start && active < start + visible.length)
       ? `${id}-${active}`
       : undefined;
   const option = (index: number): JSX.Element => {
     const item = choices[index];
-    const checked = item?.id === selected;
+    const checked =
+      item === null
+        ? explicitNone?.selected === true
+        : item === undefined
+          ? selected === undefined && explicitNone?.selected !== true
+          : item.id === selected;
     return (
       <button
         {...optionPress}
-        key={item?.id ?? 'none'}
+        key={item === null ? 'explicit-none' : (item?.id ?? 'default')}
         type="button"
         role="option"
         aria-label={
-          item === undefined
-            ? (defaultChoice?.label ?? NONE_LABEL)
-            : mediaName(item)
+          item === null
+            ? NONE_LABEL
+            : item === undefined
+              ? (defaultChoice?.label ?? NONE_LABEL)
+              : mediaName(item)
         }
         aria-description={
           item === undefined ? defaultChoice?.detail : undefined
@@ -260,20 +286,27 @@ export function MediaPicker({
         aria-setsize={choices.length}
         className={classNames(menu.item, styles.option)}
         data-index={index}
-        style={{top: index * row + (index > 0 ? gap : 0) + groupOffset(index)}}
+        style={{
+          top:
+            index * row +
+            (index >= specialCount ? gap : 0) +
+            groupOffset(index),
+        }}
         onPointerMove={() => setActive(index)}
         onMouseDown={event => event.preventDefault()}
       >
         <span className={menu.lead}>
           {checked ? <Icon name="check" size={14} /> : null}
         </span>
-        {item === undefined ? null : (
+        {item == null ? null : (
           <Icon name={item.kind === 'video' ? 'film' : item.kind} size={14} />
         )}
         <span className={menu.label}>
-          {item === undefined
-            ? (defaultChoice?.label ?? NONE_LABEL)
-            : mediaName(item)}
+          {item === null
+            ? NONE_LABEL
+            : item === undefined
+              ? (defaultChoice?.label ?? NONE_LABEL)
+              : mediaName(item)}
         </span>
         {item === undefined && defaultChoice !== undefined ? (
           <span className={classNames(menu.meta, styles.detail)}>
@@ -331,13 +364,13 @@ export function MediaPicker({
                 {group.label}
               </div>
             ))}
-            {hasDefault ? option(0) : null}
+            {Array.from({length: specialCount}, (_, index) => option(index))}
             {separated ? (
               <div
                 ref={separator}
                 role="separator"
                 className={classNames(menu.separator, styles.separator)}
-                style={{top: row}}
+                style={{top: specialCount * row}}
               />
             ) : null}
             {visible.map((_item, offset) => option(start + offset))}

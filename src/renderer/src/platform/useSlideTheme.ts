@@ -1,7 +1,7 @@
 import {resolveItemTheme, resolveThemeScreen} from '@core/themes/resolve';
 import {emptyScreenColor} from '@core/screens/emptyColor';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
-import {createScreenId, type ThemeId} from '@core/schema/ids';
+import {createScreenId, parseMediaId, type ThemeId} from '@core/schema/ids';
 import type {ItemRow} from '@core/presentation/model';
 import type {Screen} from '@core/schema/screens';
 import type {LlpApi} from '@contracts/ipc/api';
@@ -63,6 +63,18 @@ export function useSlideTheme(
     screens: targets,
   });
   const resolved = resolveThemeScreen(theme, screen.id, targets);
+  const background = row.background;
+  const chosenBackground =
+    background === undefined ? undefined : parseMediaId(background.mediaId);
+  const backgroundOverride = row.backgroundNone
+    ? {kind: 'none' as const}
+    : chosenBackground?.ok === true && background !== undefined
+      ? {
+          kind: 'media' as const,
+          mediaId: chosenBackground.value,
+          loop: background.loop,
+        }
+      : undefined;
   return {
     themeId: theme.id,
     screen: {
@@ -93,10 +105,8 @@ export function useSlideTheme(
       kind,
       source,
       title: row.title,
+      ...(backgroundOverride === undefined ? {} : {backgroundOverride}),
     } as const,
-    background:
-      row.kind === 'song' || row.kind === 'slides'
-        ? row.background?.mediaId
-        : undefined,
+    background: background?.mediaId,
   };
 }

@@ -256,7 +256,9 @@ export function outputTile(
     source === null
       ? slide
       : {...slide, kind: 'bible', title: source.passage.displayRef},
-    row?.kind === 'slides' || row?.kind === 'song' ? row.background : undefined,
+    row?.kind === 'slides' || row?.kind === 'song' || row?.kind === 'bible'
+      ? row.background
+      : undefined,
     startServiceItem(cursor.itemId),
   );
   useShow.setState({
@@ -812,7 +814,41 @@ export function applyService(service: ShowService | null): void {
     tiles: service.tiles,
     ...(changed ? {openItemId: null, selectedTile: 0} : keptSelection(service)),
   });
-  if (!changed) refreshStageNext();
+  if (!changed) {
+    const id = useLive.getState().state?.themeItem?.id;
+    const before = view.rows.find(row => row.id === id);
+    const after = service.rows.find(row => row.id === id);
+    const appearance = (row: typeof before) =>
+      row === undefined || row.kind === 'header'
+        ? null
+        : [
+            'background' in row ? row.background : undefined,
+            'backgroundNone' in row ? row.backgroundNone : undefined,
+            'backgroundExplicit' in row ? row.backgroundExplicit : undefined,
+          ];
+    if (
+      id !== undefined &&
+      JSON.stringify(appearance(before)) !== JSON.stringify(appearance(after))
+    ) {
+      const liveSlide = useLive.getState().state?.layers.slide;
+      if (
+        liveSlide?.itemId === id &&
+        liveSlide.picture === undefined &&
+        liveSlide.sectionCard === undefined &&
+        after !== undefined &&
+        after.kind !== 'header'
+      ) {
+        const background = 'background' in after ? after.background : undefined;
+        sendLive(
+          background === undefined
+            ? {type: 'layer.clear', target: 'media'}
+            : {type: 'media.show', media: background},
+        );
+      }
+      sendLive({type: 'themes.refresh'});
+    }
+    refreshStageNext();
+  }
 }
 
 /**

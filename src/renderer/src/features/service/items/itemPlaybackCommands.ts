@@ -1,12 +1,14 @@
-import type {MediaId} from '@core/schema/ids';
 import {withStartField} from '@core/services/itemFieldChanges';
-import {backgroundChange} from '@renderer/session/serviceBackground';
+import {
+  backgroundChange,
+  type ItemBackgroundChoice,
+} from '@renderer/session/serviceBackground';
 import type {ItemEditRequest, ItemTarget} from './itemEditQueue';
 
 /** Captures an item background override, or source inheritance with null. */
 export function backgroundRequest(
   target: ItemTarget | null,
-  mediaId: MediaId | null,
+  mediaId: ItemBackgroundChoice,
 ): ItemEditRequest {
   return {
     change: backgroundChange(mediaId),

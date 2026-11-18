@@ -76,6 +76,40 @@ afterEach(() => {
 });
 
 describe('show state', () => {
+  it('refreshes a live background without showing the slide or clearing blackout', () => {
+    const background = {mediaId: 'background', loop: true};
+    const rows = sampleService.rows.map(row =>
+      row.id === 'song-morning' && row.kind === 'song'
+        ? {...row, background}
+        : row,
+    );
+    applyService({...sampleService, revision: 2, rows});
+    setLive('song-morning', 0);
+    const state = useLive.getState().state;
+    if (state === null) throw Error('Missing live state');
+    useLive.setState({
+      state: {
+        ...state,
+        blackScreen: true,
+        themeItem: {id: 'song-morning', kind: 'song', source: 'service'},
+      },
+    });
+    sent.length = 0;
+    const explicit = rows.map(row =>
+      row.id === 'song-morning' && row.kind === 'song'
+        ? {...row, backgroundExplicit: true as const}
+        : row,
+    );
+    applyService({...sampleService, revision: 3, rows: explicit});
+    expect(sent).toContainEqual({type: 'media.show', media: background});
+    expect(sent).toContainEqual({type: 'themes.refresh'});
+    expect(slides()).toEqual([]);
+    expect(useLive.getState().state?.blackScreen).toBe(true);
+    sent.length = 0;
+    applyService({...sampleService, revision: 4, rows});
+    expect(sent).toContainEqual({type: 'themes.refresh'});
+    expect(slides()).toEqual([]);
+  });
   it.each(['song', 'slides', 'bible'] as const)(
     'keeps output, identity and next truthful when a live %s slide is edited, moved, deleted and restored',
     kind => {

@@ -1,6 +1,6 @@
 import type {ThemesFile} from '@core/schema/themes';
 import type {ServiceDocument} from '@core/schema/contentDocuments';
-import type {MediaId, ThemeId} from '@core/schema/ids';
+import type {ThemeId} from '@core/schema/ids';
 import type {ItemOverlay} from '@core/schema/itemOverlays';
 import type {ServiceItem} from '@core/schema/service';
 import type {SongSession} from '@renderer/features/songs/editor/songSession';
@@ -167,7 +167,9 @@ export class ServiceItemStore {
     return this.submitItemEdit(overlayRequest(target, change));
   }
   /** Overrides the song background for this item, or follows it with null. */
-  setBackground(mediaId: MediaId | null): Promise<boolean> {
+  setBackground(
+    mediaId: import('@renderer/session/serviceBackground').ItemBackgroundChoice,
+  ): Promise<boolean> {
     return this.submitItemEdit(backgroundRequest(this.target, mediaId));
   }
   /** Sets the start macro, or removes it when omitted. */

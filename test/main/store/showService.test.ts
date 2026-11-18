@@ -27,11 +27,11 @@ import {parseSong, type Song} from '@core/schema/song';
 import type {ServicePassages} from '@main/bible/servicePassages';
 import {
   createServiceItemId,
+  createMediaId,
   createThemeId,
   translationIdSchema,
 } from '@core/schema/ids';
 import {liturgyAsSlides, newLiturgyItem} from '@core/services/liturgy';
-import {createMediaId} from '@core/schema/ids';
 import {slidesItem, SLIDES_ITEM} from '@fixtures/core/slides';
 import {MOCK_LONG_VERSE} from '@fixtures/core/bibleSplit';
 import {
@@ -42,6 +42,34 @@ import {
 
 const MISSING_SONG_ID = '0f0f0f0f-0f0f-4f0f-8f0f-0f0f0f0f0f0f';
 const MEDIA_ID = '3b9d0c52-7e1f-4a2b-8c3d-4e5f60718293';
+
+it('projects a liturgy background and a song explicit-empty choice', () => {
+  const id = createMediaId(MEDIA_ID);
+  const background = {mediaId: id, loop: true};
+  const liturgy = {
+    ...newLiturgyItem(createServiceItemId(itemId(1)), {
+      kind: 'creed',
+      translation: 'new',
+    }),
+    background: id,
+  };
+  const song = {
+    id: createServiceItemId(itemId(2)),
+    song: HYMN_ONE_ID,
+    slides: hymnOne().slides,
+    backgroundNone: true,
+  };
+  const result = buildShowService({
+    service: loadedService([liturgy, song]),
+    songs: new Map([[HYMN_ONE_ID, loadedSong({...hymnOne(), background: id})]]),
+    labels: [],
+    revision: 1,
+    backgrounds: new Map([[id, background]]),
+  });
+  expect(result.rows[0]).toMatchObject({background});
+  expect(result.rows[1]).toMatchObject({backgroundNone: true});
+  expect(result.rows[1]).not.toHaveProperty('background');
+});
 
 it.each(['creed', 'prayer'] as const)(
   'projects dedicated %s wording with the established slides and theme',
@@ -413,7 +441,7 @@ describe('buildShowService', () => {
 
     expect(project().rows).toMatchObject([
       {background: defaultMedia},
-      {background: override, theme: itemId(50)},
+      {background: override, backgroundExplicit: true, theme: itemId(50)},
     ]);
     backgrounds.delete(override.mediaId);
     const missing = project().rows[1];
