@@ -129,8 +129,9 @@ export function SlidesInspector({
                   {store === undefined ? null : (
                     <PropertyGroup>
                       <PropertyRow label="이름표">
-                        {() => (
+                        {({controlId}) => (
                           <Button
+                            id={controlId}
                             size="md"
                             className={styles.full}
                             disabled={

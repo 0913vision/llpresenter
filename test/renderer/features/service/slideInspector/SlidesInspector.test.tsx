@@ -65,7 +65,7 @@ it('offers shared labels for blank slides and assigns a selection in one undo st
   if (second === undefined) throw new Error('Missing second slide');
   act(() => session.selectSlides({type: 'click', id: second.id, ctrl: true}));
   const user = userEvent.setup();
-  await user.click(within(view.container).getByRole('button', {name: '없음'}));
+  await user.click(within(view.container).getByLabelText('이름표'));
   await user.click(
     within(screen.getByRole('menu', {name: '이름표'})).getByRole(
       'menuitemradio',
