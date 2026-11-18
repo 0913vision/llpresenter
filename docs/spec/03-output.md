@@ -474,10 +474,10 @@ supersedes the drafts' Ctrl Z binding and always-visible undo button.
 
 ## Where 메시지, 그래픽, and stage messages go
 
-| Content       | Sent to                                                            | Layer                               | Controlled from                 |
-| ------------- | ------------------------------------------------------------------ | ----------------------------------- | ------------------------------- |
-| 메시지        | Chosen screens (모든 화면 all screens, 청중 화면, 무대, 방송 화면) | 메시지                              | 진행 도구 메시지 tab (see 04)   |
-| 그래픽        | The screens set for each 그래픽                                    | 그래픽                              | 진행 도구 그래픽 tab, 빠른 실행 |
+| Content       | Sent to                                                            | Layer                                  | Controlled from                 |
+| ------------- | ------------------------------------------------------------------ | -------------------------------------- | ------------------------------- |
+| 메시지        | Chosen screens (모든 화면 all screens, 청중 화면, 무대, 방송 화면) | 메시지                                 | 진행 도구 메시지 tab (see 04)   |
+| 그래픽        | The screens set for each 그래픽                                    | 그래픽                                 | 진행 도구 그래픽 tab, 빠른 실행 |
 | Stage message | 무대 화면                                                          | Full-width bottom band above the theme | 진행 도구 무대 tab              |
 
 - A screen shows one 메시지 at a time. Sending a new 메시지 to the same screen
@@ -490,12 +490,12 @@ supersedes the drafts' Ctrl Z binding and always-visible undo button.
   1.6% of the height above and below and 4% of the width at the sides, at most
   two lines and then an ellipsis. All sizes scale with the screen like every
   other output element, and the band fades with the 메시지 layer as before. It
-  applies on every kind of screen whose 메시지 스타일 is 기본 (06).
-  The stage message uses its own bottom band above the theme (04). Where
-  the screen's background is the chroma key green (a 캡처용 창 screen whose 테마
-  background or empty color is `#00B140`), the band is opaque black instead, so
-  a keyer leaves a clean band rather than a half-keyed dark green box. A saved
-  메시지 style draws as before, as text in its own font, size, and position.
+  applies on every kind of screen whose 메시지 스타일 is 기본 (06). The stage
+  message uses its own bottom band above the theme (04). Where the screen's
+  background is the chroma key green (a 캡처용 창 screen whose 테마 background
+  or empty color is `#00B140`), the band is opaque black instead, so a keyer
+  leaves a clean band rather than a half-keyed dark green box. A saved 메시지
+  style draws as before, as text in its own font, size, and position.
 
 Source: `Overlays`, `ShowH` (target screens in the showing list), product log
 (메시지 to specific screens or all screens).
@@ -537,11 +537,11 @@ the window as fallback), `Main` decision "방송 화면은 NDI로", `Screens`,
 
 ## 무대 화면
 
-The live 테마 lays out the 무대 화면 like the other screens (12).
-The clock, timer, and memo elements appear where the theme places them. Memo
-is offered only on the stage screen. A stage message appears above the theme in
-a full-width bottom band, including on the standby screen. It shows up to
-three lines and truncates longer text with an ellipsis.
+The live 테마 lays out the 무대 화면 like the other screens (12). The clock,
+timer, and memo elements appear where the theme places them. Memo is offered
+only on the stage screen. A stage message appears above the theme in a
+full-width bottom band, including on the standby screen. It shows up to three
+lines and truncates longer text with an ellipsis.
 
 - The control window sends the next 슬라이드 with the live one, from the
   sequence it already walks, and main checks it like the rest of the command

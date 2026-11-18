@@ -334,8 +334,12 @@ describe('registered overlay layers', () => {
   });
 
   it('bounds a long stage cue to three lines with an ellipsis', () => {
-    const width = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(1920);
-    const height = vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(1080);
+    const width = vi
+      .spyOn(HTMLElement.prototype, 'clientWidth', 'get')
+      .mockReturnValue(1920);
+    const height = vi
+      .spyOn(HTMLElement.prototype, 'clientHeight', 'get')
+      .mockReturnValue(1080);
     const {send, render, parent} = setup();
     width.mockRestore();
     height.mockRestore();
@@ -371,8 +375,12 @@ describe('registered overlay layers', () => {
       },
     });
     const band = parent.querySelector<HTMLElement>('[data-stage-message-band]');
-    const stageLayer = parent.querySelector<HTMLElement>('[data-layer="stage-message"]');
-    const themeLayer = parent.querySelector<HTMLElement>('[data-layer="theme"]');
+    const stageLayer = parent.querySelector<HTMLElement>(
+      '[data-layer="stage-message"]',
+    );
+    const themeLayer = parent.querySelector<HTMLElement>(
+      '[data-layer="theme"]',
+    );
     expect(band?.textContent).toBe(message);
     expect(band?.hidden).toBe(false);
     expect(band?.style.display).toBe('-webkit-box');
