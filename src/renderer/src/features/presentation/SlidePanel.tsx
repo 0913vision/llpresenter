@@ -1,4 +1,4 @@
-import type {JSX} from 'react';
+import {useSyncExternalStore, type JSX} from 'react';
 import {defaultThumbnailColumns, type SizeClass} from '@renderer/ui/sizeClass';
 import {useShow} from '@renderer/session/show';
 import {
@@ -21,6 +21,7 @@ import {PanelFooter} from '@renderer/ui/Panel';
 import {useTooltip} from '@renderer/ui/Tooltip';
 import {SlideGrid} from './SlideGrid';
 import {ContinuousSlideGrid} from './ContinuousSlideGrid';
+import {liveReturn} from './liveReturn';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {READ_ONLY_TIP} from '../../platform/problemReasons';
 import styles from './SlidePanel.module.css';
@@ -136,10 +137,24 @@ export function SlidePanelFooter({
 }): JSX.Element {
   const shownItemId = useShownItemId();
   const count = useShow(view => shownTilesFor(view, shownItemId)?.length ?? 0);
+  const live = useSyncExternalStore(liveReturn.subscribe, liveReturn.get);
   return (
     <PanelFooter
       count={count}
-      end={<SlideSizeControl sizeClass={sizeClass} />}
+      end={
+        <>
+          {live === 'none' ? null : (
+            <Button
+              size="sm"
+              disabled={live !== 'away'}
+              onClick={() => liveReturn.go()}
+            >
+              {'\ud604 \uc704\uce58\ub85c'}
+            </Button>
+          )}
+          <SlideSizeControl sizeClass={sizeClass} />
+        </>
+      }
     />
   );
 }

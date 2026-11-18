@@ -27,6 +27,7 @@ import {useGridMeasure} from '@renderer/ui/useGridMeasure';
 import {useBibleTileProjection} from '../bible/useBibleProjections';
 import {useSlideTransitionProgress} from './useSlideTransitionProgress';
 import {revealSlideItem} from '@renderer/session/visibleSlideItem';
+import {liveReturn} from './liveReturn';
 import type {SlideGridProps} from './SlideGrid';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {slideMenuEntries} from '@renderer/features/songs/editor/slideMenuEntries';
@@ -409,6 +410,36 @@ export function ContinuousSlideGrid({
     }
   }, [sections, metrics.top]);
   useEffect(() => () => revealSlideItem(null), []);
+  // NOTE(0913vision): The view stays where the user scrolled; 현 위치로 in the
+  // footer brings the live slide back to the reading line.
+  const liveTile = useMemo(() => {
+    const section = sections.find(value => value.row.id === cursorItem);
+    if (!section || cursorIndex === undefined || stride <= 1) return null;
+    const top = section.top + BAND + Math.floor(cursorIndex / tracks) * stride;
+    return {top, bottom: top + stride - metrics.rowGap};
+  }, [sections, cursorItem, cursorIndex, stride, tracks, metrics.rowGap]);
+  useEffect(() => {
+    liveReturn.offer(() => {
+      const viewport = keeper.current?.parentElement;
+      if (!viewport || liveTile === null) return;
+      pause.current = 0;
+      viewport.scrollTo({
+        top: Math.max(
+          0,
+          (liveTile.top + liveTile.bottom) / 2 - viewport.clientHeight * 0.4,
+        ),
+        behavior: 'smooth',
+      });
+    });
+  }, [liveTile]);
+  useEffect(() => () => liveReturn.offer(null), []);
+  useEffect(() => {
+    liveReturn.report(
+      liveTile !== null &&
+        (liveTile.top < metrics.top ||
+          liveTile.bottom > metrics.top + metrics.height),
+    );
+  }, [liveTile, metrics.top, metrics.height]);
   return (
     <div
       ref={keeper}
