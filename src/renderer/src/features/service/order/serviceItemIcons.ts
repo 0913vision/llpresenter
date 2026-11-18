@@ -1,6 +1,8 @@
 import type {ItemKind, ItemRow, SlideTile} from '@core/presentation/model';
 import type {ServiceItemOf} from '@core/schema/service';
 
+export const SERMON_ICON = 'mic';
+
 /** Icons shared by the order table and its insertable item palette. */
 export const iconByKind: Readonly<Record<ItemKind, string>> = {
   song: 'song',
@@ -23,6 +25,7 @@ export function serviceRowIcon(
   row: ItemRow,
   tiles: readonly SlideTile[] | undefined,
 ): string {
+  if (row.kind === 'bible' && row.sermonTitle !== undefined) return SERMON_ICON;
   if (row.kind !== 'slides') return iconByKind[row.kind];
   const content = tiles?.filter(tile => tile.sectionCard === undefined) ?? [];
   return content.length > 0 && content.every(tile => tile.picture !== undefined)

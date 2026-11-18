@@ -25,6 +25,12 @@ const row = {
 };
 
 describe('service item icons', () => {
+  it('distinguishes sermons from Bible passages in order rows', () => {
+    const bible = {id: 'bible', kind: 'bible' as const, title: 'John 3:16'};
+    expect(serviceRowIcon(bible, [])).toBe('book');
+    expect(serviceRowIcon({...bible, sermonTitle: 'A sermon'}, [])).toBe('mic');
+  });
+
   it('uses the image icon only for nonempty all-picture decks, ignoring the opening section card', () => {
     expect(serviceRowIcon(row, [picture])).toBe('image');
     expect(
