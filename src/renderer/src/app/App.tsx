@@ -234,7 +234,7 @@ function ControlApp({
         onProblem={session.report}
         onOpenPrepSong={prepActions.openSong}
       />
-      <ShownItemProvider shownItem={shownFrame.item}>
+      <ShownItemProvider>
         <Workspace
           id={shownWorkspace}
           prepItemId={
