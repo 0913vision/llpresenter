@@ -2128,6 +2128,49 @@ it('fits the stage current text toward the audience rendered size', () => {
   view.dispose();
 });
 
+it('matches the audience title and subtitle sizes separately on stage', () => {
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(1920);
+  vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(1080);
+  vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockReturnValue(100);
+  vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(100);
+  vi.spyOn(ThemeElementView.prototype, 'fittedTextSize').mockImplementation(
+    function (this: ThemeElementView) {
+      return this.element.kind === 'text' && this.element.content === '제목'
+        ? 120
+        : this.element.kind === 'text' && this.element.content === '첫 가사'
+          ? 64
+          : 108;
+    },
+  );
+  const {view, root} = setup();
+  const stageFrame = frame([{...themeElementBase(31), kind: 'currentText'}]);
+  const audienceFrame = frame([{...themeElementBase(32), kind: 'currentText'}]);
+  if (!audienceFrame.theme) throw Error('Missing audience theme');
+  if (!song.slide) throw Error('Missing song');
+  view.render(
+    {
+      ...song,
+      slide: {...song.slide, titleSlide: true, lines: ['제목', '첫 가사']},
+    },
+    {
+      ...stageFrame,
+      screen: {id: THEME_MAIN, kind: 'stage'},
+      audience: {
+        screen: {id: THEME_MAIN, kind: 'audience'},
+        theme: {
+          ...audienceFrame.theme,
+          layout: {...audienceFrame.theme.layout, songTitle: 'sunday'},
+        },
+      },
+    },
+  );
+  const rows = root.querySelectorAll<HTMLElement>(
+    `[data-kind="currentText"] .${classes.shown} .${classes.block} > div`,
+  );
+  expect([...rows].map(row => row.style.fontSize)).toEqual(['120px', '64px']);
+  view.dispose();
+});
+
 it('keeps stage next text at least 48px even when the current text is smaller', () => {
   vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(200);
   vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(100);

@@ -493,12 +493,33 @@ export class ThemeElementView {
         {
           cue: cue !== undefined,
           lyricFormat:
-            frame.screen?.kind === 'audience'
-              ? (element.lyricFormat ??
-                (isSong && element.kind === 'currentText'
-                  ? layers.slide?.lyricFormat
-                  : undefined))
-              : undefined,
+            stage &&
+            isSong &&
+            element.kind === 'currentText' &&
+            slide?.titleSlide &&
+            frame.stageTitleSizes
+              ? {
+                  lines: songTitleLines(slide.lines, slide.titleLineCount).map(
+                    (line, index) => ({
+                      boxWidth: 1920,
+                      runs: [
+                        {
+                          text: line,
+                          size:
+                            frame.stageTitleSizes?.[index] ??
+                            frame.stageTitleSizes?.at(-1) ??
+                            element.text.size,
+                        },
+                      ],
+                    }),
+                  ),
+                }
+              : frame.screen?.kind === 'audience'
+                ? (element.lyricFormat ??
+                  (isSong && element.kind === 'currentText'
+                    ? layers.slide?.lyricFormat
+                    : undefined))
+                : undefined,
           vAlign:
             stage && element.kind === 'nextText'
               ? 'top'

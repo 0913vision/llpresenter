@@ -44,6 +44,8 @@ export interface RenderScreen {
 }
 
 export interface RenderFrame {
+  /** Per-line audience sizes for a stage song title slide. */
+  readonly stageTitleSizes?: readonly number[] | undefined;
   /** The audience composition used to fit the same slide on stage. */
   readonly audience?:
     | {

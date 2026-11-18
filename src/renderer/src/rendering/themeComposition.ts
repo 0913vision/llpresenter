@@ -51,6 +51,7 @@ export class ThemeCompositionView {
   private audienceMeasure: ThemeCompositionView | null = null;
   private audienceMeasureHost: HTMLElement | null = null;
   private audienceSize: number | undefined;
+  private audienceTitleSizes: readonly number[] | undefined;
   private readonly onFontsLoaded = (): void => {
     const input = this.input;
     if (input?.frame.screen?.kind === 'stage' && input.frame.audience) {
@@ -104,13 +105,13 @@ export class ThemeCompositionView {
       frame.screen?.kind === 'stage' &&
       frame.audience &&
       original &&
-      !original.titleSlide &&
       !original.sermonTitle &&
       !original.sectionCard &&
       ['song', 'bible'].includes(
         original.kind ?? frame.theme?.item?.kind ?? '',
       );
     this.audienceSize = undefined;
+    this.audienceTitleSizes = undefined;
     if (measureAudience && frame.audience) {
       if (this.audienceMeasure === null) {
         const host = document.createElement('div');
@@ -147,6 +148,25 @@ export class ThemeCompositionView {
       this.audienceSize = this.audienceMeasure.page?.elements
         .find(view => view.element.kind === 'currentText')
         ?.fittedTextSize();
+      if (
+        original.titleSlide &&
+        (original.kind ?? theme.item?.kind) === 'song'
+      ) {
+        const sizes = this.audienceMeasure.page?.elements
+          .filter(
+            view =>
+              view.element.kind === 'text' &&
+              view.element.clearTarget === 'slide',
+          )
+          .map(view => view.fittedTextSize());
+        if (sizes?.length && sizes.every(size => size !== undefined)) {
+          this.audienceTitleSizes = sizes;
+          this.audienceSize = Math.max(...this.audienceTitleSizes);
+        }
+      }
+    }
+    if (this.audienceTitleSizes !== undefined) {
+      frame = {...frame, stageTitleSizes: this.audienceTitleSizes};
     }
     if (
       frame.screen?.kind === 'broadcast' &&
