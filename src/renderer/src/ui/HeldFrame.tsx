@@ -16,7 +16,7 @@ interface HeldCopy {
   readonly scrolls: ReadonlyArray<readonly [HTMLElement, number, number]>;
 }
 
-function scrollParent(node: HTMLElement): HTMLElement | null {
+function scrollParent(node: Element): HTMLElement | null {
   let parent = node.parentElement;
   while (parent !== null) {
     if (/auto|scroll/.test(getComputedStyle(parent).overflowY)) return parent;
@@ -206,7 +206,12 @@ function copyOf(root: HTMLElement): HeldCopy {
   }
   // NOTE(0913vision): Inert, so a focus move or a lookup made while the copy
   // shows reaches the live frame, never the copy before it.
-  copy.inert = true;
+  copy.setAttribute('inert', '');
+  // NOTE(0913vision): Without ids, a lookup by id or a label reference finds
+  // the live element, not its copy before it.
+  for (const element of [copy, ...copy.querySelectorAll('[id]')]) {
+    element.removeAttribute('id');
+  }
   copy.setAttribute('aria-hidden', 'true');
   copy.dataset['heldCopy'] = '';
   return {copy, scrolls};
