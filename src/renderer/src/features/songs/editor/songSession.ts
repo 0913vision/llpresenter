@@ -11,7 +11,10 @@ import type {SlideListCommand} from '@core/songs/slideListEdits';
 import type {SlideTransition} from '@core/schema/slideTransition';
 import type {SlideSelectionAction} from '@core/songs/slideListSelection';
 import {SongTitleDraft} from '@core/songs/songTitle';
-import {updateSongPictureDraft} from '@core/presentation/songPictureDrafts';
+import {
+  discardSongPictureDrafts,
+  updateSongPictureDraft,
+} from '@core/presentation/songPictureDrafts';
 
 import {
   SongSessionPersistence,
@@ -81,6 +84,7 @@ export class SongSession {
         this.acknowledgeDraft(document, capture),
       install: document => this.installDraft(document),
       discard: document => {
+        discardSongPictureDrafts(this);
         this.dirty = false;
         this.title = new SongTitleDraft(document.song.title);
         this.background = document.song.background;
@@ -333,7 +337,7 @@ export class SongSession {
           prior.lines.join('\n') !== slide.lines.join('\n')
         ) {
           updateSongPictureDraft(
-            {songId: this.document.song.id, slideId: slide.id},
+            {owner: this, songId: this.document.song.id, slideId: slide.id},
             prior,
             slide,
           );

@@ -116,6 +116,7 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
       get: () => Promise.resolve(emptyLiveState()),
       send: () => undefined,
       subscribe: () => () => undefined,
+      controlFrameReady: () => undefined,
       clock: () => Promise.resolve(performance.timeOrigin + performance.now()),
       wallClock: () =>
         Promise.resolve({

@@ -37,10 +37,11 @@ function accept(next: LiveState): void {
         next.layers.slide?.itemId ??
         view.lastStartedItemId,
     }));
-  if (passage != null && passage.title === next.themeItem?.title) {
+  const prepared = passage != null && passage.title === next.themeItem?.title;
+  if (prepared || next.waitingForControl === true) {
     flushSync(() => {
       apply();
-      useShow.setState({readyPassage: null});
+      if (prepared) useShow.setState({readyPassage: null});
     });
   } else {
     apply();
@@ -55,14 +56,25 @@ function accept(next: LiveState): void {
 export function startLiveSync(): () => void {
   const api = window.llp;
   if (api === undefined) return () => undefined;
+  let presentation = 0;
+  let lastVersion = -1;
   let stopped = false;
   const receive = (next: LiveState): void => {
-    if (!stopped) accept(next);
+    if (stopped || next.version <= lastVersion) return;
+    lastVersion = next.version;
+    accept(next);
+    cancelAnimationFrame(presentation);
+    if (next.waitingForControl === true) {
+      presentation = requestAnimationFrame(() =>
+        api.live.controlFrameReady(next.version),
+      );
+    }
   };
   const unsubscribe = api.live.subscribe(receive);
   api.live.get().then(receive, () => undefined);
   return () => {
     stopped = true;
+    cancelAnimationFrame(presentation);
     unsubscribe();
   };
 }

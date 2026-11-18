@@ -23,9 +23,18 @@ class Entry {
   private readonly listeners = new Set<Listener>();
   readonly ready: Promise<void>;
   private finish = (): void => undefined;
+  private finishAttempt: (ok: boolean) => void = () => undefined;
+  attempt = this.newAttempt();
   image: PictureImage | undefined;
   done = false;
   editing = false;
+  immediate = false;
+  failures = 0;
+  retryAt = 0;
+  repaint = false;
+  readonly available =
+    window.llp?.picture !== undefined &&
+    typeof URL.createObjectURL === 'function';
   private revision = 0;
 
   constructor(
@@ -49,12 +58,30 @@ class Entry {
     return this.listeners.size > 0;
   }
 
-  complete(image: PictureImage | undefined): void {
+  private newAttempt(): Promise<boolean> {
+    return new Promise(resolve => {
+      this.finishAttempt = resolve;
+    });
+  }
+
+  retry(): void {
+    this.retryAt = 0;
+    this.attempt = this.newAttempt();
+  }
+
+  fail(): void {
+    this.failures++;
+    this.retryAt = performance.now() + Math.min(2000, 125 * 2 ** this.failures);
+    this.finishAttempt(false);
+  }
+
+  complete(image: PictureImage): void {
     this.image = image;
     this.done = true;
     Reflect.set(this.ready, 'status', 'fulfilled');
     Reflect.set(this.ready, 'value', undefined);
     this.finish();
+    this.finishAttempt(true);
     this.publish();
   }
 
@@ -67,6 +94,7 @@ class Entry {
 const ENTRY_LIMIT = 720;
 const BYTE_LIMIT = 48 * 1024 * 1024;
 const FOREGROUND_LIMIT = 2;
+const UNMOUNTED_RETRIES = 2;
 
 /** Shares decoded sources and gives visible requests priority over preload. */
 class PictureService {
@@ -144,27 +172,26 @@ class PictureService {
     let entry = this.entries.get(key);
     if (entry === undefined) {
       entry = new Entry(key, spec, inputs);
-      if (
-        window.llp?.picture === undefined ||
-        typeof URL.createObjectURL !== 'function'
-      ) {
-        entry.complete(undefined);
-      } else {
-        this.background.add(entry);
-      }
+      if (entry.available) this.background.add(entry);
     } else {
       this.entries.delete(key);
     }
     this.entries.set(key, entry);
     entry.editing ||= editing;
+    entry.immediate ||= immediate;
+    if (immediate && entry.retryAt > 0 && performance.now() >= entry.retryAt) {
+      entry.retry();
+      this.foreground.add(entry);
+    }
     if (immediate && this.background.delete(entry)) this.foreground.add(entry);
     this.schedule();
     return entry;
   }
 
-  /** Resolves once the image has finished decoding. */
-  whenDrawn(spec: PictureSpec): Promise<void> {
-    return this.request(spec, this.inputs(spec)).ready;
+  /** Reports whether this attempt finished with a decoded image. */
+  whenDrawn(spec: PictureSpec): Promise<boolean> {
+    const entry = this.request(spec, this.inputs(spec));
+    return entry.available ? entry.attempt : Promise.resolve(false);
   }
 
   /** Prepares pictures while leaving room for the current view. */
@@ -255,10 +282,17 @@ class PictureService {
       const inputs = this.inputs(entry.spec);
       if (inputs !== entry.inputs) {
         const next = this.request(entry.spec, inputs, {editing: entry.editing});
+        next.attempt
+          .then(ok => {
+            if (!ok) entry.fail();
+          })
+          .catch((error: unknown) => console.error(error));
         next.ready
           .then(() => {
-            entry.complete(next.image);
-            this.entries.delete(entry.key);
+            if (next.image !== undefined) entry.complete(next.image);
+            if (this.entries.get(entry.key) === entry) {
+              this.entries.delete(entry.key);
+            }
           })
           .catch((error: unknown) => console.error(error));
         return;
@@ -276,7 +310,14 @@ class PictureService {
         if (canvas !== undefined) {
           const bytes = canvas.width * canvas.height * 4;
           this.bytes += bytes;
-          flushSync(() => entry.complete({source: canvas, bytes}));
+          await new Promise<void>(resolve => {
+            // NOTE(0913vision): The canvas capture runs during paint. Publish
+            // the image and prepared textarea before layout of the next frame.
+            requestAnimationFrame(() => {
+              flushSync(() => entry.complete({source: canvas, bytes}));
+              resolve();
+            });
+          });
           requestIdleCallback(() => this.remember(canvas, entry), {
             timeout: 1000,
           });
@@ -284,23 +325,57 @@ class PictureService {
           return;
         }
       }
-      const bytes = await window.llp?.picture.paint({spec: entry.spec, inputs});
+      const bytes = await window.llp?.picture.paint({
+        spec: entry.spec,
+        inputs,
+        ...(entry.repaint ? {repaint: true} : {}),
+      });
       if (bytes === undefined) {
-        entry.complete(undefined);
-        return;
+        throw new Error('The painter did not return a picture');
       }
       const src = await this.decode(
         new Blob([new Uint8Array(bytes)], {
           type: bytes[0] === 0x89 ? 'image/png' : 'image/jpeg',
         }),
-      );
+      ).catch((error: unknown) => {
+        entry.repaint = true;
+        throw error;
+      });
       this.bytes += bytes.byteLength;
       entry.complete({source: src, bytes: bytes.byteLength});
     } catch (error) {
-      console.error('Picture preparation failed', error);
-      entry.complete(undefined);
+      if (entry.failures === 0) {
+        console.error('Picture preparation failed', error);
+      }
+      entry.fail();
+      this.retry(entry);
     }
     this.prune();
+  }
+
+  private retry(entry: Entry): void {
+    const retryAt = entry.retryAt;
+    setTimeout(
+      () => {
+        if (
+          this.entries.get(entry.key) !== entry ||
+          entry.retryAt !== retryAt
+        ) {
+          return;
+        }
+        if (
+          entry.displayed ||
+          (entry.immediate && entry.failures <= UNMOUNTED_RETRIES)
+        ) {
+          entry.retry();
+          this.foreground.add(entry);
+          this.schedule();
+        } else if (!entry.immediate) {
+          this.entries.delete(entry.key);
+        }
+      },
+      Math.ceil(retryAt - performance.now()),
+    );
   }
 
   private async decode(blob: Blob): Promise<string> {
@@ -341,7 +416,7 @@ class PictureService {
     for (const [key, entry] of this.entries) {
       if (this.entries.size <= ENTRY_LIMIT && this.bytes <= BYTE_LIMIT) break;
       if (
-        !entry.done ||
+        (!entry.done && entry.retryAt === 0) ||
         entry.displayed ||
         (entry.image !== undefined && this.pins.has(entry.image))
       ) {

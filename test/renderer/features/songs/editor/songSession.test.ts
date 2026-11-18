@@ -6,6 +6,10 @@ import {
 } from '@fixtures/renderer/features/songs/editor/editorFixture';
 
 import {SongSession} from '@renderer/features/songs/editor/songSession';
+import {
+  followSongPictureDraft,
+  songPictureDraft,
+} from '@core/presentation/songPictureDrafts';
 
 describe('slide deck sessions', () => {
   function deck() {
@@ -107,6 +111,32 @@ describe('manual song sessions', () => {
       start: value.length,
       end: value.length,
     });
+
+  it('clears the published picture draft on discard and shows saved lyrics on reopen', () => {
+    const {session, first, api} = manual();
+    const slide = first.song.slides[0];
+    if (slide === undefined) throw new Error('Missing slide');
+    const source = {songId: first.song.id, slideId: slide.id};
+    type(session, '버리는 가사');
+    expect(songPictureDraft(source, slide.lines)?.lines).toEqual([
+      '버리는 가사',
+    ]);
+    const changed = vi.fn();
+    const stop = followSongPictureDraft(source, changed);
+    onTestFinished(stop);
+    session.discard();
+    expect(changed).toHaveBeenCalledOnce();
+    const reopened = new SongSession({
+      document: first,
+      api: api.content,
+      changed: vi.fn(),
+      problem: vi.fn(),
+    });
+    onTestFinished(() => reopened.discard());
+    const original = reopened.history.snapshot.song.slides[0]?.lines;
+    expect(original).toEqual(slide.lines);
+    expect(songPictureDraft(source, original)).toBeUndefined();
+  });
 
   it('keeps edits unsaved, however long it waits, until commit writes them once', async () => {
     const {session, edits, documents, first} = manual();

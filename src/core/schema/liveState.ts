@@ -35,6 +35,12 @@ import {SLIDES_LIMITS} from './service';
 
 const id = v.pipe(v.string(), v.nonEmpty());
 const count = v.pipe(v.number(), v.integer(), v.minValue(0));
+const liveVersion = v.pipe(count, v.maxValue(Number.MAX_SAFE_INTEGER));
+
+/** Checks the version acknowledged by the control renderer. */
+export function parseLiveVersion(value: unknown) {
+  return parsePayload(liveVersion, value);
+}
 
 export const biblePartSchema = v.pipe(count, v.minValue(1), v.maxValue(10_000));
 
@@ -161,6 +167,7 @@ export const layerSchemas = {
 } satisfies Record<LayerKind, v.GenericSchema>;
 
 export const liveStateSchema = payloadObject({
+  waitingForControl: v.exactOptional(v.literal(true)),
   themeItem: v.exactOptional(v.nullable(liveThemeItemSchema)),
   themeMode: v.exactOptional(liveThemeModeSchema),
   themeOutput: v.exactOptional(liveThemeOutputSchema),

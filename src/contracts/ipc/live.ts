@@ -2,7 +2,7 @@ import type {LiveCommand} from '@core/live/commands';
 import type {Result} from '@core/common/result';
 import {parseLiveCommandRequest} from '@core/schema/liveCommand';
 import type {LiveState} from '@core/live/state';
-import {parseLiveState} from '@core/schema/liveState';
+import {parseLiveState, parseLiveVersion} from '@core/schema/liveState';
 import type {PayloadError} from '@core/schema/payload';
 import {parseTimerClockReading} from '@core/schema/timerState';
 import {
@@ -14,6 +14,7 @@ import {
   type MediaProgress,
 } from '@core/schema/mediaProgress';
 import {
+  message,
   partialMessage,
   push,
   query,
@@ -41,6 +42,10 @@ export const liveEndpoints = {
   ),
   command: partialMessage<LiveCommand>('live:command', parseLiveCommandParts),
   changed: push<LiveState>('live:changed', parseLiveState),
+  controlFrameReady: message<number>(
+    'live:control-frame-ready',
+    parseLiveVersion,
+  ),
   mediaProgress: query<MediaProgress | null>(
     'live:media-progress',
     parseMediaProgress,
@@ -73,6 +78,7 @@ export function liveApi(port: IpcPort) {
      * @returns A function that removes the listener. Always call it.
      */
     subscribe: port.subscribe(liveEndpoints.changed),
+    controlFrameReady: port.message(liveEndpoints.controlFrameReady),
     /**
      * Reads main's monotonic 타이머 clock, in epoch-like milliseconds, so a
      * window can read 타이머 runs. Rejects, after logging, when the call fails.

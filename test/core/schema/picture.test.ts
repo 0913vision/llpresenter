@@ -26,6 +26,8 @@ const request = {
 describe('picture request', () => {
   it('accepts a bounded picture', () => {
     expect(parsePictureRequest(request)).toEqual({ok: true, value: request});
+    const retry = {...request, repaint: true};
+    expect(parsePictureRequest(retry)).toEqual({ok: true, value: retry});
   });
 
   it('rejects malformed and oversized fields', () => {
@@ -34,6 +36,7 @@ describe('picture request', () => {
       {},
       {spec: null},
       {...request, inputs: 'x'.repeat(100_001)},
+      {...request, repaint: false},
       {
         spec: {
           ...request.spec,

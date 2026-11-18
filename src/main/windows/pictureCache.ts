@@ -49,14 +49,14 @@ export class PictureCache {
 
   get(request: PictureRequest): Promise<Buffer> {
     const key = keyOf(request);
-    const cached = this.memory.get(key);
+    const pending = this.pending.get(key);
+    if (pending !== undefined) return pending;
+    const cached = request.repaint === true ? undefined : this.memory.get(key);
     if (cached !== undefined) {
       this.memory.delete(key);
       this.memory.set(key, cached);
       return Promise.resolve(cached);
     }
-    const pending = this.pending.get(key);
-    if (pending !== undefined) return pending;
     const result = this.load(key, request);
     this.pending.set(key, result);
     void result.then(
@@ -92,9 +92,12 @@ export class PictureCache {
   private async load(key: string, request: PictureRequest): Promise<Buffer> {
     const transparent = request.spec.appearance.screen.method === 'ndi';
     const file = this.fileOf(key, transparent);
-    let image = await this.read(file, transparent);
-    if (image === undefined && !transparent) {
-      image = await this.read(this.fileOf(key, true), true);
+    let image: Buffer | undefined;
+    if (!request.repaint) {
+      image = await this.read(file, transparent);
+      if (image === undefined && !transparent) {
+        image = await this.read(this.fileOf(key, true), true);
+      }
     }
     if (image === undefined) {
       image = await this.painter.paint(request);
@@ -118,6 +121,8 @@ export class PictureCache {
 
   private cacheInMemory(key: string, image: Buffer): void {
     if (image.length <= MEMORY_LIMIT) {
+      this.bytes -= this.memory.get(key)?.length ?? 0;
+      this.memory.delete(key);
       this.memory.set(key, image);
       this.bytes += image.length;
       while (this.bytes > MEMORY_LIMIT) {

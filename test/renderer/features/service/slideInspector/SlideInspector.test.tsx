@@ -13,6 +13,12 @@ import {
 import {useShow} from '@renderer/session/show';
 import {useContext, useLayoutEffect, useRef} from 'react';
 import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
+import {previewSpec} from '@fixtures/renderer/picture';
+
+vi.mock(
+  '@renderer/rendering/pictures/Picture',
+  () => import('@fixtures/renderer/picture'),
+);
 
 vi.mock('@renderer/platform/useSettingsDocument', () => ({
   useSettingsDocument: () => null,
@@ -90,14 +96,14 @@ it.each([
     });
     const inspector = render(<SlideInspector store={store} />);
     try {
-      const gridPicture = within(view.container).getAllByTestId('picture')[0];
+      const gridPicture = previewSpec(
+        view.container.querySelector('[data-editor-block="0"]'),
+      );
       const inspectorPicture = within(inspector.container).getByTestId(
         'picture',
       );
       if (gridPicture === undefined) throw new Error('Missing grid picture');
-      expect(gridPicture.getAttribute('data-background')).toBe(
-        expected ?? null,
-      );
+      expect(gridPicture.layers.media?.mediaId).toBe(expected);
       expect(inspectorPicture.getAttribute('data-background')).toBe(
         expected ?? null,
       );

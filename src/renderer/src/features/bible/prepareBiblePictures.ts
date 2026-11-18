@@ -52,6 +52,6 @@ export async function prepareBiblePictures(
           ),
         ];
   });
-  await Promise.all(waits);
-  return waits.length > 0;
+  const drawn = await Promise.all(waits);
+  return drawn.length > 0 && drawn.every(Boolean);
 }

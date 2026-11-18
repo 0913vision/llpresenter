@@ -10,6 +10,7 @@ import {liveEndpoints} from '@contracts/ipc/live';
 import {outputEndpoints} from '@contracts/ipc/output';
 import {parseTextEditAction, windowEndpoints} from '@contracts/ipc/window';
 import {parseLiveCommandRequest} from '@core/schema/liveCommand';
+import type {LiveState} from '@core/live/state';
 import type {Logger} from './log';
 import {dispatchLogged, type LiveStore} from './live/store';
 import {
@@ -25,13 +26,30 @@ function isWindowAction(value: unknown): value is WindowAction {
   return windowActions.some(action => action === value);
 }
 
+const CONTROL_FRAME_TIMEOUT_MS = 350;
+
+function quickBibleFrame(state: LiveState): boolean {
+  return (
+    state.themeItem?.kind === 'bible' &&
+    state.layers.slide?.itemId.startsWith('bible:') === true
+  );
+}
+
 /** Sends a value to every open window on a channel; a window that fails is logged and skipped. */
 export function sendToWindows(
   channel: string,
   value: unknown,
   log: Logger,
 ): void {
-  for (const win of BrowserWindow.getAllWindows()) {
+  sendWindowMessage(BrowserWindow.getAllWindows(), {channel, value}, log);
+}
+
+function sendWindowMessage(
+  windows: readonly BrowserWindow[],
+  {channel, value}: {readonly channel: string; readonly value: unknown},
+  log: Logger,
+): void {
+  for (const win of windows) {
     if (win.isDestroyed() || win.webContents.isDestroyed()) continue;
     try {
       win.webContents.send(channel, value);
@@ -157,7 +175,33 @@ export function registerIpc(
   log: Logger,
   {windowMode, app, isControlWindow}: IpcOptions,
 ): () => void {
-  ipcMain.handle(liveEndpoints.get.channel, () => store.state);
+  let published = store.state;
+  let pendingFrame: LiveState | undefined;
+  let presentationTimer: ReturnType<typeof setTimeout> | undefined;
+  const publish = (state: LiveState): void => {
+    clearTimeout(presentationTimer);
+    presentationTimer = undefined;
+    pendingFrame = undefined;
+    published = state;
+    sendToWindows(liveEndpoints.changed.channel, state, log);
+  };
+  const release = (): void => {
+    if (pendingFrame !== undefined) publish(pendingFrame);
+  };
+  ipcMain.handle(liveEndpoints.get.channel, () => published);
+  const acknowledge = (event: IpcMainEvent, value: unknown): void => {
+    const ready = liveEndpoints.controlFrameReady.message(value);
+    if (
+      !ready.ok ||
+      ready.value !== pendingFrame?.version ||
+      event.senderFrame !== event.sender.mainFrame
+    ) {
+      return;
+    }
+    const win = BrowserWindow.fromWebContents(event.sender);
+    if (win !== null && isControlWindow(win)) release();
+  };
+  ipcMain.on(liveEndpoints.controlFrameReady.channel, acknowledge);
   ipcMain.handle(liveEndpoints.clock.channel, () => store.timerNow());
   ipcMain.handle(liveEndpoints.wallClock.channel, () => wallClockSample());
   const stopWallClock = startWallClockWatcher(value =>
@@ -233,9 +277,28 @@ export function registerIpc(
     outputEndpoints.log.channel,
     handleLogWrite(log, new WindowLogLimiter(log)),
   );
-  const unsubscribe = store.subscribe(state =>
-    sendToWindows(liveEndpoints.changed.channel, state, log),
-  );
+  const unsubscribe = store.subscribe(state => {
+    const control = BrowserWindow.getAllWindows().find(isControlWindow);
+    if (
+      quickBibleFrame(state) &&
+      published.themeItem?.kind === 'bible' &&
+      published.themeItem.title !== state.themeItem?.title &&
+      control !== undefined
+    ) {
+      pendingFrame = state;
+      presentationTimer ??= setTimeout(release, CONTROL_FRAME_TIMEOUT_MS);
+      sendWindowMessage(
+        [control],
+        {
+          channel: liveEndpoints.changed.channel,
+          value: {...state, waitingForControl: true},
+        },
+        log,
+      );
+    } else {
+      publish(state);
+    }
+  });
   const stopProgress = startMediaProgress(
     store,
     value =>
@@ -245,6 +308,11 @@ export function registerIpc(
 
   return () => {
     unsubscribe();
+    clearTimeout(presentationTimer);
+    ipcMain.removeListener(
+      liveEndpoints.controlFrameReady.channel,
+      acknowledge,
+    );
     stopProgress();
     stopWallClock();
     stopLogWrites();

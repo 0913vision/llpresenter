@@ -90,7 +90,7 @@ export const Picture = memo(
     });
     useSyncExternalStore(ticket.subscribe, ticket.snapshot);
     const done = ticket.done;
-    if (wait && !done) use(ticket.ready);
+    if (wait && ticket.available && !done) use(ticket.ready);
     const image = ticket.image ?? previous;
     if (image !== previous) setPrevious(image);
     const onReady = useContext(PictureReadiness);
@@ -109,7 +109,7 @@ export const Picture = memo(
     return (
       <div
         className={styles.screen}
-        data-preview-ready={done ? 'true' : 'false'}
+        data-preview-ready={ticket.available ? String(done) : undefined}
         style={{
           background:
             appearance.screen.method === 'ndi'

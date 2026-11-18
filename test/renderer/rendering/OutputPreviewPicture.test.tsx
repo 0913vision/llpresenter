@@ -36,7 +36,9 @@ it('shares one decoded source between views and holds it until an edit is decode
   const decode = vi
     .fn()
     .mockResolvedValueOnce(undefined)
-    .mockReturnValueOnce(edited);
+    .mockReturnValueOnce(edited)
+    .mockRejectedValueOnce(new Error('Decode failure'))
+    .mockResolvedValue(undefined);
   vi.stubGlobal(
     'Image',
     class {
@@ -47,7 +49,9 @@ it('shares one decoded source between views and holds it until an edit is decode
   const createUrl = vi
     .fn()
     .mockReturnValueOnce('blob:original')
-    .mockReturnValueOnce('blob:edit');
+    .mockReturnValueOnce('blob:edit')
+    .mockReturnValueOnce('blob:corrupt')
+    .mockReturnValueOnce('blob:recovered');
   const createObjectURL = Object.getOwnPropertyDescriptor(
     URL,
     'createObjectURL',
@@ -57,6 +61,15 @@ it('shares one decoded source between views and holds it until an edit is decode
     value: createUrl,
   });
   const paint = vi.fn().mockResolvedValue(new Uint8Array([0xff, 0xd8]));
+  const revoke = vi.fn();
+  const revokeObjectURL = Object.getOwnPropertyDescriptor(
+    URL,
+    'revokeObjectURL',
+  );
+  Object.defineProperty(URL, 'revokeObjectURL', {
+    configurable: true,
+    value: revoke,
+  });
   vi.stubGlobal('llp', {
     picture: {paint},
     fonts: {
@@ -92,12 +105,41 @@ it('shares one decoded source between views and holds it until an edit is decode
     const reopened = render(views('edit'));
     expect(reopened.container.querySelector('img')?.src).toBe('blob:edit');
     expect(paint).toHaveBeenCalledTimes(2);
+
+    paint.mockRejectedValueOnce(new Error('Painter timeout'));
+    reopened.rerender(views('retry'));
+    await waitFor(() => expect(paint).toHaveBeenCalledTimes(3));
+    expect(
+      reopened.container
+        .querySelector('[data-preview-ready="false"] img')
+        ?.getAttribute('src'),
+    ).toBe('blob:edit');
+    await waitFor(() => expect(revoke).toHaveBeenCalledWith('blob:corrupt'));
+    expect(
+      reopened.container
+        .querySelector('[data-preview-ready="false"] img')
+        ?.getAttribute('src'),
+    ).toBe('blob:edit');
+    await waitFor(() =>
+      expect(
+        reopened.container
+          .querySelector('[data-preview-ready="true"] img')
+          ?.getAttribute('src'),
+      ).toBe('blob:recovered'),
+    );
+    expect(paint).toHaveBeenCalledTimes(5);
+    expect(paint.mock.lastCall?.[0]).toMatchObject({repaint: true});
   } finally {
     vi.unstubAllGlobals();
     if (createObjectURL === undefined) {
       Reflect.deleteProperty(URL, 'createObjectURL');
     } else {
       Object.defineProperty(URL, 'createObjectURL', createObjectURL);
+    }
+    if (revokeObjectURL === undefined) {
+      Reflect.deleteProperty(URL, 'revokeObjectURL');
+    } else {
+      Object.defineProperty(URL, 'revokeObjectURL', revokeObjectURL);
     }
   }
 });

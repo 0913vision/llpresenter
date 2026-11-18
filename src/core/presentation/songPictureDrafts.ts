@@ -2,6 +2,7 @@ import type {ShowTile, SongSlideSource} from '../schema/showService';
 import type {SongSlide} from '../schema/song';
 
 interface Draft {
+  readonly owner: object;
   readonly base: string;
   readonly previous: ReadonlySet<string>;
   readonly lines: readonly string[];
@@ -17,17 +18,20 @@ const LIMIT = 128;
 
 /** Keeps cached previews in this window on the editor's current lyric draft. */
 export function updateSongPictureDraft(
-  source: SongSlideSource,
+  source: SongSlideSource & {readonly owner: object},
   before: SongSlide,
   after: SongSlide,
 ): void {
+  const {owner} = source;
   const key = keyOf(source);
   const text = before.lines.join('\n');
-  const older = drafts.get(key);
+  const existing = drafts.get(key);
+  const older = existing?.owner === owner ? existing : undefined;
   const base = older?.base ?? text;
   const recent = [...(older?.previous ?? []), text].slice(-32);
   drafts.delete(key);
   drafts.set(key, {
+    owner,
     base,
     previous: new Set(recent),
     lines: after.lines,
@@ -40,6 +44,19 @@ export function updateSongPictureDraft(
     }
   }
   for (const listener of listeners.get(key) ?? []) listener();
+}
+
+/** Removes the discarded session's lyrics from every shared preview. */
+export function discardSongPictureDrafts(owner: object): void {
+  const removed = [];
+  for (const [key, draft] of drafts) {
+    if (draft.owner !== owner) continue;
+    drafts.delete(key);
+    removed.push(key);
+  }
+  for (const key of removed) {
+    for (const listener of listeners.get(key) ?? []) listener();
+  }
 }
 
 export function acceptSongPictureDrafts(tiles: readonly ShowTile[]): void {

@@ -56,6 +56,7 @@ export const pictureRequestSchema = v.pipe(
   payloadObject({
     spec: pictureSpecSchema,
     inputs: v.pipe(v.string(), v.maxLength(100_000)),
+    repaint: v.exactOptional(v.literal(true)),
   }),
   v.check(
     value =>
