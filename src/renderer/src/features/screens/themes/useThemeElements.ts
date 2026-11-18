@@ -107,7 +107,11 @@ export function useThemeElements(
                 ...(broadcastEdits === undefined ? {} : {broadcastEdits}),
               };
             })
-          : editThemeElements(value, target, transform),
+          : editThemeElements(value, target, elements =>
+              transform(
+                elements.filter(element => element.kind !== 'stageMessage'),
+              ),
+            ),
       completed,
     );
   };

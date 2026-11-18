@@ -197,7 +197,7 @@ export class ThemeCompositionView {
               }),
               {
                 stage: frame.screen?.kind === 'stage',
-                message: frame.stageMessage,
+                message: null,
                 item: frame.theme.item,
               },
             ),
@@ -459,6 +459,7 @@ export class ThemeCompositionView {
     const elements: ThemeElementView[] = [];
     if (theme.layout.mode.kind === 'own') {
       for (const element of theme.layout.elements) {
+        if (element.kind === 'stageMessage') continue;
         if (this.options.transparent && element.kind === 'background') {
           continue;
         }

@@ -870,3 +870,8 @@ TEMPORARY for the 2026-11-15 service: on the last slide of a service Bible item
 directly following a sermon-title theme item, the stage next line shows the
 sermon title; other Bible items retain the empty next line. Replace this rule by
 grouping the sermon passage with the sermon title item.
+
+Stage messages are drawn on every stage screen as a full-width, high-contrast
+band at the bottom, above the theme composition. Saved `stageMessage` elements
+do not draw or appear in the editor. They are removed when that layout is
+edited.

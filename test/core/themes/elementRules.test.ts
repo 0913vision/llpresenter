@@ -15,6 +15,9 @@ it('offers unused unique kinds even at the count limit while keeping repeatable 
   expect(choices).not.toContain('currentText');
   expect(choices).toContain('text');
   expect(choices).not.toContain('memo');
+  expect(availableThemeElementKinds([], 'stage', false)).not.toContain(
+    'stageMessage',
+  );
   expect(availableThemeElementKinds([], 'stage', true)).toEqual([
     'text',
     'image',

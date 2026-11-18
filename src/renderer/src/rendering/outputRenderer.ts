@@ -19,11 +19,7 @@ const THEME_LAYER_ORDERS: Readonly<Record<string, number>> = {
   prop: 3,
   message: 4,
 };
-const LEGACY_CONTENT_LAYERS = new Set([
-  'background',
-  'lyrics',
-  'stage-message',
-]);
+const LEGACY_CONTENT_LAYERS = new Set(['background', 'lyrics']);
 const noContent = emptyLayers();
 
 export type OutputRendererOptions = RenderLayerOptions;

@@ -78,6 +78,7 @@ export function availableThemeElementKinds(
 ): readonly ThemeElementKind[] {
   return themeElementKinds.filter(
     kind =>
+      kind !== 'stageMessage' &&
       (!standby || isStandbyElement(kind)) &&
       (!stageOnly.has(kind) || screenKind === 'stage') &&
       (canRepeatThemeElement(kind) ||

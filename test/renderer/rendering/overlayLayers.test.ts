@@ -82,7 +82,10 @@ function setup() {
     });
   const box = (kind: string) => parent.querySelector(`[data-layer="${kind}"]`);
   const shownText = (kind: string) =>
-    box(kind)?.querySelector(`.${classes.shown}`)?.textContent ?? null;
+    kind === 'stage-message'
+      ? (box(kind)?.querySelector('[data-stage-message-band]:not([hidden])')
+          ?.textContent ?? null)
+      : (box(kind)?.querySelector(`.${classes.shown}`)?.textContent ?? null);
   return {
     settings,
     store,
@@ -282,8 +285,8 @@ describe('registered overlay layers', () => {
     expect(shownText('stage-message')).toBeNull();
   });
 
-  it('uses a stage theme message element when present, and falls back for saved layouts', () => {
-    const {send, renderer, store, parent, shownText} = setup();
+  it('draws a stage message above themed and saved layouts', () => {
+    const {send, renderer, store, parent} = setup();
     send({type: 'stage.message.set', text: 'Stage cue'});
     const theme = builtInTheme('song');
     const layout = theme.screens[STAGE];
@@ -303,10 +306,10 @@ describe('registered overlay layers', () => {
       transitions: false,
     };
     renderer.render(store.state.layers, {...stageFrame, theme: themeFrame});
-    expect(shownText('stage-message')).toBeNull();
-    expect(
-      parent.querySelector('[data-kind="stageMessage"]')?.textContent,
-    ).toContain('Stage cue');
+    expect(parent.querySelector('[data-stage-message-band]')?.textContent).toBe(
+      'Stage cue',
+    );
+    expect(parent.querySelector('[data-kind="stageMessage"]')).toBeNull();
     const savedLayout = {
       ...layout,
       elements: layout.elements.filter(
@@ -317,13 +320,17 @@ describe('registered overlay layers', () => {
       ...stageFrame,
       theme: {...themeFrame, layout: savedLayout},
     });
-    expect(shownText('stage-message')).toBe('Stage cue');
+    expect(parent.querySelector('[data-stage-message-band]')?.textContent).toBe(
+      'Stage cue',
+    );
     renderer.render(store.state.layers, {
       ...stageFrame,
       screen: {id: MAIN, kind: 'audience'},
       theme: {...themeFrame, layout: savedLayout},
     });
-    expect(shownText('stage-message')).toBeNull();
+    expect(parent.querySelector('[data-stage-message-band]')?.textContent).toBe(
+      '',
+    );
   });
 
   it('routes several image and text props and reuses their elements across clears', () => {
