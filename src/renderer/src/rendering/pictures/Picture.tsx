@@ -90,7 +90,7 @@ export const Picture = memo(
     });
     useSyncExternalStore(ticket.subscribe, ticket.snapshot);
     const done = ticket.done;
-    if (wait) use(ticket.ready);
+    if (wait && !done) use(ticket.ready);
     const image = ticket.image ?? previous;
     if (image !== previous) setPrevious(image);
     const onReady = useContext(PictureReadiness);

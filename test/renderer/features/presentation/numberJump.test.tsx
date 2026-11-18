@@ -20,6 +20,11 @@ import {
   serviceSlideOffset,
 } from '@renderer/features/presentation/serviceSlideNumbers';
 
+vi.mock(
+  '@renderer/rendering/pictures/Picture',
+  () => import('@fixtures/renderer/picture'),
+);
+
 function Harness() {
   useNumberJumpKeys();
   useSlideHotKeys();

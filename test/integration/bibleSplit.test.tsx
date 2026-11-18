@@ -1,4 +1,3 @@
-import * as v from 'valibot';
 import {
   lastLiveCommand,
   liveCommands,
@@ -58,18 +57,12 @@ import {themeFile, THEME_MAIN} from '@fixtures/core/themeOutput';
 import {mockSplitLayout, MOCK_LONG_VERSE} from '@fixtures/core/bibleSplit';
 import {defaultPreferences} from '@core/schema/preferences';
 import {quickDocument} from '@fixtures/renderer/features/tools/quickTesting';
+import {previewSpec} from '@fixtures/renderer/picture';
 
-vi.mock('@renderer/rendering/outputRenderer', () => ({
-  OutputRenderer: class {
-    ready = () => true;
-    revealIncomplete = () => undefined;
-    constructor(private readonly parent: HTMLElement) {}
-    render = vi.fn((layers: unknown, frame: unknown) => {
-      this.parent.dataset['preview'] = JSON.stringify({layers, frame});
-    });
-    dispose = vi.fn();
-  },
-}));
+vi.mock(
+  '@renderer/rendering/pictures/Picture',
+  () => import('@fixtures/renderer/picture'),
+);
 
 vi.mock('@renderer/rendering/bibleMeasure', async importOriginal => {
   const original =
@@ -319,33 +312,12 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
           .chunks[0]?.lines;
         await waitFor(() => {
           const first = screen.getAllByRole('option')[0];
-          const preview = first?.querySelector<HTMLElement>('[data-preview]');
-          const raw: unknown = JSON.parse(preview?.dataset['preview'] ?? '{}');
-          const data = v.parse(
-            v.object({
-              layers: v.object({
-                slide: v.object({lines: v.array(v.string())}),
-              }),
-              frame: v.object({
-                theme: v.object({
-                  layout: v.object({
-                    elements: v.array(
-                      v.object({
-                        kind: v.string(),
-                        text: v.optional(v.object({size: v.number()})),
-                      }),
-                    ),
-                  }),
-                }),
-              }),
-            }),
-            raw,
-          );
-          expect(data.layers.slide.lines).toEqual(expected);
+          const spec = previewSpec(first);
+          expect(spec?.layers.slide?.lines).toEqual(expected);
           expect(
-            data.frame.theme.layout.elements.find(
+            spec?.appearance.theme.layout.elements.find(
               element => element.kind === 'currentText',
-            )?.text?.size,
+            )?.text.size,
           ).toBe(36);
         });
         if (workspace !== 'details') {

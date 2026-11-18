@@ -18,6 +18,11 @@ import {emptyLiveState} from '@core/live/state';
 import {commandBindingStore} from '@renderer/ui/commandBindings';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 
+vi.mock(
+  '@renderer/rendering/pictures/Picture',
+  () => import('@fixtures/renderer/picture'),
+);
+
 function Surface({
   hidden = false,
   active = true,

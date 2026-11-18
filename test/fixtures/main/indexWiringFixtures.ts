@@ -115,7 +115,12 @@ const mocks = vi.hoisted(() => {
     playbackProblemsStop: vi.fn<() => void>(),
     appHandlers,
     electron: {
-      ipcMain: {on: vi.fn(), removeListener: vi.fn()},
+      ipcMain: {
+        handle: vi.fn(),
+        removeHandler: vi.fn(),
+        on: vi.fn(),
+        removeListener: vi.fn(),
+      },
       app: {
         setPath: vi.fn(),
         getPath: vi.fn<(name: string) => string>(),

@@ -28,6 +28,12 @@ import {SONG_IMPORT_LIMITS} from '@core/schema/songImport';
 import {limitReason} from '@core/common/limitReason';
 import {hoverForTooltip} from '@fixtures/renderer/ui/tooltipTesting';
 import * as labelMenus from '@renderer/features/songs/editor/labelMenuEntries';
+import {previewSpec} from '@fixtures/renderer/picture';
+
+vi.mock(
+  '@renderer/rendering/pictures/Picture',
+  () => import('@fixtures/renderer/picture'),
+);
 
 const source: TextImportSource = {
   source: 'file',
@@ -473,7 +479,9 @@ describe('text import dialog', () => {
     expect((await hoverForTooltip(edit))?.textContent).toBe(
       limitReason('슬라이드', SONG_IMPORT_LIMITS.slides),
     );
-    expect(screen.getAllByRole('option')[0]?.textContent).toContain('Body');
+    expect(
+      previewSpec(screen.getAllByRole('option')[0])?.layers.slide?.lines,
+    ).toEqual(['Body']);
   });
 
   it('keeps different candidate labels when section indices are equal', async () => {
