@@ -8,7 +8,7 @@ import {
   SECTION_RULES_ID,
   sectionGradient,
 } from '@core/themes/sundaySections';
-import {createDefaultThemes, legacySectionLayout} from '@core/themes/defaults';
+import {createDefaultThemes} from '@core/themes/defaults';
 import {resolveThemeScreen} from '@core/themes/resolve';
 import {themeElementText} from '@core/themes/content';
 import {emptyLayers} from '@core/live/state';
@@ -245,27 +245,17 @@ it('shows both card lines on audience and only Korean on broadcast and stage for
   }
 });
 
-it('uses the new presentation for untouched saved defaults and preserves edited layouts', () => {
+it('retains saved section layouts instead of rewriting them', () => {
   const file = createDefaultThemes();
   const original = file.themes.find(theme => theme.id === SECTION_THEME_ID);
   if (original === undefined) throw Error('missing section theme');
   const screens = [
-    {
-      id: createScreenId(STARTER_SCREEN_IDS.broadcast),
-      kind: 'broadcast',
-      method: 'capture',
-    },
-    {
-      id: createScreenId(STARTER_SCREEN_IDS.stage),
-      kind: 'stage',
-      method: 'fullscreen',
-    },
+    {id: createScreenId(STARTER_SCREEN_IDS.broadcast), kind: 'broadcast'},
   ] as const;
+  const savedLayout = {mode: {kind: 'own' as const}, elements: []};
   const saved = {
     ...original,
-    screens: Object.fromEntries(
-      screens.map(screen => [screen.id, legacySectionLayout(screen)]),
-    ),
+    screens: {...original.screens, [screens[0].id]: savedLayout},
   };
   const decoded = parseThemes(
     JSON.stringify({...file, themes: [saved]}),
@@ -274,27 +264,7 @@ it('uses the new presentation for untouched saved defaults and preserves edited 
   if (!decoded.ok) throw Error(decoded.error.message);
   const reloaded = decoded.value.data.themes[0];
   if (reloaded === undefined) throw Error('missing saved theme');
-  expect(
-    resolveThemeScreen(reloaded, screens[0].id, screens).layout.elements[0]
-      ?.kind,
-  ).toBe('itemName');
-  expect(
-    resolveThemeScreen(saved, screens[0].id, screens).layout.elements[0]?.kind,
-  ).toBe('itemName');
-  expect(
-    resolveThemeScreen(saved, screens[1].id, screens).layout.elements.some(
-      element => element.kind === 'itemName',
-    ),
-  ).toBe(true);
-  const editedLayout = {
-    ...legacySectionLayout(screens[0]),
-    background: '#123456',
-  };
-  const edited = {
-    ...saved,
-    screens: {...saved.screens, [screens[0].id]: editedLayout},
-  };
-  expect(resolveThemeScreen(edited, screens[0].id, screens).layout).toEqual(
-    editedLayout,
+  expect(resolveThemeScreen(reloaded, screens[0].id, screens).layout).toEqual(
+    savedLayout,
   );
 });

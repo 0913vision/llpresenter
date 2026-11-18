@@ -118,9 +118,8 @@ describe('parseService', () => {
       ).ok,
     ).toBe(false);
   });
-  it('separates legacy image decks from the retired sermon theme in services and templates', () => {
+  it('preserves saved theme IDs in services and templates', () => {
     const old = '00000000-0000-4000-8000-000000000107';
-    const replacement = '00000000-0000-4000-8000-000000000108';
     const image = {
       id: itemId(31),
       theme: old,
@@ -141,13 +140,13 @@ describe('parseService', () => {
     };
     const data = {...sundayService(), order: [image, text]};
     const parsed = expectSuccess(parse(data)).data;
-    expect(parsed.order[0]?.theme).toBe(replacement);
+    expect(parsed.order[0]?.theme).toBe(old);
     expect(parsed.order[1]?.theme).toBe(old);
     const template = {...sundayTemplate(), order: [image, text]};
     const parsedTemplate = expectSuccess(
       parseTemplate(JSON.stringify(template), FILE),
     ).data;
-    expect(parsedTemplate.order[0]?.theme).toBe(replacement);
+    expect(parsedTemplate.order[0]?.theme).toBe(old);
     expect(parsedTemplate.order[1]?.theme).toBe(old);
     const written = expectSuccess(serializeService(parsed, FILE));
     expect(expectSuccess(parseService(written, FILE)).data.order).toEqual(

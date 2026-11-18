@@ -1,25 +1,16 @@
-import {sameJson} from '../common/sameJson';
-import {isSectionTheme, sectionOtherLayout} from './sundaySections';
 import type {ScreenId, ThemeId} from '../schema/ids';
 import type {Screen} from '../schema/screens';
 import type {Theme, ThemeScreenLayout, ThemesFile} from '../schema/themes';
 import {
   builtInTheme,
-  createDefaultThemes,
-  legacySectionLayout,
   IMAGE_SLIDES_THEME_ID,
   AD_THEME_ID,
   imageSlidesLayout,
   withStageStandby,
-  sermonTitleScreenLayout,
-  legacySermonTitleLayout,
-  BIBLE_THEME_ID,
   type ThemeScreen,
 } from './defaults';
 import {themeElementProblem, type ThemeItemKind} from './elementRules';
 import {SONG_THEME_ID} from './songTitle';
-import {SERMON_TITLE_THEME_ID} from './sundayScripture';
-import {retiredThemeReplacement} from './retiredThemes';
 
 interface ItemThemeRequest {
   readonly file: ThemesFile | null | undefined;
@@ -41,19 +32,8 @@ export function resolveItemTheme(request: ItemThemeRequest): Theme {
       ? (file?.themes.find(entry => entry.id === theme) ??
         file?.deletedThemes?.find(entry => entry.id === theme))
       : undefined;
-  const retired =
-    source === 'service' && theme !== undefined && own === undefined
-      ? retiredThemeReplacement(theme)
-      : undefined;
-  const replacement =
-    retired === undefined
-      ? undefined
-      : (file?.themes.find(entry => entry.id === retired) ??
-        createDefaultThemes(screens).themes.find(
-          entry => entry.id === retired,
-        ));
   const fallback = file?.themes.find(entry => entry.id === file.defaults[kind]);
-  return own ?? replacement ?? fallback ?? builtInTheme(kind, screens);
+  return own ?? fallback ?? builtInTheme(kind, screens);
 }
 
 const emptyLayout: ThemeScreenLayout = {mode: {kind: 'empty'}, elements: []};
@@ -73,129 +53,6 @@ export function implicitScreenLayout(
   return first === undefined || first.id === screenId
     ? undefined
     : {mode: {kind: 'same', screen: first.id}, elements: []};
-}
-
-function resolvedSectionLayout(
-  theme: Theme,
-  layout: ThemeScreenLayout,
-  source: Pick<Screen, 'id' | 'kind'> | undefined,
-): ThemeScreenLayout {
-  if (
-    (source?.kind !== 'broadcast' && source?.kind !== 'stage') ||
-    !isSectionTheme(theme.id)
-  ) {
-    return layout;
-  }
-  const legacy = legacySectionLayout({
-    id: source.id,
-    kind: source.kind,
-    method: source.kind === 'broadcast' ? 'capture' : 'fullscreen',
-  });
-  return sameJson(layout, legacy)
-    ? sectionOtherLayout(layout, source.kind)
-    : layout;
-}
-
-function resolvedSermonLayout(
-  theme: Theme,
-  layout: ThemeScreenLayout,
-  source: Pick<Screen, 'id' | 'kind'> | undefined,
-): ThemeScreenLayout {
-  if (
-    theme.id !== SERMON_TITLE_THEME_ID ||
-    !source ||
-    source.kind === 'audience'
-  ) {
-    return layout;
-  }
-  const screen = {
-    id: source.id,
-    kind: source.kind,
-    method:
-      source.kind === 'broadcast'
-        ? ('capture' as const)
-        : ('fullscreen' as const),
-  };
-  if (sameJson(layout, legacySermonTitleLayout(screen))) {
-    return sermonTitleScreenLayout(screen);
-  }
-  if (source.kind === 'broadcast') {
-    const current = sermonTitleScreenLayout(screen);
-    const previous = {
-      ...current,
-      elements: current.elements.map(element => ({
-        ...element,
-        frame:
-          element.kind === 'box'
-            ? {x: 0, y: 790, w: 1920, h: 200}
-            : element.kind === 'itemName'
-              ? {x: 160, y: 823, w: 1600, h: 56}
-              : {x: 160, y: 865, w: 1600, h: 112},
-      })),
-    };
-    return sameJson(layout, previous) ? current : layout;
-  }
-  const current = sermonTitleScreenLayout(screen);
-  const changed = current.elements.filter(
-    element => element.kind === 'itemName' || element.kind === 'currentText',
-  );
-  return {
-    ...layout,
-    elements: layout.elements.map(element => {
-      const replacement = changed.find(
-        candidate => candidate.id === element.id,
-      );
-      if (!replacement || !('text' in replacement)) return element;
-      const previous = {
-        ...replacement,
-        text: {...replacement.text, align: 'center' as const},
-      };
-      return sameJson(element, previous) ? replacement : element;
-    }),
-  };
-}
-
-function resolvedBibleStageLayout(
-  theme: Theme,
-  layout: ThemeScreenLayout,
-  source: Pick<Screen, 'id' | 'kind'> | undefined,
-): ThemeScreenLayout {
-  if (theme.id !== BIBLE_THEME_ID || source?.kind !== 'stage') return layout;
-  const screen = {
-    id: source.id,
-    kind: source.kind,
-    method: 'fullscreen' as const,
-  };
-  const previous = legacySermonTitleLayout(screen).elements.find(
-    element => element.kind === 'reference',
-  );
-  const updatedElements =
-    builtInTheme('bible', [screen]).screens[source.id]?.elements ?? [];
-  const updated = updatedElements.find(element => element.kind === 'reference');
-  const current = updatedElements.find(
-    element => element.kind === 'currentText',
-  );
-  const next = updatedElements.find(element => element.kind === 'nextText');
-  const oldCurrent = current && {
-    ...current,
-    frame: {...current.frame, x: 154, y: 230, w: 1612, h: 468},
-    text: {...current.text, tracking: 0},
-  };
-  const oldNext = next && {...next, frame: {...next.frame, y: 706, h: 272}};
-  const updateFrames =
-    oldCurrent &&
-    oldNext &&
-    layout.elements.some(element => sameJson(element, oldCurrent)) &&
-    layout.elements.some(element => sameJson(element, oldNext));
-  return {
-    ...layout,
-    elements: layout.elements.map(element => {
-      if (previous && updated && sameJson(element, previous)) return updated;
-      if (updateFrames && sameJson(element, oldCurrent)) return current;
-      if (updateFrames && sameJson(element, oldNext)) return next;
-      return element;
-    }),
-  };
 }
 
 export interface ResolvedThemeScreen {
@@ -260,7 +117,7 @@ export function resolveThemeScreen(
     }
     if (layout.mode.kind === 'own') {
       const source = screens.find(screen => screen.id === current);
-      let resolved = resolvedSermonLayout(theme, layout, source);
+      let resolved = layout;
       if (
         source?.kind === 'audience' &&
         theme.id === SONG_THEME_ID &&
@@ -268,8 +125,6 @@ export function resolveThemeScreen(
       ) {
         resolved = {...layout, songTitle: 'sunday'};
       }
-      resolved = resolvedSectionLayout(theme, resolved, source);
-      resolved = resolvedBibleStageLayout(theme, resolved, source);
       return themeElementProblem(resolved.elements, destination.kind) ===
         undefined
         ? {sourceScreenId: current, layout: resolved}

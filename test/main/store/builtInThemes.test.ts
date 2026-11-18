@@ -44,7 +44,7 @@ it('loads and preserves an old user theme containing stage sources', () => {
   }
 });
 
-it('retains an edited image theme that used the colliding retired ID', () => {
+it('preserves an edited theme with the former ID without remapping it', () => {
   const file = createDefaultThemes();
   const image = file.themes.find(theme => theme.id === IMAGE_SLIDES_THEME_ID);
   if (image === undefined) throw Error('Missing image theme');
@@ -60,32 +60,50 @@ it('retains an edited image theme that used the colliding retired ID', () => {
   );
   expect(result.ok).toBe(true);
   if (result.ok) {
+    expect(result.value.data.themes.find(theme => theme.id === old.id)).toEqual(
+      old,
+    );
     expect(
       result.value.data.themes.find(
         theme => theme.id === IMAGE_SLIDES_THEME_ID,
       ),
-    ).toEqual({...old, id: IMAGE_SLIDES_THEME_ID});
+    ).toEqual(image);
   }
 });
 
-it('keeps the image theme position when loading the former ID in theme order', () => {
+it('reads an unedited saved standby as stored and omits it on write', () => {
   const file = createDefaultThemes();
-  const legacy = createThemeId('00000000-0000-4000-8000-000000000107');
-  const order = file.themes.map(theme =>
-    theme.id === IMAGE_SLIDES_THEME_ID ? legacy : theme.id,
+  const standby = {...file.standby, name: 'Saved standby'};
+  const loaded = settingsCodecs.themes.parse(
+    JSON.stringify({...file, standby, themes: []}),
+    'themes.json',
   );
+  expect(loaded.ok).toBe(true);
+  if (!loaded.ok) return;
+  expect(loaded.value.data.standby).toEqual(standby);
+  expect(loaded.value.data.themes).toEqual(file.themes);
+  const saved = settingsCodecs.themes.serialize(
+    loaded.value.data,
+    'themes.json',
+  );
+  expect(saved.ok).toBe(true);
+  if (!saved.ok) return;
+  const disk: unknown = JSON.parse(saved.value);
+  if (!isRecord(disk)) throw Error('Invalid saved file');
+  expect(disk.standby).toBeUndefined();
+  expect(disk.themes).toEqual([]);
+});
+
+it('preserves former IDs in the saved theme order', () => {
+  const file = createDefaultThemes();
+  const old = createThemeId('00000000-0000-4000-8000-000000000107');
+  const order = [old, IMAGE_SLIDES_THEME_ID];
   const result = settingsCodecs.themes.parse(
     JSON.stringify({...file, themeOrder: order}),
     'themes.json',
   );
   expect(result.ok).toBe(true);
-  if (!result.ok) throw Error('Could not load theme order');
-  expect(result.value.data.themes.map(theme => theme.id)).toEqual(
-    file.themes.map(theme => theme.id),
-  );
-  expect(result.value.data.themeOrder).toEqual(
-    file.themes.map(theme => theme.id),
-  );
+  if (result.ok) expect(result.value.data.themeOrder).toEqual(order);
 });
 
 it('persists the order of built-in and user themes across reloads', () => {
@@ -122,7 +140,7 @@ it('rejects duplicate IDs in the persisted theme order', () => {
   expect(parsed.ok).toBe(false);
 });
 
-it('replaces old built-ins and stores only edited built-ins and user themes', () => {
+it('loads saved built-in copies and stores only edited built-ins and user themes', () => {
   const defaults = createDefaultThemes();
   const [song, bible] = defaults.themes;
   if (song === undefined || bible === undefined) {
@@ -143,20 +161,7 @@ it('replaces old built-ins and stores only edited built-ins and user themes', ()
   expect(parsed.ok).toBe(true);
   if (!parsed.ok) return;
   const loaded = parsed.value.data;
-  const stage = loaded.themes.find(theme => theme.id === song.id)?.screens[
-    stageId
-  ];
-  expect(
-    stage?.elements.some(
-      element =>
-        'stageSource' in element &&
-        (element.stageSource === 'stageItemName' ||
-          element.stageSource === 'stagePosition'),
-    ),
-  ).toBe(false);
-  expect(
-    stage?.elements.find(element => element.kind === 'clock'),
-  ).toMatchObject({seconds: true});
+  expect(loaded.themes.find(theme => theme.id === song.id)).toEqual(oldSong);
   expect(loaded.themes.find(theme => theme.id === bible.id)).toEqual(edited);
   expect(loaded.themes.find(theme => theme.id === user.id)).toEqual(user);
   const saved = settingsCodecs.themes.serialize(loaded, 'themes.json');
