@@ -77,6 +77,21 @@ function sources(change: Partial<MediaUseSources> = {}): MediaUseSources {
 }
 
 describe('the places that use a media item', () => {
+  it('counts slide pictures once per song or service item', () => {
+    const original = song();
+    const slides = original.slides.map(slide => ({...slide, picture: target}));
+    const withPictures = {...original, slides};
+    const usedService = service([
+      {id: uuid(1), song: original.id, slides},
+      {id: uuid(2), song: original.id, slides, background: target},
+    ]);
+    expect(
+      countMediaUses(
+        target,
+        sources({songs: [withPictures], services: [usedService]}),
+      ),
+    ).toMatchObject({songBackgrounds: 1, serviceItems: 2});
+  });
   it('counts playlists and 그래픽 that hold it', () => {
     const uses = countMediaUses(target, sources());
     expect(uses).toMatchObject({

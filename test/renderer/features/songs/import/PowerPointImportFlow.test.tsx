@@ -21,6 +21,62 @@ vi.mock('@renderer/features/songs/import/composePowerPointBackground', () => ({
 const mockScene = {key: 'a'.repeat(64), layers: [], pictures: [], skipped: 0};
 
 describe('PowerPoint import dialog', () => {
+  it('keeps successful decorations when a later layout needs fallback', async () => {
+    const fixture = editorFixture();
+    const store = new SongEditorStore(fixture.api, vi.fn());
+    onTestFinished(() => store.dispose());
+    const first = createMediaId('00000000-0000-4000-8000-000000000123');
+    const second = createMediaId('00000000-0000-4000-8000-000000000124');
+    const api = mockLlpApi({
+      ...fixture.api,
+      powerpoint: {
+        read: async () => ({
+          ok: true,
+          value: {
+            fileName: 'deck.pptx',
+            widescreen: true,
+            slides: [
+              {
+                number: 1,
+                background: 'first',
+                shapes: [{body: true, lines: ['One']}],
+              },
+              {
+                number: 2,
+                background: 'second',
+                shapes: [{body: true, lines: ['Two']}],
+              },
+            ],
+          },
+        }),
+        layers: async () => mockScene,
+        background: async request =>
+          request.index === 1 && request.decoration
+            ? null
+            : `C:/temp/${request.index}.png`,
+        match: async ({path}) => (path.includes('/0.png') ? first : second),
+        release: async () => true,
+      },
+    });
+    const onEdit = vi.fn();
+    render(
+      <PowerPointImportFlow
+        api={api}
+        store={store}
+        onDone={vi.fn()}
+        onEdit={onEdit}
+        onProblem={vi.fn()}
+      />,
+    );
+    await screen.findByRole('dialog', {name: 'PowerPoint 가져오기'});
+    fireEvent.click(screen.getByRole('button', {name: '편집'}));
+    await waitFor(() => expect(onEdit).toHaveBeenCalledOnce());
+    expect(
+      store
+        .getSnapshot()
+        .session?.history.snapshot.song.slides.map(slide => slide.picture),
+    ).toEqual([first, second]);
+  });
   it.each([
     {
       name: 'one-box hymn',
@@ -459,6 +515,7 @@ describe('PowerPoint import dialog', () => {
       finish = resolve;
     });
     const background = vi.fn(() => pending);
+    const cancelImages = vi.fn(async () => true);
     const release = vi.fn(async () => true);
     const importMedia = vi.fn(async (): Promise<MediaImportResult> => ({
       ok: true,
@@ -483,6 +540,7 @@ describe('PowerPoint import dialog', () => {
           },
         }),
         background,
+        cancelImages,
         release,
       },
       media: {import: importMedia},
@@ -501,6 +559,7 @@ describe('PowerPoint import dialog', () => {
     fireEvent.click(screen.getByRole('button', {name: '편집'}));
     await waitFor(() => expect(background).toHaveBeenCalledOnce());
     fireEvent.click(screen.getByRole('button', {name: '저장 안 함'}));
+    expect(cancelImages).toHaveBeenCalledOnce();
     view.unmount();
     await act(async () => {
       finish('C:/temp/ppt.png');

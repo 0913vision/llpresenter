@@ -91,12 +91,15 @@ async function importSelectedBackground(
     index,
     title,
     decoration,
+    isActive,
+    exporting,
   }: {
     readonly index: number;
     readonly title: string;
     readonly decoration: boolean;
+    readonly isActive: () => boolean;
+    readonly exporting: {current: boolean};
   },
-  isActive: () => boolean,
 ): Promise<TextImportDraft['background']> {
   const previous = backgroundQueue;
   let unlock: () => void = () => undefined;
@@ -106,9 +109,15 @@ async function importSelectedBackground(
   try {
     await previous;
     if (!isActive()) return undefined;
-    let path = decoration
-      ? await api.powerpoint.background({index, decoration: true})
-      : null;
+    let path: string | null = null;
+    if (decoration) {
+      exporting.current = true;
+      try {
+        path = await api.powerpoint.background({index, decoration: true});
+      } finally {
+        exporting.current = false;
+      }
+    }
     if (!isActive()) {
       if (path !== null) await api.powerpoint.release({path});
       return undefined;
@@ -143,66 +152,39 @@ async function importBackgrounds(
     start,
     title,
     isActive,
+    exporting,
   }: {
     readonly range: PowerPointSource['slides'];
     readonly start: number;
     readonly title: string;
     readonly isActive: () => boolean;
+    readonly exporting: {current: boolean};
   },
-): Promise<Map<string, NonNullable<TextImportDraft['background']>> | null> {
+): Promise<Map<string, NonNullable<TextImportDraft['background']>>> {
   const pictures = new Map<
     string,
     NonNullable<TextImportDraft['background']>
   >();
   for (const [index, slide] of range.entries()) {
     if (slide.background === null || pictures.has(slide.background)) continue;
-    const picture = await importSelectedBackground(
-      api,
-      {index: start + index, title, decoration: true},
+    let picture = await importSelectedBackground(api, {
+      index: start + index,
+      title,
+      decoration: true,
       isActive,
-    );
+      exporting,
+    });
     if (!isActive()) break;
-    if (picture === undefined) return null;
-    pictures.set(slide.background, picture);
+    picture ??= await importSelectedBackground(api, {
+      index: start + index,
+      title,
+      decoration: false,
+      isActive,
+      exporting,
+    });
+    if (picture !== undefined) pictures.set(slide.background, picture);
   }
   return pictures;
-}
-
-function fallbackBackgroundIndex(
-  range: PowerPointSource['slides'],
-): number | undefined {
-  return powerpointBackgroundIndex(
-    range.map(slide => ({
-      background:
-        slide.fallbackBackground === undefined
-          ? slide.background
-          : slide.fallbackBackground,
-    })),
-  );
-}
-
-async function importFallback(
-  api: LlpApi,
-  {
-    range,
-    start,
-    title,
-    isActive,
-  }: {
-    readonly range: PowerPointSource['slides'];
-    readonly start: number;
-    readonly title: string;
-    readonly isActive: () => boolean;
-  },
-): Promise<TextImportDraft['background']> {
-  const index = fallbackBackgroundIndex(range);
-  return index === undefined
-    ? undefined
-    : importSelectedBackground(
-        api,
-        {index: start + index, title, decoration: false},
-        isActive,
-      );
 }
 
 export function PowerPointImportFlow({
@@ -292,12 +274,18 @@ function PowerPointDialog({
   const [background, setBackground] = useState(backgroundAvailable);
   const [replacement, setReplacement] = useState<TextImportDraft | null>(null);
   const active = useRef(true);
+  const exporting = useRef(false);
   useEffect(() => {
+    const currentExport = exporting;
     active.current = true;
     return () => {
       active.current = false;
+      if (currentExport.current) {
+        currentExport.current = false;
+        api.powerpoint.cancelImages().catch(() => undefined);
+      }
     };
-  }, []);
+  }, [api]);
   const start = Math.min(anchor, end);
   const finish = Math.max(anchor, end);
   const range = useMemo(
@@ -342,21 +330,13 @@ function PowerPointDialog({
           start,
           title: shownTitle,
           isActive: () => active.current,
+          exporting,
         });
         if (!active.current) return;
-        if (decorated === null) {
-          importedBackground = await importFallback(api, {
-            range,
-            start,
-            title: shownTitle,
-            isActive: () => active.current,
-          });
-        } else {
-          pictures = decorated;
-          const key = range[winner]?.background;
-          importedBackground =
-            key === null || key === undefined ? undefined : pictures.get(key);
-        }
+        pictures = decorated;
+        const key = range[winner]?.background;
+        importedBackground =
+          key === null || key === undefined ? undefined : pictures.get(key);
       }
       if (!active.current) return;
       if (!lyrics) {
@@ -401,6 +381,10 @@ function PowerPointDialog({
         subtitle={{icon: 'filetext', text: source.fileName}}
         onCancel={() => {
           active.current = false;
+          if (exporting.current) {
+            exporting.current = false;
+            api.powerpoint.cancelImages().catch(() => undefined);
+          }
           onDone();
         }}
         cancelLabel="저장 안 함"

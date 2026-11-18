@@ -46,6 +46,17 @@ function read(parts: Record<string, string>) {
 }
 
 describe('PowerPoint background layers', () => {
+  it('does not reuse a decoration picture when slide effects differ', () => {
+    const plain = root('sld', shape('1'));
+    const shadow = plain.replace(
+      '</p:spPr>',
+      '<a:effectLst><a:outerShdw blurRad="100"/></a:effectLst></p:spPr>',
+    );
+    const first = read(fixture(plain));
+    const second = read(fixture(shadow));
+    expect(first.layers).toEqual(second.layers);
+    expect(first.key).not.toBe(second.key);
+  });
   it('uses only the slide’s layout picture and preserves its asymmetric crop', () => {
     const picture = (id: string, image: string) =>
       `<p:pic><p:nvPicPr><p:cNvPr id="${id}"/></p:nvPicPr><p:blipFill><a:blip r:embed="${image}"><a:extLst><a:ext><a14:imgProps xmlns:a14="urn:a14" r:embed="effect"/></a:ext></a:extLst></a:blip><a:srcRect t="15039" b="9960"/><a:stretch/></p:blipFill><p:spPr>${xfrm}</p:spPr></p:pic>`;
