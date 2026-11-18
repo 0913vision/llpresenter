@@ -1,3 +1,4 @@
+import {flushSync} from 'react-dom';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {
   memo,
@@ -115,7 +116,9 @@ export const SongBlock = memo(
       };
       measure();
       if (typeof ResizeObserver === 'undefined') return;
-      const observer = new ResizeObserver(measure);
+      // NOTE(0913vision): The rows below move in the frame the text grows in,
+      // not one frame after it.
+      const observer = new ResizeObserver(() => flushSync(measure));
       observer.observe(thumbnail);
       observer.observe(text);
       return () => observer.disconnect();
