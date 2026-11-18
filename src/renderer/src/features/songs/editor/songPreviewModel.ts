@@ -79,6 +79,9 @@ export function previewAppearance({
     kind: target.kind,
     method: target.method,
   };
+  const deleted = themes?.deletedThemes?.find(
+    entry => entry.id === output.themeId,
+  );
   const themeName = themes?.themes.find(
     entry => entry.id === output.themeId,
   )?.name;
@@ -86,15 +89,17 @@ export function previewAppearance({
     screen,
     theme,
     themeName:
-      themeName === undefined
-        ? item.kind === 'bible' || item.kind === 'blank'
-          ? '말씀'
-          : item.kind === 'ad'
-            ? '광고'
-            : item.kind === 'media'
-              ? '영상'
-              : '찬양'
-        : themeName || '이름 없는 테마',
+      deleted !== undefined
+        ? `(${deleted.name})`
+        : themeName === undefined
+          ? item.kind === 'bible' || item.kind === 'blank'
+            ? '말씀'
+            : item.kind === 'ad'
+              ? '광고'
+              : item.kind === 'media'
+                ? '영상'
+                : '찬양'
+          : themeName || '이름 없는 테마',
     background: themeBackgroundColor(
       composition.layout.background,
       composition.emptyColor,

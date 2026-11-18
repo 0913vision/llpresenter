@@ -27,6 +27,7 @@ export type ThemeEditProblem =
   | 'name'
   | 'taken'
   | 'full'
+  | 'deleted-full'
   | 'duplicate-id'
   | 'standby'
   | 'built-in'
@@ -106,7 +107,7 @@ export function copyThemeName(source: string, file: ThemesFile): string {
   return copyName(source, themeNames(file), {maxLength: THEME_LIMITS.name});
 }
 
-/** Item references are supplied by the service usage reader; dangling IDs keep fallback behavior. */
+/** Deleted themes retain a snapshot so existing item references keep their appearance. */
 export function editThemeList(
   file: ThemesFile,
   edit: ThemeListEdit,
@@ -116,7 +117,10 @@ export function editThemeList(
     if (userThemeCount(file.themes) >= THEME_LIMITS.themes) {
       return {ok: false, error: 'full'};
     }
-    if (findTheme(file, edit.id) !== undefined) {
+    if (
+      findTheme(file, edit.id) !== undefined ||
+      file.deletedThemes?.some(theme => theme.id === edit.id)
+    ) {
       return {ok: false, error: 'duplicate-id'};
     }
     const source =
@@ -200,6 +204,9 @@ export function editThemeList(
   ) {
     return {ok: false, error: 'confirmation-required'};
   }
+  if ((file.deletedThemes?.length ?? 0) >= THEME_LIMITS.deletedThemes) {
+    return {ok: false, error: 'deleted-full'};
+  }
   let defaults = file.defaults;
   for (const kind of themeItemKinds) {
     if (defaults[kind] === theme.id) {
@@ -212,6 +219,7 @@ export function editThemeList(
     value: {
       ...file,
       defaults,
+      deletedThemes: [...(file.deletedThemes ?? []), theme],
       themes: file.themes.filter(other => other.id !== theme.id),
       ...(file.themeOrder === undefined
         ? {}

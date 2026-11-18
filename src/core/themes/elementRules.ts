@@ -4,6 +4,7 @@ type ScreenKind = Screen['kind'];
 
 export const THEME_LIMITS = {
   themes: 200,
+  deletedThemes: 1000,
   name: 80,
   screens: 200,
   elements: 10,

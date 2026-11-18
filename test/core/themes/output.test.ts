@@ -23,6 +23,43 @@ import {
 import {BIBLE_THEME_ID} from '@core/themes/defaults';
 
 describe('published theme compositions', () => {
+  it('resolves a deleted item theme from its frozen layouts', () => {
+    const file = themeFile();
+    const original = file.themes[0];
+    if (original === undefined) throw Error('Missing theme');
+    const deleted = {
+      ...file,
+      themes: file.themes.filter(theme => theme.id !== original.id),
+      deletedThemes: [original],
+    };
+    expect(
+      resolveItemTheme({
+        file: deleted,
+        kind: 'song',
+        source: 'service',
+        theme: original.id,
+      }),
+    ).toEqual(original);
+    const item = {
+      id: 'song',
+      kind: 'song' as const,
+      source: 'service' as const,
+      theme: original.id,
+    };
+    const before = resolveThemeOutput({
+      file,
+      screens: themeScreens,
+      item,
+      revision: 1,
+    });
+    const after = resolveThemeOutput({
+      file: deleted,
+      screens: themeScreens,
+      item,
+      revision: 1,
+    });
+    expect(after).toEqual(before);
+  });
   it('updates the former sermon broadcast layout but retains a custom layout', () => {
     const theme = themeFile().themes.find(
       entry => entry.id === SERMON_TITLE_THEME_ID,

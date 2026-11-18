@@ -22,6 +22,7 @@ export function itemThemeCell(
 ): ItemThemeCell | undefined {
   const kind = itemThemeKind(item);
   if (kind === undefined) return undefined;
+  const deleted = file?.deletedThemes?.find(theme => theme.id === item.theme);
   const chosen =
     file?.standby.id === item.theme
       ? file?.standby
@@ -34,5 +35,8 @@ export function itemThemeCell(
       ? {}
       : {theme: item.theme ?? CREED_PRAYER_THEME_ID}),
   });
-  return {name: theme.name, followsDefault: chosen === undefined};
+  return {
+    name: deleted === undefined ? theme.name : `(${deleted.name})`,
+    followsDefault: chosen === undefined && deleted === undefined,
+  };
 }

@@ -15,6 +15,7 @@ export const themeProblems: Readonly<Record<ThemeEditProblem, string>> = {
   name: '이름이 너무 깁니다',
   taken: '같은 이름의 테마가 있음',
   full: '테마나 화면은 더 만들 수 없습니다',
+  'deleted-full': '삭제된 테마가 한도에 도달하여 삭제할 수 없습니다',
   'duplicate-id': '테마 추가 실패',
   standby: '대기 화면에서는 쓸 수 없습니다',
   'built-in': '기본 테마는 삭제할 수 없습니다',

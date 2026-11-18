@@ -276,6 +276,12 @@ export const themesSchema = v.pipe(
         'Too many user themes',
       ),
     ),
+    deletedThemes: v.exactOptional(
+      v.pipe(
+        listWithUniqueIds(themeSchema),
+        v.maxLength(THEME_LIMITS.deletedThemes),
+      ),
+    ),
     customSections: v.exactOptional(
       v.pipe(
         v.array(
@@ -312,10 +318,14 @@ export const themesSchema = v.pipe(
       media: v.exactOptional(themeIdSchema),
     }),
   }),
-  v.check(
-    file => file.themes.every(theme => theme.id !== file.standby.id),
-    'Standby has a separate identity',
-  ),
+  v.check(file => {
+    const ids = [
+      file.standby.id,
+      ...file.themes.map(theme => theme.id),
+      ...(file.deletedThemes ?? []).map(theme => theme.id),
+    ];
+    return new Set(ids).size === ids.length;
+  }, 'Theme identities must be unique'),
 );
 
 export type ThemesFile = ReadonlyKnown<v.InferOutput<typeof themesSchema>>;

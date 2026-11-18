@@ -875,3 +875,8 @@ band at the bottom, above the theme composition. The band shows up to three
 lines and truncates longer text with an ellipsis. Saved `stageMessage` elements
 do not draw or appear in the editor. They are removed when that layout is
 edited.
+
+Deleted themes retain a frozen copy in `deletedThemes` (at most 1000). Items
+that already reference one keep its layouts and show its name in parentheses.
+The deleted choice is disabled; selecting another theme replaces the reference.
+At the limit, deletion is refused rather than losing a saved appearance.

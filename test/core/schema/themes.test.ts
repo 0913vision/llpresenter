@@ -57,6 +57,33 @@ it('preserves a removed theme transition in an old file', () => {
   ).toEqual(old);
 });
 
+it('validates unique bounded deleted theme snapshots', () => {
+  const deleted = {...theme, id: uuid(7)};
+  const tooMany = Array.from({length: 1001}, (_, i) => ({
+    ...theme,
+    id: uuid(i + 10),
+  }));
+  expect(
+    v.safeParse(themesSchema, {...file, deletedThemes: tooMany}).success,
+  ).toBe(false);
+  expect(
+    v.safeParse(themesSchema, {...file, deletedThemes: [deleted]}).success,
+  ).toBe(true);
+  expect(
+    v.safeParse(themesSchema, {...file, deletedThemes: [theme]}).success,
+  ).toBe(false);
+  expect(
+    v.safeParse(themesSchema, {...file, deletedThemes: [deleted, deleted]})
+      .success,
+  ).toBe(false);
+  expect(
+    v.safeParse(themesSchema, {
+      ...file,
+      deletedThemes: [{...deleted, screens: null}],
+    }).success,
+  ).toBe(false);
+});
+
 describe('custom section names', () => {
   it('accepts bounded unique entries and rejects invalid entries', () => {
     const section = {id: uuid(10), name: '기도', english: 'Prayer'};
