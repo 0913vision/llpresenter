@@ -65,7 +65,11 @@ describe('palette items', () => {
       const item = await createPaletteItem('waiting-screen');
       expect(item).toMatchObject({
         theme: themes.standby.id,
-        slides: {form: 'blank', name: '대기 화면', slides: [{text: ''}]},
+        slides: {
+          form: 'blank',
+          name: '대기 화면',
+          slides: [{text: '', transition: {kind: 'wipe', dir: 'left', sec: 1}}],
+        },
       });
       expect(isPaletteKey('waiting-screen')).toBe(true);
     } finally {
