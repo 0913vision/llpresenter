@@ -75,7 +75,10 @@ describe('published theme compositions', () => {
       revision: 1,
     });
     expect(manualAfter).toEqual(manualBefore);
-    const differentItem = {...item, theme: file.defaults.bible};
+    const differentItem = {
+      ...item,
+      theme: createThemeId('00000000-0000-4000-8000-000000000999'),
+    };
     const unrelatedOverride = resolveThemeOutput({
       file: deleted,
       screens: themeScreens,
