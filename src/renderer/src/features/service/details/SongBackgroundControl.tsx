@@ -23,7 +23,16 @@ const ICON_SIZE = 14;
 const CHEVRON_SIZE = 12;
 
 function Picture({media}: {readonly media: MediaItem}): JSX.Element {
-  return <img className={styles.picture} src={thumbnailSrc(media.id)} alt="" />;
+  // NOTE(0913vision): A small thumbnail already in memory draws in the frame
+  // the picker appears, not one frame later.
+  return (
+    <img
+      className={styles.picture}
+      src={thumbnailSrc(media.id)}
+      alt=""
+      decoding="sync"
+    />
+  );
 }
 
 function BackgroundWarning({

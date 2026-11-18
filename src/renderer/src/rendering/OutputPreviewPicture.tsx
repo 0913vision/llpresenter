@@ -49,6 +49,17 @@ interface PictureView {
 const PARKED_PICTURES = 160;
 const parked = new PicturePark<PictureView>(PARKED_PICTURES);
 
+const NEAR_MARGIN = 200;
+
+function scrollParent(node: HTMLElement): HTMLElement | null {
+  let parent = node.parentElement;
+  while (parent !== null) {
+    if (/auto|scroll/.test(getComputedStyle(parent).overflowY)) return parent;
+    parent = parent.parentElement;
+  }
+  return null;
+}
+
 const layouts = new WeakMap<object, string>();
 
 function layoutKey(layout: ThemeFrame['layout']): string {
@@ -88,6 +99,9 @@ export const OutputPreviewPicture = memo(
     useEffect(() => {
       const node = parent.current;
       if (node === null || typeof IntersectionObserver === 'undefined') return;
+      // NOTE(0913vision): Near means within the margin of the scroll
+      // viewport the picture sits in, so the tiles just below a grid draw
+      // before scrolling brings them into view.
       const observer = new IntersectionObserver(
         entries => {
           if (entries.some(entry => entry.isIntersecting)) {
@@ -95,7 +109,7 @@ export const OutputPreviewPicture = memo(
             observer.disconnect();
           }
         },
-        {rootMargin: '200px'},
+        {root: scrollParent(node), rootMargin: `${NEAR_MARGIN}px`},
       );
       observer.observe(node);
       return () => observer.disconnect();
@@ -190,7 +204,10 @@ export const OutputPreviewPicture = memo(
         if (expired) renderer.revealIncomplete();
         const previous = front.current;
         previous?.host.remove();
-        host.style.visibility = 'visible';
+        // NOTE(0913vision): A finished picture stops hiding itself rather than
+        // forcing itself visible, so a picture prepared inside a hidden stage
+        // (the next item's grid, pictures drawn ahead) stays out of sight.
+        host.style.removeProperty('visibility');
         front.current = view;
         container.dataset['previewReady'] = 'true';
         previous?.dispose();

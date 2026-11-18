@@ -1,5 +1,7 @@
 /* NOTE(0913vision): Pictures drawn ahead stay out of sight and out of the
-   layout of the grid; they only fill the picture park. */
+   layout around them; they only fill the picture park. Opacity, not
+   visibility: a finished picture makes itself visible, which a hidden parent
+   would not stop. */
 .ahead {
   position: absolute;
   top: 0;
@@ -7,7 +9,7 @@
   width: var(--size-preview-small-max);
   aspect-ratio: var(--aspect-output);
   overflow: hidden;
-  visibility: hidden;
+  opacity: 0;
   pointer-events: none;
   contain: strict;
 }

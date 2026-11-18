@@ -192,7 +192,10 @@ class ScreenDrawing {
         if (expired) renderer.revealIncomplete();
         const previous = this.front;
         previous?.host.remove();
-        host.style.visibility = 'visible';
+        // NOTE(0913vision): A finished picture stops hiding itself rather than
+        // forcing itself visible, so a picture prepared inside a hidden stage
+        // (the next item's grid, pictures drawn ahead) stays out of sight.
+        host.style.removeProperty('visibility');
         this.front = view;
         this.pending = null;
         release(previous);

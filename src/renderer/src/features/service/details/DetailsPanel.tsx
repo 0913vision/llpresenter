@@ -39,6 +39,10 @@ import {detailsPicture} from './detailsPicture';
 import {DetailsInfo} from './DetailsInfo';
 import {useItemTheme} from './ItemThemeRow';
 import {DetailsSlides} from './DetailsSlides';
+import {AheadBox, DrawAhead} from '@renderer/rendering/DrawAhead';
+
+/** The 슬라이드 tab tiles drawn ahead while 정보 shows: about a screen of them. */
+const DETAILS_AHEAD = 12;
 import {detailsScale} from '@renderer/platform/thumbnailScale';
 import styles from './DetailsPanel.module.css';
 import {AtomicPictureContent} from '@renderer/rendering/AtomicPictureContent';
@@ -129,6 +133,7 @@ function DetailsPanelContent({
   }>({key: null, index: 0});
   const selected = selection.key === targetKey ? selection.index : 0;
   const [selectedScreen, setSelectedScreen] = useState<string | null>(null);
+  const [aheadDone, setAheadDone] = useState<string | null>(null);
   const songId = target?.kind === 'song' ? target.songId : null;
   useEffect(() => {
     let active = true;
@@ -430,113 +435,134 @@ function DetailsPanelContent({
   }
   const firstPicture = passageProblem === undefined ? picture(0) : undefined;
   const waitForPicture = passageProblem === undefined && count > 0;
+  const pending =
+    (screenSettings.document === null && !screenSettings.failed) ||
+    (waitForPicture && firstPicture === undefined) ||
+    (item !== null && !themeData.ready) ||
+    (item !== null &&
+      isItemOfKind(item, 'song') &&
+      state.songStatus === 'loading') ||
+    (item !== null &&
+      (isItemOfKind(item, 'song') || isItemOfKind(item, 'slides')) &&
+      media.document === null &&
+      !media.failed);
+  const identity = `${detailsKey}:${screenId ?? ''}`;
+  // NOTE(0913vision): While 정보 shows, the 슬라이드 tab's first tiles draw out
+  // of sight, so switching tabs shows every tile drawn, the first one too,
+  // whose picture the large preview above is using.
+  const ahead =
+    tab === 'info' && !pending && aheadDone !== identity
+      ? Array.from({length: Math.min(count, DETAILS_AHEAD)}, (_, index) =>
+          picture(index),
+        ).filter(each => each !== undefined)
+      : null;
   return (
-    <AtomicPictureContent
-      initial={<DetailsShell />}
-      identity={`${detailsKey}:${screenId ?? ''}`}
-      waitForPicture={waitForPicture}
-      pending={
-        (screenSettings.document === null && !screenSettings.failed) ||
-        (waitForPicture && firstPicture === undefined) ||
-        (item !== null && !themeData.ready) ||
-        (item !== null &&
-          isItemOfKind(item, 'song') &&
-          state.songStatus === 'loading') ||
-        (item !== null &&
-          (isItemOfKind(item, 'song') || isItemOfKind(item, 'slides')) &&
-          media.document === null &&
-          !media.failed)
-      }
-      content={
-        <DetailsShell
-          footer={
-            tab === 'slides' ? (
-              <PanelFooter
-                count={count}
-                end={
-                  <ThumbnailSizeControl
-                    compact
-                    value={scale}
-                    onChange={value => detailsScale.show(sizeClass, value)}
-                    onCommit={value =>
-                      detailsScale.save(sizeClass, value, api.ui)
-                    }
-                  />
-                }
-              />
-            ) : null
-          }
-        >
-          <div className={styles.picture}>
-            {passageProblem === undefined ? (
-              firstPicture
-            ) : (
-              <BibleLoadNotice row={passageProblem} />
-            )}
-          </div>
-          {targetScreen === undefined ? null : (
-            <SegmentedControl
-              label="미리보기 화면"
-              fill
-              options={choices}
-              value={targetScreen.id}
-              onChange={setSelectedScreen}
-            />
-          )}
-          {count === 0 ? null : (
-            <SlideThumbnailBand
-              number={1}
-              label={labelAt(0)}
-              labelColor={labelColorAt(0)}
-            />
-          )}
-          <div className={styles.title} title={title}>
-            {title}
-          </div>
-          <div className={styles.meta}>
-            {title === '' || passageProblem !== undefined
-              ? ''
-              : detailsKindLine(item, kind, count)}
-          </div>
-          <PanelTabs
-            tabs={tabs}
-            value={tab}
-            onChange={value => setTabState({key: detailsKey, value})}
+    <>
+      {ahead === null ? null : (
+        <AheadBox>
+          <DrawAhead
+            key={identity}
+            pictures={ahead}
+            onDone={() => setAheadDone(identity)}
           />
-          {tab === 'info' ? (
-            <DetailsInfo
-              details={{
-                item,
-                service,
-                state,
-                library,
-                media,
-                themeData,
-                items,
-                editor,
-                reason,
-                api,
-                openSource,
-                edit,
-              }}
-            />
-          ) : (
-            <DetailsSlides
-              count={count}
-              scale={scale}
-              selected={Math.min(
-                Math.max(0, count - 1),
-                item === null ? selected : state.position,
+        </AheadBox>
+      )}
+      <AtomicPictureContent
+        initial={<DetailsShell />}
+        identity={identity}
+        waitForPicture={waitForPicture}
+        pending={pending}
+        content={
+          <DetailsShell
+            footer={
+              tab === 'slides' ? (
+                <PanelFooter
+                  count={count}
+                  end={
+                    <ThumbnailSizeControl
+                      compact
+                      value={scale}
+                      onChange={value => detailsScale.show(sizeClass, value)}
+                      onCommit={value =>
+                        detailsScale.save(sizeClass, value, api.ui)
+                      }
+                    />
+                  }
+                />
+              ) : null
+            }
+          >
+            <div className={styles.picture}>
+              {passageProblem === undefined ? (
+                firstPicture
+              ) : (
+                <BibleLoadNotice row={passageProblem} />
               )}
-              onSelect={select}
-              onEdit={edit}
-              labelAt={labelAt}
-              colorAt={labelColorAt}
-              picture={picture}
+            </div>
+            {targetScreen === undefined ? null : (
+              <SegmentedControl
+                label="미리보기 화면"
+                fill
+                options={choices}
+                value={targetScreen.id}
+                onChange={setSelectedScreen}
+              />
+            )}
+            {count === 0 ? null : (
+              <SlideThumbnailBand
+                number={1}
+                label={labelAt(0)}
+                labelColor={labelColorAt(0)}
+              />
+            )}
+            <div className={styles.title} title={title}>
+              {title}
+            </div>
+            <div className={styles.meta}>
+              {title === '' || passageProblem !== undefined
+                ? ''
+                : detailsKindLine(item, kind, count)}
+            </div>
+            <PanelTabs
+              tabs={tabs}
+              value={tab}
+              onChange={value => setTabState({key: detailsKey, value})}
             />
-          )}
-        </DetailsShell>
-      }
-    />
+            {tab === 'info' ? (
+              <DetailsInfo
+                details={{
+                  item,
+                  service,
+                  state,
+                  library,
+                  media,
+                  themeData,
+                  items,
+                  editor,
+                  reason,
+                  api,
+                  openSource,
+                  edit,
+                }}
+              />
+            ) : (
+              <DetailsSlides
+                count={count}
+                scale={scale}
+                selected={Math.min(
+                  Math.max(0, count - 1),
+                  item === null ? selected : state.position,
+                )}
+                onSelect={select}
+                onEdit={edit}
+                labelAt={labelAt}
+                colorAt={labelColorAt}
+                picture={picture}
+              />
+            )}
+          </DetailsShell>
+        }
+      />
+    </>
   );
 }
