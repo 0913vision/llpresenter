@@ -33,7 +33,9 @@ export function BibleQuickField({
   useWindowShortcuts([
     {
       id: 'bible.focus',
-      run: () => setOverlayOpen(true),
+      // NOTE(0913vision): The key that opens the passage finder closes it
+      // again, like Escape.
+      run: () => setOverlayOpen(open => !open),
     },
   ]);
   useEffect(() => {
