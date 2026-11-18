@@ -43,6 +43,8 @@ import {AheadBox, DrawAhead} from '@renderer/rendering/DrawAhead';
 
 /** The 슬라이드 tab tiles drawn ahead while 정보 shows: about a screen of them. */
 const DETAILS_AHEAD = 12;
+/** Drawing ahead starts this long after the panel shows an item. */
+const DETAILS_AHEAD_AFTER_MS = 400;
 import {detailsScale} from '@renderer/platform/thumbnailScale';
 import styles from './DetailsPanel.module.css';
 import {AtomicPictureContent} from '@renderer/rendering/AtomicPictureContent';
@@ -134,6 +136,7 @@ function DetailsPanelContent({
   const selected = selection.key === targetKey ? selection.index : 0;
   const [selectedScreen, setSelectedScreen] = useState<string | null>(null);
   const [aheadDone, setAheadDone] = useState<string | null>(null);
+  const [aheadDue, setAheadDue] = useState<string | null>(null);
   const songId = target?.kind === 'song' ? target.songId : null;
   useEffect(() => {
     let active = true;
@@ -195,6 +198,14 @@ function DetailsPanelContent({
     screens[0];
   const role = targetScreen?.kind ?? 'audience';
   const screenId = targetScreen?.id;
+  const aheadIdentity = `${detailsKey}:${screenId ?? ''}`;
+  useEffect(() => {
+    const timer = setTimeout(
+      () => setAheadDue(aheadIdentity),
+      DETAILS_AHEAD_AFTER_MS,
+    );
+    return () => clearTimeout(timer);
+  }, [aheadIdentity]);
   const choices = screens.map(screen => ({
     value: screen.id,
     label:
@@ -451,7 +462,10 @@ function DetailsPanelContent({
   // of sight, so switching tabs shows every tile drawn, the first one too,
   // whose picture the large preview above is using.
   const ahead =
-    tab === 'info' && !pending && aheadDone !== identity
+    tab === 'info' &&
+    !pending &&
+    aheadDue === identity &&
+    aheadDone !== identity
       ? Array.from({length: Math.min(count, DETAILS_AHEAD)}, (_, index) =>
           picture(index),
         ).filter(each => each !== undefined)
