@@ -207,10 +207,11 @@ function copyOf(root: HTMLElement): HeldCopy {
   // NOTE(0913vision): Inert, so a focus move or a lookup made while the copy
   // shows reaches the live frame, never the copy before it.
   copy.setAttribute('inert', '');
-  // NOTE(0913vision): Without ids, a lookup by id or a label reference finds
-  // the live element, not its copy before it.
-  for (const element of [copy, ...copy.querySelectorAll('[id]')]) {
-    element.removeAttribute('id');
+  // NOTE(0913vision): The copy's ids change, so a lookup by id finds the live
+  // element and not its copy before it; they stay ids, for the styles that
+  // look for one.
+  for (const element of copy.querySelectorAll('[id]')) {
+    element.id = `${element.id}-held`;
   }
   copy.setAttribute('aria-hidden', 'true');
   copy.dataset['heldCopy'] = '';
