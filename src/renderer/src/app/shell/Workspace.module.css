@@ -38,6 +38,18 @@
   min-height: 0;
 }
 
+.frameSlot {
+  display: grid;
+  grid-area: 1 / 1;
+  min-width: 0;
+  min-height: 0;
+}
+
+.hiddenFrame {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 .mediaOpen > .frames {
   min-height: var(--workspace-upper-min-height);
 }

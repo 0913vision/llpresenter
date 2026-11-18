@@ -37,6 +37,26 @@ function selectedTab(): string | null {
 }
 
 describe('ToolbarTabs', () => {
+  it('can switch by mouse without moving focus before the workspace changes', async () => {
+    const change = vi.fn();
+    render(
+      <>
+        <input aria-label="편집" />
+        <ToolbarTabs
+          label="화면 전환"
+          tabs={workspaceTabs}
+          value="show"
+          onChange={change}
+          keepPointerFocus
+        />
+      </>,
+    );
+    const field = screen.getByRole('textbox', {name: '편집'});
+    field.focus();
+    await userEvent.click(screen.getByRole('tab', {name: '준비'}));
+    expect(change).toHaveBeenCalledWith('prep');
+    expect(document.activeElement).toBe(field);
+  });
   it('does not switch workspace on modified keyboard activation', () => {
     render(<Workspaces />);
     const target = screen.getByRole('tab', {name: '준비'});

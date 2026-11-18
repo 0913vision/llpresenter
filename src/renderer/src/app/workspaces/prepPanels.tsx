@@ -487,12 +487,14 @@ function openPrepItem(prep: PrepBinding | undefined): void {
 /** The panels of 준비: 라이브러리, the 예배 순서 table, and the selected item. */
 export function usePrepPanels({
   prep,
+  selectedItem: retainedItem,
   sizeClass,
   onProblem,
   onOpenPrep,
   onShowInLibrary,
 }: {
   readonly prep: PrepBinding | undefined;
+  readonly selectedItem?: string | null | undefined;
   readonly sizeClass: SizeClass;
   readonly onProblem: ((notice: Notice) => void) | undefined;
   readonly onOpenPrep: ((itemId: string) => void) | undefined;
@@ -520,7 +522,9 @@ export function usePrepPanels({
       setOtherId(null);
     }
   }, [otherId, serviceId, otherExists]);
-  const selectedItem = useShow(view => view.openItemId);
+  const requestedItem = useShow(view => view.openItemId);
+  const selectedItem =
+    retainedItem === undefined ? requestedItem : retainedItem;
   const selectionRequest = useRef(0);
   const onSelectSong = (songId: SongId): void => {
     if (prep === undefined) return;
@@ -547,7 +551,7 @@ export function usePrepPanels({
     );
   };
   const selectedSong = useShow(view =>
-    isLibrarySource(view, view.openItemId) ? view.librarySong.songId : null,
+    isLibrarySource(view, selectedItem) ? view.librarySong.songId : null,
   );
   const parsedItem = parseServiceItemId(selectedItem);
   const selectedTarget =

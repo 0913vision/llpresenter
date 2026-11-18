@@ -212,6 +212,29 @@ function commandList(): HTMLElement {
   return within(editor).getByRole('group', {name: '슬라이드 편집 명령'});
 }
 
+it('keeps the editor while 진행 is shown without letting Escape close it', async () => {
+  const f = setup();
+  const row = screen.getByRole('option', {name: /Service song/});
+  await userEvent.click(row);
+  await userEvent.dblClick(row);
+  await waitFor(() => expect(document.activeElement).toBe(commandList()));
+  const session = f.session.editor?.getSnapshot().session;
+  expect(session).not.toBeNull();
+  await userEvent.click(screen.getByRole('tab', {name: '진행'}));
+  await waitFor(() =>
+    expect(
+      screen.getByRole('tab', {name: '진행'}).getAttribute('aria-selected'),
+    ).toBe('true'),
+  );
+  fireEvent.keyDown(document.body, {key: 'Escape', code: 'Escape'});
+  expect(f.session.editor?.getSnapshot().session).toBe(session);
+  await userEvent.click(screen.getByRole('tab', {name: '준비'}));
+  await waitFor(() =>
+    expect(screen.getByRole('region', {name: '곡 편집'})).toBeTruthy(),
+  );
+  expect(f.session.editor?.getSnapshot().session).toBe(session);
+});
+
 it.each(['double-click', 'Enter'] as const)(
   'focuses a service song opened by %s and restores its table row after Escape',
   async path => {

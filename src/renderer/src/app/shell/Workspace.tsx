@@ -2,7 +2,6 @@ import {AutoConfirmBible} from '@renderer/features/bible/AutoConfirmBible';
 import {PaletteEditingProvider} from '@renderer/features/service/items/PaletteEditing';
 import type {SongId} from '@core/schema/ids';
 import {
-  Activity,
   Fragment,
   useCallback,
   useEffect,
@@ -42,6 +41,7 @@ import {
 import {OpenItemPrefetch} from '@renderer/features/presentation/SlidePicturePrefetch';
 import {TableDataKeeper} from '@renderer/features/service/table/useServiceTableData';
 import {HeldFrame, type FrameHold} from '@renderer/ui/HeldFrame';
+import {ShownItemProvider} from '@renderer/session/shownItem';
 
 const ignoreProblem = (): void => undefined;
 const STILL: FrameHold = {identity: '', settled: true};
@@ -77,6 +77,7 @@ function useSidebarToggle(sidebar: SidebarCollapse | undefined) {
  */
 export function Workspace({
   id,
+  prepItemId,
   sizeClass,
   store,
   onProblem,
@@ -91,6 +92,7 @@ export function Workspace({
   themeLeave,
 }: {
   readonly id: WorkspaceId;
+  readonly prepItemId?: string | null | undefined;
   readonly sizeClass: SizeClass;
   readonly store: ColumnWidthStore;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
@@ -121,12 +123,10 @@ export function Workspace({
   // NOTE(0913vision): 진행 stays built, hidden, while another workspace
   // shows, so going back to 진행 shows its panels in the next frame instead of
   // building them again.
-  const [showKept, setShowKept] = useState(showVisible);
-  if (showVisible && !showKept) setShowKept(true);
   const navigation = useShowPanelNavigation(gridRef, showVisible);
   const toggle = useSidebarToggle(sidebar);
   const show = useShowPanels({
-    active: showKept,
+    active: true,
     sizeClass,
     onProblem,
     onOpenPrep,
@@ -140,6 +140,7 @@ export function Workspace({
   });
   const prepPanels = usePrepPanels({
     prep,
+    selectedItem: prepItemId,
     sizeClass,
     onProblem,
     onOpenPrep,
@@ -232,24 +233,48 @@ export function Workspace({
       {visibleId === 'show' ? (
         <ShowShortcuts onProblem={onProblem ?? logPanelProblem} />
       ) : null}
-      {showKept && !showVisible ? <OpenItemPrefetch /> : null}
+      {!showVisible ? <OpenItemPrefetch /> : null}
       {prep === undefined ? null : <TableDataKeeper api={prep.api} />}
       <div data-resize-panel="media.upper" className={styles.frames}>
-        {showKept ? (
-          <Activity mode={showVisible ? 'visible' : 'hidden'}>
-            {columnFrame('show', show, {
-              collapsed: toggle.collapsed,
-              visible: showVisible,
-            })}
-          </Activity>
-        ) : null}
-        {showVisible ? null : visibleId === 'prep' ? (
-          <HeldFrame key="prep" hold={prepPanels.hold ?? STILL}>
-            {columnFrame('prep', prepPanels, {collapsed: false, visible: true})}
+        <div
+          className={classNames(
+            styles.frameSlot,
+            !showVisible && styles.hiddenFrame,
+          )}
+          inert={!showVisible}
+          aria-hidden={!showVisible}
+        >
+          {columnFrame('show', show, {
+            collapsed: toggle.collapsed,
+            visible: showVisible,
+          })}
+        </div>
+        <div
+          className={classNames(
+            styles.frameSlot,
+            visibleId !== 'prep' && styles.hiddenFrame,
+          )}
+          inert={visibleId !== 'prep'}
+          aria-hidden={visibleId !== 'prep'}
+        >
+          <HeldFrame
+            key="prep"
+            hold={prepPanels.hold ?? STILL}
+            active={visibleId === 'prep'}
+          >
+            <ShownItemProvider shownItem={prepItemId}>
+              {columnFrame('prep', prepPanels, {
+                collapsed: false,
+                visible: visibleId === 'prep',
+              })}
+            </ShownItemProvider>
           </HeldFrame>
-        ) : (
-          columnFrame('screens', screens, {collapsed: false, visible: true})
-        )}
+        </div>
+        {visibleId === 'screens' ? (
+          <div className={styles.frameSlot}>
+            {columnFrame('screens', screens, {collapsed: false, visible: true})}
+          </div>
+        ) : null}
       </div>
       {mediaOpen && api !== undefined ? (
         <ResizeGap

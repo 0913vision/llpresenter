@@ -90,6 +90,20 @@ afterEach(() => {
 });
 
 describe('Workspace service header', () => {
+  it('retains both frames and makes the hidden frame inert', () => {
+    const store = createMemoryColumnWidthStore();
+    const view = render(
+      <Workspace id="show" sizeClass="normal" store={store} />,
+    );
+    const showList = screen.getByRole('listbox', {name: '예배 순서'});
+    view.rerender(<Workspace id="prep" sizeClass="normal" store={store} />);
+    const prepList = screen.getByRole('listbox', {name: '예배 순서'});
+    expect(showList.closest('[inert]')).not.toBeNull();
+    expect(prepList.closest('[inert]')).toBeNull();
+    view.rerender(<Workspace id="show" sizeClass="normal" store={store} />);
+    expect(screen.getByRole('listbox', {name: '예배 순서'})).toBe(showList);
+    expect(prepList.closest('[inert]')).not.toBeNull();
+  });
   it('mounts the current service header and list in the 준비 workspace', () => {
     render(
       <Workspace
@@ -383,9 +397,10 @@ describe('Workspace column gaps', () => {
         store={createMemoryColumnWidthStore()}
       />,
     );
-    expect(
-      prep.container.querySelector(`[data-screen="${MAIN_SCREEN}"]`),
-    ).toBeNull();
+    const retained = prep.container.querySelector(
+      `[data-screen="${MAIN_SCREEN}"]`,
+    );
+    expect(retained?.closest('[inert]')).not.toBeNull();
   });
 
   it('removes the resize listener when it unmounts', () => {

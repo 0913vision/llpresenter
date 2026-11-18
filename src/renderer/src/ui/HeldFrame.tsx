@@ -228,6 +228,7 @@ function copyOf(root: HTMLElement): HeldCopy {
  */
 export class HeldFrame extends Component<{
   readonly hold: FrameHold;
+  readonly active?: boolean | undefined;
   readonly children: ReactNode;
 }> {
   private readonly live = createRef<HTMLDivElement>();
@@ -239,9 +240,12 @@ export class HeldFrame extends Component<{
 
   override getSnapshotBeforeUpdate(previous: {
     readonly hold: FrameHold;
+    readonly active?: boolean | undefined;
   }): HeldCopy | null {
     const node = this.live.current;
     if (
+      previous.active === false ||
+      this.props.active === false ||
       this.held ||
       node === null ||
       previous.hold.identity === this.props.hold.identity
@@ -256,6 +260,12 @@ export class HeldFrame extends Component<{
     _state: unknown,
     snapshot: HeldCopy | null,
   ): void {
+    if (this.props.active === false && this.held) {
+      cancelAnimationFrame(this.frame);
+      this.held = false;
+      this.live.current?.style.removeProperty('opacity');
+      this.cover.current?.replaceChildren();
+    }
     if (snapshot === null) return;
     const cover = this.cover.current;
     const live = this.live.current;

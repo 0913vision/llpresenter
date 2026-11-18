@@ -324,7 +324,7 @@ function SlidesEditorBody({
     {
       id: 'songWindow.save',
       context: 'song',
-      when: () => !model.stopped,
+      when: () => !model.stopped && root.current?.closest('[inert]') === null,
       run: () => editorTask(model.flush()),
     },
   ]);

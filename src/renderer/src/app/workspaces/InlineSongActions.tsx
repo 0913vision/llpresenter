@@ -20,7 +20,7 @@ export function InlineSongActions({
     store.getSnapshot,
   );
   const serviceId = useShow(view => view.serviceId);
-  const itemId = useShow(view => view.openItemId);
+  const itemId = session?.itemSession ? session.document.song.id : null;
   const target = useMemo(
     () =>
       session?.itemSession && itemId !== null ? {id: itemId, serviceId} : null,

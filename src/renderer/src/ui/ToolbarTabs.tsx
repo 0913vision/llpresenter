@@ -24,6 +24,7 @@ export interface ToolbarTabsProps<T extends string> {
   readonly label: string;
   readonly compact?: boolean | undefined;
   readonly className?: string | undefined;
+  readonly keepPointerFocus?: boolean | undefined;
 }
 
 interface TabButtonProps<T extends string> {
@@ -34,6 +35,7 @@ interface TabButtonProps<T extends string> {
   readonly elementRef: (element: HTMLElement | null) => void;
   readonly onSelect: () => void;
   readonly onKeyDown: (event: KeyboardEvent) => void;
+  readonly keepPointerFocus: boolean;
 }
 
 function TabButton<T extends string>({
@@ -44,6 +46,7 @@ function TabButton<T extends string>({
   elementRef,
   onSelect,
   onKeyDown,
+  keepPointerFocus,
 }: TabButtonProps<T>): JSX.Element {
   const {targetProps, tooltip} = useTooltip(titleTooltip(tab.title));
   const press = useButtonPress<HTMLButtonElement>({
@@ -57,6 +60,9 @@ function TabButton<T extends string>({
       <button
         {...targetProps}
         {...press}
+        onMouseDown={event => {
+          if (keepPointerFocus && event.button === 0) event.preventDefault();
+        }}
         ref={elementRef}
         type="button"
         role="tab"
@@ -88,6 +94,7 @@ export function ToolbarTabs<T extends string>({
   label,
   compact = false,
   className,
+  keepPointerFocus = false,
 }: ToolbarTabsProps<T>): JSX.Element {
   const roving = useRovingSelection({
     items: tabs,
@@ -113,6 +120,7 @@ export function ToolbarTabs<T extends string>({
           elementRef={roving.refOf(index)}
           onSelect={() => select(tab)}
           onKeyDown={event => roving.onKeyDown(index, event)}
+          keepPointerFocus={keepPointerFocus}
         />
       ))}
     </div>
