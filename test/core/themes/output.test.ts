@@ -23,6 +23,39 @@ import {
 import {BIBLE_THEME_ID} from '@core/themes/defaults';
 
 describe('published theme compositions', () => {
+  it('updates the former sermon broadcast layout but retains a custom layout', () => {
+    const theme = themeFile().themes.find(
+      entry => entry.id === SERMON_TITLE_THEME_ID,
+    );
+    const screen = themeScreens.find(entry => entry.id === THEME_CAPTURE);
+    if (!theme || !screen) throw Error('Missing sermon broadcast');
+    const current = theme.screens[screen.id];
+    if (!current) throw Error('Missing sermon broadcast layout');
+    const old = {
+      ...current,
+      elements: current.elements.map(element => ({
+        ...element,
+        frame:
+          element.kind === 'box'
+            ? {x: 0, y: 790, w: 1920, h: 200}
+            : element.kind === 'itemName'
+              ? {x: 160, y: 823, w: 1600, h: 56}
+              : {x: 160, y: 865, w: 1600, h: 112},
+      })),
+    };
+    const saved = {...theme, screens: {...theme.screens, [screen.id]: old}};
+    expect(resolveThemeScreen(saved, screen.id, themeScreens).layout).toEqual(
+      current,
+    );
+    const custom = {...old, background: '#123456'};
+    expect(
+      resolveThemeScreen(
+        {...saved, screens: {...saved.screens, [screen.id]: custom}},
+        screen.id,
+        themeScreens,
+      ).layout,
+    ).toEqual(custom);
+  });
   it('updates an untouched saved Bible stage reference without replacing other edits', () => {
     const file = themeFile();
     const theme = file.themes.find(entry => entry.id === BIBLE_THEME_ID);

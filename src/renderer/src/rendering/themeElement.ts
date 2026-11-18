@@ -706,7 +706,7 @@ export class ThemeElementView {
             ...layers,
             slide: {
               ...slide,
-              ...(currentBible
+              ...(currentBible && slide.sermonTitle !== true
                 ? {lines: [broadcastBibleFlow(slide.lines.join('\n'))]}
                 : {}),
               ...(nextBible

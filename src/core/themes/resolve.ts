@@ -118,7 +118,22 @@ function resolvedSermonLayout(
   if (sameJson(layout, legacySermonTitleLayout(screen))) {
     return sermonTitleScreenLayout(screen);
   }
-  if (source.kind !== 'stage') return layout;
+  if (source.kind === 'broadcast') {
+    const current = sermonTitleScreenLayout(screen);
+    const previous = {
+      ...current,
+      elements: current.elements.map(element => ({
+        ...element,
+        frame:
+          element.kind === 'box'
+            ? {x: 0, y: 790, w: 1920, h: 200}
+            : element.kind === 'itemName'
+              ? {x: 160, y: 823, w: 1600, h: 56}
+              : {x: 160, y: 865, w: 1600, h: 112},
+      })),
+    };
+    return sameJson(layout, previous) ? current : layout;
+  }
   const current = sermonTitleScreenLayout(screen);
   const changed = current.elements.filter(
     element => element.kind === 'itemName' || element.kind === 'currentText',
