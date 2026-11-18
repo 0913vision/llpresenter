@@ -1,6 +1,10 @@
 import {useMemo} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
-import type {SettingsName} from '@core/schema/settingsDocuments';
+import type {MediaDocument} from '@core/schema/mediaEdit';
+import type {
+  SettingsDocument,
+  SettingsName,
+} from '@core/schema/settingsDocuments';
 import {useFollowedDocument} from './useFollowedDocument';
 
 export function useItemSettings(
@@ -21,6 +25,14 @@ export function useItemSettings(
         api.subscribe(document => {
           if (document.name === name) accept(document);
         }),
+      kept: {
+        owner: api,
+        name,
+        is: (document: {
+          readonly revision: number;
+        }): document is SettingsDocument =>
+          'name' in document && document.name === name,
+      },
     }),
     [api, name],
   );
@@ -34,6 +46,14 @@ export function useItemMedia(api: LlpApi['media'], enabled = true) {
         read: () => api.get(),
         follow: (accept: Parameters<typeof api.subscribe>[0]) =>
           api.subscribe(accept),
+        kept: {
+          owner: api,
+          name: 'media',
+          is: (document: {
+            readonly revision: number;
+          }): document is MediaDocument =>
+            'name' in document && document.name === 'media',
+        },
       }),
       [api],
     ),

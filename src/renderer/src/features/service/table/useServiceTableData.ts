@@ -3,6 +3,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {ServiceDocument} from '@core/schema/contentDocuments';
 import type {MediaId, SongId} from '@core/schema/ids';
 import {isItemOfKind} from '@core/schema/service';
+import {useShow} from '@renderer/session/show';
 import type {ServiceItem} from '@core/schema/service';
 import type {ThemesFile} from '@core/schema/themes';
 import {useFollowedDocument} from '../items/useFollowedDocument';
@@ -29,6 +30,47 @@ async function readFacts(
   };
 }
 
+// NOTE(0913vision): The song facts a table read stay with the window while any
+// table holds them (the 준비 table data is held for the whole window) and
+// follow later song changes, so a table that mounts again (준비 after 진행)
+// shows each song's background in its first frame.
+interface FactMemory {
+  readonly facts: Map<SongId, SongFacts>;
+  holders: number;
+  stop: () => void;
+}
+
+const factMemory = new WeakMap<object, FactMemory>();
+
+function knownFacts(api: Pick<LlpApi, 'songs'>): Map<SongId, SongFacts> {
+  return factMemory.get(api.songs)?.facts ?? new Map<SongId, SongFacts>();
+}
+
+function holdFacts(api: Pick<LlpApi, 'songs'>): () => void {
+  let memory = factMemory.get(api.songs);
+  if (memory === undefined) {
+    const facts = new Map<SongId, SongFacts>();
+    const created: FactMemory = {facts, holders: 0, stop: () => undefined};
+    created.stop = api.songs.subscribe(change => {
+      if (!facts.has(change.songId)) return;
+      readFacts(api, change.songId).then(
+        read => facts.set(change.songId, read),
+        () => facts.delete(change.songId),
+      );
+    });
+    factMemory.set(api.songs, created);
+    memory = created;
+  }
+  const held = memory;
+  held.holders += 1;
+  return () => {
+    held.holders -= 1;
+    if (held.holders > 0) return;
+    held.stop();
+    if (factMemory.get(api.songs) === held) factMemory.delete(api.songs);
+  };
+}
+
 /**
  * The 구성 names and background of each song the items use. A song read again
  * after a change replaces the older read, and a read that finishes after a
@@ -38,9 +80,18 @@ function useSongFacts(
   api: Pick<LlpApi, 'songs'>,
   songs: readonly SongId[],
 ): ReadonlyMap<SongId, SongFacts> {
-  const [facts, setFacts] = useState<ReadonlyMap<SongId, SongFacts>>(new Map());
+  const [facts, setFacts] = useState<ReadonlyMap<SongId, SongFacts>>(() => {
+    const memory = knownFacts(api);
+    return new Map(
+      songs.flatMap(id => {
+        const known = memory.get(id);
+        return known === undefined ? [] : [[id, known] as const];
+      }),
+    );
+  });
   useEffect(() => {
     let alive = true;
+    const release = holdFacts(api);
     const latest = new Map<SongId, number>();
     const wanted = new Set(songs);
     const refresh = (id: SongId): void => {
@@ -48,6 +99,7 @@ function useSongFacts(
       latest.set(id, turn);
       readFacts(api, id)
         .then(read => {
+          factMemory.get(api.songs)?.facts.set(id, read);
           if (!alive || latest.get(id) !== turn) return;
           // NOTE(0913vision): Songs that no item uses any more leave the map
           // with the next read, so a table that stays open keeps no old facts.
@@ -71,6 +123,7 @@ function useSongFacts(
     return () => {
       alive = false;
       stop();
+      release();
     };
   }, [api, songs]);
   return useMemo(
@@ -95,6 +148,21 @@ export function useServiceTableData(api: TableApi, serviceId: string | null) {
             accept(change.document);
           }
         }),
+      kept:
+        serviceId === null
+          ? undefined
+          : {
+              owner: api.services,
+              name: `service:${serviceId}`,
+              is: (document: {
+                readonly revision: number;
+              }): document is ServiceDocument =>
+                'service' in document &&
+                typeof document.service === 'object' &&
+                document.service !== null &&
+                'id' in document.service &&
+                document.service.id === serviceId,
+            },
     }),
     [api, serviceId],
   );
@@ -128,4 +196,14 @@ export function useServiceTableData(api: TableApi, serviceId: string | null) {
     media: media.document?.value.items ?? [],
     songs,
   };
+}
+
+/**
+ * Reads what the 준비 table shows from the moment the window opens, so the
+ * table is complete in its first frame the first time 준비 opens too.
+ */
+export function TableDataKeeper({api}: {readonly api: TableApi}): null {
+  const serviceId = useShow(view => view.serviceId);
+  useServiceTableData(api, serviceId);
+  return null;
 }
