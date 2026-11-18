@@ -94,7 +94,7 @@ describe('PowerPoint image export', () => {
     'reports the PowerPoint failure marker %s',
     async (line, expected) => {
       const job = new PowerPointImagesJob();
-      const result = job.run('temporary.pptx', 'temp', vi.fn());
+      const result = job.run('temporary.pptx', 'temp', () => undefined);
       const child = mocks.children[0];
       if (!child) throw new Error('Missing child');
       child.stdout.emit('data', line);
@@ -105,14 +105,14 @@ describe('PowerPoint image export', () => {
   it('requests cooperative cleanup on cancel and kills a timed-out child', async () => {
     vi.useFakeTimers();
     const job = new PowerPointImagesJob();
-    const cancelled = job.run('deck.pptx', 'temp', vi.fn());
+    const cancelled = job.run('deck.pptx', 'temp', () => undefined);
     const first = mocks.children[0];
     if (!first) throw new Error('Missing child');
     job.cancel();
     expect(mocks.writeFileSync).toHaveBeenCalledOnce();
     first.emit('close', 0);
     expect(await cancelled).toBe('cancelled');
-    const timed = job.run('deck.pptx', 'temp', vi.fn());
+    const timed = job.run('deck.pptx', 'temp', () => undefined);
     const second = mocks.children[1];
     if (!second) throw new Error('Missing child');
     vi.advanceTimersByTime(120_000);
