@@ -5,7 +5,7 @@
 }
 
 .root {
-  padding: var(--space-8);
+  padding: var(--space-8) var(--panel-inset);
 }
 .tools {
   display: flex;

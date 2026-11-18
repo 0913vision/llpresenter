@@ -1,4 +1,5 @@
 .row {
+  container-type: inline-size;
   display: flex;
   align-items: center;
   gap: var(--space-4);
@@ -110,4 +111,25 @@
 .compact .divider {
   height: var(--size-clear-divider-compact);
   margin: 0 var(--space-2);
+}
+
+@container (max-width: 400px) {
+  .button {
+    height: var(--size-clear-button-compact);
+  }
+
+  .button:not(.all) .label {
+    display: none;
+  }
+
+  .standby {
+    flex: 1;
+    min-width: 0;
+    margin-inline-end: 0;
+  }
+
+  .divider {
+    height: var(--size-clear-divider-compact);
+    margin: 0 var(--space-2);
+  }
 }

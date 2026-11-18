@@ -9,7 +9,9 @@
   display: flex;
   flex: none;
   align-items: center;
+  flex-wrap: wrap;
   gap: var(--space-4);
+  padding: var(--space-8) var(--panel-inset) 0;
 }
 
 .content {
