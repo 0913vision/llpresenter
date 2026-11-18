@@ -13,37 +13,11 @@ import {
   fixtureServiceId,
 } from '@fixtures/renderer/features/service/items/itemFixture';
 import {fixtureMedia} from '@fixtures/core/mediaList';
-import {useContext, useLayoutEffect, useRef} from 'react';
-import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
 
-vi.mock('@renderer/rendering/outputRenderer', () => ({
-  OutputRenderer: class {
-    ready = () => true;
-    revealIncomplete = () => undefined;
-    render = vi.fn();
-    dispose = vi.fn();
-  },
-}));
-vi.mock('@renderer/rendering/OutputPreviewPicture', () => ({
-  OutputPreviewPicture: () => {
-    const ready = useContext(PictureReadiness);
-    const source = useRef({});
-    useLayoutEffect(() => {
-      ready?.(source.current);
-    }, [ready]);
-    return <div />;
-  },
-}));
-vi.mock('@renderer/features/songs/editor/SongPreview', () => ({
-  Picture: () => {
-    const ready = useContext(PictureReadiness);
-    const source = useRef({});
-    useLayoutEffect(() => {
-      ready?.(source.current);
-    }, [ready]);
-    return <div />;
-  },
-}));
+vi.mock(
+  '@renderer/rendering/pictures/Picture',
+  () => import('@fixtures/renderer/picture'),
+);
 afterEach(() => useShow.setState({serviceId: null, openItemId: null}));
 
 it.each(['blank', 'ad'] as const)(
