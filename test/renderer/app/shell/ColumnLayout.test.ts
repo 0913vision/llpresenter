@@ -59,6 +59,17 @@ function drag(
 }
 
 describe('ColumnLayout', () => {
+  it('resets one column and then all size classes', () => {
+    const {layout, store, shown} = createHarness('normal', 1920);
+    drag(layout, 'left', 40);
+    drag(layout, 'right', -40);
+    layout.reset('left');
+    expect(shown.at(-1)).toEqual({left: 280, right: 520});
+    layout.reset();
+    expect(shown.at(-1)).toEqual(defaultColumns.normal);
+    expect(store.load('wide')).toEqual(defaultColumns.wide);
+  });
+
   it('shows the defaults of the size class when nothing is saved', () => {
     const {shown} = createHarness('normal', 1920);
     expect(shown.at(-1)).toEqual(defaultColumns.normal);

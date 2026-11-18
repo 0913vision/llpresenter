@@ -27,7 +27,7 @@ import {helpMenuEntries, windowMenuEntries} from './windowMenuEntries';
 import {useFileMediaImport} from './useFileMediaImport';
 import styles from './MenuBar.module.css';
 import {useClipboardAvailability} from './useClipboardAvailability';
-import {workspaceMenu, type ContinuousRow} from './workspaceCommands';
+import {workspaceMenu, showMenu, type ContinuousRow} from './workspaceCommands';
 import {usePreferenceEdits} from '@renderer/features/preferences/usePreferenceEdits';
 import {fullScreenRow, testPatternRow, useFullScreen} from './viewToggles';
 import {useLive, useOutputs} from '@renderer/session/live';
@@ -40,6 +40,7 @@ const HELP_MENU = '도움말';
 const OUTPUT_MENU = '출력';
 const FILE_MENU = '파일';
 const VIEW_MENU = '보기';
+const SHOW_MENU = '진행';
 const NOT_YET_READ = '환경설정 불러오는 중';
 
 type ImportText = (
@@ -49,6 +50,7 @@ type MenuName =
   | typeof FILE_MENU
   | typeof EDIT_MENU
   | typeof VIEW_MENU
+  | typeof SHOW_MENU
   | typeof OUTPUT_MENU
   | typeof WINDOW_MENU
   | typeof HELP_MENU;
@@ -126,6 +128,7 @@ const MENU_NAMES = [
   FILE_MENU,
   EDIT_MENU,
   VIEW_MENU,
+  SHOW_MENU,
   OUTPUT_MENU,
   WINDOW_MENU,
   HELP_MENU,
@@ -479,12 +482,15 @@ export function MenuBar({
             workspaceMenu({
               onWorkspace,
               onMedia,
-              continuous: continuousRow,
-              continuousGrid: continuousGridRow,
               testPattern: testPatternRow({screens, outputs, patterns}),
               fullScreen: fullScreenRow(fullScreen),
             })
           }
+        />
+        <EntryMenu
+          label={SHOW_MENU}
+          control={controlFor(SHOW_MENU)}
+          entries={() => showMenu(continuousRow, continuousGridRow)}
         />
         <OutputMenu
           warnings={warnings}

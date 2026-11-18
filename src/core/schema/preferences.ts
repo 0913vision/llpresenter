@@ -119,7 +119,12 @@ export type StageLyricLabelPosition = v.InferOutput<
 export const preferencesSchema = jsonObject({
   format: v.literal(PREFERENCES_FORMAT),
   schemaVersion: positiveInteger,
-  general: v.exactOptional(jsonObject({launchAtLogin: optionalBoolean})),
+  general: v.exactOptional(
+    jsonObject({
+      launchAtLogin: optionalBoolean,
+      startMaximized: optionalBoolean,
+    }),
+  ),
   backupCopies: v.exactOptional(backupCopiesSchema),
   showOnLaunch: optionalBoolean,
   clearKeys: v.exactOptional(
@@ -252,7 +257,7 @@ export const defaultPreferences: Preferences = {
   clearKeys: {},
   format: PREFERENCES_FORMAT,
   schemaVersion: 1,
-  general: {launchAtLogin: false},
+  general: {launchAtLogin: false, startMaximized: true},
   backupCopies: 10,
   showOnLaunch: false,
   output: {

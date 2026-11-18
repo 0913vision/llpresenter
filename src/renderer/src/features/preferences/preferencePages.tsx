@@ -86,6 +86,18 @@ export function GeneralPage({edits}: PageProps): JSX.Element | null {
         onChange={percent => zoom.setPercent(Number(percent))}
       />
       <CheckboxRow
+        label="시작할 때 최대화"
+        disabled={disabled}
+        title={lockedReason}
+        checked={preferences.general.startMaximized}
+        onChange={startMaximized =>
+          change(stored => ({
+            ...stored,
+            general: {...stored.general, startMaximized},
+          }))
+        }
+      />
+      <CheckboxRow
         label="Windows 시작할 때 실행"
         disabled={disabled}
         title={lockedReason}

@@ -13,11 +13,13 @@ export function ResizeGap({
   name,
   begin,
   disabled = false,
+  onReset,
 }: {
   readonly axis: 'row' | 'column';
   readonly name: string;
   readonly begin: () => ResizeSession | undefined;
   readonly disabled?: boolean;
+  readonly onReset?: () => void;
 }) {
   const active = useRef<{
     session: ResizeSession;
@@ -52,6 +54,9 @@ export function ResizeGap({
       data-gap={axis === 'column' ? name : undefined}
       data-row-gap={axis === 'row' ? name : undefined}
       data-disabled={disabled || undefined}
+      onDoubleClick={() => {
+        if (!disabled) onReset?.();
+      }}
       onPointerDown={event => {
         if (
           disabled ||

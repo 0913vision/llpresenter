@@ -284,6 +284,9 @@ function start(): void {
       const win = createControlWindow(log, windowMode, {
         attachControl: contents => zoom.attachControl(contents),
         outputsReady: launchIdle.ready,
+        startMaximized:
+          (await dataStore.settings)?.preferences().general.startMaximized ??
+          true,
       });
       control = win;
       let activeControl = win;
@@ -504,6 +507,9 @@ function start(): void {
           const replacement = createControlWindow(log, windowMode, {
             attachControl: contents => zoom.attachControl(contents),
             outputsReady: launchIdle.ready,
+            startMaximized:
+              (await dataStore.settings)?.preferences().general
+                .startMaximized ?? true,
           });
           if (!previous.isDestroyed() && !previous.isMaximized()) {
             replacement.setBounds(previous.getBounds());

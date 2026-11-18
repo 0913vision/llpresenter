@@ -392,7 +392,7 @@ describe('the 도움말 menu', () => {
   });
 });
 
-describe('the 보기 menu 이어서 진행 row', () => {
+describe('the 보기 menu 마지막 슬라이드에서 다음 항목으로 row', () => {
   const stored = (atLastSlide?: 'stop' | 'nextItem') => ({
     name: 'preferences' as const,
     value: {
@@ -417,9 +417,11 @@ describe('the 보기 menu 이어서 진행 row', () => {
     const user = userEvent.setup();
     render(<MenuBar title="" />);
     await waitFor(() => expect(window.llp?.settings.get).toBeDefined());
-    let menu = await openMenu(user, '보기');
+    let menu = await openMenu(user, '진행');
     const row = () =>
-      within(menu).getByRole('menuitemcheckbox', {name: '이어서 진행'});
+      within(menu).getByRole('menuitemcheckbox', {
+        name: '마지막 슬라이드에서 다음 항목으로',
+      });
     await waitFor(() => expect(isOff(row())).toBe(false));
     expect(row().getAttribute('aria-checked')).toBe('false');
     await user.click(row());
@@ -429,7 +431,7 @@ describe('the 보기 menu 이어서 진행 row', () => {
       name: 'preferences',
       value: {show: {atLastSlide: 'nextItem'}},
     });
-    menu = await openMenu(user, '보기');
+    menu = await openMenu(user, '진행');
     expect(row()).toBeTruthy();
   });
 
@@ -439,11 +441,13 @@ describe('the 보기 menu 이어서 진행 row', () => {
     });
     const user = userEvent.setup();
     const view = render(<MenuBar title="" />);
-    let menu = await openMenu(user, '보기');
+    let menu = await openMenu(user, '진행');
     await waitFor(() =>
       expect(
         within(menu)
-          .getByRole('menuitemcheckbox', {name: '이어서 진행'})
+          .getByRole('menuitemcheckbox', {
+            name: '마지막 슬라이드에서 다음 항목으로',
+          })
           .getAttribute('aria-checked'),
       ).toBe('true'),
     );
@@ -455,11 +459,13 @@ describe('the 보기 menu 이어서 진행 row', () => {
       },
     });
     render(<MenuBar title="" />);
-    menu = await openMenu(user, '보기');
+    menu = await openMenu(user, '진행');
     await waitFor(() =>
       expect(
         isOff(
-          within(menu).getByRole('menuitemcheckbox', {name: '이어서 진행'}),
+          within(menu).getByRole('menuitemcheckbox', {
+            name: '마지막 슬라이드에서 다음 항목으로',
+          }),
         ),
       ).toBe(true),
     );

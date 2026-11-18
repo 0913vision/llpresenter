@@ -991,11 +991,11 @@ Rules for every row:
 
 #### 예배 순서 (Service order)
 
-| Row                 | Control                        | Default | Stored in                                | Applies                                 |
-| ------------------- | ------------------------------ | ------- | ---------------------------------------- | --------------------------------------- |
-| 마지막 슬라이드에서 | Segmented: 멈춤, 다음 항목으로 | 멈춤    | `preferences.json` `show.atLastSlide`    | At once; shared with 보기 > 이어서 진행 |
-| 이어서 보여 주기    | Checkbox                       | Off     | `preferences.json` `show.continuousGrid` | At once; shared with View menu          |
-| 지난 순서 흐리게    | Checkbox                       | Off     | `preferences.json` `show.dimPastItems`   | At once                                 |
+| Row                 | Control                        | Default | Stored in                                | Applies                                                       |
+| ------------------- | ------------------------------ | ------- | ---------------------------------------- | ------------------------------------------------------------- |
+| 마지막 슬라이드에서 | Segmented: 멈춤, 다음 항목으로 | 멈춤    | `preferences.json` `show.atLastSlide`    | At once; shared with 진행 > 마지막 슬라이드에서 다음 항목으로 |
+| 이어서 보여 주기    | Checkbox                       | Off     | `preferences.json` `show.continuousGrid` | At once; shared with View menu                                |
+| 지난 순서 흐리게    | Checkbox                       | Off     | `preferences.json` `show.dimPastItems`   | At once                                                       |
 
 When enabled, every row above the current output item dims by position,
 including section headings and every item kind. Going back restores later rows.
@@ -1566,3 +1566,8 @@ fields, Esc clears slide selection or caret first, then returns to the table.
 
 - Presenter Shift+F5 is ignored in 진행 and cannot clear audio; plain F5 remains
   audio clear.
+
+The 일반 page offers 시작할 때 최대화 (`general.startMaximized`, default on),
+applied on the next launch. Double-clicking a column gap restores its default
+width. 보기 > 칸 배치 초기화 restores all column widths in every size class.
+환경설정 opens from 파일, following the Office options placement.

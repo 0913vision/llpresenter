@@ -1,7 +1,5 @@
-import {shortcutText} from '@renderer/ui/commandBindings';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
-import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 
 /** The 창 menu (spec 11): the title bar buttons and 환경설정. */
 export function windowMenuEntries(): readonly MenuEntry[] {
@@ -19,15 +17,6 @@ export function windowMenuEntries(): readonly MenuEntry[] {
       label: '최대화',
       command: 'window.maximize',
       onSelect: () => window.llp?.window.control('toggle-maximize'),
-    },
-    menuSeparator('preferences'),
-    {
-      kind: 'item',
-      id: 'preferences',
-      label: windowCommandLabels.preferences,
-      command: 'app.preferences',
-      meta: shortcutText('app.preferences'),
-      onSelect: () => window.llp?.window.openPreferences(),
     },
   ];
 }

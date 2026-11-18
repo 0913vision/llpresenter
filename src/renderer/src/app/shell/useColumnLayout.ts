@@ -61,8 +61,11 @@ export function useColumnLayout(
     layoutRef.current = layout;
     layout.refit();
     const unwatch = watchWindowResize(layout);
+    const reset = (): void => layout.reset();
+    window.addEventListener('llp-reset-columns', reset);
     return () => {
       unwatch();
+      window.removeEventListener('llp-reset-columns', reset);
       layoutRef.current = null;
     };
   }, [store, firstSizeClass]);
@@ -72,7 +75,10 @@ export function useColumnLayout(
   }, [store, sizeClass]);
 
   const drag = useMemo<ColumnDrag>(
-    () => ({begin: column => layoutRef.current?.beginDrag(column)}),
+    () => ({
+      begin: column => layoutRef.current?.beginDrag(column),
+      reset: column => layoutRef.current?.reset(column),
+    }),
     [],
   );
   return {gridRef, drag};

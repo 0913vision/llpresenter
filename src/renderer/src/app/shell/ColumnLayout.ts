@@ -93,6 +93,23 @@ export class ColumnLayout {
     };
   }
 
+  reset(column?: DraggableColumn): void {
+    this.drag = null;
+    const defaults = defaultColumns[this.sizeClass];
+    this.saved =
+      column === undefined
+        ? defaults
+        : {...this.saved, [column]: defaults[column]};
+    if (column === undefined) {
+      for (const sizeClass of ['narrow', 'normal', 'wide'] as const) {
+        this.options.store.save(sizeClass, defaultColumns[sizeClass]);
+      }
+    } else {
+      this.options.store.save(this.sizeClass, this.saved);
+    }
+    this.refit();
+  }
+
   private refitDrag(drag: Drag, windowWidth: number): void {
     const fitted = fitToWindow(this.shown, windowWidth);
     if (fitted.left === this.shown.left && fitted.right === this.shown.right) {

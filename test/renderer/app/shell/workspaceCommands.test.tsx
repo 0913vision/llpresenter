@@ -5,6 +5,8 @@ import {useShowToolTab} from '@renderer/features/tools/state/showToolTab';
 import {useMacroPalette} from '@renderer/features/tools/state/macroPalette';
 import {
   workspaceMenu,
+  showMenu,
+  type ContinuousRow,
   workspaceShortcuts,
 } from '@renderer/app/shell/workspaceCommands';
 import {menuItems} from '@renderer/ui/menuModel';
@@ -165,19 +167,10 @@ const idleFullScreen = fullScreenRow(false);
 describe('workspaceMenu', () => {
   it('shows 이어서 진행 as a check that follows the choice and flips it', () => {
     const toggle = vi.fn();
-    const find = (
-      continuous: Parameters<typeof workspaceMenu>[0]['continuous'],
-    ) =>
-      menuItems(
-        workspaceMenu({
-          onWorkspace: undefined,
-          onMedia: undefined,
-          continuous,
-          continuousGrid: CONTINUOUS_OFF,
-          testPattern: idleTestPattern,
-          fullScreen: idleFullScreen,
-        }),
-      ).find(row => row.id === 'continuous');
+    const find = (continuous: ContinuousRow) =>
+      menuItems(showMenu(continuous, CONTINUOUS_OFF)).find(
+        row => row.id === 'continuous',
+      );
     expect(find({on: false, reason: undefined, toggle})).toMatchObject({
       check: 'checkbox',
       checked: false,
@@ -198,14 +191,7 @@ describe('workspaceMenu', () => {
   it('exposes a separate continuous grid check', () => {
     const toggle = vi.fn();
     const rows = menuItems(
-      workspaceMenu({
-        onWorkspace: undefined,
-        onMedia: undefined,
-        continuous: CONTINUOUS_OFF,
-        continuousGrid: {on: true, reason: undefined, toggle},
-        testPattern: idleTestPattern,
-        fullScreen: idleFullScreen,
-      }),
+      showMenu(CONTINUOUS_OFF, {on: true, reason: undefined, toggle}),
     );
     const grid = rows.find(row => row.id === 'continuous-grid');
     expect(grid).toMatchObject({check: 'checkbox', checked: true});
@@ -221,8 +207,6 @@ describe('workspaceMenu', () => {
       workspaceMenu({
         onWorkspace: undefined,
         onMedia: undefined,
-        continuous: CONTINUOUS_OFF,
-        continuousGrid: CONTINUOUS_OFF,
         testPattern: idleTestPattern,
         fullScreen: idleFullScreen,
       }),
@@ -249,8 +233,6 @@ describe('workspaceMenu', () => {
     const entries = workspaceMenu({
       onWorkspace,
       onMedia: () => undefined,
-      continuous: CONTINUOUS_OFF,
-      continuousGrid: CONTINUOUS_OFF,
       testPattern: idleTestPattern,
       fullScreen: idleFullScreen,
     });
@@ -266,8 +248,6 @@ describe('workspaceMenu', () => {
     const item = workspaceMenu({
       onWorkspace,
       onMedia: undefined,
-      continuous: CONTINUOUS_OFF,
-      continuousGrid: CONTINUOUS_OFF,
       testPattern: idleTestPattern,
       fullScreen: idleFullScreen,
     }).find(entry => entry.id === 'palette');

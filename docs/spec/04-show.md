@@ -314,14 +314,15 @@ source was found.
 - On the last tile, next does nothing with 마지막 슬라이드에서 다음 슬라이드:
   정지, the default (decided, no ProPresenter source found; 10). To move on, the
   operator picks the next item (다음 항목, Ctrl ↓) and presses →. With 다음 항목
-  (환경설정, or the check row 보기 > 이어서 진행; `show.atLastSlide`, applied at
-  once), next on the last tile starts the next item that can output on its first
-  tile, with that item's start 매크로 and 테마, and opens it in the 슬라이드
-  panel, as 다음 항목 and then → do. 구역 rows and items without a 슬라이드 are
-  skipped, and on the last item next does nothing. At the end of a Bible item
-  that is also the last service item, the stage next text stays empty. Every
-  command that means next 슬라이드 follows this (the → key, Space, Page Down).
-  On the first tile, previous does nothing (proposal).
+  (환경설정, or the check row 진행 > 마지막 슬라이드에서 다음 항목으로;
+  `show.atLastSlide`, applied at once), next on the last tile starts the next
+  item that can output on its first tile, with that item's start 매크로 and
+  테마, and opens it in the 슬라이드 panel, as 다음 항목 and then → do. 구역
+  rows and items without a 슬라이드 are skipped, and on the last item next does
+  nothing. At the end of a Bible item that is also the last service item, the
+  stage next text stays empty. Every command that means next 슬라이드 follows
+  this (the → key, Space, Page Down). On the first tile, previous does nothing
+  (proposal).
 - A slide hot key outputs its identified `{songId, slideId}` in the open item
   deck, independently of label names. Further presses target that same slide.
   Direct library playback uses the library deck.
