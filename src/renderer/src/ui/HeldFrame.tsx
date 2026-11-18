@@ -42,7 +42,9 @@ function near(node: Element): boolean {
  * are drawn, or -1 while any is still drawing.
  */
 function drawnPictures(root: HTMLElement): number {
-  if (root.querySelector('[data-picture-staging]') !== null) return -1;
+  if ([...root.querySelectorAll('[data-picture-staging]')].some(near)) {
+    return -1;
+  }
   const pictures = [
     ...root.querySelectorAll<HTMLElement>('[data-preview-ready]'),
   ].filter(near);
@@ -267,7 +269,6 @@ export class HeldFrame extends Component<{
       node.scrollLeft = left;
     }
     live.style.opacity = '0';
-    live.style.pointerEvents = 'none';
     this.held = true;
     this.settledCount = -1;
     this.started = performance.now();
@@ -297,7 +298,6 @@ export class HeldFrame extends Component<{
     }
     this.held = false;
     live.style.removeProperty('opacity');
-    live.style.removeProperty('pointer-events');
     this.cover.current?.replaceChildren();
   };
 

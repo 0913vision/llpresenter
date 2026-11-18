@@ -106,6 +106,9 @@ function DetailsPanelContent({
   const serviceId = useShow(view => view.serviceId);
   const scale = detailsScale.use(sizeClass);
   const itemId = target?.kind === 'item' ? target.itemId : null;
+  const listed = useShow(
+    view => itemId !== null && view.rows.some(row => row.id === itemId),
+  );
   useEffect(() => {
     items.show(
       itemId !== null && serviceId !== null ? {serviceId, itemId} : null,
@@ -416,7 +419,10 @@ function DetailsPanelContent({
       target?.kind === 'item' &&
       service !== null &&
       service.service.id === serviceId &&
-      !service.service.order.some(row => row.id === target.itemId);
+      !service.service.order.some(row => row.id === target.itemId) &&
+      // NOTE(0913vision): A removed item's row leaves the list a moment after
+      // the item leaves the service; the panel empties with the row.
+      !listed;
     return (
       <AtomicPictureContent
         initial={<DetailsShell />}

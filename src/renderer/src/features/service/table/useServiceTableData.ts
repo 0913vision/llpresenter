@@ -172,13 +172,34 @@ export function useServiceTableData(api: TableApi, serviceId: string | null) {
   const themes = useItemSettings(api.settings, 'themes');
   const macros = useItemSettings(api.settings, 'macros');
   const media = useItemMedia(api.media);
-  const items = useMemo(
-    () =>
-      new Map<string, ServiceItem>(
-        (service.document?.service.order ?? []).map(item => [item.id, item]),
-      ),
-    [service.document],
-  );
+  // NOTE(0913vision): A row leaves the list a moment after its item leaves
+  // the service document, so a removed item stays known while its row is
+  // listed: the row keeps its cells until it goes, instead of showing them
+  // empty first.
+  const rows = useShow(view => view.rows);
+  const [known, setKnown] = useState<{
+    readonly serviceId: string | null;
+    readonly document: ServiceDocument | null;
+    readonly rows: typeof rows | null;
+    readonly items: ReadonlyMap<string, ServiceItem>;
+  }>({serviceId, document: null, rows: null, items: new Map()});
+  if (
+    known.serviceId !== serviceId ||
+    known.document !== service.document ||
+    known.rows !== rows
+  ) {
+    const listed = new Set(rows.map(row => row.id));
+    const next = new Map<string, ServiceItem>(
+      known.serviceId === serviceId
+        ? [...known.items].filter(([id]) => listed.has(id))
+        : [],
+    );
+    for (const item of service.document?.service.order ?? []) {
+      next.set(item.id, item);
+    }
+    setKnown({serviceId, document: service.document, rows, items: next});
+  }
+  const items = known.items;
   const songIds = useMemo(
     () =>
       [...items.values()].flatMap(item =>
