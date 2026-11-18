@@ -5,7 +5,10 @@ import {
   mediaItem,
 } from '@fixtures/renderer/features/media/mediaTesting';
 import {mediaUrl, thumbnailUrl} from '@contracts/ipc/mediaUrls';
-import {openPreviewMedia} from '@renderer/rendering/previewMedia';
+import {
+  lendPreviewImage,
+  openPreviewMedia,
+} from '@renderer/rendering/previewMedia';
 import type {MediaProgress} from '@core/schema/mediaProgress';
 import type {MediaDocument} from '@core/schema/mediaEdit';
 
@@ -171,4 +174,28 @@ it('settles pending source requests when the last preview is disposed', async ()
   source.dispose();
   await expect(request).rejects.toThrow('No preview picture');
   expect(stop).toHaveBeenCalledOnce();
+});
+
+it('lends a temporary image to the renderer and invalidates it on release', async () => {
+  const create = vi.fn(() => 'blob:preview');
+  const revoke = vi.fn();
+  class PreviewUrl extends URL {}
+  vi.stubGlobal(
+    'URL',
+    Object.assign(PreviewUrl, {
+      createObjectURL: create,
+      revokeObjectURL: revoke,
+    }),
+  );
+  const image = lendPreviewImage(new Blob(['image'], {type: 'image/png'}));
+  const source = openPreviewMedia(mockLlpApi());
+  if (!image || !source) throw Error('Missing preview');
+  const before = source.describe([image.id]);
+  expect(await source.url(image.id)).toBe('blob:preview');
+  image.release();
+  image.release();
+  expect(source.describe([image.id])).not.toBe(before);
+  expect(revoke).toHaveBeenCalledOnce();
+  source.dispose();
+  vi.unstubAllGlobals();
 });

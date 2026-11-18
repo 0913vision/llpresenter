@@ -5,6 +5,7 @@ import {basename, dirname, extname, join} from 'node:path';
 import {randomUUID} from 'node:crypto';
 import {powerpointEndpoints} from '@contracts/ipc/powerpoint';
 import {
+  parsePowerPointDecorationBatchRequest,
   parsePowerPointBackgroundRequest,
   parsePowerPointReleaseRequest,
   parsePowerPointReadResult,
@@ -20,6 +21,7 @@ import {PowerPointJobs} from './powerpointJob';
 import type {MediaStore} from '../store/mediaStore';
 import {createMediaId} from '@core/schema/ids';
 import {boundedPowerPointImage} from './powerpointImage';
+import {POWERPOINT_BACKGROUND_LIMITS} from '@core/songs/powerpointLayers';
 import {
   PowerPointImagesJob,
   type PowerPointImagesResult,
@@ -559,6 +561,151 @@ export function registerPowerPointImport(
     },
   );
   ipcMain.handle(
+    powerpointEndpoints.decorationBatch.channel,
+    async (event, value: unknown) => {
+      const request = parsePowerPointDecorationBatchRequest(value);
+      const current = retained;
+      if (
+        !request.ok ||
+        current === null ||
+        disposed ||
+        imagesBusy ||
+        drawingBusy ||
+        tempFiles.size > 0
+      ) {
+        return null;
+      }
+      const numbers = request.value.indices.flatMap(index => {
+        const slide = current.source.slides[index];
+        return slide === undefined || slide.background === null
+          ? []
+          : [slide.number];
+      });
+      if (
+        numbers.length !== request.value.indices.length ||
+        new Set(numbers).size !== numbers.length
+      ) {
+        return null;
+      }
+      imagesBusy = true;
+      imagesCancelled = false;
+      let directory: string | null = null;
+      try {
+        const workDirectory = await mkdtemp(
+          join(app.getPath('temp'), 'llp-ppt-'),
+        );
+        directory = workDirectory;
+        const copy = join(
+          workDirectory,
+          `presentation${extname(current.path)}`,
+        );
+        await copyFile(current.path, copy, fsConstants.COPYFILE_EXCL);
+        const first = numbers[0];
+        if (
+          first === undefined ||
+          isImagesCancelled() ||
+          isDisposed() ||
+          retained !== current
+        ) {
+          return null;
+        }
+        await jobs.run({
+          kind: 'layers',
+          path: copy,
+          digest: current.digest,
+          number: first,
+        });
+        if (isImagesCancelled() || isDisposed() || retained !== current) {
+          return null;
+        }
+        const progress = Object.assign(
+          (done: number, total: number) => {
+            if (!event.sender.isDestroyed()) {
+              event.sender.send(powerpointEndpoints.imageProgress.channel, {
+                done,
+                total,
+              });
+            }
+          },
+          {decorationSlides: numbers},
+        );
+        const result = await imageJobs.run(copy, workDirectory, progress);
+        if (
+          result !== 'ok' ||
+          isImagesCancelled() ||
+          isDisposed() ||
+          retained !== current
+        ) {
+          return null;
+        }
+        const paths = request.value.indices.map((index, position) => ({
+          index,
+          path: join(
+            workDirectory,
+            `llp-ppt-${String(position + 1).padStart(4, '0')}.png`,
+          ),
+        }));
+        await Promise.all(paths.map(item => stat(item.path)));
+        await rm(copy, {force: true});
+        for (const item of paths) tempFiles.add(item.path);
+        imageDirectories.add(workDirectory);
+        directory = null;
+        return paths;
+      } catch (error) {
+        context.log.warn(
+          'could not export PowerPoint preview decorations',
+          error,
+        );
+        return null;
+      } finally {
+        if (directory !== null) {
+          await rm(directory, {recursive: true, force: true});
+        }
+        imagesBusy = false;
+      }
+    },
+  );
+  ipcMain.handle(
+    powerpointEndpoints.previewImage.channel,
+    async (_event, value: unknown) => {
+      const request = parsePowerPointReleaseRequest(value);
+      if (!request.ok || disposed || !tempFiles.has(request.value.path)) {
+        return null;
+      }
+      try {
+        const file = await open(request.value.path, 'r');
+        try {
+          const info = await file.stat();
+          if (
+            info.size <= 0 ||
+            info.size > POWERPOINT_BACKGROUND_LIMITS.imageBytes
+          ) {
+            return null;
+          }
+          const buffer = Buffer.alloc(info.size + 1);
+          const {bytesRead} = await file.read(buffer, 0, buffer.length, 0);
+          if (bytesRead !== info.size) {
+            return null;
+          }
+          const bytes = buffer.subarray(0, bytesRead);
+          if (
+            !tempFiles.has(request.value.path) ||
+            isDisposed() ||
+            !boundedPowerPointImage(bytes)
+          ) {
+            return null;
+          }
+          return {mime: bytes[0] === 137 ? 'image/png' : 'image/jpeg', bytes};
+        } finally {
+          await file.close();
+        }
+      } catch (error) {
+        context.log.warn('could not read PowerPoint preview image', error);
+        return null;
+      }
+    },
+  );
+  ipcMain.handle(
     powerpointEndpoints.release.channel,
     (_event, value: unknown) => {
       const request = parsePowerPointReleaseRequest(value);
@@ -608,6 +755,8 @@ export function registerPowerPointImport(
     ipcMain.removeHandler(powerpointEndpoints.layers.channel);
     ipcMain.removeHandler(powerpointEndpoints.background.channel);
     ipcMain.removeHandler(powerpointEndpoints.release.channel);
+    ipcMain.removeHandler(powerpointEndpoints.previewImage.channel);
+    ipcMain.removeHandler(powerpointEndpoints.decorationBatch.channel);
     ipcMain.removeHandler(powerpointEndpoints.match.channel);
     ipcMain.removeHandler(powerpointEndpoints.images.channel);
     ipcMain.removeHandler(powerpointEndpoints.cancelImages.channel);

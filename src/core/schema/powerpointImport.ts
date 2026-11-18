@@ -212,6 +212,36 @@ const backgroundRequest = payloadObject({
   image: v.exactOptional(encodedImage),
   decoration: v.exactOptional(v.boolean()),
 });
+const decorationBatchRequest = payloadObject({
+  indices: v.pipe(
+    v.array(nonNegativeInteger),
+    v.minLength(1),
+    v.maxLength(200),
+    v.check(indices => new Set(indices).size === indices.length),
+  ),
+});
+const decorationBatchResult = v.nullable(
+  v.pipe(
+    v.array(
+      payloadObject({
+        index: nonNegativeInteger,
+        path: v.pipe(v.string(), v.minLength(1)),
+      }),
+    ),
+    v.minLength(1),
+    v.maxLength(200),
+  ),
+);
+export type PowerPointDecorationBatchRequest = v.InferOutput<
+  typeof decorationBatchRequest
+>;
+export type PowerPointDecorationBatchResult = v.InferOutput<
+  typeof decorationBatchResult
+>;
+export const parsePowerPointDecorationBatchRequest = (value: unknown) =>
+  checkPart(decorationBatchRequest, value);
+export const parsePowerPointDecorationBatchResult = (value: unknown) =>
+  checkPart(decorationBatchResult, value);
 const layersRequest = payloadObject({index: nonNegativeInteger});
 const backgroundResult = v.nullable(v.string());
 const releaseRequest = payloadObject({
@@ -274,6 +304,9 @@ export const parsePowerPointImageExportResult = (value: unknown) =>
   checkPart(imageExportResult, value);
 export const parsePowerPointImageExportProgress = (value: unknown) =>
   checkPart(imageExportProgress, value);
+export type PowerPointPreviewImage = v.InferOutput<typeof encodedImage> | null;
+export const parsePowerPointPreviewImage = (value: unknown) =>
+  checkPart(v.nullable(encodedImage), value);
 export type PowerPointReadResult = v.InferOutput<typeof result>;
 export type PowerPointSource = v.InferOutput<typeof source>;
 export type PowerPointBackgroundRequest = v.InferOutput<

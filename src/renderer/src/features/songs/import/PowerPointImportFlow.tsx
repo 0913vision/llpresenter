@@ -1,4 +1,4 @@
-import {useEffect, useMemo, useRef, useState, type JSX} from 'react';
+import {Suspense, useEffect, useMemo, useRef, useState, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {PowerPointSource} from '@core/schema/powerpointImport';
 import type {TextImportDraft} from '@core/schema/textImport';
@@ -11,12 +11,15 @@ import {powerpointBackgroundIndex} from '@core/songs/powerpointBackgroundIndex';
 import {powerpointBackgroundName} from '@core/media/powerpointBackground';
 import {Dialog} from '@renderer/ui/Dialog';
 import {Checkbox, Progress, TextField} from '@renderer/ui';
-import {SlideThumbnail} from '@renderer/ui/SlideThumbnail';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import type {SongEditorStore} from '../editor/songEditorStore';
 import styles from './PowerPointImport.module.css';
 import {composePowerPointBackground} from './composePowerPointBackground';
+import {preparePowerPointImages} from './preparePowerPointImages';
+import {powerPointPictureSpecs} from './powerPointPictureSpecs';
+import {useSlideTheme} from '@renderer/platform/useSlideTheme';
+import {PowerPointPreviewGrid} from './PowerPointPreviewGrid';
 
 async function importBackground(
   api: LlpApi,
@@ -258,7 +261,7 @@ export function PowerPointImportFlow({
     );
   }
   return (
-    <PowerPointDialog
+    <PowerPointPreparing
       api={api}
       store={store}
       source={source}
@@ -269,7 +272,7 @@ export function PowerPointImportFlow({
   );
 }
 
-function PowerPointDialog({
+function PowerPointPreparing({
   api,
   store,
   source,
@@ -280,6 +283,118 @@ function PowerPointDialog({
   readonly api: LlpApi;
   readonly store: SongEditorStore;
   readonly source: PowerPointSource;
+  readonly onDone: () => void;
+  readonly onEdit: () => void;
+  readonly onProblem: (notice: Notice) => void;
+}): JSX.Element {
+  const [prepared, setPrepared] =
+    useState<Awaited<ReturnType<typeof preparePowerPointImages>>>(null);
+  const [done, setDone] = useState(0);
+  const cancelled = useRef(false);
+  useEffect(() => {
+    let active = true;
+    let release: (() => void) | undefined;
+    let preparing = false;
+    const timer = setTimeout(() => {
+      preparing = true;
+      void preparePowerPointImages(api, source.slides, {
+        active: () => active && !cancelled.current,
+        progress: count => {
+          if (active && !cancelled.current) setDone(count);
+        },
+      })
+        .then(result => {
+          preparing = false;
+          if (!active || cancelled.current) {
+            result?.release();
+            return;
+          }
+          if (result === null) {
+            onDone();
+            return;
+          }
+          release = result.release;
+          setPrepared(result);
+        })
+        .catch((error: unknown) => {
+          preparing = false;
+          if (!active || cancelled.current) return;
+          console.error('PowerPoint preview preparation failed:', error);
+          onProblem({
+            key: 'powerpoint:preview',
+            kind: 'warning',
+            icon: 'warning',
+            title: 'PowerPoint 미리보기 \uc2e4\ud328',
+            time: noticeTime(),
+          });
+          onDone();
+        });
+    }, 0);
+    return () => {
+      active = false;
+      clearTimeout(timer);
+      if (preparing) {
+        api.powerpoint
+          .cancelImages()
+          .catch((error: unknown) =>
+            console.error('PowerPoint preview cancellation failed:', error),
+          );
+      }
+      release?.();
+    };
+  }, [api, source, onDone, onProblem]);
+  const loading = (
+    <Dialog
+      title="PowerPoint 가져오기"
+      size="s"
+      onCancel={() => {
+        cancelled.current = true;
+        onDone();
+      }}
+      primary={{
+        label: '\uac00\uc838\uc624\uae30',
+        disabled: true,
+        onSelect: () => undefined,
+      }}
+    >
+      <Progress
+        value={
+          source.slides.length === 0 ? 100 : (done / source.slides.length) * 100
+        }
+        label="PowerPoint 미리보기"
+        valueText={`${done} / ${source.slides.length}`}
+      />
+    </Dialog>
+  );
+  if (prepared === null) return loading;
+  return (
+    <Suspense fallback={loading}>
+      <PowerPointDialog
+        api={api}
+        store={store}
+        source={source}
+        images={prepared.ids}
+        onDone={onDone}
+        onEdit={onEdit}
+        onProblem={onProblem}
+      />
+    </Suspense>
+  );
+}
+
+function PowerPointDialog({
+  api,
+  store,
+  source,
+  images,
+  onDone,
+  onEdit,
+  onProblem,
+}: {
+  readonly api: LlpApi;
+  readonly store: SongEditorStore;
+  readonly source: PowerPointSource;
+  readonly images: ReadonlyMap<string, string>;
   readonly onDone: () => void;
   readonly onEdit: () => void;
   readonly onProblem: (notice: Notice) => void;
@@ -326,7 +441,24 @@ function PowerPointDialog({
     defaultTitle = shapeTitle;
   }
   const shownTitle = title ?? defaultTitle;
-  const allSlides = powerpointSlides(source.slides);
+  const theme = useSlideTheme(
+    {
+      id: 'powerpoint-import',
+      kind: 'song',
+      title: shownTitle,
+      ...(powerpointDarkLyrics(range) ? {theme: LIGHT_SONG_THEME_ID} : {}),
+    },
+    'service',
+    {api},
+  );
+  const specs =
+    theme === undefined
+      ? []
+      : powerPointPictureSpecs(source.slides, background ? images : new Map(), {
+          ...theme,
+          mediaOnly: !lyrics,
+          selection: {start, end: finish},
+        });
   const edit = (draft: TextImportDraft): void => {
     const previous = store.getSnapshot().session;
     store.openImported(draft);
@@ -455,42 +587,20 @@ function PowerPointDialog({
               배경
             </label>
           </div>
-          <div className={styles.grid}>
-            {source.slides.map((slide, index) => {
-              const shown =
-                index >= start && index <= finish
-                  ? slides[index - start]
-                  : allSlides[index];
-              return (
-                <div
-                  key={slide.number}
-                  className={styles.tile}
-                  aria-pressed={index >= start && index <= finish}
-                  onClick={event => {
-                    if (event.shiftKey) setEnd(index);
-                    else {
-                      setAnchor(index);
-                      setEnd(index);
-                    }
-                    setTitle(null);
-                  }}
-                >
-                  <SlideThumbnail
-                    number={slide.number}
-                    text={shown?.lines.join('\n')}
-                    label={
-                      shown && 'titleSlide' in shown
-                        ? '제목'
-                        : shown?.lines.length === 0
-                          ? '빈 슬라이드'
-                          : undefined
-                    }
-                    selected={index >= start && index <= finish}
-                  />
-                </div>
-              );
-            })}
-          </div>
+          <PowerPointPreviewGrid
+            slides={source.slides}
+            specs={specs}
+            start={start}
+            end={finish}
+            onSelect={(index, shift) => {
+              if (shift) setEnd(index);
+              else {
+                setAnchor(index);
+                setEnd(index);
+              }
+              setTitle(null);
+            }}
+          />
         </div>
       </Dialog>
       {replacement && (

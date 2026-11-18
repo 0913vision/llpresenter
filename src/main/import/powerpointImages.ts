@@ -1,6 +1,7 @@
 import {spawn, type ChildProcess} from 'node:child_process';
 import {writeFileSync} from 'node:fs';
 import {join} from 'node:path';
+import {POWERPOINT_IMPORT_LIMITS} from '@core/songs/textImportLimits';
 
 /** Kept as a literal so paths are passed in the environment, never interpolated. */
 export const POWERPOINT_IMAGE_SCRIPT = String.raw`
@@ -52,9 +53,7 @@ try {
   $presentation = $powerpoint.Presentations.Open($env:LLP_PPT_SOURCE, $readOnly, 0, 0)
   if (Test-Path (Join-Path $env:LLP_PPT_DIRECTORY 'cancel')) { throw 'Cancelled' }
   if ($decorations) {
-    $slide = $presentation.Slides.Item([int]$decorations)
-    Remove-SlideText $slide.Shapes
-    $visible = @($slide)
+    $visible = @($decorations.Split(',') | ForEach-Object { $presentation.Slides.Item([int]$_) })
   } else {
     $visible = @($presentation.Slides | Where-Object { $_.SlideShowTransition.Hidden -ne -1 })
   }
@@ -63,6 +62,7 @@ try {
   foreach ($slide in $visible) {
     if (Test-Path (Join-Path $env:LLP_PPT_DIRECTORY 'cancel')) { throw 'Cancelled' }
     $index++
+    if ($decorations) { Remove-SlideText $slide.Shapes }
     $path = Join-Path $env:LLP_PPT_DIRECTORY (('llp-ppt-{0:D4}.png' -f $index))
     $slide.Export($path, 'PNG', 1920, 1080)
     if (Test-Path (Join-Path $env:LLP_PPT_DIRECTORY 'cancel')) { throw 'Cancelled' }
@@ -115,6 +115,7 @@ try {
 `;
 
 const TIMEOUT_MS = 120_000;
+const MAX_DECORATION_BATCH = 200;
 
 export type PowerPointImagesResult =
   'ok' | 'cancelled' | 'unavailable' | 'unresponsive' | 'file';
@@ -144,9 +145,28 @@ export class PowerPointImagesJob {
     directory: string,
     progress: ((done: number, total: number, number: number) => void) & {
       readonly decorationSlide?: number;
+      readonly decorationSlides?: readonly number[];
     },
   ): Promise<PowerPointImagesResult> {
-    const decorationSlide = progress.decorationSlide;
+    const {decorationSlide, decorationSlides} = progress;
+    if (decorationSlide !== undefined && decorationSlides !== undefined) {
+      return Promise.resolve('file');
+    }
+    const numbers =
+      decorationSlides ??
+      (decorationSlide === undefined ? [] : [decorationSlide]);
+    if (
+      numbers.length > MAX_DECORATION_BATCH ||
+      new Set(numbers).size !== numbers.length ||
+      numbers.some(
+        number =>
+          !Number.isSafeInteger(number) ||
+          number < 1 ||
+          number > POWERPOINT_IMPORT_LIMITS.slides,
+      )
+    ) {
+      return Promise.resolve('file');
+    }
     if (this.child) return Promise.resolve('unresponsive');
     this.cancelled = false;
     this.directory = directory;
@@ -170,8 +190,7 @@ export class PowerPointImagesJob {
             ...process.env,
             LLP_PPT_SOURCE: path,
             LLP_PPT_DIRECTORY: directory,
-            LLP_PPT_DECORATION_SLIDE:
-              decorationSlide === undefined ? '' : String(decorationSlide),
+            LLP_PPT_DECORATION_SLIDE: numbers.join(','),
           },
           stdio: ['ignore', 'pipe', 'ignore'],
         },
