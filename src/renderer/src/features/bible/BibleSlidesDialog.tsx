@@ -47,12 +47,16 @@ export function BibleSlidesDialog({
   const active = useRef(true);
   const {projection: refreshed, failed: refreshFailed} =
     useSlidesVerseProjection(api, review?.item ?? item, review !== null);
-  const projection =
-    refreshed ??
-    (review?.explicit || refreshFailed ? review?.projection : undefined);
+  const projection = refreshFailed
+    ? review?.projection
+    : (refreshed ?? (review?.explicit ? review.projection : undefined));
   const refinement = useBibleRefinement(
     api.bible,
-    review?.explicit === false ? (refreshed ?? review.projection) : null,
+    review?.explicit === false
+      ? refreshFailed
+        ? review.projection
+        : (refreshed ?? review.projection)
+      : null,
   );
   const isActive = (): boolean => active.current;
   const cancel = (): void => {
