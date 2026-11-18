@@ -121,7 +121,20 @@ describe('adjacent Bible verses', () => {
         `${verseNumbers ? '17 ' : ''}Invented book 43, chapter 3, verse 17`,
       );
       expect(bibleSourceFor(view, original.id)).toBe(original);
-      expect(fixture.send).not.toHaveBeenCalled();
+      expect(fixture.send.mock.calls.map(([command]) => command)).toEqual([
+        {
+          type: 'bible.passage.title.set',
+          itemId: original.id,
+          position: 1,
+          title: '요한복음 3:15~18',
+        },
+        {
+          type: 'bible.passage.title.set',
+          itemId: original.id,
+          position: 1,
+          title: '요한복음 3:15~19',
+        },
+      ]);
       expect(fixture.edit).not.toHaveBeenCalled();
       expect(
         fixture.lookup.mock.calls.map(([request]) => request.input),

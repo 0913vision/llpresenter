@@ -9,6 +9,7 @@ import {screenCommandOptions} from './screenCommands';
 import {messageExpirySchema} from './overlayState';
 import {overlayClearSchema} from './overlayClear';
 import {clearFadeSchema} from './clearFade';
+import {liveTextSchema} from './liveLimits';
 import {checkPart} from './fileFormat';
 import {
   parsePayload,
@@ -25,6 +26,12 @@ const singleCommandOptions = [
   messageExpirySchema,
   overlayClearSchema,
   v.object({type: v.literal('slide.show'), slide: layerSchemas.slide}),
+  v.object({
+    type: v.literal('bible.passage.title.set'),
+    itemId: v.pipe(v.string(), v.nonEmpty()),
+    position: v.pipe(v.number(), v.integer(), v.minValue(0)),
+    title: liveTextSchema,
+  }),
   v.object({
     type: v.literal('stage.next.set'),
     itemId: v.pipe(v.string(), v.nonEmpty()),

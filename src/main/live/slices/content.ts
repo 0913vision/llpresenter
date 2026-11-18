@@ -44,6 +44,7 @@ function showMedia(
 export const contentSlice = defineSlice({
   commands: [
     'slide.show',
+    'bible.passage.title.set',
     'stage.next.set',
     'media.show',
     'message.show',
@@ -52,6 +53,32 @@ export const contentSlice = defineSlice({
   initial: {layers: {slide: null, media: null, message: null}},
   reduce: (history, command, context) => {
     switch (command.type) {
+      case 'bible.passage.title.set': {
+        const slide = history.state.layers.slide;
+        const item = history.state.themeItem;
+        if (
+          slide?.itemId !== command.itemId ||
+          slide.position !== command.position ||
+          item?.id !== command.itemId ||
+          item.kind !== 'bible' ||
+          (item.title === command.title && slide.title === command.title)
+        ) {
+          return history;
+        }
+        const updated = updateLayer(history, 'slide', {
+          ...slide,
+          title: command.title,
+        });
+        return {
+          ...updated,
+          undo: history.undo,
+          state: {
+            ...updated.state,
+            canUndo: history.state.canUndo,
+            themeItem: {...item, title: command.title},
+          },
+        };
+      }
       case 'black.toggle':
         return {
           ...history,

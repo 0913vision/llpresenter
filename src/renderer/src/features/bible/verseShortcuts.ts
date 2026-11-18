@@ -1,4 +1,3 @@
-import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
 import {useLive} from '@renderer/session/live';
 import {outputTile, useShow} from '@renderer/session/show';
 import {
@@ -48,7 +47,7 @@ export async function outputAdjacentBibleVerse(
   const row = initial.rows.find(candidate => candidate.id === itemId);
   const passage =
     source?.passage ?? (row?.kind === 'bible' ? row.bible : undefined);
-  if (!passage || passage.translation === LIVE_BIBLE_ID) return;
+  if (!passage) return;
   const request = beginOutputRequest();
   const commandVersion = useLive.getState().commandVersion;
   const current = (): boolean => {

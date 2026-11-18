@@ -24,6 +24,12 @@ export type SingleLiveCommand =
   | OverlayClear
   | {readonly type: 'slide.show'; readonly slide: SlideLayer}
   | {
+      readonly type: 'bible.passage.title.set';
+      readonly itemId: string;
+      readonly position: number;
+      readonly title: string;
+    }
+  | {
       readonly type: 'stage.next.set';
       readonly itemId: string;
       readonly position: number;
@@ -76,6 +82,7 @@ export function interruptsSongOutput(command: LiveCommand): boolean {
     case 'output.set':
     case 'black.toggle':
     case 'stage.next.set':
+    case 'bible.passage.title.set':
     case 'stage.timer.set':
     case 'stage.message.set':
     case 'prop.set':
