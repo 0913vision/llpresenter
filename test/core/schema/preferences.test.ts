@@ -24,6 +24,22 @@ function parse(json: unknown) {
 }
 
 describe('parsePreferences', () => {
+  it('defaults and validates the startup maximization choice', () => {
+    expect(withPreferenceDefaults(parse(HEADER)).general.startMaximized).toBe(
+      true,
+    );
+    const stored = {...HEADER, general: {startMaximized: false}};
+    expectRoundTrip(codec, stored);
+    expect(withPreferenceDefaults(parse(stored)).general.startMaximized).toBe(
+      false,
+    );
+    expectInvalidField(
+      codec,
+      {...HEADER, general: {startMaximized: 'false'}},
+      'general.startMaximized',
+    );
+  });
+
   it('uses bounded per-kind defaults and preserves custom choices', () => {
     const defaults = withPreferenceDefaults(parse(HEADER)).show.slideDefaults;
     expect(defaults.section).toEqual({kind: 'wipe', dir: 'left', sec: 1});
