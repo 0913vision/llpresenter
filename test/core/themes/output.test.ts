@@ -24,9 +24,14 @@ import {BIBLE_THEME_ID} from '@core/themes/defaults';
 
 describe('published theme compositions', () => {
   it('resolves a deleted item theme from its frozen layouts', () => {
-    const file = themeFile();
-    const original = file.themes[0];
-    if (original === undefined) throw Error('Missing theme');
+    const defaults = themeFile();
+    const template = defaults.themes[0];
+    if (template === undefined) throw Error('Missing theme');
+    const original = {
+      ...template,
+      id: createThemeId('00000000-0000-4000-8000-000000000998'),
+    };
+    const file = {...defaults, themes: [...defaults.themes, original]};
     const deleted = {
       ...file,
       themes: file.themes.filter(theme => theme.id !== original.id),
