@@ -690,7 +690,21 @@ export function usePrepPanels({
       otherService.current = serviceId;
       setOtherId(id);
     });
+  const shownItem =
+    otherId ??
+    slidesDraft?.snapshot.item.id ??
+    (editorKind === 'item' ? editorId : null);
   return {
+    // NOTE(0913vision): Opening an item, moving to another one while editing
+    // and going back each show the new panels in one frame, once the editor,
+    // its tiles and the inspector are drawn, never a panel at a time.
+    hold: {
+      identity: hasDraft ? `edit:${selectedItem ?? ''}` : 'table',
+      settled:
+        !hasDraft ||
+        editorKind === 'library' ||
+        (switching === null && shownItem === selectedItem),
+    },
     columns: hasDraft
       ? editorKind === 'library'
         ? [PREP_COLUMNS[0], PREP_DRAFT_COLUMNS[1], PREP_DRAFT_COLUMNS[2]]

@@ -81,7 +81,12 @@ export function AheadBox({
   readonly children: ReactNode;
 }): JSX.Element {
   return (
-    <div className={styles.ahead} aria-hidden="true" inert>
+    <div
+      className={styles.ahead}
+      aria-hidden="true"
+      inert
+      data-drawing-ahead=""
+    >
       {children}
     </div>
   );
