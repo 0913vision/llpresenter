@@ -15,17 +15,19 @@ function Choices({
   onEscape,
   checked = true,
   blocked = false,
+  hidden = false,
 }: {
   readonly anchor: HTMLElement;
   readonly onClose: (restore: boolean) => void;
   readonly onEscape: () => void;
   readonly checked?: boolean;
   readonly blocked?: boolean;
+  readonly hidden?: boolean;
 }) {
   const {surface, onKeyDown} = useChoicePopup({anchor, onClose, onEscape});
   return (
     <div data-llp-layer="popover">
-      <div role="menu" ref={surface} onKeyDown={onKeyDown}>
+      <div role="menu" ref={surface} onKeyDown={onKeyDown} hidden={hidden}>
         <button
           type="button"
           role="menuitemradio"
@@ -57,6 +59,23 @@ function Choices({
     </div>
   );
 }
+
+it('does not measure a hidden menu and places it when it reopens', () => {
+  const anchor = document.createElement('button');
+  document.body.append(anchor);
+  anchors.add(anchor);
+  const onClose = vi.fn();
+  const onEscape = vi.fn();
+  const bounds = vi.spyOn(anchor, 'getBoundingClientRect');
+  const view = render(
+    <Choices anchor={anchor} onClose={onClose} onEscape={onEscape} hidden />,
+  );
+  expect(bounds).not.toHaveBeenCalled();
+  view.rerender(
+    <Choices anchor={anchor} onClose={onClose} onEscape={onEscape} />,
+  );
+  expect(bounds).toHaveBeenCalled();
+});
 
 function setup(checked = true, blocked = false) {
   const anchor = document.createElement('button');
