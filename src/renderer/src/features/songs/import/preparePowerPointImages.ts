@@ -96,7 +96,7 @@ async function prepareBatch({
   const unsubscribe = api.powerpoint.subscribeImageProgress(({done}) => {
     const entry = batch[done - 1];
     if (options.active() && entry !== undefined) {
-      report(entry.index + 1, 'export', done);
+      report(0, 'export', done);
     }
   });
   let paths: Awaited<ReturnType<typeof api.powerpoint.decorationBatch>>;
@@ -110,13 +110,6 @@ async function prepareBatch({
   try {
     if (!options.active()) return false;
     const byIndex = new Map(paths?.map(item => [item.index, item.path]) ?? []);
-    if (
-      paths !== null &&
-      (byIndex.size !== batch.length ||
-        batch.some(entry => !byIndex.has(entry.index)))
-    ) {
-      throw new Error('PowerPoint preview batch is incomplete');
-    }
     for (const [position, entry] of batch.entries()) {
       if (!options.active()) return false;
       const blob = await picture(api, entry, byIndex.get(entry.index));
@@ -130,7 +123,7 @@ async function prepareBatch({
         );
       }
       lent.set(entry.key, image);
-      report(entry.index + 1, 'prepare', position + 1);
+      report(0, 'prepare', position + 1);
     }
     return options.active();
   } finally {
@@ -150,23 +143,37 @@ export async function preparePowerPointImages(
   const lent = new Map<string, LentImage>();
   const entries = distinctBackgrounds(slides);
   let complete = false;
+  const ready = new Set<string>();
+  let reported = -1;
+  const countReady = (): number =>
+    slides.filter(
+      slide => slide.background === null || ready.has(slide.background),
+    ).length;
   try {
     for (let start = 0; start < entries.length; start += BATCH_SIZE) {
       if (!options.active()) return null;
       const batch = entries.slice(start, start + BATCH_SIZE);
       const report = (
-        done: number,
+        _done: number,
         phase: 'export' | 'prepare',
         position: number,
       ): void => {
         const step =
           start * 2 + (phase === 'export' ? position : batch.length + position);
-        options.progress({
-          done,
-          total: slides.length,
-          phase,
-          percent: (step / (entries.length * 2)) * 100,
-        });
+        if (phase === 'prepare') {
+          const entry = batch[position - 1];
+          if (entry) ready.add(entry.key);
+        }
+        const count = countReady();
+        if (phase === 'prepare' || count !== reported) {
+          reported = count;
+          options.progress({
+            done: count,
+            total: slides.length,
+            phase,
+            percent: (step / (entries.length * 2)) * 100,
+          });
+        }
       };
       if (!(await prepareBatch({api, batch, lent, options, report}))) {
         return null;

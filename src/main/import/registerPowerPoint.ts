@@ -107,6 +107,7 @@ export function registerPowerPointImport(
   let readCancelled = false;
   const isReadCancelled = (): boolean => readCancelled;
   let drawingBusy = false;
+  let drawingFinished: Promise<void> = Promise.resolve();
   let disposed = false;
   const isDisposed = (): boolean => disposed;
   const tempFiles = new Set<string>();
@@ -342,6 +343,10 @@ export function registerPowerPointImport(
       const slide = current.source.slides[request.value.index];
       if (!slide?.background) return null;
       drawingBusy = true;
+      let finishDrawing: () => void = () => undefined;
+      drawingFinished = new Promise<void>(resolve => {
+        finishDrawing = resolve;
+      });
       try {
         const result = await jobs.run({
           kind: 'layers',
@@ -358,6 +363,7 @@ export function registerPowerPointImport(
         return null;
       } finally {
         drawingBusy = false;
+        finishDrawing();
       }
     },
   );
@@ -564,6 +570,7 @@ export function registerPowerPointImport(
     powerpointEndpoints.decorationBatch.channel,
     async (event, value: unknown) => {
       const request = parsePowerPointDecorationBatchRequest(value);
+      if (drawingBusy) await drawingFinished;
       const current = retained;
       if (
         !request.ok ||
@@ -638,19 +645,29 @@ export function registerPowerPointImport(
         ) {
           return null;
         }
-        const paths = request.value.indices.map((index, position) => ({
+        const candidates = request.value.indices.map((index, position) => ({
           index,
           path: join(
             workDirectory,
             `llp-ppt-${String(position + 1).padStart(4, '0')}.png`,
           ),
         }));
-        await Promise.all(paths.map(item => stat(item.path)));
+        const exists = await Promise.all(
+          candidates.map(item =>
+            stat(item.path).then(
+              () => true,
+              () => false,
+            ),
+          ),
+        );
+        const paths = candidates.filter((_, position) => exists[position]);
         await rm(copy, {force: true});
         for (const item of paths) tempFiles.add(item.path);
-        imageDirectories.add(workDirectory);
-        directory = null;
-        return paths;
+        if (paths.length > 0) {
+          imageDirectories.add(workDirectory);
+          directory = null;
+        }
+        return paths.length > 0 ? paths : null;
       } catch (error) {
         context.log.warn(
           'could not export PowerPoint preview decorations',

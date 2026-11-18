@@ -262,7 +262,7 @@ export function PowerPointImportFlow({
         }}
         primary={{label: '가져오기', disabled: true, onSelect: () => undefined}}
       >
-        <Progress value={0} label="PowerPoint 읽는 중" />
+        <Progress value={null} label="PowerPoint 읽는 중" />
       </Dialog>
     );
   }

@@ -62,9 +62,14 @@ try {
   foreach ($slide in $visible) {
     if (Test-Path (Join-Path $env:LLP_PPT_DIRECTORY 'cancel')) { throw 'Cancelled' }
     $index++
-    if ($decorations) { Remove-SlideText $slide.Shapes }
     $path = Join-Path $env:LLP_PPT_DIRECTORY (('llp-ppt-{0:D4}.png' -f $index))
-    $slide.Export($path, 'PNG', 1920, 1080)
+    try {
+      if ($decorations) { Remove-SlideText $slide.Shapes }
+      $slide.Export($path, 'PNG', 1920, 1080)
+    } catch {
+      if (-not $decorations) { throw }
+      Remove-Item -LiteralPath $path -Force -ErrorAction SilentlyContinue
+    }
     if (Test-Path (Join-Path $env:LLP_PPT_DIRECTORY 'cancel')) { throw 'Cancelled' }
     [Console]::Out.WriteLine(('PROGRESS {0} {1} {2}' -f $index, $visible.Count, $slide.SlideIndex))
   }

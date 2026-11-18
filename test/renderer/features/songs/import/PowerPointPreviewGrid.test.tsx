@@ -1,11 +1,18 @@
 import {act, fireEvent, render, screen} from '@testing-library/react';
+import {use} from 'react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {PowerPointPreviewGrid} from '@renderer/features/songs/import/PowerPointPreviewGrid';
 import {powerPointPictureSpecs} from '@renderer/features/songs/import/powerPointPictureSpecs';
 import {PictureService} from '@renderer/rendering/pictures/pictureService';
 
+const pendingPicture = vi.hoisted((): {promise: Promise<void> | null} => ({
+  promise: null,
+}));
 vi.mock('@renderer/rendering/pictures/Picture', () => ({
-  Picture: () => <span data-testid="picture" />,
+  Picture: () => {
+    if (pendingPicture.promise) use(pendingPicture.promise);
+    return <span data-testid="picture" />;
+  },
 }));
 
 afterEach(() => vi.unstubAllGlobals());
@@ -59,4 +66,44 @@ it('windows large slide lists and selects a visible range', () => {
   if (!chosen) throw Error('Missing slide');
   fireEvent.click(chosen, {shiftKey: true});
   expect(select).toHaveBeenCalledWith(expect.any(Number), true);
+});
+
+it('keeps the scroller and surrounding focus mounted while new rows load', async () => {
+  const slides = Array.from({length: 100}, (_, index) => ({
+    number: index + 1,
+    shapes: [],
+    background: null,
+  }));
+  const specs = powerPointPictureSpecs(slides, new Map(), {
+    layout: {mode: {kind: 'own'}, elements: []},
+    emptyColor: '#000000',
+    item: null,
+  });
+  const {container} = render(
+    <>
+      <input aria-label="title" />
+      <PowerPointPreviewGrid
+        slides={slides}
+        specs={specs}
+        service={new PictureService()}
+        start={0}
+        end={0}
+        onSelect={vi.fn()}
+      />
+    </>,
+  );
+  const title = screen.getByRole('textbox');
+  title.focus();
+  const viewport = container.querySelector('[class*="gridViewport"]');
+  if (!(viewport instanceof HTMLDivElement)) throw Error('Missing viewport');
+  let finish = (): void => undefined;
+  pendingPicture.promise = new Promise<void>(resolve => {
+    finish = resolve;
+  });
+  fireEvent.scroll(viewport, {target: {scrollTop: 60}});
+  expect(container.contains(viewport)).toBe(true);
+  expect(document.activeElement).toBe(title);
+  pendingPicture.promise = null;
+  await act(async () => finish());
+  expect(container.contains(viewport)).toBe(true);
 });

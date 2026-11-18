@@ -83,3 +83,22 @@
 .playback .bar {
   background: var(--text);
 }
+
+.indeterminate .bar {
+  animation: progress-indeterminate 1.4s ease-in-out infinite;
+}
+
+@keyframes progress-indeterminate {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(286%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .indeterminate .bar {
+    animation: none;
+  }
+}

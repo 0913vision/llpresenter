@@ -1,6 +1,9 @@
 import {expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
-import {preparePowerPointImages} from '@renderer/features/songs/import/preparePowerPointImages';
+import {
+  preparePowerPointImages,
+  type PowerPointPreviewProgress,
+} from '@renderer/features/songs/import/preparePowerPointImages';
 import {lendPreviewImage} from '@renderer/rendering/previewMedia';
 
 vi.mock('@renderer/rendering/previewMedia', () => ({
@@ -45,7 +48,7 @@ it('prepares distinct backgrounds once and reports every slide', async () => {
   expect(decorationBatch).toHaveBeenCalledOnce();
   expect(releaseFile).toHaveBeenCalledOnce();
   expect(progress.mock.calls).toEqual([
-    [{done: 1, total: 2, phase: 'prepare', percent: 100}],
+    [{done: 2, total: 2, phase: 'prepare', percent: 100}],
     [{done: 2, total: 2, phase: 'prepare', percent: 100}],
   ]);
   expect(result?.ids.get('same')).toBe('preview');
@@ -117,4 +120,45 @@ it('releases earlier images and files if the preview memory limit is reached', a
   ).rejects.toThrow('PowerPoint preview image limit reached');
   expect(release).toHaveBeenCalledOnce();
   expect(releaseFile).toHaveBeenCalledTimes(2);
+});
+
+it('keeps successful exports and falls back only for missing slides, with monotonic slide counts', async () => {
+  vi.mocked(lendPreviewImage).mockReturnValue({
+    id: 'preview',
+    release: vi.fn(),
+  });
+  const layers = vi.fn(async () => ({
+    key: 'a'.repeat(64),
+    layers: [],
+    pictures: [],
+    skipped: 0,
+  }));
+  const previewImage = vi.fn(async () => ({
+    mime: 'image/png' as const,
+    bytes: new Uint8Array([1]),
+  }));
+  const api = mockLlpApi({
+    powerpoint: {
+      decorationBatch: async () => [{index: 2, path: 'success.png'}],
+      previewImage,
+      layers,
+      release: async () => true,
+    },
+  });
+  const progress = vi.fn((value: PowerPointPreviewProgress) => value.done);
+  const result = await preparePowerPointImages(
+    api,
+    [
+      {number: 1, shapes: [], background: null},
+      {number: 2, shapes: [], background: 'missing'},
+      {number: 3, shapes: [], background: 'success'},
+      {number: 4, shapes: [], background: 'missing'},
+    ],
+    {active: () => true, progress},
+  );
+  expect(layers).toHaveBeenCalledTimes(1);
+  expect(layers).toHaveBeenCalledWith({index: 1});
+  expect(previewImage).toHaveBeenCalledWith({path: 'success.png'});
+  expect(progress.mock.calls.map(([value]) => value.done)).toEqual([3, 4, 4]);
+  result?.release();
 });

@@ -132,6 +132,9 @@ describe('PowerPoint import dialog', () => {
     expect(
       screen.getByRole('progressbar', {name: 'PowerPoint 읽는 중'}),
     ).toBeTruthy();
+    expect(screen.getByRole('progressbar').hasAttribute('aria-valuenow')).toBe(
+      false,
+    );
     fireEvent.click(screen.getByRole('button', {name: '취소'}));
     expect(onDone).toHaveBeenCalledOnce();
     expect(cancelRead).toHaveBeenCalledOnce();

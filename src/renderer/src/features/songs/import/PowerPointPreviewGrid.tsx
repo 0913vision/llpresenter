@@ -1,4 +1,5 @@
 import {
+  Suspense,
   useLayoutEffect,
   useRef,
   useState,
@@ -93,37 +94,39 @@ export function PowerPointPreviewGrid({
       onScroll={event => setScrollTop(event.currentTarget.scrollTop)}
     >
       <div className={styles.gridSpacer} style={{height: rows * stride}}>
-        <div className={styles.grid} style={offset}>
-          {slides.slice(begin, finish).map((slide, local) => {
-            const index = begin + local;
-            const spec = specs[index];
-            return (
-              <div
-                key={slide.number}
-                className={styles.tile}
-                onClick={event => onSelect(index, event.shiftKey)}
-              >
-                <SlideThumbnail
-                  number={slide.number}
-                  label={
-                    spec?.layers.slide?.titleSlide
-                      ? '제목'
-                      : spec?.layers.slide?.lines.length === 0
-                        ? '빈 슬라이드'
-                        : undefined
-                  }
-                  text={spec?.layers.slide?.lines.join('\n')}
-                  canvas={
-                    spec === undefined ? undefined : (
-                      <Picture wait service={service} {...spec} />
-                    )
-                  }
-                  selected={index >= start && index <= end}
-                />
-              </div>
-            );
-          })}
-        </div>
+        <Suspense fallback={null}>
+          <div className={styles.grid} style={offset}>
+            {slides.slice(begin, finish).map((slide, local) => {
+              const index = begin + local;
+              const spec = specs[index];
+              return (
+                <div
+                  key={slide.number}
+                  className={styles.tile}
+                  onClick={event => onSelect(index, event.shiftKey)}
+                >
+                  <SlideThumbnail
+                    number={slide.number}
+                    label={
+                      spec?.layers.slide?.titleSlide
+                        ? '제목'
+                        : spec?.layers.slide?.lines.length === 0
+                          ? '빈 슬라이드'
+                          : undefined
+                    }
+                    text={spec?.layers.slide?.lines.join('\n')}
+                    canvas={
+                      spec === undefined ? undefined : (
+                        <Picture wait service={service} {...spec} />
+                      )
+                    }
+                    selected={index >= start && index <= end}
+                  />
+                </div>
+              );
+            })}
+          </div>
+        </Suspense>
       </div>
     </div>
   );
