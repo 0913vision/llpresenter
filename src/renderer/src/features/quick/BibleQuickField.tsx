@@ -1,6 +1,9 @@
 import {withLiveBible} from '@core/bible/liveTranslation';
 import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
-import {useRef} from 'react';
+import {useRef, useSyncExternalStore} from 'react';
+import {commandBindings} from '@core/shortcuts/bindings';
+import {matchesBinding} from '@core/shortcuts/matching';
+import {commandBindingStore} from '@renderer/ui/commandBindings';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useEffect, useState, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
@@ -30,6 +33,10 @@ export function BibleQuickField({
 }): JSX.Element {
   const root = useRef<HTMLDivElement>(null);
   const [overlayOpen, setOverlayOpen] = useState(false);
+  const bindings = useSyncExternalStore(
+    commandBindingStore.subscribe,
+    commandBindingStore.get,
+  );
   useWindowShortcuts([
     {
       id: 'bible.focus',
@@ -83,7 +90,23 @@ export function BibleQuickField({
     ? withLiveBible(document.value.translations)
     : [];
   const field = (
-    <div ref={root}>
+    <div
+      ref={root}
+      onKeyDownCapture={event => {
+        // NOTE(0913vision): The finder is a dialog that keeps its keys, so
+        // the key that opened it closes it from inside, also while typing.
+        if (
+          overlayOpen &&
+          commandBindings('bible.focus', bindings).some(binding =>
+            matchesBinding(event.nativeEvent, binding),
+          )
+        ) {
+          event.preventDefault();
+          event.stopPropagation();
+          setOverlayOpen(false);
+        }
+      }}
+    >
       <BibleReferenceField
         overlayLabels={overlayOpen}
         onEscape={overlayOpen ? () => setOverlayOpen(false) : undefined}
