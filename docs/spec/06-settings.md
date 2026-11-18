@@ -141,14 +141,9 @@ Source: `Screens`, `Main` board guide (화면 설정), 12.
 
 ### Output preview
 
-- A segmented control switches between 화면 내용 (screen content) and 테스트
-  패턴 (test pattern).
-- 화면 내용 shows the selected screen's current output.
-- 테스트 패턴 shows color bars and a gray ramp in the preview and on that
-  screen's real output (proposal: ProPresenter shows a test pattern on the
-  audience screens with Show and removes it with Clear, S4 p. 45; tying it to
-  this preview is our design). It returns to the content when the operator
-  chooses 화면 내용 or closes the 화면 설정 window.
+- 테스트 화면 shows the pattern on the selected screen and enables its output.
+  The preview follows the live output. A slide, standby, media, or clear
+  replaces the pattern; opening or closing settings leaves it unchanged.
 - The pattern (proposal): the top two thirds hold seven vertical bars at full
   strength, white, yellow, cyan, green, magenta, red, and blue; the bottom third
   holds a gray ramp in 11 steps from black to white; a 2 px white border runs

@@ -6,9 +6,7 @@ import {
 } from '@contracts/ipc/window';
 import type {PreferencePageId} from '@core/schema/preferencePages';
 import type {AppConfigFile} from '../store/appConfigFile';
-import {guardTestPatterns} from '../outputs/testPatternGuard';
 import {logWindowResponsiveness} from './responsiveness';
-import {dispatchLogged} from '../live/store';
 import {registerControlClose, type ControlClose} from './controlClose';
 import {
   createPreferencesWindow,
@@ -31,7 +29,6 @@ export interface SettingsWindowOptions extends SettingsWindowFrameOptions {
   >;
   readonly screens?: {
     readonly config: ScreensWindowConfig;
-    readonly store: Parameters<typeof guardTestPatterns>[0]['store'];
   };
 }
 
@@ -56,7 +53,6 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
   private control: BrowserWindow;
   private win: BrowserWindow | null = null;
   private closing: ControlClose | undefined;
-  private stopPatterns: (() => void) | undefined;
   private disposed = false;
   private stopping = false;
   private wanted = false;
@@ -228,13 +224,6 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
       log: this.options.log,
       close: this.hide,
     });
-    if (this.options.screens !== undefined) {
-      this.stopPatterns = guardTestPatterns({
-        control: win,
-        store: this.options.screens.store,
-        log: this.options.log,
-      });
-    }
     win.on('move', this.remember);
     win.on('resize', this.remember);
     win.webContents.on('did-start-loading', () => {
@@ -476,16 +465,6 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
     }
     this.win.setMinimumSize(0, 0);
     this.win.setBounds({width: 0, height: 0});
-    const screens = this.options.screens;
-    if (screens !== undefined) {
-      for (const screenId of screens.store.state.testPatterns ?? []) {
-        dispatchLogged(
-          screens.store,
-          {type: 'screen.testPattern.set', screenId, on: false},
-          this.options.log,
-        );
-      }
-    }
     if (
       this.wanted &&
       this.options.mode === 'normal' &&
@@ -502,9 +481,7 @@ class PreparedSettingsWindow implements SettingsWindowRegistration {
 
   private readonly closed = (): void => {
     this.closing?.dispose();
-    this.stopPatterns?.();
     this.closing = undefined;
-    this.stopPatterns = undefined;
     this.win = null;
     this.presented = null;
     this.wanted = false;

@@ -3,7 +3,6 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {windowEndpoints} from '@contracts/ipc/window';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 import {loadPage} from '@main/windows/page';
-import {emptyLiveState} from '@core/live/state';
 import {registerSettingsWindow} from '@main/windows/settingsWindow';
 import {
   preferencesBounds,
@@ -606,11 +605,6 @@ describe('the shared prepared settings window', () => {
       log: recordingLogger(),
       screens: {
         config,
-        store: {
-          state: emptyLiveState(),
-          handles: () => true,
-          dispatch: () => true,
-        },
       },
     });
     const win = () => {

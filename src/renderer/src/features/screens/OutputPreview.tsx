@@ -1,8 +1,8 @@
-import {useCallback, useEffect, useMemo, useState, type JSX} from 'react';
+import {useMemo, type JSX} from 'react';
 import type {Screen} from '@core/schema/screens';
-import {sendLive} from '@renderer/session/live';
+import {showTestPattern} from './showTestPattern';
 import {ScreenPreview} from '@renderer/features/presentation/ScreenPreview';
-import {SegmentedControl} from '@renderer/ui';
+import {Button} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';
 import {
   previewCaption,
@@ -17,37 +17,8 @@ import {fitAspect} from '@core/canvas/fitAspect';
 import {useElementSize} from '@renderer/ui/useElementSize';
 import {REFERENCE_SCREEN} from '@core/themes/textStyle';
 
-type PreviewMode = 'content' | 'pattern';
-
 const LOAD_TITLE = '화면';
-const MODE_LABEL = '미리보기';
-const MODE_OPTIONS = [
-  {value: 'content', label: '화면 내용'},
-  {value: 'pattern', label: '테스트 패턴'},
-] as const;
 const noScreens: readonly Screen[] = [];
-
-function useTestPatternOnOutput(
-  screenId: Screen['id'],
-  mode: PreviewMode,
-  resetMode: () => void,
-): void {
-  useEffect(() => {
-    if (mode !== 'pattern') return undefined;
-    const hide = (): void =>
-      sendLive({type: 'screen.testPattern.set', screenId, on: false});
-    sendLive({type: 'screen.testPattern.set', screenId, on: true});
-    // NOTE(0913vision): The pattern sits above every layer of the real output
-    // and a clear doesn't remove it, so it must come off even when the window
-    // goes away without React unmounting the panel.
-    window.addEventListener('pagehide', hide);
-    return () => {
-      window.removeEventListener('pagehide', hide);
-      hide();
-      resetMode();
-    };
-  }, [screenId, mode, resetMode]);
-}
 
 function PreviewBody({
   screen,
@@ -58,25 +29,15 @@ function PreviewBody({
   readonly caption: PreviewCaption;
   readonly pictureEnabled: boolean;
 }): JSX.Element {
-  const [mode, setMode] = useState<PreviewMode>('content');
   const [watchPicture, available] = useElementSize();
   const picture =
     available === undefined
       ? undefined
       : fitAspect(available, REFERENCE_SCREEN.width / REFERENCE_SCREEN.height);
-  const resetMode = useCallback(() => setMode('content'), []);
-  useTestPatternOnOutput(screen.id, mode, resetMode);
   const signal = signalText(caption);
   return (
     <section className={styles.preview} aria-label="출력 미리보기">
-      <SegmentedControl
-        label={MODE_LABEL}
-        options={MODE_OPTIONS}
-        value={mode}
-        onChange={setMode}
-        fill
-        className={styles.mode}
-      />
+      <Button onClick={() => showTestPattern(screen.id)}>테스트 화면</Button>
       <div className={styles.picture} ref={watchPicture}>
         <div className={styles.frame} style={picture} data-preview-picture>
           {pictureEnabled ? (
@@ -95,15 +56,7 @@ function PreviewBody({
   );
 }
 
-/**
- * The output preview of the selected screen. The picture is always the
- * screen's own preview. 테스트 패턴 puts the screen into the live state's
- * pattern list, so the preview draws the pattern with the screen's correction
- * and its name only, and the real output shows it too. The pattern comes off
- * when the operator picks 화면 내용, selects another screen (the preview starts
- * in 화면 내용 for it), leaves 화면 설정 for any reason, or the window goes
- * away.
- */
+/** The output preview and a test pattern command for the selected screen. */
 export function OutputPreview({
   onProblem,
   pictureEnabled = true,

@@ -9,24 +9,14 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
-import type {LiveCommand} from '@core/live/commands';
 import {MenuBar} from '@renderer/app/shell/MenuBar';
-import {
-  fullScreenRow,
-  NO_SCREEN_ON,
-  testPatternRow,
-  useFullScreen,
-} from '@renderer/app/shell/viewToggles';
+import {fullScreenRow, useFullScreen} from '@renderer/app/shell/viewToggles';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {NOT_YET} from '@renderer/ui/menuRows';
 import {
   hoverForTooltip,
   resetTooltips,
 } from '@fixtures/renderer/ui/tooltipTesting';
-
-const A = '00000000-0000-4000-8000-0000000000a1';
-const B = '00000000-0000-4000-8000-0000000000a2';
-const C = '00000000-0000-4000-8000-0000000000a3';
 
 beforeEach(() => {
   HTMLElement.prototype.scrollIntoView = vi.fn();
@@ -36,50 +26,6 @@ afterEach(() => {
   resetTooltips();
   cleanup();
   delete window.llp;
-});
-
-function select(row: ReturnType<typeof testPatternRow>): void {
-  row.onSelect?.();
-}
-
-describe('보기 › 테스트 화면', () => {
-  it('is off with the reason while no output is on', () => {
-    const row = testPatternRow({
-      screens: [{id: A}],
-      outputs: {[A]: false},
-      patterns: undefined,
-    });
-    expect(row).toMatchObject({
-      check: 'checkbox',
-      checked: false,
-      disabled: true,
-      title: NO_SCREEN_ON,
-    });
-  });
-
-  it('shows the pattern on every screen that is on, and takes it off them all', () => {
-    const send = vi.fn<(command: LiveCommand) => void>();
-    window.llp = mockLlpApi({live: {send}});
-    const screens = [{id: A}, {id: B}, {id: C}];
-    const outputs = {[A]: true, [B]: true, [C]: false, legacy: true};
-
-    const off = testPatternRow({screens, outputs, patterns: [A]});
-    expect(off).toMatchObject({checked: false, disabled: false});
-    select(off);
-    expect(send.mock.calls.map(([command]) => command)).toEqual([
-      {type: 'screen.testPattern.set', screenId: A, on: true},
-      {type: 'screen.testPattern.set', screenId: B, on: true},
-    ]);
-
-    send.mockClear();
-    const on = testPatternRow({screens, outputs, patterns: [A, B]});
-    expect(on).toMatchObject({checked: true});
-    select(on);
-    expect(send.mock.calls.map(([command]) => command)).toEqual([
-      {type: 'screen.testPattern.set', screenId: A, on: false},
-      {type: 'screen.testPattern.set', screenId: B, on: false},
-    ]);
-  });
 });
 
 describe('보기 › 전체 화면', () => {

@@ -57,17 +57,18 @@ describe('screen.testPattern.set', () => {
     expect(store.state).not.toHaveProperty('testPatterns');
   });
 
-  it('survives clears and their undo', () => {
+  it('replaces the pattern with a slide, standby, or clear', () => {
     const {store, set} = setup();
     const slide = {itemId: 'item-1', position: 0, label: null, lines: ['줄']};
+    set(MAIN, true);
     store.dispatch({type: 'slide.show', slide});
+    expect(store.state.testPatterns ?? []).toEqual([]);
+    set(MAIN, true);
+    store.dispatch({type: 'item.stop'});
+    expect(store.state.testPatterns ?? []).toEqual([]);
     set(MAIN, true);
     store.dispatch({type: 'layer.clear', target: 'all'});
-    expect(store.state.layers.slide).toBeNull();
-    expect(store.state.testPatterns).toEqual([MAIN]);
-    store.dispatch({type: 'clear.undo'});
-    expect(store.state.layers.slide).toEqual(slide);
-    expect(store.state.testPatterns).toEqual([MAIN]);
+    expect(store.state.testPatterns ?? []).toEqual([]);
   });
 
   it('hides the pattern of a screen whose output turns off, and only then', () => {

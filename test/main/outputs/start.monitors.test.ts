@@ -166,7 +166,7 @@ describe('saved output backend', () => {
     expect(mocks.closeNumber).toHaveBeenCalledTimes(3);
   });
 
-  it('hides every 테스트 패턴 when the control window goes away, until outputs stop', async () => {
+  it('keeps the pattern when the control window goes away', async () => {
     const {store, stop, controlWindow} = setup();
     await loaded();
     const show = (): void => {
@@ -181,8 +181,7 @@ describe('saved output backend', () => {
     show();
     expect(store.state.testPatterns).toEqual([MAIN]);
     controlWindow.emit('closed');
-    expect(store.state).not.toHaveProperty('testPatterns');
-    show();
+    expect(store.state.testPatterns).toEqual([MAIN]);
     stop();
     controlWindow.emit('closed');
     expect(store.state.testPatterns).toEqual([MAIN]);

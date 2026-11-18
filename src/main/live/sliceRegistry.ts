@@ -227,13 +227,37 @@ export class SliceRegistry {
       try {
         const reduced = slice.apply(before, next, context);
         if (outcome.rejected) return reduced;
-        const after =
+        const themed =
           inputs.themes?.reduce({
             before,
             after: reduced,
             command: next,
             context,
           }) ?? reduced;
+        const replacePattern = [
+          'slide.show',
+          'media.show',
+          'item.start',
+          'item.stop',
+          'theme.set',
+          'message.show',
+          'message.send',
+          'prop.set',
+          'layer.clear',
+          'layer.clear.toggle',
+          'overlay.clear',
+        ].includes(next.type);
+        const after =
+          replacePattern && themed.state.testPatterns?.length
+            ? {
+                ...themed,
+                state: {
+                  ...themed.state,
+                  testPatterns: [],
+                  version: themed.state.version + 1,
+                },
+              }
+            : themed;
         const observe = inputs.onCommand;
         if (observe !== undefined && next.type !== 'live.batch') {
           record.defer(next.type, () => observe(next));
