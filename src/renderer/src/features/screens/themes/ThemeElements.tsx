@@ -5,7 +5,10 @@ import {
   availableThemeElementKinds,
   themeElementKinds,
 } from '@core/themes/elementRules';
-import {moveSelection} from '@core/common/selectionOrder';
+import {
+  isUnchangedSelectionMove,
+  moveSelection,
+} from '@core/common/selectionOrder';
 import {selectionDragImage} from '@renderer/ui/selectionDrag';
 import {Button} from '@renderer/ui/Button';
 import {IconButton} from '@renderer/ui/IconButton';
@@ -74,7 +77,15 @@ export function ThemeElements({
     if (!elements.some(element => element.id === id)) return;
     if (!dragged.current.includes(id)) return;
     const ids = new Set(dragged.current);
-    model.elements(values => moveSelection(values, ids, index));
+    if (
+      !isUnchangedSelectionMove(
+        elements.map(element => element.id),
+        ids,
+        index,
+      )
+    ) {
+      model.elements(values => moveSelection(values, ids, index));
+    }
     release.current?.();
     dragged.current = [];
   };

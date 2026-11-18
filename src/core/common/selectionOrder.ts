@@ -27,3 +27,20 @@ export function moveSelection<T extends {readonly id: string}>(
     ...rows.slice(boundary).filter(row => !ids.has(row.id)),
   ];
 }
+
+/** True when inserting a selection at this original gap leaves its order unchanged. */
+export function isUnchangedSelectionMove(
+  ids: readonly string[],
+  selected: ReadonlySet<string>,
+  boundary: number,
+): boolean {
+  if (boundary < 0 || boundary > ids.length || selected.size === 0) {
+    return false;
+  }
+  const moving = ids.filter(id => selected.has(id));
+  if (moving.length === 0) return false;
+  const rest = ids.filter(id => !selected.has(id));
+  const index = ids.slice(0, boundary).filter(id => !selected.has(id)).length;
+  const result = [...rest.slice(0, index), ...moving, ...rest.slice(index)];
+  return result.every((id, position) => id === ids[position]);
+}

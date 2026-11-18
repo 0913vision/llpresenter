@@ -3,7 +3,10 @@ import {MISSING_MEDIA_TIP} from '@renderer/platform/problemReasons';
 import {ELEMENT_DRAG_MIME, isPaletteKey} from '../items/paletteItems';
 import {hasMediaDrag, readMediaDrag} from '@renderer/features/media/mediaDrag';
 import type {MediaId} from '@core/schema/ids';
-import {orderedSelection} from '@core/common/selectionOrder';
+import {
+  isUnchangedSelectionMove,
+  orderedSelection,
+} from '@core/common/selectionOrder';
 import {selectionDragImage} from '@renderer/ui/selectionDrag';
 import {useEffect, useRef, useState, type DragEvent} from 'react';
 import type {SongId} from '@core/schema/ids';
@@ -137,6 +140,18 @@ export function useServiceOrderDrag({
     }
     return rows[index]?.id ?? null;
   };
+  const unchanged = (before: string | null): boolean => {
+    const index =
+      before === null ? rows.length : rows.findIndex(row => row.id === before);
+    return (
+      index >= 0 &&
+      isUnchangedSelectionMove(
+        rows.map(row => row.id),
+        new Set(moving.current),
+        index,
+      )
+    );
+  };
   const clear = (): void => {
     release.current?.();
     moving.current = [];
@@ -211,7 +226,12 @@ export function useServiceOrderDrag({
         setBackgroundTarget(
           kind === 'song' || kind === 'slides' ? target : null,
         );
-        setInsertBefore(target === null ? dropBefore(event) : undefined);
+        const before = dropBefore(event);
+        setInsertBefore(
+          target === null && !(dragged.current !== null && unchanged(before))
+            ? before
+            : undefined,
+        );
       },
       onDragLeave: (event: DragEvent): void => {
         if (
@@ -228,7 +248,9 @@ export function useServiceOrderDrag({
         const before = dropBefore(event);
         const target = mediaTarget(event);
         const source = dragged.current === null ? null : moving.current;
+        const noChange = source !== null && unchanged(before);
         clear();
+        if (noChange) return;
         if (source !== null) {
           onMove(source, before);
           return;

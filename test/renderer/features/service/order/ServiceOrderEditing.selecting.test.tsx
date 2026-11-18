@@ -339,6 +339,34 @@ describe('service panel editing', () => {
     );
   });
 
+  it('does not offer the dragged item its own insertion gap', () => {
+    const {api} = setup('prep');
+    const row = screen.getByRole('option', {name: '\uccab \uace1'});
+    vi.spyOn(row, 'getBoundingClientRect').mockReturnValue(
+      new DOMRect(0, 100, 200, 40),
+    );
+    const dataTransfer = transfer();
+    fireEvent.dragStart(row, {dataTransfer});
+    for (const clientY of [105, 135]) {
+      const over = new MouseEvent('dragover', {
+        bubbles: true,
+        cancelable: true,
+        clientY,
+      });
+      Object.defineProperty(over, 'dataTransfer', {value: dataTransfer});
+      fireEvent(row, over);
+      expect(document.querySelector('[class*="_insert_"]')).toBeNull();
+    }
+    const drop = new MouseEvent('drop', {
+      bubbles: true,
+      cancelable: true,
+      clientY: 135,
+    });
+    Object.defineProperty(drop, 'dataTransfer', {value: dataTransfer});
+    fireEvent(row, drop);
+    expect(api.content.edit).not.toHaveBeenCalled();
+  });
+
   it('drops above the first row from the list top padding', async () => {
     const {list, ids} = setup('prep');
     const header = screen.getByRole('option', {name: '제목'});
