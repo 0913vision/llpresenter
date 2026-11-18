@@ -92,11 +92,15 @@ export class ItemSourceFollower {
   /** Follows another captured target, or nothing; the same target is unchanged. */
   show(target: ItemTarget | null): void {
     if (!this.alive || sameTarget(target, this.target)) return;
-    const otherService = target?.serviceId !== this.target?.serviceId;
+    // NOTE(0913vision): The service read last stays while nothing is shown
+    // (준비 closed), and its pushes keep it current, so the item panel that
+    // opens again on the same service shows in its first frame.
+    const known =
+      target !== null && this.service?.service.id === target.serviceId;
     this.target = target;
-    if (otherService) {
+    if (target !== null && !known) {
       this.service = null;
-      if (target !== null) editorTask(this.readService(target.serviceId));
+      editorTask(this.readService(target.serviceId));
     }
     this.followSong();
     this.publish();
@@ -122,7 +126,8 @@ export class ItemSourceFollower {
     serviceId: string,
     document: ServiceDocument | null,
   ): void {
-    if (!this.alive || this.target?.serviceId !== serviceId) return;
+    const followed = this.target?.serviceId ?? this.service?.service.id;
+    if (!this.alive || followed !== serviceId) return;
     if (
       document !== null &&
       this.service !== null &&
