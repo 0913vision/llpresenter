@@ -11,6 +11,7 @@ import {renderWithScreenSummaries as render} from '@fixtures/renderer/platform/s
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {useSidebarCollapse} from '@renderer/app/shell/useSidebarCollapse';
 import {Workspace} from '@renderer/app/shell/Workspace';
+import * as showState from '@renderer/session/show';
 
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
@@ -129,6 +130,22 @@ it('leaves the focus alone when it was outside the left column', async () => {
   outside?.focus();
   await userEvent.click(screen.getByRole('button', {name: COLLAPSE}));
   expect(document.activeElement).toBe(outside);
+});
+
+it('returns to live keys when the already-focused sidebar toggle is clicked', async () => {
+  const {api} = mockUiApi();
+  const next = vi
+    .spyOn(showState, 'outputNext')
+    .mockImplementation(() => undefined);
+  render(<Harness sizeClass="narrow" api={api} />);
+  const toggle = screen.getByRole('button', {name: COLLAPSE});
+  toggle.focus();
+  await userEvent.click(toggle);
+  const grid = screen.getByRole('listbox', {name: '슬라이드'});
+  expect(document.activeElement).toBe(grid);
+  await userEvent.keyboard(' ');
+  expect(next).toHaveBeenCalledTimes(1);
+  expect(expandButton()).not.toBeNull();
 });
 
 it('keeps the 준비 left column while 진행 has it collapsed', () => {

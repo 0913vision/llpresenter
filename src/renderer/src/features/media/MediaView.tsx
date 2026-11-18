@@ -516,6 +516,7 @@ export function MediaView({
               label="타일 크기"
               disabled={display === 'list'}
               title={display === 'list' ? '격자 보기에서 조절' : undefined}
+              workspace={workspace}
               icon="grid"
               width="compact"
               min={MIN_MEDIA_COLUMNS}

@@ -124,7 +124,7 @@ export function MediaBin({
         }
       />
       {columnGap?.('right')}
-      <MediaPropertiesPanel />
+      <MediaPropertiesPanel workspace={workspace} />
     </section>
   );
 }

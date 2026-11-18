@@ -6,6 +6,7 @@ import {useChoicePopup} from '@renderer/ui/useChoicePopup';
 import {layerContainer} from '@renderer/ui/layers';
 import menuStyles from '@renderer/ui/Menu.module.css';
 import styles from './MacroPanel.module.css';
+import {returnFocus} from '@renderer/ui/returnFocus';
 
 export function MacroColorPopover({
   anchor,
@@ -38,7 +39,7 @@ export function MacroColorPopover({
     ready.current = true;
     return () => {
       ready.current = false;
-      if (restoreFocus.current && anchor.isConnected) anchor.focus();
+      if (restoreFocus.current && anchor.isConnected) returnFocus(anchor);
     };
   }, [surface, anchor]);
   return createPortal(

@@ -190,7 +190,13 @@ function ScreenGroup({shown, disabled, change}: Editing) {
   );
 }
 
-function SoundGroup({shown, disabled, change, isAudio}: Editing) {
+function SoundGroup({
+  shown,
+  disabled,
+  change,
+  isAudio,
+  workspace,
+}: Editing & {readonly workspace: 'show' | 'prep'}) {
   const [dragging, setDragging] = useState<number | null>(null);
   return (
     <PropertyGroup title="소리">
@@ -210,6 +216,7 @@ function SoundGroup({shown, disabled, change, isAudio}: Editing) {
         {() => (
           <Slider
             label="음량"
+            workspace={workspace}
             icon="audio"
             width="block"
             min={0}
@@ -234,9 +241,11 @@ function SoundGroup({shown, disabled, change, isAudio}: Editing) {
 export function MediaProperties({
   item,
   disabled,
+  workspace = 'prep',
 }: {
   readonly item: MediaItem;
   readonly disabled: boolean;
+  readonly workspace?: 'show' | 'prep';
 }): JSX.Element {
   const {library} = useMediaView();
   const editing: Editing = {
@@ -254,7 +263,9 @@ export function MediaProperties({
     <Properties>
       {item.kind === 'image' ? null : <PlaybackGroup {...editing} />}
       {item.kind === 'audio' ? null : <ScreenGroup {...editing} />}
-      {item.kind === 'image' ? null : <SoundGroup {...editing} />}
+      {item.kind === 'image' ? null : (
+        <SoundGroup {...editing} workspace={workspace} />
+      )}
     </Properties>
   );
 }
@@ -289,7 +300,11 @@ function MediaInfo({item}: {readonly item: MediaItem}): JSX.Element {
  * once, and its file in 정보. 전환 and 소리 wait until they are defined (spec
  * 05's proposal).
  */
-export function MediaPropertiesPanel(): JSX.Element {
+export function MediaPropertiesPanel({
+  workspace = 'prep',
+}: {
+  readonly workspace?: 'show' | 'prep';
+}): JSX.Element {
   const {library, view, selected} = useMediaView();
   const [tab, setTab] = useState<Tab>('props');
   const item =
@@ -326,7 +341,11 @@ export function MediaPropertiesPanel(): JSX.Element {
                   onReveal={() => library.reveal(item.id)}
                 />
                 {tab === 'props' ? (
-                  <MediaProperties item={item} disabled={disabled} />
+                  <MediaProperties
+                    item={item}
+                    disabled={disabled}
+                    workspace={workspace}
+                  />
                 ) : (
                   <MediaInfo item={item} />
                 )}

@@ -49,7 +49,7 @@ function fixture() {
   const next = button('다음');
   layer.before(previous);
   layer.after(next);
-  return {previous, next, close};
+  return {anchor, previous, next, close};
 }
 
 it.each([false, true])(
@@ -72,6 +72,27 @@ it('keeps the popover open when focus moves between its swatches', () => {
   expect(screen.getByRole('dialog', {name: '매크로 색'})).toBeDefined();
   expect(close).not.toHaveBeenCalled();
 });
+
+it('returns from the color dialog to the slide grid in 진행', async () => {
+  const frame = document.createElement('main');
+  frame.dataset.workspaceLayout = 'show';
+  frame.innerHTML =
+    '<div data-show-slide-grid><div role="listbox" aria-label="슬라이드" tabindex="0"></div></div>';
+  document.body.append(frame);
+  controls.add(frame);
+  const {anchor, close} = fixture();
+  const run = vi.fn();
+  anchor.addEventListener('click', run);
+  await userEvent.keyboard('{Escape}');
+  expect(close).toHaveBeenCalledOnce();
+  expect(document.activeElement).toBe(withinFrame(frame));
+  await userEvent.keyboard(' {Enter}');
+  expect(run).not.toHaveBeenCalled();
+});
+
+function withinFrame(frame: HTMLElement): Element | null {
+  return frame.querySelector('[role="listbox"]');
+}
 
 it('lists the eight palette colors with no 없음 and says the color applies to this 매크로', async () => {
   fixture();
