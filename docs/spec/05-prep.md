@@ -142,7 +142,7 @@ not dim when focus leaves. 진행 retains its existing thumbnail style.
   default, background, start macro, and memo. The right column shows the
   preview, item name, 슬라이드 편집… and themed thumbnails. Item properties stay
   in table cells. It has no 순서 편집… action. Their attached thumbnail strips
-  show the number only; these slides have no labels.
+  show the number and the assigned 이름표, if any.
 - Double-click or Enter on a blank, ad, or sermon slides item opens its editor
   in 준비's center. Existing 슬라이드 편집 requests use the same editor, with no
   separate window. The back button shows the service name. Esc in a slide text
@@ -1250,9 +1250,10 @@ with its label, followed by 이름표, 전환 and 단축키 settings. The pictur
 follows text edits immediately and does not send to output. Label and transition
 edits apply to the selected slides; differing values are shown as mixed.
 
-The slide-item editor uses the same local picture and transition rows, backed by
-its draft selection. Slide-item records do not have song labels or slide
-hotkeys.
+The slide-item editor uses the same local picture, 이름표 menu, and transition
+rows, backed by its draft selection. The shared catalog offers the same choices
+as for song slides; assigning or clearing a name edits the selected slides as
+one undo step. Slide items do not have slide hotkeys.
 
 For a mixed transition selection, changing the duration updates each explicit
 transition without replacing its effect or direction; slides without a saved

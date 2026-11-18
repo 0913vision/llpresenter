@@ -10,6 +10,7 @@ import type {Saver} from './saver';
 import {settingsCodecs, type SettingsValue} from './settingsCodecs';
 import {settingsDefaults} from './settingsDefaults';
 import {readSettingsFile, settingsLocation} from './settingsFile';
+import {DEFAULT_VERSE_LABEL} from './defaults';
 
 export interface SettingsProblem {
   readonly file: string;
@@ -38,6 +39,29 @@ function asProblem(file: string, error: unknown): SettingsProblem {
   return {
     file: basename(file),
     error: {kind: 'invalid', file, field: '', message},
+  };
+}
+
+function addDefaultVerseLabel(document: SettingsDocument): SettingsDocument {
+  if (
+    document.name !== 'labels' ||
+    document.access !== 'editable' ||
+    document.value.defaultVerseLabelVersion !== undefined
+  ) {
+    return document;
+  }
+  const labels = [...document.value.labels];
+  if (!labels.some(label => label.name === DEFAULT_VERSE_LABEL.name)) {
+    const firstVerse = labels.findIndex(label => label.name === '1절');
+    labels.splice(
+      firstVerse < 0 ? labels.length : firstVerse,
+      0,
+      DEFAULT_VERSE_LABEL,
+    );
+  }
+  return {
+    ...document,
+    value: {...document.value, labels, defaultVerseLabelVersion: 1},
   };
 }
 
@@ -80,16 +104,22 @@ export async function loadSettingsArea(
             revision: 1,
           });
     if (!parsed.ok) throw new Error(parsed.error.message);
-    fallback = parsed.value;
     const [error] = read.problems;
     if (error !== undefined) {
+      fallback = parsed.value;
       return {
         document: parsed.value,
         problem: {file: basename(location.file), error},
       };
     }
-    if (loaded === null || (name === 'themes' && access === 'editable')) {
-      const text = codec.serialize(parsed.value.value, location.file);
+    const updated = addDefaultVerseLabel(parsed.value);
+    fallback = updated;
+    if (
+      loaded === null ||
+      updated !== parsed.value ||
+      (name === 'themes' && access === 'editable')
+    ) {
+      const text = codec.serialize(updated.value, location.file);
       if (!text.ok) {
         return {
           document: fallback,
@@ -107,7 +137,7 @@ export async function loadSettingsArea(
         };
       }
     }
-    return {document: parsed.value, problem: null};
+    return {document: updated, problem: null};
   } catch (error: unknown) {
     return {
       document: fallback === null ? null : {...fallback, access},

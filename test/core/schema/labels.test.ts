@@ -13,6 +13,7 @@ function defaultLabels() {
     schemaVersion: 1,
     labels: [
       {name: '전주', color: '#7D8FD6', key: null},
+      {name: '절', color: '#5FB8C2'},
       {name: '1절', color: '#5FB8C2', key: null},
       {name: '2절', color: '#5FB8C2', key: null},
       {name: '3절', color: '#5FB8C2', key: null},
@@ -36,6 +37,14 @@ function withLabelList(labels: readonly object[]) {
 }
 
 describe('parseLabels', () => {
+  it('accepts the optional default-label upgrade marker', () => {
+    expectRoundTrip(codec, {...defaultLabels(), defaultVerseLabelVersion: 1});
+    expectInvalidField(
+      codec,
+      {...defaultLabels(), defaultVerseLabelVersion: 0},
+      'defaultVerseLabelVersion',
+    );
+  });
   it('reads the default 이름표 list', () => {
     expectRoundTrip(codec, defaultLabels());
   });

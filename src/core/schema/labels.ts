@@ -21,6 +21,7 @@ const labelSchema = jsonObject({
 export const labelsSchema = jsonObject({
   format: v.literal('llsettings.labels'),
   schemaVersion: positiveInteger,
+  defaultVerseLabelVersion: v.exactOptional(positiveInteger),
   labels: v.pipe(
     v.array(labelSchema),
     uniqueNames<v.InferOutput<typeof labelSchema>>(

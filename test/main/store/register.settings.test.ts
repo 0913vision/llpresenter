@@ -91,7 +91,11 @@ describe('registerStore', () => {
     });
     expect(JSON.parse(await readFile(labelFile, 'utf8'))).toMatchObject({
       future: 'kept',
-      labels: [{name: 'After', future: 'kept'}],
+      defaultVerseLabelVersion: 1,
+      labels: [
+        {name: 'After', future: 'kept'},
+        {name: '절', color: '#5FB8C2'},
+      ],
     });
     await first.dispose();
     await register(mockLog(), context, () => true);
@@ -99,7 +103,10 @@ describe('registerStore', () => {
       await ask(settingsEndpoints.get.channel, {name: 'labels'}),
     ).toMatchObject({
       revision: 1,
-      value: {labels: [{name: 'After'}]},
+      value: {
+        defaultVerseLabelVersion: 1,
+        labels: [{name: 'After'}, {name: '절', color: '#5FB8C2'}],
+      },
     });
     for (const id of ids) {
       expect(await ask(contentEndpoints.songs.get.channel, id)).toMatchObject({
