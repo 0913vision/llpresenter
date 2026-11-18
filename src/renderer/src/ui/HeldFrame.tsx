@@ -41,7 +41,7 @@ function near(node: Element): boolean {
  * How many pictures the frame shows in and next to its views when all of them
  * are drawn, or -1 while any is still drawing.
  */
-function drawnPictures(root: HTMLElement): number {
+export function drawnPictures(root: HTMLElement): number {
   if ([...root.querySelectorAll('[data-picture-staging]')].some(near)) {
     return -1;
   }

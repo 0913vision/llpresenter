@@ -157,6 +157,7 @@ function ControlApp({
     session,
     workspace: shownWorkspace,
     onWorkspace,
+    onPrepareItem: setSavedPrepItem,
   });
   useShortcutSettings(session.api);
   useWindowShortcuts([

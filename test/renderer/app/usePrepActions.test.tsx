@@ -21,6 +21,7 @@ import type {SongDocument} from '@core/schema/contentDocuments';
 import {ControlSession} from '@renderer/app/controlSession';
 import {usePrepActions} from '@renderer/app/usePrepActions';
 import {InlineSongController} from '@renderer/features/songs/editor/InlineSongController';
+import * as heldFrame from '@renderer/ui/HeldFrame';
 
 const mock = vi.hoisted(() => {
   const state = {hasEditor: true, imported: false, library: false};
@@ -76,9 +77,12 @@ vi.mock('@renderer/app/usePrepSelection', () => ({
 }));
 vi.mock('@renderer/session/show', () => ({
   openItem: mock.openItem,
-  useShow: {
-    getState: () => mock.view,
-  },
+  useShow: Object.assign(
+    (selector: (view: typeof mock.view) => unknown) => selector(mock.view),
+    {
+      getState: () => mock.view,
+    },
+  ),
 }));
 vi.mock('@renderer/session/showLibrary', () => ({
   isLibrarySource: () => mock.state.library,
@@ -90,12 +94,12 @@ vi.mock('@renderer/features/songs/editor/InlineSongController', () => ({
   InlineSongController: vi.fn(() => null),
 }));
 
-function setup(api = mockLlpApi()) {
+function setup(api = mockLlpApi(), onPrepareItem?: (id: string) => void) {
   const session = new ControlSession(api);
   const onWorkspace = vi.fn();
   const hook = renderHook(
     ({workspace}: {workspace: 'show' | 'prep'}) =>
-      usePrepActions({session, workspace, onWorkspace}),
+      usePrepActions({session, workspace, onWorkspace, onPrepareItem}),
     {initialProps: {workspace: 'show'}},
   );
   return {...hook, session, onWorkspace};
@@ -118,6 +122,8 @@ beforeEach(() => {
 afterEach(cleanup);
 
 it('follows an accepted editor target in the item preview and slide grid', () => {
+  mock.view.serviceId = fixtureServiceId;
+  mock.view.rows = [{kind: 'song', id: fixtureItems.arranged, title: 'Song'}];
   const {result, onWorkspace} = setup();
   render(result.current.importSurface);
   const opened = vi.mocked(InlineSongController).mock.lastCall?.[0].onOpen;
@@ -169,6 +175,72 @@ function setupServiceSong() {
     .mockResolvedValue({ok: true, value: undefined});
   return {...fixture, ...setup(fixture.api), open};
 }
+
+it('keeps 진행 visible until the requested service song has opened', async () => {
+  const {result, api, onWorkspace, open} = setupServiceSong();
+  const document = await api.services.get(fixtureServiceId);
+  const reading = deferred<typeof document>();
+  vi.spyOn(api.services, 'get').mockReturnValue(reading.promise);
+  render(result.current.importSurface);
+  act(() => result.current.onOpenPrep(fixtureItems.arranged, 0));
+  act(() => mock.editor.requestLeave.mock.calls[0]?.[0]());
+  expect(onWorkspace).not.toHaveBeenCalled();
+  await act(async () => reading.resolve(document));
+  await waitFor(() => expect(open).toHaveBeenCalledOnce());
+  expect(onWorkspace).not.toHaveBeenCalled();
+  const opened = vi.mocked(InlineSongController).mock.lastCall?.[0].onOpen;
+  act(() =>
+    opened?.({
+      songId: createSongId(mock.songId),
+      from: {serviceId: fixtureServiceId, itemId: fixtureItems.arranged},
+    }),
+  );
+  expect(onWorkspace).toHaveBeenCalledExactlyOnceWith('prep');
+});
+
+it('waits for the hidden requested editor pictures before switching from 진행', async () => {
+  const fixture = itemFixture();
+  mock.view.serviceId = fixtureServiceId;
+  mock.view.rows = [{kind: 'song', id: fixtureItems.arranged, title: 'Song'}];
+  const ready = vi.spyOn(heldFrame, 'drawnPictures').mockReturnValue(-1);
+  const frames: FrameRequestCallback[] = [];
+  const animation = vi
+    .spyOn(window, 'requestAnimationFrame')
+    .mockImplementation(callback => {
+      frames.push(callback);
+      return frames.length;
+    });
+  const prepare = vi.fn();
+  const frame = document.createElement('div');
+  frame.dataset['prepFrame'] = '';
+  frame.dataset['prepItem'] = fixtureItems.arranged;
+  frame.dataset['prepSettled'] = 'true';
+  document.body.append(frame);
+  try {
+    const {result, onWorkspace} = setup(fixture.api, prepare);
+    render(result.current.importSurface);
+    mock.view.openItemId = fixtureItems.arranged;
+    const opened = vi.mocked(InlineSongController).mock.lastCall?.[0].onOpen;
+    act(() =>
+      opened?.({
+        songId: createSongId(mock.songId),
+        from: {serviceId: fixtureServiceId, itemId: fixtureItems.arranged},
+      }),
+    );
+    expect(prepare).toHaveBeenCalledWith(fixtureItems.arranged);
+    act(() => frames.shift()?.(0));
+    expect(onWorkspace).not.toHaveBeenCalled();
+    ready.mockReturnValue(2);
+    act(() => frames.shift()?.(0));
+    expect(onWorkspace).not.toHaveBeenCalled();
+    act(() => frames.shift()?.(0));
+    expect(onWorkspace).toHaveBeenCalledExactlyOnceWith('prep');
+  } finally {
+    frame.remove();
+    ready.mockRestore();
+    animation.mockRestore();
+  }
+});
 
 it.each(['song', 'slides'] as const)(
   'reveals %s background settings without opening its text editor',

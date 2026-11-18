@@ -254,6 +254,11 @@ export function Workspace({
             styles.frameSlot,
             visibleId !== 'prep' && styles.hiddenFrame,
           )}
+          data-prep-frame
+          data-prep-item={prepItemId ?? undefined}
+          data-prep-settled={
+            prepPanels.hold?.settled === true ? 'true' : 'false'
+          }
           inert={visibleId !== 'prep'}
           aria-hidden={visibleId !== 'prep'}
         >

@@ -77,11 +77,13 @@ export function useSongEditorWindow(
     report,
     onOpened,
     beforeLeave,
+    shortcutsActive = true,
   }: {
     readonly report: (notice: Notice) => void;
     readonly onOpened?: (target: SongEditorTarget) => void;
     readonly beforeLeave?:
       ((proceed: () => void, cancel?: () => void) => void) | undefined;
+    readonly shortcutsActive?: boolean | undefined;
   },
 ) {
   const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
@@ -323,13 +325,13 @@ export function useSongEditorWindow(
     {
       id: 'songWindow.save',
       context: 'song',
-      when: () => !state.imported && state.session !== null,
+      when: () => shortcutsActive && !state.imported && state.session !== null,
       run: askOverwrite,
     },
     {
       id: 'songWindow.saveAs',
       context: 'song',
-      when: () => !state.imported && state.session !== null,
+      when: () => shortcutsActive && !state.imported && state.session !== null,
       run: askSaveAs,
     },
   ]);

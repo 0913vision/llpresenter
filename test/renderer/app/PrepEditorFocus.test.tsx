@@ -18,7 +18,11 @@ import {
 } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
-import {createServiceItemId, createThemeId} from '@core/schema/ids';
+import {
+  createServiceId,
+  createServiceItemId,
+  createThemeId,
+} from '@core/schema/ids';
 import type {SlidesEditorTarget} from '@contracts/ipc/slidesEditor';
 import {newSlidesItem} from '@core/services/slidesEdits';
 import {
@@ -233,6 +237,53 @@ it('keeps the editor while 진행 is shown without letting Escape close it', asy
     expect(screen.getByRole('region', {name: '곡 편집'})).toBeTruthy(),
   );
   expect(f.session.editor?.getSnapshot().session).toBe(session);
+});
+
+it.each(['service', 'item'] as const)(
+  'invalidates a retained service editor when its %s changes in 진행',
+  async change => {
+    const f = setup();
+    await userEvent.dblClick(
+      screen.getByRole('option', {name: /Service song/}),
+    );
+    await waitFor(() =>
+      expect(f.session.editor?.getSnapshot().session?.itemSession).toBe(true),
+    );
+    await userEvent.click(screen.getByRole('tab', {name: '진행'}));
+    act(() =>
+      applyService({
+        revision: 2,
+        id:
+          change === 'service'
+            ? createServiceId('30000000-0000-4000-8000-000000000099')
+            : fixtureServiceId,
+        name: 'Changed service',
+        readOnly: false,
+        rows: [],
+        tiles: {},
+      }),
+    );
+    await waitFor(() =>
+      expect(f.session.editor?.getSnapshot().session).toBeNull(),
+    );
+    await userEvent.click(screen.getByRole('tab', {name: '준비'}));
+    expect(screen.queryByRole('region', {name: '곡 편집'})).toBeNull();
+  },
+);
+
+it('does not open Save As for a retained song while 진행 is visible', async () => {
+  const f = setup();
+  await userEvent.dblClick(screen.getByRole('option', {name: /Service song/}));
+  await waitFor(() =>
+    expect(f.session.editor?.getSnapshot().session).not.toBeNull(),
+  );
+  await userEvent.keyboard('{Control>}{Shift>}s{/Shift}{/Control}');
+  await screen.findByRole('dialog', {name: /다른 이름으로 저장/});
+  await userEvent.keyboard('{Escape}');
+  await userEvent.click(screen.getByRole('tab', {name: '진행'}));
+  await userEvent.keyboard('{Control>}{Shift>}s{/Shift}{/Control}');
+  expect(screen.queryByRole('dialog', {name: /다른 이름으로 저장/})).toBeNull();
+  expect(f.session.editor?.getSnapshot().session).not.toBeNull();
 });
 
 it.each(['double-click', 'Enter'] as const)(
