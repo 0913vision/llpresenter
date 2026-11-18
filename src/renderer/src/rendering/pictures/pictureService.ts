@@ -31,6 +31,14 @@ interface DisplayTicket {
   readonly display: PictureDisplay | undefined;
 }
 
+function canPreparePicture(): boolean {
+  return (
+    typeof window !== 'undefined' &&
+    window.llp?.picture !== undefined &&
+    typeof URL.createObjectURL === 'function'
+  );
+}
+
 class Entry {
   private readonly listeners = new Set<Listener>();
   readonly ready: Promise<void>;
@@ -44,9 +52,7 @@ class Entry {
   failures = 0;
   retryAt = 0;
   repaint = false;
-  readonly available =
-    window.llp?.picture !== undefined &&
-    typeof URL.createObjectURL === 'function';
+  readonly available = canPreparePicture();
   private revision = 0;
 
   constructor(
@@ -122,6 +128,11 @@ class PictureService {
   private fontUpdate = 0;
   private initialized = false;
   private inputsReady = Promise.resolve();
+
+  /** A renderer without the picture transport cannot stage a handoff. */
+  get drawInPlace(): boolean {
+    return !canPreparePicture();
+  }
   private active = 0;
   private bytes = 0;
   private scheduled = false;

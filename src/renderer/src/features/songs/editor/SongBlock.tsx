@@ -32,6 +32,7 @@ import field from '@renderer/ui/TextField.module.css';
 import {SONG_LIMITS} from '@core/schema/song';
 import type {SlideCardRenderer} from './SlideCardRenderer';
 import {Picture} from '@renderer/rendering/pictures/Picture';
+import {usePrepPictureSwitch} from '@renderer/rendering/PrepPictureSwitch';
 import {
   pictures,
   type PictureSpec,
@@ -111,6 +112,7 @@ export const SongBlock = memo(
       readonly end: number;
     }>();
     const restoreCaret = useRef(false);
+    const switching = usePrepPictureSwitch();
     const inputs = useSyncExternalStore(pictures.subscribeInputs, () =>
       picture === undefined ? '' : pictures.inputs(picture),
     );
@@ -361,7 +363,7 @@ export const SongBlock = memo(
             <div className={styles.thumbnail} data-editor-thumbnail>
               <div className={styles.thumbnailCanvas}>
                 {picture === undefined ? null : (
-                  <Picture {...picture} editing={focused} />
+                  <Picture {...picture} editing={focused} wait={switching} />
                 )}
                 <SlideTransitionMark transition={slide.transition} />
               </div>

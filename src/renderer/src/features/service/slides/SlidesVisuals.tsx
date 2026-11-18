@@ -12,8 +12,7 @@ import {withSectionCard} from '@core/services/sectionCards';
 import type {BibleProjection} from '@renderer/features/bible/splitProjection';
 import {useSlidesVerseProjection} from '@renderer/features/bible/useSlidesVerseProjection';
 import {Button} from '@renderer/ui/Button';
-import {OutputPreviewPicture} from '@renderer/rendering/OutputPreviewPicture';
-import {Picture as PreparedPicture} from '@renderer/rendering/pictures/Picture';
+import {Picture} from '@renderer/rendering/pictures/Picture';
 import {usePrepPictureSwitch} from '@renderer/rendering/PrepPictureSwitch';
 import {
   previewAppearance,
@@ -190,7 +189,7 @@ export function SlidesCanvas({
       data-preview-ready={visible ? undefined : 'deferred'}
     >
       {visible || switching === true ? (
-        <PreparedPicture
+        <Picture
           wait={switching === true}
           layers={layers}
           appearance={appearance}
