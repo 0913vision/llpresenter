@@ -109,13 +109,12 @@ describe('preview overlay wiring', () => {
     expect(messages).toHaveLength(2);
     expect(
       view.container.querySelectorAll(
-        `[data-kind="stageMessage"] .${classes.shown}`,
+        '[data-stage-message-band]:not([hidden])',
       ),
     ).toHaveLength(1);
     expect(
-      view.container.querySelector(
-        `[data-kind="stageMessage"] .${classes.shown}`,
-      )?.textContent,
+      view.container.querySelector('[data-stage-message-band]:not([hidden])')
+        ?.textContent,
     ).toBe('Stage cue');
     store.dispatch({type: 'layer.clear', target: 'message'});
     act(() => {
@@ -148,9 +147,8 @@ describe('preview overlay wiring', () => {
       view.container.querySelector(`[data-layer="message"] .${classes.shown}`),
     ).toBeNull();
     expect(
-      view.container.querySelector(
-        `[data-kind="stageMessage"] .${classes.shown}`,
-      )?.textContent,
+      view.container.querySelector('[data-stage-message-band]:not([hidden])')
+        ?.textContent,
     ).toBe('Stage cue');
     expect(stopSettings).not.toHaveBeenCalled();
     view.unmount();

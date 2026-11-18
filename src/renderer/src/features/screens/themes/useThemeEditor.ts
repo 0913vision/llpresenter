@@ -85,7 +85,9 @@ export function useThemeEditor(
       ? []
       : fittedBroadcast
         ? sampleBroadcastLayout(resolvedLayout, theme?.id).elements
-        : resolvedLayout.elements;
+        : resolvedLayout.elements.filter(
+            element => element.kind !== 'stageMessage',
+          );
 
   const scope =
     theme === undefined || screen === undefined

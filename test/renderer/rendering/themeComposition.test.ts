@@ -118,15 +118,11 @@ describe('theme composition drawing', () => {
     view.render(song, stage);
     const clock = root.querySelector<HTMLElement>('[data-kind="clock"]');
     const timer = root.querySelector<HTMLElement>('[data-kind="timer"]');
-    const message = root.querySelector<HTMLElement>(
-      '[data-kind="stageMessage"]',
-    );
+    expect(root.querySelector('[data-kind="stageMessage"]')).toBeNull();
     const fixed = root.querySelector<HTMLElement>('[data-kind="text"]');
     expect(text('clock')).toBeTruthy();
-    expect(text('stageMessage')).toBe('Stage cue');
     view.render({...song, slide: null}, stage);
     expect(clock?.style.opacity).toBe('1');
-    expect(message?.style.opacity).toBe('1');
     if (stage.theme === undefined || stage.theme.item === null) {
       throw Error('Missing theme');
     }
@@ -140,9 +136,7 @@ describe('theme composition drawing', () => {
     view.render(emptyLayers(), cleared);
     expect(clock?.style.opacity).toBe('1');
     expect(timer?.style.opacity).toBe('1');
-    expect(message?.style.opacity).toBe('1');
     expect(text('clock')).toBeTruthy();
-    expect(text('stageMessage')).toBe('Stage cue');
     expect(fixed?.style.opacity).toBe('0');
     view.render(song, stage);
     expect(fixed?.style.opacity).toBe('1');

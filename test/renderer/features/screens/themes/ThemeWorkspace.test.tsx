@@ -862,7 +862,8 @@ it('renders the edited background through a screen link and restores retained el
     expect(value().themes[0]?.screens[STAGE]?.mode).toEqual({kind: 'own'});
     expect(value().themes[0]?.screens[STAGE]?.elements).toEqual(stageElements);
     expect(canvas().querySelectorAll('[data-canvas-element]')).toHaveLength(
-      stageElements?.length ?? 0,
+      stageElements?.filter(element => element.kind !== 'stageMessage')
+        .length ?? 0,
     );
   });
 });
