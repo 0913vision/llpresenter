@@ -207,6 +207,36 @@ describe('theme lifecycle edits', () => {
     ).toEqual({ok: false, error: 'standby'});
   });
 
+  it('freezes a deleted user theme and refuses reuse of its identity', () => {
+    const {file} = setup();
+    const added = value(
+      editThemeList(file, {kind: 'add', id, screens}, new Set()),
+    );
+    const theme = added.themes.find(entry => entry.id === id);
+    const removed = value(
+      editThemeList(added, {kind: 'delete', id, confirmed: true}, new Set()),
+    );
+    expect(removed.themes.some(entry => entry.id === id)).toBe(false);
+    expect(removed.deletedThemes).toEqual([theme]);
+    expect(
+      editThemeList(
+        {
+          ...added,
+          deletedThemes: Array.from(
+            {length: 1000},
+            () => added.themes[0],
+          ).filter(entry => entry !== undefined),
+        },
+        {kind: 'delete', id, confirmed: true},
+        new Set(),
+      ),
+    ).toEqual({ok: false, error: 'deleted-full'});
+    expect(editThemeList(removed, {kind: 'add', id}, new Set())).toEqual({
+      ok: false,
+      error: 'duplicate-id',
+    });
+  });
+
   it('reorders themes and protects built-ins from deletion', () => {
     const {file, theme} = setup();
     const moved = value(

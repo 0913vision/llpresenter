@@ -59,6 +59,7 @@ export function screenOutputSections(
         loadSubmenu: () =>
           themeMenuEntries({
             themes: input.themes?.themes ?? [],
+            deletedThemes: input.themes?.deletedThemes ?? [],
             sectionCard: input.sectionCard,
             current: input.themeId,
             choose: themeId => sendThemeChange(themeId, input.onProblem),

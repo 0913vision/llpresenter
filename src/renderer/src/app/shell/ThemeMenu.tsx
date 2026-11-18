@@ -69,6 +69,7 @@ export function ThemeMenu({
           onClose={() => setAnchor(null)}
           entries={themeMenuEntries({
             themes: file?.themes ?? [],
+            deletedThemes: file?.deletedThemes ?? [],
             sectionCard,
             current: currentId,
             choose: themeId => sendThemeChange(themeId, onProblem),

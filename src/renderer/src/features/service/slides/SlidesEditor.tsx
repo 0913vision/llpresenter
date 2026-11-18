@@ -124,6 +124,14 @@ function SlidesHeader({
               valueText={themeName}
               options={[
                 {value: '', label: '기본'},
+                ...(themes?.deletedThemes ?? [])
+                  .filter(theme => theme.id === item.theme)
+                  .map(theme => ({
+                    value: theme.id,
+                    label: `(${theme.name})`,
+                    disabled: true,
+                    title: '삭제된 테마',
+                  })),
                 ...(themes?.themes ?? [])
                   .filter(theme => canChooseItemTheme(item, theme.id))
                   .map(theme => ({

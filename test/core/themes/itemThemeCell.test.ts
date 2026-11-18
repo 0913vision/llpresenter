@@ -68,3 +68,16 @@ it('falls back to the default when the chosen theme is gone', () => {
 it('has no cell for a header', () => {
   expect(itemThemeCell({id: ITEM_ID, header: '찬양'}, file)).toBeUndefined();
 });
+
+it('shows a frozen deleted choice in parentheses without following the default', () => {
+  const deleted = {
+    ...songTheme,
+    id: file.themes[1]?.id ?? songTheme.id,
+    name: 'Old',
+  };
+  const saved = {...file, themes: [songTheme], deletedThemes: [deleted]};
+  expect(itemThemeCell(songItem({theme: deleted.id}), saved)).toEqual({
+    name: '(Old)',
+    followsDefault: false,
+  });
+});

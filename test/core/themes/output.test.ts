@@ -23,6 +23,77 @@ import {
 import {BIBLE_THEME_ID} from '@core/themes/defaults';
 
 describe('published theme compositions', () => {
+  it('resolves a deleted item theme from its frozen layouts', () => {
+    const defaults = themeFile();
+    const template = defaults.themes[0];
+    if (template === undefined) throw Error('Missing theme');
+    const original = {
+      ...template,
+      id: createThemeId('00000000-0000-4000-8000-000000000998'),
+    };
+    const file = {...defaults, themes: [...defaults.themes, original]};
+    const deleted = {
+      ...file,
+      themes: file.themes.filter(theme => theme.id !== original.id),
+      deletedThemes: [original],
+    };
+    expect(
+      resolveItemTheme({
+        file: deleted,
+        kind: 'song',
+        source: 'service',
+        theme: original.id,
+      }),
+    ).toEqual(original);
+    const item = {
+      id: 'song',
+      kind: 'song' as const,
+      source: 'service' as const,
+      theme: original.id,
+    };
+    const before = resolveThemeOutput({
+      file,
+      screens: themeScreens,
+      item,
+      revision: 1,
+    });
+    const after = resolveThemeOutput({
+      file: deleted,
+      screens: themeScreens,
+      item,
+      revision: 1,
+    });
+    expect(after).toEqual(before);
+    const manual = {kind: 'manual' as const, id: original.id};
+    const manualBefore = resolveThemeOutput({
+      file,
+      screens: themeScreens,
+      item,
+      mode: manual,
+      revision: 1,
+    });
+    const manualAfter = resolveThemeOutput({
+      file: deleted,
+      screens: themeScreens,
+      item,
+      mode: manual,
+      revision: 1,
+    });
+    expect(manualAfter).toEqual(manualBefore);
+    const differentItem = {
+      ...item,
+      theme: createThemeId('00000000-0000-4000-8000-000000000999'),
+    };
+    const unrelatedOverride = resolveThemeOutput({
+      file: deleted,
+      screens: themeScreens,
+      item: differentItem,
+      mode: manual,
+      revision: 1,
+    });
+    expect(unrelatedOverride.themeId).not.toBe(original.id);
+    expect(unrelatedOverride.missing).toContain(original.id);
+  });
   it('updates the former sermon broadcast layout but retains a custom layout', () => {
     const theme = themeFile().themes.find(
       entry => entry.id === SERMON_TITLE_THEME_ID,

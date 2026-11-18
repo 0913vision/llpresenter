@@ -34,6 +34,17 @@ function themeEntries({
       checked: followsDefault,
       onSelect: () => choose(undefined),
     },
+    ...(themes?.deletedThemes ?? [])
+      .filter(theme => theme.id === item.theme)
+      .map((theme): MenuEntry => ({
+        kind: 'item',
+        id: theme.id,
+        label: `(${theme.name})`,
+        check: 'radio',
+        checked: true,
+        disabled: true,
+        title: '삭제된 테마',
+      })),
     ...(themes?.themes ?? [])
       .filter(theme => canChooseItemTheme(item, theme.id))
       .map((theme): MenuEntry => ({

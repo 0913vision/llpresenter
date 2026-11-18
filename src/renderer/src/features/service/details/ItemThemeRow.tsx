@@ -160,7 +160,9 @@ export function ItemThemeRow({
   const hasDefault =
     file?.themes.some(entry => entry.id === defaultId) === true;
   const defaultValue = hasDefault ? (defaultId ?? '') : '';
+  const deleted = file?.deletedThemes?.find(entry => entry.id === item.theme);
   const hasSelected =
+    deleted !== undefined ||
     file?.standby.id === item.theme ||
     file?.themes.some(entry => entry.id === item.theme) === true;
   const lock =
@@ -179,7 +181,11 @@ export function ItemThemeRow({
             block
             menuLabel="항목 테마"
             value={hasSelected ? (item.theme ?? defaultValue) : defaultValue}
-            valueText={theme?.name ?? '기본'}
+            valueText={
+              deleted === undefined
+                ? (theme?.name ?? '기본')
+                : `(${deleted.name})`
+            }
             options={[
               ...(hasDefault || defaultTheme === undefined
                 ? []
@@ -187,6 +193,16 @@ export function ItemThemeRow({
               ...(file
                 ? [{value: file.standby.id, label: file.standby.name}]
                 : []),
+              ...(deleted === undefined
+                ? []
+                : [
+                    {
+                      value: deleted.id,
+                      label: `(${deleted.name})`,
+                      disabled: true,
+                      title: '삭제된 테마',
+                    },
+                  ]),
               ...(file?.themes ?? [])
                 .filter(entry => canChooseItemTheme(item, entry.id))
                 .map(entry => ({

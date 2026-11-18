@@ -14,6 +14,8 @@ export function liveThemeName(
     file?.standby.id === id
       ? file?.standby
       : file?.themes.find(entry => entry.id === id);
+  const deleted = file?.deletedThemes?.find(entry => entry.id === id);
+  if (deleted !== undefined) return `(${deleted.name})`;
   return theme ? theme.name || '이름 없는 테마' : '없음';
 }
 
@@ -21,17 +23,30 @@ export function liveThemeName(
 export function themeMenuEntries({
   themes,
   current,
+  deletedThemes = [],
   choose,
   edit,
   sectionCard = false,
 }: {
   readonly themes: readonly Theme[];
   readonly current: ThemeId | null | undefined;
+  readonly deletedThemes?: readonly Theme[];
   readonly choose: (id: ThemeId) => void;
   readonly edit: (() => void) | undefined;
   readonly sectionCard?: boolean | undefined;
 }): readonly MenuEntry[] {
   return [
+    ...deletedThemes
+      .filter(theme => theme.id === current)
+      .map((theme): MenuEntry => ({
+        kind: 'item',
+        id: theme.id,
+        label: `(${theme.name})`,
+        check: 'radio',
+        checked: true,
+        disabled: true,
+        title: '삭제된 테마',
+      })),
     ...themes
       .filter(theme => sectionCard || !isSectionTheme(theme.id))
       .map((theme): MenuEntry => ({

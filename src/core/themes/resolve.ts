@@ -38,7 +38,8 @@ export function resolveItemTheme(request: ItemThemeRequest): Theme {
   }
   const own =
     source === 'service'
-      ? file?.themes.find(entry => entry.id === theme)
+      ? (file?.themes.find(entry => entry.id === theme) ??
+        file?.deletedThemes?.find(entry => entry.id === theme))
       : undefined;
   const retired =
     source === 'service' && theme !== undefined && own === undefined
