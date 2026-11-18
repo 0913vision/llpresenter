@@ -424,7 +424,9 @@ Library changes wait for 저장; item changes save only to that item.
 Every service slide, including text, picture, imported picture, advertisement,
 and verse slides, may carry an optional label. The same catalog menu applies to
 a single selected slide or all selected slides. The tile band shows the name and
-its catalog color; stage output carries it as the slide label.
+its catalog color; stage output carries it as the slide label. The slide
+inspector exposes the same 이름표 menu for slide items, including 예배 준비,
+as it does for songs; a multi-selection receives one label as one undo step.
 
 ### 이름표 menu
 

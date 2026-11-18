@@ -1,4 +1,4 @@
-import {useSyncExternalStore, type JSX} from 'react';
+import {useState, useSyncExternalStore, type JSX} from 'react';
 import type {SlideTransition} from '@core/schema/slideTransition';
 import type {LlpApi} from '@contracts/ipc/api';
 import {useItemMedia} from '../items/useItemSources';
@@ -11,7 +11,10 @@ import {
 } from '../slides/SlidesVisuals';
 import type {SlidesListSession} from '../slides/slidesListSession';
 import {Panel, PanelBody} from '@renderer/ui/Panel';
-import {Properties} from '@renderer/ui/PropertyRow';
+import {Properties, PropertyGroup, PropertyRow} from '@renderer/ui/PropertyRow';
+import {Button} from '@renderer/ui/Button';
+import {LabelMenu} from '@renderer/features/songs/editor/LabelMenu';
+import type {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {AtomicPictureContent} from '@renderer/rendering/AtomicPictureContent';
 import {TransitionPicker, TransitionRows} from './TransitionRows';
 import {slideTransitionUndo} from '@renderer/features/songs/editor/slideTransitionSelection';
@@ -20,6 +23,7 @@ import styles from './SlideInspector.module.css';
 /** Inspect a local slide item through its existing draft and selection. */
 export function SlidesInspector({
   api,
+  store,
   session,
   onApplyAll,
   cardSelected = false,
@@ -27,6 +31,7 @@ export function SlidesInspector({
   readonly cardSelected?: boolean;
   readonly onApplyAll?: ((transition: SlideTransition) => void) | undefined;
   readonly api: LlpApi;
+  readonly store: SongEditorStore;
   readonly session: SlidesListSession;
 }): JSX.Element {
   const view = useSyncExternalStore(
@@ -43,6 +48,9 @@ export function SlidesInspector({
   const selectedSlides = view.slides.filter(entry =>
     view.selection.ids.has(entry.id),
   );
+  const [labelAnchor, setLabelAnchor] = useState<HTMLElement | null>(null);
+  const label = selectedSlides[0]?.label;
+  const mixedLabel = selectedSlides.some(entry => entry.label !== label);
   const effects = [
     ...(card === undefined
       ? []
@@ -118,6 +126,23 @@ export function SlidesInspector({
                   </span>
                 </div>
                 <Properties>
+                  <PropertyGroup>
+                    <PropertyRow label="이름표">
+                      {() => (
+                        <Button
+                          size="md"
+                          aria-label="이름표"
+                          className={styles.full}
+                          disabled={
+                            session.readOnly || selectedSlides.length === 0
+                          }
+                          onClick={event => setLabelAnchor(event.currentTarget)}
+                        >
+                          {mixedLabel ? '혼합' : (label ?? '없음')}
+                        </Button>
+                      )}
+                    </PropertyRow>
+                  </PropertyGroup>
                   {card === undefined ? (
                     <TransitionRows
                       session={session}
@@ -139,6 +164,20 @@ export function SlidesInspector({
                     />
                   )}
                 </Properties>
+                {labelAnchor === null ? null : (
+                  <LabelMenu
+                    store={store}
+                    anchor={labelAnchor}
+                    selected={mixedLabel ? undefined : label}
+                    onChoose={name =>
+                      session.commandSlides({type: 'label', label: name})
+                    }
+                    onClose={restore => {
+                      setLabelAnchor(null);
+                      if (restore) labelAnchor.focus();
+                    }}
+                  />
+                )}
               </div>
             }
           />

@@ -565,7 +565,7 @@ unknown fields are preserved; stage and prop references continue resolving by ID
 | `.name`    | String                           | Name. Unique in the list.                         | `Reflow`                                      |
 | `.color`   | Six-digit `#RRGGBB`, or `"none"` | Color.                                            | `Reflow` color row, `LabelColorPicker` README |
 
-Defaults, in order: 전주 (`#7D8FD6`), 1절 to 4절 (`#5FB8C2`), 프리코러스
+Defaults, in order: 전주 (`#7D8FD6`), 절 and 1절 to 4절 (`#5FB8C2`), 프리코러스
 (`#8FBF7A`), 후렴 (`#D6B35F`), 포스트코러스 (`#D68F5F`), 브리지 (`#A99AE0`),
 간주 (`#A3A3A3`), 후주 (`#7D8FD6`). Palette names are invalid; no legacy color
 reader or conversion is provided before the first release. Source-slide hot keys

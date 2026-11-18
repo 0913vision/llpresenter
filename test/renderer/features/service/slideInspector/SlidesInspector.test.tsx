@@ -1,6 +1,6 @@
-import {act, render, within} from '@testing-library/react';
+import {act, render, screen, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {expect, it, vi} from 'vitest';
+import {afterEach, expect, it, vi} from 'vitest';
 import {createServiceItemId, createSlideId} from '@core/schema/ids';
 import {newSlidesItem, SlidesDraft} from '@core/services/slidesEdits';
 import {newSectionCard} from '@core/services/sectionCards';
@@ -9,6 +9,18 @@ import {SlidesListSession} from '@renderer/features/service/slides/slidesListSes
 import {SlidesInspector} from '@renderer/features/service/slideInspector/SlidesInspector';
 import {useContext, useLayoutEffect, useRef} from 'react';
 import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
+import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
+import {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
+
+const stores: SongEditorStore[] = [];
+function editorStore(): SongEditorStore {
+  const store = new SongEditorStore(editorFixture().api, vi.fn());
+  stores.push(store);
+  return store;
+}
+afterEach(async () => {
+  await Promise.all(stores.splice(0).map(store => store.dispose()));
+});
 vi.mock('@renderer/features/service/items/useItemSources', () => ({
   useItemMedia: () => ({document: null}),
 }));
@@ -55,7 +67,13 @@ it('tracks slide item selection and applies mixed transition edits', async () =>
     locked: () => false,
     problem: vi.fn(),
   });
-  const view = render(<SlidesInspector api={mockLlpApi()} session={session} />);
+  const view = render(
+    <SlidesInspector
+      api={mockLlpApi()}
+      store={editorStore()}
+      session={session}
+    />,
+  );
   const panel = within(view.container);
   const user = userEvent.setup();
   expect(panel.getByTestId('picture').textContent).toBe('첫 장');
@@ -63,6 +81,17 @@ it('tracks slide item selection and applies mixed transition edits', async () =>
   if (second === undefined) throw new Error('Missing second slide');
   act(() => session.selectSlides({type: 'click', id: second.id, ctrl: true}));
   expect(panel.getByTestId('picture').textContent).toBe('둘째 장');
+  await user.click(panel.getByRole('button', {name: '이름표'}));
+  await user.click(await screen.findByRole('menuitemradio', {name: '1절'}));
+  expect(draft.snapshot.item.slides.slides.map(slide => slide.label)).toEqual([
+    '1절',
+    '1절',
+  ]);
+  act(() => session.edit('undo'));
+  expect(draft.snapshot.item.slides.slides.map(slide => slide.label)).toEqual([
+    undefined,
+    undefined,
+  ]);
   expect(panel.getByLabelText('전환 시간')).toHaveProperty(
     'placeholder',
     '혼합',
@@ -100,7 +129,13 @@ it('shows the picture and transition control for a card-only slide item', async 
     locked: () => false,
     problem: vi.fn(),
   });
-  const view = render(<SlidesInspector api={mockLlpApi()} session={session} />);
+  const view = render(
+    <SlidesInspector
+      api={mockLlpApi()}
+      store={editorStore()}
+      session={session}
+    />,
+  );
   const panel = within(view.container);
   expect(panel.getByTestId('picture').textContent).toBe('WELCOME');
   await userEvent.click(panel.getByRole('button', {name: '밀어내기'}));
@@ -118,7 +153,12 @@ it('applies one transition to a selected section card and slide and undoes both'
     problem: vi.fn(),
   });
   const view = render(
-    <SlidesInspector api={mockLlpApi()} session={session} cardSelected />,
+    <SlidesInspector
+      api={mockLlpApi()}
+      store={editorStore()}
+      session={session}
+      cardSelected
+    />,
   );
   await userEvent.click(
     within(view.container).getByRole('button', {

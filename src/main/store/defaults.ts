@@ -7,6 +7,7 @@ import type {MediaList} from '@core/schema/mediaList';
  */
 export const DEFAULT_LABELS: readonly Label[] = [
   {name: '전주', color: '#7D8FD6'},
+  {name: '절', color: '#5FB8C2'},
   {name: '1절', color: '#5FB8C2'},
   {name: '2절', color: '#5FB8C2'},
   {name: '3절', color: '#5FB8C2'},

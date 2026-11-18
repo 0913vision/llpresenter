@@ -109,6 +109,7 @@ function SlidesCardInspector({prep}: {readonly prep: PrepBinding}): ReactNode {
   return prep.slides?.session ? (
     <SlidesInspector
       api={prep.api}
+      store={prep.editor}
       session={prep.slides.session}
       onApplyAll={applyAll}
       cardSelected={state.cardSelected}
