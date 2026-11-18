@@ -16,7 +16,8 @@ import {defaultThumbnailColumns} from '@renderer/ui/sizeClass';
 // NOTE(0913vision): Before measurement, include enough tiles for a full grid. They
 // must all be prepared before an editor switch commits; otherwise measurement
 // brings additional, still-blank tiles into the first visible viewport.
-const INITIAL_ROWS = 32;
+const INITIAL_GRID_ROWS = 32;
+const INITIAL_LIST_ROWS = 8;
 const OVERSCAN = 2;
 const GRID_GAP = 24;
 const GRID_MIN_TEXT_LINES = 3;
@@ -199,12 +200,13 @@ export function useSongBlockWindow(
     }
     return result;
   }, [slides, measure, mode, cellWidth, columns, heights, fallbackHeight]);
+  const initialRows = mode === 'grid' ? INITIAL_GRID_ROWS : INITIAL_LIST_ROWS;
   const total = offsets.at(-1) ?? 0;
   const first = Math.max(
     0,
     Math.min(
       rowAt(offsets, scrollTop) * columns - OVERSCAN * columns,
-      measure.viewport > 0 ? slides.length : slides.length - INITIAL_ROWS,
+      measure.viewport > 0 ? slides.length : slides.length - initialRows,
     ),
   );
   const end =
@@ -214,7 +216,7 @@ export function useSongBlockWindow(
           (rowAt(offsets, scrollTop + measure.viewport) + OVERSCAN + 1) *
             columns,
         )
-      : Math.min(slides.length, first + INITIAL_ROWS);
+      : Math.min(slides.length, first + initialRows);
   const indices = new Set(
     Array.from({length: Math.max(0, end - first)}, (_, index) => first + index),
   );
