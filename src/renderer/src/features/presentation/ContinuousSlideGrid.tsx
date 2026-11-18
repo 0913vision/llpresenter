@@ -214,7 +214,7 @@ export function ContinuousSlideGrid({
   const pause = useRef(0);
   const dragging = useRef(false);
   const followRef = useRef<
-    (behavior?: ScrollBehavior, keyedDown?: boolean) => void
+    (behavior?: ScrollBehavior, keyed?: 'down' | 'other') => void
   >(() => undefined);
   const keyed = useRef(0);
   const followed = useRef<{
@@ -313,7 +313,7 @@ export function ContinuousSlideGrid({
     // NOTE(0913vision): The grid moves only when the live slide leaves the
     // view, or when a key moves it further down past the reading line; a
     // click or a scroll leaves the grid where the user put it.
-    followRef.current = (behavior = 'smooth', keyedDown = false) => {
+    followRef.current = (behavior = 'smooth', keyed) => {
       const viewport = keeper.current?.parentElement;
       const section = sections.find(value => value.row.id === cursorItem);
       if (
@@ -321,7 +321,7 @@ export function ContinuousSlideGrid({
         !section ||
         cursorIndex === undefined ||
         dragging.current ||
-        Date.now() < pause.current ||
+        (keyed === undefined && Date.now() < pause.current) ||
         stride <= 1
       ) {
         return;
@@ -334,7 +334,8 @@ export function ContinuousSlideGrid({
         top < viewport.scrollTop ||
         bottom > viewport.scrollTop + viewport.clientHeight;
       const pastLine =
-        keyedDown && center - viewport.scrollTop > viewport.clientHeight * 0.55;
+        keyed === 'down' &&
+        center - viewport.scrollTop > viewport.clientHeight * 0.55;
       if (offscreen || pastLine) {
         viewport.scrollTo({
           top: Math.max(0, center - viewport.clientHeight * 0.4),
@@ -356,9 +357,10 @@ export function ContinuousSlideGrid({
       (order(cursorItem) > order(last.item) ||
         (cursorItem === last.item &&
           (cursorIndex ?? 0) > (last.index ?? Number.MAX_SAFE_INTEGER)));
+    const byKey = moved && Date.now() - keyed.current < 1000;
     followRef.current(
       moved ? 'smooth' : 'instant',
-      moved && down && Date.now() - keyed.current < 1000,
+      byKey ? (down ? 'down' : 'other') : undefined,
     );
   }, [cursorItem, cursorIndex, sections, stride, tracks, metrics.rowGap]);
   useLayoutEffect(() => {
