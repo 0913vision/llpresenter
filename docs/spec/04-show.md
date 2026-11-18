@@ -198,17 +198,15 @@ service needs no confirmation), product log version 63.
   panel is the current item, show "live 슬라이드 position / total", for example
   "2 / 9". Otherwise, show the 슬라이드 count, for example "슬라이드 9개"
   (proposal).
-- Right (song items): the background select. It shows a small image and the name
-  of the item's background (the override, or the song's default background).
-  Changing it saves the new media as the item's background override (proposal).
-  If the item is on output, the new background goes out at once (proposal).
+- The header has no background select: 진행 only outputs, and a song item's
+  background is changed in 준비.
 - Only an actual missing background reference produces the amber warning. No
   background and available bundled pictures produce no warning. The tooltip
-  names the missing media and asks the operator to choose another background;
-  the existing 배경 선택 control stays available. The order row's 배경 바꾸기
-  opens its item in 준비; the standalone library-song header opens its song
-  editor. Neither action outputs a slide. If an old reference has no catalog
-  entry, the app says 이름을 알 수 없는 배경 rather than inventing a filename.
+  names the missing media and asks the operator to choose another background.
+  The order row's 배경 바꾸기 opens its item in 준비; the standalone
+  library-song header opens its song editor. Neither action outputs a slide. If
+  an old reference has no catalog entry, the app says 이름을 알 수 없는 배경
+  rather than inventing a filename.
 
 ### 슬라이드 grid
 
