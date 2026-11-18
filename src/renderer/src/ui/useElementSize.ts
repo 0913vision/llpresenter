@@ -1,5 +1,4 @@
 import {useCallback, useEffect, useRef, useState} from 'react';
-import {flushSync} from 'react-dom';
 import type {BoxSize} from '@core/canvas/fitAspect';
 
 /** The element's content box, as a resize observer reports it. */
@@ -56,16 +55,15 @@ export function useElementSize(): readonly [
           ? previous
           : next,
       );
-    // NOTE(0913vision): Measured as the element enters the page and in the
-    // frame it resizes in, so what is sized by it draws in its first frame
-    // and follows a resize without a frame at the old size.
+    // NOTE(0913vision): Measured as the element enters the page, so what is
+    // sized by it draws in its first frame.
     const first = contentSize(element);
     if (first.width > 0 || first.height > 0) accept(first);
     const next = new ResizeObserver(entries => {
       if (observer.current !== next) return;
       const rect = entries.at(-1)?.contentRect;
       if (rect !== undefined) {
-        flushSync(() => accept({width: rect.width, height: rect.height}));
+        accept({width: rect.width, height: rect.height});
       }
     });
     observer.current = next;
