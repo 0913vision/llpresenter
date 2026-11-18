@@ -15,9 +15,6 @@
   white-space: nowrap;
   text-decoration: none;
   user-select: none;
-  transition:
-    background-color var(--motion-hover),
-    color var(--motion-hover);
 }
 
 .md {
@@ -50,8 +47,13 @@
   color: var(--text-2);
 }
 
+/* NOTE(0913vision): Only the pointer's look fades; a state change such as
+   becoming available shows at once. */
 .button:not([aria-disabled='true']):is(:hover, :active) {
   background: var(--bg-control-hover);
+  transition:
+    background-color var(--motion-hover),
+    color var(--motion-hover);
 }
 
 .primary:not([aria-disabled='true']):is(:hover, :active) {

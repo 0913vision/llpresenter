@@ -1,4 +1,6 @@
+import {useEffect} from 'react';
 import {useLive} from '@renderer/session/live';
+import {readFontCatalogAhead} from '../fonts/useFontCatalog';
 import type {Notice} from '@renderer/ui/notices';
 import {useThemeEditor} from './useThemeEditor';
 import {useThemeSurfaces} from './ThemeCanvas';
@@ -11,6 +13,9 @@ export function useThemePanels(
   leaveGuard?: ThemeLeaveGuard,
 ) {
   const model = useThemeEditor(active, onProblem, leaveGuard);
+  useEffect(() => {
+    if (active) readFontCatalogAhead();
+  }, [active]);
   const live = useLive(view => view.state);
   const liveId =
     live?.themeOutput?.themeId ??

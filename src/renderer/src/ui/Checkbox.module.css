@@ -55,6 +55,12 @@
   padding: 0;
   color: var(--text);
   font: var(--type-body);
+}
+
+/* NOTE(0913vision): Only the pointer's look fades; a state change shows at
+   once. */
+.row:hover,
+.row:active {
   transition: background-color var(--motion-hover);
 }
 

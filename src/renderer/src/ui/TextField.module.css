@@ -93,6 +93,12 @@
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--text-3);
+}
+
+/* NOTE(0913vision): Only the pointer's look fades; a state change shows at
+   once. */
+.clear:hover,
+.clear:active {
   transition:
     background-color var(--motion-hover),
     color var(--motion-hover);

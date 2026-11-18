@@ -18,6 +18,12 @@
   white-space: nowrap;
   vertical-align: middle;
   user-select: none;
+}
+
+/* NOTE(0913vision): Only the pointer's look fades; a state change shows at
+   once. */
+.select:hover,
+.select:active {
   transition: background-color var(--motion-hover);
 }
 

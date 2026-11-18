@@ -160,6 +160,12 @@
   color: var(--text-3);
   font: var(--type-band);
   cursor: pointer;
+}
+
+/* NOTE(0913vision): Only the pointer's look fades; a state change shows at
+   once. */
+.splitButton:hover,
+.splitButton:active {
   transition:
     opacity var(--motion-hover),
     color var(--motion-hover),

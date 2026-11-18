@@ -39,6 +39,12 @@
   color: inherit;
   font: inherit;
   cursor: pointer;
+}
+
+/* NOTE(0913vision): Only the pointer's look fades; a state change shows at
+   once. */
+.word:hover,
+.word:active {
   transition: color var(--motion-hover);
 }
 .word:disabled {
