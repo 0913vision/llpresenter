@@ -179,6 +179,14 @@ export class ThemeElementView {
     }
     this.box.dataset['themeElement'] = element.id;
     this.box.dataset['kind'] = element.kind;
+    if (element.kind === 'clock' || element.kind === 'timer') {
+      this.box.style.setProperty(
+        '--stage-utility-align',
+        {left: 'flex-start', center: 'center', right: 'flex-end'}[
+          element.text.align
+        ],
+      );
+    }
     let textParent = this.box;
     if (this.previewMaxLines !== undefined && element.kind === 'currentText') {
       const height =

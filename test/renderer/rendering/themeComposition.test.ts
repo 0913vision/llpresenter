@@ -4,7 +4,12 @@ import {SERMON_TITLE_THEME_ID} from '@core/themes/sundayScripture';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLayers, type LiveLayers} from '@core/live/state';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
-import {createMediaId, createScreenId, createThemeId} from '@core/schema/ids';
+import {
+  createMediaId,
+  createScreenId,
+  createThemeId,
+  createTimerId,
+} from '@core/schema/ids';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {
   builtInTheme as currentBuiltInTheme,
@@ -105,15 +110,28 @@ afterEach(() => {
 
 describe('theme composition drawing', () => {
   it('backs stage clock and timer only while a picture is the live content', () => {
-    const {root, view} = setup();
+    const {root, view, text} = setup();
+    const timerId = createTimerId('00000000-0000-4000-8000-000000000701');
     const elements: ThemeElement[] = [
       {...themeElementBase(1), kind: 'clock', clockFormat: '24h'},
-      {...themeElementBase(2), kind: 'timer'},
+      {...themeElementBase(2), kind: 'timer', timerId},
     ];
     const stage = {
       ...frame(elements),
       screen: {id: THEME_MAIN, kind: 'stage' as const},
       transitions: false,
+      timers: {
+        list: [
+          {
+            id: timerId,
+            name: 'Timer',
+            kind: 'countdown' as const,
+            duration: 300,
+          },
+        ],
+        runs: undefined,
+        now: () => ({wall: 0, timer: 0}),
+      },
     };
     if (song.slide === null || stage.theme === undefined) {
       throw Error('Missing fixture');
@@ -126,6 +144,10 @@ describe('theme composition drawing', () => {
     ];
     view.render(picture, stage);
     expect(boxes()).toHaveLength(2);
+    expect(text('timer')).toBe('5:00');
+    expect(root.querySelector<HTMLElement>('[data-kind=timer]')?.hidden).toBe(
+      false,
+    );
     expect(
       boxes().every(box => box.hasAttribute('data-stage-picture-utility')),
     ).toBe(true);
@@ -157,6 +179,103 @@ describe('theme composition drawing', () => {
     expect(
       boxes().every(box => box.hasAttribute('data-stage-media-utility')),
     ).toBe(true);
+    view.dispose();
+  });
+
+  it.each([
+    ['left', 'flex-start'],
+    ['center', 'center'],
+    ['right', 'flex-end'],
+  ] as const)(
+    'keeps %s alignment for stage clock and timer on pictures',
+    (align, expected) => {
+      const {root, view} = setup();
+      const clockBase = themeElementBase(1);
+      const timerBase = themeElementBase(2);
+      const elements: ThemeElement[] = [
+        {
+          ...clockBase,
+          kind: 'clock',
+          clockFormat: '24h',
+          text: {...clockBase.text, align},
+        },
+        {...timerBase, kind: 'timer', text: {...timerBase.text, align}},
+      ];
+      if (song.slide === null) throw Error('Missing slide');
+      view.render(
+        {...song, slide: {...song.slide, picture: mediaId}},
+        {
+          ...frame(elements),
+          screen: {id: THEME_MAIN, kind: 'stage'},
+          transitions: false,
+        },
+      );
+      const boxes = [
+        ...root.querySelectorAll<HTMLElement>('[data-stage-picture-utility]'),
+      ];
+      expect(boxes).toHaveLength(2);
+      expect(
+        boxes.map(box => box.style.getPropertyValue('--stage-utility-align')),
+      ).toEqual([expected, expected]);
+      view.dispose();
+    },
+  );
+
+  it('selects a shown still image but not a playing video for the media-item backing', async () => {
+    const {root, view} = setup();
+    const mediaElement: ThemeElement = {
+      ...themeElementBase(3),
+      kind: 'media',
+      fit: 'fill',
+      radius: 0,
+    };
+    const clock: ThemeElement = {
+      ...themeElementBase(4),
+      kind: 'clock',
+      clockFormat: '24h',
+    };
+    const videoId = createMediaId('00000000-0000-4000-8000-000000000602');
+    const stage = {
+      ...frame([mediaElement, clock], {
+        item: {id: 'item', kind: 'media', source: 'service'},
+      }),
+      screen: {id: THEME_MAIN, kind: 'stage' as const},
+      transitions: false,
+    };
+    const selector = `[data-theme-page]:has([data-kind="media"] img.${classes.image}.${classes.shown}) [data-stage-media-utility] .${classes.block}`;
+    const layers = {
+      ...emptyLayers(),
+      media: {mediaId: videoId, loop: false, startedAt: 0},
+    };
+    view.render(layers, stage);
+    const video = root.querySelector<HTMLVideoElement>(
+      '[data-kind="media"] video[src]',
+    );
+    if (video === null) throw Error('Missing media video');
+    video.dispatchEvent(new Event('playing'));
+    expect(video.classList.contains(classes.shown)).toBe(true);
+    expect(root.querySelector(selector)).toBeNull();
+    view.render({...layers, media: {...layers.media, mediaId}}, stage);
+    const next = [
+      ...root.querySelectorAll<HTMLVideoElement>(
+        '[data-kind="media"] video[src]',
+      ),
+    ].find(node => node.getAttribute('src')?.includes(mediaId));
+    if (next === undefined) throw Error('Missing media candidate');
+    Object.defineProperty(next, 'error', {
+      configurable: true,
+      value: {code: 4},
+    });
+    next.dispatchEvent(new Event('error'));
+    const image = root.querySelector<HTMLImageElement>(
+      '[data-kind="media"] img[src]',
+    );
+    if (image === null) throw Error('Missing image fallback');
+    image.decode = () => Promise.resolve();
+    image.dispatchEvent(new Event('load'));
+    await Promise.resolve();
+    expect(image.classList.contains(classes.shown)).toBe(true);
+    expect(root.querySelector(selector)).not.toBeNull();
     view.dispose();
   });
 
