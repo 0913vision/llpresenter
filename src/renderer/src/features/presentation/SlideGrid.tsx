@@ -35,7 +35,6 @@ import {serviceSlideOffset} from './serviceSlideNumbers';
 import {useSlideTransitionProgress} from './useSlideTransitionProgress';
 import {tilePicture} from './tilePicture';
 import {SlidePicturePrefetch} from './SlidePicturePrefetch';
-import {revealSlideItem} from '@renderer/session/visibleSlideItem';
 
 const GRID_SELECTOR = '[role="listbox"]';
 
@@ -106,7 +105,6 @@ export function SlideGrid({
   const switching = useCommittedShownItem() !== openItemId;
   useLayoutEffect(() => {
     commitShownItem(openItemId);
-    revealSlideItem(openItemId ?? '');
   }, [openItemId]);
   const transitionProgress = useSlideTransitionProgress();
   useEffect(() => {

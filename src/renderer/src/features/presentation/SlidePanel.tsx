@@ -40,10 +40,10 @@ export function SlidePanelBody({
 }): JSX.Element {
   const settings = useSettingsDocument('preferences', '환경설정', undefined);
   const scalePercent = useThumbnailScale(sizeClass);
+  const shownItemId = useShownItemId();
   const isServiceItem = useShow(
     view =>
-      view.openItemId === null ||
-      view.rows.some(row => row.id === view.openItemId),
+      shownItemId === null || view.rows.some(row => row.id === shownItemId),
   );
   const Grid =
     settings?.value.show?.continuousGrid && isServiceItem

@@ -1,5 +1,4 @@
 import {AutoConfirmBible} from '@renderer/features/bible/AutoConfirmBible';
-import {ShownItemProvider} from '@renderer/session/shownItem';
 import {PaletteEditingProvider} from '@renderer/features/service/items/PaletteEditing';
 import type {SongId} from '@core/schema/ids';
 import {
@@ -238,12 +237,10 @@ export function Workspace({
       <div data-resize-panel="media.upper" className={styles.frames}>
         {showKept ? (
           <Activity mode={showVisible ? 'visible' : 'hidden'}>
-            <ShownItemProvider>
-              {columnFrame('show', show, {
-                collapsed: toggle.collapsed,
-                visible: showVisible,
-              })}
-            </ShownItemProvider>
+            {columnFrame('show', show, {
+              collapsed: toggle.collapsed,
+              visible: showVisible,
+            })}
           </Activity>
         ) : null}
         {showVisible ? null : visibleId === 'prep' ? (

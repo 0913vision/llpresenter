@@ -1,4 +1,5 @@
 import {useAudioOutputs} from '@renderer/features/preferences/useAudioOutputs';
+import {ShownItemProvider} from '@renderer/session/shownItem';
 import {NumberJumpOverlay} from '@renderer/features/presentation/DraftOverlay';
 import {ThemeLeaveGuard} from '@renderer/features/screens/themes/themeLeaveGuard';
 import {useMonitors} from '@renderer/features/screens/useMonitors';
@@ -219,21 +220,23 @@ function ControlApp({
         onProblem={session.report}
         onOpenPrepSong={prepActions.openSong}
       />
-      <Workspace
-        id={workspace}
-        sizeClass={sizeClass}
-        store={columnWidthStore}
-        onShowInLibrary={prepActions.onShowInLibrary}
-        onProblem={session.report}
-        prep={prepActions.prep}
-        onOpenPrep={prepActions.onOpenPrep}
-        warningHeight={warningHeight}
-        mediaVisible={mediaStrip.visible}
-        onMediaOpenChange={mediaStrip.setVisible}
-        mediaApi={session.api}
-        sidebar={sidebar}
-        themeLeave={themeLeave}
-      />
+      <ShownItemProvider>
+        <Workspace
+          id={workspace}
+          sizeClass={sizeClass}
+          store={columnWidthStore}
+          onShowInLibrary={prepActions.onShowInLibrary}
+          onProblem={session.report}
+          prep={prepActions.prep}
+          onOpenPrep={prepActions.onOpenPrep}
+          warningHeight={warningHeight}
+          mediaVisible={mediaStrip.visible}
+          onMediaOpenChange={mediaStrip.setVisible}
+          mediaApi={session.api}
+          sidebar={sidebar}
+          themeLeave={themeLeave}
+        />
+      </ShownItemProvider>
       <StatusBar standby={recovery.offer !== null} saveState={saveState} />
       {prepActions.importSurface}
       <RecoveryPrompt recovery={recovery} />

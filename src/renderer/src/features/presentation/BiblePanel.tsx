@@ -1,8 +1,9 @@
 import type {JSX} from 'react';
+import {useShownItemId} from '@renderer/session/shownItem';
 import type {SizeClass} from '@renderer/ui/sizeClass';
 import {useShow} from '@renderer/session/show';
 import {bibleSourceFor} from '@renderer/session/showLibrary';
-import {shownTiles} from '@renderer/session/showLibrary';
+import {shownTilesFor} from '@renderer/session/showLibrary';
 import {Button} from '@renderer/ui';
 import {
   Panel,
@@ -27,8 +28,9 @@ export function BiblePanel({
   readonly sizeClass: SizeClass;
   readonly onProblem?: ((notice: Notice) => void) | undefined;
 }): JSX.Element | null {
-  const source = useShow(view => bibleSourceFor(view, view.openItemId));
-  const count = useShow(view => shownTiles(view)?.length ?? 0);
+  const shownItemId = useShownItemId();
+  const source = useShow(view => bibleSourceFor(view, shownItemId));
+  const count = useShow(view => shownTilesFor(view, shownItemId)?.length ?? 0);
   if (source === null) return null;
   return (
     <Panel label="성경" className={styles.panel}>
