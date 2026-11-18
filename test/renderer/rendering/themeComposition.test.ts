@@ -2097,6 +2097,37 @@ it.each(['missing', 'hidden', 'invalid'] as const)(
   },
 );
 
+it('fits the stage current text toward the audience rendered size', () => {
+  const {view} = setup();
+  const stageElement: ThemeElement = {
+    ...themeElementBase(31),
+    kind: 'currentText',
+  };
+  const audienceElement: ThemeElement = {
+    ...themeElementBase(32),
+    kind: 'currentText',
+  };
+  const stageFrame = frame([stageElement]);
+  const audienceFrame = frame([audienceElement]);
+  if (!audienceFrame.theme) throw Error('Missing audience theme');
+  vi.spyOn(ThemeElementView.prototype, 'fittedTextSize').mockImplementation(
+    function (this: ThemeElementView) {
+      return this.element.id === audienceElement.id ? 77 : 79;
+    },
+  );
+  const target = vi.spyOn(ThemeElementView.prototype, 'targetTextSize');
+  view.render(song, {
+    ...stageFrame,
+    screen: {id: THEME_MAIN, kind: 'stage'},
+    audience: {
+      screen: {id: THEME_MAIN, kind: 'audience'},
+      theme: audienceFrame.theme,
+    },
+  });
+  expect(target).toHaveBeenCalledWith(77);
+  view.dispose();
+});
+
 it('keeps stage next text at least 48px even when the current text is smaller', () => {
   vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(200);
   vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(100);

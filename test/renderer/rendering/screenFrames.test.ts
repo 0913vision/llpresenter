@@ -138,6 +138,10 @@ it('uses the main composition and subscribes only to screens, messages, 환경�
     revision: 7,
     item: state.themeItem,
   });
+  expect(frame?.audience).toMatchObject({
+    screen: {id: THEME_MAIN, kind: 'audience'},
+    theme: state.themeOutput?.screens[THEME_MAIN],
+  });
 });
 
 it('draws the 기본 band opaque where the screen background is the chroma green', async () => {

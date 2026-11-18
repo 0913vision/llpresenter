@@ -48,8 +48,15 @@ export class ThemeCompositionView {
   private readonly slideAnimation: SlideAnimation;
   private content: {layers: LiveLayers; frame: RenderFrame} | null = null;
   private input: {layers: LiveLayers; frame: RenderFrame} | null = null;
+  private audienceMeasure: ThemeCompositionView | null = null;
+  private audienceMeasureHost: HTMLElement | null = null;
+  private audienceSize: number | undefined;
   private readonly onFontsLoaded = (): void => {
     const input = this.input;
+    if (input?.frame.screen?.kind === 'stage' && input.frame.audience) {
+      this.render(input.layers, input.frame);
+      return;
+    }
     if (input === null || input.frame.screen?.kind !== 'broadcast') return;
     const slide = input.frame.slide ?? input.layers.slide;
     if (
@@ -91,7 +98,56 @@ export class ThemeCompositionView {
 
   render(layers: LiveLayers, frame: RenderFrame): void {
     this.input = {layers, frame};
+    if (frame.theme !== undefined) this.root.hidden = false;
     const original = frame.slide ?? layers.slide;
+    const measureAudience =
+      frame.screen?.kind === 'stage' &&
+      frame.audience &&
+      original &&
+      !original.titleSlide &&
+      !original.sermonTitle &&
+      !original.sectionCard &&
+      ['song', 'bible'].includes(
+        original.kind ?? frame.theme?.item?.kind ?? '',
+      );
+    this.audienceSize = undefined;
+    if (measureAudience && frame.audience) {
+      if (this.audienceMeasure === null) {
+        const host = document.createElement('div');
+        Object.assign(host.style, {
+          position: 'absolute',
+          left: '-10000px',
+          top: '0',
+          width: '1920px',
+          height: '1080px',
+          visibility: 'hidden',
+          pointerEvents: 'none',
+        });
+        this.root.append(host);
+        this.audienceMeasureHost = host;
+        this.audienceMeasure = new ThemeCompositionView(host, this.options);
+      }
+      const theme = frame.audience.theme;
+      this.audienceMeasure.render(layers, {
+        ...frame,
+        audience: undefined,
+        screen: frame.audience.screen,
+        theme: {
+          ...theme,
+          layout: {
+            ...theme.layout,
+            elements: theme.layout.elements.filter(
+              element => element.kind === 'currentText',
+            ),
+          },
+        },
+        transitions: false,
+        standby: true,
+      });
+      this.audienceSize = this.audienceMeasure.page?.elements
+        .find(view => view.element.kind === 'currentText')
+        ?.fittedTextSize();
+    }
     if (
       frame.screen?.kind === 'broadcast' &&
       original?.titleSlide === true &&
@@ -527,6 +583,12 @@ export class ThemeCompositionView {
         ?.remaining();
     for (const view of page.elements) {
       if (
+        content.frame.screen?.kind === 'stage' &&
+        view.element.kind === 'currentText'
+      ) {
+        view.targetTextSize(this.audienceSize);
+      }
+      if (
         (isThemeTextElement(view.element) &&
           view.element.stack !== undefined) ||
         (view.element.kind === 'box' && view.element.follow !== undefined)
@@ -744,6 +806,10 @@ export class ThemeCompositionView {
   }
 
   dispose(): void {
+    this.audienceMeasure?.dispose();
+    this.audienceMeasureHost?.remove();
+    this.audienceMeasure = null;
+    this.audienceMeasureHost = null;
     if (typeof document.fonts !== 'undefined') {
       document.fonts.removeEventListener('loadingdone', this.onFontsLoaded);
     }

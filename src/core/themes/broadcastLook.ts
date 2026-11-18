@@ -48,7 +48,7 @@ export const BROADCAST_LOOK_GEOMETRY = {
   bodyLineHeight: 1.35,
   bodyPreferredLines: 3,
   maxBodyHeight: 900,
-  tabTextSize: 38,
+  tabTextSize: 40,
   textColor: '#1F1F1F',
   headerTextColor: '#FFFFFF',
   songX: 160,

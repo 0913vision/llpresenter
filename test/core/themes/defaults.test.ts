@@ -16,6 +16,7 @@ import {createScreenId, createThemeId} from '@core/schema/ids';
 import {
   builtInTheme,
   createDefaultThemes,
+  BIBLE_THEME_ID,
   IMAGE_SLIDES_THEME_ID,
   standbyStageLayout,
 } from '@core/themes/defaults';
@@ -374,16 +375,10 @@ it('offers one sermon title theme with automatic bars', () => {
     frame: {x: 154, y: 345},
     text: {size: 83, align: 'left', maxLines: 4},
   });
-  expect(
-    stage?.elements.filter(
-      element => element.kind === 'clock' || element.kind === 'nextText',
-    ),
-  ).toEqual(
+  expect(stage?.elements.filter(element => element.kind === 'clock')).toEqual(
     builtInTheme('bible').screens[
       createScreenId(STARTER_SCREEN_IDS.stage)
-    ]?.elements.filter(
-      element => element.kind === 'clock' || element.kind === 'nextText',
-    ),
+    ]?.elements.filter(element => element.kind === 'clock'),
   );
   expect(v.safeParse(themesSchema, file).success).toBe(true);
 });
@@ -670,7 +665,10 @@ it('uses the stage clock and next preview geometry across built-in themes', () =
     if (theme.id === IMAGE_SLIDES_THEME_ID) continue;
     expect(elements.find(element => element.kind === 'nextText')).toMatchObject(
       {
-        frame: {y: 706, h: 272},
+        frame:
+          theme.id === BIBLE_THEME_ID || theme.id === CREED_PRAYER_THEME_ID
+            ? {y: 786, h: 192}
+            : {y: 706, h: 272},
       },
     );
   }

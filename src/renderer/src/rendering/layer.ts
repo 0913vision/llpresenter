@@ -44,6 +44,13 @@ export interface RenderScreen {
 }
 
 export interface RenderFrame {
+  /** The audience composition used to fit the same slide on stage. */
+  readonly audience?:
+    | {
+        readonly screen: RenderScreen;
+        readonly theme: ThemeFrame;
+      }
+    | undefined;
   readonly stageLyricLabelPosition?: import('@core/schema/preferences').StageLyricLabelPosition;
   readonly slide?: import('@core/live/state').SlideLayer;
   readonly slideTransition?: import('@core/schema/slideTransition').SlideTransition;

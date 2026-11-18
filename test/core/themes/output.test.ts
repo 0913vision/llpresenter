@@ -56,6 +56,46 @@ describe('published theme compositions', () => {
       ).layout,
     ).toEqual(custom);
   });
+  it('updates the former Bible stage frames together and keeps custom frames', () => {
+    const theme = themeFile().themes.find(entry => entry.id === BIBLE_THEME_ID);
+    const stage = themeScreens.find(screen => screen.id === THEME_STAGE);
+    if (!theme || !stage) throw Error('Missing Bible stage');
+    const current = theme.screens[stage.id];
+    if (!current) throw Error('Missing stage layout');
+    const old = {
+      ...current,
+      elements: current.elements.map(element =>
+        element.kind === 'currentText'
+          ? {
+              ...element,
+              frame: {...element.frame, x: 154, w: 1612, h: 468},
+              text: {...element.text, tracking: 0},
+            }
+          : element.kind === 'nextText'
+            ? {...element, frame: {...element.frame, y: 706, h: 272}}
+            : element,
+      ),
+    };
+    const saved = {...theme, screens: {...theme.screens, [stage.id]: old}};
+    expect(resolveThemeScreen(saved, stage.id, themeScreens).layout).toEqual(
+      current,
+    );
+    const custom = {
+      ...old,
+      elements: old.elements.map(element =>
+        element.kind === 'nextText'
+          ? {...element, frame: {...element.frame, y: 720}}
+          : element,
+      ),
+    };
+    expect(
+      resolveThemeScreen(
+        {...saved, screens: {...saved.screens, [stage.id]: custom}},
+        stage.id,
+        themeScreens,
+      ).layout,
+    ).toEqual(custom);
+  });
   it('updates an untouched saved Bible stage reference without replacing other edits', () => {
     const file = themeFile();
     const theme = file.themes.find(entry => entry.id === BIBLE_THEME_ID);

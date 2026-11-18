@@ -443,7 +443,9 @@ export class ThemeElementView {
             frame.screen?.kind === 'audience' &&
             importedLyrics
           ? 'lyrics'
-          : stage && isSong
+          : stage &&
+              isSong &&
+              (element.kind === 'nextText' || slide?.titleSlide === true)
             ? 'song'
             : 'normal',
     );

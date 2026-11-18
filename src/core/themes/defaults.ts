@@ -482,7 +482,29 @@ export function builtInTheme(
     id: themeIds[fallbackKind],
     name: names[fallbackKind],
     screens: Object.fromEntries(
-      screens.map(screen => [screen.id, layoutFor(screen, fallbackKind)]),
+      screens.map(screen => {
+        const layout = layoutFor(screen, fallbackKind);
+        if (fallbackKind !== 'bible' || screen.kind !== 'stage') {
+          return [screen.id, layout];
+        }
+        return [
+          screen.id,
+          {
+            ...layout,
+            elements: layout.elements.map(element =>
+              element.kind === 'currentText'
+                ? {
+                    ...element,
+                    frame: {...element.frame, w: 1660, h: 500},
+                    text: {...element.text, tracking: -3},
+                  }
+                : element.kind === 'nextText'
+                  ? {...element, frame: {...element.frame, y: 786, h: 192}}
+                  : element,
+            ),
+          },
+        ];
+      }),
     ),
   };
 }

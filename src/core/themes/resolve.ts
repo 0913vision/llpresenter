@@ -168,21 +168,32 @@ function resolvedBibleStageLayout(
   const previous = legacySermonTitleLayout(screen).elements.find(
     element => element.kind === 'reference',
   );
-  const updated = builtInTheme('bible', [screen]).screens[
-    source.id
-  ]?.elements.find(element => element.kind === 'reference');
-  if (
-    !previous ||
-    !updated ||
-    !layout.elements.some(element => sameJson(element, previous))
-  ) {
-    return layout;
-  }
+  const updatedElements =
+    builtInTheme('bible', [screen]).screens[source.id]?.elements ?? [];
+  const updated = updatedElements.find(element => element.kind === 'reference');
+  const current = updatedElements.find(
+    element => element.kind === 'currentText',
+  );
+  const next = updatedElements.find(element => element.kind === 'nextText');
+  const oldCurrent = current && {
+    ...current,
+    frame: {...current.frame, x: 154, y: 230, w: 1612, h: 468},
+    text: {...current.text, tracking: 0},
+  };
+  const oldNext = next && {...next, frame: {...next.frame, y: 706, h: 272}};
+  const updateFrames =
+    oldCurrent &&
+    oldNext &&
+    layout.elements.some(element => sameJson(element, oldCurrent)) &&
+    layout.elements.some(element => sameJson(element, oldNext));
   return {
     ...layout,
-    elements: layout.elements.map(element =>
-      sameJson(element, previous) ? updated : element,
-    ),
+    elements: layout.elements.map(element => {
+      if (previous && updated && sameJson(element, previous)) return updated;
+      if (updateFrames && sameJson(element, oldCurrent)) return current;
+      if (updateFrames && sameJson(element, oldNext)) return next;
+      return element;
+    }),
   };
 }
 

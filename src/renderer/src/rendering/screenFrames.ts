@@ -13,7 +13,8 @@ import type {Timer} from '@core/schema/timers';
 import type {FontCatalog, FontCatalogSnapshot} from '@core/schema/fontCatalog';
 import type {RenderFrame, RenderScreen} from './layer';
 import {MainTimerClock} from './mainTimerClock';
-import {followRenderScreen} from './screenIdentity';
+import {resolveRenderScreen} from './screenIdentity';
+import type {Screen} from '@core/schema/screens';
 import {followSettingsDocument} from './settingsFeed';
 
 interface ScreenFramesOptions {
@@ -34,6 +35,7 @@ export class ScreenFrames {
   private fonts: FontCatalog | undefined;
   private disposed = false;
   private screen: RenderScreen | undefined;
+  private screens: readonly Screen[] = [];
   private timers: readonly Timer[] = [];
   private messageStyles: readonly MessageStyle[] | undefined;
   private preferences = defaultPreferences;
@@ -84,14 +86,18 @@ export class ScreenFrames {
     );
     this.stops = [
       () => stopFonts?.(),
-      followRenderScreen({
+      followSettingsDocument({
         settings,
-        id: screenId,
-        onError,
-        receive: screen => {
-          this.screen = screen;
+        name: 'screens',
+        select: document =>
+          document.name === 'screens' ? document.value.screens : undefined,
+        receive: screens => {
+          this.screens = screens;
+          this.screen = resolveRenderScreen(screenId, screens);
           options.onChange();
         },
+        onError: error =>
+          onError('could not read output screen identity', error),
       }),
       followSettingsDocument({
         settings,
@@ -164,6 +170,18 @@ export class ScreenFrames {
       missing: output.missing,
       item: state?.themeItem ?? null,
     };
+    const audienceScreen =
+      screen.kind === 'stage'
+        ? this.screens.find(value => value.kind === 'audience')
+        : undefined;
+    const audienceComposition =
+      audienceScreen === undefined
+        ? undefined
+        : output.screens[audienceScreen.id];
+    const audienceIdentity =
+      audienceScreen === undefined
+        ? undefined
+        : resolveRenderScreen(audienceScreen.id, this.screens);
     const messageStyle = resolveMessageStyle(
       this.messageStyles,
       screen.messageStyleId,
@@ -185,6 +203,20 @@ export class ScreenFrames {
     return {
       stageLyricLabelPosition: this.preferences.output.stageLyricLabelPosition,
       theme,
+      ...(audienceComposition && audienceIdentity
+        ? {
+            audience: {
+              screen: audienceIdentity,
+              theme: {
+                ...audienceComposition,
+                themeId: output.themeId,
+                revision: output.revision,
+                missing: output.missing,
+                item: state?.themeItem ?? null,
+              },
+            },
+          }
+        : {}),
       ...(state?.blackScreen === true && screen.kind !== 'stage'
         ? {blackScreen: true}
         : {}),
