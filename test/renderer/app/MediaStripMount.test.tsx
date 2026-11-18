@@ -1,5 +1,12 @@
 import {mediaBinToggle} from '@fixtures/renderer/features/media/mediaTesting';
-import {act, cleanup, render, screen, waitFor} from '@testing-library/react';
+import {
+  act,
+  cleanup,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
@@ -67,6 +74,7 @@ it('releases workspace media feeds while retaining audio shortcut state until ap
   const previewProgress = vi.spyOn(api.live, 'subscribeMediaProgress');
   vi.spyOn(api.media, 'subscribeImports').mockReturnValue(stopCopies);
   const {unmount} = mount();
+  await userEvent.click(mediaBinToggle());
   await screen.findByRole('region', {name: '미디어'});
   await userEvent.click(mediaBinToggle());
   expect(screen.queryByRole('region', {name: '미디어'})).toBeNull();
@@ -101,7 +109,9 @@ it('finishes an import and opens prep after its media panel is collapsed', async
   };
   vi.spyOn(api.media, 'import').mockResolvedValue({ok: true, value: [queued]});
   mount();
-  const button = await screen.findByRole('button', {name: '가져오기'});
+  await userEvent.click(mediaBinToggle());
+  const media = await screen.findByRole('region', {name: '미디어 보관함'});
+  const [button] = within(media).getAllByRole('button', {name: '가져오기'});
   await waitFor(() => expect(button.getAttribute('aria-disabled')).toBeNull());
   await userEvent.click(button);
   expect(
