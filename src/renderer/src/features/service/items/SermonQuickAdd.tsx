@@ -3,7 +3,6 @@ import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import {SLIDES_LIMITS, type ServiceItemOf} from '@core/schema/service';
 import {BibleReferenceForm} from '@renderer/features/bible/BibleReferenceForm';
 import {Dialog} from '@renderer/ui/Dialog';
-import {TextField} from '@renderer/ui/TextField';
 import {useBibleDefaults} from './useBibleDefaults';
 import type {PassageDefaults} from './quickAddBible';
 import styles from './SermonQuickAdd.module.css';
@@ -50,14 +49,20 @@ export function SermonQuickAdd({
       }}
     >
       <div className={styles.fields}>
-        <TextField
-          aria-label={'\uc81c\ubaa9'}
-          placeholder={'\uc81c\ubaa9'}
+        <textarea
+          aria-label={'제목'}
+          placeholder={'제목'}
+          className={styles.title}
           value={title}
-          onChange={setTitle}
+          rows={2}
           maxLength={SLIDES_LIMITS.name}
-          block
           autoFocus
+          onChange={event => setTitle(event.currentTarget.value)}
+          onKeyDown={event => {
+            // NOTE(0913vision): Enter breaks the title where the user wants;
+            // the title slide shows the lines as typed.
+            if (event.key === 'Enter') event.stopPropagation();
+          }}
         />
         <BibleReferenceForm
           api={window.llp.bible}
