@@ -51,7 +51,10 @@ export function AtomicPictureContent({
   }
   const current = displayed === identity && !pending ? content : held;
   return (
-    <div className={styles.root}>
+    <div
+      className={styles.root}
+      data-picture-staging={pending || staging ? '' : undefined}
+    >
       {current === null ? null : (
         <div key={displayed} className={styles.slot} inert={pending || staging}>
           <PictureReadiness.Provider value={null}>
@@ -69,7 +72,6 @@ export function AtomicPictureContent({
           }
           inert
           aria-hidden="true"
-          data-picture-staging=""
         >
           <PictureReadiness.Provider value={reveal}>
             {content}

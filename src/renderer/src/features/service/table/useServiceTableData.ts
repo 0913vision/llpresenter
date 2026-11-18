@@ -172,13 +172,22 @@ export function useServiceTableData(api: TableApi, serviceId: string | null) {
   const themes = useItemSettings(api.settings, 'themes');
   const macros = useItemSettings(api.settings, 'macros');
   const media = useItemMedia(api.media);
-  const items = useMemo(
-    () =>
-      new Map<string, ServiceItem>(
-        (service.document?.service.order ?? []).map(item => [item.id, item]),
-      ),
-    [service.document],
-  );
+  // NOTE(0913vision): A row leaves the list a moment after its item leaves
+  // the service document, so the items the table knew stay known: a removed
+  // row keeps its cells until it goes, instead of showing them empty first.
+  const [known, setKnown] = useState<{
+    readonly serviceId: string | null;
+    readonly document: ServiceDocument | null;
+    readonly items: ReadonlyMap<string, ServiceItem>;
+  }>({serviceId, document: null, items: new Map()});
+  if (known.serviceId !== serviceId || known.document !== service.document) {
+    const next = new Map(known.serviceId === serviceId ? known.items : []);
+    for (const item of service.document?.service.order ?? []) {
+      next.set(item.id, item);
+    }
+    setKnown({serviceId, document: service.document, items: next});
+  }
+  const items = known.items;
   const songIds = useMemo(
     () =>
       [...items.values()].flatMap(item =>
