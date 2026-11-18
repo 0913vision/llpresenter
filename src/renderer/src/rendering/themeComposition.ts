@@ -472,7 +472,7 @@ export class ThemeCompositionView {
     });
     page.append(background);
     const itemBackgroundBox =
-      override?.kind === 'media' ? document.createElement('div') : null;
+      override !== undefined ? document.createElement('div') : null;
     if (itemBackgroundBox !== null) {
       Object.assign(itemBackgroundBox.style, {
         position: 'absolute',
@@ -643,7 +643,6 @@ export class ThemeCompositionView {
     }
     page.layers = content.layers;
     page.frame = content.frame;
-    const override = content.frame.theme?.item?.backgroundOverride;
     const mediaVisible = content.layers.media !== null;
     if (page.itemBackgroundBox !== null) {
       page.itemBackgroundBox.style.opacity = String(
@@ -651,24 +650,17 @@ export class ThemeCompositionView {
       );
     }
     try {
-      page.itemBackground?.show(
-        override?.kind === 'media' &&
-          (mediaVisible || content.frame.clearOpacity?.media !== undefined)
-          ? {
-              mediaId: override.mediaId,
-              loop: override.loop,
-              ...(override.properties === undefined
-                ? {}
-                : {properties: override.properties}),
-              startedAt:
-                content.frame.theme?.item?.backgroundStartedAt ??
-                content.frame.theme?.item?.startedAt ??
-                0,
-            }
-          : null,
-        content.frame.transitions,
-        content.frame.standby,
-      );
+      if (content.frame.clearOpacity?.media !== undefined && mediaVisible) {
+        page.itemBackground?.hold();
+      } else {
+        page.itemBackground?.show(
+          content.layers.media?.slidePicture === true
+            ? null
+            : content.layers.media,
+          content.frame.transitions,
+          content.frame.standby,
+        );
+      }
     } catch (error) {
       this.gaps.failed('item-background', error);
     }

@@ -441,7 +441,7 @@ describe('buildShowService', () => {
 
     expect(project().rows).toMatchObject([
       {background: defaultMedia},
-      {background: override, theme: itemId(50)},
+      {background: override, backgroundExplicit: true, theme: itemId(50)},
     ]);
     backgrounds.delete(override.mediaId);
     const missing = project().rows[1];

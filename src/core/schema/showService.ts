@@ -99,6 +99,7 @@ const showRowSchema = v.pipe(
       theme: v.exactOptional(themeIdSchema),
       problem: v.exactOptional(v.picklist(showRowProblems)),
       background: v.exactOptional(mediaChoiceSchema),
+      backgroundExplicit: v.exactOptional(v.literal(true)),
       backgroundNone: v.exactOptional(v.literal(true)),
       missingBackgroundName: v.exactOptional(
         v.pipe(v.string(), v.maxLength(MEDIA_LIMITS.name)),

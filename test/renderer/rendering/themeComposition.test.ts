@@ -104,6 +104,32 @@ afterEach(() => {
 });
 
 describe('theme composition drawing', () => {
+  it('draws a macro background over an explicit item background and holds it during a clear fade', () => {
+    const {root, view, text} = setup();
+    const current = {...themeElementBase(806), kind: 'currentText' as const};
+    const item = {
+      id: 'invented',
+      kind: 'song' as const,
+      source: 'service' as const,
+      backgroundOverride: {kind: 'media' as const, mediaId, loop: true},
+    };
+    const active = {...frame([current], {item}), transitions: false};
+    const first = {...song, media: {mediaId, loop: true, startedAt: 1000}};
+    view.render(first, active);
+    const nextId = createMediaId('00000000-0000-4000-8000-000000000602');
+    const macro = {
+      ...first,
+      media: {mediaId: nextId, loop: true, startedAt: 2000},
+    };
+    view.render(macro, active);
+    expect(root.querySelector(`video[src*="${nextId}"]`)).not.toBeNull();
+    expect(text('currentText')).toContain('Invented line');
+    vi.mocked(HTMLMediaElement.prototype.pause).mockClear();
+    view.render(macro, {...active, clearOpacity: {media: 0.5}});
+    expect(HTMLMediaElement.prototype.pause).toHaveBeenCalled();
+    expect(root.querySelector(`video[src*="${nextId}"]`)).not.toBeNull();
+    view.dispose();
+  });
   it('draws an item background beneath content and restores the theme background', () => {
     const {root, view, text} = setup();
     const image = {

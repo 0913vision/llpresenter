@@ -117,6 +117,22 @@ function setup(
 }
 
 describe('main-process theme runtime', () => {
+  it('keeps blackout and the live slide during background refresh', () => {
+    const {store, dispatch, slide, service, save} = setup();
+    slide();
+    dispatch({type: 'black.toggle'});
+    const before = store.state.layers.slide;
+    const mediaId = createMediaId('00000000-0000-4000-8000-000000000601');
+    save({
+      ...service,
+      backgroundOverride: {kind: 'media', mediaId, loop: true},
+    });
+    dispatch({type: 'media.show', media: {mediaId, loop: true}});
+    dispatch({type: 'themes.refresh'});
+    expect(store.state.blackScreen).toBe(true);
+    expect(store.state.layers.slide).toEqual(before);
+    expect(store.state.themeItem?.backgroundOverride).toMatchObject({mediaId});
+  });
   it('refreshes a live background without losing playback position or clear state', () => {
     const {store, dispatch, service, save, advance} = setup();
     dispatch({type: 'item.start', itemId: ITEM});

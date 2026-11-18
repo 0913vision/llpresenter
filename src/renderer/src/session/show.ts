@@ -824,6 +824,7 @@ export function applyService(service: ShowService | null): void {
         : [
             'background' in row ? row.background : undefined,
             'backgroundNone' in row ? row.backgroundNone : undefined,
+            'backgroundExplicit' in row ? row.backgroundExplicit : undefined,
           ];
     if (
       id !== undefined &&
@@ -832,13 +833,17 @@ export function applyService(service: ShowService | null): void {
       const liveSlide = useLive.getState().state?.layers.slide;
       if (
         liveSlide?.itemId === id &&
+        liveSlide.picture === undefined &&
+        liveSlide.sectionCard === undefined &&
         after !== undefined &&
         after.kind !== 'header'
       ) {
-        correctSlideOutput(liveSlide, {
-          background: 'background' in after ? after.background : undefined,
-          backgroundChanged: true,
-        });
+        const background = 'background' in after ? after.background : undefined;
+        sendLive(
+          background === undefined
+            ? {type: 'layer.clear', target: 'media'}
+            : {type: 'media.show', media: background},
+        );
       }
       sendLive({type: 'themes.refresh'});
     }

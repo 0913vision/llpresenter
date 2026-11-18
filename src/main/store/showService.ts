@@ -395,6 +395,9 @@ function songRow(
     ...(theme === undefined ? {} : {theme}),
     ...(problem === undefined ? {} : {problem}),
     ...(background === undefined ? {} : {background}),
+    ...(item.background === undefined
+      ? {}
+      : {backgroundExplicit: true as const}),
     ...(item.backgroundNone === true ? {backgroundNone: true as const} : {}),
     ...(missingBackgroundName === undefined ? {} : {missingBackgroundName}),
   };
