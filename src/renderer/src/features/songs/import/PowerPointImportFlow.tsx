@@ -16,9 +16,14 @@ import {noticeTime, type Notice} from '@renderer/ui/notices';
 import type {SongEditorStore} from '../editor/songEditorStore';
 import styles from './PowerPointImport.module.css';
 import {composePowerPointBackground} from './composePowerPointBackground';
-import {preparePowerPointImages} from './preparePowerPointImages';
+import {
+  preparePowerPointImages,
+  PowerPointPreviewLimitError,
+  type PowerPointPreviewProgress,
+} from './preparePowerPointImages';
 import {powerPointPictureSpecs} from './powerPointPictureSpecs';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
+import {useApiSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {PowerPointPreviewGrid} from './PowerPointPreviewGrid';
 
 async function importBackground(
@@ -289,8 +294,33 @@ function PowerPointPreparing({
 }): JSX.Element {
   const [prepared, setPrepared] =
     useState<Awaited<ReturnType<typeof preparePowerPointImages>>>(null);
-  const [done, setDone] = useState(0);
+  const [progress, setProgress] = useState<PowerPointPreviewProgress>({
+    done: 0,
+    total: source.slides.length,
+    phase: 'export',
+    percent: 0,
+  });
   const cancelled = useRef(false);
+  const [themesFailed, setThemesFailed] = useState(false);
+  const [screensFailed, setScreensFailed] = useState(false);
+  const themes = useApiSettingsDocument({
+    api,
+    name: 'themes',
+    title: '테마',
+    onProblem: notice => {
+      setThemesFailed(true);
+      onProblem(notice);
+    },
+  });
+  const screens = useApiSettingsDocument({
+    api,
+    name: 'screens',
+    title: '화면',
+    onProblem: notice => {
+      setScreensFailed(true);
+      onProblem(notice);
+    },
+  });
   useEffect(() => {
     let active = true;
     let release: (() => void) | undefined;
@@ -299,8 +329,8 @@ function PowerPointPreparing({
       preparing = true;
       void preparePowerPointImages(api, source.slides, {
         active: () => active && !cancelled.current,
-        progress: count => {
-          if (active && !cancelled.current) setDone(count);
+        progress: next => {
+          if (active && !cancelled.current) setProgress(next);
         },
       })
         .then(result => {
@@ -324,7 +354,10 @@ function PowerPointPreparing({
             key: 'powerpoint:preview',
             kind: 'warning',
             icon: 'warning',
-            title: 'PowerPoint 미리보기 \uc2e4\ud328',
+            title:
+              error instanceof PowerPointPreviewLimitError
+                ? 'PowerPoint 미리보기 용량 초과'
+                : 'PowerPoint 미리보기 실패',
             time: noticeTime(),
           });
           onDone();
@@ -358,15 +391,23 @@ function PowerPointPreparing({
       }}
     >
       <Progress
-        value={
-          source.slides.length === 0 ? 100 : (done / source.slides.length) * 100
+        value={progress.percent}
+        label={
+          progress.phase === 'export'
+            ? 'PowerPoint \uc7a5\uc2dd \ub0b4\ubcf4\ub0b4\uae30'
+            : 'PowerPoint \ubbf8\ub9ac\ubcf4\uae30 \uc900\ube44'
         }
-        label="PowerPoint 미리보기"
-        valueText={`${done} / ${source.slides.length}`}
+        valueText={`${progress.done} / ${progress.total}`}
       />
     </Dialog>
   );
-  if (prepared === null) return loading;
+  if (
+    prepared === null ||
+    (themes === null && !themesFailed) ||
+    (screens === null && !screensFailed)
+  ) {
+    return loading;
+  }
   return (
     <Suspense fallback={loading}>
       <PowerPointDialog

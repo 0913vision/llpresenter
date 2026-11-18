@@ -2,16 +2,26 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {PowerPointSource} from '@core/schema/powerpointImport';
 import {lendPreviewImage} from '@renderer/rendering/previewMedia';
 import {composePowerPointBackground} from './composePowerPointBackground';
+import {thumbnailPowerPointImage} from './thumbnailPowerPointImage';
 
 const BATCH_SIZE = 200;
+
+/** The preview cannot hold more temporary image data. */
+export class PowerPointPreviewLimitError extends Error {}
 type LentImage = NonNullable<ReturnType<typeof lendPreviewImage>>;
 interface Entry {
   readonly index: number;
   readonly key: string;
 }
+export interface PowerPointPreviewProgress {
+  readonly done: number;
+  readonly total: number;
+  readonly phase: 'export' | 'prepare';
+  readonly percent: number;
+}
 interface PrepareOptions {
   readonly active: () => boolean;
-  readonly progress: (done: number, total: number) => void;
+  readonly progress: (progress: PowerPointPreviewProgress) => void;
 }
 
 function releaseImages(lent: Map<string, LentImage>): void {
@@ -77,11 +87,17 @@ async function prepareBatch({
   readonly batch: readonly Entry[];
   readonly lent: Map<string, LentImage>;
   readonly options: PrepareOptions;
-  readonly report: (done: number) => void;
+  readonly report: (
+    done: number,
+    phase: 'export' | 'prepare',
+    position: number,
+  ) => void;
 }): Promise<boolean> {
   const unsubscribe = api.powerpoint.subscribeImageProgress(({done}) => {
     const entry = batch[done - 1];
-    if (options.active() && entry !== undefined) report(entry.index + 1);
+    if (options.active() && entry !== undefined) {
+      report(entry.index + 1, 'export', done);
+    }
   });
   let paths: Awaited<ReturnType<typeof api.powerpoint.decorationBatch>>;
   try {
@@ -101,16 +117,20 @@ async function prepareBatch({
     ) {
       throw new Error('PowerPoint preview batch is incomplete');
     }
-    for (const entry of batch) {
+    for (const [position, entry] of batch.entries()) {
       if (!options.active()) return false;
       const blob = await picture(api, entry, byIndex.get(entry.index));
       if (!options.active()) return false;
-      const image = lendPreviewImage(blob);
+      const thumbnail = await thumbnailPowerPointImage(blob);
+      if (!options.active()) return false;
+      const image = lendPreviewImage(thumbnail);
       if (image === null) {
-        throw new Error('PowerPoint preview image limit reached');
+        throw new PowerPointPreviewLimitError(
+          'PowerPoint preview image limit reached',
+        );
       }
       lent.set(entry.key, image);
-      report(entry.index + 1);
+      report(entry.index + 1, 'prepare', position + 1);
     }
     return options.active();
   } finally {
@@ -129,22 +149,36 @@ export async function preparePowerPointImages(
 } | null> {
   const lent = new Map<string, LentImage>();
   const entries = distinctBackgrounds(slides);
-  let reported = 0;
-  const report = (done: number): void => {
-    reported = Math.max(reported, done);
-    options.progress(reported, slides.length);
-  };
   let complete = false;
   try {
     for (let start = 0; start < entries.length; start += BATCH_SIZE) {
       if (!options.active()) return null;
       const batch = entries.slice(start, start + BATCH_SIZE);
+      const report = (
+        done: number,
+        phase: 'export' | 'prepare',
+        position: number,
+      ): void => {
+        const step =
+          start * 2 + (phase === 'export' ? position : batch.length + position);
+        options.progress({
+          done,
+          total: slides.length,
+          phase,
+          percent: (step / (entries.length * 2)) * 100,
+        });
+      };
       if (!(await prepareBatch({api, batch, lent, options, report}))) {
         return null;
       }
     }
     if (!options.active()) return null;
-    report(slides.length);
+    options.progress({
+      done: slides.length,
+      total: slides.length,
+      phase: 'prepare',
+      percent: 100,
+    });
     complete = true;
     return {
       ids: new Map([...lent].map(([key, image]) => [key, image.id])),

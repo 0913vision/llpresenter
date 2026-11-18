@@ -156,6 +156,7 @@ export class PowerPointImagesJob {
       decorationSlides ??
       (decorationSlide === undefined ? [] : [decorationSlide]);
     if (
+      (decorationSlides !== undefined && numbers.length === 0) ||
       numbers.length > MAX_DECORATION_BATCH ||
       new Set(numbers).size !== numbers.length ||
       numbers.some(

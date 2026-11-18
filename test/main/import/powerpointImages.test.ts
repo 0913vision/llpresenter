@@ -106,6 +106,8 @@ describe('PowerPoint image export', () => {
     const job = new PowerPointImagesJob();
     const progress = Object.assign(vi.fn(), {decorationSlides: [2, 2]});
     expect(await job.run('temporary.pptx', 'temp', progress)).toBe('file');
+    const empty = Object.assign(vi.fn(), {decorationSlides: []});
+    expect(await job.run('temporary.pptx', 'temp', empty)).toBe('file');
     expect(mocks.spawn).not.toHaveBeenCalled();
   });
   it.each([

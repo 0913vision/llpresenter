@@ -13,6 +13,7 @@ import {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {PowerPointImportFlow} from '@renderer/features/songs/import/PowerPointImportFlow';
 
 vi.mock('@renderer/features/songs/import/preparePowerPointImages', () => ({
+  PowerPointPreviewLimitError: class extends Error {},
   preparePowerPointImages: vi.fn(async () => ({
     ids: new Map(),
     release: () => undefined,
@@ -56,6 +57,50 @@ vi.mock('@renderer/features/songs/import/composePowerPointBackground', () => ({
 const mockScene = {key: 'a'.repeat(64), layers: [], pictures: [], skipped: 0};
 
 describe('PowerPoint import dialog', () => {
+  it('waits for the actual theme before opening the preview', async () => {
+    const fixture = editorFixture();
+    const store = new SongEditorStore(fixture.api, vi.fn());
+    onTestFinished(() => store.dispose());
+    const original = fixture.api.settings.get;
+    let finish: (value: Awaited<ReturnType<typeof original>>) => void = () =>
+      undefined;
+    const pending = new Promise<Awaited<ReturnType<typeof original>>>(
+      resolve => {
+        finish = resolve;
+      },
+    );
+    const get = vi.fn((request: Parameters<typeof original>[0]) =>
+      request.name === 'themes' ? pending : original(request),
+    );
+    const api = mockLlpApi({
+      ...fixture.api,
+      settings: {...fixture.api.settings, get},
+      powerpoint: {
+        read: async () => ({
+          ok: true,
+          value: {
+            fileName: 'deck.pptx',
+            widescreen: true,
+            slides: [{number: 1, shapes: [], background: null}],
+          },
+        }),
+      },
+    });
+    render(
+      <PowerPointImportFlow
+        api={api}
+        store={store}
+        onDone={vi.fn()}
+        onEdit={vi.fn()}
+        onProblem={vi.fn()}
+      />,
+    );
+    await waitFor(() => expect(get).toHaveBeenCalledWith({name: 'themes'}));
+    expect(screen.queryByRole('textbox', {name: '제목'})).toBeNull();
+    await act(async () => finish(await original({name: 'themes'})));
+    expect(await screen.findByRole('textbox', {name: '제목'})).toBeTruthy();
+  });
+
   it('ignores a completed read after the operator cancels', async () => {
     const fixture = editorFixture();
     const store = new SongEditorStore(fixture.api, vi.fn());
