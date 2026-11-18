@@ -28,7 +28,11 @@ import {useShow} from '@renderer/session/show';
 import {Button} from '@renderer/ui/Button';
 import {PanelFooter} from '@renderer/ui/Panel';
 import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
-import {bibleEditorData, savedPassageTiles} from './bibleItemModel';
+import {
+  bibleEditorData,
+  savedItemTiles,
+  savedPassageTiles,
+} from './bibleItemModel';
 import {useLeadingItemCard} from './useLeadingItemCard';
 import {AddSectionCard} from './AddSectionCard';
 import {BibleSlideSession} from './BibleSlideSession';
@@ -38,6 +42,7 @@ import styles from './BibleInlineEditor.module.css';
 
 export function BibleInlineEditor({
   items,
+  shownItem,
   ui,
   onBack,
   hideHeader = false,
@@ -45,11 +50,13 @@ export function BibleInlineEditor({
 }: {
   readonly onSplit?: (() => void) | undefined;
   readonly items: ServiceItemStore;
+  readonly shownItem?: ReturnType<ServiceItemStore['getSnapshot']> | undefined;
   readonly ui: Pick<UiApi, 'setLayout'>;
   readonly onBack: () => void;
   readonly hideHeader?: boolean;
 }): JSX.Element | null {
-  const state = useSyncExternalStore(items.subscribe, items.getSnapshot);
+  const current = useSyncExternalStore(items.subscribe, items.getSnapshot);
+  const state = shownItem ?? current;
   if (
     state.item === null ||
     (!isItemOfKind(state.item, 'bible') &&
@@ -61,6 +68,7 @@ export function BibleInlineEditor({
   return (
     <BibleEditorContent
       items={items}
+      shownItem={shownItem}
       item={state.item}
       serviceId={state.service.service.id}
       position={state.position}
@@ -75,6 +83,7 @@ export function BibleInlineEditor({
 
 function BibleEditorContent({
   items,
+  shownItem,
   item,
   serviceId,
   position,
@@ -86,6 +95,7 @@ function BibleEditorContent({
 }: {
   readonly onSplit?: (() => void) | undefined;
   readonly items: ServiceItemStore;
+  readonly shownItem?: ReturnType<ServiceItemStore['getSnapshot']> | undefined;
   readonly item: ServiceItemOf<'bible' | 'sermon'>;
   readonly serviceId: string;
   readonly position: number;
@@ -94,13 +104,21 @@ function BibleEditorContent({
   readonly hideHeader: boolean;
   readonly locked: boolean;
 }): JSX.Element {
-  const saved = useShow(view => savedPassageTiles(view, serviceId, item.id));
-  const projection = useBibleTileProjection({itemId: item.id, serviceId});
+  const saved = useShow(view =>
+    shownItem === undefined
+      ? savedPassageTiles(view, serviceId, item.id)
+      : savedItemTiles(view, serviceId, item.id),
+  );
+  const projection = useBibleTileProjection({
+    itemId: item.id,
+    serviceId,
+    anyItem: shownItem !== undefined,
+  });
   const data = useMemo(
     () => bibleEditorData(item, saved, projection?.tiles),
     [item, saved, projection?.tiles],
   );
-  const card = useLeadingItemCard(items, item.id);
+  const card = useLeadingItemCard(items, item.id, shownItem);
   const sermonTheme = useSlideTheme(
     isItemOfKind(item, 'sermon')
       ? sermonPreviewRow(item.id, item.sermon.passage.ref)
@@ -311,7 +329,11 @@ function BibleEditorContent({
             )}
           </div>
           <div className={styles.add}>
-            <AddSectionCard items={items} itemId={item.id} />
+            <AddSectionCard
+              items={items}
+              itemId={item.id}
+              shownItem={shownItem}
+            />
           </div>
         </div>
       </SongSlideSurface>

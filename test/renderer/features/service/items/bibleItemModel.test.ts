@@ -7,7 +7,25 @@ import {
   fixtureItems,
   itemFixture,
 } from '@fixtures/renderer/features/service/items/itemFixture';
-import {bibleEditorData} from '@renderer/features/service/items/bibleItemModel';
+import {
+  bibleEditorData,
+  savedItemTiles,
+  savedPassageTiles,
+} from '@renderer/features/service/items/bibleItemModel';
+
+it('keeps the shown Bible tiles when another item is requested', () => {
+  const tiles = [
+    {label: '3:16', labelColor: 'none' as const, lines: ['Verse']},
+  ];
+  const view = {
+    serviceId: 'service',
+    openItemId: 'next',
+    tiles: {bible: tiles},
+  };
+  expect(savedPassageTiles(view, 'service', 'bible')).toEqual([]);
+  expect(savedItemTiles(view, 'service', 'bible')).toBe(tiles);
+  expect(savedItemTiles(view, 'other-service', 'bible')).toEqual([]);
+});
 
 it('keeps the Bible reference and exposes measured verse slides as read-only', () => {
   const section = SUNDAY_SECTIONS[1];

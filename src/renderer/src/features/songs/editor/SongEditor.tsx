@@ -48,6 +48,7 @@ import {useRevealInsertedSlide} from './useRevealInsertedSlide';
 /** Mount with a window-owned store; unmounting does not discard song history. */
 export function SongEditor({
   store,
+  shownSession,
   onImportedSave,
   unsaved = false,
   onBack,
@@ -59,6 +60,7 @@ export function SongEditor({
   ui,
 }: {
   readonly store: SongEditorStore;
+  readonly shownSession?: SongSession | null | undefined;
   readonly ui?: Pick<UiApi, 'setLayout'> | undefined;
   readonly renderDesign?: SongDesignRenderer | undefined;
   readonly renderCard?: SlideCardRenderer<EditorSlideItem> | undefined;
@@ -70,7 +72,9 @@ export function SongEditor({
   readonly onBack?: (() => void) | undefined;
   readonly actions?: ReactNode;
 }): JSX.Element {
-  const state = useSyncExternalStore(store.subscribe, store.getSnapshot);
+  const current = useSyncExternalStore(store.subscribe, store.getSnapshot);
+  const state =
+    shownSession === undefined ? current : {...current, session: shownSession};
   const serviceName = useShow(view => view.serviceName);
   const root = useRef<HTMLElement>(null);
   useEditorFocus(root, state.session, {onBack, request: state.openRequest});

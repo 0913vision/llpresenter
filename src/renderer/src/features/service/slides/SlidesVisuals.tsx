@@ -14,6 +14,8 @@ import {useSlidesVerseProjection} from '@renderer/features/bible/useSlidesVerseP
 import {Button} from '@renderer/ui/Button';
 import {Picture} from '@renderer/features/songs/editor/SongPreview';
 import {OutputPreviewPicture} from '@renderer/rendering/OutputPreviewPicture';
+import {Picture as PreparedPicture} from '@renderer/rendering/pictures/Picture';
+import {usePrepPictureSwitch} from '@renderer/rendering/PrepPictureSwitch';
 import {
   previewAppearance,
   type PreviewRole,
@@ -167,8 +169,9 @@ export function SlidesCanvas({
     return outputSlide == null ? result : {...result, slide: outputSlide};
   }, [item, index, projection, part, outputSlide]);
   const host = useRef<HTMLDivElement>(null);
+  const switching = usePrepPictureSwitch();
   const [visible, setVisible] = useState(
-    typeof IntersectionObserver === 'undefined',
+    switching === true || typeof IntersectionObserver === 'undefined',
   );
   useEffect(() => {
     if (host.current === null || typeof IntersectionObserver === 'undefined') {
@@ -189,8 +192,14 @@ export function SlidesCanvas({
       className={styles.canvas}
       data-preview-ready={visible ? undefined : 'deferred'}
     >
-      {visible ? (
-        thumbnail ? (
+      {visible || switching === true ? (
+        switching !== undefined ? (
+          <PreparedPicture
+            wait={switching}
+            layers={layers}
+            appearance={appearance}
+          />
+        ) : thumbnail ? (
           <OutputPreviewPicture layers={layers} appearance={appearance} />
         ) : (
           <Picture layers={layers} appearance={appearance} />

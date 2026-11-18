@@ -12,14 +12,14 @@ import {defaultSlideTransitions} from '@core/schema/preferences';
 export function AddSectionCard({
   items,
   itemId,
+  shownItem,
 }: {
   readonly items: ServiceItemStore;
   readonly itemId: string;
+  readonly shownItem?: ReturnType<ServiceItemStore['getSnapshot']> | undefined;
 }): JSX.Element | null {
-  const {item, service, busy} = useSyncExternalStore(
-    items.subscribe,
-    items.getSnapshot,
-  );
+  const current = useSyncExternalStore(items.subscribe, items.getSnapshot);
+  const {item, service, busy} = shownItem ?? current;
   if (
     item?.id !== itemId ||
     !canHaveSectionCard(item) ||

@@ -68,12 +68,15 @@ export function LiturgyVersion({
 
 export function LiturgyEditor({
   items,
+  shownItem,
   ui,
 }: {
   readonly items: ServiceItemStore;
+  readonly shownItem?: ReturnType<ServiceItemStore['getSnapshot']> | undefined;
   readonly ui?: Pick<UiApi, 'setLayout'> | undefined;
 }): JSX.Element | null {
-  const state = useSyncExternalStore(items.subscribe, items.getSnapshot);
+  const current = useSyncExternalStore(items.subscribe, items.getSnapshot);
+  const state = shownItem ?? current;
   const item = state.item;
   if (
     item === null ||

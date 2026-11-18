@@ -1006,6 +1006,17 @@ export function ServiceOrderList({
       className={styles.list}
       aria-busy={editing.busy}
       {...dragProps}
+      onMouseDownCapture={event => {
+        if (
+          navigator &&
+          event.button === 0 &&
+          event.target instanceof Element &&
+          event.target.closest('[role="option"]') !== null &&
+          document.activeElement?.closest('[data-panel="편집"]') !== null
+        ) {
+          event.preventDefault();
+        }
+      }}
       onClickCapture={event => {
         dragProps.onClickCapture(event);
         if (!event.defaultPrevented) selection.captureClick(event);

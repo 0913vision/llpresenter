@@ -16,7 +16,6 @@ import type {Song} from '@core/schema/song';
 import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {visibleGridInsertionPosition} from './gridInsertionPosition';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
-import {BufferedSlideGrid} from '@renderer/ui/BufferedSlideGrid';
 import styles from './SongPanels.module.css';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {slideMenuEntries} from './slideMenuEntries';
@@ -99,8 +98,6 @@ export function VirtualSlides<T extends SlideListItem>({
   session,
   decoration,
   background,
-  itemKey,
-  contentReady = true,
 }: {
   readonly song: SlideSource | Song;
   readonly numbers: readonly number[];
@@ -342,131 +339,122 @@ export function VirtualSlides<T extends SlideListItem>({
       }}
     >
       <div className={styles.spacer} style={windowStyle}>
-        <BufferedSlideGrid
-          itemKey={itemKey ?? ('id' in song ? song.id : 'slide-source')}
-          ready={
-            contentReady && (canvasFor !== undefined || theme !== undefined)
+        <ThumbnailGrid
+          workspace="prep"
+          label="슬라이드"
+          columns={baseline}
+          tileWidth={width}
+          positionOffset={start}
+          setSize={numbers.length}
+          orientation="vertical"
+          selected={
+            selected !== undefined && selected >= start && selected < end
+              ? selected - start
+              : undefined
           }
-        >
-          <ThumbnailGrid
-            workspace="prep"
-            label="슬라이드"
-            columns={baseline}
-            tileWidth={width}
-            positionOffset={start}
-            setSize={numbers.length}
-            orientation="vertical"
-            selected={
-              selected !== undefined && selected >= start && selected < end
-                ? selected - start
-                : undefined
+          onSelect={index => onSelect(start + index)}
+          onMenu={(index, anchor) => {
+            if (session !== undefined) return;
+            const at = start + index;
+            const number = numbers[at];
+            if (number !== undefined) {
+              onSelect(at);
+              setMenu({index: at, number, anchor});
             }
-            onSelect={index => onSelect(start + index)}
-            onMenu={(index, anchor) => {
-              if (session !== undefined) return;
-              const at = start + index;
-              const number = numbers[at];
-              if (number !== undefined) {
-                onSelect(at);
-                setMenu({index: at, number, anchor});
-              }
-            }}
-            className={styles.grid}
-          >
-            {numbers.slice(start, end).map((number, index) => {
-              const slides = song.slides;
-              const at = start + index;
-              const sourceIndex = session === undefined ? number - 1 : at;
-              const slide = slides[sourceIndex];
-              if (slide === undefined) return null;
-              const own = list?.slides[at];
-              const thumbnail = (
-                <SlideThumbnail
-                  key={own?.id ?? start + index}
-                  selectionStyle={session === undefined ? 'ring' : 'plate'}
-                  number={number}
-                  label={slide.label === '' ? undefined : slide.label}
-                  labelColor={
-                    labels.find(label => label.name === slide.label)?.color ??
-                    'none'
+          }}
+          className={styles.grid}
+        >
+          {numbers.slice(start, end).map((number, index) => {
+            const slides = song.slides;
+            const at = start + index;
+            const sourceIndex = session === undefined ? number - 1 : at;
+            const slide = slides[sourceIndex];
+            if (slide === undefined) return null;
+            const own = list?.slides[at];
+            const thumbnail = (
+              <SlideThumbnail
+                key={own?.id ?? start + index}
+                selectionStyle={session === undefined ? 'ring' : 'plate'}
+                number={number}
+                label={slide.label === '' ? undefined : slide.label}
+                labelColor={
+                  labels.find(label => label.name === slide.label)?.color ??
+                  'none'
+                }
+                text={slide.lines.join('\n')}
+                canvas={
+                  canvasFor?.(sourceIndex) ??
+                  (theme === undefined ? undefined : (
+                    <SlidePicture
+                      output
+                      {...theme}
+                      background={slide.picture ?? background}
+                      slide={{
+                        itemId: 'thumbnail',
+                        position: sourceIndex,
+                        label: slide.label ?? null,
+                        lines: slide.lines,
+                        ...(slide.titleSlide === undefined
+                          ? {}
+                          : {titleSlide: slide.titleSlide}),
+                        ...(slide.titleLineCount === undefined
+                          ? {}
+                          : {titleLineCount: slide.titleLineCount}),
+                        ...(slide.titleLayout === undefined
+                          ? {}
+                          : {titleLayout: slide.titleLayout}),
+                        ...(slide.lyricFormat === undefined
+                          ? {}
+                          : {lyricFormat: slide.lyricFormat}),
+                      }}
+                    />
+                  ))
+                }
+                selected={
+                  session === undefined
+                    ? start + index === selected
+                    : own !== undefined && list?.selection.ids.has(own.id)
+                }
+                hotKey={'hotKey' in slide ? slide.hotKey : undefined}
+                transition={
+                  own === undefined ? slide.transition : own.transition
+                }
+              />
+            );
+            if (session === undefined) return thumbnail;
+            return (
+              <div
+                key={own?.id ?? start + index}
+                className={styles.editableTile}
+                data-menu-row
+                data-song-slide={own?.id}
+                data-slide-index={at}
+                draggable={!session.readOnly}
+              >
+                <button
+                  type="button"
+                  data-slide-gap={at}
+                  tabIndex={-1}
+                  className={styles.gridGap}
+                  style={
+                    at % columns === 0
+                      ? {insetInlineStart: 0}
+                      : {insetInlineStart: -measure.xGap, width: measure.xGap}
                   }
-                  text={slide.lines.join('\n')}
-                  canvas={
-                    canvasFor?.(sourceIndex) ??
-                    (theme === undefined ? undefined : (
-                      <SlidePicture
-                        output
-                        {...theme}
-                        background={slide.picture ?? background}
-                        slide={{
-                          itemId: 'thumbnail',
-                          position: sourceIndex,
-                          label: slide.label ?? null,
-                          lines: slide.lines,
-                          ...(slide.titleSlide === undefined
-                            ? {}
-                            : {titleSlide: slide.titleSlide}),
-                          ...(slide.titleLineCount === undefined
-                            ? {}
-                            : {titleLineCount: slide.titleLineCount}),
-                          ...(slide.titleLayout === undefined
-                            ? {}
-                            : {titleLayout: slide.titleLayout}),
-                          ...(slide.lyricFormat === undefined
-                            ? {}
-                            : {lyricFormat: slide.lyricFormat}),
-                        }}
-                      />
-                    ))
-                  }
-                  selected={
-                    session === undefined
-                      ? start + index === selected
-                      : own !== undefined && list?.selection.ids.has(own.id)
-                  }
-                  hotKey={'hotKey' in slide ? slide.hotKey : undefined}
-                  transition={
-                    own === undefined ? slide.transition : own.transition
-                  }
+                  data-caret={list?.selection.caret === at}
+                  aria-label={`슬라이드 ${number} 앞에 삽입`}
+                  onClick={event => {
+                    session.selectSlides({type: 'gap', index: at});
+                    event.currentTarget
+                      .closest<HTMLElement>('[aria-label="슬라이드 편집 명령"]')
+                      ?.focus();
+                  }}
                 />
-              );
-              if (session === undefined) return thumbnail;
-              return (
-                <div
-                  key={own?.id ?? start + index}
-                  className={styles.editableTile}
-                  data-menu-row
-                  data-song-slide={own?.id}
-                  data-slide-index={at}
-                  draggable={!session.readOnly}
-                >
-                  <button
-                    type="button"
-                    data-slide-gap={at}
-                    tabIndex={-1}
-                    className={styles.gridGap}
-                    style={
-                      at % columns === 0
-                        ? {insetInlineStart: 0}
-                        : {insetInlineStart: -measure.xGap, width: measure.xGap}
-                    }
-                    data-caret={list?.selection.caret === at}
-                    aria-label={`슬라이드 ${number} 앞에 삽입`}
-                    onClick={event => {
-                      session.selectSlides({type: 'gap', index: at});
-                      event.currentTarget
-                        .closest<HTMLElement>(
-                          '[aria-label="슬라이드 편집 명령"]',
-                        )
-                        ?.focus();
-                    }}
-                  />
-                  {thumbnail}
-                </div>
-              );
-            })}
-          </ThumbnailGrid>
-        </BufferedSlideGrid>
+                {thumbnail}
+              </div>
+            );
+          })}
+        </ThumbnailGrid>
         {decoration?.(start)}
         {session === undefined ? null : (
           <button

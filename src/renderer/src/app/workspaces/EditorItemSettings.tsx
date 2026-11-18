@@ -16,19 +16,26 @@ export function EditorItemSettings({
   items,
   editor,
   flushSlides,
+  shownItem,
+  shownSession,
 }: {
   readonly flushSlides: () => Promise<boolean>;
   readonly items: ServiceItemStore;
   readonly editor: SongEditorStore;
+  readonly shownItem?: ReturnType<ServiceItemStore['getSnapshot']> | undefined;
+  readonly shownSession?:
+    ReturnType<SongEditorStore['getSnapshot']>['session'] | undefined;
 }): JSX.Element | null {
-  const state = useSyncExternalStore(items.subscribe, items.getSnapshot);
+  const current = useSyncExternalStore(items.subscribe, items.getSnapshot);
+  const state = shownItem ?? current;
   const editing = useSyncExternalStore(editor.subscribe, editor.getSnapshot);
+  const session = shownSession === undefined ? editing.session : shownSession;
   const {item, service} = state;
   if (item === null || service === null || !isStartItem(item)) return null;
   const target = {serviceId: service.service.id, itemId: item.id};
   const flush = async (): Promise<boolean> => {
-    if (isItemOfKind(item, 'song') && editing.session?.itemSession) {
-      return editing.session.flush();
+    if (isItemOfKind(item, 'song') && session?.itemSession) {
+      return session.flush();
     }
     if (isItemOfKind(item, 'slides')) return flushSlides();
     return true;

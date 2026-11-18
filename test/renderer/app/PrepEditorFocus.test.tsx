@@ -417,7 +417,10 @@ it('switches from a song to a Bible item and back to a song', async () => {
   setup();
   await userEvent.dblClick(screen.getByRole('option', {name: /Service song/}));
   await waitFor(() => expect(document.activeElement).toBe(commandList()));
-  await userEvent.click(screen.getByRole('option', {name: 'Bible item'}));
+  const next = screen.getByRole('option', {name: 'Bible item'});
+  expect(fireEvent.mouseDown(next, {button: 0})).toBe(false);
+  expect(document.activeElement).toBe(commandList());
+  await userEvent.click(next);
   await screen.findByRole('button', {name: '‹ Service'});
   await userEvent.click(screen.getByRole('option', {name: /Service song/}));
   await waitFor(() => expect(document.activeElement).toBe(commandList()));
