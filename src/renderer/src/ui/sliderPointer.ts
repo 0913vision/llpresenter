@@ -5,6 +5,7 @@ import {
   type PointerEventHandler,
 } from 'react';
 import type {Workspace} from './workspace';
+import {returnFocus} from './returnFocus';
 
 interface SliderPointerOptions {
   readonly workspace: Workspace;
@@ -46,7 +47,9 @@ export function useSliderPointer({
       const value = input.valueAsNumber;
       clear();
       if (workspace === 'show' && document.activeElement === input) {
-        if (
+        if (document.querySelector('[data-workspace-layout="show"]')) {
+          returnFocus(null);
+        } else if (
           previous instanceof HTMLElement &&
           previous.isConnected &&
           previous !== document.body

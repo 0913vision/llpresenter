@@ -23,6 +23,7 @@ import {
   returnFromQuickPassage,
 } from '@renderer/session/quickReturn';
 import {useNumberJumpKeys} from './numberJump';
+import {returnFocus} from '@renderer/ui/returnFocus';
 
 const commands: readonly WindowShortcut[] = [
   {
@@ -55,7 +56,19 @@ const commands: readonly WindowShortcut[] = [
 const SPACE_CODE = 'Space';
 const PRIMARY_BUTTON = 0;
 
-const CLICKED_CONTROL_SELECTOR = 'button, [role="button"], [role="tab"]';
+const CLICKED_CONTROL_SELECTOR =
+  'button, [role="button"], [role="tab"], [role="option"], [tabindex]';
+
+function takesShowClickFocus(target: Element): boolean {
+  if (document.querySelector('[data-workspace-layout="show"]') === null) {
+    return target.closest(CLICK_FOCUS_SELECTOR) !== null;
+  }
+  return (
+    target.closest(
+      'input, textarea, select, [contenteditable="true"], [role="menu"], [role="dialog"], [role="alertdialog"], [data-show-slide-grid], [data-panel="예배 순서"] [role="listbox"]',
+    ) !== null
+  );
+}
 
 // NOTE(0913vision): Space activates a focused button when it is released, so
 // the key up of a Space that the live handler took must be cancelled too. The
@@ -113,10 +126,7 @@ export function handleShowKeyUp(event: KeyboardEvent): void {
 export function handleShowMouseDown(event: MouseEvent): void {
   pendingClick = null;
   if (event.button !== PRIMARY_BUTTON) return;
-  if (
-    event.target instanceof Element &&
-    event.target.closest(CLICK_FOCUS_SELECTOR) !== null
-  ) {
+  if (event.target instanceof Element && takesShowClickFocus(event.target)) {
     return;
   }
   if (!(event.target instanceof Element)) return;
@@ -136,7 +146,30 @@ export function handleShowMouseDown(event: MouseEvent): void {
 /** Puts the focus back when a mouse down made a plain button take it. */
 export function handleShowFocusIn(event: FocusEvent): void {
   const click = pendingClick;
-  if (!click) return;
+  if (!click) {
+    const from = event.relatedTarget;
+    const target = event.target;
+    if (
+      from instanceof Element &&
+      from.closest('[role="menu"], [role="dialog"], [role="alertdialog"]') !==
+        null &&
+      target instanceof HTMLElement &&
+      target.closest('[role="menu"], [role="dialog"], [role="alertdialog"]') ===
+        null
+    ) {
+      queueMicrotask(() => {
+        if (
+          document.activeElement === target &&
+          document.querySelector(
+            '[role="menu"], [role="dialog"], [role="alertdialog"]',
+          ) === null
+        ) {
+          returnFocus(target);
+        }
+      });
+    }
+    return;
+  }
   if (event.target !== click.control) return;
   pendingClick = null;
   const {previousFocus} = click;
@@ -146,9 +179,10 @@ export function handleShowFocusIn(event: FocusEvent): void {
     previousFocus !== document.body &&
     previousFocus !== click.control
   ) {
-    previousFocus.focus({preventScroll: true});
+    returnFocus(previousFocus);
   } else if (click.control instanceof HTMLElement) {
-    click.control.blur();
+    returnFocus(null);
+    if (document.activeElement === click.control) click.control.blur();
   }
 }
 
@@ -165,7 +199,53 @@ function clearPendingClick(event: Event): void {
   ) {
     return;
   }
+  if (event.type === 'click' && click?.control === document.activeElement) {
+    queueMicrotask(() => {
+      if (
+        click.control === document.activeElement &&
+        document.querySelector(
+          '[role="menu"], [role="dialog"], [role="alertdialog"]',
+        ) === null
+      ) {
+        returnFocus(null);
+      }
+    });
+  }
   pendingClick = null;
+}
+
+/** A pointer click outside a focus-owning surface returns to slide keys. */
+function returnAfterShowClick(event: MouseEvent): void {
+  if (
+    event.button !== PRIMARY_BUTTON ||
+    event.detail === 0 ||
+    !(event.target instanceof Element)
+  ) {
+    return;
+  }
+  const target = event.target;
+  const show = document.querySelector('[data-workspace-layout="show"]');
+  if (
+    show === null ||
+    (!show.contains(target) &&
+      target.closest('[data-window-menu-bar], [data-workspace-toolbar]') ===
+        null) ||
+    takesShowClickFocus(target)
+  ) {
+    return;
+  }
+  const label = target.closest('label');
+  if (label?.control?.matches('input, textarea, select')) return;
+  queueMicrotask(() => {
+    if (
+      document.querySelector('[data-workspace-layout="show"]') !== null &&
+      document.querySelector(
+        '[role="menu"], [role="dialog"], [role="alertdialog"]',
+      ) === null
+    ) {
+      returnFocus(null);
+    }
+  });
 }
 
 /** Listens for the live keys while the 진행 workspace is shown. */
@@ -180,6 +260,7 @@ export function useShowKeys(): void {
     window.addEventListener('focusin', handleShowFocusIn);
     window.addEventListener('mouseup', clearPendingClick);
     window.addEventListener('click', clearPendingClick);
+    window.addEventListener('click', returnAfterShowClick);
     window.addEventListener('dragend', clearPendingClick);
     window.addEventListener('blur', resetPendingInput);
     return () => {
@@ -189,6 +270,7 @@ export function useShowKeys(): void {
       window.removeEventListener('focusin', handleShowFocusIn);
       window.removeEventListener('mouseup', clearPendingClick);
       window.removeEventListener('click', clearPendingClick);
+      window.removeEventListener('click', returnAfterShowClick);
       window.removeEventListener('dragend', clearPendingClick);
       window.removeEventListener('blur', resetPendingInput);
     };

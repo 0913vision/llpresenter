@@ -105,6 +105,25 @@ describe('click focus', () => {
     focusIn(control);
     expect(document.activeElement).toBe(control);
   });
+
+  it('returns focus from a media list to the slide grid in 진행', () => {
+    const show = appendTo('main', {'data-workspace-layout': 'show'});
+    const keeper = show.appendChild(document.createElement('div'));
+    keeper.dataset.showSlideGrid = 'true';
+    const grid = keeper.appendChild(document.createElement('div'));
+    grid.setAttribute('role', 'listbox');
+    grid.setAttribute('aria-label', '슬라이드');
+    grid.tabIndex = 0;
+    const media = show.appendChild(document.createElement('div'));
+    media.setAttribute('role', 'listbox');
+    media.setAttribute(CLICK_FOCUS_ATTRIBUTE, '');
+    const option = media.appendChild(document.createElement('div'));
+    option.setAttribute('role', 'option');
+    option.tabIndex = 0;
+    grid.focus();
+    clickAndFocus(option);
+    expect(document.activeElement).toBe(grid);
+  });
 });
 
 describe('label click focus', () => {
@@ -235,6 +254,74 @@ describe('label click focus', () => {
     await userEvent.click(text);
     expect(document.activeElement).toBe(input);
   });
+});
+
+it('returns from a clicked panel header to the slide grid', async () => {
+  renderHook(() => useShowKeys());
+  const show = appendTo('main', {'data-workspace-layout': 'show'});
+  const keeper = show.appendChild(document.createElement('div'));
+  keeper.dataset.showSlideGrid = 'true';
+  const grid = keeper.appendChild(document.createElement('div'));
+  grid.setAttribute('role', 'listbox');
+  grid.setAttribute('aria-label', '슬라이드');
+  grid.tabIndex = 0;
+  const field = show.appendChild(document.createElement('input'));
+  const header = show.appendChild(document.createElement('header'));
+  field.focus();
+  await userEvent.click(header);
+  expect(document.activeElement).toBe(grid);
+});
+
+it('keeps keyboard focus on a control activated by Enter', async () => {
+  renderHook(() => useShowKeys());
+  const show = appendTo('main', {'data-workspace-layout': 'show'});
+  const keeper = show.appendChild(document.createElement('div'));
+  keeper.dataset.showSlideGrid = 'true';
+  const grid = keeper.appendChild(document.createElement('div'));
+  grid.setAttribute('role', 'listbox');
+  grid.setAttribute('aria-label', '슬라이드');
+  grid.tabIndex = 0;
+  const button = show.appendChild(document.createElement('button'));
+  button.focus();
+  await userEvent.keyboard('{Enter}');
+  expect(document.activeElement).toBe(button);
+});
+
+it('returns to the grid when a toolbar button is clicked from a field', async () => {
+  renderHook(() => useShowKeys());
+  const show = appendTo('main', {'data-workspace-layout': 'show'});
+  const keeper = show.appendChild(document.createElement('div'));
+  keeper.dataset.showSlideGrid = 'true';
+  const grid = keeper.appendChild(document.createElement('div'));
+  grid.setAttribute('role', 'listbox');
+  grid.setAttribute('aria-label', '슬라이드');
+  grid.tabIndex = 0;
+  const field = show.appendChild(document.createElement('input'));
+  const toolbar = appendTo('header', {'data-workspace-toolbar': ''});
+  const button = toolbar.appendChild(document.createElement('button'));
+  field.focus();
+  await userEvent.click(button);
+  expect(document.activeElement).toBe(grid);
+});
+
+it('returns to the grid when a custom popover restores its button', async () => {
+  renderHook(() => useShowKeys());
+  const show = appendTo('main', {'data-workspace-layout': 'show'});
+  const keeper = show.appendChild(document.createElement('div'));
+  keeper.dataset.showSlideGrid = 'true';
+  const grid = keeper.appendChild(document.createElement('div'));
+  grid.setAttribute('role', 'listbox');
+  grid.setAttribute('aria-label', '슬라이드');
+  grid.tabIndex = 0;
+  const button = show.appendChild(document.createElement('button'));
+  const popover = document.body.appendChild(document.createElement('div'));
+  popover.setAttribute('role', 'dialog');
+  const option = popover.appendChild(document.createElement('button'));
+  option.focus();
+  button.focus();
+  popover.remove();
+  await Promise.resolve();
+  expect(document.activeElement).toBe(grid);
 });
 
 describe('state that an event may never complete', () => {

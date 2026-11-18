@@ -371,9 +371,9 @@ the keys that earlier rules pass on.
    편집, 순서 편집) is not in it; if one changed the order since, 실행 취소
    refuses instead of overwriting it.
 5. **In the Show workspace**, the slide grid passes ↑ and ↓ to the previous and
-   next slide commands; Enter does nothing. The service order list keeps ↑, ↓,
-   Home, End, and Enter for selection without output. Both pass left, right,
-   Space, Page Up and Page Down to the live commands.
+   next slide commands; Enter and keypad Enter advance the slide. The service
+   order list keeps ↑, ↓, Home, End, and Enter for selection without output.
+   Both pass left, right, Space, Page Up and Page Down to the live commands.
 6. **Any other control with keyboard focus** takes the keys its design system
    README gives it, for example a 매크로 tile (arrows move, Enter and Space run,
    07), a button (Enter and Space press), a checkbox, a segmented control, a
@@ -390,7 +390,8 @@ to go to the next 슬라이드 would run the 매크로 again. In Show, order row
 the grid draw an accent `:focus-visible` outline after keyboard entry. The grid
 has no tile selection; live output keeps its red picture ring. Pointer focus
 alone does not draw a keyboard outline. Other controls keep their design system
-focus indicators.
+focus indicators. When a menu or dialog closes in 진행, focus returns to the
+slide grid unless it opened from a text field, which gets focus back instead.
 
 Tab leaves the toolbar in its existing order, then visits 1 예배 순서, 2
 슬라이드, 3 빠른 실행, 4 미리보기, 5 지우기, 6 진행 도구, 7 미디어. Shift Tab
@@ -401,12 +402,12 @@ and collapsed panels. This adds no default key.
 
 Rules this precedence replaces or narrows:
 
-| Existing rule                                                                                  | Change                                                                                                                                                   |
-| ---------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `SlideThumbnail` README: arrows move between thumbnails, Enter and Space act as a click        | In 진행, ← → and Space go to 다음 슬라이드 and 이전 슬라이드; the grid passes ↑ ↓ to previous and next slide; Enter does nothing. 준비 keeps the README. |
-| Former 04 "Keyboard" rule (replaced): arrows move the selected tile; Enter and Space output it | Same change as above.                                                                                                                                    |
-| 07 "Keyboard": arrows move between 매크로 tiles, Enter or Space runs the 매크로                | Kept, but it applies only when a tile has keyboard focus, which a mouse click no longer gives.                                                           |
-| Component READMEs for buttons, checkboxes, segmented controls, sliders, and tab rows           | Kept for keyboard focus. A mouse click in 진행 doesn't give them focus.                                                                                  |
+| Existing rule                                                                                  | Change                                                                                                       |
+| ---------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------ |
+| `SlideThumbnail` README: arrows move between thumbnails, Enter and Space act as a click        | In 진행, the grid passes arrows, Space, Enter and keypad Enter to the slide commands. 준비 keeps the README. |
+| Former 04 "Keyboard" rule (replaced): arrows move the selected tile; Enter and Space output it | Same change as above.                                                                                        |
+| 07 "Keyboard": arrows move between 매크로 tiles, Enter or Space runs the 매크로                | Kept, but it applies only when a tile has keyboard focus, which a mouse click no longer gives.               |
+| Component READMEs for buttons, checkboxes, segmented controls, sliders, and tab rows           | Kept for keyboard focus. A mouse click in 진행 doesn't give them focus.                                      |
 
 #### Summary by focus
 
@@ -585,6 +586,8 @@ decision; no equivalent generic ProPresenter panel command is claimed.
 | 첫 슬라이드     | `show.first`    | Home                   | None found          | Decided: S22 Home, also S9. Outputs the first tile of the open presentation; focused text and lists keep Home.                                                                            | 진행     | 1    |
 | 마지막 슬라이드 | `show.last`     | End                    | None found          | Decided: S22 End, also S9. Outputs the last tile of the open presentation; focused text and lists keep End.                                                                               | 진행     | 1    |
 
+- Enter and keypad Enter also advance in 진행 as fixed keys, while text, menus,
+  dialogs, and the 예배 순서 list retain their own Enter behavior.
 - When the item open in the 슬라이드 panel isn't the current item, 다음 슬라이드
   outputs the first tile of the item in the 슬라이드 panel (decided, no
   ProPresenter source found; refines 04). This makes "pick the next item, then
@@ -838,44 +841,44 @@ rename (S24). This audit adds no bare letter, IME key or Windows-owned key.
 Every default key in one list, to show that no two commands share a key in the
 same place. Native window and field keys are identified separately.
 
-| Key                           | Command                                                      | Where                                                          |
-| ----------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------- |
-| F1 to F6                      | 지우기 (모두, 가사, 미디어, 그래픽, 오디오, 메시지)          | Everywhere                                                     |
-| .                             | All-clear toggle                                             | Progress, except text fields                                   |
-| →, ↓, Space, Page Down        | 다음 슬라이드                                                | 진행                                                           |
-| ←, ↑, Page Up                 | 이전 슬라이드                                                | 진행                                                           |
-| Home, End                     | 첫 슬라이드, 마지막 슬라이드                                 | 진행, except focused text and lists                            |
-| Alt P                         | 오디오 재생 또는 일시 정지                                   | Control windows, subject to focus and IME precedence           |
-| Ctrl ↓, Ctrl ↑                | 다음 항목, 이전 항목                                         | 진행                                                           |
-| Alt →, Alt ←                  | 이름표 오른쪽으로, 이름표 왼쪽으로                           | Chip strip in 준비 (no overlap with 진행)                      |
-| Ctrl Z                        | 실행 취소 (edit undo only)                                   | Editable lists, 준비 edits, text fields; no clear undo         |
-| Ctrl Y, Ctrl Shift Z          | 다시 실행                                                    | Editable lists, 준비 edits, text fields                        |
-| Ctrl 1, Ctrl 2                | 청중 화면 출력, 무대 화면 출력                               | All                                                            |
-| Ctrl Alt 1                    | 화면 설정                                                    | All                                                            |
-| Ctrl 0                        | 화면 확대 기본값 (100%)                                      | All control windows                                            |
-| Ctrl +, Ctrl -                | 화면 확대, 화면 축소                                         | All control windows; physical aliases listed under "Conflicts" |
-| Ctrl S                        | 진행 (가져온 곡 저장 in the imported song editor)            | All (open question 1)                                          |
-| Ctrl R                        | 준비                                                         | All                                                            |
-| Ctrl Shift V                  | 미디어 (plain paste inside text fields)                      | All                                                            |
-| Ctrl F                        | 찾기                                                         | All                                                            |
-| Ctrl L                        | 출력 중인 항목 열기                                          | 진행                                                           |
-| Ctrl M                        | 메시지 탭                                                    | 진행                                                           |
-| Ctrl Shift C                  | 타이머 탭                                                    | 진행                                                           |
-| Ctrl Shift P                  | 그래픽 탭                                                    | 진행                                                           |
-| Alt S                         | 무대 탭                                                      | 진행                                                           |
-| Alt C                         | 동작 팔레트                                                  | 진행                                                           |
-| Ctrl B                        | 성경 구절 찾기                                               | 진행                                                           |
-| Ctrl N                        | 새 곡                                                        | All                                                            |
-| Ctrl Shift N                  | 새 슬라이드                                                  | Song editor                                                    |
-| Ctrl Enter                    | 슬라이드 나누기                                              | Song editor                                                    |
-| Ctrl Shift I                  | 텍스트 파일 가져오기                                         | All                                                            |
-| Ctrl D                        | 복제                                                         | Where 복제 exists                                              |
-| Delete                        | 삭제                                                         | Lists, chip strip, 테마 editor                                 |
-| Ctrl ,                        | 환경설정                                                     | All                                                            |
-| Alt F4 (Windows)              | 종료                                                         | All                                                            |
-| Esc, Ctrl W                   | 환경설정 닫기                                                | 환경설정 window                                                |
-| Bare letters and digits       | source-slide hot keys                                        | 진행                                                           |
-| Enter (inside the field only) | 무대 메시지 보내기, 메시지 보내기, 바로 띄우기 (Bible field) | Their text fields in 진행                                      |
+| Key                                         | Command                                                      | Where                                                          |
+| ------------------------------------------- | ------------------------------------------------------------ | -------------------------------------------------------------- |
+| F1 to F6                                    | 지우기 (모두, 가사, 미디어, 그래픽, 오디오, 메시지)          | Everywhere                                                     |
+| .                                           | All-clear toggle                                             | Progress, except text fields                                   |
+| →, ↓, Space, Enter, keypad Enter, Page Down | 다음 슬라이드                                                | 진행                                                           |
+| ←, ↑, Page Up                               | 이전 슬라이드                                                | 진행                                                           |
+| Home, End                                   | 첫 슬라이드, 마지막 슬라이드                                 | 진행, except focused text and lists                            |
+| Alt P                                       | 오디오 재생 또는 일시 정지                                   | Control windows, subject to focus and IME precedence           |
+| Ctrl ↓, Ctrl ↑                              | 다음 항목, 이전 항목                                         | 진행                                                           |
+| Alt →, Alt ←                                | 이름표 오른쪽으로, 이름표 왼쪽으로                           | Chip strip in 준비 (no overlap with 진행)                      |
+| Ctrl Z                                      | 실행 취소 (edit undo only)                                   | Editable lists, 준비 edits, text fields; no clear undo         |
+| Ctrl Y, Ctrl Shift Z                        | 다시 실행                                                    | Editable lists, 준비 edits, text fields                        |
+| Ctrl 1, Ctrl 2                              | 청중 화면 출력, 무대 화면 출력                               | All                                                            |
+| Ctrl Alt 1                                  | 화면 설정                                                    | All                                                            |
+| Ctrl 0                                      | 화면 확대 기본값 (100%)                                      | All control windows                                            |
+| Ctrl +, Ctrl -                              | 화면 확대, 화면 축소                                         | All control windows; physical aliases listed under "Conflicts" |
+| Ctrl S                                      | 진행 (가져온 곡 저장 in the imported song editor)            | All (open question 1)                                          |
+| Ctrl R                                      | 준비                                                         | All                                                            |
+| Ctrl Shift V                                | 미디어 (plain paste inside text fields)                      | All                                                            |
+| Ctrl F                                      | 찾기                                                         | All                                                            |
+| Ctrl L                                      | 출력 중인 항목 열기                                          | 진행                                                           |
+| Ctrl M                                      | 메시지 탭                                                    | 진행                                                           |
+| Ctrl Shift C                                | 타이머 탭                                                    | 진행                                                           |
+| Ctrl Shift P                                | 그래픽 탭                                                    | 진행                                                           |
+| Alt S                                       | 무대 탭                                                      | 진행                                                           |
+| Alt C                                       | 동작 팔레트                                                  | 진행                                                           |
+| Ctrl B                                      | 성경 구절 찾기                                               | 진행                                                           |
+| Ctrl N                                      | 새 곡                                                        | All                                                            |
+| Ctrl Shift N                                | 새 슬라이드                                                  | Song editor                                                    |
+| Ctrl Enter                                  | 슬라이드 나누기                                              | Song editor                                                    |
+| Ctrl Shift I                                | 텍스트 파일 가져오기                                         | All                                                            |
+| Ctrl D                                      | 복제                                                         | Where 복제 exists                                              |
+| Delete                                      | 삭제                                                         | Lists, chip strip, 테마 editor                                 |
+| Ctrl ,                                      | 환경설정                                                     | All                                                            |
+| Alt F4 (Windows)                            | 종료                                                         | All                                                            |
+| Esc, Ctrl W                                 | 환경설정 닫기                                                | 환경설정 window                                                |
+| Bare letters and digits                     | source-slide hot keys                                        | 진행                                                           |
+| Enter (inside the field only)               | 무대 메시지 보내기, 메시지 보내기, 바로 띄우기 (Bible field) | Their text fields in 진행                                      |
 
 - Ctrl B opens the compact Bible reference modal in progress.
 
@@ -1419,7 +1422,7 @@ migrations.
 | 06 "Shortcuts": "Where shortcuts work" and "Default shortcuts"         | Replaced by "Shortcut system" in this file (decided 2026-10-25).                                                                                                                                                                                                           |
 | 04 "Keyboard" and "Keyboard summary for 진행"                          | Decided: add Page Down and Page Up, 다음 항목, and the rule for → when another item is open; ← → and Space in the 슬라이드 grid go to the live commands (focus precedence rule 5); next on the last 슬라이드 becomes the 진행 setting.                                     |
 | 07 "Keyboard" (매크로 tiles)                                           | Decided: kept, but it applies only to keyboard focus, which a mouse click in 진행 no longer gives (focus precedence).                                                                                                                                                      |
-| `SlideThumbnail` README (design system)                                | Decided: in 진행, ← → and Space go to 다음 슬라이드 and 이전 슬라이드; the grid passes ↑ ↓ to previous and next slide; Enter does nothing.                                                                                                                                 |
+| `SlideThumbnail` README (design system)                                | In 진행, the grid passes the slide navigation keys to the live commands, including Enter and keypad Enter.                                                                                                                                                                 |
 | Design system component behavior in 진행                               | Decided: a mouse click on a button or tile doesn't move keyboard focus; text fields, the 슬라이드 grid, and the 예배 순서 list still take it.                                                                                                                              |
 | M2 check 1 rows 3, 7 to 11                                             | No 진행 thumbnail focus border; clear undo button optional and hidden by default; no clear Ctrl Z; continuous thumbnail percentage; UI zoom; proposed layout reset confirmation. 01, 03, and 04 carry these overrides; the design-system owner updates its matching rules. |
 | 02 `shortcuts.json`, grouped songs and legacy `labels.json`            | Decided: physical codes for command bindings and source-slide keys. Preserve legacy label metadata; see "Storage" and the October 27 S26 decision.                                                                                                                         |

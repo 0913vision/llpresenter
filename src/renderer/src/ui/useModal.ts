@@ -8,6 +8,7 @@ import {isComposing, isComposingKey} from './ime';
 import {findLayerContainer} from './layers';
 import {modalStack} from './modalStack';
 import {hasModifier} from './modifierKeys';
+import {returnFocus} from './returnFocus';
 
 const TABBABLE = [
   'button:not([disabled])',
@@ -198,7 +199,7 @@ export function useModal({
     focusInitial(element, initialFocus);
     return () => {
       close();
-      if (opener?.isConnected === true) opener.focus();
+      returnFocus(opener);
     };
   }, [surface, initialFocus]);
   useKeysFromNotificationCards(surface, onEscape);

@@ -17,6 +17,7 @@ import {MenuSurface, type MenuSurfaceProps} from './MenuSurface';
 import {placeAtPoint, placeBelow, viewportSize, type Point} from './placement';
 import styles from './Menu.module.css';
 import {contextMenuEntries} from './contextMenuEntries';
+import {returnFocus} from './returnFocus';
 
 export type {MenuCloseReason} from './menuKeys';
 export type {MenuSearch} from './MenuParts';
@@ -45,6 +46,8 @@ export interface MenuProps {
   readonly footer?: ReactNode | undefined;
   /** Keep focus in an editable trigger until the pointer enters the list. */
   readonly autoFocus?: boolean | undefined;
+  /** The element to restore when the menu closes, if different from its anchor. */
+  readonly returnTo?: HTMLElement | null | undefined;
 }
 
 function anchorPlace(anchor: MenuAnchor): MenuSurfaceProps['place'] {
@@ -78,6 +81,7 @@ export function Menu({
   minWidth,
   footer,
   autoFocus = true,
+  returnTo,
 }: MenuProps): JSX.Element {
   const entries = context
     ? contextMenuEntries(suppliedEntries)
@@ -112,6 +116,7 @@ export function Menu({
     return () => window.removeEventListener('resize', fit);
   }, [menubar]);
   const [opener] = useState(() => {
+    if (returnTo !== undefined) return returnTo;
     if (menubar !== null && anchor.kind === 'element') return anchor.element;
     return document.activeElement instanceof HTMLElement
       ? document.activeElement
@@ -122,7 +127,7 @@ export function Menu({
 
   useEffect(
     () => () => {
-      if (opener?.isConnected === true) opener.focus();
+      returnFocus(opener);
     },
     [opener],
   );
