@@ -35,6 +35,12 @@ export class Autosave {
     this.waiting.set(key, {timer, save});
   }
 
+  /** Starts this file without the debounce, retaining per-file ordering. */
+  scheduleNow(key: string, save: Save): void {
+    this.cancel(key);
+    this.start(key, save);
+  }
+
   /** Drops waiting and due callbacks for a file that the caller will save explicitly. */
   cancelPending(key: string): void {
     this.cancel(key);

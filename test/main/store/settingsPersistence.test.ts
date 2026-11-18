@@ -4,6 +4,49 @@ import type {DocumentFiles} from '@main/store/contentPersistence';
 import type {WriteResult} from '@main/store/fileWriter';
 import {SettingsPersistence} from '@main/store/settingsPersistence';
 
+it('starts an immediate label save without waiting and serializes the next one', async () => {
+  let release: (result: WriteResult) => void = () => undefined;
+  const success: WriteResult = {ok: true, value: undefined};
+  const write = vi
+    .fn<DocumentFiles['write']>()
+    .mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          release = resolve;
+        }),
+    )
+    .mockResolvedValue(success);
+  const saves = new SettingsPersistence(
+    {write, remove: vi.fn()},
+    recordingLogger(),
+  );
+  const target = {file: 'C:/data/labels.json', kind: 'settings', id: 'labels'};
+  const first = saves.save({target, text: 'first'}, true);
+  expect(write).toHaveBeenCalledOnce();
+  const second = saves.save({target, text: 'second'}, true);
+  expect(write).toHaveBeenCalledOnce();
+  release(success);
+  expect(await first).toEqual(success);
+  expect(await second).toEqual(success);
+  expect(write).toHaveBeenLastCalledWith({target, text: 'second'});
+  saves.dispose();
+});
+
+it('reports an immediate save failure to the caller', async () => {
+  const target = {file: 'C:/data/labels.json', kind: 'settings', id: 'labels'};
+  const failure: WriteResult = {
+    ok: false,
+    error: {file: target.file, message: 'Disk is full'},
+  };
+  const write = vi.fn<DocumentFiles['write']>().mockResolvedValue(failure);
+  const saves = new SettingsPersistence(
+    {write, remove: vi.fn()},
+    recordingLogger(),
+  );
+  expect(await saves.save({target, text: 'labels'}, true)).toEqual(failure);
+  saves.dispose();
+});
+
 it('waits for a settings edit accepted while a flush is writing', async () => {
   let release: (result: WriteResult) => void = () => undefined;
   const success: WriteResult = {ok: true, value: undefined};
