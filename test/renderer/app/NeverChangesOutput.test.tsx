@@ -76,10 +76,10 @@ it('sends no output command for any workspace switch', () => {
   expect(send).not.toHaveBeenCalled();
 });
 
-it('opens 환경설정 from the 파일 menu without an output command', async () => {
+it('opens 환경설정 from the LoveLight menu without an output command', async () => {
   const {send, openPreferences} = mountApp();
 
-  await userEvent.click(screen.getByRole('menuitem', {name: '파일'}));
+  await userEvent.click(screen.getByRole('menuitem', {name: 'LoveLight'}));
   await userEvent.click(screen.getByRole('menuitem', {name: /환경설정/}));
 
   expect(openPreferences).toHaveBeenCalledOnce();

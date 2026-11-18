@@ -9,10 +9,12 @@ const DEFAULT_LARGE_SCREEN_ID: string = STARTER_SCREEN_IDS.main;
 
 interface PreviewView {
   readonly largeScreenId: string;
+  readonly visible: boolean;
 }
 
 export const usePreview = create<PreviewView>(() => ({
   largeScreenId: DEFAULT_LARGE_SCREEN_ID,
+  visible: true,
 }));
 
 /** Makes a screen's preview the large one. The large one becomes small. */
@@ -21,8 +23,13 @@ export function showLarge(screenId: string): void {
   const parsed = parseScreenId(screenId);
   if (parsed.ok) window.llp?.ui.setRememberedView({previewBig: parsed.value});
 }
+export function setPreviewVisible(visible: boolean): void {
+  usePreview.setState({visible});
+  window.llp?.ui.setRememberedView({previewBigVisible: visible});
+}
 export function seedPreview(state: UiState): void {
   usePreview.setState({
     largeScreenId: state.previewBig ?? DEFAULT_LARGE_SCREEN_ID,
+    visible: state.previewBigVisible ?? true,
   });
 }

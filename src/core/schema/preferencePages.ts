@@ -1,6 +1,7 @@
 /** The pages of the 환경설정 window, in the order its list shows them. */
 export const PREFERENCE_PAGE_IDS = [
   'general',
+  'show',
   'output',
   'serviceOrder',
   'storage',

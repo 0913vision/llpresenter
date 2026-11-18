@@ -50,9 +50,9 @@ describe('MenuBar', () => {
     const check = vi.fn();
     window.llp = mockLlpApi({update: {check}});
     render(<MenuBar title="" />);
-    await userEvent.click(screen.getByRole('menuitem', {name: '도움말'}));
+    await userEvent.click(screen.getByRole('menuitem', {name: 'LoveLight'}));
     const items = within(
-      screen.getByRole('menu', {name: '도움말'}),
+      screen.getByRole('menu', {name: 'LoveLight'}),
     ).getAllByRole('menuitem');
     const index = items.findIndex(item => item.textContent === '업데이트 확인');
     expect(index).toBeGreaterThanOrEqual(0);

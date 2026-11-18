@@ -141,15 +141,11 @@ export interface ContinuousRow {
 export function workspaceMenu({
   onWorkspace,
   onMedia,
-  continuous,
-  continuousGrid,
   testPattern,
   fullScreen,
 }: {
   readonly onWorkspace: ((workspace: Workspace) => void) | undefined;
   readonly onMedia: (() => void) | undefined;
-  readonly continuous: ContinuousRow;
-  readonly continuousGrid: ContinuousRow;
   readonly testPattern: MenuItem;
   readonly fullScreen: MenuItem;
 }): readonly MenuEntry[] {
@@ -158,25 +154,6 @@ export function workspaceMenu({
     laterRow('workspace.slides', '슬라이드 편집기'),
     workspaceRow({id: 'prep', label: '준비'}, onWorkspace),
     laterRow('workspace.bible', '성경'),
-    menuSeparator('playback'),
-    {
-      kind: 'item',
-      id: 'continuous',
-      label: '이어서 진행',
-      check: 'checkbox',
-      checked: continuous.on,
-      ...menuAvailability(continuous.reason),
-      onSelect: continuous.toggle,
-    },
-    {
-      kind: 'item',
-      id: 'continuous-grid',
-      label: '이어서 보여 주기',
-      check: 'checkbox',
-      checked: continuousGrid.on,
-      ...menuAvailability(continuousGrid.reason),
-      onSelect: continuousGrid.toggle,
-    },
     menuSeparator('slide-view'),
     laterRow('slide-view', '슬라이드 보기', {submenu: true}),
     menuSeparator('tools'),
@@ -212,5 +189,37 @@ export function workspaceMenu({
     laterRow('preview', '미리보기', {submenu: true}),
     menuSeparator('full-screen'),
     fullScreen,
+    {
+      kind: 'item',
+      id: 'reset-columns',
+      label: '칸 배치 초기화',
+      onSelect: () => window.dispatchEvent(new Event('llp-reset-columns')),
+    },
+  ];
+}
+
+export function showMenu(
+  continuous: ContinuousRow,
+  continuousGrid: ContinuousRow,
+): readonly MenuEntry[] {
+  return [
+    {
+      kind: 'item',
+      id: 'continuous',
+      label: '마지막 슬라이드에서 다음 항목으로',
+      check: 'checkbox',
+      checked: continuous.on,
+      ...menuAvailability(continuous.reason),
+      onSelect: continuous.toggle,
+    },
+    {
+      kind: 'item',
+      id: 'continuous-grid',
+      label: '이어서 보여 주기',
+      check: 'checkbox',
+      checked: continuousGrid.on,
+      ...menuAvailability(continuousGrid.reason),
+      onSelect: continuousGrid.toggle,
+    },
   ];
 }

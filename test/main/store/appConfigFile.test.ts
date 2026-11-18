@@ -41,6 +41,7 @@ it('persists remembered views and preferences across reopen, including clearing 
   const store = new UiStateStore({fields: config, log: mockLog()});
   store.setRememberedView({
     previewBig: '00000000-0000-4000-8000-000000000001',
+    previewBigVisible: false,
     macroView: 'list',
     macroCollection: '00000000-0000-4000-8000-000000000002',
     showToolTab: 'timer',
@@ -60,6 +61,7 @@ it('persists remembered views and preferences across reopen, including clearing 
     showToolTab: 'timer',
     macroCollection: '00000000-0000-4000-8000-000000000002',
     previewBig: '00000000-0000-4000-8000-000000000001',
+    previewBigVisible: false,
   });
   expect(reopened.preferencesPage).toBe('media');
   expect(reopened.preferencesWindow?.width).toBe(1300);

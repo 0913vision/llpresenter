@@ -22,6 +22,7 @@ function fullConfig() {
       wide: {},
     },
     previewBig: SCREEN_ID,
+    previewBigVisible: false,
     macroView: 'grid',
     macroCollection: COLLECTION_ID,
     mediaStrip: true,
@@ -198,6 +199,11 @@ describe('parseAppConfig', () => {
       'a screen name for the large preview',
       {previewBig: '청중 화면'},
       'previewBig',
+    ],
+    [
+      'an invalid preview visibility',
+      {previewBigVisible: 'yes'},
+      'previewBigVisible',
     ],
     ['an unknown macro view', {macroView: 'tiles'}, 'macroView'],
     [

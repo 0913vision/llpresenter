@@ -125,6 +125,22 @@ describe('createControlWindow', () => {
     expect(win.show).toHaveBeenCalledOnce();
   });
 
+  it('opens without maximizing when startup maximization is disabled', async () => {
+    createControlWindow(recordingLogger(), 'normal', {
+      attachControl: vi.fn(),
+      startMaximized: false,
+    });
+    const win = lastWindow();
+    win.emit('ready-to-show');
+    electron.ipcMain.emit(serviceEndpoints.ready.channel, {
+      sender: win.webContents,
+      senderFrame: win.webContents.mainFrame,
+    });
+    await Promise.resolve();
+    expect(win.show).toHaveBeenCalledOnce();
+    expect(win.maximize).not.toHaveBeenCalled();
+  });
+
   it('eventually shows a painted window if startup readiness does not arrive', () => {
     vi.useFakeTimers();
     createControlWindow(recordingLogger(), 'normal', {attachControl: vi.fn()});

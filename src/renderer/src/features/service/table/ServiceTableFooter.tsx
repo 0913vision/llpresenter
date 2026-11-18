@@ -23,7 +23,6 @@ import {useServiceOrderEditing} from '../order/useServiceOrderEditing';
 import styles from './ServiceTable.module.css';
 import {insertSelectedSong} from '@renderer/session/insertSelectedSong';
 
-const SECTION_NAME = '새 구역';
 const NO_SERVICE_REASON = '열린 예배 없음';
 
 /** Footer adders insert after the current selection. */
@@ -111,20 +110,6 @@ export function ServiceTableFooter({
         }}
       >
         항목
-      </Button>
-      <Button
-        variant="ghost"
-        icon="plus"
-        disabled={disabled}
-        title={reason}
-        onClick={() =>
-          append({
-            id: createServiceItemId(crypto.randomUUID()),
-            header: SECTION_NAME,
-          })
-        }
-      >
-        구역
       </Button>
       {open && !disabled && button !== null ? (
         <Menu

@@ -2,11 +2,14 @@ import {limitReason} from '@core/common/limitReason';
 import {contextMenuTarget, isContextMenuKey} from '@renderer/ui/contextMenu';
 import {useState, type JSX, type ReactNode} from 'react';
 import {createMessageTemplateId} from '@core/schema/ids';
+import type {Screen} from '@core/schema/screens';
 import type {MessageTemplate} from '@core/schema/messages';
 import {MAX_MESSAGE_CHARACTERS} from '@core/overlays/messageText';
 import type {NamedDocument} from '@renderer/platform/useSettingsDocument';
 import {
   AlertDialog,
+  Button,
+  SelectMenu,
   Dialog,
   IconButton,
   Menu,
@@ -39,11 +42,13 @@ type Editor =
 
 function TemplateDialog({
   editor,
+  screens,
   locked,
   onCancel,
   onSave,
 }: {
   readonly editor: Exclude<Editor, {kind: 'delete'}>;
+  readonly screens: readonly Screen[];
   readonly locked: boolean;
   readonly onCancel: () => void;
   readonly onSave: (fields: MessageFields) => void;
@@ -53,6 +58,15 @@ function TemplateDialog({
   );
   const [text, setText] = useState(
     editor.kind === 'add' ? '' : editor.item.text,
+  );
+  const [icon, setIcon] = useState<MessageTemplate['icon']>(
+    editor.kind === 'edit' ? editor.item.icon : 'msg',
+  );
+  const [targets, setTargets] = useState<
+    NonNullable<MessageTemplate['targets']>
+  >(editor.kind === 'edit' ? (editor.item.targets ?? 'all') : 'all');
+  const [duration, setDuration] = useState<number | null>(
+    editor.kind === 'edit' ? (editor.item.duration ?? null) : null,
   );
   const nameReason = messageNameReason(name);
   const textReason = messageTextReason(text);
@@ -66,7 +80,7 @@ function TemplateDialog({
         disabled:
           locked || nameReason !== undefined || textReason !== undefined,
         title: nameReason ?? textReason,
-        onSelect: () => onSave({name, text}),
+        onSelect: () => onSave({name, text, icon, targets, duration}),
       }}
     >
       <Properties placement="window">
@@ -97,6 +111,76 @@ function TemplateDialog({
             />
           )}
         </PropertyRow>
+        <PropertyRow label="아이콘">
+          {({controlId}) => (
+            <SelectMenu
+              id={controlId}
+              value={icon}
+              disabled={locked}
+              options={[
+                {value: 'msg', label: '메시지'},
+                {value: 'user', label: '사람'},
+              ]}
+              onChange={setIcon}
+            />
+          )}
+        </PropertyRow>
+        <PropertyRow label="보낼 화면" alignTop>
+          {() => (
+            <div role="group" aria-label="보낼 화면">
+              <Button
+                disabled={locked}
+                aria-pressed={targets === 'all'}
+                onClick={() => setTargets(targets === 'all' ? [] : 'all')}
+              >
+                모든 화면
+              </Button>
+              {screens.map(screen => (
+                <Button
+                  key={screen.id}
+                  disabled={locked}
+                  aria-pressed={
+                    targets !== 'all' && targets.includes(screen.id)
+                  }
+                  onClick={() =>
+                    setTargets(current =>
+                      current === 'all'
+                        ? [screen.id]
+                        : current.includes(screen.id)
+                          ? current.filter(id => id !== screen.id)
+                          : [...current, screen.id],
+                    )
+                  }
+                >
+                  {screen.name || '이름 없음'}
+                </Button>
+              ))}
+            </div>
+          )}
+        </PropertyRow>
+        <PropertyRow label="표시 시간">
+          {({controlId}) => (
+            <SelectMenu
+              id={controlId}
+              value={duration === null ? 'until' : String(duration)}
+              disabled={locked}
+              options={[
+                {value: 'until', label: '계속'},
+                ...[
+                  30,
+                  60,
+                  120,
+                  ...(duration !== null && ![30, 60, 120].includes(duration)
+                    ? [duration]
+                    : []),
+                ].map(value => ({value: String(value), label: `${value}초`})),
+              ]}
+              onChange={value =>
+                setDuration(value === 'until' ? null : Number(value))
+              }
+            />
+          )}
+        </PropertyRow>
       </Properties>
     </Dialog>
   );
@@ -104,11 +188,13 @@ function TemplateDialog({
 
 export function MessageEditing({
   document,
+  screens,
   onProblem,
   onSelect,
   children,
 }: {
   readonly document: NamedDocument<'messages'> | null;
+  readonly screens: readonly Screen[];
   readonly onProblem: ((notice: Notice) => void) | undefined;
   readonly onSelect: (id: string) => void;
   readonly children: ReactNode;
@@ -260,6 +346,7 @@ export function MessageEditing({
       ) : editor ? (
         <TemplateDialog
           editor={editor}
+          screens={screens}
           locked={locked}
           onCancel={() => setEditor(null)}
           onSave={fields => {

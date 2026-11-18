@@ -239,6 +239,7 @@ export function MessageTab({
       <ActiveMessages />
       <MessageEditing
         document={messages}
+        screens={screens?.value.screens ?? []}
         onProblem={onProblem}
         onSelect={setSelectedId}
       >

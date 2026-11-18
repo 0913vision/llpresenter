@@ -66,6 +66,15 @@ it('adds a text prop with a target and sends a settings edit', async () => {
   fireEvent.change(screen.getByRole('textbox', {name: '내용'}), {
     target: {value: '환영합니다'},
   });
+  fireEvent.change(screen.getByRole('textbox', {name: '글꼴'}), {
+    target: {value: 'Arial'},
+  });
+  fireEvent.change(screen.getByRole('textbox', {name: '글자 색'}), {
+    target: {value: '#123456'},
+  });
+  const size = screen.getByRole('spinbutton', {name: '글자 크기'});
+  fireEvent.change(size, {target: {value: '72'}});
+  fireEvent.blur(size);
   const targets = screen.getByRole('group', {name: '보낼 화면'});
   const target = targets.querySelector('button');
   if (!target) {
@@ -80,7 +89,11 @@ it('adds a text prop with a target and sends a settings edit', async () => {
   }
   expect(request.value.props[0]).toMatchObject({
     name: '안내',
-    content: {kind: 'text', text: '환영합니다'},
+    content: {
+      kind: 'text',
+      text: '환영합니다',
+      style: {font: 'Arial', size: 72, color: '#123456'},
+    },
   });
 });
 

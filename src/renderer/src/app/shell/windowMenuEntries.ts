@@ -1,7 +1,7 @@
 import {shortcutText} from '@renderer/ui/commandBindings';
+import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {laterRow, menuSeparator} from '@renderer/ui/menuRows';
-import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 
 /** The 창 menu (spec 11): the title bar buttons and 환경설정. */
 export function windowMenuEntries(): readonly MenuEntry[] {
@@ -20,15 +20,6 @@ export function windowMenuEntries(): readonly MenuEntry[] {
       command: 'window.maximize',
       onSelect: () => window.llp?.window.control('toggle-maximize'),
     },
-    menuSeparator('preferences'),
-    {
-      kind: 'item',
-      id: 'preferences',
-      label: windowCommandLabels.preferences,
-      command: 'app.preferences',
-      meta: shortcutText('app.preferences'),
-      onSelect: () => window.llp?.window.openPreferences(),
-    },
   ];
 }
 
@@ -40,6 +31,27 @@ export function helpMenuEntries(actions: {
   readonly showAbout: () => void;
 }): readonly MenuEntry[] {
   return [
+    {
+      kind: 'item',
+      id: 'preferences',
+      label: windowCommandLabels.preferences,
+      command: 'app.preferences',
+      meta: shortcutText('app.preferences'),
+      onSelect: () => window.llp?.window.openPreferences(),
+    },
+    {
+      kind: 'item',
+      id: 'screens',
+      label: '화면 설정…',
+      onSelect: () => window.llp?.window.openScreens(),
+    },
+    {
+      kind: 'item',
+      id: 'shortcuts',
+      label: '단축키…',
+      onSelect: () => window.llp?.window.openPreferencesAt('shortcuts'),
+    },
+    menuSeparator('help'),
     laterRow('welcome', '시작 안내'),
     menuSeparator('about'),
     {

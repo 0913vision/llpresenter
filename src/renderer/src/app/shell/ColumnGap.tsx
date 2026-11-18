@@ -6,6 +6,7 @@ import type {DraggableColumn} from './columns';
 /** What a gap needs from the column layout to start a drag. */
 export interface ColumnDrag {
   begin(column: DraggableColumn): DragSession | undefined;
+  reset(column: DraggableColumn): void;
 }
 
 /** The gap between two columns. Dragging it resizes the column beside it. */
@@ -17,6 +18,11 @@ export function ColumnGap({
   readonly drag: ColumnDrag;
 }): JSX.Element {
   return (
-    <ResizeGap axis="column" name={column} begin={() => drag.begin(column)} />
+    <ResizeGap
+      axis="column"
+      name={column}
+      begin={() => drag.begin(column)}
+      onReset={() => drag.reset(column)}
+    />
   );
 }

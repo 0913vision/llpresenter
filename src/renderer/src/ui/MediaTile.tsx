@@ -27,6 +27,7 @@ export function copyingText(percent: number): string {
 export interface MediaTileProps {
   /** The file name without its extension, such as 따뜻한 빛. */
   readonly name: string;
+  readonly view?: 'grid' | 'list';
   /**
    * An image URL or a host-owned preview element, such as a paused video.
    * Keep element values stable with useMemo so this memoized tile can skip work.
@@ -251,6 +252,7 @@ export const MediaTile = memo((props: MediaTileProps): JSX.Element => {
       aria-disabled={copying === undefined ? undefined : true}
       draggable={props.onDragStart === undefined ? undefined : true}
       onDragStart={props.onDragStart}
+      data-view={props.view}
       data-state={tileState({
         live,
         missing: missingFile !== undefined || missingReason !== undefined,

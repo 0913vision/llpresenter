@@ -1,6 +1,8 @@
 import {useContext, useEffect, useState, type JSX} from 'react';
 import {LoadReadinessContext} from '@renderer/ui/loadReadiness';
 import type {PreferencePageId} from '@core/schema/preferencePages';
+import {CLEAR_FADE_LIMIT_MS, DEFAULT_CLEAR_FADE} from '@core/schema/clearFade';
+import {clearName} from '@renderer/ui/ClearButton';
 import {UI_ZOOM} from '@core/schema/uiZoom';
 import {lastBackupText} from '@core/ui/lastBackupText';
 import {
@@ -38,6 +40,7 @@ import {useUiZoom} from './useUiZoom';
 /** The pages of the 환경설정 list, in the order it shows them. */
 export const preferencePages = [
   {id: 'general', label: '일반', icon: 'gear'},
+  {id: 'show', label: '진행', icon: 'mplay'},
   {id: 'output', label: '출력', icon: 'mplay'},
   {id: 'serviceOrder', label: '예배 순서', icon: 'listplus'},
   {id: 'storage', label: '저장', icon: 'folder'},
@@ -86,6 +89,18 @@ export function GeneralPage({edits}: PageProps): JSX.Element | null {
         onChange={percent => zoom.setPercent(Number(percent))}
       />
       <CheckboxRow
+        label="시작할 때 최대화"
+        disabled={disabled}
+        title={lockedReason}
+        checked={preferences.general.startMaximized}
+        onChange={startMaximized =>
+          change(stored => ({
+            ...stored,
+            general: {...stored.general, startMaximized},
+          }))
+        }
+      />
+      <CheckboxRow
         label="Windows 시작할 때 실행"
         disabled={disabled}
         title={lockedReason}
@@ -97,6 +112,58 @@ export function GeneralPage({edits}: PageProps): JSX.Element | null {
           }))
         }
       />
+    </PropertyGroup>
+  );
+}
+
+const CLEAR_TARGETS = [
+  'all',
+  'slide',
+  'media',
+  'prop',
+  'audio',
+  'message',
+] as const;
+
+export function ShowPage({edits}: PageProps): JSX.Element | null {
+  const {preferences, lockedReason, change} = edits;
+  if (preferences === null) return null;
+  return (
+    <PropertyGroup title="지우기 페이드">
+      {CLEAR_TARGETS.map(target => {
+        const label = clearName(target);
+        const value = preferences.clearKeys[target] ?? DEFAULT_CLEAR_FADE;
+        const update = (next: typeof value): void =>
+          change(stored => ({
+            ...stored,
+            clearKeys: {...stored.clearKeys, [target]: next},
+          }));
+        return (
+          <PropertyRow key={target} label={label}>
+            {({controlId}) => (
+              <>
+                <NumberField
+                  id={controlId}
+                  aria-label={`${label} 지우기 시간`}
+                  value={value.fade ? value.durationMs / 1000 : 0}
+                  min={0}
+                  max={CLEAR_FADE_LIMIT_MS / 1000}
+                  step={0.1}
+                  unit="초"
+                  disabled={lockedReason !== undefined}
+                  updateOn="commit"
+                  onChange={seconds =>
+                    update({
+                      fade: seconds > 0,
+                      durationMs: Math.round(seconds * 1000),
+                    })
+                  }
+                />
+              </>
+            )}
+          </PropertyRow>
+        );
+      })}
     </PropertyGroup>
   );
 }

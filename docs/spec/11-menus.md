@@ -313,7 +313,7 @@ bar handles.
 | ----- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
 | 1     | 곡…                                    | Opens a searchable library song picker and adds the choice after the selected row.                                                              | Now     |
 | 1     | 구역 추가                              | Adds a 구역 header (PP New Header).                                                                                                             | Now     |
-| 1     | 자리 표시 추가, 빈 항목 추가           | PP New Placeholder, New Cue.                                                                                                                    | Off     |
+| 1     | 빈 항목 추가                           | PP New Placeholder, New Cue.                                                                                                                    | Off     |
 | 2     | 빈 슬라이드, 광고                      | Add a slides item after the selection and open 슬라이드 편집 (05).                                                                              | Now     |
 | 2     | 사도신경 ›, 주기도문 ›                 | Each offers 새 번역 and 옛 번역; adds editable slides after the selection with manual advance (05).                                             | Now     |
 | 2     | 구역 이름 ›                            | Offers the ordered Sunday section names; adds an editable 빈 슬라이드 with its theme, English line and background after the selection (05, 12). | Now     |
@@ -583,8 +583,6 @@ page shares the row controls, save and rename behavior, deletion question and �
 | Group | Row                                                                           | Does                                                                                                                                                                                                                                                                                                                                                                                                                                                  | Status |
 | ----- | ----------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------ |
 | 1     | 진행 (Ctrl S), 슬라이드 편집기 (off), 준비 (Ctrl R), 성경 (off)               | Ctrl E keeps opening 준비 until a slide editor exists.                                                                                                                                                                                                                                                                                                                                                                                                | Now    |
-| 2     | 이어서 진행                                                                   | PP Continuous Playlist. A check row that shows and flips `show.atLastSlide` (on is 다음 항목, off is 정지); shared at once with 환경설정 > 예배 순서 > 마지막 슬라이드에서.                                                                                                                                                                                                                                                                           | Now    |
-| 2     | 이어서 보여 주기                                                              | Check row for `show.continuousGrid`, shared with settings; displays the service as one grid (04).                                                                                                                                                                                                                                                                                                                                                     | Now    |
 | 3     | 슬라이드 보기 ›                                                               |                                                                                                                                                                                                                                                                                                                                                                                                                                                       | Off    |
 | 4     | 오디오, 무대, 타이머, 메시지, 그래픽, 매크로                                  | Opens its owning tool tab, including the per-item 메시지 and 그래픽 controls (04).                                                                                                                                                                                                                                                                                                                                                                    | New    |
 | 5     | 타임코드 (off), 미디어 (Ctrl Shift V), 캘린더 (off), 동작 팔레트, 테스트 화면 | 미디어 toggles the shared bottom bin, using the same saved state as its header 접기 button and collapsed bar (04). 테스트 화면 is a check row: it shows the 테스트 패턴 (06) on every screen whose output is on, or takes it off them all, and is checked while all of those show it. A screen whose output is off is left alone (it has no window, and its pattern goes off with its output); the row is off with "출력 꺼짐" while no screen is on. | Now    |
@@ -670,36 +668,40 @@ Which thing a row acts on:
 
 - Where: Menu bar
 - Opens: Click 창.
-- Purpose: Control the main window and open the 환경설정 window.
+- Purpose: Control the main window.
 - PP: Not seen in PP. S1 and S2 list no Window menu on Windows, and no other
   source shows its rows. The rows follow the product decision in 01 (최소화,
-  최대화, 환경설정) and the title bar buttons.
+  최대화) and the title bar buttons.
 
-| Group | Row                | Does                                                                              | Command           | Status |
-| ----- | ------------------ | --------------------------------------------------------------------------------- | ----------------- | ------ |
-| 1     | 최소화             | The same as the title bar button.                                                 | `window.minimize` | New    |
-| 1     | 최대화             | Maximizes the window or restores it, the same as the title bar 최대화 button.     | `window.maximize` | New    |
-| 2     | 환경설정… (Ctrl ,) | Opens or focuses the single 환경설정 window (PP Open Settings, S1). Also in 파일. | `app.preferences` | New    |
+| Group | Row    | Does                                                                          | Command           | Status |
+| ----- | ------ | ----------------------------------------------------------------------------- | ----------------- | ------ |
+| 1     | 최소화 | The same as the title bar button.                                             | `window.minimize` | New    |
+| 1     | 최대화 | Maximizes the window or restores it, the same as the title bar 최대화 button. | `window.maximize` | New    |
 
 - 최소화 and 최대화 have no default keys (10).
 - No list of open windows: the app has one main window. 화면 설정 and 환경설정
   open from their own commands; 곡 편집 stays inside 준비.
 
-### 도움말
+### LoveLight
 
-- Where: Menu bar
-- Opens: Click 도움말.
-- Purpose: Version information and the log folder.
+- Where: Menu bar, beside the window menu
+- Opens: Click LoveLight.
+- Purpose: Settings, screen setup, shortcuts, version information and the log
+  folder. The app-name menu follows ProPresenter (S1) and the user's placement
+  decision.
 - PP: The PP 7 user guide (S4) names "Welcome to ProPresenter" in the Help menu,
   and a support page says the menu holds links to resources. No source lists its
   rows on Windows, so the rows and groups are ours (Not seen in PP).
 
-| Group | Row            | Does                                                                                                | Command           | Status |
-| ----- | -------------- | --------------------------------------------------------------------------------------------------- | ----------------- | ------ |
-| 1     | 시작 안내      | PP Welcome to ProPresenter. The app has no walkthrough.                                             | None              | Off    |
-| 2     | 기록 폴더 열기 | Opens the log folder (`logs` in the app data folder, 02) in the file manager.                       | `app.openLogs`    | Now    |
-| 2     | 업데이트 확인  | Checks public releases; the update flow and output guards are in 01, "App updates".                 | `app.checkUpdate` | Now    |
-| 2     | 버전 정보      | A small dialog with the app name and version and one 확인 button, no links (the app works offline). | `app.about`       | Now    |
+| Group | Row                | Does                                                                                                | Command           | Status |
+| ----- | ------------------ | --------------------------------------------------------------------------------------------------- | ----------------- | ------ |
+| 1     | 환경설정… (Ctrl ,) | Opens preferences.                                                                                  | `app.preferences` | Now    |
+| 1     | 화면 설정…         | Opens screen settings.                                                                              | None              | Now    |
+| 1     | 단축키…            | Opens the shortcuts page.                                                                           | None              | Now    |
+| 1     | 시작 안내          | PP Welcome to ProPresenter. The app has no walkthrough.                                             | None              | Off    |
+| 2     | 기록 폴더 열기     | Opens the log folder (`logs` in the app data folder, 02) in the file manager.                       | `app.openLogs`    | Now    |
+| 2     | 업데이트 확인      | Checks public releases; the update flow and output guards are in 01, "App updates".                 | `app.checkUpdate` | Now    |
+| 2     | 버전 정보          | A small dialog with the app name and version and one 확인 button, no links (the app works offline). | `app.about`       | Now    |
 
 - PP's links to online resources are left out: the app works without the
   internet (TECH rule 5).
@@ -730,3 +732,6 @@ Which thing a row acts on:
 The Output theme submenu uses the same radio rows, separator, and 테마 편집
 entry as the toolbar. 항목 끄기 removes only the live item from every screen,
 reveals standby, and supports clear undo. It has no default key (12).
+
+The 진행 menu holds 마지막 슬라이드에서 다음 항목으로 and 이어서 보여 주기,
+shared with 환경설정 > 예배 순서.

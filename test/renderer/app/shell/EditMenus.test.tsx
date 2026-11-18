@@ -316,10 +316,9 @@ describe('the 편집 menu', () => {
 });
 
 describe('the 창 menu', () => {
-  it('runs the title bar actions and opens 환경설정', async () => {
+  it('runs the title bar actions', async () => {
     const control = vi.fn();
-    const openPreferences = vi.fn();
-    window.llp = mockLlpApi({window: {control, openPreferences}});
+    window.llp = mockLlpApi({window: {control}});
     const user = userEvent.setup();
     render(<MenuBar title="" />);
     let menu = await openMenu(user, '창');
@@ -327,25 +326,25 @@ describe('the 창 menu', () => {
       within(menu)
         .getAllByRole('menuitem')
         .map(row => row.textContent),
-    ).toEqual(['최소화', '최대화', '환경설정…Ctrl ,']);
+    ).toEqual(['최소화', '최대화']);
     await user.click(rowOf(menu, '최소화'));
     expect(control).toHaveBeenLastCalledWith('minimize');
     menu = await openMenu(user, '창');
     await user.click(rowOf(menu, '최대화'));
     expect(control).toHaveBeenLastCalledWith('toggle-maximize');
-    menu = await openMenu(user, '창');
-    await user.click(rowOf(menu, '환경설정…'));
-    expect(openPreferences).toHaveBeenCalledOnce();
   });
 });
 
-describe('the 도움말 menu', () => {
+describe('the LoveLight menu', () => {
   it('keeps 시작 안내 unavailable and enables logs, updates and version information', async () => {
     const user = userEvent.setup();
     render(<MenuBar title="" />);
-    const menu = await openMenu(user, '도움말');
+    const menu = await openMenu(user, 'LoveLight');
     const rows = within(menu).getAllByRole('menuitem');
     expect(rows.map(row => row.textContent)).toEqual([
+      '환경설정…Ctrl ,',
+      '화면 설정…',
+      '단축키…',
       '시작 안내',
       '기록 폴더 열기',
       '업데이트 확인',
@@ -363,12 +362,32 @@ describe('the 도움말 menu', () => {
     expect(isOff(rowOf(menu, '버전 정보'))).toBe(false);
   });
 
+  it('opens preferences, screen settings, and shortcuts', async () => {
+    const openPreferences = vi.fn();
+    const openScreens = vi.fn();
+    const openPreferencesAt = vi.fn();
+    window.llp = mockLlpApi({
+      window: {openPreferences, openScreens, openPreferencesAt},
+    });
+    const user = userEvent.setup();
+    render(<MenuBar title="" />);
+    let menu = await openMenu(user, 'LoveLight');
+    await user.click(rowOf(menu, '환경설정…'));
+    expect(openPreferences).toHaveBeenCalledOnce();
+    menu = await openMenu(user, 'LoveLight');
+    await user.click(rowOf(menu, '화면 설정…'));
+    expect(openScreens).toHaveBeenCalledOnce();
+    menu = await openMenu(user, 'LoveLight');
+    await user.click(rowOf(menu, '단축키…'));
+    expect(openPreferencesAt).toHaveBeenCalledExactlyOnceWith('shortcuts');
+  });
+
   it('opens the log folder', async () => {
     const openLogFolder = vi.fn();
     window.llp = mockLlpApi({window: {openLogFolder}});
     const user = userEvent.setup();
     render(<MenuBar title="" />);
-    const menu = await openMenu(user, '도움말');
+    const menu = await openMenu(user, 'LoveLight');
     await user.click(rowOf(menu, '기록 폴더 열기'));
     expect(openLogFolder).toHaveBeenCalledOnce();
   });
@@ -381,7 +400,7 @@ describe('the 도움말 menu', () => {
     });
     const user = userEvent.setup();
     render(<MenuBar title="" />);
-    const menu = await openMenu(user, '도움말');
+    const menu = await openMenu(user, 'LoveLight');
     await user.click(rowOf(menu, '버전 정보'));
     const dialog = await screen.findByRole('alertdialog');
     expect(within(dialog).getByText('버전 정보')).toBeTruthy();
@@ -392,7 +411,7 @@ describe('the 도움말 menu', () => {
   });
 });
 
-describe('the 보기 menu 이어서 진행 row', () => {
+describe('the 보기 menu 마지막 슬라이드에서 다음 항목으로 row', () => {
   const stored = (atLastSlide?: 'stop' | 'nextItem') => ({
     name: 'preferences' as const,
     value: {
@@ -417,9 +436,11 @@ describe('the 보기 menu 이어서 진행 row', () => {
     const user = userEvent.setup();
     render(<MenuBar title="" />);
     await waitFor(() => expect(window.llp?.settings.get).toBeDefined());
-    let menu = await openMenu(user, '보기');
+    let menu = await openMenu(user, '진행');
     const row = () =>
-      within(menu).getByRole('menuitemcheckbox', {name: '이어서 진행'});
+      within(menu).getByRole('menuitemcheckbox', {
+        name: '마지막 슬라이드에서 다음 항목으로',
+      });
     await waitFor(() => expect(isOff(row())).toBe(false));
     expect(row().getAttribute('aria-checked')).toBe('false');
     await user.click(row());
@@ -429,7 +450,7 @@ describe('the 보기 menu 이어서 진행 row', () => {
       name: 'preferences',
       value: {show: {atLastSlide: 'nextItem'}},
     });
-    menu = await openMenu(user, '보기');
+    menu = await openMenu(user, '진행');
     expect(row()).toBeTruthy();
   });
 
@@ -439,11 +460,13 @@ describe('the 보기 menu 이어서 진행 row', () => {
     });
     const user = userEvent.setup();
     const view = render(<MenuBar title="" />);
-    let menu = await openMenu(user, '보기');
+    let menu = await openMenu(user, '진행');
     await waitFor(() =>
       expect(
         within(menu)
-          .getByRole('menuitemcheckbox', {name: '이어서 진행'})
+          .getByRole('menuitemcheckbox', {
+            name: '마지막 슬라이드에서 다음 항목으로',
+          })
           .getAttribute('aria-checked'),
       ).toBe('true'),
     );
@@ -455,11 +478,13 @@ describe('the 보기 menu 이어서 진행 row', () => {
       },
     });
     render(<MenuBar title="" />);
-    menu = await openMenu(user, '보기');
+    menu = await openMenu(user, '진행');
     await waitFor(() =>
       expect(
         isOff(
-          within(menu).getByRole('menuitemcheckbox', {name: '이어서 진행'}),
+          within(menu).getByRole('menuitemcheckbox', {
+            name: '마지막 슬라이드에서 다음 항목으로',
+          }),
         ),
       ).toBe(true),
     );

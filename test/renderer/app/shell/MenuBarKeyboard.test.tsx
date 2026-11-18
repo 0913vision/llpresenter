@@ -7,7 +7,15 @@ import {useEffect, type JSX} from 'react';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {Dialog} from '@renderer/ui/Dialog';
 
-const NAMES = ['파일', '편집', '보기', '출력', '창', '도움말'] as const;
+const NAMES = [
+  '파일',
+  '편집',
+  '보기',
+  '진행',
+  '출력',
+  '창',
+  'LoveLight',
+] as const;
 
 beforeEach(() => {
   HTMLElement.prototype.scrollIntoView = vi.fn();
@@ -56,11 +64,11 @@ describe('the menu bar keyboard', () => {
     expect(document.activeElement).toBe(trigger('편집'));
     expect(stops()).toEqual(['편집']);
     await user.keyboard('{ArrowLeft}{ArrowLeft}');
-    expect(document.activeElement).toBe(trigger('도움말'));
+    expect(document.activeElement).toBe(trigger('LoveLight'));
     await user.keyboard('{ArrowRight}');
     expect(document.activeElement).toBe(trigger('파일'));
     await user.keyboard('{End}');
-    expect(document.activeElement).toBe(trigger('도움말'));
+    expect(document.activeElement).toBe(trigger('LoveLight'));
     await user.keyboard('{Home}');
     expect(document.activeElement).toBe(trigger('파일'));
   });
@@ -89,9 +97,11 @@ describe('the menu bar keyboard', () => {
     trigger('보기').focus();
     await user.keyboard('{ArrowDown}');
     await user.keyboard('{ArrowRight}');
-    expect(screen.getByRole('menu', {name: '출력'})).toBeDefined();
+    expect(screen.getByRole('menu', {name: '진행'})).toBeDefined();
     expect(screen.getAllByRole('menu')).toHaveLength(1);
-    await user.keyboard('{ArrowLeft}{ArrowLeft}');
+    await user.keyboard('{ArrowRight}');
+    expect(screen.getByRole('menu', {name: '출력'})).toBeDefined();
+    await user.keyboard('{ArrowLeft}{ArrowLeft}{ArrowLeft}');
     expect(screen.getByRole('menu', {name: '편집'})).toBeDefined();
     await user.keyboard('{Escape}');
     expect(document.activeElement).toBe(trigger('편집'));

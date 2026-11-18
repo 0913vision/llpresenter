@@ -30,6 +30,7 @@ interface Measure {
   readonly yGap: number;
   readonly nameGap: number;
   readonly inset: number;
+  readonly listHeight: number;
 }
 
 const UNMEASURED: Measure = {
@@ -39,6 +40,7 @@ const UNMEASURED: Measure = {
   yGap: 0,
   nameGap: 0,
   inset: 0,
+  listHeight: 56,
 };
 
 interface WindowStyle extends CSSProperties {
@@ -82,6 +84,7 @@ function useMeasure(viewport: RefObject<HTMLDivElement | null>): Measure {
         yGap: px('--space-16'),
         nameGap: px('--space-8'),
         inset: px('padding-top'),
+        listHeight: px('--size-toolbar') || 56,
       });
     };
     const observer = new ResizeObserver(read);
@@ -98,6 +101,7 @@ export interface VirtualMediaGridProps {
   readonly label: string;
   readonly count: number;
   readonly columns: number;
+  readonly view?: 'grid' | 'list';
   /** Automatic size may add columns so a whole tile fits the viewport. */
   readonly fitHeight?: boolean;
   readonly selected: number | undefined;
@@ -122,6 +126,7 @@ export function VirtualMediaGrid({
   label,
   count,
   columns: requestedColumns,
+  view = 'grid',
   fitHeight = false,
   selected,
   arrowsMove = 'selection',
@@ -138,11 +143,15 @@ export function VirtualMediaGrid({
   const focusNext = useRef<number | null>(null);
   const measure = useMeasure(viewport);
   const [scrollTop, setScrollTop] = useState(0);
-  const {columns, stride} = mediaGridLayout({
+  const grid = mediaGridLayout({
     columns: requestedColumns,
     fitHeight,
     ...measure,
   });
+  const {columns, stride} =
+    view === 'list'
+      ? {columns: 1, stride: measure.listHeight + measure.yGap}
+      : grid;
   const rows = Math.ceil(count / columns);
   const visible =
     measure.height > 0 ? Math.ceil(measure.height / stride) : INITIAL_ROWS;

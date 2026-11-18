@@ -31,6 +31,7 @@ export function createControlWindow(
   mode: WindowMode,
   zoom: Pick<UiZoomRegistration, 'attachControl'> & {
     readonly outputsReady?: Promise<boolean>;
+    readonly startMaximized?: boolean;
   },
 ): BrowserWindow {
   const area = screen.getPrimaryDisplay().workAreaSize;
@@ -93,9 +94,7 @@ export function createControlWindow(
       shown = true;
       clearTimeout(timeout);
       ipcMain.removeListener(serviceEndpoints.ready.channel, onReady);
-      const fitsScreen =
-        area.width <= DEFAULT_WIDTH && area.height <= DEFAULT_HEIGHT;
-      if (fitsScreen) win.maximize();
+      if (zoom.startMaximized ?? true) win.maximize();
       win.show();
     };
     const onReady = (event: IpcMainEvent, ...args: unknown[]): void => {

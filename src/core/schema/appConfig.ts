@@ -82,6 +82,7 @@ const appConfigSchema = jsonObject({
   preferencesWindow: v.exactOptional(windowPlacementSchema),
   preferencesPage: v.exactOptional(v.picklist(PREFERENCE_PAGE_IDS)),
   previewBig: v.exactOptional(screenIdSchema),
+  previewBigVisible: v.exactOptional(v.boolean()),
   macroView: v.exactOptional(v.picklist(['grid', 'list'])),
   macroCollection: v.exactOptional(macroCollectionIdSchema),
   showToolTab: v.exactOptional(

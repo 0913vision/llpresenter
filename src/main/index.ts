@@ -59,6 +59,7 @@ import {
   type UserDataProblem,
 } from './userData';
 import {createControlWindow} from './windows/control';
+import {controlRecoveryPlacement} from './windows/controlRecovery';
 import {ControlHeartbeat} from './windows/controlHeartbeat';
 import {GraphicsRecovery} from './windows/graphicsRecovery';
 import {announceReloadAfterCrash} from './windows/reloadNotice';
@@ -284,6 +285,9 @@ function start(): void {
       const win = createControlWindow(log, windowMode, {
         attachControl: contents => zoom.attachControl(contents),
         outputsReady: launchIdle.ready,
+        startMaximized:
+          (await dataStore.settings)?.preferences().general.startMaximized ??
+          true,
       });
       control = win;
       let activeControl = win;
@@ -501,12 +505,14 @@ function start(): void {
       graphicsRecovery = new GraphicsRecovery(
         async reason => {
           const previous = activeControl;
+          const placement = controlRecoveryPlacement(previous);
           const replacement = createControlWindow(log, windowMode, {
             attachControl: contents => zoom.attachControl(contents),
             outputsReady: launchIdle.ready,
+            startMaximized: placement.startMaximized,
           });
-          if (!previous.isDestroyed() && !previous.isMaximized()) {
-            replacement.setBounds(previous.getBounds());
+          if (placement.bounds !== undefined) {
+            replacement.setBounds(placement.bounds);
           }
           closing.dispose();
           stopReloadNotice();

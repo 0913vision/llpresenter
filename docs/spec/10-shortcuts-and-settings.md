@@ -934,7 +934,7 @@ same place. Native window and field keys are identified separately.
   readiness signal belongs to its current request, including after a renderer
   reload.
 - The window and its frame stay as in 06: a separate window titled "환경설정",
-  opened from 파일 > 환경설정 or Ctrl ,.
+  opened from LoveLight > 환경설정 or Ctrl ,.
 - Pages, in this order. Each row's name is one line in the left column; no
   helper text sits on a page, and a row has a tooltip only where its table says
   so.
@@ -948,6 +948,7 @@ same place. Native window and field keys are identified separately.
 | --------- | --------------------------------------------------------- | ----- | --------------------------------------------------------- |
 | 일반      | UI zoom, launch with Windows                              | 1     | General; no app-wide UI zoom source found                 |
 | 출력      | Output on launch, the monitor button, transitions         | 1     | Screens, General                                          |
+| 진행      | Clear fade durations                                      | 1     | Output controls                                           |
 | 예배 순서 | Last-slide navigation and past-row appearance             | 1     | User decision, November 9                                 |
 | 저장      | Folders, automatic backup, previous versions per file     | 1     | Advanced (Support Files, media repository)                |
 | 이름표    | The shared 이름표 list                                    | 1     | Groups (S4 p. 176)                                        |
@@ -991,11 +992,11 @@ Rules for every row:
 
 #### 예배 순서 (Service order)
 
-| Row                 | Control                        | Default | Stored in                                | Applies                                 |
-| ------------------- | ------------------------------ | ------- | ---------------------------------------- | --------------------------------------- |
-| 마지막 슬라이드에서 | Segmented: 멈춤, 다음 항목으로 | 멈춤    | `preferences.json` `show.atLastSlide`    | At once; shared with 보기 > 이어서 진행 |
-| 이어서 보여 주기    | Checkbox                       | Off     | `preferences.json` `show.continuousGrid` | At once; shared with View menu          |
-| 지난 순서 흐리게    | Checkbox                       | Off     | `preferences.json` `show.dimPastItems`   | At once                                 |
+| Row                 | Control                        | Default | Stored in                                | Applies                                                       |
+| ------------------- | ------------------------------ | ------- | ---------------------------------------- | ------------------------------------------------------------- |
+| 마지막 슬라이드에서 | Segmented: 멈춤, 다음 항목으로 | 멈춤    | `preferences.json` `show.atLastSlide`    | At once; shared with 진행 > 마지막 슬라이드에서 다음 항목으로 |
+| 이어서 보여 주기    | Checkbox                       | Off     | `preferences.json` `show.continuousGrid` | At once; shared with 진행 menu                                |
+| 지난 순서 흐리게    | Checkbox                       | Off     | `preferences.json` `show.dimPastItems`   | At once                                                       |
 
 When enabled, every row above the current output item dims by position,
 including section headings and every item kind. Going back restores later rows.
@@ -1566,3 +1567,21 @@ fields, Esc clears slide selection or caret first, then returns to the table.
 
 - Presenter Shift+F5 is ignored in 진행 and cannot clear audio; plain F5 remains
   audio clear.
+
+The 일반 page offers 시작할 때 최대화 (`general.startMaximized`, default on),
+applied on the next launch. Double-clicking a column gap restores its default
+width. 보기 > 칸 배치 초기화 restores all column widths in every size class.
+환경설정 opens from the LoveLight menu beside the window menu, together with
+screen settings, shortcuts, and about and update commands, following the user's
+choice and ProPresenter's application menu.
+
+The 진행 page sets a clear fade duration for each clear target. Zero seconds
+clears immediately. Message template editing sets the icon, target screens, and
+default display duration; the composer may change the targets and duration for
+one send. Text graphic editing sets its font, size, and color. Macro schedules
+are not a supported setting; unknown fields in existing files remain preserved.
+The media column count, list or grid view, and selected large preview screen are
+saved as the operator changes them.
+
+The large preview visibility is saved in `app.json` as `previewBigVisible` and
+restored at launch.

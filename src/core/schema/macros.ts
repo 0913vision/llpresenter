@@ -154,7 +154,6 @@ const macroSchema = jsonObject({
     v.maxLength(MACRO_FILE_LIMITS.actions),
   ),
   runOnStartup: v.exactOptional(v.boolean()),
-  schedule: v.exactOptional(jsonObject({})),
 });
 
 const collectionSchema = jsonObject({
@@ -191,8 +190,7 @@ const macrosFormat: FileFormat<typeof macrosSchema> = {
 export type MacrosFile = ReadonlyKnown<v.InferOutput<typeof macrosSchema>>;
 
 /**
- * One 매크로. `schedule` is reserved for scheduled runs (an open question in
- * 07) and kept as it is.
+ * One 매크로.
  */
 export type Macro = MacrosFile['macros'][number];
 
