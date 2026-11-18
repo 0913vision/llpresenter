@@ -70,7 +70,10 @@ async function findRelease(): Promise<object | undefined> {
     const nextPage = new URL(nextHref);
     if (
       nextPage.origin !== 'https://api.github.com' ||
-      nextPage.pathname !== new URL(endpoint).pathname
+      nextPage.pathname !== new URL(endpoint).pathname &&
+      // NOTE(0913vision): GitHub names later pages by the repository's
+      // number instead of its name.
+      !/^\/repositories\/\d+\/releases$/u.test(nextPage.pathname)
     ) {
       throw new Error('Could not verify release status (invalid next page)');
     }
