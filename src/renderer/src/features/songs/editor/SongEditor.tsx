@@ -446,6 +446,7 @@ function SongBlocks({
                 theme === undefined ? undefined : (
                   <SlidePicture
                     output
+                    liveText
                     {...theme}
                     background={theme.background}
                     slide={{

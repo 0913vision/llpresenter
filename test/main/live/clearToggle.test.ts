@@ -63,6 +63,7 @@ it('updates the live Bible passage title without changing the slide, black state
   store.dispatch({type: 'clear.undo'});
   expect(store.state.layers.media?.mediaId).toBe('background');
   expect(store.state.themeItem?.title).toBe('요한복음 3:16~17');
+  expect(store.state.layers.slide?.title).toBe('요한복음 3:16~17');
 });
 
 it.each<ClearTarget>(['all', ...layerKinds])(

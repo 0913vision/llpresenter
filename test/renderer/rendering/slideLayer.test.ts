@@ -35,6 +35,45 @@ function setUp() {
 afterEach(() => vi.restoreAllMocks());
 
 describe('SlideLayerView', () => {
+  it('keeps the first lyric line anchored when fitting changes its font size', () => {
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(200);
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(500);
+    vi.spyOn(HTMLElement.prototype, 'getBoundingClientRect').mockReturnValue(
+      new DOMRect(0, 0, 200, 500),
+    );
+    let widthFactor = 4;
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(
+      function (this: HTMLElement) {
+        return (Number.parseFloat(this.style.fontSize) || 0) * widthFactor;
+      },
+    );
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockReturnValue(100);
+    const range = document.createRange();
+    let probe: HTMLElement | null = null;
+    vi.spyOn(range, 'selectNodeContents').mockImplementation(node => {
+      probe = node instanceof HTMLElement ? node : null;
+    });
+    Object.defineProperty(range, 'getBoundingClientRect', {
+      value: () =>
+        new DOMRect(
+          0,
+          -Number.parseFloat(probe?.style.fontSize ?? '0') / 2,
+          0,
+          0,
+        ),
+    });
+    vi.spyOn(document, 'createRange').mockReturnValue(range);
+    const {view, shownPage} = setUp();
+    view.setFixedLineSpacing(true);
+    view.show({...VERSE, lines: ['Anchor example', 'Other line']}, false);
+    const block = () =>
+      shownPage()?.querySelector<HTMLElement>(`.${classes.block}`);
+    expect(block()?.style.transform).toMatch(/^translateY\(-/);
+    widthFactor = 1;
+    view.show({...VERSE, lines: ['Short', 'lines']}, false);
+    expect(block()?.style.transform).toBe('');
+    view.dispose();
+  });
   it('keeps the lyric line pitch while fitting width and falls back when the fixed pitch cannot fit', () => {
     vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(200);
     vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(500);

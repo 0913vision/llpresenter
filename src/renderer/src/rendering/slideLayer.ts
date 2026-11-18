@@ -41,6 +41,40 @@ export function fontFamilyFor(font: string): string {
 
 const NO_BREAK_SPACE = ' ';
 
+function alignFixedPitch(
+  block: HTMLElement,
+  target: number,
+  fitted: number,
+): void {
+  block.style.transform = '';
+  if (fitted >= target || block.clientWidth === 0) return;
+  const probe = block.ownerDocument.createElement('div');
+  Object.assign(probe.style, {
+    position: 'absolute',
+    top: '0',
+    left: '0',
+    visibility: 'hidden',
+    whiteSpace: 'pre',
+    fontSize: `${target}px`,
+  });
+  probe.textContent = Array.from(block.textContent.trim()).at(0) ?? '가';
+  block.append(probe);
+  const range = block.ownerDocument.createRange();
+  if (typeof range.getBoundingClientRect !== 'function') {
+    probe.remove();
+    return;
+  }
+  range.selectNodeContents(probe);
+  const reference = range.getBoundingClientRect().top;
+  probe.style.fontSize = `${fitted}px`;
+  const current = range.getBoundingClientRect().top;
+  const scale = block.getBoundingClientRect().width / block.clientWidth;
+  probe.remove();
+  if (scale > 0) {
+    block.style.transform = `translateY(${(reference - current) / scale}px)`;
+  }
+}
+
 const JUSTIFY: Readonly<Record<TextStyle['vAlign'], string>> = {
   top: 'flex-start',
   middle: 'center',
@@ -579,6 +613,7 @@ export class SlideLayerView {
   private fit(page: Page): void {
     this.applyTracking(page);
     const {element, block} = page;
+    block.style.transform = '';
     block.style.maxHeight = '';
     block.style.overflow = '';
     block.style.textWrap =
@@ -746,6 +781,9 @@ export class SlideLayerView {
         Math.min(fontSize, (this.maximumSize ?? Infinity) * this.scale),
       ),
     );
+    if (fixedSpacing) {
+      alignFixedPitch(block, size, Number.parseFloat(block.style.fontSize));
+    }
     for (const row of Array.from(block.children)) {
       if (row instanceof HTMLElement) {
         row.style.overflow = this.ellipsis ? 'hidden' : '';
