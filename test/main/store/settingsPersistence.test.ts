@@ -5,6 +5,7 @@ import type {WriteResult} from '@main/store/fileWriter';
 import {SettingsPersistence} from '@main/store/settingsPersistence';
 
 it('starts an immediate label save without waiting and serializes the next one', async () => {
+  vi.useFakeTimers();
   let release: (result: WriteResult) => void = () => undefined;
   const success: WriteResult = {ok: true, value: undefined};
   const write = vi
@@ -22,17 +23,21 @@ it('starts an immediate label save without waiting and serializes the next one',
   );
   const target = {file: 'C:/data/labels.json', kind: 'settings', id: 'labels'};
   const first = saves.save({target, text: 'first'}, true);
+  await vi.advanceTimersByTimeAsync(0);
   expect(write).toHaveBeenCalledOnce();
   const second = saves.save({target, text: 'second'}, true);
+  await vi.advanceTimersByTimeAsync(0);
   expect(write).toHaveBeenCalledOnce();
   release(success);
   expect(await first).toEqual(success);
   expect(await second).toEqual(success);
   expect(write).toHaveBeenLastCalledWith({target, text: 'second'});
   saves.dispose();
+  vi.useRealTimers();
 });
 
 it('reports an immediate save failure to the caller', async () => {
+  vi.useFakeTimers();
   const target = {file: 'C:/data/labels.json', kind: 'settings', id: 'labels'};
   const failure: WriteResult = {
     ok: false,
@@ -43,8 +48,11 @@ it('reports an immediate save failure to the caller', async () => {
     {write, remove: vi.fn()},
     recordingLogger(),
   );
-  expect(await saves.save({target, text: 'labels'}, true)).toEqual(failure);
+  const saved = saves.save({target, text: 'labels'}, true);
+  await vi.advanceTimersByTimeAsync(0);
+  expect(await saved).toEqual(failure);
   saves.dispose();
+  vi.useRealTimers();
 });
 
 it('waits for a settings edit accepted while a flush is writing', async () => {
