@@ -25,6 +25,7 @@ import {powerPointPictureSpecs} from './powerPointPictureSpecs';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
 import {useApiSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {PowerPointPreviewGrid} from './PowerPointPreviewGrid';
+import {PictureService} from '@renderer/rendering/pictures/pictureService';
 
 async function importBackground(
   api: LlpApi,
@@ -300,6 +301,8 @@ function PowerPointPreparing({
     phase: 'export',
     percent: 0,
   });
+  const [pictures] = useState(() => new PictureService({waitForReady: true}));
+  useEffect(() => () => pictures.reset(), [pictures]);
   const cancelled = useRef(false);
   const [themesFailed, setThemesFailed] = useState(false);
   const [screensFailed, setScreensFailed] = useState(false);
@@ -415,6 +418,7 @@ function PowerPointPreparing({
         store={store}
         source={source}
         images={prepared.ids}
+        pictures={pictures}
         onDone={onDone}
         onEdit={onEdit}
         onProblem={onProblem}
@@ -428,6 +432,7 @@ function PowerPointDialog({
   store,
   source,
   images,
+  pictures,
   onDone,
   onEdit,
   onProblem,
@@ -436,6 +441,7 @@ function PowerPointDialog({
   readonly store: SongEditorStore;
   readonly source: PowerPointSource;
   readonly images: ReadonlyMap<string, string>;
+  readonly pictures: PictureService;
   readonly onDone: () => void;
   readonly onEdit: () => void;
   readonly onProblem: (notice: Notice) => void;
@@ -631,6 +637,7 @@ function PowerPointDialog({
           <PowerPointPreviewGrid
             slides={source.slides}
             specs={specs}
+            service={pictures}
             start={start}
             end={finish}
             onSelect={(index, shift) => {

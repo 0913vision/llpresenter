@@ -2,6 +2,7 @@ import {act, fireEvent, render, screen} from '@testing-library/react';
 import {afterEach, expect, it, vi} from 'vitest';
 import {PowerPointPreviewGrid} from '@renderer/features/songs/import/PowerPointPreviewGrid';
 import {powerPointPictureSpecs} from '@renderer/features/songs/import/powerPointPictureSpecs';
+import {PictureService} from '@renderer/rendering/pictures/pictureService';
 
 vi.mock('@renderer/rendering/pictures/Picture', () => ({
   Picture: () => <span data-testid="picture" />,
@@ -35,6 +36,7 @@ it('windows large slide lists and selects a visible range', () => {
     <PowerPointPreviewGrid
       slides={slides}
       specs={specs}
+      service={new PictureService({waitForReady: true})}
       start={0}
       end={1}
       onSelect={select}

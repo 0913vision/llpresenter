@@ -6,7 +6,10 @@ import {
   type JSX,
 } from 'react';
 import type {PowerPointSource} from '@core/schema/powerpointImport';
-import type {PictureSpec} from '@renderer/rendering/pictures/pictureService';
+import type {
+  PictureSpec,
+  PictureService,
+} from '@renderer/rendering/pictures/pictureService';
 import {Picture} from '@renderer/rendering/pictures/Picture';
 import {SlideThumbnail} from '@renderer/ui/SlideThumbnail';
 import styles from './PowerPointImport.module.css';
@@ -27,12 +30,14 @@ const EMPTY: Measure = {width: 0, height: 0, gap: 0, band: 0};
 export function PowerPointPreviewGrid({
   slides,
   specs,
+  service,
   start,
   end,
   onSelect,
 }: {
   readonly slides: PowerPointSource['slides'];
   readonly specs: readonly PictureSpec[];
+  readonly service: PictureService;
   readonly start: number;
   readonly end: number;
   readonly onSelect: (index: number, shift: boolean) => void;
@@ -109,7 +114,9 @@ export function PowerPointPreviewGrid({
                   }
                   text={spec?.layers.slide?.lines.join('\n')}
                   canvas={
-                    spec === undefined ? undefined : <Picture wait {...spec} />
+                    spec === undefined ? undefined : (
+                      <Picture wait service={service} {...spec} />
+                    )
                   }
                   selected={index >= start && index <= end}
                 />
