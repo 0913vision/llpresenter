@@ -176,12 +176,8 @@ function VerseSplitEditor(
   const cut = (j: number): void => {
     if (locked.current) return;
     setBuffer('');
-    try {
-      edit(pressGap(history, j), j);
-      setProblem(undefined);
-    } catch {
-      setProblem('되돌릴 수 있는 횟수를 넘었습니다');
-    }
+    edit(pressGap(history, j), j);
+    setProblem(undefined);
   };
   const cancel = (): void => {
     if (!locked.current) props.onCancel();
@@ -250,7 +246,7 @@ function VerseSplitEditor(
       else {
         setBuffer(labels.some(label => label.startsWith(typed)) ? typed : '');
       }
-    } else if (event.code === 'Enter' || event.code === 'Space') {
+    } else if (event.key === 'Enter' || event.code === 'Space') {
       if (!event.repeat) confirm();
     } else if (event.code === 'Backspace') {
       if (buffer !== '') setBuffer('');

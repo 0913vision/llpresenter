@@ -2,6 +2,8 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {VerseInput} from '@core/bible/split/splitVerses';
 import {entryFor, knownCutsFor, saveCuts} from '@core/bible/split/splitCache';
 
+const defaultWrites = new WeakMap<LlpApi['settings'], Promise<void>>();
+
 /** Merges against a fresh revision so other windows' confirmations survive. */
 export async function confirmBibleCuts(
   api: LlpApi['settings'],
@@ -16,7 +18,19 @@ export async function confirmDefaultBibleCuts(
   verse: VerseInput,
   cuts: readonly number[],
 ): Promise<void> {
-  return saveConfirmedCuts(api, verse, {cuts, onlyIfMissing: true});
+  const previous = defaultWrites.get(api) ?? Promise.resolve();
+  const write = previous.then(() =>
+    saveConfirmedCuts(api, verse, {cuts, onlyIfMissing: true}),
+  );
+  const settled = write.catch(() => undefined);
+  defaultWrites.set(api, settled);
+  settled.then(
+    () => {
+      if (defaultWrites.get(api) === settled) defaultWrites.delete(api);
+    },
+    () => undefined,
+  );
+  return write;
 }
 
 async function saveConfirmedCuts(

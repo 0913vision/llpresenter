@@ -698,7 +698,7 @@ list of positive word indices: cut `j` means before word `j`. `confirmedAt` is a
 UTC timestamp. The file contains no Bible text.
 
 There are at most 200 translations and 40,000 entries in total. An entry has at
-most 1,295 cuts, each no greater than 20,000 (the Bible text cap). Refuse
+most 1,296 cuts, each no greater than 20,000 (the Bible text cap). Refuse
 additional entries when full, retaining all existing confirmations. Reads and
 writes use the settings store's validation, recovery copies, and atomic writes.
 

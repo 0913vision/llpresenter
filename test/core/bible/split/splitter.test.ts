@@ -206,6 +206,9 @@ describe('copible global DP splitter', () => {
   });
 
   it('fails bounded work explicitly without dropping text', () => {
+    expect(
+      splitVerse('가 '.repeat(1_297), mockSplitLayout(10_000, 1)).nSlides,
+    ).toBe(1);
     expect(() =>
       splitVerse('가 '.repeat(SPLIT_LIMITS.tokens + 1), mockSplitLayout()),
     ).toThrow('limit');

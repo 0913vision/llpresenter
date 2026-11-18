@@ -13,7 +13,7 @@ export const ACCEPTABLE_PENALTY_GAP = 25;
 export const COST_TOLERANCE = 25;
 export const MAX_CANDIDATES = 3;
 export const SPLIT_LIMITS = {
-  tokens: 1_296,
+  tokens: 1_297,
   tableCells: 1_000_000,
   measurements: 100_000,
 } as const;

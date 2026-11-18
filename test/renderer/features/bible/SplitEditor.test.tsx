@@ -53,7 +53,7 @@ function key(
   options: {ctrlKey?: boolean; shiftKey?: boolean; repeat?: boolean} = {},
 ) {
   fireEvent.keyDown(document.activeElement ?? document.body, {
-    key: code === 'KeyA' ? 'ㅁ' : code,
+    key: code === 'KeyA' ? 'ㅁ' : code === 'NumpadEnter' ? 'Enter' : code,
     code,
     ...options,
   });
@@ -177,6 +177,14 @@ describe('Bible split editor', () => {
         .closest('figure')
         ?.classList.contains(styles.shake ?? 'shake'),
     ).toBe(true);
+  });
+
+  it('confirms with keypad Enter and ignores its held repeats', async () => {
+    const view = setup();
+    key('NumpadEnter', {repeat: true});
+    expect(view.onConfirm).not.toHaveBeenCalled();
+    await act(async () => key('NumpadEnter'));
+    expect(view.onConfirm).toHaveBeenCalledExactlyOnceWith([2]);
   });
 
   it('groups each gap key after its preceding word, including a typed prefix', () => {
