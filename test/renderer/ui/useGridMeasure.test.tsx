@@ -108,3 +108,41 @@ it('holds a hidden frame measurement and applies the newest size when shown', as
   });
   expect(output.textContent).toBe('720');
 });
+
+it('rechecks the replacement grid when a hidden frame is shown', async () => {
+  const view = render(
+    <div data-workspace-frame="show" aria-hidden="false">
+      <Measured itemKey="first" />
+    </div>,
+  );
+  const observer = SizeObserver.current;
+  const first = view.container.querySelector('[role="listbox"]');
+  const frame = view.container.querySelector('[data-workspace-frame]');
+  const output = view.container.querySelector('output');
+  if (!observer || !first || !frame || !output) throw new Error('Missing grid');
+  act(() => observer.report(first, 600));
+  view.rerender(
+    <div data-workspace-frame="show" aria-hidden="true">
+      <Measured itemKey="second" />
+    </div>,
+  );
+  await act(async () => {
+    await Promise.resolve();
+  });
+  const second = view.container.querySelector('[role="listbox"]');
+  if (!second) throw new Error('Missing replacement');
+  act(() => {
+    observer.report(first, 100);
+    observer.report(second, 750);
+  });
+  expect(output.textContent).toBe('600');
+  await act(async () => {
+    view.rerender(
+      <div data-workspace-frame="show" aria-hidden="false">
+        <Measured itemKey="second" />
+      </div>,
+    );
+    await Promise.resolve();
+  });
+  expect(output.textContent).toBe('750');
+});
