@@ -6,7 +6,16 @@ import type {
 const NOISE_SIZE = 64;
 const NEUTRAL_CHANNEL_SPREAD = 2;
 const MIN_HUE_CHROMA = 0.0001;
-const NOISE = `url("data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${NOISE_SIZE}" height="${NOISE_SIZE}"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="1" seed="7"/></filter><rect width="100%" height="100%" filter="url(#n)" opacity=".003"/></svg>`)}")`;
+const NOISE_SOURCE = `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="${NOISE_SIZE}" height="${NOISE_SIZE}"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency=".8" numOctaves="1" seed="7"/></filter><rect width="100%" height="100%" filter="url(#n)" opacity=".003"/></svg>`)}`;
+const NOISE = `url("${NOISE_SOURCE}")`;
+
+// NOTE(0913vision): The grain texture loads once as the app starts, so the
+// first gradient drawn shows in its first frame instead of a frame of its
+// plain color.
+export const loadedNoise =
+  typeof Image === 'undefined'
+    ? undefined
+    : Object.assign(new Image(), {src: NOISE_SOURCE});
 
 function gradientColor(color: string): string {
   const channels = [1, 3, 5].map(offset =>

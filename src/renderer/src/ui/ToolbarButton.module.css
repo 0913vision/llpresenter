@@ -92,6 +92,12 @@
   position: absolute;
   top: var(--toolbar-dot-top);
   right: var(--toolbar-dot-right);
+}
+
+/* NOTE(0913vision): Only the pointer's look fades; a state change shows at
+   once. */
+.dot:hover,
+.dot:active {
   transition: box-shadow var(--motion-hover);
 }
 

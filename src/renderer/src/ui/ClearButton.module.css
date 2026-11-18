@@ -29,6 +29,12 @@
   font: var(--type-caption-strong);
   white-space: nowrap;
   user-select: none;
+}
+
+/* NOTE(0913vision): Only the pointer's look fades; a state change shows at
+   once. */
+.button:hover,
+.button:active {
   transition:
     background-color var(--motion-hover),
     color var(--motion-hover);

@@ -15,6 +15,12 @@
   font: var(--type-band);
   white-space: nowrap;
   vertical-align: middle;
+}
+
+/* NOTE(0913vision): Only the pointer's look fades; a state change shows at
+   once. */
+.tag:hover,
+.tag:active {
   transition: background-color var(--motion-hover);
 }
 

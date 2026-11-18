@@ -7,6 +7,12 @@
   padding: 0 var(--space-14);
   color: var(--text);
   font: var(--type-body);
+}
+
+/* NOTE(0913vision): Only the pointer's look fades; a state change shows at
+   once. */
+.item:hover,
+.item:active {
   transition: background-color var(--motion-hover);
 }
 

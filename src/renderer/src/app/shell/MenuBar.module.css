@@ -29,6 +29,12 @@
   background: transparent;
   color: var(--text-2);
   font: var(--type-label);
+}
+
+/* NOTE(0913vision): Only the pointer's look fades; a state change shows at
+   once. */
+.menu:hover,
+.menu:active {
   transition: background-color var(--motion-hover);
 }
 
