@@ -51,6 +51,10 @@ vi.mock('@renderer/rendering/outputRenderer', () => ({
     dispose = vi.fn();
   },
 }));
+vi.mock(
+  '@renderer/rendering/pictures/Picture',
+  () => import('@fixtures/renderer/picture'),
+);
 vi.mock('@renderer/rendering/SlidePicture', () => ({
   SlidePicture: () => {
     const ready = useContext(PictureReadiness);
