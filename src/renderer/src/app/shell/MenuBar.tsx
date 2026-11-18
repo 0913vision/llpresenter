@@ -36,7 +36,7 @@ import type {Workspace} from './Toolbar';
 
 const EDIT_MENU = '편집';
 const WINDOW_MENU = '창';
-const HELP_MENU = '도움말';
+const HELP_MENU = 'LoveLight';
 const OUTPUT_MENU = '출력';
 const FILE_MENU = '파일';
 const VIEW_MENU = '보기';

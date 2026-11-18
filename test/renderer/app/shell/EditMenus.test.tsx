@@ -343,7 +343,7 @@ describe('the 도움말 menu', () => {
   it('keeps 시작 안내 unavailable and enables logs, updates and version information', async () => {
     const user = userEvent.setup();
     render(<MenuBar title="" />);
-    const menu = await openMenu(user, '도움말');
+    const menu = await openMenu(user, 'LoveLight');
     const rows = within(menu).getAllByRole('menuitem');
     expect(rows.map(row => row.textContent)).toEqual([
       '시작 안내',
@@ -368,7 +368,7 @@ describe('the 도움말 menu', () => {
     window.llp = mockLlpApi({window: {openLogFolder}});
     const user = userEvent.setup();
     render(<MenuBar title="" />);
-    const menu = await openMenu(user, '도움말');
+    const menu = await openMenu(user, 'LoveLight');
     await user.click(rowOf(menu, '기록 폴더 열기'));
     expect(openLogFolder).toHaveBeenCalledOnce();
   });
@@ -381,7 +381,7 @@ describe('the 도움말 menu', () => {
     });
     const user = userEvent.setup();
     render(<MenuBar title="" />);
-    const menu = await openMenu(user, '도움말');
+    const menu = await openMenu(user, 'LoveLight');
     await user.click(rowOf(menu, '버전 정보'));
     const dialog = await screen.findByRole('alertdialog');
     expect(within(dialog).getByText('버전 정보')).toBeTruthy();

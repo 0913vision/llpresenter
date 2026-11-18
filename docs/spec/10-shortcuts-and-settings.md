@@ -1570,4 +1570,6 @@ fields, Esc clears slide selection or caret first, then returns to the table.
 The 일반 page offers 시작할 때 최대화 (`general.startMaximized`, default on),
 applied on the next launch. Double-clicking a column gap restores its default
 width. 보기 > 칸 배치 초기화 restores all column widths in every size class.
-환경설정 opens from 파일, following the Office options placement.
+환경설정 opens from the LoveLight menu beside the window menu, together with
+screen settings, shortcuts, and about and update commands, following the user's
+choice and ProPresenter's application menu.

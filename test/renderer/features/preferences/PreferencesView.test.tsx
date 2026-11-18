@@ -386,11 +386,12 @@ describe('PreferencesView', () => {
     );
   });
 
-  it('lists the nine pages and opens the 단축키 page', async () => {
+  it('lists the pages and opens the 단축키 page', async () => {
     await mount();
 
     expect(screen.getAllByRole('option').map(row => row.textContent)).toEqual([
       '일반',
+      '진행',
       '출력',
       '예배 순서',
       '저장',
@@ -403,6 +404,18 @@ describe('PreferencesView', () => {
     await openPage('단축키');
     expect(screen.getByRole('heading').textContent).toBe('단축키');
     expect(screen.queryAllByRole('checkbox')).toHaveLength(0);
+  });
+
+  it('saves the clear fade duration for the selected target', async () => {
+    await mount();
+    await openPage('진행');
+    const duration = screen.getByRole('spinbutton', {name: '전체 지우기 시간'});
+    fireEvent.change(duration, {target: {value: '1.5'}});
+    fireEvent.blur(duration);
+    await waitFor(() => expect(edit).toHaveBeenCalledOnce());
+    expect(written()).toMatchObject({
+      clearKeys: {all: {fade: true, durationMs: 1500}},
+    });
   });
 
   it('saves past-row dimming immediately while preserving other show settings', async () => {
@@ -455,8 +468,10 @@ describe('PreferencesView', () => {
         access: 'editable',
       }),
     );
-    await userEvent.click(screen.getByRole('menuitem', {name: '보기'}));
-    const row = screen.getByRole('menuitemcheckbox', {name: '이어서 진행'});
+    await userEvent.click(screen.getByRole('menuitem', {name: '진행'}));
+    const row = screen.getByRole('menuitemcheckbox', {
+      name: '마지막 슬라이드에서 다음 항목으로',
+    });
     await waitFor(() => expect(row.getAttribute('aria-checked')).toBe('true'));
     await userEvent.click(row);
     await waitFor(() => expect(edit).toHaveBeenCalledTimes(2));

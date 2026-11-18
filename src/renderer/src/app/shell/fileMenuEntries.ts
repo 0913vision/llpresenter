@@ -1,5 +1,4 @@
 import {NOT_YET} from '@renderer/ui/menuRows';
-import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {shortcutText} from '@renderer/ui/commandBindings';
 import type {TextImportReadRequest} from '@core/schema/textImport';
 import type {ServiceActionEntries} from '@renderer/features/service/list/useServiceActions';
@@ -127,14 +126,5 @@ export function fileMenuEntries(input: FileMenuInput): readonly MenuEntry[] {
     },
     menuSeparator('print'),
     laterRow('print', '인쇄…'),
-    menuSeparator('preferences'),
-    {
-      kind: 'item',
-      id: 'preferences',
-      label: windowCommandLabels.preferences,
-      command: 'app.preferences',
-      meta: shortcutText('app.preferences'),
-      onSelect: () => window.llp?.window.openPreferences(),
-    },
   ];
 }
