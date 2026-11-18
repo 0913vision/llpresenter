@@ -5,7 +5,6 @@ import {EditorItemSettings} from './EditorItemSettings';
 import {PrepPalette} from '@renderer/features/service/items/PrepPalette';
 import {
   useEffect,
-  useEffectEvent,
   useLayoutEffect,
   useState,
   useRef,
@@ -687,26 +686,6 @@ export function usePrepPanels({
       },
     );
   };
-  const leaveOldService = useEffectEvent((): void => {
-    if (
-      !editorSession?.itemSession &&
-      slidesDraft === null &&
-      otherId === null
-    ) {
-      return;
-    }
-    leave(() => {
-      setSwitching(null);
-      setOtherId(null);
-      prep?.editor.open(null);
-    });
-  });
-  const editorService = useRef(serviceId);
-  useEffect(() => {
-    const previous = editorService.current;
-    editorService.current = serviceId;
-    if (previous !== null && previous !== serviceId) leaveOldService();
-  }, [serviceId]);
   const back = (): void =>
     leave(() => {
       setSwitching(null);
