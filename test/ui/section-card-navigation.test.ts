@@ -89,9 +89,9 @@ it(
           {timeout: 30000},
         )
         .toEqual([id, position]);
-    await page.getByRole('menuitem', {name: '보기', exact: true}).click();
+    await page.getByRole('menuitem', {name: '진행', exact: true}).click();
     const continuous = page.getByRole('menuitemcheckbox', {
-      name: '이어서 진행',
+      name: '마지막 슬라이드에서 다음 항목으로',
     });
     if ((await continuous.getAttribute('aria-checked')) !== 'true') {
       await continuous.click();
