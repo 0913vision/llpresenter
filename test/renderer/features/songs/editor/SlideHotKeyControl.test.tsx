@@ -2,21 +2,15 @@ import {act, fireEvent, render, screen, within} from '@testing-library/react';
 import {expect, it, vi} from 'vitest';
 import {editorSetup} from '@fixtures/renderer/features/songs/editor/editorTesting';
 import {SlideInspector} from '@renderer/features/service/slideInspector/SlideInspector';
-import {useContext, useLayoutEffect, useRef} from 'react';
-import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
 
 vi.mock('@renderer/platform/useSettingsDocument', () => ({
   useSettingsDocument: () => null,
   useApiSettingsDocument: () => null,
 }));
-vi.mock('@renderer/features/songs/editor/SongPreview', () => ({
-  Picture: () => {
-    const ready = useContext(PictureReadiness);
-    const source = useRef({});
-    useLayoutEffect(() => ready?.(source.current), [ready]);
-    return <div />;
-  },
-}));
+vi.mock(
+  '@renderer/rendering/pictures/Picture',
+  () => import('@fixtures/renderer/picture'),
+);
 
 async function setup() {
   const fixture = await editorSetup();
