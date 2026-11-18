@@ -332,6 +332,7 @@ export class SlideLayerView {
   private lineMode: 'normal' | 'song' | 'lyrics' | 'bar' = 'normal';
   private ellipsis = false;
   private balanceWrap = false;
+  private fixedLineSpacing = false;
   private dissolveMs: number = SLIDE_DISSOLVE_MS;
   private effect: SlideTransition | undefined;
   private readonly animation = new SlideAnimation();
@@ -533,6 +534,13 @@ export class SlideLayerView {
     if (this.current !== null) this.fit(this.pages[this.front]);
   }
 
+  /** Keep the lyric line pitch independent of width-driven font fitting. */
+  setFixedLineSpacing(fixed: boolean): void {
+    if (this.fixedLineSpacing === fixed) return;
+    this.fixedLineSpacing = fixed;
+    if (this.current !== null) this.fit(this.pages[this.front]);
+  }
+
   setFitLines(limit: number | undefined): void {
     this.fitLines = limit;
   }
@@ -580,6 +588,10 @@ export class SlideLayerView {
     block.style.overflowWrap =
       this.balanceWrap && this.lineMode === 'normal' ? 'normal' : '';
     const size = (this.targetSize ?? this.style.size) * this.scale;
+    let fixedSpacing = this.fixedLineSpacing && page.lyricFormat === undefined;
+    block.style.lineHeight = fixedSpacing
+      ? `${size * this.style.lineHeight}px`
+      : String(this.style.lineHeight);
     const markers = block.querySelectorAll<HTMLElement>(
       '[data-bible-continuation]',
     );
@@ -641,6 +653,14 @@ export class SlideLayerView {
     }
     const width = element.clientWidth;
     const height = element.clientHeight;
+    if (fixedSpacing) {
+      block.style.whiteSpace = this.lineMode === 'normal' ? '' : 'pre';
+      setSize(1);
+      if (block.scrollHeight > height + 1) {
+        fixedSpacing = false;
+        block.style.lineHeight = String(this.style.lineHeight);
+      }
+    }
     const document = element.ownerDocument;
     let cache = textFits.get(document);
     if (cache === undefined) {
@@ -655,6 +675,7 @@ export class SlideLayerView {
         page.biblePart,
         this.lineMode,
         this.balanceWrap,
+        fixedSpacing,
         this.fitLines,
         this.targetSize,
         this.style,
@@ -674,7 +695,9 @@ export class SlideLayerView {
         const fitted = fitTextInFrame({size, width, height}, px => {
           setSize(px);
           const exceedsLines = !fitsLineLimit(block.offsetHeight, px, {
-            lineHeight: this.style.lineHeight,
+            lineHeight: fixedSpacing
+              ? (size * this.style.lineHeight) / px
+              : this.style.lineHeight,
             limit: this.fitLines,
           });
           return {
@@ -731,7 +754,7 @@ export class SlideLayerView {
       }
     }
     if (this.fitLines !== undefined) {
-      block.style.maxHeight = `${Number.parseFloat(block.style.fontSize) * this.style.lineHeight * this.fitLines}px`;
+      block.style.maxHeight = `${(fixedSpacing ? size : Number.parseFloat(block.style.fontSize)) * this.style.lineHeight * this.fitLines}px`;
       block.style.overflow = 'hidden';
     }
   }

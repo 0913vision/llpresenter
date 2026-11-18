@@ -81,6 +81,7 @@ function PreparedPicture({spec}: {readonly spec: PictureSpec}): null {
 export function OutputSlidePicture({
   drawn,
   prepareOnly = false,
+  liveText = false,
   ...input
 }: SlideInput & {
   /**
@@ -90,11 +91,12 @@ export function OutputSlidePicture({
   readonly drawn?: 'wait' | 'place' | undefined;
   /** Only draws the picture ahead, showing nothing. */
   readonly prepareOnly?: boolean | undefined;
+  readonly liveText?: boolean | undefined;
 }): JSX.Element | null {
   const spec = slideSpec(input);
   if (prepareOnly) return <PreparedPicture spec={spec} />;
   return drawn === undefined ? (
-    <OutputPreviewPicture {...spec} />
+    <OutputPreviewPicture {...spec} liveText={liveText} />
   ) : (
     <Picture wait={drawn === 'wait'} {...spec} />
   );

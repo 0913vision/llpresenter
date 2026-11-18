@@ -24,6 +24,7 @@ export function SlidePicture({
   mediaOnly = false,
   drawn,
   prepareOnly = false,
+  liveText = false,
 }: {
   readonly slide: SlideLayer;
   readonly layout: ThemeScreenLayout;
@@ -38,6 +39,7 @@ export function SlidePicture({
   readonly drawn?: 'wait' | 'place' | undefined;
   /** Output pictures only: drawn ahead, showing nothing. */
   readonly prepareOnly?: boolean | undefined;
+  readonly liveText?: boolean | undefined;
 }): JSX.Element {
   if (output) {
     return (
@@ -52,6 +54,7 @@ export function SlidePicture({
         mediaOnly={mediaOnly}
         drawn={drawn}
         prepareOnly={prepareOnly}
+        liveText={liveText}
       />
     );
   }

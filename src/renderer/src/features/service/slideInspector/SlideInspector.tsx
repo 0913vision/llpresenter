@@ -98,6 +98,7 @@ function InspectorContent({
             {appearance === undefined || slide === undefined ? null : (
               <SlidePicture
                 output
+                liveText
                 {...appearance}
                 slide={{
                   itemId: snapshot.song.id,

@@ -239,6 +239,10 @@ A new page appears only when its pictures are ready to draw.
 - Keep the theme font size while the wrapped text fits the element frame. Shrink
   only when its width or height overflows that frame. Never split a lyric slide.
   The same rule applies to thumbnails and previews.
+- For ordinary song lyrics on 청중, keep line spacing at the theme-size pitch
+  while fitting the font. If even 1 px text cannot fit at that pitch, use the
+  proportional line spacing so the content can fit. Imported lyric formatting
+  retains its own line spacing. The editor preview and output use the same rule.
 - A blank 슬라이드 (no lines) can be the live 슬라이드. It draws nothing in the
   현재 슬라이드 글 element (proposal).
 - Text sizes are for a 1920 x 1080 screen. Scale them to the screen resolution

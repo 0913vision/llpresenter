@@ -21,6 +21,7 @@ import {PicturePark} from './picturePark';
 
 interface PictureProps {
   readonly layers: LiveLayers;
+  readonly liveText?: boolean | undefined;
   readonly appearance: {
     readonly screen: RenderScreen;
     readonly theme: ThemeFrame;
@@ -30,7 +31,8 @@ interface PictureProps {
 }
 
 interface PictureView {
-  readonly key: string;
+  key: string;
+  readonly textKey: string;
   readonly host: HTMLDivElement;
   readonly renderer: OutputRenderer;
   /** What the drawing read beyond its key: media records and the font set. */
@@ -86,9 +88,19 @@ function pictureKey({layers, appearance}: PictureProps): string {
   ]);
 }
 
+function textKey({layers, appearance}: PictureProps): string {
+  return pictureKey({
+    layers: {
+      ...layers,
+      slide: layers.slide === null ? null : {...layers.slide, lines: []},
+    },
+    appearance,
+  });
+}
+
 /** A still, local composition drawn by the same renderer as output. */
 export const OutputPreviewPicture = memo(
-  ({layers, appearance}: PictureProps): JSX.Element => {
+  ({layers, appearance, liveText}: PictureProps): JSX.Element => {
     const parent = useRef<HTMLDivElement>(null);
     const source = useRef({});
     const onReady = useContext(PictureReadiness);
@@ -118,8 +130,27 @@ export const OutputPreviewPicture = memo(
       const container = parent.current;
       if (container === null) return;
       const key = pictureKey({layers, appearance});
+      const compatibleText = textKey({layers, appearance});
       if (front.current?.key === key) {
         container.dataset['previewReady'] = 'true';
+        return;
+      }
+      if (
+        liveText === true &&
+        front.current !== null &&
+        front.current.textKey === compatibleText &&
+        previewReady(front.current.renderer) &&
+        !fontsLoading(document.fonts)
+      ) {
+        front.current.renderer.render(layers, {
+          screen: appearance.screen,
+          theme: appearance.theme,
+          transitions: false,
+          ...(layers.slide === null ? {} : {slide: layers.slide}),
+        });
+        front.current.key = key;
+        container.dataset['previewReady'] = 'true';
+        onReady?.(source.current);
         return;
       }
       if (front.current === null) {
@@ -167,6 +198,7 @@ export const OutputPreviewPicture = memo(
       });
       const view: PictureView = {
         key,
+        textKey: compatibleText,
         host,
         renderer,
         inputs: () =>
@@ -219,7 +251,7 @@ export const OutputPreviewPicture = memo(
         cancelAnimationFrame(frame);
         if (front.current !== view) view.dispose();
       };
-    }, [layers, appearance, near, onReady]);
+    }, [layers, appearance, liveText, near, onReady]);
     useLayoutEffect(
       () => () => {
         const view = front.current;
@@ -250,5 +282,7 @@ export const OutputPreviewPicture = memo(
       />
     );
   },
-  (previous, next) => pictureKey(previous) === pictureKey(next),
+  (previous, next) =>
+    previous.liveText === next.liveText &&
+    pictureKey(previous) === pictureKey(next),
 );
