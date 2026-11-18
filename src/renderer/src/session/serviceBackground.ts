@@ -26,21 +26,24 @@ export function backgroundChange(
       choice === 'none' &&
       item.backgroundNone === true &&
       item.background === undefined
-    )
-      {return item;}
+    ) {
+      return item;
+    }
     if (
       choice === null &&
       item.backgroundNone !== true &&
       item.background === undefined
-    )
-      {return item;}
+    ) {
+      return item;
+    }
     if (
       choice !== null &&
       choice !== 'none' &&
       item.backgroundNone !== true &&
       item.background === choice
-    )
-      {return item;}
+    ) {
+      return item;
+    }
     const {background: _background, backgroundNone: _none, ...updated} = item;
     return choice === 'none'
       ? {...updated, backgroundNone: true}
