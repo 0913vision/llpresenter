@@ -517,42 +517,45 @@ function SlidesEditorBody({
                 />
               </>
             )}
-          >
-            <div className={styles.add}>
-              <Button
-                variant="ghost"
-                icon="plus"
-                disabled={
-                  model.stopped ||
-                  model.session?.readOnly === true ||
-                  rows.length >= SLIDES_LIMIT
-                }
-                onClick={event => showPicker(event.currentTarget)}
-              >
-                그림 추가
-              </Button>
-              {item.slides.form !== 'blank' ? null : (
-                <Button
-                  variant="ghost"
-                  icon="plus"
-                  disabled={
-                    model.stopped ||
-                    model.session?.readOnly === true ||
-                    rows.length >= SLIDES_LIMIT
-                  }
-                  onClick={() => setBibleDialog({})}
-                >
-                  성경 구절 추가…
-                </Button>
-              )}
-            </div>
-          </SlideRows>
+          />
         </fieldset>
         <PanelFooter
           end={<SlideSurfaceView ui={api.ui} />}
           count={rows.length + (leadingCard === undefined ? 0 : 1)}
         >
           {addCard}
+
+          <Button
+            variant="ghost"
+            icon="plus"
+            disabled={
+              model.stopped ||
+              model.session?.readOnly === true ||
+              bibleDialog !== null ||
+              picker !== null ||
+              rows.length >= SLIDES_LIMIT
+            }
+            onClick={event => showPicker(event.currentTarget)}
+          >
+            그림 추가
+          </Button>
+          {item.slides.form !== 'blank' ? null : (
+            <Button
+              variant="ghost"
+              icon="plus"
+              disabled={
+                model.stopped ||
+                model.session?.readOnly === true ||
+                bibleDialog !== null ||
+                picker !== null ||
+                rows.length >= SLIDES_LIMIT
+              }
+              onClick={() => setBibleDialog({})}
+            >
+              성경 구절 추가…
+            </Button>
+          )}
+
           <Button
             variant="ghost"
             icon="plus"
