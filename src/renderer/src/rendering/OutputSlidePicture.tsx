@@ -19,7 +19,7 @@ import type {RenderScreen} from './layer';
 const screenId = createScreenId(STARTER_SCREEN_IDS.main);
 const defaultThemeId = createThemeId('00000000-0000-4000-8000-000000000001');
 
-interface SlideInput {
+export interface SlideInput {
   readonly slide: SlideLayer;
   readonly layout: ThemeScreenLayout;
   readonly emptyColor: string;
