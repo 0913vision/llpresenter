@@ -391,6 +391,7 @@ export function ContinuousSlideGrid({
       revealSlideItem(section.row.id);
     }
   }, [sections, metrics.top]);
+  useEffect(() => () => revealSlideItem(null), []);
   return (
     <div
       ref={keeper}

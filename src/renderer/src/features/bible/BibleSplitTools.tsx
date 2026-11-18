@@ -1,4 +1,5 @@
 import {withSectionCard} from '@core/services/sectionCards';
+import {useShownItemId} from '@renderer/session/shownItem';
 import {useEffect, useLayoutEffect, useRef, useState, type JSX} from 'react';
 import {versesToReview} from '@core/bible/split/splitVerses';
 import type {VerseSlide} from '@core/schema/service';
@@ -82,9 +83,10 @@ export function BibleSplitTools({
           },
     );
   }, [projections, themes, screens, saved, refinementRevision]);
+  const shownItemId = useShownItemId();
   const projection = useShow(view => {
-    if (view.openItemId === null || projections === null) return null;
-    const source = splitSourceFor(view, view.openItemId);
+    if (shownItemId === null || projections === null) return null;
+    const source = splitSourceFor(view, shownItemId);
     return source === null ? null : projections.get(source);
   });
   const refinement = useBibleRefinement(api?.bible, projection);
@@ -143,9 +145,9 @@ export function BibleSplitTools({
   const selected = useShow(
     view =>
       (selectedIndex ?? view.selectedTile) -
-      (view.openItemId !== null &&
-      view.rows.find(row => row.id === view.openItemId)?.kind === 'bible' &&
-      view.tiles[view.openItemId]?.[0]?.sectionCard !== undefined
+      (shownItemId !== null &&
+      view.rows.find(row => row.id === shownItemId)?.kind === 'bible' &&
+      view.tiles[shownItemId]?.[0]?.sectionCard !== undefined
         ? 1
         : 0),
   );

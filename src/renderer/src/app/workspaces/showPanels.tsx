@@ -1,4 +1,5 @@
 import {useState, type ReactNode} from 'react';
+import {useShownItemId} from '@renderer/session/shownItem';
 import type {SongId} from '@core/schema/ids';
 import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
 import {ClearRow} from '@renderer/features/presentation/ClearRow';
@@ -134,9 +135,8 @@ export function useShowPanels({
 }): WorkspacePanels {
   const [bibleSelection, setBibleSelection] = useState(0);
   const quickDocument = useSettingsDocument('quick', '빠른 실행', onProblem);
-  const bibleOpen = useShow(
-    view => active && isBibleSource(view, view.openItemId),
-  );
+  const shownItemId = useShownItemId();
+  const bibleOpen = useShow(view => active && isBibleSource(view, shownItemId));
   return {
     columns: SHOW_COLUMNS,
     partsOf: title =>
