@@ -281,10 +281,18 @@ export function ContinuousSlideGrid({
     observer.observe(grid);
     viewport.addEventListener('scroll', read, {passive: true});
     viewport.addEventListener('wheel', defer, {passive: true});
-    const key = (): void => {
-      keyed.current = Date.now();
+    // NOTE(0913vision): Only a key press counts as keyboard navigation; any
+    // pointer press after it (a Shift+click, say) is a click again.
+    const key = (event: KeyboardEvent): void => {
+      if (!['Shift', 'Control', 'Alt', 'Meta'].includes(event.key)) {
+        keyed.current = Date.now();
+      }
+    };
+    const pointer = (): void => {
+      keyed.current = 0;
     };
     window.addEventListener('keydown', key, true);
+    window.addEventListener('pointerdown', pointer, true);
     viewport.addEventListener('pointerdown', down);
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
@@ -295,6 +303,7 @@ export function ContinuousSlideGrid({
       viewport.removeEventListener('scroll', read);
       viewport.removeEventListener('wheel', defer);
       window.removeEventListener('keydown', key, true);
+      window.removeEventListener('pointerdown', pointer, true);
       viewport.removeEventListener('pointerdown', down);
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', up);
