@@ -1,4 +1,5 @@
 import {LIVE_STATE_LIMITS} from '@core/schema/liveLimits';
+import {resetClearToggles} from '../history';
 import {MissingLiveTargetError} from '../commandErrors';
 import {defineSlice} from '../slice';
 
@@ -20,16 +21,23 @@ export const testPatternSlice = defineSlice({
       throw new MissingLiveTargetError({kind: 'screen', id: screenId});
     }
     const shown = state.testPatterns ?? [];
-    if (shown.includes(screenId) === on) return history;
+    if (shown.includes(screenId) === on) {
+      if (!on) return history;
+      const reset = resetClearToggles(history);
+      return reset === history
+        ? history
+        : {...reset, state: {...reset.state, version: state.version + 1}};
+    }
     if (on && shown.length >= LIVE_STATE_LIMITS.outputs) {
       throw new Error('Too many screens show the test pattern');
     }
     const testPatterns = on
       ? [...shown, screenId]
       : shown.filter(id => id !== screenId);
-    const {testPatterns: _previous, ...rest} = state;
+    const next = on ? resetClearToggles(history) : history;
+    const {testPatterns: _previous, ...rest} = next.state;
     return {
-      ...history,
+      ...next,
       state: {
         ...rest,
         ...(testPatterns.length === 0 ? {} : {testPatterns}),

@@ -3,7 +3,7 @@ import {waitFor} from '@testing-library/react';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import type {LiveCommand} from '@core/live/commands';
 import {emptyLiveState} from '@core/live/state';
-import {createServiceItemId} from '@core/schema/ids';
+import {createScreenId, createServiceItemId} from '@core/schema/ids';
 import type {ShowService} from '@core/schema/showService';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {sendLive, startLiveSync, useLive} from '@renderer/session/live';
@@ -251,6 +251,62 @@ describe('starting a service item', () => {
       'slide.show',
     ]);
     expect(useLive.getState().lastStartedItemId).toBe(second);
+  });
+
+  it('does not resume an older lookup after a test pattern is shown', async () => {
+    const value = {
+      ...service,
+      rows: [
+        {
+          kind: 'song',
+          id: first,
+          title: 'First',
+          background: {mediaId: 'invented-media', loop: true},
+        },
+        ...service.rows.slice(1),
+      ],
+    } satisfies ShowService;
+    const refreshed = {
+      ...value,
+      rows: [
+        {
+          kind: 'song',
+          id: first,
+          title: 'First',
+          background: {mediaId: 'updated-media', loop: true},
+        },
+        ...service.rows.slice(1),
+      ],
+    } satisfies ShowService;
+    const {sent, getService} = setup(value);
+    let finish: (value: ShowService) => void = () => undefined;
+    getService.mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          finish = resolve;
+        }),
+    );
+    outputTile({itemId: first, index: 0});
+    sendLive({
+      type: 'live.batch',
+      commands: [
+        {
+          type: 'output.set',
+          screenId: '00000000-0000-4000-8000-000000000001',
+          on: true,
+        },
+        {
+          type: 'screen.testPattern.set',
+          screenId: createScreenId('00000000-0000-4000-8000-000000000001'),
+          on: true,
+        },
+      ],
+    });
+    const count = sent.length;
+    finish(refreshed);
+    await waitFor(() => expect(getService).toHaveResolvedTimes(1));
+    await new Promise(resolve => setTimeout(resolve, 0));
+    expect(sent).toHaveLength(count);
   });
 
   it('remembers the current item from the initial live feed without starting it again', async () => {

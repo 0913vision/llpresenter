@@ -37,8 +37,8 @@ monitor is brought into the current work area.
 either switches that window to the requested view; it appears only after its
 settings, monitor data, and fonts have drawn. The hidden view keeps its controls
 prepared but stops keyboard handling, subscriptions, and preview rendering.
-Leaving 화면 설정 removes its test pattern and returning starts in 화면 내용.
-The screen editor keeps its saved geometry separately from the fixed preferences
+Leaving or reopening 화면 설정 leaves the live test pattern unchanged. The
+screen editor keeps its saved geometry separately from the fixed preferences
 dialog. Switching settles pending drafts first; canceling keeps the current
 view. Closing saves, hides the window, and returns focus to its opener; a
 refused save keeps it open. The same renderer and prepared controls survive
@@ -66,8 +66,8 @@ effects and previews; every close performs its own save handshake.
   the control monitor says 컨트롤, and an unused output monitor says 출력
   미지정. The preview caption shows target and signal details without repeating
   the screen name already present in the list and assignment card.
-- Changes save at once and apply to output at once. Closing the window takes its
-  test pattern off the output.
+- Changes save at once and apply to output at once. Closing the window leaves
+  the live test pattern unchanged.
 
 Source: `Screens`, `Main` board guide (화면 설정), 12.
 

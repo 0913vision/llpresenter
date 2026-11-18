@@ -2,7 +2,7 @@ import {act, fireEvent, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
-import {createThemeId} from '@core/schema/ids';
+import {createScreenId, createThemeId} from '@core/schema/ids';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {} from '@fixtures/core/screenDocuments';
@@ -87,6 +87,23 @@ afterEach(() => {
   commandBindingStore.set({});
   useLive.setState({state: null});
   delete window.llp;
+});
+
+it('enables item stop when only a test pattern is live', async () => {
+  const {send} = setup();
+  act(() =>
+    useLive.setState({
+      state: {
+        ...emptyLiveState(),
+        testPatterns: [createScreenId('00000000-0000-4000-8000-000000000001')],
+      },
+    }),
+  );
+  await openOutput();
+  const item = screen.getByRole('menuitem', {name: '항목 끄기'});
+  expect(item.getAttribute('aria-disabled')).not.toBe('true');
+  await userEvent.click(item);
+  expect(send).toHaveBeenCalledWith({type: 'item.stop'});
 });
 
 it('loads themes when Output opens and lists confirmed radios and the editor', async () => {

@@ -52,7 +52,11 @@ export function OutputMenuList({
     onProblem,
   );
   const themeId = useLive(view => view.state?.themeOutput?.themeId);
-  const hasItem = useLive(view => view.state?.themeItem != null);
+  const hasItem = useLive(
+    view =>
+      view.state?.themeItem != null ||
+      (view.state?.testPatterns?.length ?? 0) > 0,
+  );
   const sectionCard = useLive(
     view => view.state?.layers.slide?.sectionCard !== undefined,
   );

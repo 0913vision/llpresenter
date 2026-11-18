@@ -6,6 +6,7 @@ import {LiveStore} from '@main/live/store';
 import {
   CAPTIONS,
   MAIN,
+  STAGE,
   overlaySettings,
   overlayUuid,
 } from '@fixtures/core/overlays';
@@ -55,6 +56,34 @@ describe('screen.testPattern.set', () => {
     settings.update(settingsDocument('screens', {screens: []}));
     set(MAIN, false);
     expect(store.state).not.toHaveProperty('testPatterns');
+  });
+
+  it('does not restore a previously cleared slide when clear follows a test pattern', () => {
+    const {store, set} = setup();
+    const slide = {itemId: 'item-1', position: 0, label: null, lines: ['줄']};
+    store.dispatch({type: 'slide.show', slide});
+    store.dispatch({type: 'layer.clear.toggle', target: 'all'});
+    expect(store.state.clearToggles).toContain('all');
+    set(MAIN, true);
+    expect(store.state.clearToggles ?? []).not.toContain('all');
+    store.dispatch({type: 'layer.clear.toggle', target: 'all'});
+    expect(store.state.layers.slide).toBeNull();
+    expect(store.state.testPatterns ?? []).toEqual([]);
+  });
+
+  it('replaces only stage patterns when a stage message is sent', () => {
+    const {store, set} = setup();
+    set(MAIN, true);
+    set(STAGE, true);
+    store.dispatch({type: 'stage.message.set', text: 'Stage message'});
+    expect(store.state.stageMessage).toBe('Stage message');
+    expect(store.state.testPatterns).toEqual([MAIN]);
+    set(STAGE, true);
+    store.dispatch({type: 'stage.message.set', text: 'Stage message'});
+    expect(store.state.testPatterns).toEqual([MAIN]);
+    set(STAGE, true);
+    store.dispatch({type: 'stage.message.set', text: null});
+    expect(store.state.testPatterns).toEqual([MAIN, STAGE]);
   });
 
   it('replaces the pattern with a slide, standby, or clear', () => {
