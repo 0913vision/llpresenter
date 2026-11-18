@@ -285,7 +285,7 @@ describe('slide-header background control', () => {
     });
     openItem(id);
     render(<SongBackgroundControl onProblem={onProblem} />);
-    expect(hook).toHaveBeenCalledWith(onProblem);
+    expect(hook.mock.calls[0]?.[0]).toBe(onProblem);
     const user = userEvent.setup();
     await user.click(screen.getByRole('button', {name: '배경 선택'}));
     await user.click(screen.getByRole('option', {name: video.name}));
