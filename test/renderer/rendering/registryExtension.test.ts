@@ -9,13 +9,24 @@ vi.mock(
   () => import('@fixtures/renderer/rendering/layers'),
 );
 
-class MockResizeObserver {
+class MockResizeObserver implements ResizeObserver {
   static readonly instances: MockResizeObserver[] = [];
   disconnected = false;
-  constructor(readonly callback: () => void) {
+  constructor(readonly callback: ResizeObserverCallback) {
     MockResizeObserver.instances.push(this);
   }
+  notify(): void {
+    const entry: ResizeObserverEntry = {
+      target: document.createElement('div'),
+      contentRect: DOMRect.fromRect({width: 960, height: 540}),
+      borderBoxSize: [],
+      contentBoxSize: [],
+      devicePixelContentBoxSize: [],
+    };
+    this.callback([entry], this);
+  }
   observe(): void {}
+  unobserve(): void {}
   disconnect(): void {
     this.disconnected = true;
   }
@@ -87,7 +98,7 @@ describe('layer module discovery through OutputRenderer', () => {
       );
       failProbeDuring(phase);
       renderer.render(layers);
-      MockResizeObserver.instances[0]?.callback();
+      MockResizeObserver.instances[0]?.notify();
       expect(healthy?.textContent).toBe('registered layer');
       expect(healthy?.dataset['scale']).toBe('0.5');
       renderer.dispose();
