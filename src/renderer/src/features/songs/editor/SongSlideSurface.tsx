@@ -553,7 +553,14 @@ export function SongSlideSurface<T extends SlideListItem>({
       onClickCapture={event => {
         dragClick.props.onClickCapture(event);
         if (event.defaultPrevented) return;
-        if (event.button === 0 && event.target instanceof Element) {
+        if (
+          event.button === 0 &&
+          !event.ctrlKey &&
+          !event.metaKey &&
+          !event.shiftKey &&
+          !event.altKey &&
+          event.target instanceof Element
+        ) {
           const viewport = event.target.closest<HTMLElement>(
             '[data-view], [data-editor="true"]',
           );
@@ -561,10 +568,15 @@ export function SongSlideSurface<T extends SlideListItem>({
           const occupied = event.target.closest(
             '[data-slide-gap], [data-leading-card], button, input, textarea, select, [contenteditable="true"]',
           );
+          const emptyPlate =
+            slide !== null &&
+            slide === event.target &&
+            slide.getBoundingClientRect().width > 0 &&
+            slide.getBoundingClientRect().height > 0;
           if (
             viewport !== null &&
             occupied === null &&
-            (slide === null || slide === event.target) &&
+            (slide === null || emptyPlate) &&
             event.currentTarget.contains(viewport)
           ) {
             clearCard();
