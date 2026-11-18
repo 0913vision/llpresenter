@@ -330,8 +330,16 @@ it('omits liturgy names and keeps the four-line verse box and other scripture sc
     STARTER_SCREEN_IDS.broadcast,
     STARTER_SCREEN_IDS.stage,
   ]) {
+    const layout = scripture.screens[createScreenId(screen)];
     expect(theme?.screens[createScreenId(screen)]).toEqual(
-      scripture.screens[createScreenId(screen)],
+      layout === undefined
+        ? undefined
+        : {
+            ...layout,
+            elements: layout.elements.filter(
+              element => element.kind !== 'reference',
+            ),
+          },
     );
   }
 });
@@ -363,6 +371,9 @@ it('offers one sermon title theme with automatic bars', () => {
     {kind: 'currentText', text: {size: 64, align: 'center'}},
   ]);
   const stage = theme?.screens[createScreenId(STARTER_SCREEN_IDS.stage)];
+  expect(stage?.elements.some(element => element.kind === 'reference')).toBe(
+    false,
+  );
   expect(
     stage?.elements.find(element => element.kind === 'itemName'),
   ).toMatchObject({
@@ -641,6 +652,11 @@ it('shows preparation text on stage only while its blank slide is live', () => {
   const current = theme?.screens[stage]?.elements.find(
     element => element.kind === 'currentText',
   );
+  expect(
+    theme?.screens[createScreenId(STARTER_SCREEN_IDS.broadcast)]?.elements.some(
+      element => element.kind === 'reference',
+    ),
+  ).toBe(false);
   if (current?.kind !== 'currentText') {
     throw Error('Missing preparation text');
   }
@@ -737,5 +753,15 @@ it('uses the Bible-sized left-aligned stage layout for the creed theme', () => {
   }
   expect(current.text).toMatchObject({size: 104, align: 'left'});
   expect(current.text.size).toBe(audienceText.text.size);
-  expect(creed?.screens[stage]).toEqual(builtInTheme('bible').screens[stage]);
+  const bible = builtInTheme('bible').screens[stage];
+  expect(creed?.screens[stage]).toEqual(
+    bible === undefined
+      ? undefined
+      : {
+          ...bible,
+          elements: bible.elements.filter(
+            element => element.kind !== 'reference',
+          ),
+        },
+  );
 });

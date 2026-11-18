@@ -334,6 +334,14 @@ function preparationStageLayout(screen: ThemeScreen): ThemeScreenLayout {
   };
 }
 
+function preparationBroadcastLayout(screen: ThemeScreen): ThemeScreenLayout {
+  const layout = layoutFor(screen, 'blank');
+  return {
+    ...layout,
+    elements: layout.elements.filter(element => element.kind !== 'reference'),
+  };
+}
+
 function audienceElements(
   lowerThird: boolean,
   kind: ThemeItemKind,
@@ -574,7 +582,7 @@ export function createDefaultThemes(
               ? sundayPreparationLayout()
               : screen.kind === 'stage'
                 ? preparationStageLayout(screen)
-                : layoutFor(screen, 'blank'),
+                : preparationBroadcastLayout(screen),
           ]),
         ),
       },

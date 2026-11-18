@@ -875,3 +875,12 @@ band at the bottom, above the theme composition. The band shows up to three
 lines and truncates longer text with an ellipsis. Saved `stageMessage` elements
 do not draw or appear in the editor. They are removed when that layout is
 edited.
+
+The default sermon title stage layout uses the item name for its passage and
+does not include a second reference element. The default creed and prayer
+layouts and preparation broadcast layout omit Bible reference elements their
+items do not use. The theme editor previews dynamic elements with representative
+content; the reference source preview distinguishes the current verse from the
+item range. Empty media and overlay slots show an editor-only placeholder.
+Section-card themes do not offer the reference source option because their items
+do not supply a Bible range.

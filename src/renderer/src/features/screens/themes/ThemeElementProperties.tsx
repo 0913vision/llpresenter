@@ -6,6 +6,7 @@ import {
   BROADCAST_TEXT_ID,
 } from '@core/themes/broadcastBand';
 import {THEME_LIMITS} from '@core/themes/elementRules';
+import {isSectionTheme} from '@core/themes/sundaySections';
 import {hasThemeText} from '@core/themes/elementEdits';
 import {GeometryField} from '@renderer/ui/GeometryField';
 import {
@@ -103,6 +104,7 @@ export function ThemeElementProperties({
           />
         ) : null}
         {element.kind === 'reference' &&
+        !isSectionTheme(model.theme?.id) &&
         !(model.fittedBroadcast && element.id === BROADCAST_REFERENCE_ID) ? (
           <PropertyRow label="출처 내용">
             {({controlId}) => (

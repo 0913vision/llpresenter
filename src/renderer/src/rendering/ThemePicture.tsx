@@ -270,12 +270,18 @@ function contents(
     media: Partial<Record<'media' | 'background', string>> | undefined;
     measuredText: MeasuredText | undefined;
     measuredNextText: MeasuredText | undefined;
+    showPlaceholders: boolean;
+    referenceItemSample: string | undefined;
   },
 ): JSX.Element | null {
   const {samples, timers} = context;
   if (element.kind === 'media' || element.kind === 'background') {
     const source = context.media?.[element.kind];
-    return source === undefined ? null : (
+    return source === undefined ? (
+      context.showPlaceholders ? (
+        <div className={styles.placeholder}>{samples[element.kind]}</div>
+      ) : null
+    ) : (
       <img
         className={styles.image}
         src={source}
@@ -289,6 +295,9 @@ function contents(
         }}
       />
     );
+  }
+  if (element.kind === 'overlay' && context.showPlaceholders) {
+    return <div className={styles.placeholder}>{samples.overlay}</div>;
   }
   if (element.kind === 'clock' || element.kind === 'timer') {
     return (
@@ -317,7 +326,9 @@ function contents(
         content={
           element.kind === 'text'
             ? element.content
-            : (samples[element.kind] ?? '')
+            : element.kind === 'reference' && element.source === 'item'
+              ? (context.referenceItemSample ?? samples.reference ?? '')
+              : (samples[element.kind] ?? '')
         }
       />
     );
@@ -411,6 +422,8 @@ export function ThemePicture({
   onResolvedFrames,
   fitItemNameFrame = false,
   fitTextFrames = false,
+  showPlaceholders = false,
+  referenceItemSample,
 }: {
   readonly elements: readonly ThemeElement[];
   readonly background: ThemeBackground;
@@ -424,6 +437,8 @@ export function ThemePicture({
     ((frames: Readonly<Record<string, ElementFrame>>) => void) | undefined;
   readonly fitItemNameFrame?: boolean | undefined;
   readonly fitTextFrames?: boolean | undefined;
+  readonly showPlaceholders?: boolean | undefined;
+  readonly referenceItemSample?: string | undefined;
 }): JSX.Element {
   const reference = useRef<HTMLDivElement>(null);
   useLayoutEffect(() => {
@@ -648,6 +663,8 @@ export function ThemePicture({
                   media,
                   measuredText,
                   measuredNextText,
+                  showPlaceholders,
+                  referenceItemSample,
                 })}
               </div>
             );
