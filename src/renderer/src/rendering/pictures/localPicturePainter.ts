@@ -114,7 +114,18 @@ export class LocalPicturePainter {
     this.draw({...spec, layers: {...spec.layers, slide: null}});
   }
 
-  async paint(spec: PictureSpec): Promise<HTMLCanvasElement> {
+  dispose(): void {
+    this.renderer?.dispose();
+    this.media?.dispose();
+    this.canvas.remove();
+  }
+
+  /** Import previews wait for a complete composition until cancelled. */
+  async paint(
+    spec: PictureSpec,
+    importSignal?: AbortSignal,
+  ): Promise<HTMLCanvasElement> {
+    importSignal?.throwIfAborted();
     const context = this.context;
     if (context === undefined) {
       throw new Error('The editor canvas is unavailable');
@@ -152,12 +163,21 @@ export class LocalPicturePainter {
       const cleanup = (): void => {
         clearTimeout(timeout);
         this.canvas.removeEventListener('paint', capture);
+        importSignal?.removeEventListener('abort', abort);
       };
-      const timeout = setTimeout(() => {
+      const abort = (): void => {
         cleanup();
-        reject(new Error('The editor canvas did not produce a frame'));
-      }, OUTPUT_REVEAL_DEADLINE_MS);
+        reject(new DOMException('Picture preparation cancelled', 'AbortError'));
+      };
+      const timeout =
+        importSignal === undefined
+          ? setTimeout(() => {
+              cleanup();
+              reject(new Error('The editor canvas did not produce a frame'));
+            }, OUTPUT_REVEAL_DEADLINE_MS)
+          : undefined;
       this.canvas.addEventListener('paint', capture);
+      importSignal?.addEventListener('abort', abort, {once: true});
     });
   }
 }

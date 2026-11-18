@@ -7,7 +7,7 @@ import {
 } from '@core/presentation/model';
 import type {Screen} from '@core/schema/screens';
 import type {ThemesFile} from '@core/schema/themes';
-import {slideSpec} from '@renderer/rendering/OutputSlidePicture';
+import {outputSlideSpec} from '@renderer/rendering/OutputSlidePicture';
 import {Picture} from '@renderer/rendering/pictures/Picture';
 import type {PictureSpec} from '@renderer/rendering/pictures/pictureService';
 import {slideTheme} from '@renderer/platform/useSlideTheme';
@@ -77,14 +77,14 @@ export function tilePictureSpec(
   if (tile.media?.mediaId !== undefined || slide === null) return undefined;
   const content = {slide, songSource: tile.sourceSlide};
   if (tile.sectionCard !== undefined && cardTheme !== undefined) {
-    return slideSpec({...cardTheme, ...content});
+    return outputSlideSpec({...cardTheme, ...content});
   }
   if (tile.sermonTitle === true && sermonTheme !== undefined) {
-    return slideSpec({...sermonTheme, ...content});
+    return outputSlideSpec({...sermonTheme, ...content});
   }
   const appearance = tile.biblePart === undefined ? undefined : bibleAppearance;
   if (appearance !== undefined) {
-    return slideSpec({
+    return outputSlideSpec({
       screen: appearance.screen,
       sourceScreenId: appearance.theme.sourceScreenId,
       themeId: appearance.theme.themeId,
@@ -95,7 +95,9 @@ export function tilePictureSpec(
       background: appearance.background,
     });
   }
-  return theme === undefined ? undefined : slideSpec({...theme, ...content});
+  return theme === undefined
+    ? undefined
+    : outputSlideSpec({...theme, ...content});
 }
 
 export function tilePicture(

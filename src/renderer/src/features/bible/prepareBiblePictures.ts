@@ -2,7 +2,7 @@ import {bibleSource, type BiblePreviewOptions} from '@core/bible/source';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {useShow} from '@renderer/session/showStore';
-import {slideSpec} from '@renderer/rendering/OutputSlidePicture';
+import {outputSlideSpec} from '@renderer/rendering/OutputSlidePicture';
 import {pictures} from '@renderer/rendering/pictures/pictureService';
 import {splitSourceFor, type BibleProjections} from './splitProjection';
 
@@ -39,7 +39,7 @@ export async function prepareBiblePictures(
       ? []
       : [
           pictures.whenDrawn(
-            slideSpec({
+            outputSlideSpec({
               slide,
               screen,
               themeId: theme.themeId,

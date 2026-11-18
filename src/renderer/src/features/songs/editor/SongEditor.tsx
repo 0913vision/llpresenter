@@ -30,7 +30,7 @@ import {useSongBlockWindow} from './useSongBlockWindow';
 import {visibleGridInsertionPosition} from './gridInsertionPosition';
 import {SongSlideSurface} from './SongSlideSurface';
 import {useSongSlideAppearance} from './useSongSlideAppearance';
-import {slideSpec} from '@renderer/rendering/OutputSlidePicture';
+import {outputSlideSpec} from '@renderer/rendering/OutputSlidePicture';
 import {useShow} from '@renderer/session/show';
 import {useEditorFocus} from './useEditorFocus';
 import {SONG_LIMITS} from '@core/schema/song';
@@ -445,7 +445,7 @@ function SongBlocks({
               picture={
                 theme === undefined
                   ? undefined
-                  : slideSpec({
+                  : outputSlideSpec({
                       ...theme,
                       songSource: {songId: song.id, slideId: slide.id},
                       background: slide.picture ?? theme.background,

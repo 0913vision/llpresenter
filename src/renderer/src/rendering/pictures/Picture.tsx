@@ -16,6 +16,7 @@ import {
   pictures,
   type PictureDisplay,
   type PictureImage,
+  type PictureService,
   type PictureSpec,
 } from './pictureService';
 import {
@@ -25,6 +26,7 @@ import {
 import styles from './Picture.module.css';
 
 interface PictureProps extends PictureSpec {
+  readonly service?: PictureService | undefined;
   /** Keeps the previous view until the new picture finishes decoding. */
   readonly wait?: boolean;
   readonly switchSlot?: string | undefined;
@@ -65,6 +67,7 @@ function SlideImage({
 export const Picture = memo(
   ({
     wait = false,
+    service = pictures,
     switchSlot,
     editing = false,
     layers,
@@ -88,12 +91,12 @@ export const Picture = memo(
               slide: {...layers.slide, lines: draft.lines},
             },
     };
-    const inputs = useSyncExternalStore(pictures.subscribeInputs, () =>
-      pictures.inputs(spec),
+    const inputs = useSyncExternalStore(service.subscribeInputs, () =>
+      service.inputs(spec),
     );
     const [previous, setPrevious] = useState<PictureImage>();
     const [displayed, setDisplayed] = useState<PictureDisplay>();
-    const ticket = pictures.request(spec, inputs, {
+    const ticket = service.request(spec, inputs, {
       editing: (editing || draft !== undefined) && previous !== undefined,
     });
     useSyncExternalStore(ticket.subscribe, ticket.snapshot);
@@ -102,7 +105,7 @@ export const Picture = memo(
     const attached = displayed?.picture === image ? displayed : undefined;
     const prepared =
       attached === undefined && switchSlot !== undefined && ticket.available
-        ? pictures.prepareDisplay(ticket, switchSlot)
+        ? service.prepareDisplay(ticket, switchSlot)
         : undefined;
     const display = attached ?? prepared?.display;
     const host = useRef<HTMLDivElement>(null);
@@ -115,7 +118,7 @@ export const Picture = memo(
     }, [display]);
     const onReady = useContext(PictureReadiness);
     const source = useRef({});
-    const warmEditor = useEffectEvent(() => pictures.warmEditor(spec));
+    const warmEditor = useEffectEvent(() => service.warmEditor(spec));
     useLayoutEffect(() => {
       if (editing) warmEditor();
     }, [editing]);
@@ -123,8 +126,8 @@ export const Picture = memo(
       if (done) onReady?.(source.current);
     }, [done, onReady]);
     useLayoutEffect(
-      () => (image === undefined ? undefined : pictures.retain(image)),
-      [image],
+      () => (image === undefined ? undefined : service.retain(image)),
+      [image, service],
     );
     // NOTE(0913vision): Run every hook before a render waits for its picture.
     if (prepared !== undefined && !prepared.done) use(prepared.ready);
@@ -151,6 +154,7 @@ export const Picture = memo(
     );
   },
   (previous, next) =>
+    previous.service === next.service &&
     previous.wait === next.wait &&
     previous.switchSlot === next.switchSlot &&
     previous.editing === next.editing &&

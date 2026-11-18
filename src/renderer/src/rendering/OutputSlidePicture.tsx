@@ -33,7 +33,7 @@ interface SlideInput {
 }
 
 /** What the output compositor draws for a prepared slide. */
-export function slideSpec({
+export function outputSlideSpec({
   slide,
   layout,
   emptyColor,
@@ -93,7 +93,7 @@ export function OutputSlidePicture({
   readonly drawn?: 'wait' | 'place' | undefined;
   readonly editing?: boolean | undefined;
 }): JSX.Element {
-  const spec = slideSpec(input);
+  const spec = outputSlideSpec(input);
   return drawn === undefined && !editing ? (
     <OutputPreviewPicture {...spec} />
   ) : (

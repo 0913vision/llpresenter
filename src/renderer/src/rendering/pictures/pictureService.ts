@@ -52,14 +52,17 @@ class Entry {
   failures = 0;
   retryAt = 0;
   repaint = false;
-  readonly available = canPreparePicture();
+  readonly spec: PictureSpec;
+  readonly inputs: string;
   private revision = 0;
 
   constructor(
     readonly key: string,
-    readonly spec: PictureSpec,
-    readonly inputs: string,
+    {spec, inputs}: {spec: PictureSpec; inputs: string},
+    readonly available: boolean,
   ) {
+    this.spec = spec;
+    this.inputs = inputs;
     this.ready = new Promise(resolve => {
       this.finish = resolve;
     });
@@ -93,6 +96,10 @@ class Entry {
     this.finishAttempt(false);
   }
 
+  cancel(): void {
+    this.finishAttempt(false);
+  }
+
   complete(image: PictureImage): void {
     this.image = image;
     this.done = true;
@@ -115,7 +122,7 @@ const FOREGROUND_LIMIT = 2;
 const UNMOUNTED_RETRIES = 2;
 
 /** Shares decoded sources and gives visible requests priority over preload. */
-class PictureService {
+export class PictureService {
   private readonly entries = new Map<string, Entry>();
   private readonly foreground = new Set<Entry>();
   private readonly background = new Set<Entry>();
@@ -129,15 +136,44 @@ class PictureService {
   private initialized = false;
   private inputsReady = Promise.resolve();
 
-  /** A renderer without the picture transport cannot stage a handoff. */
-  get drawInPlace(): boolean {
-    return !canPreparePicture();
-  }
   private active = 0;
   private bytes = 0;
   private scheduled = false;
   private editorPainter: LocalPicturePainter | undefined;
   private editing = Promise.resolve();
+  private importScope = new AbortController();
+
+  constructor(private readonly options: {waitForReady?: boolean} = {}) {}
+
+  /** Handoffs need a renderer that lays out and prepares pictures. */
+  get drawInPlace(): boolean {
+    return navigator.userAgent.includes('jsdom') || !this.available;
+  }
+
+  private get available(): boolean {
+    return this.options.waitForReady
+      ? LocalPicturePainter.available()
+      : canPreparePicture();
+  }
+
+  /** Releases the temporary compositor and stills owned by an import. */
+  reset(): void {
+    if (!this.options.waitForReady) return;
+    this.importScope.abort();
+    this.importScope = new AbortController();
+    this.editorPainter?.dispose();
+    this.editorPainter = undefined;
+    this.foreground.clear();
+    this.background.clear();
+    for (const entry of this.entries.values()) {
+      entry.cancel();
+      const source = entry.image?.source;
+      if (typeof source === 'string') URL.revokeObjectURL(source);
+    }
+    this.entries.clear();
+    this.pins.clear();
+    this.bytes = 0;
+  }
 
   warmEditor(spec: PictureSpec): void {
     if (!LocalPicturePainter.available()) return;
@@ -150,11 +186,13 @@ class PictureService {
   }
 
   readonly subscribeInputs = (listener: Listener): (() => void) => {
+    if (this.options.waitForReady) return pictures.subscribeInputs(listener);
     this.inputListeners.add(listener);
     return () => this.inputListeners.delete(listener);
   };
 
   inputs(spec: PictureSpec): string {
+    if (this.options.waitForReady) return pictures.inputs(spec);
     this.initialize();
     const ids = new Set<string>();
     const mediaId = spec.layers.media?.mediaId;
@@ -195,7 +233,7 @@ class PictureService {
     const key = JSON.stringify([pictureKey(spec), inputs]);
     let entry = this.entries.get(key);
     if (entry === undefined) {
-      entry = new Entry(key, spec, inputs);
+      entry = new Entry(key, {spec, inputs}, this.available);
       if (entry.available) this.background.add(entry);
     } else {
       this.entries.delete(key);
@@ -337,7 +375,10 @@ class PictureService {
       this.scheduled = false;
       const queue =
         this.foreground.size > 0 ? this.foreground : this.background;
-      const limit = queue === this.foreground ? FOREGROUND_LIMIT : 1;
+      const limit =
+        queue === this.foreground && !this.options.waitForReady
+          ? FOREGROUND_LIMIT
+          : 1;
       while (this.active < limit) {
         const entry = queue.values().next().value;
         if (entry === undefined) return;
@@ -354,8 +395,12 @@ class PictureService {
   }
 
   private async load(entry: Entry): Promise<void> {
+    const signal = this.importScope.signal;
     try {
-      await this.inputsReady;
+      await (this.options.waitForReady
+        ? pictures.inputsReady
+        : this.inputsReady);
+      signal.throwIfAborted();
       const inputs = this.inputs(entry.spec);
       if (inputs !== entry.inputs) {
         const next = this.request(entry.spec, inputs, {editing: entry.editing});
@@ -372,6 +417,34 @@ class PictureService {
             }
           })
           .catch((error: unknown) => console.error(error));
+        return;
+      }
+      if (this.options.waitForReady) {
+        // NOTE(0913vision): The import's temporary backgrounds belong to this
+        // renderer. They never go into the shared painter or its disk cache.
+        this.editorPainter ??= new LocalPicturePainter();
+        const canvas = await this.editorPainter.paint(entry.spec, signal);
+        signal.throwIfAborted();
+        const blob = await new Promise<Blob>((resolve, reject) => {
+          canvas.toBlob(
+            image => {
+              if (image === null) {
+                reject(new Error('Could not encode import picture'));
+              } else resolve(image);
+            },
+            'image/webp',
+            0.92,
+          );
+        });
+        signal.throwIfAborted();
+        const source = await this.decode(blob);
+        if (signal.aborted) {
+          URL.revokeObjectURL(source);
+          return;
+        }
+        this.bytes += blob.size;
+        entry.complete({source, bytes: blob.size});
+        this.prune();
         return;
       }
       if (entry.editing && LocalPicturePainter.available()) {
@@ -421,6 +494,7 @@ class PictureService {
       this.bytes += bytes.byteLength;
       entry.complete({source: src, bytes: bytes.byteLength});
     } catch (error) {
+      if (signal.aborted) return;
       if (entry.failures === 0) {
         console.error('Picture preparation failed', error);
       }
