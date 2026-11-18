@@ -101,7 +101,9 @@ function showPanelParts({
       }
       return {
         body: <SlidePanelBody sizeClass={sizeClass} onOpenPrep={onOpenPrep} />,
-        meta: <SlidePanelMeta onProblem={onProblem} />,
+        // NOTE(0913vision): The 슬라이드 panel shows no name of its own; the open
+        // item's name and position stand where the name would be.
+        header: <SlidePanelMeta onProblem={onProblem} />,
         footer: <SlidePanelFooter sizeClass={sizeClass} />,
         stableScrollbar: true,
       };

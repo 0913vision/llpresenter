@@ -194,6 +194,8 @@ service needs no confirmation), product log version 63.
 
 ### Header
 
+- The panel shows no name tab of its own ("슬라이드" is not written); the item
+  name and position stand where a panel name would be.
 - Left: the item name (song title) and a position. If the item in the 슬라이드
   panel is the current item, show "live 슬라이드 position / total", for example
   "2 / 9". Otherwise, show the 슬라이드 count, for example "슬라이드 9개"
