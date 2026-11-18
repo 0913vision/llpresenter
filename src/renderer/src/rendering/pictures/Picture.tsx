@@ -33,7 +33,7 @@ function SlideImage({
   const canvas = useRef<HTMLCanvasElement>(null);
   useLayoutEffect(() => {
     if (typeof source !== 'string') {
-      canvas.current?.getContext('2d')?.drawImage(source, 0, 0, 1280, 720);
+      canvas.current?.getContext('2d')?.drawImage(source, 0, 0);
     }
   }, [source]);
   return typeof source === 'string' ? (
@@ -48,8 +48,8 @@ function SlideImage({
     <canvas
       ref={canvas}
       className={styles.image}
-      width={1280}
-      height={720}
+      width={1920}
+      height={1080}
       aria-hidden="true"
     />
   );
@@ -88,7 +88,8 @@ export const Picture = memo(
     const ticket = pictures.request(spec, inputs, {
       editing: (editing || draft !== undefined) && previous !== undefined,
     });
-    const done = useSyncExternalStore(ticket.subscribe, ticket.snapshot);
+    useSyncExternalStore(ticket.subscribe, ticket.snapshot);
+    const done = ticket.done;
     if (wait) use(ticket.ready);
     const image = ticket.image ?? previous;
     if (image !== previous) setPrevious(image);

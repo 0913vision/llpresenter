@@ -31,6 +31,7 @@ export class LocalPicturePainter {
   private readonly context: ElementCanvasContext | undefined;
   private renderer: OutputRenderer | undefined;
   private transparent = false;
+  private failed = false;
 
   constructor() {
     this.canvas.width = WIDTH;
@@ -75,15 +76,24 @@ export class LocalPicturePainter {
 
   private draw({layers, appearance}: PictureSpec): OutputRenderer {
     const transparent = appearance.screen.method === 'ndi';
-    if (this.renderer === undefined || this.transparent !== transparent) {
+    if (
+      this.failed ||
+      this.renderer === undefined ||
+      this.transparent !== transparent
+    ) {
       this.renderer?.dispose();
+      this.failed = false;
       this.renderer = new OutputRenderer(this.host, {
         transparent,
         textStyle: DEFAULT_TEXT_STYLE,
         mediaUrl,
         previewMedia: this.media,
+        readableImages: true,
         mode: 'preview',
-        onError: (message, error) => console.error(message, error),
+        onError: (message, error) => {
+          this.failed = true;
+          console.error(message, error);
+        },
       });
       this.transparent = transparent;
     }
@@ -115,6 +125,7 @@ export class LocalPicturePainter {
         if (!previewReady(renderer) || fontsLoading(document.fonts)) return;
         cleanup();
         try {
+          if (this.failed) throw new Error('A source layer could not be drawn');
           context.clearRect(0, 0, WIDTH, HEIGHT);
           if (
             this.host.clientWidth !== WIDTH ||

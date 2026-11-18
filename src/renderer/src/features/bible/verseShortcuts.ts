@@ -91,7 +91,6 @@ export async function outputAdjacentBibleVerse(
     };
     const ready = await prepareBiblePictures(expanded, options);
     if (!current()) return;
-    openBiblePassage(expanded, options, ready);
     const tiles = tilesForView(initial, itemId).filter(
       tile => tile.sectionCard === undefined,
     );
@@ -104,8 +103,10 @@ export async function outputAdjacentBibleVerse(
           direction === 'previous' ? 'first' : 'last',
         )
     ) {
+      openBiblePassage(expanded, options, {ready});
       return;
     }
+    openBiblePassage(expanded, options, {ready, waitForLive: true});
     const id = useShow.getState().openItemId;
     if (id !== null) {
       const nextTiles = tilesForView(useShow.getState(), id);

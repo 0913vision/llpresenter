@@ -81,14 +81,14 @@ export function BibleAdjacentButtons({
       };
       const ready = await prepareBiblePictures(passage, options);
       if (!current()) return;
-      openBiblePassage(passage, options, ready);
-      const view = useShow.getState();
       const live = useLive.getState().state?.layers.slide ?? null;
-      if (
+      const updateLive =
         live !== null &&
         bibleSourceFor(initial, live.itemId) !== null &&
-        liveTileIndex(view, live) !== null
-      ) {
+        liveTileIndex(initial, live) !== null;
+      openBiblePassage(passage, options, {ready, waitForLive: updateLive});
+      const view = useShow.getState();
+      if (updateLive) {
         sendLive({
           type: 'bible.passage.title.set',
           itemId: live.itemId,

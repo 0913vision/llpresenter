@@ -1,7 +1,9 @@
 import {create} from 'zustand';
+import {flushSync} from 'react-dom';
 import {useShallow} from 'zustand/react/shallow';
 import {interruptsSongOutput, type LiveCommand} from '@core/live/commands';
 import type {LiveState} from '@core/live/state';
+import {useShow} from './showStore';
 
 interface LiveView {
   /** Null until the first state arrives, and always outside Electron. */
@@ -24,13 +26,25 @@ export const useLive = create<LiveView>(() => ({
 function accept(next: LiveState): void {
   const current = useLive.getState().state;
   if (current !== null && next.version < current.version) return;
-  useLive.setState(view => ({
-    state: next,
-    // NOTE(0913vision): The main process sets the theme item when an item
-    // starts, so it is the last started item; a slide's item is the fallback.
-    lastStartedItemId:
-      next.themeItem?.id ?? next.layers.slide?.itemId ?? view.lastStartedItemId,
-  }));
+  const passage = useShow.getState().readyPassage;
+  const apply = (): void =>
+    useLive.setState(view => ({
+      state: next,
+      // NOTE(0913vision): The main process sets the theme item when an item
+      // starts, so it is the last started item; a slide's item is the fallback.
+      lastStartedItemId:
+        next.themeItem?.id ??
+        next.layers.slide?.itemId ??
+        view.lastStartedItemId,
+    }));
+  if (passage != null && passage.title === next.themeItem?.title) {
+    flushSync(() => {
+      apply();
+      useShow.setState({readyPassage: null});
+    });
+  } else {
+    apply();
+  }
 }
 
 /**

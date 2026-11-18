@@ -7,6 +7,7 @@ import {
   type ReactNode,
 } from 'react';
 import {useShow} from './show';
+import {useLive} from './live';
 
 const ShownItem = createContext<string | null | undefined>(undefined);
 
@@ -24,10 +25,17 @@ export function ShownItemProvider({
 }): JSX.Element {
   const requested = useShow(view => view.openItemId);
   const ready = useShow(view => view.readyItemId);
+  const passage = useShow(view => view.readyPassage);
+  const liveTitle = useLive(view => view.state?.themeItem?.title);
   const shown = useDeferredValue(requested);
-  const readyItem = ready === requested ? requested : shown;
+  if (shownItem !== undefined) {
+    return <ShownItem value={shownItem}>{children}</ShownItem>;
+  }
+  if (passage?.id === requested && passage.title !== liveTitle) {
+    return <ShownItem value={passage.previous}>{children}</ShownItem>;
+  }
   return (
-    <ShownItem value={shownItem === undefined ? readyItem : shownItem}>
+    <ShownItem value={ready === requested ? requested : shown}>
       {children}
     </ShownItem>
   );

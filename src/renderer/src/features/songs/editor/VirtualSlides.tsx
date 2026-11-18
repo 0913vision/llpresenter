@@ -370,6 +370,7 @@ export function VirtualSlides<T extends SlideListItem>({
             const sourceIndex = session === undefined ? number - 1 : at;
             const slide = slides[sourceIndex];
             if (slide === undefined) return null;
+            const source = 'id' in song ? song.slides[sourceIndex] : undefined;
             const own = list?.slides[at];
             const thumbnail = (
               <SlideThumbnail
@@ -389,6 +390,11 @@ export function VirtualSlides<T extends SlideListItem>({
                       output
                       {...theme}
                       background={slide.picture ?? background}
+                      songSource={
+                        'id' in song && source !== undefined
+                          ? {songId: song.id, slideId: source.id}
+                          : undefined
+                      }
                       slide={{
                         itemId: 'thumbnail',
                         position: sourceIndex,

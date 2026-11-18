@@ -32,7 +32,7 @@ function release(view: View | null): void {
   view?.host.remove();
 }
 
-function withoutPassageTitle(
+function quickBibleFrameKey(
   layers: LiveLayers,
   frame: RenderFrame,
 ): string | null {
@@ -40,15 +40,18 @@ function withoutPassageTitle(
   if (
     frame.theme === undefined ||
     item?.kind !== 'bible' ||
-    layers.slide === null
+    !layers.slide?.itemId.startsWith('bible:') ||
+    layers.media !== null ||
+    layers.prop !== null
   ) {
     return null;
   }
-  const {title: _title, ...slide} = layers.slide;
-  const {title: _itemTitle, ...rest} = item;
   return JSON.stringify([
-    {...layers, slide},
-    {...frame, slide, theme: {...frame.theme, item: rest}},
+    frame.screen,
+    frame.theme.layout,
+    frame.theme.emptyColor,
+    frame.theme.sourceScreenId,
+    item.overlays,
   ]);
 }
 
@@ -183,7 +186,7 @@ class ScreenDrawing {
       release(this.pending);
       this.pending = null;
       if (this.front?.key === key) return;
-      const bibleKey = withoutPassageTitle(layers, instant);
+      const bibleKey = quickBibleFrameKey(layers, instant);
       if (bibleKey !== null && this.front?.bibleKey === bibleKey) {
         this.front.renderer.render(layers, instant);
         this.front = {...this.front, key};

@@ -92,6 +92,7 @@ export interface RenderLayerOptions {
   /** The original library URL, also used for image elements in previews. */
   readonly mediaUrl: (mediaId: string) => string;
   readonly previewMedia?: PreviewMediaSource | undefined;
+  readonly readableImages?: boolean;
   /** Receives drawing errors, which never reach the other layers. */
   readonly onError: (message: string, error: unknown) => void;
   /** A preview draws still pictures without video elements; `output` when absent. */

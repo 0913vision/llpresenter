@@ -14,7 +14,7 @@ import type {PictureRequest} from '@core/schema/picture';
 import {pictureKey} from '@core/output/pictureKey';
 import {PicturePainter} from './painter';
 
-const VERSION = 'picture-5';
+const VERSION = 'picture-7';
 const MEMORY_LIMIT = 64 * 1024 * 1024;
 const DISK_LIMIT = 500 * 1024 * 1024;
 const PRUNE_INTERVAL_MS = 60_000;
@@ -69,17 +69,16 @@ export class PictureCache {
   /** Accepts the editor's already encoded source into the shared cache. */
   remember(request: PictureRequest, image: Buffer): void {
     const key = keyOf(request);
-    const transparent = request.spec.appearance.screen.method === 'ndi';
     if (
       this.memory.has(key) ||
       this.pending.has(key) ||
       this.writes.size >= 16 ||
-      !encoded(image, transparent)
+      !encoded(image, true)
     ) {
       return;
     }
     this.cacheInMemory(key, image);
-    this.write(this.fileOf(key, transparent), image);
+    this.write(this.fileOf(key, true), image);
   }
 
   async dispose(): Promise<void> {
@@ -93,19 +92,23 @@ export class PictureCache {
   private async load(key: string, request: PictureRequest): Promise<Buffer> {
     const transparent = request.spec.appearance.screen.method === 'ndi';
     const file = this.fileOf(key, transparent);
-    let image: Buffer;
-    try {
-      image = await readFile(file);
-      if (!encoded(image, transparent)) {
-        throw new Error('Invalid cached picture');
-      }
-      const now = new Date();
-      void utimes(file, now, now).catch(() => undefined);
-    } catch {
+    let image = await this.read(file, transparent);
+    if (image === undefined && !transparent) {
+      image = await this.read(this.fileOf(key, true), true);
+    }
+    if (image === undefined) {
       image = await this.painter.paint(request);
       this.write(file, image);
     }
     this.cacheInMemory(key, image);
+    return image;
+  }
+
+  private async read(file: string, png: boolean): Promise<Buffer | undefined> {
+    const image = await readFile(file).catch(() => undefined);
+    if (image === undefined || !encoded(image, png)) return undefined;
+    const now = new Date();
+    void utimes(file, now, now).catch(() => undefined);
     return image;
   }
 

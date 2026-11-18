@@ -123,6 +123,7 @@ function songPicture(
           ? undefined
           : resolveSongSlideBackground(item.background, song?.background)
       }
+      songSource={projectedTiles?.[index]?.sourceSlide}
       slide={
         projected ?? {
           itemId: item.id,
@@ -155,6 +156,7 @@ function libraryPicture(
       output
       {...theme}
       background={library.background?.mediaId}
+      songSource={slide.sourceSlide}
       slide={{
         itemId: library.songId,
         position: index,

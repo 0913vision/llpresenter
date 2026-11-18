@@ -26,6 +26,7 @@ class Entry {
   image: PictureImage | undefined;
   done = false;
   editing = false;
+  private revision = 0;
 
   constructor(
     readonly key: string,
@@ -42,7 +43,11 @@ class Entry {
     return () => this.listeners.delete(listener);
   };
 
-  readonly snapshot = (): boolean => this.done;
+  readonly snapshot = (): number => this.revision;
+
+  get displayed(): boolean {
+    return this.listeners.size > 0;
+  }
 
   complete(image: PictureImage | undefined): void {
     this.image = image;
@@ -50,6 +55,16 @@ class Entry {
     Reflect.set(this.ready, 'status', 'fulfilled');
     Reflect.set(this.ready, 'value', undefined);
     this.finish();
+    this.publish();
+  }
+
+  replace(image: PictureImage): void {
+    this.image = image;
+    this.publish();
+  }
+
+  private publish(): void {
+    this.revision++;
     for (const listener of this.listeners) listener();
   }
 }
@@ -267,10 +282,9 @@ class PictureService {
           const bytes = canvas.width * canvas.height * 4;
           this.bytes += bytes;
           flushSync(() => entry.complete({source: canvas, bytes}));
-          requestIdleCallback(
-            () => this.remember(canvas, {spec: entry.spec, inputs}),
-            {timeout: 1000},
-          );
+          requestIdleCallback(() => this.remember(canvas, entry), {
+            timeout: 1000,
+          });
           this.prune();
           return;
         }
@@ -280,19 +294,11 @@ class PictureService {
         entry.complete(undefined);
         return;
       }
-      const src = URL.createObjectURL(
+      const src = await this.decode(
         new Blob([new Uint8Array(bytes)], {
           type: bytes[0] === 0x89 ? 'image/png' : 'image/jpeg',
         }),
       );
-      const decoded = new Image();
-      decoded.src = src;
-      try {
-        await decoded.decode();
-      } catch (error) {
-        URL.revokeObjectURL(src);
-        throw error;
-      }
       this.bytes += bytes.byteLength;
       entry.complete({source: src, bytes: bytes.byteLength});
     } catch (error) {
@@ -302,31 +308,46 @@ class PictureService {
     this.prune();
   }
 
-  private remember(canvas: HTMLCanvasElement, picture: PictureRequest): void {
-    const type =
-      picture.spec.appearance.screen.method === 'ndi'
-        ? 'image/png'
-        : 'image/jpeg';
+  private async decode(blob: Blob): Promise<string> {
+    const src = URL.createObjectURL(blob);
+    const decoded = new Image();
+    decoded.src = src;
     try {
-      canvas.toBlob(
-        blob => {
-          if (blob === null) return;
-          blob
-            .arrayBuffer()
-            .then(buffer => {
-              window.llp?.picture.remember({
-                picture,
-                image: new Uint8Array(buffer),
-              });
-            })
-            .catch((error: unknown) => console.error(error));
-        },
-        type,
-        0.85,
-      );
+      await decoded.decode();
+      return src;
+    } catch (error) {
+      URL.revokeObjectURL(src);
+      throw error;
+    }
+  }
+
+  private remember(canvas: HTMLCanvasElement, entry: Entry): void {
+    try {
+      canvas.toBlob(blob => {
+        if (blob === null) return;
+        this.keepEncoded(entry, blob).catch((error: unknown) =>
+          console.error(error),
+        );
+      }, 'image/png');
     } catch (error) {
       console.error('Could not encode the edited picture', error);
     }
+  }
+
+  private async keepEncoded(entry: Entry, blob: Blob): Promise<void> {
+    const data = await blob.arrayBuffer();
+    window.llp?.picture.remember({
+      picture: {spec: entry.spec, inputs: entry.inputs},
+      image: new Uint8Array(data),
+    });
+    const src = await this.decode(blob);
+    if (this.entries.get(entry.key) !== entry) {
+      URL.revokeObjectURL(src);
+      return;
+    }
+    this.bytes += blob.size - (entry.image?.bytes ?? 0);
+    entry.replace({source: src, bytes: blob.size});
+    this.prune();
   }
 
   private prune(): void {
@@ -334,6 +355,7 @@ class PictureService {
       if (this.entries.size <= ENTRY_LIMIT && this.bytes <= BYTE_LIMIT) break;
       if (
         !entry.done ||
+        entry.displayed ||
         (entry.image !== undefined && this.pins.has(entry.image))
       ) {
         continue;

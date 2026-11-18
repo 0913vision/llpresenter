@@ -103,6 +103,7 @@ function InspectorContent({
                 output
                 {...appearance}
                 background={slide.picture ?? appearance.background}
+                songSource={{songId: snapshot.song.id, slideId: slide.id}}
                 slide={{
                   itemId: snapshot.song.id,
                   position: snapshot.selection.block,

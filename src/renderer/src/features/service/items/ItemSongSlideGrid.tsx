@@ -159,6 +159,7 @@ function ItemSongTiles({
               output
               {...theme}
               background={theme.background ?? session.background}
+              songSource={{songId: session.document.song.id, slideId: slide.id}}
               slide={{
                 itemId: item.id,
                 position: index,

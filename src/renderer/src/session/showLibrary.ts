@@ -184,6 +184,8 @@ export function bibleSourceFor(
 ): ShowView['bibleSource'] {
   if (view.bibleSource?.id === itemId) return view.bibleSource;
   if (view.liveBibleSource?.id === itemId) return view.liveBibleSource;
+  const held = view.readyPassage?.previousSource;
+  if (held?.id === itemId) return held;
   return view.requestedBibleSource?.id === itemId
     ? view.requestedBibleSource
     : null;

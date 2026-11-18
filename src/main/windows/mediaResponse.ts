@@ -148,6 +148,21 @@ const REVISIONED_HEADERS = {
   'Cache-Control': 'public, max-age=31536000, immutable',
 } as const;
 
+/** Lets a trusted app page rasterize the same checked media a preview uses. */
+function mediaCanvasHeaders(
+  request: Request,
+): Readonly<Record<string, string>> {
+  const origin = request.headers.get('origin');
+  const renderer = process.env.ELECTRON_RENDERER_URL;
+  const appOrigin =
+    renderer !== undefined && URL.canParse(renderer)
+      ? new URL(renderer).origin
+      : 'null';
+  return origin === appOrigin
+    ? {'Access-Control-Allow-Origin': appOrigin, Vary: 'Origin'}
+    : {Vary: 'Origin'};
+}
+
 async function serveThumbnail(
   mediaId: string,
   request: Request,
@@ -156,13 +171,12 @@ async function serveThumbnail(
   try {
     const path = (await thumbnail?.(mediaId)) ?? null;
     if (path === null) return new Response(null, {status: HTTP_NOT_FOUND});
-    return await createFileResponse(
-      path,
-      request.headers.get('range'),
-      thumbnailRevisionFromUrl(request.url) === null
+    return await createFileResponse(path, request.headers.get('range'), {
+      ...(thumbnailRevisionFromUrl(request.url) === null
         ? THUMBNAIL_HEADERS
-        : REVISIONED_HEADERS,
-    );
+        : REVISIONED_HEADERS),
+      ...mediaCanvasHeaders(request),
+    });
   } catch (error: unknown) {
     log.warn('could not serve a thumbnail', error);
     return new Response(null, {status: HTTP_NOT_FOUND});
@@ -225,7 +239,11 @@ export function createMediaHandler(
         });
         return new Response(null, {status: HTTP_NOT_FOUND});
       }
-      return await createFileResponse(allowed, request.headers.get('range'));
+      return await createFileResponse(
+        allowed,
+        request.headers.get('range'),
+        mediaCanvasHeaders(request),
+      );
     } catch (error) {
       log.warn(`could not serve the media file of ${mediaId}`, error);
       return new Response(null, {status: HTTP_NOT_FOUND});
