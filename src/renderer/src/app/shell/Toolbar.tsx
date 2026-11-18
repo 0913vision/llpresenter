@@ -93,6 +93,7 @@ export function Toolbar({
         label="화면 전환"
         compact={compact}
         className={styles.group}
+        keepPointerFocus
       />
       <ToolbarSearch
         focusSearch={focusSearch}

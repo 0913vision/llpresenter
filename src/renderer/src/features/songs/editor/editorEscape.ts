@@ -10,6 +10,7 @@ export function isEditorEscape(
   const target = event.target;
   return (
     root !== null &&
+    root.closest('[inert]') === null &&
     target instanceof Element &&
     (target === document.body ||
       root.contains(target) ||

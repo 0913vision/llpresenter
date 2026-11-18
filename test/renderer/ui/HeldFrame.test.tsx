@@ -78,3 +78,23 @@ it('changes nothing while what the frame shows stays the same', () => {
   expect(held()).toBeNull();
   view.unmount();
 });
+
+it('does not hold a copy when the workspace is hidden or revealed', () => {
+  const view = render(
+    <HeldFrame active hold={{identity: 'a', settled: true}}>
+      <p>a</p>
+    </HeldFrame>,
+  );
+  view.rerender(
+    <HeldFrame active={false} hold={{identity: 'b', settled: true}}>
+      <p>b</p>
+    </HeldFrame>,
+  );
+  expect(held()).toBeNull();
+  view.rerender(
+    <HeldFrame active hold={{identity: 'c', settled: true}}>
+      <p>c</p>
+    </HeldFrame>,
+  );
+  expect(held()).toBeNull();
+});

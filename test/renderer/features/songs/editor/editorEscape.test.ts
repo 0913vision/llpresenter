@@ -31,6 +31,8 @@ it('accepts only unmodified non-composing Escape outside a text field', () => {
   expect(check(child, {key: 'Escape'})).toBe(true);
   expect(check(zone, {key: 'Escape'})).toBe(true);
   expect(check(outside, {key: 'Escape'})).toBe(false);
+  root.setAttribute('inert', '');
+  expect(check(document.body, {key: 'Escape'})).toBe(false);
   root.remove();
   zone.remove();
   outside.remove();

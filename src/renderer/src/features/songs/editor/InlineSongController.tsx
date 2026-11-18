@@ -17,6 +17,7 @@ export function InlineSongController({
   controls: controlsRef,
   onOpen,
   beforeLeave,
+  shortcutsActive = true,
 }: {
   readonly store: SongEditorStore;
   readonly api: LlpApi;
@@ -25,6 +26,7 @@ export function InlineSongController({
   readonly onOpen: (target: SongEditorTarget) => void;
   readonly beforeLeave?:
     ((proceed: () => void, cancel?: () => void) => void) | undefined;
+  readonly shortcutsActive?: boolean | undefined;
 }): JSX.Element {
   const open = useRef(onOpen);
   useLayoutEffect(() => {
@@ -34,6 +36,7 @@ export function InlineSongController({
     report,
     onOpened: target => open.current(target),
     beforeLeave,
+    shortcutsActive,
   });
   useLayoutEffect(() => {
     controlsRef.current = model;

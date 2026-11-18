@@ -17,12 +17,18 @@ const ShownItem = createContext<string | null | undefined>(undefined);
  */
 export function ShownItemProvider({
   children,
+  shownItem,
 }: {
   readonly children: ReactNode;
+  readonly shownItem?: string | null | undefined;
 }): JSX.Element {
   const requested = useShow(view => view.openItemId);
   const shown = useDeferredValue(requested);
-  return <ShownItem value={shown}>{children}</ShownItem>;
+  return (
+    <ShownItem value={shownItem === undefined ? shown : shownItem}>
+      {children}
+    </ShownItem>
+  );
 }
 
 /** The open item as the screen shows it, or as opened outside a provider. */

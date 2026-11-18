@@ -10,6 +10,7 @@ import {QuickObjectShortcuts} from '@renderer/features/quick/QuickObjectShortcut
 import {usePrepActions} from './usePrepActions';
 import {
   useCallback,
+  useDeferredValue,
   useEffect,
   useMemo,
   useState,
@@ -112,6 +113,14 @@ function ControlApp({
   const warnings = useMemo(() => warningScreens(warningMap), [warningMap]);
   useAudioOutputs();
   const [workspace, setWorkspace] = useState<WorkspaceId>('show');
+  const requestedItem = useShow(view => view.openItemId);
+  const requestedFrame = useMemo(
+    () => ({workspace, item: requestedItem}),
+    [workspace, requestedItem],
+  );
+  const shownFrame = useDeferredValue(requestedFrame);
+  const shownWorkspace = shownFrame.workspace;
+  const [savedPrepItem, setSavedPrepItem] = useState<string | null>(null);
   const [workspaceSelections] = useState(() => new WorkspaceSelections());
   const [focusSearch, setFocusSearch] = useState(false);
   const searchFocused = useCallback(() => setFocusSearch(false), []);
@@ -123,6 +132,9 @@ function ControlApp({
   const onWorkspace = (next: WorkspaceId): void => {
     const go = (): void => {
       if (next === 'prep') session.startEditor();
+      if (shownWorkspace === 'prep' && next !== 'prep') {
+        setSavedPrepItem(shownFrame.item);
+      }
       workspaceSelections.activate(next);
       setWorkspace(next);
     };
@@ -131,10 +143,7 @@ function ControlApp({
       next !== 'prep' &&
       (session.editor?.getSnapshot().session || prepActions.prep?.slides?.draft)
     ) {
-      session.editor?.requestLeave(() => {
-        session.editor?.open(null);
-        go();
-      });
+      session.editor?.requestLeave(go);
     } else if (workspace === 'screens' && next !== 'screens') {
       themeLeave.leave(go);
     } else go();
@@ -144,7 +153,12 @@ function ControlApp({
     mediaStrip.setVisible(workspace === 'screens' || !mediaStrip.visible);
   };
   const textImport = session.api?.textImport;
-  const prepActions = usePrepActions({session, workspace, onWorkspace});
+  const prepActions = usePrepActions({
+    session,
+    workspace: shownWorkspace,
+    onWorkspace,
+    onPrepareItem: setSavedPrepItem,
+  });
   useShortcutSettings(session.api);
   useWindowShortcuts([
     ...workspaceShortcuts({
@@ -215,14 +229,17 @@ function ControlApp({
         focusSearch={focusSearch}
         onSearchFocused={searchFocused}
         sizeClass={sizeClass}
-        workspace={workspace}
+        workspace={shownWorkspace}
         onWorkspace={onWorkspace}
         onProblem={session.report}
         onOpenPrepSong={prepActions.openSong}
       />
-      <ShownItemProvider>
+      <ShownItemProvider shownItem={shownFrame.item}>
         <Workspace
-          id={workspace}
+          id={shownWorkspace}
+          prepItemId={
+            shownWorkspace === 'prep' ? shownFrame.item : savedPrepItem
+          }
           sizeClass={sizeClass}
           store={columnWidthStore}
           onShowInLibrary={prepActions.onShowInLibrary}
@@ -263,7 +280,7 @@ function ControlApp({
         ) : (
           <MediaViewProvider
             api={session.api}
-            active={workspace !== 'screens'}
+            active={shownWorkspace !== 'screens'}
             onProblem={session.report}
           >
             {content}

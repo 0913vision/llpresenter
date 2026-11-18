@@ -4,6 +4,7 @@ import {PowerPointImportFlow} from '@renderer/features/songs/import/PowerPointIm
 import {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useRef,
   useState,
   useSyncExternalStore,
@@ -29,8 +30,10 @@ import {InlineSongController} from '@renderer/features/songs/editor/InlineSongCo
 import type {SongEditorWindowModel} from '@renderer/features/songs/editor/useSongEditorWindow';
 import {useSlidesEditor} from '@renderer/features/service/slides/useSlidesEditor';
 import {reportPrepOpenFailure} from './prepOpenFailure';
+import {drawnPictures} from '@renderer/ui/HeldFrame';
 
 const noEditorSubscription = (): (() => void) => () => undefined;
+const PREP_REVEAL_WAIT_MS = 10_000;
 
 interface ServiceSongTarget {
   readonly serviceId: string;
@@ -92,10 +95,12 @@ export function usePrepActions({
   session,
   workspace,
   onWorkspace,
+  onPrepareItem,
 }: {
   readonly session: ControlSession;
   readonly workspace: Workspace;
   readonly onWorkspace: (workspace: Workspace) => void;
+  readonly onPrepareItem?: ((itemId: string) => void) | undefined;
 }): PrepActions {
   const [importSource, setImportSource] = useState<
     'file' | 'clipboard' | 'powerpoint' | 'powerpoint-images' | null
@@ -103,6 +108,13 @@ export function usePrepActions({
   const closeImport = useCallback(() => setImportSource(null), []);
   const prepSelection = usePrepSelection();
   const editorControls = useRef<SongEditorWindowModel | null>(null);
+  const serviceEditor = useRef<{
+    serviceId: string;
+    itemId: string;
+    seen: boolean;
+  } | null>(null);
+  const serviceId = useShow(view => view.serviceId);
+  const serviceRows = useShow(view => view.rows);
   const slides = useSlidesEditor(session.api, session.report, {
     onOpenFailed: target => reportPrepOpenFailure(target.itemId),
     beforeOpen: open =>
@@ -115,6 +127,10 @@ export function usePrepActions({
         : (selected?.position ?? 0);
     },
     onOpened: target => {
+      serviceEditor.current = {
+        ...target,
+        seen: useShow.getState().rows.some(row => row.id === target.itemId),
+      };
       prepSelection.clear();
       session.editor?.open(null);
       onWorkspace('prep');
@@ -123,6 +139,25 @@ export function usePrepActions({
     },
   });
   const songOpen = useRef(0);
+  const closeSlides = slides.close;
+  useLayoutEffect(() => {
+    const target = serviceEditor.current;
+    if (target === null) return;
+    if (
+      target.serviceId === serviceId &&
+      serviceRows.some(row => row.id === target.itemId)
+    ) {
+      target.seen = true;
+      return;
+    }
+    if (target.serviceId === serviceId && !target.seen) return;
+    serviceEditor.current = null;
+    songOpen.current++;
+    if (session.editor?.getSnapshot().session?.itemSession === true) {
+      session.editor.open(null);
+    }
+    closeSlides();
+  }, [serviceId, serviceRows, session, closeSlides]);
   useEffect(
     () => () => {
       songOpen.current++;
@@ -189,7 +224,12 @@ export function usePrepActions({
     const librarySong = isLibrarySource(initial, itemId)
       ? initial.librarySong
       : null;
-    onWorkspace('prep');
+    const serviceSong =
+      target !== 'settings' &&
+      librarySong === null &&
+      initial.serviceId !== null &&
+      initial.rows.some(row => row.id === itemId && row.kind === 'song');
+    if (!serviceSong) onWorkspace('prep');
     const open = (): void => {
       if (request !== songOpen.current) return;
       const view = useShow.getState();
@@ -255,7 +295,9 @@ export function usePrepActions({
       if (view.serviceId !== null && row?.kind === 'slides') {
         session.items?.show({serviceId: view.serviceId, itemId});
         session.items?.selectPosition(position ?? 0);
-        if (row.liturgy !== undefined) return;
+        if (row.liturgy !== undefined) {
+          return;
+        }
         session.api?.slidesEditor
           .open({
             serviceId: createServiceId(view.serviceId),
@@ -271,6 +313,7 @@ export function usePrepActions({
         session.editor?.open(null);
         session.items?.show({serviceId: view.serviceId, itemId});
         session.items?.selectPosition(position);
+        return;
       }
     };
     if (session.editor === undefined) open();
@@ -308,14 +351,71 @@ export function usePrepActions({
             api={session.api}
             report={session.report}
             controls={editorControls}
+            shortcutsActive={workspace === 'prep'}
             onOpen={target => {
+              const view = useShow.getState();
+              if (
+                target.from !== undefined &&
+                (target.from.serviceId !== view.serviceId ||
+                  !view.rows.some(row => row.id === target.from?.itemId))
+              ) {
+                session.editor?.open(null);
+                return;
+              }
+              serviceEditor.current =
+                target.from === undefined ? null : {...target.from, seen: true};
               slides.close();
               prepSelection.clear();
-              onWorkspace('prep');
               if (target.from !== undefined) {
-                openItem(target.from.itemId);
                 session.items?.show(target.from);
                 session.items?.selectPosition(target.block ?? 0);
+                if (workspace !== 'prep' && onPrepareItem !== undefined) {
+                  const itemId = target.from.itemId;
+                  const request = songOpen.current;
+                  const started = performance.now();
+                  let previous = -1;
+                  onPrepareItem(itemId);
+                  const wait = (): void => {
+                    const current = useShow.getState();
+                    if (
+                      request !== songOpen.current ||
+                      current.serviceId !== target.from?.serviceId ||
+                      current.openItemId !== itemId
+                    ) {
+                      return;
+                    }
+                    const frame =
+                      document.querySelector<HTMLElement>('[data-prep-frame]');
+                    const count =
+                      frame?.dataset['prepItem'] === itemId &&
+                      frame.dataset['prepSettled'] === 'true'
+                        ? drawnPictures(frame)
+                        : -1;
+                    if (count > 0 && count === previous) {
+                      onWorkspace('prep');
+                      openItem(itemId);
+                      return;
+                    }
+                    previous = count;
+                    if (performance.now() - started < PREP_REVEAL_WAIT_MS) {
+                      requestAnimationFrame(wait);
+                    } else {
+                      session.report({
+                        key: 'prep:song-open',
+                        kind: 'warning',
+                        icon: 'warning',
+                        title: '곡 열기 실패',
+                        time: noticeTime(),
+                      });
+                    }
+                  };
+                  requestAnimationFrame(wait);
+                  return;
+                }
+                onWorkspace('prep');
+                openItem(target.from.itemId);
+              } else {
+                onWorkspace('prep');
               }
             }}
           />
