@@ -185,7 +185,7 @@ describe('virtual editor slides', () => {
     const view = render(
       <VirtualSlides
         song={song}
-        numbers={[1, 2]}
+        numbers={[2, 3]}
         labels={[]}
         selected={0}
         onSelect={vi.fn()}
@@ -195,6 +195,11 @@ describe('virtual editor slides', () => {
       />,
     );
     expect(view.container.querySelector('[data-state~="live"]')).toBeNull();
+    expect(
+      [...view.container.querySelectorAll('[data-song-slide]')].map(node =>
+        node.getAttribute('data-slide-index'),
+      ),
+    ).toEqual(['0', '1']);
     expect(
       screen
         .getAllByRole('option')

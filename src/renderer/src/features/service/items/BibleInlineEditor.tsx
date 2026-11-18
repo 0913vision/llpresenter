@@ -23,6 +23,7 @@ import {sermonPreviewRow} from '@renderer/platform/sermonPreview';
 import {LeadingSlideCardView} from '@renderer/features/songs/editor/LeadingSlideCardView';
 import {useSongBlockWindow} from '@renderer/features/songs/editor/useSongBlockWindow';
 import {SongSlideSurface} from '@renderer/features/songs/editor/SongSlideSurface';
+import {visibleGridInsertionPosition} from '@renderer/features/songs/editor/gridInsertionPosition';
 import {useShow} from '@renderer/session/show';
 import {Button} from '@renderer/ui/Button';
 import {PanelFooter} from '@renderer/ui/Panel';
@@ -123,7 +124,7 @@ function BibleEditorContent({
       new BibleSlideSession(item.id, verses, {items, offset, readOnly: locked}),
     [item.id, verses, items, offset, locked],
   );
-  useSyncExternalStore(
+  const selection = useSyncExternalStore(
     session.slideModel.subscribe,
     session.slideModel.getSnapshot,
   );
@@ -152,6 +153,21 @@ function BibleEditorContent({
     heights,
     fallbackHeight: 180 * (9 / 16) + 28,
   });
+  const gridCaret =
+    selection.selection.caret === null
+      ? null
+      : visibleGridInsertionPosition(
+          {
+            index: selection.selection.caret,
+            count: verses.length,
+            leading: offset,
+            columns: windowed.columns,
+            width: windowed.cellWidth,
+            columnGap: windowed.columnGap,
+            offsets: windowed.offsets,
+          },
+          2,
+        );
   return (
     <section className={styles.editor} aria-label="성경 편집">
       {hideHeader ? null : (
@@ -276,6 +292,23 @@ function BibleEditorContent({
                 </MeasuredRow>
               );
             })}
+            {selection.selection.caret === null ? null : (
+              <div
+                className={styles.caret}
+                data-slide-gap={selection.selection.caret}
+                data-caret="true"
+                style={
+                  mode === 'grid' && gridCaret !== null
+                    ? gridCaret
+                    : {
+                        top:
+                          windowed.offsets[
+                            selection.selection.caret + offset
+                          ] ?? windowed.total,
+                      }
+                }
+              />
+            )}
           </div>
           <div className={styles.add}>
             <AddSectionCard items={items} itemId={item.id} />
