@@ -72,6 +72,7 @@ import {registerControlClose} from './windows/controlClose';
 import {registerMediaScheme, serveMedia} from './windows/mediaProtocol';
 import {registerPictureChannels} from './windows/pictureChannels';
 import {windowModeFrom, type WindowMode} from './windows/testWindows';
+import {createSplash} from './windows/splash';
 
 const BAD_ENVIRONMENT_EXIT_CODE = 1;
 const UI_STATE_FILE = 'app.json';
@@ -149,6 +150,7 @@ function start(): void {
   app
     .whenReady()
     .then(async () => {
+      const splash = createSplash(windowMode);
       const stopPictureChannels = registerPictureChannels();
       shutdown.add({name: 'stop picture painter', run: stopPictureChannels});
       const recoveryFolder = join(app.getPath('userData'), RECOVERY_FOLDER);
@@ -291,6 +293,9 @@ function start(): void {
         startMaximized:
           (await dataStore.settings)?.preferences().general.startMaximized ??
           true,
+      });
+      win.once(windowMode === 'normal' ? 'show' : 'ready-to-show', () => {
+        if (!splash.isDestroyed()) splash.close();
       });
       control = win;
       let activeControl = win;
