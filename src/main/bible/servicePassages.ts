@@ -122,7 +122,7 @@ export async function resolveServicePassages(
             {
               label: null,
               labelColor: 'none' as const,
-              lines: [item.sermon.title],
+              lines: item.sermon.title.split(/\r?\n/),
               reference: passage.displayRef,
               sermonTitle: true as const,
               ...(item.sermon.openingTransition === undefined
@@ -157,7 +157,7 @@ export async function resolveServicePassages(
             {
               label: null,
               labelColor: 'none' as const,
-              lines: [item.sermon.title],
+              lines: item.sermon.title.split(/\r?\n/),
               reference: passage.displayRef,
               sermonTitle: true as const,
               ...(item.sermon.closingTransition === undefined
