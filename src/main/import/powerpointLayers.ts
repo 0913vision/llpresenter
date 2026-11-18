@@ -303,8 +303,16 @@ export class PowerPointLayerReader {
         );
         continue;
       }
+      // NOTE(0913vision): A picture put into a placeholder, or saved with a
+      // fallback for older PowerPoint, is a picture of the slide like any
+      // other; only text and empty placeholders are left out.
+      if (shape.localName === 'AlternateContent') {
+        const choice = named(shape, 'Choice')[0] ?? named(shape, 'Fallback')[0];
+        if (choice) skipped += this.walk(choice, context, append);
+        continue;
+      }
       if (
-        descendants(shape, 'ph').length ||
+        (shape.localName !== 'pic' && descendants(shape, 'ph').length > 0) ||
         descendants(shape, 't').some(text => text.textContent.trim())
       ) {
         continue;
