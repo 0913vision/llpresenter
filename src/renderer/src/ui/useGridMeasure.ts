@@ -1,3 +1,8 @@
+import {
+  isHiddenWorkspace,
+  onWorkspaceVisible,
+  workspaceFrame,
+} from '@renderer/ui/workspaceVisibility';
 import {useLayoutEffect, useRef, useState, type RefObject} from 'react';
 import {flushSync} from 'react-dom';
 
@@ -35,19 +40,34 @@ export function useGridMeasure(
     const root = container.current;
     if (!root || typeof ResizeObserver === 'undefined') return;
     let grid: HTMLElement | null = null;
-    const observer = new ResizeObserver(entries => {
-      const entry = entries.filter(each => each.target === grid).at(-1);
-      // NOTE(0913vision): a grid that left the document reports zero; the next grid measures.
-      if (!entry || !grid?.isConnected) return;
+    let pending: ResizeObserverEntry | undefined;
+    const frame = workspaceFrame(root);
+    const update = (entry: ResizeObserverEntry): void => {
+      if (entry.target !== grid || !grid.isConnected) return;
       const next = {
         width: entry.contentRect.width,
         gap: pixelsOf(getComputedStyle(grid).columnGap),
       };
       if (sameMeasure(latest.current, next)) return;
       latest.current = next;
-      // NOTE(0913vision): A new size renders in the frame of the change,
-      // before it paints, so the grid never shows a frame at the old size.
       flushSync(() => setMeasure(next));
+    };
+    const unwatch = onWorkspaceVisible(frame, () => {
+      if (pending === undefined) return;
+      const entry = pending;
+      pending = undefined;
+      update(entry);
+    });
+    const observer = new ResizeObserver(entries => {
+      const entry = entries.filter(each => each.target === grid).at(-1);
+      // NOTE(0913vision): a grid that left the document reports zero; the next grid measures.
+      if (!entry || !grid?.isConnected) return;
+      if (isHiddenWorkspace(frame)) {
+        pending = entry;
+        return;
+      }
+      pending = undefined;
+      update(entry);
     });
     // NOTE(0913vision): a buffered grid replaces its grid element per item; follow the current one.
     const attach = (): void => {
@@ -64,6 +84,7 @@ export function useGridMeasure(
         : new MutationObserver(attach);
     swaps?.observe(root, {childList: true, subtree: true});
     return () => {
+      unwatch();
       swaps?.disconnect();
       observer.disconnect();
     };

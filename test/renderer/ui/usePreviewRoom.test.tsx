@@ -191,6 +191,31 @@ describe('usePreviewRoom', () => {
     },
   );
 
+  it('remeasures a kept preview when its hidden workspace becomes visible', async () => {
+    const view = render(
+      <div data-workspace-frame="show" aria-hidden="false">
+        <section data-h="300">
+          <Anchor />
+        </section>
+      </div>,
+    );
+    const frame = view.container.querySelector('[data-workspace-frame]');
+    const panel = view.container.querySelector('section');
+    if (!frame || !panel) throw new Error('Missing preview');
+    expect(view.container.textContent).toContain('picker');
+    frame.setAttribute('aria-hidden', 'true');
+    panel.setAttribute('data-h', '500');
+    act(() => {
+      for (const notify of observers) notify();
+    });
+    expect(view.container.textContent).toContain('picker');
+    await act(async () => {
+      frame.setAttribute('aria-hidden', 'false');
+      await Promise.resolve();
+    });
+    expect(view.container.textContent).toContain('tiles');
+  });
+
   it('follows a resize in the same render', () => {
     render(
       <section data-h="300">

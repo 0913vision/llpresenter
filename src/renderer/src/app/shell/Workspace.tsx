@@ -250,6 +250,7 @@ export function Workspace({
             styles.frameSlot,
             !showVisible && styles.hiddenFrame,
           )}
+          data-workspace-frame="show"
           inert={!showVisible}
           aria-hidden={!showVisible}
         >
@@ -265,6 +266,7 @@ export function Workspace({
             styles.frameSlot,
             visibleId !== 'prep' && styles.hiddenFrame,
           )}
+          data-workspace-frame="prep"
           data-prep-frame
           data-prep-item={prepPanels.shownItem ?? prepItemId ?? undefined}
           data-prep-settled={

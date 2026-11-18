@@ -82,3 +82,29 @@ it('follows the grid element that replaces the previous one', async () => {
   act(() => observer.report(second, 720));
   expect(screen.getByRole('status').textContent).toBe('720');
 });
+
+it('holds a hidden frame measurement and applies the newest size when shown', async () => {
+  const view = render(
+    <div data-workspace-frame="show" aria-hidden="false">
+      <Measured itemKey="first" />
+    </div>,
+  );
+  const frame = view.container.querySelector('[data-workspace-frame]');
+  const grid = view.container.querySelector('[role="listbox"]');
+  const output = view.container.querySelector('output');
+  const observer = SizeObserver.current;
+  if (!frame || !grid || !output || !observer) throw new Error('Missing grid');
+  act(() => observer.report(grid, 640));
+  expect(output.textContent).toBe('640');
+  frame.setAttribute('aria-hidden', 'true');
+  act(() => {
+    observer.report(grid, 700);
+    observer.report(grid, 720);
+  });
+  expect(output.textContent).toBe('640');
+  await act(async () => {
+    frame.setAttribute('aria-hidden', 'false');
+    await Promise.resolve();
+  });
+  expect(output.textContent).toBe('720');
+});

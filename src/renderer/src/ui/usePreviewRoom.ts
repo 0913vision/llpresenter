@@ -1,3 +1,8 @@
+import {
+  isHiddenWorkspace,
+  onWorkspaceVisible,
+  workspaceFrame,
+} from '@renderer/ui/workspaceVisibility';
 import {useLayoutEffect, useRef, useState, type RefObject} from 'react';
 import {flushSync} from 'react-dom';
 
@@ -174,6 +179,7 @@ export function usePreviewRoom(
     if (el === null) return undefined;
     const host = hostOf(el);
     if (host === null) return undefined;
+    const frame = workspaceFrame(el);
     // NOTE(0913vision): A panel shown again with the same tiles keeps its
     // answer; the first resize observation checks it before the frame paints,
     // so showing it reads no layout first.
@@ -183,6 +189,7 @@ export function usePreviewRoom(
         : null;
     let last: boolean | null = kept;
     const measure = (sync: boolean): void => {
+      if (isHiddenWorkspace(frame)) return;
       const next = withLengths(el, lengths => {
         const width = el.clientWidth - 2 * lengths.inset;
         if (width <= 0) return null;
@@ -203,15 +210,19 @@ export function usePreviewRoom(
       if (sync) flushSync(() => setRoom(next));
       else setRoom(next);
     };
+    const unwatch = onWorkspaceVisible(frame, () => measure(true));
     if (kept === null || typeof ResizeObserver === 'undefined') {
       measure(false);
     }
-    if (typeof ResizeObserver === 'undefined') return undefined;
+    if (typeof ResizeObserver === 'undefined') return unwatch;
     const observer = new ResizeObserver(() => measure(true));
     observer.observe(el);
     observer.observe(host);
     if (host.parentElement !== null) observer.observe(host.parentElement);
-    return () => observer.disconnect();
+    return () => {
+      unwatch();
+      observer.disconnect();
+    };
   }, [anchor, tiles, extra]);
   return room;
 }

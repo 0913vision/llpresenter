@@ -1,3 +1,8 @@
+import {
+  isHiddenWorkspace,
+  onWorkspaceVisible,
+  workspaceFrame,
+} from '@renderer/ui/workspaceVisibility';
 import {useLayoutEffect, useRef, useState, type RefObject} from 'react';
 import {flushSync} from 'react-dom';
 
@@ -92,6 +97,7 @@ export function useSlideWindow(
   useLayoutEffect(() => {
     const viewport = keeper.current?.parentElement;
     if (!viewport) return;
+    const frame = workspaceFrame(viewport);
     const scroll = (): void => setScrollTop(viewport.scrollTop);
     const defer = (): void => {
       pausedUntil.current = Date.now() + 1500;
@@ -116,6 +122,7 @@ export function useSlideWindow(
       }
     };
     const readNow = (sync: boolean): void => {
+      if (isHiddenWorkspace(frame)) return;
       // NOTE(0913vision): the buffered grid element changes per item; read the current one.
       const grid =
         keeper.current?.querySelector<HTMLElement>('[role="listbox"]') ?? null;
@@ -144,6 +151,7 @@ export function useSlideWindow(
       measured.current = true;
     };
     remeasure.current = () => readNow(false);
+    const unwatch = onWorkspaceVisible(frame, () => readNow(true));
     // NOTE(0913vision): A grid shown again keeps its size; the first resize
     // observation checks it in the frame, before it paints, so showing the
     // grid reads no layout first.
@@ -165,6 +173,7 @@ export function useSlideWindow(
     window.addEventListener('pointercancel', up);
     if (!shownAgain || observer === undefined) readNow(false);
     return () => {
+      unwatch();
       observer?.disconnect();
       viewport.removeEventListener('scroll', scroll);
       viewport.removeEventListener('wheel', defer);
