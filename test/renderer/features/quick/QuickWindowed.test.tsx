@@ -50,8 +50,8 @@ it('bounds a long quick list and reaches its last row by keyboard', async () => 
   vi.stubGlobal(
     'ResizeObserver',
     class {
-      constructor(callback: () => void) {
-        resize = callback;
+      constructor(callback: (entries: ResizeObserverEntry[]) => void) {
+        resize = () => callback([]);
       }
       observe = observe;
       disconnect = disconnect;

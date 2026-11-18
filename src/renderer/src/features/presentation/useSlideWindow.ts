@@ -1,5 +1,5 @@
 import {useLayoutEffect, useRef, useState, type RefObject} from 'react';
-import {flushSync} from 'react-dom';
+import {useMeasuredSize} from '@renderer/ui/useMeasuredSize';
 
 const OVERSCAN_ROWS = 1;
 const INITIAL_ROWS = 2;
@@ -82,13 +82,32 @@ export function useSlideWindow(
     },
     [],
   );
-  const remeasure = useRef<() => void>(() => undefined);
-  const measured = useRef(false);
-  const read = useRef<{
-    itemId: string | null;
-    count: number;
-    tileWidth: number;
-  }>({itemId, count, tileWidth});
+  useMeasuredSize(
+    () => keeper.current?.parentElement,
+    viewport => {
+      const grid =
+        keeper.current?.querySelector<HTMLElement>('[role="listbox"]');
+      const css = grid ? getComputedStyle(grid) : getComputedStyle(viewport);
+      const px = (name: string): number =>
+        parseFloat(css.getPropertyValue(name)) || 0;
+      const next = {
+        height: viewport.clientHeight,
+        inset: px('padding-top'),
+        band: px('--size-control-xs') + px('--space-6'),
+        rowGap: px('row-gap'),
+      };
+      setMeasure(last =>
+        last.height === next.height &&
+        last.inset === next.inset &&
+        last.band === next.band &&
+        last.rowGap === next.rowGap
+          ? last
+          : next,
+      );
+      setScrollTop(viewport.scrollTop);
+    },
+    keeper,
+  );
   useLayoutEffect(() => {
     const viewport = keeper.current?.parentElement;
     if (!viewport) return;
@@ -115,57 +134,13 @@ export function useSlideWindow(
         defer();
       }
     };
-    const readNow = (sync: boolean): void => {
-      // NOTE(0913vision): the buffered grid element changes per item; read the current one.
-      const grid =
-        keeper.current?.querySelector<HTMLElement>('[role="listbox"]') ?? null;
-      const css = grid === null ? null : getComputedStyle(grid);
-      const px = (name: string): number =>
-        parseFloat(css?.getPropertyValue(name) ?? '') || 0;
-      const next = {
-        height: viewport.clientHeight,
-        inset: px('padding-top'),
-        band: px('--size-control-xs') + px('--space-6'),
-        rowGap: px('row-gap'),
-      };
-      const update = (): void => {
-        setMeasure(last =>
-          last.height === next.height &&
-          last.inset === next.inset &&
-          last.band === next.band &&
-          last.rowGap === next.rowGap
-            ? last
-            : next,
-        );
-        scroll();
-      };
-      if (sync) flushSync(update);
-      else update();
-      measured.current = true;
-    };
-    remeasure.current = () => readNow(false);
-    // NOTE(0913vision): A grid shown again keeps its size; the first resize
-    // observation checks it in the frame, before it paints, so showing the
-    // grid reads no layout first.
-    const shownAgain = measured.current;
-    let first = shownAgain;
-    const observer =
-      typeof ResizeObserver === 'undefined'
-        ? undefined
-        : new ResizeObserver(() => {
-            readNow(first);
-            first = false;
-          });
-    observer?.observe(viewport);
     viewport.addEventListener('scroll', scroll, {passive: true});
     viewport.addEventListener('wheel', defer, {passive: true});
     viewport.addEventListener('pointerdown', down);
     window.addEventListener('pointermove', move);
     window.addEventListener('pointerup', up);
     window.addEventListener('pointercancel', up);
-    if (!shownAgain || observer === undefined) readNow(false);
     return () => {
-      observer?.disconnect();
       viewport.removeEventListener('scroll', scroll);
       viewport.removeEventListener('wheel', defer);
       viewport.removeEventListener('pointerdown', down);
@@ -173,23 +148,8 @@ export function useSlideWindow(
       window.removeEventListener('pointerup', up);
       window.removeEventListener('pointercancel', up);
       if (timer.current !== undefined) clearTimeout(timer.current);
-      remeasure.current = () => undefined;
     };
   }, [keeper]);
-  // NOTE(0913vision): a grid that mounts after the panel (or per item) is read once it is there.
-  useLayoutEffect(() => {
-    const last = read.current;
-    read.current = {itemId, count, tileWidth};
-    if (
-      measured.current &&
-      last.itemId === itemId &&
-      last.count === count &&
-      last.tileWidth === tileWidth
-    ) {
-      return;
-    }
-    remeasure.current();
-  }, [itemId, count, tileWidth]);
   const tracks =
     tileWidth > 0
       ? Math.max(1, Math.floor((width + gap) / (tileWidth + gap)))

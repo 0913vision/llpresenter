@@ -1,4 +1,10 @@
-import {useLayoutEffect, useRef, useState, type RefObject} from 'react';
+import {
+  useLayoutEffect,
+  useMemo,
+  useRef,
+  useState,
+  type RefObject,
+} from 'react';
 import {
   isPanelRowId,
   type PanelRowId,
@@ -7,6 +13,7 @@ import {
 import type {SizeClass} from '@renderer/ui/sizeClass';
 import type {ResizeSession} from '@renderer/ui/ResizeGap';
 import {fitRows} from './rows';
+import {useMeasuredSize} from './useMeasuredSize';
 
 export interface RowSizeStore {
   loadRows?(sizeClass: SizeClass): PanelRows | undefined;
@@ -173,6 +180,7 @@ export function useRowLayout({
     () => undefined,
   );
   const applied = useRef<AppliedRows | null>(null);
+  const refitCurrent = useRef<() => void>(() => undefined);
   useLayoutEffect(() => {
     const parent = container.current;
     const deps = [parent, store, sizeClass, layoutKey, fill, enabled];
@@ -251,12 +259,7 @@ export function useRowLayout({
       );
       updateMovable();
     };
-    const observer =
-      typeof ResizeObserver === 'function'
-        ? new ResizeObserver(refit)
-        : undefined;
-    if (!shownAgain || observer === undefined) refit();
-    observer?.observe(parent);
+    refitCurrent.current = refit;
     window.addEventListener('resize', refit);
     begin.current = index =>
       beginRowDrag({
@@ -272,10 +275,19 @@ export function useRowLayout({
     return () => {
       lifetime.alive = false;
       begin.current = () => undefined;
-      observer?.disconnect();
+      refitCurrent.current = () => undefined;
       window.removeEventListener('resize', refit);
     };
   }, [container, store, sizeClass, layoutKey, fill, enabled]);
+  const measureKey = useMemo(
+    () => ({container, store, sizeClass, layoutKey, fill, enabled}),
+    [container, store, sizeClass, layoutKey, fill, enabled],
+  );
+  useMeasuredSize(
+    () => (enabled ? container.current : null),
+    () => refitCurrent.current(),
+    measureKey,
+  );
   return {
     begin: index => begin.current(index),
     canResize: index => movable[index] === true,

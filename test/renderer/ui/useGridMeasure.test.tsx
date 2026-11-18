@@ -75,10 +75,13 @@ it('follows the grid element that replaces the previous one', async () => {
     await Promise.resolve();
   });
   const second = screen.getByRole('listbox', {name: 'second'});
-  expect([...observer.observed]).toEqual([second]);
+  const current = SizeObserver.current;
+  if (current === null) throw new Error('no replacement observer');
+  expect([...observer.observed]).toEqual([]);
+  expect([...current.observed]).toEqual([second]);
 
   act(() => observer.report(first, 0));
-  expect(screen.getByRole('status').textContent).toBe('640');
-  act(() => observer.report(second, 720));
+  expect(screen.getByRole('status').textContent).toBe('0');
+  act(() => current.report(second, 720));
   expect(screen.getByRole('status').textContent).toBe('720');
 });

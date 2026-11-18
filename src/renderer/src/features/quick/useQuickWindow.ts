@@ -6,7 +6,7 @@ import {
   type KeyboardEvent,
   type FocusEvent,
 } from 'react';
-import {flushSync} from 'react-dom';
+import {useMeasuredSize} from '@renderer/ui/useMeasuredSize';
 import type {QuickItem} from '@core/schema/quick';
 import {isComposing} from '@renderer/ui/ime';
 
@@ -28,7 +28,6 @@ export function useQuickWindow(items: readonly QuickItem[]) {
     [],
   );
   const pending = useRef<string | null>(null);
-  const measuredCount = useRef<number | null>(null);
   const measure = useCallback(() => {
     const node = list.current;
     const viewport = node?.parentElement;
@@ -45,31 +44,19 @@ export function useQuickWindow(items: readonly QuickItem[]) {
         : next,
     );
   }, []);
+  useMeasuredSize(() => list.current?.parentElement, measure, list);
   useLayoutEffect(() => {
     const viewport = list.current?.parentElement;
-    if (!viewport) return undefined;
-    viewport.addEventListener('scroll', measure);
-    // NOTE(0913vision): A list shown again with the same items keeps its
-    // window; the first resize observation checks it in the frame, before it
-    // paints, so showing the list reads no layout first.
-    const shownAgain = measuredCount.current === items.length;
-    let first = shownAgain;
-    const observer =
-      typeof ResizeObserver === 'undefined'
-        ? null
-        : new ResizeObserver(() => {
-            if (first) flushSync(measure);
-            else measure();
-            first = false;
-          });
-    observer?.observe(viewport);
-    if (!shownAgain || observer === null) measure();
-    measuredCount.current = items.length;
-    return () => {
-      viewport.removeEventListener('scroll', measure);
-      observer?.disconnect();
-    };
-  }, [measure, items.length]);
+    if (!viewport) return;
+    const scroll = (): void =>
+      setView(old =>
+        old.top === viewport.scrollTop
+          ? old
+          : {...old, top: viewport.scrollTop},
+      );
+    viewport.addEventListener('scroll', scroll);
+    return () => viewport.removeEventListener('scroll', scroll);
+  }, []);
   const visible =
     view.height > 0 ? Math.ceil(view.height / view.row) : INITIAL_ROWS;
   const start = Math.max(

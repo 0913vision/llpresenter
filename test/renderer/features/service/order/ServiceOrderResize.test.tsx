@@ -19,8 +19,11 @@ it('reveals only the focused order row on resize without selecting, outputting o
   vi.stubGlobal(
     'ResizeObserver',
     class {
-      constructor(private readonly callback: () => void) {}
-      observe = (target: Element) => callbacks.set(target, this.callback);
+      constructor(
+        private readonly callback: (entries: ResizeObserverEntry[]) => void,
+      ) {}
+      observe = (target: Element) =>
+        callbacks.set(target, () => this.callback([]));
       disconnect = disconnect;
     },
   );
