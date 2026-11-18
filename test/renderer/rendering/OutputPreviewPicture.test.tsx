@@ -130,6 +130,42 @@ function captureFrames(): {
   return {next: () => actFrame(callback), restore: () => request.mockRestore()};
 }
 
+it('updates edited lines in the visible picture in the same commit', () => {
+  const frames = captureFrames();
+  try {
+    const view = render(
+      <OutputPreviewPicture
+        {...props()}
+        layers={keptLayers('editing')}
+        liveText
+      />,
+    );
+    frames.next();
+    const container = view.container.querySelector(
+      '[data-preview-ready="true"]',
+    );
+    const host = container?.firstElementChild;
+    renderOutput.mockClear();
+    view.rerender(
+      <OutputPreviewPicture
+        {...props()}
+        layers={keptLayers('edited')}
+        liveText
+      />,
+    );
+    expect(container?.getAttribute('data-preview-ready')).toBe('true');
+    expect(container?.firstElementChild).toBe(host);
+    expect(renderOutput).toHaveBeenCalledOnce();
+    expect(renderOutput).toHaveBeenCalledWith(
+      keptLayers('edited'),
+      expect.anything(),
+    );
+    view.unmount();
+  } finally {
+    frames.restore();
+  }
+});
+
 it('reuses a parked picture without drawing again when everything it read is unchanged', () => {
   const frames = captureFrames();
   try {

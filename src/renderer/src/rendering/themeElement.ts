@@ -409,6 +409,12 @@ export class ThemeElementView {
         (element.kind === 'currentText' &&
           layers.slide?.sectionCard === undefined));
     const importedSlide = layers.slide;
+    this.text?.setFixedLineSpacing(
+      isSong &&
+        frame.screen?.kind === 'audience' &&
+        element.kind === 'currentText' &&
+        slide?.titleSlide !== true,
+    );
     const importedLyrics =
       importedSlide?.lyricFormat?.lines.length ===
         importedSlide?.lines.length &&

@@ -35,6 +35,39 @@ function setUp() {
 afterEach(() => vi.restoreAllMocks());
 
 describe('SlideLayerView', () => {
+  it('keeps the lyric line pitch while fitting width and falls back when the fixed pitch cannot fit', () => {
+    vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(200);
+    vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(500);
+    let widthFactor = 2;
+    vi.spyOn(HTMLElement.prototype, 'scrollWidth', 'get').mockImplementation(
+      function (this: HTMLElement) {
+        return (Number.parseFloat(this.style.fontSize) || 0) * widthFactor;
+      },
+    );
+    let height = 200;
+    vi.spyOn(HTMLElement.prototype, 'scrollHeight', 'get').mockImplementation(
+      () => height,
+    );
+    const {view, shownPage} = setUp();
+    view.setFixedLineSpacing(true);
+    view.show(VERSE, false);
+    const block = () =>
+      shownPage()?.querySelector<HTMLElement>(`.${classes.block}`);
+    const pitch = block()?.style.lineHeight;
+    const firstSize = Number.parseFloat(block()?.style.fontSize ?? '0');
+    widthFactor = 4;
+    view.show({...VERSE, lines: ['longer words', 'another line']}, false);
+    expect(Number.parseFloat(block()?.style.fontSize ?? '0')).toBeLessThan(
+      firstSize,
+    );
+    expect(block()?.style.lineHeight).toBe(pitch);
+    height = 600;
+    view.show({...VERSE, lines: ['too many lines']}, false);
+    expect(block()?.style.lineHeight).toBe(
+      String(DEFAULT_TEXT_STYLE.lineHeight),
+    );
+    view.dispose();
+  });
   it('enforces and rescales the configured minimum text size when content overflows', () => {
     const width = vi
       .spyOn(HTMLElement.prototype, 'clientWidth', 'get')
