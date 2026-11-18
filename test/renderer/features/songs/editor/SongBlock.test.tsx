@@ -160,6 +160,62 @@ describe('SongBlock', () => {
     },
   );
 
+  it('remeasures changed content without rereading the row chrome', () => {
+    const observers: MockObserver[] = [];
+    class MockObserver implements ResizeObserver {
+      readonly targets: Element[] = [];
+      constructor(readonly callback: ResizeObserverCallback) {
+        observers.push(this);
+      }
+      observe(target: Element) {
+        this.targets.push(target);
+      }
+      unobserve() {}
+      disconnect() {}
+      fire() {
+        this.callback([], this);
+      }
+    }
+    vi.stubGlobal('ResizeObserver', MockObserver);
+    let textHeight = 50;
+    const bounds = vi
+      .spyOn(HTMLElement.prototype, 'getBoundingClientRect')
+      .mockImplementation(function (this: HTMLElement) {
+        return DOMRect.fromRect({
+          height: this.hasAttribute('data-editor-thumbnail')
+            ? 100
+            : this.hasAttribute('data-grid-text')
+              ? textHeight
+              : 0,
+        });
+      });
+    const styles = vi.spyOn(window, 'getComputedStyle');
+    try {
+      const onMeasure = vi.fn();
+      const {container, slide, unmount} = renderBlock(0, createSong(), {
+        grid: true,
+        onMeasure,
+      });
+      const row = container.querySelector<HTMLElement>('[data-editor-block]');
+      const observer = observers.find(entry =>
+        entry.targets.some(target => target.hasAttribute('data-grid-text')),
+      );
+      if (!row || !observer) throw new Error('Missing observed row');
+      const reads = () =>
+        styles.mock.calls.filter(([target]) => target === row).length;
+      expect(reads()).toBe(1);
+      textHeight = 80;
+      act(() => observer.fire());
+      expect(onMeasure).toHaveBeenLastCalledWith(slide.id, 180);
+      expect(reads()).toBe(1);
+      unmount();
+    } finally {
+      bounds.mockRestore();
+      styles.mockRestore();
+      vi.unstubAllGlobals();
+    }
+  });
+
   it.each([false, true])(
     'uses the same label and number in the strip name (grid: %s)',
     grid => {
