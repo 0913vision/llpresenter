@@ -13,7 +13,6 @@ import {useShowKeys} from '@renderer/features/presentation/shortcuts';
 import {useLibrarySongSync} from '@renderer/features/presentation/useLibrarySongSync';
 import {BibleSplitTools} from '@renderer/features/bible/BibleSplitTools';
 import {QuickPanel} from '@renderer/features/quick/QuickPanel';
-import {SongBackgroundControl} from '@renderer/features/service/details/SongBackgroundControl';
 import {ShowToolsPanel} from '@renderer/features/tools/ShowToolsPanel';
 import {useShow} from '@renderer/session/show';
 import {
@@ -102,12 +101,7 @@ function showPanelParts({
       }
       return {
         body: <SlidePanelBody sizeClass={sizeClass} onOpenPrep={onOpenPrep} />,
-        meta: (
-          <>
-            <SlidePanelMeta onProblem={onProblem} />
-            <SongBackgroundControl onProblem={onProblem} />
-          </>
-        ),
+        meta: <SlidePanelMeta onProblem={onProblem} />,
         footer: <SlidePanelFooter sizeClass={sizeClass} />,
         stableScrollbar: true,
       };

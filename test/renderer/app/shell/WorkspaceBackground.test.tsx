@@ -1,4 +1,4 @@
-import {act, fireEvent, render, screen, within} from '@testing-library/react';
+import {act, render, screen, within} from '@testing-library/react';
 import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {emptyLiveState} from '@core/live/state';
 import {useLive} from '@renderer/session/live';
@@ -7,29 +7,9 @@ import {
   sampleService,
   seedSampleService,
 } from '@fixtures/renderer/session/sampleService';
-import type {Notice} from '@renderer/ui/notices';
 import {createMemoryColumnWidthStore} from '@renderer/app/shell/columnWidthStore';
 import {Workspace} from '@renderer/app/shell/Workspace';
 
-const problem: Notice = {
-  key: 'fixture-background',
-  kind: 'warning',
-  icon: 'warning',
-  title: '배경 변경 실패',
-  time: '04:00',
-};
-
-vi.mock('@renderer/features/service/details/SongBackgroundControl', () => ({
-  SongBackgroundControl: ({
-    onProblem,
-  }: {
-    readonly onProblem?: (notice: Notice) => void;
-  }) => (
-    <button type="button" onClick={() => onProblem?.(problem)}>
-      Background fixture
-    </button>
-  ),
-}));
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
     ready = () => true;
@@ -45,30 +25,22 @@ beforeEach(() => {
 });
 
 describe('workspace slide header connection', () => {
-  it('keeps item position beside the background control and forwards problems to its host', () => {
+  it('keeps the item title and position in the slide header, without a background control', () => {
     openItem('song-morning');
-    const onProblem = vi.fn();
     render(
       <Workspace
         id="show"
         sizeClass="normal"
         store={createMemoryColumnWidthStore()}
-        onProblem={onProblem}
       />,
     );
     const panel = within(screen.getByRole('region', {name: '슬라이드'}));
-    const background = panel.getByRole('button', {name: 'Background fixture'});
-    const header = background.parentElement;
-    if (header === null) throw new Error('Missing slide header');
-    const headerContents = within(header);
     expect(
-      headerContents.getByText(
+      panel.getAllByText(
         sampleService.rows.find(row => row.id === 'song-morning')?.title ?? '',
-      ),
-    ).toBeDefined();
+      ).length,
+    ).toBeGreaterThan(0);
     expect(panel.getByText('4개')).toBeDefined();
-    fireEvent.click(background);
-    expect(onProblem).toHaveBeenCalledWith(problem);
     const base = emptyLiveState();
     act(() =>
       useLive.setState({
@@ -86,22 +58,7 @@ describe('workspace slide header connection', () => {
         },
       }),
     );
-    expect(headerContents.getByText('2 / 4')).toBeDefined();
-    expect(
-      panel.getByRole('button', {name: 'Background fixture'}),
-    ).toBeDefined();
-  });
-
-  it('does not mount the show background controller in the prep frame', () => {
-    render(
-      <Workspace
-        id="prep"
-        sizeClass="normal"
-        store={createMemoryColumnWidthStore()}
-      />,
-    );
-    expect(
-      screen.queryByRole('button', {name: 'Background fixture'}),
-    ).toBeNull();
+    expect(panel.getByText('2 / 4')).toBeDefined();
+    expect(panel.queryByRole('button', {name: /배경/})).toBeNull();
   });
 });
