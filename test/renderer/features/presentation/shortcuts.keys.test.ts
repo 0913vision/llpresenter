@@ -136,6 +136,18 @@ describe('handleShowKey next and previous', () => {
     expect(showState.outputPrevious).toHaveBeenCalledTimes(1);
   });
 
+  it.each(['Home', 'End'])(
+    'routes %s from the slide grid while leaving it to the order list',
+    code => {
+      const keeper = appendTo('div', {'data-show-slide-grid': 'true'});
+      const grid = keeper.appendChild(document.createElement('div'));
+      grid.setAttribute('role', 'listbox');
+      const order = appendTo('div', {role: 'listbox'});
+      expect(press(code, {}, grid).defaultPrevented).toBe(true);
+      expect(press(code, {}, order).defaultPrevented).toBe(false);
+    },
+  );
+
   it('runs a held key once and still swallows the repeats', () => {
     press('PageDown');
     const repeated = press('PageDown', {repeat: true});

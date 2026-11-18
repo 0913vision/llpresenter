@@ -33,6 +33,7 @@ import {fullScreenRow, testPatternRow, useFullScreen} from './viewToggles';
 import {useLive, useOutputs} from '@renderer/session/live';
 import {useScreenSummaries} from '../../platform/ScreenSummaries';
 import type {Workspace} from './Toolbar';
+import {isInTextEntry} from '@renderer/ui/textEntry';
 
 const EDIT_MENU = '편집';
 const WINDOW_MENU = '창';
@@ -68,6 +69,7 @@ interface MenuControl {
   readonly toggle: (anchor: HTMLButtonElement) => void;
   readonly hover: (anchor: HTMLButtonElement) => void;
   readonly close: () => void;
+  readonly returnTo: HTMLElement | undefined;
 }
 
 /** A screen whose warning still holds, for the 출력 menu. */
@@ -225,6 +227,7 @@ function FileMenu({
         <Menu
           label={FILE_MENU}
           anchor={{kind: 'element', element: anchor}}
+          returnTo={control.returnTo}
           onClose={control.close}
           entries={entries}
         />
@@ -251,6 +254,7 @@ function EntryMenu({
         <Menu
           label={label}
           anchor={{kind: 'element', element: control.anchor}}
+          returnTo={control.returnTo}
           entries={entries()}
           onClose={control.close}
         />
@@ -318,6 +322,7 @@ function OutputMenu({
       <MenuTrigger label={OUTPUT_MENU} control={control} />
       <OutputMenuList
         anchor={control.anchor}
+        returnTo={control.returnTo}
         onClose={control.close}
         warnings={warnings}
         onShowWarning={onShowWarning}
@@ -431,8 +436,16 @@ export function MenuBar({
     window.addEventListener('keydown', onKeyDown);
     return () => window.removeEventListener('keydown', onKeyDown);
   }, [openName, bar, checkClipboard]);
+  const outside = outsideFocus();
+  const returnTo =
+    document.querySelector('[data-workspace-layout="show"]') !== null &&
+    outside instanceof HTMLElement &&
+    isInTextEntry(outside)
+      ? outside
+      : undefined;
   const controlFor = (name: MenuName): MenuControl => ({
     keys,
+    returnTo,
     anchor: active?.name === name ? active.anchor : null,
     open: anchor => {
       if (name === FILE_MENU) checkClipboard();
@@ -460,7 +473,7 @@ export function MenuBar({
       setActive(current => (current?.name === name ? null : current)),
   });
   return (
-    <div className={styles.bar}>
+    <div className={styles.bar} data-window-menu-bar>
       <span className={styles.wordmark}>LoveLight</span>
       <div role="menubar" aria-label="메뉴" className={styles.menus}>
         <FileMenu

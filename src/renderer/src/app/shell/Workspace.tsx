@@ -42,6 +42,7 @@ import {OpenItemPrefetch} from '@renderer/features/presentation/SlidePicturePref
 import {TableDataKeeper} from '@renderer/features/service/table/useServiceTableData';
 import {PrepPictureSwitch} from '@renderer/rendering/PrepPictureSwitch';
 import {ShownItemProvider} from '@renderer/session/shownItem';
+import {returnFocus} from '@renderer/ui/returnFocus';
 
 const ignoreProblem = (): void => undefined;
 
@@ -57,8 +58,14 @@ function useSidebarToggle(sidebar: SidebarCollapse | undefined) {
     return pending;
   }, []);
   const setCollapsed = sidebar?.setCollapsed;
-  const toggle = (collapsed: boolean, button: HTMLButtonElement): void => {
-    pendingFocus.current = document.activeElement === button;
+  const toggle = (
+    collapsed: boolean,
+    button: HTMLButtonElement,
+    keyboard: boolean,
+  ): void => {
+    const focused = document.activeElement === button;
+    pendingFocus.current = keyboard && focused;
+    if (!keyboard && focused) returnFocus(null);
     setCollapsed?.(collapsed);
   };
   return {
@@ -133,7 +140,7 @@ export function Workspace({
     sidebarAction: toggle.collapsible ? (
       <SidebarCollapseButton
         claimFocus={toggle.claimFocus}
-        onPress={button => toggle.toggle(true, button)}
+        onPress={(button, keyboard) => toggle.toggle(true, button, keyboard)}
       />
     ) : null,
   });
@@ -171,7 +178,9 @@ export function Workspace({
           <div className={styles.column} data-panel="예배 순서">
             <CollapsedSidebar
               claimFocus={toggle.claimFocus}
-              onPress={button => toggle.toggle(false, button)}
+              onPress={(button, keyboard) =>
+                toggle.toggle(false, button, keyboard)
+              }
             />
           </div>
         ) : (

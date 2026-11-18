@@ -85,7 +85,7 @@ export function Toolbar({
   const barClass = compact ? `${styles.bar} ${styles.barCompact}` : styles.bar;
 
   return (
-    <header className={barClass}>
+    <header className={barClass} data-workspace-toolbar>
       <ToolbarTabs
         tabs={workspaceTabs}
         value={workspace}

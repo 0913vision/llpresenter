@@ -78,17 +78,24 @@ function focusedControlOwnsKey(event: KeyboardEvent): boolean {
   }
   if (event.ctrlKey || event.altKey || event.shiftKey) return false;
   if (
-    ['ArrowUp', 'ArrowDown'].includes(event.code) &&
+    ['ArrowUp', 'ArrowDown', 'Enter', 'NumpadEnter', 'Home', 'End'].includes(
+      event.code,
+    ) &&
     isInside(event.target, '[data-show-slide-grid="true"] [role="listbox"]')
   ) {
     return false;
   }
   if (isInside(event.target, '[role="listbox"]')) {
-    return ['ArrowUp', 'ArrowDown', 'Home', 'End', 'Enter'].includes(
-      event.code,
-    );
+    return [
+      'ArrowUp',
+      'ArrowDown',
+      'Home',
+      'End',
+      'Enter',
+      'NumpadEnter',
+    ].includes(event.code);
   }
-  if (['Space', 'Enter'].includes(event.code)) {
+  if (['Space', 'Enter', 'NumpadEnter'].includes(event.code)) {
     return isInside(
       event.target,
       'button, [role="button"], [role="switch"], [role="checkbox"], [role="radio"], [role="tab"], input, select',

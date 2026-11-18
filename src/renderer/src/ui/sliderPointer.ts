@@ -5,6 +5,7 @@ import {
   type PointerEventHandler,
 } from 'react';
 import type {Workspace} from './workspace';
+import {returnFocus} from './returnFocus';
 
 interface SliderPointerOptions {
   readonly workspace: Workspace;
@@ -49,11 +50,17 @@ export function useSliderPointer({
         if (
           previous instanceof HTMLElement &&
           previous.isConnected &&
-          previous !== document.body
+          previous !== document.body &&
+          previous !== input &&
+          (previous.closest(
+            '[data-show-slide-grid], [data-panel="예배 순서"] [role="listbox"]',
+          ) !== null ||
+            document.querySelector('[data-workspace-layout="show"]') === null)
         ) {
           previous.focus({preventScroll: true});
         } else {
-          input.blur();
+          returnFocus(null);
+          if (document.activeElement === input) input.blur();
         }
       }
       commit.current?.(value);

@@ -181,6 +181,25 @@ describe('Slider', () => {
     },
   );
 
+  it('returns a Show slider to the slide grid after a text field', () => {
+    render(
+      <main data-workspace-layout="show">
+        <input aria-label="이름" />
+        <div data-show-slide-grid="true">
+          <div role="listbox" aria-label="슬라이드" tabIndex={0} />
+        </div>
+        <FocusSlider workspace="show" />
+      </main>,
+    );
+    screen.getByRole('textbox', {name: '이름'}).focus();
+    const input = slider('음량');
+    startPointer(input);
+    fireEvent.pointerUp(input, {pointerId: 1});
+    expect(document.activeElement).toBe(
+      screen.getByRole('listbox', {name: '슬라이드'}),
+    );
+  });
+
   it.each([
     {workspace: 'show' as const, buttons: 1},
     {workspace: 'prep' as const, buttons: 1},

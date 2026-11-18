@@ -18,6 +18,7 @@ import type {Workspace} from './Toolbar';
 
 export function OutputMenuList({
   anchor,
+  returnTo,
   onClose,
   warnings,
   onShowWarning,
@@ -25,6 +26,7 @@ export function OutputMenuList({
   onWorkspace,
 }: {
   readonly anchor: HTMLElement | null;
+  readonly returnTo?: HTMLElement | null | undefined;
   readonly onClose: () => void;
   readonly warnings: readonly WarningScreen[];
   readonly onShowWarning: (id: string) => void;
@@ -97,6 +99,7 @@ export function OutputMenuList({
     <Menu
       label="출력"
       anchor={{kind: 'element', element: anchor}}
+      returnTo={returnTo}
       onClose={onClose}
       entries={entries}
     />
