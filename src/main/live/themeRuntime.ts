@@ -4,6 +4,7 @@ import type {SettingsReader} from '@core/schema/settingsReader';
 import type {LiveCommand} from '@core/live/commands';
 import type {LiveThemeItem, LiveThemeMode} from '@core/schema/liveTheme';
 import type {Screen} from '@core/schema/screens';
+import type {SectionCard} from '@core/schema/service';
 import type {ThemesFile} from '@core/schema/themes';
 import {resolveThemeOutput} from '@core/themes/output';
 import {resetClearToggles, type LiveHistory, type UndoEntry} from './history';
@@ -59,6 +60,18 @@ function withPlayback(
     ...(overlayStartedAt === undefined ? {} : {overlayStartedAt}),
     ...(slidePosition === undefined ? {} : {slidePosition}),
   };
+}
+
+function sectionCardItem(
+  item: LiveThemeItem,
+  card: SectionCard,
+): LiveThemeItem {
+  const {
+    backgroundOverride: _background,
+    backgroundStartedAt: _started,
+    ...rest
+  } = item;
+  return {...rest, kind: 'blank', title: card.name, theme: card.theme};
 }
 
 interface ThemeRuntimeOptions {
@@ -147,12 +160,7 @@ export class ThemeRuntime {
             item = {...item, theme: SERMON_TITLE_THEME_ID};
           }
           if (command.slide.sectionCard !== undefined) {
-            item = {
-              ...item,
-              kind: 'blank',
-              title: command.slide.sectionCard.name,
-              theme: command.slide.sectionCard.theme,
-            };
+            item = sectionCardItem(item, command.slide.sectionCard);
           }
           const offset = cardOffset(item);
           const position = command.slide.position + 1 - offset;
@@ -223,12 +231,7 @@ export class ThemeRuntime {
             item = {...item, theme: SERMON_TITLE_THEME_ID};
           }
           if (slide?.itemId === item.id && slide.sectionCard !== undefined) {
-            item = {
-              ...item,
-              kind: 'blank',
-              title: slide.sectionCard.name,
-              theme: slide.sectionCard.theme,
-            };
+            item = sectionCardItem(item, slide.sectionCard);
           }
           if (cleared) item = {...item, contentCleared: true};
         }

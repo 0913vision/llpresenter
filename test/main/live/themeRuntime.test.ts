@@ -161,6 +161,30 @@ describe('main-process theme runtime', () => {
     expect(store.state.themeItem?.backgroundStartedAt).toBe(1300);
     expect(store.state.layers.media?.startedAt).toBe(1300);
   });
+  it('keeps section cards on their own background and restores the item override', () => {
+    const {store, dispatch, service, save} = setup();
+    const mediaId = createMediaId('00000000-0000-4000-8000-000000000601');
+    const override = {kind: 'media' as const, mediaId, loop: true};
+    save({...service, backgroundOverride: override, cardOffset: 1});
+    dispatch({type: 'item.start', itemId: ITEM});
+    const sectionCard = {
+      name: 'Section',
+      english: 'Section',
+      theme: createThemeId('00000000-0000-4000-8000-000000000301'),
+    };
+    dispatch({
+      type: 'slide.show',
+      slide: {itemId: ITEM, position: 0, label: null, lines: [], sectionCard},
+    });
+    expect(store.state.themeItem?.backgroundOverride).toBeUndefined();
+    dispatch({type: 'themes.refresh'});
+    expect(store.state.themeItem?.backgroundOverride).toBeUndefined();
+    dispatch({
+      type: 'slide.show',
+      slide: {itemId: ITEM, position: 1, label: null, lines: ['Content']},
+    });
+    expect(store.state.themeItem?.backgroundOverride).toEqual(override);
+  });
   it('retains a sermon title theme when its background refreshes', () => {
     const {store, dispatch, service, save} = setup();
     dispatch({type: 'item.start', itemId: ITEM});
