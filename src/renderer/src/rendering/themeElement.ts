@@ -686,7 +686,6 @@ export class ThemeElementView {
     const currentBible =
       element.kind === 'currentText' &&
       slide?.sectionCard === undefined &&
-      slide?.sermonTitle !== true &&
       (slide?.biblePart !== undefined ||
         (slide?.kind ?? item?.kind) === 'bible');
     const nextBible =
@@ -707,7 +706,7 @@ export class ThemeElementView {
             ...layers,
             slide: {
               ...slide,
-              ...(currentBible
+              ...(currentBible && slide.sermonTitle !== true
                 ? {lines: [broadcastBibleFlow(slide.lines.join('\n'))]}
                 : {}),
               ...(nextBible
