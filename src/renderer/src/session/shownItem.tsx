@@ -19,23 +19,26 @@ const ShownItem = createContext<string | null | undefined>(undefined);
 export function ShownItemProvider({
   children,
   shownItem,
+  trackLive = shownItem === undefined,
 }: {
   readonly children: ReactNode;
   readonly shownItem?: string | null | undefined;
+  readonly trackLive?: boolean;
 }): JSX.Element {
   const requested = useShow(view => view.openItemId);
   const ready = useShow(view => view.readyItemId);
   const passage = useShow(view => view.readyPassage);
   const liveTitle = useLive(view => view.state?.themeItem?.title);
-  const shown = useDeferredValue(requested);
-  if (shownItem !== undefined) {
-    return <ShownItem value={shownItem}>{children}</ShownItem>;
+  const shown = useDeferredValue(shownItem === undefined ? requested : null);
+  const fallback = shownItem === undefined ? shown : shownItem;
+  if (!trackLive) {
+    return <ShownItem value={fallback}>{children}</ShownItem>;
   }
   if (passage?.id === requested && passage.title !== liveTitle) {
     return <ShownItem value={passage.previous}>{children}</ShownItem>;
   }
   return (
-    <ShownItem value={ready === requested ? requested : shown}>
+    <ShownItem value={ready === requested ? requested : fallback}>
       {children}
     </ShownItem>
   );

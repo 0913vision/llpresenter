@@ -66,6 +66,11 @@ vi.mock('@renderer/rendering/SlidePicture', () => ({
 
 const sessions: ControlSession[] = [];
 
+// NOTE(0913vision): jsdom has no layout for the hidden preparation frame.
+vi.mock('@renderer/rendering/drawnPictures', () => ({
+  drawnPictures: () => 1,
+}));
+
 function setup(extraSlides = false, songCard = false) {
   const f = itemFixture();
   const slides = newSlidesItem('blank', fixtureItems.lost);
@@ -281,6 +286,7 @@ it('does not open Save As for a retained song while 진행 is visible', async ()
   await waitFor(() =>
     expect(f.session.editor?.getSnapshot().session).not.toBeNull(),
   );
+  await screen.findByRole('region', {name: '곡 편집'});
   await userEvent.keyboard('{Control>}{Shift>}s{/Shift}{/Control}');
   await screen.findByRole('dialog', {name: /다른 이름으로 저장/});
   await userEvent.keyboard('{Escape}');
@@ -329,9 +335,13 @@ it.each(['double-click', 'Enter'] as const)(
     await userEvent.keyboard('{Control>}d{/Control}');
     expect(model?.getSnapshot().slides).toHaveLength(3);
     await userEvent.keyboard('{Escape}');
-    const returned = await screen.findByRole('listbox', {name: '예배 순서'});
-    expect(document.activeElement).toBe(
-      within(returned).getByRole('option', {name: /Service song/}),
+    await waitFor(() =>
+      expect(document.activeElement).toBe(
+        within(screen.getByRole('listbox', {name: '예배 순서'})).getByRole(
+          'option',
+          {name: /Service song/},
+        ),
+      ),
     );
   },
 );
@@ -419,7 +429,9 @@ it('binds a service song card while switching from details to the editor', async
 
 it('switches from a song to a Bible item and back to a song', async () => {
   setup();
-  await userEvent.dblClick(screen.getByRole('option', {name: /Service song/}));
+  const song = screen.getByRole('option', {name: /Service song/});
+  await userEvent.click(song);
+  await userEvent.dblClick(song);
   await waitFor(() => expect(document.activeElement).toBe(commandList()));
   const next = screen.getByRole('option', {name: 'Bible item'});
   expect(fireEvent.mouseDown(next, {button: 0})).toBe(false);

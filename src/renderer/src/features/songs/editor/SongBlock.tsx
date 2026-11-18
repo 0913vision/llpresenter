@@ -363,7 +363,11 @@ export const SongBlock = memo(
             <div className={styles.thumbnail} data-editor-thumbnail>
               <div className={styles.thumbnailCanvas}>
                 {picture === undefined ? null : (
-                  <Picture {...picture} editing={focused} wait={switching} />
+                  <Picture
+                    {...picture}
+                    editing={focused}
+                    wait={switching === true}
+                  />
                 )}
                 <SlideTransitionMark transition={slide.transition} />
               </div>
