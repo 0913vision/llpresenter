@@ -10,9 +10,7 @@ import {Dialog} from '@renderer/ui/Dialog';
 import {useBibleTranslation} from './useBibleTranslation';
 import {BiblePassageDialog} from './BiblePassageDialog';
 import {SplitReview} from './SplitReview';
-import {verseKey} from './BibleRefinements';
 import {useBibleRefinement} from './useBibleRefinement';
-import {useBibleReviewPreference} from './useBibleReviewPreference';
 import {confirmBibleCuts} from './saveBibleCuts';
 import {loadSlidesProjection} from './loadSlidesProjection';
 import {useSlidesVerseProjection} from './useSlidesVerseProjection';
@@ -43,7 +41,6 @@ export function BibleSlidesDialog({
   readonly onClose: () => void;
 }): JSX.Element {
   const translation = useBibleTranslation(api);
-  const autoOpen = useBibleReviewPreference(api.preferences);
   const [review, setReview] = useState<Review | null>(null);
   const [loading, setLoading] = useState(reference !== undefined);
   const [problem, setProblem] = useState<string | null>(null);
@@ -69,7 +66,6 @@ export function BibleSlidesDialog({
       review === null ||
       review.explicit ||
       projection === undefined ||
-      autoOpen !== false ||
       !refinement.initialized ||
       refinement.pending.size > 0
     ) {
@@ -80,7 +76,6 @@ export function BibleSlidesDialog({
     onClose();
   }, [
     review,
-    autoOpen,
     refinement.initialized,
     refinement.pending.size,
     onInsert,
@@ -208,14 +203,7 @@ export function BibleSlidesDialog({
       }
     });
   };
-  const awaitingRefinement =
-    review !== null &&
-    !review.explicit &&
-    (projection === undefined ||
-      autoOpen !== true ||
-      !refinement.initialized ||
-      (review.references[0] !== undefined &&
-        refinement.pending.has(verseKey(review.references[0]))));
+  const awaitingRefinement = review !== null && !review.explicit;
   if (problem !== null) {
     return (
       <Dialog

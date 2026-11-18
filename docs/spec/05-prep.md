@@ -177,10 +177,9 @@ not dim when focus leaves. 진행 retains its existing thumbnail style.
   one local undo step, and a range exceeding the remaining 200-row capacity is
   refused before insertion. Ad items do not offer this action.
 - Unconfirmed multi-part verses use the same optional AI boundary chooser as
-  진행 before insertion. When automatic review is enabled, review those cuts;
-  otherwise insert after refinement, falling back to the rule-based split when
-  AI is unavailable. Existing confirmed cuts are preserved. Ctrl E on a verse
-  row opens 절 나누기 to edit its cuts without changing the draft's references.
+  진행 before automatic insertion, falling back to the rule-based split when AI
+  is unavailable. Existing confirmed cuts are preserved. Ctrl E on a verse row
+  opens 절 나누기 to edit its cuts without changing the draft's references.
 - Verse thumbnails and previews resolve the installed translation and use the
   same measured parts as 진행. The preview offers previous and next parts of the
   selected verse; editing a reference never creates copied verse text in the

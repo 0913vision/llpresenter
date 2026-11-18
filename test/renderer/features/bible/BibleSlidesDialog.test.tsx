@@ -1,6 +1,7 @@
 import {fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {expect, it, vi} from 'vitest';
 import {newSlidesItem} from '@core/services/slidesEdits';
+import {createServiceItemId} from '@core/schema/ids';
 import {
   projectBible,
   type BibleProjection,
@@ -29,9 +30,6 @@ vi.mock('@renderer/features/bible/useSlidesVerseProjection', () => ({
 }));
 vi.mock('@renderer/features/bible/useBibleTranslation', () => ({
   useBibleTranslation: () => 'sample',
-}));
-vi.mock('@renderer/features/bible/useBibleReviewPreference', () => ({
-  useBibleReviewPreference: () => false,
 }));
 vi.mock('@renderer/features/bible/BiblePassageDialog', () => ({
   BiblePassageDialog: ({
@@ -103,7 +101,10 @@ it('runs the same boundary chooser for a preparation insertion before completing
   const view = render(
     <BibleSlidesDialog
       api={api}
-      item={newSlidesItem('blank', 'item')}
+      item={newSlidesItem(
+        'blank',
+        createServiceItemId('00000000-0000-4000-8000-000000000001'),
+      )}
       selected={0}
       onInsert={inserted}
       onClose={closed}
