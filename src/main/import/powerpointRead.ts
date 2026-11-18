@@ -20,6 +20,8 @@ import type {
 export interface PowerPointDeck {
   readonly slides: readonly PowerPointSlide[];
   readonly widescreen: boolean;
+  readonly width: number;
+  readonly height: number;
 }
 
 function lines(shape: Element): string[] {
@@ -72,19 +74,29 @@ export function isPowerPointWidescreen(width: number, height: number): boolean {
   return Math.abs(width * 9 - height * 16) * 100 <= height * 16;
 }
 
-/** Reads Office XML as data; embedded macros and non-slide content are ignored. */
-export function readPowerPoint(bytes: Buffer): PowerPointDeck {
-  const zip = new PowerPointZip(bytes);
-  const part = 'ppt/presentation.xml';
-  const presentation = xml(zip, part);
-  const rels = relationships(zip, part);
+function slideSize(zip: PowerPointZip) {
+  const presentation = xml(zip, 'ppt/presentation.xml');
   const size = descendants(presentation, 'sldSz')[0];
   const width = Number(size?.getAttribute('cx'));
   const height = Number(size?.getAttribute('cy'));
   if (!(width > 0 && height > 0)) {
     throw new Error('Invalid PowerPoint slide size');
   }
-  const widescreen = isPowerPointWidescreen(width, height);
+  return {width, height, widescreen: isPowerPointWidescreen(width, height)};
+}
+
+/** Reads only the presentation size before picture export. */
+export function readPowerPointSize(bytes: Buffer) {
+  return slideSize(new PowerPointZip(bytes));
+}
+
+/** Reads Office XML as data; embedded macros and non-slide content are ignored. */
+export function readPowerPoint(bytes: Buffer): PowerPointDeck {
+  const zip = new PowerPointZip(bytes);
+  const part = 'ppt/presentation.xml';
+  const presentation = xml(zip, part);
+  const rels = relationships(zip, part);
+  const {width, height, widescreen} = slideSize(zip);
   const ids = descendants(
     descendants(presentation, 'sldIdLst')[0] ?? presentation,
     'sldId',
@@ -122,10 +134,12 @@ export function readPowerPoint(bytes: Buffer): PowerPointDeck {
       number: index + 1,
       lyricColor: layers.lyricColor(slidePath),
       shapes: slideShapes,
-      background: drawing && drawing.layers.length > 0 ? drawing.key : null,
+      background: drawing?.key ?? null,
+      fallbackBackground:
+        drawing && drawing.layers.length > 0 ? drawing.key : null,
     });
   }
-  return {slides, widescreen};
+  return {slides, widescreen, width, height};
 }
 
 /** Reads a selected original slide number into an on-demand canvas scene. */

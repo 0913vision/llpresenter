@@ -961,16 +961,20 @@ remain usable. Slide labels are empty. The item uses 이미지 슬라이드. The
 operator sees export progress and may cancel. If PowerPoint is not installed,
 does not respond, or cannot read the file, the app reports the cause without
 adding an item. The temporary copy is removed after the export finishes, fails,
-or is cancelled.
+or is cancelled. Files whose slide ratio differs from 16:9 by more than 1% are
+refused before export, with their dimensions and the supported ratio.
 
 ## PowerPoint import
 
 The 슬라이드로 picker accepts `.pptx` and `.pptm`; old `.ppt` files are refused
-with a message. Files are read as ZIP and XML data, without starting PowerPoint
-or running macros. Hidden slides are skipped, and the remaining slides retain
-their original slide numbers. Shapes are read in slide order, including groups;
-tables, charts, notes and comments are ignored. Line breaks and XML entities are
-decoded, trailing whitespace is removed, and empty lines are dropped.
+with a message. Files whose slide ratio differs from 16:9 by more than 1% are
+refused before import, with their dimensions and the supported ratio. Files are
+first read as ZIP and XML data without running macros. Importing layout pictures
+may start PowerPoint invisibly to render the decorations. Hidden slides are
+skipped, and the remaining slides retain their original slide numbers. Shapes
+are read in slide order, including groups; tables, charts, notes and comments
+are ignored. Line breaks and XML entities are decoded, trailing whitespace is
+removed, and empty lines are dropped.
 
 The preview starts with all slides selected. Click a slide and Shift-click
 another to select an inclusive range. The default name joins the first title
@@ -984,10 +988,8 @@ lines with their positions and formatting. 편집 opens the unsaved song editor;
 저장 there adds the song to the library.
 
 가사 and 배경 are selected by default. At least one remains selected. 가사 alone
-opens a song without importing media; 배경 alone imports the selected range
-background into media with 가져오기 and opens no editor. When the slide ratio
-differs from 16:9 by more than 1%, 배경 is disabled and no background picture is
-composed.
+opens a song without importing media; 배경 alone imports the selected range's
+backgrounds into media with 가져오기 and opens no editor.
 
 The imported song uses the built-in light-background song theme when the most
 common resolved body lyric color in the selected range has relative luminance
@@ -1000,13 +1002,18 @@ service item added from the song keeps its selected theme.
 
 ### Background
 
-The song background is one 1920 x 1080 picture of the selected slide's non-text
-content. The slide's own background takes precedence over the layout background,
-then the master background. Solid, gradient, picture fills and theme background
-references are resolved before drawing. Master shapes follow unless the slide or
-layout sets `showMasterSp` to false, then layout shapes, then slide shapes,
-preserving each shape tree's order and group transforms. Placeholders and shapes
-containing text are skipped.
+When PowerPoint is available, each distinct slide look is exported as a 1920 ×
+1080 picture from a temporary copy, with the slide's own text and placeholders
+removed so its master, layout and non-text decorations are retained. Slides
+sharing a look reuse the picture. The slide text remains editable. If PowerPoint
+cannot export it, the following layer import supplies the background instead.
+
+The layer import draws non-text content. The slide's own background takes
+precedence over the layout background, then the master background. Solid,
+gradient, picture fills and theme background references are resolved before
+drawing. Master shapes follow unless the slide or layout sets `showMasterSp` to
+false, then layout shapes, then slide shapes, preserving each shape tree's order
+and group transforms. Placeholders and shapes containing text are skipped.
 
 JPEG and PNG pictures retain their position, size, rotation, flips, source crop
 (including negative crop extensions), stretch fill rectangle, opacity,
@@ -1030,21 +1037,20 @@ negative brightness moves them toward black. Unscaled gradient angles are
 preserved in physical shape coordinates. An explicit `masterClrMapping` restores
 the master's mapping after any layout override.
 
-Each slide has a background key derived from its resolved background and
-non-text layers across the slide, layout and master. The most common key in the
-selected range wins; ties use the first occurrence. Its slide is composed as the
-song background. Slides with different keys still use that same song background.
-Backgrounds contain at most 64 layers; additional layers and pictures exceeding
-image bounds are omitted. Each encoded picture is limited to 32 MiB, 16384
-pixels per side and 64 megapixels, with 128 MiB of encoded pictures per
-background.
+Each slide has a background key covering its layout and the slide content left
+after text and placeholders are removed. PowerPoint renders each distinct look;
+when that export fails, the layer renderer provides a fallback for that look.
+The most common key in the selected range supplies the song background; each
+slide also retains its own picture. Fallback backgrounds contain at most 64
+layers; additional layers and pictures exceeding image bounds are omitted. Each
+encoded picture is limited to 32 MiB, 16384 pixels per side and 64 megapixels,
+with 128 MiB of encoded pictures per background.
 
-Main reads only ZIP and XML data. Chromium's OffscreenCanvas draws the layer
-list and encodes JPEG at quality 0.92, or PNG when the composed picture has
-transparency at an edge. The composed image enters the media library when 편집
-is pressed and remains there even if the song is discarded. Text styling,
-transitions and animations are not imported. Other size limits are in the data
-specification.
+For fallback rendering, Chromium's OffscreenCanvas draws the layer list and
+encodes JPEG at quality 0.92, or PNG when the composed picture has transparency
+at an edge. The composed image enters the media library when 편집 is pressed and
+remains there even if the song is discarded. Text styling, transitions and
+animations are not imported. Other size limits are in the data specification.
 
 When a picture with identical bytes is already in the media library, the song
 reuses it. Otherwise the new media item is named from the song name followed by

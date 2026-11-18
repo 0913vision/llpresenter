@@ -105,6 +105,20 @@ it('sends a picture atomically and applies the item background on text', () => {
   ]);
 });
 
+it('routes a song slide picture as a background while keeping the lyrics', () => {
+  const slide = {
+    itemId: SLIDES_ITEM,
+    position: 0,
+    label: null,
+    lines: ['Lyric'],
+    picture: SLIDE_PICTURE,
+  };
+  expect(slidesOutput(slide, undefined).commands).toEqual([
+    {type: 'media.show', media: {mediaId: SLIDE_PICTURE, loop: true}},
+    {type: 'slide.show', slide},
+  ]);
+});
+
 it('projects a title on a blank text slide for the next preview', () => {
   const item = slidesItem('blank');
   const first = item.slides.slides[0];

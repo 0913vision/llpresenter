@@ -31,6 +31,7 @@ import {
   translationIdSchema,
 } from '@core/schema/ids';
 import {liturgyAsSlides, newLiturgyItem} from '@core/services/liturgy';
+import {createMediaId} from '@core/schema/ids';
 import {slidesItem, SLIDES_ITEM} from '@fixtures/core/slides';
 import {MOCK_LONG_VERSE} from '@fixtures/core/bibleSplit';
 import {
@@ -198,6 +199,33 @@ function build(
 }
 
 describe('buildShowService', () => {
+  it('retains slide pictures through an override, save, reload, and clear', () => {
+    const picture = createMediaId(MEDIA_ID);
+    const override = createMediaId('3b9d0c52-7e1f-4a2b-8c3d-4e5f60718294');
+    const initial = loadedService([
+      {
+        id: itemId(1),
+        song: HYMN_ONE_ID,
+        slides: [{id: fixtureSlideId(1), lines: ['first'], picture}],
+      },
+    ]);
+    const item = initial.data.order[0];
+    if (!item) throw new Error('Missing song item');
+    const changed = {...item, background: override};
+    const saved = loadedService([changed]);
+    const projected = (savedItem: typeof item) =>
+      buildShowService({
+        service: loadedService([savedItem]),
+        songs: new Map([[HYMN_ONE_ID, loadedSong(hymnOne())]]),
+        labels: [],
+        revision: 3,
+      }).tiles[itemId(1)]?.[0];
+    const savedItem = saved.data.order[0];
+    if (!savedItem) throw new Error('Missing saved item');
+    expect(projected(savedItem)?.picture).toBeUndefined();
+    const {background: _background, ...cleared} = changed;
+    expect(projected(cleared)?.picture).toBe(picture);
+  });
   it('opens a saved hyphenated Bible item with a tilde in its row', () => {
     const shown = build([
       {

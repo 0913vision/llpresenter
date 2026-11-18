@@ -36,7 +36,8 @@ export function nextSlideOf(
       : undefined) ??
     tile.sectionCard?.name ??
     tile.name ??
-    (tile.media !== undefined || tile.picture !== undefined
+    (tile.media !== undefined ||
+    (tile.picture !== undefined && tile.kind !== undefined)
       ? context?.title
       : undefined);
   return {

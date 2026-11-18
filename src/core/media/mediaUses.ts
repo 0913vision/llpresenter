@@ -34,7 +34,9 @@ export function countMediaUses(
       total +
       service.order.filter(
         item =>
-          (isItemOfKind(item, 'song') && item.background === mediaId) ||
+          (isItemOfKind(item, 'song') &&
+            (item.background === mediaId ||
+              item.slides.some(slide => slide.picture === mediaId))) ||
           (isItemOfKind(item, 'media') && item.media === mediaId),
       ).length,
     0,
@@ -72,8 +74,11 @@ export function countMediaUses(
     graphics: sources.props.props.filter(
       prop => prop.content.kind === 'image' && prop.content.media === mediaId,
     ).length,
-    songBackgrounds: sources.songs.filter(song => song.background === mediaId)
-      .length,
+    songBackgrounds: sources.songs.filter(
+      song =>
+        song.background === mediaId ||
+        song.slides.some(slide => slide.picture === mediaId),
+    ).length,
     serviceItems,
   };
 }

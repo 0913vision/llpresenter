@@ -2,6 +2,7 @@ import {describe, expect, it, vi} from 'vitest';
 import type {ContentEdit, EditResult} from '@core/schema/contentEdit';
 import type {ServiceDocument} from '@core/schema/contentDocuments';
 import {parseServiceDocument} from '@core/schema/contentDocuments';
+import {isItemOfKind} from '@core/schema/service';
 import {
   createMediaId,
   createServiceId,
@@ -9,7 +10,11 @@ import {
   createSongId,
 } from '@core/schema/ids';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
-import {updateServiceBackground} from '@renderer/session/serviceBackground';
+import {fixtureSlideId} from '@fixtures/core/songs/slideFixtures';
+import {
+  backgroundChange,
+  updateServiceBackground,
+} from '@renderer/session/serviceBackground';
 
 const serviceId = createServiceId('00000000-0000-4000-8000-000000000001');
 const itemId = createServiceItemId('10000000-0000-4000-8000-000000000001');
@@ -62,6 +67,27 @@ function setup() {
 }
 
 describe('service song background edits', () => {
+  it('preserves slide pictures through set, save, reload, and clear', () => {
+    const {document} = setup();
+    const item = document.service.order[0];
+    if (!item || !isItemOfKind(item, 'song')) throw new Error('Missing song');
+    const initial = {
+      ...item,
+      slides: [{id: fixtureSlideId(1), lines: ['text'], picture: mediaId}],
+    };
+    const set = backgroundChange(mediaId)(initial);
+    if (!set) throw new Error('Could not set background');
+    const reloaded = parseServiceDocument({
+      ...document,
+      service: {...document.service, order: [set]},
+    });
+    if (!reloaded.ok || !reloaded.value) throw new Error('Could not reload');
+    const saved = reloaded.value.service.order[0];
+    if (!saved) throw new Error('Missing saved item');
+    const cleared = backgroundChange(null)(saved);
+    expect(cleared).toMatchObject({slides: [{picture: mediaId}]});
+    expect(cleared).not.toHaveProperty('background');
+  });
   it('runs through the window pending writes and refuses once they stop for a close', async () => {
     const {api, get, edit, change} = setup();
     let answer: () => void = () => undefined;

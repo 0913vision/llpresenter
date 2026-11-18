@@ -83,7 +83,13 @@ export function buildShowService({
       cappedItems.add(item.id);
       itemTiles[item.id] = [];
     } else {
-      itemTiles[item.id] = projected.tiles;
+      itemTiles[item.id] =
+        item.background === undefined
+          ? projected.tiles
+          : projected.tiles.map(tile => {
+              const {picture: _picture, ...rest} = tile;
+              return rest;
+            });
     }
   }
 
@@ -391,6 +397,7 @@ export function projectSongTiles(
           ? NO_LABEL_COLOR
           : (colors.get(slide.label) ?? NO_LABEL_COLOR),
       lines: slide.lines,
+      ...(slide.picture === undefined ? {} : {picture: slide.picture}),
       ...(slide.lyricFormat === undefined
         ? {}
         : {lyricFormat: slide.lyricFormat}),

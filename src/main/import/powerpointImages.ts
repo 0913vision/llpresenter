@@ -9,6 +9,16 @@ $powerpoint = $null
 $presentation = $null
 $created = $false
 $settingsCaptured = $false
+function Remove-SlideText($shapes) {
+  for ($i = $shapes.Count; $i -gt 0; $i--) {
+    $shape = $shapes.Item($i)
+    if ($shape.Type -eq 6) {
+      Remove-SlideText $shape.GroupItems
+    } elseif ($shape.Type -eq 14 -or ($shape.HasTextFrame -eq -1 -and $shape.TextFrame.HasText -eq -1)) {
+      $shape.Delete()
+    }
+  }
+}
 try {
   try { $powerpoint = [Runtime.InteropServices.Marshal]::GetActiveObject('PowerPoint.Application') }
   catch {
@@ -37,9 +47,17 @@ try {
     }
   }
   [IO.File]::WriteAllText((Join-Path $env:LLP_PPT_DIRECTORY 'opening'), '1')
-  $presentation = $powerpoint.Presentations.Open($env:LLP_PPT_SOURCE, -1, 0, 0)
+  $decorations = $env:LLP_PPT_DECORATION_SLIDE
+  $readOnly = if ($decorations) { 0 } else { -1 }
+  $presentation = $powerpoint.Presentations.Open($env:LLP_PPT_SOURCE, $readOnly, 0, 0)
   if (Test-Path (Join-Path $env:LLP_PPT_DIRECTORY 'cancel')) { throw 'Cancelled' }
-  $visible = @($presentation.Slides | Where-Object { $_.SlideShowTransition.Hidden -ne -1 })
+  if ($decorations) {
+    $slide = $presentation.Slides.Item([int]$decorations)
+    Remove-SlideText $slide.Shapes
+    $visible = @($slide)
+  } else {
+    $visible = @($presentation.Slides | Where-Object { $_.SlideShowTransition.Hidden -ne -1 })
+  }
   if ($visible.Count -eq 0 -or $visible.Count -gt 200) { throw 'Unsupported slide count' }
   $index = 0
   foreach ($slide in $visible) {
@@ -124,8 +142,11 @@ export class PowerPointImagesJob {
   run(
     path: string,
     directory: string,
-    progress: (done: number, total: number, number: number) => void,
+    progress: ((done: number, total: number, number: number) => void) & {
+      readonly decorationSlide?: number;
+    },
   ): Promise<PowerPointImagesResult> {
+    const decorationSlide = progress.decorationSlide;
     if (this.child) return Promise.resolve('unresponsive');
     this.cancelled = false;
     this.directory = directory;
@@ -149,6 +170,8 @@ export class PowerPointImagesJob {
             ...process.env,
             LLP_PPT_SOURCE: path,
             LLP_PPT_DIRECTORY: directory,
+            LLP_PPT_DECORATION_SLIDE:
+              decorationSlide === undefined ? '' : String(decorationSlide),
           },
           stdio: ['ignore', 'pipe', 'ignore'],
         },

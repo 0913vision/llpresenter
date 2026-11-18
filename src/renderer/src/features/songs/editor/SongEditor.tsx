@@ -448,7 +448,7 @@ function SongBlocks({
                     output
                     liveText
                     {...theme}
-                    background={theme.background}
+                    background={slide.picture ?? theme.background}
                     slide={{
                       itemId: song.id,
                       position: block,

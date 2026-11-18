@@ -9,6 +9,7 @@ export interface PowerPointSlide {
   readonly number: number;
   readonly shapes: readonly PowerPointShape[];
   readonly background: string | null;
+  readonly fallbackBackground?: string | null;
   readonly lyricColor?: number | null;
 }
 

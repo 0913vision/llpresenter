@@ -27,6 +27,7 @@ const slide = payloadObject({
   ),
   shapes: v.pipe(v.array(shape), v.maxLength(TEXT_IMPORT_LIMITS.lines)),
   background: v.nullable(v.string()),
+  fallbackBackground: v.exactOptional(v.nullable(v.string())),
   lyricColor: v.exactOptional(
     v.nullable(v.pipe(nonNegativeInteger, v.maxValue(0xffffff))),
   ),
@@ -209,6 +210,7 @@ const scene = v.pipe(
 const backgroundRequest = payloadObject({
   index: nonNegativeInteger,
   image: v.exactOptional(encodedImage),
+  decoration: v.exactOptional(v.boolean()),
 });
 const layersRequest = payloadObject({index: nonNegativeInteger});
 const backgroundResult = v.nullable(v.string());

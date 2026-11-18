@@ -3,6 +3,7 @@ import {Worker} from 'node:worker_threads';
 
 export type PowerPointJob =
   | {readonly kind: 'read'; readonly path: string}
+  | {readonly kind: 'size'; readonly path: string}
   | {
       readonly kind: 'layers';
       readonly path: string;

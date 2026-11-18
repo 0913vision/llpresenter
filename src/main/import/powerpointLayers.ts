@@ -1,5 +1,6 @@
 import {powerpointTextFormat} from './powerpointTextFormat';
 import {createHash} from 'node:crypto';
+import {DOMParser, XMLSerializer} from '@xmldom/xmldom';
 import {
   POWERPOINT_BACKGROUND_LIMITS as LIMITS,
   type PowerPointFill,
@@ -46,6 +47,29 @@ const DEFAULT_MAPPING = new Map([
   ['tx2', 'dk2'],
 ]);
 const isOff = (value: string | null) => value === '0' || value === 'false';
+
+/** Match the text and placeholder shapes removed before PowerPoint exports. */
+function decorationXml(root: Element): string {
+  const copy = new DOMParser().parseFromString(
+    new XMLSerializer().serializeToString(root),
+    'application/xml',
+  ).documentElement;
+  const removeText = (parent: Element): void => {
+    for (const shape of children(parent)) {
+      if (shape.localName === 'grpSp') removeText(shape);
+      else if (
+        shape.localName === 'sp' &&
+        (descendants(shape, 'ph').length > 0 ||
+          descendants(shape, 't').some(text => text.textContent.length > 0))
+      ) {
+        parent.removeChild(shape);
+      }
+    }
+  };
+  const tree = descendants(copy, 'spTree')[0];
+  if (tree) removeText(tree);
+  return new XMLSerializer().serializeToString(copy);
+}
 
 /** Resolves XML into bounded drawing data without using a graphics API. */
 export class PowerPointLayerReader {
@@ -242,7 +266,17 @@ export class PowerPointLayerReader {
       skipped += unsupported;
     }
     const key = createHash('sha256')
-      .update(JSON.stringify(layers))
+      .update(
+        JSON.stringify([
+          master?.path,
+          layout?.path,
+          slide.root.getAttribute('showMasterSp'),
+          layout?.root.getAttribute('showMasterSp'),
+          // NOTE(0913vision): The fallback layers omit PowerPoint effects.
+          decorationXml(slide.root),
+          [...slide.rels.entries()],
+        ]),
+      )
       .digest('hex');
     return {key, layers, skipped};
   }

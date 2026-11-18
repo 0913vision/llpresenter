@@ -87,8 +87,19 @@ let backgroundQueue: Promise<void> = Promise.resolve();
 
 async function importSelectedBackground(
   api: LlpApi,
-  {index, title}: {readonly index: number; readonly title: string},
-  isActive: () => boolean,
+  {
+    index,
+    title,
+    decoration,
+    isActive,
+    exporting,
+  }: {
+    readonly index: number;
+    readonly title: string;
+    readonly decoration: boolean;
+    readonly isActive: () => boolean;
+    readonly exporting: {current: boolean};
+  },
 ): Promise<TextImportDraft['background']> {
   const previous = backgroundQueue;
   let unlock: () => void = () => undefined;
@@ -98,12 +109,28 @@ async function importSelectedBackground(
   try {
     await previous;
     if (!isActive()) return undefined;
-    const scene = await api.powerpoint.layers({index});
-    if (!isActive()) return undefined;
-    if (!scene) throw new Error('Background layers unavailable');
-    const image = await composePowerPointBackground(scene);
-    if (!isActive()) return undefined;
-    const path = await api.powerpoint.background({index, image});
+    let path: string | null = null;
+    if (decoration) {
+      exporting.current = true;
+      try {
+        path = await api.powerpoint.background({index, decoration: true});
+      } finally {
+        exporting.current = false;
+      }
+    }
+    if (!isActive()) {
+      if (path !== null) await api.powerpoint.release({path});
+      return undefined;
+    }
+    if (path === null && decoration) return undefined;
+    if (path === null) {
+      const scene = await api.powerpoint.layers({index});
+      if (!isActive()) return undefined;
+      if (!scene) throw new Error('Background layers unavailable');
+      const image = await composePowerPointBackground(scene);
+      if (!isActive()) return undefined;
+      path = await api.powerpoint.background({index, image});
+    }
     if (!path) throw new Error('Background unavailable');
     try {
       if (!isActive()) return undefined;
@@ -116,6 +143,48 @@ async function importSelectedBackground(
   } finally {
     unlock();
   }
+}
+
+async function importBackgrounds(
+  api: LlpApi,
+  {
+    range,
+    start,
+    title,
+    isActive,
+    exporting,
+  }: {
+    readonly range: PowerPointSource['slides'];
+    readonly start: number;
+    readonly title: string;
+    readonly isActive: () => boolean;
+    readonly exporting: {current: boolean};
+  },
+): Promise<Map<string, NonNullable<TextImportDraft['background']>>> {
+  const pictures = new Map<
+    string,
+    NonNullable<TextImportDraft['background']>
+  >();
+  for (const [index, slide] of range.entries()) {
+    if (slide.background === null || pictures.has(slide.background)) continue;
+    let picture = await importSelectedBackground(api, {
+      index: start + index,
+      title,
+      decoration: true,
+      isActive,
+      exporting,
+    });
+    if (!isActive()) break;
+    picture ??= await importSelectedBackground(api, {
+      index: start + index,
+      title,
+      decoration: false,
+      isActive,
+      exporting,
+    });
+    if (picture !== undefined) pictures.set(slide.background, picture);
+  }
+  return pictures;
 }
 
 export function PowerPointImportFlow({
@@ -205,12 +274,18 @@ function PowerPointDialog({
   const [background, setBackground] = useState(backgroundAvailable);
   const [replacement, setReplacement] = useState<TextImportDraft | null>(null);
   const active = useRef(true);
+  const exporting = useRef(false);
   useEffect(() => {
+    const currentExport = exporting;
     active.current = true;
     return () => {
       active.current = false;
+      if (currentExport.current) {
+        currentExport.current = false;
+        api.powerpoint.cancelImages().catch(() => undefined);
+      }
     };
-  }, []);
+  }, [api]);
   const start = Math.min(anchor, end);
   const finish = Math.max(anchor, end);
   const range = useMemo(
@@ -245,12 +320,23 @@ function PowerPointDialog({
     try {
       const winner = powerpointBackgroundIndex(range);
       let importedBackground: TextImportDraft['background'];
+      let pictures = new Map<
+        string,
+        NonNullable<TextImportDraft['background']>
+      >();
       if (background && winner !== undefined) {
-        importedBackground = await importSelectedBackground(
-          api,
-          {index: start + winner, title: shownTitle},
-          () => active.current,
-        );
+        const decorated = await importBackgrounds(api, {
+          range,
+          start,
+          title: shownTitle,
+          isActive: () => active.current,
+          exporting,
+        });
+        if (!active.current) return;
+        pictures = decorated;
+        const key = range[winner]?.background;
+        importedBackground =
+          key === null || key === undefined ? undefined : pictures.get(key);
       }
       if (!active.current) return;
       if (!lyrics) {
@@ -259,7 +345,12 @@ function PowerPointDialog({
       }
       const draft: TextImportDraft = {
         title: shownTitle,
-        slides,
+        slides: slides.map((slide, index) => {
+          const key = range[index]?.background;
+          const picture =
+            key === null || key === undefined ? undefined : pictures.get(key);
+          return picture === undefined ? slide : {...slide, picture};
+        }),
         preserveSlides: true,
         ...(powerpointDarkLyrics(range) ? {theme: LIGHT_SONG_THEME_ID} : {}),
         ...(importedBackground === undefined
@@ -290,6 +381,10 @@ function PowerPointDialog({
         subtitle={{icon: 'filetext', text: source.fileName}}
         onCancel={() => {
           active.current = false;
+          if (exporting.current) {
+            exporting.current = false;
+            api.powerpoint.cancelImages().catch(() => undefined);
+          }
           onDone();
         }}
         cancelLabel="저장 안 함"

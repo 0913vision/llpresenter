@@ -13,7 +13,7 @@ import {projectSlides} from '@core/presentation/slides';
 import {createServiceItemId} from '@core/schema/ids';
 import {describe, expect, it} from 'vitest';
 import type {SlideTile} from '@core/presentation/model';
-import {slideLayerOf} from '@core/presentation/slideLayer';
+import {nextSlideOf, slideLayerOf} from '@core/presentation/slideLayer';
 import {createMediaId} from '@core/schema/ids';
 
 const tiles: Readonly<Record<string, readonly SlideTile[]>> = {
@@ -23,6 +23,21 @@ const tiles: Readonly<Record<string, readonly SlideTile[]>> = {
   ],
 };
 const tilesOf = (itemId: string): readonly SlideTile[] => tiles[itemId] ?? [];
+
+it('does not treat a song background as a picture-only next slide', () => {
+  const tile: SlideTile = {
+    label: null,
+    labelColor: 'none',
+    lines: ['Next lyric'],
+    picture: createMediaId('00000000-0000-4000-8000-000000000001'),
+  };
+  expect(nextSlideOf(tile, 'song', {title: 'Song'})).toMatchObject({
+    lines: ['Next lyric'],
+  });
+  expect(nextSlideOf(tile, 'song', {title: 'Song'})).not.toHaveProperty(
+    'title',
+  );
+});
 
 describe('slideLayerOf', () => {
   it('marks a repeated label only within the same item', () => {

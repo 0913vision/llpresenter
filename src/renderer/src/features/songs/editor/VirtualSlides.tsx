@@ -74,6 +74,7 @@ interface SlideSource {
   readonly slides: ReadonlyArray<{
     readonly label?: string;
     readonly lines: readonly string[];
+    readonly picture?: string;
     readonly titleSlide?: true;
     readonly titleLineCount?: number;
     readonly titleLayout?: import('@core/schema/songTitleLayout').SongTitleLayout;
@@ -394,7 +395,7 @@ export function VirtualSlides<T extends SlideListItem>({
                       <SlidePicture
                         output
                         {...theme}
-                        background={background}
+                        background={slide.picture ?? background}
                         slide={{
                           itemId: 'thumbnail',
                           position: number - 1,

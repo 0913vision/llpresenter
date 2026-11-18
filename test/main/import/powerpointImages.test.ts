@@ -40,7 +40,7 @@ describe('PowerPoint image export', () => {
     );
     expect(POWERPOINT_IMAGE_SCRIPT).toContain('$powerpoint.DisplayAlerts = 1');
     expect(POWERPOINT_IMAGE_SCRIPT).toContain(
-      'Presentations.Open($env:LLP_PPT_SOURCE, -1, 0, 0)',
+      'Presentations.Open($env:LLP_PPT_SOURCE, $readOnly, 0, 0)',
     );
     expect(POWERPOINT_IMAGE_SCRIPT).toContain(
       'SlideShowTransition.Hidden -ne -1',
@@ -73,6 +73,19 @@ describe('PowerPoint image export', () => {
     child.emit('close', 1);
     expect(await result).toBe('file');
   });
+  it('exports decorations from an editable temporary presentation without saving it', async () => {
+    const job = new PowerPointImagesJob();
+    const progress = Object.assign(vi.fn(), {decorationSlide: 4});
+    const result = job.run('temporary.pptx', 'temp', progress);
+    expect(mocks.spawn).toHaveBeenCalledOnce();
+    expect(POWERPOINT_IMAGE_SCRIPT).toContain('$env:LLP_PPT_DECORATION_SLIDE');
+    expect(POWERPOINT_IMAGE_SCRIPT).toContain('Remove-SlideText $slide.Shapes');
+    expect(POWERPOINT_IMAGE_SCRIPT).not.toContain('.Save(');
+    const child = mocks.children[0];
+    if (!child) throw new Error('Missing child');
+    child.emit('close', 0);
+    expect(await result).toBe('ok');
+  });
   it.each([
     ['FAILURE unavailable\n', 'unavailable'],
     ['FAILURE unresponsive\n', 'unresponsive'],
@@ -81,7 +94,7 @@ describe('PowerPoint image export', () => {
     'reports the PowerPoint failure marker %s',
     async (line, expected) => {
       const job = new PowerPointImagesJob();
-      const result = job.run('temporary.pptx', 'temp', vi.fn());
+      const result = job.run('temporary.pptx', 'temp', () => undefined);
       const child = mocks.children[0];
       if (!child) throw new Error('Missing child');
       child.stdout.emit('data', line);
@@ -92,14 +105,14 @@ describe('PowerPoint image export', () => {
   it('requests cooperative cleanup on cancel and kills a timed-out child', async () => {
     vi.useFakeTimers();
     const job = new PowerPointImagesJob();
-    const cancelled = job.run('deck.pptx', 'temp', vi.fn());
+    const cancelled = job.run('deck.pptx', 'temp', () => undefined);
     const first = mocks.children[0];
     if (!first) throw new Error('Missing child');
     job.cancel();
     expect(mocks.writeFileSync).toHaveBeenCalledOnce();
     first.emit('close', 0);
     expect(await cancelled).toBe('cancelled');
-    const timed = job.run('deck.pptx', 'temp', vi.fn());
+    const timed = job.run('deck.pptx', 'temp', () => undefined);
     const second = mocks.children[1];
     if (!second) throw new Error('Missing child');
     vi.advanceTimersByTime(120_000);
