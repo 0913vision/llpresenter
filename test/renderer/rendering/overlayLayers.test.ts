@@ -1,4 +1,4 @@
-import {builtInTheme} from '@core/themes/defaults';
+import {builtInTheme, standbyStageLayout} from '@core/themes/defaults';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {LiveStore} from '@main/live/store';
@@ -330,6 +330,58 @@ describe('registered overlay layers', () => {
     });
     expect(parent.querySelector('[data-stage-message-band]')?.textContent).toBe(
       '',
+    );
+  });
+
+  it('bounds a long stage cue to three lines with an ellipsis', () => {
+    const width = vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(1920);
+    const height = vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(1080);
+    const {send, render, parent} = setup();
+    width.mockRestore();
+    height.mockRestore();
+    const message = 'a'.repeat(4000);
+    send({type: 'stage.message.set', text: message});
+    render({id: STAGE, kind: 'stage'});
+    const band = parent.querySelector<HTMLElement>('[data-stage-message-band]');
+    expect(band?.textContent).toBe(message);
+    expect(band?.hidden).toBe(false);
+    expect(band?.style.display).toBe('-webkit-box');
+    expect(band?.style.getPropertyValue('-webkit-line-clamp')).toBe('3');
+    expect(band?.style.overflow).toBe('hidden');
+    expect(parseFloat(band?.style.maxHeight ?? '')).toBeGreaterThan(0);
+  });
+
+  it('places a two-line stage cue above the standby composition', () => {
+    const {renderer, store, parent} = setup();
+    const theme = builtInTheme('song');
+    const message = 'First line\nSecond line';
+    renderer.render(store.state.layers, {
+      screen: {id: STAGE, kind: 'stage'},
+      stageMessage: message,
+      standby: true,
+      transitions: false,
+      theme: {
+        themeId: theme.id,
+        revision: 1,
+        missing: [],
+        sourceScreenId: STAGE,
+        emptyColor: '#000000',
+        layout: standbyStageLayout(),
+        item: null,
+      },
+    });
+    const band = parent.querySelector<HTMLElement>('[data-stage-message-band]');
+    const stageLayer = parent.querySelector<HTMLElement>('[data-layer="stage-message"]');
+    const themeLayer = parent.querySelector<HTMLElement>('[data-layer="theme"]');
+    expect(band?.textContent).toBe(message);
+    expect(band?.hidden).toBe(false);
+    expect(band?.style.display).toBe('-webkit-box');
+    expect(band?.style.bottom).toBe('0px');
+    expect(band?.style.width).toBe('100%');
+    expect(themeLayer?.hidden).toBe(false);
+    expect(themeLayer?.querySelector('[data-kind="clock"]')).not.toBeNull();
+    expect(Number(stageLayer?.style.zIndex)).toBeGreaterThan(
+      Number(themeLayer?.style.zIndex),
     );
   });
 

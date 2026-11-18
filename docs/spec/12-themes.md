@@ -79,12 +79,11 @@ they have the same limit. A 테마 sets the elements of each screen itself.
 | 시계             | The current time                                                                                   | All            | One        |
 | 타이머           | A 타이머 picked in the element                                                                     | All            | Several    |
 | 영상 남은 시간   | Time left of the video playing on the media layer                                                  | All            | One        |
-| 무대 메시지      | The stage message sent from 진행 도구                                                              | 무대 화면 only | One        |
 | 메모             | The live 슬라이드's memo                                                                           | 무대 화면 only | One        |
 
-- 무대 메시지 and 메모 exist only on the 무대 화면 so that the audience never
-  sees them. The editor offers them only there, and a paste onto another screen
-  is refused.
+- Memo is available only on the stage screen, and a paste onto another screen
+  is refused. Stage messages appear separately in a bottom band above the
+  composition and are not theme elements.
 - A Bible verse is a 슬라이드, so 현재 슬라이드 글 shows it. Only 성경 출처 is
   extra.
 - 메시지 and 그래픽 are not elements. Each keeps its own appearance and the
@@ -129,7 +128,7 @@ one-pixel increment (ten with Shift).
 | 맞춤                | 이미지, 미디어, 배경, 오버레이              | 맞추기, 채우기, 늘리기 (the media properties' 맞춤)                                      |
 
 Text elements are 현재 슬라이드 글, 성경 출처, 다음 슬라이드 글, 이름표, 다음
-이름표, 항목 이름, 슬라이드 이름, 글, 시계, 타이머, 영상 남은 시간, 무대 메시지,
+이름표, 항목 이름, 슬라이드 이름, 글, 시계, 타이머, 영상 남은 시간,
 and 메모. `slideName` has only the common text element properties.
 
 슬라이드 번호 counts the item's text slides in saved order, excluding picture
@@ -744,9 +743,9 @@ slide label stays centered and is omitted when it repeats the item name, even
 though the item name is not shown. Bible slides instead show the same full
 passage reference and reference display setting as the audience, left-aligned in
 a 1612 px frame at 72 px white, on one line and shrunk to fit above the verse. A
-stage message moves the label up to make room; the timer sits to the left of the
-clock. A 60 px #E6E6E6 clock showing hours, minutes, and seconds sits at the top
-right in frame (1460, 20, 400, 80), clear of the next preview in frame (154,
+stage message overlays a bottom band without moving the label; the timer sits to
+the left of the clock. A 60 px #E6E6E6 clock showing hours, minutes, and seconds
+sits at the top right in frame (1460, 20, 400, 80), clear of the next preview in frame (154,
 706, 1612, 272). Current and next lyrics have approximately eight percent side
 margins and 1.2 line height. White centered current text occupies the large area
 above a bottom-aligned yellow centered next preview. A section-card next preview
@@ -872,6 +871,7 @@ sermon title; other Bible items retain the empty next line. Replace this rule by
 grouping the sermon passage with the sermon title item.
 
 Stage messages are drawn on every stage screen as a full-width, high-contrast
-band at the bottom, above the theme composition. Saved `stageMessage` elements
+band at the bottom, above the theme composition. The band shows up to three
+lines and truncates longer text with an ellipsis. Saved `stageMessage` elements
 do not draw or appear in the editor. They are removed when that layout is
 edited.
