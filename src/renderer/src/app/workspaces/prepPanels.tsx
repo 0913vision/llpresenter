@@ -20,6 +20,7 @@ import {InlineSongActions} from './InlineSongActions';
 import {SlideInspector} from '@renderer/features/service/slideInspector/SlideInspector';
 import {SlidesInspector} from '@renderer/features/service/slideInspector/SlidesInspector';
 import {OtherSlideInspector} from '@renderer/features/service/slideInspector/OtherSlideInspector';
+import {SermonInlineEditor} from '@renderer/features/service/items/SermonInlineEditor';
 import {ServiceItemPanel} from '@renderer/features/service/items/SongItemPanel';
 import type {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import {
@@ -440,6 +441,9 @@ function OtherPrepEditor({
           <strong>{displayReference(item.sermon.passage.ref)}</strong>
         ) : null}
       </header>
+      {item !== null && isItemOfKind(item, 'sermon') ? (
+        <SermonInlineEditor items={prep.items} />
+      ) : null}
       {item !== null &&
       (isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon')) ? (
         <BibleSplitTools

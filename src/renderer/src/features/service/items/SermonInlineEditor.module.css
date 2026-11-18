@@ -1,0 +1,18 @@
+.editor {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-8) var(--space-10);
+  padding: var(--space-10) var(--space-14);
+  border-bottom: var(--radius-hairline) solid var(--line);
+}
+
+.title {
+  grid-column: 1 / -1;
+}
+
+.passage {
+  min-width: 0;
+  color: var(--text-2);
+  font: var(--type-body);
+}
