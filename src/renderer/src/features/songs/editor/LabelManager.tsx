@@ -62,6 +62,13 @@ export function LabelManager({
   const dragging = useRef<string | null>(null);
   const [dropIndex, setDropIndex] = useState<number | null>(null);
   const {rows, prepareRename} = useLabelRows(labels);
+  useEffect(
+    () => () => {
+      // NOTE(0913vision): Removing the dragged element can prevent dragend.
+      if (dragging.current !== null) window.dispatchEvent(new Event('dragend'));
+    },
+    [],
+  );
   useEffect(() => {
     if (focusRequest === null || focused.current === focusRequest || busy) {
       return;
@@ -242,6 +249,8 @@ export function LabelManager({
             aria-disabled={locked || undefined}
             draggable={!locked}
             onDragStart={event => {
+              // NOTE(0913vision): Portaled events reach the slide surface drag handler.
+              event.stopPropagation();
               if (locked) {
                 event.preventDefault();
                 return;

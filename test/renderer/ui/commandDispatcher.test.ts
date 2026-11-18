@@ -12,6 +12,56 @@ afterEach(() => {
 });
 
 describe('dispatchShortcut', () => {
+  it('restores shortcuts when a drag start is cancelled or released', async () => {
+    const ran: string[] = [];
+    const owner = renderHook(() =>
+      useCommandShortcuts([
+        {id: 'library.newSong', run: () => ran.push('new')},
+      ]),
+    );
+    const key = {key: 'n', code: 'KeyN', ctrlKey: true};
+    const cancel = (event: Event): void => {
+      queueMicrotask(() => event.preventDefault());
+    };
+    document.body.addEventListener('dragstart', cancel);
+    fireEvent.dragStart(document.body);
+    await Promise.resolve();
+    document.body.removeEventListener('dragstart', cancel);
+    fireEvent.keyDown(document.body, key);
+    expect(ran).toEqual([]);
+    await new Promise(resolve => setTimeout(resolve, 0));
+    fireEvent.keyDown(document.body, key);
+    expect(ran).toEqual(['new']);
+    fireEvent.dragStart(document.body);
+    fireEvent.keyDown(document.body, key);
+    expect(ran).toEqual(['new']);
+    fireEvent.pointerUp(document.body);
+    fireEvent.keyDown(document.body, key);
+    expect(ran).toEqual(['new', 'new']);
+    owner.unmount();
+  });
+  it('does not let a cancelled earlier drag clear a newer drag', async () => {
+    const ran: string[] = [];
+    const owner = renderHook(() =>
+      useCommandShortcuts([
+        {id: 'library.newSong', run: () => ran.push('new')},
+      ]),
+    );
+    const cancel = (event: Event): void => {
+      queueMicrotask(() => event.preventDefault());
+    };
+    document.body.addEventListener('dragstart', cancel, {once: true});
+    fireEvent.dragStart(document.body);
+    await Promise.resolve();
+    fireEvent.dragStart(document.body);
+    await new Promise(resolve => setTimeout(resolve, 0));
+    fireEvent.keyDown(document.body, {key: 'n', code: 'KeyN', ctrlKey: true});
+    expect(ran).toEqual([]);
+    fireEvent.dragEnd(document.body);
+    fireEvent.keyDown(document.body, {key: 'n', code: 'KeyN', ctrlKey: true});
+    expect(ran).toEqual(['new']);
+    owner.unmount();
+  });
   it.each([
     ['output.audience', 'Digit1', {ctrlKey: true}],
     ['output.stage', 'Digit2', {ctrlKey: true}],

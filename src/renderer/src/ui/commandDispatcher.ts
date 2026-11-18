@@ -43,6 +43,7 @@ const owners = new Set<ShortcutOwner>();
 const modifiers = new PhysicalModifiers();
 let composing = false;
 let dragging = false;
+let dragGeneration = 0;
 let pointer: {id: number; x: number; y: number; dragged: boolean} | null = null;
 let takenSpace = false;
 const POINTER_DRAG_THRESHOLD_PX = 4;
@@ -294,6 +295,7 @@ function keyDown(event: KeyboardEvent, priority: 'capture' | 'bubble'): void {
 function reset(): void {
   composing = false;
   dragging = false;
+  dragGeneration++;
   pointer = null;
   takenSpace = false;
   modifiers.reset();
@@ -315,11 +317,18 @@ function listen(): () => void {
   const endComposition = (): void => {
     composing = false;
   };
-  const startDrag = (): void => {
+  const startDrag = (event: DragEvent): void => {
     dragging = true;
+    const generation = ++dragGeneration;
+    // NOTE(0913vision): Chromium can run microtasks before dragstart reaches
+    // its target. Check in a later task; cancelled drags never send dragend.
+    setTimeout(() => {
+      if (event.defaultPrevented && generation === dragGeneration) endDrag();
+    }, 0);
   };
   const endDrag = (): void => {
     dragging = false;
+    dragGeneration++;
     pointer = null;
   };
   const down = (event: PointerEvent): void => {
@@ -343,7 +352,10 @@ function listen(): () => void {
     pointer = null;
   };
   const cancelPointer = (event: KeyboardEvent): void => {
-    if (event.code === 'Escape') endPointer();
+    if (event.code === 'Escape') endDrag();
+  };
+  const releasePointer = (): void => {
+    endDrag();
   };
   window.addEventListener('keydown', capture, true);
   window.addEventListener('keydown', bubble);
@@ -356,7 +368,7 @@ function listen(): () => void {
   window.addEventListener('drop', endDrag, true);
   window.addEventListener('pointerdown', down, true);
   window.addEventListener('pointermove', move, true);
-  window.addEventListener('pointerup', endPointer, true);
+  window.addEventListener('pointerup', releasePointer, true);
   window.addEventListener('pointercancel', endPointer, true);
   window.addEventListener('lostpointercapture', endPointer, true);
   window.addEventListener('blur', reset);
@@ -373,7 +385,7 @@ function listen(): () => void {
     window.removeEventListener('drop', endDrag, true);
     window.removeEventListener('pointerdown', down, true);
     window.removeEventListener('pointermove', move, true);
-    window.removeEventListener('pointerup', endPointer, true);
+    window.removeEventListener('pointerup', releasePointer, true);
     window.removeEventListener('pointercancel', endPointer, true);
     window.removeEventListener('lostpointercapture', endPointer, true);
     window.removeEventListener('blur', reset);
