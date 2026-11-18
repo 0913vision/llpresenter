@@ -95,6 +95,11 @@ export class PictureService {
   private readonly shown = new Map<string, Drawing[]>();
   private readonly waits = new Map<string, Promise<void>>();
   private frame = 0;
+
+  constructor(
+    private readonly options: {readonly waitForReady?: boolean} = {},
+  ) {}
+
   /**
    * Shows pictures as they draw instead of waiting for them and keeps none,
    * where nothing is laid out or loaded (jsdom in tests).
@@ -375,7 +380,9 @@ export class PictureService {
           performance.now() - entry.started >= OUTPUT_REVEAL_DEADLINE_MS;
         const ready =
           previewReady(entry.renderer) && !fontsLoading(document.fonts);
-        if (!ready && !expired) continue;
+        if (!ready && (this.options.waitForReady === true || !expired)) {
+          continue;
+        }
         if (!ready) entry.renderer.revealIncomplete();
         this.pending.delete(entry);
         entry.finish();

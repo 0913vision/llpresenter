@@ -1,5 +1,8 @@
 import {describe, expect, it} from 'vitest';
 import {
+  parsePowerPointDecorationBatchRequest,
+  parsePowerPointDecorationBatchResult,
+  parsePowerPointPreviewImage,
   parsePowerPointBackgroundRequest,
   parsePowerPointReadResult,
   parsePowerPointReleaseRequest,
@@ -10,6 +13,47 @@ import {
 } from '@core/schema/powerpointImport';
 
 describe('PowerPoint import IPC', () => {
+  it('bounds decoration batches and preview image payloads', () => {
+    expect(parsePowerPointDecorationBatchRequest({indices: [0, 2]}).ok).toBe(
+      true,
+    );
+    expect(parsePowerPointDecorationBatchRequest({indices: []}).ok).toBe(false);
+    expect(parsePowerPointDecorationBatchRequest({indices: [1, 1]}).ok).toBe(
+      false,
+    );
+    expect(
+      parsePowerPointDecorationBatchRequest({
+        indices: Array.from({length: 201}, (_, i) => i),
+      }).ok,
+    ).toBe(false);
+    expect(parsePowerPointDecorationBatchRequest({indices: [-1]}).ok).toBe(
+      false,
+    );
+    expect(
+      parsePowerPointDecorationBatchResult([{index: 0, path: 'temporary.png'}])
+        .ok,
+    ).toBe(true);
+    expect(
+      parsePowerPointDecorationBatchResult([{index: 0, path: ''}]).ok,
+    ).toBe(false);
+    expect(
+      parsePowerPointPreviewImage({
+        mime: 'image/png',
+        bytes: new Uint8Array([1]),
+      }).ok,
+    ).toBe(true);
+    expect(
+      parsePowerPointPreviewImage({mime: 'image/png', bytes: new Uint8Array()})
+        .ok,
+    ).toBe(false);
+    expect(
+      parsePowerPointPreviewImage({
+        mime: 'image/gif',
+        bytes: new Uint8Array([1]),
+      }).ok,
+    ).toBe(false);
+  });
+
   it('validates exported image paths and progress', () => {
     expect(
       parsePowerPointImageExportResult({

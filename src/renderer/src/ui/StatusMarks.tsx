@@ -70,8 +70,8 @@ export function CountBadge({
 export type ProgressVariant = 'task' | 'playback';
 
 export interface ProgressProps {
-  /** How far along it is, from 0 to 100. */
-  readonly value: number;
+  /** How far along it is, from 0 to 100, or null while indeterminate. */
+  readonly value: number | null;
   /** The task name, such as 부활절 배경.mp4 복사. */
   readonly label: string;
   readonly variant?: ProgressVariant | undefined;
@@ -94,22 +94,26 @@ export function Progress({
   valueText,
   className,
 }: ProgressProps): JSX.Element {
-  const percent = progressPercent(value);
+  const percent = value === null ? null : progressPercent(value);
   return (
     <span
       role="progressbar"
       aria-label={label}
       aria-valuemin={0}
       aria-valuemax={PERCENT_MAX}
-      aria-valuenow={percent}
+      aria-valuenow={percent ?? undefined}
       aria-valuetext={valueText}
       className={classNames(
         styles.progress,
         variant === 'playback' && styles.playback,
+        percent === null && styles.indeterminate,
         className,
       )}
     >
-      <span className={styles.bar} style={{width: `${percent}%`}} />
+      <span
+        className={styles.bar}
+        style={{width: percent === null ? '35%' : `${percent}%`}}
+      />
     </span>
   );
 }

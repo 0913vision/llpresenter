@@ -1,6 +1,12 @@
 import {query, request, push, type IpcPort} from './endpoint';
 import {
+  parsePowerPointDecorationBatchRequest,
+  parsePowerPointDecorationBatchResult,
+  type PowerPointDecorationBatchRequest,
+  type PowerPointDecorationBatchResult,
   parsePowerPointReadResult,
+  parsePowerPointPreviewImage,
+  type PowerPointPreviewImage,
   parsePowerPointBackgroundRequest,
   parsePowerPointBackgroundResult,
   parsePowerPointReleaseRequest,
@@ -47,6 +53,10 @@ export const powerpointEndpoints = {
     'import:powerpoint:layers',
     {request: parsePowerPointLayersRequest, reply: parsePowerPointLayersResult},
   ),
+  cancelRead: query<boolean>(
+    'import:powerpoint:read:cancel',
+    parsePowerPointReleaseResult,
+  ),
   read: query<PowerPointReadResult>(
     'import:powerpoint:read',
     parsePowerPointReadResult,
@@ -56,6 +66,20 @@ export const powerpointEndpoints = {
     {
       request: parsePowerPointBackgroundRequest,
       reply: parsePowerPointBackgroundResult,
+    },
+  ),
+  decorationBatch: request<
+    PowerPointDecorationBatchRequest,
+    PowerPointDecorationBatchResult
+  >('import:powerpoint:decoration-batch', {
+    request: parsePowerPointDecorationBatchRequest,
+    reply: parsePowerPointDecorationBatchResult,
+  }),
+  previewImage: request<PowerPointReleaseRequest, PowerPointPreviewImage>(
+    'import:powerpoint:preview-image',
+    {
+      request: parsePowerPointReleaseRequest,
+      reply: parsePowerPointPreviewImage,
     },
   ),
   release: request<PowerPointReleaseRequest, boolean>(
@@ -78,7 +102,10 @@ export function powerpointApi(port: IpcPort) {
     subscribeImageProgress: port.subscribe(powerpointEndpoints.imageProgress),
     layers: port.request(powerpointEndpoints.layers),
     read: port.query(powerpointEndpoints.read),
+    cancelRead: port.query(powerpointEndpoints.cancelRead),
     background: port.request(powerpointEndpoints.background),
+    decorationBatch: port.request(powerpointEndpoints.decorationBatch),
+    previewImage: port.request(powerpointEndpoints.previewImage),
     release: port.request(powerpointEndpoints.release),
     match: port.request(powerpointEndpoints.match),
   };

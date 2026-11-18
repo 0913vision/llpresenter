@@ -2,6 +2,7 @@ import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {describe, expect, it, onTestFinished, vi} from 'vitest';
 import {createMediaId} from '@core/schema/ids';
 import {LIGHT_SONG_THEME_ID} from '@core/themes/lightSong';
+import type {PowerPointSource} from '@core/schema/powerpointImport';
 import type {
   MediaImportProgress,
   MediaImportResult,
@@ -10,6 +11,41 @@ import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {SongEditorStore} from '@renderer/features/songs/editor/songEditorStore';
 import {PowerPointImportFlow} from '@renderer/features/songs/import/PowerPointImportFlow';
+
+vi.mock('@renderer/features/songs/import/preparePowerPointImages', () => ({
+  PowerPointPreviewLimitError: class extends Error {},
+  preparePowerPointImages: vi.fn(async () => ({
+    ids: new Map(),
+    release: () => undefined,
+  })),
+}));
+vi.mock('@renderer/features/songs/import/PowerPointPreviewGrid', () => ({
+  PowerPointPreviewGrid: ({
+    slides,
+    start,
+    end,
+    onSelect,
+  }: {
+    readonly slides: PowerPointSource['slides'];
+    readonly start: number;
+    readonly end: number;
+    readonly onSelect: (index: number, shift: boolean) => void;
+  }) => (
+    <div>
+      {slides.map((slide, index) => (
+        <button
+          type="button"
+          role="option"
+          key={slide.number}
+          aria-selected={index >= start && index <= end}
+          onClick={event => onSelect(index, event.shiftKey)}
+        >
+          {slide.number} {slide.shapes.flatMap(shape => shape.lines).join(' ')}
+        </button>
+      ))}
+    </div>
+  ),
+}));
 
 vi.mock('@renderer/features/songs/import/composePowerPointBackground', () => ({
   composePowerPointBackground: vi.fn(async () => ({
@@ -21,6 +57,96 @@ vi.mock('@renderer/features/songs/import/composePowerPointBackground', () => ({
 const mockScene = {key: 'a'.repeat(64), layers: [], pictures: [], skipped: 0};
 
 describe('PowerPoint import dialog', () => {
+  it('waits for the actual theme before opening the preview', async () => {
+    const fixture = editorFixture();
+    const store = new SongEditorStore(fixture.api, vi.fn());
+    onTestFinished(() => store.dispose());
+    const original = fixture.api.settings.get;
+    let finish: (value: Awaited<ReturnType<typeof original>>) => void = () =>
+      undefined;
+    const pending = new Promise<Awaited<ReturnType<typeof original>>>(
+      resolve => {
+        finish = resolve;
+      },
+    );
+    const get = vi.fn((request: Parameters<typeof original>[0]) =>
+      request.name === 'themes' ? pending : original(request),
+    );
+    const api = mockLlpApi({
+      ...fixture.api,
+      settings: {...fixture.api.settings, get},
+      powerpoint: {
+        read: async () => ({
+          ok: true,
+          value: {
+            fileName: 'deck.pptx',
+            widescreen: true,
+            slides: [{number: 1, shapes: [], background: null}],
+          },
+        }),
+      },
+    });
+    render(
+      <PowerPointImportFlow
+        api={api}
+        store={store}
+        onDone={vi.fn()}
+        onEdit={vi.fn()}
+        onProblem={vi.fn()}
+      />,
+    );
+    await waitFor(() => expect(get).toHaveBeenCalledWith({name: 'themes'}));
+    expect(screen.queryByRole('textbox', {name: '제목'})).toBeNull();
+    await act(async () => finish(await original({name: 'themes'})));
+    expect(await screen.findByRole('textbox', {name: '제목'})).toBeTruthy();
+  });
+
+  it('ignores a completed read after the operator cancels', async () => {
+    const fixture = editorFixture();
+    const store = new SongEditorStore(fixture.api, vi.fn());
+    onTestFinished(() => store.dispose());
+    let finish: (
+      value: Awaited<ReturnType<typeof fixture.api.powerpoint.read>>,
+    ) => void = () => undefined;
+    const cancelRead = vi.fn(async () => true);
+    const api = mockLlpApi({
+      ...fixture.api,
+      powerpoint: {
+        cancelRead,
+        read: () =>
+          new Promise(resolve => {
+            finish = resolve;
+          }),
+      },
+    });
+    const onDone = vi.fn();
+    render(
+      <PowerPointImportFlow
+        api={api}
+        store={store}
+        onDone={onDone}
+        onEdit={vi.fn()}
+        onProblem={vi.fn()}
+      />,
+    );
+    expect(
+      screen.getByRole('progressbar', {name: 'PowerPoint 읽는 중'}),
+    ).toBeTruthy();
+    expect(screen.getByRole('progressbar').hasAttribute('aria-valuenow')).toBe(
+      false,
+    );
+    fireEvent.click(screen.getByRole('button', {name: '취소'}));
+    expect(onDone).toHaveBeenCalledOnce();
+    expect(cancelRead).toHaveBeenCalledOnce();
+    await act(async () =>
+      finish({
+        ok: true,
+        value: {fileName: 'deck.pptx', widescreen: true, slides: []},
+      }),
+    );
+    expect(screen.queryByRole('textbox', {name: '제목'})).toBeNull();
+  });
+
   it('keeps successful decorations when a later layout needs fallback', async () => {
     const fixture = editorFixture();
     const store = new SongEditorStore(fixture.api, vi.fn());
@@ -68,7 +194,7 @@ describe('PowerPoint import dialog', () => {
         onProblem={vi.fn()}
       />,
     );
-    await screen.findByRole('dialog', {name: 'PowerPoint 가져오기'});
+    await screen.findByRole('textbox', {name: '제목'});
     fireEvent.click(screen.getByRole('button', {name: '편집'}));
     await waitFor(() => expect(onEdit).toHaveBeenCalledOnce());
     expect(
@@ -276,7 +402,7 @@ describe('PowerPoint import dialog', () => {
         onProblem={vi.fn()}
       />,
     );
-    await screen.findByRole('dialog', {name: 'PowerPoint 가져오기'});
+    await screen.findByRole('textbox', {name: '제목'});
     fireEvent.click(screen.getByRole('button', {name: '편집'}));
     await waitFor(() => expect(onEdit).toHaveBeenCalledOnce());
     expect(background).toHaveBeenCalledTimes(2);
@@ -333,7 +459,7 @@ describe('PowerPoint import dialog', () => {
         onProblem={vi.fn()}
       />,
     );
-    await screen.findByRole('dialog', {name: 'PowerPoint 가져오기'});
+    await screen.findByRole('textbox', {name: '제목'});
     fireEvent.click(screen.getByRole('button', {name: '편집'}));
     await waitFor(() => expect(onEdit).toHaveBeenCalledOnce());
     expect(store.getSnapshot().session?.history.snapshot.song.background).toBe(
@@ -389,7 +515,7 @@ describe('PowerPoint import dialog', () => {
           onProblem={vi.fn()}
         />,
       );
-      await screen.findByRole('dialog', {name: 'PowerPoint 가져오기'});
+      await screen.findByRole('textbox', {name: '제목'});
       const lyrics = screen.getByRole('checkbox', {name: '가사'});
       const background = screen.getByRole('checkbox', {name: '배경'});
       fireEvent.click(choice === 'lyrics' ? background : lyrics);
@@ -497,7 +623,7 @@ describe('PowerPoint import dialog', () => {
         onProblem={onProblem}
       />,
     );
-    await screen.findByRole('dialog', {name: 'PowerPoint 가져오기'});
+    await screen.findByRole('textbox', {name: '제목'});
     fireEvent.click(screen.getByRole('button', {name: '편집'}));
     await waitFor(() =>
       expect(release).toHaveBeenCalledWith({path: 'C:/temp/ppt.png'}),
@@ -555,7 +681,7 @@ describe('PowerPoint import dialog', () => {
         onProblem={vi.fn()}
       />,
     );
-    await screen.findByRole('dialog', {name: 'PowerPoint 가져오기'});
+    await screen.findByRole('textbox', {name: '제목'});
     fireEvent.click(screen.getByRole('button', {name: '편집'}));
     await waitFor(() => expect(background).toHaveBeenCalledOnce());
     fireEvent.click(screen.getByRole('button', {name: '저장 안 함'}));
@@ -624,7 +750,7 @@ describe('PowerPoint import dialog', () => {
         onProblem={onProblem}
       />,
     );
-    await screen.findByRole('dialog', {name: 'PowerPoint 가져오기'});
+    await screen.findByRole('textbox', {name: '제목'});
     fireEvent.click(screen.getByRole('button', {name: '편집'}));
     await waitFor(() => expect(importMedia).toHaveBeenCalledOnce());
     fireEvent.click(screen.getByRole('button', {name: '저장 안 함'}));

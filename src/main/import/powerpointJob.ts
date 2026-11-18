@@ -28,7 +28,7 @@ export type PowerPointJob =
 
 /** Runs each bounded archive operation away from the main event loop. */
 export class PowerPointJobs {
-  private readonly workers = new Set<Worker>();
+  private readonly workers = new Map<Worker, PowerPointJob['kind']>();
   private disposed = false;
 
   run(job: PowerPointJob): Promise<unknown> {
@@ -39,7 +39,7 @@ export class PowerPointJobs {
       const worker = new Worker(join(__dirname, 'powerpointWorker.js'), {
         workerData: job,
       });
-      this.workers.add(worker);
+      this.workers.set(worker, job.kind);
       let answered = false;
       worker.once('message', (value: unknown) => {
         answered = true;
@@ -53,9 +53,15 @@ export class PowerPointJobs {
     });
   }
 
+  cancel(kind: PowerPointJob['kind']): void {
+    for (const [worker, workerKind] of this.workers) {
+      if (workerKind === kind) worker.terminate().catch(() => undefined);
+    }
+  }
+
   dispose(): void {
     this.disposed = true;
-    for (const worker of this.workers) {
+    for (const worker of this.workers.keys()) {
       worker.terminate().catch(() => undefined);
     }
   }

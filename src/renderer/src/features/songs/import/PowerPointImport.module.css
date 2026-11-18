@@ -15,8 +15,18 @@
   color: var(--text-3);
   font: var(--type-label);
 }
-.grid {
+.gridViewport {
+  flex: 1;
+  min-height: 0;
   overflow: auto;
+}
+.gridSpacer {
+  position: relative;
+}
+.grid {
+  position: absolute;
+  left: 0;
+  right: 0;
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   align-content: start;

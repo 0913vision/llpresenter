@@ -86,6 +86,30 @@ describe('PowerPoint image export', () => {
     child.emit('close', 0);
     expect(await result).toBe('ok');
   });
+  it('exports multiple decoration slides in one PowerPoint job', async () => {
+    const job = new PowerPointImagesJob();
+    const progress = Object.assign(vi.fn(), {decorationSlides: [2, 8, 11]});
+    const result = job.run('temporary.pptx', 'temp', progress);
+    const call: readonly unknown[] | undefined = mocks.spawn.mock.calls[0];
+    expect(call?.[2]).toMatchObject({
+      env: {LLP_PPT_DECORATION_SLIDE: '2,8,11'},
+    });
+    const child = mocks.children[0];
+    if (!child) throw new Error('Missing child');
+    child.stdout.emit('data', 'PROGRESS 2 3 8\n');
+    expect(progress).toHaveBeenCalledWith(2, 3, 8);
+    child.emit('close', 0);
+    expect(await result).toBe('ok');
+  });
+
+  it('rejects duplicate or invalid decoration requests before starting PowerPoint', async () => {
+    const job = new PowerPointImagesJob();
+    const progress = Object.assign(vi.fn(), {decorationSlides: [2, 2]});
+    expect(await job.run('temporary.pptx', 'temp', progress)).toBe('file');
+    const empty = Object.assign(vi.fn(), {decorationSlides: []});
+    expect(await job.run('temporary.pptx', 'temp', empty)).toBe('file');
+    expect(mocks.spawn).not.toHaveBeenCalled();
+  });
   it.each([
     ['FAILURE unavailable\n', 'unavailable'],
     ['FAILURE unresponsive\n', 'unresponsive'],

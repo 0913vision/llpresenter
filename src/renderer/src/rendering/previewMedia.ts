@@ -5,6 +5,38 @@ import type {MediaDocument} from '@core/schema/mediaEdit';
 import type {MediaItem} from '@core/schema/mediaList';
 import type {MediaProgress} from '@core/schema/mediaProgress';
 
+const PREVIEW_IMAGE_BYTES = 128 * 1024 * 1024;
+const PREVIEW_IMAGE_COUNT = 5000;
+const temporaryImages = new Map<string, {url: string; size: number}>();
+let temporaryImageBytes = 0;
+
+/** Lends a bounded, temporary image to preview renderers until released. */
+export function lendPreviewImage(
+  blob: Blob,
+): {readonly id: string; readonly release: () => void} | null {
+  if (
+    blob.size === 0 ||
+    temporaryImages.size >= PREVIEW_IMAGE_COUNT ||
+    temporaryImageBytes + blob.size > PREVIEW_IMAGE_BYTES
+  ) {
+    return null;
+  }
+  const url = URL.createObjectURL(blob);
+  const id = `preview:${crypto.randomUUID()}`;
+  temporaryImages.set(id, {url, size: blob.size});
+  temporaryImageBytes += blob.size;
+  return {
+    id,
+    release: () => {
+      const image = temporaryImages.get(id);
+      if (image === undefined) return;
+      temporaryImages.delete(id);
+      temporaryImageBytes -= image.size;
+      URL.revokeObjectURL(image.url);
+    },
+  };
+}
+
 export interface PreviewMediaSource {
   readonly url: (mediaId: string) => Promise<string>;
   readonly remaining: (media: MediaLayer) => number | undefined;
@@ -57,6 +89,8 @@ class PreviewMediaLibrary implements PreviewMediaSource {
   }
 
   async url(mediaId: string): Promise<string> {
+    const temporary = temporaryImages.get(mediaId);
+    if (temporary !== undefined) return temporary.url;
     this.start();
     await this.ready;
     const item = this.stopped ? undefined : this.items.get(mediaId);
@@ -88,7 +122,12 @@ class PreviewMediaLibrary implements PreviewMediaSource {
 
   /** The records of these media as this window knows them now. */
   describe(ids: readonly string[]): string {
-    return JSON.stringify(ids.map(id => [id, this.items.get(id) ?? null]));
+    return JSON.stringify(
+      ids.map(id => [
+        id,
+        temporaryImages.get(id)?.url ?? this.items.get(id) ?? null,
+      ]),
+    );
   }
 
   dispose(): void {

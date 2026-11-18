@@ -43,6 +43,25 @@ describe('PowerPoint worker jobs', () => {
     jobs.dispose();
   });
 
+  it('cancels a read without stopping other jobs or later reads', async () => {
+    const jobs = new PowerPointJobs();
+    const first = jobs.run({kind: 'read', path: 'deck.pptx'});
+    const other = jobs.run({
+      kind: 'layers',
+      path: 'deck.pptx',
+      digest: 'a',
+      number: 1,
+    });
+    jobs.cancel('read');
+    await expect(first).rejects.toThrow('PowerPoint worker exited');
+    mocks.workers[1]?.worker.emit('message', {layers: []});
+    expect(await other).toEqual({layers: []});
+    const later = jobs.run({kind: 'read', path: 'next.pptx'});
+    mocks.workers[2]?.worker.emit('message', {slides: []});
+    expect(await later).toEqual({slides: []});
+    jobs.dispose();
+  });
+
   it('rejects an unfinished job when the owner closes', async () => {
     const jobs = new PowerPointJobs();
     const result = jobs.run({kind: 'read', path: 'deck.pptx'});

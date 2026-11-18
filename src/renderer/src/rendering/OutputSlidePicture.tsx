@@ -13,7 +13,7 @@ import type {RenderScreen} from './layer';
 const screenId = createScreenId(STARTER_SCREEN_IDS.main);
 const defaultThemeId = createThemeId('00000000-0000-4000-8000-000000000001');
 
-interface SlideInput {
+export interface SlideInput {
   readonly slide: SlideLayer;
   readonly layout: ThemeScreenLayout;
   readonly emptyColor: string;
@@ -25,7 +25,7 @@ interface SlideInput {
 }
 
 /** What the output compositor draws for a prepared slide. */
-function slideSpec({
+export function outputSlideSpec({
   slide,
   layout,
   emptyColor,
@@ -93,7 +93,7 @@ export function OutputSlidePicture({
   readonly prepareOnly?: boolean | undefined;
   readonly liveText?: boolean | undefined;
 }): JSX.Element | null {
-  const spec = slideSpec(input);
+  const spec = outputSlideSpec(input);
   if (prepareOnly) return <PreparedPicture spec={spec} />;
   return drawn === undefined ? (
     <OutputPreviewPicture {...spec} liveText={liveText} />

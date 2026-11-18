@@ -4,6 +4,7 @@ import {BrowserWindow} from 'electron';
 import {beforeEach, describe, expect, it, onTestFinished, vi} from 'vitest';
 import {libraryEndpoints} from '@contracts/ipc/library';
 import {powerpointEndpoints} from '@contracts/ipc/powerpoint';
+import {parsePowerPointDecorationBatchResult} from '@core/schema/powerpointImport';
 import {registerPowerPointImport} from '@main/import/registerPowerPoint';
 import type {PowerPointJob} from '@main/import/powerpointJob';
 import {makeTempDir} from '@fixtures/tempDir';
@@ -86,6 +87,64 @@ function setup(windowMode: 'normal' | 'offscreen' = 'normal') {
 const readRequest = {source: 'file', encoding: 'auto'};
 
 describe('PowerPoint import', () => {
+  it('cancels a read while the file picker is open', async () => {
+    const {control, log} = setup();
+    let choose: (selection: Selection) => void = () => undefined;
+    electron.chooseFile.mockImplementationOnce(
+      () =>
+        new Promise(resolve => {
+          choose = resolve;
+        }),
+    );
+    const jobs = {
+      run: vi.fn(async () => null),
+      cancel: vi.fn(),
+      dispose: vi.fn(),
+    };
+    onTestFinished(
+      registerPowerPointImport({control, windowMode: 'normal', log}, jobs),
+    );
+    const pending = handler(powerpointEndpoints.read.channel)({}, undefined);
+    await vi.waitFor(() => expect(electron.chooseFile).toHaveBeenCalled());
+    expect(
+      await handler(powerpointEndpoints.cancelRead.channel)({}, undefined),
+    ).toBe(true);
+    choose({canceled: false, filePaths: ['deck.pptx']});
+    expect(await pending).toEqual({ok: true, value: null});
+    expect(jobs.run).not.toHaveBeenCalled();
+    expect(jobs.cancel).toHaveBeenCalledWith('read');
+  });
+
+  it('discards a read that completes after cancellation', async () => {
+    const {control, log} = setup();
+    let finish: (value: unknown) => void = () => undefined;
+    const jobs = {
+      run: vi.fn(
+        () =>
+          new Promise<unknown>(resolve => {
+            finish = resolve;
+          }),
+      ),
+      cancel: vi.fn(),
+      dispose: vi.fn(),
+    };
+    onTestFinished(
+      registerPowerPointImport({control, windowMode: 'normal', log}, jobs),
+    );
+    electron.chooseFile.mockResolvedValueOnce({
+      canceled: false,
+      filePaths: ['deck.pptx'],
+    });
+    const pending = handler(powerpointEndpoints.read.channel)({}, undefined);
+    await vi.waitFor(() => expect(jobs.run).toHaveBeenCalledOnce());
+    expect(
+      await handler(powerpointEndpoints.cancelRead.channel)({}, undefined),
+    ).toBe(true);
+    finish({digest: 'a'.repeat(64), widescreen: true, slides: []});
+    expect(await pending).toEqual({ok: true, value: null});
+    expect(jobs.cancel).toHaveBeenCalledWith('read');
+  });
+
   it('refuses a non-16:9 deck before either import starts', async () => {
     const {control, log} = setup();
     electron.tempDir = await makeTempDir();
@@ -341,6 +400,252 @@ describe('PowerPoint import', () => {
       message:
         'PowerPoint 97-2003 파일은 가져올 수 없습니다. PowerPoint에서 .pptx로 저장한 뒤 가져오십시오.',
     });
+  });
+
+  it('exports and releases a batch of PowerPoint decorations', async () => {
+    const {control, log} = setup();
+    electron.tempDir = await makeTempDir();
+    const source = join(electron.tempDir, 'deck.pptx');
+    await writeFile(source, 'original');
+    const jobs = {
+      run: vi.fn(async (job: PowerPointJob): Promise<unknown> => {
+        if (job.kind === 'read') {
+          return {
+            digest: 'a'.repeat(64),
+            widescreen: true,
+            slides: [
+              {number: 2, shapes: [], background: 'one'},
+              {number: 5, shapes: [], background: 'two'},
+            ],
+          };
+        }
+        return null;
+      }),
+      dispose: vi.fn(),
+    };
+    const images = {
+      run: vi.fn(
+        async (
+          _path: string,
+          directory: string,
+          progress: ((done: number, total: number, number: number) => void) & {
+            readonly decorationSlides?: readonly number[];
+          },
+        ) => {
+          expect(progress.decorationSlides).toEqual([2, 5]);
+          for (const [index, number] of [2, 5].entries()) {
+            await writeFile(
+              join(
+                directory,
+                `llp-ppt-${String(index + 1).padStart(4, '0')}.png`,
+              ),
+              'picture',
+            );
+            progress(index + 1, 2, number);
+          }
+          return 'ok' as const;
+        },
+      ),
+      cancel: vi.fn(),
+    };
+    onTestFinished(
+      registerPowerPointImport(
+        {control, windowMode: 'normal', log},
+        jobs,
+        images,
+      ),
+    );
+    electron.chooseFile.mockResolvedValueOnce({
+      canceled: false,
+      filePaths: [source],
+    });
+    expect(
+      await handler(powerpointEndpoints.read.channel)({}, undefined),
+    ).toMatchObject({ok: true});
+    const send = vi.fn();
+    const event = {sender: {isDestroyed: () => false, send}};
+    const result = await handler(powerpointEndpoints.decorationBatch.channel)(
+      event,
+      {indices: [0, 1]},
+    );
+    const parsed = parsePowerPointDecorationBatchResult(result);
+    if (!parsed.ok || parsed.value === null) {
+      throw Error('Missing decoration batch');
+    }
+    expect(parsed.value).toHaveLength(2);
+    expect(send).toHaveBeenCalledTimes(2);
+    for (const entry of parsed.value) {
+      expect(
+        await handler(powerpointEndpoints.release.channel)(
+          {},
+          {path: entry.path},
+        ),
+      ).toBe(true);
+    }
+    expect(await readdir(electron.tempDir)).toEqual(['deck.pptx']);
+  });
+
+  it('retains successful decoration exports when one slide fails', async () => {
+    const {control, log} = setup();
+    electron.tempDir = await makeTempDir();
+    const source = join(electron.tempDir, 'deck.pptx');
+    await writeFile(source, 'original');
+    const jobs = {
+      run: vi.fn(async (job: PowerPointJob): Promise<unknown> =>
+        job.kind === 'read'
+          ? {
+              digest: 'a'.repeat(64),
+              widescreen: true,
+              slides: [
+                {number: 1, shapes: [], background: 'one'},
+                {number: 2, shapes: [], background: 'two'},
+              ],
+            }
+          : null,
+      ),
+      dispose: vi.fn(),
+    };
+    const images = {
+      run: vi.fn(async (_path: string, directory: string) => {
+        await writeFile(join(directory, 'llp-ppt-0001.png'), 'picture');
+        return 'ok' as const;
+      }),
+      cancel: vi.fn(),
+    };
+    onTestFinished(
+      registerPowerPointImport(
+        {control, windowMode: 'normal', log},
+        jobs,
+        images,
+      ),
+    );
+    electron.chooseFile.mockResolvedValueOnce({
+      canceled: false,
+      filePaths: [source],
+    });
+    await handler(powerpointEndpoints.read.channel)({}, undefined);
+    const result = await handler(powerpointEndpoints.decorationBatch.channel)(
+      {sender: {isDestroyed: () => false, send: vi.fn()}},
+      {indices: [0, 1]},
+    );
+    const parsed = parsePowerPointDecorationBatchResult(result);
+    if (!parsed.ok || !parsed.value) throw Error('Missing batch');
+    expect(parsed.value.map(item => item.index)).toEqual([0]);
+    await handler(powerpointEndpoints.release.channel)(
+      {},
+      {path: parsed.value[0]?.path},
+    );
+  });
+
+  it('waits for an earlier layer worker before starting the next preview', async () => {
+    const {control, log} = setup();
+    electron.tempDir = await makeTempDir();
+    const source = join(electron.tempDir, 'deck.pptx');
+    await writeFile(source, 'original');
+    let finish: (value: unknown) => void = () => undefined;
+    let layerCalls = 0;
+    const jobs = {
+      run: vi.fn(async (job: PowerPointJob): Promise<unknown> => {
+        if (job.kind === 'read') {
+          return {
+            digest: 'a'.repeat(64),
+            widescreen: true,
+            slides: [{number: 1, shapes: [], background: 'one'}],
+          };
+        }
+        if (job.kind === 'layers' && layerCalls++ === 0) {
+          return new Promise(resolve => {
+            finish = resolve;
+          });
+        }
+        return null;
+      }),
+      dispose: vi.fn(),
+    };
+    const images = {run: vi.fn(async () => 'ok' as const), cancel: vi.fn()};
+    onTestFinished(
+      registerPowerPointImport(
+        {control, windowMode: 'normal', log},
+        jobs,
+        images,
+      ),
+    );
+    electron.chooseFile.mockResolvedValue({
+      canceled: false,
+      filePaths: [source],
+    });
+    await handler(powerpointEndpoints.read.channel)({}, undefined);
+    const oldLayer = handler(powerpointEndpoints.layers.channel)(
+      {},
+      {index: 0},
+    );
+    await handler(powerpointEndpoints.read.channel)({}, undefined);
+    const next = handler(powerpointEndpoints.decorationBatch.channel)(
+      {sender: {isDestroyed: () => false, send: vi.fn()}},
+      {indices: [0]},
+    );
+    expect(images.run).not.toHaveBeenCalled();
+    finish({key: 'a'.repeat(64), layers: [], pictures: [], skipped: 0});
+    await oldLayer;
+    expect(await next).toBeNull();
+    expect(images.run).toHaveBeenCalledOnce();
+  });
+
+  it('reads only owned temporary images within the image limits', async () => {
+    const {control, log} = setup();
+    electron.tempDir = await makeTempDir();
+    const image = Buffer.alloc(24);
+    Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]).copy(image);
+    image.write('IHDR', 12, 'ascii');
+    image.writeUInt32BE(1, 16);
+    image.writeUInt32BE(1, 20);
+    const jobs = {
+      run: vi.fn(async (job: PowerPointJob): Promise<unknown> => {
+        if (job.kind === 'read') {
+          return {
+            digest: 'a'.repeat(64),
+            widescreen: true,
+            slides: [
+              {number: 1, shapes: [], background: 'ppt/media/image.png'},
+            ],
+          };
+        }
+        if (job.kind === 'background') {
+          await writeFile(job.target, image);
+          return true;
+        }
+        return null;
+      }),
+      dispose: vi.fn(),
+    };
+    onTestFinished(
+      registerPowerPointImport({control, windowMode: 'normal', log}, jobs),
+    );
+    electron.chooseFile.mockResolvedValueOnce({
+      canceled: false,
+      filePaths: ['deck.pptx'],
+    });
+    await handler(powerpointEndpoints.read.channel)({}, undefined);
+    const path = await handler(powerpointEndpoints.background.channel)(
+      {},
+      {index: 0},
+    );
+    expect(typeof path).toBe('string');
+    const preview = await handler(powerpointEndpoints.previewImage.channel)(
+      {},
+      {path},
+    );
+    expect(preview).toEqual({mime: 'image/png', bytes: image});
+    expect(
+      await handler(powerpointEndpoints.previewImage.channel)(
+        {},
+        {path: join(electron.tempDir, 'unrelated.png')},
+      ),
+    ).toBeNull();
+    await handler(powerpointEndpoints.release.channel)({}, {path});
+    expect(
+      await handler(powerpointEndpoints.previewImage.channel)({}, {path}),
+    ).toBeNull();
   });
 
   it('releases every temporary image after repeated imports and failures', async () => {
