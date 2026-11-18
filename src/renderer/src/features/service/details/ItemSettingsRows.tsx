@@ -55,7 +55,20 @@ export function resolveMacro(
 
 function useMediaDocument(api: LlpApi['media'], enabled: boolean) {
   const source = useMemo<DocumentSource<MediaDocument>>(
-    () => ({read: () => api.get(), follow: accept => api.subscribe(accept)}),
+    () => ({
+      read: () => api.get(),
+      follow: accept => api.subscribe(accept),
+      // NOTE(0913vision): The window keeps the media list, so the rows show
+      // their choices in the panel's first frame.
+      kept: {
+        owner: api,
+        name: 'media',
+        is: (document: {
+          readonly revision: number;
+        }): document is MediaDocument =>
+          'name' in document && document.name === 'media',
+      },
+    }),
     [api],
   );
   return useFollowedDocument(source, enabled);
@@ -75,6 +88,16 @@ function useMacros(api: LlpApi['settings']) {
         api.subscribe(document => {
           if (document.name === 'macros') accept(document);
         }),
+      // NOTE(0913vision): The window keeps the 매크로 list, so 시작할 때 is
+      // ready in the panel's first frame instead of disabled for a moment.
+      kept: {
+        owner: api,
+        name: 'macros',
+        is: (document: {
+          readonly revision: number;
+        }): document is MacrosDocument =>
+          'name' in document && document.name === 'macros',
+      },
     }),
     [api],
   );
