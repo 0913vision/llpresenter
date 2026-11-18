@@ -539,9 +539,12 @@ the window as fallback), `Main` decision "방송 화면은 NDI로", `Screens`,
 
 The live 테마 lays out the 무대 화면 like the other screens (12). The clock,
 timer, and memo elements appear where the theme places them. Memo is offered
-only on the stage screen. A stage message appears above the theme in a
-full-width bottom band, including on the standby screen. It shows up to three
-lines and truncates longer text with an ellipsis.
+only on the stage screen. Over a picture slide or picture item, the stage clock
+and visible timer have an opaque black backing fitted to their text, with a
+small margin; the picture remains full size. Text and lyric slides keep their
+existing appearance. A stage message appears above the theme in a full-width
+bottom band, including on the standby screen. It shows up to three lines and
+truncates longer text with an ellipsis.
 
 - The control window sends the next 슬라이드 with the live one, from the
   sequence it already walks, and main checks it like the rest of the command

@@ -179,6 +179,14 @@ export class ThemeElementView {
     }
     this.box.dataset['themeElement'] = element.id;
     this.box.dataset['kind'] = element.kind;
+    if (element.kind === 'clock' || element.kind === 'timer') {
+      this.box.style.setProperty(
+        '--stage-utility-align',
+        {left: 'flex-start', center: 'center', right: 'flex-end'}[
+          element.text.align
+        ],
+      );
+    }
     let textParent = this.box;
     if (this.previewMaxLines !== undefined && element.kind === 'currentText') {
       const height =
@@ -330,6 +338,24 @@ export class ThemeElementView {
     const item = frame.theme?.item ?? null;
     const stage = frame.screen?.kind === 'stage';
     const slide = layers.slide;
+    const stageUtility =
+      stage && (element.kind === 'clock' || element.kind === 'timer');
+    this.box.toggleAttribute(
+      'data-stage-picture-utility',
+      stageUtility &&
+        (slide?.picture !== undefined || layers.media?.slidePicture === true),
+    );
+    this.box.toggleAttribute(
+      'data-stage-media-utility',
+      stageUtility && item?.kind === 'media' && layers.media !== null,
+    );
+    if (element.kind === 'clock' || element.kind === 'timer') {
+      this.box.style.overflow =
+        this.box.hasAttribute('data-stage-picture-utility') ||
+        this.box.hasAttribute('data-stage-media-utility')
+          ? 'visible'
+          : 'hidden';
+    }
     const finalBible =
       (slide?.kind ?? item?.kind) === 'bible' &&
       slide?.sequenceLength !== undefined &&
