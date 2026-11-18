@@ -58,11 +58,6 @@ class Entry {
     this.publish();
   }
 
-  replace(image: PictureImage): void {
-    this.image = image;
-    this.publish();
-  }
-
   private publish(): void {
     this.revision++;
     for (const listener of this.listeners) listener();
@@ -325,7 +320,7 @@ class PictureService {
     try {
       canvas.toBlob(blob => {
         if (blob === null) return;
-        this.keepEncoded(entry, blob).catch((error: unknown) =>
+        this.storeEncoded(entry, blob).catch((error: unknown) =>
           console.error(error),
         );
       }, 'image/png');
@@ -334,20 +329,12 @@ class PictureService {
     }
   }
 
-  private async keepEncoded(entry: Entry, blob: Blob): Promise<void> {
+  private async storeEncoded(entry: Entry, blob: Blob): Promise<void> {
     const data = await blob.arrayBuffer();
     window.llp?.picture.remember({
       picture: {spec: entry.spec, inputs: entry.inputs},
       image: new Uint8Array(data),
     });
-    const src = await this.decode(blob);
-    if (this.entries.get(entry.key) !== entry) {
-      URL.revokeObjectURL(src);
-      return;
-    }
-    this.bytes += blob.size - (entry.image?.bytes ?? 0);
-    entry.replace({source: src, bytes: blob.size});
-    this.prune();
   }
 
   private prune(): void {

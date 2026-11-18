@@ -126,7 +126,6 @@ export class LocalPicturePainter {
         cleanup();
         try {
           if (this.failed) throw new Error('A source layer could not be drawn');
-          context.clearRect(0, 0, WIDTH, HEIGHT);
           if (
             this.host.clientWidth !== WIDTH ||
             this.host.clientHeight !== HEIGHT
@@ -145,6 +144,9 @@ export class LocalPicturePainter {
           resolve(image);
         } catch (error) {
           reject(error instanceof Error ? error : new Error(String(error)));
+        } finally {
+          // NOTE(0913vision): Keep the source transparent after copying it.
+          context.clearRect(0, 0, WIDTH, HEIGHT);
         }
       };
       const cleanup = (): void => {
