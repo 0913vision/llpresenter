@@ -587,7 +587,7 @@ describe('theme composition drawing', () => {
         `[data-theme-element="${BROADCAST_LOOK_BAND_ID}"] > div`,
       );
       if (caption === 'band') {
-        expect(panel?.style.backgroundColor).toBe('rgba(0, 0, 0, 0.7)');
+        expect(panel?.style.backgroundColor).toBe('rgb(0, 0, 0)');
         expect(panel?.style.background).not.toContain('gradient');
       }
       view.dispose();
