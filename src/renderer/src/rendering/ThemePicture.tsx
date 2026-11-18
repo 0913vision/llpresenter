@@ -279,7 +279,9 @@ function contents(
     const source = context.media?.[element.kind];
     return source === undefined ? (
       context.showPlaceholders ? (
-        <div className={styles.placeholder}>{samples[element.kind]}</div>
+        <div className={styles.placeholder} style={{fontSize: 36}}>
+          {samples[element.kind]}
+        </div>
       ) : null
     ) : (
       <img
@@ -297,7 +299,11 @@ function contents(
     );
   }
   if (element.kind === 'overlay' && context.showPlaceholders) {
-    return <div className={styles.placeholder}>{samples.overlay}</div>;
+    return (
+      <div className={styles.placeholder} style={{fontSize: 36}}>
+        {samples.overlay}
+      </div>
+    );
   }
   if (element.kind === 'clock' || element.kind === 'timer') {
     return (

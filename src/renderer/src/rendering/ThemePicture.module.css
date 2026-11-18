@@ -42,6 +42,5 @@
   box-sizing: border-box;
   border: var(--space-2) dashed var(--text-3);
   color: var(--text-2);
-  font-size: 36px;
   padding: var(--space-8);
 }
