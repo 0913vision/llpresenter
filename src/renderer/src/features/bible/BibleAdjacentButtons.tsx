@@ -1,7 +1,11 @@
 import {useEffect, useRef, useState, type JSX} from 'react';
 import {useShow, selectTile} from '@renderer/session/show';
-import {useLive} from '@renderer/session/live';
-import {bibleSourceFor, tilesForView} from '@renderer/session/showLibrary';
+import {sendLive, useLive} from '@renderer/session/live';
+import {
+  bibleSourceFor,
+  liveTileIndex,
+  tilesForView,
+} from '@renderer/session/showLibrary';
 import {retainedBibleSelection} from '@core/bible/selection';
 import {
   beginOutputRequest,
@@ -75,6 +79,19 @@ export function BibleAdjacentButtons({
           source.enteredTranslation ?? source.passage.translation,
       });
       const view = useShow.getState();
+      const live = useLive.getState().state?.layers.slide ?? null;
+      if (
+        live !== null &&
+        bibleSourceFor(initial, live.itemId) !== null &&
+        liveTileIndex(view, live) !== null
+      ) {
+        sendLive({
+          type: 'bible.passage.title.set',
+          itemId: live.itemId,
+          position: live.position,
+          title: passage.displayRef,
+        });
+      }
       if (view.openItemId !== null) {
         selectTile(
           retainedBibleSelection(

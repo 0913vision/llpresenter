@@ -21,6 +21,50 @@ function setup() {
   );
 }
 
+it('updates the live Bible passage title without changing the slide, black state, or clear undo', () => {
+  const state = emptyLiveState();
+  const bible = {...slide, reference: '요한복음 3:16', title: '요한복음 3:16'};
+  const store = new LiveStore({
+    ...state,
+    layers: {
+      ...state.layers,
+      slide: bible,
+      media: {mediaId: 'background', loop: true, startedAt: 0},
+    },
+    themeItem: {
+      id: slide.itemId,
+      kind: 'bible',
+      source: 'external',
+      title: '요한복음 3:16',
+    },
+  });
+  store.dispatch({type: 'layer.clear', target: 'media'});
+  store.dispatch({type: 'black.toggle'});
+  store.dispatch({
+    type: 'bible.passage.title.set',
+    itemId: slide.itemId,
+    position: 0,
+    title: '요한복음 3:16~17',
+  });
+  expect(store.state.blackScreen).toBe(true);
+  expect(store.state.canUndo).toBe(true);
+  expect(store.state.themeItem?.title).toBe('요한복음 3:16~17');
+  expect(store.state.layers.slide).toEqual({
+    ...bible,
+    title: '요한복음 3:16~17',
+  });
+  store.dispatch({
+    type: 'bible.passage.title.set',
+    itemId: 'other',
+    position: 0,
+    title: 'stale',
+  });
+  expect(store.state.themeItem?.title).toBe('요한복음 3:16~17');
+  store.dispatch({type: 'clear.undo'});
+  expect(store.state.layers.media?.mediaId).toBe('background');
+  expect(store.state.themeItem?.title).toBe('요한복음 3:16~17');
+});
+
 it.each<ClearTarget>(['all', ...layerKinds])(
   'clears and restores %s on successive key presses',
   target => {

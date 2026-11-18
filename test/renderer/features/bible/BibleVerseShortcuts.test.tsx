@@ -169,7 +169,7 @@ async function savedWithCard(position: number) {
 }
 
 describe('Bible verse shortcuts', () => {
-  it('does not fetch a new live chapter when output reaches the passage edge', async () => {
+  it('fetches the adjacent verse for the live translation at the passage edge', async () => {
     const fixture = await setup();
     const source = useShow.getState().bibleSource;
     if (!source) throw Error('Missing Bible source');
@@ -180,8 +180,11 @@ describe('Bible verse shortcuts', () => {
       },
     });
     await outputAdjacentBibleVerse('next');
-    expect(fixture.lookup).not.toHaveBeenCalled();
-    expect(fixture.send).not.toHaveBeenCalled();
+    expect(fixture.lookup).toHaveBeenCalled();
+    expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])).toMatchObject({
+      type: 'slide.show',
+      slide: {label: '요3:19'},
+    });
   });
   it('does nothing for previous verse from the card and advances to the first verse', async () => {
     const fixture = await savedWithCard(0);
