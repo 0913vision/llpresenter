@@ -155,6 +155,11 @@ function start(): void {
       startupSplash = splash;
       const stopPictureChannels = registerPictureChannels();
       shutdown.add({name: 'stop picture painter', run: stopPictureChannels});
+      splash.once('ready-to-show', () =>
+        log.info('launch window ready', {
+          processUptimeMs: Math.round(process.uptime() * 1000),
+        }),
+      );
       const recoveryFolder = join(app.getPath('userData'), RECOVERY_FOLDER);
       const session = await openRecoverySession({folder: recoveryFolder, log});
       if (session.crashed) {

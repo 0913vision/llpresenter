@@ -158,7 +158,7 @@ const mocks = vi.hoisted(() => {
     mediaRoots: vi.fn<() => readonly string[]>(),
     mediaOptions,
     opened,
-    splash: {isDestroyed: vi.fn(() => false), close: vi.fn()},
+    splash: {isDestroyed: vi.fn(() => false), close: vi.fn(), once: vi.fn()},
     splashStep: vi.fn(),
     controlWindow: {
       isMinimized: vi.fn(() => true),
@@ -450,6 +450,7 @@ export function deferred(): {promise: Promise<void>; resolve: () => void} {
 beforeEach(async () => {
   mocks.splash.isDestroyed.mockReset().mockReturnValue(false);
   mocks.splash.close.mockReset();
+  mocks.splash.once.mockReset();
   mocks.splashStep.mockReset();
   mocks.updateContexts.length = 0;
   mocks.updateStop.mockClear();
