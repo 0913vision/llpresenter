@@ -294,9 +294,11 @@ function start(): void {
           (await dataStore.settings)?.preferences().general.startMaximized ??
           true,
       });
-      win.once(windowMode === 'normal' ? 'show' : 'ready-to-show', () => {
+      const closeSplash = (): void => {
         if (!splash.isDestroyed()) splash.close();
-      });
+      };
+      if (windowMode === 'normal') win.once('show', closeSplash);
+      else win.once('ready-to-show', closeSplash);
       control = win;
       let activeControl = win;
       const controlRef = {

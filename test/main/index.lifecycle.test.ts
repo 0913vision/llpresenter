@@ -11,6 +11,23 @@ import {describe, expect, it, vi} from 'vitest';
 import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 
 describe('main entry lifecycle', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
+  it('closes the splash when the control window shows', async () => {
+    const control = await startMain();
+    expect(mocks.splash.close).not.toHaveBeenCalled();
+    control.emit('ready-to-show');
+    expect(mocks.splash.close).not.toHaveBeenCalled();
+    control.emit('show');
+    expect(mocks.splash.close).toHaveBeenCalledOnce();
+  });
+
+  it('closes the splash when the offscreen control window is ready', async () => {
+    mocks.electron.app.isPackaged = false;
+    vi.stubEnv('LLP_TEST_WINDOWS', 'offscreen');
+    const control = await startMain();
+    control.emit('ready-to-show');
+    expect(mocks.splash.close).toHaveBeenCalledOnce();
+  });
+
   it('reads the UI state before the control window opens', async () => {
     await startMain();
     expect(mocks.order).toEqual([
