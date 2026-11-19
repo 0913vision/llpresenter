@@ -15,8 +15,7 @@ import {
   matchBooks,
 } from '@core/bible/bibleMatching';
 
-const BOOK_PREFIX =
-  /^((?:[1-3]\s*)?(?:[\p{L}\p{M}\s]|(?<=\p{L})[1-3](?=\p{L}))+)(.*)$/u;
+const BOOK_PREFIX = /^(요한\s*[1-3]\s*서|(?:[1-3]\s*)?[\p{L}\p{M}\s]+)(.*)$/u;
 const WARNED_FILE_LIMIT = 128;
 
 export interface BibleLookupOptions {

@@ -153,6 +153,21 @@ describe('all 66 book search keys', () => {
         .map(book => book.id),
     ).toEqual([23, 7, 9, 10, 44]);
   });
+
+  it('breaks abbreviation and full-name initial prefix ties in canonical order', () => {
+    const ids = findBibleBooks('ㅅ').map(book => book.id);
+    expect(ids.indexOf(5)).toBeLessThan(ids.indexOf(9));
+    expect(ids.slice(0, 4)).toEqual([5, 7, 9, 10]);
+    expect(
+      findBibleBooks('t')
+        .map(book => book.id)
+        .indexOf(5),
+    ).toBeLessThan(
+      findBibleBooks('t')
+        .map(book => book.id)
+        .indexOf(9),
+    );
+  });
 });
 
 describe('four-field book candidates', () => {

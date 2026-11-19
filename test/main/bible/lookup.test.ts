@@ -14,6 +14,7 @@ import {BibleLookupSession} from '@main/bible/lookup';
 import * as library from '@main/bible/library';
 import * as chapterFile from '@main/bible/chapterFile';
 import {chunkedTranslationFile} from '@fixtures/core/bible/testFiles';
+import {LIVE_BIBLE_ID} from '@core/bible/liveTranslation';
 
 const log = {
   info: vi.fn(),
@@ -70,6 +71,30 @@ async function setup() {
 }
 
 describe('Bible lookup session', () => {
+  it('keeps compact Korean chapter references separate from numbered book aliases', async () => {
+    const {session} = await setup();
+    const reply = await session.lookup(request('요3장 16절'));
+    expect(reply.suggestions[0]).toMatchObject({
+      bookId: 43,
+      input: '요한복음 3장 16절',
+    });
+    expect(reply.bounds?.bookId).toBe(43);
+    expect(reply.result).toMatchObject({
+      ok: true,
+      value: {ref: '요한복음 3:16'},
+    });
+    const hasBook = vi
+      .spyOn(library.BibleLibrary.prototype, 'hasBook')
+      .mockReturnValue(false);
+    try {
+      const fallback = await session.lookup(request('요3장 16절'), true);
+      expect(fallback.effectiveTranslation).toBe(LIVE_BIBLE_ID);
+      expect(fallback.bounds?.bookId).toBe(43);
+      expect(fallback.suggestions[0]?.bookId).toBe(43);
+    } finally {
+      hasBook.mockRestore();
+    }
+  });
   it('reloads a restored Bible file without a settings change or app restart', async () => {
     const {folder, session} = await setup();
     // NOTE(0913vision): Remove the file after indexing but before chapter reads.

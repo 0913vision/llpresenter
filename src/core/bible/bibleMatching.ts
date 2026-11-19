@@ -324,7 +324,7 @@ function rank(entry: (typeof names)[number], query: Query): number {
   ) {
     return 6;
   }
-  if (initialKeys.some(key => entry.fullInitials.startsWith(key))) return 7;
+  if (initialKeys.some(key => entry.fullInitials.startsWith(key))) return 6;
   if (
     [...entry.short, ...entry.full].some(value => value.includes(plain)) ||
     entry.shortLetters.includes(originalLetters) ||
