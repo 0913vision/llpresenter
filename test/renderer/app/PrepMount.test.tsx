@@ -5,7 +5,6 @@ import {
   fireEvent,
   render,
   screen,
-  waitFor,
   within,
 } from '@testing-library/react';
 import {afterEach, beforeEach, expect, it, vi} from 'vitest';
@@ -94,10 +93,10 @@ it('opens the library song inline and releases every listener', async () => {
       name: fixture.first.song.title,
     }),
   );
-  await waitFor(() =>
-    expect(
-      screen.getByRole('textbox', {name: '슬라이드 1 가사'}),
-    ).toBeDefined(),
+  await screen.findByRole(
+    'textbox',
+    {name: '슬라이드 1 가사'},
+    {timeout: 3000},
   );
   expect(openWindow).not.toHaveBeenCalled();
   expect(screen.queryByRole('listbox', {name: '예배 순서'})).toBeNull();

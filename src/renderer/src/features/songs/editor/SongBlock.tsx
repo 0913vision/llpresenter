@@ -310,6 +310,11 @@ export const SongBlock = memo(
                     {...picture}
                     editing={focused}
                     wait={switching === true}
+                    switchSlot={
+                      switching === true
+                        ? `prep:${session.slideDocumentId}:${slide.id}`
+                        : undefined
+                    }
                   />
                 )}
                 <SlideTransitionMark transition={slide.transition} />

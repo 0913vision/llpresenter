@@ -26,7 +26,6 @@ export interface PictureDisplay {
 
 interface DisplayTicket {
   readonly ready: Promise<PictureDisplay | undefined>;
-  readonly done: boolean;
   readonly display: PictureDisplay | undefined;
 }
 
@@ -306,9 +305,8 @@ export class PictureService {
     const earlier = displays.get(slot);
     if (earlier !== undefined) return earlier;
     let display: PictureDisplay | undefined;
-    let done = false;
-    const ticket = {
-      ready: entry.ready.then(async () => {
+    const ready: Promise<PictureDisplay | undefined> = entry.ready.then(
+      async () => {
         const picture = entry.image;
         if (picture !== undefined && typeof picture.source === 'string') {
           const release = this.retain(picture);
@@ -317,12 +315,14 @@ export class PictureService {
           );
           display = {picture, element, consume: () => displays.delete(slot)};
         }
-        done = true;
+        // NOTE(0913vision): React can read a decoded display on its first render.
+        Reflect.set(ready, 'status', 'fulfilled');
+        Reflect.set(ready, 'value', display);
         return display;
-      }),
-      get done() {
-        return done;
       },
+    );
+    const ticket = {
+      ready,
       get display() {
         return display;
       },

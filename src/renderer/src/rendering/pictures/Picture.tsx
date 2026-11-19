@@ -24,6 +24,7 @@ import {
   songPictureDraft,
 } from '@core/presentation/songPictureDrafts';
 import styles from './Picture.module.css';
+import {ResampledPicture} from './ResampledPicture';
 
 interface PictureProps extends PictureSpec {
   readonly service?: PictureService | undefined;
@@ -31,6 +32,7 @@ interface PictureProps extends PictureSpec {
   readonly wait?: boolean;
   readonly switchSlot?: string | undefined;
   readonly editing?: boolean;
+  readonly resample?: boolean;
 }
 
 function SlideImage({
@@ -122,6 +124,7 @@ export const Picture = memo(
     service = pictures,
     switchSlot,
     editing = false,
+    resample = false,
     layers,
     appearance,
     songSource,
@@ -185,8 +188,9 @@ export const Picture = memo(
       [image, service],
     );
     // NOTE(0913vision): Run every hook before a render waits for its picture.
-    if (prepared !== undefined && !prepared.done) use(prepared.ready);
-    else if (wait && ticket.available && !done) use(ticket.ready);
+    // Read the promise on the retry too, so React can finish the suspension.
+    if (prepared !== undefined) use(prepared.ready);
+    else if (wait && ticket.available) use(ticket.ready);
     if (image !== previous) setPrevious(image);
     if (display !== displayed) setDisplayed(display);
     return (
@@ -211,6 +215,9 @@ export const Picture = memo(
             ticket={ticket}
           />
         )}
+        {resample && image !== undefined ? (
+          <ResampledPicture source={image.source} prepared={display?.element} />
+        ) : null}
       </div>
     );
   },
@@ -219,6 +226,7 @@ export const Picture = memo(
     previous.wait === next.wait &&
     previous.switchSlot === next.switchSlot &&
     previous.editing === next.editing &&
+    previous.resample === next.resample &&
     previous.songSource?.songId === next.songSource?.songId &&
     previous.songSource?.slideId === next.songSource?.slideId &&
     previous.appearance.checker === next.appearance.checker &&
