@@ -11,6 +11,7 @@
   flex: none;
 }
 .theme {
+  gap: var(--space-8);
   width: 100%;
 }
 .theme > :first-child {
