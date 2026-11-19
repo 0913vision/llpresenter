@@ -2,6 +2,8 @@ import {useMemo, type JSX} from 'react';
 import type {Screen} from '@core/schema/screens';
 import {showTestPattern} from './showTestPattern';
 import {ScreenPreview} from '@renderer/features/presentation/ScreenPreview';
+import {OutputMirror} from '@renderer/features/presentation/OutputMirror';
+import {useLive} from '@renderer/session/live';
 import {Button} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';
 import {
@@ -31,6 +33,7 @@ function PreviewBody({
   readonly pictureEnabled: boolean;
 }): JSX.Element {
   const [watchPicture, available] = useElementSize();
+  const outputActive = useLive(view => view.state?.outputs[screen.id] === true);
   const outputSize = pictureSizeForScreen(screen) ?? REFERENCE_SCREEN;
   const picture =
     available === undefined
@@ -43,10 +46,15 @@ function PreviewBody({
       <div className={styles.picture} ref={watchPicture}>
         <div className={styles.frame} style={picture} data-preview-picture>
           {pictureEnabled ? (
-            <ScreenPreview
-              screenId={screen.id}
-              chroma={screen.method === 'capture'}
-            />
+            outputActive ? (
+              <OutputMirror screenId={screen.id} />
+            ) : (
+              <ScreenPreview
+                screenId={screen.id}
+                chroma={screen.method === 'capture'}
+                keep={false}
+              />
+            )
           ) : null}
         </div>
       </div>

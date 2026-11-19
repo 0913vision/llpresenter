@@ -53,6 +53,7 @@ import {
   subscribePresenterMirror,
 } from './presenterMirror';
 import {createAlphaMirror} from './alphaMirror';
+import {PreviewFrameFanout} from './previewFrameFanout';
 
 /** What the output windows hang on. */
 export interface OutputContext {
@@ -284,6 +285,26 @@ export function startOutputs({
   const previewSubscriptions = new Map<string, () => void>();
   const alphaMirrors = new Map<string, ReturnType<typeof createAlphaMirror>>();
   const previewSinks = new Map<string, (frame: Uint8Array | null) => void>();
+  const fanouts = new Map<string, PreviewFrameFanout>();
+  const waitingUpstream = new Set<string>();
+  const clientStops = new Map<string, Map<number, () => void>>();
+  const previewWindow = (id: number): BrowserWindow | undefined => {
+    const win = BrowserWindow.getAllWindows().find(
+      value => !value.isDestroyed() && value.webContents.id === id,
+    );
+    if (win === undefined || win.webContents.isDestroyed()) return undefined;
+    if (win === control) return win;
+    try {
+      const url = new URL(win.webContents.getURL());
+      return win.getParentWindow() === control &&
+        url.pathname.endsWith('/index.html') &&
+        url.searchParams.get('window') === 'settings'
+        ? win
+        : undefined;
+    } catch {
+      return undefined;
+    }
+  };
   const stopAlpha = (screenId: string): void => {
     alphaMirrors.get(screenId)?.stop();
     alphaMirrors.delete(screenId);
@@ -310,13 +331,37 @@ export function startOutputs({
     }
     return needed;
   };
+  const ackUpstream = (screenId: string): void => {
+    if (!waitingUpstream.delete(screenId)) return;
+    const alpha = alphaMirrors.get(screenId);
+    if (alpha !== undefined) alpha.ack();
+    else ackPresenterMirror(screenId);
+  };
+  const removeClient = (screenId: string, sender: number): void => {
+    const stops = clientStops.get(screenId);
+    stops?.get(sender)?.();
+    stops?.delete(sender);
+    const fanout = fanouts.get(screenId);
+    fanout?.remove(sender);
+    if (fanout !== undefined && !fanout.empty) {
+      if (fanout.hasCapacity) ackUpstream(screenId);
+      return;
+    }
+    waitingUpstream.delete(screenId);
+    previewSubscriptions.get(screenId)?.();
+    previewSubscriptions.delete(screenId);
+    stopAlpha(screenId);
+    previewSinks.delete(screenId);
+    fanouts.delete(screenId);
+    clientStops.delete(screenId);
+  };
   ipcMain.handle(
     outputEndpoints.previewSource.channel,
     (event, value: unknown) => {
       const request = parsePreviewRequest(value);
       if (
         !request.ok ||
-        event.sender !== control.webContents ||
+        previewWindow(event.sender.id) === undefined ||
         control.isDestroyed()
       ) {
         return null;
@@ -324,9 +369,7 @@ export function startOutputs({
       const screen = screens
         .list()
         .find(item => item.id === request.value.screenId);
-      if (screen === undefined) {
-        return null;
-      }
+      if (screen === undefined) return null;
       if (ensureAlpha(screen.id)) return 'alpha';
       const output = BrowserWindow.getAllWindows().find(win => {
         if (win.isDestroyed() || win.webContents.isDestroyed()) return false;
@@ -345,56 +388,71 @@ export function startOutputs({
   );
   const stops = [
     () => {
+      for (const clients of clientStops.values()) {
+        for (const stop of clients.values()) stop();
+      }
+      clientStops.clear();
       for (const unsubscribe of previewSubscriptions.values()) unsubscribe();
       previewSubscriptions.clear();
       alphaMirrors.clear();
       previewSinks.clear();
+      fanouts.clear();
+      waitingUpstream.clear();
     },
     listenToWindows(outputEndpoints.previewControl.channel, (value, sender) => {
       const parsed = parsePreviewControl(value);
-      if (
-        !parsed.ok ||
-        control.isDestroyed() ||
-        sender !== control.webContents.id
-      ) {
-        return;
-      }
+      const win = previewWindow(sender);
+      if (!parsed.ok || control.isDestroyed() || win === undefined) return;
       const {screenId, action} = parsed.value;
       if (action === 'ack') {
-        const alpha = alphaMirrors.get(screenId);
-        if (alpha !== undefined) alpha.ack();
-        else if (previewSubscriptions.has(screenId)) {
-          ackPresenterMirror(screenId);
-        }
+        const fanout = fanouts.get(screenId);
+        fanout?.ack(sender);
+        if (fanout?.hasCapacity) ackUpstream(screenId);
         return;
       }
-      previewSubscriptions.get(screenId)?.();
-      previewSubscriptions.delete(screenId);
-      stopAlpha(screenId);
-      previewSinks.delete(screenId);
+      removeClient(screenId, sender);
       if (
         action !== 'start' ||
         !screens.list().some(screen => screen.id === screenId)
       ) {
         return;
       }
-      const send = (frame: Uint8Array | null): void => {
-        if (control.isDestroyed() || control.webContents.isDestroyed()) {
-          const alpha = alphaMirrors.get(screenId);
-          if (alpha !== undefined) alpha.ack();
-          else ackPresenterMirror(screenId);
+      let fanout = fanouts.get(screenId);
+      if (fanout === undefined) {
+        fanout = new PreviewFrameFanout();
+        fanouts.set(screenId, fanout);
+      }
+      const destroyed = (): void => removeClient(screenId, sender);
+      win.webContents.once('destroyed', destroyed);
+      const clients =
+        clientStops.get(screenId) ?? new Map<number, () => void>();
+      clients.set(sender, () =>
+        win.webContents.removeListener('destroyed', destroyed),
+      );
+      clientStops.set(screenId, clients);
+      fanout.add(sender, frame => {
+        if (win.isDestroyed() || win.webContents.isDestroyed()) {
+          removeClient(screenId, sender);
           return;
         }
         try {
-          control.webContents.send(outputEndpoints.previewFrame.channel, {
+          win.webContents.send(outputEndpoints.previewFrame.channel, {
             screenId,
             frame,
           });
         } catch (error) {
           log.warn('could not send presenter preview frame', error);
-          const alpha = alphaMirrors.get(screenId);
-          if (alpha !== undefined) alpha.ack();
-          else ackPresenterMirror(screenId);
+          removeClient(screenId, sender);
+        }
+      });
+      if (previewSubscriptions.has(screenId)) return;
+      const send = (frame: Uint8Array | null): void => {
+        if (frame === null) waitingUpstream.delete(screenId);
+        else waitingUpstream.add(screenId);
+        const fanout = fanouts.get(screenId);
+        fanout?.publish(frame);
+        if (frame !== null && (fanout === undefined || fanout.hasCapacity)) {
+          ackUpstream(screenId);
         }
       };
       previewSinks.set(screenId, send);

@@ -21,6 +21,12 @@ const drawn = vi.hoisted(() => {
   return {created, frames};
 });
 
+vi.mock('@renderer/features/presentation/OutputMirror', () => ({
+  OutputMirror: ({screenId}: {screenId: string}) => (
+    <div data-testid="output-mirror">{screenId}</div>
+  ),
+}));
+
 vi.mock('@renderer/ui/useElementSize', () => ({
   useElementSize: () => [vi.fn(), {width: 600, height: 600}],
 }));
@@ -103,6 +109,20 @@ describe('the output preview', () => {
     ]);
     view.unmount();
     expect(patternCommands()).toHaveLength(1);
+  });
+
+  it('mirrors an active output and returns to its inactive preview when switched off', async () => {
+    setup();
+    await screen.findByRole('button', {
+      name: '\ud14c\uc2a4\ud2b8 \ud654\uba74',
+    });
+    const state = emptyLiveState();
+    act(() =>
+      useLive.setState({state: {...state, outputs: {[MAIN_ID]: true}}}),
+    );
+    expect(screen.getByTestId('output-mirror').textContent).toBe(MAIN_ID);
+    act(() => useLive.setState({state}));
+    expect(screen.queryByTestId('output-mirror')).toBeNull();
   });
 
   it('fits the configured output aspect ratio in the available space', async () => {

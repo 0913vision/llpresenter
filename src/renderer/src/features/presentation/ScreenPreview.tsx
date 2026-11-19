@@ -284,9 +284,11 @@ function leaveDrawing(
 export function ScreenPreview({
   screenId,
   chroma,
+  keep = true,
 }: {
   readonly screenId: string;
   readonly chroma: boolean;
+  readonly keep?: boolean;
 }): JSX.Element {
   const screenRef = useRef<HTMLDivElement>(null);
 
@@ -295,8 +297,11 @@ export function ScreenPreview({
     if (!screen) return undefined;
     const api = window.llp;
     const drawing = showDrawing(api, screenId, screen);
-    return () => leaveDrawing(api, screenId, drawing);
-  }, [screenId]);
+    return () => {
+      if (keep) leaveDrawing(api, screenId, drawing);
+      else drawing.dispose();
+    };
+  }, [screenId, keep]);
 
   const classes = [styles.screen];
   if (chroma) classes.push(styles.chroma);
