@@ -189,6 +189,7 @@ export function useUpdate(
     dismiss,
     dialog: (
       <AlertDialog
+        key={status.kind}
         icon="info"
         title={title}
         meta={meta}

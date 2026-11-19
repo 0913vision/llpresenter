@@ -12,8 +12,9 @@ interface UpdateOptions {
   readonly outputsOn: () => boolean;
   readonly changed: (snapshot: UpdateSnapshot) => void;
   readonly installAfterShutdown: (
-    install: () => void,
+    install: () => Promise<void>,
     version: string,
+    onHandoff: () => void,
   ) => Promise<boolean>;
   readonly log: Logger;
 }
@@ -195,11 +196,16 @@ export class UpdateController {
   private async install(version: string): Promise<void> {
     this.set({kind: 'installing', version}, true);
     try {
-      const accepted = await this.options.installAfterShutdown(() => {
-        // NOTE(0913vision): The next launch owns the splash window.
-        this.set({kind: 'restarting', version}, true);
-        this.options.updater?.install();
-      }, version);
+      const accepted = await this.options.installAfterShutdown(
+        () => {
+          if (this.options.updater === null) {
+            return Promise.reject(new Error('Updater unavailable'));
+          }
+          return this.options.updater.install();
+        },
+        version,
+        () => this.set({kind: 'restarting', version}, true),
+      );
       if (!accepted && !this.disposed) {
         this.set({kind: 'downloaded', version}, true);
       }

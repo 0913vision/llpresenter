@@ -9,13 +9,20 @@ function setup() {
   const updater = {
     check: vi.fn<UpdaterPort['check']>().mockResolvedValue('0.60.0'),
     download: vi.fn<UpdaterPort['download']>().mockResolvedValue(),
-    install: vi.fn(),
+    install: vi.fn<UpdaterPort['install']>().mockResolvedValue(),
     dispose: vi.fn(),
   } satisfies UpdaterPort;
-  const installAfterShutdown = vi.fn(async (install: () => void) => {
-    install();
-    return true;
-  });
+  const installAfterShutdown = vi.fn(
+    async (
+      install: () => Promise<void>,
+      _version: string,
+      onHandoff: () => void,
+    ) => {
+      onHandoff();
+      await install();
+      return true;
+    },
+  );
   const options = {
     updater,
     version: '0.59.0',
@@ -40,6 +47,21 @@ function setup() {
 }
 
 describe('UpdateController', () => {
+  it('shows an installation error and retries the installer', async () => {
+    const {controller, updater, act} = setup();
+    updater.install.mockRejectedValueOnce(new Error('Installer unavailable'));
+    await controller.check();
+    act('download');
+    await vi.waitFor(() =>
+      expect(controller.get().status).toMatchObject({
+        kind: 'error',
+        stage: 'install',
+        version: '0.60.0',
+      }),
+    );
+    act('retry');
+    await vi.waitFor(() => expect(updater.install).toHaveBeenCalledTimes(2));
+  });
   it('retries a failed download without asking for another check', async () => {
     const {controller, updater, act} = setup();
     updater.download.mockRejectedValueOnce(new Error('ENOTFOUND'));
@@ -108,6 +130,11 @@ describe('UpdateController', () => {
       options.changed.mock.calls.some(
         ([state]) =>
           state.status.kind === 'downloading' && state.status.percent === 42,
+      ),
+    ).toBe(true);
+    expect(
+      options.changed.mock.calls.some(
+        ([state]) => state.status.kind === 'restarting',
       ),
     ).toBe(true);
   });

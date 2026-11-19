@@ -1,5 +1,5 @@
 import type {AppUpdater} from 'electron-updater';
-import {app} from 'electron';
+import {app, autoUpdater as electronAutoUpdater} from 'electron';
 import {parseUpdateVersion} from '@core/schema/update';
 import type {Logger} from '../log';
 import type {UpdaterPort} from './port';
@@ -42,7 +42,34 @@ export function createUpdater(log: Logger): UpdaterPort {
         autoUpdater.removeListener('download-progress', onProgress);
       }
     },
-    install: () => updater?.quitAndInstall(true, true),
+    async install() {
+      if (updater === undefined || disposed) {
+        throw new Error('Updater unavailable');
+      }
+      const current = updater;
+      await new Promise<void>((resolve, reject) => {
+        const timer = setTimeout(
+          () => finish(new Error('Installer did not start')),
+          10000,
+        );
+        const finish = (error?: Error): void => {
+          clearTimeout(timer);
+          current.removeListener('error', failed);
+          electronAutoUpdater.removeListener('before-quit-for-update', started);
+          if (error === undefined) resolve();
+          else reject(error);
+        };
+        const failed = (error: Error): void => finish(error);
+        const started = (): void => finish();
+        current.once('error', failed);
+        electronAutoUpdater.once('before-quit-for-update', started);
+        try {
+          current.quitAndInstall(true, true);
+        } catch (error) {
+          finish(error instanceof Error ? error : new Error(String(error)));
+        }
+      });
+    },
     dispose: () => {
       disposed = true;
     },

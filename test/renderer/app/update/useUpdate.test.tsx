@@ -1,4 +1,5 @@
 import {act, cleanup, fireEvent, render, screen} from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import type {UpdateSnapshot} from '@core/schema/update';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
@@ -46,6 +47,31 @@ function setup(snapshot: UpdateSnapshot) {
 }
 
 describe('update presentation', () => {
+  it('focuses retry when a download fails so Enter retries', async () => {
+    const snapshot: UpdateSnapshot = {
+      revision: 1,
+      status: {kind: 'downloading', version: '1.2.3', percent: 42},
+      visible: true,
+      outputsOn: false,
+      busy: false,
+    };
+    const view = setup(snapshot);
+    await screen.findByRole('progressbar');
+    view.push({
+      ...snapshot,
+      revision: 2,
+      status: {
+        kind: 'error',
+        stage: 'download',
+        version: '1.2.3',
+        reason: 'Offline',
+      },
+    });
+    const retry = screen.getByRole('button', {name: '다시 시도'});
+    expect(document.activeElement).toBe(retry);
+    await userEvent.keyboard('{Enter}');
+    expect(view.send).toHaveBeenCalledWith({revision: 2, action: 'retry'});
+  });
   it('shows version, download progress and installation steps through restart', async () => {
     const snapshot: UpdateSnapshot = {
       revision: 1,

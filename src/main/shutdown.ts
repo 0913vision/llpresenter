@@ -35,6 +35,7 @@ type Phase = 'running' | 'confirming' | 'shuttingDown' | 'done';
 
 interface UpdateSaveChecks {
   readonly savePending: () => Promise<boolean>;
+  readonly beforeShutdown?: () => Promise<void>;
   readonly verifyClean?: () => Promise<boolean>;
 }
 
@@ -84,9 +85,9 @@ export class ShutdownCoordinator {
     this.confirm = confirm;
   }
 
-  /** Installs only after confirmation, every save, and recovery cleanup succeed. */
+  /** Keeps the app running until the installer confirms its handoff. */
   async quitForUpdate(
-    install: () => void,
+    install: () => void | Promise<void>,
     allowed: () => boolean,
     checks: UpdateSaveChecks,
   ): Promise<boolean> {
@@ -106,6 +107,21 @@ export class ShutdownCoordinator {
       this.phase = 'running';
       return false;
     }
+    try {
+      await checks.beforeShutdown?.();
+    } catch (error) {
+      this.options.log.warn('Could not show the update handoff', error);
+    }
+    if (!allowed()) {
+      this.phase = 'running';
+      return false;
+    }
+    try {
+      await install();
+    } catch (error) {
+      this.phase = 'running';
+      throw error;
+    }
     this.phase = 'shuttingDown';
     let clean = await this.shutDown();
     try {
@@ -118,12 +134,12 @@ export class ShutdownCoordinator {
     }
     if (!clean) {
       this.options.log.error(
-        'Update installation skipped because shutdown did not finish cleanly',
+        'Update shutdown did not finish cleanly after installer handoff',
       );
       this.quitForReal();
-      return false;
+      return true;
     }
-    this.quitForReal(install);
+    this.quitForReal();
     return true;
   }
 
@@ -218,7 +234,7 @@ export class ShutdownCoordinator {
     return 'done';
   }
 
-  private quitForReal(install?: () => void): void {
+  private quitForReal(): void {
     this.phase = 'done';
     // NOTE(0913vision): Chromium can take seconds to tear down after the quit.
     // Releasing the lock first lets the app open again at once (qa, M1-11).
@@ -227,13 +243,7 @@ export class ShutdownCoordinator {
     // the quit event that was just prevented (qa bug M1-11), so the real quit
     // comes from a later task.
     setImmediate(() => {
-      try {
-        install?.();
-      } catch (error) {
-        this.options.log.error('Could not start the update installer', error);
-      } finally {
-        this.options.app.quit();
-      }
+      this.options.app.quit();
     });
   }
 
