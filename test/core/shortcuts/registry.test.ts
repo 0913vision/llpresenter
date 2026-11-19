@@ -46,10 +46,10 @@ function press(overrides: Partial<PhysicalKeyPress> = {}): PhysicalKeyPress {
 }
 
 describe('shortcut registry', () => {
-  it('assigns Alt 1–5 to recent passages while retaining the output toggles', () => {
-    for (let index = 1; index <= 5; index += 1) {
+  it('assigns Alt 1–0 to recent passages while retaining the output toggles', () => {
+    for (let index = 1; index <= 10; index += 1) {
       expect(commandBindings(`bible.recent${index}`, {})).toEqual([
-        {code: `Digit${index}`, mods: ['alt']},
+        {code: `Digit${index % 10}`, mods: ['alt']},
       ]);
     }
     expect(commandBindings('output.audience', {})).toEqual([

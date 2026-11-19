@@ -1,9 +1,12 @@
-import {useState, type JSX} from 'react';
+import {useEffect, useRef, useState, type JSX} from 'react';
 import type {BibleLookupApi} from '@contracts/ipc/bible';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
+import type {RecentPassage} from '@core/schema/bible';
 import type {TranslationId} from '@core/schema/ids';
 import {Dialog} from '@renderer/ui/Dialog';
+import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {BibleReferenceForm} from './BibleReferenceForm';
+import {RecentPassages} from './RecentPassages';
 
 /** Shares validated passage entry between service insertion and verse slide insertion. */
 export function BiblePassageDialog({
@@ -20,10 +23,29 @@ export function BiblePassageDialog({
   readonly onClose: () => void;
 }): JSX.Element {
   const [passage, setPassage] = useState<BibleLookupPassage | null>(null);
+  const [recent, setRecent] = useState<{
+    value: RecentPassage;
+    generation: number;
+  } | null>(null);
+  const document = useSettingsDocument('bible', '성경', undefined);
+  const generation = useRef(0);
+  const pending = useRef<number | null>(null);
+  useEffect(
+    () => () => {
+      generation.current += 1;
+    },
+    [],
+  );
   const fits = (value: BibleLookupPassage): boolean =>
     limit === undefined || value.verses.length <= limit;
   const choose = (value: BibleLookupPassage | null): void => {
     if (value !== null && fits(value)) onChoose(value);
+  };
+  const pick = (value: RecentPassage): void => {
+    const request = ++generation.current;
+    pending.current = request;
+    setRecent({value, generation: request});
+    setPassage(null);
   };
   return (
     <Dialog
@@ -41,13 +63,30 @@ export function BiblePassageDialog({
       }}
     >
       <BibleReferenceForm
+        key={recent === null ? 'initial' : recent.generation}
         api={api}
-        translation={translation}
-        onReady={setPassage}
+        initialRef={recent?.value.ref}
+        translation={recent?.value.translation ?? translation}
+        onIntent={() => {
+          generation.current += 1;
+          pending.current = null;
+        }}
+        onReady={value => {
+          setPassage(value);
+          if (value !== null && pending.current === generation.current) {
+            pending.current = null;
+            choose(value);
+          }
+        }}
         onPreview={() => undefined}
         onSubmit={choose}
         onEscape={onClose}
         autoFocus
+      />
+      <RecentPassages
+        scope="dialog"
+        recents={document?.value.recents ?? []}
+        onPick={pick}
       />
     </Dialog>
   );

@@ -1,7 +1,4 @@
 import {withLiveBible} from '@core/bible/liveTranslation';
-import {recentPassages} from '@core/bible/bibleRecents';
-import {displayReference} from '@core/bible/displayReference';
-import {shortcutNames} from '@core/shortcuts/keys';
 import type {RecentPassage} from '@core/schema/bible';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
@@ -30,7 +27,7 @@ import {openBiblePassage, showBiblePassage} from '../bible/actions';
 import {focusSlideGrid} from '../presentation/focusSlideGrid';
 import {DraftOverlay} from '../presentation/DraftOverlay';
 import {useBibleDisplayDefaults} from '../bible/useBibleDisplayDefaults';
-import styles from './BibleQuickField.module.css';
+import {RecentPassages} from '../bible/RecentPassages';
 
 /** The quick-panel mount; previewing never writes output or recent history. */
 export function BibleQuickField({
@@ -107,7 +104,6 @@ export function BibleQuickField({
   const translations = document
     ? withLiveBible(document.value.translations)
     : [];
-  const recents = recentPassages(document?.value.recents ?? []).slice(0, 5);
   const show = (passage: BibleLookupPassage, reusePreview = true): void => {
     if (display === null) return;
     const view = useShow.getState();
@@ -153,16 +149,6 @@ export function BibleQuickField({
       console.error('Could not read recent Bible passage', error);
     }
   };
-  useWindowShortcuts(
-    Array.from({length: 5}, (_, index) => ({
-      id: `bible.recent${index + 1}`,
-      when: () => recents[index] !== undefined && display !== null,
-      run: () => {
-        const recent = recents[index];
-        return recent === undefined ? undefined : pick(recent);
-      },
-    })),
-  );
   const field = (
     <div
       ref={root}
@@ -235,40 +221,14 @@ export function BibleQuickField({
         }}
         onShow={passage => show(passage)}
       />
-      <div className={styles.recents} aria-label="최근 성경 구절">
-        {Array.from({length: 5}, (_, index) => {
-          const recent = recents[index];
-          const binding = commandBindings(
-            `bible.recent${index + 1}`,
-            bindings,
-          )[0];
-          return (
-            <div className={styles.recentSlot} key={index}>
-              {recent ? (
-                <button
-                  type="button"
-                  className={styles.recent}
-                  onClick={() => {
-                    pick(recent).catch((error: unknown) =>
-                      console.error(error),
-                    );
-                  }}
-                >
-                  <span>{index + 1}</span>
-                  <span className={styles.ref}>
-                    {displayReference(recent.ref)}
-                  </span>
-                  {binding ? (
-                    <span className={styles.keys}>
-                      {shortcutNames(binding).join('+')}
-                    </span>
-                  ) : null}
-                </button>
-              ) : null}
-            </div>
-          );
-        })}
-      </div>
+      <RecentPassages
+        scope={overlayOpen ? 'dialog' : 'show'}
+        recents={document?.value.recents ?? []}
+        disabled={display === null}
+        onPick={recent => {
+          pick(recent).catch((error: unknown) => console.error(error));
+        }}
+      />
     </div>
   );
   return overlayOpen ? (

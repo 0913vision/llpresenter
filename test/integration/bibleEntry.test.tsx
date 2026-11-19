@@ -16,8 +16,56 @@ import {lookupRequest} from '@fixtures/core/bibleLookups';
 import {formLookupReply} from '@fixtures/core/bibleReplies';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {recordingLogger} from '@fixtures/main/displays/testing';
+import {panelApi} from '@fixtures/contracts/ipc/bibleApi';
 import {makeTempDir} from '@fixtures/tempDir';
 import {convertBibleFile} from '../../scripts/bible/convert';
+
+it.each(['click', 'shortcut'] as const)(
+  'selects the tenth recent in the add dialog with %s',
+  async method => {
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    onTestFinished(() => {
+      delete window.llp;
+    });
+    const document = fixture.document();
+    fixture.push({
+      ...document,
+      revision: 2,
+      value: {
+        ...document.value,
+        recents: Array.from({length: 10}, (_, index) => ({
+          translation: lookupRequest().translation,
+          ref: `요한복음 3:${index + 1}`,
+        })),
+      },
+    });
+    const onChoose = vi.fn<(passage: BibleLookupPassage) => void>();
+    render(
+      <BiblePassageDialog
+        api={fixture.api.bible}
+        translation={lookupRequest().translation}
+        onChoose={onChoose}
+        onClose={vi.fn()}
+      />,
+    );
+    const tenth = await screen.findByRole('button', {name: /요한복음 3:10/});
+    expect(tenth.textContent).toContain('Alt+0');
+    if (method === 'click') fireEvent.click(tenth);
+    else {
+      fireEvent.keyDown(screen.getByRole('combobox', {name: '책'}), {
+        key: '0',
+        code: 'Digit0',
+        altKey: true,
+      });
+    }
+    await waitFor(() =>
+      expect(onChoose).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({ref: '요한복음 3:10'}),
+      ),
+    );
+  },
+);
 
 it('adds from the dialog when Enter immediately follows the last digit', async () => {
   const onChoose = vi.fn<(passage: BibleLookupPassage) => void>();

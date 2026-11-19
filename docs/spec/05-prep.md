@@ -176,6 +176,9 @@ not dim when focus leaves. 진행 retains its existing thumbnail style.
   one reference-only row per verse after the selected row. The entire range is
   one local undo step, and a range exceeding the remaining 200-row capacity is
   refused before insertion. Ad items do not offer this action.
+- The passage dialog shares the ten recent references from 빠른 실행. Clicking
+  one or pressing its configured Alt+1 through Alt+0 shortcut fills the
+  reference and continues through the normal passage-add flow.
 - Unconfirmed multi-part verses use the same optional AI boundary chooser as
   진행 before automatic insertion, falling back to the rule-based split when AI
   is unavailable. Existing confirmed cuts are preserved. Ctrl E on a verse row

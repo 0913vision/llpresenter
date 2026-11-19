@@ -1,4 +1,7 @@
 .recents {
+  box-sizing: border-box;
+  height: min(calc(10 * var(--size-row) + 2 * var(--space-4)), 30vh);
+  overflow-y: auto;
   padding: var(--space-4) var(--space-8);
 }
 .recentSlot {

@@ -120,6 +120,34 @@ describe('BibleQuickField', () => {
     expect(screen.queryByText('AI 켜짐')).toBeNull();
   });
 
+  it('shows and outputs the tenth recent with Alt+0', async () => {
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    const settings = fixture.document();
+    fixture.push({
+      ...settings,
+      revision: 2,
+      value: {
+        ...settings.value,
+        recents: Array.from({length: 10}, (_, index) => ({
+          translation: lookupRequest().translation,
+          ref: `요한복음 3:${index + 1}`,
+        })),
+      },
+    });
+    render(<BibleQuickField api={fixture.api} />);
+    const tenth = await screen.findByRole('button', {name: /요한복음 3:10/});
+    expect(tenth.textContent).toContain('Alt+0');
+    fireEvent.keyDown(document.body, {key: '0', code: 'Digit0', altKey: true});
+    await waitFor(() =>
+      expect(
+        lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]),
+      ).toMatchObject({
+        type: 'slide.show',
+        slide: {itemId: 'bible:sample:요한복음 3:10'},
+      }),
+    );
+  });
   it('does not output a stale recent lookup after a newer pick', async () => {
     const fixture = panelApi();
     window.llp = fixture.api;
@@ -160,7 +188,7 @@ describe('BibleQuickField', () => {
     );
     expect(fixture.send.mock.calls).toHaveLength(count);
   });
-  it('shows five fixed recent slots and runs the configured shortcut from a text field', async () => {
+  it('shows ten fixed recent slots and runs the configured shortcut from a text field', async () => {
     const fixture = panelApi();
     window.llp = fixture.api;
     fixture.push({
@@ -180,7 +208,7 @@ describe('BibleQuickField', () => {
       name: /요한복음 3:16~18/,
     });
     expect(recent.textContent).toContain('Alt+F8');
-    expect(screen.getByLabelText('최근 성경 구절').children).toHaveLength(5);
+    expect(screen.getByLabelText('최근 성경 구절').children).toHaveLength(10);
     fireEvent.focus(field);
     expect(screen.queryByRole('option', {name: /요한복음 3:16~18/})).toBeNull();
     fireEvent.keyDown(field, {code: 'F8', key: 'F8', altKey: true});
