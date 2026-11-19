@@ -115,6 +115,7 @@ const mocks = vi.hoisted(() => {
     playbackProblemsStop: vi.fn<() => void>(),
     appHandlers,
     electron: {
+      dialog: {showErrorBox: vi.fn()},
       ipcMain: {
         handle: vi.fn(),
         removeHandler: vi.fn(),
@@ -169,6 +170,9 @@ const mocks = vi.hoisted(() => {
       isMinimized: vi.fn(() => true),
       restore: vi.fn(),
       focus: vi.fn(),
+      isDestroyed: vi.fn(() => false),
+      isMaximized: vi.fn(() => true),
+      destroy: vi.fn(),
     },
   };
 });
@@ -184,7 +188,11 @@ vi.mock('@main/update/register', () => ({
 vi.mock('@main/windows/settingsWindow', () => ({
   registerSettingsWindow: (context: unknown) => {
     mocks.screensWindowContexts.push(context);
-    return {close: mocks.screensWindowClose, dispose: mocks.screensWindowStop};
+    return {
+      close: mocks.screensWindowClose,
+      dispose: mocks.screensWindowStop,
+      replaceControl: vi.fn(),
+    };
   },
 }));
 vi.mock('@main/windows/slidesEditor', () => ({
@@ -459,6 +467,7 @@ beforeEach(async () => {
     .mockReset()
     .mockImplementation((_event, callback) => callback());
   mocks.splashStep.mockReset();
+  mocks.electron.dialog.showErrorBox.mockReset();
   mocks.updateContexts.length = 0;
   mocks.updateStop.mockClear();
   mocks.screensWindowContexts.length = 0;

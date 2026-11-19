@@ -7,6 +7,7 @@ import {
   beforeQuit,
 } from '@fixtures/main/indexWiringFixtures';
 import {join} from 'node:path';
+import {EventEmitter} from 'node:events';
 import {describe, expect, it, vi} from 'vitest';
 import {MAIN_SCREEN} from '@fixtures/core/screenIds';
 
@@ -38,6 +39,39 @@ describe('main entry lifecycle', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     const control = await startMain();
     control.emit('ready-to-show');
     expect(mocks.splash.close).toHaveBeenCalledOnce();
+  });
+
+  it('hands off to the replacement control window after startup GPU recovery', async () => {
+    const original = await startMain();
+    await vi.waitFor(() =>
+      expect(mocks.outputContexts.length).toBeGreaterThan(0),
+    );
+    for (const handler of mocks.appHandlers.get('child-process-gone') ?? []) {
+      handler({}, {type: 'GPU', reason: 'crashed', exitCode: 1});
+    }
+    await vi.waitFor(() => expect(mocks.opened.control).not.toBe(original));
+    const replacement = mocks.opened.control;
+    if (!(replacement instanceof EventEmitter)) {
+      throw new Error('Missing replacement control window');
+    }
+    original.emit('show');
+    expect(mocks.splash.close).not.toHaveBeenCalled();
+    replacement.emit('show');
+    expect(mocks.splash.close).toHaveBeenCalledOnce();
+  });
+
+  it('closes the splash and reports a control page load failure', async () => {
+    const control = await startMain();
+    control.webContents.emit('did-fail-load', {}, -3, 'aborted', '', true);
+    control.webContents.emit('did-fail-load', {}, -2, 'failed', '', false);
+    expect(mocks.splash.close).not.toHaveBeenCalled();
+    control.webContents.emit('did-fail-load', {}, -2, 'failed', '', true);
+    expect(mocks.splash.close).toHaveBeenCalledOnce();
+    expect(mocks.electron.dialog.showErrorBox).toHaveBeenCalledWith(
+      '시작 오류',
+      expect.stringContaining('화면을 불러오지 못했습니다'),
+    );
+    expect(mocks.electron.app.quit).toHaveBeenCalled();
   });
 
   it('reads the UI state before the control window opens', async () => {

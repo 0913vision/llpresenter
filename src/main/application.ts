@@ -1,4 +1,4 @@
-import {app, ipcMain, BrowserWindow, type IpcMainEvent} from 'electron';
+import {app, dialog, ipcMain, BrowserWindow, type IpcMainEvent} from 'electron';
 import {serviceEndpoints} from '@contracts/ipc/service';
 import {LaunchIdle} from './store/launchIdle';
 import {registerUpdates, updatesAllowed} from './update/register';
@@ -276,15 +276,9 @@ export function start(
           true,
       });
       completeSplashStep(splash, 'window');
-      win.webContents.once('did-finish-load', () =>
-        completeSplashStep(splash, 'renderer'),
-      );
-      win.once('ready-to-show', () => completeSplashStep(splash, 'paint'));
       const closeSplash = (): void => {
         if (!splash.isDestroyed()) splash.close();
       };
-      if (windowMode === 'normal') win.once('show', closeSplash);
-      else win.once('ready-to-show', closeSplash);
       control = win;
       let activeControl = win;
       const controlRef = {
@@ -293,6 +287,37 @@ export function start(
         },
       };
       const watchControl = (watched: BrowserWindow): void => {
+        watched.webContents.once('did-finish-load', () => {
+          if (watched === activeControl) completeSplashStep(splash, 'renderer');
+        });
+        watched.once('ready-to-show', () => {
+          if (watched === activeControl) completeSplashStep(splash, 'paint');
+        });
+        const handoff = (): void => {
+          if (watched === activeControl) closeSplash();
+        };
+        if (windowMode === 'normal') watched.once('show', handoff);
+        else watched.once('ready-to-show', handoff);
+        watched.webContents.on('did-fail-load', (_event, code, ...details) => {
+          const isMainFrame = details[2];
+          if (
+            watched !== activeControl ||
+            splash.isDestroyed() ||
+            !isMainFrame ||
+            code === -3
+          ) {
+            return;
+          }
+          log.error('control window failed to load during startup', {code});
+          closeSplash();
+          if (windowMode === 'normal') {
+            dialog.showErrorBox(
+              '시작 오류',
+              '화면을 불러오지 못했습니다. 프로그램을 다시 실행해 주세요.',
+            );
+          }
+          app.quit();
+        });
         let scriptAnswered = false;
         const heartbeat = new ControlHeartbeat(
           () => {
