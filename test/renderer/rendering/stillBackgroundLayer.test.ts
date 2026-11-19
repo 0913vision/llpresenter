@@ -43,7 +43,7 @@ it('creates no video, retains a same-media still, and updates its element fit', 
   expect(view.ready()).toBe(true);
   expect(parent.querySelector('video, audio')).toBeNull();
   expect(
-    create.mock.calls.some(([tag]) => tag === 'video' || tag === 'audio'),
+    create.mock.calls.some(([tag]) => ['video', 'audio'].includes(tag)),
   ).toBe(false);
   view.dispose();
 });
