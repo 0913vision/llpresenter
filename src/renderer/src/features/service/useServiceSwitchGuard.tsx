@@ -41,15 +41,17 @@ export function useServiceSwitchGuard() {
     pending === null ? null : (
       <AlertDialog
         icon="warning"
-        title={'\uc608\ubc30\ub97c \ubc14\uafc0\uae4c\uc694?'}
-        meta={[
-          '\ubaa8\ub4e0 \ud654\uba74\uc774 \ub300\uae30 \ud654\uba74\uc73c\ub85c \ubc14\ub00c\ub2c8\ub2e4.',
-        ]}
+        title={
+          pending.kind === 'open'
+            ? `${pending.name} 예배를 열까요?`
+            : '새 예배를 만들까요?'
+        }
+        meta={['모든 화면이 대기 화면으로 바뀝니다']}
         initialFocus="cancel"
         onCancel={() => setPending(null)}
         actions={[
           {
-            label: '\ubc14\uafb8\uae30',
+            label: pending.kind === 'open' ? '열기' : '만들기',
             primary: true,
             onSelect: () => {
               setPending(null);
