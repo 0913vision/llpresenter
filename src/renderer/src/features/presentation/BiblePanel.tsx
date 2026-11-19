@@ -4,7 +4,6 @@ import type {SizeClass} from '@renderer/ui/sizeClass';
 import {useShow} from '@renderer/session/show';
 import {bibleSourceFor} from '@renderer/session/showLibrary';
 import {shownTilesFor} from '@renderer/session/showLibrary';
-import {Button} from '@renderer/ui';
 import {
   Panel,
   PanelBody,
@@ -14,7 +13,6 @@ import {
   PanelTools,
 } from '@renderer/ui/Panel';
 import {SlidePanelBody, SlideSizeControl} from './SlidePanel';
-import {showBiblePassage} from '../bible/actions';
 import {BibleAdjacentButtons} from '../bible/BibleAdjacentButtons';
 import {BibleDisplayControls} from './BibleDisplayControls';
 import styles from './BiblePanel.module.css';
@@ -46,17 +44,7 @@ export function BiblePanel({
       <div className={styles.footer}>
         <PanelFooter
           count={count}
-          end={
-            <>
-              <BibleAdjacentButtons key={source.id} source={source} />
-              <Button
-                variant="primary"
-                onClick={() => showBiblePassage(source.passage)}
-              >
-                바로 띄우기
-              </Button>
-            </>
-          }
+          end={<BibleAdjacentButtons key={source.id} source={source} />}
         >
           <SlideSizeControl sizeClass={sizeClass} />
           <BibleInsertButton source={source} onProblem={onProblem} />

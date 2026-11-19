@@ -111,7 +111,10 @@ describe('Bible preview display controls', () => {
     );
     expect(fixture.send).not.toHaveBeenCalled();
     expect(fixture.edit).not.toHaveBeenCalled();
-    fireEvent.click(screen.getByRole('button', {name: '바로 띄우기'}));
+    expect(screen.queryByRole('button', {name: '바로 띄우기'})).toBeNull();
+    const tile = screen.getAllByRole('option')[1];
+    if (tile === undefined) throw Error('Missing Bible slide');
+    fireEvent.click(tile);
     expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])).toMatchObject({
       type: 'slide.show',
       slide: {reference: '요한복음 3:17 (개역한글)'},
