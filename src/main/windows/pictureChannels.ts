@@ -12,6 +12,7 @@ export function registerPictureChannels(): () => Promise<void> {
     join(app.getPath('userData'), 'cache', 'pictures'),
   );
   let pending = 0;
+  let accepting = true;
   ipcMain.handle(
     pictureEndpoints.paint.channel,
     async (event, value: unknown) => {
@@ -68,6 +69,7 @@ export function registerPictureChannels(): () => Promise<void> {
     try {
       const parsed = parsePictureRequest(value);
       reserved =
+        accepting &&
         event.senderFrame === event.sender.mainFrame &&
         parsed.ok &&
         cache.reserve(parsed.value, event.sender.id);
@@ -84,11 +86,16 @@ export function registerPictureChannels(): () => Promise<void> {
   };
   ipcMain.on(pictureEndpoints.reserve, reserve);
   ipcMain.on(pictureEndpoints.release.channel, release);
+  // NOTE(0913vision): The control window may still send synchronous requests
+  // during shutdown, so keep answering until Electron actually quits.
+  app.once('will-quit', () => {
+    ipcMain.removeListener(pictureEndpoints.reserve, reserve);
+  });
   return () => {
+    accepting = false;
     ipcMain.removeHandler(pictureEndpoints.paint.channel);
     ipcMain.removeHandler(pictureEndpoints.peek.channel);
     ipcMain.removeListener(pictureEndpoints.remember.channel, remember);
-    ipcMain.removeListener(pictureEndpoints.reserve, reserve);
     ipcMain.removeListener(pictureEndpoints.release.channel, release);
     return cache.dispose();
   };
