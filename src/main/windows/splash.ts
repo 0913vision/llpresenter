@@ -27,7 +27,11 @@ export function createSplash(mode: WindowMode): BrowserWindow {
     resizable: false,
     skipTaskbar: mode === 'offscreen',
     backgroundColor: '#1f4170',
-    webPreferences: {offscreen: mode === 'offscreen', sandbox: true},
+    webPreferences: {
+      offscreen: mode === 'offscreen',
+      sandbox: true,
+      backgroundThrottling: false,
+    },
   });
   states.set(window, {done: new Set(), loaded: false});
   const html = `<!doctype html><html lang="ko"><meta charset="utf-8"><style>

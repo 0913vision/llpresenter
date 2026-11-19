@@ -1,4 +1,4 @@
-import {app, dialog, ipcMain, BrowserWindow, type IpcMainEvent} from 'electron';
+import {app, ipcMain, BrowserWindow, type IpcMainEvent} from 'electron';
 import {serviceEndpoints} from '@contracts/ipc/service';
 import {LaunchIdle} from './store/launchIdle';
 import {registerUpdates, updatesAllowed} from './update/register';
@@ -68,6 +68,7 @@ import {serveMedia} from './windows/mediaProtocol';
 import {registerPictureChannels} from './windows/pictureChannels';
 import type {WindowMode} from './windows/testWindows';
 import {completeSplashStep} from './windows/splash';
+import {showStartupError} from './windows/startupError';
 
 const UI_STATE_FILE = 'app.json';
 const RECOVERY_FOLDER = 'recovery';
@@ -311,10 +312,7 @@ export function start(
           log.error('control window failed to load during startup', {code});
           closeSplash();
           if (windowMode === 'normal') {
-            dialog.showErrorBox(
-              '시작 오류',
-              '화면을 불러오지 못했습니다. 프로그램을 다시 실행해 주세요.',
-            );
+            showStartupError();
           }
           app.quit();
         });
