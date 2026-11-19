@@ -92,6 +92,12 @@ describe('BibleQuickField', () => {
       const prepare = vi
         .spyOn(biblePictures, 'prepareBiblePictures')
         .mockReturnValue(drawing.promise);
+      const readyPassages: Array<
+        ReturnType<typeof useShow.getState>['readyPassage']
+      > = [];
+      const stop = useShow.subscribe(state => {
+        if (state.readyPassage) readyPassages.push(state.readyPassage);
+      });
       try {
         const previous = await passage('요한복음 3:17');
         openBiblePassage(previous);
@@ -115,15 +121,18 @@ describe('BibleQuickField', () => {
           type: 'slide.show',
           slide: {itemId: 'bible:sample:요한복음 3:16'},
         });
-        expect(useShow.getState().readyPassage).toEqual(
+        expect(readyPassages).toEqual(
           ready
-            ? expect.objectContaining({
-                previous: previousId,
-                id: 'bible:sample:요한복음 3:16',
-              })
-            : null,
+            ? expect.arrayContaining([
+                expect.objectContaining({
+                  previous: previousId,
+                  id: 'bible:sample:요한복음 3:16',
+                }),
+              ])
+            : [],
         );
       } finally {
+        stop();
         prepare.mockRestore();
         drawInPlace.mockRestore();
       }
