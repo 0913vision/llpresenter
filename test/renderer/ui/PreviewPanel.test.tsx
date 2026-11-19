@@ -3,6 +3,7 @@ import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {PreviewPanel} from '@renderer/ui/PreviewPanel';
 import {usePreviewRoom} from '@renderer/ui/usePreviewRoom';
 import type {PreviewScreen} from '@renderer/ui/PreviewFrame';
+import {PreviewSizingContext} from '@renderer/ui/PreviewSizingContext';
 
 vi.mock('@renderer/ui/usePreviewRoom', () => ({usePreviewRoom: vi.fn()}));
 
@@ -18,6 +19,27 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe('shared preview panel', () => {
+  it('keeps adjustable show tiles and resets the saved split on double click', () => {
+    vi.mocked(usePreviewRoom).mockReturnValue(false);
+    const save = vi.fn();
+    const {container} = render(
+      <PreviewSizingContext.Provider value={{ratio: 0.5, save}}>
+        <PreviewPanel
+          screens={screens}
+          big="audience"
+          onBigChange={vi.fn()}
+          renderScreen={() => null}
+        />
+      </PreviewSizingContext.Provider>,
+    );
+    expect(
+      screen.getByRole('button', {name: '무대 화면 크게 보기'}),
+    ).toBeDefined();
+    const divider = container.querySelector('[data-row-gap="preview.split"]');
+    if (!divider) throw Error('Missing preview divider');
+    fireEvent.doubleClick(divider);
+    expect(save).toHaveBeenCalledWith(0.667);
+  });
   it('replaces tiles with the ordered header picker when space runs out', () => {
     const select = vi.fn();
     const panel = () => (

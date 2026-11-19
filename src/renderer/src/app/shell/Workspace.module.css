@@ -91,6 +91,10 @@
   gap: 0;
 }
 
+[data-workspace-frame='show'] .columns {
+  --preview-picture: calc(var(--col-right) - 2 * var(--panel-inset));
+}
+
 .columns[data-size='narrow'] {
   --preview-reserve: calc(
     var(--tools-min-height) + var(--size-clear-button-compact) + 2 *

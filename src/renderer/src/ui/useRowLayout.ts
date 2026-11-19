@@ -174,12 +174,14 @@ export function useRowLayout({
 }): {
   begin(index: number): ResizeSession | undefined;
   canResize(index: number): boolean;
+  reset(): void;
 } {
   const [movable, setMovable] = useState<readonly boolean[]>([]);
   const begin = useRef<(index: number) => ResizeSession | undefined>(
     () => undefined,
   );
   const applied = useRef<AppliedRows | null>(null);
+  const reset = useRef<() => void>(() => undefined);
   useLayoutEffect(() => {
     const parent = container.current;
     const deps = [
@@ -297,9 +299,27 @@ export function useRowLayout({
           refit();
         },
       });
+    reset.current = () => {
+      clearRows(parent, rows);
+      const values: PanelRows = Object.fromEntries(
+        rows.flatMap(row =>
+          row.id === undefined
+            ? []
+            : [
+                [
+                  row.id,
+                  Math.round(row.element.getBoundingClientRect().height),
+                ],
+              ],
+        ),
+      );
+      store.saveRows?.(sizeClass, values);
+      refit();
+    };
     return () => {
       lifetime.alive = false;
       begin.current = () => undefined;
+      reset.current = () => undefined;
       observer?.disconnect();
       window.removeEventListener('resize', refit);
       unwatch();
@@ -316,5 +336,6 @@ export function useRowLayout({
   return {
     begin: index => begin.current(index),
     canResize: index => movable[index] === true,
+    reset: () => reset.current(),
   };
 }
