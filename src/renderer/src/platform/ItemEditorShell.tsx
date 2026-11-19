@@ -11,7 +11,7 @@ export function ItemEditorShell({
 }: {
   readonly label?: string;
   readonly as?: 'section' | 'div';
-  readonly className: string;
+  readonly className?: string | undefined;
   readonly header?: ReactNode;
   readonly footer: ReactNode;
   readonly children: ReactNode;
