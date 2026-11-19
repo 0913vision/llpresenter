@@ -94,6 +94,10 @@ describe('shortcut registry', () => {
     }
   });
   it('reserves Ctrl E for Bible splitting while Ctrl R opens preparation', () => {
+    expect(shortcutCommand('bible.splitEdit')?.contexts).toEqual([
+      'show',
+      'prep',
+    ]);
     expect(commandBindings('bible.splitEdit', {})).toEqual([
       {code: 'KeyE', mods: ['ctrl']},
     ]);
