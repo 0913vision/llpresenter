@@ -17,6 +17,8 @@ export function useOrderEditFocus({
     held: Element | null;
     rows: readonly ServiceRow[];
     serviceId: string | null;
+    deleted: readonly string[] | undefined;
+    select: ((id: string) => void) | undefined;
   } | null>(null);
   useLayoutEffect(() => {
     const token = pending.current;
@@ -30,31 +32,61 @@ export function useOrderEditFocus({
     const active = document.activeElement;
     if (
       active !== token.held &&
-      (token.held?.isConnected || (active !== document.body && active !== null))
+      (token.held?.isConnected ||
+        (active !== document.body &&
+          active !== null &&
+          !(token.deleted && list.current?.contains(active))))
     ) {
       return;
     }
     // NOTE(0913vision): An unchanged cell already owns the next command.
-    if (token.held?.isConnected && token.held.closest('[role="option"]')) {
+    if (
+      !token.deleted &&
+      token.held?.isConnected &&
+      token.held.closest('[role="option"]')
+    ) {
       return;
     }
     const box = list.current?.querySelector<HTMLElement>('[role="listbox"]');
     const options = [
       ...(box?.querySelectorAll<HTMLElement>('[role="option"]') ?? []),
     ];
+    const deletedIndex = token.deleted
+      ? token.rows.findIndex(row => token.deleted?.includes(row.id))
+      : -1;
+    const surviving = new Set(rows.map(row => row.id));
+    const nextId =
+      deletedIndex < 0
+        ? undefined
+        : (token.rows.slice(deletedIndex).find(row => surviving.has(row.id))
+            ?.id ??
+          token.rows
+            .slice(0, deletedIndex)
+            .reverse()
+            .find(row => surviving.has(row.id))?.id);
+    if (nextId !== undefined) token.select?.(nextId);
     const target =
-      options.find(option => option.dataset['value'] === cursor) ??
+      options.find(option => option.dataset['value'] === (nextId ?? cursor)) ??
       options[0] ??
       box;
     if (target === undefined || target === null) return;
     // NOTE(0913vision): New options get their tab stop in a later microtask.
     // An empty list needs a named focus target that can still receive Undo.
     if (!target.hasAttribute('tabindex')) target.tabIndex = -1;
-    target.focus();
+    target.focus({preventScroll: true});
   }, [list, rows, serviceId, cursor]);
   return {
-    arm: (): (() => void) => {
-      const token = {held: document.activeElement, rows, serviceId};
+    arm: (
+      deleted?: readonly string[],
+      select?: (id: string) => void,
+    ): (() => void) => {
+      const token = {
+        held: document.activeElement,
+        rows,
+        serviceId,
+        deleted,
+        select,
+      };
       pending.current = token;
       return () => {
         if (pending.current === token) pending.current = null;

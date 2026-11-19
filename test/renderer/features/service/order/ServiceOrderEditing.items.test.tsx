@@ -167,16 +167,37 @@ describe('service panel editing', () => {
     const {ids, send} = setup('prep');
     const user = userEvent.setup();
     const row = screen.getByRole('option', {name: '첫 곡'});
+    const next = screen.getByRole('option', {name: '다음 곡'});
+    const focusNext = vi.spyOn(next, 'focus');
     await user.click(row);
     row.focus();
     await user.keyboard('{Delete}');
     await waitFor(() => expect(ids()).toEqual([headerId, lastId]));
     expect(document.activeElement).toBe(
-      screen.getByRole('option', {name: '제목'}),
+      screen.getByRole('option', {name: '다음 곡'}),
     );
+    expect(useShow.getState().openItemId).toBe(lastId);
+    expect(focusNext).toHaveBeenCalledWith({preventScroll: true});
+    await user.keyboard('{Delete}');
+    await waitFor(() => expect(ids()).toEqual([headerId]));
     await user.keyboard('{Control>}z{/Control}');
-    await screen.findByRole('option', {name: '첫 곡'});
+    await screen.findByRole('option', {name: '다음 곡'});
     expect(send).not.toHaveBeenCalled();
+  });
+
+  it('deletes from the menu and hands focus to the next row without scrolling', async () => {
+    const {ids} = setup('prep');
+    const user = userEvent.setup();
+    const row = screen.getByRole('option', {name: '첫 곡'});
+    await user.click(row);
+    fireEvent.contextMenu(row);
+    await user.click(await screen.findByRole('menuitem', {name: '삭제'}));
+    await waitFor(() => expect(ids()).toEqual([headerId, lastId]));
+    const next = screen.getByRole('option', {name: '다음 곡'});
+    await waitFor(() => expect(document.activeElement).toBe(next));
+    expect(useShow.getState().openItemId).toBe(lastId);
+    await user.keyboard('{Delete}');
+    await waitFor(() => expect(ids()).toEqual([headerId]));
   });
 
   it('logs the cause of a local edit-dispatch failure and reports it to the host', async () => {
