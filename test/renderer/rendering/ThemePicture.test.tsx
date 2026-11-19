@@ -669,6 +669,35 @@ it('shows resource placeholders only in the theme editor', () => {
   expect(view.queryByText('Overlay sample')).toBeNull();
 });
 
+it.each(['stage', 'broadcast'] as const)(
+  'omits item backgrounds from a static %s preview',
+  kind => {
+    const background = element('background', 985);
+    const mediaId = '00000000-0000-4000-8000-000000000986';
+    const id = createScreenId('00000000-0000-4000-8000-000000000001');
+    const view = render(
+      <SlidePicture
+        slide={{itemId: 'song', position: 0, label: null, lines: ['Words']}}
+        layout={{mode: {kind: 'own'}, elements: [background]}}
+        background={mediaId}
+        screen={{id, kind: 'audience'}}
+      />,
+    );
+    expect(
+      view.container.querySelector(`img[src*="${mediaId}"]`),
+    ).not.toBeNull();
+    view.rerender(
+      <SlidePicture
+        slide={{itemId: 'song', position: 0, label: null, lines: ['Words']}}
+        layout={{mode: {kind: 'own'}, elements: [background]}}
+        background={mediaId}
+        screen={{id, kind}}
+      />,
+    );
+    expect(view.container.querySelector(`img[src*="${mediaId}"]`)).toBeNull();
+  },
+);
+
 it('previews the selected reference source', () => {
   const reference = element('reference', 984);
   if (reference.kind !== 'reference') throw Error('Missing reference');

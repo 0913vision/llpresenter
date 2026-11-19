@@ -305,6 +305,8 @@ export class ThemeCompositionView {
         previous.position !== incoming.position);
     const backgroundChanged =
       this.page !== null &&
+      frame.screen?.kind !== 'stage' &&
+      frame.screen?.kind !== 'broadcast' &&
       theme.layout.elements.some(element => element.kind === 'background') &&
       themeElementMedia('background', {layers, item: theme.item})?.mediaId !==
         themeElementMedia('background', {
@@ -679,7 +681,10 @@ export class ThemeCompositionView {
       page.elements.find(view => view.element.kind === 'media')?.remaining() ??
       page.elements
         .find(view => view.element.kind === 'background')
-        ?.remaining();
+        ?.remaining() ??
+      (content.layers.media === null
+        ? undefined
+        : this.options.previewMedia?.remaining(content.layers.media));
     for (const view of page.elements) {
       if (
         content.frame.screen?.kind === 'stage' &&
@@ -800,7 +805,10 @@ export class ThemeCompositionView {
           ?.remaining() ??
         page.elements
           .find(view => view.element.kind === 'background')
-          ?.remaining())
+          ?.remaining() ??
+        (page.layers.media === null
+          ? undefined
+          : this.options.previewMedia?.remaining(page.layers.media)))
       : undefined;
     for (const view of page.ticking) {
       if (

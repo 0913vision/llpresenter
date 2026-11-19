@@ -327,6 +327,9 @@ README (states and motion).
 
 ### Song item background rules
 
+- Background videos are always muted, regardless of the media's saved sound
+  setting or the item and screen. A video played as a media item keeps its own
+  sound setting. Overlay and audio-layer sound are separate.
 - If the item of the clicked 슬라이드 has a background that differs from the
   current background, switch to it.
 - If it's the same media as the current background, don't restart it. Keep

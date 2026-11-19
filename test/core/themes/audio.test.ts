@@ -7,6 +7,7 @@ import {
   themeScreens,
   THEME_MAIN,
   THEME_CAPTURE,
+  THEME_STAGE,
 } from '@fixtures/core/themeOutput';
 import {resolveThemeOutput} from '@core/themes/output';
 import {themeMediaAudible, themeOverlayAudio} from '@core/themes/audio';
@@ -88,7 +89,7 @@ describe('theme sound selection', () => {
     expect(
       themeOverlayAudio({...state, outputs: {[THEME_CAPTURE]: true}})?.mediaId,
     ).toBe(mediaId);
-    expect(themeMediaAudible(state)).toBe(true);
+    expect(themeMediaAudible(state)).toBe(false);
     expect(
       themeMediaAudible({
         ...state,
@@ -126,5 +127,65 @@ describe('theme sound selection', () => {
       themeOverlayAudio({...state, themeItem: {...item, contentCleared: true}}),
     ).toBeNull();
     expect(themeMediaAudible({...state, outputs: {}})).toBe(false);
+  });
+
+  it.each([THEME_MAIN, THEME_STAGE, THEME_CAPTURE])(
+    'never plays an item background on screen %s',
+    id => {
+      const state = fixture();
+      const output = state.themeOutput;
+      const layout = output?.screens[THEME_MAIN];
+      if (!output || !layout) throw new Error('Missing audience layout');
+      const custom = {
+        ...state,
+        outputs: {[id]: true},
+        themeOutput: {...output, screens: {...output.screens, [id]: layout}},
+      };
+      expect(themeMediaAudible(custom)).toBe(false);
+    },
+  );
+
+  it('keeps media-item sound available on a stage media element', () => {
+    const state = fixture();
+    const output = state.themeOutput;
+    const layout = output?.screens[THEME_MAIN];
+    if (!output || !layout) throw new Error('Missing layout');
+    const screen = {
+      ...layout,
+      layout: {
+        ...layout.layout,
+        elements: [
+          {
+            ...themeElementBase(40),
+            kind: 'media' as const,
+            fit: 'fit' as const,
+            radius: 0,
+          },
+        ],
+      },
+    };
+    const mediaItem: LiveState = {
+      ...state,
+      themeItem: {id: 'media', kind: 'media', source: 'service'},
+      outputs: {[THEME_STAGE]: true},
+      layers: {
+        ...state.layers,
+        media: {mediaId, itemId: 'media', loop: true, startedAt: 1000},
+      },
+      themeOutput: {
+        ...output,
+        screens: {...output.screens, [THEME_STAGE]: screen},
+      },
+    };
+    expect(themeMediaAudible(mediaItem)).toBe(true);
+    expect(
+      themeMediaAudible({
+        ...mediaItem,
+        layers: {
+          ...mediaItem.layers,
+          media: {mediaId, loop: true, startedAt: 1001},
+        },
+      }),
+    ).toBe(false);
   });
 });

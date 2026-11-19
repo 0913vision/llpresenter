@@ -6,7 +6,7 @@ import {fadeAudio} from '../rendering/audioFade';
 import {themeMediaAudible, themeOverlayAudio} from '@core/themes/audio';
 import type {MediaDocument} from '@core/schema/mediaEdit';
 
-/** Plays background sound once, independently of the preloaded screen windows. */
+/** Plays media-item and overlay sound once, independently of screen windows. */
 export class BackgroundAudio {
   private readonly view: BackgroundLayerView;
   private overlay: BackgroundLayerView | null = null;

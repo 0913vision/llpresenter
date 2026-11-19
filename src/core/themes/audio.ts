@@ -3,12 +3,22 @@ import {themeOverlay} from './content';
 
 /** Sound is owned by one audio window, even when several screens show it. */
 export function themeMediaAudible(state: LiveState): boolean {
-  const kind = state.themeItem?.kind === 'media' ? 'media' : 'background';
+  const item = state.themeItem;
+  const media = state.layers.media;
+  if (
+    item?.kind !== 'media' ||
+    media?.slidePicture === true ||
+    (media !== null &&
+      media.itemId !== item.id &&
+      !(item.source === 'external' && media.mediaId === item.id))
+  ) {
+    return false;
+  }
   return Object.entries(state.themeOutput?.screens ?? {}).some(
     ([id, screen]) =>
       state.outputs[id] === true &&
       screen.layout.mode.kind === 'own' &&
-      screen.layout.elements.some(element => element.kind === kind),
+      screen.layout.elements.some(element => element.kind === 'media'),
   );
 }
 

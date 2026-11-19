@@ -14,6 +14,7 @@ import {ScreenFrames} from '../rendering/screenFrames';
 import {startFrameRateMeter, type FrameRateMeter} from './frameRateMeter';
 import {followLiveState} from './liveFeed';
 import {followPlaybackProblems} from '../rendering/playbackProblem';
+import {openPreviewMedia} from '../rendering/previewMedia';
 
 /** What an output window runs on. */
 export interface OutputContext {
@@ -104,6 +105,7 @@ export function startOutput({
     });
   };
   const stopCatching = catchUncaughtErrors(report);
+  const mediaProgress = openPreviewMedia(api);
   let renderer: OutputRenderer | null = null;
   const retired: OutputRenderer[] = [];
   const animations: SlideAnimation[] = [];
@@ -291,6 +293,7 @@ export function startOutput({
       transparent: ndi,
       textStyle: DEFAULT_TEXT_STYLE,
       mediaUrl,
+      previewMedia: mediaProgress,
       onError: report,
     });
     const content = drawnContent(state);
@@ -375,6 +378,7 @@ export function startOutput({
         transparent: ndi,
         textStyle: DEFAULT_TEXT_STYLE,
         mediaUrl,
+        previewMedia: mediaProgress,
         onError: report,
       });
       const incoming = renderer;
@@ -471,6 +475,7 @@ export function startOutput({
     stopFollowing();
     frames.dispose();
     renderer?.dispose();
+    mediaProgress?.dispose();
     stopCatching();
     stopPlaybackProblems();
   };

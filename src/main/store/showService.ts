@@ -198,7 +198,7 @@ function otherTiles(
         label: null,
         labelColor: NO_LABEL_COLOR,
         lines: [mediaTitle(found)],
-        media: choice,
+        media: {...choice, itemId: item.id},
       },
     ];
   }
