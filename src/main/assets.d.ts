@@ -1,1 +1,1 @@
-import 'electron-vite/node';
+import 'vite/client';
