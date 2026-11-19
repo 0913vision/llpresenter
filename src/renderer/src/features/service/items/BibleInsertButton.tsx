@@ -44,7 +44,7 @@ export function BibleInsertButton({
         : null;
     editing.run(async (edits, id) => {
       // NOTE(0913vision): The preview picks the numbering and the reference.
-      const item = await passageItemWithParts(
+      const prepared = await passageItemWithParts(
         source.passage.ref,
         {
           ...defaults,
@@ -54,8 +54,10 @@ export function BibleInsertButton({
           transition: source.transition ?? defaults?.transition,
           passage: source.passage,
         },
-        api,
+        {api, serviceId: id},
       );
+      if (!prepared.ok) return prepared;
+      const item = prepared.value;
       if (item === null) return {ok: true, value: false};
       const result = await edits.insertItemInSection(id, selected, {
         selectAdded: false,

@@ -5,6 +5,7 @@ import {emptyLiveState} from '@core/live/state';
 import {defaultPreferences, type Preferences} from '@core/schema/preferences';
 import {createServiceItemId} from '@core/schema/ids';
 import {parseServiceDocument} from '@core/schema/contentDocuments';
+import {SHOW_SERVICE_LIMITS} from '@core/schema/showService';
 import {
   fixtureItems,
   fixtureServiceId,
@@ -17,6 +18,18 @@ import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
 import {openBiblePassage} from '@renderer/features/bible/actions';
 import {panelApi, panelPassage} from '@fixtures/contracts/ipc/bibleApi';
 import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
+import {editorPreviewFixture} from '@fixtures/renderer/features/songs/editor/editorPreviewFixture';
+import {settingsDocument} from '@fixtures/core/settingsDocument';
+
+vi.mock('@renderer/rendering/bibleMeasure', async importOriginal => ({
+  ...(await importOriginal<
+    typeof import('@renderer/rendering/bibleMeasure')
+  >()),
+  createBibleMeasureContext: () => ({
+    font: '',
+    measureText: (text: string) => ({width: text.length * 10}),
+  }),
+}));
 
 afterEach(() => {
   delete window.llp;
@@ -62,7 +75,20 @@ function setup(
     throw new Error('Invalid section fixture');
   }
   fixture.pushService(changed.value);
-  const api = {...fixture.api, settings: history.api.settings};
+  const preview = editorPreviewFixture();
+  const cuts = settingsDocument('bibleCuts', {entries: {}});
+  const api: typeof fixture.api = {
+    ...fixture.api,
+    settings: {
+      ...history.api.settings,
+      get: async request => {
+        if (request.name === 'themes') return preview.themes;
+        if (request.name === 'screens') return preview.screens;
+        if (request.name === 'bibleCuts') return cuts;
+        return history.api.settings.get(request);
+      },
+    },
+  };
   window.llp = api;
   const preferences = vi
     .spyOn(api.preferences, 'get')
@@ -107,6 +133,28 @@ function setup(
     button: screen.getByRole('button', {name: '예배 순서에 넣기'}),
   };
 }
+
+it('reports the slide limit and refuses to insert an oversized passage', async () => {
+  const view = setup();
+  const passage = {
+    ...panelPassage(),
+    verses: Array.from({length: SHOW_SERVICE_LIMITS.tiles + 1}, (_, index) => ({
+      chapter: 3,
+      verse: index + 1,
+      text: '가',
+    })),
+  };
+  const before = view.service();
+  act(() => openBiblePassage(passage));
+  await view.user.click(screen.getByRole('button', {name: '예배 순서에 넣기'}));
+  await waitFor(() => expect(view.problem).toHaveBeenCalled());
+  expect(view.problem.mock.lastCall?.[0]).toMatchObject({
+    key: 'service-order:full',
+    title: '슬라이드가 너무 많습니다',
+  });
+  expect(view.service()).toEqual(before);
+  expect(screen.queryByRole('dialog', {name: '절 나누기'})).toBeNull();
+});
 
 it('retains the quick-run transition on the inserted Bible item', async () => {
   const view = setup();

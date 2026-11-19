@@ -1,6 +1,10 @@
 import {useState, type JSX} from 'react';
-import {isItemOfKind, type ServiceItem} from '@core/schema/service';
-import {createServiceItemId, type SongId} from '@core/schema/ids';
+import {isItemOfKind} from '@core/schema/service';
+import {
+  createServiceItemId,
+  type ServiceId,
+  type SongId,
+} from '@core/schema/ids';
 import {useServiceOrderEditing} from '@renderer/features/service/order/useServiceOrderEditing';
 import {useShow} from '@renderer/session/show';
 import {useOrderFull} from '@renderer/session/orderFull';
@@ -51,7 +55,9 @@ export function ServiceQuickAdd({
   const insertPassage = (ref: string, defaults: PassageDefaults): void => {
     const api = window.llp;
     if (api !== undefined) {
-      insertItem(() => passageItemWithParts(ref, defaults, api));
+      insertItem(id =>
+        passageItemWithParts(ref, defaults, {api, serviceId: id}),
+      );
     }
   };
   const insertSong = (song: SongId): void => {
@@ -59,14 +65,17 @@ export function ServiceQuickAdd({
     editing.run((edits, id) => insertSelectedSong(edits, id, song));
   };
   const insertItem = (
-    source: ServiceItem | (() => Promise<ServiceItem | null>),
+    prepare: (id: ServiceId) => ReturnType<typeof passageItemWithParts>,
+    focusText = false,
   ): void => {
     const api = window.llp;
     if (api === undefined) return;
     const {rows, openItemId} = useShow.getState();
     const before = quickAddBefore(rows, openItemId);
     editing.run(async (edits, id) => {
-      const item = typeof source === 'function' ? await source() : source;
+      const prepared = await prepare(id);
+      if (!prepared.ok) return prepared;
+      const item = prepared.value;
       if (item === null) return {ok: true, value: false};
       if ('header' in item) useHeaderRename.getState().request(item.id);
       const result = await edits.insertItem(
@@ -82,7 +91,7 @@ export function ServiceQuickAdd({
         const opened = await api.slidesEditor.open({
           serviceId: id,
           itemId: item.id,
-          ...(typeof source !== 'function' && item.slides.form === 'blank'
+          ...(focusText && item.slides.form === 'blank'
             ? {focusText: true}
             : {}),
         });
@@ -124,7 +133,14 @@ export function ServiceQuickAdd({
           entries={otherItemEntries({
             slideDefaults,
             ...sources,
-            onInsert: insertItem,
+            onInsert: source =>
+              insertItem(
+                async () => ({
+                  ok: true,
+                  value: typeof source === 'function' ? await source() : source,
+                }),
+                typeof source !== 'function',
+              ),
             onSong: () => {
               setOpen(false);
               setChoosingSong(true);
