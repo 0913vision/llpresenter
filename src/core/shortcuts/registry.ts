@@ -62,6 +62,7 @@ function command([
           : 'normal',
     output:
       /^(clear|show|output|audio|stage)\./.test(id) ||
+      id.startsWith('bible.recent') ||
       id === 'item.stop' ||
       [
         'service.nextItem',
@@ -176,6 +177,16 @@ export const shortcutCommands: readonly ShortcutCommand[] = (
     ['tools.macros', '매크로', '진행 도구', ['show'], []],
     ['tools.actionPalette', '동작 팔레트', '진행 도구', ['show'], ['alt KeyC']],
     ['bible.focus', '성경 구절 찾기', '진행 도구', ['show'], ['ctrl KeyB']],
+    ...[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map(
+      number =>
+        [
+          `bible.recent${number}`,
+          `최근 성경 구절 ${number}`,
+          '진행 도구',
+          ['show'],
+          [`alt Digit${number % 10}`],
+        ] as const,
+    ),
     [
       'audio.playPause',
       '오디오 재생 또는 일시 정지',

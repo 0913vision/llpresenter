@@ -11,13 +11,106 @@ import {defaultPreferences} from '@core/schema/preferences';
 import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
 import {BibleLookupSession} from '@main/bible/lookup';
 import {BiblePassageDialog} from '@renderer/features/bible/BiblePassageDialog';
+import {commandBindingStore} from '@renderer/ui/commandBindings';
 import {fullTranslationText} from '@fixtures/core/bible/testFiles';
 import {lookupRequest} from '@fixtures/core/bibleLookups';
 import {formLookupReply} from '@fixtures/core/bibleReplies';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {recordingLogger} from '@fixtures/main/displays/testing';
+import {panelApi} from '@fixtures/contracts/ipc/bibleApi';
 import {makeTempDir} from '@fixtures/tempDir';
 import {convertBibleFile} from '../../scripts/bible/convert';
+
+it.each(['click', 'shortcut'] as const)(
+  'selects the tenth recent in the add dialog with %s',
+  async method => {
+    commandBindingStore.set({});
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    onTestFinished(() => {
+      delete window.llp;
+    });
+    const document = fixture.document();
+    fixture.push({
+      ...document,
+      revision: 2,
+      value: {
+        ...document.value,
+        recents: Array.from({length: 10}, (_, index) => ({
+          translation: lookupRequest().translation,
+          ref: `요한복음 3:${index + 1}`,
+        })),
+      },
+    });
+    const onChoose = vi.fn<(passage: BibleLookupPassage) => void>();
+    render(
+      <BiblePassageDialog
+        api={fixture.api.bible}
+        translation={lookupRequest().translation}
+        onChoose={onChoose}
+        onClose={vi.fn()}
+      />,
+    );
+    const tenth = await screen.findByRole('button', {name: /요한복음 3:10/});
+    expect(tenth.textContent).toContain('Alt+0');
+    if (method === 'click') fireEvent.click(tenth);
+    else {
+      fireEvent.blur(window);
+      fireEvent.keyDown(screen.getByRole('combobox', {name: '책'}), {
+        key: '0',
+        code: 'Digit0',
+        altKey: true,
+      });
+    }
+    expect(fixture.lookup).toHaveBeenCalledWith({
+      input: '\uC694\uD55C\uBCF5\uC74C 3:10',
+      translation: lookupRequest().translation,
+    });
+    await waitFor(() =>
+      expect(onChoose).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({ref: '요한복음 3:10'}),
+      ),
+    );
+  },
+);
+
+it.each(['\uC694\uD55C\uBCF5\uC74C 3', '\uC694\uD55C\uBCF5\uC74C 3:16-4:2'])(
+  'looks up the complete stored recent reference %s in the add dialog',
+  async ref => {
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    onTestFinished(() => {
+      delete window.llp;
+    });
+    const translation = lookupRequest().translation;
+    const document = fixture.document();
+    fixture.push({
+      ...document,
+      revision: 2,
+      value: {...document.value, recents: [{translation, ref}]},
+    });
+    const onChoose = vi.fn<(passage: BibleLookupPassage) => void>();
+    render(
+      <BiblePassageDialog
+        api={fixture.api.bible}
+        translation={translation}
+        onChoose={onChoose}
+        onClose={vi.fn()}
+      />,
+    );
+    fireEvent.click(
+      await screen.findByRole('button', {
+        name: new RegExp(ref.replace('-', '~')),
+      }),
+    );
+    await waitFor(() =>
+      expect(onChoose).toHaveBeenCalledExactlyOnceWith(
+        expect.objectContaining({ref}),
+      ),
+    );
+    expect(fixture.lookup).toHaveBeenCalledWith({input: ref, translation});
+  },
+);
 
 it('adds from the dialog when Enter immediately follows the last digit', async () => {
   const onChoose = vi.fn<(passage: BibleLookupPassage) => void>();

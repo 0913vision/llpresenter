@@ -1,4 +1,6 @@
 import {withLiveBible} from '@core/bible/liveTranslation';
+import type {RecentPassage} from '@core/schema/bible';
+import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
 import {useRef, useSyncExternalStore} from 'react';
 import {commandBindings} from '@core/shortcuts/bindings';
@@ -15,12 +17,17 @@ import {
   beginQuickPassage,
   finishQuickPassage,
 } from '@renderer/session/quickReturn';
-import {beginOutputRequest} from '@renderer/session/showOutput';
+import {
+  beginOutputRequest,
+  isOutputRequestCurrent,
+} from '@renderer/session/showOutput';
+import {useLive} from '@renderer/session/live';
 import {BibleReferenceField} from '../bible/BibleReferenceField';
 import {openBiblePassage, showBiblePassage} from '../bible/actions';
 import {focusSlideGrid} from '../presentation/focusSlideGrid';
 import {DraftOverlay} from '../presentation/DraftOverlay';
 import {useBibleDisplayDefaults} from '../bible/useBibleDisplayDefaults';
+import {RecentPassages} from '../bible/RecentPassages';
 
 /** The quick-panel mount; previewing never writes output or recent history. */
 export function BibleQuickField({
@@ -33,7 +40,19 @@ export function BibleQuickField({
   readonly onIntent?: (() => void) | undefined;
 }): JSX.Element {
   const root = useRef<HTMLDivElement>(null);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   const [overlayOpen, setOverlayOpen] = useState(false);
+  const finderGeneration = useRef(0);
+  const closeFinder = (): void => {
+    finderGeneration.current += 1;
+    setOverlayOpen(false);
+  };
   const bindings = useSyncExternalStore(
     commandBindingStore.subscribe,
     commandBindingStore.get,
@@ -43,7 +62,10 @@ export function BibleQuickField({
       id: 'bible.focus',
       // NOTE(0913vision): The key that opens the passage finder closes it
       // again, like Escape.
-      run: () => setOverlayOpen(open => !open),
+      run: () => {
+        if (overlayOpen) closeFinder();
+        else setOverlayOpen(true);
+      },
     },
   ]);
   useEffect(() => {
@@ -90,6 +112,54 @@ export function BibleQuickField({
   const translations = document
     ? withLiveBible(document.value.translations)
     : [];
+  const show = (passage: BibleLookupPassage, reusePreview = true): void => {
+    if (display === null) return;
+    const view = useShow.getState();
+    const prepared = bibleSourceFor(view, view.openItemId);
+    const expanded =
+      reusePreview &&
+      prepared?.enteredRef === passage.ref &&
+      (prepared.enteredTranslation ?? prepared.passage.translation) ===
+        passage.translation;
+    const samePassage =
+      prepared?.passage.ref === passage.ref &&
+      prepared.passage.translation === passage.translation;
+    const options = expanded || samePassage ? prepared : display;
+    beginQuickPassage();
+    showBiblePassage(expanded ? prepared.passage : passage, {
+      ...options,
+      review: false,
+      transition: QUICK_BIBLE_TRANSITION,
+    });
+    setOverlayOpen(false);
+    finishQuickPassage();
+    focusSlideGrid();
+  };
+  const pick = async (recent: RecentPassage): Promise<void> => {
+    if (display === null) return;
+    onIntent?.();
+    setSession(value => value + 1);
+    const request = beginOutputRequest();
+    const version = useLive.getState().commandVersion;
+    const finderRequest = overlayOpen;
+    const finderAtStart = finderGeneration.current;
+    try {
+      const reply = await api.bible.lookup({
+        input: recent.ref,
+        translation: recent.translation,
+      });
+      if (
+        mounted.current &&
+        (!finderRequest || finderGeneration.current === finderAtStart) &&
+        reply.result.ok &&
+        isOutputRequestCurrent(request, version)
+      ) {
+        show(reply.result.value, false);
+      }
+    } catch (error) {
+      console.error('Could not read recent Bible passage', error);
+    }
+  };
   const field = (
     <div
       ref={root}
@@ -106,13 +176,13 @@ export function BibleQuickField({
         ) {
           event.preventDefault();
           event.stopPropagation();
-          if (!event.repeat) setOverlayOpen(false);
+          if (!event.repeat) closeFinder();
         }
       }}
     >
       <BibleReferenceField
         overlayLabels={overlayOpen}
-        onEscape={overlayOpen ? () => setOverlayOpen(false) : undefined}
+        onEscape={overlayOpen ? closeFinder : undefined}
         submitAnyField
         key={`${selectionVersion}:${session}`}
         api={api.bible}
@@ -121,7 +191,7 @@ export function BibleQuickField({
             ? undefined
             : (translations.find(item => item.default) ?? translations[0])?.id
         }
-        recents={document?.value.recents ?? []}
+        recents={[]}
         onIntent={() => {
           beginOutputRequest();
           onIntent?.();
@@ -160,33 +230,20 @@ export function BibleQuickField({
             });
           }
         }}
-        onShow={passage => {
-          if (display === null) return;
-          const view = useShow.getState();
-          const prepared = bibleSourceFor(view, view.openItemId);
-          const expanded =
-            prepared?.enteredRef === passage.ref &&
-            (prepared.enteredTranslation ?? prepared.passage.translation) ===
-              passage.translation;
-          const samePassage =
-            prepared?.passage.ref === passage.ref &&
-            prepared.passage.translation === passage.translation;
-          const options = expanded || samePassage ? prepared : display;
-          beginQuickPassage();
-          showBiblePassage(expanded ? prepared.passage : passage, {
-            ...options,
-            review: false,
-            transition: QUICK_BIBLE_TRANSITION,
-          });
-          setOverlayOpen(false);
-          finishQuickPassage();
-          focusSlideGrid();
+        onShow={passage => show(passage)}
+      />
+      <RecentPassages
+        scope={overlayOpen ? 'dialog' : 'show'}
+        recents={document?.value.recents ?? []}
+        disabled={display === null}
+        onPick={recent => {
+          pick(recent).catch((error: unknown) => console.error(error));
         }}
       />
     </div>
   );
   return overlayOpen ? (
-    <DraftOverlay kind="bible" onClose={() => setOverlayOpen(false)}>
+    <DraftOverlay kind="bible" onClose={closeFinder}>
       {field}
     </DraftOverlay>
   ) : (

@@ -120,6 +120,137 @@ describe('BibleQuickField', () => {
     expect(screen.queryByText('AI 켜짐')).toBeNull();
   });
 
+  it('shows and outputs the tenth recent with Alt+0', async () => {
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    const settings = fixture.document();
+    fixture.push({
+      ...settings,
+      revision: 2,
+      value: {
+        ...settings.value,
+        recents: Array.from({length: 10}, (_, index) => ({
+          translation: lookupRequest().translation,
+          ref: `요한복음 3:${index + 1}`,
+        })),
+      },
+    });
+    render(<BibleQuickField api={fixture.api} />);
+    const tenth = await screen.findByRole('button', {name: /요한복음 3:10/});
+    expect(tenth.textContent).toContain('Alt+0');
+    fireEvent.keyDown(document.body, {key: '0', code: 'Digit0', altKey: true});
+    await waitFor(() =>
+      expect(
+        lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]),
+      ).toMatchObject({
+        type: 'slide.show',
+        slide: {itemId: 'bible:sample:요한복음 3:10'},
+      }),
+    );
+  });
+  it('does not output a stale recent lookup after a newer pick', async () => {
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    fixture.push({
+      ...fixture.document(),
+      revision: 2,
+      value: {
+        ...fixture.document().value,
+        recents: [
+          {translation: lookupRequest().translation, ref: '요한복음 3:16-18'},
+          {translation: lookupRequest().translation, ref: '요한복음 3:16-19'},
+        ],
+      },
+    });
+    let finish: (value: BibleLookupReply) => void = () => undefined;
+    fixture.lookup.mockReturnValueOnce(
+      new Promise(resolve => {
+        finish = resolve;
+      }),
+    );
+    render(<BibleQuickField api={fixture.api} />);
+    await book();
+    fireEvent.click(
+      await screen.findByRole('button', {name: /요한복음 3:16~18/}),
+    );
+    fireEvent.click(screen.getByRole('button', {name: /요한복음 3:16~19/}));
+    await waitFor(() =>
+      expect(
+        lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]),
+      ).toMatchObject({
+        type: 'slide.show',
+        slide: {itemId: 'bible:sample:요한복음 3:16-19'},
+      }),
+    );
+    const count = fixture.send.mock.calls.length;
+    await act(async () =>
+      finish(await formLookupReply(lookupRequest('요한복음 3:16-18'))),
+    );
+    expect(fixture.send.mock.calls).toHaveLength(count);
+  });
+  it('does not output a finder recent after Escape dismisses it', async () => {
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    const ref = '\uC694\uD55C\uBCF5\uC74C 3:16-18';
+    const settings = fixture.document();
+    fixture.push({
+      ...settings,
+      revision: 2,
+      value: {
+        ...settings.value,
+        recents: [{translation: lookupRequest().translation, ref}],
+      },
+    });
+    render(<BibleQuickField api={fixture.api} />);
+    await book();
+    fireEvent.keyDown(document.body, {code: 'KeyB', key: 'b', ctrlKey: true});
+    const dialog = screen.getByRole('dialog');
+    let finish: (value: BibleLookupReply) => void = () => undefined;
+    fixture.lookup.mockReturnValueOnce(
+      new Promise(resolve => {
+        finish = resolve;
+      }),
+    );
+    fireEvent.click(await screen.findByRole('button', {name: /3:16~18/}));
+    fireEvent.keyDown(await book(), {key: 'Escape', code: 'Escape'});
+    expect(dialog.isConnected).toBe(false);
+    const count = fixture.send.mock.calls.length;
+    await act(async () => finish(await formLookupReply(lookupRequest(ref))));
+    expect(fixture.send.mock.calls).toHaveLength(count);
+  });
+  it('shows ten fixed recent slots and runs the configured shortcut from a text field', async () => {
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    fixture.push({
+      ...fixture.document(),
+      revision: 2,
+      value: {
+        ...fixture.document().value,
+        recents: [
+          {translation: lookupRequest().translation, ref: '요한복음 3:16-18'},
+        ],
+      },
+    });
+    commandBindingStore.set({'bible.recent1': [{code: 'F8', mods: ['alt']}]});
+    render(<BibleQuickField api={fixture.api} />);
+    const field = await book();
+    const recent = await screen.findByRole('button', {
+      name: /요한복음 3:16~18/,
+    });
+    expect(recent.textContent).toContain('Alt+F8');
+    expect(screen.getByLabelText('최근 성경 구절').children).toHaveLength(10);
+    fireEvent.focus(field);
+    expect(screen.queryByRole('option', {name: /요한복음 3:16~18/})).toBeNull();
+    fireEvent.keyDown(field, {code: 'F8', key: 'F8', altKey: true});
+    await waitFor(() =>
+      expect(
+        lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]),
+      ).toMatchObject({
+        type: 'slide.show',
+        slide: {itemId: 'bible:sample:요한복음 3:16-18'},
+      }),
+    );
+  });
   it.each([
     {code: 'KeyB', key: 'b', ctrlKey: true},
     {code: 'F8', key: 'F8', ctrlKey: false},
@@ -523,7 +654,7 @@ describe('BibleQuickField', () => {
     expect(fixture.listenerCount()).toBe(0);
   });
 
-  it('opens a reselected recent again over a grown preview and outputs it with Enter', async () => {
+  it('outputs a recent passage immediately when clicked', async () => {
     const fixture = panelApi();
     window.llp = fixture.api;
     fixture.push({
@@ -570,15 +701,15 @@ describe('BibleQuickField', () => {
       }),
     );
 
-    fireEvent.focus(field);
-    fireEvent.click(screen.getByRole('option', {name: /요한복음 3:16~18/}));
-    expect(currentRef()).toBe('요한복음 3:16-18');
-    fireEvent.keyDown(field, {key: 'Enter'});
-
-    expect(lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0])).toMatchObject({
-      type: 'slide.show',
-      slide: {itemId: 'bible:sample:요한복음 3:16-18'},
-    });
+    fireEvent.click(screen.getByRole('button', {name: /요한복음 3:16~18/}));
+    await waitFor(() =>
+      expect(
+        lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]),
+      ).toMatchObject({
+        type: 'slide.show',
+        slide: {itemId: 'bible:sample:요한복음 3:16-18'},
+      }),
+    );
   });
 
   it('outputs the shown passage with Enter, then goes back to the typed one on a manual edit', async () => {
