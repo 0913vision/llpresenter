@@ -298,14 +298,22 @@ export function useLibrary(
         source.song.title,
         rows.current.map(song => song.title),
       );
+      const slides = titleSlidesForCopy(source.song, title, () =>
+        crypto.randomUUID(),
+      );
+      const transition = (await window.llp?.preferences.get())?.show
+        .slideDefaults.songTitle;
       const result = await api.content.edit({
         type: 'song.saveAs',
         song: {
           ...source.song,
           title,
-          slides: titleSlidesForCopy(source.song, title, () =>
-            crypto.randomUUID(),
-          ),
+          slides:
+            source.song.slides[0]?.titleSlide || transition === undefined
+              ? slides
+              : slides.map((slide, index) =>
+                  index === 0 ? {...slide, transition} : slide,
+                ),
         },
       });
       const copyId = appliedId(result);

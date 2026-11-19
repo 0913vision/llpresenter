@@ -19,7 +19,12 @@ const newId = () => '00000000-0000-4000-8000-000000000003';
 describe('opening slide for copies', () => {
   it('adds the copied name before the body when the source has no title', () => {
     expect(titleSlidesForCopy(song, 'Copy', newId)).toEqual([
-      {id: newId(), titleSlide: true, lines: ['Copy']},
+      {
+        id: newId(),
+        titleSlide: true,
+        lines: ['Copy'],
+        transition: {kind: 'wipe', dir: 'left', sec: 4},
+      },
       ...song.slides,
     ]);
     expect(song.slides).toHaveLength(1);

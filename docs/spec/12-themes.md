@@ -297,6 +297,9 @@ not preset names or indices, so the rename does not change existing themes.
 
 ### Transitions
 
+- 환경설정 > 준비 supplies the transition for newly created preparation slides.
+  The transition belongs to the slide, not its theme; see 10 for the per-kind
+  defaults and direction controls.
 - A slide uses its own transition; a slide without one cuts immediately (03,
   "Transitions"). Lyric elements move across the same screen distance and share
   the same wipe edge, including layouts with separate text boxes.

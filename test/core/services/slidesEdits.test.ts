@@ -18,6 +18,13 @@ import {
 const id = createServiceItemId('00000000-0000-4000-8000-000000000001');
 
 describe('merge slides changes', () => {
+  it('keeps the selected default for a new item and its later slides', () => {
+    const transition = {kind: 'push', dir: 'up', sec: 2} as const;
+    expect(
+      newSlidesItem('ad', id, transition).slides.slides[0]?.transition,
+    ).toEqual(transition);
+    expect(newTextSlide('blank', transition).transition).toEqual(transition);
+  });
   it('clears locally removed optional fields while retaining fresh unrelated item and slides properties', () => {
     const base = {
       ...newSlidesItem('ad', id),

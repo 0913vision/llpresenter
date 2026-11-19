@@ -26,6 +26,7 @@ import {
 } from '@core/services/slidesEdits';
 import {MediaPicker} from '@renderer/features/songs/editor/MediaPicker';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
+import {useSlideDefaults} from '@renderer/features/songs/editor/useSlideDefaults';
 import {useEditorFocus} from '@renderer/features/songs/editor/useEditorFocus';
 import {Button, Checkbox, PanelFooter, TextField} from '@renderer/ui';
 import {TextArea} from '@renderer/ui/TextArea';
@@ -316,6 +317,7 @@ function SlidesEditorBody({
   readonly addCard?: ReactNode;
 }): JSX.Element {
   const {item: draftItem, selected} = draft.snapshot;
+  const slideDefaults = useSlideDefaults();
   const item = useSlidesItemWithBackground(draftItem);
   const serviceName = useShow(view => view.serviceName);
   const root = useRef<HTMLDivElement>(null);
@@ -491,7 +493,16 @@ function SlidesEditorBody({
             onAdd={index => {
               draft.selectRows({type: 'gap', index});
               model.session?.requestReveal();
-              if (draft.insert([newTextSlide(item.slides.form)])) update();
+              if (
+                draft.insert([
+                  newTextSlide(
+                    item.slides.form,
+                    slideDefaults[item.slides.form],
+                  ),
+                ])
+              ) {
+                update();
+              }
             }}
             renderRow={(slide, index) => (
               <>
@@ -575,7 +586,9 @@ function SlidesEditorBody({
             }
             onClick={() => {
               model.session?.requestReveal();
-              draft.insert([newTextSlide(item.slides.form)]);
+              draft.insert([
+                newTextSlide(item.slides.form, slideDefaults[item.slides.form]),
+              ]);
               update();
             }}
           >
@@ -625,7 +638,11 @@ function SlidesEditorBody({
             if (picker.slideId === undefined) {
               model.session?.requestReveal();
               draft.insert([
-                {id: createSlideId(crypto.randomUUID()), media: id},
+                {
+                  id: createSlideId(crypto.randomUUID()),
+                  media: id,
+                  transition: slideDefaults[item.slides.form],
+                },
               ]);
             } else {
               const index = rows.findIndex(

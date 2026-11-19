@@ -950,8 +950,9 @@ same place. Native window and field keys are identified separately.
 | Page      | Content                                                   | Ver.  | Compared with ProPresenter (S4)                           |
 | --------- | --------------------------------------------------------- | ----- | --------------------------------------------------------- |
 | 일반      | UI zoom, launch with Windows                              | 1     | General; no app-wide UI zoom source found                 |
-| 출력      | Output on launch, the monitor button, transitions         | 1     | Screens, General                                          |
 | 진행      | Clear fade durations                                      | 1     | Output controls                                           |
+| 준비      | Defaults for newly created slide transitions              | 1     | User decision, November 19                                |
+| 출력      | Output on launch and the monitor button                   | 1     | Screens, General                                          |
 | 예배 순서 | Last-slide navigation and past-row appearance             | 1     | User decision, November 9                                 |
 | 저장      | Folders, automatic backup, previous versions per file     | 1     | Advanced (Support Files, media repository)                |
 | 이름표    | The shared 이름표 list                                    | 1     | Groups (S4 p. 176)                                        |
@@ -1004,6 +1005,17 @@ Rules for every row:
 When enabled, every row above the current output item dims by position,
 including section headings and every item kind. Going back restores later rows.
 No execution history is kept. See 04, "Row states".
+
+#### 준비 (Preparation)
+
+새 슬라이드 기본 전환 has rows for 곡 제목, 곡, 빈 슬라이드, 광고, 구역 이름,
+설교 제목, 사도신경, 주기도문 and 성경 말씀. Each row has effect, direction and
+duration controls. Direction applies to push and wipe. The initial defaults are
+left wipe for 4 seconds for 곡 제목, no effect for 곡, 빈 슬라이드 and 광고,
+left wipe for 1 second for 구역 이름 and 설교 제목, and left wipe for 0.7
+seconds for 사도신경, 주기도문 and 성경 말씀. Values are stored in
+`preferences.json` `show.slideDefaults` and apply when a new slide is created;
+existing slides retain their own transitions.
 
 #### 출력 (Output)
 

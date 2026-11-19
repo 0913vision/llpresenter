@@ -4,6 +4,44 @@ import {blockSnapshot} from '@core/songs/blockModel';
 import {editBlocks} from '@core/songs/blockEdits';
 
 describe('slide text editing', () => {
+  it.each(['split', 'paste'] as const)(
+    'uses the new-slide transition for %s without changing the source',
+    type => {
+      const first = sampleSong().slides[0];
+      if (first === undefined) throw new Error('Missing slide');
+      const source = sampleSong([
+        {
+          ...first,
+          lines: ['first', 'second'],
+          transition: {kind: 'dissolve', sec: 1},
+        },
+      ]);
+      const before = blockSnapshot(source, {block: 0, start: 5, end: 5});
+      const transition = {kind: 'wipe', dir: 'up', sec: 2} as const;
+      const command =
+        type === 'split'
+          ? {type, transition}
+          : {type, text: '\n\nextra', transition};
+      const after = editBlocks(before, command);
+      expect(after.song.slides[0]?.transition).toEqual({
+        kind: 'dissolve',
+        sec: 1,
+      });
+      expect(after.song.slides[1]?.transition).toEqual(transition);
+    },
+  );
+  it('stores the requested default on newly inserted slides', () => {
+    const before = blockSnapshot(sampleSong(), {block: 0, start: 0, end: 0});
+    const transition = {kind: 'wipe', dir: 'right', sec: 4} as const;
+    expect(
+      editBlocks(before, {type: 'title', title: 'Title', transition}).song
+        .slides[0]?.transition,
+    ).toEqual(transition);
+    expect(
+      editBlocks(before, {type: 'insert', transition}).song.slides[1]
+        ?.transition,
+    ).toEqual(transition);
+  });
   it('inserts editable opening and closing titles without a special transition', () => {
     const before = blockSnapshot(sampleSong(), {block: 2, start: 0, end: 0});
     const after = editBlocks(before, {type: 'title', title: 'Invented title'});

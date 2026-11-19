@@ -19,6 +19,7 @@ import {useOtherSources} from './useOtherSources';
 import {useHeaderRename} from '@renderer/session/headerRename';
 import {rememberBiblePassage} from '@renderer/session/recentWriter';
 import {insertSelectedSong} from '@renderer/session/insertSelectedSong';
+import {useSlideDefaults} from '@renderer/features/songs/editor/useSlideDefaults';
 
 const NO_SERVICE_REASON = '열린 예배 없음';
 
@@ -37,6 +38,7 @@ export function ServiceQuickAdd({
   const [typingPassage, setTypingPassage] = useState(false);
   const [choosingSong, setChoosingSong] = useState(false);
   const sources = useOtherSources(open);
+  const slideDefaults = useSlideDefaults();
   const reason =
     serviceId === null
       ? NO_SERVICE_REASON
@@ -119,6 +121,7 @@ export function ServiceQuickAdd({
           anchor={{kind: 'element', element: button}}
           onClose={() => setOpen(false)}
           entries={otherItemEntries({
+            slideDefaults,
             ...sources,
             onInsert: insertItem,
             onSong: () => {

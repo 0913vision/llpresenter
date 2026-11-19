@@ -20,6 +20,7 @@ import {
   ShowPage,
   MediaPage,
   OutputPage,
+  PrepPage,
   StoragePage,
   preferencePages,
   type PreferencePageId,
@@ -319,6 +320,7 @@ function PreferencesContent({
           {page === 'show' ? <ShowPage edits={edits} /> : null}
           {page === 'serviceOrder' ? <ServiceOrderPage edits={edits} /> : null}
           {page === 'output' ? <OutputPage edits={edits} /> : null}
+          {page === 'prep' ? <PrepPage edits={edits} /> : null}
           {page === 'storage' ? (
             <StoragePage edits={edits} locations={locations} />
           ) : null}

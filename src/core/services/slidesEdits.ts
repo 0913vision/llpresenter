@@ -111,10 +111,14 @@ export function mergeSlidesChanges(
   return merged;
 }
 
-export function newTextSlide(form: SlidesItem['slides']['form']): Slide {
+export function newTextSlide(
+  form: SlidesItem['slides']['form'],
+  transition?: Slide['transition'],
+): Slide {
   return {
     id: createSlideId(crypto.randomUUID()),
     text: '',
+    ...(transition === undefined ? {} : {transition}),
     ...(form === 'ad' ? {name: ''} : {}),
   };
 }
@@ -122,13 +126,14 @@ export function newTextSlide(form: SlidesItem['slides']['form']): Slide {
 export function newSlidesItem(
   form: SlidesItem['slides']['form'],
   id: SlidesItem['id'],
+  transition?: Slide['transition'],
 ): SlidesItem {
   return {
     id,
     slides: {
       form,
       name: form === 'ad' ? '광고' : '빈 슬라이드',
-      slides: [newTextSlide(form)],
+      slides: [newTextSlide(form, transition)],
     },
   };
 }

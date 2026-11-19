@@ -3,9 +3,17 @@ import type {SlideListCommand} from '@core/songs/slideListEdits';
 import type {SlideSelectionAction} from '@core/songs/slideListSelection';
 import type {SlideListSession} from '../../songs/editor/slideListSession';
 import type {Notice} from '@renderer/ui/notices';
+import {
+  defaultSlideTransitions,
+  type SlideTransitionDefaults,
+} from '@core/schema/preferences';
 
 /** Borrows the draft's only model for the shared row and grid command surface. */
 export class SlidesListSession implements SlideListSession<Slide> {
+  private slideDefaults: SlideTransitionDefaults = defaultSlideTransitions;
+  setSlideDefaults(defaults: SlideTransitionDefaults): void {
+    this.slideDefaults = defaults;
+  }
   private intent = 0;
   revealIntent = 0;
   constructor(
@@ -85,7 +93,11 @@ export class SlidesListSession implements SlideListSession<Slide> {
     const result =
       text === undefined
         ? this.slideModel.paste()
-        : this.slideModel.pasteText(text);
+        : this.slideModel.pasteText(text, slide => ({
+            ...slide,
+            transition:
+              this.slideDefaults[this.draft.snapshot.item.slides.form],
+          }));
     if (!result.ok) this.host.problem('붙여넣을 수 없는 슬라이드');
   }
   edit(command: 'undo' | 'redo'): void {

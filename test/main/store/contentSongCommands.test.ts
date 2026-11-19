@@ -4,8 +4,10 @@ import {createSongId} from '@core/schema/ids';
 import {importSlides} from '@core/songs/importSlides';
 import {convertTextImport} from '@core/songs/textImport';
 import {join} from 'node:path';
-import {describe, expect, it} from 'vitest';
+import {describe, expect, it, onTestFinished} from 'vitest';
 import {ContentStore} from '@main/store/contentStore';
+import {SettingsStore} from '@main/store/settingsStore';
+import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {
   HYMN_ONE_ID,
   SUNDAY_ID,
@@ -31,6 +33,30 @@ import {
 } from '@fixtures/main/store/contentStoreFixtures';
 
 describe('song.import storage', () => {
+  it('writes configured title and lyric transitions when creating a song', async () => {
+    const songTitle = {kind: 'wipe', dir: 'left', sec: 4} as const;
+    const song = {kind: 'push', dir: 'up', sec: 2} as const;
+    const preferences = settingsDocument('preferences', {
+      show: {slideDefaults: {songTitle, song}},
+    });
+    const settings = new SettingsStore({
+      documents: new Map([['preferences', preferences]]),
+      problems: [],
+      log: quietLog(),
+    });
+    onTestFinished(() => settings.dispose());
+    const {store, files} = setUp([], {settings});
+    const result = await store.apply({type: 'song.create'});
+    if (!result.ok) throw new Error(result.error.message);
+    const text = files.texts.get(
+      join(locations.songs, `${result.value.id}.llsong`),
+    );
+    if (text === undefined) throw new Error('No persisted song');
+    const saved = parseSong(text, 'song.llsong');
+    if (!saved.ok) throw new Error(saved.error.message);
+    expect(saved.value.data.slides[0]?.transition).toEqual(songTitle);
+    expect(saved.value.data.slides[1]?.transition).toEqual(song);
+  });
   it('persists the imported song theme', async () => {
     const {store, files} = importSetup();
     const result = await store.apply({

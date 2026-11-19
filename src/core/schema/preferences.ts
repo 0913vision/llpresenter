@@ -41,6 +41,10 @@ export const audioDeviceSchema = jsonObject({
 });
 
 export const transitionDefaultKinds = [
+  'songTitle',
+  'song',
+  'blank',
+  'ad',
   'section',
   'sermonTitle',
   'creed',
@@ -52,6 +56,10 @@ export type SlideTransitionDefaults = Readonly<
   Record<TransitionDefaultKind, SlideTransition>
 >;
 export const defaultSlideTransitions: SlideTransitionDefaults = {
+  songTitle: {kind: 'wipe', dir: 'left', sec: 4},
+  song: {kind: 'none', sec: 1},
+  blank: {kind: 'none', sec: 1},
+  ad: {kind: 'none', sec: 1},
   section: {kind: 'wipe', dir: 'left', sec: 1},
   sermonTitle: {kind: 'wipe', dir: 'left', sec: 1},
   creed: {kind: 'wipe', dir: 'left', sec: 0.7},
@@ -144,6 +152,10 @@ export const preferencesSchema = jsonObject({
       dimPastItems: v.exactOptional(v.boolean()),
       slideDefaults: v.exactOptional(
         jsonObject({
+          songTitle: v.exactOptional(slideTransitionSchema),
+          song: v.exactOptional(slideTransitionSchema),
+          blank: v.exactOptional(slideTransitionSchema),
+          ad: v.exactOptional(slideTransitionSchema),
           section: v.exactOptional(slideTransitionSchema),
           sermonTitle: v.exactOptional(slideTransitionSchema),
           creed: v.exactOptional(slideTransitionSchema),

@@ -1,5 +1,6 @@
 import type {SongTitleLayout} from '../schema/songTitleLayout';
 import type {Song, SongSlide} from '../schema/song';
+import type {SlideTransition} from '../schema/slideTransition';
 
 export interface BlockSelection {
   readonly block: number;
@@ -18,16 +19,32 @@ export type BlockCommand =
       readonly start: number;
       readonly end: number;
     }
-  | {readonly type: 'paste'; readonly text: string}
+  | {
+      readonly type: 'paste';
+      readonly text: string;
+      readonly transition?: SlideTransition;
+    }
   | {readonly type: 'label'; readonly name: string | undefined}
-  | {readonly type: 'title'; readonly title: string; readonly index?: number}
+  | {
+      readonly type: 'title';
+      readonly title: string;
+      readonly index?: number;
+      readonly transition?: SlideTransition;
+    }
   | {
       readonly type: 'title-layout';
       readonly block: number;
       readonly layout: SongTitleLayout;
     }
-  | {readonly type: 'insert'; readonly index?: number}
-  | {readonly type: 'enter' | 'split' | 'merge'};
+  | {
+      readonly type: 'insert';
+      readonly index?: number;
+      readonly transition?: SlideTransition;
+    }
+  | {
+      readonly type: 'enter' | 'split' | 'merge';
+      readonly transition?: SlideTransition;
+    };
 
 export const normalize = (text: string): string => text.replace(/\r\n?/g, '\n');
 export const BLANK_LINES = /\n(?:[^\S\n]*\n)+/g;

@@ -7,6 +7,10 @@ import {createSongId, createSongSlideId} from '@core/schema/ids';
 import type {TextImportDraft} from '@core/schema/textImport';
 import {importSlides} from '@core/songs/importSlides';
 import {normalizeSongTitle} from '@core/songs/songTitle';
+import {
+  defaultSlideTransitions,
+  type SlideTransitionDefaults,
+} from '@core/schema/preferences';
 import type {EditorApi, EditorOperationHost} from './editorContracts';
 import {SongSession} from './songSession';
 import {songSlideClipboardFor} from './songSlideHistory';
@@ -35,8 +39,27 @@ export class ImportedSongDraft {
   private importedSaved: SongId | null = null;
   private pendingLeave: (() => void) | null = null;
   private fresh = false;
+  private slideDefaults: SlideTransitionDefaults = defaultSlideTransitions;
+  private readonly stopPreferences: (() => void) | undefined;
 
-  constructor(private readonly context: ImportedSongDraftOptions) {}
+  constructor(private readonly context: ImportedSongDraftOptions) {
+    const api =
+      typeof window === 'undefined' ? undefined : window.llp?.preferences;
+    if (api === undefined) return;
+    let received = false;
+    this.stopPreferences = api.subscribe(value => {
+      received = true;
+      this.slideDefaults = value.show.slideDefaults;
+    });
+    api
+      .get()
+      .then(value => {
+        if (!received) this.slideDefaults = value.show.slideDefaults;
+      })
+      .catch((error: unknown) =>
+        console.error('Could not load slide defaults', error),
+      );
+  }
   get session(): SongSession | null {
     return this.imported;
   }
@@ -44,6 +67,7 @@ export class ImportedSongDraft {
     return this.pendingLeave !== null;
   }
   dispose(): void {
+    this.stopPreferences?.();
     this.imported?.discard();
     this.imported = null;
     this.pendingLeave = null;
@@ -71,9 +95,15 @@ export class ImportedSongDraft {
                 id: createSongSlideId(crypto.randomUUID()),
                 titleSlide: true,
                 lines: [normalizeSongTitle(draft.title) || '가져온 곡'],
+                transition: this.slideDefaults.songTitle,
               } as const,
             ]),
-        ...importSlides(draft.slides, () => crypto.randomUUID()),
+        ...importSlides(draft.slides, () => crypto.randomUUID()).map(slide => ({
+          ...slide,
+          transition: slide.titleSlide
+            ? this.slideDefaults.songTitle
+            : this.slideDefaults.song,
+        })),
       ],
     };
     const checked = parseSongDocument({
