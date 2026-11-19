@@ -46,6 +46,19 @@ function press(overrides: Partial<PhysicalKeyPress> = {}): PhysicalKeyPress {
 }
 
 describe('shortcut registry', () => {
+  it('assigns Alt 1–5 to recent passages while retaining the output toggles', () => {
+    for (let index = 1; index <= 5; index += 1) {
+      expect(commandBindings(`bible.recent${index}`, {})).toEqual([
+        {code: `Digit${index}`, mods: ['alt']},
+      ]);
+    }
+    expect(commandBindings('output.audience', {})).toEqual([
+      {code: 'Digit1', mods: ['ctrl']},
+    ]);
+    expect(commandBindings('output.stage', {})).toEqual([
+      {code: 'Digit2', mods: ['ctrl']},
+    ]);
+  });
   it('opens the service picker with Ctrl O in every control workspace', () => {
     expect(shortcutCommand('service.switcher')).toMatchObject({
       name: '예배 열기',

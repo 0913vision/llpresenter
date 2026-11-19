@@ -1,4 +1,9 @@
 import {withLiveBible} from '@core/bible/liveTranslation';
+import {recentPassages} from '@core/bible/bibleRecents';
+import {displayReference} from '@core/bible/displayReference';
+import {shortcutNames} from '@core/shortcuts/keys';
+import type {RecentPassage} from '@core/schema/bible';
+import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
 import {useRef, useSyncExternalStore} from 'react';
 import {commandBindings} from '@core/shortcuts/bindings';
@@ -15,12 +20,17 @@ import {
   beginQuickPassage,
   finishQuickPassage,
 } from '@renderer/session/quickReturn';
-import {beginOutputRequest} from '@renderer/session/showOutput';
+import {
+  beginOutputRequest,
+  isOutputRequestCurrent,
+} from '@renderer/session/showOutput';
+import {useLive} from '@renderer/session/live';
 import {BibleReferenceField} from '../bible/BibleReferenceField';
 import {openBiblePassage, showBiblePassage} from '../bible/actions';
 import {focusSlideGrid} from '../presentation/focusSlideGrid';
 import {DraftOverlay} from '../presentation/DraftOverlay';
 import {useBibleDisplayDefaults} from '../bible/useBibleDisplayDefaults';
+import styles from './BibleQuickField.module.css';
 
 /** The quick-panel mount; previewing never writes output or recent history. */
 export function BibleQuickField({
@@ -33,6 +43,13 @@ export function BibleQuickField({
   readonly onIntent?: (() => void) | undefined;
 }): JSX.Element {
   const root = useRef<HTMLDivElement>(null);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
   const [overlayOpen, setOverlayOpen] = useState(false);
   const bindings = useSyncExternalStore(
     commandBindingStore.subscribe,
@@ -90,6 +107,62 @@ export function BibleQuickField({
   const translations = document
     ? withLiveBible(document.value.translations)
     : [];
+  const recents = recentPassages(document?.value.recents ?? []).slice(0, 5);
+  const show = (passage: BibleLookupPassage, reusePreview = true): void => {
+    if (display === null) return;
+    const view = useShow.getState();
+    const prepared = bibleSourceFor(view, view.openItemId);
+    const expanded =
+      reusePreview &&
+      prepared?.enteredRef === passage.ref &&
+      (prepared.enteredTranslation ?? prepared.passage.translation) ===
+        passage.translation;
+    const samePassage =
+      prepared?.passage.ref === passage.ref &&
+      prepared.passage.translation === passage.translation;
+    const options = expanded || samePassage ? prepared : display;
+    beginQuickPassage();
+    showBiblePassage(expanded ? prepared.passage : passage, {
+      ...options,
+      review: false,
+      transition: QUICK_BIBLE_TRANSITION,
+    });
+    setOverlayOpen(false);
+    finishQuickPassage();
+    focusSlideGrid();
+  };
+  const pick = async (recent: RecentPassage): Promise<void> => {
+    if (display === null) return;
+    onIntent?.();
+    setSession(value => value + 1);
+    const request = beginOutputRequest();
+    const version = useLive.getState().commandVersion;
+    try {
+      const reply = await api.bible.lookup({
+        input: recent.ref,
+        translation: recent.translation,
+      });
+      if (
+        mounted.current &&
+        reply.result.ok &&
+        isOutputRequestCurrent(request, version)
+      ) {
+        show(reply.result.value, false);
+      }
+    } catch (error) {
+      console.error('Could not read recent Bible passage', error);
+    }
+  };
+  useWindowShortcuts(
+    Array.from({length: 5}, (_, index) => ({
+      id: `bible.recent${index + 1}`,
+      when: () => recents[index] !== undefined && display !== null,
+      run: () => {
+        const recent = recents[index];
+        if (recent) return pick(recent);
+      },
+    })),
+  );
   const field = (
     <div
       ref={root}
@@ -121,7 +194,7 @@ export function BibleQuickField({
             ? undefined
             : (translations.find(item => item.default) ?? translations[0])?.id
         }
-        recents={document?.value.recents ?? []}
+        recents={[]}
         onIntent={() => {
           beginOutputRequest();
           onIntent?.();
@@ -160,29 +233,42 @@ export function BibleQuickField({
             });
           }
         }}
-        onShow={passage => {
-          if (display === null) return;
-          const view = useShow.getState();
-          const prepared = bibleSourceFor(view, view.openItemId);
-          const expanded =
-            prepared?.enteredRef === passage.ref &&
-            (prepared.enteredTranslation ?? prepared.passage.translation) ===
-              passage.translation;
-          const samePassage =
-            prepared?.passage.ref === passage.ref &&
-            prepared.passage.translation === passage.translation;
-          const options = expanded || samePassage ? prepared : display;
-          beginQuickPassage();
-          showBiblePassage(expanded ? prepared.passage : passage, {
-            ...options,
-            review: false,
-            transition: QUICK_BIBLE_TRANSITION,
-          });
-          setOverlayOpen(false);
-          finishQuickPassage();
-          focusSlideGrid();
-        }}
+        onShow={passage => show(passage)}
       />
+      <div className={styles.recents} aria-label="최근 성경 구절">
+        {Array.from({length: 5}, (_, index) => {
+          const recent = recents[index];
+          const binding = commandBindings(
+            `bible.recent${index + 1}`,
+            bindings,
+          )[0];
+          return (
+            <div className={styles.recentSlot} key={index}>
+              {recent ? (
+                <button
+                  type="button"
+                  className={styles.recent}
+                  onClick={() => {
+                    pick(recent).catch((error: unknown) =>
+                      console.error(error),
+                    );
+                  }}
+                >
+                  <span>{index + 1}</span>
+                  <span className={styles.ref}>
+                    {displayReference(recent.ref)}
+                  </span>
+                  {binding ? (
+                    <span className={styles.keys}>
+                      {shortcutNames(binding).join('+')}
+                    </span>
+                  ) : null}
+                </button>
+              ) : null}
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
   return overlayOpen ? (

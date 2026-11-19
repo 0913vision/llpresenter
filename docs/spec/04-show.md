@@ -729,6 +729,10 @@ Source: `Overlays` (tool controls), `Problems` (still background), `Macros`,
 - Header: "빠른 실행" and 빠른 실행 추가 (add, plus icon).
 - Tool row: the four Bible reference fields 책, 장, 시작절, 끝절, with a book
   icon on 책. See "Bible passages".
+- Below the fields, five fixed rows show up to five recent passages, newest
+  first. Empty rows remain blank. Clicking a row or pressing its configurable
+  Alt+1 through Alt+5 shortcut in 진행 immediately shows that passage; recent
+  passages do not appear in the 책 suggestions.
 - List: one row per item, with a kind icon and a name. Rows show no shortcuts.
 - While a quick Bible passage is live, its reference appears above the saved
   quick items. Preview alone does not show it; the black screen remains its own

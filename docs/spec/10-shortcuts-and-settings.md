@@ -287,6 +287,9 @@ Notes from the current versions (S6):
 
 ## Shortcut system
 
+빠른 실행 has five configurable recent-passage commands, defaulting to Alt+1
+through Alt+5 in 진행. Ctrl+1 and Ctrl+2 continue to toggle 청중 and 무대.
+
 This section is decided (see "Decision status"). "(decided)" marks a choice that
 has no ProPresenter source, so this proposal's choice applies.
 
