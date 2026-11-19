@@ -27,6 +27,12 @@
   font: var(--type-body-strong);
 }
 
+/* Cover the whole row even where its trailing cells are empty. Hover and
+   selection keep the ListRow colors, which also cover the whole row. */
+.table .row:not(:hover, :active, [aria-selected='true'], [aria-pressed='true']) {
+  background: var(--bg-panel);
+}
+
 .table [role='option'] {
   scroll-margin-block-start: var(--size-table-header);
 }
