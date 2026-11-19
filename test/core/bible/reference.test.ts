@@ -133,7 +133,7 @@ describe('Bible reference grammar and lookup', () => {
   it('offers ambiguous book choices and resolves numbered and IME-off names', async () => {
     expect(parseReference('베1:1')).toMatchObject({
       ok: false,
-      error: {suggestions: [{id: 49}, {id: 60}, {id: 61}]},
+      error: {suggestions: [{id: 60}, {id: 61}, {id: 49}]},
     });
     expect(parseReference('ckd1:1')).toMatchObject({
       ok: true,

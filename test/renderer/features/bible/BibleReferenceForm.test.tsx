@@ -313,7 +313,7 @@ describe('shared Bible reference form', () => {
       await view.user.tab();
       expect(view.book.value).toBe('베');
       expect(document.activeElement).toBe(view.book);
-      await view.user.keyboard('{ArrowDown}{Tab}');
+      await view.user.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}{Tab}');
       expect(view.book.value).toBe('에베소서');
       expect(document.activeElement).toBe(view.chapter);
     },
@@ -377,7 +377,7 @@ describe('shared Bible reference form', () => {
     const view = setup();
     view.lookup.mockImplementation(request => formLookupReply(request, [43]));
     await view.user.type(view.book, '\ubca0');
-    await view.user.keyboard('{ArrowDown}{Tab}');
+    await view.user.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}{Tab}');
     expect(view.book.value).toBe('\uc5d0\ubca0\uc18c\uc11c');
     expect(document.activeElement).toBe(view.chapter);
     expect(view.book.getAttribute('aria-invalid')).toBeNull();
@@ -396,7 +396,7 @@ describe('shared Bible reference form', () => {
           }),
       );
       await view.user.type(view.book, '베');
-      await view.user.keyboard('{ArrowDown}{Tab}');
+      await view.user.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}{Tab}');
       expect(view.book.value).toBe('에베소서');
       expect(document.activeElement).toBe(view.chapter);
       await view.user.tab();
@@ -509,7 +509,7 @@ describe('shared Bible reference form', () => {
     expect(document.activeElement).toBe(view.book);
     expect(view.book.value).toBe('베');
     await view.user.keyboard('{ArrowDown}{Tab}');
-    expect(view.book.value).toBe('베드로전서');
+    expect(view.book.value).toBe('베드로후서');
     expect(document.activeElement).toBe(view.chapter);
   });
 
@@ -573,7 +573,7 @@ describe('shared Bible reference form', () => {
     expect(document.activeElement).toBe(view.book);
     expect(view.book.value).toBe('베');
     expect(view.book.getAttribute('aria-invalid')).toBeNull();
-    await view.user.keyboard('{ArrowDown}{ArrowDown}{Tab}');
+    await view.user.keyboard('{ArrowDown}{Tab}');
     expect(view.book.value).toBe('베드로전서');
     expect(document.activeElement).toBe(view.chapter);
     expect(view.onSubmit).not.toHaveBeenCalled();
@@ -901,7 +901,7 @@ describe('Bible reference form readiness', () => {
 
     await view.user.clear(view.book);
     await view.user.type(view.book, '베');
-    await view.user.keyboard('{ArrowDown}{Tab}');
+    await view.user.keyboard('{ArrowDown}{ArrowDown}{ArrowDown}{Tab}');
 
     expect(view.book.getAttribute('aria-invalid')).toBeNull();
     expect(view.book.value).toBe('에베소서');
