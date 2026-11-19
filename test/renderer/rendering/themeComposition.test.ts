@@ -3196,7 +3196,10 @@ it('shows the intro cue on an image-backed song slide without extracted text', (
   const {view, text} = setup();
   if (!song.slide) throw Error('Missing slide');
   view.render(
-    {...song, slide: {...song.slide, label: '전주', lines: [], picture: mediaId}},
+    {
+      ...song,
+      slide: {...song.slide, label: '전주', lines: [], picture: mediaId},
+    },
     {
       ...frame([
         {...themeElementBase(), kind: 'currentText'},
@@ -3231,7 +3234,9 @@ it.each([false, true])(
         transitions: false,
       },
     );
-    expect(text('currentText')).toBe('난 구원의 하나님을 인해 기뻐하리라 (전주)');
+    expect(text('currentText')).toBe(
+      '난 구원의 하나님을 인해 기뻐하리라 (전주)',
+    );
     view.dispose();
   },
 );
