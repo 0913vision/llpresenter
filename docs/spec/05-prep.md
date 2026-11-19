@@ -509,8 +509,7 @@ name.
 - A segmented control switches between 청중 화면, 무대, and 방송 화면. The
   preview shows the selected 슬라이드 drawn with the 테마 of the item for that
   screen.
-- The preview uses the same picture, screen selector and numbered 이름표 band as
-  the details panel.
+- Caption: the 이름표 color swatch and name, and the position ("3 / 4").
 
 ### 슬라이드 list
 

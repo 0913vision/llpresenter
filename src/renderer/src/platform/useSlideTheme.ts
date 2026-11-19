@@ -17,9 +17,7 @@ interface SlideThemeOptions {
 export function useSlideTheme(
   row: ItemRow | undefined,
   source: 'service' | 'external' = 'service',
-  options: SlideThemeOptions & {
-    readonly api?: Pick<LlpApi, 'settings'> & Partial<Pick<LlpApi, 'log'>>;
-  } = {},
+  options: SlideThemeOptions & {readonly api?: LlpApi} = {},
 ) {
   const enabled =
     row?.kind === 'slides' || row?.kind === 'song' || row?.kind === 'media';

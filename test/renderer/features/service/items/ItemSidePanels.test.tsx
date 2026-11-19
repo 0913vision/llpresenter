@@ -27,7 +27,7 @@ afterEach(() =>
   useShow.setState({serviceId: null, openItemId: null, tiles: {}}),
 );
 
-it('keeps the first Bible picture while selecting slides locally and switching items', async () => {
+it('updates the Bible picture while selecting slides locally and switching items', async () => {
   const f = itemFixture();
   const passage = panelPassage();
   const tiles = bibleVerseTiles(passage);
@@ -99,7 +99,7 @@ it('keeps the first Bible picture while selecting slides locally and switching i
     await userEvent.click(options[2]);
     expect(items.getSnapshot().position).toBe(2);
     expect(within(panel).getAllByTestId('picture')[0]?.textContent).toContain(
-      '16 Invented verse 16',
+      '18 Invented verse 18',
     );
     act(() => useShow.setState({openItemId: fixtureItems.plain}));
     await waitFor(() =>
