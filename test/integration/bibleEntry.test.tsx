@@ -11,6 +11,7 @@ import {defaultPreferences} from '@core/schema/preferences';
 import {BIBLE_BOOKS} from '@core/bible/bibleBooks';
 import {BibleLookupSession} from '@main/bible/lookup';
 import {BiblePassageDialog} from '@renderer/features/bible/BiblePassageDialog';
+import {commandBindingStore} from '@renderer/ui/commandBindings';
 import {fullTranslationText} from '@fixtures/core/bible/testFiles';
 import {lookupRequest} from '@fixtures/core/bibleLookups';
 import {formLookupReply} from '@fixtures/core/bibleReplies';
@@ -23,6 +24,7 @@ import {convertBibleFile} from '../../scripts/bible/convert';
 it.each(['click', 'shortcut'] as const)(
   'selects the tenth recent in the add dialog with %s',
   async method => {
+    commandBindingStore.set({});
     const fixture = panelApi();
     window.llp = fixture.api;
     onTestFinished(() => {
@@ -53,6 +55,7 @@ it.each(['click', 'shortcut'] as const)(
     expect(tenth.textContent).toContain('Alt+0');
     if (method === 'click') fireEvent.click(tenth);
     else {
+      fireEvent.blur(window);
       fireEvent.keyDown(screen.getByRole('combobox', {name: '책'}), {
         key: '0',
         code: 'Digit0',
