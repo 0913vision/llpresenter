@@ -5,7 +5,11 @@ import {beforeEach, describe, expect, it, vi} from 'vitest';
 import {makeTempDir} from '@fixtures/tempDir';
 import {mediaEndpoints} from '@contracts/ipc/media';
 import {createMediaId, type MediaId} from '@core/schema/ids';
-import {parseMediaDocument} from '@core/schema/mediaEdit';
+import {
+  parseMediaDocument,
+  parseMediaImportProgress,
+  type MediaImportProgress,
+} from '@core/schema/mediaEdit';
 import {expectSuccess} from '@fixtures/core/schema/testHelpers';
 import {defaultPreferences, type Preferences} from '@core/schema/preferences';
 import {recordingLogger} from '@fixtures/main/displays/testing';
@@ -96,7 +100,7 @@ beforeEach(() => {
 
 const MISSING = createMediaId('00000000-0000-4000-8000-000000000001');
 
-function mockPort() {
+function mockPort(onProgress?: (progress: unknown) => void) {
   const reported: unknown[] = [];
   const disconnect = vi.fn();
   let backend: MediaBackend | null = null;
@@ -106,6 +110,7 @@ function mockPort() {
       const connection: MediaBackendConnection = {
         report: progress => {
           reported.push(progress);
+          onProgress?.(progress);
           return true;
         },
         disconnect,
@@ -183,7 +188,16 @@ function register(
 
 describe('media backend registration', () => {
   it('gives a new import the 새 미디어 defaults from the preferences', async () => {
-    const {port, handlers, reported} = mockPort();
+    let onProgress: (value: unknown) => void = () => undefined;
+    const finished = new Promise<MediaImportProgress>(resolve => {
+      onProgress = value => {
+        const progress = expectSuccess(parseMediaImportProgress(value));
+        if (['complete', 'failed', 'cancelled'].includes(progress.phase)) {
+          resolve(progress);
+        }
+      };
+    });
+    const {port, handlers} = mockPort(onProgress);
     const store = await mediaStore();
     const add = vi.fn(store.add);
     const file = join(await makeTempDir(), 'Invented.png');
@@ -203,15 +217,17 @@ describe('media backend registration', () => {
         }),
       },
     );
-    await handlers().import(
-      {source: {kind: 'files', paths: [file]}, playlist: null},
-      new AbortController().signal,
-    );
-    await vi.waitFor(() =>
-      expect(reported.at(-1)).toMatchObject({phase: 'complete'}),
-    );
-    expect(add.mock.calls[0]?.[0].items[0]?.props).toEqual({fit: 'stretch'});
-    await stop();
+    try {
+      const result = await handlers().import(
+        {source: {kind: 'files', paths: [file]}, playlist: null},
+        new AbortController().signal,
+      );
+      expect(result).toMatchObject({ok: true});
+      expect(await finished).toMatchObject({phase: 'complete'});
+      expect(add.mock.calls[0]?.[0].items[0]?.props).toEqual({fit: 'stretch'});
+    } finally {
+      await stop();
+    }
   });
 
   it('copies each import into the media folder', async () => {

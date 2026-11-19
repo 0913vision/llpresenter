@@ -465,31 +465,48 @@ it('keeps existing verse rows when an overlapping insertion is cancelled after o
   const f = fixture(slidesBibleItem(), true);
   const session = new ControlSession(f.api);
   const view = render(<SlidesEditorHarness session={session} />);
-  const existingLines = () =>
+  const existingPart = () =>
     previewSpec(
       view.container.querySelector(`[data-slide-id="${VERSE_SLIDE}"]`),
-    )?.layers.slide?.lines;
+    )?.layers.slide;
   try {
-    await waitFor(() => expect(existingLines()?.length).toBeGreaterThan(0));
-    const before = existingLines();
+    await waitFor(() => expect(existingPart()?.biblePart).toBe(1));
+    const before = existingPart();
     await chooseRange(false);
     const review = () => screen.getByRole('dialog', {name: '절 나누기'});
     await waitFor(() => within(review()).getByText('요한복음 3:16'));
     const first = review();
-    fireEvent.click(within(first).getByRole('button', {name: 'A에서 자르기'}));
-    fireEvent.click(within(first).getByRole('button', {name: '확정'}));
+    const name = /에서 자르기$/;
+    const [suggested] = within(first).getAllByRole('button', {
+      name,
+      pressed: true,
+    });
+    const [extra] = within(first).getAllByRole('button', {
+      name,
+      pressed: false,
+    });
+    if (suggested === undefined || extra === undefined) {
+      throw Error('Missing cut controls');
+    }
+    // NOTE(0913vision): Restore the suggested gap as a manual cut to carry over the other gaps.
+    fireEvent.click(suggested);
+    fireEvent.click(suggested);
+    fireEvent.click(extra);
+    const confirm = within(first).getByRole('button', {name: '확정'});
+    expect(confirm.getAttribute('aria-disabled')).not.toBe('true');
+    fireEvent.click(confirm);
     await waitFor(() => within(review()).getByText('요한복음 3:17'));
     const cuts = f.documents.get('bibleCuts');
     expect(
       cuts?.name === 'bibleCuts' && Object.keys(cuts.value.entries),
     ).toHaveLength(1);
-    expect(existingLines()).toEqual(before);
+    expect(existingPart()).toEqual(before);
     fireEvent.keyDown(review(), {
       code: 'Escape',
       key: 'Escape',
     });
     await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
-    expect(existingLines()).toEqual(before);
+    expect(existingPart()).toEqual(before);
     expect(view.container.querySelectorAll('[data-slide-id]')).toHaveLength(6);
     expect(f.content).not.toHaveBeenCalled();
   } finally {

@@ -101,8 +101,19 @@ describe('confirmed cut writes', () => {
       [1],
     );
     await expect(first).rejects.toThrow('절 나누기 저장 실패');
-    await expect(second).resolves.toBeUndefined();
+    const saved = await second;
     expect(edit).toHaveBeenCalledTimes(2);
+    const request = edit.mock.calls[1]?.[0];
+    if (request?.type !== 'settings.update' || request.name !== 'bibleCuts') {
+      throw Error('Unexpected settings edit');
+    }
+    expect(saved.cuts).toEqual([1]);
+    expect(
+      request.value.entries[reference.translation]?.['48:5:1'],
+    ).toBeUndefined();
+    expect(request.value.entries[reference.translation]?.['48:5:2']).toEqual(
+      saved,
+    );
   });
   it('replaces an existing cut when the operator confirms a new one', async () => {
     const verse = {
