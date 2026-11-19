@@ -58,7 +58,9 @@ export async function outputAdjacentBibleVerse(
       isOutputRequestCurrent(request, commandVersion) &&
       view.serviceId === initial.serviceId &&
       view.openItemId === itemId &&
-      view.selectedTile === initial.selectedTile &&
+      (view.selectedTile === initial.selectedTile ||
+        (initial.selectedTile !== liveIndex &&
+          view.selectedTile === liveIndex)) &&
       bibleSourceFor(view, itemId) === source &&
       (source !== null || view.rows === initial.rows) &&
       live?.itemId === slide?.itemId &&
