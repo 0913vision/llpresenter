@@ -206,25 +206,30 @@ function BibleEditorContent({
           }
         />
       }
+      header={
+        <>
+          {hideHeader ? null : (
+            <header className={styles.header}>
+              <Button onClick={onBack}>‹ 예배 순서</Button>
+              <strong>{displayReference(data.reference.ref)}</strong>
+            </header>
+          )}
+          {onSplit === undefined ? null : (
+            <Button
+              className={styles.split}
+              disabled={
+                locked || projection?.partsByTile[position - offset] == null
+              }
+              onClick={onSplit}
+            >
+              {'\uc808 \ub098\ub204\uae30'}
+            </Button>
+          )}
+        </>
+      }
     >
-      {hideHeader ? null : (
-        <header className={styles.header}>
-          <Button onClick={onBack}>‹ 예배 순서</Button>
-          <strong>{displayReference(data.reference.ref)}</strong>
-        </header>
-      )}
-      {onSplit === undefined ? null : (
-        <Button
-          className={styles.split}
-          disabled={
-            locked || projection?.partsByTile[position - offset] == null
-          }
-          onClick={onSplit}
-        >
-          {'\uc808 \ub098\ub204\uae30'}
-        </Button>
-      )}
       <SongSlideSurface
+        itemKind={itemEditorAdapter(item).kind}
         session={session}
         leadingCard={card}
         mixedLeadingSelection

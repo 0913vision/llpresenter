@@ -1,6 +1,6 @@
 import type {JSX, ReactNode} from 'react';
 import {PanelFooter} from '@renderer/ui/Panel';
-import type {ItemEditorAdapter} from './itemEditorAdapter';
+import type {ItemEditorCapabilities} from './itemEditorAdapter';
 
 /** One command order and one footer for every item editor. */
 export function ItemEditorAddBar({
@@ -12,7 +12,7 @@ export function ItemEditorAddBar({
   verse,
   title,
 }: {
-  readonly adapter: ItemEditorAdapter;
+  readonly adapter: ItemEditorCapabilities;
   readonly count: number;
   readonly end?: ReactNode;
   readonly slide?: ReactNode;

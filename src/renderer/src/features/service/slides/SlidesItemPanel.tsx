@@ -128,6 +128,7 @@ function SlidesItemTiles({
       </PanelHeader>
       <PanelBody variant="flush">
         <SongSlideSurface
+          itemKind={item.slides.form}
           session={session}
           onAdd={index => {
             session.selectSlides({type: 'gap', index});

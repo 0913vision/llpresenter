@@ -120,31 +120,36 @@ export function SongEditor({
               }
             />
           }
+          header={
+            <>
+              <SongHeader
+                store={store}
+                session={state.session}
+                onImportedSave={onImportedSave}
+                unsaved={unsaved || state.session.unsaved || state.imported}
+                back={
+                  onBack === undefined ? undefined : (
+                    <Button className={styles.back} onClick={onBack}>
+                      ‹{' '}
+                      {state.session.itemSession
+                        ? serviceName || '예배 순서'
+                        : '라이브러리'}
+                    </Button>
+                  )
+                }
+                actions={state.imported ? null : actions}
+              />
+              <SongEditorRibbon
+                store={store}
+                session={state.session}
+                busy={state.busy}
+                renderDesign={renderDesign}
+              />
+            </>
+          }
         >
-          <SongHeader
-            store={store}
-            session={state.session}
-            onImportedSave={onImportedSave}
-            unsaved={unsaved || state.session.unsaved || state.imported}
-            back={
-              onBack === undefined ? undefined : (
-                <Button className={styles.back} onClick={onBack}>
-                  ‹{' '}
-                  {state.session.itemSession
-                    ? serviceName || '예배 순서'
-                    : '라이브러리'}
-                </Button>
-              )
-            }
-            actions={state.imported ? null : actions}
-          />
-          <SongEditorRibbon
-            store={store}
-            session={state.session}
-            busy={state.busy}
-            renderDesign={renderDesign}
-          />
           <SongSlideSurface
+            itemKind={'song'}
             session={state.session}
             leadingCard={leadingCard}
             store={store}

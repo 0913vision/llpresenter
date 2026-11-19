@@ -529,21 +529,25 @@ function SlidesEditorBody({
             }
           />
         }
+        header={
+          <>
+            <SlidesHeader
+              draft={draft}
+              disabled={model.stopped || model.session?.readOnly === true}
+              onBack={onBack}
+              serviceName={serviceName}
+              update={update}
+              themes={themes}
+              themeName={appearance.themeName}
+              onCommitName={() =>
+                rowList.current
+                  ?.querySelector<HTMLTextAreaElement>('textarea')
+                  ?.focus()
+              }
+            />
+          </>
+        }
       >
-        <SlidesHeader
-          draft={draft}
-          disabled={model.stopped || model.session?.readOnly === true}
-          onBack={onBack}
-          serviceName={serviceName}
-          update={update}
-          themes={themes}
-          themeName={appearance.themeName}
-          onCommitName={() =>
-            rowList.current
-              ?.querySelector<HTMLTextAreaElement>('textarea')
-              ?.focus()
-          }
-        />
         <fieldset
           className={styles.editable}
           disabled={model.stopped || model.session?.readOnly === true}

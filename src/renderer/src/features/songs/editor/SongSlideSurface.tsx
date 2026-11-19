@@ -23,6 +23,10 @@ import {contextMenuAnchor, isContextMenuKey} from '@renderer/ui/contextMenu';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {menuAvailability, type MenuEntry} from '@renderer/ui/menuModel';
 import type {SlideListSession} from './slideListSession';
+import {
+  adaptItemEditor,
+  type ItemEditorKind,
+} from '@renderer/platform/itemEditorAdapter';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useDragClickGuard} from '@renderer/ui/useDragClickGuard';
 import {LabelMenu} from './LabelMenu';
@@ -49,8 +53,10 @@ export function SongSlideSurface<T extends SlideListItem>({
   leadingCard,
   contentReadOnly = false,
   mixedLeadingSelection = leadingCard?.mixedSelection ?? false,
+  itemKind,
 }: {
   readonly session: SlideListSession<T>;
+  readonly itemKind: ItemEditorKind;
   readonly children: ReactNode;
   readonly leadingCard?: LeadingSlideCard | undefined;
   readonly contentReadOnly?: boolean | undefined;
@@ -87,6 +93,14 @@ export function SongSlideSurface<T extends SlideListItem>({
     leadingCard !== undefined &&
     cardSelection.documentId === session.slideDocumentId &&
     cardSelection.selected;
+  const adapter = adaptItemEditor({
+    kind: itemKind,
+    session,
+    view,
+    hasCard: leadingCard !== undefined,
+    cardSelected: leadingSelected,
+    blocked,
+  });
   const selectCard = (preserve = false): void => {
     if (leadingCard === undefined) return;
     if (leadingSelected) {
@@ -122,7 +136,9 @@ export function SongSlideSurface<T extends SlideListItem>({
     id: string | undefined,
   ): HTMLElement[] => {
     if (id === undefined) return [];
-    const ids = view.selection.ids.has(id) ? view.selection.ids : new Set([id]);
+    const ids = adapter.selectedSlideIds.has(id)
+      ? adapter.selectedSlideIds
+      : new Set([id]);
     return [
       ...surface.querySelectorAll<HTMLElement>('[data-song-slide]'),
     ].filter(
@@ -333,9 +349,7 @@ export function SongSlideSurface<T extends SlideListItem>({
       when: owns,
       unavailable: () =>
         editReason ??
-        ((session.canUndo ?? view.canUndo)
-          ? undefined
-          : '실행 취소할 변경이 없습니다'),
+        (adapter.canUndo ? undefined : '실행 취소할 변경이 없습니다'),
       run: () => {
         surfaceRef.current?.focus();
         session.edit('undo');
@@ -347,9 +361,7 @@ export function SongSlideSurface<T extends SlideListItem>({
       when: owns,
       unavailable: () =>
         editReason ??
-        ((session.canRedo ?? view.canRedo)
-          ? undefined
-          : '다시 실행할 변경이 없습니다'),
+        (adapter.canRedo ? undefined : '다시 실행할 변경이 없습니다'),
       run: () => {
         surfaceRef.current?.focus();
         session.edit('redo');
@@ -456,7 +468,7 @@ export function SongSlideSurface<T extends SlideListItem>({
       label: '실행 취소',
       meta: 'Ctrl Z',
       ...menuAvailability(
-        !(session.canUndo ?? view.canUndo)
+        !adapter.canUndo
           ? '실행 취소할 변경이 없습니다'
           : readOnly
             ? NEWER_FILE_REASON
@@ -471,7 +483,7 @@ export function SongSlideSurface<T extends SlideListItem>({
       label: '다시 실행',
       meta: 'Ctrl Y',
       ...menuAvailability(
-        !(session.canRedo ?? view.canRedo)
+        !adapter.canRedo
           ? '다시 실행할 변경이 없습니다'
           : readOnly
             ? NEWER_FILE_REASON
