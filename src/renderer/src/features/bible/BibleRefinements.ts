@@ -38,18 +38,8 @@ export class BibleRefinements {
   ): readonly number[] | undefined {
     return this.cuts.get(this.key(verse, element, prefix));
   }
-  fromSnapshot(
-    snapshot: ReadonlyMap<string, readonly number[]>,
-    {
-      verse,
-      element,
-      prefix,
-    }: {verse: VerseInput; element: BibleTextElement; prefix: string},
-  ): readonly number[] | undefined {
-    return snapshot.get(this.key(verse, element, prefix));
-  }
-  snapshot(): ReadonlyMap<string, readonly number[]> {
-    return new Map(this.cuts);
+  clear(): void {
+    this.cuts.clear();
   }
   put(
     verse: VerseInput,
@@ -64,8 +54,6 @@ export class BibleRefinements {
     this.cuts.set(key, [...cuts]);
   }
 }
-
-export const bibleRefinements = new BibleRefinements();
 
 export interface RefinementProgress {
   readonly initialized: boolean;
@@ -90,8 +78,18 @@ export class BibleRefinementRun {
   constructor(
     private readonly api: LlpApi['bible'] | undefined,
     private readonly projection: BibleProjection | null,
-    private readonly cache = bibleRefinements,
+    private readonly cache = new BibleRefinements(),
   ) {}
+
+  readonly suggestCuts = (
+    verse: VerseInput,
+    prefix: string,
+  ): readonly number[] | undefined => {
+    const element = this.projection?.element;
+    return element === undefined
+      ? undefined
+      : this.cache.get(verse, element, prefix);
+  };
 
   private publish(pending: ReadonlySet<string>, initialized = true): void {
     this.progress = {initialized, pending};
@@ -100,6 +98,7 @@ export class BibleRefinementRun {
 
   readonly cancel = (): void => {
     this.generation++;
+    this.cache.clear();
     const lookupId = this.lookupId;
     this.lookupId = undefined;
     this.publish(new Set());
@@ -113,10 +112,8 @@ export class BibleRefinementRun {
   };
 
   async start({
-    cacheOnly = false,
     references,
   }: {
-    readonly cacheOnly?: boolean;
     readonly references?: ReadonlyArray<VerseInput['reference']> | undefined;
   } = {}): Promise<void> {
     const generation = ++this.generation;
@@ -126,7 +123,7 @@ export class BibleRefinementRun {
     if (
       projection === null ||
       api === undefined ||
-      (!cacheOnly && projection.source.review === false)
+      projection.source.review === false
     ) {
       this.publish(new Set());
       return;

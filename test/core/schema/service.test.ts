@@ -71,6 +71,29 @@ function withItem(item: object) {
 }
 
 describe('parseService', () => {
+  it('round-trips confirmed cuts owned by one Bible passage and rejects invalid entries', () => {
+    const entry = {
+      hash: '1234abcd',
+      cuts: [2, 4],
+      confirmedAt: '2026-11-20T00:00:00Z',
+    };
+    const item = {id: itemId(4), bible: {...PASSAGE, cuts: {'43:3:16': entry}}};
+    const service = expectSuccess(parse(withItem(item))).data;
+    expect(service.order[0]).toEqual(item);
+    const written = expectSuccess(serializeService(service, FILE));
+    expect(expectSuccess(parseService(written, FILE)).data.order[0]).toEqual(
+      item,
+    );
+    expect(
+      parse(
+        withItem({
+          ...item,
+          bible: {...PASSAGE, cuts: {'43:3:16': {...entry, cuts: [4, 2]}}},
+        }),
+      ).ok,
+    ).toBe(false);
+  });
+
   it('accepts per-item background overrides and rejects malformed choices', () => {
     const items = [
       {id: itemId(20), song: SONG_ID, slides: []},

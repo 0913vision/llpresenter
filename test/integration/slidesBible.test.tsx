@@ -350,6 +350,20 @@ async function chooseRange(
   return screen.findByRole('dialog');
 }
 
+async function confirmRange(beforeConfirm: () => void): Promise<void> {
+  for (const verse of ['요한복음 3:16', '요한복음 3:17']) {
+    const review = await screen.findByRole('dialog', {name: '절 나누기'});
+    await within(review).findByText(verse);
+    const confirm = within(review).getByRole('button', {name: '확정'});
+    await waitFor(() =>
+      expect(confirm.getAttribute('aria-disabled')).not.toBe('true'),
+    );
+    beforeConfirm();
+    fireEvent.click(confirm);
+  }
+  await waitFor(() => expect(screen.queryByRole('dialog')).toBeNull());
+}
+
 it('inserts the range without review when automatic opening is off', async () => {
   const f = fixture(slidesItem('blank'), true);
   vi.spyOn(f.api.preferences, 'get').mockResolvedValue({
@@ -381,12 +395,13 @@ it('inserts the range without review when automatic opening is off', async () =>
   view.unmount();
 });
 
-it('inserts the automatically split range after selection as one undo step, saves references only, and reopens cuts with Ctrl E', async () => {
+it('inserts the reviewed range after selection as one undo step, saves references only, and reopens cuts with Ctrl E', async () => {
   const f = fixture(slidesItem('blank'), true);
   const session = new ControlSession(f.api);
   const view = render(<SlidesEditorHarness session={session} />);
   try {
-    await chooseRange();
+    await chooseRange(false);
+    await confirmRange(() => expect(f.content).not.toHaveBeenCalled());
     expect(screen.queryByRole('dialog')).toBeNull();
     await waitFor(() =>
       expect(view.container.querySelectorAll('[data-slide-id]')).toHaveLength(
@@ -493,7 +508,10 @@ it.each([true, false])(
     const session = new ControlSession(f.api);
     const view = render(<SlidesEditorHarness session={session} />);
     try {
-      await chooseRange();
+      await chooseRange(!autoOpen);
+      if (autoOpen) {
+        await confirmRange(() => expect(f.content).not.toHaveBeenCalled());
+      }
       expect(screen.queryByRole('dialog')).toBeNull();
       await waitFor(() =>
         expect(view.container.querySelectorAll('[data-slide-id]')).toHaveLength(

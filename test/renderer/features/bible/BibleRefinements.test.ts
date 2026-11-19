@@ -139,34 +139,24 @@ describe('Bible refinement run', () => {
     expect(f.api.chooseBoundary).not.toHaveBeenCalled();
   });
 
-  it('warms the next quick lookup without modifying the current lookup snapshot', async () => {
+  it('starts a fresh review without reusing unconfirmed suggestions', async () => {
     const f = setup();
-    const source = {...f.projection.source, review: false};
-    const shown = f.cache.snapshot();
-    await new BibleRefinementRun(
-      f.api,
-      {...f.projection, source},
-      f.cache,
-    ).start({cacheOnly: true});
     const verse = f.projection.verses[0];
     if (verse === undefined) throw Error('Missing verse');
-    expect(f.cache.get(verse, f.projection.element, '')).toBeDefined();
-    expect(
-      f.cache.fromSnapshot(shown, {
-        verse,
-        element: f.projection.element,
-        prefix: '',
-      }),
-    ).toBeUndefined();
+    const first = new BibleRefinementRun(f.api, f.projection);
+    await first.start();
+    expect(first.suggestCuts(verse, '')).toBeDefined();
+    first.cancel();
+    expect(first.suggestCuts(verse, '')).toBeUndefined();
+    const next = new BibleRefinementRun(f.api, f.projection);
+    expect(next.suggestCuts(verse, '')).toBeUndefined();
+    vi.mocked(f.api.chooseBoundary).mockClear();
+    await next.start();
+    expect(f.api.chooseBoundary).toHaveBeenCalled();
   });
 
-  it('reuses unsaved refinements for the same text and layout and uses rules with AI unavailable', async () => {
+  it('uses rules with AI unavailable', async () => {
     const f = setup();
-    await new BibleRefinementRun(f.api, f.projection, f.cache).start();
-    expect(f.api.chooseBoundary).toHaveBeenCalled();
-    vi.mocked(f.api.chooseBoundary).mockClear();
-    await new BibleRefinementRun(f.api, f.projection, f.cache).start();
-    expect(f.api.chooseBoundary).not.toHaveBeenCalled();
     vi.spyOn(f.api, 'getLlmStatus').mockResolvedValue({
       status: 'missing',
       available: false,

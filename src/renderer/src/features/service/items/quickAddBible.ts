@@ -11,6 +11,7 @@ import {createBibleMeasureContext} from '@renderer/rendering/bibleMeasure';
 import {BibleProjections} from '@renderer/features/bible/splitProjection';
 import {isItemOfKind} from '@core/schema/service';
 import {versesToReview} from '@core/bible/split/splitVerses';
+import {cacheKey} from '@core/bible/split/splitCache';
 import {reviewBibleInsertion} from '@renderer/features/bible/reviewBibleInsertion';
 import type {BibleCutsFile} from '@core/schema/bibleCuts';
 
@@ -101,20 +102,36 @@ export async function passageItemWithParts(
     translationName: item.bible.translationName,
     review: false,
   } as const;
-  const measure = (cuts: BibleCutsFile) =>
-    new BibleProjections({
+  const book = passageBook(source.passage);
+  if (book === undefined) return item;
+  const measure = (file: BibleCutsFile) => {
+    const translation = file.entries[source.passage.translation];
+    const cuts = Object.fromEntries(
+      source.passage.verses.flatMap(verse => {
+        const key = cacheKey({
+          translation: source.passage.translation,
+          book: book.id,
+          chapter: verse.chapter,
+          verse: verse.verse,
+        });
+        const entry = translation?.[key];
+        return entry === undefined ? [] : [[key, entry] as const];
+      }),
+    );
+    return new BibleProjections({
       themes: themes.value,
       screens: screens.value.screens,
-      saved: cuts,
+      saved: undefined,
       canvas,
-    }).get(source);
+    }).get({...source, cuts});
+  };
   let projected = measure(saved.value);
   if (projected === null || projected.problem !== undefined) return item;
   const references = versesToReview(projected.parts);
   if (preferences.bible.splitEditorAutoOpen && references.length > 0) {
     if (
       !(await reviewBibleInsertion(
-        {...projected, source: {...source, review: true}},
+        {...projected, source: {...projected.source, review: true}},
         references,
       ))
     ) {
@@ -130,6 +147,7 @@ export async function passageItemWithParts(
   const transition = defaults.transition ?? defaultSlideTransitions.bible;
   return {
     ...item,
+    bible: {...item.bible, cuts: projected.source.cuts ?? {}},
     bibleTransitions: projected.parts.map(part => ({
       verse: part.reference,
       part: part.part,

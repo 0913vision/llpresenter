@@ -186,10 +186,9 @@ not dim when focus leaves. 진행 retains its existing thumbnail style.
   is ready. Later suggestions arrive in the same window. The rule-based split
   supplies a suggestion when AI is unavailable. Each confirmation saves that
   verse immediately. Esc cancels the insertion and keeps prior confirmations.
-  With the preference disabled, insert with the saved or rule-based cuts.
-  Existing items change splits only when their settings or confirmed cuts
-  change. Ctrl E on a verse row opens 절 나누기 to edit its cuts without
-  changing the draft's references.
+  With the preference disabled, insert with the saved or rule-based cuts. Bible
+  and sermon items retain their own confirmed cuts. Ctrl E on a verse row opens
+  절 나누기 to edit its cuts without changing the draft's references.
 - 퀵 실행 (Ctrl+B) uses saved confirmed cuts or the rule-based splitter and
   makes no AI request. Suggestions belong to the active 절 나누기 review and
   only confirmed cuts are saved.

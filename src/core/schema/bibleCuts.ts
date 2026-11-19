@@ -45,6 +45,12 @@ const verseKeySchema = v.pipe(
   }, 'Expected a book:chapter:verse key'),
 );
 
+/** Confirmed cuts owned by a single passage. */
+export const bibleVerseCutsSchema = v.pipe(
+  jsonRecord(verseKeySchema, bibleCutEntrySchema),
+  v.maxEntries(10_000),
+);
+
 export const bibleCutsSchema = jsonObject({
   format: v.literal('llsettings.bibleCuts'),
   schemaVersion: positiveInteger,

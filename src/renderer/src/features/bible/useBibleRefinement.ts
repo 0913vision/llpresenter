@@ -10,10 +10,8 @@ export function useBibleRefinement(
   api: LlpApi['bible'] | undefined,
   projection: BibleProjection | null,
   {
-    cacheOnly = false,
     references,
   }: {
-    readonly cacheOnly?: boolean;
     readonly references?: ReadonlyArray<VerseInput['reference']> | undefined;
   } = {},
 ) {
@@ -61,12 +59,12 @@ export function useBibleRefinement(
   const progress = useSyncExternalStore(run.subscribe, run.getSnapshot);
   useEffect(() => {
     run
-      .start({cacheOnly, references})
+      .start({references})
       .catch((error: unknown) =>
         console.error('Could not start Bible refinement', error),
       );
     return () => run.cancel();
-  }, [run, cacheOnly, references]);
+  }, [run, references]);
   const current =
     request.content === content &&
     request.element === element &&
@@ -76,6 +74,6 @@ export function useBibleRefinement(
     ...progress,
     initialized: current && progress.initialized,
     cancel: run.cancel,
-    identity: run,
+    suggestCuts: run.suggestCuts,
   };
 }

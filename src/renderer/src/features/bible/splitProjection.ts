@@ -13,6 +13,7 @@ import type {BiblePassage} from '@core/schema/biblePassage';
 import type {BiblePartTransition} from '@core/schema/service';
 import type {SlideTransition} from '@core/schema/slideTransition';
 import {biblePartEffect} from '@core/bible/partTransitions';
+import {cacheKey} from '@core/bible/split/splitCache';
 import {createScreenId, type ThemeId} from '@core/schema/ids';
 import type {ThemeScreen} from '@core/themes/defaults';
 import type {ThemesFile} from '@core/schema/themes';
@@ -45,13 +46,13 @@ interface SplitOptions {
   readonly sermonClosingTransition?: SlideTransition;
   readonly transitions?: readonly BiblePartTransition[];
   readonly transition?: SlideTransition;
+  readonly cuts?: BiblePassage['cuts'];
   readonly id: string;
   readonly verseNumbers: boolean;
   readonly reference: BiblePassage['reference'];
   readonly translationName: boolean;
   readonly source: 'service' | 'external';
   readonly review?: boolean;
-  readonly cachedCuts?: BibleSource['cachedCuts'];
   readonly theme?: ThemeId;
 }
 
@@ -118,7 +119,6 @@ export function splitSourceFor(
       translationName: external.translationName ?? false,
       source: 'external',
       review: external.review !== false,
-      cachedCuts: external.cachedCuts,
       ...(external.transition === undefined
         ? {}
         : {transition: external.transition}),
@@ -168,6 +168,7 @@ export function splitSourceFor(
     ...(row.bible.transitions === undefined
       ? {}
       : {transitions: row.bible.transitions}),
+    ...(row.bible.cuts === undefined ? {} : {cuts: row.bible.cuts}),
     source: 'service',
     review: false,
     ...(row.bible.theme === undefined ? {} : {theme: row.bible.theme}),
@@ -211,7 +212,8 @@ export function projectBible(
         ? `${verse.reference.verse} `
         : '';
     const next = splitVerseParts(verse, layout, {
-      saved,
+      saved: source.source === 'external' ? saved : undefined,
+      confirmed: source.cuts?.[cacheKey(verse.reference)],
       prefix,
     });
     if (
@@ -328,9 +330,9 @@ export class BibleProjections {
       cached.source.reference === source.reference &&
       cached.source.translationName === source.translationName &&
       cached.source.transitions === source.transitions &&
+      cached.source.cuts === source.cuts &&
       cached.source.transition === source.transition &&
-      cached.source.review === source.review &&
-      cached.source.cachedCuts === source.cachedCuts
+      cached.source.review === source.review
     ) {
       return cached;
     }

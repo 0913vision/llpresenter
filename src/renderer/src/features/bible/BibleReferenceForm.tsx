@@ -637,7 +637,9 @@ export function BibleReferenceForm(
           invalidReason={reason(part)}
         />
       ))}
-      {props.overlayLabels || liveTranslation ? (
+      {props.overlayLabels ||
+      props.onEscape !== undefined ||
+      liveTranslation ? (
         <span
           className={styles.translation}
           role={liveTranslation ? 'status' : undefined}

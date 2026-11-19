@@ -3,7 +3,7 @@ import type {LlpApi} from '@contracts/ipc/api';
 import type {VerseInput} from '@core/bible/split/splitVerses';
 import {planSlides} from '@core/bible/split/manualSplit';
 import {Dialog} from '@renderer/ui/Dialog';
-import {bibleRefinements, verseKey} from './BibleRefinements';
+import {verseKey} from './BibleRefinements';
 import {SplitReview} from './SplitReview';
 import {confirmBibleCuts} from './saveBibleCuts';
 import type {BibleProjection} from './splitProjection';
@@ -48,11 +48,7 @@ export function BibleAddSplitReview({
       references={references}
       pending={refinement.pending}
       suggestCuts={(verse, prefix) => {
-        const suggestion = bibleRefinements.get(
-          verse,
-          projection.element,
-          prefix,
-        );
+        const suggestion = refinement.suggestCuts(verse, prefix);
         return suggestion !== undefined &&
           planSlides(verse.text, suggestion, {...projection.layout, prefix}).ok
           ? suggestion

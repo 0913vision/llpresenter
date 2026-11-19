@@ -1,8 +1,8 @@
-import type {BibleCutsFile} from '../../schema/bibleCuts';
+import type {BibleCutEntry, BibleCutsFile} from '../../schema/bibleCuts';
 import type {VerseSlide} from '../../schema/service';
 import {CONT_MARKER, type SplitLayout} from './layout';
 import {cutsFromChunks, planSlides} from './manualSplit';
-import {knownCutsFor} from './splitCache';
+import {knownCutsFor, textHash} from './splitCache';
 import {splitVerse} from './splitter';
 
 export interface VerseInput {
@@ -64,19 +64,25 @@ export function splitVerseParts(
   layout: SplitLayout,
   {
     saved,
+    confirmed,
     prefix = '',
     refined,
   }: {
     readonly saved?: BibleCutsFile | undefined;
+    readonly confirmed?: BibleCutEntry | undefined;
     readonly prefix?: string;
     readonly refined?: readonly number[] | undefined;
   } = {},
 ): readonly VersePart[] {
   try {
     const cuts =
-      saved === undefined
-        ? undefined
-        : knownCutsFor(saved, verse.reference, verse.text);
+      confirmed !== undefined
+        ? confirmed.hash === textHash(verse.text)
+          ? confirmed.cuts
+          : undefined
+        : saved === undefined
+          ? undefined
+          : knownCutsFor(saved, verse.reference, verse.text);
     const plan =
       cuts === undefined
         ? undefined

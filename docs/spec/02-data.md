@@ -715,8 +715,12 @@ first-slide verse number and the smaller ` (계속)` marker on non-last parts.
 Otherwise use automatic splitting without deleting the entry. Restoring the
 previous theme can make the saved entry usable again. Confirming replaces the
 entry immediately. Cancelling a review keeps earlier confirmations and leaves
-unconfirmed verses unchanged. AI suggestions live in a bounded in-memory cache
-and never write to this file or change an existing service item on their own.
+unconfirmed verses unchanged. AI suggestions belong to the active review and are
+discarded on close unless confirmed. A saved Bible or sermon passage can carry
+its own `cuts` record keyed by `book:chapter:verse`, using the same entry
+format. Its projection uses those entries or the rule-based splitter. Later
+confirmations for other passages affect future lookups and additions through the
+shared settings file.
 
 ### `app.json` in the app data folder (proposal)
 

@@ -19,13 +19,20 @@ import type {
 } from '@core/schema/settingsDocuments';
 import {createServiceId, createServiceItemId} from '@core/schema/ids';
 import {parseServiceDocument} from '@core/schema/contentDocuments';
+import {isItemOfKind} from '@core/schema/service';
+import type {BibleCutEntry} from '@core/schema/bibleCuts';
+import {updateServiceItem} from '@renderer/session/serviceItemUpdate';
 import {bibleVerseTiles} from '@core/bible/bibleTiles';
 import {emptyLiveState} from '@core/live/state';
 import {parseLiveCommand} from '@core/schema/liveCommand';
 import * as bibleRendering from '@renderer/rendering/bibleMeasure';
 import type {Notice} from '@renderer/ui/notices';
 import {BibleSplitTools} from '@renderer/features/bible/BibleSplitTools';
-import {bibleRefinements} from '@renderer/features/bible/BibleRefinements';
+import {BibleRefinementRun} from '@renderer/features/bible/BibleRefinements';
+import {
+  projectBible,
+  splitSourceFor,
+} from '@renderer/features/bible/splitProjection';
 import {BibleQuickField} from '@renderer/features/quick/BibleQuickField';
 import {QuickPanel} from '@renderer/features/quick/QuickPanel';
 import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
@@ -224,6 +231,81 @@ function setup() {
     },
   });
   return {documents, send, edit};
+}
+
+function selectSavedPassage(lookup: typeof passage) {
+  const api = window.llp;
+  if (api === undefined) throw Error('Missing API');
+  const serviceId = createServiceId('00000000-0000-4000-8000-000000000098');
+  const initial = parseServiceDocument({
+    service: {
+      format: 'llservice',
+      schemaVersion: 1,
+      id: serviceId,
+      name: 'Sample',
+      date: '2026-11-07T10:00',
+      order: [
+        {
+          id: sourceId,
+          bible: {
+            ref: lookup.ref,
+            translation: lookup.translation,
+            split: 'verse',
+            reference: 'every',
+            verseNumbers: true,
+            translationName: false,
+          },
+        },
+      ],
+    },
+    revision: 1,
+    access: 'editable',
+  });
+  if (!initial.ok || initial.value === null) throw Error('Missing service');
+  let doc = initial.value;
+  const publish = (): void => {
+    const item = doc.service.order[0];
+    if (!item || !isItemOfKind(item, 'bible')) throw Error('Missing item');
+    applyService({
+      revision: doc.revision,
+      id: serviceId,
+      name: 'Sample',
+      readOnly: false,
+      rows: [
+        {
+          kind: 'bible',
+          id: sourceId,
+          title: lookup.ref,
+          bible: {...item.bible, passage: lookup},
+        },
+      ],
+      tiles: {[sourceId]: bibleVerseTiles(lookup)},
+    });
+  };
+  vi.spyOn(api.services, 'get').mockImplementation(async () => doc);
+  vi.spyOn(api.content, 'edit').mockImplementation(async request => {
+    if (request.type !== 'service.update') throw Error('Unexpected edit');
+    doc = {...doc, revision: doc.revision + 1, service: request.service};
+    publish();
+    return {ok: true, value: {id: serviceId, revision: doc.revision}};
+  });
+  publish();
+  useShow.setState({openItemId: sourceId});
+  return (entry: BibleCutEntry) =>
+    updateServiceItem(api, {
+      serviceId,
+      itemId: sourceId,
+      change: item =>
+        isItemOfKind(item, 'bible')
+          ? {
+              ...item,
+              bible: {
+                ...item.bible,
+                cuts: {...item.bible.cuts, '43:3:16': entry},
+              },
+            }
+          : null,
+    });
 }
 
 describe('prepare and reuse theme-fitted Bible slides', () => {
@@ -472,7 +554,7 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
     setup();
     const api = window.llp;
     if (api === undefined) throw Error('Missing API');
-    const status = vi.spyOn(api.bible, 'getLlmStatus').mockResolvedValue({
+    vi.spyOn(api.bible, 'getLlmStatus').mockResolvedValue({
       status: 'ready',
       available: true,
       reason: '',
@@ -496,28 +578,19 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
     )?.appearance.theme.layout.elements.find(
       element => element.kind === 'currentText',
     );
-    const verse = passage.verses[1];
-    if (element === undefined || verse === undefined) {
-      throw Error('Missing verse or preview element');
+    const source = splitSourceFor(useShow.getState(), id);
+    if (element === undefined || source === null) {
+      throw Error('Missing preview');
     }
-    act(() =>
-      bibleRefinements.put(
-        {
-          reference: {
-            translation: passage.translation,
-            book: 43,
-            chapter: verse.chapter,
-            verse: verse.verse,
-          },
-          text: verse.text,
-        },
-        element,
-        {prefix: '', cuts: [1]},
-      ),
+    const projection = projectBible(
+      {...source, review: true},
+      {element, layout: mockSplitLayout()},
     );
+    const run = new BibleRefinementRun(api.bible, projection);
+    await act(async () => run.start());
+    expect(chooser).toHaveBeenCalled();
     expect(tilesOf(id)).toEqual(tiles);
-    expect(status).not.toHaveBeenCalled();
-    expect(chooser).not.toHaveBeenCalled();
+    run.cancel();
     expect(screen.queryByRole('dialog')).toBeNull();
     view.unmount();
   });
@@ -610,28 +683,9 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
           {chapter: 3, verse: 18, text: '바람이 분다'},
         ],
       };
-      if (mode === 'saved') {
-        applyService({
-          revision: 1,
-          id: 'service',
-          name: 'Sample',
-          readOnly: false,
-          rows: [
-            {
-              kind: 'bible',
-              id: sourceId,
-              title: extended.ref,
-              bible: {
-                translation: extended.translation,
-                ref: extended.ref,
-                passage: extended,
-              },
-            },
-          ],
-          tiles: {[sourceId]: bibleVerseTiles(extended)},
-        });
-        useShow.setState({openItemId: sourceId});
-      } else openBiblePassage(extended);
+      const changeSavedCuts =
+        mode === 'saved' ? selectSavedPassage(extended) : undefined;
+      if (mode === 'panel') openBiblePassage(extended);
       const view = render(<BibleSplitTools enableManual onProblem={vi.fn()} />);
       await waitFor(() => {
         const current = useShow.getState().openItemId;
@@ -688,6 +742,20 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
           [1, ...cuts],
         ),
       );
+      if (changeSavedCuts !== undefined) {
+        expect(
+          tilesOf(id).findIndex(tile => tile.label === command.slide.label),
+        ).toBe(before);
+        const updated = fixture.documents.get('bibleCuts');
+        const entry =
+          updated?.name === 'bibleCuts'
+            ? updated.value.entries[passage.translation]?.['43:3:16']
+            : undefined;
+        if (entry === undefined) throw Error('Missing new cut');
+        await act(async () => {
+          expect((await changeSavedCuts(entry)).ok).toBe(true);
+        });
+      }
       await waitFor(() =>
         expect(tilesOf(id).findIndex(tile => tile.label === '\uC6943:17')).toBe(
           before + 1,
@@ -776,28 +844,8 @@ describe('prepare and reuse theme-fitted Bible slides', () => {
     'manually confirms %s verse cuts and outputs the split part',
     async mode => {
       const fixture = setup();
-      if (mode === 'saved') {
-        applyService({
-          revision: 1,
-          id: 'service',
-          name: 'Sample',
-          readOnly: false,
-          rows: [
-            {
-              kind: 'bible',
-              id: sourceId,
-              title: passage.ref,
-              bible: {
-                translation: passage.translation,
-                ref: passage.ref,
-                passage,
-              },
-            },
-          ],
-          tiles: {[sourceId]: bibleVerseTiles(passage)},
-        });
-        useShow.setState({openItemId: sourceId});
-      } else openBiblePassage(passage);
+      if (mode === 'saved') selectSavedPassage(passage);
+      else openBiblePassage(passage);
       const view = render(<BibleSplitTools enableManual onProblem={vi.fn()} />);
       await waitFor(() => {
         const current = useShow.getState().openItemId;
