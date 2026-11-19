@@ -1302,8 +1302,10 @@ Each open-file picker remembers the folder of its last selected file across
 restarts. When that folder is unavailable or unset, the picker opens Documents;
 canceling leaves its remembered folder unchanged.
 
-An item background override covers its theme background while preserving slide
-content. ?? removes the background, and ??? returns to the theme or song
-background. Full-screen image elements used as theme artwork count as
-background; other image elements remain. A media item retains its own media
+An item background override covers its theme background on audience screens and
+on other screens whose layout includes a background element, while preserving
+slide content. The built-in stage and broadcast layouts do not show the item
+background. 없음 removes the background, and the default choice returns to the
+theme or song background. Full-screen image elements used as theme artwork count
+as background; other image elements remain. A media item retains its own media
 independently of its background.
