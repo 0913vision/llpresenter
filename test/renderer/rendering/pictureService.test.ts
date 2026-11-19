@@ -303,3 +303,39 @@ it('fits the configured output aspect ratio inside cached pictures', () => {
     height: 810,
   });
 });
+
+it('composes an edited 4:3 picture inside the shared canvas', async () => {
+  const drawElementImage = vi.fn();
+  const fillRect = vi.fn();
+  Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
+    configurable: true,
+    value: () => ({
+      drawElementImage,
+      fillRect,
+      drawImage: vi.fn(),
+      clearRect: vi.fn(),
+    }),
+  });
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(1440);
+  mocks.ready = true;
+  const painter = new LocalPicturePainter();
+  const picture = painter.paint({
+    ...spec,
+    appearance: {
+      ...spec.appearance,
+      screen: {
+        ...spec.appearance.screen,
+        pictureSize: {width: 1024, height: 768},
+      },
+    },
+  });
+  document.querySelector('body > canvas')?.dispatchEvent(new Event('paint'));
+  await expect(picture).resolves.toBeInstanceOf(HTMLCanvasElement);
+  expect(fillRect).toHaveBeenCalledWith(0, 0, 1920, 1080);
+  expect(drawElementImage).toHaveBeenCalledWith(
+    expect.any(HTMLElement),
+    240,
+    0,
+  );
+  painter.dispose();
+});
