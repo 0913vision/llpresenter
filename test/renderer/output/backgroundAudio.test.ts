@@ -64,6 +64,7 @@ it('plays one soundtrack for several themed screens without reading legacy setti
     report: vi.fn(),
     now: () => 1000,
   });
+  audio.setScreens(themeScreens);
   audio.show(state);
   await vi.waitFor(() =>
     expect(root.querySelectorAll('video[src]')).toHaveLength(1),
@@ -102,6 +103,7 @@ it('keeps background video muted when the hidden audio window is muted', async (
     report: vi.fn(),
     now: () => 1000,
   });
+  audio.setScreens(themeScreens);
   audio.show(parsed.value);
   await vi.waitFor(() =>
     expect(root.querySelector('video[src]')).not.toBeNull(),
@@ -138,6 +140,7 @@ it('fades cleared video sound, cancels on restore, and resets gain after expiry'
     report: vi.fn(),
     now: () => now,
   });
+  audio.setScreens(themeScreens);
   try {
     audio.show(parsed.value);
     await Promise.resolve();

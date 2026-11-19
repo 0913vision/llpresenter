@@ -110,6 +110,40 @@ afterEach(() => {
 });
 
 describe('theme composition drawing', () => {
+  it('updates the live stage countdown from media progress without a stage background video', () => {
+    const root = document.createElement('div');
+    let remaining = 11;
+    const progress = vi.fn(() => remaining);
+    const view = new ThemeCompositionView(root, {
+      textStyle: DEFAULT_TEXT_STYLE,
+      mediaUrl: id => `https://media.test/${id}`,
+      previewMedia: {
+        url: async id => `https://media.test/${id}`,
+        remaining: progress,
+      },
+      onError: vi.fn(),
+    });
+    const element = {...themeElementBase(984), kind: 'videoTimeLeft' as const};
+    view.render(
+      {...song, media: {mediaId, loop: true, startedAt: 1000}},
+      {
+        ...frame([element]),
+        screen: {id: THEME_MAIN, kind: 'stage'},
+        transitions: false,
+      },
+    );
+    expect(root.querySelector('video')).toBeNull();
+    expect(root.querySelector('[data-kind="videoTimeLeft"]')?.textContent).toBe(
+      '0:11',
+    );
+    remaining = 9;
+    vi.advanceTimersByTime(1000);
+    expect(root.querySelector('[data-kind="videoTimeLeft"]')?.textContent).toBe(
+      '0:09',
+    );
+    expect(progress).toHaveBeenCalled();
+    view.dispose();
+  });
   it.each([
     ['song', 'stage'],
     ['bible', 'stage'],

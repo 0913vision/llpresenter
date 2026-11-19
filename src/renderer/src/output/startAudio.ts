@@ -62,6 +62,14 @@ export function startAudio({
     receive: times => player.setTimes(times),
     onError: error => report('could not read the audio times', error),
   });
+  const stopScreens = followSettingsDocument({
+    settings: api.settings,
+    name: 'screens',
+    select: document =>
+      document.name === 'screens' ? document.value.screens : undefined,
+    receive: screens => background.setScreens(screens),
+    onError: error => report('could not read audio screen settings', error),
+  });
   const stopOutput = followAudioOutput({
     settings: api.settings,
     pick: 'audioOutput',
@@ -96,6 +104,7 @@ export function startAudio({
     window.removeEventListener('pagehide', stop);
     stopOutput();
     stopTimes();
+    stopScreens();
     stopPlaybackProblems();
     try {
       stopFollowing?.();

@@ -7,12 +7,14 @@ import {
   themeScreens,
   THEME_MAIN,
   THEME_CAPTURE,
+  THEME_STAGE,
 } from '@fixtures/core/themeOutput';
 import {resolveThemeOutput} from '@core/themes/output';
 import {themeMediaAudible, themeOverlayAudio} from '@core/themes/audio';
 import {themeOverlay} from '@core/themes/content';
 
 const mediaId = createMediaId('00000000-0000-4000-8000-000000000701');
+const audienceScreens = new Set<string>([THEME_MAIN]);
 function fixture(): LiveState {
   const file = themeFile();
   const theme = file.themes[0];
@@ -88,12 +90,15 @@ describe('theme sound selection', () => {
     expect(
       themeOverlayAudio({...state, outputs: {[THEME_CAPTURE]: true}})?.mediaId,
     ).toBe(mediaId);
-    expect(themeMediaAudible(state)).toBe(true);
+    expect(themeMediaAudible(state, audienceScreens)).toBe(true);
     expect(
-      themeMediaAudible({
-        ...state,
-        themeItem: {id: 'media', kind: 'media', source: 'external'},
-      }),
+      themeMediaAudible(
+        {
+          ...state,
+          themeItem: {id: 'media', kind: 'media', source: 'external'},
+        },
+        audienceScreens,
+      ),
     ).toBe(false);
   });
 
@@ -125,6 +130,65 @@ describe('theme sound selection', () => {
     expect(
       themeOverlayAudio({...state, themeItem: {...item, contentCleared: true}}),
     ).toBeNull();
-    expect(themeMediaAudible({...state, outputs: {}})).toBe(false);
+    expect(themeMediaAudible({...state, outputs: {}}, audienceScreens)).toBe(
+      false,
+    );
+  });
+
+  it.each([THEME_STAGE, THEME_CAPTURE])(
+    'does not play an item background when only non-audience screen %s is on',
+    id => {
+      const state = fixture();
+      const output = state.themeOutput;
+      const layout = output?.screens[THEME_MAIN];
+      if (!output || !layout) throw new Error('Missing audience layout');
+      const custom = {
+        ...state,
+        outputs: {[id]: true},
+        themeOutput: {...output, screens: {...output.screens, [id]: layout}},
+      };
+      expect(themeMediaAudible(custom, audienceScreens)).toBe(false);
+      expect(
+        themeMediaAudible(
+          {...custom, outputs: {[THEME_MAIN]: true}},
+          audienceScreens,
+        ),
+      ).toBe(true);
+    },
+  );
+
+  it('keeps media-item sound available on a stage media element', () => {
+    const state = fixture();
+    const output = state.themeOutput;
+    const layout = output?.screens[THEME_MAIN];
+    if (!output || !layout) throw new Error('Missing layout');
+    const screen = {
+      ...layout,
+      layout: {
+        ...layout.layout,
+        elements: [
+          {
+            ...themeElementBase(40),
+            kind: 'media' as const,
+            fit: 'fit' as const,
+            radius: 0,
+          },
+        ],
+      },
+    };
+    expect(
+      themeMediaAudible(
+        {
+          ...state,
+          themeItem: {id: 'media', kind: 'media', source: 'external'},
+          outputs: {[THEME_STAGE]: true},
+          themeOutput: {
+            ...output,
+            screens: {...output.screens, [THEME_STAGE]: screen},
+          },
+        },
+        audienceScreens,
+      ),
+    ).toBe(true);
   });
 });

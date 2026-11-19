@@ -2,13 +2,19 @@ import type {LiveState, MediaLayer} from '../live/state';
 import {themeOverlay} from './content';
 
 /** Sound is owned by one audio window, even when several screens show it. */
-export function themeMediaAudible(state: LiveState): boolean {
+export function themeMediaAudible(
+  state: LiveState,
+  audienceScreens: ReadonlySet<string>,
+): boolean {
   const kind = state.themeItem?.kind === 'media' ? 'media' : 'background';
   return Object.entries(state.themeOutput?.screens ?? {}).some(
     ([id, screen]) =>
       state.outputs[id] === true &&
+      (kind === 'media' || audienceScreens.has(id)) &&
       screen.layout.mode.kind === 'own' &&
-      screen.layout.elements.some(element => element.kind === kind),
+      (screen.layout.elements.some(element => element.kind === kind) ||
+        (kind === 'background' &&
+          state.themeItem?.backgroundOverride !== undefined)),
   );
 }
 

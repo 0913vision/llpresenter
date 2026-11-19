@@ -5,6 +5,7 @@ import {BackgroundLayerView} from '../rendering/backgroundLayer';
 import {fadeAudio} from '../rendering/audioFade';
 import {themeMediaAudible, themeOverlayAudio} from '@core/themes/audio';
 import type {MediaDocument} from '@core/schema/mediaEdit';
+import type {Screen} from '@core/schema/screens';
 
 /** Plays background sound once, independently of the preloaded screen windows. */
 export class BackgroundAudio {
@@ -17,6 +18,7 @@ export class BackgroundAudio {
   private pictures = new Set<string>();
   private mediaRevision = -1;
   private mediaReady = false;
+  private audienceScreens: ReadonlySet<string> = new Set();
   private readonly stopMedia: () => void;
   private sinkId = '';
   private previous: MediaLayer | null = null;
@@ -78,6 +80,15 @@ export class BackgroundAudio {
     this.overlay?.setSink(sinkId);
   }
 
+  setScreens(screens: ReadonlyArray<Pick<Screen, 'id' | 'kind'>>): void {
+    this.audienceScreens = new Set(
+      screens
+        .filter(screen => screen.kind === 'audience')
+        .map(screen => screen.id),
+    );
+    this.draw();
+  }
+
   show(state: LiveState): void {
     if (state.themeOutput === undefined) return;
     this.state = state;
@@ -124,7 +135,7 @@ export class BackgroundAudio {
       }
       this.overlayStartedAt = overlay?.startedAt ?? null;
       this.overlay?.show(overlay, false);
-      const audible = themeMediaAudible(state);
+      const audible = themeMediaAudible(state, this.audienceScreens);
       const media = state.layers.media;
       if (!audible) {
         this.stopFade();
