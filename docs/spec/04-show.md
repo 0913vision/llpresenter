@@ -176,8 +176,11 @@ README, `Main` decision "구성대로 진행".
   예배에서 가져오기 (import from another service), and 지금 예배를 템플릿으로
   저장 (save the current service as a 템플릿). These three actions are not
   implemented yet. See 05.
-- Choosing another service makes it the current service at once. There is no
-  confirmation, even during output.
+- Choosing another service while a screen shows live content opens a
+  confirmation titled "예배를 바꿀까요?". It warns that audience, stage and
+  broadcast return to standby. Cancel is focused and is the default and Escape
+  action; 바꾸기 confirms. With no live content on an enabled output, switch
+  without a dialog.
   - The open item and selected slide are cleared in both 준비 and 진행, even for
     a library song or Bible passage. Refreshing the same service preserves its
     selection.
@@ -187,8 +190,7 @@ README, `Main` decision "구성대로 진행".
     (환경설정 option "시작할 때: 마지막 예배 열기").
 
 Source: `ServiceSwitch`, `Main` decision "예배 순서 바꾸기", `Panel` README
-(service switcher), `Menu` README, design system principle 6 (opening another
-service needs no confirmation), product log version 63.
+(service switcher), `Menu` README, and the service-change guard decision.
 
 ## 슬라이드 panel
 

@@ -58,6 +58,7 @@ export function useServicePickerMenu(onProblem: (notice: Notice) => void) {
           ]}
         />
       ) : null}
+      {picker.guardDialog}
       {actions.dialogs}
       {rows.overlays}
     </>

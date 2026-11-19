@@ -1,6 +1,7 @@
 import {useEffect, useMemo, useRef, useState} from 'react';
 import type {ServiceEntry} from '@core/schema/contentDocuments';
 import {applyService, useShow} from '@renderer/session/show';
+import {useServiceSwitchGuard} from '../useServiceSwitchGuard';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 
 const names = new Intl.Collator('ko', {numeric: true});
@@ -31,6 +32,7 @@ function sorted(entries: readonly ServiceEntry[]): readonly ServiceEntry[] {
 
 /** Loads the service menu on demand and opens services through main. */
 export function useServicePicker(onProblem: (notice: Notice) => void) {
+  const guard = useServiceSwitchGuard();
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState('');
   const [entries, setEntries] = useState<readonly ServiceEntry[]>([]);
@@ -142,8 +144,15 @@ export function useServicePicker(onProblem: (notice: Notice) => void) {
     }
   };
   const select = (entry: ServiceEntry): void => {
-    choose(entry).catch((cause: unknown) => {
-      console.error('Failed to report a service selection:', cause);
+    if (entry.id === useShow.getState().serviceId) {
+      close();
+      return;
+    }
+    close();
+    guard.request(() => {
+      choose(entry).catch((cause: unknown) => {
+        console.error('Failed to report a service selection:', cause);
+      });
     });
   };
   const visible = useMemo(() => {
@@ -152,5 +161,16 @@ export function useServicePicker(onProblem: (notice: Notice) => void) {
       entry.name.normalize('NFC').toLocaleLowerCase('ko').includes(text),
     );
   }, [entries, query]);
-  return {open, ready, query, setQuery, visible, busy, toggle, close, select};
+  return {
+    open,
+    ready,
+    query,
+    setQuery,
+    visible,
+    busy,
+    toggle,
+    close,
+    select,
+    guardDialog: guard.dialog,
+  };
 }

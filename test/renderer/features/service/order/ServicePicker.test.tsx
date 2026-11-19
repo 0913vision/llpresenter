@@ -1,4 +1,4 @@
-import {act, render, screen, waitFor} from '@testing-library/react';
+import {act, render, screen, waitFor, within} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, describe, expect, it, vi} from 'vitest';
 import type {ServiceEntry} from '@core/schema/contentDocuments';
@@ -143,6 +143,47 @@ describe('service picker', () => {
     expect(useLive.getState().state).toBe(live);
     expect(send).not.toHaveBeenCalled();
     expect(screen.queryByRole('menu')).toBeNull();
+  });
+
+  it('requires confirmation before changing a service while a slide is live', async () => {
+    const {api, user, send} = setup();
+    const state = emptyLiveState();
+    const live = {
+      ...state,
+      outputs: {screen: true},
+      layers: {
+        ...state.layers,
+        slide: {itemId: 'live', position: 0, label: null, lines: ['Live']},
+      },
+    };
+    useLive.setState({state: live});
+    await openMenu(user);
+    await user.click(
+      screen.getByRole('menuitemradio', {name: /\uc800\ub141 \uc608\ubc30/}),
+    );
+    const dialog = await screen.findByRole('alertdialog', {
+      name: '\uc608\ubc30\ub97c \ubc14\uafc0\uae4c\uc694?',
+    });
+    expect(document.activeElement).toBe(
+      within(dialog).getByRole('button', {name: '\ucde8\uc18c'}),
+    );
+    await user.keyboard('{Enter}');
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(api.service.open).not.toHaveBeenCalled();
+    expect(useLive.getState().state).toBe(live);
+    await openMenu(user);
+    await user.click(
+      screen.getByRole('menuitemradio', {name: /\uc800\ub141 \uc608\ubc30/}),
+    );
+    await user.click(
+      within(await screen.findByRole('alertdialog')).getByRole('button', {
+        name: '\ubc14\uafb8\uae30',
+      }),
+    );
+    await waitFor(() =>
+      expect(api.service.open).toHaveBeenCalledWith({serviceId: second}),
+    );
+    expect(send).not.toHaveBeenCalled();
   });
 
   it('leaves the current service and output intact when an id is no longer installed', async () => {

@@ -1,10 +1,18 @@
 import {windowCommandLabels} from '@renderer/ui/windowCommandLabels';
 import {shortcutCommands} from '@core/shortcuts/registry';
-import {fireEvent, render, screen, waitFor} from '@testing-library/react';
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {afterEach, beforeEach, describe, expect, it, vi} from 'vitest';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {applyService, useShow} from '@renderer/session/show';
+import {useLive} from '@renderer/session/live';
+import {emptyLiveState} from '@core/live/state';
 import {createServiceId} from '@core/schema/ids';
 import {
   ids,
@@ -42,6 +50,7 @@ function setup() {
 beforeEach(() => {
   HTMLElement.prototype.scrollIntoView = vi.fn();
   applyService(null);
+  useLive.setState({state: null});
 });
 
 afterEach(() => {
@@ -103,6 +112,47 @@ describe('the 파일 menu', () => {
       expect(send).not.toHaveBeenCalled();
     },
   );
+
+  it('confirms a service selected through Ctrl O when output is live', async () => {
+    setup();
+    const api = window.llp;
+    if (api === undefined) throw Error('Missing API');
+    const id = createServiceId('00000000-0000-4000-8000-000000000409');
+    vi.spyOn(api.services, 'list').mockResolvedValue([
+      {
+        id,
+        name: 'Evening service',
+        date: '2026-11-09T19:00',
+        access: 'editable',
+      },
+    ]);
+    const open = vi.spyOn(api.service, 'open').mockResolvedValue({
+      id,
+      revision: 1,
+      name: 'Evening service',
+      readOnly: false,
+      rows: [],
+      tiles: {},
+    });
+    const idle = emptyLiveState();
+    useLive.setState({
+      state: {...idle, outputs: {screen: true}, stageMessage: 'Live'},
+    });
+    render(<MenuBar title="" />);
+    await userEvent.keyboard('{Control>}o{/Control}');
+    await userEvent.click(
+      await screen.findByRole('menuitemradio', {name: /Evening service/}),
+    );
+    const dialog = await screen.findByRole('alertdialog', {
+      name: '\uc608\ubc30\ub97c \ubc14\uafc0\uae4c\uc694?',
+    });
+    expect(document.activeElement).toBe(
+      within(dialog).getByRole('button', {name: '\ucde8\uc18c'}),
+    );
+    expect(open).not.toHaveBeenCalled();
+    await userEvent.keyboard('{Escape}');
+    expect(open).not.toHaveBeenCalled();
+  });
 
   it('cancels the service picker and returns focus to File', async () => {
     setup();
