@@ -349,19 +349,22 @@ export class PictureService {
     element.draggable = false;
     element.decoding = 'sync';
     element.src = url;
-    let deadline: ReturnType<typeof setTimeout> | undefined;
+    let deadline: number | undefined;
     try {
       return await Promise.race([
         element.decode().then(() => element),
         new Promise<undefined>(resolve => {
-          deadline = setTimeout(resolve, OUTPUT_REVEAL_DEADLINE_MS);
+          deadline = window.setTimeout(
+            () => resolve(undefined),
+            OUTPUT_REVEAL_DEADLINE_MS,
+          );
         }),
       ]);
     } catch (error) {
       console.error('Could not decode a slide display', error);
       return undefined;
     } finally {
-      clearTimeout(deadline);
+      window.clearTimeout(deadline);
     }
   }
 

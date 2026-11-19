@@ -11,7 +11,6 @@ import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useEffect, useLayoutEffect, useState, type JSX} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
-import type {BibleLookupPassage} from '@core/schema/bibleLookup';
 import type {BiblePreviewOptions} from '@core/bible/source';
 import {useShow} from '@renderer/session/show';
 import {useLive} from '@renderer/session/live';
