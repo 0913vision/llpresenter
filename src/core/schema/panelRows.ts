@@ -15,6 +15,7 @@ const entries = {
   'show.order': height,
   'show.quick': height,
   'show.preview': height,
+  'show.previewRatio': height,
   'show.tools': height,
   'prep.preview': height,
   'prep.slides': height,
