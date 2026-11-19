@@ -4,6 +4,7 @@ import {screenIdSchema, themeIdSchema} from './ids';
 import {liveThemeItemSchema} from './liveTheme';
 import {themeScreenLayoutSchema} from './themes';
 import {parsePayload, payloadObject} from './payload';
+import {pixelSize} from './primitives';
 import type {ReadonlyKnown} from './fileFormat';
 
 /** Bounds the serialized request before it is queued for the painter. */
@@ -30,6 +31,7 @@ const pictureSpecSchema = payloadObject({
         v.picklist(['fullscreen', 'window', 'capture', 'ndi']),
       ),
       emptyColor: v.exactOptional(text),
+      pictureSize: v.exactOptional(pixelSize),
       correction: v.exactOptional(
         payloadObject({
           edgeMargin: number,

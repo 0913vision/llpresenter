@@ -1,6 +1,7 @@
 import {afterEach, beforeEach, expect, it, onTestFinished, vi} from 'vitest';
 import {emptyLayers} from '@core/live/state';
 import {pictureKey} from '@core/output/pictureKey';
+import {parsePictureRequest} from '@core/schema/picture';
 import {createScreenId, createThemeId} from '@core/schema/ids';
 import {OUTPUT_REVEAL_DEADLINE_MS} from '@core/output/revealDeadline';
 import {
@@ -238,4 +239,44 @@ it('keeps pictures from distinct output screens in separate cache entries', () =
   };
   expect(pictureKey(other)).not.toBe(pictureKey(spec));
   expect(pictureKey({...spec})).toBe(pictureKey(spec));
+});
+
+it('invalidates a screen picture when its configured size changes', () => {
+  const sized = {
+    ...spec,
+    appearance: {
+      ...spec.appearance,
+      screen: {
+        ...spec.appearance.screen,
+        pictureSize: {width: 1920, height: 1080},
+      },
+    },
+  };
+  const resized = {
+    ...sized,
+    appearance: {
+      ...sized.appearance,
+      screen: {
+        ...sized.appearance.screen,
+        pictureSize: {width: 1280, height: 720},
+      },
+    },
+  };
+  expect(pictureKey(sized)).not.toBe(pictureKey(resized));
+  expect(parsePictureRequest({spec: sized, inputs: ''}).ok).toBe(true);
+  expect(
+    parsePictureRequest({
+      spec: {
+        ...sized,
+        appearance: {
+          ...sized.appearance,
+          screen: {
+            ...sized.appearance.screen,
+            pictureSize: {width: -1, height: 720},
+          },
+        },
+      },
+      inputs: '',
+    }).ok,
+  ).toBe(false);
 });

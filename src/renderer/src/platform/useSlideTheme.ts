@@ -7,6 +7,7 @@ import type {Screen} from '@core/schema/screens';
 import type {ThemesFile} from '@core/schema/themes';
 import type {LlpApi} from '@contracts/ipc/api';
 import {useApiSettingsDocument} from '@renderer/platform/useSettingsDocument';
+import {pictureSizeForScreen} from '@core/screens/pictureSize';
 
 interface SlideThemeOptions {
   readonly role?: 'audience' | 'stage' | 'broadcast';
@@ -99,6 +100,7 @@ export function slideTheme(
           loop: background.loop,
         }
       : undefined;
+  const pictureSize = pictureSizeForScreen(screen);
   return {
     themeId: theme.id,
     sourceScreenId: resolved.sourceScreenId,
@@ -107,6 +109,7 @@ export function slideTheme(
       name: screen.name,
       kind: screen.kind,
       method: screen.method,
+      ...(pictureSize === undefined ? {} : {pictureSize}),
       ...(screen.songCaption === undefined
         ? {}
         : {songCaption: screen.songCaption}),
