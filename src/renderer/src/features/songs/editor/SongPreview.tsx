@@ -130,26 +130,12 @@ export function ContentPreviewFrame({
     const activeItem =
       card === undefined || localItem === undefined
         ? localItem
-        : (() => {
-            const {backgroundOverride: _background, ...base} = localItem;
-            return {
-              ...base,
-              kind: 'blank' as const,
-              title: card.name,
-              theme: card.theme,
-              ...(card.background === undefined
-                ? card.backgroundNone
-                  ? {backgroundOverride: {kind: 'none' as const}}
-                  : {}
-                : {
-                    backgroundOverride: {
-                      kind: 'media' as const,
-                      mediaId: card.background,
-                      loop: false,
-                    },
-                  }),
-            };
-          })();
+        : {
+            ...localItem,
+            kind: 'blank' as const,
+            title: card.name,
+            theme: card.theme,
+          };
     const appearanceOf = (of: PreviewRole) =>
       previewAppearance({
         role: of,

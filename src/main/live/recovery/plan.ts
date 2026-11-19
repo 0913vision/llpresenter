@@ -120,9 +120,7 @@ function slideStep(
     (slide.position !== 0 ||
       (!isItemOfKind(item, 'song') &&
         !isItemOfKind(item, 'slides') &&
-        !isItemOfKind(item, 'bible') &&
-        !isItemOfKind(item, 'liturgy') &&
-        !isItemOfKind(item, 'media')) ||
+        !isItemOfKind(item, 'bible')) ||
       item.sectionCard === undefined)
   ) {
     return null;
@@ -137,25 +135,18 @@ function slideStep(
       songTiles({...song, slides: item.slides}, NO_LABEL_COLORS).length +
       cardOffset(item);
   } else if (
-    (isItemOfKind(item, 'slides') ||
-      isItemOfKind(item, 'bible') ||
-      isItemOfKind(item, 'liturgy') ||
-      isItemOfKind(item, 'media')) &&
+    (isItemOfKind(item, 'slides') || isItemOfKind(item, 'bible')) &&
     item.sectionCard !== undefined &&
     slide.sectionCard !== undefined &&
     slide.position === 0
   ) {
     title = isItemOfKind(item, 'slides')
       ? item.slides.name
-      : isItemOfKind(item, 'bible')
-        ? displayReference(item.bible.ref)
-        : item.sectionCard.name;
+      : displayReference(item.bible.ref);
     // NOTE(0913vision): The captured Bible count is only a dialog summary, not a source for output.
     slideCount = isItemOfKind(item, 'slides')
       ? item.slides.slides.length + 1
-      : isItemOfKind(item, 'media')
-        ? 2
-        : (slide.sequenceLength ?? 1);
+      : (slide.sequenceLength ?? 1);
   } else {
     return null;
   }

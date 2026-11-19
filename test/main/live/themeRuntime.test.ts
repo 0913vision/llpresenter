@@ -689,35 +689,6 @@ it('uses the section card theme only while its slide is live', () => {
   });
 });
 
-it('restores the media item theme after its opening title', () => {
-  const {store, dispatch, save, service, current} = setup();
-  const theme = current().defaults.blank;
-  if (theme === undefined) throw new Error('Missing title theme');
-  const mediaId = createMediaId('00000000-0000-4000-8000-000000000499');
-  save({...service, kind: 'media', cardOffset: 1});
-  dispatch({
-    type: 'slide.show',
-    slide: {
-      itemId: ITEM,
-      position: 0,
-      label: 'Title',
-      lines: [],
-      sectionCard: {name: 'Title', english: '', theme, background: mediaId},
-    },
-  });
-  expect(store.state.themeItem).toMatchObject({
-    kind: 'blank',
-    theme,
-    backgroundOverride: {kind: 'media', mediaId},
-  });
-  dispatch({type: 'media.show', media: {mediaId, loop: false, itemId: ITEM}});
-  expect(store.state.themeItem).toMatchObject({
-    kind: 'media',
-    theme: service.theme,
-  });
-  expect(store.state.themeItem?.backgroundOverride).toBeUndefined();
-});
-
 it('renders the section theme for a card-only live sequence', () => {
   const {store, dispatch, current} = setup();
   const theme = current().defaults.blank;

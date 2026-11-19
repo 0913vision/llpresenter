@@ -32,7 +32,7 @@ it.each(['list', 'grid'] as const)('edits both card names in %s view', mode => {
   );
   fireEvent.click(screen.getByRole('button', {name: section.name}));
   expect(select).toHaveBeenCalledOnce();
-  const name = screen.getByRole('textbox', {name: '제목'});
+  const name = screen.getByRole('textbox', {name: '구역 이름'});
   fireEvent.change(name, {target: {value: '변경'}});
   expect(screen.getByTestId('card-picture').textContent).toContain('변경');
   expect(change).not.toHaveBeenCalled();
@@ -56,7 +56,7 @@ it('commits on Enter and reverts on Escape without remounting the input', () => 
       onChange={change}
     />,
   );
-  const field = screen.getByRole('textbox', {name: '제목'});
+  const field = screen.getByRole('textbox', {name: '구역 이름'});
   field.focus();
   fireEvent.change(field, {target: {value: 'Edited'}});
   fireEvent.keyDown(field, {key: 'Enter'});
@@ -80,7 +80,7 @@ it('disables both card fields for a read-only item', () => {
       mode="grid"
     />,
   );
-  expect(screen.getByRole('textbox', {name: '제목'})).toHaveProperty(
+  expect(screen.getByRole('textbox', {name: '구역 이름'})).toHaveProperty(
     'disabled',
     true,
   );

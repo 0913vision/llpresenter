@@ -7,7 +7,7 @@ import {
 } from '@core/schema/service';
 import {newSundayCreed, sundayTemplate} from '@core/services/sundayTemplate';
 import {createServiceItemId} from '@core/schema/ids';
-import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
+import {SUNDAY_SECTIONS, SECTION_THEMES} from '@core/themes/sundaySections';
 import {PREPARATION_THEME_ID} from '@core/themes/sundayStandby';
 import {CREED_PRAYER_THEME_ID} from '@core/themes/creedPrayer';
 
@@ -39,20 +39,20 @@ it('ships the church order with fixed editable cards and empty places for local 
     ]),
   ).toEqual([
     ['예배 전', ['예배 준비']],
-    ['묵상기도', []],
+    ['묵상기도', ['묵상기도']],
     ['사도신경', ['사도신경']],
-    ['회개와간구의기도', []],
-    ['찬양', []],
-    ['합심기도', []],
+    ['회개와간구의기도', ['회개와간구의기도']],
+    ['찬양', ['찬양']],
+    ['합심기도', ['합심기도']],
     ['말씀', []],
-    ['봉헌', []],
-    ['봉헌기도', []],
+    ['봉헌', ['봉헌']],
+    ['봉헌기도', ['봉헌기도']],
     ['광고', ['광고']],
-    ['축도', []],
+    ['축도', ['축도']],
   ]);
   const fixed = template.order.filter(item => isItemOfKind(item, 'slides'));
-  expect(fixed).toHaveLength(2);
-  expect(template.order).toHaveLength(14);
+  expect(fixed).toHaveLength(9);
+  expect(template.order).toHaveLength(21);
   const preparation = fixed.find(item => item.theme === PREPARATION_THEME_ID);
   expect(preparation).toMatchObject({
     slides: {form: 'blank', name: '예배 준비', slides: [{text: ''}]},
@@ -86,6 +86,27 @@ it('ships the church order with fixed editable cards and empty places for local 
     transition: {kind: 'wipe', dir: 'left', sec: 1},
   });
   expect(notice?.slides.slides).toHaveLength(1);
+  const cards = fixed.filter(item =>
+    SECTION_THEMES.some(theme => theme.id === item.theme),
+  );
+  expect(cards).toHaveLength(7);
+  for (const card of cards) {
+    const section = SUNDAY_SECTIONS.find(
+      section => section.name === card.slides.name,
+    );
+    expect(section).toBeDefined();
+    expect(card.background).toBeUndefined();
+    expect(card.theme).toBe(section?.theme);
+    expect(card.slides.slides).toEqual([]);
+    expect(card.sectionCard).toEqual({
+      name: section?.name,
+      english: section?.english,
+      theme: section?.theme,
+      transition: {kind: 'wipe', dir: 'left', sec: 1},
+    });
+    expect(card.slides.advance).toBeUndefined();
+    expect(card.slides.loop).toBeUndefined();
+  }
   expect(
     template.order.every(
       item =>

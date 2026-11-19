@@ -1,5 +1,5 @@
 import type {JSX} from 'react';
-import {isItemOfKind, type ServiceItem} from '@core/schema/service';
+import type {ServiceItem} from '@core/schema/service';
 import {defaultSlideTransitions} from '@core/schema/preferences';
 import type {SlideTransition} from '@core/schema/slideTransition';
 import {
@@ -25,13 +25,7 @@ export function ItemCardRow({
   readonly reason: string | undefined;
 }): JSX.Element | null {
   const document = useSettingsDocument('themes', '테마', undefined);
-  if (
-    !canHaveSectionCard(item) ||
-    isItemOfKind(item, 'song') ||
-    isItemOfKind(item, 'sermon')
-  ) {
-    return null;
-  }
+  if (!canHaveSectionCard(item)) return null;
   const service = items.getSnapshot().service;
   const custom = document?.value.customSections ?? [];
   const selected = custom.find(
@@ -43,12 +37,12 @@ export function ItemCardRow({
     ? `custom:${selected.id}`
     : (item.sectionCard?.name ?? '');
   return (
-    <PropertyRow label="제목">
+    <PropertyRow label="구역 이름">
       {({controlId}) => (
         <SelectMenu
           id={controlId}
           block
-          menuLabel="제목"
+          menuLabel="구역 이름"
           value={value}
           valueText={item.sectionCard?.name ?? '없음'}
           options={[

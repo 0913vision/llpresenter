@@ -1,5 +1,4 @@
 import {slideTransitionSchema} from './slideTransition';
-import {isSectionTheme} from '../themes/sundaySections';
 import * as v from 'valibot';
 import type {Result} from '../common/result';
 import {isRecord} from '../common/guards';
@@ -181,8 +180,6 @@ export const sectionCardSchema = jsonObject({
   ),
   english: slideTextSchema,
   theme: themeIdSchema,
-  background: v.exactOptional(mediaIdSchema),
-  backgroundNone: v.exactOptional(v.boolean()),
   transition: v.exactOptional(slideTransitionSchema),
 });
 
@@ -276,12 +273,7 @@ const itemSchemas = {
     ...startFields,
   }),
   slides: slidesItemSchema,
-  media: jsonObject({
-    ...itemFields,
-    sectionCard: v.exactOptional(sectionCardSchema),
-    media: mediaIdSchema,
-    ...startFields,
-  }),
+  media: jsonObject({...itemFields, media: mediaIdSchema, ...startFields}),
 };
 
 const unknownItemSchema = jsonObject(itemFields);
@@ -377,13 +369,7 @@ export function parseService(
   text: string,
   file: string,
 ): Result<LoadedFile<Service>, FileError> {
-  const result = parseFile(serviceFormat, text, file);
-  return result.ok && result.value.access === 'editable'
-    ? {
-        ok: true,
-        value: {...result.value, data: convertLegacyCards(result.value.data)},
-      }
-    : result;
+  return parseFile(serviceFormat, text, file);
 }
 
 export function serializeService(
@@ -397,89 +383,7 @@ export function parseTemplate(
   text: string,
   file: string,
 ): Result<LoadedFile<Template>, FileError> {
-  const result = parseFile(templateFormat, text, file);
-  return result.ok && result.value.access === 'editable'
-    ? {
-        ok: true,
-        value: {...result.value, data: convertLegacyCards(result.value.data)},
-      }
-    : result;
-}
-
-/** Move old standalone title cards onto the following item when it can own one. */
-function convertLegacyCards<T extends Service | Template>(data: T): T {
-  const order = [...data.order];
-  for (let i = 0; i < order.length - 1; i += 1) {
-    const current = order[i];
-    const next = order[i + 1];
-    if (
-      !current ||
-      !next ||
-      !isItemOfKind(current, 'slides') ||
-      current.slides.form !== 'blank' ||
-      Object.keys(current).some(
-        key =>
-          ![
-            'id',
-            'theme',
-            'sectionCard',
-            'slides',
-            'background',
-            'backgroundNone',
-          ].includes(key),
-      ) ||
-      Object.keys(current.slides).some(
-        key => !['form', 'name', 'slides'].includes(key),
-      ) ||
-      (!isItemOfKind(next, 'song') &&
-        !isItemOfKind(next, 'slides') &&
-        !isItemOfKind(next, 'bible') &&
-        !isItemOfKind(next, 'sermon') &&
-        !isItemOfKind(next, 'liturgy') &&
-        !isItemOfKind(next, 'media')) ||
-      next.sectionCard !== undefined
-    ) {
-      continue;
-    }
-    const slide = current.slides.slides[0];
-    const card =
-      current.sectionCard !== undefined && current.slides.slides.length === 0
-        ? current.sectionCard
-        : current.sectionCard === undefined &&
-            current.slides.slides.length === 1 &&
-            slide !== undefined &&
-            'text' in slide &&
-            isSectionTheme(current.theme) &&
-            current.theme !== undefined &&
-            current.slides.name.trim() !== '' &&
-            Object.keys(slide).every(key =>
-              ['id', 'text', 'transition'].includes(key),
-            )
-          ? {
-              name: current.slides.name,
-              english: slide.text,
-              theme: current.theme,
-              ...(slide.transition === undefined
-                ? {}
-                : {transition: slide.transition}),
-            }
-          : undefined;
-    if (card === undefined) continue;
-    order.splice(i, 2, {
-      ...next,
-      sectionCard: {
-        ...card,
-        ...(current.background === undefined
-          ? {}
-          : {background: current.background}),
-        ...(current.backgroundNone === undefined
-          ? {}
-          : {backgroundNone: current.backgroundNone}),
-      },
-    });
-    i -= 1;
-  }
-  return {...data, order};
+  return parseFile(templateFormat, text, file);
 }
 
 export function serializeTemplate(

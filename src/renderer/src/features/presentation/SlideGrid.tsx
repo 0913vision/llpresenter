@@ -1,4 +1,3 @@
-import {sectionCardBackground} from '@core/services/sectionCards';
 import {
   useCallback,
   useContext,
@@ -84,7 +83,6 @@ export function SlideGrid({
           form: 'blank',
           title: card.name,
           theme: card.theme,
-          ...sectionCardBackground(card),
         },
   );
   const sermonTheme = useSlideTheme(

@@ -52,7 +52,7 @@ export function AddSectionCard({
         );
       }}
     >
-      제목
+      구역 이름
     </Button>
   );
 }

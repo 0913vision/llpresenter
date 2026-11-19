@@ -20,7 +20,7 @@ import {mockMenuRowHeight} from '@fixtures/renderer/features/songs/editor/editor
 import {installMenuTestHooks} from '@fixtures/renderer/ui/menuTesting';
 import {ItemEditQueue} from '@renderer/features/service/items/itemEditQueue';
 import {ServiceTableList} from '@renderer/features/service/table/ServiceTableList';
-import {applyService} from '@renderer/session/show';
+import {applyService, useShow} from '@renderer/session/show';
 
 installMenuTestHooks();
 
@@ -131,6 +131,44 @@ it('saves a memo through the parent push, keeps cell focus and undoes only that 
   );
 });
 
+it('keeps subsequent keys on the footer after Tab leaves a pending memo save', async () => {
+  const {api, user} = setup();
+  await screen.findByText('천천히');
+  const edit = api.content.edit;
+  let release: () => void = () => undefined;
+  const pending = new Promise<void>(resolve => {
+    release = resolve;
+  });
+  vi.spyOn(api.content, 'edit').mockImplementationOnce(async command => {
+    await pending;
+    return edit(command);
+  });
+  act(() => screen.getByRole('option', {name: '첫 곡'}).focus());
+  await user.keyboard(
+    ' {ArrowRight}{ArrowRight}{ArrowRight}{ArrowRight}{Enter}',
+  );
+  await user.keyboard('{Control>}a{/Control}바로 시작{Enter}');
+  expect(screen.getByRole('textbox', {name: '메모, 첫 곡'})).toHaveProperty(
+    'readOnly',
+    true,
+  );
+  await user.tab();
+  const footer = screen.getByRole('button', {name: '항목'});
+  expect(document.activeElement).toBe(footer);
+  await act(async () => {
+    release();
+  });
+  await waitFor(() =>
+    expect(screen.getByRole('button', {name: '메모, 첫 곡'}).textContent).toBe(
+      '바로 시작',
+    ),
+  );
+  expect(document.activeElement).toBe(footer);
+  await user.keyboard('{Enter}');
+  expect(screen.getByRole('menu', {name: '항목 추가'})).toBeDefined();
+  expect(screen.queryByRole('textbox', {name: '메모, 첫 곡'})).toBeNull();
+});
+
 it('names title-less rows and cells by type and position without adding visible titles', async () => {
   const {service, user} = setup(true);
   for (const position of [1, 2]) {
@@ -163,6 +201,43 @@ it('names title-less rows and cells by type and position without adding visible 
     screen.getByRole('button', {name: '배경, 빈 슬라이드 1'}),
   );
 });
+
+it.each(['빈 슬라이드', '광고'])(
+  'adds %s after the selection from the footer keyboard menu and opens its editor',
+  async label => {
+    const {api, user, service} = setup();
+    const open = vi
+      .spyOn(api.slidesEditor, 'open')
+      .mockResolvedValue({ok: true, value: undefined});
+    await screen.findByText('천천히');
+    act(() => screen.getByRole('option', {name: '첫 곡'}).focus());
+    await user.keyboard(' ');
+    await user.tab();
+    expect(document.activeElement).toBe(
+      screen.getByRole('button', {name: '항목'}),
+    );
+    await user.keyboard('{Enter}{Home}{ArrowDown}{ArrowDown}{ArrowDown}');
+    if (label === '광고') await user.keyboard('{ArrowDown}');
+    const menu = screen.getByRole('menu', {name: '항목 추가'});
+    expect(menu.getAttribute('aria-activedescendant')).toBe(
+      screen.getByRole('menuitem', {name: label}).id,
+    );
+    await user.keyboard('{Enter}');
+    await waitFor(() => expect(open).toHaveBeenCalledOnce());
+    const order = service().service.order;
+    const added = order[2];
+    expect(added).toMatchObject({
+      slides: {form: label === '광고' ? 'ad' : 'blank'},
+    });
+    expect(order[3]?.id).toBe(fixtureItems.plain);
+    expect(useShow.getState().openItemId).toBe(added?.id);
+    expect(open).toHaveBeenCalledWith({
+      serviceId: fixtureServiceId,
+      itemId: added?.id,
+      ...(label === '빈 슬라이드' ? {focusText: true} : {}),
+    });
+  },
+);
 
 it('continues row navigation after delete/undo and uses the named empty list for undo/redo', async () => {
   const {user} = setup(true);

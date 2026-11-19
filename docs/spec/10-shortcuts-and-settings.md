@@ -1008,14 +1008,14 @@ No execution history is kept. See 04, "Row states".
 
 #### 준비 (Preparation)
 
-새 슬라이드 기본 전환 has rows for 곡 제목, 곡, 빈 슬라이드, 광고, 제목, 설교
-제목, 사도신경, 주기도문 and 성경 말씀. Each row has effect, direction and
+새 슬라이드 기본 전환 has rows for 곡 제목, 곡, 빈 슬라이드, 광고, 구역 이름,
+설교 제목, 사도신경, 주기도문 and 성경 말씀. Each row has effect, direction and
 duration controls. Direction applies to push and wipe. The initial defaults are
 left wipe for 4 seconds for 곡 제목, no effect for 곡, 빈 슬라이드 and 광고,
-left wipe for 1 second for 제목 and 설교 제목, and left wipe for 0.7 seconds for
-사도신경, 주기도문 and 성경 말씀. Values are stored in `preferences.json`
-`show.slideDefaults` and apply when a new slide is created; existing slides
-retain their own transitions.
+left wipe for 1 second for 구역 이름 and 설교 제목, and left wipe for 0.7
+seconds for 사도신경, 주기도문 and 성경 말씀. Values are stored in
+`preferences.json` `show.slideDefaults` and apply when a new slide is created;
+existing slides retain their own transitions.
 
 #### 출력 (Output)
 

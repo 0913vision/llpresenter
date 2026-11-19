@@ -309,17 +309,18 @@ bar handles.
   ProPresenter also documents headers, placeholders and presentations in its
   [playlist + menu](https://support.renewedvision.com/hc/en-us/articles/40377194830995-Creating-and-Using-Playlist-Templates-in-ProPresenter).
 
-| Group | Row                                    | Does                                                                                                | Status  |
-| ----- | -------------------------------------- | --------------------------------------------------------------------------------------------------- | ------- |
-| 1     | 곡…                                    | Opens a searchable library song picker and adds the choice after the selected row.                  | Now     |
-| 1     | 구역 추가                              | Adds a 구역 header (PP New Header).                                                                 | Now     |
-| 1     | 빈 항목 추가                           | PP New Placeholder, New Cue.                                                                        | Off     |
-| 2     | 빈 슬라이드, 광고                      | Add a slides item after the selection and open 슬라이드 편집 (05).                                  | Now     |
-| 2     | 사도신경 ›, 주기도문 ›                 | Each offers 새 번역 and 옛 번역; adds editable slides after the selection with manual advance (05). | Now     |
-| 2     | 미디어 ›                               | Lists media; missing files are disabled with the reason 미디어 파일을 찾을 수 없습니다.             | Now     |
-| 2     | 성경 구절…                             | Opens the 성경 구절 dialog.                                                                         | Now     |
-| 2     | 영상 스트림 항목…, 오디오 스트림 항목… | PP stream items.                                                                                    | Off     |
-| -     | Inline song list                       | Songs are chosen in the 곡… dialog, or added from 라이브러리 and toolbar search.                    | Removed |
+| Group | Row                                    | Does                                                                                                                                            | Status  |
+| ----- | -------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------- | ------- |
+| 1     | 곡…                                    | Opens a searchable library song picker and adds the choice after the selected row.                                                              | Now     |
+| 1     | 구역 추가                              | Adds a 구역 header (PP New Header).                                                                                                             | Now     |
+| 1     | 빈 항목 추가                           | PP New Placeholder, New Cue.                                                                                                                    | Off     |
+| 2     | 빈 슬라이드, 광고                      | Add a slides item after the selection and open 슬라이드 편집 (05).                                                                              | Now     |
+| 2     | 사도신경 ›, 주기도문 ›                 | Each offers 새 번역 and 옛 번역; adds editable slides after the selection with manual advance (05).                                             | Now     |
+| 2     | 구역 이름 ›                            | Offers the ordered Sunday section names; adds an editable 빈 슬라이드 with its theme, English line and background after the selection (05, 12). | Now     |
+| 2     | 미디어 ›                               | Lists media; missing files are disabled with the reason 미디어 파일을 찾을 수 없습니다.                                                         | Now     |
+| 2     | 성경 구절…                             | Opens the 성경 구절 dialog.                                                                                                                     | Now     |
+| 2     | 영상 스트림 항목…, 오디오 스트림 항목… | PP stream items.                                                                                                                                | Off     |
+| -     | Inline song list                       | Songs are chosen in the 곡… dialog, or added from 라이브러리 and toolbar search.                                                                | Removed |
 
 ### 예배 순서 항목 오른쪽 클릭
 

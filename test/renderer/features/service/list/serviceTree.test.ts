@@ -72,17 +72,10 @@ describe('treeRows', () => {
     const all = checkAll(sundayRows, true);
     expect(selectedIds(sundayRows, all)).toEqual(
       template.order
-        .filter((item, index) => {
-          const next = template.order[index + 1];
-          return (
-            !isItemOfKind(item, 'header') ||
-            next === undefined ||
-            isItemOfKind(next, 'header')
-          );
-        })
+        .filter(item => !isItemOfKind(item, 'header') || item.header === '말씀')
         .map(item => item.id),
     );
-    expect(itemCount(sundayRows)).toBe(3);
+    expect(itemCount(sundayRows)).toBe(10);
   });
   it('labels every kind and puts items under the header before them', () => {
     expect(
