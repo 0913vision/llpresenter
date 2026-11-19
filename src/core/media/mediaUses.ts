@@ -35,7 +35,6 @@ export function countMediaUses(
       service.order.filter(
         item =>
           ('background' in item && item.background === mediaId) ||
-          ('sectionCard' in item && item.sectionCard.background === mediaId) ||
           (isItemOfKind(item, 'song') &&
             item.slides.some(slide => slide.picture === mediaId)) ||
           (isItemOfKind(item, 'media') && item.media === mediaId),

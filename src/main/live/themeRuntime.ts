@@ -71,23 +71,7 @@ function sectionCardItem(
     backgroundStartedAt: _started,
     ...rest
   } = item;
-  return {
-    ...rest,
-    kind: 'blank',
-    title: card.name,
-    theme: card.theme,
-    ...(card.background === undefined
-      ? card.backgroundNone
-        ? {backgroundOverride: {kind: 'none' as const}}
-        : {}
-      : {
-          backgroundOverride: {
-            kind: 'media' as const,
-            mediaId: card.background,
-            loop: false,
-          },
-        }),
-  };
+  return {...rest, kind: 'blank', title: card.name, theme: card.theme};
 }
 
 interface ThemeRuntimeOptions {
@@ -228,12 +212,6 @@ export class ThemeRuntime {
               : {title: command.media.title}),
           };
           mode = undefined;
-        } else if (command.media.itemId === item.id) {
-          item = withPlayback(
-            this.options.item(item.id) ?? item,
-            item,
-            context.now,
-          );
         } else if (item.contentCleared) item = {...item, contentCleared: false};
         break;
       case 'theme.set':

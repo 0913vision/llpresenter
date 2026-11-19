@@ -1,4 +1,3 @@
-import {sectionCardBackground} from '@core/services/sectionCards';
 import {useEffect, useRef, useState, type JSX, type KeyboardEvent} from 'react';
 import {SLIDES_LIMITS, type SectionCard} from '@core/schema/service';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
@@ -57,7 +56,6 @@ export function CardSlideBody({
     form: 'blank',
     title: draft.name,
     theme: card.theme,
-    ...sectionCardBackground(card),
   });
   return (
     <>
@@ -85,11 +83,11 @@ export function CardSlideBody({
             />
           )}
         </div>
-        <SlideThumbnailBand number={1} label="제목" />
+        <SlideThumbnailBand number={1} label="구역 이름" />
       </div>
       <div className={styles.fields} data-view={mode}>
         <label>
-          제목
+          구역 이름
           <input
             value={draft.name}
             maxLength={SLIDES_LIMITS.name}

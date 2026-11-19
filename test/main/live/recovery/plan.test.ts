@@ -253,7 +253,7 @@ describe('recovery plan', () => {
   });
 });
 
-it.each(['song', 'slides', 'bible', 'media', 'liturgy'] as const)(
+it.each(['song', 'slides', 'bible'] as const)(
   'offers a recorded opening card from a %s item',
   kind => {
     const fixture = sources();
@@ -280,26 +280,18 @@ it.each(['song', 'slides', 'bible', 'media', 'liturgy'] as const)(
               sectionCard: card,
               slides: {form: 'blank' as const, name: 'Slides', slides: []},
             }
-          : kind === 'liturgy'
-            ? {
-                id: SONG_ITEM,
-                sectionCard: card,
-                liturgy: {kind: 'creed' as const, translation: 'new' as const},
-              }
-            : kind === 'media'
-              ? {id: SONG_ITEM, sectionCard: card, media: MEDIA}
-              : {
-                  id: SONG_ITEM,
-                  sectionCard: card,
-                  bible: {
-                    translation: v.parse(translationIdSchema, 'sample'),
-                    ref: 'John 3:16',
-                    split: 'verse' as const,
-                    reference: 'every' as const,
-                    verseNumbers: true,
-                    translationName: false,
-                  },
-                };
+          : {
+              id: SONG_ITEM,
+              sectionCard: card,
+              bible: {
+                translation: v.parse(translationIdSchema, 'sample'),
+                ref: 'John 3:16',
+                split: 'verse' as const,
+                reference: 'every' as const,
+                verseNumbers: true,
+                translationName: false,
+              },
+            };
     const content = {
       ...fixture.content,
       service: (id: string) =>
@@ -327,14 +319,7 @@ it.each(['song', 'slides', 'bible', 'media', 'liturgy'] as const)(
           slide: {
             itemId: SONG_ITEM,
             position: 0,
-            slideCount:
-              kind === 'song'
-                ? 6
-                : kind === 'slides'
-                  ? 1
-                  : kind === 'media'
-                    ? 2
-                    : 4,
+            slideCount: kind === 'song' ? 6 : kind === 'slides' ? 1 : 4,
           },
         },
         commands: [{type: 'slide.show', slide: {sectionCard: card}}],

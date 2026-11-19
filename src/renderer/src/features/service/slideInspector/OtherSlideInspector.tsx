@@ -1,4 +1,3 @@
-import {sectionCardBackground} from '@core/services/sectionCards';
 import {
   useContext,
   useEffect,
@@ -163,7 +162,6 @@ export function OtherSlideInspector({
           form: 'blank',
           title: card.name,
           theme: card.theme,
-          ...sectionCardBackground(card),
         },
   );
   const sermonTheme = useSlideTheme(

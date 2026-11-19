@@ -508,7 +508,7 @@ export function createDefaultThemes(
       },
       ...SECTION_THEMES.map(({id, color}) => ({
         id,
-        name: `제목 ${color}`,
+        name: `구역 이름 ${color}`,
         screens: Object.fromEntries(
           screens.map(screen => [
             screen.id,

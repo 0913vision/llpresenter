@@ -5,7 +5,7 @@ import {TextField} from '@renderer/ui/TextField';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {contextMenuAnchor, openMenuFromKey} from '@renderer/ui/contextMenu';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
-import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
+import {ELEMENT_DRAG_MIME} from './paletteItems';
 import styles from './PrepPalette.module.css';
 
 interface CustomSection {
@@ -15,7 +15,13 @@ interface CustomSection {
 }
 
 /** Reusable section names are stored with the app's theme settings. */
-export function CustomSections(): JSX.Element {
+export function CustomSections({
+  disabled,
+  insert,
+}: {
+  readonly disabled: boolean;
+  readonly insert: (key: string) => void;
+}): JSX.Element {
   const document = useSettingsDocument('themes', '테마', undefined);
   const sections = document?.value.customSections ?? [];
   const [editing, setEditing] = useState<CustomSection | null>(null);
@@ -53,56 +59,63 @@ export function CustomSections(): JSX.Element {
       setEditing(null);
       setMenu(null);
     } catch {
-      setError('제목을 저장하지 못했습니다. 다시 시도해 주세요.');
+      setError('구역 이름을 저장하지 못했습니다. 다시 시도해 주세요.');
     } finally {
       setBusy(false);
     }
   };
   return (
     <>
-      <div className={styles.titleList}>
-        {SUNDAY_SECTIONS.map(section => (
-          <span key={section.name} className={styles.chip}>
-            {section.name}
-          </span>
-        ))}
-        {sections.map(section => (
-          <button
-            key={section.id}
-            type="button"
-            className={styles.chip}
-            onContextMenu={event => {
-              event.preventDefault();
-              setMenu({section, anchor: contextMenuAnchor(event)});
-            }}
-            onKeyDown={event => {
-              if (
-                openMenuFromKey(event, anchor => setMenu({section, anchor}))
-              ) {
-                return;
-              }
-            }}
-          >
-            {section.name}
-          </button>
-        ))}
+      {sections.map(section => (
         <button
+          key={section.id}
           type="button"
           className={styles.chip}
-          disabled={document === null || sections.length >= 200}
-          onClick={() => {
-            setError('');
-            setEditing({id: crypto.randomUUID(), name: '', english: ''});
+          aria-disabled={disabled}
+          draggable={!disabled}
+          onDragStart={event => {
+            event.dataTransfer.setData(
+              ELEMENT_DRAG_MIME,
+              `custom:${section.id}`,
+            );
+            event.dataTransfer.effectAllowed = 'copy';
+          }}
+          onDoubleClick={() => {
+            if (!disabled) insert(`custom:${section.id}`);
+          }}
+          onContextMenu={event => {
+            event.preventDefault();
+            setMenu({section, anchor: contextMenuAnchor(event)});
+          }}
+          onKeyDown={event => {
+            if (openMenuFromKey(event, anchor => setMenu({section, anchor}))) {
+              return;
+            }
+            if (event.key === 'Enter' && !disabled) {
+              event.preventDefault();
+              insert(`custom:${section.id}`);
+            }
           }}
         >
-          + 제목
+          {section.name}
         </button>
-      </div>
+      ))}
+      <button
+        type="button"
+        className={styles.chip}
+        disabled={document === null || sections.length >= 200}
+        onClick={() => {
+          setError('');
+          setEditing({id: crypto.randomUUID(), name: '', english: ''});
+        }}
+      >
+        + 구역 이름
+      </button>
       {error && editing === null ? <span role="alert">{error}</span> : null}
       {menu ? (
         <Menu
           context
-          label="제목 관리"
+          label="구역 이름 관리"
           anchor={menu.anchor}
           onClose={() => setMenu(null)}
           entries={[
@@ -128,7 +141,7 @@ export function CustomSections(): JSX.Element {
       ) : null}
       {editing ? (
         <Dialog
-          title="제목"
+          title="구역 이름"
           size="s"
           onCancel={() => setEditing(null)}
           primary={{

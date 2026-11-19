@@ -116,8 +116,7 @@ export function registerThemeOutput({
             ...((isItemOfKind(entry, 'song') ||
               isItemOfKind(entry, 'slides') ||
               isItemOfKind(entry, 'bible') ||
-              isItemOfKind(entry, 'sermon') ||
-              isItemOfKind(entry, 'media')) &&
+              isItemOfKind(entry, 'sermon')) &&
             cardOffset(entry)
               ? {cardOffset: 1 as const}
               : {}),

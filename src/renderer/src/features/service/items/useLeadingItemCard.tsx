@@ -25,7 +25,7 @@ export function useLeadingItemCard(
   const disabled = busy || service.access === 'readOnly';
   return {
     mixedSelection: true,
-    label: '제목',
+    label: '구역 이름',
     render: mode => (
       <CardSlideBody
         itemId={item.id}

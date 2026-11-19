@@ -10,18 +10,9 @@ import {SECTION_THEME_ID, type SundaySection} from '../themes/sundaySections';
 import {defaultSlideTransitions} from '../schema/preferences';
 import type {SlideTransition} from '../schema/slideTransition';
 
-/** The title's own background, independent of the content item's background. */
-export function sectionCardBackground(card: SectionCard) {
-  return card.background !== undefined
-    ? {background: {mediaId: card.background, loop: false}}
-    : card.backgroundNone === true
-      ? {backgroundNone: true as const}
-      : {};
-}
-
 export function newSectionCard(transition?: SlideTransition): SectionCard {
   return {
-    name: '제목',
+    name: '구역 이름',
     english: '',
     theme: SECTION_THEME_ID,
     ...(transition === undefined ? {} : {transition}),
@@ -30,21 +21,18 @@ export function newSectionCard(transition?: SlideTransition): SectionCard {
 
 export function canHaveSectionCard(
   item: ServiceItem,
-): item is ServiceItemOf<
-  'song' | 'slides' | 'bible' | 'sermon' | 'liturgy' | 'media'
-> {
+): item is ServiceItemOf<'song' | 'slides' | 'bible' | 'sermon' | 'liturgy'> {
   return (
     isItemOfKind(item, 'song') ||
     isItemOfKind(item, 'slides') ||
     isItemOfKind(item, 'bible') ||
     isItemOfKind(item, 'sermon') ||
-    isItemOfKind(item, 'liturgy') ||
-    isItemOfKind(item, 'media')
+    isItemOfKind(item, 'liturgy')
   );
 }
 
 export function hasSectionCard(item: ServiceItem): item is ServiceItemOf<
-  'song' | 'slides' | 'bible' | 'sermon' | 'liturgy' | 'media'
+  'song' | 'slides' | 'bible' | 'sermon' | 'liturgy'
 > & {
   readonly sectionCard: SectionCard;
 } {

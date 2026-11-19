@@ -245,6 +245,6 @@ it('selects the second Bible verse at position two and shows slide number three 
   expect(items.getSnapshot().position).toBe(2);
   fireEvent.contextMenu(second);
   expect(
-    screen.getByRole('menuitem', {name: '제목 슬라이드 추가'}),
+    screen.getByRole('menuitem', {name: '구역 이름 슬라이드 추가'}),
   ).toBeDefined();
 });
