@@ -28,7 +28,7 @@ it('draws only the initial window of a long item and selects without output', as
 });
 
 it.each([
-  [50, 3],
+  [50, 4],
   [75, 2],
   [100, 2],
   [125, 1],
@@ -39,8 +39,18 @@ it.each([
   expect(detailsGridGeometry(456, 12, scale).columns).toBe(columns);
 });
 
+it.each([50, 100, 200])(
+  'keeps tile width at %i%% when the panel grows',
+  scale => {
+    const narrow = detailsGridGeometry(360, 12, scale);
+    const wide = detailsGridGeometry(1000, 12, scale);
+    expect(wide.tileWidth).toBe(narrow.tileWidth);
+    expect(wide.columns).toBeGreaterThan(narrow.columns);
+  },
+);
+
 it.each([
-  [50, 3],
+  [50, 4],
   [100, 2],
   [200, 1],
 ])(

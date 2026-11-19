@@ -1,5 +1,6 @@
 import {requestSongEditor} from '@renderer/features/songs/editor/songEditorRequests';
 import {
+  useContext,
   useEffect,
   useState,
   useSyncExternalStore,
@@ -20,7 +21,6 @@ import {BibleLoadNotice} from '@renderer/features/bible/BibleLoadNotice';
 import {Panel, PanelBody, PanelFooter, PanelTabs} from '@renderer/ui/Panel';
 import {ThumbnailSizeControl} from '@renderer/ui/ThumbnailSizeControl';
 import type {SizeClass} from '@renderer/ui/sizeClass';
-import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import type {SongEditorStore} from '@renderer/features/songs/editor';
 import type {ServiceItemStore} from '../items/serviceItemStore';
@@ -28,7 +28,6 @@ import {useItemSlides} from '../items/useItemSlides';
 import {useItemMedia} from '../items/useItemSources';
 import {useItemSettings} from '../items/useItemSources';
 import {previewAppearance} from '@renderer/features/songs/editor/songPreviewModel';
-import {SegmentedControl} from '@renderer/ui/SegmentedControl';
 import {slideBand} from '../slides/SlidesVisuals';
 import {
   detailsHeading,
@@ -39,6 +38,7 @@ import {detailsPicture} from './detailsPicture';
 import {DetailsInfo} from './DetailsInfo';
 import {useItemTheme} from './ItemThemeRow';
 import {DetailsSlides} from './DetailsSlides';
+import {SlidePreview, usePreviewScreen} from './SlidePreview';
 import {AheadBox, DrawAhead} from '@renderer/rendering/DrawAhead';
 
 /** The 슬라이드 tab tiles drawn ahead while 정보 shows: about a screen of them. */
@@ -48,6 +48,7 @@ const DETAILS_AHEAD_AFTER_MS = 400;
 import {detailsScale} from '@renderer/platform/thumbnailScale';
 import styles from './DetailsPanel.module.css';
 import {AtomicPictureContent} from '@renderer/rendering/AtomicPictureContent';
+import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
 
 type Target =
   | {readonly kind: 'item'; readonly itemId: ServiceItemId}
@@ -69,6 +70,31 @@ function DetailsShell({
       <PanelBody>{children}</PanelBody>
       {footer}
     </Panel>
+  );
+}
+
+function SelectedPreview({
+  identity,
+  pending,
+  waitForPicture,
+  content,
+}: {
+  readonly identity: string;
+  readonly pending: boolean;
+  readonly waitForPicture: boolean;
+  readonly content: JSX.Element;
+}): JSX.Element {
+  const parent = useContext(PictureReadiness);
+  if (parent !== null) return content;
+  return (
+    <AtomicPictureContent
+      identity={identity}
+      pending={pending}
+      waitForPicture={waitForPicture}
+      initial={content}
+      initialReady
+      content={content}
+    />
   );
 }
 
@@ -137,7 +163,6 @@ function DetailsPanelContent({
     index: number;
   }>({key: null, index: 0});
   const selected = selection.key === targetKey ? selection.index : 0;
-  const [selectedScreen, setSelectedScreen] = useState<string | null>(null);
   const [aheadDone, setAheadDone] = useState<string | null>(null);
   const [aheadDue, setAheadDue] = useState<string | null>(null);
   const songId = target?.kind === 'song' ? target.songId : null;
@@ -195,10 +220,8 @@ function DetailsPanelContent({
     screenSettings.document?.name === 'screens'
       ? screenSettings.document.value.screens
       : [];
-  const targetScreen =
-    screens.find(screen => screen.id === selectedScreen) ??
-    screens.find(screen => screen.kind === 'audience') ??
-    screens[0];
+  const previewScreen = usePreviewScreen(screens);
+  const targetScreen = previewScreen.target;
   const role = targetScreen?.kind ?? 'audience';
   const screenId = targetScreen?.id;
   const aheadIdentity = `${detailsKey}:${screenId ?? ''}`;
@@ -209,15 +232,6 @@ function DetailsPanelContent({
     );
     return () => clearTimeout(timer);
   }, [aheadIdentity]);
-  const choices = screens.map(screen => ({
-    value: screen.id,
-    label:
-      screens.filter(other => other.kind === screen.kind).length === 1
-        ? ({audience: '청중', stage: '무대', broadcast: '방송'} as const)[
-            screen.kind
-          ]
-        : screen.name,
-  }));
   const projection = useBibleTileProjection({
     itemId: bible ? item.id : null,
     ...(service === null ? {} : {serviceId: service.service.id}),
@@ -450,7 +464,12 @@ function DetailsPanelContent({
       />
     );
   }
-  const firstPicture = passageProblem === undefined ? picture(0) : undefined;
+  const selectedIndex = Math.min(
+    Math.max(0, count - 1),
+    item === null ? selected : state.position,
+  );
+  const firstPicture =
+    passageProblem === undefined ? picture(selectedIndex) : undefined;
   const waitForPicture = passageProblem === undefined && count > 0;
   const pending =
     (screenSettings.document === null && !screenSettings.failed) ||
@@ -513,29 +532,26 @@ function DetailsPanelContent({
             ) : null
           }
         >
-          <div className={styles.picture}>
-            {passageProblem === undefined ? (
-              firstPicture
-            ) : (
-              <BibleLoadNotice row={passageProblem} />
-            )}
-          </div>
-          {targetScreen === undefined ? null : (
-            <SegmentedControl
-              label="미리보기 화면"
-              fill
-              options={choices}
-              value={targetScreen.id}
-              onChange={setSelectedScreen}
-            />
-          )}
-          {count === 0 ? null : (
-            <SlideThumbnailBand
-              number={1}
-              label={labelAt(0)}
-              labelColor={labelColorAt(0)}
-            />
-          )}
+          <SelectedPreview
+            identity={`${identity}:${selectedIndex}`}
+            pending={pending}
+            waitForPicture={waitForPicture}
+            content={
+              <SlidePreview
+                picture={
+                  passageProblem === undefined ? (
+                    firstPicture
+                  ) : (
+                    <BibleLoadNotice row={passageProblem} />
+                  )
+                }
+                screen={previewScreen}
+                number={count === 0 ? undefined : selectedIndex + 1}
+                label={labelAt(selectedIndex)}
+                color={labelColorAt(selectedIndex)}
+              />
+            }
+          />
           <div className={styles.title} title={title}>
             {title}
           </div>
@@ -567,19 +583,18 @@ function DetailsPanelContent({
               }}
             />
           ) : (
-            <DetailsSlides
-              count={count}
-              scale={scale}
-              selected={Math.min(
-                Math.max(0, count - 1),
-                item === null ? selected : state.position,
-              )}
-              onSelect={select}
-              onEdit={edit}
-              labelAt={labelAt}
-              colorAt={labelColorAt}
-              picture={picture}
-            />
+            <PictureReadiness.Provider value={null}>
+              <DetailsSlides
+                count={count}
+                scale={scale}
+                selected={selectedIndex}
+                onSelect={select}
+                onEdit={edit}
+                labelAt={labelAt}
+                colorAt={labelColorAt}
+                picture={picture}
+              />
+            </PictureReadiness.Provider>
           )}
         </DetailsShell>
       }

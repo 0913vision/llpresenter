@@ -1,5 +1,12 @@
 import * as songEditorRequests from '@renderer/features/songs/editor/songEditorRequests';
-import {act, render, screen, waitFor, within} from '@testing-library/react';
+import {
+  act,
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import {expect, it, vi} from 'vitest';
 import {
@@ -16,6 +23,10 @@ import {isItemOfKind} from '@core/schema/service';
 import {useContext, useLayoutEffect, useRef} from 'react';
 import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
 
+const previewReadiness = vi.hoisted<{
+  hold: boolean;
+  release: (() => void) | undefined;
+}>(() => ({hold: false, release: undefined}));
 vi.mock('@renderer/rendering/SlidePicture', () => ({
   SlidePicture: ({
     slide,
@@ -27,7 +38,9 @@ vi.mock('@renderer/rendering/SlidePicture', () => ({
     const ready = useContext(PictureReadiness);
     const source = useRef({});
     useLayoutEffect(() => {
-      ready?.(source.current);
+      if (previewReadiness.hold && ready !== null) {
+        previewReadiness.release = () => ready(source.current);
+      } else ready?.(source.current);
     }, [ready]);
     return (
       <div data-testid="details-picture" data-background={background}>
@@ -36,6 +49,63 @@ vi.mock('@renderer/rendering/SlidePicture', () => ({
     );
   },
 }));
+
+it('changes the large picture and its band together after the selected picture is ready', async () => {
+  const f = itemFixture();
+  useShow.setState({
+    serviceId: fixtureServiceId,
+    openItemId: fixtureItems.arranged,
+  });
+  const editor = new SongEditorStore(f.api, vi.fn());
+  const items = new ServiceItemStore(f.api, editor, vi.fn());
+  const view = render(
+    <DetailsPanel
+      sizeClass="normal"
+      target={{kind: 'item', itemId: fixtureItems.arranged}}
+      api={f.api}
+      items={items}
+      editor={editor}
+    />,
+  );
+  try {
+    await waitFor(() => expect(items.getSnapshot().song).not.toBeNull());
+    await userEvent.click(screen.getByRole('tab', {name: '슬라이드'}));
+    const firstPicture = view.container.querySelector(
+      '[data-background-picture]',
+    )?.textContent;
+    previewReadiness.hold = true;
+    const second = within(
+      screen.getByRole('listbox', {name: '슬라이드'}),
+    ).getAllByRole('option')[1];
+    if (!second) throw Error('Missing second slide');
+    fireEvent.click(second);
+    await waitFor(() => expect(previewReadiness.release).toBeDefined());
+    expect(
+      view.container.querySelector('[data-background-picture]')?.textContent,
+    ).toBe(firstPicture);
+    expect(
+      view.container.querySelector('[data-preview-band]')?.textContent,
+    ).toContain('1');
+    act(() => previewReadiness.release?.());
+    expect(
+      view.container.querySelector('[data-preview-band]')?.textContent,
+    ).toContain('2');
+    expect(
+      view.container.querySelector('[data-background-picture]')?.textContent,
+    ).toBe(
+      items
+        .getSnapshot()
+        .song?.history.snapshot.song.slides[1]?.lines.join(' '),
+    );
+  } finally {
+    previewReadiness.hold = false;
+    previewReadiness.release = undefined;
+    view.unmount();
+    items.dispose();
+    await editor.dispose();
+    useShow.setState({serviceId: null, openItemId: null});
+  }
+});
 
 it('resolves the detail picture background from the item before the library song', async () => {
   const f = itemFixture();
@@ -156,8 +226,39 @@ it('selects item slides locally, opens the clicked slide, and keeps its independ
     const before = options.map(option => option.textContent);
     await userEvent.click(second);
     expect(items.getSnapshot().position).toBe(1);
+    const selectedSong = items.getSnapshot().song;
+    if (selectedSong === null) throw Error('Missing song');
+    const preview = () =>
+      view.container.querySelector('[data-background-picture]');
+    const band = () => view.container.querySelector('[data-preview-band]');
+    expect(preview()?.textContent).toBe(
+      selectedSong.history.snapshot.song.slides[1]?.lines.join(' '),
+    );
+    expect(band()?.textContent).toContain('2');
+    const first = options[0];
+    if (!first) throw Error('Missing first slide');
+    fireEvent.click(first);
+    expect(preview()?.textContent).toBe(
+      selectedSong.history.snapshot.song.slides[0]?.lines.join(' '),
+    );
+    expect(band()?.textContent).toContain('1');
+    fireEvent.scroll(grid.parentElement ?? grid);
+    fireEvent.click(second);
+    expect(preview()?.textContent).toBe(
+      selectedSong.history.snapshot.song.slides[1]?.lines.join(' '),
+    );
+    expect(band()?.textContent).toContain('2');
+    await userEvent.click(screen.getByRole('tab', {name: '정보'}));
+    await userEvent.click(screen.getByRole('tab', {name: '슬라이드'}));
+    expect(
+      view.container.querySelector('[data-background-picture]')?.textContent,
+    ).toBe(selectedSong.history.snapshot.song.slides[1]?.lines.join(' '));
+    const reopenedSecond = within(
+      screen.getByRole('listbox', {name: '슬라이드'}),
+    ).getAllByRole('option')[1];
+    if (!reopenedSecond) throw Error('Missing second slide after tab switch');
     expect(output).not.toHaveBeenCalled();
-    await userEvent.dblClick(second);
+    await userEvent.dblClick(reopenedSecond);
     expect(open).toHaveBeenCalledWith({
       songId: f.first.song.id,
       block: 1,

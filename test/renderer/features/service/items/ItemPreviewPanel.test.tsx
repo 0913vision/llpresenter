@@ -22,7 +22,7 @@ vi.mock('@renderer/rendering/SlidePicture', () => ({
   ),
 }));
 
-it('keeps the first item slide in its picture when a different local slide is selected', async () => {
+it('shows the locally selected item slide in its picture', async () => {
   const f = itemFixture();
   useShow.setState({
     serviceId: fixtureServiceId,
@@ -44,8 +44,8 @@ it('keeps the first item slide in its picture when a different local slide is se
     const picture = screen.getByTestId('picture');
     expect(picture.getAttribute('data-position')).toBe('0');
     act(() => items.selectPosition(1));
-    expect(picture.getAttribute('data-position')).toBe('0');
-    expect(picture.textContent).toContain(f.first.song.slides[0]?.lines[0]);
+    expect(picture.getAttribute('data-position')).toBe('1');
+    expect(picture.textContent).toContain(f.first.song.slides[1]?.lines[0]);
   } finally {
     view.unmount();
     items.dispose();

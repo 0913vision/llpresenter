@@ -1,0 +1,3 @@
+.grid[role='listbox'] {
+  grid-template-columns: repeat(auto-fill, var(--thumb-width));
+}
