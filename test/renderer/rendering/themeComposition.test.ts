@@ -168,31 +168,46 @@ describe('theme composition drawing', () => {
     },
   );
 
-  it('honors an item background on a stage layout that explicitly includes a background element', () => {
-    const {root, view} = setup();
-    const background = {
-      ...themeElementBase(806),
-      kind: 'background' as const,
-      fit: 'fill' as const,
-      radius: 0,
-    };
-    const item = {
-      id: 'invented',
-      kind: 'song' as const,
-      source: 'service' as const,
-      backgroundOverride: {kind: 'media' as const, mediaId, loop: true},
-    };
-    view.render(
-      {...song, media: {mediaId, loop: true, startedAt: 1000}},
-      {
-        ...frame([background], {item}),
-        screen: {id: THEME_MAIN, kind: 'stage'},
-        transitions: false,
-      },
-    );
-    expect(root.querySelector(`video[src*="${mediaId}"]`)).not.toBeNull();
-    view.dispose();
-  });
+  it.each(['stage', 'broadcast'] as const)(
+    'draws an item background inside the custom %s background element',
+    screenKind => {
+      const {root, view} = setup();
+      const background = {
+        ...themeElementBase(806),
+        kind: 'background' as const,
+        frame: {x: 110, y: 220, w: 800, h: 450},
+        fit: 'fit' as const,
+        radius: 32,
+      };
+      const item = {
+        id: 'invented',
+        kind: 'song' as const,
+        source: 'service' as const,
+        backgroundOverride: {kind: 'media' as const, mediaId, loop: true},
+      };
+      view.render(
+        {...song, media: {mediaId, loop: true, startedAt: 1000}},
+        {
+          ...frame([background], {item}),
+          screen: {id: THEME_MAIN, kind: screenKind},
+          transitions: false,
+        },
+      );
+      const element = root.querySelector<HTMLElement>(
+        '[data-kind="background"]',
+      );
+      expect(element?.style.left).toBe('110px');
+      expect(element?.style.top).toBe('220px');
+      expect(element?.style.width).toBe('800px');
+      expect(element?.style.height).toBe('450px');
+      expect(element?.style.borderRadius).toBe('32px');
+      const video = element?.querySelector<HTMLVideoElement>(
+        `video[src*="${mediaId}"]`,
+      );
+      expect(video?.style.objectFit).toBe('contain');
+      view.dispose();
+    },
+  );
 
   it('keeps a transparent broadcast free of item backgrounds even when the layout has a background element', () => {
     const {root, view} = setup(true);

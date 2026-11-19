@@ -40,10 +40,7 @@ const STAGE_NEXT_RATIO = 2 / 3;
 function itemBackgroundOverride(frame: RenderFrame, transparent: boolean) {
   const theme = frame.theme;
   if (theme === undefined || transparent) return undefined;
-  const drawsBackground = theme.layout.elements.some(
-    element => element.kind === 'background',
-  );
-  return frame.screen?.kind === 'audience' || drawsBackground
+  return frame.screen?.kind === 'audience'
     ? theme.item?.backgroundOverride
     : undefined;
 }
