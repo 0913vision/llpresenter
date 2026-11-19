@@ -117,11 +117,11 @@ export const outputEndpoints = {
 export function outputApi(port: IpcPort) {
   const retry = port.message(outputEndpoints.retry);
   const showWindow = port.message(outputEndpoints.showWindow);
+  const previewSource = port.request(outputEndpoints.previewSource);
   return {
     previewControl: port.message(outputEndpoints.previewControl),
     subscribePreviewFrame: port.subscribe(outputEndpoints.previewFrame),
-    previewSource: (screenId: string) =>
-      port.request(outputEndpoints.previewSource)({screenId}),
+    previewSource: (screenId: string) => previewSource({screenId}),
     reportPlaybackProblems: port.message(outputEndpoints.playbackReport),
     getPlaybackProblems: port.query(outputEndpoints.playbackProblems),
     subscribePlaybackProblems: port.subscribe(outputEndpoints.playbackChanged),

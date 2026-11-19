@@ -76,7 +76,64 @@ it('deduplicates simultaneous windows and reuses a disk picture after restart', 
     };
     await reopened.get(changed);
     expect(painter.paint).toHaveBeenCalledTimes(2);
+    const edited = {...changed, inputs: 'editor'};
+    const png = Buffer.from([
+      0x89, 0x50, 0x4e, 0x47, 0, 0, 0, 0, 0x49, 0x45, 0x4e, 0x44, 0, 0, 0, 0,
+    ]);
+    expect(reopened.reserve(edited, 1)).toBe(true);
+    expect(reopened.reserve(edited, 2)).toBe(false);
+    const waiting = reopened.get(edited);
+    reopened.release(edited, 2);
+    reopened.remember(edited, png, 2);
+    expect(painter.paint).toHaveBeenCalledTimes(2);
+    reopened.remember(edited, png, 1);
+    expect(await waiting).toEqual(png);
+    expect(painter.paint).toHaveBeenCalledTimes(2);
+    const cancelled = {...edited, inputs: 'cancelled'};
+    expect(reopened.reserve(cancelled, 1)).toBe(true);
+    const fallback = reopened.get(cancelled);
+    reopened.release(cancelled, 1);
+    expect(await fallback).toEqual(image);
+    expect(painter.paint).toHaveBeenCalledTimes(3);
+    vi.useFakeTimers();
+    try {
+      const abandoned = {...edited, inputs: 'abandoned'};
+      expect(reopened.reserve(abandoned, 1)).toBe(true);
+      const recovered = reopened.get(abandoned);
+      await vi.advanceTimersByTimeAsync(5000);
+      expect(await recovered).toEqual(image);
+      expect(painter.paint).toHaveBeenCalledTimes(4);
+    } finally {
+      vi.useRealTimers();
+    }
+    const unused = {...edited, inputs: 'unused'};
+    expect(reopened.reserve(unused, 1)).toBe(true);
+    reopened.release(unused, 1);
+    expect(painter.paint).toHaveBeenCalledTimes(4);
+    expect(await reopened.get(unused)).toEqual(image);
+    expect(painter.paint).toHaveBeenCalledTimes(5);
+    const temporary = {
+      ...edited,
+      inputs: 'temporary',
+      spec: {
+        ...edited.spec,
+        layers: {
+          ...edited.spec.layers,
+          media: {mediaId: 'preview:hash', loop: false, startedAt: 0},
+        },
+      },
+    };
+    expect(reopened.reserve(temporary, 1)).toBe(true);
+    const importWaiter = reopened.peek(temporary);
+    reopened.release(temporary, 1);
+    expect(await importWaiter).toBeNull();
+    expect(painter.paint).toHaveBeenCalledTimes(5);
     await reopened.dispose();
+    const disk = new PictureCache(folder);
+    expect(await disk.peek(edited)).toEqual(png);
+    expect(await disk.peek({...edited, inputs: 'not-on-disk'})).toBeNull();
+    expect(painter.paint).toHaveBeenCalledTimes(5);
+    await disk.dispose();
   } finally {
     await rm(folder, {recursive: true, force: true});
   }

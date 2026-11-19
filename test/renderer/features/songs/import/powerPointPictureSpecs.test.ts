@@ -1,4 +1,5 @@
 import {expect, it} from 'vitest';
+import {parsePictureRequest} from '@core/schema/picture';
 import {powerPointPictureSpecs} from '@renderer/features/songs/import/powerPointPictureSpecs';
 
 it('keeps imported text formatting and its prepared background in output pictures', () => {
@@ -14,7 +15,7 @@ it('keeps imported text formatting and its prepared background in output picture
       },
       {number: 2, background: null, shapes: [{body: true, lines: ['Verse']}]},
     ],
-    new Map([['decoration', 'temporary']]),
+    new Map([['decoration', `preview:${'a'.repeat(64)}`]]),
     {
       layout: {mode: {kind: 'own'}, elements: []},
       emptyColor: '#000000',
@@ -27,7 +28,14 @@ it('keeps imported text formatting and its prepared background in output picture
     lines: ['Title'],
     lyricFormat: format,
   });
-  expect(specs[0]?.layers.media).toMatchObject({mediaId: 'temporary'});
+  expect(specs[0]?.layers.media).toMatchObject({
+    mediaId: `preview:${'a'.repeat(64)}`,
+  });
   expect(specs[1]?.layers.slide).toMatchObject({position: 1, lines: ['Verse']});
-  expect(specs[1]?.layers.media).toMatchObject({mediaId: 'temporary'});
+  expect(specs[1]?.layers.media).toMatchObject({
+    mediaId: `preview:${'a'.repeat(64)}`,
+  });
+  for (const spec of specs) {
+    expect(parsePictureRequest({spec, inputs: 'font-and-media'}).ok).toBe(true);
+  }
 });

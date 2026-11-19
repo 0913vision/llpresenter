@@ -199,3 +199,28 @@ it('lends a temporary image to the renderer and invalidates it on release', asyn
   source.dispose();
   vi.unstubAllGlobals();
 });
+
+it('retains a content-addressed image until every import releases it', async () => {
+  const revoke = vi.fn();
+  class PreviewUrl extends URL {}
+  vi.stubGlobal(
+    'URL',
+    Object.assign(PreviewUrl, {
+      createObjectURL: vi.fn(() => 'blob:shared'),
+      revokeObjectURL: revoke,
+    }),
+  );
+  const first = lendPreviewImage(new Blob(['same']), 'content-hash');
+  const second = lendPreviewImage(new Blob(['same']), 'content-hash');
+  const source = openPreviewMedia(mockLlpApi());
+  if (!first || !second || !source) throw Error('Missing preview');
+  expect(first.id).toBe(second.id);
+  first.release();
+  first.release();
+  expect(await source.url(second.id)).toBe('blob:shared');
+  expect(revoke).not.toHaveBeenCalled();
+  second.release();
+  expect(revoke).toHaveBeenCalledOnce();
+  source.dispose();
+  vi.unstubAllGlobals();
+});

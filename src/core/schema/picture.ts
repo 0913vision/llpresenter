@@ -108,6 +108,11 @@ export function parsePictureImage(value: unknown) {
   return parsePayload(pictureImageSchema, value);
 }
 
+/** Checks a cache lookup that may not have a stored image. */
+export function parseOptionalPictureImage(value: unknown) {
+  return parsePayload(v.nullable(pictureImageSchema), value);
+}
+
 const pictureUploadSchema = payloadObject({
   picture: pictureRequestSchema,
   image: pictureImageSchema,

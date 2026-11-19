@@ -49,7 +49,10 @@ export function mockLlpApi(overrides: MockLlpApiParts = {}): LlpApi {
   return {
     picture: {
       paint: () => Promise.resolve(new Uint8Array()),
+      peek: () => Promise.resolve(null),
       remember: () => undefined,
+      release: () => undefined,
+      reserve: () => false,
       ...overrides.picture,
     },
     powerpoint: {

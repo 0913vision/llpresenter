@@ -73,6 +73,7 @@ class Entry {
   done = false;
   editing = false;
   editorDraw: Promise<HTMLCanvasElement> | undefined;
+  reserved = false;
   immediate = false;
   failures = 0;
   retryAt = 0;
@@ -165,6 +166,7 @@ export class PictureService {
   private fontUpdate = 0;
   private initialized = false;
   private inputsReady = Promise.resolve();
+  private inputsResolved = false;
 
   private active = 0;
   private bytes = 0;
@@ -268,8 +270,20 @@ export class PictureService {
       layers: {...picture.layers, slide: {...slide, lines}},
     };
     const entry = this.request(next, this.inputs(next), {editing: true});
-    if (this.foreground.has(entry) && !this.paintingEditor) {
-      entry.editorDraw ??= this.paintEditor(entry);
+    if (
+      this.inputsResolved &&
+      this.foreground.has(entry) &&
+      !this.paintingEditor &&
+      !entry.done &&
+      entry.editorDraw === undefined &&
+      window.llp?.picture.reserve({
+        spec: entry.spec,
+        inputs: entry.inputs,
+      }) === true
+    ) {
+      entry.reserved = true;
+      entry.editorDraw = this.paintEditor(entry);
+      void entry.editorDraw.catch(() => this.releaseReservation(entry));
     }
   }
 
@@ -282,6 +296,7 @@ export class PictureService {
           const bytes = canvas.width * canvas.height * 4;
           this.bytes += bytes;
           entry.complete({source: canvas, bytes});
+          if (entry.reserved) this.remember(canvas, entry);
         })
         .finally(() => {
           this.paintingEditor = false;
@@ -519,7 +534,9 @@ export class PictureService {
         .snapshot()
         .then(acceptFonts)
         .catch(() => undefined),
-    ]).then(() => undefined);
+    ]).then(() => {
+      this.inputsResolved = true;
+    });
   }
 
   private schedule(): void {
@@ -579,44 +596,18 @@ export class PictureService {
         return;
       }
       if (this.options.waitForReady) {
-        // NOTE(0913vision): The import's temporary backgrounds belong to this
-        // renderer. They never go into the shared painter or its disk cache.
-        this.editorPainter ??= new LocalPicturePainter();
-        const canvas = await this.editorPainter.paint(entry.spec, signal);
-        signal.throwIfAborted();
-        const blob = await new Promise<Blob>((resolve, reject) => {
-          canvas.toBlob(
-            image => {
-              if (image === null) {
-                reject(new Error('Could not encode import picture'));
-              } else resolve(image);
-            },
-            'image/webp',
-            0.92,
-          );
-        });
-        signal.throwIfAborted();
-        const source = await this.decode(blob);
-        if (signal.aborted) {
-          URL.revokeObjectURL(source);
-          return;
-        }
-        this.bytes += blob.size;
-        entry.complete({source, bytes: blob.size});
-        this.prune();
+        await this.loadImport(entry, inputs, signal);
         return;
       }
-      if (entry.editing && LocalPicturePainter.available()) {
+      if (entry.reserved && LocalPicturePainter.available()) {
         const draw = entry.editorDraw ?? this.paintEditor(entry);
         const canvas = await draw.catch(() => undefined);
         entry.editorDraw = undefined;
         if (canvas !== undefined) {
-          requestIdleCallback(() => this.remember(canvas, entry), {
-            timeout: 1000,
-          });
           this.prune();
           return;
         }
+        this.releaseReservation(entry);
       }
       const bytes = await window.llp?.picture.paint({
         spec: entry.spec,
@@ -645,6 +636,69 @@ export class PictureService {
       this.retry(entry);
     }
     this.prune();
+  }
+
+  private async loadImport(
+    entry: Entry,
+    inputs: string,
+    signal: AbortSignal,
+  ): Promise<void> {
+    const api = window.llp?.picture;
+    const request = {spec: entry.spec, inputs};
+    let claimed = api?.reserve(request) ?? false;
+    try {
+      let bytes: Uint8Array | null = null;
+      if (api !== undefined && !claimed) {
+        const result = await this.findImportPicture(api, request, signal);
+        bytes = result.bytes;
+        claimed = result.claimed;
+      }
+      let blob: Blob;
+      if (bytes !== null) {
+        blob = new Blob([new Uint8Array(bytes)], {
+          type: bytes[0] === 0x89 ? 'image/png' : 'image/jpeg',
+        });
+      } else {
+        this.editorPainter ??= new LocalPicturePainter();
+        const canvas = await this.editorPainter.paint(entry.spec, signal);
+        signal.throwIfAborted();
+        blob = await new Promise<Blob>((resolve, reject) => {
+          canvas.toBlob(image => {
+            if (image === null) {
+              reject(new Error('Could not encode import picture'));
+            } else resolve(image);
+          }, 'image/png');
+        });
+        signal.throwIfAborted();
+        if (api !== undefined) {
+          await this.storeEncoded(entry, blob);
+          claimed = false;
+        }
+      }
+      signal.throwIfAborted();
+      const source = await this.decode(blob);
+      if (signal.aborted) {
+        URL.revokeObjectURL(source);
+        return;
+      }
+      this.bytes += blob.size;
+      entry.complete({source, bytes: blob.size});
+      this.prune();
+    } finally {
+      if (claimed) api?.release(request);
+    }
+  }
+
+  private async findImportPicture(
+    api: LlpApi['picture'],
+    request: PictureRequest,
+    signal: AbortSignal,
+  ): Promise<{bytes: Uint8Array | null; claimed: boolean}> {
+    const bytes = await api.peek(request);
+    signal.throwIfAborted();
+    if (bytes !== null) return {bytes, claimed: false};
+    const claimed = api.reserve(request);
+    return {bytes: claimed ? null : await api.peek(request), claimed};
   }
 
   private retry(entry: Entry): void {
@@ -688,14 +742,25 @@ export class PictureService {
   private remember(canvas: HTMLCanvasElement, entry: Entry): void {
     try {
       canvas.toBlob(blob => {
-        if (blob === null) return;
-        this.storeEncoded(entry, blob).catch((error: unknown) =>
-          console.error(error),
-        );
+        if (blob === null) {
+          this.releaseReservation(entry);
+          return;
+        }
+        this.storeEncoded(entry, blob).catch((error: unknown) => {
+          this.releaseReservation(entry);
+          console.error(error);
+        });
       }, 'image/png');
     } catch (error) {
+      this.releaseReservation(entry);
       console.error('Could not encode the edited picture', error);
     }
+  }
+
+  private releaseReservation(entry: Entry): void {
+    if (!entry.reserved) return;
+    entry.reserved = false;
+    window.llp?.picture.release({spec: entry.spec, inputs: entry.inputs});
   }
 
   private async storeEncoded(entry: Entry, blob: Blob): Promise<void> {

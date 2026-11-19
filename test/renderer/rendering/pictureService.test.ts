@@ -142,6 +142,39 @@ it('disposes a pending import picture when its owner cancels', async () => {
   expect(mocks.dispose).toHaveBeenCalledOnce();
 });
 
+it('reuses an imported slide picture from the shared cache', async () => {
+  const peek = vi
+    .fn()
+    .mockResolvedValue(new Uint8Array([0xff, 0xd8, 0xff, 0xd9]));
+  vi.stubGlobal('llp', {picture: {reserve: () => false, peek}});
+  const service = new PictureService({waitForReady: true});
+  const ready = service.whenDrawn(spec);
+  await vi.advanceTimersByTimeAsync(0);
+  await expect(ready).resolves.toBe(true);
+  expect(peek).toHaveBeenCalledOnce();
+  expect(mocks.render).not.toHaveBeenCalled();
+  service.reset();
+});
+
+it('stores a newly drawn import picture in the shared cache', async () => {
+  const remember = vi.fn();
+  const release = vi.fn();
+  vi.stubGlobal('llp', {picture: {reserve: () => true, remember, release}});
+  const service = new PictureService({waitForReady: true});
+  const ready = service.whenDrawn(spec);
+  await vi.advanceTimersByTimeAsync(0);
+  const canvas = document.querySelector('body > canvas');
+  if (canvas === null) throw Error('Missing import painter');
+  onTestFinished(() => canvas.remove());
+  mocks.ready = true;
+  canvas.dispatchEvent(new Event('paint'));
+  await vi.advanceTimersByTimeAsync(0);
+  await expect(ready).resolves.toBe(true);
+  expect(remember).toHaveBeenCalledOnce();
+  expect(release).not.toHaveBeenCalled();
+  service.reset();
+});
+
 it('draws a requested handoff before the pending visible pictures', async () => {
   const paint = vi.fn().mockResolvedValue(new Uint8Array([0xff]));
   vi.stubGlobal('llp', {
@@ -206,7 +239,7 @@ it('reports a display decode failure while keeping the cached source available',
 it('publishes the edited picture inside the source paint event', async () => {
   const paint = vi.fn();
   vi.stubGlobal('llp', {
-    picture: {paint},
+    picture: {paint, reserve: () => true, remember: vi.fn(), release: vi.fn()},
     media: {
       get: vi.fn().mockResolvedValue({revision: 0, value: {items: []}}),
       subscribe: vi.fn(),
@@ -224,6 +257,8 @@ it('publishes the edited picture inside the source paint event', async () => {
     ...picture,
     layers: {...picture.layers, slide: {...slide, lines}},
   };
+  service.inputs(picture);
+  await vi.advanceTimersByTimeAsync(0);
   service.prepareEditedLyrics(picture, lines);
   expect(mocks.render.mock.calls[0]?.[0]).toEqual(next.layers);
   const entry = service.request(next, service.inputs(next));
@@ -237,6 +272,32 @@ it('publishes the edited picture inside the source paint event', async () => {
   expect(entry.done).toBe(true);
   expect(entry.image?.source).toBeInstanceOf(HTMLCanvasElement);
   expect(paint).not.toHaveBeenCalled();
+});
+
+it('waits for the shared picture when another window already owns the draw', async () => {
+  const paint = vi.fn().mockResolvedValue(new Uint8Array([0xff]));
+  const reserve = vi.fn().mockReturnValue(false);
+  vi.stubGlobal('llp', {
+    picture: {paint, reserve},
+    media: {
+      get: vi.fn().mockResolvedValue({revision: 0, value: {items: []}}),
+      subscribe: vi.fn(),
+    },
+    fonts: {
+      snapshot: vi.fn().mockRejectedValue(new Error('No font catalog')),
+      subscribe: vi.fn(),
+    },
+  });
+  const service = new PictureService();
+  const slide = {itemId: 'song', position: 0, label: null, lines: ['Before']};
+  const picture = {...spec, layers: {...spec.layers, slide}};
+  service.inputs(picture);
+  await vi.advanceTimersByTimeAsync(0);
+  service.prepareEditedLyrics(picture, ['After']);
+  await vi.advanceTimersByTimeAsync(0);
+  expect(reserve).toHaveBeenCalledOnce();
+  expect(paint).toHaveBeenCalledOnce();
+  expect(mocks.render).not.toHaveBeenCalled();
 });
 
 it('keeps pictures from distinct output screens in separate cache entries', () => {
