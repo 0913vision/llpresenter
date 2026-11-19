@@ -1,5 +1,5 @@
 import {useState, type JSX} from 'react';
-import {isItemOfKind, type ServiceItem} from '@core/schema/service';
+import {isItemOfKind} from '@core/schema/service';
 import {
   createServiceItemId,
   type ServiceId,
@@ -65,19 +65,15 @@ export function ServiceQuickAdd({
     editing.run((edits, id) => insertSelectedSong(edits, id, song));
   };
   const insertItem = (
-    source:
-      | ServiceItem
-      | ((id: ServiceId) => ReturnType<typeof passageItemWithParts>),
+    prepare: (id: ServiceId) => ReturnType<typeof passageItemWithParts>,
+    focusText = false,
   ): void => {
     const api = window.llp;
     if (api === undefined) return;
     const {rows, openItemId} = useShow.getState();
     const before = quickAddBefore(rows, openItemId);
     editing.run(async (edits, id) => {
-      const prepared =
-        typeof source === 'function'
-          ? await source(id)
-          : {ok: true as const, value: source};
+      const prepared = await prepare(id);
       if (!prepared.ok) return prepared;
       const item = prepared.value;
       if (item === null) return {ok: true, value: false};
@@ -95,7 +91,7 @@ export function ServiceQuickAdd({
         const opened = await api.slidesEditor.open({
           serviceId: id,
           itemId: item.id,
-          ...(typeof source !== 'function' && item.slides.form === 'blank'
+          ...(focusText && item.slides.form === 'blank'
             ? {focusText: true}
             : {}),
         });
@@ -137,7 +133,14 @@ export function ServiceQuickAdd({
           entries={otherItemEntries({
             slideDefaults,
             ...sources,
-            onInsert: insertItem,
+            onInsert: source =>
+              insertItem(
+                async () => ({
+                  ok: true,
+                  value: typeof source === 'function' ? await source() : source,
+                }),
+                typeof source !== 'function',
+              ),
             onSong: () => {
               setOpen(false);
               setChoosingSong(true);

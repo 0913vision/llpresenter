@@ -1,6 +1,5 @@
 import {createServiceItemId} from '@core/schema/ids';
 import type {Result} from '@core/common/result';
-import type {EditFailure} from '@core/schema/contentEdit';
 import type {BibleLookupReply} from '@core/schema/bibleLookup';
 import type {ServiceItem} from '@core/schema/service';
 import type {BiblePassage} from '@core/schema/biblePassage';
@@ -80,7 +79,12 @@ export async function passageItemWithParts(
   ref: string,
   defaults: PassageDefaults,
   {api, serviceId, sermonTitle}: PassageInsertion,
-): Promise<Result<ServiceItem | null, EditFailure>> {
+): Promise<
+  Result<
+    ServiceItem | null,
+    {readonly reason: 'full'; readonly message: string}
+  >
+> {
   const {serviceEpoch} = useShow.getState();
   const isCurrent = () => {
     const view = useShow.getState();

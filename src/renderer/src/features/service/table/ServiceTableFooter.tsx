@@ -5,7 +5,7 @@ import {
   type ServiceId,
   type SongId,
 } from '@core/schema/ids';
-import {isItemOfKind, type ServiceItem} from '@core/schema/service';
+import {isItemOfKind} from '@core/schema/service';
 import {useHeaderRename} from '@renderer/session/headerRename';
 import {useShow} from '@renderer/session/show';
 import {quickAddBefore} from '@core/services/quickAddPosition';
@@ -56,17 +56,13 @@ export function ServiceTableFooter({
           : undefined;
   const disabled = reason !== undefined || editing.busy;
   const append = (
-    source:
-      | ServiceItem
-      | ((id: ServiceId) => ReturnType<typeof passageItemWithParts>),
+    prepare: (id: ServiceId) => ReturnType<typeof passageItemWithParts>,
+    focusText = false,
   ): void => {
     const {rows, openItemId} = useShow.getState();
     const before = quickAddBefore(rows, openItemId);
     editing.run(async (edits, id) => {
-      const prepared =
-        typeof source === 'function'
-          ? await source(id)
-          : {ok: true as const, value: source};
+      const prepared = await prepare(id);
       if (!prepared.ok) return prepared;
       const item = prepared.value;
       if (item === null) return {ok: true, value: false};
@@ -83,7 +79,7 @@ export function ServiceTableFooter({
         const opened = await window.llp?.slidesEditor.open({
           serviceId: id,
           itemId: item.id,
-          ...(typeof source !== 'function' && item.slides.form === 'blank'
+          ...(focusText && item.slides.form === 'blank'
             ? {focusText: true}
             : {}),
         });
@@ -135,9 +131,15 @@ export function ServiceTableFooter({
           entries={otherItemEntries({
             slideDefaults,
             ...sources,
-            onInsert: item => {
+            onInsert: source => {
               setOpen(false);
-              append(item);
+              append(
+                async () => ({
+                  ok: true,
+                  value: typeof source === 'function' ? await source() : source,
+                }),
+                typeof source !== 'function',
+              );
             },
             onBible: () => {
               setOpen(false);
