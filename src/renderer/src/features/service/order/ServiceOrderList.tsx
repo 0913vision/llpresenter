@@ -515,7 +515,9 @@ export function ServiceOrderList({
     // NOTE(0913vision): A cell that edits as text keeps its focus when the
     // click that opened it selects the row.
     if (isInTextEntry(document.activeElement)) return;
-    list.querySelector<HTMLElement>('[tabindex="0"]')?.focus();
+    list
+      .querySelector<HTMLElement>('[tabindex="0"]')
+      ?.focus({preventScroll: true});
   }, [openItemId]);
 
   const ownsCommand = (event: KeyboardEvent): boolean =>
@@ -590,8 +592,14 @@ export function ServiceOrderList({
   };
   const runFocusedEdit = (
     operation: Parameters<typeof editing.run>[0],
+    deleted?: readonly string[],
   ): void => {
-    const disarm = editFocus.arm();
+    const disarm = editFocus.arm(
+      workspace === 'prep' ? deleted : undefined,
+      workspace === 'prep' && deleted
+        ? id => selection.replace([id], id)
+        : undefined,
+    );
     editing.run(async (edits, service) => {
       try {
         const result = await operation(edits, service);
@@ -626,8 +634,10 @@ export function ServiceOrderList({
         useShow.getState().rows === snapshot.rows &&
         !useShow.getState().readOnly,
       () =>
-        runFocusedEdit((edits, service) =>
-          edits.removeMany(service, ids.map(createServiceItemId)),
+        runFocusedEdit(
+          (edits, service) =>
+            edits.removeMany(service, ids.map(createServiceItemId)),
+          ids,
         ),
     );
   };
