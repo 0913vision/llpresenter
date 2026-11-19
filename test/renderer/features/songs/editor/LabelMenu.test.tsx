@@ -92,7 +92,7 @@ describe('song editor label menu', () => {
     };
     expect(row.draggable).toBe(false);
     expect(grip.draggable).toBe(true);
-    fireEvent.dragStart(grip, {dataTransfer});
+    expect(fireEvent.dragStart(grip, {dataTransfer})).toBe(true);
     vi.spyOn(row, 'getBoundingClientRect').mockReturnValue(
       new DOMRect(0, 0, 400, 30),
     );
