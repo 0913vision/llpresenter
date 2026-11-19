@@ -96,6 +96,47 @@ describe('transparent NDI preview', () => {
     expect(events.listenerCount('paint')).toBe(0);
   });
 
+  it('drops an old in-progress frame after replacing its output', async () => {
+    vi.useFakeTimers();
+    const image = {
+      isEmpty: () => false,
+      getSize: () => ({width: 640, height: 360}),
+      resize: () => ({toBitmap: () => new Uint8Array(640 * 360 * 4)}),
+    };
+    let finishOld: (value: typeof image) => void = () => undefined;
+    const pending = new Promise<typeof image>(resolve => {
+      finishOld = resolve;
+    });
+    const oldEvents = new EventEmitter();
+    const newEvents = new EventEmitter();
+    const oldSource = {
+      isDestroyed: () => false,
+      capturePage: vi.fn(() => pending),
+      on: oldEvents.on.bind(oldEvents),
+      removeListener: oldEvents.removeListener.bind(oldEvents),
+    };
+    const newSource = {
+      isDestroyed: () => false,
+      capturePage: vi.fn().mockResolvedValue(image),
+      on: newEvents.on.bind(newEvents),
+      removeListener: newEvents.removeListener.bind(newEvents),
+    };
+    let current = oldSource;
+    const send = vi.fn();
+    const mirror = createAlphaMirror({source: () => current, send});
+    await vi.advanceTimersByTimeAsync(0);
+    current = newSource;
+    await vi.advanceTimersByTimeAsync(500);
+    expect(oldEvents.listenerCount('paint')).toBe(0);
+    finishOld(image);
+    await vi.advanceTimersByTimeAsync(0);
+    await vi.advanceTimersByTimeAsync(1);
+    expect(send).toHaveBeenCalledOnce();
+    expect(newSource.capturePage).toHaveBeenCalledOnce();
+    mirror.stop();
+    expect(newEvents.listenerCount('paint')).toBe(0);
+  });
+
   it('contains a wide output inside the preview without stretching it', async () => {
     vi.useFakeTimers();
     const bitmap = new Uint8Array(640 * 320 * 4);
