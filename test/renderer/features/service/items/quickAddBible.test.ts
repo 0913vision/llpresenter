@@ -139,7 +139,9 @@ describe('quick add Bible passages', () => {
           },
         }),
       );
-      if (!isItemOfKind(result, 'bible')) throw Error('Missing Bible item');
+      if (result === null || !isItemOfKind(result, 'bible')) {
+        throw Error('Missing Bible item');
+      }
       expect(result.bibleTransitions?.length ?? 0).toBeGreaterThan(1);
       expect(result.bibleTransitions?.map(entry => entry.part)).toEqual(
         result.bibleTransitions?.map((_, index) => index + 1),
