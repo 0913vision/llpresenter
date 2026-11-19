@@ -30,6 +30,24 @@ describe('main entry wiring', {timeout: ENTRY_TEST_TIMEOUT_MS}, () => {
     expect(install).not.toHaveBeenCalled();
   });
 
+  it('waits for slow startup before checking updater wiring', async () => {
+    const gate = deferred();
+    mocks.appConfigGate.promise = gate.promise;
+    const started = startMain().then(
+      control => ({control, error: undefined}),
+      (error: unknown) => ({control: undefined, error}),
+    );
+    await vi.waitFor(() => expect(mocks.order).toContain('app.json'), {
+      timeout: 10_000,
+    });
+    await new Promise(resolve => setTimeout(resolve, 1200));
+    gate.resolve();
+    const result = await started;
+    expect(result.error).toBeUndefined();
+    expect(result.control).toBeDefined();
+    expect(mocks.updateContexts).toHaveLength(1);
+  });
+
   it('defers the updater until launch readiness and disposes it during shutdown', async () => {
     const control = await startMain();
     expect(mocks.updateContexts).toHaveLength(1);
