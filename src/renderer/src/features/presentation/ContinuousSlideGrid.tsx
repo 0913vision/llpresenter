@@ -424,9 +424,15 @@ export function ContinuousSlideGrid({
     return () => window.removeEventListener('show-grid-item', select);
   }, [sections]);
   useEffect(() => {
+    const index = Math.max(
+      0,
+      sections.findLastIndex(value => value.top <= metrics.top + 2),
+    );
     const section =
-      [...sections].reverse().find(value => value.top <= metrics.top + 2) ??
-      sections[0];
+      sections.slice(index).find(value => value.row.kind !== 'header') ??
+      [...sections.slice(0, index)]
+        .reverse()
+        .find(value => value.row.kind !== 'header');
     if (section && initialized.current) {
       revealSlideItem(section.row.id);
     }

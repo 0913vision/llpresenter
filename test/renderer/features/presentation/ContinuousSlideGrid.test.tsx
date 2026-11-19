@@ -6,6 +6,7 @@ import {useLive} from '@renderer/session/live';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
 import {emptyLiveState} from '@core/live/state';
 import {liveReturn} from '@renderer/features/presentation/liveReturn';
+import {SlidePanelMeta} from '@renderer/features/presentation/SlidePanel';
 
 class Observer implements ResizeObserver {
   static all: Observer[] = [];
@@ -100,6 +101,31 @@ it('windows ordered item bands, scrolls to a requested item, and outputs its til
   fireEvent.click(second);
   expect(useShow.getState().openItemId).toBe('two');
   expect(send).toHaveBeenCalled();
+});
+
+it('shows the next item in the panel header when a section heading is at the top and nothing is live', () => {
+  const {container} = render(
+    <>
+      <div data-testid="panel-meta">
+        <SlidePanelMeta />
+      </div>
+      <div>
+        <ContinuousSlideGrid columns={4} scalePercent={100} />
+      </div>
+    </>,
+  );
+  const viewport = container.querySelector<HTMLElement>(
+    '[data-show-slide-grid]',
+  )?.parentElement;
+  if (!viewport) throw new Error('Missing viewport');
+  Object.defineProperty(viewport, 'clientHeight', {value: 300});
+  viewport.scrollTo = vi.fn();
+  act(() => Observer.all.forEach(observer => observer.report()));
+  const section = screen.getByRole('heading', {name: 'Section'}).parentElement;
+  if (!section) throw new Error('Missing section');
+  viewport.scrollTop = Number.parseFloat(section.style.top);
+  fireEvent.scroll(viewport);
+  expect(screen.getByTestId('panel-meta').textContent).toBe('Second');
 });
 
 function setLive(itemId: string): void {
