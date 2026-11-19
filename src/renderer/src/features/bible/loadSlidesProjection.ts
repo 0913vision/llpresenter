@@ -105,6 +105,7 @@ export async function loadSlidesProjection(
     reference: 'every',
     translationName: false,
     source: 'service',
+    review: false,
     ...(item.background === undefined ? {} : {background: item.background}),
     ...(item.theme === undefined ? {} : {theme: item.theme}),
   });

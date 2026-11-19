@@ -12,6 +12,7 @@ import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
 import {mockSplitLayout, MOCK_LONG_VERSE} from '@fixtures/core/bibleSplit';
 import {themeElementBase} from '@fixtures/core/themeOutput';
 import type {BibleLookupPassage} from '@core/schema/bibleLookup';
+import {settingsDocument} from '@fixtures/core/settingsDocument';
 
 const data = vi.hoisted(
   (): {
@@ -50,7 +51,7 @@ vi.mock('@renderer/features/bible/BiblePassageDialog', () => ({
 }));
 
 it.each([false, true])(
-  'uses the complete projection when a failed refresh returns incomplete data: %s',
+  'reviews a complete draft before inserting any verse rows: %s',
   async incomplete => {
     const text = MOCK_LONG_VERSE.replace('작은', incomplete ? '멋진' : '작은');
     const passage = {
@@ -101,6 +102,13 @@ it.each([false, true])(
         }),
         chooseBoundary,
       },
+      settings: {
+        get: async () => settingsDocument('bibleCuts', {entries: {}}),
+        edit: vi.fn(async () => ({
+          ok: true as const,
+          value: {id: 'bibleCuts', revision: 2},
+        })),
+      },
     });
     const inserted = vi.fn();
     const closed = vi.fn();
@@ -118,7 +126,11 @@ it.each([false, true])(
     );
     fireEvent.click(screen.getByRole('button', {name: 'choose passage'}));
     await waitFor(() => expect(chooseBoundary).toHaveBeenCalled());
+    const confirm = await screen.findByRole('button', {name: '확정'});
+    expect(inserted).not.toHaveBeenCalled();
+    fireEvent.click(confirm);
     await waitFor(() => expect(inserted).toHaveBeenCalledOnce());
+    expect(api.settings.edit).toHaveBeenCalledOnce();
     expect(closed).toHaveBeenCalledOnce();
     view.unmount();
   },

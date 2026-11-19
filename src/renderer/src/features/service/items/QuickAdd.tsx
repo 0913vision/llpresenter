@@ -59,7 +59,7 @@ export function ServiceQuickAdd({
     editing.run((edits, id) => insertSelectedSong(edits, id, song));
   };
   const insertItem = (
-    source: ServiceItem | (() => Promise<ServiceItem>),
+    source: ServiceItem | (() => Promise<ServiceItem | null>),
   ): void => {
     const api = window.llp;
     if (api === undefined) return;
@@ -67,6 +67,7 @@ export function ServiceQuickAdd({
     const before = quickAddBefore(rows, openItemId);
     editing.run(async (edits, id) => {
       const item = typeof source === 'function' ? await source() : source;
+      if (item === null) return {ok: true, value: false};
       if ('header' in item) useHeaderRename.getState().request(item.id);
       const result = await edits.insertItem(
         id,

@@ -43,25 +43,23 @@ export function BibleInsertButton({
         ? source.insertion.itemId
         : null;
     editing.run(async (edits, id) => {
+      // NOTE(0913vision): The preview picks the numbering and the reference.
+      const item = await passageItemWithParts(
+        source.passage.ref,
+        {
+          ...defaults,
+          translation: source.passage.translation,
+          verseNumbers: source.verseNumbers,
+          reference: source.reference,
+          transition: source.transition ?? defaults?.transition,
+          passage: source.passage,
+        },
+        api,
+      );
+      if (item === null) return {ok: true, value: false};
       const result = await edits.insertItemInSection(id, selected, {
         selectAdded: false,
-        prepare: () => {
-          // NOTE(0913vision): The preview picks the numbering and the reference;
-          // loaded 환경설정 defaults give the translation name. New items always
-          // start each verse anew. Until loaded, use the built-in defaults.
-          return passageItemWithParts(
-            source.passage.ref,
-            {
-              ...defaults,
-              translation: source.passage.translation,
-              verseNumbers: source.verseNumbers,
-              reference: source.reference,
-              transition: source.transition ?? defaults?.transition,
-              passage: source.passage,
-            },
-            api,
-          );
-        },
+        prepare: () => Promise.resolve(item),
       });
       if (result.ok ? result.value : result.error.reason === 'write-failed') {
         rememberBiblePassage(source.passage);

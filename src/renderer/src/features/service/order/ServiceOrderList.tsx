@@ -200,12 +200,10 @@ function ItemRows({
   const show = useShow(view => view);
   const tiles = show.tiles;
   const {projections} = useBibleProjections({
-    enabled: items.some(
-      row => row.kind === 'bible' && row.sermonTitle !== undefined,
-    ),
+    enabled: items.some(row => row.kind === 'bible'),
   });
   const countOf = (row: ServiceRow): number => {
-    if (row.kind !== 'bible' || row.sermonTitle === undefined) {
+    if (row.kind !== 'bible') {
       return tiles[row.id]?.length ?? 0;
     }
     const source = splitSourceFor(show, row.id);

@@ -68,6 +68,7 @@ export function usePaletteInsert(editing: PaletteEditing | null) {
             setBible(null);
             editing.enqueueEdit(async (edits, id) => {
               const passage = await passageItemWithParts(ref, defaults, api);
+              if (passage === null) return {ok: true, value: false};
               if (!isItemOfKind(passage, 'bible')) {
                 throw Error('Missing Bible passage');
               }
@@ -109,6 +110,7 @@ export function usePaletteInsert(editing: PaletteEditing | null) {
             setBible(null);
             editing.enqueueEdit(async (edits, id) => {
               const item = await passageItemWithParts(ref, defaults, api);
+              if (item === null) return {ok: true, value: false};
               const result = await edits.insertItem(
                 id,
                 item,

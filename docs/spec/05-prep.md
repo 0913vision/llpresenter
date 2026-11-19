@@ -179,10 +179,20 @@ not dim when focus leaves. 진행 retains its existing thumbnail style.
 - The passage dialog shares the ten recent references from 빠른 실행. Clicking
   one or pressing its configured Alt+1 through Alt+0 shortcut fills the
   reference and continues through the normal passage-add flow.
-- Unconfirmed multi-part verses use the same optional AI boundary chooser as
-  진행 before automatic insertion, falling back to the rule-based split when AI
-  is unavailable. Existing confirmed cuts are preserved. Ctrl E on a verse row
-  opens 절 나누기 to edit its cuts without changing the draft's references.
+- With 환경설정 › 성경 › 절 나누기 창 저절로 열기 enabled (the default), adding
+  a passage from the palette, the order, the Bible preview, or a blank item
+  opens 절 나누기 before creating the item or inserting the verse rows. The
+  review opens when the first unconfirmed verse that needs more than one slide
+  is ready. Later suggestions arrive in the same window. The rule-based split
+  supplies a suggestion when AI is unavailable. Each confirmation saves that
+  verse immediately. Esc cancels the insertion and keeps prior confirmations.
+  With the preference disabled, insert with the saved or rule-based cuts.
+  Existing items change splits only when their settings or confirmed cuts
+  change. Ctrl E on a verse row opens 절 나누기 to edit its cuts without
+  changing the draft's references.
+- 퀵 실행 (Ctrl+B) uses saved confirmed cuts or the rule-based splitter and
+  makes no AI request. Suggestions belong to the active 절 나누기 review and
+  only confirmed cuts are saved.
 - Verse thumbnails and previews resolve the installed translation and use the
   same measured parts as 진행. The preview offers previous and next parts of the
   selected verse; editing a reference never creates copied verse text in the

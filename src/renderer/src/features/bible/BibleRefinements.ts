@@ -38,6 +38,19 @@ export class BibleRefinements {
   ): readonly number[] | undefined {
     return this.cuts.get(this.key(verse, element, prefix));
   }
+  fromSnapshot(
+    snapshot: ReadonlyMap<string, readonly number[]>,
+    {
+      verse,
+      element,
+      prefix,
+    }: {verse: VerseInput; element: BibleTextElement; prefix: string},
+  ): readonly number[] | undefined {
+    return snapshot.get(this.key(verse, element, prefix));
+  }
+  snapshot(): ReadonlyMap<string, readonly number[]> {
+    return new Map(this.cuts);
+  }
   put(
     verse: VerseInput,
     element: BibleTextElement,
@@ -99,7 +112,13 @@ export class BibleRefinementRun {
     }
   };
 
-  async start(): Promise<void> {
+  async start({
+    cacheOnly = false,
+    references,
+  }: {
+    readonly cacheOnly?: boolean;
+    readonly references?: ReadonlyArray<VerseInput['reference']> | undefined;
+  } = {}): Promise<void> {
     const generation = ++this.generation;
     const current = (): boolean => this.generation === generation;
     const projection = this.projection;
@@ -107,17 +126,19 @@ export class BibleRefinementRun {
     if (
       projection === null ||
       api === undefined ||
-      projection.source.review === false
+      (!cacheOnly && projection.source.review === false)
     ) {
       this.publish(new Set());
       return;
     }
-    const references = new Set(versesToReview(projection.parts).map(verseKey));
+    const requested = new Set(
+      (references ?? versesToReview(projection.parts)).map(verseKey),
+    );
     const prefixOf = (verse: VerseInput): string =>
       projection.numbered ? `${verse.reference.verse} ` : '';
     const verses = projection.verses.filter(
       verse =>
-        references.has(verseKey(verse.reference)) &&
+        requested.has(verseKey(verse.reference)) &&
         this.cache.get(verse, projection.element, prefixOf(verse)) ===
           undefined,
     );

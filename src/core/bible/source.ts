@@ -24,6 +24,8 @@ export interface BibleSource extends BiblePreviewOptions {
   readonly id: string;
   readonly passage: BibleLookupPassage;
   readonly tiles: readonly SlideTile[];
+  /** AI suggestions available when the quick passage opened. */
+  readonly cachedCuts?: ReadonlyMap<string, readonly number[]>;
   readonly insertion?: {
     readonly serviceId: string | null;
     readonly itemId: string | null;

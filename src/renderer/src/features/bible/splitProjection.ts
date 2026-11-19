@@ -51,6 +51,7 @@ interface SplitOptions {
   readonly translationName: boolean;
   readonly source: 'service' | 'external';
   readonly review?: boolean;
+  readonly cachedCuts?: BibleSource['cachedCuts'];
   readonly theme?: ThemeId;
 }
 
@@ -117,6 +118,7 @@ export function splitSourceFor(
       translationName: external.translationName ?? false,
       source: 'external',
       review: external.review !== false,
+      cachedCuts: external.cachedCuts,
       ...(external.transition === undefined
         ? {}
         : {transition: external.transition}),
@@ -133,6 +135,7 @@ export function splitSourceFor(
       kind: 'slides',
       input,
       source: 'service',
+      review: false,
       verseNumbers: true,
       reference: 'every',
       translationName: false,
@@ -166,6 +169,7 @@ export function splitSourceFor(
       ? {}
       : {transitions: row.bible.transitions}),
     source: 'service',
+    review: false,
     ...(row.bible.theme === undefined ? {} : {theme: row.bible.theme}),
   };
 }
@@ -325,7 +329,8 @@ export class BibleProjections {
       cached.source.translationName === source.translationName &&
       cached.source.transitions === source.transitions &&
       cached.source.transition === source.transition &&
-      cached.source.review === source.review
+      cached.source.review === source.review &&
+      cached.source.cachedCuts === source.cachedCuts
     ) {
       return cached;
     }

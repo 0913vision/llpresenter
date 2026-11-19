@@ -51,11 +51,14 @@ export function ServiceTableFooter({
           ? ORDER_FULL_REASON
           : undefined;
   const disabled = reason !== undefined || editing.busy;
-  const append = (source: ServiceItem | (() => Promise<ServiceItem>)): void => {
+  const append = (
+    source: ServiceItem | (() => Promise<ServiceItem | null>),
+  ): void => {
     const {rows, openItemId} = useShow.getState();
     const before = quickAddBefore(rows, openItemId);
     editing.run(async (edits, id) => {
       const item = typeof source === 'function' ? await source() : source;
+      if (item === null) return {ok: true, value: false};
       if ('header' in item) useHeaderRename.getState().request(item.id);
       const result = await edits.insertItem(
         id,

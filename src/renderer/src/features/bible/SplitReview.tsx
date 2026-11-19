@@ -11,6 +11,7 @@ export function SplitReview({
   projection,
   references,
   pending,
+  suggestCuts,
   onConfirm,
   onComplete,
   onCancel,
@@ -18,6 +19,9 @@ export function SplitReview({
   readonly projection: BibleProjection;
   readonly references: ReadonlyArray<VerseInput['reference']>;
   readonly pending: ReadonlySet<string>;
+  readonly suggestCuts?:
+    | ((verse: VerseInput, prefix: string) => readonly number[] | undefined)
+    | undefined;
   readonly onConfirm: (
     verse: VerseInput,
     cuts: readonly number[],
@@ -41,14 +45,16 @@ export function SplitReview({
           verse => verseKey(verse.reference) === key,
         );
         if (verse === undefined) return [];
-        const cuts = cutsOfVerse(projection.parts, reference);
         const prefix = projection.numbered ? `${reference.verse} ` : '';
+        const cuts =
+          suggestCuts?.(verse, prefix) ??
+          cutsOfVerse(projection.parts, reference);
         const plan = pending.has(key)
           ? undefined
           : planSlides(verse.text, cuts, {...projection.layout, prefix});
         return [{key, verse, cuts, prefix, plan}];
       }),
-    [references, projection, pending],
+    [references, projection, pending, suggestCuts],
   );
   const entry = queue[position];
   if (entry === undefined) return null;

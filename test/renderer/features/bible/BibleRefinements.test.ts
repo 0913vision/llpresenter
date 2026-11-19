@@ -139,6 +139,27 @@ describe('Bible refinement run', () => {
     expect(f.api.chooseBoundary).not.toHaveBeenCalled();
   });
 
+  it('warms the next quick lookup without modifying the current lookup snapshot', async () => {
+    const f = setup();
+    const source = {...f.projection.source, review: false};
+    const shown = f.cache.snapshot();
+    await new BibleRefinementRun(
+      f.api,
+      {...f.projection, source},
+      f.cache,
+    ).start({cacheOnly: true});
+    const verse = f.projection.verses[0];
+    if (verse === undefined) throw Error('Missing verse');
+    expect(f.cache.get(verse, f.projection.element, '')).toBeDefined();
+    expect(
+      f.cache.fromSnapshot(shown, {
+        verse,
+        element: f.projection.element,
+        prefix: '',
+      }),
+    ).toBeUndefined();
+  });
+
   it('reuses unsaved refinements for the same text and layout and uses rules with AI unavailable', async () => {
     const f = setup();
     await new BibleRefinementRun(f.api, f.projection, f.cache).start();

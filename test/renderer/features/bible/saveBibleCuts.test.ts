@@ -1,8 +1,5 @@
 import {describe, expect, it, vi} from 'vitest';
-import {
-  confirmBibleCuts,
-  confirmDefaultBibleCuts,
-} from '@renderer/features/bible/saveBibleCuts';
+import {confirmBibleCuts} from '@renderer/features/bible/saveBibleCuts';
 import {entryFor, knownCutsFor} from '@core/bible/split/splitCache';
 import {parseBibleCuts, serializeBibleCuts} from '@core/schema/bibleCuts';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
@@ -45,7 +42,7 @@ describe('confirmed cut writes', () => {
       knownCutsFor(reopened.value.data, verse.reference, verse.text),
     ).toEqual(cuts);
   });
-  it('serializes an eight-verse burst so each default keeps earlier cuts', async () => {
+  it('serializes an eight-verse burst so each confirmation keeps earlier cuts', async () => {
     let current = settingsDocument('bibleCuts', {entries: {}});
     const get = vi.fn<LlpApi['settings']['get']>(async () => current);
     const edit = vi.fn<LlpApi['settings']['edit']>(async request => {
@@ -69,9 +66,7 @@ describe('confirmed cut writes', () => {
       reference: {translation, book: 48, chapter: 5, verse: index + 1},
       text: `가 나 다 ${index}`,
     }));
-    await Promise.all(
-      verses.map(verse => confirmDefaultBibleCuts(api, verse, [1])),
-    );
+    await Promise.all(verses.map(verse => confirmBibleCuts(api, verse, [1])));
     expect(edit).toHaveBeenCalledTimes(8);
     expect(current.name).toBe('bibleCuts');
     if (current.name !== 'bibleCuts') {
@@ -81,7 +76,7 @@ describe('confirmed cut writes', () => {
       8,
     );
   });
-  it('continues saving later defaults after a failed write', async () => {
+  it('continues saving later confirmations after a failed write', async () => {
     const get = vi
       .fn<LlpApi['settings']['get']>()
       .mockResolvedValue(settingsDocument('bibleCuts', {entries: {}}));
@@ -99,8 +94,8 @@ describe('confirmed cut writes', () => {
       chapter: 5,
       verse: 1,
     };
-    const first = confirmDefaultBibleCuts(api, {reference, text: '가 나'}, [1]);
-    const second = confirmDefaultBibleCuts(
+    const first = confirmBibleCuts(api, {reference, text: '가 나'}, [1]);
+    const second = confirmBibleCuts(
       api,
       {reference: {...reference, verse: 2}, text: '다 라'},
       [1],
@@ -109,7 +104,7 @@ describe('confirmed cut writes', () => {
     await expect(second).resolves.toBeUndefined();
     expect(edit).toHaveBeenCalledTimes(2);
   });
-  it('does not replace an existing manual cut while accepting defaults', async () => {
+  it('replaces an existing cut when the operator confirms a new one', async () => {
     const verse = {
       reference: {
         translation: lookupRequest().translation,
@@ -125,10 +120,19 @@ describe('confirmed cut writes', () => {
         entries: {[verse.reference.translation]: {'43:3:16': saved}},
       }),
     );
-    const edit = vi.fn<LlpApi['settings']['edit']>();
+    const edit = vi
+      .fn<LlpApi['settings']['edit']>()
+      .mockResolvedValue({ok: true, value: {id: 'bibleCuts', revision: 2}});
     const api = {...mockLlpApi().settings, get, edit};
-    await confirmDefaultBibleCuts(api, verse, [2]);
-    expect(edit).not.toHaveBeenCalled();
+    await confirmBibleCuts(api, verse, [2]);
+    expect(edit).toHaveBeenCalledOnce();
+    const request = edit.mock.calls[0]?.[0];
+    if (request?.type !== 'settings.update' || request.name !== 'bibleCuts') {
+      throw Error('Unexpected settings edit');
+    }
+    expect(
+      request.value.entries[verse.reference.translation]?.['43:3:16']?.cuts,
+    ).toEqual([2]);
   });
   it('rereads after a stale edit and preserves another window confirmation', async () => {
     const first = settingsDocument('bibleCuts', {entries: {}});

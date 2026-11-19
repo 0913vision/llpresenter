@@ -8,6 +8,7 @@ import {useLive} from '@renderer/session/live';
 import {bibleSourceFor, tilesForView} from '@renderer/session/showLibrary';
 import {bibleSource, type BiblePreviewOptions} from '@core/bible/source';
 import {retainedBibleSelection} from '@core/bible/selection';
+import {bibleRefinements} from './BibleRefinements';
 
 type ReviewHandler = (sourceId: string, output: () => void) => boolean;
 let reviewHandler: ReviewHandler | null = null;
@@ -32,7 +33,12 @@ export function openBiblePassage(
   {
     ready = false,
     waitForLive = false,
-  }: {readonly ready?: boolean; readonly waitForLive?: boolean} = {},
+    reuseCuts = false,
+  }: {
+    readonly ready?: boolean;
+    readonly waitForLive?: boolean;
+    readonly reuseCuts?: boolean;
+  } = {},
 ): void {
   const source = bibleSource(passage, options);
   const view = useShow.getState();
@@ -55,7 +61,17 @@ export function openBiblePassage(
         }
       : null;
   const next = {
-    bibleSource: {...source, insertion},
+    bibleSource: {
+      ...source,
+      insertion,
+      ...(source.review === false
+        ? {
+            cachedCuts:
+              (reuseCuts ? previous?.cachedCuts : undefined) ??
+              bibleRefinements.snapshot(),
+          }
+        : {}),
+    },
     liveBibleSource,
     requestedBibleSource:
       view.requestedBibleSource?.id === liveItemId
@@ -114,7 +130,7 @@ export function showBiblePassage(
       verseNumbers: display?.verseNumbers ?? true,
       review: display?.review ?? true,
     },
-    {ready, waitForLive: ready},
+    {ready, waitForLive: ready, reuseCuts: prepared !== null && samePassage(prepared.passage, passage)},
   );
   const view = useShow.getState();
   if (view.openItemId !== null) {
