@@ -70,7 +70,11 @@ function setup() {
     return stop;
   });
   const stopSettings = vi.fn();
+  const previewSource = vi
+    .fn<(id: string) => Promise<null>>()
+    .mockResolvedValue(null);
   window.llp = mockLlpApi({
+    output: {previewSource},
     settings: {
       get: () => Promise.resolve(settings.reader.get('screens')),
       subscribe: () => stopSettings,
@@ -83,6 +87,7 @@ function setup() {
     snapshot,
     removals,
     stopSettings,
+    previewSource,
     screens: summarizeScreens(screens.value.screens),
   };
 }
@@ -90,32 +95,22 @@ function setup() {
 const SETTINGS_FEEDS_PER_PREVIEW = 4;
 
 describe('preview overlay wiring', () => {
-  it('passes the three preview identities and stage text, then releases every feed', async () => {
-    const {store, snapshot, removals, stopSettings, screens} = setup();
+  it('subscribes to the three output mirrors without drawing the overlays again', async () => {
+    const {store, snapshot, removals, stopSettings, screens, previewSource} =
+      setup();
     const view = render(
       <ScreenSummariesContext value={screens}>
         <PreviewPanel />
       </ScreenSummariesContext>,
     );
     await act(async () => {});
-    const messages = [
-      ...view.container.querySelectorAll(
-        `[data-layer="message"] .${classes.shown}`,
-      ),
-    ].map(element => element.textContent);
-    expect(messages).toEqual(
-      expect.arrayContaining(['Main message', 'Caption message']),
+    expect(previewSource.mock.calls.map(([id]) => id)).toEqual(
+      expect.arrayContaining([MAIN, STAGE, CAPTIONS]),
     );
-    expect(messages).toHaveLength(2);
+    expect(view.container.querySelectorAll('video')).toHaveLength(3);
     expect(
-      view.container.querySelectorAll(
-        '[data-stage-message-band]:not([hidden])',
-      ),
-    ).toHaveLength(1);
-    expect(
-      view.container.querySelector('[data-stage-message-band]:not([hidden])')
-        ?.textContent,
-    ).toBe('Stage cue');
+      view.container.querySelectorAll(`[data-layer="message"]`),
+    ).toHaveLength(0);
     store.dispatch({type: 'layer.clear', target: 'message'});
     act(() => {
       useLive.setState({state: snapshot()});
@@ -128,7 +123,7 @@ describe('preview overlay wiring', () => {
     view.unmount();
     expect(stopSettings).not.toHaveBeenCalled();
     releaseKeptDrawings();
-    expect(stopSettings).toHaveBeenCalledTimes(3 * SETTINGS_FEEDS_PER_PREVIEW);
+    expect(stopSettings).not.toHaveBeenCalled();
     for (const remove of removals) expect(remove).toHaveBeenCalledTimes(1);
   });
 

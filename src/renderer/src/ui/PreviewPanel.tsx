@@ -75,7 +75,7 @@ export function PreviewPanel<Id extends string>({
             largeVisible={visible}
             tiles={(room || sizing !== null || !visible) && !blank}
             split={
-              sizing !== null && visible && !blank
+              sizing !== null && visible && !blank && frame.screens.length > 1
                 ? {
                     ratio,
                     divider: (

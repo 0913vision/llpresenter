@@ -153,6 +153,7 @@ const SWP_NOACTIVATE = 0x10;
 const SWP_SHOWWINDOW = 0x40;
 const PM_REMOVE = 1;
 const DXGI_FORMAT_B8G8R8A8_UNORM = 87;
+const DXGI_FORMAT_R8G8B8A8_UNORM = 28;
 const DXGI_USAGE_RENDER_TARGET_OUTPUT = 0x20;
 const DXGI_SWAP_EFFECT_FLIP_DISCARD = 4;
 const D3D_DRIVER_TYPE_HARDWARE = 1;
@@ -163,6 +164,9 @@ const D3D11_BIND_RENDER_TARGET = 0x20;
 const D3D11_BIND_CONSTANT_BUFFER = 0x4;
 const D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST = 4;
 const D3D11_QUERY_EVENT = 0;
+const D3D11_USAGE_STAGING = 3;
+const D3D11_CPU_ACCESS_READ = 0x20000;
+const D3D11_MAP_READ = 1;
 const PROCESS_DUP_HANDLE = 0x40;
 const DUPLICATE_SAME_ACCESS = 2;
 const TEXTURE_DESC_SIZE = 44;
@@ -193,6 +197,8 @@ const SLOT = {
   contextPSSetSamplers: 10,
   contextVSSetShader: 11,
   contextDraw: 13,
+  contextMap: 14,
+  contextUnmap: 15,
   contextPSSetConstantBuffers: 16,
   contextIASetPrimitiveTopology: 24,
   contextEnd: 28,
@@ -201,6 +207,7 @@ const SLOT = {
   contextRSSetViewports: 44,
   contextCopyResource: 47,
   contextUpdateSubresource: 48,
+  contextClearRenderTargetView: 50,
 };
 
 const IID = {
@@ -247,7 +254,7 @@ const SHADER = [
   'Texture2D<float4> liveTexture : register(t0);',
   'Texture2D<float4> shownTexture : register(t1);',
   'SamplerState linearClamp : register(s0);',
-  'cbuffer Blend : register(b0) { float mode; float progress; float dir; float width; float height; float3 pad; };',
+  'cbuffer Blend : register(b0) { float mode; float progress; float dir; float width; float height; float offsetX; float offsetY; float pad; };',
   'struct V { float4 pos : SV_Position; };',
   'V vs(uint id : SV_VertexID) { V o; float2 uv = float2((id << 1) & 2, id & 2);',
   '  o.pos = float4(uv * float2(2, -2) + float2(-1, 1), 0, 1); return o; }',
@@ -257,7 +264,7 @@ const SHADER = [
   '  return t.SampleLevel(linearClamp, uv, 0); }',
   'float4 ps(V i) : SV_Target {',
   '  float2 size = float2(width, height);',
-  '  float2 uv = i.pos.xy / size;',
+  '  float2 uv = (i.pos.xy - float2(offsetX, offsetY)) / size;',
   '  float4 next = at(liveTexture, uv);',
   '  if (mode < 0.5) return next;',
   '  float4 shown = at(shownTexture, uv);',
@@ -624,6 +631,8 @@ function createPresenter({x, y, width, height, hz, topmost}) {
   let closed = false;
   let lastPresent = 0;
   const intervals = [];
+  let mirror = null;
+  let mirrorFailure = null;
 
   const ctx = context[0];
   const frameCalls = {
@@ -672,6 +681,10 @@ function createPresenter({x, y, width, height, hz, topmost}) {
     ]),
     draw: bind(ctx, SLOT.contextDraw, 'void', ['uint32', 'uint32']),
     copy: bind(ctx, SLOT.contextCopyResource, 'void', ['void *', 'void *']),
+    clear: bind(ctx, SLOT.contextClearRenderTargetView, 'void', [
+      'void *',
+      'void *',
+    ]),
     end: bind(ctx, SLOT.contextEnd, 'void', ['void *']),
     getData: bind(ctx, SLOT.contextGetData, 'int32', [
       'void *',
@@ -694,14 +707,27 @@ function createPresenter({x, y, width, height, hz, topmost}) {
   const noResources = [null, null];
   const doneFlag = Buffer.alloc(4);
 
-  function draw(target, state) {
+  function draw(
+    target,
+    state,
+    drawWidth = width,
+    drawHeight = height,
+    x = 0,
+    y = 0,
+  ) {
+    viewport.writeFloatLE(x, 0);
+    viewport.writeFloatLE(y, 4);
+    viewport.writeFloatLE(drawWidth, 8);
+    viewport.writeFloatLE(drawHeight, 12);
     const progress =
       state.frames > 0 ? Math.min(1, state.step / state.frames) : 1;
     params.writeFloatLE(progress >= 1 ? MODES.cut : state.mode, 0);
     params.writeFloatLE(progress, 4);
     params.writeFloatLE(state.dir, 8);
-    params.writeFloatLE(width, 12);
-    params.writeFloatLE(height, 16);
+    params.writeFloatLE(drawWidth, 12);
+    params.writeFloatLE(drawHeight, 16);
+    params.writeFloatLE(x, 20);
+    params.writeFloatLE(y, 24);
     frameCalls.update(constants[0], 0, null, params, 0, 0);
     frameCalls.targets(1, [target], null);
     frameCalls.viewports(1, viewport);
@@ -730,8 +756,155 @@ function createPresenter({x, y, width, height, hz, topmost}) {
     return true;
   }
 
+  // NOTE(0913vision): A preview reads the already-composited back buffer. Its
+  // query is polled on later frames, so the presenter never waits for the GPU.
+  function startMirror() {
+    if (mirror !== null) return;
+    mirrorFailure = null;
+    const desc = Buffer.alloc(TEXTURE_DESC_SIZE);
+    [
+      640,
+      360,
+      1,
+      1,
+      DXGI_FORMAT_R8G8B8A8_UNORM,
+      1,
+      0,
+      D3D11_USAGE_STAGING,
+      0,
+      D3D11_CPU_ACCESS_READ,
+      0,
+    ].forEach((value, index) => desc.writeUInt32LE(value, index * 4));
+    const staging = [null];
+    let full = null;
+    let scaled = null;
+    const done = [null];
+    try {
+      full = texture(DXGI_FORMAT_B8G8R8A8_UNORM, D3D11_BIND_SHADER_RESOURCE);
+      scaled = texture(
+        DXGI_FORMAT_R8G8B8A8_UNORM,
+        D3D11_BIND_SHADER_RESOURCE | D3D11_BIND_RENDER_TARGET,
+        640,
+        360,
+      );
+      check(
+        call(
+          device[0],
+          SLOT.deviceCreateTexture2D,
+          'int32',
+          ['void *', 'void *', outPtr],
+          desc,
+          null,
+          staging,
+        ),
+        'Create mirror staging',
+      );
+      check(
+        call(
+          device[0],
+          SLOT.deviceCreateQuery,
+          'int32',
+          ['void *', outPtr],
+          queryDesc,
+          done,
+        ),
+        'Create mirror query',
+      );
+    } catch (error) {
+      release(staging[0]);
+      releaseTexture(full);
+      releaseTexture(scaled);
+      throw error;
+    }
+    const copy = k
+      .load('msvcrt.dll')
+      .func('memcpy', 'void *', ['void *', 'void *', 'size_t']);
+    mirror = {
+      staging: staging[0],
+      full,
+      scaled,
+      done: done[0],
+      requested: false,
+      pending: false,
+      mapped: Buffer.alloc(16),
+      flag: Buffer.alloc(4),
+      copy,
+      clear: Buffer.from(new Float32Array([0, 0, 0, 1]).buffer),
+    };
+  }
+
+  function stopMirror() {
+    if (mirror === null) return;
+    release(mirror.done);
+    release(mirror.staging);
+    releaseTexture(mirror.full);
+    releaseTexture(mirror.scaled);
+    mirror = null;
+  }
+
+  function takeMirror() {
+    if (mirrorFailure !== null) {
+      const error = mirrorFailure;
+      mirrorFailure = null;
+      throw error;
+    }
+    if (mirror === null || !mirror.pending) return null;
+    const state = frameCalls.getData(mirror.done, mirror.flag, 4, 0);
+    if (state === 1) return null;
+    check(state, 'Mirror query');
+    check(
+      call(
+        ctx,
+        SLOT.contextMap,
+        'int32',
+        ['void *', 'uint32', 'uint32', 'uint32', 'void *'],
+        mirror.staging,
+        0,
+        D3D11_MAP_READ,
+        0,
+        mirror.mapped,
+      ),
+      'Map mirror',
+    );
+    try {
+      const ptr = k.decode(mirror.mapped, 'void *');
+      const pitch = mirror.mapped.readUInt32LE(8);
+      const bytes = Buffer.allocUnsafeSlow(640 * 360 * 4);
+      if (pitch === 640 * 4) {
+        mirror.copy(bytes, ptr, bytes.length);
+      } else {
+        for (let y = 0; y < 360; y++) {
+          mirror.copy(
+            bytes.subarray(y * 640 * 4),
+            ptr + BigInt(y * pitch),
+            640 * 4,
+          );
+        }
+      }
+      return bytes;
+    } finally {
+      call(
+        ctx,
+        SLOT.contextUnmap,
+        'void',
+        ['void *', 'uint32'],
+        mirror.staging,
+        0,
+      );
+      mirror.pending = false;
+    }
+  }
+
   return {
     hwnd,
+    startMirror,
+    stopMirror,
+    takeMirror,
+    requestMirror() {
+      if (mirror === null || mirror.pending) return false;
+      mirror.requested = true;
+      return true;
+    },
     /** Copies one shared texture of the page from process `pid` into the live picture. */
     submit(pid, rawHandle) {
       if (copying !== null) throw Error('a page frame is still being copied');
@@ -810,6 +983,38 @@ function createPresenter({x, y, width, height, hz, topmost}) {
       const moving = blend.frames > 0 && blend.step < blend.frames;
       if (moving) blend.step++;
       draw(backTarget[0], blend);
+      if (mirror !== null && mirror.requested) {
+        try {
+          frameCalls.targets(0, null, null);
+          frameCalls.copy(mirror.full.texture, backBuffer[0]);
+          const previousLive = live;
+          live = mirror.full;
+          try {
+            const scale = Math.min(640 / width, 360 / height);
+            const w = width * scale;
+            const h = height * scale;
+            frameCalls.clear(mirror.scaled.target, mirror.clear);
+            draw(
+              mirror.scaled.target,
+              {mode: MODES.cut, dir: 0, frames: 0, step: 0},
+              w,
+              h,
+              (640 - w) / 2,
+              (360 - h) / 2,
+            );
+          } finally {
+            live = previousLive;
+          }
+          frameCalls.targets(0, null, null);
+          frameCalls.copy(mirror.staging, mirror.scaled.texture);
+          frameCalls.end(mirror.done);
+          mirror.requested = false;
+          mirror.pending = true;
+        } catch (error) {
+          stopMirror();
+          mirrorFailure = error;
+        }
+      }
       check(frameCalls.present(1, 0), 'Present');
       const now = performance.now();
       if (moving && lastPresent !== 0) intervals.push(now - lastPresent);
@@ -859,6 +1064,7 @@ function createPresenter({x, y, width, height, hz, topmost}) {
     close() {
       if (closed) return;
       closed = true;
+      stopMirror();
       if (copying !== null) {
         release(copying.shared);
         CloseHandle(copying.handle);

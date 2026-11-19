@@ -12,7 +12,7 @@ import {
 import {useScreenSummaries} from '@renderer/platform/ScreenSummaries';
 import type {PreviewScreen} from '@renderer/ui/PreviewFrame';
 import {PreviewPanel as SharedPreviewPanel} from '@renderer/ui/PreviewPanel';
-import {ScreenPreview} from './ScreenPreview';
+import {OutputMirror} from './OutputMirror';
 import {useSlideTransitionProgress} from './useSlideTransitionProgress';
 import {MISSING_STILL_BACKGROUND_TIP} from '@renderer/platform/problemReasons';
 import {LiveMediaProgress} from './LiveMediaProgress';
@@ -21,7 +21,7 @@ import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 const NO_STILL_SCREENS: ReadonlySet<string> = new Set();
 
 function renderScreen(screen: PreviewScreen<string>): JSX.Element {
-  return <ScreenPreview screenId={screen.id} chroma={screen.chroma === true} />;
+  return <OutputMirror screenId={screen.id} targetKind={screen.target?.kind} />;
 }
 
 function MediaPreviewPanel(): JSX.Element {

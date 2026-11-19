@@ -123,6 +123,10 @@ export class OutputManager {
 
   constructor(private readonly options: OutputManagerOptions) {}
 
+  previewContents(screenId: string) {
+    return this.windows.get(screenId)?.previewContents() ?? null;
+  }
+
   start(): void {
     const {store, displays} = this.options;
     this.stops = [

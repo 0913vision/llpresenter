@@ -2,7 +2,7 @@ import {NDI_DEFAULT_FPS} from '@core/schema/screens';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import type {SettingsEdit} from '@core/schema/settingsDocuments';
 import type {EditResult} from '@core/schema/contentEdit';
-import type {BrowserWindow} from 'electron';
+import {BrowserWindow, ipcMain} from 'electron';
 import {outputEndpoints} from '@contracts/ipc/output';
 import {MONITOR_LIST_MAX} from '@core/schema/monitors';
 import {createElectronDisplaySource} from '../displays/electronSource';
@@ -12,6 +12,10 @@ import type {Rect} from '../displays/rect';
 import {answerWindows, listenToWindows, sendToWindows} from '../ipc';
 import type {LiveStore} from '../live/store';
 import {parseFrameReadyReport} from '@core/schema/ipcPayloads';
+import {
+  parsePreviewControl,
+  parsePreviewRequest,
+} from '@core/schema/previewMirror';
 import type {Logger} from '../log';
 import type {WindowMode} from '../windows/testWindows';
 import {
@@ -43,6 +47,12 @@ import type {ProblemFeed} from '../problemFeed';
 import {createNdiOutput} from '../ndi/output';
 import type {OutputScreen} from './screens';
 import type {OutputWindowEvents} from './outputWindow';
+import {
+  ackPresenterMirror,
+  hasPresenterMirror,
+  subscribePresenterMirror,
+} from './presenterMirror';
+import {createAlphaMirror} from './alphaMirror';
 
 /** What the output windows hang on. */
 export interface OutputContext {
@@ -271,7 +281,137 @@ export function startOutputs({
     if (screens.ready && screens.list().length === 0) onPrepared?.();
   });
   outputs.start();
+  const previewSubscriptions = new Map<string, () => void>();
+  const alphaMirrors = new Map<string, ReturnType<typeof createAlphaMirror>>();
+  const previewSinks = new Map<string, (frame: Uint8Array | null) => void>();
+  const stopAlpha = (screenId: string): void => {
+    alphaMirrors.get(screenId)?.stop();
+    alphaMirrors.delete(screenId);
+  };
+  const ensureAlpha = (screenId: string): boolean => {
+    const screen = screens.list().find(item => item.id === screenId);
+    const contents = outputs.previewContents(screenId);
+    const needed = screen?.target === 'ndi' || contents?.isOffscreen() === true;
+    const sink = previewSinks.get(screenId);
+    if (
+      needed &&
+      sink !== undefined &&
+      !hasPresenterMirror(screenId) &&
+      !alphaMirrors.has(screenId)
+    ) {
+      alphaMirrors.set(
+        screenId,
+        createAlphaMirror({
+          source: () => outputs.previewContents(screenId),
+          send: sink,
+        }),
+      );
+    }
+    return needed;
+  };
+  ipcMain.handle(
+    outputEndpoints.previewSource.channel,
+    (event, value: unknown) => {
+      const request = parsePreviewRequest(value);
+      if (
+        !request.ok ||
+        event.sender !== control.webContents ||
+        control.isDestroyed()
+      ) {
+        return null;
+      }
+      const screen = screens
+        .list()
+        .find(item => item.id === request.value.screenId);
+      if (screen === undefined) {
+        return null;
+      }
+      if (ensureAlpha(screen.id)) return 'alpha';
+      const output = BrowserWindow.getAllWindows().find(win => {
+        if (win.isDestroyed() || win.webContents.isDestroyed()) return false;
+        try {
+          const url = new URL(win.webContents.getURL());
+          return (
+            url.pathname.endsWith('/output.html') &&
+            url.searchParams.get('screen') === request.value.screenId
+          );
+        } catch {
+          return false;
+        }
+      });
+      return output?.webContents.getMediaSourceId(event.sender) ?? null;
+    },
+  );
   const stops = [
+    () => {
+      for (const unsubscribe of previewSubscriptions.values()) unsubscribe();
+      previewSubscriptions.clear();
+      alphaMirrors.clear();
+      previewSinks.clear();
+    },
+    listenToWindows(outputEndpoints.previewControl.channel, (value, sender) => {
+      const parsed = parsePreviewControl(value);
+      if (
+        !parsed.ok ||
+        control.isDestroyed() ||
+        sender !== control.webContents.id
+      ) {
+        return;
+      }
+      const {screenId, action} = parsed.value;
+      if (action === 'ack') {
+        const alpha = alphaMirrors.get(screenId);
+        if (alpha !== undefined) alpha.ack();
+        else if (previewSubscriptions.has(screenId)) {
+          ackPresenterMirror(screenId);
+        }
+        return;
+      }
+      previewSubscriptions.get(screenId)?.();
+      previewSubscriptions.delete(screenId);
+      stopAlpha(screenId);
+      previewSinks.delete(screenId);
+      if (
+        action !== 'start' ||
+        !screens.list().some(screen => screen.id === screenId)
+      ) {
+        return;
+      }
+      const send = (frame: Uint8Array | null): void => {
+        if (control.isDestroyed() || control.webContents.isDestroyed()) {
+          const alpha = alphaMirrors.get(screenId);
+          if (alpha !== undefined) alpha.ack();
+          else ackPresenterMirror(screenId);
+          return;
+        }
+        try {
+          control.webContents.send(outputEndpoints.previewFrame.channel, {
+            screenId,
+            frame,
+          });
+        } catch (error) {
+          log.warn('could not send presenter preview frame', error);
+          const alpha = alphaMirrors.get(screenId);
+          if (alpha !== undefined) alpha.ack();
+          else ackPresenterMirror(screenId);
+        }
+      };
+      previewSinks.set(screenId, send);
+      const unsubscribe = subscribePresenterMirror(
+        screenId,
+        send,
+        available => {
+          if (available) stopAlpha(screenId);
+          else ensureAlpha(screenId);
+        },
+      );
+      previewSubscriptions.set(screenId, () => {
+        unsubscribe();
+        stopAlpha(screenId);
+        previewSinks.delete(screenId);
+      });
+    }),
+    () => ipcMain.removeHandler(outputEndpoints.previewSource.channel),
     stopInitialMonitors,
     releaseResync,
     releaseNumbers,

@@ -34,9 +34,30 @@ import {
   type PlaybackProblemKind,
   type PlaybackProblems,
 } from '@core/schema/playbackProblems';
+import {
+  parsePreviewRequest,
+  parsePreviewSource,
+  parsePreviewControl,
+  parsePreviewFrame,
+  type PreviewControl,
+  type PreviewFrame,
+} from '@core/schema/previewMirror';
 
 /** The calls about output windows, monitors, fonts, and the log. */
 export const outputEndpoints = {
+  previewControl: message<PreviewControl>(
+    'output:preview:control',
+    parsePreviewControl,
+  ),
+  previewFrame: push<PreviewFrame>('output:preview:frame', parsePreviewFrame),
+  previewSource: request<OutputShowWindowRequest, string | null>(
+    'output:preview:source',
+    {
+      request: parsePreviewRequest,
+      reply: parsePreviewSource,
+      refuse: () => null,
+    },
+  ),
   playbackReport: message<readonly PlaybackProblemKind[]>(
     'output:playback:report',
     parsePlaybackProblemReport,
@@ -97,6 +118,10 @@ export function outputApi(port: IpcPort) {
   const retry = port.message(outputEndpoints.retry);
   const showWindow = port.message(outputEndpoints.showWindow);
   return {
+    previewControl: port.message(outputEndpoints.previewControl),
+    subscribePreviewFrame: port.subscribe(outputEndpoints.previewFrame),
+    previewSource: (screenId: string) =>
+      port.request(outputEndpoints.previewSource)({screenId}),
     reportPlaybackProblems: port.message(outputEndpoints.playbackReport),
     getPlaybackProblems: port.query(outputEndpoints.playbackProblems),
     subscribePlaybackProblems: port.subscribe(outputEndpoints.playbackChanged),

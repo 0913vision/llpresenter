@@ -335,6 +335,7 @@ export function createElectronOutputWindow(
   win.once('closed', dispose);
   return {
     ...presentation,
+    previewContents: () => (win.isDestroyed() ? null : win.webContents),
     showWindowed: (bounds, alwaysOnTop) => {
       presentation.showWindowed(bounds, alwaysOnTop);
       if (!windowLogged) {

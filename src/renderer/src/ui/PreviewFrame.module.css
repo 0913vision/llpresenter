@@ -46,7 +46,7 @@
 .adjustable {
   --split-space: max(
     0px,
-    100cqh - var(--size-control-md) - var(--size-control-sm) - var(--panel-gap)
+    100cqh - var(--size-control-md) - var(--size-control-sm) - var(--space-12)
   );
   --split-block-width: min(
     100cqw,
@@ -66,7 +66,7 @@
       0,
       calc(var(--split-space) * var(--preview-ratio) + var(--size-control-md))
     )
-    var(--panel-gap)
+    var(--space-12)
     minmax(
       0,
       calc(
@@ -81,7 +81,7 @@
 .adjustable .main {
   width: 100%;
   justify-self: center;
-  align-self: center;
+  align-self: end;
 }
 
 .balanced {
@@ -96,11 +96,21 @@
 .adjustable .small,
 .adjustable .hit {
   grid-row: 3;
-  align-self: center;
+  align-self: start;
+}
+
+.adjustable .hit {
+  height: calc(var(--split-tile-width) * 9 / 16 + var(--size-control-sm));
 }
 
 .divider {
+  display: flex;
   grid-area: 2 / 1 / 3 / -1;
+  align-items: center;
+}
+
+.divider > div {
+  width: 100%;
 }
 
 .main {

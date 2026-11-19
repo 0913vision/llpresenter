@@ -195,6 +195,7 @@ export function createGpuOutput(
   };
   delegate = makeGpu(false);
   return {
+    previewContents: () => delegate.previewContents?.() ?? null,
     configure: next => {
       current = next;
       delegate.configure(next);
@@ -523,6 +524,7 @@ function gpuHandle(
     });
   };
   return {
+    previewContents: () => (win.isDestroyed() ? null : win.webContents),
     configure: next => {
       const changed =
         next.ndi?.sourceName !== current.ndi?.sourceName ||

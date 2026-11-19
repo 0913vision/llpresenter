@@ -11,9 +11,12 @@ import {
   type RendererState,
 } from './rendererRecovery';
 import type {OutputScreen} from './screens';
+import type {WebContents} from 'electron';
 
 /** The Electron window of one output, reduced to what the output needs. */
 export interface OutputWindowHandle {
+  /** The page feeding this output, when it exists. */
+  previewContents?(): WebContents | null;
   configure(screen: OutputScreen): void;
   prepare(bounds: Rect, kind: ShownPlacement['kind']): void;
   /** Wakes the hidden compositor for a pending frame without showing the window. */
@@ -114,6 +117,10 @@ export class OutputWindow {
 
   get rendererState(): RendererState {
     return this.recovery.state;
+  }
+
+  previewContents(): WebContents | null {
+    return this.handle?.previewContents?.() ?? null;
   }
 
   /** Whether this window has accepted its first complete current frame. */
