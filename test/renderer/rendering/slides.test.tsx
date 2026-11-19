@@ -8,7 +8,7 @@ import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {createScreenId} from '@core/schema/ids';
 import {projectSlides} from '@core/presentation/slides';
 import {slideLayerOf} from '@core/presentation/slideLayer';
-import {SlidePicture} from '@renderer/rendering/SlidePicture';
+import {SlidePicture} from '@fixtures/renderer/themeSlideFixture';
 import {ThemeCompositionView} from '@renderer/rendering/themeComposition';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import {slidesItem, SLIDE_PICTURE, SLIDES_ITEM} from '@fixtures/core/slides';

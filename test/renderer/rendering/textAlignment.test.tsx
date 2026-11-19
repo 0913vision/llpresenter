@@ -9,7 +9,7 @@ import {createScreenId} from '@core/schema/ids';
 import {emptyLayers} from '@core/live/state';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
 import {ThemeCompositionView} from '@renderer/rendering/themeComposition';
-import {SlidePicture} from '@renderer/rendering/SlidePicture';
+import {SlidePicture} from '@fixtures/renderer/themeSlideFixture';
 import {classes} from '@renderer/rendering/classes';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 
