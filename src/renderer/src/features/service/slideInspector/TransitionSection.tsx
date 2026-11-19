@@ -76,18 +76,16 @@ function TimeField({
   );
 }
 
-/** Transition edits use the same selection, history and save queue as the editor. */
-export function TransitionRows<T extends SlideListItem>({
+/** Adapts a slide-list selection to the shared transition section. */
+export function useTransitionSelection<T extends SlideListItem>({
   session,
   disabled,
-  song = false,
   onApplyAll,
 }: {
   readonly onApplyAll?: ((transition: SlideTransition) => void) | undefined;
   readonly session: SlideListSession<T>;
   readonly disabled: boolean;
-  readonly song?: boolean;
-}): JSX.Element {
+}): TransitionSectionProps {
   const view = useSyncExternalStore(
     session.slideModel.subscribe,
     session.slideModel.getSnapshot,
@@ -99,40 +97,25 @@ export function TransitionRows<T extends SlideListItem>({
   const locked = disabled || session.readOnly || selected.length === 0;
   const set = (transition: SlideTransition | undefined): void =>
     session.commandSlides({type: 'transition', transition});
-  return (
-    <TransitionPicker
-      value={value}
-      mixed={mixed}
-      disabled={locked}
-      selectionKey={selected.map(slide => slide.id).join(',')}
-      onChange={set}
-      onSeconds={sec =>
-        session.commandSlides({type: 'transition-seconds', sec})
+  return {
+    value,
+    mixed,
+    disabled: locked,
+    selectionKey: selected.map(slide => slide.id).join(','),
+    onChange: set,
+    onSeconds: sec => session.commandSlides({type: 'transition-seconds', sec}),
+    onApplyAll: () => {
+      if (onApplyAll === undefined) {
+        applySlideTransitionToAll(session, first ?? value);
+      } else {
+        onApplyAll(first ?? value);
       }
-      onApplyAll={() => {
-        if (onApplyAll === undefined) {
-          applySlideTransitionToAll(session, first ?? value);
-        } else {
-          onApplyAll(first ?? value);
-        }
-      }}
-      song={song}
-    />
-  );
+    },
+  };
 }
 
-export function TransitionPicker({
-  value,
-  mixed,
-  disabled,
-  selectionKey,
-  onChange,
-  onSeconds,
-  onApplyAll,
-  song = false,
-  allowAll = true,
-}: {
-  readonly allowAll?: boolean;
+interface TransitionSectionProps {
+  readonly allowAll?: boolean | undefined;
   readonly value: SlideTransition;
   readonly mixed: boolean;
   readonly disabled: boolean;
@@ -140,8 +123,19 @@ export function TransitionPicker({
   readonly onChange: (transition: SlideTransition) => void;
   readonly onSeconds: (seconds: number) => void;
   readonly onApplyAll: () => void;
-  readonly song?: boolean;
-}): JSX.Element {
+}
+
+/** The same effect, direction, duration and apply-all rows for every item. */
+export function TransitionSection({
+  value,
+  mixed,
+  disabled,
+  selectionKey,
+  onChange,
+  onSeconds,
+  onApplyAll,
+  allowAll = true,
+}: TransitionSectionProps): JSX.Element {
   const locked = disabled;
   const set = onChange;
   return (
@@ -229,7 +223,7 @@ export function TransitionPicker({
               disabled={locked || mixed || !allowAll}
               onClick={onApplyAll}
             >
-              {song ? '이 곡 전체에 적용' : '전체 슬라이드에 적용'}
+              전체 슬라이드에 적용
             </Button>
           )}
         </PropertyRow>

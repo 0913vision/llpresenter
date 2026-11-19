@@ -14,6 +14,7 @@ import {useShow} from '@renderer/session/show';
 import {useContext, useLayoutEffect, useRef} from 'react';
 import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
 import {previewSpec} from '@fixtures/renderer/picture';
+import {sameSlideTransition} from '@renderer/features/songs/editor/slideTransitionSelection';
 
 vi.mock(
   '@renderer/rendering/pictures/Picture',
@@ -24,6 +25,22 @@ vi.mock('@renderer/platform/useSettingsDocument', () => ({
   useSettingsDocument: () => null,
   useApiSettingsDocument: () => null,
 }));
+
+it('compares default transitions the same way for every slide kind', () => {
+  expect(sameSlideTransition(undefined, {kind: 'none', sec: 0.5})).toBe(true);
+  expect(
+    sameSlideTransition(
+      {kind: 'wipe', sec: 1},
+      {kind: 'wipe', sec: 1, dir: 'left'},
+    ),
+  ).toBe(true);
+  expect(
+    sameSlideTransition(
+      {kind: 'wipe', sec: 1},
+      {kind: 'wipe', sec: 1, dir: 'right'},
+    ),
+  ).toBe(false);
+});
 vi.mock('@renderer/rendering/SlidePicture', () => ({
   SlidePicture: ({
     slide,
@@ -186,7 +203,7 @@ it('edits the selected slides and shows mixed transitions', async () => {
   expect(
     session.history.snapshot.song.slides.map(slide => slide.transition?.kind),
   ).toEqual(['dissolve', 'dissolve']);
-  expect(panel.getByText('이 곡 전체에 적용')).toBeTruthy();
+  expect(panel.getByText('전체 슬라이드에 적용')).toBeTruthy();
   view.unmount();
 });
 

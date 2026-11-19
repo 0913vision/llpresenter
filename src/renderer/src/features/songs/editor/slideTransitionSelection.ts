@@ -11,6 +11,19 @@ export const INITIAL_SLIDE_EFFECT: SlideTransition = {
   kind: 'none',
   sec: 0.5,
 };
+/** Unset effects and omitted left directions display as the same defaults. */
+export function sameSlideTransition(
+  left: SlideTransition | undefined,
+  right: SlideTransition | undefined,
+): boolean {
+  const a = left ?? INITIAL_SLIDE_EFFECT;
+  const b = right ?? INITIAL_SLIDE_EFFECT;
+  return (
+    a.kind === b.kind &&
+    a.sec === b.sec &&
+    (a.dir ?? 'left') === (b.dir ?? 'left')
+  );
+}
 export function selectedSlideTransition(
   view: SlideListSnapshot<SlideListItem>,
 ) {
@@ -18,13 +31,9 @@ export function selectedSlideTransition(
     view.selection.ids.has(slide.id),
   );
   const current = selected[0]?.transition;
-  const key = (effect: SlideTransition | undefined): string =>
-    JSON.stringify(
-      effect === undefined
-        ? ['none', 0.5, 'left']
-        : [effect.kind, effect.sec, effect.dir ?? 'left'],
-    );
-  const mixed = selected.some(slide => key(slide.transition) !== key(current));
+  const mixed = selected.some(
+    slide => !sameSlideTransition(slide.transition, current),
+  );
   return {
     current,
     mixed,
