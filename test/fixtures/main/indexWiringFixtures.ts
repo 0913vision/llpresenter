@@ -136,6 +136,18 @@ const mocks = vi.hoisted(() => {
         on: (event: string, handler: (...args: unknown[]) => void) => {
           appHandlers.set(event, [...(appHandlers.get(event) ?? []), handler]);
         },
+        once: (event: string, handler: (...args: unknown[]) => void) => {
+          const once = (...args: unknown[]): void => {
+            appHandlers.set(
+              event,
+              (appHandlers.get(event) ?? []).filter(
+                listener => listener !== once,
+              ),
+            );
+            handler(...args);
+          };
+          appHandlers.set(event, [...(appHandlers.get(event) ?? []), once]);
+        },
         whenReady: () => Promise.resolve(),
       },
     },
