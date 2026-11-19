@@ -11,6 +11,7 @@ import {drawPicture, layoutPicture} from '../rendering/pictures/drawPicture';
 export function startPainter(root: HTMLElement): void {
   const media = openPreviewMedia(window.llp);
   let previousTransparency: boolean | undefined;
+  let previousBiblePreview = '';
   let source: OutputRenderer | undefined;
   let drawFailure: Error | undefined;
   Reflect.set(window, 'drawPicture', async (value: unknown): Promise<void> => {
@@ -19,10 +20,18 @@ export function startPainter(root: HTMLElement): void {
     const {layers, appearance} = parsed.value.spec;
     const transparent = appearance.screen.method === 'ndi';
     drawFailure = undefined;
-    if (source === undefined || previousTransparency !== transparent) {
+    const biblePreviewKey = JSON.stringify(appearance.biblePreview ?? null);
+    if (
+      source === undefined ||
+      previousTransparency !== transparent ||
+      previousBiblePreview !== biblePreviewKey
+    ) {
       source?.dispose();
       source = new OutputRenderer(root, {
         transparent,
+        ...(appearance.biblePreview === undefined
+          ? {}
+          : {biblePreview: {...appearance.biblePreview, hideGuide: true}}),
         textStyle: DEFAULT_TEXT_STYLE,
         mediaUrl,
         previewMedia: media,
@@ -33,6 +42,7 @@ export function startPainter(root: HTMLElement): void {
         },
       });
       previousTransparency = transparent;
+      previousBiblePreview = biblePreviewKey;
       document.body.classList.toggle('ndi-transparent', transparent);
     }
     const renderer = source;

@@ -29,6 +29,7 @@ export function pictureKey({layers, appearance}: PictureSpec): string {
     : undefined;
   return JSON.stringify([
     screen.id,
+    appearance.biblePreview,
     screen.pictureSize,
     screen.kind,
     screen.method === 'ndi' || screen.method === 'capture'

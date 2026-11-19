@@ -49,6 +49,17 @@ const pictureSpecSchema = payloadObject({
       emptyColor: text,
     }),
     background: text,
+    biblePreview: v.exactOptional(
+      payloadObject({
+        elementId: text,
+        maxLines: v.pipe(
+          v.number(),
+          v.integer(),
+          v.minValue(1),
+          v.maxValue(1000),
+        ),
+      }),
+    ),
     checker: v.boolean(),
   }),
 });

@@ -89,6 +89,7 @@ export interface RenderLayerOptions {
   readonly biblePreview?: {
     readonly elementId: string;
     readonly maxLines: number;
+    readonly hideGuide?: boolean;
   };
   readonly textStyle: TextStyle;
   /** The original library URL, also used for image elements in previews. */

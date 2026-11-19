@@ -33,6 +33,7 @@ export class LocalPicturePainter {
   private readonly context: ElementCanvasContext | undefined;
   private renderer: OutputRenderer | undefined;
   private transparent = false;
+  private biblePreviewKey = '';
   private failed = false;
 
   constructor() {
@@ -79,15 +80,20 @@ export class LocalPicturePainter {
   private draw({layers, appearance}: PictureSpec): OutputRenderer {
     layoutPicture(this.host, appearance.screen.pictureSize);
     const transparent = appearance.screen.method === 'ndi';
+    const biblePreviewKey = JSON.stringify(appearance.biblePreview ?? null);
     if (
       this.failed ||
       this.renderer === undefined ||
-      this.transparent !== transparent
+      this.transparent !== transparent ||
+      this.biblePreviewKey !== biblePreviewKey
     ) {
       this.renderer?.dispose();
       this.failed = false;
       this.renderer = new OutputRenderer(this.host, {
         transparent,
+        ...(appearance.biblePreview === undefined
+          ? {}
+          : {biblePreview: {...appearance.biblePreview, hideGuide: true}}),
         textStyle: DEFAULT_TEXT_STYLE,
         mediaUrl,
         previewMedia: this.media,
@@ -99,6 +105,7 @@ export class LocalPicturePainter {
         },
       });
       this.transparent = transparent;
+      this.biblePreviewKey = biblePreviewKey;
     }
     drawPicture(this.renderer, this.host, {layers, appearance});
     return this.renderer;

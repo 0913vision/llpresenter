@@ -339,3 +339,34 @@ it('composes an edited 4:3 picture inside the shared canvas', async () => {
   );
   painter.dispose();
 });
+
+it('separates split editor pictures by their fixed line budget', () => {
+  const picture = {
+    ...spec,
+    appearance: {
+      ...spec.appearance,
+      biblePreview: {elementId: 'verse', maxLines: 3},
+    },
+  };
+  const changed = {
+    ...picture,
+    appearance: {
+      ...picture.appearance,
+      biblePreview: {elementId: 'verse', maxLines: 4},
+    },
+  };
+  expect(pictureKey(picture)).not.toBe(pictureKey(changed));
+  expect(parsePictureRequest({spec: picture, inputs: ''}).ok).toBe(true);
+  expect(
+    parsePictureRequest({
+      spec: {
+        ...picture,
+        appearance: {
+          ...picture.appearance,
+          biblePreview: {elementId: 'verse', maxLines: -1},
+        },
+      },
+      inputs: '',
+    }).ok,
+  ).toBe(false);
+});
