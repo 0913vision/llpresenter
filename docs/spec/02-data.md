@@ -299,11 +299,13 @@ items).
 New data folders include **주일 2부 예배**, with default time **11:30**. Its
 sections remain grouping rows. The 사도신경 and 광고 items carry an optional
 opening `sectionCard` with bounded `name`, `english`, and `theme` fields; their
-content and item theme remain independent. Other named sections retain
-standalone cards, and 말씀 remains empty. Existing data folders are unchanged.
-Song, Bible, slides, and liturgy items may carry the same optional card without
-migration. The card name must not be blank; unknown fields are preserved as for
-other data objects.
+content and item theme remain independent. Other named sections start empty.
+A title is independent of
+the section band. Bible, slides, liturgy and media items can carry an opening
+title; songs and sermons already have their own titles. On reading older service
+and template files, a standalone title moves to the following eligible item.
+Cards that cannot be moved without losing information remain intact. The card
+name must not be blank; unknown fields are preserved as for other data objects.
 
 사도신경 and 주기도문 use the dedicated `liturgy` item kind, with bounded `kind`
 (`creed` or `prayer`) and `translation` (`new` or `old`) choices. Their text and

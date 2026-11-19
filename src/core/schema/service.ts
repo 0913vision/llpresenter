@@ -273,7 +273,12 @@ const itemSchemas = {
     ...startFields,
   }),
   slides: slidesItemSchema,
-  media: jsonObject({...itemFields, media: mediaIdSchema, ...startFields}),
+  media: jsonObject({
+    ...itemFields,
+    sectionCard: v.exactOptional(sectionCardSchema),
+    media: mediaIdSchema,
+    ...startFields,
+  }),
 };
 
 const unknownItemSchema = jsonObject(itemFields);
@@ -369,7 +374,13 @@ export function parseService(
   text: string,
   file: string,
 ): Result<LoadedFile<Service>, FileError> {
-  return parseFile(serviceFormat, text, file);
+  const result = parseFile(serviceFormat, text, file);
+  return result.ok && result.value.access === 'editable'
+    ? {
+        ok: true,
+        value: {...result.value, data: convertLegacyCards(result.value.data)},
+      }
+    : result;
 }
 
 export function serializeService(
@@ -383,7 +394,47 @@ export function parseTemplate(
   text: string,
   file: string,
 ): Result<LoadedFile<Template>, FileError> {
-  return parseFile(templateFormat, text, file);
+  const result = parseFile(templateFormat, text, file);
+  return result.ok && result.value.access === 'editable'
+    ? {
+        ok: true,
+        value: {...result.value, data: convertLegacyCards(result.value.data)},
+      }
+    : result;
+}
+
+/** Move old standalone title cards onto the following item when it can own one. */
+function convertLegacyCards<T extends Service | Template>(data: T): T {
+  const order = [...data.order];
+  for (let i = 0; i < order.length - 1; i += 1) {
+    const current = order[i];
+    const next = order[i + 1];
+    if (
+      !current ||
+      !next ||
+      !isItemOfKind(current, 'slides') ||
+      current.sectionCard === undefined ||
+      current.slides.slides.length !== 0 ||
+      Object.keys(current).some(
+        key => !['id', 'theme', 'sectionCard', 'slides'].includes(key),
+      ) ||
+      Object.keys(current.slides).some(
+        key => !['form', 'name', 'slides'].includes(key),
+      ) ||
+      (!isItemOfKind(next, 'song') &&
+        !isItemOfKind(next, 'slides') &&
+        !isItemOfKind(next, 'bible') &&
+        !isItemOfKind(next, 'sermon') &&
+        !isItemOfKind(next, 'liturgy') &&
+        !isItemOfKind(next, 'media')) ||
+      next.sectionCard !== undefined
+    ) {
+      continue;
+    }
+    order.splice(i, 2, {...next, sectionCard: current.sectionCard});
+    i -= 1;
+  }
+  return {...data, order};
 }
 
 export function serializeTemplate(

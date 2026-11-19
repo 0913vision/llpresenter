@@ -71,6 +71,88 @@ function withItem(item: object) {
 }
 
 describe('parseService', () => {
+  it('retains legacy cards when the next row already has a title or is absent', () => {
+    const card = {
+      name: '찬양',
+      english: 'Praise',
+      theme: '00000000-0000-4000-8000-000000000106',
+    };
+    const legacy = {
+      id: itemId(80),
+      sectionCard: card,
+      theme: card.theme,
+      slides: {form: 'blank', name: '찬양', slides: []},
+    };
+    const next = {id: itemId(81), bible: PASSAGE, sectionCard: card};
+    for (const order of [
+      [legacy],
+      [legacy, next],
+      [legacy, {id: itemId(84), header: '다음 구역'}],
+      [
+        {...legacy, memo: 'keep'},
+        {id: itemId(85), bible: PASSAGE},
+      ],
+    ]) {
+      const result = parse({...sundayService(), order});
+      if (!result.ok) throw new Error(result.error.message);
+      expect(result.value.data.order).toEqual(order);
+    }
+  });
+  it.each(['service', 'template'] as const)(
+    'moves an old standalone title onto the following item when reading a %s',
+    kind => {
+      const card = {
+        name: '찬양',
+        english: 'Praise',
+        theme: '00000000-0000-4000-8000-000000000106',
+        transition: {kind: 'wipe', dir: 'left', sec: 1},
+      };
+      const legacy = {
+        id: itemId(80),
+        sectionCard: card,
+        theme: card.theme,
+        slides: {form: 'blank', name: '찬양', slides: []},
+      };
+      const following = {id: itemId(81), bible: PASSAGE, memo: 'keep'};
+      const input = {
+        ...(kind === 'service' ? sundayService() : sundayTemplate()),
+        order: [{id: itemId(79), header: '예배'}, legacy, following],
+      };
+      const parsed =
+        kind === 'service'
+          ? parseService(JSON.stringify(input), FILE)
+          : parseTemplate(JSON.stringify(input), FILE);
+      if (!parsed.ok) throw new Error(parsed.error.message);
+      expect(parsed.value.data.order).toEqual([
+        {id: itemId(79), header: '예배'},
+        {...following, sectionCard: card},
+      ]);
+    },
+  );
+  it('keeps a converted media title on save and reload', () => {
+    const card = {
+      name: '봉헌',
+      english: 'Offering',
+      theme: '00000000-0000-4000-8000-000000000106',
+    };
+    const order = [
+      {
+        id: itemId(82),
+        theme: card.theme,
+        sectionCard: card,
+        slides: {form: 'blank', name: card.name, slides: []},
+      },
+      {id: itemId(83), media: MEDIA_ID},
+    ];
+    const loaded = parse({...sundayService(), order});
+    if (!loaded.ok) throw new Error(loaded.error.message);
+    expect(loaded.value.data.order).toEqual([{...order[1], sectionCard: card}]);
+    const saved = serializeService(loaded.value.data, FILE);
+    if (!saved.ok) throw new Error(saved.error.message);
+    const reopened = parseService(saved.value, FILE);
+    if (!reopened.ok) throw new Error(reopened.error.message);
+    expect(reopened.value.data).toEqual(loaded.value.data);
+  });
   it('accepts per-item background overrides and rejects malformed choices', () => {
     const items = [
       {id: itemId(20), song: SONG_ID, slides: []},

@@ -5,7 +5,7 @@ import {TextField} from '@renderer/ui/TextField';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {contextMenuAnchor, openMenuFromKey} from '@renderer/ui/contextMenu';
 import {editorTask} from '@renderer/features/songs/editor/editorTask';
-import {ELEMENT_DRAG_MIME} from './paletteItems';
+import {SUNDAY_SECTIONS} from '@core/themes/sundaySections';
 import styles from './PrepPalette.module.css';
 
 interface CustomSection {
@@ -15,13 +15,7 @@ interface CustomSection {
 }
 
 /** Reusable section names are stored with the app's theme settings. */
-export function CustomSections({
-  disabled,
-  insert,
-}: {
-  readonly disabled: boolean;
-  readonly insert: (key: string) => void;
-}): JSX.Element {
+export function CustomSections(): JSX.Element {
   const document = useSettingsDocument('themes', '테마', undefined);
   const sections = document?.value.customSections ?? [];
   const [editing, setEditing] = useState<CustomSection | null>(null);
@@ -59,30 +53,23 @@ export function CustomSections({
       setEditing(null);
       setMenu(null);
     } catch {
-      setError('구역 이름을 저장하지 못했습니다. 다시 시도해 주세요.');
+      setError('제목을 저장하지 못했습니다. 다시 시도해 주세요.');
     } finally {
       setBusy(false);
     }
   };
   return (
     <>
+      {SUNDAY_SECTIONS.map(section => (
+        <span key={section.name} className={styles.chip}>
+          {section.name}
+        </span>
+      ))}
       {sections.map(section => (
         <button
           key={section.id}
           type="button"
           className={styles.chip}
-          aria-disabled={disabled}
-          draggable={!disabled}
-          onDragStart={event => {
-            event.dataTransfer.setData(
-              ELEMENT_DRAG_MIME,
-              `custom:${section.id}`,
-            );
-            event.dataTransfer.effectAllowed = 'copy';
-          }}
-          onDoubleClick={() => {
-            if (!disabled) insert(`custom:${section.id}`);
-          }}
           onContextMenu={event => {
             event.preventDefault();
             setMenu({section, anchor: contextMenuAnchor(event)});
@@ -90,10 +77,6 @@ export function CustomSections({
           onKeyDown={event => {
             if (openMenuFromKey(event, anchor => setMenu({section, anchor}))) {
               return;
-            }
-            if (event.key === 'Enter' && !disabled) {
-              event.preventDefault();
-              insert(`custom:${section.id}`);
             }
           }}
         >
@@ -109,13 +92,13 @@ export function CustomSections({
           setEditing({id: crypto.randomUUID(), name: '', english: ''});
         }}
       >
-        + 구역 이름
+        + 제목
       </button>
       {error && editing === null ? <span role="alert">{error}</span> : null}
       {menu ? (
         <Menu
           context
-          label="구역 이름 관리"
+          label="제목 관리"
           anchor={menu.anchor}
           onClose={() => setMenu(null)}
           entries={[
@@ -141,7 +124,7 @@ export function CustomSections({
       ) : null}
       {editing ? (
         <Dialog
-          title="구역 이름"
+          title="제목"
           size="s"
           onCancel={() => setEditing(null)}
           primary={{

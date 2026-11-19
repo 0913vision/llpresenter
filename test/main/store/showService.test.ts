@@ -747,6 +747,17 @@ describe('buildShowService media items', () => {
     ]);
   });
 
+  it('projects a media item title before the media tile', () => {
+    const sectionCard = {
+      name: '봉헌',
+      english: 'Offering',
+      theme: createThemeId('00000000-0000-4000-8000-000000000111'),
+    };
+    const show = buildOthers([{id: itemId(1), media: IMAGE_ID, sectionCard}]);
+    expect(show.tiles[itemId(1)]).toHaveLength(2);
+    expect(show.tiles[itemId(1)]?.[0]).toMatchObject({sectionCard});
+    expect(show.tiles[itemId(1)]?.[1]).toMatchObject({media: choice});
+  });
   it('gives a media item one tile that outputs the media', () => {
     const show = buildOthers([{id: itemId(1), media: IMAGE_ID}]);
     expect(show.rows).toEqual([

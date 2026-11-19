@@ -80,7 +80,7 @@ it('shows an editable card and read-only Bible verses in both views', async () =
     useShow.setState({serviceId: null, openItemId: null, tiles: {}});
     await editor.dispose();
   });
-  await screen.findByRole('textbox', {name: '구역 이름'});
+  await screen.findByRole('textbox', {name: '제목'});
   const cardRow = (): HTMLElement => {
     const row = view.container.querySelector<HTMLElement>(
       '[data-leading-card]',

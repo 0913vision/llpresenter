@@ -106,7 +106,8 @@ export function buildShowService({
         !isItemOfKind(item, 'slides') &&
         !isItemOfKind(item, 'bible') &&
         !isItemOfKind(item, 'sermon') &&
-        !isItemOfKind(item, 'liturgy')) ||
+        !isItemOfKind(item, 'liturgy') &&
+        !isItemOfKind(item, 'media')) ||
       item.sectionCard === undefined
     ) {
       continue;
