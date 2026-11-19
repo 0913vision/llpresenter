@@ -188,8 +188,9 @@ export const Picture = memo(
       [image, service],
     );
     // NOTE(0913vision): Run every hook before a render waits for its picture.
-    if (prepared !== undefined && !prepared.done) use(prepared.ready);
-    else if (wait && ticket.available && !done) use(ticket.ready);
+    // Read the promise on the retry too, so React can finish the suspension.
+    if (prepared !== undefined) use(prepared.ready);
+    else if (wait && ticket.available) use(ticket.ready);
     if (image !== previous) setPrevious(image);
     if (display !== displayed) setDisplayed(display);
     return (
