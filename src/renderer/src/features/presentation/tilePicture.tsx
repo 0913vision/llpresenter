@@ -9,7 +9,10 @@ import type {Screen} from '@core/schema/screens';
 import type {ThemesFile} from '@core/schema/themes';
 import {outputSlideSpec} from '@renderer/rendering/OutputSlidePicture';
 import {Picture} from '@renderer/rendering/pictures/Picture';
-import type {PictureSpec} from '@renderer/rendering/pictures/pictureService';
+import {
+  pictures,
+  type PictureSpec,
+} from '@renderer/rendering/pictures/pictureService';
 import {slideTheme} from '@renderer/platform/useSlideTheme';
 import {sermonPreviewRow} from '@renderer/platform/sermonPreview';
 import type {useBibleTileProjection} from '../bible/useBibleProjections';
@@ -74,7 +77,17 @@ export function tilePictureSpec(
   slide: SlideLayer | null,
   {theme, cardTheme, sermonTheme, bibleAppearance}: TileThemes,
 ): PictureSpec | undefined {
-  if (tile.media?.mediaId !== undefined || slide === null) return undefined;
+  if (slide === null) return undefined;
+  if (tile.media?.mediaId !== undefined) {
+    return theme === undefined
+      ? undefined
+      : outputSlideSpec({
+          ...theme,
+          slide,
+          background: tile.media.mediaId,
+          mediaOnly: true,
+        });
+  }
   const content = {slide, songSource: tile.sourceSlide};
   if (tile.sectionCard !== undefined && cardTheme !== undefined) {
     return outputSlideSpec({...cardTheme, ...content});
@@ -106,6 +119,7 @@ export function tilePicture(
   themes: TileThemes,
 ): ReactNode {
   const spec = tilePictureSpec(tile, slide, themes);
+  if (tile.media !== undefined && pictures.drawInPlace) return undefined;
   return spec === undefined ? undefined : (
     <Picture
       {...spec}
