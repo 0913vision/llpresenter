@@ -124,10 +124,17 @@ export class LocalPicturePainter {
   /** Import previews wait for a complete composition until cancelled. */
   async paint(
     spec: PictureSpec,
-    importSignal?: AbortSignal,
-    onCapture?: (image: HTMLCanvasElement) => void,
+    {
+      signal,
+      waitForReady = false,
+      onCapture,
+    }: {
+      signal?: AbortSignal | undefined;
+      waitForReady?: boolean;
+      onCapture?: (image: HTMLCanvasElement) => void;
+    } = {},
   ): Promise<HTMLCanvasElement> {
-    importSignal?.throwIfAborted();
+    signal?.throwIfAborted();
     const context = this.context;
     if (context === undefined) {
       throw new Error('The editor canvas is unavailable');
@@ -166,21 +173,20 @@ export class LocalPicturePainter {
       const cleanup = (): void => {
         clearTimeout(timeout);
         this.canvas.removeEventListener('paint', capture);
-        importSignal?.removeEventListener('abort', abort);
+        signal?.removeEventListener('abort', abort);
       };
       const abort = (): void => {
         cleanup();
         reject(new DOMException('Picture preparation cancelled', 'AbortError'));
       };
-      const timeout =
-        importSignal === undefined
-          ? setTimeout(() => {
-              cleanup();
-              reject(new Error('The editor canvas did not produce a frame'));
-            }, OUTPUT_REVEAL_DEADLINE_MS)
-          : undefined;
+      const timeout = waitForReady
+        ? undefined
+        : setTimeout(() => {
+            cleanup();
+            reject(new Error('The editor canvas did not produce a frame'));
+          }, OUTPUT_REVEAL_DEADLINE_MS);
       this.canvas.addEventListener('paint', capture);
-      importSignal?.addEventListener('abort', abort, {once: true});
+      signal?.addEventListener('abort', abort, {once: true});
       this.canvas.requestPaint?.();
     });
   }

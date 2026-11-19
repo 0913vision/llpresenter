@@ -47,7 +47,7 @@ class Entry {
   image: PictureImage | undefined;
   done = false;
   editing = false;
-  editorDraw: Promise<HTMLCanvasElement> | undefined;
+  editorDraw: Promise<HTMLCanvasElement | undefined> | undefined;
   immediate = false;
   failures = 0;
   retryAt = 0;
@@ -142,6 +142,7 @@ export class PictureService {
   private editorPainter: LocalPicturePainter | undefined;
   private paintingEditor = false;
   private editing = Promise.resolve();
+  private pendingEdit: {entry: Entry; controller: AbortController} | undefined;
   private importScope = new AbortController();
 
   constructor(private readonly options: {waitForReady?: boolean} = {}) {}
@@ -196,24 +197,49 @@ export class PictureService {
       layers: {...picture.layers, slide: {...slide, lines}},
     };
     const entry = this.request(next, this.inputs(next), {editing: true});
-    if (this.foreground.has(entry) && !this.paintingEditor) {
-      entry.editorDraw ??= this.paintEditor(entry);
+    const pending = this.pendingEdit;
+    if (pending?.entry === entry) return;
+    const earlier = pending?.entry.spec.layers.slide;
+    // NOTE(0913vision): Only the last edit before paint reaches the screen.
+    if (
+      earlier?.itemId === slide.itemId &&
+      earlier.position === slide.position
+    ) {
+      pending?.controller.abort();
     }
+    if (!this.foreground.has(entry)) return;
+    const edit = {entry, controller: new AbortController()};
+    this.pendingEdit = edit;
+    entry.editorDraw = this.paintEditor(entry, edit.controller.signal);
+    const clear = (): void => {
+      if (this.pendingEdit === edit) this.pendingEdit = undefined;
+    };
+    void entry.editorDraw.then(clear, clear);
   }
 
-  private paintEditor(entry: Entry): Promise<HTMLCanvasElement> {
-    const start = async (): Promise<HTMLCanvasElement> => {
+  private paintEditor(
+    entry: Entry,
+    signal?: AbortSignal,
+  ): Promise<HTMLCanvasElement | undefined> {
+    const start = async (): Promise<HTMLCanvasElement | undefined> => {
+      if (signal?.aborted) return undefined;
       this.editorPainter ??= new LocalPicturePainter();
       this.paintingEditor = true;
-      return this.editorPainter
-        .paint(entry.spec, undefined, canvas => {
-          const bytes = canvas.width * canvas.height * 4;
-          this.bytes += bytes;
-          entry.complete({source: canvas, bytes});
-        })
-        .finally(() => {
-          this.paintingEditor = false;
+      try {
+        return await this.editorPainter.paint(entry.spec, {
+          signal,
+          onCapture: canvas => {
+            const bytes = canvas.width * canvas.height * 4;
+            this.bytes += bytes;
+            entry.complete({source: canvas, bytes});
+          },
         });
+      } catch (error) {
+        if (signal?.aborted) return undefined;
+        throw error;
+      } finally {
+        this.paintingEditor = false;
+      }
     };
     const result = this.paintingEditor ? this.editing.then(start) : start();
     this.editing = result.then(
@@ -450,9 +476,7 @@ export class PictureService {
         next.ready
           .then(() => {
             if (next.image !== undefined) entry.complete(next.image);
-            if (this.entries.get(entry.key) === entry) {
-              this.entries.delete(entry.key);
-            }
+            this.forget(entry);
           })
           .catch((error: unknown) => console.error(error));
         return;
@@ -461,7 +485,10 @@ export class PictureService {
         // NOTE(0913vision): The import's temporary backgrounds belong to this
         // renderer. They never go into the shared painter or its disk cache.
         this.editorPainter ??= new LocalPicturePainter();
-        const canvas = await this.editorPainter.paint(entry.spec, signal);
+        const canvas = await this.editorPainter.paint(entry.spec, {
+          signal,
+          waitForReady: true,
+        });
         signal.throwIfAborted();
         const blob = await new Promise<Blob>((resolve, reject) => {
           canvas.toBlob(
@@ -487,9 +514,14 @@ export class PictureService {
       }
       if (entry.editing && LocalPicturePainter.available()) {
         const draw = entry.editorDraw ?? this.paintEditor(entry);
-        const canvas = await draw.catch(() => undefined);
+        const canvas = await draw.catch(() => null);
         entry.editorDraw = undefined;
-        if (canvas !== undefined) {
+        if (canvas === undefined && !entry.displayed) {
+          entry.cancel();
+          this.forget(entry);
+          return;
+        }
+        if (canvas != null) {
           requestIdleCallback(() => this.remember(canvas, entry), {
             timeout: 1000,
           });
@@ -524,6 +556,12 @@ export class PictureService {
       this.retry(entry);
     }
     this.prune();
+  }
+
+  private forget(entry: Entry): void {
+    if (this.entries.get(entry.key) === entry) {
+      this.entries.delete(entry.key);
+    }
   }
 
   private retry(entry: Entry): void {

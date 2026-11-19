@@ -11,6 +11,7 @@ import {LocalPicturePainter} from '@renderer/rendering/pictures/localPicturePain
 const mocks = vi.hoisted(() => ({
   ready: false,
   render: vi.fn(),
+  capture: vi.fn(),
   dispose: vi.fn(),
   incomplete: vi.fn(),
 }));
@@ -59,7 +60,7 @@ beforeEach(() => {
   Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
     configurable: true,
     value: () => ({
-      drawElementImage: vi.fn(),
+      drawElementImage: mocks.capture,
       drawImage: vi.fn(),
       clearRect: vi.fn(),
     }),
@@ -85,6 +86,7 @@ beforeEach(() => {
   );
   mocks.ready = false;
   mocks.render.mockClear();
+  mocks.capture.mockClear();
   mocks.dispose.mockClear();
   mocks.incomplete.mockClear();
 });
@@ -162,5 +164,59 @@ it('publishes the edited picture inside the source paint event', async () => {
   canvas.dispatchEvent(new Event('paint'));
   expect(entry.done).toBe(true);
   expect(entry.image?.source).toBeInstanceOf(HTMLCanvasElement);
+  expect(paint).not.toHaveBeenCalled();
+});
+
+it('captures only the latest lyric edit when two inputs arrive before a paint', async () => {
+  const paint = vi.fn();
+  vi.stubGlobal('llp', {
+    picture: {paint},
+    media: {
+      get: vi.fn().mockResolvedValue({revision: 0, value: {items: []}}),
+      subscribe: vi.fn(),
+    },
+    fonts: {
+      snapshot: vi.fn().mockRejectedValue(new Error('No font catalog')),
+      subscribe: vi.fn(),
+    },
+  });
+  const service = new PictureService();
+  const slide = {
+    itemId: 'song',
+    position: 0,
+    label: null,
+    lines: ['첫 줄', '둘째 줄'],
+  };
+  const picture = {...spec, layers: {...spec.layers, slide}};
+  const edit = (secondLine: string) => {
+    const lines = [slide.lines[0] ?? '', secondLine];
+    const next = {
+      ...picture,
+      layers: {...picture.layers, slide: {...slide, lines}},
+    };
+    service.prepareEditedLyrics(picture, lines);
+    return service.request(next, service.inputs(next));
+  };
+  const first = edit('둘째 줄이 길어져서 화면 너비를 넘는 순간');
+  const release = first.subscribe(() => undefined);
+  await vi.advanceTimersByTimeAsync(0);
+
+  const latest = edit('둘째 줄이 길어져서 화면 너비를 넘는 순간에');
+  release();
+  await vi.advanceTimersByTimeAsync(0);
+  const canvas = document.querySelector('body > canvas');
+  if (canvas === null) throw Error('Missing editor painter');
+  onTestFinished(() => canvas.remove());
+  expect(latest.done).toBe(false);
+  expect(mocks.render).toHaveBeenLastCalledWith(
+    latest.spec.layers,
+    expect.anything(),
+  );
+  mocks.ready = true;
+  canvas.dispatchEvent(new Event('paint'));
+
+  expect(latest.done).toBe(true);
+  expect(mocks.capture).toHaveBeenCalledOnce();
+  await expect(first.attempt).resolves.toBe(false);
   expect(paint).not.toHaveBeenCalled();
 });
