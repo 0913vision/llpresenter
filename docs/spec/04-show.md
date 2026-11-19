@@ -1100,8 +1100,7 @@ integration use this contract, with a distinct cancellable ID per lookup.
   on the 청중 화면 and the 방송 화면, with the screen name, target, and style
   name.
 - Buttons: 앞 절 추가 (add the previous verse), 뒤 절 추가 (add the next verse),
-  예배 순서에 넣기 (add to the 예배 순서), and 바로 띄우기 (show now, outputs
-  the selected 슬라이드; the primary button).
+  and 예배 순서에 넣기 (add to the 예배 순서).
 - Bible passages opened or shown from 빠른 실행 use a 0.7-second wipe to the
   left on every part, including the first slide and split verses. Inserting the
   passage into the service retains that default; existing service items are not
@@ -1131,9 +1130,9 @@ integration use this contract, with a distinct cancellable ID per lookup.
 - 예배 순서에 넣기 inserts a Bible passage item into the selected section or the
   section containing the selected 예배 순서 item, following 항목 추가's
   insertion rule (05). An empty section stays as the passage's section row.
-- Enter in 끝절 does the same as 바로 띄우기. In the preceding fields it
-  completes the field and advances focus. Choosing a recent passage keeps its
-  existing Enter-to-output behavior after preview.
+- Enter in 끝절 outputs the selected slide of the passage. In the preceding
+  fields it completes the field and advances focus. Choosing a recent passage
+  keeps its existing Enter-to-output behavior after preview.
 - If the reference isn't valid, the field shows an error ring with the reason in
   a tooltip, for example "구절을 찾을 수 없습니다" (passage not recognized)
   (proposal).

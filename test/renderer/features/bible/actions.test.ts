@@ -217,7 +217,7 @@ describe('Bible slide source', () => {
       expect(bibleSourceFor(useShow.getState(), sourceA.id)).toBeNull();
     },
   );
-  it('previews without output and shares selected output with Enter and the panel button', () => {
+  it('previews without output and sends the selected passage on request', () => {
     const fixture = panelApi();
     window.llp = fixture.api;
     openBiblePassage(panelPassage());
