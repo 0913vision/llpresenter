@@ -288,8 +288,8 @@ Source: `Reflow`, `PrepService`, `AddSongs`, `ListRow` README.
   left wipe; existing slides retain their saved transitions. Creeds and prayers
   use the new translation by default; their context menu also offers the old
   translation. 사도신경 and 광고 include their section card.
-- 성경 구절 opens the passage dialog. Section bands group items and never
-  appear on output; they are independent of item titles.
+- 성경 구절 opens the passage dialog. Section bands group items and never appear
+  on output; they are independent of item titles.
 - A media tile dropped at an order row edge inserts a media item; dropped in the
   middle half of a compatible row it becomes the item's background. Missing
   files and unsupported backgrounds are refused with a reason.
@@ -535,16 +535,16 @@ Source: `Reflow`, `ImportEdit`, `LabelChip` README, `LabelColorPicker` README,
 The right column shows 세부정보 for the selected item: its first slide picture,
 title and kind with slide count, followed by 정보 and 슬라이드 tabs. 정보 groups
 the applicable settings under 이번 예배 and source details under 원본, with
-left-aligned values in a common property grid. The 제목 select adds, changes,
-or removes the opening title of Bible, slides, liturgy, or media items. Songs
-and sermons have their own title slides and do not show the selector.
-슬라이드 shows the item's pictures in a grid with a remembered, independently
-adjustable thumbnail size; selection is local and a double click opens the
-editor at that slide. The item keeps its own slide count, theme and slides even
-when its library source changes. The picture and both tabs share one scroll. The
-screen selector chooses any configured output screen for the picture and slide
-tiles, using the same theme, content, screen correction and NDI transparency as
-its output. The first audience screen is selected initially.
+left-aligned values in a common property grid. The 제목 select adds, changes, or
+removes the opening title of Bible, slides, liturgy, or media items. Songs and
+sermons have their own title slides and do not show the selector. 슬라이드 shows
+the item's pictures in a grid with a remembered, independently adjustable
+thumbnail size; selection is local and a double click opens the editor at that
+slide. The item keeps its own slide count, theme and slides even when its
+library source changes. The picture and both tabs share one scroll. The screen
+selector chooses any configured output screen for the picture and slide tiles,
+using the same theme, content, screen correction and NDI transparency as its
+output. The first audience screen is selected initially.
 
 ### What belongs to the service and what belongs to the song
 
@@ -1262,17 +1262,18 @@ on the right, with 목록 and 격자 accessible names and tooltips. Grid view al
 shows the size control there. In list view each row has one numbered picture
 strip; the song strip opens its label menu.
 
-An opening 제목 card is the first row or cell, and its Korean and English
-names are editable. The card cannot be moved, and content slides cannot be moved
-ahead of it. Delete removes the selected card. Bible verse text remains read-only. Each text
-slide has an editable field and an immediately updated picture in both views.
-The view and grid size belong to the window. Grid size can be adjusted with the
-slide size control. Selection stays local to the editor; click selects a slide,
-Ctrl-click toggles it, and Shift-click extends a range. Drag or Alt+Up/Down
-reorders slides. Existing insertion, deletion, clipboard, and text editing
-commands apply in both views. In grid view, text fields grow to show all wrapped
-lines without an inner scrollbar. Cells in the same grid row have the height of
-the tallest cell; typing retains the caret and surface scroll position.
+An opening 제목 card is the first row or cell, and its Korean and English names
+are editable. The card cannot be moved, and content slides cannot be moved ahead
+of it. Delete removes the selected card. Bible verse text remains read-only.
+Each text slide has an editable field and an immediately updated picture in both
+views. The view and grid size belong to the window. Grid size can be adjusted
+with the slide size control. Selection stays local to the editor; click selects
+a slide, Ctrl-click toggles it, and Shift-click extends a range. Drag or
+Alt+Up/Down reorders slides. Existing insertion, deletion, clipboard, and text
+editing commands apply in both views. In grid view, text fields grow to show all
+wrapped lines without an inner scrollbar. Cells in the same grid row have the
+height of the tallest cell; typing retains the caret and surface scroll
+position.
 
 ????? ?? ?? ???? ???????? ??? ?? ????? ????. ??? ??? ??? ? ???? ???? ??? ?????
 
