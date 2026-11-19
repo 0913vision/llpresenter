@@ -10,7 +10,7 @@ import type {
   MediaImportRequest,
 } from '@core/schema/mediaEdit';
 import type {MediaStamps, MissingMedia} from '@core/schema/mediaFiles';
-import {MEDIA_LIMITS} from '@core/schema/mediaList';
+import {MEDIA_DELETE_HISTORY_LIMIT, MEDIA_LIMITS} from '@core/schema/mediaList';
 import {updateActiveCopies, type CopyJob} from './mediaCopyJobs';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {chosenPlaylist, type ChosenPlaylist} from './mediaEntries';
@@ -385,7 +385,10 @@ export class MediaLibrary {
           : null;
       if (revision != null && (this.view.document?.revision ?? 0) <= revision) {
         this.historyRevision = revision;
-        this.undoCount++;
+        this.undoCount = Math.min(
+          this.undoCount + 1,
+          MEDIA_DELETE_HISTORY_LIMIT,
+        );
         this.redoCount = 0;
       } else {
         this.undoCount = 0;
@@ -517,7 +520,10 @@ export class MediaLibrary {
           : null;
       if (revision != null && (this.view.document?.revision ?? 0) <= revision) {
         this.historyRevision = revision;
-        this.undoCount++;
+        this.undoCount = Math.min(
+          this.undoCount + 1,
+          MEDIA_DELETE_HISTORY_LIMIT,
+        );
         this.redoCount = 0;
       } else {
         this.undoCount = 0;

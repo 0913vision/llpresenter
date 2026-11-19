@@ -43,11 +43,29 @@ async function openRemoval() {
 it('deletes immediately and routes undo to the shared settings history', async () => {
   const f = setup();
   f.edit.mockResolvedValue({ok: true, value: {id, revision: 2}});
-  render(<TimerTab />);
+  render(
+    <div data-workspace-layout="show">
+      <div data-show-slide-grid>
+        <div role="listbox" aria-label="슬라이드" tabIndex={-1} />
+      </div>
+      <TimerTab />
+    </div>,
+  );
   await openRemoval();
   await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
   expect(screen.queryByRole('alertdialog')).toBeNull();
-  fireEvent.keyDown(screen.getByRole('list', {name: '타이머 목록'}), {
+  expect(
+    document.activeElement?.contains(
+      screen.getByRole('list', {name: '타이머 목록'}),
+    ),
+  ).toBe(true);
+  expect(
+    fireEvent.keyDown(document.activeElement ?? document.body, {
+      key: 'ArrowRight',
+      code: 'ArrowRight',
+    }),
+  ).toBe(true);
+  fireEvent.keyDown(document.activeElement ?? document.body, {
     key: 'z',
     code: 'KeyZ',
     ctrlKey: true,

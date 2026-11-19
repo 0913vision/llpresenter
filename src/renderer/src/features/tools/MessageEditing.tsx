@@ -24,7 +24,7 @@ import type {Notice} from '@renderer/ui/notices';
 import {useDuplicateShortcut} from './useDuplicateShortcut';
 import {useToolEditing} from './useToolEditing';
 import {useToolDeleteShortcuts} from '@renderer/platform/useToolDeleteShortcuts';
-import {returnFocus} from '@renderer/ui/returnFocus';
+import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
 import {useReflow} from '@renderer/ui/useReflow';
 import {
   MAX_MESSAGE_TEMPLATES,
@@ -270,14 +270,7 @@ export function MessageEditing({
           !locked &&
           document.value.templates.some(value => value.id === item.id),
         () => {
-          const list =
-            root.current?.querySelector<HTMLElement>('[role="listbox"]');
-          if (list) {
-            const had = list.hasAttribute('tabindex');
-            if (!had) list.tabIndex = -1;
-            returnFocus(list);
-            if (!had) list.removeAttribute('tabindex');
-          }
+          focusHistorySurface(root.current);
           save({kind: 'delete', id: item.id});
         },
       );

@@ -82,6 +82,17 @@ describe('ContentStore persistence and notifications', () => {
     expect(store.song(created.song.id)).toBeNull();
   });
 
+  it('refuses to restore a deleted song when another song took its title', async () => {
+    const {store, song} = setUp();
+    await store.apply({type: 'song.delete', songId: SONG});
+    const created = await store.apply({type: 'song.saveAs', song: song.data});
+    expect(created.ok).toBe(true);
+    expect(
+      await store.apply({type: 'content.undoDelete', area: 'song', id: SONG}),
+    ).toMatchObject({ok: false, error: {reason: 'duplicate-title'}});
+    expect(store.song(SONG)).toBeNull();
+  });
+
   it('undoes and redoes a service deletion without deleting an open service', async () => {
     const {store} = setUp([serviceFile(SUNDAY_ID, [])]);
     expect(

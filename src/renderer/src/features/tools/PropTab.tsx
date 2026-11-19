@@ -15,7 +15,7 @@ import {useAudioMedia} from './useAudioMedia';
 import {focusedOptionIndex, useDuplicateShortcut} from './useDuplicateShortcut';
 import {useToolEditing} from './useToolEditing';
 import {useToolDeleteShortcuts} from '@renderer/platform/useToolDeleteShortcuts';
-import {returnFocus} from '@renderer/ui/returnFocus';
+import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
 import {useReflow} from '@renderer/ui/useReflow';
 import styles from './PropGrid.module.css';
 import {menuAvailability} from '@renderer/ui/menuModel';
@@ -107,13 +107,7 @@ export function PropTab({
       1,
       () => !locked && document.value.props.some(row => row.id === prop.id),
       () => {
-        const list =
-          root.current?.querySelector<HTMLElement>('[role="listbox"]');
-        if (list) {
-          list.tabIndex = -1;
-          returnFocus(list);
-          list.removeAttribute('tabindex');
-        }
+        focusHistorySurface(root.current);
         save({kind: 'delete', id: prop.id});
       },
     );

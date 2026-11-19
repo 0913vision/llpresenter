@@ -1,5 +1,5 @@
 import {deletedObjectShortcuts} from '@core/shortcuts/deletion';
-import {sameJson} from '@core/common/sameJson';
+import {applySettingsDeletionDelta} from './settingsDeletionDelta';
 import type {
   SettingsListener,
   SettingsReader,
@@ -356,19 +356,25 @@ export class SettingsStore implements SettingsReader {
     for (const desired of target) {
       const current = this.documents.get(desired.name);
       const check = expected.find(value => value.name === desired.name);
-      if (
-        current?.access !== 'editable' ||
-        !check ||
-        !sameJson(current.value, check.value)
-      ) {
+      if (current?.access !== 'editable' || !check) {
         return Promise.resolve(
           refuse('stale', 'Settings changed since the deletion'),
+        );
+      }
+      const patched = applySettingsDeletionDelta(
+        current.value,
+        check.value,
+        desired.value,
+      );
+      if (!patched.ok) {
+        return Promise.resolve(
+          refuse('stale', 'The deleted settings were changed'),
         );
       }
       const parsed = parseSettingsDocument({
         ...current,
         revision: current.revision + 1,
-        value: desired.value,
+        value: patched.value,
       });
       if (!parsed.ok) {
         return Promise.resolve(refuse('invalid', parsed.error.message));

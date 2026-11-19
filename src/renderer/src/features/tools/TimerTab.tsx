@@ -11,7 +11,7 @@ import {TimerDialog} from './TimerDialog';
 import {deleteTimer, saveNewTimer, type NewTimer} from './timerEdits';
 import {useToolEditing} from './useToolEditing';
 import {useToolDeleteShortcuts} from '@renderer/platform/useToolDeleteShortcuts';
-import {returnFocus} from '@renderer/ui/returnFocus';
+import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
 import {WindowedTimers} from './WindowedTimers';
 import styles from './TimerTab.module.css';
 
@@ -100,10 +100,7 @@ export function TimerTab({
                 !locked &&
                 document.value.timers.some(row => row.id === timer.id),
               () => {
-                returnFocus(
-                  root.current?.querySelector<HTMLElement>('[role="list"]') ??
-                    null,
-                );
+                focusHistorySurface(root.current);
                 removal
                   .run({
                     type: 'timer.delete',

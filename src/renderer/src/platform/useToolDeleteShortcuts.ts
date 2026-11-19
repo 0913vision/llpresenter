@@ -21,6 +21,7 @@ export function useToolDeleteShortcuts(
   useWindowShortcuts(
     (['undo', 'redo'] as const).map(kind => ({
       id: `edit.${kind}`,
+      context: 'service',
       when: (event: KeyboardEvent) =>
         event.target instanceof Node &&
         root.current?.contains(event.target) === true &&

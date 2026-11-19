@@ -78,7 +78,11 @@ function setup(
     <WorkspaceNavigation value={navigate}>
       <MediaViewProvider api={fixture.api} onProblem={problems}>
         {choice !== undefined && <ChoiceButton choice={choice} />}
-        <MediaView workspace={workspace} onProblem={problems} />
+        <div
+          data-workspace-layout={workspace === 'show' ? workspace : undefined}
+        >
+          <MediaView workspace={workspace} onProblem={problems} />
+        </div>
       </MediaViewProvider>
     </WorkspaceNavigation>,
   );
@@ -761,17 +765,26 @@ describe('media view', () => {
       fixture.pushDocument(mediaDocument(items, revision));
       return {ok: true, value: {id: mediaId(1), revision}};
     });
-    const {send} = setup(fixture);
+    const {send} = setup(fixture, undefined, 'show');
     fireEvent.contextMenu(await tile('Dawn'));
     fireEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
     await waitFor(() =>
       expect(screen.queryByRole('option', {name: 'Dawn'})).toBeNull(),
     );
     const grid = screen.getByRole('listbox', {name: '모든 미디어'});
-    expect(document.activeElement).toBe(grid);
-    fireEvent.keyDown(grid, {key: 'z', code: 'KeyZ', ctrlKey: true});
+    const surface = document.activeElement;
+    expect(surface?.contains(grid)).toBe(true);
+    fireEvent.keyDown(surface ?? document.body, {
+      key: 'z',
+      code: 'KeyZ',
+      ctrlKey: true,
+    });
     await tile('Dawn');
-    fireEvent.keyDown(grid, {key: 'y', code: 'KeyY', ctrlKey: true});
+    fireEvent.keyDown(surface ?? document.body, {
+      key: 'y',
+      code: 'KeyY',
+      ctrlKey: true,
+    });
     await waitFor(() =>
       expect(screen.queryByRole('option', {name: 'Dawn'})).toBeNull(),
     );

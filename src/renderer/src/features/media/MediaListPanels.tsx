@@ -8,7 +8,7 @@ import {deleteSelection} from '@renderer/ui/useSelectionDelete';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {useRef, useState, type JSX} from 'react';
 import {useReflow} from '@renderer/ui/useReflow';
-import {returnFocus} from '@renderer/ui/returnFocus';
+import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
 import {IconButton} from '@renderer/ui/IconButton';
 import {
   ListBox,
@@ -83,13 +83,9 @@ function usePlaylistEditing(kind: 'media' | 'audio') {
       () => editable,
       () => {
         if (!playlist) return;
-        const list = target?.closest<HTMLElement>('[role="listbox"]');
-        if (list) {
-          const had = list.hasAttribute('tabindex');
-          if (!had) list.tabIndex = -1;
-          returnFocus(list);
-          if (!had) list.removeAttribute('tabindex');
-        }
+        focusHistorySurface(
+          target?.closest<HTMLElement>('[data-playlist-history]') ?? null,
+        );
         library
           .deletePlaylist(playlist)
           .catch((cause: unknown) =>
@@ -142,11 +138,10 @@ function usePlaylistEditing(kind: 'media' | 'audio') {
   useWindowShortcuts([
     ...(['undo', 'redo'] as const).map(action => ({
       id: `edit.${action}`,
+      context: 'service' as const,
       when: (event: KeyboardEvent) =>
         event.target instanceof Element &&
-        event.target.closest(
-          `[role="listbox"][aria-label="${kind === 'media' ? '미디어 목록' : '오디오 재생목록'}"]`,
-        ) !== null,
+        event.target.closest(`[data-playlist-history="${kind}"]`) !== null,
       unavailable: () =>
         (action === 'undo' ? library.canUndoDelete() : library.canRedoDelete())
           ? undefined
@@ -293,6 +288,7 @@ export function MediaListsPanel(): JSX.Element {
       <PanelBody tab="media" variant="list">
         <div
           ref={list}
+          data-playlist-history="media"
           className={styles.lists}
           onContextMenu={editing.onContextMenu}
           onKeyDown={editing.onContextMenu}
@@ -368,6 +364,7 @@ export function AudioListsPanel(): JSX.Element {
       <PanelBody tab="audio" variant="list">
         <div
           ref={list}
+          data-playlist-history="audio"
           className={styles.lists}
           onContextMenu={editing.onContextMenu}
           onKeyDown={editing.onContextMenu}

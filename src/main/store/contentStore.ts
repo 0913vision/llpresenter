@@ -14,6 +14,7 @@ import {
 } from '@core/schema/service';
 import type {LabelRename} from '@core/schema/settingsDocuments';
 import {randomUUID} from 'node:crypto';
+import {normalizeSongTitle} from '@core/songs/songTitle';
 import {dirname, extname, join} from 'node:path';
 import type {Logger} from '../log';
 import {
@@ -352,6 +353,24 @@ export class ContentStore {
       undo: async () => {
         if (documents.get(id)) {
           return refuse('stale', 'The deleted document already exists');
+        }
+        if (area === 'song') {
+          const title: unknown = Reflect.get(saved.data, 'title');
+          if (
+            typeof title !== 'string' ||
+            this.songs
+              .all()
+              .some(
+                song =>
+                  normalizeSongTitle(song.data.title) ===
+                  normalizeSongTitle(title),
+              )
+          ) {
+            return refuse(
+              'duplicate-title',
+              'Another song already has this title',
+            );
+          }
         }
         const file = deleteFailed
           ? saved.file

@@ -25,7 +25,7 @@ import {saveMacroEdit, type MacroEdit} from './macroEdits';
 import {deleteSelection} from '@renderer/ui/useSelectionDelete';
 import {useToolEditing} from './useToolEditing';
 import {useToolDeleteShortcuts} from '@renderer/platform/useToolDeleteShortcuts';
-import {returnFocus} from '@renderer/ui/returnFocus';
+import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
 import {toolMenuReason} from './toolMenuEntries';
 import {useOptimisticCreation} from './useOptimisticCreation';
 import {saveMacroCollectionEdit} from './macroCollectionEdits';
@@ -273,13 +273,7 @@ export function useMacroPanel({
     );
   };
   const focusGrid = (): void => {
-    const list = root?.current?.querySelector<HTMLElement>('[role="listbox"]');
-    if (list) {
-      const had = list.hasAttribute('tabindex');
-      if (!had) list.tabIndex = -1;
-      returnFocus(list);
-      if (!had) list.removeAttribute('tabindex');
-    }
+    focusHistorySurface(root?.current ?? null);
   };
   const removeMacro = (item: Macro): void =>
     deleteSelection(

@@ -416,7 +416,9 @@ it('turns the remove row into a submenu with two or more actions', async () => {
   const edit = f.edit.mock.calls[0]?.[0];
   if (edit?.name !== 'macros') throw new Error('Missing edit');
   expect(edit.value.macros[0]?.actions).toEqual([]);
-  expect(document.activeElement?.getAttribute('role')).toBe('listbox');
+  expect(document.activeElement?.contains(screen.getByRole('listbox'))).toBe(
+    true,
+  );
   fireEvent.keyDown(document.activeElement ?? document.body, {
     key: ' ',
     code: 'Space',
@@ -428,7 +430,7 @@ it('turns the remove row into a submenu with two or more actions', async () => {
   expect(f.send).not.toHaveBeenCalled();
 });
 
-it('returns to the live slide keys after deleting a macro action', async () => {
+it('keeps deletion history focused after deleting a macro action', async () => {
   const f = fixture([{kind: 'clearAll'}]);
   render(
     <div data-workspace-layout="show">
@@ -441,7 +443,12 @@ it('returns to the live slide keys after deleting a macro action', async () => {
   await openMenu();
   fireEvent.click(screen.getByRole('menuitem', {name: /^동작 삭제:/}));
   await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
-  expect(document.activeElement).toBe(
+  expect(
+    document.activeElement?.contains(
+      screen.getByRole('option', {name: '찬양'}),
+    ),
+  ).toBe(true);
+  expect(document.activeElement).not.toBe(
     screen.getByRole('listbox', {name: '슬라이드'}),
   );
   expect(f.send).not.toHaveBeenCalled();

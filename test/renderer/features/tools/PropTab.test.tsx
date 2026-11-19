@@ -107,7 +107,11 @@ it('deletes from the keyboard menu without a dialog and routes undo to the same 
       ],
     }),
   );
-  render(<PropTab />);
+  render(
+    <div data-workspace-layout="show">
+      <PropTab />
+    </div>,
+  );
   const tile = await screen.findByRole('option', {name: '로고'});
   tile.focus();
   fireEvent.keyDown(tile, {key: 'ContextMenu'});
@@ -115,7 +119,12 @@ it('deletes from the keyboard menu without a dialog and routes undo to the same 
   await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
   expect(screen.queryByRole('alertdialog')).toBeNull();
   const list = screen.getByRole('listbox');
-  fireEvent.keyDown(list, {key: 'z', code: 'KeyZ', ctrlKey: true});
+  expect(document.activeElement?.contains(list)).toBe(true);
+  fireEvent.keyDown(document.activeElement ?? document.body, {
+    key: 'z',
+    code: 'KeyZ',
+    ctrlKey: true,
+  });
   await waitFor(() =>
     expect(f.edit).toHaveBeenCalledWith({
       type: 'settings.undoDelete',

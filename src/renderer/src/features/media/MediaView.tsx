@@ -20,7 +20,7 @@ import {createServiceItemId, type MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
 import {RenameDialog} from '@renderer/ui/RenameDialog';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
-import {returnFocus} from '@renderer/ui/returnFocus';
+import {focusHistorySurface} from '@renderer/ui/focusHistorySurface';
 import {MEDIA_LIMITS} from '@core/schema/mediaList';
 import {useLive} from '@renderer/session/live';
 import {sendMediaOutput} from '@renderer/session/itemOutput';
@@ -208,15 +208,10 @@ export function MediaView({
         view.document?.access === 'editable' &&
         view.document.value.items.some(value => value.id === item.id),
       () => {
-        const list = target
-          ?.closest('section')
-          ?.querySelector<HTMLElement>('[role="listbox"]');
-        if (list) {
-          const hadTabIndex = list.hasAttribute('tabindex');
-          if (!hadTabIndex) list.tabIndex = -1;
-          returnFocus(list);
-          if (!hadTabIndex) list.removeAttribute('tabindex');
-        }
+        focusHistorySurface(
+          target?.closest<HTMLElement>('section[aria-label="미디어 보기"]') ??
+            null,
+        );
         library
           .deleteMedia(item.id, item.name || UNNAMED_MEDIA)
           .catch((cause: unknown) =>
@@ -351,11 +346,10 @@ export function MediaView({
   useWindowShortcuts([
     ...(['undo', 'redo'] as const).map(kind => ({
       id: `edit.${kind}`,
+      context: 'service' as const,
       when: (event: KeyboardEvent) =>
         event.target instanceof Element &&
-        event.target.closest(
-          'section[aria-label="미디어 보기"] [role="listbox"]',
-        ) !== null,
+        event.target.closest('section[aria-label="미디어 보기"]') !== null,
       unavailable: () =>
         (kind === 'undo' ? library.canUndoDelete() : library.canRedoDelete())
           ? undefined

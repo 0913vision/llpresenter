@@ -485,6 +485,9 @@ function handlerAt(
       handler =>
         handler.id === id &&
         place !== null &&
+        (!((id === 'edit.undo' || id === 'edit.redo') && isTextField(event)) ||
+          handler.context === 'song' ||
+          handler.context === 'screens') &&
         (workspace === undefined ||
           workspace === null ||
           spec === undefined ||
