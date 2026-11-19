@@ -19,6 +19,22 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe('shared preview panel', () => {
+  it('offers two named layout modes for live previews', () => {
+    const change = vi.fn();
+    render(
+      <PreviewPanel
+        screens={screens}
+        big="audience"
+        visible
+        onVisibleChange={change}
+        onBigChange={vi.fn()}
+        renderScreen={() => null}
+      />,
+    );
+    fireEvent.click(screen.getByRole('radio', {name: '3개 작게'}));
+    expect(change).toHaveBeenCalledWith(false);
+    expect(screen.getByRole('radio', {name: '메인 1 + 2'})).toBeDefined();
+  });
   it('keeps adjustable show tiles and resets the saved split on double click', () => {
     vi.mocked(usePreviewRoom).mockReturnValue(false);
     const save = vi.fn();

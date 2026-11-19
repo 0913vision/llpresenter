@@ -1,5 +1,5 @@
 import {useContext, useRef, useState, type JSX, type ReactNode} from 'react';
-import {IconButton} from './IconButton';
+import {SegmentedControl} from './SegmentedControl';
 import {Panel, PanelHeader, PanelTitle} from './Panel';
 import {PreviewFrame, type PreviewFrameProps} from './PreviewFrame';
 import {PreviewScreenPicker} from './PreviewScreenPicker';
@@ -43,11 +43,14 @@ export function PreviewPanel<Id extends string>({
       <PanelHeader>
         <PanelTitle title="미리보기" />
         {onVisibleChange === undefined ? null : (
-          <IconButton
-            icon={visible ? 'eye' : 'eyeoff'}
-            label={visible ? '큰 미리보기 숨기기' : '큰 미리보기 보기'}
-            pressed={visible}
-            onPressedChange={onVisibleChange}
+          <SegmentedControl
+            label="미리보기 배치"
+            options={[
+              {value: 'main', label: '메인 1 + 2'},
+              {value: 'small', label: '3개 작게'},
+            ]}
+            value={visible ? 'main' : 'small'}
+            onChange={value => onVisibleChange(value === 'main')}
           />
         )}
         {room || sizing !== null || blank || frame.screens.length < 2 ? null : (
