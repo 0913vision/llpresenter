@@ -166,7 +166,7 @@ describe('service picker', () => {
     });
     expect(
       within(dialog).getByText(
-        '\uc1a1\ucd9c \uc911\uc778 \ud654\uba74\uc774 \ub300\uae30 \ud654\uba74\uc73c\ub85c \ubc14\ub00c\ub2c8\ub2e4',
+        '\ubaa8\ub4e0 \ud654\uba74\uc774 \ub300\uae30 \ud654\uba74\uc73c\ub85c \ubc14\ub00c\ub2c8\ub2e4',
       ),
     ).toBeTruthy();
     expect(document.activeElement).toBe(
