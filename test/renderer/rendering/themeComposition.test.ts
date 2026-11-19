@@ -3192,6 +3192,55 @@ it.each(['\uc804\uc8fc', '\uac04\uc8fc', '\ud6c4\uc8fc'])(
   },
 );
 
+it('shows the intro cue on an image-backed song slide without extracted text', () => {
+  const {view, text} = setup();
+  if (!song.slide) throw Error('Missing slide');
+  view.render(
+    {
+      ...song,
+      slide: {...song.slide, label: '전주', lines: [], picture: mediaId},
+    },
+    {
+      ...frame([
+        {...themeElementBase(), kind: 'currentText'},
+        {...themeElementBase(32), kind: 'label'},
+      ]),
+      screen: {id: THEME_MAIN, kind: 'stage'},
+      transitions: false,
+    },
+  );
+  expect(text('currentText')).toBe('(전주)');
+  view.dispose();
+});
+
+it.each([false, true])(
+  'shows the intro cue with a short imported caption (titleSlide: %s)',
+  titleSlide => {
+    const {view, text} = setup();
+    if (!song.slide) throw Error('Missing slide');
+    view.render(
+      {
+        ...song,
+        slide: {
+          ...song.slide,
+          label: '전주',
+          lines: ['난 구원의 하나님을 인해 기뻐하리라'],
+          ...(titleSlide ? {titleSlide: true as const} : {}),
+        },
+      },
+      {
+        ...frame([{...themeElementBase(), kind: 'currentText'}]),
+        screen: {id: THEME_MAIN, kind: 'stage'},
+        transitions: false,
+      },
+    );
+    expect(text('currentText')).toBe(
+      '난 구원의 하나님을 인해 기뻐하리라 (전주)',
+    );
+    view.dispose();
+  },
+);
+
 it('keeps other song title labels in the top line', () => {
   const {root, view} = setup();
   if (!song.slide) throw Error('Missing slide');
