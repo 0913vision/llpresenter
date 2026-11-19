@@ -21,6 +21,10 @@ const drawn = vi.hoisted(() => {
   return {created, frames};
 });
 
+vi.mock('@renderer/ui/useElementSize', () => ({
+  useElementSize: () => [vi.fn(), {width: 600, height: 600}],
+}));
+
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
     ready = () => true;
@@ -99,6 +103,28 @@ describe('the output preview', () => {
     ]);
     view.unmount();
     expect(patternCommands()).toHaveLength(1);
+  });
+
+  it('fits the configured output aspect ratio in the available space', async () => {
+    const document = settingsDocument('screens', {
+      screens: [
+        {
+          id: MAIN_ID,
+          name: 'Audience',
+          kind: 'audience',
+          method: 'capture',
+          resolution: {width: 1024, height: 768},
+        },
+      ],
+    });
+    if (document.name !== 'screens') throw new Error('Missing screens');
+    const {view} = setup(document);
+    await screen.findByRole('button');
+    const picture = view.container.querySelector<HTMLElement>(
+      '[data-preview-picture]',
+    );
+    expect(picture?.style.width).toBe('600px');
+    expect(picture?.style.height).toBe('450px');
   });
 
   it('draws the pattern through the preview with the screen correction', async () => {

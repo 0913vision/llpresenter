@@ -16,6 +16,7 @@ import styles from './OutputPreview.module.css';
 import {fitAspect} from '@core/canvas/fitAspect';
 import {useElementSize} from '@renderer/ui/useElementSize';
 import {REFERENCE_SCREEN} from '@core/themes/textStyle';
+import {pictureSizeForScreen} from '@core/screens/pictureSize';
 
 const LOAD_TITLE = '화면';
 const noScreens: readonly Screen[] = [];
@@ -30,10 +31,11 @@ function PreviewBody({
   readonly pictureEnabled: boolean;
 }): JSX.Element {
   const [watchPicture, available] = useElementSize();
+  const outputSize = pictureSizeForScreen(screen) ?? REFERENCE_SCREEN;
   const picture =
     available === undefined
       ? undefined
-      : fitAspect(available, REFERENCE_SCREEN.width / REFERENCE_SCREEN.height);
+      : fitAspect(available, outputSize.width / outputSize.height);
   const signal = signalText(caption);
   return (
     <section className={styles.preview} aria-label="출력 미리보기">
