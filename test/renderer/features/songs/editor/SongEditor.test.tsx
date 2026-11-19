@@ -637,6 +637,20 @@ describe('song editor view', () => {
     await act(() => session.flush());
   });
 
+  it('splits at a line end without carrying the newline to either slide', async () => {
+    await editorSetup();
+    const input = lyrics(2);
+    const first = '\uccab\uc9f8 \uc904 \uac00\uc0ac';
+    const second = '\ub458\uc9f8 \uc904 \uac00\uc0ac';
+    fireEvent.change(input, {target: {value: `${first}\n${second}`}});
+    cursor(input, first.length);
+    fireEvent.keyDown(input, {key: 'Enter', code: 'Enter', ctrlKey: true});
+    expect(lyrics(2).value).toBe(first);
+    expect(lyrics(3).value).toBe(second);
+    expect(document.activeElement).toBe(lyrics(3));
+    expect(lyrics(3).selectionStart).toBe(0);
+  });
+
   it('starts lines, splits explicitly, and merges with Backspace', async () => {
     const {user} = await editorSetup();
     cursor(lyrics(), lyrics().value.length);

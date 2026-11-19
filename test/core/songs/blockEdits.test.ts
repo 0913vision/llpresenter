@@ -91,6 +91,42 @@ describe('slide text editing', () => {
     expect(new Set(after.song.slides.map(slide => slide.id)).size).toBe(4);
     expect(after.selection).toEqual({block: 1, start: 0, end: 0});
   });
+  it.each([
+    {
+      lines: ['first', 'second'],
+      position: 5,
+      expected: [['first'], ['second']],
+    },
+    {
+      lines: ['first', 'second'],
+      position: 6,
+      expected: [['first'], ['second']],
+    },
+    {
+      lines: ['first', '', 'second'],
+      position: 5,
+      expected: [['first'], ['', 'second']],
+    },
+    {
+      lines: ['first', 'second'],
+      position: 3,
+      expected: [['fir'], ['st', 'second']],
+    },
+  ])(
+    'splits at $position without carrying the boundary newline',
+    ({lines, position, expected}) => {
+      const slide = sampleSong().slides[0];
+      if (slide === undefined) throw Error('Missing slide');
+      const source = sampleSong([{...slide, lines}]);
+      const result = editBlocks(
+        blockSnapshot(source, {block: 0, start: position, end: position}),
+        {type: 'split'},
+      );
+      expect(result.song.slides.map(entry => entry.lines)).toEqual(expected);
+      expect(result.selection).toEqual({block: 1, start: 0, end: 0});
+    },
+  );
+
   it('pastes blank-line-separated slides and retains trailing text', () => {
     const before = blockSnapshot(sampleSong(), {block: 0, start: 0, end: 2});
     const after = editBlocks(before, {type: 'paste', text: 'new\r\n\r\nnext'});

@@ -165,7 +165,20 @@ export function editBlocks(
   const text = original.slice(0, start) + insertion + original.slice(end);
   const parts =
     command.type === 'split'
-      ? [original.slice(0, start), original.slice(end)]
+      ? [
+          original.slice(
+            0,
+            start > 0 &&
+              start === end &&
+              original[start] !== '\n' &&
+              original[start - 1] === '\n'
+              ? start - 1
+              : start,
+          ),
+          original.slice(
+            start === end && original[end] === '\n' ? end + 1 : end,
+          ),
+        ]
       : text.split(BLANK_LINES);
   if (song.slides.length + parts.length - 1 > SONG_LIMITS.slides) {
     return snapshot;
