@@ -109,6 +109,7 @@ export function tilePicture(
   return spec === undefined ? undefined : (
     <Picture
       {...spec}
+      resample={spec.appearance.screen.method !== 'ndi'}
       wait={themes.switchSlot !== undefined}
       switchSlot={themes.switchSlot}
     />
