@@ -4,6 +4,7 @@ import type {FontCatalogSnapshot} from '@core/schema/fontCatalog';
 import type {SongSlideSource} from '@core/schema/showService';
 import {pictureKey} from '@core/output/pictureKey';
 import {themeOverlay} from '@core/themes/content';
+import {OUTPUT_REVEAL_DEADLINE_MS} from '@core/output/revealDeadline';
 import {LocalPicturePainter} from './localPicturePainter';
 
 /** What the output compositor draws into a still. */
@@ -123,6 +124,7 @@ const UNMOUNTED_RETRIES = 2;
 /** Shares decoded sources and gives visible requests priority over preload. */
 export class PictureService {
   private readonly entries = new Map<string, Entry>();
+  private readonly handoffs = new Set<Entry>();
   private readonly foreground = new Set<Entry>();
   private readonly background = new Set<Entry>();
   private readonly inputListeners = new Set<Listener>();
@@ -163,6 +165,7 @@ export class PictureService {
     this.importScope = new AbortController();
     this.editorPainter?.dispose();
     this.editorPainter = undefined;
+    this.handoffs.clear();
     this.foreground.clear();
     this.background.clear();
     for (const entry of this.entries.values()) {
@@ -290,11 +293,16 @@ export class PictureService {
   /** Reports whether this attempt finished with a decoded image. */
   async whenDrawn(spec: PictureSpec, switchSlot?: string): Promise<boolean> {
     const entry = this.request(spec, this.inputs(spec));
+    if (switchSlot !== undefined) this.prioritizeHandoff(entry);
     if (!entry.available || !(await entry.attempt)) return false;
-    if (switchSlot !== undefined) {
-      await this.prepareDisplay(entry, switchSlot).ready;
+    if (switchSlot !== undefined && typeof entry.image?.source === 'string') {
+      return (await this.prepareDisplay(entry, switchSlot).ready) !== undefined;
     }
     return true;
+  }
+
+  private prioritizeHandoff(entry: Entry): void {
+    if (this.foreground.delete(entry)) this.handoffs.add(entry);
   }
 
   /** Decodes the exact element that will be attached during an item switch. */
@@ -313,7 +321,9 @@ export class PictureService {
           const element = await this.decodeDisplay(picture.source).finally(
             release,
           );
-          display = {picture, element, consume: () => displays.delete(slot)};
+          if (element !== undefined) {
+            display = {picture, element, consume: () => displays.delete(slot)};
+          }
         }
         // NOTE(0913vision): React can read a decoded display on its first render.
         Reflect.set(ready, 'status', 'fulfilled');
@@ -331,19 +341,30 @@ export class PictureService {
     return ticket;
   }
 
-  private async decodeDisplay(url: string): Promise<HTMLImageElement> {
+  private async decodeDisplay(
+    url: string,
+  ): Promise<HTMLImageElement | undefined> {
     const element = new Image();
     element.alt = '';
     element.draggable = false;
     element.decoding = 'sync';
     element.src = url;
+    let deadline: number | undefined;
     try {
-      await element.decode();
-      return element;
+      return await Promise.race([
+        element.decode().then(() => element),
+        new Promise<undefined>(resolve => {
+          deadline = window.setTimeout(
+            () => resolve(undefined),
+            OUTPUT_REVEAL_DEADLINE_MS,
+          );
+        }),
+      ]);
     } catch (error) {
       console.error('Could not decode a slide display', error);
-      await new Promise<void>(resolve => setTimeout(resolve, 250));
-      return this.decodeDisplay(url);
+      return undefined;
+    } finally {
+      window.clearTimeout(deadline);
     }
   }
 
@@ -412,9 +433,13 @@ export class PictureService {
     queueMicrotask(() => {
       this.scheduled = false;
       const queue =
-        this.foreground.size > 0 ? this.foreground : this.background;
+        this.handoffs.size > 0
+          ? this.handoffs
+          : this.foreground.size > 0
+            ? this.foreground
+            : this.background;
       const limit =
-        queue === this.foreground && !this.options.waitForReady
+        queue !== this.background && !this.options.waitForReady
           ? FOREGROUND_LIMIT
           : 1;
       while (this.active < limit) {
@@ -422,7 +447,7 @@ export class PictureService {
         if (entry === undefined) return;
         queue.delete(entry);
         this.active++;
-        this.load(entry)
+        this.load(entry, queue === this.handoffs)
           .finally(() => {
             this.active--;
             this.schedule();
@@ -432,7 +457,7 @@ export class PictureService {
     });
   }
 
-  private async load(entry: Entry): Promise<void> {
+  private async load(entry: Entry, handoff: boolean): Promise<void> {
     const signal = this.importScope.signal;
     try {
       await (this.options.waitForReady
@@ -442,6 +467,7 @@ export class PictureService {
       const inputs = this.inputs(entry.spec);
       if (inputs !== entry.inputs) {
         const next = this.request(entry.spec, inputs, {editing: entry.editing});
+        if (handoff) this.prioritizeHandoff(next);
         next.attempt
           .then(ok => {
             if (!ok) entry.fail();

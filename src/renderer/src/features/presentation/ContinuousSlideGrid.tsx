@@ -16,6 +16,7 @@ import {outputTile, useShow} from '@renderer/session/show';
 import {projectedLiveCursor, tilesForView} from '@renderer/session/showLibrary';
 import type {ShowView} from '@renderer/session/showStore';
 import {SlideThumbnail, ThumbnailGrid, thumbnailWidth} from '@renderer/ui';
+import {firstSlideWindowSize} from './useSlideWindow';
 import {useGridMeasure} from '@renderer/ui/useGridMeasure';
 import {useBibleProjections} from '../bible/useBibleProjections';
 import {splitSourceFor} from '../bible/splitProjection';
@@ -474,6 +475,11 @@ export function ContinuousSlideGrid({
       ref={keeper}
       className={styles.keeper}
       data-show-slide-grid="true"
+      data-slide-window-size={firstSlideWindowSize(
+        tracks,
+        metrics.height,
+        stride,
+      )}
       style={{height: total}}
     >
       <div

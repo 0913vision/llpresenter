@@ -9,7 +9,11 @@ import {
   type JSX,
 } from 'react';
 import {outputTile, useShow} from '@renderer/session/show';
-import {liveTileIndex, shownTilesFor} from '@renderer/session/showLibrary';
+import {
+  isBibleSource,
+  liveTileIndex,
+  shownTilesFor,
+} from '@renderer/session/showLibrary';
 import {useLive} from '@renderer/session/live';
 import {
   commitShownItem,
@@ -52,6 +56,7 @@ export function SlideGrid({
   onOpenPrep,
 }: SlideGridProps): JSX.Element {
   const openItemId = useShownItemId();
+  const bibleLookup = useShow(view => isBibleSource(view, openItemId));
   const offset = useShow(view =>
     openItemId === null ? null : serviceSlideOffset(view, openItemId),
   );
@@ -146,6 +151,7 @@ export function SlideGrid({
     gap,
     live: liveIndex,
     itemId: openItemId,
+    startAtTop: bibleLookup,
   });
   const entryRef = useContext(ShowSlideEntry);
   const enter = useEffectEvent(() => {
@@ -181,6 +187,7 @@ export function SlideGrid({
         }
       }}
       data-show-slide-grid="true"
+      data-slide-window-size={window.windowSize}
       style={{height: window.height}}
     >
       {row !== undefined && row.kind !== 'header' ? (

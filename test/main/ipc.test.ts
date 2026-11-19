@@ -96,6 +96,15 @@ function mockLog() {
   } satisfies Logger;
 }
 
+function liveWindow() {
+  const window = {
+    isDestroyed: () => false,
+    webContents: {isDestroyed: () => false, send: vi.fn()},
+  };
+  electron.windows.add(window);
+  return window;
+}
+
 function sendCommand(value: unknown): void {
   electron.listeners.get(liveEndpoints.command.channel)?.({}, value);
 }
@@ -128,32 +137,98 @@ describe('registerIpc live clock', () => {
 });
 
 describe('registerIpc live commands', () => {
-  it('holds Bible range output until the matching control frame is committed', () => {
-    const itemId = 'bible:fixture';
-    const first: LiveState = {
-      ...emptyLiveState(),
+  it.each(['launch', 'range change'] as const)(
+    'holds a quick Bible %s until the matching control frame is committed',
+    change => {
+      const itemId = 'bible:fixture';
+      const first: LiveState = {
+        ...emptyLiveState(),
+        themeItem: {
+          id: itemId,
+          kind: 'bible',
+          source: 'external',
+          title: 'John 3:16',
+        },
+        layers: {
+          ...emptyLiveState().layers,
+          slide: {itemId, position: 0, lines: ['Text'], label: null},
+        },
+      };
+      const store = {
+        ...mockStore(),
+        state: change === 'launch' ? emptyLiveState() : first,
+      };
+      const control = liveWindow();
+      const output = liveWindow();
+      const dispose = registerIpc(store, mockLog(), {
+        windowMode: 'offscreen',
+        app: FACTS,
+        isControlWindow: window =>
+          Object.is(window.webContents, control.webContents),
+      });
+      try {
+        const next = {
+          ...first,
+          version: 1,
+          themeItem: {
+            id: itemId,
+            kind: 'bible' as const,
+            source: 'external' as const,
+            title: 'John 3:16–17',
+          },
+        };
+        store.publish(next);
+        expect(control.webContents.send).toHaveBeenCalledExactlyOnceWith(
+          liveEndpoints.changed.channel,
+          {...next, waitingForControl: true},
+        );
+        expect(output.webContents.send).not.toHaveBeenCalled();
+        const ready = electron.listeners.get(
+          liveEndpoints.controlFrameReady.channel,
+        );
+        ready?.({sender: output.webContents}, next.version);
+        ready?.({sender: control.webContents}, -1);
+        ready?.({sender: control.webContents}, 0);
+        expect(output.webContents.send).not.toHaveBeenCalled();
+        ready?.({sender: control.webContents}, next.version);
+        expect(output.webContents.send).toHaveBeenCalledExactlyOnceWith(
+          liveEndpoints.changed.channel,
+          next,
+        );
+      } finally {
+        dispose();
+      }
+    },
+  );
+
+  it('publishes blackout immediately while the first quick Bible frame is pending', () => {
+    const control = liveWindow();
+    const output = liveWindow();
+    const store = mockStore();
+    const next: LiveState = {
+      ...store.state,
+      version: 1,
       themeItem: {
-        id: itemId,
+        id: 'bible:fixture',
         kind: 'bible',
         source: 'external',
         title: 'John 3:16',
       },
       layers: {
-        ...emptyLiveState().layers,
-        slide: {itemId, position: 0, lines: ['Text'], label: null},
+        ...store.state.layers,
+        slide: {
+          itemId: 'bible:fixture',
+          position: 0,
+          lines: ['Text'],
+          label: null,
+        },
       },
     };
-    const store = {...mockStore(), state: first};
-    const control = {
-      isDestroyed: () => false,
-      webContents: {isDestroyed: () => false, send: vi.fn()},
-    };
-    const output = {
-      isDestroyed: () => false,
-      webContents: {isDestroyed: () => false, send: vi.fn()},
-    };
-    electron.windows.add(control);
-    electron.windows.add(output);
+    const blackedOut = {...next, version: 2, blackScreen: true};
+    store.dispatch.mockImplementation(command => {
+      if (command.type === 'black.toggle') store.publish(blackedOut);
+      return true;
+    });
     const dispose = registerIpc(store, mockLog(), {
       windowMode: 'offscreen',
       app: FACTS,
@@ -161,34 +236,23 @@ describe('registerIpc live commands', () => {
         Object.is(window.webContents, control.webContents),
     });
     try {
-      const next = {
-        ...first,
-        version: 1,
-        themeItem: {
-          id: itemId,
-          kind: 'bible' as const,
-          source: 'external' as const,
-          title: 'John 3:16–17',
-        },
-      };
       store.publish(next);
       expect(control.webContents.send).toHaveBeenCalledExactlyOnceWith(
         liveEndpoints.changed.channel,
         {...next, waitingForControl: true},
       );
       expect(output.webContents.send).not.toHaveBeenCalled();
-      const ready = electron.listeners.get(
-        liveEndpoints.controlFrameReady.channel,
-      );
-      ready?.({sender: output.webContents}, next.version);
-      ready?.({sender: control.webContents}, -1);
-      ready?.({sender: control.webContents}, 0);
-      expect(output.webContents.send).not.toHaveBeenCalled();
-      ready?.({sender: control.webContents}, next.version);
+
+      sendCommand({type: 'black.toggle'});
       expect(output.webContents.send).toHaveBeenCalledExactlyOnceWith(
         liveEndpoints.changed.channel,
-        next,
+        blackedOut,
       );
+      electron.listeners.get(liveEndpoints.controlFrameReady.channel)?.(
+        {sender: control.webContents},
+        next.version,
+      );
+      expect(output.webContents.send).toHaveBeenCalledOnce();
     } finally {
       dispose();
     }

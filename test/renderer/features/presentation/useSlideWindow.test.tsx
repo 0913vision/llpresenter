@@ -9,12 +9,16 @@ function Grid({
   width = 676,
   tileWidth = 160,
   itemId = 'song',
+  startAtTop = false,
+  onRender,
 }: {
   count?: number;
   live?: number | null;
   width?: number;
   tileWidth?: number;
   itemId?: string;
+  startAtTop?: boolean;
+  onRender?: (start: number) => void;
 }) {
   const keeper = useRef<HTMLDivElement>(null);
   const window = useSlideWindow(keeper, {
@@ -25,7 +29,9 @@ function Grid({
     columns: 4,
     gap: 12,
     itemId,
+    startAtTop,
   });
+  onRender?.(window.start);
   return (
     <div data-testid="viewport">
       <div ref={keeper} style={{height: window.height}}>
@@ -80,6 +86,19 @@ it('mounts only visible rows and a margin, including both ends while scrolling',
     screen.getAllByRole('option').at(-1)?.getAttribute('aria-posinset'),
   ).toBe('100');
   fireEvent.scroll(viewport, {target: {scrollTop: 0}});
+  expect(screen.getAllByRole('option')[0]?.textContent).toBe('1');
+});
+
+it('renders the prepared first window when switching from a scrolled Bible lookup', () => {
+  const view = render(<Grid itemId="bible:first" startAtTop />);
+  const viewport = screen.getByTestId('viewport');
+  fireEvent.scroll(viewport, {target: {scrollTop: 720}});
+  expect(screen.getAllByRole('option')[0]?.textContent).not.toBe('1');
+
+  const onRender = vi.fn();
+  view.rerender(<Grid itemId="bible:second" startAtTop onRender={onRender} />);
+  expect(onRender).toHaveBeenNthCalledWith(1, 0);
+  expect(viewport.scrollTop).toBe(0);
   expect(screen.getAllByRole('option')[0]?.textContent).toBe('1');
 });
 

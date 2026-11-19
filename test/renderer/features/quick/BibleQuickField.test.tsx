@@ -25,6 +25,9 @@ import {lookupReply, lookupRequest} from '@fixtures/core/bibleLookups';
 import {formLookupReply} from '@fixtures/core/bibleReplies';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
 import {openBiblePassage} from '@renderer/features/bible/actions';
+import * as biblePictures from '@renderer/features/bible/prepareBiblePictures';
+import {pictures} from '@renderer/rendering/pictures/pictureService';
+import {deferred} from '@fixtures/renderer/features/tools/quickTesting';
 import {BibleQuickField} from '@renderer/features/quick/BibleQuickField';
 import {BiblePanel} from '@renderer/features/presentation/BiblePanel';
 import {BibleSplitTools} from '@renderer/features/bible/BibleSplitTools';
@@ -77,6 +80,97 @@ afterEach(() => {
 });
 
 describe('BibleQuickField', () => {
+  it.each([true, false])(
+    'outputs Enter after picture preparation returns %s',
+    async ready => {
+      const fixture = panelApi();
+      window.llp = fixture.api;
+      const drawing = deferred<boolean>();
+      const drawInPlace = vi
+        .spyOn(pictures, 'drawInPlace', 'get')
+        .mockReturnValue(false);
+      const prepare = vi
+        .spyOn(biblePictures, 'prepareBiblePictures')
+        .mockReturnValue(drawing.promise);
+      try {
+        const previous = await passage('요한복음 3:17');
+        openBiblePassage(previous);
+        const previousId = useShow.getState().openItemId;
+        render(<BibleQuickField api={fixture.api} />);
+        fireEvent.change(await book(), {target: {value: '요'}});
+        fireEvent.change(screen.getByRole('textbox', {name: '장'}), {
+          target: {value: '3'},
+        });
+        const start = screen.getByRole('textbox', {name: '시작절'});
+        fireEvent.change(start, {target: {value: '16'}});
+        fireEvent.keyDown(start, {key: 'Enter'});
+        await waitFor(() => expect(prepare).toHaveBeenCalledOnce());
+        expect(useShow.getState().openItemId).toBe(previousId);
+        expect(fixture.send).not.toHaveBeenCalled();
+
+        await act(async () => drawing.resolve(ready));
+        expect(
+          lastLiveCommand(fixture.send.mock.calls.at(-1)?.[0]),
+        ).toMatchObject({
+          type: 'slide.show',
+          slide: {itemId: 'bible:sample:요한복음 3:16'},
+        });
+        expect(useShow.getState().readyPassage).toEqual(
+          ready
+            ? expect.objectContaining({
+                previous: previousId,
+                id: 'bible:sample:요한복음 3:16',
+              })
+            : null,
+        );
+      } finally {
+        prepare.mockRestore();
+        drawInPlace.mockRestore();
+      }
+    },
+  );
+
+  it('outputs once when picture preparation outlasts the Enter deadline', async () => {
+    const fixture = panelApi();
+    window.llp = fixture.api;
+    const drawing = deferred<boolean>();
+    const drawInPlace = vi
+      .spyOn(pictures, 'drawInPlace', 'get')
+      .mockReturnValue(false);
+    const prepare = vi
+      .spyOn(biblePictures, 'prepareBiblePictures')
+      .mockReturnValue(drawing.promise);
+    try {
+      render(<BibleQuickField api={fixture.api} />);
+      const bookField = await book();
+      vi.useFakeTimers();
+      fireEvent.change(bookField, {target: {value: '요'}});
+      fireEvent.change(screen.getByRole('textbox', {name: '장'}), {
+        target: {value: '3'},
+      });
+      const start = screen.getByRole('textbox', {name: '시작절'});
+      fireEvent.change(start, {target: {value: '16'}});
+      fireEvent.keyDown(start, {key: 'Enter'});
+
+      await act(async () => vi.advanceTimersByTimeAsync(0));
+      expect(prepare).toHaveBeenCalledOnce();
+      await act(async () => vi.advanceTimersByTimeAsync(2499));
+      expect(fixture.send).not.toHaveBeenCalled();
+      await act(async () => vi.advanceTimersByTimeAsync(1));
+      expect(fixture.send).toHaveBeenCalledOnce();
+      expect(lastLiveCommand(fixture.send.mock.calls[0]?.[0])).toMatchObject({
+        type: 'slide.show',
+        slide: {itemId: 'bible:sample:요한복음 3:16'},
+      });
+      await act(async () => drawing.resolve(true));
+      expect(fixture.send).toHaveBeenCalledOnce();
+    } finally {
+      vi.useRealTimers();
+      prepare.mockRestore();
+      drawInPlace.mockRestore();
+    }
+  });
+
   it('outputs a quick passage with no AI request or indicator and keeps AI off after display changes', async () => {
     const fixture = panelApi();
     window.llp = fixture.api;

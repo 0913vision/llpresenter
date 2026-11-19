@@ -3,11 +3,27 @@ import {
   onWorkspaceVisible,
   workspaceFrame,
 } from '@renderer/ui/workspaceVisibility';
-import {useLayoutEffect, useRef, useState, type RefObject} from 'react';
+import {
+  useEffectEvent,
+  useLayoutEffect,
+  useRef,
+  useState,
+  type RefObject,
+} from 'react';
 import {flushSync} from 'react-dom';
 
 const OVERSCAN_ROWS = 1;
 const INITIAL_ROWS = 2;
+
+export function firstSlideWindowSize(
+  tracks: number,
+  height: number,
+  stride: number,
+): number {
+  const visible =
+    height > 0 && stride > 1 ? Math.ceil(height / stride) : INITIAL_ROWS;
+  return (visible + OVERSCAN_ROWS * 2) * tracks;
+}
 
 function follow(
   viewport: HTMLElement | null | undefined,
@@ -55,6 +71,7 @@ export function useSlideWindow(
     gap,
     live,
     itemId,
+    startAtTop = false,
   }: {
     readonly count: number;
     readonly columns: number;
@@ -63,6 +80,7 @@ export function useSlideWindow(
     readonly gap: number;
     readonly live: number | null;
     readonly itemId: string | null;
+    readonly startAtTop?: boolean;
   },
 ) {
   const [measure, setMeasure] = useState({
@@ -71,7 +89,15 @@ export function useSlideWindow(
     band: 0,
     rowGap: 0,
   });
-  const [scrollTop, setScrollTop] = useState(0);
+  const [scroll, setScroll] = useState({itemId, top: 0});
+  const scrollTop = startAtTop && scroll.itemId !== itemId ? 0 : scroll.top;
+  const setScrollTop = useEffectEvent((top: number) => {
+    setScroll(previous =>
+      previous.itemId === itemId && previous.top === top
+        ? previous
+        : {itemId, top},
+    );
+  });
   const geometry = useRef<{
     itemId: string | null;
     tracks: number;
@@ -212,11 +238,20 @@ export function useSlideWindow(
   useLayoutEffect(() => {
     const last = read.current;
     read.current = {itemId, count};
+    const viewport = keeper.current?.parentElement;
+    if (
+      startAtTop &&
+      last.itemId !== itemId &&
+      viewport &&
+      viewport.scrollTop !== 0
+    ) {
+      viewport.scrollTo({top: 0, behavior: 'instant'});
+    }
     if (measured.current && last.itemId === itemId && last.count === count) {
       return;
     }
     remeasure.current();
-  }, [itemId, count]);
+  }, [keeper, itemId, count, startAtTop]);
   const tracks =
     tileWidth > 0
       ? Math.max(1, Math.floor((width + gap) / (tileWidth + gap)))
@@ -237,7 +272,8 @@ export function useSlideWindow(
     ),
   );
   const start = first * tracks;
-  const end = Math.min(count, (first + visible + OVERSCAN_ROWS * 2) * tracks);
+  const windowSize = firstSlideWindowSize(tracks, measure.height, stride);
+  const end = Math.min(count, start + windowSize);
   useLayoutEffect(() => {
     const viewport = keeper.current?.parentElement;
     const old = geometry.current;
@@ -334,6 +370,7 @@ export function useSlideWindow(
     reveal: (): void => current.current(),
     start,
     end,
+    windowSize,
     offset: first * stride,
     height: Math.max(0, rows * stride - measure.rowGap) + measure.inset * 2,
   };
