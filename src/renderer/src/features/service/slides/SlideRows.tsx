@@ -21,6 +21,7 @@ import {useSongBlockWindow} from '../../songs/editor/useSongBlockWindow';
 import {visibleGridInsertionPosition} from '../../songs/editor/gridInsertionPosition';
 import {useSlideSurfaceView} from '../../songs/editor/SlideSurfaceView';
 import {useRevealInsertedSlide} from '../../songs/editor/useRevealInsertedSlide';
+import {useSlideDefaults} from '../../songs/editor/useSlideDefaults';
 
 import {
   LEADING_CARD_WINDOW_ITEM,
@@ -106,6 +107,11 @@ export function SlideRows({
     [fallback, blocked, report],
   );
   const commands = session ?? fallback;
+  const slideDefaults = useSlideDefaults();
+  useLayoutEffect(
+    () => commands.setSlideDefaults(slideDefaults),
+    [commands, slideDefaults],
+  );
   useSyncExternalStore(
     commands.slideModel.subscribe,
     commands.slideModel.getSnapshot,

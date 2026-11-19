@@ -250,7 +250,10 @@ export class SongSession {
       () =>
         text === undefined
           ? this.history.model.paste()
-          : this.history.model.pasteText(text),
+          : this.history.model.pasteText(text, slide => ({
+              ...slide,
+              transition: this.slideDefaults.song,
+            })),
       false,
     );
   }
@@ -339,7 +342,9 @@ export class SongSession {
               ...command,
               transition: command.transition ?? this.slideDefaults.songTitle,
             }
-          : command.type === 'insert'
+          : command.type === 'insert' ||
+              command.type === 'split' ||
+              command.type === 'paste'
             ? {
                 ...command,
                 transition: command.transition ?? this.slideDefaults.song,

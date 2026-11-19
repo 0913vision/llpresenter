@@ -81,6 +81,10 @@ function SlidesItemTiles({
   readonly openEditor: LlpApi['slidesEditor']['open'] | undefined;
 }): JSX.Element {
   const slideDefaults = useSlideDefaults();
+  useEffect(
+    () => session.setSlideDefaults(slideDefaults),
+    [session, slideDefaults],
+  );
   const {service} = useSyncExternalStore(items.subscribe, items.getSnapshot);
   const labelsDoc = useItemSettings(
     api.settings,

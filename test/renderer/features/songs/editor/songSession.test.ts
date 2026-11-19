@@ -10,6 +10,7 @@ import {
   followSongPictureDraft,
   songPictureDraft,
 } from '@core/presentation/songPictureDrafts';
+import {defaultSlideTransitions} from '@core/schema/preferences';
 
 describe('slide deck sessions', () => {
   function deck() {
@@ -25,6 +26,28 @@ describe('slide deck sessions', () => {
     onTestFinished(() => session.discard());
     return {...fixture, session};
   }
+  it('uses the song default for plain text but preserves a copied slide transition', () => {
+    const {session} = deck();
+    const transition = {kind: 'wipe', dir: 'up', sec: 2} as const;
+    session.setSlideDefaults({...defaultSlideTransitions, song: transition});
+    session.selectSlides({type: 'gap', index: 3});
+    session.pasteSlides('external first\n\nexternal second');
+    expect(
+      session.history.snapshot.song.slides
+        .slice(-2)
+        .map(slide => slide.transition),
+    ).toEqual([transition, transition]);
+    const first = session.history.snapshot.song.slides[0];
+    if (!first) throw new Error('Missing slide');
+    session.selectSlides({type: 'click', id: first.id});
+    const copied = session.copySlides();
+    if (copied === null) throw new Error('Missing clipboard');
+    session.selectSlides({type: 'gap', index: 5});
+    session.pasteSlides(copied);
+    expect(session.history.snapshot.song.slides[5]?.transition).toEqual(
+      session.history.snapshot.song.slides[0]?.transition,
+    );
+  });
   it('selects a slide without changing its content or creating an undo step', () => {
     const {session, edits} = deck();
     const song = session.history.snapshot.song;

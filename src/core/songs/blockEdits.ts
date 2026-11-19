@@ -178,13 +178,21 @@ export function editBlocks(
       end: start + insertion.length,
     });
   }
-  const {hotKey: removed, ...rest} = slide;
+  const {hotKey: removed, transition: removedTransition, ...rest} = slide;
   const slides = [...song.slides];
   slides.splice(
     block,
     1,
     ...parts.map((part, at) => ({
-      ...(at === 0 ? slide : {...rest, id: newSongSlideId()}),
+      ...(at === 0
+        ? slide
+        : {
+            ...rest,
+            id: newSongSlideId(),
+            ...(command.transition === undefined
+              ? {}
+              : {transition: command.transition}),
+          }),
       lines: linesOf(part),
     })),
   );

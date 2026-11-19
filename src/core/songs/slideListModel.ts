@@ -208,7 +208,10 @@ export class SlideListModel<T extends SlideListItem, Context = unknown> {
       : this.command({type: 'paste', slides: copied.slides});
   };
 
-  readonly pasteText = (text: unknown): CommandResult => {
+  readonly pasteText = (
+    text: unknown,
+    mapPlain?: (slide: T) => T,
+  ): CommandResult => {
     const copied = this.options.clipboard.read();
     if (
       copied !== null &&
@@ -219,7 +222,11 @@ export class SlideListModel<T extends SlideListItem, Context = unknown> {
     }
     const result = slidesFromPlainText(text, this.options.adapter);
     return result.ok
-      ? this.command({type: 'paste', slides: result.value})
+      ? this.command({
+          type: 'paste',
+          slides:
+            mapPlain === undefined ? result.value : result.value.map(mapPlain),
+        })
       : result;
   };
 

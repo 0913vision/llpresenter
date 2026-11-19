@@ -19,7 +19,11 @@ export type BlockCommand =
       readonly start: number;
       readonly end: number;
     }
-  | {readonly type: 'paste'; readonly text: string}
+  | {
+      readonly type: 'paste';
+      readonly text: string;
+      readonly transition?: SlideTransition;
+    }
   | {readonly type: 'label'; readonly name: string | undefined}
   | {
       readonly type: 'title';
@@ -37,7 +41,10 @@ export type BlockCommand =
       readonly index?: number;
       readonly transition?: SlideTransition;
     }
-  | {readonly type: 'enter' | 'split' | 'merge'};
+  | {
+      readonly type: 'enter' | 'split' | 'merge';
+      readonly transition?: SlideTransition;
+    };
 
 export const normalize = (text: string): string => text.replace(/\r\n?/g, '\n');
 export const BLANK_LINES = /\n(?:[^\S\n]*\n)+/g;
