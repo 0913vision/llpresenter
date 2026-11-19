@@ -2,6 +2,7 @@ import {afterEach, beforeEach, expect, it, onTestFinished, vi} from 'vitest';
 import {emptyLayers} from '@core/live/state';
 import {pictureKey} from '@core/output/pictureKey';
 import {parsePictureRequest} from '@core/schema/picture';
+import {pictureBounds} from '@renderer/rendering/pictures/drawPicture';
 import {createScreenId, createThemeId} from '@core/schema/ids';
 import {OUTPUT_REVEAL_DEADLINE_MS} from '@core/output/revealDeadline';
 import {
@@ -64,6 +65,7 @@ beforeEach(() => {
       drawElementImage: vi.fn(),
       drawImage: vi.fn(),
       clearRect: vi.fn(),
+      fillRect: vi.fn(),
     }),
   });
   vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(1920);
@@ -279,4 +281,25 @@ it('invalidates a screen picture when its configured size changes', () => {
       inputs: '',
     }).ok,
   ).toBe(false);
+});
+
+it('fits the configured output aspect ratio inside cached pictures', () => {
+  expect(pictureBounds(undefined)).toEqual({
+    x: 0,
+    y: 0,
+    width: 1920,
+    height: 1080,
+  });
+  expect(pictureBounds({width: 1024, height: 768})).toEqual({
+    x: 240,
+    y: 0,
+    width: 1440,
+    height: 1080,
+  });
+  expect(pictureBounds({width: 2560, height: 1080})).toEqual({
+    x: 0,
+    y: 135,
+    width: 1920,
+    height: 810,
+  });
 });

@@ -5,7 +5,7 @@ import {fontsLoading, previewReady} from '../fontsLoading';
 import {OutputRenderer} from '../outputRenderer';
 import {openPreviewMedia} from '../previewMedia';
 import type {PictureSpec} from './pictureService';
-import {drawPicture} from './drawPicture';
+import {drawPicture, layoutPicture} from './drawPicture';
 
 interface ElementCanvasContext extends CanvasRenderingContext2D {
   drawElementImage(element: HTMLElement, x: number, y: number): DOMMatrix;
@@ -77,6 +77,7 @@ export class LocalPicturePainter {
   }
 
   private draw({layers, appearance}: PictureSpec): OutputRenderer {
+    layoutPicture(this.host, appearance.screen.pictureSize);
     const transparent = appearance.screen.method === 'ndi';
     if (
       this.failed ||
@@ -125,6 +126,7 @@ export class LocalPicturePainter {
       throw new Error('The editor canvas is unavailable');
     }
     const renderer = this.draw(spec);
+    const bounds = layoutPicture(this.host, spec.appearance.screen.pictureSize);
     return new Promise((resolve, reject) => {
       const capture = (): void => {
         if (!previewReady(renderer) || fontsLoading(document.fonts)) return;
@@ -132,12 +134,16 @@ export class LocalPicturePainter {
         try {
           if (this.failed) throw new Error('A source layer could not be drawn');
           if (
-            this.host.clientWidth !== WIDTH ||
-            this.host.clientHeight !== HEIGHT
+            this.host.clientWidth !== bounds.width ||
+            this.host.clientHeight !== bounds.height
           ) {
             throw new Error('The editor picture has no output-size layout');
           }
-          context.drawElementImage(this.host, 0, 0);
+          if (spec.appearance.screen.method !== 'ndi') {
+            context.fillStyle = '#000000';
+            context.fillRect(0, 0, WIDTH, HEIGHT);
+          }
+          context.drawElementImage(this.host, bounds.x, bounds.y);
           const image = document.createElement('canvas');
           image.width = WIDTH;
           image.height = HEIGHT;
