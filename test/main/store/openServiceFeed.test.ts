@@ -299,6 +299,93 @@ describe('OpenServiceFeed', () => {
     expect(feed.current()?.tiles[id]).toHaveLength(3);
     await feed.dispose();
   });
+  it('accepts a measured single verse with an assigned label', async () => {
+    const request = parseBibleLookupRequest({
+      translation: 'sample',
+      input: '\uC694\uD55C\uBCF5\uC74C 3:16',
+    });
+    if (!request.ok) throw Error('Invalid request');
+    const lookup = vi
+      .fn<NonNullable<OpenServiceSources['bible']>['lookup']>()
+      .mockResolvedValue({
+        ...request.value,
+        suggestions: [],
+        result: {
+          ok: true,
+          value: {
+            translation: request.value.translation,
+            ref: request.value.input,
+            displayRef: request.value.input,
+            verses: [{chapter: 3, verse: 16, text: 'alpha beta'}],
+          },
+        },
+      });
+    const settings: SettingsReader = {
+      get: () => settingsDocument('bibleCuts', {entries: {}}, 1),
+      preferences: () => defaultPreferences,
+      subscribe: () => () => undefined,
+    };
+    const {feed, content, current} = await setUp(undefined, {lookup}, settings);
+    const id = createServiceItemId(itemId(62));
+    const verse = {
+      translation: request.value.translation,
+      book: 43,
+      chapter: 3,
+      verse: 16,
+    };
+    content.storedService.mockReturnValue({
+      ...current,
+      data: {
+        ...current.data,
+        order: [
+          {
+            id,
+            bible: {
+              translation: request.value.translation,
+              ref: request.value.input,
+              split: 'verse',
+              reference: 'every',
+              verseNumbers: true,
+              translationName: false,
+            },
+            bibleLabels: [{verse, part: 1, label: 'Reading'}],
+          },
+        ],
+      },
+    });
+    await feed.refresh();
+    const fallback = feed.current()?.tiles[id]?.[0];
+    if (fallback === undefined) throw Error('Missing verse');
+    expect(fallback).toMatchObject({slideLabel: 'Reading', bibleVerse: verse});
+    expect(fallback.label).toContain('3:16');
+    const projection = parseBibleProjection({
+      serviceId: SUNDAY_ID,
+      itemId: id,
+      revision: 1,
+      measurement: {themes: 1, screens: 1, bibleCuts: 1},
+      tiles: [
+        {...fallback, lines: ['alpha beta'], biblePart: 1, continued: false},
+      ],
+    });
+    if (!projection.ok) throw Error('Invalid projection');
+    feed.acceptBibleProjection(projection.value);
+    await feed.refresh();
+    expect(feed.current()?.tiles[id]?.[0]).toMatchObject({
+      lines: ['alpha beta'],
+      bibleVerse: verse,
+      slideLabel: 'Reading',
+    });
+    feed.acceptBibleProjection({
+      ...projection.value,
+      tiles: projection.value.tiles.map(tile => ({
+        ...tile,
+        bibleVerse: {...verse, verse: 17},
+      })),
+    });
+    await feed.refresh();
+    expect(feed.current()?.tiles[id]?.[0]?.bibleVerse).toEqual(verse);
+    await feed.dispose();
+  });
   it('starts each verse on a slide for a legacy 들어가는 만큼 passage', async () => {
     const request = parseBibleLookupRequest({
       translation: 'sample',

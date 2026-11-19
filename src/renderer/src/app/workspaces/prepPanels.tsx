@@ -57,7 +57,7 @@ import styles from './OtherPrepEditor.module.css';
 import {DetailsPanel} from '@renderer/features/service/details/DetailsPanel';
 import {isLibrarySource, openLibrarySong} from '@renderer/session/showLibrary';
 import {useLeadingItemCard} from '@renderer/features/service/items/useLeadingItemCard';
-import {BibleSplitTools} from '@renderer/features/bible/BibleSplitTools';
+import {PrepBibleSplitTools} from './PrepBibleSplitTools';
 import {BibleInlineEditor} from '@renderer/features/service/items/BibleInlineEditor';
 import {itemEditorAdapter} from '@renderer/platform/itemEditorAdapter';
 import type {LeadingSlideCard} from '@renderer/features/songs/editor';
@@ -514,6 +514,7 @@ function OtherPrepEditor({
   const serviceName = useShow(view => view.serviceName);
   const item = itemState.item;
   const [manualSplitRequest, setManualSplitRequest] = useState(0);
+  const splitVerses = item !== null && itemEditorAdapter(item).splitVerses;
   const root = useRef<HTMLDivElement>(null);
   useEffect(() => {
     const escape = (event: KeyboardEvent): void => {
@@ -542,8 +543,8 @@ function OtherPrepEditor({
       ) : null}
       {item !== null &&
       (isItemOfKind(item, 'bible') || isItemOfKind(item, 'sermon')) ? (
-        <BibleSplitTools
-          enableManual
+        <PrepBibleSplitTools
+          item={item}
           selectedIndex={itemState.position}
           manualRequest={manualSplitRequest}
           onProblem={prep.items.reportNotice}
@@ -564,7 +565,7 @@ function OtherPrepEditor({
           onBack={onBack}
           hideHeader
           onSplit={
-            itemEditorAdapter(item).splitVerses
+            splitVerses
               ? () => setManualSplitRequest(value => value + 1)
               : undefined
           }

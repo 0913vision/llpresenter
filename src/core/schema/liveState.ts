@@ -1,5 +1,5 @@
 import {songLyricFormatSchema} from './songLyricFormat';
-import {sectionCardSchema} from './service';
+import {bibleVerseReferenceSchema, sectionCardSchema} from './service';
 import {songTitleLayoutSchema} from './songTitleLayout';
 import {slideTransitionSchema} from './slideTransition';
 import * as v from 'valibot';
@@ -66,6 +66,7 @@ export const nextSlideSchema = payloadObject({
   lines: slideLinesSchema,
   continued: v.exactOptional(v.boolean()),
   biblePart: v.exactOptional(biblePartSchema),
+  bibleVerse: v.exactOptional(bibleVerseReferenceSchema),
   titleSlide: v.exactOptional(v.literal(true)),
   titleLineCount: v.exactOptional(
     v.pipe(v.number(), v.integer(), v.minValue(1), v.maxValue(1000)),
@@ -99,6 +100,7 @@ export const layerSchemas = {
       ),
     ),
     biblePart: v.exactOptional(biblePartSchema),
+    bibleVerse: v.exactOptional(bibleVerseReferenceSchema),
     sourceSlideId: v.exactOptional(slideIdSchema),
     transition: v.exactOptional(slideTransitionSchema),
     transitionStartedAt: v.exactOptional(v.pipe(v.number(), v.finite())),

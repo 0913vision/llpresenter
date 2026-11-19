@@ -563,7 +563,7 @@ export function OtherSlideInspector({
                     className={styles.caption}
                     style={labelInk(tile.labelColor)}
                   >
-                    {tile.label ?? ''}
+                    {tile.slideLabel ?? tile.label ?? ''}
                     <span>
                       {index + 1} / {tiles.length}
                     </span>

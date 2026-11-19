@@ -62,6 +62,7 @@ export function nextSlideOf(
     ...(title === undefined || title.trim() === '' ? {} : {title}),
     ...(tile.continued === undefined ? {} : {continued: tile.continued}),
     ...(tile.biblePart === undefined ? {} : {biblePart: tile.biblePart}),
+    ...(tile.bibleVerse === undefined ? {} : {bibleVerse: tile.bibleVerse}),
     ...(tile.sermonTitle === undefined ? {} : {sermonTitle: tile.sermonTitle}),
     ...(tile.titleSlide === undefined ? {} : {titleSlide: tile.titleSlide}),
     ...(tile.titleLineCount === undefined
@@ -164,6 +165,7 @@ export function slideLayerOf(
     ...(tile.sourceSlideId === undefined
       ? {}
       : {sourceSlideId: tile.sourceSlideId}),
+    ...(tile.bibleVerse === undefined ? {} : {bibleVerse: tile.bibleVerse}),
     label:
       tile.slideLabel ??
       (tile.kind === undefined || tile.biblePart !== undefined

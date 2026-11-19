@@ -62,7 +62,7 @@ export function ItemSlideGrid({
     () =>
       projection?.tiles.map(tile => ({
         text: tile.lines.join('\n'),
-        label: tile.label ?? undefined,
+        label: tile.slideLabel ?? tile.label ?? undefined,
         color: tile.labelColor,
         media: undefined,
       })) ?? rawSlides,

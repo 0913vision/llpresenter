@@ -22,6 +22,7 @@ export class BibleSlideSession implements SlideListSession<BibleSlide> {
       readonly items: ServiceItemStore;
       readonly offset: number;
       readonly readOnly: boolean;
+      readonly initialCardSelected?: boolean;
     },
   ) {
     this.slideModel = new SlideListModel({
@@ -43,7 +44,8 @@ export class BibleSlideSession implements SlideListSession<BibleSlide> {
     const selected =
       savedSelection.length > 0
         ? savedSelection
-        : options.items.getSnapshot().cardSelected
+        : (options.initialCardSelected ??
+            options.items.getSnapshot().cardSelected)
           ? []
           : [
               Math.max(

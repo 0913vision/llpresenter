@@ -5,6 +5,19 @@ export interface BiblePartIdentity {
   readonly label: SlideTile['label'];
   readonly part: number;
   readonly sourceSlideId?: SlideTile['sourceSlideId'];
+  readonly bibleVerse?: SlideTile['bibleVerse'];
+}
+
+export function sameBibleVerse(
+  left: NonNullable<SlideTile['bibleVerse']>,
+  right: NonNullable<SlideTile['bibleVerse']>,
+): boolean {
+  return (
+    left.translation === right.translation &&
+    left.book === right.book &&
+    left.chapter === right.chapter &&
+    left.verse === right.verse
+  );
 }
 
 function sameVerseLabel(
@@ -19,15 +32,18 @@ function sameVerseLabel(
 /** Finds a verse's part after a projection change, clamping a removed part. */
 export function biblePartIndex(
   tiles: readonly SlideTile[],
-  {label, part, sourceSlideId}: BiblePartIdentity,
+  {label, part, sourceSlideId, bibleVerse}: BiblePartIdentity,
 ): number | null {
   const indices: number[] = [];
   tiles.forEach((tile, index) => {
     if (tile.sectionCard !== undefined) return;
     if (
-      sourceSlideId === undefined
-        ? sameVerseLabel(tile.label, label)
-        : tile.sourceSlideId === sourceSlideId
+      sourceSlideId !== undefined
+        ? tile.sourceSlideId === sourceSlideId
+        : bibleVerse !== undefined
+          ? tile.bibleVerse !== undefined &&
+            sameBibleVerse(tile.bibleVerse, bibleVerse)
+          : sameVerseLabel(tile.label, label)
     ) {
       indices.push(index);
     }
@@ -49,9 +65,12 @@ export function retainedBibleSelection(
   const first = previous.findIndex(
     tile =>
       tile.sectionCard === undefined &&
-      (current?.sourceSlideId === undefined
-        ? sameVerseLabel(tile.label, current?.label ?? null)
-        : tile.sourceSlideId === current.sourceSlideId),
+      (current?.sourceSlideId !== undefined
+        ? tile.sourceSlideId === current.sourceSlideId
+        : current?.bibleVerse !== undefined
+          ? tile.bibleVerse !== undefined &&
+            sameBibleVerse(tile.bibleVerse, current.bibleVerse)
+          : sameVerseLabel(tile.label, current?.label ?? null)),
   );
   return (
     (first < 0 || current === undefined
@@ -60,6 +79,7 @@ export function retainedBibleSelection(
           label: current.label,
           part: current.biblePart ?? selected - first + 1,
           sourceSlideId: current.sourceSlideId,
+          bibleVerse: current.bibleVerse,
         })) ?? Math.max(0, Math.min(selected, next.length - 1))
   );
 }

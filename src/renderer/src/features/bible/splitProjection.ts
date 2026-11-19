@@ -248,9 +248,8 @@ export function projectBible(
         : '';
     const reference = `${name} ${part.reference.chapter}:${part.reference.verse}${translation}`;
     return {
-      label:
-        biblePartLabel(source.labels, part.reference, part.part) ??
-        `${book.koreanShort}${part.reference.chapter}:${part.reference.verse}${part.partCount > 1 ? ` (${part.part})` : ''}`,
+      label: `${book.koreanShort}${part.reference.chapter}:${part.reference.verse}${part.partCount > 1 ? ` (${part.part})` : ''}`,
+      bibleVerse: part.reference,
       ...(() => {
         const label = biblePartLabel(source.labels, part.reference, part.part);
         return label === undefined ? {} : {slideLabel: label};

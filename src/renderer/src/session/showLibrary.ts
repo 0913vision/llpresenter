@@ -31,6 +31,7 @@ let detachedSelection: {
   readonly label: SlideTile['label'];
   readonly part: number;
   readonly sourceSlideId?: SlideTile['sourceSlideId'];
+  readonly bibleVerse?: SlideTile['bibleVerse'];
 } | null = null;
 let stopDetachedSelection: (() => void) | null = null;
 let publishedSlides: {
@@ -143,6 +144,7 @@ export function setBibleTileResolver(
       itemId: id,
       label: tile.label,
       part: tile.biblePart ?? 1,
+      ...(tile.bibleVerse === undefined ? {} : {bibleVerse: tile.bibleVerse}),
       ...(tile.sourceSlideId === undefined
         ? {}
         : {sourceSlideId: tile.sourceSlideId}),
@@ -164,12 +166,15 @@ export function projectedLiveCursor(
   const anchored = resolveLiveAnchor(view, slide);
   if (anchored !== null) return anchored.live;
   const index =
-    slide.biblePart === undefined && slide.sourceSlideId === undefined
+    slide.biblePart === undefined &&
+    slide.sourceSlideId === undefined &&
+    slide.bibleVerse === undefined
       ? slide.position
       : biblePartIndex(tilesForView(view, slide.itemId), {
           label: slide.label,
           part: slide.biblePart ?? 1,
           sourceSlideId: slide.sourceSlideId,
+          bibleVerse: slide.bibleVerse,
         });
   return index === null ? null : {itemId: slide.itemId, index};
 }
@@ -237,8 +242,12 @@ export function liveTileIndex(
     return null;
   }
   const tiles = tilesForView(view, open.id);
-  if (slide.biblePart !== undefined) {
-    return biblePartIndex(tiles, {label: slide.label, part: slide.biblePart});
+  if (slide.biblePart !== undefined || slide.bibleVerse !== undefined) {
+    return biblePartIndex(tiles, {
+      label: slide.label,
+      part: slide.biblePart ?? 1,
+      bibleVerse: slide.bibleVerse,
+    });
   }
   const matching = tiles.findIndex(
     candidate =>

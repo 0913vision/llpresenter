@@ -181,6 +181,7 @@ export const showTileSchema = v.pipe(
     kind: v.exactOptional(v.picklist(['blank', 'ad'])),
     continued: v.exactOptional(v.boolean()),
     biblePart: v.exactOptional(biblePartSchema),
+    bibleVerse: v.exactOptional(bibleVerseReferenceSchema),
     sourceSlideId: v.exactOptional(slideIdSchema),
     transition: v.exactOptional(slideTransitionSchema),
     verse: v.exactOptional(

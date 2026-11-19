@@ -364,6 +364,7 @@ function DetailsPanelContent({
     }
     return (
       library?.tiles[index]?.label ??
+      bibleTiles?.[index - offset]?.slideLabel ??
       bibleTiles?.[index - offset]?.label ??
       raw[index - offset]?.label
     );

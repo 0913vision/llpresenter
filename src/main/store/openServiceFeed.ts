@@ -12,6 +12,7 @@ import type {BibleLookupSession} from '../bible/lookup';
 import type {BibleProjectionPayload} from '@core/schema/bibleProjection';
 import type {SettingsReader} from '@core/schema/settingsReader';
 import type {ShowTile} from '@core/schema/showService';
+import {sameBibleVerse} from '@core/bible/selection';
 
 const FIRST_REVISION = 1;
 
@@ -45,7 +46,10 @@ function matchingVerses(
       if (
         !part ||
         part.sectionCard !== undefined ||
-        part.biblePart !== ++count
+        part.biblePart !== ++count ||
+        (verse.bibleVerse !== undefined &&
+          part.bibleVerse !== undefined &&
+          !sameBibleVerse(verse.bibleVerse, part.bibleVerse))
       ) {
         return false;
       }
@@ -53,7 +57,8 @@ function matchingVerses(
       continued = part.continued === true;
     }
     const full = content(verse);
-    const number = verse.label?.match(/:(\d+)$/u)?.[1];
+    const number =
+      verse.bibleVerse?.verse.toString() ?? verse.label?.match(/:(\d+)$/u)?.[1];
     if (
       text !== full &&
       !(verses.length === 1 && number !== undefined && full === number + text)

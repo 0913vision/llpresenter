@@ -1,4 +1,10 @@
-import {useMemo, useSyncExternalStore, type JSX} from 'react';
+import {
+  useEffect,
+  useMemo,
+  useState,
+  useSyncExternalStore,
+  type JSX,
+} from 'react';
 import {isItemOfKind, type ServiceItemOf} from '@core/schema/service';
 import {
   LITURGY,
@@ -137,14 +143,28 @@ function LiturgyContent({
     [texts],
   );
   const locked = shownItem.busy || shownItem.service?.access !== 'editable';
+  const initialCardSelected =
+    offset > 0 && (shownItem.cardSelected || position === 0);
+  const [initialCardSelection] = useState(initialCardSelected);
+  useEffect(() => {
+    if (
+      offset > 0 &&
+      position === 0 &&
+      !shownItem.cardSelected &&
+      items.getSnapshot().item?.id === item.id
+    ) {
+      items.setCardSelected(true);
+    }
+  }, [items, item.id, offset, position, shownItem.cardSelected]);
   const session = useMemo(
     () =>
       new BibleSlideSession(item.id, fixedTiles, {
         items,
         offset,
         readOnly: locked,
+        initialCardSelected: initialCardSelection,
       }),
-    [item.id, fixedTiles, items, offset, locked],
+    [item.id, fixedTiles, items, offset, locked, initialCardSelection],
   );
   const selection = useSyncExternalStore(
     session.slideModel.subscribe,
@@ -167,6 +187,7 @@ function LiturgyContent({
         session={session}
         leadingCard={card}
         mixedLeadingSelection
+        initialLeadingSelected={initialCardSelected}
         contentReadOnly
         className={styles.surface}
       >

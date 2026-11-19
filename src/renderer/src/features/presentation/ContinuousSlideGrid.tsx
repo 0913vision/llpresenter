@@ -147,10 +147,14 @@ function SectionGrid({
             selectionStyle="plate"
             number={section.number + index + 1}
             canvas={tilePicture(tile, slide, themes)}
-            label={tile.label === '' ? undefined : (tile.label ?? undefined)}
+            label={
+              (tile.slideLabel ?? tile.label) === ''
+                ? undefined
+                : (tile.slideLabel ?? tile.label ?? undefined)
+            }
             labelColor={tile.labelColor}
             accessibleLabel={
-              picture === undefined || tile.label
+              picture === undefined || tile.slideLabel || tile.label
                 ? undefined
                 : tile.lines.join(' ')
             }

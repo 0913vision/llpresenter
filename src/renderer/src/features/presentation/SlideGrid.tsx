@@ -247,11 +247,13 @@ export function SlideGrid({
                   switchSlot: switching ? `${openItemId}:${index}` : undefined,
                 })}
                 label={
-                  tile.label === '' ? undefined : (tile.label ?? undefined)
+                  (tile.slideLabel ?? tile.label) === ''
+                    ? undefined
+                    : (tile.slideLabel ?? tile.label ?? undefined)
                 }
                 labelColor={tile.labelColor}
                 accessibleLabel={
-                  picture === undefined || tile.label
+                  picture === undefined || tile.slideLabel || tile.label
                     ? undefined
                     : tile.lines.join(' ')
                 }

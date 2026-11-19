@@ -154,7 +154,7 @@ export async function resolveServicePassages(
         return {
           ...tile,
           ...(transition === undefined ? {} : {transition}),
-          ...(label === undefined ? {} : {label, slideLabel: label}),
+          ...(label === undefined ? {} : {slideLabel: label}),
         };
       }),
       ...(isItemOfKind(item, 'sermon')

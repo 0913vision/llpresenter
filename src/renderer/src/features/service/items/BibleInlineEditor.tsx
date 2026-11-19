@@ -323,7 +323,9 @@ function BibleEditorContent({
                       </div>
                       <SlideThumbnailBand
                         number={index + 1}
-                        label={slide.tile.label ?? undefined}
+                        label={
+                          slide.tile.slideLabel ?? slide.tile.label ?? undefined
+                        }
                       />
                     </div>
                     <div className={styles.verse}>

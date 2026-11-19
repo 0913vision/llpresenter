@@ -54,9 +54,11 @@ export function SongSlideSurface<T extends SlideListItem>({
   contentReadOnly = false,
   mixedLeadingSelection = leadingCard?.mixedSelection ?? false,
   itemKind,
+  initialLeadingSelected = false,
 }: {
   readonly session: SlideListSession<T>;
   readonly itemKind: ItemEditorKind;
+  readonly initialLeadingSelected?: boolean;
   readonly children: ReactNode;
   readonly leadingCard?: LeadingSlideCard | undefined;
   readonly contentReadOnly?: boolean | undefined;
@@ -84,10 +86,13 @@ export function SongSlideSurface<T extends SlideListItem>({
   );
   const [cardSelection, setCardSelection] = useState({
     documentId: session.slideDocumentId,
-    selected: false,
+    selected: initialLeadingSelected,
   });
   if (cardSelection.documentId !== session.slideDocumentId) {
-    setCardSelection({documentId: session.slideDocumentId, selected: false});
+    setCardSelection({
+      documentId: session.slideDocumentId,
+      selected: initialLeadingSelected,
+    });
   }
   const leadingSelected =
     leadingCard !== undefined &&
@@ -127,6 +132,7 @@ export function SongSlideSurface<T extends SlideListItem>({
     }
     const first = view.slides[0];
     if (first !== undefined) {
+      leadingCard.onSelectChange?.(true);
       adapter.select({type: 'click', id: first.id});
     }
   };

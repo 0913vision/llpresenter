@@ -223,6 +223,13 @@ it('applies the quick default to every split part and preserves per-part overrid
   });
   expect(overridden?.tiles[1]?.transition).toEqual({kind: 'none', sec: 0.7});
   expect(overridden?.tiles[1]?.slideLabel).toBe('Refrain');
+  expect(overridden?.tiles[1]?.label).toContain('3:17');
+  expect(overridden?.tiles[1]?.bibleVerse).toEqual({
+    translation: passage.translation,
+    book: 35,
+    chapter: 3,
+    verse: 17,
+  });
   expect(overridden?.tiles[0]?.slideLabel).toBeUndefined();
   const {transition: _default, ...oldSource} = source;
   expect(

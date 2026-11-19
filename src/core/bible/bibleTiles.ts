@@ -56,7 +56,8 @@ export function bibleVerseTiles(
     translationName = false,
     reference = 'none',
   } = options;
-  const shortBook = passageBook(passage)?.koreanShort ?? '';
+  const bookInfo = passageBook(passage);
+  const shortBook = bookInfo?.koreanShort ?? '';
   const book = passage.displayRef.replace(/\s+\d.*$/u, '');
   const translation =
     translationName && passage.translationLabel
@@ -64,6 +65,16 @@ export function bibleVerseTiles(
       : '';
   return passage.verses.map((verse, index) => ({
     label: `${shortBook}${verse.chapter}:${verse.verse}`,
+    ...(bookInfo === undefined
+      ? {}
+      : {
+          bibleVerse: {
+            translation: passage.translation,
+            book: bookInfo.id,
+            chapter: verse.chapter,
+            verse: verse.verse,
+          },
+        }),
     labelColor: NO_LABEL_COLOR,
     ...(options.transition === undefined
       ? {}
