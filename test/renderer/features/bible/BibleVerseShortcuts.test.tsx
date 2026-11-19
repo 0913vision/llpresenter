@@ -493,6 +493,24 @@ describe('Bible verse shortcuts', () => {
     expect(fixture.send).not.toHaveBeenCalled();
   });
 
+  it('keeps an adjacent lookup when the grid catches up to the live slide', async () => {
+    const fixture = await savedWithCard(1);
+    useShow.setState({selectedTile: 0});
+    let resume: ((reply: BibleLookupReply) => void) | undefined;
+    fixture.lookup.mockImplementationOnce(
+      () =>
+        new Promise<BibleLookupReply>(resolve => {
+          resume = resolve;
+        }),
+    );
+    const output = outputAdjacentBibleVerse('previous');
+    await vi.waitFor(() => expect(fixture.lookup).toHaveBeenCalledTimes(1));
+    selectTile(1);
+    resume?.(await formLookupReply(lookupRequest('요한복음')));
+    await output;
+    expect(fixture.send).toHaveBeenCalled();
+  });
+
   it('bounds a failed lookup and retains the last good output', async () => {
     const fixture = await setup();
     const log = vi.spyOn(fixture.api.log, 'write');
