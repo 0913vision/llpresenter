@@ -386,6 +386,10 @@ function stageStandbyNext(live: TileCursor, next: TileCursor | null): boolean {
   const view = useShow.getState();
   if (next !== null) {
     const row = view.rows.find(entry => entry.id === next.itemId);
+    const tile = tilesOf(next.itemId)[next.index];
+    if (tile?.sectionCard !== undefined || tile?.titleSlide === true) {
+      return false;
+    }
     return row?.kind === 'slides' && row.title === '\uB300\uAE30 \uD654\uBA74';
   }
   const row = view.rows.find(entry => entry.id === live.itemId);

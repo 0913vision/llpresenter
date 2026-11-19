@@ -279,13 +279,7 @@ export function PrepPage({edits}: PageProps): JSX.Element | null {
   return (
     <>
       <PropertyGroup title="제목 목록">
-        <PropertyRow label="제목">
-          {() => (
-            <div>
-              <CustomSections />
-            </div>
-          )}
-        </PropertyRow>
+        <PropertyRow label="제목">{() => <CustomSections />}</PropertyRow>
       </PropertyGroup>
       <PropertyGroup title="새 슬라이드 기본 전환">
         {(

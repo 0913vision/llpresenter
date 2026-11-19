@@ -60,40 +60,44 @@ export function CustomSections(): JSX.Element {
   };
   return (
     <>
-      {SUNDAY_SECTIONS.map(section => (
-        <span key={section.name} className={styles.chip}>
-          {section.name}
-        </span>
-      ))}
-      {sections.map(section => (
+      <div className={styles.titleList}>
+        {SUNDAY_SECTIONS.map(section => (
+          <span key={section.name} className={styles.chip}>
+            {section.name}
+          </span>
+        ))}
+        {sections.map(section => (
+          <button
+            key={section.id}
+            type="button"
+            className={styles.chip}
+            onContextMenu={event => {
+              event.preventDefault();
+              setMenu({section, anchor: contextMenuAnchor(event)});
+            }}
+            onKeyDown={event => {
+              if (
+                openMenuFromKey(event, anchor => setMenu({section, anchor}))
+              ) {
+                return;
+              }
+            }}
+          >
+            {section.name}
+          </button>
+        ))}
         <button
-          key={section.id}
           type="button"
           className={styles.chip}
-          onContextMenu={event => {
-            event.preventDefault();
-            setMenu({section, anchor: contextMenuAnchor(event)});
-          }}
-          onKeyDown={event => {
-            if (openMenuFromKey(event, anchor => setMenu({section, anchor}))) {
-              return;
-            }
+          disabled={document === null || sections.length >= 200}
+          onClick={() => {
+            setError('');
+            setEditing({id: crypto.randomUUID(), name: '', english: ''});
           }}
         >
-          {section.name}
+          + 제목
         </button>
-      ))}
-      <button
-        type="button"
-        className={styles.chip}
-        disabled={document === null || sections.length >= 200}
-        onClick={() => {
-          setError('');
-          setEditing({id: crypto.randomUUID(), name: '', english: ''});
-        }}
-      >
-        + 제목
-      </button>
+      </div>
       {error && editing === null ? <span role="alert">{error}</span> : null}
       {menu ? (
         <Menu
