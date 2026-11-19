@@ -268,23 +268,27 @@ describe('the service source menu', () => {
     expect(screen.getByRole('dialog', {name: '이름 바꾸기'})).toBeDefined();
   });
 
-  it('deletes a 템플릿 after asking, and the dialog moves on from it', async () => {
+  it('deletes a 템플릿 immediately, and the dialog moves on from it', async () => {
     const {edits, pushTemplates} = setup(() => ({
       ok: true,
       value: {id: ids.template, revision: null},
     }));
     await openMenu(/^주일 예배/);
     await userEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
-    expect(
-      screen.getByRole('alertdialog', {
-        name: '‘주일 예배’ 템플릿을 삭제할까요?',
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    await waitFor(() =>
+      expect(edits).toEqual([
+        {type: 'template.delete', templateId: ids.template},
+      ]),
+    );
+    await userEvent.keyboard('{Control>}z{/Control}');
+    await waitFor(() =>
+      expect(edits).toContainEqual({
+        type: 'content.undoDelete',
+        area: 'template',
+        id: ids.template,
       }),
-    ).toBeDefined();
-    await userEvent.click(screen.getByRole('button', {name: '삭제'}));
-    await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
-    expect(edits).toEqual([
-      {type: 'template.delete', templateId: ids.template},
-    ]);
+    );
     act(() => pushTemplates([]));
     await waitFor(() =>
       expect(screen.getByRole('textbox', {name: '이름'})).toHaveProperty(
@@ -448,7 +452,7 @@ describe('the service source menu', () => {
     },
   );
 
-  it('keeps the delete prompt until its edit answers', async () => {
+  it('runs deletion once while its edit is pending', async () => {
     let answer: (result: EditResult) => void = () => undefined;
     setup();
     window.llp = mockLlpApi({
@@ -462,11 +466,7 @@ describe('the service source menu', () => {
     });
     await openMenu(/^주일 예배/);
     await userEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
-    await userEvent.click(screen.getByRole('button', {name: '삭제'}));
-    const prompt = screen.getByRole('alertdialog');
-    await userEvent.click(within(prompt).getByRole('button', {name: '취소'}));
-    await userEvent.keyboard('{Escape}');
-    expect(screen.getByRole('alertdialog')).toBe(prompt);
+    expect(screen.queryByRole('alertdialog')).toBeNull();
     await act(async () => {
       answer({ok: true, value: {id: ids.template, revision: null}});
       await Promise.resolve();

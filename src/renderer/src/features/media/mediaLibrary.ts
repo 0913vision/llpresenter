@@ -101,6 +101,10 @@ export class MediaLibrary {
   private onProblem: (notice: Notice) => void = () => undefined;
   private relinking = false;
   private unsavedRenameRevision: number | null = null;
+  private undoCount = 0;
+  private redoCount = 0;
+  private historyRevision: number | null = null;
+  private historyPending = false;
 
   constructor(private readonly api: MediaApi) {}
 
@@ -367,14 +371,78 @@ export class MediaLibrary {
    * @returns Whether it went.
    */
   async deleteMedia(mediaId: MediaId, name: string): Promise<boolean> {
+    if (this.historyPending) return false;
+    this.historyPending = true;
     const result = await this.api.media
       .edit({type: 'media.delete', mediaId})
       .catch(rejected);
-    if (result.ok || result.error.reason === 'write-failed') return true;
+    this.historyPending = false;
+    if (result.ok || result.error.reason === 'write-failed') {
+      const revision = result.ok
+        ? result.value?.revision
+        : 'applied' in result.error
+          ? result.error.applied.revision
+          : null;
+      if (revision != null && (this.view.document?.revision ?? 0) <= revision) {
+        this.historyRevision = revision;
+        this.undoCount++;
+        this.redoCount = 0;
+      } else {
+        this.undoCount = 0;
+        this.redoCount = 0;
+        this.historyRevision = null;
+      }
+      this.update({});
+      return true;
+    }
     this.refused('Deleting media was refused', result.error.message);
     this.onProblem(
       warning(`media-view:delete:${mediaId}`, '미디어 삭제 실패', [name]),
     );
+    return false;
+  }
+
+  canUndoDelete(): boolean {
+    return !this.historyPending && this.undoCount > 0;
+  }
+  canRedoDelete(): boolean {
+    return !this.historyPending && this.redoCount > 0;
+  }
+
+  async historyDelete(kind: 'undo' | 'redo'): Promise<boolean> {
+    if (kind === 'undo' ? !this.canUndoDelete() : !this.canRedoDelete()) {
+      return false;
+    }
+    this.historyPending = true;
+    this.update({});
+    const result = await this.api.media
+      .edit({type: kind === 'undo' ? 'media.undoDelete' : 'media.redoDelete'})
+      .catch(rejected);
+    this.historyPending = false;
+    if (result.ok || result.error.reason === 'write-failed') {
+      const revision = result.ok
+        ? result.value?.revision
+        : 'applied' in result.error
+          ? result.error.applied.revision
+          : null;
+      if (revision != null && (this.view.document?.revision ?? 0) <= revision) {
+        this.historyRevision = revision;
+        this.undoCount += kind === 'undo' ? -1 : 1;
+        this.redoCount += kind === 'undo' ? 1 : -1;
+      } else {
+        this.undoCount = 0;
+        this.redoCount = 0;
+        this.historyRevision = null;
+      }
+      this.update({});
+      return true;
+    }
+    this.undoCount = 0;
+    this.redoCount = 0;
+    this.historyRevision = null;
+    this.update({});
+    this.refused('Changing media history was refused', result.error.message);
+    this.onProblem(warning('media-view:history', '미디어 변경 실패'));
     return false;
   }
 
@@ -429,6 +497,8 @@ export class MediaLibrary {
 
   /** 삭제 of a playlist; its media stay in 모든 미디어. */
   async deletePlaylist(playlist: ChosenPlaylist): Promise<boolean> {
+    if (this.historyPending) return false;
+    this.historyPending = true;
     const result = await this.api.media
       .edit({
         type: 'media.playlist.delete',
@@ -438,7 +508,25 @@ export class MediaLibrary {
             : {kind: 'audio', id: playlist.id},
       })
       .catch(rejected);
-    if (result.ok || result.error.reason === 'write-failed') return true;
+    this.historyPending = false;
+    if (result.ok || result.error.reason === 'write-failed') {
+      const revision = result.ok
+        ? result.value?.revision
+        : 'applied' in result.error
+          ? result.error.applied.revision
+          : null;
+      if (revision != null && (this.view.document?.revision ?? 0) <= revision) {
+        this.historyRevision = revision;
+        this.undoCount++;
+        this.redoCount = 0;
+      } else {
+        this.undoCount = 0;
+        this.redoCount = 0;
+        this.historyRevision = null;
+      }
+      this.update({});
+      return true;
+    }
     this.refused('Deleting a playlist was refused', result.error.message);
     this.onProblem(
       warning('media-view:playlist-delete', '재생목록 삭제 실패', [
@@ -554,6 +642,14 @@ export class MediaLibrary {
 
   private accept(document: MediaDocument): void {
     if (document.revision <= (this.view.document?.revision ?? -1)) return;
+    if (
+      !this.historyPending &&
+      this.historyRevision !== null &&
+      document.revision > this.historyRevision
+    ) {
+      this.redoCount = 0;
+      this.historyRevision = document.revision;
+    }
     this.update({document});
   }
 

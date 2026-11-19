@@ -10,6 +10,7 @@ import {useItemMedia} from './useItemSources';
 import {LITURGY_SLIDES} from '@core/services/liturgySlides';
 
 export interface ItemSlide {
+  readonly id?: string | undefined;
   readonly titleSlide?: true;
   readonly titleLineCount?: number;
   readonly titleLayout?: import('@core/schema/songTitleLayout').SongTitleLayout;
@@ -63,6 +64,7 @@ export function useItemSlides(
     if (isItemOfKind(item, 'song')) {
       return item.slides.map(slide => {
         return {
+          id: slide.id,
           text: slide.lines.join('\n'),
           ...(slide.titleSlide === undefined
             ? {}

@@ -1,7 +1,19 @@
-import {useEffect, useRef, useState} from 'react';
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {EditResult} from '@core/schema/contentEdit';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
+import type {SettingsName} from '@core/schema/settingsDocuments';
+import {settingsDeleteHistory} from '@renderer/platform/settingsDeleteHistory';
+
+const emptyHistory = {undo: 0, redo: 0, busy: false};
+const noSubscribe = (): (() => void) => () => undefined;
+const noHistory = () => emptyHistory;
 
 export function useToolEditing<Edit>({
   api,
@@ -16,9 +28,19 @@ export function useToolEditing<Edit>({
     readonly key: string;
     readonly label: string;
     readonly log: string;
+    readonly history?: SettingsName | undefined;
   };
 }) {
   const [busy, setBusy] = useState(false);
+  const history = useMemo(
+    () =>
+      api && area.history ? settingsDeleteHistory(api, area.history) : null,
+    [api, area.history],
+  );
+  const historyState = useSyncExternalStore(
+    history?.subscribe ?? noSubscribe,
+    history?.get ?? noHistory,
+  );
   const pending = useRef(false);
   const active = useRef(false);
   useEffect(() => {
@@ -54,6 +76,28 @@ export function useToolEditing<Edit>({
         }
         report('save');
       }
+      if (
+        (result.ok || result.error.reason === 'write-failed') &&
+        edit !== null &&
+        typeof edit === 'object' &&
+        (('kind' in edit && edit.kind === 'delete') ||
+          ('type' in edit && edit.type === 'timer.delete') ||
+          ('kind' in edit &&
+            edit.kind === 'action' &&
+            'action' in edit &&
+            edit.action !== null &&
+            typeof edit.action === 'object' &&
+            'kind' in edit.action &&
+            (edit.action.kind === 'remove' ||
+              edit.action.kind === 'removeAll')))
+      ) {
+        const revision = result.ok
+          ? result.value.revision
+          : result.error.reason === 'write-failed'
+            ? result.error.applied.revision
+            : null;
+        if (revision !== null) history?.record(revision);
+      }
       return isActive() && (result.ok || completion === 'applied');
     } catch (cause) {
       api.log.write({
@@ -68,5 +112,36 @@ export function useToolEditing<Edit>({
       if (isActive()) setBusy(false);
     }
   };
-  return {busy, run};
+  const replay = async (kind: 'undo' | 'redo'): Promise<boolean> => {
+    try {
+      const applied = (await history?.replay(kind)) ?? false;
+      if (!applied && isActive()) {
+        onProblem?.({
+          key: `${area.key}:history`,
+          kind: 'warning',
+          icon: 'warning',
+          title: `${area.label} 변경 실패`,
+          time: noticeTime(),
+        });
+      }
+      return applied;
+    } catch (error: unknown) {
+      api?.log.write({
+        level: 'error',
+        message: area.log,
+        detail: String(error),
+      });
+      if (isActive()) {
+        onProblem?.({
+          key: `${area.key}:history`,
+          kind: 'warning',
+          icon: 'warning',
+          title: `${area.label} 변경 실패`,
+          time: noticeTime(),
+        });
+      }
+      return false;
+    }
+  };
+  return {busy: busy || historyState.busy, run, history: historyState, replay};
 }

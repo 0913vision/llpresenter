@@ -10,6 +10,7 @@ import type {Timer} from '@core/schema/timers';
 import type {LlpApi} from '@contracts/ipc/api';
 import {TimerRow} from './TimerRow';
 import type {Notice} from '@renderer/ui/notices';
+import {useReflow} from '@renderer/ui/useReflow';
 import styles from './TimerTab.module.css';
 
 const INITIAL_ROWS = 4;
@@ -31,6 +32,12 @@ export function WindowedTimers({
   readonly onRemove?: ((timer: Timer) => void) | undefined;
 }): JSX.Element {
   const viewport = useRef<HTMLDivElement>(null);
+  useReflow(viewport, {
+    ids: timers.map(timer => timer.id),
+    selector: '[data-reflow-id]',
+    attribute: 'data-reflow-id',
+    scope: 'timers',
+  });
   const pendingFocus = useRef<number | null>(null);
   const [view, setView] = useState({top: 0, height: 0, row: 0});
   const measure = useCallback(() => {
@@ -146,6 +153,7 @@ export function WindowedTimers({
             key={timer.id}
             className={styles.slot}
             data-timer-row={start + offset}
+            data-reflow-id={timer.id}
             role="listitem"
             tabIndex={-1}
             style={{top: (start + offset) * view.row}}

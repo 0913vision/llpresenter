@@ -1,11 +1,6 @@
 import {useState, type JSX} from 'react';
 import {RenameDialog} from '@renderer/ui/RenameDialog';
-import {
-  USAGE_LOADING,
-  USAGE_UNAVAILABLE,
-  usageMeta,
-} from '@renderer/ui/usageText';
-import {AlertDialog, Dialog, TextField} from '@renderer/ui';
+import {Dialog, TextField} from '@renderer/ui';
 import type {Notice} from '@renderer/ui/notices';
 import {isKnownMacroAction} from '@core/schema/macros';
 import {draftMacroAction} from '@core/macros/macroActionDraft';
@@ -109,18 +104,14 @@ export function MacroEditors({
 }): JSX.Element {
   const {
     editor,
-    collectionDialog,
     locked,
     onProblem,
     close,
-    closeCollection,
     saveIcon,
     saveColor,
     saveAction,
     saveNewCollection,
     rename,
-    deleteCollection,
-    deleteMacro,
   } = model;
   return (
     <>
@@ -150,24 +141,6 @@ export function MacroEditors({
           save={saveAction}
         />
       ) : null}
-      {collectionDialog?.kind === 'delete' ? (
-        <AlertDialog
-          icon="warning"
-          title={`\u2018${collectionDialog.item.name}\u2019 \ubaa8\uc74c\uc744 \uc0ad\uc81c\ud560\uae4c\uc694?`}
-          meta={[
-            '\ub9e4\ud06c\ub85c\ub294 \uc0ad\uc81c\ub418\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4',
-          ]}
-          onCancel={closeCollection}
-          actions={[
-            {
-              label: '\uc0ad\uc81c',
-              primary: true,
-              disabled: locked,
-              onSelect: deleteCollection,
-            },
-          ]}
-        />
-      ) : null}
       {editor?.kind === 'new-collection' ? (
         <CollectionDialog
           locked={locked}
@@ -188,28 +161,6 @@ export function MacroEditors({
               name.length > 256 ? '이름이 너무 깁니다' : undefined,
             onCommit: rename,
           }}
-        />
-      ) : null}
-      {editor?.kind === 'delete' ? (
-        <AlertDialog
-          icon="warning"
-          title={`‘${editor.item.name}’ 매크로를 삭제할까요?`}
-          meta={
-            editor.failed
-              ? [USAGE_UNAVAILABLE]
-              : editor.uses === null
-                ? [USAGE_LOADING]
-                : usageMeta(editor.uses, '예배 순서 항목')
-          }
-          onCancel={close}
-          actions={[
-            {
-              label: '삭제',
-              primary: true,
-              disabled: locked || editor.uses === null,
-              onSelect: deleteMacro,
-            },
-          ]}
         />
       ) : null}
     </>

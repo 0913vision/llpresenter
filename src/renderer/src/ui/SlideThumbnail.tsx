@@ -122,6 +122,8 @@ export function ThumbnailGrid(props: ThumbnailGridProps): JSX.Element {
 }
 
 export interface SlideThumbnailProps {
+  /** Stable identity used by the shared layout reflow animation. */
+  readonly reflowId?: string | undefined;
   /** Editor selection surrounds the picture and number band with a quiet plate. */
   readonly selectionStyle?: 'ring' | 'plate';
   readonly transition?:
@@ -265,6 +267,7 @@ export const SlideThumbnail = memo(
     hotKey,
     transition,
     selectionStyle = 'ring',
+    reflowId,
   }: SlideThumbnailProps): JSX.Element => {
     const {targetProps, tooltip} = useTooltip(
       titleTooltip(
@@ -284,6 +287,7 @@ export const SlideThumbnail = memo(
           hotKey,
         })}
         data-state={thumbnailState(live, missingFile !== undefined)}
+        data-reflow-id={reflowId}
         data-selection-style={selectionStyle}
         data-color={labelColor === NO_LABEL_COLOR ? undefined : labelColor}
         className={styles.thumb}

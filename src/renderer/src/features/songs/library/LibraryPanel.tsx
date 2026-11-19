@@ -1,9 +1,18 @@
-import {useEffect, useEffectEvent, useRef, useState, type JSX} from 'react';
+import {
+  useEffect,
+  useEffectEvent,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type JSX,
+} from 'react';
 import type {LibrarySong} from '@core/schema/contentDocuments';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import type {SongId} from '@core/schema/ids';
-import {AlertDialog} from '@renderer/ui/AlertDialog';
-import {usageMeta} from '@renderer/ui/usageText';
+import {contentDeleteHistory} from '@renderer/platform/contentDeleteHistory';
+import {useToolDeleteShortcuts} from '@renderer/platform/useToolDeleteShortcuts';
+import {deleteSelection} from '@renderer/ui/useSelectionDelete';
+import {useReflow} from '@renderer/ui/useReflow';
 import {IconButton} from '@renderer/ui/IconButton';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
@@ -95,11 +104,48 @@ export function LibraryPanel({
   const [menu, setMenu] = useState<{id: SongId; anchor: MenuAnchor} | null>(
     null,
   );
-  const [deleting, setDeleting] = useState<SongId | null>(null);
   const [renaming, setRenaming] = useState<SongId | null>(null);
   const renameAfterMenu = useMenuHandoff(menu !== null, setRenaming);
   const renamed = library.songs.find(song => song.id === renaming);
   const listArea = useRef<HTMLDivElement>(null);
+  const history = contentDeleteHistory(api.content);
+  const historyState = useSyncExternalStore(history.subscribe, history.get);
+  useToolDeleteShortcuts(listArea, {
+    history: historyState,
+    replay: kind => history.replay(kind),
+  });
+  useReflow(listArea, {
+    ids: library.visible.map(row => row.song.id),
+    selector: '[role="option"][data-value]',
+    attribute: 'data-value',
+    scope: 'library',
+  });
+  const deleteAfterMenu = useMenuHandoff<LibrarySong>(menu !== null, song => {
+    deleteSelection(
+      1,
+      () =>
+        !library.busy &&
+        song.access === 'editable' &&
+        library.songs.some(row => row.id === song.id),
+      () => {
+        const list =
+          listArea.current?.querySelector<HTMLElement>('[role="listbox"]');
+        if (list) {
+          const old = list.getAttribute('tabindex');
+          list.tabIndex = -1;
+          list.focus({preventScroll: true});
+          if (old === null) list.removeAttribute('tabindex');
+          else list.setAttribute('tabindex', old);
+        }
+        library
+          .remove(song.id)
+          .then(removed => {
+            if (removed) history.record('song', song.id);
+          })
+          .catch(() => library.report('delete'));
+      },
+    );
+  });
   useWindowShortcuts([
     {
       id: 'edit.duplicate',
@@ -121,7 +167,6 @@ export function LibraryPanel({
       },
     },
   ]);
-  const candidate = library.songs.find(song => song.id === deleting);
   const menuSong = library.songs.find(song => song.id === menu?.id);
   /** The song under the focus, or the selected song for a key-less ask. */
   const copyTarget = (event?: KeyboardEvent): LibrarySong | undefined => {
@@ -232,7 +277,7 @@ export function LibraryPanel({
                 .duplicate(menuSong.id)
                 .catch(() => library.report('create'));
             },
-            remove: () => setDeleting(menuSong.id),
+            remove: () => deleteAfterMenu(menuSong),
             rename: () => renameAfterMenu(menuSong.id),
             reveal: () => api.library.revealSong(menuSong.id),
           })}
@@ -250,29 +295,6 @@ export function LibraryPanel({
             onClose: () => setRenaming(null),
             onCommit: title => library.rename(renamed.id, title),
           }}
-        />
-      ) : null}
-      {candidate ? (
-        <AlertDialog
-          icon="song"
-          title={`‘${candidate.title}’ 곡을 삭제할까요?`}
-          meta={usageMeta(candidate.usedBy.length, '예배')}
-          onCancel={() => setDeleting(null)}
-          actions={[
-            {
-              label: '삭제',
-              primary: true,
-              disabled: library.busy || candidate.access === 'readOnly',
-              onSelect: () => {
-                library.remove(candidate.id).then(
-                  removed => {
-                    if (removed) setDeleting(null);
-                  },
-                  () => library.report('delete'),
-                );
-              },
-            },
-          ]}
         />
       ) : null}
     </>

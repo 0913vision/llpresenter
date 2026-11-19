@@ -33,6 +33,8 @@ import {ShowSlideEntry} from './showPanelNavigation';
 import {serviceSlideOffset} from './serviceSlideNumbers';
 import {useSlideTransitionProgress} from './useSlideTransitionProgress';
 import {tilePicture} from './tilePicture';
+import {tileReflowIds} from './tileReflowIds';
+import {useReflow} from '@renderer/ui/useReflow';
 
 const GRID_SELECTOR = '[role="listbox"]';
 
@@ -114,6 +116,13 @@ export function SlideGrid({
     anchor: MenuAnchor;
   } | null>(null);
   const keeperRef = useRef<HTMLDivElement>(null);
+  const reflowIds = tileReflowIds(tiles ?? [], openItemId ?? '');
+  useReflow(keeperRef, {
+    ids: reflowIds,
+    selector: '[data-reflow-id]',
+    attribute: 'data-reflow-id',
+    scope: openItemId,
+  });
   const tabEntry = useRef(false);
   const [showFocus, setShowFocus] = useState(false);
   useEffect(() => {
@@ -219,7 +228,8 @@ export function SlideGrid({
                 : slideLayerOf({itemId: openItemId, index}, () => tiles);
             return (
               <SlideThumbnail
-                key={`${openItemId}:${index}`}
+                key={reflowIds[index] ?? `${openItemId}:${index}`}
+                reflowId={reflowIds[index]}
                 selectionStyle="plate"
                 number={(offset ?? 0) + index + 1}
                 canvas={tilePicture(tile, slide, {

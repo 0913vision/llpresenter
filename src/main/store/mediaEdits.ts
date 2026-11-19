@@ -18,7 +18,11 @@ export type MediaListEdit = Exclude<
   MediaEdit,
   {
     readonly type:
-      'media.relink' | 'media.import.cancel' | 'media.sections.prepare';
+      | 'media.relink'
+      | 'media.import.cancel'
+      | 'media.sections.prepare'
+      | 'media.undoDelete'
+      | 'media.redoDelete';
   }
 >;
 export type PlaylistRef = NonNullable<
@@ -28,6 +32,132 @@ export type PlaylistRef = NonNullable<
 export interface MediaChange {
   readonly value: MediaList;
   readonly id: string;
+}
+
+export function restoreDeletedPlaylist(
+  current: MediaList,
+  before: MediaList,
+  {id, kind}: {readonly id: string; readonly kind: 'media' | 'audio'},
+): Result<MediaChange, EditFailure> {
+  if (kind === 'media') {
+    const index = before.playlists.findIndex(value => value.id === id);
+    const playlist = before.playlists[index];
+    if (!playlist || current.playlists.some(value => value.id === id)) {
+      return mediaRefusal('stale', 'The deleted playlist cannot be restored');
+    }
+    const next = before.playlists
+      .slice(index + 1)
+      .find(value => current.playlists.some(entry => entry.id === value.id));
+    const at = next
+      ? current.playlists.findIndex(value => value.id === next.id)
+      : current.playlists.length;
+    return {
+      ok: true,
+      value: {
+        id,
+        value: {
+          ...current,
+          playlists: [
+            ...current.playlists.slice(0, at),
+            playlist,
+            ...current.playlists.slice(at),
+          ],
+        },
+      },
+    };
+  }
+  const index = before.audioPlaylists.findIndex(value => value.id === id);
+  const playlist = before.audioPlaylists[index];
+  if (!playlist || current.audioPlaylists.some(value => value.id === id)) {
+    return mediaRefusal('stale', 'The deleted playlist cannot be restored');
+  }
+  const next = before.audioPlaylists
+    .slice(index + 1)
+    .find(value => current.audioPlaylists.some(entry => entry.id === value.id));
+  const at = next
+    ? current.audioPlaylists.findIndex(value => value.id === next.id)
+    : current.audioPlaylists.length;
+  return {
+    ok: true,
+    value: {
+      id,
+      value: {
+        ...current,
+        audioPlaylists: [
+          ...current.audioPlaylists.slice(0, at),
+          playlist,
+          ...current.audioPlaylists.slice(at),
+        ],
+      },
+    },
+  };
+}
+
+/** Restores one deleted item and its former playlist occurrences without overwriting later edits. */
+export function restoreDeletedMedia(
+  current: MediaList,
+  before: MediaList,
+  id: string,
+): Result<MediaChange, EditFailure> {
+  const item = before.items.find(value => value.id === id);
+  if (!item || current.items.some(value => value.id === id)) {
+    return mediaRefusal('stale', 'The deleted media cannot be restored');
+  }
+  const index = before.items.findIndex(value => value.id === id);
+  const next = before.items
+    .slice(index + 1)
+    .find(value => current.items.some(entry => entry.id === value.id));
+  const at = next
+    ? current.items.findIndex(value => value.id === next.id)
+    : current.items.length;
+  const restoreItems = (
+    items: ReadonlyArray<typeof item.id>,
+    original: ReadonlyArray<typeof item.id>,
+  ): typeof items => {
+    const result = [...items];
+    for (let i = original.length - 1; i >= 0; i--) {
+      if (original[i] !== id) continue;
+      const anchor = original
+        .slice(i + 1)
+        .find(value => result.includes(value));
+      result.splice(
+        anchor === undefined ? result.length : result.indexOf(anchor),
+        0,
+        item.id,
+      );
+    }
+    return result;
+  };
+  return {
+    ok: true,
+    value: {
+      id,
+      value: {
+        ...current,
+        items: [
+          ...current.items.slice(0, at),
+          item,
+          ...current.items.slice(at),
+        ],
+        playlists: current.playlists.map(playlist => {
+          const original = before.playlists.find(
+            value => value.id === playlist.id,
+          );
+          return original
+            ? {...playlist, items: restoreItems(playlist.items, original.items)}
+            : playlist;
+        }),
+        audioPlaylists: current.audioPlaylists.map(playlist => {
+          const original = before.audioPlaylists.find(
+            value => value.id === playlist.id,
+          );
+          return original
+            ? {...playlist, items: restoreItems(playlist.items, original.items)}
+            : playlist;
+        }),
+      },
+    },
+  };
 }
 
 const NEW_PLAYLIST_NAME = '새 재생목록';

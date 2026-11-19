@@ -14,6 +14,7 @@ import {
   type ThemeEditResult,
 } from '@core/themes/themeEdits';
 import {themeProblems} from './themeNames';
+import {sameJson} from '@core/common/sameJson';
 
 interface DraftWrites {
   readonly saved: ThemesFile | null;
@@ -30,6 +31,13 @@ interface DraftWrites {
 
 /** The most unsaved edits the working copy can step back through. */
 export const THEME_HISTORY_LIMIT = 100;
+type ThemeHistory =
+  | {readonly kind: 'draft'; readonly value: ThemeDraft | null}
+  | {
+      readonly kind: 'saved';
+      readonly before: ThemesFile;
+      readonly after: ThemesFile;
+    };
 
 /**
  * The editor's working copy of one 테마's layouts. Edits change only the
@@ -37,14 +45,16 @@ export const THEME_HISTORY_LIMIT = 100;
  */
 export function useThemeDraft({saved, reason, change, report}: DraftWrites) {
   const [draft, setDraft] = useState<ThemeDraft | null>(null);
+  const [, setHistoryVersion] = useState(0);
   const draftRef = useRef<ThemeDraft | null>(null);
   const savedRef = useRef(saved);
   useLayoutEffect(() => {
     savedRef.current = saved;
   });
-  const past = useRef<Array<ThemeDraft | null>>([]);
-  const future = useRef<Array<ThemeDraft | null>>([]);
+  const past = useRef<ThemeHistory[]>([]);
+  const future = useRef<ThemeHistory[]>([]);
   const group = useRef<{changed: boolean} | null>(null);
+  const stepping = useRef(false);
   const beginEditGroup = (): (() => void) => {
     const current = {changed: false};
     group.current = current;
@@ -89,9 +99,10 @@ export function useThemeDraft({saved, reason, change, report}: DraftWrites) {
     if (!result.ok) report(themeProblems[result.error]);
     else {
       if (!group.current?.changed) {
-        past.current = [...past.current, draftRef.current].slice(
-          -THEME_HISTORY_LIMIT,
-        );
+        past.current = [
+          ...past.current,
+          {kind: 'draft', value: draftRef.current} satisfies ThemeHistory,
+        ].slice(-THEME_HISTORY_LIMIT);
       }
       if (group.current !== null) group.current.changed = true;
       future.current = [];
@@ -100,15 +111,61 @@ export function useThemeDraft({saved, reason, change, report}: DraftWrites) {
     completed?.(result.ok);
   };
 
-  const step = (from: typeof past, to: typeof past): void => {
-    group.current = null;
-    if (reason !== undefined || from.current.length === 0) return;
-    const previous = from.current.pop() ?? null;
-    to.current.push(draftRef.current);
-    keep(previous);
+  const recordSaved = (before: ThemesFile, after: ThemesFile): void => {
+    past.current = [
+      ...past.current,
+      {kind: 'saved', before, after} satisfies ThemeHistory,
+    ].slice(-THEME_HISTORY_LIMIT);
+    future.current = [];
+    setHistoryVersion(value => value + 1);
   };
-  const undo = (): void => step(past, future);
-  const redo = (): void => step(future, past);
+  const step = (
+    from: typeof past,
+    to: typeof past,
+    direction: 'undo' | 'redo',
+  ): void => {
+    group.current = null;
+    if (reason !== undefined || stepping.current || from.current.length === 0) {
+      return;
+    }
+    const entry = from.current.at(-1);
+    if (!entry) return;
+    if (entry.kind === 'draft') {
+      from.current.pop();
+      to.current.push({kind: 'draft', value: draftRef.current});
+      keep(entry.value);
+      return;
+    }
+    const expected = direction === 'undo' ? entry.after : entry.before;
+    const replacement = direction === 'undo' ? entry.before : entry.after;
+    stepping.current = true;
+    setHistoryVersion(value => value + 1);
+    change(
+      value =>
+        sameJson(value, expected)
+          ? {ok: true, value: replacement}
+          : {ok: false, error: 'invalid'},
+      'saved',
+    )
+      .then(result => {
+        if (!result.ok) {
+          report(themeProblems[result.error]);
+          return;
+        }
+        if (result.value && from.current.at(-1) === entry) {
+          from.current.pop();
+          to.current.push(entry);
+          setHistoryVersion(value => value + 1);
+        }
+      })
+      .catch(() => report('테마 변경 실패'))
+      .finally(() => {
+        stepping.current = false;
+        setHistoryVersion(value => value + 1);
+      });
+  };
+  const undo = (): void => step(past, future, 'undo');
+  const redo = (): void => step(future, past, 'redo');
 
   const commit = async (
     write: (value: ThemesFile) => ThemeEditResult,
@@ -159,12 +216,13 @@ export function useThemeDraft({saved, reason, change, report}: DraftWrites) {
     hasDraft: (): boolean => draftRef.current !== null,
     edit,
     beginEditGroup,
+    recordSaved,
     save,
     saveAs,
     undo,
     redo,
-    canUndo: (): boolean => past.current.length > 0,
-    canRedo: (): boolean => future.current.length > 0,
+    canUndo: (): boolean => !stepping.current && past.current.length > 0,
+    canRedo: (): boolean => !stepping.current && future.current.length > 0,
     discard: () => {
       forget();
       keep(null);

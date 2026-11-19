@@ -334,32 +334,21 @@ describe('song editor label menu', () => {
     expect(labels().value.labels[0]?.name).toBe('끝 절');
   });
 
-  it('confirms catalog deletion, keeps song references, and restores focus after the last row', async () => {
+  it('deletes labels immediately, preserves song references, and can undo and redo', async () => {
     const {user, labels, session} = await editorSetup();
     const dialog = await openManager(user);
     const remove = within(dialog).getByRole('button', {name: '1절 삭제'});
     expect((await hoverForTooltip(remove))?.textContent).toBe('1절 삭제');
     vi.useRealTimers();
     await user.click(remove);
-    const confirmation = screen.getByRole('alertdialog');
-    expect(
-      within(confirmation).getByText('곡에 붙은 이름표는 남습니다'),
-    ).toBeDefined();
-    expect(labels().value.labels).toHaveLength(2);
-    await user.click(within(confirmation).getByRole('button', {name: '삭제'}));
     await waitFor(() => expect(labels().value.labels).toHaveLength(1));
+    expect(screen.queryByRole('alertdialog')).toBeNull();
     expect(session.history.snapshot.song.slides[0]?.label).toBe('1절');
-    await waitFor(() =>
-      expect(screen.getByRole('textbox', {name: '후렴 이름'})).toBe(
-        document.activeElement,
-      ),
-    );
+    await user.keyboard('{Control>}z{/Control}');
+    await waitFor(() => expect(labels().value.labels).toHaveLength(2));
+    await user.keyboard('{Control>}y{/Control}');
+    await waitFor(() => expect(labels().value.labels).toHaveLength(1));
     await user.click(screen.getByRole('button', {name: '후렴 삭제'}));
-    await user.click(
-      within(screen.getByRole('alertdialog')).getByRole('button', {
-        name: '삭제',
-      }),
-    );
     await waitFor(() => expect(labels().value.labels).toHaveLength(0));
     expect(dialog.contains(document.activeElement)).toBe(true);
     await user.click(

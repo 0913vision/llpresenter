@@ -1,5 +1,10 @@
 import {EmptyState} from '@renderer/ui/EmptyState';
-import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
+import {
+  NEWER_FILE_REASON,
+  NOTHING_TO_UNDO,
+  NOTHING_TO_REDO,
+} from '@renderer/platform/problemReasons';
+import {deleteSelection} from '@renderer/ui/useSelectionDelete';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {
   useEffect,
@@ -13,11 +18,9 @@ import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
 import {mediaLoops} from '@core/media/mediaEndRule';
 import {createServiceItemId, type MediaId} from '@core/schema/ids';
 import type {MediaItem} from '@core/schema/mediaList';
-import type {MediaUses} from '@core/schema/mediaUses';
 import {RenameDialog} from '@renderer/ui/RenameDialog';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
-import {withinLookupTimeout} from '@renderer/session/showOutput';
-import {USAGE_LABEL, USAGE_UNAVAILABLE} from '@renderer/ui/usageText';
+import {returnFocus} from '@renderer/ui/returnFocus';
 import {MEDIA_LIMITS} from '@core/schema/mediaList';
 import {useLive} from '@renderer/session/live';
 import {sendMediaOutput} from '@renderer/session/itemOutput';
@@ -38,11 +41,6 @@ import {
   PanelTabs,
   Slider,
 } from '@renderer/ui';
-import {
-  AlertDialog,
-  AlertListRow,
-  type AlertDialogProps,
-} from '@renderer/ui/AlertDialog';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import type {MenuEntry} from '@renderer/ui/menuModel';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
@@ -137,27 +135,6 @@ function EntryTile({
   );
 }
 
-const MEDIA_PLACES = [
-  ['재생목록', 'playlists'],
-  ['그래픽', 'graphics'],
-  ['곡 배경', 'songBackgrounds'],
-  ['예배 순서 항목', 'serviceItems'],
-  ['항목 오버레이', 'itemOverlays'],
-  ['테마', 'themes'],
-  ['매크로', 'macros'],
-] as const;
-
-function mediaUsesList(uses: MediaUses): AlertDialogProps['list'] {
-  const used = MEDIA_PLACES.filter(([, key]) => uses[key] > 0);
-  if (used.length === 0) return undefined;
-  return {
-    label: USAGE_LABEL,
-    children: used.map(([where, key]) => (
-      <AlertListRow key={key} label={where} value={`${uses[key]}곳`} />
-    )),
-  };
-}
-
 /**
  * The center of the media view in 준비 (spec 05, "Media view"): the list the
  * playlist panels chose, as a grid of tiles, 가져오기 into it with each file's
@@ -218,30 +195,43 @@ export function MediaView({
     };
   }, []);
   const [menu, setMenu] = useState<OpenMenu | null>(null);
-  const [deleting, setDeleting] = useState<{
-    readonly item: MediaItem;
-    readonly uses: MediaUses | 'failed';
-  } | null>(null);
+  const menuTarget = useRef<HTMLElement | undefined>(undefined);
   const [renaming, setRenaming] = useState<MediaItem | null>(null);
   const renameAfterMenu = useMenuHandoff(menu !== null, setRenaming);
-  const lookup = useRef<AbortController | null>(null);
-  useEffect(() => () => lookup.current?.abort(), []);
-  const askToDelete = (item: MediaItem): void => {
-    const api = window.llp;
-    if (api === undefined) return;
-    lookup.current?.abort();
-    const controller = new AbortController();
-    lookup.current = controller;
-    withinLookupTimeout(() => api.media.uses({mediaId: item.id})).then(
-      uses => {
-        if (!controller.signal.aborted) setDeleting({item, uses});
-      },
-      (cause: unknown) => {
-        if (controller.signal.aborted) return;
-        console.error('Could not look up where the media is used', cause);
-        setDeleting({item, uses: 'failed'});
+  const deleteItem = (
+    item: MediaItem,
+    target: HTMLElement | undefined,
+  ): void => {
+    deleteSelection(
+      1,
+      () =>
+        view.document?.access === 'editable' &&
+        view.document.value.items.some(value => value.id === item.id),
+      () => {
+        const list = target
+          ?.closest('section')
+          ?.querySelector<HTMLElement>('[role="listbox"]');
+        if (list) {
+          const hadTabIndex = list.hasAttribute('tabindex');
+          if (!hadTabIndex) list.tabIndex = -1;
+          returnFocus(list);
+          if (!hadTabIndex) list.removeAttribute('tabindex');
+        }
+        library
+          .deleteMedia(item.id, item.name || UNNAMED_MEDIA)
+          .catch((cause: unknown) =>
+            console.error('Deleting media failed:', cause),
+          );
       },
     );
+  };
+  const deleteAfterMenu = useMenuHandoff<{
+    item: MediaItem;
+    target: HTMLElement | undefined;
+  }>(menu !== null, ({item, target}) => deleteItem(item, target));
+  const askToDelete = (item: MediaItem): void => {
+    deleteAfterMenu({item, target: menuTarget.current});
+    setMenu(null);
   };
   const liveId = useLive(state => state.state?.layers.media?.mediaId);
   const entries = useMemo(() => mediaEntries(view, choice), [view, choice]);
@@ -359,6 +349,39 @@ export function MediaView({
   const copyReason =
     view.document?.access === 'editable' ? undefined : NEWER_FILE_REASON;
   useWindowShortcuts([
+    ...(['undo', 'redo'] as const).map(kind => ({
+      id: `edit.${kind}`,
+      when: (event: KeyboardEvent) =>
+        event.target instanceof Element &&
+        event.target.closest(
+          'section[aria-label="미디어 보기"] [role="listbox"]',
+        ) !== null,
+      unavailable: () =>
+        (kind === 'undo' ? library.canUndoDelete() : library.canRedoDelete())
+          ? undefined
+          : kind === 'undo'
+            ? NOTHING_TO_UNDO
+            : NOTHING_TO_REDO,
+      run: () => library.historyDelete(kind),
+    })),
+    {
+      id: 'edit.delete',
+      when: event =>
+        selectedItem !== undefined &&
+        event.target instanceof Element &&
+        event.target.closest(
+          'section[aria-label="미디어 보기"] [role="listbox"]',
+        ) !== null,
+      unavailable: () => copyReason,
+      run: event => {
+        if (selectedItem && copyReason === undefined) {
+          deleteItem(
+            selectedItem,
+            event.target instanceof HTMLElement ? event.target : undefined,
+          );
+        }
+      },
+    },
     {
       id: 'edit.duplicate',
       when: event =>
@@ -479,6 +502,7 @@ export function MediaView({
             onDrop={drop}
             label={title}
             count={entries.length}
+            ids={entries.map(entry => entry.id)}
             columns={columns ?? DEFAULT_MEDIA_COLUMNS}
             view={display}
             fitHeight={display === 'grid' && columns === undefined}
@@ -487,6 +511,7 @@ export function MediaView({
             onActivate={activate}
             onOutput={workspace === 'show' ? () => undefined : output}
             onMenu={(at, anchor) => {
+              menuTarget.current = anchor.target;
               const entry = entries[at];
               if (entry !== undefined) setSelected(entry.id);
               const choices =
@@ -564,41 +589,6 @@ export function MediaView({
             onClose: () => setRenaming(null),
             onCommit: name => library.rename(renaming.id, name),
           }}
-        />
-      )}
-      {deleting === null ? null : (
-        <AlertDialog
-          icon={deleting.item.kind === 'audio' ? 'audio' : 'film'}
-          title={`‘${deleting.item.name || UNNAMED_MEDIA}’ 미디어를 삭제할까요?`}
-          meta={[
-            ...(deleting.uses === 'failed' ? [USAGE_UNAVAILABLE] : []),
-            '파일은 지워지지 않습니다',
-          ]}
-          list={
-            deleting.uses === 'failed'
-              ? undefined
-              : mediaUsesList(deleting.uses)
-          }
-          onCancel={() => setDeleting(null)}
-          actions={[
-            {
-              label: '삭제',
-              primary: true,
-              onSelect: () => {
-                library
-                  .deleteMedia(
-                    deleting.item.id,
-                    deleting.item.name || UNNAMED_MEDIA,
-                  )
-                  .then(
-                    () => setDeleting(null),
-                    (cause: unknown) => {
-                      console.error('Deleting media failed:', cause);
-                    },
-                  );
-              },
-            },
-          ]}
         />
       )}
     </>

@@ -129,6 +129,23 @@ describe('ContentStore save failures', () => {
 });
 
 describe('ContentStore persistence', () => {
+  it('undoes a failed deletion by superseding its pending removal', async () => {
+    const {store, files} = setUp();
+    const file = join(locations.songs, 'hymn.llsong');
+    files.failing = new Set([file]);
+    expect(
+      await store.apply({type: 'song.delete', songId: SONG}),
+    ).toMatchObject({ok: false, error: {reason: 'write-failed'}});
+    files.failing = new Set();
+    expect(
+      (await store.apply({type: 'content.undoDelete', area: 'song', id: SONG}))
+        .ok,
+    ).toBe(true);
+    await store.flush();
+    expect(store.song(SONG)).not.toBeNull();
+    expect(files.removed).toEqual([file]);
+    expect(files.texts.has(file)).toBe(true);
+  });
   it('keeps failed deletions for a flush to retry', async () => {
     const {store, files} = setUp();
     files.failing = new Set([join(locations.songs, 'hymn.llsong')]);

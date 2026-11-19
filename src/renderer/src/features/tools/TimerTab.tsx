@@ -1,15 +1,17 @@
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {limitReason} from '@core/common/limitReason';
-import {useEffect, useRef, useState, type JSX} from 'react';
+import {useRef, useState, type JSX} from 'react';
 import {createTimerId} from '@core/schema/ids';
 import {MAX_TIMER_DEFINITIONS} from '@core/schema/timers';
-import type {Timer} from '@core/schema/timers';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
-import {AlertDialog, IconButton} from '@renderer/ui';
+import {IconButton} from '@renderer/ui';
+import {deleteSelection} from '@renderer/ui/useSelectionDelete';
 import type {Notice} from '@renderer/ui/notices';
 import {TimerDialog} from './TimerDialog';
 import {deleteTimer, saveNewTimer, type NewTimer} from './timerEdits';
 import {useToolEditing} from './useToolEditing';
+import {useToolDeleteShortcuts} from '@renderer/platform/useToolDeleteShortcuts';
+import {returnFocus} from '@renderer/ui/returnFocus';
 import {WindowedTimers} from './WindowedTimers';
 import styles from './TimerTab.module.css';
 
@@ -50,23 +52,17 @@ export function TimerTab({
     api,
     onProblem,
     write: deleteTimer,
-    area: {key: 'timer-delete', label: '타이머', log: 'Could not delete timer'},
+    area: {
+      key: 'timer-delete',
+      label: '타이머',
+      log: 'Could not delete timer',
+      history: 'timers',
+    },
   });
+  useToolDeleteShortcuts(root, removal);
   const [adding, setAdding] = useState(false);
-  const [target, setTarget] = useState<Timer | null>(null);
-  const targetId = useRef<Timer['id'] | null>(null);
-  const focusList = useRef(false);
   const locked =
     editing.busy || removal.busy || document?.access !== 'editable';
-  useEffect(() => {
-    if (!focusList.current || target !== null) return;
-    focusList.current = false;
-    root.current?.querySelector<HTMLElement>('[role="list"]')?.focus();
-  }, [target]);
-  const closeRemoval = (): void => {
-    targetId.current = null;
-    setTarget(null);
-  };
   const reason =
     document === null
       ? '타이머 불러오는 중'
@@ -98,8 +94,27 @@ export function TimerTab({
           }
           onProblem={onProblem}
           onRemove={timer => {
-            targetId.current = timer.id;
-            setTarget(timer);
+            deleteSelection(
+              1,
+              () =>
+                !locked &&
+                document.value.timers.some(row => row.id === timer.id),
+              () => {
+                returnFocus(
+                  root.current?.querySelector<HTMLElement>('[role="list"]') ??
+                    null,
+                );
+                removal
+                  .run({
+                    type: 'timer.delete',
+                    name: 'timers',
+                    timerId: timer.id,
+                  })
+                  .catch((cause: unknown) =>
+                    console.error('Timer removal callback failed:', cause),
+                  );
+              },
+            );
           }}
         />
       ) : null}
@@ -108,40 +123,6 @@ export function TimerTab({
           locked={locked}
           save={editing.run}
           onClose={() => setAdding(false)}
-        />
-      ) : null}
-      {target ? (
-        <AlertDialog
-          icon="timer"
-          title={`‘${target.name || '이름 없음'}’ 타이머를 삭제할까요?`}
-          meta={['연결된 빠른 실행 항목도 삭제됩니다']}
-          onCancel={closeRemoval}
-          cancelLabel={removal.busy ? '닫기' : undefined}
-          actions={[
-            {
-              label: '삭제',
-              primary: true,
-              disabled: locked,
-              onSelect: () => {
-                if (locked) return;
-                removal
-                  .run({
-                    type: 'timer.delete',
-                    name: 'timers',
-                    timerId: target.id,
-                  })
-                  .then(applied => {
-                    if (applied && targetId.current === target.id) {
-                      focusList.current = true;
-                      closeRemoval();
-                    }
-                  })
-                  .catch((cause: unknown) =>
-                    console.error('Timer removal callback failed:', cause),
-                  );
-              },
-            },
-          ]}
         />
       ) : null}
     </div>

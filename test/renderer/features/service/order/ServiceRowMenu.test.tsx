@@ -110,6 +110,12 @@ function setup() {
     if (change.type === 'service.delete') {
       return {ok: true, value: {id: change.serviceId, revision: null}};
     }
+    if (
+      change.type === 'content.undoDelete' ||
+      change.type === 'content.redoDelete'
+    ) {
+      return {ok: true, value: {id: change.id, revision: 1}};
+    }
     throw new Error('Unexpected service edit');
   });
   const api = mockLlpApi({
@@ -365,16 +371,12 @@ it('disables deleting the open service', async () => {
   expect(edit).not.toHaveBeenCalled();
 });
 
-it('confirms and deletes the clicked closed service', async () => {
+it('deletes the clicked closed service immediately and offers undo', async () => {
   const {edit, open} = setup();
   fireEvent.click(
     within(await context()).getByRole('menuitem', {name: '삭제'}),
   );
-  fireEvent.click(
-    within(await screen.findByRole('alertdialog')).getByRole('button', {
-      name: '삭제',
-    }),
-  );
+  expect(screen.queryByRole('alertdialog')).toBeNull();
   await waitFor(() =>
     expect(edit).toHaveBeenCalledExactlyOnceWith({
       type: 'service.delete',
@@ -382,6 +384,16 @@ it('confirms and deletes the clicked closed service', async () => {
     }),
   );
   expect(open).not.toHaveBeenCalled();
+  const anchor = screen.getByRole('button', {name: '열린 예배'});
+  anchor.focus();
+  fireEvent.keyDown(anchor, {key: 'z', code: 'KeyZ', ctrlKey: true});
+  await waitFor(() =>
+    expect(edit).toHaveBeenCalledWith({
+      type: 'content.undoDelete',
+      area: 'service',
+      id: ids.past,
+    }),
+  );
 });
 
 it.each([{key: 'ContextMenu'}, {key: 'F10', shiftKey: true}])(

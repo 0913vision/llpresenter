@@ -86,6 +86,7 @@ describe('quick editing', () => {
           item={quickItem('macro')}
           locked={locked}
           save={save}
+          onDelete={vi.fn()}
           activate={activate}
         >
           <button>항목</button>
@@ -126,6 +127,7 @@ describe('quick editing', () => {
         item={quickItem('macro')}
         locked={false}
         save={save}
+        onDelete={vi.fn()}
       >
         <button>항목</button>
       </QuickRowEditor>,
@@ -146,6 +148,7 @@ describe('quick editing', () => {
         item={quickItem('macro')}
         locked={false}
         save={save}
+        onDelete={vi.fn()}
       >
         <button>항목</button>
       </QuickRowEditor>,
@@ -167,8 +170,9 @@ describe('quick editing', () => {
     expect(save).not.toHaveBeenCalled();
   });
 
-  it('keeps its row pinned while the delete question is open and releases it after', async () => {
+  it('deletes after closing the menu and releases its pinned row', async () => {
     let pinned: string | null = null;
+    const remove = vi.fn();
     const onPinChange = (id: string, active: boolean): void => {
       pinned = active ? id : pinned === id ? null : pinned;
     };
@@ -181,22 +185,19 @@ describe('quick editing', () => {
         item={quickItem('macro')}
         locked={false}
         save={vi.fn(async () => true)}
+        onDelete={remove}
         onPinChange={onPinChange}
       >
         <button>항목</button>
       </QuickRowEditor>,
     );
-    const {id} = quickItem('macro');
-
     fireEvent.keyDown(screen.getByRole('button', {name: '항목'}), {
       key: 'F10',
       shiftKey: true,
     });
     fireEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
-    await screen.findByRole('alertdialog');
-    expect(pinned).toBe(id);
-
-    fireEvent.click(screen.getByRole('button', {name: '취소'}));
+    await waitFor(() => expect(remove).toHaveBeenCalledOnce());
+    expect(screen.queryByRole('alertdialog')).toBeNull();
     expect(pinned).toBeNull();
   });
 

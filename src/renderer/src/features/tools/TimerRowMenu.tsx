@@ -62,6 +62,9 @@ export function TimerRowMenu({
   readonly children: ReactNode;
 }): JSX.Element {
   const [menu, setMenu] = useState<MenuAnchor | null>(null);
+  const removeAfterMenu = useMenuHandoff(menu !== null, () =>
+    onRemove?.(timer),
+  );
   const [renaming, setRenaming] = useState(false);
   const renameAfterMenu = useMenuHandoff(menu !== null, () =>
     setRenaming(true),
@@ -148,7 +151,12 @@ export function TimerRowMenu({
             rename: () => renameAfterMenu(true),
             duplicate,
             duplicateReason,
-            remove: onRemove ? () => onRemove(timer) : undefined,
+            remove: onRemove
+              ? () => {
+                  removeAfterMenu(true);
+                  setMenu(null);
+                }
+              : undefined,
           })}
         />
       ) : null}

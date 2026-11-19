@@ -174,6 +174,7 @@ const quickRow = (api: LlpApi, timer: Timer | undefined) => (
     timer={timer}
     locked={false}
     save={vi.fn(async () => true)}
+    onDelete={vi.fn()}
   >
     <button>항목</button>
   </QuickRowEditor>

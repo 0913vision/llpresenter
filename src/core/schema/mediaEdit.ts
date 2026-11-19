@@ -83,6 +83,8 @@ const mediaEditSchema = v.pipe(
     }),
     v.object({type: v.literal('media.relink'), mediaId: mediaIdSchema}),
     v.object({type: v.literal('media.delete'), mediaId: mediaIdSchema}),
+    v.object({type: v.literal('media.undoDelete')}),
+    v.object({type: v.literal('media.redoDelete')}),
     v.object({type: v.literal('media.import.cancel'), mediaId: mediaIdSchema}),
   ]),
 );

@@ -397,12 +397,7 @@ it('renames and deletes the displayed collection while retaining macros', async 
   await selectCollection('\uc8fc\uc77c');
   collectionMenu('주일');
   fireEvent.click(screen.getByRole('menuitem', {name: '\uc0ad\uc81c'}));
-  expect(
-    screen.getByRole('alertdialog', {
-      name: '\u2018\uc8fc\uc77c\u2019 \ubaa8\uc74c\uc744 \uc0ad\uc81c\ud560\uae4c\uc694?',
-    }),
-  ).toBeDefined();
-  fireEvent.click(screen.getByRole('button', {name: '\uc0ad\uc81c'}));
+  expect(screen.queryByRole('alertdialog')).toBeNull();
   await waitFor(() => expect(next.edit).toHaveBeenCalledOnce());
   const deletion = next.edit.mock.calls[0]?.[0];
   if (deletion?.name !== 'macros') throw new Error('Missing edit');
@@ -421,6 +416,35 @@ it('turns the remove row into a submenu with two or more actions', async () => {
   const edit = f.edit.mock.calls[0]?.[0];
   if (edit?.name !== 'macros') throw new Error('Missing edit');
   expect(edit.value.macros[0]?.actions).toEqual([]);
+  expect(document.activeElement?.getAttribute('role')).toBe('listbox');
+  fireEvent.keyDown(document.activeElement ?? document.body, {
+    key: ' ',
+    code: 'Space',
+  });
+  fireEvent.keyUp(document.activeElement ?? document.body, {
+    key: ' ',
+    code: 'Space',
+  });
+  expect(f.send).not.toHaveBeenCalled();
+});
+
+it('returns to the live slide keys after deleting a macro action', async () => {
+  const f = fixture([{kind: 'clearAll'}]);
+  render(
+    <div data-workspace-layout="show">
+      <div data-show-slide-grid>
+        <div role="listbox" aria-label="슬라이드" tabIndex={-1} />
+      </div>
+      <MacroPanel />
+    </div>,
+  );
+  await openMenu();
+  fireEvent.click(screen.getByRole('menuitem', {name: /^동작 삭제:/}));
+  await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+  expect(document.activeElement).toBe(
+    screen.getByRole('listbox', {name: '슬라이드'}),
+  );
+  expect(f.send).not.toHaveBeenCalled();
 });
 
 it('appends a timer operation from nested target menus', async () => {

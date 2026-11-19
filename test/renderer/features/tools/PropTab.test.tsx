@@ -97,7 +97,7 @@ it('adds a text prop with a target and sends a settings edit', async () => {
   });
 });
 
-it('opens the keyboard context menu and confirms deletion', async () => {
+it('deletes from the keyboard menu without a dialog and routes undo to the same history', async () => {
   const f = fixture();
   f.documents.set(
     'props',
@@ -112,8 +112,18 @@ it('opens the keyboard context menu and confirms deletion', async () => {
   tile.focus();
   fireEvent.keyDown(tile, {key: 'ContextMenu'});
   fireEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
-  fireEvent.click(screen.getByRole('button', {name: '삭제'}));
   await waitFor(() => expect(f.edit).toHaveBeenCalledOnce());
+  expect(screen.queryByRole('alertdialog')).toBeNull();
+  const list = screen.getByRole('listbox');
+  fireEvent.keyDown(list, {key: 'z', code: 'KeyZ', ctrlKey: true});
+  await waitFor(() =>
+    expect(f.edit).toHaveBeenCalledWith({
+      type: 'settings.undoDelete',
+      name: 'delete-history',
+      area: 'props',
+      expectedRevision: 2,
+    }),
+  );
 });
 
 it('adds an image prop only after choosing an image and target', async () => {

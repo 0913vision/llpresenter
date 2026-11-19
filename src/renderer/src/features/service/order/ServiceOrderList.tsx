@@ -9,6 +9,7 @@ import {usePaletteEditing} from '../items/PaletteEditing';
 import {usePaletteInsert} from '../items/usePaletteInsert';
 import {useSettingsDocument} from '@renderer/platform/useSettingsDocument';
 import {useSelectionDelete} from '@renderer/ui/useSelectionDelete';
+import {useReflow} from '@renderer/ui/useReflow';
 import {selectionLabel} from '@renderer/ui/selectionDrag';
 import {orderedSelection} from '@core/common/selectionOrder';
 import {createServiceId} from '@core/schema/ids';
@@ -374,6 +375,12 @@ export function ServiceOrderList({
     onProblem,
   );
   const listRef = useRef<HTMLDivElement>(null);
+  useReflow(listRef, {
+    ids: rows.map(row => row.id),
+    selector: '[role="option"][data-value]',
+    attribute: 'data-value',
+    scope: serviceId,
+  });
   const followId = rows.some(row => row.id === liveItemId)
     ? liveItemId
     : openItemId;
@@ -614,7 +621,7 @@ export function ServiceOrderList({
       }
     });
   };
-  const deletion = useSelectionDelete(onProblem);
+  const deletion = useSelectionDelete();
   const targets = (id?: string): readonly string[] =>
     rows
       .filter(row =>

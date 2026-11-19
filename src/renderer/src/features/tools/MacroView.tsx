@@ -1,4 +1,5 @@
-import {useRef, type DragEvent, type JSX} from 'react';
+import {useLayoutEffect, useRef, type DragEvent, type JSX} from 'react';
+import {useReflow} from '@renderer/ui/useReflow';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import type {MacroActionKind} from '@core/schema/macros';
 import {MACRO_ACTION_MIME, readMacroActionDrag} from './macroPaletteCatalog';
@@ -26,6 +27,7 @@ export function MacroView({
   onNew,
   newDisabledReason,
   onDuplicate,
+  onDelete,
   duplicateReason,
   onNewCollection,
   onDropAction,
@@ -50,6 +52,7 @@ export function MacroView({
   readonly onNew?: (() => void) | undefined;
   /** Duplicates a 매크로, the way its right-click 복제 row does. */
   readonly onDuplicate?: ((item: Macro) => void) | undefined;
+  readonly onDelete?: ((item: Macro) => void) | undefined;
   readonly duplicateReason?: string | undefined;
   readonly newDisabledReason?: string | undefined;
   readonly onNewCollection?: (() => void) | undefined;
@@ -72,6 +75,21 @@ export function MacroView({
   const collection = collections.find(item => item.id === collectionId);
   const members = collection ? new Set(collection.macroIds) : undefined;
   const shown = members ? macros.filter(item => members.has(item.id)) : macros;
+  useLayoutEffect(() => {
+    root.current
+      ?.querySelectorAll<HTMLElement>('[role="option"]')
+      .forEach((option, index) => {
+        const id = shown[index]?.id;
+        if (id === undefined) option.removeAttribute('data-reflow-id');
+        else option.setAttribute('data-reflow-id', id);
+      });
+  });
+  useReflow(root, {
+    ids: shown.map(item => item.id),
+    selector: '[data-reflow-id]',
+    attribute: 'data-reflow-id',
+    scope: collectionId ?? 'all',
+  });
   const selected = shown.findIndex(item => item.id === selectedId);
   const focused = (event: KeyboardEvent): Macro | undefined => {
     const option =
@@ -88,6 +106,15 @@ export function MacroView({
     ];
   };
   useWindowShortcuts([
+    {
+      id: 'edit.delete',
+      when: event => onDelete !== undefined && focused(event) !== undefined,
+      unavailable: () => (collectionLocked ? '매크로 편집 불가' : undefined),
+      run: event => {
+        const item = focused(event);
+        if (item && !collectionLocked) onDelete?.(item);
+      },
+    },
     {
       id: 'edit.duplicate',
       when: event => onDuplicate !== undefined && focused(event) !== undefined,

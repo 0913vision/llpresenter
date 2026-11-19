@@ -1,7 +1,7 @@
 import {limitReason} from '@core/common/limitReason';
 import {useWindowShortcuts} from '@renderer/platform/windowShortcuts';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
-import {useContext, useEffect, useRef, useState} from 'react';
+import {useContext, useEffect, useRef, useState, type RefObject} from 'react';
 import {parseMacroCollectionId, parseMacroId} from '@core/schema/ids';
 import {freeName} from '@core/common/freeName';
 import {
@@ -22,8 +22,10 @@ import type {MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import type {MacroViewMode} from './MacroView';
 import {saveMacroEdit, type MacroEdit} from './macroEdits';
-import {countMacroUses} from './macroUsage';
+import {deleteSelection} from '@renderer/ui/useSelectionDelete';
 import {useToolEditing} from './useToolEditing';
+import {useToolDeleteShortcuts} from '@renderer/platform/useToolDeleteShortcuts';
+import {returnFocus} from '@renderer/ui/returnFocus';
 import {toolMenuReason} from './toolMenuEntries';
 import {useOptimisticCreation} from './useOptimisticCreation';
 import {saveMacroCollectionEdit} from './macroCollectionEdits';
@@ -41,8 +43,7 @@ export type MacroEditor =
       index?: number | undefined;
       initial?: MacroActionDraft | undefined;
     }
-  | {kind: 'rename'; item: Macro}
-  | {kind: 'delete'; item: Macro; uses: number | null; failed: boolean};
+  | {kind: 'rename'; item: Macro};
 
 /** Owns panel snapshots and revision-guarded writes without delaying optimistic creates. */
 export interface MacroPanelModel {
@@ -57,7 +58,6 @@ export interface MacroPanelModel {
     trigger: HTMLElement | undefined;
   } | null;
   readonly editor: MacroEditor | null;
-  readonly collectionDialog: {kind: 'delete'; item: MacroCollection} | null;
   readonly palette: ReturnType<typeof useMacroPalette.getState>;
   readonly locked: boolean;
   readonly lockReason: string | undefined;
@@ -80,22 +80,22 @@ export interface MacroPanelModel {
   readonly choosePaletteAction: (actionKind: MacroActionKind) => void;
   readonly menuHandlers: (item: Macro) => MacroMenuHandlers;
   readonly close: () => void;
-  readonly closeCollection: () => void;
   readonly saveIcon: (icon: string) => void;
   readonly saveColor: (color: Macro['color']) => void;
   readonly saveAction: (action: KnownMacroAction) => void;
   readonly saveNewCollection: (name: string) => void;
   readonly rename: (name: string) => Promise<boolean>;
-  readonly deleteCollection: () => void;
-  readonly deleteMacro: () => void;
 }
 
 /** Keeps subscriptions, pending usage cancellation, optimistic items and save guards together. */
 export function useMacroPanel({
   onProblem,
+  root,
 }: {
   readonly onProblem?: ((notice: Notice) => void) | undefined;
+  readonly root?: RefObject<HTMLElement | null> | undefined;
 }): MacroPanelModel {
+  const fallbackRoot = useRef<HTMLElement>(null);
   const navigate = useContext(WorkspaceNavigation);
   const document = useSettingsDocument('macros', '매크로', onProblem);
   const [collection, setCollection] = useState<MacroCollection['id']>();
@@ -151,21 +151,22 @@ export function useMacroPanel({
   const renameAfterMenu = useMenuHandoff<Macro>(menu !== null, item =>
     setEditor({kind: 'rename', item}),
   );
-  const [collectionDialog, setCollectionDialog] = useState<{
-    kind: 'delete';
-    item: MacroCollection;
-  } | null>(null);
   const palette = useMacroPalette();
   const paletteFor = palette.target;
   const revision = useRef(0);
-  const pendingCount = useRef<AbortController | null>(null);
-  useEffect(() => () => pendingCount.current?.abort(), []);
-  const {busy, run} = useToolEditing({
+  const editing = useToolEditing({
     api: window.llp,
     write: saveMacroEdit,
     onProblem,
-    area: {key: 'macros', label: '매크로', log: 'Could not edit macros'},
+    area: {
+      key: 'macros',
+      label: '매크로',
+      log: 'Could not edit macros',
+      history: 'macros',
+    },
   });
+  const {busy, run} = editing;
+  useToolDeleteShortcuts(root ?? fallbackRoot, editing);
   const collectionEdit = useToolEditing({
     api: window.llp,
     write: saveMacroCollectionEdit,
@@ -174,6 +175,7 @@ export function useMacroPanel({
       key: 'macro-collections',
       label: '\ubaa8\uc74c',
       log: 'Could not edit macro collections',
+      history: 'macros',
     },
   });
   const locked =
@@ -183,10 +185,6 @@ export function useMacroPanel({
     !window.llp;
   const currentGroup = collections.find(item => item.id === collection);
   const currentCollection = currentGroup?.id;
-  const closeCollection = (): void => {
-    revision.current++;
-    setCollectionDialog(null);
-  };
   const commitCollection = (
     edit: import('./macroCollectionEdits').MacroCollectionEdit,
     after: () => void,
@@ -206,8 +204,6 @@ export function useMacroPanel({
   };
   const close = (): void => {
     revision.current++;
-    pendingCount.current?.abort();
-    pendingCount.current = null;
     setEditor(null);
   };
   const commit = (edit: MacroEdit, after?: () => void): void => {
@@ -276,37 +272,65 @@ export function useMacroPanel({
         setCollection(current => (current === item.id ? collection : current)),
     );
   };
-  const askDelete = (item: Macro): void => {
-    const api = window.llp;
-    if (!api) return;
-    pendingCount.current?.abort();
-    const controller = new AbortController();
-    pendingCount.current = controller;
-    setEditor({kind: 'delete', item, uses: null, failed: false});
-    countMacroUses(api, item.id, controller.signal).then(
-      uses => {
-        if (!controller.signal.aborted) {
-          setEditor(current =>
-            current?.kind === 'delete' && current.item.id === item.id
-              ? {...current, uses}
-              : current,
-          );
-        }
-      },
-      (cause: unknown) => {
-        if (controller.signal.aborted) return;
-        api.log.write({
-          level: 'error',
-          message: 'Could not count macro uses',
-          detail: String(cause),
-        });
-        setEditor(current =>
-          current?.kind === 'delete' && current.item.id === item.id
-            ? {...current, failed: true}
-            : current,
-        );
+  const focusGrid = (): void => {
+    const list = root?.current?.querySelector<HTMLElement>('[role="listbox"]');
+    if (list) {
+      const had = list.hasAttribute('tabindex');
+      if (!had) list.tabIndex = -1;
+      returnFocus(list);
+      if (!had) list.removeAttribute('tabindex');
+    }
+  };
+  const removeMacro = (item: Macro): void =>
+    deleteSelection(
+      1,
+      () => !locked && macros.some(value => value.id === item.id),
+      () => {
+        focusGrid();
+        commit({kind: 'delete', id: item.id});
       },
     );
+  const removeAfterMenu = useMenuHandoff<Macro>(menu !== null, removeMacro);
+  const askDelete = (item: Macro): void => {
+    if (menu) {
+      removeAfterMenu(item);
+      setMenu(null);
+    } else removeMacro(item);
+  };
+  const removeActions = ({
+    item,
+    index,
+  }: {
+    item: Macro;
+    index: number | null;
+  }): void => {
+    deleteSelection(
+      index === null
+        ? item.actions.length
+        : Number(index >= 0 && index < item.actions.length),
+      () => !locked && macros.some(value => value.id === item.id),
+      () => {
+        focusGrid();
+        commit({
+          kind: 'action',
+          id: item.id,
+          action:
+            index === null
+              ? {kind: 'removeAll', expected: item.actions}
+              : {kind: 'remove', index, expected: item.actions},
+        });
+      },
+    );
+  };
+  const removeActionsAfterMenu = useMenuHandoff<{
+    item: Macro;
+    index: number | null;
+  }>(menu !== null, removeActions);
+  const askRemoveActions = (item: Macro, index: number | null): void => {
+    if (menu) {
+      removeActionsAfterMenu({item, index});
+      setMenu(null);
+    } else removeActions({item, index});
   };
   const membership = (
     change: {
@@ -378,19 +402,9 @@ export function useMacroPanel({
         useShowToolTab.getState().setTool('audio');
       }
     },
-    removeAllActions: () =>
-      commit({
-        kind: 'action',
-        id: item.id,
-        action: {kind: 'removeAll', expected: item.actions},
-      }),
+    removeAllActions: () => askRemoveActions(item, null),
     openPalette: () => palette.show(item.id),
-    removeAction: index =>
-      commit({
-        kind: 'action',
-        id: item.id,
-        action: {kind: 'remove', index, expected: item.actions},
-      }),
+    removeAction: index => askRemoveActions(item, index),
     duplicate: () => {
       const copyId = parseMacroId(crypto.randomUUID());
       if (copyId.ok) {
@@ -401,7 +415,20 @@ export function useMacroPanel({
   });
   const askDeleteCollection = (item: MacroCollection): void => {
     revision.current++;
-    setCollectionDialog({kind: 'delete', item});
+    deleteSelection(
+      1,
+      () => !locked && collections.some(value => value.id === item.id),
+      () => {
+        focusGrid();
+        commitCollection({kind: 'delete', id: item.id}, () => {
+          if (collection === item.id) {
+            touchedCollection.current = true;
+            window.llp?.ui.setRememberedView({macroCollection: null});
+          }
+          setCollection(current => (current === item.id ? undefined : current));
+        });
+      },
+    );
   };
   const selectCollection = (id: MacroCollection['id'] | undefined): void => {
     revision.current++;
@@ -490,23 +517,6 @@ export function useMacroPanel({
           }),
       );
   };
-  const deleteCollection = (): void => {
-    if (collectionDialog?.kind !== 'delete') return;
-    commitCollection({kind: 'delete', id: collectionDialog.item.id}, () => {
-      if (collection === collectionDialog.item.id) {
-        touchedCollection.current = true;
-        window.llp?.ui.setRememberedView({macroCollection: null});
-      }
-      setCollection(current =>
-        current === collectionDialog.item.id ? undefined : current,
-      );
-      closeCollection();
-    });
-  };
-  const deleteMacro = (): void => {
-    if (editor?.kind !== 'delete') return;
-    commit({kind: 'delete', id: editor.item.id}, close);
-  };
   const rename = (name: string): Promise<boolean> => {
     if (editor?.kind !== 'rename') return Promise.resolve(false);
     return run({kind: 'update', id: editor.item.id, changes: {name}}, 'saved');
@@ -519,7 +529,6 @@ export function useMacroPanel({
     selectedId: editor?.item.id ?? menu?.item.id ?? selected,
     menu,
     editor,
-    collectionDialog,
     palette,
     locked,
     lockReason: toolMenuReason(locked, busy || collectionEdit.busy),
@@ -541,13 +550,10 @@ export function useMacroPanel({
     choosePaletteAction,
     menuHandlers,
     close,
-    closeCollection,
     saveIcon,
     saveColor,
     saveAction,
     saveNewCollection,
     rename,
-    deleteCollection,
-    deleteMacro,
   };
 }

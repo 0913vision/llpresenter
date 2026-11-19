@@ -2,8 +2,7 @@ import {NOT_IN_THIS_WINDOW} from '@renderer/platform/problemReasons';
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {useMenuHandoff} from '@renderer/ui/useMenuHandoff';
 import {useState} from 'react';
-import {AlertDialog} from '@renderer/ui/AlertDialog';
-import {objectParticle} from '@renderer/ui/korean';
+import {deleteSelection} from '@renderer/ui/useSelectionDelete';
 import type {MenuAnchor} from '@renderer/ui/Menu';
 import {sendLive, useOutputs} from '@renderer/session/live';
 import type {GroupRename} from '@renderer/ui/ListRow';
@@ -25,6 +24,10 @@ const PROBLEMS: Readonly<Record<ScreenRenameProblem, string>> = {
 export function useScreenRowActions(
   document: NamedDocument<'screens'> | null,
   onProblem: ((notice: Notice) => void) | undefined,
+  {
+    onDeleted,
+    focusList,
+  }: {onDeleted: (revision: number) => void; focusList: () => void},
 ) {
   const editor = useScreenEditor(document, onProblem);
   const outputs = useOutputs();
@@ -32,7 +35,6 @@ export function useScreenRowActions(
     null,
   );
   const [renaming, setRenaming] = useState<string | null>(null);
-  const [confirming, setConfirming] = useState<string | null>(null);
   const select = useScreensSelection(view => view.select);
   const reason =
     document === null
@@ -41,22 +43,6 @@ export function useScreenRowActions(
         ? NEWER_FILE_REASON
         : undefined;
   const target = document?.value.screens.find(screen => screen.id === menu?.id);
-  const confirmedTarget = document?.value.screens.find(
-    screen => screen.id === confirming,
-  );
-  const confirmLast =
-    confirmedTarget === undefined
-      ? undefined
-      : lastOfKind(document?.value.screens ?? [], confirmedTarget);
-  const handoff = useMenuHandoff<{kind: 'rename' | 'delete'; id: string}>(
-    menu !== null,
-    action => {
-      if (action.kind === 'rename') {
-        select(action.id);
-        setRenaming(action.id);
-      } else setConfirming(action.id);
-    },
-  );
   const report = (title: string): void =>
     onProblem?.({
       key: 'screens:row',
@@ -73,6 +59,30 @@ export function useScreenRowActions(
     });
     report('화면 설정 저장 실패');
   };
+  const handoff = useMenuHandoff<{kind: 'rename' | 'delete'; id: string}>(
+    menu !== null,
+    action => {
+      if (action.kind === 'rename') {
+        select(action.id);
+        setRenaming(action.id);
+      } else {
+        const screen = document?.value.screens.find(
+          value => value.id === action.id,
+        );
+        deleteSelection(
+          screen ? 1 : 0,
+          () =>
+            reason === undefined &&
+            screen !== undefined &&
+            lastOfKind(document?.value.screens ?? [], screen) === undefined,
+          () => {
+            focusList();
+            editor.remove(action.id, onDeleted).catch(failed);
+          },
+        );
+      }
+    },
+  );
   const renameFor = (id: string): GroupRename | undefined =>
     renaming !== id || reason !== undefined
       ? undefined
@@ -134,26 +144,6 @@ export function useScreenRowActions(
                 }
               },
             }}
-          />
-        )}
-        {confirmedTarget === undefined ? null : (
-          <AlertDialog
-            icon="trash"
-            title={`‘${confirmedTarget.name}’${objectParticle(confirmedTarget.name)} 삭제할까요?`}
-            onCancel={() => setConfirming(null)}
-            actions={[
-              {
-                label: '삭제',
-                primary: true,
-                disabled: (reason ?? confirmLast) !== undefined,
-                title: reason ?? confirmLast,
-                onSelect: () => {
-                  const id = confirmedTarget.id;
-                  setConfirming(null);
-                  editor.remove(id).catch(failed);
-                },
-              },
-            ]}
           />
         )}
       </>

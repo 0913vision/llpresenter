@@ -1,11 +1,4 @@
-import {
-  act,
-  fireEvent,
-  render,
-  screen,
-  waitFor,
-  within,
-} from '@testing-library/react';
+import {act, fireEvent, render, screen, waitFor} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 import type {LibrarySong, SongDocument} from '@core/schema/contentDocuments';
 import {readSongDragData, SONG_DRAG_MIME} from '@core/schema/songDrag';
@@ -20,28 +13,11 @@ import {
 } from '@fixtures/renderer/features/songs/library/libraryPanelFixtures';
 
 describe('library panel', () => {
-  it('asks with the current service count, supports cancel, then deletes only on confirmation', async () => {
+  it('deletes immediately without a confirmation or notice', async () => {
     const {fixture, user} = await setup();
     const edit = vi.spyOn(fixture.api.content, 'edit');
-    const openDelete = async (): Promise<void> => {
-      fireEvent.contextMenu(screen.getByRole('option', {name: '찬송 10'}));
-      await user.click(screen.getByRole('menuitem', {name: '삭제'}));
-    };
-    await openDelete();
-    expect(screen.getByText('쓰는 곳: 예배 2곳')).toBeDefined();
-    expect(edit).not.toHaveBeenCalled();
-    await user.click(screen.getByRole('button', {name: '취소'}));
-    expect(edit).not.toHaveBeenCalled();
-    await openDelete();
-    act(() =>
-      fixture.pushList(fixture.list().map(song => ({...song, usedBy: []}))),
-    );
-    expect(screen.queryByText('쓰는 곳: 예배 0곳')).toBeNull();
-    await user.click(
-      within(screen.getByRole('alertdialog')).getByRole('button', {
-        name: '삭제',
-      }),
-    );
+    fireEvent.contextMenu(screen.getByRole('option', {name: '찬송 10'}));
+    await user.click(screen.getByRole('menuitem', {name: '삭제'}));
     await waitFor(() =>
       expect(screen.queryByRole('option', {name: '찬송 10'})).toBeNull(),
     );
@@ -49,6 +25,16 @@ describe('library panel', () => {
       type: 'song.delete',
       songId: fixtureSong(1, '찬송 10').song.id,
     });
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(screen.queryByRole('alert')).toBeNull();
+    await user.keyboard('{Control>}z{/Control}');
+    await waitFor(() =>
+      expect(screen.getByRole('option', {name: '찬송 10'})).toBeDefined(),
+    );
+    await user.keyboard('{Control>}y{/Control}');
+    await waitFor(() =>
+      expect(screen.queryByRole('option', {name: '찬송 10'})).toBeNull(),
+    );
   });
 
   it('disables deletion of read-only songs', async () => {

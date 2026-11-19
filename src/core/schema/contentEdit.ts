@@ -98,6 +98,16 @@ const contentEditSchema = v.pipe(
   v.variant('type', [
     ...songEditSchemas,
     ...serviceEditSchemas,
+    v.object({
+      type: v.literal('content.undoDelete'),
+      area: v.picklist(['song', 'service', 'template']),
+      id: v.pipe(v.string(), v.nonEmpty()),
+    }),
+    v.object({
+      type: v.literal('content.redoDelete'),
+      area: v.picklist(['song', 'service', 'template']),
+      id: v.pipe(v.string(), v.nonEmpty()),
+    }),
     v.object({type: v.literal('saves.retry')}),
   ]),
 );

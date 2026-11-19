@@ -246,23 +246,16 @@ describe('song editor view', () => {
     ]);
   });
 
-  it('reports a stale group deletion through the editor notice channel', async () => {
+  it('deletes selected slides immediately without a notice', async () => {
     const {session, onProblem, user} = await editorSetup();
     const surface = screen.getByRole('group', {name: '슬라이드 편집 명령'});
     act(() => session.selectSlides({type: 'all'}));
     act(() => session.commandSlides({type: 'duplicate'}));
     fireEvent.contextMenu(surface);
     await user.click(screen.getByRole('menuitem', {name: /2개 삭제/}));
-    expect(screen.getByRole('alertdialog')).toBeDefined();
-    act(() => session.selectSlides({type: 'clear'}));
-    await user.click(screen.getByRole('button', {name: '삭제'}));
-    expect(session.history.snapshot.song.slides).toHaveLength(4);
-    expect(onProblem).toHaveBeenCalledExactlyOnceWith(
-      expect.objectContaining({
-        key: 'selection-delete:stale',
-        kind: 'info',
-      }),
-    );
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    expect(session.history.snapshot.song.slides).toHaveLength(2);
+    expect(onProblem).not.toHaveBeenCalled();
   });
   it('tabs from slide commands to label and lyrics, skipping pointer insertion gutters in both directions', async () => {
     const {session, user} = await editorSetup();

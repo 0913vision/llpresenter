@@ -45,13 +45,34 @@ function setup(
 ) {
   const {monitors = [], preferences} = extras;
   let document = initial;
+  const deleted: SettingsDocument[] = [];
+  const restored: SettingsDocument[] = [];
   const listeners = new Set<(next: SettingsDocument) => void>();
   const send = vi.fn();
   const edit = vi.fn<(request: SettingsEdit) => Promise<EditResult>>(
     async request => {
       await held;
+      if (
+        (request.type === 'settings.undoDelete' ||
+          request.type === 'settings.redoDelete') &&
+        request.area === 'screens'
+      ) {
+        const from =
+          request.type === 'settings.undoDelete' ? deleted : restored;
+        const to = request.type === 'settings.undoDelete' ? restored : deleted;
+        const previous = from.pop();
+        if (!previous) throw new Error('Missing screen history');
+        to.push(document);
+        document = {...previous, revision: document.revision + 1};
+        for (const listener of listeners) listener(document);
+        return {ok: true, value: {id: 'screens', revision: document.revision}};
+      }
       if (request.name !== 'screens' || document.name !== 'screens') {
         throw new Error('Unexpected edit');
+      }
+      if (request.value.screens.length < document.value.screens.length) {
+        deleted.push(document);
+        restored.length = 0;
       }
       document = {
         ...document,
@@ -363,43 +384,16 @@ describe('screen creation and group outputs', () => {
     ).toEqual(['이름 바꾸기', '사용', '삭제']);
   });
 
-  it('asks with the object particle that fits a name ending in a vowel', async () => {
-    setup(withExtraAudience('editable', '보조 청중 화면 A'));
-    const row = await screen.findByRole('option', {name: '보조 청중 화면 A'});
-    fireEvent.contextMenu(row);
-    await userEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
-    expect(
-      within(await screen.findByRole('alertdialog')).getByText(
-        '‘보조 청중 화면 A’를 삭제할까요?',
-      ),
-    ).toBeTruthy();
-  });
-
-  it('cancels deletion without a write and then removes only the confirmed screen', async () => {
+  it('deletes immediately without a confirmation and preserves the other screens', async () => {
     const {edit, send} = setup(withExtraAudience());
     const row = await screen.findByRole('option', {name: '청중 화면'});
     await userEvent.click(row);
     fireEvent.contextMenu(row);
     await userEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
-    const first = await screen.findByRole('alertdialog');
-    expect(within(first).getByText('‘청중 화면’을 삭제할까요?')).toBeTruthy();
-    await waitFor(() =>
-      expect(document.activeElement).toBe(
-        within(first).getByRole('button', {name: '삭제'}),
-      ),
-    );
-    await userEvent.click(within(first).getByRole('button', {name: '취소'}));
-    expect(edit).not.toHaveBeenCalled();
-    fireEvent.contextMenu(row);
-    await userEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
-    await userEvent.click(
-      within(await screen.findByRole('alertdialog')).getByRole('button', {
-        name: '삭제',
-      }),
-    );
     await waitFor(() =>
       expect(screen.queryByRole('option', {name: '청중 화면'})).toBeNull(),
     );
+    expect(screen.queryByRole('alertdialog')).toBeNull();
     expect(
       (
         await screen.findByRole('option', {name: '보조 청중 화면'})
@@ -413,6 +407,10 @@ describe('screen creation and group outputs', () => {
       EXTRA_ID,
     ]);
     expect(send).not.toHaveBeenCalled();
+    await userEvent.keyboard('{Control>}z{/Control}');
+    await waitFor(() =>
+      expect(screen.getByRole('option', {name: '청중 화면'})).toBeDefined(),
+    );
   });
 
   it('disables row lifecycle actions in read-only settings', async () => {

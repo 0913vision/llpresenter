@@ -53,6 +53,13 @@ export class DocumentCollection<T extends {readonly id: string}> {
     return added;
   }
 
+  /** Restores an earlier document with a fresh revision so stale editors cannot write it. */
+  restore(previous: StoredDocument<T>, file: string): StoredDocument<T> {
+    const restored = {...previous, file, revision: previous.revision + 1};
+    this.documents.set(previous.data.id, restored);
+    return restored;
+  }
+
   remove(id: string): void {
     this.documents.delete(id);
   }

@@ -47,7 +47,7 @@ export function useThemePanels(
     (live !== null && live.layers.slide === null && live.layers.media === null
       ? model.file?.standby.id
       : undefined);
-  const surfaces = useThemeSurfaces(model, liveId, onProblem);
+  const surfaces = useThemeSurfaces(model, liveId);
   return {
     ...surfaces,
     ready:

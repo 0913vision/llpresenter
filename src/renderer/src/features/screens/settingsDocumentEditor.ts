@@ -43,12 +43,15 @@ export class SettingsDocumentEditor<T extends SettingsDocument> {
   change(
     transform: (value: T['value']) => T['value'] | undefined,
     completion: 'applied' | 'saved' = 'applied',
+    onApplied?: (revision: number) => void,
   ): Promise<boolean> {
     return pendingWritesOf(this.api).run({
       refused: false,
       sent: applied => applied,
       write: () => {
-        const result = this.queue.then(() => this.save(transform, completion));
+        const result = this.queue.then(() =>
+          this.save(transform, completion, onApplied),
+        );
         this.queue = result.then(
           () => undefined,
           () => undefined,
@@ -61,6 +64,7 @@ export class SettingsDocumentEditor<T extends SettingsDocument> {
   private async save(
     transform: (value: T['value']) => T['value'] | undefined,
     completion: 'applied' | 'saved',
+    onApplied?: (revision: number) => void,
   ): Promise<boolean> {
     const base = this.base;
     if (base?.access !== 'editable') return false;
@@ -84,6 +88,7 @@ export class SettingsDocumentEditor<T extends SettingsDocument> {
           value,
           revision,
         });
+        onApplied?.(revision);
         if (revision >= this.unsavedRevision) {
           this.unsavedRevision = null;
         }
@@ -97,6 +102,7 @@ export class SettingsDocumentEditor<T extends SettingsDocument> {
           value,
           revision,
         });
+        onApplied?.(revision);
       }
       this.options.report(result.error.message);
       return result.error.reason === 'write-failed' && completion === 'applied';

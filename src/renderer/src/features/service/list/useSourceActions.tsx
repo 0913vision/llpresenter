@@ -1,11 +1,20 @@
 import {NEWER_FILE_REASON} from '@renderer/platform/problemReasons';
 import {menuAvailability} from '@renderer/ui/menuModel';
-import {useEffect, useRef, useState, type ReactNode} from 'react';
+import {
+  useEffect,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react';
 import type {LlpApi} from '@contracts/ipc/api';
 import type {ServiceEntry} from '@core/schema/contentDocuments';
 import {pendingWritesOf} from '@renderer/platform/pendingWrites';
 import {useShow} from '@renderer/session/show';
-import {AlertDialog} from '@renderer/ui/AlertDialog';
+import {contentDeleteHistory} from '@renderer/platform/contentDeleteHistory';
+import {deleteSelection} from '@renderer/ui/useSelectionDelete';
+import {isInTextEntry} from '@renderer/ui/textEntry';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
 import {RenameDialog} from './RenameDialog';
@@ -46,9 +55,9 @@ function kindName(source: NamedSource): string {
   return source.kind === 'template' ? '템플릿' : '예배';
 }
 
-function kindObject(source: NamedSource): string {
-  return source.kind === 'template' ? '템플릿을' : '예배를';
-}
+const emptyHistory = {undo: 0, redo: 0, busy: false};
+const noHistory = () => emptyHistory;
+const noSubscribe = () => () => undefined;
 
 // NOTE(0913vision): A rename sends the whole document with the revision it
 // was read at, as every `*.update` does; main refuses it as stale when the
@@ -101,6 +110,7 @@ export function useSourceActions({
   readonly openMenu: (event: ContextMenuEvent, row: SourceRow) => void;
   readonly overlays: ReactNode;
   readonly confirmDelete: (row: SourceRow) => void;
+  readonly onHistoryKey: (event: KeyboardEvent<HTMLDivElement>) => void;
 } {
   const api = window.llp;
   const currentId = useShow(view => view.serviceId);
@@ -109,10 +119,16 @@ export function useSourceActions({
     readonly anchor: MenuAnchor;
   } | null>(null);
   const [dialog, setDialog] = useState<{
-    readonly kind: 'rename' | 'delete';
+    readonly kind: 'rename';
     readonly row: SourceRow;
   } | null>(null);
   const [busy, setBusy] = useState(false);
+  const root = useRef<HTMLElement>(null);
+  const history = api ? contentDeleteHistory(api.content) : null;
+  const historyState = useSyncExternalStore(
+    history?.subscribe ?? noSubscribe,
+    history?.get ?? noHistory,
+  );
   const renameAfterMenu = useMenuHandoff<SourceRow>(menu !== null, row =>
     setDialog({kind: 'rename', row}),
   );
@@ -158,10 +174,35 @@ export function useSourceActions({
   };
   const openMenu = (event: ContextMenuEvent, row: SourceRow): void => {
     event.preventDefault();
+    root.current = event.currentTarget.closest<HTMLElement>('[role="listbox"]');
     setMenu({row, anchor: contextMenuAnchor(event)});
   };
   const isOpen = (row: SourceRow): boolean =>
     row.source.kind === 'service' && row.source.id === currentId;
+  const remove = (row: SourceRow): void => {
+    deleteSelection(
+      1,
+      () => !busy && row.access === 'editable' && !isOpen(row),
+      () => {
+        const list = root.current;
+        if (list) {
+          const old = list.getAttribute('tabindex');
+          list.tabIndex = -1;
+          list.focus({preventScroll: true});
+          if (old === null) list.removeAttribute('tabindex');
+          else list.setAttribute('tabindex', old);
+        }
+        run('delete', async next => {
+          const done = await deleteSource(next, row.source);
+          if (done) history?.record(row.source.kind, row.source.id);
+          return done;
+        }).catch((cause: unknown) =>
+          console.error('Could not finish deleting a service source:', cause),
+        );
+      },
+    );
+  };
+  const deleteAfterMenu = useMenuHandoff<SourceRow>(menu !== null, remove);
   const readOnlyReason =
     menu?.row.access === 'readOnly' ? NEWER_FILE_REASON : undefined;
 
@@ -195,7 +236,7 @@ export function useSourceActions({
               ),
               onSelect: () => {
                 setMenu(null);
-                setDialog({kind: 'delete', row: menu.row});
+                deleteAfterMenu(menu.row);
               },
             },
           ]}
@@ -213,35 +254,40 @@ export function useSourceActions({
           }
         />
       ) : null}
-      {dialog?.kind === 'delete' ? (
-        <AlertDialog
-          icon="trash"
-          title={`‘${dialog.row.name}’ ${kindObject(dialog.row.source)} 삭제할까요?`}
-          onCancel={closeDialog}
-          actions={[
-            {
-              label: '삭제',
-              primary: true,
-              disabled: busy,
-              onSelect: () => {
-                run('delete', next =>
-                  deleteSource(next, dialog.row.source),
-                ).catch((cause: unknown) =>
-                  console.error(
-                    'Could not finish deleting a service source:',
-                    cause,
-                  ),
-                );
-              },
-            },
-          ]}
-        />
-      ) : null}
     </>
   );
   return {
     openMenu,
     overlays,
-    confirmDelete: row => setDialog({kind: 'delete', row}),
+    confirmDelete: remove,
+    onHistoryKey: event => {
+      if (
+        !event.ctrlKey ||
+        event.altKey ||
+        event.metaKey ||
+        isInTextEntry(event.target)
+      ) {
+        return;
+      }
+      const key = event.key.toLowerCase();
+      const kind =
+        key === 'z'
+          ? event.shiftKey
+            ? 'redo'
+            : 'undo'
+          : key === 'y' && !event.shiftKey
+            ? 'redo'
+            : null;
+      if (kind === null || historyState.busy || historyState[kind] === 0) {
+        return;
+      }
+      event.preventDefault();
+      event.stopPropagation();
+      history
+        ?.replay(kind)
+        .catch((cause: unknown) =>
+          console.error('Could not restore a service source:', cause),
+        );
+    },
   };
 }

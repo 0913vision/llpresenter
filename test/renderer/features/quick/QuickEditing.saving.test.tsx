@@ -6,7 +6,6 @@ import {
   renderHook,
   screen,
   waitFor,
-  within,
 } from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
 import type {EditResult} from '@core/schema/contentEdit';
@@ -236,19 +235,18 @@ describe('quick editing', () => {
     });
     fireEvent.contextMenu(row);
     fireEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
-    const question = await screen.findByRole('alertdialog');
-    expect(question.textContent).toContain(
-      '‘새 이름’ 빠른 실행 항목을 삭제할까요?',
+    await waitFor(() =>
+      expect(screen.queryByRole('button', {name: '새 이름'})).toBeNull(),
     );
-    fireEvent.click(within(question).getByRole('button', {name: '취소'}));
-    expect(screen.getByRole('button', {name: '새 이름'})).toBeDefined();
-    fireEvent.contextMenu(row);
-    fireEvent.click(await screen.findByRole('menuitem', {name: '삭제'}));
-    fireEvent.click(
-      within(await screen.findByRole('alertdialog')).getByRole('button', {
-        name: '삭제',
-      }),
-    );
+    expect(screen.queryByRole('alertdialog')).toBeNull();
+    const list = screen.getByRole('group', {name: '빠른 실행 항목'});
+    fireEvent.keyDown(list, {key: 'z', code: 'KeyZ', ctrlKey: true});
+    await screen.findByRole('button', {name: '새 이름'});
+    expect(fixture.current().value.items.at(-1)).toMatchObject({
+      name: '새 이름',
+      extension: true,
+    });
+    fireEvent.keyDown(list, {key: 'y', code: 'KeyY', ctrlKey: true});
     await waitFor(() =>
       expect(screen.queryByRole('button', {name: '새 이름'})).toBeNull(),
     );

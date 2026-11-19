@@ -1,4 +1,4 @@
-import {useState} from 'react';
+import {useRef, useState, useSyncExternalStore} from 'react';
 import {useShow} from '@renderer/session/show';
 import {Menu} from '@renderer/ui/Menu';
 import type {Notice} from '@renderer/ui/notices';
@@ -6,21 +6,38 @@ import type {MenuEntry} from '@renderer/ui/menuModel';
 import {useServiceActions} from '@renderer/features/service/list/useServiceActions';
 import {useServicePicker} from './useServicePicker';
 import {useServiceRowMenu} from './useServiceRowMenu';
+import {contentDeleteHistory} from '@renderer/platform/contentDeleteHistory';
+import {useToolDeleteShortcuts} from '@renderer/platform/useToolDeleteShortcuts';
 
 const PICKER_WIDTH = 300;
+const emptyHistory = {undo: 0, redo: 0, busy: false};
+const noHistory = () => emptyHistory;
+const noSubscribe = () => () => undefined;
 
 /** The service picker shared by the order heading and File menu. */
 export function useServicePickerMenu(onProblem: (notice: Notice) => void) {
   const [anchor, setAnchor] = useState<HTMLElement | null>(null);
+  const anchorRef = useRef<HTMLElement>(null);
+  const history = window.llp ? contentDeleteHistory(window.llp.content) : null;
+  const historyState = useSyncExternalStore(
+    history?.subscribe ?? noSubscribe,
+    history?.get ?? noHistory,
+  );
+  useToolDeleteShortcuts(anchorRef, {
+    history: historyState,
+    replay: kind => history?.replay(kind) ?? Promise.resolve(false),
+  });
   const picker = useServicePicker(onProblem);
   const actions = useServiceActions({onProblem, onOpen: picker.close});
   const rows = useServiceRowMenu(onProblem, picker.close, picker.select);
   const currentId = useShow(view => view.serviceId);
   const openAt = (element: HTMLElement): void => {
+    anchorRef.current = element;
     setAnchor(element);
     if (!picker.open) picker.toggle();
   };
   const toggleAt = (element: HTMLElement): void => {
+    anchorRef.current = element;
     setAnchor(element);
     picker.toggle();
   };

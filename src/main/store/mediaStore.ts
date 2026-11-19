@@ -5,12 +5,14 @@ import type {FileError} from '@core/schema/fileFormat';
 import {
   mergeMediaDocument,
   type MediaDocument,
+  type MediaEdit,
   type MediaEditResult,
 } from '@core/schema/mediaEdit';
 import {
   MEDIA_LIMITS,
   serializeMediaList,
   type MediaItem,
+  type MediaList,
 } from '@core/schema/mediaList';
 import type {Logger} from '../log';
 import type {DocumentFiles} from './contentPersistence';
@@ -20,6 +22,8 @@ import {
   hasPlaylist,
   mediaRefusal,
   playlistItemsValid,
+  restoreDeletedMedia,
+  restoreDeletedPlaylist,
   type MediaChange,
   type MediaListEdit,
   type PlaylistRef,
@@ -53,6 +57,18 @@ export class MediaStore implements MediaLibrary {
   private readonly listeners = new Set<MediaListener>();
   private readonly saves: SettingsPersistence;
   private closing: Promise<void> | null = null;
+  private readonly deleteUndo: Array<{
+    id: string;
+    playlist: PlaylistRef | null;
+    before: MediaList;
+    after: MediaList;
+  }> = [];
+  private deleteRedo: Array<{
+    id: string;
+    playlist: PlaylistRef | null;
+    before: MediaList;
+    after: MediaList;
+  }> = [];
 
   constructor(private readonly options: MediaStoreOptions) {
     this.document = options.document;
@@ -95,14 +111,77 @@ export class MediaStore implements MediaLibrary {
     };
   }
 
-  apply(edit: MediaListEdit): Promise<MediaEditResult> {
+  apply(
+    edit:
+      | MediaListEdit
+      | Extract<MediaEdit, {type: 'media.undoDelete' | 'media.redoDelete'}>,
+  ): Promise<MediaEditResult> {
     return this.safely(() => {
+      if (
+        edit.type === 'media.undoDelete' ||
+        edit.type === 'media.redoDelete'
+      ) {
+        const undo = edit.type === 'media.undoDelete';
+        const from = undo ? this.deleteUndo : this.deleteRedo;
+        const to = undo ? this.deleteRedo : this.deleteUndo;
+        const step = from.at(-1);
+        const refusal = this.refusal(undefined);
+        if (refusal !== null) {
+          return Promise.resolve({ok: false, error: refusal});
+        }
+        if (!step) {
+          return Promise.resolve(
+            mediaRefusal('not-found', 'No media deletion to undo'),
+          );
+        }
+        const before = this.document.value;
+        const item = step.before.items.find(value => value.id === step.id);
+        const change = undo
+          ? step.playlist
+            ? restoreDeletedPlaylist(before, step.before, {
+                id: step.id,
+                kind: step.playlist.kind,
+              })
+            : restoreDeletedMedia(before, step.before, step.id)
+          : step.playlist
+            ? editMediaList(before, {
+                type: 'media.playlist.delete',
+                playlist: step.playlist,
+              })
+            : item
+              ? editMediaList(before, {type: 'media.delete', mediaId: item.id})
+              : mediaRefusal('not-found', 'Media history item missing');
+        if (!change.ok) return Promise.resolve(change);
+        const revision = this.document.revision;
+        const result = this.commit(change.value, true);
+        if (this.document.revision !== revision) {
+          from.pop();
+          to.push(undo ? step : {...step, before, after: this.document.value});
+        }
+        return result;
+      }
       const refusal = this.refusal(
         'baseRevision' in edit ? edit.baseRevision : undefined,
       );
       if (refusal !== null) return Promise.resolve({ok: false, error: refusal});
       const change = editMediaList(this.document.value, edit);
-      return change.ok ? this.commit(change.value) : Promise.resolve(change);
+      if (!change.ok) return Promise.resolve(change);
+      const before = this.document.value;
+      const revision = this.document.revision;
+      const deleting =
+        edit.type === 'media.delete' || edit.type === 'media.playlist.delete';
+      const result = this.commit(change.value, deleting);
+      if (deleting && this.document.revision !== revision) {
+        this.deleteUndo.push({
+          id: change.value.id,
+          playlist:
+            edit.type === 'media.playlist.delete' ? edit.playlist : null,
+          before,
+          after: this.document.value,
+        });
+        this.deleteRedo = [];
+      }
+      return result;
     });
   }
 
@@ -291,7 +370,10 @@ export class MediaStore implements MediaLibrary {
     });
   }
 
-  private commit(change: MediaChange): Promise<MediaEditResult> {
+  private commit(
+    change: MediaChange,
+    keepDeleteHistory = false,
+  ): Promise<MediaEditResult> {
     const parsed = mergeMediaDocument(this.document, change.value);
     if (!parsed.ok) {
       return Promise.resolve(
@@ -328,6 +410,9 @@ export class MediaStore implements MediaLibrary {
     const text = serializeMediaList(next.value, this.options.file);
     if (!text.ok) {
       return Promise.resolve(mediaRefusal('invalid', text.error.message));
+    }
+    if (!keepDeleteHistory) {
+      this.deleteRedo = [];
     }
     this.document = next;
     this.library = built.library;

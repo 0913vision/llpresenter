@@ -40,6 +40,17 @@ interface ShortcutOwner {
 }
 
 const owners = new Set<ShortcutOwner>();
+const historyListeners = new Set<() => void>();
+
+/** Notifies toolbar controls when a history command's state changes. */
+export function subscribeHistoryCommands(listener: () => void): () => void {
+  historyListeners.add(listener);
+  return () => historyListeners.delete(listener);
+}
+
+function historyChanged(): void {
+  for (const listener of historyListeners) listener();
+}
 const modifiers = new PhysicalModifiers();
 let composing = false;
 let dragging = false;
@@ -420,6 +431,13 @@ export function useCommandShortcuts(
   const latest = useRef(handlers);
   useEffect(() => {
     latest.current = handlers;
+    if (
+      handlers.some(
+        handler => handler.id === 'edit.undo' || handler.id === 'edit.redo',
+      )
+    ) {
+      historyChanged();
+    }
   });
   const all = (): readonly WindowShortcut[] => latest.current;
   const isBlocked = useEffectEvent(blocked);
@@ -429,6 +447,7 @@ export function useCommandShortcuts(
     stop ??= listen();
     return () => {
       owners.delete(owner);
+      historyChanged();
       if (owners.size === 0) {
         stop?.();
         stop = undefined;

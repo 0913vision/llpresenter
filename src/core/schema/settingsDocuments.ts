@@ -133,6 +133,18 @@ const settingsEditSchema = v.pipe(
     quickTimerRenameSchema,
     timerDeleteSchema,
     timerRenameSchema,
+    v.object({
+      type: v.literal('settings.undoDelete'),
+      name: v.literal('delete-history'),
+      area: v.picklist(settingsNames),
+      expectedRevision: revisionSchema,
+    }),
+    v.object({
+      type: v.literal('settings.redoDelete'),
+      name: v.literal('delete-history'),
+      area: v.picklist(settingsNames),
+      expectedRevision: revisionSchema,
+    }),
   ]),
 );
 

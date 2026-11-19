@@ -208,15 +208,12 @@ it('edits the shared catalog from preferences while an editor dialog follows it'
   );
 
   await f.user.click(within(page).getByRole('button', {name: '새 절 삭제'}));
-  const confirmation = screen.getByRole('alertdialog');
-  expect(
-    within(confirmation).getByText('곡에 붙은 이름표는 남습니다'),
-  ).toBeTruthy();
-  await f.user.click(within(confirmation).getByRole('button', {name: '삭제'}));
-  await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
-  expect(
-    within(dialog).queryByRole('textbox', {name: '새 절 이름'}),
-  ).toBeNull();
+  expect(screen.queryByRole('alertdialog')).toBeNull();
+  await waitFor(() =>
+    expect(
+      within(dialog).queryByRole('textbox', {name: '새 절 이름'}),
+    ).toBeNull(),
+  );
   expect(
     f.other.getSnapshot().session?.history.snapshot.song.slides[0]?.label,
   ).toBe('새 절');
@@ -383,12 +380,10 @@ it('keeps the add action focusable after deleting every label on the page', asyn
   render(<LabelsPage store={f.store} />);
   for (const name of ['1절', '후렴']) {
     await f.user.click(screen.getByRole('button', {name: `${name} 삭제`}));
-    await f.user.click(
-      within(screen.getByRole('alertdialog')).getByRole('button', {
-        name: '삭제',
-      }),
+    await waitFor(() =>
+      expect(screen.queryByRole('button', {name: `${name} 삭제`})).toBeNull(),
     );
-    await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
+    expect(screen.queryByRole('alertdialog')).toBeNull();
   }
   await waitFor(() =>
     expect(document.activeElement).toBe(
@@ -396,6 +391,8 @@ it('keeps the add action focusable after deleting every label on the page', asyn
     ),
   );
   expect(f.labels().value.labels).toHaveLength(0);
+  await f.user.keyboard('{Control>}z{/Control}');
+  await waitFor(() => expect(f.labels().value.labels).toHaveLength(1));
 });
 
 it('reports and dismisses a label save failure in the preferences window', async () => {

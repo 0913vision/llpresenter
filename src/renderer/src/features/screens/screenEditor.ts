@@ -125,20 +125,27 @@ export class ScreenEditor {
    * save. The last screen of a kind stays, whatever the question said when it
    * was asked.
    */
-  remove(screenId: string): Promise<boolean> {
-    return this.documents.change(value => {
-      const target = value.screens.find(screen => screen.id === screenId);
-      if (
-        target === undefined ||
-        lastOfKind(value.screens, target) !== undefined
-      ) {
-        return undefined;
-      }
-      return {
-        ...value,
-        screens: value.screens.filter(screen => screen.id !== screenId),
-      };
-    });
+  remove(
+    screenId: string,
+    onApplied?: (revision: number) => void,
+  ): Promise<boolean> {
+    return this.documents.change(
+      value => {
+        const target = value.screens.find(screen => screen.id === screenId);
+        if (
+          target === undefined ||
+          lastOfKind(value.screens, target) !== undefined
+        ) {
+          return undefined;
+        }
+        return {
+          ...value,
+          screens: value.screens.filter(screen => screen.id !== screenId),
+        };
+      },
+      'applied',
+      onApplied,
+    );
   }
 
   /** Assigns a monitor and clears its old assignment in one revision. */

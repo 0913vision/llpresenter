@@ -300,11 +300,7 @@ describe('media view', () => {
       '삭제',
     ]);
     fireEvent.click(within(menu).getByRole('menuitem', {name: '삭제'}));
-    fireEvent.click(
-      within(await screen.findByRole('alertdialog')).getByRole('button', {
-        name: '삭제',
-      }),
-    );
+    expect(screen.queryByRole('alertdialog')).toBeNull();
     await vi.waitFor(() =>
       expect(fixture.edit).toHaveBeenCalledWith({
         type: 'media.delete',
@@ -719,7 +715,7 @@ describe('media view', () => {
     );
   });
 
-  it('deletes media from 모든 미디어 after asking', async () => {
+  it('deletes media from 모든 미디어 without a confirmation', async () => {
     const {edit} = setup();
     const mediaTarget = await tile('Dawn');
     fireEvent.contextMenu(mediaTarget);
@@ -740,24 +736,53 @@ describe('media view', () => {
       '삭제',
     ]);
     fireEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
-    const dialog = await screen.findByRole('alertdialog');
-    expect(dialog.textContent).toContain('Dawn');
-    expect(edit).not.toHaveBeenCalled();
-    fireEvent.click(within(dialog).getByRole('button', {name: '삭제'}));
+    expect(screen.queryByRole('alertdialog')).toBeNull();
     await vi.waitFor(() =>
-      expect(screen.queryByRole('alertdialog')).toBeNull(),
+      expect(edit).toHaveBeenCalledExactlyOnceWith({
+        type: 'media.delete',
+        mediaId: mediaId(1),
+      }),
     );
-    expect(edit).toHaveBeenCalledExactlyOnceWith({
-      type: 'media.delete',
-      mediaId: mediaId(1),
-    });
   });
 
-  it('names every place that uses the media in the delete question', async () => {
+  it('undoes and redoes a media deletion from the keyboard without output', async () => {
+    const first = mediaItem(1, {name: 'Dawn'});
+    const second = mediaItem(2, {
+      name: 'Notice',
+      kind: 'image',
+      file: 'notice.png',
+    });
+    const fixture = mediaFixture(mediaDocument([first, second]));
+    let revision = 1;
+    fixture.edit.mockImplementation(async change => {
+      revision++;
+      const items =
+        change.type === 'media.undoDelete' ? [first, second] : [second];
+      fixture.pushDocument(mediaDocument(items, revision));
+      return {ok: true, value: {id: mediaId(1), revision}};
+    });
+    const {send} = setup(fixture);
+    fireEvent.contextMenu(await tile('Dawn'));
+    fireEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
+    await waitFor(() =>
+      expect(screen.queryByRole('option', {name: 'Dawn'})).toBeNull(),
+    );
+    const grid = screen.getByRole('listbox', {name: '모든 미디어'});
+    expect(document.activeElement).toBe(grid);
+    fireEvent.keyDown(grid, {key: 'z', code: 'KeyZ', ctrlKey: true});
+    await tile('Dawn');
+    fireEvent.keyDown(grid, {key: 'y', code: 'KeyY', ctrlKey: true});
+    await waitFor(() =>
+      expect(screen.queryByRole('option', {name: 'Dawn'})).toBeNull(),
+    );
+    expect(send).not.toHaveBeenCalled();
+  });
+
+  it('does not look up usages before deleting media', async () => {
     const fixture = mediaFixture(
       mediaDocument([mediaItem(1, {name: 'Dawn', size: 1024})]),
     );
-    vi.spyOn(fixture.api.media, 'uses').mockResolvedValue({
+    const uses = vi.spyOn(fixture.api.media, 'uses').mockResolvedValue({
       playlists: 2,
       graphics: 1,
       songBackgrounds: 3,
@@ -769,40 +794,25 @@ describe('media view', () => {
     setup(fixture);
     fireEvent.contextMenu(await tile('Dawn'));
     fireEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
-    const dialog = await screen.findByRole('alertdialog');
-    const group = within(dialog).getByRole('group', {name: '쓰는 곳'});
-    expect(
-      [...group.querySelectorAll('p')].slice(1).map(row => row.textContent),
-    ).toEqual([
-      '재생목록2곳',
-      '그래픽1곳',
-      '곡 배경3곳',
-      '예배 순서 항목4곳',
-      '테마1곳',
-      '매크로2곳',
-    ]);
-    expect(dialog.textContent).toContain('파일은 지워지지 않습니다');
+    await vi.waitFor(() => expect(fixture.edit).toHaveBeenCalledOnce());
+    expect(uses).not.toHaveBeenCalled();
+    expect(screen.queryByRole('alertdialog')).toBeNull();
   });
 
-  it('shows no use line for unused media, and says when the uses cannot be checked', async () => {
+  it('deletes even when usage lookup is unavailable', async () => {
     const fixture = mediaFixture(
       mediaDocument([mediaItem(1, {name: 'Dawn', size: 1024})]),
     );
     vi.spyOn(console, 'error').mockImplementation(() => undefined);
-    const uses = vi.spyOn(fixture.api.media, 'uses');
+    const uses = vi
+      .spyOn(fixture.api.media, 'uses')
+      .mockRejectedValue(new Error('Unreachable'));
     setup(fixture);
     fireEvent.contextMenu(await tile('Dawn'));
     fireEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
-    let dialog = await screen.findByRole('alertdialog');
-    expect(dialog.textContent).not.toContain('쓰는 곳');
-    fireEvent.click(within(dialog).getByRole('button', {name: '취소'}));
-
-    uses.mockRejectedValue(new Error('Unreachable'));
-    fireEvent.contextMenu(await tile('Dawn'));
-    fireEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
-    dialog = await screen.findByRole('alertdialog');
-    expect(dialog.textContent).toContain('쓰는 곳 확인 실패');
-    expect(fixture.edit).not.toHaveBeenCalled();
+    await vi.waitFor(() => expect(fixture.edit).toHaveBeenCalledOnce());
+    expect(uses).not.toHaveBeenCalled();
+    expect(screen.queryByRole('alertdialog')).toBeNull();
   });
 
   it('renames a media tile in a dialog and reveals its file', async () => {

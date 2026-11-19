@@ -51,6 +51,20 @@ function setup() {
   const item = document.value.templates[0];
   if (!api || !item) throw new Error('Missing fixture');
   fixture.edit.mockImplementation(edit => {
+    if (
+      edit.type === 'settings.undoDelete' ||
+      edit.type === 'settings.redoDelete'
+    ) {
+      document = messageDocument(
+        edit.type === 'settings.undoDelete' ? [stored] : [],
+        document.revision + 1,
+      );
+      act(() => fixture.push(document));
+      return Promise.resolve({
+        ok: true,
+        value: {id: 'messages', revision: document.revision},
+      });
+    }
     if (edit.name !== 'messages') {
       throw new Error('Unexpected edit');
     }
@@ -212,19 +226,19 @@ it('saves message target defaults', async () => {
   expect(fixture.current().value.templates[0]?.targets).toBe('all');
 });
 
-it('opens the context menu by keyboard and asks before deleting', async () => {
+it('deletes from the keyboard menu without asking and supports undo', async () => {
   const fixture = setup();
   render(<MessageTab />);
   const row = await screen.findByRole('option', {name: '차량 이동'});
   fireEvent.keyDown(row, {key: 'F10', shiftKey: true});
   fireEvent.click(screen.getByRole('menuitem', {name: '삭제'}));
-  expect(screen.getByRole('alertdialog')).toBeTruthy();
-  fireEvent.click(button('취소'));
-  expect(fixture.edit).not.toHaveBeenCalled();
-  await openRow('삭제');
-  fireEvent.click(button('삭제'));
-  await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
-  expect(fixture.current().value.templates).toEqual([]);
+  expect(screen.queryByRole('alertdialog')).toBeNull();
+  await waitFor(() => expect(fixture.current().value.templates).toEqual([]));
+  const list = screen.getByRole('listbox', {name: '메시지'});
+  fireEvent.keyDown(list, {key: 'z', code: 'KeyZ', ctrlKey: true});
+  await waitFor(() =>
+    expect(fixture.current().value.templates).toHaveLength(1),
+  );
   expect(fixture.send).not.toHaveBeenCalled();
 });
 

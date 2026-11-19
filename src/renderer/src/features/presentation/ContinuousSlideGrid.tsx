@@ -28,6 +28,8 @@ import {slideMenuEntries} from '@renderer/features/songs/editor/slideMenuEntries
 import {ShowSlideEntry} from './showPanelNavigation';
 import {serviceTileThemes, tilePicture, type TileThemes} from './tilePicture';
 import styles from './SlideGrid.module.css';
+import {tileReflowIds} from './tileReflowIds';
+import {useReflow} from '@renderer/ui/useReflow';
 
 const BAND = 30;
 const HEADING = 37;
@@ -117,6 +119,7 @@ function SectionGrid({
   themes: TileThemes;
 }): JSX.Element {
   const {row, tiles} = section;
+  const ids = tileReflowIds(tiles, row.id);
   return (
     <ThumbnailGrid
       workspace="show"
@@ -138,7 +141,8 @@ function SectionGrid({
         const slide = slideLayerOf({itemId: row.id, index}, () => tiles);
         return (
           <SlideThumbnail
-            key={`${row.id}:${index}`}
+            key={ids[index] ?? `${row.id}:${index}`}
+            reflowId={ids[index]}
             selectionStyle="plate"
             number={section.number + index + 1}
             canvas={tilePicture(tile, slide, themes)}
@@ -326,6 +330,15 @@ export function ContinuousSlideGrid({
     () => makeSections(view, {tracks, stride, rowGap: metrics.rowGap}),
     [view, tracks, stride, metrics.rowGap],
   );
+  useReflow(keeper, {
+    ids: sections.flatMap(section => [
+      `heading:${section.row.id}`,
+      ...tileReflowIds(section.tiles, section.row.id),
+    ]),
+    selector: '[data-reflow-id]',
+    attribute: 'data-reflow-id',
+    scope: 'continuous-service',
+  });
   useLayoutEffect(() => {
     windowKeyRef.current = (top, height) =>
       windowKey(sections, {top, height, stride, tracks});
@@ -512,6 +525,7 @@ export function ContinuousSlideGrid({
             >
               {section.row.kind === 'header' ? (
                 <div
+                  data-reflow-id={`heading:${section.row.id}`}
                   role="heading"
                   aria-level={3}
                   className={styles.continuousHeading}
@@ -519,7 +533,10 @@ export function ContinuousSlideGrid({
                   {section.row.title}
                 </div>
               ) : (
-                <div className={styles.continuousBand}>
+                <div
+                  data-reflow-id={`heading:${section.row.id}`}
+                  className={styles.continuousBand}
+                >
                   <span>{section.row.title}</span>
                   {section.tiles.length > 0 ? (
                     <span>{section.tiles.length}</span>
