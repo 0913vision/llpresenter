@@ -502,7 +502,6 @@ function SlidesEditorBody({
                       index={index}
                       appearance={appearance}
                       projection={projection}
-                      thumbnail
                     />
                     <SlideTransitionMark transition={slide.transition} />
                   </div>

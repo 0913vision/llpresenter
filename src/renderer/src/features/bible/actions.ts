@@ -29,6 +29,10 @@ function samePassage(
 export function openBiblePassage(
   passage: BibleLookupPassage,
   options?: BiblePreviewOptions,
+  {
+    ready = false,
+    waitForLive = false,
+  }: {readonly ready?: boolean; readonly waitForLive?: boolean} = {},
 ): void {
   const source = bibleSource(passage, options);
   const view = useShow.getState();
@@ -41,6 +45,15 @@ export function openBiblePassage(
       ? previous.insertion
       : {serviceId: view.serviceId, itemId: view.openItemId};
   beginOutputRequest();
+  const readyPassage =
+    ready && waitForLive
+      ? {
+          id: source.id,
+          previous: view.openItemId,
+          previousSource: previous,
+          title: passage.displayRef,
+        }
+      : null;
   const next = {
     bibleSource: {...source, insertion},
     liveBibleSource,
@@ -49,6 +62,8 @@ export function openBiblePassage(
         ? null
         : view.requestedBibleSource,
     openItemId: source.id,
+    readyItemId: ready ? source.id : null,
+    readyPassage,
   };
   const nextTiles = tilesForView({...view, ...next}, source.id);
   useShow.setState({
@@ -62,6 +77,13 @@ export function openBiblePassage(
           )
         : 0,
   });
+  if (readyPassage !== null) {
+    setTimeout(() => {
+      if (useShow.getState().readyPassage === readyPassage) {
+        useShow.setState({readyPassage: null});
+      }
+    }, 1000);
+  }
 }
 
 /** Outputs the selected Bible tile through the standard slide command path. */

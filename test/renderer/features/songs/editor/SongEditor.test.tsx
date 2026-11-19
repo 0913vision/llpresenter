@@ -16,6 +16,11 @@ import {
   lyrics,
 } from '@fixtures/renderer/features/songs/editor/editorTesting';
 
+vi.mock(
+  '@renderer/rendering/pictures/Picture',
+  () => import('@fixtures/renderer/picture'),
+);
+
 function cursor(input: HTMLTextAreaElement, start: number, end = start): void {
   act(() => {
     input.focus();

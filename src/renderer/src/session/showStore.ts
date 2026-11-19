@@ -17,6 +17,13 @@ export interface ShowView {
   readonly rows: readonly ServiceRow[];
   readonly tiles: Readonly<Record<ItemId, readonly SlideTile[]>>;
   readonly openItemId: ItemId | null;
+  readonly readyItemId?: ItemId | null;
+  readonly readyPassage?: {
+    readonly id: ItemId;
+    readonly previous: ItemId | null;
+    readonly previousSource: BibleSource | null;
+    readonly title: string;
+  } | null;
   readonly selectedTile: number;
   /** Maps physical key codes to 이름표 names. */
 }
@@ -38,5 +45,6 @@ export const useShow = create<ShowView>(() => ({
   liveBibleSource: null,
   requestedBibleSource: null,
   openItemId: null,
+  readyItemId: null,
   selectedTile: 0,
 }));

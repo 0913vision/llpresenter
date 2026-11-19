@@ -7,11 +7,7 @@ import {
   useState,
   type JSX,
 } from 'react';
-import {
-  isItemRow,
-  type ServiceRow,
-  type SlideTile,
-} from '@core/presentation/model';
+import {type ServiceRow, type SlideTile} from '@core/presentation/model';
 import {flushSync} from 'react-dom';
 import {slideLayerOf} from '@core/presentation/slideLayer';
 import {thumbnailSrc} from '@contracts/ipc/thumbnailRevisions';
@@ -19,12 +15,10 @@ import {useLive} from '@renderer/session/live';
 import {outputTile, useShow} from '@renderer/session/show';
 import {projectedLiveCursor, tilesForView} from '@renderer/session/showLibrary';
 import type {ShowView} from '@renderer/session/showStore';
-import {useSlideTheme} from '@renderer/platform/useSlideTheme';
-import {sermonPreviewRow} from '@renderer/platform/sermonPreview';
-import {SlidePicture} from '@renderer/rendering/SlidePicture';
 import {SlideThumbnail, ThumbnailGrid, thumbnailWidth} from '@renderer/ui';
 import {useGridMeasure} from '@renderer/ui/useGridMeasure';
-import {useBibleTileProjection} from '../bible/useBibleProjections';
+import {useBibleProjections} from '../bible/useBibleProjections';
+import {splitSourceFor} from '../bible/splitProjection';
 import {useSlideTransitionProgress} from './useSlideTransitionProgress';
 import {revealSlideItem} from '@renderer/session/visibleSlideItem';
 import {liveReturn} from './liveReturn';
@@ -32,6 +26,7 @@ import type {SlideGridProps} from './SlideGrid';
 import {Menu, type MenuAnchor} from '@renderer/ui/Menu';
 import {slideMenuEntries} from '@renderer/features/songs/editor/slideMenuEntries';
 import {ShowSlideEntry} from './showPanelNavigation';
+import {serviceTileThemes, tilePicture, type TileThemes} from './tilePicture';
 import styles from './SlideGrid.module.css';
 
 const BAND = 30;
@@ -67,6 +62,39 @@ function makeSections(
   return result;
 }
 
+/** Identifies the sections and tile rows rendered for a viewport position. */
+function windowKey(
+  sections: readonly Section[],
+  {
+    top,
+    height,
+    stride,
+    tracks,
+  }: {top: number; height: number; stride: number; tracks: number},
+): string {
+  const active =
+    [...sections].reverse().find(section => section.top <= top + 2)?.row.id ??
+    sections[0]?.row.id;
+  const visible = sections
+    .filter(
+      section =>
+        section.top + section.height >= top - stride &&
+        section.top <= top + height + stride,
+    )
+    .map(section => {
+      const first = Math.max(
+        0,
+        Math.floor((top - section.top - BAND) / stride) - 1,
+      );
+      const last = Math.min(
+        Math.ceil(section.tiles.length / tracks),
+        Math.ceil((top + height - section.top - BAND) / stride) + 1,
+      );
+      return [section.row.id, first, Math.max(first, last)];
+    });
+  return JSON.stringify([active, visible]);
+}
+
 function SectionGrid({
   section,
   start,
@@ -76,6 +104,7 @@ function SectionGrid({
   live,
   progress,
   onMenu,
+  themes,
 }: {
   section: Section;
   start: number;
@@ -85,29 +114,9 @@ function SectionGrid({
   live: number | null;
   progress: number | undefined;
   onMenu: (index: number, anchor: MenuAnchor) => void;
+  themes: TileThemes;
 }): JSX.Element {
   const {row, tiles} = section;
-  const theme = useSlideTheme(isItemRow(row) ? row : undefined);
-  const card = tiles.find(tile => tile.sectionCard)?.sectionCard;
-  const cardTheme = useSlideTheme(
-    card === undefined
-      ? undefined
-      : {
-          id: row.id,
-          kind: 'slides',
-          form: 'blank',
-          title: card.name,
-          theme: card.theme,
-        },
-  );
-  const sermonTheme = useSlideTheme(
-    row.kind === 'bible' &&
-      row.sermonTitle !== undefined &&
-      row.bible !== undefined
-      ? sermonPreviewRow(row.id, row.bible.ref)
-      : undefined,
-  );
-  const bible = useBibleTileProjection({itemId: row.id, anyItem: true});
   return (
     <ThumbnailGrid
       workspace="show"
@@ -127,35 +136,12 @@ function SectionGrid({
         const index = start + local;
         const picture = tile.media?.mediaId;
         const slide = slideLayerOf({itemId: row.id, index}, () => tiles);
-        const appearance =
-          tile.biblePart === undefined ? undefined : bible?.appearance;
         return (
           <SlideThumbnail
             key={`${row.id}:${index}`}
             selectionStyle="plate"
             number={section.number + index + 1}
-            canvas={
-              picture !== undefined ||
-              slide === null ? undefined : tile.sectionCard !== undefined &&
-                cardTheme !== undefined ? (
-                <SlidePicture output {...cardTheme} slide={slide} />
-              ) : tile.sermonTitle === true && sermonTheme !== undefined ? (
-                <SlidePicture output {...sermonTheme} slide={slide} />
-              ) : appearance !== undefined ? (
-                <SlidePicture
-                  output
-                  screen={appearance.screen}
-                  themeId={appearance.theme.themeId}
-                  slide={slide}
-                  layout={appearance.theme.layout}
-                  emptyColor={appearance.theme.emptyColor}
-                  item={appearance.theme.item}
-                  background={appearance.background}
-                />
-              ) : theme === undefined ? undefined : (
-                <SlidePicture output {...theme} slide={slide} />
-              )
-            }
+            canvas={tilePicture(tile, slide, themes)}
             label={tile.label === '' ? undefined : (tile.label ?? undefined)}
             labelColor={tile.labelColor}
             accessibleLabel={
@@ -191,6 +177,8 @@ export function ContinuousSlideGrid({
   const initialized = useRef(false);
   const slide = useLive(view => view.state?.layers.slide ?? null);
   const view = useShow();
+  const {themes, screens, projections, refinementRevision} =
+    useBibleProjections({enabled: view.rows.length > 0});
   const projected = projectedLiveCursor(view, slide);
   const cursorItem = projected?.itemId;
   const cursorIndex = projected?.index;
@@ -212,7 +200,11 @@ export function ContinuousSlideGrid({
     band: 0,
     rowGap: 0,
   });
+  const metricsRef = useRef(metrics);
   const pause = useRef(0);
+  const windowKeyRef = useRef<
+    ((top: number, height: number) => string) | undefined
+  >(undefined);
   const dragging = useRef(false);
   const followRef = useRef<
     (behavior?: ScrollBehavior, keyed?: 'down' | 'other') => void
@@ -246,14 +238,31 @@ export function ContinuousSlideGrid({
         band: px('--size-control-xs') + px('--space-6'),
         rowGap: px('row-gap'),
       };
-      setMetrics(old =>
+      const old = metricsRef.current;
+      if (
         old.height === next.height &&
         old.top === next.top &&
         old.band === next.band &&
         old.rowGap === next.rowGap
-          ? old
-          : next,
-      );
+      ) {
+        return;
+      }
+      metricsRef.current = next;
+      setMetrics(next);
+    };
+    const scroll = (): void => {
+      const old = metricsRef.current;
+      const top = viewport.scrollTop;
+      const key = windowKeyRef.current;
+      if (
+        top === old.top ||
+        (key !== undefined && key(old.top, old.height) === key(top, old.height))
+      ) {
+        return;
+      }
+      const next = {...old, top};
+      metricsRef.current = next;
+      setMetrics(next);
     };
     // NOTE(0913vision): Where the user scrolls, the grid stays; it follows
     // the live slide again only when the live slide changes.
@@ -279,7 +288,7 @@ export function ContinuousSlideGrid({
     const observer = new ResizeObserver(() => flushSync(read));
     observer.observe(viewport);
     observer.observe(grid);
-    viewport.addEventListener('scroll', read, {passive: true});
+    viewport.addEventListener('scroll', scroll, {passive: true});
     viewport.addEventListener('wheel', defer, {passive: true});
     // NOTE(0913vision): Only a key press counts as keyboard navigation; any
     // pointer press after it (a Shift+click, say) is a click again.
@@ -300,7 +309,7 @@ export function ContinuousSlideGrid({
     read();
     return () => {
       observer.disconnect();
-      viewport.removeEventListener('scroll', read);
+      viewport.removeEventListener('scroll', scroll);
       viewport.removeEventListener('wheel', defer);
       window.removeEventListener('keydown', key, true);
       window.removeEventListener('pointerdown', pointer, true);
@@ -316,6 +325,10 @@ export function ContinuousSlideGrid({
     () => makeSections(view, {tracks, stride, rowGap: metrics.rowGap}),
     [view, tracks, stride, metrics.rowGap],
   );
+  useLayoutEffect(() => {
+    windowKeyRef.current = (top, height) =>
+      windowKey(sections, {top, height, stride, tracks});
+  }, [sections, stride, tracks]);
   const last = sections.at(-1);
   const total =
     (last?.top ?? INSET) + Math.max(last?.height ?? 0, metrics.height) + INSET;
@@ -467,6 +480,11 @@ export function ContinuousSlideGrid({
             section.top <= metrics.top + metrics.height + stride,
         )
         .map(section => {
+          const source = splitSourceFor(view, section.row.id);
+          const bible =
+            source === null
+              ? null
+              : projections?.get(source, refinementRevision);
           const first = Math.max(
             0,
             Math.floor((metrics.top - section.top - BAND) / stride) - 1,
@@ -525,6 +543,11 @@ export function ContinuousSlideGrid({
                         : null
                     }
                     progress={progress}
+                    themes={serviceTileThemes(section.row, section.tiles, {
+                      themes: themes?.value,
+                      screens: screens?.value.screens,
+                      bibleAppearance: bible?.appearance,
+                    })}
                     onMenu={(index, anchor) =>
                       setMenu({itemId: section.row.id, index, anchor})
                     }

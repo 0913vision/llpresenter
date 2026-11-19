@@ -30,7 +30,7 @@ import {useSongBlockWindow} from './useSongBlockWindow';
 import {visibleGridInsertionPosition} from './gridInsertionPosition';
 import {SongSlideSurface} from './SongSlideSurface';
 import {useSongSlideAppearance} from './useSongSlideAppearance';
-import {SlidePicture} from '@renderer/rendering/SlidePicture';
+import {outputSlideSpec} from '@renderer/rendering/OutputSlidePicture';
 import {useShow} from '@renderer/session/show';
 import {useEditorFocus} from './useEditorFocus';
 import {SONG_LIMITS} from '@core/schema/song';
@@ -442,33 +442,32 @@ function SongBlocks({
               active={list.selection.ids.has(slide.id)}
               focused={selection.block === block}
               caret={list.selection.caret === block}
-              canvas={
-                theme === undefined ? undefined : (
-                  <SlidePicture
-                    output
-                    liveText
-                    {...theme}
-                    background={slide.picture ?? theme.background}
-                    slide={{
-                      itemId: song.id,
-                      position: block,
-                      lines: slide.lines,
-                      ...(slide.titleSlide === undefined
-                        ? {}
-                        : {titleSlide: slide.titleSlide}),
-                      ...(slide.titleLineCount === undefined
-                        ? {}
-                        : {titleLineCount: slide.titleLineCount}),
-                      ...(slide.titleLayout === undefined
-                        ? {}
-                        : {titleLayout: slide.titleLayout}),
-                      ...(slide.lyricFormat === undefined
-                        ? {}
-                        : {lyricFormat: slide.lyricFormat}),
-                      label: slide.label ?? null,
-                    }}
-                  />
-                )
+              picture={
+                theme === undefined
+                  ? undefined
+                  : outputSlideSpec({
+                      ...theme,
+                      songSource: {songId: song.id, slideId: slide.id},
+                      background: slide.picture ?? theme.background,
+                      slide: {
+                        itemId: song.id,
+                        position: block,
+                        lines: slide.lines,
+                        ...(slide.titleSlide === undefined
+                          ? {}
+                          : {titleSlide: slide.titleSlide}),
+                        ...(slide.titleLineCount === undefined
+                          ? {}
+                          : {titleLineCount: slide.titleLineCount}),
+                        ...(slide.titleLayout === undefined
+                          ? {}
+                          : {titleLayout: slide.titleLayout}),
+                        ...(slide.lyricFormat === undefined
+                          ? {}
+                          : {lyricFormat: slide.lyricFormat}),
+                        label: slide.label ?? null,
+                      },
+                    })
               }
               locked={state.busy || session.readOnly}
               editable={!session.readOnly}

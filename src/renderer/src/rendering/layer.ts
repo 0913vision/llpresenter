@@ -36,7 +36,7 @@ export interface RenderScreen {
   readonly name?: string;
   readonly kind: Screen['kind'];
   readonly messageStyleId?: string;
-  readonly songCaption?: Screen['songCaption'];
+  readonly songCaption?: Required<Screen>['songCaption'];
   readonly method?: Screen['method'];
   readonly emptyColor?: string;
   /** Absent draws the picture over the whole screen. */
@@ -92,6 +92,7 @@ export interface RenderLayerOptions {
   /** The original library URL, also used for image elements in previews. */
   readonly mediaUrl: (mediaId: string) => string;
   readonly previewMedia?: PreviewMediaSource | undefined;
+  readonly readableImages?: boolean;
   /** Receives drawing errors, which never reach the other layers. */
   readonly onError: (message: string, error: unknown) => void;
   /** A preview draws still pictures without video elements; `output` when absent. */

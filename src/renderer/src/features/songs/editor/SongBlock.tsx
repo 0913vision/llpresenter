@@ -8,10 +8,11 @@ import {
   memo,
   useLayoutEffect,
   useRef,
+  useState,
+  useSyncExternalStore,
   type JSX,
   type KeyboardEvent,
   type RefObject,
-  type ReactNode,
 } from 'react';
 import type {LabelColor} from '@core/labels/colors';
 import {SlideThumbnailBand} from '@renderer/ui/SlideThumbnail';
@@ -30,6 +31,13 @@ import plate from './EditorSlidePlate.module.css';
 import field from '@renderer/ui/TextField.module.css';
 import {SONG_LIMITS} from '@core/schema/song';
 import type {SlideCardRenderer} from './SlideCardRenderer';
+import {Picture} from '@renderer/rendering/pictures/Picture';
+import {usePrepPictureSwitch} from '@renderer/rendering/PrepPictureSwitch';
+import {
+  pictures,
+  type PictureSpec,
+} from '@renderer/rendering/pictures/pictureService';
+import {OUTPUT_REVEAL_DEADLINE_MS} from '@core/output/revealDeadline';
 
 export interface EditorFocus {
   inputs: Array<HTMLTextAreaElement | null>;
@@ -61,9 +69,11 @@ interface BlockProps {
   readonly rowHeight?: number | undefined;
   readonly onMeasure?: ((id: string, height: number) => void) | undefined;
   readonly caret?: boolean;
-  readonly canvas?: ReactNode;
+  readonly picture?: PictureSpec | undefined;
   readonly renderCard?: SlideCardRenderer<EditorSlideItem> | undefined;
 }
+
+const noPictureSubscription = () => () => undefined;
 
 /** Keeps untouched blocks out of the typing render path. */
 export const SongBlock = memo(
@@ -89,12 +99,67 @@ export const SongBlock = memo(
     rowHeight,
     onMeasure,
     caret,
-    canvas,
+    picture,
     renderCard,
   }: BlockProps): JSX.Element => {
     const labelButtonRef = useRef<HTMLButtonElement | null>(null);
     const blockRef = useRef<HTMLDivElement>(null);
     const chrome = useRef<{node: HTMLElement; height: number} | null>(null);
+    const text = slide.lines.join('\n');
+    const [pendingText, setPendingText] = useState<{
+      readonly value: string;
+      readonly start: number;
+      readonly end: number;
+    }>();
+    const restoreCaret = useRef(false);
+    const switching = usePrepPictureSwitch();
+    const inputs = useSyncExternalStore(pictures.subscribeInputs, () =>
+      picture === undefined ? '' : pictures.inputs(picture),
+    );
+    const ticket =
+      picture === undefined || renderCard !== undefined
+        ? undefined
+        : pictures.request(picture, inputs, {
+            editing: pendingText !== undefined,
+          });
+    const ready = useSyncExternalStore(
+      ticket?.subscribe ?? noPictureSubscription,
+      () => ticket?.done ?? true,
+    );
+    const held = ready ? undefined : pendingText;
+    useLayoutEffect(() => {
+      const input = focus.current.inputs[block];
+      if (input == null) return;
+      if (held === undefined) {
+        if (restoreCaret.current && document.activeElement === input) {
+          const {start, end} = session.history.snapshot.selection;
+          input.setSelectionRange(start, end);
+        }
+        restoreCaret.current = false;
+        if (pendingText !== undefined) setPendingText(undefined);
+        return;
+      }
+      restoreCaret.current = true;
+      if (document.activeElement === input) {
+        input.setSelectionRange(held.start, held.end);
+      }
+      const resumeInput = (): void => {
+        // NOTE(0913vision): Native input operates on the latest edit even if
+        // its earlier visible frame is still waiting for the source image.
+        const {start, end} = session.history.snapshot.selection;
+        input.value = text;
+        input.setSelectionRange(start, end);
+      };
+      input.addEventListener('beforeinput', resumeInput);
+      const timeout = setTimeout(
+        () => setPendingText(undefined),
+        OUTPUT_REVEAL_DEADLINE_MS,
+      );
+      return () => {
+        input.removeEventListener('beforeinput', resumeInput);
+        clearTimeout(timeout);
+      };
+    }, [block, focus, held, pendingText, session, text]);
     useLayoutEffect(() => {
       const node = blockRef.current;
       if (!grid || node === null || onMeasure === undefined) return;
@@ -201,7 +266,7 @@ export const SongBlock = memo(
 
     const keyDown = (event: KeyboardEvent<HTMLTextAreaElement>): void => {
       if (locked || focus.current.composing || isComposing(event)) return;
-      select(event.currentTarget);
+      if (held === undefined) select(event.currentTarget);
       const command = editorCommand(event);
       const adjacent = adjacentBlock(
         event,
@@ -297,7 +362,13 @@ export const SongBlock = memo(
           <>
             <div className={styles.thumbnail} data-editor-thumbnail>
               <div className={styles.thumbnailCanvas}>
-                {canvas}
+                {picture === undefined ? null : (
+                  <Picture
+                    {...picture}
+                    editing={focused}
+                    wait={switching === true}
+                  />
+                )}
                 <SlideTransitionMark transition={slide.transition} />
               </div>
               {editable ? (
@@ -337,9 +408,13 @@ export const SongBlock = memo(
                     : undefined
                 }
                 className={`${field.textarea} ${styles.lyrics}`}
-                value={slide.lines.join('\n')}
-                data-empty={slide.lines.join('\n') === '' || undefined}
-                rows={Math.max(1, slide.lines.length)}
+                value={held?.value ?? text}
+                data-empty={(held?.value ?? text) === '' || undefined}
+                rows={
+                  held === undefined
+                    ? Math.max(1, slide.lines.length)
+                    : held.value.split('\n').length
+                }
                 readOnly={locked}
                 wrap="off"
                 spellCheck={false}
@@ -351,12 +426,16 @@ export const SongBlock = memo(
                   session.endTyping();
                 }}
                 onSelect={event => {
-                  if (event.currentTarget === document.activeElement) {
+                  if (
+                    held === undefined &&
+                    event.currentTarget === document.activeElement
+                  ) {
                     select(event.currentTarget);
                   }
                 }}
                 onCompositionStart={() => {
                   focus.current.composing = true;
+                  setPendingText(undefined);
                 }}
                 onCompositionEnd={() => {
                   focus.current.composing = false;
@@ -365,13 +444,30 @@ export const SongBlock = memo(
                 onChange={event => {
                   if (locked) return;
                   const input = event.currentTarget;
+                  const previous = session.history.snapshot.selection;
+                  const value = input.value;
                   select(input);
                   session.edit({
                     type: 'text',
-                    text: input.value,
+                    text: value,
                     start: input.selectionStart,
                     end: input.selectionEnd,
                   });
+                  if (
+                    ticket?.available === true &&
+                    !focus.current.composing &&
+                    session.history.model
+                      .getContent()
+                      .slides[block]?.lines.join('\n') !== text
+                  ) {
+                    setPendingText(
+                      held ?? {
+                        value: text,
+                        start: previous.start,
+                        end: previous.end,
+                      },
+                    );
+                  }
                 }}
                 onPaste={event => {
                   if (locked || focus.current.composing) return;

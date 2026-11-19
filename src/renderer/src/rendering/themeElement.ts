@@ -268,6 +268,7 @@ export class ThemeElementView {
     if (element.kind === 'image' && this.image !== null) {
       this.imageReady = false;
       this.image.alt = '';
+      if (options.readableImages === true) this.image.crossOrigin = 'anonymous';
       Object.assign(this.image.style, {
         width: '100%',
         height: '100%',

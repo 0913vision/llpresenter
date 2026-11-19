@@ -36,6 +36,7 @@ export class StillBackgroundLayerView {
     for (const image of this.images) {
       image.alt = '';
       image.className = classes.image;
+      if (options.readableImages === true) image.crossOrigin = 'anonymous';
     }
     this.element.append(...this.images);
     parent.append(this.element);

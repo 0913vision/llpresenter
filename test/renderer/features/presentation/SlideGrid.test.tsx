@@ -23,6 +23,12 @@ import {projectSlides} from '@core/presentation/slides';
 import type {LiveCommand} from '@core/live/commands';
 import {useLive} from '@renderer/session/live';
 import {emptyLiveState} from '@core/live/state';
+import {previewSpec} from '@fixtures/renderer/picture';
+
+vi.mock(
+  '@renderer/rendering/pictures/Picture',
+  () => import('@fixtures/renderer/picture'),
+);
 
 beforeEach(() => {
   window.addEventListener('keydown', handleShowKey);
@@ -121,13 +127,15 @@ it('draws a sermon title tile with the sermon title theme and passage', async ()
   openItem('sermon');
   render(<SlideGrid columns={4} scalePercent={100} />);
   await waitFor(() =>
-    expect(
-      slide(0).querySelector('[data-kind="itemName"]')?.textContent,
-    ).toContain(passage.ref.replace('-', '~')),
+    expect(previewSpec(slide(0))?.appearance.theme.item?.title).toContain(
+      passage.ref.replace('-', '~'),
+    ),
   );
-  expect(
-    slide(0).querySelector('[data-kind="currentText"]')?.textContent,
-  ).toContain('Sermon');
+  const spec = previewSpec(slide(0));
+  expect(spec?.layers.slide?.lines).toEqual(['Sermon']);
+  expect(spec?.appearance.theme.layout.elements).toEqual(
+    expect.arrayContaining([expect.objectContaining({kind: 'itemName'})]),
+  );
 });
 
 it('shows a Bible verse label in the attached strip', () => {
@@ -154,14 +162,16 @@ function slide(index: number): HTMLElement {
   return tile;
 }
 
-it('draws song thumbnails through the audience output compositor', () => {
+it('requests song thumbnails with the audience output composition', () => {
   render(<SlideGrid columns={4} scalePercent={100} />);
-  const text = slide(0).querySelector<HTMLElement>('[data-kind="currentText"]');
-  expect(text).not.toBeNull();
-  const block = text?.querySelector<HTMLElement>('[style*="font-family"]');
-  expect(block?.style.fontFamily).toContain('NanumSquare');
-  expect(block?.style.fontWeight).toBe('800');
-  expect(slide(0).querySelector('[data-layer="lyrics"]')).not.toBeNull();
+  const spec = previewSpec(slide(0));
+  expect(spec?.appearance.screen.kind).toBe('audience');
+  expect(spec?.layers.slide?.itemId).toBe('song-morning');
+  const text = spec?.appearance.theme.layout.elements.find(
+    element => element.kind === 'currentText',
+  );
+  expect(text?.text.font).toContain('NanumSquare');
+  expect(text?.text.weight).toBe(800);
   expect(slide(0).querySelector('svg[viewBox="0 0 1920 1080"]')).toBeNull();
 });
 

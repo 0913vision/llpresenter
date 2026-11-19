@@ -156,7 +156,6 @@ function SlidesItemTiles({
                 index={index}
                 appearance={appearance}
                 projection={projection}
-                thumbnail
               />
             )}
           />

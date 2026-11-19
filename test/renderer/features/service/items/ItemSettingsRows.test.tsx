@@ -23,14 +23,10 @@ import {DetailsPanel} from '@renderer/features/service/details/DetailsPanel';
 import {ServiceItemStore} from '@renderer/features/service/items/serviceItemStore';
 import type {Notice} from '@renderer/ui/notices';
 
-vi.mock('@renderer/rendering/outputRenderer', () => ({
-  OutputRenderer: class {
-    ready = () => true;
-    revealIncomplete = () => undefined;
-    render = vi.fn();
-    dispose = vi.fn();
-  },
-}));
+vi.mock(
+  '@renderer/rendering/pictures/Picture',
+  () => import('@fixtures/renderer/picture'),
+);
 
 afterEach(() => {
   useShow.setState({serviceId: null, openItemId: null});

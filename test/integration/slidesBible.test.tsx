@@ -37,6 +37,7 @@ import {
 import {noService} from '@renderer/session/showStore';
 import {useLive} from '@renderer/session/live';
 import {mockLlpApi} from '@fixtures/contracts/ipc/mockLlpApi';
+import {previewSpec} from '@fixtures/renderer/picture';
 import {settingsDocument} from '@fixtures/core/settingsDocument';
 import {themeFile, THEME_MAIN} from '@fixtures/core/themeOutput';
 import {MOCK_LONG_VERSE} from '@fixtures/core/bibleSplit';
@@ -50,20 +51,10 @@ import {
 } from '@fixtures/core/slidesBible';
 import {SUNDAY_ID} from '@fixtures/main/store/testFiles';
 
-vi.mock('@renderer/features/songs/editor/SongPreview', () => ({
-  Picture: ({layers, appearance}: {layers: unknown; appearance: unknown}) => (
-    <div data-preview={JSON.stringify({layers, appearance})} />
-  ),
-}));
-vi.mock('@renderer/rendering/OutputPreviewPicture', () => ({
-  OutputPreviewPicture: ({
-    layers,
-    appearance,
-  }: {
-    layers: unknown;
-    appearance: unknown;
-  }) => <div data-preview={JSON.stringify({layers, appearance})} />,
-}));
+vi.mock(
+  '@renderer/rendering/pictures/Picture',
+  () => import('@fixtures/renderer/picture'),
+);
 vi.mock('@renderer/rendering/outputRenderer', () => ({
   OutputRenderer: class {
     ready = () => true;
@@ -404,14 +395,17 @@ it('inserts the automatically split range after selection as one undo step, save
     );
     await waitFor(() => {
       const previews = Array.from(
-        view.container.querySelectorAll<HTMLElement>(
-          '[data-slide-id] [data-preview]',
-        ),
-        element => element.dataset['preview'] ?? '',
+        view.container.querySelectorAll('[data-slide-id]'),
+        previewSpec,
       );
-      const verse = previews.find(preview => preview.includes('"biblePart":'));
-      expect(verse).toContain('"lines":["');
-      expect(verse).toContain('"size":36');
+      const verse = previews.find(
+        preview => preview?.layers.slide?.biblePart !== undefined,
+      );
+      expect(verse?.layers.slide?.lines[0]).toEqual(expect.any(String));
+      const currentText = verse?.appearance.theme.layout.elements.find(
+        element => element.kind === 'currentText',
+      );
+      expect(currentText?.text.size).toBe(36);
     });
     await waitFor(() => expect(f.content).toHaveBeenCalledOnce());
     const selected = view.container.querySelector<HTMLElement>(

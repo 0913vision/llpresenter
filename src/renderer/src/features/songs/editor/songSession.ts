@@ -11,6 +11,10 @@ import type {SlideListCommand} from '@core/songs/slideListEdits';
 import type {SlideTransition} from '@core/schema/slideTransition';
 import type {SlideSelectionAction} from '@core/songs/slideListSelection';
 import {SongTitleDraft} from '@core/songs/songTitle';
+import {
+  discardSongPictureDrafts,
+  updateSongPictureDraft,
+} from '@core/presentation/songPictureDrafts';
 
 import {
   SongSessionPersistence,
@@ -80,6 +84,7 @@ export class SongSession {
         this.acknowledgeDraft(document, capture),
       install: document => this.installDraft(document),
       discard: document => {
+        discardSongPictureDrafts(this);
         this.dirty = false;
         this.title = new SongTitleDraft(document.song.title);
         this.background = document.song.background;
@@ -323,6 +328,22 @@ export class SongSession {
       this.history.apply(command);
     }
     const current = this.history.model.getContent();
+    if (previous.slides !== current.slides) {
+      const before = new Map(previous.slides.map(slide => [slide.id, slide]));
+      for (const slide of current.slides) {
+        const prior = before.get(slide.id);
+        if (
+          prior !== undefined &&
+          prior.lines.join('\n') !== slide.lines.join('\n')
+        ) {
+          updateSongPictureDraft(
+            {owner: this, songId: this.document.song.id, slideId: slide.id},
+            prior,
+            slide,
+          );
+        }
+      }
+    }
     if (
       previous.slides !== current.slides ||
       previous.context !== current.context

@@ -58,7 +58,9 @@ vi.mock('electron', () => ({
   shell: {openPath: (path: string) => electron.openPath(path)},
   BrowserWindow: {
     getAllWindows: () => [...electron.windows],
-    fromWebContents: () => electron.window,
+    fromWebContents: (sender: unknown) =>
+      [...electron.windows].find(window => window.webContents === sender) ??
+      electron.window,
   },
 }));
 
@@ -126,6 +128,72 @@ describe('registerIpc live clock', () => {
 });
 
 describe('registerIpc live commands', () => {
+  it('holds Bible range output until the matching control frame is committed', () => {
+    const itemId = 'bible:fixture';
+    const first: LiveState = {
+      ...emptyLiveState(),
+      themeItem: {
+        id: itemId,
+        kind: 'bible',
+        source: 'external',
+        title: 'John 3:16',
+      },
+      layers: {
+        ...emptyLiveState().layers,
+        slide: {itemId, position: 0, lines: ['Text'], label: null},
+      },
+    };
+    const store = {...mockStore(), state: first};
+    const control = {
+      isDestroyed: () => false,
+      webContents: {isDestroyed: () => false, send: vi.fn()},
+    };
+    const output = {
+      isDestroyed: () => false,
+      webContents: {isDestroyed: () => false, send: vi.fn()},
+    };
+    electron.windows.add(control);
+    electron.windows.add(output);
+    const dispose = registerIpc(store, mockLog(), {
+      windowMode: 'offscreen',
+      app: FACTS,
+      isControlWindow: window =>
+        Object.is(window.webContents, control.webContents),
+    });
+    try {
+      const next = {
+        ...first,
+        version: 1,
+        themeItem: {
+          id: itemId,
+          kind: 'bible' as const,
+          source: 'external' as const,
+          title: 'John 3:16–17',
+        },
+      };
+      store.publish(next);
+      expect(control.webContents.send).toHaveBeenCalledExactlyOnceWith(
+        liveEndpoints.changed.channel,
+        {...next, waitingForControl: true},
+      );
+      expect(output.webContents.send).not.toHaveBeenCalled();
+      const ready = electron.listeners.get(
+        liveEndpoints.controlFrameReady.channel,
+      );
+      ready?.({sender: output.webContents}, next.version);
+      ready?.({sender: control.webContents}, -1);
+      ready?.({sender: control.webContents}, 0);
+      expect(output.webContents.send).not.toHaveBeenCalled();
+      ready?.({sender: control.webContents}, next.version);
+      expect(output.webContents.send).toHaveBeenCalledExactlyOnceWith(
+        liveEndpoints.changed.channel,
+        next,
+      );
+    } finally {
+      dispose();
+    }
+  });
+
   it('logs each malformed batch child, dispatches the rest, and stops on dispose', () => {
     const store = mockStore();
     const log = mockLog();

@@ -1,43 +1,32 @@
 import {act, render, screen, waitFor} from '@testing-library/react';
 import {describe, expect, it, vi} from 'vitest';
-import type {OutputRendererOptions} from '@renderer/rendering/outputRenderer';
-import type {LiveLayers} from '@core/live/state';
-import type {RenderFrame} from '@renderer/rendering/layer';
 import {editorSetup} from '@fixtures/renderer/features/songs/editor/editorTesting';
 import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {editorPreviewFixture} from '@fixtures/renderer/features/songs/editor/editorPreviewFixture';
+import {previewSpec} from '@fixtures/renderer/picture';
 import {SongPreviewPanel} from '@renderer/features/songs/editor/SongPreview';
 
-const drawing = vi.hoisted(() => ({
-  render: vi.fn<(layers: LiveLayers, frame?: RenderFrame) => void>(),
-  dispose: vi.fn(),
-  create: vi.fn<(options: OutputRendererOptions) => void>(),
-}));
-vi.mock('@renderer/rendering/outputRenderer', () => ({
-  OutputRenderer: class {
-    ready = () => true;
-    revealIncomplete = () => undefined;
-    constructor(_parent: HTMLElement, options: OutputRendererOptions) {
-      drawing.create(options);
-    }
-    render = drawing.render;
-    dispose = drawing.dispose;
-  },
-}));
+vi.mock(
+  '@renderer/rendering/pictures/Picture',
+  () => import('@fixtures/renderer/picture'),
+);
 
 describe('song editor right panels', () => {
   it('previews the next slide in deck order and clears it at the end', async () => {
     const {session, store, user, first} = await editorSetup();
-    render(<SongPreviewPanel store={store} />);
+    const {container} = render(<SongPreviewPanel store={store} />);
     await user.click(screen.getByRole('button', {name: '무대 화면 크게 보기'}));
-    expect(drawing.render.mock.lastCall?.[0].slide?.next).toEqual({
+    const shown = () =>
+      previewSpec(container.querySelector('[data-role="large"]'));
+    expect(shown()?.appearance.screen.kind).toBe('stage');
+    expect(shown()?.layers.slide?.next).toEqual({
       label: first.song.slides[1]?.label,
       lines: first.song.slides[1]?.lines,
     });
     act(() => session.select({block: 1, start: 0, end: 0}));
-    expect(drawing.render.mock.lastCall?.[0].slide?.next).toBeUndefined();
+    expect(shown()?.layers.slide?.next).toBeUndefined();
   });
-  it('keeps newer theme pushes over delayed reads, switches screens, and releases settings and renderer', async () => {
+  it('keeps newer theme pushes over delayed reads, switches screens, and releases settings', async () => {
     const fixture = editorFixture();
     const {themes} = editorPreviewFixture();
     let release: ((document: typeof themes) => void) | undefined;
@@ -72,16 +61,19 @@ describe('song editor right panels', () => {
     expect(
       screen.queryByText(themes.value.themes[0]?.name ?? '찬양'),
     ).toBeNull();
-    expect(drawing.create.mock.calls.at(-1)?.[0]).toMatchObject({
-      mode: 'preview',
-    });
     await user.click(screen.getByRole('button', {name: '무대 화면 크게 보기'}));
+    const shown = view.container.querySelector('[data-role="large"]');
+    expect(previewSpec(shown)?.appearance.screen.kind).toBe('stage');
     expect(
-      new Set(drawing.render.mock.calls.map(call => call[1]?.screen?.kind)),
+      new Set(
+        Array.from(
+          view.container.querySelectorAll('[data-screen]'),
+          cell => previewSpec(cell)?.appearance.screen.kind,
+        ),
+      ),
     ).toEqual(new Set(['audience', 'stage', 'broadcast']));
     view.unmount();
     expect(fixture.listenerCount()).toBe(before);
-    expect(drawing.dispose).toHaveBeenCalled();
     await waitFor(() => expect(store.getSnapshot().session).not.toBeNull());
   });
 });

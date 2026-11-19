@@ -70,6 +70,7 @@ import {registerAudioOutput} from './windows/audio';
 import {registerPlaybackProblems} from './outputs/playbackProblems';
 import {registerControlClose} from './windows/controlClose';
 import {registerMediaScheme, serveMedia} from './windows/mediaProtocol';
+import {registerPictureChannels} from './windows/pictureChannels';
 import {windowModeFrom, type WindowMode} from './windows/testWindows';
 
 const BAD_ENVIRONMENT_EXIT_CODE = 1;
@@ -148,6 +149,8 @@ function start(): void {
   app
     .whenReady()
     .then(async () => {
+      const stopPictureChannels = registerPictureChannels();
+      shutdown.add({name: 'stop picture painter', run: stopPictureChannels});
       const recoveryFolder = join(app.getPath('userData'), RECOVERY_FOLDER);
       const session = await openRecoverySession({folder: recoveryFolder, log});
       if (session.crashed) {

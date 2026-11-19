@@ -1,83 +1,165 @@
 import {
   memo,
   use,
-  useDeferredValue,
+  useCallback,
+  useContext,
+  useEffectEvent,
   useLayoutEffect,
-  useMemo,
   useRef,
+  useState,
+  useSyncExternalStore,
   type JSX,
 } from 'react';
-import type {LiveLayers} from '@core/live/state';
-import type {RenderScreen, ThemeFrame} from '../layer';
+import {PictureReadiness} from '../PictureReadiness';
+import {pictureKey} from '@core/output/pictureKey';
 import {
-  pictureKey,
   pictures,
-  type PictureSpec,
+  type PictureDisplay,
+  type PictureImage,
   type PictureService,
+  type PictureSpec,
 } from './pictureService';
+import {
+  followSongPictureDraft,
+  songPictureDraft,
+} from '@core/presentation/songPictureDrafts';
 import styles from './Picture.module.css';
 
-interface PictureProps {
-  /**
-   * Waits for the drawing, holding the view that shows the picture: for a view
-   * switching to new content. Otherwise the picture draws where it shows.
-   */
-  readonly wait?: boolean;
+interface PictureProps extends PictureSpec {
   readonly service?: PictureService | undefined;
-  readonly layers: LiveLayers;
-  readonly appearance: {
-    readonly screen: RenderScreen;
-    readonly theme: ThemeFrame;
-    readonly background: string;
-    readonly checker: boolean;
-  };
+  /** Keeps the previous view until the new picture finishes decoding. */
+  readonly wait?: boolean;
+  readonly switchSlot?: string | undefined;
+  readonly editing?: boolean;
 }
 
-/**
- * A slide picture that shows only once it is drawn. While it draws, the view
- * around it waits: a view switch keeps the previous view on screen, and a
- * picture whose content changes keeps its previous drawing until the new one
- * is finished.
- */
+function SlideImage({
+  source,
+}: {
+  readonly source: PictureImage['source'];
+}): JSX.Element {
+  const canvas = useRef<HTMLCanvasElement>(null);
+  useLayoutEffect(() => {
+    if (typeof source !== 'string') {
+      canvas.current?.getContext('2d')?.drawImage(source, 0, 0);
+    }
+  }, [source]);
+  return typeof source === 'string' ? (
+    <img
+      className={styles.image}
+      src={source}
+      alt=""
+      decoding="async"
+      draggable={false}
+    />
+  ) : (
+    <canvas
+      ref={canvas}
+      className={styles.image}
+      width={1920}
+      height={1080}
+      aria-hidden="true"
+    />
+  );
+}
+
+/** Displays a shared still, keeping the last decoded image during redraws. */
 export const Picture = memo(
   ({
     wait = false,
     service = pictures,
+    switchSlot,
+    editing = false,
     layers,
     appearance,
+    songSource,
   }: PictureProps): JSX.Element => {
-    const spec = useMemo<PictureSpec>(
-      () => ({layers, appearance}),
-      [layers, appearance],
+    const follow = useCallback(
+      (listener: () => void) => followSongPictureDraft(songSource, listener),
+      [songSource],
     );
-    const shown = useDeferredValue(spec);
-    if (wait && !service.drawInPlace) use(service.whenDrawn(shown));
-    const container = useRef<HTMLDivElement>(null);
-    const release = useRef<(() => void) | null>(null);
+    const draft = useSyncExternalStore(follow, () =>
+      songPictureDraft(songSource, layers.slide?.lines),
+    );
+    const spec = {
+      appearance,
+      layers:
+        layers.slide === null || draft === undefined
+          ? layers
+          : {
+              ...layers,
+              slide: {...layers.slide, lines: draft.lines},
+            },
+    };
+    const inputs = useSyncExternalStore(service.subscribeInputs, () =>
+      service.inputs(spec),
+    );
+    const [previous, setPrevious] = useState<PictureImage>();
+    const [displayed, setDisplayed] = useState<PictureDisplay>();
+    const ticket = service.request(spec, inputs, {
+      editing: (editing || draft !== undefined) && previous !== undefined,
+    });
+    useSyncExternalStore(ticket.subscribe, ticket.snapshot);
+    const done = ticket.done;
+    const image = ticket.image ?? previous;
+    const attached = displayed?.picture === image ? displayed : undefined;
+    const prepared =
+      attached === undefined && switchSlot !== undefined && ticket.available
+        ? service.prepareDisplay(ticket, switchSlot)
+        : undefined;
+    const display = attached ?? prepared?.display;
+    const host = useRef<HTMLDivElement>(null);
     useLayoutEffect(() => {
-      const node = container.current;
-      if (node === null) return;
-      // NOTE(0913vision): The picture shown so far stays until the next one
-      // is finished, so a change shows as one swap.
-      release.current = service.show(shown, node, release.current ?? undefined);
-    }, [service, shown]);
+      if (display === undefined) return;
+      const {element} = display;
+      host.current?.append(element);
+      display.consume();
+      return () => element.remove();
+    }, [display]);
+    const onReady = useContext(PictureReadiness);
+    const source = useRef({});
+    const warmEditor = useEffectEvent(() => service.warmEditor(spec));
+    useLayoutEffect(() => {
+      if (editing) warmEditor();
+    }, [editing]);
+    useLayoutEffect(() => {
+      if (done) onReady?.(source.current);
+    }, [done, onReady]);
     useLayoutEffect(
-      () => () => {
-        release.current?.();
-        release.current = null;
-      },
-      [],
+      () => (image === undefined ? undefined : service.retain(image)),
+      [image, service],
     );
+    // NOTE(0913vision): Run every hook before a render waits for its picture.
+    if (prepared !== undefined && !prepared.done) use(prepared.ready);
+    else if (wait && ticket.available && !done) use(ticket.ready);
+    if (image !== previous) setPrevious(image);
+    if (display !== displayed) setDisplayed(display);
     return (
       <div
-        ref={container}
+        ref={host}
         className={styles.screen}
-        data-checker={shown.appearance.checker || undefined}
-      />
+        data-preview-ready={ticket.available ? String(done) : undefined}
+        style={{
+          background:
+            appearance.screen.method === 'ndi'
+              ? 'transparent'
+              : appearance.background,
+        }}
+        data-checker={appearance.checker || undefined}
+      >
+        {image === undefined || display !== undefined ? null : (
+          <SlideImage source={image.source} />
+        )}
+      </div>
     );
   },
   (previous, next) =>
-    previous.wait === next.wait &&
     previous.service === next.service &&
+    previous.wait === next.wait &&
+    previous.switchSlot === next.switchSlot &&
+    previous.editing === next.editing &&
+    previous.songSource?.songId === next.songSource?.songId &&
+    previous.songSource?.slideId === next.songSource?.slideId &&
+    previous.appearance.checker === next.appearance.checker &&
     pictureKey(previous) === pictureKey(next),
 );

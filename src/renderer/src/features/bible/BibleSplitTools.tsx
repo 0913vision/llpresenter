@@ -26,6 +26,7 @@ import {isItemOfKind} from '@core/schema/service';
 import {biblePartEffect, setBiblePartEffect} from '@core/bible/partTransitions';
 import {useBibleProjections} from './useBibleProjections';
 import {installBibleReviewHandler} from './actions';
+import {installBiblePictureProjection} from './prepareBiblePictures';
 
 interface EditorSession {
   readonly source: BibleProjection;
@@ -62,6 +63,10 @@ export function BibleSplitTools({
     };
   }, []);
   const [seen, setSeen] = useState<object | null>(null);
+  useLayoutEffect(
+    () => installBiblePictureProjection(projections),
+    [projections],
+  );
   useLayoutEffect(() => () => setBibleTileResolver(null), []);
   useLayoutEffect(() => {
     setBibleTileResolver(

@@ -149,6 +149,8 @@ export interface LiveState {
   readonly stageMessage?: string | null;
   /** Increases by one on every change. Windows drop states older than the one they have. */
   readonly version: number;
+  /** Asks the control renderer to commit this frame before releasing it to outputs. */
+  readonly waitingForControl?: true;
   readonly blackScreen?: boolean;
   readonly layers: LiveLayers;
   /** Output on or off per screen id. A missing screen is off. */

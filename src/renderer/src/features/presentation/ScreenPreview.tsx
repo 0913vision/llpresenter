@@ -1,5 +1,5 @@
 import {useLayoutEffect, useRef, type JSX} from 'react';
-import {emptyLayers} from '@core/live/state';
+import {emptyLayers, type LiveLayers} from '@core/live/state';
 import {mediaUrl} from '@contracts/ipc/mediaUrls';
 import type {LlpApi} from '@contracts/ipc/api';
 import {DEFAULT_TEXT_STYLE} from '@core/themes/textStyle';
@@ -8,6 +8,7 @@ import {OutputRenderer} from '@renderer/rendering/outputRenderer';
 import {openPreviewMedia} from '@renderer/rendering/previewMedia';
 import {fontsLoading, previewReady} from '@renderer/rendering/fontsLoading';
 import {ScreenFrames} from '@renderer/rendering/screenFrames';
+import type {RenderFrame} from '@renderer/rendering/layer';
 import {keepDrawing} from '@renderer/rendering/keptDrawings';
 import {useLive} from '@renderer/session/live';
 import styles from './ScreenPreview.module.css';
@@ -18,6 +19,7 @@ interface View {
   readonly host: HTMLDivElement;
   readonly renderer: OutputRenderer;
   readonly key: string;
+  readonly bibleKey: string | null;
 }
 
 function reportDrawingError(message: string, error: unknown): void {
@@ -28,6 +30,29 @@ function reportDrawingError(message: string, error: unknown): void {
 function release(view: View | null): void {
   view?.renderer.dispose();
   view?.host.remove();
+}
+
+function quickBibleFrameKey(
+  layers: LiveLayers,
+  frame: RenderFrame,
+): string | null {
+  const item = frame.theme?.item;
+  if (
+    frame.theme === undefined ||
+    item?.kind !== 'bible' ||
+    !layers.slide?.itemId.startsWith('bible:') ||
+    layers.media !== null ||
+    layers.prop !== null
+  ) {
+    return null;
+  }
+  return JSON.stringify([
+    frame.screen,
+    frame.theme.layout,
+    frame.theme.emptyColor,
+    frame.theme.sourceScreenId,
+    item.overlays,
+  ]);
 }
 
 /**
@@ -161,6 +186,12 @@ class ScreenDrawing {
       release(this.pending);
       this.pending = null;
       if (this.front?.key === key) return;
+      const bibleKey = quickBibleFrameKey(layers, instant);
+      if (bibleKey !== null && this.front?.bibleKey === bibleKey) {
+        this.front.renderer.render(layers, instant);
+        this.front = {...this.front, key};
+        return;
+      }
       const host = document.createElement('div');
       Object.assign(host.style, {
         position: 'absolute',
@@ -175,7 +206,7 @@ class ScreenDrawing {
         onError: reportDrawingError,
         mode: 'preview',
       });
-      const view: View = {host, renderer, key};
+      const view: View = {host, renderer, key, bibleKey};
       this.pending = view;
       renderer.render(layers, instant);
       const start = performance.now();

@@ -6,7 +6,8 @@ import {
   type JSX,
   type ReactNode,
 } from 'react';
-import {useShow} from './show';
+import {useShow} from './showStore';
+import {useLive} from './live';
 
 const ShownItem = createContext<string | null | undefined>(undefined);
 
@@ -18,14 +19,26 @@ const ShownItem = createContext<string | null | undefined>(undefined);
 export function ShownItemProvider({
   children,
   shownItem,
+  trackLive = shownItem === undefined,
 }: {
   readonly children: ReactNode;
   readonly shownItem?: string | null | undefined;
+  readonly trackLive?: boolean;
 }): JSX.Element {
   const requested = useShow(view => view.openItemId);
-  const shown = useDeferredValue(requested);
+  const ready = useShow(view => view.readyItemId);
+  const passage = useShow(view => view.readyPassage);
+  const liveTitle = useLive(view => view.state?.themeItem?.title);
+  const shown = useDeferredValue(shownItem === undefined ? requested : null);
+  const fallback = shownItem === undefined ? shown : shownItem;
+  if (!trackLive) {
+    return <ShownItem value={fallback}>{children}</ShownItem>;
+  }
+  if (passage?.id === requested && passage.title !== liveTitle) {
+    return <ShownItem value={passage.previous}>{children}</ShownItem>;
+  }
   return (
-    <ShownItem value={shownItem === undefined ? shown : shownItem}>
+    <ShownItem value={ready === requested ? requested : fallback}>
       {children}
     </ShownItem>
   );
@@ -41,6 +54,10 @@ export function useShownItemId(): string | null {
 let committed: string | null = null;
 const listeners = new Set<() => void>();
 
+export function getCommittedShownItem(): string | null {
+  return committed;
+}
+
 /** Notes the item the 진행 grid shows on screen after a commit. */
 export function commitShownItem(itemId: string | null): void {
   if (committed === itemId) return;
@@ -50,11 +67,8 @@ export function commitShownItem(itemId: string | null): void {
 
 /** The item the 진행 grid showed in its last commit. */
 export function useCommittedShownItem(): string | null {
-  return useSyncExternalStore(
-    listener => {
-      listeners.add(listener);
-      return () => listeners.delete(listener);
-    },
-    () => committed,
-  );
+  return useSyncExternalStore(listener => {
+    listeners.add(listener);
+    return () => listeners.delete(listener);
+  }, getCommittedShownItem);
 }

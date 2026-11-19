@@ -1,13 +1,19 @@
-import {useEffect, type JSX} from 'react';
+import type {JSX} from 'react';
 import {emptyLayers, type SlideLayer} from '@core/live/state';
-import {createScreenId, createThemeId, type ThemeId} from '@core/schema/ids';
+import {
+  createScreenId,
+  createThemeId,
+  type ScreenId,
+  type ThemeId,
+} from '@core/schema/ids';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import type {LiveThemeItem} from '@core/schema/liveTheme';
+import type {SongSlideSource} from '@core/schema/showService';
 import type {ThemeScreenLayout} from '@core/schema/themes';
 import {themeBackgroundColor} from './themeBackground';
 import {OutputPreviewPicture} from './OutputPreviewPicture';
 import {Picture} from './pictures/Picture';
-import {pictures, type PictureSpec} from './pictures/pictureService';
+import type {PictureSpec} from './pictures/pictureService';
 import type {RenderScreen} from './layer';
 
 const screenId = createScreenId(STARTER_SCREEN_IDS.main);
@@ -21,6 +27,8 @@ export interface SlideInput {
   readonly background?: string | undefined;
   readonly themeId?: ThemeId | undefined;
   readonly screen?: RenderScreen | undefined;
+  readonly sourceScreenId?: ScreenId | undefined;
+  readonly songSource?: SongSlideSource | undefined;
   readonly mediaOnly?: boolean | undefined;
 }
 
@@ -33,10 +41,13 @@ export function outputSlideSpec({
   background,
   themeId,
   screen = {id: screenId, kind: 'audience', method: 'fullscreen'},
+  sourceScreenId = screen.id,
+  songSource,
   mediaOnly = false,
 }: SlideInput): PictureSpec {
   const mediaId = slide.picture ?? background;
   return {
+    songSource,
     layers: {
       ...emptyLayers(),
       slide: mediaOnly ? null : slide,
@@ -58,7 +69,7 @@ export function outputSlideSpec({
         themeId: themeId ?? defaultThemeId,
         revision: 0,
         missing: [],
-        sourceScreenId: screen.id,
+        sourceScreenId,
         layout,
         emptyColor,
         item,
@@ -69,19 +80,10 @@ export function outputSlideSpec({
   };
 }
 
-/** Draws a picture ahead, out of sight, for a view likely to show it next. */
-function PreparedPicture({spec}: {readonly spec: PictureSpec}): null {
-  useEffect(() => {
-    pictures.prepare([spec]);
-  }, [spec]);
-  return null;
-}
-
-/** Draws a prepared slide with the output compositor rather than an SVG approximation. */
+/** Displays the compositor's shared image of a prepared slide. */
 export function OutputSlidePicture({
   drawn,
-  prepareOnly = false,
-  liveText = false,
+  editing = false,
   ...input
 }: SlideInput & {
   /**
@@ -89,15 +91,12 @@ export function OutputSlidePicture({
    * is drawn (a view switching to new content), `place` draws it where it shows.
    */
   readonly drawn?: 'wait' | 'place' | undefined;
-  /** Only draws the picture ahead, showing nothing. */
-  readonly prepareOnly?: boolean | undefined;
-  readonly liveText?: boolean | undefined;
-}): JSX.Element | null {
+  readonly editing?: boolean | undefined;
+}): JSX.Element {
   const spec = outputSlideSpec(input);
-  if (prepareOnly) return <PreparedPicture spec={spec} />;
-  return drawn === undefined ? (
-    <OutputPreviewPicture {...spec} liveText={liveText} />
+  return drawn === undefined && !editing ? (
+    <OutputPreviewPicture {...spec} />
   ) : (
-    <Picture wait={drawn === 'wait'} {...spec} />
+    <Picture wait={drawn === 'wait'} editing={editing} {...spec} />
   );
 }

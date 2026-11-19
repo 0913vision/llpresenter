@@ -21,6 +21,11 @@ import {isItemOfKind} from '@core/schema/service';
 import {useContext, useLayoutEffect, useRef} from 'react';
 import {PictureReadiness} from '@renderer/rendering/PictureReadiness';
 
+vi.mock(
+  '@renderer/rendering/pictures/Picture',
+  () => import('@fixtures/renderer/picture'),
+);
+
 const readiness = vi.hoisted<{
   hold: boolean;
   release: (() => void) | undefined;

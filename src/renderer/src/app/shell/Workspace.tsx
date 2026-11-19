@@ -3,6 +3,7 @@ import {PaletteEditingProvider} from '@renderer/features/service/items/PaletteEd
 import type {SongId} from '@core/schema/ids';
 import {
   Fragment,
+  Suspense,
   useCallback,
   useEffect,
   useRef,
@@ -241,7 +242,7 @@ export function Workspace({
       {visibleId === 'show' ? (
         <ShowShortcuts onProblem={onProblem ?? logPanelProblem} />
       ) : null}
-      {!showVisible ? <OpenItemPrefetch /> : null}
+      <OpenItemPrefetch />
       {prep === undefined ? null : <TableDataKeeper api={prep.api} />}
       <div data-resize-panel="media.upper" className={styles.frames}>
         <div
@@ -252,10 +253,12 @@ export function Workspace({
           inert={!showVisible}
           aria-hidden={!showVisible}
         >
-          {columnFrame('show', show, {
-            collapsed: toggle.collapsed,
-            visible: showVisible,
-          })}
+          <Suspense fallback={null}>
+            {columnFrame('show', show, {
+              collapsed: toggle.collapsed,
+              visible: showVisible,
+            })}
+          </Suspense>
         </div>
         <div
           className={classNames(

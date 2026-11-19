@@ -1,4 +1,5 @@
 import {rememberLiveAnchor, resolveLiveAnchor} from './liveAnchor';
+import {acceptSongPictureDrafts} from '@core/presentation/songPictureDrafts';
 import {QUICK_BIBLE_TRANSITION} from '@core/bible/quickTransition';
 import {beginQuickPassage, finishQuickPassage} from './quickReturn';
 import {parseReference} from '@core/bible/reference';
@@ -890,6 +891,9 @@ export function startServiceSync(): () => void {
     if (stopped) return;
     pushed = true;
     applyService(service);
+    for (const tiles of Object.values(service?.tiles ?? {})) {
+      acceptSongPictureDrafts(tiles);
+    }
   });
   api.service.get().then(
     service => {

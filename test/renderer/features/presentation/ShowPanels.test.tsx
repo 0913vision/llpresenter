@@ -20,6 +20,11 @@ import {
 } from '@fixtures/renderer/session/sampleService';
 import {SlideGrid} from '@renderer/features/presentation/SlideGrid';
 
+vi.mock(
+  '@renderer/rendering/pictures/Picture',
+  () => import('@fixtures/renderer/picture'),
+);
+
 const sent: LiveCommand[] = [];
 
 function installApi(): void {

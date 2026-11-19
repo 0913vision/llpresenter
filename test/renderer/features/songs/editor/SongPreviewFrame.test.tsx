@@ -1,36 +1,19 @@
 import {act, render, screen, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import {afterEach, describe, expect, it, vi} from 'vitest';
+import {describe, expect, it, vi} from 'vitest';
 import {bibleVerseTiles} from '@core/bible/bibleTiles';
-import type {LiveLayers} from '@core/live/state';
 import type {SettingsDocument} from '@core/schema/settingsDocuments';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {panelPassage} from '@fixtures/contracts/ipc/bibleApi';
 import {editorFixture} from '@fixtures/renderer/features/songs/editor/editorFixture';
 import {editorPreviewFixture} from '@fixtures/renderer/features/songs/editor/editorPreviewFixture';
+import {previewSpec} from '@fixtures/renderer/picture';
 import {SongPreviewFrame} from '@renderer/features/songs/editor/SongPreview';
-import type {RenderFrame} from '@renderer/rendering/layer';
 
-const drawing = vi.hoisted(() => ({
-  render: vi.fn<(layers: LiveLayers, frame?: RenderFrame) => void>(),
-  options: vi.fn(),
-}));
-vi.mock('@renderer/rendering/outputRenderer', () => ({
-  OutputRenderer: class {
-    ready = () => true;
-    revealIncomplete = () => undefined;
-    constructor(_parent: HTMLElement, options: {transparent?: boolean}) {
-      drawing.options(options);
-    }
-    render = drawing.render;
-    dispose = vi.fn();
-  },
-}));
-
-afterEach(() => {
-  drawing.render.mockClear();
-  drawing.options.mockClear();
-});
+vi.mock(
+  '@renderer/rendering/pictures/Picture',
+  () => import('@fixtures/renderer/picture'),
+);
 
 describe('SongPreviewFrame', () => {
   it('renders an NDI preview with the same transparent output mode', async () => {
@@ -50,7 +33,7 @@ describe('SongPreviewFrame', () => {
     vi.spyOn(fixture.api.settings, 'get').mockImplementation(async ({name}) =>
       name === 'screens' ? ndi : themes,
     );
-    render(
+    const {container} = render(
       <SongPreviewFrame
         settings={fixture.api.settings}
         labels={[]}
@@ -63,9 +46,10 @@ describe('SongPreviewFrame', () => {
       />,
     );
     await waitFor(() =>
-      expect(drawing.options).toHaveBeenCalledWith(
-        expect.objectContaining({transparent: true}),
-      ),
+      expect(
+        previewSpec(container.querySelector('[data-screen="broadcast"]'))
+          ?.appearance.screen.method,
+      ).toBe('ndi'),
     );
   });
   it('uses the section card theme and content instead of the item theme', async () => {
@@ -78,7 +62,7 @@ describe('SongPreviewFrame', () => {
       name === 'screens' ? screens : themes,
     );
     const card = {name: 'Section', english: 'Section EN', theme: cardTheme.id};
-    render(
+    const {container} = render(
       <SongPreviewFrame
         settings={fixture.api.settings}
         labels={[]}
@@ -101,17 +85,13 @@ describe('SongPreviewFrame', () => {
         }}
       />,
     );
-    await waitFor(() =>
-      expect(
-        drawing.render.mock.calls.some(
-          ([layers, frame]) =>
-            layers.slide?.sectionCard?.name === card.name &&
-            frame?.theme?.themeId === cardTheme.id,
-        ),
-      ).toBe(true),
-    );
+    await waitFor(() => {
+      const spec = previewSpec(container.querySelector('[data-role="large"]'));
+      expect(spec?.layers.slide?.sectionCard).toEqual(card);
+      expect(spec?.appearance.theme.themeId).toBe(cardTheme.id);
+    });
   });
-  it('redraws edited text and selection immediately even when a slide has a long transition', async () => {
+  it('requests edited text and selection immediately even when a slide has a long transition', async () => {
     const fixture = editorFixture();
     const {themes, screens} = editorPreviewFixture();
     vi.spyOn(fixture.api.settings, 'get').mockImplementation(async ({name}) =>
@@ -132,25 +112,18 @@ describe('SongPreviewFrame', () => {
     const view = render(
       <SongPreviewFrame {...props} picture={picture('Before', 1)} />,
     );
-    await waitFor(() => expect(drawing.render).toHaveBeenCalled());
-    drawing.render.mockClear();
+    const lines = () =>
+      previewSpec(view.container.querySelector('[data-role="large"]'))?.layers
+        .slide?.lines;
+    await waitFor(() => expect(lines()).toEqual(['Before']));
     view.rerender(
       <SongPreviewFrame {...props} picture={picture('Typed text', 1)} />,
     );
-    expect(drawing.render.mock.lastCall?.[0].slide?.lines).toEqual([
-      'Typed text',
-    ]);
+    expect(lines()).toEqual(['Typed text']);
     view.rerender(
       <SongPreviewFrame {...props} picture={picture('Next slide', 2)} />,
     );
-    expect(drawing.render.mock.lastCall?.[0].slide?.lines).toEqual([
-      'Next slide',
-    ]);
-    expect(
-      drawing.render.mock.calls.every(
-        ([, frame]) => frame?.transitions === false,
-      ),
-    ).toBe(true);
+    expect(lines()).toEqual(['Next slide']);
   });
   it('keeps a blank stage, with no theme content drawn, when there is nothing to show', async () => {
     const fixture = editorFixture();
@@ -169,7 +142,7 @@ describe('SongPreviewFrame', () => {
       await Promise.resolve();
     });
     expect(container.querySelector('[data-blank]')).not.toBeNull();
-    expect(drawing.render).not.toHaveBeenCalled();
+    expect(previewSpec(container)).toBeUndefined();
   });
 
   it('draws the chosen preview screen with the theme mode set for that screen', async () => {
@@ -199,7 +172,7 @@ describe('SongPreviewFrame', () => {
       biblePart: 1,
       continued: true,
     };
-    render(
+    const {container} = render(
       <SongPreviewFrame
         settings={fixture.api.settings}
         labels={[]}
@@ -218,17 +191,21 @@ describe('SongPreviewFrame', () => {
         }}
       />,
     );
-    await waitFor(() => expect(drawing.render).toHaveBeenCalled());
-    expect(drawing.render.mock.lastCall?.[0].slide).toMatchObject({
-      lines: measured.lines,
-      biblePart: 1,
-      continued: true,
-    });
+    const shown = () =>
+      previewSpec(container.querySelector('[data-role="large"]'));
+    await waitFor(() =>
+      expect(shown()?.layers.slide).toMatchObject({
+        lines: measured.lines,
+        biblePart: 1,
+        continued: true,
+      }),
+    );
 
     await userEvent.click(
       screen.getByRole('button', {name: '방송 화면 크게 보기'}),
     );
-    expect(drawing.render.mock.lastCall?.[0].slide?.label).toBe('\uC6943:16');
+    expect(shown()?.appearance.screen.kind).toBe('broadcast');
+    expect(shown()?.layers.slide?.label).toBe('\uC6943:16');
     push({
       ...themes,
       revision: 2,
@@ -246,14 +223,10 @@ describe('SongPreviewFrame', () => {
         })),
       },
     });
-    expect(drawing.render.mock.lastCall?.[1]?.theme?.layout.mode.kind).toBe(
-      'empty',
-    );
+    expect(shown()?.appearance.theme.layout.mode.kind).toBe('empty');
     push({...themes, revision: 3});
 
-    expect(drawing.render.mock.lastCall?.[1]?.theme?.layout.mode.kind).toBe(
-      'own',
-    );
-    expect(drawing.render.mock.lastCall?.[0].slide?.label).toBe('\uC6943:16');
+    expect(shown()?.appearance.theme.layout.mode.kind).toBe('own');
+    expect(shown()?.layers.slide?.label).toBe('\uC6943:16');
   });
 });

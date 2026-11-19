@@ -6,6 +6,7 @@ import {
   PictureService,
   type PictureSpec,
 } from '@renderer/rendering/pictures/pictureService';
+import {LocalPicturePainter} from '@renderer/rendering/pictures/localPicturePainter';
 
 const mocks = vi.hoisted(() => ({
   ready: false,
@@ -46,20 +47,55 @@ const spec: PictureSpec = {
     checker: false,
   },
 };
+const canvasContext = Object.getOwnPropertyDescriptor(
+  HTMLCanvasElement.prototype,
+  'getContext',
+);
 
 beforeEach(() => {
   vi.useFakeTimers();
-  vi.stubGlobal('navigator', {userAgent: 'Chrome'});
-  vi.stubGlobal('requestAnimationFrame', (callback: FrameRequestCallback) =>
-    setTimeout(() => callback(performance.now()), 16),
+  vi.spyOn(LocalPicturePainter, 'available').mockReturnValue(true);
+  Object.defineProperty(HTMLCanvasElement.prototype, 'getContext', {
+    configurable: true,
+    value: () => ({
+      drawElementImage: vi.fn(),
+      drawImage: vi.fn(),
+      clearRect: vi.fn(),
+    }),
+  });
+  vi.spyOn(HTMLElement.prototype, 'clientWidth', 'get').mockReturnValue(1920);
+  vi.spyOn(HTMLElement.prototype, 'clientHeight', 'get').mockReturnValue(1080);
+  vi.spyOn(HTMLCanvasElement.prototype, 'toBlob').mockImplementation(callback =>
+    callback(new Blob(['picture'])),
   );
-  vi.stubGlobal('cancelAnimationFrame', (id: number) => clearTimeout(id));
+  vi.stubGlobal(
+    'URL',
+    class extends URL {
+      static override createObjectURL = vi.fn(() => 'blob:import');
+      static override revokeObjectURL = vi.fn();
+    },
+  );
+  vi.stubGlobal(
+    'Image',
+    class {
+      src = '';
+      decode = vi.fn().mockResolvedValue(undefined);
+    },
+  );
   mocks.ready = false;
   mocks.dispose.mockClear();
   mocks.incomplete.mockClear();
 });
 afterEach(() => {
+  if (canvasContext !== undefined) {
+    Object.defineProperty(
+      HTMLCanvasElement.prototype,
+      'getContext',
+      canvasContext,
+    );
+  }
   vi.useRealTimers();
+  vi.restoreAllMocks();
   vi.unstubAllGlobals();
 });
 
@@ -75,16 +111,18 @@ it('waits beyond the output deadline for a complete import picture', async () =>
   await Promise.resolve();
   expect(finished).toBe(false);
   mocks.ready = true;
-  await vi.advanceTimersByTimeAsync(32);
-  await expect(observed).resolves.toBeUndefined();
+  document.querySelector('body > canvas')?.dispatchEvent(new Event('paint'));
+  await expect(drawing).resolves.toBe(true);
+  await observed;
   service.reset();
   expect(mocks.dispose).toHaveBeenCalledOnce();
 });
 
-it('disposes a pending import picture when its owner cancels', () => {
+it('disposes a pending import picture when its owner cancels', async () => {
   const service = new PictureService({waitForReady: true});
   const pending = service.whenDrawn(spec);
+  await vi.advanceTimersByTimeAsync(0);
   service.reset();
-  expect(pending).toBeInstanceOf(Promise);
+  await expect(pending).resolves.toBe(false);
   expect(mocks.dispose).toHaveBeenCalledOnce();
 });

@@ -12,12 +12,18 @@ import {createMediaId, createSongId} from '@core/schema/ids';
 import type {ShowLibrarySong} from '@core/schema/showLibrarySong';
 import {seedThumbnailScale} from '@renderer/platform/thumbnailScale';
 import {seedSampleService} from '@fixtures/renderer/session/sampleService';
+import {previewSpec} from '@fixtures/renderer/picture';
 import {
   SlidePanelBody,
   SlidePanelMeta,
   SlidePanelFooter,
   SlideSizeControl,
 } from '@renderer/features/presentation/SlidePanel';
+
+vi.mock(
+  '@renderer/rendering/pictures/Picture',
+  () => import('@fixtures/renderer/picture'),
+);
 
 const GRID_WIDTH = 600;
 const setLayout = vi.fn<(change: LayoutChange) => void>();
@@ -226,7 +232,8 @@ describe('SlidePanel with a library source', () => {
 
     expect(screen.getByText('새벽의 빛')).toBeDefined();
     expect(screen.getByText('2개')).toBeDefined();
-    expect(screen.getByText('창작한 첫 줄')).toBeDefined();
+    const first = screen.getByRole('option', {name: /창작한 첫 줄/u});
+    expect(previewSpec(first)?.layers.slide?.lines).toEqual(['창작한 첫 줄']);
   });
 
   it.each([
