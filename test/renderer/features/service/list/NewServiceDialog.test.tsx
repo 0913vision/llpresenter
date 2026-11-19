@@ -206,11 +206,11 @@ describe('NewServiceDialog', () => {
     await screen.findByRole('treeitem', {name: titles.first});
     await userEvent.click(createButton());
     const guard = await screen.findByRole('alertdialog', {
-      name: '\uc0c8 \uc608\ubc30\ub97c \ub9cc\ub4e4\uae4c\uc694?',
+      name: '\uc608\ubc30\ub97c \ubc14\uafc0\uae4c\uc694?',
     });
     expect(
       within(guard).getByText(
-        '\ubaa8\ub4e0 \ud654\uba74\uc774 \ub300\uae30 \ud654\uba74\uc73c\ub85c \ubc14\ub00c\ub2c8\ub2e4',
+        '\ubaa8\ub4e0 \ud654\uba74\uc774 \ub300\uae30 \ud654\uba74\uc73c\ub85c \ubc14\ub00c\ub2c8\ub2e4.',
       ),
     ).toBeTruthy();
     expect(document.activeElement).toBe(
@@ -223,7 +223,7 @@ describe('NewServiceDialog', () => {
     await userEvent.click(createButton());
     await userEvent.click(
       within(await screen.findByRole('alertdialog')).getByRole('button', {
-        name: '\ub9cc\ub4e4\uae30',
+        name: '\ubc14\uafb8\uae30',
       }),
     );
     await waitFor(() => expect(onClose).toHaveBeenCalled());

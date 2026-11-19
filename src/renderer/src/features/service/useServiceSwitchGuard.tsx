@@ -41,20 +41,15 @@ export function useServiceSwitchGuard() {
     pending === null ? null : (
       <AlertDialog
         icon="warning"
-        title={
-          pending.kind === 'open'
-            ? `‘${pending.name}’ \uc608\ubc30\ub97c \uc5f4\uae4c\uc694?`
-            : '\uc0c8 \uc608\ubc30\ub97c \ub9cc\ub4e4\uae4c\uc694?'
-        }
+        title={'\uc608\ubc30\ub97c \ubc14\uafc0\uae4c\uc694?'}
         meta={[
-          '\ubaa8\ub4e0 \ud654\uba74\uc774 \ub300\uae30 \ud654\uba74\uc73c\ub85c \ubc14\ub00c\ub2c8\ub2e4',
+          '\ubaa8\ub4e0 \ud654\uba74\uc774 \ub300\uae30 \ud654\uba74\uc73c\ub85c \ubc14\ub00c\ub2c8\ub2e4.',
         ]}
         initialFocus="cancel"
         onCancel={() => setPending(null)}
         actions={[
           {
-            label:
-              pending.kind === 'open' ? '\uc5f4\uae30' : '\ub9cc\ub4e4\uae30',
+            label: '\ubc14\uafb8\uae30',
             primary: true,
             onSelect: () => {
               setPending(null);

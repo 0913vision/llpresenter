@@ -162,11 +162,11 @@ describe('service picker', () => {
       screen.getByRole('menuitemradio', {name: /\uc800\ub141 \uc608\ubc30/}),
     );
     const dialog = await screen.findByRole('alertdialog', {
-      name: '\u2018\uc800\ub141 \uc608\ubc30\u2019 \uc608\ubc30\ub97c \uc5f4\uae4c\uc694?',
+      name: '\uc608\ubc30\ub97c \ubc14\uafc0\uae4c\uc694?',
     });
     expect(
       within(dialog).getByText(
-        '\ubaa8\ub4e0 \ud654\uba74\uc774 \ub300\uae30 \ud654\uba74\uc73c\ub85c \ubc14\ub00c\ub2c8\ub2e4',
+        '\ubaa8\ub4e0 \ud654\uba74\uc774 \ub300\uae30 \ud654\uba74\uc73c\ub85c \ubc14\ub00c\ub2c8\ub2e4.',
       ),
     ).toBeTruthy();
     expect(document.activeElement).toBe(
@@ -182,7 +182,7 @@ describe('service picker', () => {
     );
     await user.click(
       within(await screen.findByRole('alertdialog')).getByRole('button', {
-        name: '\uc5f4\uae30',
+        name: '\ubc14\uafb8\uae30',
       }),
     );
     await waitFor(() =>

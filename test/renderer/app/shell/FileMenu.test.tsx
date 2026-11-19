@@ -144,7 +144,7 @@ describe('the 파일 menu', () => {
       await screen.findByRole('menuitemradio', {name: /Evening service/}),
     );
     const dialog = await screen.findByRole('alertdialog', {
-      name: '\u2018Evening service\u2019 \uc608\ubc30\ub97c \uc5f4\uae4c\uc694?',
+      name: '\uc608\ubc30\ub97c \ubc14\uafc0\uae4c\uc694?',
     });
     expect(document.activeElement).toBe(
       within(dialog).getByRole('button', {name: '\ucde8\uc18c'}),
