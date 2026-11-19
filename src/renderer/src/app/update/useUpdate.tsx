@@ -6,6 +6,8 @@ import type {
   UpdateStatus,
 } from '@core/schema/update';
 import {AlertDialog} from '@renderer/ui/AlertDialog';
+import {Progress} from '@renderer/ui/StatusMarks';
+import styles from './UpdateProgress.module.css';
 import {noticeTime, type Notice} from '@renderer/ui/notices';
 import {useOutputs} from '@renderer/session/live';
 
@@ -27,6 +29,8 @@ function titleOf(status: UpdateStatus): string {
       return `새 버전 ${status.version}을 설치하시겠습니까?`;
     case 'installing':
       return '업데이트 설치 준비 중';
+    case 'restarting':
+      return '업데이트 후 다시 시작 중';
     case 'latest':
       return `최신 버전 ${status.version}을 사용하고 있습니다`;
     case 'error':
@@ -54,8 +58,10 @@ export function useUpdate(
     const receive = (next: UpdateSnapshot): void => {
       if (!mounted || next.revision < latestRevision) return;
       latestRevision = next.revision;
-      if (installing && next.status.kind !== 'installing') resumeEdits?.();
-      installing = next.status.kind === 'installing';
+      const nextInstalling =
+        next.status.kind === 'installing' || next.status.kind === 'restarting';
+      if (installing && !nextInstalling) resumeEdits?.();
+      installing = nextInstalling;
       setSnapshot(next);
     };
     const stop = api.subscribe(receive);
@@ -87,17 +93,84 @@ export function useUpdate(
   const title = snapshot.busy
     ? '이미 업데이트를 확인하거나 내려받고 있습니다'
     : titleOf(status);
-  const meta = status.kind === 'error' ? [status.reason] : [];
+  if (
+    status.kind === 'downloading' ||
+    status.kind === 'installing' ||
+    status.kind === 'restarting'
+  ) {
+    const step =
+      status.kind === 'downloading' ? 0 : status.kind === 'installing' ? 1 : 2;
+    return {
+      notice: null,
+      dismiss,
+      dialog: (
+        <AlertDialog
+          icon="info"
+          title="업데이트 중"
+          meta={[`버전 ${status.version}`, titleOf(status)]}
+          list={{
+            label: '업데이트 진행',
+            children: (
+              <div className={styles.progress}>
+                <ol className={styles.steps}>
+                  {['내려받는 중', '설치 준비', '다시 시작'].map(
+                    (label, index) => (
+                      <li
+                        key={label}
+                        aria-current={index === step ? 'step' : undefined}
+                      >
+                        <span>{label}</span>
+                        <span>
+                          {index < step
+                            ? '완료'
+                            : index === step
+                              ? '진행 중'
+                              : '대기'}
+                        </span>
+                      </li>
+                    ),
+                  )}
+                </ol>
+                <Progress
+                  label="업데이트 내려받기"
+                  value={status.kind === 'downloading' ? status.percent : 100}
+                />
+                <p className={styles.percent}>
+                  {status.kind === 'downloading' ? status.percent : 100}%
+                </p>
+              </div>
+            ),
+          }}
+          actions={[
+            {
+              label: '업데이트 중',
+              primary: true,
+              disabled: true,
+              onSelect: () => undefined,
+            },
+          ]}
+        />
+      ),
+    };
+  }
+  const meta =
+    status.kind === 'error'
+      ? [
+          ...(status.version === undefined ? [] : [`버전 ${status.version}`]),
+          status.stage === 'download'
+            ? '내려받기 실패'
+            : status.stage === 'install'
+              ? '설치 준비 실패'
+              : '업데이트 확인 실패',
+          status.reason,
+        ]
+      : [];
   const download = status.kind === 'available';
   const install = status.kind === 'downloaded';
   if ((download || install) && outputsOn && !snapshot.notice) {
     meta.push('업데이트 중 화면이 꺼지고 다시 시작하면 복원됩니다');
   }
-  if (
-    (snapshot.notice === true && download) ||
-    status.kind === 'checking' ||
-    status.kind === 'downloading'
-  ) {
+  if ((snapshot.notice === true && download) || status.kind === 'checking') {
     const notice: Notice = {
       key: UPDATE_NOTICE_KEY,
       kind: 'info',
@@ -116,19 +189,36 @@ export function useUpdate(
     dismiss,
     dialog: (
       <AlertDialog
+        key={status.kind}
         icon="info"
         title={title}
         meta={meta}
-        {...(download || install
-          ? {onCancel: () => act('later'), cancelLabel: '나중에'}
+        {...(download || install || status.kind === 'error'
+          ? {
+              onCancel: () => act(download || install ? 'later' : 'dismiss'),
+              cancelLabel: download || install ? '나중에' : '닫기',
+            }
           : {})}
         actions={[
           {
-            label: download || install ? '업데이트' : '확인',
+            label:
+              download || install
+                ? '업데이트'
+                : status.kind === 'error'
+                  ? '다시 시도'
+                  : '확인',
             primary: true,
             escape: !download && !install,
             onSelect: () =>
-              act(download ? 'download' : install ? 'install' : 'dismiss'),
+              act(
+                download
+                  ? 'download'
+                  : install
+                    ? 'install'
+                    : status.kind === 'error'
+                      ? 'retry'
+                      : 'dismiss',
+              ),
           },
         ]}
       />

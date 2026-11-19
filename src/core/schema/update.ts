@@ -37,9 +37,12 @@ const status = v.pipe(
     }),
     v.object({kind: v.literal('downloaded'), version}),
     v.object({kind: v.literal('installing'), version}),
+    v.object({kind: v.literal('restarting'), version}),
     v.object({kind: v.literal('latest'), version}),
     v.object({
       kind: v.literal('error'),
+      version: v.exactOptional(version),
+      stage: v.exactOptional(v.picklist(['check', 'download', 'install'])),
       reason: v.pipe(
         v.string(),
         v.minLength(1),
@@ -58,7 +61,7 @@ const snapshot = payloadObject({
 });
 const action = payloadObject({
   revision,
-  action: v.picklist(['download', 'install', 'later', 'dismiss']),
+  action: v.picklist(['download', 'install', 'later', 'dismiss', 'retry']),
 });
 const restart = payloadObject({
   version,

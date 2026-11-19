@@ -70,6 +70,66 @@ const never = (): Promise<void> => new Promise<void>(() => undefined);
 const saved = {savePending: (): Promise<boolean> => Promise.resolve(true)};
 
 describe('ShutdownCoordinator', () => {
+  it('waits for the update handoff to paint before stopping services', async () => {
+    const app = new MockApp();
+    const coordinator = new ShutdownCoordinator({app, log: recordingLogger()});
+    const handoff = deferred();
+    const beforeShutdown = vi.fn(() => handoff.promise);
+    const stop = vi.fn();
+    coordinator.add({name: 'stop services', run: stop});
+    const result = coordinator.quitForUpdate(
+      () => {},
+      () => true,
+      {
+        ...saved,
+        beforeShutdown,
+      },
+    );
+    await vi.waitFor(() => expect(beforeShutdown).toHaveBeenCalledOnce());
+    expect(stop).not.toHaveBeenCalled();
+    expect(app.quitted).toBe(false);
+    handoff.resolve();
+    await result;
+    expect(stop).toHaveBeenCalledOnce();
+  });
+  it('keeps the app and services running when the installer fails to launch', async () => {
+    const app = new MockApp();
+    const coordinator = new ShutdownCoordinator({app, log: recordingLogger()});
+    const stop = vi.fn();
+    coordinator.add({name: 'stop services', run: stop});
+    await expect(
+      coordinator.quitForUpdate(
+        () => Promise.reject(new Error('launch failed')),
+        () => true,
+        saved,
+      ),
+    ).rejects.toThrow('launch failed');
+    expect(stop).not.toHaveBeenCalled();
+    expect(app.quitted).toBe(false);
+    expect(app.lockReleased).toBe(false);
+    await expect(
+      coordinator.quitForUpdate(
+        () => {},
+        () => true,
+        saved,
+      ),
+    ).resolves.toBe(true);
+  });
+  it('keeps services alive until the installer confirms the update handoff', async () => {
+    const app = new MockApp();
+    const coordinator = new ShutdownCoordinator({app, log: recordingLogger()});
+    const handoff = deferred();
+    const install = vi.fn(() => handoff.promise);
+    const stop = vi.fn();
+    coordinator.add({name: 'stop services', run: stop});
+    const result = coordinator.quitForUpdate(install, () => true, saved);
+    await vi.waitFor(() => expect(install).toHaveBeenCalledOnce());
+    expect(stop).not.toHaveBeenCalled();
+    expect(app.quitted).toBe(false);
+    handoff.resolve();
+    expect(await result).toBe(true);
+    expect(stop).toHaveBeenCalledOnce();
+  });
   it('keeps stores alive when durability verification fails or exceeds its bound', async () => {
     const app = new MockApp();
     const install = vi.fn();
@@ -105,13 +165,13 @@ describe('ShutdownCoordinator', () => {
     const coordinator = new ShutdownCoordinator({app, log: recordingLogger()});
     coordinator.add({name: 'save pending edits', run: () => false});
     expect(await coordinator.quitForUpdate(install, () => true, saved)).toBe(
-      false,
+      true,
     );
     await vi.waitFor(() => expect(app.quitted).toBe(true));
-    expect(install).not.toHaveBeenCalled();
+    expect(install).toHaveBeenCalledOnce();
   });
 
-  it('does not install when recovery cleanup silently retained its marker', async () => {
+  it('reports failure when recovery cleanup silently retained its marker', async () => {
     const app = new MockApp();
     const install = vi.fn();
     const coordinator = new ShutdownCoordinator({app, log: recordingLogger()});
@@ -120,11 +180,11 @@ describe('ShutdownCoordinator', () => {
         ...saved,
         verifyClean: () => Promise.resolve(false),
       }),
-    ).toBe(false);
+    ).toBe(true);
     await vi.waitFor(() => expect(app.quitted).toBe(true));
-    expect(install).not.toHaveBeenCalled();
+    expect(install).toHaveBeenCalledOnce();
   });
-  it('installs only after saves, output shutdown and recovery cleanup finish', async () => {
+  it('starts the installer after durable saves and then completes shutdown', async () => {
     const app = new MockApp();
     const order: string[] = [];
     const coordinator = new ShutdownCoordinator({app, log: recordingLogger()});
@@ -158,10 +218,10 @@ describe('ShutdownCoordinator', () => {
     expect(order).toEqual([
       'confirm',
       'durable',
+      'install',
       'save',
       'outputs off',
       'recovery clean',
-      'install',
     ]);
   });
 
@@ -181,7 +241,7 @@ describe('ShutdownCoordinator', () => {
     expect(app.quitted).toBe(false);
   });
 
-  it('never installs after a failed save or failed confirmation', async () => {
+  it('keeps the app open on failed confirmation and reports final shutdown failure', async () => {
     const app = new MockApp();
     const install = vi.fn();
     const coordinator = new ShutdownCoordinator({app, log: recordingLogger()});
@@ -189,6 +249,7 @@ describe('ShutdownCoordinator', () => {
     expect(await coordinator.quitForUpdate(install, () => true, saved)).toBe(
       false,
     );
+    expect(install).not.toHaveBeenCalled();
     coordinator.confirmWith(() => Promise.resolve(true));
     coordinator.add({
       name: 'save',
@@ -197,13 +258,13 @@ describe('ShutdownCoordinator', () => {
       },
     });
     expect(await coordinator.quitForUpdate(install, () => true, saved)).toBe(
-      false,
+      true,
     );
     await vi.waitFor(() => expect(app.quitted).toBe(true));
-    expect(install).not.toHaveBeenCalled();
+    expect(install).toHaveBeenCalledOnce();
   });
 
-  it('never installs when shutdown exceeds the save deadline', async () => {
+  it('reports when shutdown exceeds the save deadline after handoff', async () => {
     const app = new MockApp();
     const install = vi.fn();
     const coordinator = new ShutdownCoordinator({
@@ -213,10 +274,10 @@ describe('ShutdownCoordinator', () => {
     });
     coordinator.add({name: 'stuck save', run: never});
     expect(await coordinator.quitForUpdate(install, () => true, saved)).toBe(
-      false,
+      true,
     );
     await vi.waitFor(() => expect(app.quitted).toBe(true));
-    expect(install).not.toHaveBeenCalled();
+    expect(install).toHaveBeenCalledOnce();
   });
   it('quits with nothing to save and nothing in the log', async () => {
     const app = new MockApp();

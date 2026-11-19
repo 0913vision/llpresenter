@@ -14,6 +14,7 @@ interface RegisterOptions {
       readonly mainFrame: object;
       isDestroyed(): boolean;
       send(channel: string, value: unknown): void;
+      executeJavaScript?(code: string): Promise<unknown>;
     };
   };
   readonly store: Pick<LiveStore, 'state' | 'subscribe'>;
@@ -55,13 +56,12 @@ export function registerUpdates(options: RegisterOptions): () => void {
         log.warn('Could not send update state', error);
       }
     },
-    installAfterShutdown: async (install, version) => {
+    installAfterShutdown: async (install, version, onHandoff) => {
       let cancelled = false;
       const isCancelled = (): boolean => cancelled;
-      const accepted = await options.shutdown.quitForUpdate(
-        install,
-        () => true,
-        {
+      let accepted = false;
+      try {
+        accepted = await options.shutdown.quitForUpdate(install, () => true, {
           savePending: async () => {
             if (!(await options.savePending()) || isCancelled()) return false;
             const prepared = await options.prepareRestart(version);
@@ -71,15 +71,26 @@ export function registerUpdates(options: RegisterOptions): () => void {
             }
             return prepared;
           },
+          beforeShutdown: async () => {
+            onHandoff();
+            if (control.webContents.isDestroyed()) return;
+            await Promise.race([
+              control.webContents.executeJavaScript?.(
+                'new Promise(resolve => { requestAnimationFrame(() => requestAnimationFrame(resolve)); setTimeout(resolve, 250); })',
+              ),
+              new Promise<void>(resolve => setTimeout(resolve, 500)),
+            ]);
+          },
           verifyClean: options.verifyClean,
-        },
-      );
-      if (!accepted) {
-        cancelled = true;
-        await options.cancelRestart();
-        options.resumeAfterCancelledInstall();
+        });
+        return accepted;
+      } finally {
+        if (!accepted) {
+          cancelled = true;
+          await options.cancelRestart();
+          options.resumeAfterCancelledInstall();
+        }
       }
-      return accepted;
     },
   });
   const trusted = (event: IpcMainEvent | IpcMainInvokeEvent): boolean =>

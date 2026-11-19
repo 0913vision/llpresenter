@@ -2,6 +2,6 @@
 export interface UpdaterPort {
   check(): Promise<string | null>;
   download(progress: (percent: number) => void): Promise<void>;
-  install(): void;
+  install(): Promise<void>;
   dispose(): void;
 }

@@ -12,8 +12,9 @@ interface UpdateOptions {
   readonly outputsOn: () => boolean;
   readonly changed: (snapshot: UpdateSnapshot) => void;
   readonly installAfterShutdown: (
-    install: () => void,
+    install: () => Promise<void>,
     version: string,
+    onHandoff: () => void,
   ) => Promise<boolean>;
   readonly log: Logger;
 }
@@ -47,6 +48,9 @@ export class UpdateController {
   private launched = false;
   private disposed = false;
   private lastOutputsOn: boolean;
+  private retry: {stage: 'check' | 'download' | 'install'; version?: string} = {
+    stage: 'check',
+  };
 
   constructor(private readonly options: UpdateOptions) {
     this.lastOutputsOn = options.outputsOn();
@@ -73,7 +77,11 @@ export class UpdateController {
 
   async check(manual = true): Promise<void> {
     if (this.disposed) return;
-    if (['checking', 'downloading', 'installing'].includes(this.status.kind)) {
+    if (
+      ['checking', 'downloading', 'installing', 'restarting'].includes(
+        this.status.kind,
+      )
+    ) {
       if (manual) {
         this.manual = true;
         this.visible = true;
@@ -108,6 +116,24 @@ export class UpdateController {
       this.visible = false;
       this.busy = false;
       this.publish();
+    } else if (
+      request.action === 'retry' &&
+      this.manual &&
+      this.visible &&
+      this.status.kind === 'error'
+    ) {
+      const retry = this.retry;
+      if (retry.stage === 'download' && retry.version !== undefined) {
+        this.download(retry.version).catch((error: unknown) =>
+          this.failed(error),
+        );
+      } else if (retry.stage === 'install' && retry.version !== undefined) {
+        this.install(retry.version).catch((error: unknown) =>
+          this.failed(error),
+        );
+      } else {
+        this.check().catch((error: unknown) => this.failed(error));
+      }
     } else if (
       request.action === 'download' &&
       this.manual &&
@@ -168,11 +194,17 @@ export class UpdateController {
   }
 
   private async install(version: string): Promise<void> {
-    this.set({kind: 'installing', version}, false);
+    this.set({kind: 'installing', version}, true);
     try {
       const accepted = await this.options.installAfterShutdown(
-        () => this.options.updater?.install(),
+        () => {
+          if (this.options.updater === null) {
+            return Promise.reject(new Error('Updater unavailable'));
+          }
+          return this.options.updater.install();
+        },
         version,
+        () => this.set({kind: 'restarting', version}, true),
       );
       if (!accepted && !this.disposed) {
         this.set({kind: 'downloaded', version}, true);
@@ -185,7 +217,25 @@ export class UpdateController {
   private failed(error: unknown): void {
     this.options.log.warn('Could not complete update operation', error);
     if (!this.disposed) {
-      this.set({kind: 'error', reason: updateErrorReason(error)}, this.manual);
+      const status = this.status;
+      const stage =
+        status.kind === 'downloading'
+          ? 'download'
+          : status.kind === 'installing' || status.kind === 'restarting'
+            ? 'install'
+            : 'check';
+      const version =
+        'version' in status && stage !== 'check' ? status.version : undefined;
+      this.retry = {stage, ...(version === undefined ? {} : {version})};
+      this.set(
+        {
+          kind: 'error',
+          stage,
+          ...(version === undefined ? {} : {version}),
+          reason: updateErrorReason(error),
+        },
+        this.manual,
+      );
     }
   }
 

@@ -18,6 +18,8 @@ describe('update payloads', () => {
     {kind: 'downloading', version: '1.2.3', percent: 50},
     {kind: 'downloaded', version: '1.2.3'},
     {kind: 'installing', version: '1.2.3'},
+    {kind: 'restarting', version: '1.2.3'},
+    {kind: 'error', stage: 'download', version: '1.2.3', reason: 'Offline'},
     {kind: 'latest', version: '1.2.3'},
     {kind: 'error', reason: 'Offline'},
   ])('accepts a bounded %j result', status => {
@@ -39,7 +41,7 @@ describe('update payloads', () => {
   ])('rejects malformed or oversized %j', value => {
     expect(parseUpdateSnapshot(value).ok).toBe(false);
   });
-  it.each(['download', 'install', 'later', 'dismiss'])(
+  it.each(['download', 'install', 'later', 'dismiss', 'retry'])(
     'accepts the %s action',
     action => {
       expect(parseUpdateAction({action, revision: 1, ignored: true})).toEqual({

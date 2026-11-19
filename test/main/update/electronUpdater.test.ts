@@ -1,12 +1,12 @@
 import {describe, expect, it, vi} from 'vitest';
-import {app} from 'electron';
+import {app, autoUpdater as electronAutoUpdater} from 'electron';
 import electronUpdater from 'electron-updater';
 import {createUpdater} from '@main/update/electronUpdater';
 import {recordingLogger} from '@fixtures/main/displays/testing';
 
 vi.mock('electron', async () => {
   const {EventEmitter} = await import('node:events');
-  return {app: new EventEmitter()};
+  return {app: new EventEmitter(), autoUpdater: new EventEmitter()};
 });
 vi.mock('electron-updater', async () => {
   const {EventEmitter} = await import('node:events');
@@ -45,14 +45,31 @@ describe('electron updater adapter', () => {
     await port.download(progress);
     expect(progress).toHaveBeenCalledExactlyOnceWith(48);
     expect(autoUpdater.listenerCount('download-progress')).toBe(0);
-    port.dispose();
     expect(autoUpdater.quitAndInstall).not.toHaveBeenCalled();
-    port.install();
+    vi.mocked(autoUpdater.quitAndInstall).mockImplementation(() => {
+      electronAutoUpdater.emit('before-quit-for-update');
+    });
+    await port.install();
     expect(autoUpdater.quitAndInstall).toHaveBeenCalledExactlyOnceWith(
       true,
       true,
     );
+    port.dispose();
     app.emit('will-quit');
     expect(autoUpdater.listenerCount('error')).toBe(0);
+  });
+
+  it('rejects an installer launch error before the update handoff', async () => {
+    const {autoUpdater} = electronUpdater;
+    const port = createUpdater(recordingLogger());
+    vi.mocked(autoUpdater.checkForUpdates).mockResolvedValue(null);
+    await expect(port.check()).rejects.toThrow('unavailable');
+    vi.mocked(autoUpdater.quitAndInstall).mockImplementation(() => {
+      autoUpdater.emit('error', new Error('Installer unavailable'));
+    });
+    await expect(port.install()).rejects.toThrow('Installer unavailable');
+    expect(electronAutoUpdater.listenerCount('before-quit-for-update')).toBe(0);
+    port.dispose();
+    app.emit('will-quit');
   });
 });
