@@ -32,6 +32,9 @@ import {mockCanvasViewport} from '@fixtures/renderer/ui/canvasTesting';
 import {ThemeLeaveGuard} from '@renderer/features/screens/themes/themeLeaveGuard';
 import {useThemePanels} from '@renderer/features/screens/themes/useThemePanels';
 import userEvent from '@testing-library/user-event';
+import {HistoryButtons} from '@renderer/app/shell/HistoryButtons';
+import {editMenuEntries} from '@renderer/app/shell/editMenuEntries';
+import {menuItems} from '@renderer/ui/menuModel';
 
 const MAIN = createScreenId('00000000-0000-4000-8000-000000000001');
 const STAGE = createScreenId('00000000-0000-4000-8000-000000000003');
@@ -51,10 +54,12 @@ function setup({
   screenOrder,
   userThemes = 0,
   userDefault = false,
+  historyControls = false,
 }: {
   readonly idle?: boolean;
   readonly userThemes?: number;
   readonly userDefault?: boolean;
+  readonly historyControls?: boolean;
   /** A 대기 화면 saved before it had any screen layout. */
   readonly oldStandby?: boolean;
   readonly services?: Partial<LlpApi['services']>;
@@ -166,11 +171,12 @@ function setup({
   function Workspace() {
     const panels = useThemePanels(true, report, guard);
     return (
-      <>
+      <div data-workspace-layout={historyControls ? 'screens' : undefined}>
+        {historyControls ? <HistoryButtons /> : null}
         {panels.left}
         {panels.canvas}
         {panels.right}
-      </>
+      </div>
     );
   }
   render(<Workspace />);
@@ -291,6 +297,48 @@ it('keeps standby first and LIVE before kind tags, and saves theme duplication a
   );
   cleanup();
   expect(listeners.size).toBe(0);
+});
+
+it('keeps native inline-rename history for keyboard, toolbar, and Edit menu', async () => {
+  const {value, edit} = setup({historyControls: true});
+  Object.defineProperty(document, 'queryCommandEnabled', {
+    configurable: true,
+    value: () => true,
+  });
+  try {
+    const api = window.llp;
+    if (!api) throw new Error('Missing API');
+    const native = vi.spyOn(api.window, 'editText');
+    const list = await screen.findByRole('listbox', {name: '테마'});
+    const song = await within(list).findByRole('option', {name: '찬양'});
+    fireEvent.contextMenu(song);
+    fireEvent.click(await screen.findByRole('menuitem', {name: '복제'}));
+    const copied = await within(list).findByRole('option', {
+      name: '찬양 복사본',
+    });
+    fireEvent.contextMenu(copied);
+    fireEvent.click(await screen.findByRole('menuitem', {name: '이름 바꾸기'}));
+    const input = await within(copied).findByRole('textbox');
+    input.focus();
+    fireEvent.change(input, {target: {value: '임시 이름'}});
+    const writes = edit.mock.calls.length;
+    expect(
+      fireEvent.keyDown(input, {key: 'z', code: 'KeyZ', ctrlKey: true}),
+    ).toBe(true);
+    fireEvent.click(screen.getByRole('button', {name: '실행 취소'}));
+    expect(native).toHaveBeenCalledWith('undo');
+    const undo = menuItems(editMenuEntries(input)).find(
+      row => row.id === 'undo',
+    );
+    undo?.onSelect?.();
+    await waitFor(() => expect(native).toHaveBeenCalledTimes(2));
+    expect(edit).toHaveBeenCalledTimes(writes);
+    expect(value().themes.some(theme => theme.name === '찬양 복사본')).toBe(
+      true,
+    );
+  } finally {
+    Reflect.deleteProperty(document, 'queryCommandEnabled');
+  }
 });
 
 it.each([
