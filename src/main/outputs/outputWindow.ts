@@ -275,6 +275,7 @@ export class OutputWindow {
     this.place(this.ensureHandle(), placement);
     this.applied = placement;
     this.visible = true;
+    this.options.onSizeChanged?.();
     this.watchIfRunning();
   }
 
@@ -370,6 +371,7 @@ export class OutputWindow {
     if (!this.visible || this.handle === null) return;
     this.handle.hide();
     this.visible = false;
+    this.options.onSizeChanged?.();
     this.hangWatch.stop();
   }
 

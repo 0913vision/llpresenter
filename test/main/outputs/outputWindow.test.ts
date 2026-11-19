@@ -358,6 +358,26 @@ describe('OutputWindow', () => {
     expect(output.shownPlacement()).toBeNull();
   });
 
+  it('announces the measured size when an output becomes visible or hidden', () => {
+    const windows = mockWindows();
+    const readings: Array<{width: number; height: number} | null> = [];
+    const output = new OutputWindow({
+      screen: fullScreenScreen(),
+      createHandle: windows.create,
+      onCloseRequested: vi.fn(),
+      onSizeChanged: () => readings.push(output.shownContentSize()),
+      log: recordingLogger(),
+      liveVersion: () => 0,
+    });
+    output.update(FULL_SCREEN);
+    const size = windows.only('main').contentSize();
+    output.frameReady(0, {...size, ready: true});
+    expect(readings.at(-1)).toEqual({width: size.width, height: size.height});
+    output.update(null);
+    expect(readings.at(-1)).toBeNull();
+    output.dispose();
+  });
+
   it('preloads the window before the output first turns on', () => {
     const {output, windows} = setUp();
     output.update(null);
