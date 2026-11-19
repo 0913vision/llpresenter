@@ -167,6 +167,7 @@ describe('song rows using shared slide history', () => {
       changed: vi.fn(),
       problem: vi.fn(),
     });
+    const previousLabel = item.slides[0]?.label;
     session.changeItemLabels('Chorus', true);
     expect(await session.commit()).toBe(true);
     const saved = fixture.service().service.order[0];
@@ -182,7 +183,7 @@ describe('song rows using shared slide history', () => {
       throw Error('Missing song item');
     }
     expect(undone.sectionCard?.label).toBeUndefined();
-    expect(undone.slides[0]?.label).toBeUndefined();
+    expect(undone.slides[0]?.label).toBe(previousLabel);
     session.discard();
   });
   it('keeps a renamed card label renamed through undo and redo', () => {

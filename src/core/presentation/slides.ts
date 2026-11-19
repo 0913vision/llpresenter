@@ -92,11 +92,15 @@ export function colorSlideLabels(
   tiles: readonly ShowTile[],
   colors: ReadonlyMap<string, LabelColor>,
 ): readonly ShowTile[] {
-  return tiles.map(tile =>
-    tile.slideLabel === undefined
-      ? tile
-      : {...tile, labelColor: colors.get(tile.slideLabel) ?? NO_LABEL_COLOR},
-  );
+  let result: ShowTile[] | undefined;
+  for (const [index, tile] of tiles.entries()) {
+    if (tile.slideLabel === undefined) continue;
+    const labelColor = colors.get(tile.slideLabel) ?? NO_LABEL_COLOR;
+    if (labelColor === tile.labelColor) continue;
+    result ??= [...tiles];
+    result[index] = {...tile, labelColor};
+  }
+  return result ?? tiles;
 }
 
 /** Sends a slide picture or item background and its text in one transaction. */

@@ -89,7 +89,7 @@ it('projects assigned liturgy and title-card labels with their catalog colors', 
   const result = buildShowService({
     service: loadedService([labelled]),
     songs: new Map(),
-    labels: [{name: 'Chorus', color: '#5FB8C2', key: null}],
+    labels: [{name: 'Chorus', color: '#5FB8C2'}],
     revision: 1,
   });
   expect(result.tiles[item.id]?.[0]).toMatchObject({

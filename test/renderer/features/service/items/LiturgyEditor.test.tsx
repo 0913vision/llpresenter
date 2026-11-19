@@ -129,9 +129,10 @@ it('opens with the title selected and includes it when extending selection', asy
   expect(card.getAttribute('aria-selected')).toBe('true');
   expect(first.getAttribute('aria-selected')).toBe('false');
   expect(items.getSnapshot().position).toBe(0);
-  await userEvent.keyboard('{Shift>}');
-  await userEvent.click(second);
-  await userEvent.keyboard('{/Shift}');
+  const user = userEvent.setup();
+  await user.keyboard('{Shift>}');
+  await user.click(second);
+  await user.keyboard('{/Shift}');
   expect(items.getSnapshot().cardSelected).toBe(true);
   expect(items.getSnapshot().bibleSelection).toEqual([0, 1]);
   expect(card.getAttribute('aria-selected')).toBe('true');
