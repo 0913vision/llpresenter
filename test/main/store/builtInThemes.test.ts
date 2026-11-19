@@ -94,6 +94,53 @@ it('reads an unedited saved standby as stored and omits it on write', () => {
   expect(disk.themes).toEqual([]);
 });
 
+it.each([true, false])(
+  'rejects duplicate saved built-in IDs with edited copy first: %s',
+  editedFirst => {
+    const file = createDefaultThemes();
+    const base = file.themes[0];
+    if (base === undefined) throw Error('Missing theme');
+    const edited = {...base, edited: true, name: 'Edited'};
+    const saved = editedFirst ? [edited, base] : [base, edited];
+    const result = settingsCodecs.themes.parse(
+      JSON.stringify({...file, themes: saved}),
+      'themes.json',
+    );
+    expect(result.ok).toBe(false);
+  },
+);
+
+it('round-trips an unedited theme with retired ID 107 as a user theme', () => {
+  const file = createDefaultThemes();
+  const original = file.themes.find(
+    theme => theme.id === IMAGE_SLIDES_THEME_ID,
+  );
+  if (original === undefined) throw Error('Missing image theme');
+  const retired = {
+    ...original,
+    id: createThemeId('00000000-0000-4000-8000-000000000107'),
+  };
+  const read = settingsCodecs.themes.parse(
+    JSON.stringify({...file, themes: [retired]}),
+    'themes.json',
+  );
+  if (!read.ok) throw Error(read.error.message);
+  expect(isBuiltInThemeId(retired.id)).toBe(false);
+  expect(read.value.data.themes.find(theme => theme.id === retired.id)).toEqual(
+    retired,
+  );
+  const saved = settingsCodecs.themes.serialize(read.value.data, 'themes.json');
+  if (!saved.ok) throw Error(saved.error.message);
+  const disk: unknown = JSON.parse(saved.value);
+  if (!isRecord(disk)) throw Error('Invalid saved file');
+  expect(disk.themes).toContainEqual(retired);
+  const reloaded = settingsCodecs.themes.parse(saved.value, 'themes.json');
+  if (!reloaded.ok) throw Error(reloaded.error.message);
+  expect(
+    reloaded.value.data.themes.find(theme => theme.id === retired.id),
+  ).toEqual(retired);
+});
+
 it('preserves former IDs in the saved theme order', () => {
   const file = createDefaultThemes();
   const old = createThemeId('00000000-0000-4000-8000-000000000107');

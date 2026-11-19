@@ -12,7 +12,8 @@ import {createDefaultThemes} from '@core/themes/defaults';
 import {resolveThemeScreen} from '@core/themes/resolve';
 import {themeElementText} from '@core/themes/content';
 import {emptyLayers} from '@core/live/state';
-import {createScreenId} from '@core/schema/ids';
+import {createScreenId, createThemeElementId} from '@core/schema/ids';
+import {STARTER_TEXT_STYLE} from '@core/themes/starterLayout';
 import {STARTER_SCREEN_IDS} from '@core/screens/screens';
 import {resolveTextTracking} from '@core/themes/textTracking';
 import {builtInTheme} from '@core/themes/defaults';
@@ -252,7 +253,29 @@ it('retains saved section layouts instead of rewriting them', () => {
   const screens = [
     {id: createScreenId(STARTER_SCREEN_IDS.broadcast), kind: 'broadcast'},
   ] as const;
-  const savedLayout = {mode: {kind: 'own' as const}, elements: []};
+  const {
+    margin,
+    maxLines,
+    referencePosition: _referencePosition,
+    ...text
+  } = STARTER_TEXT_STYLE;
+  const inset = margin / 100;
+  const savedLayout = {
+    mode: {kind: 'own' as const},
+    elements: [
+      {
+        id: createThemeElementId('00000000-0000-4000-8000-000000000003'),
+        kind: 'currentText' as const,
+        frame: {
+          x: 1920 * inset,
+          y: 1080 * inset,
+          w: 1920 * (1 - 2 * inset),
+          h: 1080 * (1 - 2 * inset),
+        },
+        text: {...text, maxLines, vAlign: 'bottom' as const},
+      },
+    ],
+  };
   const saved = {
     ...original,
     screens: {...original.screens, [screens[0].id]: savedLayout},

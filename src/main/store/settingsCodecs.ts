@@ -34,11 +34,13 @@ function parseStoredThemes(text: string, file: string) {
   if (!isRecord(raw) || !Array.isArray(raw.themes)) {
     return themes.parseThemes(text, file);
   }
+  const standby = raw.standby === undefined ? builtIns.standby : raw.standby;
+  const validated = themes.parseThemes(JSON.stringify({...raw, standby}), file);
+  if (!validated.ok) return validated;
   const saved: readonly unknown[] = raw.themes;
   const overrides = new Map(
     saved.filter(isRecord).map(theme => [theme.id, theme]),
   );
-  const standby = raw.standby === undefined ? builtIns.standby : raw.standby;
   const merged = [
     ...builtIns.themes.map(theme => overrides.get(theme.id) ?? theme),
     ...saved.filter(
