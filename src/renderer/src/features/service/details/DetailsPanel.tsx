@@ -1,3 +1,4 @@
+import {sectionCardBackground} from '@core/services/sectionCards';
 import {requestSongEditor} from '@renderer/features/songs/editor/songEditorRequests';
 import {
   useEffect,
@@ -293,6 +294,7 @@ function DetailsPanelContent({
           form: 'blank',
           title: card.name,
           theme: card.theme,
+          ...sectionCardBackground(card),
         },
     'service',
     {api, role, ...(screenId === undefined ? {} : {screenId})},

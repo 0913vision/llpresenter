@@ -77,6 +77,27 @@ function sources(change: Partial<MediaUseSources> = {}): MediaUseSources {
 }
 
 describe('the places that use a media item', () => {
+  it('counts a migrated title background as a service use', () => {
+    const used = service([
+      {
+        id: uuid(1),
+        sectionCard: {
+          name: '찬양',
+          english: 'Praise',
+          theme: uuid(111),
+          background: target,
+        },
+        slides: {
+          form: 'blank',
+          name: 'Content',
+          slides: [{id: uuid(2), text: 'Lyrics'}],
+        },
+      },
+    ]);
+    expect(
+      countMediaUses(target, sources({services: [used]})).serviceItems,
+    ).toBe(1);
+  });
   it('counts slide pictures once per song or service item', () => {
     const original = song();
     const slides = original.slides.map(slide => ({...slide, picture: target}));

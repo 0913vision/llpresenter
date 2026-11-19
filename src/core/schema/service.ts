@@ -1,4 +1,5 @@
 import {slideTransitionSchema} from './slideTransition';
+import {isSectionTheme} from '../themes/sundaySections';
 import * as v from 'valibot';
 import type {Result} from '../common/result';
 import {isRecord} from '../common/guards';
@@ -180,6 +181,8 @@ export const sectionCardSchema = jsonObject({
   ),
   english: slideTextSchema,
   theme: themeIdSchema,
+  background: v.exactOptional(mediaIdSchema),
+  backgroundNone: v.exactOptional(v.boolean()),
   transition: v.exactOptional(slideTransitionSchema),
 });
 
@@ -413,10 +416,17 @@ function convertLegacyCards<T extends Service | Template>(data: T): T {
       !current ||
       !next ||
       !isItemOfKind(current, 'slides') ||
-      current.sectionCard === undefined ||
-      current.slides.slides.length !== 0 ||
+      current.slides.form !== 'blank' ||
       Object.keys(current).some(
-        key => !['id', 'theme', 'sectionCard', 'slides'].includes(key),
+        key =>
+          ![
+            'id',
+            'theme',
+            'sectionCard',
+            'slides',
+            'background',
+            'backgroundNone',
+          ].includes(key),
       ) ||
       Object.keys(current.slides).some(
         key => !['form', 'name', 'slides'].includes(key),
@@ -431,7 +441,42 @@ function convertLegacyCards<T extends Service | Template>(data: T): T {
     ) {
       continue;
     }
-    order.splice(i, 2, {...next, sectionCard: current.sectionCard});
+    const slide = current.slides.slides[0];
+    const card =
+      current.sectionCard !== undefined && current.slides.slides.length === 0
+        ? current.sectionCard
+        : current.sectionCard === undefined &&
+            current.slides.slides.length === 1 &&
+            slide !== undefined &&
+            'text' in slide &&
+            isSectionTheme(current.theme) &&
+            current.theme !== undefined &&
+            current.slides.name.trim() !== '' &&
+            Object.keys(slide).every(key =>
+              ['id', 'text', 'transition'].includes(key),
+            )
+          ? {
+              name: current.slides.name,
+              english: slide.text,
+              theme: current.theme,
+              ...(slide.transition === undefined
+                ? {}
+                : {transition: slide.transition}),
+            }
+          : undefined;
+    if (card === undefined) continue;
+    order.splice(i, 2, {
+      ...next,
+      sectionCard: {
+        ...card,
+        ...(current.background === undefined
+          ? {}
+          : {background: current.background}),
+        ...(current.backgroundNone === undefined
+          ? {}
+          : {backgroundNone: current.backgroundNone}),
+      },
+    });
     i -= 1;
   }
   return {...data, order};

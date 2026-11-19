@@ -1,3 +1,4 @@
+import {sectionCardBackground} from '@core/services/sectionCards';
 import {useEffect, useRef, useState, type JSX, type KeyboardEvent} from 'react';
 import {SLIDES_LIMITS, type SectionCard} from '@core/schema/service';
 import {useSlideTheme} from '@renderer/platform/useSlideTheme';
@@ -56,6 +57,7 @@ export function CardSlideBody({
     form: 'blank',
     title: draft.name,
     theme: card.theme,
+    ...sectionCardBackground(card),
   });
   return (
     <>

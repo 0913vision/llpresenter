@@ -71,6 +71,45 @@ function withItem(item: object) {
 }
 
 describe('parseService', () => {
+  it.each(['service', 'template'] as const)(
+    'converts the older one-text-slide title with its background in a %s',
+    kind => {
+      const theme = '00000000-0000-4000-8000-000000000111';
+      const transition = {kind: 'wipe', dir: 'left', sec: 1};
+      const original = {
+        id: itemId(75),
+        theme,
+        background: MEDIA_ID,
+        slides: {
+          form: 'blank',
+          name: '찬양',
+          slides: [{id: itemId(76), text: 'Praise\nOriginal', transition}],
+        },
+      };
+      const following = {id: itemId(77), bible: PASSAGE};
+      const input = {
+        ...(kind === 'service' ? sundayService() : sundayTemplate()),
+        order: [original, following],
+      };
+      const result =
+        kind === 'service'
+          ? parseService(JSON.stringify(input), FILE)
+          : parseTemplate(JSON.stringify(input), FILE);
+      if (!result.ok) throw new Error(result.error.message);
+      expect(result.value.data.order).toEqual([
+        {
+          ...following,
+          sectionCard: {
+            name: '찬양',
+            english: 'Praise\nOriginal',
+            theme,
+            background: MEDIA_ID,
+            transition,
+          },
+        },
+      ]);
+    },
+  );
   it('retains legacy cards when the next row already has a title or is absent', () => {
     const card = {
       name: '찬양',

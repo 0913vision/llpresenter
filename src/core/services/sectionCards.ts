@@ -10,6 +10,15 @@ import {SECTION_THEME_ID, type SundaySection} from '../themes/sundaySections';
 import {defaultSlideTransitions} from '../schema/preferences';
 import type {SlideTransition} from '../schema/slideTransition';
 
+/** The title's own background, independent of the content item's background. */
+export function sectionCardBackground(card: SectionCard) {
+  return card.background !== undefined
+    ? {background: {mediaId: card.background, loop: false}}
+    : card.backgroundNone === true
+      ? {backgroundNone: true as const}
+      : {};
+}
+
 export function newSectionCard(transition?: SlideTransition): SectionCard {
   return {
     name: '제목',
