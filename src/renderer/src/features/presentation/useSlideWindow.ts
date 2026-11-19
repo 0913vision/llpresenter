@@ -72,13 +72,22 @@ export function useSlideWindow(
     rowGap: 0,
   });
   const [scrollTop, setScrollTop] = useState(0);
+  const geometry = useRef<{
+    itemId: string | null;
+    tracks: number;
+    stride: number;
+    inset: number;
+    anchor?: {index: number; offset: number; target: number} | undefined;
+  } | null>(null);
   const pausedUntil = useRef(0);
   const dragging = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | undefined>(undefined);
   const current = useRef<(behavior?: ScrollBehavior) => void>(() => undefined);
-  const followed = useRef<{live: number | null; itemId: string | null} | null>(
-    null,
-  );
+  const followed = useRef<{
+    live: number | null;
+    itemId: string | null;
+    height: number;
+  } | null>(null);
   // NOTE(0913vision): Coming back to 진행 positions the grid again, also when
   // it stayed built while another workspace showed.
   useLayoutEffect(
@@ -92,14 +101,25 @@ export function useSlideWindow(
   const read = useRef<{
     itemId: string | null;
     count: number;
-    tileWidth: number;
-  }>({itemId, count, tileWidth});
+  }>({itemId, count});
   useLayoutEffect(() => {
     const viewport = keeper.current?.parentElement;
     if (!viewport) return;
     const frame = workspaceFrame(viewport);
-    const scroll = (): void => setScrollTop(viewport.scrollTop);
+    const scroll = (): void => {
+      const last = geometry.current;
+      if (
+        last?.anchor &&
+        Math.abs(viewport.scrollTop - last.anchor.target) > 1
+      ) {
+        geometry.current = {...last, anchor: undefined};
+      }
+      setScrollTop(viewport.scrollTop);
+    };
     const defer = (): void => {
+      if (geometry.current) {
+        geometry.current = {...geometry.current, anchor: undefined};
+      }
       pausedUntil.current = Date.now() + 1500;
       if (timer.current !== undefined) clearTimeout(timer.current);
       timer.current = setTimeout(() => {
@@ -191,17 +211,12 @@ export function useSlideWindow(
   // NOTE(0913vision): a grid that mounts after the panel (or per item) is read once it is there.
   useLayoutEffect(() => {
     const last = read.current;
-    read.current = {itemId, count, tileWidth};
-    if (
-      measured.current &&
-      last.itemId === itemId &&
-      last.count === count &&
-      last.tileWidth === tileWidth
-    ) {
+    read.current = {itemId, count};
+    if (measured.current && last.itemId === itemId && last.count === count) {
       return;
     }
     remeasure.current();
-  }, [itemId, count, tileWidth]);
+  }, [itemId, count]);
   const tracks =
     tileWidth > 0
       ? Math.max(1, Math.floor((width + gap) / (tileWidth + gap)))
@@ -224,6 +239,66 @@ export function useSlideWindow(
   const start = first * tracks;
   const end = Math.min(count, (first + visible + OVERSCAN_ROWS * 2) * tracks);
   useLayoutEffect(() => {
+    const viewport = keeper.current?.parentElement;
+    const old = geometry.current;
+    if (!viewport || isHiddenWorkspace(workspaceFrame(viewport))) return;
+    const next: NonNullable<typeof old> = {
+      itemId,
+      tracks,
+      stride,
+      inset: measure.inset,
+    };
+    if (
+      old?.itemId === itemId &&
+      old.stride > 1 &&
+      stride > 1 &&
+      count > 0 &&
+      measure.height > 0 &&
+      (old.stride !== stride || old.tracks !== tracks)
+    ) {
+      const top = viewport.scrollTop;
+      const liveTop =
+        live === null
+          ? -Infinity
+          : old.inset + Math.floor(live / old.tracks) * old.stride;
+      const liveVisible =
+        live !== null &&
+        live < count &&
+        liveTop + old.stride > top &&
+        liveTop < top + measure.height;
+      const index =
+        old.anchor && old.anchor.index < count
+          ? old.anchor.index
+          : liveVisible
+            ? live
+            : Math.min(
+                count - 1,
+                Math.max(0, Math.ceil((top - old.inset) / old.stride)) *
+                  old.tracks,
+              );
+      const oldTop = old.inset + Math.floor(index / old.tracks) * old.stride;
+      const offset = old.anchor?.offset ?? oldTop - top;
+      const newTop = measure.inset + Math.floor(index / tracks) * stride;
+      const height =
+        Math.max(0, rows * stride - measure.rowGap) + measure.inset * 2;
+      const target = Math.max(
+        0,
+        Math.min(height - measure.height, newTop - offset),
+      );
+      next.anchor = {index, offset, target};
+      geometry.current = next;
+      if (Math.abs(target - top) > 0.5) {
+        viewport.scrollTo({top: target, behavior: 'instant'});
+      }
+      setScrollTop(viewport.scrollTop);
+      return;
+    }
+    geometry.current = {
+      ...next,
+      ...(old?.itemId === itemId && old.anchor ? {anchor: old.anchor} : {}),
+    };
+  }, [keeper, itemId, tracks, stride, measure, count, live, rows]);
+  useLayoutEffect(() => {
     current.current = (behavior = 'smooth') => {
       if (
         live !== null &&
@@ -245,10 +320,15 @@ export function useSlideWindow(
     // 진행 and after a size change, the grid is in place before its first
     // frame, without visible scrolling.
     const last = followed.current;
-    followed.current = {live, itemId};
+    followed.current = {live, itemId, height: measure.height};
     const moved =
       last !== null && (last.live !== live || last.itemId !== itemId);
-    current.current(moved ? 'smooth' : 'instant');
+    if (moved && geometry.current) {
+      geometry.current = {...geometry.current, anchor: undefined};
+    }
+    if (last === null || moved || last.height !== measure.height) {
+      current.current(moved ? 'smooth' : 'instant');
+    }
   }, [keeper, live, itemId, tracks, stride, measure]);
   return {
     reveal: (): void => current.current(),

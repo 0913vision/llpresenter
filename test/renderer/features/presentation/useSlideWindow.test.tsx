@@ -156,6 +156,54 @@ it('reveals a new live slide, adapts to zoom, and clamps after the list shrinks'
   expect(screen.getAllByRole('option')[0]?.textContent).toBe('1');
 });
 
+it('keeps the visible live slide in place when zoom changes the column count', () => {
+  const view = render(<Grid live={20} />);
+  const viewport = screen.getByTestId('viewport');
+  fireEvent.scroll(viewport, {target: {scrollTop: 360}});
+  view.rerender(<Grid live={20} tileWidth={180} />);
+  // NOTE(0913vision): Slide 21 moves from row 5 at 90 px to row 6 at 101.25 px.
+  expect(viewport.scrollTop).toBeCloseTo(517.5);
+  expect(6 * 101.25 - viewport.scrollTop).toBeCloseTo(90);
+});
+
+it('anchors the first fully visible slide when the live slide is elsewhere', () => {
+  const view = render(<Grid />);
+  const viewport = screen.getByTestId('viewport');
+  fireEvent.scroll(viewport, {target: {scrollTop: 360}});
+  view.rerender(<Grid tileWidth={180} />);
+  // NOTE(0913vision): Slide 17 was at the top, and moves from row 4 to row 5.
+  expect(viewport.scrollTop).toBeCloseTo(506.25);
+});
+
+it('does not accumulate pixel rounding while the slider moves', () => {
+  const view = render(<Grid live={20} />);
+  const viewport = screen.getByTestId('viewport');
+  let position = 360;
+  Object.defineProperty(viewport, 'scrollTop', {
+    configurable: true,
+    get: () => position,
+    set: (value: number) => {
+      position = Math.round(value);
+    },
+  });
+  fireEvent.scroll(viewport);
+  for (let width = 161; width <= 180; width++) {
+    view.rerender(<Grid live={20} tileWidth={width} />);
+    fireEvent.scroll(viewport);
+  }
+  expect(Math.abs(6 * 101.25 - viewport.scrollTop - 90)).toBeLessThan(1);
+});
+
+it('chooses a new anchor after the operator scrolls', () => {
+  const view = render(<Grid />);
+  const viewport = screen.getByTestId('viewport');
+  fireEvent.scroll(viewport, {target: {scrollTop: 360}});
+  view.rerender(<Grid tileWidth={180} />);
+  fireEvent.scroll(viewport, {target: {scrollTop: 200}});
+  view.rerender(<Grid tileWidth={190} />);
+  expect(viewport.scrollTop).toBeCloseTo(211.25);
+});
+
 it('keeps the initial unmeasured window bounded', () => {
   render(<Grid tileWidth={0} width={0} />);
   expect(screen.getAllByRole('option')).toHaveLength(16);

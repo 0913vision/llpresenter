@@ -1,5 +1,6 @@
 .keeper {
   position: relative;
+  overflow-anchor: none;
 }
 
 .numberJump {
