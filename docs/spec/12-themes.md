@@ -117,7 +117,7 @@ one-pixel increment (ten with Shift).
 | 자간                | Text elements                               | -20 to 200 reference px; default 0                                                       |
 | 짧은 글 자간        | Text elements                               | Off by default; 최대 글자 수 1 to 10, alternate 자간 -20 to 200 px                       |
 | 글머리 기호         | Text elements                               | Checkbox, off by default; one hanging bullet per nonempty paragraph                      |
-| 출처 내용           | 성경 출처                                   | 현재 절 (default), 항목 범위                                                             |
+| 출처 표시           | 성경 출처                                   | 지금 나오는 절 (default), 본문 전체                                                      |
 | 가사 없을 때 가운데 | 항목 이름                                   | Checkbox, off by default; use the frame's vertical center when 현재 슬라이드 글 is empty |
 | 가로 정렬           | Text elements                               | 왼쪽, 가운데, 오른쪽                                                                     |
 | 세로 위치           | Text elements                               | 위, 가운데, 아래                                                                         |
@@ -155,10 +155,10 @@ bullet or paragraph gap on every row. A later part of the same verse keeps the
 hanging indent without repeating the bullet. Output, next-text elements, split
 previews and thumbnails use the measured part identity for this rule.
 
-성경 출처 with 항목 범위 shows the Bible item's whole passage on every slide,
+성경 출처 with 본문 전체 shows the Bible item's whole passage on every slide,
 including split continuations. Without an item range it falls back to the
-slide's reference. Clearing the slide clears this element. 현재 절 keeps the
-slide's reference and its passage visibility setting.
+slide's reference. Clearing the slide clears this element. 지금 나오는 절 keeps
+the slide's reference and its passage visibility setting.
 
 All text keeps its theme size while wrapped lines fit the full element frame;
 only actual overflow shrinks it (03). The stored `maxLines` property is the

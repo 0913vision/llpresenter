@@ -104,15 +104,15 @@ export function ThemeElementProperties({
         ) : null}
         {element.kind === 'reference' &&
         !(model.fittedBroadcast && element.id === BROADCAST_REFERENCE_ID) ? (
-          <PropertyRow label="출처 내용">
+          <PropertyRow label="출처 표시">
             {({controlId}) => (
               <SelectMenu
                 id={controlId}
                 block
                 value={element.source ?? 'slide'}
                 options={[
-                  {value: 'slide', label: '현재 절'},
-                  {value: 'item', label: '항목 범위'},
+                  {value: 'slide', label: '지금 나오는 절'},
+                  {value: 'item', label: '본문 전체'},
                 ]}
                 disabled={reason !== undefined}
                 title={reason}

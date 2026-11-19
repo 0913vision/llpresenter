@@ -183,6 +183,26 @@ async function saveEdits() {
   await waitFor(() => expect(screen.queryByRole('alertdialog')).toBeNull());
 }
 
+it('names Bible reference scope in plain words while keeping the saved values', async () => {
+  const {value} = setup();
+  const palette = await screen.findByRole('region', {name: '요소 추가'});
+  fireEvent.click(within(palette).getByRole('button', {name: '성경 출처'}));
+  const list = screen.getByRole('listbox', {name: '요소'});
+  fireEvent.click(within(list).getByRole('option', {name: '성경 출처'}));
+  const select = screen.getByRole('button', {name: '출처 표시'});
+  expect(select.textContent).toContain('지금 나오는 절');
+  fireEvent.click(select);
+  expect(
+    screen.getByRole('menuitemradio', {name: '지금 나오는 절'}),
+  ).toBeDefined();
+  fireEvent.click(screen.getByRole('menuitemradio', {name: '본문 전체'}));
+  await saveEdits();
+  const reference = value().themes[0]?.screens[MAIN]?.elements.find(
+    element => element.kind === 'reference',
+  );
+  expect(reference).toMatchObject({source: 'item'});
+});
+
 it.each(['청중 화면 편집', '무대 화면 편집', '방송 화면 편집'])(
   'adds the slide name text element once on %s',
   async screenName => {
