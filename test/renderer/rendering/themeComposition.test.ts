@@ -169,7 +169,7 @@ describe('theme composition drawing', () => {
   );
 
   it.each(['stage', 'broadcast'] as const)(
-    'draws an item background inside the custom %s background element',
+    'keeps the item background out of a custom %s background element',
     screenKind => {
       const {root, view} = setup();
       const background = {
@@ -185,10 +185,25 @@ describe('theme composition drawing', () => {
         source: 'service' as const,
         backgroundOverride: {kind: 'media' as const, mediaId, loop: true},
       };
+      const fixedId = createMediaId('00000000-0000-4000-8000-000000000602');
+      const fixed = {
+        ...themeElementBase(807),
+        kind: 'image' as const,
+        mediaId: fixedId,
+        fit: 'fill' as const,
+        radius: 0,
+      };
       view.render(
         {...song, media: {mediaId, loop: true, startedAt: 1000}},
         {
-          ...frame([background], {item}),
+          ...frame([fixed, background], {
+            item,
+            layout: {
+              mode: {kind: 'own'},
+              background: '#123456',
+              elements: [fixed, background],
+            },
+          }),
           screen: {id: THEME_MAIN, kind: screenKind},
           transitions: false,
         },
@@ -201,10 +216,13 @@ describe('theme composition drawing', () => {
       expect(element?.style.width).toBe('800px');
       expect(element?.style.height).toBe('450px');
       expect(element?.style.borderRadius).toBe('32px');
-      const video = element?.querySelector<HTMLVideoElement>(
-        `video[src*="${mediaId}"]`,
-      );
-      expect(video?.style.objectFit).toBe('contain');
+      expect(root.querySelector(`video[src*="${mediaId}"]`)).toBeNull();
+      expect(root.querySelector(`img[src*="${mediaId}"]`)).toBeNull();
+      expect(root.querySelector(`img[src*="${fixedId}"]`)).not.toBeNull();
+      expect(
+        root.querySelector<HTMLElement>('[data-theme-background]')?.style
+          .background,
+      ).toBe('rgb(18, 52, 86)');
       view.dispose();
     },
   );
@@ -235,6 +253,45 @@ describe('theme composition drawing', () => {
     expect(root.querySelector(`video[src*="${mediaId}"]`)).toBeNull();
     view.dispose();
   });
+
+  it.each(['stage', 'broadcast'] as const)(
+    'keeps slide pictures visible through a %s media element',
+    kind => {
+      const {root, view} = setup();
+      if (song.slide === null) throw Error('Missing slide');
+      const background = {
+        ...themeElementBase(808),
+        kind: 'background' as const,
+        fit: 'fill' as const,
+        radius: 0,
+      };
+      const media = {
+        ...themeElementBase(809),
+        kind: 'media' as const,
+        fit: 'fit' as const,
+        radius: 0,
+      };
+      view.render(
+        {
+          ...song,
+          slide: {...song.slide, picture: mediaId},
+          media: {mediaId, loop: false, slidePicture: true, startedAt: 1000},
+        },
+        {
+          ...frame([background, media]),
+          screen: {id: THEME_MAIN, kind},
+          transitions: false,
+        },
+      );
+      expect(
+        root.querySelector(`[data-kind="media"] video[src*="${mediaId}"]`),
+      ).not.toBeNull();
+      expect(
+        root.querySelector(`[data-kind="background"] video[src*="${mediaId}"]`),
+      ).toBeNull();
+      view.dispose();
+    },
+  );
   it('backs stage clock and timer only while a picture is the live content', () => {
     const {root, view, text} = setup();
     const timerId = createTimerId('00000000-0000-4000-8000-000000000701');

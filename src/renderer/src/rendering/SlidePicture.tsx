@@ -101,7 +101,10 @@ export function SlidePicture({
         ...(slide.picture === undefined
           ? {}
           : {media: mediaUrl(slide.picture)}),
-        ...(background === undefined || slide.picture !== undefined
+        ...(background === undefined ||
+        slide.picture !== undefined ||
+        screen?.kind === 'stage' ||
+        screen?.kind === 'broadcast'
           ? {}
           : {background: thumbnailSrc(background)}),
       }}

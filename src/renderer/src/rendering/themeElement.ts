@@ -38,6 +38,20 @@ import {
 } from '@core/themes/sectionBroadcast';
 import {sectionBandGradient, sermonBandGradient} from './sectionBandGradient';
 
+function outputMedia(
+  kind: 'media' | 'background',
+  layers: LiveLayers,
+  frame: RenderFrame,
+): MediaLayer | null {
+  if (
+    kind === 'background' &&
+    (frame.screen?.kind === 'stage' || frame.screen?.kind === 'broadcast')
+  ) {
+    return null;
+  }
+  return themeElementMedia(kind, {layers, item: frame.theme?.item ?? null});
+}
+
 function fillColor(fill: string, opacity: number): string {
   const [red, green, blue] = [1, 3, 5].map(at =>
     Number.parseInt(fill.slice(at, at + 2), 16),
@@ -482,7 +496,7 @@ export class ThemeElementView {
     );
     this.text?.setEllipsis(element.broadcastSingleLine === true);
     if (element.kind === 'media' || element.kind === 'background') {
-      const media = themeElementMedia(element.kind, {layers, item});
+      const media = outputMedia(element.kind, layers, frame);
       this.showMedia(media, frame, element.fit);
     } else if (element.kind === 'overlay') {
       const overlay =
@@ -1099,10 +1113,7 @@ export class ThemeElementView {
     if (this.element.kind !== 'background' && this.element.kind !== 'media') {
       return;
     }
-    const media = themeElementMedia(this.element.kind, {
-      layers,
-      item: frame.theme?.item ?? null,
-    });
+    const media = outputMedia(this.element.kind, layers, frame);
     if (
       this.media !== null ||
       media === null ||
